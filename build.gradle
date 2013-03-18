@@ -1,0 +1,93 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
+version = 'dev'
+
+mainClassName = "jadx.Main"
+
+project.ext {
+    mainSamplesClass = "jadx.samples.RunTests"  
+    samplesJadxSrcDir = "${buildDir}/samples-jadx/src"
+}
+
+dependencies {
+    compile 'com.google.android.tools:dx:1.7'
+    compile 'com.beust:jcommander:1.30'
+    compile 'org.slf4j:slf4j-api:1.6.6'
+    compile 'ch.qos.logback:logback-classic:1.0.9'
+    testCompile 'junit:junit:4.8.2'
+}
+
+repositories {
+    mavenCentral()
+}
+
+sourceSets {
+    samples
+    //TODO don't add to eclipse classpath
+    samplesJadx {
+        java {
+            srcDir samplesJadxSrcDir
+            output.classesDir "${buildDir}/samples-jadx/output"
+        }
+    }
+}
+
+task samplesRun(type: JavaExec, dependsOn: compileSamplesJava) {  
+    classpath = sourceSets.samples.output
+    main = mainSamplesClass  
+}
+
+task samplesJar(type: Jar, dependsOn: samplesRun) {
+    baseName = 'samples'
+    from sourceSets.samples.output
+}
+
+task samplesJadxCreate(type: JavaExec, dependsOn: [compileJava, samplesJar]) {  
+    classpath = sourceSets.main.output + configurations.compile
+    main = mainClassName 
+    args = ['-d', samplesJadxSrcDir, samplesJar.archivePath]
+}
+
+compileSamplesJadxJava.dependsOn samplesJadxCreate
+
+task samplesJadxRun(type: JavaExec, dependsOn: compileSamplesJadxJava) {  
+    classpath = sourceSets.samplesJadx.output
+    main = mainSamplesClass  
+}
+
+task samples (dependsOn: samplesJadxRun) {
+}
+
+//check.dependsOn samples
+build.dependsOn distZip
+build.dependsOn installApp
+
+startScripts {
+    doLast {
+        // increase default max heap size
+        String var = 'DEFAULT_JVM_OPTS='
+        String args = '-Xmx1500M'
+        unixScript.text = unixScript.text.replace(var + '""', var + '"' + args + '"')
+        windowsScript.text = windowsScript.text.replace(var, var + args)
+    }
+}
+
+applicationDistribution.with {
+    into('') {
+        from '.'
+        include 'README.md'
+        include 'NOTICE'
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.4'
+}
+
