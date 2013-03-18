@@ -1,0 +1,17 @@
+.classpath
+.project
+.settings/
+
+bin/
+target/
+build/
+idea/
+.gradle/
+
+*.dex
+*.jar
+*.class
+*.dump
+*.log
+*.cfg
+
