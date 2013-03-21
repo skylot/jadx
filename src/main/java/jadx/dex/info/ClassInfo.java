@@ -52,16 +52,16 @@ public final class ClassInfo {
 		this.type = type;
 
 		String fullObjectName = type.getObject();
+		assert fullObjectName.indexOf('/') == -1;
+
+		boolean notObfuscated = dex.root().getJadxArgs().isNotObfuscated();
 		String name;
 		String pkg;
-
-		assert fullObjectName.indexOf('/') == -1;
 
 		int dot = fullObjectName.lastIndexOf('.');
 		if (dot == -1) {
 			// rename default package if it used from class with package (often for obfuscated apps),
-			// TODO? if default package really needed
-			pkg = DEFAULT_PACKAGE_NAME;
+			pkg = (notObfuscated ? "" : DEFAULT_PACKAGE_NAME);
 			name = fullObjectName;
 		} else {
 			pkg = fullObjectName.substring(0, dot);
@@ -69,20 +69,13 @@ public final class ClassInfo {
 		}
 
 		int sep = name.lastIndexOf('$');
-		if (sep > 0) {
+		if (sep > 0 && sep != name.length() - 1) {
 			String parClsName = pkg + '.' + name.substring(0, sep);
-			if (dex.root().getJadxArgs().isNotObfuscated()
-					|| dex.root().isClassExists(parClsName)) {
+			if (notObfuscated || dex.root().isClassExists(parClsName)) {
 				parentClass = fromName(dex, parClsName);
 				name = name.substring(sep + 1);
 			} else {
-				// TODO for more accuracy we need full classpath class listing
-				// for now instead make more checks
-				if (sep != name.length() - 1) {
-					parentClass = fromName(dex, parClsName);
-					name = name.substring(sep + 1);
-				} else
-					parentClass = null;
+				parentClass = null;
 			}
 		} else {
 			parentClass = null;
@@ -91,15 +84,10 @@ public final class ClassInfo {
 		if (Character.isDigit(name.charAt(0)))
 			name = "InnerClass_" + name;
 
-		// TODO rename classes with reserved names
 		if (NameMapper.isReserved(name))
 			name += "_";
 
-		if (parentClass != null)
-			fullName = parentClass.getFullName() + '.' + name;
-		else
-			fullName = pkg + '.' + name;
-
+		this.fullName = (parentClass != null ? parentClass.getFullName() : pkg) + "." + name;
 		this.clsName = name;
 		this.clsPackage = pkg;
 	}
@@ -122,7 +110,7 @@ public final class ClassInfo {
 	}
 
 	public boolean isPackageDefault() {
-		return clsPackage.equals(DEFAULT_PACKAGE_NAME);
+		return clsPackage.isEmpty() || clsPackage.equals(DEFAULT_PACKAGE_NAME);
 	}
 
 	public String getNameWithoutPackage() {
@@ -155,8 +143,8 @@ public final class ClassInfo {
 	public boolean equals(Object obj) {
 		if (this == obj) return true;
 		if (obj instanceof ClassInfo) {
-			ClassInfo cls = (ClassInfo) obj;
-			return this.getFullName().equals(cls.getFullName());
+			ClassInfo other = (ClassInfo) obj;
+			return this.getFullName().equals(other.getFullName());
 		}
 		return false;
 	}
