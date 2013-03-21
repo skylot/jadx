@@ -19,6 +19,7 @@ import jadx.dex.trycatch.ExcHandlerAttr;
 import jadx.dex.trycatch.ExceptionHandler;
 import jadx.dex.trycatch.TryCatchBlock;
 import jadx.utils.BlockUtils;
+import jadx.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,19 +62,25 @@ public class ModVisitor extends AbstractVisitor {
 						MethodInfo callMth = inv.getCallMth();
 						if (callMth.isConstructor()) {
 							ConstructorInsn co = new ConstructorInsn(mth, inv);
-							// don't call 'super' if parent 'Object'
 							if (co.isSuper()) {
-								if (!co.getClassType().getFullName().equals(Consts.CLASS_OBJECT)) {
-									for (int j = 0; j < co.getArgsCount(); j++) {
-										InsnArg arg = co.getArg(j);
-										if (arg.isRegister()) {
-											CodeShrinker.inlineArgument(mth, (RegisterArg) arg);
+								try {
+									// don't call 'super' if parent 'Object'
+									if (!co.getClassType().getFullName().equals(Consts.CLASS_OBJECT)) {
+										for (int j = 0; j < co.getArgsCount(); j++) {
+											InsnArg arg = co.getArg(j);
+											if (arg.isRegister()) {
+												CodeShrinker.inlineArgument(mth, (RegisterArg) arg);
+											}
 										}
+										if (!mth.getParentClass().getAccessFlags().isEnum())
+											mth.setSuperCall(co);
 									}
-									if (!mth.getParentClass().getAccessFlags().isEnum())
-										mth.setSuperCall(co);
+									remover.add(insn);
+								} catch (JadxRuntimeException e) {
+									// inline args into super fail
+									LOG.warn("Can't inline args into super call: " + inv + ", mth: " + mth);
+									replaceInsn(block, i, co);
 								}
-								remover.add(insn);
 							} else if (co.isThis() && co.getArgsCount() == 0) {
 								MethodNode defCo = mth.getParentClass().searchMethodById(co.getCallMth().getShortId());
 								if (defCo == null || defCo.isNoCode()) {
