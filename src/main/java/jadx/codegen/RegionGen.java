@@ -35,7 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RegionGen extends InsnGen {
-	private final static Logger LOG = LoggerFactory.getLogger(RegionGen.class);
+	private static final Logger LOG = LoggerFactory.getLogger(RegionGen.class);
 
 	public RegionGen(MethodGen mgen, MethodNode mth) {
 		super(mgen, mth, false);

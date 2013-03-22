@@ -8,6 +8,7 @@ import jadx.dex.info.AccessInfo.AFType;
 import jadx.dex.info.ClassInfo;
 import jadx.dex.info.MethodInfo;
 import jadx.dex.instructions.GotoNode;
+import jadx.dex.instructions.IfNode;
 import jadx.dex.instructions.InsnDecoder;
 import jadx.dex.instructions.SwitchNode;
 import jadx.dex.instructions.args.ArgType;
@@ -27,17 +28,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.android.dx.io.ClassData.Method;
 import com.android.dx.io.Code;
 import com.android.dx.io.Code.CatchHandler;
 import com.android.dx.io.Code.Try;
 
 public class MethodNode extends AttrNode implements ILoadable {
-
-	private final static Logger LOG = LoggerFactory.getLogger(MethodNode.class);
 
 	private final MethodInfo mthInfo;
 	private final ClassNode parentClass;
@@ -259,29 +255,34 @@ public class MethodNode extends AttrNode implements ILoadable {
 				case SWITCH: {
 					SwitchNode sw = (SwitchNode) insn;
 					for (int target : sw.getTargets()) {
-						insnByOffset[target].getAttributes().add(new JumpAttribute(offset, target));
+						addJump(insnByOffset, offset, target);
 					}
 					// default case
 					int next = InsnDecoder.getNextInsnOffset(insnByOffset, offset);
 					if (next != -1)
-						insnByOffset[next].getAttributes().add(new JumpAttribute(offset, next));
+						addJump(insnByOffset, offset, next);
 					break;
 				}
 
 				case IF:
 					int next = InsnDecoder.getNextInsnOffset(insnByOffset, offset);
 					if (next != -1)
-						insnByOffset[next].getAttributes().add(new JumpAttribute(offset, next));
-					// no break
+						addJump(insnByOffset, offset, next);
+					addJump(insnByOffset, offset, ((IfNode) insn).getTarget());
+					break;
+
 				case GOTO:
-					int target = ((GotoNode) insn).getTarget();
-					insnByOffset[target].getAttributes().add(new JumpAttribute(offset, target));
+					addJump(insnByOffset, offset, ((GotoNode) insn).getTarget());
 					break;
 
 				default:
 					break;
 			}
 		}
+	}
+
+	private static void addJump(InsnNode[] insnByOffset, int offset, int target) {
+		insnByOffset[target].getAttributes().add(new JumpAttribute(offset, target));
 	}
 
 	public String getName() {

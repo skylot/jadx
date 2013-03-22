@@ -12,9 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ErrorsCounter {
-	private final static Logger LOG = LoggerFactory.getLogger(ErrorsCounter.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ErrorsCounter.class);
 
-	private final static Set<Object> errorNodes = new HashSet<Object>();
+	private static final Set<Object> errorNodes = new HashSet<Object>();
 	private static int errorsCount = 0;
 
 	public static int getErrorCount() {

@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  * (remove, replace, process exception handlers)
  */
 public class ModVisitor extends AbstractVisitor {
-	private final static Logger LOG = LoggerFactory.getLogger(ModVisitor.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ModVisitor.class);
 
 	@Override
 	public void visit(MethodNode mth) {

@@ -4,15 +4,15 @@ import java.util.Arrays;
 
 public class TestFields extends AbstractTest {
 
-	private final static boolean fbz = false;
-	private final static boolean fb = true;
-	private final static int fi = 5;
-	private final static int fiz = 0;
+	private static final boolean fbz = false;
+	private static final boolean fb = true;
+	private static final int fi = 5;
+	private static final int fiz = 0;
 
-	private final static String fstr = "final string";
+	private static final String fstr = "final string";
 
-	private final static double fd = 3.14;
-	private final static double[] fda = new double[] { 3.14, 2.7 };
+	private static final double fd = 3.14;
+	private static final double[] fda = new double[] { 3.14, 2.7 };
 
 	private static int si = 5;
 

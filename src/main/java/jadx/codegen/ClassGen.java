@@ -24,14 +24,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.android.dx.rop.code.AccessFlags;
 
 public class ClassGen {
-	private final static Logger LOG = LoggerFactory.getLogger(ClassGen.class);
-
 	private final ClassNode cls;
 	private final ClassGen parentGen;
 	private final AnnotationGen annotationGen;

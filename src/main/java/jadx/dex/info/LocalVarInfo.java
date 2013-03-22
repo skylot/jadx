@@ -5,12 +5,8 @@ import jadx.dex.instructions.args.RegisterArg;
 import jadx.dex.instructions.args.TypedVar;
 import jadx.dex.nodes.DexNode;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class LocalVarInfo extends RegisterArg {
 
-	private final static Logger LOG = LoggerFactory.getLogger(LocalVarInfo.class);
 	private boolean isEnd;
 
 	public LocalVarInfo(DexNode dex, int rn, int nameId, int typeId, int signId) {
@@ -31,8 +27,6 @@ public class LocalVarInfo extends RegisterArg {
 		TypedVar tv = new TypedVar(type);
 		tv.setName(name);
 		setTypedVar(tv);
-
-		// LOG.trace("local var: {}, sign: {}", tv, sign);
 	}
 
 	public void start(int addr, int line) {

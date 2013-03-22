@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ProcessVariables extends AbstractVisitor {
-	private final static Logger LOG = LoggerFactory.getLogger(ProcessVariables.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ProcessVariables.class);
 
 	private static class Usage {
 		private RegisterArg arg;

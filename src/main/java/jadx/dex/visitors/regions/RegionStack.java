@@ -12,8 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RegionStack {
-	private final static Logger LOG = LoggerFactory.getLogger(RegionStack.class);
-	private final static boolean DEBUG = false;
+	private static final Logger LOG = LoggerFactory.getLogger(RegionStack.class);
+	private static final boolean DEBUG = false;
 
 	static {
 		if (DEBUG)

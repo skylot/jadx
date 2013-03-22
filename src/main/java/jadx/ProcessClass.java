@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class ProcessClass implements Runnable {
-	private final static Logger LOG = LoggerFactory.getLogger(ProcessClass.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ProcessClass.class);
 
 	private final ClassNode cls;
 	private final List<IDexTreeVisitor> passes;

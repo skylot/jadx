@@ -32,7 +32,7 @@ import com.android.dx.io.ClassDef;
 
 public class ClassNode extends AttrNode implements ILoadable {
 
-	private final static Logger LOG = LoggerFactory.getLogger(ClassNode.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
 
 	private final DexNode dex;
 	private final ClassInfo clsInfo;

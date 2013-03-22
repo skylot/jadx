@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 public class CodeShrinker extends AbstractVisitor {
 
-	private final static Logger LOG = LoggerFactory.getLogger(CodeShrinker.class);
+	private static final Logger LOG = LoggerFactory.getLogger(CodeShrinker.class);
 
 	@Override
 	public void visit(MethodNode mth) {
@@ -186,12 +186,12 @@ public class CodeShrinker extends AbstractVisitor {
 					rarg.wrapInstruction(ai);
 			}
 			// remove method args
-			if (list.size() != 0 & args.size() != 0) {
+			if (list.size() != 0 && args.size() != 0) {
 				list.removeAll(args);
 			}
 			i++;
 			if (i > 10000)
-				throw new JadxRuntimeException("Can't inline arguments for: " + arg + " insn:" + assignInsn);
+				throw new JadxRuntimeException("Can't inline arguments for: " + arg + " insn: " + assignInsn);
 		} while (!list.isEmpty());
 
 		return arg.wrapInstruction(assignInsn);

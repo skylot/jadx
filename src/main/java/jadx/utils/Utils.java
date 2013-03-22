@@ -1,6 +1,5 @@
 package jadx.utils;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Iterator;
@@ -37,19 +36,6 @@ public class Utils {
 				str.append(", ");
 		}
 		return str.toString();
-	}
-
-	public static boolean deleteFolder(File dir) {
-		File[] files = dir.listFiles();
-		if (files != null) {
-			for (File f : files) {
-				if (f.isDirectory())
-					deleteFolder(f);
-				else
-					f.delete();
-			}
-		}
-		return dir.delete();
 	}
 
 	public static String getStackTrace(Throwable throwable) {

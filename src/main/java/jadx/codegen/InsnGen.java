@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class InsnGen {
-	private final static Logger LOG = LoggerFactory.getLogger(InsnGen.class);
+	private static final Logger LOG = LoggerFactory.getLogger(InsnGen.class);
 
 	protected final MethodGen mgen;
 	protected final MethodNode mth;

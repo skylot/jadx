@@ -14,20 +14,20 @@ import com.android.dx.io.DexBuffer.Section;
 
 public class DebugInfoParser {
 
-	private final static int DBG_END_SEQUENCE = 0x00;
-	private final static int DBG_ADVANCE_PC = 0x01;
-	private final static int DBG_ADVANCE_LINE = 0x02;
-	private final static int DBG_START_LOCAL = 0x03;
-	private final static int DBG_START_LOCAL_EXTENDED = 0x04;
-	private final static int DBG_END_LOCAL = 0x05;
-	private final static int DBG_RESTART_LOCAL = 0x06;
-	private final static int DBG_SET_PROLOGUE_END = 0x07;
-	private final static int DBG_SET_EPILOGUE_BEGIN = 0x08;
-	private final static int DBG_SET_FILE = 0x09;
+	private static final int DBG_END_SEQUENCE = 0x00;
+	private static final int DBG_ADVANCE_PC = 0x01;
+	private static final int DBG_ADVANCE_LINE = 0x02;
+	private static final int DBG_START_LOCAL = 0x03;
+	private static final int DBG_START_LOCAL_EXTENDED = 0x04;
+	private static final int DBG_END_LOCAL = 0x05;
+	private static final int DBG_RESTART_LOCAL = 0x06;
+	private static final int DBG_SET_PROLOGUE_END = 0x07;
+	private static final int DBG_SET_EPILOGUE_BEGIN = 0x08;
+	private static final int DBG_SET_FILE = 0x09;
 
-	private final static int DBG_FIRST_SPECIAL = 0x0a; // the smallest special opcode
-	private final static int DBG_LINE_BASE = -4; // the smallest line number increment
-	private final static int DBG_LINE_RANGE = 15; // the number of line increments represented
+	private static final int DBG_FIRST_SPECIAL = 0x0a; // the smallest special opcode
+	private static final int DBG_LINE_BASE = -4; // the smallest line number increment
+	private static final int DBG_LINE_RANGE = 15; // the number of line increments represented
 
 	private final MethodNode mth;
 	private final Section section;

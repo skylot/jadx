@@ -3,18 +3,17 @@ package jadx.codegen;
 import jadx.utils.exceptions.JadxRuntimeException;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CodeWriter {
-	private final static Logger LOG = LoggerFactory.getLogger(CodeWriter.class);
+	private static final Logger LOG = LoggerFactory.getLogger(CodeWriter.class);
 	private static final int MAX_FILENAME_LENGTH = 128;
 
-	public final static String NL = System.getProperty("line.separator");
-	public final static String INDENT = "\t";
+	public static final String NL = System.getProperty("line.separator");
+	public static final String INDENT = "\t";
 
 	private StringBuilder buf = new StringBuilder();
 	private String indentStr;
@@ -155,11 +154,11 @@ public class CodeWriter {
 		PrintWriter out = null;
 		try {
 			makeDirsForFile(file);
-			out = new PrintWriter(file);
+			out = new PrintWriter(file, "UTF-8");
 			String code = buf.toString();
 			code = removeFirstEmptyLine(code);
 			out.print(code);
-		} catch (FileNotFoundException e) {
+		} catch (Exception e) {
 			LOG.error("Save file error", e);
 		} finally {
 			if (out != null)

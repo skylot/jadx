@@ -148,6 +148,7 @@ public class InsnNode extends AttrNode {
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) return true;
+		if (obj == null) return false;
 		if (hashCode() != obj.hashCode()) return false;
 		if (!(obj instanceof InsnNode)) return false;
 

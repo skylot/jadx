@@ -10,9 +10,6 @@ import jadx.dex.nodes.InsnNode;
 import jadx.dex.nodes.MethodNode;
 import jadx.utils.exceptions.DecodeException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.android.dx.io.Code;
 import com.android.dx.io.OpcodeInfo;
 import com.android.dx.io.Opcodes;
@@ -22,8 +19,6 @@ import com.android.dx.io.instructions.PackedSwitchPayloadDecodedInstruction;
 import com.android.dx.io.instructions.SparseSwitchPayloadDecodedInstruction;
 
 public class InsnDecoder {
-
-	private final static Logger LOG = LoggerFactory.getLogger(InsnDecoder.class);
 
 	private final MethodNode method;
 	private final DecodedInstruction[] insnArr;
@@ -35,25 +30,20 @@ public class InsnDecoder {
 		this.insnArr = DecodedInstruction.decodeAll(mthCode.getInstructions());
 	}
 
-	public InsnNode[] run() {
+	public InsnNode[] run() throws DecodeException {
 		InsnNode[] instructions = new InsnNode[insnArr.length];
 
 		for (int i = 0; i < insnArr.length; i++) {
-			try {
-				DecodedInstruction rawInsn = insnArr[i];
-				if (rawInsn != null) {
-					InsnNode insn = decode(rawInsn, i);
-					if (insn != null) {
-						insn.setOffset(i);
-						insn.setInsnHashCode(calcHashCode(rawInsn));
-					}
-					instructions[i] = insn;
-				} else {
-					instructions[i] = null;
+			DecodedInstruction rawInsn = insnArr[i];
+			if (rawInsn != null) {
+				InsnNode insn = decode(rawInsn, i);
+				if (insn != null) {
+					insn.setOffset(i);
+					insn.setInsnHashCode(calcHashCode(rawInsn));
 				}
-			} catch (DecodeException e) {
-				LOG.error("Instruction decode error", e);
-				System.exit(1);
+				instructions[i] = insn;
+			} else {
+				instructions[i] = null;
 			}
 		}
 		return instructions;

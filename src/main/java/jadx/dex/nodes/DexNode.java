@@ -23,7 +23,7 @@ import com.android.dx.merge.TypeList;
 
 public class DexNode {
 
-	public final static int NO_INDEX = -1;
+	public static final int NO_INDEX = -1;
 
 	private final RootNode root;
 	private final DexBuffer dexBuf;

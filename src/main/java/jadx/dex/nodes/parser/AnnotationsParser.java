@@ -15,14 +15,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.android.dx.io.DexBuffer.Section;
 
 public class AnnotationsParser {
-
-	private final static Logger LOG = LoggerFactory.getLogger(AnnotationsParser.class);
 
 	private final DexNode dex;
 
@@ -74,7 +69,6 @@ public class AnnotationsParser {
 			Section anSection = dex.openSection(section.readInt());
 			Annotation a = readAnnotation(dex, anSection, true);
 			list.add(a);
-			// LOG.debug(" + " + a);
 		}
 		return new AnnotationsList(list);
 	}

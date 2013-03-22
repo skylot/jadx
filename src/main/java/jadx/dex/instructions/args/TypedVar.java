@@ -20,9 +20,9 @@ public class TypedVar {
 	/**
 	 * This method must be used very carefully
 	 */
-	public boolean forceSetType(ArgType type) {
-		if (type != null && !type.equals(type)) {
-			this.type = type;
+	public boolean forceSetType(ArgType newType) {
+		if (newType != null && !type.equals(newType)) {
+			type = newType;
 			return true;
 		} else {
 			return false;

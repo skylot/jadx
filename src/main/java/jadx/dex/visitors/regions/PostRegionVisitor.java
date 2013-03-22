@@ -12,11 +12,7 @@ import jadx.utils.exceptions.JadxException;
 
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class PostRegionVisitor extends AbstractVisitor {
-	private final static Logger LOG = LoggerFactory.getLogger(PostRegionVisitor.class);
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
@@ -24,10 +20,9 @@ public class PostRegionVisitor extends AbstractVisitor {
 			return;
 
 		DepthRegionTraverser.traverse(mth, new MarkTryCatchRegions(mth), mth.getRegion());
-
 		DepthRegionTraverser.traverse(mth, new FinishRegions(), mth.getRegion());
 
-		// removeReturn(mth);
+		removeReturn(mth);
 	}
 
 	/**

@@ -13,6 +13,7 @@ import java.util.List;
 
 public class BlockNode extends AttrNode implements IBlock {
 
+	private int id;
 	private final int startOffset;
 	private final List<InsnNode> instructions = new ArrayList<InsnNode>(2);
 
@@ -26,12 +27,9 @@ public class BlockNode extends AttrNode implements IBlock {
 	private BlockRegState startState;
 	private BlockRegState endState;
 
-	private int id;
-	public static int initialID;
-
-	public BlockNode(MethodNode mth, int offset) {
+	public BlockNode(MethodNode mth, int id, int offset) {
+		this.id = id;
 		this.startOffset = offset;
-		this.id = ++initialID;
 	}
 
 	public void setId(int id) {

@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.android.dx.io.DexBuffer;
 
 public class InputFile {
-	private final static Logger LOG = LoggerFactory.getLogger(InputFile.class);
+	private static final Logger LOG = LoggerFactory.getLogger(InputFile.class);
 
 	private final File file;
 	private final DexBuffer dexBuf;

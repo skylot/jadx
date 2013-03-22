@@ -19,7 +19,7 @@ import com.beust.jcommander.ParameterDescription;
 import com.beust.jcommander.ParameterException;
 
 public class JadxArgs {
-	private final static Logger LOG = LoggerFactory.getLogger(JadxArgs.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JadxArgs.class);
 
 	@Parameter(description = "<input files> (.dex, .apk, .jar or .class)", required = true)
 	protected List<String> files;

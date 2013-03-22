@@ -38,7 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RegionMaker {
-	private final static Logger LOG = LoggerFactory.getLogger(RegionMaker.class);
+	private static final Logger LOG = LoggerFactory.getLogger(RegionMaker.class);
 
 	private final MethodNode mth;
 
@@ -247,7 +247,7 @@ public class RegionMaker {
 		return out;
 	}
 
-	private final static Set<BlockNode> cacheSet = new HashSet<BlockNode>();
+	private static final Set<BlockNode> cacheSet = new HashSet<BlockNode>();
 
 	private BlockNode processMonitorEnter(IRegion curRegion, BlockNode block, InsnNode insn, RegionStack stack) {
 		RegisterArg arg = (RegisterArg) insn.getArg(0);

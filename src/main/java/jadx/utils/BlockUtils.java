@@ -166,19 +166,6 @@ public class BlockUtils {
 		return false;
 	}
 
-	private static boolean addPredcessorsUntil(Set<BlockNode> set, BlockNode from, BlockNode until) {
-		set.add(from);
-		for (BlockNode pred : from.getPredecessors()) {
-			if (pred == until)
-				return true;
-			if (pred != until && !set.contains(pred)) {
-				if (addPredcessorsUntil(set, pred, until))
-					return true;
-			}
-		}
-		return false;
-	}
-
 	public static boolean isPathExists(BlockNode start, BlockNode end) {
 		if (start == end)
 			return true;

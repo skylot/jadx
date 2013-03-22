@@ -26,18 +26,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class BlockMakerVisitor extends AbstractVisitor {
-	private final static Logger LOG = LoggerFactory.getLogger(BlockMakerVisitor.class);
 
 	// leave these instructions alone in block node
-	private final static Set<InsnType> separateInsns = EnumSet.of(
+	private static final Set<InsnType> separateInsns = EnumSet.of(
 			InsnType.IF,
 			InsnType.SWITCH,
 			InsnType.MONITOR_ENTER,
 			InsnType.MONITOR_EXIT);
+
+	private static int nextBlockId;
 
 	@Override
 	public void visit(MethodNode mth) {
@@ -45,7 +43,13 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			return;
 
 		mth.initBasicBlocks();
-		BlockNode.initialID = 0;
+		makeBasicBlocks(mth);
+		BlockProcessingHelper.visit(mth);
+		mth.finishBasicBlocks();
+	}
+
+	private static void makeBasicBlocks(MethodNode mth) {
+		nextBlockId = 0;
 
 		InsnNode prevInsn = null;
 		Map<Integer, BlockNode> blocksMap = new HashMap<Integer, BlockNode>();
@@ -179,10 +183,6 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			if (i > 100)
 				throw new AssertionError("Can't fix method cfg: " + mth);
 		}
-
-		BlockProcessingHelper.visit(mth);
-
-		mth.finishBasicBlocks();
 	}
 
 	private static BlockNode getBlock(MethodNode mth, int offset, Map<Integer, BlockNode> blocksMap) {
@@ -204,7 +204,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 	}
 
 	private static BlockNode startNewBlock(MethodNode mth, int offset) {
-		BlockNode block = new BlockNode(mth, offset);
+		BlockNode block = new BlockNode(mth, ++nextBlockId, offset);
 		mth.getBasicBlocks().add(block);
 		return block;
 	}
@@ -337,7 +337,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 				}
 			}
 
-			// splice return block
+			// splice return block if several precessors presents
 			if (block.getAttributes().contains(AttributeFlag.RETURN)
 					&& block.getPredecessors().size() > 1
 					&& !block.getInstructions().get(0).getAttributes().contains(AttributeType.CATCH_BLOCK)) {
@@ -377,7 +377,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		return false;
 	}
 
-	private void cleanDomTree(MethodNode mth) {
+	private static void cleanDomTree(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			AttributesList attrs = block.getAttributes();
 			attrs.remove(AttributeType.LOOP);

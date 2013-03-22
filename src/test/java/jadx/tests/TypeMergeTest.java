@@ -62,11 +62,12 @@ public class TypeMergeTest extends TestCase {
 
 	private void merge(ArgType t1, ArgType t2, ArgType exp) {
 		ArgType res = ArgType.merge(t1, t2);
+		String msg = format(t1, t2, exp, res);
 		if (exp == null) {
-			assertNull("Incorrect accept: " + format(t1, t2, exp, res), res);
+			assertNull("Incorrect accept: " + msg, res);
 		} else {
-			assertNotNull("Incorrect reject: " + format(t1, t2, exp, res), res);
-			assertTrue("Incorrect result: " + format(t1, t2, exp, res), exp.equals(res));
+			assertNotNull("Incorrect reject: " + msg, res);
+			assertTrue("Incorrect result: " + msg, exp.equals(res));
 		}
 	}
 

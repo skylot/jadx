@@ -104,7 +104,7 @@ public class EnumVisitor extends AbstractVisitor {
 					continue;
 
 				RegisterArg nameArg = (RegisterArg) insn.getArg(0);
-				InsnArg pos = insn.getArg(1);
+				// InsnArg pos = insn.getArg(1);
 				// TODO add check: pos == j
 				String name = (String) nameArg.getConstValue();
 

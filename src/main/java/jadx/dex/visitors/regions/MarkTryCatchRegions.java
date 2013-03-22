@@ -27,8 +27,8 @@ import org.slf4j.LoggerFactory;
  * Extract blocks to separate try/catch region
  */
 public class MarkTryCatchRegions extends AbstractRegionVisitor {
-	private final static Logger LOG = LoggerFactory.getLogger(MarkTryCatchRegions.class);
-	private final static boolean DEBUG = false;
+	private static final Logger LOG = LoggerFactory.getLogger(MarkTryCatchRegions.class);
+	private static final boolean DEBUG = false;
 
 	static {
 		if (DEBUG)

@@ -5,11 +5,7 @@ import jadx.dex.nodes.InsnNode;
 import jadx.dex.nodes.MethodNode;
 import jadx.utils.ErrorsCounter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class CheckTypeVisitor {
-	private final static Logger LOG = LoggerFactory.getLogger(CheckTypeVisitor.class);
 
 	public static void visit(MethodNode mth, InsnNode insn) {
 		if (insn.getResult() != null) {
@@ -28,7 +24,6 @@ public class CheckTypeVisitor {
 	}
 
 	private static void error(String msg, MethodNode mth, InsnNode insn) {
-		// LOG.warn(msg + ": " + insn + " " + insn.getMethod());
 		ErrorsCounter.methodError(mth, msg + ": " + insn);
 	}
 }

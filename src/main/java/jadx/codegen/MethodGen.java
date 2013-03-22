@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import com.android.dx.rop.code.AccessFlags;
 
 public class MethodGen {
-	private final static Logger LOG = LoggerFactory.getLogger(MethodGen.class);
+	private static final Logger LOG = LoggerFactory.getLogger(MethodGen.class);
 
 	private final MethodNode mth;
 	private final Set<String> mthArgsDecls;
