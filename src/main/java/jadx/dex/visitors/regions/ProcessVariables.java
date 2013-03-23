@@ -114,12 +114,6 @@ public class ProcessVariables extends AbstractVisitor {
 				continue;
 				// }
 			}
-			// suppose variables always initialized
-			if (u.getAssigns().size() == 1 && u.getUseRegions().size() <= 1) {
-				r.getParentInsn().getAttributes().add(new DeclareVariableAttr());
-				it.remove();
-				continue;
-			}
 			// check if we can declare variable at current assigns
 			for (IRegion assignRegion : u.getAssigns()) {
 				if (canDeclareInRegion(u, assignRegion)) {

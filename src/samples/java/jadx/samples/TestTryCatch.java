@@ -131,6 +131,17 @@ public class TestTryCatch extends AbstractTest {
 		return obj.toString() != null;
 	}
 
+	public Object mObject = new Object();
+	public boolean mDiscovering = true;
+
+	private boolean testSynchronize3() {
+		boolean b = false;
+		synchronized (mObject) {
+			b = this.mDiscovering;
+		}
+		return b;
+	}
+
 	@Override
 	public boolean testRun() throws Exception {
 		Object obj = new Object();
@@ -147,6 +158,7 @@ public class TestTryCatch extends AbstractTest {
 		assertTrue(testSynchronize("str") == false);
 
 		assertTrue(testSynchronize2("str"));
+		assertTrue(testSynchronize3());
 		return true;
 	}
 
