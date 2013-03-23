@@ -70,7 +70,7 @@ public class BlockUtils {
 	}
 
 	/**
-	 * Check if insn contains in block (use == for comparison, not equals)
+	 * Check if instruction contains in block (use == for comparison, not equals)
 	 */
 	public static boolean blockContains(BlockNode block, InsnNode insn) {
 		for (InsnNode bi : block.getInstructions()) {
@@ -81,7 +81,7 @@ public class BlockUtils {
 	}
 
 	/**
-	 * Return position of instruction in block (use == for comparison, not equals)
+	 * Return instruction position in block (use == for comparison, not equals)
 	 */
 	public static int insnIndex(BlockNode block, InsnNode insn) {
 		int size = block.getInstructions().size();
@@ -128,7 +128,7 @@ public class BlockUtils {
 	}
 
 	/**
-	 * Return first successor which not exception handler or followed by loop back edge
+	 * Return first successor which not exception handler and not follow loop back edge
 	 */
 	public static BlockNode getNextBlock(BlockNode block) {
 		List<BlockNode> s = block.getCleanSuccessors();
@@ -155,13 +155,20 @@ public class BlockUtils {
 		}
 	}
 
-	private static boolean addSuccessorsUntil(BlockNode from, BlockNode until) {
-		if (from == until)
-			return true;
-
+	private static boolean traverseSuccessorsUntil(BlockNode from, BlockNode until, Set<BlockNode> checked) {
 		for (BlockNode s : from.getCleanSuccessors()) {
-			if (addSuccessorsUntil(s, until))
+			if (s == until)
 				return true;
+
+			if (!checked.contains(s)) {
+				checked.add(s);
+
+				if (until.isDominator(s))
+					return true;
+
+				if (traverseSuccessorsUntil(s, until, checked))
+					return true;
+			}
 		}
 		return false;
 	}
@@ -173,8 +180,7 @@ public class BlockUtils {
 		if (end.isDominator(start))
 			return true;
 
-		return addSuccessorsUntil(start, end);
-		// return addPredcessorsUntil(new HashSet<BlockNode>(), end, start);
+		return traverseSuccessorsUntil(start, end, new HashSet<BlockNode>());
 	}
 
 	/**
