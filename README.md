@@ -1,6 +1,9 @@
 ## About
 **jadx** - Dex to Java decompiler
 
+### Downloads
+Latest version available at [sourceforge](http://sourceforge.net/projects/jadx/files/)
+
 ### Build
 jadx uses [gradle](http://www.gradle.org/) for build:
 
