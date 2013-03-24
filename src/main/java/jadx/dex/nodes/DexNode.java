@@ -2,7 +2,6 @@ package jadx.dex.nodes;
 
 import jadx.dex.info.ClassInfo;
 import jadx.dex.instructions.args.ArgType;
-import jadx.utils.Utils;
 import jadx.utils.exceptions.DecodeException;
 import jadx.utils.files.InputFile;
 
@@ -60,18 +59,6 @@ public class DexNode {
 
 	public ArgType getType(int index) {
 		return ArgType.parse(getString(dexBuf.typeIds().get(index)));
-	}
-
-	public List<String> getAllClassesNames() {
-		List<Integer> types = dexBuf.typeIds();
-		int size = types.size();
-		List<String> list = new ArrayList<String>(size);
-		for (Integer typeId : types) {
-			String type = getString(typeId);
-			if (type.length() > 0 && type.charAt(0) == 'L')
-				list.add(Utils.cleanObjectName(type));
-		}
-		return list;
 	}
 
 	public MethodId getMethodId(int mthIndex) {

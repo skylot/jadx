@@ -7,10 +7,8 @@ import jadx.utils.files.InputFile;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,8 +20,6 @@ public class RootNode {
 
 	private List<DexNode> dexNodes;
 	private final List<ClassNode> classes = new ArrayList<ClassNode>();
-
-	private final Set<String> earlyClassList = new HashSet<String>();
 	private final Map<String, ClassNode> names = new HashMap<String, ClassNode>();
 
 	public RootNode(JadxArgs args) {
@@ -42,9 +38,6 @@ public class RootNode {
 			}
 			dexNodes.add(dexNode);
 		}
-
-		for (DexNode dexNode : dexNodes)
-			earlyClassList.addAll(dexNode.getAllClassesNames());
 
 		for (DexNode dexNode : dexNodes)
 			dexNode.loadClasses(this);
@@ -83,8 +76,12 @@ public class RootNode {
 		return names.get(fullName);
 	}
 
+	/**
+	 * Without full classpath listing this function is useless
+	 */
+	@Deprecated
 	public boolean isClassExists(String fullName) {
-		return earlyClassList.contains(fullName);
+		return true;
 	}
 
 	public ClassNode resolveClass(ClassInfo cls) {
