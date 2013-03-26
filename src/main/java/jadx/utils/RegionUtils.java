@@ -19,6 +19,8 @@ public class RegionUtils {
 		} else if (container instanceof IRegion) {
 			IRegion region = (IRegion) container;
 			List<IContainer> blocks = region.getSubBlocks();
+			if (blocks.isEmpty())
+				return false;
 			return hasExitEdge(blocks.get(blocks.size() - 1));
 		} else {
 			throw new JadxRuntimeException("Unknown container type: " + container.getClass());

@@ -6,6 +6,7 @@ import jadx.dex.nodes.IContainer;
 import jadx.dex.nodes.IRegion;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public final class IfRegion extends AbstractRegion {
@@ -52,7 +53,7 @@ public final class IfRegion extends AbstractRegion {
 			all.add(thenRegion);
 		if (elseRegion != null)
 			all.add(elseRegion);
-		return all;
+		return Collections.unmodifiableList(all);
 	}
 
 	@Override

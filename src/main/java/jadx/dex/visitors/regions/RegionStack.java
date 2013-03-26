@@ -28,10 +28,12 @@ public class RegionStack {
 			exits = new HashSet<BlockNode>();
 		}
 
+		private State(State c) {
+			exits = new HashSet<BlockNode>(c.exits);
+		}
+
 		public State copy() {
-			State c = new State();
-			c.exits.addAll(exits);
-			return c;
+			return new State(this);
 		}
 
 		@Override
@@ -57,8 +59,10 @@ public class RegionStack {
 
 		curState = curState.copy();
 		curState.region = region;
-		if (DEBUG)
+		if (DEBUG) {
 			LOG.debug("Stack push: {} = {}", region, curState);
+			LOG.debug("Stack size: {}", size());
+		}
 	}
 
 	public void pop() {
@@ -88,5 +92,10 @@ public class RegionStack {
 
 	public int size() {
 		return stack.size();
+	}
+
+	@Override
+	public String toString() {
+		return "Region stack size: " + size() + ", last: " + curState;
 	}
 }

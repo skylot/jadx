@@ -58,6 +58,7 @@ public class RegionGen extends InsnGen {
 						makeRegion(code, c);
 				}
 			} else if (cont instanceof IfRegion) {
+				code.startLine();
 				makeIf((IfRegion) cont, code);
 			} else if (cont instanceof SwitchRegion) {
 				makeSwitch((SwitchRegion) cont, code);
@@ -104,13 +105,25 @@ public class RegionGen extends InsnGen {
 
 	private void makeIf(IfRegion region, CodeWriter code) throws CodegenException {
 		IfNode insn = region.getIfInsn();
-		code.startLine("if ").add(makeCondition(insn)).add(" {");
+		code.add("if ").add(makeCondition(insn)).add(" {");
 		makeRegionIndent(code, region.getThenRegion());
 		code.startLine("}");
 
 		IContainer els = region.getElseRegion();
 		if (els != null && RegionUtils.notEmpty(els)) {
-			code.add(" else {");
+			code.add(" else ");
+
+			// connect if-else-if block
+			if (els instanceof Region) {
+				Region re = (Region) els;
+				if (re.getSubBlocks().size() == 1
+						&& re.getSubBlocks().get(0) instanceof IfRegion) {
+					makeIf((IfRegion) re.getSubBlocks().get(0), code);
+					return;
+				}
+			}
+
+			code.add("{");
 			code.incIndent();
 			makeRegion(code, els);
 			code.decIndent();

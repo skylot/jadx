@@ -5,6 +5,7 @@ import jadx.dex.nodes.IContainer;
 import jadx.dex.nodes.IRegion;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public final class SwitchRegion extends AbstractRegion {
@@ -54,7 +55,7 @@ public final class SwitchRegion extends AbstractRegion {
 		all.addAll(cases);
 		if (defCase != null)
 			all.add(defCase);
-		return all;
+		return Collections.unmodifiableList(all);
 	}
 
 	@Override

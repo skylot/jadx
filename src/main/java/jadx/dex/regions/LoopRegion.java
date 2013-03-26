@@ -8,6 +8,7 @@ import jadx.dex.nodes.IRegion;
 import jadx.dex.nodes.InsnNode;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public final class LoopRegion extends AbstractRegion {
@@ -112,7 +113,7 @@ public final class LoopRegion extends AbstractRegion {
 		if (conditionBlock != null)
 			all.add(conditionBlock);
 		all.add(body);
-		return all;
+		return Collections.unmodifiableList(all);
 	}
 
 	@Override

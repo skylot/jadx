@@ -5,7 +5,7 @@ import jadx.dex.info.ClassInfo;
 import jadx.dex.nodes.ClassNode;
 import jadx.dex.nodes.RootNode;
 import jadx.dex.visitors.BlockMakerVisitor;
-import jadx.dex.visitors.ClassCheck;
+import jadx.dex.visitors.ClassModifier;
 import jadx.dex.visitors.CodeShrinker;
 import jadx.dex.visitors.ConstInlinerVisitor;
 import jadx.dex.visitors.DotGraphVisitor;
@@ -14,6 +14,7 @@ import jadx.dex.visitors.FallbackModeVisitor;
 import jadx.dex.visitors.IDexTreeVisitor;
 import jadx.dex.visitors.ModVisitor;
 import jadx.dex.visitors.regions.CheckRegions;
+import jadx.dex.visitors.regions.CleanRegions;
 import jadx.dex.visitors.regions.PostRegionVisitor;
 import jadx.dex.visitors.regions.ProcessVariables;
 import jadx.dex.visitors.regions.RegionMakerVisitor;
@@ -94,10 +95,10 @@ public class Main {
 			passes.add(new ConstInlinerVisitor());
 			passes.add(new FinishTypeResolver());
 
-			passes.add(new ClassCheck());
-
 			if (args.isRawCFGOutput())
 				passes.add(new DotGraphVisitor(args.getOutDir(), false, true));
+
+			passes.add(new ClassModifier());
 
 			passes.add(new ModVisitor());
 			passes.add(new EnumVisitor());
@@ -113,6 +114,8 @@ public class Main {
 			passes.add(new CheckRegions());
 			if (args.isCFGOutput())
 				passes.add(new DotGraphVisitor(args.getOutDir(), true));
+
+			passes.add(new CleanRegions());
 		}
 		passes.add(new CodeGen(args));
 		return passes;

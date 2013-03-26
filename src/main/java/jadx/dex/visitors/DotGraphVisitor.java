@@ -174,6 +174,8 @@ public class DotGraphVisitor extends AbstractVisitor {
 
 	private String escape(String string) {
 		return string
+				.replace("\\", "") // TODO replace \"
+				.replace("/", "\\/")
 				.replace(">", "\\>").replace("<", "\\<")
 				.replace("{", "\\{").replace("}", "\\}")
 				.replace("\"", "\\\"")

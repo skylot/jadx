@@ -113,7 +113,7 @@ public class RegionMaker {
 			next = BlockUtils.getNextBlock(block);
 		}
 
-		if (!stack.containsExit(block) && next != null && !stack.containsExit(next))
+		if (next != null && !stack.containsExit(block) && !stack.containsExit(next))
 			return next;
 		else
 			return null;

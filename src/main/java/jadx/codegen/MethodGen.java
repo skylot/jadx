@@ -66,7 +66,7 @@ public class MethodGen {
 		} else {
 			if (mth.getAttributes().contains(AttributeFlag.INCONSISTENT_CODE)) {
 				code.startLine("// FIXME: Jadx generate inconsistent code");
-				// ErrorsCounter.methodError(mth, "Inconsistent code");
+				LOG.debug(ErrorsCounter.formatErrorMsg(mth, " Inconsistent code"));
 			}
 
 			annotationGen.addForMethod(code, mth);

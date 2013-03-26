@@ -7,8 +7,6 @@ import jadx.utils.ErrorsCounter;
 public class DepthTraverser {
 
 	public static void visit(IDexTreeVisitor visitor, ClassNode cls) {
-		// if (!cls.toString().contains("ProcessClass"))
-		// return;
 		try {
 			if (visitor.visit(cls)) {
 				for (ClassNode inCls : cls.getInnerClasses())

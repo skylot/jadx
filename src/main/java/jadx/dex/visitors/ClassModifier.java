@@ -7,7 +7,7 @@ import jadx.utils.exceptions.JadxException;
 
 import java.util.Iterator;
 
-public class ClassCheck extends AbstractVisitor {
+public class ClassModifier extends AbstractVisitor {
 
 	@Override
 	public boolean visit(ClassNode cls) throws JadxException {
