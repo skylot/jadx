@@ -7,9 +7,10 @@ apply plugin: 'idea'
 sourceCompatibility = 1.6
 targetCompatibility = 1.6
 
-version = 'dev'
+version = file('version').readLines().get(0)
 
 mainClassName = "jadx.Main"
+manifest.mainAttributes("jadx-version" : version)
 
 project.ext {
     mainSamplesClass = "jadx.samples.RunTests"  

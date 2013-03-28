@@ -1,11 +1,19 @@
 package jadx.utils;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.URL;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.jar.Manifest;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Utils {
+	private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
 
 	public static String cleanObjectName(String obj) {
 		int last = obj.length() - 1;
@@ -51,5 +59,21 @@ public class Utils {
 			sb.append(s);
 		}
 		return sb.toString();
+	}
+
+	public static String getJadxVersion() {
+		try {
+			Enumeration<URL> resources =
+					new Utils().getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
+			while (resources.hasMoreElements()) {
+				Manifest manifest = new Manifest(resources.nextElement().openStream());
+				String ver = manifest.getMainAttributes().getValue("jadx-version");
+				if (ver != null)
+					return ver;
+			}
+		} catch (IOException e) {
+			LOG.error("Can't get manifest file", e);
+		}
+		return "dev";
 	}
 }

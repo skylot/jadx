@@ -110,7 +110,7 @@ public class JadxArgs {
 		JCommander jc = new JCommander(this);
 		// print usage in not sorted fields order (by default its sorted by description)
 		PrintStream out = System.out;
-		out.println("jadx - dex to java decompiler, version: '" + Consts.JADX_VERSION + "'");
+		out.println("jadx - dex to java decompiler, version: " + Consts.JADX_VERSION);
 		out.println();
 		out.println("usage: jadx [options] " + jc.getMainParameterDescription());
 		out.println("options:");
