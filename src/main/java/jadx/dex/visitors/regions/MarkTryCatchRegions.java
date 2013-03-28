@@ -92,6 +92,9 @@ public class MarkTryCatchRegions extends AbstractRegionVisitor {
 		if (tryBlocksMap.isEmpty())
 			return;
 
+		if (!(region instanceof Region))
+			return;
+
 		// search dominator blocks in this region (don't need to go deeper)
 		for (BlockNode dominator : tryBlocksMap.keySet()) {
 			if (region.getSubBlocks().contains(dominator)) {

@@ -147,21 +147,31 @@ public class RegionMaker {
 
 			InsnNode insn = exit.getInstructions().get(0);
 			if (insn.getType() == InsnType.IF) {
+				boolean found = true;
 				ifnode = (IfNode) insn;
 				condBlock = exit;
 				loopRegion = new LoopRegion(curRegion, condBlock, condBlock == loop.getEnd());
-				if (!loopRegion.isConditionAtEnd() && condBlock != loop.getStart()
-						&& condBlock.getPredecessors().contains(loopStart)) {
-					loopRegion.setPreCondition(loopStart);
-					// if we can't merge pre-condition this is not correct header
-					if (!loopRegion.checkPreCondition()) {
-						ifnode = null;
-						loopRegion = null;
-						// try another exit
-						continue;
+
+				if (loopRegion.isConditionAtEnd()) {
+					// TODO: add some checks
+				} else {
+					if (condBlock != loop.getStart()) {
+						if (condBlock.getPredecessors().contains(loopStart)) {
+							loopRegion.setPreCondition(loopStart);
+							// if we can't merge pre-condition this is not correct header
+							found = loopRegion.checkPreCondition();
+						} else {
+							found = false;
+						}
 					}
 				}
-				break;
+				if (!found) {
+					ifnode = null;
+					loopRegion = null;
+					condBlock = null;
+					// try another exit
+				} else
+					break;
 			}
 		}
 
