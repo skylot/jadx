@@ -5,7 +5,7 @@
 Latest version available at 
 [sourceforge](http://sourceforge.net/projects/jadx/files/) 
 or
-[bintray](http://bintray.com/pkg/show/general/skylot/jadx/jadx-bundle)
+[bintray](http://bintray.com/pkg/show/general/skylot/jadx/jadx-cli)
 
 ### Build
 jadx uses [gradle](http://www.gradle.org/) for build:
