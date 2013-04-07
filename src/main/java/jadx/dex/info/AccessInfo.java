@@ -37,6 +37,18 @@ public class AccessInfo {
 		return new AccessInfo(f, type);
 	}
 
+	public boolean isPublic() {
+		return (accFlags & AccessFlags.ACC_PUBLIC) != 0;
+	}
+
+	public boolean isProtected() {
+		return (accFlags & AccessFlags.ACC_PROTECTED) != 0;
+	}
+
+	public boolean isPrivate() {
+		return (accFlags & AccessFlags.ACC_PRIVATE) != 0;
+	}
+
 	public boolean isAbstract() {
 		return (accFlags & AccessFlags.ACC_ABSTRACT) != 0;
 	}
@@ -87,13 +99,13 @@ public class AccessInfo {
 
 	public String makeString() {
 		StringBuilder code = new StringBuilder();
-		if ((accFlags & AccessFlags.ACC_PUBLIC) != 0)
+		if (isPublic())
 			code.append("public ");
 
-		if ((accFlags & AccessFlags.ACC_PRIVATE) != 0)
+		if (isPrivate())
 			code.append("private ");
 
-		if ((accFlags & AccessFlags.ACC_PROTECTED) != 0)
+		if (isProtected())
 			code.append("protected ");
 
 		if (isStatic())

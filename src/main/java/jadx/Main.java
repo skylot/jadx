@@ -98,8 +98,6 @@ public class Main {
 			if (args.isRawCFGOutput())
 				passes.add(new DotGraphVisitor(args.getOutDir(), false, true));
 
-			passes.add(new ClassModifier());
-
 			passes.add(new ModVisitor());
 			passes.add(new EnumVisitor());
 
@@ -115,6 +113,7 @@ public class Main {
 			if (args.isCFGOutput())
 				passes.add(new DotGraphVisitor(args.getOutDir(), true));
 
+			passes.add(new ClassModifier());
 			passes.add(new CleanRegions());
 		}
 		passes.add(new CodeGen(args));

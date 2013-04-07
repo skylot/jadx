@@ -5,12 +5,12 @@ import jadx.dex.instructions.args.ArgType;
 import jadx.dex.nodes.DexNode;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 public final class ClassInfo {
 
-	private static final Map<ArgType, ClassInfo> CLASSINFO_CACHE = new HashMap<ArgType, ClassInfo>();
+	private static final Map<ArgType, ClassInfo> CLASSINFO_CACHE = new WeakHashMap<ArgType, ClassInfo>();
 	private static final String DEFAULT_PACKAGE_NAME = "defpackage";
 
 	private final String clsName;
