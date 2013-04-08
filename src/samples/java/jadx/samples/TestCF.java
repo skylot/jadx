@@ -149,6 +149,18 @@ public class TestCF extends AbstractTest {
 		return Math.abs(r);
 	}
 
+	public int testIfElse2(String str) {
+		String a;
+		if (str.length() == 5) {
+			a = new String("1");
+			a.trim();
+			a.length();
+		}
+		a = new String("22");
+		a.toLowerCase();
+		return a.length();
+	}
+
 	public void testInfiniteLoop() {
 		while (true) {
 			System.out.println("test");
@@ -194,6 +206,8 @@ public class TestCF extends AbstractTest {
 
 		assertEquals(c.testIfElse("b"), 20);
 		assertEquals(c.testIfElse("c"), 10);
+
+		assertEquals(c.testIfElse2("12345"), 2);
 		return true;
 	}
 

@@ -29,6 +29,7 @@ public class ProcessVariables extends AbstractVisitor {
 
 	private static class Usage {
 		private RegisterArg arg;
+		private IRegion argRegion;
 		private final Set<IRegion> usage = new HashSet<IRegion>(2);
 		private final Set<IRegion> assigns = new HashSet<IRegion>(2);
 
@@ -38,6 +39,14 @@ public class ProcessVariables extends AbstractVisitor {
 
 		public RegisterArg getArg() {
 			return arg;
+		}
+
+		public void setArgRegion(IRegion argRegion) {
+			this.argRegion = argRegion;
+		}
+
+		public IRegion getArgRegion() {
+			return argRegion;
 		}
 
 		public Set<IRegion> getAssigns() {
@@ -72,11 +81,12 @@ public class ProcessVariables extends AbstractVisitor {
 						Usage u = usageMap.get(result);
 						if (u == null) {
 							u = new Usage();
-							u.setArg(result);
 							usageMap.put(result, u);
 						}
-						if (u.getArg() == null)
+						if (u.getArg() == null) {
 							u.setArg(result);
+							u.setArgRegion(curRegion);
+						}
 						u.getAssigns().add(curRegion);
 					}
 					// args
@@ -95,28 +105,23 @@ public class ProcessVariables extends AbstractVisitor {
 		};
 		DepthRegionTraverser.traverseAll(mth, collect);
 
-		List<RegisterArg> mthArgs = mth.getArguments(true);
 		// reduce assigns map
+		List<RegisterArg> mthArgs = mth.getArguments(true);
 		for (Iterator<Entry<RegisterArg, Usage>> it = usageMap.entrySet().iterator(); it.hasNext();) {
 			Entry<RegisterArg, Usage> entry = it.next();
 			Usage u = entry.getValue();
 			RegisterArg r = u.getArg();
 
-			if (u.getAssigns().isEmpty()) {
+			// if no assigns or method argument => remove
+			if (u.getAssigns().isEmpty() || mthArgs.indexOf(r) != -1) {
 				it.remove();
 				continue;
 			}
 
-			int i;
-			if ((i = mthArgs.indexOf(r)) != -1) {
-				// if (mthArgs.get(i).getTypedVar() == r.getTypedVar()) {
-				it.remove();
-				continue;
-				// }
-			}
 			// check if we can declare variable at current assigns
 			for (IRegion assignRegion : u.getAssigns()) {
-				if (canDeclareInRegion(u, assignRegion)) {
+				if (u.getArgRegion() == assignRegion
+						&& canDeclareInRegion(u, assignRegion)) {
 					r.getParentInsn().getAttributes().add(new DeclareVariableAttr());
 					it.remove();
 					break;
@@ -130,8 +135,8 @@ public class ProcessVariables extends AbstractVisitor {
 			// find common region which contains all usage regions
 
 			Set<IRegion> set = u.getUseRegions();
-			for (Iterator it = set.iterator(); it.hasNext();) {
-				IRegion r = (IRegion) it.next();
+			for (Iterator<IRegion> it = set.iterator(); it.hasNext();) {
+				IRegion r = it.next();
 				IRegion parent = r.getParent();
 				if (parent != null && set.contains(parent))
 					it.remove();
@@ -159,8 +164,8 @@ public class ProcessVariables extends AbstractVisitor {
 	}
 
 	private void declareVar(IContainer region, RegisterArg arg) {
-		DeclareVariableAttr dv = (DeclareVariableAttr) region.getAttributes().get(
-				AttributeType.DECLARE_VARIABLE);
+		DeclareVariableAttr dv =
+				(DeclareVariableAttr) region.getAttributes().get(AttributeType.DECLARE_VARIABLE);
 		if (dv == null) {
 			dv = new DeclareVariableAttr(new ArrayList<RegisterArg>());
 			region.getAttributes().add(dv);
