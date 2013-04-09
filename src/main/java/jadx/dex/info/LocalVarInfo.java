@@ -9,6 +9,9 @@ public class LocalVarInfo extends RegisterArg {
 
 	private boolean isEnd;
 
+	private int startAddr;
+	private int endAddr;
+
 	public LocalVarInfo(DexNode dex, int rn, int nameId, int typeId, int signId) {
 		super(rn);
 		String name = (nameId == DexNode.NO_INDEX ? null : dex.getString(nameId));
@@ -24,6 +27,9 @@ public class LocalVarInfo extends RegisterArg {
 	}
 
 	private void init(String name, ArgType type, String sign) {
+		if (sign != null) {
+			type.setGeneric(sign);
+		}
 		TypedVar tv = new TypedVar(type);
 		tv.setName(name);
 		setTypedVar(tv);
@@ -31,13 +37,28 @@ public class LocalVarInfo extends RegisterArg {
 
 	public void start(int addr, int line) {
 		this.isEnd = false;
+		this.startAddr = addr;
 	}
 
 	public void end(int addr, int line) {
 		this.isEnd = true;
+		this.endAddr = addr;
 	}
 
 	public boolean isEnd() {
 		return isEnd;
+	}
+
+	public int getStartAddr() {
+		return startAddr;
+	}
+
+	public int getEndAddr() {
+		return endAddr;
+	}
+
+	@Override
+	public String toString() {
+		return super.toString() + " " + (isEnd ? "end" : "active");
 	}
 }

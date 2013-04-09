@@ -80,7 +80,6 @@ public class InsnGen {
 	}
 
 	public String assignVar(InsnNode insn) {
-		// return mgen.assignArg(arg);
 		try {
 			RegisterArg arg = insn.getResult();
 			if (insn.getAttributes().contains(AttributeType.DECLARE_VARIABLE)) {
@@ -95,7 +94,11 @@ public class InsnGen {
 	}
 
 	public String declareVar(RegisterArg arg) throws CodegenException {
-		return TypeGen.translate(mgen.getClassGen(), arg.getType()) + " " + arg(arg);
+		String type = TypeGen.translate(mgen.getClassGen(), arg.getType());
+		String generic = arg.getType().getGeneric();
+		if (generic != null)
+			type += " /* " + generic + " */";
+		return type + " " + arg(arg);
 	}
 
 	private String lit(LiteralArg arg) {

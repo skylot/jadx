@@ -95,7 +95,7 @@ public class MethodNode extends AttrNode implements ILoadable {
 			initJumps(insnByOffset);
 
 			if (mthCode.getDebugInfoOffset() > 0) {
-				DebugInfoParser debugInfo = new DebugInfoParser(this, dex.openSection(mthCode.getDebugInfoOffset()));
+				DebugInfoParser debugInfo = new DebugInfoParser(this, mthCode.getDebugInfoOffset());
 				debugInfo.process(insnByOffset);
 			}
 		} catch (Exception e) {

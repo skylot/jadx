@@ -42,6 +42,8 @@ public final class ArgType {
 
 	private final int hash;
 
+	private String generic; // TODO extract generic info from signature
+
 	private ArgType(PrimitiveType type, String object, ArgType arrayElement) {
 		this.type = type;
 		this.object = (object == null ? null : Utils.cleanObjectName(object));
@@ -94,6 +96,14 @@ public final class ArgType {
 
 	public boolean isObject() {
 		return type == PrimitiveType.OBJECT;
+	}
+
+	public String getGeneric() {
+		return generic;
+	}
+
+	public void setGeneric(String generic) {
+		this.generic = generic;
 	}
 
 	public ArgType getArrayElement() {
