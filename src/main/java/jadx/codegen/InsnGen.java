@@ -94,10 +94,18 @@ public class InsnGen {
 	}
 
 	public String declareVar(RegisterArg arg) throws CodegenException {
-		String type = TypeGen.translate(mgen.getClassGen(), arg.getType());
-		String generic = arg.getType().getGeneric();
-		if (generic != null)
-			type += " /* " + generic + " */";
+		String type = useType(arg.getType());
+		ArgType[] generics = arg.getType().getGenericTypes();
+		if (generics != null) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(type);
+			sb.append("/*<");
+			for (ArgType gt : generics) {
+				sb.append(useType(gt));
+			}
+			sb.append(">*/");
+			type = sb.toString();
+		}
 		return type + " " + arg(arg);
 	}
 

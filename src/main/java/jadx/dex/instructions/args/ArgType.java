@@ -7,8 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public final class ArgType {
-
+public abstract class ArgType {
 	public static final ArgType INT = primitive(PrimitiveType.INT);
 	public static final ArgType BOOLEAN = primitive(PrimitiveType.BOOLEAN);
 	public static final ArgType BYTE = primitive(PrimitiveType.BYTE);
@@ -35,113 +34,248 @@ public final class ArgType {
 
 	public static final ArgType UNKNOWN_OBJECT = unknown(PrimitiveType.OBJECT, PrimitiveType.ARRAY);
 
-	private final PrimitiveType type;
-	private final String object;
-	private final ArgType arrayElement;
-	private final PrimitiveType possibleTypes[];
+	protected int hash;
 
-	private final int hash;
-
-	private String generic; // TODO extract generic info from signature
-
-	private ArgType(PrimitiveType type, String object, ArgType arrayElement) {
-		this.type = type;
-		this.object = (object == null ? null : Utils.cleanObjectName(object));
-		this.arrayElement = arrayElement;
-		this.possibleTypes = null;
-		this.hash = calcHashCode();
-	}
-
-	private ArgType(PrimitiveType[] posTypes) {
-		this.type = null;
-		this.object = null;
-		this.arrayElement = null;
-		this.possibleTypes = posTypes;
-		this.hash = calcHashCode();
-	}
-
-	public static ArgType primitive(PrimitiveType stype) {
-		assert stype != PrimitiveType.OBJECT && stype != PrimitiveType.ARRAY;
-		return new ArgType(stype, null, null);
+	private static ArgType primitive(PrimitiveType stype) {
+		return new PrimitiveArg(stype);
 	}
 
 	public static ArgType object(String obj) {
-		assert obj != null;
-		return new ArgType(PrimitiveType.OBJECT, obj, null);
+		return new ObjectArg(Utils.cleanObjectName(obj));
+	}
+
+	public static ArgType generic(String obj, String signature) {
+		return new GenericObjectArg(obj, signature);
 	}
 
 	public static ArgType array(ArgType vtype) {
-		return new ArgType(PrimitiveType.ARRAY, null, vtype);
+		return new ArrayArg(vtype);
 	}
 
 	public static ArgType unknown(PrimitiveType... types) {
-		return new ArgType(types);
+		return new UnknownArg(types);
+	}
+
+	private static abstract class KnownTypeArg extends ArgType {
+		@Override
+		public boolean isTypeKnown() {
+			return true;
+		}
+	}
+
+	private static final class PrimitiveArg extends KnownTypeArg {
+		private final PrimitiveType type;
+
+		public PrimitiveArg(PrimitiveType type) {
+			this.type = type;
+			this.hash = type.hashCode();
+		}
+
+		@Override
+		public PrimitiveType getPrimitiveType() {
+			return type;
+		}
+
+		@Override
+		public boolean isPrimitive() {
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			return type.toString();
+		}
+	}
+
+	private static class ObjectArg extends KnownTypeArg {
+		private final String object;
+
+		public ObjectArg(String obj) {
+			this.object = obj;
+			this.hash = obj.hashCode();
+		}
+
+		@Override
+		public String getObject() {
+			return object;
+		}
+
+		@Override
+		public boolean isObject() {
+			return true;
+		}
+
+		@Override
+		public PrimitiveType getPrimitiveType() {
+			return PrimitiveType.OBJECT;
+		}
+
+		@Override
+		public String toString() {
+			return object;
+		}
+	}
+
+	private static final class GenericObjectArg extends ObjectArg {
+		private final ArgType[] generics;
+
+		public GenericObjectArg(String obj, String signature) {
+			super(obj);
+			this.generics = parseSignature(signature);
+			this.hash = obj.hashCode() + 31 * Arrays.hashCode(generics);
+		}
+
+		@Override
+		public ArgType[] getGenericTypes() {
+			return generics;
+		}
+
+		@Override
+		public String toString() {
+			return super.toString() + "<" + Arrays.toString(generics) + ">";
+		}
+	}
+
+	private static final class ArrayArg extends KnownTypeArg {
+		private final ArgType arrayElement;
+
+		public ArrayArg(ArgType arrayElement) {
+			this.arrayElement = arrayElement;
+			this.hash = arrayElement.hashCode();
+		}
+
+		@Override
+		public ArgType getArrayElement() {
+			return arrayElement;
+		}
+
+		@Override
+		public boolean isArray() {
+			return true;
+		}
+
+		@Override
+		public PrimitiveType getPrimitiveType() {
+			return PrimitiveType.ARRAY;
+		}
+
+		@Override
+		public int getArrayDimension() {
+			if (isArray())
+				return 1 + arrayElement.getArrayDimension();
+			else
+				return 0;
+		}
+
+		@Override
+		public ArgType getArrayRootElement() {
+			if (isArray())
+				return arrayElement.getArrayRootElement();
+			else
+				return this;
+		}
+
+		@Override
+		public String toString() {
+			return arrayElement.toString();
+		}
+	}
+
+	private static final class UnknownArg extends ArgType {
+		private final PrimitiveType possibleTypes[];
+
+		public UnknownArg(PrimitiveType[] types) {
+			this.possibleTypes = types;
+			this.hash = Arrays.hashCode(possibleTypes);
+		}
+
+		@Override
+		public PrimitiveType[] getPossibleTypes() {
+			return possibleTypes;
+		}
+
+		@Override
+		public boolean isTypeKnown() {
+			return false;
+		}
+
+		@Override
+		public boolean contains(PrimitiveType type) {
+			for (PrimitiveType t : possibleTypes)
+				if (t == type)
+					return true;
+			return false;
+		}
+
+		@Override
+		public ArgType selectFirst() {
+			assert possibleTypes != null;
+			PrimitiveType f = possibleTypes[0];
+			if (f == PrimitiveType.OBJECT || f == PrimitiveType.ARRAY)
+				return object(Consts.CLASS_OBJECT);
+			else
+				return primitive(f);
+		}
+
+		@Override
+		public String toString() {
+			if (possibleTypes.length == PrimitiveType.values().length)
+				return "*";
+			else
+				return "?" + Arrays.toString(possibleTypes);
+		}
 	}
 
 	public boolean isTypeKnown() {
-		return type != null;
-	}
-
-	public PrimitiveType getPrimitiveType() {
-		return type;
-	}
-
-	public boolean isPrimitive() {
-		return type != null && type != PrimitiveType.OBJECT && type != PrimitiveType.ARRAY;
-	}
-
-	public String getObject() {
-		return object;
-	}
-
-	public boolean isObject() {
-		return type == PrimitiveType.OBJECT;
-	}
-
-	public String getGeneric() {
-		return generic;
-	}
-
-	public void setGeneric(String generic) {
-		this.generic = generic;
-	}
-
-	public ArgType getArrayElement() {
-		return arrayElement;
-	}
-
-	public boolean isArray() {
-		return type == PrimitiveType.ARRAY;
-	}
-
-	public int getArrayDimension() {
-		if (isArray())
-			return 1 + arrayElement.getArrayDimension();
-		else
-			return 0;
-	}
-
-	public ArgType getArrayRootElement() {
-		if (isArray())
-			return arrayElement.getArrayRootElement();
-		else
-			return this;
-	}
-
-	public boolean contains(PrimitiveType type) {
-		for (PrimitiveType t : possibleTypes)
-			if (t == type)
-				return true;
 		return false;
 	}
 
+	public PrimitiveType getPrimitiveType() {
+		return null;
+	}
+
+	public boolean isPrimitive() {
+		return false;
+	}
+
+	public String getObject() {
+		throw new UnsupportedOperationException();
+	}
+
+	public boolean isObject() {
+		return false;
+	}
+
+	public ArgType[] getGenericTypes() {
+		return null;
+	}
+
+	public ArgType getArrayElement() {
+		return null;
+	}
+
+	public boolean isArray() {
+		return false;
+	}
+
+	public int getArrayDimension() {
+		return 0;
+	}
+
+	public ArgType getArrayRootElement() {
+		return this;
+	}
+
+	public boolean contains(PrimitiveType type) {
+		throw new UnsupportedOperationException();
+	}
+
 	public ArgType selectFirst() {
-		assert possibleTypes != null;
-		PrimitiveType f = possibleTypes[0];
-		if (f == PrimitiveType.OBJECT || f == PrimitiveType.ARRAY)
-			return object(Consts.CLASS_OBJECT);
-		else
-			return primitive(f);
+		throw new UnsupportedOperationException();
+	}
+
+	public PrimitiveType[] getPossibleTypes() {
+		return null;
 	}
 
 	public static ArgType merge(ArgType a, ArgType b) {
@@ -161,7 +295,7 @@ public final class ArgType {
 		if (a == UNKNOWN)
 			return b;
 
-		if (a.possibleTypes != null) {
+		if (!a.isTypeKnown()) {
 			if (b.isTypeKnown()) {
 				if (a.contains(b.getPrimitiveType()))
 					return b;
@@ -170,7 +304,7 @@ public final class ArgType {
 			} else {
 				// both types unknown
 				List<PrimitiveType> types = new ArrayList<PrimitiveType>();
-				for (PrimitiveType type : a.possibleTypes) {
+				for (PrimitiveType type : a.getPossibleTypes()) {
 					if (b.contains(type))
 						types.add(type);
 				}
@@ -188,9 +322,12 @@ public final class ArgType {
 			}
 		} else {
 			if (a.isObject() && b.isObject()) {
-				if (a.getObject().equals(b.getObject()))
-					return a;
-				else if (a.getObject().equals(OBJECT.getObject()))
+				if (a.getObject().equals(b.getObject())) {
+					if (a.getGenericTypes() != null)
+						return a;
+					else
+						return b;
+				} else if (a.getObject().equals(OBJECT.getObject()))
 					return b;
 				else if (b.getObject().equals(OBJECT.getObject()))
 					return a;
@@ -217,12 +354,39 @@ public final class ArgType {
 	public static ArgType parse(String type) {
 		assert type.length() > 0 : "Empty type";
 		char f = type.charAt(0);
-		if (f == 'L')
+		if (f == 'L') {
 			return object(type);
-		else if (f == '[')
+		} else if (f == '[') {
 			return array(parse(type.substring(1)));
-		else
+		} else {
 			return parse(f);
+		}
+	}
+
+	public static ArgType[] parseSignature(String signature) {
+		int b = signature.indexOf('<') + 1;
+		int e = signature.lastIndexOf('>');
+		String gens = signature.substring(b, e);
+		String[] split = gens.split(";");
+		ArgType[] result = new ArgType[split.length];
+		for (int i = 0; i < split.length; i++) {
+			String g = split[i];
+			switch (g.charAt(0)) {
+				case 'L':
+					result[i] = object(g + ";");
+					break;
+
+				case '*':
+				case '?':
+					result[i] = UNKNOWN;
+					break;
+
+				default:
+					result[i] = UNKNOWN_OBJECT;
+					break;
+			}
+		}
+		return result;
 	}
 
 	private static ArgType parse(char f) {
@@ -250,37 +414,17 @@ public final class ArgType {
 	}
 
 	public int getRegCount() {
-		if (type == PrimitiveType.LONG || type == PrimitiveType.DOUBLE)
-			return 2;
-		else
-			return 1;
+		if (isPrimitive()) {
+			PrimitiveType type = getPrimitiveType();
+			if (type == PrimitiveType.LONG || type == PrimitiveType.DOUBLE)
+				return 2;
+		}
+		return 1;
 	}
 
 	@Override
 	public String toString() {
-		if (this == UNKNOWN)
-			return "ANY";
-
-		if (type != null) {
-			if (type == PrimitiveType.OBJECT)
-				return object;
-			else if (type == PrimitiveType.ARRAY)
-				return arrayElement + "[]";
-			else
-				return type.toString();
-		} else {
-			return "?" + Arrays.asList(possibleTypes).toString();
-		}
-	}
-
-	private int calcHashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((type == null) ? 0 : type.hashCode());
-		result = prime * result + ((object == null) ? 0 : object.hashCode());
-		result = prime * result + ((arrayElement == null) ? 0 : arrayElement.hashCode());
-		result = prime * result + Arrays.hashCode(possibleTypes);
-		return result;
+		return "UNKNOWN";
 	}
 
 	@Override
@@ -293,16 +437,13 @@ public final class ArgType {
 		if (this == obj) return true;
 		if (obj == null) return false;
 		if (hash != obj.hashCode()) return false;
-		if (getClass() != obj.getClass()) return false;
-		ArgType other = (ArgType) obj;
-		if (type != other.type) return false;
-		if (!Arrays.equals(possibleTypes, other.possibleTypes)) return false;
-		if (arrayElement == null) {
-			if (other.arrayElement != null) return false;
-		} else if (!arrayElement.equals(other.arrayElement)) return false;
-		if (object == null) {
-			if (other.object != null) return false;
-		} else if (!object.equals(other.object)) return false;
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		// TODO: don't use toString
+		if (!toString().equals(obj.toString())) {
+			return false;
+		}
 		return true;
 	}
 

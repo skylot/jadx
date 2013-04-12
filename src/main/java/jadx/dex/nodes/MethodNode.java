@@ -109,8 +109,6 @@ public class MethodNode extends AttrNode implements ILoadable {
 			return;
 
 		if (instructions != null) instructions.clear();
-		// if (blocks != null) blocks.clear();
-		// if (exitBlocks != null) exitBlocks.clear();
 		blocks = null;
 		exitBlocks = null;
 		if (exceptionHandlers != null) exceptionHandlers.clear();
