@@ -2,7 +2,10 @@ package jadx.dex.nodes;
 
 import jadx.dex.attributes.AttrNode;
 import jadx.dex.attributes.AttributeFlag;
+import jadx.dex.attributes.AttributeType;
 import jadx.dex.attributes.JumpAttribute;
+import jadx.dex.attributes.annotations.Annotation;
+import jadx.dex.attributes.annotations.AnnotationsList;
 import jadx.dex.info.AccessInfo;
 import jadx.dex.info.AccessInfo.AFType;
 import jadx.dex.info.ClassInfo;
@@ -28,12 +31,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.android.dx.io.ClassData.Method;
 import com.android.dx.io.Code;
 import com.android.dx.io.Code.CatchHandler;
 import com.android.dx.io.Code.Try;
 
 public class MethodNode extends AttrNode implements ILoadable {
+	private static final Logger LOG = LoggerFactory.getLogger(MethodNode.class);
 
 	private final MethodInfo mthInfo;
 	private final ClassNode parentClass;
@@ -44,6 +51,7 @@ public class MethodNode extends AttrNode implements ILoadable {
 	private List<InsnNode> instructions;
 	private boolean noCode;
 
+	private ArgType retType;
 	private RegisterArg thisArg;
 	private List<RegisterArg> argsList;
 
@@ -65,7 +73,8 @@ public class MethodNode extends AttrNode implements ILoadable {
 		if (methodData.getCodeOffset() == 0) {
 			noCode = true;
 			regsCount = 0;
-			initArguments();
+			retType = mthInfo.getReturnType();
+			initArguments(mthInfo.getArgumentsTypes());
 		} else {
 			noCode = false;
 		}
@@ -81,6 +90,11 @@ public class MethodNode extends AttrNode implements ILoadable {
 			Code mthCode = dex.readCode(methodData);
 			regsCount = mthCode.getRegistersSize();
 
+			if (!parseSignature()) {
+				retType = mthInfo.getReturnType();
+				initArguments(mthInfo.getArgumentsTypes());
+			}
+
 			InsnDecoder decoder = new InsnDecoder(this, mthCode);
 			InsnNode[] insnByOffset = decoder.run();
 			instructions = new ArrayList<InsnNode>();
@@ -90,7 +104,6 @@ public class MethodNode extends AttrNode implements ILoadable {
 			}
 			((ArrayList<InsnNode>) instructions).trimToSize();
 
-			initArguments();
 			initTryCatches(mthCode, insnByOffset);
 			initJumps(insnByOffset);
 
@@ -116,8 +129,43 @@ public class MethodNode extends AttrNode implements ILoadable {
 		noCode = true;
 	}
 
-	private void initArguments() {
-		List<ArgType> args = mthInfo.getArgumentsTypes();
+	@SuppressWarnings("unchecked")
+	private boolean parseSignature() {
+		AnnotationsList aList = (AnnotationsList) getAttributes().get(AttributeType.ANNOTATION_LIST);
+		if (aList == null || aList.size() == 0)
+			return false;
+
+		Annotation a = aList.get("dalvik.annotation.Signature");
+		if (a == null)
+			return false;
+
+		String sign = Utils.mergeSignature((List<String>) a.getValues().get("value"));
+		int lastBracket = sign.indexOf(')');
+		String argsTypesStr = sign.substring(1, lastBracket);
+		String returnType = sign.substring(lastBracket + 1);
+
+		retType = ArgType.parseSignature(returnType);
+		if (mthInfo.getArgumentsTypes().isEmpty()) {
+			argsList = Collections.emptyList();
+			return true;
+		}
+
+		List<ArgType> argsTypes = ArgType.parseSignatureList(argsTypesStr);
+		if (argsTypes.size() != mthInfo.getArgumentsTypes().size()) {
+			if (!getParentClass().getAccessFlags().isEnum() && !mthInfo.isConstructor()) {
+				// error parsing signature
+				LOG.error("Wrong parse result: " + sign + " -> " + argsTypes
+						+ " must be: " + mthInfo.getArgumentsTypes()
+						// + " in method " + this
+						);
+			}
+			return false;
+		}
+		initArguments(argsTypes);
+		return true;
+	}
+
+	private void initArguments(List<ArgType> args) {
 		int pos;
 		if (!noCode) {
 			pos = regsCount;
@@ -132,6 +180,11 @@ public class MethodNode extends AttrNode implements ILoadable {
 		} else {
 			thisArg = InsnArg.reg(pos - 1, parentClass.getClassInfo().getType());
 			thisArg.getTypedVar().setName("this");
+		}
+
+		if (args.isEmpty()) {
+			argsList = Collections.emptyList();
+			return;
 		}
 
 		argsList = new ArrayList<RegisterArg>(args.size());
@@ -156,15 +209,8 @@ public class MethodNode extends AttrNode implements ILoadable {
 		return thisArg;
 	}
 
-	// TODO: args types can change during type resolving => reset and copy back names
-	@Deprecated
-	public void resetArgsTypes() {
-		List<InsnArg> modArgs = new ArrayList<InsnArg>(argsList);
-		initArguments();
-
-		for (int i = 0; i < argsList.size(); i++) {
-			argsList.get(i).getTypedVar().setName(modArgs.get(i).getTypedVar().getName());
-		}
+	public ArgType getReturnType() {
+		return retType;
 	}
 
 	// move to external class
@@ -394,7 +440,7 @@ public class MethodNode extends AttrNode implements ILoadable {
 
 	@Override
 	public String toString() {
-		return mthInfo.getReturnType()
+		return retType
 				+ " " + parentClass.getFullName() + "." + mthInfo.getName()
 				+ "(" + Utils.listToString(mthInfo.getArgumentsTypes()) + ")";
 	}

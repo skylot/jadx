@@ -81,13 +81,12 @@ public class MethodGen {
 			if (mth.getAccessFlags().isConstructor()) {
 				code.add(classGen.getClassNode().getShortName()); // constructor
 			} else {
-				code.add(TypeGen.translate(classGen, mth.getMethodInfo().getReturnType()));
-				code.add(" ");
+				code.add(TypeGen.translate(classGen, mth.getReturnType()));
+				code.add(' ');
 				code.add(mth.getName());
 			}
-			code.add("(");
+			code.add('(');
 
-			mth.resetArgsTypes();
 			List<RegisterArg> args = mth.getArguments(false);
 			if (mth.getMethodInfo().isConstructor()
 					&& mth.getParentClass().getAttributes().contains(AttributeType.ENUM_CLASS)) {

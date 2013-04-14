@@ -94,19 +94,7 @@ public class InsnGen {
 	}
 
 	public String declareVar(RegisterArg arg) throws CodegenException {
-		String type = useType(arg.getType());
-		ArgType[] generics = arg.getType().getGenericTypes();
-		if (generics != null) {
-			StringBuilder sb = new StringBuilder();
-			sb.append(type);
-			sb.append("/*<");
-			for (ArgType gt : generics) {
-				sb.append(useType(gt));
-			}
-			sb.append(">*/");
-			type = sb.toString();
-		}
-		return type + " " + arg(arg);
+		return useType(arg.getType()) + " " + arg(arg);
 	}
 
 	private String lit(LiteralArg arg) {
@@ -144,13 +132,6 @@ public class InsnGen {
 	}
 
 	private String useType(ArgType type) {
-		if (type.isObject())
-			return mgen.getClassGen().useClass(type);
-		else
-			return translate(type);
-	}
-
-	private String translate(ArgType type) {
 		return TypeGen.translate(mgen.getClassGen(), type);
 	}
 
@@ -160,7 +141,6 @@ public class InsnGen {
 
 	private void makeInsn(InsnNode insn, CodeWriter code, boolean bodyOnly) throws CodegenException {
 		try {
-			// code.startLine("/* " + insn + "*/");
 			EnumSet<InsnGenState> state = EnumSet.noneOf(InsnGenState.class);
 			if (bodyOnly) {
 				state.add(InsnGenState.BODY_ONLY);
@@ -213,7 +193,7 @@ public class InsnGen {
 			case CHECK_CAST:
 			case CAST:
 				code.add("((");
-				code.add(translate(((ArgType) ((IndexInsnNode) insn).getIndex())));
+				code.add(useType(((ArgType) ((IndexInsnNode) insn).getIndex())));
 				code.add(") (");
 				code.add(arg(insn.getArg(0)));
 				code.add("))");
@@ -445,7 +425,7 @@ public class InsnGen {
 		}
 		int len = str.length();
 		str.delete(len - 2, len);
-		code.add("new ").add(translate(elType)).add("[] { ").add(str.toString()).add(" }");
+		code.add("new ").add(useType(elType)).add("[] { ").add(str.toString()).add(" }");
 	}
 
 	private void makeConstructor(ConstructorInsn insn, CodeWriter code, EnumSet<InsnGenState> state)

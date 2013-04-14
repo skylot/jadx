@@ -28,7 +28,7 @@ public class LocalVarInfo extends RegisterArg {
 
 	private void init(String name, ArgType type, String sign) {
 		if (sign != null) {
-			type = ArgType.generic(type.getObject(), sign);
+			type = ArgType.generic(sign);
 		}
 		TypedVar tv = new TypedVar(type);
 		tv.setName(name);

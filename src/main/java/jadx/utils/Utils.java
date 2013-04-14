@@ -28,8 +28,13 @@ public class Utils {
 	}
 
 	public static String escape(String str) {
-		return str.replace('.', '_').replace('/', '_').replace(';', '_')
-				.replace('$', '_').replace("[]", "_A");
+		return str.replace('.', '_')
+				.replace('/', '_')
+				.replace(';', '_')
+				.replace('$', '_')
+				.replace('<', '_')
+				.replace('>', '_')
+				.replace("[]", "_A");
 	}
 
 	public static String listToString(Iterable<?> list) {
@@ -44,6 +49,16 @@ public class Utils {
 				str.append(", ");
 		}
 		return str.toString();
+	}
+
+	public static String arrayToString(Object[] array) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < array.length; i++) {
+			if (i != 0)
+				sb.append(", ");
+			sb.append(array[i]);
+		}
+		return sb.toString();
 	}
 
 	public static String getStackTrace(Throwable throwable) {

@@ -401,7 +401,7 @@ public class InsnDecoder {
 			case Opcodes.RETURN_OBJECT:
 				return insn(InsnType.RETURN,
 						null,
-						InsnArg.reg(insn, 0, method.getMethodInfo().getReturnType()));
+						InsnArg.reg(insn, 0, method.getReturnType()));
 
 			case Opcodes.INSTANCE_OF: {
 				InsnNode node = new IndexInsnNode(method, InsnType.INSTANCE_OF, dex.getType(insn.getIndex()), 1);

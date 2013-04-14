@@ -29,7 +29,7 @@ public class PostRegionVisitor extends AbstractVisitor {
 	 * Remove useless return at end
 	 */
 	private void removeReturn(MethodNode mth) {
-		if (!mth.getMethodInfo().getReturnType().equals(ArgType.VOID))
+		if (!mth.getReturnType().equals(ArgType.VOID))
 			return;
 
 		if (!(mth.getRegion() instanceof Region))

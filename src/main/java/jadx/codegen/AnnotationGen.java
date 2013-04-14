@@ -62,11 +62,15 @@ public class AnnotationGen {
 			String aCls = a.getAnnotationClass();
 			if (aCls.startsWith("dalvik.annotation.")) {
 				// skip
-				if (aCls.equals("dalvik.annotation.Signature"))
-					code.startLine("// signature: "
-							+ Utils.mergeSignature((List<String>) a.getValues().get("value")));
-				else if (Consts.DEBUG)
+				if (aCls.equals("dalvik.annotation.Signature")) {
+					if (!(node instanceof MethodNode)) {
+						String sign = Utils.mergeSignature((List<String>) a.getValues().get("value"));
+						List<ArgType> types = ArgType.parseSignatureList(sign);
+						code.startLine("// signature: " + Utils.listToString(types));
+					}
+				} else if (Consts.DEBUG) {
 					code.startLine("// " + a);
+				}
 			} else {
 				code.startLine();
 				code.add(formatAnnotation(a));

@@ -68,6 +68,19 @@ public class TestCF3 extends AbstractTest {
 		return l1.size() == 0;
 	}
 
+	public boolean testNestedLoops2(List<String> list) {
+		int i = 0;
+		int j = 0;
+		while (i < list.size()) {
+			String s = list.get(i);
+			while (j < s.length()) {
+				j++;
+			}
+			i++;
+		}
+		return j > 10;
+	}
+
 	public static boolean testLabeledBreakContinue() {
 		String searchMe = "Look for a substring in me";
 		String substring = "sub";

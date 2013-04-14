@@ -24,6 +24,7 @@ public abstract class ArgType {
 	public static final ArgType THROWABLE = object(Consts.CLASS_THROWABLE);
 
 	public static final ArgType UNKNOWN = unknown(PrimitiveType.values());
+	public static final ArgType UNKNOWN_OBJECT = unknown(PrimitiveType.OBJECT, PrimitiveType.ARRAY);
 
 	public static final ArgType NARROW = unknown(
 			PrimitiveType.INT, PrimitiveType.FLOAT,
@@ -32,8 +33,6 @@ public abstract class ArgType {
 
 	public static final ArgType WIDE = unknown(PrimitiveType.LONG, PrimitiveType.DOUBLE);
 
-	public static final ArgType UNKNOWN_OBJECT = unknown(PrimitiveType.OBJECT, PrimitiveType.ARRAY);
-
 	protected int hash;
 
 	private static ArgType primitive(PrimitiveType stype) {
@@ -41,11 +40,15 @@ public abstract class ArgType {
 	}
 
 	public static ArgType object(String obj) {
-		return new ObjectArg(Utils.cleanObjectName(obj));
+		return new ObjectArg(obj);
 	}
 
-	public static ArgType generic(String obj, String signature) {
-		return new GenericObjectArg(obj, signature);
+	public static ArgType generic(String sign) {
+		return parseSignature(sign);
+	}
+
+	public static ArgType generic(String obj, ArgType[] generics) {
+		return new GenericObjectArg(obj, generics);
 	}
 
 	public static ArgType array(ArgType vtype) {
@@ -91,7 +94,7 @@ public abstract class ArgType {
 		private final String object;
 
 		public ObjectArg(String obj) {
-			this.object = obj;
+			this.object = Utils.cleanObjectName(obj);
 			this.hash = obj.hashCode();
 		}
 
@@ -119,9 +122,9 @@ public abstract class ArgType {
 	private static final class GenericObjectArg extends ObjectArg {
 		private final ArgType[] generics;
 
-		public GenericObjectArg(String obj, String signature) {
+		public GenericObjectArg(String obj, ArgType[] generics) {
 			super(obj);
-			this.generics = parseSignature(signature);
+			this.generics = generics;
 			this.hash = obj.hashCode() + 31 * Arrays.hashCode(generics);
 		}
 
@@ -132,7 +135,7 @@ public abstract class ArgType {
 
 		@Override
 		public String toString() {
-			return super.toString() + "<" + Arrays.toString(generics) + ">";
+			return super.toString() + "<" + Utils.arrayToString(generics) + ">";
 		}
 	}
 
@@ -177,7 +180,7 @@ public abstract class ArgType {
 
 		@Override
 		public String toString() {
-			return arrayElement.toString();
+			return arrayElement.toString() + "[]";
 		}
 	}
 
@@ -220,7 +223,7 @@ public abstract class ArgType {
 		@Override
 		public String toString() {
 			if (possibleTypes.length == PrimitiveType.values().length)
-				return "*";
+				return "?";
 			else
 				return "?" + Arrays.toString(possibleTypes);
 		}
@@ -363,30 +366,83 @@ public abstract class ArgType {
 		}
 	}
 
-	public static ArgType[] parseSignature(String signature) {
-		int b = signature.indexOf('<') + 1;
-		int e = signature.lastIndexOf('>');
-		String gens = signature.substring(b, e);
-		String[] split = gens.split(";");
-		ArgType[] result = new ArgType[split.length];
-		for (int i = 0; i < split.length; i++) {
-			String g = split[i];
-			switch (g.charAt(0)) {
+	public static ArgType parseSignature(String sign) {
+		int b = sign.indexOf('<');
+		if (b == -1)
+			return parse(sign);
+
+		String obj = sign.substring(0, b);
+		String genericsStr = sign.substring(b + 1, sign.length() - 2);
+		List<ArgType> generics = parseSignatureList(genericsStr);
+		ArgType res = generic(obj + ";", generics.toArray(new ArgType[generics.size()]));
+		return res;
+	}
+
+	public static List<ArgType> parseSignatureList(String str) {
+		List<ArgType> signs = new ArrayList<ArgType>(3);
+		if (str.equals("*")) {
+			signs.add(UNKNOWN);
+			return signs;
+		}
+
+		int obj = 0;
+		int objStart = 0;
+		int gen = 0;
+		int arr = 0;
+
+		int pos = 0;
+		ArgType type = null;
+		while (pos < str.length()) {
+			char c = str.charAt(pos);
+			switch (c) {
 				case 'L':
-					result[i] = object(g + ";");
+					if (obj == 0 && gen == 0) {
+						obj++;
+						objStart = pos;
+					}
 					break;
 
-				case '*':
-				case '?':
-					result[i] = UNKNOWN;
+				case ';':
+					if (obj == 1 && gen == 0) {
+						obj--;
+						String o = str.substring(objStart, pos + 1);
+						type = parseSignature(o);
+					}
+					break;
+
+				case '<':
+					gen++;
+					break;
+				case '>':
+					gen--;
+					break;
+
+				case '[':
+					arr++;
 					break;
 
 				default:
-					result[i] = UNKNOWN_OBJECT;
+					if (obj == 0 && gen == 0) {
+						type = parse(c);
+					}
 					break;
 			}
+
+			if (type != null) {
+				if (arr == 0) {
+					signs.add(type);
+				} else {
+					for (int i = 0; i < arr; i++) {
+						type = array(type);
+					}
+					signs.add(type);
+					arr = 0;
+				}
+				type = null;
+			}
+			pos++;
 		}
-		return result;
+		return signs;
 	}
 
 	private static ArgType parse(char f) {
@@ -410,7 +466,7 @@ public abstract class ArgType {
 			case 'V':
 				return VOID;
 		}
-		throw new RuntimeException("Unknown type: " + f);
+		return null;
 	}
 
 	public int getRegCount() {

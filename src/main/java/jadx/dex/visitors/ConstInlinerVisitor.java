@@ -137,7 +137,7 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 
 			case RETURN:
 				if (insn.getArgsCount() != 0) {
-					insn.getArg(0).merge(mth.getMethodInfo().getReturnType());
+					insn.getArg(0).merge(mth.getReturnType());
 				}
 				break;
 

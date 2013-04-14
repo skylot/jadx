@@ -248,7 +248,29 @@ public class ClassGen {
 	}
 
 	public String useClass(ArgType clsType) {
-		return useClass(ClassInfo.fromType(cls.dex(), clsType));
+		String baseClass = useClass(ClassInfo.fromType(cls.dex(), clsType));
+
+		ArgType[] generics = clsType.getGenericTypes();
+		if (generics != null) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(baseClass);
+			sb.append("<");
+			int len = generics.length;
+			for (int i = 0; i < len; i++) {
+				if (i != 0) {
+					sb.append(", ");
+				}
+				ArgType gt = generics[i];
+				if (gt.isTypeKnown())
+					sb.append(useClass(gt));
+				else
+					sb.append('?');
+			}
+			sb.append(">");
+			return sb.toString();
+		} else {
+			return baseClass;
+		}
 	}
 
 	public String useClass(ClassInfo classInfo) {
