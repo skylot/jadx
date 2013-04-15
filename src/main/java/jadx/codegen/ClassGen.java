@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import com.android.dx.rop.code.AccessFlags;
@@ -105,19 +107,22 @@ public class ClassGen {
 			clsCode.add("class ");
 		}
 		clsCode.add(cls.getShortName());
-		ClassInfo sup = cls.getSuperClass();
 
+		makeGenericMap(clsCode, cls.getGenericMap());
+		clsCode.add(' ');
+
+		ClassInfo sup = cls.getSuperClass();
 		if (sup != null
 				&& !sup.getFullName().equals(Consts.CLASS_OBJECT)
 				&& !sup.getFullName().equals(Consts.CLASS_ENUM)) {
-			clsCode.add(" extends ").add(useClass(sup));
+			clsCode.add("extends ").add(useClass(sup)).add(' ');
 		}
 
 		if (cls.getInterfaces().size() > 0 && !af.isAnnotation()) {
 			if (cls.getAccessFlags().isInterface())
-				clsCode.add(" extends ");
+				clsCode.add("extends ");
 			else
-				clsCode.add(" implements ");
+				clsCode.add("implements ");
 
 			for (Iterator<ClassInfo> it = cls.getInterfaces().iterator(); it.hasNext();) {
 				ClassInfo interf = it.next();
@@ -125,11 +130,41 @@ public class ClassGen {
 				if (it.hasNext())
 					clsCode.add(", ");
 			}
+			if (!cls.getInterfaces().isEmpty())
+				clsCode.add(' ');
 		}
 	}
 
+	public void makeGenericMap(CodeWriter code, Map<ArgType, List<ArgType>> gmap) {
+		if (gmap == null || gmap.isEmpty())
+			return;
+
+		code.add('<');
+		int i = 0;
+		for (Entry<ArgType, List<ArgType>> e : gmap.entrySet()) {
+			ArgType type = e.getKey();
+			List<ArgType> list = e.getValue();
+			if (i != 0) {
+				code.add(", ");
+			}
+			code.add(useClass(type));
+			if (list != null && !list.isEmpty()) {
+				code.add(" extends ");
+				for (Iterator<ArgType> it = list.iterator(); it.hasNext();) {
+					ArgType g = it.next();
+					code.add(useClass(g));
+					if (it.hasNext()) {
+						code.add(" & ");
+					}
+				}
+			}
+			i++;
+		}
+		code.add('>');
+	}
+
 	public void makeClassBody(CodeWriter clsCode) throws CodegenException {
-		clsCode.add(" {");
+		clsCode.add("{");
 		CodeWriter mthsCode = makeMethods(clsCode, cls.getMethods());
 		clsCode.add(makeFields(clsCode, cls, cls.getFields()));
 
@@ -248,9 +283,15 @@ public class ClassGen {
 	}
 
 	public String useClass(ArgType clsType) {
-		String baseClass = useClass(ClassInfo.fromType(cls.dex(), clsType));
+		if (clsType.isGenericType()) {
+			return clsType.getObject();
+		}
+		return useClass(ClassInfo.fromType(cls.dex(), clsType));
+	}
 
-		ArgType[] generics = clsType.getGenericTypes();
+	public String useClass(ClassInfo classInfo) {
+		String baseClass = useClassInner(classInfo);
+		ArgType[] generics = classInfo.getType().getGenericTypes();
 		if (generics != null) {
 			StringBuilder sb = new StringBuilder();
 			sb.append(baseClass);
@@ -262,7 +303,7 @@ public class ClassGen {
 				}
 				ArgType gt = generics[i];
 				if (gt.isTypeKnown())
-					sb.append(useClass(gt));
+					sb.append(TypeGen.translate(this, gt));
 				else
 					sb.append('?');
 			}
@@ -273,9 +314,9 @@ public class ClassGen {
 		}
 	}
 
-	public String useClass(ClassInfo classInfo) {
+	private String useClassInner(ClassInfo classInfo) {
 		if (parentGen != null)
-			return parentGen.useClass(classInfo);
+			return parentGen.useClassInner(classInfo);
 
 		String clsStr = classInfo.getFullName();
 		if (fallback)

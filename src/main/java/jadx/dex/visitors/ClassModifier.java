@@ -1,6 +1,7 @@
 package jadx.dex.visitors;
 
 import jadx.dex.info.AccessInfo;
+import jadx.dex.info.MethodInfo;
 import jadx.dex.nodes.BlockNode;
 import jadx.dex.nodes.ClassNode;
 import jadx.dex.nodes.MethodNode;
@@ -23,7 +24,7 @@ public class ClassModifier extends AbstractVisitor {
 
 			// remove bridge methods
 			if (af.isBridge() && af.isSynthetic()) {
-				if (!isMethodIdUniq(cls, mth)) {
+				if (!isMethodUniq(cls, mth)) {
 					// TODO add more checks before method deletion
 					it.remove();
 				}
@@ -42,12 +43,17 @@ public class ClassModifier extends AbstractVisitor {
 		return false;
 	}
 
-	private boolean isMethodIdUniq(ClassNode cls, MethodNode mth) {
-		String shortId = mth.getMethodInfo().getShortId();
+	private boolean isMethodUniq(ClassNode cls, MethodNode mth) {
+		MethodInfo mi = mth.getMethodInfo();
 		for (MethodNode otherMth : cls.getMethods()) {
-			if (otherMth.getMethodInfo().getShortId().equals(shortId)
-					&& otherMth != mth)
-				return false;
+			MethodInfo omi = otherMth.getMethodInfo();
+			if (omi.getName().equals(mi.getName())
+					&& otherMth != mth) {
+				if (omi.getArgumentsTypes().size() == mi.getArgumentsTypes().size()) {
+					// TODO: check to args objects types
+					return false;
+				}
+			}
 		}
 		return true;
 	}

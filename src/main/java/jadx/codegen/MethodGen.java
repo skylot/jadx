@@ -76,8 +76,11 @@ public class MethodGen {
 			if (mth.getParentClass().getAccessFlags().isInterface()) {
 				ai = ai.remove(AccessFlags.ACC_ABSTRACT);
 			}
-
 			code.startLine(ai.makeString());
+
+			classGen.makeGenericMap(code, mth.getGenericMap());
+			code.add(' ');
+
 			if (mth.getAccessFlags().isConstructor()) {
 				code.add(classGen.getClassNode().getShortName()); // constructor
 			} else {

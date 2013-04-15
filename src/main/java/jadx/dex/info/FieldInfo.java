@@ -1,12 +1,11 @@
 package jadx.dex.info;
 
-import jadx.dex.attributes.AttrNode;
 import jadx.dex.instructions.args.ArgType;
 import jadx.dex.nodes.DexNode;
 
 import com.android.dx.io.FieldId;
 
-public class FieldInfo extends AttrNode {
+public class FieldInfo {
 
 	private final String name;
 	private final ArgType type;

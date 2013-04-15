@@ -5,9 +5,16 @@ import jadx.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class ArgType {
+	private static final Logger LOG = LoggerFactory.getLogger(ArgType.class);
+
 	public static final ArgType INT = primitive(PrimitiveType.INT);
 	public static final ArgType BOOLEAN = primitive(PrimitiveType.BOOLEAN);
 	public static final ArgType BYTE = primitive(PrimitiveType.BYTE);
@@ -41,6 +48,10 @@ public abstract class ArgType {
 
 	public static ArgType object(String obj) {
 		return new ObjectArg(obj);
+	}
+
+	public static ArgType genericType(String type) {
+		return new GenericTypeArg(type);
 	}
 
 	public static ArgType generic(String sign) {
@@ -116,6 +127,17 @@ public abstract class ArgType {
 		@Override
 		public String toString() {
 			return object;
+		}
+	}
+
+	private static final class GenericTypeArg extends ObjectArg {
+		public GenericTypeArg(String obj) {
+			super(obj);
+		}
+
+		@Override
+		public boolean isGenericType() {
+			return true;
 		}
 	}
 
@@ -249,6 +271,10 @@ public abstract class ArgType {
 		return false;
 	}
 
+	public boolean isGenericType() {
+		return false;
+	}
+
 	public ArgType[] getGenericTypes() {
 		return null;
 	}
@@ -355,14 +381,16 @@ public abstract class ArgType {
 	}
 
 	public static ArgType parse(String type) {
-		assert type.length() > 0 : "Empty type";
 		char f = type.charAt(0);
-		if (f == 'L') {
-			return object(type);
-		} else if (f == '[') {
-			return array(parse(type.substring(1)));
-		} else {
-			return parse(f);
+		switch (f) {
+			case 'L':
+				return object(type);
+			case 'T':
+				return genericType(type.substring(1, type.length() - 1));
+			case '[':
+				return array(parse(type.substring(1)));
+			default:
+				return parse(f);
 		}
 	}
 
@@ -374,11 +402,22 @@ public abstract class ArgType {
 		String obj = sign.substring(0, b);
 		String genericsStr = sign.substring(b + 1, sign.length() - 2);
 		List<ArgType> generics = parseSignatureList(genericsStr);
-		ArgType res = generic(obj + ";", generics.toArray(new ArgType[generics.size()]));
-		return res;
+		if (generics != null)
+			return generic(obj + ";", generics.toArray(new ArgType[generics.size()]));
+		else
+			return object(obj + ";");
 	}
 
 	public static List<ArgType> parseSignatureList(String str) {
+		try {
+			return parseSignatureListInner(str, true);
+		} catch (Throwable e) {
+			LOG.warn("Signature parse exception: {}", str, e);
+			return null;
+		}
+	}
+
+	private static List<ArgType> parseSignatureListInner(String str, boolean parsePrimitives) {
 		List<ArgType> signs = new ArrayList<ArgType>(3);
 		if (str.equals("*")) {
 			signs.add(UNKNOWN);
@@ -396,6 +435,7 @@ public abstract class ArgType {
 			char c = str.charAt(pos);
 			switch (c) {
 				case 'L':
+				case 'T':
 					if (obj == 0 && gen == 0) {
 						obj++;
 						objStart = pos;
@@ -410,6 +450,15 @@ public abstract class ArgType {
 					}
 					break;
 
+				case ':': // generic types map separator
+					if (gen == 0) {
+						obj = 0;
+						String o = str.substring(objStart, pos);
+						if (o.length() > 0)
+							type = genericType(o);
+					}
+					break;
+
 				case '<':
 					gen++;
 					break;
@@ -418,11 +467,13 @@ public abstract class ArgType {
 					break;
 
 				case '[':
-					arr++;
+					if (obj == 0 && gen == 0) {
+						arr++;
+					}
 					break;
 
 				default:
-					if (obj == 0 && gen == 0) {
+					if (parsePrimitives && obj == 0 && gen == 0) {
 						type = parse(c);
 					}
 					break;
@@ -439,10 +490,43 @@ public abstract class ArgType {
 					arr = 0;
 				}
 				type = null;
+				objStart = pos + 1;
 			}
 			pos++;
 		}
 		return signs;
+	}
+
+	public static Map<ArgType, List<ArgType>> parseGenericMap(String gen) {
+		try {
+			Map<ArgType, List<ArgType>> genericMap = null;
+			List<ArgType> genTypes = parseSignatureListInner(gen, false);
+			if (genTypes != null) {
+				genericMap = new LinkedHashMap<ArgType, List<ArgType>>(2);
+				ArgType prev = null;
+				List<ArgType> genList = new ArrayList<ArgType>(2);
+				for (ArgType arg : genTypes) {
+					if (arg.isGenericType()) {
+						if (prev != null) {
+							genericMap.put(prev, genList);
+							genList = new ArrayList<ArgType>();
+						}
+						prev = arg;
+					} else {
+						if (!arg.getObject().equals(Consts.CLASS_OBJECT))
+							genList.add(arg);
+					}
+				}
+				if (prev != null) {
+					genericMap.put(prev, genList);
+				}
+				// LOG.debug("sign: {} -> {}", gen, genericMap);
+			}
+			return genericMap;
+		} catch (Throwable e) {
+			LOG.warn("Generic map parse exception: {}", gen, e);
+			return null;
+		}
 	}
 
 	private static ArgType parse(char f) {

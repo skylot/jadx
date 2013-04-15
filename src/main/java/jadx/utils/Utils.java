@@ -28,13 +28,35 @@ public class Utils {
 	}
 
 	public static String escape(String str) {
-		return str.replace('.', '_')
-				.replace('/', '_')
-				.replace(';', '_')
-				.replace('$', '_')
-				.replace('<', '_')
-				.replace('>', '_')
-				.replace("[]", "_A");
+		int len = str.length();
+		StringBuilder sb = new StringBuilder(len);
+		for (int i = 0; i < len; i++) {
+			char c = str.charAt(i);
+			switch (c) {
+				case '.':
+				case '/':
+				case ';':
+				case '$':
+				case '<':
+				case '[':
+					sb.append('_');
+					break;
+
+				case ']':
+					sb.append('A');
+					break;
+
+				case '>':
+				case ',':
+				case ' ':
+					break;
+
+				default:
+					sb.append(c);
+					break;
+			}
+		}
+		return sb.toString();
 	}
 
 	public static String listToString(Iterable<?> list) {
@@ -44,7 +66,7 @@ public class Utils {
 		StringBuilder str = new StringBuilder();
 		for (Iterator<?> it = list.iterator(); it.hasNext();) {
 			Object o = it.next();
-			str.append(o.toString());
+			str.append(o);
 			if (it.hasNext())
 				str.append(", ");
 		}
@@ -52,6 +74,9 @@ public class Utils {
 	}
 
 	public static String arrayToString(Object[] array) {
+		if (array == null)
+			return "";
+
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < array.length; i++) {
 			if (i != 0)
@@ -74,6 +99,26 @@ public class Utils {
 			sb.append(s);
 		}
 		return sb.toString();
+	}
+
+	public static int getGenericEnd(String sign) {
+		int end = -1;
+		if (sign.startsWith("<")) {
+			int pair = 1;
+			for (int pos = 1; pos < sign.length(); pos++) {
+				char c = sign.charAt(pos);
+				if (c == '<')
+					pair++;
+				else if (c == '>')
+					pair--;
+
+				if (pair == 0) {
+					end = pos;
+					break;
+				}
+			}
+		}
+		return end;
 	}
 
 	public static String getJadxVersion() {

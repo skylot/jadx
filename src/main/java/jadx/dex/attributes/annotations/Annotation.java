@@ -36,6 +36,10 @@ public class Annotation {
 		return values;
 	}
 
+	public Object getDefaultValue() {
+		return values.get("value");
+	}
+
 	@Override
 	public String toString() {
 		return "Annotation[" + visibility + ", " + atype + ", " + values + "]";

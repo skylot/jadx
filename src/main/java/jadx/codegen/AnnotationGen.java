@@ -12,7 +12,6 @@ import jadx.dex.nodes.ClassNode;
 import jadx.dex.nodes.FieldNode;
 import jadx.dex.nodes.MethodNode;
 import jadx.utils.StringUtils;
-import jadx.utils.Utils;
 import jadx.utils.exceptions.JadxRuntimeException;
 
 import java.util.Iterator;
@@ -62,13 +61,7 @@ public class AnnotationGen {
 			String aCls = a.getAnnotationClass();
 			if (aCls.startsWith("dalvik.annotation.")) {
 				// skip
-				if (aCls.equals("dalvik.annotation.Signature")) {
-					if (!(node instanceof MethodNode)) {
-						String sign = Utils.mergeSignature((List<String>) a.getValues().get("value"));
-						List<ArgType> types = ArgType.parseSignatureList(sign);
-						code.startLine("// signature: " + Utils.listToString(types));
-					}
-				} else if (Consts.DEBUG) {
+				if (Consts.DEBUG) {
 					code.startLine("// " + a);
 				}
 			} else {
@@ -104,13 +97,9 @@ public class AnnotationGen {
 
 	@SuppressWarnings("unchecked")
 	public void addThrows(MethodNode mth, CodeWriter code) {
-		AnnotationsList anList = (AnnotationsList) mth.getAttributes().get(AttributeType.ANNOTATION_LIST);
-		if (anList == null || anList.size() == 0)
-			return;
-
-		Annotation an = anList.get("dalvik.annotation.Throws");
+		Annotation an = mth.getAttributes().getAnnotation("dalvik.annotation.Throws");
 		if (an != null) {
-			Object exs = an.getValues().get("value");
+			Object exs = an.getDefaultValue();
 			code.add(" throws ");
 			for (Iterator<ArgType> it = ((List<ArgType>) exs).iterator(); it.hasNext();) {
 				ArgType ex = it.next();
@@ -122,13 +111,9 @@ public class AnnotationGen {
 	}
 
 	public Object getAnnotationDefaultValue(String name) {
-		AnnotationsList anList = (AnnotationsList) cls.getAttributes().get(AttributeType.ANNOTATION_LIST);
-		if (anList == null || anList.size() == 0)
-			return null;
-
-		Annotation an = anList.get("dalvik.annotation.AnnotationDefault");
+		Annotation an = cls.getAttributes().getAnnotation("dalvik.annotation.AnnotationDefault");
 		if (an != null) {
-			Annotation defAnnotation = (Annotation) an.getValues().get("value");
+			Annotation defAnnotation = (Annotation) an.getDefaultValue();
 			return defAnnotation.getValues().get(name);
 		}
 		return null;

@@ -1,10 +1,9 @@
 package jadx.dex.nodes;
 
+import jadx.Consts;
 import jadx.dex.attributes.AttrNode;
 import jadx.dex.attributes.AttributeType;
-import jadx.dex.attributes.IAttribute;
 import jadx.dex.attributes.annotations.Annotation;
-import jadx.dex.attributes.annotations.AnnotationsList;
 import jadx.dex.info.AccessInfo;
 import jadx.dex.info.AccessInfo.AFType;
 import jadx.dex.info.ClassInfo;
@@ -14,6 +13,7 @@ import jadx.dex.instructions.args.ArgType;
 import jadx.dex.nodes.parser.AnnotationsParser;
 import jadx.dex.nodes.parser.FieldValueAttr;
 import jadx.dex.nodes.parser.StaticValuesParser;
+import jadx.utils.Utils;
 import jadx.utils.exceptions.DecodeException;
 
 import java.util.ArrayList;
@@ -31,13 +31,13 @@ import com.android.dx.io.ClassData.Method;
 import com.android.dx.io.ClassDef;
 
 public class ClassNode extends AttrNode implements ILoadable {
-
 	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
 
 	private final DexNode dex;
 	private final ClassInfo clsInfo;
-	private final ClassInfo superClass;
-	private final List<ClassInfo> interfaces;
+	private ClassInfo superClass;
+	private List<ClassInfo> interfaces;
+	private Map<ArgType, List<ArgType>> genericMap;
 
 	private final List<MethodNode> methods = new ArrayList<MethodNode>();
 	private final List<FieldNode> fields = new ArrayList<FieldNode>();
@@ -82,15 +82,15 @@ public class ClassNode extends AttrNode implements ILoadable {
 
 			loadAnnotations(cls);
 
-			int accFlagsValue = cls.getAccessFlags();
+			parseClassSignature();
+			setFieldsTypesFromSignature();
 
-			IAttribute annotations = getAttributes().get(AttributeType.ANNOTATION_LIST);
-			if (annotations != null) {
-				AnnotationsList list = (AnnotationsList) annotations;
-				Annotation iCls = list.get("dalvik.annotation.InnerClass");
-				if (iCls != null)
-					accFlagsValue = (Integer) iCls.getValues().get("accessFlags");
-			}
+			int accFlagsValue;
+			Annotation a = getAttributes().getAnnotation("dalvik.annotation.InnerClass");
+			if (a != null)
+				accFlagsValue = (Integer) a.getValues().get("accessFlags");
+			else
+				accFlagsValue = cls.getAccessFlags();
 
 			this.accessFlags = new AccessInfo(accFlagsValue, AFType.CLASS);
 
@@ -134,6 +134,53 @@ public class ClassNode extends AttrNode implements ILoadable {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	private void parseClassSignature() {
+		Annotation a = this.getAttributes().getAnnotation(Consts.DALVIK_SIGNATURE);
+		if (a == null)
+			return;
+
+		String sign = Utils.mergeSignature((List<String>) a.getDefaultValue());
+		// parse generic map
+		int end = Utils.getGenericEnd(sign);
+		if (end != -1) {
+			String gen = sign.substring(1, end);
+			genericMap = ArgType.parseGenericMap(gen);
+			sign = sign.substring(end + 1);
+		}
+
+		// parse super class signature and interfaces
+		List<ArgType> list = ArgType.parseSignatureList(sign);
+		if (list != null && !list.isEmpty()) {
+			try {
+				ArgType st = list.remove(0);
+				this.superClass = ClassInfo.fromType(dex, st);
+				int i = 0;
+				for (ArgType it : list) {
+					ClassInfo interf = ClassInfo.fromType(dex, it);
+					interfaces.set(i, interf);
+					i++;
+				}
+			} catch (Throwable e) {
+				LOG.warn("Can't set signatures for class: {}, sign: {}", this, sign, e);
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void setFieldsTypesFromSignature() {
+		for (FieldNode field : fields) {
+			Annotation a = field.getAttributes().getAnnotation(Consts.DALVIK_SIGNATURE);
+			if (a == null)
+				continue;
+
+			String sign = Utils.mergeSignature((List<String>) a.getDefaultValue());
+			ArgType gType = ArgType.parseSignature(sign);
+			if (gType != null)
+				field.setType(gType);
+		}
+	}
+
 	@Override
 	public void load() throws DecodeException {
 		for (MethodNode mth : getMethods()) {
@@ -160,6 +207,10 @@ public class ClassNode extends AttrNode implements ILoadable {
 
 	public List<ClassInfo> getInterfaces() {
 		return interfaces;
+	}
+
+	public Map<ArgType, List<ArgType>> getGenericMap() {
+		return genericMap;
 	}
 
 	public List<MethodNode> getMethods() {

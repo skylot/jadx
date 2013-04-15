@@ -49,6 +49,7 @@ public final class ClassInfo {
 	}
 
 	private ClassInfo(DexNode dex, ArgType type) {
+		assert type.isObject() : "Not class type: " + type;
 		this.type = type;
 
 		String fullObjectName = type.getObject();

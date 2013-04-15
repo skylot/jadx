@@ -1,11 +1,10 @@
 package jadx.dex.nodes;
 
+import jadx.Consts;
 import jadx.dex.attributes.AttrNode;
 import jadx.dex.attributes.AttributeFlag;
-import jadx.dex.attributes.AttributeType;
 import jadx.dex.attributes.JumpAttribute;
 import jadx.dex.attributes.annotations.Annotation;
-import jadx.dex.attributes.annotations.AnnotationsList;
 import jadx.dex.info.AccessInfo;
 import jadx.dex.info.AccessInfo.AFType;
 import jadx.dex.info.ClassInfo;
@@ -29,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -54,6 +54,7 @@ public class MethodNode extends AttrNode implements ILoadable {
 	private ArgType retType;
 	private RegisterArg thisArg;
 	private List<RegisterArg> argsList;
+	private Map<ArgType, List<ArgType>> genericMap;
 
 	private List<BlockNode> blocks;
 	private BlockNode enterBlock;
@@ -131,35 +132,52 @@ public class MethodNode extends AttrNode implements ILoadable {
 
 	@SuppressWarnings("unchecked")
 	private boolean parseSignature() {
-		AnnotationsList aList = (AnnotationsList) getAttributes().get(AttributeType.ANNOTATION_LIST);
-		if (aList == null || aList.size() == 0)
-			return false;
-
-		Annotation a = aList.get("dalvik.annotation.Signature");
+		Annotation a = getAttributes().getAnnotation(Consts.DALVIK_SIGNATURE);
 		if (a == null)
 			return false;
 
-		String sign = Utils.mergeSignature((List<String>) a.getValues().get("value"));
-		int lastBracket = sign.indexOf(')');
-		String argsTypesStr = sign.substring(1, lastBracket);
+		String sign = Utils.mergeSignature((List<String>) a.getDefaultValue());
+
+		// parse generic map
+		int end = Utils.getGenericEnd(sign);
+		if (end != -1) {
+			String gen = sign.substring(1, end);
+			genericMap = ArgType.parseGenericMap(gen);
+			sign = sign.substring(end + 1);
+		}
+
+		int firstBracket = sign.indexOf('(');
+		int lastBracket = sign.lastIndexOf(')');
+		String argsTypesStr = sign.substring(firstBracket + 1, lastBracket);
 		String returnType = sign.substring(lastBracket + 1);
 
 		retType = ArgType.parseSignature(returnType);
+		if (retType == null) {
+			LOG.warn("Signature parse error: {}", returnType);
+			return false;
+		}
 		if (mthInfo.getArgumentsTypes().isEmpty()) {
 			argsList = Collections.emptyList();
 			return true;
 		}
 
 		List<ArgType> argsTypes = ArgType.parseSignatureList(argsTypesStr);
-		if (argsTypes.size() != mthInfo.getArgumentsTypes().size()) {
-			if (!getParentClass().getAccessFlags().isEnum() && !mthInfo.isConstructor()) {
-				// error parsing signature
-				LOG.error("Wrong parse result: " + sign + " -> " + argsTypes
-						+ " must be: " + mthInfo.getArgumentsTypes()
-						// + " in method " + this
-						);
-			}
+		if (argsTypes == null)
 			return false;
+
+		if (argsTypes.size() != mthInfo.getArgumentsTypes().size()) {
+			if (!mthInfo.isConstructor()) {
+				LOG.warn("Wrong signature parse result: " + sign + " -> " + argsTypes
+						+ ", not generic version: " + mthInfo.getArgumentsTypes());
+				return false;
+			} else if (getParentClass().getAccessFlags().isEnum()) {
+				// TODO:
+				argsTypes.add(0, mthInfo.getArgumentsTypes().get(1));
+				argsTypes.add(1, mthInfo.getArgumentsTypes().get(1));
+			} else {
+				// add synthetic arg for outer class
+				argsTypes.add(0, mthInfo.getArgumentsTypes().get(0));
+			}
 		}
 		initArguments(argsTypes);
 		return true;
@@ -213,7 +231,11 @@ public class MethodNode extends AttrNode implements ILoadable {
 		return retType;
 	}
 
-	// move to external class
+	public Map<ArgType, List<ArgType>> getGenericMap() {
+		return genericMap;
+	}
+
+	// TODO: move to external class
 	private void initTryCatches(Code mthCode, InsnNode[] insnByOffset) {
 		CatchHandler[] catchBlocks = mthCode.getCatchHandlers();
 		Try[] tries = mthCode.getTries();
