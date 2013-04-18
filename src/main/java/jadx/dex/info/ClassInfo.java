@@ -53,7 +53,7 @@ public final class ClassInfo {
 		this.type = type;
 
 		String fullObjectName = type.getObject();
-		assert fullObjectName.indexOf('/') == -1;
+		assert fullObjectName.indexOf('/') == -1 : "Raw type: " + type;
 
 		boolean notObfuscated = dex.root().getJadxArgs().isNotObfuscated();
 		String name;

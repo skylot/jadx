@@ -9,6 +9,8 @@ public class TestGenerics extends AbstractTest {
 
 	public List<String> strings;
 
+	public Class<?>[] classes;
+
 	public static class GenericClass implements Comparable<String> {
 		@Override
 		public int compareTo(String o) {

@@ -399,13 +399,16 @@ public abstract class ArgType {
 		if (b == -1)
 			return parse(sign);
 
-		String obj = sign.substring(0, b);
+		if (sign.charAt(0) == '[')
+			return array(parseSignature(sign.substring(1)));
+
+		String obj = sign.substring(0, b) + ";";
 		String genericsStr = sign.substring(b + 1, sign.length() - 2);
 		List<ArgType> generics = parseSignatureList(genericsStr);
 		if (generics != null)
-			return generic(obj + ";", generics.toArray(new ArgType[generics.size()]));
+			return generic(obj, generics.toArray(new ArgType[generics.size()]));
 		else
-			return object(obj + ";");
+			return object(obj);
 	}
 
 	public static List<ArgType> parseSignatureList(String str) {
@@ -418,12 +421,11 @@ public abstract class ArgType {
 	}
 
 	private static List<ArgType> parseSignatureListInner(String str, boolean parsePrimitives) {
-		List<ArgType> signs = new ArrayList<ArgType>(3);
 		if (str.equals("*")) {
-			signs.add(UNKNOWN);
-			return signs;
+			return Arrays.asList(UNKNOWN);
 		}
 
+		List<ArgType> signs = new ArrayList<ArgType>(3);
 		int obj = 0;
 		int objStart = 0;
 		int gen = 0;
