@@ -78,8 +78,8 @@ public class MethodGen {
 			}
 			code.startLine(ai.makeString());
 
-			classGen.makeGenericMap(code, mth.getGenericMap());
-			code.add(' ');
+			if (classGen.makeGenericMap(code, mth.getGenericMap()))
+				code.add(' ');
 
 			if (mth.getAccessFlags().isConstructor()) {
 				code.add(classGen.getClassNode().getShortName()); // constructor

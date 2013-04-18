@@ -135,9 +135,9 @@ public class ClassGen {
 		}
 	}
 
-	public void makeGenericMap(CodeWriter code, Map<ArgType, List<ArgType>> gmap) {
+	public boolean makeGenericMap(CodeWriter code, Map<ArgType, List<ArgType>> gmap) {
 		if (gmap == null || gmap.isEmpty())
-			return;
+			return false;
 
 		code.add('<');
 		int i = 0;
@@ -161,6 +161,7 @@ public class ClassGen {
 			i++;
 		}
 		code.add('>');
+		return true;
 	}
 
 	public void makeClassBody(CodeWriter clsCode) throws CodegenException {
