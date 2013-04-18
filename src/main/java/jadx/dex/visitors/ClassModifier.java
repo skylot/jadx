@@ -36,7 +36,8 @@ public class ClassModifier extends AbstractVisitor {
 					&& mth.getArguments(false).isEmpty()) {
 				List<BlockNode> bb = mth.getBasicBlocks();
 				if (bb.isEmpty() || (bb.size() == 1 && bb.get(0).getInstructions().isEmpty())) {
-					it.remove();
+					if (mth.getSuperCall() == null)
+						it.remove();
 				}
 			}
 		}

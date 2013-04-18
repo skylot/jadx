@@ -5,6 +5,11 @@ public class TestInner extends AbstractTest {
 	public static int count = -2;
 
 	public static class MyThread extends Thread {
+
+		public MyThread(String name) {
+			super(name);
+		}
+
 		@Override
 		public void run() {
 			count++;
@@ -12,13 +17,17 @@ public class TestInner extends AbstractTest {
 		}
 	}
 
-	public static class MyInceptionThread extends Thread {
+	public static class MyInceptionThread extends MyThread {
 
 		public static class MyThread2 extends Thread {
 			@Override
 			public void run() {
 				count += 2;
 			}
+		}
+
+		public MyInceptionThread() {
+			super("MyInceptionThread");
 		}
 
 		@Override
@@ -62,7 +71,7 @@ public class TestInner extends AbstractTest {
 		};
 		myRunnable.run();
 
-		MyThread thread = new TestInner.MyThread();
+		MyThread thread = new TestInner.MyThread("my thread");
 		thread.start();
 
 		MyInceptionThread thread2 = new TestInner.MyInceptionThread();
