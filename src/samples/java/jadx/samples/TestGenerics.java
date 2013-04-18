@@ -11,7 +11,11 @@ public class TestGenerics extends AbstractTest {
 
 	public Class<?>[] classes;
 
-	public static class GenericClass implements Comparable<String> {
+	public interface MyComparable<T> {
+		public int compareTo(T o);
+	}
+
+	public static class GenericClass implements MyComparable<String> {
 		@Override
 		public int compareTo(String o) {
 			return 0;

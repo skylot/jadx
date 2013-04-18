@@ -70,31 +70,22 @@ public class MethodNode extends AttrNode implements ILoadable {
 		this.parentClass = classNode;
 		this.accFlags = new AccessInfo(mth.getAccessFlags(), AFType.METHOD);
 		this.methodData = mth;
-
-		if (methodData.getCodeOffset() == 0) {
-			noCode = true;
-			regsCount = 0;
-			retType = mthInfo.getReturnType();
-			initArguments(mthInfo.getArgumentsTypes());
-		} else {
-			noCode = false;
-		}
+		this.noCode = (methodData.getCodeOffset() == 0);
 	}
 
 	@Override
 	public void load() throws DecodeException {
-		if (noCode)
-			return;
-
 		try {
+			if (noCode) {
+				regsCount = 0;
+				initMethodTypes();
+				return;
+			}
+
 			DexNode dex = parentClass.dex();
 			Code mthCode = dex.readCode(methodData);
 			regsCount = mthCode.getRegistersSize();
-
-			if (!parseSignature()) {
-				retType = mthInfo.getReturnType();
-				initArguments(mthInfo.getArgumentsTypes());
-			}
+			initMethodTypes();
 
 			InsnDecoder decoder = new InsnDecoder(this, mthCode);
 			InsnNode[] insnByOffset = decoder.run();
@@ -114,6 +105,13 @@ public class MethodNode extends AttrNode implements ILoadable {
 			}
 		} catch (Exception e) {
 			throw new DecodeException(this, "Load method exception", e);
+		}
+	}
+
+	private void initMethodTypes() {
+		if (!parseSignature()) {
+			retType = mthInfo.getReturnType();
+			initArguments(mthInfo.getArgumentsTypes());
 		}
 	}
 
@@ -185,12 +183,12 @@ public class MethodNode extends AttrNode implements ILoadable {
 
 	private void initArguments(List<ArgType> args) {
 		int pos;
-		if (!noCode) {
+		if (noCode) {
+			pos = 1;
+		} else {
 			pos = regsCount;
 			for (ArgType arg : args)
 				pos -= arg.getRegCount();
-		} else {
-			pos = 2 * args.size() + 1;
 		}
 
 		if (accFlags.isStatic()) {
