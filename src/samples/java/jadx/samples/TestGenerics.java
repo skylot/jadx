@@ -1,6 +1,7 @@
 package jadx.samples;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -139,6 +140,28 @@ public class TestGenerics extends AbstractTest {
 		public T getData() {
 			return data;
 		}
+	}
+
+	private class TestConstructor implements Enumeration<String> {
+		private final TestGenerics a;
+
+		TestConstructor(TestGenerics a) {
+			this.a = a;
+		}
+
+		@Override
+		public boolean hasMoreElements() {
+			return false;
+		}
+
+		@Override
+		public String nextElement() {
+			return null;
+		}
+	}
+
+	public Enumeration<String> testThis() {
+		return new TestConstructor(this);
 	}
 
 	private List<String> test1(Map<String, String> map) {

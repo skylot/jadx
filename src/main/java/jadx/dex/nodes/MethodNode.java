@@ -154,29 +154,32 @@ public class MethodNode extends AttrNode implements ILoadable {
 			LOG.warn("Signature parse error: {}", returnType);
 			return false;
 		}
-		if (mthInfo.getArgumentsTypes().isEmpty()) {
-			argsList = Collections.emptyList();
-			return true;
-		}
 
 		List<ArgType> argsTypes = ArgType.parseSignatureList(argsTypesStr);
 		if (argsTypes == null)
 			return false;
 
 		if (argsTypes.size() != mthInfo.getArgumentsTypes().size()) {
+			if (argsTypes.isEmpty()) {
+				return false;
+			}
 			if (!mthInfo.isConstructor()) {
 				LOG.warn("Wrong signature parse result: " + sign + " -> " + argsTypes
 						+ ", not generic version: " + mthInfo.getArgumentsTypes());
 				return false;
 			} else if (getParentClass().getAccessFlags().isEnum()) {
 				// TODO:
-				argsTypes.add(0, mthInfo.getArgumentsTypes().get(1));
+				argsTypes.add(0, mthInfo.getArgumentsTypes().get(0));
 				argsTypes.add(1, mthInfo.getArgumentsTypes().get(1));
 			} else {
 				// add synthetic arg for outer class
 				argsTypes.add(0, mthInfo.getArgumentsTypes().get(0));
 			}
+			if (argsTypes.size() != mthInfo.getArgumentsTypes().size()) {
+				return false;
+			}
 		}
+
 		initArguments(argsTypes);
 		return true;
 	}

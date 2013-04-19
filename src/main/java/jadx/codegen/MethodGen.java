@@ -263,7 +263,7 @@ public class MethodGen {
 	}
 
 	private void makeFallbackMethod(CodeWriter code, MethodNode mth) {
-		if (!mth.getAccessFlags().isStatic()) {
+		if (mth.getThisArg() != null) {
 			code.startLine(getFallbackMethodGen(mth).makeArgName(mth.getThisArg())).add(" = this;");
 		}
 		makeFallbackInsns(code, mth, mth.getInstructions(), true);

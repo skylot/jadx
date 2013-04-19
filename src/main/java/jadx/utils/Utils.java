@@ -49,6 +49,8 @@ public class Utils {
 				case '>':
 				case ',':
 				case ' ':
+				case '?':
+				case '*':
 					break;
 
 				default:
