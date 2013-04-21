@@ -4,7 +4,6 @@ import jadx.dex.instructions.args.ArgType;
 import jadx.dex.instructions.args.InsnArg;
 import jadx.dex.instructions.args.LiteralArg;
 import jadx.dex.instructions.args.PrimitiveType;
-import jadx.dex.nodes.MethodNode;
 import jadx.utils.InsnUtils;
 
 import com.android.dx.io.instructions.DecodedInstruction;
@@ -14,8 +13,8 @@ public class IfNode extends GotoNode {
 	protected boolean zeroCmp;
 	protected IfOp op;
 
-	public IfNode(MethodNode mth, IfOp op, int targ, InsnArg then, InsnArg els) {
-		super(mth, InsnType.IF, targ);
+	public IfNode(IfOp op, int targ, InsnArg then, InsnArg els) {
+		super(InsnType.IF, targ);
 		addArg(then);
 		if (els == null) {
 			zeroCmp = true;
@@ -25,8 +24,8 @@ public class IfNode extends GotoNode {
 		}
 	}
 
-	public IfNode(MethodNode mth, DecodedInstruction insn, IfOp op) {
-		super(mth, InsnType.IF, insn.getTarget());
+	public IfNode(DecodedInstruction insn, IfOp op) {
+		super(InsnType.IF, insn.getTarget());
 		this.op = op;
 
 		ArgType type = ArgType.unknown(

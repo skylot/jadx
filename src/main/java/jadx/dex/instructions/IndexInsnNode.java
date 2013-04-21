@@ -1,15 +1,14 @@
 package jadx.dex.instructions;
 
 import jadx.dex.nodes.InsnNode;
-import jadx.dex.nodes.MethodNode;
 import jadx.utils.InsnUtils;
 
 public class IndexInsnNode extends InsnNode {
 
 	protected final Object index;
 
-	public IndexInsnNode(MethodNode mth, InsnType type, Object index, int argCount) {
-		super(mth, type, argCount);
+	public IndexInsnNode(InsnType type, Object index, int argCount) {
+		super(type, argCount);
 		this.index = index;
 	}
 

@@ -358,7 +358,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 					// make copy of return block and connect to predecessor
 					BlockNode newRetBlock = startNewBlock(mth, origRetBlock.getStartOffset());
 
-					InsnNode ret = new InsnNode(mth, InsnType.RETURN, 1);
+					InsnNode ret = new InsnNode(InsnType.RETURN, 1);
 					if (retArg != null)
 						ret.addArg(InsnArg.reg(retArg.getRegNum(), retArg.getType()));
 					ret.getAttributes().addAll(origReturnInsn.getAttributes());

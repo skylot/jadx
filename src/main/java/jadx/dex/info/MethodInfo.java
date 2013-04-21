@@ -68,6 +68,10 @@ public final class MethodInfo {
 		return args;
 	}
 
+	public int getArgsCount() {
+		return args.size();
+	}
+
 	public boolean isConstructor() {
 		return name.equals("<init>");
 	}

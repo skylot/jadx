@@ -24,11 +24,11 @@ public class InsnNode extends AttrNode {
 	protected int offset;
 	protected int insnHashCode = super.hashCode();
 
-	protected InsnNode(MethodNode mth, InsnType type) {
-		this(mth, type, 3);
+	protected InsnNode(InsnType type) {
+		this(type, 1);
 	}
 
-	public InsnNode(MethodNode mth, InsnType type, int argsCount) {
+	public InsnNode(InsnType type, int argsCount) {
 		this.insnType = type;
 		this.offset = -1;
 
@@ -85,11 +85,15 @@ public class InsnNode extends AttrNode {
 	public boolean replaceArg(InsnArg from, InsnArg to) {
 		int count = getArgsCount();
 		for (int i = 0; i < count; i++) {
-			if (arguments.get(i) == from) {
+			InsnArg arg = arguments.get(i);
+			if (arg == from) {
 				// TODO correct remove from use list
 				// from.getTypedVar().getUseList().remove(from);
 				setArg(i, to);
 				return true;
+			} else if (arg.isInsnWrap()) {
+				if (((InsnWrapArg) arg).getWrapInsn().replaceArg(from, to))
+					return true;
 			}
 		}
 		return false;

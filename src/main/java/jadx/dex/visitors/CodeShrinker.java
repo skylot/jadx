@@ -57,8 +57,12 @@ public class CodeShrinker extends AbstractVisitor {
 							LOG.debug("parent insn null in " + useInsnArg + " from " + insn + " mth: " + mth);
 						} else if (useInsn != insn) {
 							boolean wrap = false;
-							// wrap insn from current block
+							// TODO don't reorder methods invocations
+							// if (insn.getResult().getTypedVar().getName() != null) {
+							// wrap = false;
+							// } else
 							if (BlockUtils.blockContains(block, useInsn)) {
+								// wrap insn from current block
 								wrap = true;
 							} else {
 								// TODO implement rules for shrink insn from different blocks
@@ -129,14 +133,14 @@ public class CodeShrinker extends AbstractVisitor {
 									// use 'a++' instead 'a = a + 1' (similar for minus)
 									boolean inc = ((op == ArithOp.ADD && lit == 1)
 											|| (op == ArithOp.SUB && lit == -1));
-									return new ArithNode(mth, inc ? ArithOp.INC : ArithOp.DEC, null, v0);
+									return new ArithNode(inc ? ArithOp.INC : ArithOp.DEC, null, v0);
 								}
 							}
 						}
 
 						// fix 'c + (-1)' => 'c - (1)'
 						if (invert) {
-							return new ArithNode(mth, ArithOp.SUB,
+							return new ArithNode(ArithOp.SUB,
 									arith.getResult(), insn.getArg(0),
 									InsnArg.lit(-lit, litArg.getType()));
 						}

@@ -4,7 +4,6 @@ import jadx.dex.info.MethodInfo;
 import jadx.dex.instructions.args.ArgType;
 import jadx.dex.instructions.args.InsnArg;
 import jadx.dex.nodes.InsnNode;
-import jadx.dex.nodes.MethodNode;
 import jadx.utils.InsnUtils;
 import jadx.utils.Utils;
 
@@ -15,10 +14,9 @@ public class InvokeNode extends InsnNode {
 	private final InvokeType type;
 	private final MethodInfo mth;
 
-	public InvokeNode(MethodNode method, DecodedInstruction insn, InvokeType type, boolean isRange,
-			int resReg) {
-		super(method, InsnType.INVOKE);
-		this.mth = MethodInfo.fromDex(method.dex(), insn.getIndex());
+	public InvokeNode(MethodInfo mth, DecodedInstruction insn, InvokeType type, boolean isRange, int resReg) {
+		super(InsnType.INVOKE, mth.getArgsCount() + (type != InvokeType.STATIC ? 1 : 0));
+		this.mth = mth;
 		this.type = type;
 
 		if (resReg >= 0)

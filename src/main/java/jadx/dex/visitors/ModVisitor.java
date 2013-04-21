@@ -82,7 +82,8 @@ public class ModVisitor extends AbstractVisitor {
 									replaceInsn(block, i, co);
 								}
 							} else if (co.isThis() && co.getArgsCount() == 0) {
-								MethodNode defCo = mth.getParentClass().searchMethodById(co.getCallMth().getShortId());
+								MethodNode defCo = mth.getParentClass()
+										.searchMethodByName(co.getCallMth().getShortId());
 								if (defCo == null || defCo.isNoCode()) {
 									// default constructor not implemented
 									remover.add(insn);
@@ -101,7 +102,7 @@ public class ModVisitor extends AbstractVisitor {
 							IndexInsnNode node = (IndexInsnNode) insn;
 							FieldNode f = mth.getParentClass().getConstFields().get(node.getIndex());
 							if (f != null) {
-								InsnNode inode = new IndexInsnNode(mth, InsnType.SGET, f, 0);
+								InsnNode inode = new IndexInsnNode(InsnType.SGET, f, 0);
 								inode.setResult(insn.getResult());
 								replaceInsn(block, i, inode);
 							}

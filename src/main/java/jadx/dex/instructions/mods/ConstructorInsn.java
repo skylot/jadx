@@ -22,7 +22,7 @@ public class ConstructorInsn extends InsnNode {
 	private final CallType callType;
 
 	public ConstructorInsn(MethodNode mth, InvokeNode invoke) {
-		super(mth, InsnType.CONSTRUCTOR, invoke.getArgsCount() - 1);
+		super(InsnType.CONSTRUCTOR, invoke.getArgsCount() - 1);
 		this.callMth = invoke.getCallMth();
 		ClassInfo classType = callMth.getDeclClass();
 

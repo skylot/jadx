@@ -2,7 +2,6 @@ package jadx.dex.instructions;
 
 import jadx.dex.instructions.args.InsnArg;
 import jadx.dex.nodes.InsnNode;
-import jadx.dex.nodes.MethodNode;
 import jadx.utils.InsnUtils;
 
 import java.util.Arrays;
@@ -13,8 +12,8 @@ public class SwitchNode extends InsnNode {
 	private final int[] targets;
 	private final int def; // next instruction
 
-	public SwitchNode(MethodNode mth, InsnArg arg, int[] keys, int[] targets, int def) {
-		super(mth, InsnType.SWITCH, 1);
+	public SwitchNode(InsnArg arg, int[] keys, int[] targets, int def) {
+		super(InsnType.SWITCH, 1);
 		this.keys = keys;
 		this.targets = targets;
 		this.def = def;

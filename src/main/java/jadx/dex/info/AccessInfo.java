@@ -165,4 +165,8 @@ public class AccessInfo {
 		return code.toString();
 	}
 
+	@Override
+	public String toString() {
+		return "AccessInfo: " + type + " " + accFlags + " (" + makeString() + ")";
+	}
 }

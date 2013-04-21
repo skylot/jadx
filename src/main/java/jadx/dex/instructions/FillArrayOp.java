@@ -4,7 +4,6 @@ import jadx.dex.instructions.args.ArgType;
 import jadx.dex.instructions.args.InsnArg;
 import jadx.dex.instructions.args.PrimitiveType;
 import jadx.dex.nodes.InsnNode;
-import jadx.dex.nodes.MethodNode;
 
 import com.android.dx.io.instructions.FillArrayDataPayloadDecodedInstruction;
 
@@ -12,8 +11,8 @@ public class FillArrayOp extends InsnNode {
 
 	private final Object data;
 
-	public FillArrayOp(MethodNode method, int resReg, FillArrayDataPayloadDecodedInstruction payload) {
-		super(method, InsnType.FILL_ARRAY, 0);
+	public FillArrayOp(int resReg, FillArrayDataPayloadDecodedInstruction payload) {
+		super(InsnType.FILL_ARRAY, 0);
 
 		this.data = payload.getData();
 

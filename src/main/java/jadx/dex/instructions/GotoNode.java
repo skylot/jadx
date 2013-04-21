@@ -1,19 +1,18 @@
 package jadx.dex.instructions;
 
 import jadx.dex.nodes.InsnNode;
-import jadx.dex.nodes.MethodNode;
 import jadx.utils.InsnUtils;
 
 public class GotoNode extends InsnNode {
 
 	protected int target;
 
-	public GotoNode(MethodNode mth, int target) {
-		this(mth, InsnType.GOTO, target);
+	public GotoNode(int target) {
+		this(InsnType.GOTO, target);
 	}
 
-	protected GotoNode(MethodNode mth, InsnType type, int target) {
-		super(mth, type);
+	protected GotoNode(InsnType type, int target) {
+		super(type);
 		this.target = target;
 	}
 
