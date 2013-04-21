@@ -1,6 +1,8 @@
 package jadx.codegen;
 
 import jadx.dex.attributes.AttributeType;
+import jadx.dex.attributes.IAttribute;
+import jadx.dex.attributes.MethodInlineAttr;
 import jadx.dex.info.ClassInfo;
 import jadx.dex.info.FieldInfo;
 import jadx.dex.info.MethodInfo;
@@ -27,7 +29,12 @@ import jadx.dex.nodes.RootNode;
 import jadx.utils.StringUtils;
 import jadx.utils.exceptions.CodegenException;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -324,6 +331,10 @@ public class InsnGen {
 			case TERNARY:
 				break;
 
+			case ARGS:
+				code.add(arg(insn.getArg(0)));
+				break;
+
 			/* fallback mode instructions */
 			case NOP:
 				state.add(InsnGenState.SKIP);
@@ -462,6 +473,14 @@ public class InsnGen {
 	private void makeInvoke(InvokeNode insn, CodeWriter code) throws CodegenException {
 		MethodInfo callMth = insn.getCallMth();
 
+		// inline method if METHOD_INLINE attribute is attached
+		MethodNode callMthNode = mth.dex().resolveMethod(callMth);
+		if (callMthNode != null
+				&& callMthNode.getAttributes().contains(AttributeType.METHOD_INLINE)) {
+			inlineMethod(callMthNode, insn, code);
+			return;
+		}
+
 		int k = 0;
 		InvokeType type = insn.getInvokeType();
 		switch (type) {
@@ -488,6 +507,45 @@ public class InsnGen {
 		addArgs(code, insn, k);
 	}
 
+	private void inlineMethod(MethodNode callMthNode, InvokeNode insn, CodeWriter code) throws CodegenException {
+		IAttribute mia = callMthNode.getAttributes().get(AttributeType.METHOD_INLINE);
+		InsnNode inl = ((MethodInlineAttr) mia).getInsn();
+		if (callMthNode.getMethodInfo().getArgumentsTypes().isEmpty()) {
+			makeInsn(inl, code, true);
+		} else {
+			// remap args
+			InsnArg[] regs = new InsnArg[callMthNode.getRegsCount()];
+			List<RegisterArg> callArgs = callMthNode.getArguments(true);
+			for (int i = 0; i < callArgs.size(); i++) {
+				InsnArg arg = insn.getArg(i);
+				RegisterArg callArg = callArgs.get(i);
+				regs[callArg.getRegNum()] = arg;
+			}
+			// replace args
+			List<RegisterArg> inlArgs = new ArrayList<RegisterArg>();
+			inl.getRegisterArgs(inlArgs);
+			Map<RegisterArg, InsnArg> toRevert = new HashMap<RegisterArg, InsnArg>();
+			for (RegisterArg r : inlArgs) {
+				if (r.getRegNum() >= regs.length) {
+					LOG.warn("Unknown register number {} in method call: {}, {}", r, callMthNode, mth);
+				} else {
+					InsnArg repl = regs[r.getRegNum()];
+					if (repl == null) {
+						LOG.warn("Not passed register {} in method call: {}, {}", r, callMthNode, mth);
+					} else {
+						inl.replaceArg(r, repl);
+						toRevert.put(r, repl);
+					}
+				}
+			}
+			makeInsn(inl, code, true);
+			// revert changes
+			for (Entry<RegisterArg, InsnArg> e : toRevert.entrySet()) {
+				inl.replaceArg(e.getValue(), e.getKey());
+			}
+		}
+	}
+
 	private void addArgs(CodeWriter code, InsnNode insn, int k) throws CodegenException {
 		code.add('(');
 		for (int i = k; i < insn.getArgsCount(); i++) {
@@ -495,7 +553,7 @@ public class InsnGen {
 			if (i < insn.getArgsCount() - 1)
 				code.add(", ");
 		}
-		code.add(")");
+		code.add(')');
 	}
 
 	private void makeArith(ArithNode insn, CodeWriter code, EnumSet<InsnGenState> state) throws CodegenException {

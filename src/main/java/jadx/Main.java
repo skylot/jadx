@@ -12,6 +12,7 @@ import jadx.dex.visitors.DotGraphVisitor;
 import jadx.dex.visitors.EnumVisitor;
 import jadx.dex.visitors.FallbackModeVisitor;
 import jadx.dex.visitors.IDexTreeVisitor;
+import jadx.dex.visitors.MethodInlinerVisitor;
 import jadx.dex.visitors.ModVisitor;
 import jadx.dex.visitors.regions.CheckRegions;
 import jadx.dex.visitors.regions.CleanRegions;
@@ -113,6 +114,7 @@ public class Main {
 			if (args.isCFGOutput())
 				passes.add(new DotGraphVisitor(args.getOutDir(), true));
 
+			passes.add(new MethodInlinerVisitor());
 			passes.add(new ClassModifier());
 			passes.add(new CleanRegions());
 		}

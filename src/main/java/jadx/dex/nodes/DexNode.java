@@ -1,6 +1,7 @@
 package jadx.dex.nodes;
 
 import jadx.dex.info.ClassInfo;
+import jadx.dex.info.MethodInfo;
 import jadx.dex.instructions.args.ArgType;
 import jadx.utils.exceptions.DecodeException;
 import jadx.utils.files.InputFile;
@@ -49,6 +50,14 @@ public class DexNode {
 
 	public ClassNode resolveClass(ClassInfo clsInfo) {
 		return root.resolveClass(clsInfo);
+	}
+
+	public MethodNode resolveMethod(MethodInfo mth) {
+		ClassNode cls = resolveClass(mth.getDeclClass());
+		if (cls != null) {
+			return cls.searchMethod(mth);
+		}
+		return null;
 	}
 
 	// DexBuffer wrappers

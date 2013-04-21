@@ -21,6 +21,7 @@ public enum AttributeType {
 
 	// methods
 	JADX_ERROR(true),
+	METHOD_INLINE(true),
 
 	// classes
 	ENUM_CLASS(true),

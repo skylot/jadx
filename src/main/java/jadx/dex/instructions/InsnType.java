@@ -50,6 +50,9 @@ public enum InsnType {
 	CONSTRUCTOR,
 	BREAK,
 	CONTINUE,
+
 	TERNARY,
+	ARGS, // just generate arguments
+
 	NEW_MULTIDIM_ARRAY // TODO: now multidimensional arrays created using Array.newInstance function
 }

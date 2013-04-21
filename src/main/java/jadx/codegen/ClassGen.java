@@ -194,6 +194,9 @@ public class ClassGen {
 		CodeWriter code = new CodeWriter(clsCode.getIndent() + 1);
 		for (Iterator<MethodNode> it = mthList.iterator(); it.hasNext();) {
 			MethodNode mth = it.next();
+			if (mth.getAttributes().contains(AttributeFlag.DONT_GENERATE))
+				continue;
+
 			try {
 				if (mth.getAccessFlags().isAbstract() || mth.getAccessFlags().isNative()) {
 					MethodGen mthGen = new MethodGen(this, mth);

@@ -239,7 +239,15 @@ public class ClassNode extends AttrNode implements ILoadable {
 		return null;
 	}
 
-	public MethodNode searchMethodById(String shortId) {
+	public MethodNode searchMethod(MethodInfo mth) {
+		for (MethodNode m : methods) {
+			if (m.getMethodInfo().equals(mth))
+				return m;
+		}
+		return null;
+	}
+
+	public MethodNode searchMethodByName(String shortId) {
 		for (MethodNode m : methods) {
 			if (m.getMethodInfo().getShortId().equals(shortId))
 				return m;
@@ -248,7 +256,7 @@ public class ClassNode extends AttrNode implements ILoadable {
 	}
 
 	public MethodNode searchMethodById(int id) {
-		return searchMethodById(MethodInfo.fromDex(dex, id).getShortId());
+		return searchMethodByName(MethodInfo.fromDex(dex, id).getShortId());
 	}
 
 	public List<ClassNode> getInnerClasses() {
