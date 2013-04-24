@@ -36,6 +36,13 @@ public class CodeWriter {
 		return this;
 	}
 
+	public CodeWriter startLine(char c) {
+		buf.append(NL);
+		buf.append(indentStr);
+		buf.append(c);
+		return this;
+	}
+
 	public CodeWriter startLine(int ind, String str) {
 		buf.append(NL);
 		buf.append(indentStr);

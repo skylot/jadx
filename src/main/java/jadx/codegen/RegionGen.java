@@ -107,7 +107,7 @@ public class RegionGen extends InsnGen {
 		IfNode insn = region.getIfInsn();
 		code.add("if ").add(makeCondition(insn)).add(" {");
 		makeRegionIndent(code, region.getThenRegion());
-		code.startLine("}");
+		code.startLine('}');
 
 		IContainer els = region.getElseRegion();
 		if (els != null && RegionUtils.notEmpty(els)) {
@@ -123,11 +123,11 @@ public class RegionGen extends InsnGen {
 				}
 			}
 
-			code.add("{");
+			code.add('{');
 			code.incIndent();
 			makeRegion(code, els);
 			code.decIndent();
-			code.startLine("}");
+			code.startLine('}');
 		}
 	}
 
@@ -136,7 +136,7 @@ public class RegionGen extends InsnGen {
 			// infinite loop
 			code.startLine("while (true) {");
 			makeRegionIndent(code, region.getBody());
-			code.startLine("}");
+			code.startLine('}');
 			return code;
 		}
 
@@ -144,11 +144,11 @@ public class RegionGen extends InsnGen {
 		if (!region.isConditionAtEnd()) {
 			code.startLine("while ").add(makeCondition(insn)).add(" {");
 			makeRegionIndent(code, region.getBody());
-			code.startLine("}");
+			code.startLine('}');
 		} else {
 			code.startLine("do {");
 			makeRegionIndent(code, region.getBody());
-			code.startLine("} while ").add(makeCondition(insn)).add(";");
+			code.startLine("} while ").add(makeCondition(insn)).add(';');
 		}
 		return code;
 	}
@@ -156,7 +156,7 @@ public class RegionGen extends InsnGen {
 	private void makeSynchronizedRegion(SynchronizedRegion cont, CodeWriter code) throws CodegenException {
 		code.startLine("synchronized(").add(arg(cont.getArg())).add(") {");
 		makeRegionIndent(code, cont.getRegion());
-		code.startLine("}");
+		code.startLine('}');
 	}
 
 	private String makeCondition(IfNode insn) throws CodegenException {
@@ -194,23 +194,35 @@ public class RegionGen extends InsnGen {
 			List<Integer> keys = sw.getKeys().get(i);
 			IContainer c = sw.getCases().get(i);
 			for (Integer k : keys) {
-				code.startLine("case ")
-						.add(TypeGen.literalToString(k, arg.getType()))
-						.add(":");
+				code.startLine("case ");
+				code.add(TypeGen.literalToString(k, arg.getType()));
+				code.add(':');
 			}
-			makeRegionIndent(code, c);
-			if (RegionUtils.hasExitEdge(c))
-				code.startLine(1, "break;");
+			makeCaseBlock(c, code);
 		}
 		if (sw.getDefaultCase() != null) {
 			code.startLine("default:");
-			makeRegionIndent(code, sw.getDefaultCase());
-			if (RegionUtils.hasExitEdge(sw.getDefaultCase()))
-				code.startLine(1, "break;");
+			makeCaseBlock(sw.getDefaultCase(), code);
 		}
 		code.decIndent();
-		code.startLine("}");
+		code.startLine('}');
 		return code;
+	}
+
+	private void makeCaseBlock(IContainer c, CodeWriter code) throws CodegenException {
+		if (RegionUtils.notEmpty(c)) {
+			boolean closeBlock = RegionUtils.hasExitEdge(c);
+			if (closeBlock) {
+				code.add(" {");
+			}
+			makeRegionIndent(code, c);
+			if (closeBlock) {
+				code.startLine(1, "break;");
+				code.startLine('}');
+			}
+		} else {
+			code.startLine(1, "break;");
+		}
 	}
 
 	private void makeTryCatch(IContainer region, TryCatchBlock tryCatchBlock, CodeWriter code)
@@ -235,7 +247,7 @@ public class RegionGen extends InsnGen {
 			code.startLine("} finally {");
 			makeRegionIndent(code, tryCatchBlock.getFinalBlock());
 		}
-		code.startLine("}");
+		code.startLine('}');
 	}
 
 	private void makeCatchBlock(CodeWriter code, ExceptionHandler handler)

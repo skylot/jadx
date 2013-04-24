@@ -148,10 +148,13 @@ public class ModVisitor extends AbstractVisitor {
 						break;
 
 					case RETURN:
-						if (insn.getArgsCount() == 0
-								&& mth.getBasicBlocks().size() == 1
-								&& i == size - 1)
-							remover.add(insn);
+						if (insn.getArgsCount() == 0) {
+							if (mth.getBasicBlocks().size() == 1 && i == size - 1) {
+								remover.add(insn);
+							} else if (mth.getMethodInfo().isClassInit()) {
+								remover.add(insn);
+							}
+						}
 						break;
 
 					default:

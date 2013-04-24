@@ -78,13 +78,43 @@ public class TestSwitch extends AbstractTest {
 		return -1;
 	}
 
+	public String escape(String str) {
+		int len = str.length();
+		StringBuilder sb = new StringBuilder(len);
+		for (int i = 0; i < len; i++) {
+			char c = str.charAt(i);
+			switch (c) {
+				case '.':
+				case '/':
+					sb.append('_');
+					break;
+
+				case ']':
+					sb.append('A');
+					break;
+
+				case '?':
+					break;
+
+				default:
+					sb.append(c);
+					break;
+			}
+		}
+		return sb.toString();
+	}
+
 	@Override
 	public boolean testRun() {
 		assertTrue(test1(25) == 2);
 		assertTrue(test2(5) == 3);
 		assertTrue(test3(1, 0) == 0);
 		assertTrue(test4(2) == 1);
+		assertEquals(escape("a.b/c]d?e"), "a_b_cAde");
 		return true;
 	}
 
+	public static void main(String[] args) {
+		new TestSwitch().testRun();
+	}
 }

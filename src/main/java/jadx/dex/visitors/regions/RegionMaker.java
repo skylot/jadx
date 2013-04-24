@@ -404,7 +404,6 @@ public class RegionMaker {
 		}
 
 		Map<BlockNode, List<Integer>> blocksMap = new LinkedHashMap<BlockNode, List<Integer>>(len);
-
 		for (Entry<Integer, List<Integer>> entry : casesMap.entrySet()) {
 			BlockNode c = BlockUtils.getBlockByOffset(entry.getKey(), block.getSuccessors());
 			assert c != null;
@@ -413,7 +412,7 @@ public class RegionMaker {
 
 		BitSet succ = BlockUtils.blocksToBitSet(mth, block.getSuccessors());
 		BitSet domsOn = BlockUtils.blocksToBitSet(mth, block.getDominatesOn());
-		domsOn.andNot(succ); // filter 'out' block
+		domsOn.and(succ); // filter 'out' block
 
 		BlockNode defCase = BlockUtils.getBlockByOffset(insn.getDefaultCaseOffset(), block.getSuccessors());
 		if (defCase != null) {
@@ -458,7 +457,12 @@ public class RegionMaker {
 		}
 		for (Entry<BlockNode, List<Integer>> entry : blocksMap.entrySet()) {
 			BlockNode c = entry.getKey();
-			sw.addCase(entry.getValue(), makeRegion(c, stack));
+			if (stack.containsExit(c)) {
+				// empty case block
+				sw.addCase(entry.getValue(), new Region(stack.peekRegion()));
+			} else {
+				sw.addCase(entry.getValue(), makeRegion(c, stack));
+			}
 		}
 
 		stack.pop();
