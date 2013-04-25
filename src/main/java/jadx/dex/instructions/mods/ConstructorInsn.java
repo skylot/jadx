@@ -19,7 +19,7 @@ public class ConstructorInsn extends InsnNode {
 		SELF // call itself
 	}
 
-	private final CallType callType;
+	private CallType callType;
 
 	public ConstructorInsn(MethodNode mth, InvokeNode invoke) {
 		super(InsnType.CONSTRUCTOR, invoke.getArgsCount() - 1);
@@ -28,16 +28,17 @@ public class ConstructorInsn extends InsnNode {
 
 		if (invoke.getArg(0).isThis()) {
 			if (classType.equals(mth.getParentClass().getClassInfo())) {
-				// self constructor
 				if (callMth.getShortId().equals(mth.getMethodInfo().getShortId())) {
+					// self constructor
 					callType = CallType.SELF;
-				} else {
+				} else if (mth.getMethodInfo().isConstructor()) {
 					callType = CallType.THIS;
 				}
 			} else {
 				callType = CallType.SUPER;
 			}
-		} else {
+		}
+		if (callType == null) {
 			callType = CallType.CONSTRUCTOR;
 			setResult((RegisterArg) invoke.getArg(0));
 		}

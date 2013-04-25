@@ -211,15 +211,12 @@ public class RegionGen extends InsnGen {
 
 	private void makeCaseBlock(IContainer c, CodeWriter code) throws CodegenException {
 		if (RegionUtils.notEmpty(c)) {
-			boolean closeBlock = RegionUtils.hasExitEdge(c);
-			if (closeBlock) {
-				code.add(" {");
-			}
+			code.add(" {");
 			makeRegionIndent(code, c);
-			if (closeBlock) {
+			if (RegionUtils.hasExitEdge(c)) {
 				code.startLine(1, "break;");
-				code.startLine('}');
 			}
+			code.startLine('}');
 		} else {
 			code.startLine(1, "break;");
 		}

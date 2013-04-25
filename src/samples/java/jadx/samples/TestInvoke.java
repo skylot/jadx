@@ -3,8 +3,15 @@ package jadx.samples;
 import java.util.Arrays;
 
 public class TestInvoke extends AbstractTest {
-
 	private int f;
+
+	public TestInvoke() {
+		this(-1);
+	}
+
+	public TestInvoke(int f) {
+		this.f = f;
+	}
 
 	private void parse(String[] args) {
 		if (args.length > 0)
@@ -30,6 +37,13 @@ public class TestInvoke extends AbstractTest {
 		return s;
 	}
 
+	public TestInvoke testConstructor(int flag) {
+		if (getF() == flag)
+			return new TestInvoke(flag);
+		else
+			return this;
+	}
+
 	@Override
 	public boolean testRun() throws Exception {
 		TestInvoke inv = new TestInvoke();
@@ -41,6 +55,8 @@ public class TestInvoke extends AbstractTest {
 
 		assertTrue(inv.testVarArgs("a", "2", "III"));
 		assertTrue(inv.testVarArgs2("a".toCharArray(), new char[] { '1', '2' }).equals("a12"));
+
+		assertTrue(testConstructor(f) != this);
 		return true;
 	}
 
