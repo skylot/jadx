@@ -78,8 +78,7 @@ public class DebugInfoParser {
 					int nameId = section.readUleb128() - 1;
 					int type = section.readUleb128() - 1;
 					LocalVarInfo var = new LocalVarInfo(dex, regNum, nameId, type, DexNode.NO_INDEX);
-					var.start(addr, line);
-					locals[regNum] = var;
+					startVar(var, locals, insnByOffset, addr, line);
 					break;
 				}
 				case DBG_START_LOCAL_EXTENDED: {
@@ -88,15 +87,17 @@ public class DebugInfoParser {
 					int type = section.readUleb128() - 1;
 					int sign = section.readUleb128() - 1;
 					LocalVarInfo var = new LocalVarInfo(dex, regNum, nameId, type, sign);
-					var.start(addr, line);
-					locals[regNum] = var;
+					startVar(var, locals, insnByOffset, addr, line);
 					break;
 				}
 				case DBG_RESTART_LOCAL: {
 					int regNum = section.readUleb128();
 					LocalVarInfo var = locals[regNum];
-					if (var != null)
+					if (var != null) {
+						var.end(addr, line);
+						setVar(var, insnByOffset);
 						var.start(addr, line);
+					}
 					break;
 				}
 				case DBG_END_LOCAL: {
@@ -139,6 +140,17 @@ public class DebugInfoParser {
 				setVar(var, insnByOffset);
 			}
 		}
+	}
+
+	private void startVar(LocalVarInfo var, LocalVarInfo[] locals, InsnNode[] insnByOffset, int addr, int line) {
+		int regNum = var.getRegNum();
+		LocalVarInfo prev = locals[regNum];
+		if (prev != null && !prev.isEnd()) {
+			prev.end(addr, line);
+			setVar(prev, insnByOffset);
+		}
+		var.start(addr, line);
+		locals[regNum] = var;
 	}
 
 	private void setVar(LocalVarInfo var, InsnNode[] insnByOffset) {
