@@ -107,13 +107,16 @@ public class ProcessVariables extends AbstractVisitor {
 
 		// reduce assigns map
 		List<RegisterArg> mthArgs = mth.getArguments(true);
+		for (RegisterArg arg : mthArgs) {
+			usageMap.remove(arg);
+		}
+
 		for (Iterator<Entry<RegisterArg, Usage>> it = usageMap.entrySet().iterator(); it.hasNext();) {
 			Entry<RegisterArg, Usage> entry = it.next();
 			Usage u = entry.getValue();
-			RegisterArg r = u.getArg();
 
-			// if no assigns or method argument => remove
-			if (u.getAssigns().isEmpty() || mthArgs.indexOf(r) != -1) {
+			// if no assigns => remove
+			if (u.getAssigns().isEmpty()) {
 				it.remove();
 				continue;
 			}
@@ -122,7 +125,7 @@ public class ProcessVariables extends AbstractVisitor {
 			for (IRegion assignRegion : u.getAssigns()) {
 				if (u.getArgRegion() == assignRegion
 						&& canDeclareInRegion(u, assignRegion)) {
-					r.getParentInsn().getAttributes().add(new DeclareVariableAttr());
+					u.getArg().getParentInsn().getAttributes().add(new DeclareVariableAttr());
 					it.remove();
 					break;
 				}
@@ -132,8 +135,8 @@ public class ProcessVariables extends AbstractVisitor {
 		// apply
 		for (Entry<RegisterArg, Usage> entry : usageMap.entrySet()) {
 			Usage u = entry.getValue();
-			// find common region which contains all usage regions
 
+			// find region which contain all usage regions
 			Set<IRegion> set = u.getUseRegions();
 			for (Iterator<IRegion> it = set.iterator(); it.hasNext();) {
 				IRegion r = it.next();

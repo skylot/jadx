@@ -4,6 +4,18 @@ public class TestCF2 extends AbstractTest {
 	private final Object ready_mutex = new Object();
 	private boolean ready = false;
 
+	public int simple_loops() throws InterruptedException {
+		int[] a = new int[] { 1, 2, 4, 6, 8 };
+		int b = 0;
+		for (int i = 0; i < a.length; i++) {
+			b += a[i];
+		}
+		for (long i = b; i > 0; i--) {
+			b += i;
+		}
+		return b;
+	}
+
 	/**
 	 * Test infinite loop
 	 */
@@ -92,6 +104,7 @@ public class TestCF2 extends AbstractTest {
 
 	@Override
 	public boolean testRun() throws Exception {
+		assertEquals(simple_loops(), 252);
 		// TODO add checks
 		return true;
 	}
