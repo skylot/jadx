@@ -40,16 +40,11 @@ public class PostTypeResolver {
 				return change;
 			}
 
-			case AGET: {
-				boolean change = false;
-				RegisterArg elem = insn.getResult();
-				InsnArg array = insn.getArg(0);
-				if (!elem.getType().isTypeKnown() && elem.merge(array.getType().getArrayElement()))
-					change = true;
-				if (!array.getType().isTypeKnown() && array.merge(ArgType.array(elem.getType())))
-					change = true;
-				return change;
-			}
+			case AGET:
+				return fixArrayTypes(insn.getArg(0), insn.getResult());
+
+			case APUT:
+				return fixArrayTypes(insn.getArg(0), insn.getArg(2));
 
 			case IF: {
 				boolean change = false;
@@ -68,5 +63,14 @@ public class PostTypeResolver {
 		}
 		return false;
 
+	}
+
+	private static boolean fixArrayTypes(InsnArg array, InsnArg elem) {
+		boolean change = false;
+		if (!elem.getType().isTypeKnown() && elem.merge(array.getType().getArrayElement()))
+			change = true;
+		if (!array.getType().isTypeKnown() && array.merge(ArgType.array(elem.getType())))
+			change = true;
+		return change;
 	}
 }
