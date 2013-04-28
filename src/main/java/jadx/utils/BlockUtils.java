@@ -48,6 +48,16 @@ public class BlockUtils {
 		return ret;
 	}
 
+	public static boolean isBackEdge(BlockNode from, BlockNode to) {
+		if (from.getCleanSuccessors().contains(to))
+			return false; // already checked
+
+		if (!from.getSuccessors().contains(to))
+			return false; // not even successor
+
+		return true;
+	}
+
 	/**
 	 * Remove exception handlers from block nodes bitset
 	 */

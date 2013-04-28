@@ -18,6 +18,10 @@ public class TestCF3 extends AbstractTest {
 		return 1;
 	}
 
+	private int exc() throws Exception {
+		return 1;
+	}
+
 	public void testSwitchInLoop() throws Exception {
 		while (true) {
 			int n = next();
@@ -103,6 +107,31 @@ public class TestCF3 extends AbstractTest {
 		return foundIt;
 	}
 
+	public String testReturnInLoop(List<String> list) {
+		Iterator<String> it = list.iterator();
+		while (it.hasNext()) {
+			String ver = it.next();
+			if (ver != null)
+				return ver;
+		}
+		return "error";
+	}
+
+	public String testReturnInLoop2(List<String> list) {
+		try {
+			Iterator<String> it = list.iterator();
+			while (it.hasNext()) {
+				String ver = it.next();
+				exc();
+				if (ver != null)
+					return ver;
+			}
+		} catch (Exception e) {
+			setEnabled(false);
+		}
+		return "error";
+	}
+
 	@Override
 	public boolean testRun() throws Exception {
 		setEnabled(false);
@@ -116,6 +145,17 @@ public class TestCF3 extends AbstractTest {
 		assertTrue(testNestedLoops(
 				new ArrayList<String>(Arrays.asList("a1", "a2")),
 				new ArrayList<String>(Arrays.asList("a1", "b2"))));
+
+		List<String> list1 = Arrays.asList(null, "a", "b");
+
+		// TODO this line required to omit generic information because it create List<Object>
+		// List<String> list2 = Arrays.asList(null, null, null);
+
+		assertEquals(testReturnInLoop(list1), "a");
+		assertEquals(testReturnInLoop2(list1), "a");
+
+		// assertEquals(testReturnInLoop(list2), "error");
+		// assertEquals(testReturnInLoop2(list2), "error");
 
 		// assertTrue(testLabeledBreakContinue());
 		return true;
