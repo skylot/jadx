@@ -20,9 +20,9 @@ project.ext {
 dependencies {
     compile 'com.google.android.tools:dx:1.7'
     compile 'com.beust:jcommander:1.30'
-    compile 'org.slf4j:slf4j-api:1.6.6'
-    compile 'ch.qos.logback:logback-classic:1.0.9'
-    testCompile 'junit:junit:4.8.2'
+    compile 'org.slf4j:slf4j-api:1.7.5'
+    compile 'ch.qos.logback:logback-classic:1.0.11'
+    testCompile 'junit:junit:4.11'
 }
 
 repositories {
@@ -89,6 +89,6 @@ applicationDistribution.with {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.4'
+    gradleVersion = '1.5'
 }
 
