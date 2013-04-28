@@ -117,9 +117,7 @@ public class TryCatchBlock {
 		if (obj == null) return false;
 		if (getClass() != obj.getClass()) return false;
 		TryCatchBlock other = (TryCatchBlock) obj;
-		if (handlers == null) {
-			if (other.handlers != null) return false;
-		} else if (!handlers.equals(other.handlers)) return false;
+		if (!handlers.equals(other.handlers)) return false;
 		return true;
 	}
 

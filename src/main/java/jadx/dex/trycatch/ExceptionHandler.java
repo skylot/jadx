@@ -71,7 +71,7 @@ public class ExceptionHandler {
 
 	@Override
 	public int hashCode() {
-		return 31 * (catchType == null ? 0 : catchType.hashCode()) + handleOffset;
+		return (catchType == null ? 0 : 31 * catchType.hashCode()) + handleOffset;
 	}
 
 	@Override
@@ -88,8 +88,8 @@ public class ExceptionHandler {
 
 	@Override
 	public String toString() {
-		return (catchType == null ? "all" : catchType.getShortName())
-				+ " -> " + InsnUtils.formatOffset(handleOffset);
+		return (catchType == null ? "all"
+				: catchType.getShortName()) + " -> " + InsnUtils.formatOffset(handleOffset);
 	}
 
 }

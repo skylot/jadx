@@ -54,9 +54,6 @@ public class InsnGen {
 		NO_RESULT,
 
 		BODY_ONLY,
-
-		INC_INDENT,
-		DEC_INDENT,
 	}
 
 	public InsnGen(MethodGen mgen, MethodNode mth, boolean fallback) {
@@ -92,12 +89,12 @@ public class InsnGen {
 			if (insn.getAttributes().contains(AttributeType.DECLARE_VARIABLE)) {
 				return declareVar(arg);
 			} else {
-				return arg(arg);
+				return mgen.makeArgName(arg);
 			}
 		} catch (CodegenException e) {
 			LOG.error("Assign var codegen error", e);
+			return "<error>";
 		}
-		return "<error>";
 	}
 
 	public String declareVar(RegisterArg arg) throws CodegenException {
@@ -142,11 +139,11 @@ public class InsnGen {
 		return TypeGen.translate(mgen.getClassGen(), type);
 	}
 
-	public void makeInsn(InsnNode insn, CodeWriter code) throws CodegenException {
-		makeInsn(insn, code, false);
+	public boolean makeInsn(InsnNode insn, CodeWriter code) throws CodegenException {
+		return makeInsn(insn, code, false);
 	}
 
-	private void makeInsn(InsnNode insn, CodeWriter code, boolean bodyOnly) throws CodegenException {
+	private boolean makeInsn(InsnNode insn, CodeWriter code, boolean bodyOnly) throws CodegenException {
 		try {
 			EnumSet<InsnGenState> state = EnumSet.noneOf(InsnGenState.class);
 			if (bodyOnly) {
@@ -156,10 +153,8 @@ public class InsnGen {
 				CodeWriter body = new CodeWriter(code.getIndent());
 				makeInsnBody(body, insn, state);
 				if (state.contains(InsnGenState.SKIP))
-					return;
+					return false;
 
-				if (state.contains(InsnGenState.DEC_INDENT))
-					code.decIndent();
 				if (insn.getResult() != null && !state.contains(InsnGenState.NO_RESULT))
 					code.startLine(assignVar(insn)).add(" = ");
 				else
@@ -169,12 +164,11 @@ public class InsnGen {
 
 				if (!state.contains(InsnGenState.NO_SEMICOLON))
 					code.add(';');
-				if (state.contains(InsnGenState.INC_INDENT))
-					code.incIndent();
 			}
 		} catch (Throwable th) {
 			throw new CodegenException(mth, "Error generate insn: " + insn, th);
 		}
+		return true;
 	}
 
 	private void makeInsnBody(CodeWriter code, InsnNode insn, EnumSet<InsnGenState> state) throws CodegenException {
@@ -549,7 +543,7 @@ public class InsnGen {
 	private void addArgs(CodeWriter code, InsnNode insn, int k) throws CodegenException {
 		code.add('(');
 		for (int i = k; i < insn.getArgsCount(); i++) {
-			code.add(arg(insn.getArg(i)));
+			code.add(arg(insn, i));
 			if (i < insn.getArgsCount() - 1)
 				code.add(", ");
 		}
@@ -562,6 +556,7 @@ public class InsnGen {
 
 		if (op == ArithOp.INC || op == ArithOp.DEC) {
 			code.add(v1 + op.getSymbol());
+			state.add(InsnGenState.NO_RESULT);
 		} else {
 			String res = arg(insn.getResult());
 			String v2 = arg(insn.getArg(1));

@@ -60,9 +60,9 @@ public class MethodGen {
 		if (mth.getMethodInfo().isClassInit()) {
 			code.startLine("static");
 		} else {
-			if (mth.getAttributes().contains(AttributeFlag.INCONSISTENT_CODE)) {
-				code.startLine("// FIXME: Jadx generate inconsistent code");
-				LOG.debug(ErrorsCounter.formatErrorMsg(mth, " Inconsistent code"));
+			if (mth.getAttributes().contains(AttributeFlag.INCONSISTENT_CODE)
+					&& !mth.getAttributes().contains(AttributeType.JADX_ERROR)) {
+				code.startLine("// jadx: inconsistent code");
 			}
 
 			annotationGen.addForMethod(code, mth);
@@ -217,32 +217,24 @@ public class MethodGen {
 			code.add("\");");
 
 			JadxErrorAttr err = (JadxErrorAttr) mth.getAttributes().get(AttributeType.JADX_ERROR);
-			code.startLine("// FIXME: Jadx error processing method");
+			code.startLine("// jadx: method processing error");
 			Throwable cause = err.getCause();
 			if (cause != null) {
-				code.endl().add("/*");
-				code.startLine("Message: ").add(cause.getMessage());
+				code.endl();
+				code.add("/*");
 				code.startLine("Error: ").add(Utils.getStackTrace(cause));
 				code.add("*/");
 			}
-
-			// load original instructions
-			try {
-				mth.load();
-				DepthTraverser.visit(new FallbackModeVisitor(), mth);
-			} catch (DecodeException e) {
-				// ignore
-				return code;
-			}
-
-			code.startLine("/*");
-			makeFullMethodDump(code, mth);
-			code.startLine("*/");
+			makeMethodDump(code, mth);
 		} else {
 			if (mth.getRegion() != null) {
 				CodeWriter insns = new CodeWriter(mthIndent + 1);
 				(new RegionGen(this, mth)).makeRegion(insns, mth.getRegion());
 
+				if (mth.getAttributes().contains(AttributeFlag.INCONSISTENT_CODE)) {
+					LOG.debug(ErrorsCounter.formatErrorMsg(mth, " Inconsistent code"));
+					// makeMethodDump(code, mth);
+				}
 				makeInitCode(code);
 				code.add(insns);
 			} else {
@@ -252,7 +244,8 @@ public class MethodGen {
 		return code;
 	}
 
-	private void makeFullMethodDump(CodeWriter code, MethodNode mth) {
+	public void makeMethodDump(CodeWriter code, MethodNode mth) {
+		code.startLine("/*");
 		getFallbackMethodGen(mth).addDefinition(code);
 		code.add(" {");
 		code.incIndent();
@@ -261,9 +254,21 @@ public class MethodGen {
 
 		code.decIndent();
 		code.startLine("}");
+		code.startLine("*/");
 	}
 
 	private void makeFallbackMethod(CodeWriter code, MethodNode mth) {
+		if (mth.getInstructions() == null) {
+			// load original instructions
+			try {
+				mth.load();
+				DepthTraverser.visit(new FallbackModeVisitor(), mth);
+			} catch (DecodeException e) {
+				// ignore
+				code.startLine("Can't load method instructions");
+				return;
+			}
+		}
 		if (mth.getThisArg() != null) {
 			code.startLine(getFallbackMethodGen(mth).makeArgName(mth.getThisArg())).add(" = this;");
 		}
@@ -283,13 +288,14 @@ public class MethodGen {
 				}
 			}
 			try {
-				insnGen.makeInsn(insn, code);
+				if (insnGen.makeInsn(insn, code)) {
+					CatchAttr _catch = (CatchAttr) attrs.get(AttributeType.CATCH_BLOCK);
+					if (_catch != null)
+						code.add("\t //" + _catch);
+				}
 			} catch (CodegenException e) {
 				code.startLine("// error: " + insn);
 			}
-			CatchAttr _catch = (CatchAttr) attrs.get(AttributeType.CATCH_BLOCK);
-			if (_catch != null)
-				code.add("\t // " + _catch);
 		}
 	}
 
