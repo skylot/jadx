@@ -14,6 +14,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Storage for different attribute types:
+ * 1. flags - boolean attribute (set or not)
+ * 2. attribute - class instance associated for attribute type,
+ * only one attached to node for unique attributes, multiple for others
+ */
 public class AttributesList {
 
 	private final Set<AttributeFlag> flags;
@@ -24,16 +30,11 @@ public class AttributesList {
 	public AttributesList() {
 		flags = EnumSet.noneOf(AttributeFlag.class);
 		uniqAttr = new EnumMap<AttributeType, IAttribute>(AttributeType.class);
-		attributes = new ArrayList<IAttribute>(1);
-		attrCount = new int[AttributeType.values().length];
+		attributes = new ArrayList<IAttribute>(0);
+		attrCount = new int[AttributeType.getNotUniqCount()];
 	}
 
-	public void add(IAttribute attr) {
-		if (attr.getType().isUniq())
-			uniqAttr.put(attr.getType(), attr);
-		else
-			addMultiAttribute(attr);
-	}
+	// Flags
 
 	public void add(AttributeFlag flag) {
 		flags.add(flag);
@@ -47,12 +48,21 @@ public class AttributesList {
 		flags.remove(flag);
 	}
 
+	// Attributes
+
+	public void add(IAttribute attr) {
+		if (attr.getType().isUniq())
+			uniqAttr.put(attr.getType(), attr);
+		else
+			addMultiAttribute(attr);
+	}
+
 	private void addMultiAttribute(IAttribute attr) {
 		attributes.add(attr);
 		attrCount[attr.getType().ordinal()]++;
 	}
 
-	private int getCountInternal(AttributeType type) {
+	private int getMultiCountInternal(AttributeType type) {
 		return attrCount[type.ordinal()];
 	}
 
@@ -67,15 +77,14 @@ public class AttributesList {
 		if (type.isUniq())
 			return uniqAttr.containsKey(type);
 		else
-			return getCountInternal(type) != 0;
+			return getMultiCountInternal(type) != 0;
 	}
 
 	public IAttribute get(AttributeType type) {
 		if (type.isUniq()) {
 			return uniqAttr.get(type);
 		} else {
-			int count = getCountInternal(type);
-			if (count != 0) {
+			if (getMultiCountInternal(type) != 0) {
 				for (IAttribute attr : attributes)
 					if (attr.getType() == type)
 						return attr;
@@ -86,9 +95,9 @@ public class AttributesList {
 
 	public int getCount(AttributeType type) {
 		if (type.isUniq()) {
-			return 0;
+			return uniqAttr.containsKey(type) ? 1 : 0;
 		} else {
-			return getCountInternal(type);
+			return getMultiCountInternal(type);
 		}
 	}
 
@@ -103,7 +112,7 @@ public class AttributesList {
 	public List<IAttribute> getAll(AttributeType type) {
 		assert type.notUniq();
 
-		int count = getCountInternal(type);
+		int count = getMultiCountInternal(type);
 		if (count == 0) {
 			return Collections.emptyList();
 		} else {
@@ -126,6 +135,26 @@ public class AttributesList {
 					it.remove();
 			}
 			attrCount[type.ordinal()] = 0;
+		}
+	}
+
+	public void remove(IAttribute attr) {
+		AttributeType type = attr.getType();
+		if (type.isUniq()) {
+			IAttribute a = uniqAttr.get(type);
+			if (a == attr)
+				uniqAttr.remove(type);
+		} else {
+			if (getMultiCountInternal(type) == 0)
+				return;
+
+			for (Iterator<IAttribute> it = attributes.iterator(); it.hasNext();) {
+				IAttribute a = it.next();
+				if (a == attr) {
+					it.remove();
+					attrCount[type.ordinal()]--;
+				}
+			}
 		}
 	}
 
