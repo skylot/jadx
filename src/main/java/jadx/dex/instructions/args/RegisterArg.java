@@ -17,6 +17,7 @@ public class RegisterArg extends InsnArg {
 		this.regNum = rn;
 	}
 
+	@Override
 	public int getRegNum() {
 		return regNum;
 	}

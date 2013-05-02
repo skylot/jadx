@@ -22,7 +22,7 @@ public class StringUtils {
 		return '\'' + res.toString() + '\'';
 	}
 
-	public static void processChar(int c, StringBuilder res) {
+	private static void processChar(int c, StringBuilder res) {
 		switch (c) {
 			case '\n':
 				res.append("\\n");

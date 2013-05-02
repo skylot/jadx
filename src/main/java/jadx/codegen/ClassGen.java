@@ -55,7 +55,7 @@ public class ClassGen {
 		CodeWriter clsCode = new CodeWriter();
 
 		if (!"".equals(cls.getPackage())) {
-			clsCode.add("package ").add(cls.getPackage()).add(";");
+			clsCode.add("package ").add(cls.getPackage()).add(';');
 			clsCode.endl();
 		}
 
@@ -66,7 +66,7 @@ public class ClassGen {
 			Collections.sort(sortImports);
 
 			for (String imp : sortImports) {
-				clsCode.startLine("import ").add(imp).add(";");
+				clsCode.startLine("import ").add(imp).add(';');
 			}
 			clsCode.endl();
 
@@ -165,7 +165,7 @@ public class ClassGen {
 	}
 
 	public void makeClassBody(CodeWriter clsCode) throws CodegenException {
-		clsCode.add("{");
+		clsCode.add('{');
 		CodeWriter mthsCode = makeMethods(clsCode, cls.getMethods());
 		clsCode.add(makeFields(clsCode, cls, cls.getFields()));
 
@@ -174,7 +174,7 @@ public class ClassGen {
 			clsCode.add(makeInnerClasses(cls, clsCode.getIndent()));
 		}
 		clsCode.add(mthsCode);
-		clsCode.startLine("}");
+		clsCode.startLine('}');
 	}
 
 	private CodeWriter makeInnerClasses(ClassNode cls2, int indent) throws CodegenException {
@@ -190,7 +190,7 @@ public class ClassGen {
 		return innerClsCode;
 	}
 
-	private CodeWriter makeMethods(CodeWriter clsCode, List<MethodNode> mthList) throws CodegenException {
+	private CodeWriter makeMethods(CodeWriter clsCode, List<MethodNode> mthList) {
 		CodeWriter code = new CodeWriter(clsCode.getIndent() + 1);
 		for (Iterator<MethodNode> it = mthList.iterator(); it.hasNext();) {
 			MethodNode mth = it.next();
@@ -208,7 +208,7 @@ public class ClassGen {
 							code.add(" default ").add(v);
 						}
 					}
-					code.add(";");
+					code.add(';');
 				} else {
 					if (mth.isNoCode())
 						continue;
@@ -217,7 +217,7 @@ public class ClassGen {
 					mthGen.addDefinition(code);
 					code.add(" {");
 					code.add(mthGen.makeInstructions(code.getIndent()));
-					code.startLine("}");
+					code.startLine('}');
 				}
 			} catch (Throwable e) {
 				String msg = ErrorsCounter.methodError(mth, "Method generation error", e);
@@ -268,7 +268,7 @@ public class ClassGen {
 			annotationGen.addForField(code, f);
 			code.startLine(f.getAccessFlags().makeString());
 			code.add(TypeGen.translate(this, f.getType()));
-			code.add(" ");
+			code.add(' ');
 			code.add(f.getName());
 			FieldValueAttr fv = (FieldValueAttr) f.getAttributes().get(AttributeType.FIELD_VALUE);
 			if (fv != null) {
@@ -279,7 +279,7 @@ public class ClassGen {
 					code.add(annotationGen.encValueToString(fv.getValue()));
 				}
 			}
-			code.add(";");
+			code.add(';');
 		}
 		if (fields.size() != 0)
 			code.endl();
@@ -299,7 +299,7 @@ public class ClassGen {
 		if (generics != null) {
 			StringBuilder sb = new StringBuilder();
 			sb.append(baseClass);
-			sb.append("<");
+			sb.append('<');
 			int len = generics.length;
 			for (int i = 0; i < len; i++) {
 				if (i != 0) {
@@ -311,7 +311,7 @@ public class ClassGen {
 				else
 					sb.append('?');
 			}
-			sb.append(">");
+			sb.append('>');
 			return sb.toString();
 		} else {
 			return baseClass;

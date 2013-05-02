@@ -72,4 +72,8 @@ public abstract class InsnArg extends Typed {
 		return false;
 	}
 
+	public int getRegNum() {
+		throw new UnsupportedOperationException("Must be called from RegisterArg");
+	}
+
 }

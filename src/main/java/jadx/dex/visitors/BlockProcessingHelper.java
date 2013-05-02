@@ -45,9 +45,10 @@ public class BlockProcessingHelper {
 				// set correct type for 'move-exception' operation
 				RegisterArg excArg = me.getResult();
 				if (excHandler.isCatchAll())
-					excArg.getTypedVar().merge(ArgType.THROWABLE);
+					excArg.getTypedVar().forceSetType(ArgType.THROWABLE);
 				else
-					excArg.getTypedVar().merge(excHandler.getCatchType().getType());
+					excArg.getTypedVar().forceSetType(excHandler.getCatchType().getType());
+				// excArg.getTypedVar().merge(excHandler.getCatchType().getType());
 
 				excHandler.setArg(excArg);
 				block.getAttributes().add(handlerAttr);

@@ -16,7 +16,7 @@ public class FieldInfo {
 		return new FieldInfo(dex, index);
 	}
 
-	protected FieldInfo(DexNode dex, int ind) {
+	private FieldInfo(DexNode dex, int ind) {
 		FieldId field = dex.getFieldId(ind);
 		this.name = dex.getString(field.getNameIndex());
 		this.type = dex.getType(field.getTypeIndex());

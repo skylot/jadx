@@ -5,7 +5,7 @@ import jadx.utils.InsnUtils;
 
 public class IndexInsnNode extends InsnNode {
 
-	protected final Object index;
+	private final Object index;
 
 	public IndexInsnNode(InsnType type, Object index, int argCount) {
 		super(type, argCount);

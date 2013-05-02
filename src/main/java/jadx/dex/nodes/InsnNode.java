@@ -71,7 +71,7 @@ public class InsnNode extends AttrNode {
 
 	public boolean containsArg(RegisterArg arg) {
 		for (InsnArg a : arguments) {
-			if (a == arg || (a.isRegister() && ((RegisterArg) a).getRegNum() == arg.getRegNum()))
+			if (a == arg || (a.isRegister() && a.getRegNum() == arg.getRegNum()))
 				return true;
 		}
 		return false;

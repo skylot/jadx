@@ -39,7 +39,7 @@ public class BlockUtils {
 			return list.get(1);
 	}
 
-	public static List<BlockNode> cleanBlockList(List<BlockNode> list) {
+	private static List<BlockNode> cleanBlockList(List<BlockNode> list) {
 		List<BlockNode> ret = new ArrayList<BlockNode>(list.size());
 		for (BlockNode block : list) {
 			if (!block.getAttributes().contains(AttributeType.EXC_HANDLER))
@@ -52,11 +52,8 @@ public class BlockUtils {
 		if (from.getCleanSuccessors().contains(to))
 			return false; // already checked
 
-		if (!from.getSuccessors().contains(to))
-			return false; // not even successor
-
-		return true;
-	}
+        return from.getSuccessors().contains(to);
+    }
 
 	/**
 	 * Remove exception handlers from block nodes bitset

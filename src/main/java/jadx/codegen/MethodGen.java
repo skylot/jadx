@@ -133,7 +133,7 @@ public class MethodGen {
 			} else {
 				argsCode.add(TypeGen.translate(classGen, arg.getType()));
 			}
-			argsCode.add(" ");
+			argsCode.add(' ');
 			argsCode.add(makeArgName(arg));
 
 			i++;
@@ -253,7 +253,7 @@ public class MethodGen {
 		makeFallbackMethod(code, mth);
 
 		code.decIndent();
-		code.startLine("}");
+		code.startLine('}');
 		code.startLine("*/");
 	}
 

@@ -13,7 +13,7 @@ public class CodeWriter {
 	private static final int MAX_FILENAME_LENGTH = 128;
 
 	public static final String NL = System.getProperty("line.separator");
-	public static final String INDENT = "\t";
+	private static final String INDENT = "\t";
 
 	private StringBuilder buf = new StringBuilder();
 	private String indentStr;

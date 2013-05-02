@@ -30,7 +30,7 @@ public class DexNode {
 	private final List<ClassNode> classes = new ArrayList<ClassNode>();
 	private final String[] strings;
 
-	public DexNode(RootNode root, InputFile input) throws IOException, DecodeException {
+	public DexNode(RootNode root, InputFile input) {
 		this.root = root;
 		this.dexBuf = input.getDexBuffer();
 

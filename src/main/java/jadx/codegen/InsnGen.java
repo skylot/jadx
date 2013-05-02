@@ -84,20 +84,15 @@ public class InsnGen {
 	}
 
 	public String assignVar(InsnNode insn) {
-		try {
-			RegisterArg arg = insn.getResult();
-			if (insn.getAttributes().contains(AttributeType.DECLARE_VARIABLE)) {
-				return declareVar(arg);
-			} else {
-				return mgen.makeArgName(arg);
-			}
-		} catch (CodegenException e) {
-			LOG.error("Assign var codegen error", e);
-			return "<error>";
+		RegisterArg arg = insn.getResult();
+		if (insn.getAttributes().contains(AttributeType.DECLARE_VARIABLE)) {
+			return declareVar(arg);
+		} else {
+			return mgen.makeArgName(arg);
 		}
 	}
 
-	public String declareVar(RegisterArg arg) throws CodegenException {
+	public String declareVar(RegisterArg arg) {
 		return useType(arg.getType()) + " " + mgen.assignArg(arg);
 	}
 
@@ -237,8 +232,8 @@ public class InsnGen {
 				break;
 
 			case INSTANCE_OF:
-				code.add("(").add(arg(insn, 0)).add(" instanceof ")
-						.add(useType((ArgType) ((IndexInsnNode) insn).getIndex())).add(")");
+				code.add('(').add(arg(insn, 0)).add(" instanceof ")
+						.add(useType((ArgType) ((IndexInsnNode) insn).getIndex())).add(')');
 				break;
 
 			case CONSTRUCTOR:
@@ -296,7 +291,7 @@ public class InsnGen {
 
 			case MONITOR_ENTER:
 				if (isFallback()) {
-					code.add("monitor-enter(").add(arg(insn.getArg(0))).add(")");
+					code.add("monitor-enter(").add(arg(insn.getArg(0))).add(')');
 				} else {
 					state.add(InsnGenState.SKIP);
 				}
@@ -304,7 +299,7 @@ public class InsnGen {
 
 			case MONITOR_EXIT:
 				if (isFallback()) {
-					code.add("monitor-exit(").add(arg(insn.getArg(0))).add(")");
+					code.add("monitor-exit(").add(arg(insn.getArg(0))).add(')');
 				} else {
 					state.add(InsnGenState.SKIP);
 				}
@@ -358,7 +353,7 @@ public class InsnGen {
 				}
 				code.startLine("default: goto " + MethodGen.getLabelName(sw.getDefaultCaseOffset()) + ";");
 				code.decIndent();
-				code.startLine("}");
+				code.startLine('}');
 				state.add(InsnGenState.NO_SEMICOLON);
 				break;
 
@@ -376,13 +371,13 @@ public class InsnGen {
 	private void filledNewArray(InsnNode insn, CodeWriter code) throws CodegenException {
 		int c = insn.getArgsCount();
 		code.add("new ").add(useType(insn.getResult().getType()));
-		code.add("{");
+		code.add('{');
 		for (int i = 0; i < c; i++) {
 			code.add(arg(insn, i));
 			if (i + 1 < c)
 				code.add(", ");
 		}
-		code.add("}");
+		code.add('}');
 	}
 
 	private void fillArray(FillArrayOp insn, CodeWriter code) throws CodegenException {

@@ -22,6 +22,7 @@ public class TypeGen {
 		return stype.getLongName();
 	}
 
+    @Deprecated
 	public static String shortString(ArgType type) {
 		final PrimitiveType stype = type.getPrimitiveType();
 		if (stype == null)

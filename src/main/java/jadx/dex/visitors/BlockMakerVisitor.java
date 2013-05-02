@@ -30,6 +30,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 
 	// leave these instructions alone in block node
 	private static final Set<InsnType> separateInsns = EnumSet.of(
+			InsnType.RETURN,
 			InsnType.IF,
 			InsnType.SWITCH,
 			InsnType.MONITOR_ENTER,
@@ -165,12 +166,8 @@ public class BlockMakerVisitor extends AbstractVisitor {
 				}
 			}
 		}
-
 		computeDominators(mth);
-
-		for (BlockNode block : mth.getBasicBlocks()) {
-			markReturnBlocks(mth, block);
-		}
+		markReturnBlocks(mth);
 
 		int i = 0;
 		while (modifyBlocksTree(mth)) {
@@ -178,6 +175,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			cleanDomTree(mth);
 			// recalculate dominators tree
 			computeDominators(mth);
+			markReturnBlocks(mth);
 
 			i++;
 			if (i > 100)
@@ -273,7 +271,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 					BlockNode idom = mth.getBasicBlocks().get(id);
 					block.setIDom(idom);
 					idom.getDominatesOn().add(block);
-				} else if (block != entryBlock) {
+				} else {
 					throw new JadxRuntimeException("Can't find immediate dominator for block " + block
 							+ " in " + bs + " prec:" + block.getPredecessors());
 				}
@@ -284,9 +282,8 @@ public class BlockMakerVisitor extends AbstractVisitor {
 	private static void markLoops(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			for (BlockNode succ : block.getSuccessors()) {
-				// Every successor that dominates its predecessor
-				// must be the header of a loop.
-				// That is, block -> succ is a back edge.
+				// Every successor that dominates its predecessor is a header of a loop,
+				// block -> succ is a back edge.
 				if (block.getDoms().get(succ.getId())) {
 					succ.getAttributes().add(AttributeFlag.LOOP_START);
 					block.getAttributes().add(AttributeFlag.LOOP_END);
@@ -299,10 +296,12 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		}
 	}
 
-	private static void markReturnBlocks(MethodNode mth, BlockNode block) {
-		if (block.getInstructions().size() == 1) {
-			if (block.getInstructions().get(0).getType() == InsnType.RETURN)
-				block.getAttributes().add(AttributeFlag.RETURN);
+	private static void markReturnBlocks(MethodNode mth) {
+		for (BlockNode block : mth.getBasicBlocks()) {
+			if (block.getInstructions().size() == 1) {
+				if (block.getInstructions().get(0).getType() == InsnType.RETURN)
+					block.getAttributes().add(AttributeFlag.RETURN);
+			}
 		}
 	}
 

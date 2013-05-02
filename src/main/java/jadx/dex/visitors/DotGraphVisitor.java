@@ -75,7 +75,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 
 		dot.add(conn);
 
-		dot.startLine("}");
+		dot.startLine('}');
 		dot.startLine();
 
 		String fileName = Utils.escape(mth.getMethodInfo().getShortId())
@@ -99,7 +99,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 				processRegion(mth, c, dot, conn);
 			}
 
-			dot.startLine("}");
+			dot.startLine('}');
 		} else if (region instanceof BlockNode) {
 			processBlock(mth, (BlockNode) region, dot, conn);
 		}

@@ -34,7 +34,7 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 		}
 	}
 
-	public static boolean checkInsn(MethodNode mth, BlockNode block, InsnNode insn) {
+	private static boolean checkInsn(MethodNode mth, BlockNode block, InsnNode insn) {
 		if (insn.getType() == InsnType.CONST) {
 			if (insn.getArgsCount() == 1
 					&& insn.getArg(0).isLiteral()

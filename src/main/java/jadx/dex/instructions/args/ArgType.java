@@ -587,10 +587,7 @@ public abstract class ArgType {
 			return false;
 		}
 		// TODO: don't use toString
-		if (!toString().equals(obj.toString())) {
-			return false;
-		}
-		return true;
-	}
+        return toString().equals(obj.toString());
+    }
 
 }

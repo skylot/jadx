@@ -254,7 +254,7 @@ public class RegionGen extends InsnGen {
 			code.startLine("} catch (");
 			code.add(handler.isCatchAll() ? "Throwable" : useClass(handler.getCatchType()));
 			code.add(' ');
-			code.add(arg(handler.getArg()));
+			code.add(mgen.assignArg(handler.getArg()));
 			code.add(") {");
 			makeRegionIndent(code, region);
 		}
