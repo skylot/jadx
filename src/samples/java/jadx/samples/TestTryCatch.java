@@ -118,6 +118,31 @@ public class TestTryCatch extends AbstractTest {
 		}
 	}
 
+	private boolean test8(Object obj) {
+		this.mDiscovering = false;
+		try {
+			exc(obj);
+		} catch (Exception e) {
+			e.toString();
+		} finally {
+			mDiscovering = true;
+		}
+		return mDiscovering;
+	}
+
+	private boolean test8a(Object obj) {
+		this.mDiscovering = false;
+		try {
+			exc(obj);
+		} catch (Exception e) {
+			e.toString();
+		} finally {
+			if (!mDiscovering)
+				mDiscovering = true;
+		}
+		return mDiscovering;
+	}
+
 	private static boolean testSynchronize(Object obj) throws InterruptedException {
 		synchronized (obj) {
 			if (obj instanceof String)
@@ -127,6 +152,7 @@ public class TestTryCatch extends AbstractTest {
 		return true;
 	}
 
+	// TODO: remove 'synchronized(TestTryCatch.class)' block in decompiled version
 	private synchronized static boolean testSynchronize2(Object obj) throws InterruptedException {
 		return obj.toString() != null;
 	}
@@ -159,6 +185,12 @@ public class TestTryCatch extends AbstractTest {
 
 		assertTrue(testSynchronize2("str"));
 		assertTrue(testSynchronize3());
+
+		assertTrue(test8("a"));
+		assertTrue(test8(null));
+
+		assertTrue(test8a("a"));
+		assertTrue(test8a(null));
 		return true;
 	}
 

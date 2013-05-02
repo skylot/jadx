@@ -2,7 +2,6 @@ package jadx.dex.visitors;
 
 import jadx.Consts;
 import jadx.dex.attributes.AttributeType;
-import jadx.dex.attributes.IAttribute;
 import jadx.dex.info.MethodInfo;
 import jadx.dex.instructions.IndexInsnNode;
 import jadx.dex.instructions.InsnType;
@@ -12,7 +11,6 @@ import jadx.dex.instructions.args.RegisterArg;
 import jadx.dex.instructions.mods.ConstructorInsn;
 import jadx.dex.nodes.BlockNode;
 import jadx.dex.nodes.FieldNode;
-import jadx.dex.nodes.InsnContainer;
 import jadx.dex.nodes.InsnNode;
 import jadx.dex.nodes.MethodNode;
 import jadx.dex.trycatch.ExcHandlerAttr;
@@ -21,7 +19,6 @@ import jadx.dex.trycatch.TryCatchBlock;
 import jadx.utils.BlockUtils;
 import jadx.utils.exceptions.JadxRuntimeException;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -195,24 +192,8 @@ public class ModVisitor extends AbstractVisitor {
 
 				// move not removed instructions to 'finally' block
 				if (size != 0) {
-					InsnContainer cont = new InsnContainer();
-					List<InsnNode> finalBlockInsns = new ArrayList<InsnNode>(insns);
-					cont.setInstructions(finalBlockInsns);
-					tryBlock.setFinalBlock(cont);
-
-					InstructionRemover.unbindInsnList(finalBlockInsns);
-
-					// remove these instructions from other handlers
-					for (ExceptionHandler h : tryBlock.getHandlers()) {
-						for (BlockNode ehb : h.getBlocks())
-							ehb.getInstructions().removeAll(finalBlockInsns);
-					}
-					// remove from blocks with this catch
-					for (BlockNode b : mth.getBasicBlocks()) {
-						IAttribute ca = b.getAttributes().get(AttributeType.CATCH_BLOCK);
-						if (tryBlock.getCatchAttr() == ca)
-							b.getInstructions().removeAll(finalBlockInsns);
-					}
+					// TODO: support instructions from several blocks
+					tryBlock.setFinalBlockFromInsns(mth, insns);
 					size = insns.size();
 				}
 			}
