@@ -4,6 +4,7 @@ import jadx.dex.instructions.args.ArgType;
 import jadx.dex.instructions.args.RegisterArg;
 import jadx.dex.instructions.args.TypedVar;
 import jadx.dex.nodes.DexNode;
+import jadx.utils.InsnUtils;
 
 public class LocalVarInfo extends RegisterArg {
 
@@ -21,9 +22,9 @@ public class LocalVarInfo extends RegisterArg {
 		init(name, type, sign);
 	}
 
-	public LocalVarInfo(DexNode dex, int rn, String name, ArgType type, String sign) {
-		super(rn);
-		init(name, type, sign);
+	public LocalVarInfo(DexNode dex, RegisterArg arg) {
+		super(arg.getRegNum());
+		init(arg.getTypedVar().getName(), arg.getType(), null);
 	}
 
 	private void init(String name, ArgType type, String sign) {
@@ -59,6 +60,8 @@ public class LocalVarInfo extends RegisterArg {
 
 	@Override
 	public String toString() {
-		return super.toString() + " " + (isEnd ? "end" : "active");
+		return super.toString() + " " + (isEnd
+				? "end: " + InsnUtils.formatOffset(startAddr) + "-" + InsnUtils.formatOffset(endAddr)
+				: "active: " + InsnUtils.formatOffset(startAddr));
 	}
 }
