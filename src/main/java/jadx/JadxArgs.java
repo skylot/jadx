@@ -51,10 +51,9 @@ public class JadxArgs {
 	private final List<InputFile> input = new ArrayList<InputFile>();
 	private File outputDir;
 
-	public void parse(String[] args) throws JadxException {
+	public void parse(String[] args) {
 		try {
 			new JCommander(this, args);
-			processArgs();
 		} catch (ParameterException e) {
 			System.out.println("Arguments parse error: " + e.getMessage());
 			System.out.println();
@@ -62,7 +61,7 @@ public class JadxArgs {
 		}
 	}
 
-	private void processArgs() throws JadxException {
+	public void processArgs() throws JadxException {
 		if (printHelp)
 			return;
 
