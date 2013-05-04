@@ -100,8 +100,7 @@ public class RegionUtils {
 	}
 
 	/**
-	 * Check if region contains in container
-	 * 
+	 * Check if {@code region} contains in {@code container}.<br>
 	 * For simple region (not from exception handlers) search in parents
 	 * otherwise run recursive search because exception handlers can have several parents
 	 */

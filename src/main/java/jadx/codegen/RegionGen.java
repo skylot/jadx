@@ -124,9 +124,7 @@ public class RegionGen extends InsnGen {
 			}
 
 			code.add('{');
-			code.incIndent();
-			makeRegion(code, els);
-			code.decIndent();
+			makeRegionIndent(code, els);
 			code.startLine('}');
 		}
 	}

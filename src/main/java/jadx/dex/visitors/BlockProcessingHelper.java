@@ -48,7 +48,6 @@ public class BlockProcessingHelper {
 					excArg.getTypedVar().forceSetType(ArgType.THROWABLE);
 				else
 					excArg.getTypedVar().forceSetType(excHandler.getCatchType().getType());
-				// excArg.getTypedVar().merge(excHandler.getCatchType().getType());
 
 				excHandler.setArg(excArg);
 				block.getAttributes().add(handlerAttr);

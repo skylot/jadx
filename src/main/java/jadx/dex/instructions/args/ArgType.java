@@ -187,18 +187,12 @@ public abstract class ArgType {
 
 		@Override
 		public int getArrayDimension() {
-			if (isArray())
-				return 1 + arrayElement.getArrayDimension();
-			else
-				return 0;
+			return 1 + arrayElement.getArrayDimension();
 		}
 
 		@Override
 		public ArgType getArrayRootElement() {
-			if (isArray())
-				return arrayElement.getArrayRootElement();
-			else
-				return this;
+			return arrayElement.getArrayRootElement();
 		}
 
 		@Override
@@ -235,7 +229,6 @@ public abstract class ArgType {
 
 		@Override
 		public ArgType selectFirst() {
-			assert possibleTypes != null;
 			PrimitiveType f = possibleTypes[0];
 			if (f == PrimitiveType.OBJECT || f == PrimitiveType.ARRAY)
 				return object(Consts.CLASS_OBJECT);
@@ -280,16 +273,16 @@ public abstract class ArgType {
 		return null;
 	}
 
-	public ArgType getArrayElement() {
-		return null;
-	}
-
 	public boolean isArray() {
 		return false;
 	}
 
 	public int getArrayDimension() {
 		return 0;
+	}
+
+	public ArgType getArrayElement() {
+		return null;
 	}
 
 	public ArgType getArrayRootElement() {
@@ -363,8 +356,7 @@ public abstract class ArgType {
 					return a;
 				else
 					// different objects
-					return OBJECT;
-				// return null;
+					return null;
 			}
 
 			if (a.isArray() && b.isArray()) {
@@ -526,7 +518,6 @@ public abstract class ArgType {
 				if (prev != null) {
 					genericMap.put(prev, genList);
 				}
-				// LOG.debug("sign: {} -> {}", gen, genericMap);
 			}
 			return genericMap;
 		} catch (Throwable e) {
@@ -570,7 +561,7 @@ public abstract class ArgType {
 
 	@Override
 	public String toString() {
-		return "UNKNOWN";
+		return "ARG_TYPE";
 	}
 
 	@Override
@@ -583,11 +574,8 @@ public abstract class ArgType {
 		if (this == obj) return true;
 		if (obj == null) return false;
 		if (hash != obj.hashCode()) return false;
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
+		if (getClass() != obj.getClass()) return false;
 		// TODO: don't use toString
-        return toString().equals(obj.toString());
-    }
-
+		return toString().equals(obj.toString());
+	}
 }

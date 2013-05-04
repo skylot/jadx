@@ -193,7 +193,12 @@ public class ModVisitor extends AbstractVisitor {
 				// move not removed instructions to 'finally' block
 				if (size != 0) {
 					// TODO: support instructions from several blocks
-					tryBlock.setFinalBlockFromInsns(mth, insns);
+					// tryBlock.setFinalBlockFromInsns(mth, insns);
+
+					// TODO; because of incomplete realization don't extract final block,
+					// just remove unnecessary instructions
+					insns.clear();
+
 					size = insns.size();
 				}
 			}

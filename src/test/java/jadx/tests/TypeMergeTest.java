@@ -39,12 +39,8 @@ public class TypeMergeTest extends TestCase {
 				unknown(PrimitiveType.OBJECT));
 
 		first(object("Lsomeobj;"), object("Lsomeobj;"));
-		merge(object("Lsomeobj;"), object("Lotherobj;"), OBJECT);
+		merge(object("Lsomeobj;"), object("Lotherobj;"), null);
 		first(object("Lsomeobj;"), OBJECT);
-
-		// first(object("Lsomeobj;"), object("Lsomeobj;"));
-		// merge(object("Lsomeobj;"), object("Lotherobj;"), null);
-		// merge(object("Lsomeobj;"), OBJECT, null);
 	}
 
 	private void first(ArgType t1, ArgType t2) {
