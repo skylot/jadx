@@ -151,13 +151,8 @@ public class InsnDecoder {
 			case Opcodes.SUB_INT_2ADDR:
 				return arith(insn, ArithOp.SUB, ArgType.INT);
 
-			case Opcodes.RSUB_INT:
-				return new ArithNode(ArithOp.SUB,
-						InsnArg.reg(insn, 0, ArgType.INT),
-						InsnArg.reg(insn, 2, ArgType.INT),
-						InsnArg.reg(insn, 1, ArgType.INT));
-
 			case Opcodes.RSUB_INT_LIT8:
+			case Opcodes.RSUB_INT: // LIT16
 				return new ArithNode(ArithOp.SUB,
 						InsnArg.reg(insn, 0, ArgType.INT),
 						InsnArg.lit(insn, ArgType.INT),
