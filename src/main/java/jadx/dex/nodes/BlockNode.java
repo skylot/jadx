@@ -27,7 +27,7 @@ public class BlockNode extends AttrNode implements IBlock {
 	private BlockRegState startState;
 	private BlockRegState endState;
 
-	public BlockNode(MethodNode mth, int id, int offset) {
+	public BlockNode(int id, int offset) {
 		this.id = id;
 		this.startOffset = offset;
 	}

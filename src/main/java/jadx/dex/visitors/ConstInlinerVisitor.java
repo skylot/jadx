@@ -105,7 +105,7 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 
 	/**
 	 * This is method similar to PostTypeResolver.visit method,
-	 * but contains some expensive operations needed only after consts inlining
+	 * but contains some expensive operations needed only after constant inline
 	 */
 	private static void fixTypes(MethodNode mth, InsnNode insn) {
 		switch (insn.getType()) {

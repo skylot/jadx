@@ -6,7 +6,6 @@ import jadx.dex.instructions.args.ArgType;
 import jadx.utils.exceptions.DecodeException;
 import jadx.utils.files.InputFile;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +37,7 @@ public class DexNode {
 		this.strings = stringList.toArray(new String[stringList.size()]);
 	}
 
-	public void loadClasses(RootNode root) throws DecodeException {
+	public void loadClasses() throws DecodeException {
 		for (ClassDef cls : dexBuf.classDefs()) {
 			classes.add(new ClassNode(this, cls));
 		}

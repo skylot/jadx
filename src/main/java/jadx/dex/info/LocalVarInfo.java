@@ -22,7 +22,7 @@ public class LocalVarInfo extends RegisterArg {
 		init(name, type, sign);
 	}
 
-	public LocalVarInfo(DexNode dex, RegisterArg arg) {
+	public LocalVarInfo(RegisterArg arg) {
 		super(arg.getRegNum());
 		init(arg.getTypedVar().getName(), arg.getType(), null);
 	}

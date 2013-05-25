@@ -22,21 +22,6 @@ public class TypeGen {
 		return stype.getLongName();
 	}
 
-    @Deprecated
-	public static String shortString(ArgType type) {
-		final PrimitiveType stype = type.getPrimitiveType();
-		if (stype == null)
-			return type.toString();
-
-		if (stype == PrimitiveType.OBJECT) {
-			return "L";
-		}
-		if (stype == PrimitiveType.ARRAY) {
-			return shortString(type.getArrayElement()) + "A";
-		}
-		return stype.getLongName();
-	}
-
 	public static String signature(ArgType type) {
 		final PrimitiveType stype = type.getPrimitiveType();
 		if (stype == PrimitiveType.OBJECT) {

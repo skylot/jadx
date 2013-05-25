@@ -13,7 +13,7 @@ public class IfNode extends GotoNode {
 	protected boolean zeroCmp;
 	protected IfOp op;
 
-	public IfNode(IfOp op, int targ, InsnArg then, InsnArg els) {
+	public IfNode(int targ, InsnArg then, InsnArg els) {
 		super(InsnType.IF, targ);
 		addArg(then);
 		if (els == null) {

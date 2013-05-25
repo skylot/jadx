@@ -143,8 +143,8 @@ public class BlockMakerVisitor extends AbstractVisitor {
 				List<IAttribute> jumps = insn.getAttributes().getAll(AttributeType.JUMP);
 				for (IAttribute attr : jumps) {
 					JumpAttribute jump = (JumpAttribute) attr;
-					BlockNode srcBlock = getBlock(mth, jump.getSrc(), blocksMap);
-					BlockNode thisblock = getBlock(mth, jump.getDest(), blocksMap);
+					BlockNode srcBlock = getBlock(jump.getSrc(), blocksMap);
+					BlockNode thisblock = getBlock(jump.getDest(), blocksMap);
 					connect(srcBlock, thisblock);
 				}
 
@@ -156,7 +156,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 					if (spl != null) {
 						BlockNode connBlock = ((SplitterBlockAttr) spl).getBlock();
 						for (ExceptionHandler h : catches.getTryBlock().getHandlers()) {
-							BlockNode destBlock = getBlock(mth, h.getHandleOffset(), blocksMap);
+							BlockNode destBlock = getBlock(h.getHandleOffset(), blocksMap);
 							// skip self loop in handler
 							if (connBlock != destBlock)
 								// && !connBlock.getPredecessors().contains(destBlock))
@@ -183,7 +183,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		}
 	}
 
-	private static BlockNode getBlock(MethodNode mth, int offset, Map<Integer, BlockNode> blocksMap) {
+	private static BlockNode getBlock(int offset, Map<Integer, BlockNode> blocksMap) {
 		BlockNode block = blocksMap.get(offset);
 		assert block != null;
 		return block;
@@ -202,7 +202,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 	}
 
 	private static BlockNode startNewBlock(MethodNode mth, int offset) {
-		BlockNode block = new BlockNode(mth, ++nextBlockId, offset);
+		BlockNode block = new BlockNode(++nextBlockId, offset);
 		mth.getBasicBlocks().add(block);
 		return block;
 	}

@@ -52,8 +52,8 @@ public class BlockUtils {
 		if (from.getCleanSuccessors().contains(to))
 			return false; // already checked
 
-        return from.getSuccessors().contains(to);
-    }
+		return from.getSuccessors().contains(to);
+	}
 
 	/**
 	 * Remove exception handlers from block nodes bitset
@@ -66,7 +66,7 @@ public class BlockUtils {
 		}
 	}
 
-	public static BlockNode canMergeNextBlock(MethodNode mth, BlockNode block) {
+	public static BlockNode canMergeNextBlock(BlockNode block) {
 		BlockNode next = getNextBlock(block);
 		if (next != null) {
 			if (next.getIDom() == block) {

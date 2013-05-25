@@ -19,7 +19,7 @@ public class BlockProcessingHelper {
 			return;
 
 		for (BlockNode block : mth.getBasicBlocks()) {
-			markExceptionHandlers(mth, block);
+			markExceptionHandlers(block);
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {
 			block.updateCleanSuccessors();
@@ -35,7 +35,7 @@ public class BlockProcessingHelper {
 	/**
 	 * Set exception handler attribute for whole block
 	 */
-	private static void markExceptionHandlers(MethodNode mth, BlockNode block) {
+	private static void markExceptionHandlers(BlockNode block) {
 		if (!block.getInstructions().isEmpty()) {
 			InsnNode me = block.getInstructions().get(0);
 			ExcHandlerAttr handlerAttr = (ExcHandlerAttr) me.getAttributes().get(AttributeType.EXC_HANDLER);

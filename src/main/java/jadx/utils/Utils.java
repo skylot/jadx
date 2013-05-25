@@ -126,7 +126,7 @@ public class Utils {
 	public static String getJadxVersion() {
 		try {
 			Enumeration<URL> resources =
-                    Utils.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
+					Utils.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
 			while (resources.hasMoreElements()) {
 				Manifest manifest = new Manifest(resources.nextElement().openStream());
 				String ver = manifest.getMainAttributes().getValue("jadx-version");

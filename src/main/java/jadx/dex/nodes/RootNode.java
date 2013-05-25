@@ -40,7 +40,7 @@ public class RootNode {
 		}
 
 		for (DexNode dexNode : dexNodes)
-			dexNode.loadClasses(this);
+			dexNode.loadClasses();
 
 		for (DexNode dexNode : dexNodes) {
 			for (ClassNode cls : dexNode.getClasses())
@@ -74,14 +74,6 @@ public class RootNode {
 
 	public ClassNode searchClassByName(String fullName) {
 		return names.get(fullName);
-	}
-
-	/**
-	 * Without full classpath listing this function is useless
-	 */
-	@Deprecated
-	public boolean isClassExists(String fullName) {
-		return true;
 	}
 
 	public ClassNode resolveClass(ClassInfo cls) {

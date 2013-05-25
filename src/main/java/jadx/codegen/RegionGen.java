@@ -72,7 +72,7 @@ public class RegionGen extends InsnGen {
 		}
 	}
 
-	private void declareVars(CodeWriter code, IContainer cont) throws CodegenException {
+	private void declareVars(CodeWriter code, IContainer cont) {
 		DeclareVariableAttr declVars =
 				(DeclareVariableAttr) cont.getAttributes().get(AttributeType.DECLARE_VARIABLE);
 		if (declVars != null) {

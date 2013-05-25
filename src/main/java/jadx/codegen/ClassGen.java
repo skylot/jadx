@@ -177,7 +177,7 @@ public class ClassGen {
 		clsCode.startLine('}');
 	}
 
-	private CodeWriter makeInnerClasses(ClassNode cls2, int indent) throws CodegenException {
+	private CodeWriter makeInnerClasses(ClassNode cls, int indent) throws CodegenException {
 		CodeWriter innerClsCode = new CodeWriter(indent + 1);
 		for (ClassNode inCls : cls.getInnerClasses()) {
 			if (inCls.isAnonymous())

@@ -67,7 +67,7 @@ public class DebugInfoParser {
 
 		for (RegisterArg arg : mthArgs) {
 			int rn = arg.getRegNum();
-			locals[rn] = new LocalVarInfo(dex, arg);
+			locals[rn] = new LocalVarInfo(arg);
 			activeRegisters[rn] = arg;
 		}
 

@@ -72,12 +72,8 @@ public final class ClassInfo {
 		int sep = name.lastIndexOf('$');
 		if (sep > 0 && sep != name.length() - 1) {
 			String parClsName = pkg + '.' + name.substring(0, sep);
-			if (notObfuscated || dex.root().isClassExists(parClsName)) {
-				parentClass = fromName(dex, parClsName);
-				name = name.substring(sep + 1);
-			} else {
-				parentClass = null;
-			}
+			parentClass = fromName(dex, parClsName);
+			name = name.substring(sep + 1);
 		} else {
 			parentClass = null;
 		}

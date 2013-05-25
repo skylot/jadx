@@ -11,7 +11,7 @@ import jadx.utils.Utils;
 public class TernaryInsn extends IfNode {
 
 	public TernaryInsn(IfOp op, InsnNode then, InsnNode els) {
-		super(op, then.getOffset(),
+		super(then.getOffset(),
 				InsnArg.wrap(then),
 				els == null ? null : InsnArg.wrap(els));
 	}

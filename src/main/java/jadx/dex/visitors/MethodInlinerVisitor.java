@@ -40,7 +40,7 @@ public class MethodInlinerVisitor extends AbstractVisitor {
 				if (block.getInstructions().size() == 1) {
 					InsnNode insn = block.getInstructions().get(0);
 					addInlineAttr(mth, insn);
-                }
+				}
 			}
 		}
 	}
