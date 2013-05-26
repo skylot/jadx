@@ -1,5 +1,7 @@
-## About
+## JADX  [![Build Status](https://buildhive.cloudbees.com/job/skylot/job/jadx/badge/icon)](https://buildhive.cloudbees.com/job/skylot/job/jadx/)
 **jadx** - Dex to Java decompiler
+
+Command line tool for produce Java sources from Android Dex and Jar files
 
 ### Downloads
 Latest version available at 
@@ -8,13 +10,12 @@ or
 [bintray](http://bintray.com/pkg/show/general/skylot/jadx/jadx-cli)
 
 ### Build
-jadx uses [gradle](http://www.gradle.org/) for build:
 
     git clone https://github.com/skylot/jadx.git
     cd jadx
     ./gradlew build
     
-(on windows, use `gradlew.bat` instead of `./gradlew`)
+(on Windows, use `gradlew.bat` instead of `./gradlew`)
 
 Scripts for run jadx will be placed in `build/install/jadx/bin`
 and also packed to `build/distributions/jadx-<version>.zip`
@@ -27,12 +28,11 @@ Run **jadx** on itself:
 
 ### Usage
 ```
-jadx [options] <input files> (.dex, .apk, .jar or .class)
+jadx [options] <input files> (.dex, .apk or .jar)
 options:
  -d, --output-dir     - output directory
  -j, --threads-count  - processing threads count
  -f, --fallback       - make simple dump (using goto instead of 'if', 'for', etc)
-     --not-obfuscated - set this flag if code not obfuscated
      --cfg            - save methods control flow graph
      --raw-cfg        - save methods control flow graph (use raw instructions)
  -v, --verbose        - verbose output
