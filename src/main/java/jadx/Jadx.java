@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Jadx {
+public class Jadx implements Runnable {
 	private static final Logger LOG = LoggerFactory.getLogger(Jadx.class);
 
 	static {
@@ -42,8 +42,14 @@ public class Jadx {
 			LOG.info("assertions enabled");
 	}
 
-	public static int run(JadxArgs args) {
-		int errorCount;
+	private final IJadxArgs args;
+	private int errorsCount;
+
+	public Jadx(IJadxArgs args) {
+		this.args = args;
+	}
+
+	public void run() {
 		try {
 			RootNode root = new RootNode(args);
 			LOG.info("loading ...");
@@ -72,8 +78,8 @@ public class Jadx {
 		} catch (Throwable e) {
 			LOG.error("jadx error:", e);
 		} finally {
-			errorCount = ErrorsCounter.getErrorCount();
-			if (errorCount != 0)
+			errorsCount = ErrorsCounter.getErrorCount();
+			if (errorsCount != 0)
 				ErrorsCounter.printReport();
 
 			// clear resources if we use jadx as a library
@@ -81,10 +87,9 @@ public class Jadx {
 			ErrorsCounter.reset();
 		}
 		LOG.info("done");
-		return errorCount;
 	}
 
-	private static List<IDexTreeVisitor> getPassesList(JadxArgs args) {
+	private static List<IDexTreeVisitor> getPassesList(IJadxArgs args) {
 		List<IDexTreeVisitor> passes = new ArrayList<IDexTreeVisitor>();
 		if (args.isFallbackMode()) {
 			passes.add(new FallbackModeVisitor());
@@ -119,5 +124,9 @@ public class Jadx {
 		}
 		passes.add(new CodeGen(args));
 		return passes;
+	}
+
+	public int getErrorsCount() {
+		return errorsCount;
 	}
 }

@@ -1,6 +1,6 @@
 package jadx.dex.nodes;
 
-import jadx.JadxArgs;
+import jadx.IJadxArgs;
 import jadx.dex.info.ClassInfo;
 import jadx.utils.exceptions.DecodeException;
 import jadx.utils.files.InputFile;
@@ -16,18 +16,18 @@ import org.slf4j.LoggerFactory;
 public class RootNode {
 	private static final Logger LOG = LoggerFactory.getLogger(RootNode.class);
 
-	private final JadxArgs jadxArgs;
+	private final IJadxArgs IJadxArgs;
 
 	private List<DexNode> dexNodes;
 	private final List<ClassNode> classes = new ArrayList<ClassNode>();
 	private final Map<String, ClassNode> names = new HashMap<String, ClassNode>();
 
-	public RootNode(JadxArgs args) {
-		this.jadxArgs = args;
+	public RootNode(IJadxArgs args) {
+		this.IJadxArgs = args;
 	}
 
 	public void load() throws DecodeException {
-		List<InputFile> dexFiles = jadxArgs.getInput();
+		List<InputFile> dexFiles = IJadxArgs.getInput();
 		dexNodes = new ArrayList<DexNode>(dexFiles.size());
 		for (InputFile dex : dexFiles) {
 			DexNode dexNode;
@@ -86,7 +86,7 @@ public class RootNode {
 		return dexNodes;
 	}
 
-	public JadxArgs getJadxArgs() {
-		return jadxArgs;
+	public IJadxArgs getJadxArgs() {
+		return IJadxArgs;
 	}
 }

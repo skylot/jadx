@@ -18,34 +18,34 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterDescription;
 import com.beust.jcommander.ParameterException;
 
-public class JadxArgs {
+public class JadxArgs implements IJadxArgs {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxArgs.class);
 
 	@Parameter(description = "<input files> (.dex, .apk, .jar or .class)", required = true)
 	protected List<String> files;
 
-	@Parameter(names = { "-d", "--output-dir" }, description = "output directory")
+	@Parameter(names = {"-d", "--output-dir"}, description = "output directory")
 	protected String outDirName;
 
-	@Parameter(names = { "-j", "--threads-count" }, description = "processing threads count")
+	@Parameter(names = {"-j", "--threads-count"}, description = "processing threads count")
 	protected int threadsCount = Runtime.getRuntime().availableProcessors();
 
-	@Parameter(names = { "-f", "--fallback" }, description = "make simple dump (using goto instead of 'if', 'for', etc)", help = true)
+	@Parameter(names = {"-f", "--fallback"}, description = "make simple dump (using goto instead of 'if', 'for', etc)", help = true)
 	protected boolean fallbackMode = false;
 
-	@Parameter(names = { "--not-obfuscated" }, description = "set this flag if code not obfuscated")
+	@Parameter(names = {"--not-obfuscated"}, description = "set this flag if code not obfuscated")
 	protected boolean notObfuscated = false;
 
-	@Parameter(names = { "--cfg" }, description = "save methods control flow graph")
+	@Parameter(names = {"--cfg"}, description = "save methods control flow graph")
 	protected boolean cfgOutput = false;
 
-	@Parameter(names = { "--raw-cfg" }, description = "save methods control flow graph (use raw instructions)")
+	@Parameter(names = {"--raw-cfg"}, description = "save methods control flow graph (use raw instructions)")
 	protected boolean rawCfgOutput = false;
 
-	@Parameter(names = { "-v", "--verbose" }, description = "verbose output")
+	@Parameter(names = {"-v", "--verbose"}, description = "verbose output")
 	protected boolean verbose = false;
 
-	@Parameter(names = { "-h", "--help" }, description = "print this help", help = true)
+	@Parameter(names = {"-h", "--help"}, description = "print this help", help = true)
 	protected boolean printHelp = false;
 
 	private final List<InputFile> input = new ArrayList<InputFile>();
@@ -147,38 +147,47 @@ public class JadxArgs {
 			str.append(' ');
 	}
 
+	@Override
 	public File getOutDir() {
 		return outputDir;
 	}
 
+	@Override
 	public int getThreadsCount() {
 		return threadsCount;
 	}
 
+	@Override
 	public boolean isCFGOutput() {
 		return cfgOutput;
 	}
 
+	@Override
 	public boolean isRawCFGOutput() {
 		return rawCfgOutput;
 	}
 
+	@Override
 	public List<InputFile> getInput() {
 		return input;
 	}
 
+	@Override
 	public boolean isFallbackMode() {
 		return fallbackMode;
 	}
 
+	@Override
 	public boolean isNotObfuscated() {
 		return notObfuscated;
 	}
 
+	@Override
 	public boolean isVerbose() {
 		return verbose;
 	}
 
+	@Override
 	public boolean isPrintHelp() {
 		return printHelp;
 	}

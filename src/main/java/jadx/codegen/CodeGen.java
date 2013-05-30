@@ -1,6 +1,6 @@
 package jadx.codegen;
 
-import jadx.JadxArgs;
+import jadx.IJadxArgs;
 import jadx.dex.nodes.ClassNode;
 import jadx.dex.visitors.AbstractVisitor;
 import jadx.utils.exceptions.CodegenException;
@@ -10,9 +10,9 @@ import java.io.File;
 public class CodeGen extends AbstractVisitor {
 
 	private final File dir;
-	private final JadxArgs args;
+	private final IJadxArgs args;
 
-	public CodeGen(JadxArgs args) {
+	public CodeGen(IJadxArgs args) {
 		this.args = args;
 		this.dir = args.getOutDir();
 	}

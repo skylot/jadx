@@ -1,7 +1,6 @@
 package jadx;
 
 import jadx.utils.exceptions.JadxException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +28,8 @@ public class Main {
 			System.exit(1);
 		}
 
-		int result = Jadx.run(jadxArgs);
-		System.exit(result);
+		Jadx jadx = new Jadx(jadxArgs);
+		jadx.run();
+		System.exit(jadx.getErrorsCount());
 	}
 }
