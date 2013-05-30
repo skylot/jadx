@@ -1,6 +1,12 @@
+# Eclipse files
 .classpath
 .project
 .settings/
+
+# IntelliJ Idea files
+.idea/
+out/
+*.iml
 
 bin/
 target/
