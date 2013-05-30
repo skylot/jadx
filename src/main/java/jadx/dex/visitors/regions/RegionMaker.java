@@ -3,6 +3,7 @@ package jadx.dex.visitors.regions;
 import jadx.dex.attributes.AttributeFlag;
 import jadx.dex.attributes.AttributeType;
 import jadx.dex.attributes.AttributesList;
+import jadx.dex.attributes.ForceReturnAttr;
 import jadx.dex.attributes.IAttribute;
 import jadx.dex.attributes.LoopAttr;
 import jadx.dex.instructions.IfNode;
@@ -209,16 +210,15 @@ public class RegionMaker {
 					if (BlockUtils.isPathExists(loopExit, next)) {
 						// found cross
 						if (next.getCleanSuccessors().size() == 1) {
-							// TODO: do nothing until return is splitted
 							BlockNode r = BlockUtils.getNextBlock(next);
 							if (r != null
 									&& r.getAttributes().contains(AttributeFlag.RETURN)
 									&& r.getInstructions().size() > 0
 									&& r.getInstructions().get(0).getType() == InsnType.RETURN) {
-								// next.getAttributes().add(new ForceReturnAttr(r.getInstructions().get(0)));
+								next.getAttributes().add(new ForceReturnAttr(r.getInstructions().get(0)));
 							} else {
-								// next.getAttributes().add(AttributeFlag.BREAK);
-								// stack.addExit(r);
+								next.getAttributes().add(AttributeFlag.BREAK);
+								stack.addExit(r);
 							}
 						} else {
 							stack.addExit(next);
