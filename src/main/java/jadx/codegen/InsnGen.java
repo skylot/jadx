@@ -73,7 +73,7 @@ public class InsnGen {
 
 	public String arg(InsnArg arg) throws CodegenException {
 		if (arg.isRegister()) {
-			return mgen.makeArgName((RegisterArg) arg);
+			return arg((RegisterArg) arg);
 		} else if (arg.isLiteral()) {
 			return lit((LiteralArg) arg);
 		} else {
@@ -83,12 +83,16 @@ public class InsnGen {
 		}
 	}
 
+	public String arg(RegisterArg arg) {
+		return mgen.makeArgName(arg);
+	}
+
 	public String assignVar(InsnNode insn) {
 		RegisterArg arg = insn.getResult();
 		if (insn.getAttributes().contains(AttributeType.DECLARE_VARIABLE)) {
 			return declareVar(arg);
 		} else {
-			return mgen.makeArgName(arg);
+			return arg(arg);
 		}
 	}
 
@@ -324,11 +328,11 @@ public class InsnGen {
 				code.add(arg(insn.getArg(0)));
 				break;
 
-			/* fallback mode instructions */
 			case NOP:
 				state.add(InsnGenState.SKIP);
 				break;
 
+			/* fallback mode instructions */
 			case IF:
 				assert isFallback();
 				IfNode ifInsn = (IfNode) insn;
@@ -548,25 +552,28 @@ public class InsnGen {
 	private void makeArith(ArithNode insn, CodeWriter code, EnumSet<InsnGenState> state) throws CodegenException {
 		ArithOp op = insn.getOp();
 		String v1 = arg(insn.getArg(0));
-
-		if (op == ArithOp.INC || op == ArithOp.DEC) {
-			code.add(v1 + op.getSymbol());
-			state.add(InsnGenState.NO_RESULT);
+		String v2 = arg(insn.getArg(1));
+		if (state.contains(InsnGenState.BODY_ONLY)) {
+			// wrap insn in brackets for save correct operation order
+			// TODO don't wrap first insn in wrapped stack
+			code.add('(').add(v1).add(' ').add(op.getSymbol()).add(' ').add(v2).add(')');
 		} else {
 			String res = arg(insn.getResult());
-			String v2 = arg(insn.getArg(1));
-			if (res.equals(v1) && !state.contains(InsnGenState.BODY_ONLY)) {
-				code.add(assignVar(insn) + " " + op.getSymbol() + "= " + v2);
+			if (res.equals(v1)) {
 				state.add(InsnGenState.NO_RESULT);
+				// "++" or "--"
+				if (insn.getArg(1).isLiteral() && (op == ArithOp.ADD || op == ArithOp.SUB)) {
+					LiteralArg lit = (LiteralArg) insn.getArg(1);
+					if (Math.abs(lit.getLiteral()) == 1 && lit.isInteger()) {
+						code.add(assignVar(insn)).add(op.getSymbol()).add(op.getSymbol());
+						return;
+					}
+				}
+				// +=, -= ...
+				code.add(assignVar(insn)).add(' ').add(op.getSymbol()).add("= ").add(v2);
 			} else {
-				if (state.contains(InsnGenState.BODY_ONLY))
-					// wrap insn in brackets for save correct operation order
-					// TODO don't wrap first insn in wrapped stack
-					code.add("(" + v1 + " " + op.getSymbol() + " " + v2 + ")");
-				else
-					code.add(v1 + " " + op.getSymbol() + " " + v2);
+				code.add(v1).add(' ').add(op.getSymbol()).add(' ').add(v2);
 			}
 		}
 	}
-
 }

@@ -23,6 +23,15 @@ public class LiteralArg extends InsnArg {
 		return true;
 	}
 
+	public boolean isInteger() {
+		PrimitiveType type = typedVar.getType().getPrimitiveType();
+		return (type == PrimitiveType.INT
+				|| type == PrimitiveType.BYTE
+				|| type == PrimitiveType.CHAR
+				|| type == PrimitiveType.SHORT
+				|| type == PrimitiveType.LONG);
+	}
+
 	@Override
 	public String toString() {
 		try {

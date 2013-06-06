@@ -382,8 +382,10 @@ public class RegionMaker {
 			out = null;
 		}
 
-		if (stack.containsExit(elseBlock))
-			elseBlock = null;
+		if (elseBlock != null) {
+			if (stack.containsExit(elseBlock))
+				elseBlock = null;
+		}
 
 		IfRegion ifRegion = new IfRegion(currentRegion, block);
 		currentRegion.getSubBlocks().add(ifRegion);

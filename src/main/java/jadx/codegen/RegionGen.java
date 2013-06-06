@@ -208,16 +208,16 @@ public class RegionGen extends InsnGen {
 	}
 
 	private void makeCaseBlock(IContainer c, CodeWriter code) throws CodegenException {
+		code.add(" {");
 		if (RegionUtils.notEmpty(c)) {
-			code.add(" {");
 			makeRegionIndent(code, c);
 			if (RegionUtils.hasExitEdge(c)) {
 				code.startLine(1, "break;");
 			}
-			code.startLine('}');
 		} else {
 			code.startLine(1, "break;");
 		}
+		code.startLine('}');
 	}
 
 	private void makeTryCatch(IContainer region, TryCatchBlock tryCatchBlock, CodeWriter code)

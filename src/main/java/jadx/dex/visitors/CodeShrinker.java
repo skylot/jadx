@@ -30,10 +30,6 @@ public class CodeShrinker extends AbstractVisitor {
 		if (mth.isNoCode() || mth.getAttributes().contains(AttributeFlag.DONT_SHRINK))
 			return;
 
-		// TODO pretify required inlined consts (made by shrink)
-		// 'dec' and 'inc' don't need to be inlined => must be replaced before shrink
-		pretify(mth);
-
 		shrink(mth);
 		pretify(mth);
 	}
@@ -57,11 +53,11 @@ public class CodeShrinker extends AbstractVisitor {
 							LOG.debug("parent insn null in " + useInsnArg + " from " + insn + " mth: " + mth);
 						} else if (useInsn != insn) {
 							boolean wrap = false;
-							// TODO don't reorder methods invocations
-							// if (insn.getResult().getTypedVar().getName() != null) {
-							// wrap = false;
-							// } else
-							if (BlockUtils.blockContains(block, useInsn)) {
+							if (false && insn.getResult().getTypedVar().getName() != null) {
+								// don't wrap if result variable has name from debug info
+								wrap = false;
+							} else if (BlockUtils.blockContains(block, useInsn)) {
+								// TODO don't reorder methods invocations
 								// wrap insn from current block
 								wrap = true;
 							} else {
@@ -72,8 +68,13 @@ public class CodeShrinker extends AbstractVisitor {
 								}
 							}
 							if (wrap) {
-								useInsnArg.wrapInstruction(insn);
-								remover.add(insn);
+								if (useInsn.getType() == InsnType.MOVE) {
+									// TODO
+									// remover.add(useInsn);
+								} else {
+									useInsnArg.wrapInstruction(insn);
+									remover.add(insn);
+								}
 							}
 						}
 					}
@@ -123,20 +124,6 @@ public class CodeShrinker extends AbstractVisitor {
 
 						if (arith.getOp() == ArithOp.ADD && lit < 0)
 							invert = true;
-
-						if (false && (lit == 1 || lit == -1) && arith.getArg(0).isRegister()) {
-							ArithOp op = arith.getOp();
-							if (op == ArithOp.ADD || op == ArithOp.SUB) {
-								RegisterArg res = arith.getResult();
-								RegisterArg v0 = (RegisterArg) arith.getArg(0);
-								if (v0.equals(res)) {
-									// use 'a++' instead 'a = a + 1' (similar for minus)
-									boolean inc = ((op == ArithOp.ADD && lit == 1)
-											|| (op == ArithOp.SUB && lit == -1));
-									return new ArithNode(inc ? ArithOp.INC : ArithOp.DEC, null, v0);
-								}
-							}
-						}
 
 						// fix 'c + (-1)' => 'c - (1)'
 						if (invert) {

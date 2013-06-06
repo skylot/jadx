@@ -44,17 +44,17 @@ public class ArithNode extends InsnNode {
 
 	public ArithNode(ArithOp op, RegisterArg res, InsnArg a, InsnArg b) {
 		super(InsnType.ARITH, 2);
+		this.op = op;
 		setResult(res);
 		addArg(a);
 		addArg(b);
-		this.op = op;
 	}
 
 	public ArithNode(ArithOp op, RegisterArg res, InsnArg a) {
 		super(InsnType.ARITH, 1);
+		this.op = op;
 		setResult(res);
 		addArg(a);
-		this.op = op;
 	}
 
 	public ArithOp getOp() {
@@ -66,7 +66,9 @@ public class ArithNode extends InsnNode {
 		return InsnUtils.formatOffset(offset) + ": "
 				+ InsnUtils.insnTypeToString(insnType)
 				+ getResult() + " = "
-				+ getArg(0) + " " + op.getSymbol() + " " + getArg(1);
+				+ getArg(0) + " "
+				+ op.getSymbol() + " "
+				+ (getArgsCount() == 2 ? getArg(1) : "");
 	}
 
 }

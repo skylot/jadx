@@ -7,9 +7,6 @@ public enum ArithOp {
 	DIV("/"),
 	REM("%"),
 
-	INC("++"),
-	DEC("--"),
-
 	AND("&"),
 	OR("|"),
 	XOR("^"),
