@@ -1,14 +1,18 @@
 package jadx.dex.visitors;
 
+import jadx.Consts;
 import jadx.dex.attributes.AttributeFlag;
+import jadx.dex.info.MethodInfo;
 import jadx.dex.instructions.ArithNode;
 import jadx.dex.instructions.ArithOp;
 import jadx.dex.instructions.IfNode;
 import jadx.dex.instructions.InsnType;
+import jadx.dex.instructions.InvokeNode;
 import jadx.dex.instructions.args.InsnArg;
 import jadx.dex.instructions.args.InsnWrapArg;
 import jadx.dex.instructions.args.LiteralArg;
 import jadx.dex.instructions.args.RegisterArg;
+import jadx.dex.instructions.mods.ConstructorInsn;
 import jadx.dex.nodes.BlockNode;
 import jadx.dex.nodes.InsnNode;
 import jadx.dex.nodes.MethodNode;
@@ -16,6 +20,7 @@ import jadx.utils.BlockUtils;
 import jadx.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -154,10 +159,47 @@ public class CodeShrinker extends AbstractVisitor {
 				}
 				break;
 
+			case INVOKE:
+				MethodInfo callMth = ((InvokeNode) insn).getCallMth();
+				if (callMth.getDeclClass().getFullName().equals(Consts.CLASS_STRING_BUILDER)
+						&& callMth.getShortId().equals("toString()")
+						&& insn.getArg(0).isInsnWrap()) {
+					List<InsnNode> chain = flattenInsnChain(insn);
+					if (chain.size() > 1 && chain.get(0).getType() == InsnType.CONSTRUCTOR) {
+						ConstructorInsn constr = (ConstructorInsn) chain.get(0);
+						if (constr.getClassType().getFullName().equals(Consts.CLASS_STRING_BUILDER)
+								&& constr.getArgsCount() == 0) {
+							int len = chain.size();
+							InsnNode concatInsn = new InsnNode(InsnType.STR_CONCAT, len - 1);
+							for (int i = 1; i < len; i++) {
+								concatInsn.addArg(chain.get(i).getArg(1));
+							}
+							concatInsn.setResult(insn.getResult());
+							return concatInsn;
+						}
+					}
+				}
+				break;
+
 			default:
 				break;
 		}
 		return null;
+	}
+
+	private static List<InsnNode> flattenInsnChain(InsnNode insn) {
+		List<InsnNode> chain = new ArrayList<InsnNode>();
+		InsnArg i = insn.getArg(0);
+		while (i.isInsnWrap()) {
+			InsnNode wrapInsn = ((InsnWrapArg) i).getWrapInsn();
+			chain.add(wrapInsn);
+			if(wrapInsn.getArgsCount() == 0)
+				break;
+
+			i = wrapInsn.getArg(0);
+		}
+		Collections.reverse(chain);
+		return chain;
 	}
 
 	public static InsnArg inlineArgument(MethodNode mth, RegisterArg arg) {

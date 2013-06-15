@@ -65,12 +65,12 @@ public class MethodNode extends AttrNode implements ILoadable {
 	private IContainer region;
 	private List<ExceptionHandler> exceptionHandlers;
 
-	public MethodNode(ClassNode classNode, Method mth) {
-		this.mthInfo = MethodInfo.fromDex(classNode.dex(), mth.getMethodIndex());
+	public MethodNode(ClassNode classNode, Method mthData) {
+		this.mthInfo = MethodInfo.fromDex(classNode.dex(), mthData.getMethodIndex());
 		this.parentClass = classNode;
-		this.accFlags = new AccessInfo(mth.getAccessFlags(), AFType.METHOD);
-		this.methodData = mth;
-		this.noCode = (methodData.getCodeOffset() == 0);
+		this.accFlags = new AccessInfo(mthData.getAccessFlags(), AFType.METHOD);
+		this.noCode = (mthData.getCodeOffset() == 0);
+		this.methodData = (noCode ? null : mthData);
 	}
 
 	@Override

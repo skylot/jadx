@@ -32,6 +32,7 @@ import jadx.utils.exceptions.CodegenException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -213,7 +214,7 @@ public class InsnGen {
 
 			case RETURN:
 				if (insn.getArgsCount() != 0)
-					code.add("return " + arg(insn.getArg(0)));
+					code.add("return ").add(arg(insn.getArg(0)));
 				else
 					code.add("return");
 				break;
@@ -227,7 +228,7 @@ public class InsnGen {
 				break;
 
 			case THROW:
-				code.add("throw " + arg(insn.getArg(0)));
+				code.add("throw ").add(arg(insn.getArg(0)));
 				break;
 
 			case CMP_L:
@@ -281,7 +282,7 @@ public class InsnGen {
 				code.add(ifield((IndexInsnNode) insn, 0));
 				break;
 			case IPUT:
-				code.add(ifield((IndexInsnNode) insn, 1) + " = " + arg(insn.getArg(0)));
+				code.add(ifield((IndexInsnNode) insn, 1)).add(" = ").add(arg(insn.getArg(0)));
 				break;
 
 			case SGET:
@@ -290,7 +291,18 @@ public class InsnGen {
 			case SPUT:
 				IndexInsnNode node = (IndexInsnNode) insn;
 				fieldPut(node);
-				code.add(sfield(node) + " = " + arg(node.getArg(0)));
+				code.add(sfield(node)).add(" = ").add(arg(node.getArg(0)));
+				break;
+
+			case STR_CONCAT:
+				// TODO: wrap in braces only if necessary
+				code.add('(');
+				for (Iterator<InsnArg> it = insn.getArguments().iterator(); it.hasNext(); ) {
+					code.add(arg(it.next()));
+					if (it.hasNext())
+						code.add(" + ");
+				}
+				code.add(')');
 				break;
 
 			case MONITOR_ENTER:

@@ -51,6 +51,8 @@ public enum InsnType {
 	BREAK,
 	CONTINUE,
 
+	STR_CONCAT, // strings concatenation
+
 	TERNARY,
 	ARGS, // just generate arguments
 
