@@ -10,6 +10,7 @@ import jadx.dex.nodes.MethodNode;
 import jadx.dex.trycatch.CatchAttr;
 import jadx.dex.trycatch.ExcHandlerAttr;
 import jadx.dex.trycatch.ExceptionHandler;
+import jadx.dex.trycatch.TryCatchBlock;
 import jadx.utils.BlockUtils;
 
 public class BlockProcessingHelper {
@@ -81,8 +82,12 @@ public class BlockProcessingHelper {
 					if (insn.getType() == InsnType.THROW) {
 						CatchAttr catchAttr = (CatchAttr) insn.getAttributes().get(AttributeType.CATCH_BLOCK);
 						if (catchAttr != null) {
-							handlerAttr.getTryBlock().merge(mth, catchAttr.getTryBlock());
-							catchAttr.getTryBlock().removeInsn(insn);
+							TryCatchBlock handlerBlock = handlerAttr.getTryBlock();
+							TryCatchBlock catchBlock = catchAttr.getTryBlock();
+							if (handlerBlock != catchBlock) { // TODO: why it can be?
+								handlerBlock.merge(mth, catchBlock);
+								catchBlock.removeInsn(insn);
+							}
 						}
 					}
 				}

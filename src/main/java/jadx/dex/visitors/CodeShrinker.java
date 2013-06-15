@@ -36,24 +36,26 @@ public class CodeShrinker extends AbstractVisitor {
 
 	private static void shrink(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
-			InstructionRemover remover = new InstructionRemover(block.getInstructions());
-			for (int i = 0; i < block.getInstructions().size(); i++) {
-				InsnNode insn = block.getInstructions().get(i);
+			List<InsnNode> insnList = block.getInstructions();
+			InstructionRemover remover = new InstructionRemover(insnList);
+			for (InsnNode insn : insnList) {
 				// wrap instructions
-				if (insn.getResult() != null) {
-					List<InsnArg> use = insn.getResult().getTypedVar().getUseList();
-					if (use.size() == 1) {
+				RegisterArg result = insn.getResult();
+				if (result != null) {
+					List<InsnArg> useList = result.getTypedVar().getUseList();
+					if (useList.size() == 1) {
 						// variable is used only in this instruction
 						// TODO not correct sometimes :(
 						remover.add(insn);
-					} else if (use.size() == 2) {
-						InsnArg useInsnArg = use.get(1);
+					} else if (useList.size() == 2) {
+						InsnArg useInsnArg = selectOther(useList, result);
 						InsnNode useInsn = useInsnArg.getParentInsn();
 						if (useInsn == null) {
 							LOG.debug("parent insn null in " + useInsnArg + " from " + insn + " mth: " + mth);
 						} else if (useInsn != insn) {
 							boolean wrap = false;
-							if (false && insn.getResult().getTypedVar().getName() != null) {
+							// TODO
+							if (false && result.getTypedVar().getName() != null) {
 								// don't wrap if result variable has name from debug info
 								wrap = false;
 							} else if (BlockUtils.blockContains(block, useInsn)) {
@@ -181,10 +183,18 @@ public class CodeShrinker extends AbstractVisitor {
 				list.removeAll(args);
 			}
 			i++;
-			if (i > 10000)
+			if (i > 1000)
 				throw new JadxRuntimeException("Can't inline arguments for: " + arg + " insn: " + assignInsn);
 		} while (!list.isEmpty());
 
 		return arg.wrapInstruction(assignInsn);
+	}
+
+	private static InsnArg selectOther(List<InsnArg> list, RegisterArg insn) {
+		InsnArg first = list.get(0);
+		if (first == insn)
+			return list.get(1);
+		else
+			return first;
 	}
 }

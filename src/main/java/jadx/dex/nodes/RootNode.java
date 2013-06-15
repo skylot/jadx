@@ -56,16 +56,16 @@ public class RootNode {
 			if (cls.getClassInfo().isInner())
 				inner.add(cls);
 		}
-		getClasses().removeAll(inner);
 
 		for (ClassNode cls : inner) {
 			ClassNode parent = resolveClass(cls.getClassInfo().getParentClass());
-			if (parent == null)
-				LOG.warn("Can't add inner class: {} to {}", cls, cls.getClassInfo().getParentClass());
-			else
+			if (parent == null) {
+				cls.getClassInfo().notInner();
+			} else {
 				parent.addInnerClass(cls);
+				getClasses().remove(cls);
+			}
 		}
-		inner.clear();
 	}
 
 	public List<ClassNode> getClasses() {

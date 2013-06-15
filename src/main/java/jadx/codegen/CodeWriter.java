@@ -133,6 +133,10 @@ public class CodeWriter {
 		}
 	}
 
+	public boolean notEmpty() {
+		return buf.length() != 0;
+	}
+
 	@Override
 	public String toString() {
 		return buf.toString();
@@ -183,5 +187,4 @@ public class CodeWriter {
 				throw new JadxRuntimeException("Can't create directory " + dir);
 		}
 	}
-
 }

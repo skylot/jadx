@@ -33,9 +33,6 @@ public class JadxArgs implements IJadxArgs {
 	@Parameter(names = {"-f", "--fallback"}, description = "make simple dump (using goto instead of 'if', 'for', etc)", help = true)
 	protected boolean fallbackMode = false;
 
-	@Parameter(names = {"--not-obfuscated"}, description = "set this flag if code not obfuscated")
-	protected boolean notObfuscated = false;
-
 	@Parameter(names = {"--cfg"}, description = "save methods control flow graph")
 	protected boolean cfgOutput = false;
 
@@ -175,11 +172,6 @@ public class JadxArgs implements IJadxArgs {
 	@Override
 	public boolean isFallbackMode() {
 		return fallbackMode;
-	}
-
-	@Override
-	public boolean isNotObfuscated() {
-		return notObfuscated;
 	}
 
 	@Override

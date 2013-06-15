@@ -159,7 +159,6 @@ public class BlockMakerVisitor extends AbstractVisitor {
 							BlockNode destBlock = getBlock(h.getHandleOffset(), blocksMap);
 							// skip self loop in handler
 							if (connBlock != destBlock)
-								// && !connBlock.getPredecessors().contains(destBlock))
 								connect(connBlock, destBlock);
 						}
 					}
@@ -208,9 +207,10 @@ public class BlockMakerVisitor extends AbstractVisitor {
 	}
 
 	private static void computeDominators(MethodNode mth) {
-		int nBlocks = mth.getBasicBlocks().size();
+		List<BlockNode> basicBlocks = mth.getBasicBlocks();
+		int nBlocks = basicBlocks.size();
 		for (int i = 0; i < nBlocks; i++) {
-			BlockNode block = mth.getBasicBlocks().get(i);
+			BlockNode block = basicBlocks.get(i);
 			block.setId(i);
 			block.setDoms(new BitSet(nBlocks));
 			block.getDoms().set(0, nBlocks);
@@ -224,7 +224,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		boolean changed;
 		do {
 			changed = false;
-			for (BlockNode block : mth.getBasicBlocks()) {
+			for (BlockNode block : basicBlocks) {
 				if (block == entryBlock)
 					continue;
 
@@ -245,35 +245,36 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		markLoops(mth);
 
 		// clear self dominance
-		for (BlockNode block : mth.getBasicBlocks()) {
+		for (BlockNode block : basicBlocks) {
 			block.getDoms().clear(block.getId());
 		}
 
 		// calculate immediate dominators
-		for (BlockNode block : mth.getBasicBlocks()) {
+		for (BlockNode block : basicBlocks) {
 			if (block == entryBlock)
 				continue;
 
-			if (block.getPredecessors().size() == 1) {
-				block.setIDom(block.getPredecessors().get(0));
+			List<BlockNode> preds = block.getPredecessors();
+			if (preds.size() == 1) {
+				block.setIDom(preds.get(0));
 			} else {
 				BitSet bs = new BitSet(block.getDoms().length());
 				bs.or(block.getDoms());
 
 				for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
-					BlockNode dom = mth.getBasicBlocks().get(i);
+					BlockNode dom = basicBlocks.get(i);
 					bs.andNot(dom.getDoms());
 				}
 
 				int c = bs.cardinality();
 				if (c == 1) {
 					int id = bs.nextSetBit(0);
-					BlockNode idom = mth.getBasicBlocks().get(id);
+					BlockNode idom = basicBlocks.get(id);
 					block.setIDom(idom);
 					idom.getDominatesOn().add(block);
 				} else {
 					throw new JadxRuntimeException("Can't find immediate dominator for block " + block
-							+ " in " + bs + " prec:" + block.getPredecessors());
+									+ " in " + bs + " preds:" + preds);
 				}
 			}
 		}
@@ -298,8 +299,9 @@ public class BlockMakerVisitor extends AbstractVisitor {
 
 	private static void markReturnBlocks(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
-			if (block.getInstructions().size() == 1) {
-				if (block.getInstructions().get(0).getType() == InsnType.RETURN)
+			List<InsnNode> insns = block.getInstructions();
+			if (insns.size() == 1) {
+				if (insns.get(0).getType() == InsnType.RETURN)
 					block.getAttributes().add(AttributeFlag.RETURN);
 			}
 		}

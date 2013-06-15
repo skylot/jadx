@@ -154,10 +154,10 @@ public class ClassNode extends AttrNode implements ILoadable {
 		if (list != null && !list.isEmpty()) {
 			try {
 				ArgType st = list.remove(0);
-				this.superClass = ClassInfo.fromType(dex, st);
+				this.superClass = ClassInfo.fromType(st);
 				int i = 0;
 				for (ArgType it : list) {
-					ClassInfo interf = ClassInfo.fromType(dex, it);
+					ClassInfo interf = ClassInfo.fromType(it);
 					interfaces.set(i, interf);
 					i++;
 				}

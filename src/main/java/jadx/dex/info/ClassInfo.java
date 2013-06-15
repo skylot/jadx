@@ -13,13 +13,6 @@ public final class ClassInfo {
 	private static final Map<ArgType, ClassInfo> CLASSINFO_CACHE = new WeakHashMap<ArgType, ClassInfo>();
 	private static final String DEFAULT_PACKAGE_NAME = "defpackage";
 
-	private final String clsName;
-	private final String clsPackage;
-	private final ArgType type;
-	private final String fullName;
-
-	private final ClassInfo parentClass; // not equals null if this is inner class
-
 	public static ClassInfo fromDex(DexNode dex, int clsIndex) {
 		if (clsIndex == DexNode.NO_INDEX)
 			return null;
@@ -28,17 +21,17 @@ public final class ClassInfo {
 		if (type.isArray())
 			type = ArgType.OBJECT;
 
-		return fromType(dex, type);
+		return fromType(type);
 	}
 
-	public static ClassInfo fromName(DexNode dex, String clsName) {
-		return fromType(dex, ArgType.object(clsName));
+	public static ClassInfo fromName(String clsName) {
+		return fromType(ArgType.object(clsName));
 	}
 
-	public static ClassInfo fromType(DexNode dex, ArgType type) {
+	public static ClassInfo fromType(ArgType type) {
 		ClassInfo cls = CLASSINFO_CACHE.get(type);
 		if (cls == null) {
-			cls = new ClassInfo(dex, type);
+			cls = new ClassInfo(type);
 			CLASSINFO_CACHE.put(type, cls);
 		}
 		return cls;
@@ -48,21 +41,28 @@ public final class ClassInfo {
 		CLASSINFO_CACHE.clear();
 	}
 
-	private ClassInfo(DexNode dex, ArgType type) {
+	private final ArgType type;
+	private String pkg;
+	private String name;
+	private String fullName;
+	private ClassInfo parentClass; // not equals null if this is inner class
+
+	private ClassInfo(ArgType type) {
 		assert type.isObject() : "Not class type: " + type;
 		this.type = type;
 
+		splitNames(true);
+	}
+
+	private void splitNames(boolean canBeInner) {
 		String fullObjectName = type.getObject();
 		assert fullObjectName.indexOf('/') == -1 : "Raw type: " + type;
 
-		boolean notObfuscated = dex.root().getJadxArgs().isNotObfuscated();
 		String name;
-		String pkg;
-
 		int dot = fullObjectName.lastIndexOf('.');
 		if (dot == -1) {
 			// rename default package if it used from class with package (often for obfuscated apps),
-			pkg = (notObfuscated ? "" : DEFAULT_PACKAGE_NAME);
+			pkg = DEFAULT_PACKAGE_NAME;
 			name = fullObjectName;
 		} else {
 			pkg = fullObjectName.substring(0, dot);
@@ -70,27 +70,30 @@ public final class ClassInfo {
 		}
 
 		int sep = name.lastIndexOf('$');
-		if (sep > 0 && sep != name.length() - 1) {
+		if (canBeInner && sep > 0 && sep != name.length() - 1) {
 			String parClsName = pkg + '.' + name.substring(0, sep);
-			parentClass = fromName(dex, parClsName);
+			parentClass = fromName(parClsName);
 			name = name.substring(sep + 1);
 		} else {
 			parentClass = null;
 		}
 
-		if (Character.isDigit(name.charAt(0)))
+		char firstChar = name.charAt(0);
+		if (Character.isDigit(firstChar)) {
 			name = "InnerClass_" + name;
-
-		if (NameMapper.isReserved(name))
+		} else if(firstChar == '$') {
+			name = "_" + name;
+		}
+		if (NameMapper.isReserved(name)) {
 			name += "_";
-
+		}
 		this.fullName = (parentClass != null ? parentClass.getFullName() : pkg) + "." + name;
-		this.clsName = name;
-		this.clsPackage = pkg;
+		this.name = name;
 	}
 
 	public String getFullPath() {
-		return clsPackage.replace('.', File.separatorChar) + File.separatorChar
+		return pkg.replace('.', File.separatorChar)
+				+ File.separatorChar
 				+ getNameWithoutPackage().replace('.', '_');
 	}
 
@@ -99,19 +102,19 @@ public final class ClassInfo {
 	}
 
 	public String getShortName() {
-		return clsName;
+		return name;
 	}
 
 	public String getPackage() {
-		return clsPackage;
+		return pkg;
 	}
 
 	public boolean isPackageDefault() {
-		return clsPackage.isEmpty() || clsPackage.equals(DEFAULT_PACKAGE_NAME);
+		return pkg.isEmpty() || pkg.equals(DEFAULT_PACKAGE_NAME);
 	}
 
 	public String getNameWithoutPackage() {
-		return (parentClass != null ? parentClass.getNameWithoutPackage() + "." : "") + clsName;
+		return (parentClass != null ? parentClass.getNameWithoutPackage() + "." : "") + name;
 	}
 
 	public ClassInfo getParentClass() {
@@ -120,6 +123,10 @@ public final class ClassInfo {
 
 	public boolean isInner() {
 		return parentClass != null;
+	}
+
+	public void notInner() {
+		splitNames(false);
 	}
 
 	public ArgType getType() {
@@ -133,7 +140,7 @@ public final class ClassInfo {
 
 	@Override
 	public int hashCode() {
-		return this.getFullName().hashCode();
+		return type.hashCode();
 	}
 
 	@Override

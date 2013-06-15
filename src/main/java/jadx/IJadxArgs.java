@@ -18,8 +18,6 @@ public interface IJadxArgs {
 
     boolean isFallbackMode();
 
-    boolean isNotObfuscated();
-
     boolean isVerbose();
 
     boolean isPrintHelp();

@@ -19,6 +19,7 @@ public class BlockNode extends AttrNode implements IBlock {
 
 	private List<BlockNode> predecessors = new ArrayList<BlockNode>(1);
 	private List<BlockNode> successors = new ArrayList<BlockNode>(1);
+	private List<BlockNode> cleanSuccessors;
 
 	private BitSet doms; // all dominators
 	private BlockNode idom; // immediate dominator
@@ -47,8 +48,6 @@ public class BlockNode extends AttrNode implements IBlock {
 	public List<BlockNode> getSuccessors() {
 		return successors;
 	}
-
-	private List<BlockNode> cleanSuccessors;
 
 	public List<BlockNode> getCleanSuccessors() {
 		return cleanSuccessors;

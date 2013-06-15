@@ -18,7 +18,7 @@ public class ClassModifier extends AbstractVisitor {
 			visit(inner);
 		}
 
-		for (Iterator<MethodNode> it = cls.getMethods().iterator(); it.hasNext();) {
+		for (Iterator<MethodNode> it = cls.getMethods().iterator(); it.hasNext(); ) {
 			MethodNode mth = it.next();
 			AccessInfo af = mth.getAccessFlags();
 
@@ -34,17 +34,26 @@ public class ClassModifier extends AbstractVisitor {
 			if (af.isConstructor()
 					&& af.isPublic()
 					&& mth.getArguments(false).isEmpty()) {
-				List<BlockNode> bb = mth.getBasicBlocks();
-				if (bb.isEmpty() || (bb.size() == 1 && bb.get(0).getInstructions().isEmpty())) {
-					if (mth.getSuperCall() == null)
+				if (mth.getSuperCall() == null) {
+					List<BlockNode> bb = mth.getBasicBlocks();
+					if (bb.isEmpty() || allBlocksEmpty(bb)) {
 						it.remove();
+					}
 				}
 			}
 		}
 		return false;
 	}
 
-	private boolean isMethodUniq(ClassNode cls, MethodNode mth) {
+	private static boolean allBlocksEmpty(List<BlockNode> blocks) {
+		for (BlockNode block : blocks) {
+			if (block.getInstructions().size() != 0)
+				return false;
+		}
+		return true;
+	}
+
+	private static boolean isMethodUniq(ClassNode cls, MethodNode mth) {
 		MethodInfo mi = mth.getMethodInfo();
 		for (MethodNode otherMth : cls.getMethods()) {
 			MethodInfo omi = otherMth.getMethodInfo();

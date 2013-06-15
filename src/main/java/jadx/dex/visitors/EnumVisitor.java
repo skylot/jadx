@@ -22,7 +22,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class EnumVisitor extends AbstractVisitor {
+	private static final Logger LOG = LoggerFactory.getLogger(EnumVisitor.class);
 
 	@Override
 	public boolean visit(ClassNode cls) throws JadxException {
@@ -32,7 +36,7 @@ public class EnumVisitor extends AbstractVisitor {
 
 		// collect enum fields, remove synthetic
 		List<FieldNode> enumFields = new ArrayList<FieldNode>();
-		for (Iterator<FieldNode> it = cls.getFields().iterator(); it.hasNext();) {
+		for (Iterator<FieldNode> it = cls.getFields().iterator(); it.hasNext(); ) {
 			FieldNode f = it.next();
 			if (f.getAccessFlags().isEnum()) {
 				enumFields.add(f);
@@ -45,7 +49,7 @@ public class EnumVisitor extends AbstractVisitor {
 		MethodNode staticMethod = null;
 
 		// remove synthetic methods
-		for (Iterator<MethodNode> it = cls.getMethods().iterator(); it.hasNext();) {
+		for (Iterator<MethodNode> it = cls.getMethods().iterator(); it.hasNext(); ) {
 			MethodNode mth = it.next();
 			MethodInfo mi = mth.getMethodInfo();
 			if (mi.isClassInit()) {
@@ -60,11 +64,18 @@ public class EnumVisitor extends AbstractVisitor {
 			}
 		}
 
-		if (staticMethod == null)
-			throw new JadxException("Enum class init method not found");
-
 		EnumClassAttr attr = new EnumClassAttr(enumFields.size());
 		cls.getAttributes().add(attr);
+
+		if (staticMethod == null) {
+			LOG.warn("Enum class init method not found: {}", cls);
+			// for this broken enum puts found fields and mark as inconsistent
+			cls.getAttributes().add(AttributeFlag.INCONSISTENT_CODE);
+			for (FieldNode field : enumFields) {
+				attr.getFields().add(new EnumField(field.getName(), 0));
+			}
+			return false;
+		}
 		attr.setStaticMethod(staticMethod);
 
 		// move enum specific instruction from static method to separate list
@@ -117,7 +128,8 @@ public class EnumVisitor extends AbstractVisitor {
 						constrArg = iArg;
 					} else {
 						constrArg = CodeShrinker.inlineArgument(staticMethod, (RegisterArg) iArg);
-						assert constrArg != null;
+						if (constrArg == null)
+							throw new JadxException("Can't inline constructor arg in enum: " + cls);
 					}
 					field.getArgs().add(constrArg);
 				}
@@ -127,7 +139,7 @@ public class EnumVisitor extends AbstractVisitor {
 					for (ClassNode innerCls : cls.getInnerClasses()) {
 						if (innerCls.getClassInfo().equals(co.getClassType())) {
 							// remove constructor, because it is anonymous class
-							for (Iterator<?> mit = innerCls.getMethods().iterator(); mit.hasNext();) {
+							for (Iterator<?> mit = innerCls.getMethods().iterator(); mit.hasNext(); ) {
 								MethodNode innerMth = (MethodNode) mit.next();
 								if (innerMth.getAccessFlags().isConstructor())
 									mit.remove();

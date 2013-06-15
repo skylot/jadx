@@ -82,6 +82,9 @@ public class ClassGen {
 		if (cls.getAttributes().contains(AttributeFlag.DONT_GENERATE))
 			return;
 
+		if (cls.getAttributes().contains(AttributeFlag.INCONSISTENT_CODE))
+			code.startLine("// jadx: inconsistent code");
+
 		makeClassDeclaration(code);
 		makeClassBody(code);
 		code.endl();
@@ -124,7 +127,7 @@ public class ClassGen {
 			else
 				clsCode.add("implements ");
 
-			for (Iterator<ClassInfo> it = cls.getInterfaces().iterator(); it.hasNext();) {
+			for (Iterator<ClassInfo> it = cls.getInterfaces().iterator(); it.hasNext(); ) {
 				ClassInfo interf = it.next();
 				clsCode.add(useClass(interf));
 				if (it.hasNext())
@@ -150,7 +153,7 @@ public class ClassGen {
 			code.add(useClass(type));
 			if (list != null && !list.isEmpty()) {
 				code.add(" extends ");
-				for (Iterator<ArgType> it = list.iterator(); it.hasNext();) {
+				for (Iterator<ArgType> it = list.iterator(); it.hasNext(); ) {
 					ArgType g = it.next();
 					code.add(useClass(g));
 					if (it.hasNext()) {
@@ -167,11 +170,16 @@ public class ClassGen {
 	public void makeClassBody(CodeWriter clsCode) throws CodegenException {
 		clsCode.add('{');
 		CodeWriter mthsCode = makeMethods(clsCode, cls.getMethods());
-		clsCode.add(makeFields(clsCode, cls, cls.getFields()));
+		CodeWriter fieldsCode = makeFields(clsCode, cls, cls.getFields());
+		clsCode.add(fieldsCode);
+		if (fieldsCode.notEmpty() && mthsCode.notEmpty())
+			clsCode.endl();
 
 		// insert inner classes code
 		if (cls.getInnerClasses().size() != 0) {
 			clsCode.add(makeInnerClasses(cls, clsCode.getIndent()));
+			if (mthsCode.notEmpty())
+				clsCode.endl();
 		}
 		clsCode.add(mthsCode);
 		clsCode.startLine('}');
@@ -192,7 +200,7 @@ public class ClassGen {
 
 	private CodeWriter makeMethods(CodeWriter clsCode, List<MethodNode> mthList) {
 		CodeWriter code = new CodeWriter(clsCode.getIndent() + 1);
-		for (Iterator<MethodNode> it = mthList.iterator(); it.hasNext();) {
+		for (Iterator<MethodNode> it = mthList.iterator(); it.hasNext(); ) {
 			MethodNode mth = it.next();
 			if (mth.getAttributes().contains(AttributeFlag.DONT_GENERATE))
 				continue;
@@ -235,16 +243,19 @@ public class ClassGen {
 
 		EnumClassAttr enumFields = (EnumClassAttr) cls.getAttributes().get(AttributeType.ENUM_CLASS);
 		if (enumFields != null) {
-			MethodGen mthGen = new MethodGen(this, enumFields.getStaticMethod());
-			InsnGen igen = new InsnGen(mthGen, enumFields.getStaticMethod(), false);
-
-			for (Iterator<EnumField> it = enumFields.getFields().iterator(); it.hasNext();) {
+			InsnGen igen = null;
+			for (Iterator<EnumField> it = enumFields.getFields().iterator(); it.hasNext(); ) {
 				EnumField f = it.next();
 				code.startLine(f.getName());
 				if (f.getArgs().size() != 0) {
 					code.add('(');
-					for (Iterator<InsnArg> aIt = f.getArgs().iterator(); aIt.hasNext();) {
+					for (Iterator<InsnArg> aIt = f.getArgs().iterator(); aIt.hasNext(); ) {
 						InsnArg arg = aIt.next();
+						if (igen == null) {
+							// don't init mth gen if this is simple enum
+							MethodGen mthGen = new MethodGen(this, enumFields.getStaticMethod());
+							igen = new InsnGen(mthGen, enumFields.getStaticMethod(), false);
+						}
 						code.add(igen.arg(arg));
 						if (aIt.hasNext())
 							code.add(", ");
@@ -281,8 +292,6 @@ public class ClassGen {
 			}
 			code.add(';');
 		}
-		if (fields.size() != 0)
-			code.endl();
 		return code;
 	}
 
@@ -290,11 +299,11 @@ public class ClassGen {
 		if (clsType.isGenericType()) {
 			return clsType.getObject();
 		}
-		return useClass(ClassInfo.fromType(cls.dex(), clsType));
+		return useClass(ClassInfo.fromType(clsType));
 	}
 
 	public String useClass(ClassInfo classInfo) {
-		String baseClass = useClassInner(classInfo);
+		String baseClass = useClassInternal(classInfo);
 		ArgType[] generics = classInfo.getType().getGenericTypes();
 		if (generics != null) {
 			StringBuilder sb = new StringBuilder();
@@ -318,9 +327,9 @@ public class ClassGen {
 		}
 	}
 
-	private String useClassInner(ClassInfo classInfo) {
+	private String useClassInternal(ClassInfo classInfo) {
 		if (parentGen != null)
-			return parentGen.useClassInner(classInfo);
+			return parentGen.useClassInternal(classInfo);
 
 		String clsStr = classInfo.getFullName();
 		if (fallback)
