@@ -1,24 +1,24 @@
 package jadx.dex.regions;
 
-import jadx.dex.instructions.args.RegisterArg;
 import jadx.dex.nodes.IContainer;
 import jadx.dex.nodes.IRegion;
+import jadx.dex.nodes.InsnNode;
 
 import java.util.List;
 
 public final class SynchronizedRegion extends AbstractRegion {
 
-	private final RegisterArg arg;
+	private final InsnNode insn;
 	private final Region region;
 
-	public SynchronizedRegion(IRegion parent, RegisterArg arg) {
+	public SynchronizedRegion(IRegion parent, InsnNode insn) {
 		super(parent);
-		this.arg = arg;
+		this.insn = insn;
 		this.region = new Region(this);
 	}
 
-	public RegisterArg getArg() {
-		return arg;
+	public InsnNode getInsn() {
+		return insn;
 	}
 
 	public Region getRegion() {

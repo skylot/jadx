@@ -9,7 +9,7 @@ import jadx.dex.attributes.LoopAttr;
 import jadx.dex.instructions.IfNode;
 import jadx.dex.instructions.InsnType;
 import jadx.dex.instructions.SwitchNode;
-import jadx.dex.instructions.args.RegisterArg;
+import jadx.dex.instructions.args.InsnArg;
 import jadx.dex.nodes.BlockNode;
 import jadx.dex.nodes.IRegion;
 import jadx.dex.nodes.InsnNode;
@@ -269,14 +269,13 @@ public class RegionMaker {
 	private static final Set<BlockNode> cacheSet = new HashSet<BlockNode>();
 
 	private BlockNode processMonitorEnter(IRegion curRegion, BlockNode block, InsnNode insn, RegionStack stack) {
-		RegisterArg arg = (RegisterArg) insn.getArg(0);
-		SynchronizedRegion synchRegion = new SynchronizedRegion(curRegion, arg);
+		SynchronizedRegion synchRegion = new SynchronizedRegion(curRegion, insn);
 		synchRegion.getSubBlocks().add(block);
 		curRegion.getSubBlocks().add(synchRegion);
 
 		Set<BlockNode> exits = new HashSet<BlockNode>();
 		cacheSet.clear();
-		traverseMonitorExits(arg, block, exits, cacheSet);
+		traverseMonitorExits(insn.getArg(0), block, exits, cacheSet);
 
 		block = BlockUtils.getNextBlock(block);
 		BlockNode exit;
@@ -298,7 +297,7 @@ public class RegionMaker {
 	/**
 	 * Traverse from monitor-enter thru successors and collect blocks contains monitor-exit
 	 */
-	private void traverseMonitorExits(RegisterArg arg, BlockNode block, Set<BlockNode> exits, Set<BlockNode> visited) {
+	private void traverseMonitorExits(InsnArg arg, BlockNode block, Set<BlockNode> exits, Set<BlockNode> visited) {
 		visited.add(block);
 		for (InsnNode insn : block.getInstructions()) {
 			if (insn.getType() == InsnType.MONITOR_EXIT

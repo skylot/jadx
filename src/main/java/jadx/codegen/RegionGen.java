@@ -152,7 +152,7 @@ public class RegionGen extends InsnGen {
 	}
 
 	private void makeSynchronizedRegion(SynchronizedRegion cont, CodeWriter code) throws CodegenException {
-		code.startLine("synchronized(").add(arg(cont.getArg())).add(") {");
+		code.startLine("synchronized(").add(arg(cont.getInsn().getArg(0))).add(") {");
 		makeRegionIndent(code, cont.getRegion());
 		code.startLine('}');
 	}
