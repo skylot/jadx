@@ -1,6 +1,7 @@
 package jadx.dex.visitors;
 
 import jadx.Consts;
+import jadx.deobf.NameMapper;
 import jadx.dex.attributes.AttributeType;
 import jadx.dex.info.MethodInfo;
 import jadx.dex.instructions.IndexInsnNode;
@@ -37,8 +38,9 @@ public class ModVisitor extends AbstractVisitor {
 			return;
 
 		removeStep(mth);
-
 		replaceStep(mth);
+
+		checkArgsNames(mth);
 
 		for (BlockNode block : mth.getBasicBlocks()) {
 			processExceptionHander(mth, block);
@@ -228,5 +230,15 @@ public class ModVisitor extends AbstractVisitor {
 
 		replaceInsn(block, pos, newInsn);
 		return true;
+	}
+
+	private void checkArgsNames(MethodNode mth) {
+		for(RegisterArg arg : mth.getArguments(false)) {
+			String name = arg.getTypedVar().getName();
+			if(name != null && NameMapper.isReserved(name)) {
+				name = name + "_" ;
+				arg.getTypedVar().setName(name);
+			}
+		}
 	}
 }

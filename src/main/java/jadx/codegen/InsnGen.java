@@ -571,7 +571,7 @@ public class InsnGen {
 			code.add('(').add(v1).add(' ').add(op.getSymbol()).add(' ').add(v2).add(')');
 		} else {
 			String res = arg(insn.getResult());
-			if (res.equals(v1)) {
+			if (res.equals(v1) && insn.getResult().equals(insn.getArg(0))) {
 				state.add(InsnGenState.NO_RESULT);
 				// "++" or "--"
 				if (insn.getArg(1).isLiteral() && (op == ArithOp.ADD || op == ArithOp.SUB)) {

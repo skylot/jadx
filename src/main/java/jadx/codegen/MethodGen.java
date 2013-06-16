@@ -194,7 +194,7 @@ public class MethodGen {
 		String r;
 		int i = 2;
 		do {
-			r = name + i;
+			r = name + "_" + i;
 			i++;
 		} while (varNames.contains(r));
 		varNames.add(r);

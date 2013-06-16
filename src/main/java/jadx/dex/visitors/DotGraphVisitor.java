@@ -9,6 +9,7 @@ import jadx.dex.nodes.IRegion;
 import jadx.dex.nodes.InsnNode;
 import jadx.dex.nodes.MethodNode;
 import jadx.dex.trycatch.ExceptionHandler;
+import jadx.utils.BlockUtils;
 import jadx.utils.InsnUtils;
 import jadx.utils.Utils;
 
@@ -131,9 +132,11 @@ public class DotGraphVisitor extends AbstractVisitor {
 		for (BlockNode next : block.getDominatesOn())
 			conn.startLine(makeName(block) + " -> " + makeName(next) + "[style=dotted];");
 
-		// // add all dominators connections
-		// for (BlockNode next : BlockUtils.bitsetToBlocks(mth, block.getDoms()))
-		// conn.startLine(makeName(block) + " -> " + makeName(next) + "[style=dotted, color=green];");
+		// add all dominators connections
+		if (false) {
+			for (BlockNode next : BlockUtils.bitsetToBlocks(mth, block.getDoms()))
+				conn.startLine(makeName(block) + " -> " + makeName(next) + "[style=dotted, color=green];");
+		}
 	}
 
 	private String attributesString(IAttributeNode block) {
@@ -180,6 +183,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 				.replace("{", "\\{").replace("}", "\\}")
 				.replace("\"", "\\\"")
 				.replace("-", "\\-")
+				.replace("|", "\\|")
 				.replace("\n", NL);
 	}
 }
