@@ -4,7 +4,7 @@ import jadx.dex.instructions.args.RegisterArg;
 import jadx.dex.instructions.args.TypedVar;
 import jadx.dex.nodes.MethodNode;
 
-public class BlockRegState {
+public final class BlockRegState {
 
 	private final RegisterArg[] regs;
 

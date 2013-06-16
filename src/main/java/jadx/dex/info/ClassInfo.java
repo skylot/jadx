@@ -1,5 +1,6 @@
 package jadx.dex.info;
 
+import jadx.Consts;
 import jadx.deobf.NameMapper;
 import jadx.dex.instructions.args.ArgType;
 import jadx.dex.nodes.DexNode;
@@ -11,7 +12,6 @@ import java.util.WeakHashMap;
 public final class ClassInfo {
 
 	private static final Map<ArgType, ClassInfo> CLASSINFO_CACHE = new WeakHashMap<ArgType, ClassInfo>();
-	private static final String DEFAULT_PACKAGE_NAME = "defpackage";
 
 	public static ClassInfo fromDex(DexNode dex, int clsIndex) {
 		if (clsIndex == DexNode.NO_INDEX)
@@ -62,7 +62,7 @@ public final class ClassInfo {
 		int dot = fullObjectName.lastIndexOf('.');
 		if (dot == -1) {
 			// rename default package if it used from class with package (often for obfuscated apps),
-			pkg = DEFAULT_PACKAGE_NAME;
+			pkg = Consts.DEFAULT_PACKAGE_NAME;
 			name = fullObjectName;
 		} else {
 			pkg = fullObjectName.substring(0, dot);
@@ -110,7 +110,7 @@ public final class ClassInfo {
 	}
 
 	public boolean isPackageDefault() {
-		return pkg.isEmpty() || pkg.equals(DEFAULT_PACKAGE_NAME);
+		return pkg.isEmpty() || pkg.equals(Consts.DEFAULT_PACKAGE_NAME);
 	}
 
 	public String getNameWithoutPackage() {

@@ -1,10 +1,13 @@
 package jadx.codegen;
 
 import jadx.Consts;
+import jadx.dex.attributes.AttrNode;
 import jadx.dex.attributes.AttributeFlag;
 import jadx.dex.attributes.AttributeType;
 import jadx.dex.attributes.EnumClassAttr;
 import jadx.dex.attributes.EnumClassAttr.EnumField;
+import jadx.dex.attributes.IAttribute;
+import jadx.dex.attributes.SourceFileAttr;
 import jadx.dex.info.AccessInfo;
 import jadx.dex.info.ClassInfo;
 import jadx.dex.instructions.args.ArgType;
@@ -169,6 +172,8 @@ public class ClassGen {
 
 	public void makeClassBody(CodeWriter clsCode) throws CodegenException {
 		clsCode.add('{');
+		insertSourceFileInfo(clsCode, cls);
+
 		CodeWriter mthsCode = makeMethods(clsCode, cls.getMethods());
 		CodeWriter fieldsCode = makeFields(clsCode, cls, cls.getFields());
 		clsCode.add(fieldsCode);
@@ -224,6 +229,7 @@ public class ClassGen {
 					MethodGen mthGen = new MethodGen(this, mth);
 					mthGen.addDefinition(code);
 					code.add(" {");
+					insertSourceFileInfo(code, mth);
 					code.add(mthGen.makeInstructions(code.getIndent()));
 					code.startLine('}');
 				}
@@ -361,6 +367,14 @@ public class ClassGen {
 			return p.equals(parent) || isInner(p, parent);
 		}
 		return false;
+	}
+
+	private void insertSourceFileInfo(CodeWriter code, AttrNode node) {
+		IAttribute sourceFileAttr = node.getAttributes().get(AttributeType.SOURCE_FILE);
+		if(sourceFileAttr != null) {
+			code.startLine(1, "// compiled from: ");
+			code.add(((SourceFileAttr)sourceFileAttr).getFileName());
+		}
 	}
 
 	public Set<ClassInfo> getImports() {

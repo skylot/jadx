@@ -3,6 +3,7 @@ package jadx.dex.nodes;
 import jadx.Consts;
 import jadx.dex.attributes.AttrNode;
 import jadx.dex.attributes.AttributeType;
+import jadx.dex.attributes.SourceFileAttr;
 import jadx.dex.attributes.annotations.Annotation;
 import jadx.dex.info.AccessInfo;
 import jadx.dex.info.AccessInfo.AFType;
@@ -85,8 +86,17 @@ public class ClassNode extends AttrNode implements ILoadable {
 			parseClassSignature();
 			setFieldsTypesFromSignature();
 
+			int sfIdx = cls.getSourceFileIndex();
+			if(sfIdx != DexNode.NO_INDEX) {
+				String fileName = dex.getString(sfIdx);
+				if(!this.getFullName().contains(fileName.replace(".java", ""))) {
+					this.getAttributes().add(new SourceFileAttr(fileName));
+					LOG.info("TODO: move class {} to {} file", this, fileName);
+				}
+			}
+
 			int accFlagsValue;
-			Annotation a = getAttributes().getAnnotation("dalvik.annotation.InnerClass");
+			Annotation a = getAttributes().getAnnotation(Consts.DALVIK_INNER_CLASS);
 			if (a != null)
 				accFlagsValue = (Integer) a.getValues().get("accessFlags");
 			else

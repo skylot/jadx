@@ -78,7 +78,7 @@ public class CodeWriter {
 		return this;
 	}
 
-	private static final String[] indentCache = new String[] {
+	private static final String[] INDENT_CACHE = new String[] {
 			"",
 			INDENT,
 			INDENT + INDENT,
@@ -88,11 +88,12 @@ public class CodeWriter {
 	};
 
 	private void updateIndent() {
-		if (indent < 6) {
-			this.indentStr = indentCache[indent];
+		int curIndent = indent;
+		if (curIndent < 6) {
+			this.indentStr = INDENT_CACHE[curIndent];
 		} else {
-			StringBuilder s = new StringBuilder(indent * INDENT.length());
-			for (int i = 0; i < indent; i++) {
+			StringBuilder s = new StringBuilder(curIndent * INDENT.length());
+			for (int i = 0; i < curIndent; i++) {
 				s.append(INDENT);
 			}
 			this.indentStr = s.toString();

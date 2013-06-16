@@ -20,7 +20,7 @@ import java.util.Set;
  * 2. attribute - class instance associated for attribute type,
  * only one attached to node for unique attributes, multiple for others
  */
-public class AttributesList {
+public final class AttributesList {
 
 	private final Set<AttributeFlag> flags;
 	private final Map<AttributeType, IAttribute> uniqAttr;

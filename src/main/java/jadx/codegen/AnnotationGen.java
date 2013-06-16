@@ -59,7 +59,7 @@ public class AnnotationGen {
 
 		for (Annotation a : aList.getAll()) {
 			String aCls = a.getAnnotationClass();
-			if (aCls.startsWith("dalvik.annotation.")) {
+			if (aCls.startsWith(Consts.DALVIK_ANNOTATION_PKG)) {
 				// skip
 				if (Consts.DEBUG) {
 					code.startLine("// " + a);
@@ -97,7 +97,7 @@ public class AnnotationGen {
 
 	@SuppressWarnings("unchecked")
 	public void addThrows(MethodNode mth, CodeWriter code) {
-		Annotation an = mth.getAttributes().getAnnotation("dalvik.annotation.Throws");
+		Annotation an = mth.getAttributes().getAnnotation(Consts.DALVIK_THROWS);
 		if (an != null) {
 			Object exs = an.getDefaultValue();
 			code.add(" throws ");
@@ -111,7 +111,7 @@ public class AnnotationGen {
 	}
 
 	public Object getAnnotationDefaultValue(String name) {
-		Annotation an = cls.getAttributes().getAnnotation("dalvik.annotation.AnnotationDefault");
+		Annotation an = cls.getAttributes().getAnnotation(Consts.DALVIK_ANNOTATION_DEFAULT);
 		if (an != null) {
 			Annotation defAnnotation = (Annotation) an.getDefaultValue();
 			return defAnnotation.getValues().get(name);

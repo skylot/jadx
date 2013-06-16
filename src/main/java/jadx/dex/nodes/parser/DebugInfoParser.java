@@ -1,5 +1,6 @@
 package jadx.dex.nodes.parser;
 
+import jadx.dex.attributes.SourceFileAttr;
 import jadx.dex.info.LocalVarInfo;
 import jadx.dex.instructions.args.InsnArg;
 import jadx.dex.instructions.args.RegisterArg;
@@ -50,7 +51,6 @@ public class DebugInfoParser {
 	public void process() throws DecodeException {
 		int addr = 0;
 		int line;
-		// String source_file;
 
 		line = section.readUleb128();
 		int param_size = section.readUleb128(); // exclude 'this'
@@ -124,14 +124,18 @@ public class DebugInfoParser {
 				}
 
 				case DBG_SET_PROLOGUE_END:
-					break;
 				case DBG_SET_EPILOGUE_BEGIN:
+					// do nothing
 					break;
 
-				case DBG_SET_FILE:
-					section.readUleb128();
-					// source_file = dex.getString(idx);
+				case DBG_SET_FILE: {
+					int idx = section.readUleb128() - 1;
+					if (idx != DexNode.NO_INDEX) {
+						String sourceFile = dex.getString(idx);
+						mth.getAttributes().add(new SourceFileAttr(sourceFile));
+					}
 					break;
+				}
 
 				default: {
 					if (c >= DBG_FIRST_SPECIAL) {
