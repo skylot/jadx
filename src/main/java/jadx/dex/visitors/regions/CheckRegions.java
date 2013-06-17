@@ -1,5 +1,6 @@
 package jadx.dex.visitors.regions;
 
+import jadx.Consts;
 import jadx.dex.attributes.AttributeFlag;
 import jadx.dex.nodes.BlockNode;
 import jadx.dex.nodes.IBlock;
@@ -37,8 +38,19 @@ public class CheckRegions extends AbstractVisitor {
 		};
 		DepthRegionTraverser.traverseAll(mth, collectBlocks);
 
-		if (mth.getBasicBlocks().size() != blocksInRegions.size())
-			mth.getAttributes().add(AttributeFlag.INCONSISTENT_CODE);
+		if (mth.getBasicBlocks().size() != blocksInRegions.size()) {
+			for (BlockNode block : mth.getBasicBlocks()) {
+				if (!blocksInRegions.contains(block)) {
+					if (!block.getInstructions().isEmpty()) {
+						mth.getAttributes().add(AttributeFlag.INCONSISTENT_CODE);
+						if (Consts.DEBUG)
+							LOG.debug("Missing block: {} in {}", block, mth);
+						else
+							break;
+					}
+				}
+			}
+		}
 
 		// check loop conditions
 		IRegionVisitor checkLoops = new AbstractRegionVisitor() {

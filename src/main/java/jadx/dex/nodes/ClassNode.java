@@ -91,7 +91,7 @@ public class ClassNode extends AttrNode implements ILoadable {
 				String fileName = dex.getString(sfIdx);
 				if(!this.getFullName().contains(fileName.replace(".java", ""))) {
 					this.getAttributes().add(new SourceFileAttr(fileName));
-					LOG.info("TODO: move class {} to {} file", this, fileName);
+					LOG.debug("Class '{}' compiled from '{}'", this, fileName);
 				}
 			}
 
