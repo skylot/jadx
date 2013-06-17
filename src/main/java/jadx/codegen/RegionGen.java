@@ -10,7 +10,7 @@ import jadx.dex.instructions.IfOp;
 import jadx.dex.instructions.SwitchNode;
 import jadx.dex.instructions.args.ArgType;
 import jadx.dex.instructions.args.InsnArg;
-import jadx.dex.instructions.args.PrimitiveType;
+import jadx.dex.instructions.args.LiteralArg;
 import jadx.dex.instructions.args.RegisterArg;
 import jadx.dex.nodes.IBlock;
 import jadx.dex.nodes.IContainer;
@@ -158,27 +158,43 @@ public class RegionGen extends InsnGen {
 	}
 
 	private String makeCondition(IfNode insn) throws CodegenException {
+		String simple = simplifyCondition(insn);
+		if (simple != null)
+			return simple;
+
 		String second;
-		IfOp op = insn.getOp();
 		if (insn.isZeroCmp()) {
-			ArgType type = insn.getArg(0).getType();
-			if (type.getPrimitiveType() == PrimitiveType.BOOLEAN) {
-				if (op == IfOp.EQ) {
-					// == false
-					return "(!" + arg(insn.getArg(0)) + ")";
-				} else if (op == IfOp.NE) {
-					// == true
-					return "(" + arg(insn.getArg(0)) + ")";
-				}
-				LOG.warn(ErrorsCounter.formatErrorMsg(mth, "Unsupported boolean condition " + op.getSymbol()));
-			}
-			second = arg(InsnArg.lit(0, type));
+			second = arg(InsnArg.lit(0, insn.getArg(0).getType()));
 		} else {
 			second = arg(insn.getArg(1));
 		}
-		return "(" + arg(insn.getArg(0)) + " "
-				+ op.getSymbol() + " "
-				+ second + ")";
+		return "(" + arg(insn.getArg(0)) + " " + insn.getOp().getSymbol() + " " + second + ")";
+	}
+
+	private String simplifyCondition(IfNode insn) throws CodegenException {
+		InsnArg firstArg = insn.getArg(0);
+		if (firstArg.getType().equals(ArgType.BOOLEAN)) {
+			IfOp op = insn.getOp();
+			if (insn.isZeroCmp()) {
+				op = op.invert();
+			} else {
+				InsnArg secondArg = insn.getArg(1);
+				if (!secondArg.isLiteral() || !secondArg.getType().equals(ArgType.BOOLEAN))
+					return null;
+
+				LiteralArg lit = (LiteralArg) secondArg;
+				if (lit.getLiteral() == 0)
+					op = op.invert();
+			}
+
+			if (op == IfOp.EQ) {
+				return "(" + arg(firstArg) + ")"; // == true
+			} else if (op == IfOp.NE) {
+				return "(!" + arg(firstArg) + ")"; // != true
+			}
+			LOG.warn(ErrorsCounter.formatErrorMsg(mth, "Unsupported boolean condition " + op.getSymbol()));
+		}
+		return null;
 	}
 
 	private CodeWriter makeSwitch(SwitchRegion sw, CodeWriter code) throws CodegenException {
