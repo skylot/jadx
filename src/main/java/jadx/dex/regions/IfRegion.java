@@ -1,6 +1,5 @@
 package jadx.dex.regions;
 
-import jadx.dex.instructions.IfNode;
 import jadx.dex.nodes.BlockNode;
 import jadx.dex.nodes.IContainer;
 import jadx.dex.nodes.IRegion;
@@ -11,22 +10,25 @@ import java.util.List;
 
 public final class IfRegion extends AbstractRegion {
 
-	protected BlockNode header;
-	protected IContainer thenRegion;
-	protected IContainer elseRegion;
+	private final BlockNode header;
+
+	private IfCondition condition;
+	private IContainer thenRegion;
+	private IContainer elseRegion;
 
 	public IfRegion(IRegion parent, BlockNode header) {
 		super(parent);
 		assert header.getInstructions().size() == 1;
 		this.header = header;
+		this.condition = IfCondition.fromIfBlock(header);
 	}
 
-	public IfNode getIfInsn() {
-		return (IfNode) header.getInstructions().get(0);
+	public IfCondition getCondition() {
+		return condition;
 	}
 
-	public BlockNode getHeader() {
-		return header;
+	public void setCondition(IfCondition condition) {
+		this.condition = condition;
 	}
 
 	public IContainer getThenRegion() {
@@ -58,6 +60,6 @@ public final class IfRegion extends AbstractRegion {
 
 	@Override
 	public String toString() {
-		return "IF(" + header + ") then " + thenRegion + " else " + elseRegion;
+		return "IF(" + condition + ") then " + thenRegion + " else " + elseRegion;
 	}
 }

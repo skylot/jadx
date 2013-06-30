@@ -10,6 +10,12 @@ public abstract class AbstractTest {
 		}
 	}
 
+	public static void assertFalse(boolean condition) {
+		if (condition) {
+			throw new AssertionError();
+		}
+	}
+
 	public static void assertTrue(boolean condition, String msg) {
 		if (!condition) {
 			throw new AssertionError(msg);

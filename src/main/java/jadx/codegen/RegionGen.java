@@ -5,7 +5,6 @@ import jadx.dex.attributes.AttributeType;
 import jadx.dex.attributes.DeclareVariableAttr;
 import jadx.dex.attributes.ForceReturnAttr;
 import jadx.dex.attributes.IAttribute;
-import jadx.dex.instructions.IfNode;
 import jadx.dex.instructions.IfOp;
 import jadx.dex.instructions.SwitchNode;
 import jadx.dex.instructions.args.ArgType;
@@ -17,6 +16,7 @@ import jadx.dex.nodes.IContainer;
 import jadx.dex.nodes.IRegion;
 import jadx.dex.nodes.InsnNode;
 import jadx.dex.nodes.MethodNode;
+import jadx.dex.regions.IfCondition;
 import jadx.dex.regions.IfRegion;
 import jadx.dex.regions.LoopRegion;
 import jadx.dex.regions.Region;
@@ -104,8 +104,7 @@ public class RegionGen extends InsnGen {
 	}
 
 	private void makeIf(IfRegion region, CodeWriter code) throws CodegenException {
-		IfNode insn = region.getIfInsn();
-		code.add("if ").add(makeCondition(insn)).add(" {");
+		code.add("if (").add(makeCondition(region.getCondition())).add(") {");
 		makeRegionIndent(code, region.getThenRegion());
 		code.startLine('}');
 
@@ -116,9 +115,9 @@ public class RegionGen extends InsnGen {
 			// connect if-else-if block
 			if (els instanceof Region) {
 				Region re = (Region) els;
-				if (re.getSubBlocks().size() == 1
-						&& re.getSubBlocks().get(0) instanceof IfRegion) {
-					makeIf((IfRegion) re.getSubBlocks().get(0), code);
+				List<IContainer> subBlocks = re.getSubBlocks();
+				if (subBlocks.size() == 1 && subBlocks.get(0) instanceof IfRegion) {
+					makeIf((IfRegion) subBlocks.get(0), code);
 					return;
 				}
 			}
@@ -130,7 +129,8 @@ public class RegionGen extends InsnGen {
 	}
 
 	private CodeWriter makeLoop(LoopRegion region, CodeWriter code) throws CodegenException {
-		if (region.getConditionBlock() == null) {
+		IfCondition condition = region.getCondition();
+		if (condition == null) {
 			// infinite loop
 			code.startLine("while (true) {");
 			makeRegionIndent(code, region.getBody());
@@ -138,15 +138,14 @@ public class RegionGen extends InsnGen {
 			return code;
 		}
 
-		IfNode insn = region.getIfInsn();
-		if (!region.isConditionAtEnd()) {
-			code.startLine("while ").add(makeCondition(insn)).add(" {");
-			makeRegionIndent(code, region.getBody());
-			code.startLine('}');
-		} else {
+		if (region.isConditionAtEnd()) {
 			code.startLine("do {");
 			makeRegionIndent(code, region.getBody());
-			code.startLine("} while ").add(makeCondition(insn)).add(';');
+			code.startLine("} while (").add(makeCondition(condition)).add(");");
+		} else {
+			code.startLine("while (").add(makeCondition(condition)).add(") {");
+			makeRegionIndent(code, region.getBody());
+			code.startLine('}');
 		}
 		return code;
 	}
@@ -157,44 +156,47 @@ public class RegionGen extends InsnGen {
 		code.startLine('}');
 	}
 
-	private String makeCondition(IfNode insn) throws CodegenException {
-		String simple = simplifyCondition(insn);
-		if (simple != null)
-			return simple;
-
-		String second;
-		if (insn.isZeroCmp()) {
-			second = arg(InsnArg.lit(0, insn.getArg(0).getType()));
-		} else {
-			second = arg(insn.getArg(1));
+	private String makeCondition(IfCondition condition) throws CodegenException {
+		switch (condition.getMode()) {
+			case COMPARE:
+				return makeCompare(condition.getCompare());
+			case NOT:
+				return "!" + makeCondition(condition.getArgs().get(0));
+			case AND:
+			case OR:
+				String mode = condition.getMode() == IfCondition.MODE.AND ? " && " : " || ";
+				CodeWriter cw = new CodeWriter();
+				for (IfCondition arg : condition.getArgs()) {
+					if (cw.notEmpty()) {
+						cw.add(mode);
+					}
+					cw.add('(').add(makeCondition(arg)).add(')');
+				}
+				return cw.toString();
+			default:
+				return "??" + condition.toString();
 		}
-		return "(" + arg(insn.getArg(0)) + " " + insn.getOp().getSymbol() + " " + second + ")";
 	}
 
-	private String simplifyCondition(IfNode insn) throws CodegenException {
-		InsnArg firstArg = insn.getArg(0);
-		if (firstArg.getType().equals(ArgType.BOOLEAN)) {
-			IfOp op = insn.getOp();
-			if (insn.isZeroCmp()) {
+	private String makeCompare(IfCondition.Compare compare) throws CodegenException {
+		IfOp op = compare.getOp();
+		InsnArg firstArg = compare.getA();
+		InsnArg secondArg = compare.getB();
+		if (firstArg.getType().equals(ArgType.BOOLEAN)
+				&& secondArg.isLiteral()
+				&& secondArg.getType().equals(ArgType.BOOLEAN)) {
+			LiteralArg lit = (LiteralArg) secondArg;
+			if (lit.getLiteral() == 0)
 				op = op.invert();
-			} else {
-				InsnArg secondArg = insn.getArg(1);
-				if (!secondArg.isLiteral() || !secondArg.getType().equals(ArgType.BOOLEAN))
-					return null;
-
-				LiteralArg lit = (LiteralArg) secondArg;
-				if (lit.getLiteral() == 0)
-					op = op.invert();
-			}
 
 			if (op == IfOp.EQ) {
-				return "(" + arg(firstArg) + ")"; // == true
+				return arg(firstArg); // == true
 			} else if (op == IfOp.NE) {
-				return "(!" + arg(firstArg) + ")"; // != true
+				return "!" + arg(firstArg); // != true
 			}
 			LOG.warn(ErrorsCounter.formatErrorMsg(mth, "Unsupported boolean condition " + op.getSymbol()));
 		}
-		return null;
+		return arg(firstArg) + " " + op.getSymbol() + " " + arg(secondArg);
 	}
 
 	private CodeWriter makeSwitch(SwitchRegion sw, CodeWriter code) throws CodegenException {

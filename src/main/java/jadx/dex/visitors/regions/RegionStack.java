@@ -4,28 +4,29 @@ import jadx.dex.nodes.BlockNode;
 import jadx.dex.nodes.IRegion;
 import jadx.dex.nodes.MethodNode;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Stack;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RegionStack {
+final class RegionStack {
 	private static final Logger LOG = LoggerFactory.getLogger(RegionStack.class);
 	private static final boolean DEBUG = false;
 
 	static {
 		if (DEBUG)
-			LOG.debug("Debug enabled for " + RegionStack.class);
+			LOG.debug("Debug enabled for {}", RegionStack.class);
 	}
 
-	private static class State {
+	private static final class State {
 		final Set<BlockNode> exits;
 		IRegion region;
 
 		public State() {
-			exits = new HashSet<BlockNode>();
+			exits = new HashSet<BlockNode>(4);
 		}
 
 		private State(State c) {
@@ -38,17 +39,17 @@ public class RegionStack {
 
 		@Override
 		public String toString() {
-			return "Exits: " + exits;
+			return "Region: " + region + ", exits: " + exits;
 		}
 	}
 
-	private final Stack<State> stack;
+	private final Deque<State> stack;
 	private State curState;
 
 	public RegionStack(MethodNode mth) {
 		if (DEBUG)
 			LOG.debug("New RegionStack: {}", mth);
-		this.stack = new Stack<RegionStack.State>();
+		this.stack = new ArrayDeque<State>();
 		this.curState = new State();
 	}
 
@@ -59,16 +60,14 @@ public class RegionStack {
 
 		curState = curState.copy();
 		curState.region = region;
-		if (DEBUG) {
-			LOG.debug("Stack push: {} = {}", region, curState);
-			LOG.debug("Stack size: {}", size());
-		}
+		if (DEBUG)
+			LOG.debug("Stack push: {}: {}", size(), curState);
 	}
 
 	public void pop() {
 		curState = stack.pop();
 		if (DEBUG)
-			LOG.debug("Stack pop : {}", curState);
+			LOG.debug("Stack  pop: {}: {}", size(), curState);
 	}
 
 	/**

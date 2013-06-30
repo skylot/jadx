@@ -1,5 +1,7 @@
 package jadx.dex.instructions;
 
+import jadx.utils.exceptions.JadxRuntimeException;
+
 public enum IfOp {
 	EQ("=="),
 	NE("!="),
@@ -36,7 +38,7 @@ public enum IfOp {
 				return IfOp.LT;
 
 			default:
-				return null;
+				throw new JadxRuntimeException("Unknown if operations type: " + this);
 		}
 	}
 }

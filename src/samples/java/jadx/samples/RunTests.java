@@ -22,7 +22,7 @@ public class RunTests {
 			System.exit(1);
 		}
 
-		int timeout = 3 * clsList.size();
+		int timeout = 2 * clsList.size();
 		System.err.println("Set timeout to " + timeout + " seconds");
 		new Timer().schedule(new TerminateTask(), timeout * 1000);
 
@@ -50,9 +50,8 @@ public class RunTests {
 			Class<?> cls = Class.forName(clsName);
 			if (cls.getSuperclass() == AbstractTest.class) {
 				Method mth = cls.getMethod("testRun");
-
-				AbstractTest test = (AbstractTest) cls.getConstructor().newInstance();
 				try {
+					AbstractTest test = (AbstractTest) cls.getConstructor().newInstance();
 					pass = (Boolean) mth.invoke(test);
 				} catch (InvocationTargetException e) {
 					pass = false;

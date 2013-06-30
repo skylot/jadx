@@ -41,10 +41,11 @@ public class CheckRegions extends AbstractVisitor {
 		if (mth.getBasicBlocks().size() != blocksInRegions.size()) {
 			for (BlockNode block : mth.getBasicBlocks()) {
 				if (!blocksInRegions.contains(block)) {
-					if (!block.getInstructions().isEmpty()) {
+					if (!block.getInstructions().isEmpty()
+							&& !block.getAttributes().contains(AttributeFlag.SKIP)) {
 						mth.getAttributes().add(AttributeFlag.INCONSISTENT_CODE);
 						if (Consts.DEBUG)
-							LOG.debug("Missing block: {} in {}", block, mth);
+							LOG.debug(" Missing block: {} in {}", block, mth);
 						else
 							break;
 					}
@@ -58,15 +59,14 @@ public class CheckRegions extends AbstractVisitor {
 			public void enterRegion(MethodNode mth, IRegion region) {
 				if (region instanceof LoopRegion) {
 					LoopRegion loop = (LoopRegion) region;
-					if (loop.getConditionBlock() != null
-							&& loop.getConditionBlock().getInstructions().size() != 1) {
-						ErrorsCounter.methodError(mth, "Incorrect condition in loop: " + loop.getConditionBlock());
+					BlockNode loopHeader = loop.getHeader();
+					if (loopHeader != null && loopHeader.getInstructions().size() != 1) {
+						ErrorsCounter.methodError(mth, "Incorrect condition in loop: " + loopHeader);
 						mth.getAttributes().add(AttributeFlag.INCONSISTENT_CODE);
 					}
 				}
 			}
 		};
 		DepthRegionTraverser.traverseAll(mth, checkLoops);
-
 	}
 }

@@ -14,6 +14,7 @@ import jadx.dex.nodes.BlockNode;
 import jadx.dex.nodes.IRegion;
 import jadx.dex.nodes.InsnNode;
 import jadx.dex.nodes.MethodNode;
+import jadx.dex.regions.IfCondition;
 import jadx.dex.regions.IfRegion;
 import jadx.dex.regions.LoopRegion;
 import jadx.dex.regions.Region;
@@ -41,12 +42,20 @@ public class RegionMaker {
 	private static final Logger LOG = LoggerFactory.getLogger(RegionMaker.class);
 
 	private final MethodNode mth;
+	private final BitSet processedBlocks;
 
 	public RegionMaker(MethodNode mth) {
 		this.mth = mth;
+		this.processedBlocks = new BitSet(mth.getBasicBlocks().size());
 	}
 
 	public Region makeRegion(BlockNode startBlock, RegionStack stack) {
+		int id = startBlock.getId();
+		if (processedBlocks.get(id))
+			LOG.debug(" Block already processed: " + startBlock + ", mth: " + mth);
+		else
+			processedBlocks.set(id);
+
 		Region r = new Region(stack.peekRegion());
 		BlockNode next = startBlock;
 		while (next != null) {
@@ -351,6 +360,11 @@ public class RegionMaker {
 
 		ifnode.invertOp(bThen.getStartOffset());
 
+		if (block.getAttributes().contains(AttributeFlag.SKIP)) {
+			// block already included in other if region
+			return bThen;
+		}
+
 		BlockNode out = null;
 		BlockNode thenBlock;
 		BlockNode elseBlock = null;
@@ -358,13 +372,9 @@ public class RegionMaker {
 		thenBlock = bThen;
 		// select else and exit blocks
 		if (block.getDominatesOn().size() == 2) {
-			if (bElse.getPredecessors().size() == 1)
-				elseBlock = bElse;
-			else
-				out = bElse;
+			elseBlock = bElse;
 		} else {
 			if (bElse.getPredecessors().size() != 1) {
-				elseBlock = null;
 				out = bElse;
 			} else {
 				elseBlock = bElse;
@@ -381,13 +391,46 @@ public class RegionMaker {
 			out = null;
 		}
 
+		IfRegion ifRegion = new IfRegion(currentRegion, block);
+		currentRegion.getSubBlocks().add(ifRegion);
+
+		if (elseBlock != null) {
+			if (elseBlock.getPredecessors().size() > 1) {
+				// if else block shares between several 'if' instructions => merge conditions
+				for (BlockNode pred : elseBlock.getPredecessors()) {
+					if (!pred.equals(block)) {
+						List<InsnNode> insns = pred.getInstructions();
+						if (insns.size() == 1 && insns.get(0).getType() == InsnType.IF) {
+							IfNode otherNode = (IfNode) insns.get(0);
+							int elseOffset = elseBlock.getStartOffset();
+							if (elseOffset != otherNode.getTarget()) {
+								otherNode.invertOp(elseOffset);
+							}
+							IfCondition newArg = IfCondition.fromIfBlock(pred);
+							IfCondition condition;
+							if (otherNode.getTarget() != pred.getStartOffset()) {
+								condition = IfCondition.and(ifRegion.getCondition(), newArg);
+							} else {
+								condition = IfCondition.or(ifRegion.getCondition(), newArg);
+							}
+							ifRegion.setCondition(condition);
+							pred.getAttributes().add(AttributeFlag.SKIP);
+						}
+					}
+				}
+				for (BlockNode d : block.getDominatesOn()) {
+					if (d != bThen && d != bElse) {
+						out = d;
+						break;
+					}
+				}
+			}
+		}
+
 		if (elseBlock != null) {
 			if (stack.containsExit(elseBlock))
 				elseBlock = null;
 		}
-
-		IfRegion ifRegion = new IfRegion(currentRegion, block);
-		currentRegion.getSubBlocks().add(ifRegion);
 
 		stack.push(ifRegion);
 		stack.addExit(out);

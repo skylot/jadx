@@ -14,6 +14,7 @@ import java.util.List;
 public final class LoopRegion extends AbstractRegion {
 
 	// loop header contains one 'if' insn, equals null for infinite loop
+	private final IfCondition condition;
 	private final BlockNode conditionBlock;
 	// instruction which must be executed before condition in every loop
 	private BlockNode preCondition = null;
@@ -23,18 +24,15 @@ public final class LoopRegion extends AbstractRegion {
 	public LoopRegion(IRegion parent, BlockNode header, boolean reversed) {
 		super(parent);
 		this.conditionBlock = header;
+		this.condition = IfCondition.fromIfBlock(header);
 		this.conditionAtEnd = reversed;
 	}
 
-	public IfNode getIfInsn() {
-		return (IfNode) conditionBlock.getInstructions().get(conditionBlock.getInstructions().size() - 1);
+	public IfCondition getCondition() {
+		return condition;
 	}
 
 	public BlockNode getHeader() {
-		return conditionBlock;
-	}
-
-	public BlockNode getConditionBlock() {
 		return conditionBlock;
 	}
 
@@ -55,6 +53,10 @@ public final class LoopRegion extends AbstractRegion {
 	 */
 	public void setPreCondition(BlockNode preCondition) {
 		this.preCondition = preCondition;
+	}
+
+	private IfNode getIfInsn() {
+		return (IfNode) conditionBlock.getInstructions().get(conditionBlock.getInstructions().size() - 1);
 	}
 
 	/**
