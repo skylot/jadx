@@ -407,12 +407,7 @@ public class RegionMaker {
 								otherNode.invertOp(elseOffset);
 							}
 							IfCondition newArg = IfCondition.fromIfBlock(pred);
-							IfCondition condition;
-							if (otherNode.getTarget() != pred.getStartOffset()) {
-								condition = IfCondition.and(ifRegion.getCondition(), newArg);
-							} else {
-								condition = IfCondition.or(ifRegion.getCondition(), newArg);
-							}
+							IfCondition condition = IfCondition.and(ifRegion.getCondition(), newArg);
 							ifRegion.setCondition(condition);
 							pred.getAttributes().add(AttributeFlag.SKIP);
 						}

@@ -3,7 +3,6 @@ package jadx.dex.nodes;
 import jadx.dex.attributes.AttrNode;
 import jadx.dex.info.AccessInfo;
 import jadx.dex.info.AccessInfo.AFType;
-import jadx.dex.info.ClassInfo;
 import jadx.dex.info.FieldInfo;
 import jadx.dex.instructions.args.ArgType;
 
@@ -11,18 +10,19 @@ import com.android.dx.io.ClassData.Field;
 
 public class FieldNode extends AttrNode {
 
+	private final FieldInfo fieldInfo;
 	private final AccessInfo accFlags;
-	private final String name;
-	private final ClassInfo declClass;
 
-	private ArgType type;
+	private ArgType type; // store signature
 
 	public FieldNode(ClassNode cls, Field field) {
-		FieldInfo f = FieldInfo.fromDex(cls.dex(), field.getFieldIndex());
-		this.name = f.getName();
-		this.type = f.getType();
-		this.declClass = f.getDeclClass();
+		this.fieldInfo = FieldInfo.fromDex(cls.dex(), field.getFieldIndex());
+		this.type = fieldInfo.getType();
 		this.accFlags = new AccessInfo(field.getAccessFlags(), AFType.FIELD);
+	}
+
+	public FieldInfo getFieldInfo() {
+		return fieldInfo;
 	}
 
 	public AccessInfo getAccessFlags() {
@@ -30,7 +30,7 @@ public class FieldNode extends AttrNode {
 	}
 
 	public String getName() {
-		return name;
+		return fieldInfo.getName();
 	}
 
 	public ArgType getType() {
@@ -41,12 +41,8 @@ public class FieldNode extends AttrNode {
 		this.type = type;
 	}
 
-	public ClassInfo getDeclClass() {
-		return declClass;
-	}
-
 	@Override
 	public String toString() {
-		return declClass + "." + name + " " + type;
+		return fieldInfo.getDeclClass() + "." + fieldInfo.getName() + " " + type;
 	}
 }

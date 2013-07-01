@@ -7,7 +7,9 @@ import jadx.utils.exceptions.DecodeException;
 import jadx.utils.files.InputFile;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.android.dx.io.ClassData;
 import com.android.dx.io.ClassData.Method;
@@ -28,6 +30,8 @@ public class DexNode {
 	private final DexBuffer dexBuf;
 	private final List<ClassNode> classes = new ArrayList<ClassNode>();
 	private final String[] strings;
+
+	private final Map<Object, FieldNode> constFields = new HashMap<Object, FieldNode>();
 
 	public DexNode(RootNode root, InputFile input) {
 		this.root = root;
@@ -57,6 +61,10 @@ public class DexNode {
 			return cls.searchMethod(mth);
 		}
 		return null;
+	}
+
+	public Map<Object, FieldNode> getConstFields() {
+		return constFields;
 	}
 
 	// DexBuffer wrappers
@@ -110,5 +118,4 @@ public class DexNode {
 	public String toString() {
 		return "DEX";
 	}
-
 }

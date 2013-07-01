@@ -7,10 +7,13 @@ import jadx.dex.info.MethodInfo;
 import jadx.dex.instructions.IndexInsnNode;
 import jadx.dex.instructions.InsnType;
 import jadx.dex.instructions.InvokeNode;
+import jadx.dex.instructions.args.ArgType;
 import jadx.dex.instructions.args.InsnArg;
+import jadx.dex.instructions.args.LiteralArg;
 import jadx.dex.instructions.args.RegisterArg;
 import jadx.dex.instructions.mods.ConstructorInsn;
 import jadx.dex.nodes.BlockNode;
+import jadx.dex.nodes.ClassNode;
 import jadx.dex.nodes.FieldNode;
 import jadx.dex.nodes.InsnNode;
 import jadx.dex.nodes.MethodNode;
@@ -96,15 +99,31 @@ public class ModVisitor extends AbstractVisitor {
 						break;
 
 					case CONST:
+						ClassNode parentClass = mth.getParentClass();
+						FieldNode f = null;
 						if (insn.getArgsCount() == 0) {
 							// const-string
 							IndexInsnNode node = (IndexInsnNode) insn;
-							FieldNode f = mth.getParentClass().getConstFields().get(node.getIndex());
-							if (f != null) {
-								InsnNode inode = new IndexInsnNode(InsnType.SGET, f, 0);
-								inode.setResult(insn.getResult());
-								replaceInsn(block, i, inode);
+							f = parentClass.getConstField(node.getIndex());
+						} else {
+							LiteralArg arg = (LiteralArg) insn.getArg(0);
+							ArgType type = arg.getType();
+							long lit = arg.getLiteral();
+							if (Math.abs(lit) > 0xFF) {
+								if (type.equals(ArgType.INT))
+									f = parentClass.getConstField((int) lit);
+								else if (type.equals(ArgType.LONG))
+									f = parentClass.getConstField(lit);
 							}
+							if (type.equals(ArgType.DOUBLE))
+								f = parentClass.getConstField(Double.longBitsToDouble(lit));
+							else if (type.equals(ArgType.FLOAT))
+								f = parentClass.getConstField(Float.intBitsToFloat((int) lit));
+						}
+						if (f != null) {
+							InsnNode inode = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
+							inode.setResult(insn.getResult());
+							replaceInsn(block, i, inode);
 						}
 						break;
 
@@ -233,10 +252,10 @@ public class ModVisitor extends AbstractVisitor {
 	}
 
 	private void checkArgsNames(MethodNode mth) {
-		for(RegisterArg arg : mth.getArguments(false)) {
+		for (RegisterArg arg : mth.getArguments(false)) {
 			String name = arg.getTypedVar().getName();
-			if(name != null && NameMapper.isReserved(name)) {
-				name = name + "_" ;
+			if (name != null && NameMapper.isReserved(name)) {
+				name = name + "_";
 				arg.getTypedVar().setName(name);
 			}
 		}

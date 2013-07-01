@@ -87,9 +87,9 @@ public class ClassNode extends AttrNode implements ILoadable {
 			setFieldsTypesFromSignature();
 
 			int sfIdx = cls.getSourceFileIndex();
-			if(sfIdx != DexNode.NO_INDEX) {
+			if (sfIdx != DexNode.NO_INDEX) {
 				String fileName = dex.getString(sfIdx);
-				if(!this.getFullName().contains(fileName.replace(".java", ""))) {
+				if (!this.getFullName().contains(fileName.replace(".java", ""))) {
 					this.getAttributes().add(new SourceFileAttr(fileName));
 					LOG.debug("Class '{}' compiled from '{}'", this, fileName);
 				}
@@ -134,10 +134,14 @@ public class ClassNode extends AttrNode implements ILoadable {
 			parser.processFields(staticFields);
 
 			for (FieldNode f : staticFields) {
-				if (f.getType().equals(ArgType.STRING)) {
+				AccessInfo accFlags = f.getAccessFlags();
+				if (accFlags.isStatic() && accFlags.isFinal()) {
 					FieldValueAttr fv = (FieldValueAttr) f.getAttributes().get(AttributeType.FIELD_VALUE);
 					if (fv != null && fv.getValue() != null) {
-						constFields.put(fv.getValue(), f);
+						if (accFlags.isPublic())
+							dex.getConstFields().put(fv.getValue(), f);
+						else
+							constFields.put(fv.getValue(), f);
 					}
 				}
 			}
@@ -231,6 +235,13 @@ public class ClassNode extends AttrNode implements ILoadable {
 		return fields;
 	}
 
+	public FieldNode getConstField(Object o) {
+		FieldNode field = constFields.get(o);
+		if(field == null)
+			field = dex.getConstFields().get(o);
+		return field;
+	}
+
 	public FieldNode searchFieldById(int id) {
 		String name = FieldInfo.getNameById(dex, id);
 		for (FieldNode f : fields) {
@@ -295,10 +306,6 @@ public class ClassNode extends AttrNode implements ILoadable {
 		return accessFlags;
 	}
 
-	public Map<Object, FieldNode> getConstFields() {
-		return constFields;
-	}
-
 	public DexNode dex() {
 		return dex;
 	}
@@ -323,5 +330,4 @@ public class ClassNode extends AttrNode implements ILoadable {
 	public String toString() {
 		return getFullName();
 	}
-
 }
