@@ -5,6 +5,7 @@ Command line tool for produce Java sources from Android Dex and Jar files
 
 ### Downloads
 Latest version available at 
+[github](https://github.com/skylot/jadx/releases),
 [sourceforge](http://sourceforge.net/projects/jadx/files/) 
 or
 [bintray](http://bintray.com/pkg/show/general/skylot/jadx/jadx-cli)
