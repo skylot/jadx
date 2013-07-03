@@ -67,10 +67,15 @@ public class MethodGen {
 
 			annotationGen.addForMethod(code, mth);
 
+			AccessInfo clsAccFlags = mth.getParentClass().getAccessFlags();
 			AccessInfo ai = mth.getAccessFlags();
 			// don't add 'abstract' to methods in interface
-			if (mth.getParentClass().getAccessFlags().isInterface()) {
+			if (clsAccFlags.isInterface()) {
 				ai = ai.remove(AccessFlags.ACC_ABSTRACT);
+			}
+			// don't add 'public' for annotations
+			if (clsAccFlags.isAnnotation()) {
+				ai = ai.remove(AccessFlags.ACC_PUBLIC);
 			}
 			code.startLine(ai.makeString());
 
