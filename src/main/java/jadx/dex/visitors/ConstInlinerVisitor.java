@@ -26,7 +26,7 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 			return;
 
 		for (BlockNode block : mth.getBasicBlocks()) {
-			for (Iterator<InsnNode> it = block.getInstructions().iterator(); it.hasNext();) {
+			for (Iterator<InsnNode> it = block.getInstructions().iterator(); it.hasNext(); ) {
 				InsnNode insn = it.next();
 				if (checkInsn(mth, block, insn))
 					it.remove();
@@ -39,12 +39,8 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 			if (insn.getArgsCount() == 1
 					&& insn.getArg(0).isLiteral()
 					&& insn.getResult().getType().getRegCount() == 1 /* process only narrow types */) {
-				// literal arg
-				LiteralArg litArg = (LiteralArg) insn.getArg(0);
-				long lit = litArg.getLiteral();
-				if (lit == 0 || lit == 1) {
-					return replaceConst(mth, block, insn, lit);
-				}
+				long lit = ((LiteralArg) insn.getArg(0)).getLiteral();
+				return replaceConst(mth, block, insn, lit);
 			}
 			// TODO process string const
 		}
