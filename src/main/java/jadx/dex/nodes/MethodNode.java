@@ -4,6 +4,7 @@ import jadx.Consts;
 import jadx.dex.attributes.AttrNode;
 import jadx.dex.attributes.AttributeFlag;
 import jadx.dex.attributes.JumpAttribute;
+import jadx.dex.attributes.LoopAttr;
 import jadx.dex.attributes.annotations.Annotation;
 import jadx.dex.info.AccessInfo;
 import jadx.dex.info.AccessInfo.AFType;
@@ -64,6 +65,7 @@ public class MethodNode extends AttrNode implements ILoadable {
 
 	private IContainer region;
 	private List<ExceptionHandler> exceptionHandlers;
+	private List<LoopAttr> loops = Collections.emptyList();
 
 	public MethodNode(ClassNode classNode, Method mthData) {
 		this.mthInfo = MethodInfo.fromDex(classNode.dex(), mthData.getMethodIndex());
@@ -409,6 +411,21 @@ public class MethodNode extends AttrNode implements ILoadable {
 
 	public void addExitBlock(BlockNode exitBlock) {
 		this.exitBlocks.add(exitBlock);
+	}
+
+	public void registerLoop(LoopAttr loop) {
+		if(loops.isEmpty()) {
+			loops = new ArrayList<LoopAttr>(5);
+		}
+		loops.add(loop);
+	}
+
+	public LoopAttr getLoopForBlock(BlockNode block) {
+		for (LoopAttr loop : loops) {
+			if(loop.getLoopBlocks().contains(block))
+				return loop;
+		}
+		return null;
 	}
 
 	public ExceptionHandler addExceptionHandler(ExceptionHandler handler) {

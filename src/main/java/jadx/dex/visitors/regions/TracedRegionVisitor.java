@@ -4,11 +4,12 @@ import jadx.dex.nodes.IBlock;
 import jadx.dex.nodes.IRegion;
 import jadx.dex.nodes.MethodNode;
 
-import java.util.Stack;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 public abstract class TracedRegionVisitor implements IRegionVisitor {
 
-	private final Stack<IRegion> regionStack = new Stack<IRegion>();
+	protected final Deque<IRegion> regionStack = new ArrayDeque<IRegion>();
 
 	@Override
 	public void enterRegion(MethodNode mth, IRegion region) {
@@ -27,5 +28,4 @@ public abstract class TracedRegionVisitor implements IRegionVisitor {
 	public void leaveRegion(MethodNode mth, IRegion region) {
 		regionStack.pop();
 	}
-
 }

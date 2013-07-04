@@ -180,6 +180,8 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			if (i > 100)
 				throw new AssertionError("Can't fix method cfg: " + mth);
 		}
+
+		registerLoops(mth);
 	}
 
 	private static BlockNode getBlock(int offset, Map<Integer, BlockNode> blocksMap) {
@@ -303,6 +305,16 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			if (insns.size() == 1) {
 				if (insns.get(0).getType() == InsnType.RETURN)
 					block.getAttributes().add(AttributeFlag.RETURN);
+			}
+		}
+	}
+
+	private static void registerLoops(MethodNode mth) {
+		for (BlockNode block : mth.getBasicBlocks()) {
+			AttributesList attributes = block.getAttributes();
+			IAttribute loop = attributes.get(AttributeType.LOOP);
+			if(loop != null && attributes.contains(AttributeFlag.LOOP_START)) {
+				mth.registerLoop((LoopAttr) loop);
 			}
 		}
 	}
