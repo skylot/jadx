@@ -1,0 +1,4 @@
+dependencies {
+    compile 'com.google.android.tools:dx:1.7'
+}
+

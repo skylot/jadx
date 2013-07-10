@@ -1,0 +1,31 @@
+apply plugin: 'application'
+
+mainClassName = "jadx.gui.JadxGUI"
+
+dependencies {
+    compile(project(":jadx-core"))
+    compile(project(":jadx-cli"))
+    compile 'com.fifesoft:rsyntaxtextarea:2.0.7'
+}
+
+build.dependsOn distZip
+build.dependsOn installApp
+
+startScripts {
+    doLast {
+        // increase default max heap size
+        String var = 'DEFAULT_JVM_OPTS='
+        String args = '-Xmx1400M'
+        unixScript.text = unixScript.text.replace(var + '""', var + '"' + args + '"')
+        windowsScript.text = windowsScript.text.replace(var, var + args)
+    }
+}
+
+applicationDistribution.with {
+    into('') {
+        from '.'
+        include 'README.md'
+        include 'NOTICE'
+    }
+}
+

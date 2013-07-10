@@ -7,12 +7,15 @@
 .idea/
 out/
 *.iml
+*.ipr
+*.iws
 
 bin/
 target/
 build/
 idea/
 .gradle/
+gradle.properties
 
 *.dex
 *.jar

@@ -1,0 +1,47 @@
+project.ext {
+    mainSamplesClass = "jadx.samples.RunTests"  
+    samplesJadxSrcDir = "${buildDir}/samples-jadx/src"
+}
+
+dependencies {
+    compile(project(":jadx-core"))
+    compile(project(":jadx-cli"))
+}
+
+sourceSets {
+    samples
+    //TODO don't add to eclipse classpath
+    samplesJadx {
+        java {
+            srcDir samplesJadxSrcDir
+            output.classesDir "${buildDir}/samples-jadx/output"
+        }
+    }
+}
+
+task samplesRun(type: JavaExec, dependsOn: compileSamplesJava) {  
+    classpath = sourceSets.samples.output
+    main = mainSamplesClass  
+}
+
+task samplesJar(type: Jar, dependsOn: samplesRun) {
+    baseName = 'samples'
+    from sourceSets.samples.output
+}
+
+task samplesJadxCreate(type: JavaExec, dependsOn: [compileJava, samplesJar]) {  
+    classpath = sourceSets.main.output + configurations.compile
+    main = "jadx.cli.JadxCLI" 
+    args = ['-d', samplesJadxSrcDir, samplesJar.archivePath]
+}
+
+compileSamplesJadxJava.dependsOn samplesJadxCreate
+
+task samplesJadxRun(type: JavaExec, dependsOn: compileSamplesJadxJava) {  
+    classpath = sourceSets.samplesJadx.output
+    main = mainSamplesClass  
+}
+
+task samples (dependsOn: samplesJadxRun) {
+}
+
