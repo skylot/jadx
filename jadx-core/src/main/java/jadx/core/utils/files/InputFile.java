@@ -23,6 +23,9 @@ public class InputFile {
 
 	public InputFile(File file) throws IOException, DecodeException {
 		this.file = file;
+		if (!file.exists()) {
+			throw new IOException("File not found: " + file.getAbsolutePath());
+		}
 
 		String fileName = file.getName();
 
@@ -81,5 +84,4 @@ public class InputFile {
 	public String toString() {
 		return file.toString();
 	}
-
 }

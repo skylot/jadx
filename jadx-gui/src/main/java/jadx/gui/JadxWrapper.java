@@ -1,7 +1,7 @@
 package jadx.gui;
 
-import jadx.api.IJadxArgs;
 import jadx.api.Decompiler;
+import jadx.api.IJadxArgs;
 import jadx.api.JavaClass;
 import jadx.api.JavaPackage;
 import jadx.core.utils.exceptions.DecodeException;
@@ -12,12 +12,14 @@ import java.util.List;
 
 public class JadxWrapper {
 	private final Decompiler decompiler;
+	private File openFile;
 
 	public JadxWrapper(IJadxArgs jadxArgs) {
 		this.decompiler = new Decompiler(jadxArgs);
 	}
 
 	public void openFile(File file) {
+		this.openFile = file;
 		try {
 			this.decompiler.loadFile(file);
 		} catch (IOException e) {
@@ -35,4 +37,7 @@ public class JadxWrapper {
 		return decompiler.getPackages();
 	}
 
+	public File getOpenFile() {
+		return openFile;
+	}
 }

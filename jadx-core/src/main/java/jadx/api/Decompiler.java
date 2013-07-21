@@ -56,11 +56,7 @@ public final class Decompiler {
 	}
 
 	public void loadFile(File file) throws IOException, DecodeException {
-		List<File> files = args.getInput();
-		files.clear();
-		files.add(file);
-
-		loadInput();
+		setInput(file);
 		parseDex();
 	}
 
@@ -119,9 +115,15 @@ public final class Decompiler {
 	}
 
 	private void loadInput() throws IOException, DecodeException {
+		inputFiles.clear();
 		for (File file : args.getInput()) {
 			inputFiles.add(new InputFile(file));
 		}
+	}
+
+	private void setInput(File file) throws IOException, DecodeException {
+		inputFiles.clear();
+		inputFiles.add(new InputFile(file));
 	}
 
 	private void parseDex() throws DecodeException {

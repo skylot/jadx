@@ -2,7 +2,8 @@ package jadx.gui;
 
 import jadx.cli.JadxArgs;
 
-import javax.swing.*;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,7 @@ public class JadxGUI {
 				MainWindow mainWindow = new MainWindow(jadxArgs);
 				mainWindow.setVisible(true);
 
-				if(!jadxArgs.getInput().isEmpty()) {
+				if (!jadxArgs.getInput().isEmpty()) {
 					mainWindow.openFile(jadxArgs.getInput().get(0));
 				}
 			}

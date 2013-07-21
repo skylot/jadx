@@ -1,25 +1,35 @@
 package jadx.gui;
 
 import jadx.api.JavaClass;
-import jadx.api.JavaPackage;
 import jadx.cli.JadxArgs;
-import jadx.gui.model.JClass;
-import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.gui.treemodel.JClass;
+import jadx.gui.treemodel.JNode;
+import jadx.gui.treemodel.JRoot;
 
-import javax.swing.*;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTree;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.net.URL;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -35,8 +45,8 @@ public class MainWindow extends JFrame {
 
 	private final JadxWrapper wrapper;
 	private JPanel mainPanel;
-	private DefaultMutableTreeNode treeRoot;
 	private JTree tree;
+	private DefaultTreeModel treeModel;
 	private RSyntaxTextArea textArea;
 
 	public MainWindow(JadxArgs jadxArgs) {
@@ -52,7 +62,7 @@ public class MainWindow extends JFrame {
 		JMenu file = new JMenu("File");
 		file.setMnemonic(KeyEvent.VK_F);
 
-		JMenuItem exit = new JMenuItem("Exit", openIcon("application-exit"));
+		JMenuItem exit = new JMenuItem("Exit", Utils.openIcon("cross"));
 		exit.setMnemonic(KeyEvent.VK_E);
 		exit.setToolTipText("Exit application");
 		exit.addActionListener(new ActionListener() {
@@ -61,7 +71,7 @@ public class MainWindow extends JFrame {
 			}
 		});
 
-		JMenuItem open = new JMenuItem("Open", openIcon("document-open-5"));
+		JMenuItem open = new JMenuItem("Open", Utils.openIcon("folder"));
 		open.setMnemonic(KeyEvent.VK_E);
 		open.setToolTipText("Open file");
 		open.addActionListener(new ActionListener() {
@@ -92,26 +102,10 @@ public class MainWindow extends JFrame {
 	}
 
 	private void initTree() {
-		treeRoot.removeAllChildren();
-		for (JavaPackage pkg : wrapper.getPackages()) {
-			MutableTreeNode child = new DefaultMutableTreeNode(pkg);
-			int i = 0;
-			for (JavaClass javaClass : pkg.getClasses()) {
-				MutableTreeNode cls = new DefaultMutableTreeNode(new JClass(javaClass));
-				child.insert(cls, i++);
-			}
-			treeRoot.add(child);
-		}
+		JRoot treeRoot = new JRoot(wrapper);
+		treeModel.setRoot(treeRoot);
+		treeModel.reload();
 		tree.expandRow(0);
-	}
-
-	private ImageIcon openIcon(String name) {
-		String iconPath = "/icons-16/" + name + ".png";
-		URL resource = getClass().getResource(iconPath);
-		if (resource == null) {
-			throw new JadxRuntimeException("Icon not found: " + iconPath);
-		}
-		return new ImageIcon(resource);
 	}
 
 	private void initUI() {
@@ -119,24 +113,35 @@ public class MainWindow extends JFrame {
 		JSplitPane splitPane = new JSplitPane();
 		mainPanel.add(splitPane);
 
-		treeRoot = new DefaultMutableTreeNode("Please open file");
-		tree = new JTree(treeRoot);
+		DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode("Please open file");
+		treeModel = new DefaultTreeModel(treeRoot);
+		tree = new JTree(treeModel);
 //		tree.setRootVisible(false);
 //		tree.setBackground(BACKGROUND);
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		tree.addTreeSelectionListener(new TreeSelectionListener() {
 			@Override
 			public void valueChanged(TreeSelectionEvent e) {
-				Object node = tree.getLastSelectedPathComponent();
-				if (node instanceof DefaultMutableTreeNode) {
-					Object obj = ((DefaultMutableTreeNode) node).getUserObject();
-					if (obj instanceof JClass) {
-						JavaClass jc = ((JClass) obj).getCls();
-						String code = jc.getCode();
-						textArea.setText(code);
-						textArea.setCaretPosition(0);
-					}
+				Object obj = tree.getLastSelectedPathComponent();
+				if (obj instanceof JClass) {
+					JavaClass jc = ((JClass) obj).getCls();
+					String code = jc.getCode();
+					textArea.setText(code);
+					textArea.setCaretPosition(0);
 				}
+			}
+		});
+
+		tree.setCellRenderer(new DefaultTreeCellRenderer() {
+			@Override
+			public Component getTreeCellRendererComponent(JTree tree,
+			                                              Object value, boolean selected, boolean expanded,
+			                                              boolean isLeaf, int row, boolean focused) {
+				Component c = super.getTreeCellRendererComponent(tree, value, selected, expanded, isLeaf, row, focused);
+				if (value instanceof JNode) {
+					setIcon(((JNode) value).getIcon());
+				}
+				return c;
 			}
 		});
 
