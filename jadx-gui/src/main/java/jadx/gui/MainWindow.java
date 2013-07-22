@@ -6,6 +6,8 @@ import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JRoot;
 
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -14,6 +16,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -22,6 +26,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -40,8 +45,12 @@ import org.slf4j.LoggerFactory;
 public class MainWindow extends JFrame {
 	private static final Logger LOG = LoggerFactory.getLogger(MainWindow.class);
 
-	public static final String DEFAULT_TITLE = "jadx-gui";
-	public static final Color BACKGROUND = new Color(0xf7f7f7);
+	private static final String DEFAULT_TITLE = "jadx-gui";
+	private static final Color BACKGROUND = new Color(0xf7f7f7);
+
+	private static final ImageIcon ICON_OPEN = Utils.openIcon("folder");
+	private static final ImageIcon ICON_CLOSE = Utils.openIcon("cross");
+	private static final ImageIcon ICON_FLAT_PKG = Utils.openIcon("empty_logical_package_obj");
 
 	private final JadxWrapper wrapper;
 	private JPanel mainPanel;
@@ -53,46 +62,7 @@ public class MainWindow extends JFrame {
 		this.wrapper = new JadxWrapper(jadxArgs);
 
 		initUI();
-		initMenu();
-	}
-
-	private void initMenu() {
-		JMenuBar menuBar = new JMenuBar();
-
-		JMenu file = new JMenu("File");
-		file.setMnemonic(KeyEvent.VK_F);
-
-		JMenuItem exit = new JMenuItem("Exit", Utils.openIcon("cross"));
-		exit.setMnemonic(KeyEvent.VK_E);
-		exit.setToolTipText("Exit application");
-		exit.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent event) {
-				System.exit(0);
-			}
-		});
-
-		JMenuItem open = new JMenuItem("Open", Utils.openIcon("folder"));
-		open.setMnemonic(KeyEvent.VK_E);
-		open.setToolTipText("Open file");
-		open.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent event) {
-				JFileChooser fileChooser = new JFileChooser();
-				FileFilter filter = new FileNameExtensionFilter("dex files", "dex", "apk", "jar");
-				fileChooser.addChoosableFileFilter(filter);
-				int ret = fileChooser.showDialog(mainPanel, "Open file");
-				if (ret == JFileChooser.APPROVE_OPTION) {
-					File file = fileChooser.getSelectedFile();
-					openFile(file);
-				}
-			}
-		});
-
-		file.add(open);
-		file.addSeparator();
-		file.add(exit);
-
-		menuBar.add(file);
-		setJMenuBar(menuBar);
+		initMenuAndToolbar();
 	}
 
 	public void openFile(File file) {
@@ -106,6 +76,80 @@ public class MainWindow extends JFrame {
 		treeModel.setRoot(treeRoot);
 		treeModel.reload();
 		tree.expandRow(0);
+//		expandTree();
+	}
+
+	private void toggleFlattenPackage() {
+		Object root = treeModel.getRoot();
+		if (root instanceof JRoot) {
+			JRoot treeRoot = (JRoot) root;
+			treeRoot.setFlatPackages(!treeRoot.isFlatPackages());
+			treeModel.reload();
+			tree.expandRow(0);
+		}
+	}
+
+	private void expandTree() {
+		DefaultMutableTreeNode currentNode = ((DefaultMutableTreeNode) tree.getModel().getRoot()).getNextNode();
+		do {
+			if (currentNode.getLevel() == 1) {
+				tree.expandPath(new TreePath(currentNode.getPath()));
+			}
+			currentNode = currentNode.getNextNode();
+		}
+		while (currentNode != null);
+	}
+
+	private void initMenuAndToolbar() {
+		JMenuBar menuBar = new JMenuBar();
+
+		JMenu file = new JMenu("File");
+		file.setMnemonic(KeyEvent.VK_F);
+
+		JMenuItem exit = new JMenuItem("Exit", ICON_CLOSE);
+		exit.setMnemonic(KeyEvent.VK_E);
+		exit.setToolTipText("Exit application");
+		exit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				System.exit(0);
+			}
+		});
+
+		JMenuItem open = new JMenuItem("Open", ICON_OPEN);
+		open.setMnemonic(KeyEvent.VK_E);
+		open.setToolTipText("Open file");
+		open.addActionListener(new OpenListener());
+
+		file.add(open);
+		file.addSeparator();
+		file.add(exit);
+
+		menuBar.add(file);
+		setJMenuBar(menuBar);
+
+		JToolBar toolbar = new JToolBar();
+		toolbar.setFloatable(false);
+
+		JButton openButton = new JButton(ICON_OPEN);
+		openButton.addActionListener(new OpenListener());
+		openButton.setToolTipText(NLS.str("file.open"));
+
+		toolbar.add(openButton);
+		toolbar.addSeparator();
+
+		JToggleButton flatPkgButton = new JToggleButton(ICON_FLAT_PKG);
+		flatPkgButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				toggleFlattenPackage();
+			}
+		});
+		flatPkgButton.setToolTipText(NLS.str("tree.flatten"));
+		toolbar.add(flatPkgButton);
+
+		toolbar.addSeparator();
+
+		add(toolbar, BorderLayout.NORTH);
 	}
 
 	private void initUI() {
@@ -165,5 +209,18 @@ public class MainWindow extends JFrame {
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		pack();
 		setLocationRelativeTo(null);
+	}
+
+	private class OpenListener implements ActionListener {
+		public void actionPerformed(ActionEvent event) {
+			JFileChooser fileChooser = new JFileChooser();
+			FileFilter filter = new FileNameExtensionFilter("dex files", "dex", "apk", "jar");
+			fileChooser.addChoosableFileFilter(filter);
+			int ret = fileChooser.showDialog(mainPanel, "Open file");
+			if (ret == JFileChooser.APPROVE_OPTION) {
+				File file = fileChooser.getSelectedFile();
+				openFile(file);
+			}
+		}
 	}
 }

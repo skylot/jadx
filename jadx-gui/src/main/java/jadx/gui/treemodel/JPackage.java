@@ -7,22 +7,57 @@ import jadx.gui.Utils;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.tree.DefaultMutableTreeNode;
+import java.util.ArrayList;
+import java.util.List;
 
-public class JPackage extends DefaultMutableTreeNode implements JNode {
+public class JPackage extends DefaultMutableTreeNode implements JNode, Comparable<JPackage> {
 	private static final ImageIcon PACKAGE_ICON = Utils.openIcon("package_obj");
 
-	private final JavaPackage pkg;
+	private String name;
+	private List<JClass> classes;
+	private List<JPackage> innerPackages = new ArrayList<JPackage>(1);
 
 	public JPackage(JavaPackage pkg) {
-		this.pkg = pkg;
+		this.name = pkg.getName();
+		List<JavaClass> javaClasses = pkg.getClasses();
+		this.classes = new ArrayList<JClass>(javaClasses.size());
+		for (JavaClass javaClass : javaClasses) {
+			classes.add(new JClass(javaClass));
+		}
+		updateChilds();
+	}
 
-		for (JavaClass javaClass : pkg.getClasses()) {
-			add(new JClass(javaClass));
+	public JPackage(String name) {
+		this.name = name;
+		this.classes = new ArrayList<JClass>(1);
+	}
+
+	@Override
+	public void updateChilds() {
+		removeAllChildren();
+		for (JPackage pkg : innerPackages) {
+			pkg.updateChilds();
+			add(pkg);
+		}
+		for (JClass cls : classes) {
+			add(cls);
 		}
 	}
 
-	public JavaPackage getPkg() {
-		return pkg;
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public List<JPackage> getInnerPackages() {
+		return innerPackages;
+	}
+
+	public List<JClass> getClasses() {
+		return classes;
 	}
 
 	@Override
@@ -31,7 +66,12 @@ public class JPackage extends DefaultMutableTreeNode implements JNode {
 	}
 
 	@Override
+	public int compareTo(JPackage o) {
+		return name.compareTo(o.name);
+	}
+
+	@Override
 	public String toString() {
-		return pkg.getName();
+		return name;
 	}
 }
