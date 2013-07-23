@@ -1,8 +1,6 @@
 package jadx.gui;
 
-import jadx.api.JavaClass;
 import jadx.cli.JadxArgs;
-import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JRoot;
 
@@ -23,10 +21,10 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.BadLocationException;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -76,7 +74,6 @@ public class MainWindow extends JFrame {
 		treeModel.setRoot(treeRoot);
 		treeModel.reload();
 		tree.expandRow(0);
-//		expandTree();
 	}
 
 	private void toggleFlattenPackage() {
@@ -89,15 +86,26 @@ public class MainWindow extends JFrame {
 		}
 	}
 
-	private void expandTree() {
-		DefaultMutableTreeNode currentNode = ((DefaultMutableTreeNode) tree.getModel().getRoot()).getNextNode();
-		do {
-			if (currentNode.getLevel() == 1) {
-				tree.expandPath(new TreePath(currentNode.getPath()));
+	private void treeClickAction() {
+		Object obj = tree.getLastSelectedPathComponent();
+		if (obj instanceof JNode) {
+			JNode node = (JNode) obj;
+			if (node.getJParent() != null) {
+				textArea.setText(node.getJParent().getCode());
+				scrollToLine(node.getLine());
 			}
-			currentNode = currentNode.getNextNode();
 		}
-		while (currentNode != null);
+	}
+
+	private void scrollToLine(int line) {
+		if (line < 2) {
+			return;
+		}
+		try {
+			textArea.setCaretPosition(textArea.getLineStartOffset(line - 1));
+		} catch (BadLocationException e) {
+			LOG.error("Can't scroll to " + line, e);
+		}
 	}
 
 	private void initMenuAndToolbar() {
@@ -165,14 +173,8 @@ public class MainWindow extends JFrame {
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		tree.addTreeSelectionListener(new TreeSelectionListener() {
 			@Override
-			public void valueChanged(TreeSelectionEvent e) {
-				Object obj = tree.getLastSelectedPathComponent();
-				if (obj instanceof JClass) {
-					JavaClass jc = ((JClass) obj).getCls();
-					String code = jc.getCode();
-					textArea.setText(code);
-					textArea.setCaretPosition(0);
-				}
+			public void valueChanged(TreeSelectionEvent event) {
+				treeClickAction();
 			}
 		});
 

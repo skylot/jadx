@@ -119,6 +119,16 @@ public class JRoot extends DefaultMutableTreeNode implements JNode {
 	}
 
 	@Override
+	public JClass getJParent() {
+		return null;
+	}
+
+	@Override
+	public int getLine() {
+		return 0;
+	}
+
+	@Override
 	public String toString() {
 		File file = wrapper.getOpenFile();
 		return file != null ? file.getName() : "File not open";

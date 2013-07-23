@@ -40,6 +40,7 @@ public class JPackage extends DefaultMutableTreeNode implements JNode, Comparabl
 			add(pkg);
 		}
 		for (JClass cls : classes) {
+			cls.updateChilds();
 			add(cls);
 		}
 	}
@@ -63,6 +64,16 @@ public class JPackage extends DefaultMutableTreeNode implements JNode, Comparabl
 	@Override
 	public Icon getIcon() {
 		return PACKAGE_ICON;
+	}
+
+	@Override
+	public JClass getJParent() {
+		return null;
+	}
+
+	@Override
+	public int getLine() {
+		return 0;
 	}
 
 	@Override

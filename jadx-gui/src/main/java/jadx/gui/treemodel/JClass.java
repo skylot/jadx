@@ -1,6 +1,8 @@
 package jadx.gui.treemodel;
 
 import jadx.api.JavaClass;
+import jadx.api.JavaField;
+import jadx.api.JavaMethod;
 import jadx.core.dex.info.AccessInfo;
 import jadx.gui.Utils;
 
@@ -19,10 +21,10 @@ public class JClass extends DefaultMutableTreeNode implements JNode {
 	private static final ImageIcon ICON_ANNOTATION = Utils.openIcon("annotation_obj");
 
 	private final JavaClass cls;
+	private JClass jParrent;
 
 	public JClass(JavaClass cls) {
 		this.cls = cls;
-		updateChilds();
 	}
 
 	public JavaClass getCls() {
@@ -31,9 +33,23 @@ public class JClass extends DefaultMutableTreeNode implements JNode {
 
 	@Override
 	public void updateChilds() {
-//		for (JavaClass javaClass : cls.getInnerClasses()) {
-//			add(new JClass(javaClass));
-//		}
+		JClass currentParent = jParrent == null ? this : jParrent;
+		for (JavaClass javaClass : cls.getInnerClasses()) {
+			JClass child = new JClass(javaClass);
+			child.setJParent(currentParent);
+			child.updateChilds();
+			add(child);
+		}
+		for (JavaField f : cls.getFields()) {
+			add(new JField(f, currentParent));
+		}
+		for (JavaMethod m : cls.getMethods()) {
+			add(new JMethod(m, currentParent));
+		}
+	}
+
+	public String getCode(){
+		return cls.getCode();
 	}
 
 	@Override
@@ -55,6 +71,20 @@ public class JClass extends DefaultMutableTreeNode implements JNode {
 		} else {
 			return ICON_CLASS_DEFAULT;
 		}
+	}
+
+	public void setJParent(JClass parent) {
+		this.jParrent = parent;
+	}
+
+	@Override
+	public JClass getJParent() {
+		return jParrent;
+	}
+
+	@Override
+	public int getLine() {
+		return cls.getDecompiledLine();
 	}
 
 	@Override
