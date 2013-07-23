@@ -1,9 +1,9 @@
 package jadx.core.dex.nodes;
 
 import jadx.core.Consts;
-import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.attributes.JumpAttribute;
+import jadx.core.dex.attributes.LineAttrNode;
 import jadx.core.dex.attributes.LoopAttr;
 import jadx.core.dex.attributes.annotations.Annotation;
 import jadx.core.dex.info.AccessInfo;
@@ -40,7 +40,7 @@ import com.android.dx.io.Code;
 import com.android.dx.io.Code.CatchHandler;
 import com.android.dx.io.Code.Try;
 
-public class MethodNode extends AttrNode implements ILoadable {
+public class MethodNode extends LineAttrNode implements ILoadable {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodNode.class);
 
 	private final MethodInfo mthInfo;
@@ -101,8 +101,17 @@ public class MethodNode extends AttrNode implements ILoadable {
 			initTryCatches(mthCode, insnByOffset);
 			initJumps(insnByOffset);
 
-			if (mthCode.getDebugInfoOffset() > 0) {
-				(new DebugInfoParser(this, mthCode.getDebugInfoOffset(), insnByOffset)).process();
+			int debugInfoOffset = mthCode.getDebugInfoOffset();
+			if (debugInfoOffset > 0) {
+				DebugInfoParser debugInfoParser = new DebugInfoParser(this, debugInfoOffset, insnByOffset);
+				debugInfoParser.process();
+
+				if (instructions.size() != 0) {
+					int line = instructions.get(0).getSourceLine();
+					if (line != 0) {
+						this.setSourceLine(line - 1);
+					}
+				}
 			}
 		} catch (Exception e) {
 			throw new DecodeException(this, "Load method exception", e);
@@ -414,7 +423,7 @@ public class MethodNode extends AttrNode implements ILoadable {
 	}
 
 	public void registerLoop(LoopAttr loop) {
-		if(loops.isEmpty()) {
+		if (loops.isEmpty()) {
 			loops = new ArrayList<LoopAttr>(5);
 		}
 		loops.add(loop);
@@ -422,7 +431,7 @@ public class MethodNode extends AttrNode implements ILoadable {
 
 	public LoopAttr getLoopForBlock(BlockNode block) {
 		for (LoopAttr loop : loops) {
-			if(loop.getLoopBlocks().contains(block))
+			if (loop.getLoopBlocks().contains(block))
 				return loop;
 		}
 		return null;
@@ -475,6 +484,19 @@ public class MethodNode extends AttrNode implements ILoadable {
 
 	public MethodInfo getMethodInfo() {
 		return mthInfo;
+	}
+
+	@Override
+	public int hashCode() {
+		return mthInfo.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (obj == null || getClass() != obj.getClass()) return false;
+		MethodNode other = (MethodNode) obj;
+		return mthInfo.equals(other.mthInfo);
 	}
 
 	@Override

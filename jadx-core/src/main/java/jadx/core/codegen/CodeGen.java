@@ -21,14 +21,8 @@ public class CodeGen extends AbstractVisitor {
 	public boolean visit(ClassNode cls) throws CodegenException {
 		ClassGen clsGen = new ClassGen(cls, null, isFallbackMode());
 		CodeWriter clsCode = clsGen.makeClass();
-
+		clsCode.finish();
 		cls.setCode(clsCode);
-
-//		String fileName = cls.getClassInfo().getFullPath() + ".java";
-//		if (isFallbackMode())
-//			fileName += ".jadx";
-//		clsCode.save(dir, fileName);
-
 		return false;
 	}
 

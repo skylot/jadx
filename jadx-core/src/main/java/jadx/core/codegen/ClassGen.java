@@ -59,7 +59,7 @@ public class ClassGen {
 
 		if (!"".equals(cls.getPackage())) {
 			clsCode.add("package ").add(cls.getPackage()).add(';');
-			clsCode.endl();
+			clsCode.newLine();
 		}
 
 		if (imports.size() != 0) {
@@ -71,7 +71,7 @@ public class ClassGen {
 			for (String imp : sortImports) {
 				clsCode.startLine("import ").add(imp).add(';');
 			}
-			clsCode.endl();
+			clsCode.newLine();
 
 			sortImports.clear();
 			imports.clear();
@@ -90,7 +90,7 @@ public class ClassGen {
 
 		makeClassDeclaration(code);
 		makeClassBody(code);
-		code.endl();
+		code.newLine();
 	}
 
 	public void makeClassDeclaration(CodeWriter clsCode) {
@@ -139,6 +139,8 @@ public class ClassGen {
 			if (!cls.getInterfaces().isEmpty())
 				clsCode.add(' ');
 		}
+
+		clsCode.attachAnnotation(cls);
 	}
 
 	public boolean makeGenericMap(CodeWriter code, Map<ArgType, List<ArgType>> gmap) {
@@ -178,13 +180,13 @@ public class ClassGen {
 		CodeWriter fieldsCode = makeFields(clsCode, cls, cls.getFields());
 		clsCode.add(fieldsCode);
 		if (fieldsCode.notEmpty() && mthsCode.notEmpty())
-			clsCode.endl();
+			clsCode.newLine();
 
 		// insert inner classes code
 		if (cls.getInnerClasses().size() != 0) {
 			clsCode.add(makeInnerClasses(cls, clsCode.getIndent()));
 			if (mthsCode.notEmpty())
-				clsCode.endl();
+				clsCode.newLine();
 		}
 		clsCode.add(mthsCode);
 		clsCode.startLine('}');
@@ -239,7 +241,7 @@ public class ClassGen {
 			}
 
 			if (it.hasNext())
-				code.endl();
+				code.newLine();
 		}
 		return code;
 	}
@@ -278,7 +280,7 @@ public class ClassGen {
 				code.startLine();
 
 			code.add(';');
-			code.endl();
+			code.newLine();
 		}
 
 		for (FieldNode f : fields) {
@@ -297,6 +299,7 @@ public class ClassGen {
 				}
 			}
 			code.add(';');
+			code.attachAnnotation(f);
 		}
 		return code;
 	}

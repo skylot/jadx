@@ -49,9 +49,8 @@ public class DebugInfoParser {
 
 	public void process() throws DecodeException {
 		int addr = 0;
-		int line;
+		int line = section.readUleb128();
 
-		line = section.readUleb128();
 		int param_size = section.readUleb128(); // exclude 'this'
 		List<RegisterArg> mthArgs = mth.getArguments(false);
 		assert param_size == mthArgs.size();
@@ -70,14 +69,14 @@ public class DebugInfoParser {
 			activeRegisters[rn] = arg;
 		}
 
-		addrChange(-1, 1); // process '0' instruction
+		addrChange(-1, 1, line); // process '0' instruction
 
 		int c = section.readByte() & 0xFF;
 		while (c != DBG_END_SEQUENCE) {
 			switch (c) {
 				case DBG_ADVANCE_PC: {
 					int addrInc = section.readUleb128();
-					addr = addrChange(addr, addrInc);
+					addr = addrChange(addr, addrInc, line);
 					break;
 				}
 				case DBG_ADVANCE_LINE: {
@@ -141,14 +140,13 @@ public class DebugInfoParser {
 						int adjusted_opcode = c - DBG_FIRST_SPECIAL;
 						line += DBG_LINE_BASE + (adjusted_opcode % DBG_LINE_RANGE);
 						int addrInc = (adjusted_opcode / DBG_LINE_RANGE);
-						addr = addrChange(addr, addrInc);
+						addr = addrChange(addr, addrInc, line);
 					} else {
 						throw new DecodeException("Unknown debug insn code: " + c);
 					}
 					break;
 				}
 			}
-
 			c = section.readByte() & 0xFF;
 		}
 
@@ -160,13 +158,14 @@ public class DebugInfoParser {
 		}
 	}
 
-	private int addrChange(int addr, int addrInc) {
+	private int addrChange(int addr, int addrInc, int line) {
 		int newAddr = addr + addrInc;
 		for (int i = addr + 1; i <= newAddr; i++) {
 			InsnNode insn = insnByOffset[i];
 			if (insn == null)
 				continue;
 
+			insn.setSourceLine(line);
 			for (InsnArg arg : insn.getArguments())
 				if (arg.isRegister()) {
 					activeRegisters[arg.getRegNum()] = arg;

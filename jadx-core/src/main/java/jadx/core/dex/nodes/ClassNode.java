@@ -2,8 +2,8 @@ package jadx.core.dex.nodes;
 
 import jadx.core.Consts;
 import jadx.core.codegen.CodeWriter;
-import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.attributes.AttributeType;
+import jadx.core.dex.attributes.LineAttrNode;
 import jadx.core.dex.attributes.SourceFileAttr;
 import jadx.core.dex.attributes.annotations.Annotation;
 import jadx.core.dex.info.AccessInfo;
@@ -32,7 +32,7 @@ import com.android.dx.io.ClassData.Field;
 import com.android.dx.io.ClassData.Method;
 import com.android.dx.io.ClassDef;
 
-public class ClassNode extends AttrNode implements ILoadable {
+public class ClassNode extends LineAttrNode implements ILoadable {
 	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
 
 	private final DexNode dex;

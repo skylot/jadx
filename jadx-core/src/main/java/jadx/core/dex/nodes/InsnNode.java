@@ -1,6 +1,6 @@
 package jadx.core.dex.nodes;
 
-import jadx.core.dex.attributes.AttrNode;
+import jadx.core.dex.attributes.LineAttrNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -15,7 +15,7 @@ import java.util.List;
 
 import com.android.dx.io.instructions.DecodedInstruction;
 
-public class InsnNode extends AttrNode {
+public class InsnNode extends LineAttrNode {
 
 	protected final InsnType insnType;
 

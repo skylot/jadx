@@ -152,13 +152,16 @@ public class InsnGen {
 			} else {
 				CodeWriter body = new CodeWriter(code.getIndent());
 				makeInsnBody(body, insn, state);
-				if (state.contains(InsnGenState.SKIP))
+				if (state.contains(InsnGenState.SKIP)) {
 					return false;
+				}
 
+				code.startLine();
+				if (insn.getSourceLine() != 0) {
+					code.attachAnnotation(insn.getSourceLine());
+				}
 				if (insn.getResult() != null && !state.contains(InsnGenState.NO_RESULT))
-					code.startLine(assignVar(insn)).add(" = ");
-				else
-					code.startLine();
+					code.add(assignVar(insn)).add(" = ");
 
 				code.add(body);
 

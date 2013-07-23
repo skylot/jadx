@@ -108,6 +108,7 @@ public class MethodGen {
 
 			annotationGen.addThrows(mth, code);
 		}
+		code.attachAnnotation(mth);
 	}
 
 	public CodeWriter makeArguments(List<RegisterArg> args) {
@@ -225,7 +226,7 @@ public class MethodGen {
 			code.startLine("// jadx: method processing error");
 			Throwable cause = err.getCause();
 			if (cause != null) {
-				code.endl();
+				code.newLine();
 				code.add("/*");
 				code.startLine("Error: ").add(Utils.getStackTrace(cause));
 				code.add("*/");

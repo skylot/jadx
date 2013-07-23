@@ -65,7 +65,7 @@ public final class Decompiler {
 		for (ClassNode classNode : root.getClasses()) {
 			classes.add(new JavaClass(this, classNode));
 		}
-		return classes;
+		return Collections.unmodifiableList(classes);
 	}
 
 	public List<JavaPackage> getPackages() {
@@ -85,7 +85,7 @@ public final class Decompiler {
 			packages.add(new JavaPackage(entry.getKey(), entry.getValue()));
 		}
 		Collections.sort(packages);
-		return packages;
+		return Collections.unmodifiableList(packages);
 	}
 
 	public void saveAll() throws InterruptedException {

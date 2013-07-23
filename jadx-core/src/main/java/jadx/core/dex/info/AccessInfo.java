@@ -97,6 +97,10 @@ public class AccessInfo {
 		return accFlags;
 	}
 
+	public AFType getType() {
+		return type;
+	}
+
 	public String makeString() {
 		StringBuilder code = new StringBuilder();
 		if (isPublic())

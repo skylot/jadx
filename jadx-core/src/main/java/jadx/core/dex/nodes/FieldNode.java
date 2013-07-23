@@ -1,6 +1,6 @@
 package jadx.core.dex.nodes;
 
-import jadx.core.dex.attributes.AttrNode;
+import jadx.core.dex.attributes.LineAttrNode;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.AccessInfo.AFType;
 import jadx.core.dex.info.FieldInfo;
@@ -8,7 +8,7 @@ import jadx.core.dex.instructions.args.ArgType;
 
 import com.android.dx.io.ClassData.Field;
 
-public class FieldNode extends AttrNode {
+public class FieldNode extends LineAttrNode {
 
 	private final FieldInfo fieldInfo;
 	private final AccessInfo accFlags;
@@ -39,6 +39,19 @@ public class FieldNode extends AttrNode {
 
 	public void setType(ArgType type) {
 		this.type = type;
+	}
+
+	@Override
+	public int hashCode() {
+		return fieldInfo.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (obj == null || getClass() != obj.getClass()) return false;
+		FieldNode other = (FieldNode) obj;
+		return fieldInfo.equals(other.fieldInfo);
 	}
 
 	@Override

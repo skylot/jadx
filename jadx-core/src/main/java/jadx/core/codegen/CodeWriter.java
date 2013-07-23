@@ -1,9 +1,13 @@
 package jadx.core.codegen;
 
+import jadx.core.dex.attributes.LineAttrNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +23,9 @@ public class CodeWriter {
 	private String indentStr;
 	private int indent;
 
+	private int line = 1;
+	private Map<Object, Integer> annotations = Collections.emptyMap();
+
 	public CodeWriter() {
 		this.indent = 0;
 		this.indentStr = "";
@@ -29,32 +36,32 @@ public class CodeWriter {
 		updateIndent();
 	}
 
-	public CodeWriter startLine(String str) {
-		buf.append(NL);
+	public CodeWriter startLine() {
+		addLine();
 		buf.append(indentStr);
-		buf.append(str);
 		return this;
 	}
 
 	public CodeWriter startLine(char c) {
-		buf.append(NL);
+		addLine();
 		buf.append(indentStr);
 		buf.append(c);
 		return this;
 	}
 
-	public CodeWriter startLine(int ind, String str) {
-		buf.append(NL);
+	public CodeWriter startLine(String str) {
+		addLine();
 		buf.append(indentStr);
-		for (int i = 0; i < ind; i++)
-			buf.append(INDENT);
 		buf.append(str);
 		return this;
 	}
 
-	public CodeWriter startLine() {
-		buf.append(NL);
+	public CodeWriter startLine(int ind, String str) {
+		addLine();
 		buf.append(indentStr);
+		for (int i = 0; i < ind; i++)
+			buf.append(INDENT);
+		buf.append(str);
 		return this;
 	}
 
@@ -68,17 +75,47 @@ public class CodeWriter {
 		return this;
 	}
 
-	public CodeWriter add(CodeWriter mthsCode) {
-		buf.append(mthsCode.toString());
+	public CodeWriter add(CodeWriter code) {
+		line--;
+		for (Map.Entry<Object, Integer> entry : code.annotations.entrySet()) {
+			attachAnnotation(entry.getKey(), line + entry.getValue());
+		}
+		line += code.line;
+		buf.append(code.toString());
 		return this;
 	}
 
-	public CodeWriter endl() {
+	public CodeWriter newLine() {
+		addLine();
+		return this;
+	}
+
+	private void addLine() {
 		buf.append(NL);
+		line++;
+	}
+
+	public int getLine() {
+		return line;
+	}
+
+	public Object attachAnnotation(Object obj) {
+		return attachAnnotation(obj, line);
+	}
+
+	public Object attachAnnotation(Object obj, int line) {
+		if (annotations.isEmpty()) {
+			annotations = new HashMap<Object, Integer>();
+		}
+		return annotations.put(obj, line);
+	}
+
+	public CodeWriter indent() {
+		buf.append(indentStr);
 		return this;
 	}
 
-	private static final String[] INDENT_CACHE = new String[] {
+	private static final String[] INDENT_CACHE = new String[]{
 			"",
 			INDENT,
 			INDENT + INDENT,
@@ -124,6 +161,18 @@ public class CodeWriter {
 			this.indent = 0;
 		}
 		updateIndent();
+	}
+
+	public void finish() {
+		buf.trimToSize();
+		for (Map.Entry<Object, Integer> entry : annotations.entrySet()) {
+			Object v = entry.getKey();
+			if(v instanceof LineAttrNode) {
+				LineAttrNode l = (LineAttrNode) v;
+				l.setDecompiledLine(entry.getValue());
+			}
+		}
+		annotations.clear();
 	}
 
 	private static String removeFirstEmptyLine(String str) {
