@@ -135,12 +135,12 @@ public final class ClassInfo {
 
 	@Override
 	public String toString() {
-		return getFullName();
+		return fullName;
 	}
 
 	@Override
 	public int hashCode() {
-		return type.hashCode();
+		return fullName.hashCode();
 	}
 
 	@Override

@@ -62,10 +62,12 @@ public class ClassGen {
 			clsCode.newLine();
 		}
 
-		if (imports.size() != 0) {
-			List<String> sortImports = new ArrayList<String>();
-			for (ClassInfo ic : imports)
+		int importsCount = imports.size();
+		if (importsCount != 0) {
+			List<String> sortImports = new ArrayList<String>(importsCount);
+			for (ClassInfo ic : imports) {
 				sortImports.add(ic.getFullName());
+			}
 			Collections.sort(sortImports);
 
 			for (String imp : sortImports) {
