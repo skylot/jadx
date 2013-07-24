@@ -121,10 +121,8 @@ public class JadxArgs implements IJadxArgs {
 		}
 
 		outputDir = new File(outDirName);
-		if (!outputDir.exists() && !outputDir.mkdirs())
-			throw new JadxException("Can't create directory " + outputDir);
-		if (!outputDir.isDirectory())
-			throw new JadxException("Output file exists as file " + outputDir);
+		if (outputDir.exists() && !outputDir.isDirectory())
+			throw new JadxException("Output directory exists as file " + outputDir);
 	}
 
 	public void printUsage() {
