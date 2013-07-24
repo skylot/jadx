@@ -1,31 +1,38 @@
-## JADX  [![Build Status](https://buildhive.cloudbees.com/job/skylot/job/jadx/badge/icon)](https://buildhive.cloudbees.com/job/skylot/job/jadx/)
+## JADX 
 **jadx** - Dex to Java decompiler
 
-Command line tool for produce Java sources from Android Dex and Jar files
+Command line and GUI tools for produce Java source code from Android Dex files
+
+Note: jadx-gui now in experimental stage
+
 
 ### Downloads
 Latest version available at 
-[github](https://github.com/skylot/jadx/releases),
+[github](https://github.com/skylot/jadx/releases) or 
 [sourceforge](http://sourceforge.net/projects/jadx/files/) 
-or
-[bintray](http://bintray.com/pkg/show/general/skylot/jadx/jadx-cli)
 
-### Build
+
+### Build [![Build Status](https://buildhive.cloudbees.com/job/skylot/job/jadx/badge/icon)](https://buildhive.cloudbees.com/job/skylot/job/jadx/)
 
     git clone https://github.com/skylot/jadx.git
     cd jadx
-    ./gradlew build
+    ./gradlew clean build pack
     
 (on Windows, use `gradlew.bat` instead of `./gradlew`)
 
-Scripts for run jadx will be placed in `build/install/jadx/bin`
-and also packed to `build/distributions/jadx-<version>.zip`
+Scripts for run jadx will be placed in `build/jadx/bin`
+and also packed to `build/jadx-<version>.zip`
+
 
 ### Run
 Run **jadx** on itself:
 
-    cd build/install/jadx/
-    bin/jadx -d out lib/jadx-*.jar
+    cd build/jadx/
+    bin/jadx-cli -d out lib/jadx-core-*.jar
+or
+
+    bin/jadx-gui lib/jadx-core-*.jar
+
 
 ### Usage
 ```

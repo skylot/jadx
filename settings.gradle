@@ -1,1 +1,1 @@
-include 'jadx-core', 'jadx-cli', 'jadx-gui', 'jadx-samples'
+include 'jadx-core', 'jadx-samples', 'jadx-cli', 'jadx-gui'

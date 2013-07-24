@@ -10,6 +10,8 @@ subprojects {
     sourceCompatibility = 1.6
     targetCompatibility = 1.6
 
+    version = jadxVersion
+
     jar {
         version = jadxVersion
     }
@@ -19,7 +21,6 @@ subprojects {
     }
 
     dependencies {
-        compile 'com.google.android.tools:dx:1.7'
         compile 'org.slf4j:slf4j-api:1.7.5'
         compile 'ch.qos.logback:logback-classic:1.0.13'
         testCompile 'junit:junit:4.11'
@@ -28,6 +29,23 @@ subprojects {
     repositories {
         mavenCentral()
     }
+}
+
+task copyArtifacts (type: Sync, dependsOn: ["jadx-cli:installApp", "jadx-gui:installApp"]) {
+    destinationDir file("$buildDir/jadx")
+    ['jadx-cli', 'jadx-gui'].each {
+        from tasks.getByPath(":${it}:installApp").destinationDir
+    }
+}
+
+task pack (type: Zip, dependsOn: copyArtifacts) {
+    destinationDir buildDir
+    archiveName "jadx-${jadxVersion}.zip"
+    from copyArtifacts.destinationDir
+}
+
+task clean(type: Delete) {
+  delete buildDir
 }
 
 task wrapper(type: Wrapper) {

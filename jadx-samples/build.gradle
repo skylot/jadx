@@ -9,7 +9,6 @@ dependencies {
 }
 
 sourceSets {
-    samples
     //TODO don't add to eclipse classpath
     samplesJadx {
         java {
@@ -19,14 +18,14 @@ sourceSets {
     }
 }
 
-task samplesRun(type: JavaExec, dependsOn: compileSamplesJava) {  
-    classpath = sourceSets.samples.output
+task samplesRun(type: JavaExec, dependsOn: compileJava) {  
+    classpath = sourceSets.main.output
     main = mainSamplesClass  
 }
 
 task samplesJar(type: Jar, dependsOn: samplesRun) {
     baseName = 'samples'
-    from sourceSets.samples.output
+    from sourceSets.main.output
 }
 
 task samplesJadxCreate(type: JavaExec, dependsOn: [compileJava, samplesJar]) {  

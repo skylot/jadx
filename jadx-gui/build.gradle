@@ -23,7 +23,7 @@ startScripts {
 
 applicationDistribution.with {
     into('') {
-        from '.'
+        from '../'
         include 'README.md'
         include 'NOTICE'
     }
