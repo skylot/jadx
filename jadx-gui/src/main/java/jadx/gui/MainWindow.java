@@ -1,6 +1,7 @@
 package jadx.gui;
 
 import jadx.cli.JadxArgs;
+import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JRoot;
 
@@ -92,6 +93,9 @@ public class MainWindow extends JFrame {
 			JNode node = (JNode) obj;
 			if (node.getJParent() != null) {
 				textArea.setText(node.getJParent().getCode());
+				scrollToLine(node.getLine());
+			} else if (node.getClass() == JClass.class){
+				textArea.setText(((JClass)node).getCode());
 				scrollToLine(node.getLine());
 			}
 		}
