@@ -1,4 +1,4 @@
-package jadx.gui;
+package jadx.gui.utils;
 
 import java.util.Locale;
 import java.util.ResourceBundle;

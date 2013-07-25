@@ -4,7 +4,10 @@ import jadx.cli.JadxArgs;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JRoot;
+import jadx.gui.utils.NLS;
+import jadx.gui.utils.Utils;
 
+import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -18,9 +21,9 @@ import javax.swing.JSplitPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
+import javax.swing.KeyStroke;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.BadLocationException;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -32,6 +35,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 
@@ -50,12 +54,15 @@ public class MainWindow extends JFrame {
 	private static final ImageIcon ICON_OPEN = Utils.openIcon("folder");
 	private static final ImageIcon ICON_CLOSE = Utils.openIcon("cross");
 	private static final ImageIcon ICON_FLAT_PKG = Utils.openIcon("empty_logical_package_obj");
+	private static final ImageIcon ICON_SEARCH = Utils.openIcon("magnifier");
 
 	private final JadxWrapper wrapper;
 	private JPanel mainPanel;
 	private JTree tree;
 	private DefaultTreeModel treeModel;
 	private RSyntaxTextArea textArea;
+	private JToolBar searchToolBar;
+	private SearchBar searchBar;
 
 	public MainWindow(JadxArgs jadxArgs) {
 		this.wrapper = new JadxWrapper(jadxArgs);
@@ -87,6 +94,10 @@ public class MainWindow extends JFrame {
 		}
 	}
 
+	private void toggleSearch() {
+		searchBar.toggle();
+	}
+
 	private void treeClickAction() {
 		Object obj = tree.getLastSelectedPathComponent();
 		if (obj instanceof JNode) {
@@ -94,8 +105,8 @@ public class MainWindow extends JFrame {
 			if (node.getJParent() != null) {
 				textArea.setText(node.getJParent().getCode());
 				scrollToLine(node.getLine());
-			} else if (node.getClass() == JClass.class){
-				textArea.setText(((JClass)node).getCode());
+			} else if (node.getClass() == JClass.class) {
+				textArea.setText(((JClass) node).getCode());
 				scrollToLine(node.getLine());
 			}
 		}
@@ -149,7 +160,7 @@ public class MainWindow extends JFrame {
 		toolbar.add(openButton);
 		toolbar.addSeparator();
 
-		JToggleButton flatPkgButton = new JToggleButton(ICON_FLAT_PKG);
+		final JToggleButton flatPkgButton = new JToggleButton(ICON_FLAT_PKG);
 		flatPkgButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -158,15 +169,35 @@ public class MainWindow extends JFrame {
 		});
 		flatPkgButton.setToolTipText(NLS.str("tree.flatten"));
 		toolbar.add(flatPkgButton);
+		toolbar.addSeparator();
+
+		final JButton searchButton = new JButton(ICON_SEARCH);
+		searchButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				toggleSearch();
+			}
+		});
+		searchButton.setToolTipText(NLS.str("search"));
+		toolbar.add(searchButton);
+
+		KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK);
+		Utils.addKeyBinding(textArea, key, "SearchAction", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				toggleSearch();
+			}
+		});
 
 		toolbar.addSeparator();
 
-		add(toolbar, BorderLayout.NORTH);
+		mainPanel.add(toolbar, BorderLayout.NORTH);
 	}
 
 	private void initUI() {
 		mainPanel = new JPanel(new BorderLayout());
 		JSplitPane splitPane = new JSplitPane();
+		splitPane.setDividerLocation(200);
 		mainPanel.add(splitPane);
 
 		DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode("Please open file");
@@ -198,7 +229,7 @@ public class MainWindow extends JFrame {
 		JScrollPane treeScrollPane = new JScrollPane(tree);
 		splitPane.setLeftComponent(treeScrollPane);
 
-		textArea = new RSyntaxTextArea(20, 60);
+		textArea = new RSyntaxTextArea();
 		textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
 		textArea.setMarkOccurrences(true);
 		textArea.setBackground(BACKGROUND);
@@ -206,9 +237,15 @@ public class MainWindow extends JFrame {
 		textArea.setAntiAliasingEnabled(true);
 		// textArea.setHyperlinksEnabled(true);
 		textArea.setTabSize(4);
+
 		RTextScrollPane scrollPane = new RTextScrollPane(textArea);
 		scrollPane.setFoldIndicatorEnabled(true);
-		splitPane.setRightComponent(scrollPane);
+
+		JPanel textPanel = new JPanel(new BorderLayout());
+		searchBar = new SearchBar(textArea);
+		textPanel.add(searchBar.getToolBar(), BorderLayout.NORTH);
+		textPanel.add(scrollPane);
+		splitPane.setRightComponent(textPanel);
 
 		setContentPane(mainPanel);
 		setTitle(DEFAULT_TITLE);
@@ -220,12 +257,10 @@ public class MainWindow extends JFrame {
 	private class OpenListener implements ActionListener {
 		public void actionPerformed(ActionEvent event) {
 			JFileChooser fileChooser = new JFileChooser();
-			FileFilter filter = new FileNameExtensionFilter("dex files", "dex", "apk", "jar");
-			fileChooser.addChoosableFileFilter(filter);
+			fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("dex files", "dex", "apk", "jar"));
 			int ret = fileChooser.showDialog(mainPanel, "Open file");
 			if (ret == JFileChooser.APPROVE_OPTION) {
-				File file = fileChooser.getSelectedFile();
-				openFile(file);
+				openFile(fileChooser.getSelectedFile());
 			}
 		}
 	}

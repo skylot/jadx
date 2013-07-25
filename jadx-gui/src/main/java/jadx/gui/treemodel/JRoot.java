@@ -2,7 +2,7 @@ package jadx.gui.treemodel;
 
 import jadx.api.JavaPackage;
 import jadx.gui.JadxWrapper;
-import jadx.gui.Utils;
+import jadx.gui.utils.Utils;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;

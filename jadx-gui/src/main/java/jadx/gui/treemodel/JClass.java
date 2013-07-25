@@ -4,7 +4,7 @@ import jadx.api.JavaClass;
 import jadx.api.JavaField;
 import jadx.api.JavaMethod;
 import jadx.core.dex.info.AccessInfo;
-import jadx.gui.Utils;
+import jadx.gui.utils.Utils;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
