@@ -33,6 +33,7 @@ public class JClass extends DefaultMutableTreeNode implements JNode {
 
 	@Override
 	public void updateChilds() {
+		removeAllChildren();
 		JClass currentParent = jParrent == null ? this : jParrent;
 		for (JavaClass javaClass : cls.getInnerClasses()) {
 			JClass child = new JClass(javaClass);

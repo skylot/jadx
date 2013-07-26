@@ -2,7 +2,10 @@ package jadx.api;
 
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.MethodNode;
+
+import java.util.List;
 
 public class JavaMethod {
 	private final MethodNode mth;
@@ -23,6 +26,22 @@ public class JavaMethod {
 
 	public AccessInfo getAccessFlags() {
 		return mth.getAccessFlags();
+	}
+
+	public List<ArgType> getArguments() {
+		return mth.getMethodInfo().getArgumentsTypes();
+	}
+
+	public ArgType getReturnType() {
+		return mth.getReturnType();
+	}
+
+	public boolean isConstructor() {
+		return mth.getMethodInfo().isConstructor();
+	}
+
+	public boolean isClassInit() {
+		return mth.getMethodInfo().isClassInit();
 	}
 
 	public int getDecompiledLine() {

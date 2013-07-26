@@ -1,6 +1,7 @@
 package jadx.api;
 
 import jadx.core.dex.info.AccessInfo;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.FieldNode;
 
 public class JavaField {
@@ -17,6 +18,10 @@ public class JavaField {
 
 	public AccessInfo getAccessFlags() {
 		return field.getAccessFlags();
+	}
+
+	public ArgType getType() {
+		return field.getType();
 	}
 
 	public int getDecompiledLine() {

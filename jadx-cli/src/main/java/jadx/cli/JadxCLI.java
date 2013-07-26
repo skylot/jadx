@@ -12,7 +12,6 @@ public class JadxCLI {
 		JadxArgs jadxArgs = new JadxArgs(args, true);
 		Decompiler jadx = new Decompiler(jadxArgs);
 		jadx.processAndSaveAll();
-		LOG.info("done");
 		System.exit(jadx.getErrorsCount());
 	}
 }

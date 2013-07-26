@@ -1,7 +1,6 @@
 package jadx.api;
 
 import jadx.core.codegen.CodeWriter;
-import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -51,7 +50,7 @@ public final class JavaClass {
 		} else {
 			List<JavaMethod> mths = new ArrayList<JavaMethod>(methodsCount);
 			for (MethodNode m : cls.getMethods()) {
-				if (!m.getAttributes().contains(AttributeFlag.DONT_GENERATE)) {
+				if (!m.getAccessFlags().isSynthetic()) {
 					mths.add(new JavaMethod(m));
 				}
 			}

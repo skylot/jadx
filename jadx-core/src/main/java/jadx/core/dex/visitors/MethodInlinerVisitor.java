@@ -1,7 +1,7 @@
 package jadx.core.dex.visitors;
 
 import jadx.core.dex.attributes.AttributeFlag;
-import jadx.core.dex.attributes.IAttribute;
+import jadx.core.dex.attributes.AttributesList;
 import jadx.core.dex.attributes.MethodInlineAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.InsnType;
@@ -43,8 +43,8 @@ public class MethodInlinerVisitor extends AbstractVisitor {
 	}
 
 	private static void addInlineAttr(MethodNode mth, InsnNode insn) {
-		IAttribute attr = new MethodInlineAttr(insn);
-		mth.getAttributes().add(attr);
-		mth.getAttributes().add(AttributeFlag.DONT_GENERATE);
+		AttributesList attributes = mth.getAttributes();
+		attributes.add(new MethodInlineAttr(insn));
+		attributes.add(AttributeFlag.DONT_GENERATE);
 	}
 }

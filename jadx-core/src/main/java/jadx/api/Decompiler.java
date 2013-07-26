@@ -91,7 +91,7 @@ public final class Decompiler {
 		return Collections.unmodifiableList(packages);
 	}
 
-	public ThreadPoolExecutor saveAll(File dir) throws InterruptedException {
+	public ThreadPoolExecutor saveAll(File dir) {
 		int threadsCount = args.getThreadsCount();
 		LOG.debug("processing threads count: {}", threadsCount);
 

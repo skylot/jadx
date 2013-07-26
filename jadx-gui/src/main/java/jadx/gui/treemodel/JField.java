@@ -2,17 +2,21 @@ package jadx.gui.treemodel;
 
 import jadx.api.JavaField;
 import jadx.core.dex.info.AccessInfo;
+import jadx.gui.utils.OverlayIcon;
 import jadx.gui.utils.Utils;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.tree.DefaultMutableTreeNode;
 
-public class JField extends DefaultMutableTreeNode implements JNode  {
+public class JField extends DefaultMutableTreeNode implements JNode {
 	private static final ImageIcon ICON_FLD_DEF = Utils.openIcon("field_default_obj");
 	private static final ImageIcon ICON_FLD_PRI = Utils.openIcon("field_private_obj");
 	private static final ImageIcon ICON_FLD_PRO = Utils.openIcon("field_protected_obj");
 	private static final ImageIcon ICON_FLD_PUB = Utils.openIcon("field_public_obj");
+
+	private static final ImageIcon ICON_TRANSIENT = Utils.openIcon("transient_co");
+	private static final ImageIcon ICON_VOLATILE = Utils.openIcon("volatile_co");
 
 	private final JavaField field;
 	private final JClass jParent;
@@ -39,19 +43,14 @@ public class JField extends DefaultMutableTreeNode implements JNode  {
 	@Override
 	public Icon getIcon() {
 		AccessInfo af = field.getAccessFlags();
-		if(af.isPublic()){
-			return ICON_FLD_PUB;
-		} else if(af.isPrivate()) {
-			return ICON_FLD_PRI;
-		} else if(af.isProtected()) {
-			return ICON_FLD_PRO;
-		} else {
-			return ICON_FLD_DEF;
-		}
+		OverlayIcon icon = Utils.makeIcon(af, ICON_FLD_PUB, ICON_FLD_PRI, ICON_FLD_PRO, ICON_FLD_DEF);
+		if (af.isTransient()) icon.add(ICON_TRANSIENT);
+		if (af.isVolatile()) icon.add(ICON_VOLATILE);
+		return icon;
 	}
 
 	@Override
 	public String toString() {
-		return field.getName();
+		return Utils.typeFormat(field.getName(), field.getType());
 	}
 }

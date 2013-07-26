@@ -93,6 +93,18 @@ public class AccessInfo {
 		return (accFlags & AccessFlags.ACC_VARARGS) != 0;
 	}
 
+	public boolean isSynchronized() {
+		return (accFlags & (AccessFlags.ACC_SYNCHRONIZED | AccessFlags.ACC_DECLARED_SYNCHRONIZED)) != 0;
+	}
+
+	public boolean isTransient() {
+		return (accFlags & AccessFlags.ACC_TRANSIENT) != 0;
+	}
+
+	public boolean isVolatile() {
+		return (accFlags & AccessFlags.ACC_VOLATILE) != 0;
+	}
+
 	public int getFlags() {
 		return accFlags;
 	}
@@ -126,10 +138,7 @@ public class AccessInfo {
 
 		switch (type) {
 			case METHOD:
-				if ((accFlags & AccessFlags.ACC_SYNCHRONIZED) != 0)
-					code.append("synchronized ");
-
-				if ((accFlags & AccessFlags.ACC_DECLARED_SYNCHRONIZED) != 0)
+				if (isSynchronized())
 					code.append("synchronized ");
 
 				if (isBridge())
@@ -142,10 +151,10 @@ public class AccessInfo {
 				break;
 
 			case FIELD:
-				if ((accFlags & AccessFlags.ACC_VOLATILE) != 0)
+				if (isVolatile())
 					code.append("volatile ");
 
-				if ((accFlags & AccessFlags.ACC_TRANSIENT) != 0)
+				if (isTransient())
 					code.append("transient ");
 				break;
 

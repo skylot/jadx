@@ -8,7 +8,6 @@ import jadx.core.utils.exceptions.CodegenException;
 import java.io.File;
 
 public class SaveCode extends AbstractVisitor {
-
 	private final File dir;
 	private final IJadxArgs args;
 
@@ -22,13 +21,10 @@ public class SaveCode extends AbstractVisitor {
 		CodeWriter clsCode = cls.getCode();
 
 		String fileName = cls.getClassInfo().getFullPath() + ".java";
-		if (isFallbackMode())
+		if (args.isFallbackMode()) {
 			fileName += ".jadx";
+		}
 		clsCode.save(dir, fileName);
 		return false;
-	}
-
-	public boolean isFallbackMode() {
-		return args.isFallbackMode();
 	}
 }

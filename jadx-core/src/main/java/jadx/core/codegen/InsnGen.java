@@ -481,7 +481,7 @@ public class InsnGen {
 	private void makeInvoke(InvokeNode insn, CodeWriter code) throws CodegenException {
 		MethodInfo callMth = insn.getCallMth();
 
-		// inline method if METHOD_INLINE attribute is attached
+		// inline method
 		MethodNode callMthNode = mth.dex().resolveMethod(callMth);
 		if (callMthNode != null
 				&& callMthNode.getAttributes().contains(AttributeType.METHOD_INLINE)) {
@@ -507,8 +507,10 @@ public class InsnGen {
 
 			case STATIC:
 				ClassInfo insnCls = mth.getParentClass().getClassInfo();
-				if (!insnCls.equals(callMth.getDeclClass()))
-					code.add(useClass(callMth.getDeclClass())).add('.');
+				ClassInfo declClass = callMth.getDeclClass();
+				if (!insnCls.equals(declClass)) {
+					code.add(useClass(declClass)).add('.');
+				}
 				break;
 		}
 		code.add(callMth.getName());
