@@ -6,11 +6,18 @@ import jadx.api.JavaClass;
 import jadx.api.JavaPackage;
 import jadx.core.utils.exceptions.DecodeException;
 
+import javax.swing.ProgressMonitor;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class JadxWrapper {
+	private static final Logger LOG = LoggerFactory.getLogger(JadxWrapper.class);
+
 	private final Decompiler decompiler;
 	private File openFile;
 
@@ -27,6 +34,28 @@ public class JadxWrapper {
 		} catch (DecodeException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void saveAll(final File dir, final ProgressMonitor progressMonitor) {
+		Runnable save = new Runnable() {
+			@Override
+			public void run() {
+				try {
+					ThreadPoolExecutor ex = decompiler.saveAll(dir);
+					while (ex.isTerminating()) {
+						long total = ex.getTaskCount();
+						long done = ex.getCompletedTaskCount();
+						progressMonitor.setProgress((int) (done * 100.0 / (double) total));
+						Thread.sleep(500);
+					}
+					progressMonitor.close();
+					LOG.info("done");
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		};
+		new Thread(save).start();
 	}
 
 	public List<JavaClass> getClasses() {

@@ -12,9 +12,9 @@ public class SaveCode extends AbstractVisitor {
 	private final File dir;
 	private final IJadxArgs args;
 
-	public SaveCode(IJadxArgs args) {
+	public SaveCode(File dir, IJadxArgs args) {
 		this.args = args;
-		this.dir = args.getOutDir();
+		this.dir = dir;
 	}
 
 	@Override

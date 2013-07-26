@@ -22,6 +22,7 @@ import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
+import javax.swing.ProgressMonitor;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -52,6 +53,7 @@ public class MainWindow extends JFrame {
 	private static final Color BACKGROUND = new Color(0xf7f7f7);
 
 	private static final ImageIcon ICON_OPEN = Utils.openIcon("folder");
+	private static final ImageIcon ICON_SAVE_ALL = Utils.openIcon("disk_multiple");
 	private static final ImageIcon ICON_CLOSE = Utils.openIcon("cross");
 	private static final ImageIcon ICON_FLAT_PKG = Utils.openIcon("empty_logical_package_obj");
 	private static final ImageIcon ICON_SEARCH = Utils.openIcon("magnifier");
@@ -75,6 +77,18 @@ public class MainWindow extends JFrame {
 		wrapper.openFile(file);
 		initTree();
 		setTitle(DEFAULT_TITLE + " - " + file.getName());
+	}
+
+	private void saveAllAction() {
+		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		int ret = fileChooser.showDialog(mainPanel, NLS.str("file.save_all_msg"));
+		if (ret == JFileChooser.APPROVE_OPTION) {
+
+			ProgressMonitor progressMonitor = new ProgressMonitor(mainPanel, "Saving sources", "", 0, 100);
+			progressMonitor.setMillisToPopup(500);
+			wrapper.saveAll(fileChooser.getSelectedFile(), progressMonitor);
+		}
 	}
 
 	private void initTree() {
@@ -129,21 +143,29 @@ public class MainWindow extends JFrame {
 		JMenu file = new JMenu("File");
 		file.setMnemonic(KeyEvent.VK_F);
 
-		JMenuItem exit = new JMenuItem("Exit", ICON_CLOSE);
+		JMenuItem exit = new JMenuItem(NLS.str("file.exit"), ICON_CLOSE);
 		exit.setMnemonic(KeyEvent.VK_E);
-		exit.setToolTipText("Exit application");
 		exit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
 				System.exit(0);
 			}
 		});
 
-		JMenuItem open = new JMenuItem("Open", ICON_OPEN);
-		open.setMnemonic(KeyEvent.VK_E);
-		open.setToolTipText("Open file");
+		JMenuItem open = new JMenuItem(NLS.str("file.open"), ICON_OPEN);
+		open.setMnemonic(KeyEvent.VK_O);
 		open.addActionListener(new OpenListener());
 
+		JMenuItem saveAll = new JMenuItem(NLS.str("file.save_all"), ICON_SAVE_ALL);
+		saveAll.setMnemonic(KeyEvent.VK_S);
+		saveAll.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				saveAllAction();
+			}
+		});
+
 		file.add(open);
+		file.add(saveAll);
 		file.addSeparator();
 		file.add(exit);
 
@@ -153,11 +175,21 @@ public class MainWindow extends JFrame {
 		JToolBar toolbar = new JToolBar();
 		toolbar.setFloatable(false);
 
-		JButton openButton = new JButton(ICON_OPEN);
+		final JButton openButton = new JButton(ICON_OPEN);
 		openButton.addActionListener(new OpenListener());
 		openButton.setToolTipText(NLS.str("file.open"));
-
 		toolbar.add(openButton);
+
+		final JButton saveAllButton = new JButton(ICON_SAVE_ALL);
+		saveAllButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				saveAllAction();
+			}
+		});
+		saveAllButton.setToolTipText(NLS.str("file.save_all"));
+		toolbar.add(saveAllButton);
+
 		toolbar.addSeparator();
 
 		final JToggleButton flatPkgButton = new JToggleButton(ICON_FLAT_PKG);
@@ -235,6 +267,7 @@ public class MainWindow extends JFrame {
 		textArea.setBackground(BACKGROUND);
 		textArea.setCodeFoldingEnabled(true);
 		textArea.setAntiAliasingEnabled(true);
+		textArea.setEditable(false);
 		// textArea.setHyperlinksEnabled(true);
 		textArea.setTabSize(4);
 

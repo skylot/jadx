@@ -224,7 +224,6 @@ public class CodeWriter {
 		} finally {
 			if (out != null)
 				out.close();
-			buf = null;
 		}
 	}
 

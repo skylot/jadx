@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -45,7 +46,9 @@ public final class Decompiler {
 		try {
 			loadInput();
 			parseDex();
-			saveAll();
+			ExecutorService ex = saveAll(args.getOutDir());
+			ex.awaitTermination(100, TimeUnit.DAYS);
+			LOG.info("done");
 		} catch (Throwable e) {
 			LOG.error("jadx error:", e);
 		} finally {
@@ -88,16 +91,16 @@ public final class Decompiler {
 		return Collections.unmodifiableList(packages);
 	}
 
-	public void saveAll() throws InterruptedException {
+	public ThreadPoolExecutor saveAll(File dir) throws InterruptedException {
 		int threadsCount = args.getThreadsCount();
 		LOG.debug("processing threads count: {}", threadsCount);
 
 		ArrayList<IDexTreeVisitor> passList = new ArrayList<IDexTreeVisitor>(passes);
-		SaveCode savePass = new SaveCode(args);
+		SaveCode savePass = new SaveCode(dir, args);
 		passList.add(savePass);
 
 		LOG.info("processing ...");
-		ExecutorService executor = Executors.newFixedThreadPool(threadsCount);
+		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadsCount);
 		for (ClassNode cls : root.getClasses()) {
 			if (cls.getCode() == null) {
 				ProcessClass job = new ProcessClass(cls, passList);
@@ -111,7 +114,7 @@ public final class Decompiler {
 			}
 		}
 		executor.shutdown();
-		executor.awaitTermination(100, TimeUnit.DAYS);
+		return executor;
 	}
 
 	private void loadInput() throws IOException, DecodeException {
