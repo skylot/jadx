@@ -1,14 +1,12 @@
 apply plugin: 'application'
 
-mainClassName = "jadx.cli.JadxCLI"
+mainClassName = 'jadx.cli.JadxCLI'
+applicationName = 'jadx'
 
 dependencies {
-    compile(project(":jadx-core"))
+    compile(project(':jadx-core'))
     compile 'com.beust:jcommander:1.30'
 }
-
-build.dependsOn distZip
-build.dependsOn installApp
 
 startScripts {
     doLast {

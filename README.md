@@ -16,7 +16,7 @@ Latest version available at
 
     git clone https://github.com/skylot/jadx.git
     cd jadx
-    ./gradlew clean build pack
+    ./gradlew clean build
     
 (on Windows, use `gradlew.bat` instead of `./gradlew`)
 
@@ -28,15 +28,14 @@ and also packed to `build/jadx-<version>.zip`
 Run **jadx** on itself:
 
     cd build/jadx/
-    bin/jadx-cli -d out lib/jadx-core-*.jar
-or
-
+    bin/jadx -d out lib/jadx-core-*.jar
+    #or
     bin/jadx-gui lib/jadx-core-*.jar
 
 
 ### Usage
 ```
-jadx [options] <input files> (.dex, .apk or .jar)
+jadx[-gui] [options] <input file> (.dex, .apk or .jar)
 options:
  -d, --output-dir     - output directory
  -j, --threads-count  - processing threads count

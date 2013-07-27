@@ -4,7 +4,6 @@ import javax.swing.Icon;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class OverlayIcon implements Icon {
@@ -46,10 +45,6 @@ public class OverlayIcon implements Icon {
 
 	public void add(Icon icon) {
 		icons.add(icon);
-	}
-
-	public void addAll(Collection<Icon> icons) {
-		icons.addAll(icons);
 	}
 
 	public List<Icon> getIcons() {

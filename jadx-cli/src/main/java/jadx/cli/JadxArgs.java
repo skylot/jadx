@@ -80,6 +80,7 @@ public class JadxArgs implements IJadxArgs {
 			processArgs();
 		} catch (JadxException e) {
 			LOG.error(e.getMessage());
+			printUsage();
 			System.exit(1);
 		}
 	}
@@ -103,9 +104,12 @@ public class JadxArgs implements IJadxArgs {
 
 		if (input.isEmpty()) {
 			if (inputRequired)
-				throw new JadxException("Please specify at least one input file");
+				throw new JadxException("Please specify input file");
 			else
 				return;
+		}
+		if (input.size() > 1) {
+			throw new JadxException("Only one input file is supported");
 		}
 
 		if (outDirName == null) {
@@ -129,6 +133,7 @@ public class JadxArgs implements IJadxArgs {
 		JCommander jc = new JCommander(this);
 		// print usage in not sorted fields order (by default its sorted by description)
 		PrintStream out = System.out;
+		out.println();
 		out.println("jadx - dex to java decompiler, version: " + Consts.JADX_VERSION);
 		out.println();
 		out.println("usage: jadx [options] " + jc.getMainParameterDescription());

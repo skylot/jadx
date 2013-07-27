@@ -8,9 +8,6 @@ dependencies {
     compile 'com.fifesoft:rsyntaxtextarea:2.0.7'
 }
 
-build.dependsOn distZip
-build.dependsOn installApp
-
 startScripts {
     doLast {
         // increase default max heap size

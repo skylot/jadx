@@ -1,5 +1,3 @@
-apply plugin: 'idea'
-
 ext.jadxVersion = file('version').readLines().get(0)
 
 subprojects {
@@ -17,7 +15,7 @@ subprojects {
     }
 
     manifest {
-        mainAttributes("jadx-version" : jadxVersion)
+        mainAttributes('jadx-version' : jadxVersion)
     }
 
     dependencies {
@@ -31,7 +29,7 @@ subprojects {
     }
 }
 
-task copyArtifacts (type: Sync, dependsOn: ["jadx-cli:installApp", "jadx-gui:installApp"]) {
+task copyArtifacts (type: Sync, dependsOn: ['jadx-cli:installApp', 'jadx-gui:installApp']) {
     destinationDir file("$buildDir/jadx")
     ['jadx-cli', 'jadx-gui'].each {
         from tasks.getByPath(":${it}:installApp").destinationDir
@@ -42,6 +40,10 @@ task pack (type: Zip, dependsOn: copyArtifacts) {
     destinationDir buildDir
     archiveName "jadx-${jadxVersion}.zip"
     from copyArtifacts.destinationDir
+}
+
+task build (dependsOn: pack) {
+    description = 'Build jadx distribution zip'
 }
 
 task clean(type: Delete) {
