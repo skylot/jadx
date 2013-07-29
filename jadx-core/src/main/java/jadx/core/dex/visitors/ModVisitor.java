@@ -19,7 +19,6 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
-import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -188,45 +187,48 @@ public class ModVisitor extends AbstractVisitor {
 		if (handlerAttr == null)
 			return;
 
-		TryCatchBlock tryBlock = handlerAttr.getTryBlock();
 		ExceptionHandler excHandler = handlerAttr.getHandler();
-		List<InsnNode> blockInsns = block.getInstructions();
-		int size = blockInsns.size();
-		if (size > 0 && blockInsns.get(0).getType() == InsnType.MOVE_EXCEPTION) {
-			InstructionRemover.remove(block, 0);
-		}
-
-		int totalSize = 0;
 		boolean noExitNode = true; // check if handler has exit edge to block not from this handler
 		for (BlockNode excBlock : excHandler.getBlocks()) {
-			List<InsnNode> insns = excBlock.getInstructions();
-			size = insns.size();
-			if (noExitNode)
+			if (noExitNode) {
 				noExitNode = excHandler.getBlocks().containsAll(excBlock.getCleanSuccessors());
+			}
 
+			List<InsnNode> insns = excBlock.getInstructions();
+			int size = insns.size();
 			if (excHandler.isCatchAll()
 					&& size > 0
 					&& insns.get(size - 1).getType() == InsnType.THROW) {
 
 				InstructionRemover.remove(excBlock, size - 1);
-				size = insns.size();
 
 				// move not removed instructions to 'finally' block
-				if (size != 0) {
+				if (insns.size() != 0) {
 					// TODO: support instructions from several blocks
 					// tryBlock.setFinalBlockFromInsns(mth, insns);
-
-					// TODO; because of incomplete realization don't extract final block,
+					// TODO: because of incomplete realization don't extract final block,
 					// just remove unnecessary instructions
 					insns.clear();
-
-					size = insns.size();
 				}
 			}
-			totalSize += size;
 		}
-		if (totalSize == 0 && noExitNode)
-			tryBlock.removeHandler(mth, excHandler);
+
+		List<InsnNode> blockInsns = block.getInstructions();
+		if (blockInsns.size() > 0) {
+			InsnNode insn = blockInsns.get(0);
+			if (insn.getType() == InsnType.MOVE_EXCEPTION
+					&& insn.getResult().getTypedVar().getUseList().size() <= 1) {
+				InstructionRemover.remove(block, 0);
+			}
+		}
+
+		int totalSize = 0;
+		for (BlockNode excBlock : excHandler.getBlocks()) {
+			totalSize += excBlock.getInstructions().size();
+		}
+		if (totalSize == 0 && noExitNode) {
+			handlerAttr.getTryBlock().removeHandler(mth, excHandler);
+		}
 	}
 
 	/**

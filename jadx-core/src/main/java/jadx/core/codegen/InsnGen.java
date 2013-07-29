@@ -19,6 +19,7 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
+import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.ClassNode;
@@ -77,10 +78,14 @@ public class InsnGen {
 			return arg((RegisterArg) arg);
 		} else if (arg.isLiteral()) {
 			return lit((LiteralArg) arg);
-		} else {
+		} else if (arg.isInsnWrap()) {
 			CodeWriter code = new CodeWriter();
 			makeInsn(((InsnWrapArg) arg).getWrapInsn(), code, true);
 			return code.toString();
+		} else if (arg.isNamed()) {
+			return ((NamedArg) arg).getName();
+		} else {
+			throw new CodegenException("Unknown arg type " + arg);
 		}
 	}
 
@@ -318,7 +323,7 @@ public class InsnGen {
 
 			case MONITOR_EXIT:
 				if (isFallback()) {
-					code.add("monitor-exit(").add(arg(insn.getArg(0))).add(')');
+					code.add("monitor-exit(").add(arg(insn, 0)).add(')');
 				} else {
 					state.add(InsnGenState.SKIP);
 				}
@@ -328,11 +333,7 @@ public class InsnGen {
 				if (isFallback()) {
 					code.add("move-exception");
 				} else {
-					// don't have body
-					if (state.contains(InsnGenState.BODY_ONLY))
-						code.add(arg(insn.getResult()));
-					else
-						state.add(InsnGenState.SKIP);
+					code.add(arg(insn, 0));
 				}
 				break;
 
@@ -340,7 +341,7 @@ public class InsnGen {
 				break;
 
 			case ARGS:
-				code.add(arg(insn.getArg(0)));
+				code.add(arg(insn, 0));
 				break;
 
 			case NOP:

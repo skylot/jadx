@@ -169,23 +169,24 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		if (argsTypes == null)
 			return false;
 
-		if (argsTypes.size() != mthInfo.getArgumentsTypes().size()) {
+		List<ArgType> mthArgs = mthInfo.getArgumentsTypes();
+		if (argsTypes.size() != mthArgs.size()) {
 			if (argsTypes.isEmpty()) {
 				return false;
 			}
 			if (!mthInfo.isConstructor()) {
 				LOG.warn("Wrong signature parse result: " + sign + " -> " + argsTypes
-						+ ", not generic version: " + mthInfo.getArgumentsTypes());
+						+ ", not generic version: " + mthArgs);
 				return false;
 			} else if (getParentClass().getAccessFlags().isEnum()) {
 				// TODO:
-				argsTypes.add(0, mthInfo.getArgumentsTypes().get(0));
-				argsTypes.add(1, mthInfo.getArgumentsTypes().get(1));
+				argsTypes.add(0, mthArgs.get(0));
+				argsTypes.add(1, mthArgs.get(1));
 			} else {
 				// add synthetic arg for outer class
-				argsTypes.add(0, mthInfo.getArgumentsTypes().get(0));
+				argsTypes.add(0, mthArgs.get(0));
 			}
-			if (argsTypes.size() != mthInfo.getArgumentsTypes().size()) {
+			if (argsTypes.size() != mthArgs.size()) {
 				return false;
 			}
 		}
@@ -454,6 +455,11 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		return exceptionHandlers;
 	}
 
+	public boolean isMethodOverloaded() {
+		// TODO
+		return false;
+	}
+
 	public int getRegsCount() {
 		return regsCount;
 	}
@@ -505,5 +511,4 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 				+ " " + parentClass.getFullName() + "." + mthInfo.getName()
 				+ "(" + Utils.listToString(mthInfo.getArgumentsTypes()) + ")";
 	}
-
 }

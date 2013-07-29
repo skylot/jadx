@@ -8,6 +8,7 @@ import jadx.core.dex.attributes.JadxErrorAttr;
 import jadx.core.dex.attributes.annotations.MethodParameters;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -118,7 +119,7 @@ public class MethodGen {
 				(MethodParameters) mth.getAttributes().get(AttributeType.ANNOTATION_MTH_PARAMETERS);
 
 		int i = 0;
-		for (Iterator<RegisterArg> it = args.iterator(); it.hasNext();) {
+		for (Iterator<RegisterArg> it = args.iterator(); it.hasNext(); ) {
 			RegisterArg arg = it.next();
 
 			// add argument annotation
@@ -179,20 +180,26 @@ public class MethodGen {
 	/**
 	 * Put variable declaration and return variable name (used for assignments)
 	 *
-	 * @param arg
-	 *            register variable
+	 * @param arg register variable
 	 * @return variable name
 	 */
 	public String assignArg(RegisterArg arg) {
 		String name = makeArgName(arg);
-		if (varNames.add(name))
-			return name;
-
-		if (fallback)
+		if (varNames.add(name) || fallback)
 			return name;
 
 		name = getUniqVarName(name);
 		arg.getTypedVar().setName(name);
+		return name;
+	}
+
+	public String assignNamedArg(NamedArg arg) {
+		String name = arg.getName();
+		if (varNames.add(name) || fallback)
+			return name;
+
+		name = getUniqVarName(name);
+		arg.setName(name);
 		return name;
 	}
 

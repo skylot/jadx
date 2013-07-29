@@ -43,6 +43,11 @@ public class TypedVar {
 		}
 	}
 
+	public void use(InsnArg arg) {
+		arg.replace(this);
+		useList.add(arg);
+	}
+
 	public List<InsnArg> getUseList() {
 		return useList;
 	}

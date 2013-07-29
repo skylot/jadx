@@ -3,6 +3,7 @@ package jadx.core.dex.visitors;
 import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
@@ -40,15 +41,22 @@ public class BlockProcessingHelper {
 		if (!block.getInstructions().isEmpty()) {
 			InsnNode me = block.getInstructions().get(0);
 			ExcHandlerAttr handlerAttr = (ExcHandlerAttr) me.getAttributes().get(AttributeType.EXC_HANDLER);
-			if (handlerAttr != null) {
+			if (handlerAttr != null && me.getType() == InsnType.MOVE_EXCEPTION) {
 				ExceptionHandler excHandler = handlerAttr.getHandler();
-				assert me.getType() == InsnType.MOVE_EXCEPTION && me.getOffset() == excHandler.getHandleOffset();
+				assert me.getOffset() == excHandler.getHandleOffset();
 				// set correct type for 'move-exception' operation
-				RegisterArg excArg = me.getResult();
-				if (excHandler.isCatchAll())
-					excArg.getTypedVar().forceSetType(ArgType.THROWABLE);
-				else
-					excArg.getTypedVar().forceSetType(excHandler.getCatchType().getType());
+				RegisterArg resArg = me.getResult();
+				NamedArg excArg = (NamedArg) me.getArg(0);
+				ArgType type;
+				if (excHandler.isCatchAll()) {
+					type = ArgType.THROWABLE;
+					excArg.setName("th");
+				} else {
+					type = excHandler.getCatchType().getType();
+					excArg.setName("e");
+				}
+				resArg.getTypedVar().forceSetType(type);
+				excArg.getTypedVar().forceSetType(type);
 
 				excHandler.setArg(excArg);
 				block.getAttributes().add(handlerAttr);

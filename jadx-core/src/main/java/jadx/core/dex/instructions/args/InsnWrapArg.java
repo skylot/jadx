@@ -2,7 +2,7 @@ package jadx.core.dex.instructions.args;
 
 import jadx.core.dex.nodes.InsnNode;
 
-public class InsnWrapArg extends InsnArg {
+public final class InsnWrapArg extends InsnArg {
 
 	private final InsnNode wrappedInsn;
 

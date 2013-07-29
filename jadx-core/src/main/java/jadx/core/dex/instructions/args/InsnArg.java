@@ -14,7 +14,6 @@ public abstract class InsnArg extends Typed {
 	protected InsnNode parentInsn;
 
 	public static RegisterArg reg(int regNum, ArgType type) {
-		assert regNum >= 0 : "Register number must be positive";
 		return new RegisterArg(regNum, type);
 	}
 
@@ -43,6 +42,10 @@ public abstract class InsnArg extends Typed {
 	}
 
 	public boolean isInsnWrap() {
+		return false;
+	}
+
+	public boolean isNamed() {
 		return false;
 	}
 
@@ -75,5 +78,4 @@ public abstract class InsnArg extends Typed {
 	public int getRegNum() {
 		throw new UnsupportedOperationException("Must be called from RegisterArg");
 	}
-
 }

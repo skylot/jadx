@@ -4,6 +4,7 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.DexNode;
@@ -387,7 +388,8 @@ public class InsnDecoder {
 
 			case Opcodes.MOVE_EXCEPTION:
 				return insn(InsnType.MOVE_EXCEPTION,
-						InsnArg.reg(insn, 0, ArgType.unknown(PrimitiveType.OBJECT)));
+						InsnArg.reg(insn, 0, ArgType.unknown(PrimitiveType.OBJECT)),
+						new NamedArg("e", ArgType.unknown(PrimitiveType.OBJECT)));
 
 			case Opcodes.RETURN_VOID:
 				return new InsnNode(InsnType.RETURN, 0);
@@ -668,13 +670,27 @@ public class InsnDecoder {
 		return inode;
 	}
 
+	private InsnNode insn(InsnType type, RegisterArg res) {
+		InsnNode node = new InsnNode(type, 0);
+		node.setResult(res);
+		return node;
+	}
+
+	private InsnNode insn(InsnType type, RegisterArg res, InsnArg  arg) {
+		InsnNode node = new InsnNode(type, 1);
+		node.setResult(res);
+		node.addArg(arg);
+		return node;
+	}
+
 	private InsnNode insn(InsnType type, RegisterArg res, InsnArg... args) {
-		InsnNode inode = new InsnNode(type, args == null ? 0 : args.length);
-		inode.setResult(res);
-		if (args != null)
+		InsnNode node = new InsnNode(type, args == null ? 0 : args.length);
+		node.setResult(res);
+		if (args != null) {
 			for (InsnArg arg : args)
-				inode.addArg(arg);
-		return inode;
+				node.addArg(arg);
+		}
+		return node;
 	}
 
 	private int getMoveResultRegister(DecodedInstruction[] insnArr, int offset) {

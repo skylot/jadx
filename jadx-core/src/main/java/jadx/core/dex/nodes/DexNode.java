@@ -7,6 +7,7 @@ import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.files.InputFile;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,7 +100,7 @@ public class DexNode {
 		for (short t : paramList.getTypes()) {
 			args.add(getType(t));
 		}
-		return args;
+		return Collections.unmodifiableList(args);
 	}
 
 	public Code readCode(Method mth) {

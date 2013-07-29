@@ -70,18 +70,20 @@ public class CodeShrinker extends AbstractVisitor {
 							} else {
 								// TODO implement rules for shrink insn from different blocks
 								BlockNode useBlock = BlockUtils.getBlockByInsn(mth, useInsn);
-								if (useBlock != null && useBlock.getPredecessors().contains(block)) {
+								if (useBlock != null
+										&& (useBlock.getPredecessors().contains(block)
+											|| insn.getType() == InsnType.MOVE_EXCEPTION)) {
 									wrap = true;
 								}
 							}
 							if (wrap) {
-								if (useInsn.getType() == InsnType.MOVE) {
-									// TODO
-									// remover.add(useInsn);
-								} else {
+//								if (useInsn.getType() == InsnType.MOVE) {
+//									// TODO
+//									// remover.add(useInsn);
+//								} else {
 									useInsnArg.wrapInstruction(insn);
 									remover.add(insn);
-								}
+//								}
 							}
 						}
 					}
@@ -193,7 +195,7 @@ public class CodeShrinker extends AbstractVisitor {
 		while (i.isInsnWrap()) {
 			InsnNode wrapInsn = ((InsnWrapArg) i).getWrapInsn();
 			chain.add(wrapInsn);
-			if(wrapInsn.getArgsCount() == 0)
+			if (wrapInsn.getArgsCount() == 0)
 				break;
 
 			i = wrapInsn.getArg(0);

@@ -344,6 +344,11 @@ public abstract class ArgType {
 				}
 			}
 		} else {
+			if(a.isGenericType())
+				return a;
+			if(b.isGenericType())
+				return b;
+
 			if (a.isObject() && b.isObject()) {
 				if (a.getObject().equals(b.getObject())) {
 					if (a.getGenericTypes() != null)

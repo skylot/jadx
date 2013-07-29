@@ -3,7 +3,7 @@ package jadx.core.dex.instructions.args;
 import jadx.core.codegen.TypeGen;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
-public class LiteralArg extends InsnArg {
+public final class LiteralArg extends InsnArg {
 
 	private final long literal;
 

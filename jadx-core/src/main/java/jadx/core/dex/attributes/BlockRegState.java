@@ -32,8 +32,7 @@ public final class BlockRegState {
 			regType = new TypedVar(arg.getType());
 			regs[arg.getRegNum()].setTypedVar(regType);
 		}
-		arg.replace(regType);
-		regType.getUseList().add(arg);
+		regType.use(arg);
 	}
 
 	public RegisterArg getRegister(int r) {

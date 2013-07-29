@@ -29,7 +29,6 @@ public abstract class Typed {
 	}
 
 	public void replace(TypedVar newVar) {
-		assert newVar != null;
 		if (typedVar == newVar)
 			return;
 
