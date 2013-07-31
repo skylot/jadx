@@ -303,14 +303,19 @@ public class InsnGen {
 				break;
 
 			case STR_CONCAT:
-				// TODO: wrap in braces only if necessary
-				code.add('(');
+				StringBuilder sb = new StringBuilder();
 				for (Iterator<InsnArg> it = insn.getArguments().iterator(); it.hasNext(); ) {
-					code.add(arg(it.next()));
-					if (it.hasNext())
-						code.add(" + ");
+					sb.append(arg(it.next()));
+					if (it.hasNext()) {
+						sb.append(" + ");
+					}
 				}
-				code.add(')');
+				// TODO: wrap in braces only if necessary
+				if (state.contains(InsnGenState.BODY_ONLY)) {
+					code.add('(').add(sb.toString()).add(')');
+				} else {
+					code.add(sb.toString());
+				}
 				break;
 
 			case MONITOR_ENTER:

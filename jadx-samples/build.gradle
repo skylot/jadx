@@ -18,6 +18,10 @@ sourceSets {
     }
 }
 
+compileJava {
+    options.compilerArgs << '-g:none'
+}
+
 task samplesRun(type: JavaExec, dependsOn: compileJava) {  
     classpath = sourceSets.main.output
     main = mainSamplesClass  

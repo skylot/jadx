@@ -36,7 +36,7 @@ public class CodeShrinker extends AbstractVisitor {
 			return;
 
 		shrink(mth);
-		pretify(mth);
+		prettify(mth);
 	}
 
 	private static void shrink(MethodNode mth) {
@@ -72,7 +72,7 @@ public class CodeShrinker extends AbstractVisitor {
 								BlockNode useBlock = BlockUtils.getBlockByInsn(mth, useInsn);
 								if (useBlock != null
 										&& (useBlock.getPredecessors().contains(block)
-											|| insn.getType() == InsnType.MOVE_EXCEPTION)) {
+										|| insn.getType() == InsnType.MOVE_EXCEPTION)) {
 									wrap = true;
 								}
 							}
@@ -81,8 +81,8 @@ public class CodeShrinker extends AbstractVisitor {
 //									// TODO
 //									// remover.add(useInsn);
 //								} else {
-									useInsnArg.wrapInstruction(insn);
-									remover.add(insn);
+								useInsnArg.wrapInstruction(insn);
+								remover.add(insn);
 //								}
 							}
 						}
@@ -93,14 +93,14 @@ public class CodeShrinker extends AbstractVisitor {
 		}
 	}
 
-	private static void pretify(MethodNode mth) {
+	private static void prettify(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
-			for (int i = 0; i < block.getInstructions().size(); i++) {
-				InsnNode insn = block.getInstructions().get(i);
-
-				InsnNode ni = pretifyInsn(mth, insn);
-				if (ni != null)
-					block.getInstructions().set(i, ni);
+			List<InsnNode> list = block.getInstructions();
+			for (int i = 0; i < list.size(); i++) {
+				InsnNode modInsn = pretifyInsn(mth, list.get(i));
+				if (modInsn != null) {
+					list.set(i, modInsn);
+				}
 			}
 		}
 	}
@@ -166,19 +166,23 @@ public class CodeShrinker extends AbstractVisitor {
 				if (callMth.getDeclClass().getFullName().equals(Consts.CLASS_STRING_BUILDER)
 						&& callMth.getShortId().equals("toString()")
 						&& insn.getArg(0).isInsnWrap()) {
-					List<InsnNode> chain = flattenInsnChain(insn);
-					if (chain.size() > 1 && chain.get(0).getType() == InsnType.CONSTRUCTOR) {
-						ConstructorInsn constr = (ConstructorInsn) chain.get(0);
-						if (constr.getClassType().getFullName().equals(Consts.CLASS_STRING_BUILDER)
-								&& constr.getArgsCount() == 0) {
-							int len = chain.size();
-							InsnNode concatInsn = new InsnNode(InsnType.STR_CONCAT, len - 1);
-							for (int i = 1; i < len; i++) {
-								concatInsn.addArg(chain.get(i).getArg(1));
+					try {
+						List<InsnNode> chain = flattenInsnChain(insn);
+						if (chain.size() > 1 && chain.get(0).getType() == InsnType.CONSTRUCTOR) {
+							ConstructorInsn constr = (ConstructorInsn) chain.get(0);
+							if (constr.getClassType().getFullName().equals(Consts.CLASS_STRING_BUILDER)
+									&& constr.getArgsCount() == 0) {
+								int len = chain.size();
+								InsnNode concatInsn = new InsnNode(InsnType.STR_CONCAT, len - 1);
+								for (int i = 1; i < len; i++) {
+									concatInsn.addArg(chain.get(i).getArg(1));
+								}
+								concatInsn.setResult(insn.getResult());
+								return concatInsn;
 							}
-							concatInsn.setResult(insn.getResult());
-							return concatInsn;
 						}
+					} catch (Throwable e) {
+						LOG.debug("Can't convert string concatenation: {} insn: {}", mth, insn, e);
 					}
 				}
 				break;

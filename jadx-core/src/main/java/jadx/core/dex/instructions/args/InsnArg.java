@@ -1,5 +1,6 @@
 package jadx.core.dex.instructions.args;
 
+import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
 
@@ -57,12 +58,17 @@ public abstract class InsnArg extends Typed {
 		this.parentInsn = parentInsn;
 	}
 
-	public InsnWrapArg wrapInstruction(InsnNode insn) {
+	public InsnArg wrapInstruction(InsnNode insn) {
 		assert parentInsn != insn : "Can't wrap instruction info itself";
 		int count = parentInsn.getArgsCount();
 		for (int i = 0; i < count; i++) {
 			if (parentInsn.getArg(i) == this) {
-				InsnWrapArg arg = wrap(insn);
+				InsnArg arg;
+				if (insn.getType() == InsnType.MOVE) {
+					arg = insn.getArg(0);
+				} else {
+					arg = wrap(insn);
+				}
 				parentInsn.setArg(i, arg);
 				return arg;
 			}
