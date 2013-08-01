@@ -6,6 +6,7 @@ dependencies {
     compile(project(":jadx-core"))
     compile(project(":jadx-cli"))
     compile 'com.fifesoft:rsyntaxtextarea:2.0.7'
+    compile 'ch.qos.logback:logback-classic:1.0.13'
 }
 
 startScripts {

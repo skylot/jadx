@@ -1,4 +1,9 @@
+ext.jadxClasspath = 'clsp-data/android-4.3.jar'
+
 dependencies {
     compile 'com.google.android.tools:dx:1.7'
+    compile 'ch.qos.logback:logback-classic:1.0.13'
+
+    runtime files(jadxClasspath)
 }
 

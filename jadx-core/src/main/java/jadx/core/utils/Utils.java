@@ -1,5 +1,8 @@
 package jadx.core.utils;
 
+import jadx.core.utils.exceptions.JadxRuntimeException;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -137,5 +140,15 @@ public class Utils {
 			LOG.error("Can't get manifest file", e);
 		}
 		return "dev";
+	}
+
+	public static void makeDirsForFile(File file) {
+		File dir = file.getParentFile();
+		if (!dir.exists()) {
+			// if directory already created in other thread mkdirs will return false,
+			// so check dir existence again
+			if (!dir.mkdirs() && !dir.exists())
+				throw new JadxRuntimeException("Can't create directory " + dir);
+		}
 	}
 }

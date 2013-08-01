@@ -240,7 +240,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 
 	public FieldNode getConstField(Object o) {
 		FieldNode field = constFields.get(o);
-		if(field == null)
+		if (field == null)
 			field = dex.getConstFields().get(o);
 		return field;
 	}
@@ -327,6 +327,10 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 
 	public String getPackage() {
 		return clsInfo.getPackage();
+	}
+
+	public String getRawName() {
+		return clsInfo.getRawName();
 	}
 
 	public void setCode(CodeWriter code) {

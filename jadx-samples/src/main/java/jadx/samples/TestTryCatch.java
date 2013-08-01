@@ -168,6 +168,20 @@ public class TestTryCatch extends AbstractTest {
 		return b;
 	}
 
+	public int catchInLoop(int i, int j) {
+		while (true) {
+			try {
+				while (i < j)
+					i = j++ / i;
+			} catch (RuntimeException e) {
+				i = 10;
+				continue;
+			}
+			break;
+		}
+		return j;
+	}
+
 	@Override
 	public boolean testRun() throws Exception {
 		Object obj = new Object();
@@ -180,8 +194,8 @@ public class TestTryCatch extends AbstractTest {
 		assertTrue(test6(obj));
 		assertTrue(test7());
 
-		assertTrue(testSynchronize(obj) == true);
-		assertTrue(testSynchronize("str") == false);
+		assertTrue(testSynchronize(obj));
+		assertFalse(testSynchronize("str"));
 
 		assertTrue(testSynchronize2("str"));
 		assertTrue(testSynchronize3());
@@ -191,6 +205,10 @@ public class TestTryCatch extends AbstractTest {
 
 		assertTrue(test8a("a"));
 		assertTrue(test8a(null));
+
+		assertEquals(catchInLoop(1, 0), 0);
+		assertEquals(catchInLoop(0, 1), 2);
+		assertEquals(catchInLoop(788, 100), 100);
 		return true;
 	}
 

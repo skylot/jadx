@@ -172,7 +172,11 @@ public class MethodGen {
 				else
 					return name;
 			} else {
-				return base + "_" + Utils.escape(TypeGen.translate(classGen, arg.getType()));
+				ArgType type = arg.getType();
+				if (type.isPrimitive())
+					return base + type.getPrimitiveType().getShortName().toLowerCase();
+				else
+					return base + "_" + Utils.escape(TypeGen.translate(classGen, arg.getType()));
 			}
 		}
 	}

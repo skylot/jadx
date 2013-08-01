@@ -105,6 +105,10 @@ public final class ClassInfo {
 		return name;
 	}
 
+	public String getRawName() {
+		return type.getObject();
+	}
+
 	public String getPackage() {
 		return pkg;
 	}

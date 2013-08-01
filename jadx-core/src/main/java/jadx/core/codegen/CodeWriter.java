@@ -1,7 +1,7 @@
 package jadx.core.codegen;
 
 import jadx.core.dex.attributes.LineAttrNode;
-import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.utils.Utils;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -214,7 +214,7 @@ public class CodeWriter {
 
 		PrintWriter out = null;
 		try {
-			makeDirsForFile(file);
+			Utils.makeDirsForFile(file);
 			out = new PrintWriter(file, "UTF-8");
 			String code = buf.toString();
 			code = removeFirstEmptyLine(code);
@@ -227,13 +227,4 @@ public class CodeWriter {
 		}
 	}
 
-	private void makeDirsForFile(File file) {
-		File dir = file.getParentFile();
-		if (!dir.exists()) {
-			// if directory already created in other thread mkdirs will return false,
-			// so check dir existence again
-			if (!dir.mkdirs() && !dir.exists())
-				throw new JadxRuntimeException("Can't create directory " + dir);
-		}
-	}
 }

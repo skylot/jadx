@@ -1,6 +1,7 @@
 package jadx.core.dex.instructions.args;
 
 import jadx.core.Consts;
+import jadx.core.clsp.ClspGraph;
 import jadx.core.utils.Utils;
 
 import java.util.ArrayList;
@@ -42,6 +43,16 @@ public abstract class ArgType {
 	public static final ArgType WIDE = unknown(PrimitiveType.LONG, PrimitiveType.DOUBLE);
 
 	protected int hash;
+
+	private static ClspGraph clsp;
+
+	public static ClspGraph getClsp() {
+		return clsp;
+	}
+
+	public static void setClsp(ClspGraph clsp) {
+		ArgType.clsp = clsp;
+	}
 
 	private static ArgType primitive(PrimitiveType stype) {
 		return new PrimitiveArg(stype);
@@ -344,35 +355,30 @@ public abstract class ArgType {
 				}
 			}
 		} else {
-			if(a.isGenericType())
-				return a;
-			if(b.isGenericType())
-				return b;
+			if (a.isGenericType()) return a;
+			if (b.isGenericType()) return b;
 
 			if (a.isObject() && b.isObject()) {
-				if (a.getObject().equals(b.getObject())) {
-					if (a.getGenericTypes() != null)
-						return a;
-					else
-						return b;
-				} else if (a.getObject().equals(OBJECT.getObject()))
+				String aObj = a.getObject();
+				String bObj = b.getObject();
+				if (aObj.equals(bObj)) {
+					return (a.getGenericTypes() != null ? a : b);
+				} else if (aObj.equals(Consts.CLASS_OBJECT)) {
 					return b;
-				else if (b.getObject().equals(OBJECT.getObject()))
+				} else if (bObj.equals(Consts.CLASS_OBJECT)) {
 					return a;
-				else
+				} else {
 					// different objects
-					return null;
+					String obj = clsp.getCommonAncestor(aObj, bObj);
+					return (obj == null ? null : object(obj));
+				}
 			}
-
 			if (a.isArray() && b.isArray()) {
 				ArgType res = merge(a.getArrayElement(), b.getArrayElement());
 				return (res == null ? null : ArgType.array(res));
 			}
-
-			if (a.isPrimitive() && b.isPrimitive()) {
-				if (a.getRegCount() == b.getRegCount())
-					// return primitive(PrimitiveType.getWidest(a.getPrimitiveType(), b.getPrimitiveType()));
-					return primitive(PrimitiveType.getSmaller(a.getPrimitiveType(), b.getPrimitiveType()));
+			if (a.isPrimitive() && b.isPrimitive() && a.getRegCount() == b.getRegCount()) {
+				return primitive(PrimitiveType.getSmaller(a.getPrimitiveType(), b.getPrimitiveType()));
 			}
 		}
 		return null;

@@ -17,8 +17,9 @@ idea/
 .gradle/
 gradle.properties
 
+*-tmp/
+
 *.dex
-*.jar
 *.class
 *.dump
 *.log

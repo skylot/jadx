@@ -37,6 +37,9 @@ public class Utils {
 	}
 
 	public static String typeStr(ArgType type) {
+		if (type == null) {
+			return "null";
+		}
 		if (type.isObject()) {
 			String cls = type.getObject();
 			int dot = cls.lastIndexOf('.');

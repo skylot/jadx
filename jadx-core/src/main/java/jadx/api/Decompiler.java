@@ -64,8 +64,9 @@ public final class Decompiler {
 	}
 
 	public List<JavaClass> getClasses() {
-		List<JavaClass> classes = new ArrayList<JavaClass>(root.getClasses().size());
-		for (ClassNode classNode : root.getClasses()) {
+		List<ClassNode> classNodeList = root.getClasses(false);
+		List<JavaClass> classes = new ArrayList<JavaClass>(classNodeList.size());
+		for (ClassNode classNode : classNodeList) {
 			classes.add(new JavaClass(this, classNode));
 		}
 		return Collections.unmodifiableList(classes);
@@ -101,7 +102,7 @@ public final class Decompiler {
 
 		LOG.info("processing ...");
 		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadsCount);
-		for (ClassNode cls : root.getClasses()) {
+		for (ClassNode cls : root.getClasses(false)) {
 			if (cls.getCode() == null) {
 				ProcessClass job = new ProcessClass(cls, passList);
 				executor.execute(job);
@@ -133,10 +134,9 @@ public final class Decompiler {
 		ClassInfo.clearCache();
 		ErrorsCounter.reset();
 
-		root = new RootNode(args, inputFiles);
+		root = new RootNode();
 		LOG.info("loading ...");
-		root.load();
-		root.init();
+		root.load(inputFiles);
 	}
 
 	void processClass(ClassNode cls) {
