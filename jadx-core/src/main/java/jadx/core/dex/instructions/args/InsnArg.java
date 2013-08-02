@@ -64,10 +64,27 @@ public abstract class InsnArg extends Typed {
 		for (int i = 0; i < count; i++) {
 			if (parentInsn.getArg(i) == this) {
 				InsnArg arg;
-				if (insn.getType() == InsnType.MOVE) {
-					arg = insn.getArg(0);
-				} else {
-					arg = wrap(insn);
+				InsnType insnType = insn.getType();
+				switch (insnType) {
+					case MOVE:
+					case CONST:
+						arg = insn.getArg(0);
+						String name = insn.getResult().getTypedVar().getName();
+						if (name != null) {
+								arg.getTypedVar().setName(name);
+						}
+						break;
+					case CONST_STR:
+						arg = wrap(insn);
+						arg.getTypedVar().forceSetType(ArgType.STRING);
+						break;
+					case CONST_CLASS:
+						arg = wrap(insn);
+						arg.getTypedVar().forceSetType(ArgType.CLASS);
+						break;
+					default:
+						arg = wrap(insn);
+						break;
 				}
 				parentInsn.setArg(i, arg);
 				return arg;
@@ -79,9 +96,5 @@ public abstract class InsnArg extends Typed {
 	public boolean isThis() {
 		// must be implemented in RegisterArg
 		return false;
-	}
-
-	public int getRegNum() {
-		throw new UnsupportedOperationException("Must be called from RegisterArg");
 	}
 }

@@ -4,6 +4,8 @@ public enum InsnType {
 	NOP, // replacement for removed instructions
 
 	CONST,
+	CONST_STR,
+	CONST_CLASS,
 
 	ARITH,
 	NEG,

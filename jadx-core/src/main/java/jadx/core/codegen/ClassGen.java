@@ -355,6 +355,10 @@ public class ClassGen {
 			if (isInner(classInfo, cls.getClassInfo()))
 				return shortName;
 
+			// don't add import if this class from same package
+			if(classInfo.getPackage().equals(cls.getPackage()))
+				return shortName;
+
 			for (ClassInfo cls : imports) {
 				if (!cls.equals(classInfo)) {
 					if (cls.getShortName().equals(shortName))

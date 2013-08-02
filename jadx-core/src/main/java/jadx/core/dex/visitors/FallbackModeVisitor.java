@@ -26,6 +26,8 @@ public class FallbackModeVisitor extends AbstractVisitor {
 					case ARITH: // ??
 					case NEG:
 					case CONST:
+					case CONST_STR:
+					case CONST_CLASS:
 					case CMP_L:
 					case CMP_G:
 						catchAttr.getTryBlock().removeInsn(insn);

@@ -96,13 +96,13 @@ public class InsnDecoder {
 
 			case Opcodes.CONST_STRING:
 			case Opcodes.CONST_STRING_JUMBO: {
-				InsnNode node = new IndexInsnNode(InsnType.CONST, dex.getString(insn.getIndex()), 0);
+				InsnNode node = new ConstStringInsn(dex.getString(insn.getIndex()));
 				node.setResult(InsnArg.reg(insn, 0, ArgType.STRING));
 				return node;
 			}
 
 			case Opcodes.CONST_CLASS: {
-				InsnNode node = new IndexInsnNode(InsnType.CONST, dex.getType(insn.getIndex()), 0);
+				InsnNode node = new ConstClassInsn(dex.getType(insn.getIndex()));
 				node.setResult(InsnArg.reg(insn, 0, ArgType.CLASS));
 				return node;
 			}

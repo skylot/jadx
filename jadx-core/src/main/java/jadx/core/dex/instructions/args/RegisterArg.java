@@ -1,6 +1,7 @@
 package jadx.core.dex.instructions.args;
 
-import jadx.core.dex.instructions.IndexInsnNode;
+import jadx.core.dex.instructions.ConstClassInsn;
+import jadx.core.dex.instructions.ConstStringInsn;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.visitors.InstructionRemover;
@@ -17,7 +18,6 @@ public class RegisterArg extends InsnArg {
 		this.regNum = rn;
 	}
 
-	@Override
 	public int getRegNum() {
 		return regNum;
 	}
@@ -47,12 +47,15 @@ public class RegisterArg extends InsnArg {
 	 */
 	public Object getConstValue() {
 		InsnNode parInsn = getAssignInsn();
-		if (parInsn != null && parInsn.getType() == InsnType.CONST) {
-			if (parInsn.getArgsCount() == 0) {
-				// const in 'index' - string or class
-				return ((IndexInsnNode) parInsn).getIndex();
-			} else {
-				return parInsn.getArg(0);
+		if (parInsn != null) {
+			InsnType insnType = parInsn.getType();
+			switch (insnType) {
+				case CONST:
+					return parInsn.getArg(0);
+				case CONST_STR:
+					return ((ConstStringInsn) parInsn).getString();
+				case CONST_CLASS:
+					return ((ConstClassInsn) parInsn).getClsType();
 			}
 		}
 		return null;

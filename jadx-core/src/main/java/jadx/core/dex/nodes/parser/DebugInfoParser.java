@@ -168,7 +168,7 @@ public class DebugInfoParser {
 			insn.setSourceLine(line);
 			for (InsnArg arg : insn.getArguments())
 				if (arg.isRegister()) {
-					activeRegisters[arg.getRegNum()] = arg;
+					activeRegisters[((RegisterArg) arg).getRegNum()] = arg;
 				}
 
 			RegisterArg res = insn.getResult();
@@ -211,7 +211,7 @@ public class DebugInfoParser {
 
 	private static void merge(InsnArg arg, LocalVar var) {
 		if (arg != null && arg.isRegister()) {
-			if (var.getRegNum() == arg.getRegNum())
+			if (var.getRegNum() == ((RegisterArg) arg).getRegNum())
 				arg.setTypedVar(var.getTypedVar());
 		}
 	}

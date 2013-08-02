@@ -36,13 +36,12 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 
 	private static boolean checkInsn(MethodNode mth, BlockNode block, InsnNode insn) {
 		if (insn.getType() == InsnType.CONST) {
-			if (insn.getArgsCount() == 1
-					&& insn.getArg(0).isLiteral()
+			if (insn.getArg(0).isLiteral()
 					&& insn.getResult().getType().getRegCount() == 1 /* process only narrow types */) {
 				long lit = ((LiteralArg) insn.getArg(0)).getLiteral();
 				return replaceConst(mth, block, insn, lit);
 			}
-			// TODO process string const
+			// TODO process string and class const
 		}
 		return false;
 	}
@@ -106,9 +105,7 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 	private static void fixTypes(MethodNode mth, InsnNode insn) {
 		switch (insn.getType()) {
 			case CONST:
-				if (insn.getArgsCount() > 0) {
-					insn.getArg(0).merge(insn.getResult());
-				}
+				insn.getArg(0).merge(insn.getResult());
 				break;
 
 			case MOVE:

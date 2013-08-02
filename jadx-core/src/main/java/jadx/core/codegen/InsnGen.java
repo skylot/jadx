@@ -8,6 +8,8 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
+import jadx.core.dex.instructions.ConstClassInsn;
+import jadx.core.dex.instructions.ConstStringInsn;
 import jadx.core.dex.instructions.FillArrayOp;
 import jadx.core.dex.instructions.GotoNode;
 import jadx.core.dex.instructions.IfNode;
@@ -181,18 +183,19 @@ public class InsnGen {
 
 	private void makeInsnBody(CodeWriter code, InsnNode insn, EnumSet<InsnGenState> state) throws CodegenException {
 		switch (insn.getType()) {
+			case CONST_STR:
+				String str = ((ConstStringInsn) insn).getString();
+				code.add(StringUtils.unescapeString(str));
+				break;
+
+			case CONST_CLASS:
+				ArgType clsType = ((ConstClassInsn) insn).getClsType();
+				code.add(useType(clsType)).add(".class");
+				break;
+
 			case CONST:
-				if (insn.getArgsCount() == 0) {
-					// const in 'index' - string or class
-					Object ind = ((IndexInsnNode) insn).getIndex();
-					if (ind instanceof String)
-						code.add(StringUtils.unescapeString(ind.toString()));
-					else if (ind instanceof ArgType)
-						code.add(useType((ArgType) ind)).add(".class");
-				} else {
-					LiteralArg arg = (LiteralArg) insn.getArg(0);
-					code.add(lit(arg));
-				}
+				LiteralArg arg = (LiteralArg) insn.getArg(0);
+				code.add(lit(arg));
 				break;
 
 			case MOVE:

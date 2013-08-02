@@ -1,5 +1,6 @@
 package jadx.core.dex.visitors.regions;
 
+import jadx.core.Consts;
 import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.attributes.AttributesList;
@@ -42,19 +43,23 @@ public class RegionMaker {
 	private static final Logger LOG = LoggerFactory.getLogger(RegionMaker.class);
 
 	private final MethodNode mth;
-	private final BitSet processedBlocks;
+	private BitSet processedBlocks;
 
 	public RegionMaker(MethodNode mth) {
 		this.mth = mth;
-		this.processedBlocks = new BitSet(mth.getBasicBlocks().size());
+		if (Consts.DEBUG) {
+			this.processedBlocks = new BitSet(mth.getBasicBlocks().size());
+		}
 	}
 
 	public Region makeRegion(BlockNode startBlock, RegionStack stack) {
-		int id = startBlock.getId();
-		if (processedBlocks.get(id))
-			LOG.debug(" Block already processed: " + startBlock + ", mth: " + mth);
-		else
-			processedBlocks.set(id);
+		if (Consts.DEBUG) {
+			int id = startBlock.getId();
+			if (processedBlocks.get(id))
+				LOG.debug(" Block already processed: " + startBlock + ", mth: " + mth);
+			else
+				processedBlocks.set(id);
+		}
 
 		Region r = new Region(stack.peekRegion());
 		BlockNode next = startBlock;
