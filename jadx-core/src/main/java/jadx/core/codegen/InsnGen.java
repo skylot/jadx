@@ -523,7 +523,29 @@ public class InsnGen {
 				break;
 		}
 		code.add(callMth.getName());
-		addArgs(code, insn, k);
+		if (callMthNode != null && callMthNode.isArgsOverload()) {
+			int argsCount = insn.getArgsCount();
+			List<ArgType> originalType = callMth.getArgumentsTypes();
+			int origPos = 0;
+
+			code.add('(');
+			for (int i = k; i < argsCount; i++) {
+				InsnArg arg = insn.getArg(i);
+				ArgType origType = originalType.get(origPos);
+				if (!arg.getType().equals(origType)) {
+					code.add('(').add(useType(origType)).add(')').add(arg(arg));
+				} else {
+					code.add(arg(arg));
+				}
+				if (i < argsCount - 1) {
+					code.add(", ");
+				}
+				origPos++;
+			}
+			code.add(')');
+		} else {
+			addArgs(code, insn, k);
+		}
 	}
 
 	private void inlineMethod(MethodNode callMthNode, InvokeNode insn, CodeWriter code) throws CodegenException {
@@ -566,11 +588,14 @@ public class InsnGen {
 	}
 
 	private void addArgs(CodeWriter code, InsnNode insn, int k) throws CodegenException {
+		int argsCount = insn.getArgsCount();
 		code.add('(');
-		for (int i = k; i < insn.getArgsCount(); i++) {
-			code.add(arg(insn, i));
-			if (i < insn.getArgsCount() - 1)
+		if (k < argsCount) {
+			code.add(arg(insn, k));
+			for (int i = k + 1; i < argsCount; i++) {
 				code.add(", ");
+				code.add(arg(insn, i));
+			}
 		}
 		code.add(')');
 	}

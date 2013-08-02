@@ -19,11 +19,11 @@ public class FinishTypeResolver extends AbstractVisitor {
 		int i = 0;
 		do {
 			change = false;
-			for (BlockNode block : mth.getBasicBlocks())
+			for (BlockNode block : mth.getBasicBlocks()) {
 				for (InsnNode insn : block.getInstructions())
-					if (PostTypeResolver.visit(insn))
+					if (PostTypeResolver.visit(mth, insn))
 						change = true;
-
+			}
 			i++;
 			if (i > 1000)
 				break;

@@ -455,8 +455,23 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		return exceptionHandlers;
 	}
 
-	public boolean isMethodOverloaded() {
-		// TODO
+	/**
+	 * Return true if exists method with same name and arguments count
+	 */
+	public boolean isArgsOverload() {
+		int argsCount = mthInfo.getArgumentsTypes().size();
+		if (argsCount == 0) {
+			return false;
+		}
+
+		String name = getName();
+		List<MethodNode> methods = parentClass.getMethods();
+		for (MethodNode method : methods) {
+			if (this != method
+					&& method.getName().equals(name)
+					&& method.mthInfo.getArgumentsTypes().size() == argsCount)
+				return true;
+		}
 		return false;
 	}
 
