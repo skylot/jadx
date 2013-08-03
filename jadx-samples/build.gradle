@@ -1,21 +1,12 @@
 project.ext {
     mainSamplesClass = "jadx.samples.RunTests"  
     samplesJadxSrcDir = "${buildDir}/samples-jadx/src"
+    samplesJadxOutDir = "${buildDir}/samples-jadx/output"
 }
 
 dependencies {
     compile(project(":jadx-core"))
     compile(project(":jadx-cli"))
-}
-
-sourceSets {
-    //TODO don't add to eclipse classpath
-    samplesJadx {
-        java {
-            srcDir samplesJadxSrcDir
-            output.classesDir "${buildDir}/samples-jadx/output"
-        }
-    }
 }
 
 compileJava {
@@ -32,19 +23,29 @@ task samplesJar(type: Jar, dependsOn: samplesRun) {
     from sourceSets.main.output
 }
 
-task samplesJadxCreate(type: JavaExec, dependsOn: [compileJava, samplesJar]) {  
+task samplesJadxCreate(type: JavaExec, dependsOn: samplesJar) {  
     classpath = sourceSets.main.output + configurations.compile
-    main = "jadx.cli.JadxCLI" 
+    main = project(":jadx-cli").mainClassName 
     args = ['-d', samplesJadxSrcDir, samplesJar.archivePath]
 }
 
-compileSamplesJadxJava.dependsOn samplesJadxCreate
+task samplesJadxCompile(type: JavaCompile, dependsOn: samplesJadxCreate) {  
+    classpath = configurations.compile
+    destinationDir = file samplesJadxOutDir
+    source = samplesJadxSrcDir
+}
 
-task samplesJadxRun(type: JavaExec, dependsOn: compileSamplesJadxJava) {  
-    classpath = sourceSets.samplesJadx.output
+task samplesJadxRun(type: JavaExec, dependsOn: samplesJadxCompile) {  
+    classpath = files samplesJadxOutDir
     main = mainSamplesClass  
 }
 
 task samples (dependsOn: samplesJadxRun) {
 }
 
+task cleanGeneratedFiles (type: Delete) {
+    delete samplesJadxSrcDir
+    delete samplesJadxOutDir
+}
+
+clean.dependsOn cleanGeneratedFiles

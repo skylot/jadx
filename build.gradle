@@ -46,7 +46,7 @@ task build (dependsOn: pack) {
 }
 
 task clean(type: Delete) {
-  delete buildDir
+    delete buildDir
 }
 
 task wrapper(type: Wrapper) {
