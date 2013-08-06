@@ -12,7 +12,7 @@ Latest version available at
 [sourceforge](http://sourceforge.net/projects/jadx/files/) 
 
 
-### Build [![Build Status](https://buildhive.cloudbees.com/job/skylot/job/jadx/badge/icon)](https://buildhive.cloudbees.com/job/skylot/job/jadx/)
+### Build  [![Build Status](https://travis-ci.org/skylot/jadx.png?branch=master)](https://travis-ci.org/skylot/jadx)
 
     git clone https://github.com/skylot/jadx.git
     cd jadx
