@@ -4,6 +4,7 @@ import jadx.cli.JadxCLIArgs;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.WindowConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +20,11 @@ public class JadxGUI {
 				public void run() {
 					JadxWrapper wrapper = new JadxWrapper(jadxArgs);
 					MainWindow mainWindow = new MainWindow(wrapper);
+					mainWindow.pack();
+					mainWindow.setLocationAndPosition();
 					mainWindow.setVisible(true);
+					mainWindow.setLocationRelativeTo(null);
+					mainWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
 					if (!jadxArgs.getInput().isEmpty()) {
 						mainWindow.openFile(jadxArgs.getInput().get(0));

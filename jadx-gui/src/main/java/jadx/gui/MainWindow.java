@@ -33,6 +33,8 @@ import javax.swing.tree.TreeSelectionModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -50,6 +52,9 @@ public class MainWindow extends JFrame {
 
 	private static final String DEFAULT_TITLE = "jadx-gui";
 	private static final Color BACKGROUND = new Color(0xf7f7f7);
+
+	private static final double BORDER_RATIO = 0.15;
+	private static final double WINDOW_RATIO = 1 - BORDER_RATIO * 2;
 
 	private static final ImageIcon ICON_OPEN = Utils.openIcon("folder");
 	private static final ImageIcon ICON_SAVE_ALL = Utils.openIcon("disk_multiple");
@@ -228,7 +233,7 @@ public class MainWindow extends JFrame {
 	private void initUI() {
 		mainPanel = new JPanel(new BorderLayout());
 		JSplitPane splitPane = new JSplitPane();
-		splitPane.setDividerLocation(200);
+		splitPane.setResizeWeight(0.2);
 		mainPanel.add(splitPane);
 
 		DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode("Please open file");
@@ -281,9 +286,14 @@ public class MainWindow extends JFrame {
 
 		setContentPane(mainPanel);
 		setTitle(DEFAULT_TITLE);
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		pack();
-		setLocationRelativeTo(null);
+	}
+
+	public void setLocationAndPosition() {
+		Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
+		double w = dimension.getWidth();
+		double h = dimension.getHeight();
+		setLocation((int) (w * BORDER_RATIO), (int) (h * BORDER_RATIO));
+		setSize((int) (w * WINDOW_RATIO), (int) (h * WINDOW_RATIO));
 	}
 
 	private class OpenListener implements ActionListener {
