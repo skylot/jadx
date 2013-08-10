@@ -62,6 +62,8 @@ public class MainWindow extends JFrame {
 	private static final ImageIcon ICON_FLAT_PKG = Utils.openIcon("empty_logical_package_obj");
 	private static final ImageIcon ICON_SEARCH = Utils.openIcon("magnifier");
 
+	private static final File WORK_DIR = new File(System.getProperty("user.dir"));
+
 	private final JadxWrapper wrapper;
 	private JPanel mainPanel;
 	private JTree tree;
@@ -77,6 +79,18 @@ public class MainWindow extends JFrame {
 		initMenuAndToolbar();
 	}
 
+	public void openFile() {
+		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setAcceptAllFileFilterUsed(true);
+		fileChooser.setFileFilter(new FileNameExtensionFilter("supported files", "dex", "apk", "jar"));
+		fileChooser.setToolTipText(NLS.str("file.open"));
+		// fileChooser.setCurrentDirectory(WORK_DIR);
+		int ret = fileChooser.showDialog(mainPanel, NLS.str("file.open"));
+		if (ret == JFileChooser.APPROVE_OPTION) {
+			openFile(fileChooser.getSelectedFile());
+		}
+	}
+
 	public void openFile(File file) {
 		wrapper.openFile(file);
 		initTree();
@@ -86,7 +100,8 @@ public class MainWindow extends JFrame {
 	private void saveAllAction() {
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		int ret = fileChooser.showDialog(mainPanel, NLS.str("file.save_all_msg"));
+		fileChooser.setToolTipText(NLS.str("file.save_all_msg"));
+		int ret = fileChooser.showDialog(mainPanel, NLS.str("file.select"));
 		if (ret == JFileChooser.APPROVE_OPTION) {
 
 			ProgressMonitor progressMonitor = new ProgressMonitor(mainPanel, "Saving sources", "", 0, 100);
@@ -298,12 +313,7 @@ public class MainWindow extends JFrame {
 
 	private class OpenListener implements ActionListener {
 		public void actionPerformed(ActionEvent event) {
-			JFileChooser fileChooser = new JFileChooser();
-			fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("dex files", "dex", "apk", "jar"));
-			int ret = fileChooser.showDialog(mainPanel, "Open file");
-			if (ret == JFileChooser.APPROVE_OPTION) {
-				openFile(fileChooser.getSelectedFile());
-			}
+			openFile();
 		}
 	}
 }

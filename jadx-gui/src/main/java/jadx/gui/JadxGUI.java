@@ -26,7 +26,9 @@ public class JadxGUI {
 					mainWindow.setLocationRelativeTo(null);
 					mainWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-					if (!jadxArgs.getInput().isEmpty()) {
+					if (jadxArgs.getInput().isEmpty()) {
+						mainWindow.openFile();
+					} else {
 						mainWindow.openFile(jadxArgs.getInput().get(0));
 					}
 				}
