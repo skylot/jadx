@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,6 +90,14 @@ public final class Decompiler {
 			packages.add(new JavaPackage(entry.getKey(), entry.getValue()));
 		}
 		Collections.sort(packages);
+		for (JavaPackage pkg : packages) {
+			Collections.sort(pkg.getClasses(), new Comparator<JavaClass>() {
+				@Override
+				public int compare(JavaClass o1, JavaClass o2) {
+					return o1.getShortName().compareTo(o2.getShortName());
+				}
+			});
+		}
 		return Collections.unmodifiableList(packages);
 	}
 

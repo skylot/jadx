@@ -8,6 +8,7 @@ import jadx.core.dex.nodes.MethodNode;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public final class JavaClass {
@@ -54,6 +55,12 @@ public final class JavaClass {
 					mths.add(new JavaMethod(m));
 				}
 			}
+			Collections.sort(mths, new Comparator<JavaMethod>() {
+				@Override
+				public int compare(JavaMethod o1, JavaMethod o2) {
+					return o1.getName().compareTo(o2.getName());
+				}
+			});
 			this.methods = Collections.unmodifiableList(mths);
 		}
 	}
