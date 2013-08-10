@@ -1,6 +1,5 @@
 package jadx.gui;
 
-import jadx.cli.JadxArgs;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JRoot;
@@ -66,8 +65,8 @@ public class MainWindow extends JFrame {
 	private JToolBar searchToolBar;
 	private SearchBar searchBar;
 
-	public MainWindow(JadxArgs jadxArgs) {
-		this.wrapper = new JadxWrapper(jadxArgs);
+	public MainWindow(JadxWrapper wrapper) {
+		this.wrapper = wrapper;
 
 		initUI();
 		initMenuAndToolbar();

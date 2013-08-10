@@ -1,7 +1,7 @@
 package jadx.cli;
 
-import jadx.core.Consts;
 import jadx.api.IJadxArgs;
+import jadx.core.Consts;
 import jadx.core.utils.exceptions.JadxException;
 
 import java.io.File;
@@ -18,10 +18,9 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterDescription;
 import com.beust.jcommander.ParameterException;
 
-public class JadxArgs implements IJadxArgs {
-	private static final Logger LOG = LoggerFactory.getLogger(JadxArgs.class);
+public final class JadxCLIArgs implements IJadxArgs {
 
-	@Parameter(description = "<input files> (.dex, .apk, .jar or .class)")
+	@Parameter(description = "<input file> (.dex, .apk, .jar or .class)")
 	protected List<String> files;
 
 	@Parameter(names = {"-d", "--output-dir"}, description = "output directory")
@@ -45,88 +44,59 @@ public class JadxArgs implements IJadxArgs {
 	@Parameter(names = {"-h", "--help"}, description = "print this help", help = true)
 	protected boolean printHelp = false;
 
-	private final List<File> input = new ArrayList<File>();
+	private final List<File> input = new ArrayList<File>(1);
 	private File outputDir;
 
-	private final boolean inputRequired;
-
-	public JadxArgs(String[] args, boolean inputRequired) {
-		this.inputRequired = inputRequired;
+	public JadxCLIArgs(String[] args) {
 		parse(args);
-		checkArguments();
+		processArgs();
 	}
 
 	private void parse(String[] args) {
 		try {
 			new JCommander(this, args);
 		} catch (ParameterException e) {
-			System.out.println("Arguments parse error: " + e.getMessage());
-			System.out.println();
-			printHelp = true;
-		}
-	}
-
-	private void checkArguments() {
-		if (isPrintHelp()) {
-			printUsage();
-			System.exit(0);
-		}
-		if (isVerbose()) {
-			ch.qos.logback.classic.Logger rootLogger =
-					(ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-			rootLogger.setLevel(ch.qos.logback.classic.Level.DEBUG);
-		}
-		try {
-			processArgs();
-		} catch (JadxException e) {
-			LOG.error(e.getMessage());
+			System.err.println("Arguments parse error: " + e.getMessage());
 			printUsage();
 			System.exit(1);
 		}
 	}
 
-	public void processArgs() throws JadxException {
-		if (printHelp)
-			return;
+	public void processArgs() {
+		if (isPrintHelp()) {
+			printUsage();
+			System.exit(0);
+		}
+		try {
+			if (threadsCount <= 0)
+				throw new JadxException("Threads count must be positive");
 
-		if (threadsCount <= 0)
-			throw new JadxException("Threads count must be positive");
-
-		if (files != null) {
-			for (String fileName : files) {
-				File file = new File(fileName);
-				if (file.exists())
-					input.add(file);
-				else
-					throw new JadxException("File not found: " + file);
+			if (files != null) {
+				for (String fileName : files) {
+					File file = new File(fileName);
+					if (file.exists())
+						input.add(file);
+					else
+						throw new JadxException("File not found: " + file);
+				}
 			}
-		}
 
-		if (input.isEmpty()) {
-			if (inputRequired)
-				throw new JadxException("Please specify input file");
-			else
-				return;
-		}
-		if (input.size() > 1) {
-			throw new JadxException("Only one input file is supported");
-		}
+			if (input.size() > 1)
+				throw new JadxException("Only one input file is supported");
 
-		if (outDirName == null) {
-			File file = new File(files.get(0));
-			String name = file.getName();
-			int pos = name.lastIndexOf('.');
-			if (pos != -1)
-				outDirName = name.substring(0, pos);
-			else
-				outDirName = name + "-jadx-out";
+			if (outDirName != null)
+				outputDir = new File(outDirName);
 
-			LOG.info("output directory: " + outDirName);
+			if (isVerbose()) {
+				ch.qos.logback.classic.Logger rootLogger =
+						(ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+				rootLogger.setLevel(ch.qos.logback.classic.Level.DEBUG);
+			}
+		} catch (JadxException e) {
+			System.err.println("ERROR: " + e.getMessage());
+			printUsage();
+			System.exit(1);
 		}
-
-		outputDir = new File(outDirName);
-		if (outputDir.exists() && !outputDir.isDirectory())
-			throw new JadxException("Output directory exists as file " + outputDir);
 	}
 
 	public void printUsage() {
@@ -157,9 +127,6 @@ public class JadxArgs implements IJadxArgs {
 					opt.append(' ').append(p.getNames());
 					addSpaces(opt, maxNamesLen - opt.length() + 2);
 					opt.append("- ").append(p.getDescription());
-					if (inputRequired && name.equals("files")) {
-						opt.append(" [required]");
-					}
 					out.println(opt.toString());
 					break;
 				}
@@ -177,6 +144,10 @@ public class JadxArgs implements IJadxArgs {
 	@Override
 	public File getOutDir() {
 		return outputDir;
+	}
+
+	public void setOutputDir(File outputDir) {
+		this.outputDir = outputDir;
 	}
 
 	@Override
