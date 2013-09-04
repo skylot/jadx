@@ -9,7 +9,7 @@ public class TestEnum extends AbstractTest {
 
 	public enum Direction {
 		NORTH, SOUTH, EAST, WEST
-	};
+	}
 
 	private static int three = 3;
 
@@ -25,7 +25,7 @@ public class TestEnum extends AbstractTest {
 		public int getNum() {
 			return num;
 		}
-	};
+	}
 
 	public enum Operation {
 		PLUS {
@@ -101,9 +101,26 @@ public class TestEnum extends AbstractTest {
 
 	public enum Singleton {
 		INSTANCE;
+
 		public String test(String arg) {
 			return arg.concat("test");
 		}
+	}
+
+	public String testEnumSwitch(final Direction color) {
+		String d;
+		switch (color) {
+			case NORTH:
+				d = "N";
+				break;
+			case SOUTH:
+				d = "S";
+				break;
+			default:
+				d = "<>";
+				break;
+		}
+		return d;
 	}
 
 	@Override

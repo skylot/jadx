@@ -4,9 +4,11 @@ import jadx.core.clsp.ClspGraph;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.utils.exceptions.DecodeException;
-import junit.framework.TestCase;
 
 import java.io.IOException;
+
+import org.junit.Before;
+import org.junit.Test;
 
 import static jadx.core.dex.instructions.args.ArgType.BOOLEAN;
 import static jadx.core.dex.instructions.args.ArgType.CHAR;
@@ -19,18 +21,21 @@ import static jadx.core.dex.instructions.args.ArgType.UNKNOWN_OBJECT;
 import static jadx.core.dex.instructions.args.ArgType.genericType;
 import static jadx.core.dex.instructions.args.ArgType.object;
 import static jadx.core.dex.instructions.args.ArgType.unknown;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-public class TypeMergeTest extends TestCase {
+public class TypeMergeTest {
 
-	private void initClsp() throws IOException, DecodeException {
+	@Before
+	public void initClsp() throws IOException, DecodeException {
 		ClspGraph clsp = new ClspGraph();
 		clsp.load();
 		ArgType.setClsp(clsp);
 	}
 
+	@Test
 	public void testMerge() throws IOException, DecodeException {
-		initClsp();
-
 		first(INT, INT);
 		first(BOOLEAN, INT);
 		reject(INT, LONG);

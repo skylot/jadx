@@ -1,10 +1,14 @@
 package jadx.tests;
 
 import jadx.core.utils.StringUtils;
-import junit.framework.TestCase;
 
-public class StringUtilsTest extends TestCase {
+import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
+public class StringUtilsTest {
+
+	@Test
 	public void testUnescape() {
 		unescapeTest("\n", "\\n");
 		unescapeTest("\t", "\\t");
