@@ -101,6 +101,10 @@ public final class Decompiler {
 		return Collections.unmodifiableList(packages);
 	}
 
+	public int getErrorsCount() {
+		return errorsCount;
+	}
+
 	public ThreadPoolExecutor saveAll(File dir) {
 		int threadsCount = args.getThreadsCount();
 		LOG.debug("processing threads count: {}", threadsCount);
@@ -156,9 +160,5 @@ public final class Decompiler {
 		} catch (Throwable e) {
 			LOG.error("Process class error", e);
 		}
-	}
-
-	public int getErrorsCount() {
-		return errorsCount;
 	}
 }

@@ -39,11 +39,23 @@ public class JRoot extends DefaultMutableTreeNode implements JNode {
 			}
 		} else {
 			// build packages hierarchy
-			Map<String, JPackage> pkgMap = new HashMap<String, JPackage>();
-			for (JavaPackage pkg : wrapper.getPackages()) {
-				addPackage(pkgMap, new JPackage(pkg));
+			List<JPackage> rootPkgs = getHierarchyPackages(wrapper.getPackages());
+			for (JPackage jPackage : rootPkgs) {
+				jPackage.updateChilds();
+				add(jPackage);
 			}
-			// merge packages without classes
+		}
+	}
+
+	List<JPackage> getHierarchyPackages(List<JavaPackage> packages) {
+		Map<String, JPackage> pkgMap = new HashMap<String, JPackage>();
+		for (JavaPackage pkg : packages) {
+			addPackage(pkgMap, new JPackage(pkg));
+		}
+		// merge packages without classes
+		boolean repeat;
+		do {
+			repeat = false;
 			for (JPackage pkg : pkgMap.values()) {
 				if (pkg.getInnerPackages().size() == 1 && pkg.getClasses().isEmpty()) {
 					JPackage innerPkg = pkg.getInnerPackages().get(0);
@@ -53,32 +65,34 @@ public class JRoot extends DefaultMutableTreeNode implements JNode {
 					pkg.setName(pkg.getName() + "." + innerPkg.getName());
 					innerPkg.getInnerPackages().clear();
 					innerPkg.getClasses().clear();
+
+					repeat = true;
+					pkgMap.remove(innerPkg.getName());
+					break;
 				}
 			}
-			// remove empty packages
-			for (Iterator<Map.Entry<String, JPackage>> it = pkgMap.entrySet().iterator(); it.hasNext(); ) {
-				JPackage pkg = it.next().getValue();
-				if (pkg.getInnerPackages().isEmpty() && pkg.getClasses().isEmpty()) {
-					it.remove();
-				}
-			}
-			// find root packages
-			Set<JPackage> inners = new HashSet<JPackage>();
-			for (JPackage pkg : pkgMap.values()) {
-				inners.addAll(pkg.getInnerPackages());
-			}
-			List<JPackage> rootPkgs = new ArrayList<JPackage>();
-			for (JPackage pkg : pkgMap.values()) {
-				if (!inners.contains(pkg)) {
-					rootPkgs.add(pkg);
-				}
-			}
-			Collections.sort(rootPkgs);
-			for (JPackage jPackage : rootPkgs) {
-				jPackage.updateChilds();
-				add(jPackage);
+		} while (repeat);
+
+		// remove empty packages
+		for (Iterator<Map.Entry<String, JPackage>> it = pkgMap.entrySet().iterator(); it.hasNext(); ) {
+			JPackage pkg = it.next().getValue();
+			if (pkg.getInnerPackages().isEmpty() && pkg.getClasses().isEmpty()) {
+				it.remove();
 			}
 		}
+		// find root packages
+		Set<JPackage> inners = new HashSet<JPackage>();
+		for (JPackage pkg : pkgMap.values()) {
+			inners.addAll(pkg.getInnerPackages());
+		}
+		List<JPackage> rootPkgs = new ArrayList<JPackage>();
+		for (JPackage pkg : pkgMap.values()) {
+			if (!inners.contains(pkg)) {
+				rootPkgs.add(pkg);
+			}
+		}
+		Collections.sort(rootPkgs);
+		return rootPkgs;
 	}
 
 	private void addPackage(Map<String, JPackage> pkgs, JPackage pkg) {

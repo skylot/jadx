@@ -4,7 +4,7 @@ import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.FieldNode;
 
-public class JavaField {
+public final class JavaField {
 
 	private final FieldNode field;
 

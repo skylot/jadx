@@ -7,7 +7,7 @@ import jadx.core.dex.nodes.MethodNode;
 
 import java.util.List;
 
-public class JavaMethod {
+public final class JavaMethod {
 	private final MethodNode mth;
 
 	public JavaMethod(MethodNode m) {
