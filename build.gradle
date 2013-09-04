@@ -10,6 +10,10 @@ subprojects {
 
     version = jadxVersion
 
+    compileJava {
+        options.compilerArgs << '-Xlint'
+    }
+
     jar {
         version = jadxVersion
     }
@@ -50,6 +54,6 @@ task clean(type: Delete) {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.6'
+    gradleVersion = '1.7'
 }
 
