@@ -141,13 +141,20 @@ public final class JadxCLIArgs implements IJadxArgs {
 			str.append(' ');
 	}
 
-	@Override
+	public List<File> getInput() {
+		return input;
+	}
+
 	public File getOutDir() {
 		return outputDir;
 	}
 
 	public void setOutputDir(File outputDir) {
 		this.outputDir = outputDir;
+	}
+
+	public boolean isPrintHelp() {
+		return printHelp;
 	}
 
 	@Override
@@ -166,11 +173,6 @@ public final class JadxCLIArgs implements IJadxArgs {
 	}
 
 	@Override
-	public List<File> getInput() {
-		return input;
-	}
-
-	@Override
 	public boolean isFallbackMode() {
 		return fallbackMode;
 	}
@@ -179,10 +181,4 @@ public final class JadxCLIArgs implements IJadxArgs {
 	public boolean isVerbose() {
 		return verbose;
 	}
-
-	@Override
-	public boolean isPrintHelp() {
-		return printHelp;
-	}
-
 }

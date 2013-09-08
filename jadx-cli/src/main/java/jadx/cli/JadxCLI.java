@@ -1,6 +1,7 @@
 package jadx.cli;
 
 import jadx.api.Decompiler;
+import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.JadxException;
 
 import java.io.File;
@@ -15,13 +16,28 @@ public class JadxCLI {
 		try {
 			JadxCLIArgs jadxArgs = new JadxCLIArgs(args);
 			checkArgs(jadxArgs);
-			Decompiler jadx = new Decompiler(jadxArgs);
-			jadx.processAndSaveAll();
-			System.exit(jadx.getErrorsCount());
-		} catch (Throwable e) {
+			processAndSave(jadxArgs);
+		} catch (JadxException e) {
 			LOG.error(e.getMessage());
 			System.exit(1);
 		}
+	}
+
+	private static void processAndSave(JadxCLIArgs jadxArgs) {
+		try {
+			Decompiler jadx = new Decompiler(jadxArgs);
+			jadx.loadFiles(jadxArgs.getInput());
+			jadx.setOutputDir(jadxArgs.getOutDir());
+			jadx.save();
+			LOG.info("done");
+		} catch (Throwable e) {
+			LOG.error("jadx error:", e);
+		}
+		int errorsCount = ErrorsCounter.getErrorCount();
+		if (errorsCount != 0) {
+			ErrorsCounter.printReport();
+		}
+		System.exit(errorsCount);
 	}
 
 	private static void checkArgs(JadxCLIArgs jadxArgs) throws JadxException {

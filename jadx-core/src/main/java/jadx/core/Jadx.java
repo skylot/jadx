@@ -20,6 +20,7 @@ import jadx.core.dex.visitors.regions.RegionMakerVisitor;
 import jadx.core.dex.visitors.typeresolver.FinishTypeResolver;
 import jadx.core.dex.visitors.typeresolver.TypeResolver;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +37,7 @@ public class Jadx {
 			LOG.info("assertions enabled");
 	}
 
-	public static List<IDexTreeVisitor> getPassesList(IJadxArgs args) {
+	public static List<IDexTreeVisitor> getPassesList(IJadxArgs args, File outDir) {
 		List<IDexTreeVisitor> passes = new ArrayList<IDexTreeVisitor>();
 		if (args.isFallbackMode()) {
 			passes.add(new FallbackModeVisitor());
@@ -48,13 +49,13 @@ public class Jadx {
 			passes.add(new FinishTypeResolver());
 
 			if (args.isRawCFGOutput())
-				passes.add(new DotGraphVisitor(args.getOutDir(), false, true));
+				passes.add(new DotGraphVisitor(outDir, false, true));
 
 			passes.add(new ModVisitor());
 			passes.add(new EnumVisitor());
 
 			if (args.isCFGOutput())
-				passes.add(new DotGraphVisitor(args.getOutDir(), false));
+				passes.add(new DotGraphVisitor(outDir, false));
 
 			passes.add(new RegionMakerVisitor());
 			passes.add(new PostRegionVisitor());
@@ -63,7 +64,7 @@ public class Jadx {
 			passes.add(new ProcessVariables());
 			passes.add(new CheckRegions());
 			if (args.isCFGOutput())
-				passes.add(new DotGraphVisitor(args.getOutDir(), true));
+				passes.add(new DotGraphVisitor(outDir, true));
 
 			passes.add(new MethodInlinerVisitor());
 			passes.add(new ClassModifier());

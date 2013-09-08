@@ -30,9 +30,9 @@ public class JadxWrapper {
 		try {
 			this.decompiler.loadFile(file);
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOG.error("Error open file: " + file, e);
 		} catch (DecodeException e) {
-			e.printStackTrace();
+			LOG.error("Error decode file: " + file, e);
 		}
 	}
 
@@ -41,7 +41,8 @@ public class JadxWrapper {
 			@Override
 			public void run() {
 				try {
-					ThreadPoolExecutor ex = decompiler.saveAll(dir);
+					decompiler.setOutputDir(dir);
+					ThreadPoolExecutor ex = decompiler.getSaveExecutor();
 					while (ex.isTerminating()) {
 						long total = ex.getTaskCount();
 						long done = ex.getCompletedTaskCount();
