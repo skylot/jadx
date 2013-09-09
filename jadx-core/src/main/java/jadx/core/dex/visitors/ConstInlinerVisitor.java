@@ -36,9 +36,10 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 
 	private static boolean checkInsn(MethodNode mth, BlockNode block, InsnNode insn) {
 		if (insn.getType() == InsnType.CONST) {
-			if (insn.getArg(0).isLiteral()
+			InsnArg arg = insn.getArg(0);
+			if (arg.isLiteral()
 					&& insn.getResult().getType().getRegCount() == 1 /* process only narrow types */) {
-				long lit = ((LiteralArg) insn.getArg(0)).getLiteral();
+				long lit = ((LiteralArg) arg).getLiteral();
 				return replaceConst(mth, block, insn, lit);
 			}
 			// TODO process string and class const
@@ -57,8 +58,7 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 
 			BlockNode useBlock = BlockUtils.getBlockByInsn(mth, useInsn);
 			if (useBlock == block || useBlock.isDominator(block)) {
-				if (arg != insn.getResult()
-						&& !registerReassignOnPath(block, useBlock, insn)) {
+				if (arg != insn.getResult() && !registerReassignOnPath(block, useBlock, insn)) {
 					// in most cases type not equal arg.getType()
 					// just set unknown type and run type fixer
 					LiteralArg litArg = InsnArg.lit(literal, ArgType.NARROW);

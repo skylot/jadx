@@ -2,12 +2,15 @@ package jadx.core.dex.visitors;
 
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AttributeFlag;
+import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
 import jadx.core.dex.instructions.IfNode;
+import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
+import jadx.core.dex.instructions.args.FieldArg;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
@@ -183,6 +186,40 @@ public class CodeShrinker extends AbstractVisitor {
 						}
 					} catch (Throwable e) {
 						LOG.debug("Can't convert string concatenation: {} insn: {}", mth, insn, e);
+					}
+				}
+				break;
+
+			case IPUT:
+			case SPUT:
+				// convert field arith operation to arith instruction
+				// (IPUT = ARITH (IGET, lit) -> ARITH (fieldArg <op>= lit))
+				InsnArg arg = insn.getArg(0);
+				if (arg.isInsnWrap()) {
+					InsnNode wrap = ((InsnWrapArg) arg).getWrapInsn();
+					if (wrap.getType() == InsnType.ARITH && wrap.getArg(0).isInsnWrap()) {
+						InsnNode get = ((InsnWrapArg) wrap.getArg(0)).getWrapInsn();
+						InsnType getType = get.getType();
+						if (getType == InsnType.IGET || getType == InsnType.SGET) {
+							FieldInfo field = (FieldInfo) ((IndexInsnNode) insn).getIndex();
+							FieldInfo innerField = (FieldInfo) ((IndexInsnNode) get).getIndex();
+							if (field.equals(innerField)) {
+								try {
+									ArithNode ar = (ArithNode) wrap;
+									RegisterArg reg = null;
+									if (getType == InsnType.IGET) {
+										reg = ((RegisterArg) get.getArg(0));
+									}
+									RegisterArg fArg = new FieldArg(field, reg != null ? reg.getRegNum() : -1);
+									if (reg != null) {
+										fArg.setTypedVar(get.getArg(0).getTypedVar());
+									}
+									return new ArithNode(ar.getOp(), fArg, fArg, ar.getArg(1));
+								} catch (Throwable e) {
+									LOG.debug("Can't convert field arith insn: {}, mth: {}", insn, mth, e);
+								}
+							}
+						}
 					}
 				}
 				break;

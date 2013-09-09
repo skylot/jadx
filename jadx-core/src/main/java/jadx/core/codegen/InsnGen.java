@@ -18,6 +18,7 @@ import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.InvokeType;
 import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.FieldArg;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
@@ -77,7 +78,7 @@ public class InsnGen {
 
 	public String arg(InsnArg arg) throws CodegenException {
 		if (arg.isRegister()) {
-			return arg((RegisterArg) arg);
+			return mgen.makeArgName((RegisterArg) arg);
 		} else if (arg.isLiteral()) {
 			return lit((LiteralArg) arg);
 		} else if (arg.isInsnWrap()) {
@@ -86,16 +87,21 @@ public class InsnGen {
 			return code.toString();
 		} else if (arg.isNamed()) {
 			return ((NamedArg) arg).getName();
+		} else if (arg.isField()) {
+			FieldArg f = (FieldArg) arg;
+			if (f.isStatic()) {
+				return sfield(f.getField());
+			} else {
+				RegisterArg regArg = new RegisterArg(f.getRegNum());
+				regArg.setTypedVar(f.getTypedVar());
+				return ifield(f.getField(), regArg);
+			}
 		} else {
 			throw new CodegenException("Unknown arg type " + arg);
 		}
 	}
 
-	public String arg(RegisterArg arg) {
-		return mgen.makeArgName(arg);
-	}
-
-	public String assignVar(InsnNode insn) {
+	public String assignVar(InsnNode insn) throws CodegenException {
 		RegisterArg arg = insn.getResult();
 		if (insn.getAttributes().contains(AttributeType.DECLARE_VARIABLE)) {
 			return declareVar(arg);
@@ -112,13 +118,11 @@ public class InsnGen {
 		return TypeGen.literalToString(arg.getLiteral(), arg.getType());
 	}
 
-	private String ifield(IndexInsnNode insn, int reg) throws CodegenException {
-		FieldInfo field = (FieldInfo) insn.getIndex();
-		return arg(insn.getArg(reg)) + '.' + field.getName();
+	private String ifield(FieldInfo field, InsnArg arg) throws CodegenException {
+		return arg(arg) + "." + field.getName();
 	}
 
-	private String sfield(IndexInsnNode insn) {
-		FieldInfo field = (FieldInfo) insn.getIndex();
+	private String sfield(FieldInfo field) {
 		String thisClass = mth.getParentClass().getFullName();
 		if (field.getDeclClass().getFullName().equals(thisClass)) {
 			return field.getName();
@@ -289,20 +293,24 @@ public class InsnGen {
 				code.add(arg(insn, 0)).add('[').add(arg(insn, 1)).add("] = ").add(arg(insn, 2));
 				break;
 
-			case IGET:
-				code.add(ifield((IndexInsnNode) insn, 0));
+			case IGET: {
+				FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) insn).getIndex();
+				code.add(ifield(fieldInfo, insn.getArg(0)));
 				break;
-			case IPUT:
-				code.add(ifield((IndexInsnNode) insn, 1)).add(" = ").add(arg(insn.getArg(0)));
+			}
+			case IPUT: {
+				FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) insn).getIndex();
+				code.add(ifield(fieldInfo, insn.getArg(1))).add(" = ").add(arg(insn.getArg(0)));
 				break;
+			}
 
 			case SGET:
-				code.add(sfield((IndexInsnNode) insn));
+				code.add(sfield((FieldInfo) ((IndexInsnNode) insn).getIndex()));
 				break;
 			case SPUT:
 				IndexInsnNode node = (IndexInsnNode) insn;
 				fieldPut(node);
-				code.add(sfield(node)).add(" = ").add(arg(node.getArg(0)));
+				code.add(sfield((FieldInfo) node.getIndex())).add(" = ").add(arg(node.getArg(0)));
 				break;
 
 			case STR_CONCAT:

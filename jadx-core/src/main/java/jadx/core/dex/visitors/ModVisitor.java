@@ -1,6 +1,5 @@
 package jadx.core.dex.visitors;
 
-import jadx.core.Consts;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.info.MethodInfo;
@@ -67,8 +66,8 @@ public class ModVisitor extends AbstractVisitor {
 							ConstructorInsn co = new ConstructorInsn(mth, inv);
 							if (co.isSuper()) {
 								try {
-									// don't call 'super' if parent 'Object'
-									if (!co.getClassType().getFullName().equals(Consts.CLASS_OBJECT)) {
+									if (co.getArgsCount() != 0) {
+										// inline super call args
 										for (int j = 0; j < co.getArgsCount(); j++) {
 											InsnArg arg = co.getArg(j);
 											if (arg.isRegister()) {

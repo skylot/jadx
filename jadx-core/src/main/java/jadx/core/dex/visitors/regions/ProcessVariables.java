@@ -77,7 +77,7 @@ public class ProcessVariables extends AbstractVisitor {
 					InsnNode insn = container.getInstructions().get(i);
 					// result
 					RegisterArg result = insn.getResult();
-					if (result != null) {
+					if (result != null && result.isRegister()) {
 						Usage u = usageMap.get(result);
 						if (u == null) {
 							u = new Usage();

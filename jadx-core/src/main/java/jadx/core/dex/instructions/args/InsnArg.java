@@ -50,6 +50,10 @@ public abstract class InsnArg extends Typed {
 		return false;
 	}
 
+	public boolean isField() {
+		return false;
+	}
+
 	public InsnNode getParentInsn() {
 		return parentInsn;
 	}
