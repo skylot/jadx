@@ -191,4 +191,8 @@ public final class Decompiler {
 			LOG.error("Process class error", e);
 		}
 	}
+
+	RootNode getRoot() {
+		return root;
+	}
 }
