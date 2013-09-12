@@ -197,7 +197,8 @@ public class CodeShrinker extends AbstractVisitor {
 				InsnArg arg = insn.getArg(0);
 				if (arg.isInsnWrap()) {
 					InsnNode wrap = ((InsnWrapArg) arg).getWrapInsn();
-					if (wrap.getType() == InsnType.ARITH && wrap.getArg(0).isInsnWrap()) {
+					InsnType wrapType = wrap.getType();
+					if ((wrapType == InsnType.ARITH || wrapType == InsnType.STR_CONCAT) && wrap.getArg(0).isInsnWrap()) {
 						InsnNode get = ((InsnWrapArg) wrap.getArg(0)).getWrapInsn();
 						InsnType getType = get.getType();
 						if (getType == InsnType.IGET || getType == InsnType.SGET) {
@@ -205,7 +206,6 @@ public class CodeShrinker extends AbstractVisitor {
 							FieldInfo innerField = (FieldInfo) ((IndexInsnNode) get).getIndex();
 							if (field.equals(innerField)) {
 								try {
-									ArithNode ar = (ArithNode) wrap;
 									RegisterArg reg = null;
 									if (getType == InsnType.IGET) {
 										reg = ((RegisterArg) get.getArg(0));
@@ -214,7 +214,17 @@ public class CodeShrinker extends AbstractVisitor {
 									if (reg != null) {
 										fArg.setTypedVar(get.getArg(0).getTypedVar());
 									}
-									return new ArithNode(ar.getOp(), fArg, fArg, ar.getArg(1));
+									if (wrapType == InsnType.ARITH) {
+										ArithNode ar = (ArithNode) wrap;
+										return new ArithNode(ar.getOp(), fArg, fArg, ar.getArg(1));
+									} else {
+										int argsCount = wrap.getArgsCount();
+										InsnNode concat = new InsnNode(InsnType.STR_CONCAT, argsCount - 1);
+										for (int i = 1; i < argsCount; i++) {
+											concat.addArg(wrap.getArg(i));
+										}
+										return new ArithNode(ArithOp.ADD, fArg, fArg, InsnArg.wrap(concat));
+									}
 								} catch (Throwable e) {
 									LOG.debug("Can't convert field arith insn: {}, mth: {}", insn, mth, e);
 								}

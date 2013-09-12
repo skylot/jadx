@@ -36,4 +36,8 @@ public abstract class AbstractTest {
 			throw new AssertionError(a1 + " != " + a2);
 		}
 	}
+
+	public static void fail() {
+		throw new AssertionError();
+	}
 }

@@ -22,13 +22,11 @@ public class TestTypeResolver2 extends AbstractTest {
 	}
 
 	private static void doPrint(String s1) {
-		// incorrect call
-		assertTrue(false);
+		fail();
 	}
 
 	private static void doPrint(Integer s1) {
-		// incorrect call
-		assertTrue(false);
+		fail();
 	}
 
 	private static void doPrint(Object s1) {

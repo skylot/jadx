@@ -18,10 +18,20 @@ import static org.junit.Assert.assertThat;
 public class TestFieldIncrement extends InternalJadxTest {
 
 	public static class TestCls {
-		public int field = 1;
+		public int instanceField = 1;
+		public static int staticField = 1;
+		public static String result = "";
 
 		public void method() {
-			field++;
+			instanceField++;
+		}
+
+		public void method2() {
+			staticField--;
+		}
+
+		public void method3(String s) {
+			result += s + '_';
 		}
 	}
 
@@ -36,6 +46,9 @@ public class TestFieldIncrement extends InternalJadxTest {
 		assertEquals(InsnType.ARITH, insnNode.getType());
 		assertEquals(ArithOp.ADD, ((ArithNode) insnNode).getOp());
 
-		assertThat(cls.getCode().toString(), containsString("field++;"));
+		String code = cls.getCode().toString();
+		assertThat(code, containsString("instanceField++;"));
+		assertThat(code, containsString("staticField--;"));
+		assertThat(code, containsString("result += s + '_';"));
 	}
 }
