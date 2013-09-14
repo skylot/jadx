@@ -1,6 +1,8 @@
 package jadx.core.dex.visitors.typeresolver;
 
 import jadx.core.dex.attributes.BlockRegState;
+import jadx.core.dex.instructions.IndexInsnNode;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
@@ -17,6 +19,8 @@ public class TypeResolver extends AbstractVisitor {
 		if (mth.isNoCode())
 			return;
 
+		prepare(mth);
+
 		visitBlocks(mth);
 		visitEdges(mth);
 
@@ -24,6 +28,22 @@ public class TypeResolver extends AbstractVisitor {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			block.setStartState(null);
 			block.setEndState(null);
+		}
+	}
+
+	/**
+	 * Check argument types (can be broken after merging debug info)
+	 */
+	private void prepare(MethodNode mth) {
+		for (BlockNode block : mth.getBasicBlocks()) {
+			for (InsnNode insn : block.getInstructions()) {
+				switch (insn.getType()) {
+					case CHECK_CAST:
+						ArgType castType = (ArgType) ((IndexInsnNode) insn).getIndex();
+						insn.getResult().getTypedVar().forceSetType(castType);
+						break;
+				}
+			}
 		}
 	}
 

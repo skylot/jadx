@@ -64,9 +64,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 				this.interfaces.add(ClassInfo.fromDex(dex, interfaceIdx));
 			}
 
-			if (cls.getClassDataOffset() == 0) {
-				// nothing to loadFile
-			} else {
+			if (cls.getClassDataOffset() != 0) {
 				ClassData clsData = dex.readClassData(cls);
 
 				for (Method mth : clsData.getDirectMethods())

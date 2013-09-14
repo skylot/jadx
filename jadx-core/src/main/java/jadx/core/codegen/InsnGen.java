@@ -215,11 +215,15 @@ public class InsnGen {
 
 			case CHECK_CAST:
 			case CAST:
-				code.add("((");
+				boolean wrap = state.contains(IGState.BODY_ONLY);
+				if (wrap)
+					code.add("(");
+				code.add("(");
 				code.add(useType(((ArgType) ((IndexInsnNode) insn).getIndex())));
-				code.add(") (");
-				code.add(arg(insn.getArg(0), false));
-				code.add("))");
+				code.add(") ");
+				code.add(arg(insn.getArg(0)));
+				if (wrap)
+					code.add(")");
 				break;
 
 			case ARITH:
@@ -564,6 +568,19 @@ public class InsnGen {
 		}
 	}
 
+	private void addArgs(CodeWriter code, InsnNode insn, int k) throws CodegenException {
+		int argsCount = insn.getArgsCount();
+		code.add('(');
+		if (k < argsCount) {
+			code.add(arg(insn.getArg(k), false));
+			for (int i = k + 1; i < argsCount; i++) {
+				code.add(", ");
+				code.add(arg(insn.getArg(i), false));
+			}
+		}
+		code.add(')');
+	}
+
 	private void inlineMethod(MethodNode callMthNode, InvokeNode insn, CodeWriter code) throws CodegenException {
 		IAttribute mia = callMthNode.getAttributes().get(AttributeType.METHOD_INLINE);
 		InsnNode inl = ((MethodInlineAttr) mia).getInsn();
@@ -601,19 +618,6 @@ public class InsnGen {
 				inl.replaceArg(e.getValue(), e.getKey());
 			}
 		}
-	}
-
-	private void addArgs(CodeWriter code, InsnNode insn, int k) throws CodegenException {
-		int argsCount = insn.getArgsCount();
-		code.add('(');
-		if (k < argsCount) {
-			code.add(arg(insn.getArg(k), false));
-			for (int i = k + 1; i < argsCount; i++) {
-				code.add(", ");
-				code.add(arg(insn.getArg(i), false));
-			}
-		}
-		code.add(')');
 	}
 
 	private void makeArith(ArithNode insn, CodeWriter code, EnumSet<IGState> state) throws CodegenException {

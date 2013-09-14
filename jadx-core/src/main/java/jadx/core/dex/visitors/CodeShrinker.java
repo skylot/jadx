@@ -10,6 +10,7 @@ import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.FieldArg;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
@@ -231,6 +232,17 @@ public class CodeShrinker extends AbstractVisitor {
 							}
 						}
 					}
+				}
+				break;
+
+			case CHECK_CAST:
+				InsnArg castArg = insn.getArg(0);
+				ArgType castType = (ArgType) ((IndexInsnNode)insn).getIndex();
+				if (!ArgType.isCastNeeded(castArg.getType(), castType)) {
+					InsnNode insnNode = new InsnNode(InsnType.MOVE, 1);
+					insnNode.setResult(insn.getResult());
+					insnNode.addArg(castArg);
+					return insnNode;
 				}
 				break;
 

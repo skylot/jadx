@@ -384,6 +384,17 @@ public abstract class ArgType {
 		return null;
 	}
 
+	public static boolean isCastNeeded(ArgType from, ArgType to) {
+		if (from.equals(to)) {
+			return false;
+		}
+		if (from.isObject() && to.isObject()
+				&& clsp.isImplements(from.getObject(), to.getObject())) {
+			return false;
+		}
+		return true;
+	}
+
 	public static ArgType parse(String type) {
 		char f = type.charAt(0);
 		switch (f) {
