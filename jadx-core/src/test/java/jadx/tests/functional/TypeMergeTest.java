@@ -1,4 +1,4 @@
-package jadx.tests;
+package jadx.tests.functional;
 
 import jadx.core.clsp.ClspGraph;
 import jadx.core.dex.instructions.args.ArgType;

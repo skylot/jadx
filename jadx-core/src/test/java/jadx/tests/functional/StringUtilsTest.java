@@ -1,4 +1,4 @@
-package jadx.tests;
+package jadx.tests.functional;
 
 import jadx.core.utils.StringUtils;
 

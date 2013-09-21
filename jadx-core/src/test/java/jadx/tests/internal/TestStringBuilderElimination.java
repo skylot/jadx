@@ -1,5 +1,6 @@
-package jadx.api;
+package jadx.tests.internal;
 
+import jadx.api.InternalJadxTest;
 import jadx.core.dex.nodes.ClassNode;
 
 import org.junit.Test;
