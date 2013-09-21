@@ -5,10 +5,13 @@ import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.attributes.DeclareVariableAttr;
 import jadx.core.dex.attributes.ForceReturnAttr;
 import jadx.core.dex.attributes.IAttribute;
+import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.IfOp;
+import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.IBlock;
@@ -186,17 +189,38 @@ public class RegionGen extends InsnGen {
 				&& secondArg.isLiteral()
 				&& secondArg.getType().equals(ArgType.BOOLEAN)) {
 			LiteralArg lit = (LiteralArg) secondArg;
-			if (lit.getLiteral() == 0)
+			if (lit.getLiteral() == 0) {
 				op = op.invert();
-
+			}
 			if (op == IfOp.EQ) {
-				return arg(firstArg); // == true
+				return arg(firstArg, false); // == true
 			} else if (op == IfOp.NE) {
 				return "!" + arg(firstArg); // != true
 			}
 			LOG.warn(ErrorsCounter.formatErrorMsg(mth, "Unsupported boolean condition " + op.getSymbol()));
 		}
-		return arg(firstArg) + " " + op.getSymbol() + " " + arg(secondArg);
+		return arg(firstArg, isWrapNeeded(firstArg))
+				+ " " + op.getSymbol() + " "
+				+ arg(secondArg, isWrapNeeded(secondArg));
+	}
+
+	private boolean isWrapNeeded(InsnArg arg) {
+		if (!arg.isInsnWrap()) {
+			return false;
+		}
+		InsnNode insn = ((InsnWrapArg) arg).getWrapInsn();
+		if(insn.getType() == InsnType.ARITH) {
+			ArithNode arith = ((ArithNode) insn);
+			switch (arith.getOp()) {
+				case ADD:
+				case SUB:
+				case MUL:
+				case DIV:
+				case REM:
+					return false;
+			}
+		}
+		return true;
 	}
 
 	private CodeWriter makeSwitch(SwitchRegion sw, CodeWriter code) throws CodegenException {

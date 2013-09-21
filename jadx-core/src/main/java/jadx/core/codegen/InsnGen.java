@@ -214,7 +214,7 @@ public class InsnGen {
 				break;
 
 			case CHECK_CAST:
-			case CAST:
+			case CAST: {
 				boolean wrap = state.contains(IGState.BODY_ONLY);
 				if (wrap)
 					code.add("(");
@@ -225,7 +225,7 @@ public class InsnGen {
 				if (wrap)
 					code.add(")");
 				break;
-
+			}
 			case ARITH:
 				makeArith((ArithNode) insn, code, state);
 				break;
@@ -263,11 +263,18 @@ public class InsnGen {
 				code.add(String.format("(%1$s > %2$s ? 1 : (%1$s == %2$s ? 0 : -1))", arg(insn, 0), arg(insn, 1)));
 				break;
 
-			case INSTANCE_OF:
-				code.add('(').add(arg(insn, 0)).add(" instanceof ")
-						.add(useType((ArgType) ((IndexInsnNode) insn).getIndex())).add(')');
+			case INSTANCE_OF: {
+				boolean wrap = state.contains(IGState.BODY_ONLY);
+				if (wrap)
+					code.add("(");
+				code.add(arg(insn, 0));
+				code.add(" instanceof ");
+				code.add(useType((ArgType) ((IndexInsnNode) insn).getIndex()));
+				if (wrap) {
+					code.add(")");
+				}
 				break;
-
+			}
 			case CONSTRUCTOR:
 				makeConstructor((ConstructorInsn) insn, code, state);
 				break;
