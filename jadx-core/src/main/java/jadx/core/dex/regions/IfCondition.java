@@ -107,7 +107,7 @@ public final class IfCondition {
 			case AND:
 				return "&& " + args;
 			case OR:
-				return "||" + args;
+				return "|| " + args;
 		}
 		return "??";
 	}

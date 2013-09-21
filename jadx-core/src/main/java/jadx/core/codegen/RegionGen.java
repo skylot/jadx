@@ -173,7 +173,12 @@ public class RegionGen extends InsnGen {
 					if (sb.length() != 0) {
 						sb.append(mode);
 					}
-					sb.append('(').append(makeCondition(arg)).append(')');
+					String s = makeCondition(arg);
+					if (arg.isCompare()) {
+						sb.append(s);
+					} else {
+						sb.append('(').append(s).append(')');
+					}
 				}
 				return sb.toString();
 			default:
@@ -209,7 +214,7 @@ public class RegionGen extends InsnGen {
 			return false;
 		}
 		InsnNode insn = ((InsnWrapArg) arg).getWrapInsn();
-		if(insn.getType() == InsnType.ARITH) {
+		if (insn.getType() == InsnType.ARITH) {
 			ArithNode arith = ((ArithNode) insn);
 			switch (arith.getOp()) {
 				case ADD:

@@ -46,10 +46,6 @@ public abstract class ArgType {
 
 	private static ClspGraph clsp;
 
-	public static ClspGraph getClsp() {
-		return clsp;
-	}
-
 	public static void setClsp(ClspGraph clsp) {
 		ArgType.clsp = clsp;
 	}
@@ -108,6 +104,11 @@ public abstract class ArgType {
 		}
 
 		@Override
+		boolean internalEquals(Object obj) {
+			return type == ((PrimitiveArg) obj).type;
+		}
+
+		@Override
 		public String toString() {
 			return type.toString();
 		}
@@ -118,7 +119,7 @@ public abstract class ArgType {
 
 		public ObjectArg(String obj) {
 			this.object = Utils.cleanObjectName(obj);
-			this.hash = obj.hashCode();
+			this.hash = object.hashCode();
 		}
 
 		@Override
@@ -134,6 +135,11 @@ public abstract class ArgType {
 		@Override
 		public PrimitiveType getPrimitiveType() {
 			return PrimitiveType.OBJECT;
+		}
+
+		@Override
+		boolean internalEquals(Object obj) {
+			return object.equals(((ObjectArg) obj).object);
 		}
 
 		@Override
@@ -165,6 +171,12 @@ public abstract class ArgType {
 		@Override
 		public ArgType[] getGenericTypes() {
 			return generics;
+		}
+
+		@Override
+		boolean internalEquals(Object obj) {
+			return super.internalEquals(obj)
+					&& Arrays.equals(generics, ((GenericObjectArg) obj).generics);
 		}
 
 		@Override
@@ -207,6 +219,11 @@ public abstract class ArgType {
 		}
 
 		@Override
+		boolean internalEquals(Object obj) {
+			return arrayElement.equals(((ArrayArg) obj).arrayElement);
+		}
+
+		@Override
 		public String toString() {
 			return arrayElement.toString() + "[]";
 		}
@@ -245,6 +262,11 @@ public abstract class ArgType {
 				return object(Consts.CLASS_OBJECT);
 			else
 				return primitive(f);
+		}
+
+		@Override
+		boolean internalEquals(Object obj) {
+			return Arrays.equals(possibleTypes, ((UnknownArg) obj).possibleTypes);
 		}
 
 		@Override
@@ -591,13 +613,14 @@ public abstract class ArgType {
 		return hash;
 	}
 
+	abstract boolean internalEquals(Object obj);
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) return true;
 		if (obj == null) return false;
 		if (hash != obj.hashCode()) return false;
 		if (getClass() != obj.getClass()) return false;
-		// TODO: don't use toString
-		return toString().equals(obj.toString());
+		return internalEquals(obj);
 	}
 }
