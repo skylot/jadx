@@ -14,8 +14,11 @@ public final class IfCondition {
 		if (header == null)
 			return null;
 
-		IfNode ifNode = (IfNode) header.getInstructions().get(0);
-		return new IfCondition(new Compare(ifNode));
+		return fromIfNode((IfNode) header.getInstructions().get(0));
+	}
+
+	public static IfCondition fromIfNode(IfNode insn) {
+		return new IfCondition(new Compare(insn));
 	}
 
 	public static IfCondition not(IfCondition a) {

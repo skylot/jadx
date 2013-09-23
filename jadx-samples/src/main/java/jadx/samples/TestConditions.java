@@ -34,30 +34,43 @@ public class TestConditions extends AbstractTest {
 	}
 
 	public boolean test2(int num) {
-		if(num == 4 || num == 6){
+		if (num == 4 || num == 6) {
 			return String.valueOf(num).equals("4");
 		}
-		if(num == 5) {
+		if (num == 5) {
 			return true;
 		}
 		return this.toString().equals("a");
 	}
 
+	public void test3(boolean a, boolean b) {
+		if (a || b) {
+			throw new RuntimeException();
+		}
+		test1(0);
+	}
+
+	public boolean accept(String name) {
+		return name.startsWith("Test") && name.endsWith(".class") && !name.contains("$");
+	}
+
 	@Override
 	public boolean testRun() throws Exception {
-		TestConditions c = new TestConditions();
+		assertEquals(test1(50), 50);
+		assertEquals(test1(60), 61);
 
-		assertEquals(c.test1(50), 50);
-		assertEquals(c.test1(60), 61);
+		assertEquals(test1a(50), 49);
+		assertEquals(test1a(60), 60);
 
-		assertEquals(c.test1a(50), 49);
-		assertEquals(c.test1a(60), 60);
+		assertEquals(test1b(60), 61);
+		assertEquals(test1b(62), 62);
 
-		assertEquals(c.test1b(60), 61);
-		assertEquals(c.test1b(62), 62);
+		assertTrue(test1c(4));
+		assertFalse(test1c(5));
 
-		assertTrue(c.test1c(4));
-		assertFalse(c.test1c(5));
+		assertTrue(accept("Test.class"));
+
+		test3(false, false);
 		return true;
 	}
 

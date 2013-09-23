@@ -11,6 +11,7 @@ import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
@@ -38,6 +39,10 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static jadx.core.utils.BlockUtils.getBlockByOffset;
+import static jadx.core.utils.BlockUtils.isPathExists;
+import static jadx.core.utils.BlockUtils.selectOther;
 
 public class RegionMaker {
 	private static final Logger LOG = LoggerFactory.getLogger(RegionMaker.class);
@@ -221,7 +226,7 @@ public class RegionMaker {
 			for (BlockNode exit : exitBlocks) {
 				BlockNode next = BlockUtils.getNextBlock(exit);
 				while (next != null) {
-					if (BlockUtils.isPathExists(loopExit, next)) {
+					if (isPathExists(loopExit, next)) {
 						// found cross
 						if (next.getCleanSuccessors().size() == 1) {
 							BlockNode r = BlockUtils.getNextBlock(next);
@@ -244,10 +249,10 @@ public class RegionMaker {
 			}
 		}
 
-		BlockNode bThen = BlockUtils.getBlockByOffset(ifnode.getTarget(), condBlock.getSuccessors());
+		BlockNode bThen = getBlockByOffset(ifnode.getTarget(), condBlock.getSuccessors());
 		BlockNode out;
 		if (loopRegion.isConditionAtEnd()) {
-			BlockNode bElse = BlockUtils.selectOther(bThen, condBlock.getSuccessors());
+			BlockNode bElse = selectOther(bThen, condBlock.getSuccessors());
 			out = (bThen == loopStart ? bElse : bThen);
 
 			loopStart.getAttributes().remove(AttributeType.LOOP);
@@ -266,7 +271,7 @@ public class RegionMaker {
 			if (bThen != loopBody)
 				ifnode.invertOp(bThen.getStartOffset());
 
-			out = BlockUtils.selectOther(loopBody, condBlock.getSuccessors());
+			out = selectOther(loopBody, condBlock.getSuccessors());
 			AttributesList outAttrs = out.getAttributes();
 			if (outAttrs.contains(AttributeFlag.LOOP_START)
 					&& outAttrs.get(AttributeType.LOOP) != loop) {
@@ -335,7 +340,7 @@ public class RegionMaker {
 		for (BlockNode node : block.getCleanSuccessors()) {
 			boolean cross = true;
 			for (BlockNode exitBlock : exits) {
-				boolean p = BlockUtils.isPathExists(exitBlock, node);
+				boolean p = isPathExists(exitBlock, node);
 				if (!p) {
 					cross = false;
 					break;
@@ -354,76 +359,114 @@ public class RegionMaker {
 	}
 
 	private BlockNode processIf(IRegion currentRegion, BlockNode block, IfNode ifnode, RegionStack stack) {
-		BlockNode bElse = BlockUtils.getBlockByOffset(ifnode.getTarget(), block.getSuccessors());
-		BlockNode bThen;
-		if (block.getSuccessors().size() == 1) {
-			// TODO eliminate useless 'if' instruction
-			bThen = bElse;
-		} else {
-			bThen = BlockUtils.selectOther(bElse, block.getSuccessors());
-		}
-
-		ifnode.invertOp(bThen.getStartOffset());
-
+		BlockNode bThen = getBlockByOffset(ifnode.getTarget(), block.getSuccessors());
 		if (block.getAttributes().contains(AttributeFlag.SKIP)) {
 			// block already included in other if region
 			return bThen;
 		}
 
-		BlockNode out = null;
-		BlockNode thenBlock;
-		BlockNode elseBlock = null;
-
-		thenBlock = bThen;
-		// select else and exit blocks
-		if (block.getDominatesOn().size() == 2) {
-			elseBlock = bElse;
+		BlockNode bElse;
+		if (block.getSuccessors().size() == 1) {
+			// TODO eliminate useless 'if' instruction
+			bElse = bThen;
 		} else {
-			if (bElse.getPredecessors().size() != 1) {
-				out = bElse;
-			} else {
-				elseBlock = bElse;
-				for (BlockNode d : block.getDominatesOn()) {
-					if (d != bThen && d != bElse) {
-						out = d;
-						break;
-					}
-				}
-			}
+			bElse = selectOther(bThen, block.getSuccessors());
 		}
 
-		if (BlockUtils.isBackEdge(block, out)) {
-			out = null;
+		BlockNode out = null;
+		BlockNode thenBlock = null;
+		BlockNode elseBlock = null;
+
+		for (BlockNode d : block.getDominatesOn()) {
+			if (d != bThen && d != bElse) {
+				out = d;
+				break;
+			}
 		}
 
 		IfRegion ifRegion = new IfRegion(currentRegion, block);
 		currentRegion.getSubBlocks().add(ifRegion);
 
-		if (elseBlock != null) {
-			if (elseBlock.getPredecessors().size() > 1) {
-				// if else block shares between several 'if' instructions => merge conditions
-				for (BlockNode pred : elseBlock.getPredecessors()) {
-					if (!pred.equals(block)) {
-						List<InsnNode> insns = pred.getInstructions();
-						if (insns.size() == 1 && insns.get(0).getType() == InsnType.IF) {
-							IfNode otherNode = (IfNode) insns.get(0);
-							int elseOffset = elseBlock.getStartOffset();
-							if (elseOffset != otherNode.getTarget()) {
-								otherNode.invertOp(elseOffset);
+		// merge nested if nodes
+		boolean found;
+		do {
+			found = false;
+			for (BlockNode succ : block.getSuccessors()) {
+				BlockNode nestedIfBlock = getIfNode(succ);
+				if (nestedIfBlock != null && nestedIfBlock != block) {
+					IfNode nestedIfInsn = (IfNode) nestedIfBlock.getInstructions().get(0);
+					BlockNode nbThen = getBlockByOffset(nestedIfInsn.getTarget(), nestedIfBlock.getSuccessors());
+					BlockNode nbElse = selectOther(nbThen, nestedIfBlock.getSuccessors());
+
+					IfCondition condition;
+					boolean inverted = false;
+					if (isPathExists(bElse, nestedIfBlock)) {
+						// else branch
+						if (bThen != nbThen) {
+							if (bThen != nbElse) {
+								break; // not connected conditions
 							}
-							IfCondition newArg = IfCondition.fromIfBlock(pred);
-							IfCondition condition = IfCondition.and(ifRegion.getCondition(), newArg);
-							ifRegion.setCondition(condition);
-							pred.getAttributes().add(AttributeFlag.SKIP);
+							nestedIfInsn.invertOp(nbElse.getStartOffset());
+							inverted = true;
+						}
+						condition = IfCondition.or(ifRegion.getCondition(), IfCondition.fromIfNode(nestedIfInsn));
+					} else {
+						// then branch
+						if (bElse != nbElse) {
+							if (bElse != nbThen) {
+								break; // not connected conditions
+							}
+							nestedIfInsn.invertOp(nbElse.getStartOffset());
+							inverted = true;
+						}
+						condition = IfCondition.and(ifRegion.getCondition(), IfCondition.fromIfNode(nestedIfInsn));
+					}
+					ifRegion.setCondition(condition);
+					nestedIfBlock.getAttributes().add(AttributeFlag.SKIP);
+					// set new blocks
+					if (inverted) {
+						thenBlock = nbElse;
+						elseBlock = nbThen;
+					} else {
+						thenBlock = nbThen;
+						elseBlock = nbElse;
+					}
+					found = true;
+					block = nestedIfBlock;
+					bThen = thenBlock;
+					bElse = elseBlock;
+					break;
+				}
+			}
+		} while (found);
+
+		if (thenBlock == null) {
+			// invert condition (compiler often do it)
+			ifnode.invertOp(bElse.getStartOffset());
+			BlockNode tmp = bThen;
+			bThen = bElse;
+			bElse = tmp;
+
+			thenBlock = bThen;
+			// select else and exit blocks
+			if (block.getDominatesOn().size() == 2) {
+				elseBlock = bElse;
+			} else {
+				if (bElse.getPredecessors().size() != 1) {
+					out = bElse;
+				} else {
+					elseBlock = bElse;
+					for (BlockNode d : block.getDominatesOn()) {
+						if (d != bThen && d != bElse) {
+							out = d;
+							break;
 						}
 					}
 				}
-				for (BlockNode d : block.getDominatesOn()) {
-					if (d != bThen && d != bElse) {
-						out = d;
-						break;
-					}
-				}
+			}
+
+			if (BlockUtils.isBackEdge(block, out)) {
+				out = null;
 			}
 		}
 
@@ -440,6 +483,46 @@ public class RegionMaker {
 
 		stack.pop();
 		return out;
+	}
+
+	private BlockNode getIfNode(BlockNode block) {
+		if (block != null && !block.getAttributes().contains(AttributeType.LOOP)) {
+			List<InsnNode> insns = block.getInstructions();
+			if (insns.size() == 1 && insns.get(0).getType() == InsnType.IF) {
+				return block;
+			}
+			// skip block
+			List<BlockNode> successors = block.getSuccessors();
+			if (successors.size() == 1) {
+				BlockNode next = successors.get(0);
+				boolean pass = true;
+				if (block.getInstructions().size() != 0) {
+					for (InsnNode insn : block.getInstructions()) {
+						RegisterArg res = insn.getResult();
+						if (res == null) {
+							pass = false;
+							break;
+						}
+						List<InsnArg> useList = res.getTypedVar().getUseList();
+						if (useList.size() != 2) {
+							pass = false;
+							break;
+						} else {
+							InsnArg arg = useList.get(1);
+							InsnNode usePlace = arg.getParentInsn();
+							if (!BlockUtils.blockContains(block, usePlace) && !BlockUtils.blockContains(next, usePlace)) {
+								pass = false;
+								break;
+							}
+						}
+					}
+				}
+				if (pass) {
+					return getIfNode(next);
+				}
+			}
+		}
+		return null;
 	}
 
 	private BlockNode processSwitch(IRegion currentRegion, BlockNode block, SwitchNode insn, RegionStack stack) {
@@ -462,7 +545,7 @@ public class RegionMaker {
 
 		Map<BlockNode, List<Integer>> blocksMap = new LinkedHashMap<BlockNode, List<Integer>>(len);
 		for (Entry<Integer, List<Integer>> entry : casesMap.entrySet()) {
-			BlockNode c = BlockUtils.getBlockByOffset(entry.getKey(), block.getSuccessors());
+			BlockNode c = getBlockByOffset(entry.getKey(), block.getSuccessors());
 			assert c != null;
 			blocksMap.put(c, entry.getValue());
 		}
@@ -471,7 +554,7 @@ public class RegionMaker {
 		BitSet domsOn = BlockUtils.blocksToBitSet(mth, block.getDominatesOn());
 		domsOn.and(succ); // filter 'out' block
 
-		BlockNode defCase = BlockUtils.getBlockByOffset(insn.getDefaultCaseOffset(), block.getSuccessors());
+		BlockNode defCase = getBlockByOffset(insn.getDefaultCaseOffset(), block.getSuccessors());
 		if (defCase != null) {
 			blocksMap.remove(defCase);
 		}
