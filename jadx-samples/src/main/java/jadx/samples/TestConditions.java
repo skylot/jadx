@@ -50,6 +50,16 @@ public class TestConditions extends AbstractTest {
 		test1(0);
 	}
 
+	public void test4(int num) {
+		if (num == 4 || num == 6 || num == 8 || num == 10) {
+			accept("a");
+		}
+	}
+
+	public boolean test5(int num) {
+		return num > 5 && (num < 10 || num == 7);
+	}
+
 	public boolean accept(String name) {
 		return name.startsWith("Test") && name.endsWith(".class") && !name.contains("$");
 	}
@@ -71,6 +81,12 @@ public class TestConditions extends AbstractTest {
 		assertTrue(accept("Test.class"));
 
 		test3(false, false);
+
+		assertFalse(test5(4));
+		assertFalse(test5(11));
+		assertTrue(test5(6));
+		assertTrue(test5(7));
+		assertTrue(test5(8));
 		return true;
 	}
 

@@ -5,6 +5,7 @@ import jadx.core.dex.instructions.IfOp;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.BlockNode;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -21,16 +22,18 @@ public final class IfCondition {
 		return new IfCondition(new Compare(insn));
 	}
 
-	public static IfCondition not(IfCondition a) {
-		return new IfCondition(MODE.NOT, Arrays.asList(a));
-	}
-
-	public static IfCondition and(IfCondition a, IfCondition b) {
-		return new IfCondition(MODE.AND, Arrays.asList(a, b));
-	}
-
-	public static IfCondition or(IfCondition a, IfCondition b) {
-		return new IfCondition(MODE.OR, Arrays.asList(a, b));
+	public static IfCondition merge(Mode mode, IfCondition a, IfCondition b) {
+		if (a.getMode() == mode) {
+			IfCondition n = new IfCondition(a);
+			n.addArg(b);
+			return n;
+		} else if (b.getMode() == mode) {
+			IfCondition n = new IfCondition(b);
+			n.addArg(a);
+			return n;
+		} else {
+			return new IfCondition(mode, Arrays.asList(a, b));
+		}
 	}
 
 	public static final class Compare {
@@ -61,30 +64,36 @@ public final class IfCondition {
 		}
 	}
 
-	public static enum MODE {
+	public static enum Mode {
 		COMPARE,
 		NOT,
 		AND,
 		OR
 	}
 
-	private final MODE mode;
+	private final Mode mode;
 	private final List<IfCondition> args;
 	private final Compare compare;
 
 	private IfCondition(Compare compare) {
-		this.mode = MODE.COMPARE;
+		this.mode = Mode.COMPARE;
 		this.compare = compare;
 		this.args = null;
 	}
 
-	private IfCondition(MODE mode, List<IfCondition> args) {
+	private IfCondition(Mode mode, List<IfCondition> args) {
 		this.mode = mode;
 		this.args = args;
 		this.compare = null;
 	}
 
-	public MODE getMode() {
+	private IfCondition(IfCondition c) {
+		this.mode = c.mode;
+		this.compare = c.compare;
+		this.args = new ArrayList<IfCondition>(c.args);
+	}
+
+	public Mode getMode() {
 		return mode;
 	}
 
@@ -92,8 +101,12 @@ public final class IfCondition {
 		return args;
 	}
 
+	public void addArg(IfCondition c) {
+		args.add(c);
+	}
+
 	public boolean isCompare() {
-		return mode == MODE.COMPARE;
+		return mode == Mode.COMPARE;
 	}
 
 	public Compare getCompare() {

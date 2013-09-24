@@ -167,7 +167,7 @@ public class RegionGen extends InsnGen {
 				return "!" + makeCondition(condition.getArgs().get(0));
 			case AND:
 			case OR:
-				String mode = condition.getMode() == IfCondition.MODE.AND ? " && " : " || ";
+				String mode = condition.getMode() == IfCondition.Mode.AND ? " && " : " || ";
 				StringBuilder sb = new StringBuilder();
 				for (IfCondition arg : condition.getArgs()) {
 					if (sb.length() != 0) {

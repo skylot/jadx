@@ -40,6 +40,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static jadx.core.dex.regions.IfCondition.Mode;
 import static jadx.core.utils.BlockUtils.getBlockByOffset;
 import static jadx.core.utils.BlockUtils.isPathExists;
 import static jadx.core.utils.BlockUtils.selectOther;
@@ -400,6 +401,7 @@ public class RegionMaker {
 
 					IfCondition condition;
 					boolean inverted = false;
+					IfCondition nestedCondition = IfCondition.fromIfNode(nestedIfInsn);
 					if (isPathExists(bElse, nestedIfBlock)) {
 						// else branch
 						if (bThen != nbThen) {
@@ -409,7 +411,7 @@ public class RegionMaker {
 							nestedIfInsn.invertOp(nbElse.getStartOffset());
 							inverted = true;
 						}
-						condition = IfCondition.or(ifRegion.getCondition(), IfCondition.fromIfNode(nestedIfInsn));
+						condition = IfCondition.merge(Mode.OR, ifRegion.getCondition(), nestedCondition);
 					} else {
 						// then branch
 						if (bElse != nbElse) {
@@ -419,7 +421,7 @@ public class RegionMaker {
 							nestedIfInsn.invertOp(nbElse.getStartOffset());
 							inverted = true;
 						}
-						condition = IfCondition.and(ifRegion.getCondition(), IfCondition.fromIfNode(nestedIfInsn));
+						condition = IfCondition.merge(Mode.AND, ifRegion.getCondition(), nestedCondition);
 					}
 					ifRegion.setCondition(condition);
 					nestedIfBlock.getAttributes().add(AttributeFlag.SKIP);

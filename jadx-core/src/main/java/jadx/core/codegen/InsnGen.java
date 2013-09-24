@@ -309,7 +309,7 @@ public class InsnGen {
 				break;
 
 			case APUT:
-				code.add(arg(insn, 0)).add('[').add(arg(insn, 1)).add("] = ").add(arg(insn, 2));
+				code.add(arg(insn, 0)).add('[').add(arg(insn.getArg(1), false)).add("] = ").add(arg(insn.getArg(2), false));
 				break;
 
 			case IGET: {
