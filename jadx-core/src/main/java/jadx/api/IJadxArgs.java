@@ -1,13 +1,13 @@
 package jadx.api;
 
 public interface IJadxArgs {
-    int getThreadsCount();
+	int getThreadsCount();
 
-    boolean isCFGOutput();
+	boolean isCFGOutput();
 
-    boolean isRawCFGOutput();
+	boolean isRawCFGOutput();
 
-    boolean isFallbackMode();
+	boolean isFallbackMode();
 
-    boolean isVerbose();
+	boolean isVerbose();
 }

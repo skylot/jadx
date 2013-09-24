@@ -2,7 +2,7 @@ package jadx.samples;
 
 public class TestSwitch extends AbstractTest {
 
-	public static final int test1(int i) {
+	public static int test1(int i) {
 		int k = i * 4;
 
 		switch (k) {
@@ -19,7 +19,7 @@ public class TestSwitch extends AbstractTest {
 		return i;
 	}
 
-	public static final int test2(int i) {
+	public static int test2(int i) {
 		int k = i;
 		switch (k) {
 			case 1:
@@ -39,7 +39,7 @@ public class TestSwitch extends AbstractTest {
 		return -i;
 	}
 
-	public static final int test3(int i, int j) {
+	public static int test3(int i, int j) {
 		int k = i;
 		switch (k) {
 			case 1:
@@ -53,7 +53,7 @@ public class TestSwitch extends AbstractTest {
 		return -1;
 	}
 
-	public static final int test4(int i) {
+	public static int test4(int i) {
 		int k = i;
 		switch (k) {
 			case 1:
@@ -64,7 +64,8 @@ public class TestSwitch extends AbstractTest {
 		return -1;
 	}
 
-	public static final int test5(int i, int b) {
+	@SuppressWarnings("fallthrough")
+	public static int test5(int i, int b) {
 		int k = i;
 		switch (k) {
 			case 1:

@@ -8,10 +8,11 @@ import jadx.gui.utils.Utils;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.Iterator;
 
-public class JMethod extends DefaultMutableTreeNode implements JNode {
+public class JMethod extends JNode {
+	private static final long serialVersionUID = 3834526867464663751L;
+
 	private static final ImageIcon ICON_MTH_DEF = Utils.openIcon("methdef_obj");
 	private static final ImageIcon ICON_MTH_PRI = Utils.openIcon("methpri_obj");
 	private static final ImageIcon ICON_MTH_PRO = Utils.openIcon("methpro_obj");
@@ -46,7 +47,7 @@ public class JMethod extends DefaultMutableTreeNode implements JNode {
 	public Icon getIcon() {
 		AccessInfo accessFlags = mth.getAccessFlags();
 		OverlayIcon icon = Utils.makeIcon(accessFlags, ICON_MTH_PUB, ICON_MTH_PRI, ICON_MTH_PRO, ICON_MTH_DEF);
-		if(accessFlags.isConstructor()) icon.add(ICON_CONSTRUCTOR);
+		if (accessFlags.isConstructor()) icon.add(ICON_CONSTRUCTOR);
 		if (accessFlags.isSynchronized()) icon.add(ICON_SYNC);
 		return icon;
 	}
@@ -62,7 +63,7 @@ public class JMethod extends DefaultMutableTreeNode implements JNode {
 		base.append('(');
 		for (Iterator<ArgType> it = mth.getArguments().iterator(); it.hasNext(); ) {
 			base.append(Utils.typeStr(it.next()));
-			if(it.hasNext())
+			if (it.hasNext())
 				base.append(", ");
 		}
 		base.append(')');

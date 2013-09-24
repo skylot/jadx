@@ -73,7 +73,7 @@ public class AnnotationsParser {
 		return new AnnotationsList(list);
 	}
 
-	private static final Annotation.Visibility[] visibilities = new Annotation.Visibility[] {
+	private static final Annotation.Visibility[] visibilities = new Annotation.Visibility[]{
 			Annotation.Visibility.BUILD,
 			Annotation.Visibility.RUNTIME,
 			Annotation.Visibility.SYSTEM

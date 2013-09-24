@@ -81,7 +81,7 @@ public class AnnotationGen {
 			if (vl.size() == 1 && vl.containsKey("value")) {
 				code.add(encValueToString(vl.get("value")));
 			} else {
-				for (Iterator<Entry<String, Object>> it = vl.entrySet().iterator(); it.hasNext();) {
+				for (Iterator<Entry<String, Object>> it = vl.entrySet().iterator(); it.hasNext(); ) {
 					Entry<String, Object> e = it.next();
 					code.add(e.getKey());
 					code.add(" = ");
@@ -101,7 +101,7 @@ public class AnnotationGen {
 		if (an != null) {
 			Object exs = an.getDefaultValue();
 			code.add(" throws ");
-			for (Iterator<ArgType> it = ((List<ArgType>) exs).iterator(); it.hasNext();) {
+			for (Iterator<ArgType> it = ((List<ArgType>) exs).iterator(); it.hasNext(); ) {
 				ArgType ex = it.next();
 				code.add(TypeGen.translate(classGen, ex));
 				if (it.hasNext())
@@ -163,7 +163,7 @@ public class AnnotationGen {
 			StringBuilder str = new StringBuilder();
 			str.append('{');
 			List<Object> list = (List<Object>) val;
-			for (Iterator<Object> it = list.iterator(); it.hasNext();) {
+			for (Iterator<Object> it = list.iterator(); it.hasNext(); ) {
 				Object obj = it.next();
 				str.append(encValueToString(obj));
 				if (it.hasNext())

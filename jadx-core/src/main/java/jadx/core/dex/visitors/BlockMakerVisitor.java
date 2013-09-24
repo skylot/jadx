@@ -276,7 +276,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 					idom.getDominatesOn().add(block);
 				} else {
 					throw new JadxRuntimeException("Can't find immediate dominator for block " + block
-									+ " in " + bs + " preds:" + preds);
+							+ " in " + bs + " preds:" + preds);
 				}
 			}
 		}
@@ -313,7 +313,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			AttributesList attributes = block.getAttributes();
 			IAttribute loop = attributes.get(AttributeType.LOOP);
-			if(loop != null && attributes.contains(AttributeFlag.LOOP_START)) {
+			if (loop != null && attributes.contains(AttributeFlag.LOOP_START)) {
 				mth.registerLoop((LoopAttr) loop);
 			}
 		}

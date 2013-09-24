@@ -74,7 +74,7 @@ public class InsnDecoder {
 			case Opcodes.FILL_ARRAY_DATA_PAYLOAD:
 				return null;
 
-				// move-result will be process in invoke and filled-new-array instructions
+			// move-result will be process in invoke and filled-new-array instructions
 			case Opcodes.MOVE_RESULT:
 			case Opcodes.MOVE_RESULT_WIDE:
 			case Opcodes.MOVE_RESULT_OBJECT:
@@ -676,7 +676,7 @@ public class InsnDecoder {
 		return node;
 	}
 
-	private InsnNode insn(InsnType type, RegisterArg res, InsnArg  arg) {
+	private InsnNode insn(InsnType type, RegisterArg res, InsnArg arg) {
 		InsnNode node = new InsnNode(type, 1);
 		node.setResult(res);
 		node.addArg(arg);

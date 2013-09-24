@@ -1,14 +1,15 @@
 package jadx.gui.treemodel;
 
 import javax.swing.Icon;
+import javax.swing.tree.DefaultMutableTreeNode;
 
-public interface JNode {
+public abstract class JNode extends DefaultMutableTreeNode {
 
-	JClass getJParent();
+	public abstract JClass getJParent();
 
-	int getLine();
+	public abstract int getLine();
 
-	void updateChilds();
+	public abstract void updateChilds();
 
-	Icon getIcon();
+	public abstract Icon getIcon();
 }

@@ -36,8 +36,7 @@ public class TypeGen {
 	/**
 	 * Convert literal value to string according to value type
 	 *
-	 * @throws JadxRuntimeException
-	 *             for incorrect type or literal value
+	 * @throws JadxRuntimeException for incorrect type or literal value
 	 */
 	public static String literalToString(long lit, ArgType type) {
 		if (type == null || !type.isTypeKnown()) {

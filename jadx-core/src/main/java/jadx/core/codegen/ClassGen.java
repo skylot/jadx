@@ -356,7 +356,7 @@ public class ClassGen {
 				return shortName;
 
 			// don't add import if this class from same package
-			if(classInfo.getPackage().equals(cls.getPackage()))
+			if (classInfo.getPackage().equals(cls.getPackage()))
 				return shortName;
 
 			for (ClassInfo cls : imports) {
@@ -380,9 +380,9 @@ public class ClassGen {
 
 	private void insertSourceFileInfo(CodeWriter code, AttrNode node) {
 		IAttribute sourceFileAttr = node.getAttributes().get(AttributeType.SOURCE_FILE);
-		if(sourceFileAttr != null) {
+		if (sourceFileAttr != null) {
 			code.startLine(1, "// compiled from: ");
-			code.add(((SourceFileAttr)sourceFileAttr).getFileName());
+			code.add(((SourceFileAttr) sourceFileAttr).getFileName());
 		}
 	}
 

@@ -69,7 +69,7 @@ public class ClspGraph {
 		}
 		Set<String> anc = getAncestors(clsName);
 		NClass cls = nameMap.get(implClsName);
-		if(cls != null) {
+		if (cls != null) {
 			return searchCommonParent(anc, cls);
 		} else {
 			LOG.debug("Missing class: {}", implClsName);
@@ -97,7 +97,7 @@ public class ClspGraph {
 			result = new HashSet<String>();
 			ancestorCache.put(clsName, result);
 			NClass cls = nameMap.get(clsName);
-			if(cls != null) {
+			if (cls != null) {
 				addAncestorsNames(cls, result);
 			} else {
 				LOG.debug("Missing class: {}", clsName);

@@ -10,8 +10,10 @@ subprojects {
 
     version = jadxVersion
 
-    compileJava {
-        options.compilerArgs << '-Xlint'
+    gradle.projectsEvaluated {
+        tasks.withType(Compile) {
+            options.compilerArgs << "-Xlint" << "-Xlint:unchecked" << "-Xlint:deprecation"
+        }
     }
 
     jar {

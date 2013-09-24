@@ -51,6 +51,7 @@ public class TestInner extends AbstractTest {
 		}.run();
 	}
 
+	@SuppressWarnings("serial")
 	public static class MyException extends Exception {
 		public MyException(String str, Exception e) {
 			super("msg:" + str, e);

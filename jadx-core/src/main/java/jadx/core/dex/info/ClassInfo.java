@@ -81,7 +81,7 @@ public final class ClassInfo {
 		char firstChar = name.charAt(0);
 		if (Character.isDigit(firstChar)) {
 			name = "InnerClass_" + name;
-		} else if(firstChar == '$') {
+		} else if (firstChar == '$') {
 			name = "_" + name;
 		}
 		if (NameMapper.isReserved(name)) {

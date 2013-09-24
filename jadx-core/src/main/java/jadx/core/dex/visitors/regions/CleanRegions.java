@@ -27,7 +27,7 @@ public class CleanRegions extends AbstractVisitor {
 				if (!(region instanceof Region))
 					return;
 
-				for (Iterator<IContainer> it = region.getSubBlocks().iterator(); it.hasNext();) {
+				for (Iterator<IContainer> it = region.getSubBlocks().iterator(); it.hasNext(); ) {
 					IContainer container = it.next();
 					if (container instanceof BlockNode) {
 						BlockNode block = (BlockNode) container;

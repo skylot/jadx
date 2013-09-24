@@ -20,12 +20,26 @@ public final class JavaPackage implements Comparable<JavaPackage> {
 	}
 
 	@Override
-	public String toString() {
-		return name;
+	public int compareTo(JavaPackage o) {
+		return name.compareTo(o.name);
 	}
 
 	@Override
-	public int compareTo(JavaPackage o) {
-		return name.compareTo(o.name);
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		JavaPackage that = (JavaPackage) o;
+		if (!name.equals(that.name)) return false;
+		return true;
+	}
+
+	@Override
+	public int hashCode() {
+		return name.hashCode();
+	}
+
+	@Override
+	public String toString() {
+		return name;
 	}
 }

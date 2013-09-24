@@ -7,9 +7,10 @@ import jadx.gui.utils.Utils;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.tree.DefaultMutableTreeNode;
 
-public class JField extends DefaultMutableTreeNode implements JNode {
+public class JField extends JNode {
+	private static final long serialVersionUID = 1712572192106793359L;
+
 	private static final ImageIcon ICON_FLD_DEF = Utils.openIcon("field_default_obj");
 	private static final ImageIcon ICON_FLD_PRI = Utils.openIcon("field_private_obj");
 	private static final ImageIcon ICON_FLD_PRO = Utils.openIcon("field_protected_obj");

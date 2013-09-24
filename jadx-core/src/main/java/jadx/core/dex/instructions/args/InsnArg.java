@@ -75,7 +75,7 @@ public abstract class InsnArg extends Typed {
 						arg = insn.getArg(0);
 						String name = insn.getResult().getTypedVar().getName();
 						if (name != null) {
-								arg.getTypedVar().setName(name);
+							arg.getTypedVar().setName(name);
 						}
 						break;
 					case CONST_STR:

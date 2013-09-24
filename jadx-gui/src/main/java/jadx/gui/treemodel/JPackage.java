@@ -6,11 +6,12 @@ import jadx.gui.utils.Utils;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JPackage extends DefaultMutableTreeNode implements JNode, Comparable<JPackage> {
+public class JPackage extends JNode implements Comparable<JPackage> {
+	private static final long serialVersionUID = -4120718634156839804L;
+
 	private static final ImageIcon PACKAGE_ICON = Utils.openIcon("package_obj");
 
 	private String name;
@@ -79,6 +80,20 @@ public class JPackage extends DefaultMutableTreeNode implements JNode, Comparabl
 	@Override
 	public int compareTo(JPackage o) {
 		return name.compareTo(o.name);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		JPackage jPackage = (JPackage) o;
+		if (!name.equals(jPackage.name)) return false;
+		return true;
+	}
+
+	@Override
+	public int hashCode() {
+		return name.hashCode();
 	}
 
 	@Override

@@ -63,7 +63,7 @@ public class InstructionRemover {
 
 		for (InsnNode rem : toRemove) {
 			unbindInsn(rem);
-			for (Iterator<InsnNode> it = insns.iterator(); it.hasNext();) {
+			for (Iterator<InsnNode> it = insns.iterator(); it.hasNext(); ) {
 				InsnNode insn = it.next();
 				if (insn == rem) {
 					it.remove();
@@ -76,7 +76,7 @@ public class InstructionRemover {
 	public static void remove(BlockNode block, InsnNode insn) {
 		unbindInsn(insn);
 		// remove by pointer (don't use equals)
-		for (Iterator<InsnNode> it = block.getInstructions().iterator(); it.hasNext();) {
+		for (Iterator<InsnNode> it = block.getInstructions().iterator(); it.hasNext(); ) {
 			InsnNode ir = it.next();
 			if (ir == insn) {
 				it.remove();

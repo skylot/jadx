@@ -237,7 +237,7 @@ public class CodeShrinker extends AbstractVisitor {
 
 			case CHECK_CAST:
 				InsnArg castArg = insn.getArg(0);
-				ArgType castType = (ArgType) ((IndexInsnNode)insn).getIndex();
+				ArgType castType = (ArgType) ((IndexInsnNode) insn).getIndex();
 				if (!ArgType.isCastNeeded(castArg.getType(), castType)) {
 					InsnNode insnNode = new InsnNode(InsnType.MOVE, 1);
 					insnNode.setResult(insn.getResult());

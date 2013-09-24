@@ -73,8 +73,7 @@ final class RegionStack {
 	/**
 	 * Add boundary(exit) node for current stack frame
 	 *
-	 * @param exit
-	 *            boundary node, null will be ignored
+	 * @param exit boundary node, null will be ignored
 	 */
 	public void addExit(BlockNode exit) {
 		if (exit != null)

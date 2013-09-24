@@ -21,7 +21,7 @@ import static junit.framework.Assert.fail;
 
 public abstract class InternalJadxTest {
 
-	public ClassNode getClassNode(Class clazz) {
+	public ClassNode getClassNode(Class<?> clazz) {
 		try {
 			File temp = getJarForClass(clazz);
 

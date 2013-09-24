@@ -12,6 +12,8 @@ import static org.junit.Assert.assertThat;
 public class TestStringBuilderElimination extends InternalJadxTest {
 
 	public static class MyException extends Exception {
+		private static final long serialVersionUID = 4245254480662372757L;
+
 		public MyException(String str, Exception e) {
 //			super("msg:" + str, e);
 		}

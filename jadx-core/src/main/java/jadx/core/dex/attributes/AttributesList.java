@@ -129,7 +129,7 @@ public final class AttributesList {
 		if (type.isUniq()) {
 			uniqAttr.remove(type);
 		} else {
-			for (Iterator<IAttribute> it = attributes.iterator(); it.hasNext();) {
+			for (Iterator<IAttribute> it = attributes.iterator(); it.hasNext(); ) {
 				IAttribute attr = it.next();
 				if (attr.getType() == type)
 					it.remove();
@@ -148,7 +148,7 @@ public final class AttributesList {
 			if (getMultiCountInternal(type) == 0)
 				return;
 
-			for (Iterator<IAttribute> it = attributes.iterator(); it.hasNext();) {
+			for (Iterator<IAttribute> it = attributes.iterator(); it.hasNext(); ) {
 				IAttribute a = it.next();
 				if (a == attr) {
 					it.remove();

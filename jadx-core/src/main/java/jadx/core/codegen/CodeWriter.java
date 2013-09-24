@@ -167,7 +167,7 @@ public class CodeWriter {
 		buf.trimToSize();
 		for (Map.Entry<Object, Integer> entry : annotations.entrySet()) {
 			Object v = entry.getKey();
-			if(v instanceof LineAttrNode) {
+			if (v instanceof LineAttrNode) {
 				LineAttrNode l = (LineAttrNode) v;
 				l.setDecompiledLine(entry.getValue());
 			}

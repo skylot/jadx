@@ -34,7 +34,7 @@ public class JavaToDex {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
 			System.setOut(new PrintStream(baos));
-			DxArgs args = new DxArgs("-", new String[] { javaFile });
+			DxArgs args = new DxArgs("-", new String[]{javaFile});
 			Main.run(args);
 			baos.close();
 		} catch (Throwable e) {

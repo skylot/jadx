@@ -69,7 +69,7 @@ public class Utils {
 			return "";
 
 		StringBuilder str = new StringBuilder();
-		for (Iterator<?> it = list.iterator(); it.hasNext();) {
+		for (Iterator<?> it = list.iterator(); it.hasNext(); ) {
 			Object o = it.next();
 			str.append(o);
 			if (it.hasNext())

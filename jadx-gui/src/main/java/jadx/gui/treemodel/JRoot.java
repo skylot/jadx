@@ -6,7 +6,6 @@ import jadx.gui.utils.Utils;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,7 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class JRoot extends DefaultMutableTreeNode implements JNode {
+public class JRoot extends JNode {
+	private static final long serialVersionUID = 8888495789773527342L;
 
 	private static final ImageIcon ROOT_ICON = Utils.openIcon("java_model_obj");
 

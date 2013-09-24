@@ -111,7 +111,7 @@ public class ProcessVariables extends AbstractVisitor {
 			usageMap.remove(arg);
 		}
 
-		for (Iterator<Entry<RegisterArg, Usage>> it = usageMap.entrySet().iterator(); it.hasNext();) {
+		for (Iterator<Entry<RegisterArg, Usage>> it = usageMap.entrySet().iterator(); it.hasNext(); ) {
 			Entry<RegisterArg, Usage> entry = it.next();
 			Usage u = entry.getValue();
 
@@ -138,7 +138,7 @@ public class ProcessVariables extends AbstractVisitor {
 
 			// find region which contain all usage regions
 			Set<IRegion> set = u.getUseRegions();
-			for (Iterator<IRegion> it = set.iterator(); it.hasNext();) {
+			for (Iterator<IRegion> it = set.iterator(); it.hasNext(); ) {
 				IRegion r = it.next();
 				IRegion parent = r.getParent();
 				if (parent != null && set.contains(parent))

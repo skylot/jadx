@@ -8,9 +8,9 @@ import jadx.gui.utils.Utils;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.tree.DefaultMutableTreeNode;
 
-public class JClass extends DefaultMutableTreeNode implements JNode {
+public class JClass extends JNode {
+	private static final long serialVersionUID = -1239986875244097177L;
 
 	private static final ImageIcon ICON_CLASS = Utils.openIcon("class_obj");
 	private static final ImageIcon ICON_CLASS_DEFAULT = Utils.openIcon("class_default_obj");
@@ -49,7 +49,7 @@ public class JClass extends DefaultMutableTreeNode implements JNode {
 		}
 	}
 
-	public String getCode(){
+	public String getCode() {
 		return cls.getCode();
 	}
 

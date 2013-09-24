@@ -83,7 +83,7 @@ public class TypedVar {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		if(name != null)
+		if (name != null)
 			sb.append('\'').append(name).append("' ");
 		sb.append(type);
 		return sb.toString();
