@@ -125,7 +125,21 @@ public class InsnGen {
 	}
 
 	private String ifield(FieldInfo field, InsnArg arg) throws CodegenException {
-		return arg(arg) + "." + field.getName();
+		String name = field.getName();
+		if (arg.isThis()) {
+			boolean useShort = true;
+			List<RegisterArg> args = mth.getArguments(false);
+			for (RegisterArg param : args) {
+				String paramName = param.getTypedVar().getName();
+				if (paramName != null && paramName.equals(name)) {
+					useShort = false;
+				}
+			}
+			if (useShort) {
+				return name; // FIXME: check variable names in scope
+			}
+		}
+		return arg(arg) + "." + name;
 	}
 
 	private String sfield(FieldInfo field) {
@@ -531,7 +545,10 @@ public class InsnGen {
 			case DIRECT:
 			case VIRTUAL:
 			case INTERFACE:
-				code.add(arg(insn.getArg(0))).add('.');
+				InsnArg arg = insn.getArg(0);
+				if (!arg.isThis()) { // FIXME: add 'this' for equals methods in scope
+					code.add(arg(arg)).add('.');
+				}
 				k++;
 				break;
 
