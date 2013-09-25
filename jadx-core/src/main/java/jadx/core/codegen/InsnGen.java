@@ -8,9 +8,9 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
-import jadx.core.dex.instructions.ConstClassInsn;
-import jadx.core.dex.instructions.ConstStringInsn;
-import jadx.core.dex.instructions.FillArrayOp;
+import jadx.core.dex.instructions.ConstClassNode;
+import jadx.core.dex.instructions.ConstStringNode;
+import jadx.core.dex.instructions.FillArrayNode;
 import jadx.core.dex.instructions.GotoNode;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IndexInsnNode;
@@ -209,12 +209,12 @@ public class InsnGen {
 	private void makeInsnBody(CodeWriter code, InsnNode insn, EnumSet<IGState> state) throws CodegenException {
 		switch (insn.getType()) {
 			case CONST_STR:
-				String str = ((ConstStringInsn) insn).getString();
+				String str = ((ConstStringNode) insn).getString();
 				code.add(StringUtils.unescapeString(str));
 				break;
 
 			case CONST_CLASS:
-				ArgType clsType = ((ConstClassInsn) insn).getClsType();
+				ArgType clsType = ((ConstClassNode) insn).getClsType();
 				code.add(useType(clsType)).add(".class");
 				break;
 
@@ -311,7 +311,7 @@ public class InsnGen {
 				break;
 
 			case FILL_ARRAY:
-				fillArray((FillArrayOp) insn, code);
+				fillArray((FillArrayNode) insn, code);
 				break;
 
 			case FILLED_NEW_ARRAY:
@@ -449,7 +449,7 @@ public class InsnGen {
 		code.add('}');
 	}
 
-	private void fillArray(FillArrayOp insn, CodeWriter code) throws CodegenException {
+	private void fillArray(FillArrayNode insn, CodeWriter code) throws CodegenException {
 		ArgType elType = insn.getResult().getType().getArrayElement();
 		if (elType.getPrimitiveType() == null) {
 			elType = elType.selectFirst();

@@ -96,13 +96,13 @@ public class InsnDecoder {
 
 			case Opcodes.CONST_STRING:
 			case Opcodes.CONST_STRING_JUMBO: {
-				InsnNode node = new ConstStringInsn(dex.getString(insn.getIndex()));
+				InsnNode node = new ConstStringNode(dex.getString(insn.getIndex()));
 				node.setResult(InsnArg.reg(insn, 0, ArgType.STRING));
 				return node;
 			}
 
 			case Opcodes.CONST_CLASS: {
-				InsnNode node = new ConstClassInsn(dex.getType(insn.getIndex()));
+				InsnNode node = new ConstClassNode(dex.getType(insn.getIndex()));
 				node.setResult(InsnArg.reg(insn, 0, ArgType.CLASS));
 				return node;
 			}
@@ -595,7 +595,7 @@ public class InsnDecoder {
 
 	private InsnNode fillArray(DecodedInstruction insn) {
 		DecodedInstruction payload = insnArr[insn.getTarget()];
-		return new FillArrayOp(insn.getA(), (FillArrayDataPayloadDecodedInstruction) payload);
+		return new FillArrayNode(insn.getA(), (FillArrayDataPayloadDecodedInstruction) payload);
 	}
 
 	private InsnNode filledNewArray(DecodedInstruction insn, int offset, boolean isRange) {

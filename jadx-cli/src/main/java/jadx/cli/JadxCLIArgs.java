@@ -20,7 +20,7 @@ import com.beust.jcommander.ParameterException;
 
 public final class JadxCLIArgs implements IJadxArgs {
 
-	@Parameter(description = "<input file> (.dex, .apk, .jar or .class)")
+	@Parameter(description = "<input file> (.dex, .apk or .jar)")
 	protected List<String> files;
 
 	@Parameter(names = {"-d", "--output-dir"}, description = "output directory")
@@ -32,7 +32,7 @@ public final class JadxCLIArgs implements IJadxArgs {
 	@Parameter(names = {"-f", "--fallback"}, description = "make simple dump (using goto instead of 'if', 'for', etc)", help = true)
 	protected boolean fallbackMode = false;
 
-	@Parameter(names = {"--cfg"}, description = "save methods control flow graph")
+	@Parameter(names = {"--cfg"}, description = "save methods control flow graph to dot file")
 	protected boolean cfgOutput = false;
 
 	@Parameter(names = {"--raw-cfg"}, description = "save methods control flow graph (use raw instructions)")

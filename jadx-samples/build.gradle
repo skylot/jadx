@@ -40,10 +40,10 @@ task samplesJadxRun(type: JavaExec, dependsOn: samplesJadxCompile) {
     main = mainSamplesClass  
 }
 
-task samples (dependsOn: samplesJadxRun) {
+task samples(dependsOn: samplesJadxRun) {
 }
 
-task cleanGeneratedFiles (type: Delete) {
+task cleanGeneratedFiles(type: Delete) {
     delete samplesJadxSrcDir
     delete samplesJadxOutDir
 }

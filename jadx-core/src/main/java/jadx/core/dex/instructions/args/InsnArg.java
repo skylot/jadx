@@ -1,6 +1,5 @@
 package jadx.core.dex.instructions.args;
 
-import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
 
@@ -63,38 +62,43 @@ public abstract class InsnArg extends Typed {
 	}
 
 	public InsnArg wrapInstruction(InsnNode insn) {
-		assert parentInsn != insn : "Can't wrap instruction info itself";
-		int count = parentInsn.getArgsCount();
+		InsnNode parent = parentInsn;
+		assert parent != insn : "Can't wrap instruction info itself";
+		int count = parent.getArgsCount();
 		for (int i = 0; i < count; i++) {
-			if (parentInsn.getArg(i) == this) {
-				InsnArg arg;
-				InsnType insnType = insn.getType();
-				switch (insnType) {
-					case MOVE:
-					case CONST:
-						arg = insn.getArg(0);
-						String name = insn.getResult().getTypedVar().getName();
-						if (name != null) {
-							arg.getTypedVar().setName(name);
-						}
-						break;
-					case CONST_STR:
-						arg = wrap(insn);
-						arg.getTypedVar().forceSetType(ArgType.STRING);
-						break;
-					case CONST_CLASS:
-						arg = wrap(insn);
-						arg.getTypedVar().forceSetType(ArgType.CLASS);
-						break;
-					default:
-						arg = wrap(insn);
-						break;
-				}
-				parentInsn.setArg(i, arg);
+			if (parent.getArg(i) == this) {
+				InsnArg arg = wrapArg(insn);
+				parent.setArg(i, arg);
 				return arg;
 			}
 		}
 		return null;
+	}
+
+	private static InsnArg wrapArg(InsnNode insn) {
+		InsnArg arg;
+		switch (insn.getType()) {
+			case MOVE:
+			case CONST:
+				arg = insn.getArg(0);
+				String name = insn.getResult().getTypedVar().getName();
+				if (name != null) {
+					arg.getTypedVar().setName(name);
+				}
+				break;
+			case CONST_STR:
+				arg = wrap(insn);
+				arg.getTypedVar().forceSetType(ArgType.STRING);
+				break;
+			case CONST_CLASS:
+				arg = wrap(insn);
+				arg.getTypedVar().forceSetType(ArgType.CLASS);
+				break;
+			default:
+				arg = wrap(insn);
+				break;
+		}
+		return arg;
 	}
 
 	public boolean isThis() {

@@ -1,7 +1,7 @@
 package jadx.core.dex.instructions.args;
 
-import jadx.core.dex.instructions.ConstClassInsn;
-import jadx.core.dex.instructions.ConstStringInsn;
+import jadx.core.dex.instructions.ConstClassNode;
+import jadx.core.dex.instructions.ConstStringNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.visitors.InstructionRemover;
@@ -53,9 +53,9 @@ public class RegisterArg extends InsnArg {
 				case CONST:
 					return parInsn.getArg(0);
 				case CONST_STR:
-					return ((ConstStringInsn) parInsn).getString();
+					return ((ConstStringNode) parInsn).getString();
 				case CONST_CLASS:
-					return ((ConstClassInsn) parInsn).getClsType();
+					return ((ConstClassNode) parInsn).getClsType();
 			}
 		}
 		return null;

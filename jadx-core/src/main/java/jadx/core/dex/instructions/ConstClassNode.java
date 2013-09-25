@@ -3,11 +3,11 @@ package jadx.core.dex.instructions;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.InsnNode;
 
-public class ConstClassInsn extends InsnNode {
+public class ConstClassNode extends InsnNode {
 
 	private final ArgType clsType;
 
-	public ConstClassInsn(ArgType clsType) {
+	public ConstClassNode(ArgType clsType) {
 		super(InsnType.CONST_CLASS, 0);
 		this.clsType = clsType;
 	}

@@ -80,7 +80,7 @@ public final class ClassInfo {
 
 		char firstChar = name.charAt(0);
 		if (Character.isDigit(firstChar)) {
-			name = "InnerClass_" + name;
+			name = "AnonymousClass_" + name;
 		} else if (firstChar == '$') {
 			name = "_" + name;
 		}

@@ -7,11 +7,11 @@ import jadx.core.dex.nodes.InsnNode;
 
 import com.android.dx.io.instructions.FillArrayDataPayloadDecodedInstruction;
 
-public class FillArrayOp extends InsnNode {
+public class FillArrayNode extends InsnNode {
 
 	private final Object data;
 
-	public FillArrayOp(int resReg, FillArrayDataPayloadDecodedInstruction payload) {
+	public FillArrayNode(int resReg, FillArrayDataPayloadDecodedInstruction payload) {
 		super(InsnType.FILL_ARRAY, 0);
 
 		this.data = payload.getData();

@@ -2,7 +2,6 @@ package jadx.cli;
 
 import jadx.api.Decompiler;
 import jadx.core.utils.ErrorsCounter;
-import jadx.core.utils.exceptions.JadxException;
 
 import java.io.File;
 
@@ -17,7 +16,7 @@ public class JadxCLI {
 			JadxCLIArgs jadxArgs = new JadxCLIArgs(args);
 			checkArgs(jadxArgs);
 			processAndSave(jadxArgs);
-		} catch (JadxException e) {
+		} catch (Exception e) {
 			LOG.error(e.getMessage());
 			System.exit(1);
 		}
@@ -40,26 +39,29 @@ public class JadxCLI {
 		System.exit(errorsCount);
 	}
 
-	private static void checkArgs(JadxCLIArgs jadxArgs) throws JadxException {
-		if (jadxArgs.getInput().isEmpty())
-			throw new JadxException("Please specify input file");
-
+	private static void checkArgs(JadxCLIArgs jadxArgs) throws Exception {
+		if (jadxArgs.getInput().isEmpty()) {
+			LOG.error("Please specify input file");
+			jadxArgs.printUsage();
+			System.exit(1);
+		}
 		File outputDir = jadxArgs.getOutDir();
 		if (outputDir == null) {
 			String outDirName;
 			File file = jadxArgs.getInput().get(0);
 			String name = file.getName();
 			int pos = name.lastIndexOf('.');
-			if (pos != -1)
+			if (pos != -1) {
 				outDirName = name.substring(0, pos);
-			else
+			} else {
 				outDirName = name + "-jadx-out";
-
+			}
 			LOG.info("output directory: " + outDirName);
 			outputDir = new File(outDirName);
 			jadxArgs.setOutputDir(outputDir);
 		}
-		if (outputDir.exists() && !outputDir.isDirectory())
-			throw new JadxException("Output directory exists as file " + outputDir);
+		if (outputDir.exists() && !outputDir.isDirectory()) {
+			throw new Exception("Output directory exists as file " + outputDir);
+		}
 	}
 }

@@ -3,8 +3,8 @@ package jadx.core.dex.visitors;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.info.MethodInfo;
-import jadx.core.dex.instructions.ConstClassInsn;
-import jadx.core.dex.instructions.ConstStringInsn;
+import jadx.core.dex.instructions.ConstClassNode;
+import jadx.core.dex.instructions.ConstStringNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
@@ -104,10 +104,10 @@ public class ModVisitor extends AbstractVisitor {
 						ClassNode parentClass = mth.getParentClass();
 						FieldNode f = null;
 						if (insn.getType() == InsnType.CONST_STR) {
-							String s = ((ConstStringInsn) insn).getString();
+							String s = ((ConstStringNode) insn).getString();
 							f = parentClass.getConstField(s);
 						} else if (insn.getType() == InsnType.CONST_CLASS) {
-							ArgType t = ((ConstClassInsn) insn).getClsType();
+							ArgType t = ((ConstClassNode) insn).getClsType();
 							f = parentClass.getConstField(t);
 						} else {
 							LiteralArg arg = (LiteralArg) insn.getArg(0);
