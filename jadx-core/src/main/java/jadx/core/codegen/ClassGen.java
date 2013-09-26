@@ -13,6 +13,7 @@ import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.parser.FieldValueAttr;
@@ -314,7 +315,7 @@ public class ClassGen {
 	}
 
 	public String useClass(ClassInfo classInfo) {
-		String baseClass = useClassInternal(classInfo);
+		String baseClass = useClassInternal(cls.getClassInfo(), classInfo);
 		ArgType[] generics = classInfo.getType().getGenericTypes();
 		if (generics != null) {
 			StringBuilder sb = new StringBuilder();
@@ -338,31 +339,37 @@ public class ClassGen {
 		}
 	}
 
-	private String useClassInternal(ClassInfo classInfo) {
-		if (parentGen != null)
-			return parentGen.useClassInternal(classInfo);
-
+	private String useClassInternal(ClassInfo useCls, ClassInfo classInfo) {
+		if (parentGen != null) {
+			return parentGen.useClassInternal(useCls, classInfo);
+		}
 		String clsStr = classInfo.getFullName();
-		if (fallback)
+		if (fallback) {
 			return clsStr;
-
+		}
 		String shortName = classInfo.getShortName();
-
 		if (classInfo.getPackage().equals("java.lang") && classInfo.getParentClass() == null) {
 			return shortName;
 		} else {
 			// don't add import if this class inner for current class
-			if (isInner(classInfo, cls.getClassInfo()))
+			if (isClassInnerFor(classInfo, useCls)) {
 				return shortName;
-
+			}
 			// don't add import if this class from same package
-			if (classInfo.getPackage().equals(cls.getPackage()))
+			if (classInfo.getPackage().equals(useCls.getPackage()) && !classInfo.isInner()) {
 				return shortName;
-
+			}
+			if (classInfo.getPackage().equals(useCls.getPackage())) {
+				clsStr = classInfo.getNameWithoutPackage();
+			}
+			if (searchCollision(cls.dex(), useCls, shortName)) {
+				return clsStr;
+			}
 			for (ClassInfo cls : imports) {
 				if (!cls.equals(classInfo)) {
-					if (cls.getShortName().equals(shortName))
+					if (cls.getShortName().equals(shortName)) {
 						return clsStr;
+					}
 				}
 			}
 			imports.add(classInfo);
@@ -370,12 +377,28 @@ public class ClassGen {
 		}
 	}
 
-	private boolean isInner(ClassInfo inner, ClassInfo parent) {
+	private static boolean isClassInnerFor(ClassInfo inner, ClassInfo parent) {
 		if (inner.isInner()) {
 			ClassInfo p = inner.getParentClass();
-			return p.equals(parent) || isInner(p, parent);
+			return p.equals(parent) || isClassInnerFor(p, parent);
 		}
 		return false;
+	}
+
+	private static boolean searchCollision(DexNode dex, ClassInfo useCls, String shortName) {
+		if (useCls == null) {
+			return false;
+		}
+		if (useCls.getShortName().equals(shortName)) {
+			return true;
+		}
+		ClassNode classNode = dex.resolveClass(useCls);
+		for (ClassNode inner : classNode.getInnerClasses()) {
+			if (inner.getShortName().equals(shortName)) {
+				return true;
+			}
+		}
+		return searchCollision(dex, useCls.getParentClass(), shortName);
 	}
 
 	private void insertSourceFileInfo(CodeWriter code, AttrNode node) {
