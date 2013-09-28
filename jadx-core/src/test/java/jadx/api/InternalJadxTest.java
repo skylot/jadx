@@ -21,10 +21,12 @@ import static junit.framework.Assert.fail;
 
 public abstract class InternalJadxTest {
 
+	protected boolean outputCFG = false;
+	protected String outDir = "test-out-tmp";
+
 	public ClassNode getClassNode(Class<?> clazz) {
 		try {
 			File temp = getJarForClass(clazz);
-
 			Decompiler d = new Decompiler();
 			try {
 				d.loadFile(temp);
@@ -34,14 +36,23 @@ public abstract class InternalJadxTest {
 			} finally {
 				temp.delete();
 			}
-
 			List<ClassNode> classes = d.getRoot().getClasses(false);
 			ClassNode cls = classes.get(0);
 
 			assertEquals(cls.getFullName(), clazz.getName());
 
 			cls.load();
-			List<IDexTreeVisitor> passes = Jadx.getPassesList(new DefaultJadxArgs(), null);
+			List<IDexTreeVisitor> passes = Jadx.getPassesList(new DefaultJadxArgs() {
+				@Override
+				public boolean isCFGOutput() {
+					return outputCFG;
+				}
+
+				@Override
+				public boolean isRawCFGOutput() {
+					return outputCFG;
+				}
+			}, new File(outDir));
 			for (IDexTreeVisitor visitor : passes) {
 				DepthTraverser.visit(visitor, cls);
 			}
@@ -78,10 +89,10 @@ public abstract class InternalJadxTest {
 		String path = cutPackage(cls) + ".class";
 		URL resource = cls.getResource(path);
 		if (resource == null) {
-			throw new AssertionError("Class file not found: " + path);
+			fail("Class file not found: " + path);
 		}
 		if (!"file".equalsIgnoreCase(resource.getProtocol())) {
-			throw new IllegalStateException("Class is not stored in a file.");
+			fail("Class is not stored in a file.");
 		}
 		return new File(resource.getPath());
 	}
@@ -109,8 +120,9 @@ public abstract class InternalJadxTest {
 			}
 			target.closeEntry();
 		} finally {
-			if (in != null)
+			if (in != null) {
 				in.close();
+			}
 		}
 	}
 }
