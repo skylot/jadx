@@ -37,8 +37,12 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 	private static boolean checkInsn(MethodNode mth, BlockNode block, InsnNode insn) {
 		if (insn.getType() == InsnType.CONST) {
 			InsnArg arg = insn.getArg(0);
-			if (arg.isLiteral()
-					&& insn.getResult().getType().getRegCount() == 1 /* process only narrow types */) {
+			if (arg.isLiteral()) {
+				ArgType resType = insn.getResult().getType();
+				// make sure arg has correct type
+				if (!arg.getType().isTypeKnown()) {
+					arg.merge(resType);
+				}
 				long lit = ((LiteralArg) arg).getLiteral();
 				return replaceConst(mth, block, insn, lit);
 			}
@@ -61,17 +65,9 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 				if (arg != insn.getResult() && !registerReassignOnPath(block, useBlock, insn)) {
 					// in most cases type not equal arg.getType()
 					// just set unknown type and run type fixer
-					LiteralArg litArg = InsnArg.lit(literal, ArgType.NARROW);
+					LiteralArg litArg = InsnArg.lit(literal, ArgType.UNKNOWN);
 					if (useInsn.replaceArg(arg, litArg)) {
-						// if (useInsn.getType() == InsnType.MOVE) {
-						// // 'move' became 'const'
-						// InsnNode constInsn = new InsnNode(mth, InsnType.CONST, 1);
-						// constInsn.setResult(useInsn.getResult());
-						// constInsn.addArg(litArg);
-						// ModVisitor.replaceInsn(useBlock, useInsn, constInsn);
-						// fixTypes(mth, constInsn);
-						// }
-						fixTypes(mth, useInsn);
+						fixTypes(mth, useInsn, litArg);
 						replace++;
 					}
 				}
@@ -102,7 +98,7 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 	 * This is method similar to PostTypeResolver.visit method,
 	 * but contains some expensive operations needed only after constant inline
 	 */
-	private static void fixTypes(MethodNode mth, InsnNode insn) {
+	private static void fixTypes(MethodNode mth, InsnNode insn, LiteralArg litArg) {
 		switch (insn.getType()) {
 			case CONST:
 				insn.getArg(0).merge(insn.getResult());
@@ -120,13 +116,30 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 				break;
 			}
 
-			case IF:
+			case IF: {
 				IfNode ifnode = (IfNode) insn;
 				if (!ifnode.isZeroCmp()) {
-					insn.getArg(1).merge(insn.getArg(0));
-					insn.getArg(0).merge(insn.getArg(1));
+					InsnArg arg0 = insn.getArg(0);
+					InsnArg arg1 = insn.getArg(1);
+					if (arg0 == litArg) {
+						arg0.merge(arg1);
+					} else {
+						arg1.merge(arg0);
+					}
 				}
 				break;
+			}
+			case CMP_G:
+			case CMP_L: {
+				InsnArg arg0 = insn.getArg(0);
+				InsnArg arg1 = insn.getArg(1);
+				if (arg0 == litArg) {
+					arg0.merge(arg1);
+				} else {
+					arg1.merge(arg0);
+				}
+				break;
+			}
 
 			case RETURN:
 				if (insn.getArgsCount() != 0) {
@@ -151,6 +164,21 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 					}
 					k++;
 				}
+				break;
+
+			case ARITH:
+				litArg.merge(insn.getResult());
+				break;
+
+			case APUT:
+			case AGET:
+				if (litArg == insn.getArg(1)) {
+					litArg.merge(ArgType.INT);
+				}
+				break;
+
+			case NEW_ARRAY:
+				litArg.merge(ArgType.INT);
 				break;
 
 			default:

@@ -8,10 +8,20 @@ public final class LiteralArg extends InsnArg {
 	private final long literal;
 
 	public LiteralArg(long value, ArgType type) {
+		if (value != 0) {
+			if (type.isObject()) {
+				throw new JadxRuntimeException("Wrong literal type: " + type + " for value: " + value);
+			} else if (!type.isTypeKnown()
+					&& !type.contains(PrimitiveType.LONG)
+					&& !type.contains(PrimitiveType.DOUBLE)) {
+				ArgType m = ArgType.merge(type, ArgType.NARROW_NUMBERS);
+				if (m != null) {
+					type = m;
+				}
+			}
+		}
 		this.literal = value;
 		this.typedVar = new TypedVar(type);
-		if (literal != 0 && type.isObject())
-			throw new RuntimeException("wrong literal type");
 	}
 
 	public long getLiteral() {

@@ -41,10 +41,11 @@ public class TypeGen {
 	public static String literalToString(long lit, ArgType type) {
 		if (type == null || !type.isTypeKnown()) {
 			String n = Long.toString(lit);
-			if (Math.abs(lit) > 100)
+			if (Math.abs(lit) > 100) {
 				n += "; // 0x" + Long.toHexString(lit)
 						+ " float:" + Float.intBitsToFloat((int) lit)
 						+ " double:" + Double.longBitsToDouble(lit);
+			}
 			return n;
 		}
 

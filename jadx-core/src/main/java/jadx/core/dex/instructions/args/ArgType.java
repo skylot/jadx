@@ -40,6 +40,10 @@ public abstract class ArgType {
 			PrimitiveType.BOOLEAN, PrimitiveType.SHORT, PrimitiveType.BYTE, PrimitiveType.CHAR,
 			PrimitiveType.OBJECT, PrimitiveType.ARRAY);
 
+	public static final ArgType NARROW_NUMBERS = unknown(
+			PrimitiveType.INT, PrimitiveType.FLOAT,
+			PrimitiveType.BOOLEAN, PrimitiveType.SHORT, PrimitiveType.BYTE, PrimitiveType.CHAR);
+
 	public static final ArgType WIDE = unknown(PrimitiveType.LONG, PrimitiveType.DOUBLE);
 
 	protected int hash;
@@ -597,8 +601,14 @@ public abstract class ArgType {
 	public int getRegCount() {
 		if (isPrimitive()) {
 			PrimitiveType type = getPrimitiveType();
-			if (type == PrimitiveType.LONG || type == PrimitiveType.DOUBLE)
+			if (type == PrimitiveType.LONG || type == PrimitiveType.DOUBLE) {
 				return 2;
+			} else {
+				return 1;
+			}
+		}
+		if (!isTypeKnown()) {
+			return 0;
 		}
 		return 1;
 	}
