@@ -12,16 +12,17 @@ subprojects {
 
     gradle.projectsEvaluated {
         tasks.withType(Compile) {
-            options.compilerArgs << "-Xlint" << "-Xlint:unchecked" << "-Xlint:deprecation"
+            if (!"${it}".contains(":jadx-samples:")) {
+                options.compilerArgs << "-Xlint" << "-Xlint:unchecked" << "-Xlint:deprecation"
+            }
         }
     }
 
     jar {
         version = jadxVersion
-    }
-
-    manifest {
-        mainAttributes('jadx-version' : jadxVersion)
+        manifest {
+            mainAttributes('jadx-version' : jadxVersion)
+        }
     }
 
     dependencies {
@@ -48,8 +49,14 @@ task pack(type: Zip, dependsOn: copyArtifacts) {
     from copyArtifacts.destinationDir
 }
 
-task build(dependsOn: pack) {
+task dist(dependsOn: pack) {
     description = 'Build jadx distribution zip'
+}
+
+task samples(dependsOn: 'jadx-samples:samples') {
+}
+
+task build(dependsOn: [dist, samples]) {
 }
 
 task clean(type: Delete) {
@@ -59,4 +66,3 @@ task clean(type: Delete) {
 task wrapper(type: Wrapper) {
     gradleVersion = '1.8'
 }
-

@@ -3,7 +3,7 @@ jdk:
     - oraclejdk7
     - openjdk7
     - openjdk6
-script: gradle clean build samples
+script: gradle clean build
 notifications:
     email:
         - skylot@gmail.com

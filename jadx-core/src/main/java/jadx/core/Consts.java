@@ -1,9 +1,7 @@
 package jadx.core;
 
-import jadx.core.utils.Utils;
-
 public class Consts {
-	public static final String JADX_VERSION = Utils.getJadxVersion();
+	public static final String JADX_VERSION = Jadx.getVersion();
 
 	public static final boolean DEBUG = false;
 

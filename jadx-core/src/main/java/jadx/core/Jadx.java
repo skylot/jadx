@@ -19,10 +19,15 @@ import jadx.core.dex.visitors.regions.ProcessVariables;
 import jadx.core.dex.visitors.regions.RegionMakerVisitor;
 import jadx.core.dex.visitors.typeresolver.FinishTypeResolver;
 import jadx.core.dex.visitors.typeresolver.TypeResolver;
+import jadx.core.utils.Utils;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.jar.Manifest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,5 +77,20 @@ public class Jadx {
 		}
 		passes.add(new CodeGen(args));
 		return passes;
+	}
+
+	public static String getVersion() {
+		try {
+			Enumeration<URL> resources = Utils.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
+			while (resources.hasMoreElements()) {
+				Manifest manifest = new Manifest(resources.nextElement().openStream());
+				String ver = manifest.getMainAttributes().getValue("jadx-version");
+				if (ver != null)
+					return ver;
+			}
+		} catch (IOException e) {
+			LOG.error("Can't get manifest file", e);
+		}
+		return "dev";
 	}
 }

@@ -16,7 +16,7 @@ Latest version available at
 
     git clone https://github.com/skylot/jadx.git
     cd jadx
-    ./gradlew clean build
+    ./gradlew dist
     
 (on Windows, use `gradlew.bat` instead of `./gradlew`)
 
@@ -37,13 +37,13 @@ Run **jadx** on itself:
 ```
 jadx[-gui] [options] <input file> (.dex, .apk or .jar)
 options:
- -d, --output-dir     - output directory
- -j, --threads-count  - processing threads count
- -f, --fallback       - make simple dump (using goto instead of 'if', 'for', etc)
-     --cfg            - save methods control flow graph
-     --raw-cfg        - save methods control flow graph (use raw instructions)
- -v, --verbose        - verbose output
- -h, --help           - print this help
+ -d, --output-dir    - output directory
+ -j, --threads-count - processing threads count
+ -f, --fallback      - make simple dump (using goto instead of 'if', 'for', etc)
+     --cfg           - save methods control flow graph to dot file
+     --raw-cfg       - save methods control flow graph (use raw instructions)
+ -v, --verbose       - verbose output
+ -h, --help          - print this help
 Example:
  jadx -d out classes.dex
 ```
