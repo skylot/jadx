@@ -11,11 +11,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static jadx.core.dex.instructions.args.ArgType.BOOLEAN;
+import static jadx.core.dex.instructions.args.ArgType.BYTE;
 import static jadx.core.dex.instructions.args.ArgType.CHAR;
 import static jadx.core.dex.instructions.args.ArgType.INT;
 import static jadx.core.dex.instructions.args.ArgType.LONG;
 import static jadx.core.dex.instructions.args.ArgType.NARROW;
 import static jadx.core.dex.instructions.args.ArgType.OBJECT;
+import static jadx.core.dex.instructions.args.ArgType.STRING;
 import static jadx.core.dex.instructions.args.ArgType.UNKNOWN;
 import static jadx.core.dex.instructions.args.ArgType.UNKNOWN_OBJECT;
 import static jadx.core.dex.instructions.args.ArgType.genericType;
@@ -56,6 +58,13 @@ public class TypeMergeTest {
 		check(unknown(PrimitiveType.INT, PrimitiveType.OBJECT),
 				unknown(PrimitiveType.OBJECT, PrimitiveType.ARRAY),
 				unknown(PrimitiveType.OBJECT));
+
+		check(ArgType.array(INT), ArgType.array(BYTE), ArgType.OBJECT);
+		first(ArgType.array(INT), ArgType.array(INT));
+		first(ArgType.array(STRING), ArgType.array(STRING));
+
+		first(OBJECT, ArgType.array(INT));
+		first(OBJECT, ArgType.array(STRING));
 
 		ArgType objExc = object("java.lang.Exception");
 		ArgType objThr = object("java.lang.Throwable");

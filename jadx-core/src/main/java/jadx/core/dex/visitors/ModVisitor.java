@@ -5,6 +5,7 @@ import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.ConstClassNode;
 import jadx.core.dex.instructions.ConstStringNode;
+import jadx.core.dex.instructions.FillArrayNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
@@ -164,6 +165,7 @@ public class ModVisitor extends AbstractVisitor {
 							InsnNode ni = block.getInstructions().get(next);
 							if (ni.getType() == InsnType.FILL_ARRAY) {
 								ni.getResult().merge(insn.getResult());
+								((FillArrayNode) ni).mergeElementType(insn.getResult().getType().getArrayElement());
 								remover.add(insn);
 							}
 						}

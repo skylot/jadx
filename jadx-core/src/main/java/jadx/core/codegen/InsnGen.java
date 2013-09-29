@@ -30,6 +30,8 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.ErrorsCounter;
+import jadx.core.utils.InsnUtils;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.CodegenException;
 
@@ -450,15 +452,19 @@ public class InsnGen {
 	}
 
 	private void fillArray(FillArrayNode insn, CodeWriter code) throws CodegenException {
-		ArgType elType = insn.getResult().getType().getArrayElement();
-		if (elType.getPrimitiveType() == null) {
-			elType = elType.selectFirst();
+		ArgType insnArrayType = insn.getResult().getType();
+		ArgType insnElementType = insnArrayType.getArrayElement();
+		ArgType elType = insn.getElementType();
+		if (!elType.equals(insnElementType) && !insnArrayType.equals(ArgType.OBJECT)) {
+			ErrorsCounter.methodError(mth,
+					"Incorrect type for fill-array insn " + InsnUtils.formatOffset(insn.getOffset()));
 		}
 		StringBuilder str = new StringBuilder();
+		Object data = insn.getData();
 		switch (elType.getPrimitiveType()) {
 			case BOOLEAN:
 			case BYTE:
-				byte[] array = (byte[]) insn.getData();
+				byte[] array = (byte[]) data;
 				for (byte b : array) {
 					str.append(TypeGen.literalToString(b, elType));
 					str.append(", ");
@@ -466,7 +472,7 @@ public class InsnGen {
 				break;
 			case SHORT:
 			case CHAR:
-				short[] sarray = (short[]) insn.getData();
+				short[] sarray = (short[]) data;
 				for (short b : sarray) {
 					str.append(TypeGen.literalToString(b, elType));
 					str.append(", ");
@@ -474,7 +480,7 @@ public class InsnGen {
 				break;
 			case INT:
 			case FLOAT:
-				int[] iarray = (int[]) insn.getData();
+				int[] iarray = (int[]) data;
 				for (int b : iarray) {
 					str.append(TypeGen.literalToString(b, elType));
 					str.append(", ");
@@ -482,7 +488,7 @@ public class InsnGen {
 				break;
 			case LONG:
 			case DOUBLE:
-				long[] larray = (long[]) insn.getData();
+				long[] larray = (long[]) data;
 				for (long b : larray) {
 					str.append(TypeGen.literalToString(b, elType));
 					str.append(", ");
@@ -494,7 +500,7 @@ public class InsnGen {
 		}
 		int len = str.length();
 		str.delete(len - 2, len);
-		code.add("new ").add(useType(elType)).add("[] { ").add(str.toString()).add(" }");
+		code.add("new ").add(useType(elType)).add("[]{").add(str.toString()).add('}');
 	}
 
 	private void makeConstructor(ConstructorInsn insn, CodeWriter code, EnumSet<IGState> state)

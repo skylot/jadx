@@ -1,5 +1,6 @@
 package jadx.core.utils;
 
+import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.attributes.JadxErrorAttr;
 import jadx.core.dex.nodes.ClassNode;
@@ -40,6 +41,7 @@ public class ErrorsCounter {
 			}
 			node.getAttributes().add(new JadxErrorAttr(e));
 		} else {
+			node.getAttributes().add(AttributeFlag.INCONSISTENT_CODE);
 			LOG.error(msg);
 		}
 	}

@@ -339,7 +339,7 @@ public abstract class ArgType {
 	}
 
 	public static ArgType merge(ArgType a, ArgType b) {
-		if (a == b)
+		if (a.equals(b))
 			return a;
 
 		if (b == null || a == null)
@@ -352,9 +352,9 @@ public abstract class ArgType {
 	}
 
 	private static ArgType mergeInternal(ArgType a, ArgType b) {
-		if (a == UNKNOWN)
+		if (a == UNKNOWN) {
 			return b;
-
+		}
 		if (!a.isTypeKnown()) {
 			if (b.isTypeKnown()) {
 				if (a.contains(b.getPrimitiveType()))
@@ -399,9 +399,21 @@ public abstract class ArgType {
 					return (obj == null ? null : object(obj));
 				}
 			}
-			if (a.isArray() && b.isArray()) {
-				ArgType res = merge(a.getArrayElement(), b.getArrayElement());
-				return (res == null ? null : ArgType.array(res));
+			if (a.isArray()) {
+				if (b.isArray()) {
+					ArgType ea = a.getArrayElement();
+					ArgType eb = b.getArrayElement();
+					if (ea.isPrimitive() && eb.isPrimitive()) {
+						return OBJECT;
+					} else {
+						ArgType res = merge(ea, eb);
+						return (res == null ? null : ArgType.array(res));
+					}
+				} else if (b.equals(OBJECT)) {
+					return OBJECT;
+				} else {
+					return null;
+				}
 			}
 			if (a.isPrimitive() && b.isPrimitive() && a.getRegCount() == b.getRegCount()) {
 				return primitive(PrimitiveType.getSmaller(a.getPrimitiveType(), b.getPrimitiveType()));

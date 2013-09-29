@@ -4,18 +4,17 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.nodes.InsnNode;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import com.android.dx.io.instructions.FillArrayDataPayloadDecodedInstruction;
 
 public class FillArrayNode extends InsnNode {
 
 	private final Object data;
+	private ArgType elemType;
 
 	public FillArrayNode(int resReg, FillArrayDataPayloadDecodedInstruction payload) {
 		super(InsnType.FILL_ARRAY, 0);
-
-		this.data = payload.getData();
-
 		ArgType elType;
 		switch (payload.getElementWidthUnit()) {
 			case 1:
@@ -32,12 +31,26 @@ public class FillArrayNode extends InsnNode {
 				break;
 
 			default:
-				throw new AssertionError();
+				throw new JadxRuntimeException("Unknown array element width: " + payload.getElementWidthUnit());
 		}
 		setResult(InsnArg.reg(resReg, ArgType.array(elType)));
+
+		this.data = payload.getData();
+		this.elemType = elType;
 	}
 
 	public Object getData() {
 		return data;
+	}
+
+	public ArgType getElementType() {
+		return elemType;
+	}
+
+	public void mergeElementType(ArgType foundElemType) {
+		ArgType r = ArgType.merge(elemType, foundElemType);
+		if (r != null) {
+			elemType = r;
+		}
 	}
 }
