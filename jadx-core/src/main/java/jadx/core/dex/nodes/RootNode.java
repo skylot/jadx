@@ -94,7 +94,6 @@ public class RootNode {
 
 	public ClassNode resolveClass(ClassInfo cls) {
 		String fullName = cls.getFullName();
-		ClassNode rCls = searchClassByName(fullName);
-		return rCls;
+		return searchClassByName(fullName);
 	}
 }

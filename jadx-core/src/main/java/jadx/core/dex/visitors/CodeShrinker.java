@@ -60,7 +60,7 @@ public class CodeShrinker extends AbstractVisitor {
 						InsnArg useInsnArg = selectOther(useList, result);
 						InsnNode useInsn = useInsnArg.getParentInsn();
 						if (useInsn == null) {
-							LOG.debug("parent insn null in " + useInsnArg + " from " + insn + " mth: " + mth);
+							LOG.debug("parent insn null: {}, mth: {}", insn, mth);
 						} else if (useInsn != insn) {
 							boolean wrap = false;
 							// TODO
@@ -213,7 +213,7 @@ public class CodeShrinker extends AbstractVisitor {
 									}
 									RegisterArg fArg = new FieldArg(field, reg != null ? reg.getRegNum() : -1);
 									if (reg != null) {
-										fArg.setTypedVar(get.getArg(0).getTypedVar());
+										fArg.replaceTypedVar(get.getArg(0));
 									}
 									if (wrapType == InsnType.ARITH) {
 										ArithNode ar = (ArithNode) wrap;
@@ -269,9 +269,9 @@ public class CodeShrinker extends AbstractVisitor {
 
 	public static InsnArg inlineArgument(MethodNode mth, RegisterArg arg) {
 		InsnNode assignInsn = arg.getAssignInsn();
-		if (assignInsn == null)
+		if (assignInsn == null) {
 			return null;
-
+		}
 		// recursively wrap all instructions
 		List<RegisterArg> list = new ArrayList<RegisterArg>();
 		List<RegisterArg> args = mth.getArguments(false);
@@ -281,17 +281,18 @@ public class CodeShrinker extends AbstractVisitor {
 			assignInsn.getRegisterArgs(list);
 			for (RegisterArg rarg : list) {
 				InsnNode ai = rarg.getAssignInsn();
-				if (ai != assignInsn && ai != null
-						&& rarg.getParentInsn() != ai)
+				if (ai != assignInsn && ai != null && ai != rarg.getParentInsn()) {
 					rarg.wrapInstruction(ai);
+				}
 			}
 			// remove method args
 			if (list.size() != 0 && args.size() != 0) {
 				list.removeAll(args);
 			}
 			i++;
-			if (i > 1000)
+			if (i > 1000) {
 				throw new JadxRuntimeException("Can't inline arguments for: " + arg + " insn: " + assignInsn);
+			}
 		} while (!list.isEmpty());
 
 		return arg.wrapInstruction(assignInsn);

@@ -9,6 +9,7 @@ import java.io.IOException;
 import org.junit.Before;
 import org.junit.Test;
 
+import static jadx.core.dex.instructions.args.ArgType.STRING;
 import static jadx.core.dex.instructions.args.ArgType.object;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -37,5 +38,7 @@ public class JadxClasspathTest {
 
 		assertFalse(ArgType.isCastNeeded(objExc, objThr));
 		assertTrue(ArgType.isCastNeeded(objThr, objExc));
+
+		assertTrue(ArgType.isCastNeeded(ArgType.OBJECT, STRING));
 	}
 }

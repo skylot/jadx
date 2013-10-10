@@ -21,18 +21,19 @@ public final class BlockRegState {
 	}
 
 	public void assignReg(RegisterArg arg) {
-		int rn = arg.getRegNum();
-		regs[rn] = new RegisterArg(rn, arg.getType());
-		use(arg);
+		regs[arg.getRegNum()] = arg;
+		arg.getTypedVar().getUseList().add(arg);
 	}
 
 	public void use(RegisterArg arg) {
-		TypedVar regType = regs[arg.getRegNum()].getTypedVar();
+		RegisterArg reg = regs[arg.getRegNum()];
+		TypedVar regType = reg.getTypedVar();
 		if (regType == null) {
 			regType = new TypedVar(arg.getType());
-			regs[arg.getRegNum()].setTypedVar(regType);
+			reg.forceSetTypedVar(regType);
 		}
-		regType.use(arg);
+		arg.replaceTypedVar(reg);
+		reg.getTypedVar().getUseList().add(arg);
 	}
 
 	public RegisterArg getRegister(int r) {

@@ -17,7 +17,6 @@ import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
-import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.parser.DebugInfoParser;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
@@ -60,8 +59,6 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 	private List<BlockNode> blocks;
 	private BlockNode enterBlock;
 	private List<BlockNode> exitBlocks;
-
-	private ConstructorInsn superCall;
 
 	private IContainer region;
 	private List<ExceptionHandler> exceptionHandlers;
@@ -204,22 +201,19 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 			for (ArgType arg : args)
 				pos -= arg.getRegCount();
 		}
-
 		if (accFlags.isStatic()) {
 			thisArg = null;
 		} else {
-			thisArg = InsnArg.reg(pos - 1, parentClass.getClassInfo().getType());
+			thisArg = InsnArg.immutableReg(pos - 1, parentClass.getClassInfo().getType());
 			thisArg.getTypedVar().setName("this");
 		}
-
 		if (args.isEmpty()) {
 			argsList = Collections.emptyList();
 			return;
 		}
-
 		argsList = new ArrayList<RegisterArg>(args.size());
 		for (ArgType arg : args) {
-			argsList.add(InsnArg.reg(pos, arg));
+			argsList.add(InsnArg.immutableReg(pos, arg));
 			pos += arg.getRegCount();
 		}
 	}
@@ -481,14 +475,6 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 
 	public AccessInfo getAccessFlags() {
 		return accFlags;
-	}
-
-	public void setSuperCall(ConstructorInsn insn) {
-		this.superCall = insn;
-	}
-
-	public ConstructorInsn getSuperCall() {
-		return this.superCall;
 	}
 
 	public IContainer getRegion() {

@@ -291,6 +291,10 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 		innerClasses.add(cls);
 	}
 
+	public boolean isEnum() {
+		return getAccessFlags().isEnum() && getSuperClass().getFullName().equals(Consts.CLASS_ENUM);
+	}
+
 	public boolean isAnonymous() {
 		boolean simple = false;
 		for (MethodNode m : methods) {

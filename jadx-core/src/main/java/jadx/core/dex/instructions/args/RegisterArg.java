@@ -88,13 +88,14 @@ public class RegisterArg extends InsnArg {
 	public boolean isThis() {
 		if (isRegister()) {
 			String name = getTypedVar().getName();
-			if (name != null && name.equals("this"))
+			if (name != null && name.equals("this")) {
 				return true;
-
+			}
 			// maybe it was moved from 'this' register
 			InsnNode ai = getAssignInsn();
 			if (ai != null && ai.getType() == InsnType.MOVE) {
-				if (ai.getArg(0).isThis()) {
+				InsnArg arg = ai.getArg(0);
+				if (arg != this && arg.isThis()) {
 					// actually we need to remove this instruction but we can't
 					// because of iterating on instructions list
 					// so unbind insn and rely on code shrinker

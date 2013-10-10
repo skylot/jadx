@@ -52,6 +52,7 @@ public class ModVisitor extends AbstractVisitor {
 	}
 
 	private void replaceStep(MethodNode mth) {
+		ConstructorInsn superCall = null;
 		for (BlockNode block : mth.getBasicBlocks()) {
 			InstructionRemover remover = new InstructionRemover(block.getInstructions());
 
@@ -75,14 +76,13 @@ public class ModVisitor extends AbstractVisitor {
 												CodeShrinker.inlineArgument(mth, (RegisterArg) arg);
 											}
 										}
-										if (!mth.getParentClass().getAccessFlags().isEnum())
-											mth.setSuperCall(co);
 									}
-									remover.add(insn);
 								} catch (JadxRuntimeException e) {
 									// inline args into super fail
 									LOG.warn("Can't inline args into super call: " + inv + ", mth: " + mth);
-									replaceInsn(block, i, co);
+								} finally {
+									superCall = co;
+									remover.add(insn);
 								}
 							} else if (co.isThis() && co.getArgsCount() == 0) {
 								MethodNode defCo = mth.getParentClass()
@@ -137,6 +137,10 @@ public class ModVisitor extends AbstractVisitor {
 				}
 			}
 			remover.perform();
+		}
+		if (superCall != null && !mth.getParentClass().isEnum()) {
+			List<InsnNode> insns = mth.getEnterBlock().getInstructions();
+			insns.add(0, superCall);
 		}
 	}
 

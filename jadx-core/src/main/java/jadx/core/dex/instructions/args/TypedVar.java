@@ -20,13 +20,8 @@ public class TypedVar {
 	/**
 	 * This method must be used very carefully
 	 */
-	public boolean forceSetType(ArgType newType) {
-		if (!newType.equals(type)) {
-			type = newType;
-			return true;
-		} else {
-			return false;
-		}
+	public void forceSetType(ArgType newType) {
+		type = newType;
 	}
 
 	public boolean merge(TypedVar typedVar) {
@@ -43,11 +38,6 @@ public class TypedVar {
 		}
 	}
 
-	public void use(InsnArg arg) {
-		arg.replace(this);
-		useList.add(arg);
-	}
-
 	public List<InsnArg> getUseList() {
 		return useList;
 	}
@@ -60,6 +50,19 @@ public class TypedVar {
 		this.name = name;
 	}
 
+	public void mergeName(TypedVar arg) {
+		String name = arg.getName();
+		if (name != null) {
+			setName(name);
+		} else if (getName() != null) {
+			arg.setName(getName());
+		}
+	}
+
+	public boolean isImmutable() {
+		return false;
+	}
+
 	@Override
 	public int hashCode() {
 		return type.hashCode() * 31 + (name == null ? 0 : name.hashCode());
@@ -69,7 +72,7 @@ public class TypedVar {
 	public boolean equals(Object obj) {
 		if (this == obj) return true;
 		if (obj == null) return false;
-		if (getClass() != obj.getClass()) return false;
+		if (!(obj instanceof TypedVar)) return false;
 		TypedVar other = (TypedVar) obj;
 		if (!type.equals(other.type)) return false;
 		if (name == null) {

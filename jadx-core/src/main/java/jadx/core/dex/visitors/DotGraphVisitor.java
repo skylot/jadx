@@ -69,7 +69,6 @@ public class DotGraphVisitor extends AbstractVisitor {
 				+ mth.getParentClass().getFullName() + "." + mth.getName()
 				+ "(" + Utils.listToString(mth.getArguments(true)) + ") ")
 				+ (attrs.length() == 0 ? "" : " | " + attrs)
-				+ (mth.getSuperCall() != null ? "| Super call: " + escape(mth.getSuperCall().toString()) : "")
 				+ "}\"];");
 
 		dot.startLine("MethodNode -> " + makeName(mth.getEnterBlock()) + ";");

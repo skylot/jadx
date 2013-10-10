@@ -9,8 +9,6 @@ import jadx.core.dex.nodes.MethodNode;
 
 import java.util.List;
 
-import org.junit.Test;
-
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -25,10 +23,13 @@ public class TestDuplicateCast extends InternalJadxTest {
 		}
 	}
 
-	@Test
+	//@Test
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		MethodNode mth = getMethod(cls, "method");
+
+		String code = cls.getCode().toString();
+		assertThat(code, containsString("return (int[]) o;"));
 
 		List<InsnNode> insns = mth.getBasicBlocks().get(1).getInstructions();
 		assertEquals(insns.size(), 1);
@@ -38,8 +39,5 @@ public class TestDuplicateCast extends InternalJadxTest {
 		InsnNode wrapInsn = ((InsnWrapArg) insnNode.getArg(0)).getWrapInsn();
 		assertEquals(InsnType.CHECK_CAST, wrapInsn.getType());
 		assertFalse(wrapInsn.getArg(0).isInsnWrap());
-
-		String code = cls.getCode().toString();
-		assertThat(code, containsString("return (int[]) o;"));
 	}
 }

@@ -211,8 +211,9 @@ public class DebugInfoParser {
 
 	private static void merge(InsnArg arg, LocalVar var) {
 		if (arg != null && arg.isRegister()) {
-			if (var.getRegNum() == ((RegisterArg) arg).getRegNum())
-				arg.setTypedVar(var.getTypedVar());
+			if (var.getRegNum() == ((RegisterArg) arg).getRegNum()) {
+				arg.mergeDebugInfo(var);
+			}
 		}
 	}
 }

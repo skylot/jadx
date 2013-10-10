@@ -340,9 +340,6 @@ public class ClassGen {
 	}
 
 	private String useClassInternal(ClassInfo useCls, ClassInfo classInfo) {
-		if (parentGen != null) {
-			return parentGen.useClassInternal(useCls, classInfo);
-		}
 		String clsStr = classInfo.getFullName();
 		if (fallback) {
 			return clsStr;
@@ -372,8 +369,16 @@ public class ClassGen {
 					}
 				}
 			}
-			imports.add(classInfo);
+			addImport(classInfo);
 			return shortName;
+		}
+	}
+
+	private void addImport(ClassInfo classInfo) {
+		if (parentGen != null) {
+			parentGen.addImport(classInfo);
+		} else {
+			imports.add(classInfo);
 		}
 	}
 
@@ -393,9 +398,11 @@ public class ClassGen {
 			return true;
 		}
 		ClassNode classNode = dex.resolveClass(useCls);
-		for (ClassNode inner : classNode.getInnerClasses()) {
-			if (inner.getShortName().equals(shortName)) {
-				return true;
+		if (classNode != null) {
+			for (ClassNode inner : classNode.getInnerClasses()) {
+				if (inner.getShortName().equals(shortName)) {
+					return true;
+				}
 			}
 		}
 		return searchCollision(dex, useCls.getParentClass(), shortName);

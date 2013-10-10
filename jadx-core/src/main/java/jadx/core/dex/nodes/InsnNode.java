@@ -125,10 +125,11 @@ public class InsnNode extends LineAttrNode {
 
 	public void getRegisterArgs(List<RegisterArg> list) {
 		for (InsnArg arg : this.getArguments()) {
-			if (arg.isRegister())
+			if (arg.isRegister()) {
 				list.add((RegisterArg) arg);
-			else if (arg.isInsnWrap())
+			} else if (arg.isInsnWrap()) {
 				((InsnWrapArg) arg).getWrapInsn().getRegisterArgs(list);
+			}
 		}
 	}
 

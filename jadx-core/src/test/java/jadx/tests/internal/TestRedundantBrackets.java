@@ -57,5 +57,10 @@ public class TestRedundantBrackets extends InternalJadxTest {
 
 		assertThat(code, containsString("a[1] = n * 2;"));
 		assertThat(code, containsString("a[n - 1] = 1;"));
+
+		// argument type not changed to String
+		assertThat(code, containsString("public int method2(Object obj) {"));
+		// cast not eliminated
+		assertThat(code, containsString("((String) obj).length()"));
 	}
 }

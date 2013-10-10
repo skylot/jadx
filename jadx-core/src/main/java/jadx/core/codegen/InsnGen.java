@@ -101,7 +101,7 @@ public class InsnGen {
 				return sfield(f.getField());
 			} else {
 				RegisterArg regArg = new RegisterArg(f.getRegNum());
-				regArg.setTypedVar(f.getTypedVar());
+				regArg.replaceTypedVar(f);
 				return ifield(f.getField(), regArg);
 			}
 		} else {
@@ -281,13 +281,14 @@ public class InsnGen {
 
 			case INSTANCE_OF: {
 				boolean wrap = state.contains(IGState.BODY_ONLY);
-				if (wrap)
-					code.add("(");
+				if (wrap) {
+					code.add('(');
+				}
 				code.add(arg(insn, 0));
 				code.add(" instanceof ");
 				code.add(useType((ArgType) ((IndexInsnNode) insn).getIndex()));
 				if (wrap) {
-					code.add(")");
+					code.add(')');
 				}
 				break;
 			}

@@ -33,7 +33,7 @@ final class LocalVar extends RegisterArg {
 		}
 		TypedVar tv = new TypedVar(type);
 		tv.setName(name);
-		setTypedVar(tv);
+		forceSetTypedVar(tv);
 	}
 
 	public void start(int addr, int line) {

@@ -2,13 +2,17 @@ package jadx.core.dex.instructions.args;
 
 public class ImmutableTypedVar extends TypedVar {
 
-	public ImmutableTypedVar(ArgType initType) {
-		super(initType);
+	public ImmutableTypedVar(ArgType type) {
+		super(type);
 	}
 
 	@Override
-	public boolean forceSetType(ArgType newType) {
-		return false;
+	public boolean isImmutable() {
+		return true;
+	}
+
+	@Override
+	public void forceSetType(ArgType newType) {
 	}
 
 	@Override
@@ -17,7 +21,7 @@ public class ImmutableTypedVar extends TypedVar {
 	}
 
 	@Override
-	public boolean merge(ArgType mtype) {
+	public boolean merge(ArgType type) {
 		return false;
 	}
 }

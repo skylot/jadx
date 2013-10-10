@@ -103,12 +103,12 @@ public class TypeResolver extends AbstractVisitor {
 
 			if (back) {
 				if (er.getTypedVar() == null && sr.getTypedVar() != null) {
-					er.replace(sr);
+					er.replaceTypedVar(sr);
 					changed = true;
 				}
 			} else {
 				if (sr.getTypedVar() != null && er.getTypedVar() != null) {
-					sr.replace(er);
+					sr.replaceTypedVar(er);
 					changed = true;
 				}
 			}

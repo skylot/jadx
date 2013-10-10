@@ -21,6 +21,12 @@ public abstract class InsnArg extends Typed {
 		return reg(InsnUtils.getArg(insn, argNum), type);
 	}
 
+	public static RegisterArg immutableReg(int regNum, ArgType type) {
+		RegisterArg r = new RegisterArg(regNum);
+		r.forceSetTypedVar(new ImmutableTypedVar(type));
+		return r;
+	}
+
 	public static LiteralArg lit(long literal, ArgType type) {
 		return new LiteralArg(literal, type);
 	}

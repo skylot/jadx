@@ -34,11 +34,9 @@ public class ClassModifier extends AbstractVisitor {
 			if (af.isConstructor()
 					&& af.isPublic()
 					&& mth.getArguments(false).isEmpty()) {
-				if (mth.getSuperCall() == null) {
-					List<BlockNode> bb = mth.getBasicBlocks();
-					if (bb.isEmpty() || allBlocksEmpty(bb)) {
-						it.remove();
-					}
+				List<BlockNode> bb = mth.getBasicBlocks();
+				if (bb.isEmpty() || allBlocksEmpty(bb)) {
+					it.remove();
 				}
 			}
 		}

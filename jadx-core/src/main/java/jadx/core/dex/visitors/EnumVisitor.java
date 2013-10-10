@@ -30,8 +30,7 @@ public class EnumVisitor extends AbstractVisitor {
 
 	@Override
 	public boolean visit(ClassNode cls) throws JadxException {
-		if (!cls.getAccessFlags().isEnum()
-				|| !cls.getSuperClass().getFullName().equals("java.lang.Enum"))
+		if (!cls.isEnum())
 			return true;
 
 		// collect enum fields, remove synthetic

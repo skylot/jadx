@@ -218,13 +218,6 @@ public class MethodGen {
 		return r;
 	}
 
-	private void makeInitCode(CodeWriter code) throws CodegenException {
-		InsnGen igen = new InsnGen(this, mth, fallback);
-		// generate super call
-		if (mth.getSuperCall() != null)
-			igen.makeInsn(mth.getSuperCall(), code);
-	}
-
 	public CodeWriter makeInstructions(int mthIndent) throws CodegenException {
 		CodeWriter code = new CodeWriter(mthIndent + 1);
 
@@ -252,7 +245,6 @@ public class MethodGen {
 					LOG.debug(ErrorsCounter.formatErrorMsg(mth, " Inconsistent code"));
 					// makeMethodDump(code, mth);
 				}
-				makeInitCode(code);
 				code.add(insns);
 			} else {
 				makeFallbackMethod(code, mth);
