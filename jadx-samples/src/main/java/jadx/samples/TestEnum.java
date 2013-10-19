@@ -11,6 +11,12 @@ public class TestEnum extends AbstractTest {
 		NORTH, SOUTH, EAST, WEST
 	}
 
+	public static final String DOG = "DOG";
+
+	public enum Animal {
+		CAT, DOG
+	}
+
 	private static int three = 3;
 
 	public enum Numbers {

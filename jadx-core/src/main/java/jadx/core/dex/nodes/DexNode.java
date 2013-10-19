@@ -1,6 +1,7 @@
 package jadx.core.dex.nodes;
 
 import jadx.core.dex.info.ClassInfo;
+import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.exceptions.DecodeException;
@@ -60,6 +61,14 @@ public class DexNode {
 		ClassNode cls = resolveClass(mth.getDeclClass());
 		if (cls != null) {
 			return cls.searchMethod(mth);
+		}
+		return null;
+	}
+
+	public FieldNode resolveField(FieldInfo field) {
+		ClassNode cls = resolveClass(field.getDeclClass());
+		if (cls != null) {
+			return cls.searchField(field);
 		}
 		return null;
 	}

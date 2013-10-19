@@ -1,12 +1,23 @@
 package jadx.core.dex.instructions.args;
 
+import jadx.core.dex.attributes.AttributeType;
+import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.ConstClassNode;
 import jadx.core.dex.instructions.ConstStringNode;
+import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.nodes.DexNode;
+import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
+import jadx.core.dex.nodes.parser.FieldValueAttr;
 import jadx.core.dex.visitors.InstructionRemover;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class RegisterArg extends InsnArg {
+	private static final Logger LOG = LoggerFactory.getLogger(RegisterArg.class);
+
 	protected final int regNum;
 
 	public RegisterArg(int rn) {
@@ -45,7 +56,7 @@ public class RegisterArg extends InsnArg {
 	 *
 	 * @return LiteralArg, String or ArgType
 	 */
-	public Object getConstValue() {
+	public Object getConstValue(DexNode dex) {
 		InsnNode parInsn = getAssignInsn();
 		if (parInsn != null) {
 			InsnType insnType = parInsn.getType();
@@ -56,6 +67,18 @@ public class RegisterArg extends InsnArg {
 					return ((ConstStringNode) parInsn).getString();
 				case CONST_CLASS:
 					return ((ConstClassNode) parInsn).getClsType();
+				case SGET:
+					FieldInfo f = (FieldInfo) ((IndexInsnNode) parInsn).getIndex();
+					FieldNode fieldNode = dex.resolveField(f);
+					if (fieldNode != null) {
+						FieldValueAttr attr = (FieldValueAttr) fieldNode.getAttributes().get(AttributeType.FIELD_VALUE);
+						if (attr != null) {
+							return attr.getValue();
+						}
+					} else {
+						LOG.warn("Field {} not found in dex {}", f, dex);
+					}
+					break;
 			}
 		}
 		return null;

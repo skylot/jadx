@@ -117,7 +117,10 @@ public class EnumVisitor extends AbstractVisitor {
 				RegisterArg nameArg = (RegisterArg) insn.getArg(0);
 				// InsnArg pos = insn.getArg(1);
 				// TODO add check: pos == j
-				String name = (String) nameArg.getConstValue();
+				String name = (String) nameArg.getConstValue(cls.dex());
+				if (name == null) {
+					throw new JadxException("Unknown enum field name: " + cls);
+				}
 
 				EnumField field = new EnumField(name, insn.getArgsCount() - 2);
 				attr.getFields().add(field);
