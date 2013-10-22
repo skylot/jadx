@@ -22,9 +22,9 @@ public class EncValueParser extends EncodedValueReader {
 	}
 
 	public Object parseValue() throws DecodeException {
-		int argAndType = in.readByte() & 0xff;
-		int type = argAndType & 0x1f;
-		int arg = (argAndType & 0xe0) >> 5;
+		int argAndType = in.readByte() & 0xFF;
+		int type = argAndType & 0x1F;
+		int arg = (argAndType & 0xE0) >> 5;
 		int size = arg + 1;
 
 		switch (type) {
@@ -32,34 +32,35 @@ public class EncValueParser extends EncodedValueReader {
 				return null;
 
 			case ENCODED_BOOLEAN:
-				return Boolean.valueOf(arg == 1);
+				return arg == 1;
 			case ENCODED_BYTE:
-				return Byte.valueOf((byte) parseNumber(size));
+				return in.readByte();
+
 			case ENCODED_SHORT:
-				return Short.valueOf((short) parseNumber(size));
+				return (short) parseNumber(size, true);
 			case ENCODED_CHAR:
-				return Character.valueOf((char) parseNumber(size));
+				return (char) parseNumber(size, false);
 			case ENCODED_INT:
-				return Integer.valueOf((int) parseNumber(size));
+				return (int) parseNumber(size, true);
 			case ENCODED_LONG:
-				return Long.valueOf(parseNumber(size));
+				return parseNumber(size, true);
 			case ENCODED_FLOAT:
-				return Float.intBitsToFloat((int) parseNumber(size));
+				return Float.intBitsToFloat((int) parseNumber(size, false));
 			case ENCODED_DOUBLE:
-				return Double.longBitsToDouble(parseNumber(size));
+				return Double.longBitsToDouble(parseNumber(size, false));
 
 			case ENCODED_STRING:
-				return dex.getString((int) parseNumber(size));
+				return dex.getString((int) parseNumber(size, false));
 
 			case ENCODED_TYPE:
-				return dex.getType((int) parseNumber(size));
+				return dex.getType((int) parseNumber(size, false));
 
 			case ENCODED_METHOD:
-				return MethodInfo.fromDex(dex, (int) parseNumber(size));
+				return MethodInfo.fromDex(dex, (int) parseNumber(size, false));
 
 			case ENCODED_FIELD:
 			case ENCODED_ENUM:
-				return FieldInfo.fromDex(dex, (int) parseNumber(size));
+				return FieldInfo.fromDex(dex, (int) parseNumber(size, false));
 
 			case ENCODED_ARRAY:
 				int count = Leb128Utils.readUnsignedLeb128(in);
@@ -75,11 +76,16 @@ public class EncValueParser extends EncodedValueReader {
 		throw new DecodeException("Unknown encoded value type: 0x" + Integer.toHexString(type));
 	}
 
-	private long parseNumber(int byteCount) {
+	private long parseNumber(int byteCount, boolean isSignExtended) {
 		long result = 0;
-		int shift = 0;
-		for (int i = 0; i < byteCount; i++) {
-			result |= (long) (in.readByte() & 0xff) << shift;
+		int shift = 8;
+		int first = in.readByte() & 0xFF;
+		if (isSignExtended && (first & 0x80) != 0) {
+			result = ~result << shift;
+		}
+		result |= (long) first;
+		for (int i = 1; i < byteCount; i++) {
+			result |= (long) (in.readByte() & 0xFF) << shift;
 			shift += 8;
 		}
 		return result;

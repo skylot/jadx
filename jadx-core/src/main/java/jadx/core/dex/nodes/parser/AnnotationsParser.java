@@ -11,7 +11,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.DecodeException;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +43,6 @@ public class AnnotationsParser {
 		for (int i = 0; i < annotated_methods_size; i++) {
 			MethodNode m = cls.searchMethodById(section.readInt());
 			m.getAttributes().add(readAnnotationSet(section.readInt()));
-			// LOG.info(m + " " + m.getAttributes());
 		}
 
 		for (int i = 0; i < annotated_parameters_size; i++) {
@@ -80,17 +79,17 @@ public class AnnotationsParser {
 	};
 
 	public static Annotation readAnnotation(DexNode dex, Section s, boolean readVisibility) throws DecodeException {
-		EncValueParser ep = new EncValueParser(dex, s);
+		EncValueParser parser = new EncValueParser(dex, s);
 		Visibility visibility = null;
-		if (readVisibility)
+		if (readVisibility) {
 			visibility = visibilities[s.readByte()];
-
+		}
 		int typeIndex = s.readUleb128();
 		int size = s.readUleb128();
-		Map<String, Object> values = new HashMap<String, Object>(size);
+		Map<String, Object> values = new LinkedHashMap<String, Object>(size);
 		for (int i = 0; i < size; i++) {
 			String name = dex.getString(s.readUleb128());
-			values.put(name, ep.parseValue());
+			values.put(name, parser.parseValue());
 		}
 		return new Annotation(visibility, dex.getType(typeIndex), values);
 	}

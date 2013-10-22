@@ -106,9 +106,9 @@ public class TypeGen {
 	}
 
 	private static String wrapNegNum(boolean lz, String str) {
-		if (lz)
-			return "(" + str + ")";
-		else
+//		if (lz)
+//			return "(" + str + ")";
+//		else
 			return str;
 	}
 }
