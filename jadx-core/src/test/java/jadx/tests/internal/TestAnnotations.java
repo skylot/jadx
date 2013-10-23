@@ -17,7 +17,15 @@ public class TestAnnotations extends InternalJadxTest {
 		}
 
 		@A(a = -1)
-		public void method1() {
+		public void methodA1() {
+		}
+
+		@A(a = -253)
+		public void methodA2() {
+		}
+
+		@A(a = -11253)
+		public void methodA3() {
 		}
 
 		private static @interface V {
@@ -25,7 +33,7 @@ public class TestAnnotations extends InternalJadxTest {
 		}
 
 		@V(false)
-		public void method2() {
+		public void methodV() {
 		}
 
 		private static @interface D {
@@ -33,7 +41,7 @@ public class TestAnnotations extends InternalJadxTest {
 		}
 
 		@D
-		public void method3() {
+		public void methodD() {
 		}
 	}
 
@@ -41,9 +49,12 @@ public class TestAnnotations extends InternalJadxTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
+		System.out.println(code);
 
 		assertThat(code, not(containsString("@A(a = 255)")));
 		assertThat(code, containsString("@A(a = -1)"));
+		assertThat(code, containsString("@A(a = -253)"));
+		assertThat(code, containsString("@A(a = -11253)"));
 		assertThat(code, containsString("@V(false)"));
 		assertThat(code, not(containsString("@D()")));
 	}

@@ -28,6 +28,12 @@ public abstract class AbstractTest {
 		}
 	}
 
+	public static void assertEquals(float a1, float a2) {
+		if (Float.compare(a1, a2) != 0) {
+			throw new AssertionError(a1 + " != " + a2);
+		}
+	}
+
 	public static void assertEquals(Object a1, Object a2) {
 		if (a1 == null) {
 			if (a2 != null)

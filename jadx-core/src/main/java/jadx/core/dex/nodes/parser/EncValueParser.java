@@ -22,7 +22,7 @@ public class EncValueParser extends EncodedValueReader {
 	}
 
 	public Object parseValue() throws DecodeException {
-		int argAndType = in.readByte() & 0xFF;
+		int argAndType = readByte();
 		int type = argAndType & 0x1F;
 		int arg = (argAndType & 0xE0) >> 5;
 		int size = arg + 1;
@@ -39,28 +39,29 @@ public class EncValueParser extends EncodedValueReader {
 			case ENCODED_SHORT:
 				return (short) parseNumber(size, true);
 			case ENCODED_CHAR:
-				return (char) parseNumber(size, false);
+				return (char) parseUnsignedInt(size);
 			case ENCODED_INT:
 				return (int) parseNumber(size, true);
 			case ENCODED_LONG:
 				return parseNumber(size, true);
+
 			case ENCODED_FLOAT:
-				return Float.intBitsToFloat((int) parseNumber(size, false));
+				return Float.intBitsToFloat((int) parseNumber(size, false, 4));
 			case ENCODED_DOUBLE:
-				return Double.longBitsToDouble(parseNumber(size, false));
+				return Double.longBitsToDouble(parseNumber(size, false, 8));
 
 			case ENCODED_STRING:
-				return dex.getString((int) parseNumber(size, false));
+				return dex.getString(parseUnsignedInt(size));
 
 			case ENCODED_TYPE:
-				return dex.getType((int) parseNumber(size, false));
+				return dex.getType(parseUnsignedInt(size));
 
 			case ENCODED_METHOD:
-				return MethodInfo.fromDex(dex, (int) parseNumber(size, false));
+				return MethodInfo.fromDex(dex, parseUnsignedInt(size));
 
 			case ENCODED_FIELD:
 			case ENCODED_ENUM:
-				return FieldInfo.fromDex(dex, (int) parseNumber(size, false));
+				return FieldInfo.fromDex(dex, parseUnsignedInt(size));
 
 			case ENCODED_ARRAY:
 				int count = Leb128Utils.readUnsignedLeb128(in);
@@ -76,18 +77,36 @@ public class EncValueParser extends EncodedValueReader {
 		throw new DecodeException("Unknown encoded value type: 0x" + Integer.toHexString(type));
 	}
 
+	private int parseUnsignedInt(int byteCount) {
+		return (int) parseNumber(byteCount, false, 0);
+	}
+
 	private long parseNumber(int byteCount, boolean isSignExtended) {
+		return parseNumber(byteCount, isSignExtended, 0);
+	}
+
+	private long parseNumber(int byteCount, boolean isSignExtended, int fillOnRight) {
 		long result = 0;
-		int shift = 8;
-		int first = in.readByte() & 0xFF;
-		if (isSignExtended && (first & 0x80) != 0) {
-			result = ~result << shift;
+		long last = 0;
+		for (int i = 0; i < byteCount; i++) {
+			last = readByte();
+			result |= last << i * 8;
 		}
-		result |= (long) first;
-		for (int i = 1; i < byteCount; i++) {
-			result |= (long) (in.readByte() & 0xFF) << shift;
-			shift += 8;
+		if (fillOnRight != 0) {
+			for (int i = byteCount; i < fillOnRight; i++) {
+				result <<= 8;
+			}
+		} else {
+			if (isSignExtended && (last & 0x80) != 0) {
+				for (int i = byteCount; i < 8; i++) {
+					result |= (long) 0xFF << i * 8;
+				}
+			}
 		}
 		return result;
+	}
+
+	private int readByte() {
+		return in.readByte() & 0xFF;
 	}
 }
