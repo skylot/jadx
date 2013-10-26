@@ -5,8 +5,10 @@ import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.attributes.DeclareVariableAttr;
 import jadx.core.dex.attributes.ForceReturnAttr;
 import jadx.core.dex.attributes.IAttribute;
+import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.IfOp;
+import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.ArgType;
@@ -236,11 +238,16 @@ public class RegionGen extends InsnGen {
 
 		int size = sw.getKeys().size();
 		for (int i = 0; i < size; i++) {
-			List<Integer> keys = sw.getKeys().get(i);
+			List<Object> keys = sw.getKeys().get(i);
 			IContainer c = sw.getCases().get(i);
-			for (Integer k : keys) {
+			for (Object k : keys) {
 				code.startLine("case ");
-				code.add(TypeGen.literalToString(k, arg.getType()));
+				if (k instanceof IndexInsnNode) {
+					code.add(sfield((FieldInfo) ((IndexInsnNode) k).getIndex()));
+				}
+				else {
+					code.add(TypeGen.literalToString((Integer) k, arg.getType()));
+				}
 				code.add(':');
 			}
 			makeCaseBlock(c, code);
@@ -305,4 +312,12 @@ public class RegionGen extends InsnGen {
 		}
 	}
 
+	private String sfield(FieldInfo field) {
+		String thisClass = mth.getParentClass().getFullName();
+		if (field.getDeclClass().getFullName().equals(thisClass)) {
+			return field.getName();
+		} else {
+			return useClass(field.getDeclClass()) + '.' + field.getName();
+		}
+	}
 }

@@ -237,7 +237,15 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 	}
 
 	public FieldNode getConstField(Object o) {
-		FieldNode field = constFields.get(o);
+		ClassNode cn = this;
+		FieldNode field;
+		do {
+            field = cn.constFields.get(o);
+		}
+		while (field == null
+		&& (cn.clsInfo.getParentClass() != null)
+		&& (cn = dex.resolveClass(cn.clsInfo.getParentClass())) != null);
+
 		if (field == null)
 			field = dex.getConstFields().get(o);
 		return field;

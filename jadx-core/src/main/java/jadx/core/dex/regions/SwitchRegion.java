@@ -12,14 +12,14 @@ public final class SwitchRegion extends AbstractRegion {
 
 	private final BlockNode header;
 
-	private final List<List<Integer>> keys;
+	private final List<List<Object>> keys;
 	private final List<IContainer> cases;
 	private IContainer defCase;
 
 	public SwitchRegion(IRegion parent, BlockNode header) {
 		super(parent);
 		this.header = header;
-		this.keys = new ArrayList<List<Integer>>();
+		this.keys = new ArrayList<List<Object>>();
 		this.cases = new ArrayList<IContainer>();
 	}
 
@@ -27,7 +27,7 @@ public final class SwitchRegion extends AbstractRegion {
 		return header;
 	}
 
-	public void addCase(List<Integer> keysList, IContainer c) {
+	public void addCase(List<Object> keysList, IContainer c) {
 		keys.add(keysList);
 		cases.add(c);
 	}
@@ -40,7 +40,7 @@ public final class SwitchRegion extends AbstractRegion {
 		return defCase;
 	}
 
-	public List<List<Integer>> getKeys() {
+	public List<List<Object>> getKeys() {
 		return keys;
 	}
 

@@ -9,6 +9,7 @@ import jadx.core.dex.instructions.FillArrayNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
+import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
@@ -114,16 +115,16 @@ public class ModVisitor extends AbstractVisitor {
 							LiteralArg arg = (LiteralArg) insn.getArg(0);
 							ArgType type = arg.getType();
 							long lit = arg.getLiteral();
-							if (Math.abs(lit) > 0xFF) {
+							if (type.equals(ArgType.DOUBLE))
+								f = parentClass.getConstField(Double.longBitsToDouble(lit));
+							else if (type.equals(ArgType.FLOAT))
+								f = parentClass.getConstField(Float.intBitsToFloat((int) lit));
+							else if (Math.abs(lit) > 0x1) {
 								if (type.equals(ArgType.INT))
 									f = parentClass.getConstField((int) lit);
 								else if (type.equals(ArgType.LONG))
 									f = parentClass.getConstField(lit);
 							}
-							if (type.equals(ArgType.DOUBLE))
-								f = parentClass.getConstField(Double.longBitsToDouble(lit));
-							else if (type.equals(ArgType.FLOAT))
-								f = parentClass.getConstField(Float.intBitsToFloat((int) lit));
 						}
 						if (f != null) {
 							InsnNode inode = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
@@ -132,6 +133,19 @@ public class ModVisitor extends AbstractVisitor {
 						}
 						break;
 
+					case SWITCH:
+						SwitchNode sn = (SwitchNode) insn;
+						parentClass = mth.getParentClass();
+						f = null;
+						for (int k = 0; k < sn.getCasesCount(); k++) {
+							f = parentClass.getConstField((Integer) sn.getKeys()[k]);
+							if (f != null) {
+								InsnNode inode = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
+								sn.getKeys()[k] = inode;
+							}
+						}
+						break;
+						
 					default:
 						break;
 				}

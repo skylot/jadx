@@ -571,19 +571,21 @@ public class InsnDecoder {
 	private InsnNode decodeSwitch(DecodedInstruction insn, int offset, boolean packed) {
 		int payloadOffset = insn.getTarget();
 		DecodedInstruction payload = insnArr[payloadOffset];
-		int[] keys;
+		Object[] keys;
 		int[] targets;
 		if (packed) {
 			PackedSwitchPayloadDecodedInstruction ps = (PackedSwitchPayloadDecodedInstruction) payload;
 			targets = ps.getTargets();
-			keys = new int[targets.length];
+			keys = new Object[targets.length];
 			int k = ps.getFirstKey();
 			for (int i = 0; i < keys.length; i++)
 				keys[i] = k++;
 		} else {
 			SparseSwitchPayloadDecodedInstruction ss = (SparseSwitchPayloadDecodedInstruction) payload;
 			targets = ss.getTargets();
-			keys = ss.getKeys();
+			keys = new Object[targets.length];
+			for (int i = 0; i < keys.length; i++)
+				keys[i] = ss.getKeys()[i];				
 		}
 		// convert from relative to absolute offsets
 		for (int i = 0; i < targets.length; i++) {
