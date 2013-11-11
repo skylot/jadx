@@ -12,6 +12,7 @@ import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.nodes.parser.AnnotationsParser;
 import jadx.core.dex.nodes.parser.FieldValueAttr;
 import jadx.core.dex.nodes.parser.StaticValuesParser;
@@ -249,6 +250,23 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 		if (field == null)
 			field = dex.getConstFields().get(o);
 		return field;
+	}
+
+	public FieldNode getConstFieldByLiteralArg(LiteralArg arg) {
+		ArgType type = arg.getType();
+		long literal = arg.getLiteral();
+
+		if (type.equals(ArgType.DOUBLE))
+			return getConstField(Double.longBitsToDouble(literal));
+		else if (type.equals(ArgType.FLOAT))
+			return getConstField(Float.intBitsToFloat((int) literal));
+		else if (Math.abs(literal) > 0x1) {
+			if (type.equals(ArgType.INT))
+				return getConstField((int) literal);
+			else if (type.equals(ArgType.LONG))
+				return getConstField(literal);
+		}
+		return null;
 	}
 
 	public FieldNode searchFieldById(int id) {
