@@ -12,9 +12,9 @@ import java.util.List;
 public final class IfCondition {
 
 	public static IfCondition fromIfBlock(BlockNode header) {
-		if (header == null)
+		if (header == null) {
 			return null;
-
+		}
 		return fromIfNode((IfNode) header.getInstructions().get(0));
 	}
 
@@ -39,8 +39,8 @@ public final class IfCondition {
 	public static final class Compare {
 		private final IfNode insn;
 
-		public Compare(IfNode ifNode) {
-			this.insn = ifNode;
+		public Compare(IfNode insn) {
+			this.insn = insn;
 		}
 
 		public IfOp getOp() {
@@ -56,6 +56,10 @@ public final class IfCondition {
 				return InsnArg.lit(0, getA().getType());
 			else
 				return insn.getArg(1);
+		}
+		public Compare invert() {
+			insn.invertCondition();
+			return this;
 		}
 
 		@Override
@@ -111,6 +115,23 @@ public final class IfCondition {
 
 	public Compare getCompare() {
 		return compare;
+	}
+
+	public IfCondition invert() {
+		switch (mode) {
+			case COMPARE:
+				return new IfCondition(compare.invert());
+			case NOT:
+				return new IfCondition(args.get(0));
+			case AND:
+			case OR:
+				List<IfCondition> newArgs = new ArrayList<IfCondition>(args.size());
+				for (IfCondition arg : args) {
+					newArgs.add(arg.invert());
+				}
+				return new IfCondition(mode == Mode.AND ? Mode.OR : Mode.AND, newArgs);
+		}
+		throw new RuntimeException("Unknown mode for invert: " + mode);
 	}
 
 	@Override

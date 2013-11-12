@@ -60,15 +60,17 @@ public class TestCF3 extends AbstractTest {
 			while (it2.hasNext()) {
 				String s2 = it2.next();
 				if (s1.equals(s2)) {
-					if (s1.length() == 5)
+					if (s1.length() == 5) {
 						l2.add(s1);
-					else
+					} else {
 						l1.remove(s2);
+					}
 				}
 			}
 		}
-		if (l2.size() > 0)
+		if (l2.size() > 0) {
 			l1.clear();
+		}
 		return l1.size() == 0;
 	}
 
@@ -111,8 +113,9 @@ public class TestCF3 extends AbstractTest {
 		Iterator<String> it = list.iterator();
 		while (it.hasNext()) {
 			String ver = it.next();
-			if (ver != null)
+			if (ver != null) {
 				return ver;
+			}
 		}
 		return "error";
 	}
@@ -123,13 +126,42 @@ public class TestCF3 extends AbstractTest {
 			while (it.hasNext()) {
 				String ver = it.next();
 				exc();
-				if (ver != null)
+				if (ver != null) {
 					return ver;
+				}
 			}
 		} catch (Exception e) {
 			setEnabled(false);
 		}
 		return "error";
+	}
+
+	public int testComplexIfInLoop(boolean a) {
+		int i = 0;
+		while (a && i < 10) {
+			i++;
+		}
+		return i;
+	}
+
+	public int testComplexIfInLoop2(int k) {
+		int i = k;
+		while (i > 5 && i < 10) {
+			i++;
+		}
+		return i;
+	}
+
+	public int testComplexIfInLoop3(int k) {
+		int i = k;
+		while (i > 5 && i < k * 3) {
+			if (k == 8) {
+				i++;
+			} else {
+				break;
+			}
+		}
+		return i;
 	}
 
 	@Override
@@ -158,6 +190,16 @@ public class TestCF3 extends AbstractTest {
 		// assertEquals(testReturnInLoop2(list2), "error");
 
 		// assertTrue(testLabeledBreakContinue());
+
+		assertEquals(testComplexIfInLoop(false), 0);
+		assertEquals(testComplexIfInLoop(true), 10);
+
+		assertEquals(testComplexIfInLoop2(2), 2);
+		assertEquals(testComplexIfInLoop2(6), 10);
+
+		assertEquals(testComplexIfInLoop3(2), 2);
+		assertEquals(testComplexIfInLoop3(6), 6);
+		assertEquals(testComplexIfInLoop3(8), 24);
 		return true;
 	}
 

@@ -30,9 +30,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.android.dx.rop.code.AccessFlags;
 
 public class ClassGen {
+	private static final Logger LOG = LoggerFactory.getLogger(ClassGen.class);
+
 	private final ClassNode cls;
 	private final ClassGen parentGen;
 	private final AnnotationGen annotationGen;
@@ -232,6 +237,11 @@ public class ClassGen {
 						continue;
 
 					MethodGen mthGen = new MethodGen(this, mth);
+					if (mth.getAttributes().contains(AttributeFlag.INCONSISTENT_CODE)) {
+						code.startLine("/* JADX WARNING: inconsistent code */");
+						LOG.error(ErrorsCounter.formatErrorMsg(mth, " Inconsistent code"));
+						mthGen.makeMethodDump(code);
+					}
 					mthGen.addDefinition(code);
 					code.add(" {");
 					insertSourceFileInfo(code, mth);

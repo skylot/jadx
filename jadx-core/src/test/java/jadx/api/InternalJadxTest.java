@@ -125,4 +125,8 @@ public abstract class InternalJadxTest {
 			}
 		}
 	}
+
+	protected void setOutputCFG() {
+		this.outputCFG = true;
+	}
 }

@@ -1,7 +1,6 @@
 package jadx.core.codegen;
 
 import jadx.core.Consts;
-import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.attributes.AttributesList;
 import jadx.core.dex.attributes.JadxErrorAttr;
@@ -61,11 +60,6 @@ public class MethodGen {
 		if (mth.getMethodInfo().isClassInit()) {
 			code.startLine("static");
 		} else {
-			if (mth.getAttributes().contains(AttributeFlag.INCONSISTENT_CODE)
-					&& !mth.getAttributes().contains(AttributeType.JADX_ERROR)) {
-				code.startLine("// jadx: inconsistent code");
-			}
-
 			annotationGen.addForMethod(code, mth);
 
 			AccessInfo clsAccFlags = mth.getParentClass().getAccessFlags();
@@ -235,16 +229,11 @@ public class MethodGen {
 				code.startLine("Error: ").add(Utils.getStackTrace(cause));
 				code.add("*/");
 			}
-			makeMethodDump(code, mth);
+			makeMethodDump(code);
 		} else {
 			if (mth.getRegion() != null) {
 				CodeWriter insns = new CodeWriter(mthIndent + 1);
 				(new RegionGen(this, mth)).makeRegion(insns, mth.getRegion());
-
-				if (mth.getAttributes().contains(AttributeFlag.INCONSISTENT_CODE)) {
-					LOG.debug(ErrorsCounter.formatErrorMsg(mth, " Inconsistent code"));
-					// makeMethodDump(code, mth);
-				}
 				code.add(insns);
 			} else {
 				makeFallbackMethod(code, mth);
@@ -253,7 +242,7 @@ public class MethodGen {
 		return code;
 	}
 
-	public void makeMethodDump(CodeWriter code, MethodNode mth) {
+	public void makeMethodDump(CodeWriter code) {
 		code.startLine("/*");
 		getFallbackMethodGen(mth).addDefinition(code);
 		code.add(" {");

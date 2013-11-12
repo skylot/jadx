@@ -1,6 +1,7 @@
 package jadx.core.dex.visitors;
 
 import jadx.core.dex.attributes.AttributeType;
+import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.NamedArg;
@@ -14,17 +15,21 @@ import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.utils.BlockUtils;
 
+import java.util.List;
+
 public class BlockProcessingHelper {
 
 	public static void visit(MethodNode mth) {
-		if (mth.isNoCode())
+		if (mth.isNoCode()) {
 			return;
+		}
 
 		for (BlockNode block : mth.getBasicBlocks()) {
 			markExceptionHandlers(block);
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {
 			block.updateCleanSuccessors();
+			initBlocksInIfNodes(block);
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {
 			processExceptionHandlers(mth, block);
@@ -77,11 +82,13 @@ public class BlockProcessingHelper {
 				// remove 'monitor-exit' from exception handler blocks
 				InstructionRemover remover = new InstructionRemover(excBlock.getInstructions());
 				for (InsnNode insn : excBlock.getInstructions()) {
-					if (insn.getType() == InsnType.MONITOR_ENTER)
+					if (insn.getType() == InsnType.MONITOR_ENTER) {
 						break;
+					}
 
-					if (insn.getType() == InsnType.MONITOR_EXIT)
+					if (insn.getType() == InsnType.MONITOR_EXIT) {
 						remover.add(insn);
+					}
 				}
 				remover.perform();
 
@@ -108,8 +115,9 @@ public class BlockProcessingHelper {
 		CatchAttr commonCatchAttr = null;
 		for (InsnNode insn : block.getInstructions()) {
 			CatchAttr catchAttr = (CatchAttr) insn.getAttributes().get(AttributeType.CATCH_BLOCK);
-			if (catchAttr == null)
+			if (catchAttr == null) {
 				continue;
+			}
 
 			if (commonCatchAttr == null) {
 				commonCatchAttr = catchAttr;
@@ -134,6 +142,19 @@ public class BlockProcessingHelper {
 			if (bh != null && bh.getHandler().getHandleOffset() == addr) {
 				handler.setHandleBlock(block);
 				break;
+			}
+		}
+	}
+
+	/**
+	 * Init 'then' and 'else' blocks for 'if' instruction.
+	 */
+	private static void initBlocksInIfNodes(BlockNode block) {
+		List<InsnNode> instructions = block.getInstructions();
+		if (instructions.size() == 1) {
+			InsnNode insn = instructions.get(0);
+			if (insn.getType() == InsnType.IF) {
+				((IfNode) insn).initBlocks(block);
 			}
 		}
 	}

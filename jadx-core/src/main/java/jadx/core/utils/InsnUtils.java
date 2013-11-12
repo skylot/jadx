@@ -23,7 +23,11 @@ public class InsnUtils {
 	}
 
 	public static String formatOffset(int offset) {
-		return String.format("0x%04x", offset);
+		if (offset < 0) {
+			return "?";
+		} else {
+			return String.format("0x%04x", offset);
+		}
 	}
 
 	public static String insnTypeToString(InsnType type) {

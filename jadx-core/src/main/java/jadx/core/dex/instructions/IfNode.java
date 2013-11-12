@@ -4,14 +4,21 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
+import jadx.core.dex.nodes.BlockNode;
 import jadx.core.utils.InsnUtils;
 
 import com.android.dx.io.instructions.DecodedInstruction;
+
+import static jadx.core.utils.BlockUtils.getBlockByOffset;
+import static jadx.core.utils.BlockUtils.selectOther;
 
 public class IfNode extends GotoNode {
 
 	protected boolean zeroCmp;
 	protected IfOp op;
+
+	private BlockNode thenBlock;
+	private BlockNode elseBlock;
 
 	public IfNode(int targ, InsnArg then, InsnArg els) {
 		super(InsnType.IF, targ);
@@ -49,9 +56,12 @@ public class IfNode extends GotoNode {
 		return zeroCmp;
 	}
 
-	public void invertOp(int targ) {
+	public void invertCondition() {
 		op = op.invert();
-		target = targ;
+		BlockNode tmp = thenBlock;
+		thenBlock = elseBlock;
+		elseBlock = tmp;
+		target = thenBlock.getStartOffset();
 	}
 
 	public void changeCondition(InsnArg arg1, InsnArg arg2, IfOp op) {
@@ -59,11 +69,30 @@ public class IfNode extends GotoNode {
 		this.zeroCmp = arg2.isLiteral() && ((LiteralArg) arg2).getLiteral() == 0;
 		setArg(0, arg1);
 		if (!zeroCmp) {
-			if (getArgsCount() == 2)
+			if (getArgsCount() == 2) {
 				setArg(1, arg2);
-			else
+			} else {
 				addArg(arg2);
+			}
 		}
+	}
+
+	public void initBlocks(BlockNode curBlock) {
+		thenBlock = getBlockByOffset(target, curBlock.getSuccessors());
+		if (curBlock.getSuccessors().size() == 1) {
+			elseBlock = thenBlock;
+		} else {
+			elseBlock = selectOther(thenBlock, curBlock.getSuccessors());
+		}
+		target = thenBlock.getStartOffset();
+	}
+
+	public BlockNode getThenBlock() {
+		return thenBlock;
+	}
+
+	public BlockNode getElseBlock() {
+		return elseBlock;
 	}
 
 	@Override
@@ -72,6 +101,6 @@ public class IfNode extends GotoNode {
 				+ InsnUtils.insnTypeToString(insnType)
 				+ getArg(0) + " " + op.getSymbol()
 				+ " " + (zeroCmp ? "0" : getArg(1))
-				+ "  -> " + InsnUtils.formatOffset(target);
+				+ "  -> " + (thenBlock != null ? thenBlock : InsnUtils.formatOffset(target));
 	}
 }
