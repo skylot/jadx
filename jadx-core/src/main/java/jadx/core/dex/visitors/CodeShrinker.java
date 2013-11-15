@@ -82,7 +82,12 @@ public class CodeShrinker extends AbstractVisitor {
 							}
 							if (wrap) {
 								if (insn.getType() == InsnType.MOVE) {
-									useInsnArg.getParentInsn().setArg(0, insn.getArg(0));
+									for (int r = 0; r < useInsn.getArgsCount(); r++) {
+										if (useInsn.getArg(r).getTypedVar() == insn.getResult().getTypedVar()) {
+											useInsn.setArg(r, insn.getArg(0));
+											break;
+										}
+									}
 								} else {
 									useInsnArg.wrapInstruction(insn);
 								}
