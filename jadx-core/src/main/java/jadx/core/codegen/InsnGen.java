@@ -146,7 +146,7 @@ public class InsnGen {
 
 	private String sfield(FieldInfo field) {
 		String thisClass = mth.getParentClass().getFullName();
-		if (field.getDeclClass().getFullName().equals(thisClass)) {
+		if (thisClass.startsWith(field.getDeclClass().getFullName())) {
 			return field.getName();
 		} else {
 			return useClass(field.getDeclClass()) + '.' + field.getName();

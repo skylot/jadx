@@ -349,44 +349,70 @@ public class BlockMakerVisitor extends AbstractVisitor {
 					return true;
 				}
 			}
-
-			// splice return block if several precessors presents
-			if (false && block.getAttributes().contains(AttributeFlag.RETURN)
-					&& block.getPredecessors().size() > 1
-					&& !block.getInstructions().get(0).getAttributes().contains(AttributeType.CATCH_BLOCK)) {
+		}
+		// splice return block if several predecessors presents
+		for (BlockNode block : mth.getExitBlocks()) {
+			if (block.getInstructions().size() == 1
+			&&  block.getInstructions().get(0).getArgsCount() > 0
+			&& !block.getInstructions().get(0).getAttributes().contains(AttributeType.CATCH_BLOCK)
+			&& !block.getAttributes().contains(AttributeFlag.SYNTHETIC)) {
 				List<BlockNode> preds = new ArrayList<BlockNode>(block.getPredecessors());
-
-				BlockNode origRetBlock = block;
-				origRetBlock.getPredecessors().clear();
-				origRetBlock.getPredecessors().add(preds.get(0));
-				preds.remove(0);
-
-				InsnNode origReturnInsn = origRetBlock.getInstructions().get(0);
+				InsnNode origReturnInsn = block.getInstructions().get(0);
 				RegisterArg retArg = null;
 				if (origReturnInsn.getArgsCount() != 0)
 					retArg = (RegisterArg) origReturnInsn.getArg(0);
 
 				for (BlockNode pred : preds) {
-					pred.getSuccessors().remove(origRetBlock);
-					// make copy of return block and connect to predecessor
-					BlockNode newRetBlock = startNewBlock(mth, origRetBlock.getStartOffset());
+					BlockNode newRetBlock;
+					InsnNode predInsn = pred.getInstructions().get(0);
+
+					switch (predInsn.getType()) {
+						case IF:
+							// make copy of return block and connect to predecessor
+							newRetBlock = startNewBlock(mth, block.getStartOffset());
+							newRetBlock.getAttributes().add(AttributeFlag.SYNTHETIC);
+
+							if (pred.getSuccessors().get(0) == block) {
+								pred.getSuccessors().set(0, newRetBlock);
+							} else if (pred.getSuccessors().get(1) == block){
+								pred.getSuccessors().set(1, newRetBlock);
+							}
+							block.getPredecessors().remove(pred);
+							newRetBlock.getPredecessors().add(pred);
+							break;
+
+						case SWITCH:
+							// TODO: is it ok to just skip this predecessor?
+							block.getAttributes().add(AttributeFlag.SYNTHETIC);
+							continue;
+
+						default:
+							removeConnection(pred, block);
+							newRetBlock = pred;
+							break;
+					}
 
 					InsnNode ret = new InsnNode(InsnType.RETURN, 1);
-					if (retArg != null)
+					if (retArg != null) {
 						ret.addArg(InsnArg.reg(retArg.getRegNum(), retArg.getType()));
+						ret.getArg(0).forceSetTypedVar(retArg.getTypedVar());
+					}
 					ret.getAttributes().addAll(origReturnInsn.getAttributes());
 
 					newRetBlock.getInstructions().add(ret);
 					newRetBlock.getAttributes().add(AttributeFlag.RETURN);
 
-					connect(pred, newRetBlock);
 					mth.addExitBlock(newRetBlock);
 				}
-				return true;
+				if (block.getPredecessors().size() == 0) {
+					mth.getBasicBlocks().remove(block);
+					mth.getExitBlocks().remove(block);
+					return true;
+				}
+				return block.getAttributes().contains(AttributeFlag.SYNTHETIC);
 			}
-
-			// TODO detect ternary operator
 		}
+		// TODO detect ternary operator
 		return false;
 	}
 

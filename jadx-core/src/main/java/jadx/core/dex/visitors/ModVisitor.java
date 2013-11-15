@@ -3,22 +3,10 @@ package jadx.core.dex.visitors;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.info.MethodInfo;
-import jadx.core.dex.instructions.ConstClassNode;
-import jadx.core.dex.instructions.ConstStringNode;
-import jadx.core.dex.instructions.FillArrayNode;
-import jadx.core.dex.instructions.IndexInsnNode;
-import jadx.core.dex.instructions.InsnType;
-import jadx.core.dex.instructions.InvokeNode;
-import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.instructions.args.InsnArg;
-import jadx.core.dex.instructions.args.LiteralArg;
-import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.*;
+import jadx.core.dex.instructions.args.*;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
-import jadx.core.dex.nodes.BlockNode;
-import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.FieldNode;
-import jadx.core.dex.nodes.InsnNode;
-import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.nodes.*;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.utils.BlockUtils;
@@ -59,6 +47,8 @@ public class ModVisitor extends AbstractVisitor {
 			int size = block.getInstructions().size();
 			for (int i = 0; i < size; i++) {
 				InsnNode insn = block.getInstructions().get(i);
+				ClassNode parentClass = mth.getParentClass();
+				FieldNode f = null;
 
 				switch (insn.getType()) {
 					case INVOKE:
@@ -102,8 +92,6 @@ public class ModVisitor extends AbstractVisitor {
 					case CONST:
 					case CONST_STR:
 					case CONST_CLASS:
-						ClassNode parentClass = mth.getParentClass();
-						FieldNode f = null;
 						if (insn.getType() == InsnType.CONST_STR) {
 							String s = ((ConstStringNode) insn).getString();
 							f = parentClass.getConstField(s);
@@ -111,24 +99,33 @@ public class ModVisitor extends AbstractVisitor {
 							ArgType t = ((ConstClassNode) insn).getClsType();
 							f = parentClass.getConstField(t);
 						} else {
-							LiteralArg arg = (LiteralArg) insn.getArg(0);
-							ArgType type = arg.getType();
-							long lit = arg.getLiteral();
-							if (Math.abs(lit) > 0xFF) {
-								if (type.equals(ArgType.INT))
-									f = parentClass.getConstField((int) lit);
-								else if (type.equals(ArgType.LONG))
-									f = parentClass.getConstField(lit);
-							}
-							if (type.equals(ArgType.DOUBLE))
-								f = parentClass.getConstField(Double.longBitsToDouble(lit));
-							else if (type.equals(ArgType.FLOAT))
-								f = parentClass.getConstField(Float.intBitsToFloat((int) lit));
+							f = parentClass.getConstFieldByLiteralArg((LiteralArg) insn.getArg(0));
 						}
 						if (f != null) {
 							InsnNode inode = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
 							inode.setResult(insn.getResult());
 							replaceInsn(block, i, inode);
+						}
+						break;
+
+					case SWITCH:
+						SwitchNode sn = (SwitchNode) insn;
+						for (int k = 0; k < sn.getCasesCount(); k++) {
+							f = parentClass.getConstField(sn.getKeys()[k]);
+							if (f != null) {
+								sn.getKeys()[k] = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
+							}
+						}
+						break;
+
+					case RETURN:
+						if (insn.getArgsCount() > 0
+						&&  insn.getArg(0).isLiteral()) {
+							LiteralArg arg = (LiteralArg) insn.getArg(0);
+							f = parentClass.getConstFieldByLiteralArg(arg);
+							if (f != null) {
+								arg.wrapInstruction(new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0));
+							}
 						}
 						break;
 

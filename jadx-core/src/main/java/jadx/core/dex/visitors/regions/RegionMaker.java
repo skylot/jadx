@@ -583,21 +583,21 @@ public class RegionMaker {
 
 		int len = insn.getTargets().length;
 		// sort by target
-		Map<Integer, List<Integer>> casesMap = new LinkedHashMap<Integer, List<Integer>>(len);
+		Map<Integer, List<Object>> casesMap = new LinkedHashMap<Integer, List<Object>>(len);
 		for (int i = 0; i < len; i++) {
-			int key = insn.getKeys()[i];
+			Object key = insn.getKeys()[i];
 			int targ = insn.getTargets()[i];
-			List<Integer> keys = casesMap.get(targ);
+			List<Object> keys = casesMap.get(targ);
 			if (keys == null) {
-				keys = new ArrayList<Integer>(1);
+				keys = new ArrayList<Object>(2);
 				casesMap.put(targ, keys);
 			}
 			keys.add(key);
 		}
 
-		Map<BlockNode, List<Integer>> blocksMap = new LinkedHashMap<BlockNode, List<Integer>>(len);
-		for (Entry<Integer, List<Integer>> entry : casesMap.entrySet()) {
-			BlockNode c = getBlockByOffset(entry.getKey(), block.getSuccessors());
+		Map<BlockNode, List<Object>> blocksMap = new LinkedHashMap<BlockNode, List<Object>>(len);
+		for (Entry<Integer, List<Object>> entry : casesMap.entrySet()) {
+			BlockNode c = getBlockByOffset((int) entry.getKey(), block.getSuccessors());
 			assert c != null;
 			blocksMap.put(c, entry.getValue());
 		}
@@ -650,7 +650,7 @@ public class RegionMaker {
 		if (!stack.containsExit(defCase)) {
 			sw.setDefaultCase(makeRegion(defCase, stack));
 		}
-		for (Entry<BlockNode, List<Integer>> entry : blocksMap.entrySet()) {
+		for (Entry<BlockNode, List<Object>> entry : blocksMap.entrySet()) {
 			BlockNode c = entry.getKey();
 			if (stack.containsExit(c)) {
 				// empty case block

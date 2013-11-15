@@ -8,11 +8,11 @@ import java.util.Arrays;
 
 public class SwitchNode extends InsnNode {
 
-	private final int[] keys;
+	private final Object[] keys;
 	private final int[] targets;
 	private final int def; // next instruction
 
-	public SwitchNode(InsnArg arg, int[] keys, int[] targets, int def) {
+	public SwitchNode(InsnArg arg, Object[] keys, int[] targets, int def) {
 		super(InsnType.SWITCH, 1);
 		this.keys = keys;
 		this.targets = targets;
@@ -24,7 +24,7 @@ public class SwitchNode extends InsnNode {
 		return keys.length;
 	}
 
-	public int[] getKeys() {
+	public Object[] getKeys() {
 		return keys;
 	}
 

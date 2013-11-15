@@ -81,13 +81,17 @@ public class CodeShrinker extends AbstractVisitor {
 								}
 							}
 							if (wrap) {
-//								if (useInsn.getType() == InsnType.MOVE) {
-//									// TODO
-//									// remover.add(useInsn);
-//								} else {
-								useInsnArg.wrapInstruction(insn);
+								if (insn.getType() == InsnType.MOVE) {
+									for (int r = 0; r < useInsn.getArgsCount(); r++) {
+										if (useInsn.getArg(r).getTypedVar() == insn.getResult().getTypedVar()) {
+											useInsn.setArg(r, insn.getArg(0));
+											break;
+										}
+									}
+								} else {
+									useInsnArg.wrapInstruction(insn);
+								}
 								remover.add(insn);
-//								}
 							}
 						}
 					}

@@ -5,8 +5,10 @@ import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.attributes.DeclareVariableAttr;
 import jadx.core.dex.attributes.ForceReturnAttr;
 import jadx.core.dex.attributes.IAttribute;
+import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.IfOp;
+import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.ArgType;
@@ -232,15 +234,19 @@ public class RegionGen extends InsnGen {
 		SwitchNode insn = (SwitchNode) sw.getHeader().getInstructions().get(0);
 		InsnArg arg = insn.getArg(0);
 		code.startLine("switch(").add(arg(arg)).add(") {");
-		code.incIndent();
 
 		int size = sw.getKeys().size();
 		for (int i = 0; i < size; i++) {
-			List<Integer> keys = sw.getKeys().get(i);
+			List<Object> keys = sw.getKeys().get(i);
 			IContainer c = sw.getCases().get(i);
-			for (Integer k : keys) {
+			for (Object k : keys) {
 				code.startLine("case ");
-				code.add(TypeGen.literalToString(k, arg.getType()));
+				if (k instanceof IndexInsnNode) {
+					code.add(sfield((FieldInfo) ((IndexInsnNode) k).getIndex()));
+				}
+				else {
+					code.add(TypeGen.literalToString((Integer) k, arg.getType()));
+				}
 				code.add(':');
 			}
 			makeCaseBlock(c, code);
@@ -249,13 +255,12 @@ public class RegionGen extends InsnGen {
 			code.startLine("default:");
 			makeCaseBlock(sw.getDefaultCase(), code);
 		}
-		code.decIndent();
+
 		code.startLine('}');
 		return code;
 	}
 
 	private void makeCaseBlock(IContainer c, CodeWriter code) throws CodegenException {
-		code.add(" {");
 		if (RegionUtils.notEmpty(c)) {
 			makeRegionIndent(code, c);
 			if (RegionUtils.hasExitEdge(c)) {
@@ -264,7 +269,6 @@ public class RegionGen extends InsnGen {
 		} else {
 			code.startLine(1, "break;");
 		}
-		code.startLine('}');
 	}
 
 	private void makeTryCatch(IContainer region, TryCatchBlock tryCatchBlock, CodeWriter code)
@@ -305,4 +309,13 @@ public class RegionGen extends InsnGen {
 		}
 	}
 
+	// FIXME: !!code from InsnGen.sfield
+	private String sfield(FieldInfo field) {
+		String thisClass = mth.getParentClass().getFullName();
+		if (thisClass.startsWith(field.getDeclClass().getFullName())) {
+			return field.getName();
+		} else {
+			return useClass(field.getDeclClass()) + '.' + field.getName();
+		}
+	}
 }
