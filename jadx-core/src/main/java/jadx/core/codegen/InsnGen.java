@@ -148,6 +148,8 @@ public class InsnGen {
 		String thisClass = mth.getParentClass().getFullName();
 		if (thisClass.startsWith(field.getDeclClass().getFullName())) {
 			return field.getName();
+		} else if (field.getDeclClass().getFullName().startsWith(mth.getParentClass().getPackage() + ".R")) {
+			return  field.getDeclClass().getNameWithoutPackage() + '.' + field.getName();
 		} else {
 			return useClass(field.getDeclClass()) + '.' + field.getName();
 		}
