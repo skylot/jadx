@@ -13,6 +13,7 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.LiteralArg;
+import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.nodes.parser.AnnotationsParser;
 import jadx.core.dex.nodes.parser.FieldValueAttr;
 import jadx.core.dex.nodes.parser.StaticValuesParser;
@@ -140,10 +141,10 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 				if (accFlags.isStatic() && accFlags.isFinal()) {
 					FieldValueAttr fv = (FieldValueAttr) f.getAttributes().get(AttributeType.FIELD_VALUE);
 					if (fv != null && fv.getValue() != null) {
-						if (accFlags.isPublic())
+						if (accFlags.isPublic()) {
 							dex.getConstFields().put(fv.getValue(), f);
-						else
-							constFields.put(fv.getValue(), f);
+						}
+						constFields.put(fv.getValue(), f);
 					}
 				}
 			}
@@ -237,34 +238,49 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 		return fields;
 	}
 
-	public FieldNode getConstField(Object o) {
+	public FieldNode getConstField(Object obj) {
+		return getConstField(obj, true);
+	}
+
+	public FieldNode getConstField(Object obj, boolean searchGlobal) {
 		ClassNode cn = this;
 		FieldNode field;
 		do {
-            field = cn.constFields.get(o);
+			field = cn.constFields.get(obj);
 		}
 		while (field == null
-		&& (cn.clsInfo.getParentClass() != null)
-		&& (cn = dex.resolveClass(cn.clsInfo.getParentClass())) != null);
+				&& (cn.clsInfo.getParentClass() != null)
+				&& (cn = dex.resolveClass(cn.clsInfo.getParentClass())) != null);
 
-		if (field == null)
-			field = dex.getConstFields().get(o);
+		if (field == null && searchGlobal) {
+			field = dex.getConstFields().get(obj);
+		}
 		return field;
 	}
 
 	public FieldNode getConstFieldByLiteralArg(LiteralArg arg) {
-		ArgType type = arg.getType();
+		PrimitiveType type = arg.getType().getPrimitiveType();
+		if (type == null) {
+			return null;
+		}
 		long literal = arg.getLiteral();
-
-		if (type.equals(ArgType.DOUBLE))
-			return getConstField(Double.longBitsToDouble(literal));
-		else if (type.equals(ArgType.FLOAT))
-			return getConstField(Float.intBitsToFloat((int) literal));
-		else if (Math.abs(literal) > 0x1) {
-			if (type.equals(ArgType.INT))
-				return getConstField((int) literal);
-			else if (type.equals(ArgType.LONG))
-				return getConstField(literal);
+		switch (type) {
+			case BOOLEAN:
+				return getConstField(literal == 1, false);
+			case CHAR:
+				return getConstField((char) literal, Math.abs(literal) > 1);
+			case BYTE:
+				return getConstField((byte) literal, Math.abs(literal) > 1);
+			case SHORT:
+				return getConstField((short) literal, Math.abs(literal) > 1);
+			case INT:
+				return getConstField((int) literal, Math.abs(literal) > 1);
+			case LONG:
+				return getConstField(literal, Math.abs(literal) > 1);
+			case FLOAT:
+				return getConstField(Float.intBitsToFloat((int) literal), true);
+			case DOUBLE:
+				return getConstField(Double.longBitsToDouble(literal), true);
 		}
 		return null;
 	}

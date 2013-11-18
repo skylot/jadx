@@ -402,7 +402,7 @@ public class InsnGen {
 
 			/* fallback mode instructions */
 			case IF:
-				assert isFallback();
+				assert isFallback() : "if insn in not fallback mode";
 				IfNode ifInsn = (IfNode) insn;
 				String cond = arg(insn.getArg(0)) + " " + ifInsn.getOp().getSymbol() + " "
 						+ (ifInsn.isZeroCmp() ? "0" : arg(insn.getArg(1)));

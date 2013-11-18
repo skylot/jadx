@@ -13,9 +13,9 @@ import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.JadxException;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -65,7 +65,7 @@ public class ProcessVariables extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
-		final Map<RegisterArg, Usage> usageMap = new HashMap<RegisterArg, Usage>();
+		final Map<RegisterArg, Usage> usageMap = new LinkedHashMap<RegisterArg, Usage>();
 
 		// collect all variables usage
 		IRegionVisitor collect = new TracedRegionVisitor() {
