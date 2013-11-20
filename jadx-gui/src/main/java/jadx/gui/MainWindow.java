@@ -7,16 +7,20 @@ import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
 
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
@@ -25,6 +29,7 @@ import javax.swing.ProgressMonitor;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.plaf.basic.BasicButtonUI;
 import javax.swing.text.BadLocationException;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -40,6 +45,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -63,15 +70,13 @@ public class MainWindow extends JFrame {
 	private static final ImageIcon ICON_FLAT_PKG = Utils.openIcon("empty_logical_package_obj");
 	private static final ImageIcon ICON_SEARCH = Utils.openIcon("magnifier");
 
-	private static final File WORK_DIR = new File(System.getProperty("user.dir"));
-
 	private final JadxWrapper wrapper;
+
 	private JPanel mainPanel;
 	private JTree tree;
+	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private DefaultTreeModel treeModel;
-	private RSyntaxTextArea textArea;
-	private JToolBar searchToolBar;
-	private SearchBar searchBar;
+	private Map<JClass, Integer> openTabs = new HashMap<JClass, Integer>();
 
 	public MainWindow(JadxWrapper wrapper) {
 		this.wrapper = wrapper;
@@ -85,7 +90,6 @@ public class MainWindow extends JFrame {
 		fileChooser.setAcceptAllFileFilterUsed(true);
 		fileChooser.setFileFilter(new FileNameExtensionFilter("supported files", "dex", "apk", "jar"));
 		fileChooser.setToolTipText(NLS.str("file.open"));
-		// fileChooser.setCurrentDirectory(WORK_DIR);
 		int ret = fileChooser.showDialog(mainPanel, NLS.str("file.open"));
 		if (ret == JFileChooser.APPROVE_OPTION) {
 			openFile(fileChooser.getSelectedFile());
@@ -129,6 +133,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void toggleSearch() {
+		SearchBar searchBar = getSearchBar((JPanel) tabbedPane.getSelectedComponent());
 		searchBar.toggle();
 	}
 
@@ -137,16 +142,100 @@ public class MainWindow extends JFrame {
 		if (obj instanceof JNode) {
 			JNode node = (JNode) obj;
 			if (node.getJParent() != null) {
-				textArea.setText(node.getJParent().getCode());
-				scrollToLine(node.getLine());
+				showCode(node.getJParent(), node.getLine());
 			} else if (node.getClass() == JClass.class) {
-				textArea.setText(((JClass) node).getCode());
-				scrollToLine(node.getLine());
+				showCode((JClass) node, node.getLine());
 			}
 		}
 	}
 
-	private void scrollToLine(int line) {
+	private JPanel newCodePane() {
+		RSyntaxTextArea textArea = new RSyntaxTextArea();
+		textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
+		textArea.setMarkOccurrences(true);
+		textArea.setBackground(BACKGROUND);
+		textArea.setCodeFoldingEnabled(true);
+		textArea.setAntiAliasingEnabled(true);
+		// textArea.setEditable(false);
+		// textArea.setHyperlinksEnabled(true);
+		textArea.setTabSize(4);
+
+		RTextScrollPane scrollPane = new RTextScrollPane(textArea);
+		scrollPane.setFoldIndicatorEnabled(true);
+
+		JPanel textPanel = new JPanel(new BorderLayout());
+		SearchBar searchBar = new SearchBar(textArea);
+		textPanel.add(searchBar, BorderLayout.NORTH);
+		textPanel.add(scrollPane);
+
+		KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK);
+		Utils.addKeyBinding(textArea, key, "SearchAction", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				toggleSearch();
+			}
+		});
+		return textPanel;
+	}
+
+	private SearchBar getSearchBar(JPanel panel) {
+		return (SearchBar) panel.getComponent(0);
+	}
+
+	private JTextArea getTextArea(JPanel panel) {
+		RTextScrollPane scrollPane = (RTextScrollPane) panel.getComponent(1);
+		return scrollPane.getTextArea();
+	}
+
+	private void showCode(JClass cls, int line) {
+		JPanel panel;
+		if (openTabs.containsKey(cls)) {
+			int id = openTabs.get(cls);
+			panel = (JPanel) tabbedPane.getComponentAt(id);
+			tabbedPane.setSelectedIndex(id);
+		} else {
+			panel = newCodePane();
+			tabbedPane.add(panel);
+			int id = tabbedPane.getTabCount() - 1;
+			openTabs.put(cls, id);
+			tabbedPane.setSelectedIndex(id);
+			tabbedPane.setTabComponentAt(id, makeTabComponent(cls, panel));
+		}
+		if (panel != null) {
+			JTextArea textArea = getTextArea(panel);
+			textArea.setText(cls.getCode());
+			scrollToLine(textArea, line);
+		}
+	}
+
+	private Component makeTabComponent(final JClass cls, final Component comp) {
+		String name = cls.getCls().getFullName();
+		JPanel p = new JPanel();
+		JLabel label = new JLabel(name);
+		p.add(label);
+		JButton button = new JButton();
+		button.setIcon(ICON_CLOSE);
+		final int size = 12;
+		button.setPreferredSize(new Dimension(size, size));
+		button.setToolTipText("Close");
+		button.setUI(new BasicButtonUI());
+		button.setContentAreaFilled(false);
+		button.setFocusable(false);
+		button.setBorder(BorderFactory.createEtchedBorder());
+		button.setBorderPainted(false);
+		button.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tabbedPane.remove(comp);
+				openTabs.remove(cls);
+			}
+		});
+		p.add(button);
+		p.doLayout();
+		return p;
+	}
+
+	private void scrollToLine(JTextArea textArea, int line) {
 		if (line < 2) {
 			return;
 		}
@@ -233,14 +322,6 @@ public class MainWindow extends JFrame {
 		searchButton.setToolTipText(NLS.str("search"));
 		toolbar.add(searchButton);
 
-		KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK);
-		Utils.addKeyBinding(textArea, key, "SearchAction", new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				toggleSearch();
-			}
-		});
-
 		toolbar.addSeparator();
 
 		mainPanel.add(toolbar, BorderLayout.NORTH);
@@ -255,8 +336,6 @@ public class MainWindow extends JFrame {
 		DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode("Please open file");
 		treeModel = new DefaultTreeModel(treeRoot);
 		tree = new JTree(treeModel);
-//		tree.setRootVisible(false);
-//		tree.setBackground(BACKGROUND);
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		tree.addTreeSelectionListener(new TreeSelectionListener() {
 			@Override
@@ -281,24 +360,8 @@ public class MainWindow extends JFrame {
 		JScrollPane treeScrollPane = new JScrollPane(tree);
 		splitPane.setLeftComponent(treeScrollPane);
 
-		textArea = new RSyntaxTextArea();
-		textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
-		textArea.setMarkOccurrences(true);
-		textArea.setBackground(BACKGROUND);
-		textArea.setCodeFoldingEnabled(true);
-		textArea.setAntiAliasingEnabled(true);
-		textArea.setEditable(false);
-		// textArea.setHyperlinksEnabled(true);
-		textArea.setTabSize(4);
-
-		RTextScrollPane scrollPane = new RTextScrollPane(textArea);
-		scrollPane.setFoldIndicatorEnabled(true);
-
-		JPanel textPanel = new JPanel(new BorderLayout());
-		searchBar = new SearchBar(textArea);
-		textPanel.add(searchBar.getToolBar(), BorderLayout.NORTH);
-		textPanel.add(scrollPane);
-		splitPane.setRightComponent(textPanel);
+		tabbedPane.setTabLayoutPolicy(JTabbedPane.WRAP_TAB_LAYOUT);
+		splitPane.setRightComponent(tabbedPane);
 
 		setContentPane(mainPanel);
 		setTitle(DEFAULT_TITLE);

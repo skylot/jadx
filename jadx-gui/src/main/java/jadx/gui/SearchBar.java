@@ -20,7 +20,7 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
 
-public class SearchBar {
+public class SearchBar extends JToolBar {
 	private static final Color COLOR_BG_ERROR = new Color(0xFFDFDE);
 	private static final Color COLOR_BG_WARN = new Color(0xFFFDD9);
 	private static final Color COLOR_BG_NORMAL = new Color(0xFFFFFF);
@@ -30,7 +30,6 @@ public class SearchBar {
 	private static final Icon ICON_CLOSE = Utils.openIcon("cross");
 
 	private final RSyntaxTextArea rTextArea;
-	private final JToolBar toolBar;
 
 	private final JTextField searchField;
 	private final JCheckBox markAllCB;
@@ -41,10 +40,9 @@ public class SearchBar {
 
 	public SearchBar(RSyntaxTextArea textArea) {
 		rTextArea = textArea;
-		toolBar = new JToolBar();
 
 		JLabel findLabel = new JLabel(NLS.str("search.find") + ":");
-		toolBar.add(findLabel);
+		add(findLabel);
 
 		searchField = new JTextField(30);
 		searchField.addKeyListener(new KeyListener() {
@@ -76,7 +74,7 @@ public class SearchBar {
 				search(1);
 			}
 		});
-		toolBar.add(searchField);
+		add(searchField);
 
 		JButton prevButton = new JButton(NLS.str("search.previous"));
 		prevButton.setIcon(ICON_UP);
@@ -86,7 +84,7 @@ public class SearchBar {
 				search(-1);
 			}
 		});
-		toolBar.add(prevButton);
+		add(prevButton);
 
 		JButton nextButton = new JButton(NLS.str("search.next"));
 		nextButton.setIcon(ICON_DOWN);
@@ -96,23 +94,23 @@ public class SearchBar {
 				search(1);
 			}
 		});
-		toolBar.add(nextButton);
+		add(nextButton);
 
 		markAllCB = new JCheckBox(NLS.str("search.mark_all"));
 		markAllCB.addActionListener(new ForwardListener());
-		toolBar.add(markAllCB);
+		add(markAllCB);
 
 		regexCB = new JCheckBox(NLS.str("search.regex"));
 		regexCB.addActionListener(new ForwardListener());
-		toolBar.add(regexCB);
+		add(regexCB);
 
 		matchCaseCB = new JCheckBox(NLS.str("search.match_case"));
 		matchCaseCB.addActionListener(new ForwardListener());
-		toolBar.add(matchCaseCB);
+		add(matchCaseCB);
 
 		wholeWordCB = new JCheckBox(NLS.str("search.whole_word"));
 		wholeWordCB.addActionListener(new ForwardListener());
-		toolBar.add(wholeWordCB);
+		add(wholeWordCB);
 
 		JButton closeButton = new JButton();
 		closeButton.setIcon(ICON_CLOSE);
@@ -122,22 +120,19 @@ public class SearchBar {
 				toggle();
 			}
 		});
-		toolBar.add(closeButton);
+		add(closeButton);
 
-		toolBar.setFloatable(false);
-		toolBar.setVisible(false);
-	}
-
-	public JToolBar getToolBar() {
-		return toolBar;
+		setFloatable(false);
+		setVisible(false);
 	}
 
 	public boolean toggle() {
-		boolean visible = !toolBar.isVisible();
-		toolBar.setVisible(visible);
+		boolean visible = !isVisible();
+		setVisible(visible);
 
 		if (visible) {
 			searchField.requestFocus();
+			searchField.selectAll();
 		} else {
 			rTextArea.requestFocus();
 		}
