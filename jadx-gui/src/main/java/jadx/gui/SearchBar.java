@@ -21,6 +21,8 @@ import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
 
 public class SearchBar extends JToolBar {
+	private static final long serialVersionUID = 1836871286618633003L;
+
 	private static final Color COLOR_BG_ERROR = new Color(0xFFDFDE);
 	private static final Color COLOR_BG_WARN = new Color(0xFFFDD9);
 	private static final Color COLOR_BG_NORMAL = new Color(0xFFFFFF);
@@ -84,6 +86,7 @@ public class SearchBar extends JToolBar {
 				search(-1);
 			}
 		});
+		prevButton.setBorderPainted(false);
 		add(prevButton);
 
 		JButton nextButton = new JButton(NLS.str("search.next"));
@@ -94,6 +97,7 @@ public class SearchBar extends JToolBar {
 				search(1);
 			}
 		});
+		nextButton.setBorderPainted(false);
 		add(nextButton);
 
 		markAllCB = new JCheckBox(NLS.str("search.mark_all"));
@@ -120,6 +124,7 @@ public class SearchBar extends JToolBar {
 				toggle();
 			}
 		});
+		closeButton.setBorderPainted(false);
 		add(closeButton);
 
 		setFloatable(false);

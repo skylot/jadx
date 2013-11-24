@@ -39,11 +39,14 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -67,6 +70,7 @@ public class MainWindow extends JFrame {
 	private static final ImageIcon ICON_OPEN = Utils.openIcon("folder");
 	private static final ImageIcon ICON_SAVE_ALL = Utils.openIcon("disk_multiple");
 	private static final ImageIcon ICON_CLOSE = Utils.openIcon("cross");
+	private static final ImageIcon ICON_CLOSE_INACTIVE = Utils.openIcon("cross_grayed");
 	private static final ImageIcon ICON_FLAT_PKG = Utils.openIcon("empty_logical_package_obj");
 	private static final ImageIcon ICON_SEARCH = Utils.openIcon("magnifier");
 
@@ -210,29 +214,48 @@ public class MainWindow extends JFrame {
 
 	private Component makeTabComponent(final JClass cls, final Component comp) {
 		String name = cls.getCls().getFullName();
-		JPanel p = new JPanel();
-		JLabel label = new JLabel(name);
-		p.add(label);
-		JButton button = new JButton();
-		button.setIcon(ICON_CLOSE);
-		final int size = 12;
-		button.setPreferredSize(new Dimension(size, size));
-		button.setToolTipText("Close");
+		JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 3, 0));
+		panel.setOpaque(false);
+
+		final JLabel label = new JLabel(name);
+		label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+		label.setIcon(cls.getIcon());
+
+		final JButton button = new JButton();
+		button.setIcon(ICON_CLOSE_INACTIVE);
+		button.setRolloverIcon(ICON_CLOSE);
+		button.setRolloverEnabled(true);
+		button.setOpaque(false);
 		button.setUI(new BasicButtonUI());
 		button.setContentAreaFilled(false);
 		button.setFocusable(false);
-		button.setBorder(BorderFactory.createEtchedBorder());
+		button.setBorder(null);
 		button.setBorderPainted(false);
 		button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				tabbedPane.remove(comp);
-				openTabs.remove(cls);
+				closeCodeTab(cls, comp);
 			}
 		});
-		p.add(button);
-		p.doLayout();
-		return p;
+
+		panel.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (e.getButton() == MouseEvent.BUTTON2) {
+					closeCodeTab(cls, comp);
+				}
+			}
+		});
+
+		panel.add(label);
+		panel.add(button);
+		panel.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
+		return panel;
+	}
+
+	private void closeCodeTab(JClass cls, Component comp) {
+		tabbedPane.remove(comp);
+		openTabs.remove(cls);
 	}
 
 	private void scrollToLine(JTextArea textArea, int line) {
