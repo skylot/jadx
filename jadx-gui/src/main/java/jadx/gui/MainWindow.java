@@ -203,7 +203,7 @@ public class MainWindow extends JFrame {
 			int id = tabbedPane.getTabCount() - 1;
 			openTabs.put(cls, id);
 			tabbedPane.setSelectedIndex(id);
-			tabbedPane.setTabComponentAt(id, makeTabComponent(cls, panel));
+			tabbedPane.setTabComponentAt(id, makeTabComponent(cls, panel, id));
 		}
 		if (panel != null) {
 			JTextArea textArea = getTextArea(panel);
@@ -212,7 +212,7 @@ public class MainWindow extends JFrame {
 		}
 	}
 
-	private Component makeTabComponent(final JClass cls, final Component comp) {
+	private Component makeTabComponent(final JClass cls, final Component comp, final int id) {
 		String name = cls.getCls().getFullName();
 		JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 3, 0));
 		panel.setOpaque(false);
@@ -243,6 +243,8 @@ public class MainWindow extends JFrame {
 			public void mouseClicked(MouseEvent e) {
 				if (e.getButton() == MouseEvent.BUTTON2) {
 					closeCodeTab(cls, comp);
+				} else {
+					tabbedPane.setSelectedIndex(id);
 				}
 			}
 		});
