@@ -86,6 +86,18 @@ public class ModVisitor extends AbstractVisitor {
 							} else {
 								replaceInsn(block, i, co);
 							}
+						} else {
+							if (inv.getArgsCount() > 0) {
+								for (int j = 0; j < inv.getArgsCount(); j++) {
+									InsnArg arg = inv.getArg(j);
+									if (arg.isLiteral()) {
+										f = parentClass.getConstFieldByLiteralArg((LiteralArg) arg);
+										if (f != null) {
+											arg.wrapInstruction(new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0));
+										}
+									}
+								}
+							}
 						}
 						break;
 

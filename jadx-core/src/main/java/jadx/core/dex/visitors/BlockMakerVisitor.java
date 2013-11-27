@@ -353,7 +353,6 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		// splice return block if several predecessors presents
 		for (BlockNode block : mth.getExitBlocks()) {
 			if (block.getInstructions().size() == 1
-			&&  block.getInstructions().get(0).getArgsCount() > 0
 			&& !block.getInstructions().get(0).getAttributes().contains(AttributeType.CATCH_BLOCK)
 			&& !block.getAttributes().contains(AttributeFlag.SYNTHETIC)) {
 				List<BlockNode> preds = new ArrayList<BlockNode>(block.getPredecessors());

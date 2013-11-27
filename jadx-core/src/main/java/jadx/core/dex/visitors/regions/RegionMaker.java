@@ -265,10 +265,10 @@ public class RegionMaker {
 									&& r.getInstructions().size() > 0
 									&& r.getInstructions().get(0).getType() == InsnType.RETURN) {
 								next.getAttributes().add(new ForceReturnAttr(r.getInstructions().get(0)));
-							} else {
+							} /*/ else {
 								next.getAttributes().add(AttributeFlag.BREAK);
 								stack.addExit(r);
-							}
+							} /**/
 						} else {
 							stack.addExit(next);
 						}
@@ -492,8 +492,10 @@ public class RegionMaker {
 					IfCondition nestedCondition = IfCondition.fromIfNode(nestedIfInsn);
 					if (isPathExists(bElse, nestedIfBlock)) {
 						// else branch
-						if (bThen != nbThen) {
-							if (bThen != nbElse) {
+						if (bThen != nbThen
+						&&  !isEqualReturns(bThen, nbThen)) {
+							if (bThen != nbElse
+							&&  !isEqualReturns(bThen, nbElse)) {
 								// not connected conditions
 								break;
 							}
@@ -503,8 +505,10 @@ public class RegionMaker {
 						condition = IfCondition.merge(Mode.OR, condition, nestedCondition);
 					} else {
 						// then branch
-						if (bElse != nbElse) {
-							if (bElse != nbThen) {
+						if (bElse != nbElse
+						&&  !isEqualReturns(bElse, nbElse)) {
+							if (bElse != nbThen
+							&&  !isEqualReturns(bElse, nbThen)) {
 								// not connected conditions
 								break;
 							}
@@ -516,6 +520,8 @@ public class RegionMaker {
 					result = new IfInfo();
 					result.setCondition(condition);
 					nestedIfBlock.getAttributes().add(AttributeFlag.SKIP);
+					bThen.getAttributes().add(AttributeFlag.SKIP);
+
 					if (merged != null) {
 						merged.add(nestedIfBlock);
 					}
@@ -683,4 +689,28 @@ public class RegionMaker {
 		handler.getHandlerRegion().getAttributes().add(excHandlerAttr);
 	}
 
+	private boolean isEqualReturns(BlockNode b1, BlockNode b2) {
+		if (b1 == b2) {
+			return true;
+		}
+		if (b1 == null
+		||  b2 == null) {
+			return false;
+		}
+		if (b1.getInstructions().size()
+		+   b2.getInstructions().size() != 2) {
+			return false;
+		}
+		if (!b1.getAttributes().contains(AttributeFlag.RETURN)
+		||  !b2.getAttributes().contains(AttributeFlag.RETURN)) {
+			return false;
+		}
+		if (b1.getInstructions().get(0).getArgsCount() > 0) {
+			if (b1.getInstructions().get(0).getArg(0)
+			!=  b2.getInstructions().get(0).getArg(0)) {
+				return false;
+			}
+		}
+		return true;
+	}
 }

@@ -39,6 +39,16 @@ public class TestLoopCondition extends InternalJadxTest {
 			}
 			return i;
 		}
+
+		private void testMoreComplexIfInLoop(java.util.ArrayList<String> list) throws Exception {
+			for (int i = 0; i != 16 && i < 255; i++) {
+				list.set(i, "ABC");
+				if (i == 128) {
+					return;
+				}
+				list.set(i, "DEF");
+			}
+		}
 	}
 
 	@Test
@@ -50,5 +60,7 @@ public class TestLoopCondition extends InternalJadxTest {
 
 		assertThat(code, containsString("i < f.length()"));
 		assertThat(code, containsString("while (a && i < 10) {"));
+		assertThat(code, containsString("list.set(i, \"ABC\")"));
+		assertThat(code, containsString("list.set(i, \"DEF\")"));
 	}
 }
