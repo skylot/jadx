@@ -80,7 +80,7 @@ public class MainWindow extends JFrame {
 	private JTree tree;
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private DefaultTreeModel treeModel;
-	private Map<JClass, Integer> openTabs = new HashMap<JClass, Integer>();
+	private Map<JClass, Component> openTabs = new HashMap<JClass, Component>();
 
 	public MainWindow(JadxWrapper wrapper) {
 		this.wrapper = wrapper;
@@ -192,27 +192,24 @@ public class MainWindow extends JFrame {
 	}
 
 	private void showCode(JClass cls, int line) {
-		JPanel panel;
-		if (openTabs.containsKey(cls)) {
-			int id = openTabs.get(cls);
-			panel = (JPanel) tabbedPane.getComponentAt(id);
-			tabbedPane.setSelectedIndex(id);
+		JPanel panel = (JPanel) openTabs.get(cls);
+		if (panel != null) {
+			panel = (JPanel) openTabs.get(cls);
+			tabbedPane.setSelectedComponent(panel);
 		} else {
 			panel = newCodePane();
 			tabbedPane.add(panel);
-			int id = tabbedPane.getTabCount() - 1;
-			openTabs.put(cls, id);
+			openTabs.put(cls, panel);
+			int id = tabbedPane.indexOfComponent(panel);
+			tabbedPane.setTabComponentAt(id, makeTabComponent(cls, panel));
 			tabbedPane.setSelectedIndex(id);
-			tabbedPane.setTabComponentAt(id, makeTabComponent(cls, panel, id));
 		}
-		if (panel != null) {
-			JTextArea textArea = getTextArea(panel);
-			textArea.setText(cls.getCode());
-			scrollToLine(textArea, line);
-		}
+		JTextArea textArea = getTextArea(panel);
+		textArea.setText(cls.getCode());
+		scrollToLine(textArea, line);
 	}
 
-	private Component makeTabComponent(final JClass cls, final Component comp, final int id) {
+	private Component makeTabComponent(final JClass cls, final Component comp) {
 		String name = cls.getCls().getFullName();
 		JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 3, 0));
 		panel.setOpaque(false);
@@ -244,7 +241,8 @@ public class MainWindow extends JFrame {
 				if (e.getButton() == MouseEvent.BUTTON2) {
 					closeCodeTab(cls, comp);
 				} else {
-					tabbedPane.setSelectedIndex(id);
+					// TODO: make correct event delegation to tabbed pane
+					tabbedPane.setSelectedComponent(comp);
 				}
 			}
 		});
@@ -261,8 +259,8 @@ public class MainWindow extends JFrame {
 	}
 
 	private void scrollToLine(JTextArea textArea, int line) {
-		if (line < 2) {
-			return;
+		if (line == 0) {
+			line = 1;
 		}
 		try {
 			textArea.setCaretPosition(textArea.getLineStartOffset(line - 1));
