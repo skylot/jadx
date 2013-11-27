@@ -308,14 +308,4 @@ public class RegionGen extends InsnGen {
 			makeRegionIndent(code, region);
 		}
 	}
-
-	// FIXME: !!code from InsnGen.sfield
-	private String sfield(FieldInfo field) {
-		String thisClass = mth.getParentClass().getFullName();
-		if (thisClass.startsWith(field.getDeclClass().getFullName())) {
-			return field.getName();
-		} else {
-			return useClass(field.getDeclClass()) + '.' + field.getName();
-		}
-	}
 }

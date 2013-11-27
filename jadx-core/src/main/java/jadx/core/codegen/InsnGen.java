@@ -144,15 +144,18 @@ public class InsnGen {
 		return arg(arg) + "." + name;
 	}
 
-	private String sfield(FieldInfo field) {
+	protected String sfield(FieldInfo field) {
 		String thisClass = mth.getParentClass().getFullName();
-		if (thisClass.startsWith(field.getDeclClass().getFullName())) {
+		ClassInfo declClass = field.getDeclClass();
+		if (thisClass.startsWith(declClass.getFullName())) {
 			return field.getName();
-		} else if (field.getDeclClass().getFullName().startsWith(mth.getParentClass().getPackage() + ".R")) {
-			return  field.getDeclClass().getNameWithoutPackage() + '.' + field.getName();
-		} else {
-			return useClass(field.getDeclClass()) + '.' + field.getName();
 		}
+		// Android specific resources class handler
+		ClassInfo parentClass = declClass.getParentClass();
+		if (parentClass != null && parentClass.getShortName().equals("R")) {
+			return  useClass(parentClass) + "." + declClass.getShortName() + "." + field.getName();
+		}
+		return useClass(declClass) + '.' + field.getName();
 	}
 
 	private void fieldPut(IndexInsnNode insn) {
