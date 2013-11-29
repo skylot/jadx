@@ -1,15 +1,28 @@
 package jadx.core.dex.visitors;
 
 import jadx.core.deobf.NameMapper;
+import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.info.MethodInfo;
-import jadx.core.dex.instructions.*;
-import jadx.core.dex.instructions.args.*;
+import jadx.core.dex.instructions.ConstClassNode;
+import jadx.core.dex.instructions.ConstStringNode;
+import jadx.core.dex.instructions.FillArrayNode;
+import jadx.core.dex.instructions.IndexInsnNode;
+import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.InvokeNode;
+import jadx.core.dex.instructions.SwitchNode;
+import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.LiteralArg;
+import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
-import jadx.core.dex.nodes.*;
+import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.InsnNode;
+import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
-import jadx.core.utils.BlockUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.List;
@@ -26,9 +39,9 @@ public class ModVisitor extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) {
-		if (mth.isNoCode())
+		if (mth.isNoCode()) {
 			return;
-
+		}
 		removeStep(mth);
 		replaceStep(mth);
 
@@ -40,6 +53,7 @@ public class ModVisitor extends AbstractVisitor {
 	}
 
 	private void replaceStep(MethodNode mth) {
+		ClassNode parentClass = mth.getParentClass();
 		ConstructorInsn superCall = null;
 		for (BlockNode block : mth.getBasicBlocks()) {
 			InstructionRemover remover = new InstructionRemover(block.getInstructions());
@@ -47,9 +61,6 @@ public class ModVisitor extends AbstractVisitor {
 			int size = block.getInstructions().size();
 			for (int i = 0; i < size; i++) {
 				InsnNode insn = block.getInstructions().get(i);
-				ClassNode parentClass = mth.getParentClass();
-				FieldNode f = null;
-
 				switch (insn.getType()) {
 					case INVOKE:
 						InvokeNode inv = (InvokeNode) insn;
@@ -58,18 +69,17 @@ public class ModVisitor extends AbstractVisitor {
 							ConstructorInsn co = new ConstructorInsn(mth, inv);
 							if (co.isSuper()) {
 								try {
-									if (co.getArgsCount() != 0) {
-										// inline super call args
-										for (int j = 0; j < co.getArgsCount(); j++) {
-											InsnArg arg = co.getArg(j);
-											if (arg.isRegister()) {
-												CodeShrinker.inlineArgument(mth, (RegisterArg) arg);
-											}
+									// inline super call args
+									for (int j = 0; j < co.getArgsCount(); j++) {
+										InsnArg arg = co.getArg(j);
+										if (arg.isRegister()) {
+											CodeShrinker.inlineArgument(mth, (RegisterArg) arg);
 										}
 									}
 								} catch (JadxRuntimeException e) {
 									// inline args into super fail
 									LOG.warn("Can't inline args into super call: " + inv + ", mth: " + mth);
+									mth.getAttributes().add(AttributeFlag.INCONSISTENT_CODE);
 								} finally {
 									superCall = co;
 									remover.add(insn);
@@ -91,7 +101,7 @@ public class ModVisitor extends AbstractVisitor {
 								for (int j = 0; j < inv.getArgsCount(); j++) {
 									InsnArg arg = inv.getArg(j);
 									if (arg.isLiteral()) {
-										f = parentClass.getConstFieldByLiteralArg((LiteralArg) arg);
+										FieldNode f = parentClass.getConstFieldByLiteralArg((LiteralArg) arg);
 										if (f != null) {
 											arg.wrapInstruction(new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0));
 										}
@@ -103,7 +113,8 @@ public class ModVisitor extends AbstractVisitor {
 
 					case CONST:
 					case CONST_STR:
-					case CONST_CLASS:
+					case CONST_CLASS: {
+						FieldNode f;
 						if (insn.getType() == InsnType.CONST_STR) {
 							String s = ((ConstStringNode) insn).getString();
 							f = parentClass.getConstField(s);
@@ -119,11 +130,12 @@ public class ModVisitor extends AbstractVisitor {
 							replaceInsn(block, i, inode);
 						}
 						break;
+					}
 
 					case SWITCH:
 						SwitchNode sn = (SwitchNode) insn;
 						for (int k = 0; k < sn.getCasesCount(); k++) {
-							f = parentClass.getConstField(sn.getKeys()[k]);
+							FieldNode f = parentClass.getConstField(sn.getKeys()[k]);
 							if (f != null) {
 								sn.getKeys()[k] = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
 							}
@@ -131,10 +143,9 @@ public class ModVisitor extends AbstractVisitor {
 						break;
 
 					case RETURN:
-						if (insn.getArgsCount() > 0
-						&&  insn.getArg(0).isLiteral()) {
+						if (insn.getArgsCount() > 0 && insn.getArg(0).isLiteral()) {
 							LiteralArg arg = (LiteralArg) insn.getArg(0);
-							f = parentClass.getConstFieldByLiteralArg(arg);
+							FieldNode f = parentClass.getConstFieldByLiteralArg(arg);
 							if (f != null) {
 								arg.wrapInstruction(new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0));
 							}
@@ -147,7 +158,7 @@ public class ModVisitor extends AbstractVisitor {
 			}
 			remover.perform();
 		}
-		if (superCall != null && !mth.getParentClass().isEnum()) {
+		if (superCall != null && !parentClass.isEnum() && superCall.getArgsCount() != 0) {
 			List<InsnNode> insns = mth.getEnterBlock().getInstructions();
 			insns.add(0, superCall);
 		}
@@ -204,9 +215,9 @@ public class ModVisitor extends AbstractVisitor {
 
 	private void processExceptionHander(MethodNode mth, BlockNode block) {
 		ExcHandlerAttr handlerAttr = (ExcHandlerAttr) block.getAttributes().get(AttributeType.EXC_HANDLER);
-		if (handlerAttr == null)
+		if (handlerAttr == null) {
 			return;
-
+		}
 		ExceptionHandler excHandler = handlerAttr.getHandler();
 		boolean noExitNode = true; // check if handler has exit edge to block not from this handler
 		for (BlockNode excBlock : excHandler.getBlocks()) {
@@ -259,18 +270,6 @@ public class ModVisitor extends AbstractVisitor {
 		InsnNode prevInsn = block.getInstructions().get(i);
 		insn.getAttributes().addAll(prevInsn.getAttributes());
 		block.getInstructions().set(i, insn);
-	}
-
-	/**
-	 * Replace oldInsn in block by newInsn,
-	 */
-	public static boolean replaceInsn(BlockNode block, InsnNode oldInsn, InsnNode newInsn) {
-		int pos = BlockUtils.insnIndex(block, oldInsn);
-		if (pos == -1)
-			return false;
-
-		replaceInsn(block, pos, newInsn);
-		return true;
 	}
 
 	private void checkArgsNames(MethodNode mth) {
