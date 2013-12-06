@@ -1,5 +1,7 @@
 ext.jadxVersion = file('version').readLines().get(0)
 
+apply plugin: 'sonar-runner'
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
