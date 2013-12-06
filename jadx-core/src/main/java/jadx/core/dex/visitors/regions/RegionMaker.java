@@ -186,7 +186,7 @@ public class RegionMaker {
 				if (loopRegion.isConditionAtEnd()) {
 					// TODO: add some checks
 				} else {
-					if (condBlock != loop.getStart()) {
+					if (condBlock != loopStart) {
 						if (condBlock.getPredecessors().contains(loopStart)) {
 							loopRegion.setPreCondition(loopStart);
 							// if we can't merge pre-condition this is not correct header
@@ -492,10 +492,8 @@ public class RegionMaker {
 					IfCondition nestedCondition = IfCondition.fromIfNode(nestedIfInsn);
 					if (isPathExists(bElse, nestedIfBlock)) {
 						// else branch
-						if (bThen != nbThen
-						&&  !isEqualReturns(bThen, nbThen)) {
-							if (bThen != nbElse
-							&&  !isEqualReturns(bThen, nbElse)) {
+						if (!isEqualReturns(bThen, nbThen)) {
+							if (!isEqualReturns(bThen, nbElse)) {
 								// not connected conditions
 								break;
 							}
@@ -505,10 +503,8 @@ public class RegionMaker {
 						condition = IfCondition.merge(Mode.OR, condition, nestedCondition);
 					} else {
 						// then branch
-						if (bElse != nbElse
-						&&  !isEqualReturns(bElse, nbElse)) {
-							if (bElse != nbThen
-							&&  !isEqualReturns(bElse, nbThen)) {
+						if (!isEqualReturns(bElse, nbElse)) {
+							if (!isEqualReturns(bElse, nbThen)) {
 								// not connected conditions
 								break;
 							}
@@ -693,21 +689,20 @@ public class RegionMaker {
 		if (b1 == b2) {
 			return true;
 		}
-		if (b1 == null
-		||  b2 == null) {
+		if (b1 == null || b2 == null) {
 			return false;
 		}
-		if (b1.getInstructions().size()
-		+   b2.getInstructions().size() != 2) {
+		List<InsnNode> b1Insns = b1.getInstructions();
+		List<InsnNode> b2Insns = b2.getInstructions();
+		if (b1Insns.size() != 1 || b2Insns.size() != 1) {
 			return false;
 		}
 		if (!b1.getAttributes().contains(AttributeFlag.RETURN)
-		||  !b2.getAttributes().contains(AttributeFlag.RETURN)) {
+				|| !b2.getAttributes().contains(AttributeFlag.RETURN)) {
 			return false;
 		}
-		if (b1.getInstructions().get(0).getArgsCount() > 0) {
-			if (b1.getInstructions().get(0).getArg(0)
-			!=  b2.getInstructions().get(0).getArg(0)) {
+		if (b1Insns.get(0).getArgsCount() > 0) {
+			if (b1Insns.get(0).getArg(0) != b2Insns.get(0).getArg(0)) {
 				return false;
 			}
 		}

@@ -87,10 +87,6 @@ public abstract class InsnArg extends Typed {
 			case MOVE:
 			case CONST:
 				arg = insn.getArg(0);
-				String name = insn.getResult().getTypedVar().getName();
-				if (name != null) {
-					arg.getTypedVar().setName(name);
-				}
 				break;
 			case CONST_STR:
 				arg = wrap(insn);

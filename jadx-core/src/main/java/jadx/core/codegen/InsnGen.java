@@ -128,7 +128,9 @@ public class InsnGen {
 
 	private String ifield(FieldInfo field, InsnArg arg) throws CodegenException {
 		String name = field.getName();
-		if (arg.isThis()) {
+		// TODO: add jadx argument ""
+		// FIXME: check variable names in scope
+		if (false && arg.isThis()) {
 			boolean useShort = true;
 			List<RegisterArg> args = mth.getArguments(false);
 			for (RegisterArg param : args) {
@@ -138,7 +140,7 @@ public class InsnGen {
 				}
 			}
 			if (useShort) {
-				return name; // FIXME: check variable names in scope
+				return name;
 			}
 		}
 		return arg(arg) + "." + name;
@@ -672,7 +674,7 @@ public class InsnGen {
 				// "++" or "--"
 				if (insn.getArg(1).isLiteral() && (op == ArithOp.ADD || op == ArithOp.SUB)) {
 					LiteralArg lit = (LiteralArg) insn.getArg(1);
-					if (Math.abs(lit.getLiteral()) == 1 && lit.isInteger()) {
+					if (lit.isInteger() && lit.getLiteral() == 1) {
 						code.add(assignVar(insn)).add(op.getSymbol()).add(op.getSymbol());
 						return;
 					}

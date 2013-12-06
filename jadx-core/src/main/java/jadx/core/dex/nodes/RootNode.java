@@ -66,7 +66,9 @@ public class RootNode {
 		for (ClassNode cls : inner) {
 			ClassNode parent = resolveClass(cls.getClassInfo().getParentClass());
 			if (parent == null) {
+				names.remove(cls.getFullName());
 				cls.getClassInfo().notInner();
+				names.put(cls.getFullName(), cls);
 			} else {
 				parent.addInnerClass(cls);
 			}

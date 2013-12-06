@@ -12,6 +12,7 @@ import jadx.core.dex.visitors.FallbackModeVisitor;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.MethodInlinerVisitor;
 import jadx.core.dex.visitors.ModVisitor;
+import jadx.core.dex.visitors.SimplifyVisitor;
 import jadx.core.dex.visitors.regions.CheckRegions;
 import jadx.core.dex.visitors.regions.CleanRegions;
 import jadx.core.dex.visitors.regions.PostRegionVisitor;
@@ -50,11 +51,12 @@ public class Jadx {
 			passes.add(new BlockMakerVisitor());
 
 			passes.add(new TypeResolver());
-			passes.add(new ConstInlinerVisitor());
-			passes.add(new FinishTypeResolver());
 
 			if (args.isRawCFGOutput())
 				passes.add(new DotGraphVisitor(outDir, false, true));
+
+			passes.add(new ConstInlinerVisitor());
+			passes.add(new FinishTypeResolver());
 
 			passes.add(new ModVisitor());
 			passes.add(new EnumVisitor());
@@ -66,6 +68,7 @@ public class Jadx {
 			passes.add(new PostRegionVisitor());
 
 			passes.add(new CodeShrinker());
+			passes.add(new SimplifyVisitor());
 			passes.add(new ProcessVariables());
 			passes.add(new CheckRegions());
 			if (args.isCFGOutput())

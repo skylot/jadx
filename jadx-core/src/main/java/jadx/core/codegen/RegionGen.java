@@ -16,6 +16,7 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
@@ -134,6 +135,19 @@ public class RegionGen extends InsnGen {
 	}
 
 	private CodeWriter makeLoop(LoopRegion region, CodeWriter code) throws CodegenException {
+		BlockNode header = region.getHeader();
+		if (header != null) {
+			List<InsnNode> headerInsns = header.getInstructions();
+			if (headerInsns.size() > 1) {
+				// write not inlined instructions from header
+				mth.getAttributes().add(AttributeFlag.INCONSISTENT_CODE);
+				for (int i = 0; i < headerInsns.size() - 1; i++) {
+					InsnNode insn = headerInsns.get(i);
+					makeInsn(insn, code);
+				}
+			}
+		}
+
 		IfCondition condition = region.getCondition();
 		if (condition == null) {
 			// infinite loop

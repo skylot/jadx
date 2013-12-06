@@ -58,7 +58,7 @@ public class TestLoopCondition extends InternalJadxTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsString("i < f.length()"));
+		assertThat(code, containsString("i < this.f.length()"));
 		assertThat(code, containsString("while (a && i < 10) {"));
 		assertThat(code, containsString("list.set(i, \"ABC\")"));
 		assertThat(code, containsString("list.set(i, \"DEF\")"));

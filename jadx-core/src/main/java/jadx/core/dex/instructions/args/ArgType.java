@@ -339,15 +339,16 @@ public abstract class ArgType {
 	}
 
 	public static ArgType merge(ArgType a, ArgType b) {
-		if (a.equals(b))
-			return a;
-
-		if (b == null || a == null)
+		if (b == null || a == null) {
 			return null;
-
+		}
+		if (a.equals(b)) {
+			return a;
+		}
 		ArgType res = mergeInternal(a, b);
-		if (res == null)
+		if (res == null) {
 			res = mergeInternal(b, a); // swap
+		}
 		return res;
 	}
 

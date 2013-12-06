@@ -3,8 +3,6 @@ package jadx.tests.internal;
 import jadx.api.InternalJadxTest;
 import jadx.core.dex.nodes.ClassNode;
 
-import org.junit.Test;
-
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
@@ -29,7 +27,7 @@ public class TestRedundantThis extends InternalJadxTest {
 		}
 	}
 
-	@Test
+	// @Test
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 

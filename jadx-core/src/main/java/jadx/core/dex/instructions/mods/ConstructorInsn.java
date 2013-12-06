@@ -11,6 +11,8 @@ import jadx.core.dex.nodes.MethodNode;
 public class ConstructorInsn extends InsnNode {
 
 	private final MethodInfo callMth;
+	private final CallType callType;
+	private final RegisterArg instanceArg;
 
 	private static enum CallType {
 		CONSTRUCTOR, // just new instance
@@ -19,30 +21,28 @@ public class ConstructorInsn extends InsnNode {
 		SELF // call itself
 	}
 
-	private CallType callType;
-
 	public ConstructorInsn(MethodNode mth, InvokeNode invoke) {
 		super(InsnType.CONSTRUCTOR, invoke.getArgsCount() - 1);
 		this.callMth = invoke.getCallMth();
 		ClassInfo classType = callMth.getDeclClass();
+		instanceArg = (RegisterArg) invoke.getArg(0);
+		instanceArg.setParentInsn(this);
 
-		if (invoke.getArg(0).isThis()) {
+		if (instanceArg.isThis()) {
 			if (classType.equals(mth.getParentClass().getClassInfo())) {
 				if (callMth.getShortId().equals(mth.getMethodInfo().getShortId())) {
 					// self constructor
 					callType = CallType.SELF;
-				} else if (mth.getMethodInfo().isConstructor()) {
+				} else {
 					callType = CallType.THIS;
 				}
 			} else {
 				callType = CallType.SUPER;
 			}
-		}
-		if (callType == null) {
+		} else {
 			callType = CallType.CONSTRUCTOR;
-			setResult((RegisterArg) invoke.getArg(0));
+			setResult(instanceArg);
 		}
-
 		for (int i = 1; i < invoke.getArgsCount(); i++) {
 			addArg(invoke.getArg(i));
 		}
@@ -51,6 +51,10 @@ public class ConstructorInsn extends InsnNode {
 
 	public MethodInfo getCallMth() {
 		return callMth;
+	}
+
+	public RegisterArg getInstanceArg() {
+		return instanceArg;
 	}
 
 	public ClassInfo getClassType() {

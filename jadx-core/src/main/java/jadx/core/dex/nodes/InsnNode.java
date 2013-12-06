@@ -133,6 +133,30 @@ public class InsnNode extends LineAttrNode {
 		}
 	}
 
+	public boolean canReorder() {
+		switch (getType()) {
+			case CONST:
+			case CONST_STR:
+			case CONST_CLASS:
+			case CAST:
+			case MOVE:
+			case ARITH:
+			case NEG:
+			case CMP_L:
+			case CMP_G:
+			case CHECK_CAST:
+			case INSTANCE_OF:
+			case FILL_ARRAY:
+			case FILLED_NEW_ARRAY:
+			case NEW_ARRAY:
+			case NEW_MULTIDIM_ARRAY:
+			case STR_CONCAT:
+			case MOVE_EXCEPTION:
+				return true;
+		}
+		return false;
+	}
+
 	@Override
 	public String toString() {
 		return InsnUtils.formatOffset(offset) + ": "

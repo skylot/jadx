@@ -164,6 +164,32 @@ public class TestCF3 extends AbstractTest {
 		return i;
 	}
 
+	private void f() {
+		try {
+			Thread.sleep(50);
+		} catch (InterruptedException e) {
+			// ignore
+		}
+	}
+
+	public long testInline() {
+		long l = System.nanoTime();
+		f();
+		return System.nanoTime() - l;
+	}
+
+	private int f2 = 1;
+
+	public void func() {
+		this.f2++;
+	}
+
+	public boolean testInline2() {
+		int a = this.f2;
+		func();
+		return a != this.f2;
+	}
+
 	@Override
 	public boolean testRun() throws Exception {
 		setEnabled(false);
@@ -200,6 +226,9 @@ public class TestCF3 extends AbstractTest {
 		assertEquals(testComplexIfInLoop3(2), 2);
 		assertEquals(testComplexIfInLoop3(6), 6);
 		assertEquals(testComplexIfInLoop3(8), 24);
+
+		assertTrue(testInline() > 20);
+		assertTrue(testInline2());
 		return true;
 	}
 

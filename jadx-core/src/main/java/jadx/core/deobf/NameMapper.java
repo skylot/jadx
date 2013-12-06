@@ -21,7 +21,7 @@ public class NameMapper {
 					"continue",
 					"default",
 					"do",
-					"double	",
+					"double",
 					"else",
 					"enum",
 					"extends",

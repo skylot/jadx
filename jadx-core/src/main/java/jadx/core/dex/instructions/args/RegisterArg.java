@@ -10,7 +10,6 @@ import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.parser.FieldValueAttr;
-import jadx.core.dex.visitors.InstructionRemover;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,10 +95,6 @@ public class RegisterArg extends InsnArg {
 			if (ai != null && ai.getType() == InsnType.MOVE) {
 				InsnArg arg = ai.getArg(0);
 				if (arg != this && arg.isThis()) {
-					// actually we need to remove this instruction but we can't
-					// because of iterating on instructions list
-					// so unbind insn and rely on code shrinker
-					InstructionRemover.unbindInsn(ai);
 					return true;
 				}
 			}

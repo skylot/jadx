@@ -87,18 +87,6 @@ public class BlockUtils {
 		return false;
 	}
 
-	/**
-	 * Return instruction position in block (use == for comparison, not equals)
-	 */
-	public static int insnIndex(BlockNode block, InsnNode insn) {
-		int size = block.getInstructions().size();
-		for (int i = 0; i < size; i++) {
-			if (block.getInstructions().get(i) == insn)
-				return i;
-		}
-		return -1;
-	}
-
 	public static boolean lastInsnType(BlockNode block, InsnType type) {
 		List<InsnNode> insns = block.getInstructions();
 		if (insns.isEmpty())
@@ -188,6 +176,22 @@ public class BlockUtils {
 			return true;
 
 		return traverseSuccessorsUntil(start, end, new HashSet<BlockNode>());
+	}
+
+	public static boolean isOnlyOnePathExists(BlockNode start, BlockNode end) {
+		if (start == end) {
+			return true;
+		}
+		if (!end.isDominator(start)) {
+			return false;
+		}
+		while (start.getCleanSuccessors().size() == 1) {
+			start = start.getCleanSuccessors().get(0);
+			if (start == end) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

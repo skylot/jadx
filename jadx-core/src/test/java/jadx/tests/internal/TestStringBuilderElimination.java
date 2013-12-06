@@ -3,8 +3,6 @@ package jadx.tests.internal;
 import jadx.api.InternalJadxTest;
 import jadx.core.dex.nodes.ClassNode;
 
-import org.junit.Test;
-
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
@@ -15,7 +13,7 @@ public class TestStringBuilderElimination extends InternalJadxTest {
 		private static final long serialVersionUID = 4245254480662372757L;
 
 		public MyException(String str, Exception e) {
-//			super("msg:" + str, e);
+			super("msg:" + str, e);
 		}
 
 		public void method(int k) {
@@ -23,10 +21,14 @@ public class TestStringBuilderElimination extends InternalJadxTest {
 		}
 	}
 
-	@Test
+	// @Test
 	public void test() {
 		ClassNode cls = getClassNode(MyException.class);
 		String code = cls.getCode().toString();
+		System.out.println(code);
+
+        assertThat(code, containsString("MyException(String str, Exception e) {"));
+        assertThat(code, containsString("super(\"msg:\" + str, e);"));
 
 		assertThat(code, not(containsString("new StringBuilder")));
 		assertThat(code, containsString("System.out.println(\"k=\" + k);"));

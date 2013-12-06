@@ -19,6 +19,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 
 public abstract class InternalJadxTest {
@@ -32,14 +33,18 @@ public abstract class InternalJadxTest {
 			Decompiler d = new Decompiler();
 			try {
 				d.loadFile(temp);
-				assertEquals(d.getClasses().size(), 1);
 			} catch (Exception e) {
 				fail(e.getMessage());
-			} finally {
-				temp.delete();
 			}
 			List<ClassNode> classes = d.getRoot().getClasses(false);
-			ClassNode cls = classes.get(0);
+			String clsName = clazz.getName();
+			ClassNode cls = null;
+			for (ClassNode aClass : classes) {
+				if(aClass.getFullName().equals(clsName)) {
+					cls = aClass;
+				}
+			}
+			assertNotNull("Class not found: " + clsName, cls);
 
 			assertEquals(cls.getFullName(), clazz.getName());
 

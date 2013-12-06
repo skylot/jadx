@@ -40,10 +40,6 @@ public final class LoopRegion extends AbstractRegion {
 		return conditionBlock;
 	}
 
-	public void setHeader(BlockNode conditionBlock) {
-		this.conditionBlock = conditionBlock;
-	}
-
 	public IContainer getBody() {
 		return body;
 	}
@@ -64,7 +60,7 @@ public final class LoopRegion extends AbstractRegion {
 	}
 
 	private IfNode getIfInsn() {
-		return (IfNode) conditionBlock.getInstructions().get(conditionBlock.getInstructions().size() - 1);
+		return (IfNode) conditionBlock.getInstructions().get(0);
 	}
 
 	/**
@@ -108,10 +104,13 @@ public final class LoopRegion extends AbstractRegion {
 	 */
 	public void mergePreCondition() {
 		if (preCondition != null && conditionBlock != null) {
-			preCondition.getInstructions().addAll(conditionBlock.getInstructions());
-			conditionBlock.getInstructions().clear();
-			conditionBlock.getInstructions().addAll(preCondition.getInstructions());
-			preCondition.getInstructions().clear();
+			List<InsnNode> condInsns = conditionBlock.getInstructions();
+			List<InsnNode> preCondInsns = preCondition.getInstructions();
+			preCondInsns.addAll(condInsns);
+			condInsns.clear();
+			condInsns.addAll(preCondInsns);
+			preCondInsns.clear();
+			preCondition = null;
 		}
 	}
 
