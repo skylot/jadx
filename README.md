@@ -1,19 +1,20 @@
 ## JADX 
 **jadx** - Dex to Java decompiler
 
-Command line and GUI tools for produce Java source code from Android Dex files
+Command line and GUI tools for produce Java source code from Android Dex and Apk files
 
 Note: jadx-gui now in experimental stage
 
 
 ### Downloads
-Latest version available at 
-[github](https://github.com/skylot/jadx/releases) or 
-[sourceforge](http://sourceforge.net/projects/jadx/files/) 
+- [unstable](https://drone.io/github.com/skylot/jadx/files)
+[![Build Status](https://drone.io/github.com/skylot/jadx/status.png)](https://drone.io/github.com/skylot/jadx/latest)
+[![Build Status](https://travis-ci.org/skylot/jadx.png?branch=master)](https://travis-ci.org/skylot/jadx)
+- from [github](https://github.com/skylot/jadx/releases)
+- from [sourceforge](http://sourceforge.net/projects/jadx/files/) 
 
 
-### Build  [![Build Status](https://travis-ci.org/skylot/jadx.png?branch=master)](https://travis-ci.org/skylot/jadx)
-
+### Building from source  
     git clone https://github.com/skylot/jadx.git
     cd jadx
     ./gradlew dist
