@@ -297,6 +297,9 @@ public class ClassGen {
 		}
 
 		for (FieldNode f : fields) {
+			if(f.getAttributes().contains(AttributeFlag.DONT_GENERATE)) {
+				continue;
+			}
 			annotationGen.addForField(code, f);
 			code.startLine(f.getAccessFlags().makeString());
 			code.add(TypeGen.translate(this, f.getType()));

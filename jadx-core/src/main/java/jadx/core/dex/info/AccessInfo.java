@@ -105,10 +105,6 @@ public class AccessInfo {
 		return (accFlags & AccessFlags.ACC_VOLATILE) != 0;
 	}
 
-	public int getFlags() {
-		return accFlags;
-	}
-
 	public AFType getType() {
 		return type;
 	}
@@ -178,8 +174,21 @@ public class AccessInfo {
 		return code.toString();
 	}
 
+	public String rawString() {
+		switch (type){
+			case CLASS:
+				return AccessFlags.classString(accFlags);
+			case FIELD:
+				return AccessFlags.fieldString(accFlags);
+			case METHOD:
+				return AccessFlags.methodString(accFlags);
+			default:
+				return "?";
+		}
+	}
+
 	@Override
 	public String toString() {
-		return "AccessInfo: " + type + " " + accFlags + " (" + makeString() + ")";
+		return "AccessInfo: " + type + " 0x" + Integer.toHexString(accFlags) + " (" + rawString() + ")";
 	}
 }

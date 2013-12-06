@@ -1,5 +1,6 @@
 package jadx.core.codegen;
 
+import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.attributes.MethodInlineAttr;
@@ -127,8 +128,12 @@ public class InsnGen {
 	}
 
 	private String ifield(FieldInfo field, InsnArg arg) throws CodegenException {
+		FieldNode fieldNode = mth.getParentClass().searchField(field);
+		if(fieldNode != null && fieldNode.getAttributes().contains(AttributeFlag.DONT_GENERATE)) {
+			return "";
+		}
 		String name = field.getName();
-		// TODO: add jadx argument ""
+		// TODO: add jadx argument "add this"
 		// FIXME: check variable names in scope
 		if (false && arg.isThis()) {
 			boolean useShort = true;
@@ -143,7 +148,8 @@ public class InsnGen {
 				return name;
 			}
 		}
-		return arg(arg) + "." + name;
+		String argStr = arg(arg);
+		return argStr.isEmpty() ? name : argStr + "." + name;
 	}
 
 	protected String sfield(FieldInfo field) {
@@ -513,7 +519,7 @@ public class InsnGen {
 
 	private void makeConstructor(ConstructorInsn insn, CodeWriter code, EnumSet<IGState> state)
 			throws CodegenException {
-		ClassNode cls = root.resolveClass(insn.getClassType());
+		ClassNode cls = mth.dex().resolveClass(insn.getClassType());
 		if (cls != null && cls.isAnonymous()) {
 			// anonymous class construction
 			ClassInfo parent;
@@ -527,19 +533,21 @@ public class InsnGen {
 			code.incIndent(2);
 			new ClassGen(cls, mgen.getClassGen().getParentGen(), fallback).makeClassBody(code);
 			code.decIndent(2);
-		} else if (insn.isSuper()) {
-			code.add("super");
-			addArgs(code, insn, 0);
-		} else if (insn.isThis()) {
-			code.add("this");
-			addArgs(code, insn, 0);
-		} else if (insn.isSelf()) {
+			return;
+		}
+		if (insn.isSelf()) {
 			// skip
 			state.add(IGState.SKIP);
+			return;
+		}
+		if (insn.isSuper()) {
+			code.add("super");
+		} else if (insn.isThis()) {
+			code.add("this");
 		} else {
 			code.add("new ").add(useClass(insn.getClassType()));
-			addArgs(code, insn, 0);
 		}
+		generateArguments(code, insn, 0, mth.dex().resolveMethod(insn.getCallMth()));
 	}
 
 	private void makeInvoke(InvokeNode insn, CodeWriter code) throws CodegenException {
@@ -560,8 +568,12 @@ public class InsnGen {
 			case VIRTUAL:
 			case INTERFACE:
 				InsnArg arg = insn.getArg(0);
-				if (!arg.isThis()) { // FIXME: add 'this' for equals methods in scope
-					code.add(arg(arg)).add('.');
+				// FIXME: add 'this' for equals methods in scope
+				if (!arg.isThis()) {
+					String argStr = arg(arg);
+					if(!argStr.isEmpty()) {
+						code.add(argStr).add('.');
+					}
 				}
 				k++;
 				break;
@@ -581,11 +593,18 @@ public class InsnGen {
 				break;
 		}
 		code.add(callMth.getName());
-		if (callMthNode != null && callMthNode.isArgsOverload()) {
-			int argsCount = insn.getArgsCount();
-			List<ArgType> originalType = callMth.getArgumentsTypes();
-			int origPos = 0;
+		generateArguments(code, insn, k, callMthNode);
+	}
 
+	private void generateArguments(CodeWriter code, InsnNode insn, int k, MethodNode callMth) throws CodegenException {
+		if (callMth != null && callMth.getAttributes().contains(AttributeFlag.SKIP_FIRST_ARG)) {
+			k++;
+		}
+		int argsCount = insn.getArgsCount();
+		if (callMth != null && callMth.isArgsOverload()) {
+			// add additional argument casts for overloaded methods
+			List<ArgType> originalType = callMth.getMethodInfo().getArgumentsTypes();
+			int origPos = 0;
 			code.add('(');
 			for (int i = k; i < argsCount; i++) {
 				InsnArg arg = insn.getArg(i);
@@ -602,21 +621,16 @@ public class InsnGen {
 			}
 			code.add(')');
 		} else {
-			addArgs(code, insn, k);
-		}
-	}
-
-	private void addArgs(CodeWriter code, InsnNode insn, int k) throws CodegenException {
-		int argsCount = insn.getArgsCount();
-		code.add('(');
-		if (k < argsCount) {
-			code.add(arg(insn.getArg(k), false));
-			for (int i = k + 1; i < argsCount; i++) {
-				code.add(", ");
-				code.add(arg(insn.getArg(i), false));
+			code.add('(');
+			if (k < argsCount) {
+				code.add(arg(insn.getArg(k), false));
+				for (int i = k + 1; i < argsCount; i++) {
+					code.add(", ");
+					code.add(arg(insn.getArg(i), false));
+				}
 			}
+			code.add(')');
 		}
-		code.add(')');
 	}
 
 	private void inlineMethod(MethodNode callMthNode, InvokeNode insn, CodeWriter code) throws CodegenException {

@@ -229,6 +229,11 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		}
 	}
 
+	public RegisterArg removeFirstArgument() {
+		this.getAttributes().add(AttributeFlag.SKIP_FIRST_ARG);
+		return argsList.remove(0);
+	}
+
 	public RegisterArg getThisArg() {
 		return thisArg;
 	}

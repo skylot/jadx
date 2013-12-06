@@ -16,5 +16,7 @@ public enum AttributeFlag {
 	DONT_GENERATE,
 	SKIP,
 
+	SKIP_FIRST_ARG,
+
 	INCONSISTENT_CODE, // warning about incorrect decompilation
 }

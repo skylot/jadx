@@ -1,7 +1,6 @@
 package jadx.core.dex.visitors;
 
 import jadx.core.deobf.NameMapper;
-import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.ConstClassNode;
@@ -23,7 +22,6 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.List;
 
@@ -54,7 +52,6 @@ public class ModVisitor extends AbstractVisitor {
 
 	private void replaceStep(MethodNode mth) {
 		ClassNode parentClass = mth.getParentClass();
-		ConstructorInsn superCall = null;
 		for (BlockNode block : mth.getBasicBlocks()) {
 			InstructionRemover remover = new InstructionRemover(block.getInstructions());
 
@@ -67,32 +64,18 @@ public class ModVisitor extends AbstractVisitor {
 						MethodInfo callMth = inv.getCallMth();
 						if (callMth.isConstructor()) {
 							ConstructorInsn co = new ConstructorInsn(mth, inv);
-							if (co.isSuper()) {
-								try {
-									// inline super call args
-									for (int j = 0; j < co.getArgsCount(); j++) {
-										InsnArg arg = co.getArg(j);
-										if (arg.isRegister()) {
-											CodeShrinker.inlineArgument(mth, (RegisterArg) arg);
-										}
-									}
-								} catch (JadxRuntimeException e) {
-									// inline args into super fail
-									LOG.warn("Can't inline args into super call: " + inv + ", mth: " + mth);
-									mth.getAttributes().add(AttributeFlag.INCONSISTENT_CODE);
-								} finally {
-									superCall = co;
-									remover.add(insn);
-								}
+							boolean remove = false;
+							if (co.isSuper() && (co.getArgsCount() == 0 || parentClass.isEnum())) {
+								remove = true;
 							} else if (co.isThis() && co.getArgsCount() == 0) {
-								MethodNode defCo = mth.getParentClass()
-										.searchMethodByName(co.getCallMth().getShortId());
+								MethodNode defCo = mth.getParentClass().searchMethodByName(callMth.getShortId());
 								if (defCo == null || defCo.isNoCode()) {
 									// default constructor not implemented
-									remover.add(insn);
-								} else {
-									replaceInsn(block, i, co);
+									remove = true;
 								}
+							}
+							if (remove) {
+								remover.add(insn);
 							} else {
 								replaceInsn(block, i, co);
 							}
@@ -157,10 +140,6 @@ public class ModVisitor extends AbstractVisitor {
 				}
 			}
 			remover.perform();
-		}
-		if (superCall != null && !parentClass.isEnum() && superCall.getArgsCount() != 0) {
-			List<InsnNode> insns = mth.getEnterBlock().getInstructions();
-			insns.add(0, superCall);
 		}
 	}
 

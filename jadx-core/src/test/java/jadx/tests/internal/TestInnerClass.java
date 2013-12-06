@@ -27,7 +27,7 @@ public class TestInnerClass extends InternalJadxTest {
 		assertThat(code, containsString("Inner {"));
 		assertThat(code, containsString("Inner2 extends Thread {"));
 		assertThat(code, not(containsString("super();")));
-		// assertThat(code, not(containsString("this$0")));
-		// assertThat(code, not(containsString("/* synthetic */")));
+		assertThat(code, not(containsString("this$")));
+		assertThat(code, not(containsString("/* synthetic */")));
 	}
 }

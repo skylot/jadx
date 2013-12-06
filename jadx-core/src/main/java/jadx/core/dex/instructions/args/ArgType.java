@@ -82,7 +82,7 @@ public abstract class ArgType {
 		return new UnknownArg(types);
 	}
 
-	private static abstract class KnownTypeArg extends ArgType {
+	private abstract static class KnownTypeArg extends ArgType {
 		@Override
 		public boolean isTypeKnown() {
 			return true;
@@ -234,7 +234,7 @@ public abstract class ArgType {
 	}
 
 	private static final class UnknownArg extends ArgType {
-		private final PrimitiveType possibleTypes[];
+		private final PrimitiveType[] possibleTypes;
 
 		public UnknownArg(PrimitiveType[] types) {
 			this.possibleTypes = types;
@@ -253,19 +253,22 @@ public abstract class ArgType {
 
 		@Override
 		public boolean contains(PrimitiveType type) {
-			for (PrimitiveType t : possibleTypes)
-				if (t == type)
+			for (PrimitiveType t : possibleTypes) {
+				if (t == type) {
 					return true;
+				}
+			}
 			return false;
 		}
 
 		@Override
 		public ArgType selectFirst() {
 			PrimitiveType f = possibleTypes[0];
-			if (f == PrimitiveType.OBJECT || f == PrimitiveType.ARRAY)
+			if (f == PrimitiveType.OBJECT || f == PrimitiveType.ARRAY) {
 				return object(Consts.CLASS_OBJECT);
-			else
+			} else {
 				return primitive(f);
+			}
 		}
 
 		@Override
@@ -275,10 +278,11 @@ public abstract class ArgType {
 
 		@Override
 		public String toString() {
-			if (possibleTypes.length == PrimitiveType.values().length)
+			if (possibleTypes.length == PrimitiveType.values().length) {
 				return "?";
-			else
+			} else {
 				return "?" + Arrays.toString(possibleTypes);
+			}
 		}
 	}
 
@@ -358,32 +362,39 @@ public abstract class ArgType {
 		}
 		if (!a.isTypeKnown()) {
 			if (b.isTypeKnown()) {
-				if (a.contains(b.getPrimitiveType()))
+				if (a.contains(b.getPrimitiveType())) {
 					return b;
-				else
+				} else {
 					return null;
+				}
 			} else {
 				// both types unknown
 				List<PrimitiveType> types = new ArrayList<PrimitiveType>();
 				for (PrimitiveType type : a.getPossibleTypes()) {
-					if (b.contains(type))
+					if (b.contains(type)) {
 						types.add(type);
+					}
 				}
 				if (types.size() == 0) {
 					return null;
 				} else if (types.size() == 1) {
 					PrimitiveType nt = types.get(0);
-					if (nt == PrimitiveType.OBJECT || nt == PrimitiveType.ARRAY)
+					if (nt == PrimitiveType.OBJECT || nt == PrimitiveType.ARRAY) {
 						return unknown(nt);
-					else
+					} else {
 						return primitive(nt);
+					}
 				} else {
 					return unknown(types.toArray(new PrimitiveType[types.size()]));
 				}
 			}
 		} else {
-			if (a.isGenericType()) return a;
-			if (b.isGenericType()) return b;
+			if (a.isGenericType()) {
+				return a;
+			}
+			if (b.isGenericType()) {
+				return b;
+			}
 
 			if (a.isObject() && b.isObject()) {
 				String aObj = a.getObject();
@@ -450,19 +461,20 @@ public abstract class ArgType {
 
 	public static ArgType parseSignature(String sign) {
 		int b = sign.indexOf('<');
-		if (b == -1)
+		if (b == -1) {
 			return parse(sign);
-
-		if (sign.charAt(0) == '[')
+		}
+		if (sign.charAt(0) == '[') {
 			return array(parseSignature(sign.substring(1)));
-
+		}
 		String obj = sign.substring(0, b) + ";";
 		String genericsStr = sign.substring(b + 1, sign.length() - 2);
 		List<ArgType> generics = parseSignatureList(genericsStr);
-		if (generics != null)
+		if (generics != null) {
 			return generic(obj, generics.toArray(new ArgType[generics.size()]));
-		else
+		} else {
 			return object(obj);
+		}
 	}
 
 	public static List<ArgType> parseSignatureList(String str) {
@@ -481,7 +493,6 @@ public abstract class ArgType {
 		if (str.equals("*")) {
 			return Arrays.asList(UNKNOWN);
 		}
-
 		List<ArgType> signs = new ArrayList<ArgType>(3);
 		int obj = 0;
 		int objStart = 0;
@@ -513,8 +524,9 @@ public abstract class ArgType {
 					if (gen == 0) {
 						obj = 0;
 						String o = str.substring(objStart, pos);
-						if (o.length() > 0)
+						if (o.length() > 0) {
 							type = genericType(o);
+						}
 					}
 					break;
 
@@ -572,8 +584,9 @@ public abstract class ArgType {
 						}
 						prev = arg;
 					} else {
-						if (!arg.getObject().equals(Consts.CLASS_OBJECT))
+						if (!arg.getObject().equals(Consts.CLASS_OBJECT)) {
 							genList.add(arg);
+						}
 					}
 				}
 				if (prev != null) {
@@ -640,10 +653,18 @@ public abstract class ArgType {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) return true;
-		if (obj == null) return false;
-		if (hash != obj.hashCode()) return false;
-		if (getClass() != obj.getClass()) return false;
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (hash != obj.hashCode()) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
 		return internalEquals(obj);
 	}
 }
