@@ -3,7 +3,9 @@ jdk:
     - oraclejdk7
     - openjdk7
     - openjdk6
-script: gradle clean build
+before_install:
+    - chmod +x gradlew
+script: ./gradlew clean build dist
 notifications:
     email:
         - skylot@gmail.com
