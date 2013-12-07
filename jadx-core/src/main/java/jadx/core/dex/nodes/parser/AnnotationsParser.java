@@ -26,26 +26,26 @@ public class AnnotationsParser {
 		Section section = dex.openSection(offset);
 
 		// TODO read as unsigned int
-		int class_annotations_off = section.readInt();
-		int fields_size = section.readInt();
-		int annotated_methods_size = section.readInt();
-		int annotated_parameters_size = section.readInt();
+		int classAnnotationsOffset = section.readInt();
+		int fieldsCount = section.readInt();
+		int annotatedMethodsCount = section.readInt();
+		int annotatedParametersCount = section.readInt();
 
-		if (class_annotations_off != 0) {
-			cls.getAttributes().add(readAnnotationSet(class_annotations_off));
+		if (classAnnotationsOffset != 0) {
+			cls.getAttributes().add(readAnnotationSet(classAnnotationsOffset));
 		}
 
-		for (int i = 0; i < fields_size; i++) {
+		for (int i = 0; i < fieldsCount; i++) {
 			FieldNode f = cls.searchFieldById(section.readInt());
 			f.getAttributes().add(readAnnotationSet(section.readInt()));
 		}
 
-		for (int i = 0; i < annotated_methods_size; i++) {
+		for (int i = 0; i < annotatedMethodsCount; i++) {
 			MethodNode m = cls.searchMethodById(section.readInt());
 			m.getAttributes().add(readAnnotationSet(section.readInt()));
 		}
 
-		for (int i = 0; i < annotated_parameters_size; i++) {
+		for (int i = 0; i < annotatedParametersCount; i++) {
 			MethodNode mth = cls.searchMethodById(section.readInt());
 			// read annotation ref list
 			Section ss = dex.openSection(section.readInt());
@@ -72,7 +72,7 @@ public class AnnotationsParser {
 		return new AnnotationsList(list);
 	}
 
-	private static final Annotation.Visibility[] visibilities = new Annotation.Visibility[]{
+	private static final Annotation.Visibility[] VISIBILITIES = new Annotation.Visibility[]{
 			Annotation.Visibility.BUILD,
 			Annotation.Visibility.RUNTIME,
 			Annotation.Visibility.SYSTEM
@@ -82,7 +82,7 @@ public class AnnotationsParser {
 		EncValueParser parser = new EncValueParser(dex, s);
 		Visibility visibility = null;
 		if (readVisibility) {
-			visibility = visibilities[s.readByte()];
+			visibility = VISIBILITIES[s.readByte()];
 		}
 		int typeIndex = s.readUleb128();
 		int size = s.readUleb128();

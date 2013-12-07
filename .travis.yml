@@ -5,7 +5,8 @@ jdk:
     - openjdk6
 before_install:
     - chmod +x gradlew
-script: ./gradlew clean build dist
+script:
+    - TERM=dumb ./gradlew clean build dist
 notifications:
     email:
         - skylot@gmail.com

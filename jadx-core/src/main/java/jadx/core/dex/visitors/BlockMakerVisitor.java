@@ -29,7 +29,7 @@ import java.util.Set;
 public class BlockMakerVisitor extends AbstractVisitor {
 
 	// leave these instructions alone in block node
-	private static final Set<InsnType> separateInsns = EnumSet.of(
+	private static final Set<InsnType> SEPARATE_INSNS = EnumSet.of(
 			InsnType.RETURN,
 			InsnType.IF,
 			InsnType.SWITCH,
@@ -65,7 +65,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 				if (type == InsnType.RETURN
 						|| type == InsnType.GOTO
 						|| type == InsnType.THROW
-						|| separateInsns.contains(type)) {
+						|| SEPARATE_INSNS.contains(type)) {
 
 					if (type == InsnType.RETURN || type == InsnType.THROW)
 						mth.addExitBlock(curBlock);
@@ -77,7 +77,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 					startNew = true;
 				} else {
 					type = insn.getType();
-					startNew = separateInsns.contains(type);
+					startNew = SEPARATE_INSNS.contains(type);
 
 					List<IAttribute> pjumps = prevInsn.getAttributes().getAll(AttributeType.JUMP);
 					if (pjumps.size() > 0) {
@@ -371,10 +371,11 @@ public class BlockMakerVisitor extends AbstractVisitor {
 							newRetBlock = startNewBlock(mth, block.getStartOffset());
 							newRetBlock.getAttributes().add(AttributeFlag.SYNTHETIC);
 
-							if (pred.getSuccessors().get(0) == block) {
-								pred.getSuccessors().set(0, newRetBlock);
-							} else if (pred.getSuccessors().get(1) == block){
-								pred.getSuccessors().set(1, newRetBlock);
+							List<BlockNode> successors = pred.getSuccessors();
+							if (successors.get(0) == block) {
+								successors.set(0, newRetBlock);
+							} else if (successors.get(1) == block){
+								successors.set(1, newRetBlock);
 							}
 							block.getPredecessors().remove(pred);
 							newRetBlock.getPredecessors().add(pred);
@@ -427,5 +428,4 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			block.getDominatesOn().clear();
 		}
 	}
-
 }

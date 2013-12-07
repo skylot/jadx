@@ -51,11 +51,11 @@ public class DebugInfoParser {
 		int addr = 0;
 		int line = section.readUleb128();
 
-		int param_size = section.readUleb128(); // exclude 'this'
+		int paramsCount = section.readUleb128(); // exclude 'this'
 		List<RegisterArg> mthArgs = mth.getArguments(false);
-		assert param_size == mthArgs.size();
+		assert paramsCount == mthArgs.size();
 
-		for (int i = 0; i < param_size; i++) {
+		for (int i = 0; i < paramsCount; i++) {
 			int id = section.readUleb128() - 1;
 			if (id != DexNode.NO_INDEX) {
 				String name = dex.getString(id);
@@ -137,9 +137,9 @@ public class DebugInfoParser {
 
 				default: {
 					if (c >= DBG_FIRST_SPECIAL) {
-						int adjusted_opcode = c - DBG_FIRST_SPECIAL;
-						line += DBG_LINE_BASE + (adjusted_opcode % DBG_LINE_RANGE);
-						int addrInc = (adjusted_opcode / DBG_LINE_RANGE);
+						int adjustedOpcode = c - DBG_FIRST_SPECIAL;
+						line += DBG_LINE_BASE + (adjustedOpcode % DBG_LINE_RANGE);
+						int addrInc = (adjustedOpcode / DBG_LINE_RANGE);
 						addr = addrChange(addr, addrInc, line);
 					} else {
 						throw new DecodeException("Unknown debug insn code: " + c);

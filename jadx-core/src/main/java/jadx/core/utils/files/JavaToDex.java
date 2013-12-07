@@ -26,11 +26,10 @@ public class JavaToDex {
 	private String dxErrors;
 
 	public byte[] convert(String javaFile) throws JadxException {
+		ByteArrayOutputStream errOut = new ByteArrayOutputStream();
+		DxConsole.err = new PrintStream(errOut);
 
-		ByteArrayOutputStream err_out = new ByteArrayOutputStream();
-		DxConsole.err = new PrintStream(err_out);
-
-		PrintStream old_out = System.out;
+		PrintStream oldOut = System.out;
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
 			System.setOut(new PrintStream(baos));
@@ -40,11 +39,10 @@ public class JavaToDex {
 		} catch (Throwable e) {
 			throw new JadxException("dx exception: " + e.getMessage(), e);
 		} finally {
-			System.setOut(old_out);
+			System.setOut(oldOut);
 		}
-
-		// err_out also contains warnings
-		dxErrors = err_out.toString();
+		// errOut also contains warnings
+		dxErrors = errOut.toString();
 		return baos.toByteArray();
 	}
 

@@ -6,10 +6,10 @@ import jadx.core.dex.nodes.MethodNode;
 
 public interface IRegionVisitor {
 
-	public void processBlock(MethodNode mth, IBlock container);
+	void processBlock(MethodNode mth, IBlock container);
 
-	public void enterRegion(MethodNode mth, IRegion region);
+	void enterRegion(MethodNode mth, IRegion region);
 
-	public void leaveRegion(MethodNode mth, IRegion region);
+	void leaveRegion(MethodNode mth, IRegion region);
 
 }

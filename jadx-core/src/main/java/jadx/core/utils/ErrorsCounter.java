@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 public class ErrorsCounter {
 	private static final Logger LOG = LoggerFactory.getLogger(ErrorsCounter.class);
 
-	private static final Set<Object> errorNodes = new HashSet<Object>();
+	private static final Set<Object> ERROR_NODES = new HashSet<Object>();
 	private static int errorsCount = 0;
 
 	public static int getErrorCount() {
@@ -23,12 +23,12 @@ public class ErrorsCounter {
 	}
 
 	public static void reset() {
-		errorNodes.clear();
+		ERROR_NODES.clear();
 		errorsCount = 0;
 	}
 
 	private static void addError(IAttributeNode node, String msg, Throwable e) {
-		errorNodes.add(node);
+		ERROR_NODES.add(node);
 		errorsCount++;
 
 		if (e != null) {
@@ -65,7 +65,7 @@ public class ErrorsCounter {
 	public static void printReport() {
 		if (getErrorCount() > 0) {
 			LOG.error(getErrorCount() + " errors occured in following nodes:");
-			for (Object node : errorNodes) {
+			for (Object node : ERROR_NODES) {
 				LOG.error("  " + node.getClass().getSimpleName() + ": " + node);
 			}
 			// LOG.error("You can run jadx with '-f' option to view low level instructions");

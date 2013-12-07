@@ -4,8 +4,8 @@ import java.util.List;
 
 public interface IRegion extends IContainer {
 
-	public IRegion getParent();
+	IRegion getParent();
 
-	public List<IContainer> getSubBlocks();
+	List<IContainer> getSubBlocks();
 
 }

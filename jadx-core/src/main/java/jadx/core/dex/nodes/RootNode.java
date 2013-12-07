@@ -15,7 +15,6 @@ import java.util.Map;
 public class RootNode {
 	private final Map<String, ClassNode> names = new HashMap<String, ClassNode>();
 	private List<DexNode> dexNodes;
-	private ClspGraph clsp;
 
 	public void load(List<InputFile> dexFiles) throws DecodeException {
 		dexNodes = new ArrayList<DexNode>(dexFiles.size());
@@ -49,7 +48,7 @@ public class RootNode {
 	}
 
 	private void initClassPath(List<ClassNode> classes) throws IOException, DecodeException {
-		clsp = new ClspGraph();
+		ClspGraph clsp = new ClspGraph();
 		clsp.load();
 		clsp.addApp(classes);
 

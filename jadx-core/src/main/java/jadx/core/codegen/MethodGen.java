@@ -287,9 +287,9 @@ public class MethodGen {
 			}
 			try {
 				if (insnGen.makeInsn(insn, code)) {
-					CatchAttr _catch = (CatchAttr) attrs.get(AttributeType.CATCH_BLOCK);
-					if (_catch != null)
-						code.add("\t //" + _catch);
+					CatchAttr catchAttr = (CatchAttr) attrs.get(AttributeType.CATCH_BLOCK);
+					if (catchAttr != null)
+						code.add("\t //" + catchAttr);
 				}
 			} catch (CodegenException e) {
 				code.startLine("// error: " + insn);

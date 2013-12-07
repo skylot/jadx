@@ -9,11 +9,11 @@ public interface ILoadable {
 	 *
 	 * @throws DecodeException
 	 */
-	public void load() throws DecodeException;
+	void load() throws DecodeException;
 
 	/**
 	 * Free resources
 	 */
-	public void unload();
+	void unload();
 
 }

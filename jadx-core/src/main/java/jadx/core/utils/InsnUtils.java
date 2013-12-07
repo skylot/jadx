@@ -1,6 +1,7 @@
 package jadx.core.utils;
 
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import com.android.dx.io.instructions.DecodedInstruction;
 
@@ -19,7 +20,7 @@ public class InsnUtils {
 			case 4:
 				return insn.getE();
 		}
-		throw new RuntimeException("Wrong argument number: " + arg);
+		throw new JadxRuntimeException("Wrong argument number: " + arg);
 	}
 
 	public static String formatOffset(int offset) {

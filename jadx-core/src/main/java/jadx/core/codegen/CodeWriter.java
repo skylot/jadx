@@ -19,7 +19,7 @@ public class CodeWriter {
 	public static final String NL = System.getProperty("line.separator");
 	private static final String INDENT = "\t";
 
-	private StringBuilder buf = new StringBuilder();
+	private final StringBuilder buf = new StringBuilder();
 	private String indentStr;
 	private int indent;
 

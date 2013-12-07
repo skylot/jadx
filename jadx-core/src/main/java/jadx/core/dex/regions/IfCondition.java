@@ -4,6 +4,7 @@ import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IfOp;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -131,7 +132,7 @@ public final class IfCondition {
 				}
 				return new IfCondition(mode == Mode.AND ? Mode.OR : Mode.AND, newArgs);
 		}
-		throw new RuntimeException("Unknown mode for invert: " + mode);
+		throw new JadxRuntimeException("Unknown mode for invert: " + mode);
 	}
 
 	@Override

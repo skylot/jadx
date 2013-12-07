@@ -13,7 +13,7 @@ public class OverlayIcon implements Icon {
 
 	private static final double A = 0.8;
 	private static final double B = 0.2;
-	private static final double[] pos = new double[]{A, B, B, B, A, A, B, A};
+	private static final double[] OVERLAY_POS = new double[]{A, B, B, B, A, A, B, A};
 
 	public OverlayIcon(Icon icon) {
 		this.icon = icon;
@@ -37,8 +37,8 @@ public class OverlayIcon implements Icon {
 		icon.paintIcon(c, g, x, y);
 		int k = 0;
 		for (Icon icon : icons) {
-			int dx = (int) (pos[k++] * (w - icon.getIconWidth()));
-			int dy = (int) (pos[k++] * (h - icon.getIconHeight()));
+			int dx = (int) (OVERLAY_POS[k++] * (w - icon.getIconWidth()));
+			int dy = (int) (OVERLAY_POS[k++] * (h - icon.getIconHeight()));
 			icon.paintIcon(c, g, x + dx, y + dy);
 		}
 	}

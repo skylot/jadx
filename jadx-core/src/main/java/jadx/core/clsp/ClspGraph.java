@@ -2,6 +2,7 @@ package jadx.core.clsp;
 
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.utils.exceptions.DecodeException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -20,8 +21,8 @@ import org.slf4j.LoggerFactory;
 public class ClspGraph {
 	private static final Logger LOG = LoggerFactory.getLogger(ClspGraph.class);
 
+	private final Map<String, Set<String>> ancestorCache = new WeakHashMap<String, Set<String>>();
 	private Map<String, NClass> nameMap;
-	private Map<String, Set<String>> ancestorCache = new WeakHashMap<String, Set<String>>();
 
 	public void load() throws IOException, DecodeException {
 		ClsSet set = new ClsSet();
@@ -30,20 +31,17 @@ public class ClspGraph {
 	}
 
 	public void addClasspath(ClsSet set) {
-		NClass[] arr = set.getClasses();
 		if (nameMap == null) {
-			nameMap = new HashMap<String, NClass>(arr.length);
-			for (NClass cls : arr) {
-				nameMap.put(cls.getName(), cls);
-			}
+			nameMap = new HashMap<String, NClass>(set.getClassesCount());
+			set.addToMap(nameMap);
 		} else {
-			throw new RuntimeException("Classpath already loaded");
+			throw new JadxRuntimeException("Classpath already loaded");
 		}
 	}
 
 	public void addApp(List<ClassNode> classes) {
 		if (nameMap == null) {
-			throw new RuntimeException("Classpath must be loaded first");
+			throw new JadxRuntimeException("Classpath must be loaded first");
 		}
 		int size = classes.size();
 		NClass[] nClasses = new NClass[size];

@@ -255,8 +255,8 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		// and we don't need this mapping anymore,
 		// but in maven repository still old version
 		Set<Integer> handlerSet = new HashSet<Integer>(tries.length);
-		for (Try try_ : tries) {
-			handlerSet.add(try_.getHandlerOffset());
+		for (Try aTry : tries) {
+			handlerSet.add(aTry.getHandlerOffset());
 		}
 		List<Integer> handlerList = new ArrayList<Integer>(catchBlocks.length);
 		handlerList.addAll(handlerSet);
@@ -268,17 +268,17 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		Set<Integer> addrs = new HashSet<Integer>();
 		List<TryCatchBlock> catches = new ArrayList<TryCatchBlock>(catchBlocks.length);
 
-		for (CatchHandler catch_ : catchBlocks) {
+		for (CatchHandler handler : catchBlocks) {
 			TryCatchBlock tcBlock = new TryCatchBlock();
 			catches.add(tcBlock);
-			for (int i = 0; i < catch_.getAddresses().length; i++) {
-				int addr = catch_.getAddresses()[i];
-				ClassInfo type = ClassInfo.fromDex(parentClass.dex(), catch_.getTypeIndexes()[i]);
+			for (int i = 0; i < handler.getAddresses().length; i++) {
+				int addr = handler.getAddresses()[i];
+				ClassInfo type = ClassInfo.fromDex(parentClass.dex(), handler.getTypeIndexes()[i]);
 				tcBlock.addHandler(this, addr, type);
 				addrs.add(addr);
 				hc++;
 			}
-			int addr = catch_.getCatchAllAddress();
+			int addr = handler.getCatchAllAddress();
 			if (addr >= 0) {
 				tcBlock.addHandler(this, addr, null);
 				addrs.add(addr);
@@ -309,11 +309,11 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		}
 
 		// attach TRY_ENTER, TRY_LEAVE attributes to instructions
-		for (Try try_ : tries) {
-			int catchNum = handlerList.indexOf(try_.getHandlerOffset());
+		for (Try aTry : tries) {
+			int catchNum = handlerList.indexOf(aTry.getHandlerOffset());
 			TryCatchBlock block = catches.get(catchNum);
-			int offset = try_.getStartAddress();
-			int end = offset + try_.getInstructionCount() - 1;
+			int offset = aTry.getStartAddress();
+			int end = offset + aTry.getInstructionCount() - 1;
 
 			insnByOffset[offset].getAttributes().add(AttributeFlag.TRY_ENTER);
 			while (offset <= end && offset >= 0) {

@@ -2,6 +2,7 @@ package jadx.cli;
 
 import jadx.api.Decompiler;
 import jadx.core.utils.ErrorsCounter;
+import jadx.core.utils.exceptions.JadxException;
 
 import java.io.File;
 
@@ -39,7 +40,7 @@ public class JadxCLI {
 		System.exit(errorsCount);
 	}
 
-	private static void checkArgs(JadxCLIArgs jadxArgs) throws Exception {
+	private static void checkArgs(JadxCLIArgs jadxArgs) throws JadxException {
 		if (jadxArgs.getInput().isEmpty()) {
 			LOG.error("Please specify input file");
 			jadxArgs.printUsage();
@@ -61,7 +62,7 @@ public class JadxCLI {
 			jadxArgs.setOutputDir(outputDir);
 		}
 		if (outputDir.exists() && !outputDir.isDirectory()) {
-			throw new Exception("Output directory exists as file " + outputDir);
+			throw new JadxException("Output directory exists as file " + outputDir);
 		}
 	}
 }

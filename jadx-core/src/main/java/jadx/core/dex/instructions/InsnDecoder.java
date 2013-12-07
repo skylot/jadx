@@ -146,7 +146,7 @@ public class InsnDecoder {
 
 			case Opcodes.ADD_INT_LIT8:
 			case Opcodes.ADD_INT_LIT16:
-				return arith_lit(insn, ArithOp.ADD, ArgType.INT);
+				return arithLit(insn, ArithOp.ADD, ArgType.INT);
 
 			case Opcodes.SUB_INT:
 			case Opcodes.SUB_INT_2ADDR:
@@ -189,7 +189,7 @@ public class InsnDecoder {
 
 			case Opcodes.MUL_INT_LIT8:
 			case Opcodes.MUL_INT_LIT16:
-				return arith_lit(insn, ArithOp.MUL, ArgType.INT);
+				return arithLit(insn, ArithOp.MUL, ArgType.INT);
 
 			case Opcodes.DIV_INT:
 			case Opcodes.DIV_INT_2ADDR:
@@ -225,11 +225,11 @@ public class InsnDecoder {
 
 			case Opcodes.DIV_INT_LIT8:
 			case Opcodes.DIV_INT_LIT16:
-				return arith_lit(insn, ArithOp.DIV, ArgType.INT);
+				return arithLit(insn, ArithOp.DIV, ArgType.INT);
 
 			case Opcodes.REM_INT_LIT8:
 			case Opcodes.REM_INT_LIT16:
-				return arith_lit(insn, ArithOp.REM, ArgType.INT);
+				return arithLit(insn, ArithOp.REM, ArgType.INT);
 
 			case Opcodes.AND_INT:
 			case Opcodes.AND_INT_2ADDR:
@@ -237,11 +237,11 @@ public class InsnDecoder {
 
 			case Opcodes.AND_INT_LIT8:
 			case Opcodes.AND_INT_LIT16:
-				return arith_lit(insn, ArithOp.AND, ArgType.INT);
+				return arithLit(insn, ArithOp.AND, ArgType.INT);
 
 			case Opcodes.XOR_INT_LIT8:
 			case Opcodes.XOR_INT_LIT16:
-				return arith_lit(insn, ArithOp.XOR, ArgType.INT);
+				return arithLit(insn, ArithOp.XOR, ArgType.INT);
 
 			case Opcodes.AND_LONG:
 			case Opcodes.AND_LONG_2ADDR:
@@ -253,7 +253,7 @@ public class InsnDecoder {
 
 			case Opcodes.OR_INT_LIT8:
 			case Opcodes.OR_INT_LIT16:
-				return arith_lit(insn, ArithOp.OR, ArgType.INT);
+				return arithLit(insn, ArithOp.OR, ArgType.INT);
 
 			case Opcodes.XOR_INT:
 			case Opcodes.XOR_INT_2ADDR:
@@ -292,11 +292,11 @@ public class InsnDecoder {
 				return arith(insn, ArithOp.SHR, ArgType.LONG);
 
 			case Opcodes.SHL_INT_LIT8:
-				return arith_lit(insn, ArithOp.SHL, ArgType.INT);
+				return arithLit(insn, ArithOp.SHL, ArgType.INT);
 			case Opcodes.SHR_INT_LIT8:
-				return arith_lit(insn, ArithOp.SHR, ArgType.INT);
+				return arithLit(insn, ArithOp.SHR, ArgType.INT);
 			case Opcodes.USHR_INT_LIT8:
-				return arith_lit(insn, ArithOp.USHR, ArgType.INT);
+				return arithLit(insn, ArithOp.USHR, ArgType.INT);
 
 			case Opcodes.NEG_INT:
 				return neg(insn, ArgType.INT);
@@ -585,7 +585,7 @@ public class InsnDecoder {
 			targets = ss.getTargets();
 			keys = new Object[targets.length];
 			for (int i = 0; i < keys.length; i++)
-				keys[i] = ss.getKeys()[i];				
+				keys[i] = ss.getKeys()[i];
 		}
 		// convert from relative to absolute offsets
 		for (int i = 0; i < targets.length; i++) {
@@ -661,7 +661,7 @@ public class InsnDecoder {
 		return new ArithNode(insn, op, type, false);
 	}
 
-	private InsnNode arith_lit(DecodedInstruction insn, ArithOp op, ArgType type) {
+	private InsnNode arithLit(DecodedInstruction insn, ArithOp op, ArgType type) {
 		return new ArithNode(insn, op, type, true);
 	}
 

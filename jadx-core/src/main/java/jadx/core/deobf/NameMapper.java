@@ -6,7 +6,7 @@ import java.util.Set;
 
 public class NameMapper {
 
-	private static final Set<String> reservedNames = new HashSet<String>(
+	private static final Set<String> RESERVED_NAMES = new HashSet<String>(
 			Arrays.asList(new String[]{
 					"abstract",
 					"assert",
@@ -64,7 +64,7 @@ public class NameMapper {
 			}));
 
 	public static boolean isReserved(String str) {
-		return reservedNames.contains(str);
+		return RESERVED_NAMES.contains(str);
 	}
 
 }

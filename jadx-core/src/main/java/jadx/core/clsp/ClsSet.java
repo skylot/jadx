@@ -5,6 +5,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.DecodeException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -39,6 +40,8 @@ public class ClsSet {
 	private static final String JADX_CLS_SET_HEADER = "jadx-cst";
 	private static final int VERSION = 1;
 
+	private static final String STRING_CHARSET = "US-ASCII";
+
 	private NClass[] classes;
 
 	public void load(RootNode root) {
@@ -50,7 +53,7 @@ public class ClsSet {
 			if (cls.getAccessFlags().isPublic()) {
 				NClass nClass = new NClass(clsRawName, k);
 				if (names.put(clsRawName, nClass) != null) {
-					throw new RuntimeException("Duplicate class: " + clsRawName);
+					throw new JadxRuntimeException("Duplicate class: " + clsRawName);
 				}
 				k++;
 			} else {
@@ -113,7 +116,7 @@ public class ClsSet {
 				outputStream.close();
 			}
 		} else {
-			throw new RuntimeException("Unknown file format: " + outputName);
+			throw new JadxRuntimeException("Unknown file format: " + outputName);
 		}
 	}
 
@@ -139,7 +142,7 @@ public class ClsSet {
 	public void load() throws IOException, DecodeException {
 		InputStream input = getClass().getResourceAsStream(CLST_FILENAME);
 		if (input == null) {
-			throw new RuntimeException("Can't load classpath file: " + CLST_FILENAME);
+			throw new JadxRuntimeException("Can't load classpath file: " + CLST_FILENAME);
 		}
 		load(input);
 	}
@@ -163,16 +166,18 @@ public class ClsSet {
 				in.close();
 			}
 		} else {
-			throw new RuntimeException("Unknown file format: " + name);
+			throw new JadxRuntimeException("Unknown file format: " + name);
 		}
 	}
 
 	public void load(InputStream input) throws IOException, DecodeException {
 		DataInputStream in = new DataInputStream(input);
 		byte[] header = new byte[JADX_CLS_SET_HEADER.length()];
-		in.read(header);
+		int readHeaderLength = in.read(header);
 		int version = in.readByte();
-		if (!JADX_CLS_SET_HEADER.equals(new String(header)) || version != VERSION) {
+		if (readHeaderLength != JADX_CLS_SET_HEADER.length()
+				|| !JADX_CLS_SET_HEADER.equals(new String(header, STRING_CHARSET))
+				|| version != VERSION) {
 			throw new DecodeException("Wrong jadx class set header");
 		}
 		int count = in.readInt();
@@ -192,7 +197,7 @@ public class ClsSet {
 	}
 
 	private void writeString(DataOutputStream out, String name) throws IOException {
-		byte[] bytes = name.getBytes();
+		byte[] bytes = name.getBytes(STRING_CHARSET);
 		out.writeByte(bytes.length);
 		out.write(bytes);
 	}
@@ -209,10 +214,16 @@ public class ClsSet {
 				count += res;
 			}
 		}
-		return new String(bytes);
+		return new String(bytes, STRING_CHARSET);
 	}
 
-	public NClass[] getClasses() {
-		return classes;
+	public int getClassesCount() {
+		return classes.length;
+	}
+
+	public void addToMap(Map<String, NClass> nameMap) {
+		for (NClass cls : classes) {
+			nameMap.put(cls.getName(), cls);
+		}
 	}
 }

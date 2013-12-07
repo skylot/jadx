@@ -29,7 +29,7 @@ public enum AttributeType {
 
 	DECLARE_VARIABLE(true);
 
-	private static final int notUniqCount;
+	private static final int NOT_UNIQ_COUNT;
 	private final boolean uniq;
 
 	static {
@@ -41,11 +41,11 @@ public enum AttributeType {
 			if (type.notUniq())
 				last = i;
 		}
-		notUniqCount = last + 1;
+		NOT_UNIQ_COUNT = last + 1;
 	}
 
 	public static int getNotUniqCount() {
-		return notUniqCount;
+		return NOT_UNIQ_COUNT;
 	}
 
 	private AttributeType(boolean isUniq) {
