@@ -67,8 +67,7 @@ public class TypeResolver extends AbstractVisitor {
 					state.assignReg(insn.getResult());
 			}
 
-			if (block.getSuccessors().size() > 0)
-				block.setEndState(new BlockRegState(state));
+			block.setEndState(new BlockRegState(state));
 		}
 	}
 

@@ -4,7 +4,6 @@ import jadx.core.Consts;
 import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.attributes.AttributesList;
-import jadx.core.dex.attributes.ForceReturnAttr;
 import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.attributes.LoopAttr;
 import jadx.core.dex.instructions.IfNode;
@@ -258,6 +257,7 @@ public class RegionMaker {
 				while (next != null) {
 					if (isPathExists(loopExit, next)) {
 						// found cross
+						/*
 						if (next.getCleanSuccessors().size() == 1) {
 							BlockNode r = BlockUtils.getNextBlock(next);
 							if (r != null
@@ -265,13 +265,14 @@ public class RegionMaker {
 									&& r.getInstructions().size() > 0
 									&& r.getInstructions().get(0).getType() == InsnType.RETURN) {
 								next.getAttributes().add(new ForceReturnAttr(r.getInstructions().get(0)));
-							} /*/ else {
+							} else {
 								next.getAttributes().add(AttributeFlag.BREAK);
 								stack.addExit(r);
-							} /**/
+							}
 						} else {
 							stack.addExit(next);
 						}
+						*/
 						break;
 					}
 					next = BlockUtils.getNextBlock(next);

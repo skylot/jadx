@@ -1,16 +1,12 @@
 package jadx.core.dex.visitors.regions;
 
-import jadx.core.dex.instructions.InsnType;
-import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IRegion;
-import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.LoopRegion;
 
 import java.util.Iterator;
-import java.util.List;
 
 public class FinishRegions extends TracedRegionVisitor {
 	@Override
@@ -21,6 +17,8 @@ public class FinishRegions extends TracedRegionVisitor {
 		BlockNode block = (BlockNode) container;
 
 		// remove last return in void functions
+		/*
+		BlockNode block = (BlockNode) container;
 		if (block.getCleanSuccessors().isEmpty()
 				&& mth.getReturnType().equals(ArgType.VOID)) {
 			List<InsnNode> insns = block.getInstructions();
@@ -33,6 +31,7 @@ public class FinishRegions extends TracedRegionVisitor {
 				}
 			}
 		}
+		*/
 	}
 
 	private boolean blockNotInLoop(MethodNode mth, BlockNode block) {
