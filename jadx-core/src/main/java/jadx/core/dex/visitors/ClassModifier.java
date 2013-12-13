@@ -9,6 +9,7 @@ import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -26,7 +27,12 @@ public class ClassModifier extends AbstractVisitor {
 		for (ClassNode inner : cls.getInnerClasses()) {
 			visit(inner);
 		}
-
+		if (cls.getAccessFlags().isSynthetic()
+				&& cls.getFields().isEmpty()
+				&& cls.getMethods().isEmpty()) {
+			cls.getAttributes().add(AttributeFlag.DONT_GENERATE);
+			return false;
+		}
 		removeSyntheticFields(cls);
 		removeSyntheticMethods(cls);
 		removeEmptyMethods(cls);
@@ -108,6 +114,18 @@ public class ClassModifier extends AbstractVisitor {
 				if (!isMethodUniq(cls, mth)) {
 					// TODO add more checks before method deletion
 					it.remove();
+				}
+			}
+
+			// remove synthetic constructor for inner non-static classes
+			if (af.isSynthetic() && af.isConstructor() && mth.getBasicBlocks().size() == 2) {
+				List<InsnNode> insns = mth.getBasicBlocks().get(0).getInstructions();
+				if (insns.size() == 1 && insns.get(0).getType() == InsnType.CONSTRUCTOR) {
+					ConstructorInsn constr = (ConstructorInsn) insns.get(0);
+					if (constr.isThis() && mth.getArguments(false).size() >= 1) {
+						mth.removeFirstArgument();
+						mth.getAttributes().add(AttributeFlag.DONT_GENERATE);
+					}
 				}
 			}
 		}
