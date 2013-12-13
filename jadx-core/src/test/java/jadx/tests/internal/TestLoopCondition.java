@@ -53,8 +53,6 @@ public class TestLoopCondition extends InternalJadxTest {
 
 	@Test
 	public void test() {
-		setOutputCFG();
-
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 

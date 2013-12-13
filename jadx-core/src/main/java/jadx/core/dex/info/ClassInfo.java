@@ -80,7 +80,7 @@ public final class ClassInfo {
 
 		char firstChar = name.charAt(0);
 		if (Character.isDigit(firstChar)) {
-			name = "AnonymousClass_" + name;
+			name = Consts.ANONYMOUS_CLASS_PREFIX + name;
 		} else if (firstChar == '$') {
 			name = "_" + name;
 		}
@@ -99,6 +99,10 @@ public final class ClassInfo {
 
 	public String getFullName() {
 		return fullName;
+	}
+
+	public boolean isObject() {
+		return fullName.equals(Consts.CLASS_OBJECT);
 	}
 
 	public String getShortName() {

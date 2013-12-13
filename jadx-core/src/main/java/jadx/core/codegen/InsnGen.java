@@ -33,6 +33,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.InsnUtils;
+import jadx.core.utils.RegionUtils;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.CodegenException;
 
@@ -523,13 +524,18 @@ public class InsnGen {
 		if (cls != null && cls.isAnonymous()) {
 			// anonymous class construction
 			ClassInfo parent;
-			if (cls.getSuperClass() != null
-					&& !cls.getSuperClass().getFullName().equals("java.lang.Object"))
+			if (cls.getSuperClass() != null && !cls.getSuperClass().isObject()) {
 				parent = cls.getSuperClass();
-			else
+			} else {
 				parent = cls.getInterfaces().get(0);
-
-			code.add("new ").add(useClass(parent)).add("()");
+			}
+			MethodNode defCtr = cls.getDefaultConstructor();
+			if (RegionUtils.notEmpty(defCtr.getRegion())) {
+				defCtr.getAttributes().add(AttributeFlag.ANONYMOUS_CONSTRUCTOR);
+			} else {
+				defCtr.getAttributes().add(AttributeFlag.DONT_GENERATE);
+			}
+			code.add("new ").add(useClass(parent)).add("() ");
 			code.incIndent(2);
 			new ClassGen(cls, mgen.getClassGen().getParentGen(), fallback).makeClassBody(code);
 			code.decIndent(2);

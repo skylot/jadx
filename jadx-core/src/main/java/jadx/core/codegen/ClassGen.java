@@ -243,7 +243,7 @@ public class ClassGen {
 						mthGen.makeMethodDump(code);
 					}
 					mthGen.addDefinition(code);
-					code.add(" {");
+					code.add('{');
 					insertSourceFileInfo(code, mth);
 					code.add(mthGen.makeInstructions(code.getIndent()));
 					code.startLine('}');

@@ -1,6 +1,7 @@
 package jadx.core.codegen;
 
 import jadx.core.Consts;
+import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.attributes.AttributesList;
 import jadx.core.dex.attributes.JadxErrorAttr;
@@ -57,52 +58,61 @@ public class MethodGen {
 	}
 
 	public void addDefinition(CodeWriter code) {
+
 		if (mth.getMethodInfo().isClassInit()) {
 			code.startLine("static");
-		} else {
-			annotationGen.addForMethod(code, mth);
-
-			AccessInfo clsAccFlags = mth.getParentClass().getAccessFlags();
-			AccessInfo ai = mth.getAccessFlags();
-			// don't add 'abstract' to methods in interface
-			if (clsAccFlags.isInterface()) {
-				ai = ai.remove(AccessFlags.ACC_ABSTRACT);
-			}
-			// don't add 'public' for annotations
-			if (clsAccFlags.isAnnotation()) {
-				ai = ai.remove(AccessFlags.ACC_PUBLIC);
-			}
-			code.startLine(ai.makeString());
-
-			if (classGen.makeGenericMap(code, mth.getGenericMap()))
-				code.add(' ');
-
-			if (mth.getAccessFlags().isConstructor()) {
-				code.add(classGen.getClassNode().getShortName()); // constructor
-			} else {
-				code.add(TypeGen.translate(classGen, mth.getReturnType()));
-				code.add(' ');
-				code.add(mth.getName());
-			}
-			code.add('(');
-
-			List<RegisterArg> args = mth.getArguments(false);
-			if (mth.getMethodInfo().isConstructor()
-					&& mth.getParentClass().getAttributes().contains(AttributeType.ENUM_CLASS)) {
-				if (args.size() == 2)
-					args.clear();
-				else if (args.size() > 2)
-					args = args.subList(2, args.size());
-				else
-					LOG.warn(ErrorsCounter.formatErrorMsg(mth,
-							"Incorrect number of args for enum constructor: " + args.size()
-									+ " (expected >= 2)"));
-			}
-			code.add(makeArguments(args));
-			code.add(")");
-
-			annotationGen.addThrows(mth, code);
+			code.attachAnnotation(mth);
+			return;
 		}
+		if (mth.getAttributes().contains(AttributeFlag.ANONYMOUS_CONSTRUCTOR)) {
+			// don't add method name and arguments
+			code.startLine();
+			code.attachAnnotation(mth);
+			return;
+		}
+		annotationGen.addForMethod(code, mth);
+
+		AccessInfo clsAccFlags = mth.getParentClass().getAccessFlags();
+		AccessInfo ai = mth.getAccessFlags();
+		// don't add 'abstract' to methods in interface
+		if (clsAccFlags.isInterface()) {
+			ai = ai.remove(AccessFlags.ACC_ABSTRACT);
+		}
+		// don't add 'public' for annotations
+		if (clsAccFlags.isAnnotation()) {
+			ai = ai.remove(AccessFlags.ACC_PUBLIC);
+		}
+		code.startLine(ai.makeString());
+
+		if (classGen.makeGenericMap(code, mth.getGenericMap())) {
+			code.add(' ');
+		}
+		if (mth.getAccessFlags().isConstructor()) {
+			code.add(classGen.getClassNode().getShortName()); // constructor
+		} else {
+			code.add(TypeGen.translate(classGen, mth.getReturnType()));
+			code.add(' ');
+			code.add(mth.getName());
+		}
+		code.add('(');
+
+		List<RegisterArg> args = mth.getArguments(false);
+		if (mth.getMethodInfo().isConstructor()
+				&& mth.getParentClass().getAttributes().contains(AttributeType.ENUM_CLASS)) {
+			if (args.size() == 2) {
+				args.clear();
+			} else if (args.size() > 2) {
+				args = args.subList(2, args.size());
+			} else {
+				LOG.warn(ErrorsCounter.formatErrorMsg(mth,
+						"Incorrect number of args for enum constructor: " + args.size()
+								+ " (expected >= 2)"));
+			}
+		}
+		code.add(makeArguments(args));
+		code.add(") ");
+
+		annotationGen.addThrows(mth, code);
 		code.attachAnnotation(mth);
 	}
 

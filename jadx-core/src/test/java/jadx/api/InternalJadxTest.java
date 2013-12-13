@@ -140,6 +140,8 @@ public abstract class InternalJadxTest {
 		}
 	}
 
+	// Use only for debug purpose
+	@Deprecated
 	protected void setOutputCFG() {
 		this.outputCFG = true;
 	}

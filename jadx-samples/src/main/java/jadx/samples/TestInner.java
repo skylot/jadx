@@ -51,6 +51,18 @@ public class TestInner extends AbstractTest {
 		}.run();
 	}
 
+	public void func2() {
+		new Runnable() {
+			{
+				count += 5;
+			}
+			@Override
+			public void run() {
+				count += 6;
+			}
+		}.run();
+	}
+
 	@SuppressWarnings("serial")
 	public static class MyException extends Exception {
 		public MyException(String str, Exception e) {
@@ -63,6 +75,7 @@ public class TestInner extends AbstractTest {
 		TestInner c = new TestInner();
 		TestInner.count = 0;
 		c.func();
+		c.func2();
 
 		Runnable myRunnable = new Runnable() {
 			@Override
@@ -81,6 +94,6 @@ public class TestInner extends AbstractTest {
 		thread.join();
 		thread2.join();
 
-		return TestInner.count == 15;
+		return TestInner.count == 26;
 	}
 }
