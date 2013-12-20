@@ -338,15 +338,17 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 	}
 
 	public boolean isAnonymous() {
-		MethodNode defConstrExists = getDefaultConstructor();
-		return defConstrExists != null && getShortName().startsWith(Consts.ANONYMOUS_CLASS_PREFIX);
+		return clsInfo.isInner()
+				&& getShortName().startsWith(Consts.ANONYMOUS_CLASS_PREFIX)
+				&& getDefaultConstructor() != null;
 	}
 
 	public MethodNode getDefaultConstructor() {
 		for (MethodNode mth : methods) {
 			if (mth.getAccessFlags().isConstructor()
 					&& mth.getMethodInfo().isConstructor()
-					&& mth.getArguments(false).isEmpty()) {
+					&& (mth.getMethodInfo().getArgsCount() == 0
+						|| (mth.getArguments(false) != null && mth.getArguments(false).isEmpty()))) {
 				return mth;
 			}
 		}

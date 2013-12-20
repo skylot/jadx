@@ -63,6 +63,19 @@ public class TestInner extends AbstractTest {
 		}.run();
 	}
 
+	public String func3() {
+		return new Object() {
+			{
+				count += 7;
+			}
+			@Override
+			public String toString() {
+				count += 8;
+				return Integer.toString(count);
+			}
+		}.toString();
+	}
+
 	@SuppressWarnings("serial")
 	public static class MyException extends Exception {
 		public MyException(String str, Exception e) {
@@ -94,6 +107,8 @@ public class TestInner extends AbstractTest {
 		thread.join();
 		thread2.join();
 
-		return TestInner.count == 26;
+		assertEquals(func3(), "41");
+
+		return TestInner.count == 41;
 	}
 }

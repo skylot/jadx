@@ -524,10 +524,10 @@ public class InsnGen {
 		if (cls != null && cls.isAnonymous()) {
 			// anonymous class construction
 			ClassInfo parent;
-			if (cls.getSuperClass() != null && !cls.getSuperClass().isObject()) {
-				parent = cls.getSuperClass();
-			} else {
+			if (cls.getInterfaces().size() == 1) {
 				parent = cls.getInterfaces().get(0);
+			} else {
+				parent = cls.getSuperClass();
 			}
 			MethodNode defCtr = cls.getDefaultConstructor();
 			if (RegionUtils.notEmpty(defCtr.getRegion())) {
@@ -535,7 +535,7 @@ public class InsnGen {
 			} else {
 				defCtr.getAttributes().add(AttributeFlag.DONT_GENERATE);
 			}
-			code.add("new ").add(useClass(parent)).add("() ");
+			code.add("new ").add(parent == null ? "Object" : useClass(parent)).add("() ");
 			code.incIndent(2);
 			new ClassGen(cls, mgen.getClassGen().getParentGen(), fallback).makeClassBody(code);
 			code.decIndent(2);
