@@ -8,7 +8,7 @@ public class InsnContainer extends AttrNode implements IBlock {
 
 	private List<InsnNode> insns;
 
-	public void setInstructions(List<InsnNode> insns) {
+	public InsnContainer(List<InsnNode> insns) {
 		this.insns = insns;
 	}
 

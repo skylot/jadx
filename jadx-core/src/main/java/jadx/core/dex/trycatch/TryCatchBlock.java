@@ -15,6 +15,8 @@ import jadx.core.utils.Utils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 public class TryCatchBlock {
@@ -27,7 +29,7 @@ public class TryCatchBlock {
 	private final CatchAttr attr;
 
 	public TryCatchBlock() {
-		handlers = new ArrayList<ExceptionHandler>(2);
+		handlers = new LinkedList<ExceptionHandler>();
 		insns = new ArrayList<InsnNode>();
 		attr = new CatchAttr(this);
 	}
@@ -45,9 +47,10 @@ public class TryCatchBlock {
 	}
 
 	public void removeHandler(MethodNode mth, ExceptionHandler handler) {
-		for (int i = 0; i < handlers.size(); i++) {
-			if (handlers.get(i) == handler) {
-				handlers.remove(i);
+		for (Iterator<ExceptionHandler> it = handlers.iterator(); it.hasNext(); ) {
+			ExceptionHandler h = it.next();
+			if (h == handler) {
+				it.remove();
 				break;
 			}
 		}
@@ -70,16 +73,16 @@ public class TryCatchBlock {
 					}
 				}
 			}
-			return;
+		} else {
+			// self destruction
+			for (InsnNode insn : insns) {
+				insn.getAttributes().remove(attr);
+			}
+			insns.clear();
+			for (BlockNode block : mth.getBasicBlocks()) {
+				block.getAttributes().remove(attr);
+			}
 		}
-
-		// self destruction
-		for (InsnNode insn : insns)
-			insn.getAttributes().remove(attr);
-
-		insns.clear();
-		for (BlockNode block : mth.getBasicBlocks())
-			block.getAttributes().remove(attr);
 	}
 
 	public void addInsn(InsnNode insn) {
@@ -113,34 +116,34 @@ public class TryCatchBlock {
 	}
 
 	public void setFinalBlockFromInsns(MethodNode mth, List<InsnNode> insns) {
-		InsnContainer cont = new InsnContainer();
 		List<InsnNode> finalBlockInsns = new ArrayList<InsnNode>(insns);
-		cont.setInstructions(finalBlockInsns);
-		setFinalBlock(cont);
+		setFinalBlock(new InsnContainer(finalBlockInsns));
 
 		InstructionRemover.unbindInsnList(finalBlockInsns);
 
 		// remove these instructions from other handlers
 		for (ExceptionHandler h : getHandlers()) {
-			for (BlockNode ehb : h.getBlocks())
+			for (BlockNode ehb : h.getBlocks()) {
 				ehb.getInstructions().removeAll(finalBlockInsns);
+			}
 		}
 		// remove from blocks with this catch
 		for (BlockNode b : mth.getBasicBlocks()) {
 			IAttribute ca = b.getAttributes().get(AttributeType.CATCH_BLOCK);
-			if (attr == ca)
+			if (attr == ca) {
 				b.getInstructions().removeAll(finalBlockInsns);
+			}
 		}
 	}
 
 	public void merge(MethodNode mth, TryCatchBlock tryBlock) {
-		for (InsnNode insn : tryBlock.getInsns())
+		for (InsnNode insn : tryBlock.getInsns()) {
 			this.addInsn(insn);
-
+		}
 		this.handlers.addAll(tryBlock.getHandlers());
-		for (ExceptionHandler eh : handlers)
+		for (ExceptionHandler eh : handlers) {
 			eh.setTryBlock(this);
-
+		}
 		// clear
 		tryBlock.handlers.clear();
 		tryBlock.removeWholeBlock(mth);
@@ -148,25 +151,23 @@ public class TryCatchBlock {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((handlers == null) ? 0 : handlers.hashCode());
-		return result;
+		return handlers.hashCode();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) return true;
-		if (obj == null) return false;
-		if (getClass() != obj.getClass()) return false;
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null || getClass() != obj.getClass()) {
+			return false;
+		}
 		TryCatchBlock other = (TryCatchBlock) obj;
-		if (!handlers.equals(other.handlers)) return false;
-		return true;
+		return handlers.equals(other.handlers);
 	}
 
 	@Override
 	public String toString() {
 		return "Catch:{ " + Utils.listToString(handlers) + " }";
 	}
-
 }
