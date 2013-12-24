@@ -165,7 +165,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 										for (int i = 1; i < argsCount; i++) {
 											concat.addArg(wrap.getArg(i));
 										}
-										return new ArithNode(ArithOp.ADD, fArg, fArg, InsnArg.wrap(concat));
+										return new ArithNode(ArithOp.ADD, fArg, fArg, InsnArg.wrapArg(concat));
 									}
 								} catch (Throwable e) {
 									LOG.debug("Can't convert field arith insn: {}, mth: {}", insn, mth, e);

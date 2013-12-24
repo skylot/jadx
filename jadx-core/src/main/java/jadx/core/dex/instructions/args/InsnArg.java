@@ -35,7 +35,7 @@ public abstract class InsnArg extends Typed {
 		return lit(insn.getLiteral(), type);
 	}
 
-	public static InsnWrapArg wrap(InsnNode insn) {
+	private static InsnWrapArg wrap(InsnNode insn) {
 		return new InsnWrapArg(insn);
 	}
 
@@ -81,7 +81,7 @@ public abstract class InsnArg extends Typed {
 		return null;
 	}
 
-	private static InsnArg wrapArg(InsnNode insn) {
+	public static InsnArg wrapArg(InsnNode insn) {
 		InsnArg arg;
 		switch (insn.getType()) {
 			case MOVE:
