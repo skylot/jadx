@@ -57,18 +57,17 @@ public class MethodGen {
 		return classGen;
 	}
 
-	public void addDefinition(CodeWriter code) {
-
+	public boolean addDefinition(CodeWriter code) {
 		if (mth.getMethodInfo().isClassInit()) {
 			code.startLine("static");
 			code.attachAnnotation(mth);
-			return;
+			return true;
 		}
 		if (mth.getAttributes().contains(AttributeFlag.ANONYMOUS_CONSTRUCTOR)) {
 			// don't add method name and arguments
 			code.startLine();
 			code.attachAnnotation(mth);
-			return;
+			return false;
 		}
 		annotationGen.addForMethod(code, mth);
 
@@ -110,10 +109,11 @@ public class MethodGen {
 			}
 		}
 		code.add(makeArguments(args));
-		code.add(") ");
+		code.add(")");
 
 		annotationGen.addThrows(mth, code);
 		code.attachAnnotation(mth);
+		return true;
 	}
 
 	public CodeWriter makeArguments(List<RegisterArg> args) {

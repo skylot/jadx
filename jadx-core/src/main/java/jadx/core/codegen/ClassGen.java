@@ -110,6 +110,7 @@ public class ClassGen {
 		}
 
 		annotationGen.addForClass(clsCode);
+		insertSourceFileInfo(clsCode, cls);
 		clsCode.startLine(af.makeString());
 		if (af.isInterface()) {
 			if (af.isAnnotation())
@@ -182,8 +183,6 @@ public class ClassGen {
 
 	public void makeClassBody(CodeWriter clsCode) throws CodegenException {
 		clsCode.add('{');
-		insertSourceFileInfo(clsCode, cls);
-
 		CodeWriter mthsCode = makeMethods(clsCode, cls.getMethods());
 		CodeWriter fieldsCode = makeFields(clsCode, cls, cls.getFields());
 		clsCode.add(fieldsCode);
@@ -242,7 +241,9 @@ public class ClassGen {
 						LOG.error(ErrorsCounter.formatErrorMsg(mth, " Inconsistent code"));
 						mthGen.makeMethodDump(code);
 					}
-					mthGen.addDefinition(code);
+					if (mthGen.addDefinition(code)) {
+						code.add(' ');
+					}
 					code.add('{');
 					insertSourceFileInfo(code, mth);
 					code.add(mthGen.makeInstructions(code.getIndent()));
@@ -250,7 +251,7 @@ public class ClassGen {
 				}
 			} catch (Throwable e) {
 				String msg = ErrorsCounter.methodError(mth, "Method generation error", e);
-				code.startLine("/* " + msg + CodeWriter.NL + Utils.getStackTrace(e) + "*/");
+				code.startLine("/* " + msg + CodeWriter.NL + Utils.getStackTrace(e) + " */");
 			}
 
 			if (it.hasNext())
@@ -424,7 +425,7 @@ public class ClassGen {
 	private void insertSourceFileInfo(CodeWriter code, AttrNode node) {
 		IAttribute sourceFileAttr = node.getAttributes().get(AttributeType.SOURCE_FILE);
 		if (sourceFileAttr != null) {
-			code.startLine(1, "// compiled from: ");
+			code.startLine("// compiled from: ");
 			code.add(((SourceFileAttr) sourceFileAttr).getFileName());
 		}
 	}

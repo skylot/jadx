@@ -57,5 +57,8 @@ public class TestAnnotations extends InternalJadxTest {
 		assertThat(code, containsString("@A(a = -11253)"));
 		assertThat(code, containsString("@V(false)"));
 		assertThat(code, not(containsString("@D()")));
+
+		assertThat(code, containsString("int a();"));
+		assertThat(code, containsString("float value() default 1.1f;"));
 	}
 }
