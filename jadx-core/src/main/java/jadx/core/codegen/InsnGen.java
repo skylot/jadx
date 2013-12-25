@@ -472,7 +472,11 @@ public class InsnGen {
 		ArgType elType = insn.getElementType();
 		if (!elType.equals(insnElementType) && !insnArrayType.equals(ArgType.OBJECT)) {
 			ErrorsCounter.methodError(mth,
-					"Incorrect type for fill-array insn " + InsnUtils.formatOffset(insn.getOffset()));
+					"Incorrect type for fill-array insn " + InsnUtils.formatOffset(insn.getOffset())
+							+ ", element type: " + elType + ", insn element type: " + insnElementType);
+			if (!elType.isTypeKnown()) {
+				elType = insnElementType.isTypeKnown() ? insnElementType : elType.selectFirst();
+			}
 		}
 		StringBuilder str = new StringBuilder();
 		Object data = insn.getData();
