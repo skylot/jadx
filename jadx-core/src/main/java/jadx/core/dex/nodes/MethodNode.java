@@ -437,6 +437,10 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		return null;
 	}
 
+	public int getLoopsCount() {
+		return loops.size();
+	}
+
 	public ExceptionHandler addExceptionHandler(ExceptionHandler handler) {
 		if (exceptionHandlers == null) {
 			exceptionHandlers = new ArrayList<ExceptionHandler>(2);

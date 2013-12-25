@@ -26,27 +26,30 @@ import org.slf4j.LoggerFactory;
 /**
  * Extract blocks to separate try/catch region
  */
-public class MarkTryCatchRegions extends AbstractRegionVisitor {
-	private static final Logger LOG = LoggerFactory.getLogger(MarkTryCatchRegions.class);
+public class ProcessTryCatchRegions extends AbstractRegionVisitor {
+	private static final Logger LOG = LoggerFactory.getLogger(ProcessTryCatchRegions.class);
 	private static final boolean DEBUG = false;
 
 	static {
-		if (DEBUG)
-			LOG.debug("Debug enabled for " + MarkTryCatchRegions.class);
+		if (DEBUG) {
+			LOG.debug("Debug enabled for " + ProcessTryCatchRegions.class);
+		}
 	}
 
 	private final Map<BlockNode, TryCatchBlock> tryBlocksMap = new HashMap<BlockNode, TryCatchBlock>(2);
 
-	public MarkTryCatchRegions(MethodNode mth) {
-		if (mth.isNoCode() || mth.getExceptionHandlers() == null)
+	public ProcessTryCatchRegions(MethodNode mth) {
+		if (mth.isNoCode() || mth.getExceptionHandlers() == null) {
 			return;
+		}
 
 		Set<TryCatchBlock> tryBlocks = new HashSet<TryCatchBlock>();
 		// collect all try/catch blocks
 		for (BlockNode block : mth.getBasicBlocks()) {
 			CatchAttr c = (CatchAttr) block.getAttributes().get(AttributeType.CATCH_BLOCK);
-			if (c != null)
+			if (c != null) {
 				tryBlocks.add(c.getTryBlock());
+			}
 		}
 
 		// for each try block search nearest dominator block
@@ -71,9 +74,10 @@ public class MarkTryCatchRegions extends AbstractRegionVisitor {
 				bs.andNot(block.getDoms());
 			}
 			domBlocks = BlockUtils.bitsetToBlocks(mth, bs);
-			if (domBlocks.size() != 1)
+			if (domBlocks.size() != 1) {
 				throw new JadxRuntimeException(
 						"Exception block dominator not found, method:" + mth + ". bs: " + bs);
+			}
 
 			BlockNode domBlock = domBlocks.get(0);
 
@@ -83,18 +87,16 @@ public class MarkTryCatchRegions extends AbstractRegionVisitor {
 			}
 		}
 
-		if (DEBUG && !tryBlocksMap.isEmpty())
-			LOG.debug("MarkTryCatchRegions: \n {} \n {}", mth, tryBlocksMap);
+		if (DEBUG && !tryBlocksMap.isEmpty()) {
+			LOG.debug("ProcessTryCatchRegions: \n {} \n {}", mth, tryBlocksMap);
+		}
 	}
 
 	@Override
 	public void leaveRegion(MethodNode mth, IRegion region) {
-		if (tryBlocksMap.isEmpty())
+		if (tryBlocksMap.isEmpty() || !(region instanceof Region)) {
 			return;
-
-		if (!(region instanceof Region))
-			return;
-
+		}
 		// search dominator blocks in this region (don't need to go deeper)
 		for (BlockNode dominator : tryBlocksMap.keySet()) {
 			if (region.getSubBlocks().contains(dominator)) {
@@ -132,8 +134,9 @@ public class MarkTryCatchRegions extends AbstractRegionVisitor {
 			}
 		}
 		if (newRegion.getSubBlocks().size() != 0) {
-			if (DEBUG)
-				LOG.debug("MarkTryCatchRegions mark: {}", newRegion);
+			if (DEBUG) {
+				LOG.debug("ProcessTryCatchRegions mark: {}", newRegion);
+			}
 			// replace first node by region
 			IContainer firstNode = newRegion.getSubBlocks().get(0);
 			int i = region.getSubBlocks().indexOf(firstNode);

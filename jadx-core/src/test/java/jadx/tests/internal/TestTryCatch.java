@@ -6,6 +6,7 @@ import jadx.core.dex.nodes.ClassNode;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 
 public class TestTryCatch extends InternalJadxTest {
@@ -28,5 +29,6 @@ public class TestTryCatch extends InternalJadxTest {
 		assertThat(code, containsString("try {"));
 		assertThat(code, containsString("Thread.sleep(50);"));
 		assertThat(code, containsString("} catch (InterruptedException e) {"));
+		assertThat(code, not(containsString("return")));
 	}
 }
