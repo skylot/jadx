@@ -10,7 +10,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +47,12 @@ public class JRoot extends JNode {
 		}
 	}
 
+	/**
+	 * Convert packages list to hierarchical packages representation
+	 *
+	 * @param packages input packages list
+	 * @return root packages
+	 */
 	List<JPackage> getHierarchyPackages(List<JavaPackage> packages) {
 		Map<String, JPackage> pkgMap = new HashMap<String, JPackage>();
 		for (JavaPackage pkg : packages) {
@@ -63,11 +69,11 @@ public class JRoot extends JNode {
 					pkg.getInnerPackages().addAll(innerPkg.getInnerPackages());
 					pkg.getClasses().addAll(innerPkg.getClasses());
 					pkg.setName(pkg.getName() + "." + innerPkg.getName());
+
 					innerPkg.getInnerPackages().clear();
 					innerPkg.getClasses().clear();
 
 					repeat = true;
-					pkgMap.remove(innerPkg.getName());
 					break;
 				}
 			}
@@ -80,14 +86,16 @@ public class JRoot extends JNode {
 				it.remove();
 			}
 		}
-		// find root packages
-		Set<JPackage> inners = new HashSet<JPackage>();
+
+		// use identity set for collect inner packages
+		Set<JPackage> innerPackages = Collections.newSetFromMap(new IdentityHashMap<JPackage,Boolean>());
 		for (JPackage pkg : pkgMap.values()) {
-			inners.addAll(pkg.getInnerPackages());
+			innerPackages.addAll(pkg.getInnerPackages());
 		}
+		// find root packages
 		List<JPackage> rootPkgs = new ArrayList<JPackage>();
 		for (JPackage pkg : pkgMap.values()) {
-			if (!inners.contains(pkg)) {
+			if (!innerPackages.contains(pkg)) {
 				rootPkgs.add(pkg);
 			}
 		}

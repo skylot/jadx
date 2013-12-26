@@ -84,11 +84,13 @@ public class JPackage extends JNode implements Comparable<JPackage> {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		JPackage jPackage = (JPackage) o;
-		if (!name.equals(jPackage.name)) return false;
-		return true;
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		return name.equals(((JPackage) o).name);
 	}
 
 	@Override
