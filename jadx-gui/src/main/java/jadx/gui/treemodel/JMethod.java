@@ -47,8 +47,12 @@ public class JMethod extends JNode {
 	public Icon getIcon() {
 		AccessInfo accessFlags = mth.getAccessFlags();
 		OverlayIcon icon = Utils.makeIcon(accessFlags, ICON_MTH_PUB, ICON_MTH_PRI, ICON_MTH_PRO, ICON_MTH_DEF);
-		if (accessFlags.isConstructor()) icon.add(ICON_CONSTRUCTOR);
-		if (accessFlags.isSynchronized()) icon.add(ICON_SYNC);
+		if (accessFlags.isConstructor()) {
+			icon.add(ICON_CONSTRUCTOR);
+		}
+		if (accessFlags.isSynchronized()) {
+			icon.add(ICON_SYNC);
+		}
 		return icon;
 	}
 
@@ -57,14 +61,18 @@ public class JMethod extends JNode {
 		if (mth.isClassInit()) {
 			return "{...}";
 		}
-
 		StringBuilder base = new StringBuilder();
-		base.append(mth.getName());
+		if (mth.isConstructor()) {
+			base.append(mth.getDeclaringClass().getShortName());
+		} else {
+			base.append(mth.getName());
+		}
 		base.append('(');
 		for (Iterator<ArgType> it = mth.getArguments().iterator(); it.hasNext(); ) {
 			base.append(Utils.typeStr(it.next()));
-			if (it.hasNext())
+			if (it.hasNext()) {
 				base.append(", ");
+			}
 		}
 		base.append(')');
 		return Utils.typeFormat(base.toString(), mth.getReturnType());

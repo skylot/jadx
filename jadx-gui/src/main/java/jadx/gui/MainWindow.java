@@ -26,14 +26,18 @@ import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.ProgressMonitor;
+import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.TreeWillExpandListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.basic.BasicButtonUI;
 import javax.swing.text.BadLocationException;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.ExpandVetoException;
+import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -192,6 +196,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void showCode(JClass cls, int line) {
+		cls.load();
 		JPanel panel = (JPanel) openTabs.get(cls);
 		if (panel != null) {
 			panel = (JPanel) openTabs.get(cls);
@@ -377,6 +382,22 @@ public class MainWindow extends JFrame {
 					setIcon(((JNode) value).getIcon());
 				}
 				return c;
+			}
+		});
+		tree.addTreeWillExpandListener(new TreeWillExpandListener() {
+
+			@Override
+			public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException {
+				TreePath path = event.getPath();
+				Object node = path.getLastPathComponent();
+				if (node instanceof JClass) {
+					JClass cls = (JClass) node;
+					cls.load();
+				}
+			}
+
+			@Override
+			public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException {
 			}
 		});
 

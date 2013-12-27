@@ -216,9 +216,9 @@ public class ClassGen {
 		CodeWriter code = new CodeWriter(clsCode.getIndent() + 1);
 		for (Iterator<MethodNode> it = mthList.iterator(); it.hasNext(); ) {
 			MethodNode mth = it.next();
-			if (mth.getAttributes().contains(AttributeFlag.DONT_GENERATE))
+			if (mth.getAttributes().contains(AttributeFlag.DONT_GENERATE)) {
 				continue;
-
+			}
 			try {
 				if (mth.getAccessFlags().isAbstract() || mth.getAccessFlags().isNative()) {
 					MethodGen mthGen = new MethodGen(this, mth);
@@ -232,9 +232,6 @@ public class ClassGen {
 					}
 					code.add(';');
 				} else {
-					if (mth.isNoCode())
-						continue;
-
 					MethodGen mthGen = new MethodGen(this, mth);
 					if (mth.getAttributes().contains(AttributeFlag.INCONSISTENT_CODE)) {
 						code.startLine("/* JADX WARNING: inconsistent code */");
@@ -253,9 +250,9 @@ public class ClassGen {
 				String msg = ErrorsCounter.methodError(mth, "Method generation error", e);
 				code.startLine("/* " + msg + CodeWriter.NL + Utils.getStackTrace(e) + " */");
 			}
-
-			if (it.hasNext())
+			if (it.hasNext()) {
 				code.newLine();
+			}
 		}
 		return code;
 	}

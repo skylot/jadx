@@ -533,6 +533,7 @@ public class InsnGen {
 			} else {
 				parent = cls.getSuperClass();
 			}
+			cls.getAttributes().add(AttributeFlag.DONT_GENERATE);
 			MethodNode defCtr = cls.getDefaultConstructor();
 			if (RegionUtils.notEmpty(defCtr.getRegion())) {
 				defCtr.getAttributes().add(AttributeFlag.ANONYMOUS_CONSTRUCTOR);

@@ -1,7 +1,6 @@
 package jadx.api;
 
 import jadx.core.dex.info.AccessInfo;
-import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.MethodNode;
 
@@ -9,19 +8,19 @@ import java.util.List;
 
 public final class JavaMethod {
 	private final MethodNode mth;
+	private final JavaClass parent;
 
-	public JavaMethod(MethodNode m) {
+	public JavaMethod(JavaClass cls, MethodNode m) {
+		this.parent = cls;
 		this.mth = m;
 	}
 
 	public String getName() {
-		MethodInfo mi = mth.getMethodInfo();
-		if (mi.isConstructor()) {
-			return mth.getParentClass().getShortName();
-		} else if (mi.isClassInit()) {
-			return "static";
-		}
-		return mi.getName();
+		return mth.getMethodInfo().getName();
+	}
+
+	public JavaClass getDeclaringClass() {
+		return parent;
 	}
 
 	public AccessInfo getAccessFlags() {

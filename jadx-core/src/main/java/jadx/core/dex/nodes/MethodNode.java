@@ -124,14 +124,13 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 
 	@Override
 	public void unload() {
-		if (noCode)
+		if (noCode) {
 			return;
-
+		}
 		if (instructions != null) instructions.clear();
 		blocks = null;
 		exitBlocks = null;
 		if (exceptionHandlers != null) exceptionHandlers.clear();
-		getAttributes().clear();
 		noCode = true;
 	}
 

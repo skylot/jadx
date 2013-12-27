@@ -4,6 +4,7 @@ import jadx.api.JavaClass;
 import jadx.api.JavaField;
 import jadx.api.JavaMethod;
 import jadx.core.dex.info.AccessInfo;
+import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
 
 import javax.swing.Icon;
@@ -22,6 +23,7 @@ public class JClass extends JNode {
 
 	private final JavaClass cls;
 	private JClass jParrent;
+	private boolean loaded;
 
 	public JClass(JavaClass cls) {
 		this.cls = cls;
@@ -31,21 +33,33 @@ public class JClass extends JNode {
 		return cls;
 	}
 
+	public synchronized void load() {
+		if (!loaded) {
+			cls.decompile();
+			loaded = true;
+			updateChilds();
+		}
+	}
+
 	@Override
 	public void updateChilds() {
 		removeAllChildren();
-		JClass currentParent = jParrent == null ? this : jParrent;
-		for (JavaClass javaClass : cls.getInnerClasses()) {
-			JClass child = new JClass(javaClass);
-			child.setJParent(currentParent);
-			child.updateChilds();
-			add(child);
-		}
-		for (JavaField f : cls.getFields()) {
-			add(new JField(f, currentParent));
-		}
-		for (JavaMethod m : cls.getMethods()) {
-			add(new JMethod(m, currentParent));
+		if (!loaded) {
+			add(new TextNode(NLS.str("tree.loading")));
+		} else {
+			JClass currentParent = jParrent == null ? this : jParrent;
+			for (JavaClass javaClass : cls.getInnerClasses()) {
+				JClass child = new JClass(javaClass);
+				child.setJParent(currentParent);
+				child.updateChilds();
+				add(child);
+			}
+			for (JavaField f : cls.getFields()) {
+				add(new JField(f, currentParent));
+			}
+			for (JavaMethod m : cls.getMethods()) {
+				add(new JMethod(m, currentParent));
+			}
 		}
 	}
 
