@@ -15,6 +15,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.exceptions.JadxException;
 
 import java.util.Iterator;

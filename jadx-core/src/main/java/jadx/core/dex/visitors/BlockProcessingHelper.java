@@ -14,6 +14,7 @@ import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.utils.BlockUtils;
+import jadx.core.utils.InstructionRemover;
 
 import java.util.List;
 

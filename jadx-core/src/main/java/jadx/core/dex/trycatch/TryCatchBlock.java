@@ -9,7 +9,7 @@ import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.InsnContainer;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.visitors.InstructionRemover;
+import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.Utils;
 
 import java.util.ArrayList;

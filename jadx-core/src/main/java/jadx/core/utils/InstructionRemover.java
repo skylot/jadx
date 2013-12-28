@@ -1,4 +1,4 @@
-package jadx.core.dex.visitors;
+package jadx.core.utils;
 
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.BlockNode;

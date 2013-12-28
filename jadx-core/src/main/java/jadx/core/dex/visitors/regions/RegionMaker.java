@@ -23,9 +23,9 @@ import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.regions.SynchronizedRegion;
 import jadx.core.dex.trycatch.ExceptionHandler;
-import jadx.core.dex.visitors.InstructionRemover;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.ErrorsCounter;
+import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.RegionUtils;
 
 import java.util.ArrayList;
