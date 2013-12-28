@@ -516,8 +516,8 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 
 	@Override
 	public String toString() {
-		return retType
-				+ " " + parentClass.getFullName() + "." + mthInfo.getName()
-				+ "(" + Utils.listToString(mthInfo.getArgumentsTypes()) + ")";
+		return parentClass.getFullName() + "." + mthInfo.getName()
+				+ "(" + Utils.listToString(mthInfo.getArgumentsTypes()) + "):"
+				+ retType;
 	}
 }

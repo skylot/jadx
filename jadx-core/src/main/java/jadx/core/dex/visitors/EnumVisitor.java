@@ -1,5 +1,6 @@
 package jadx.core.dex.visitors;
 
+import jadx.core.codegen.TypeGen;
 import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.attributes.EnumClassAttr;
 import jadx.core.dex.attributes.EnumClassAttr.EnumField;
@@ -8,6 +9,7 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
@@ -30,8 +32,9 @@ public class EnumVisitor extends AbstractVisitor {
 
 	@Override
 	public boolean visit(ClassNode cls) throws JadxException {
-		if (!cls.isEnum())
+		if (!cls.isEnum()) {
 			return true;
+		}
 
 		// collect enum fields, remove synthetic
 		List<FieldNode> enumFields = new ArrayList<FieldNode>();
@@ -47,19 +50,29 @@ public class EnumVisitor extends AbstractVisitor {
 
 		MethodNode staticMethod = null;
 
+		ArgType clsType = cls.getClassInfo().getType();
+		String enumConstructor = "<init>(Ljava/lang/String;I)V";
+		String valuesOfMethod = "valueOf(Ljava/lang/String;)" + TypeGen.signature(clsType);
+		String valuesMethod = "values()" + TypeGen.signature(ArgType.array(clsType));
+
 		// remove synthetic methods
 		for (Iterator<MethodNode> it = cls.getMethods().iterator(); it.hasNext(); ) {
 			MethodNode mth = it.next();
 			MethodInfo mi = mth.getMethodInfo();
 			if (mi.isClassInit()) {
 				staticMethod = mth;
-			} else if (mi.isConstructor() && !mth.getAccessFlags().isSynthetic()) {
-				if (mi.getShortId().equals("<init>(Ljava/lang/String;I)"))
+			} else {
+				String shortId = mi.getShortId();
+				boolean isSynthetic = mth.getAccessFlags().isSynthetic();
+				if (mi.isConstructor() && !isSynthetic) {
+					if (shortId.equals(enumConstructor)) {
+						it.remove();
+					}
+				} else if (isSynthetic
+						|| shortId.equals(valuesMethod)
+						|| shortId.equals(valuesOfMethod)) {
 					it.remove();
-			} else if (mth.getAccessFlags().isSynthetic()
-					|| mi.getShortId().equals("values()")
-					|| mi.getShortId().equals("valueOf(Ljava/lang/String;)")) {
-				it.remove();
+				}
 			}
 		}
 
@@ -89,10 +102,11 @@ public class EnumVisitor extends AbstractVisitor {
 				IndexInsnNode fp = (IndexInsnNode) insn;
 				FieldInfo f = (FieldInfo) fp.getIndex();
 				if (f.getName().equals("$VALUES")) {
-					if (i == size - 1)
+					if (i == size - 1) {
 						cls.getMethods().remove(staticMethod);
-					else
+					} else {
 						list.subList(0, i + 1).clear();
+					}
 					break;
 				}
 			}
@@ -102,16 +116,19 @@ public class EnumVisitor extends AbstractVisitor {
 			if (insn.getType() == InsnType.CONSTRUCTOR) {
 				ConstructorInsn co = (ConstructorInsn) insn;
 
-				if (insn.getArgsCount() < 2)
+				if (insn.getArgsCount() < 2) {
 					continue;
+				}
 
 				ClassInfo clsInfo = co.getClassType();
 				ClassNode constrCls = cls.dex().resolveClass(clsInfo);
-				if (constrCls == null)
+				if (constrCls == null) {
 					continue;
+				}
 
-				if (!clsInfo.equals(cls.getClassInfo()) && !constrCls.getAccessFlags().isEnum())
+				if (!clsInfo.equals(cls.getClassInfo()) && !constrCls.getAccessFlags().isEnum()) {
 					continue;
+				}
 
 				RegisterArg nameArg = (RegisterArg) insn.getArg(0);
 				// InsnArg pos = insn.getArg(1);
@@ -130,8 +147,9 @@ public class EnumVisitor extends AbstractVisitor {
 						constrArg = iArg;
 					} else {
 						constrArg = CodeShrinker.inlineArgument(staticMethod, (RegisterArg) iArg);
-						if (constrArg == null)
+						if (constrArg == null) {
 							throw new JadxException("Can't inline constructor arg in enum: " + cls);
+						}
 					}
 					field.getArgs().add(constrArg);
 				}
@@ -143,8 +161,9 @@ public class EnumVisitor extends AbstractVisitor {
 							// remove constructor, because it is anonymous class
 							for (Iterator<?> mit = innerCls.getMethods().iterator(); mit.hasNext(); ) {
 								MethodNode innerMth = (MethodNode) mit.next();
-								if (innerMth.getAccessFlags().isConstructor())
+								if (innerMth.getAccessFlags().isConstructor()) {
 									mit.remove();
+								}
 							}
 							field.setCls(innerCls);
 							innerCls.getAttributes().add(AttributeFlag.DONT_GENERATE);

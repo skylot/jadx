@@ -21,4 +21,6 @@ public class Consts {
 
 	public static final String DEFAULT_PACKAGE_NAME = "defpackage";
 	public static final String ANONYMOUS_CLASS_PREFIX = "AnonymousClass_";
+
+	public static final String MTH_TOSTRING_SIGNATURE = "toString()Ljava/lang/String;";
 }

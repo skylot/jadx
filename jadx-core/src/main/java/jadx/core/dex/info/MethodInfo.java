@@ -31,14 +31,16 @@ public final class MethodInfo {
 		retType = dex.getType(proto.getReturnTypeIndex());
 		args = dex.readParamList(proto.getParametersOffset());
 
-		StringBuilder strArg = new StringBuilder();
-		strArg.append('(');
-		for (ArgType arg : args)
-			strArg.append(TypeGen.signature(arg));
-		strArg.append(')');
-		// strArg.append(TypeGen.signature(retType));
+		StringBuilder signature = new StringBuilder();
+		signature.append(name);
+		signature.append('(');
+		for (ArgType arg : args) {
+			signature.append(TypeGen.signature(arg));
+		}
+		signature.append(')');
+		signature.append(TypeGen.signature(retType));
 
-		shortId = name + strArg;
+		shortId = signature.toString();
 	}
 
 	public String getName() {
@@ -108,8 +110,8 @@ public final class MethodInfo {
 
 	@Override
 	public String toString() {
-		return retType + " " + declClass.getFullName() + "." + name
-				+ "(" + Utils.listToString(args) + ")";
+		return declClass.getFullName() + "." + name
+				+ "(" + Utils.listToString(args) + "):" + retType;
 	}
 
 }

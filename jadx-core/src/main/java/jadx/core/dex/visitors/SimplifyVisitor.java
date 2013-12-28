@@ -109,7 +109,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 			case INVOKE:
 				MethodInfo callMth = ((InvokeNode) insn).getCallMth();
 				if (callMth.getDeclClass().getFullName().equals(Consts.CLASS_STRING_BUILDER)
-						&& callMth.getShortId().equals("toString()")
+						&& callMth.getShortId().equals(Consts.MTH_TOSTRING_SIGNATURE)
 						&& insn.getArg(0).isInsnWrap()) {
 					try {
 						List<InsnNode> chain = flattenInsnChain(insn);
