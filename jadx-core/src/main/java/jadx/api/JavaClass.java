@@ -6,6 +6,7 @@ import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,14 +28,22 @@ public final class JavaClass {
 	}
 
 	public void decompile() {
+		if (decompiler == null) {
+			throw new JadxRuntimeException("Can't decompile inner class");
+		}
 		decompiler.processClass(cls);
+		load();
+	}
 
+	private void load() {
 		int inClsCount = cls.getInnerClasses().size();
 		if (inClsCount != 0) {
 			List<JavaClass> list = new ArrayList<JavaClass>(inClsCount);
 			for (ClassNode inner : cls.getInnerClasses()) {
 				if (!inner.getAttributes().contains(AttributeFlag.DONT_GENERATE)) {
-					list.add(new JavaClass(decompiler, inner));
+					JavaClass javaClass = new JavaClass(null, inner);
+					javaClass.load();
+					list.add(javaClass);
 				}
 			}
 			this.innerClasses = Collections.unmodifiableList(list);

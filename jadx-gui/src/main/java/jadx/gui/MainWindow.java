@@ -149,10 +149,9 @@ public class MainWindow extends JFrame {
 		Object obj = tree.getLastSelectedPathComponent();
 		if (obj instanceof JNode) {
 			JNode node = (JNode) obj;
-			if (node.getJParent() != null) {
-				showCode(node.getJParent(), node.getLine());
-			} else if (node.getClass() == JClass.class) {
-				showCode((JClass) node, node.getLine());
+			JClass cls = node.getRootClass();
+			if (cls != null) {
+				showCode(cls, node.getLine());
 			}
 		}
 	}
@@ -392,7 +391,7 @@ public class MainWindow extends JFrame {
 				Object node = path.getLastPathComponent();
 				if (node instanceof JClass) {
 					JClass cls = (JClass) node;
-					cls.load();
+					cls.getRootClass().load();
 				}
 			}
 

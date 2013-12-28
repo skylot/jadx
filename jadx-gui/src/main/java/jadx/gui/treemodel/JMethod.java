@@ -22,11 +22,11 @@ public class JMethod extends JNode {
 	private static final ImageIcon ICON_SYNC = Utils.openIcon("synch_co");
 
 	private final JavaMethod mth;
-	private final JClass jparent;
+	private final JClass jParent;
 
 	public JMethod(JavaMethod javaMethod, JClass jClass) {
 		this.mth = javaMethod;
-		this.jparent = jClass;
+		this.jParent = jClass;
 	}
 
 	@Override
@@ -35,7 +35,12 @@ public class JMethod extends JNode {
 
 	@Override
 	public JClass getJParent() {
-		return jparent;
+		return jParent;
+	}
+
+	@Override
+	public JClass getRootClass() {
+		return jParent.getRootClass();
 	}
 
 	@Override

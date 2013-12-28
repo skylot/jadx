@@ -37,6 +37,11 @@ public class JField extends JNode {
 	}
 
 	@Override
+	public JClass getRootClass() {
+		return jParent.getRootClass();
+	}
+
+	@Override
 	public int getLine() {
 		return field.getDecompiledLine();
 	}
@@ -45,8 +50,12 @@ public class JField extends JNode {
 	public Icon getIcon() {
 		AccessInfo af = field.getAccessFlags();
 		OverlayIcon icon = Utils.makeIcon(af, ICON_FLD_PUB, ICON_FLD_PRI, ICON_FLD_PRO, ICON_FLD_DEF);
-		if (af.isTransient()) icon.add(ICON_TRANSIENT);
-		if (af.isVolatile()) icon.add(ICON_VOLATILE);
+		if (af.isTransient()) {
+			icon.add(ICON_TRANSIENT);
+		}
+		if (af.isVolatile()) {
+			icon.add(ICON_VOLATILE);
+		}
 		return icon;
 	}
 

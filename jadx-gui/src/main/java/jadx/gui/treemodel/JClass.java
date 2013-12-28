@@ -22,11 +22,19 @@ public class JClass extends JNode {
 	private static final ImageIcon ICON_ANNOTATION = Utils.openIcon("annotation_obj");
 
 	private final JavaClass cls;
-	private JClass jParrent;
+	private final JClass jParent;
 	private boolean loaded;
 
 	public JClass(JavaClass cls) {
 		this.cls = cls;
+		this.jParent = null;
+		this.loaded = false;
+	}
+
+	public JClass(JavaClass cls, JClass parent) {
+		this.cls = cls;
+		this.jParent = parent;
+		this.loaded = true;
 	}
 
 	public JavaClass getCls() {
@@ -47,18 +55,16 @@ public class JClass extends JNode {
 		if (!loaded) {
 			add(new TextNode(NLS.str("tree.loading")));
 		} else {
-			JClass currentParent = jParrent == null ? this : jParrent;
 			for (JavaClass javaClass : cls.getInnerClasses()) {
-				JClass child = new JClass(javaClass);
-				child.setJParent(currentParent);
-				child.updateChilds();
+				JClass child = new JClass(javaClass, this);
 				add(child);
+				child.updateChilds();
 			}
 			for (JavaField f : cls.getFields()) {
-				add(new JField(f, currentParent));
+				add(new JField(f, this));
 			}
 			for (JavaMethod m : cls.getMethods()) {
-				add(new JMethod(m, currentParent));
+				add(new JMethod(m, this));
 			}
 		}
 	}
@@ -88,13 +94,17 @@ public class JClass extends JNode {
 		}
 	}
 
-	public void setJParent(JClass parent) {
-		this.jParrent = parent;
+	@Override
+	public JClass getJParent() {
+		return jParent;
 	}
 
 	@Override
-	public JClass getJParent() {
-		return jParrent;
+	public JClass getRootClass() {
+		if (jParent == null) {
+			return this;
+		}
+		return jParent.getRootClass();
 	}
 
 	@Override
