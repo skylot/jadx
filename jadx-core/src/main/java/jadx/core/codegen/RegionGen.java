@@ -60,8 +60,9 @@ public class RegionGen extends InsnGen {
 				if (tc != null) {
 					makeTryCatch(cont, tc.getTryBlock(), code);
 				} else {
-					for (IContainer c : r.getSubBlocks())
+					for (IContainer c : r.getSubBlocks()) {
 						makeRegion(code, c);
+					}
 				}
 			} else if (cont instanceof IfRegion) {
 				code.startLine();
@@ -214,7 +215,7 @@ public class RegionGen extends InsnGen {
 				op = op.invert();
 			}
 			if (op == IfOp.EQ) {
-				return arg(firstArg, false); // == true
+				return arg(firstArg, false).toString(); // == true
 			} else if (op == IfOp.NE) {
 				return "!" + arg(firstArg); // != true
 			}
@@ -257,8 +258,7 @@ public class RegionGen extends InsnGen {
 				code.startLine("case ");
 				if (k instanceof IndexInsnNode) {
 					code.add(sfield((FieldInfo) ((IndexInsnNode) k).getIndex()));
-				}
-				else {
+				} else {
 					code.add(TypeGen.literalToString((Integer) k, arg.getType()));
 				}
 				code.add(':');
@@ -295,8 +295,9 @@ public class RegionGen extends InsnGen {
 			if (!handler.isCatchAll()) {
 				makeCatchBlock(code, handler);
 			} else {
-				if (allHandler != null)
+				if (allHandler != null) {
 					LOG.warn("Several 'all' handlers in try/catch block in " + mth);
+				}
 				allHandler = handler;
 			}
 		}

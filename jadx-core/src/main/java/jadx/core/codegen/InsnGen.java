@@ -77,38 +77,38 @@ public class InsnGen {
 		return fallback;
 	}
 
-	public String arg(InsnNode insn, int arg) throws CodegenException {
+	public CodeWriter arg(InsnNode insn, int arg) throws CodegenException {
 		return arg(insn.getArg(arg));
 	}
 
-	public String arg(InsnArg arg) throws CodegenException {
+	public CodeWriter arg(InsnArg arg) throws CodegenException {
 		return arg(arg, true);
 	}
 
-	public String arg(InsnArg arg, boolean wrap) throws CodegenException {
+	public CodeWriter arg(InsnArg arg, boolean wrap) throws CodegenException {
+		CodeWriter code = new CodeWriter();
 		if (arg.isRegister()) {
-			return mgen.makeArgName((RegisterArg) arg);
+			code.add(mgen.makeArgName((RegisterArg) arg));
 		} else if (arg.isLiteral()) {
-			return lit((LiteralArg) arg);
+			code.add(lit((LiteralArg) arg));
 		} else if (arg.isInsnWrap()) {
-			CodeWriter code = new CodeWriter();
 			IGState flag = wrap ? IGState.BODY_ONLY : IGState.BODY_ONLY_NOWRAP;
 			makeInsn(((InsnWrapArg) arg).getWrapInsn(), code, flag);
-			return code.toString();
 		} else if (arg.isNamed()) {
-			return ((NamedArg) arg).getName();
+			code.add(((NamedArg) arg).getName());
 		} else if (arg.isField()) {
 			FieldArg f = (FieldArg) arg;
 			if (f.isStatic()) {
-				return sfield(f.getField());
+				code.add(sfield(f.getField()));
 			} else {
 				RegisterArg regArg = new RegisterArg(f.getRegNum());
 				regArg.replaceTypedVar(f);
-				return ifield(f.getField(), regArg);
+				code.add(ifield(f.getField(), regArg));
 			}
 		} else {
 			throw new CodegenException("Unknown arg type " + arg);
 		}
+		return code;
 	}
 
 	public String assignVar(InsnNode insn) throws CodegenException {
@@ -116,7 +116,7 @@ public class InsnGen {
 		if (insn.getAttributes().contains(AttributeType.DECLARE_VARIABLE)) {
 			return declareVar(arg);
 		} else {
-			return arg(arg);
+			return arg(arg).toString();
 		}
 	}
 
@@ -130,7 +130,7 @@ public class InsnGen {
 
 	private String ifield(FieldInfo field, InsnArg arg) throws CodegenException {
 		FieldNode fieldNode = mth.getParentClass().searchField(field);
-		if(fieldNode != null && fieldNode.getAttributes().contains(AttributeFlag.DONT_GENERATE)) {
+		if (fieldNode != null && fieldNode.getAttributes().contains(AttributeFlag.DONT_GENERATE)) {
 			return "";
 		}
 		String name = field.getName();
@@ -149,7 +149,7 @@ public class InsnGen {
 				return name;
 			}
 		}
-		String argStr = arg(arg);
+		CodeWriter argStr = arg(arg);
 		return argStr.isEmpty() ? name : argStr + "." + name;
 	}
 
@@ -162,7 +162,7 @@ public class InsnGen {
 		// Android specific resources class handler
 		ClassInfo parentClass = declClass.getParentClass();
 		if (parentClass != null && parentClass.getShortName().equals("R")) {
-			return  useClass(parentClass) + "." + declClass.getShortName() + "." + field.getName();
+			return useClass(parentClass) + "." + declClass.getShortName() + "." + field.getName();
 		}
 		return useClass(declClass) + '.' + field.getName();
 	}
@@ -173,8 +173,9 @@ public class InsnGen {
 		if (field.getDeclClass().getFullName().equals(thisClass)) {
 			// if we generate this field - don't init if its final and used
 			FieldNode fn = mth.getParentClass().searchField(field);
-			if (fn != null && fn.getAccessFlags().isFinal())
+			if (fn != null && fn.getAccessFlags().isFinal()) {
 				fn.getAttributes().remove(AttributeType.FIELD_VALUE);
+			}
 		}
 	}
 
@@ -246,14 +247,16 @@ public class InsnGen {
 			case CHECK_CAST:
 			case CAST: {
 				boolean wrap = state.contains(IGState.BODY_ONLY);
-				if (wrap)
+				if (wrap) {
 					code.add("(");
+				}
 				code.add("(");
 				code.add(useType(((ArgType) ((IndexInsnNode) insn).getIndex())));
 				code.add(") ");
 				code.add(arg(insn.getArg(0)));
-				if (wrap)
+				if (wrap) {
 					code.add(")");
+				}
 				break;
 			}
 			case ARITH:
@@ -270,10 +273,11 @@ public class InsnGen {
 				break;
 
 			case RETURN:
-				if (insn.getArgsCount() != 0)
+				if (insn.getArgsCount() != 0) {
 					code.add("return ").add(arg(insn.getArg(0), false));
-				else
+				} else {
 					code.add("return");
+				}
 				break;
 
 			case BREAK:
@@ -318,8 +322,9 @@ public class InsnGen {
 				ArgType arrayType = insn.getResult().getType();
 				int dim = arrayType.getArrayDimension();
 				code.add("new ").add(useType(arrayType.getArrayRootElement())).add('[').add(arg(insn, 0)).add(']');
-				for (int i = 0; i < dim - 1; i++)
+				for (int i = 0; i < dim - 1; i++) {
 					code.add("[]");
+				}
 				break;
 			}
 
@@ -460,8 +465,9 @@ public class InsnGen {
 		code.add('{');
 		for (int i = 0; i < c; i++) {
 			code.add(arg(insn, i));
-			if (i + 1 < c)
+			if (i + 1 < c) {
 				code.add(", ");
+			}
 		}
 		code.add('}');
 	}
@@ -581,8 +587,8 @@ public class InsnGen {
 				InsnArg arg = insn.getArg(0);
 				// FIXME: add 'this' for equals methods in scope
 				if (!arg.isThis()) {
-					String argStr = arg(arg);
-					if(!argStr.isEmpty()) {
+					CodeWriter argStr = arg(arg);
+					if (!argStr.isEmpty()) {
 						code.add(argStr).add('.');
 					}
 				}
@@ -685,15 +691,15 @@ public class InsnGen {
 
 	private void makeArith(ArithNode insn, CodeWriter code, EnumSet<IGState> state) throws CodegenException {
 		ArithOp op = insn.getOp();
-		String v1 = arg(insn.getArg(0));
-		String v2 = arg(insn.getArg(1));
+		CodeWriter v1 = arg(insn.getArg(0));
+		CodeWriter v2 = arg(insn.getArg(1));
 		if (state.contains(IGState.BODY_ONLY)) {
 			// wrap insn in brackets for save correct operation order
 			code.add('(').add(v1).add(' ').add(op.getSymbol()).add(' ').add(v2).add(')');
 		} else if (state.contains(IGState.BODY_ONLY_NOWRAP)) {
 			code.add(v1).add(' ').add(op.getSymbol()).add(' ').add(v2);
 		} else {
-			String res = arg(insn.getResult());
+			CodeWriter res = arg(insn.getResult());
 			if (res.equals(v1) && insn.getResult().equals(insn.getArg(0))) {
 				state.add(IGState.NO_RESULT);
 				// "++" or "--"

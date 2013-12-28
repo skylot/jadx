@@ -25,6 +25,8 @@ import static junit.framework.Assert.fail;
 public abstract class InternalJadxTest {
 
 	protected boolean outputCFG = false;
+	protected boolean deleteTmpJar = true;
+
 	protected String outDir = "test-out-tmp";
 
 	public ClassNode getClassNode(Class<?> clazz) {
@@ -40,7 +42,7 @@ public abstract class InternalJadxTest {
 			String clsName = clazz.getName();
 			ClassNode cls = null;
 			for (ClassNode aClass : classes) {
-				if(aClass.getFullName().equals(clsName)) {
+				if (aClass.getFullName().equals(clsName)) {
 					cls = aClass;
 				}
 			}
@@ -90,7 +92,11 @@ public abstract class InternalJadxTest {
 			add(file, path + "/" + file.getName(), jo);
 		}
 		jo.close();
-		temp.deleteOnExit();
+		if (deleteTmpJar) {
+			temp.deleteOnExit();
+		} else {
+			System.out.println("Temporary jar file path: " + temp.getAbsolutePath());
+		}
 		return temp;
 	}
 
@@ -144,5 +150,11 @@ public abstract class InternalJadxTest {
 	@Deprecated
 	protected void setOutputCFG() {
 		this.outputCFG = true;
+	}
+
+	// Use only for debug purpose
+	@Deprecated
+	protected void notDeleteTmpJar() {
+		this.deleteTmpJar = false;
 	}
 }

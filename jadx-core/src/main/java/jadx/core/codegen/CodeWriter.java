@@ -17,7 +17,7 @@ public class CodeWriter {
 	private static final int MAX_FILENAME_LENGTH = 128;
 
 	public static final String NL = System.getProperty("line.separator");
-	private static final String INDENT = "\t";
+	public static final String INDENT = "\t";
 
 	private final StringBuilder buf = new StringBuilder();
 	private String indentStr;
@@ -183,6 +183,10 @@ public class CodeWriter {
 		}
 	}
 
+	public boolean isEmpty() {
+		return buf.length() == 0;
+	}
+
 	public boolean notEmpty() {
 		return buf.length() != 0;
 	}
@@ -227,4 +231,20 @@ public class CodeWriter {
 		}
 	}
 
+	@Override
+	public int hashCode() {
+		return buf.toString().hashCode();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof CodeWriter)) {
+			return false;
+		}
+		CodeWriter that = (CodeWriter) o;
+		return buf.toString().equals(that.buf.toString());
+	}
 }

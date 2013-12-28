@@ -295,7 +295,10 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 	}
 
 	public FieldNode searchField(FieldInfo field) {
-		String name = field.getName();
+		return searchFieldByName(field.getName());
+	}
+
+	public FieldNode searchFieldByName(String name) {
 		for (FieldNode f : fields) {
 			if (f.getName().equals(name))
 				return f;
