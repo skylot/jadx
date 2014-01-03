@@ -26,11 +26,14 @@ public final class JavaPackage implements Comparable<JavaPackage> {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 		JavaPackage that = (JavaPackage) o;
-		if (!name.equals(that.name)) return false;
-		return true;
+		return name.equals(that.name);
 	}
 
 	@Override

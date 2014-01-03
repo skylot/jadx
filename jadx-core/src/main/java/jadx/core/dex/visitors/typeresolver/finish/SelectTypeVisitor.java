@@ -13,8 +13,9 @@ public class SelectTypeVisitor {
 		}
 
 		for (InsnArg arg : insn.getArguments()) {
-			if (!arg.getType().isTypeKnown())
+			if (!arg.getType().isTypeKnown()) {
 				selectType(arg);
+			}
 		}
 	}
 

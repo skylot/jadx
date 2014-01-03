@@ -59,8 +59,9 @@ public class CodeWriter {
 	public CodeWriter startLine(int ind, String str) {
 		addLine();
 		buf.append(indentStr);
-		for (int i = 0; i < ind; i++)
+		for (int i = 0; i < ind; i++) {
 			buf.append(INDENT);
+		}
 		buf.append(str);
 		return this;
 	}
@@ -209,10 +210,11 @@ public class CodeWriter {
 		if (name.length() > MAX_FILENAME_LENGTH) {
 			int dotIndex = name.indexOf('.');
 			int cutAt = MAX_FILENAME_LENGTH - name.length() + dotIndex - 1;
-			if (cutAt <= 0)
+			if (cutAt <= 0) {
 				name = name.substring(0, MAX_FILENAME_LENGTH - 1);
-			else
+			} else {
 				name = name.substring(0, cutAt) + name.substring(dotIndex);
+			}
 			file = new File(file.getParentFile(), name);
 		}
 
@@ -226,8 +228,9 @@ public class CodeWriter {
 		} catch (Exception e) {
 			LOG.error("Save file error", e);
 		} finally {
-			if (out != null)
+			if (out != null) {
 				out.close();
+			}
 		}
 	}
 

@@ -141,12 +141,13 @@ public class ProcessVariables extends AbstractVisitor {
 			for (Iterator<IRegion> it = set.iterator(); it.hasNext(); ) {
 				IRegion r = it.next();
 				IRegion parent = r.getParent();
-				if (parent != null && set.contains(parent))
+				if (parent != null && set.contains(parent)) {
 					it.remove();
+				}
 			}
-			if (set.isEmpty())
+			if (set.isEmpty()) {
 				continue;
-
+			}
 			IRegion region = set.iterator().next();
 			IRegion parent = region;
 			boolean declare = false;
@@ -178,12 +179,14 @@ public class ProcessVariables extends AbstractVisitor {
 
 	private boolean canDeclareInRegion(Usage u, IRegion region) {
 		for (IRegion r : u.getAssigns()) {
-			if (!RegionUtils.isRegionContainsRegion(region, r))
+			if (!RegionUtils.isRegionContainsRegion(region, r)) {
 				return false;
+			}
 		}
 		for (IRegion r : u.getUseRegions()) {
-			if (!RegionUtils.isRegionContainsRegion(region, r))
+			if (!RegionUtils.isRegionContainsRegion(region, r)) {
 				return false;
+			}
 		}
 		return true;
 	}

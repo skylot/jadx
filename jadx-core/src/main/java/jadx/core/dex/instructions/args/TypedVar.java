@@ -70,13 +70,23 @@ public class TypedVar {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) return true;
-		if (obj == null) return false;
-		if (!(obj instanceof TypedVar)) return false;
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof TypedVar)) {
+			return false;
+		}
 		TypedVar other = (TypedVar) obj;
-		if (!type.equals(other.type)) return false;
+		if (!type.equals(other.type)) {
+			return false;
+		}
 		if (name == null) {
-			if (other.name != null) return false;
+			if (other.name != null) {
+				return false;
+			}
 		} else if (!name.equals(other.name)) {
 			return false;
 		}
@@ -86,8 +96,9 @@ public class TypedVar {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		if (name != null)
+		if (name != null) {
 			sb.append('\'').append(name).append("' ");
+		}
 		sb.append(type);
 		return sb.toString();
 	}

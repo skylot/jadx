@@ -24,10 +24,11 @@ public class AccessInfo {
 	}
 
 	public AccessInfo remove(int flag) {
-		if (containsFlag(flag))
+		if (containsFlag(flag)) {
 			return new AccessInfo(accFlags - flag, type);
-		else
+		} else {
 			return this;
+		}
 	}
 
 	public AccessInfo getVisibility() {
@@ -111,71 +112,73 @@ public class AccessInfo {
 
 	public String makeString() {
 		StringBuilder code = new StringBuilder();
-		if (isPublic())
+		if (isPublic()) {
 			code.append("public ");
-
-		if (isPrivate())
+		}
+		if (isPrivate()) {
 			code.append("private ");
-
-		if (isProtected())
+		}
+		if (isProtected()) {
 			code.append("protected ");
-
-		if (isStatic())
+		}
+		if (isStatic()) {
 			code.append("static ");
-
-		if (isFinal())
+		}
+		if (isFinal()) {
 			code.append("final ");
-
-		if (isAbstract())
+		}
+		if (isAbstract()) {
 			code.append("abstract ");
-
-		if (isNative())
+		}
+		if (isNative()) {
 			code.append("native ");
-
+		}
 		switch (type) {
 			case METHOD:
-				if (isSynchronized())
+				if (isSynchronized()) {
 					code.append("synchronized ");
-
-				if (isBridge())
+				}
+				if (isBridge()) {
 					code.append("/* bridge */ ");
-
+				}
 				if (Consts.DEBUG) {
-					if (isVarArgs())
+					if (isVarArgs()) {
 						code.append("/* varargs */ ");
+					}
 				}
 				break;
 
 			case FIELD:
-				if (isVolatile())
+				if (isVolatile()) {
 					code.append("volatile ");
-
-				if (isTransient())
+				}
+				if (isTransient()) {
 					code.append("transient ");
+				}
 				break;
 
 			case CLASS:
-				if ((accFlags & AccessFlags.ACC_STRICT) != 0)
+				if ((accFlags & AccessFlags.ACC_STRICT) != 0) {
 					code.append("strict ");
-
+				}
 				if (Consts.DEBUG) {
-					if ((accFlags & AccessFlags.ACC_SUPER) != 0)
+					if ((accFlags & AccessFlags.ACC_SUPER) != 0) {
 						code.append("/* super */ ");
-
-					if ((accFlags & AccessFlags.ACC_ENUM) != 0)
+					}
+					if ((accFlags & AccessFlags.ACC_ENUM) != 0) {
 						code.append("/* enum */ ");
+					}
 				}
 				break;
 		}
-
-		if (isSynthetic())
+		if (isSynthetic()) {
 			code.append("/* synthetic */ ");
-
+		}
 		return code.toString();
 	}
 
 	public String rawString() {
-		switch (type){
+		switch (type) {
 			case CLASS:
 				return AccessFlags.classString(accFlags);
 			case FIELD:

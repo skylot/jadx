@@ -26,7 +26,6 @@ public class InputFile {
 		if (!file.exists()) {
 			throw new IOException("File not found: " + file.getAbsolutePath());
 		}
-
 		String fileName = file.getName();
 
 		if (fileName.endsWith(".dex")) {
@@ -49,8 +48,9 @@ public class InputFile {
 				throw new DecodeException(
 						"java class to dex conversion error:\n " + e.getMessage(), e);
 			}
-		} else
+		} else {
 			throw new DecodeException("Unsupported input file: " + file);
+		}
 	}
 
 	private byte[] openDexFromApk(File file) throws IOException {

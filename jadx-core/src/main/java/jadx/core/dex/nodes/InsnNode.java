@@ -32,15 +32,17 @@ public class InsnNode extends LineAttrNode {
 		this.insnType = type;
 		this.offset = -1;
 
-		if (argsCount == 0)
+		if (argsCount == 0) {
 			this.arguments = Collections.emptyList();
-		else
+		} else {
 			this.arguments = new ArrayList<InsnArg>(argsCount);
+		}
 	}
 
 	public void setResult(RegisterArg res) {
-		if (res != null)
+		if (res != null) {
 			res.setParentInsn(this);
+		}
 		this.result = res;
 	}
 
@@ -71,8 +73,9 @@ public class InsnNode extends LineAttrNode {
 
 	public boolean containsArg(RegisterArg arg) {
 		for (InsnArg a : arguments) {
-			if (a == arg || (a.isRegister() && ((RegisterArg) a).getRegNum() == arg.getRegNum()))
+			if (a == arg || (a.isRegister() && ((RegisterArg) a).getRegNum() == arg.getRegNum())) {
 				return true;
+			}
 		}
 		return false;
 	}
@@ -92,8 +95,9 @@ public class InsnNode extends LineAttrNode {
 				setArg(i, to);
 				return true;
 			} else if (arg.isInsnWrap()) {
-				if (((InsnWrapArg) arg).getWrapInsn().replaceArg(from, to))
+				if (((InsnWrapArg) arg).getWrapInsn().replaceArg(from, to)) {
 					return true;
+				}
 			}
 		}
 		return false;
@@ -176,14 +180,25 @@ public class InsnNode extends LineAttrNode {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) return true;
-		if (obj == null) return false;
-		if (hashCode() != obj.hashCode()) return false;
-		if (!(obj instanceof InsnNode)) return false;
-
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (hashCode() != obj.hashCode()) {
+			return false;
+		}
+		if (!(obj instanceof InsnNode)) {
+			return false;
+		}
 		InsnNode other = (InsnNode) obj;
-		if (insnType != other.insnType) return false;
-		if (arguments.size() != other.arguments.size()) return false;
+		if (insnType != other.insnType) {
+			return false;
+		}
+		if (arguments.size() != other.arguments.size()) {
+			return false;
+		}
 
 		// TODO !!! finish equals
 		return true;

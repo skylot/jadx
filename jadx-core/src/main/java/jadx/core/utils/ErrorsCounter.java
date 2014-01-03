@@ -81,10 +81,11 @@ public class ErrorsCounter {
 	}
 
 	private static String formatException(Throwable e) {
-		if (e == null || e.getMessage() == null)
+		if (e == null || e.getMessage() == null) {
 			return "";
-		else
+		} else {
 			return "\n error: " + e.getMessage();
+		}
 	}
 
 	public static String formatErrorMsg(ClassNode cls, String msg, Throwable e) {

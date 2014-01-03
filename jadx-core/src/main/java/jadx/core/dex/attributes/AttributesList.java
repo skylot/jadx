@@ -52,10 +52,11 @@ public final class AttributesList {
 	// Attributes
 
 	public void add(IAttribute attr) {
-		if (attr.getType().isUniq())
+		if (attr.getType().isUniq()) {
 			uniqAttr.put(attr.getType(), attr);
-		else
+		} else {
 			addMultiAttribute(attr);
+		}
 	}
 
 	private void addMultiAttribute(IAttribute attr) {
@@ -70,15 +71,17 @@ public final class AttributesList {
 	public void addAll(AttributesList otherList) {
 		flags.addAll(otherList.flags);
 		uniqAttr.putAll(otherList.uniqAttr);
-		for (IAttribute attr : otherList.attributes)
+		for (IAttribute attr : otherList.attributes) {
 			addMultiAttribute(attr);
+		}
 	}
 
 	public boolean contains(AttributeType type) {
-		if (type.isUniq())
+		if (type.isUniq()) {
 			return uniqAttr.containsKey(type);
-		else
+		} else {
 			return getMultiCountInternal(type) != 0;
+		}
 	}
 
 	public IAttribute get(AttributeType type) {
@@ -86,9 +89,11 @@ public final class AttributesList {
 			return uniqAttr.get(type);
 		} else {
 			if (getMultiCountInternal(type) != 0) {
-				for (IAttribute attr : attributes)
-					if (attr.getType() == type)
+				for (IAttribute attr : attributes) {
+					if (attr.getType() == type) {
 						return attr;
+					}
+				}
 			}
 			return null;
 		}
@@ -104,9 +109,9 @@ public final class AttributesList {
 
 	public Annotation getAnnotation(String cls) {
 		AnnotationsList aList = (AnnotationsList) get(AttributeType.ANNOTATION_LIST);
-		if (aList == null || aList.size() == 0)
+		if (aList == null || aList.size() == 0) {
 			return null;
-
+		}
 		return aList.get(cls);
 	}
 
@@ -119,8 +124,9 @@ public final class AttributesList {
 		} else {
 			List<IAttribute> attrs = new ArrayList<IAttribute>(count);
 			for (IAttribute attr : attributes) {
-				if (attr.getType() == type)
+				if (attr.getType() == type) {
 					attrs.add(attr);
+				}
 			}
 			return attrs;
 		}
@@ -132,8 +138,9 @@ public final class AttributesList {
 		} else {
 			for (Iterator<IAttribute> it = attributes.iterator(); it.hasNext(); ) {
 				IAttribute attr = it.next();
-				if (attr.getType() == type)
+				if (attr.getType() == type) {
 					it.remove();
+				}
 			}
 			attrCount[type.ordinal()] = 0;
 		}
@@ -143,11 +150,13 @@ public final class AttributesList {
 		AttributeType type = attr.getType();
 		if (type.isUniq()) {
 			IAttribute a = uniqAttr.get(type);
-			if (a == attr)
+			if (a == attr) {
 				uniqAttr.remove(type);
+			}
 		} else {
-			if (getMultiCountInternal(type) == 0)
+			if (getMultiCountInternal(type) == 0) {
 				return;
+			}
 
 			for (Iterator<IAttribute> it = attributes.iterator(); it.hasNext(); ) {
 				IAttribute a = it.next();
@@ -168,25 +177,28 @@ public final class AttributesList {
 
 	public List<String> getAttributeStrings() {
 		int size = flags.size() + uniqAttr.size() + attributes.size();
-		if (size == 0)
+		if (size == 0) {
 			return Collections.emptyList();
-
+		}
 		List<String> list = new ArrayList<String>(size);
-		for (AttributeFlag a : flags)
+		for (AttributeFlag a : flags) {
 			list.add(a.toString());
-		for (IAttribute a : uniqAttr.values())
+		}
+		for (IAttribute a : uniqAttr.values()) {
 			list.add(a.toString());
-		for (IAttribute a : attributes)
+		}
+		for (IAttribute a : attributes) {
 			list.add(a.toString());
+		}
 		return list;
 	}
 
 	@Override
 	public String toString() {
 		List<String> list = getAttributeStrings();
-		if (list.isEmpty())
+		if (list.isEmpty()) {
 			return "";
-
+		}
 		return "A:{" + Utils.listToString(list) + "}";
 	}
 

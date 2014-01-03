@@ -61,8 +61,6 @@ public class AnnotationsParser {
 	private AnnotationsList readAnnotationSet(int offset) throws DecodeException {
 		Section section = dex.openSection(offset);
 		int size = section.readInt();
-		if (size > 100)
-			section.toString();
 		List<Annotation> list = new ArrayList<Annotation>(size);
 		for (int i = 0; i < size; i++) {
 			Section anSection = dex.openSection(section.readInt());

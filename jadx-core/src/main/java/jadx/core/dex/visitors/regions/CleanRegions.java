@@ -18,14 +18,15 @@ public class CleanRegions extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
-		if (mth.isNoCode() || mth.getBasicBlocks().size() == 0)
+		if (mth.isNoCode() || mth.getBasicBlocks().size() == 0) {
 			return;
-
+		}
 		IRegionVisitor removeEmptyBlocks = new AbstractRegionVisitor() {
 			@Override
 			public void enterRegion(MethodNode mth, IRegion region) {
-				if (!(region instanceof Region))
+				if (!(region instanceof Region)) {
 					return;
+				}
 
 				for (Iterator<IContainer> it = region.getSubBlocks().iterator(); it.hasNext(); ) {
 					IContainer container = it.next();
@@ -44,6 +45,5 @@ public class CleanRegions extends AbstractVisitor {
 			}
 		};
 		DepthRegionTraverser.traverseAll(mth, removeEmptyBlocks);
-
 	}
 }

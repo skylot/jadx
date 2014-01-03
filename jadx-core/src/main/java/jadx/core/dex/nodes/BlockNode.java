@@ -72,15 +72,17 @@ public class BlockNode extends AttrNode implements IBlock {
 		LoopAttr loop = (LoopAttr) block.getAttributes().get(AttributeType.LOOP);
 		if (loop == null) {
 			for (BlockNode b : sucList) {
-				if (!b.getAttributes().contains(AttributeType.EXC_HANDLER))
+				if (!b.getAttributes().contains(AttributeType.EXC_HANDLER)) {
 					nodes.add(b);
+				}
 			}
 		} else {
 			for (BlockNode b : sucList) {
 				if (!b.getAttributes().contains(AttributeType.EXC_HANDLER)) {
 					// don't follow back edge
-					if (loop.getStart() == b && loop.getEnd() == block)
+					if (loop.getStart() == b && loop.getEnd() == block) {
 						continue;
+					}
 					nodes.add(b);
 				}
 			}
@@ -153,13 +155,25 @@ public class BlockNode extends AttrNode implements IBlock {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) return true;
-		if (obj == null) return false;
-		if (hashCode() != obj.hashCode()) return false;
-		if (!(obj instanceof BlockNode)) return false;
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (hashCode() != obj.hashCode()) {
+			return false;
+		}
+		if (!(obj instanceof BlockNode)) {
+			return false;
+		}
 		BlockNode other = (BlockNode) obj;
-		if (id != other.id) return false;
-		if (startOffset != other.startOffset) return false;
+		if (id != other.id) {
+			return false;
+		}
+		if (startOffset != other.startOffset) {
+			return false;
+		}
 		return true;
 	}
 

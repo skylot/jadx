@@ -36,9 +36,9 @@ public class DotGraphVisitor extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) {
-		if (mth.isNoCode())
+		if (mth.isNoCode()) {
 			return;
-
+		}
 		CodeWriter dot = new CodeWriter();
 		CodeWriter conn = new CodeWriter();
 
@@ -47,18 +47,22 @@ public class DotGraphVisitor extends AbstractVisitor {
 				+ "\" {");
 
 		if (useRegions) {
-			if (mth.getRegion() == null)
+			if (mth.getRegion() == null) {
 				return;
+			}
 
 			processRegion(mth, mth.getRegion(), dot, conn);
 			if (mth.getExceptionHandlers() != null) {
-				for (ExceptionHandler h : mth.getExceptionHandlers())
-					if (h.getHandlerRegion() != null)
+				for (ExceptionHandler h : mth.getExceptionHandlers()) {
+					if (h.getHandlerRegion() != null) {
 						processRegion(mth, h.getHandlerRegion(), dot, conn);
+					}
+				}
 			}
 		} else {
-			for (BlockNode block : mth.getBasicBlocks())
+			for (BlockNode block : mth.getBasicBlocks()) {
 				processBlock(mth, block, dot, conn);
+			}
 		}
 
 		String attrs = attributesString(mth);
@@ -109,8 +113,9 @@ public class DotGraphVisitor extends AbstractVisitor {
 		String attrs = attributesString(block);
 		if (PRINT_REGISTERS_STATES) {
 			if (block.getStartState() != null) {
-				if (attrs.length() != 0)
+				if (attrs.length() != 0) {
 					attrs += "|";
+				}
 				attrs += escape("RS: " + block.getStartState()) + NL;
 				attrs += escape("RE: " + block.getEndState()) + NL;
 			}
@@ -125,16 +130,17 @@ public class DotGraphVisitor extends AbstractVisitor {
 				+ (insns.length() == 0 ? "" : "|" + insns)
 				+ "}\"];");
 
-		for (BlockNode next : block.getSuccessors())
+		for (BlockNode next : block.getSuccessors()) {
 			conn.startLine(makeName(block) + " -> " + makeName(next) + ";");
-
-		for (BlockNode next : block.getDominatesOn())
+		}
+		for (BlockNode next : block.getDominatesOn()) {
 			conn.startLine(makeName(block) + " -> " + makeName(next) + "[style=dotted];");
-
+		}
 		// add all dominators connections
 		if (false) {
-			for (BlockNode next : BlockUtils.bitsetToBlocks(mth, block.getDoms()))
+			for (BlockNode next : BlockUtils.bitsetToBlocks(mth, block.getDoms())) {
 				conn.startLine(makeName(block) + " -> " + makeName(next) + "[style=dotted, color=green];");
+			}
 		}
 	}
 
@@ -168,8 +174,9 @@ public class DotGraphVisitor extends AbstractVisitor {
 			CodeWriter code = new CodeWriter(0);
 			MethodGen.makeFallbackInsns(code, mth, block.getInstructions(), false);
 			String str = escape(code.newLine().toString());
-			if (str.startsWith(NL))
+			if (str.startsWith(NL)) {
 				str = str.substring(NL.length());
+			}
 			return str;
 		}
 	}

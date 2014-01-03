@@ -17,8 +17,9 @@ final class RegionStack {
 	private static final boolean DEBUG = false;
 
 	static {
-		if (DEBUG)
+		if (DEBUG) {
 			LOG.debug("Debug enabled for {}", RegionStack.class);
+		}
 	}
 
 	private static final class State {
@@ -47,27 +48,30 @@ final class RegionStack {
 	private State curState;
 
 	public RegionStack(MethodNode mth) {
-		if (DEBUG)
+		if (DEBUG) {
 			LOG.debug("New RegionStack: {}", mth);
+		}
 		this.stack = new ArrayDeque<State>();
 		this.curState = new State();
 	}
 
 	public void push(IRegion region) {
 		stack.push(curState);
-		if (stack.size() > 1000)
+		if (stack.size() > 1000) {
 			throw new StackOverflowError("Deep code hierarchy");
-
+		}
 		curState = curState.copy();
 		curState.region = region;
-		if (DEBUG)
+		if (DEBUG) {
 			LOG.debug("Stack push: {}: {}", size(), curState);
+		}
 	}
 
 	public void pop() {
 		curState = stack.pop();
-		if (DEBUG)
+		if (DEBUG) {
 			LOG.debug("Stack  pop: {}: {}", size(), curState);
+		}
 	}
 
 	/**
@@ -76,8 +80,9 @@ final class RegionStack {
 	 * @param exit boundary node, null will be ignored
 	 */
 	public void addExit(BlockNode exit) {
-		if (exit != null)
+		if (exit != null) {
 			curState.exits.add(exit);
+		}
 	}
 
 	public boolean containsExit(BlockNode exit) {

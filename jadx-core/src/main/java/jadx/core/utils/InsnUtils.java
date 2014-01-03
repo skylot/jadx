@@ -40,12 +40,13 @@ public class InsnUtils {
 	}
 
 	public static String indexToString(Object index) {
-		if (index == null)
+		if (index == null) {
 			return "";
-
-		if (index instanceof String)
+		}
+		if (index instanceof String) {
 			return "\"" + index + "\"";
-		else
+		} else {
 			return " " + index.toString();
+		}
 	}
 }

@@ -18,10 +18,11 @@ public class EnumClassAttr implements IAttribute {
 
 		public EnumField(String name, int argsCount) {
 			this.name = name;
-			if (argsCount != 0)
+			if (argsCount != 0) {
 				this.args = new ArrayList<InsnArg>(argsCount);
-			else
+			} else {
 				this.args = Collections.emptyList();
+			}
 		}
 
 		public String getName() {

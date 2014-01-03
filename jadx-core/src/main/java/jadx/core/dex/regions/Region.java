@@ -28,8 +28,9 @@ public final class Region extends AbstractRegion {
 		sb.append(blocks.size());
 		if (blocks.size() != 0) {
 			for (IContainer cont : blocks) {
-				if (cont instanceof BlockNode)
+				if (cont instanceof BlockNode) {
 					sb.append(((BlockNode) cont).getId());
+				}
 			}
 		}
 		return sb.toString();

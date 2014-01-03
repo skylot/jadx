@@ -127,9 +127,9 @@ public class MethodGen {
 			RegisterArg arg = it.next();
 
 			// add argument annotation
-			if (paramsAnnotation != null)
+			if (paramsAnnotation != null) {
 				annotationGen.addForParameter(argsCode, paramsAnnotation, i);
-
+			}
 			if (!it.hasNext() && mth.getAccessFlags().isVarArgs()) {
 				// change last array argument to varargs
 				ArgType type = arg.getType();
@@ -148,8 +148,9 @@ public class MethodGen {
 			argsCode.add(makeArgName(arg));
 
 			i++;
-			if (it.hasNext())
+			if (it.hasNext()) {
 				argsCode.add(", ");
+			}
 		}
 		return argsCode;
 	}
@@ -163,24 +164,27 @@ public class MethodGen {
 		String name = arg.getTypedVar().getName();
 		String base = "r" + arg.getRegNum();
 		if (fallback) {
-			if (name != null)
+			if (name != null) {
 				return base + "_" + name;
-			else
+			} else {
 				return base;
+			}
 		} else {
 			if (name != null) {
-				if (name.equals("this"))
+				if (name.equals("this")) {
 					return name;
-				else if (Consts.DEBUG)
+				} else if (Consts.DEBUG) {
 					return name + "_" + base;
-				else
+				} else {
 					return name;
+				}
 			} else {
 				ArgType type = arg.getType();
-				if (type.isPrimitive())
+				if (type.isPrimitive()) {
 					return base + type.getPrimitiveType().getShortName().toLowerCase();
-				else
+				} else {
 					return base + "_" + Utils.escape(TypeGen.translate(classGen, arg.getType()));
+				}
 			}
 		}
 	}
@@ -193,9 +197,9 @@ public class MethodGen {
 	 */
 	public String assignArg(RegisterArg arg) {
 		String name = makeArgName(arg);
-		if (varNames.add(name) || fallback)
+		if (varNames.add(name) || fallback) {
 			return name;
-
+		}
 		name = getUniqVarName(name);
 		arg.getTypedVar().setName(name);
 		return name;
@@ -203,9 +207,9 @@ public class MethodGen {
 
 	public String assignNamedArg(NamedArg arg) {
 		String name = arg.getName();
-		if (varNames.add(name) || fallback)
+		if (varNames.add(name) || fallback) {
 			return name;
-
+		}
 		name = getUniqVarName(name);
 		arg.setName(name);
 		return name;
@@ -298,8 +302,9 @@ public class MethodGen {
 			try {
 				if (insnGen.makeInsn(insn, code)) {
 					CatchAttr catchAttr = (CatchAttr) attrs.get(AttributeType.CATCH_BLOCK);
-					if (catchAttr != null)
+					if (catchAttr != null) {
 						code.add("\t //" + catchAttr);
+					}
 				}
 			} catch (CodegenException e) {
 				code.startLine("// error: " + insn);

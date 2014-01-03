@@ -6,8 +6,9 @@ public abstract class AttrNode implements IAttributeNode {
 
 	@Override
 	public AttributesList getAttributes() {
-		if (attributesList == null)
+		if (attributesList == null) {
 			attributesList = new AttributesList();
+		}
 		return attributesList;
 	}
 

@@ -19,8 +19,9 @@ public class RegionUtils {
 		} else if (container instanceof IRegion) {
 			IRegion region = (IRegion) container;
 			List<IContainer> blocks = region.getSubBlocks();
-			if (blocks.isEmpty())
+			if (blocks.isEmpty()) {
 				return false;
+			}
 			return hasExitEdge(blocks.get(blocks.size() - 1));
 		} else {
 			throw new JadxRuntimeException("Unknown container type: " + container.getClass());
@@ -33,8 +34,9 @@ public class RegionUtils {
 		} else if (container instanceof IRegion) {
 			IRegion region = (IRegion) container;
 			for (IContainer block : region.getSubBlocks()) {
-				if (notEmpty(block))
+				if (notEmpty(block)) {
 					return true;
+				}
 			}
 			return false;
 		} else {
@@ -61,8 +63,9 @@ public class RegionUtils {
 		} else if (container instanceof IRegion) {
 			IRegion region = (IRegion) container;
 			for (IContainer b : region.getSubBlocks()) {
-				if (isRegionContainsBlock(b, block))
+				if (isRegionContainsBlock(b, block)) {
 					return true;
+				}
 			}
 			return false;
 		} else {
@@ -71,8 +74,9 @@ public class RegionUtils {
 	}
 
 	private static boolean isRegionContainsExcHandlerRegion(IContainer container, IRegion region) {
-		if (container == region)
+		if (container == region) {
 			return true;
+		}
 
 		if (container instanceof IRegion) {
 			IRegion r = (IRegion) container;
@@ -84,16 +88,19 @@ public class RegionUtils {
 				if (cb != null && (b instanceof IRegion)) {
 					TryCatchBlock tb = cb.getTryBlock();
 					for (ExceptionHandler eh : tb.getHandlers()) {
-						if (isRegionContainsRegion(eh.getHandlerRegion(), region))
+						if (isRegionContainsRegion(eh.getHandlerRegion(), region)) {
 							return true;
+						}
 					}
 					if (tb.getFinalBlock() != null) {
-						if (isRegionContainsRegion(tb.getFinalBlock(), region))
+						if (isRegionContainsRegion(tb.getFinalBlock(), region)) {
 							return true;
+						}
 					}
 				}
-				if (isRegionContainsRegion(b, region))
+				if (isRegionContainsRegion(b, region)) {
 					return true;
+				}
 			}
 		}
 		return false;
@@ -105,16 +112,20 @@ public class RegionUtils {
 	 * otherwise run recursive search because exception handlers can have several parents
 	 */
 	public static boolean isRegionContainsRegion(IContainer container, IRegion region) {
-		if (container == region) return true;
-		if (region == null) return false;
-
+		if (container == region) {
+			return true;
+		}
+		if (region == null) {
+			return false;
+		}
 		IRegion parent = region.getParent();
 		while (container != parent) {
 			if (parent == null) {
-				if (region.getAttributes().contains(AttributeType.EXC_HANDLER))
+				if (region.getAttributes().contains(AttributeType.EXC_HANDLER)) {
 					return isRegionContainsExcHandlerRegion(container, region);
-				else
+				} else {
 					return false;
+				}
 			}
 			region = parent;
 			parent = region.getParent();
@@ -123,11 +134,9 @@ public class RegionUtils {
 	}
 
 	public static boolean isDominaterBy(BlockNode dom, IContainer cont) {
-		assert cont != null;
-
-		if (dom == cont)
+		if (dom == cont) {
 			return true;
-
+		}
 		if (cont instanceof BlockNode) {
 			BlockNode block = (BlockNode) cont;
 			return block.isDominator(dom);
@@ -145,16 +154,17 @@ public class RegionUtils {
 	}
 
 	public static boolean hasPathThruBlock(BlockNode block, IContainer cont) {
-		if (block == cont)
+		if (block == cont) {
 			return true;
-
+		}
 		if (cont instanceof BlockNode) {
 			return BlockUtils.isPathExists(block, (BlockNode) cont);
 		} else if (cont instanceof IRegion) {
 			IRegion region = (IRegion) cont;
 			for (IContainer c : region.getSubBlocks()) {
-				if (!hasPathThruBlock(block, c))
+				if (!hasPathThruBlock(block, c)) {
 					return false;
+				}
 			}
 			return true;
 		} else {

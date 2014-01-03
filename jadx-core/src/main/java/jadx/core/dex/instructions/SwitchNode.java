@@ -42,8 +42,9 @@ public class SwitchNode extends InsnNode {
 		targ.append('[');
 		for (int i = 0; i < targets.length; i++) {
 			targ.append(InsnUtils.formatOffset(targets[i]));
-			if (i < targets.length - 1)
+			if (i < targets.length - 1) {
 				targ.append(", ");
+			}
 		}
 		targ.append(']');
 		return super.toString() + " k:" + Arrays.toString(keys) + " t:" + targ;

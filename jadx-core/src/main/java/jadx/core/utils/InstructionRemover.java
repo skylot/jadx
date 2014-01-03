@@ -32,8 +32,9 @@ public class InstructionRemover {
 	}
 
 	public static void unbindInsnList(List<InsnNode> unbind) {
-		for (InsnNode rem : unbind)
+		for (InsnNode rem : unbind) {
 			unbindInsn(rem);
+		}
 	}
 
 	public static void unbindInsn(InsnNode insn) {
@@ -56,8 +57,9 @@ public class InstructionRemover {
 	// and here can be several instructions with same content
 	public static void removeAll(List<InsnNode> insns, List<InsnNode> toRemove) {
 		if (insns == toRemove) {
-			for (InsnNode rem : toRemove)
+			for (InsnNode rem : toRemove) {
 				unbindInsn(rem);
+			}
 			return;
 		}
 

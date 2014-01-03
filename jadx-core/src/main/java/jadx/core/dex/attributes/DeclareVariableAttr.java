@@ -24,8 +24,9 @@ public class DeclareVariableAttr implements IAttribute {
 	public void addVar(RegisterArg arg) {
 		int i;
 		if ((i = vars.indexOf(arg)) != -1) {
-			if (vars.get(i).getType().equals(arg.getType()))
+			if (vars.get(i).getType().equals(arg.getType())) {
 				return;
+			}
 		}
 		vars.add(arg);
 	}

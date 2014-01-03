@@ -22,14 +22,15 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
-		if (mth.isNoCode())
+		if (mth.isNoCode()) {
 			return;
-
+		}
 		for (BlockNode block : mth.getBasicBlocks()) {
 			for (Iterator<InsnNode> it = block.getInstructions().iterator(); it.hasNext(); ) {
 				InsnNode insn = it.next();
-				if (checkInsn(mth, block, insn))
+				if (checkInsn(mth, block, insn)) {
 					it.remove();
+				}
 			}
 		}
 	}
@@ -57,9 +58,9 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 		int replace = 0;
 		for (InsnArg arg : use) {
 			InsnNode useInsn = arg.getParentInsn();
-			if (useInsn == null)
+			if (useInsn == null) {
 				continue;
-
+			}
 			BlockNode useBlock = BlockUtils.getBlockByInsn(mth, useInsn);
 			if (useBlock == block || useBlock.isDominator(block)) {
 				if (arg != insn.getResult() && !registerReassignOnPath(block, useBlock, insn)) {
@@ -77,9 +78,9 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 	}
 
 	private static boolean registerReassignOnPath(BlockNode block, BlockNode useBlock, InsnNode assignInsn) {
-		if (block == useBlock)
+		if (block == useBlock) {
 			return false;
-
+		}
 		Set<BlockNode> blocks = BlockUtils.getAllPathsBlocks(block, useBlock);
 		// TODO store list of assign insn for each register
 		int regNum = assignInsn.getResult().getRegNum();
@@ -87,8 +88,9 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 			for (InsnNode insn : b.getInstructions()) {
 				if (insn.getResult() != null
 						&& insn != assignInsn
-						&& insn.getResult().getRegNum() == regNum)
+						&& insn.getResult().getRegNum() == regNum) {
 					return true;
+				}
 			}
 		}
 		return false;
@@ -156,10 +158,11 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 					InsnArg arg = insn.getArg(i);
 					if (!arg.getType().isTypeKnown()) {
 						ArgType type;
-						if (k >= 0)
+						if (k >= 0) {
 							type = types.get(k);
-						else
+						} else {
 							type = mth.getParentClass().getClassInfo().getType();
+						}
 						arg.merge(type);
 					}
 					k++;

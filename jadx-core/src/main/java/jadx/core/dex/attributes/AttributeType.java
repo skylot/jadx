@@ -38,8 +38,9 @@ public enum AttributeType {
 		AttributeType[] vals = AttributeType.values();
 		for (int i = 0; i < vals.length; i++) {
 			AttributeType type = vals[i];
-			if (type.notUniq())
+			if (type.notUniq()) {
 				last = i;
+			}
 		}
 		NOT_UNIQ_COUNT = last + 1;
 	}

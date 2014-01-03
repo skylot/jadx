@@ -68,9 +68,9 @@ public final class LoopRegion extends AbstractRegion {
 	 */
 	public boolean checkPreCondition() {
 		List<InsnNode> insns = preCondition.getInstructions();
-		if (insns.isEmpty())
+		if (insns.isEmpty()) {
 			return true;
-
+		}
 		IfNode ifInsn = getIfInsn();
 		int size = insns.size();
 		for (int i = 0; i < size; i++) {
@@ -79,21 +79,23 @@ public final class LoopRegion extends AbstractRegion {
 				return false;
 			} else {
 				RegisterArg res = insn.getResult();
-				if (res.getTypedVar().getUseList().size() > 2)
+				if (res.getTypedVar().getUseList().size() > 2) {
 					return false;
-
+				}
 				boolean found = false;
 				// search result arg in other insns
 				for (int j = i + 1; j < size; j++) {
-					if (insns.get(i).containsArg(res))
+					if (insns.get(i).containsArg(res)) {
 						found = true;
+					}
 				}
 				// or in if insn
-				if (!found && ifInsn.containsArg(res))
+				if (!found && ifInsn.containsArg(res)) {
 					found = true;
-
-				if (!found)
+				}
+				if (!found) {
 					return false;
+				}
 			}
 		}
 		return true;
@@ -117,10 +119,12 @@ public final class LoopRegion extends AbstractRegion {
 	@Override
 	public List<IContainer> getSubBlocks() {
 		List<IContainer> all = new ArrayList<IContainer>(3);
-		if (preCondition != null)
+		if (preCondition != null) {
 			all.add(preCondition);
-		if (conditionBlock != null)
+		}
+		if (conditionBlock != null) {
 			all.add(conditionBlock);
+		}
 		all.add(body);
 		return Collections.unmodifiableList(all);
 	}

@@ -33,25 +33,27 @@ public class BlockUtils {
 		}
 		assert list.size() == 2 : "too many nodes for selectOther: " + node + " in " + list;
 		BlockNode first = list.get(0);
-		if (first != node)
+		if (first != node) {
 			return first;
-		else
+		} else {
 			return list.get(1);
+		}
 	}
 
 	private static List<BlockNode> cleanBlockList(List<BlockNode> list) {
 		List<BlockNode> ret = new ArrayList<BlockNode>(list.size());
 		for (BlockNode block : list) {
-			if (!block.getAttributes().contains(AttributeType.EXC_HANDLER))
+			if (!block.getAttributes().contains(AttributeType.EXC_HANDLER)) {
 				ret.add(block);
+			}
 		}
 		return ret;
 	}
 
 	public static boolean isBackEdge(BlockNode from, BlockNode to) {
-		if (from.getCleanSuccessors().contains(to))
+		if (from.getCleanSuccessors().contains(to)) {
 			return false; // already checked
-
+		}
 		return from.getSuccessors().contains(to);
 	}
 
@@ -61,8 +63,9 @@ public class BlockUtils {
 	public static void cleanBitSet(MethodNode mth, BitSet bs) {
 		for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
 			BlockNode block = mth.getBasicBlocks().get(i);
-			if (block.getAttributes().contains(AttributeType.EXC_HANDLER))
+			if (block.getAttributes().contains(AttributeType.EXC_HANDLER)) {
 				bs.clear(i);
+			}
 		}
 	}
 
@@ -81,17 +84,18 @@ public class BlockUtils {
 	 */
 	public static boolean blockContains(BlockNode block, InsnNode insn) {
 		for (InsnNode bi : block.getInstructions()) {
-			if (bi == insn)
+			if (bi == insn) {
 				return true;
+			}
 		}
 		return false;
 	}
 
 	public static boolean lastInsnType(BlockNode block, InsnType type) {
 		List<InsnNode> insns = block.getInstructions();
-		if (insns.isEmpty())
+		if (insns.isEmpty()) {
 			return false;
-
+		}
 		InsnNode insn = insns.get(insns.size() - 1);
 		return insn.getType() == type;
 	}
@@ -99,8 +103,9 @@ public class BlockUtils {
 	public static BlockNode getBlockByInsn(MethodNode mth, InsnNode insn) {
 		assert insn != null;
 		for (BlockNode bn : mth.getBasicBlocks()) {
-			if (blockContains(bn, insn))
+			if (blockContains(bn, insn)) {
 				return bn;
+			}
 		}
 		return null;
 	}
@@ -136,8 +141,9 @@ public class BlockUtils {
 	public static Set<BlockNode> getAllPathsBlocks(BlockNode start, BlockNode end) {
 		Set<BlockNode> set = new HashSet<BlockNode>();
 		set.add(start);
-		if (start != end)
+		if (start != end) {
 			addPredcessors(set, end, start);
+		}
 		return set;
 	}
 
@@ -152,29 +158,29 @@ public class BlockUtils {
 
 	private static boolean traverseSuccessorsUntil(BlockNode from, BlockNode until, Set<BlockNode> checked) {
 		for (BlockNode s : from.getCleanSuccessors()) {
-			if (s == until)
+			if (s == until) {
 				return true;
-
+			}
 			if (!checked.contains(s)) {
 				checked.add(s);
-
-				if (until.isDominator(s))
+				if (until.isDominator(s)) {
 					return true;
-
-				if (traverseSuccessorsUntil(s, until, checked))
+				}
+				if (traverseSuccessorsUntil(s, until, checked)) {
 					return true;
+				}
 			}
 		}
 		return false;
 	}
 
 	public static boolean isPathExists(BlockNode start, BlockNode end) {
-		if (start == end)
+		if (start == end) {
 			return true;
-
-		if (end.isDominator(start))
+		}
+		if (end.isDominator(start)) {
 			return true;
-
+		}
 		return traverseSuccessorsUntil(start, end, new HashSet<BlockNode>());
 	}
 
@@ -203,8 +209,9 @@ public class BlockUtils {
 				return node;
 			} else {
 				BlockNode out = traverseWhileDominates(block, node);
-				if (out != null)
+				if (out != null) {
 					return out;
+				}
 			}
 		}
 		return null;

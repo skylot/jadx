@@ -82,8 +82,9 @@ public class ClspGraph {
 				return name;
 			} else {
 				String r = searchCommonParent(anc, p);
-				if (r != null)
+				if (r != null) {
 					return r;
+				}
 			}
 		}
 		return null;

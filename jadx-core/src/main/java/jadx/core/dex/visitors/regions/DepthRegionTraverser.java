@@ -25,8 +25,9 @@ public class DepthRegionTraverser {
 		traverse(mth, visitor, mth.getRegion());
 
 		if (mth.getExceptionHandlers() != null) {
-			for (ExceptionHandler h : mth.getExceptionHandlers())
+			for (ExceptionHandler h : mth.getExceptionHandlers()) {
 				traverse(mth, visitor, h.getHandlerRegion());
+			}
 		}
 	}
 }

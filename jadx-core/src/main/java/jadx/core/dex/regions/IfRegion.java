@@ -51,10 +51,12 @@ public final class IfRegion extends AbstractRegion {
 	public List<IContainer> getSubBlocks() {
 		ArrayList<IContainer> all = new ArrayList<IContainer>(3);
 		all.add(header);
-		if (thenRegion != null)
+		if (thenRegion != null) {
 			all.add(thenRegion);
-		if (elseRegion != null)
+		}
+		if (elseRegion != null) {
 			all.add(elseRegion);
+		}
 		return Collections.unmodifiableList(all);
 	}
 

@@ -14,9 +14,9 @@ public class StringUtils {
 	}
 
 	public static String unescapeChar(char ch) {
-		if (ch == '\'')
+		if (ch == '\'') {
 			return "'\\\''";
-
+		}
 		StringBuilder res = new StringBuilder();
 		processChar(ch, res);
 		return '\'' + res.toString() + '\'';

@@ -40,12 +40,13 @@ public class RegisterArg extends InsnArg {
 	public InsnNode getAssignInsn() {
 		for (InsnArg arg : getTypedVar().getUseList()) {
 			InsnNode assignInsn = arg.getParentInsn();
-			if (assignInsn == null)
+			if (assignInsn == null) {
 				// assign as function argument
 				return null;
-			else if (assignInsn.getResult() != null
-					&& assignInsn.getResult().getRegNum() == regNum)
+			} else if (assignInsn.getResult() != null
+					&& assignInsn.getResult().getRegNum() == regNum) {
 				return assignInsn;
+			}
 		}
 		return null;
 	}
@@ -109,12 +110,22 @@ public class RegisterArg extends InsnArg {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) return true;
-		if (obj == null) return false;
-		if (getClass() != obj.getClass()) return false;
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
 		RegisterArg other = (RegisterArg) obj;
-		if (regNum != other.regNum) return false;
-		if (!typedVar.equals(other.typedVar)) return false;
+		if (regNum != other.regNum) {
+			return false;
+		}
+		if (!typedVar.equals(other.typedVar)) {
+			return false;
+		}
 		return true;
 	}
 

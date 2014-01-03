@@ -10,9 +10,9 @@ public class FallbackModeVisitor extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
-		if (mth.isNoCode())
+		if (mth.isNoCode()) {
 			return;
-
+		}
 		for (InsnNode insn : mth.getInstructions()) {
 			// remove 'exception catch' for instruction which don't throw any exceptions
 			CatchAttr catchAttr = (CatchAttr) insn.getAttributes().get(AttributeType.CATCH_BLOCK);

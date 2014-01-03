@@ -14,13 +14,13 @@ public final class ClassInfo {
 	private static final Map<ArgType, ClassInfo> CLASSINFO_CACHE = new WeakHashMap<ArgType, ClassInfo>();
 
 	public static ClassInfo fromDex(DexNode dex, int clsIndex) {
-		if (clsIndex == DexNode.NO_INDEX)
+		if (clsIndex == DexNode.NO_INDEX) {
 			return null;
-
+		}
 		ArgType type = dex.getType(clsIndex);
-		if (type.isArray())
+		if (type.isArray()) {
 			type = ArgType.OBJECT;
-
+		}
 		return fromType(type);
 	}
 
@@ -153,7 +153,9 @@ public final class ClassInfo {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) return true;
+		if (this == obj) {
+			return true;
+		}
 		if (obj instanceof ClassInfo) {
 			ClassInfo other = (ClassInfo) obj;
 			return this.getFullName().equals(other.getFullName());

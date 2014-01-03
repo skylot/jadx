@@ -16,10 +16,11 @@ public class Utils {
 
 	public static String cleanObjectName(String obj) {
 		int last = obj.length() - 1;
-		if (obj.charAt(0) == 'L' && obj.charAt(last) == ';')
+		if (obj.charAt(0) == 'L' && obj.charAt(last) == ';') {
 			return obj.substring(1, last).replace('/', '.');
-		else
+		} else {
 			return obj;
+		}
 	}
 
 	public static String makeQualifiedObjectName(String obj) {
@@ -61,27 +62,29 @@ public class Utils {
 	}
 
 	public static String listToString(Iterable<?> list) {
-		if (list == null)
+		if (list == null) {
 			return "";
-
+		}
 		StringBuilder str = new StringBuilder();
 		for (Iterator<?> it = list.iterator(); it.hasNext(); ) {
 			Object o = it.next();
 			str.append(o);
-			if (it.hasNext())
+			if (it.hasNext()) {
 				str.append(", ");
+			}
 		}
 		return str.toString();
 	}
 
 	public static String arrayToString(Object[] array) {
-		if (array == null)
+		if (array == null) {
 			return "";
-
+		}
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < array.length; i++) {
-			if (i != 0)
+			if (i != 0) {
 				sb.append(", ");
+			}
 			sb.append(array[i]);
 		}
 		return sb.toString();
@@ -108,11 +111,11 @@ public class Utils {
 			int pair = 1;
 			for (int pos = 1; pos < sign.length(); pos++) {
 				char c = sign.charAt(pos);
-				if (c == '<')
+				if (c == '<') {
 					pair++;
-				else if (c == '>')
+				} else if (c == '>') {
 					pair--;
-
+				}
 				if (pair == 0) {
 					end = pos;
 					break;
@@ -127,8 +130,9 @@ public class Utils {
 		if (!dir.exists()) {
 			// if directory already created in other thread mkdirs will return false,
 			// so check dir existence again
-			if (!dir.mkdirs() && !dir.exists())
+			if (!dir.mkdirs() && !dir.exists()) {
 				throw new JadxRuntimeException("Can't create directory " + dir);
+			}
 		}
 	}
 }

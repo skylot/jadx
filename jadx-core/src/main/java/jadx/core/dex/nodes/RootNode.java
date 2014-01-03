@@ -59,8 +59,9 @@ public class RootNode {
 		// move inner classes
 		List<ClassNode> inner = new ArrayList<ClassNode>();
 		for (ClassNode cls : classes) {
-			if (cls.getClassInfo().isInner())
+			if (cls.getClassInfo().isInner()) {
 				inner.add(cls);
+			}
 		}
 		for (ClassNode cls : inner) {
 			ClassNode parent = resolveClass(cls.getClassInfo().getParentClass());
@@ -81,8 +82,9 @@ public class RootNode {
 				if (includeInner) {
 					classes.add(cls);
 				} else {
-					if (!cls.getClassInfo().isInner())
+					if (!cls.getClassInfo().isInner()) {
 						classes.add(cls);
+					}
 				}
 			}
 		}

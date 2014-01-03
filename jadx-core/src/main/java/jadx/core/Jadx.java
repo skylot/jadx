@@ -37,10 +37,12 @@ public class Jadx {
 	private static final Logger LOG = LoggerFactory.getLogger(Jadx.class);
 
 	static {
-		if (Consts.DEBUG)
+		if (Consts.DEBUG) {
 			LOG.info("debug enabled");
-		if (Jadx.class.desiredAssertionStatus())
+		}
+		if (Jadx.class.desiredAssertionStatus()) {
 			LOG.info("assertions enabled");
+		}
 	}
 
 	public static List<IDexTreeVisitor> getPassesList(IJadxArgs args, File outDir) {
@@ -52,8 +54,9 @@ public class Jadx {
 
 			passes.add(new TypeResolver());
 
-			if (args.isRawCFGOutput())
+			if (args.isRawCFGOutput()) {
 				passes.add(new DotGraphVisitor(outDir, false, true));
+			}
 
 			passes.add(new ConstInlinerVisitor());
 			passes.add(new FinishTypeResolver());
@@ -61,8 +64,9 @@ public class Jadx {
 			passes.add(new ModVisitor());
 			passes.add(new EnumVisitor());
 
-			if (args.isCFGOutput())
+			if (args.isCFGOutput()) {
 				passes.add(new DotGraphVisitor(outDir, false));
+			}
 
 			passes.add(new RegionMakerVisitor());
 			passes.add(new PostRegionVisitor());
@@ -71,8 +75,10 @@ public class Jadx {
 			passes.add(new SimplifyVisitor());
 			passes.add(new ProcessVariables());
 			passes.add(new CheckRegions());
-			if (args.isCFGOutput())
+
+			if (args.isCFGOutput()) {
 				passes.add(new DotGraphVisitor(outDir, true));
+			}
 
 			passes.add(new MethodInlinerVisitor());
 			passes.add(new ClassModifier());
@@ -88,8 +94,9 @@ public class Jadx {
 			while (resources.hasMoreElements()) {
 				Manifest manifest = new Manifest(resources.nextElement().openStream());
 				String ver = manifest.getMainAttributes().getValue("jadx-version");
-				if (ver != null)
+				if (ver != null) {
 					return ver;
+				}
 			}
 		} catch (IOException e) {
 			LOG.error("Can't get manifest file", e);

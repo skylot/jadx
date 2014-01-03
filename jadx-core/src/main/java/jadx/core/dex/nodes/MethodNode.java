@@ -90,8 +90,9 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 			InsnNode[] insnByOffset = decoder.run();
 			instructions = new ArrayList<InsnNode>();
 			for (InsnNode insn : insnByOffset) {
-				if (insn != null)
+				if (insn != null) {
 					instructions.add(insn);
+				}
 			}
 			((ArrayList<InsnNode>) instructions).trimToSize();
 
@@ -127,18 +128,23 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		if (noCode) {
 			return;
 		}
-		if (instructions != null) instructions.clear();
+		if (instructions != null) {
+			instructions.clear();
+		}
 		blocks = null;
 		exitBlocks = null;
-		if (exceptionHandlers != null) exceptionHandlers.clear();
+		if (exceptionHandlers != null) {
+			exceptionHandlers.clear();
+		}
 		noCode = true;
 	}
 
 	@SuppressWarnings("unchecked")
 	private boolean parseSignature() {
 		Annotation a = getAttributes().getAnnotation(Consts.DALVIK_SIGNATURE);
-		if (a == null)
+		if (a == null) {
 			return false;
+		}
 
 		String sign = Utils.mergeSignature((List<String>) a.getDefaultValue());
 
@@ -162,8 +168,9 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		}
 
 		List<ArgType> argsTypes = ArgType.parseSignatureList(argsTypesStr);
-		if (argsTypes == null)
+		if (argsTypes == null) {
 			return false;
+		}
 
 		List<ArgType> mthArgs = mthInfo.getArgumentsTypes();
 		if (argsTypes.size() != mthArgs.size()) {
@@ -197,8 +204,9 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 			pos = 1;
 		} else {
 			pos = regsCount;
-			for (ArgType arg : args)
+			for (ArgType arg : args) {
 				pos -= arg.getRegCount();
+			}
 		}
 		if (accFlags.isStatic()) {
 			thisArg = null;
@@ -289,11 +297,15 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 			// resolve nested try blocks:
 			// inner block contains all handlers from outer block => remove these handlers from inner block
 			// each handler must be only in one try/catch block
-			for (TryCatchBlock ct1 : catches)
-				for (TryCatchBlock ct2 : catches)
-					if (ct1 != ct2 && ct2.getHandlers().containsAll(ct1.getHandlers()))
-						for (ExceptionHandler h : ct1.getHandlers())
+			for (TryCatchBlock ct1 : catches) {
+				for (TryCatchBlock ct2 : catches) {
+					if (ct1 != ct2 && ct2.getHandlers().containsAll(ct1.getHandlers())) {
+						for (ExceptionHandler h : ct1.getHandlers()) {
 							ct2.removeHandler(this, h);
+						}
+					}
+				}
+			}
 		}
 
 		// attach EXC_HANDLER attributes to instructions
@@ -319,8 +331,9 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 				block.addInsn(insnByOffset[offset]);
 				offset = InsnDecoder.getNextInsnOffset(insnByOffset, offset);
 			}
-			if (insnByOffset[end] != null)
+			if (insnByOffset[end] != null) {
 				insnByOffset[end].getAttributes().add(AttributeFlag.TRY_LEAVE);
+			}
 		}
 	}
 
@@ -335,15 +348,17 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 					}
 					// default case
 					int next = InsnDecoder.getNextInsnOffset(insnByOffset, offset);
-					if (next != -1)
+					if (next != -1) {
 						addJump(insnByOffset, offset, next);
+					}
 					break;
 				}
 
 				case IF:
 					int next = InsnDecoder.getNextInsnOffset(insnByOffset, offset);
-					if (next != -1)
+					if (next != -1) {
 						addJump(insnByOffset, offset, next);
+					}
 					addJump(insnByOffset, offset, ((IfNode) insn).getTarget());
 					break;
 
@@ -363,10 +378,11 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 
 	public String getName() {
 		String name = mthInfo.getName();
-		if (name.equals(parentClass.getShortName()))
+		if (name.equals(parentClass.getShortName())) {
 			return name + "_";
-		else
+		} else {
 			return name;
+		}
 	}
 
 	public ClassNode getParentClass() {
@@ -397,8 +413,9 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		blocks = Collections.unmodifiableList(blocks);
 		exitBlocks = Collections.unmodifiableList(exitBlocks);
 
-		for (BlockNode block : blocks)
+		for (BlockNode block : blocks) {
 			block.lock();
+		}
 	}
 
 	public List<BlockNode> getBasicBlocks() {
@@ -430,8 +447,9 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 
 	public LoopAttr getLoopForBlock(BlockNode block) {
 		for (LoopAttr loop : loops) {
-			if (loop.getLoopBlocks().contains(block))
+			if (loop.getLoopBlocks().contains(block)) {
 				return loop;
+			}
 		}
 		return null;
 	}
@@ -445,8 +463,9 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 			exceptionHandlers = new ArrayList<ExceptionHandler>(2);
 		} else {
 			for (ExceptionHandler h : exceptionHandlers) {
-				if (h == handler || h.getHandleOffset() == handler.getHandleOffset())
+				if (h == handler || h.getHandleOffset() == handler.getHandleOffset()) {
 					return h;
+				}
 			}
 		}
 		exceptionHandlers.add(handler);
@@ -471,8 +490,9 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		for (MethodNode method : methods) {
 			if (this != method
 					&& method.getName().equals(name)
-					&& method.mthInfo.getArgumentsTypes().size() == argsCount)
+					&& method.mthInfo.getArgumentsTypes().size() == argsCount) {
 				return true;
+			}
 		}
 		return false;
 	}
@@ -508,8 +528,12 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) return true;
-		if (obj == null || getClass() != obj.getClass()) return false;
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null || getClass() != obj.getClass()) {
+			return false;
+		}
 		MethodNode other = (MethodNode) obj;
 		return mthInfo.equals(other.mthInfo);
 	}

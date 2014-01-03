@@ -45,9 +45,11 @@ public class LoopAttr implements IAttribute {
 		Set<BlockNode> inloop = getLoopBlocks();
 		for (BlockNode block : inloop) {
 			// exit: successor node not from this loop, (don't change to getCleanSuccessors)
-			for (BlockNode s : block.getSuccessors())
-				if (!inloop.contains(s) && !s.getAttributes().contains(AttributeType.EXC_HANDLER))
+			for (BlockNode s : block.getSuccessors()) {
+				if (!inloop.contains(s) && !s.getAttributes().contains(AttributeType.EXC_HANDLER)) {
 					nodes.add(block);
+				}
+			}
 		}
 		return nodes;
 	}

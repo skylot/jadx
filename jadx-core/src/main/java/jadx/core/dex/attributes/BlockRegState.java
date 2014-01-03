@@ -45,8 +45,9 @@ public final class BlockRegState {
 		StringBuilder str = new StringBuilder();
 		for (RegisterArg reg : regs) {
 			if (reg.getTypedVar() != null) {
-				if (str.length() != 0)
+				if (str.length() != 0) {
 					str.append(", ");
+				}
 				str.append(reg.toString());
 			}
 		}

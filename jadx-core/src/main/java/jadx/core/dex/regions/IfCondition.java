@@ -53,11 +53,13 @@ public final class IfCondition {
 		}
 
 		public InsnArg getB() {
-			if (insn.isZeroCmp())
+			if (insn.isZeroCmp()) {
 				return InsnArg.lit(0, getA().getType());
-			else
+			} else {
 				return insn.getArg(1);
+			}
 		}
+
 		public Compare invert() {
 			insn.invertCondition();
 			return this;

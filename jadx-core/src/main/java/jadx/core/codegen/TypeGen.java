@@ -10,9 +10,9 @@ public class TypeGen {
 
 	public static String translate(ClassGen clsGen, ArgType type) {
 		final PrimitiveType stype = type.getPrimitiveType();
-		if (stype == null)
+		if (stype == null) {
 			return type.toString();
-
+		}
 		if (stype == PrimitiveType.OBJECT) {
 			return clsGen.useClass(type);
 		}
@@ -69,8 +69,9 @@ public class TypeGen {
 
 			case OBJECT:
 			case ARRAY:
-				if (lit != 0)
+				if (lit != 0) {
 					throw new JadxRuntimeException("Wrong object literal: " + type + " = " + lit);
+				}
 				return "null";
 
 			default:
@@ -100,8 +101,9 @@ public class TypeGen {
 
 	public static String formatLong(long lit) {
 		String l = Long.toString(lit);
-		if (lit == Long.MIN_VALUE || Math.abs(lit) >= Integer.MAX_VALUE)
+		if (lit == Long.MIN_VALUE || Math.abs(lit) >= Integer.MAX_VALUE) {
 			l += "L";
+		}
 		return wrapNegNum(lit < 0, l);
 	}
 
@@ -109,6 +111,6 @@ public class TypeGen {
 //		if (lz)
 //			return "(" + str + ")";
 //		else
-			return str;
+		return str;
 	}
 }

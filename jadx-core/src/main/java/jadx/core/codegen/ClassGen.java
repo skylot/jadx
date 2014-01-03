@@ -90,12 +90,12 @@ public class ClassGen {
 	}
 
 	public void addClassCode(CodeWriter code) throws CodegenException {
-		if (cls.getAttributes().contains(AttributeFlag.DONT_GENERATE))
+		if (cls.getAttributes().contains(AttributeFlag.DONT_GENERATE)) {
 			return;
-
-		if (cls.getAttributes().contains(AttributeFlag.INCONSISTENT_CODE))
+		}
+		if (cls.getAttributes().contains(AttributeFlag.INCONSISTENT_CODE)) {
 			code.startLine("// jadx: inconsistent code");
-
+		}
 		makeClassDeclaration(code);
 		makeClassBody(code);
 		code.newLine();
@@ -113,8 +113,9 @@ public class ClassGen {
 		insertSourceFileInfo(clsCode, cls);
 		clsCode.startLine(af.makeString());
 		if (af.isInterface()) {
-			if (af.isAnnotation())
+			if (af.isAnnotation()) {
 				clsCode.add('@');
+			}
 			clsCode.add("interface ");
 		} else if (af.isEnum()) {
 			clsCode.add("enum ");
@@ -134,28 +135,30 @@ public class ClassGen {
 		}
 
 		if (cls.getInterfaces().size() > 0 && !af.isAnnotation()) {
-			if (cls.getAccessFlags().isInterface())
+			if (cls.getAccessFlags().isInterface()) {
 				clsCode.add("extends ");
-			else
+			} else {
 				clsCode.add("implements ");
-
+			}
 			for (Iterator<ClassInfo> it = cls.getInterfaces().iterator(); it.hasNext(); ) {
 				ClassInfo interf = it.next();
 				clsCode.add(useClass(interf));
-				if (it.hasNext())
+				if (it.hasNext()) {
 					clsCode.add(", ");
+				}
 			}
-			if (!cls.getInterfaces().isEmpty())
+			if (!cls.getInterfaces().isEmpty()) {
 				clsCode.add(' ');
+			}
 		}
 
 		clsCode.attachAnnotation(cls);
 	}
 
 	public boolean makeGenericMap(CodeWriter code, Map<ArgType, List<ArgType>> gmap) {
-		if (gmap == null || gmap.isEmpty())
+		if (gmap == null || gmap.isEmpty()) {
 			return false;
-
+		}
 		code.add('<');
 		int i = 0;
 		for (Entry<ArgType, List<ArgType>> e : gmap.entrySet()) {
@@ -186,14 +189,15 @@ public class ClassGen {
 		CodeWriter mthsCode = makeMethods(clsCode, cls.getMethods());
 		CodeWriter fieldsCode = makeFields(clsCode, cls, cls.getFields());
 		clsCode.add(fieldsCode);
-		if (fieldsCode.notEmpty() && mthsCode.notEmpty())
+		if (fieldsCode.notEmpty() && mthsCode.notEmpty()) {
 			clsCode.newLine();
-
+		}
 		// insert inner classes code
 		if (cls.getInnerClasses().size() != 0) {
 			clsCode.add(makeInnerClasses(cls, clsCode.getIndent()));
-			if (mthsCode.notEmpty())
+			if (mthsCode.notEmpty()) {
 				clsCode.newLine();
+			}
 		}
 		clsCode.add(mthsCode);
 		clsCode.startLine('}');
@@ -202,12 +206,11 @@ public class ClassGen {
 	private CodeWriter makeInnerClasses(ClassNode cls, int indent) throws CodegenException {
 		CodeWriter innerClsCode = new CodeWriter(indent + 1);
 		for (ClassNode inCls : cls.getInnerClasses()) {
-			if (inCls.isAnonymous())
-				continue;
-
-			ClassGen inClGen = new ClassGen(inCls, parentGen == null ? this : parentGen, fallback);
-			inClGen.addClassCode(innerClsCode);
-			imports.addAll(inClGen.getImports());
+			if (!inCls.isAnonymous()) {
+				ClassGen inClGen = new ClassGen(inCls, parentGen == null ? this : parentGen, fallback);
+				inClGen.addClassCode(innerClsCode);
+				imports.addAll(inClGen.getImports());
+			}
 		}
 		return innerClsCode;
 	}
@@ -276,26 +279,28 @@ public class ClassGen {
 							igen = new InsnGen(mthGen, enumFields.getStaticMethod(), false);
 						}
 						code.add(igen.arg(arg));
-						if (aIt.hasNext())
+						if (aIt.hasNext()) {
 							code.add(", ");
+						}
 					}
 					code.add(')');
 				}
 				if (f.getCls() != null) {
 					new ClassGen(f.getCls(), this, fallback).makeClassBody(code);
 				}
-				if (it.hasNext())
+				if (it.hasNext()) {
 					code.add(',');
+				}
 			}
-			if (enumFields.getFields().isEmpty())
+			if (enumFields.getFields().isEmpty()) {
 				code.startLine();
-
+			}
 			code.add(';');
 			code.newLine();
 		}
 
 		for (FieldNode f : fields) {
-			if(f.getAttributes().contains(AttributeFlag.DONT_GENERATE)) {
+			if (f.getAttributes().contains(AttributeFlag.DONT_GENERATE)) {
 				continue;
 			}
 			annotationGen.addForField(code, f);
@@ -338,10 +343,11 @@ public class ClassGen {
 					sb.append(", ");
 				}
 				ArgType gt = generics[i];
-				if (gt.isTypeKnown())
+				if (gt.isTypeKnown()) {
 					sb.append(TypeGen.translate(this, gt));
-				else
+				} else {
 					sb.append('?');
+				}
 			}
 			sb.append('>');
 			return sb.toString();

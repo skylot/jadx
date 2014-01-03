@@ -578,14 +578,16 @@ public class InsnDecoder {
 			targets = ps.getTargets();
 			keys = new Object[targets.length];
 			int k = ps.getFirstKey();
-			for (int i = 0; i < keys.length; i++)
+			for (int i = 0; i < keys.length; i++) {
 				keys[i] = k++;
+			}
 		} else {
 			SparseSwitchPayloadDecodedInstruction ss = (SparseSwitchPayloadDecodedInstruction) payload;
 			targets = ss.getTargets();
 			keys = new Object[targets.length];
-			for (int i = 0; i < keys.length; i++)
+			for (int i = 0; i < keys.length; i++) {
 				keys[i] = ss.getKeys()[i];
+			}
 		}
 		// convert from relative to absolute offsets
 		for (int i = 0; i < targets.length; i++) {
@@ -612,8 +614,9 @@ public class InsnDecoder {
 				r++;
 			}
 		} else {
-			for (int i = 0; i < insn.getRegisterCount(); i++)
+			for (int i = 0; i < insn.getRegisterCount(); i++) {
 				regs[i] = InsnArg.reg(insn, i, elType);
+			}
 		}
 		return insn(InsnType.FILLED_NEW_ARRAY,
 				resReg == -1 ? null : InsnArg.reg(resReg, arrType),
@@ -689,8 +692,9 @@ public class InsnDecoder {
 		InsnNode node = new InsnNode(type, args == null ? 0 : args.length);
 		node.setResult(res);
 		if (args != null) {
-			for (InsnArg arg : args)
+			for (InsnArg arg : args) {
 				node.addArg(arg);
+			}
 		}
 		return node;
 	}
@@ -711,19 +715,23 @@ public class InsnDecoder {
 
 	public static int getPrevInsnOffset(Object[] insnArr, int offset) {
 		int i = offset - 1;
-		while (i >= 0 && insnArr[i] == null)
+		while (i >= 0 && insnArr[i] == null) {
 			i--;
-		if (i < 0)
+		}
+		if (i < 0) {
 			return -1;
+		}
 		return i;
 	}
 
 	public static int getNextInsnOffset(Object[] insnArr, int offset) {
 		int i = offset + 1;
-		while (i < insnArr.length && insnArr[i] == null)
+		while (i < insnArr.length && insnArr[i] == null) {
 			i++;
-		if (i >= insnArr.length)
+		}
+		if (i >= insnArr.length) {
 			return -1;
+		}
 		return i;
 	}
 }

@@ -41,13 +41,22 @@ public class FieldInfo {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 		FieldInfo fieldInfo = (FieldInfo) o;
-		if (!name.equals(fieldInfo.name)) return false;
-		if (!type.equals(fieldInfo.type)) return false;
-		if (!declClass.equals(fieldInfo.declClass)) return false;
+		if (!name.equals(fieldInfo.name)) {
+			return false;
+		}
+		if (!type.equals(fieldInfo.type)) {
+			return false;
+		}
+		if (!declClass.equals(fieldInfo.declClass)) {
+			return false;
+		}
 		return true;
 	}
 

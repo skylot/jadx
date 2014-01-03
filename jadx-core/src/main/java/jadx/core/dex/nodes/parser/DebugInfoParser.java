@@ -162,18 +162,19 @@ public class DebugInfoParser {
 		int newAddr = addr + addrInc;
 		for (int i = addr + 1; i <= newAddr; i++) {
 			InsnNode insn = insnByOffset[i];
-			if (insn == null)
+			if (insn == null) {
 				continue;
-
+			}
 			insn.setSourceLine(line);
-			for (InsnArg arg : insn.getArguments())
+			for (InsnArg arg : insn.getArguments()) {
 				if (arg.isRegister()) {
 					activeRegisters[((RegisterArg) arg).getRegNum()] = arg;
 				}
-
+			}
 			RegisterArg res = insn.getResult();
-			if (res != null)
+			if (res != null) {
 				activeRegisters[res.getRegNum()] = res;
+			}
 		}
 		return newAddr;
 	}
@@ -195,18 +196,20 @@ public class DebugInfoParser {
 
 		for (int i = start; i <= end; i++) {
 			InsnNode insn = insnByOffset[i];
-			if (insn != null)
+			if (insn != null) {
 				fillLocals(insn, var);
+			}
 		}
 		merge(activeRegisters[var.getRegNum()], var);
 	}
 
 	private static void fillLocals(InsnNode insn, LocalVar var) {
-		if (insn.getResult() != null)
+		if (insn.getResult() != null) {
 			merge(insn.getResult(), var);
-
-		for (InsnArg arg : insn.getArguments())
+		}
+		for (InsnArg arg : insn.getArguments()) {
 			merge(arg, var);
+		}
 	}
 
 	private static void merge(InsnArg arg, LocalVar var) {

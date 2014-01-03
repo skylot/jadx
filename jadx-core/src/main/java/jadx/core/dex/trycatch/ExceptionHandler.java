@@ -86,13 +86,23 @@ public class ExceptionHandler {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) return true;
-		if (obj == null) return false;
-		if (getClass() != obj.getClass()) return false;
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
 		ExceptionHandler other = (ExceptionHandler) obj;
 		if (catchType == null) {
-			if (other.catchType != null) return false;
-		} else if (!catchType.equals(other.catchType)) return false;
+			if (other.catchType != null) {
+				return false;
+			}
+		} else if (!catchType.equals(other.catchType)) {
+			return false;
+		}
 		return handleOffset == other.handleOffset;
 	}
 

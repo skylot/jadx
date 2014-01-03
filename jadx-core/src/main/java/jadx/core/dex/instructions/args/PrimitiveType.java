@@ -30,17 +30,19 @@ public enum PrimitiveType {
 	}
 
 	public static PrimitiveType getWidest(PrimitiveType a, PrimitiveType b) {
-		if (a.ordinal() > b.ordinal())
+		if (a.ordinal() > b.ordinal()) {
 			return a;
-		else
+		} else {
 			return b;
+		}
 	}
 
 	public static PrimitiveType getSmaller(PrimitiveType a, PrimitiveType b) {
-		if (a.ordinal() < b.ordinal())
+		if (a.ordinal() < b.ordinal()) {
 			return a;
-		else
+		} else {
 			return b;
+		}
 	}
 
 	@Override

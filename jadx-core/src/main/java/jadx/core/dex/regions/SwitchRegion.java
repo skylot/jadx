@@ -53,8 +53,9 @@ public final class SwitchRegion extends AbstractRegion {
 		List<IContainer> all = new ArrayList<IContainer>(cases.size() + 2);
 		all.add(header);
 		all.addAll(cases);
-		if (defCase != null)
+		if (defCase != null) {
 			all.add(defCase);
+		}
 		return Collections.unmodifiableList(all);
 	}
 

@@ -12,9 +12,9 @@ public class RegionMakerVisitor extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
-		if (mth.isNoCode())
+		if (mth.isNoCode()) {
 			return;
-
+		}
 		RegionMaker rm = new RegionMaker(mth);
 		RegionStack state = new RegionStack(mth);
 

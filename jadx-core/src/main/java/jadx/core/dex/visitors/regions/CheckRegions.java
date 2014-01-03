@@ -22,18 +22,20 @@ public class CheckRegions extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
-		if (mth.isNoCode() || mth.getBasicBlocks().size() == 0)
+		if (mth.isNoCode() || mth.getBasicBlocks().size() == 0) {
 			return;
+		}
 
 		// check if all blocks included in regions
 		final Set<BlockNode> blocksInRegions = new HashSet<BlockNode>();
 		IRegionVisitor collectBlocks = new AbstractRegionVisitor() {
 			@Override
 			public void processBlock(MethodNode mth, IBlock container) {
-				if (container instanceof BlockNode)
+				if (container instanceof BlockNode) {
 					blocksInRegions.add((BlockNode) container);
-				else
+				} else {
 					LOG.warn("Not block node : " + container.getClass().getSimpleName());
+				}
 			}
 		};
 		DepthRegionTraverser.traverseAll(mth, collectBlocks);
@@ -44,10 +46,11 @@ public class CheckRegions extends AbstractVisitor {
 					if (!block.getInstructions().isEmpty()
 							&& !block.getAttributes().contains(AttributeFlag.SKIP)) {
 						mth.getAttributes().add(AttributeFlag.INCONSISTENT_CODE);
-						if (Consts.DEBUG)
+						if (Consts.DEBUG) {
 							LOG.debug(" Missing block: {} in {}", block, mth);
-						else
+						} else {
 							break;
+						}
 					}
 				}
 			}

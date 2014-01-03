@@ -16,9 +16,9 @@ public class TypeResolver extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) {
-		if (mth.isNoCode())
+		if (mth.isNoCode()) {
 			return;
-
+		}
 		prepare(mth);
 
 		visitBlocks(mth);
@@ -60,11 +60,13 @@ public class TypeResolver extends AbstractVisitor {
 
 			for (InsnNode insn : block.getInstructions()) {
 				for (InsnArg arg : insn.getArguments()) {
-					if (arg.isRegister())
+					if (arg.isRegister()) {
 						state.use((RegisterArg) arg);
+					}
 				}
-				if (insn.getResult() != null)
+				if (insn.getResult() != null) {
 					state.assignReg(insn.getResult());
+				}
 			}
 
 			block.setEndState(new BlockRegState(state));
@@ -78,8 +80,9 @@ public class TypeResolver extends AbstractVisitor {
 			changed = false;
 			for (BlockNode block : preds) {
 				for (BlockNode pred : block.getPredecessors()) {
-					if (connectEdges(mth, pred, block, true))
+					if (connectEdges(mth, pred, block, true)) {
 						changed = true;
+					}
 				}
 			}
 		} while (changed);

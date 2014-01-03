@@ -29,8 +29,8 @@ public class TestStringBuilderElimination extends InternalJadxTest {
 		String code = cls.getCode().toString();
 		System.out.println(code);
 
-        assertThat(code, containsString("MyException(String str, Exception e) {"));
-        assertThat(code, containsString("super(\"msg:\" + str, e);"));
+		assertThat(code, containsString("MyException(String str, Exception e) {"));
+		assertThat(code, containsString("super(\"msg:\" + str, e);"));
 
 		assertThat(code, not(containsString("new StringBuilder")));
 		assertThat(code, containsString("System.out.println(\"k=\" + k);"));

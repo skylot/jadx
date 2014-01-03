@@ -19,8 +19,9 @@ public class InvokeNode extends InsnNode {
 		this.mth = mth;
 		this.type = type;
 
-		if (resReg >= 0)
+		if (resReg >= 0) {
 			setResult(InsnArg.reg(resReg, mth.getReturnType()));
+		}
 
 		int k = isRange ? insn.getA() : 0;
 		if (type != InvokeType.STATIC) {

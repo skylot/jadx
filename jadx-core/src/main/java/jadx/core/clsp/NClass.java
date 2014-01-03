@@ -41,11 +41,14 @@ public class NClass {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 		NClass nClass = (NClass) o;
-		if (!name.equals(nClass.name)) return false;
-		return true;
+		return name.equals(nClass.name);
 	}
 
 	@Override

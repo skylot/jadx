@@ -39,10 +39,12 @@ public class PostTypeResolver {
 
 			case MOVE: {
 				boolean change = false;
-				if (insn.getResult().merge(insn.getArg(0)))
+				if (insn.getResult().merge(insn.getArg(0))) {
 					change = true;
-				if (insn.getArg(0).merge(insn.getResult()))
+				}
+				if (insn.getArg(0).merge(insn.getResult())) {
 					change = true;
+				}
 				return change;
 			}
 
@@ -56,10 +58,12 @@ public class PostTypeResolver {
 				boolean change = false;
 				IfNode ifnode = (IfNode) insn;
 				if (!ifnode.isZeroCmp()) {
-					if (insn.getArg(1).merge(insn.getArg(0)))
+					if (insn.getArg(1).merge(insn.getArg(0))) {
 						change = true;
-					if (insn.getArg(0).merge(insn.getArg(1)))
+					}
+					if (insn.getArg(0).merge(insn.getArg(1))) {
 						change = true;
+					}
 				}
 				return change;
 			}
@@ -94,10 +98,12 @@ public class PostTypeResolver {
 
 	private static boolean fixArrayTypes(InsnArg array, InsnArg elem) {
 		boolean change = false;
-		if (!elem.getType().isTypeKnown() && elem.merge(array.getType().getArrayElement()))
+		if (!elem.getType().isTypeKnown() && elem.merge(array.getType().getArrayElement())) {
 			change = true;
-		if (!array.getType().isTypeKnown() && array.merge(ArgType.array(elem.getType())))
+		}
+		if (!array.getType().isTypeKnown() && array.merge(ArgType.array(elem.getType()))) {
 			change = true;
+		}
 		return change;
 	}
 }
