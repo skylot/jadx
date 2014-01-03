@@ -6,7 +6,7 @@ import java.util.List;
 
 public class InsnContainer extends AttrNode implements IBlock {
 
-	private List<InsnNode> insns;
+	private final List<InsnNode> insns;
 
 	public InsnContainer(List<InsnNode> insns) {
 		this.insns = insns;

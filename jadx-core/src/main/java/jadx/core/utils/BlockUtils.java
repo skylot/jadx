@@ -17,10 +17,11 @@ public class BlockUtils {
 
 	public static BlockNode getBlockByOffset(int offset, Iterable<BlockNode> casesBlocks) {
 		for (BlockNode block : casesBlocks) {
-			if (block.getStartOffset() == offset)
+			if (block.getStartOffset() == offset) {
 				return block;
+			}
 		}
-		throw new JadxRuntimeException("Can'r find block by offset: "
+		throw new JadxRuntimeException("Can't find block by offset: "
 				+ InsnUtils.formatOffset(offset)
 				+ " in list " + casesBlocks);
 	}
@@ -30,7 +31,6 @@ public class BlockUtils {
 		if (list.size() > 2) {
 			list = cleanBlockList(list);
 		}
-
 		assert list.size() == 2 : "too many nodes for selectOther: " + node + " in " + list;
 		BlockNode first = list.get(0);
 		if (first != node)

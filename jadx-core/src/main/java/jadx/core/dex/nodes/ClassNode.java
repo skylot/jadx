@@ -22,7 +22,7 @@ import jadx.core.utils.exceptions.DecodeException;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,17 +39,15 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 
 	private final DexNode dex;
 	private final ClassInfo clsInfo;
+	private final AccessInfo accessFlags;
 	private ClassInfo superClass;
 	private List<ClassInfo> interfaces;
 	private Map<ArgType, List<ArgType>> genericMap;
 
-	private final List<MethodNode> methods = new ArrayList<MethodNode>();
-	private final List<FieldNode> fields = new ArrayList<FieldNode>();
-
-	private final AccessInfo accessFlags;
+	private final List<MethodNode> methods;
+	private final List<FieldNode> fields;
+	private Map<Object, FieldNode> constFields = Collections.emptyMap();
 	private List<ClassNode> innerClasses = Collections.emptyList();
-
-	private final Map<Object, FieldNode> constFields = new HashMap<Object, FieldNode>();
 
 	private CodeWriter code; // generated code
 
@@ -57,31 +55,40 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 		this.dex = dex;
 		this.clsInfo = ClassInfo.fromDex(dex, cls.getTypeIndex());
 		try {
-			this.superClass = cls.getSupertypeIndex() == DexNode.NO_INDEX
-					? null
-					: ClassInfo.fromDex(dex, cls.getSupertypeIndex());
-
+			if (cls.getSupertypeIndex() == DexNode.NO_INDEX) {
+				this.superClass = null;
+			} else {
+				this.superClass = ClassInfo.fromDex(dex, cls.getSupertypeIndex());
+			}
 			this.interfaces = new ArrayList<ClassInfo>(cls.getInterfaces().length);
 			for (short interfaceIdx : cls.getInterfaces()) {
 				this.interfaces.add(ClassInfo.fromDex(dex, interfaceIdx));
 			}
-
 			if (cls.getClassDataOffset() != 0) {
 				ClassData clsData = dex.readClassData(cls);
+				int mthsCount = clsData.getDirectMethods().length + clsData.getVirtualMethods().length;
+				int fieldsCount = clsData.getStaticFields().length + clsData.getInstanceFields().length;
 
-				for (Method mth : clsData.getDirectMethods())
+				methods = new ArrayList<MethodNode>(mthsCount);
+				fields = new ArrayList<FieldNode>(fieldsCount);
+
+				for (Method mth : clsData.getDirectMethods()) {
 					methods.add(new MethodNode(this, mth));
-
-				for (Method mth : clsData.getVirtualMethods())
+				}
+				for (Method mth : clsData.getVirtualMethods()) {
 					methods.add(new MethodNode(this, mth));
+				}
 
-				for (Field f : clsData.getStaticFields())
+				for (Field f : clsData.getStaticFields()) {
 					fields.add(new FieldNode(this, f));
-
+				}
 				loadStaticValues(cls, fields);
-
-				for (Field f : clsData.getInstanceFields())
+				for (Field f : clsData.getInstanceFields()) {
 					fields.add(new FieldNode(this, f));
+				}
+			} else {
+				methods = Collections.emptyList();
+				fields = Collections.emptyList();
 			}
 
 			loadAnnotations(cls);
@@ -98,13 +105,14 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 				}
 			}
 
+			// restore original access flags from dalvik annotation if present
 			int accFlagsValue;
 			Annotation a = getAttributes().getAnnotation(Consts.DALVIK_INNER_CLASS);
-			if (a != null)
+			if (a != null) {
 				accFlagsValue = (Integer) a.getValues().get("accessFlags");
-			else
+			} else {
 				accFlagsValue = cls.getAccessFlags();
-
+			}
 			this.accessFlags = new AccessInfo(accFlagsValue, AFType.CLASS);
 
 		} catch (Exception e) {
@@ -134,8 +142,8 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 		int offset = cls.getStaticValuesOffset();
 		if (offset != 0) {
 			StaticValuesParser parser = new StaticValuesParser(dex, dex.openSection(offset));
-			parser.processFields(staticFields);
-
+			int count = parser.processFields(staticFields);
+			constFields = new LinkedHashMap<Object, FieldNode>(count);
 			for (FieldNode f : staticFields) {
 				AccessInfo accFlags = f.getAccessFlags();
 				if (accFlags.isStatic() && accFlags.isFinal()) {
@@ -154,9 +162,9 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 	@SuppressWarnings("unchecked")
 	private void parseClassSignature() {
 		Annotation a = this.getAttributes().getAnnotation(Consts.DALVIK_SIGNATURE);
-		if (a == null)
+		if (a == null) {
 			return;
-
+		}
 		String sign = Utils.mergeSignature((List<String>) a.getDefaultValue());
 		// parse generic map
 		int end = Utils.getGenericEnd(sign);
@@ -188,13 +196,13 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 	private void setFieldsTypesFromSignature() {
 		for (FieldNode field : fields) {
 			Annotation a = field.getAttributes().getAnnotation(Consts.DALVIK_SIGNATURE);
-			if (a == null)
-				continue;
-
-			String sign = Utils.mergeSignature((List<String>) a.getDefaultValue());
-			ArgType gType = ArgType.parseSignature(sign);
-			if (gType != null)
-				field.setType(gType);
+			if (a != null) {
+				String sign = Utils.mergeSignature((List<String>) a.getDefaultValue());
+				ArgType gType = ArgType.parseSignature(sign);
+				if (gType != null) {
+					field.setType(gType);
+				}
+			}
 		}
 	}
 
@@ -288,8 +296,9 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 	public FieldNode searchFieldById(int id) {
 		String name = FieldInfo.getNameById(dex, id);
 		for (FieldNode f : fields) {
-			if (f.getName().equals(name))
+			if (f.getName().equals(name)) {
 				return f;
+			}
 		}
 		return null;
 	}
@@ -300,24 +309,27 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 
 	public FieldNode searchFieldByName(String name) {
 		for (FieldNode f : fields) {
-			if (f.getName().equals(name))
+			if (f.getName().equals(name)) {
 				return f;
+			}
 		}
 		return null;
 	}
 
 	public MethodNode searchMethod(MethodInfo mth) {
 		for (MethodNode m : methods) {
-			if (m.getMethodInfo().equals(mth))
+			if (m.getMethodInfo().equals(mth)) {
 				return m;
+			}
 		}
 		return null;
 	}
 
 	public MethodNode searchMethodByName(String shortId) {
 		for (MethodNode m : methods) {
-			if (m.getMethodInfo().getShortId().equals(shortId))
+			if (m.getMethodInfo().getShortId().equals(shortId)) {
 				return m;
+			}
 		}
 		return null;
 	}
@@ -331,8 +343,9 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 	}
 
 	public void addInnerClass(ClassNode cls) {
-		if (innerClasses.isEmpty())
+		if (innerClasses.isEmpty()) {
 			innerClasses = new ArrayList<ClassNode>(3);
+		}
 		innerClasses.add(cls);
 	}
 
@@ -351,7 +364,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 			if (mth.getAccessFlags().isConstructor()
 					&& mth.getMethodInfo().isConstructor()
 					&& (mth.getMethodInfo().getArgsCount() == 0
-						|| (mth.getArguments(false) != null && mth.getArguments(false).isEmpty()))) {
+					|| (mth.getArguments(false) != null && mth.getArguments(false).isEmpty()))) {
 				return mth;
 			}
 		}

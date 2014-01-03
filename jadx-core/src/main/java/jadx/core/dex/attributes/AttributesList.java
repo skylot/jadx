@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +31,7 @@ public final class AttributesList {
 	public AttributesList() {
 		flags = EnumSet.noneOf(AttributeFlag.class);
 		uniqAttr = new EnumMap<AttributeType, IAttribute>(AttributeType.class);
-		attributes = new ArrayList<IAttribute>(0);
+		attributes = new LinkedList<IAttribute>();
 		attrCount = new int[AttributeType.getNotUniqCount()];
 	}
 

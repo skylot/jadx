@@ -81,10 +81,12 @@ public class MainWindow extends JFrame {
 	private final JadxWrapper wrapper;
 
 	private JPanel mainPanel;
+
 	private JTree tree;
-	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private DefaultTreeModel treeModel;
-	private Map<JClass, Component> openTabs = new HashMap<JClass, Component>();
+
+	private final JTabbedPane tabbedPane = new JTabbedPane();
+	private final Map<JClass, Component> openTabs = new HashMap<JClass, Component>();
 
 	public MainWindow(JadxWrapper wrapper) {
 		this.wrapper = wrapper;

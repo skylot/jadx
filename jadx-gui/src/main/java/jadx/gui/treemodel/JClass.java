@@ -50,7 +50,7 @@ public class JClass extends JNode {
 	}
 
 	@Override
-	public void updateChilds() {
+	public synchronized void updateChilds() {
 		removeAllChildren();
 		if (!loaded) {
 			add(new TextNode(NLS.str("tree.loading")));

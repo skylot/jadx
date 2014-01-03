@@ -15,13 +15,12 @@ public class StaticValuesParser extends EncValueParser {
 		super(dex, in);
 	}
 
-	public void processFields(List<FieldNode> fields) throws DecodeException {
-		int size = Leb128Utils.readUnsignedLeb128(in);
-		visitArray(size);
-
-		for (int i = 0; i < size; i++) {
+	public int processFields(List<FieldNode> fields) throws DecodeException {
+		int count = Leb128Utils.readUnsignedLeb128(in);
+		for (int i = 0; i < count; i++) {
 			Object value = parseValue();
 			fields.get(i).getAttributes().add(new FieldValueAttr(value));
 		}
+		return count;
 	}
 }

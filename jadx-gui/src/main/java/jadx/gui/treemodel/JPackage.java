@@ -15,8 +15,8 @@ public class JPackage extends JNode implements Comparable<JPackage> {
 	private static final ImageIcon PACKAGE_ICON = Utils.openIcon("package_obj");
 
 	private String name;
-	private List<JClass> classes;
-	private List<JPackage> innerPackages = new ArrayList<JPackage>(1);
+	private final List<JClass> classes;
+	private final List<JPackage> innerPackages = new ArrayList<JPackage>(1);
 
 	public JPackage(JavaPackage pkg) {
 		this.name = pkg.getName();

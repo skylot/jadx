@@ -24,7 +24,6 @@ public class BlockProcessingHelper {
 		if (mth.isNoCode()) {
 			return;
 		}
-
 		for (BlockNode block : mth.getBasicBlocks()) {
 			markExceptionHandlers(block);
 		}
@@ -78,7 +77,6 @@ public class BlockProcessingHelper {
 			for (BlockNode node : BlockUtils.collectBlocksDominatedBy(block, block)) {
 				excHandler.addBlock(node);
 			}
-
 			for (BlockNode excBlock : excHandler.getBlocks()) {
 				// remove 'monitor-exit' from exception handler blocks
 				InstructionRemover remover = new InstructionRemover(excBlock.getInstructions());
@@ -86,7 +84,6 @@ public class BlockProcessingHelper {
 					if (insn.getType() == InsnType.MONITOR_ENTER) {
 						break;
 					}
-
 					if (insn.getType() == InsnType.MONITOR_EXIT) {
 						remover.add(insn);
 					}
@@ -119,7 +116,6 @@ public class BlockProcessingHelper {
 			if (catchAttr == null) {
 				continue;
 			}
-
 			if (commonCatchAttr == null) {
 				commonCatchAttr = catchAttr;
 			} else if (commonCatchAttr != catchAttr) {
