@@ -14,10 +14,9 @@ import jadx.core.dex.visitors.MethodInlinerVisitor;
 import jadx.core.dex.visitors.ModVisitor;
 import jadx.core.dex.visitors.SimplifyVisitor;
 import jadx.core.dex.visitors.regions.CheckRegions;
-import jadx.core.dex.visitors.regions.CleanRegions;
-import jadx.core.dex.visitors.regions.PostRegionVisitor;
 import jadx.core.dex.visitors.regions.ProcessVariables;
 import jadx.core.dex.visitors.regions.RegionMakerVisitor;
+import jadx.core.dex.visitors.regions.TernaryVisitor;
 import jadx.core.dex.visitors.typeresolver.FinishTypeResolver;
 import jadx.core.dex.visitors.typeresolver.TypeResolver;
 import jadx.core.utils.Utils;
@@ -68,10 +67,10 @@ public class Jadx {
 				passes.add(new DotGraphVisitor(outDir, false));
 			}
 
-			passes.add(new RegionMakerVisitor());
-			passes.add(new PostRegionVisitor());
-
 			passes.add(new CodeShrinker());
+			passes.add(new RegionMakerVisitor());
+			passes.add(new TernaryVisitor());
+
 			passes.add(new SimplifyVisitor());
 			passes.add(new ProcessVariables());
 			passes.add(new CheckRegions());
@@ -82,7 +81,6 @@ public class Jadx {
 
 			passes.add(new MethodInlinerVisitor());
 			passes.add(new ClassModifier());
-			passes.add(new CleanRegions());
 		}
 		passes.add(new CodeGen(args));
 		return passes;

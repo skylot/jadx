@@ -5,19 +5,16 @@ import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.Region;
-import jadx.core.dex.visitors.AbstractVisitor;
-import jadx.core.utils.exceptions.JadxException;
 
 import java.util.Iterator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CleanRegions extends AbstractVisitor {
+public class CleanRegions {
 	private static final Logger LOG = LoggerFactory.getLogger(CleanRegions.class);
 
-	@Override
-	public void visit(MethodNode mth) throws JadxException {
+	public static void process(MethodNode mth) {
 		if (mth.isNoCode() || mth.getBasicBlocks().size() == 0) {
 			return;
 		}

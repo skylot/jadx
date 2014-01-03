@@ -1,13 +1,14 @@
 package jadx.core.dex.regions;
 
 import jadx.core.dex.instructions.IfNode;
-import jadx.core.dex.instructions.IfOp;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 public final class IfCondition {
@@ -34,40 +35,6 @@ public final class IfCondition {
 			return n;
 		} else {
 			return new IfCondition(mode, Arrays.asList(a, b));
-		}
-	}
-
-	public static final class Compare {
-		private final IfNode insn;
-
-		public Compare(IfNode insn) {
-			this.insn = insn;
-		}
-
-		public IfOp getOp() {
-			return insn.getOp();
-		}
-
-		public InsnArg getA() {
-			return insn.getArg(0);
-		}
-
-		public InsnArg getB() {
-			if (insn.isZeroCmp()) {
-				return InsnArg.lit(0, getA().getType());
-			} else {
-				return insn.getArg(1);
-			}
-		}
-
-		public Compare invert() {
-			insn.invertCondition();
-			return this;
-		}
-
-		@Override
-		public String toString() {
-			return getA() + " " + getOp().getSymbol() + " " + getB();
 		}
 	}
 
@@ -135,6 +102,25 @@ public final class IfCondition {
 				return new IfCondition(mode == Mode.AND ? Mode.OR : Mode.AND, newArgs);
 		}
 		throw new JadxRuntimeException("Unknown mode for invert: " + mode);
+	}
+
+	public List<RegisterArg> getRegisterArgs() {
+		List<RegisterArg> list = new LinkedList<RegisterArg>();
+		if (mode == Mode.COMPARE) {
+			InsnArg a = compare.getA();
+			if (a.isRegister()) {
+				list.add((RegisterArg) a);
+			}
+			InsnArg b = compare.getA();
+			if (a.isRegister()) {
+				list.add((RegisterArg) b);
+			}
+		} else {
+			for (IfCondition arg : args) {
+				list.addAll(arg.getRegisterArgs());
+			}
+		}
+		return list;
 	}
 
 	@Override

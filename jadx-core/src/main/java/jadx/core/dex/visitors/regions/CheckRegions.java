@@ -33,8 +33,7 @@ public class CheckRegions extends AbstractVisitor {
 			public void processBlock(MethodNode mth, IBlock container) {
 				if (container instanceof BlockNode) {
 					blocksInRegions.add((BlockNode) container);
-				} else {
-					LOG.warn("Not block node : " + container.getClass().getSimpleName());
+				
 				}
 			}
 		};

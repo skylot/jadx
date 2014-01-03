@@ -6,6 +6,8 @@ import jadx.core.dex.nodes.ClassNode;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.either;
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 
 public class TestRedundantBrackets extends InternalJadxTest {
@@ -47,10 +49,12 @@ public class TestRedundantBrackets extends InternalJadxTest {
 	@Test
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
-
 		String code = cls.getCode().toString();
-//		assertThat(code, not(containsString("(-1)")));
-		assertThat(code, containsString("if (obj instanceof String)"));
+
+		assertThat(code, not(containsString("(-1)")));
+		assertThat(code, not(containsString("return;")));
+		assertThat(code, either(containsString("if (obj instanceof String) {"))
+				.or(containsString("return (obj instanceof String) ? ")));
 		assertThat(code, containsString("if (a + b < 10)"));
 		assertThat(code, containsString("if ((a & b) != 0)"));
 		assertThat(code, containsString("if (num == 4 || num == 6 || num == 8 || num == 10)"));

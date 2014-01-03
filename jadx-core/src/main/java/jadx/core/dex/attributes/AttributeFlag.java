@@ -19,5 +19,7 @@ public enum AttributeFlag {
 	SKIP_FIRST_ARG,
 	ANONYMOUS_CONSTRUCTOR,
 
+	ELSE_IF_CHAIN,
+
 	INCONSISTENT_CODE, // warning about incorrect decompilation
 }

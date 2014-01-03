@@ -26,6 +26,7 @@ import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
+import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
@@ -409,6 +410,7 @@ public class InsnGen {
 				break;
 
 			case TERNARY:
+				makeTernary((TernaryInsn) insn, code, state);
 				break;
 
 			case ARGS:
@@ -685,6 +687,21 @@ public class InsnGen {
 			// revert changes
 			for (Entry<RegisterArg, InsnArg> e : toRevert.entrySet()) {
 				inl.replaceArg(e.getValue(), e.getKey());
+			}
+		}
+	}
+
+	private void makeTernary(TernaryInsn insn, CodeWriter code, EnumSet<IGState> state) throws CodegenException {
+		String cond = ConditionGen.make(this, insn.getCondition());
+		CodeWriter th = arg(insn.getArg(0), false);
+		CodeWriter els = arg(insn.getArg(1), false);
+		if (th.toString().equals("true") && els.toString().equals("false")) {
+			code.add(cond);
+		} else {
+			if (state.contains(IGState.BODY_ONLY)) {
+				code.add("((").add(cond).add(')').add(" ? ").add(th).add(" : ").add(els).add(")");
+			} else {
+				code.add('(').add(cond).add(')').add(" ? ").add(th).add(" : ").add(els);
 			}
 		}
 	}

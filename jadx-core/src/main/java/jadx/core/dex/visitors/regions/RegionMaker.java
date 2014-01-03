@@ -459,6 +459,9 @@ public class RegionMaker {
 		if (elseBlock != null) {
 			if (stack.containsExit(elseBlock)) {
 				elseBlock = null;
+			} else if (elseBlock.getAttributes().contains(AttributeFlag.RETURN)) {
+				out = elseBlock;
+				elseBlock = null;
 			}
 		}
 

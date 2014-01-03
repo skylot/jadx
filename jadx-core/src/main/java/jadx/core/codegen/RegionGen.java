@@ -22,6 +22,7 @@ import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.regions.Compare;
 import jadx.core.dex.regions.IfCondition;
 import jadx.core.dex.regions.IfRegion;
 import jadx.core.dex.regions.LoopRegion;
@@ -65,8 +66,7 @@ public class RegionGen extends InsnGen {
 					}
 				}
 			} else if (cont instanceof IfRegion) {
-				code.startLine();
-				makeIf((IfRegion) cont, code);
+				makeIf((IfRegion) cont, code, true);
 			} else if (cont instanceof SwitchRegion) {
 				makeSwitch((SwitchRegion) cont, code);
 			} else if (cont instanceof LoopRegion) {
@@ -110,8 +110,15 @@ public class RegionGen extends InsnGen {
 		}
 	}
 
-	private void makeIf(IfRegion region, CodeWriter code) throws CodegenException {
-		code.add("if (").add(makeCondition(region.getCondition())).add(") {");
+	private void makeIf(IfRegion region, CodeWriter code, boolean newLine) throws CodegenException {
+		if (region.getTernRegion() != null) {
+			makeSimpleBlock(region.getTernRegion().getBlock(), code);
+			return;
+		}
+		if (newLine) {
+			code.startLine();
+		}
+		code.add("if (").add(ConditionGen.make(this, region.getCondition())).add(") {");
 		makeRegionIndent(code, region.getThenRegion());
 		code.startLine('}');
 
@@ -124,8 +131,11 @@ public class RegionGen extends InsnGen {
 				Region re = (Region) els;
 				List<IContainer> subBlocks = re.getSubBlocks();
 				if (subBlocks.size() == 1 && subBlocks.get(0) instanceof IfRegion) {
-					makeIf((IfRegion) subBlocks.get(0), code);
-					return;
+					IfRegion ifRegion = (IfRegion) subBlocks.get(0);
+					if (ifRegion.getAttributes().contains(AttributeFlag.ELSE_IF_CHAIN)) {
+						makeIf(ifRegion, code, false);
+						return;
+					}
 				}
 			}
 
@@ -158,12 +168,13 @@ public class RegionGen extends InsnGen {
 			return code;
 		}
 
+		String condStr = ConditionGen.make(this, condition);
 		if (region.isConditionAtEnd()) {
 			code.startLine("do {");
 			makeRegionIndent(code, region.getBody());
-			code.startLine("} while (").add(makeCondition(condition)).add(");");
+			code.startLine("} while (").add(condStr).add(");");
 		} else {
-			code.startLine("while (").add(makeCondition(condition)).add(") {");
+			code.startLine("while (").add(condStr).add(") {");
 			makeRegionIndent(code, region.getBody());
 			code.startLine('}');
 		}
@@ -203,7 +214,7 @@ public class RegionGen extends InsnGen {
 		}
 	}
 
-	private String makeCompare(IfCondition.Compare compare) throws CodegenException {
+	private String makeCompare(Compare compare) throws CodegenException {
 		IfOp op = compare.getOp();
 		InsnArg firstArg = compare.getA();
 		InsnArg secondArg = compare.getB();
@@ -269,7 +280,6 @@ public class RegionGen extends InsnGen {
 			code.startLine("default:");
 			makeCaseBlock(sw.getDefaultCase(), code);
 		}
-
 		code.startLine('}');
 		return code;
 	}

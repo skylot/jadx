@@ -47,6 +47,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		}
 		mth.initBasicBlocks();
 		makeBasicBlocks(mth);
+		processBlocksTree(mth);
 		BlockProcessingHelper.visit(mth);
 		mth.finishBasicBlocks();
 	}
@@ -173,6 +174,9 @@ public class BlockMakerVisitor extends AbstractVisitor {
 				}
 			}
 		}
+	}
+
+	private static void processBlocksTree(MethodNode mth) {
 		computeDominators(mth);
 		markReturnBlocks(mth);
 
@@ -189,7 +193,6 @@ public class BlockMakerVisitor extends AbstractVisitor {
 				throw new AssertionError("Can't fix method cfg: " + mth);
 			}
 		}
-
 		registerLoops(mth);
 	}
 
@@ -369,7 +372,6 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		if (mergeReturn(mth)) {
 			return true;
 		}
-		// TODO detect ternary operator
 		return false;
 	}
 
@@ -468,6 +470,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			insn.addArg(InsnArg.reg(arg.getRegNum(), arg.getType()));
 		}
 		insn.getAttributes().addAll(returnInsn.getAttributes());
+		insn.setOffset(returnInsn.getOffset());
 		return insn;
 	}
 

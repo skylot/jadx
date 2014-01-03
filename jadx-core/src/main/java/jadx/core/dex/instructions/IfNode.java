@@ -20,17 +20,6 @@ public class IfNode extends GotoNode {
 	private BlockNode thenBlock;
 	private BlockNode elseBlock;
 
-	public IfNode(int targ, InsnArg then, InsnArg els) {
-		super(InsnType.IF, targ);
-		addArg(then);
-		if (els == null) {
-			zeroCmp = true;
-		} else {
-			zeroCmp = false;
-			addArg(els);
-		}
-	}
-
 	public IfNode(DecodedInstruction insn, IfOp op) {
 		super(InsnType.IF, insn.getTarget());
 		this.op = op;
@@ -84,7 +73,6 @@ public class IfNode extends GotoNode {
 		} else {
 			elseBlock = selectOther(thenBlock, curBlock.getSuccessors());
 		}
-		target = thenBlock.getStartOffset();
 	}
 
 	public BlockNode getThenBlock() {

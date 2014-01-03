@@ -6,6 +6,7 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
+import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -17,16 +18,16 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Set;
 
 public class CodeShrinker extends AbstractVisitor {
 
-	private static final Logger LOG = LoggerFactory.getLogger(CodeShrinker.class);
-
 	@Override
 	public void visit(MethodNode mth) {
+		shrinkMethod(mth);
+	}
+
+	public static void shrinkMethod(MethodNode mth) {
 		if (mth.isNoCode() || mth.getAttributes().contains(AttributeFlag.DONT_SHRINK)) {
 			return;
 		}
@@ -48,13 +49,20 @@ public class CodeShrinker extends AbstractVisitor {
 			this.argsList = argsList;
 			this.pos = pos;
 			this.inlineBorder = pos;
-			this.args = new LinkedList<RegisterArg>();
+			this.args = getArgs(insn);
+		}
+
+		public static List<RegisterArg> getArgs(InsnNode insn) {
+			LinkedList<RegisterArg> args = new LinkedList<RegisterArg>();
 			addArgs(insn, args);
+			return args;
 		}
 
 		private static void addArgs(InsnNode insn, List<RegisterArg> args) {
 			if (insn.getType() == InsnType.CONSTRUCTOR) {
 				args.add(((ConstructorInsn) insn).getInstanceArg());
+			} else if (insn.getType() == InsnType.TERNARY) {
+				args.addAll(((TernaryInsn) insn).getCondition().getRegisterArgs());
 			}
 			for (InsnArg arg : insn.getArguments()) {
 				if (arg.isRegister()) {
@@ -85,6 +93,7 @@ public class CodeShrinker extends AbstractVisitor {
 		}
 
 		private boolean canMove(int from, int to) {
+			List<RegisterArg> movedArgs = argsList.get(from).getArgs();
 			from++;
 			if (from == to) {
 				// previous instruction or on edge of inline border
@@ -98,11 +107,16 @@ public class CodeShrinker extends AbstractVisitor {
 				if (argsInfo.getInlinedInsn() == this) {
 					continue;
 				}
-				if (!argsInfo.insn.canReorder()) {
+				InsnNode curInsn = argsInfo.insn;
+				if (!curInsn.canReorder() || usedArgAssign(curInsn, movedArgs)) {
 					return false;
 				}
 			}
 			return true;
+		}
+
+		private static boolean usedArgAssign(InsnNode insn, List<RegisterArg> args) {
+			return insn.getResult() != null && args.contains(insn.getResult());
 		}
 
 		public WrapInfo inline(int assignInsnPos, RegisterArg arg) {
@@ -152,7 +166,10 @@ public class CodeShrinker extends AbstractVisitor {
 		}
 	}
 
-	private void shrinkBlock(MethodNode mth, BlockNode block) {
+	private static void shrinkBlock(MethodNode mth, BlockNode block) {
+		if (block.getInstructions().isEmpty()) {
+			return;
+		}
 		InsnList insnList = new InsnList(block.getInstructions());
 		int insnCount = insnList.size();
 		List<ArgsInfo> argsList = new ArrayList<ArgsInfo>(insnCount);
@@ -186,35 +203,36 @@ public class CodeShrinker extends AbstractVisitor {
 					}
 				} else {
 					// another block
-					if (block.getPredecessors().size() == 1) {
-						BlockNode assignBlock = BlockUtils.getBlockByInsn(mth, assignInsn);
-						if (canMoveBetweenBlocks(assignInsn, assignBlock, block, argsInfo.getInsn())) {
-							arg.wrapInstruction(assignInsn);
-							InsnList.remove(assignBlock, assignInsn);
-						}
+					BlockNode assignBlock = BlockUtils.getBlockByInsn(mth, assignInsn);
+					if (assignBlock != null
+							&& canMoveBetweenBlocks(assignInsn, assignBlock, block, argsInfo.getInsn())) {
+						arg.wrapInstruction(assignInsn);
+						InsnList.remove(assignBlock, assignInsn);
 					}
 				}
 			}
 		}
-		for (WrapInfo wrapInfo : wrapList) {
-			wrapInfo.getArg().wrapInstruction(wrapInfo.getInsn());
+		if (!wrapList.isEmpty()) {
+			for (WrapInfo wrapInfo : wrapList) {
+				wrapInfo.getArg().wrapInstruction(wrapInfo.getInsn());
+			}
+			for (WrapInfo wrapInfo : wrapList) {
+				insnList.remove(wrapInfo.getInsn());
+			}
 		}
-		for (WrapInfo wrapInfo : wrapList) {
-			insnList.remove(wrapInfo.getInsn());
-		}
-
 	}
 
-	private boolean canMoveBetweenBlocks(InsnNode assignInsn, BlockNode assignBlock,
-	                                     BlockNode useBlock, InsnNode useInsn) {
-		if (!useBlock.getPredecessors().contains(assignBlock)
-				&& !BlockUtils.isOnlyOnePathExists(assignBlock, useBlock)) {
+	private static boolean canMoveBetweenBlocks(InsnNode assignInsn, BlockNode assignBlock,
+	                                            BlockNode useBlock, InsnNode useInsn) {
+		if (!BlockUtils.isPathExists(assignBlock, useBlock)) {
 			return false;
 		}
+
+		List<RegisterArg> args = ArgsInfo.getArgs(assignInsn);
 		boolean startCheck = false;
 		for (InsnNode insn : assignBlock.getInstructions()) {
 			if (startCheck) {
-				if (!insn.canReorder()) {
+				if (!insn.canReorder() || ArgsInfo.usedArgAssign(insn, args)) {
 					return false;
 				}
 			}
@@ -222,26 +240,28 @@ public class CodeShrinker extends AbstractVisitor {
 				startCheck = true;
 			}
 		}
-		BlockNode next = assignBlock.getCleanSuccessors().get(0);
-		while (next != useBlock) {
-			for (InsnNode insn : assignBlock.getInstructions()) {
-				if (!insn.canReorder()) {
+		Set<BlockNode> pathsBlocks = BlockUtils.getAllPathsBlocks(assignBlock, useBlock);
+		pathsBlocks.remove(assignBlock);
+		pathsBlocks.remove(useBlock);
+		for (BlockNode block : pathsBlocks) {
+			for (InsnNode insn : block.getInstructions()) {
+				if (!insn.canReorder() || ArgsInfo.usedArgAssign(insn, args)) {
 					return false;
 				}
 			}
-			next = next.getCleanSuccessors().get(0);
 		}
 		for (InsnNode insn : useBlock.getInstructions()) {
 			if (insn == useInsn) {
 				return true;
 			}
-			if (!insn.canReorder()) {
+			if (!insn.canReorder() || ArgsInfo.usedArgAssign(insn, args)) {
 				return false;
 			}
 		}
 		throw new JadxRuntimeException("Can't process instruction move : " + assignBlock);
 	}
 
+	@Deprecated
 	public static InsnArg inlineArgument(MethodNode mth, RegisterArg arg) {
 		InsnNode assignInsn = arg.getAssignInsn();
 		if (assignInsn == null) {

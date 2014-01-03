@@ -1,5 +1,6 @@
 package jadx.core.utils;
 
+import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
@@ -15,14 +16,13 @@ public class RegionUtils {
 
 	public static boolean hasExitEdge(IContainer container) {
 		if (container instanceof BlockNode) {
-			return ((BlockNode) container).getSuccessors().size() != 0;
+			BlockNode block = (BlockNode) container;
+			return block.getSuccessors().size() != 0
+					&& !block.getAttributes().contains(AttributeFlag.RETURN);
 		} else if (container instanceof IRegion) {
 			IRegion region = (IRegion) container;
 			List<IContainer> blocks = region.getSubBlocks();
-			if (blocks.isEmpty()) {
-				return false;
-			}
-			return hasExitEdge(blocks.get(blocks.size() - 1));
+			return !blocks.isEmpty() && hasExitEdge(blocks.get(blocks.size() - 1));
 		} else {
 			throw new JadxRuntimeException("Unknown container type: " + container.getClass());
 		}

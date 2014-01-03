@@ -43,6 +43,23 @@ public final class LiteralArg extends InsnArg {
 	}
 
 	@Override
+	public int hashCode() {
+		return (int) (literal ^ (literal >>> 32)) + 31 * getType().hashCode();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		LiteralArg that = (LiteralArg) o;
+		return literal == that.literal && getType().equals(that.getType());
+	}
+
+	@Override
 	public String toString() {
 		try {
 			return "(" + TypeGen.literalToString(literal, getType()) + " " + typedVar + ")";

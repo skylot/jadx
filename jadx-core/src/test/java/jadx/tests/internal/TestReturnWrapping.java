@@ -53,10 +53,11 @@ public class TestReturnWrapping extends InternalJadxTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
+
 		assertThat(code, containsString("return 255;"));
 		assertThat(code, containsString("return arg0 + 1;"));
 		//assertThat(code, containsString("return Integer.toHexString(i);"));
-		assertThat(code, containsString("return arg0.toString() + ret.toString();"));
+		assertThat(code, containsString("return (i > 128) ? arg0.toString() + ret.toString() : Integer.valueOf(i);"));
 		assertThat(code, containsString("return arg0 + 2;"));
 		assertThat(code, containsString("arg0 -= 951;"));
 	}

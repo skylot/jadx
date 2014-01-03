@@ -59,7 +59,8 @@ public class ProcessReturnInsns extends TracedRegionVisitor {
 					IContainer subBlock = itSubBlock.previous();
 					if (subBlock == curContainer) {
 						break;
-					} else if (RegionUtils.notEmpty(subBlock)) {
+					} else if (!subBlock.getAttributes().contains(AttributeFlag.RETURN)
+							&& RegionUtils.notEmpty(subBlock)) {
 						return false;
 					}
 				}
