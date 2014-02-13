@@ -473,7 +473,7 @@ public class InsnDecoder {
 			case Opcodes.ARRAY_LENGTH: {
 				InsnNode node = new InsnNode(InsnType.ARRAY_LENGTH, 1);
 				node.setResult(InsnArg.reg(insn, 0, ArgType.INT));
-				node.addArg(InsnArg.reg(insn, 1, ArgType.unknown(PrimitiveType.ARRAY)));
+				node.addArg(InsnArg.reg(insn, 1, ArgType.array(ArgType.UNKNOWN)));
 				return node;
 			}
 

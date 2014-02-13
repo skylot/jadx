@@ -54,7 +54,6 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 
 	private static boolean replaceConst(MethodNode mth, BlockNode block, InsnNode insn, long literal) {
 		List<InsnArg> use = insn.getResult().getTypedVar().getUseList();
-
 		int replace = 0;
 		for (InsnArg arg : use) {
 			InsnNode useInsn = arg.getParentInsn();
@@ -64,9 +63,15 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 			BlockNode useBlock = BlockUtils.getBlockByInsn(mth, useInsn);
 			if (useBlock == block || useBlock.isDominator(block)) {
 				if (arg != insn.getResult() && !registerReassignOnPath(block, useBlock, insn)) {
-					// in most cases type not equal arg.getType()
-					// just set unknown type and run type fixer
-					LiteralArg litArg = InsnArg.lit(literal, ArgType.UNKNOWN);
+					LiteralArg litArg;
+					if (use.size() == 2) {
+						// arg used only in one place
+						litArg = InsnArg.lit(literal, arg.getType());
+					} else {
+						// in most cases type not equal arg.getType()
+						// just set unknown type and run type fixer
+						litArg = InsnArg.lit(literal, ArgType.UNKNOWN);
+					}
 					if (useInsn.replaceArg(arg, litArg)) {
 						fixTypes(mth, useInsn, litArg);
 						replace++;
