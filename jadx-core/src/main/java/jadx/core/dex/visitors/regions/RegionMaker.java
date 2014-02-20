@@ -208,7 +208,7 @@ public class RegionMaker {
 						condBlock = mergedIf.getIfnode();
 						if (!loop.getLoopBlocks().contains(mergedIf.getThenBlock())) {
 							// invert loop condition if it points to exit
-							loopRegion.setCondition(mergedIf.getCondition().invert());
+							loopRegion.setCondition(IfCondition.invert(mergedIf.getCondition()));
 							bThen = mergedIf.getElseBlock();
 						} else {
 							loopRegion.setCondition(mergedIf.getCondition());
@@ -303,7 +303,7 @@ public class RegionMaker {
 				}
 			}
 			if (bThen != loopBody) {
-				loopRegion.setCondition(loopRegion.getCondition().invert());
+				loopRegion.setCondition(IfCondition.invert(loopRegion.getCondition()));
 			}
 			out = selectOther(loopBody, condBlock.getSuccessors());
 			AttributesList outAttrs = out.getAttributes();

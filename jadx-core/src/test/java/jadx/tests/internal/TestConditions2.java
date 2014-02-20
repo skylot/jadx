@@ -9,7 +9,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 
-public class TestTmp2 extends InternalJadxTest {
+public class TestConditions2 extends InternalJadxTest {
 
 	public static class TestCls extends Exception {
 		int c;

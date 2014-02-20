@@ -96,9 +96,9 @@ public class SimplifyVisitor extends AbstractVisitor {
 				if (f.isInsnWrap()) {
 					InsnNode wi = ((InsnWrapArg) f).getWrapInsn();
 					if (wi.getType() == InsnType.CMP_L || wi.getType() == InsnType.CMP_G) {
-						if (ifb.isZeroCmp()
-								|| ((LiteralArg) ifb.getArg(1)).getLiteral() == 0) {
-							ifb.changeCondition(wi.getArg(0), wi.getArg(1), ifb.getOp());
+						if (ifb.getArg(1).isLiteral()
+								&& ((LiteralArg) ifb.getArg(1)).getLiteral() == 0) {
+							ifb.changeCondition(ifb.getOp(), wi.getArg(0), wi.getArg(1));
 						} else {
 							LOG.warn("TODO: cmp" + ifb);
 						}

@@ -1,7 +1,6 @@
 package jadx.core.dex.visitors;
 
 import jadx.core.dex.info.FieldInfo;
-import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
@@ -124,15 +123,12 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 			}
 
 			case IF: {
-				IfNode ifnode = (IfNode) insn;
-				if (!ifnode.isZeroCmp()) {
-					InsnArg arg0 = insn.getArg(0);
-					InsnArg arg1 = insn.getArg(1);
-					if (arg0 == litArg) {
-						arg0.merge(arg1);
-					} else {
-						arg1.merge(arg0);
-					}
+				InsnArg arg0 = insn.getArg(0);
+				InsnArg arg1 = insn.getArg(1);
+				if (arg0 == litArg) {
+					arg0.merge(arg1);
+				} else {
+					arg1.merge(arg0);
 				}
 				break;
 			}

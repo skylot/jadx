@@ -5,6 +5,9 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public final class LiteralArg extends InsnArg {
 
+	public static final LiteralArg TRUE = new LiteralArg(1, ArgType.BOOLEAN);
+	public static final LiteralArg FALSE = new LiteralArg(0, ArgType.BOOLEAN);
+
 	private final long literal;
 
 	public LiteralArg(long value, ArgType type) {
@@ -62,7 +65,11 @@ public final class LiteralArg extends InsnArg {
 	@Override
 	public String toString() {
 		try {
-			return "(" + TypeGen.literalToString(literal, getType()) + " " + typedVar + ")";
+			String value = TypeGen.literalToString(literal, getType());
+			if (getType().equals(ArgType.BOOLEAN) && (value.equals("true") || value.equals("false"))) {
+				return value;
+			}
+			return "(" + value + " " + typedVar + ")";
 		} catch (JadxRuntimeException ex) {
 			// can't convert literal to string
 			return "(" + literal + " " + typedVar + ")";

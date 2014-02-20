@@ -1,7 +1,6 @@
 package jadx.core.dex.visitors.typeresolver.finish;
 
 import jadx.core.dex.info.MethodInfo;
-import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -56,14 +55,11 @@ public class PostTypeResolver {
 
 			case IF: {
 				boolean change = false;
-				IfNode ifnode = (IfNode) insn;
-				if (!ifnode.isZeroCmp()) {
-					if (insn.getArg(1).merge(insn.getArg(0))) {
-						change = true;
-					}
-					if (insn.getArg(0).merge(insn.getArg(1))) {
-						change = true;
-					}
+				if (insn.getArg(1).merge(insn.getArg(0))) {
+					change = true;
+				}
+				if (insn.getArg(0).merge(insn.getArg(1))) {
+					change = true;
 				}
 				return change;
 			}

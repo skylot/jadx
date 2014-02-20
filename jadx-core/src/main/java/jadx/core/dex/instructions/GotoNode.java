@@ -8,11 +8,11 @@ public class GotoNode extends InsnNode {
 	protected int target;
 
 	public GotoNode(int target) {
-		this(InsnType.GOTO, target);
+		this(InsnType.GOTO, target, 0);
 	}
 
-	protected GotoNode(InsnType type, int target) {
-		super(type);
+	protected GotoNode(InsnType type, int target, int argsCount) {
+		super(type, argsCount);
 		this.target = target;
 	}
 

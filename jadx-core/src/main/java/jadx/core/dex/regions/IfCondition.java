@@ -1,13 +1,17 @@
 package jadx.core.dex.regions;
 
 import jadx.core.dex.instructions.IfNode;
+import jadx.core.dex.instructions.IfOp;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -52,7 +56,7 @@ public final class IfCondition {
 	private IfCondition(Compare compare) {
 		this.mode = Mode.COMPARE;
 		this.compare = compare;
-		this.args = null;
+		this.args = Collections.emptyList();
 	}
 
 	private IfCondition(Mode mode, List<IfCondition> args) {
@@ -64,7 +68,11 @@ public final class IfCondition {
 	private IfCondition(IfCondition c) {
 		this.mode = c.mode;
 		this.compare = c.compare;
-		this.args = new ArrayList<IfCondition>(c.args);
+		if (c.mode == Mode.COMPARE) {
+			this.args = Collections.emptyList();
+		} else {
+			this.args = new ArrayList<IfCondition>(c.args);
+		}
 	}
 
 	public Mode getMode() {
@@ -73,6 +81,14 @@ public final class IfCondition {
 
 	public List<IfCondition> getArgs() {
 		return args;
+	}
+
+	public IfCondition first() {
+		return args.get(0);
+	}
+
+	public IfCondition second() {
+		return args.get(1);
 	}
 
 	public void addArg(IfCondition c) {
@@ -87,21 +103,78 @@ public final class IfCondition {
 		return compare;
 	}
 
-	public IfCondition invert() {
+	public static IfCondition invert(IfCondition cond) {
+		Mode mode = cond.getMode();
 		switch (mode) {
 			case COMPARE:
-				return new IfCondition(compare.invert());
+				return new IfCondition(cond.getCompare().invert());
 			case NOT:
-				return new IfCondition(args.get(0));
+				return cond.first();
 			case AND:
 			case OR:
+				List<IfCondition> args = cond.getArgs();
 				List<IfCondition> newArgs = new ArrayList<IfCondition>(args.size());
 				for (IfCondition arg : args) {
-					newArgs.add(arg.invert());
+					newArgs.add(invert(arg));
 				}
 				return new IfCondition(mode == Mode.AND ? Mode.OR : Mode.AND, newArgs);
 		}
 		throw new JadxRuntimeException("Unknown mode for invert: " + mode);
+	}
+
+	public static IfCondition not(IfCondition cond) {
+		if (cond.getMode() == Mode.NOT) {
+			return cond.first();
+		}
+		return new IfCondition(Mode.NOT, Collections.singletonList(cond));
+	}
+
+	public static IfCondition simplify(IfCondition cond) {
+		if (cond.isCompare()) {
+			Compare c = cond.getCompare();
+			if (c.getOp() == IfOp.EQ && c.getB().isLiteral() && c.getB().equals(LiteralArg.FALSE)) {
+				return not(new IfCondition(c.invert()));
+			} else {
+				c.normalize();
+			}
+			return cond;
+		}
+		List<IfCondition> args = null;
+		for (int i = 0; i < cond.getArgs().size(); i++) {
+			IfCondition arg = cond.getArgs().get(i);
+			IfCondition simpl = simplify(arg);
+			if (simpl != arg) {
+				if (args == null) {
+					args = new ArrayList<IfCondition>(cond.getArgs());
+				}
+				args.set(i, simpl);
+			}
+		}
+		if (args != null) {
+			// arguments was changed
+			cond = new IfCondition(cond.getMode(), args);
+		}
+		if (cond.getMode() == Mode.NOT && cond.first().getMode() == Mode.NOT) {
+			cond = cond.first().first();
+		}
+
+		// for condition with a lot of negations => make invert
+		if (cond.getMode() == Mode.OR || cond.getMode() == Mode.AND) {
+			int count = cond.getArgs().size();
+			if (count > 1) {
+				int negCount = 0;
+				for (IfCondition arg : cond.getArgs()) {
+					if (arg.getMode() == Mode.NOT
+							|| (arg.isCompare() && arg.getCompare().getOp() == IfOp.NE)) {
+						negCount++;
+					}
+				}
+				if (negCount > count / 2) {
+					return not(invert(cond));
+				}
+			}
+		}
+		return cond;
 	}
 
 	public List<RegisterArg> getRegisterArgs() {
@@ -129,11 +202,21 @@ public final class IfCondition {
 			case COMPARE:
 				return compare.toString();
 			case NOT:
-				return "!" + args;
+				return "!" + first();
 			case AND:
-				return "&& " + args;
 			case OR:
-				return "|| " + args;
+				String op = mode == Mode.OR ? " || " : " && ";
+				StringBuilder sb = new StringBuilder();
+				sb.append('(');
+				for (Iterator<IfCondition> it = args.iterator(); it.hasNext(); ) {
+					IfCondition arg = it.next();
+					sb.append(arg);
+					if (it.hasNext()) {
+						sb.append(op);
+					}
+				}
+				sb.append(')');
+				return sb.toString();
 		}
 		return "??";
 	}

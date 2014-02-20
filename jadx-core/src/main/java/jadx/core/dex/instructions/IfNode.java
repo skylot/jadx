@@ -2,7 +2,6 @@ package jadx.core.dex.instructions;
 
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
-import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.utils.InsnUtils;
@@ -14,35 +13,30 @@ import static jadx.core.utils.BlockUtils.selectOther;
 
 public class IfNode extends GotoNode {
 
-	protected boolean zeroCmp;
+	private static final ArgType ARG_TYPE = ArgType.unknown(
+			PrimitiveType.INT, PrimitiveType.OBJECT, PrimitiveType.ARRAY,
+			PrimitiveType.BOOLEAN, PrimitiveType.SHORT, PrimitiveType.CHAR);
+
 	protected IfOp op;
 
 	private BlockNode thenBlock;
 	private BlockNode elseBlock;
 
 	public IfNode(DecodedInstruction insn, IfOp op) {
-		super(InsnType.IF, insn.getTarget());
+		this(op, insn.getTarget(),
+				InsnArg.reg(insn, 0, ARG_TYPE),
+				insn.getRegisterCount() == 1 ? InsnArg.lit(0, ARG_TYPE) : InsnArg.reg(insn, 1, ARG_TYPE));
+	}
+
+	public IfNode(IfOp op, int targetOffset, InsnArg arg1, InsnArg arg2) {
+		super(InsnType.IF, targetOffset, 2);
 		this.op = op;
-
-		ArgType type = ArgType.unknown(
-				PrimitiveType.INT, PrimitiveType.OBJECT, PrimitiveType.ARRAY,
-				PrimitiveType.BOOLEAN, PrimitiveType.SHORT, PrimitiveType.CHAR);
-
-		addReg(insn, 0, type);
-		if (insn.getRegisterCount() == 1) {
-			zeroCmp = true;
-		} else {
-			zeroCmp = false;
-			addReg(insn, 1, type);
-		}
+		addArg(arg1);
+		addArg(arg2);
 	}
 
 	public IfOp getOp() {
 		return op;
-	}
-
-	public boolean isZeroCmp() {
-		return zeroCmp;
 	}
 
 	public void invertCondition() {
@@ -53,17 +47,10 @@ public class IfNode extends GotoNode {
 		target = thenBlock.getStartOffset();
 	}
 
-	public void changeCondition(InsnArg arg1, InsnArg arg2, IfOp op) {
+	public void changeCondition(IfOp op, InsnArg arg1, InsnArg arg2) {
 		this.op = op;
-		this.zeroCmp = arg2.isLiteral() && ((LiteralArg) arg2).getLiteral() == 0;
 		setArg(0, arg1);
-		if (!zeroCmp) {
-			if (getArgsCount() == 2) {
-				setArg(1, arg2);
-			} else {
-				addArg(arg2);
-			}
-		}
+		setArg(1, arg2);
 	}
 
 	public void initBlocks(BlockNode curBlock) {
@@ -87,8 +74,7 @@ public class IfNode extends GotoNode {
 	public String toString() {
 		return InsnUtils.formatOffset(offset) + ": "
 				+ InsnUtils.insnTypeToString(insnType)
-				+ getArg(0) + " " + op.getSymbol()
-				+ " " + (zeroCmp ? "0" : getArg(1))
+				+ getArg(0) + " " + op.getSymbol() + " " + getArg(1)
 				+ "  -> " + (thenBlock != null ? thenBlock : InsnUtils.formatOffset(target));
 	}
 }

@@ -299,7 +299,7 @@ public abstract class ArgType {
 	}
 
 	public String getObject() {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException("ArgType.getObject()");
 	}
 
 	public boolean isObject() {

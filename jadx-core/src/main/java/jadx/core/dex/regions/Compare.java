@@ -3,6 +3,7 @@ package jadx.core.dex.regions;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IfOp;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.LiteralArg;
 
 public final class Compare {
 	private final IfNode insn;
@@ -20,16 +21,21 @@ public final class Compare {
 	}
 
 	public InsnArg getB() {
-		if (insn.isZeroCmp()) {
-			return InsnArg.lit(0, getA().getType());
-		} else {
-			return insn.getArg(1);
-		}
+		return insn.getArg(1);
 	}
 
 	public Compare invert() {
 		insn.invertCondition();
 		return this;
+	}
+
+	/**
+	 * Change 'a != false' to 'a == true'
+	 */
+	public void normalize() {
+		if (getOp() == IfOp.NE && getB().isLiteral() && getB().equals(LiteralArg.FALSE)) {
+			insn.changeCondition(IfOp.EQ, getA(), LiteralArg.TRUE);
+		}
 	}
 
 	@Override

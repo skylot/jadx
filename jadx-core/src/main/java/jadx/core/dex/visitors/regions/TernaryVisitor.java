@@ -102,7 +102,7 @@ public class TernaryVisitor extends AbstractRegionVisitor implements IDexTreeVis
 
 			IfCondition condition = ifRegion.getCondition();
 			if (inverted) {
-				condition = condition.invert();
+				condition = IfCondition.invert(condition);
 				InsnArg tmp = thenArg;
 				thenArg = elseArg;
 				elseArg = tmp;

@@ -425,9 +425,11 @@ public class InsnGen {
 			case IF:
 				assert isFallback() : "if insn in not fallback mode";
 				IfNode ifInsn = (IfNode) insn;
-				String cond = arg(insn.getArg(0)) + " " + ifInsn.getOp().getSymbol() + " "
-						+ (ifInsn.isZeroCmp() ? "0" : arg(insn.getArg(1)));
-				code.add("if (").add(cond).add(") goto ").add(MethodGen.getLabelName(ifInsn.getTarget()));
+				code.add("if (");
+				code.add(arg(insn.getArg(0))).add(' ');
+				code.add(ifInsn.getOp().getSymbol()).add(' ');
+				code.add(arg(insn.getArg(1)));
+				code.add(") goto ").add(MethodGen.getLabelName(ifInsn.getTarget()));
 				break;
 
 			case GOTO:

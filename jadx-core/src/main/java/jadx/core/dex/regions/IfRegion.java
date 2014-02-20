@@ -61,6 +61,23 @@ public final class IfRegion extends AbstractRegion {
 		return ternRegion;
 	}
 
+	public boolean simplifyCondition() {
+		IfCondition cond = IfCondition.simplify(condition);
+		if (cond != condition) {
+			condition = cond;
+			return true;
+		}
+		return false;
+	}
+
+	public void invert() {
+		condition = IfCondition.invert(condition);
+		// swap regions
+		IContainer tmp = thenRegion;
+		thenRegion = elseRegion;
+		elseRegion = tmp;
+	}
+
 	@Override
 	public List<IContainer> getSubBlocks() {
 		if (ternRegion != null) {

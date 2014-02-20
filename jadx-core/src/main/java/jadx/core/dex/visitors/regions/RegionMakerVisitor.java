@@ -59,21 +59,12 @@ public class RegionMakerVisitor extends AbstractVisitor {
 
 		CleanRegions.process(mth);
 
-		// mark if-else-if chains
 		DepthRegionTraverser.traverseAll(mth, new AbstractRegionVisitor() {
 			@Override
 			public void leaveRegion(MethodNode mth, IRegion region) {
 				if (region instanceof IfRegion) {
-					IfRegion ifregion = (IfRegion) region;
-					IContainer elsRegion = ifregion.getElseRegion();
-					if (elsRegion instanceof IfRegion) {
-						elsRegion.getAttributes().add(AttributeFlag.ELSE_IF_CHAIN);
-					} else if (elsRegion instanceof Region) {
-						List<IContainer> subBlocks = ((Region) elsRegion).getSubBlocks();
-						if (subBlocks.size() == 1 && subBlocks.get(0) instanceof IfRegion) {
-							subBlocks.get(0).getAttributes().add(AttributeFlag.ELSE_IF_CHAIN);
-						}
-					}
+					processIfRegion((IfRegion) region);
+
 				}
 			}
 		});
@@ -81,6 +72,26 @@ public class RegionMakerVisitor extends AbstractVisitor {
 		// remove useless returns in void methods
 		if (mth.getReturnType().equals(ArgType.VOID)) {
 			DepthRegionTraverser.traverseAll(mth, new ProcessReturnInsns());
+		}
+	}
+
+	private static void processIfRegion(IfRegion ifRegion) {
+		if (ifRegion.simplifyCondition()) {
+//			IfCondition condition = ifRegion.getCondition();
+//			if (condition.getMode() == IfCondition.Mode.NOT) {
+//				ifRegion.invert();
+//			}
+		}
+
+		// mark if-else-if chains
+		IContainer elsRegion = ifRegion.getElseRegion();
+		if (elsRegion instanceof IfRegion) {
+			elsRegion.getAttributes().add(AttributeFlag.ELSE_IF_CHAIN);
+		} else if (elsRegion instanceof Region) {
+			List<IContainer> subBlocks = ((Region) elsRegion).getSubBlocks();
+			if (subBlocks.size() == 1 && subBlocks.get(0) instanceof IfRegion) {
+				subBlocks.get(0).getAttributes().add(AttributeFlag.ELSE_IF_CHAIN);
+			}
 		}
 	}
 }
