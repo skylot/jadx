@@ -9,12 +9,18 @@ import jadx.core.dex.nodes.MethodNode;
 
 import java.util.List;
 
+import org.junit.Test;
+
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * Test duplicate 'check-cast' instruction produced because of bug in javac:
+ * http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6246854
+ */
 public class TestDuplicateCast extends InternalJadxTest {
 
 	public static class TestCls {
@@ -23,7 +29,7 @@ public class TestDuplicateCast extends InternalJadxTest {
 		}
 	}
 
-	//@Test
+	@Test
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		MethodNode mth = getMethod(cls, "method");

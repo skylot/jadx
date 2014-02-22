@@ -1,6 +1,7 @@
 package jadx.core.dex.visitors.typeresolver.finish;
 
 import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -83,6 +84,13 @@ public class PostTypeResolver {
 					}
 				}
 				return change;
+			}
+
+			case CHECK_CAST: {
+				ArgType castType = (ArgType) ((IndexInsnNode) insn).getIndex();
+				// workaround for compiler bug (see TestDuplicateCast)
+				insn.getResult().getTypedVar().forceSetType(castType);
+				return true;
 			}
 
 			default:
