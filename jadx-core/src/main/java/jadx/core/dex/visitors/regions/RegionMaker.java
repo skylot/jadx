@@ -328,7 +328,11 @@ public class RegionMaker {
 
 		Set<BlockNode> exits = new HashSet<BlockNode>();
 		cacheSet.clear();
-		traverseMonitorExits(insn.getArg(0), block, exits, cacheSet);
+		traverseMonitorExits(synchRegion, insn.getArg(0), block, exits, cacheSet);
+
+		for (InsnNode exitInsn : synchRegion.getExitInsns()) {
+			InstructionRemover.unbindInsn(exitInsn);
+		}
 
 		block = BlockUtils.getNextBlock(block);
 		BlockNode exit;
@@ -337,7 +341,6 @@ public class RegionMaker {
 		} else {
 			cacheSet.clear();
 			exit = traverseMonitorExitsCross(block, exits, cacheSet);
-			// LOG.debug("synchronized exits: " + exits + ", cross: " + exit);
 		}
 
 		stack.push(synchRegion);
@@ -350,19 +353,20 @@ public class RegionMaker {
 	/**
 	 * Traverse from monitor-enter thru successors and collect blocks contains monitor-exit
 	 */
-	private static void traverseMonitorExits(InsnArg arg, BlockNode block, Set<BlockNode> exits, Set<BlockNode> visited) {
+	private static void traverseMonitorExits(SynchronizedRegion region, InsnArg arg, BlockNode block,
+	                                         Set<BlockNode> exits, Set<BlockNode> visited) {
 		visited.add(block);
 		for (InsnNode insn : block.getInstructions()) {
 			if (insn.getType() == InsnType.MONITOR_EXIT
 					&& insn.getArg(0).equals(arg)) {
 				exits.add(block);
-				InstructionRemover.remove(block, insn);
+				region.getExitInsns().add(insn);
 				return;
 			}
 		}
 		for (BlockNode node : block.getCleanSuccessors()) {
 			if (!visited.contains(node)) {
-				traverseMonitorExits(arg, node, exits, visited);
+				traverseMonitorExits(region, arg, node, exits, visited);
 			}
 		}
 	}

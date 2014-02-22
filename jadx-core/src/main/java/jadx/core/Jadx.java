@@ -71,6 +71,7 @@ public class Jadx {
 			passes.add(new RegionMakerVisitor());
 			passes.add(new TernaryVisitor());
 
+			passes.add(new CodeShrinker());
 			passes.add(new SimplifyVisitor());
 			passes.add(new ProcessVariables());
 			passes.add(new CheckRegions());

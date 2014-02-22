@@ -1,6 +1,7 @@
 package jadx.core.dex.instructions.args;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class TypedVar {
@@ -38,16 +39,26 @@ public class TypedVar {
 		}
 	}
 
-	public List<InsnArg> getUseList() {
-		return useList;
-	}
-
 	public String getName() {
 		return name;
 	}
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public List<InsnArg> getUseList() {
+		return useList;
+	}
+
+	public void removeUse(InsnArg arg) {
+		Iterator<InsnArg> it = useList.iterator();
+		while (it.hasNext()) {
+			InsnArg use = it.next();
+			if (use == arg) {
+				it.remove();
+			}
+		}
 	}
 
 	public void mergeName(TypedVar arg) {

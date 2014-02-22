@@ -69,6 +69,9 @@ public abstract class InsnArg extends Typed {
 
 	public InsnArg wrapInstruction(InsnNode insn) {
 		InsnNode parent = parentInsn;
+		if (parent == null) {
+			return null;
+		}
 		assert parent != insn : "Can't wrap instruction info itself";
 		int count = parent.getArgsCount();
 		for (int i = 0; i < count; i++) {

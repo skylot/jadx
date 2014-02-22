@@ -3,6 +3,7 @@ package jadx.core.utils;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
+import jadx.core.dex.nodes.MethodNode;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -40,11 +41,11 @@ public class InstructionRemover {
 	public static void unbindInsn(InsnNode insn) {
 		if (insn.getResult() != null) {
 			InsnArg res = insn.getResult();
-			res.getTypedVar().getUseList().remove(res);
+			res.getTypedVar().removeUse(res);
 		}
 		for (InsnArg arg : insn.getArguments()) {
 			if (arg.isRegister()) {
-				arg.getTypedVar().getUseList().remove(arg);
+				arg.getTypedVar().removeUse(arg);
 			}
 		}
 	}
@@ -75,10 +76,18 @@ public class InstructionRemover {
 		}
 	}
 
+	public static void remove(MethodNode mth, InsnNode insn) {
+		BlockNode block = BlockUtils.getBlockByInsn(mth, insn);
+		if (block != null) {
+			remove(block, insn);
+		}
+	}
+
 	public static void remove(BlockNode block, InsnNode insn) {
 		unbindInsn(insn);
 		// remove by pointer (don't use equals)
-		for (Iterator<InsnNode> it = block.getInstructions().iterator(); it.hasNext(); ) {
+		Iterator<InsnNode> it = block.getInstructions().iterator();
+		while (it.hasNext()) {
 			InsnNode ir = it.next();
 			if (ir == insn) {
 				it.remove();

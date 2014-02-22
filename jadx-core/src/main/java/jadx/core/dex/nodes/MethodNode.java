@@ -18,6 +18,7 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.parser.DebugInfoParser;
+import jadx.core.dex.regions.Region;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlock;
@@ -60,7 +61,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 	private BlockNode enterBlock;
 	private List<BlockNode> exitBlocks;
 
-	private IContainer region;
+	private Region region;
 	private List<ExceptionHandler> exceptionHandlers;
 	private List<LoopAttr> loops = Collections.emptyList();
 
@@ -505,11 +506,11 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		return accFlags;
 	}
 
-	public IContainer getRegion() {
+	public Region getRegion() {
 		return region;
 	}
 
-	public void setRegion(IContainer region) {
+	public void setRegion(Region region) {
 		this.region = region;
 	}
 

@@ -184,7 +184,7 @@ public class RegionGen extends InsnGen {
 
 	private void makeSynchronizedRegion(SynchronizedRegion cont, CodeWriter code) throws CodegenException {
 		code.startLine("synchronized (");
-		addArg(code, cont.getInsn().getArg(0));
+		addArg(code, cont.getEnterInsn().getArg(0));
 		code.add(") {");
 		makeRegionIndent(code, cont.getRegion());
 		code.startLine('}');

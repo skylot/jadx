@@ -102,7 +102,7 @@ public class CodeShrinker extends AbstractVisitor {
 			if (from > to) {
 				throw new JadxRuntimeException("Invalid inline insn positions: " + from + " - " + to);
 			}
-			for (int i = from; i < to - 1; i++) {
+			for (int i = from; i < to; i++) {
 				ArgsInfo argsInfo = argsList.get(i);
 				if (argsInfo.getInlinedInsn() == this) {
 					continue;
