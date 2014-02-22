@@ -2,6 +2,7 @@ package jadx.core.dex.visitors.typeresolver;
 
 import jadx.core.dex.attributes.BlockRegState;
 import jadx.core.dex.instructions.IndexInsnNode;
+import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -34,20 +35,18 @@ public class TypeResolver extends AbstractVisitor {
 	/**
 	 * Check argument types (can be broken after merging debug info)
 	 */
-	private void prepare(MethodNode mth) {
+	private static void prepare(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			for (InsnNode insn : block.getInstructions()) {
-				switch (insn.getType()) {
-					case CHECK_CAST:
-						ArgType castType = (ArgType) ((IndexInsnNode) insn).getIndex();
-						insn.getResult().getTypedVar().forceSetType(castType);
-						break;
+				if (insn.getType() == InsnType.CHECK_CAST) {
+					ArgType castType = (ArgType) ((IndexInsnNode) insn).getIndex();
+					insn.getResult().getTypedVar().forceSetType(castType);
 				}
 			}
 		}
 	}
 
-	private void visitBlocks(MethodNode mth) {
+	private static void visitBlocks(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			BlockRegState state = new BlockRegState(mth);
 
@@ -94,7 +93,7 @@ public class TypeResolver extends AbstractVisitor {
 		}
 	}
 
-	private boolean connectEdges(MethodNode mth, BlockNode from, BlockNode to, boolean back) {
+	private static boolean connectEdges(MethodNode mth, BlockNode from, BlockNode to, boolean back) {
 		BlockRegState end = from.getEndState();
 		BlockRegState start = to.getStartState();
 

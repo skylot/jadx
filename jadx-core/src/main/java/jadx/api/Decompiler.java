@@ -16,7 +16,6 @@ import jadx.core.utils.files.InputFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -80,7 +79,7 @@ public final class Decompiler {
 	}
 
 	public void loadFile(File file) throws IOException, DecodeException {
-		loadFiles(Arrays.asList(file));
+		loadFiles(Collections.singletonList(file));
 	}
 
 	public void loadFiles(List<File> files) throws IOException, DecodeException {
@@ -110,15 +109,20 @@ public final class Decompiler {
 		int threadsCount = args.getThreadsCount();
 		LOG.debug("processing threads count: {}", threadsCount);
 
-		ArrayList<IDexTreeVisitor> passList = new ArrayList<IDexTreeVisitor>(passes);
+		final List<IDexTreeVisitor> passList = new ArrayList<IDexTreeVisitor>(passes);
 		SaveCode savePass = new SaveCode(outDir, args);
 		passList.add(savePass);
 
 		LOG.info("processing ...");
 		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadsCount);
-		for (ClassNode cls : root.getClasses(false)) {
+		for (final ClassNode cls : root.getClasses(false)) {
 			if (cls.getCode() == null) {
-				ProcessClass job = new ProcessClass(cls, passList);
+				Runnable job = new Runnable() {
+					@Override
+					public void run() {
+						ProcessClass.process(cls, passList);
+					}
+				};
 				executor.execute(job);
 			} else {
 				try {
@@ -183,13 +187,8 @@ public final class Decompiler {
 	}
 
 	void processClass(ClassNode cls) {
-		try {
-			ProcessClass job = new ProcessClass(cls, passes);
-			LOG.info("processing class {} ...", cls);
-			job.run();
-		} catch (Throwable e) {
-			LOG.error("Process class error", e);
-		}
+		LOG.info("processing class {} ...", cls);
+		ProcessClass.process(cls, passes);
 	}
 
 	RootNode getRoot() {

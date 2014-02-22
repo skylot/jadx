@@ -16,7 +16,7 @@ public class ErrorsCounter {
 	private static final Logger LOG = LoggerFactory.getLogger(ErrorsCounter.class);
 
 	private static final Set<Object> ERROR_NODES = new HashSet<Object>();
-	private static int errorsCount = 0;
+	private static int errorsCount;
 
 	public static int getErrorCount() {
 		return errorsCount;

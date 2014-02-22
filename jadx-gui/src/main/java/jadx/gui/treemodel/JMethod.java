@@ -30,10 +30,6 @@ public class JMethod extends JNode {
 	}
 
 	@Override
-	public void updateChilds() {
-	}
-
-	@Override
 	public JClass getJParent() {
 		return jParent;
 	}

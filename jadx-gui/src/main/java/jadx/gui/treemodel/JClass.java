@@ -45,20 +45,19 @@ public class JClass extends JNode {
 		if (!loaded) {
 			cls.decompile();
 			loaded = true;
-			updateChilds();
+			update();
 		}
 	}
 
-	@Override
-	public synchronized void updateChilds() {
+	public synchronized void update() {
 		removeAllChildren();
 		if (!loaded) {
 			add(new TextNode(NLS.str("tree.loading")));
 		} else {
 			for (JavaClass javaClass : cls.getInnerClasses()) {
-				JClass child = new JClass(javaClass, this);
-				add(child);
-				child.updateChilds();
+				JClass innerCls = new JClass(javaClass, this);
+				add(innerCls);
+				innerCls.update();
 			}
 			for (JavaField f : cls.getFields()) {
 				add(new JField(f, this));

@@ -4,6 +4,7 @@ import jadx.core.dex.attributes.annotations.Annotation;
 import jadx.core.dex.attributes.annotations.Annotation.Visibility;
 import jadx.core.dex.attributes.annotations.AnnotationsList;
 import jadx.core.dex.attributes.annotations.MethodParameters;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -20,9 +21,14 @@ import com.android.dx.io.DexBuffer.Section;
 public class AnnotationsParser {
 
 	private final DexNode dex;
+	private final ClassNode cls;
 
-	public AnnotationsParser(ClassNode cls, int offset) throws DecodeException {
+	public AnnotationsParser(ClassNode cls) {
+		this.cls = cls;
 		this.dex = cls.dex();
+	}
+
+	public void parse(int offset) throws DecodeException {
 		Section section = dex.openSection(offset);
 
 		// TODO read as unsigned int
@@ -70,10 +76,10 @@ public class AnnotationsParser {
 		return new AnnotationsList(list);
 	}
 
-	private static final Annotation.Visibility[] VISIBILITIES = new Annotation.Visibility[]{
-			Annotation.Visibility.BUILD,
-			Annotation.Visibility.RUNTIME,
-			Annotation.Visibility.SYSTEM
+	private static final Annotation.Visibility[] VISIBILITIES = {
+			Visibility.BUILD,
+			Visibility.RUNTIME,
+			Visibility.SYSTEM
 	};
 
 	public static Annotation readAnnotation(DexNode dex, Section s, boolean readVisibility) throws DecodeException {
@@ -89,6 +95,11 @@ public class AnnotationsParser {
 			String name = dex.getString(s.readUleb128());
 			values.put(name, parser.parseValue());
 		}
-		return new Annotation(visibility, dex.getType(typeIndex), values);
+		ArgType type = dex.getType(typeIndex);
+		Annotation annotation = new Annotation(visibility, type, values);
+		if (!type.isObject()) {
+			throw new DecodeException("Incorrect type for annotation: " + annotation);
+		}
+		return annotation;
 	}
 }

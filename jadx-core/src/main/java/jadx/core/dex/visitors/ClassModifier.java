@@ -111,11 +111,9 @@ public class ClassModifier extends AbstractVisitor {
 			AccessInfo af = mth.getAccessFlags();
 
 			// remove bridge methods
-			if (af.isBridge() && af.isSynthetic()) {
-				if (!isMethodUniq(cls, mth)) {
-					// TODO add more checks before method deletion
-					it.remove();
-				}
+			if (af.isBridge() && af.isSynthetic() && !isMethodUniq(cls, mth)) {
+				// TODO add more checks before method deletion
+				it.remove();
 			}
 
 			// remove synthetic constructor for inner non-static classes
@@ -135,11 +133,11 @@ public class ClassModifier extends AbstractVisitor {
 	private static boolean isMethodUniq(ClassNode cls, MethodNode mth) {
 		MethodInfo mi = mth.getMethodInfo();
 		for (MethodNode otherMth : cls.getMethods()) {
-			MethodInfo omi = otherMth.getMethodInfo();
-			if (omi.getName().equals(mi.getName())
-					&& otherMth != mth) {
-				if (omi.getArgumentsTypes().size() == mi.getArgumentsTypes().size()) {
-					// TODO: check to args objects types
+			if (otherMth != mth) {
+				MethodInfo omi = otherMth.getMethodInfo();
+				if (omi.getName().equals(mi.getName())
+						&& omi.getArgumentsTypes().size() == mi.getArgumentsTypes().size()) {
+					// TODO: check objects types
 					return false;
 				}
 			}

@@ -91,13 +91,11 @@ public class InsnNode extends LineAttrNode {
 			InsnArg arg = arguments.get(i);
 			if (arg == from) {
 				// TODO correct remove from use list
-				// from.getTypedVar().getUseList().remove(from);
 				setArg(i, to);
 				return true;
-			} else if (arg.isInsnWrap()) {
-				if (((InsnWrapArg) arg).getWrapInsn().replaceArg(from, to)) {
-					return true;
-				}
+			}
+			if (arg.isInsnWrap() && ((InsnWrapArg) arg).getWrapInsn().replaceArg(from, to)) {
+				return true;
 			}
 		}
 		return false;

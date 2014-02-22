@@ -51,7 +51,7 @@ public class ModVisitor extends AbstractVisitor {
 		}
 	}
 
-	private void replaceStep(MethodNode mth) {
+	private static void replaceStep(MethodNode mth) {
 		ClassNode parentClass = mth.getParentClass();
 		for (BlockNode block : mth.getBasicBlocks()) {
 			InstructionRemover remover = new InstructionRemover(block.getInstructions());
@@ -147,7 +147,7 @@ public class ModVisitor extends AbstractVisitor {
 	/**
 	 * Remove unnecessary instructions
 	 */
-	private void removeStep(MethodNode mth) {
+	private static void removeStep(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			InstructionRemover remover = new InstructionRemover(block.getInstructions());
 
@@ -193,7 +193,7 @@ public class ModVisitor extends AbstractVisitor {
 		}
 	}
 
-	private void processExceptionHander(MethodNode mth, BlockNode block) {
+	private static void processExceptionHander(MethodNode mth, BlockNode block) {
 		ExcHandlerAttr handlerAttr = (ExcHandlerAttr) block.getAttributes().get(AttributeType.EXC_HANDLER);
 		if (handlerAttr == null) {
 			return;
@@ -252,7 +252,7 @@ public class ModVisitor extends AbstractVisitor {
 		block.getInstructions().set(i, insn);
 	}
 
-	private void checkArgsNames(MethodNode mth) {
+	private static void checkArgsNames(MethodNode mth) {
 		for (RegisterArg arg : mth.getArguments(false)) {
 			String name = arg.getTypedVar().getName();
 			if (name != null && NameMapper.isReserved(name)) {

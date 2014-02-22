@@ -9,7 +9,6 @@ import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.ExceptionHandler;
-import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.Utils;
 
@@ -94,7 +93,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 			IRegion r = (IRegion) region;
 			String attrs = attributesString(r);
 			dot.startLine("subgraph " + makeName(region) + " {");
-			dot.startLine("label = \"" + r.toString()
+			dot.startLine("label = \"" + r
 					+ (attrs.length() == 0 ? "" : " | " + attrs)
 					+ "\";");
 			dot.startLine("node [shape=record,color=blue];");
@@ -136,12 +135,6 @@ public class DotGraphVisitor extends AbstractVisitor {
 		for (BlockNode next : block.getDominatesOn()) {
 			conn.startLine(makeName(block) + " -> " + makeName(next) + "[style=dotted];");
 		}
-		// add all dominators connections
-		if (false) {
-			for (BlockNode next : BlockUtils.bitsetToBlocks(mth, block.getDoms())) {
-				conn.startLine(makeName(block) + " -> " + makeName(next) + "[style=dotted, color=green];");
-			}
-		}
 	}
 
 	private String attributesString(IAttributeNode block) {
@@ -152,7 +145,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 		return attrs.toString();
 	}
 
-	private String makeName(IContainer c) {
+	private static String makeName(IContainer c) {
 		String name;
 		if (c instanceof BlockNode) {
 			name = "Node_" + ((BlockNode) c).getId();
@@ -166,7 +159,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 		if (rawInsn) {
 			StringBuilder str = new StringBuilder();
 			for (InsnNode insn : block.getInstructions()) {
-				str.append(escape(insn.toString() + " " + insn.getAttributes()));
+				str.append(escape(insn + " " + insn.getAttributes()));
 				str.append(NL);
 			}
 			return str.toString();
@@ -181,7 +174,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 		}
 	}
 
-	private String escape(String string) {
+	private static String escape(String string) {
 		return string
 				.replace("\\", "") // TODO replace \"
 				.replace("/", "\\/")

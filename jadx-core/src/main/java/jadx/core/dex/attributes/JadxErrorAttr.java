@@ -26,7 +26,7 @@ public class JadxErrorAttr implements IAttribute {
 		if (cause == null) {
 			str.append("null");
 		} else {
-			str.append(cause.getClass().toString());
+			str.append(cause.getClass());
 			str.append(":");
 			str.append(cause.getMessage());
 			str.append("\n");

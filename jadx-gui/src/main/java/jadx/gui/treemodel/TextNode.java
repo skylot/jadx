@@ -20,10 +20,6 @@ public class TextNode extends JNode {
 	}
 
 	@Override
-	public void updateChilds() {
-	}
-
-	@Override
 	public Icon getIcon() {
 		return null;
 	}

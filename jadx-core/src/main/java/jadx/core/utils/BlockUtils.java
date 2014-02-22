@@ -51,6 +51,9 @@ public class BlockUtils {
 	}
 
 	public static boolean isBackEdge(BlockNode from, BlockNode to) {
+		if (to == null) {
+			return false;
+		}
 		if (from.getCleanSuccessors().contains(to)) {
 			return false; // already checked
 		}
@@ -67,16 +70,6 @@ public class BlockUtils {
 				bs.clear(i);
 			}
 		}
-	}
-
-	public static BlockNode canMergeNextBlock(BlockNode block) {
-		BlockNode next = getNextBlock(block);
-		if (next != null) {
-			if (next.getIDom() == block) {
-				return next;
-			}
-		}
-		return null;
 	}
 
 	/**
@@ -118,7 +111,7 @@ public class BlockUtils {
 		return bs;
 	}
 
-	public static List<BlockNode> bitsetToBlocks(MethodNode mth, BitSet bs) {
+	public static List<BlockNode> bitSetToBlocks(MethodNode mth, BitSet bs) {
 		List<BlockNode> blocks = new ArrayList<BlockNode>(bs.cardinality());
 		for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
 			BlockNode block = mth.getBasicBlocks().get(i);

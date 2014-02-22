@@ -12,6 +12,8 @@ public enum AttributeFlag {
 	BREAK,
 	RETURN, // block contains only return instruction
 
+	DECLARE_VAR,
+
 	DONT_SHRINK,
 	DONT_GENERATE,
 	SKIP,

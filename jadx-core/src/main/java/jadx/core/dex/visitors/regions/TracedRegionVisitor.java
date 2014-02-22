@@ -18,7 +18,7 @@ public abstract class TracedRegionVisitor implements IRegionVisitor {
 
 	@Override
 	public void processBlock(MethodNode mth, IBlock container) {
-		final IRegion curRegion = regionStack.peek();
+		IRegion curRegion = regionStack.peek();
 		processBlockTraced(mth, container, curRegion);
 	}
 

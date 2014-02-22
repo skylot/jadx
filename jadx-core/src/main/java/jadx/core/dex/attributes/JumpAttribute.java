@@ -32,11 +32,7 @@ public class JumpAttribute implements IAttribute {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + dest;
-		result = prime * result + src;
-		return result;
+		return 31 * dest + src;
 	}
 
 	@Override

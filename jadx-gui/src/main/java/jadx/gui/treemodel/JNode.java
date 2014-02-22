@@ -16,7 +16,5 @@ public abstract class JNode extends DefaultMutableTreeNode {
 
 	public abstract int getLine();
 
-	public abstract void updateChilds();
-
 	public abstract Icon getIcon();
 }

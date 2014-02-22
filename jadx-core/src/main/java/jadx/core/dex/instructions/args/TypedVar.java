@@ -51,9 +51,9 @@ public class TypedVar {
 	}
 
 	public void mergeName(TypedVar arg) {
-		String name = arg.getName();
-		if (name != null) {
-			setName(name);
+		String argName = arg.getName();
+		if (argName != null) {
+			setName(argName);
 		} else if (getName() != null) {
 			arg.setName(getName());
 		}

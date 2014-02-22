@@ -1,7 +1,8 @@
 package jadx.core.dex.visitors.regions;
 
+import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.attributes.AttributeType;
-import jadx.core.dex.attributes.DeclareVariableAttr;
+import jadx.core.dex.attributes.DeclareVariablesAttr;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
@@ -125,7 +126,7 @@ public class ProcessVariables extends AbstractVisitor {
 			for (IRegion assignRegion : u.getAssigns()) {
 				if (u.getArgRegion() == assignRegion
 						&& canDeclareInRegion(u, assignRegion)) {
-					u.getArg().getParentInsn().getAttributes().add(new DeclareVariableAttr());
+					u.getArg().getParentInsn().getAttributes().add(AttributeFlag.DECLARE_VAR);
 					it.remove();
 					break;
 				}
@@ -167,17 +168,16 @@ public class ProcessVariables extends AbstractVisitor {
 		}
 	}
 
-	private void declareVar(IContainer region, RegisterArg arg) {
-		DeclareVariableAttr dv =
-				(DeclareVariableAttr) region.getAttributes().get(AttributeType.DECLARE_VARIABLE);
+	private static void declareVar(IContainer region, RegisterArg arg) {
+		DeclareVariablesAttr dv = (DeclareVariablesAttr) region.getAttributes().get(AttributeType.DECLARE_VARIABLES);
 		if (dv == null) {
-			dv = new DeclareVariableAttr(new ArrayList<RegisterArg>());
+			dv = new DeclareVariablesAttr();
 			region.getAttributes().add(dv);
 		}
 		dv.addVar(arg);
 	}
 
-	private boolean canDeclareInRegion(Usage u, IRegion region) {
+	private static boolean canDeclareInRegion(Usage u, IRegion region) {
 		for (IRegion r : u.getAssigns()) {
 			if (!RegionUtils.isRegionContainsRegion(region, r)) {
 				return false;

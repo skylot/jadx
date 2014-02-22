@@ -229,7 +229,7 @@ public abstract class ArgType {
 
 		@Override
 		public String toString() {
-			return arrayElement.toString() + "[]";
+			return arrayElement + "[]";
 		}
 	}
 

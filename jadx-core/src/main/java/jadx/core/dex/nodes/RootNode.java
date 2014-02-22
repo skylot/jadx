@@ -47,7 +47,7 @@ public class RootNode {
 		initInnerClasses(classes);
 	}
 
-	private void initClassPath(List<ClassNode> classes) throws IOException, DecodeException {
+	private static void initClassPath(List<ClassNode> classes) throws IOException, DecodeException {
 		ClspGraph clsp = new ClspGraph();
 		clsp.load();
 		clsp.addApp(classes);

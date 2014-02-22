@@ -27,11 +27,10 @@ public class JRoot extends JNode {
 
 	public JRoot(JadxWrapper wrapper) {
 		this.wrapper = wrapper;
-		updateChilds();
+		update();
 	}
 
-	@Override
-	public void updateChilds() {
+	public void update() {
 		removeAllChildren();
 		if (flatPackages) {
 			for (JavaPackage pkg : wrapper.getPackages()) {
@@ -41,7 +40,7 @@ public class JRoot extends JNode {
 			// build packages hierarchy
 			List<JPackage> rootPkgs = getHierarchyPackages(wrapper.getPackages());
 			for (JPackage jPackage : rootPkgs) {
-				jPackage.updateChilds();
+				jPackage.update();
 				add(jPackage);
 			}
 		}
@@ -88,7 +87,7 @@ public class JRoot extends JNode {
 		}
 
 		// use identity set for collect inner packages
-		Set<JPackage> innerPackages = Collections.newSetFromMap(new IdentityHashMap<JPackage,Boolean>());
+		Set<JPackage> innerPackages = Collections.newSetFromMap(new IdentityHashMap<JPackage, Boolean>());
 		for (JPackage pkg : pkgMap.values()) {
 			innerPackages.addAll(pkg.getInnerPackages());
 		}
@@ -131,7 +130,7 @@ public class JRoot extends JNode {
 	public void setFlatPackages(boolean flatPackages) {
 		if (this.flatPackages != flatPackages) {
 			this.flatPackages = flatPackages;
-			updateChilds();
+			update();
 		}
 	}
 

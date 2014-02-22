@@ -1,6 +1,5 @@
 package jadx.core.dex.visitors.regions;
 
-import jadx.core.Consts;
 import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBlock;
@@ -33,7 +32,6 @@ public class CheckRegions extends AbstractVisitor {
 			public void processBlock(MethodNode mth, IBlock container) {
 				if (container instanceof BlockNode) {
 					blocksInRegions.add((BlockNode) container);
-				
 				}
 			}
 		};
@@ -41,16 +39,11 @@ public class CheckRegions extends AbstractVisitor {
 
 		if (mth.getBasicBlocks().size() != blocksInRegions.size()) {
 			for (BlockNode block : mth.getBasicBlocks()) {
-				if (!blocksInRegions.contains(block)) {
-					if (!block.getInstructions().isEmpty()
-							&& !block.getAttributes().contains(AttributeFlag.SKIP)) {
-						mth.getAttributes().add(AttributeFlag.INCONSISTENT_CODE);
-						if (Consts.DEBUG) {
-							LOG.debug(" Missing block: {} in {}", block, mth);
-						} else {
-							break;
-						}
-					}
+				if (!blocksInRegions.contains(block)
+						&& !block.getInstructions().isEmpty()
+						&& !block.getAttributes().contains(AttributeFlag.SKIP)) {
+					mth.getAttributes().add(AttributeFlag.INCONSISTENT_CODE);
+					LOG.debug(" Missing block: {} in {}", block, mth);
 				}
 			}
 		}

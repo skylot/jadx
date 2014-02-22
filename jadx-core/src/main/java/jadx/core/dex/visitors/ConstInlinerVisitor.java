@@ -116,11 +116,10 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 				break;
 
 			case IPUT:
-			case SPUT: {
+			case SPUT:
 				IndexInsnNode node = (IndexInsnNode) insn;
 				insn.getArg(0).merge(((FieldInfo) node.getIndex()).getType());
 				break;
-			}
 
 			case IF: {
 				InsnArg arg0 = insn.getArg(0);
@@ -133,7 +132,7 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 				break;
 			}
 			case CMP_G:
-			case CMP_L: {
+			case CMP_L:
 				InsnArg arg0 = insn.getArg(0);
 				InsnArg arg1 = insn.getArg(1);
 				if (arg0 == litArg) {
@@ -142,7 +141,6 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 					arg1.merge(arg0);
 				}
 				break;
-			}
 
 			case RETURN:
 				if (insn.getArgsCount() != 0) {

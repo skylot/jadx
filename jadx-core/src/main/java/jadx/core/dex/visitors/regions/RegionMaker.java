@@ -350,7 +350,7 @@ public class RegionMaker {
 	/**
 	 * Traverse from monitor-enter thru successors and collect blocks contains monitor-exit
 	 */
-	private void traverseMonitorExits(InsnArg arg, BlockNode block, Set<BlockNode> exits, Set<BlockNode> visited) {
+	private static void traverseMonitorExits(InsnArg arg, BlockNode block, Set<BlockNode> exits, Set<BlockNode> visited) {
 		visited.add(block);
 		for (InsnNode insn : block.getInstructions()) {
 			if (insn.getType() == InsnType.MONITOR_EXIT
@@ -370,7 +370,7 @@ public class RegionMaker {
 	/**
 	 * Traverse from monitor-enter thru successors and search for exit paths cross
 	 */
-	private BlockNode traverseMonitorExitsCross(BlockNode block, Set<BlockNode> exits, Set<BlockNode> visited) {
+	private static BlockNode traverseMonitorExitsCross(BlockNode block, Set<BlockNode> exits, Set<BlockNode> visited) {
 		visited.add(block);
 		for (BlockNode node : block.getCleanSuccessors()) {
 			boolean cross = true;
@@ -543,7 +543,7 @@ public class RegionMaker {
 		return result;
 	}
 
-	private BlockNode getIfNode(BlockNode block) {
+	private static BlockNode getIfNode(BlockNode block) {
 		if (block != null && !block.getAttributes().contains(AttributeType.LOOP)) {
 			List<InsnNode> insns = block.getInstructions();
 			if (insns.size() == 1 && insns.get(0).getType() == InsnType.IF) {
@@ -603,7 +603,7 @@ public class RegionMaker {
 
 		Map<BlockNode, List<Object>> blocksMap = new LinkedHashMap<BlockNode, List<Object>>(len);
 		for (Entry<Integer, List<Object>> entry : casesMap.entrySet()) {
-			BlockNode c = getBlockByOffset((int) entry.getKey(), block.getSuccessors());
+			BlockNode c = getBlockByOffset(entry.getKey(), block.getSuccessors());
 			assert c != null;
 			blocksMap.put(c, entry.getValue());
 		}
@@ -648,7 +648,7 @@ public class RegionMaker {
 		if (out != null) {
 			stack.addExit(out);
 		} else {
-			for (BlockNode e : BlockUtils.bitsetToBlocks(mth, domsOn)) {
+			for (BlockNode e : BlockUtils.bitSetToBlocks(mth, domsOn)) {
 				stack.addExit(e);
 			}
 		}
@@ -689,7 +689,7 @@ public class RegionMaker {
 		handler.getHandlerRegion().getAttributes().add(excHandlerAttr);
 	}
 
-	private boolean isEqualReturns(BlockNode b1, BlockNode b2) {
+	private static boolean isEqualReturns(BlockNode b1, BlockNode b2) {
 		if (b1 == b2) {
 			return true;
 		}

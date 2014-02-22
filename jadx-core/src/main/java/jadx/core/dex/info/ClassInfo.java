@@ -58,37 +58,37 @@ public final class ClassInfo {
 		String fullObjectName = type.getObject();
 		assert fullObjectName.indexOf('/') == -1 : "Raw type: " + type;
 
-		String name;
+		String clsName;
 		int dot = fullObjectName.lastIndexOf('.');
 		if (dot == -1) {
 			// rename default package if it used from class with package (often for obfuscated apps),
 			pkg = Consts.DEFAULT_PACKAGE_NAME;
-			name = fullObjectName;
+			clsName = fullObjectName;
 		} else {
 			pkg = fullObjectName.substring(0, dot);
-			name = fullObjectName.substring(dot + 1);
+			clsName = fullObjectName.substring(dot + 1);
 		}
 
-		int sep = name.lastIndexOf('$');
-		if (canBeInner && sep > 0 && sep != name.length() - 1) {
-			String parClsName = pkg + '.' + name.substring(0, sep);
+		int sep = clsName.lastIndexOf('$');
+		if (canBeInner && sep > 0 && sep != clsName.length() - 1) {
+			String parClsName = pkg + '.' + clsName.substring(0, sep);
 			parentClass = fromName(parClsName);
-			name = name.substring(sep + 1);
+			clsName = clsName.substring(sep + 1);
 		} else {
 			parentClass = null;
 		}
 
-		char firstChar = name.charAt(0);
+		char firstChar = clsName.charAt(0);
 		if (Character.isDigit(firstChar)) {
-			name = Consts.ANONYMOUS_CLASS_PREFIX + name;
+			clsName = Consts.ANONYMOUS_CLASS_PREFIX + clsName;
 		} else if (firstChar == '$') {
-			name = "_" + name;
+			clsName = "_" + clsName;
 		}
-		if (NameMapper.isReserved(name)) {
-			name += "_";
+		if (NameMapper.isReserved(clsName)) {
+			clsName += "_";
 		}
-		this.fullName = (parentClass != null ? parentClass.getFullName() : pkg) + "." + name;
-		this.name = name;
+		this.fullName = (parentClass != null ? parentClass.getFullName() : pkg) + "." + clsName;
+		this.name = clsName;
 	}
 
 	public String getFullPath() {

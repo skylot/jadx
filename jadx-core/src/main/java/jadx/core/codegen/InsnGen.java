@@ -114,7 +114,7 @@ public class InsnGen {
 
 	public String assignVar(InsnNode insn) throws CodegenException {
 		RegisterArg arg = insn.getResult();
-		if (insn.getAttributes().contains(AttributeType.DECLARE_VARIABLE)) {
+		if (insn.getAttributes().contains(AttributeFlag.DECLARE_VAR)) {
 			return declareVar(arg);
 		} else {
 			return arg(arg).toString();
@@ -125,7 +125,7 @@ public class InsnGen {
 		return useType(arg.getType()) + " " + mgen.assignArg(arg);
 	}
 
-	private String lit(LiteralArg arg) {
+	private static String lit(LiteralArg arg) {
 		return TypeGen.literalToString(arg.getLiteral(), arg.getType());
 	}
 
@@ -483,7 +483,8 @@ public class InsnGen {
 		if (!elType.equals(insnElementType) && !insnArrayType.equals(ArgType.OBJECT)) {
 			ErrorsCounter.methodError(mth,
 					"Incorrect type for fill-array insn " + InsnUtils.formatOffset(insn.getOffset())
-							+ ", element type: " + elType + ", insn element type: " + insnElementType);
+							+ ", element type: " + elType + ", insn element type: " + insnElementType
+			);
 			if (!elType.isTypeKnown()) {
 				elType = insnElementType.isTypeKnown() ? insnElementType : elType.selectFirst();
 			}

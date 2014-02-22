@@ -105,7 +105,8 @@ public class MethodGen {
 			} else {
 				LOG.warn(ErrorsCounter.formatErrorMsg(mth,
 						"Incorrect number of args for enum constructor: " + args.size()
-								+ " (expected >= 2)"));
+								+ " (expected >= 2)"
+				));
 			}
 		}
 		code.add(makeArguments(args));
@@ -269,7 +270,7 @@ public class MethodGen {
 		code.startLine("*/");
 	}
 
-	private void makeFallbackMethod(CodeWriter code, MethodNode mth) {
+	private static void makeFallbackMethod(CodeWriter code, MethodNode mth) {
 		if (mth.getInstructions() == null) {
 			// loadFile original instructions
 			try {

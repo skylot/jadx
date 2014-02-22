@@ -10,17 +10,20 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.JadxException;
 
-public class MethodInlinerVisitor extends AbstractVisitor {
+/**
+ * Inline synthetic methods.
+ */
+public class MethodInlineVisitor extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
 		AccessInfo accessFlags = mth.getAccessFlags();
-		if (accessFlags.isSynthetic() && accessFlags.isStatic()) {
-			if (mth.getBasicBlocks().size() == 2) {
-				BlockNode block = mth.getBasicBlocks().get(1);
-				if (block.getAttributes().contains(AttributeFlag.RETURN)) {
-					inlineMth(mth);
-				}
+		if (accessFlags.isSynthetic()
+				&& accessFlags.isStatic()
+				&& mth.getBasicBlocks().size() == 2) {
+			BlockNode block = mth.getBasicBlocks().get(1);
+			if (block.getAttributes().contains(AttributeFlag.RETURN)) {
+				inlineMth(mth);
 			}
 		}
 	}

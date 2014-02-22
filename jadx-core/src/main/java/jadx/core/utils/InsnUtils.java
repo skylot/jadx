@@ -46,7 +46,7 @@ public class InsnUtils {
 		if (index instanceof String) {
 			return "\"" + index + "\"";
 		} else {
-			return " " + index.toString();
+			return " " + index;
 		}
 	}
 }

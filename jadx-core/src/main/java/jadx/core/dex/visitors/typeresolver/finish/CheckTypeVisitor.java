@@ -8,11 +8,10 @@ import jadx.core.utils.ErrorsCounter;
 public class CheckTypeVisitor {
 
 	public static void visit(MethodNode mth, InsnNode insn) {
-		if (insn.getResult() != null) {
-			if (!insn.getResult().getType().isTypeKnown()) {
-				error("Wrong return type", mth, insn);
-				return;
-			}
+		if (insn.getResult() != null
+				&& !insn.getResult().getType().isTypeKnown()) {
+			error("Wrong return type", mth, insn);
+			return;
 		}
 
 		for (InsnArg arg : insn.getArguments()) {

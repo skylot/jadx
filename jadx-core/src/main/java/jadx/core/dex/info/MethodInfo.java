@@ -88,11 +88,9 @@ public final class MethodInfo {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + declClass.hashCode();
-		result = prime * result + retType.hashCode();
-		result = prime * result + shortId.hashCode();
+		int result = declClass.hashCode();
+		result = 31 * result + retType.hashCode();
+		result = 31 * result + shortId.hashCode();
 		return result;
 	}
 

@@ -48,7 +48,7 @@ public final class BlockRegState {
 				if (str.length() != 0) {
 					str.append(", ");
 				}
-				str.append(reg.toString());
+				str.append(reg);
 			}
 		}
 		return str.toString();

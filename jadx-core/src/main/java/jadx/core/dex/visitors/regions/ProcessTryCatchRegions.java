@@ -69,11 +69,11 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 			assert bs != null;
 
 			// intersect to get dominator of dominators
-			List<BlockNode> domBlocks = BlockUtils.bitsetToBlocks(mth, bs);
+			List<BlockNode> domBlocks = BlockUtils.bitSetToBlocks(mth, bs);
 			for (BlockNode block : domBlocks) {
 				bs.andNot(block.getDoms());
 			}
-			domBlocks = BlockUtils.bitsetToBlocks(mth, bs);
+			domBlocks = BlockUtils.bitSetToBlocks(mth, bs);
 			if (domBlocks.size() != 1) {
 				throw new JadxRuntimeException(
 						"Exception block dominator not found, method:" + mth + ". bs: " + bs);

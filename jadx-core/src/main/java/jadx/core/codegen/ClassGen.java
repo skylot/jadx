@@ -379,11 +379,10 @@ public class ClassGen {
 			if (searchCollision(cls.dex(), useCls, shortName)) {
 				return clsStr;
 			}
-			for (ClassInfo cls : imports) {
-				if (!cls.equals(classInfo)) {
-					if (cls.getShortName().equals(shortName)) {
-						return clsStr;
-					}
+			for (ClassInfo importCls : imports) {
+				if (!importCls.equals(classInfo)
+						&& importCls.getShortName().equals(shortName)) {
+					return clsStr;
 				}
 			}
 			addImport(classInfo);

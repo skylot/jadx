@@ -10,19 +10,13 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class ProcessClass implements Runnable {
+public final class ProcessClass {
 	private static final Logger LOG = LoggerFactory.getLogger(ProcessClass.class);
 
-	private final ClassNode cls;
-	private final List<IDexTreeVisitor> passes;
-
-	public ProcessClass(ClassNode cls, List<IDexTreeVisitor> passes) {
-		this.cls = cls;
-		this.passes = passes;
+	private ProcessClass() {
 	}
 
-	@Override
-	public void run() {
+	public static void process(ClassNode cls, List<IDexTreeVisitor> passes) {
 		try {
 			cls.load();
 			for (IDexTreeVisitor visitor : passes) {
@@ -30,6 +24,8 @@ public final class ProcessClass implements Runnable {
 			}
 		} catch (DecodeException e) {
 			LOG.error("Decode exception: " + cls, e);
+		} catch (Exception e) {
+			LOG.error("Class process exception: " + cls, e);
 		} finally {
 			cls.unload();
 		}

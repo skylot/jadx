@@ -61,7 +61,8 @@ public class NameMapper {
 					"void",
 					"volatile",
 					"while",
-			}));
+			})
+	);
 
 	public static boolean isReserved(String str) {
 		return RESERVED_NAMES.contains(str);

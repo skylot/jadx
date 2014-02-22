@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 public final class TernaryRegion extends AbstractRegion {
-	private IBlock container;
+	private final IBlock container;
 
 	public TernaryRegion(IRegion parent, BlockNode block) {
 		super(parent);

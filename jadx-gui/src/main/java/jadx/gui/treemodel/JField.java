@@ -28,10 +28,6 @@ public class JField extends JNode {
 	}
 
 	@Override
-	public void updateChilds() {
-	}
-
-	@Override
 	public JClass getJParent() {
 		return jParent;
 	}

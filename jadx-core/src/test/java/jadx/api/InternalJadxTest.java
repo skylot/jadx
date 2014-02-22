@@ -1,6 +1,7 @@
 package jadx.api;
 
 import jadx.core.Jadx;
+import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.DepthTraverser;
@@ -19,6 +20,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 
@@ -65,6 +67,7 @@ public abstract class InternalJadxTest {
 			for (IDexTreeVisitor visitor : passes) {
 				DepthTraverser.visit(visitor, cls);
 			}
+			assertFalse(cls.getAttributes().contains(AttributeFlag.INCONSISTENT_CODE));
 			return cls;
 		} catch (Exception e) {
 			fail(e.getMessage());

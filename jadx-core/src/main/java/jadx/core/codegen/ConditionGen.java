@@ -42,7 +42,7 @@ public class ConditionGen {
 				}
 				return sb.toString();
 			default:
-				return "??" + condition.toString();
+				return "??" + condition;
 		}
 	}
 

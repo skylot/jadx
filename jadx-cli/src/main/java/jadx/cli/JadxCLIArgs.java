@@ -68,25 +68,25 @@ public final class JadxCLIArgs implements IJadxArgs {
 			System.exit(0);
 		}
 		try {
-			if (threadsCount <= 0)
+			if (threadsCount <= 0) {
 				throw new JadxException("Threads count must be positive");
-
+			}
 			if (files != null) {
 				for (String fileName : files) {
 					File file = new File(fileName);
-					if (file.exists())
+					if (file.exists()) {
 						input.add(file);
-					else
+					} else {
 						throw new JadxException("File not found: " + file);
+					}
 				}
 			}
-
-			if (input.size() > 1)
+			if (input.size() > 1) {
 				throw new JadxException("Only one input file is supported");
-
-			if (outDirName != null)
+			}
+			if (outDirName != null) {
 				outputDir = new File(outDirName);
-
+			}
 			if (isVerbose()) {
 				ch.qos.logback.classic.Logger rootLogger =
 						(ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
@@ -114,8 +114,9 @@ public final class JadxCLIArgs implements IJadxArgs {
 		int maxNamesLen = 0;
 		for (ParameterDescription p : params) {
 			int len = p.getNames().length();
-			if (len > maxNamesLen)
+			if (len > maxNamesLen) {
 				maxNamesLen = len;
+			}
 		}
 
 		Field[] fields = this.getClass().getDeclaredFields();
@@ -137,8 +138,9 @@ public final class JadxCLIArgs implements IJadxArgs {
 	}
 
 	private static void addSpaces(StringBuilder str, int count) {
-		for (int i = 0; i < count; i++)
+		for (int i = 0; i < count; i++) {
 			str.append(' ');
+		}
 	}
 
 	public List<File> getInput() {

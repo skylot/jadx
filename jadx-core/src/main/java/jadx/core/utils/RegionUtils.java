@@ -77,7 +77,6 @@ public class RegionUtils {
 		if (container == region) {
 			return true;
 		}
-
 		if (container instanceof IRegion) {
 			IRegion r = (IRegion) container;
 
@@ -92,10 +91,9 @@ public class RegionUtils {
 							return true;
 						}
 					}
-					if (tb.getFinalBlock() != null) {
-						if (isRegionContainsRegion(tb.getFinalBlock(), region)) {
-							return true;
-						}
+					if (tb.getFinalBlock() != null
+							&& isRegionContainsRegion(tb.getFinalBlock(), region)) {
+						return true;
 					}
 				}
 				if (isRegionContainsRegion(b, region)) {

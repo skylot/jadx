@@ -76,7 +76,7 @@ public class AnnotationGen {
 		code.add('@');
 		code.add(classGen.useClass(a.getType()));
 		Map<String, Object> vl = a.getValues();
-		if (vl.size() != 0) {
+		if (!vl.isEmpty()) {
 			code.add('(');
 			if (vl.size() == 1 && vl.containsKey("value")) {
 				code.add(encValueToString(vl.get("value")));

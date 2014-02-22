@@ -27,7 +27,8 @@ public enum AttributeType {
 
 	SOURCE_FILE(true),
 
-	DECLARE_VARIABLE(true);
+	// for regions
+	DECLARE_VARIABLES(true);
 
 	private static final int NOT_UNIQ_COUNT;
 	private final boolean uniq;

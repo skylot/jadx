@@ -67,10 +67,18 @@ public class Utils {
 			icon = def;
 		}
 		OverlayIcon overIcon = new OverlayIcon(icon);
-		if (af.isFinal()) overIcon.add(ICON_FINAL);
-		if (af.isStatic()) overIcon.add(ICON_STATIC);
-		if (af.isAbstract()) overIcon.add(ICON_ABSTRACT);
-		if (af.isNative()) overIcon.add(ICON_NATIVE);
+		if (af.isFinal()) {
+			overIcon.add(ICON_FINAL);
+		}
+		if (af.isStatic()) {
+			overIcon.add(ICON_STATIC);
+		}
+		if (af.isAbstract()) {
+			overIcon.add(ICON_ABSTRACT);
+		}
+		if (af.isNative()) {
+			overIcon.add(ICON_NATIVE);
+		}
 		return overIcon;
 	}
 }

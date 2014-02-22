@@ -82,7 +82,7 @@ public class CodeWriter {
 			attachAnnotation(entry.getKey(), line + entry.getValue());
 		}
 		line += code.line;
-		buf.append(code.toString());
+		buf.append(code);
 		return this;
 	}
 
@@ -116,7 +116,7 @@ public class CodeWriter {
 		return this;
 	}
 
-	private static final String[] INDENT_CACHE = new String[]{
+	private static final String[] INDENT_CACHE = {
 			"",
 			INDENT,
 			INDENT + INDENT,

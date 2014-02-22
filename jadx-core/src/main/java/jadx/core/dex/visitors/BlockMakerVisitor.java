@@ -17,10 +17,12 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.SplitterBlockAttr;
+import jadx.core.utils.BlockUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -223,7 +225,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 	}
 
 	private static void computeDominators(MethodNode mth) {
-		List<BlockNode> basicBlocks = mth.getBasicBlocks();
+		List<BlockNode> basicBlocks = Collections.unmodifiableList(mth.getBasicBlocks());
 		int nBlocks = basicBlocks.size();
 		for (int i = 0; i < nBlocks; i++) {
 			BlockNode block = basicBlocks.get(i);
@@ -245,13 +247,15 @@ public class BlockMakerVisitor extends AbstractVisitor {
 					continue;
 				}
 				BitSet d = block.getDoms();
-				dset.clear();
-				dset.or(d);
+				if (!changed) {
+					dset.clear();
+					dset.or(d);
+				}
 				for (BlockNode pred : block.getPredecessors()) {
 					d.and(pred.getDoms());
 				}
 				d.set(block.getId());
-				if (!d.equals(dset)) {
+				if (!changed && !d.equals(dset)) {
 					changed = true;
 				}
 			}
@@ -315,12 +319,9 @@ public class BlockMakerVisitor extends AbstractVisitor {
 	private static void markReturnBlocks(MethodNode mth) {
 		mth.getExitBlocks().clear();
 		for (BlockNode block : mth.getBasicBlocks()) {
-			List<InsnNode> insns = block.getInstructions();
-			if (insns.size() == 1) {
-				if (insns.get(0).getType() == InsnType.RETURN) {
-					block.getAttributes().add(AttributeFlag.RETURN);
-					mth.getExitBlocks().add(block);
-				}
+			if (BlockUtils.lastInsnType(block, InsnType.RETURN)) {
+				block.getAttributes().add(AttributeFlag.RETURN);
+				mth.getExitBlocks().add(block);
 			}
 		}
 	}

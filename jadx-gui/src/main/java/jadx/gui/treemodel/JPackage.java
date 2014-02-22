@@ -25,7 +25,7 @@ public class JPackage extends JNode implements Comparable<JPackage> {
 		for (JavaClass javaClass : javaClasses) {
 			classes.add(new JClass(javaClass));
 		}
-		updateChilds();
+		update();
 	}
 
 	public JPackage(String name) {
@@ -33,15 +33,14 @@ public class JPackage extends JNode implements Comparable<JPackage> {
 		this.classes = new ArrayList<JClass>(1);
 	}
 
-	@Override
-	public void updateChilds() {
+	public void update() {
 		removeAllChildren();
 		for (JPackage pkg : innerPackages) {
-			pkg.updateChilds();
+			pkg.update();
 			add(pkg);
 		}
 		for (JClass cls : classes) {
-			cls.updateChilds();
+			cls.update();
 			add(cls);
 		}
 	}

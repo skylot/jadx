@@ -15,9 +15,9 @@ public final class LoopRegion extends AbstractRegion {
 
 	// loop header contains one 'if' insn, equals null for infinite loop
 	private IfCondition condition;
-	private BlockNode conditionBlock;
+	private final BlockNode conditionBlock;
 	// instruction which must be executed before condition in every loop
-	private BlockNode preCondition = null;
+	private BlockNode preCondition;
 	private IContainer body;
 	private final boolean conditionAtEnd;
 

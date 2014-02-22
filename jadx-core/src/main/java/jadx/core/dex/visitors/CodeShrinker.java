@@ -231,10 +231,8 @@ public class CodeShrinker extends AbstractVisitor {
 		List<RegisterArg> args = ArgsInfo.getArgs(assignInsn);
 		boolean startCheck = false;
 		for (InsnNode insn : assignBlock.getInstructions()) {
-			if (startCheck) {
-				if (!insn.canReorder() || ArgsInfo.usedArgAssign(insn, args)) {
-					return false;
-				}
+			if (startCheck && (!insn.canReorder() || ArgsInfo.usedArgAssign(insn, args))) {
+				return false;
 			}
 			if (insn == assignInsn) {
 				startCheck = true;

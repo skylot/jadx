@@ -25,9 +25,12 @@ public class DebugInfoParser {
 	private static final int DBG_SET_EPILOGUE_BEGIN = 0x08;
 	private static final int DBG_SET_FILE = 0x09;
 
-	private static final int DBG_FIRST_SPECIAL = 0x0a; // the smallest special opcode
-	private static final int DBG_LINE_BASE = -4; // the smallest line number increment
-	private static final int DBG_LINE_RANGE = 15; // the number of line increments represented
+	// the smallest special opcode
+	private static final int DBG_FIRST_SPECIAL = 0x0a;
+	// the smallest line number increment
+	private static final int DBG_LINE_BASE = -4;
+	// the number of line increments represented
+	private static final int DBG_LINE_RANGE = 15;
 
 	private final MethodNode mth;
 	private final Section section;
@@ -42,8 +45,9 @@ public class DebugInfoParser {
 		this.dex = mth.dex();
 		this.section = dex.openSection(debugOffset);
 
-		this.locals = new LocalVar[mth.getRegsCount()];
-		this.activeRegisters = new InsnArg[mth.getRegsCount()];
+		int regsCount = mth.getRegsCount();
+		this.locals = new LocalVar[regsCount];
+		this.activeRegisters = new InsnArg[regsCount];
 		this.insnByOffset = insnByOffset;
 	}
 
@@ -51,7 +55,7 @@ public class DebugInfoParser {
 		int addr = 0;
 		int line = section.readUleb128();
 
-		int paramsCount = section.readUleb128(); // exclude 'this'
+		int paramsCount = section.readUleb128();
 		List<RegisterArg> mthArgs = mth.getArguments(false);
 		assert paramsCount == mthArgs.size();
 
@@ -69,7 +73,8 @@ public class DebugInfoParser {
 			activeRegisters[rn] = arg;
 		}
 
-		addrChange(-1, 1, line); // process '0' instruction
+		// process '0' instruction
+		addrChange(-1, 1, line);
 
 		int c = section.readByte() & 0xFF;
 		while (c != DBG_END_SEQUENCE) {
@@ -139,7 +144,7 @@ public class DebugInfoParser {
 					if (c >= DBG_FIRST_SPECIAL) {
 						int adjustedOpcode = c - DBG_FIRST_SPECIAL;
 						line += DBG_LINE_BASE + (adjustedOpcode % DBG_LINE_RANGE);
-						int addrInc = (adjustedOpcode / DBG_LINE_RANGE);
+						int addrInc = adjustedOpcode / DBG_LINE_RANGE;
 						addr = addrChange(addr, addrInc, line);
 					} else {
 						throw new DecodeException("Unknown debug insn code: " + c);
@@ -213,10 +218,10 @@ public class DebugInfoParser {
 	}
 
 	private static void merge(InsnArg arg, LocalVar var) {
-		if (arg != null && arg.isRegister()) {
-			if (var.getRegNum() == ((RegisterArg) arg).getRegNum()) {
-				arg.mergeDebugInfo(var);
-			}
+		if (arg != null
+				&& arg.isRegister()
+				&& var.getRegNum() == ((RegisterArg) arg).getRegNum()) {
+			arg.mergeDebugInfo(var);
 		}
 	}
 }

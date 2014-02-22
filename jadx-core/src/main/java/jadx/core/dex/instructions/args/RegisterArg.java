@@ -88,7 +88,7 @@ public class RegisterArg extends InsnArg {
 	public boolean isThis() {
 		if (isRegister()) {
 			String name = getTypedVar().getName();
-			if (name != null && name.equals("this")) {
+			if ("this".equals(name)) {
 				return true;
 			}
 			// maybe it was moved from 'this' register
@@ -120,13 +120,7 @@ public class RegisterArg extends InsnArg {
 			return false;
 		}
 		RegisterArg other = (RegisterArg) obj;
-		if (regNum != other.regNum) {
-			return false;
-		}
-		if (!typedVar.equals(other.typedVar)) {
-			return false;
-		}
-		return true;
+		return regNum == other.regNum && typedVar.equals(other.typedVar);
 	}
 
 	@Override
