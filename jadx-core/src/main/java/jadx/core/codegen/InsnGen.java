@@ -44,7 +44,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,16 +77,28 @@ public class InsnGen {
 		return fallback;
 	}
 
+	@Deprecated
 	public CodeWriter arg(InsnNode insn, int arg) throws CodegenException {
 		return arg(insn.getArg(arg));
 	}
 
+	@Deprecated
 	public CodeWriter arg(InsnArg arg) throws CodegenException {
 		return arg(arg, true);
 	}
 
+	@Deprecated
 	public CodeWriter arg(InsnArg arg, boolean wrap) throws CodegenException {
 		CodeWriter code = new CodeWriter();
+		addArg(code, arg, wrap);
+		return code;
+	}
+
+	public void addArg(CodeWriter code, InsnArg arg) throws CodegenException {
+		addArg(code, arg, true);
+	}
+
+	public void addArg(CodeWriter code, InsnArg arg, boolean wrap) throws CodegenException {
 		if (arg.isRegister()) {
 			code.add(mgen.makeArgName((RegisterArg) arg));
 		} else if (arg.isLiteral()) {
@@ -100,16 +111,15 @@ public class InsnGen {
 		} else if (arg.isField()) {
 			FieldArg f = (FieldArg) arg;
 			if (f.isStatic()) {
-				code.add(sfield(f.getField()));
+				code.add(staticField(f.getField()));
 			} else {
 				RegisterArg regArg = new RegisterArg(f.getRegNum());
 				regArg.replaceTypedVar(f);
-				code.add(ifield(f.getField(), regArg));
+				instanceField(code, f.getField(), regArg);
 			}
 		} else {
 			throw new CodegenException("Unknown arg type " + arg);
 		}
-		return code;
 	}
 
 	public String assignVar(InsnNode insn) throws CodegenException {
@@ -129,32 +139,20 @@ public class InsnGen {
 		return TypeGen.literalToString(arg.getLiteral(), arg.getType());
 	}
 
-	private String ifield(FieldInfo field, InsnArg arg) throws CodegenException {
+	private void instanceField(CodeWriter code, FieldInfo field, InsnArg arg) throws CodegenException {
 		FieldNode fieldNode = mth.getParentClass().searchField(field);
 		if (fieldNode != null && fieldNode.getAttributes().contains(AttributeFlag.DONT_GENERATE)) {
-			return "";
+			return;
 		}
-		String name = field.getName();
-		// TODO: add jadx argument "add this"
-		// FIXME: check variable names in scope
-		if (false && arg.isThis()) {
-			boolean useShort = true;
-			List<RegisterArg> args = mth.getArguments(false);
-			for (RegisterArg param : args) {
-				String paramName = param.getTypedVar().getName();
-				if (paramName != null && paramName.equals(name)) {
-					useShort = false;
-				}
-			}
-			if (useShort) {
-				return name;
-			}
+		int len = code.length();
+		addArg(code, arg);
+		if (code.length() != len) {
+			code.add('.');
 		}
-		CodeWriter argStr = arg(arg);
-		return argStr.isEmpty() ? name : argStr + "." + name;
+		code.add(field.getName());
 	}
 
-	protected String sfield(FieldInfo field) {
+	protected String staticField(FieldInfo field) {
 		String thisClass = mth.getParentClass().getFullName();
 		ClassInfo declClass = field.getDeclClass();
 		if (thisClass.startsWith(declClass.getFullName())) {
@@ -242,7 +240,7 @@ public class InsnGen {
 				break;
 
 			case MOVE:
-				code.add(arg(insn.getArg(0), false));
+				addArg(code, insn.getArg(0), false);
 				break;
 
 			case CHECK_CAST:
@@ -254,7 +252,7 @@ public class InsnGen {
 				code.add("(");
 				code.add(useType(((ArgType) ((IndexInsnNode) insn).getIndex())));
 				code.add(") ");
-				code.add(arg(insn.getArg(0)));
+				addArg(code, insn.getArg(0), true);
 				if (wrap) {
 					code.add(")");
 				}
@@ -275,7 +273,8 @@ public class InsnGen {
 
 			case RETURN:
 				if (insn.getArgsCount() != 0) {
-					code.add("return ").add(arg(insn.getArg(0), false));
+					code.add("return ");
+					addArg(code, insn.getArg(0), false);
 				} else {
 					code.add("return");
 				}
@@ -290,7 +289,8 @@ public class InsnGen {
 				break;
 
 			case THROW:
-				code.add("throw ").add(arg(insn.getArg(0), true));
+				code.add("throw ");
+				addArg(code, insn.getArg(0), true);
 				break;
 
 			case CMP_L:
@@ -342,31 +342,41 @@ public class InsnGen {
 				break;
 
 			case AGET:
-				code.add(arg(insn.getArg(0))).add('[').add(arg(insn.getArg(1), false)).add(']');
+				addArg(code, insn.getArg(0));
+				code.add('[');
+				addArg(code, insn.getArg(1), false);
+				code.add(']');
 				break;
 
 			case APUT:
-				code.add(arg(insn, 0)).add('[').add(arg(insn.getArg(1), false)).add("] = ").add(arg(insn.getArg(2), false));
+				addArg(code, insn.getArg(0));
+				code.add('[');
+				addArg(code, insn.getArg(1), false);
+				code.add("] = ");
+				addArg(code, insn.getArg(2), false);
 				break;
 
 			case IGET: {
 				FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) insn).getIndex();
-				code.add(ifield(fieldInfo, insn.getArg(0)));
+				instanceField(code, fieldInfo, insn.getArg(0));
 				break;
 			}
 			case IPUT: {
 				FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) insn).getIndex();
-				code.add(ifield(fieldInfo, insn.getArg(1))).add(" = ").add(arg(insn.getArg(0), false));
+				instanceField(code, fieldInfo, insn.getArg(1));
+				code.add(" = ");
+				addArg(code, insn.getArg(0), false);
 				break;
 			}
 
 			case SGET:
-				code.add(sfield((FieldInfo) ((IndexInsnNode) insn).getIndex()));
+				code.add(staticField((FieldInfo) ((IndexInsnNode) insn).getIndex()));
 				break;
 			case SPUT:
 				IndexInsnNode node = (IndexInsnNode) insn;
 				fieldPut(node);
-				code.add(sfield((FieldInfo) node.getIndex())).add(" = ").add(arg(node.getArg(0), false));
+				code.add(staticField((FieldInfo) node.getIndex())).add(" = ");
+				addArg(code, node.getArg(0), false);
 				break;
 
 			case STR_CONCAT:
@@ -552,9 +562,7 @@ public class InsnGen {
 				defCtr.getAttributes().add(AttributeFlag.DONT_GENERATE);
 			}
 			code.add("new ").add(parent == null ? "Object" : useClass(parent)).add("() ");
-			code.incIndent(2);
 			new ClassGen(cls, mgen.getClassGen().getParentGen(), fallback).makeClassBody(code);
-			code.decIndent(2);
 			return;
 		}
 		if (insn.isSelf()) {
@@ -632,9 +640,10 @@ public class InsnGen {
 				InsnArg arg = insn.getArg(i);
 				ArgType origType = originalType.get(origPos);
 				if (!arg.getType().equals(origType)) {
-					code.add('(').add(useType(origType)).add(')').add(arg(arg, true));
+					code.add('(').add(useType(origType)).add(')');
+					addArg(code, arg, true);
 				} else {
-					code.add(arg(arg, false));
+					addArg(code, arg, false);
 				}
 				if (i < argsCount - 1) {
 					code.add(", ");
@@ -645,10 +654,10 @@ public class InsnGen {
 		} else {
 			code.add('(');
 			if (k < argsCount) {
-				code.add(arg(insn.getArg(k), false));
+				addArg(code, insn.getArg(k), false);
 				for (int i = k + 1; i < argsCount; i++) {
 					code.add(", ");
-					code.add(arg(insn.getArg(i), false));
+					addArg(code, insn.getArg(i), false);
 				}
 			}
 			code.add(')');
@@ -688,7 +697,7 @@ public class InsnGen {
 			}
 			makeInsn(inl, code, IGState.BODY_ONLY);
 			// revert changes
-			for (Entry<RegisterArg, InsnArg> e : toRevert.entrySet()) {
+			for (Map.Entry<RegisterArg, InsnArg> e : toRevert.entrySet()) {
 				inl.replaceArg(e.getValue(), e.getKey());
 			}
 		}

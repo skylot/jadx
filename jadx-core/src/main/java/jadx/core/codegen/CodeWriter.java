@@ -184,6 +184,10 @@ public class CodeWriter {
 		}
 	}
 
+	public int length() {
+		return buf.length();
+	}
+
 	public boolean isEmpty() {
 		return buf.length() == 0;
 	}

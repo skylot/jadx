@@ -183,7 +183,9 @@ public class RegionGen extends InsnGen {
 	}
 
 	private void makeSynchronizedRegion(SynchronizedRegion cont, CodeWriter code) throws CodegenException {
-		code.startLine("synchronized(").add(arg(cont.getInsn().getArg(0))).add(") {");
+		code.startLine("synchronized (");
+		addArg(code, cont.getInsn().getArg(0));
+		code.add(") {");
 		makeRegionIndent(code, cont.getRegion());
 		code.startLine('}');
 	}
@@ -191,7 +193,9 @@ public class RegionGen extends InsnGen {
 	private CodeWriter makeSwitch(SwitchRegion sw, CodeWriter code) throws CodegenException {
 		SwitchNode insn = (SwitchNode) sw.getHeader().getInstructions().get(0);
 		InsnArg arg = insn.getArg(0);
-		code.startLine("switch(").add(arg(arg)).add(") {");
+		code.startLine("switch (");
+		addArg(code, arg);
+		code.add(") {");
 
 		int size = sw.getKeys().size();
 		for (int i = 0; i < size; i++) {
@@ -200,7 +204,7 @@ public class RegionGen extends InsnGen {
 			for (Object k : keys) {
 				code.startLine("case ");
 				if (k instanceof IndexInsnNode) {
-					code.add(sfield((FieldInfo) ((IndexInsnNode) k).getIndex()));
+					code.add(staticField((FieldInfo) ((IndexInsnNode) k).getIndex()));
 				} else {
 					code.add(TypeGen.literalToString((Integer) k, arg.getType()));
 				}
