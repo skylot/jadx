@@ -244,7 +244,6 @@ public class RegionMaker {
 			}
 		}
 
-		stack.push(loopRegion);
 		curRegion.getSubBlocks().add(loopRegion);
 
 		exitBlocks.remove(condBlock);
@@ -290,9 +289,12 @@ public class RegionMaker {
 			out = (bThen == loopStart ? bElse : bThen);
 
 			loopStart.getAttributes().remove(AttributeType.LOOP);
+
+			stack.push(loopRegion);
 			stack.addExit(loop.getEnd());
 			loopRegion.setBody(makeRegion(loopStart, stack));
 			loopStart.getAttributes().add(loop);
+			stack.pop();
 		} else {
 			Set<BlockNode> loopBlocks = loop.getLoopBlocks();
 			BlockNode loopBody = null;
@@ -308,14 +310,18 @@ public class RegionMaker {
 			out = selectOther(loopBody, condBlock.getSuccessors());
 			AttributesList outAttrs = out.getAttributes();
 			if (outAttrs.contains(AttributeFlag.LOOP_START)
-					&& outAttrs.get(AttributeType.LOOP) != loop) {
+					&& outAttrs.get(AttributeType.LOOP) != loop
+					&& stack.peekRegion() instanceof LoopRegion
+					&& RegionUtils.isRegionContainsBlock(stack.peekRegion(), out)) {
 				// exit to outer loop which already processed
 				out = null;
 			}
+
+			stack.push(loopRegion);
 			stack.addExit(out);
 			loopRegion.setBody(makeRegion(loopBody, stack));
+			stack.pop();
 		}
-		stack.pop();
 		return out;
 	}
 
