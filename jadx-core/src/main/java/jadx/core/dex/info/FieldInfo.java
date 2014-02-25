@@ -7,20 +7,22 @@ import com.android.dx.io.FieldId;
 
 public class FieldInfo {
 
+	private final ClassInfo declClass;
 	private final String name;
 	private final ArgType type;
 
-	private final ClassInfo declClass;
-
 	public static FieldInfo fromDex(DexNode dex, int index) {
-		return new FieldInfo(dex, index);
+		FieldId field = dex.getFieldId(index);
+		return new FieldInfo(
+				ClassInfo.fromDex(dex, field.getDeclaringClassIndex()),
+				dex.getString(field.getNameIndex()),
+				dex.getType(field.getTypeIndex()));
 	}
 
-	private FieldInfo(DexNode dex, int ind) {
-		FieldId field = dex.getFieldId(ind);
-		this.name = dex.getString(field.getNameIndex());
-		this.type = dex.getType(field.getTypeIndex());
-		this.declClass = ClassInfo.fromDex(dex, field.getDeclaringClassIndex());
+	public FieldInfo(ClassInfo declClass, String name, ArgType type) {
+		this.declClass = declClass;
+		this.name = name;
+		this.type = type;
 	}
 
 	public static String getNameById(DexNode dex, int ind) {

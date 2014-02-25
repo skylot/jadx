@@ -19,6 +19,7 @@ public enum AttributeType {
 
 	JADX_ERROR(true),
 	METHOD_INLINE(true),
+	FIELD_REPLACE(true),
 
 	ENUM_CLASS(true),
 

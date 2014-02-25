@@ -1,6 +1,8 @@
 package jadx.core.dex.visitors;
 
 import jadx.core.dex.attributes.AttributeFlag;
+import jadx.core.dex.attributes.AttributesList;
+import jadx.core.dex.attributes.FieldReplaceAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
@@ -48,24 +50,27 @@ public class ClassModifier extends AbstractVisitor {
 		for (FieldNode field : cls.getFields()) {
 			if (field.getAccessFlags().isSynthetic() && field.getType().isObject()) {
 				ClassNode fieldsCls = cls.dex().resolveClass(ClassInfo.fromType(field.getType()));
+				ClassInfo parentClass = cls.getClassInfo().getParentClass();
 				if (fieldsCls != null
-						&& cls.getClassInfo().getParentClass().equals(fieldsCls.getClassInfo())) {
+						&& parentClass.equals(fieldsCls.getClassInfo())) {
 					int found = 0;
 					for (MethodNode mth : cls.getMethods()) {
-						if (removeFieldUsage(field, fieldsCls, mth)) {
+						if (removeFieldUsageFromConstructor(mth, field, fieldsCls)) {
 							found++;
 						}
 					}
 					if (found != 0) {
-						// TODO: make new flag for skip field generation and usage
-						field.getAttributes().add(AttributeFlag.DONT_GENERATE);
+						AttributesList attributes = field.getAttributes();
+						FieldInfo replace = new FieldInfo(parentClass, "this", parentClass.getType());
+						attributes.add(new FieldReplaceAttr(replace, true));
+						attributes.add(AttributeFlag.DONT_GENERATE);
 					}
 				}
 			}
 		}
 	}
 
-	private static boolean removeFieldUsage(FieldNode field, ClassNode fieldsCls, MethodNode mth) {
+	private static boolean removeFieldUsageFromConstructor(MethodNode mth, FieldNode field, ClassNode fieldsCls) {
 		if (!mth.getAccessFlags().isConstructor()) {
 			return false;
 		}

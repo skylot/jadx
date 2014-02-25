@@ -2,6 +2,7 @@ package jadx.core.codegen;
 
 import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.attributes.AttributeType;
+import jadx.core.dex.attributes.FieldReplaceAttr;
 import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.attributes.MethodInlineAttr;
 import jadx.core.dex.info.ClassInfo;
@@ -141,8 +142,15 @@ public class InsnGen {
 
 	private void instanceField(CodeWriter code, FieldInfo field, InsnArg arg) throws CodegenException {
 		FieldNode fieldNode = mth.getParentClass().searchField(field);
-		if (fieldNode != null && fieldNode.getAttributes().contains(AttributeFlag.DONT_GENERATE)) {
-			return;
+		if (fieldNode != null) {
+			FieldReplaceAttr replace = (FieldReplaceAttr) fieldNode.getAttributes().get(AttributeType.FIELD_REPLACE);
+			if (replace != null) {
+				FieldInfo info = replace.getFieldInfo();
+				if (replace.isOuterClass()) {
+					code.add(useClass(info.getDeclClass())).add(".this");
+				}
+				return;
+			}
 		}
 		int len = code.length();
 		addArg(code, arg);
