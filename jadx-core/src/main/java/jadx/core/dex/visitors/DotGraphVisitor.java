@@ -165,7 +165,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 			return str.toString();
 		} else {
 			CodeWriter code = new CodeWriter(0);
-			MethodGen.makeFallbackInsns(code, mth, block.getInstructions(), false);
+			MethodGen.addFallbackInsns(code, mth, block.getInstructions(), false);
 			String str = escape(code.newLine().toString());
 			if (str.startsWith(NL)) {
 				str = str.substring(NL.length());

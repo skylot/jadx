@@ -6,7 +6,6 @@ import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.attributes.EnumClassAttr;
 import jadx.core.dex.attributes.EnumClassAttr.EnumField;
-import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.attributes.SourceFileAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
@@ -236,17 +235,20 @@ public class ClassGen {
 					code.add(';');
 				} else {
 					MethodGen mthGen = new MethodGen(this, mth);
-					if (mth.getAttributes().contains(AttributeFlag.INCONSISTENT_CODE)) {
-						code.startLine("/* JADX WARNING: inconsistent code */");
+					boolean badCode = mth.getAttributes().contains(AttributeFlag.INCONSISTENT_CODE);
+					if (badCode) {
+						code.startLine("/* JADX WARNING: inconsistent code. */");
+						code.startLine("/* Code decompiled incorrectly, please refer to instructions dump. */");
 						LOG.error(ErrorsCounter.formatErrorMsg(mth, " Inconsistent code"));
-						mthGen.makeMethodDump(code);
 					}
 					if (mthGen.addDefinition(code)) {
 						code.add(' ');
 					}
 					code.add('{');
+					code.incIndent();
 					insertSourceFileInfo(code, mth);
-					code.add(mthGen.makeInstructions(code.getIndent()));
+					mthGen.addInstructions(code);
+					code.decIndent();
 					code.startLine('}');
 				}
 			} catch (Throwable e) {
@@ -263,41 +265,7 @@ public class ClassGen {
 	private CodeWriter makeFields(CodeWriter clsCode, ClassNode cls, List<FieldNode> fields) throws CodegenException {
 		CodeWriter code = new CodeWriter(clsCode.getIndent() + 1);
 
-		EnumClassAttr enumFields = (EnumClassAttr) cls.getAttributes().get(AttributeType.ENUM_CLASS);
-		if (enumFields != null) {
-			InsnGen igen = null;
-			for (Iterator<EnumField> it = enumFields.getFields().iterator(); it.hasNext(); ) {
-				EnumField f = it.next();
-				code.startLine(f.getName());
-				if (f.getArgs().size() != 0) {
-					code.add('(');
-					for (Iterator<InsnArg> aIt = f.getArgs().iterator(); aIt.hasNext(); ) {
-						InsnArg arg = aIt.next();
-						if (igen == null) {
-							// don't init mth gen if this is simple enum
-							MethodGen mthGen = new MethodGen(this, enumFields.getStaticMethod());
-							igen = new InsnGen(mthGen, enumFields.getStaticMethod(), false);
-						}
-						code.add(igen.arg(arg));
-						if (aIt.hasNext()) {
-							code.add(", ");
-						}
-					}
-					code.add(')');
-				}
-				if (f.getCls() != null) {
-					new ClassGen(f.getCls(), this, fallback).makeClassBody(code);
-				}
-				if (it.hasNext()) {
-					code.add(',');
-				}
-			}
-			if (enumFields.getFields().isEmpty()) {
-				code.startLine();
-			}
-			code.add(';');
-			code.newLine();
-		}
+		addEnumFields(cls, code);
 
 		for (FieldNode f : fields) {
 			if (f.getAttributes().contains(AttributeFlag.DONT_GENERATE)) {
@@ -321,6 +289,44 @@ public class ClassGen {
 			code.attachAnnotation(f);
 		}
 		return code;
+	}
+
+	private void addEnumFields(ClassNode cls, CodeWriter code) throws CodegenException {
+		EnumClassAttr enumFields = (EnumClassAttr) cls.getAttributes().get(AttributeType.ENUM_CLASS);
+		if (enumFields != null) {
+			InsnGen igen = null;
+			for (Iterator<EnumField> it = enumFields.getFields().iterator(); it.hasNext(); ) {
+				EnumField f = it.next();
+				code.startLine(f.getName());
+				if (f.getArgs().size() != 0) {
+					code.add('(');
+					for (Iterator<InsnArg> aIt = f.getArgs().iterator(); aIt.hasNext(); ) {
+						InsnArg arg = aIt.next();
+						if (igen == null) {
+							// don't init mth gen if this is simple enum
+							MethodGen mthGen = new MethodGen(this, enumFields.getStaticMethod());
+							igen = new InsnGen(mthGen, enumFields.getStaticMethod(), false);
+						}
+						igen.addArg(code, arg);
+						if (aIt.hasNext()) {
+							code.add(", ");
+						}
+					}
+					code.add(')');
+				}
+				if (f.getCls() != null) {
+					new ClassGen(f.getCls(), this, fallback).makeClassBody(code);
+				}
+				if (it.hasNext()) {
+					code.add(',');
+				}
+			}
+			if (enumFields.getFields().isEmpty()) {
+				code.startLine();
+			}
+			code.add(';');
+			code.newLine();
+		}
 	}
 
 	public String useClass(ArgType clsType) {
@@ -357,9 +363,9 @@ public class ClassGen {
 	}
 
 	private String useClassInternal(ClassInfo useCls, ClassInfo classInfo) {
-		String clsStr = classInfo.getFullName();
+		String fullName = classInfo.getFullName();
 		if (fallback) {
-			return clsStr;
+			return fullName;
 		}
 		String shortName = classInfo.getShortName();
 		if (classInfo.getPackage().equals("java.lang") && classInfo.getParentClass() == null) {
@@ -374,15 +380,15 @@ public class ClassGen {
 				return shortName;
 			}
 			if (classInfo.getPackage().equals(useCls.getPackage())) {
-				clsStr = classInfo.getNameWithoutPackage();
+				fullName = classInfo.getNameWithoutPackage();
 			}
 			if (searchCollision(cls.dex(), useCls, shortName)) {
-				return clsStr;
+				return fullName;
 			}
 			for (ClassInfo importCls : imports) {
 				if (!importCls.equals(classInfo)
 						&& importCls.getShortName().equals(shortName)) {
-					return clsStr;
+					return fullName;
 				}
 			}
 			addImport(classInfo);
@@ -425,10 +431,9 @@ public class ClassGen {
 	}
 
 	private void insertSourceFileInfo(CodeWriter code, AttrNode node) {
-		IAttribute sourceFileAttr = node.getAttributes().get(AttributeType.SOURCE_FILE);
+		SourceFileAttr sourceFileAttr = (SourceFileAttr) node.getAttributes().get(AttributeType.SOURCE_FILE);
 		if (sourceFileAttr != null) {
-			code.startLine("// compiled from: ");
-			code.add(((SourceFileAttr) sourceFileAttr).getFileName());
+			code.startLine("// compiled from: ").add(sourceFileAttr.getFileName());
 		}
 	}
 

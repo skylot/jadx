@@ -12,6 +12,7 @@ import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.regions.Region;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.visitors.DepthTraverser;
 import jadx.core.dex.visitors.FallbackModeVisitor;
@@ -227,16 +228,14 @@ public class MethodGen {
 		return r;
 	}
 
-	public CodeWriter makeInstructions(int mthIndent) throws CodegenException {
-		CodeWriter code = new CodeWriter(mthIndent + 1);
-
+	public void addInstructions(CodeWriter code) throws CodegenException {
 		if (mth.getAttributes().contains(AttributeType.JADX_ERROR)) {
 			code.startLine("throw new UnsupportedOperationException(\"Method not decompiled: ");
 			code.add(mth.toString());
 			code.add("\");");
 
 			JadxErrorAttr err = (JadxErrorAttr) mth.getAttributes().get(AttributeType.JADX_ERROR);
-			code.startLine("// jadx: method processing error");
+			code.startLine("/* JADX: method processing error */");
 			Throwable cause = err.getCause();
 			if (cause != null) {
 				code.newLine();
@@ -245,32 +244,35 @@ public class MethodGen {
 				code.add("*/");
 			}
 			makeMethodDump(code);
+		} else if (mth.getAttributes().contains(AttributeFlag.INCONSISTENT_CODE)) {
+			code.startLine("/*");
+			addFallbackMethodCode(code);
+			code.startLine("*/");
+			code.newLine();
 		} else {
-			if (mth.getRegion() != null) {
-				CodeWriter insns = new CodeWriter(mthIndent + 1);
-				(new RegionGen(this, mth)).makeRegion(insns, mth.getRegion());
-				code.add(insns);
+			Region startRegion = mth.getRegion();
+			if (startRegion != null) {
+				(new RegionGen(this, mth)).makeRegion(code, startRegion);
 			} else {
-				makeFallbackMethod(code, mth);
+				addFallbackMethodCode(code);
 			}
 		}
-		return code;
 	}
 
-	public void makeMethodDump(CodeWriter code) {
+	private void makeMethodDump(CodeWriter code) {
 		code.startLine("/*");
 		getFallbackMethodGen(mth).addDefinition(code);
 		code.add(" {");
 		code.incIndent();
 
-		makeFallbackMethod(code, mth);
+		addFallbackMethodCode(code);
 
 		code.decIndent();
 		code.startLine('}');
 		code.startLine("*/");
 	}
 
-	private static void makeFallbackMethod(CodeWriter code, MethodNode mth) {
+	public void addFallbackMethodCode(CodeWriter code) {
 		if (mth.getInstructions() == null) {
 			// loadFile original instructions
 			try {
@@ -285,10 +287,10 @@ public class MethodGen {
 		if (mth.getThisArg() != null) {
 			code.startLine(getFallbackMethodGen(mth).makeArgName(mth.getThisArg())).add(" = this;");
 		}
-		makeFallbackInsns(code, mth, mth.getInstructions(), true);
+		addFallbackInsns(code, mth, mth.getInstructions(), true);
 	}
 
-	public static void makeFallbackInsns(CodeWriter code, MethodNode mth, List<InsnNode> insns, boolean addLabels) {
+	public static void addFallbackInsns(CodeWriter code, MethodNode mth, List<InsnNode> insns, boolean addLabels) {
 		InsnGen insnGen = new InsnGen(getFallbackMethodGen(mth), mth, true);
 		for (InsnNode insn : insns) {
 			AttributesList attrs = insn.getAttributes();
