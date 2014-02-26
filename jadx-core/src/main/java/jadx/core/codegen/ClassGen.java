@@ -379,11 +379,16 @@ public class ClassGen {
 			if (classInfo.getPackage().equals(useCls.getPackage()) && !classInfo.isInner()) {
 				return shortName;
 			}
-			if (classInfo.getPackage().equals(useCls.getPackage())) {
-				fullName = classInfo.getNameWithoutPackage();
+			// don't add import if class not public (must be accessed using inheritance)
+			ClassNode classNode = cls.dex().resolveClass(classInfo);
+			if (classNode != null && !classNode.getAccessFlags().isPublic()) {
+				return shortName;
 			}
 			if (searchCollision(cls.dex(), useCls, shortName)) {
 				return fullName;
+			}
+			if (classInfo.getPackage().equals(useCls.getPackage())) {
+				fullName = classInfo.getNameWithoutPackage();
 			}
 			for (ClassInfo importCls : imports) {
 				if (!importCls.equals(classInfo)
