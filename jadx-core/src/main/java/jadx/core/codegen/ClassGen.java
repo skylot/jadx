@@ -338,28 +338,35 @@ public class ClassGen {
 
 	public String useClass(ClassInfo classInfo) {
 		String baseClass = useClassInternal(cls.getClassInfo(), classInfo);
-		ArgType[] generics = classInfo.getType().getGenericTypes();
-		if (generics != null) {
-			StringBuilder sb = new StringBuilder();
-			sb.append(baseClass);
-			sb.append('<');
-			int len = generics.length;
-			for (int i = 0; i < len; i++) {
-				if (i != 0) {
-					sb.append(", ");
-				}
-				ArgType gt = generics[i];
-				if (gt.isTypeKnown()) {
-					sb.append(TypeGen.translate(this, gt));
-				} else {
-					sb.append('?');
-				}
-			}
-			sb.append('>');
-			return sb.toString();
-		} else {
+		ArgType type = classInfo.getType();
+		ArgType[] generics = type.getGenericTypes();
+		if (generics == null) {
 			return baseClass;
 		}
+
+		StringBuilder sb = new StringBuilder();
+		sb.append(baseClass);
+		sb.append('<');
+		int len = generics.length;
+		for (int i = 0; i < len; i++) {
+			if (i != 0) {
+				sb.append(", ");
+			}
+			ArgType gt = generics[i];
+			ArgType wt = gt.getWildcardType();
+			if (wt != null) {
+				sb.append('?');
+				int bounds = gt.getWildcardBounds();
+				if (bounds != 0) {
+					sb.append(bounds == -1 ? " super " : " extends ");
+					sb.append(TypeGen.translate(this, wt));
+				}
+			} else {
+				sb.append(TypeGen.translate(this, gt));
+			}
+		}
+		sb.append('>');
+		return sb.toString();
 	}
 
 	private String useClassInternal(ClassInfo useCls, ClassInfo classInfo) {

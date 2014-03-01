@@ -279,15 +279,20 @@ public class MethodGen {
 				mth.load();
 				DepthTraverser.visit(new FallbackModeVisitor(), mth);
 			} catch (DecodeException e) {
-				// ignore
-				code.startLine("Can't loadFile method instructions");
+				LOG.error("Error reload instructions in fallback mode:", e);
+				code.startLine("// Can't loadFile method instructions: " + e.getMessage());
 				return;
 			}
+		}
+		List<InsnNode> insns = mth.getInstructions();
+		if (insns == null) {
+			code.startLine("// Can't load method instructions.");
+			return;
 		}
 		if (mth.getThisArg() != null) {
 			code.startLine(getFallbackMethodGen(mth).makeArgName(mth.getThisArg())).add(" = this;");
 		}
-		addFallbackInsns(code, mth, mth.getInstructions(), true);
+		addFallbackInsns(code, mth, insns, true);
 	}
 
 	public static void addFallbackInsns(CodeWriter code, MethodNode mth, List<InsnNode> insns, boolean addLabels) {

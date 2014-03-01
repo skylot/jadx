@@ -6,13 +6,10 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Iterator;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Utils {
-	private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
+	private Utils() {
+	}
 
 	public static String cleanObjectName(String obj) {
 		int last = obj.length() - 1;
@@ -95,34 +92,6 @@ public class Utils {
 		PrintWriter pw = new PrintWriter(sw, true);
 		throwable.printStackTrace(pw);
 		return sw.getBuffer().toString();
-	}
-
-	public static String mergeSignature(List<String> list) {
-		StringBuilder sb = new StringBuilder();
-		for (String s : list) {
-			sb.append(s);
-		}
-		return sb.toString();
-	}
-
-	public static int getGenericEnd(String sign) {
-		int end = -1;
-		if (sign.startsWith("<")) {
-			int pair = 1;
-			for (int pos = 1; pos < sign.length(); pos++) {
-				char c = sign.charAt(pos);
-				if (c == '<') {
-					pair++;
-				} else if (c == '>') {
-					pair--;
-				}
-				if (pair == 0) {
-					end = pos;
-					break;
-				}
-			}
-		}
-		return end;
 	}
 
 	public static void makeDirsForFile(File file) {

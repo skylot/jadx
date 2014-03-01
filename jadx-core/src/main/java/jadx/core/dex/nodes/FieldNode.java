@@ -60,6 +60,6 @@ public class FieldNode extends LineAttrNode {
 
 	@Override
 	public String toString() {
-		return fieldInfo.getDeclClass() + "." + fieldInfo.getName() + " " + type;
+		return fieldInfo.getDeclClass() + "." + fieldInfo.getName() + " :" + type;
 	}
 }

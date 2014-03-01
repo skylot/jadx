@@ -16,9 +16,10 @@ import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.nodes.parser.AnnotationsParser;
 import jadx.core.dex.nodes.parser.FieldValueAttr;
+import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.nodes.parser.StaticValuesParser;
-import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.DecodeException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -159,48 +160,41 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private void parseClassSignature() {
-		Annotation a = this.getAttributes().getAnnotation(Consts.DALVIK_SIGNATURE);
-		if (a == null) {
+		SignatureParser sp = SignatureParser.fromNode(this);
+		if (sp == null) {
 			return;
 		}
-		String sign = Utils.mergeSignature((List<String>) a.getDefaultValue());
-		// parse generic map
-		int end = Utils.getGenericEnd(sign);
-		if (end != -1) {
-			String gen = sign.substring(1, end);
-			genericMap = ArgType.parseGenericMap(gen);
-			sign = sign.substring(end + 1);
-		}
-
-		// parse super class signature and interfaces
-		List<ArgType> list = ArgType.parseSignatureList(sign);
-		if (list != null && !list.isEmpty()) {
-			try {
-				ArgType st = list.remove(0);
-				this.superClass = ClassInfo.fromType(st);
-				int i = 0;
-				for (ArgType it : list) {
-					ClassInfo interf = ClassInfo.fromType(it);
-					interfaces.set(i, interf);
-					i++;
+		try {
+			// parse class generic map
+			genericMap = sp.consumeGenericMap();
+			// parse super class signature
+			superClass = ClassInfo.fromType(sp.consumeType());
+			// parse interfaces signatures
+			for (int i = 0; i < interfaces.size(); i++) {
+				ArgType type = sp.consumeType();
+				if (type != null) {
+					interfaces.set(i, ClassInfo.fromType(type));
+				} else {
+					break;
 				}
-			} catch (Throwable e) {
-				LOG.warn("Can't set signatures for class: {}, sign: {}", this, sign, e);
 			}
+		} catch (JadxRuntimeException e) {
+			LOG.error("Class signature parse error: " + this, e);
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private void setFieldsTypesFromSignature() {
 		for (FieldNode field : fields) {
-			Annotation a = field.getAttributes().getAnnotation(Consts.DALVIK_SIGNATURE);
-			if (a != null) {
-				String sign = Utils.mergeSignature((List<String>) a.getDefaultValue());
-				ArgType gType = ArgType.parseSignature(sign);
-				if (gType != null) {
-					field.setType(gType);
+			SignatureParser sp = SignatureParser.fromNode(field);
+			if (sp != null) {
+				try {
+					ArgType gType = sp.consumeType();
+					if (gType != null) {
+						field.setType(gType);
+					}
+				} catch (JadxRuntimeException e) {
+					LOG.error("Field signature parse error: " + field, e);
 				}
 			}
 		}

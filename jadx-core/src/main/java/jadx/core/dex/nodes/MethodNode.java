@@ -1,11 +1,9 @@
 package jadx.core.dex.nodes;
 
-import jadx.core.Consts;
 import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.attributes.JumpAttribute;
 import jadx.core.dex.attributes.LineAttrNode;
 import jadx.core.dex.attributes.LoopAttr;
-import jadx.core.dex.attributes.annotations.Annotation;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.AccessInfo.AFType;
 import jadx.core.dex.info.ClassInfo;
@@ -18,12 +16,14 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.parser.DebugInfoParser;
+import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.DecodeException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -140,62 +140,42 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		noCode = true;
 	}
 
-	@SuppressWarnings("unchecked")
 	private boolean parseSignature() {
-		Annotation a = getAttributes().getAnnotation(Consts.DALVIK_SIGNATURE);
-		if (a == null) {
+		SignatureParser sp = SignatureParser.fromNode(this);
+		if (sp == null) {
 			return false;
 		}
+		try {
+			genericMap = sp.consumeGenericMap();
+			List<ArgType> argsTypes = sp.consumeMethodArgs();
+			retType = sp.consumeType();
 
-		String sign = Utils.mergeSignature((List<String>) a.getDefaultValue());
-
-		// parse generic map
-		int end = Utils.getGenericEnd(sign);
-		if (end != -1) {
-			String gen = sign.substring(1, end);
-			genericMap = ArgType.parseGenericMap(gen);
-			sign = sign.substring(end + 1);
-		}
-
-		int firstBracket = sign.indexOf('(');
-		int lastBracket = sign.lastIndexOf(')');
-		String argsTypesStr = sign.substring(firstBracket + 1, lastBracket);
-		String returnType = sign.substring(lastBracket + 1);
-
-		retType = ArgType.parseSignature(returnType);
-		if (retType == null) {
-			LOG.warn("Signature parse error: {}", returnType);
-			return false;
-		}
-
-		List<ArgType> argsTypes = ArgType.parseSignatureList(argsTypesStr);
-		if (argsTypes == null) {
-			return false;
-		}
-
-		List<ArgType> mthArgs = mthInfo.getArgumentsTypes();
-		if (argsTypes.size() != mthArgs.size()) {
-			if (argsTypes.isEmpty()) {
-				return false;
-			}
-			if (!mthInfo.isConstructor()) {
-				LOG.warn("Wrong signature parse result: " + sign + " -> " + argsTypes
-						+ ", not generic version: " + mthArgs);
-				return false;
-			} else if (getParentClass().getAccessFlags().isEnum()) {
-				// TODO:
-				argsTypes.add(0, mthArgs.get(0));
-				argsTypes.add(1, mthArgs.get(1));
-			} else {
-				// add synthetic arg for outer class
-				argsTypes.add(0, mthArgs.get(0));
-			}
+			List<ArgType> mthArgs = mthInfo.getArgumentsTypes();
 			if (argsTypes.size() != mthArgs.size()) {
-				return false;
+				if (argsTypes.isEmpty()) {
+					return false;
+				}
+				if (!mthInfo.isConstructor()) {
+					LOG.warn("Wrong signature parse result: " + sp + " -> " + argsTypes
+							+ ", not generic version: " + mthArgs);
+					return false;
+				} else if (getParentClass().getAccessFlags().isEnum()) {
+					// TODO:
+					argsTypes.add(0, mthArgs.get(0));
+					argsTypes.add(1, mthArgs.get(1));
+				} else {
+					// add synthetic arg for outer class
+					argsTypes.add(0, mthArgs.get(0));
+				}
+				if (argsTypes.size() != mthArgs.size()) {
+					return false;
+				}
 			}
+			initArguments(argsTypes);
+		} catch (JadxRuntimeException e) {
+			LOG.error("Method signature parse error: " + this, e);
+			return false;
 		}
-
-		initArguments(argsTypes);
 		return true;
 	}
 
