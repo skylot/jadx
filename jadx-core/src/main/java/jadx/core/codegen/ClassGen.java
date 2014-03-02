@@ -463,7 +463,7 @@ public class ClassGen {
 	}
 
 	public ClassGen getParentGen() {
-		return parentGen;
+		return parentGen == null ? this : parentGen;
 	}
 
 	public AnnotationGen getAnnotationGen() {
