@@ -17,31 +17,6 @@ import java.util.List;
 
 public final class IfCondition {
 
-	public static IfCondition fromIfBlock(BlockNode header) {
-		if (header == null) {
-			return null;
-		}
-		return fromIfNode((IfNode) header.getInstructions().get(0));
-	}
-
-	public static IfCondition fromIfNode(IfNode insn) {
-		return new IfCondition(new Compare(insn));
-	}
-
-	public static IfCondition merge(Mode mode, IfCondition a, IfCondition b) {
-		if (a.getMode() == mode) {
-			IfCondition n = new IfCondition(a);
-			n.addArg(b);
-			return n;
-		} else if (b.getMode() == mode) {
-			IfCondition n = new IfCondition(b);
-			n.addArg(a);
-			return n;
-		} else {
-			return new IfCondition(mode, Arrays.asList(a, b));
-		}
-	}
-
 	public static enum Mode {
 		COMPARE,
 		NOT,
@@ -72,6 +47,31 @@ public final class IfCondition {
 			this.args = Collections.emptyList();
 		} else {
 			this.args = new ArrayList<IfCondition>(c.args);
+		}
+	}
+
+	public static IfCondition fromIfBlock(BlockNode header) {
+		if (header == null) {
+			return null;
+		}
+		return fromIfNode((IfNode) header.getInstructions().get(0));
+	}
+
+	public static IfCondition fromIfNode(IfNode insn) {
+		return new IfCondition(new Compare(insn));
+	}
+
+	public static IfCondition merge(Mode mode, IfCondition a, IfCondition b) {
+		if (a.getMode() == mode) {
+			IfCondition n = new IfCondition(a);
+			n.addArg(b);
+			return n;
+		} else if (b.getMode() == mode) {
+			IfCondition n = new IfCondition(b);
+			n.addArg(a);
+			return n;
+		} else {
+			return new IfCondition(mode, Arrays.asList(a, b));
 		}
 	}
 

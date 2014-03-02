@@ -10,7 +10,7 @@ import static org.junit.Assert.assertThat;
 
 public class TestInline2 extends InternalJadxTest {
 
-	public static class TestCls extends Exception {
+	public static class TestCls {
 		public int simple_loops() throws InterruptedException {
 			int[] a = new int[]{1, 2, 4, 6, 8};
 			int b = 0;

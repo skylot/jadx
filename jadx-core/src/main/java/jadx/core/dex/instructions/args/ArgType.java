@@ -454,7 +454,7 @@ public abstract class ArgType {
 						types.add(type);
 					}
 				}
-				if (types.size() == 0) {
+				if (types.isEmpty()) {
 					return null;
 				} else if (types.size() == 1) {
 					PrimitiveType nt = types.get(0);
@@ -479,7 +479,7 @@ public abstract class ArgType {
 				String aObj = a.getObject();
 				String bObj = b.getObject();
 				if (aObj.equals(bObj)) {
-					return (a.getGenericTypes() != null ? a : b);
+					return a.getGenericTypes() != null ? a : b;
 				} else if (aObj.equals(Consts.CLASS_OBJECT)) {
 					return b;
 				} else if (bObj.equals(Consts.CLASS_OBJECT)) {
@@ -487,7 +487,7 @@ public abstract class ArgType {
 				} else {
 					// different objects
 					String obj = clsp.getCommonAncestor(aObj, bObj);
-					return (obj == null ? null : object(obj));
+					return obj == null ? null : object(obj);
 				}
 			}
 			if (a.isArray()) {
@@ -498,7 +498,7 @@ public abstract class ArgType {
 						return OBJECT;
 					} else {
 						ArgType res = merge(ea, eb);
-						return (res == null ? null : ArgType.array(res));
+						return res == null ? null : ArgType.array(res);
 					}
 				} else if (b.equals(OBJECT)) {
 					return OBJECT;

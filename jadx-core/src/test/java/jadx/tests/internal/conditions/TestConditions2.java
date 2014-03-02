@@ -11,7 +11,7 @@ import static org.junit.Assert.assertThat;
 
 public class TestConditions2 extends InternalJadxTest {
 
-	public static class TestCls extends Exception {
+	public static class TestCls {
 		int c;
 		String d;
 		String f;

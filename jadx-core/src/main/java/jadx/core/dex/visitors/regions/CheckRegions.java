@@ -21,7 +21,7 @@ public class CheckRegions extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
-		if (mth.isNoCode() || mth.getBasicBlocks().size() == 0) {
+		if (mth.isNoCode() || mth.getBasicBlocks().isEmpty()) {
 			return;
 		}
 

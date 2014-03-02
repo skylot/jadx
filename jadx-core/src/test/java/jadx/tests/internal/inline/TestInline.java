@@ -10,7 +10,7 @@ import static org.junit.Assert.assertThat;
 
 public class TestInline extends InternalJadxTest {
 
-	public static class TestCls extends Exception {
+	public static class TestCls {
 		public static void main(String[] args) throws Exception {
 			System.out.println("Test: " + new TestCls().testRun());
 		}

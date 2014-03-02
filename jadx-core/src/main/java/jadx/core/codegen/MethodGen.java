@@ -168,18 +168,14 @@ public class MethodGen {
 		if (fallback) {
 			if (name != null) {
 				return base + "_" + name;
-			} else {
-				return base;
 			}
+			return base;
 		} else {
 			if (name != null) {
-				if (name.equals("this")) {
-					return name;
-				} else if (Consts.DEBUG) {
-					return name + "_" + base;
-				} else {
-					return name;
+				if (Consts.DEBUG) {
+					return base + "_" + name;
 				}
+				return name;
 			} else {
 				ArgType type = arg.getType();
 				if (type.isPrimitive()) {
@@ -274,7 +270,7 @@ public class MethodGen {
 
 	public void addFallbackMethodCode(CodeWriter code) {
 		if (mth.getInstructions() == null) {
-			// loadFile original instructions
+			// load original instructions
 			try {
 				mth.load();
 				DepthTraverser.visit(new FallbackModeVisitor(), mth);

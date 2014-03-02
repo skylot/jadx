@@ -14,8 +14,11 @@ import org.slf4j.LoggerFactory;
 public class CleanRegions {
 	private static final Logger LOG = LoggerFactory.getLogger(CleanRegions.class);
 
+	private CleanRegions() {
+	}
+
 	public static void process(MethodNode mth) {
-		if (mth.isNoCode() || mth.getBasicBlocks().size() == 0) {
+		if (mth.isNoCode() || mth.getBasicBlocks().isEmpty()) {
 			return;
 		}
 		IRegionVisitor removeEmptyBlocks = new AbstractRegionVisitor() {

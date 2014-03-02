@@ -15,11 +15,11 @@ public enum ArithOp {
 	SHR(">>"),
 	USHR(">>>");
 
+	private final String symbol;
+
 	private ArithOp(String symbol) {
 		this.symbol = symbol;
 	}
-
-	private final String symbol;
 
 	public String getSymbol() {
 		return this.symbol;

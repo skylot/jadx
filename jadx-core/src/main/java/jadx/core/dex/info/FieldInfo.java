@@ -11,18 +11,18 @@ public class FieldInfo {
 	private final String name;
 	private final ArgType type;
 
+	public FieldInfo(ClassInfo declClass, String name, ArgType type) {
+		this.declClass = declClass;
+		this.name = name;
+		this.type = type;
+	}
+
 	public static FieldInfo fromDex(DexNode dex, int index) {
 		FieldId field = dex.getFieldId(index);
 		return new FieldInfo(
 				ClassInfo.fromDex(dex, field.getDeclaringClassIndex()),
 				dex.getString(field.getNameIndex()),
 				dex.getType(field.getTypeIndex()));
-	}
-
-	public FieldInfo(ClassInfo declClass, String name, ArgType type) {
-		this.declClass = declClass;
-		this.name = name;
-		this.type = type;
 	}
 
 	public static String getNameById(DexNode dex, int ind) {

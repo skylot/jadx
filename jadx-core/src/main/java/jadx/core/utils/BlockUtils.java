@@ -15,6 +15,9 @@ import java.util.Set;
 
 public class BlockUtils {
 
+	private BlockUtils() {
+	}
+
 	public static BlockNode getBlockByOffset(int offset, Iterable<BlockNode> casesBlocks) {
 		for (BlockNode block : casesBlocks) {
 			if (block.getStartOffset() == offset) {

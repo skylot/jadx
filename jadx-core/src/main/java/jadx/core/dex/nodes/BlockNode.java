@@ -87,7 +87,7 @@ public class BlockNode extends AttrNode implements IBlock {
 				}
 			}
 		}
-		return (nodes.size() == sucList.size() ? sucList : nodes);
+		return nodes.size() == sucList.size() ? sucList : nodes;
 	}
 
 	@Override

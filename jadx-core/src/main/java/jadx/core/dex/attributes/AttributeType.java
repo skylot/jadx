@@ -34,6 +34,10 @@ public enum AttributeType {
 	private static final int NOT_UNIQ_COUNT;
 	private final boolean uniq;
 
+	private AttributeType(boolean isUniq) {
+		this.uniq = isUniq;
+	}
+
 	static {
 		// place all not unique attributes at first
 		int last = -1;
@@ -49,10 +53,6 @@ public enum AttributeType {
 
 	public static int getNotUniqCount() {
 		return NOT_UNIQ_COUNT;
-	}
-
-	private AttributeType(boolean isUniq) {
-		this.uniq = isUniq;
 	}
 
 	public boolean isUniq() {

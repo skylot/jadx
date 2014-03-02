@@ -2,6 +2,9 @@ package jadx.core.utils;
 
 public class StringUtils {
 
+	private StringUtils() {
+	}
+
 	public static String unescapeString(String str) {
 		int len = str.length();
 		StringBuilder res = new StringBuilder();

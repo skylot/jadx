@@ -24,7 +24,6 @@ public class TestInline6 extends InternalJadxTest {
 
 	@Test
 	public void test() {
-		setOutputCFG();
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 		System.out.println(code);

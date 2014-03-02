@@ -7,6 +7,9 @@ import com.android.dx.io.instructions.DecodedInstruction;
 
 public class InsnUtils {
 
+	private InsnUtils() {
+	}
+
 	public static int getArg(DecodedInstruction insn, int arg) {
 		switch (arg) {
 			case 0:

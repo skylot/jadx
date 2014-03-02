@@ -14,6 +14,9 @@ import java.util.List;
 
 public class RegionUtils {
 
+	private RegionUtils() {
+	}
+
 	public static boolean hasExitEdge(IContainer container) {
 		if (container instanceof BlockNode) {
 			BlockNode block = (BlockNode) container;

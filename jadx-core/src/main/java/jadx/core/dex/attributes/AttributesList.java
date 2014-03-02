@@ -109,10 +109,7 @@ public final class AttributesList {
 
 	public Annotation getAnnotation(String cls) {
 		AnnotationsList aList = (AnnotationsList) get(AttributeType.ANNOTATION_LIST);
-		if (aList == null || aList.size() == 0) {
-			return null;
-		}
-		return aList.get(cls);
+		return aList == null ? null : aList.get(cls);
 	}
 
 	public List<IAttribute> getAll(AttributeType type) {

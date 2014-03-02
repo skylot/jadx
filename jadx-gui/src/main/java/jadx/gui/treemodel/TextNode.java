@@ -3,6 +3,9 @@ package jadx.gui.treemodel;
 import javax.swing.Icon;
 
 public class TextNode extends JNode {
+
+	private static final long serialVersionUID = 2342749142368352232L;
+
 	private final String label;
 
 	public TextNode(String str) {

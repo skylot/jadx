@@ -255,14 +255,14 @@ public class InsnGen {
 			case CAST: {
 				boolean wrap = state.contains(IGState.BODY_ONLY);
 				if (wrap) {
-					code.add("(");
+					code.add('(');
 				}
-				code.add("(");
-				code.add(useType(((ArgType) ((IndexInsnNode) insn).getIndex())));
+				code.add('(');
+				code.add(useType((ArgType) ((IndexInsnNode) insn).getIndex()));
 				code.add(") ");
 				addArg(code, insn.getArg(0), true);
 				if (wrap) {
-					code.add(")");
+					code.add(')');
 				}
 				break;
 			}
@@ -461,10 +461,11 @@ public class InsnGen {
 				code.add("switch(").add(arg(insn, 0)).add(") {");
 				code.incIndent();
 				for (int i = 0; i < sw.getCasesCount(); i++) {
-					code.startLine("case " + sw.getKeys()[i]
-							+ ": goto " + MethodGen.getLabelName(sw.getTargets()[i]) + ";");
+					code.startLine("case ").add(sw.getKeys()[i]).add(": goto ");
+					code.add(MethodGen.getLabelName(sw.getTargets()[i])).add(';');
 				}
-				code.startLine("default: goto " + MethodGen.getLabelName(sw.getDefaultCaseOffset()) + ";");
+				code.startLine("default: goto ");
+				code.add(MethodGen.getLabelName(sw.getDefaultCaseOffset())).add(';');
 				code.decIndent();
 				code.startLine('}');
 				state.add(IGState.NO_SEMICOLON);
@@ -719,7 +720,7 @@ public class InsnGen {
 			code.add(cond);
 		} else {
 			if (state.contains(IGState.BODY_ONLY)) {
-				code.add("((").add(cond).add(')').add(" ? ").add(th).add(" : ").add(els).add(")");
+				code.add("((").add(cond).add(')').add(" ? ").add(th).add(" : ").add(els).add(')');
 			} else {
 				code.add('(').add(cond).add(')').add(" ? ").add(th).add(" : ").add(els);
 			}

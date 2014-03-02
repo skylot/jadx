@@ -13,6 +13,20 @@ public final class ClassInfo {
 
 	private static final Map<ArgType, ClassInfo> CLASSINFO_CACHE = new WeakHashMap<ArgType, ClassInfo>();
 
+	private final ArgType type;
+	private String pkg;
+	private String name;
+	private String fullName;
+	// for inner class not equals null
+	private ClassInfo parentClass;
+
+	private ClassInfo(ArgType type) {
+		assert type.isObject() : "Not class type: " + type;
+		this.type = type;
+
+		splitNames(true);
+	}
+
 	public static ClassInfo fromDex(DexNode dex, int clsIndex) {
 		if (clsIndex == DexNode.NO_INDEX) {
 			return null;
@@ -39,19 +53,6 @@ public final class ClassInfo {
 
 	public static void clearCache() {
 		CLASSINFO_CACHE.clear();
-	}
-
-	private final ArgType type;
-	private String pkg;
-	private String name;
-	private String fullName;
-	private ClassInfo parentClass; // not equals null if this is inner class
-
-	private ClassInfo(ArgType type) {
-		assert type.isObject() : "Not class type: " + type;
-		this.type = type;
-
-		splitNames(true);
 	}
 
 	private void splitNames(boolean canBeInner) {

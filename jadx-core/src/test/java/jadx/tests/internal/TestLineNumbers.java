@@ -15,7 +15,7 @@ import static org.junit.Assert.assertThat;
 
 public class TestLineNumbers extends InternalJadxTest {
 
-	public static class TestCls extends Exception {
+	public static class TestCls {
 		int field;
 
 		public void func() {

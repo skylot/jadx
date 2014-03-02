@@ -20,6 +20,12 @@ import com.android.dx.io.DexBuffer.Section;
 
 public class AnnotationsParser {
 
+	private static final Annotation.Visibility[] VISIBILITIES = {
+			Visibility.BUILD,
+			Visibility.RUNTIME,
+			Visibility.SYSTEM
+	};
+
 	private final DexNode dex;
 	private final ClassNode cls;
 
@@ -75,12 +81,6 @@ public class AnnotationsParser {
 		}
 		return new AnnotationsList(list);
 	}
-
-	private static final Annotation.Visibility[] VISIBILITIES = {
-			Visibility.BUILD,
-			Visibility.RUNTIME,
-			Visibility.SYSTEM
-	};
 
 	public static Annotation readAnnotation(DexNode dex, Section s, boolean readVisibility) throws DecodeException {
 		EncValueParser parser = new EncValueParser(dex, s);

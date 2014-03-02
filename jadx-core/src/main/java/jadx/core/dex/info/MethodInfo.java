@@ -18,10 +18,6 @@ public final class MethodInfo {
 	private final ClassInfo declClass;
 	private final String shortId;
 
-	public static MethodInfo fromDex(DexNode dex, int mthIndex) {
-		return new MethodInfo(dex, mthIndex);
-	}
-
 	private MethodInfo(DexNode dex, int mthIndex) {
 		MethodId mthId = dex.getMethodId(mthIndex);
 		name = dex.getString(mthId.getNameIndex());
@@ -41,6 +37,10 @@ public final class MethodInfo {
 		signature.append(TypeGen.signature(retType));
 
 		shortId = signature.toString();
+	}
+
+	public static MethodInfo fromDex(DexNode dex, int mthIndex) {
+		return new MethodInfo(dex, mthIndex);
 	}
 
 	public String getName() {

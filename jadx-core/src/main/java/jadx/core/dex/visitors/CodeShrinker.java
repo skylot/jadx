@@ -94,15 +94,15 @@ public class CodeShrinker extends AbstractVisitor {
 
 		private boolean canMove(int from, int to) {
 			List<RegisterArg> movedArgs = argsList.get(from).getArgs();
-			from++;
-			if (from == to) {
+			int start = from + 1;
+			if (start == to) {
 				// previous instruction or on edge of inline border
 				return true;
 			}
-			if (from > to) {
-				throw new JadxRuntimeException("Invalid inline insn positions: " + from + " - " + to);
+			if (start > to) {
+				throw new JadxRuntimeException("Invalid inline insn positions: " + start + " - " + to);
 			}
-			for (int i = from; i < to; i++) {
+			for (int i = start; i < to; i++) {
 				ArgsInfo argsInfo = argsList.get(i);
 				if (argsInfo.getInlinedInsn() == this) {
 					continue;

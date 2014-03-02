@@ -19,6 +19,15 @@ public class CodeWriter {
 	public static final String NL = System.getProperty("line.separator");
 	public static final String INDENT = "\t";
 
+	private static final String[] INDENT_CACHE = {
+			"",
+			INDENT,
+			INDENT + INDENT,
+			INDENT + INDENT + INDENT,
+			INDENT + INDENT + INDENT + INDENT,
+			INDENT + INDENT + INDENT + INDENT + INDENT,
+	};
+
 	private final StringBuilder buf = new StringBuilder();
 	private String indentStr;
 	private int indent;
@@ -63,6 +72,11 @@ public class CodeWriter {
 			buf.append(INDENT);
 		}
 		buf.append(str);
+		return this;
+	}
+
+	public CodeWriter add(Object obj) {
+		buf.append(obj);
 		return this;
 	}
 
@@ -116,18 +130,9 @@ public class CodeWriter {
 		return this;
 	}
 
-	private static final String[] INDENT_CACHE = {
-			"",
-			INDENT,
-			INDENT + INDENT,
-			INDENT + INDENT + INDENT,
-			INDENT + INDENT + INDENT + INDENT,
-			INDENT + INDENT + INDENT + INDENT + INDENT,
-	};
-
 	private void updateIndent() {
 		int curIndent = indent;
-		if (curIndent < 6) {
+		if (curIndent < INDENT_CACHE.length) {
 			this.indentStr = INDENT_CACHE[curIndent];
 		} else {
 			StringBuilder s = new StringBuilder(curIndent * INDENT.length());

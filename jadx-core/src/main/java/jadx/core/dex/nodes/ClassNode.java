@@ -50,7 +50,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 	private Map<Object, FieldNode> constFields = Collections.emptyMap();
 	private List<ClassNode> innerClasses = Collections.emptyList();
 
-	private CodeWriter code; // generated code
+	private CodeWriter code;
 
 	public ClassNode(DexNode dex, ClassDef cls) throws DecodeException {
 		this.dex = dex;

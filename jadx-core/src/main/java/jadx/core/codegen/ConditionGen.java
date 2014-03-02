@@ -81,8 +81,7 @@ public class ConditionGen {
 		}
 		InsnNode insn = ((InsnWrapArg) arg).getWrapInsn();
 		if (insn.getType() == InsnType.ARITH) {
-			ArithNode arith = ((ArithNode) insn);
-			switch (arith.getOp()) {
+			switch (((ArithNode) insn).getOp()) {
 				case ADD:
 				case SUB:
 				case MUL:
