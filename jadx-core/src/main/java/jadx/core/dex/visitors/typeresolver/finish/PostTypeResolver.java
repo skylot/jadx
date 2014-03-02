@@ -7,6 +7,7 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.TypedVar;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 
@@ -88,8 +89,13 @@ public class PostTypeResolver {
 
 			case CHECK_CAST: {
 				ArgType castType = (ArgType) ((IndexInsnNode) insn).getIndex();
-				// workaround for compiler bug (see TestDuplicateCast)
-				insn.getResult().getTypedVar().forceSetType(castType);
+				TypedVar typedVar = insn.getResult().getTypedVar();
+				// don't override generic types of same base class
+				boolean skip = castType.isObject() && castType.getObject().equals(typedVar.getType().getObject());
+				if (!skip) {
+					// workaround for compiler bug (see TestDuplicateCast)
+					typedVar.forceSetType(castType);
+				}
 				return true;
 			}
 
