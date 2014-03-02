@@ -397,10 +397,15 @@ public class ClassGen {
 			if (classInfo.getPackage().equals(useCls.getPackage())) {
 				fullName = classInfo.getNameWithoutPackage();
 			}
-			for (ClassInfo importCls : imports) {
+			for (ClassInfo importCls : getImports()) {
 				if (!importCls.equals(classInfo)
 						&& importCls.getShortName().equals(shortName)) {
-					return fullName;
+					if (classInfo.isInner()) {
+						String parent = useClassInternal(useCls, classInfo.getParentClass());
+						return parent + "." + shortName;
+					} else {
+						return fullName;
+					}
 				}
 			}
 			addImport(classInfo);
@@ -413,6 +418,14 @@ public class ClassGen {
 			parentGen.addImport(classInfo);
 		} else {
 			imports.add(classInfo);
+		}
+	}
+
+	private Set<ClassInfo> getImports() {
+		if (parentGen != null) {
+			return parentGen.getImports();
+		} else {
+			return imports;
 		}
 	}
 
@@ -447,10 +460,6 @@ public class ClassGen {
 		if (sourceFileAttr != null) {
 			code.startLine("// compiled from: ").add(sourceFileAttr.getFileName());
 		}
-	}
-
-	public Set<ClassInfo> getImports() {
-		return imports;
 	}
 
 	public ClassGen getParentGen() {
