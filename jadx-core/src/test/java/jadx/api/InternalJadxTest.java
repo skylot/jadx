@@ -1,6 +1,7 @@
 package jadx.api;
 
 import jadx.core.Jadx;
+import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -147,6 +148,14 @@ public abstract class InternalJadxTest {
 				in.close();
 			}
 		}
+	}
+
+	protected String makeIndent(int indent) {
+		StringBuilder sb = new StringBuilder(indent * CodeWriter.INDENT.length());
+		for (int i = 0; i < indent; i++) {
+			sb.append(CodeWriter.INDENT);
+		}
+		return sb.toString();
 	}
 
 	// Use only for debug purpose

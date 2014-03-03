@@ -95,6 +95,14 @@ public class InsnGen {
 		return code;
 	}
 
+	public void addArgDot(CodeWriter code, InsnArg arg) throws CodegenException {
+		int len = code.length();
+		addArg(code, arg, true);
+		if (len != code.length()) {
+			code.add('.');
+		}
+	}
+
 	public void addArg(CodeWriter code, InsnArg arg) throws CodegenException {
 		addArg(code, arg, true);
 	}
@@ -152,11 +160,7 @@ public class InsnGen {
 				return;
 			}
 		}
-		int len = code.length();
-		addArg(code, arg);
-		if (code.length() != len) {
-			code.add('.');
-		}
+		addArgDot(code, arg);
 		code.add(field.getName());
 	}
 
@@ -609,10 +613,7 @@ public class InsnGen {
 				InsnArg arg = insn.getArg(0);
 				// FIXME: add 'this' for equals methods in scope
 				if (!arg.isThis()) {
-					CodeWriter argStr = arg(arg);
-					if (!argStr.isEmpty()) {
-						code.add(argStr).add('.');
-					}
+					addArgDot(code, arg);
 				}
 				k++;
 				break;
