@@ -311,10 +311,13 @@ public class RegionMaker {
 			AttributesList outAttrs = out.getAttributes();
 			if (outAttrs.contains(AttributeFlag.LOOP_START)
 					&& outAttrs.get(AttributeType.LOOP) != loop
-					&& stack.peekRegion() instanceof LoopRegion
-					&& RegionUtils.isRegionContainsBlock(stack.peekRegion(), out)) {
-				// exit to outer loop which already processed
-				out = null;
+					&& stack.peekRegion() instanceof LoopRegion) {
+				LoopRegion outerLoop = (LoopRegion) stack.peekRegion();
+				if (outerLoop.getBody() == null /* processing not yet finished */
+						|| RegionUtils.isRegionContainsBlock(outerLoop, out)) {
+					// exit to outer loop which already processed
+					out = null;
+				}
 			}
 
 			stack.push(loopRegion);
