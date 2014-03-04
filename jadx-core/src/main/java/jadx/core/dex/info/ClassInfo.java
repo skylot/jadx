@@ -72,7 +72,7 @@ public final class ClassInfo {
 
 		int sep = clsName.lastIndexOf('$');
 		if (canBeInner && sep > 0 && sep != clsName.length() - 1) {
-			String parClsName = pkg + '.' + clsName.substring(0, sep);
+			String parClsName = pkg + "." + clsName.substring(0, sep);
 			parentClass = fromName(parClsName);
 			clsName = clsName.substring(sep + 1);
 		} else {

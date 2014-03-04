@@ -50,7 +50,7 @@ public class TestSignatureParser {
 						"c", new ArgType[]{ArgType.genericType("V")}));
 
 		assertEquals(p("La<TV;>.LinkedHashIterator<Lb$c<Ls;TV;>;>;").consumeType().getObject(),
-				"a.LinkedHashIterator");
+				"a$LinkedHashIterator");
 
 	}
 

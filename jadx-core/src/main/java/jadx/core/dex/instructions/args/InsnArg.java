@@ -3,6 +3,9 @@ package jadx.core.dex.instructions.args;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.android.dx.io.instructions.DecodedInstruction;
 
 /**
@@ -10,6 +13,8 @@ import com.android.dx.io.instructions.DecodedInstruction;
  * argument can be register, literal or instruction
  */
 public abstract class InsnArg extends Typed {
+
+	private static final Logger LOG = LoggerFactory.getLogger(InsnArg.class);
 
 	protected InsnNode parentInsn;
 
@@ -72,7 +77,10 @@ public abstract class InsnArg extends Typed {
 		if (parent == null) {
 			return null;
 		}
-		assert parent != insn : "Can't wrap instruction info itself";
+		if (parent == insn) {
+			LOG.debug("Can't wrap instruction info itself: " + insn);
+			return null;
+		}
 		int count = parent.getArgsCount();
 		for (int i = 0; i < count; i++) {
 			if (parent.getArg(i) == this) {

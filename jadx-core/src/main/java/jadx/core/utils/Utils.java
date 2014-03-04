@@ -8,7 +8,7 @@ import java.io.StringWriter;
 import java.util.Iterator;
 
 public class Utils {
-	
+
 	private Utils() {
 	}
 

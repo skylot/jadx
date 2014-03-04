@@ -180,6 +180,11 @@ public abstract class ArgType {
 		}
 
 		@Override
+		public boolean isGeneric() {
+			return true;
+		}
+
+		@Override
 		public ArgType getWildcardType() {
 			return type;
 		}
@@ -224,11 +229,16 @@ public abstract class ArgType {
 		}
 
 		public GenericObject(GenericObject outerType, String innerName, ArgType[] generics) {
-			super(outerType.getObject() + "." + innerName);
+			super(outerType.getObject() + "$" + innerName);
 			this.outerType = outerType;
 			this.generics = generics;
 			this.hash = outerType.hashCode() + 31 * innerName.hashCode()
 					+ 31 * 31 * Arrays.hashCode(generics);
+		}
+
+		@Override
+		public boolean isGeneric() {
+			return true;
 		}
 
 		@Override
@@ -367,6 +377,10 @@ public abstract class ArgType {
 	}
 
 	public boolean isObject() {
+		return false;
+	}
+
+	public boolean isGeneric() {
 		return false;
 	}
 

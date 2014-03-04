@@ -1,6 +1,7 @@
 package jadx.core.dex.visitors.regions;
 
 import jadx.core.dex.attributes.AttributeFlag;
+import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IRegion;
@@ -21,7 +22,9 @@ public class CheckRegions extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
-		if (mth.isNoCode() || mth.getBasicBlocks().isEmpty()) {
+		if (mth.isNoCode()
+				|| mth.getBasicBlocks().isEmpty()
+				|| mth.getAttributes().contains(AttributeType.JADX_ERROR)) {
 			return;
 		}
 

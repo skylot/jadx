@@ -6,7 +6,12 @@ import jadx.core.dex.instructions.args.TypedVar;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.utils.InsnUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 final class LocalVar extends RegisterArg {
+
+	private static final Logger LOG = LoggerFactory.getLogger(LocalVar.class);
 
 	private boolean isEnd;
 
@@ -29,11 +34,30 @@ final class LocalVar extends RegisterArg {
 
 	private void init(String name, ArgType type, String sign) {
 		if (sign != null) {
-			type = ArgType.generic(sign);
+			ArgType gType = ArgType.generic(sign);
+			if (checkSignature(type, sign, gType)) {
+				type = gType;
+			}
 		}
 		TypedVar tv = new TypedVar(type);
 		tv.setName(name);
 		forceSetTypedVar(tv);
+	}
+
+	private boolean checkSignature(ArgType type, String sign, ArgType gType) {
+		boolean apply = false;
+		ArgType el = gType.getArrayRootElement();
+		if (el.isGeneric()) {
+			if (!type.getObject().equals(el.getObject())) {
+				LOG.warn("Generic type in debug info not equals: {} != {}", type, gType);
+			}
+			apply = true;
+		} else if (el.isGenericType()) {
+			apply = true;
+		} else {
+			LOG.debug("Local var signature from debug info not generic: {}, parsed: {}", sign, gType);
+		}
+		return apply;
 	}
 
 	public void start(int addr, int line) {
