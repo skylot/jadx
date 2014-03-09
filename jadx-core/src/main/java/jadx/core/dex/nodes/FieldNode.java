@@ -10,12 +10,14 @@ import com.android.dx.io.ClassData.Field;
 
 public class FieldNode extends LineAttrNode {
 
+	private final ClassNode parent;
 	private final FieldInfo fieldInfo;
 	private final AccessInfo accFlags;
 
 	private ArgType type; // store signature
 
 	public FieldNode(ClassNode cls, Field field) {
+		this.parent = cls;
 		this.fieldInfo = FieldInfo.fromDex(cls.dex(), field.getFieldIndex());
 		this.type = fieldInfo.getType();
 		this.accFlags = new AccessInfo(field.getAccessFlags(), AFType.FIELD);
@@ -39,6 +41,10 @@ public class FieldNode extends LineAttrNode {
 
 	public void setType(ArgType type) {
 		this.type = type;
+	}
+
+	public ClassNode getParentClass() {
+		return parent;
 	}
 
 	@Override

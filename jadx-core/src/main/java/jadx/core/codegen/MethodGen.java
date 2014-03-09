@@ -61,13 +61,13 @@ public class MethodGen {
 	public boolean addDefinition(CodeWriter code) {
 		if (mth.getMethodInfo().isClassInit()) {
 			code.startLine("static");
-			code.attachAnnotation(mth);
+			code.attachDefinition(mth);
 			return true;
 		}
 		if (mth.getAttributes().contains(AttributeFlag.ANONYMOUS_CONSTRUCTOR)) {
 			// don't add method name and arguments
 			code.startLine();
-			code.attachAnnotation(mth);
+			code.attachDefinition(mth);
 			return false;
 		}
 		annotationGen.addForMethod(code, mth);
@@ -110,17 +110,15 @@ public class MethodGen {
 				));
 			}
 		}
-		code.add(makeArguments(args));
-		code.add(")");
+		addMethodArguments(code, args);
+		code.add(')');
 
 		annotationGen.addThrows(mth, code);
-		code.attachAnnotation(mth);
+		code.attachDefinition(mth);
 		return true;
 	}
 
-	public CodeWriter makeArguments(List<RegisterArg> args) {
-		CodeWriter argsCode = new CodeWriter();
-
+	private void addMethodArguments(CodeWriter argsCode, List<RegisterArg> args) {
 		MethodParameters paramsAnnotation =
 				(MethodParameters) mth.getAttributes().get(AttributeType.ANNOTATION_MTH_PARAMETERS);
 
@@ -154,7 +152,6 @@ public class MethodGen {
 				argsCode.add(", ");
 			}
 		}
-		return argsCode;
 	}
 
 	/**

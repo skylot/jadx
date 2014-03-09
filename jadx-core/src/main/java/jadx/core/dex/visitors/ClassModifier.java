@@ -159,7 +159,7 @@ public class ClassModifier extends AbstractVisitor {
 					&& af.isPublic()
 					&& mth.getArguments(false).isEmpty()) {
 				List<BlockNode> bb = mth.getBasicBlocks();
-				if (bb.isEmpty() || allBlocksEmpty(bb)) {
+				if (bb == null || bb.isEmpty() || allBlocksEmpty(bb)) {
 					mth.getAttributes().add(AttributeFlag.DONT_GENERATE);
 				}
 			}

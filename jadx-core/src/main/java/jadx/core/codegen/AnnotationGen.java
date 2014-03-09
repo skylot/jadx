@@ -47,7 +47,7 @@ public class AnnotationGen {
 			return;
 		}
 		for (Annotation a : aList.getAll()) {
-			code.add(formatAnnotation(a));
+			formatAnnotation(code, a);
 			code.add(' ');
 		}
 	}
@@ -66,26 +66,25 @@ public class AnnotationGen {
 				}
 			} else {
 				code.startLine();
-				code.add(formatAnnotation(a));
+				formatAnnotation(code, a);
 			}
 		}
 	}
 
-	private CodeWriter formatAnnotation(Annotation a) {
-		CodeWriter code = new CodeWriter();
+	private void formatAnnotation(CodeWriter code, Annotation a) {
 		code.add('@');
 		code.add(classGen.useClass(a.getType()));
 		Map<String, Object> vl = a.getValues();
 		if (!vl.isEmpty()) {
 			code.add('(');
 			if (vl.size() == 1 && vl.containsKey("value")) {
-				code.add(encValueToString(vl.get("value")));
+				encodeValue(code, vl.get("value"));
 			} else {
 				for (Iterator<Entry<String, Object>> it = vl.entrySet().iterator(); it.hasNext(); ) {
 					Entry<String, Object> e = it.next();
 					code.add(e.getKey());
 					code.add(" = ");
-					code.add(encValueToString(e.getValue()));
+					encodeValue(code, e.getValue());
 					if (it.hasNext()) {
 						code.add(", ");
 					}
@@ -93,7 +92,6 @@ public class AnnotationGen {
 			}
 			code.add(')');
 		}
-		return code;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -122,70 +120,52 @@ public class AnnotationGen {
 	}
 
 	// TODO: refactor this boilerplate code
-	@SuppressWarnings("unchecked")
-	public String encValueToString(Object val) {
+	public void encodeValue(CodeWriter code, Object val) {
 		if (val == null) {
-			return "null";
+			code.add("null");
+			return;
 		}
 		if (val instanceof String) {
-			return StringUtils.unescapeString((String) val);
-		}
-		if (val instanceof Integer) {
-			return TypeGen.formatInteger((Integer) val);
-		}
-		if (val instanceof Character) {
-			return StringUtils.unescapeChar((Character) val);
-		}
-		if (val instanceof Boolean) {
-			return Boolean.TRUE.equals(val) ? "true" : "false";
-		}
-		if (val instanceof Float) {
-			return TypeGen.formatFloat((Float) val);
-		}
-		if (val instanceof Double) {
-			return TypeGen.formatDouble((Double) val);
-		}
-		if (val instanceof Long) {
-			return TypeGen.formatLong((Long) val);
-		}
-		if (val instanceof Short) {
-			return TypeGen.formatShort((Short) val);
-		}
-		if (val instanceof Byte) {
-			return TypeGen.formatByte((Byte) val);
-		}
-		if (val instanceof ArgType) {
-			return TypeGen.translate(classGen, (ArgType) val) + ".class";
-		}
-		if (val instanceof FieldInfo) {
+			code.add(StringUtils.unescapeString((String) val));
+		} else if (val instanceof Integer) {
+			code.add(TypeGen.formatInteger((Integer) val));
+		} else if (val instanceof Character) {
+			code.add(StringUtils.unescapeChar((Character) val));
+		} else if (val instanceof Boolean) {
+			code.add(Boolean.TRUE.equals(val) ? "true" : "false");
+		} else if (val instanceof Float) {
+			code.add(TypeGen.formatFloat((Float) val));
+		} else if (val instanceof Double) {
+			code.add(TypeGen.formatDouble((Double) val));
+		} else if (val instanceof Long) {
+			code.add(TypeGen.formatLong((Long) val));
+		} else if (val instanceof Short) {
+			code.add(TypeGen.formatShort((Short) val));
+		} else if (val instanceof Byte) {
+			code.add(TypeGen.formatByte((Byte) val));
+		} else if (val instanceof ArgType) {
+			code.add(TypeGen.translate(classGen, (ArgType) val)).add(".class");
+		} else if (val instanceof FieldInfo) {
 			// must be a static field
 			FieldInfo field = (FieldInfo) val;
-			// FIXME: !!code from InsnGen.sfield
-			String thisClass = cls.getFullName();
-			if (field.getDeclClass().getFullName().equals(thisClass)) {
-				return field.getName();
-			} else {
-				return classGen.useClass(field.getDeclClass()) + '.' + field.getName();
-			}
-		}
-		if (val instanceof List) {
-			StringBuilder str = new StringBuilder();
-			str.append('{');
-			List<Object> list = (List<Object>) val;
-			for (Iterator<Object> it = list.iterator(); it.hasNext(); ) {
+			code.add(InsnGen.makeStaticFieldAccess(field, classGen));
+		} else if (val instanceof List) {
+			code.add('{');
+			List list = (List) val;
+			Iterator it = list.iterator();
+			while (it.hasNext()) {
 				Object obj = it.next();
-				str.append(encValueToString(obj));
+				encodeValue(code, obj);
 				if (it.hasNext()) {
-					str.append(", ");
+					code.add(", ");
 				}
 			}
-			str.append('}');
-			return str.toString();
+			code.add('}');
+		} else if (val instanceof Annotation) {
+			formatAnnotation(code, (Annotation) val);
+		} else {
+			// TODO: also can be method values
+			throw new JadxRuntimeException("Can't decode value: " + val + " (" + val.getClass() + ")");
 		}
-		if (val instanceof Annotation) {
-			return formatAnnotation((Annotation) val).toString();
-		}
-		// TODO: also can be method values
-		throw new JadxRuntimeException("Can't decode value: " + val + " (" + val.getClass() + ")");
 	}
 }

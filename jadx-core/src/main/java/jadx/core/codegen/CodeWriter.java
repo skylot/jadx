@@ -1,5 +1,6 @@
 package jadx.core.codegen;
 
+import jadx.api.CodePosition;
 import jadx.core.dex.attributes.LineAttrNode;
 import jadx.core.utils.Utils;
 
@@ -7,6 +8,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -17,7 +19,7 @@ public class CodeWriter {
 	private static final int MAX_FILENAME_LENGTH = 128;
 
 	public static final String NL = System.getProperty("line.separator");
-	public static final String INDENT = "\t";
+	public static final String INDENT = "    ";
 
 	private static final String[] INDENT_CACHE = {
 			"",
@@ -33,7 +35,8 @@ public class CodeWriter {
 	private int indent;
 
 	private int line = 1;
-	private Map<Object, Integer> annotations = Collections.emptyMap();
+	private int offset = 0;
+	private Map<CodePosition, Object> annotations = Collections.emptyMap();
 
 	public CodeWriter() {
 		this.indent = 0;
@@ -47,56 +50,66 @@ public class CodeWriter {
 
 	public CodeWriter startLine() {
 		addLine();
-		buf.append(indentStr);
+		addIndent();
 		return this;
 	}
 
 	public CodeWriter startLine(char c) {
 		addLine();
-		buf.append(indentStr);
-		buf.append(c);
+		addIndent();
+		add(c);
 		return this;
 	}
 
 	public CodeWriter startLine(String str) {
 		addLine();
-		buf.append(indentStr);
-		buf.append(str);
+		addIndent();
+		add(str);
 		return this;
 	}
 
 	public CodeWriter startLine(int ind, String str) {
 		addLine();
-		buf.append(indentStr);
+		addIndent();
 		for (int i = 0; i < ind; i++) {
-			buf.append(INDENT);
+			addIndent();
 		}
-		buf.append(str);
+		add(str);
 		return this;
 	}
 
 	public CodeWriter add(Object obj) {
-		buf.append(obj);
+		add(obj.toString());
 		return this;
 	}
 
 	public CodeWriter add(String str) {
 		buf.append(str);
+		offset += str.length();
 		return this;
 	}
 
 	public CodeWriter add(char c) {
 		buf.append(c);
+		offset++;
 		return this;
 	}
 
+	@Deprecated
 	public CodeWriter add(CodeWriter code) {
 		line--;
-		for (Map.Entry<Object, Integer> entry : code.annotations.entrySet()) {
-			attachAnnotation(entry.getKey(), line + entry.getValue());
+		for (Map.Entry<CodePosition, Object> entry : code.annotations.entrySet()) {
+			CodePosition pos = entry.getKey();
+			attachAnnotation(entry.getValue(), new CodePosition(line + pos.getLine(), pos.getOffset()));
 		}
 		line += code.line;
-		buf.append(code);
+		String str = code.toString();
+		buf.append(str);
+		if (str.contains(NL)) {
+			offset = code.offset;
+		} else {
+			offset += code.offset;
+		}
 		return this;
 	}
 
@@ -108,25 +121,12 @@ public class CodeWriter {
 	private void addLine() {
 		buf.append(NL);
 		line++;
+		offset = 0;
 	}
 
-	public int getLine() {
-		return line;
-	}
-
-	public Object attachAnnotation(Object obj) {
-		return attachAnnotation(obj, line);
-	}
-
-	public Object attachAnnotation(Object obj, int line) {
-		if (annotations.isEmpty()) {
-			annotations = new HashMap<Object, Integer>();
-		}
-		return annotations.put(obj, line);
-	}
-
-	public CodeWriter indent() {
+	public CodeWriter addIndent() {
 		buf.append(indentStr);
+		offset += indentStr.length();
 		return this;
 	}
 
@@ -169,16 +169,49 @@ public class CodeWriter {
 		updateIndent();
 	}
 
+	private static class DefinitionWrapper {
+		private final LineAttrNode node;
+
+		private DefinitionWrapper(LineAttrNode node) {
+			this.node = node;
+		}
+
+		public LineAttrNode getNode() {
+			return node;
+		}
+	}
+
+	public Object attachDefinition(LineAttrNode obj) {
+		return attachAnnotation(new DefinitionWrapper(obj), new CodePosition(line, offset));
+	}
+
+	public Object attachAnnotation(Object obj) {
+		return attachAnnotation(obj, new CodePosition(line, offset + 1));
+	}
+
+	private Object attachAnnotation(Object obj, CodePosition pos) {
+		if (annotations.isEmpty()) {
+			annotations = new HashMap<CodePosition, Object>();
+		}
+		return annotations.put(pos, obj);
+	}
+
+	public Map<CodePosition, Object> getAnnotations() {
+		return annotations;
+	}
+
 	public void finish() {
 		buf.trimToSize();
-		for (Map.Entry<Object, Integer> entry : annotations.entrySet()) {
-			Object v = entry.getKey();
-			if (v instanceof LineAttrNode) {
-				LineAttrNode l = (LineAttrNode) v;
-				l.setDecompiledLine(entry.getValue());
+		Iterator<Map.Entry<CodePosition, Object>> it = annotations.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry<CodePosition, Object> entry = it.next();
+			Object v = entry.getValue();
+			if (v instanceof DefinitionWrapper) {
+				LineAttrNode l = ((DefinitionWrapper) v).getNode();
+				l.setDecompiledLine(entry.getKey().getLine());
+				it.remove();
 			}
 		}
-		annotations.clear();
 	}
 
 	private static String removeFirstEmptyLine(String str) {

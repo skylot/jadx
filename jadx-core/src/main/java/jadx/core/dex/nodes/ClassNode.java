@@ -50,7 +50,10 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 	private Map<Object, FieldNode> constFields = Collections.emptyMap();
 	private List<ClassNode> innerClasses = Collections.emptyList();
 
+	// store decompiled code
 	private CodeWriter code;
+	// store parent for inner classes or 'this' otherwise
+	private ClassNode parentClass;
 
 	public ClassNode(DexNode dex, ClassDef cls) throws DecodeException {
 		this.dex = dex;
@@ -330,6 +333,19 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 
 	public MethodNode searchMethodById(int id) {
 		return searchMethodByName(MethodInfo.fromDex(dex, id).getShortId());
+	}
+
+	public ClassNode getParentClass() {
+		if (parentClass == null) {
+			if (clsInfo.isInner()) {
+				ClassNode parent = dex().resolveClass(clsInfo.getParentClass());
+				parent = parent == null ? this : parent;
+				parentClass = parent;
+			} else {
+				parentClass = this;
+			}
+		}
+		return parentClass;
 	}
 
 	public List<ClassNode> getInnerClasses() {

@@ -54,6 +54,7 @@ public enum InsnType {
 	CONTINUE,
 
 	STR_CONCAT, // strings concatenation
+	ARITH_ONEARG,
 
 	TERNARY,
 	ARGS, // just generate arguments

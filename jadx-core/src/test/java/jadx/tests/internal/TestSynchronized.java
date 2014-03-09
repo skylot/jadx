@@ -37,5 +37,7 @@ public class TestSynchronized extends InternalJadxTest {
 		assertThat(code, containsString("public synchronized boolean test1() {"));
 		assertThat(code, containsString("return this.f"));
 		assertThat(code, containsString("synchronized (this.o) {"));
+
+		assertThat(code, not(containsString(makeIndent(3) + ";")));
 	}
 }

@@ -2,6 +2,7 @@ package jadx.api;
 
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.AttributeFlag;
+import jadx.core.dex.attributes.LineAttrNode;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 public final class JavaClass {
 
@@ -27,12 +29,23 @@ public final class JavaClass {
 		this.cls = classNode;
 	}
 
+	public String getCode() {
+		CodeWriter code = cls.getCode();
+		if (code == null) {
+			decompile();
+			code = cls.getCode();
+		}
+		return code != null ? code.toString() : "error processing class";
+	}
+
 	public void decompile() {
 		if (decompiler == null) {
 			throw new JadxRuntimeException("Can't decompile inner class");
 		}
-		decompiler.processClass(cls);
-		load();
+		if (cls.getCode() == null) {
+			decompiler.processClass(cls);
+			load();
+		}
 	}
 
 	private void load() {
@@ -78,13 +91,32 @@ public final class JavaClass {
 		}
 	}
 
-	public String getCode() {
-		CodeWriter code = cls.getCode();
-		if (code == null) {
-			decompile();
-			code = cls.getCode();
+	private Map<CodePosition, Object> getCodeAnnotations() {
+		getCode();
+		return cls.getCode().getAnnotations();
+	}
+
+	public CodePosition getDefinitionPosition(int line, int offset) {
+		Map<CodePosition, Object> map = getCodeAnnotations();
+		Object obj = map.get(new CodePosition(line, offset));
+		if (obj instanceof LineAttrNode) {
+			ClassNode clsNode = null;
+			if (obj instanceof ClassNode) {
+				clsNode = (ClassNode) obj;
+			} else if (obj instanceof MethodNode) {
+				clsNode = ((MethodNode) obj).getParentClass();
+			} else if (obj instanceof FieldNode) {
+				clsNode = ((FieldNode) obj).getParentClass();
+			}
+			if (clsNode != null) {
+				clsNode = clsNode.getParentClass();
+				JavaClass jCls = new JavaClass(decompiler, clsNode);
+				jCls.decompile();
+				int defLine = ((LineAttrNode) obj).getDecompiledLine();
+				return new CodePosition(jCls, defLine, 0);
+			}
 		}
-		return code != null ? code.toString() : "error processing class";
+		return null;
 	}
 
 	public String getFullName() {
@@ -115,12 +147,22 @@ public final class JavaClass {
 		return methods;
 	}
 
+	public int getDecompiledLine() {
+		return cls.getDecompiledLine();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		return this == o || o instanceof JavaClass && cls.equals(((JavaClass) o).cls);
+	}
+
+	@Override
+	public int hashCode() {
+		return cls.hashCode();
+	}
+
 	@Override
 	public String toString() {
 		return getFullName();
-	}
-
-	public int getDecompiledLine() {
-		return cls.getDecompiledLine();
 	}
 }

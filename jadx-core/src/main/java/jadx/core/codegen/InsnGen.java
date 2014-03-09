@@ -16,6 +16,7 @@ import jadx.core.dex.instructions.FillArrayNode;
 import jadx.core.dex.instructions.GotoNode;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IndexInsnNode;
+import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.InvokeType;
 import jadx.core.dex.instructions.SwitchNode;
@@ -38,6 +39,7 @@ import jadx.core.utils.InsnUtils;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.CodegenException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -57,12 +59,7 @@ public class InsnGen {
 	protected final RootNode root;
 	private final boolean fallback;
 
-	private static enum IGState {
-		SKIP,
-
-		NO_SEMICOLON,
-		NO_RESULT,
-
+	private static enum Flags {
 		BODY_ONLY,
 		BODY_ONLY_NOWRAP,
 	}
@@ -113,7 +110,7 @@ public class InsnGen {
 		} else if (arg.isLiteral()) {
 			code.add(lit((LiteralArg) arg));
 		} else if (arg.isInsnWrap()) {
-			IGState flag = wrap ? IGState.BODY_ONLY : IGState.BODY_ONLY_NOWRAP;
+			Flags flag = wrap ? Flags.BODY_ONLY : Flags.BODY_ONLY_NOWRAP;
 			makeInsn(((InsnWrapArg) arg).getWrapInsn(), code, flag);
 		} else if (arg.isNamed()) {
 			code.add(((NamedArg) arg).getName());
@@ -164,18 +161,17 @@ public class InsnGen {
 		code.add(field.getName());
 	}
 
-	protected String staticField(FieldInfo field) {
-		String thisClass = mth.getParentClass().getFullName();
+	public static String makeStaticFieldAccess(FieldInfo field, ClassGen clsGen) {
 		ClassInfo declClass = field.getDeclClass();
-		if (thisClass.startsWith(declClass.getFullName())) {
+		if (clsGen.getClassNode().getFullName().startsWith(declClass.getFullName())) {
 			return field.getName();
 		}
 		// Android specific resources class handler
 		ClassInfo parentClass = declClass.getParentClass();
 		if (parentClass != null && parentClass.getShortName().equals("R")) {
-			return useClass(parentClass) + "." + declClass.getShortName() + "." + field.getName();
+			return clsGen.useClass(parentClass) + "." + declClass.getShortName() + "." + field.getName();
 		}
-		return useClass(declClass) + '.' + field.getName();
+		return clsGen.useClass(declClass) + '.' + field.getName();
 	}
 
 	private void fieldPut(IndexInsnNode insn) {
@@ -190,6 +186,10 @@ public class InsnGen {
 		}
 	}
 
+	protected String staticField(FieldInfo field) {
+		return makeStaticFieldAccess(field, mgen.getClassGen());
+	}
+
 	public String useClass(ClassInfo cls) {
 		return mgen.getClassGen().useClass(cls);
 	}
@@ -202,31 +202,25 @@ public class InsnGen {
 		return makeInsn(insn, code, null);
 	}
 
-	private boolean makeInsn(InsnNode insn, CodeWriter code, IGState flag) throws CodegenException {
+	private boolean makeInsn(InsnNode insn, CodeWriter code, Flags flag) throws CodegenException {
 		try {
-			EnumSet<IGState> state = EnumSet.noneOf(IGState.class);
-			if (flag == IGState.BODY_ONLY || flag == IGState.BODY_ONLY_NOWRAP) {
+			if (insn.getType() == InsnType.NOP) {
+				return false;
+			}
+			EnumSet<Flags> state = EnumSet.noneOf(Flags.class);
+			if (flag == Flags.BODY_ONLY || flag == Flags.BODY_ONLY_NOWRAP) {
 				state.add(flag);
 				makeInsnBody(code, insn, state);
 			} else {
-				CodeWriter body = new CodeWriter(code.getIndent());
-				makeInsnBody(body, insn, state);
-				if (state.contains(IGState.SKIP)) {
-					return false;
-				}
-
 				code.startLine();
 				if (insn.getSourceLine() != 0) {
 					code.attachAnnotation(insn.getSourceLine());
 				}
-				if (insn.getResult() != null && !state.contains(IGState.NO_RESULT)) {
+				if (insn.getResult() != null && insn.getType() != InsnType.ARITH_ONEARG) {
 					code.add(assignVar(insn)).add(" = ");
 				}
-				code.add(body);
-
-				if (!state.contains(IGState.NO_SEMICOLON)) {
-					code.add(';');
-				}
+				makeInsnBody(code, insn, state);
+				code.add(';');
 			}
 		} catch (Throwable th) {
 			throw new CodegenException(mth, "Error generate insn: " + insn, th);
@@ -234,7 +228,7 @@ public class InsnGen {
 		return true;
 	}
 
-	private void makeInsnBody(CodeWriter code, InsnNode insn, EnumSet<IGState> state) throws CodegenException {
+	private void makeInsnBody(CodeWriter code, InsnNode insn, EnumSet<Flags> state) throws CodegenException {
 		switch (insn.getType()) {
 			case CONST_STR:
 				String str = ((ConstStringNode) insn).getString();
@@ -257,7 +251,7 @@ public class InsnGen {
 
 			case CHECK_CAST:
 			case CAST: {
-				boolean wrap = state.contains(IGState.BODY_ONLY);
+				boolean wrap = state.contains(Flags.BODY_ONLY);
 				if (wrap) {
 					code.add('(');
 				}
@@ -270,13 +264,18 @@ public class InsnGen {
 				}
 				break;
 			}
+
 			case ARITH:
 				makeArith((ArithNode) insn, code, state);
 				break;
 
+			case ARITH_ONEARG:
+				makeArithOneArg((ArithNode) insn, code, state);
+				break;
+
 			case NEG:
 				String base = "-" + arg(insn.getArg(0));
-				if (state.contains(IGState.BODY_ONLY)) {
+				if (state.contains(Flags.BODY_ONLY)) {
 					code.add('(').add(base).add(')');
 				} else {
 					code.add(base);
@@ -311,7 +310,7 @@ public class InsnGen {
 				break;
 
 			case INSTANCE_OF: {
-				boolean wrap = state.contains(IGState.BODY_ONLY);
+				boolean wrap = state.contains(Flags.BODY_ONLY);
 				if (wrap) {
 					code.add('(');
 				}
@@ -400,7 +399,7 @@ public class InsnGen {
 					}
 				}
 				// TODO: wrap in braces only if necessary
-				if (state.contains(IGState.BODY_ONLY)) {
+				if (state.contains(Flags.BODY_ONLY)) {
 					code.add('(').add(sb.toString()).add(')');
 				} else {
 					code.add(sb.toString());
@@ -410,16 +409,12 @@ public class InsnGen {
 			case MONITOR_ENTER:
 				if (isFallback()) {
 					code.add("monitor-enter(").add(arg(insn.getArg(0))).add(')');
-				} else {
-					state.add(IGState.SKIP);
 				}
 				break;
 
 			case MONITOR_EXIT:
 				if (isFallback()) {
 					code.add("monitor-exit(").add(arg(insn, 0)).add(')');
-				} else {
-					state.add(IGState.SKIP);
 				}
 				break;
 
@@ -437,10 +432,6 @@ public class InsnGen {
 
 			case ARGS:
 				code.add(arg(insn, 0));
-				break;
-
-			case NOP:
-				state.add(IGState.SKIP);
 				break;
 
 			/* fallback mode instructions */
@@ -472,7 +463,6 @@ public class InsnGen {
 				code.add(MethodGen.getLabelName(sw.getDefaultCaseOffset())).add(';');
 				code.decIndent();
 				code.startLine('}');
-				state.add(IGState.NO_SEMICOLON);
 				break;
 
 			case NEW_INSTANCE:
@@ -556,7 +546,7 @@ public class InsnGen {
 		code.add("new ").add(useType(elType)).add("[]{").add(str.toString()).add('}');
 	}
 
-	private void makeConstructor(ConstructorInsn insn, CodeWriter code, EnumSet<IGState> state)
+	private void makeConstructor(ConstructorInsn insn, CodeWriter code, EnumSet<Flags> state)
 			throws CodegenException {
 		ClassNode cls = mth.dex().resolveClass(insn.getClassType());
 		if (cls != null && cls.isAnonymous()) {
@@ -579,9 +569,7 @@ public class InsnGen {
 			return;
 		}
 		if (insn.isSelf()) {
-			// skip
-			state.add(IGState.SKIP);
-			return;
+			throw new JadxRuntimeException("Constructor 'self' invoke must be removed!");
 		}
 		if (insn.isSuper()) {
 			code.add("super");
@@ -632,6 +620,9 @@ public class InsnGen {
 				}
 				break;
 		}
+		if (callMthNode != null) {
+			code.attachAnnotation(callMthNode);
+		}
 		code.add(callMth.getName());
 		generateArguments(code, insn, k, callMthNode);
 	}
@@ -678,7 +669,7 @@ public class InsnGen {
 		IAttribute mia = callMthNode.getAttributes().get(AttributeType.METHOD_INLINE);
 		InsnNode inl = ((MethodInlineAttr) mia).getInsn();
 		if (callMthNode.getMethodInfo().getArgumentsTypes().isEmpty()) {
-			makeInsn(inl, code, IGState.BODY_ONLY);
+			makeInsn(inl, code, Flags.BODY_ONLY);
 		} else {
 			// remap args
 			InsnArg[] regs = new InsnArg[callMthNode.getRegsCount()];
@@ -705,7 +696,7 @@ public class InsnGen {
 					}
 				}
 			}
-			makeInsn(inl, code, IGState.BODY_ONLY);
+			makeInsn(inl, code, Flags.BODY_ONLY);
 			// revert changes
 			for (Map.Entry<RegisterArg, InsnArg> e : toRevert.entrySet()) {
 				inl.replaceArg(e.getValue(), e.getKey());
@@ -713,14 +704,14 @@ public class InsnGen {
 		}
 	}
 
-	private void makeTernary(TernaryInsn insn, CodeWriter code, EnumSet<IGState> state) throws CodegenException {
+	private void makeTernary(TernaryInsn insn, CodeWriter code, EnumSet<Flags> state) throws CodegenException {
 		String cond = ConditionGen.make(this, insn.getCondition());
 		CodeWriter th = arg(insn.getArg(0), false);
 		CodeWriter els = arg(insn.getArg(1), false);
 		if (th.toString().equals("true") && els.toString().equals("false")) {
 			code.add(cond);
 		} else {
-			if (state.contains(IGState.BODY_ONLY)) {
+			if (state.contains(Flags.BODY_ONLY)) {
 				code.add("((").add(cond).add(')').add(" ? ").add(th).add(" : ").add(els).add(')');
 			} else {
 				code.add('(').add(cond).add(')').add(" ? ").add(th).add(" : ").add(els);
@@ -728,33 +719,40 @@ public class InsnGen {
 		}
 	}
 
-	private void makeArith(ArithNode insn, CodeWriter code, EnumSet<IGState> state) throws CodegenException {
+	private void makeArith(ArithNode insn, CodeWriter code, EnumSet<Flags> state) throws CodegenException {
 		ArithOp op = insn.getOp();
-		CodeWriter v1 = arg(insn.getArg(0));
-		CodeWriter v2 = arg(insn.getArg(1));
-		if (state.contains(IGState.BODY_ONLY)) {
+		if (state.contains(Flags.BODY_ONLY)) {
 			// wrap insn in brackets for save correct operation order
-			code.add('(').add(v1).add(' ').add(op.getSymbol()).add(' ').add(v2).add(')');
-		} else if (state.contains(IGState.BODY_ONLY_NOWRAP)) {
-			code.add(v1).add(' ').add(op.getSymbol()).add(' ').add(v2);
+			code.add('(');
+			addArg(code, insn.getArg(0));
+			code.add(' ');
+			code.add(op.getSymbol());
+			code.add(' ');
+			addArg(code, insn.getArg(1));
+			code.add(')');
 		} else {
-			CodeWriter res = arg(insn.getResult());
-			if (res.equals(v1) && insn.getResult().equals(insn.getArg(0))) {
-				state.add(IGState.NO_RESULT);
-				// "++" or "--"
-				if (insn.getArg(1).isLiteral() && (op == ArithOp.ADD || op == ArithOp.SUB)) {
-					LiteralArg lit = (LiteralArg) insn.getArg(1);
-					if (lit.isInteger() && lit.getLiteral() == 1) {
-						code.add(assignVar(insn)).add(op.getSymbol()).add(op.getSymbol());
-						return;
-					}
-				}
-				// +=, -= ...
-				v2 = arg(insn.getArg(1), false);
-				code.add(assignVar(insn)).add(' ').add(op.getSymbol()).add("= ").add(v2);
-			} else {
-				code.add(v1).add(' ').add(op.getSymbol()).add(' ').add(v2);
+			addArg(code, insn.getArg(0));
+			code.add(' ');
+			code.add(op.getSymbol());
+			code.add(' ');
+			addArg(code, insn.getArg(1));
+		}
+	}
+
+	private void makeArithOneArg(ArithNode insn, CodeWriter code, EnumSet<Flags> state) throws CodegenException {
+		ArithOp op = insn.getOp();
+		InsnArg arg = insn.getArg(0);
+		// "++" or "--"
+		if (arg.isLiteral() && (op == ArithOp.ADD || op == ArithOp.SUB)) {
+			LiteralArg lit = (LiteralArg) arg;
+			if (lit.isInteger() && lit.getLiteral() == 1) {
+				String opSymbol = op.getSymbol();
+				code.add(assignVar(insn)).add(opSymbol).add(opSymbol);
+				return;
 			}
 		}
+		// +=, -= ...
+		code.add(assignVar(insn)).add(' ').add(op.getSymbol()).add("= ");
+		addArg(code, arg, false);
 	}
 }

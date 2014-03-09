@@ -12,6 +12,7 @@ import jadx.core.dex.visitors.FallbackModeVisitor;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.MethodInlineVisitor;
 import jadx.core.dex.visitors.ModVisitor;
+import jadx.core.dex.visitors.PrepareForCodeGen;
 import jadx.core.dex.visitors.SimplifyVisitor;
 import jadx.core.dex.visitors.regions.CheckRegions;
 import jadx.core.dex.visitors.regions.ProcessVariables;
@@ -82,6 +83,7 @@ public class Jadx {
 
 			passes.add(new MethodInlineVisitor());
 			passes.add(new ClassModifier());
+			passes.add(new PrepareForCodeGen());
 		}
 		passes.add(new CodeGen(args));
 		return passes;

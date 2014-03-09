@@ -51,7 +51,7 @@ public class ArithNode extends InsnNode {
 	}
 
 	public ArithNode(ArithOp op, RegisterArg res, InsnArg a) {
-		super(InsnType.ARITH, 1);
+		super(InsnType.ARITH_ONEARG, 1);
 		this.op = op;
 		setResult(res);
 		addArg(a);

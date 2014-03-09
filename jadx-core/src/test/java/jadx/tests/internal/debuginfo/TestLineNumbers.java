@@ -1,4 +1,4 @@
-package jadx.tests.internal;
+package jadx.tests.internal.debuginfo;
 
 import jadx.api.InternalJadxTest;
 import jadx.core.codegen.CodeWriter;

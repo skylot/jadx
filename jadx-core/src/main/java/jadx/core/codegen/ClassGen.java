@@ -151,7 +151,7 @@ public class ClassGen {
 			}
 		}
 
-		clsCode.attachAnnotation(cls);
+		clsCode.attachDefinition(cls);
 	}
 
 	public boolean makeGenericMap(CodeWriter code, Map<ArgType, List<ArgType>> gmap) {
@@ -228,8 +228,8 @@ public class ClassGen {
 					if (cls.getAccessFlags().isAnnotation()) {
 						Object def = annotationGen.getAnnotationDefaultValue(mth.getName());
 						if (def != null) {
-							String v = annotationGen.encValueToString(def);
-							code.add(" default ").add(v);
+							code.add(" default ");
+							annotationGen.encodeValue(code, def);
 						}
 					}
 					code.add(';');
@@ -282,11 +282,11 @@ public class ClassGen {
 				if (fv.getValue() == null) {
 					code.add(TypeGen.literalToString(0, f.getType()));
 				} else {
-					code.add(annotationGen.encValueToString(fv.getValue()));
+					annotationGen.encodeValue(code, fv.getValue());
 				}
 			}
 			code.add(';');
-			code.attachAnnotation(f);
+			code.attachDefinition(f);
 		}
 		return code;
 	}
