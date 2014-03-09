@@ -27,8 +27,6 @@ import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.ProgressMonitor;
 import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.basic.BasicButtonUI;
@@ -40,14 +38,15 @@ import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
+import java.awt.DisplayMode;
 import java.awt.FlowLayout;
-import java.awt.Toolkit;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -55,8 +54,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +63,6 @@ public class MainWindow extends JFrame {
 	private static final Logger LOG = LoggerFactory.getLogger(MainWindow.class);
 
 	private static final String DEFAULT_TITLE = "jadx-gui";
-	private static final Color BACKGROUND = new Color(0xf7f7f7);
 
 	private static final double BORDER_RATIO = 0.15;
 	private static final double WINDOW_RATIO = 1 - BORDER_RATIO * 2;
@@ -158,17 +154,8 @@ public class MainWindow extends JFrame {
 		}
 	}
 
-	private JPanel newCodePane() {
-		RSyntaxTextArea textArea = new RSyntaxTextArea();
-		textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
-		textArea.setMarkOccurrences(true);
-		textArea.setBackground(BACKGROUND);
-		textArea.setCodeFoldingEnabled(true);
-		textArea.setAntiAliasingEnabled(true);
-		// textArea.setEditable(false);
-		// textArea.setHyperlinksEnabled(true);
-		textArea.setTabSize(4);
-
+	private JPanel newCodePane(final JClass cls) {
+		JadxTextArea textArea = new JadxTextArea(this, cls);
 		RTextScrollPane scrollPane = new RTextScrollPane(textArea);
 		scrollPane.setFoldIndicatorEnabled(true);
 
@@ -191,27 +178,25 @@ public class MainWindow extends JFrame {
 		return (SearchBar) panel.getComponent(0);
 	}
 
-	private JTextArea getTextArea(JPanel panel) {
+	private JadxTextArea getTextArea(JPanel panel) {
 		RTextScrollPane scrollPane = (RTextScrollPane) panel.getComponent(1);
-		return scrollPane.getTextArea();
+		return (JadxTextArea) scrollPane.getTextArea();
 	}
 
-	private void showCode(JClass cls, int line) {
-		cls.load();
+	void showCode(JClass cls, int line) {
 		JPanel panel = (JPanel) openTabs.get(cls);
 		if (panel != null) {
 			panel = (JPanel) openTabs.get(cls);
 			tabbedPane.setSelectedComponent(panel);
 		} else {
-			panel = newCodePane();
+			panel = newCodePane(cls);
 			tabbedPane.add(panel);
 			openTabs.put(cls, panel);
 			int id = tabbedPane.indexOfComponent(panel);
 			tabbedPane.setTabComponentAt(id, makeTabComponent(cls, panel));
 			tabbedPane.setSelectedIndex(id);
 		}
-		JTextArea textArea = getTextArea(panel);
-		textArea.setText(cls.getCode());
+		JadxTextArea textArea = getTextArea(panel);
 		scrollToLine(textArea, line);
 	}
 
@@ -366,13 +351,20 @@ public class MainWindow extends JFrame {
 		treeModel = new DefaultTreeModel(treeRoot);
 		tree = new JTree(treeModel);
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-		tree.addTreeSelectionListener(new TreeSelectionListener() {
+		tree.addMouseListener(new MouseAdapter() {
 			@Override
-			public void valueChanged(TreeSelectionEvent event) {
+			public void mouseClicked(MouseEvent e) {
 				treeClickAction();
 			}
 		});
-
+		tree.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					treeClickAction();
+				}
+			}
+		});
 		tree.setCellRenderer(new DefaultTreeCellRenderer() {
 			@Override
 			public Component getTreeCellRendererComponent(JTree tree,
@@ -386,7 +378,6 @@ public class MainWindow extends JFrame {
 			}
 		});
 		tree.addTreeWillExpandListener(new TreeWillExpandListener() {
-
 			@Override
 			public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException {
 				TreePath path = event.getPath();
@@ -413,9 +404,10 @@ public class MainWindow extends JFrame {
 	}
 
 	public void setLocationAndPosition() {
-		Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
-		double w = dimension.getWidth();
-		double h = dimension.getHeight();
+		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+		DisplayMode mode = gd.getDisplayMode();
+		int w = mode.getWidth();
+		int h = mode.getHeight();
 		setLocation((int) (w * BORDER_RATIO), (int) (h * BORDER_RATIO));
 		setSize((int) (w * WINDOW_RATIO), (int) (h * WINDOW_RATIO));
 	}

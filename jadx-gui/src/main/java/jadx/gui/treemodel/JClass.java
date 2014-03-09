@@ -112,6 +112,16 @@ public class JClass extends JNode {
 	}
 
 	@Override
+	public int hashCode() {
+		return cls.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return this == obj || obj instanceof JClass && cls.equals(((JClass) obj).cls);
+	}
+
+	@Override
 	public String toString() {
 		return cls.getShortName();
 	}
