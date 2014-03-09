@@ -16,6 +16,10 @@ public class TestArith2 extends InternalJadxTest {
 		public int test1(int a) {
 			return (a + 2) * 3;
 		}
+
+		public int test2(int a, int b, int c) {
+			return a + b + c;
+		}
 	}
 
 	@Test
@@ -26,5 +30,8 @@ public class TestArith2 extends InternalJadxTest {
 
 		assertThat(code, containsString("return (a + 2) * 3;"));
 		assertThat(code, not(containsString("a + 2 * 3")));
+
+		assertThat(code, containsString("return a + b + c;"));
+		assertThat(code, not(containsString("return (a + b) + c;")));
 	}
 }

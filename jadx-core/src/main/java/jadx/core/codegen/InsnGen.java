@@ -720,22 +720,19 @@ public class InsnGen {
 	}
 
 	private void makeArith(ArithNode insn, CodeWriter code, EnumSet<Flags> state) throws CodegenException {
-		ArithOp op = insn.getOp();
-		if (state.contains(Flags.BODY_ONLY)) {
-			// wrap insn in brackets for save correct operation order
+		// wrap insn in brackets for save correct operation order
+		boolean wrap = state.contains(Flags.BODY_ONLY)
+				&& !insn.getAttributes().contains(AttributeFlag.DONT_WRAP);
+		if (wrap) {
 			code.add('(');
-			addArg(code, insn.getArg(0));
-			code.add(' ');
-			code.add(op.getSymbol());
-			code.add(' ');
-			addArg(code, insn.getArg(1));
+		}
+		addArg(code, insn.getArg(0));
+		code.add(' ');
+		code.add(insn.getOp().getSymbol());
+		code.add(' ');
+		addArg(code, insn.getArg(1));
+		if (wrap) {
 			code.add(')');
-		} else {
-			addArg(code, insn.getArg(0));
-			code.add(' ');
-			code.add(op.getSymbol());
-			code.add(' ');
-			addArg(code, insn.getArg(1));
 		}
 	}
 

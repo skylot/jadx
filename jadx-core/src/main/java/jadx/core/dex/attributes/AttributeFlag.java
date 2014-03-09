@@ -13,6 +13,7 @@ public enum AttributeFlag {
 	RETURN, // block contains only return instruction
 
 	DECLARE_VAR,
+	DONT_WRAP,
 
 	DONT_SHRINK,
 	DONT_GENERATE,

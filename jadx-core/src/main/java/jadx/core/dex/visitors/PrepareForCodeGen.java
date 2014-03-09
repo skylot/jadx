@@ -1,8 +1,11 @@
 package jadx.core.dex.visitors;
 
+import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.instructions.ArithNode;
+import jadx.core.dex.instructions.ArithOp;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.BlockNode;
@@ -23,6 +26,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 		}
 		for (BlockNode block : blocks) {
 			removeInstructions(block);
+			removeBrackets(block);
 			modifyArith(block);
 		}
 	}
@@ -44,6 +48,36 @@ public class PrepareForCodeGen extends AbstractVisitor {
 						it.remove();
 					}
 					break;
+			}
+		}
+	}
+
+	private static void removeBrackets(BlockNode block) {
+		for (InsnNode insn : block.getInstructions()) {
+			checkInsn(insn);
+		}
+	}
+
+	private static void checkInsn(InsnNode insn) {
+		if (insn.getType() == InsnType.ARITH) {
+			ArithNode arith = (ArithNode) insn;
+			ArithOp op = arith.getOp();
+			if (op == ArithOp.ADD || op == ArithOp.SUB) {
+				for (int i = 0; i < 2; i++) {
+					InsnArg arg = arith.getArg(i);
+					if (arg.isInsnWrap()) {
+						InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
+						wrapInsn.getAttributes().add(AttributeFlag.DONT_WRAP);
+						checkInsn(wrapInsn);
+					}
+				}
+			}
+		} else {
+			for (InsnArg arg : insn.getArguments()) {
+				if (arg.isInsnWrap()) {
+					InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
+					checkInsn(wrapInsn);
+				}
 			}
 		}
 	}
