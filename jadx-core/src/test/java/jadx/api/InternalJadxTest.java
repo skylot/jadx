@@ -71,6 +71,7 @@ public abstract class InternalJadxTest {
 			assertFalse(cls.getAttributes().contains(AttributeFlag.INCONSISTENT_CODE));
 			return cls;
 		} catch (Exception e) {
+			e.printStackTrace();
 			fail(e.getMessage());
 			return null;
 		}

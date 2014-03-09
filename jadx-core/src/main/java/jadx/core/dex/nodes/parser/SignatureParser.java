@@ -23,9 +23,9 @@ public class SignatureParser {
 
 	public SignatureParser(String signature) {
 		sign = signature;
+		end = sign.length();
 		pos = -1;
 		mark = 0;
-		end = sign.length();
 	}
 
 	@SuppressWarnings("unchecked")

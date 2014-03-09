@@ -174,7 +174,7 @@ public abstract class ArgType {
 		private final int bounds;
 
 		public WildcardType(ArgType obj, int bound) {
-			super(obj.getObject());
+			super(ArgType.OBJECT.getObject());
 			this.type = obj;
 			this.bounds = bound;
 		}
@@ -205,7 +205,8 @@ public abstract class ArgType {
 		@Override
 		boolean internalEquals(Object obj) {
 			return super.internalEquals(obj)
-					&& bounds == ((WildcardType) obj).bounds;
+					&& bounds == ((WildcardType) obj).bounds
+					&& type.equals(((WildcardType) obj).type);
 		}
 
 		@Override
@@ -213,7 +214,7 @@ public abstract class ArgType {
 			if (bounds == 0) {
 				return "?";
 			}
-			return "? " + (bounds == -1 ? "super" : "extends") + " " + super.toString();
+			return "? " + (bounds == -1 ? "super" : "extends") + " " + type.toString();
 		}
 	}
 
