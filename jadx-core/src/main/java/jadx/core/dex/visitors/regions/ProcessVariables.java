@@ -60,7 +60,7 @@ public class ProcessVariables extends AbstractVisitor {
 
 		@Override
 		public String toString() {
-			return arg + " " + assigns + " " + usage;
+			return arg + ", a:" + assigns + ", u:" + usage;
 		}
 	}
 

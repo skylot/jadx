@@ -5,6 +5,7 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.regions.AbstractRegion;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
@@ -144,6 +145,14 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 			region.getSubBlocks().removeAll(newRegion.getSubBlocks());
 
 			newRegion.getAttributes().add(tb.getCatchAttr());
+
+			// fix parents
+			for (IContainer cont : newRegion.getSubBlocks()) {
+				if (cont instanceof AbstractRegion) {
+					AbstractRegion aReg = (AbstractRegion) cont;
+					aReg.setParent(newRegion);
+				}
+			}
 		}
 	}
 

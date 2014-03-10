@@ -5,7 +5,7 @@ import jadx.core.dex.nodes.IRegion;
 
 public abstract class AbstractRegion extends AttrNode implements IRegion {
 
-	private final IRegion parent;
+	private IRegion parent;
 
 	public AbstractRegion(IRegion parent) {
 		this.parent = parent;
@@ -16,4 +16,7 @@ public abstract class AbstractRegion extends AttrNode implements IRegion {
 		return parent;
 	}
 
+	public void setParent(IRegion parent) {
+		this.parent = parent;
+	}
 }

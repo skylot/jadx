@@ -6,9 +6,15 @@ import jadx.core.dex.visitors.DepthTraverser;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.exceptions.DecodeException;
 
+import java.util.Iterator;
 import java.util.List;
 
+import org.junit.Test;
 import org.slf4j.Logger;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertThat;
 
 public class TestVariablesDefinitions extends InternalJadxTest {
 
@@ -20,23 +26,24 @@ public class TestVariablesDefinitions extends InternalJadxTest {
 		public void run() {
 			try {
 				cls.load();
-				for (IDexTreeVisitor visitor : passes) {
-					DepthTraverser.visit(visitor, cls);
+				Iterator<IDexTreeVisitor> iterator = passes.iterator();
+				while (iterator.hasNext()) {
+					DepthTraverser.visit(iterator.next(), cls);
 				}
 			} catch (DecodeException e) {
 				LOG.error("Decode exception: " + cls, e);
-			} finally {
-				cls.unload();
 			}
 		}
 	}
 
-	//@Test
+	@Test
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
-
 		String code = cls.getCode().toString();
-
 		System.out.println(code);
+
+		// 'iterator' variable must be declared inside 'try' block
+		assertThat(code, containsString(makeIndent(3) + "Iterator<IDexTreeVisitor> iterator = "));
+		assertThat(code, not(containsString("iterator;")));
 	}
 }
