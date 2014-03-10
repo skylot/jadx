@@ -3,6 +3,8 @@ package jadx.tests.internal;
 import jadx.api.InternalJadxTest;
 import jadx.core.dex.nodes.ClassNode;
 
+import org.junit.Test;
+
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
@@ -19,12 +21,13 @@ public class TestArgInline extends InternalJadxTest {
 		}
 	}
 
-	//@Test
+	@Test
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 		System.out.println(code);
-		assertThat(code, not(containsString("a = a + 1;")));
+
 		assertThat(code, containsString("a++;"));
+		assertThat(code, not(containsString("a = a + 1;")));
 	}
 }

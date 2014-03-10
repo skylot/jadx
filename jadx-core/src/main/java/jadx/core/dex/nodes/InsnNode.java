@@ -24,10 +24,6 @@ public class InsnNode extends LineAttrNode {
 	protected int offset;
 	protected int insnHashCode = super.hashCode();
 
-	protected InsnNode(InsnType type) {
-		this(type, 1);
-	}
-
 	public InsnNode(InsnType type, int argsCount) {
 		this.insnType = type;
 		this.offset = -1;
@@ -155,8 +151,10 @@ public class InsnNode extends LineAttrNode {
 			case STR_CONCAT:
 			case MOVE_EXCEPTION:
 				return true;
+
+			default:
+				return false;
 		}
-		return false;
 	}
 
 	@Override

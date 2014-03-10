@@ -16,6 +16,11 @@ import jadx.core.utils.exceptions.JadxException;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Prepare instructions for code generation pass,
+ * most of this modification breaks register dependencies,
+ * so this pass must be just before CodeGen.
+ */
 public class PrepareForCodeGen extends AbstractVisitor {
 
 	@Override
@@ -26,7 +31,8 @@ public class PrepareForCodeGen extends AbstractVisitor {
 		}
 		for (BlockNode block : blocks) {
 			removeInstructions(block);
-			removeBrackets(block);
+			checkInline(block);
+			removeParenthesis(block);
 			modifyArith(block);
 		}
 	}
@@ -52,12 +58,31 @@ public class PrepareForCodeGen extends AbstractVisitor {
 		}
 	}
 
-	private static void removeBrackets(BlockNode block) {
+	private static void checkInline(BlockNode block) {
+		List<InsnNode> list = block.getInstructions();
+		for (int i = 0; i < list.size(); i++) {
+			InsnNode insn = list.get(i);
+			// replace 'move' with inner wrapped instruction
+			if (insn.getType() == InsnType.MOVE
+					&& insn.getArg(0).isInsnWrap()
+					&& !insn.getAttributes().contains(AttributeFlag.DECLARE_VAR)) {
+				InsnNode wrapInsn = ((InsnWrapArg)insn.getArg(0)).getWrapInsn();
+				wrapInsn.setResult(insn.getResult());
+				list.set(i, wrapInsn);
+			}
+		}
+	}
+
+	private static void removeParenthesis(BlockNode block) {
 		for (InsnNode insn : block.getInstructions()) {
 			checkInsn(insn);
 		}
 	}
 
+	/**
+	 * Remove parenthesis for wrapped insn  in arith '+' or '-'
+	 * ('(a + b) +c' => 'a + b + c')
+	 */
 	private static void checkInsn(InsnNode insn) {
 		if (insn.getType() == InsnType.ARITH) {
 			ArithNode arith = (ArithNode) insn;
@@ -82,6 +107,10 @@ public class PrepareForCodeGen extends AbstractVisitor {
 		}
 	}
 
+	/**
+	 * Replace arithmetic operation with short form
+	 * ('a = a + 2' => 'a += 2')
+	 */
 	private static void modifyArith(BlockNode block) {
 		List<InsnNode> list = block.getInstructions();
 		for (int i = 0; i < list.size(); i++) {
