@@ -15,7 +15,6 @@ import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
-import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.IfCondition;
 import jadx.core.dex.regions.IfRegion;
 import jadx.core.dex.regions.LoopRegion;
@@ -36,8 +35,8 @@ import org.slf4j.LoggerFactory;
 public class RegionGen extends InsnGen {
 	private static final Logger LOG = LoggerFactory.getLogger(RegionGen.class);
 
-	public RegionGen(MethodGen mgen, MethodNode mth) {
-		super(mgen, mth, false);
+	public RegionGen(MethodGen mgen) {
+		super(mgen, false);
 	}
 
 	public void makeRegion(CodeWriter code, IContainer cont) throws CodegenException {
@@ -66,7 +65,9 @@ public class RegionGen extends InsnGen {
 				(DeclareVariablesAttr) cont.getAttributes().get(AttributeType.DECLARE_VARIABLES);
 		if (declVars != null) {
 			for (RegisterArg v : declVars.getVars()) {
-				code.startLine(declareVar(v)).add(';');
+				code.startLine();
+				declareVar(code, v);
+				code.add(';');
 			}
 		}
 	}
@@ -111,7 +112,9 @@ public class RegionGen extends InsnGen {
 		if (newLine) {
 			code.startLine();
 		}
-		code.add("if (").add(ConditionGen.make(this, region.getCondition())).add(") {");
+		code.add("if (");
+		new ConditionGen(this).add(code, region.getCondition());
+		code.add(") {");
 		makeRegionIndent(code, region.getThenRegion());
 		code.startLine('}');
 
@@ -169,13 +172,17 @@ public class RegionGen extends InsnGen {
 			return code;
 		}
 
-		String condStr = ConditionGen.make(this, condition);
+		ConditionGen conditionGen = new ConditionGen(this);
 		if (region.isConditionAtEnd()) {
 			code.startLine("do {");
 			makeRegionIndent(code, region.getBody());
-			code.startLine("} while (").add(condStr).add(");");
+			code.startLine("} while (");
+			conditionGen.add(code, condition);
+			code.add(");");
 		} else {
-			code.startLine("while (").add(condStr).add(") {");
+			code.startLine("while (");
+			conditionGen.add(code, condition);
+			code.add(") {");
 			makeRegionIndent(code, region.getBody());
 			code.startLine('}');
 		}

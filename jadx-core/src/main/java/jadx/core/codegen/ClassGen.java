@@ -43,6 +43,7 @@ public class ClassGen {
 	private final boolean fallback;
 
 	private final Set<ClassInfo> imports = new HashSet<ClassInfo>();
+	private int clsDeclLine = 0;
 
 	public ClassGen(ClassNode cls, ClassGen parentClsGen, boolean fallback) {
 		this.cls = cls;
@@ -95,12 +96,11 @@ public class ClassGen {
 		if (cls.getAttributes().contains(AttributeFlag.INCONSISTENT_CODE)) {
 			code.startLine("// jadx: inconsistent code");
 		}
-		makeClassDeclaration(code);
-		makeClassBody(code);
-		code.newLine();
+		addClassDeclaration(code);
+		addClassBody(code);
 	}
 
-	public void makeClassDeclaration(CodeWriter clsCode) {
+	public void addClassDeclaration(CodeWriter clsCode) {
 		AccessInfo af = cls.getAccessFlags();
 		if (af.isInterface()) {
 			af = af.remove(AccessFlags.ACC_ABSTRACT);
@@ -123,7 +123,7 @@ public class ClassGen {
 		}
 		clsCode.add(cls.getShortName());
 
-		makeGenericMap(clsCode, cls.getGenericMap());
+		addGenericMap(clsCode, cls.getGenericMap());
 		clsCode.add(' ');
 
 		ClassInfo sup = cls.getSuperClass();
@@ -150,11 +150,10 @@ public class ClassGen {
 				clsCode.add(' ');
 			}
 		}
-
 		clsCode.attachDefinition(cls);
 	}
 
-	public boolean makeGenericMap(CodeWriter code, Map<ArgType, List<ArgType>> gmap) {
+	public boolean addGenericMap(CodeWriter code, Map<ArgType, List<ArgType>> gmap) {
 		if (gmap == null || gmap.isEmpty()) {
 			return false;
 		}
@@ -183,91 +182,78 @@ public class ClassGen {
 		return true;
 	}
 
-	public void makeClassBody(CodeWriter clsCode) throws CodegenException {
+	public void addClassBody(CodeWriter clsCode) throws CodegenException {
 		clsCode.add('{');
-		CodeWriter mthsCode = makeMethods(clsCode, cls.getMethods());
-		CodeWriter fieldsCode = makeFields(clsCode, cls, cls.getFields());
-		clsCode.add(fieldsCode);
-		if (fieldsCode.notEmpty() && mthsCode.notEmpty()) {
-			clsCode.newLine();
-		}
-		// insert inner classes code
-		if (cls.getInnerClasses().size() != 0) {
-			clsCode.add(makeInnerClasses(cls, clsCode.getIndent()));
-			if (mthsCode.notEmpty()) {
-				clsCode.newLine();
-			}
-		}
-		clsCode.add(mthsCode);
+		clsDeclLine = clsCode.getLine();
+		clsCode.incIndent();
+		addFields(clsCode);
+		addInnerClasses(clsCode, cls);
+		addMethods(clsCode);
+		clsCode.decIndent();
 		clsCode.startLine('}');
 	}
 
-	private CodeWriter makeInnerClasses(ClassNode cls, int indent) throws CodegenException {
-		CodeWriter innerClsCode = new CodeWriter(indent + 1);
-		for (ClassNode inCls : cls.getInnerClasses()) {
-			if (!inCls.isAnonymous()) {
-				ClassGen inClGen = new ClassGen(inCls, parentGen == null ? this : parentGen, fallback);
-				inClGen.addClassCode(innerClsCode);
+	private void addInnerClasses(CodeWriter code, ClassNode cls) throws CodegenException {
+		for (ClassNode innerCls : cls.getInnerClasses()) {
+			if (!innerCls.isAnonymous()) {
+				ClassGen inClGen = new ClassGen(innerCls, getParentGen(), fallback);
+				code.newLine();
+				inClGen.addClassCode(code);
 				imports.addAll(inClGen.getImports());
 			}
 		}
-		return innerClsCode;
 	}
 
-	private CodeWriter makeMethods(CodeWriter clsCode, List<MethodNode> mthList) {
-		CodeWriter code = new CodeWriter(clsCode.getIndent() + 1);
-		for (Iterator<MethodNode> it = mthList.iterator(); it.hasNext(); ) {
-			MethodNode mth = it.next();
-			if (mth.getAttributes().contains(AttributeFlag.DONT_GENERATE)) {
-				continue;
-			}
-			try {
-				if (mth.getAccessFlags().isAbstract() || mth.getAccessFlags().isNative()) {
-					MethodGen mthGen = new MethodGen(this, mth);
-					mthGen.addDefinition(code);
-					if (cls.getAccessFlags().isAnnotation()) {
-						Object def = annotationGen.getAnnotationDefaultValue(mth.getName());
-						if (def != null) {
-							code.add(" default ");
-							annotationGen.encodeValue(code, def);
-						}
+	private void addMethods(CodeWriter code) {
+		for (MethodNode mth : cls.getMethods()) {
+			if (!mth.getAttributes().contains(AttributeFlag.DONT_GENERATE)) {
+				try {
+					if (code.getLine() != clsDeclLine) {
+						code.newLine();
 					}
-					code.add(';');
-				} else {
-					MethodGen mthGen = new MethodGen(this, mth);
-					boolean badCode = mth.getAttributes().contains(AttributeFlag.INCONSISTENT_CODE);
-					if (badCode) {
-						code.startLine("/* JADX WARNING: inconsistent code. */");
-						code.startLine("/* Code decompiled incorrectly, please refer to instructions dump. */");
-						LOG.error(ErrorsCounter.formatErrorMsg(mth, " Inconsistent code"));
-					}
-					if (mthGen.addDefinition(code)) {
-						code.add(' ');
-					}
-					code.add('{');
-					code.incIndent();
-					insertSourceFileInfo(code, mth);
-					mthGen.addInstructions(code);
-					code.decIndent();
-					code.startLine('}');
+					addMethod(code, mth);
+				} catch (Exception e) {
+					String msg = ErrorsCounter.methodError(mth, "Method generation error", e);
+					code.startLine("/* " + msg + CodeWriter.NL + Utils.getStackTrace(e) + " */");
 				}
-			} catch (Throwable e) {
-				String msg = ErrorsCounter.methodError(mth, "Method generation error", e);
-				code.startLine("/* " + msg + CodeWriter.NL + Utils.getStackTrace(e) + " */");
-			}
-			if (it.hasNext()) {
-				code.newLine();
 			}
 		}
-		return code;
 	}
 
-	private CodeWriter makeFields(CodeWriter clsCode, ClassNode cls, List<FieldNode> fields) throws CodegenException {
-		CodeWriter code = new CodeWriter(clsCode.getIndent() + 1);
+	private void addMethod(CodeWriter code, MethodNode mth) throws CodegenException {
+		MethodGen mthGen = new MethodGen(this, mth);
+		if (mth.getAccessFlags().isAbstract() || mth.getAccessFlags().isNative()) {
+			mthGen.addDefinition(code);
+			if (cls.getAccessFlags().isAnnotation()) {
+				Object def = annotationGen.getAnnotationDefaultValue(mth.getName());
+				if (def != null) {
+					code.add(" default ");
+					annotationGen.encodeValue(code, def);
+				}
+			}
+			code.add(';');
+		} else {
+			boolean badCode = mth.getAttributes().contains(AttributeFlag.INCONSISTENT_CODE);
+			if (badCode) {
+				code.startLine("/* JADX WARNING: inconsistent code. */");
+				code.startLine("/* Code decompiled incorrectly, please refer to instructions dump. */");
+				LOG.error(ErrorsCounter.formatErrorMsg(mth, " Inconsistent code"));
+			}
+			if (mthGen.addDefinition(code)) {
+				code.add(' ');
+			}
+			code.add('{');
+			code.incIndent();
+			insertSourceFileInfo(code, mth);
+			mthGen.addInstructions(code);
+			code.decIndent();
+			code.startLine('}');
+		}
+	}
 
-		addEnumFields(cls, code);
-
-		for (FieldNode f : fields) {
+	private void addFields(CodeWriter code) throws CodegenException {
+		addEnumFields(code);
+		for (FieldNode f : cls.getFields()) {
 			if (f.getAttributes().contains(AttributeFlag.DONT_GENERATE)) {
 				continue;
 			}
@@ -288,10 +274,9 @@ public class ClassGen {
 			code.add(';');
 			code.attachDefinition(f);
 		}
-		return code;
 	}
 
-	private void addEnumFields(ClassNode cls, CodeWriter code) throws CodegenException {
+	private void addEnumFields(CodeWriter code) throws CodegenException {
 		EnumClassAttr enumFields = (EnumClassAttr) cls.getAttributes().get(AttributeType.ENUM_CLASS);
 		if (enumFields != null) {
 			InsnGen igen = null;
@@ -305,7 +290,7 @@ public class ClassGen {
 						if (igen == null) {
 							// don't init mth gen if this is simple enum
 							MethodGen mthGen = new MethodGen(this, enumFields.getStaticMethod());
-							igen = new InsnGen(mthGen, enumFields.getStaticMethod(), false);
+							igen = new InsnGen(mthGen, false);
 						}
 						igen.addArg(code, arg);
 						if (aIt.hasNext()) {
@@ -315,7 +300,7 @@ public class ClassGen {
 					code.add(')');
 				}
 				if (f.getCls() != null) {
-					new ClassGen(f.getCls(), this, fallback).makeClassBody(code);
+					new ClassGen(f.getCls(), this, fallback).addClassBody(code);
 				}
 				if (it.hasNext()) {
 					code.add(',');

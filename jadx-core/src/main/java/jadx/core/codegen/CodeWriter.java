@@ -95,21 +95,15 @@ public class CodeWriter {
 		return this;
 	}
 
-	@Deprecated
-	public CodeWriter add(CodeWriter code) {
+	CodeWriter add(CodeWriter code) {
 		line--;
 		for (Map.Entry<CodePosition, Object> entry : code.annotations.entrySet()) {
 			CodePosition pos = entry.getKey();
 			attachAnnotation(entry.getValue(), new CodePosition(line + pos.getLine(), pos.getOffset()));
 		}
 		line += code.line;
-		String str = code.toString();
-		buf.append(str);
-		if (str.contains(NL)) {
-			offset = code.offset;
-		} else {
-			offset += code.offset;
-		}
+		offset = code.offset;
+		buf.append(code);
 		return this;
 	}
 
@@ -141,6 +135,10 @@ public class CodeWriter {
 			}
 			this.indentStr = s.toString();
 		}
+	}
+
+	public int getLine() {
+		return line;
 	}
 
 	public int getIndent() {

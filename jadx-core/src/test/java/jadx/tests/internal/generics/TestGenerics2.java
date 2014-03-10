@@ -43,6 +43,6 @@ public class TestGenerics2 extends InternalJadxTest {
 		assertThat(code, containsString("public ItemReference(V item, Object id, ReferenceQueue<? super V> queue) {"));
 		assertThat(code, containsString("public V get(Object id) {"));
 		assertThat(code, containsString("WeakReference<V> ref = "));
-		assertThat(code, containsString("return (ref != null) ? ref.get() : null;"));
+		assertThat(code, containsString("return ref != null ? ref.get() : null;"));
 	}
 }

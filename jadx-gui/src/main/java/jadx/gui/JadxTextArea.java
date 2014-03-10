@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 public class JadxTextArea extends RSyntaxTextArea {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxTextArea.class);
 
+	private static final long serialVersionUID = 6312736869579635796L;
+
 	private static final Color BACKGROUND = new Color(0xf7f7f7);
 	private static final Color JUMP_FOREGROUND = new Color(0x785523);
 	private static final Color JUMP_BACKGROUND = new Color(0xE6E6FF);

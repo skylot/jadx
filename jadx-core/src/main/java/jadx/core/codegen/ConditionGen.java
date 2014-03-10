@@ -12,41 +12,52 @@ import jadx.core.dex.regions.Compare;
 import jadx.core.dex.regions.IfCondition;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.CodegenException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
+
+import java.util.Iterator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ConditionGen {
+public class ConditionGen extends InsnGen {
 	private static final Logger LOG = LoggerFactory.getLogger(ConditionGen.class);
 
-	static String make(InsnGen insnGen, IfCondition condition) throws CodegenException {
+	public ConditionGen(InsnGen insnGen) {
+		super(insnGen.mgen, insnGen.fallback);
+	}
+
+	void add(CodeWriter code, IfCondition condition) throws CodegenException {
 		switch (condition.getMode()) {
 			case COMPARE:
-				return makeCompare(insnGen, condition.getCompare());
+				addCompare(code, condition.getCompare());
+				break;
+
 			case NOT:
-				return "!(" + make(insnGen, condition.getArgs().get(0)) + ")";
+				addNot(code, condition);
+				break;
+
 			case AND:
 			case OR:
-				String mode = condition.getMode() == IfCondition.Mode.AND ? " && " : " || ";
-				StringBuilder sb = new StringBuilder();
-				for (IfCondition arg : condition.getArgs()) {
-					if (sb.length() != 0) {
-						sb.append(mode);
-					}
-					String s = make(insnGen, arg);
-					if (arg.isCompare()) {
-						sb.append(s);
-					} else {
-						sb.append('(').append(s).append(')');
-					}
-				}
-				return sb.toString();
+				addAndOr(code, condition);
+				break;
+
 			default:
-				return "??" + condition;
+				throw new JadxRuntimeException("Unknown condition mode: " + condition);
 		}
 	}
 
-	private static String makeCompare(InsnGen insnGen, Compare compare) throws CodegenException {
+	void wrap(CodeWriter code, IfCondition cond) throws CodegenException {
+		boolean wrap = isWrapNeeded(cond);
+		if (wrap) {
+			code.add('(');
+		}
+		add(code, cond);
+		if (wrap) {
+			code.add(')');
+		}
+	}
+
+	private void addCompare(CodeWriter code, Compare compare) throws CodegenException {
 		IfOp op = compare.getOp();
 		InsnArg firstArg = compare.getA();
 		InsnArg secondArg = compare.getB();
@@ -59,20 +70,47 @@ public class ConditionGen {
 			}
 			if (op == IfOp.EQ) {
 				// == true
-				return insnGen.arg(firstArg, false).toString();
+				addArg(code, firstArg, false);
+				return;
 			} else if (op == IfOp.NE) {
 				// != true
-				if (isWrapNeeded(firstArg)) {
-					return "!(" + insnGen.arg(firstArg) + ")";
-				} else {
-					return "!" + insnGen.arg(firstArg);
+				code.add('!');
+				boolean wrap = isWrapNeeded(firstArg);
+				if (wrap) {
+					code.add('(');
 				}
+				addArg(code, firstArg, false);
+				if (wrap) {
+					code.add(')');
+				}
+				return;
 			}
-			LOG.warn(ErrorsCounter.formatErrorMsg(insnGen.mth, "Unsupported boolean condition " + op.getSymbol()));
+			LOG.warn(ErrorsCounter.formatErrorMsg(mth, "Unsupported boolean condition " + op.getSymbol()));
 		}
-		return insnGen.arg(firstArg, isWrapNeeded(firstArg))
-				+ " " + op.getSymbol() + " "
-				+ insnGen.arg(secondArg, isWrapNeeded(secondArg));
+
+		addArg(code, firstArg, isWrapNeeded(firstArg));
+		code.add(' ').add(op.getSymbol()).add(' ');
+		addArg(code, secondArg, isWrapNeeded(secondArg));
+	}
+
+	private void addNot(CodeWriter code, IfCondition condition) throws CodegenException {
+		code.add('!');
+		wrap(code, condition.getArgs().get(0));
+	}
+
+	private void addAndOr(CodeWriter code, IfCondition condition) throws CodegenException {
+		String mode = condition.getMode() == IfCondition.Mode.AND ? " && " : " || ";
+		Iterator<IfCondition> it = condition.getArgs().iterator();
+		while (it.hasNext()) {
+			wrap(code, it.next());
+			if (it.hasNext()) {
+				code.add(mode);
+			}
+		}
+	}
+
+	private boolean isWrapNeeded(IfCondition condition) {
+		return !condition.isCompare();
 	}
 
 	private static boolean isWrapNeeded(InsnArg arg) {

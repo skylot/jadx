@@ -58,6 +58,10 @@ public class MethodGen {
 		return classGen;
 	}
 
+	public MethodNode getMethodNode() {
+		return mth;
+	}
+
 	public boolean addDefinition(CodeWriter code) {
 		if (mth.getMethodInfo().isClassInit()) {
 			code.startLine("static");
@@ -84,7 +88,7 @@ public class MethodGen {
 		}
 		code.startLine(ai.makeString());
 
-		if (classGen.makeGenericMap(code, mth.getGenericMap())) {
+		if (classGen.addGenericMap(code, mth.getGenericMap())) {
 			code.add(' ');
 		}
 		if (mth.getAccessFlags().isConstructor()) {
@@ -245,7 +249,7 @@ public class MethodGen {
 		} else {
 			Region startRegion = mth.getRegion();
 			if (startRegion != null) {
-				(new RegionGen(this, mth)).makeRegion(code, startRegion);
+				(new RegionGen(this)).makeRegion(code, startRegion);
 			} else {
 				addFallbackMethodCode(code);
 			}
@@ -289,7 +293,7 @@ public class MethodGen {
 	}
 
 	public static void addFallbackInsns(CodeWriter code, MethodNode mth, List<InsnNode> insns, boolean addLabels) {
-		InsnGen insnGen = new InsnGen(getFallbackMethodGen(mth), mth, true);
+		InsnGen insnGen = new InsnGen(getFallbackMethodGen(mth), true);
 		for (InsnNode insn : insns) {
 			AttributesList attrs = insn.getAttributes();
 			if (addLabels) {

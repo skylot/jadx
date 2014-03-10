@@ -57,39 +57,22 @@ public class InsnGen {
 	protected final MethodGen mgen;
 	protected final MethodNode mth;
 	protected final RootNode root;
-	private final boolean fallback;
+	protected final boolean fallback;
 
 	private static enum Flags {
 		BODY_ONLY,
 		BODY_ONLY_NOWRAP,
 	}
 
-	public InsnGen(MethodGen mgen, MethodNode mth, boolean fallback) {
+	public InsnGen(MethodGen mgen, boolean fallback) {
 		this.mgen = mgen;
-		this.mth = mth;
+		this.mth = mgen.getMethodNode();
 		this.root = mth.dex().root();
 		this.fallback = fallback;
 	}
 
 	private boolean isFallback() {
 		return fallback;
-	}
-
-	@Deprecated
-	public CodeWriter arg(InsnNode insn, int arg) throws CodegenException {
-		return arg(insn.getArg(arg));
-	}
-
-	@Deprecated
-	public CodeWriter arg(InsnArg arg) throws CodegenException {
-		return arg(arg, true);
-	}
-
-	@Deprecated
-	public CodeWriter arg(InsnArg arg, boolean wrap) throws CodegenException {
-		CodeWriter code = new CodeWriter();
-		addArg(code, arg, wrap);
-		return code;
 	}
 
 	public void addArgDot(CodeWriter code, InsnArg arg) throws CodegenException {
@@ -128,17 +111,19 @@ public class InsnGen {
 		}
 	}
 
-	public String assignVar(InsnNode insn) throws CodegenException {
+	public void assignVar(CodeWriter code, InsnNode insn) throws CodegenException {
 		RegisterArg arg = insn.getResult();
 		if (insn.getAttributes().contains(AttributeFlag.DECLARE_VAR)) {
-			return declareVar(arg);
+			declareVar(code, arg);
 		} else {
-			return arg(arg).toString();
+			addArg(code, arg, false);
 		}
 	}
 
-	public String declareVar(RegisterArg arg) {
-		return useType(arg.getType()) + " " + mgen.assignArg(arg);
+	public void declareVar(CodeWriter code, RegisterArg arg) {
+		code.add(useType(arg.getType()));
+		code.add(' ');
+		code.add(mgen.assignArg(arg));
 	}
 
 	private static String lit(LiteralArg arg) {
@@ -174,18 +159,6 @@ public class InsnGen {
 		return clsGen.useClass(declClass) + '.' + field.getName();
 	}
 
-	private void fieldPut(IndexInsnNode insn) {
-		FieldInfo field = (FieldInfo) insn.getIndex();
-		String thisClass = mth.getParentClass().getFullName();
-		if (field.getDeclClass().getFullName().equals(thisClass)) {
-			// if we generate this field - don't init if its final and used
-			FieldNode fn = mth.getParentClass().searchField(field);
-			if (fn != null && fn.getAccessFlags().isFinal()) {
-				fn.getAttributes().remove(AttributeType.FIELD_VALUE);
-			}
-		}
-	}
-
 	protected String staticField(FieldInfo field) {
 		return makeStaticFieldAccess(field, mgen.getClassGen());
 	}
@@ -217,7 +190,8 @@ public class InsnGen {
 					code.attachAnnotation(insn.getSourceLine());
 				}
 				if (insn.getResult() != null && insn.getType() != InsnType.ARITH_ONEARG) {
-					code.add(assignVar(insn)).add(" = ");
+					assignVar(code, insn);
+					code.add(" = ");
 				}
 				makeInsnBody(code, insn, state);
 				code.add(';');
@@ -273,14 +247,18 @@ public class InsnGen {
 				makeArithOneArg((ArithNode) insn, code, state);
 				break;
 
-			case NEG:
-				String base = "-" + arg(insn.getArg(0));
-				if (state.contains(Flags.BODY_ONLY)) {
-					code.add('(').add(base).add(')');
-				} else {
-					code.add(base);
+			case NEG: {
+				boolean wrap = state.contains(Flags.BODY_ONLY);
+				if (wrap) {
+					code.add('(');
+				}
+				code.add('-');
+				addArg(code, insn.getArg(0));
+				if (wrap) {
+					code.add(')');
 				}
 				break;
+			}
 
 			case RETURN:
 				if (insn.getArgsCount() != 0) {
@@ -306,7 +284,15 @@ public class InsnGen {
 
 			case CMP_L:
 			case CMP_G:
-				code.add(String.format("(%1$s > %2$s ? 1 : (%1$s == %2$s ? 0 : -1))", arg(insn, 0), arg(insn, 1)));
+				code.add('(');
+				addArg(code, insn.getArg(0));
+				code.add(" > ");
+				addArg(code, insn.getArg(1));
+				code.add(" ? 1 : (");
+				addArg(code, insn.getArg(0));
+				code.add(" == ");
+				addArg(code, insn.getArg(1));
+				code.add("? 0 : -1))");
 				break;
 
 			case INSTANCE_OF: {
@@ -314,7 +300,7 @@ public class InsnGen {
 				if (wrap) {
 					code.add('(');
 				}
-				code.add(arg(insn, 0));
+				addArg(code, insn.getArg(0));
 				code.add(" instanceof ");
 				code.add(useType((ArgType) ((IndexInsnNode) insn).getIndex()));
 				if (wrap) {
@@ -332,8 +318,11 @@ public class InsnGen {
 
 			case NEW_ARRAY: {
 				ArgType arrayType = insn.getResult().getType();
+				code.add("new ").add(useType(arrayType.getArrayRootElement()));
+				code.add('[');
+				addArg(code, insn.getArg(0));
+				code.add(']');
 				int dim = arrayType.getArrayDimension();
-				code.add("new ").add(useType(arrayType.getArrayRootElement())).add('[').add(arg(insn, 0)).add(']');
 				for (int i = 0; i < dim - 1; i++) {
 					code.add("[]");
 				}
@@ -341,7 +330,8 @@ public class InsnGen {
 			}
 
 			case ARRAY_LENGTH:
-				code.add(arg(insn, 0)).add(".length");
+				addArg(code, insn.getArg(0));
+				code.add(".length");
 				break;
 
 			case FILL_ARRAY:
@@ -384,37 +374,40 @@ public class InsnGen {
 				code.add(staticField((FieldInfo) ((IndexInsnNode) insn).getIndex()));
 				break;
 			case SPUT:
-				IndexInsnNode node = (IndexInsnNode) insn;
-				fieldPut(node);
-				code.add(staticField((FieldInfo) node.getIndex())).add(" = ");
-				addArg(code, node.getArg(0), false);
+				FieldInfo field = (FieldInfo) ((IndexInsnNode) insn).getIndex();
+				code.add(staticField(field)).add(" = ");
+				addArg(code, insn.getArg(0), false);
 				break;
 
 			case STR_CONCAT:
-				StringBuilder sb = new StringBuilder();
+				boolean wrap = state.contains(Flags.BODY_ONLY);
+				if (wrap) {
+					code.add('(');
+				}
 				for (Iterator<InsnArg> it = insn.getArguments().iterator(); it.hasNext(); ) {
-					sb.append(arg(it.next()));
+					addArg(code, it.next());
 					if (it.hasNext()) {
-						sb.append(" + ");
+						code.add(" + ");
 					}
 				}
-				// TODO: wrap in braces only if necessary
-				if (state.contains(Flags.BODY_ONLY)) {
-					code.add('(').add(sb.toString()).add(')');
-				} else {
-					code.add(sb.toString());
+				if (wrap) {
+					code.add(')');
 				}
 				break;
 
 			case MONITOR_ENTER:
 				if (isFallback()) {
-					code.add("monitor-enter(").add(arg(insn.getArg(0))).add(')');
+					code.add("monitor-enter(");
+					addArg(code, insn.getArg(0));
+					code.add(')');
 				}
 				break;
 
 			case MONITOR_EXIT:
 				if (isFallback()) {
-					code.add("monitor-exit(").add(arg(insn, 0)).add(')');
+					code.add("monitor-exit(");
+					addArg(code, insn.getArg(0));
+					code.add(')');
 				}
 				break;
 
@@ -422,7 +415,7 @@ public class InsnGen {
 				if (isFallback()) {
 					code.add("move-exception");
 				} else {
-					code.add(arg(insn, 0));
+					addArg(code, insn.getArg(0));
 				}
 				break;
 
@@ -431,7 +424,7 @@ public class InsnGen {
 				break;
 
 			case ARGS:
-				code.add(arg(insn, 0));
+				addArg(code, insn.getArg(0));
 				break;
 
 			/* fallback mode instructions */
@@ -439,9 +432,10 @@ public class InsnGen {
 				assert isFallback() : "if insn in not fallback mode";
 				IfNode ifInsn = (IfNode) insn;
 				code.add("if (");
-				code.add(arg(insn.getArg(0))).add(' ');
+				addArg(code, insn.getArg(0));
+				code.add(' ');
 				code.add(ifInsn.getOp().getSymbol()).add(' ');
-				code.add(arg(insn.getArg(1)));
+				addArg(code, insn.getArg(1));
 				code.add(") goto ").add(MethodGen.getLabelName(ifInsn.getTarget()));
 				break;
 
@@ -453,7 +447,9 @@ public class InsnGen {
 			case SWITCH:
 				assert isFallback();
 				SwitchNode sw = (SwitchNode) insn;
-				code.add("switch(").add(arg(insn, 0)).add(") {");
+				code.add("switch(");
+				addArg(code, insn.getArg(0));
+				code.add(") {");
 				code.incIndent();
 				for (int i = 0; i < sw.getCasesCount(); i++) {
 					code.startLine("case ").add(sw.getKeys()[i]).add(": goto ");
@@ -481,7 +477,7 @@ public class InsnGen {
 		code.add("new ").add(useType(insn.getResult().getType()));
 		code.add('{');
 		for (int i = 0; i < c; i++) {
-			code.add(arg(insn, i));
+			addArg(code, insn.getArg(i));
 			if (i + 1 < c) {
 				code.add(", ");
 			}
@@ -565,7 +561,7 @@ public class InsnGen {
 				defCtr.getAttributes().add(AttributeFlag.DONT_GENERATE);
 			}
 			code.add("new ").add(parent == null ? "Object" : useClass(parent)).add("() ");
-			new ClassGen(cls, mgen.getClassGen().getParentGen(), fallback).makeClassBody(code);
+			new ClassGen(cls, mgen.getClassGen().getParentGen(), fallback).addClassBody(code);
 			return;
 		}
 		if (insn.isSelf()) {
@@ -705,17 +701,24 @@ public class InsnGen {
 	}
 
 	private void makeTernary(TernaryInsn insn, CodeWriter code, EnumSet<Flags> state) throws CodegenException {
-		String cond = ConditionGen.make(this, insn.getCondition());
-		CodeWriter th = arg(insn.getArg(0), false);
-		CodeWriter els = arg(insn.getArg(1), false);
-		if (th.toString().equals("true") && els.toString().equals("false")) {
-			code.add(cond);
+		boolean wrap = state.contains(Flags.BODY_ONLY);
+		if (wrap) {
+			code.add('(');
+		}
+		InsnArg first = insn.getArg(0);
+		InsnArg second = insn.getArg(1);
+		ConditionGen condGen = new ConditionGen(this);
+		if (first.equals(LiteralArg.TRUE) && second.equals(LiteralArg.FALSE)) {
+			condGen.add(code, insn.getCondition());
 		} else {
-			if (state.contains(Flags.BODY_ONLY)) {
-				code.add("((").add(cond).add(')').add(" ? ").add(th).add(" : ").add(els).add(')');
-			} else {
-				code.add('(').add(cond).add(')').add(" ? ").add(th).add(" : ").add(els);
-			}
+			condGen.wrap(code, insn.getCondition());
+			code.add(" ? ");
+			addArg(code, first, false);
+			code.add(" : ");
+			addArg(code, second, false);
+		}
+		if (wrap) {
+			code.add(')');
 		}
 	}
 
@@ -743,13 +746,15 @@ public class InsnGen {
 		if (arg.isLiteral() && (op == ArithOp.ADD || op == ArithOp.SUB)) {
 			LiteralArg lit = (LiteralArg) arg;
 			if (lit.isInteger() && lit.getLiteral() == 1) {
+				assignVar(code, insn);
 				String opSymbol = op.getSymbol();
-				code.add(assignVar(insn)).add(opSymbol).add(opSymbol);
+				code.add(opSymbol).add(opSymbol);
 				return;
 			}
 		}
 		// +=, -= ...
-		code.add(assignVar(insn)).add(' ').add(op.getSymbol()).add("= ");
+		assignVar(code, insn);
+		code.add(' ').add(op.getSymbol()).add("= ");
 		addArg(code, arg, false);
 	}
 }

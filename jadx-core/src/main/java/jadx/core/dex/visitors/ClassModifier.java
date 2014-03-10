@@ -1,6 +1,7 @@
 package jadx.core.dex.visitors;
 
 import jadx.core.dex.attributes.AttributeFlag;
+import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.attributes.AttributesList;
 import jadx.core.dex.attributes.FieldReplaceAttr;
 import jadx.core.dex.info.AccessInfo;
@@ -39,6 +40,8 @@ public class ClassModifier extends AbstractVisitor {
 		removeSyntheticFields(cls);
 		removeSyntheticMethods(cls);
 		removeEmptyMethods(cls);
+
+		checkFieldsInit(cls);
 		return false;
 	}
 
@@ -174,4 +177,36 @@ public class ClassModifier extends AbstractVisitor {
 		}
 		return true;
 	}
+
+	private static void checkFieldsInit(ClassNode cls) {
+		MethodNode clinit = cls.searchMethodByName("<clinit>()V");
+		if (clinit == null
+				|| !clinit.getAccessFlags().isStatic()
+				|| clinit.isNoCode()) {
+			return;
+		}
+
+		for (BlockNode block : clinit.getBasicBlocks()) {
+			for (InsnNode insn : block.getInstructions()) {
+				if (insn.getType() == InsnType.SPUT) {
+					processStaticFieldAssign(cls, (IndexInsnNode) insn);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Remove field initialization if it assign in "<clinit>" method
+	 */
+	private static void processStaticFieldAssign(ClassNode cls, IndexInsnNode insn) {
+		FieldInfo field = (FieldInfo) insn.getIndex();
+		String thisClass = cls.getFullName();
+		if (field.getDeclClass().getFullName().equals(thisClass)) {
+			FieldNode fn = cls.searchField(field);
+			if (fn != null && fn.getAccessFlags().isFinal()) {
+				fn.getAttributes().remove(AttributeType.FIELD_VALUE);
+			}
+		}
+	}
+
 }
