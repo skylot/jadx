@@ -34,9 +34,13 @@ final class LocalVar extends RegisterArg {
 
 	private void init(String name, ArgType type, String sign) {
 		if (sign != null) {
-			ArgType gType = ArgType.generic(sign);
-			if (checkSignature(type, sign, gType)) {
-				type = gType;
+			try {
+				ArgType gType = ArgType.generic(sign);
+				if (checkSignature(type, sign, gType)) {
+					type = gType;
+				}
+			} catch (Exception e) {
+				LOG.error("Can't parse signature for local variable: " + sign, e);
 			}
 		}
 		TypedVar tv = new TypedVar(type);
@@ -45,10 +49,10 @@ final class LocalVar extends RegisterArg {
 	}
 
 	private boolean checkSignature(ArgType type, String sign, ArgType gType) {
-		boolean apply = false;
+		boolean apply;
 		ArgType el = gType.getArrayRootElement();
 		if (el.isGeneric()) {
-			if (!type.getObject().equals(el.getObject())) {
+			if (!type.getArrayRootElement().getObject().equals(el.getObject())) {
 				LOG.warn("Generic type in debug info not equals: {} != {}", type, gType);
 			}
 			apply = true;
@@ -56,6 +60,7 @@ final class LocalVar extends RegisterArg {
 			apply = true;
 		} else {
 			LOG.debug("Local var signature from debug info not generic: {}, parsed: {}", sign, gType);
+			apply = false;
 		}
 		return apply;
 	}
