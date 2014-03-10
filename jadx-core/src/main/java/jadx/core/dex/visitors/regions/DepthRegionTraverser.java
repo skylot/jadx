@@ -24,10 +24,8 @@ public class DepthRegionTraverser {
 	public static void traverseAll(MethodNode mth, IRegionVisitor visitor) {
 		traverse(mth, visitor, mth.getRegion());
 
-		if (mth.getExceptionHandlers() != null) {
-			for (ExceptionHandler h : mth.getExceptionHandlers()) {
-				traverse(mth, visitor, h.getHandlerRegion());
-			}
+		for (ExceptionHandler h : mth.getExceptionHandlers()) {
+			traverse(mth, visitor, h.getHandlerRegion());
 		}
 	}
 }

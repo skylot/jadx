@@ -62,7 +62,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 	private List<BlockNode> exitBlocks;
 
 	private Region region;
-	private List<ExceptionHandler> exceptionHandlers;
+	private List<ExceptionHandler> exceptionHandlers = Collections.emptyList();
 	private List<LoopAttr> loops = Collections.emptyList();
 
 	public MethodNode(ClassNode classNode, Method mthData) {
@@ -134,9 +134,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		}
 		blocks = null;
 		exitBlocks = null;
-		if (exceptionHandlers != null) {
-			exceptionHandlers.clear();
-		}
+		exceptionHandlers.clear();
 		noCode = true;
 	}
 
@@ -440,7 +438,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 	}
 
 	public ExceptionHandler addExceptionHandler(ExceptionHandler handler) {
-		if (exceptionHandlers == null) {
+		if (exceptionHandlers.isEmpty()) {
 			exceptionHandlers = new ArrayList<ExceptionHandler>(2);
 		} else {
 			for (ExceptionHandler h : exceptionHandlers) {
@@ -454,7 +452,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 	}
 
 	public List<ExceptionHandler> getExceptionHandlers() {
-		return exceptionHandlers;
+		return Collections.unmodifiableList(exceptionHandlers);
 	}
 
 	/**

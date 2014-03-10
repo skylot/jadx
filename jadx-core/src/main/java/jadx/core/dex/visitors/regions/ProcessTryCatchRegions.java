@@ -40,7 +40,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 	private final Map<BlockNode, TryCatchBlock> tryBlocksMap = new HashMap<BlockNode, TryCatchBlock>(2);
 
 	public ProcessTryCatchRegions(MethodNode mth) {
-		if (mth.isNoCode() || mth.getExceptionHandlers() == null) {
+		if (mth.isNoCode() || mth.getExceptionHandlers().isEmpty()) {
 			return;
 		}
 

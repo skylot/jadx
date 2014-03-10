@@ -11,6 +11,7 @@ import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.List;
+import java.util.Set;
 
 public class RegionUtils {
 
@@ -47,7 +48,7 @@ public class RegionUtils {
 		}
 	}
 
-	public static void getAllRegionBlocks(IContainer container, List<BlockNode> blocks) {
+	public static void getAllRegionBlocks(IContainer container, Set<BlockNode> blocks) {
 		if (container instanceof BlockNode) {
 			blocks.add((BlockNode) container);
 		} else if (container instanceof IRegion) {
@@ -108,7 +109,8 @@ public class RegionUtils {
 	}
 
 	/**
-	 * Check if {@code region} contains in {@code container}.<br>
+	 * Check if {@code region} contains in {@code container}.
+	 * <br>
 	 * For simple region (not from exception handlers) search in parents
 	 * otherwise run recursive search because exception handlers can have several parents
 	 */
@@ -124,9 +126,8 @@ public class RegionUtils {
 			if (parent == null) {
 				if (region.getAttributes().contains(AttributeType.EXC_HANDLER)) {
 					return isRegionContainsExcHandlerRegion(container, region);
-				} else {
-					return false;
 				}
+				return false;
 			}
 			region = parent;
 			parent = region.getParent();

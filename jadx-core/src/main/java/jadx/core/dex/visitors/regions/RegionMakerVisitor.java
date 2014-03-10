@@ -37,7 +37,7 @@ public class RegionMakerVisitor extends AbstractVisitor {
 		// fill region structure
 		mth.setRegion(rm.makeRegion(mth.getEnterBlock(), state));
 
-		if (mth.getExceptionHandlers() != null) {
+		if (!mth.getExceptionHandlers().isEmpty()) {
 			state = new RegionStack(mth);
 			for (ExceptionHandler handler : mth.getExceptionHandlers()) {
 				rm.processExcHandler(handler, state);

@@ -3,6 +3,8 @@ package jadx.core.dex.visitors;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.codegen.MethodGen;
 import jadx.core.dex.attributes.IAttributeNode;
+import jadx.core.dex.instructions.IfNode;
+import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
@@ -10,9 +12,13 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.utils.InsnUtils;
+import jadx.core.utils.RegionUtils;
 import jadx.core.utils.Utils;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class DotGraphVisitor extends AbstractVisitor {
 
@@ -22,6 +28,9 @@ public class DotGraphVisitor extends AbstractVisitor {
 	private final File dir;
 	private final boolean useRegions;
 	private final boolean rawInsn;
+
+	private CodeWriter dot;
+	private CodeWriter conn;
 
 	public DotGraphVisitor(File outDir, boolean useRegions, boolean rawInsn) {
 		this.dir = outDir;
@@ -38,45 +47,39 @@ public class DotGraphVisitor extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
-		CodeWriter dot = new CodeWriter();
-		CodeWriter conn = new CodeWriter();
+		dot = new CodeWriter();
+		conn = new CodeWriter();
 
-		dot.startLine("digraph \"CFG for"
-				+ escape(mth.getParentClass().getFullName() + "." + mth.getMethodInfo().getShortId())
-				+ "\" {");
+		dot.startLine("digraph \"CFG for");
+		dot.add(escape(mth.getParentClass().getFullName() + "." + mth.getMethodInfo().getShortId()));
+		dot.add("\" {");
 
 		if (useRegions) {
 			if (mth.getRegion() == null) {
 				return;
 			}
-
-			processRegion(mth, mth.getRegion(), dot, conn);
-			if (mth.getExceptionHandlers() != null) {
-				for (ExceptionHandler h : mth.getExceptionHandlers()) {
-					if (h.getHandlerRegion() != null) {
-						processRegion(mth, h.getHandlerRegion(), dot, conn);
-					}
-				}
-			}
+			processMethodRegion(mth);
 		} else {
 			for (BlockNode block : mth.getBasicBlocks()) {
-				processBlock(mth, block, dot, conn);
+				processBlock(mth, block);
 			}
 		}
 
-		String attrs = attributesString(mth);
-
-		dot.startLine("MethodNode[shape=record,label=\"{"
-				+ escape(mth.getAccessFlags().makeString())
-				+ escape(mth.getReturnType() + " "
+		dot.startLine("MethodNode[shape=record,label=\"{");
+		dot.add(escape(mth.getAccessFlags().makeString()));
+		dot.add(escape(mth.getReturnType() + " "
 				+ mth.getParentClass().getFullName() + "." + mth.getName()
-				+ "(" + Utils.listToString(mth.getArguments(true)) + ") ")
-				+ (attrs.length() == 0 ? "" : " | " + attrs)
-				+ "}\"];");
+				+ "(" + Utils.listToString(mth.getArguments(true)) + ") "));
 
-		dot.startLine("MethodNode -> " + makeName(mth.getEnterBlock()) + ";");
+		String attrs = attributesString(mth);
+		if (attrs.length() != 0) {
+			dot.add(" | ").add(attrs);
+		}
+		dot.add("}\"];");
 
-		dot.add(conn);
+		dot.startLine("MethodNode -> ").add(makeName(mth.getEnterBlock())).add(';');
+
+		dot.add(conn.toString());
 
 		dot.startLine('}');
 		dot.startLine();
@@ -88,27 +91,55 @@ public class DotGraphVisitor extends AbstractVisitor {
 		dot.save(dir, mth.getParentClass().getClassInfo().getFullPath() + "_graphs", fileName);
 	}
 
-	private void processRegion(MethodNode mth, IContainer region, CodeWriter dot, CodeWriter conn) {
+	private void processMethodRegion(MethodNode mth) {
+		processRegion(mth, mth.getRegion());
+		for (ExceptionHandler h : mth.getExceptionHandlers()) {
+			if (h.getHandlerRegion() != null) {
+				processRegion(mth, h.getHandlerRegion());
+			}
+		}
+		Set<BlockNode> regionsBlocks = new HashSet<BlockNode>(mth.getBasicBlocks().size());
+		RegionUtils.getAllRegionBlocks(mth.getRegion(), regionsBlocks);
+		for (ExceptionHandler handler : mth.getExceptionHandlers()) {
+			IContainer handlerRegion = handler.getHandlerRegion();
+			if (handlerRegion != null) {
+				RegionUtils.getAllRegionBlocks(handlerRegion, regionsBlocks);
+			}
+		}
+		for (BlockNode block : mth.getBasicBlocks()) {
+			if (!regionsBlocks.contains(block)) {
+				processBlock(mth, block, true);
+			}
+		}
+	}
+
+	private void processRegion(MethodNode mth, IContainer region) {
 		if (region instanceof IRegion) {
 			IRegion r = (IRegion) region;
-			String attrs = attributesString(r);
 			dot.startLine("subgraph " + makeName(region) + " {");
-			dot.startLine("label = \"" + r
-					+ (attrs.length() == 0 ? "" : " | " + attrs)
-					+ "\";");
+			dot.startLine("label = \"").add(r);
+			String attrs = attributesString(r);
+			if (attrs.length() != 0) {
+				dot.add(" | ").add(attrs);
+			}
+			dot.add("\";");
 			dot.startLine("node [shape=record,color=blue];");
 
 			for (IContainer c : r.getSubBlocks()) {
-				processRegion(mth, c, dot, conn);
+				processRegion(mth, c);
 			}
 
 			dot.startLine('}');
 		} else if (region instanceof BlockNode) {
-			processBlock(mth, (BlockNode) region, dot, conn);
+			processBlock(mth, (BlockNode) region);
 		}
 	}
 
-	private void processBlock(MethodNode mth, BlockNode block, CodeWriter dot, CodeWriter conn) {
+	private void processBlock(MethodNode mth, BlockNode block) {
+		processBlock(mth, block, false);
+	}
+
+	private void processBlock(MethodNode mth, BlockNode block, boolean error) {
 		String attrs = attributesString(block);
 		if (PRINT_REGISTERS_STATES) {
 			if (block.getStartState() != null) {
@@ -119,21 +150,34 @@ public class DotGraphVisitor extends AbstractVisitor {
 				attrs += escape("RE: " + block.getEndState()) + NL;
 			}
 		}
-
-		String insns = insertInsns(mth, block);
-
-		dot.startLine(makeName(block) + " [shape=record,label=\"{"
-				+ block.getId() + "\\:\\ "
-				+ InsnUtils.formatOffset(block.getStartOffset())
-				+ (attrs.length() == 0 ? "" : "|" + attrs)
-				+ (insns.length() == 0 ? "" : "|" + insns)
-				+ "}\"];");
-
-		for (BlockNode next : block.getSuccessors()) {
-			conn.startLine(makeName(block) + " -> " + makeName(next) + ";");
+		dot.startLine(makeName(block));
+		dot.add(" [shape=record,");
+		if (error) {
+			dot.add("color=red,");
 		}
-		for (BlockNode next : block.getDominatesOn()) {
-			conn.startLine(makeName(block) + " -> " + makeName(next) + "[style=dotted];");
+		dot.add("label=\"{");
+		dot.add(block.getId()).add("\\:\\ ");
+		dot.add(InsnUtils.formatOffset(block.getStartOffset()));
+		if (attrs.length() != 0) {
+			dot.add('|').add(attrs);
+		}
+		String insns = insertInsns(mth, block);
+		if (insns.length() != 0) {
+			dot.add('|').add(insns);
+		}
+		dot.add("}\"];");
+
+		BlockNode falsePath = null;
+		List<InsnNode> list = block.getInstructions();
+		if (!list.isEmpty() && list.get(0).getType() == InsnType.IF) {
+			falsePath = ((IfNode) list.get(0)).getElseBlock();
+		}
+		for (BlockNode next : block.getSuccessors()) {
+			conn.startLine(makeName(block)).add(" -> ").add(makeName(next));
+			if (next == falsePath) {
+				conn.add("[style=dotted]");
+			}
+			conn.add(';');
 		}
 	}
 
