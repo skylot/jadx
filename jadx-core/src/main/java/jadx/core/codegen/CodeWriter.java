@@ -50,30 +50,20 @@ public class CodeWriter {
 
 	public CodeWriter startLine() {
 		addLine();
-		addIndent();
+		addLineIndent();
 		return this;
 	}
 
 	public CodeWriter startLine(char c) {
 		addLine();
-		addIndent();
+		addLineIndent();
 		add(c);
 		return this;
 	}
 
 	public CodeWriter startLine(String str) {
 		addLine();
-		addIndent();
-		add(str);
-		return this;
-	}
-
-	public CodeWriter startLine(int ind, String str) {
-		addLine();
-		addIndent();
-		for (int i = 0; i < ind; i++) {
-			addIndent();
-		}
+		addLineIndent();
 		add(str);
 		return this;
 	}
@@ -118,9 +108,14 @@ public class CodeWriter {
 		offset = 0;
 	}
 
-	public CodeWriter addIndent() {
+	private CodeWriter addLineIndent() {
 		buf.append(indentStr);
 		offset += indentStr.length();
+		return this;
+	}
+
+	public CodeWriter addIndent() {
+		add(INDENT);
 		return this;
 	}
 
@@ -135,14 +130,6 @@ public class CodeWriter {
 			}
 			this.indentStr = s.toString();
 		}
-	}
-
-	public int getLine() {
-		return line;
-	}
-
-	public int getIndent() {
-		return indent;
 	}
 
 	public void incIndent() {
@@ -165,6 +152,10 @@ public class CodeWriter {
 			this.indent = 0;
 		}
 		updateIndent();
+	}
+
+	public int getLine() {
+		return line;
 	}
 
 	private static class DefinitionWrapper {

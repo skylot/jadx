@@ -1,7 +1,6 @@
 package jadx.api;
 
 import jadx.core.Jadx;
-import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -25,7 +24,7 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 
-public abstract class InternalJadxTest {
+public abstract class InternalJadxTest extends TestUtils {
 
 	protected boolean outputCFG = false;
 	protected boolean deleteTmpJar = true;
@@ -149,14 +148,6 @@ public abstract class InternalJadxTest {
 				in.close();
 			}
 		}
-	}
-
-	protected String makeIndent(int indent) {
-		StringBuilder sb = new StringBuilder(indent * CodeWriter.INDENT.length());
-		for (int i = 0; i < indent; i++) {
-			sb.append(CodeWriter.INDENT);
-		}
-		return sb.toString();
 	}
 
 	// Use only for debug purpose

@@ -203,6 +203,7 @@ public class RegionGen extends InsnGen {
 		code.startLine("switch (");
 		addArg(code, arg);
 		code.add(") {");
+		code.incIndent();
 
 		int size = sw.getKeys().size();
 		for (int i = 0; i < size; i++) {
@@ -223,18 +224,21 @@ public class RegionGen extends InsnGen {
 			code.startLine("default:");
 			makeCaseBlock(sw.getDefaultCase(), code);
 		}
+		code.decIndent();
 		code.startLine('}');
 		return code;
 	}
 
 	private void makeCaseBlock(IContainer c, CodeWriter code) throws CodegenException {
+		boolean addBreak = true;
 		if (RegionUtils.notEmpty(c)) {
 			makeRegionIndent(code, c);
-			if (RegionUtils.hasExitEdge(c)) {
-				code.startLine(1, "break;");
+			if (!RegionUtils.hasExitEdge(c)) {
+				addBreak = false;
 			}
-		} else {
-			code.startLine(1, "break;");
+		}
+		if (addBreak) {
+			code.startLine().addIndent().add("break;");
 		}
 	}
 

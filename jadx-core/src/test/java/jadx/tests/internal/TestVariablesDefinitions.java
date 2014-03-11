@@ -43,7 +43,7 @@ public class TestVariablesDefinitions extends InternalJadxTest {
 		System.out.println(code);
 
 		// 'iterator' variable must be declared inside 'try' block
-		assertThat(code, containsString(makeIndent(3) + "Iterator<IDexTreeVisitor> iterator = "));
+		assertThat(code, containsString(indent(3) + "Iterator<IDexTreeVisitor> iterator = "));
 		assertThat(code, not(containsString("iterator;")));
 	}
 }

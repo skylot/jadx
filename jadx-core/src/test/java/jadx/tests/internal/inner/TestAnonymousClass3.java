@@ -44,8 +44,8 @@ public class TestAnonymousClass3 extends InternalJadxTest {
 		String code = cls.getCode().toString();
 		System.out.println(code);
 
-		assertThat(code, containsString(makeIndent(4) + "public void run() {"));
-		assertThat(code, containsString(makeIndent(3) + "}.start();"));
+		assertThat(code, containsString(indent(4) + "public void run() {"));
+		assertThat(code, containsString(indent(3) + "}.start();"));
 
 //		assertThat(code, not(containsString("synthetic")));
 //		assertThat(code, not(containsString("AnonymousClass_")));
