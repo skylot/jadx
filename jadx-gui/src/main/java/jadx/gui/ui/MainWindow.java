@@ -1,36 +1,29 @@
-package jadx.gui;
+package jadx.gui.ui;
 
+import jadx.gui.JadxWrapper;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
 
-import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
-import javax.swing.KeyStroke;
 import javax.swing.ProgressMonitor;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.plaf.basic.BasicButtonUI;
-import javax.swing.text.BadLocationException;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -40,21 +33,16 @@ import javax.swing.tree.TreeSelectionModel;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.DisplayMode;
-import java.awt.FlowLayout;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
-import org.fife.ui.rtextarea.RTextScrollPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,7 +58,6 @@ public class MainWindow extends JFrame {
 	private static final ImageIcon ICON_OPEN = Utils.openIcon("folder");
 	private static final ImageIcon ICON_SAVE_ALL = Utils.openIcon("disk_multiple");
 	private static final ImageIcon ICON_CLOSE = Utils.openIcon("cross");
-	private static final ImageIcon ICON_CLOSE_INACTIVE = Utils.openIcon("cross_grayed");
 	private static final ImageIcon ICON_FLAT_PKG = Utils.openIcon("empty_logical_package_obj");
 	private static final ImageIcon ICON_SEARCH = Utils.openIcon("magnifier");
 
@@ -80,9 +67,7 @@ public class MainWindow extends JFrame {
 
 	private JTree tree;
 	private DefaultTreeModel treeModel;
-
-	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final Map<JClass, Component> openTabs = new HashMap<JClass, Component>();
+	private TabbedPane tabbedPane;
 
 	public MainWindow(JadxWrapper wrapper) {
 		this.wrapper = wrapper;
@@ -138,126 +123,19 @@ public class MainWindow extends JFrame {
 		}
 	}
 
-	private void toggleSearch() {
-		SearchBar searchBar = getSearchBar((JPanel) tabbedPane.getSelectedComponent());
-		searchBar.toggle();
-	}
-
 	private void treeClickAction() {
 		Object obj = tree.getLastSelectedPathComponent();
 		if (obj instanceof JNode) {
 			JNode node = (JNode) obj;
 			JClass cls = node.getRootClass();
 			if (cls != null) {
-				showCode(cls, node.getLine());
+				tabbedPane.showCode(cls, node.getLine());
 			}
 		}
 	}
 
-	private JPanel newCodePane(final JClass cls) {
-		JadxTextArea textArea = new JadxTextArea(this, cls);
-		RTextScrollPane scrollPane = new RTextScrollPane(textArea);
-		scrollPane.setFoldIndicatorEnabled(true);
-
-		JPanel textPanel = new JPanel(new BorderLayout());
-		SearchBar searchBar = new SearchBar(textArea);
-		textPanel.add(searchBar, BorderLayout.NORTH);
-		textPanel.add(scrollPane);
-
-		KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK);
-		Utils.addKeyBinding(textArea, key, "SearchAction", new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				toggleSearch();
-			}
-		});
-		return textPanel;
-	}
-
-	private SearchBar getSearchBar(JPanel panel) {
-		return (SearchBar) panel.getComponent(0);
-	}
-
-	private JadxTextArea getTextArea(JPanel panel) {
-		RTextScrollPane scrollPane = (RTextScrollPane) panel.getComponent(1);
-		return (JadxTextArea) scrollPane.getTextArea();
-	}
-
-	void showCode(JClass cls, int line) {
-		JPanel panel = (JPanel) openTabs.get(cls);
-		if (panel != null) {
-			panel = (JPanel) openTabs.get(cls);
-			tabbedPane.setSelectedComponent(panel);
-		} else {
-			panel = newCodePane(cls);
-			tabbedPane.add(panel);
-			openTabs.put(cls, panel);
-			int id = tabbedPane.indexOfComponent(panel);
-			tabbedPane.setTabComponentAt(id, makeTabComponent(cls, panel));
-			tabbedPane.setSelectedIndex(id);
-		}
-		JadxTextArea textArea = getTextArea(panel);
-		scrollToLine(textArea, line);
-	}
-
-	private Component makeTabComponent(final JClass cls, final Component comp) {
-		String name = cls.getCls().getFullName();
-		JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 3, 0));
-		panel.setOpaque(false);
-
-		final JLabel label = new JLabel(name);
-		label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
-		label.setIcon(cls.getIcon());
-
-		final JButton button = new JButton();
-		button.setIcon(ICON_CLOSE_INACTIVE);
-		button.setRolloverIcon(ICON_CLOSE);
-		button.setRolloverEnabled(true);
-		button.setOpaque(false);
-		button.setUI(new BasicButtonUI());
-		button.setContentAreaFilled(false);
-		button.setFocusable(false);
-		button.setBorder(null);
-		button.setBorderPainted(false);
-		button.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				closeCodeTab(cls, comp);
-			}
-		});
-
-		panel.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (e.getButton() == MouseEvent.BUTTON2) {
-					closeCodeTab(cls, comp);
-				} else {
-					// TODO: make correct event delegation to tabbed pane
-					tabbedPane.setSelectedComponent(comp);
-				}
-			}
-		});
-
-		panel.add(label);
-		panel.add(button);
-		panel.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
-		return panel;
-	}
-
-	private void closeCodeTab(JClass cls, Component comp) {
-		tabbedPane.remove(comp);
-		openTabs.remove(cls);
-	}
-
-	private void scrollToLine(JTextArea textArea, int line) {
-		if (line == 0) {
-			line = 1;
-		}
-		try {
-			textArea.setCaretPosition(textArea.getLineStartOffset(line - 1));
-		} catch (BadLocationException e) {
-			LOG.error("Can't scroll to " + line, e);
-		}
+	private void toggleSearch() {
+		tabbedPane.getSelectedCodePanel().getSearchBar().toggle();
 	}
 
 	private void initMenuAndToolbar() {
@@ -396,7 +274,7 @@ public class MainWindow extends JFrame {
 		JScrollPane treeScrollPane = new JScrollPane(tree);
 		splitPane.setLeftComponent(treeScrollPane);
 
-		tabbedPane.setTabLayoutPolicy(JTabbedPane.WRAP_TAB_LAYOUT);
+		tabbedPane = new TabbedPane(this);
 		splitPane.setRightComponent(tabbedPane);
 
 		setContentPane(mainPanel);

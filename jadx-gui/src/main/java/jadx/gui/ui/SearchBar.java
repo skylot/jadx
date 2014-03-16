@@ -1,4 +1,4 @@
-package jadx.gui;
+package jadx.gui.ui;
 
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
@@ -20,7 +20,7 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
 
-public class SearchBar extends JToolBar {
+class SearchBar extends JToolBar {
 	private static final long serialVersionUID = 1836871286618633003L;
 
 	private static final Color COLOR_BG_ERROR = new Color(0xFFDFDE);

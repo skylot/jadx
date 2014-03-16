@@ -1,6 +1,7 @@
 package jadx.gui;
 
 import jadx.cli.JadxCLIArgs;
+import jadx.gui.ui.MainWindow;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -19,17 +20,17 @@ public class JadxGUI {
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
 					JadxWrapper wrapper = new JadxWrapper(jadxArgs);
-					MainWindow mainWindow = new MainWindow(wrapper);
-					mainWindow.pack();
-					mainWindow.setLocationAndPosition();
-					mainWindow.setVisible(true);
-					mainWindow.setLocationRelativeTo(null);
-					mainWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+					MainWindow window = new MainWindow(wrapper);
+					window.pack();
+					window.setLocationAndPosition();
+					window.setVisible(true);
+					window.setLocationRelativeTo(null);
+					window.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
 					if (jadxArgs.getInput().isEmpty()) {
-						mainWindow.openFile();
+						window.openFile();
 					} else {
-						mainWindow.openFile(jadxArgs.getInput().get(0));
+						window.openFile(jadxArgs.getInput().get(0));
 					}
 				}
 			});
