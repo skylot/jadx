@@ -4,7 +4,7 @@ import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
-import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -27,7 +27,7 @@ public class Utils {
 		return new ImageIcon(resource);
 	}
 
-	public static void addKeyBinding(JComponent comp, KeyStroke key, String id, AbstractAction action) {
+	public static void addKeyBinding(JComponent comp, KeyStroke key, String id, Action action) {
 		comp.getInputMap().put(key, id);
 		comp.getActionMap().put(id, action);
 	}

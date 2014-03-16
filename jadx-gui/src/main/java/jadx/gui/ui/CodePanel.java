@@ -15,6 +15,8 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 
 class CodePanel extends JPanel {
 
+	private static final long serialVersionUID = 5310536092010045565L;
+
 	private final TabbedPane codePanel;
 	private final JClass jClass;
 	private final SearchBar searchBar;
