@@ -1,6 +1,7 @@
 package jadx.core.dex.nodes;
 
 import jadx.core.dex.attributes.AttrNode;
+import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.attributes.BlockRegState;
 import jadx.core.dex.attributes.LoopAttr;
@@ -146,6 +147,14 @@ public class BlockNode extends AttrNode implements IBlock {
 
 	public void setEndState(BlockRegState endState) {
 		this.endState = endState;
+	}
+
+	public boolean isSynthetic() {
+		return getAttributes().contains(AttributeFlag.SYNTHETIC);
+	}
+
+	public boolean isReturnBlock() {
+		return getAttributes().contains(AttributeFlag.RETURN);
 	}
 
 	@Override

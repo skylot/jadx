@@ -1,10 +1,13 @@
 package jadx.core.dex.attributes;
 
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.Edge;
 import jadx.core.utils.BlockUtils;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 public class LoopAttr implements IAttribute {
@@ -37,21 +40,37 @@ public class LoopAttr implements IAttribute {
 	}
 
 	/**
-	 * Return block nodes with exit edges from loop <br>
+	 * Return source blocks of exit edges. <br>
 	 * Exit nodes belongs to loop (contains in {@code loopBlocks})
 	 */
 	public Set<BlockNode> getExitNodes() {
 		Set<BlockNode> nodes = new HashSet<BlockNode>();
-		Set<BlockNode> inloop = getLoopBlocks();
-		for (BlockNode block : inloop) {
+		Set<BlockNode> blocks = getLoopBlocks();
+		for (BlockNode block : blocks) {
 			// exit: successor node not from this loop, (don't change to getCleanSuccessors)
 			for (BlockNode s : block.getSuccessors()) {
-				if (!inloop.contains(s) && !s.getAttributes().contains(AttributeType.EXC_HANDLER)) {
+				if (!blocks.contains(s) && !s.getAttributes().contains(AttributeType.EXC_HANDLER)) {
 					nodes.add(block);
 				}
 			}
 		}
 		return nodes;
+	}
+
+	/**
+	 * Return loop exit edges.
+	 */
+	public List<Edge> getExitEdges() {
+		List<Edge> edges = new LinkedList<Edge>();
+		Set<BlockNode> blocks = getLoopBlocks();
+		for (BlockNode block : blocks) {
+			for (BlockNode s : block.getSuccessors()) {
+				if (!blocks.contains(s) && !s.getAttributes().contains(AttributeType.EXC_HANDLER)) {
+					edges.add(new Edge(block, s));
+				}
+			}
+		}
+		return edges;
 	}
 
 	@Override

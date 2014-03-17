@@ -222,15 +222,13 @@ public class TestCF3 extends AbstractTest {
 				new ArrayList<String>(Arrays.asList("a1", "b2"))));
 
 		List<String> list1 = Arrays.asList(null, "a", "b");
-
-		// TODO this line required to omit generic information because it create List<Object>
-		// List<String> list2 = Arrays.asList(null, null, null);
-
 		assertEquals(testReturnInLoop(list1), "a");
 		assertEquals(testReturnInLoop2(list1), "a");
 
-		// assertEquals(testReturnInLoop(list2), "error");
-		// assertEquals(testReturnInLoop2(list2), "error");
+		// TODO this line required to omit generic information because it create List<Object>
+//		List<String> list2 = Arrays.asList(null, null, null);
+//		assertEquals(testReturnInLoop(list2), "error");
+//		assertEquals(testReturnInLoop2(list2), "error");
 
 		// assertTrue(testLabeledBreakContinue());
 

@@ -10,16 +10,15 @@ import static org.junit.Assert.assertThat;
 
 public class TestReturnWrapping extends InternalJadxTest {
 	public static class TestCls {
-		/**/
+
 		public static int f1(int arg0) {
 			switch (arg0) {
 				case 1:
 					return 255;
 			}
 			return arg0 + 1;
-		}/**/
+		}
 
-		/**/
 		public static Object f2(Object arg0, int arg1) {
 			Object ret = null;
 			int i = arg1;
@@ -34,9 +33,8 @@ public class TestReturnWrapping extends InternalJadxTest {
 				}
 				return i > 128 ? arg0.toString() + ret.toString() : i;
 			}
-		}/**/
+		}
 
-		/**/
 		public static int f3(int arg0) {
 			while (arg0 > 10) {
 				int abc = 951;
@@ -46,7 +44,7 @@ public class TestReturnWrapping extends InternalJadxTest {
 				arg0 -= abc;
 			}
 			return arg0;
-		}/**/
+		}
 	}
 
 	@Test
@@ -56,7 +54,6 @@ public class TestReturnWrapping extends InternalJadxTest {
 
 		assertThat(code, containsString("return 255;"));
 		assertThat(code, containsString("return arg0 + 1;"));
-		//assertThat(code, containsString("return Integer.toHexString(i);"));
 		assertThat(code, containsString("return i > 128 ? arg0.toString() + ret.toString() : Integer.valueOf(i);"));
 		assertThat(code, containsString("return arg0 + 2;"));
 		assertThat(code, containsString("arg0 -= 951;"));

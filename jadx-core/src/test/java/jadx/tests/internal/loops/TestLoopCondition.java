@@ -10,8 +10,7 @@ import static org.junit.Assert.assertThat;
 
 public class TestLoopCondition extends InternalJadxTest {
 
-	@SuppressWarnings("serial")
-	public static class TestCls extends Exception {
+	public static class TestCls {
 		public String f;
 
 		private void setEnabled(boolean r1z) {
@@ -32,14 +31,6 @@ public class TestLoopCondition extends InternalJadxTest {
 			setEnabled(false);
 		}
 
-		public int testComplexIfInLoop(boolean a) {
-			int i = 0;
-			while (a && i < 10) {
-				i++;
-			}
-			return i;
-		}
-
 		private void testMoreComplexIfInLoop(java.util.ArrayList<String> list) throws Exception {
 			for (int i = 0; i != 16 && i < 255; i++) {
 				list.set(i, "ABC");
@@ -55,9 +46,9 @@ public class TestLoopCondition extends InternalJadxTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
+		System.out.println(code);
 
 		assertThat(code, containsString("i < this.f.length()"));
-		assertThat(code, containsString("while (a && i < 10) {"));
 		assertThat(code, containsString("list.set(i, \"ABC\")"));
 		assertThat(code, containsString("list.set(i, \"DEF\")"));
 	}

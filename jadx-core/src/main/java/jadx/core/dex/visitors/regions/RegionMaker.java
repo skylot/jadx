@@ -12,6 +12,7 @@ import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.Edge;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -143,8 +144,6 @@ public class RegionMaker {
 
 	private BlockNode processLoop(IRegion curRegion, LoopAttr loop, RegionStack stack) {
 		BlockNode loopStart = loop.getStart();
-		IfNode ifnode = null;
-		LoopRegion loopRegion = null;
 		Set<BlockNode> exitBlocksSet = loop.getExitNodes();
 
 		// set exit blocks scan order by priority
@@ -163,6 +162,9 @@ public class RegionMaker {
 		exitBlocks.addAll(exitBlocksSet);
 		exitBlocksSet = null;
 
+		IfNode ifnode = null;
+		LoopRegion loopRegion = null;
+
 		// exit block with loop condition
 		BlockNode condBlock = null;
 
@@ -174,113 +176,79 @@ public class RegionMaker {
 					|| exit.getInstructions().size() != 1) {
 				continue;
 			}
-
 			InsnNode insn = exit.getInstructions().get(0);
-			if (insn.getType() == InsnType.IF) {
-				boolean found = true;
-				ifnode = (IfNode) insn;
-				condBlock = exit;
-				loopRegion = new LoopRegion(curRegion, condBlock, condBlock == loop.getEnd());
+			if (insn.getType() != InsnType.IF) {
+				continue;
+			}
+			ifnode = (IfNode) insn;
+			condBlock = exit;
 
-				if (loopRegion.isConditionAtEnd()) {
-					// TODO: add some checks
+			loopRegion = new LoopRegion(curRegion, condBlock, condBlock == loop.getEnd());
+			boolean found = true;
+			if (condBlock != loopStart) {
+				if (condBlock.getPredecessors().contains(loopStart)) {
+					loopRegion.setPreCondition(loopStart);
+					// if we can't merge pre-condition this is not correct header
+					found = loopRegion.checkPreCondition();
 				} else {
-					if (condBlock != loopStart) {
-						if (condBlock.getPredecessors().contains(loopStart)) {
-							loopRegion.setPreCondition(loopStart);
-							// if we can't merge pre-condition this is not correct header
-							found = loopRegion.checkPreCondition();
-						} else {
-							found = false;
-						}
-					}
-				}
-				if (!found) {
-					ifnode = null;
-					loopRegion = null;
-					condBlock = null;
-					// try another exit
-				} else {
-					List<BlockNode> merged = new ArrayList<BlockNode>(2);
-					IfInfo mergedIf = mergeNestedIfNodes(condBlock,
-							ifnode.getThenBlock(), ifnode.getElseBlock(), merged);
-					if (mergedIf != null) {
-						condBlock = mergedIf.getIfnode();
-						if (!loop.getLoopBlocks().contains(mergedIf.getThenBlock())) {
-							// invert loop condition if it points to exit
-							loopRegion.setCondition(IfCondition.invert(mergedIf.getCondition()));
-							bThen = mergedIf.getElseBlock();
-						} else {
-							loopRegion.setCondition(mergedIf.getCondition());
-							bThen = mergedIf.getThenBlock();
-						}
-						exitBlocks.removeAll(merged);
-					}
-					break;
+					found = false;
 				}
 			}
+			if (!found) {
+				ifnode = null;
+				loopRegion = null;
+				condBlock = null;
+				// try another exit
+				continue;
+			}
+
+			List<BlockNode> merged = new ArrayList<BlockNode>(2);
+			IfInfo mergedIf = mergeNestedIfNodes(condBlock,
+					ifnode.getThenBlock(), ifnode.getElseBlock(), merged);
+			if (mergedIf != null) {
+				condBlock = mergedIf.getIfnode();
+				if (!loop.getLoopBlocks().contains(mergedIf.getThenBlock())) {
+					// invert loop condition if it points to exit
+					loopRegion.setCondition(IfCondition.invert(mergedIf.getCondition()));
+					bThen = mergedIf.getElseBlock();
+				} else {
+					loopRegion.setCondition(mergedIf.getCondition());
+					bThen = mergedIf.getThenBlock();
+				}
+				exitBlocks.removeAll(merged);
+			}
+			break;
 		}
 
 		// endless loop
 		if (loopRegion == null) {
-			loopRegion = new LoopRegion(curRegion, null, false);
-			curRegion.getSubBlocks().add(loopRegion);
-
-			loopStart.getAttributes().remove(AttributeType.LOOP);
-			stack.push(loopRegion);
-			Region body = makeRegion(loopStart, stack);
-			if (!RegionUtils.isRegionContainsBlock(body, loop.getEnd())) {
-				body.getSubBlocks().add(loop.getEnd());
-			}
-			loopRegion.setBody(body);
-			stack.pop();
-			loopStart.getAttributes().add(loop);
-
-			BlockNode next = BlockUtils.getNextBlock(loop.getEnd());
-			if (!RegionUtils.isRegionContainsBlock(body, next)) {
-				return next;
-			} else {
-				return null;
-			}
-		}
-
-		curRegion.getSubBlocks().add(loopRegion);
-
-		exitBlocks.remove(condBlock);
-		if (exitBlocks.size() > 0) {
-			// set BREAK or FORCE_RETURN attributes
-			// before path cross between main loop exit and subexit
-			BlockNode loopExit = BlockUtils.getNextBlock(condBlock);
-			for (BlockNode exit : exitBlocks) {
-				BlockNode next = BlockUtils.getNextBlock(exit);
-				while (next != null) {
-					if (isPathExists(loopExit, next)) {
-						// found cross
-						/*
-						if (next.getCleanSuccessors().size() == 1) {
-							BlockNode r = BlockUtils.getNextBlock(next);
-							if (r != null
-									&& r.getAttributes().contains(AttributeFlag.RETURN)
-									&& r.getInstructions().size() > 0
-									&& r.getInstructions().get(0).getType() == InsnType.RETURN) {
-								next.getAttributes().add(new ForceReturnAttr(r.getInstructions().get(0)));
-							} else {
-								next.getAttributes().add(AttributeFlag.BREAK);
-								stack.addExit(r);
-							}
-						} else {
-							stack.addExit(next);
-						}
-						*/
-						break;
-					}
-					next = BlockUtils.getNextBlock(next);
-				}
-			}
+			return makeEndlessLoop(curRegion, stack, loop, loopStart);
 		}
 
 		if (bThen == null) {
 			bThen = ifnode.getThenBlock();
+		}
+		BlockNode loopBody = null;
+		for (BlockNode s : condBlock.getSuccessors()) {
+			if (loop.getLoopBlocks().contains(s)) {
+				loopBody = s;
+				break;
+			}
+		}
+
+		curRegion.getSubBlocks().add(loopRegion);
+		stack.push(loopRegion);
+
+		exitBlocks.remove(condBlock);
+		if (exitBlocks.size() > 0) {
+			// add 'break' instruction before path cross between main loop exit and subexit
+			BlockNode loopExit = BlockUtils.selectOther(loopBody, condBlock.getCleanSuccessors());
+			for (Edge exitEdge : loop.getExitEdges()) {
+				if (!exitBlocks.contains(exitEdge.getSource())) {
+					continue;
+				}
+				insertBreak(stack, loopExit, exitEdge);
+			}
 		}
 
 		BlockNode out;
@@ -290,20 +258,10 @@ public class RegionMaker {
 
 			loopStart.getAttributes().remove(AttributeType.LOOP);
 
-			stack.push(loopRegion);
 			stack.addExit(loop.getEnd());
 			loopRegion.setBody(makeRegion(loopStart, stack));
 			loopStart.getAttributes().add(loop);
-			stack.pop();
 		} else {
-			Set<BlockNode> loopBlocks = loop.getLoopBlocks();
-			BlockNode loopBody = null;
-			for (BlockNode s : condBlock.getSuccessors()) {
-				if (loopBlocks.contains(s)) {
-					loopBody = s;
-					break;
-				}
-			}
 			if (bThen != loopBody) {
 				loopRegion.setCondition(IfCondition.invert(loopRegion.getCondition()));
 			}
@@ -313,19 +271,53 @@ public class RegionMaker {
 					&& outAttrs.get(AttributeType.LOOP) != loop
 					&& stack.peekRegion() instanceof LoopRegion) {
 				LoopRegion outerLoop = (LoopRegion) stack.peekRegion();
-				if (outerLoop.getBody() == null /* processing not yet finished */
-						|| RegionUtils.isRegionContainsBlock(outerLoop, out)) {
+				boolean notYetProcessed = outerLoop.getBody() == null;
+				if (notYetProcessed || RegionUtils.isRegionContainsBlock(outerLoop, out)) {
 					// exit to outer loop which already processed
 					out = null;
 				}
 			}
-
-			stack.push(loopRegion);
 			stack.addExit(out);
 			loopRegion.setBody(makeRegion(loopBody, stack));
-			stack.pop();
 		}
+		stack.pop();
 		return out;
+	}
+
+	private BlockNode makeEndlessLoop(IRegion curRegion, RegionStack stack, LoopAttr loop, BlockNode loopStart) {
+		LoopRegion loopRegion;
+		loopRegion = new LoopRegion(curRegion, null, false);
+		curRegion.getSubBlocks().add(loopRegion);
+
+		loopStart.getAttributes().remove(AttributeType.LOOP);
+		stack.push(loopRegion);
+		Region body = makeRegion(loopStart, stack);
+		if (!RegionUtils.isRegionContainsBlock(body, loop.getEnd())) {
+			body.getSubBlocks().add(loop.getEnd());
+		}
+		loopRegion.setBody(body);
+		stack.pop();
+		loopStart.getAttributes().add(loop);
+
+		BlockNode next = BlockUtils.getNextBlock(loop.getEnd());
+		return RegionUtils.isRegionContainsBlock(body, next) ? null : next;
+	}
+
+	private void insertBreak(RegionStack stack, BlockNode loopExit, Edge exitEdge) {
+		BlockNode prev = null;
+		BlockNode exit = exitEdge.getTarget();
+		while (exit != null) {
+			if (prev != null && isPathExists(loopExit, exit)) {
+				// found cross
+				if (!exit.getAttributes().contains(AttributeFlag.RETURN)) {
+					prev.getInstructions().add(new InsnNode(InsnType.BREAK, 0));
+					stack.addExit(exit);
+				}
+				return;
+			}
+			prev = exit;
+			exit = BlockUtils.getNextBlock(exit);
+		}
 	}
 
 	private final Set<BlockNode> cacheSet = new HashSet<BlockNode>();
@@ -509,8 +501,8 @@ public class RegionMaker {
 					IfCondition nestedCondition = IfCondition.fromIfNode(nestedIfInsn);
 					if (isPathExists(bElse, nestedIfBlock)) {
 						// else branch
-						if (!isEqualReturns(bThen, nbThen)) {
-							if (!isEqualReturns(bThen, nbElse)) {
+						if (!isEqualPaths(bThen, nbThen)) {
+							if (!isEqualPaths(bThen, nbElse)) {
 								// not connected conditions
 								break;
 							}
@@ -520,8 +512,8 @@ public class RegionMaker {
 						condition = IfCondition.merge(Mode.OR, condition, nestedCondition);
 					} else {
 						// then branch
-						if (!isEqualReturns(bElse, nbElse)) {
-							if (!isEqualReturns(bElse, nbThen)) {
+						if (!isEqualPaths(bElse, nbElse)) {
+							if (!isEqualPaths(bElse, nbThen)) {
 								// not connected conditions
 								break;
 							}
@@ -533,7 +525,7 @@ public class RegionMaker {
 					result = new IfInfo();
 					result.setCondition(condition);
 					nestedIfBlock.getAttributes().add(AttributeFlag.SKIP);
-					bThen.getAttributes().add(AttributeFlag.SKIP);
+					skipSimplePath(bThen);
 
 					if (merged != null) {
 						merged.add(nestedIfBlock);
@@ -702,11 +694,42 @@ public class RegionMaker {
 		handler.getHandlerRegion().getAttributes().add(excHandlerAttr);
 	}
 
-	private static boolean isEqualReturns(BlockNode b1, BlockNode b2) {
+	private void skipSimplePath(BlockNode block) {
+		while (block != null
+				&& block.getCleanSuccessors().size() < 2
+				&& block.getPredecessors().size() == 1) {
+			block.getAttributes().add(AttributeFlag.SKIP);
+			block = BlockUtils.getNextBlock(block);
+		}
+	}
+
+	private static boolean isEqualPaths(BlockNode b1, BlockNode b2) {
 		if (b1 == b2) {
 			return true;
 		}
 		if (b1 == null || b2 == null) {
+			return false;
+		}
+		if (isReturnBlocks(b1, b2)) {
+			return true;
+		}
+		if (isSyntheticPath(b1, b2)) {
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean isSyntheticPath(BlockNode b1, BlockNode b2) {
+		if (!b1.isSynthetic() || !b2.isSynthetic()) {
+			return false;
+		}
+		BlockNode n1 = BlockUtils.getNextBlock(b1);
+		BlockNode n2 = BlockUtils.getNextBlock(b2);
+		return isEqualPaths(n1, n2);
+	}
+
+	private static boolean isReturnBlocks(BlockNode b1, BlockNode b2) {
+		if (!b1.isReturnBlock() || !b2.isReturnBlock()) {
 			return false;
 		}
 		List<InsnNode> b1Insns = b1.getInstructions();
@@ -714,15 +737,11 @@ public class RegionMaker {
 		if (b1Insns.size() != 1 || b2Insns.size() != 1) {
 			return false;
 		}
-		if (!b1.getAttributes().contains(AttributeFlag.RETURN)
-				|| !b2.getAttributes().contains(AttributeFlag.RETURN)) {
+		InsnNode i1 = b1Insns.get(0);
+		InsnNode i2 = b2Insns.get(0);
+		if (i1.getArgsCount() == 0 || i2.getArgsCount() == 0) {
 			return false;
 		}
-		if (b1Insns.get(0).getArgsCount() > 0) {
-			if (b1Insns.get(0).getArg(0) != b2Insns.get(0).getArg(0)) {
-				return false;
-			}
-		}
-		return true;
+		return i1.getArg(0).equals(i2.getArg(0));
 	}
 }

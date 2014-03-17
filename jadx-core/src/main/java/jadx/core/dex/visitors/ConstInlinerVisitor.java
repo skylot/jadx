@@ -46,39 +46,37 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 				long lit = ((LiteralArg) arg).getLiteral();
 				return replaceConst(mth, block, insn, lit);
 			}
-			// TODO process string and class const
 		}
 		return false;
 	}
 
 	private static boolean replaceConst(MethodNode mth, BlockNode block, InsnNode insn, long literal) {
 		List<InsnArg> use = insn.getResult().getTypedVar().getUseList();
-		int replace = 0;
+		int replaceCount = 0;
 		for (InsnArg arg : use) {
 			InsnNode useInsn = arg.getParentInsn();
-			if (useInsn == null) {
+			if (arg == insn.getResult() || useInsn == null) {
 				continue;
 			}
 			BlockNode useBlock = BlockUtils.getBlockByInsn(mth, useInsn);
-			if (useBlock == block || useBlock.isDominator(block)) {
-				if (arg != insn.getResult() && !registerReassignOnPath(block, useBlock, insn)) {
-					LiteralArg litArg;
-					if (use.size() == 2) {
-						// arg used only in one place
-						litArg = InsnArg.lit(literal, arg.getType());
-					} else {
-						// in most cases type not equal arg.getType()
-						// just set unknown type and run type fixer
-						litArg = InsnArg.lit(literal, ArgType.UNKNOWN);
-					}
-					if (useInsn.replaceArg(arg, litArg)) {
-						fixTypes(mth, useInsn, litArg);
-						replace++;
-					}
+			boolean isDominator = useBlock == block || useBlock.isDominator(block);
+			if (isDominator && !registerReassignOnPath(block, useBlock, insn)) {
+				LiteralArg litArg;
+				if (use.size() == 2) {
+					// arg used only in one place
+					litArg = InsnArg.lit(literal, arg.getType());
+				} else {
+					// in most cases type not equal arg.getType()
+					// just set unknown type and run type fixer
+					litArg = InsnArg.lit(literal, ArgType.UNKNOWN);
+				}
+				if (useInsn.replaceArg(arg, litArg)) {
+					fixTypes(mth, useInsn, litArg);
+					replaceCount++;
 				}
 			}
 		}
-		return (replace + 1) == use.size();
+		return replaceCount == use.size() - 1;
 	}
 
 	private static boolean registerReassignOnPath(BlockNode block, BlockNode useBlock, InsnNode assignInsn) {
@@ -86,7 +84,6 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 			return false;
 		}
 		Set<BlockNode> blocks = BlockUtils.getAllPathsBlocks(block, useBlock);
-		// TODO store list of assign insn for each register
 		int regNum = assignInsn.getResult().getRegNum();
 		for (BlockNode b : blocks) {
 			for (InsnNode insn : b.getInstructions()) {

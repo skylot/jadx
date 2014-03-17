@@ -10,7 +10,11 @@ import jadx.core.dex.visitors.AbstractVisitor;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class TypeResolver extends AbstractVisitor {
+	private static final Logger LOG = LoggerFactory.getLogger(TypeResolver.class);
 
 	@Override
 	public void visit(MethodNode mth) {
@@ -67,11 +71,22 @@ public class TypeResolver extends AbstractVisitor {
 			}
 		} while (changed);
 
-		for (BlockNode block : mth.getBasicBlocks()) {
-			for (BlockNode dest : block.getSuccessors()) {
-				connectEdges(mth, block, dest, false);
+		int i = 0;
+		do {
+			changed = false;
+			for (BlockNode block : mth.getBasicBlocks()) {
+				for (BlockNode dest : block.getSuccessors()) {
+					if (connectEdges(mth, block, dest, false)) {
+						changed = true;
+					}
+				}
 			}
-		}
+			i++;
+			if (i > 10) {
+				LOG.warn("Can't resolve types (forward connectEdges pass) in method: {}", mth);
+				break;
+			}
+		} while (changed && i < 10);
 	}
 
 	private static boolean connectEdges(MethodNode mth, BlockNode from, BlockNode to, boolean back) {

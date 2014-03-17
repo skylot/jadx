@@ -9,7 +9,6 @@ public enum AttributeFlag {
 
 	SYNTHETIC,
 
-	BREAK,
 	RETURN, // block contains only return instruction
 
 	DECLARE_VAR,

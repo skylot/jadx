@@ -12,6 +12,7 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.Edge;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.CatchAttr;
@@ -299,6 +300,16 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		}
 	}
 
+	private static void markReturnBlocks(MethodNode mth) {
+		mth.getExitBlocks().clear();
+		for (BlockNode block : mth.getBasicBlocks()) {
+			if (BlockUtils.lastInsnType(block, InsnType.RETURN)) {
+				block.getAttributes().add(AttributeFlag.RETURN);
+				mth.getExitBlocks().add(block);
+			}
+		}
+	}
+
 	private static void markLoops(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			for (BlockNode succ : block.getSuccessors()) {
@@ -312,16 +323,6 @@ public class BlockMakerVisitor extends AbstractVisitor {
 					succ.getAttributes().add(loop);
 					block.getAttributes().add(loop);
 				}
-			}
-		}
-	}
-
-	private static void markReturnBlocks(MethodNode mth) {
-		mth.getExitBlocks().clear();
-		for (BlockNode block : mth.getBasicBlocks()) {
-			if (BlockUtils.lastInsnType(block, InsnType.RETURN)) {
-				block.getAttributes().add(AttributeFlag.RETURN);
-				mth.getExitBlocks().add(block);
 			}
 		}
 	}
@@ -356,6 +357,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 				if (oneHeader) {
 					// several back edges connected to one loop header => make additional block
 					BlockNode newLoopHeader = startNewBlock(mth, block.getStartOffset());
+					newLoopHeader.getAttributes().add(AttributeFlag.SYNTHETIC);
 					connect(newLoopHeader, block);
 					for (IAttribute a : loops) {
 						LoopAttr la = (LoopAttr) a;
@@ -366,6 +368,24 @@ public class BlockMakerVisitor extends AbstractVisitor {
 					return true;
 				}
 			}
+			// insert additional blocks if loop has several exits
+			if (loops.size() == 1) {
+				LoopAttr loop = (LoopAttr) loops.get(0);
+				List<Edge> edges = loop.getExitEdges();
+				if (edges.size() > 1) {
+					boolean change = false;
+					for (Edge edge : edges) {
+						BlockNode target = edge.getTarget();
+						if (!target.getAttributes().contains(AttributeFlag.SYNTHETIC)) {
+							insertBlockBetween(mth, edge.getSource(), target);
+							change = true;
+						}
+					}
+					if (change) {
+						return true;
+					}
+				}
+			}
 		}
 		if (splitReturn(mth)) {
 			return true;
@@ -374,6 +394,15 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			return true;
 		}
 		return false;
+	}
+
+	private static BlockNode insertBlockBetween(MethodNode mth, BlockNode source, BlockNode target) {
+		BlockNode newBlock = startNewBlock(mth, target.getStartOffset());
+		newBlock.getAttributes().add(AttributeFlag.SYNTHETIC);
+		removeConnection(source, target);
+		connect(source, newBlock);
+		connect(newBlock, target);
+		return newBlock;
 	}
 
 	/**
@@ -414,7 +443,6 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		if (mth.getExitBlocks().size() != 1) {
 			return false;
 		}
-		boolean split = false;
 		BlockNode exitBlock = mth.getExitBlocks().get(0);
 		if (exitBlock.getPredecessors().size() > 1
 				&& exitBlock.getInstructions().size() == 1
@@ -422,10 +450,9 @@ public class BlockMakerVisitor extends AbstractVisitor {
 				&& !exitBlock.getAttributes().contains(AttributeFlag.SYNTHETIC)) {
 			InsnNode returnInsn = exitBlock.getInstructions().get(0);
 			List<BlockNode> preds = new ArrayList<BlockNode>(exitBlock.getPredecessors());
-			if (returnInsn.getArgsCount() != 0 && !isReturnArgAssignInPred(mth, preds, returnInsn)) {
+			if (returnInsn.getArgsCount() != 0 && !isReturnArgAssignInPred(preds, returnInsn)) {
 				return false;
 			}
-			split = true;
 			for (BlockNode pred : preds) {
 				BlockNode newRetBlock = startNewBlock(mth, exitBlock.getStartOffset());
 				newRetBlock.getAttributes().add(AttributeFlag.SYNTHETIC);
@@ -433,14 +460,13 @@ public class BlockMakerVisitor extends AbstractVisitor {
 				removeConnection(pred, exitBlock);
 				connect(pred, newRetBlock);
 			}
-		}
-		if (split) {
 			cleanExitNodes(mth);
+			return true;
 		}
-		return split;
+		return false;
 	}
 
-	private static boolean isReturnArgAssignInPred(MethodNode mth, List<BlockNode> preds, InsnNode returnInsn) {
+	private static boolean isReturnArgAssignInPred(List<BlockNode> preds, InsnNode returnInsn) {
 		RegisterArg arg = (RegisterArg) returnInsn.getArg(0);
 		int regNum = arg.getRegNum();
 		for (BlockNode pred : preds) {

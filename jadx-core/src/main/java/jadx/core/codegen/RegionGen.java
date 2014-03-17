@@ -93,14 +93,10 @@ public class RegionGen extends InsnGen {
 		for (InsnNode insn : block.getInstructions()) {
 			makeInsn(insn, code);
 		}
-		if (block.getAttributes().contains(AttributeFlag.BREAK)) {
-			code.startLine("break;");
-		} else {
-			IAttribute attr;
-			if ((attr = block.getAttributes().get(AttributeType.FORCE_RETURN)) != null) {
-				ForceReturnAttr retAttr = (ForceReturnAttr) attr;
-				makeInsn(retAttr.getReturnInsn(), code);
-			}
+		IAttribute attr;
+		if ((attr = block.getAttributes().get(AttributeType.FORCE_RETURN)) != null) {
+			ForceReturnAttr retAttr = (ForceReturnAttr) attr;
+			makeInsn(retAttr.getReturnInsn(), code);
 		}
 	}
 
