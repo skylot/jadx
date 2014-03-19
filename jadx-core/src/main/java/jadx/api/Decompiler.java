@@ -8,7 +8,6 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.SaveCode;
 import jadx.core.utils.ErrorsCounter;
-import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.InputFile;
@@ -116,21 +115,12 @@ public final class Decompiler {
 		LOG.info("processing ...");
 		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadsCount);
 		for (final ClassNode cls : root.getClasses(false)) {
-			if (cls.getCode() == null) {
-				Runnable job = new Runnable() {
-					@Override
-					public void run() {
-						ProcessClass.process(cls, passList);
-					}
-				};
-				executor.execute(job);
-			} else {
-				try {
-					savePass.visit(cls);
-				} catch (CodegenException e) {
-					LOG.error("Can't save class {}", cls, e);
+			executor.execute(new Runnable() {
+				@Override
+				public void run() {
+					ProcessClass.process(cls, passList);
 				}
-			}
+			});
 		}
 		executor.shutdown();
 		return executor;
