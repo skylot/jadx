@@ -11,9 +11,9 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.BlockUtils;
+import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.exceptions.JadxException;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -25,12 +25,13 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 			return;
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {
-			for (Iterator<InsnNode> it = block.getInstructions().iterator(); it.hasNext(); ) {
-				InsnNode insn = it.next();
+			InstructionRemover remover = new InstructionRemover(block.getInstructions());
+			for (InsnNode insn : block.getInstructions()) {
 				if (checkInsn(mth, block, insn)) {
-					it.remove();
+					remover.add(insn);
 				}
 			}
+			remover.perform();
 		}
 	}
 
@@ -53,9 +54,11 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 	private static boolean replaceConst(MethodNode mth, BlockNode block, InsnNode insn, long literal) {
 		List<InsnArg> use = insn.getResult().getTypedVar().getUseList();
 		int replaceCount = 0;
+		int assignCount = 0;
 		for (InsnArg arg : use) {
 			InsnNode useInsn = arg.getParentInsn();
 			if (arg == insn.getResult() || useInsn == null) {
+				assignCount++;
 				continue;
 			}
 			BlockNode useBlock = BlockUtils.getBlockByInsn(mth, useInsn);
@@ -76,7 +79,7 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 				}
 			}
 		}
-		return replaceCount == use.size() - 1;
+		return replaceCount == use.size() - assignCount;
 	}
 
 	private static boolean registerReassignOnPath(BlockNode block, BlockNode useBlock, InsnNode assignInsn) {

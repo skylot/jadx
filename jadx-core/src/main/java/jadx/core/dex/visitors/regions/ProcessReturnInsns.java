@@ -7,7 +7,9 @@ import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.regions.IfRegion;
 import jadx.core.dex.regions.LoopRegion;
+import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.utils.RegionUtils;
 
 import java.util.List;
@@ -52,6 +54,12 @@ public class ProcessReturnInsns extends TracedRegionVisitor {
 	private boolean noTrailInstructions(BlockNode block) {
 		IContainer curContainer = block;
 		for (IRegion region : regionStack) {
+			// ignore paths on other branches
+			if (region instanceof IfRegion
+					|| region instanceof SwitchRegion) {
+				curContainer = region;
+				continue;
+			}
 			List<IContainer> subBlocks = region.getSubBlocks();
 			if (!subBlocks.isEmpty()) {
 				ListIterator<IContainer> itSubBlock = subBlocks.listIterator(subBlocks.size());

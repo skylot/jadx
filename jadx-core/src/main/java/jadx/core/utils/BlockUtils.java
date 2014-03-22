@@ -132,6 +132,23 @@ public class BlockUtils {
 	}
 
 	/**
+	 * Return successor on path to 'pathEnd' block
+	 */
+	public static BlockNode getNextBlockToPath(BlockNode block, BlockNode pathEnd) {
+		List<BlockNode> successors = block.getCleanSuccessors();
+		if (successors.contains(pathEnd)) {
+			return pathEnd;
+		}
+		Set<BlockNode> path = getAllPathsBlocks(block, pathEnd);
+		for (BlockNode s : successors) {
+			if (path.contains(s)) {
+				return s;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Collect blocks from all possible execution paths from 'start' to 'end'
 	 */
 	public static Set<BlockNode> getAllPathsBlocks(BlockNode start, BlockNode end) {

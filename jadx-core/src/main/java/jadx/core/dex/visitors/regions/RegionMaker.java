@@ -461,13 +461,8 @@ public class RegionMaker {
 			}
 		}
 
-		if (elseBlock != null) {
-			if (stack.containsExit(elseBlock)) {
-				elseBlock = null;
-			} else if (elseBlock.getAttributes().contains(AttributeFlag.RETURN)) {
-				out = elseBlock;
-				elseBlock = null;
-			}
+		if (elseBlock != null && stack.containsExit(elseBlock)) {
+			elseBlock = null;
 		}
 
 		stack.push(ifRegion);
@@ -481,71 +476,86 @@ public class RegionMaker {
 	}
 
 	private IfInfo mergeNestedIfNodes(BlockNode block, BlockNode bThen, BlockNode bElse, List<BlockNode> merged) {
+		IfInfo info = new IfInfo();
+		info.setIfnode(block);
+		info.setCondition(IfCondition.fromIfBlock(block));
+		info.setThenBlock(bThen);
+		info.setElseBlock(bElse);
+		return mergeNestedIfNodes(info, merged);
+	}
+
+	private IfInfo mergeNestedIfNodes(IfInfo info, List<BlockNode> merged) {
+		BlockNode bThen = info.getThenBlock();
+		BlockNode bElse = info.getElseBlock();
 		if (bThen == bElse) {
 			return null;
 		}
 
-		boolean found;
-		IfCondition condition = IfCondition.fromIfBlock(block);
-		IfInfo result = null;
-		do {
-			found = false;
-			for (BlockNode succ : block.getSuccessors()) {
-				BlockNode nestedIfBlock = getIfNode(succ);
-				if (nestedIfBlock != null && nestedIfBlock != block) {
-					IfNode nestedIfInsn = (IfNode) nestedIfBlock.getInstructions().get(0);
-					BlockNode nbThen = nestedIfInsn.getThenBlock();
-					BlockNode nbElse = nestedIfInsn.getElseBlock();
+		BlockNode ifBlock = info.getIfnode();
+		BlockNode nestedIfBlock = getNextIfBlock(ifBlock);
+		if (nestedIfBlock == null) {
+			return null;
+		}
 
-					boolean inverted = false;
-					IfCondition nestedCondition = IfCondition.fromIfNode(nestedIfInsn);
-					if (isPathExists(bElse, nestedIfBlock)) {
-						// else branch
-						if (!isEqualPaths(bThen, nbThen)) {
-							if (!isEqualPaths(bThen, nbElse)) {
-								// not connected conditions
-								break;
-							}
-							nestedIfInsn.invertCondition();
-							inverted = true;
-						}
-						condition = IfCondition.merge(Mode.OR, condition, nestedCondition);
-					} else {
-						// then branch
-						if (!isEqualPaths(bElse, nbElse)) {
-							if (!isEqualPaths(bElse, nbThen)) {
-								// not connected conditions
-								break;
-							}
-							nestedIfInsn.invertCondition();
-							inverted = true;
-						}
-						condition = IfCondition.merge(Mode.AND, condition, nestedCondition);
-					}
-					result = new IfInfo();
-					result.setCondition(condition);
-					nestedIfBlock.getAttributes().add(AttributeFlag.SKIP);
-					skipSimplePath(bThen);
+		IfNode nestedIfInsn = (IfNode) nestedIfBlock.getInstructions().get(0);
+		IfCondition nestedCondition = IfCondition.fromIfNode(nestedIfInsn);
+		BlockNode nbThen = nestedIfInsn.getThenBlock();
+		BlockNode nbElse = nestedIfInsn.getElseBlock();
 
-					if (merged != null) {
-						merged.add(nestedIfBlock);
-					}
-
-					// set new blocks
-					result.setIfnode(nestedIfBlock);
-					result.setThenBlock(inverted ? nbElse : nbThen);
-					result.setElseBlock(inverted ? nbThen : nbElse);
-
-					found = true;
-					block = nestedIfBlock;
-					bThen = result.getThenBlock();
-					bElse = result.getElseBlock();
-					break;
+		IfCondition condition = info.getCondition();
+		boolean inverted = false;
+		if (isPathExists(bElse, nestedIfBlock)) {
+			// else branch
+			if (!isEqualPaths(bThen, nbThen)) {
+				if (!isEqualPaths(bThen, nbElse)) {
+					// not connected conditions
+					return null;
 				}
+				nestedIfInsn.invertCondition();
+				inverted = true;
 			}
-		} while (found);
+			condition = IfCondition.merge(Mode.OR, condition, nestedCondition);
+		} else {
+			// then branch
+			if (!isEqualPaths(bElse, nbElse)) {
+				if (!isEqualPaths(bElse, nbThen)) {
+					// not connected conditions
+					return null;
+				}
+				nestedIfInsn.invertCondition();
+				inverted = true;
+			}
+			condition = IfCondition.merge(Mode.AND, condition, nestedCondition);
+		}
+		if (merged != null) {
+			merged.add(nestedIfBlock);
+		}
+		nestedIfBlock.getAttributes().add(AttributeFlag.SKIP);
+		BlockNode blockToNestedIfBlock = BlockUtils.getNextBlockToPath(ifBlock, nestedIfBlock);
+		skipSimplePath(BlockUtils.selectOther(blockToNestedIfBlock, ifBlock.getCleanSuccessors()));
 
+		IfInfo result = new IfInfo();
+		result.setIfnode(nestedIfBlock);
+		result.setCondition(condition);
+		result.setThenBlock(inverted ? nbElse : nbThen);
+		result.setElseBlock(inverted ? nbThen : nbElse);
+
+		// search next nested if block
+		IfInfo next = mergeNestedIfNodes(result, merged);
+		if (next != null) {
+			return next;
+		}
 		return result;
+	}
+
+	private BlockNode getNextIfBlock(BlockNode block) {
+		for (BlockNode succ : block.getSuccessors()) {
+			BlockNode nestedIfBlock = getIfNode(succ);
+			if (nestedIfBlock != null && nestedIfBlock != block) {
+				return nestedIfBlock;
+			}
+		}
+		return null;
 	}
 
 	private static BlockNode getIfNode(BlockNode block) {

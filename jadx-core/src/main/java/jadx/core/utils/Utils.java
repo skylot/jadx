@@ -35,18 +35,18 @@ public class Utils {
 				case '/':
 				case ';':
 				case '$':
+				case ' ':
+				case ',':
 				case '<':
-				case '[':
 					sb.append('_');
 					break;
 
-				case ']':
+				case '[':
 					sb.append('A');
 					break;
 
+				case ']':
 				case '>':
-				case ',':
-				case ' ':
 				case '?':
 				case '*':
 					break;
