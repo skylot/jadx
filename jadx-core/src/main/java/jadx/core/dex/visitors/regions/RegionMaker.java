@@ -412,27 +412,22 @@ public class RegionMaker {
 		BlockNode thenBlock = null;
 		BlockNode elseBlock = null;
 
-		for (BlockNode d : block.getDominatesOn()) {
-			if (d != bThen && d != bElse) {
-				out = d;
-				break;
-			}
-		}
-
 		IfRegion ifRegion = new IfRegion(currentRegion, block);
 		currentRegion.getSubBlocks().add(ifRegion);
 
 		IfInfo mergedIf = mergeNestedIfNodes(block, bThen, bElse, null);
 		if (mergedIf != null) {
-			block = mergedIf.getIfnode();
 			ifRegion.setCondition(mergedIf.getCondition());
 			thenBlock = mergedIf.getThenBlock();
 			elseBlock = mergedIf.getElseBlock();
-			bThen = thenBlock;
-			bElse = elseBlock;
-		}
-
-		if (thenBlock == null) {
+			out = BlockUtils.getPathCrossBlockFor(mth, thenBlock, elseBlock);
+		} else {
+			for (BlockNode d : block.getDominatesOn()) {
+				if (d != bThen && d != bElse) {
+					out = d;
+					break;
+				}
+			}
 			// invert condition (compiler often do it)
 			ifnode.invertCondition();
 			BlockNode tmp = bThen;

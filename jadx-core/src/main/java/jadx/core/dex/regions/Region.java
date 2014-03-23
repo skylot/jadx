@@ -21,6 +21,23 @@ public final class Region extends AbstractRegion {
 		return blocks;
 	}
 
+	public void add(IContainer region) {
+		if (region instanceof AbstractRegion) {
+			((AbstractRegion) region).setParent(this);
+		}
+		blocks.add(region);
+	}
+
+	@Override
+	public boolean replaceSubBlock(IContainer oldBlock, IContainer newBlock) {
+		int i = blocks.indexOf(oldBlock);
+		if (i != -1) {
+			blocks.set(i, newBlock);
+			return true;
+		}
+		return false;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -35,5 +52,4 @@ public final class Region extends AbstractRegion {
 		}
 		return sb.toString();
 	}
-
 }

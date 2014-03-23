@@ -11,6 +11,7 @@ import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.ExceptionHandler;
+import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.Utils;
@@ -23,6 +24,7 @@ import java.util.Set;
 public class DotGraphVisitor extends AbstractVisitor {
 
 	private static final String NL = "\\l";
+	private static final boolean PRINT_DOMINATORS = false;
 
 	private final File dir;
 	private final boolean useRegions;
@@ -161,12 +163,29 @@ public class DotGraphVisitor extends AbstractVisitor {
 				falsePath = ((IfNode) list.get(0)).getElseBlock();
 			}
 			for (BlockNode next : block.getSuccessors()) {
-				conn.startLine(makeName(block)).add(" -> ").add(makeName(next));
-				if (next == falsePath) {
-					conn.add("[style=dotted]");
-				}
-				conn.add(';');
+				String style = next == falsePath ? "[style=dashed]" : "";
+				addEdge(block, next, style);
 			}
+
+			if (PRINT_DOMINATORS) {
+				for (BlockNode dom : BlockUtils.bitSetToBlocks(mth, block.getDoms())) {
+					String style = "[color=green]";
+					if (dom == block.getIDom()) {
+						style = "[style=dashed, color=green]";
+					}
+					addEdge(block, dom, style);
+				}
+
+				for (BlockNode dom : BlockUtils.bitSetToBlocks(mth, block.getDomFrontier())) {
+					addEdge(block, dom, "[color=blue]");
+				}
+			}
+		}
+
+		private void addEdge(BlockNode from, BlockNode to, String style) {
+			conn.startLine(makeName(from)).add(" -> ").add(makeName(to));
+			conn.add(style);
+			conn.add(';');
 		}
 
 		private String attributesString(IAttributeNode block) {

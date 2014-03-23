@@ -44,6 +44,6 @@ public class CleanRegions {
 				}
 			}
 		};
-		DepthRegionTraverser.traverseAll(mth, removeEmptyBlocks);
+		DepthRegionTraversal.traverseAll(mth, removeEmptyBlocks);
 	}
 }

@@ -38,7 +38,7 @@ public class CheckRegions extends AbstractVisitor {
 				}
 			}
 		};
-		DepthRegionTraverser.traverseAll(mth, collectBlocks);
+		DepthRegionTraversal.traverseAll(mth, collectBlocks);
 
 		if (mth.getBasicBlocks().size() != blocksInRegions.size()) {
 			for (BlockNode block : mth.getBasicBlocks()) {
@@ -65,6 +65,6 @@ public class CheckRegions extends AbstractVisitor {
 				}
 			}
 		};
-		DepthRegionTraverser.traverseAll(mth, checkLoops);
+		DepthRegionTraversal.traverseAll(mth, checkLoops);
 	}
 }

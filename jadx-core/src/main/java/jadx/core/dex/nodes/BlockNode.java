@@ -22,8 +22,13 @@ public class BlockNode extends AttrNode implements IBlock {
 	private List<BlockNode> successors = new ArrayList<BlockNode>(1);
 	private List<BlockNode> cleanSuccessors;
 
-	private BitSet doms; // all dominators
-	private BlockNode idom; // immediate dominator
+	// all dominators
+	private BitSet doms;
+	// dominance frontier
+	private BitSet domFrontier;
+	// immediate dominator
+	private BlockNode idom;
+	// blocks on which dominates this block
 	private final List<BlockNode> dominatesOn = new ArrayList<BlockNode>(1);
 
 	private BlockRegState startState;
@@ -116,6 +121,14 @@ public class BlockNode extends AttrNode implements IBlock {
 
 	public void setDoms(BitSet doms) {
 		this.doms = doms;
+	}
+
+	public BitSet getDomFrontier() {
+		return domFrontier;
+	}
+
+	public void setDomFrontier(BitSet domFrontier) {
+		this.domFrontier = domFrontier;
 	}
 
 	/**

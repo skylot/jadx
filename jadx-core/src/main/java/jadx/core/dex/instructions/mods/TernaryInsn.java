@@ -2,6 +2,7 @@ package jadx.core.dex.instructions.mods;
 
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.regions.IfCondition;
@@ -14,10 +15,18 @@ public class TernaryInsn extends InsnNode {
 
 	public TernaryInsn(IfCondition condition, RegisterArg result, InsnArg th, InsnArg els) {
 		super(InsnType.TERNARY, 2);
-		this.condition = condition;
 		setResult(result);
-		addArg(th);
-		addArg(els);
+
+		if (th.equals(LiteralArg.FALSE) && els.equals(LiteralArg.TRUE)) {
+			// inverted
+			this.condition = IfCondition.invert(condition);
+			addArg(els);
+			addArg(th);
+		} else {
+			this.condition = condition;
+			addArg(th);
+			addArg(els);
+		}
 	}
 
 	public IfCondition getCondition() {

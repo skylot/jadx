@@ -19,6 +19,7 @@ import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.SplitterBlockAttr;
 import jadx.core.utils.BlockUtils;
+import jadx.core.utils.EmptyBitSet;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
@@ -40,6 +41,8 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			InsnType.SWITCH,
 			InsnType.MONITOR_ENTER,
 			InsnType.MONITOR_EXIT);
+
+	private static final BitSet EMPTY_BITSET = new EmptyBitSet();
 
 	private static int nextBlockId;
 
@@ -298,6 +301,56 @@ public class BlockMakerVisitor extends AbstractVisitor {
 				}
 			}
 		}
+
+		computeDominanceFrontier(mth);
+	}
+
+	private static void computeDominanceFrontier(MethodNode mth) {
+		for (BlockNode exit : mth.getExitBlocks()) {
+			exit.setDomFrontier(EMPTY_BITSET);
+		}
+		for (BlockNode block : mth.getBasicBlocks()) {
+			computeBlockDF(block);
+		}
+	}
+
+	private static void computeBlockDF(BlockNode block) {
+		if (block.getDomFrontier() != null) {
+			return;
+		}
+		BitSet domFrontier = null;
+		BitSet doms = block.getDoms();
+		int id = block.getId();
+
+		for (BlockNode s : block.getSuccessors()) {
+			if (s.getIDom() != block) {
+				if (domFrontier == null) {
+					domFrontier = new BitSet();
+				}
+				domFrontier.set(s.getId());
+			}
+		}
+		for (BlockNode node : block.getDominatesOn()) {
+			if (node.getIDom() == block) {
+				BitSet frontier = node.getDomFrontier();
+				if (frontier == null) {
+					computeBlockDF(node);
+					frontier = node.getDomFrontier();
+				}
+				for (int w = frontier.nextSetBit(0); w >= 0; w = frontier.nextSetBit(w + 1)) {
+					if (id == w || !doms.get(w)) {
+						if (domFrontier == null) {
+							domFrontier = new BitSet();
+						}
+						domFrontier.set(w);
+					}
+				}
+			}
+		}
+		if (domFrontier == null || domFrontier.cardinality() == 0) {
+			domFrontier = EMPTY_BITSET;
+		}
+		block.setDomFrontier(domFrontier);
 	}
 
 	private static void markReturnBlocks(MethodNode mth) {

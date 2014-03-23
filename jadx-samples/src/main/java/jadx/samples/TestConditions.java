@@ -1,8 +1,5 @@
 package jadx.samples;
 
-/**
- * Failed tests for current jadx version
- */
 public class TestConditions extends AbstractTest {
 
 	public int test1(int num) {

@@ -15,9 +15,9 @@ import jadx.core.dex.visitors.ModVisitor;
 import jadx.core.dex.visitors.PrepareForCodeGen;
 import jadx.core.dex.visitors.SimplifyVisitor;
 import jadx.core.dex.visitors.regions.CheckRegions;
+import jadx.core.dex.visitors.regions.IfRegionVisitor;
 import jadx.core.dex.visitors.regions.ProcessVariables;
 import jadx.core.dex.visitors.regions.RegionMakerVisitor;
-import jadx.core.dex.visitors.regions.TernaryVisitor;
 import jadx.core.dex.visitors.typeresolver.FinishTypeResolver;
 import jadx.core.dex.visitors.typeresolver.TypeResolver;
 import jadx.core.utils.Utils;
@@ -70,7 +70,7 @@ public class Jadx {
 
 			passes.add(new CodeShrinker());
 			passes.add(new RegionMakerVisitor());
-			passes.add(new TernaryVisitor());
+			passes.add(new IfRegionVisitor());
 
 			passes.add(new CodeShrinker());
 			passes.add(new SimplifyVisitor());

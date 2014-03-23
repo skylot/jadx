@@ -32,6 +32,7 @@ public class ProcessReturnInsns extends TracedRegionVisitor {
 					&& blockNotInLoop(mth, block)
 					&& noTrailInstructions(block)) {
 				insns.remove(insns.size() - 1);
+				block.getAttributes().remove(AttributeFlag.RETURN);
 			}
 		}
 	}

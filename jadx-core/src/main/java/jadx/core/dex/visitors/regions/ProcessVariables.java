@@ -104,7 +104,7 @@ public class ProcessVariables extends AbstractVisitor {
 				}
 			}
 		};
-		DepthRegionTraverser.traverseAll(mth, collect);
+		DepthRegionTraversal.traverseAll(mth, collect);
 
 		// reduce assigns map
 		List<RegisterArg> mthArgs = mth.getArguments(true);

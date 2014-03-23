@@ -8,4 +8,5 @@ public interface IRegion extends IContainer {
 
 	List<IContainer> getSubBlocks();
 
+	boolean replaceSubBlock(IContainer oldBlock, IContainer newBlock);
 }

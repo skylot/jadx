@@ -169,17 +169,18 @@ public class BlockUtils {
 		}
 	}
 
-	private static boolean traverseSuccessorsUntil(BlockNode from, BlockNode until, Set<BlockNode> checked) {
+	private static boolean traverseSuccessorsUntil(BlockNode from, BlockNode until, BitSet visited) {
 		for (BlockNode s : from.getCleanSuccessors()) {
 			if (s == until) {
 				return true;
 			}
-			if (!checked.contains(s)) {
-				checked.add(s);
+			int id = s.getId();
+			if (!visited.get(id)) {
+				visited.set(id);
 				if (until.isDominator(s)) {
 					return true;
 				}
-				if (traverseSuccessorsUntil(s, until, checked)) {
+				if (traverseSuccessorsUntil(s, until, visited)) {
 					return true;
 				}
 			}
@@ -194,7 +195,7 @@ public class BlockUtils {
 		if (end.isDominator(start)) {
 			return true;
 		}
-		return traverseSuccessorsUntil(start, end, new HashSet<BlockNode>());
+		return traverseSuccessorsUntil(start, end, new BitSet());
 	}
 
 	public static boolean isOnlyOnePathExists(BlockNode start, BlockNode end) {
@@ -225,6 +226,24 @@ public class BlockUtils {
 				if (out != null) {
 					return out;
 				}
+			}
+		}
+		return null;
+	}
+
+	public static BlockNode getPathCrossBlockFor(MethodNode mth, BlockNode b1, BlockNode b2) {
+		if (b1 == null || b2 == null) {
+			return null;
+		}
+		BitSet b = new BitSet();
+		b.or(b1.getDomFrontier());
+		b.or(b2.getDomFrontier());
+		b.clear(b1.getId());
+		b.clear(b2.getId());
+		if (b.cardinality() == 1) {
+			BlockNode end = mth.getBasicBlocks().get(b.nextSetBit(0));
+			if (isPathExists(b1, end) && isPathExists(b2, end)) {
+				return end;
 			}
 		}
 		return null;

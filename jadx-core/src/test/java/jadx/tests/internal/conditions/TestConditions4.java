@@ -9,11 +9,12 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 
-public class TestConditions extends InternalJadxTest {
+public class TestConditions4 extends InternalJadxTest {
 
 	public static class TestCls {
-		private boolean test(boolean a, boolean b, boolean c) {
-			return (a && b) || c;
+		public int test(int num) {
+			boolean inRange = (num >= 59 && num <= 66);
+			return inRange ? num + 1 : num;
 		}
 	}
 
@@ -23,7 +24,8 @@ public class TestConditions extends InternalJadxTest {
 		String code = cls.getCode().toString();
 		System.out.println(code);
 
-		assertThat(code, not(containsString("(!a || !b) && !c")));
-		assertThat(code, containsString("return (a && b) || c;"));
+		assertThat(code, containsString("num >= 59 && num <= 66"));
+		assertThat(code, containsString("return inRange ? num + 1 : num;"));
+		assertThat(code, not(containsString("else")));
 	}
 }

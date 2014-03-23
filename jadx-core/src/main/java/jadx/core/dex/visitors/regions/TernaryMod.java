@@ -4,49 +4,28 @@ import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
-import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.IContainer;
-import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.regions.IfCondition;
 import jadx.core.dex.regions.IfRegion;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.TernaryRegion;
 import jadx.core.dex.visitors.CodeShrinker;
-import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.InsnList;
-import jadx.core.utils.exceptions.JadxException;
 
 import java.util.List;
 
-public class TernaryVisitor extends AbstractRegionVisitor implements IDexTreeVisitor {
+public class TernaryMod {
 
-	private static final LiteralArg FALSE_ARG = InsnArg.lit(0, ArgType.BOOLEAN);
-	private static final LiteralArg TRUE_ARG = InsnArg.lit(1, ArgType.BOOLEAN);
-
-	@Override
-	public boolean visit(ClassNode cls) throws JadxException {
-		return true;
+	private TernaryMod() {
 	}
 
-	@Override
-	public void visit(MethodNode mth) {
-		DepthRegionTraverser.traverseAll(mth, this);
-	}
-
-	@Override
-	public void enterRegion(MethodNode mth, IRegion region) {
-		if (!(region instanceof IfRegion)) {
+	static void makeTernaryInsn(MethodNode mth, IfRegion ifRegion) {
+		if (ifRegion.getAttributes().contains(AttributeFlag.ELSE_IF_CHAIN)) {
 			return;
 		}
-		if (region.getAttributes().contains(AttributeFlag.ELSE_IF_CHAIN)) {
-			return;
-		}
-		IfRegion ifRegion = (IfRegion) region;
 		IContainer thenRegion = ifRegion.getThenRegion();
 		IContainer elseRegion = ifRegion.getElseRegion();
 		if (thenRegion == null || elseRegion == null) {
@@ -89,25 +68,12 @@ public class TernaryVisitor extends AbstractRegionVisitor implements IDexTreeVis
 
 		if (!mth.getReturnType().equals(ArgType.VOID)
 				&& t.getType() == InsnType.RETURN && e.getType() == InsnType.RETURN) {
-			boolean inverted = false;
-			InsnArg thenArg = t.getArg(0);
-			InsnArg elseArg = e.getArg(0);
-			if (thenArg.equals(FALSE_ARG) && elseArg.equals(TRUE_ARG)) {
-				inverted = true;
-			}
 			InsnList.remove(tb, t);
 			InsnList.remove(eb, e);
 			tb.getAttributes().remove(AttributeFlag.RETURN);
 			eb.getAttributes().remove(AttributeFlag.RETURN);
 
-			IfCondition condition = ifRegion.getCondition();
-			if (inverted) {
-				condition = IfCondition.invert(condition);
-				InsnArg tmp = thenArg;
-				thenArg = elseArg;
-				elseArg = tmp;
-			}
-			TernaryInsn ternInsn = new TernaryInsn(condition, null, thenArg, elseArg);
+			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(), null, t.getArg(0), e.getArg(0));
 			InsnNode retInsn = new InsnNode(InsnType.RETURN, 1);
 			retInsn.addArg(InsnArg.wrapArg(ternInsn));
 

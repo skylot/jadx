@@ -22,7 +22,8 @@ public class MethodInlineVisitor extends AbstractVisitor {
 				&& accessFlags.isStatic()
 				&& mth.getBasicBlocks().size() == 2) {
 			BlockNode block = mth.getBasicBlocks().get(1);
-			if (block.getAttributes().contains(AttributeFlag.RETURN)) {
+			if (block.getInstructions().isEmpty()
+					|| block.getAttributes().contains(AttributeFlag.RETURN)) {
 				inlineMth(mth);
 			}
 		}

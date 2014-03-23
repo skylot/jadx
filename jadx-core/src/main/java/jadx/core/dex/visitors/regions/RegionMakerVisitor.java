@@ -1,12 +1,10 @@
 package jadx.core.dex.visitors.regions;
 
-import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.regions.IfRegion;
 import jadx.core.dex.regions.LoopRegion;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.SynchronizedRegion;
@@ -49,11 +47,11 @@ public class RegionMakerVisitor extends AbstractVisitor {
 
 	private static void postProcessRegions(MethodNode mth) {
 		// make try-catch regions
-		DepthRegionTraverser.traverse(mth, new ProcessTryCatchRegions(mth), mth.getRegion());
+		DepthRegionTraversal.traverse(mth, new ProcessTryCatchRegions(mth));
 
 		// merge conditions in loops
 		if (mth.getLoopsCount() != 0) {
-			DepthRegionTraverser.traverseAll(mth, new AbstractRegionVisitor() {
+			DepthRegionTraversal.traverseAll(mth, new AbstractRegionVisitor() {
 				@Override
 				public void enterRegion(MethodNode mth, IRegion region) {
 					if (region instanceof LoopRegion) {
@@ -66,44 +64,13 @@ public class RegionMakerVisitor extends AbstractVisitor {
 
 		CleanRegions.process(mth);
 
-		DepthRegionTraverser.traverseAll(mth, new AbstractRegionVisitor() {
-			@Override
-			public void leaveRegion(MethodNode mth, IRegion region) {
-				if (region instanceof IfRegion) {
-					processIfRegion((IfRegion) region);
-
-				}
-			}
-		});
-
 		// remove useless returns in void methods
 		if (mth.getReturnType().equals(ArgType.VOID)) {
-			DepthRegionTraverser.traverseAll(mth, new ProcessReturnInsns());
+			DepthRegionTraversal.traverseAll(mth, new ProcessReturnInsns());
 		}
 
 		if (mth.getAccessFlags().isSynchronized()) {
 			removeSynchronized(mth);
-		}
-
-	}
-
-	private static void processIfRegion(IfRegion ifRegion) {
-		if (ifRegion.simplifyCondition()) {
-//			IfCondition condition = ifRegion.getCondition();
-//			if (condition.getMode() == IfCondition.Mode.NOT) {
-//				ifRegion.invert();
-//			}
-		}
-
-		// mark if-else-if chains
-		IContainer elsRegion = ifRegion.getElseRegion();
-		if (elsRegion instanceof IfRegion) {
-			elsRegion.getAttributes().add(AttributeFlag.ELSE_IF_CHAIN);
-		} else if (elsRegion instanceof Region) {
-			List<IContainer> subBlocks = ((Region) elsRegion).getSubBlocks();
-			if (subBlocks.size() == 1 && subBlocks.get(0) instanceof IfRegion) {
-				subBlocks.get(0).getAttributes().add(AttributeFlag.ELSE_IF_CHAIN);
-			}
 		}
 	}
 
