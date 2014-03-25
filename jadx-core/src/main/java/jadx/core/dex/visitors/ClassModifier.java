@@ -21,7 +21,6 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.exceptions.JadxException;
 
-import java.util.Iterator;
 import java.util.List;
 
 public class ClassModifier extends AbstractVisitor {
@@ -114,16 +113,13 @@ public class ClassModifier extends AbstractVisitor {
 	}
 
 	private static void removeSyntheticMethods(ClassNode cls) {
-		for (Iterator<MethodNode> it = cls.getMethods().iterator(); it.hasNext(); ) {
-			MethodNode mth = it.next();
+		for (MethodNode mth : cls.getMethods()) {
 			AccessInfo af = mth.getAccessFlags();
-
 			// remove bridge methods
 			if (af.isBridge() && af.isSynthetic() && !isMethodUniq(cls, mth)) {
 				// TODO add more checks before method deletion
-				it.remove();
+				mth.getAttributes().add(AttributeFlag.DONT_GENERATE);
 			}
-
 			// remove synthetic constructor for inner non-static classes
 			if (af.isSynthetic() && af.isConstructor() && mth.getBasicBlocks().size() == 2) {
 				List<InsnNode> insns = mth.getBasicBlocks().get(0).getInstructions();
