@@ -43,6 +43,7 @@ public class JadxWrapper {
 				try {
 					decompiler.setOutputDir(dir);
 					ThreadPoolExecutor ex = decompiler.getSaveExecutor();
+					ex.shutdown();
 					while (ex.isTerminating()) {
 						long total = ex.getTaskCount();
 						long done = ex.getCompletedTaskCount();

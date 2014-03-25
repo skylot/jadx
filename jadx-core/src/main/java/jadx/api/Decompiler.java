@@ -54,6 +54,7 @@ public final class Decompiler {
 
 	private RootNode root;
 	private List<IDexTreeVisitor> passes;
+	private List<JavaClass> classes;
 
 	public Decompiler() {
 		this.args = new DefaultJadxArgs();
@@ -95,6 +96,7 @@ public final class Decompiler {
 	public void save() {
 		try {
 			ExecutorService ex = getSaveExecutor();
+			ex.shutdown();
 			ex.awaitTermination(1, TimeUnit.DAYS);
 		} catch (InterruptedException e) {
 			LOG.error("Save interrupted", e);
@@ -122,23 +124,24 @@ public final class Decompiler {
 				}
 			});
 		}
-		executor.shutdown();
 		return executor;
 	}
 
 	public List<JavaClass> getClasses() {
-		List<ClassNode> classNodeList = root.getClasses(false);
-		List<JavaClass> classes = new ArrayList<JavaClass>(classNodeList.size());
-		for (ClassNode classNode : classNodeList) {
-			classes.add(new JavaClass(this, classNode));
+		if (classes == null) {
+			List<ClassNode> classNodeList = root.getClasses(false);
+			List<JavaClass> clsList = new ArrayList<JavaClass>(classNodeList.size());
+			for (ClassNode classNode : classNodeList) {
+				clsList.add(new JavaClass(this, classNode));
+			}
+			classes = Collections.unmodifiableList(clsList);
 		}
-		return Collections.unmodifiableList(classes);
+		return classes;
 	}
 
 	public List<JavaPackage> getPackages() {
-		List<JavaClass> classes = getClasses();
 		Map<String, List<JavaClass>> map = new HashMap<String, List<JavaClass>>();
-		for (JavaClass javaClass : classes) {
+		for (JavaClass javaClass : getClasses()) {
 			String pkg = javaClass.getPackage();
 			List<JavaClass> clsList = map.get(pkg);
 			if (clsList == null) {
@@ -168,12 +171,16 @@ public final class Decompiler {
 	}
 
 	void parse() throws DecodeException {
-		ClassInfo.clearCache();
-		ErrorsCounter.reset();
-
+		reset();
 		root = new RootNode();
 		LOG.info("loading ...");
 		root.load(inputFiles);
+	}
+
+	private void reset() {
+		ClassInfo.clearCache();
+		ErrorsCounter.reset();
+		classes = null;
 	}
 
 	void processClass(ClassNode cls) {
@@ -183,5 +190,17 @@ public final class Decompiler {
 
 	RootNode getRoot() {
 		return root;
+	}
+
+	JavaClass findJavaClass(ClassNode cls) {
+		if (cls == null) {
+			return null;
+		}
+		for (JavaClass javaClass : getClasses()) {
+			if (javaClass.getClassNode().equals(cls)) {
+				return javaClass;
+			}
+		}
+		return null;
 	}
 }

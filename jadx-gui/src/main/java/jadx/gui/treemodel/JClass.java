@@ -45,8 +45,8 @@ public class JClass extends JNode {
 		if (!loaded) {
 			cls.decompile();
 			loaded = true;
-			update();
 		}
+		update();
 	}
 
 	public synchronized void update() {

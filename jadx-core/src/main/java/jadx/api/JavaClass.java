@@ -48,6 +48,10 @@ public final class JavaClass {
 		}
 	}
 
+	ClassNode getClassNode() {
+		return cls;
+	}
+
 	private void load() {
 		int inClsCount = cls.getInnerClasses().size();
 		if (inClsCount != 0) {
@@ -92,7 +96,7 @@ public final class JavaClass {
 	}
 
 	private Map<CodePosition, Object> getCodeAnnotations() {
-		getCode();
+		decompile();
 		return cls.getCode().getAnnotations();
 	}
 
@@ -108,13 +112,17 @@ public final class JavaClass {
 			} else if (obj instanceof FieldNode) {
 				clsNode = ((FieldNode) obj).getParentClass();
 			}
-			if (clsNode != null) {
-				clsNode = clsNode.getParentClass();
-				JavaClass jCls = new JavaClass(decompiler, clsNode);
-				jCls.decompile();
-				int defLine = ((LineAttrNode) obj).getDecompiledLine();
-				return new CodePosition(jCls, defLine, 0);
+			if (clsNode == null) {
+				return null;
 			}
+			clsNode = clsNode.getParentClass();
+			JavaClass jCls = decompiler.findJavaClass(clsNode);
+			if (jCls == null) {
+				return null;
+			}
+			jCls.decompile();
+			int defLine = ((LineAttrNode) obj).getDecompiledLine();
+			return new CodePosition(jCls, defLine, 0);
 		}
 		return null;
 	}
