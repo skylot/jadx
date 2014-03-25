@@ -1,7 +1,7 @@
 package jadx.core;
 
 import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.visitors.DepthTraverser;
+import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.exceptions.DecodeException;
 
@@ -20,7 +20,7 @@ public final class ProcessClass {
 		try {
 			cls.load();
 			for (IDexTreeVisitor visitor : passes) {
-				DepthTraverser.visit(visitor, cls);
+				DepthTraversal.visit(visitor, cls);
 			}
 		} catch (DecodeException e) {
 			LOG.error("Decode exception: " + cls, e);

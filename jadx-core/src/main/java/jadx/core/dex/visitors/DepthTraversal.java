@@ -4,7 +4,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.ErrorsCounter;
 
-public class DepthTraverser {
+public class DepthTraversal {
 
 	public static void visit(IDexTreeVisitor visitor, ClassNode cls) {
 		try {

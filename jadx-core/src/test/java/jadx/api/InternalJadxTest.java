@@ -3,7 +3,7 @@ package jadx.api;
 import jadx.core.Jadx;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.visitors.DepthTraverser;
+import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 
 import java.io.BufferedInputStream;
@@ -66,7 +66,7 @@ public abstract class InternalJadxTest extends TestUtils {
 				}
 			}, new File(outDir));
 			for (IDexTreeVisitor visitor : passes) {
-				DepthTraverser.visit(visitor, cls);
+				DepthTraversal.visit(visitor, cls);
 			}
 			assertThat(cls.getCode().toString(), not(containsString("inconsistent")));
 			return cls;

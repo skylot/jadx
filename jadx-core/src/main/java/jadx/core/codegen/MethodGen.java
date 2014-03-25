@@ -14,7 +14,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.trycatch.CatchAttr;
-import jadx.core.dex.visitors.DepthTraverser;
+import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.FallbackModeVisitor;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.InsnUtils;
@@ -274,7 +274,7 @@ public class MethodGen {
 			// load original instructions
 			try {
 				mth.load();
-				DepthTraverser.visit(new FallbackModeVisitor(), mth);
+				DepthTraversal.visit(new FallbackModeVisitor(), mth);
 			} catch (DecodeException e) {
 				LOG.error("Error reload instructions in fallback mode:", e);
 				code.startLine("// Can't loadFile method instructions: " + e.getMessage());
