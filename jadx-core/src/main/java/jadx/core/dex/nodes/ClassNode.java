@@ -3,6 +3,7 @@ package jadx.core.dex.nodes;
 import jadx.core.Consts;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.AttributeType;
+import jadx.core.dex.attributes.JadxErrorAttr;
 import jadx.core.dex.attributes.LineAttrNode;
 import jadx.core.dex.attributes.SourceFileAttr;
 import jadx.core.dex.attributes.annotations.Annotation;
@@ -206,7 +207,12 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 	@Override
 	public void load() throws DecodeException {
 		for (MethodNode mth : getMethods()) {
-			mth.load();
+			try {
+				mth.load();
+			} catch (DecodeException e) {
+				LOG.error("Method load error", e);
+				mth.getAttributes().add(new JadxErrorAttr(e));
+			}
 		}
 		for (ClassNode innerCls : getInnerClasses()) {
 			innerCls.load();

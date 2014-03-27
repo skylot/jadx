@@ -34,7 +34,9 @@ public class BlockUtils {
 		if (list.size() > 2) {
 			list = cleanBlockList(list);
 		}
-		assert list.size() == 2 : "too many nodes for selectOther: " + node + " in " + list;
+		if (list.size() != 2) {
+			throw new JadxRuntimeException("Incorrect nodes count for selectOther: " + node + " in " + list);
+		}
 		BlockNode first = list.get(0);
 		if (first != node) {
 			return first;

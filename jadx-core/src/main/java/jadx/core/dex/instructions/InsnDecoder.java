@@ -12,29 +12,46 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.DecodeException;
 
+import java.io.EOFException;
+
 import com.android.dx.io.Code;
 import com.android.dx.io.OpcodeInfo;
 import com.android.dx.io.Opcodes;
 import com.android.dx.io.instructions.DecodedInstruction;
 import com.android.dx.io.instructions.FillArrayDataPayloadDecodedInstruction;
 import com.android.dx.io.instructions.PackedSwitchPayloadDecodedInstruction;
+import com.android.dx.io.instructions.ShortArrayCodeInput;
 import com.android.dx.io.instructions.SparseSwitchPayloadDecodedInstruction;
 
 public class InsnDecoder {
 
 	private final MethodNode method;
-	private final DecodedInstruction[] insnArr;
 	private final DexNode dex;
+	private DecodedInstruction[] insnArr;
 
-	public InsnDecoder(MethodNode mthNode, Code mthCode) {
+	public InsnDecoder(MethodNode mthNode) throws DecodeException {
 		this.method = mthNode;
 		this.dex = method.dex();
-		this.insnArr = DecodedInstruction.decodeAll(mthCode.getInstructions());
 	}
 
-	public InsnNode[] run() throws DecodeException {
-		InsnNode[] instructions = new InsnNode[insnArr.length];
+	public void decodeInsns(Code mthCode) throws DecodeException {
+		short[] encodedInstructions = mthCode.getInstructions();
+		int size = encodedInstructions.length;
+		DecodedInstruction[] decoded = new DecodedInstruction[size];
+		ShortArrayCodeInput in = new ShortArrayCodeInput(encodedInstructions);
 
+		try {
+			while (in.hasMore()) {
+				decoded[in.cursor()] = DecodedInstruction.decode(in);
+			}
+		} catch (EOFException e) {
+			throw new DecodeException(method, "", e);
+		}
+		insnArr = decoded;
+	}
+
+	public InsnNode[] process() throws DecodeException {
+		InsnNode[] instructions = new InsnNode[insnArr.length];
 		for (int i = 0; i < insnArr.length; i++) {
 			DecodedInstruction rawInsn = insnArr[i];
 			if (rawInsn != null) {
@@ -48,6 +65,7 @@ public class InsnDecoder {
 				instructions[i] = null;
 			}
 		}
+		insnArr = null;
 		return instructions;
 	}
 

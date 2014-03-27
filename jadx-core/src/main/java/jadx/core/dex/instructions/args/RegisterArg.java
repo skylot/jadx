@@ -95,7 +95,7 @@ public class RegisterArg extends InsnArg {
 			InsnNode ai = getAssignInsn();
 			if (ai != null && ai.getType() == InsnType.MOVE) {
 				InsnArg arg = ai.getArg(0);
-				if (arg != this && arg.isThis()) {
+				if (arg != this && "this".equals(arg.getTypedVar().getName())) {
 					return true;
 				}
 			}

@@ -66,9 +66,9 @@ public class ErrorsCounter {
 		if (getErrorCount() > 0) {
 			LOG.error(getErrorCount() + " errors occured in following nodes:");
 			for (Object node : ERROR_NODES) {
-				LOG.error("  " + node.getClass().getSimpleName() + ": " + node);
+				String nodeName = node.getClass().getSimpleName().replace("Node", "");
+				LOG.error("  " + nodeName + ": " + node);
 			}
-			// LOG.error("You can run jadx with '-f' option to view low level instructions");
 		}
 	}
 

@@ -87,8 +87,9 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 			regsCount = mthCode.getRegistersSize();
 			initMethodTypes();
 
-			InsnDecoder decoder = new InsnDecoder(this, mthCode);
-			InsnNode[] insnByOffset = decoder.run();
+			InsnDecoder decoder = new InsnDecoder(this);
+			decoder.decodeInsns(mthCode);
+			InsnNode[] insnByOffset = decoder.process();
 			instructions = new ArrayList<InsnNode>();
 			for (InsnNode insn : insnByOffset) {
 				if (insn != null) {
@@ -113,6 +114,11 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 				}
 			}
 		} catch (Exception e) {
+			if (!noCode) {
+				noCode = true;
+				// load without code
+				load();
+			}
 			throw new DecodeException(this, "Load method exception", e);
 		}
 	}
