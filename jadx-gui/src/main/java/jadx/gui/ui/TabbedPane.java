@@ -95,14 +95,6 @@ class TabbedPane extends JTabbedPane {
 		return panel;
 	}
 
-	private CodePanel getCodePanel(int index) {
-		Component component = getComponent(index);
-		if (component instanceof CodePanel) {
-			return (CodePanel) component;
-		}
-		return null;
-	}
-
 	CodePanel getSelectedCodePanel() {
 		return (CodePanel) getSelectedComponent();
 	}
