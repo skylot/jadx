@@ -118,6 +118,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 				noCode = true;
 				// load without code
 				load();
+				noCode = false;
 			}
 			throw new DecodeException(this, "Load method exception", e);
 		}
@@ -141,7 +142,6 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		blocks = null;
 		exitBlocks = null;
 		exceptionHandlers.clear();
-		noCode = true;
 	}
 
 	private boolean parseSignature() {

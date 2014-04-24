@@ -18,13 +18,16 @@ public class SaveCode extends AbstractVisitor {
 
 	@Override
 	public boolean visit(ClassNode cls) throws CodegenException {
-		CodeWriter clsCode = cls.getCode();
+		save(dir, args, cls);
+		return false;
+	}
 
+	public static void save(File dir, IJadxArgs args, ClassNode cls) {
+		CodeWriter clsCode = cls.getCode();
 		String fileName = cls.getClassInfo().getFullPath() + ".java";
 		if (args.isFallbackMode()) {
 			fileName += ".jadx";
 		}
 		clsCode.save(dir, fileName);
-		return false;
 	}
 }

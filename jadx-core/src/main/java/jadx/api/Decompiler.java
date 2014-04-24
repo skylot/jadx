@@ -110,17 +110,14 @@ public final class Decompiler {
 		int threadsCount = args.getThreadsCount();
 		LOG.debug("processing threads count: {}", threadsCount);
 
-		final List<IDexTreeVisitor> passList = new ArrayList<IDexTreeVisitor>(passes);
-		SaveCode savePass = new SaveCode(outDir, args);
-		passList.add(savePass);
-
 		LOG.info("processing ...");
 		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadsCount);
-		for (final ClassNode cls : root.getClasses(false)) {
+		for (final JavaClass cls : getClasses()) {
 			executor.execute(new Runnable() {
 				@Override
 				public void run() {
-					ProcessClass.process(cls, passList);
+					cls.decompile();
+					SaveCode.save(outDir, args, cls.getClassNode());
 				}
 			});
 		}
