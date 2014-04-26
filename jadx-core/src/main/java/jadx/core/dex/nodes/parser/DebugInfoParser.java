@@ -63,7 +63,7 @@ public class DebugInfoParser {
 			int id = section.readUleb128() - 1;
 			if (id != DexNode.NO_INDEX) {
 				String name = dex.getString(id);
-				mthArgs.get(i).getTypedVar().setName(name);
+				mthArgs.get(i).setName(name);
 			}
 		}
 

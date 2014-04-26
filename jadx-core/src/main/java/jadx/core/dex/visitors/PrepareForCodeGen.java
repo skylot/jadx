@@ -64,10 +64,10 @@ public class PrepareForCodeGen extends AbstractVisitor {
 			InsnNode insn = list.get(i);
 			// replace 'move' with inner wrapped instruction
 			if (insn.getType() == InsnType.MOVE
-					&& insn.getArg(0).isInsnWrap()
-					&& !insn.getAttributes().contains(AttributeFlag.DECLARE_VAR)) {
+					&& insn.getArg(0).isInsnWrap()) {
 				InsnNode wrapInsn = ((InsnWrapArg) insn.getArg(0)).getWrapInsn();
 				wrapInsn.setResult(insn.getResult());
+				wrapInsn.getAttributes().addAll(insn.getAttributes());
 				list.set(i, wrapInsn);
 			}
 		}
@@ -115,14 +115,23 @@ public class PrepareForCodeGen extends AbstractVisitor {
 		List<InsnNode> list = block.getInstructions();
 		for (int i = 0; i < list.size(); i++) {
 			InsnNode insn = list.get(i);
-			if (insn.getType() == InsnType.ARITH) {
-				ArithNode arith = (ArithNode) insn;
-				RegisterArg res = arith.getResult();
-				InsnArg arg = arith.getArg(0);
-				if (res.equals(arg)) {
-					ArithNode newArith = new ArithNode(arith.getOp(), res, arith.getArg(1));
-					list.set(i, newArith);
-				}
+			if (insn.getType() != InsnType.ARITH) {
+				continue;
+			}
+			ArithNode arith = (ArithNode) insn;
+			RegisterArg res = arith.getResult();
+			InsnArg arg = arith.getArg(0);
+			boolean replace = false;
+
+			if (res.equals(arg)) {
+				replace = true;
+			} else if (arg.isRegister()) {
+				RegisterArg regArg = (RegisterArg) arg;
+				replace = res.equalRegisterAndType(regArg);
+			}
+			if (replace) {
+				ArithNode newArith = new ArithNode(arith.getOp(), res, arith.getArg(1));
+				list.set(i, newArith);
 			}
 		}
 	}

@@ -24,7 +24,7 @@ public final class LiteralArg extends InsnArg {
 			}
 		}
 		this.literal = value;
-		this.typedVar = new TypedVar(type);
+		this.type = type;
 	}
 
 	public long getLiteral() {
@@ -37,7 +37,7 @@ public final class LiteralArg extends InsnArg {
 	}
 
 	public boolean isInteger() {
-		PrimitiveType type = typedVar.getType().getPrimitiveType();
+		PrimitiveType type = this.type.getPrimitiveType();
 		return (type == PrimitiveType.INT
 				|| type == PrimitiveType.BYTE
 				|| type == PrimitiveType.CHAR
@@ -69,10 +69,10 @@ public final class LiteralArg extends InsnArg {
 			if (getType().equals(ArgType.BOOLEAN) && (value.equals("true") || value.equals("false"))) {
 				return value;
 			}
-			return "(" + value + " " + typedVar + ")";
+			return "(" + value + " " + type + ")";
 		} catch (JadxRuntimeException ex) {
 			// can't convert literal to string
-			return "(" + literal + " " + typedVar + ")";
+			return "(" + literal + " " + type + ")";
 		}
 	}
 }

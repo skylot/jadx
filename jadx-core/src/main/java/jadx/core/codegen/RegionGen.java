@@ -43,17 +43,19 @@ public class RegionGen extends InsnGen {
 		if (cont instanceof IBlock) {
 			makeSimpleBlock((IBlock) cont, code);
 		} else if (cont instanceof IRegion) {
-			declareVars(code, cont);
 			if (cont instanceof Region) {
 				makeSimpleRegion(code, (Region) cont);
-			} else if (cont instanceof IfRegion) {
-				makeIf((IfRegion) cont, code, true);
-			} else if (cont instanceof SwitchRegion) {
-				makeSwitch((SwitchRegion) cont, code);
-			} else if (cont instanceof LoopRegion) {
-				makeLoop((LoopRegion) cont, code);
-			} else if (cont instanceof SynchronizedRegion) {
-				makeSynchronizedRegion((SynchronizedRegion) cont, code);
+			} else {
+				declareVars(code, cont);
+				if (cont instanceof IfRegion) {
+					makeIf((IfRegion) cont, code, true);
+				} else if (cont instanceof SwitchRegion) {
+					makeSwitch((SwitchRegion) cont, code);
+				} else if (cont instanceof LoopRegion) {
+					makeLoop((LoopRegion) cont, code);
+				} else if (cont instanceof SynchronizedRegion) {
+					makeSynchronizedRegion((SynchronizedRegion) cont, code);
+				}
 			}
 		} else {
 			throw new CodegenException("Not processed container: " + cont);
@@ -77,6 +79,7 @@ public class RegionGen extends InsnGen {
 		if (tc != null) {
 			makeTryCatch(region, tc.getTryBlock(), code);
 		} else {
+			declareVars(code, region);
 			for (IContainer c : region.getSubBlocks()) {
 				makeRegion(code, c);
 			}

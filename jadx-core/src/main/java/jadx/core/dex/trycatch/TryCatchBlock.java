@@ -99,10 +99,6 @@ public class TryCatchBlock {
 		return insns;
 	}
 
-	public int getInsnsCount() {
-		return insns.size();
-	}
-
 	public CatchAttr getCatchAttr() {
 		return attr;
 	}
@@ -119,7 +115,7 @@ public class TryCatchBlock {
 		List<InsnNode> finalBlockInsns = new ArrayList<InsnNode>(insns);
 		setFinalBlock(new InsnContainer(finalBlockInsns));
 
-		InstructionRemover.unbindInsnList(finalBlockInsns);
+		InstructionRemover.unbindInsnList(mth, finalBlockInsns);
 
 		// remove these instructions from other handlers
 		for (ExceptionHandler h : getHandlers()) {

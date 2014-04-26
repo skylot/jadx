@@ -7,15 +7,15 @@ import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
+import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.exceptions.JadxException;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class ConstInlinerVisitor extends AbstractVisitor {
 
@@ -25,7 +25,7 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 			return;
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {
-			InstructionRemover remover = new InstructionRemover(block.getInstructions());
+			InstructionRemover remover = new InstructionRemover(mth, block);
 			for (InsnNode insn : block.getInstructions()) {
 				if (checkInsn(mth, block, insn)) {
 					remover.add(insn);
@@ -45,63 +45,42 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 					arg.merge(resType);
 				}
 				long lit = ((LiteralArg) arg).getLiteral();
-				return replaceConst(mth, block, insn, lit);
+				return replaceConst(mth, insn, lit);
 			}
 		}
 		return false;
 	}
 
-	private static boolean replaceConst(MethodNode mth, BlockNode block, InsnNode insn, long literal) {
-		List<InsnArg> use = insn.getResult().getTypedVar().getUseList();
+	private static boolean replaceConst(MethodNode mth, InsnNode insn, long literal) {
+		List<RegisterArg> use = new ArrayList<RegisterArg>(insn.getResult().getSVar().getUseList());
 		int replaceCount = 0;
-		int assignCount = 0;
-		for (InsnArg arg : use) {
+		for (RegisterArg arg : use) {
+//			if (arg.getSVar().isUsedInPhi()) {
+//				continue;
+//			}
 			InsnNode useInsn = arg.getParentInsn();
-			if (arg == insn.getResult() || useInsn == null) {
-				assignCount++;
+			if (useInsn.getType() == InsnType.PHI) {
 				continue;
 			}
-			BlockNode useBlock = BlockUtils.getBlockByInsn(mth, useInsn);
-			boolean isDominator = useBlock == block || useBlock.isDominator(block);
-			if (isDominator && !registerReassignOnPath(block, useBlock, insn)) {
-				LiteralArg litArg;
-				if (use.size() == 2) {
-					// arg used only in one place
-					litArg = InsnArg.lit(literal, arg.getType());
-				} else {
-					// in most cases type not equal arg.getType()
-					// just set unknown type and run type fixer
-					litArg = InsnArg.lit(literal, ArgType.UNKNOWN);
-				}
-				if (useInsn.replaceArg(arg, litArg)) {
-					fixTypes(mth, useInsn, litArg);
-					replaceCount++;
-				}
+			LiteralArg litArg;
+			if (use.size() == 1 || arg.isTypeImmutable()) {
+				// arg used only in one place
+				litArg = InsnArg.lit(literal, arg.getType());
+			} else {
+				// in most cases type not equal arg.getType()
+				// just set unknown type and run type fixer
+				litArg = InsnArg.lit(literal, ArgType.UNKNOWN);
+			}
+			if (useInsn.replaceArg(arg, litArg)) {
+				fixTypes(mth, useInsn, litArg);
+				replaceCount++;
 			}
 		}
-		return replaceCount == use.size() - assignCount;
-	}
-
-	private static boolean registerReassignOnPath(BlockNode block, BlockNode useBlock, InsnNode assignInsn) {
-		if (block == useBlock) {
-			return false;
-		}
-		Set<BlockNode> blocks = BlockUtils.getAllPathsBlocks(block, useBlock);
-		int regNum = assignInsn.getResult().getRegNum();
-		for (BlockNode b : blocks) {
-			for (InsnNode insn : b.getInstructions()) {
-				if (insn.getResult() != null
-						&& insn != assignInsn
-						&& insn.getResult().getRegNum() == regNum) {
-					return true;
-				}
-			}
-		}
-		return false;
+		return replaceCount == use.size();
 	}
 
 	/**
-	 * This is method similar to PostTypeResolver.visit method,
+	 * This is method similar to PostTypeInference.visit method,
 	 * but contains some expensive operations needed only after constant inline
 	 */
 	private static void fixTypes(MethodNode mth, InsnNode insn, LiteralArg litArg) {

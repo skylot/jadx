@@ -1,71 +1,39 @@
 package jadx.core.dex.instructions.args;
 
-import java.util.List;
-
 public abstract class Typed {
 
-	TypedVar typedVar;
-
-	public TypedVar getTypedVar() {
-		return typedVar;
-	}
+	protected ArgType type;
 
 	public ArgType getType() {
-		return typedVar.getType();
+		return type;
 	}
 
-	public boolean merge(Typed var) {
-		return typedVar.merge(var.getTypedVar());
+	public void setType(ArgType type) {
+		this.type = type;
 	}
 
-	public boolean merge(ArgType var) {
-		return typedVar.merge(var);
+	public boolean isTypeImmutable() {
+		return false;
 	}
 
-	public void forceSetTypedVar(TypedVar arg) {
-		this.typedVar = arg;
-	}
-
-	public void mergeDebugInfo(Typed arg) {
-		merge(arg);
-		mergeName(arg);
-	}
-
-	protected void mergeName(Typed arg) {
-		getTypedVar().mergeName(arg.getTypedVar());
-	}
-
-	public boolean replaceTypedVar(Typed var) {
-		TypedVar curVar = this.typedVar;
-		TypedVar newVar = var.typedVar;
-		if (curVar == newVar) {
-			return false;
+	public boolean merge(ArgType newType) {
+		ArgType m = ArgType.merge(type, newType);
+		if (m != null && !m.equals(type)) {
+			setType(m);
+			return true;
 		}
-		if (curVar != null) {
-			if (curVar.isImmutable()) {
-				moveInternals(newVar, curVar);
-			} else {
-				newVar.merge(curVar);
-				moveInternals(curVar, newVar);
-				this.typedVar = newVar;
-			}
-		} else {
-			this.typedVar = newVar;
-		}
-		return true;
+		return false;
 	}
 
-	private void moveInternals(TypedVar from, TypedVar to) {
-		List<InsnArg> curUseList = from.getUseList();
-		if (curUseList.size() != 0) {
-			for (InsnArg arg : curUseList) {
-				if (arg != this) {
-					arg.forceSetTypedVar(to);
-				}
-			}
-			to.getUseList().addAll(curUseList);
-			curUseList.clear();
+	public boolean merge(InsnArg arg) {
+		return merge(arg.getType());
+	}
+
+	public void mergeDebugInfo(RegisterArg arg) {
+		this.type = arg.getType();
+		if (this instanceof Named) {
+			Named n = (Named) this;
+			n.setName(arg.getName());
 		}
-		to.mergeName(from);
 	}
 }

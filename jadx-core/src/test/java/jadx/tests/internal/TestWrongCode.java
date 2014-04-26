@@ -22,6 +22,7 @@ public class TestWrongCode extends InternalJadxTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
+		System.out.println(code);
 
 		assertThat(code, not(containsString("return false.length;")));
 		assertThat(code, containsString("return null.length;"));

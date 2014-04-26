@@ -437,7 +437,7 @@ public abstract class ArgType {
 	}
 
 	public static ArgType merge(ArgType a, ArgType b) {
-		if (b == null || a == null) {
+		if (a == null || b == null) {
 			return null;
 		}
 		if (a.equals(b)) {

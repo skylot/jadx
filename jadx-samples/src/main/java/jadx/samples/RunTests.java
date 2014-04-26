@@ -29,8 +29,9 @@ public class RunTests {
 		Collections.sort(clsList);
 		int passed = 0;
 		for (String cls : clsList) {
-			if (runTest(cls))
+			if (runTest(cls)) {
 				passed++;
+			}
 		}
 		int failed = clsList.size() - passed;
 		System.err.println("---");
@@ -67,9 +68,9 @@ public class RunTests {
 					+ (pass ? "PASS" : "FAIL") + "\t"
 					+ clsName
 					+ (msg == null ? "" : "\t - " + msg));
-			if (exc != null)
+			if (exc != null) {
 				exc.printStackTrace();
-
+			}
 			return pass;
 		} catch (ClassNotFoundException e) {
 			System.err.println("Class '" + clsName + "' not found");

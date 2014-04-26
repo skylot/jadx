@@ -58,123 +58,18 @@ public class SimplifyVisitor extends AbstractVisitor {
 		}
 		switch (insn.getType()) {
 			case ARITH:
-				ArithNode arith = (ArithNode) insn;
-				if (arith.getArgsCount() == 2) {
-					InsnArg litArg = null;
-
-					if (arith.getArg(1).isInsnWrap()) {
-						InsnNode wr = ((InsnWrapArg) arith.getArg(1)).getWrapInsn();
-						if (wr.getType() == InsnType.CONST) {
-							litArg = wr.getArg(0);
-						}
-					} else if (arith.getArg(1).isLiteral()) {
-						litArg = arith.getArg(1);
-					}
-
-					if (litArg != null) {
-						long lit = ((LiteralArg) litArg).getLiteral();
-						boolean invert = false;
-
-						if (arith.getOp() == ArithOp.ADD && lit < 0) {
-							invert = true;
-						}
-
-						// fix 'c + (-1)' => 'c - (1)'
-						if (invert) {
-							return new ArithNode(ArithOp.SUB,
-									arith.getResult(), insn.getArg(0),
-									InsnArg.lit(-lit, litArg.getType()));
-						}
-					}
-				}
-				break;
+				return simplifyArith(insn);
 
 			case IF:
-				// simplify 'cmp' instruction in if condition
-				IfNode ifb = (IfNode) insn;
-				InsnArg f = ifb.getArg(0);
-				if (f.isInsnWrap()) {
-					InsnNode wi = ((InsnWrapArg) f).getWrapInsn();
-					if (wi.getType() == InsnType.CMP_L || wi.getType() == InsnType.CMP_G) {
-						if (ifb.getArg(1).isLiteral()
-								&& ((LiteralArg) ifb.getArg(1)).getLiteral() == 0) {
-							ifb.changeCondition(ifb.getOp(), wi.getArg(0), wi.getArg(1));
-						} else {
-							LOG.warn("TODO: cmp" + ifb);
-						}
-					}
-				}
+				simplifyIf((IfNode) insn);
 				break;
 
 			case INVOKE:
-				MethodInfo callMth = ((InvokeNode) insn).getCallMth();
-				if (callMth.getDeclClass().getFullName().equals(Consts.CLASS_STRING_BUILDER)
-						&& callMth.getShortId().equals(Consts.MTH_TOSTRING_SIGNATURE)
-						&& insn.getArg(0).isInsnWrap()) {
-					try {
-						List<InsnNode> chain = flattenInsnChain(insn);
-						if (chain.size() > 1 && chain.get(0).getType() == InsnType.CONSTRUCTOR) {
-							ConstructorInsn constr = (ConstructorInsn) chain.get(0);
-							if (constr.getClassType().getFullName().equals(Consts.CLASS_STRING_BUILDER)
-									&& constr.getArgsCount() == 0) {
-								int len = chain.size();
-								InsnNode concatInsn = new InsnNode(InsnType.STR_CONCAT, len - 1);
-								for (int i = 1; i < len; i++) {
-									concatInsn.addArg(chain.get(i).getArg(1));
-								}
-								concatInsn.setResult(insn.getResult());
-								return concatInsn;
-							}
-						}
-					} catch (Throwable e) {
-						LOG.debug("Can't convert string concatenation: {} insn: {}", mth, insn, e);
-					}
-				}
-				break;
+				return convertInvoke(mth, insn);
 
 			case IPUT:
 			case SPUT:
-				// convert field arith operation to arith instruction
-				// (IPUT = ARITH (IGET, lit) -> ARITH (fieldArg <op>= lit))
-				InsnArg arg = insn.getArg(0);
-				if (arg.isInsnWrap()) {
-					InsnNode wrap = ((InsnWrapArg) arg).getWrapInsn();
-					InsnType wrapType = wrap.getType();
-					if ((wrapType == InsnType.ARITH || wrapType == InsnType.STR_CONCAT) && wrap.getArg(0).isInsnWrap()) {
-						InsnNode get = ((InsnWrapArg) wrap.getArg(0)).getWrapInsn();
-						InsnType getType = get.getType();
-						if (getType == InsnType.IGET || getType == InsnType.SGET) {
-							FieldInfo field = (FieldInfo) ((IndexInsnNode) insn).getIndex();
-							FieldInfo innerField = (FieldInfo) ((IndexInsnNode) get).getIndex();
-							if (field.equals(innerField)) {
-								try {
-									RegisterArg reg = null;
-									if (getType == InsnType.IGET) {
-										reg = ((RegisterArg) get.getArg(0));
-									}
-									RegisterArg fArg = new FieldArg(field, reg != null ? reg.getRegNum() : -1);
-									if (reg != null) {
-										fArg.replaceTypedVar(get.getArg(0));
-									}
-									if (wrapType == InsnType.ARITH) {
-										ArithNode ar = (ArithNode) wrap;
-										return new ArithNode(ar.getOp(), fArg, fArg, ar.getArg(1));
-									} else {
-										int argsCount = wrap.getArgsCount();
-										InsnNode concat = new InsnNode(InsnType.STR_CONCAT, argsCount - 1);
-										for (int i = 1; i < argsCount; i++) {
-											concat.addArg(wrap.getArg(i));
-										}
-										return new ArithNode(ArithOp.ADD, fArg, fArg, InsnArg.wrapArg(concat));
-									}
-								} catch (Throwable e) {
-									LOG.debug("Can't convert field arith insn: {}, mth: {}", insn, mth, e);
-								}
-							}
-						}
-					}
-				}
-				break;
+				return convertFieldArith(mth, insn);
 
 			case CHECK_CAST:
 				InsnArg castArg = insn.getArg(0);
@@ -189,6 +84,129 @@ public class SimplifyVisitor extends AbstractVisitor {
 
 			default:
 				break;
+		}
+		return null;
+	}
+
+	/**
+	 * Simplify 'cmp' instruction in if condition
+	 */
+	private static void simplifyIf(IfNode insn) {
+		InsnArg f = insn.getArg(0);
+		if (f.isInsnWrap()) {
+			InsnNode wi = ((InsnWrapArg) f).getWrapInsn();
+			if (wi.getType() == InsnType.CMP_L || wi.getType() == InsnType.CMP_G) {
+				if (insn.getArg(1).isLiteral()
+						&& ((LiteralArg) insn.getArg(1)).getLiteral() == 0) {
+					insn.changeCondition(insn.getOp(), wi.getArg(0), wi.getArg(1));
+				} else {
+					LOG.warn("TODO: cmp" + insn);
+				}
+			}
+		}
+	}
+
+	private static InsnNode convertInvoke(MethodNode mth, InsnNode insn) {
+		MethodInfo callMth = ((InvokeNode) insn).getCallMth();
+		if (callMth.getDeclClass().getFullName().equals(Consts.CLASS_STRING_BUILDER)
+				&& callMth.getShortId().equals(Consts.MTH_TOSTRING_SIGNATURE)
+				&& insn.getArg(0).isInsnWrap()) {
+			try {
+				List<InsnNode> chain = flattenInsnChain(insn);
+				if (chain.size() > 1 && chain.get(0).getType() == InsnType.CONSTRUCTOR) {
+					ConstructorInsn constr = (ConstructorInsn) chain.get(0);
+					if (constr.getClassType().getFullName().equals(Consts.CLASS_STRING_BUILDER)
+							&& constr.getArgsCount() == 0) {
+						int len = chain.size();
+						InsnNode concatInsn = new InsnNode(InsnType.STR_CONCAT, len - 1);
+						for (int i = 1; i < len; i++) {
+							concatInsn.addArg(chain.get(i).getArg(1));
+						}
+						concatInsn.setResult(insn.getResult());
+						return concatInsn;
+					}
+				}
+			} catch (Throwable e) {
+				LOG.debug("Can't convert string concatenation: {} insn: {}", mth, insn, e);
+			}
+		}
+		return null;
+	}
+
+	private static InsnNode simplifyArith(InsnNode insn) {
+		ArithNode arith = (ArithNode) insn;
+		if (arith.getArgsCount() != 2) {
+			return null;
+		}
+		InsnArg litArg = null;
+		InsnArg secondArg = arith.getArg(1);
+		if (secondArg.isInsnWrap()) {
+			InsnNode wr = ((InsnWrapArg) secondArg).getWrapInsn();
+			if (wr.getType() == InsnType.CONST) {
+				litArg = wr.getArg(0);
+			}
+		} else if (secondArg.isLiteral()) {
+			litArg = secondArg;
+		}
+		if (litArg != null) {
+			long lit = ((LiteralArg) litArg).getLiteral();
+			// fix 'c + (-1)' => 'c - (1)'
+			if (arith.getOp() == ArithOp.ADD && lit < 0) {
+				return new ArithNode(ArithOp.SUB,
+						arith.getResult(), insn.getArg(0),
+						InsnArg.lit(-lit, litArg.getType()));
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Convert field arith operation to arith instruction
+	 * (IPUT = ARITH (IGET, lit) -> ARITH (fieldArg <op>= lit))
+	 */
+	private static InsnNode convertFieldArith(MethodNode mth, InsnNode insn) {
+		InsnArg arg = insn.getArg(0);
+		if (!arg.isInsnWrap()) {
+			return null;
+		}
+		InsnNode wrap = ((InsnWrapArg) arg).getWrapInsn();
+		InsnType wrapType = wrap.getType();
+		if ((wrapType != InsnType.ARITH && wrapType != InsnType.STR_CONCAT)
+				|| !wrap.getArg(0).isInsnWrap()) {
+			return null;
+		}
+		InsnNode get = ((InsnWrapArg) wrap.getArg(0)).getWrapInsn();
+		InsnType getType = get.getType();
+		if (getType != InsnType.IGET && getType != InsnType.SGET) {
+			return null;
+		}
+		FieldInfo field = (FieldInfo) ((IndexInsnNode) insn).getIndex();
+		FieldInfo innerField = (FieldInfo) ((IndexInsnNode) get).getIndex();
+		if (!field.equals(innerField)) {
+			return null;
+		}
+		try {
+			RegisterArg reg = null;
+			if (getType == InsnType.IGET) {
+				reg = ((RegisterArg) get.getArg(0));
+			}
+			FieldArg fArg = new FieldArg(field, reg);
+			if (reg != null) {
+				fArg.setType(get.getArg(0).getType());
+			}
+			if (wrapType == InsnType.ARITH) {
+				ArithNode ar = (ArithNode) wrap;
+				return new ArithNode(ar.getOp(), fArg, ar.getArg(1));
+			} else {
+				int argsCount = wrap.getArgsCount();
+				InsnNode concat = new InsnNode(InsnType.STR_CONCAT, argsCount - 1);
+				for (int i = 1; i < argsCount; i++) {
+					concat.addArg(wrap.getArg(i));
+				}
+				return new ArithNode(ArithOp.ADD, fArg, InsnArg.wrapArg(concat));
+			}
+		} catch (Throwable e) {
+			LOG.debug("Can't convert field arith insn: {}, mth: {}", insn, mth, e);
 		}
 		return null;
 	}

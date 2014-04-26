@@ -60,8 +60,8 @@ public class BlockProcessingHelper {
 					type = excHandler.getCatchType().getType();
 					excArg.setName("e");
 				}
-				resArg.getTypedVar().forceSetType(type);
-				excArg.getTypedVar().forceSetType(type);
+				resArg.forceType(type);
+				excArg.setType(type);
 
 				excHandler.setArg(excArg);
 				block.getAttributes().add(handlerAttr);
@@ -79,7 +79,7 @@ public class BlockProcessingHelper {
 			}
 			for (BlockNode excBlock : excHandler.getBlocks()) {
 				// remove 'monitor-exit' from exception handler blocks
-				InstructionRemover remover = new InstructionRemover(excBlock.getInstructions());
+				InstructionRemover remover = new InstructionRemover(mth, excBlock);
 				for (InsnNode insn : excBlock.getInstructions()) {
 					if (insn.getType() == InsnType.MONITOR_ENTER) {
 						break;

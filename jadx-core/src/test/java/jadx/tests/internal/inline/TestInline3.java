@@ -30,6 +30,7 @@ public class TestInline3 extends InternalJadxTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
+		System.out.println(code);
 
 		assertThat(code, containsString("this(b1, b2, 0, 0, 0);"));
 		assertThat(code, containsString("super(a, a);"));

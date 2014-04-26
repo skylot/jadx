@@ -26,7 +26,6 @@ public class ConstructorInsn extends InsnNode {
 		this.callMth = invoke.getCallMth();
 		ClassInfo classType = callMth.getDeclClass();
 		instanceArg = (RegisterArg) invoke.getArg(0);
-		instanceArg.setParentInsn(this);
 
 		if (instanceArg.isThis()) {
 			if (classType.equals(mth.getParentClass().getClassInfo())) {
@@ -42,7 +41,10 @@ public class ConstructorInsn extends InsnNode {
 		} else {
 			callType = CallType.CONSTRUCTOR;
 			setResult(instanceArg);
+			// convert from 'use' to 'assign'
+			instanceArg.getSVar().setAssign(instanceArg);
 		}
+		instanceArg.getSVar().removeUse(instanceArg);
 		for (int i = 1; i < invoke.getArgsCount(); i++) {
 			addArg(invoke.getArg(i));
 		}

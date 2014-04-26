@@ -5,6 +5,7 @@ import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
@@ -15,6 +16,7 @@ import jadx.core.utils.InsnList;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -102,21 +104,26 @@ public class CodeShrinker extends AbstractVisitor {
 			if (start > to) {
 				throw new JadxRuntimeException("Invalid inline insn positions: " + start + " - " + to);
 			}
+			BitSet args = new BitSet();
+			for (RegisterArg arg : movedArgs) {
+				args.set(arg.getRegNum());
+			}
 			for (int i = start; i < to; i++) {
 				ArgsInfo argsInfo = argsList.get(i);
 				if (argsInfo.getInlinedInsn() == this) {
 					continue;
 				}
 				InsnNode curInsn = argsInfo.insn;
-				if (!curInsn.canReorder() || usedArgAssign(curInsn, movedArgs)) {
+				if (!curInsn.canReorder() || usedArgAssign(curInsn, args)) {
 					return false;
 				}
 			}
 			return true;
 		}
 
-		private static boolean usedArgAssign(InsnNode insn, List<RegisterArg> args) {
-			return insn.getResult() != null && args.contains(insn.getResult());
+		private static boolean usedArgAssign(InsnNode insn, BitSet args) {
+			RegisterArg result = insn.getResult();
+			return result != null && args.get(result.getRegNum());
 		}
 
 		public WrapInfo inline(int assignInsnPos, RegisterArg arg) {
@@ -181,14 +188,15 @@ public class CodeShrinker extends AbstractVisitor {
 			List<RegisterArg> args = argsInfo.getArgs();
 			for (ListIterator<RegisterArg> it = args.listIterator(args.size()); it.hasPrevious(); ) {
 				RegisterArg arg = it.previous();
-				List<InsnArg> useList = arg.getTypedVar().getUseList();
-				if (useList.size() != 2) {
+//				if (arg.getName() != null) {
+//					continue;
+//				}
+				SSAVar sVar = arg.getSVar();
+				if (sVar.getAssign() == null || sVar.getVariableUseCount() != 1) {
 					continue;
 				}
-				InsnNode assignInsn = selectOther(useList, arg).getParentInsn();
-				if (assignInsn == null
-						|| assignInsn.getResult() == null
-						|| assignInsn.getResult().getRegNum() != arg.getRegNum()) {
+				InsnNode assignInsn = sVar.getAssign().getParentInsn();
+				if (assignInsn == null) {
 					continue;
 				}
 				int assignPos = insnList.getIndex(assignInsn);
@@ -228,7 +236,11 @@ public class CodeShrinker extends AbstractVisitor {
 			return false;
 		}
 
-		List<RegisterArg> args = ArgsInfo.getArgs(assignInsn);
+		List<RegisterArg> argsList = ArgsInfo.getArgs(assignInsn);
+		BitSet args = new BitSet();
+		for (RegisterArg arg : argsList) {
+			args.set(arg.getRegNum());
+		}
 		boolean startCheck = false;
 		for (InsnNode insn : assignBlock.getInstructions()) {
 			if (startCheck && (!insn.canReorder() || ArgsInfo.usedArgAssign(insn, args))) {
@@ -289,10 +301,5 @@ public class CodeShrinker extends AbstractVisitor {
 		} while (!list.isEmpty());
 
 		return arg.wrapInstruction(assignInsn);
-	}
-
-	private static InsnArg selectOther(List<InsnArg> list, RegisterArg insn) {
-		InsnArg first = list.get(0);
-		return insn == first ? list.get(1) : first;
 	}
 }

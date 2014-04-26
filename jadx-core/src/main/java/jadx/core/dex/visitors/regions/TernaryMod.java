@@ -4,6 +4,7 @@ import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
@@ -14,8 +15,6 @@ import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.TernaryRegion;
 import jadx.core.dex.visitors.CodeShrinker;
 import jadx.core.utils.InsnList;
-
-import java.util.List;
 
 public class TernaryMod {
 
@@ -41,12 +40,14 @@ public class TernaryMod {
 		InsnNode e = eb.getInstructions().get(0);
 
 		if (t.getResult() != null && e.getResult() != null
-				&& t.getResult().getTypedVar() == e.getResult().getTypedVar()) {
+				&& t.getResult().equalRegisterAndType(e.getResult())
+				&& t.getResult().getSVar().isUsedInPhi()) {
 			InsnList.remove(tb, t);
 			InsnList.remove(eb, e);
 
+			RegisterArg resArg = t.getResult().getSVar().getUsedInPhi().getResult();
 			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(),
-					t.getResult(), InsnArg.wrapArg(t), InsnArg.wrapArg(e));
+					resArg, InsnArg.wrapArg(t), InsnArg.wrapArg(e));
 			TernaryRegion tern = new TernaryRegion(ifRegion, header);
 			// TODO: add api for replace regions
 			ifRegion.setTernRegion(tern);
@@ -54,12 +55,6 @@ public class TernaryMod {
 			// remove 'if' instruction
 			header.getInstructions().clear();
 			header.getInstructions().add(ternInsn);
-
-			// unbind result args
-			List<InsnArg> useList = ternInsn.getResult().getTypedVar().getUseList();
-			useList.remove(t.getResult());
-			useList.remove(e.getResult());
-			useList.add(ternInsn.getResult());
 
 			// shrink method again
 			CodeShrinker.shrinkMethod(mth);

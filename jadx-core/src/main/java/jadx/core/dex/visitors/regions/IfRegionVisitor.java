@@ -60,6 +60,9 @@ public class IfRegionVisitor extends AbstractVisitor implements IRegionVisitor, 
 				tryInvertIfRegion(ifRegion);
 			}
 		}
+		if (RegionUtils.isEmpty(ifRegion.getThenRegion())) {
+			tryInvertIfRegion(ifRegion);
+		}
 	}
 
 	private static void moveReturnToThenBlock(MethodNode mth, IfRegion ifRegion) {

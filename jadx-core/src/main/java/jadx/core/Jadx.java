@@ -13,13 +13,15 @@ import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.MethodInlineVisitor;
 import jadx.core.dex.visitors.ModVisitor;
 import jadx.core.dex.visitors.PrepareForCodeGen;
+import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.dex.visitors.SimplifyVisitor;
 import jadx.core.dex.visitors.regions.CheckRegions;
 import jadx.core.dex.visitors.regions.IfRegionVisitor;
 import jadx.core.dex.visitors.regions.ProcessVariables;
 import jadx.core.dex.visitors.regions.RegionMakerVisitor;
-import jadx.core.dex.visitors.typeresolver.FinishTypeResolver;
-import jadx.core.dex.visitors.typeresolver.TypeResolver;
+import jadx.core.dex.visitors.ssa.EliminatePhiNodes;
+import jadx.core.dex.visitors.typeinference.FinishTypeInference;
+import jadx.core.dex.visitors.typeinference.TypeInference;
 import jadx.core.utils.Utils;
 
 import java.io.File;
@@ -51,15 +53,17 @@ public class Jadx {
 			passes.add(new FallbackModeVisitor());
 		} else {
 			passes.add(new BlockMakerVisitor());
+			passes.add(new SSATransform());
+			passes.add(new TypeInference());
 
-			passes.add(new TypeResolver());
+			passes.add(new ConstInlinerVisitor());
+			passes.add(new FinishTypeInference());
 
 			if (args.isRawCFGOutput()) {
 				passes.add(new DotGraphVisitor(outDir, false, true));
 			}
 
-			passes.add(new ConstInlinerVisitor());
-			passes.add(new FinishTypeResolver());
+			passes.add(new EliminatePhiNodes());
 
 			passes.add(new ModVisitor());
 			passes.add(new EnumVisitor());

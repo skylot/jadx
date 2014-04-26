@@ -1,14 +1,11 @@
-package jadx.core.dex.visitors.typeresolver;
+package jadx.core.dex.visitors.typeinference;
 
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.AbstractVisitor;
-import jadx.core.dex.visitors.typeresolver.finish.CheckTypeVisitor;
-import jadx.core.dex.visitors.typeresolver.finish.PostTypeResolver;
-import jadx.core.dex.visitors.typeresolver.finish.SelectTypeVisitor;
 
-public class FinishTypeResolver extends AbstractVisitor {
+public class FinishTypeInference extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) {
@@ -22,7 +19,7 @@ public class FinishTypeResolver extends AbstractVisitor {
 			change = false;
 			for (BlockNode block : mth.getBasicBlocks()) {
 				for (InsnNode insn : block.getInstructions()) {
-					if (PostTypeResolver.visit(mth, insn)) {
+					if (PostTypeInference.visit(mth, insn)) {
 						change = true;
 					}
 				}

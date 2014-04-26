@@ -8,7 +8,7 @@ public final class InsnWrapArg extends InsnArg {
 
 	public InsnWrapArg(InsnNode insn) {
 		RegisterArg result = insn.getResult();
-		this.typedVar = new TypedVar((result != null ? result.getType() : ArgType.VOID));
+		this.type = result != null ? result.getType() : ArgType.VOID;
 		this.wrappedInsn = insn;
 	}
 
@@ -29,6 +29,6 @@ public final class InsnWrapArg extends InsnArg {
 
 	@Override
 	public String toString() {
-		return "(wrap: " + typedVar + "\n  " + wrappedInsn + ")";
+		return "(wrap: " + type + "\n  " + wrappedInsn + ")";
 	}
 }

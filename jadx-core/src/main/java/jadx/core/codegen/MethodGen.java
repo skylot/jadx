@@ -4,6 +4,7 @@ import jadx.core.Consts;
 import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.attributes.AttributesList;
+import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.attributes.JadxErrorAttr;
 import jadx.core.dex.attributes.annotations.MethodParameters;
 import jadx.core.dex.info.AccessInfo;
@@ -13,7 +14,6 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.Region;
-import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.FallbackModeVisitor;
 import jadx.core.utils.ErrorsCounter;
@@ -164,7 +164,7 @@ public class MethodGen {
 	 * variable type or name (if debug info available)
 	 */
 	public String makeArgName(RegisterArg arg) {
-		String name = arg.getTypedVar().getName();
+		String name = arg.getName();
 		String base = "r" + arg.getRegNum();
 		if (fallback) {
 			if (name != null) {
@@ -200,7 +200,7 @@ public class MethodGen {
 			return name;
 		}
 		name = getUniqVarName(name);
-		arg.getTypedVar().setName(name);
+		arg.getSVar().setName(name);
 		return name;
 	}
 
@@ -306,9 +306,9 @@ public class MethodGen {
 			}
 			try {
 				if (insnGen.makeInsn(insn, code)) {
-					CatchAttr catchAttr = (CatchAttr) attrs.get(AttributeType.CATCH_BLOCK);
-					if (catchAttr != null) {
-						code.add("\t //" + catchAttr);
+					List<IAttribute> catchAttrs = attrs.getAll(AttributeType.CATCH_BLOCK);
+					for (IAttribute catchAttr : catchAttrs) {
+						code.add("\t " + catchAttr);
 					}
 				}
 			} catch (CodegenException e) {

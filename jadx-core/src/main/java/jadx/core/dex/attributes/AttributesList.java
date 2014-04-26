@@ -118,15 +118,14 @@ public final class AttributesList {
 		int count = getMultiCountInternal(type);
 		if (count == 0) {
 			return Collections.emptyList();
-		} else {
-			List<IAttribute> attrs = new ArrayList<IAttribute>(count);
-			for (IAttribute attr : attributes) {
-				if (attr.getType() == type) {
-					attrs.add(attr);
-				}
-			}
-			return attrs;
 		}
+		List<IAttribute> attrs = new ArrayList<IAttribute>(count);
+		for (IAttribute attr : attributes) {
+			if (attr.getType() == type) {
+				attrs.add(attr);
+			}
+		}
+		return attrs;
 	}
 
 	public void remove(AttributeType type) {

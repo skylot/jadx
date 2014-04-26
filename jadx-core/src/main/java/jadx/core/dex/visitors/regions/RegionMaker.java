@@ -129,12 +129,10 @@ public class RegionMaker {
 				}
 			}
 		}
-
 		if (!processed) {
 			r.getSubBlocks().add(block);
 			next = BlockUtils.getNextBlock(block);
 		}
-
 		if (next != null && !stack.containsExit(block) && !stack.containsExit(next)) {
 			return next;
 		} else {
@@ -153,11 +151,11 @@ public class RegionMaker {
 		if (nextStart != null && exitBlocksSet.remove(nextStart)) {
 			exitBlocks.add(nextStart);
 		}
-		if (exitBlocksSet.remove(loop.getEnd())) {
-			exitBlocks.add(loop.getEnd());
-		}
 		if (exitBlocksSet.remove(loopStart)) {
 			exitBlocks.add(loopStart);
+		}
+		if (exitBlocksSet.remove(loop.getEnd())) {
+			exitBlocks.add(loop.getEnd());
 		}
 		exitBlocks.addAll(exitBlocksSet);
 		exitBlocksSet = null;
@@ -185,7 +183,7 @@ public class RegionMaker {
 
 			loopRegion = new LoopRegion(curRegion, condBlock, condBlock == loop.getEnd());
 			boolean found = true;
-			if (condBlock != loopStart) {
+			if (condBlock != loopStart && condBlock != loop.getEnd()) {
 				if (condBlock.getPredecessors().contains(loopStart)) {
 					loopRegion.setPreCondition(loopStart);
 					// if we can't merge pre-condition this is not correct header
@@ -332,7 +330,7 @@ public class RegionMaker {
 		traverseMonitorExits(synchRegion, insn.getArg(0), block, exits, cacheSet);
 
 		for (InsnNode exitInsn : synchRegion.getExitInsns()) {
-			InstructionRemover.unbindInsn(exitInsn);
+			InstructionRemover.unbindInsn(mth, exitInsn);
 		}
 
 		block = BlockUtils.getNextBlock(block);
@@ -430,13 +428,13 @@ public class RegionMaker {
 			}
 			// invert condition (compiler often do it)
 			ifnode.invertCondition();
-			BlockNode tmp = bThen;
-			bThen = bElse;
-			bElse = tmp;
+			bThen = ifnode.getThenBlock();
+			bElse = ifnode.getElseBlock();
 
 			thenBlock = bThen;
 			// select else and exit blocks
-			if (block.getDominatesOn().size() == 2) {
+			if (block.getDominatesOn().size() == 2
+					&& !BlockUtils.isPathExists(bThen, bElse)) {
 				elseBlock = bElse;
 			} else {
 				if (bElse.getPredecessors().size() != 1) {
@@ -571,14 +569,15 @@ public class RegionMaker {
 							pass = false;
 							break;
 						}
-						List<InsnArg> useList = res.getTypedVar().getUseList();
-						if (useList.size() != 2) {
+						List<RegisterArg> useList = res.getSVar().getUseList();
+						if (useList.size() != 1) {
 							pass = false;
 							break;
 						} else {
-							InsnArg arg = useList.get(1);
+							InsnArg arg = useList.get(0);
 							InsnNode usePlace = arg.getParentInsn();
-							if (!BlockUtils.blockContains(block, usePlace) && !BlockUtils.blockContains(next, usePlace)) {
+							if (!BlockUtils.blockContains(block, usePlace)
+									&& !BlockUtils.blockContains(next, usePlace)) {
 								pass = false;
 								break;
 							}
@@ -638,8 +637,9 @@ public class RegionMaker {
 			for (int i = domsOn.nextSetBit(0); i >= 0; i = domsOn.nextSetBit(i + 1)) {
 				BlockNode b = mth.getBasicBlocks().get(i);
 				for (BlockNode s : b.getCleanSuccessors()) {
-					if (domsOn.get(s.getId())) {
-						domsOn.clear(s.getId());
+					int id = s.getId();
+					if (domsOn.get(id)) {
+						domsOn.clear(id);
 					}
 				}
 			}
@@ -657,11 +657,12 @@ public class RegionMaker {
 		stack.push(sw);
 		if (out != null) {
 			stack.addExit(out);
-		} else {
-			for (BlockNode e : BlockUtils.bitSetToBlocks(mth, domsOn)) {
-				stack.addExit(e);
-			}
 		}
+//		else {
+//			for (BlockNode e : BlockUtils.bitSetToBlocks(mth, domsOn)) {
+//				stack.addExit(e);
+//			}
+//		}
 
 		if (!stack.containsExit(defCase)) {
 			sw.setDefaultCase(makeRegion(defCase, stack));

@@ -99,10 +99,10 @@ public class ClassModifier extends AbstractVisitor {
 			return false;
 		}
 		mth.removeFirstArgument();
-		InstructionRemover.remove(block, insn);
+		InstructionRemover.remove(mth, block, insn);
 		// other arg usage -> wrap with IGET insn
-		List<InsnArg> useList = arg.getTypedVar().getUseList();
-		if (useList.size() > 1) {
+		List<RegisterArg> useList = arg.getSVar().getUseList();
+		if (useList.size() > 0) {
 			InsnNode iget = new IndexInsnNode(InsnType.IGET, fieldInfo, 1);
 			iget.addArg(insn.getArg(1));
 			for (InsnArg insnArg : useList) {

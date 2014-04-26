@@ -181,7 +181,7 @@ public final class Decompiler {
 	}
 
 	void processClass(ClassNode cls) {
-		LOG.info("processing class {} ...", cls);
+		LOG.debug("processing class {} ...", cls);
 		ProcessClass.process(cls, passes);
 	}
 

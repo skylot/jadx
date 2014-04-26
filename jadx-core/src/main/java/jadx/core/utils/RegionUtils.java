@@ -32,6 +32,10 @@ public class RegionUtils {
 		}
 	}
 
+	public static boolean isEmpty(IContainer container) {
+		return !notEmpty(container);
+	}
+
 	public static boolean notEmpty(IContainer container) {
 		if (container instanceof BlockNode) {
 			return ((BlockNode) container).getInstructions().size() != 0;

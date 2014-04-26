@@ -26,6 +26,8 @@ public enum AttributeType {
 	ANNOTATION_LIST(true),
 	ANNOTATION_MTH_PARAMETERS(true),
 
+	PHI_LIST(true),
+
 	SOURCE_FILE(true),
 
 	// for regions

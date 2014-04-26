@@ -1,4 +1,4 @@
-package jadx.core.dex.visitors.typeresolver.finish;
+package jadx.core.dex.visitors.typeinference;
 
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
@@ -7,17 +7,13 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
-import jadx.core.dex.instructions.args.TypedVar;
+import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public class PostTypeResolver {
-	private static final Logger LOG = LoggerFactory.getLogger(PostTypeResolver.class);
+public class PostTypeInference {
 
 	public static boolean visit(MethodNode mth, InsnNode insn) {
 		switch (insn.getType()) {
@@ -30,12 +26,11 @@ public class PostTypeResolver {
 						// incorrect literal value for object
 						ArgType type = (lit == 1 ? ArgType.BOOLEAN : ArgType.INT);
 						// can't merge with object -> force it
-						litArg.getTypedVar().forceSetType(type);
-						res.getTypedVar().forceSetType(type);
+						litArg.setType(type);
+						res.getSVar().setType(type);
 						return true;
 					}
 				}
-				// return litArg.getTypedVar().forceSetType(res.getType());
 				return litArg.merge(res);
 
 			case MOVE: {
@@ -79,7 +74,7 @@ public class PostTypeResolver {
 						ArgType argType = args.get(i);
 						InsnArg insnArg = inv.getArg(j--);
 						if (insnArg.isRegister() && !argType.equals(insnArg.getType())) {
-							insnArg.getTypedVar().forceSetType(argType);
+							insnArg.setType(argType);
 							change = true;
 						}
 					}
@@ -89,12 +84,12 @@ public class PostTypeResolver {
 
 			case CHECK_CAST: {
 				ArgType castType = (ArgType) ((IndexInsnNode) insn).getIndex();
-				TypedVar typedVar = insn.getResult().getTypedVar();
+				SSAVar sVar = insn.getResult().getSVar();
 				// don't override generic types of same base class
-				boolean skip = castType.isObject() && castType.getObject().equals(typedVar.getType().getObject());
+				boolean skip = castType.isObject() && castType.getObject().equals(sVar.getType().getObject());
 				if (!skip) {
 					// workaround for compiler bug (see TestDuplicateCast)
-					typedVar.forceSetType(castType);
+					sVar.setType(castType);
 				}
 				return true;
 			}
@@ -104,6 +99,14 @@ public class PostTypeResolver {
 		}
 		return false;
 
+	}
+
+	static void setType(InsnArg arg, ArgType type) {
+		if (arg.isRegister()) {
+			((RegisterArg) arg).getSVar().setType(type);
+		} else {
+			arg.setType(type);
+		}
 	}
 
 	private static boolean fixArrayTypes(InsnArg array, InsnArg elem) {
@@ -116,4 +119,5 @@ public class PostTypeResolver {
 		}
 		return change;
 	}
+
 }

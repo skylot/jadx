@@ -1,4 +1,4 @@
-package jadx.core.dex.visitors.typeresolver.finish;
+package jadx.core.dex.visitors.typeinference;
 
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.InsnNode;

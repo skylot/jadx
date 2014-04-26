@@ -1,6 +1,10 @@
 package jadx.core.utils;
 
+import jadx.core.Consts;
+import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -9,16 +13,27 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Helper class for correct instructions removing,
  * can be used while iterating over instructions list
  */
 public class InstructionRemover {
 
+	private static final Logger LOG = LoggerFactory.getLogger(InstructionRemover.class);
+
+	private final MethodNode mth;
 	private final List<InsnNode> insns;
 	private final List<InsnNode> toRemove;
 
-	public InstructionRemover(List<InsnNode> instructions) {
+	public InstructionRemover(MethodNode mth, BlockNode block) {
+		this(mth, block.getInstructions());
+	}
+
+	public InstructionRemover(MethodNode mth, List<InsnNode> instructions) {
+		this.mth = mth;
 		this.insns = instructions;
 		this.toRemove = new ArrayList<InsnNode>();
 	}
@@ -28,48 +43,48 @@ public class InstructionRemover {
 	}
 
 	public void perform() {
+		if (toRemove.isEmpty()) {
+			return;
+		}
 		removeAll(insns, toRemove);
 		toRemove.clear();
 	}
 
-	public static void unbindInsnList(List<InsnNode> unbind) {
+	public static void unbindInsnList(MethodNode mth, List<InsnNode> unbind) {
 		for (InsnNode rem : unbind) {
-			unbindInsn(rem);
+			unbindInsn(mth, rem);
 		}
 	}
 
-	public static void unbindInsn(InsnNode insn) {
-		if (insn.getResult() != null) {
-			InsnArg res = insn.getResult();
-			res.getTypedVar().removeUse(res);
+	public static void unbindInsn(MethodNode mth, InsnNode insn) {
+		RegisterArg r = insn.getResult();
+		if (r != null && r.getSVar() != null) {
+			if (Consts.DEBUG && !r.getSVar().getUseList().isEmpty()) {
+				LOG.debug("Unbind insn with result: {}", insn);
+			}
+			mth.removeSVar(r.getSVar());
 		}
 		for (InsnArg arg : insn.getArguments()) {
-			if (arg.isRegister()) {
-				arg.getTypedVar().removeUse(arg);
+			if (arg instanceof RegisterArg) {
+				RegisterArg reg = (RegisterArg) arg;
+				SSAVar sVar = reg.getSVar();
+				if (sVar != null) {
+					sVar.removeUse(reg);
+				}
 			}
 		}
-	}
-
-	public static void removeAll(BlockNode block, List<InsnNode> toRemove) {
-		removeAll(block.getInstructions(), toRemove);
+		insn.getAttributes().add(AttributeFlag.INCONSISTENT_CODE);
 	}
 
 	// Don't use 'insns.removeAll(toRemove)' because it will remove instructions by content
 	// and here can be several instructions with same content
-	public static void removeAll(List<InsnNode> insns, List<InsnNode> toRemove) {
-		if (insns == toRemove) {
-			for (InsnNode rem : toRemove) {
-				unbindInsn(rem);
-			}
-			return;
-		}
-
+	private void removeAll(List<InsnNode> insns, List<InsnNode> toRemove) {
 		for (InsnNode rem : toRemove) {
-			unbindInsn(rem);
-			for (Iterator<InsnNode> it = insns.iterator(); it.hasNext(); ) {
-				InsnNode insn = it.next();
-				if (insn == rem) {
-					it.remove();
+			unbindInsn(mth, rem);
+			int insnsCount = insns.size();
+			for (int i = 0; i < insnsCount; i++) {
+				if (insns.get(i) == rem) {
+					insns.remove(i);
 					break;
 				}
 			}
@@ -79,12 +94,12 @@ public class InstructionRemover {
 	public static void remove(MethodNode mth, InsnNode insn) {
 		BlockNode block = BlockUtils.getBlockByInsn(mth, insn);
 		if (block != null) {
-			remove(block, insn);
+			remove(mth, block, insn);
 		}
 	}
 
-	public static void remove(BlockNode block, InsnNode insn) {
-		unbindInsn(insn);
+	public static void remove(MethodNode mth, BlockNode block, InsnNode insn) {
+		unbindInsn(mth, insn);
 		// remove by pointer (don't use equals)
 		Iterator<InsnNode> it = block.getInstructions().iterator();
 		while (it.hasNext()) {
@@ -96,17 +111,10 @@ public class InstructionRemover {
 		}
 	}
 
-	public static void removeAllByContent(BlockNode block, List<InsnNode> toRemove) {
-		for (InsnNode rem : toRemove) {
-			unbindInsn(rem);
-		}
-		block.getInstructions().removeAll(toRemove);
-	}
-
-	public static void remove(BlockNode block, int index) {
-		InsnNode insn = block.getInstructions().get(index);
-		unbindInsn(insn);
-		block.getInstructions().remove(index);
+	public static void remove(MethodNode mth, BlockNode block, int index) {
+		List<InsnNode> instructions = block.getInstructions();
+		unbindInsn(mth, instructions.get(index));
+		instructions.remove(index);
 	}
 
 }

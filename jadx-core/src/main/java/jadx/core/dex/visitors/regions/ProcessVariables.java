@@ -3,6 +3,7 @@ package jadx.core.dex.visitors.regions;
 import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.attributes.DeclareVariablesAttr;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
@@ -27,6 +28,38 @@ import org.slf4j.LoggerFactory;
 
 public class ProcessVariables extends AbstractVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(ProcessVariables.class);
+
+	private static class Variable {
+		private final int regNum;
+		private final ArgType type;
+
+		public Variable(RegisterArg arg) {
+			this.regNum = arg.getRegNum();
+			this.type = arg.getType();
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			Variable variable = (Variable) o;
+			return regNum == variable.regNum && type.equals(variable.type);
+		}
+
+		@Override
+		public int hashCode() {
+			return 31 * regNum + type.hashCode();
+		}
+
+		@Override
+		public String toString() {
+			return regNum + " " + type;
+		}
+	}
 
 	private static class Usage {
 		private RegisterArg arg;
@@ -66,7 +99,7 @@ public class ProcessVariables extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
-		final Map<RegisterArg, Usage> usageMap = new LinkedHashMap<RegisterArg, Usage>();
+		final Map<Variable, Usage> usageMap = new LinkedHashMap<Variable, Usage>();
 
 		// collect all variables usage
 		IRegionVisitor collect = new TracedRegionVisitor() {
@@ -79,11 +112,7 @@ public class ProcessVariables extends AbstractVisitor {
 					// result
 					RegisterArg result = insn.getResult();
 					if (result != null && result.isRegister()) {
-						Usage u = usageMap.get(result);
-						if (u == null) {
-							u = new Usage();
-							usageMap.put(result, u);
-						}
+						Usage u = addToUsageMap(result, usageMap);
 						if (u.getArg() == null) {
 							u.setArg(result);
 							u.setArgRegion(curRegion);
@@ -94,11 +123,7 @@ public class ProcessVariables extends AbstractVisitor {
 					args.clear();
 					insn.getRegisterArgs(args);
 					for (RegisterArg arg : args) {
-						Usage u = usageMap.get(arg);
-						if (u == null) {
-							u = new Usage();
-							usageMap.put(arg, u);
-						}
+						Usage u = addToUsageMap(arg, usageMap);
 						u.getUseRegions().add(curRegion);
 					}
 				}
@@ -109,11 +134,11 @@ public class ProcessVariables extends AbstractVisitor {
 		// reduce assigns map
 		List<RegisterArg> mthArgs = mth.getArguments(true);
 		for (RegisterArg arg : mthArgs) {
-			usageMap.remove(arg);
+			usageMap.remove(new Variable(arg));
 		}
 
-		for (Iterator<Entry<RegisterArg, Usage>> it = usageMap.entrySet().iterator(); it.hasNext(); ) {
-			Entry<RegisterArg, Usage> entry = it.next();
+		for (Iterator<Entry<Variable, Usage>> it = usageMap.entrySet().iterator(); it.hasNext(); ) {
+			Entry<Variable, Usage> entry = it.next();
 			Usage u = entry.getValue();
 
 			// if no assigns => remove
@@ -134,7 +159,7 @@ public class ProcessVariables extends AbstractVisitor {
 		}
 
 		// apply
-		for (Entry<RegisterArg, Usage> entry : usageMap.entrySet()) {
+		for (Entry<Variable, Usage> entry : usageMap.entrySet()) {
 			Usage u = entry.getValue();
 
 			// find region which contain all usage regions
@@ -166,6 +191,16 @@ public class ProcessVariables extends AbstractVisitor {
 				declareVar(mth.getRegion(), u.getArg());
 			}
 		}
+	}
+
+	Usage addToUsageMap(RegisterArg arg, Map<Variable, Usage> usageMap) {
+		Variable varId = new Variable(arg);
+		Usage usage = usageMap.get(varId);
+		if (usage == null) {
+			usage = new Usage();
+			usageMap.put(varId, usage);
+		}
+		return usage;
 	}
 
 	private static void declareVar(IContainer region, RegisterArg arg) {

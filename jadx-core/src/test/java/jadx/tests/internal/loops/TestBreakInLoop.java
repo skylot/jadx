@@ -33,7 +33,7 @@ public class TestBreakInLoop extends InternalJadxTest {
 		String code = cls.getCode().toString();
 		System.out.println(code);
 
-		assertEquals(count(code, "this.f++;"), 1);
+		assertEquals(1, count(code, "this.f++;"));
 		assertThat(code, containsString("if (i < b) {"));
 		assertThat(code, containsString("break;"));
 	}

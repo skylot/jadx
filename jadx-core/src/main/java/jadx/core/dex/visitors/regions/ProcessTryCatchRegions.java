@@ -101,7 +101,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 		// search dominator blocks in this region (don't need to go deeper)
 		for (BlockNode dominator : tryBlocksMap.keySet()) {
 			if (region.getSubBlocks().contains(dominator)) {
-				wrapBlocks(mth, region, dominator);
+				wrapBlocks(region, dominator);
 				tryBlocksMap.remove(dominator);
 				// if region is modified rerun this method
 				leaveRegion(mth, region);
@@ -113,7 +113,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 	/**
 	 * Extract all block dominated by 'dominator' to separate region and mark as try/catch block
 	 */
-	private void wrapBlocks(MethodNode mth, IRegion region, BlockNode dominator) {
+	private void wrapBlocks(IRegion region, BlockNode dominator) {
 		Region newRegion = new Region(region);
 		TryCatchBlock tb = tryBlocksMap.get(dominator);
 		assert tb != null;

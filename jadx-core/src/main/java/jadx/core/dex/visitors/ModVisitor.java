@@ -54,7 +54,7 @@ public class ModVisitor extends AbstractVisitor {
 	private static void replaceStep(MethodNode mth) {
 		ClassNode parentClass = mth.getParentClass();
 		for (BlockNode block : mth.getBasicBlocks()) {
-			InstructionRemover remover = new InstructionRemover(block.getInstructions());
+			InstructionRemover remover = new InstructionRemover(mth, block);
 
 			int size = block.getInstructions().size();
 			for (int i = 0; i < size; i++) {
@@ -65,6 +65,7 @@ public class ModVisitor extends AbstractVisitor {
 						MethodInfo callMth = inv.getCallMth();
 						if (callMth.isConstructor()) {
 							ConstructorInsn co = new ConstructorInsn(mth, inv);
+							removeInsnForArg(remover, co.getInstanceArg());
 							boolean remove = false;
 							if (co.isSuper() && (co.getArgsCount() == 0 || parentClass.isEnum())) {
 								remove = true;
@@ -149,7 +150,7 @@ public class ModVisitor extends AbstractVisitor {
 	 */
 	private static void removeStep(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
-			InstructionRemover remover = new InstructionRemover(block.getInstructions());
+			InstructionRemover remover = new InstructionRemover(mth, block);
 
 			int size = block.getInstructions().size();
 			for (int i = 0; i < size; i++) {
@@ -211,7 +212,7 @@ public class ModVisitor extends AbstractVisitor {
 					&& size > 0
 					&& insns.get(size - 1).getType() == InsnType.THROW) {
 
-				InstructionRemover.remove(excBlock, size - 1);
+				InstructionRemover.remove(mth, excBlock, size - 1);
 
 				// move not removed instructions to 'finally' block
 				if (insns.size() != 0) {
@@ -228,8 +229,8 @@ public class ModVisitor extends AbstractVisitor {
 		if (blockInsns.size() > 0) {
 			InsnNode insn = blockInsns.get(0);
 			if (insn.getType() == InsnType.MOVE_EXCEPTION
-					&& insn.getResult().getTypedVar().getUseList().size() <= 1) {
-				InstructionRemover.remove(block, 0);
+					&& insn.getResult().getSVar().getUseList().isEmpty()) {
+				InstructionRemover.remove(mth, block, 0);
 			}
 		}
 
@@ -252,12 +253,22 @@ public class ModVisitor extends AbstractVisitor {
 		block.getInstructions().set(i, insn);
 	}
 
+	/**
+	 * In argument not used in other instructions then remove assign instruction.
+	 */
+	private static void removeInsnForArg(InstructionRemover remover, RegisterArg arg) {
+		if (arg.getSVar().getUseList().isEmpty()
+				&& arg.getAssignInsn() != null) {
+			remover.add(arg.getAssignInsn());
+		}
+	}
+
 	private static void checkArgsNames(MethodNode mth) {
 		for (RegisterArg arg : mth.getArguments(false)) {
-			String name = arg.getTypedVar().getName();
+			String name = arg.getName();
 			if (name != null && NameMapper.isReserved(name)) {
 				name = name + "_";
-				arg.getTypedVar().setName(name);
+				arg.getSVar().setName(name);
 			}
 		}
 	}

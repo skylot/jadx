@@ -86,7 +86,10 @@ public class InsnNode extends LineAttrNode {
 		for (int i = 0; i < count; i++) {
 			InsnArg arg = arguments.get(i);
 			if (arg == from) {
-				// TODO correct remove from use list
+				if (arg.isRegister()) {
+					RegisterArg registerArg = (RegisterArg) arg;
+					registerArg.getSVar().removeUse(registerArg);
+				}
 				setArg(i, to);
 				return true;
 			}

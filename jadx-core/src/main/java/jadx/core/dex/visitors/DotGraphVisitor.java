@@ -24,7 +24,7 @@ import java.util.Set;
 public class DotGraphVisitor extends AbstractVisitor {
 
 	private static final String NL = "\\l";
-	private static final boolean PRINT_DOMINATORS = false;
+	private static final boolean PRINT_DOMINATORS = true;
 
 	private final File dir;
 	private final boolean useRegions;
@@ -49,8 +49,8 @@ public class DotGraphVisitor extends AbstractVisitor {
 	}
 
 	private class DumpDotGraph {
-		private CodeWriter dot = new CodeWriter();
-		private CodeWriter conn = new CodeWriter();
+		private final CodeWriter dot = new CodeWriter();
+		private final CodeWriter conn = new CodeWriter();
 
 		public void process(MethodNode mth) {
 			dot.startLine("digraph \"CFG for");
@@ -168,16 +168,21 @@ public class DotGraphVisitor extends AbstractVisitor {
 			}
 
 			if (PRINT_DOMINATORS) {
-				for (BlockNode dom : BlockUtils.bitSetToBlocks(mth, block.getDoms())) {
-					String style = "[color=green]";
-					if (dom == block.getIDom()) {
-						style = "[style=dashed, color=green]";
-					}
-					addEdge(block, dom, style);
+				for (BlockNode c : block.getDominatesOn()) {
+					conn.startLine(block.getId() + " -> " + c.getId() + "[color=green];");
+//
 				}
-
+//				for (BlockNode dom : BlockUtils.bitSetToBlocks(mth, block.getDoms())) {
+//					if (dom == block.getIDom()) {
+//						conn.startLine(dom.getId() + " -> " + block.getId() + "[style=dashed, color=green];");
+////						addEdge(block, dom, "[style=dashed, color=green]");
+//					} else {
+////						addEdge(block, dom, "[color=green]");
+//					}
+//				}
 				for (BlockNode dom : BlockUtils.bitSetToBlocks(mth, block.getDomFrontier())) {
-					addEdge(block, dom, "[color=blue]");
+					conn.startLine("f_" + block.getId() + " -> f_" + dom.getId() + "[color=blue];");
+//					addEdge(block, dom, "[color=blue]");
 				}
 			}
 		}

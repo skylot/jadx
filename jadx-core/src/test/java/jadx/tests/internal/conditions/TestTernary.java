@@ -6,7 +6,6 @@ import jadx.core.dex.nodes.ClassNode;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.either;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -31,11 +30,11 @@ public class TestTernary extends InternalJadxTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
+		System.out.println(code);
 
 		assertThat(code, not(containsString("else")));
 		assertThat(code, containsString("return a != 2;"));
 		assertThat(code, containsString("assertTrue(a == 3)"));
-		assertThat(code, either(containsString("return a > 0 ? 1 : (a + 2) * 3;"))
-				.or(containsString("return (a > 0) ? 1 : (a + 2) * 3;")));
+		assertThat(code, containsString("return a > 0 ? 1 : (a + 2) * 3;"));
 	}
 }

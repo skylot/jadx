@@ -1,4 +1,4 @@
-package jadx.tests.internal;
+package jadx.tests.internal.conditions;
 
 import jadx.api.InternalJadxTest;
 import jadx.core.dex.nodes.ClassNode;
@@ -34,9 +34,12 @@ public class TestElseIf extends InternalJadxTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
+		System.out.println(code);
 
 		assertThat(code, containsString("} else if (str.equals(\"b\")) {"));
 		assertThat(code, containsString("} else {"));
+		assertThat(code, containsString("int r;"));
+		assertThat(code, containsString("r = 1;"));
 		assertThat(code, containsString("r = -1;"));
 		// no ternary operator
 		assertThat(code, not(containsString("?")));

@@ -102,9 +102,7 @@ public class InsnGen {
 			if (f.isStatic()) {
 				code.add(staticField(f.getField()));
 			} else {
-				RegisterArg regArg = new RegisterArg(f.getRegNum());
-				regArg.replaceTypedVar(f);
-				instanceField(code, f.getField(), regArg);
+				instanceField(code, f.getField(), f.getRegisterArg());
 			}
 		} else {
 			throw new CodegenException("Unknown arg type " + arg);
@@ -244,7 +242,7 @@ public class InsnGen {
 				break;
 
 			case ARITH_ONEARG:
-				makeArithOneArg((ArithNode) insn, code, state);
+				makeArithOneArg((ArithNode) insn, code);
 				break;
 
 			case NEG: {
@@ -309,7 +307,7 @@ public class InsnGen {
 				break;
 			}
 			case CONSTRUCTOR:
-				makeConstructor((ConstructorInsn) insn, code, state);
+				makeConstructor((ConstructorInsn) insn, code);
 				break;
 
 			case INVOKE:
@@ -427,6 +425,9 @@ public class InsnGen {
 				addArg(code, insn.getArg(0));
 				break;
 
+			case PHI:
+				break;
+
 			/* fallback mode instructions */
 			case IF:
 				assert isFallback() : "if insn in not fallback mode";
@@ -542,7 +543,7 @@ public class InsnGen {
 		code.add("new ").add(useType(elType)).add("[]{").add(str.toString()).add('}');
 	}
 
-	private void makeConstructor(ConstructorInsn insn, CodeWriter code, EnumSet<Flags> state)
+	private void makeConstructor(ConstructorInsn insn, CodeWriter code)
 			throws CodegenException {
 		ClassNode cls = mth.dex().resolveClass(insn.getClassType());
 		if (cls != null && cls.isAnonymous()) {
@@ -739,7 +740,7 @@ public class InsnGen {
 		}
 	}
 
-	private void makeArithOneArg(ArithNode insn, CodeWriter code, EnumSet<Flags> state) throws CodegenException {
+	private void makeArithOneArg(ArithNode insn, CodeWriter code) throws CodegenException {
 		ArithOp op = insn.getOp();
 		InsnArg arg = insn.getArg(0);
 		// "++" or "--"

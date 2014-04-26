@@ -6,6 +6,7 @@ import jadx.core.dex.nodes.ClassNode;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 
 public class TestLoopDetection extends InternalJadxTest {
@@ -33,5 +34,9 @@ public class TestLoopDetection extends InternalJadxTest {
 
 		assertThat(code, containsString("while (i < a.length && i < b) {"));
 		assertThat(code, containsString("while (i < a.length) {"));
+
+		assertThat(code, containsString("int i = 0;"));
+		assertThat(code, not(containsString("i_2")));
+		assertThat(code, containsString("i++;"));
 	}
 }

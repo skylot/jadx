@@ -1,12 +1,12 @@
 package jadx.core.dex.instructions.args;
 
-public final class NamedArg extends InsnArg {
+public final class NamedArg extends InsnArg implements Named {
 
 	private String name;
 
 	public NamedArg(String name, ArgType type) {
 		this.name = name;
-		this.typedVar = new TypedVar(type);
+		this.type = type;
 	}
 
 	public String getName() {
@@ -24,6 +24,6 @@ public final class NamedArg extends InsnArg {
 
 	@Override
 	public String toString() {
-		return "(" + name + " " + typedVar + ")";
+		return "(" + name + " " + type + ")";
 	}
 }

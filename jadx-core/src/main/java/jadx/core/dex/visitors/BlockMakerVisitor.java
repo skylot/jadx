@@ -52,13 +52,13 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			return;
 		}
 		mth.initBasicBlocks();
-		makeBasicBlocks(mth);
+		splitBasicBlocks(mth);
 		processBlocksTree(mth);
 		BlockProcessingHelper.visit(mth);
 		mth.finishBasicBlocks();
 	}
 
-	private static void makeBasicBlocks(MethodNode mth) {
+	private static void splitBasicBlocks(MethodNode mth) {
 		nextBlockId = 0;
 
 		InsnNode prevInsn = null;
@@ -71,15 +71,13 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			boolean startNew = false;
 			if (prevInsn != null) {
 				InsnType type = prevInsn.getType();
-				if (type == InsnType.RETURN
-						|| type == InsnType.GOTO
+				if (type == InsnType.GOTO
 						|| type == InsnType.THROW
 						|| SEPARATE_INSNS.contains(type)) {
 
 					if (type == InsnType.RETURN || type == InsnType.THROW) {
 						mth.addExitBlock(curBlock);
 					}
-
 					BlockNode block = startNewBlock(mth, insn.getOffset());
 					if (type == InsnType.MONITOR_ENTER || type == InsnType.MONITOR_EXIT) {
 						connect(curBlock, block);
@@ -87,38 +85,9 @@ public class BlockMakerVisitor extends AbstractVisitor {
 					curBlock = block;
 					startNew = true;
 				} else {
-					type = insn.getType();
-					startNew = SEPARATE_INSNS.contains(type);
-
-					List<IAttribute> pjumps = prevInsn.getAttributes().getAll(AttributeType.JUMP);
-					if (pjumps.size() > 0) {
-						for (IAttribute j : pjumps) {
-							JumpAttribute jump = (JumpAttribute) j;
-							if (jump.getSrc() == prevInsn.getOffset()) {
-								startNew = true;
-							}
-						}
-					}
-
-					List<IAttribute> cjumps = insn.getAttributes().getAll(AttributeType.JUMP);
-					if (cjumps.size() > 0) {
-						for (IAttribute j : cjumps) {
-							JumpAttribute jump = (JumpAttribute) j;
-							if (jump.getDest() == insn.getOffset()) {
-								startNew = true;
-							}
-						}
-					}
-
-					// split 'do-while' block (last instruction: 'if', target this block)
-					if (type == InsnType.IF) {
-						IfNode ifs = (IfNode) (insn);
-						BlockNode targBlock = blocksMap.get(ifs.getTarget());
-						if (targBlock == curBlock) {
-							startNew = true;
-						}
-					}
-
+					startNew = isSplitByJump(prevInsn, insn)
+							|| SEPARATE_INSNS.contains(insn.getType())
+							|| isDoWhile(blocksMap, curBlock, insn);
 					if (startNew) {
 						BlockNode block = startNewBlock(mth, insn.getOffset());
 						connect(curBlock, block);
@@ -126,7 +95,6 @@ public class BlockMakerVisitor extends AbstractVisitor {
 					}
 				}
 			}
-
 			// for try/catch make empty block for connect handlers
 			if (insn.getAttributes().contains(AttributeFlag.TRY_ENTER)) {
 				BlockNode block;
@@ -146,12 +114,14 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			} else {
 				blocksMap.put(insn.getOffset(), curBlock);
 			}
-
 			curBlock.getInstructions().add(insn);
 			prevInsn = insn;
 		}
-
 		// setup missing connections
+		setupConnections(mth, blocksMap);
+	}
+
+	private static void setupConnections(MethodNode mth, Map<Integer, BlockNode> blocksMap) {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			for (InsnNode insn : block.getInstructions()) {
 				List<IAttribute> jumps = insn.getAttributes().getAll(AttributeType.JUMP);
@@ -164,22 +134,50 @@ public class BlockMakerVisitor extends AbstractVisitor {
 
 				// connect exception handlers
 				CatchAttr catches = (CatchAttr) insn.getAttributes().get(AttributeType.CATCH_BLOCK);
-				if (catches != null) {
-					// get synthetic block for handlers
-					IAttribute spl = block.getAttributes().get(AttributeType.SPLITTER_BLOCK);
-					if (spl != null) {
-						BlockNode connBlock = ((SplitterBlockAttr) spl).getBlock();
-						for (ExceptionHandler h : catches.getTryBlock().getHandlers()) {
-							BlockNode destBlock = getBlock(h.getHandleOffset(), blocksMap);
-							// skip self loop in handler
-							if (connBlock != destBlock) {
-								connect(connBlock, destBlock);
-							}
+				// get synthetic block for handlers
+				IAttribute spl = block.getAttributes().get(AttributeType.SPLITTER_BLOCK);
+				if (catches != null && spl != null) {
+					BlockNode connBlock = ((SplitterBlockAttr) spl).getBlock();
+					for (ExceptionHandler h : catches.getTryBlock().getHandlers()) {
+						BlockNode destBlock = getBlock(h.getHandleOffset(), blocksMap);
+						// skip self loop in handler
+						if (connBlock != destBlock) {
+							connect(connBlock, destBlock);
 						}
 					}
 				}
 			}
 		}
+	}
+
+	private static boolean isSplitByJump(InsnNode prevInsn, InsnNode currentInsn) {
+		List<IAttribute> pJumps = prevInsn.getAttributes().getAll(AttributeType.JUMP);
+		for (IAttribute j : pJumps) {
+			JumpAttribute jump = (JumpAttribute) j;
+			if (jump.getSrc() == prevInsn.getOffset()) {
+				return true;
+			}
+		}
+		List<IAttribute> cJumps = currentInsn.getAttributes().getAll(AttributeType.JUMP);
+		for (IAttribute j : cJumps) {
+			JumpAttribute jump = (JumpAttribute) j;
+			if (jump.getDest() == currentInsn.getOffset()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean isDoWhile(Map<Integer, BlockNode> blocksMap, BlockNode curBlock, InsnNode insn) {
+		// split 'do-while' block (last instruction: 'if', target this block)
+		if (insn.getType() == InsnType.IF) {
+			IfNode ifs = (IfNode) (insn);
+			BlockNode targetBlock = blocksMap.get(ifs.getTarget());
+			if (targetBlock == curBlock) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static void processBlocksTree(MethodNode mth) {
@@ -189,16 +187,16 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		int i = 0;
 		while (modifyBlocksTree(mth)) {
 			// revert calculations
-			cleanDomTree(mth);
+			clearBlocksState(mth);
 			// recalculate dominators tree
 			computeDominators(mth);
 			markReturnBlocks(mth);
 
-			i++;
-			if (i > 100) {
+			if (i++ > 100) {
 				throw new AssertionError("Can't fix method cfg: " + mth);
 			}
 		}
+		computeDominanceFrontier(mth);
 		registerLoops(mth);
 	}
 
@@ -277,32 +275,26 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			if (block == entryBlock) {
 				continue;
 			}
+			BlockNode idom;
 			List<BlockNode> preds = block.getPredecessors();
 			if (preds.size() == 1) {
-				block.setIDom(preds.get(0));
+				idom = preds.get(0);
 			} else {
 				BitSet bs = new BitSet(block.getDoms().length());
 				bs.or(block.getDoms());
-
 				for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
 					BlockNode dom = basicBlocks.get(i);
 					bs.andNot(dom.getDoms());
 				}
-
-				int c = bs.cardinality();
-				if (c == 1) {
-					int id = bs.nextSetBit(0);
-					BlockNode idom = basicBlocks.get(id);
-					block.setIDom(idom);
-					idom.getDominatesOn().add(block);
-				} else {
+				if (bs.cardinality() != 1) {
 					throw new JadxRuntimeException("Can't find immediate dominator for block " + block
 							+ " in " + bs + " preds:" + preds);
 				}
+				idom = basicBlocks.get(bs.nextSetBit(0));
 			}
+			block.setIDom(idom);
+			idom.addDominatesOn(block);
 		}
-
-		computeDominanceFrontier(mth);
 	}
 
 	private static void computeDominanceFrontier(MethodNode mth) {
@@ -310,18 +302,15 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			exit.setDomFrontier(EMPTY_BITSET);
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {
-			computeBlockDF(block);
+			computeBlockDF(mth, block);
 		}
 	}
 
-	private static void computeBlockDF(BlockNode block) {
-		if (block.getDomFrontier() != null) {
-			return;
+	private static void computeBlockDF(MethodNode mth, BlockNode block) {
+		for (BlockNode c : block.getDominatesOn()) {
+			computeBlockDF(mth, c);
 		}
 		BitSet domFrontier = null;
-		BitSet doms = block.getDoms();
-		int id = block.getId();
-
 		for (BlockNode s : block.getSuccessors()) {
 			if (s.getIDom() != block) {
 				if (domFrontier == null) {
@@ -330,20 +319,14 @@ public class BlockMakerVisitor extends AbstractVisitor {
 				domFrontier.set(s.getId());
 			}
 		}
-		for (BlockNode node : block.getDominatesOn()) {
-			if (node.getIDom() == block) {
-				BitSet frontier = node.getDomFrontier();
-				if (frontier == null) {
-					computeBlockDF(node);
-					frontier = node.getDomFrontier();
-				}
-				for (int w = frontier.nextSetBit(0); w >= 0; w = frontier.nextSetBit(w + 1)) {
-					if (id == w || !doms.get(w)) {
-						if (domFrontier == null) {
-							domFrontier = new BitSet();
-						}
-						domFrontier.set(w);
+		for (BlockNode c : block.getDominatesOn()) {
+			BitSet frontier = c.getDomFrontier();
+			for (int p = frontier.nextSetBit(0); p >= 0; p = frontier.nextSetBit(p + 1)) {
+				if (mth.getBasicBlocks().get(p).getIDom() != block) {
+					if (domFrontier == null) {
+						domFrontier = new BitSet();
 					}
+					domFrontier.set(p);
 				}
 			}
 		}
@@ -465,28 +448,26 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		if (mth.getExitBlocks().size() == 1 || !mth.getReturnType().equals(ArgType.VOID)) {
 			return false;
 		}
-		boolean merge = false;
 		for (BlockNode exitBlock : mth.getExitBlocks()) {
 			List<BlockNode> preds = exitBlock.getPredecessors();
-			if (preds.size() == 1) {
-				BlockNode pred = preds.get(0);
-				for (BlockNode otherExitBlock : mth.getExitBlocks()) {
-					if (exitBlock != otherExitBlock
-							&& otherExitBlock.isDominator(pred)
-							&& otherExitBlock.getPredecessors().size() == 1) {
-						// merge
-						BlockNode otherPred = otherExitBlock.getPredecessors().get(0);
-						removeConnection(otherPred, otherExitBlock);
-						connect(otherPred, exitBlock);
-						merge = true;
-					}
+			if (preds.size() != 1) {
+				continue;
+			}
+			BlockNode pred = preds.get(0);
+			for (BlockNode otherExitBlock : mth.getExitBlocks()) {
+				if (exitBlock != otherExitBlock
+						&& otherExitBlock.isDominator(pred)
+						&& otherExitBlock.getPredecessors().size() == 1) {
+					// merge
+					BlockNode otherPred = otherExitBlock.getPredecessors().get(0);
+					removeConnection(otherPred, otherExitBlock);
+					connect(otherPred, exitBlock);
+					cleanExitNodes(mth);
+					return true;
 				}
 			}
 		}
-		if (merge) {
-			cleanExitNodes(mth);
-		}
-		return merge;
+		return false;
 	}
 
 	/**
@@ -545,7 +526,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 
 	private static InsnNode duplicateReturnInsn(InsnNode returnInsn) {
 		InsnNode insn = new InsnNode(returnInsn.getType(), returnInsn.getArgsCount());
-		if (returnInsn.getArgsCount() != 0) {
+		if (returnInsn.getArgsCount() == 1) {
 			RegisterArg arg = (RegisterArg) returnInsn.getArg(0);
 			insn.addArg(InsnArg.reg(arg.getRegNum(), arg.getType()));
 		}
@@ -554,7 +535,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		return insn;
 	}
 
-	private static void cleanDomTree(MethodNode mth) {
+	private static void clearBlocksState(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			AttributesList attrs = block.getAttributes();
 			attrs.remove(AttributeType.LOOP);
@@ -563,6 +544,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 
 			block.setDoms(null);
 			block.setIDom(null);
+			block.setDomFrontier(null);
 			block.getDominatesOn().clear();
 		}
 	}

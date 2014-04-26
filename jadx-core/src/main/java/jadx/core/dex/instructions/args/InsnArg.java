@@ -26,10 +26,8 @@ public abstract class InsnArg extends Typed {
 		return reg(InsnUtils.getArg(insn, argNum), type);
 	}
 
-	public static RegisterArg immutableReg(int regNum, ArgType type) {
-		RegisterArg r = new RegisterArg(regNum);
-		r.forceSetTypedVar(new ImmutableTypedVar(type));
-		return r;
+	public static RegisterArg parameterReg(int regNum, ArgType type) {
+		return new MthParameterArg(regNum, type);
 	}
 
 	public static LiteralArg lit(long literal, ArgType type) {
@@ -101,11 +99,11 @@ public abstract class InsnArg extends Typed {
 				break;
 			case CONST_STR:
 				arg = wrap(insn);
-				arg.getTypedVar().forceSetType(ArgType.STRING);
+				arg.setType(ArgType.STRING);
 				break;
 			case CONST_CLASS:
 				arg = wrap(insn);
-				arg.getTypedVar().forceSetType(ArgType.CLASS);
+				arg.setType(ArgType.CLASS);
 				break;
 			default:
 				arg = wrap(insn);

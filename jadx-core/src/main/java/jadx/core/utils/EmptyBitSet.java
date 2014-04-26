@@ -4,6 +4,8 @@ import java.util.BitSet;
 
 public class EmptyBitSet extends BitSet {
 
+	private static final long serialVersionUID = -1194884945157778639L;
+
 	public EmptyBitSet() {
 		super(0);
 	}

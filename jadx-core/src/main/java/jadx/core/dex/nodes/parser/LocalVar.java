@@ -2,7 +2,6 @@ package jadx.core.dex.nodes.parser;
 
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.RegisterArg;
-import jadx.core.dex.instructions.args.TypedVar;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.utils.InsnUtils;
 
@@ -19,7 +18,7 @@ final class LocalVar extends RegisterArg {
 	private int endAddr;
 
 	public LocalVar(DexNode dex, int rn, int nameId, int typeId, int signId) {
-		super(rn);
+		super(rn, ArgType.UNKNOWN);
 		String name = (nameId == DexNode.NO_INDEX ? null : dex.getString(nameId));
 		ArgType type = (typeId == DexNode.NO_INDEX ? null : dex.getType(typeId));
 		String sign = (signId == DexNode.NO_INDEX ? null : dex.getString(signId));
@@ -28,8 +27,8 @@ final class LocalVar extends RegisterArg {
 	}
 
 	public LocalVar(RegisterArg arg) {
-		super(arg.getRegNum());
-		init(arg.getTypedVar().getName(), arg.getType(), null);
+		super(arg.getRegNum(), arg.getType());
+		init(arg.getName(), arg.getType(), null);
 	}
 
 	private void init(String name, ArgType type, String sign) {
@@ -43,9 +42,8 @@ final class LocalVar extends RegisterArg {
 				LOG.error("Can't parse signature for local variable: " + sign, e);
 			}
 		}
-		TypedVar tv = new TypedVar(type);
-		tv.setName(name);
-		forceSetTypedVar(tv);
+		setName(name);
+		forceType(type);
 	}
 
 	private boolean checkSignature(ArgType type, String sign, ArgType gType) {

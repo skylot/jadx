@@ -29,7 +29,7 @@ public class InsnDecoder {
 	private final DexNode dex;
 	private DecodedInstruction[] insnArr;
 
-	public InsnDecoder(MethodNode mthNode) throws DecodeException {
+	public InsnDecoder(MethodNode mthNode) {
 		this.method = mthNode;
 		this.dex = method.dex();
 	}

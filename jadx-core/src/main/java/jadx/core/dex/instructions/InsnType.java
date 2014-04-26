@@ -58,6 +58,7 @@ public enum InsnType {
 
 	TERNARY,
 	ARGS, // just generate arguments
+	PHI,
 
 	NEW_MULTIDIM_ARRAY // TODO: now multidimensional arrays created using Array.newInstance function
 }

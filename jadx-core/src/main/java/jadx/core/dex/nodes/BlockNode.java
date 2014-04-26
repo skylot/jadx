@@ -3,13 +3,13 @@ package jadx.core.dex.nodes;
 import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.attributes.AttributeType;
-import jadx.core.dex.attributes.BlockRegState;
 import jadx.core.dex.attributes.LoopAttr;
 import jadx.core.utils.InsnUtils;
 
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 public class BlockNode extends AttrNode implements IBlock {
@@ -29,10 +29,7 @@ public class BlockNode extends AttrNode implements IBlock {
 	// immediate dominator
 	private BlockNode idom;
 	// blocks on which dominates this block
-	private final List<BlockNode> dominatesOn = new ArrayList<BlockNode>(1);
-
-	private BlockRegState startState;
-	private BlockRegState endState;
+	private List<BlockNode> dominatesOn = Collections.emptyList();
 
 	public BlockNode(int id, int offset) {
 		this.id = id;
@@ -146,20 +143,11 @@ public class BlockNode extends AttrNode implements IBlock {
 		return dominatesOn;
 	}
 
-	public BlockRegState getStartState() {
-		return startState;
-	}
-
-	public void setStartState(BlockRegState startState) {
-		this.startState = startState;
-	}
-
-	public BlockRegState getEndState() {
-		return endState;
-	}
-
-	public void setEndState(BlockRegState endState) {
-		this.endState = endState;
+	public void addDominatesOn(BlockNode block) {
+		if (dominatesOn.isEmpty()) {
+			dominatesOn = new LinkedList<BlockNode>();
+		}
+		dominatesOn.add(block);
 	}
 
 	public boolean isSynthetic() {

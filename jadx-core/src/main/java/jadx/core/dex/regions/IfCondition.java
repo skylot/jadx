@@ -184,8 +184,8 @@ public final class IfCondition {
 			if (a.isRegister()) {
 				list.add((RegisterArg) a);
 			}
-			InsnArg b = compare.getA();
-			if (a.isRegister()) {
+			InsnArg b = compare.getB();
+			if (b.isRegister()) {
 				list.add((RegisterArg) b);
 			}
 		} else {

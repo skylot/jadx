@@ -15,6 +15,7 @@ import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.parser.DebugInfoParser;
 import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.regions.Region;
@@ -55,6 +56,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 	private ArgType retType;
 	private RegisterArg thisArg;
 	private List<RegisterArg> argsList;
+	private List<SSAVar> sVars = Collections.emptyList();
 	private Map<ArgType, List<ArgType>> genericMap;
 
 	private List<BlockNode> blocks;
@@ -196,8 +198,8 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		if (accFlags.isStatic()) {
 			thisArg = null;
 		} else {
-			thisArg = InsnArg.immutableReg(pos - 1, parentClass.getClassInfo().getType());
-			thisArg.getTypedVar().setName("this");
+			thisArg = InsnArg.parameterReg(pos - 1, parentClass.getClassInfo().getType());
+			thisArg.setName("this");
 		}
 		if (args.isEmpty()) {
 			argsList = Collections.emptyList();
@@ -205,7 +207,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		}
 		argsList = new ArrayList<RegisterArg>(args.size());
 		for (ArgType arg : args) {
-			argsList.add(InsnArg.immutableReg(pos, arg));
+			argsList.add(InsnArg.parameterReg(pos, arg));
 			pos += arg.getRegCount();
 		}
 	}
@@ -470,6 +472,24 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 
 	public int getRegsCount() {
 		return regsCount;
+	}
+
+	public SSAVar makeNewSVar(int regNum, int[] versions, RegisterArg arg) {
+		SSAVar var = new SSAVar(regNum, versions[regNum], arg);
+		versions[regNum]++;
+		if (sVars.isEmpty()) {
+			sVars = new ArrayList<SSAVar>();
+		}
+		sVars.add(var);
+		return var;
+	}
+
+	public void removeSVar(SSAVar var) {
+		sVars.remove(var);
+	}
+
+	public List<SSAVar> getSVars() {
+		return sVars;
 	}
 
 	public AccessInfo getAccessFlags() {
