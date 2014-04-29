@@ -1,15 +1,16 @@
 ## JADX 
+
+[![Build Status](https://travis-ci.org/skylot/jadx.png?branch=master)](https://travis-ci.org/skylot/jadx)
+[![Build Status](https://drone.io/github.com/skylot/jadx/status.png)](https://drone.io/github.com/skylot/jadx/latest)
+[![Coverage Status](https://coveralls.io/repos/skylot/jadx/badge.png)](https://coveralls.io/r/skylot/jadx)
+
 **jadx** - Dex to Java decompiler
 
 Command line and GUI tools for produce Java source code from Android Dex and Apk files
 
-Note: jadx-gui now in experimental stage
-
 
 ### Downloads
 - [unstable](https://drone.io/github.com/skylot/jadx/files)
-[![Build Status](https://drone.io/github.com/skylot/jadx/status.png)](https://drone.io/github.com/skylot/jadx/latest)
-[![Build Status](https://travis-ci.org/skylot/jadx.png?branch=master)](https://travis-ci.org/skylot/jadx)
 - from [github](https://github.com/skylot/jadx/releases)
 - from [sourceforge](http://sourceforge.net/projects/jadx/files/) 
 
@@ -51,4 +52,4 @@ Example:
 
 *Licensed under the Apache 2.0 License*
 
-*Copyright 2013 by Skylot*
+*Copyright 2014 by Skylot*

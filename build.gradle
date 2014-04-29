@@ -6,8 +6,7 @@ apply plugin: 'sonar-runner'
 subprojects {
     apply plugin: 'java'
     apply plugin: 'jacoco'
-    apply plugin: 'idea'
-    apply plugin: 'eclipse'
+    apply plugin: 'coveralls'
 
     sourceCompatibility = 1.6
     targetCompatibility = 1.6
@@ -30,14 +29,33 @@ subprojects {
     }
 
     dependencies {
-        compile 'org.slf4j:slf4j-api:1.7.6'
+        compile 'org.slf4j:slf4j-api:1.7.7'
         testCompile 'junit:junit:4.11'
         testCompile 'org.mockito:mockito-core:1.9.5'
-        testCompile 'ch.qos.logback:logback-classic:1.1.1'
+        testCompile 'ch.qos.logback:logback-classic:1.1.2'
     }
 
     repositories {
         mavenCentral()
+    }
+
+    jacocoTestReport {
+        reports {
+            xml.enabled = true // coveralls plugin depends on xml format report
+            html.enabled = true
+        }
+    }
+}
+
+// setup coveralls (http://coveralls.io/)
+// see http://github.com/kt3k/coveralls-gradle-plugin
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:0.4.0'
     }
 }
 
@@ -69,5 +87,5 @@ task clean(type: Delete) {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.11'
+    gradleVersion = '1.12'
 }
