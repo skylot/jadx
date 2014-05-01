@@ -5,3 +5,8 @@ dependencies {
     runtime files(jadxClasspath)
 }
 
+task packTests(type: Jar) {
+    classifier = 'tests'
+    from sourceSets.test.output
+}
+

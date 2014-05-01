@@ -208,7 +208,7 @@ public class SignatureParser {
 	 */
 	public Map<ArgType, List<ArgType>> consumeGenericMap() {
 		if (!lookAhead('<')) {
-			return null;
+			return Collections.emptyMap();
 		}
 		Map<ArgType, List<ArgType>> map = new LinkedHashMap<ArgType, List<ArgType>>(2);
 		consume('<');

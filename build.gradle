@@ -5,6 +5,7 @@ apply plugin: 'sonar-runner'
 
 subprojects {
     apply plugin: 'java'
+    apply plugin: 'groovy'
     apply plugin: 'jacoco'
     apply plugin: 'coveralls'
 
@@ -30,8 +31,10 @@ subprojects {
 
     dependencies {
         compile 'org.slf4j:slf4j-api:1.7.7'
+
         testCompile 'junit:junit:4.11'
         testCompile 'org.mockito:mockito-core:1.9.5'
+        testCompile 'org.spockframework:spock-core:0.7-groovy-2.0' 
         testCompile 'ch.qos.logback:logback-classic:1.1.2'
     }
 
@@ -47,14 +50,13 @@ subprojects {
     }
 }
 
-// setup coveralls (http://coveralls.io/)
-// see http://github.com/kt3k/coveralls-gradle-plugin
 buildscript {
     repositories {
         mavenCentral()
     }
 
     dependencies {
+        // setup coveralls (http://coveralls.io/) see http://github.com/kt3k/coveralls-gradle-plugin
         classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:0.4.0'
     }
 }
