@@ -24,7 +24,6 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -44,8 +43,6 @@ public class BlockMakerVisitor extends AbstractVisitor {
 
 	private static final BitSet EMPTY_BITSET = new EmptyBitSet();
 
-	private static int nextBlockId;
-
 	@Override
 	public void visit(MethodNode mth) {
 		if (mth.isNoCode()) {
@@ -59,8 +56,6 @@ public class BlockMakerVisitor extends AbstractVisitor {
 	}
 
 	private static void splitBasicBlocks(MethodNode mth) {
-		nextBlockId = 0;
-
 		InsnNode prevInsn = null;
 		Map<Integer, BlockNode> blocksMap = new HashMap<Integer, BlockNode>();
 		BlockNode curBlock = startNewBlock(mth, 0);
@@ -221,13 +216,13 @@ public class BlockMakerVisitor extends AbstractVisitor {
 	}
 
 	private static BlockNode startNewBlock(MethodNode mth, int offset) {
-		BlockNode block = new BlockNode(++nextBlockId, offset);
+		BlockNode block = new BlockNode(mth.getBasicBlocks().size(), offset);
 		mth.getBasicBlocks().add(block);
 		return block;
 	}
 
 	private static void computeDominators(MethodNode mth) {
-		List<BlockNode> basicBlocks = Collections.unmodifiableList(mth.getBasicBlocks());
+		List<BlockNode> basicBlocks = mth.getBasicBlocks();
 		int nBlocks = basicBlocks.size();
 		for (int i = 0; i < nBlocks; i++) {
 			BlockNode block = basicBlocks.get(i);
