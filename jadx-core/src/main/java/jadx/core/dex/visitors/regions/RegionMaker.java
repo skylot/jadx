@@ -201,8 +201,7 @@ public class RegionMaker {
 			}
 
 			List<BlockNode> merged = new ArrayList<BlockNode>(2);
-			IfInfo mergedIf = mergeNestedIfNodes(condBlock,
-					ifnode.getThenBlock(), ifnode.getElseBlock(), merged);
+			IfInfo mergedIf = mergeNestedIfNodes(condBlock, ifnode, merged);
 			if (mergedIf != null) {
 				condBlock = mergedIf.getIfnode();
 				if (!loop.getLoopBlocks().contains(mergedIf.getThenBlock())) {
@@ -398,54 +397,56 @@ public class RegionMaker {
 	}
 
 	private BlockNode processIf(IRegion currentRegion, BlockNode block, IfNode ifnode, RegionStack stack) {
-		BlockNode bThen = ifnode.getThenBlock();
-		BlockNode bElse = ifnode.getElseBlock();
-
 		if (block.getAttributes().contains(AttributeFlag.SKIP)) {
-			// block already included in other if region
-			return bThen;
+			// block already included in other 'if' region
+			return ifnode.getThenBlock();
 		}
-
+		final BlockNode thenBlock;
+		final BlockNode elseBlock;
 		BlockNode out = null;
-		BlockNode thenBlock = null;
-		BlockNode elseBlock = null;
 
 		IfRegion ifRegion = new IfRegion(currentRegion, block);
 		currentRegion.getSubBlocks().add(ifRegion);
 
-		IfInfo mergedIf = mergeNestedIfNodes(block, bThen, bElse, null);
+		IfInfo mergedIf = mergeNestedIfNodes(block, ifnode, null);
 		if (mergedIf != null) {
 			ifRegion.setCondition(mergedIf.getCondition());
 			thenBlock = mergedIf.getThenBlock();
 			elseBlock = mergedIf.getElseBlock();
 			out = BlockUtils.getPathCrossBlockFor(mth, thenBlock, elseBlock);
 		} else {
-			for (BlockNode d : block.getDominatesOn()) {
-				if (d != bThen && d != bElse) {
-					out = d;
-					break;
-				}
-			}
 			// invert condition (compiler often do it)
 			ifnode.invertCondition();
-			bThen = ifnode.getThenBlock();
-			bElse = ifnode.getElseBlock();
+			final BlockNode bThen = ifnode.getThenBlock();
+			final BlockNode bElse = ifnode.getElseBlock();
 
-			thenBlock = bThen;
-			// select else and exit blocks
-			if (block.getDominatesOn().size() == 2
-					&& !BlockUtils.isPathExists(bThen, bElse)) {
+			// select 'then', 'else' and 'exit' blocks
+			if (bElse.getPredecessors().size() != 1
+					&& BlockUtils.isPathExists(bThen, bElse)) {
+				thenBlock = bThen;
+				elseBlock = null;
+				out = bElse;
+			} else if (bThen.getPredecessors().size() != 1
+					&& BlockUtils.isPathExists(bElse, bThen)) {
+				ifnode.invertCondition();
+				thenBlock = ifnode.getThenBlock();
+				elseBlock = null;
+				out = ifnode.getElseBlock();
+			} else if (block.getDominatesOn().size() == 2) {
+				thenBlock = bThen;
 				elseBlock = bElse;
+				out = BlockUtils.getPathCrossBlockFor(mth, bThen, bElse);
+			} else if (bElse.getPredecessors().size() != 1) {
+				thenBlock = bThen;
+				elseBlock = null;
+				out = bElse;
 			} else {
-				if (bElse.getPredecessors().size() != 1) {
-					out = bElse;
-				} else {
-					elseBlock = bElse;
-					for (BlockNode d : block.getDominatesOn()) {
-						if (d != bThen && d != bElse) {
-							out = d;
-							break;
-						}
+				thenBlock = bThen;
+				elseBlock = bElse;
+				for (BlockNode d : block.getDominatesOn()) {
+					if (d != bThen && d != bElse) {
+						out = d;
+						break;
 					}
 				}
 			}
@@ -454,26 +455,26 @@ public class RegionMaker {
 			}
 		}
 
-		if (elseBlock != null && stack.containsExit(elseBlock)) {
-			elseBlock = null;
-		}
-
 		stack.push(ifRegion);
 		stack.addExit(out);
 
 		ifRegion.setThenRegion(makeRegion(thenBlock, stack));
-		ifRegion.setElseRegion(elseBlock == null ? null : makeRegion(elseBlock, stack));
+		if (elseBlock == null || stack.containsExit(elseBlock)) {
+			ifRegion.setElseRegion(null);
+		} else {
+			ifRegion.setElseRegion(makeRegion(elseBlock, stack));
+		}
 
 		stack.pop();
 		return out;
 	}
 
-	private IfInfo mergeNestedIfNodes(BlockNode block, BlockNode bThen, BlockNode bElse, List<BlockNode> merged) {
+	private IfInfo mergeNestedIfNodes(BlockNode block, IfNode ifnode, List<BlockNode> merged) {
 		IfInfo info = new IfInfo();
 		info.setIfnode(block);
 		info.setCondition(IfCondition.fromIfBlock(block));
-		info.setThenBlock(bThen);
-		info.setElseBlock(bElse);
+		info.setThenBlock(ifnode.getThenBlock());
+		info.setElseBlock(ifnode.getElseBlock());
 		return mergeNestedIfNodes(info, merged);
 	}
 

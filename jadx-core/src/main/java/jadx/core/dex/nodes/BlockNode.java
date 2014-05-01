@@ -72,20 +72,20 @@ public class BlockNode extends AttrNode implements IBlock {
 	private static List<BlockNode> cleanSuccessors(BlockNode block) {
 		List<BlockNode> sucList = block.getSuccessors();
 		List<BlockNode> nodes = new ArrayList<BlockNode>(sucList.size());
-		LoopAttr loop = (LoopAttr) block.getAttributes().get(AttributeType.LOOP);
-		if (loop == null) {
+		if (block.getAttributes().contains(AttributeFlag.LOOP_END)) {
+			LoopAttr loop = (LoopAttr) block.getAttributes().get(AttributeType.LOOP);
 			for (BlockNode b : sucList) {
 				if (!b.getAttributes().contains(AttributeType.EXC_HANDLER)) {
+					// don't follow back edge
+					if (loop.getStart() == b) {
+						continue;
+					}
 					nodes.add(b);
 				}
 			}
 		} else {
 			for (BlockNode b : sucList) {
 				if (!b.getAttributes().contains(AttributeType.EXC_HANDLER)) {
-					// don't follow back edge
-					if (loop.getStart() == b && loop.getEnd() == block) {
-						continue;
-					}
 					nodes.add(b);
 				}
 			}

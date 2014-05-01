@@ -458,12 +458,14 @@ public class BlockMakerVisitor extends AbstractVisitor {
 				if (exitBlock != otherExitBlock
 						&& otherExitBlock.isDominator(pred)
 						&& otherExitBlock.getPredecessors().size() == 1) {
-					// merge
 					BlockNode otherPred = otherExitBlock.getPredecessors().get(0);
-					removeConnection(otherPred, otherExitBlock);
-					connect(otherPred, exitBlock);
-					cleanExitNodes(mth);
-					return true;
+					if (pred != otherPred) {
+						// merge
+						removeConnection(otherPred, otherExitBlock);
+						connect(otherPred, exitBlock);
+						cleanExitNodes(mth);
+						return true;
+					}
 				}
 			}
 		}

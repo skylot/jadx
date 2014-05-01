@@ -3,8 +3,9 @@ package jadx.tests.internal.conditions;
 import jadx.api.InternalJadxTest;
 import jadx.core.dex.nodes.ClassNode;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertThat;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class TestTernary2 extends InternalJadxTest {
@@ -20,12 +21,15 @@ public class TestTernary2 extends InternalJadxTest {
 		}
 	}
 
-	//@Test
+	@Test
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 		System.out.println(code);
 
-		assertThat(code, containsString("assertTrue(f(1, 0) == 0);"));
+		assertEquals(1, count(code, "assertTrue"));
+		assertEquals(1, count(code, "f(1, 0)"));
+		// TODO:
+//		assertThat(code, containsString("assertTrue(f(1, 0) == 0);"));
 	}
 }
