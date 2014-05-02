@@ -24,6 +24,10 @@ public final class Compare {
 		return insn.getArg(1);
 	}
 
+	public IfNode getInsn() {
+		return insn;
+	}
+
 	public Compare invert() {
 		insn.invertCondition();
 		return this;

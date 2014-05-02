@@ -2,10 +2,13 @@ package jadx.core.dex.regions;
 
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IfOp;
+import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
@@ -132,6 +135,7 @@ public final class IfCondition {
 	public static IfCondition simplify(IfCondition cond) {
 		if (cond.isCompare()) {
 			Compare c = cond.getCompare();
+			simplifyCmpOp(c);
 			if (c.getOp() == IfOp.EQ && c.getB().isLiteral() && c.getB().equals(LiteralArg.FALSE)) {
 				return not(new IfCondition(c.invert()));
 			} else {
@@ -175,6 +179,22 @@ public final class IfCondition {
 			}
 		}
 		return cond;
+	}
+
+	private static void simplifyCmpOp(Compare c) {
+		if (!c.getA().isInsnWrap()) {
+			return;
+		}
+		if (!c.getB().isLiteral() || ((LiteralArg) c.getB()).getLiteral() != 0) {
+			return;
+		}
+		InsnNode wrapInsn = ((InsnWrapArg) c.getA()).getWrapInsn();
+		InsnType type = wrapInsn.getType();
+		if (type != InsnType.CMP_L && type != InsnType.CMP_G) {
+			return;
+		}
+		IfNode insn = c.getInsn();
+		insn.changeCondition(insn.getOp(), wrapInsn.getArg(0), wrapInsn.getArg(1));
 	}
 
 	public List<RegisterArg> getRegisterArgs() {
