@@ -11,7 +11,7 @@ import static org.junit.Assert.assertThat;
 public class TestInline2 extends InternalJadxTest {
 
 	public static class TestCls {
-		public int simple_loops() throws InterruptedException {
+		public int test() throws InterruptedException {
 			int[] a = new int[]{1, 2, 4, 6, 8};
 			int b = 0;
 			for (int i = 0; i < a.length; i++) {
@@ -28,7 +28,11 @@ public class TestInline2 extends InternalJadxTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
+		System.out.println(code);
 
 		assertThat(code, containsString("i < a.length"));
+		assertThat(code, containsString("long i_2 ="));
+		assertThat(code, containsString("+ i_2"));
+		assertThat(code, containsString("i_2--;"));
 	}
 }

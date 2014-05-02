@@ -200,7 +200,7 @@ public class MethodGen {
 			return name;
 		}
 		name = getUniqVarName(name);
-		arg.getSVar().setName(name);
+		arg.getSVar().setVariableName(name);
 		return name;
 	}
 

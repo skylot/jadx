@@ -107,6 +107,23 @@ public class SSAVar {
 		}
 	}
 
+	public void setVariableName(String name) {
+		setName(name);
+		if (isUsedInPhi()) {
+			PhiInsn phi = getUsedInPhi();
+			phi.getResult().getSVar().setVariableName(name);
+			for (InsnArg arg : phi.getArguments()) {
+				if (arg.isRegister()) {
+					RegisterArg reg = (RegisterArg) arg;
+					SSAVar sVar = reg.getSVar();
+					if (sVar != this && !name.equals(reg.getName())) {
+						sVar.setVariableName(name);
+					}
+				}
+			}
+		}
+	}
+
 	public void mergeName(RegisterArg arg) {
 		if (arg.getName() != null) {
 			setName(arg.getName());
