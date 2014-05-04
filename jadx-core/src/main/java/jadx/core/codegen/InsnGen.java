@@ -3,7 +3,6 @@ package jadx.core.codegen;
 import jadx.core.dex.attributes.AttributeFlag;
 import jadx.core.dex.attributes.AttributeType;
 import jadx.core.dex.attributes.FieldReplaceAttr;
-import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.attributes.MethodInlineAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
@@ -583,9 +582,7 @@ public class InsnGen {
 
 		// inline method
 		MethodNode callMthNode = mth.dex().resolveMethod(callMth);
-		if (callMthNode != null
-				&& callMthNode.getAttributes().contains(AttributeType.METHOD_INLINE)) {
-			inlineMethod(callMthNode, insn, code);
+		if (callMthNode != null && inlineMethod(callMthNode, insn, code)) {
 			return;
 		}
 
@@ -662,9 +659,12 @@ public class InsnGen {
 		}
 	}
 
-	private void inlineMethod(MethodNode callMthNode, InvokeNode insn, CodeWriter code) throws CodegenException {
-		IAttribute mia = callMthNode.getAttributes().get(AttributeType.METHOD_INLINE);
-		InsnNode inl = ((MethodInlineAttr) mia).getInsn();
+	private boolean inlineMethod(MethodNode callMthNode, InvokeNode insn, CodeWriter code) throws CodegenException {
+		MethodInlineAttr mia = (MethodInlineAttr) callMthNode.getAttributes().get(AttributeType.METHOD_INLINE);
+		if (mia == null) {
+			return false;
+		}
+		InsnNode inl = mia.getInsn();
 		if (callMthNode.getMethodInfo().getArgumentsTypes().isEmpty()) {
 			makeInsn(inl, code, Flags.BODY_ONLY);
 		} else {
@@ -681,12 +681,13 @@ public class InsnGen {
 			inl.getRegisterArgs(inlArgs);
 			Map<RegisterArg, InsnArg> toRevert = new HashMap<RegisterArg, InsnArg>();
 			for (RegisterArg r : inlArgs) {
-				if (r.getRegNum() >= regs.length) {
-					LOG.warn("Unknown register number {} in method call: {}, {}", r, callMthNode, mth);
+				int regNum = r.getRegNum();
+				if (regNum >= regs.length) {
+					LOG.warn("Unknown register number {} in method call: {} from {}", r, callMthNode, mth);
 				} else {
-					InsnArg repl = regs[r.getRegNum()];
+					InsnArg repl = regs[regNum];
 					if (repl == null) {
-						LOG.warn("Not passed register {} in method call: {}, {}", r, callMthNode, mth);
+						LOG.warn("Not passed register {} in method call: {} from {}", r, callMthNode, mth);
 					} else {
 						inl.replaceArg(r, repl);
 						toRevert.put(r, repl);
@@ -694,11 +695,12 @@ public class InsnGen {
 				}
 			}
 			makeInsn(inl, code, Flags.BODY_ONLY);
-			// revert changes
+			// revert changes in 'MethodInlineAttr'
 			for (Map.Entry<RegisterArg, InsnArg> e : toRevert.entrySet()) {
 				inl.replaceArg(e.getValue(), e.getKey());
 			}
 		}
+		return true;
 	}
 
 	private void makeTernary(TernaryInsn insn, CodeWriter code, EnumSet<Flags> state) throws CodegenException {

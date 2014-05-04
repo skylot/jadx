@@ -36,6 +36,7 @@ public class MethodInlineVisitor extends AbstractVisitor {
 			BlockNode block = mth.getBasicBlocks().get(1);
 			InsnNode insn = block.getInstructions().get(0);
 			InsnNode inl = new InsnNode(InsnType.ARGS, 1);
+			// set arg from 'return' instruction
 			inl.addArg(insn.getArg(0));
 			addInlineAttr(mth, inl);
 		} else {

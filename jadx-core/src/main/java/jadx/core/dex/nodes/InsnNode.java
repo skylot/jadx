@@ -81,15 +81,16 @@ public class InsnNode extends LineAttrNode {
 		arguments.set(n, arg);
 	}
 
+	/**
+	 * Replace instruction arg with another using recursive search.
+	 * <br>
+	 * <b>Caution:</b> this method don't change usage information for replaced argument.
+	 */
 	public boolean replaceArg(InsnArg from, InsnArg to) {
 		int count = getArgsCount();
 		for (int i = 0; i < count; i++) {
 			InsnArg arg = arguments.get(i);
 			if (arg == from) {
-				if (arg.isRegister()) {
-					RegisterArg registerArg = (RegisterArg) arg;
-					registerArg.getSVar().removeUse(registerArg);
-				}
 				setArg(i, to);
 				return true;
 			}
