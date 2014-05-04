@@ -45,6 +45,18 @@ public class BlockUtils {
 		}
 	}
 
+	public static BlockNode selectOtherSafe(BlockNode node, List<BlockNode> blocks) {
+		int size = blocks.size();
+		if (size == 1) {
+			BlockNode first = blocks.get(0);
+			return first != node ? first : null;
+		} else if (size == 2) {
+			BlockNode first = blocks.get(0);
+			return first != node ? first : blocks.get(1);
+		}
+		return null;
+	}
+
 	private static List<BlockNode> cleanBlockList(List<BlockNode> list) {
 		List<BlockNode> ret = new ArrayList<BlockNode>(list.size());
 		for (BlockNode block : list) {

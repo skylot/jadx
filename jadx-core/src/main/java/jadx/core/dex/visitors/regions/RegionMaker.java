@@ -238,13 +238,15 @@ public class RegionMaker {
 
 		exitBlocks.remove(condBlock);
 		if (exitBlocks.size() > 0) {
-			// add 'break' instruction before path cross between main loop exit and subexit
-			BlockNode loopExit = BlockUtils.selectOther(loopBody, condBlock.getCleanSuccessors());
-			for (Edge exitEdge : loop.getExitEdges()) {
-				if (!exitBlocks.contains(exitEdge.getSource())) {
-					continue;
+			BlockNode loopExit = BlockUtils.selectOtherSafe(loopBody, condBlock.getCleanSuccessors());
+			if (loopExit != null) {
+				// add 'break' instruction before path cross between main loop exit and subexit
+				for (Edge exitEdge : loop.getExitEdges()) {
+					if (!exitBlocks.contains(exitEdge.getSource())) {
+						continue;
+					}
+					insertBreak(stack, loopExit, exitEdge);
 				}
-				insertBreak(stack, loopExit, exitEdge);
 			}
 		}
 
