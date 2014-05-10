@@ -37,6 +37,29 @@ public class SwitchNode extends InsnNode {
 	}
 
 	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof SwitchNode) || !super.equals(obj)) {
+			return false;
+		}
+		SwitchNode that = (SwitchNode) obj;
+		return def == that.def
+				&& Arrays.equals(keys, that.keys)
+				&& Arrays.equals(targets, that.targets);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = super.hashCode();
+		result = 31 * result + Arrays.hashCode(keys);
+		result = 31 * result + Arrays.hashCode(targets);
+		result = 31 * result + def;
+		return result;
+	}
+
+	@Override
 	public String toString() {
 		StringBuilder targ = new StringBuilder();
 		targ.append('[');

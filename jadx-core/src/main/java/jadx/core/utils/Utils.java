@@ -97,7 +97,7 @@ public class Utils {
 
 	public static void makeDirsForFile(File file) {
 		File dir = file.getParentFile();
-		if (!dir.exists()) {
+		if (dir != null && !dir.exists()) {
 			// if directory already created in other thread mkdirs will return false,
 			// so check dir existence again
 			if (!dir.mkdirs() && !dir.exists()) {

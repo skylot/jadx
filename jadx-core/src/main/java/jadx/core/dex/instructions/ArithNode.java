@@ -62,6 +62,23 @@ public class ArithNode extends InsnNode {
 	}
 
 	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof ArithNode) || !super.equals(obj)) {
+			return false;
+		}
+		ArithNode that = (ArithNode) obj;
+		return op == that.op;
+	}
+
+	@Override
+	public int hashCode() {
+		return 31 * super.hashCode() + op.hashCode();
+	}
+
+	@Override
 	public String toString() {
 		return InsnUtils.formatOffset(offset) + ": "
 				+ InsnUtils.insnTypeToString(insnType)

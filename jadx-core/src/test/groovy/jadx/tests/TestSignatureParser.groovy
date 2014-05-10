@@ -1,5 +1,4 @@
 package jadx.tests
-
 import jadx.core.dex.instructions.args.ArgType
 import jadx.core.dex.nodes.parser.SignatureParser
 import spock.lang.Specification
@@ -83,5 +82,13 @@ class TestSignatureParser extends Specification {
         then:
         argTypes.size() == 1
         argTypes.get(0) == generic("Ljava/util/List;", wildcard())
+    }
+
+    def "generic map: bad signature"() {
+        when:
+        def map = new SignatureParser("<A:Ljava/lang/Object;B").consumeGenericMap()
+        then:
+        notThrown(NullPointerException)
+        map.isEmpty()
     }
 }

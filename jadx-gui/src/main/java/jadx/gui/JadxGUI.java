@@ -15,7 +15,10 @@ public class JadxGUI {
 
 	public static void main(String[] args) {
 		try {
-			final JadxCLIArgs jadxArgs = new JadxCLIArgs(args);
+			final JadxCLIArgs jadxArgs = new JadxCLIArgs();
+			if (!jadxArgs.processArgs(args)) {
+				return;
+			}
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
@@ -25,7 +28,7 @@ public class JadxGUI {
 					window.setLocationAndPosition();
 					window.setVisible(true);
 					window.setLocationRelativeTo(null);
-					window.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+					window.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
 					if (jadxArgs.getInput().isEmpty()) {
 						window.openFile();

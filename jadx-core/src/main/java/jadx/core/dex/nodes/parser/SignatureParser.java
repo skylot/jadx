@@ -13,7 +13,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SignatureParser {
+
+	private static final Logger LOG = LoggerFactory.getLogger(SignatureParser.class);
 	private static final char STOP_CHAR = 0;
 
 	private final String sign;
@@ -217,6 +222,10 @@ public class SignatureParser {
 				break;
 			}
 			String id = consumeUntil(':');
+			if (id == null) {
+				LOG.error("Can't parse generic map: {}", sign);
+				return Collections.emptyMap();
+			}
 			tryConsume(':');
 			List<ArgType> types = consumeExtendsTypesList();
 			map.put(ArgType.genericType(id), types);

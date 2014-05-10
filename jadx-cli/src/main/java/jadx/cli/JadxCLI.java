@@ -14,37 +14,41 @@ public class JadxCLI {
 
 	public static void main(String[] args) {
 		try {
-			JadxCLIArgs jadxArgs = new JadxCLIArgs(args);
-			checkArgs(jadxArgs);
-			processAndSave(jadxArgs);
-		} catch (Exception e) {
+			JadxCLIArgs jadxArgs = new JadxCLIArgs();
+			if (processArgs(jadxArgs, args)) {
+				processAndSave(jadxArgs);
+			}
+		} catch (JadxException e) {
 			LOG.error(e.getMessage());
 			System.exit(1);
 		}
 	}
 
-	private static void processAndSave(JadxCLIArgs jadxArgs) {
+	static void processAndSave(JadxCLIArgs jadxArgs) throws JadxException {
 		try {
 			Decompiler jadx = new Decompiler(jadxArgs);
 			jadx.loadFiles(jadxArgs.getInput());
 			jadx.setOutputDir(jadxArgs.getOutDir());
 			jadx.save();
-			LOG.info("done");
 		} catch (Throwable e) {
-			LOG.error("jadx error:", e);
+			throw new JadxException("jadx error: " + e.getMessage(), e);
 		}
-		int errorsCount = ErrorsCounter.getErrorCount();
-		if (errorsCount != 0) {
+		if (ErrorsCounter.getErrorCount() != 0) {
 			ErrorsCounter.printReport();
+			throw new JadxException("finished with errors");
 		}
-		System.exit(errorsCount);
+		LOG.info("done");
+
 	}
 
-	private static void checkArgs(JadxCLIArgs jadxArgs) throws JadxException {
+	static boolean processArgs(JadxCLIArgs jadxArgs, String[] args) throws JadxException {
+		if (!jadxArgs.processArgs(args)) {
+			return false;
+		}
 		if (jadxArgs.getInput().isEmpty()) {
 			LOG.error("Please specify input file");
 			jadxArgs.printUsage();
-			System.exit(1);
+			return false;
 		}
 		File outputDir = jadxArgs.getOutDir();
 		if (outputDir == null) {
@@ -64,5 +68,6 @@ public class JadxCLI {
 		if (outputDir.exists() && !outputDir.isDirectory()) {
 			throw new JadxException("Output directory exists as file " + outputDir);
 		}
+		return true;
 	}
 }

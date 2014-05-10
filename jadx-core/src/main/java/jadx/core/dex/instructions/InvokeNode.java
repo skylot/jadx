@@ -45,6 +45,26 @@ public class InvokeNode extends InsnNode {
 	}
 
 	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof InvokeNode) || !super.equals(obj)) {
+			return false;
+		}
+		InvokeNode that = (InvokeNode) obj;
+		return type == that.type && mth.equals(that.mth);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = super.hashCode();
+		result = 31 * result + type.hashCode();
+		result = 31 * result + mth.hashCode();
+		return result;
+	}
+
+	@Override
 	public String toString() {
 		return InsnUtils.formatOffset(offset) + ": "
 				+ InsnUtils.insnTypeToString(insnType)

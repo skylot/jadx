@@ -312,6 +312,7 @@ public class MethodGen {
 					}
 				}
 			} catch (CodegenException e) {
+				LOG.debug("Error generate fallback instruction: ", e.getCause());
 				code.startLine("// error: " + insn);
 			}
 		}

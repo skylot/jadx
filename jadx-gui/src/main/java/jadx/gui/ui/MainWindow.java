@@ -135,7 +135,10 @@ public class MainWindow extends JFrame {
 	}
 
 	private void toggleSearch() {
-		tabbedPane.getSelectedCodePanel().getSearchBar().toggle();
+		CodePanel codePanel = tabbedPane.getSelectedCodePanel();
+		if (codePanel != null) {
+			codePanel.getSearchBar().toggle();
+		}
 	}
 
 	private void initMenuAndToolbar() {
@@ -148,7 +151,7 @@ public class MainWindow extends JFrame {
 		exit.setMnemonic(KeyEvent.VK_E);
 		exit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
-				System.exit(0);
+				dispose();
 			}
 		});
 

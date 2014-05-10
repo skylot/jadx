@@ -555,10 +555,12 @@ public class InsnGen {
 			}
 			cls.getAttributes().add(AttributeFlag.DONT_GENERATE);
 			MethodNode defCtr = cls.getDefaultConstructor();
-			if (RegionUtils.notEmpty(defCtr.getRegion())) {
-				defCtr.getAttributes().add(AttributeFlag.ANONYMOUS_CONSTRUCTOR);
-			} else {
-				defCtr.getAttributes().add(AttributeFlag.DONT_GENERATE);
+			if (defCtr != null) {
+				if (RegionUtils.notEmpty(defCtr.getRegion())) {
+					defCtr.getAttributes().add(AttributeFlag.ANONYMOUS_CONSTRUCTOR);
+				} else {
+					defCtr.getAttributes().add(AttributeFlag.DONT_GENERATE);
+				}
 			}
 			code.add("new ").add(parent == null ? "Object" : useClass(parent)).add("() ");
 			new ClassGen(cls, mgen.getClassGen().getParentGen(), fallback).addClassBody(code);

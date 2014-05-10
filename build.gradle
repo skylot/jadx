@@ -16,7 +16,7 @@ subprojects {
 
     gradle.projectsEvaluated {
         tasks.withType(Compile) {
-            if (!"${it}".contains(':jadx-samples:')) {
+            if (!"$it".contains(':jadx-samples:')) {
                 options.compilerArgs << '-Xlint' << '-Xlint:unchecked' << '-Xlint:deprecation'
             }
         }

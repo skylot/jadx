@@ -34,6 +34,23 @@ public class TernaryInsn extends InsnNode {
 	}
 
 	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof TernaryInsn) || !super.equals(obj)) {
+			return false;
+		}
+		TernaryInsn that = (TernaryInsn) obj;
+		return condition.equals(that.condition);
+	}
+
+	@Override
+	public int hashCode() {
+		return 31 * super.hashCode() + condition.hashCode();
+	}
+
+	@Override
 	public String toString() {
 		return InsnUtils.formatOffset(offset) + ": TERNARY"
 				+ getResult() + " = "

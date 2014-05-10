@@ -61,9 +61,17 @@ public class BlockNode extends AttrNode implements IBlock {
 	}
 
 	public void lock() {
-		cleanSuccessors = Collections.unmodifiableList(cleanSuccessors);
-		successors = Collections.unmodifiableList(successors);
-		predecessors = Collections.unmodifiableList(predecessors);
+		cleanSuccessors = lockList(cleanSuccessors);
+		successors = lockList(successors);
+		predecessors = lockList(predecessors);
+		dominatesOn = lockList(dominatesOn);
+	}
+
+	List<BlockNode> lockList(List<BlockNode> list) {
+		if (list.isEmpty()) {
+			return Collections.emptyList();
+		}
+		return Collections.unmodifiableList(list);
 	}
 
 	/**

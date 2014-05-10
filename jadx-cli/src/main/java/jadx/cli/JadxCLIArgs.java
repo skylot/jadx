@@ -47,25 +47,25 @@ public final class JadxCLIArgs implements IJadxArgs {
 	private final List<File> input = new ArrayList<File>(1);
 	private File outputDir;
 
-	public JadxCLIArgs(String[] args) {
-		parse(args);
-		processArgs();
+	public boolean processArgs(String[] args) {
+		return parse(args) && process();
 	}
 
-	private void parse(String[] args) {
+	private boolean parse(String[] args) {
 		try {
 			new JCommander(this, args);
+			return true;
 		} catch (ParameterException e) {
 			System.err.println("Arguments parse error: " + e.getMessage());
 			printUsage();
-			System.exit(1);
+			return false;
 		}
 	}
 
-	public void processArgs() {
+	private boolean process() {
 		if (isPrintHelp()) {
 			printUsage();
-			System.exit(0);
+			return false;
 		}
 		try {
 			if (threadsCount <= 0) {
@@ -95,8 +95,9 @@ public final class JadxCLIArgs implements IJadxArgs {
 		} catch (JadxException e) {
 			System.err.println("ERROR: " + e.getMessage());
 			printUsage();
-			System.exit(1);
+			return false;
 		}
+		return true;
 	}
 
 	public void printUsage() {

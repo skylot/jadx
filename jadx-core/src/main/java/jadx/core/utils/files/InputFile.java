@@ -2,6 +2,7 @@ package jadx.core.utils.files;
 
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -56,17 +57,23 @@ public class InputFile {
 	private byte[] openDexFromApk(File file) throws IOException {
 		ZipFile zf = new ZipFile(file);
 		ZipEntry dex = zf.getEntry("classes.dex");
+		if (dex == null) {
+			zf.close();
+			throw new JadxRuntimeException("File 'classes.dex' not found in apk file: " + file);
+		}
 		ByteArrayOutputStream bytesOut = new ByteArrayOutputStream();
+		InputStream in = null;
 		try {
-			InputStream in = zf.getInputStream(dex);
-
+			in = zf.getInputStream(dex);
 			byte[] buffer = new byte[8192];
 			int count;
 			while ((count = in.read(buffer)) != -1) {
 				bytesOut.write(buffer, 0, count);
 			}
-			in.close();
 		} finally {
+			if (in != null) {
+				in.close();
+			}
 			zf.close();
 		}
 		return bytesOut.toByteArray();

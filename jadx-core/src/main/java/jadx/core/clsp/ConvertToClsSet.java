@@ -54,6 +54,9 @@ public class ConvertToClsSet {
 
 	private static void addFilesFromDirectory(File dir, List<InputFile> inputFiles) throws IOException, DecodeException {
 		File[] files = dir.listFiles();
+		if (files == null) {
+			return;
+		}
 		for (File file : files) {
 			if (file.isDirectory()) {
 				addFilesFromDirectory(file, inputFiles);

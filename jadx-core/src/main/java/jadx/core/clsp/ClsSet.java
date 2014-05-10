@@ -65,6 +65,9 @@ public class ClsSet {
 		for (ClassNode cls : list) {
 			if (cls.getAccessFlags().isPublic()) {
 				NClass nClass = getCls(cls.getRawName(), names);
+				if (nClass == null) {
+					throw new JadxRuntimeException("Missing class: " + cls);
+				}
 				nClass.setParents(makeParentsArray(cls, names));
 				classes[k] = nClass;
 				k++;
@@ -102,40 +105,47 @@ public class ClsSet {
 		Utils.makeDirsForFile(output);
 
 		BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(output));
-		String outputName = output.getName();
-		if (outputName.endsWith(CLST_EXTENSION)) {
-			save(outputStream);
-		} else if (outputName.endsWith(".jar")) {
-			ZipOutputStream out = new ZipOutputStream(outputStream);
-			try {
-				out.putNextEntry(new ZipEntry(CLST_PKG_PATH + "/" + CLST_FILENAME));
-				save(out);
-				out.closeEntry();
-			} finally {
-				out.close();
-				outputStream.close();
+		try {
+			String outputName = output.getName();
+			if (outputName.endsWith(CLST_EXTENSION)) {
+				save(outputStream);
+			} else if (outputName.endsWith(".jar")) {
+				ZipOutputStream out = new ZipOutputStream(outputStream);
+				try {
+					out.putNextEntry(new ZipEntry(CLST_PKG_PATH + "/" + CLST_FILENAME));
+					save(out);
+					out.closeEntry();
+				} finally {
+					out.close();
+				}
+			} else {
+				throw new JadxRuntimeException("Unknown file format: " + outputName);
 			}
-		} else {
-			throw new JadxRuntimeException("Unknown file format: " + outputName);
+		} finally {
+			outputStream.close();
 		}
 	}
 
 	public void save(OutputStream output) throws IOException {
 		DataOutputStream out = new DataOutputStream(output);
-		out.writeBytes(JADX_CLS_SET_HEADER);
-		out.writeByte(VERSION);
+		try {
+			out.writeBytes(JADX_CLS_SET_HEADER);
+			out.writeByte(VERSION);
 
-		LOG.info("Classes count: " + classes.length);
-		out.writeInt(classes.length);
-		for (NClass cls : classes) {
-			writeString(out, cls.getName());
-		}
-		for (NClass cls : classes) {
-			NClass[] parents = cls.getParents();
-			out.writeByte(parents.length);
-			for (NClass parent : parents) {
-				out.writeInt(parent.getId());
+			LOG.info("Classes count: " + classes.length);
+			out.writeInt(classes.length);
+			for (NClass cls : classes) {
+				writeString(out, cls.getName());
 			}
+			for (NClass cls : classes) {
+				NClass[] parents = cls.getParents();
+				out.writeByte(parents.length);
+				for (NClass parent : parents) {
+					out.writeInt(parent.getId());
+				}
+			}
+		} finally {
+			out.close();
 		}
 	}
 
@@ -144,55 +154,67 @@ public class ClsSet {
 		if (input == null) {
 			throw new JadxRuntimeException("Can't load classpath file: " + CLST_FILENAME);
 		}
-		load(input);
+		try {
+			load(input);
+		} finally {
+			input.close();
+		}
 	}
 
 	public void load(File input) throws IOException, DecodeException {
 		String name = input.getName();
 		InputStream inputStream = new FileInputStream(input);
-		if (name.endsWith(CLST_EXTENSION)) {
-			load(inputStream);
-		} else if (name.endsWith(".jar")) {
-			ZipInputStream in = new ZipInputStream(inputStream);
-			try {
-				ZipEntry entry = in.getNextEntry();
-				while (entry != null) {
-					if (entry.getName().endsWith(CLST_EXTENSION)) {
-						load(in);
+		try {
+			if (name.endsWith(CLST_EXTENSION)) {
+				load(inputStream);
+			} else if (name.endsWith(".jar")) {
+				ZipInputStream in = new ZipInputStream(inputStream);
+				try {
+					ZipEntry entry = in.getNextEntry();
+					while (entry != null) {
+						if (entry.getName().endsWith(CLST_EXTENSION)) {
+							load(in);
+						}
+						entry = in.getNextEntry();
 					}
-					entry = in.getNextEntry();
+				} finally {
+					in.close();
 				}
-			} finally {
-				in.close();
+			} else {
+				throw new JadxRuntimeException("Unknown file format: " + name);
 			}
-		} else {
-			throw new JadxRuntimeException("Unknown file format: " + name);
+		} finally {
+			inputStream.close();
 		}
 	}
 
 	public void load(InputStream input) throws IOException, DecodeException {
 		DataInputStream in = new DataInputStream(input);
-		byte[] header = new byte[JADX_CLS_SET_HEADER.length()];
-		int readHeaderLength = in.read(header);
-		int version = in.readByte();
-		if (readHeaderLength != JADX_CLS_SET_HEADER.length()
-				|| !JADX_CLS_SET_HEADER.equals(new String(header, STRING_CHARSET))
-				|| version != VERSION) {
-			throw new DecodeException("Wrong jadx class set header");
-		}
-		int count = in.readInt();
-		classes = new NClass[count];
-		for (int i = 0; i < count; i++) {
-			String name = readString(in);
-			classes[i] = new NClass(name, i);
-		}
-		for (int i = 0; i < count; i++) {
-			int pCount = in.readByte();
-			NClass[] parents = new NClass[pCount];
-			for (int j = 0; j < pCount; j++) {
-				parents[j] = classes[in.readInt()];
+		try {
+			byte[] header = new byte[JADX_CLS_SET_HEADER.length()];
+			int readHeaderLength = in.read(header);
+			int version = in.readByte();
+			if (readHeaderLength != JADX_CLS_SET_HEADER.length()
+					|| !JADX_CLS_SET_HEADER.equals(new String(header, STRING_CHARSET))
+					|| version != VERSION) {
+				throw new DecodeException("Wrong jadx class set header");
 			}
-			classes[i].setParents(parents);
+			int count = in.readInt();
+			classes = new NClass[count];
+			for (int i = 0; i < count; i++) {
+				String name = readString(in);
+				classes[i] = new NClass(name, i);
+			}
+			for (int i = 0; i < count; i++) {
+				int pCount = in.readByte();
+				NClass[] parents = new NClass[pCount];
+				for (int j = 0; j < pCount; j++) {
+					parents[j] = classes[in.readInt()];
+				}
+				classes[i].setParents(parents);
+			}
+		} finally {
+			in.close();
 		}
 	}
 

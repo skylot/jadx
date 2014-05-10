@@ -71,6 +71,23 @@ public class IfNode extends GotoNode {
 	}
 
 	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof IfNode) || !super.equals(obj)) {
+			return false;
+		}
+		IfNode ifNode = (IfNode) obj;
+		return op == ifNode.op;
+	}
+
+	@Override
+	public int hashCode() {
+		return 31 * super.hashCode() + op.hashCode();
+	}
+
+	@Override
 	public String toString() {
 		return InsnUtils.formatOffset(offset) + ": "
 				+ InsnUtils.insnTypeToString(insnType)

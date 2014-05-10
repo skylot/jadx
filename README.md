@@ -1,8 +1,9 @@
-## JADX 
+## JADX
 
 [![Build Status](https://travis-ci.org/skylot/jadx.png?branch=master)](https://travis-ci.org/skylot/jadx)
 [![Build Status](https://drone.io/github.com/skylot/jadx/status.png)](https://drone.io/github.com/skylot/jadx/latest)
 [![Coverage Status](https://coveralls.io/repos/skylot/jadx/badge.png)](https://coveralls.io/r/skylot/jadx)
+[![Coverity Scan Build Status](https://scan.coverity.com/projects/2166/badge.svg)](https://scan.coverity.com/projects/2166)
 
 **jadx** - Dex to Java decompiler
 
@@ -12,14 +13,14 @@ Command line and GUI tools for produce Java source code from Android Dex and Apk
 ### Downloads
 - [unstable](https://drone.io/github.com/skylot/jadx/files)
 - from [github](https://github.com/skylot/jadx/releases)
-- from [sourceforge](http://sourceforge.net/projects/jadx/files/) 
+- from [sourceforge](http://sourceforge.net/projects/jadx/files/)
 
 
-### Building from source  
+### Building from source
     git clone https://github.com/skylot/jadx.git
     cd jadx
     ./gradlew dist
-    
+
 (on Windows, use `gradlew.bat` instead of `./gradlew`)
 
 Scripts for run jadx will be placed in `build/jadx/bin`

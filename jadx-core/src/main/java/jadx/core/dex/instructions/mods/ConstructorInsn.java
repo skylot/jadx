@@ -76,6 +76,29 @@ public class ConstructorInsn extends InsnNode {
 	}
 
 	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof ConstructorInsn) || !super.equals(o)) {
+			return false;
+		}
+		ConstructorInsn that = (ConstructorInsn) o;
+		return callMth.equals(that.callMth)
+				&& callType == that.callType
+				&& instanceArg.equals(that.instanceArg);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = super.hashCode();
+		result = 31 * result + callMth.hashCode();
+		result = 31 * result + callType.hashCode();
+		result = 31 * result + instanceArg.hashCode();
+		return result;
+	}
+
+	@Override
 	public String toString() {
 		return super.toString() + " " + callMth + " " + callType;
 	}

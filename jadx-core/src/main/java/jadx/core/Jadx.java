@@ -25,7 +25,6 @@ import jadx.core.dex.visitors.typeinference.TypeInference;
 import jadx.core.utils.Utils;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -95,15 +94,18 @@ public class Jadx {
 
 	public static String getVersion() {
 		try {
-			Enumeration<URL> resources = Utils.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
-			while (resources.hasMoreElements()) {
-				Manifest manifest = new Manifest(resources.nextElement().openStream());
-				String ver = manifest.getMainAttributes().getValue("jadx-version");
-				if (ver != null) {
-					return ver;
+			ClassLoader classLoader = Utils.class.getClassLoader();
+			if (classLoader != null) {
+				Enumeration<URL> resources = classLoader.getResources("META-INF/MANIFEST.MF");
+				while (resources.hasMoreElements()) {
+					Manifest manifest = new Manifest(resources.nextElement().openStream());
+					String ver = manifest.getMainAttributes().getValue("jadx-version");
+					if (ver != null) {
+						return ver;
+					}
 				}
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			LOG.error("Can't get manifest file", e);
 		}
 		return "dev";

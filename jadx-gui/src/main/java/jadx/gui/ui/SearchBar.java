@@ -145,8 +145,10 @@ class SearchBar extends JToolBar {
 	}
 
 	private void search(int direction) {
-		String text = searchField.getText();
-		if (text.length() == 0) {
+		String searchText = searchField.getText();
+		if (searchText == null
+				|| searchText.length() == 0
+				|| rTextArea.getText() == null) {
 			return;
 		}
 
@@ -156,20 +158,20 @@ class SearchBar extends JToolBar {
 		boolean wholeWord = wholeWordCB.isSelected();
 
 		if (markAllCB.isSelected()) {
-			rTextArea.markAll(text, matchCase, wholeWord, regex);
+			rTextArea.markAll(searchText, matchCase, wholeWord, regex);
 		} else {
 			rTextArea.clearMarkAllHighlights();
 		}
 
 		SearchContext context = new SearchContext();
-		context.setSearchFor(text);
+		context.setSearchFor(searchText);
 		context.setMatchCase(matchCase);
 		context.setRegularExpression(regex);
 		context.setSearchForward(forward);
 		context.setWholeWord(wholeWord);
 
 		// TODO hack: move cursor before previous search for not jump to next occurrence
-		if (direction == 0 && !searchField.getBackground().equals(COLOR_BG_ERROR)) {
+		if (direction == 0 && !COLOR_BG_ERROR.equals(searchField.getBackground())) {
 			try {
 				int caretPos = rTextArea.getCaretPosition();
 				int lineNum = rTextArea.getLineOfOffset(caretPos) - 1;
@@ -183,7 +185,7 @@ class SearchBar extends JToolBar {
 
 		boolean found = SearchEngine.find(rTextArea, context);
 		if (!found) {
-			int pos = SearchEngine.getNextMatchPos(text, rTextArea.getText(), forward, matchCase, wholeWord);
+			int pos = SearchEngine.getNextMatchPos(searchText, rTextArea.getText(), forward, matchCase, wholeWord);
 			if (pos != -1) {
 				rTextArea.setCaretPosition(forward ? 0 : rTextArea.getDocument().getLength() - 1);
 				search(direction);

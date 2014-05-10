@@ -43,6 +43,32 @@ public final class FieldArg extends RegisterArg {
 	}
 
 	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof FieldArg) || !super.equals(obj)) {
+			return false;
+		}
+		FieldArg fieldArg = (FieldArg) obj;
+		if (!field.equals(fieldArg.field)) {
+			return false;
+		}
+		if (regArg != null ? !regArg.equals(fieldArg.regArg) : fieldArg.regArg != null) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public int hashCode() {
+		int result = super.hashCode();
+		result = 31 * result + field.hashCode();
+		result = 31 * result + (regArg != null ? regArg.hashCode() : 0);
+		return result;
+	}
+
+	@Override
 	public String toString() {
 		return "(" + field + ")";
 	}

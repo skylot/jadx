@@ -73,7 +73,7 @@ public class ClassModifier extends AbstractVisitor {
 	}
 
 	private static boolean removeFieldUsageFromConstructor(MethodNode mth, FieldNode field, ClassNode fieldsCls) {
-		if (!mth.getAccessFlags().isConstructor()) {
+		if (mth.isNoCode() || !mth.getAccessFlags().isConstructor()) {
 			return false;
 		}
 		List<RegisterArg> args = mth.getArguments(false);
@@ -114,6 +114,9 @@ public class ClassModifier extends AbstractVisitor {
 
 	private static void removeSyntheticMethods(ClassNode cls) {
 		for (MethodNode mth : cls.getMethods()) {
+			if (mth.isNoCode()) {
+				continue;
+			}
 			AccessInfo af = mth.getAccessFlags();
 			// remove bridge methods
 			if (af.isBridge() && af.isSynthetic() && !isMethodUniq(cls, mth)) {

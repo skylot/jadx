@@ -8,7 +8,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import com.android.dx.io.instructions.FillArrayDataPayloadDecodedInstruction;
 
-public class FillArrayNode extends InsnNode {
+public final class FillArrayNode extends InsnNode {
 
 	private final Object data;
 	private ArgType elemType;
@@ -52,5 +52,22 @@ public class FillArrayNode extends InsnNode {
 		if (r != null) {
 			elemType = r;
 		}
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof FillArrayNode) || !super.equals(obj)) {
+			return false;
+		}
+		FillArrayNode that = (FillArrayNode) obj;
+		return elemType.equals(that.elemType) && data == that.data;
+	}
+
+	@Override
+	public int hashCode() {
+		return 31 * super.hashCode() + elemType.hashCode() + data.hashCode();
 	}
 }

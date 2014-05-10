@@ -126,6 +126,9 @@ public class RegisterArg extends InsnArg implements Named {
 	}
 
 	public InsnNode getAssignInsn() {
+		if (sVar == null) {
+			return null;
+		}
 		RegisterArg assign = sVar.getAssign();
 		if (assign != null) {
 			return assign.getParentInsn();
