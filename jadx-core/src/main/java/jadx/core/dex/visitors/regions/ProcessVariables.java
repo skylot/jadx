@@ -1,8 +1,8 @@
 package jadx.core.dex.visitors.regions;
 
-import jadx.core.dex.attributes.AttributeFlag;
-import jadx.core.dex.attributes.AttributeType;
-import jadx.core.dex.attributes.DeclareVariablesAttr;
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.IBlock;
@@ -151,7 +151,7 @@ public class ProcessVariables extends AbstractVisitor {
 			for (IRegion assignRegion : u.getAssigns()) {
 				if (u.getArgRegion() == assignRegion
 						&& canDeclareInRegion(u, assignRegion)) {
-					u.getArg().getParentInsn().getAttributes().add(AttributeFlag.DECLARE_VAR);
+					u.getArg().getParentInsn().add(AFlag.DECLARE_VAR);
 					it.remove();
 					break;
 				}
@@ -204,10 +204,10 @@ public class ProcessVariables extends AbstractVisitor {
 	}
 
 	private static void declareVar(IContainer region, RegisterArg arg) {
-		DeclareVariablesAttr dv = (DeclareVariablesAttr) region.getAttributes().get(AttributeType.DECLARE_VARIABLES);
+		DeclareVariablesAttr dv = region.get(AType.DECLARE_VARIABLES);
 		if (dv == null) {
 			dv = new DeclareVariablesAttr();
-			region.getAttributes().add(dv);
+			region.addAttr(dv);
 		}
 		dv.addVar(arg);
 	}

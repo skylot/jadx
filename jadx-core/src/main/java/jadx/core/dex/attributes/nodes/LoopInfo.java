@@ -1,5 +1,6 @@
-package jadx.core.dex.attributes;
+package jadx.core.dex.attributes.nodes;
 
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.Edge;
 import jadx.core.utils.BlockUtils;
@@ -10,13 +11,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-public class LoopAttr implements IAttribute {
+public class LoopInfo {
 
 	private final BlockNode start;
 	private final BlockNode end;
 	private final Set<BlockNode> loopBlocks;
 
-	public LoopAttr(BlockNode start, BlockNode end) {
+	public LoopInfo(BlockNode start, BlockNode end) {
 		this.start = start;
 		this.end = end;
 		this.loopBlocks = Collections.unmodifiableSet(BlockUtils.getAllPathsBlocks(start, end));
@@ -28,11 +29,6 @@ public class LoopAttr implements IAttribute {
 
 	public BlockNode getEnd() {
 		return end;
-	}
-
-	@Override
-	public AttributeType getType() {
-		return AttributeType.LOOP;
 	}
 
 	public Set<BlockNode> getLoopBlocks() {
@@ -49,7 +45,7 @@ public class LoopAttr implements IAttribute {
 		for (BlockNode block : blocks) {
 			// exit: successor node not from this loop, (don't change to getCleanSuccessors)
 			for (BlockNode s : block.getSuccessors()) {
-				if (!blocks.contains(s) && !s.getAttributes().contains(AttributeType.EXC_HANDLER)) {
+				if (!blocks.contains(s) && !s.contains(AType.EXC_HANDLER)) {
 					nodes.add(block);
 				}
 			}
@@ -65,7 +61,7 @@ public class LoopAttr implements IAttribute {
 		Set<BlockNode> blocks = getLoopBlocks();
 		for (BlockNode block : blocks) {
 			for (BlockNode s : block.getSuccessors()) {
-				if (!blocks.contains(s) && !s.getAttributes().contains(AttributeType.EXC_HANDLER)) {
+				if (!blocks.contains(s) && !s.contains(AType.EXC_HANDLER)) {
 					edges.add(new Edge(block, s));
 				}
 			}

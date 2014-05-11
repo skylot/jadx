@@ -5,10 +5,10 @@ import jadx.api.IJadxArgs;
 import jadx.api.JavaClass;
 import jadx.api.JavaPackage;
 import jadx.core.utils.exceptions.DecodeException;
+import jadx.core.utils.exceptions.JadxException;
 
 import javax.swing.ProgressMonitor;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -29,12 +29,13 @@ public class JadxWrapper {
 		this.openFile = file;
 		try {
 			this.decompiler.loadFile(file);
-		} catch (IOException e) {
-			LOG.error("Error open file: " + file, e);
 		} catch (DecodeException e) {
 			LOG.error("Error decode file: " + file, e);
+		} catch (JadxException e) {
+			LOG.error("Error open file: " + file, e);
 		}
 	}
+
 
 	public void saveAll(final File dir, final ProgressMonitor progressMonitor) {
 		Runnable save = new Runnable() {
@@ -42,7 +43,7 @@ public class JadxWrapper {
 			public void run() {
 				try {
 					decompiler.setOutputDir(dir);
-					ThreadPoolExecutor ex = decompiler.getSaveExecutor();
+					ThreadPoolExecutor ex = (ThreadPoolExecutor) decompiler.getSaveExecutor();
 					ex.shutdown();
 					while (ex.isTerminating()) {
 						long total = ex.getTaskCount();

@@ -1,7 +1,7 @@
 package jadx.core.utils;
 
-import jadx.core.dex.attributes.AttributeFlag;
-import jadx.core.dex.attributes.AttributeType;
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
@@ -22,7 +22,7 @@ public class RegionUtils {
 		if (container instanceof BlockNode) {
 			BlockNode block = (BlockNode) container;
 			return block.getSuccessors().size() != 0
-					&& !block.getAttributes().contains(AttributeFlag.RETURN);
+					&& !block.contains(AFlag.RETURN);
 		} else if (container instanceof IRegion) {
 			IRegion region = (IRegion) container;
 			List<IContainer> blocks = region.getSubBlocks();
@@ -91,7 +91,7 @@ public class RegionUtils {
 			// process sub blocks
 			for (IContainer b : r.getSubBlocks()) {
 				// process try block
-				CatchAttr cb = (CatchAttr) b.getAttributes().get(AttributeType.CATCH_BLOCK);
+				CatchAttr cb = b.get(AType.CATCH_BLOCK);
 				if (cb != null && (b instanceof IRegion)) {
 					TryCatchBlock tb = cb.getTryBlock();
 					for (ExceptionHandler eh : tb.getHandlers()) {
@@ -128,7 +128,7 @@ public class RegionUtils {
 		IRegion parent = region.getParent();
 		while (container != parent) {
 			if (parent == null) {
-				if (region.getAttributes().contains(AttributeType.EXC_HANDLER)) {
+				if (region.contains(AType.EXC_HANDLER)) {
 					return isRegionContainsExcHandlerRegion(container, region);
 				}
 				return false;

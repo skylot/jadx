@@ -1,10 +1,9 @@
 package jadx.core.codegen;
 
-import jadx.core.dex.attributes.AttributeFlag;
-import jadx.core.dex.attributes.AttributeType;
-import jadx.core.dex.attributes.DeclareVariablesAttr;
-import jadx.core.dex.attributes.ForceReturnAttr;
-import jadx.core.dex.attributes.IAttribute;
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
+import jadx.core.dex.attributes.nodes.ForceReturnAttr;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.SwitchNode;
@@ -63,8 +62,7 @@ public class RegionGen extends InsnGen {
 	}
 
 	private void declareVars(CodeWriter code, IContainer cont) {
-		DeclareVariablesAttr declVars =
-				(DeclareVariablesAttr) cont.getAttributes().get(AttributeType.DECLARE_VARIABLES);
+		DeclareVariablesAttr declVars = cont.get(AType.DECLARE_VARIABLES);
 		if (declVars != null) {
 			for (RegisterArg v : declVars.getVars()) {
 				code.startLine();
@@ -75,7 +73,7 @@ public class RegionGen extends InsnGen {
 	}
 
 	private void makeSimpleRegion(CodeWriter code, Region region) throws CodegenException {
-		CatchAttr tc = (CatchAttr) region.getAttributes().get(AttributeType.CATCH_BLOCK);
+		CatchAttr tc = region.get(AType.CATCH_BLOCK);
 		if (tc != null) {
 			makeTryCatch(region, tc.getTryBlock(), code);
 		} else {
@@ -96,9 +94,8 @@ public class RegionGen extends InsnGen {
 		for (InsnNode insn : block.getInstructions()) {
 			makeInsn(insn, code);
 		}
-		IAttribute attr;
-		if ((attr = block.getAttributes().get(AttributeType.FORCE_RETURN)) != null) {
-			ForceReturnAttr retAttr = (ForceReturnAttr) attr;
+		ForceReturnAttr retAttr = block.get(AType.FORCE_RETURN);
+		if (retAttr != null) {
 			makeInsn(retAttr.getReturnInsn(), code);
 		}
 	}
@@ -138,7 +135,7 @@ public class RegionGen extends InsnGen {
 			List<IContainer> subBlocks = re.getSubBlocks();
 			if (subBlocks.size() == 1 && subBlocks.get(0) instanceof IfRegion) {
 				IfRegion ifRegion = (IfRegion) subBlocks.get(0);
-				if (ifRegion.getAttributes().contains(AttributeFlag.ELSE_IF_CHAIN)) {
+				if (ifRegion.contains(AFlag.ELSE_IF_CHAIN)) {
 					makeIf(ifRegion, code, false);
 					return true;
 				}
@@ -153,7 +150,7 @@ public class RegionGen extends InsnGen {
 			List<InsnNode> headerInsns = header.getInstructions();
 			if (headerInsns.size() > 1) {
 				// write not inlined instructions from header
-				mth.getAttributes().add(AttributeFlag.INCONSISTENT_CODE);
+				mth.add(AFlag.INCONSISTENT_CODE);
 				int last = headerInsns.size() - 1;
 				for (int i = 0; i < last; i++) {
 					InsnNode insn = headerInsns.get(i);
@@ -244,7 +241,7 @@ public class RegionGen extends InsnGen {
 	private void makeTryCatch(IContainer region, TryCatchBlock tryCatchBlock, CodeWriter code)
 			throws CodegenException {
 		code.startLine("try {");
-		region.getAttributes().remove(AttributeType.CATCH_BLOCK);
+		region.remove(AType.CATCH_BLOCK);
 		makeRegionIndent(code, region);
 		ExceptionHandler allHandler = null;
 		for (ExceptionHandler handler : tryCatchBlock.getHandlers()) {

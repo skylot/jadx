@@ -1,12 +1,10 @@
 package jadx.core.codegen;
 
 import jadx.core.Consts;
-import jadx.core.dex.attributes.AttributeFlag;
-import jadx.core.dex.attributes.AttributeType;
-import jadx.core.dex.attributes.AttributesList;
-import jadx.core.dex.attributes.IAttribute;
-import jadx.core.dex.attributes.JadxErrorAttr;
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.annotations.MethodParameters;
+import jadx.core.dex.attributes.nodes.JadxErrorAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.NamedArg;
@@ -14,6 +12,7 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.Region;
+import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.FallbackModeVisitor;
 import jadx.core.utils.ErrorsCounter;
@@ -68,7 +67,7 @@ public class MethodGen {
 			code.attachDefinition(mth);
 			return true;
 		}
-		if (mth.getAttributes().contains(AttributeFlag.ANONYMOUS_CONSTRUCTOR)) {
+		if (mth.contains(AFlag.ANONYMOUS_CONSTRUCTOR)) {
 			// don't add method name and arguments
 			code.startLine();
 			code.attachDefinition(mth);
@@ -102,7 +101,7 @@ public class MethodGen {
 
 		List<RegisterArg> args = mth.getArguments(false);
 		if (mth.getMethodInfo().isConstructor()
-				&& mth.getParentClass().getAttributes().contains(AttributeType.ENUM_CLASS)) {
+				&& mth.getParentClass().contains(AType.ENUM_CLASS)) {
 			if (args.size() == 2) {
 				args.clear();
 			} else if (args.size() > 2) {
@@ -124,7 +123,7 @@ public class MethodGen {
 
 	private void addMethodArguments(CodeWriter argsCode, List<RegisterArg> args) {
 		MethodParameters paramsAnnotation =
-				(MethodParameters) mth.getAttributes().get(AttributeType.ANNOTATION_MTH_PARAMETERS);
+				mth.get(AType.ANNOTATION_MTH_PARAMETERS);
 
 		int i = 0;
 		for (Iterator<RegisterArg> it = args.iterator(); it.hasNext(); ) {
@@ -226,12 +225,12 @@ public class MethodGen {
 	}
 
 	public void addInstructions(CodeWriter code) throws CodegenException {
-		if (mth.getAttributes().contains(AttributeType.JADX_ERROR)) {
+		if (mth.contains(AType.JADX_ERROR)) {
 			code.startLine("throw new UnsupportedOperationException(\"Method not decompiled: ");
 			code.add(mth.toString());
 			code.add("\");");
 
-			JadxErrorAttr err = (JadxErrorAttr) mth.getAttributes().get(AttributeType.JADX_ERROR);
+			JadxErrorAttr err = mth.get(AType.JADX_ERROR);
 			code.startLine("/* JADX: method processing error */");
 			Throwable cause = err.getCause();
 			if (cause != null) {
@@ -241,7 +240,7 @@ public class MethodGen {
 				code.add("*/");
 			}
 			makeMethodDump(code);
-		} else if (mth.getAttributes().contains(AttributeFlag.INCONSISTENT_CODE)) {
+		} else if (mth.contains(AFlag.INCONSISTENT_CODE)) {
 			code.startLine("/*");
 			addFallbackMethodCode(code);
 			code.startLine("*/");
@@ -295,10 +294,9 @@ public class MethodGen {
 	public static void addFallbackInsns(CodeWriter code, MethodNode mth, List<InsnNode> insns, boolean addLabels) {
 		InsnGen insnGen = new InsnGen(getFallbackMethodGen(mth), true);
 		for (InsnNode insn : insns) {
-			AttributesList attrs = insn.getAttributes();
 			if (addLabels) {
-				if (attrs.contains(AttributeType.JUMP)
-						|| attrs.contains(AttributeType.EXC_HANDLER)) {
+				if (insn.contains(AType.JUMP)
+						|| insn.contains(AType.EXC_HANDLER)) {
 					code.decIndent();
 					code.startLine(getLabelName(insn.getOffset()) + ":");
 					code.incIndent();
@@ -306,8 +304,8 @@ public class MethodGen {
 			}
 			try {
 				if (insnGen.makeInsn(insn, code)) {
-					List<IAttribute> catchAttrs = attrs.getAll(AttributeType.CATCH_BLOCK);
-					for (IAttribute catchAttr : catchAttrs) {
+					CatchAttr catchAttr = insn.get(AType.CATCH_BLOCK);
+					if (catchAttr != null) {
 						code.add("\t " + catchAttr);
 					}
 				}

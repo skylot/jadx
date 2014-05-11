@@ -1,9 +1,8 @@
 package jadx.core.dex.visitors;
 
-import jadx.core.dex.attributes.AttributeFlag;
-import jadx.core.dex.attributes.AttributeType;
-import jadx.core.dex.attributes.AttributesList;
-import jadx.core.dex.attributes.FieldReplaceAttr;
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
@@ -33,7 +32,7 @@ public class ClassModifier extends AbstractVisitor {
 		if (cls.getAccessFlags().isSynthetic()
 				&& cls.getFields().isEmpty()
 				&& cls.getMethods().isEmpty()) {
-			cls.getAttributes().add(AttributeFlag.DONT_GENERATE);
+			cls.add(AFlag.DONT_GENERATE);
 			return false;
 		}
 		removeSyntheticFields(cls);
@@ -62,10 +61,9 @@ public class ClassModifier extends AbstractVisitor {
 						}
 					}
 					if (found != 0) {
-						AttributesList attributes = field.getAttributes();
 						FieldInfo replace = new FieldInfo(parentClass, "this", parentClass.getType());
-						attributes.add(new FieldReplaceAttr(replace, true));
-						attributes.add(AttributeFlag.DONT_GENERATE);
+						field.addAttr(new FieldReplaceAttr(replace, true));
+						field.add(AFlag.DONT_GENERATE);
 					}
 				}
 			}
@@ -121,7 +119,7 @@ public class ClassModifier extends AbstractVisitor {
 			// remove bridge methods
 			if (af.isBridge() && af.isSynthetic() && !isMethodUniq(cls, mth)) {
 				// TODO add more checks before method deletion
-				mth.getAttributes().add(AttributeFlag.DONT_GENERATE);
+				mth.add(AFlag.DONT_GENERATE);
 			}
 			// remove synthetic constructor for inner non-static classes
 			if (af.isSynthetic() && af.isConstructor() && mth.getBasicBlocks().size() == 2) {
@@ -130,7 +128,7 @@ public class ClassModifier extends AbstractVisitor {
 					ConstructorInsn constr = (ConstructorInsn) insns.get(0);
 					if (constr.isThis() && mth.getArguments(false).size() >= 1) {
 						mth.removeFirstArgument();
-						mth.getAttributes().add(AttributeFlag.DONT_GENERATE);
+						mth.add(AFlag.DONT_GENERATE);
 					}
 				}
 			}
@@ -162,7 +160,7 @@ public class ClassModifier extends AbstractVisitor {
 					&& mth.getArguments(false).isEmpty()) {
 				List<BlockNode> bb = mth.getBasicBlocks();
 				if (bb == null || bb.isEmpty() || allBlocksEmpty(bb)) {
-					mth.getAttributes().add(AttributeFlag.DONT_GENERATE);
+					mth.add(AFlag.DONT_GENERATE);
 				}
 			}
 		}
@@ -203,7 +201,7 @@ public class ClassModifier extends AbstractVisitor {
 		if (field.getDeclClass().getFullName().equals(thisClass)) {
 			FieldNode fn = cls.searchField(field);
 			if (fn != null && fn.getAccessFlags().isFinal()) {
-				fn.getAttributes().remove(AttributeType.FIELD_VALUE);
+				fn.remove(AType.FIELD_VALUE);
 			}
 		}
 	}

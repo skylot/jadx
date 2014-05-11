@@ -1,9 +1,9 @@
 package jadx.core.codegen;
 
-import jadx.core.dex.attributes.AttributeFlag;
-import jadx.core.dex.attributes.AttributeType;
-import jadx.core.dex.attributes.FieldReplaceAttr;
-import jadx.core.dex.attributes.MethodInlineAttr;
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
+import jadx.core.dex.attributes.nodes.MethodInlineAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
@@ -110,7 +110,7 @@ public class InsnGen {
 
 	public void assignVar(CodeWriter code, InsnNode insn) throws CodegenException {
 		RegisterArg arg = insn.getResult();
-		if (insn.getAttributes().contains(AttributeFlag.DECLARE_VAR)) {
+		if (insn.contains(AFlag.DECLARE_VAR)) {
 			declareVar(code, arg);
 		} else {
 			addArg(code, arg, false);
@@ -130,7 +130,7 @@ public class InsnGen {
 	private void instanceField(CodeWriter code, FieldInfo field, InsnArg arg) throws CodegenException {
 		FieldNode fieldNode = mth.getParentClass().searchField(field);
 		if (fieldNode != null) {
-			FieldReplaceAttr replace = (FieldReplaceAttr) fieldNode.getAttributes().get(AttributeType.FIELD_REPLACE);
+			FieldReplaceAttr replace = fieldNode.get(AType.FIELD_REPLACE);
 			if (replace != null) {
 				FieldInfo info = replace.getFieldInfo();
 				if (replace.isOuterClass()) {
@@ -553,13 +553,13 @@ public class InsnGen {
 			} else {
 				parent = cls.getSuperClass();
 			}
-			cls.getAttributes().add(AttributeFlag.DONT_GENERATE);
+			cls.add(AFlag.DONT_GENERATE);
 			MethodNode defCtr = cls.getDefaultConstructor();
 			if (defCtr != null) {
 				if (RegionUtils.notEmpty(defCtr.getRegion())) {
-					defCtr.getAttributes().add(AttributeFlag.ANONYMOUS_CONSTRUCTOR);
+					defCtr.add(AFlag.ANONYMOUS_CONSTRUCTOR);
 				} else {
-					defCtr.getAttributes().add(AttributeFlag.DONT_GENERATE);
+					defCtr.add(AFlag.DONT_GENERATE);
 				}
 			}
 			code.add("new ").add(parent == null ? "Object" : useClass(parent)).add("() ");
@@ -624,7 +624,7 @@ public class InsnGen {
 	}
 
 	private void generateArguments(CodeWriter code, InsnNode insn, int k, MethodNode callMth) throws CodegenException {
-		if (callMth != null && callMth.getAttributes().contains(AttributeFlag.SKIP_FIRST_ARG)) {
+		if (callMth != null && callMth.contains(AFlag.SKIP_FIRST_ARG)) {
 			k++;
 		}
 		int argsCount = insn.getArgsCount();
@@ -662,7 +662,7 @@ public class InsnGen {
 	}
 
 	private boolean inlineMethod(MethodNode callMthNode, InvokeNode insn, CodeWriter code) throws CodegenException {
-		MethodInlineAttr mia = (MethodInlineAttr) callMthNode.getAttributes().get(AttributeType.METHOD_INLINE);
+		MethodInlineAttr mia = callMthNode.get(AType.METHOD_INLINE);
 		if (mia == null) {
 			return false;
 		}
@@ -729,8 +729,7 @@ public class InsnGen {
 
 	private void makeArith(ArithNode insn, CodeWriter code, EnumSet<Flags> state) throws CodegenException {
 		// wrap insn in brackets for save correct operation order
-		boolean wrap = state.contains(Flags.BODY_ONLY)
-				&& !insn.getAttributes().contains(AttributeFlag.DONT_WRAP);
+		boolean wrap = state.contains(Flags.BODY_ONLY) && !insn.contains(AFlag.DONT_WRAP);
 		if (wrap) {
 			code.add('(');
 		}

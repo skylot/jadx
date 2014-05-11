@@ -1,6 +1,6 @@
 package jadx.core.dex.visitors.regions;
 
-import jadx.core.dex.attributes.AttributeFlag;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -22,7 +22,7 @@ public class TernaryMod {
 	}
 
 	static void makeTernaryInsn(MethodNode mth, IfRegion ifRegion) {
-		if (ifRegion.getAttributes().contains(AttributeFlag.ELSE_IF_CHAIN)) {
+		if (ifRegion.contains(AFlag.ELSE_IF_CHAIN)) {
 			return;
 		}
 		IContainer thenRegion = ifRegion.getThenRegion();
@@ -65,8 +65,8 @@ public class TernaryMod {
 				&& t.getType() == InsnType.RETURN && e.getType() == InsnType.RETURN) {
 			InsnList.remove(tb, t);
 			InsnList.remove(eb, e);
-			tb.getAttributes().remove(AttributeFlag.RETURN);
-			eb.getAttributes().remove(AttributeFlag.RETURN);
+			tb.remove(AFlag.RETURN);
+			eb.remove(AFlag.RETURN);
 
 			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(), null, t.getArg(0), e.getArg(0));
 			InsnNode retInsn = new InsnNode(InsnType.RETURN, 1);
@@ -74,7 +74,7 @@ public class TernaryMod {
 
 			header.getInstructions().clear();
 			header.getInstructions().add(retInsn);
-			header.getAttributes().add(AttributeFlag.RETURN);
+			header.add(AFlag.RETURN);
 
 			ifRegion.setTernRegion(new TernaryRegion(ifRegion, header));
 

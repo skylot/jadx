@@ -1,6 +1,6 @@
 package jadx.core.dex.visitors;
 
-import jadx.core.dex.attributes.AttributeFlag;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
@@ -30,7 +30,7 @@ public class CodeShrinker extends AbstractVisitor {
 	}
 
 	public static void shrinkMethod(MethodNode mth) {
-		if (mth.isNoCode() || mth.getAttributes().contains(AttributeFlag.DONT_SHRINK)) {
+		if (mth.isNoCode() || mth.contains(AFlag.DONT_SHRINK)) {
 			return;
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {

@@ -1,5 +1,7 @@
-package jadx.core.dex.attributes;
+package jadx.core.dex.attributes.nodes;
 
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.info.FieldInfo;
 
 public class FieldReplaceAttr implements IAttribute {
@@ -21,8 +23,8 @@ public class FieldReplaceAttr implements IAttribute {
 	}
 
 	@Override
-	public AttributeType getType() {
-		return AttributeType.FIELD_REPLACE;
+	public AType<FieldReplaceAttr> getType() {
+		return AType.FIELD_REPLACE;
 	}
 
 	@Override

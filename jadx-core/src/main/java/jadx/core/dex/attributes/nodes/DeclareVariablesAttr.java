@@ -1,5 +1,7 @@
-package jadx.core.dex.attributes;
+package jadx.core.dex.attributes.nodes;
 
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.utils.Utils;
 
@@ -22,8 +24,8 @@ public class DeclareVariablesAttr implements IAttribute {
 	}
 
 	@Override
-	public AttributeType getType() {
-		return AttributeType.DECLARE_VARIABLES;
+	public AType<DeclareVariablesAttr> getType() {
+		return AType.DECLARE_VARIABLES;
 	}
 
 	@Override

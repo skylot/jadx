@@ -1,5 +1,7 @@
-package jadx.core.dex.attributes;
+package jadx.core.dex.attributes.nodes;
 
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.instructions.PhiInsn;
 
 import java.util.LinkedList;
@@ -10,8 +12,8 @@ public class PhiListAttr implements IAttribute {
 	private final List<PhiInsn> list = new LinkedList<PhiInsn>();
 
 	@Override
-	public AttributeType getType() {
-		return AttributeType.PHI_LIST;
+	public AType<PhiListAttr> getType() {
+		return AType.PHI_LIST;
 	}
 
 	public List<PhiInsn> getList() {

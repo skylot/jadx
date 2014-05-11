@@ -1,6 +1,6 @@
 package jadx.core.dex.visitors.regions;
 
-import jadx.core.dex.attributes.AttributeFlag;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
@@ -26,13 +26,13 @@ public class ProcessReturnInsns extends TracedRegionVisitor {
 			return;
 		}
 		BlockNode block = (BlockNode) container;
-		if (block.getAttributes().contains(AttributeFlag.RETURN)) {
+		if (block.contains(AFlag.RETURN)) {
 			List<InsnNode> insns = block.getInstructions();
 			if (insns.size() == 1
 					&& blockNotInLoop(mth, block)
 					&& noTrailInstructions(block)) {
 				insns.remove(insns.size() - 1);
-				block.getAttributes().remove(AttributeFlag.RETURN);
+				block.remove(AFlag.RETURN);
 			}
 		}
 	}
@@ -68,7 +68,7 @@ public class ProcessReturnInsns extends TracedRegionVisitor {
 					IContainer subBlock = itSubBlock.previous();
 					if (subBlock == curContainer) {
 						break;
-					} else if (!subBlock.getAttributes().contains(AttributeFlag.RETURN)
+					} else if (!subBlock.contains(AFlag.RETURN)
 							&& RegionUtils.notEmpty(subBlock)) {
 						return false;
 					}

@@ -1,6 +1,6 @@
 package jadx.core.dex.nodes.parser;
 
-import jadx.core.dex.attributes.AttributeType;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttribute;
 
 public class FieldValueAttr implements IAttribute {
@@ -12,8 +12,8 @@ public class FieldValueAttr implements IAttribute {
 	}
 
 	@Override
-	public AttributeType getType() {
-		return AttributeType.FIELD_VALUE;
+	public AType<FieldValueAttr> getType() {
+		return AType.FIELD_VALUE;
 	}
 
 	public Object getValue() {

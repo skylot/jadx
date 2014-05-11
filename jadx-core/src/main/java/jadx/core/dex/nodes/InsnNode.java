@@ -1,6 +1,6 @@
 package jadx.core.dex.nodes;
 
-import jadx.core.dex.attributes.LineAttrNode;
+import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;

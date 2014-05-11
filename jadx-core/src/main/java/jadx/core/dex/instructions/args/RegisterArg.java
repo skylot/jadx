@@ -1,6 +1,6 @@
 package jadx.core.dex.instructions.args;
 
-import jadx.core.dex.attributes.AttributeType;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.ConstClassNode;
 import jadx.core.dex.instructions.ConstStringNode;
@@ -15,9 +15,6 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
-
 
 public class RegisterArg extends InsnArg implements Named {
 	private static final Logger LOG = LoggerFactory.getLogger(RegisterArg.class);
@@ -95,7 +92,7 @@ public class RegisterArg extends InsnArg implements Named {
 				FieldInfo f = (FieldInfo) ((IndexInsnNode) parInsn).getIndex();
 				FieldNode fieldNode = dex.resolveField(f);
 				if (fieldNode != null) {
-					FieldValueAttr attr = (FieldValueAttr) fieldNode.getAttributes().get(AttributeType.FIELD_VALUE);
+					FieldValueAttr attr = fieldNode.get(AType.FIELD_VALUE);
 					if (attr != null) {
 						return attr.getValue();
 					}
@@ -186,13 +183,13 @@ public class RegisterArg extends InsnArg implements Named {
 
 	@Override
 	public String toString() {
-		StringBuilder sb=new StringBuilder();
+		StringBuilder sb = new StringBuilder();
 		sb.append("(r");
 		sb.append(regNum);
-		if(sVar!=null){
+		if (sVar != null) {
 			sb.append("_").append(sVar.getVersion());
 		}
-		if(name!=null){
+		if (name != null) {
 			sb.append(" '").append(name).append("'");
 		}
 		sb.append(" ");

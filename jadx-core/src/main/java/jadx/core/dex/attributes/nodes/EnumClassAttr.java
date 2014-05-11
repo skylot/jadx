@@ -1,5 +1,7 @@
-package jadx.core.dex.attributes;
+package jadx.core.dex.attributes.nodes;
 
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -67,8 +69,8 @@ public class EnumClassAttr implements IAttribute {
 	}
 
 	@Override
-	public AttributeType getType() {
-		return AttributeType.ENUM_CLASS;
+	public AType<EnumClassAttr> getType() {
+		return AType.ENUM_CLASS;
 	}
 
 	@Override

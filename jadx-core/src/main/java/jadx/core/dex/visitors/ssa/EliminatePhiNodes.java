@@ -1,7 +1,7 @@
 package jadx.core.dex.visitors.ssa;
 
-import jadx.core.dex.attributes.AttributeType;
-import jadx.core.dex.attributes.PhiListAttr;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
@@ -71,7 +71,7 @@ public class EliminatePhiNodes extends AbstractVisitor {
 
 	private static void removePhiInstructions(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
-			PhiListAttr phiList = (PhiListAttr) block.getAttributes().get(AttributeType.PHI_LIST);
+			PhiListAttr phiList = block.get(AType.PHI_LIST);
 			if (phiList == null) {
 				continue;
 			}

@@ -1,7 +1,7 @@
 package jadx.core.dex.visitors.ssa;
 
-import jadx.core.dex.attributes.AttributeType;
-import jadx.core.dex.attributes.PhiListAttr;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -72,10 +72,10 @@ public class SSATransform extends AbstractVisitor {
 	}
 
 	private void addPhi(BlockNode block, int regNum) {
-		PhiListAttr phiList = (PhiListAttr) block.getAttributes().get(AttributeType.PHI_LIST);
+		PhiListAttr phiList = block.get(AType.PHI_LIST);
 		if (phiList == null) {
 			phiList = new PhiListAttr();
-			block.getAttributes().add(phiList);
+			block.addAttr(phiList);
 		}
 		PhiInsn phiInsn = new PhiInsn(regNum, block.getPredecessors().size());
 		phiList.getList().add(phiInsn);
@@ -118,7 +118,7 @@ public class SSATransform extends AbstractVisitor {
 			}
 		}
 		for (BlockNode s : block.getSuccessors()) {
-			PhiListAttr phiList = (PhiListAttr) s.getAttributes().get(AttributeType.PHI_LIST);
+			PhiListAttr phiList = s.get(AType.PHI_LIST);
 			if (phiList != null) {
 				int j = s.getPredecessors().indexOf(block);
 				if (j == -1) {
@@ -154,7 +154,7 @@ public class SSATransform extends AbstractVisitor {
 			}
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {
-			PhiListAttr phiList = (PhiListAttr) block.getAttributes().get(AttributeType.PHI_LIST);
+			PhiListAttr phiList = block.get(AType.PHI_LIST);
 			if (phiList == null) {
 				continue;
 			}
@@ -194,7 +194,7 @@ public class SSATransform extends AbstractVisitor {
 			return;
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {
-			PhiListAttr phiList = (PhiListAttr) block.getAttributes().get(AttributeType.PHI_LIST);
+			PhiListAttr phiList = block.get(AType.PHI_LIST);
 			if (phiList == null) {
 				continue;
 			}
@@ -208,7 +208,7 @@ public class SSATransform extends AbstractVisitor {
 				}
 			}
 			if (list.isEmpty()) {
-				block.getAttributes().remove(AttributeType.PHI_LIST);
+				block.remove(AType.PHI_LIST);
 			}
 		}
 		insnToRemove.clear();

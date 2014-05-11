@@ -1,6 +1,6 @@
 package jadx.core.utils;
 
-import jadx.core.dex.attributes.AttributeType;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
@@ -60,7 +60,7 @@ public class BlockUtils {
 	private static List<BlockNode> cleanBlockList(List<BlockNode> list) {
 		List<BlockNode> ret = new ArrayList<BlockNode>(list.size());
 		for (BlockNode block : list) {
-			if (!block.getAttributes().contains(AttributeType.EXC_HANDLER)) {
+			if (!block.contains(AType.EXC_HANDLER)) {
 				ret.add(block);
 			}
 		}
@@ -83,7 +83,7 @@ public class BlockUtils {
 	public static void cleanBitSet(MethodNode mth, BitSet bs) {
 		for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
 			BlockNode block = mth.getBasicBlocks().get(i);
-			if (block.getAttributes().contains(AttributeType.EXC_HANDLER)) {
+			if (block.contains(AType.EXC_HANDLER)) {
 				bs.clear(i);
 			}
 		}

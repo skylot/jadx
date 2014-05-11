@@ -1,11 +1,9 @@
 package jadx.core.dex.visitors.regions;
 
 import jadx.core.Consts;
-import jadx.core.dex.attributes.AttributeFlag;
-import jadx.core.dex.attributes.AttributeType;
-import jadx.core.dex.attributes.AttributesList;
-import jadx.core.dex.attributes.IAttribute;
-import jadx.core.dex.attributes.LoopAttr;
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.SwitchNode;
@@ -23,6 +21,7 @@ import jadx.core.dex.regions.LoopRegion;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.regions.SynchronizedRegion;
+import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.ErrorsCounter;
@@ -84,17 +83,14 @@ public class RegionMaker {
 		BlockNode next = null;
 		boolean processed = false;
 
-		AttributesList attrs = block.getAttributes();
-		int loopCount = attrs.getCount(AttributeType.LOOP);
-		if (loopCount != 0 && attrs.contains(AttributeFlag.LOOP_START)) {
+		List<LoopInfo> loops = block.getAll(AType.LOOP);
+		int loopCount = loops.size();
+		if (loopCount != 0 && block.contains(AFlag.LOOP_START)) {
 			if (loopCount == 1) {
-				LoopAttr loop = (LoopAttr) attrs.get(AttributeType.LOOP);
-				next = processLoop(r, loop, stack);
+				next = processLoop(r, loops.get(0), stack);
 				processed = true;
 			} else {
-				List<IAttribute> loops = attrs.getAll(AttributeType.LOOP);
-				for (IAttribute a : loops) {
-					LoopAttr loop = (LoopAttr) a;
+				for (LoopInfo loop : loops) {
 					if (loop.getStart() == block) {
 						next = processLoop(r, loop, stack);
 						processed = true;
@@ -140,7 +136,7 @@ public class RegionMaker {
 		}
 	}
 
-	private BlockNode processLoop(IRegion curRegion, LoopAttr loop, RegionStack stack) {
+	private BlockNode processLoop(IRegion curRegion, LoopInfo loop, RegionStack stack) {
 		BlockNode loopStart = loop.getStart();
 		Set<BlockNode> exitBlocksSet = loop.getExitNodes();
 
@@ -170,7 +166,7 @@ public class RegionMaker {
 		BlockNode bThen = null;
 
 		for (BlockNode exit : exitBlocks) {
-			if (exit.getAttributes().contains(AttributeType.EXC_HANDLER)
+			if (exit.contains(AType.EXC_HANDLER)
 					|| exit.getInstructions().size() != 1) {
 				continue;
 			}
@@ -255,19 +251,18 @@ public class RegionMaker {
 			BlockNode bElse = ifnode.getElseBlock();
 			out = (bThen == loopStart ? bElse : bThen);
 
-			loopStart.getAttributes().remove(AttributeType.LOOP);
+			loopStart.remove(AType.LOOP);
 
 			stack.addExit(loop.getEnd());
 			loopRegion.setBody(makeRegion(loopStart, stack));
-			loopStart.getAttributes().add(loop);
+			loopStart.addAttr(AType.LOOP, loop);
 		} else {
 			if (bThen != loopBody) {
 				loopRegion.setCondition(IfCondition.invert(loopRegion.getCondition()));
 			}
 			out = selectOther(loopBody, condBlock.getSuccessors());
-			AttributesList outAttrs = out.getAttributes();
-			if (outAttrs.contains(AttributeFlag.LOOP_START)
-					&& outAttrs.get(AttributeType.LOOP) != loop
+			if (out.contains(AFlag.LOOP_START)
+					&& !out.getAll(AType.LOOP).contains(loop)
 					&& stack.peekRegion() instanceof LoopRegion) {
 				LoopRegion outerLoop = (LoopRegion) stack.peekRegion();
 				boolean notYetProcessed = outerLoop.getBody() == null;
@@ -283,12 +278,12 @@ public class RegionMaker {
 		return out;
 	}
 
-	private BlockNode makeEndlessLoop(IRegion curRegion, RegionStack stack, LoopAttr loop, BlockNode loopStart) {
+	private BlockNode makeEndlessLoop(IRegion curRegion, RegionStack stack, LoopInfo loop, BlockNode loopStart) {
 		LoopRegion loopRegion;
 		loopRegion = new LoopRegion(curRegion, null, false);
 		curRegion.getSubBlocks().add(loopRegion);
 
-		loopStart.getAttributes().remove(AttributeType.LOOP);
+		loopStart.remove(AType.LOOP);
 		stack.push(loopRegion);
 		Region body = makeRegion(loopStart, stack);
 		if (!RegionUtils.isRegionContainsBlock(body, loop.getEnd())) {
@@ -296,7 +291,7 @@ public class RegionMaker {
 		}
 		loopRegion.setBody(body);
 		stack.pop();
-		loopStart.getAttributes().add(loop);
+		loopStart.addAttr(AType.LOOP, loop);
 
 		BlockNode next = BlockUtils.getNextBlock(loop.getEnd());
 		return RegionUtils.isRegionContainsBlock(body, next) ? null : next;
@@ -308,7 +303,7 @@ public class RegionMaker {
 		while (exit != null) {
 			if (prev != null && isPathExists(loopExit, exit)) {
 				// found cross
-				if (!exit.getAttributes().contains(AttributeFlag.RETURN)) {
+				if (!exit.contains(AFlag.RETURN)) {
 					prev.getInstructions().add(new InsnNode(InsnType.BREAK, 0));
 					stack.addExit(exit);
 				}
@@ -399,7 +394,7 @@ public class RegionMaker {
 	}
 
 	private BlockNode processIf(IRegion currentRegion, BlockNode block, IfNode ifnode, RegionStack stack) {
-		if (block.getAttributes().contains(AttributeFlag.SKIP)) {
+		if (block.contains(AFlag.SKIP)) {
 			// block already included in other 'if' region
 			return ifnode.getThenBlock();
 		}
@@ -526,7 +521,7 @@ public class RegionMaker {
 		if (merged != null) {
 			merged.add(nestedIfBlock);
 		}
-		nestedIfBlock.getAttributes().add(AttributeFlag.SKIP);
+		nestedIfBlock.add(AFlag.SKIP);
 		BlockNode blockToNestedIfBlock = BlockUtils.getNextBlockToPath(ifBlock, nestedIfBlock);
 		skipSimplePath(BlockUtils.selectOther(blockToNestedIfBlock, ifBlock.getCleanSuccessors()));
 
@@ -555,7 +550,7 @@ public class RegionMaker {
 	}
 
 	private static BlockNode getIfNode(BlockNode block) {
-		if (block != null && !block.getAttributes().contains(AttributeType.LOOP)) {
+		if (block != null && !block.contains(AType.LOOP)) {
 			List<InsnNode> insns = block.getInstructions();
 			if (insns.size() == 1 && insns.get(0).getType() == InsnType.IF) {
 				return block;
@@ -699,15 +694,15 @@ public class RegionMaker {
 		// TODO add blocks common for several handlers to some region
 		handler.setHandlerRegion(makeRegion(start, stack));
 
-		IAttribute excHandlerAttr = start.getAttributes().get(AttributeType.EXC_HANDLER);
-		handler.getHandlerRegion().getAttributes().add(excHandlerAttr);
+		ExcHandlerAttr excHandlerAttr = start.get(AType.EXC_HANDLER);
+		handler.getHandlerRegion().addAttr(excHandlerAttr);
 	}
 
 	private void skipSimplePath(BlockNode block) {
 		while (block != null
 				&& block.getCleanSuccessors().size() < 2
 				&& block.getPredecessors().size() == 1) {
-			block.getAttributes().add(AttributeFlag.SKIP);
+			block.add(AFlag.SKIP);
 			block = BlockUtils.getNextBlock(block);
 		}
 	}

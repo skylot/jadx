@@ -1,6 +1,6 @@
 package jadx.core.dex.attributes.annotations;
 
-import jadx.core.dex.attributes.AttributeType;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttribute;
 import jadx.core.utils.Utils;
 
@@ -33,8 +33,8 @@ public class AnnotationsList implements IAttribute {
 	}
 
 	@Override
-	public AttributeType getType() {
-		return AttributeType.ANNOTATION_LIST;
+	public AType<AnnotationsList> getType() {
+		return AType.ANNOTATION_LIST;
 	}
 
 	@Override

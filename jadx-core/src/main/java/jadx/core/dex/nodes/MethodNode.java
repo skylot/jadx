@@ -1,9 +1,10 @@
 package jadx.core.dex.nodes;
 
-import jadx.core.dex.attributes.AttributeFlag;
-import jadx.core.dex.attributes.JumpAttribute;
-import jadx.core.dex.attributes.LineAttrNode;
-import jadx.core.dex.attributes.LoopAttr;
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.JumpInfo;
+import jadx.core.dex.attributes.nodes.LineAttrNode;
+import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.AccessInfo.AFType;
 import jadx.core.dex.info.ClassInfo;
@@ -65,7 +66,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 
 	private Region region;
 	private List<ExceptionHandler> exceptionHandlers = Collections.emptyList();
-	private List<LoopAttr> loops = Collections.emptyList();
+	private List<LoopInfo> loops = Collections.emptyList();
 
 	public MethodNode(ClassNode classNode, Method mthData) {
 		this.mthInfo = MethodInfo.fromDex(classNode.dex(), mthData.getMethodIndex());
@@ -224,7 +225,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 	}
 
 	public RegisterArg removeFirstArgument() {
-		this.getAttributes().add(AttributeFlag.SKIP_FIRST_ARG);
+		this.add(AFlag.SKIP_FIRST_ARG);
 		return argsList.remove(0);
 	}
 
@@ -288,24 +289,24 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 				int addr = eh.getHandleOffset();
 				// assert addrs.add(addr) : "Instruction already contains EXC_HANDLER attribute";
 				ExcHandlerAttr ehAttr = new ExcHandlerAttr(ct, eh);
-				insnByOffset[addr].getAttributes().add(ehAttr);
+				insnByOffset[addr].addAttr(ehAttr);
 			}
 		}
 
 		// attach TRY_ENTER, TRY_LEAVE attributes to instructions
 		for (Try aTry : tries) {
 			int catchNum = aTry.getCatchHandlerIndex();
-			TryCatchBlock block = catches.get(catchNum);
+			TryCatchBlock catchBlock = catches.get(catchNum);
 			int offset = aTry.getStartAddress();
 			int end = offset + aTry.getInstructionCount() - 1;
 
-			insnByOffset[offset].getAttributes().add(AttributeFlag.TRY_ENTER);
+			insnByOffset[offset].add(AFlag.TRY_ENTER);
 			while (offset <= end && offset >= 0) {
-				block.addInsn(insnByOffset[offset]);
+				catchBlock.addInsn(insnByOffset[offset]);
 				offset = InsnDecoder.getNextInsnOffset(insnByOffset, offset);
 			}
 			if (insnByOffset[end] != null) {
-				insnByOffset[end].getAttributes().add(AttributeFlag.TRY_LEAVE);
+				insnByOffset[end].add(AFlag.TRY_LEAVE);
 			}
 		}
 	}
@@ -346,7 +347,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 	}
 
 	private static void addJump(InsnNode[] insnByOffset, int offset, int target) {
-		insnByOffset[target].getAttributes().add(new JumpAttribute(offset, target));
+		insnByOffset[target].addAttr(AType.JUMP, new JumpInfo(offset, target));
 	}
 
 	public String getName() {
@@ -411,15 +412,15 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		this.exitBlocks.add(exitBlock);
 	}
 
-	public void registerLoop(LoopAttr loop) {
+	public void registerLoop(LoopInfo loop) {
 		if (loops.isEmpty()) {
-			loops = new ArrayList<LoopAttr>(5);
+			loops = new ArrayList<LoopInfo>(5);
 		}
 		loops.add(loop);
 	}
 
-	public LoopAttr getLoopForBlock(BlockNode block) {
-		for (LoopAttr loop : loops) {
+	public LoopInfo getLoopForBlock(BlockNode block) {
+		for (LoopInfo loop : loops) {
 			if (loop.getLoopBlocks().contains(block)) {
 				return loop;
 			}

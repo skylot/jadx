@@ -35,7 +35,7 @@ public class SignatureParser {
 
 	@SuppressWarnings("unchecked")
 	public static SignatureParser fromNode(IAttributeNode node) {
-		Annotation a = node.getAttributes().getAnnotation(Consts.DALVIK_SIGNATURE);
+		Annotation a = node.getAnnotation(Consts.DALVIK_SIGNATURE);
 		if (a == null) {
 			return null;
 		}

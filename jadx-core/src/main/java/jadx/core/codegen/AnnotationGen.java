@@ -1,7 +1,7 @@
 package jadx.core.codegen;
 
 import jadx.core.Consts;
-import jadx.core.dex.attributes.AttributeType;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.attributes.annotations.Annotation;
 import jadx.core.dex.attributes.annotations.AnnotationsList;
@@ -53,7 +53,7 @@ public class AnnotationGen {
 	}
 
 	private void add(IAttributeNode node, CodeWriter code) {
-		AnnotationsList aList = (AnnotationsList) node.getAttributes().get(AttributeType.ANNOTATION_LIST);
+		AnnotationsList aList = node.get(AType.ANNOTATION_LIST);
 		if (aList == null || aList.size() == 0) {
 			return;
 		}
@@ -96,7 +96,7 @@ public class AnnotationGen {
 
 	@SuppressWarnings("unchecked")
 	public void addThrows(MethodNode mth, CodeWriter code) {
-		Annotation an = mth.getAttributes().getAnnotation(Consts.DALVIK_THROWS);
+		Annotation an = mth.getAnnotation(Consts.DALVIK_THROWS);
 		if (an != null) {
 			Object exs = an.getDefaultValue();
 			code.add(" throws ");
@@ -111,7 +111,7 @@ public class AnnotationGen {
 	}
 
 	public Object getAnnotationDefaultValue(String name) {
-		Annotation an = cls.getAttributes().getAnnotation(Consts.DALVIK_ANNOTATION_DEFAULT);
+		Annotation an = cls.getAnnotation(Consts.DALVIK_ANNOTATION_DEFAULT);
 		if (an != null) {
 			Annotation defAnnotation = (Annotation) an.getDefaultValue();
 			return defAnnotation.getValues().get(name);

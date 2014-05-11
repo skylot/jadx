@@ -37,12 +37,16 @@ class CodePanel extends JPanel {
 		add(scrollPane);
 
 		KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK);
-		Utils.addKeyBinding(codeArea, key, "SearchAction", new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				searchBar.toggle();
-			}
-		});
+		Utils.addKeyBinding(codeArea, key, "SearchAction", new SearchAction());
+	}
+
+	private class SearchAction extends AbstractAction {
+		private static final long serialVersionUID = 8650568214755387093L;
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			searchBar.toggle();
+		}
 	}
 
 	TabbedPane getCodePanel() {

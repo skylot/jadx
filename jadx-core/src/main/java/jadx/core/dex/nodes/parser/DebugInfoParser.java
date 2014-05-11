@@ -1,6 +1,6 @@
 package jadx.core.dex.nodes.parser;
 
-import jadx.core.dex.attributes.SourceFileAttr;
+import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.DexNode;
@@ -135,7 +135,7 @@ public class DebugInfoParser {
 					int idx = section.readUleb128() - 1;
 					if (idx != DexNode.NO_INDEX) {
 						String sourceFile = dex.getString(idx);
-						mth.getAttributes().add(new SourceFileAttr(sourceFile));
+						mth.addAttr(new SourceFileAttr(sourceFile));
 					}
 					break;
 				}

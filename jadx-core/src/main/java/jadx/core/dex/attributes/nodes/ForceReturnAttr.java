@@ -1,5 +1,7 @@
-package jadx.core.dex.attributes;
+package jadx.core.dex.attributes.nodes;
 
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.Utils;
 
@@ -16,8 +18,8 @@ public class ForceReturnAttr implements IAttribute {
 	}
 
 	@Override
-	public AttributeType getType() {
-		return AttributeType.FORCE_RETURN;
+	public AType<ForceReturnAttr> getType() {
+		return AType.FORCE_RETURN;
 	}
 
 	@Override

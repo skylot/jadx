@@ -1,6 +1,6 @@
 package jadx.core.dex.visitors;
 
-import jadx.core.dex.attributes.AttributeFlag;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
 import jadx.core.dex.instructions.InsnType;
@@ -67,7 +67,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 					&& insn.getArg(0).isInsnWrap()) {
 				InsnNode wrapInsn = ((InsnWrapArg) insn.getArg(0)).getWrapInsn();
 				wrapInsn.setResult(insn.getResult());
-				wrapInsn.getAttributes().addAll(insn.getAttributes());
+				wrapInsn.copyAttributesFrom(insn);
 				list.set(i, wrapInsn);
 			}
 		}
@@ -92,7 +92,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 					InsnArg arg = arith.getArg(i);
 					if (arg.isInsnWrap()) {
 						InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
-						wrapInsn.getAttributes().add(AttributeFlag.DONT_WRAP);
+						wrapInsn.add(AFlag.DONT_WRAP);
 						checkInsn(wrapInsn);
 					}
 				}

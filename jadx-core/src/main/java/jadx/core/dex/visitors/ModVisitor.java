@@ -1,7 +1,7 @@
 package jadx.core.dex.visitors;
 
 import jadx.core.deobf.NameMapper;
-import jadx.core.dex.attributes.AttributeType;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.ConstClassNode;
 import jadx.core.dex.instructions.ConstStringNode;
@@ -47,7 +47,7 @@ public class ModVisitor extends AbstractVisitor {
 		checkArgsNames(mth);
 
 		for (BlockNode block : mth.getBasicBlocks()) {
-			processExceptionHander(mth, block);
+			processExceptionHandler(mth, block);
 		}
 	}
 
@@ -194,8 +194,8 @@ public class ModVisitor extends AbstractVisitor {
 		}
 	}
 
-	private static void processExceptionHander(MethodNode mth, BlockNode block) {
-		ExcHandlerAttr handlerAttr = (ExcHandlerAttr) block.getAttributes().get(AttributeType.EXC_HANDLER);
+	private static void processExceptionHandler(MethodNode mth, BlockNode block) {
+		ExcHandlerAttr handlerAttr = block.get(AType.EXC_HANDLER);
 		if (handlerAttr == null) {
 			return;
 		}
@@ -249,7 +249,7 @@ public class ModVisitor extends AbstractVisitor {
 	 */
 	private static void replaceInsn(BlockNode block, int i, InsnNode insn) {
 		InsnNode prevInsn = block.getInstructions().get(i);
-		insn.getAttributes().addAll(prevInsn.getAttributes());
+		insn.copyAttributesFrom(prevInsn);
 		block.getInstructions().set(i, insn);
 	}
 

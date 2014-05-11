@@ -2,11 +2,11 @@ package jadx.core.dex.nodes;
 
 import jadx.core.Consts;
 import jadx.core.codegen.CodeWriter;
-import jadx.core.dex.attributes.AttributeType;
-import jadx.core.dex.attributes.JadxErrorAttr;
-import jadx.core.dex.attributes.LineAttrNode;
-import jadx.core.dex.attributes.SourceFileAttr;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.annotations.Annotation;
+import jadx.core.dex.attributes.nodes.JadxErrorAttr;
+import jadx.core.dex.attributes.nodes.LineAttrNode;
+import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.AccessInfo.AFType;
 import jadx.core.dex.info.ClassInfo;
@@ -106,14 +106,14 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 				String fileName = dex.getString(sfIdx);
 				if (!this.getFullName().contains(fileName.replace(".java", ""))
 						&& !fileName.equals("SourceFile")) {
-					this.getAttributes().add(new SourceFileAttr(fileName));
+					this.addAttr(new SourceFileAttr(fileName));
 					LOG.debug("Class '{}' compiled from '{}'", this, fileName);
 				}
 			}
 
 			// restore original access flags from dalvik annotation if present
 			int accFlagsValue;
-			Annotation a = getAttributes().getAnnotation(Consts.DALVIK_INNER_CLASS);
+			Annotation a = getAnnotation(Consts.DALVIK_INNER_CLASS);
 			if (a != null) {
 				accFlagsValue = (Integer) a.getValues().get("accessFlags");
 			} else {
@@ -140,8 +140,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 	private void loadStaticValues(ClassDef cls, List<FieldNode> staticFields) throws DecodeException {
 		for (FieldNode f : staticFields) {
 			if (f.getAccessFlags().isFinal()) {
-				FieldValueAttr nullValue = new FieldValueAttr(null);
-				f.getAttributes().add(nullValue);
+				f.addAttr(new FieldValueAttr(null));
 			}
 		}
 
@@ -153,7 +152,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 			for (FieldNode f : staticFields) {
 				AccessInfo accFlags = f.getAccessFlags();
 				if (accFlags.isStatic() && accFlags.isFinal()) {
-					FieldValueAttr fv = (FieldValueAttr) f.getAttributes().get(AttributeType.FIELD_VALUE);
+					FieldValueAttr fv = f.get(AType.FIELD_VALUE);
 					if (fv != null && fv.getValue() != null) {
 						if (accFlags.isPublic()) {
 							dex.getConstFields().put(fv.getValue(), f);
@@ -212,7 +211,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 				mth.load();
 			} catch (DecodeException e) {
 				LOG.error("Method load error", e);
-				mth.getAttributes().add(new JadxErrorAttr(e));
+				mth.addAttr(new JadxErrorAttr(e));
 			}
 		}
 		for (ClassNode innerCls : getInnerClasses()) {

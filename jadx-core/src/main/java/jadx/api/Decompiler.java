@@ -9,6 +9,7 @@ import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.SaveCode;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.DecodeException;
+import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.InputFile;
 
@@ -22,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -72,23 +72,34 @@ public final class Decompiler {
 	}
 
 	void init() {
+		reset();
 		if (outDir == null) {
 			outDir = new File("jadx-output");
 		}
 		this.passes = Jadx.getPassesList(args, outDir);
 	}
 
-	public void loadFile(File file) throws IOException, DecodeException {
+	void reset() {
+		ClassInfo.clearCache();
+		ErrorsCounter.reset();
+		classes = null;
+	}
+
+	public void loadFile(File file) throws JadxException {
 		loadFiles(Collections.singletonList(file));
 	}
 
-	public void loadFiles(List<File> files) throws IOException, DecodeException {
+	public void loadFiles(List<File> files) throws JadxException {
 		if (files.isEmpty()) {
-			throw new JadxRuntimeException("Empty file list");
+			throw new JadxException("Empty file list");
 		}
 		inputFiles.clear();
 		for (File file : files) {
-			inputFiles.add(new InputFile(file));
+			try {
+				inputFiles.add(new InputFile(file));
+			} catch (IOException e) {
+				throw new JadxException("Error load file: " + file, e);
+			}
 		}
 		parse();
 	}
@@ -99,11 +110,11 @@ public final class Decompiler {
 			ex.shutdown();
 			ex.awaitTermination(1, TimeUnit.DAYS);
 		} catch (InterruptedException e) {
-			LOG.error("Save interrupted", e);
+			throw new JadxRuntimeException("Save interrupted", e);
 		}
 	}
 
-	public ThreadPoolExecutor getSaveExecutor() {
+	public ExecutorService getSaveExecutor() {
 		if (root == null) {
 			throw new JadxRuntimeException("No loaded files");
 		}
@@ -111,7 +122,7 @@ public final class Decompiler {
 		LOG.debug("processing threads count: {}", threadsCount);
 
 		LOG.info("processing ...");
-		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadsCount);
+		ExecutorService executor = Executors.newFixedThreadPool(threadsCount);
 		for (final JavaClass cls : getClasses()) {
 			executor.execute(new Runnable() {
 				@Override
@@ -125,6 +136,9 @@ public final class Decompiler {
 	}
 
 	public List<JavaClass> getClasses() {
+		if (root == null) {
+			return Collections.emptyList();
+		}
 		if (classes == null) {
 			List<ClassNode> classNodeList = root.getClasses(false);
 			List<JavaClass> clsList = new ArrayList<JavaClass>(classNodeList.size());
@@ -137,8 +151,12 @@ public final class Decompiler {
 	}
 
 	public List<JavaPackage> getPackages() {
+		List<JavaClass> classList = getClasses();
+		if (classList.isEmpty()) {
+			return Collections.emptyList();
+		}
 		Map<String, List<JavaClass>> map = new HashMap<String, List<JavaClass>>();
-		for (JavaClass javaClass : getClasses()) {
+		for (JavaClass javaClass : classList) {
 			String pkg = javaClass.getPackage();
 			List<JavaClass> clsList = map.get(pkg);
 			if (clsList == null) {
@@ -174,12 +192,6 @@ public final class Decompiler {
 		root.load(inputFiles);
 	}
 
-	private void reset() {
-		ClassInfo.clearCache();
-		ErrorsCounter.reset();
-		classes = null;
-	}
-
 	void processClass(ClassNode cls) {
 		ProcessClass.process(cls, passes);
 	}
@@ -198,5 +210,10 @@ public final class Decompiler {
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public String toString() {
+		return "jadx decompiler";
 	}
 }

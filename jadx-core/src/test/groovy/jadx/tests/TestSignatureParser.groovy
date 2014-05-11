@@ -1,4 +1,5 @@
 package jadx.tests
+
 import jadx.core.dex.instructions.args.ArgType
 import jadx.core.dex.nodes.parser.SignatureParser
 import spock.lang.Specification

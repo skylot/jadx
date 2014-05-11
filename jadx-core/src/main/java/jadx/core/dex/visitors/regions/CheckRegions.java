@@ -1,7 +1,7 @@
 package jadx.core.dex.visitors.regions;
 
-import jadx.core.dex.attributes.AttributeFlag;
-import jadx.core.dex.attributes.AttributeType;
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IRegion;
@@ -24,7 +24,7 @@ public class CheckRegions extends AbstractVisitor {
 	public void visit(MethodNode mth) throws JadxException {
 		if (mth.isNoCode()
 				|| mth.getBasicBlocks().isEmpty()
-				|| mth.getAttributes().contains(AttributeType.JADX_ERROR)) {
+				|| mth.contains(AType.JADX_ERROR)) {
 			return;
 		}
 
@@ -44,8 +44,8 @@ public class CheckRegions extends AbstractVisitor {
 			for (BlockNode block : mth.getBasicBlocks()) {
 				if (!blocksInRegions.contains(block)
 						&& !block.getInstructions().isEmpty()
-						&& !block.getAttributes().contains(AttributeFlag.SKIP)) {
-					mth.getAttributes().add(AttributeFlag.INCONSISTENT_CODE);
+						&& !block.contains(AFlag.SKIP)) {
+					mth.add(AFlag.INCONSISTENT_CODE);
 					LOG.debug(" Missing block: {} in {}", block, mth);
 				}
 			}
@@ -60,7 +60,7 @@ public class CheckRegions extends AbstractVisitor {
 					BlockNode loopHeader = loop.getHeader();
 					if (loopHeader != null && loopHeader.getInstructions().size() != 1) {
 						ErrorsCounter.methodError(mth, "Incorrect condition in loop: " + loopHeader);
-						mth.getAttributes().add(AttributeFlag.INCONSISTENT_CODE);
+						mth.add(AFlag.INCONSISTENT_CODE);
 					}
 				}
 			}

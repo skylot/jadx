@@ -1,6 +1,6 @@
 package jadx.core.dex.attributes;
 
-public enum AttributeFlag {
+public enum AFlag {
 	TRY_ENTER,
 	TRY_LEAVE,
 

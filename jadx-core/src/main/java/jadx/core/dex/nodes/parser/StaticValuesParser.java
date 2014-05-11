@@ -19,7 +19,7 @@ public class StaticValuesParser extends EncValueParser {
 		int count = Leb128.readUnsignedLeb128(in);
 		for (int i = 0; i < count; i++) {
 			Object value = parseValue();
-			fields.get(i).getAttributes().add(new FieldValueAttr(value));
+			fields.get(i).addAttr(new FieldValueAttr(value));
 		}
 		return count;
 	}

@@ -1,7 +1,6 @@
 package jadx.core.dex.trycatch;
 
-import jadx.core.dex.attributes.AttributeType;
-import jadx.core.dex.attributes.IAttribute;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBlock;
@@ -63,7 +62,7 @@ public class TryCatchBlock {
 		if (finalBlock != null) {
 			// search catch attr
 			for (BlockNode block : mth.getBasicBlocks()) {
-				CatchAttr cb = (CatchAttr) block.getAttributes().get(AttributeType.CATCH_BLOCK);
+				CatchAttr cb = block.get(AType.CATCH_BLOCK);
 				if (cb == attr) {
 					for (ExceptionHandler eh : mth.getExceptionHandlers()) {
 						if (eh.getBlocks().contains(block)) {
@@ -76,23 +75,23 @@ public class TryCatchBlock {
 		} else {
 			// self destruction
 			for (InsnNode insn : insns) {
-				insn.getAttributes().remove(attr);
+				insn.removeAttr(attr);
 			}
 			insns.clear();
 			for (BlockNode block : mth.getBasicBlocks()) {
-				block.getAttributes().remove(attr);
+				block.removeAttr(attr);
 			}
 		}
 	}
 
 	public void addInsn(InsnNode insn) {
 		insns.add(insn);
-		insn.getAttributes().add(attr);
+		insn.addAttr(attr);
 	}
 
 	public void removeInsn(InsnNode insn) {
 		insns.remove(insn);
-		insn.getAttributes().remove(attr.getType());
+		insn.remove(AType.CATCH_BLOCK);
 	}
 
 	public Iterable<InsnNode> getInsns() {
@@ -125,7 +124,7 @@ public class TryCatchBlock {
 		}
 		// remove from blocks with this catch
 		for (BlockNode b : mth.getBasicBlocks()) {
-			IAttribute ca = b.getAttributes().get(AttributeType.CATCH_BLOCK);
+			CatchAttr ca = b.get(AType.CATCH_BLOCK);
 			if (attr == ca) {
 				b.getInstructions().removeAll(finalBlockInsns);
 			}

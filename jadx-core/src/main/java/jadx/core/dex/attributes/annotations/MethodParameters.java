@@ -1,6 +1,6 @@
 package jadx.core.dex.attributes.annotations;
 
-import jadx.core.dex.attributes.AttributeType;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttribute;
 import jadx.core.utils.Utils;
 
@@ -20,8 +20,8 @@ public class MethodParameters implements IAttribute {
 	}
 
 	@Override
-	public AttributeType getType() {
-		return AttributeType.ANNOTATION_MTH_PARAMETERS;
+	public AType<MethodParameters> getType() {
+		return AType.ANNOTATION_MTH_PARAMETERS;
 	}
 
 	@Override

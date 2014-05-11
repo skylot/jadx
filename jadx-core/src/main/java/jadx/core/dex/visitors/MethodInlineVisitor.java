@@ -1,8 +1,7 @@
 package jadx.core.dex.visitors;
 
-import jadx.core.dex.attributes.AttributeFlag;
-import jadx.core.dex.attributes.AttributesList;
-import jadx.core.dex.attributes.MethodInlineAttr;
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.nodes.MethodInlineAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.BlockNode;
@@ -23,7 +22,7 @@ public class MethodInlineVisitor extends AbstractVisitor {
 				&& mth.getBasicBlocks().size() == 2) {
 			BlockNode block = mth.getBasicBlocks().get(1);
 			if (block.getInstructions().isEmpty()
-					|| block.getAttributes().contains(AttributeFlag.RETURN)) {
+					|| block.contains(AFlag.RETURN)) {
 				inlineMth(mth);
 			}
 		}
@@ -48,8 +47,7 @@ public class MethodInlineVisitor extends AbstractVisitor {
 	}
 
 	private static void addInlineAttr(MethodNode mth, InsnNode insn) {
-		AttributesList attributes = mth.getAttributes();
-		attributes.add(new MethodInlineAttr(insn));
-		attributes.add(AttributeFlag.DONT_GENERATE);
+		mth.addAttr(new MethodInlineAttr(insn));
+		mth.add(AFlag.DONT_GENERATE);
 	}
 }

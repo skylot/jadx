@@ -1,6 +1,6 @@
 package jadx.core.dex.visitors.regions;
 
-import jadx.core.dex.attributes.AttributeFlag;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
@@ -94,11 +94,11 @@ public class IfRegionVisitor extends AbstractVisitor implements IRegionVisitor, 
 		IContainer elsRegion = ifRegion.getElseRegion();
 		if (elsRegion != null) {
 			if (elsRegion instanceof IfRegion) {
-				elsRegion.getAttributes().add(AttributeFlag.ELSE_IF_CHAIN);
+				elsRegion.add(AFlag.ELSE_IF_CHAIN);
 			} else if (elsRegion instanceof Region) {
 				List<IContainer> subBlocks = ((Region) elsRegion).getSubBlocks();
 				if (subBlocks.size() == 1 && subBlocks.get(0) instanceof IfRegion) {
-					subBlocks.get(0).getAttributes().add(AttributeFlag.ELSE_IF_CHAIN);
+					subBlocks.get(0).add(AFlag.ELSE_IF_CHAIN);
 				}
 			}
 		}
@@ -115,13 +115,13 @@ public class IfRegionVisitor extends AbstractVisitor implements IRegionVisitor, 
 		if (region == null) {
 			return false;
 		}
-		if (region.getAttributes().contains(AttributeFlag.RETURN)) {
+		if (region.contains(AFlag.RETURN)) {
 			return true;
 		}
 		if (region instanceof IRegion) {
 			List<IContainer> subBlocks = ((IRegion) region).getSubBlocks();
 			if (subBlocks.size() == 1
-					&& subBlocks.get(0).getAttributes().contains(AttributeFlag.RETURN)) {
+					&& subBlocks.get(0).contains(AFlag.RETURN)) {
 				return true;
 			}
 		}

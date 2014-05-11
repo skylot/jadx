@@ -1,5 +1,7 @@
-package jadx.core.dex.attributes;
+package jadx.core.dex.attributes.nodes;
 
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.IAttribute;
 import jadx.core.utils.Utils;
 
 public class JadxErrorAttr implements IAttribute {
@@ -15,8 +17,8 @@ public class JadxErrorAttr implements IAttribute {
 	}
 
 	@Override
-	public AttributeType getType() {
-		return AttributeType.JADX_ERROR;
+	public AType<JadxErrorAttr> getType() {
+		return AType.JADX_ERROR;
 	}
 
 	@Override

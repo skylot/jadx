@@ -1,9 +1,9 @@
 package jadx.core.dex.visitors;
 
 import jadx.core.codegen.TypeGen;
-import jadx.core.dex.attributes.AttributeFlag;
-import jadx.core.dex.attributes.EnumClassAttr;
-import jadx.core.dex.attributes.EnumClassAttr.EnumField;
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.nodes.EnumClassAttr;
+import jadx.core.dex.attributes.nodes.EnumClassAttr.EnumField;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
@@ -77,12 +77,12 @@ public class EnumVisitor extends AbstractVisitor {
 		}
 
 		EnumClassAttr attr = new EnumClassAttr(enumFields.size());
-		cls.getAttributes().add(attr);
+		cls.addAttr(attr);
 
 		if (staticMethod == null) {
 			LOG.warn("Enum class init method not found: {}", cls);
 			// for this broken enum puts found fields and mark as inconsistent
-			cls.getAttributes().add(AttributeFlag.INCONSISTENT_CODE);
+			cls.add(AFlag.INCONSISTENT_CODE);
 			for (FieldNode field : enumFields) {
 				attr.getFields().add(new EnumField(field.getName(), 0));
 			}
@@ -166,7 +166,7 @@ public class EnumVisitor extends AbstractVisitor {
 								}
 							}
 							field.setCls(innerCls);
-							innerCls.getAttributes().add(AttributeFlag.DONT_GENERATE);
+							innerCls.add(AFlag.DONT_GENERATE);
 						}
 					}
 				}

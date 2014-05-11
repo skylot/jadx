@@ -1,4 +1,7 @@
-package jadx.core.dex.attributes;
+package jadx.core.dex.attributes.nodes;
+
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.IAttribute;
 
 public class SourceFileAttr implements IAttribute {
 
@@ -13,8 +16,8 @@ public class SourceFileAttr implements IAttribute {
 	}
 
 	@Override
-	public AttributeType getType() {
-		return AttributeType.SOURCE_FILE;
+	public AType<SourceFileAttr> getType() {
+		return AType.SOURCE_FILE;
 	}
 
 	@Override

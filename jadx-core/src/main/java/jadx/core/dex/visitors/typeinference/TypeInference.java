@@ -1,6 +1,6 @@
 package jadx.core.dex.visitors.typeinference;
 
-import jadx.core.dex.attributes.AttributeFlag;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -61,7 +61,7 @@ public class TypeInference extends AbstractVisitor {
 			if (useType.isTypeKnown()) {
 				type = ArgType.merge(type, useType);
 			}
-			if (arg.getParentInsn().getAttributes().contains(AttributeFlag.INCONSISTENT_CODE)) {
+			if (arg.getParentInsn().contains(AFlag.INCONSISTENT_CODE)) {
 				throw new JadxRuntimeException("not removed arg");
 			}
 		}

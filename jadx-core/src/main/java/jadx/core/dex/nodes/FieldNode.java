@@ -1,6 +1,6 @@
 package jadx.core.dex.nodes;
 
-import jadx.core.dex.attributes.LineAttrNode;
+import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.AccessInfo.AFType;
 import jadx.core.dex.info.FieldInfo;

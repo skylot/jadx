@@ -23,43 +23,54 @@ public class InputFile {
 	private final Dex dexBuf;
 
 	public InputFile(File file) throws IOException, DecodeException {
-		this.file = file;
 		if (!file.exists()) {
 			throw new IOException("File not found: " + file.getAbsolutePath());
 		}
-		String fileName = file.getName();
+		this.file = file;
+		this.dexBuf = loadDexBuffer();
+	}
 
+	private Dex loadDexBuffer() throws IOException, DecodeException {
+		String fileName = file.getName();
 		if (fileName.endsWith(".dex")) {
-			this.dexBuf = new Dex(file);
-		} else if (fileName.endsWith(".apk")) {
-			this.dexBuf = new Dex(openDexFromApk(file));
-		} else if (fileName.endsWith(".class") || fileName.endsWith(".jar")) {
+			return new Dex(file);
+		}
+		if (fileName.endsWith(".apk")) {
+			byte[] data = openDexFromZip(file);
+			if (data == null) {
+				throw new JadxRuntimeException("File 'classes.dex' not found in file: " + file);
+			}
+			return new Dex(data);
+		}
+		if (fileName.endsWith(".jar")) {
+			// check if jar contains 'classes.dex'
+			byte[] data = openDexFromZip(file);
+			if (data != null) {
+				return new Dex(data);
+			}
 			try {
 				LOG.info("converting to dex: {} ...", fileName);
 				JavaToDex j2d = new JavaToDex();
 				byte[] ba = j2d.convert(file.getAbsolutePath());
 				if (ba.length == 0) {
-					throw new JadxException(
-							j2d.isError() ? j2d.getDxErrors() : "Empty dx output");
+					throw new JadxException(j2d.isError() ? j2d.getDxErrors() : "Empty dx output");
 				} else if (j2d.isError()) {
 					LOG.warn("dx message: " + j2d.getDxErrors());
 				}
-				this.dexBuf = new Dex(ba);
+				return new Dex(ba);
 			} catch (Throwable e) {
-				throw new DecodeException(
-						"java class to dex conversion error:\n " + e.getMessage(), e);
+				throw new DecodeException("java class to dex conversion error:\n " + e.getMessage(), e);
 			}
-		} else {
-			throw new DecodeException("Unsupported input file: " + file);
 		}
+		throw new DecodeException("Unsupported input file format: " + file);
 	}
 
-	private byte[] openDexFromApk(File file) throws IOException {
+	private byte[] openDexFromZip(File file) throws IOException {
 		ZipFile zf = new ZipFile(file);
 		ZipEntry dex = zf.getEntry("classes.dex");
 		if (dex == null) {
 			zf.close();
-			throw new JadxRuntimeException("File 'classes.dex' not found in apk file: " + file);
+			return null;
 		}
 		ByteArrayOutputStream bytesOut = new ByteArrayOutputStream();
 		InputStream in = null;

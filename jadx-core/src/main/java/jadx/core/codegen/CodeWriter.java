@@ -1,7 +1,7 @@
 package jadx.core.codegen;
 
 import jadx.api.CodePosition;
-import jadx.core.dex.attributes.LineAttrNode;
+import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.utils.Utils;
 
 import java.io.File;

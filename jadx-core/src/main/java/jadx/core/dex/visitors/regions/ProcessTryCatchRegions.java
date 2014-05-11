@@ -1,6 +1,6 @@
 package jadx.core.dex.visitors.regions;
 
-import jadx.core.dex.attributes.AttributeType;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
@@ -47,7 +47,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 		Set<TryCatchBlock> tryBlocks = new HashSet<TryCatchBlock>();
 		// collect all try/catch blocks
 		for (BlockNode block : mth.getBasicBlocks()) {
-			CatchAttr c = (CatchAttr) block.getAttributes().get(AttributeType.CATCH_BLOCK);
+			CatchAttr c = block.get(AType.CATCH_BLOCK);
 			if (c != null) {
 				tryBlocks.add(c.getTryBlock());
 			}
@@ -58,7 +58,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 			BitSet bs = null;
 			// build bitset with dominators of blocks covered with this try/catch block
 			for (BlockNode block : mth.getBasicBlocks()) {
-				CatchAttr c = (CatchAttr) block.getAttributes().get(AttributeType.CATCH_BLOCK);
+				CatchAttr c = block.get(AType.CATCH_BLOCK);
 				if (c != null && c.getTryBlock() == tb) {
 					if (bs == null) {
 						bs = (BitSet) block.getDoms().clone();
@@ -144,7 +144,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 			region.getSubBlocks().set(i, newRegion);
 			region.getSubBlocks().removeAll(newRegion.getSubBlocks());
 
-			newRegion.getAttributes().add(tb.getCatchAttr());
+			newRegion.addAttr(tb.getCatchAttr());
 
 			// fix parents
 			for (IContainer cont : newRegion.getSubBlocks()) {

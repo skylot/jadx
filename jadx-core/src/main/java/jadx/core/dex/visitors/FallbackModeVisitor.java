@@ -1,6 +1,6 @@
 package jadx.core.dex.visitors;
 
-import jadx.core.dex.attributes.AttributeType;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.CatchAttr;
@@ -15,7 +15,7 @@ public class FallbackModeVisitor extends AbstractVisitor {
 		}
 		for (InsnNode insn : mth.getInstructions()) {
 			// remove 'exception catch' for instruction which don't throw any exceptions
-			CatchAttr catchAttr = (CatchAttr) insn.getAttributes().get(AttributeType.CATCH_BLOCK);
+			CatchAttr catchAttr = insn.get(AType.CATCH_BLOCK);
 			if (catchAttr != null) {
 				switch (insn.getType()) {
 					case RETURN:

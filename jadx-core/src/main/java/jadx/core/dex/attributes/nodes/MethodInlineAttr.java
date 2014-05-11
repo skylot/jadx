@@ -1,5 +1,7 @@
-package jadx.core.dex.attributes;
+package jadx.core.dex.attributes.nodes;
 
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.nodes.InsnNode;
 
 public class MethodInlineAttr implements IAttribute {
@@ -15,8 +17,8 @@ public class MethodInlineAttr implements IAttribute {
 	}
 
 	@Override
-	public AttributeType getType() {
-		return AttributeType.METHOD_INLINE;
+	public AType<MethodInlineAttr> getType() {
+		return AType.METHOD_INLINE;
 	}
 
 	@Override

@@ -44,17 +44,17 @@ public class AnnotationsParser {
 		int annotatedParametersCount = section.readInt();
 
 		if (classAnnotationsOffset != 0) {
-			cls.getAttributes().add(readAnnotationSet(classAnnotationsOffset));
+			cls.addAttr(readAnnotationSet(classAnnotationsOffset));
 		}
 
 		for (int i = 0; i < fieldsCount; i++) {
 			FieldNode f = cls.searchFieldById(section.readInt());
-			f.getAttributes().add(readAnnotationSet(section.readInt()));
+			f.addAttr(readAnnotationSet(section.readInt()));
 		}
 
 		for (int i = 0; i < annotatedMethodsCount; i++) {
 			MethodNode m = cls.searchMethodById(section.readInt());
-			m.getAttributes().add(readAnnotationSet(section.readInt()));
+			m.addAttr(readAnnotationSet(section.readInt()));
 		}
 
 		for (int i = 0; i < annotatedParametersCount; i++) {
@@ -66,7 +66,7 @@ public class AnnotationsParser {
 			for (int j = 0; j < size; j++) {
 				params.getParamList().add(readAnnotationSet(ss.readInt()));
 			}
-			mth.getAttributes().add(params);
+			mth.addAttr(params);
 		}
 	}
 

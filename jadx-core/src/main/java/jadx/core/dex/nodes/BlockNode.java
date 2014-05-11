@@ -1,9 +1,9 @@
 package jadx.core.dex.nodes;
 
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
-import jadx.core.dex.attributes.AttributeFlag;
-import jadx.core.dex.attributes.AttributeType;
-import jadx.core.dex.attributes.LoopAttr;
+import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.utils.InsnUtils;
 
 import java.util.ArrayList;
@@ -79,26 +79,27 @@ public class BlockNode extends AttrNode implements IBlock {
 	 */
 	private static List<BlockNode> cleanSuccessors(BlockNode block) {
 		List<BlockNode> sucList = block.getSuccessors();
-		List<BlockNode> nodes = new ArrayList<BlockNode>(sucList.size());
-		if (block.getAttributes().contains(AttributeFlag.LOOP_END)) {
-			LoopAttr loop = (LoopAttr) block.getAttributes().get(AttributeType.LOOP);
-			for (BlockNode b : sucList) {
-				if (!b.getAttributes().contains(AttributeType.EXC_HANDLER)) {
-					// don't follow back edge
-					if (loop.getStart() == b) {
-						continue;
-					}
-					nodes.add(b);
-				}
-			}
-		} else {
-			for (BlockNode b : sucList) {
-				if (!b.getAttributes().contains(AttributeType.EXC_HANDLER)) {
-					nodes.add(b);
-				}
+		if (sucList.isEmpty()) {
+			return sucList;
+		}
+		List<BlockNode> toRemove = new LinkedList<BlockNode>();
+		for (BlockNode b : sucList) {
+			if (b.contains(AType.EXC_HANDLER)) {
+				toRemove.add(b);
 			}
 		}
-		return nodes.size() == sucList.size() ? sucList : nodes;
+		if (block.contains(AFlag.LOOP_END)) {
+			List<LoopInfo> loops = block.getAll(AType.LOOP);
+			for (LoopInfo loop : loops) {
+				toRemove.add(loop.getStart());
+			}
+		}
+		if (toRemove.isEmpty()) {
+			return sucList;
+		}
+		List<BlockNode> result = new ArrayList<BlockNode>(sucList);
+		result.removeAll(toRemove);
+		return result;
 	}
 
 	@Override
@@ -159,11 +160,11 @@ public class BlockNode extends AttrNode implements IBlock {
 	}
 
 	public boolean isSynthetic() {
-		return getAttributes().contains(AttributeFlag.SYNTHETIC);
+		return contains(AFlag.SYNTHETIC);
 	}
 
 	public boolean isReturnBlock() {
-		return getAttributes().contains(AttributeFlag.RETURN);
+		return contains(AFlag.RETURN);
 	}
 
 	@Override

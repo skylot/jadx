@@ -1,7 +1,7 @@
 package jadx.core.utils;
 
 import jadx.core.Consts;
-import jadx.core.dex.attributes.AttributeFlag;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
@@ -73,7 +73,7 @@ public class InstructionRemover {
 				}
 			}
 		}
-		insn.getAttributes().add(AttributeFlag.INCONSISTENT_CODE);
+		insn.add(AFlag.INCONSISTENT_CODE);
 	}
 
 	// Don't use 'insns.removeAll(toRemove)' because it will remove instructions by content

@@ -24,7 +24,7 @@ import java.util.Set;
 public class DotGraphVisitor extends AbstractVisitor {
 
 	private static final String NL = "\\l";
-	private static final boolean PRINT_DOMINATORS = true;
+	private static final boolean PRINT_DOMINATORS = false;
 
 	private final File dir;
 	private final boolean useRegions;
@@ -170,19 +170,9 @@ public class DotGraphVisitor extends AbstractVisitor {
 			if (PRINT_DOMINATORS) {
 				for (BlockNode c : block.getDominatesOn()) {
 					conn.startLine(block.getId() + " -> " + c.getId() + "[color=green];");
-//
 				}
-//				for (BlockNode dom : BlockUtils.bitSetToBlocks(mth, block.getDoms())) {
-//					if (dom == block.getIDom()) {
-//						conn.startLine(dom.getId() + " -> " + block.getId() + "[style=dashed, color=green];");
-////						addEdge(block, dom, "[style=dashed, color=green]");
-//					} else {
-////						addEdge(block, dom, "[color=green]");
-//					}
-//				}
 				for (BlockNode dom : BlockUtils.bitSetToBlocks(mth, block.getDomFrontier())) {
 					conn.startLine("f_" + block.getId() + " -> f_" + dom.getId() + "[color=blue];");
-//					addEdge(block, dom, "[color=blue]");
 				}
 			}
 		}
@@ -195,7 +185,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 
 		private String attributesString(IAttributeNode block) {
 			StringBuilder attrs = new StringBuilder();
-			for (String attr : block.getAttributes().getAttributeStrings()) {
+			for (String attr : block.getAttributesStringsList()) {
 				attrs.append(escape(attr)).append(NL);
 			}
 			return attrs.toString();
@@ -215,7 +205,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 			if (rawInsn) {
 				StringBuilder str = new StringBuilder();
 				for (InsnNode insn : block.getInstructions()) {
-					str.append(escape(insn + " " + insn.getAttributes()));
+					str.append(escape(insn + " " + insn.getAttributesString()));
 					str.append(NL);
 				}
 				return str.toString();

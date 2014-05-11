@@ -1,8 +1,8 @@
 package jadx.core.utils;
 
-import jadx.core.dex.attributes.AttributeFlag;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.IAttributeNode;
-import jadx.core.dex.attributes.JadxErrorAttr;
+import jadx.core.dex.attributes.nodes.JadxErrorAttr;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 
@@ -39,9 +39,9 @@ public class ErrorsCounter {
 			} else {
 				LOG.error(msg, e);
 			}
-			node.getAttributes().add(new JadxErrorAttr(e));
+			node.addAttr(new JadxErrorAttr(e));
 		} else {
-			node.getAttributes().add(AttributeFlag.INCONSISTENT_CODE);
+			node.add(AFlag.INCONSISTENT_CODE);
 			LOG.error(msg);
 		}
 	}

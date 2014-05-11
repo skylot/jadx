@@ -12,7 +12,7 @@ public class PhiInsn extends InsnNode {
 		super(InsnType.PHI, predecessors);
 		setResult(InsnArg.reg(regNum, ArgType.UNKNOWN));
 		for (int i = 0; i < predecessors; i++) {
-			 addReg(regNum, ArgType.UNKNOWN);
+			addReg(regNum, ArgType.UNKNOWN);
 		}
 	}
 

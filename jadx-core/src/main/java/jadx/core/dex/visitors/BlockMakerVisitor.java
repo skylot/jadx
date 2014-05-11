@@ -1,11 +1,9 @@
 package jadx.core.dex.visitors;
 
-import jadx.core.dex.attributes.AttributeFlag;
-import jadx.core.dex.attributes.AttributeType;
-import jadx.core.dex.attributes.AttributesList;
-import jadx.core.dex.attributes.IAttribute;
-import jadx.core.dex.attributes.JumpAttribute;
-import jadx.core.dex.attributes.LoopAttr;
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.JumpInfo;
+import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
@@ -91,7 +89,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 				}
 			}
 			// for try/catch make empty block for connect handlers
-			if (insn.getAttributes().contains(AttributeFlag.TRY_ENTER)) {
+			if (insn.contains(AFlag.TRY_ENTER)) {
 				BlockNode block;
 				if (insn.getOffset() != 0 && !startNew) {
 					block = startNewBlock(mth, insn.getOffset());
@@ -102,8 +100,8 @@ public class BlockMakerVisitor extends AbstractVisitor {
 
 				// add this insn in new block
 				block = startNewBlock(mth, -1);
-				curBlock.getAttributes().add(AttributeFlag.SYNTHETIC);
-				block.getAttributes().add(new SplitterBlockAttr(curBlock));
+				curBlock.add(AFlag.SYNTHETIC);
+				block.addAttr(new SplitterBlockAttr(curBlock));
 				connect(curBlock, block);
 				curBlock = block;
 			} else {
@@ -119,20 +117,19 @@ public class BlockMakerVisitor extends AbstractVisitor {
 	private static void setupConnections(MethodNode mth, Map<Integer, BlockNode> blocksMap) {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			for (InsnNode insn : block.getInstructions()) {
-				List<IAttribute> jumps = insn.getAttributes().getAll(AttributeType.JUMP);
-				for (IAttribute attr : jumps) {
-					JumpAttribute jump = (JumpAttribute) attr;
+				List<JumpInfo> jumps = insn.getAll(AType.JUMP);
+				for (JumpInfo jump : jumps) {
 					BlockNode srcBlock = getBlock(jump.getSrc(), blocksMap);
 					BlockNode thisblock = getBlock(jump.getDest(), blocksMap);
 					connect(srcBlock, thisblock);
 				}
 
 				// connect exception handlers
-				CatchAttr catches = (CatchAttr) insn.getAttributes().get(AttributeType.CATCH_BLOCK);
+				CatchAttr catches = insn.get(AType.CATCH_BLOCK);
 				// get synthetic block for handlers
-				IAttribute spl = block.getAttributes().get(AttributeType.SPLITTER_BLOCK);
+				SplitterBlockAttr spl = block.get(AType.SPLITTER_BLOCK);
 				if (catches != null && spl != null) {
-					BlockNode connBlock = ((SplitterBlockAttr) spl).getBlock();
+					BlockNode connBlock = spl.getBlock();
 					for (ExceptionHandler h : catches.getTryBlock().getHandlers()) {
 						BlockNode destBlock = getBlock(h.getHandleOffset(), blocksMap);
 						// skip self loop in handler
@@ -146,16 +143,14 @@ public class BlockMakerVisitor extends AbstractVisitor {
 	}
 
 	private static boolean isSplitByJump(InsnNode prevInsn, InsnNode currentInsn) {
-		List<IAttribute> pJumps = prevInsn.getAttributes().getAll(AttributeType.JUMP);
-		for (IAttribute j : pJumps) {
-			JumpAttribute jump = (JumpAttribute) j;
+		List<JumpInfo> pJumps = prevInsn.getAll(AType.JUMP);
+		for (JumpInfo jump : pJumps) {
 			if (jump.getSrc() == prevInsn.getOffset()) {
 				return true;
 			}
 		}
-		List<IAttribute> cJumps = currentInsn.getAttributes().getAll(AttributeType.JUMP);
-		for (IAttribute j : cJumps) {
-			JumpAttribute jump = (JumpAttribute) j;
+		List<JumpInfo> cJumps = currentInsn.getAll(AType.JUMP);
+		for (JumpInfo jump : cJumps) {
 			if (jump.getDest() == currentInsn.getOffset()) {
 				return true;
 			}
@@ -335,7 +330,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		mth.getExitBlocks().clear();
 		for (BlockNode block : mth.getBasicBlocks()) {
 			if (BlockUtils.lastInsnType(block, InsnType.RETURN)) {
-				block.getAttributes().add(AttributeFlag.RETURN);
+				block.add(AFlag.RETURN);
 				mth.getExitBlocks().add(block);
 			}
 		}
@@ -347,12 +342,12 @@ public class BlockMakerVisitor extends AbstractVisitor {
 				// Every successor that dominates its predecessor is a header of a loop,
 				// block -> succ is a back edge.
 				if (block.getDoms().get(succ.getId())) {
-					succ.getAttributes().add(AttributeFlag.LOOP_START);
-					block.getAttributes().add(AttributeFlag.LOOP_END);
+					succ.add(AFlag.LOOP_START);
+					block.add(AFlag.LOOP_END);
 
-					LoopAttr loop = new LoopAttr(succ, block);
-					succ.getAttributes().add(loop);
-					block.getAttributes().add(loop);
+					LoopInfo loop = new LoopInfo(succ, block);
+					succ.addAttr(AType.LOOP, loop);
+					block.addAttr(AType.LOOP, loop);
 				}
 			}
 		}
@@ -360,10 +355,11 @@ public class BlockMakerVisitor extends AbstractVisitor {
 
 	private static void registerLoops(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
-			AttributesList attributes = block.getAttributes();
-			IAttribute loop = attributes.get(AttributeType.LOOP);
-			if (loop != null && attributes.contains(AttributeFlag.LOOP_START)) {
-				mth.registerLoop((LoopAttr) loop);
+			List<LoopInfo> loops = block.getAll(AType.LOOP);
+			if (block.contains(AFlag.LOOP_START)) {
+				for (LoopInfo loop : loops) {
+					mth.registerLoop(loop);
+				}
 			}
 		}
 	}
@@ -375,11 +371,10 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			}
 
 			// check loops
-			List<IAttribute> loops = block.getAttributes().getAll(AttributeType.LOOP);
+			List<LoopInfo> loops = block.getAll(AType.LOOP);
 			if (loops.size() > 1) {
 				boolean oneHeader = true;
-				for (IAttribute a : loops) {
-					LoopAttr loop = (LoopAttr) a;
+				for (LoopInfo loop : loops) {
 					if (loop.getStart() != block) {
 						oneHeader = false;
 						break;
@@ -388,10 +383,9 @@ public class BlockMakerVisitor extends AbstractVisitor {
 				if (oneHeader) {
 					// several back edges connected to one loop header => make additional block
 					BlockNode newLoopHeader = startNewBlock(mth, block.getStartOffset());
-					newLoopHeader.getAttributes().add(AttributeFlag.SYNTHETIC);
+					newLoopHeader.add(AFlag.SYNTHETIC);
 					connect(newLoopHeader, block);
-					for (IAttribute a : loops) {
-						LoopAttr la = (LoopAttr) a;
+					for (LoopInfo la : loops) {
 						BlockNode node = la.getEnd();
 						removeConnection(node, block);
 						connect(node, newLoopHeader);
@@ -401,13 +395,13 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			}
 			// insert additional blocks if loop has several exits
 			if (loops.size() == 1) {
-				LoopAttr loop = (LoopAttr) loops.get(0);
+				LoopInfo loop = loops.get(0);
 				List<Edge> edges = loop.getExitEdges();
 				if (edges.size() > 1) {
 					boolean change = false;
 					for (Edge edge : edges) {
 						BlockNode target = edge.getTarget();
-						if (!target.getAttributes().contains(AttributeFlag.SYNTHETIC)) {
+						if (!target.contains(AFlag.SYNTHETIC)) {
 							insertBlockBetween(mth, edge.getSource(), target);
 							change = true;
 						}
@@ -429,7 +423,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 
 	private static BlockNode insertBlockBetween(MethodNode mth, BlockNode source, BlockNode target) {
 		BlockNode newBlock = startNewBlock(mth, target.getStartOffset());
-		newBlock.getAttributes().add(AttributeFlag.SYNTHETIC);
+		newBlock.add(AFlag.SYNTHETIC);
 		removeConnection(source, target);
 		connect(source, newBlock);
 		connect(newBlock, target);
@@ -477,8 +471,8 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		BlockNode exitBlock = mth.getExitBlocks().get(0);
 		if (exitBlock.getPredecessors().size() > 1
 				&& exitBlock.getInstructions().size() == 1
-				&& !exitBlock.getInstructions().get(0).getAttributes().contains(AttributeType.CATCH_BLOCK)
-				&& !exitBlock.getAttributes().contains(AttributeFlag.SYNTHETIC)) {
+				&& !exitBlock.getInstructions().get(0).contains(AType.CATCH_BLOCK)
+				&& !exitBlock.contains(AFlag.SYNTHETIC)) {
 			InsnNode returnInsn = exitBlock.getInstructions().get(0);
 			List<BlockNode> preds = new ArrayList<BlockNode>(exitBlock.getPredecessors());
 			if (returnInsn.getArgsCount() != 0 && !isReturnArgAssignInPred(preds, returnInsn)) {
@@ -486,7 +480,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			}
 			for (BlockNode pred : preds) {
 				BlockNode newRetBlock = startNewBlock(mth, exitBlock.getStartOffset());
-				newRetBlock.getAttributes().add(AttributeFlag.SYNTHETIC);
+				newRetBlock.add(AFlag.SYNTHETIC);
 				newRetBlock.getInstructions().add(duplicateReturnInsn(returnInsn));
 				removeConnection(pred, exitBlock);
 				connect(pred, newRetBlock);
@@ -527,17 +521,16 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			RegisterArg arg = (RegisterArg) returnInsn.getArg(0);
 			insn.addArg(InsnArg.reg(arg.getRegNum(), arg.getType()));
 		}
-		insn.getAttributes().addAll(returnInsn.getAttributes());
+		insn.copyAttributesFrom(returnInsn);
 		insn.setOffset(returnInsn.getOffset());
 		return insn;
 	}
 
 	private static void clearBlocksState(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
-			AttributesList attrs = block.getAttributes();
-			attrs.remove(AttributeType.LOOP);
-			attrs.remove(AttributeFlag.LOOP_START);
-			attrs.remove(AttributeFlag.LOOP_END);
+			block.remove(AType.LOOP);
+			block.remove(AFlag.LOOP_START);
+			block.remove(AFlag.LOOP_END);
 
 			block.setDoms(null);
 			block.setIDom(null);
