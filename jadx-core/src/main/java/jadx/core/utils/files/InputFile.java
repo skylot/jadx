@@ -13,13 +13,13 @@ import java.util.zip.ZipFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.android.dx.io.DexBuffer;
+import com.android.dex.Dex;
 
 public class InputFile {
 	private static final Logger LOG = LoggerFactory.getLogger(InputFile.class);
 
 	private final File file;
-	private final DexBuffer dexBuf;
+	private final Dex dexBuf;
 
 	public InputFile(File file) throws IOException, DecodeException {
 		this.file = file;
@@ -29,9 +29,9 @@ public class InputFile {
 		String fileName = file.getName();
 
 		if (fileName.endsWith(".dex")) {
-			this.dexBuf = new DexBuffer(file);
+			this.dexBuf = new Dex(file);
 		} else if (fileName.endsWith(".apk")) {
-			this.dexBuf = new DexBuffer(openDexFromApk(file));
+			this.dexBuf = new Dex(openDexFromApk(file));
 		} else if (fileName.endsWith(".class") || fileName.endsWith(".jar")) {
 			try {
 				LOG.info("converting to dex: {} ...", fileName);
@@ -43,7 +43,7 @@ public class InputFile {
 				} else if (j2d.isError()) {
 					LOG.warn("dx message: " + j2d.getDxErrors());
 				}
-				this.dexBuf = new DexBuffer(ba);
+				this.dexBuf = new Dex(ba);
 			} catch (Throwable e) {
 				throw new DecodeException(
 						"java class to dex conversion error:\n " + e.getMessage(), e);
@@ -76,7 +76,7 @@ public class InputFile {
 		return file;
 	}
 
-	public DexBuffer getDexBuffer() {
+	public Dex getDexBuffer() {
 		return dexBuf;
 	}
 

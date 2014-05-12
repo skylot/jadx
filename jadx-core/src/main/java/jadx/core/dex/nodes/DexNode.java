@@ -13,23 +13,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.android.dx.io.ClassData;
-import com.android.dx.io.ClassData.Method;
-import com.android.dx.io.ClassDef;
-import com.android.dx.io.Code;
-import com.android.dx.io.DexBuffer;
-import com.android.dx.io.DexBuffer.Section;
-import com.android.dx.io.FieldId;
-import com.android.dx.io.MethodId;
-import com.android.dx.io.ProtoId;
-import com.android.dx.merge.TypeList;
+import com.android.dex.ClassData;
+import com.android.dex.ClassData.Method;
+import com.android.dex.ClassDef;
+import com.android.dex.Code;
+import com.android.dex.Dex;
+import com.android.dex.FieldId;
+import com.android.dex.MethodId;
+import com.android.dex.ProtoId;
+import com.android.dex.TypeList;
+import com.android.dex.TableOfContents; 
 
 public class DexNode {
 
 	public static final int NO_INDEX = -1;
 
 	private final RootNode root;
-	private final DexBuffer dexBuf;
+	private final Dex dexBuf;
 	private final List<ClassNode> classes = new ArrayList<ClassNode>();
 	private final String[] strings;
 
@@ -116,7 +116,7 @@ public class DexNode {
 		return dexBuf.readCode(mth);
 	}
 
-	public Section openSection(int offset) {
+	public Dex.Section openSection(int offset) {
 		return dexBuf.open(offset);
 	}
 

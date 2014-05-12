@@ -6,7 +6,7 @@ import jadx.core.dex.info.AccessInfo.AFType;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.args.ArgType;
 
-import com.android.dx.io.ClassData.Field;
+import com.android.dex.ClassData.Field;
 
 public class FieldNode extends LineAttrNode {
 

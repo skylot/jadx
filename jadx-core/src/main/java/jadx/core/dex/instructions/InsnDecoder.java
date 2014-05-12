@@ -14,7 +14,7 @@ import jadx.core.utils.exceptions.DecodeException;
 
 import java.io.EOFException;
 
-import com.android.dx.io.Code;
+import com.android.dex.Code;
 import com.android.dx.io.OpcodeInfo;
 import com.android.dx.io.Opcodes;
 import com.android.dx.io.instructions.DecodedInstruction;

@@ -7,8 +7,8 @@ import jadx.core.utils.Utils;
 
 import java.util.List;
 
-import com.android.dx.io.MethodId;
-import com.android.dx.io.ProtoId;
+import com.android.dex.MethodId;
+import com.android.dex.ProtoId;
 
 public final class MethodInfo {
 

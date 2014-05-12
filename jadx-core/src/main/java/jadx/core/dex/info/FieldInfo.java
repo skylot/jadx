@@ -3,7 +3,7 @@ package jadx.core.dex.info;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.DexNode;
 
-import com.android.dx.io.FieldId;
+import com.android.dex.FieldId;
 
 public class FieldInfo {
 

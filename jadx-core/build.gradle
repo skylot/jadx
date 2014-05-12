@@ -1,8 +1,7 @@
 ext.jadxClasspath = 'clsp-data/android-4.3.jar'
 
 dependencies {
-    compile 'com.google.android.tools:dx:1.7'
-
+    compile files('lib/dx-1.8.jar')
     runtime files(jadxClasspath)
 }
 

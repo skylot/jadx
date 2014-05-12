@@ -35,10 +35,10 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.android.dx.io.ClassData.Method;
-import com.android.dx.io.Code;
-import com.android.dx.io.Code.CatchHandler;
-import com.android.dx.io.Code.Try;
+import com.android.dex.ClassData.Method;
+import com.android.dex.Code;
+import com.android.dex.Code.CatchHandler;
+import com.android.dex.Code.Try;
 
 public class MethodNode extends LineAttrNode implements ILoadable {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodNode.class);
@@ -248,7 +248,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		// but in maven repository still old version
 		Set<Integer> handlerSet = new HashSet<Integer>(tries.length);
 		for (Try aTry : tries) {
-			handlerSet.add(aTry.getHandlerOffset());
+			handlerSet.add(aTry.getCatchHandlerIndex());
 		}
 		List<Integer> handlerList = new ArrayList<Integer>(catchBlocks.length);
 		handlerList.addAll(handlerSet);
@@ -306,7 +306,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 
 		// attach TRY_ENTER, TRY_LEAVE attributes to instructions
 		for (Try aTry : tries) {
-			int catchNum = handlerList.indexOf(aTry.getHandlerOffset());
+			int catchNum = handlerList.indexOf(aTry.getCatchHandlerIndex());
 			TryCatchBlock block = catches.get(catchNum);
 			int offset = aTry.getStartAddress();
 			int end = offset + aTry.getInstructionCount() - 1;

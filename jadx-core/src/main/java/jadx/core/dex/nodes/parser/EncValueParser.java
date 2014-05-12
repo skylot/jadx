@@ -8,16 +8,38 @@ import jadx.core.utils.exceptions.DecodeException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.android.dx.io.DexBuffer.Section;
-import com.android.dx.io.EncodedValueReader;
-import com.android.dx.util.Leb128Utils;
+import com.android.dex.Dex;
+import com.android.dex.EncodedValue;
+import com.android.dex.EncodedValueReader;
+import com.android.dex.Leb128;
+import com.android.dex.util.ByteInput;
 
-public class EncValueParser extends EncodedValueReader {
+public class EncValueParser {
 
+	public static final int ENCODED_BYTE = 0x00;
+    public static final int ENCODED_SHORT = 0x02;
+    public static final int ENCODED_CHAR = 0x03;
+    public static final int ENCODED_INT = 0x04;
+    public static final int ENCODED_LONG = 0x06;
+    public static final int ENCODED_FLOAT = 0x10;
+    public static final int ENCODED_DOUBLE = 0x11;
+    public static final int ENCODED_STRING = 0x17;
+    public static final int ENCODED_TYPE = 0x18;
+    public static final int ENCODED_FIELD = 0x19;
+    public static final int ENCODED_ENUM = 0x1b;
+    public static final int ENCODED_METHOD = 0x1a;
+    public static final int ENCODED_ARRAY = 0x1c;
+    public static final int ENCODED_ANNOTATION = 0x1d;
+    public static final int ENCODED_NULL = 0x1e;
+    public static final int ENCODED_BOOLEAN = 0x1f;
+	
+	protected final Dex.Section in;
+	
 	private final DexNode dex;
 
-	public EncValueParser(DexNode dex, Section in) {
-		super(in);
+	public EncValueParser(DexNode dex, Dex.Section in) {
+		//super(in);
+		this.in = in;
 		this.dex = dex;
 	}
 
@@ -64,7 +86,7 @@ public class EncValueParser extends EncodedValueReader {
 				return FieldInfo.fromDex(dex, parseUnsignedInt(size));
 
 			case ENCODED_ARRAY:
-				int count = Leb128Utils.readUnsignedLeb128(in);
+				int count = Leb128.readUnsignedLeb128(in);
 				List<Object> values = new ArrayList<Object>(count);
 				for (int i = 0; i < count; i++) {
 					values.add(parseValue());
@@ -72,7 +94,7 @@ public class EncValueParser extends EncodedValueReader {
 				return values;
 
 			case ENCODED_ANNOTATION:
-				return AnnotationsParser.readAnnotation(dex, (Section) in, false);
+				return AnnotationsParser.readAnnotation(dex, (Dex.Section) in, false);
 		}
 		throw new DecodeException("Unknown encoded value type: 0x" + Integer.toHexString(type));
 	}
