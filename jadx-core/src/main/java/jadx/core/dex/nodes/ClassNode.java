@@ -31,10 +31,10 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.android.dx.io.ClassData;
-import com.android.dx.io.ClassData.Field;
-import com.android.dx.io.ClassData.Method;
-import com.android.dx.io.ClassDef;
+import com.android.dex.ClassData;
+import com.android.dex.ClassData.Field;
+import com.android.dex.ClassData.Method;
+import com.android.dex.ClassDef;
 
 public class ClassNode extends LineAttrNode implements ILoadable {
 	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);

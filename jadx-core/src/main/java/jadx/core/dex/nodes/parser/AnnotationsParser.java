@@ -16,7 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.android.dx.io.DexBuffer.Section;
+import com.android.dex.Dex;
 
 public class AnnotationsParser {
 
@@ -35,7 +35,7 @@ public class AnnotationsParser {
 	}
 
 	public void parse(int offset) throws DecodeException {
-		Section section = dex.openSection(offset);
+		Dex.Section section = dex.openSection(offset);
 
 		// TODO read as unsigned int
 		int classAnnotationsOffset = section.readInt();
@@ -60,7 +60,7 @@ public class AnnotationsParser {
 		for (int i = 0; i < annotatedParametersCount; i++) {
 			MethodNode mth = cls.searchMethodById(section.readInt());
 			// read annotation ref list
-			Section ss = dex.openSection(section.readInt());
+			Dex.Section ss = dex.openSection(section.readInt());
 			int size = ss.readInt();
 			MethodParameters params = new MethodParameters(size);
 			for (int j = 0; j < size; j++) {
@@ -71,18 +71,18 @@ public class AnnotationsParser {
 	}
 
 	private AnnotationsList readAnnotationSet(int offset) throws DecodeException {
-		Section section = dex.openSection(offset);
+		Dex.Section section = dex.openSection(offset);
 		int size = section.readInt();
 		List<Annotation> list = new ArrayList<Annotation>(size);
 		for (int i = 0; i < size; i++) {
-			Section anSection = dex.openSection(section.readInt());
+			Dex.Section anSection = dex.openSection(section.readInt());
 			Annotation a = readAnnotation(dex, anSection, true);
 			list.add(a);
 		}
 		return new AnnotationsList(list);
 	}
 
-	public static Annotation readAnnotation(DexNode dex, Section s, boolean readVisibility) throws DecodeException {
+	public static Annotation readAnnotation(DexNode dex, Dex.Section s, boolean readVisibility) throws DecodeException {
 		EncValueParser parser = new EncValueParser(dex, s);
 		Visibility visibility = null;
 		if (readVisibility) {
