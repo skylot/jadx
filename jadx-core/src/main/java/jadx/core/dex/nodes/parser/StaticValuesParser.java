@@ -6,12 +6,12 @@ import jadx.core.utils.exceptions.DecodeException;
 
 import java.util.List;
 
-import com.android.dex.Dex;
+import com.android.dex.Dex.Section;
 import com.android.dex.Leb128;
 
 public class StaticValuesParser extends EncValueParser {
 
-	public StaticValuesParser(DexNode dex, Dex.Section in) {
+	public StaticValuesParser(DexNode dex, Section in) {
 		super(dex, in);
 	}
 

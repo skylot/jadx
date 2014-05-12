@@ -10,7 +10,7 @@ import jadx.core.utils.exceptions.DecodeException;
 
 import java.util.List;
 
-import com.android.dex.Dex;
+import com.android.dex.Dex.Section;
 
 public class DebugInfoParser {
 
@@ -33,7 +33,7 @@ public class DebugInfoParser {
 	private static final int DBG_LINE_RANGE = 15;
 
 	private final MethodNode mth;
-	private final Dex.Section section;
+	private final Section section;
 	private final DexNode dex;
 
 	private final LocalVar[] locals;

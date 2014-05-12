@@ -66,7 +66,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 			if (insn.getType() == InsnType.MOVE
 					&& insn.getArg(0).isInsnWrap()
 					&& !insn.getAttributes().contains(AttributeFlag.DECLARE_VAR)) {
-				InsnNode wrapInsn = ((InsnWrapArg)insn.getArg(0)).getWrapInsn();
+				InsnNode wrapInsn = ((InsnWrapArg) insn.getArg(0)).getWrapInsn();
 				wrapInsn.setResult(insn.getResult());
 				list.set(i, wrapInsn);
 			}

@@ -18,11 +18,11 @@ import com.android.dex.ClassData.Method;
 import com.android.dex.ClassDef;
 import com.android.dex.Code;
 import com.android.dex.Dex;
+import com.android.dex.Dex.Section;
 import com.android.dex.FieldId;
 import com.android.dex.MethodId;
 import com.android.dex.ProtoId;
 import com.android.dex.TypeList;
-import com.android.dex.TableOfContents; 
 
 public class DexNode {
 
@@ -116,7 +116,7 @@ public class DexNode {
 		return dexBuf.readCode(mth);
 	}
 
-	public Dex.Section openSection(int offset) {
+	public Section openSection(int offset) {
 		return dexBuf.open(offset);
 	}
 

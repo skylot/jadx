@@ -238,23 +238,9 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		return genericMap;
 	}
 
-	// TODO: move to external class
 	private void initTryCatches(Code mthCode, InsnNode[] insnByOffset) {
 		CatchHandler[] catchBlocks = mthCode.getCatchHandlers();
 		Try[] tries = mthCode.getTries();
-
-		// Bug in dx library already fixed (Try.getHandlerOffset() replaced by Try.getCatchHandlerIndex())
-		// and we don't need this mapping anymore,
-		// but in maven repository still old version
-		Set<Integer> handlerSet = new HashSet<Integer>(tries.length);
-		for (Try aTry : tries) {
-			handlerSet.add(aTry.getCatchHandlerIndex());
-		}
-		List<Integer> handlerList = new ArrayList<Integer>(catchBlocks.length);
-		handlerList.addAll(handlerSet);
-		Collections.sort(handlerList);
-		handlerSet = null;
-		// -------------------
 
 		int hc = 0;
 		Set<Integer> addrs = new HashSet<Integer>();
@@ -306,7 +292,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 
 		// attach TRY_ENTER, TRY_LEAVE attributes to instructions
 		for (Try aTry : tries) {
-			int catchNum = handlerList.indexOf(aTry.getCatchHandlerIndex());
+			int catchNum = aTry.getCatchHandlerIndex();
 			TryCatchBlock block = catches.get(catchNum);
 			int offset = aTry.getStartAddress();
 			int end = offset + aTry.getInstructionCount() - 1;

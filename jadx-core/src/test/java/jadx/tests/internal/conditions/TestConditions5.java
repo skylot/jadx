@@ -14,8 +14,9 @@ public class TestConditions5 extends InternalJadxTest {
 	public static class TestCls {
 		public static void assertEquals(Object a1, Object a2) {
 			if (a1 == null) {
-				if (a2 != null)
+				if (a2 != null) {
 					throw new AssertionError(a1 + " != " + a2);
+				}
 			} else if (!a1.equals(a2)) {
 				throw new AssertionError(a1 + " != " + a2);
 			}

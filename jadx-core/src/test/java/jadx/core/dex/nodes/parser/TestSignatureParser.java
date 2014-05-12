@@ -37,7 +37,8 @@ public class TestSignatureParser {
 		assertEquals(p("La<Lb<Lc;>;>;").consumeType(),
 				ArgType.generic("La;", new ArgType[]{
 						ArgType.generic("Lb;", new ArgType[]{
-								ArgType.object("Lc;")})}));
+								ArgType.object("Lc;")})})
+		);
 	}
 
 	@Test
@@ -47,7 +48,8 @@ public class TestSignatureParser {
 
 		assertEquals(p("La<Lb;>.c<TV;>;").consumeType(),
 				ArgType.genericInner(ArgType.generic("La;", new ArgType[]{ArgType.object("Lb;")}),
-						"c", new ArgType[]{ArgType.genericType("V")}));
+						"c", new ArgType[]{ArgType.genericType("V")})
+		);
 
 		assertEquals(p("La<TV;>.LinkedHashIterator<Lb$c<Ls;TV;>;>;").consumeType().getObject(),
 				"a$LinkedHashIterator");
