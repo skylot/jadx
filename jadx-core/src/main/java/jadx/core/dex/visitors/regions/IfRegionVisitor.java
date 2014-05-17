@@ -57,24 +57,45 @@ public class IfRegionVisitor extends AbstractVisitor implements IRegionVisitor, 
 		if (ifRegion.simplifyCondition()) {
 			IfCondition condition = ifRegion.getCondition();
 			if (condition.getMode() == IfCondition.Mode.NOT) {
-				tryInvertIfRegion(ifRegion);
+				invertIfRegion(ifRegion);
 			}
 		}
-		if (RegionUtils.isEmpty(ifRegion.getThenRegion())) {
-			tryInvertIfRegion(ifRegion);
+		if (RegionUtils.isEmpty(ifRegion.getThenRegion())
+				|| hasSimpleReturnBlock(ifRegion.getThenRegion())) {
+			invertIfRegion(ifRegion);
 		}
 	}
 
 	private static void moveReturnToThenBlock(MethodNode mth, IfRegion ifRegion) {
 		if (!mth.getReturnType().equals(ArgType.VOID)
 				&& hasSimpleReturnBlock(ifRegion.getElseRegion())
-				&& !hasSimpleReturnBlock(ifRegion.getThenRegion())) {
-			tryInvertIfRegion(ifRegion);
+				/*&& insnsCount(ifRegion.getThenRegion()) < 2*/) {
+			invertIfRegion(ifRegion);
+		}
+	}
+
+	/**
+	 * Mark if-else-if chains
+	 */
+	private static void markElseIfChains(IfRegion ifRegion) {
+		if (hasSimpleReturnBlock(ifRegion.getThenRegion())) {
+			return;
+		}
+		IContainer elsRegion = ifRegion.getElseRegion();
+		if (elsRegion instanceof Region) {
+			List<IContainer> subBlocks = ((Region) elsRegion).getSubBlocks();
+			if (subBlocks.size() == 1 && subBlocks.get(0) instanceof IfRegion) {
+				subBlocks.get(0).add(AFlag.ELSE_IF_CHAIN);
+				elsRegion.add(AFlag.ELSE_IF_CHAIN);
+			}
 		}
 	}
 
 	private static boolean removeRedundantElseBlock(IfRegion ifRegion) {
-		if (ifRegion.getElseRegion() != null && hasSimpleReturnBlock(ifRegion.getThenRegion())) {
+		if (ifRegion.getElseRegion() != null
+				&& !ifRegion.contains(AFlag.ELSE_IF_CHAIN)
+				&& !ifRegion.getElseRegion().contains(AFlag.ELSE_IF_CHAIN)
+				&& RegionUtils.hasExitBlock(ifRegion.getThenRegion())) {
 			IRegion parent = ifRegion.getParent();
 			Region newRegion = new Region(parent);
 			if (parent.replaceSubBlock(ifRegion, newRegion)) {
@@ -87,26 +108,9 @@ public class IfRegionVisitor extends AbstractVisitor implements IRegionVisitor, 
 		return false;
 	}
 
-	/**
-	 * Mark if-else-if chains
-	 */
-	private static void markElseIfChains(IfRegion ifRegion) {
-		IContainer elsRegion = ifRegion.getElseRegion();
-		if (elsRegion != null) {
-			if (elsRegion instanceof IfRegion) {
-				elsRegion.add(AFlag.ELSE_IF_CHAIN);
-			} else if (elsRegion instanceof Region) {
-				List<IContainer> subBlocks = ((Region) elsRegion).getSubBlocks();
-				if (subBlocks.size() == 1 && subBlocks.get(0) instanceof IfRegion) {
-					subBlocks.get(0).add(AFlag.ELSE_IF_CHAIN);
-				}
-			}
-		}
-	}
-
-	private static void tryInvertIfRegion(IfRegion ifRegion) {
+	private static void invertIfRegion(IfRegion ifRegion) {
 		IContainer elseRegion = ifRegion.getElseRegion();
-		if (elseRegion != null && RegionUtils.notEmpty(elseRegion)) {
+		if (elseRegion != null) {
 			ifRegion.invert();
 		}
 	}
@@ -120,10 +124,7 @@ public class IfRegionVisitor extends AbstractVisitor implements IRegionVisitor, 
 		}
 		if (region instanceof IRegion) {
 			List<IContainer> subBlocks = ((IRegion) region).getSubBlocks();
-			if (subBlocks.size() == 1
-					&& subBlocks.get(0).contains(AFlag.RETURN)) {
-				return true;
-			}
+			return subBlocks.size() == 1 && subBlocks.get(0).contains(AFlag.RETURN);
 		}
 		return false;
 	}

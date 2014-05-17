@@ -17,4 +17,13 @@ public class InsnContainer extends AttrNode implements IBlock {
 		return insns;
 	}
 
+	@Override
+	public String baseString() {
+		return Integer.toString(insns.size());
+	}
+
+	@Override
+	public String toString() {
+		return "InsnContainer:" + insns.size();
+	}
 }

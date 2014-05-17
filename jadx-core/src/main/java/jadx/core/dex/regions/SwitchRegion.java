@@ -60,6 +60,11 @@ public final class SwitchRegion extends AbstractRegion {
 	}
 
 	@Override
+	public String baseString() {
+		return header.baseString();
+	}
+
+	@Override
 	public String toString() {
 		return "Switch: " + cases.size() + ", default: " + defCase;
 	}

@@ -1,6 +1,5 @@
 package jadx.core.dex.visitors.regions;
 
-import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
@@ -63,11 +62,6 @@ public class RegionMakerVisitor extends AbstractVisitor {
 		}
 
 		CleanRegions.process(mth);
-
-		// remove useless returns in void methods
-		if (mth.getReturnType().equals(ArgType.VOID)) {
-			DepthRegionTraversal.traverseAll(mth, new ProcessReturnInsns());
-		}
 
 		if (mth.getAccessFlags().isSynchronized()) {
 			removeSynchronized(mth);

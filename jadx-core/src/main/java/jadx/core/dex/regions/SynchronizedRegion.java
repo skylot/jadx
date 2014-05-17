@@ -37,6 +37,11 @@ public final class SynchronizedRegion extends AbstractRegion {
 	}
 
 	@Override
+	public String baseString() {
+		return Integer.toHexString(enterInsn.getOffset());
+	}
+
+	@Override
 	public String toString() {
 		return "Synchronized:" + region;
 	}

@@ -95,6 +95,21 @@ public final class IfRegion extends AbstractRegion {
 	}
 
 	@Override
+	public String baseString() {
+		if (ternRegion != null) {
+			return ternRegion.baseString();
+		}
+		StringBuilder sb = new StringBuilder();
+		if (thenRegion != null) {
+			sb.append(thenRegion.baseString());
+		}
+		if (elseRegion != null) {
+			sb.append(elseRegion.baseString());
+		}
+		return sb.toString();
+	}
+
+	@Override
 	public String toString() {
 		if (ternRegion != null) {
 			return ternRegion.toString();

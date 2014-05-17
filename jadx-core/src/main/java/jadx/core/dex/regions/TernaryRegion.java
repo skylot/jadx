@@ -26,6 +26,11 @@ public final class TernaryRegion extends AbstractRegion {
 	}
 
 	@Override
+	public String baseString() {
+		return container.baseString();
+	}
+
+	@Override
 	public String toString() {
 		return "TERN:" + container;
 	}

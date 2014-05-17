@@ -6,7 +6,6 @@ import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
-import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
@@ -415,9 +414,6 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		if (splitReturn(mth)) {
 			return true;
 		}
-		if (mergeReturn(mth)) {
-			return true;
-		}
 		return false;
 	}
 
@@ -428,37 +424,6 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		connect(source, newBlock);
 		connect(newBlock, target);
 		return newBlock;
-	}
-
-	/**
-	 * Merge return blocks for void methods
-	 */
-	private static boolean mergeReturn(MethodNode mth) {
-		if (mth.getExitBlocks().size() == 1 || !mth.getReturnType().equals(ArgType.VOID)) {
-			return false;
-		}
-		for (BlockNode exitBlock : mth.getExitBlocks()) {
-			List<BlockNode> preds = exitBlock.getPredecessors();
-			if (preds.size() != 1) {
-				continue;
-			}
-			BlockNode pred = preds.get(0);
-			for (BlockNode otherExitBlock : mth.getExitBlocks()) {
-				if (exitBlock != otherExitBlock
-						&& otherExitBlock.isDominator(pred)
-						&& otherExitBlock.getPredecessors().size() == 1) {
-					BlockNode otherPred = otherExitBlock.getPredecessors().get(0);
-					if (pred != otherPred) {
-						// merge
-						removeConnection(otherPred, otherExitBlock);
-						connect(otherPred, exitBlock);
-						cleanExitNodes(mth);
-						return true;
-					}
-				}
-			}
-		}
-		return false;
 	}
 
 	/**

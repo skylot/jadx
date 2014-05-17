@@ -197,6 +197,11 @@ public class BlockNode extends AttrNode implements IBlock {
 	}
 
 	@Override
+	public String baseString() {
+		return Integer.toString(id);
+	}
+
+	@Override
 	public String toString() {
 		return "B:" + id + ":" + InsnUtils.formatOffset(startOffset);
 	}

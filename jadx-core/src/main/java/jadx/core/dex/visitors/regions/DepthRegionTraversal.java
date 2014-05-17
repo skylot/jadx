@@ -16,7 +16,7 @@ public class DepthRegionTraversal {
 	}
 
 	public static void traverseAll(MethodNode mth, IRegionVisitor visitor) {
-		traverse(mth, visitor);
+		traverseInternal(mth, visitor, mth.getRegion());
 		for (ExceptionHandler h : mth.getExceptionHandlers()) {
 			traverseInternal(mth, visitor, h.getHandlerRegion());
 		}
@@ -25,7 +25,7 @@ public class DepthRegionTraversal {
 	public static void traverseAllIterative(MethodNode mth, IRegionIterativeVisitor visitor) {
 		boolean repeat;
 		do {
-			repeat = traverseAllIterativeIntern(mth, visitor);
+			repeat = traverseAllIterativeInternal(mth, visitor);
 		} while (repeat);
 	}
 
@@ -42,7 +42,7 @@ public class DepthRegionTraversal {
 		}
 	}
 
-	private static boolean traverseAllIterativeIntern(MethodNode mth, IRegionIterativeVisitor visitor) {
+	private static boolean traverseAllIterativeInternal(MethodNode mth, IRegionIterativeVisitor visitor) {
 		if (traverseIterativeInternal(mth, visitor, mth.getRegion())) {
 			return true;
 		}
@@ -54,7 +54,7 @@ public class DepthRegionTraversal {
 		return false;
 	}
 
-	public static boolean traverseIterativeInternal(MethodNode mth, IRegionIterativeVisitor visitor, IContainer container) {
+	private static boolean traverseIterativeInternal(MethodNode mth, IRegionIterativeVisitor visitor, IContainer container) {
 		if (container instanceof IRegion) {
 			IRegion region = (IRegion) container;
 			if (visitor.visitRegion(mth, region)) {

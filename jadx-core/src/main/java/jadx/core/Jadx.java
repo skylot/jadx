@@ -18,6 +18,7 @@ import jadx.core.dex.visitors.regions.CheckRegions;
 import jadx.core.dex.visitors.regions.IfRegionVisitor;
 import jadx.core.dex.visitors.regions.ProcessVariables;
 import jadx.core.dex.visitors.regions.RegionMakerVisitor;
+import jadx.core.dex.visitors.regions.ReturnVisitor;
 import jadx.core.dex.visitors.ssa.EliminatePhiNodes;
 import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.dex.visitors.typeinference.FinishTypeInference;
@@ -74,6 +75,7 @@ public class Jadx {
 			passes.add(new CodeShrinker());
 			passes.add(new RegionMakerVisitor());
 			passes.add(new IfRegionVisitor());
+			passes.add(new ReturnVisitor());
 
 			passes.add(new CodeShrinker());
 			passes.add(new SimplifyVisitor());

@@ -32,6 +32,36 @@ public class RegionUtils {
 		}
 	}
 
+	/**
+	 * Return true if last block in region has no successors
+	 */
+	public static boolean hasExitBlock(IContainer container) {
+		if (container instanceof BlockNode) {
+			return ((BlockNode) container).getSuccessors().size() == 0;
+		} else if (container instanceof IRegion) {
+			List<IContainer> blocks = ((IRegion) container).getSubBlocks();
+			return !blocks.isEmpty()
+					&& hasExitBlock(blocks.get(blocks.size() - 1));
+		} else {
+			throw new JadxRuntimeException("Unknown container type: " + container.getClass());
+		}
+	}
+
+	public static int insnsCount(IContainer container) {
+		if (container instanceof BlockNode) {
+			return ((BlockNode) container).getInstructions().size();
+		} else if (container instanceof IRegion) {
+			IRegion region = (IRegion) container;
+			int count = 0;
+			for (IContainer block : region.getSubBlocks()) {
+				count += insnsCount(block);
+			}
+			return count;
+		} else {
+			throw new JadxRuntimeException("Unknown container type: " + container.getClass());
+		}
+	}
+
 	public static boolean isEmpty(IContainer container) {
 		return !notEmpty(container);
 	}

@@ -130,6 +130,11 @@ public final class LoopRegion extends AbstractRegion {
 	}
 
 	@Override
+	public String baseString() {
+		return body.baseString();
+	}
+
+	@Override
 	public String toString() {
 		return "LOOP";
 	}
