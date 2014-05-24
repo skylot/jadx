@@ -1,6 +1,8 @@
 package jadx.api;
 
 import jadx.core.Jadx;
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.DepthTraversal;
@@ -23,6 +25,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public abstract class InternalJadxTest extends TestUtils {
@@ -33,48 +36,45 @@ public abstract class InternalJadxTest extends TestUtils {
 	protected String outDir = "test-out-tmp";
 
 	public ClassNode getClassNode(Class<?> clazz) {
+		Decompiler d = new Decompiler();
 		try {
-			File temp = getJarForClass(clazz);
-			Decompiler d = new Decompiler();
-			try {
-				d.loadFile(temp);
-			} catch (Exception e) {
-				fail(e.getMessage());
-			}
-			List<ClassNode> classes = d.getRoot().getClasses(false);
-			String clsName = clazz.getName();
-			ClassNode cls = null;
-			for (ClassNode aClass : classes) {
-				if (aClass.getFullName().equals(clsName)) {
-					cls = aClass;
-				}
-			}
-			assertNotNull("Class not found: " + clsName, cls);
-
-			assertEquals(cls.getFullName(), clazz.getName());
-
-			cls.load();
-			List<IDexTreeVisitor> passes = Jadx.getPassesList(new DefaultJadxArgs() {
-				@Override
-				public boolean isCFGOutput() {
-					return outputCFG;
-				}
-
-				@Override
-				public boolean isRawCFGOutput() {
-					return outputCFG;
-				}
-			}, new File(outDir));
-			for (IDexTreeVisitor visitor : passes) {
-				DepthTraversal.visit(visitor, cls);
-			}
-			assertThat(cls.getCode().toString(), not(containsString("inconsistent")));
-			return cls;
+			d.loadFile(getJarForClass(clazz));
 		} catch (Exception e) {
-			e.printStackTrace();
 			fail(e.getMessage());
-			return null;
 		}
+		String clsName = clazz.getName();
+		ClassNode cls = d.getRoot().searchClassByName(clsName);
+		assertNotNull("Class not found: " + clsName, cls);
+		assertEquals(cls.getFullName(), clazz.getName());
+
+		cls.load();
+		for (IDexTreeVisitor visitor : getPasses()) {
+			DepthTraversal.visit(visitor, cls);
+		}
+		// don't unload class
+
+		assertTrue("Inconsistent cls: " + cls,
+				!cls.contains(AFlag.INCONSISTENT_CODE) && !cls.contains(AType.JADX_ERROR));
+		for (MethodNode mthNode : cls.getMethods()) {
+			assertTrue("Inconsistent method: " + mthNode,
+					!mthNode.contains(AFlag.INCONSISTENT_CODE) && !mthNode.contains(AType.JADX_ERROR));
+		}
+		assertThat(cls.getCode().toString(), not(containsString("inconsistent")));
+		return cls;
+	}
+
+	protected List<IDexTreeVisitor> getPasses() {
+		return Jadx.getPassesList(new DefaultJadxArgs() {
+			@Override
+			public boolean isCFGOutput() {
+				return outputCFG;
+			}
+
+			@Override
+			public boolean isRawCFGOutput() {
+				return outputCFG;
+			}
+		}, new File(outDir));
 	}
 
 	protected MethodNode getMethod(ClassNode cls, String method) {

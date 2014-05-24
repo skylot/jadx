@@ -146,7 +146,7 @@ public class SSATransform extends AbstractVisitor {
 		List<PhiInsn> insnToRemove = new ArrayList<PhiInsn>();
 		for (SSAVar var : mth.getSVars()) {
 			// phi result not used
-			if (var.getUseList().isEmpty()) {
+			if (var.getUseCount() == 0) {
 				InsnNode assignInsn = var.getAssign().getParentInsn();
 				if (assignInsn != null && assignInsn.getType() == InsnType.PHI) {
 					insnToRemove.add((PhiInsn) assignInsn);

@@ -79,7 +79,7 @@ public final class LoopRegion extends AbstractRegion {
 				return false;
 			} else {
 				RegisterArg res = insn.getResult();
-				if (res.getSVar().getUseList().size() > 1) {
+				if (res.getSVar().getUseCount() > 1) {
 					return false;
 				}
 				boolean found = false;

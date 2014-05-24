@@ -34,7 +34,7 @@ public class RegionMakerVisitor extends AbstractVisitor {
 		// fill region structure
 		mth.setRegion(rm.makeRegion(mth.getEnterBlock(), state));
 
-		if (!mth.getExceptionHandlers().isEmpty()) {
+		if (!mth.isNoExceptionHandlers()) {
 			state = new RegionStack(mth);
 			for (ExceptionHandler handler : mth.getExceptionHandlers()) {
 				rm.processExcHandler(handler, state);
@@ -46,8 +46,9 @@ public class RegionMakerVisitor extends AbstractVisitor {
 
 	private static void postProcessRegions(MethodNode mth) {
 		// make try-catch regions
-		DepthRegionTraversal.traverse(mth, new ProcessTryCatchRegions(mth));
-
+		if (!mth.isNoExceptionHandlers()) {
+			DepthRegionTraversal.traverse(mth, new ProcessTryCatchRegions(mth));
+		}
 		// merge conditions in loops
 		if (mth.getLoopsCount() != 0) {
 			DepthRegionTraversal.traverseAll(mth, new AbstractRegionVisitor() {

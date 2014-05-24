@@ -685,11 +685,6 @@ public class RegionMaker {
 			LOG.debug(ErrorsCounter.formatErrorMsg(mth, "No exception handler block: " + handler));
 			return;
 		}
-
-		BlockNode out = BlockUtils.traverseWhileDominates(start, start);
-		if (out != null) {
-			stack.addExit(out);
-		}
 		// TODO extract finally part which exists in all handlers from same try block
 		// TODO add blocks common for several handlers to some region
 		handler.setHandlerRegion(makeRegion(start, stack));

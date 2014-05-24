@@ -66,6 +66,13 @@ public class RegisterArg extends InsnArg implements Named {
 		return name;
 	}
 
+	public boolean isNameEquals(InsnArg arg) {
+		if (name == null || !(arg instanceof Named)) {
+			return false;
+		}
+		return name.equals(((Named) arg).getName());
+	}
+
 	public void setName(String newName) {
 		this.name = newName;
 	}

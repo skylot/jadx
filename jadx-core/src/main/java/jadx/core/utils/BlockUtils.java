@@ -229,14 +229,14 @@ public class BlockUtils {
 	}
 
 	/**
-	 * Search for first node which not dominated by block, starting from child
+	 * Search for first node which not dominated by dom, starting from start
 	 */
-	public static BlockNode traverseWhileDominates(BlockNode block, BlockNode child) {
-		for (BlockNode node : child.getCleanSuccessors()) {
-			if (!node.isDominator(block)) {
+	public static BlockNode traverseWhileDominates(BlockNode dom, BlockNode start) {
+		for (BlockNode node : start.getCleanSuccessors()) {
+			if (!node.isDominator(dom)) {
 				return node;
 			} else {
-				BlockNode out = traverseWhileDominates(block, node);
+				BlockNode out = traverseWhileDominates(dom, node);
 				if (out != null) {
 					return out;
 				}

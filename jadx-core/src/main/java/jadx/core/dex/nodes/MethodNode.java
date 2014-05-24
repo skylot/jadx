@@ -446,8 +446,12 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		return handler;
 	}
 
-	public List<ExceptionHandler> getExceptionHandlers() {
-		return Collections.unmodifiableList(exceptionHandlers);
+	public Iterable<ExceptionHandler> getExceptionHandlers() {
+		return exceptionHandlers;
+	}
+
+	public boolean isNoExceptionHandlers() {
+		return exceptionHandlers.isEmpty();
 	}
 
 	/**

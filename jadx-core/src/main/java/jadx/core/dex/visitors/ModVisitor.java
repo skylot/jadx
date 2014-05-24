@@ -229,7 +229,7 @@ public class ModVisitor extends AbstractVisitor {
 		if (blockInsns.size() > 0) {
 			InsnNode insn = blockInsns.get(0);
 			if (insn.getType() == InsnType.MOVE_EXCEPTION
-					&& insn.getResult().getSVar().getUseList().isEmpty()) {
+					&& insn.getResult().getSVar().getUseCount() == 0) {
 				InstructionRemover.remove(mth, block, 0);
 			}
 		}
@@ -257,7 +257,7 @@ public class ModVisitor extends AbstractVisitor {
 	 * In argument not used in other instructions then remove assign instruction.
 	 */
 	private static void removeInsnForArg(InstructionRemover remover, RegisterArg arg) {
-		if (arg.getSVar().getUseList().isEmpty()
+		if (arg.getSVar().getUseCount() == 0
 				&& arg.getAssignInsn() != null) {
 			remover.add(arg.getAssignInsn());
 		}

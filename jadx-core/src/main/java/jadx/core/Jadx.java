@@ -68,10 +68,6 @@ public class Jadx {
 			passes.add(new ModVisitor());
 			passes.add(new EnumVisitor());
 
-			if (args.isCFGOutput()) {
-				passes.add(new DotGraphVisitor(outDir, false));
-			}
-
 			passes.add(new CodeShrinker());
 			passes.add(new RegionMakerVisitor());
 			passes.add(new IfRegionVisitor());
@@ -89,6 +85,10 @@ public class Jadx {
 			passes.add(new MethodInlineVisitor());
 			passes.add(new ClassModifier());
 			passes.add(new PrepareForCodeGen());
+
+			if (args.isCFGOutput()) {
+				passes.add(new DotGraphVisitor(outDir, false));
+			}
 		}
 		passes.add(new CodeGen(args));
 		return passes;

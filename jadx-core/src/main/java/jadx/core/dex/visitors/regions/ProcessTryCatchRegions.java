@@ -40,7 +40,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 	private final Map<BlockNode, TryCatchBlock> tryBlocksMap = new HashMap<BlockNode, TryCatchBlock>(2);
 
 	public ProcessTryCatchRegions(MethodNode mth) {
-		if (mth.isNoCode() || mth.getExceptionHandlers().isEmpty()) {
+		if (mth.isNoCode() || mth.isNoExceptionHandlers()) {
 			return;
 		}
 
@@ -84,7 +84,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 
 			TryCatchBlock prevTB = tryBlocksMap.put(domBlock, tb);
 			if (prevTB != null) {
-				LOG.info("!!! TODO merge try blocks in " + mth);
+				LOG.info("!!! TODO: merge try blocks in " + mth);
 			}
 		}
 
@@ -134,7 +134,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 				}
 			}
 		}
-		if (newRegion.getSubBlocks().size() != 0) {
+		if (!newRegion.getSubBlocks().isEmpty()) {
 			if (DEBUG) {
 				LOG.debug("ProcessTryCatchRegions mark: {}", newRegion);
 			}

@@ -59,7 +59,7 @@ public class InstructionRemover {
 	public static void unbindInsn(MethodNode mth, InsnNode insn) {
 		RegisterArg r = insn.getResult();
 		if (r != null && r.getSVar() != null) {
-			if (Consts.DEBUG && !r.getSVar().getUseList().isEmpty()) {
+			if (Consts.DEBUG && r.getSVar().getUseCount() != 0) {
 				LOG.debug("Unbind insn with result: {}", insn);
 			}
 			mth.removeSVar(r.getSVar());

@@ -47,6 +47,10 @@ public class SSAVar {
 		return useList;
 	}
 
+	public int getUseCount() {
+		return useList.size();
+	}
+
 	public void use(RegisterArg arg) {
 		mergeName(arg);
 		if (arg.getSVar() != null) {
@@ -81,7 +85,7 @@ public class SSAVar {
 		if (!isUsedInPhi()) {
 			return useList.size();
 		}
-		return useList.size() + usedInPhi.getResult().getSVar().getUseList().size();
+		return useList.size() + usedInPhi.getResult().getSVar().getUseCount();
 	}
 
 	public ArgType getType() {

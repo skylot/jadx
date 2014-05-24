@@ -4,7 +4,6 @@ import jadx.api.InternalJadxTest;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
-import jadx.core.utils.exceptions.DecodeException;
 
 import java.util.Iterator;
 import java.util.List;
@@ -30,7 +29,7 @@ public class TestVariablesDefinitions extends InternalJadxTest {
 				while (iterator.hasNext()) {
 					DepthTraversal.visit(iterator.next(), cls);
 				}
-			} catch (DecodeException e) {
+			} catch (Exception e) {
 				LOG.error("Decode exception: " + cls, e);
 			}
 		}

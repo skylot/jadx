@@ -205,7 +205,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 	}
 
 	@Override
-	public void load() throws DecodeException {
+	public void load() {
 		for (MethodNode mth : getMethods()) {
 			try {
 				mth.load();
