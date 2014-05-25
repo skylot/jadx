@@ -1,7 +1,9 @@
 package jadx.gui.ui;
 
 import jadx.gui.treemodel.JClass;
+import jadx.gui.utils.JumpManager;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.Position;
 import jadx.gui.utils.Utils;
 
 import javax.swing.BorderFactory;
@@ -36,6 +38,7 @@ class TabbedPane extends JTabbedPane {
 
 	private final MainWindow mainWindow;
 	private final Map<JClass, CodePanel> openTabs = new LinkedHashMap<JClass, CodePanel>();
+	private JumpManager jumps = new JumpManager();
 
 	TabbedPane(MainWindow window) {
 		mainWindow = window;
@@ -63,16 +66,38 @@ class TabbedPane extends JTabbedPane {
 	}
 
 	void showCode(final JClass cls, final int line) {
-		final CodePanel codePanel = getCodePanel(cls);
+		showCode(new Position(cls, line));
+	}
+
+	void showCode(final Position pos) {
+		final CodePanel codePanel = getCodePanel(pos.getCls());
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
 				setSelectedComponent(codePanel);
 				CodeArea codeArea = codePanel.getCodeArea();
-				codeArea.scrollToLine(line);
+				codeArea.scrollToLine(pos.getLine());
 				codeArea.requestFocus();
 			}
 		});
+	}
+
+	public void navBack() {
+		Position pos = jumps.getPrev();
+		if (pos != null) {
+			showCode(pos);
+		}
+	}
+
+	public void navForward() {
+		Position pos = jumps.getNext();
+		if (pos != null) {
+			showCode(pos);
+		}
+	}
+
+	public JumpManager getJumpManager() {
+		return jumps;
 	}
 
 	private void addCodePanel(CodePanel codePanel) {

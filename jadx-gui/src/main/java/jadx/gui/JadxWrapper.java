@@ -36,7 +36,6 @@ public class JadxWrapper {
 		}
 	}
 
-
 	public void saveAll(final File dir, final ProgressMonitor progressMonitor) {
 		Runnable save = new Runnable() {
 			@Override

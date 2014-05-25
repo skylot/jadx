@@ -2,6 +2,7 @@ package jadx.gui.ui;
 
 import jadx.api.CodePosition;
 import jadx.gui.treemodel.JClass;
+import jadx.gui.utils.Position;
 
 import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
@@ -64,7 +65,7 @@ class CodeArea extends RSyntaxTextArea {
 
 	private boolean isJumpToken(Token token) {
 		if (token.getType() == TokenTypes.IDENTIFIER) {
-			CodePosition pos = getCodePosition(cls, this, token.getOffset());
+			Position pos = getPosition(cls, this, token.getOffset());
 			if (pos != null) {
 				return true;
 			}
@@ -80,15 +81,22 @@ class CodeArea extends RSyntaxTextArea {
 		return super.getUnderlineForToken(t);
 	}
 
-	static CodePosition getCodePosition(JClass jCls, RSyntaxTextArea textArea, int offset) {
+	static Position getPosition(JClass jCls, RSyntaxTextArea textArea, int offset) {
 		try {
 			int line = textArea.getLineOfOffset(offset);
 			int lineOffset = offset - textArea.getLineStartOffset(line);
-			return jCls.getCls().getDefinitionPosition(line + 1, lineOffset + 1);
+			CodePosition pos = jCls.getCls().getDefinitionPosition(line + 1, lineOffset + 1);
+			if (pos != null && pos.isSet()) {
+				return new Position(pos);
+			}
 		} catch (BadLocationException e) {
 			LOG.error("Can't get line by offset", e);
-			return null;
 		}
+		return null;
+	}
+
+	Position getCurrentPosition() {
+		return new Position(cls, getCaretLineNumber());
 	}
 
 	void scrollToLine(int line) {
@@ -145,14 +153,14 @@ class CodeArea extends RSyntaxTextArea {
 				if (token != null) {
 					offset = token.getOffset();
 				}
-				final CodePosition defPos = getCodePosition(jCls, textArea, offset);
+				final Position defPos = getPosition(jCls, textArea, offset);
 				if (defPos != null) {
 					final int sourceOffset = offset;
 					return new LinkGeneratorResult() {
 						@Override
 						public HyperlinkEvent execute() {
 							return new HyperlinkEvent(defPos, HyperlinkEvent.EventType.ACTIVATED, null,
-									defPos.getJavaClass().getFullName());
+									defPos.getCls().getFullName());
 						}
 
 						@Override
@@ -170,11 +178,13 @@ class CodeArea extends RSyntaxTextArea {
 		@Override
 		public void hyperlinkUpdate(HyperlinkEvent e) {
 			Object obj = e.getSource();
-			if (obj instanceof CodePosition) {
-				CodePosition pos = (CodePosition) obj;
-				JClass cls = new JClass(pos.getJavaClass());
-				codePanel.getCodePanel().showCode(cls, pos.getLine());
+			if (obj instanceof Position) {
+				Position pos = (Position) obj;
 				LOG.debug("Code jump to: {}", pos);
+				TabbedPane tabbedPane = codePanel.getTabbedPane();
+				tabbedPane.getJumpManager().addPosition(getCurrentPosition());
+				tabbedPane.getJumpManager().addPosition(pos);
+				tabbedPane.showCode(pos);
 			}
 		}
 	}

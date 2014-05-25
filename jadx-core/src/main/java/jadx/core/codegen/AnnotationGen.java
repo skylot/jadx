@@ -73,7 +73,7 @@ public class AnnotationGen {
 
 	private void formatAnnotation(CodeWriter code, Annotation a) {
 		code.add('@');
-		code.add(classGen.useClass(a.getType()));
+		classGen.useType(code, a.getType());
 		Map<String, Object> vl = a.getValues();
 		if (!vl.isEmpty()) {
 			code.add('(');
@@ -102,7 +102,7 @@ public class AnnotationGen {
 			code.add(" throws ");
 			for (Iterator<ArgType> it = ((List<ArgType>) exs).iterator(); it.hasNext(); ) {
 				ArgType ex = it.next();
-				code.add(TypeGen.translate(classGen, ex));
+				classGen.useType(code, ex);
 				if (it.hasNext()) {
 					code.add(", ");
 				}
@@ -144,11 +144,12 @@ public class AnnotationGen {
 		} else if (val instanceof Byte) {
 			code.add(TypeGen.formatByte((Byte) val));
 		} else if (val instanceof ArgType) {
-			code.add(TypeGen.translate(classGen, (ArgType) val)).add(".class");
+			classGen.useType(code, (ArgType) val);
+			code.add(".class");
 		} else if (val instanceof FieldInfo) {
 			// must be a static field
 			FieldInfo field = (FieldInfo) val;
-			code.add(InsnGen.makeStaticFieldAccess(field, classGen));
+			InsnGen.makeStaticFieldAccess(code, field, classGen);
 		} else if (val instanceof List) {
 			code.add('{');
 			Iterator<?> it = ((List) val).iterator();

@@ -11,6 +11,7 @@ import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -130,7 +131,9 @@ public class ClassGen {
 		if (sup != null
 				&& !sup.getFullName().equals(Consts.CLASS_OBJECT)
 				&& !sup.getFullName().equals(Consts.CLASS_ENUM)) {
-			clsCode.add("extends ").add(useClass(sup)).add(' ');
+			clsCode.add("extends ");
+			useClass(clsCode, sup);
+			clsCode.add(' ');
 		}
 
 		if (cls.getInterfaces().size() > 0 && !af.isAnnotation()) {
@@ -141,7 +144,7 @@ public class ClassGen {
 			}
 			for (Iterator<ClassInfo> it = cls.getInterfaces().iterator(); it.hasNext(); ) {
 				ClassInfo interf = it.next();
-				clsCode.add(useClass(interf));
+				useClass(clsCode, interf);
 				if (it.hasNext()) {
 					clsCode.add(", ");
 				}
@@ -165,12 +168,20 @@ public class ClassGen {
 			if (i != 0) {
 				code.add(", ");
 			}
-			code.add(useClass(type));
+			if (type.isGenericType()) {
+				code.add(type.getObject());
+			} else {
+				useClass(code, ClassInfo.fromType(type));
+			}
 			if (list != null && !list.isEmpty()) {
 				code.add(" extends ");
 				for (Iterator<ArgType> it = list.iterator(); it.hasNext(); ) {
 					ArgType g = it.next();
-					code.add(useClass(g));
+					if (g.isGenericType()) {
+						code.add(g.getObject());
+					} else {
+						useClass(code, ClassInfo.fromType(g));
+					}
 					if (it.hasNext()) {
 						code.add(" & ");
 					}
@@ -259,7 +270,7 @@ public class ClassGen {
 			}
 			annotationGen.addForField(code, f);
 			code.startLine(f.getAccessFlags().makeString());
-			code.add(TypeGen.translate(this, f.getType()));
+			useType(code, f.getType());
 			code.add(' ');
 			code.add(f.getName());
 			FieldValueAttr fv = f.get(AType.FIELD_VALUE);
@@ -278,80 +289,91 @@ public class ClassGen {
 
 	private void addEnumFields(CodeWriter code) throws CodegenException {
 		EnumClassAttr enumFields = cls.get(AType.ENUM_CLASS);
-		if (enumFields != null) {
-			InsnGen igen = null;
-			for (Iterator<EnumField> it = enumFields.getFields().iterator(); it.hasNext(); ) {
-				EnumField f = it.next();
-				code.startLine(f.getName());
-				if (f.getArgs().size() != 0) {
-					code.add('(');
-					for (Iterator<InsnArg> aIt = f.getArgs().iterator(); aIt.hasNext(); ) {
-						InsnArg arg = aIt.next();
-						if (igen == null) {
-							// don't init mth gen if this is simple enum
-							MethodGen mthGen = new MethodGen(this, enumFields.getStaticMethod());
-							igen = new InsnGen(mthGen, false);
-						}
-						igen.addArg(code, arg);
-						if (aIt.hasNext()) {
-							code.add(", ");
-						}
+		if (enumFields == null) {
+			return;
+		}
+		InsnGen igen = null;
+		for (Iterator<EnumField> it = enumFields.getFields().iterator(); it.hasNext(); ) {
+			EnumField f = it.next();
+			code.startLine(f.getName());
+			if (f.getArgs().size() != 0) {
+				code.add('(');
+				for (Iterator<InsnArg> aIt = f.getArgs().iterator(); aIt.hasNext(); ) {
+					InsnArg arg = aIt.next();
+					if (igen == null) {
+						// don't init mth gen if this is simple enum
+						MethodGen mthGen = new MethodGen(this, enumFields.getStaticMethod());
+						igen = new InsnGen(mthGen, false);
 					}
-					code.add(')');
+					igen.addArg(code, arg);
+					if (aIt.hasNext()) {
+						code.add(", ");
+					}
 				}
-				if (f.getCls() != null) {
-					new ClassGen(f.getCls(), this, fallback).addClassBody(code);
-				}
-				if (it.hasNext()) {
-					code.add(',');
-				}
+				code.add(')');
 			}
-			if (enumFields.getFields().isEmpty()) {
-				code.startLine();
+			if (f.getCls() != null) {
+				new ClassGen(f.getCls(), this, fallback).addClassBody(code);
 			}
-			code.add(';');
-			code.newLine();
+			if (it.hasNext()) {
+				code.add(',');
+			}
 		}
+		if (enumFields.getFields().isEmpty()) {
+			code.startLine();
+		}
+		code.add(';');
+		code.newLine();
 	}
 
-	public String useClass(ArgType clsType) {
-		if (clsType.isGenericType()) {
-			return clsType.getObject();
-		}
-		return useClass(ClassInfo.fromType(clsType));
-	}
-
-	public String useClass(ClassInfo classInfo) {
-		String baseClass = useClassInternal(cls.getClassInfo(), classInfo);
-		ArgType type = classInfo.getType();
-		ArgType[] generics = type.getGenericTypes();
-		if (generics == null) {
-			return baseClass;
-		}
-
-		StringBuilder sb = new StringBuilder();
-		sb.append(baseClass);
-		sb.append('<');
-		int len = generics.length;
-		for (int i = 0; i < len; i++) {
-			if (i != 0) {
-				sb.append(", ");
-			}
-			ArgType gt = generics[i];
-			ArgType wt = gt.getWildcardType();
-			if (wt != null) {
-				sb.append('?');
-				int bounds = gt.getWildcardBounds();
-				if (bounds != 0) {
-					sb.append(bounds == -1 ? " super " : " extends ");
-					sb.append(TypeGen.translate(this, wt));
-				}
+	public void useType(CodeWriter code, ArgType type) {
+		final PrimitiveType stype = type.getPrimitiveType();
+		if (stype == null) {
+			code.add(type.toString());
+		} else if (stype == PrimitiveType.OBJECT) {
+			if (type.isGenericType()) {
+				code.add(type.getObject());
 			} else {
-				sb.append(TypeGen.translate(this, gt));
+				useClass(code, ClassInfo.fromType(type));
 			}
+		} else if (stype == PrimitiveType.ARRAY) {
+			useType(code, type.getArrayElement());
+			code.add("[]");
+		} else {
+			code.add(stype.getLongName());
 		}
-		sb.append('>');
-		return sb.toString();
+	}
+
+	public void useClass(CodeWriter code, ClassInfo classInfo) {
+		ClassNode classNode = cls.dex().resolveClass(classInfo);
+		if (classNode != null) {
+			code.attachAnnotation(classNode);
+		}
+		String baseClass = useClassInternal(cls.getClassInfo(), classInfo);
+		ArgType[] generics = classInfo.getType().getGenericTypes();
+		code.add(baseClass);
+		if (generics != null) {
+			code.add('<');
+			int len = generics.length;
+			for (int i = 0; i < len; i++) {
+				if (i != 0) {
+					code.add(", ");
+				}
+				ArgType gt = generics[i];
+				ArgType wt = gt.getWildcardType();
+				if (wt != null) {
+					code.add('?');
+					int bounds = gt.getWildcardBounds();
+					if (bounds != 0) {
+						code.add(bounds == -1 ? " super " : " extends ");
+						useType(code, wt);
+					}
+				} else {
+					useType(code, gt);
+				}
+			}
+			code.add('>');
+		}
 	}
 
 	private String useClassInternal(ClassInfo useCls, ClassInfo classInfo) {

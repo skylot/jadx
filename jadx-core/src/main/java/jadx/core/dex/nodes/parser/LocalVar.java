@@ -57,7 +57,6 @@ final class LocalVar extends RegisterArg {
 		} else if (el.isGenericType()) {
 			apply = true;
 		} else {
-			LOG.debug("Local var signature from debug info not generic: {}, parsed: {}", sign, gType);
 			apply = false;
 		}
 		return apply;

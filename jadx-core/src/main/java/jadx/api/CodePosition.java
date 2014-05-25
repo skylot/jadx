@@ -30,6 +30,10 @@ public final class CodePosition {
 		return offset;
 	}
 
+	public boolean isSet() {
+		return line != 0 || offset != 0;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {

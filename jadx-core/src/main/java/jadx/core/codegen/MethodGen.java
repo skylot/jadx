@@ -93,7 +93,7 @@ public class MethodGen {
 		if (mth.getAccessFlags().isConstructor()) {
 			code.add(classGen.getClassNode().getShortName()); // constructor
 		} else {
-			code.add(TypeGen.translate(classGen, mth.getReturnType()));
+			classGen.useType(code, mth.getReturnType());
 			code.add(' ');
 			code.add(mth.getName());
 		}
@@ -138,14 +138,14 @@ public class MethodGen {
 				ArgType type = arg.getType();
 				if (type.isArray()) {
 					ArgType elType = type.getArrayElement();
-					argsCode.add(TypeGen.translate(classGen, elType));
+					classGen.useType(argsCode, elType);
 					argsCode.add(" ...");
 				} else {
 					LOG.warn(ErrorsCounter.formatErrorMsg(mth, "Last argument in varargs method not array"));
-					argsCode.add(TypeGen.translate(classGen, arg.getType()));
+					classGen.useType(argsCode, arg.getType());
 				}
 			} else {
-				argsCode.add(TypeGen.translate(classGen, arg.getType()));
+				classGen.useType(argsCode, arg.getType());
 			}
 			argsCode.add(' ');
 			argsCode.add(makeArgName(arg));
@@ -181,7 +181,8 @@ public class MethodGen {
 				if (type.isPrimitive()) {
 					return base + type.getPrimitiveType().getShortName().toLowerCase();
 				} else {
-					return base + "_" + Utils.escape(TypeGen.translate(classGen, arg.getType()));
+					// TODO: prettify variable name
+					return base + "_" + Utils.escape(type.toString());
 				}
 			}
 		}

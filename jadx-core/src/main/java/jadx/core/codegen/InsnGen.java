@@ -99,7 +99,7 @@ public class InsnGen {
 		} else if (arg.isField()) {
 			FieldArg f = (FieldArg) arg;
 			if (f.isStatic()) {
-				code.add(staticField(f.getField()));
+				staticField(code, f.getField());
 			} else {
 				instanceField(code, f.getField(), f.getRegisterArg());
 			}
@@ -118,7 +118,7 @@ public class InsnGen {
 	}
 
 	public void declareVar(CodeWriter code, RegisterArg arg) {
-		code.add(useType(arg.getType()));
+		useType(code, arg.getType());
 		code.add(' ');
 		code.add(mgen.assignArg(arg));
 	}
@@ -134,38 +134,52 @@ public class InsnGen {
 			if (replace != null) {
 				FieldInfo info = replace.getFieldInfo();
 				if (replace.isOuterClass()) {
-					code.add(useClass(info.getDeclClass())).add(".this");
+					useClass(code, info.getDeclClass());
+					code.add(".this");
 				}
 				return;
 			}
 		}
 		addArgDot(code, arg);
+		fieldNode = mth.dex().resolveField(field);
+		if (fieldNode != null) {
+			code.attachAnnotation(fieldNode);
+		}
 		code.add(field.getName());
 	}
 
-	public static String makeStaticFieldAccess(FieldInfo field, ClassGen clsGen) {
+	public static void makeStaticFieldAccess(CodeWriter code, FieldInfo field, ClassGen clsGen) {
 		ClassInfo declClass = field.getDeclClass();
-		if (clsGen.getClassNode().getFullName().startsWith(declClass.getFullName())) {
-			return field.getName();
+		boolean fieldFromThisClass = clsGen.getClassNode().getFullName().startsWith(declClass.getFullName());
+		if (!fieldFromThisClass) {
+			// Android specific resources class handler
+			ClassInfo parentClass = declClass.getParentClass();
+			if (parentClass != null && parentClass.getShortName().equals("R")) {
+				clsGen.useClass(code, parentClass);
+				code.add('.');
+				code.add(declClass.getShortName());
+			} else {
+				clsGen.useClass(code, declClass);
+			}
+			code.add('.');
 		}
-		// Android specific resources class handler
-		ClassInfo parentClass = declClass.getParentClass();
-		if (parentClass != null && parentClass.getShortName().equals("R")) {
-			return clsGen.useClass(parentClass) + "." + declClass.getShortName() + "." + field.getName();
+		FieldNode fieldNode = clsGen.getClassNode().dex().resolveField(field);
+		if (fieldNode != null) {
+			code.attachAnnotation(fieldNode);
 		}
-		return clsGen.useClass(declClass) + '.' + field.getName();
+		code.add(field.getName());
 	}
 
-	protected String staticField(FieldInfo field) {
-		return makeStaticFieldAccess(field, mgen.getClassGen());
+	protected void staticField(CodeWriter code, FieldInfo field) {
+		makeStaticFieldAccess(code, field, mgen.getClassGen());
 	}
 
-	public String useClass(ClassInfo cls) {
-		return mgen.getClassGen().useClass(cls);
+	public void useClass(CodeWriter code, ClassInfo cls) {
+		mgen.getClassGen().useClass(code, cls);
 	}
 
-	private String useType(ArgType type) {
-		return TypeGen.translate(mgen.getClassGen(), type);
+	private void useType(CodeWriter code, ArgType type) {
+		mgen.getClassGen().useType(code, type);
 	}
 
 	public boolean makeInsn(InsnNode insn, CodeWriter code) throws CodegenException {
@@ -208,7 +222,8 @@ public class InsnGen {
 
 			case CONST_CLASS:
 				ArgType clsType = ((ConstClassNode) insn).getClsType();
-				code.add(useType(clsType)).add(".class");
+				useType(code, clsType);
+				code.add(".class");
 				break;
 
 			case CONST:
@@ -227,7 +242,7 @@ public class InsnGen {
 					code.add('(');
 				}
 				code.add('(');
-				code.add(useType((ArgType) ((IndexInsnNode) insn).getIndex()));
+				useType(code, (ArgType) ((IndexInsnNode) insn).getIndex());
 				code.add(") ");
 				addArg(code, insn.getArg(0), true);
 				if (wrap) {
@@ -299,7 +314,7 @@ public class InsnGen {
 				}
 				addArg(code, insn.getArg(0));
 				code.add(" instanceof ");
-				code.add(useType((ArgType) ((IndexInsnNode) insn).getIndex()));
+				useType(code, (ArgType) ((IndexInsnNode) insn).getIndex());
 				if (wrap) {
 					code.add(')');
 				}
@@ -315,7 +330,8 @@ public class InsnGen {
 
 			case NEW_ARRAY: {
 				ArgType arrayType = insn.getResult().getType();
-				code.add("new ").add(useType(arrayType.getArrayRootElement()));
+				code.add("new ");
+				useType(code, arrayType.getArrayRootElement());
 				code.add('[');
 				addArg(code, insn.getArg(0));
 				code.add(']');
@@ -368,11 +384,12 @@ public class InsnGen {
 			}
 
 			case SGET:
-				code.add(staticField((FieldInfo) ((IndexInsnNode) insn).getIndex()));
+				staticField(code, (FieldInfo) ((IndexInsnNode) insn).getIndex());
 				break;
 			case SPUT:
 				FieldInfo field = (FieldInfo) ((IndexInsnNode) insn).getIndex();
-				code.add(staticField(field)).add(" = ");
+				staticField(code, field);
+				code.add(" = ");
 				addArg(code, insn.getArg(0), false);
 				break;
 
@@ -474,7 +491,8 @@ public class InsnGen {
 
 	private void filledNewArray(InsnNode insn, CodeWriter code) throws CodegenException {
 		int c = insn.getArgsCount();
-		code.add("new ").add(useType(insn.getResult().getType()));
+		code.add("new ");
+		useType(code, insn.getResult().getType());
 		code.add('{');
 		for (int i = 0; i < c; i++) {
 			addArg(code, insn.getArg(i));
@@ -539,7 +557,9 @@ public class InsnGen {
 		}
 		int len = str.length();
 		str.delete(len - 2, len);
-		code.add("new ").add(useType(elType)).add("[]{").add(str.toString()).add('}');
+		code.add("new ");
+		useType(code, elType);
+		code.add("[]{").add(str.toString()).add('}');
 	}
 
 	private void makeConstructor(ConstructorInsn insn, CodeWriter code)
@@ -562,7 +582,13 @@ public class InsnGen {
 					defCtr.add(AFlag.DONT_GENERATE);
 				}
 			}
-			code.add("new ").add(parent == null ? "Object" : useClass(parent)).add("() ");
+			code.add("new ");
+			if (parent == null) {
+				code.add("Object");
+			} else {
+				useClass(code, parent);
+			}
+			code.add("() ");
 			new ClassGen(cls, mgen.getClassGen().getParentGen(), fallback).addClassBody(code);
 			return;
 		}
@@ -574,7 +600,8 @@ public class InsnGen {
 		} else if (insn.isThis()) {
 			code.add("this");
 		} else {
-			code.add("new ").add(useClass(insn.getClassType()));
+			code.add("new ");
+			useClass(code, insn.getClassType());
 		}
 		generateArguments(code, insn, 0, mth.dex().resolveMethod(insn.getCallMth()));
 	}
@@ -612,7 +639,8 @@ public class InsnGen {
 				ClassInfo insnCls = mth.getParentClass().getClassInfo();
 				ClassInfo declClass = callMth.getDeclClass();
 				if (!insnCls.equals(declClass)) {
-					code.add(useClass(declClass)).add('.');
+					useClass(code, declClass);
+					code.add('.');
 				}
 				break;
 		}
@@ -637,7 +665,9 @@ public class InsnGen {
 				InsnArg arg = insn.getArg(i);
 				ArgType origType = originalType.get(origPos);
 				if (!arg.getType().equals(origType)) {
-					code.add('(').add(useType(origType)).add(')');
+					code.add('(');
+					useType(code, origType);
+					code.add(')');
 					addArg(code, arg, true);
 				} else {
 					addArg(code, arg, false);

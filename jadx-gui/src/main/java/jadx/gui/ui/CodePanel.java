@@ -17,14 +17,14 @@ class CodePanel extends JPanel {
 
 	private static final long serialVersionUID = 5310536092010045565L;
 
-	private final TabbedPane codePanel;
+	private final TabbedPane tabbedPane;
 	private final JClass jClass;
 	private final SearchBar searchBar;
 	private final CodeArea codeArea;
 	private final RTextScrollPane scrollPane;
 
 	CodePanel(TabbedPane panel, JClass cls) {
-		codePanel = panel;
+		tabbedPane = panel;
 		jClass = cls;
 		codeArea = new CodeArea(this);
 		searchBar = new SearchBar(codeArea);
@@ -49,8 +49,8 @@ class CodePanel extends JPanel {
 		}
 	}
 
-	TabbedPane getCodePanel() {
-		return codePanel;
+	TabbedPane getTabbedPane() {
+		return tabbedPane;
 	}
 
 	JClass getCls() {

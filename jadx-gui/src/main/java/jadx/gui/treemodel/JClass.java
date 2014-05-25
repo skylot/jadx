@@ -106,6 +106,10 @@ public class JClass extends JNode {
 		return jParent.getRootClass();
 	}
 
+	public String getFullName() {
+		return cls.getFullName();
+	}
+
 	@Override
 	public int getLine() {
 		return cls.getDecompiledLine();

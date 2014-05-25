@@ -8,20 +8,6 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class TypeGen {
 
-	public static String translate(ClassGen clsGen, ArgType type) {
-		final PrimitiveType stype = type.getPrimitiveType();
-		if (stype == null) {
-			return type.toString();
-		}
-		if (stype == PrimitiveType.OBJECT) {
-			return clsGen.useClass(type);
-		}
-		if (stype == PrimitiveType.ARRAY) {
-			return translate(clsGen, type.getArrayElement()) + "[]";
-		}
-		return stype.getLongName();
-	}
-
 	public static String signature(ArgType type) {
 		final PrimitiveType stype = type.getPrimitiveType();
 		if (stype == PrimitiveType.OBJECT) {

@@ -61,6 +61,9 @@ public class MainWindow extends JFrame {
 	private static final ImageIcon ICON_FLAT_PKG = Utils.openIcon("empty_logical_package_obj");
 	private static final ImageIcon ICON_SEARCH = Utils.openIcon("magnifier");
 
+	private static final ImageIcon ICON_BACK = Utils.openIcon("icon_back");
+	private static final ImageIcon ICON_FORWARD = Utils.openIcon("icon_forward");
+
 	private final JadxWrapper wrapper;
 
 	private JPanel mainPanel;
@@ -218,6 +221,26 @@ public class MainWindow extends JFrame {
 		toolbar.add(searchButton);
 
 		toolbar.addSeparator();
+
+		final JButton backButton = new JButton(ICON_BACK);
+		backButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tabbedPane.navBack();
+			}
+		});
+		backButton.setToolTipText(NLS.str("nav.back"));
+		toolbar.add(backButton);
+
+		final JButton forwardButton = new JButton(ICON_FORWARD);
+		forwardButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tabbedPane.navForward();
+			}
+		});
+		forwardButton.setToolTipText(NLS.str("nav.forward"));
+		toolbar.add(forwardButton);
 
 		mainPanel.add(toolbar, BorderLayout.NORTH);
 	}

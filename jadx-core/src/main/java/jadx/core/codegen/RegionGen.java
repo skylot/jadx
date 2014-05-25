@@ -209,7 +209,7 @@ public class RegionGen extends InsnGen {
 			for (Object k : keys) {
 				code.startLine("case ");
 				if (k instanceof IndexInsnNode) {
-					code.add(staticField((FieldInfo) ((IndexInsnNode) k).getIndex()));
+					staticField(code, (FieldInfo) ((IndexInsnNode) k).getIndex());
 				} else {
 					code.add(TypeGen.literalToString((Integer) k, arg.getType()));
 				}
@@ -270,7 +270,11 @@ public class RegionGen extends InsnGen {
 		IContainer region = handler.getHandlerRegion();
 		if (region != null) {
 			code.startLine("} catch (");
-			code.add(handler.isCatchAll() ? "Throwable" : useClass(handler.getCatchType()));
+			if (handler.isCatchAll()) {
+				code.add("Throwable");
+			} else {
+				useClass(code, handler.getCatchType());
+			}
 			code.add(' ');
 			code.add(mgen.assignNamedArg(handler.getArg()));
 			code.add(") {");
