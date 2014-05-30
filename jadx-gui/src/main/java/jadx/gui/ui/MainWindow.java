@@ -54,13 +54,13 @@ public class MainWindow extends JFrame {
 
 	private static final double BORDER_RATIO = 0.15;
 	private static final double WINDOW_RATIO = 1 - BORDER_RATIO * 2;
+	private static final double SPLIT_PANE_RESIZE_WEIGHT = 0.15;
 
 	private static final ImageIcon ICON_OPEN = Utils.openIcon("folder");
 	private static final ImageIcon ICON_SAVE_ALL = Utils.openIcon("disk_multiple");
 	private static final ImageIcon ICON_CLOSE = Utils.openIcon("cross");
 	private static final ImageIcon ICON_FLAT_PKG = Utils.openIcon("empty_logical_package_obj");
 	private static final ImageIcon ICON_SEARCH = Utils.openIcon("magnifier");
-
 	private static final ImageIcon ICON_BACK = Utils.openIcon("icon_back");
 	private static final ImageIcon ICON_FORWARD = Utils.openIcon("icon_forward");
 
@@ -248,7 +248,7 @@ public class MainWindow extends JFrame {
 	private void initUI() {
 		mainPanel = new JPanel(new BorderLayout());
 		JSplitPane splitPane = new JSplitPane();
-		splitPane.setResizeWeight(0.2);
+		splitPane.setResizeWeight(SPLIT_PANE_RESIZE_WEIGHT);
 		mainPanel.add(splitPane);
 
 		DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode("Please open file");

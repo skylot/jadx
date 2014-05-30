@@ -63,12 +63,10 @@ public class ClassGen {
 		addClassCode(clsBody);
 
 		CodeWriter clsCode = new CodeWriter();
-
 		if (!"".equals(cls.getPackage())) {
 			clsCode.add("package ").add(cls.getPackage()).add(';');
 			clsCode.newLine();
 		}
-
 		int importsCount = imports.size();
 		if (importsCount != 0) {
 			List<String> sortImports = new ArrayList<String>(importsCount);
@@ -85,7 +83,6 @@ public class ClassGen {
 			sortImports.clear();
 			imports.clear();
 		}
-
 		clsCode.add(clsBody);
 		return clsCode;
 	}

@@ -36,6 +36,7 @@ class TestJumpManager extends Specification {
         then:
         noExceptionThrown()
         jm.getPrev() == mock1
+        jm.getPrev() == null
         jm.getNext() == mock2
         jm.getNext() == null
     }

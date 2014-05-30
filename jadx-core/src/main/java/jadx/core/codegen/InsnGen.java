@@ -198,7 +198,7 @@ public class InsnGen {
 			} else {
 				code.startLine();
 				if (insn.getSourceLine() != 0) {
-					code.attachAnnotation(insn.getSourceLine());
+					code.attachSourceLine(insn.getSourceLine());
 				}
 				if (insn.getResult() != null && insn.getType() != InsnType.ARITH_ONEARG) {
 					assignVar(code, insn);
@@ -469,7 +469,8 @@ public class InsnGen {
 				code.add(") {");
 				code.incIndent();
 				for (int i = 0; i < sw.getCasesCount(); i++) {
-					code.startLine("case ").add(sw.getKeys()[i]).add(": goto ");
+					String key = sw.getKeys()[i].toString();
+					code.startLine("case ").add(key).add(": goto ");
 					code.add(MethodGen.getLabelName(sw.getTargets()[i])).add(';');
 				}
 				code.startLine("default: goto ");

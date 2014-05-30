@@ -120,7 +120,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 			if (region instanceof IRegion) {
 				IRegion r = (IRegion) region;
 				dot.startLine("subgraph " + makeName(region) + " {");
-				dot.startLine("label = \"").add(r);
+				dot.startLine("label = \"").add(r.toString());
 				String attrs = attributesString(r);
 				if (attrs.length() != 0) {
 					dot.add(" | ").add(attrs);
@@ -146,7 +146,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 				dot.add("color=red,");
 			}
 			dot.add("label=\"{");
-			dot.add(block.getId()).add("\\:\\ ");
+			dot.add(String.valueOf(block.getId())).add("\\:\\ ");
 			dot.add(InsnUtils.formatOffset(block.getStartOffset()));
 			if (attrs.length() != 0) {
 				dot.add('|').add(attrs);
@@ -210,7 +210,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 				}
 				return str.toString();
 			} else {
-				CodeWriter code = new CodeWriter(0);
+				CodeWriter code = new CodeWriter();
 				MethodGen.addFallbackInsns(code, mth, block.getInstructions(), false);
 				String str = escape(code.newLine().toString());
 				if (str.startsWith(NL)) {

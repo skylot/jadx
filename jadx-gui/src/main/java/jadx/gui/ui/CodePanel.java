@@ -5,13 +5,12 @@ import jadx.gui.utils.Utils;
 
 import javax.swing.AbstractAction;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-
-import org.fife.ui.rtextarea.RTextScrollPane;
 
 class CodePanel extends JPanel {
 
@@ -21,7 +20,7 @@ class CodePanel extends JPanel {
 	private final JClass jClass;
 	private final SearchBar searchBar;
 	private final CodeArea codeArea;
-	private final RTextScrollPane scrollPane;
+	private final JScrollPane scrollPane;
 
 	CodePanel(TabbedPane panel, JClass cls) {
 		tabbedPane = panel;
@@ -29,8 +28,8 @@ class CodePanel extends JPanel {
 		codeArea = new CodeArea(this);
 		searchBar = new SearchBar(codeArea);
 
-		scrollPane = new RTextScrollPane(codeArea);
-		scrollPane.setFoldIndicatorEnabled(true);
+		scrollPane = new JScrollPane(codeArea);
+		scrollPane.setRowHeaderView(new LineNumbers(codeArea));
 
 		setLayout(new BorderLayout());
 		add(searchBar, BorderLayout.NORTH);
@@ -65,7 +64,7 @@ class CodePanel extends JPanel {
 		return codeArea;
 	}
 
-	RTextScrollPane getScrollPane() {
+	JScrollPane getScrollPane() {
 		return scrollPane;
 	}
 }

@@ -37,15 +37,11 @@ public class CodeWriter {
 	private int line = 1;
 	private int offset = 0;
 	private Map<CodePosition, Object> annotations = Collections.emptyMap();
+	private Map<Integer, Integer> lineMap = Collections.emptyMap();
 
 	public CodeWriter() {
 		this.indent = 0;
 		this.indentStr = "";
-	}
-
-	public CodeWriter(int indent) {
-		this.indent = indent;
-		updateIndent();
 	}
 
 	public CodeWriter startLine() {
@@ -68,11 +64,6 @@ public class CodeWriter {
 		return this;
 	}
 
-	public CodeWriter add(Object obj) {
-		add(obj.toString());
-		return this;
-	}
-
 	public CodeWriter add(String str) {
 		buf.append(str);
 		offset += str.length();
@@ -91,6 +82,9 @@ public class CodeWriter {
 			CodePosition pos = entry.getKey();
 			attachAnnotation(entry.getValue(), new CodePosition(line + pos.getLine(), pos.getOffset()));
 		}
+		for (Map.Entry<Integer, Integer> entry : code.lineMap.entrySet()) {
+			attachSourceLine(line + entry.getKey(), entry.getValue());
+		}
 		line += code.line;
 		offset = code.offset;
 		buf.append(code);
@@ -99,6 +93,11 @@ public class CodeWriter {
 
 	public CodeWriter newLine() {
 		addLine();
+		return this;
+	}
+
+	public CodeWriter addIndent() {
+		add(INDENT);
 		return this;
 	}
 
@@ -111,11 +110,6 @@ public class CodeWriter {
 	private CodeWriter addLineIndent() {
 		buf.append(indentStr);
 		offset += indentStr.length();
-		return this;
-	}
-
-	public CodeWriter addIndent() {
-		add(INDENT);
 		return this;
 	}
 
@@ -178,15 +172,30 @@ public class CodeWriter {
 		return attachAnnotation(obj, new CodePosition(line, offset + 1));
 	}
 
+	private void attachSourceLine(int decompiledLine, int sourceLine) {
+		if (lineMap.isEmpty()) {
+			lineMap = new HashMap<Integer, Integer>();
+		}
+		lineMap.put(decompiledLine, sourceLine);
+	}
+
+	public Map<CodePosition, Object> getAnnotations() {
+		return annotations;
+	}
+
+	public void attachSourceLine(int sourceLine) {
+		attachSourceLine(line, sourceLine);
+	}
+
+	public Map<Integer, Integer> getLineMapping() {
+		return lineMap;
+	}
+
 	private Object attachAnnotation(Object obj, CodePosition pos) {
 		if (annotations.isEmpty()) {
 			annotations = new HashMap<CodePosition, Object>();
 		}
 		return annotations.put(pos, obj);
-	}
-
-	public Map<CodePosition, Object> getAnnotations() {
-		return annotations;
 	}
 
 	public void finish() {
@@ -206,9 +215,8 @@ public class CodeWriter {
 	private static String removeFirstEmptyLine(String str) {
 		if (str.startsWith(NL)) {
 			return str.substring(NL.length());
-		} else {
-			return str;
 		}
+		return str;
 	}
 
 	public int length() {

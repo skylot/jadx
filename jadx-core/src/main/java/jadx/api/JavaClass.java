@@ -130,6 +130,11 @@ public final class JavaClass {
 		return null;
 	}
 
+	public Integer getSourceLine(int decompiledLine) {
+		decompile();
+		return cls.getCode().getLineMapping().get(decompiledLine);
+	}
+
 	public String getFullName() {
 		return cls.getFullName();
 	}
