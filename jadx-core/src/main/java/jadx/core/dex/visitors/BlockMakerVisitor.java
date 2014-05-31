@@ -488,6 +488,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		}
 		insn.copyAttributesFrom(returnInsn);
 		insn.setOffset(returnInsn.getOffset());
+		insn.setSourceLine(returnInsn.getSourceLine());
 		return insn;
 	}
 

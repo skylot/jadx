@@ -49,6 +49,7 @@ public class ConstructorInsn extends InsnNode {
 			addArg(invoke.getArg(i));
 		}
 		offset = invoke.getOffset();
+		setSourceLine(invoke.getSourceLine());
 	}
 
 	public MethodInfo getCallMth() {

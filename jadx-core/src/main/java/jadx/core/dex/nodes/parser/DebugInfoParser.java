@@ -75,6 +75,7 @@ public class DebugInfoParser {
 
 		// process '0' instruction
 		addrChange(-1, 1, line);
+		setLine(addr, line);
 
 		int c = section.readByte() & 0xFF;
 		while (c != DBG_END_SEQUENCE) {
@@ -82,6 +83,7 @@ public class DebugInfoParser {
 				case DBG_ADVANCE_PC: {
 					int addrInc = section.readUleb128();
 					addr = addrChange(addr, addrInc, line);
+					setLine(addr, line);
 					break;
 				}
 				case DBG_ADVANCE_LINE: {
@@ -143,9 +145,10 @@ public class DebugInfoParser {
 				default: {
 					if (c >= DBG_FIRST_SPECIAL) {
 						int adjustedOpcode = c - DBG_FIRST_SPECIAL;
-						line += DBG_LINE_BASE + (adjustedOpcode % DBG_LINE_RANGE);
 						int addrInc = adjustedOpcode / DBG_LINE_RANGE;
 						addr = addrChange(addr, addrInc, line);
+						line += DBG_LINE_BASE + (adjustedOpcode % DBG_LINE_RANGE);
+						setLine(addr, line);
 					} else {
 						throw new DecodeException("Unknown debug insn code: " + c);
 					}
@@ -161,6 +164,7 @@ public class DebugInfoParser {
 				setVar(var);
 			}
 		}
+		setSourceLines(addr, insnByOffset.length, line);
 	}
 
 	private int addrChange(int addr, int addrInc, int line) {
@@ -170,7 +174,6 @@ public class DebugInfoParser {
 			if (insn == null) {
 				continue;
 			}
-			insn.setSourceLine(line);
 			for (InsnArg arg : insn.getArguments()) {
 				if (arg.isRegister()) {
 					activeRegisters[((RegisterArg) arg).getRegNum()] = arg;
@@ -181,7 +184,21 @@ public class DebugInfoParser {
 				activeRegisters[res.getRegNum()] = res;
 			}
 		}
+		setSourceLines(addr, newAddr, line);
 		return newAddr;
+	}
+
+	private void setSourceLines(int start, int end, int line) {
+		for (int offset = start + 1; offset < end; offset++) {
+			setLine(offset, line);
+		}
+	}
+
+	private void setLine(int offset, int line) {
+		InsnNode insn = insnByOffset[offset];
+		if (insn != null) {
+			insn.setSourceLine(line);
+		}
 	}
 
 	private void startVar(LocalVar var, int addr, int line) {

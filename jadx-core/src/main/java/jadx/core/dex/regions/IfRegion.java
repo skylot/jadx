@@ -78,6 +78,13 @@ public final class IfRegion extends AbstractRegion {
 		elseRegion = tmp;
 	}
 
+	public int getSourceLine() {
+		if (header.getInstructions().isEmpty()) {
+			return 0;
+		}
+		return header.getInstructions().get(0).getSourceLine();
+	}
+
 	@Override
 	public List<IContainer> getSubBlocks() {
 		if (ternRegion != null) {

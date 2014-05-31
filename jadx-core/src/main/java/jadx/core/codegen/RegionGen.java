@@ -108,6 +108,7 @@ public class RegionGen extends InsnGen {
 		if (newLine) {
 			code.startLine();
 		}
+		code.attachSourceLine(region.getSourceLine());
 		code.add("if (");
 		new ConditionGen(this).add(code, region.getCondition());
 		code.add(") {");

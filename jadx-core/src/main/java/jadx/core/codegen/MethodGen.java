@@ -86,6 +86,7 @@ public class MethodGen {
 			ai = ai.remove(AccessFlags.ACC_PUBLIC);
 		}
 		code.startLine(ai.makeString());
+		code.attachSourceLine(mth.getSourceLine());
 
 		if (classGen.addGenericMap(code, mth.getGenericMap())) {
 			code.add(' ');

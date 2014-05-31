@@ -48,6 +48,7 @@ public class TernaryMod {
 			RegisterArg resArg = t.getResult().getSVar().getUsedInPhi().getResult();
 			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(),
 					resArg, InsnArg.wrapArg(t), InsnArg.wrapArg(e));
+			ternInsn.setSourceLine(t.getSourceLine());
 			TernaryRegion tern = new TernaryRegion(ifRegion, header);
 			// TODO: add api for replace regions
 			ifRegion.setTernRegion(tern);
@@ -69,6 +70,7 @@ public class TernaryMod {
 			eb.remove(AFlag.RETURN);
 
 			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(), null, t.getArg(0), e.getArg(0));
+			ternInsn.setSourceLine(t.getSourceLine());
 			InsnNode retInsn = new InsnNode(InsnType.RETURN, 1);
 			retInsn.addArg(InsnArg.wrapArg(ternInsn));
 

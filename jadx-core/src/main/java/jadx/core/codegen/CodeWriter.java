@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -172,11 +173,11 @@ public class CodeWriter {
 		return attachAnnotation(obj, new CodePosition(line, offset + 1));
 	}
 
-	private void attachSourceLine(int decompiledLine, int sourceLine) {
-		if (lineMap.isEmpty()) {
-			lineMap = new HashMap<Integer, Integer>();
+	private Object attachAnnotation(Object obj, CodePosition pos) {
+		if (annotations.isEmpty()) {
+			annotations = new HashMap<CodePosition, Object>();
 		}
-		lineMap.put(decompiledLine, sourceLine);
+		return annotations.put(pos, obj);
 	}
 
 	public Map<CodePosition, Object> getAnnotations() {
@@ -184,18 +185,21 @@ public class CodeWriter {
 	}
 
 	public void attachSourceLine(int sourceLine) {
+		if (sourceLine == 0) {
+			return;
+		}
 		attachSourceLine(line, sourceLine);
+	}
+
+	private void attachSourceLine(int decompiledLine, int sourceLine) {
+		if (lineMap.isEmpty()) {
+			lineMap = new TreeMap<Integer, Integer>();
+		}
+		lineMap.put(decompiledLine, sourceLine);
 	}
 
 	public Map<Integer, Integer> getLineMapping() {
 		return lineMap;
-	}
-
-	private Object attachAnnotation(Object obj, CodePosition pos) {
-		if (annotations.isEmpty()) {
-			annotations = new HashMap<CodePosition, Object>();
-		}
-		return annotations.put(pos, obj);
 	}
 
 	public void finish() {
