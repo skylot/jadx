@@ -15,7 +15,7 @@ public class ExceptionHandler {
 	private final ClassInfo catchType;
 	private final int handleOffset;
 
-	private BlockNode handleBlock;
+	private BlockNode handlerBlock;
 	private final List<BlockNode> blocks = new ArrayList<BlockNode>();
 	private IContainer handlerRegion;
 	private NamedArg arg;
@@ -39,12 +39,12 @@ public class ExceptionHandler {
 		return handleOffset;
 	}
 
-	public BlockNode getHandleBlock() {
-		return handleBlock;
+	public BlockNode getHandlerBlock() {
+		return handlerBlock;
 	}
 
-	public void setHandleBlock(BlockNode handleBlock) {
-		this.handleBlock = handleBlock;
+	public void setHandlerBlock(BlockNode handlerBlock) {
+		this.handlerBlock = handlerBlock;
 	}
 
 	public List<BlockNode> getBlocks() {

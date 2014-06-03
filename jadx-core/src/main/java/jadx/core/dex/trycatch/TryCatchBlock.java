@@ -12,8 +12,6 @@ import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.Utils;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,7 +19,7 @@ import java.util.List;
 public class TryCatchBlock {
 
 	private final List<ExceptionHandler> handlers;
-	private IContainer finalBlock;
+	private IContainer finalRegion;
 
 	// references for fast remove/modify
 	private final List<InsnNode> insns;
@@ -33,8 +31,16 @@ public class TryCatchBlock {
 		attr = new CatchAttr(this);
 	}
 
-	public Collection<ExceptionHandler> getHandlers() {
-		return Collections.unmodifiableCollection(handlers);
+	public Iterable<ExceptionHandler> getHandlers() {
+		return handlers;
+	}
+
+	public int getHandlersCount() {
+		return handlers.size();
+	}
+
+	public boolean containsAllHandlers(TryCatchBlock tb) {
+		return handlers.containsAll(tb.handlers);
 	}
 
 	public ExceptionHandler addHandler(MethodNode mth, int addr, ClassInfo type) {
@@ -59,7 +65,7 @@ public class TryCatchBlock {
 	}
 
 	private void removeWholeBlock(MethodNode mth) {
-		if (finalBlock != null) {
+		if (finalRegion != null) {
 			// search catch attr
 			for (BlockNode block : mth.getBasicBlocks()) {
 				CatchAttr cb = block.get(AType.CATCH_BLOCK);
@@ -67,7 +73,7 @@ public class TryCatchBlock {
 					for (ExceptionHandler eh : mth.getExceptionHandlers()) {
 						if (eh.getBlocks().contains(block)) {
 							TryCatchBlock tb = eh.getTryBlock();
-							tb.setFinalBlockFromInsns(mth, ((IBlock) finalBlock).getInstructions());
+							tb.setFinalRegionFromInsns(mth, ((IBlock) finalRegion).getInstructions());
 						}
 					}
 				}
@@ -102,17 +108,17 @@ public class TryCatchBlock {
 		return attr;
 	}
 
-	public IContainer getFinalBlock() {
-		return finalBlock;
+	public IContainer getFinalRegion() {
+		return finalRegion;
 	}
 
-	public void setFinalBlock(IContainer finalBlock) {
-		this.finalBlock = finalBlock;
+	public void setFinalRegion(IContainer finalRegion) {
+		this.finalRegion = finalRegion;
 	}
 
-	public void setFinalBlockFromInsns(MethodNode mth, List<InsnNode> insns) {
+	public void setFinalRegionFromInsns(MethodNode mth, List<InsnNode> insns) {
 		List<InsnNode> finalBlockInsns = new ArrayList<InsnNode>(insns);
-		setFinalBlock(new InsnContainer(finalBlockInsns));
+		setFinalRegion(new InsnContainer(finalBlockInsns));
 
 		InstructionRemover.unbindInsnList(mth, finalBlockInsns);
 
@@ -135,7 +141,7 @@ public class TryCatchBlock {
 		for (InsnNode insn : tryBlock.getInsns()) {
 			this.addInsn(insn);
 		}
-		this.handlers.addAll(tryBlock.getHandlers());
+		this.handlers.addAll(tryBlock.handlers);
 		for (ExceptionHandler eh : handlers) {
 			eh.setTryBlock(this);
 		}

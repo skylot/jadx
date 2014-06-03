@@ -119,41 +119,43 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 		assert tb != null;
 
 		for (IContainer cont : region.getSubBlocks()) {
-			if (RegionUtils.isDominaterBy(dominator, cont)) {
-				boolean pathFromExcHandler = false;
-				for (ExceptionHandler h : tb.getHandlers()) {
-					if (RegionUtils.hasPathThruBlock(h.getHandleBlock(), cont)) {
-						pathFromExcHandler = true;
-						break;
-					}
-				}
-				if (!pathFromExcHandler) {
-					newRegion.getSubBlocks().add(cont);
-				} else {
+			if (RegionUtils.isDominatedBy(dominator, cont)) {
+				if (isHandlerPath(tb, cont)) {
 					break;
 				}
+				newRegion.getSubBlocks().add(cont);
 			}
 		}
-		if (!newRegion.getSubBlocks().isEmpty()) {
-			if (DEBUG) {
-				LOG.debug("ProcessTryCatchRegions mark: {}", newRegion);
-			}
-			// replace first node by region
-			IContainer firstNode = newRegion.getSubBlocks().get(0);
-			int i = region.getSubBlocks().indexOf(firstNode);
-			region.getSubBlocks().set(i, newRegion);
-			region.getSubBlocks().removeAll(newRegion.getSubBlocks());
+		if (newRegion.getSubBlocks().isEmpty()) {
+			return;
+		}
+		if (DEBUG) {
+			LOG.debug("ProcessTryCatchRegions mark: {}", newRegion);
+		}
+		// replace first node by region
+		IContainer firstNode = newRegion.getSubBlocks().get(0);
+		int i = region.getSubBlocks().indexOf(firstNode);
+		region.getSubBlocks().set(i, newRegion);
+		region.getSubBlocks().removeAll(newRegion.getSubBlocks());
 
-			newRegion.addAttr(tb.getCatchAttr());
+		newRegion.addAttr(tb.getCatchAttr());
 
-			// fix parents
-			for (IContainer cont : newRegion.getSubBlocks()) {
-				if (cont instanceof AbstractRegion) {
-					AbstractRegion aReg = (AbstractRegion) cont;
-					aReg.setParent(newRegion);
-				}
+		// fix parents
+		for (IContainer cont : newRegion.getSubBlocks()) {
+			if (cont instanceof AbstractRegion) {
+				AbstractRegion aReg = (AbstractRegion) cont;
+				aReg.setParent(newRegion);
 			}
 		}
+	}
+
+	private boolean isHandlerPath(TryCatchBlock tb, IContainer cont) {
+		for (ExceptionHandler h : tb.getHandlers()) {
+			if (RegionUtils.hasPathThruBlock(h.getHandlerBlock(), cont)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

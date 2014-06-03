@@ -273,7 +273,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 			// each handler must be only in one try/catch block
 			for (TryCatchBlock ct1 : catches) {
 				for (TryCatchBlock ct2 : catches) {
-					if (ct1 != ct2 && ct2.getHandlers().containsAll(ct1.getHandlers())) {
+					if (ct1 != ct2 && ct2.containsAllHandlers(ct1)) {
 						for (ExceptionHandler h : ct1.getHandlers()) {
 							ct2.removeHandler(this, h);
 						}

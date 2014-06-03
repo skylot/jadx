@@ -7,7 +7,6 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.LoopRegion;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.SynchronizedRegion;
-import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.exceptions.JadxException;
@@ -35,10 +34,7 @@ public class RegionMakerVisitor extends AbstractVisitor {
 		mth.setRegion(rm.makeRegion(mth.getEnterBlock(), state));
 
 		if (!mth.isNoExceptionHandlers()) {
-			state = new RegionStack(mth);
-			for (ExceptionHandler handler : mth.getExceptionHandlers()) {
-				rm.processExcHandler(handler, state);
-			}
+			rm.processTryCatchBlocks(mth);
 		}
 
 		postProcessRegions(mth);

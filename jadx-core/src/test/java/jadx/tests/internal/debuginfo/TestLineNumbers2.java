@@ -41,7 +41,7 @@ public class TestLineNumbers2 extends InternalJadxTest {
 		System.out.println(code);
 
 		Map<Integer, Integer> lineMapping = codeWriter.getLineMapping();
-		assertEquals("{8=18, 11=22, 13=23, 14=24, 15=28, 17=25, 18=26, 19=28, 22=31, 23=32}",
+		assertEquals("{8=18, 11=22, 12=23, 13=24, 14=28, 16=25, 17=26, 18=28, 21=31, 22=32}",
 				lineMapping.toString());
 	}
 }

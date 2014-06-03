@@ -23,6 +23,7 @@ import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.regions.SynchronizedRegion;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
+import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.InstructionRemover;
@@ -410,7 +411,7 @@ public class RegionMaker {
 			ifRegion.setCondition(mergedIf.getCondition());
 			thenBlock = mergedIf.getThenBlock();
 			elseBlock = mergedIf.getElseBlock();
-			out = BlockUtils.getPathCrossBlockFor(mth, thenBlock, elseBlock);
+			out = BlockUtils.getPathCross(mth, thenBlock, elseBlock);
 		} else {
 			// invert condition (compiler often do it)
 			ifnode.invertCondition();
@@ -432,7 +433,7 @@ public class RegionMaker {
 			} else if (block.getDominatesOn().size() == 2) {
 				thenBlock = bThen;
 				elseBlock = bElse;
-				out = BlockUtils.getPathCrossBlockFor(mth, bThen, bElse);
+				out = BlockUtils.getPathCross(mth, bThen, bElse);
 			} else if (bElse.getPredecessors().size() != 1) {
 				thenBlock = bThen;
 				elseBlock = null;
@@ -679,14 +680,54 @@ public class RegionMaker {
 		return out;
 	}
 
-	public void processExcHandler(ExceptionHandler handler, RegionStack stack) {
-		BlockNode start = handler.getHandleBlock();
+	public void processTryCatchBlocks(MethodNode mth) {
+		Set<TryCatchBlock> tcs = new HashSet<TryCatchBlock>();
+		for (ExceptionHandler handler : mth.getExceptionHandlers()) {
+			tcs.add(handler.getTryBlock());
+		}
+		for (TryCatchBlock tc : tcs) {
+			List<BlockNode> blocks = new ArrayList<BlockNode>(tc.getHandlersCount());
+			Set<BlockNode> splitters = new HashSet<BlockNode>();
+			for (ExceptionHandler handler : tc.getHandlers()) {
+				BlockNode handlerBlock = handler.getHandlerBlock();
+				if (handlerBlock != null) {
+					blocks.add(handlerBlock);
+					splitters.addAll(handlerBlock.getPredecessors());
+				} else {
+					LOG.debug(ErrorsCounter.formatErrorMsg(mth, "No exception handler block: " + handler));
+				}
+			}
+			Set<BlockNode> exits = new HashSet<BlockNode>();
+			for (BlockNode splitter : splitters) {
+				for (BlockNode handler : blocks) {
+					List<BlockNode> s = splitter.getCleanSuccessors();
+					if (s.isEmpty()) {
+						LOG.debug(ErrorsCounter.formatErrorMsg(mth, "No successors for splitter: " + splitter));
+						continue;
+					}
+					BlockNode cross = BlockUtils.getPathCross(mth, s.get(0), handler);
+					if (cross != null) {
+						exits.add(cross);
+					}
+				}
+			}
+			for (ExceptionHandler handler : tc.getHandlers()) {
+				processExcHandler(handler, exits);
+			}
+		}
+	}
+
+	private void processExcHandler(ExceptionHandler handler, Set<BlockNode> exits) {
+		BlockNode start = handler.getHandlerBlock();
 		if (start == null) {
-			LOG.debug(ErrorsCounter.formatErrorMsg(mth, "No exception handler block: " + handler));
 			return;
 		}
+
 		// TODO extract finally part which exists in all handlers from same try block
 		// TODO add blocks common for several handlers to some region
+
+		RegionStack stack = new RegionStack(mth);
+		stack.addExits(exits);
 		handler.setHandlerRegion(makeRegion(start, stack));
 
 		ExcHandlerAttr excHandlerAttr = start.get(AType.EXC_HANDLER);

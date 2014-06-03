@@ -259,9 +259,9 @@ public class RegionGen extends InsnGen {
 		if (allHandler != null) {
 			makeCatchBlock(code, allHandler);
 		}
-		if (tryCatchBlock.getFinalBlock() != null) {
+		if (tryCatchBlock.getFinalRegion() != null) {
 			code.startLine("} finally {");
-			makeRegionIndent(code, tryCatchBlock.getFinalBlock());
+			makeRegionIndent(code, tryCatchBlock.getFinalRegion());
 		}
 		code.startLine('}');
 	}

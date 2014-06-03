@@ -245,7 +245,7 @@ public class BlockUtils {
 		return null;
 	}
 
-	public static BlockNode getPathCrossBlockFor(MethodNode mth, BlockNode b1, BlockNode b2) {
+	public static BlockNode getPathCross(MethodNode mth, BlockNode b1, BlockNode b2) {
 		if (b1 == null || b2 == null) {
 			return null;
 		}

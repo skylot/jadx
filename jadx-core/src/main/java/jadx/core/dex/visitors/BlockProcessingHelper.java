@@ -137,7 +137,7 @@ public class BlockProcessingHelper {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			ExcHandlerAttr bh = block.get(AType.EXC_HANDLER);
 			if (bh != null && bh.getHandler().getHandleOffset() == addr) {
-				handler.setHandleBlock(block);
+				handler.setHandlerBlock(block);
 				break;
 			}
 		}

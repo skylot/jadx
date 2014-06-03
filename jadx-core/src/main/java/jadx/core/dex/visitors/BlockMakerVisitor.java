@@ -119,8 +119,8 @@ public class BlockMakerVisitor extends AbstractVisitor {
 				List<JumpInfo> jumps = insn.getAll(AType.JUMP);
 				for (JumpInfo jump : jumps) {
 					BlockNode srcBlock = getBlock(jump.getSrc(), blocksMap);
-					BlockNode thisblock = getBlock(jump.getDest(), blocksMap);
-					connect(srcBlock, thisblock);
+					BlockNode thisBlock = getBlock(jump.getDest(), blocksMap);
+					connect(srcBlock, thisBlock);
 				}
 
 				// connect exception handlers

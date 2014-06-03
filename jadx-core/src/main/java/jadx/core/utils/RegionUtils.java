@@ -10,6 +10,8 @@ import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -111,6 +113,19 @@ public class RegionUtils {
 		}
 	}
 
+	public static List<IContainer> getExcHandlersForRegion(IContainer region) {
+		CatchAttr cb = region.get(AType.CATCH_BLOCK);
+		if (cb != null) {
+			TryCatchBlock tb = cb.getTryBlock();
+			List<IContainer> list = new ArrayList<IContainer>(tb.getHandlersCount());
+			for (ExceptionHandler eh : tb.getHandlers()) {
+				list.add(eh.getHandlerRegion());
+			}
+			return list;
+		}
+		return Collections.emptyList();
+	}
+
 	private static boolean isRegionContainsExcHandlerRegion(IContainer container, IRegion region) {
 		if (container == region) {
 			return true;
@@ -129,8 +144,8 @@ public class RegionUtils {
 							return true;
 						}
 					}
-					if (tb.getFinalBlock() != null
-							&& isRegionContainsRegion(tb.getFinalBlock(), region)) {
+					if (tb.getFinalRegion() != null
+							&& isRegionContainsRegion(tb.getFinalRegion(), region)) {
 						return true;
 					}
 				}
@@ -169,7 +184,7 @@ public class RegionUtils {
 		return true;
 	}
 
-	public static boolean isDominaterBy(BlockNode dom, IContainer cont) {
+	public static boolean isDominatedBy(BlockNode dom, IContainer cont) {
 		if (dom == cont) {
 			return true;
 		}
@@ -179,7 +194,7 @@ public class RegionUtils {
 		} else if (cont instanceof IRegion) {
 			IRegion region = (IRegion) cont;
 			for (IContainer c : region.getSubBlocks()) {
-				if (!isDominaterBy(dom, c)) {
+				if (!isDominatedBy(dom, c)) {
 					return false;
 				}
 			}

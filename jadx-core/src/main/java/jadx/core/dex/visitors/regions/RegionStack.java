@@ -5,6 +5,7 @@ import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.MethodNode;
 
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
@@ -82,6 +83,12 @@ final class RegionStack {
 	public void addExit(BlockNode exit) {
 		if (exit != null) {
 			curState.exits.add(exit);
+		}
+	}
+
+	public void addExits(Collection<BlockNode> exits) {
+		for (BlockNode exit : exits) {
+			addExit(exit);
 		}
 	}
 
