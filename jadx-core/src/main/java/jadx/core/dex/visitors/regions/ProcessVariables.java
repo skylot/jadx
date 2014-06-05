@@ -1,5 +1,6 @@
 package jadx.core.dex.visitors.regions;
 
+import jadx.core.codegen.NameGen;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
@@ -179,6 +180,7 @@ public class ProcessVariables extends AbstractVisitor {
 				if (u.getArgRegion() == assignRegion
 						&& canDeclareInRegion(u, assignRegion, regionsOrder)) {
 					u.getArg().getParentInsn().add(AFlag.DECLARE_VAR);
+					processVar(u.getArg());
 					it.remove();
 					break;
 				}
@@ -248,6 +250,11 @@ public class ProcessVariables extends AbstractVisitor {
 			region.addAttr(dv);
 		}
 		dv.addVar(arg);
+		processVar(arg);
+	}
+
+	private static void processVar(RegisterArg arg) {
+		NameGen.guessName(arg);
 	}
 
 	private static int calculateOrder(IContainer container, Map<IContainer, Integer> regionsOrder,
