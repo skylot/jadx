@@ -31,8 +31,8 @@ public class TestInline2 extends InternalJadxTest {
 		System.out.println(code);
 
 		assertThat(code, containsString("i < a.length"));
-		assertThat(code, containsString("long i_2 ="));
-		assertThat(code, containsString("+ i_2"));
-		assertThat(code, containsString("i_2--;"));
+		assertThat(code, containsString("long i2 ="));
+		assertThat(code, containsString("+ i2"));
+		assertThat(code, containsString("i2--;"));
 	}
 }

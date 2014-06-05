@@ -7,7 +7,7 @@ package jadx.samples;
  */
 public class TestTypeResolver2 extends AbstractTest {
 
-	private static String result  = "";
+	private static String result = "";
 
 	public void testOverloadedMethods() {
 		Object s1 = "The";

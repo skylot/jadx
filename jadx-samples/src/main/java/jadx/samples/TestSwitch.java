@@ -43,10 +43,11 @@ public class TestSwitch extends AbstractTest {
 		int k = i;
 		switch (k) {
 			case 1:
-				if (j == 0)
+				if (j == 0) {
 					return 0;
-				else
+				} else {
 					return -1;
+				}
 			case 2:
 				return 1;
 		}
@@ -69,8 +70,9 @@ public class TestSwitch extends AbstractTest {
 		int k = i;
 		switch (k) {
 			case 1:
-				if (b == 0)
+				if (b == 0) {
 					return 3;
+				}
 
 			case 2:
 				b++;

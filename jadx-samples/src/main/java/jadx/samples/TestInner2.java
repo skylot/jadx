@@ -73,7 +73,7 @@ public class TestInner2 extends AbstractTest {
 
 		Method[] mths = TestInner2.class.getDeclaredMethods();
 		for (Method mth : mths) {
-			if(mth.getName().startsWith("access$")) {
+			if (mth.getName().startsWith("access$")) {
 				int modifiers = mth.getModifiers();
 				assertTrue((modifiers & SYNTHETIC) != 0, "Synthetic methods must be removed");
 			}

@@ -50,7 +50,7 @@ public class TestAnnotations extends AbstractTest {
 	@MyAnnotation(name = "b",
 			num = 7,
 			cls = Exception.class,
-			doubles = { 0.0, 1.1 },
+			doubles = {0.0, 1.1},
 			value = 9.87f,
 			simple = @SimpleAnnotation(false))
 	public static Object test(String[] a) {

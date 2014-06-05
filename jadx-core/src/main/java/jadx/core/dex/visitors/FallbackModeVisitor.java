@@ -14,6 +14,9 @@ public class FallbackModeVisitor extends AbstractVisitor {
 			return;
 		}
 		for (InsnNode insn : mth.getInstructions()) {
+			if (insn == null) {
+				continue;
+			}
 			// remove 'exception catch' for instruction which don't throw any exceptions
 			CatchAttr catchAttr = insn.get(AType.CATCH_BLOCK);
 			if (catchAttr != null) {

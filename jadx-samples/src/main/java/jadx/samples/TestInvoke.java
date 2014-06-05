@@ -14,10 +14,11 @@ public class TestInvoke extends AbstractTest {
 	}
 
 	private void parse(String[] args) {
-		if (args.length > 0)
+		if (args.length > 0) {
 			f = Integer.parseInt(args[0]);
-		else
+		} else {
 			f = 20;
+		}
 	}
 
 	public int getF() {
@@ -37,18 +38,26 @@ public class TestInvoke extends AbstractTest {
 		return s;
 	}
 
+	private String testSameArgTypes(String s1, String s2) {
+		if (s1.equals(s2)) {
+			return null;
+		}
+		return s1;
+	}
+
 	@Override
 	public boolean testRun() throws Exception {
 		TestInvoke inv = new TestInvoke();
 
-		inv.parse(new String[] { "12", "35" });
+		inv.parse(new String[]{"12", "35"});
 		assertTrue(inv.getF() == 12);
 		inv.parse(new String[0]);
 		assertTrue(inv.getF() == 20);
 
 		assertTrue(inv.testVarArgs("a", "2", "III"));
-		assertTrue(inv.testVarArgs2("a".toCharArray(), new char[] { '1', '2' }).equals("a12"));
+		assertTrue(inv.testVarArgs2("a".toCharArray(), new char[]{'1', '2'}).equals("a12"));
 
+		assertEquals(testSameArgTypes("a", "b"), "a");
 		return true;
 	}
 

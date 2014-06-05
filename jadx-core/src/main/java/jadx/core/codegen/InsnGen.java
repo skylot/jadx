@@ -88,7 +88,7 @@ public class InsnGen {
 
 	public void addArg(CodeWriter code, InsnArg arg, boolean wrap) throws CodegenException {
 		if (arg.isRegister()) {
-			code.add(mgen.makeArgName((RegisterArg) arg));
+			code.add(mgen.getNameGen().useArg((RegisterArg) arg));
 		} else if (arg.isLiteral()) {
 			code.add(lit((LiteralArg) arg));
 		} else if (arg.isInsnWrap()) {
@@ -120,7 +120,7 @@ public class InsnGen {
 	public void declareVar(CodeWriter code, RegisterArg arg) {
 		useType(code, arg.getType());
 		code.add(' ');
-		code.add(mgen.assignArg(arg));
+		code.add(mgen.getNameGen().assignArg(arg));
 	}
 
 	private static String lit(LiteralArg arg) {

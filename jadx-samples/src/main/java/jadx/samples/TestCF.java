@@ -22,10 +22,11 @@ public class TestCF extends AbstractTest {
 
 	public int test1b(int a) {
 		if (a > 0) {
-			if (a < 5)
+			if (a < 5) {
 				a++;
-			else
+			} else {
 				a -= 2;
+			}
 		}
 		a *= 2;
 		return a + 3;
@@ -134,16 +135,17 @@ public class TestCF extends AbstractTest {
 
 	public int testIfElse(String str) {
 		int r;
-		if (str.equals("a"))
+		if (str.equals("a")) {
 			r = 1;
-		else if (str.equals("b"))
+		} else if (str.equals("b")) {
 			r = 2;
-		else if (str.equals("3"))
+		} else if (str.equals("3")) {
 			r = 3;
-		else if (str.equals("$"))
+		} else if (str.equals("$")) {
 			r = 4;
-		else
+		} else {
 			r = -1;
+		}
 
 		r = r * 10;
 		return Math.abs(r);

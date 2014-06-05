@@ -9,16 +9,14 @@ subprojects {
     apply plugin: 'jacoco'
     apply plugin: 'coveralls'
 
-    sourceCompatibility = 1.6
-    targetCompatibility = 1.6
-
     version = jadxVersion
 
-    gradle.projectsEvaluated {
-        tasks.withType(Compile) {
-            if (!"$it".contains(':jadx-samples:')) {
-                options.compilerArgs << '-Xlint' << '-Xlint:unchecked' << '-Xlint:deprecation'
-            }
+    tasks.withType(JavaCompile) {
+        sourceCompatibility = JavaVersion.VERSION_1_6
+        targetCompatibility = JavaVersion.VERSION_1_6
+
+        if (!"$it".contains(':jadx-samples:')) {
+            options.compilerArgs << '-Xlint' << '-Xlint:unchecked' << '-Xlint:deprecation'
         }
     }
 

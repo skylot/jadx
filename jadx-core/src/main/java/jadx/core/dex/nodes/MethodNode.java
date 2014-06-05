@@ -15,9 +15,9 @@ import jadx.core.dex.instructions.InsnDecoder;
 import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.MthParameterArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
-import jadx.core.dex.nodes.parser.DebugInfoParser;
 import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
@@ -51,7 +51,8 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 
 	private final Method methodData;
 	private int regsCount;
-	private List<InsnNode> instructions;
+	private InsnNode[] instructions;
+	private int debugInfoOffset;
 	private boolean noCode;
 
 	private ArgType retType;
@@ -92,30 +93,12 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 
 			InsnDecoder decoder = new InsnDecoder(this);
 			decoder.decodeInsns(mthCode);
-			InsnNode[] insnByOffset = decoder.process();
-			instructions = new ArrayList<InsnNode>();
-			for (InsnNode insn : insnByOffset) {
-				if (insn != null) {
-					instructions.add(insn);
-				}
-			}
-			((ArrayList<InsnNode>) instructions).trimToSize();
+			instructions = decoder.process();
 
-			initTryCatches(mthCode, insnByOffset);
-			initJumps(insnByOffset);
+			initTryCatches(mthCode);
+			initJumps();
 
-			int debugInfoOffset = mthCode.getDebugInfoOffset();
-			if (debugInfoOffset > 0) {
-				DebugInfoParser debugInfoParser = new DebugInfoParser(this, debugInfoOffset, insnByOffset);
-				debugInfoParser.process();
-
-				if (instructions.size() != 0) {
-					int line = instructions.get(0).getSourceLine();
-					if (line != 0) {
-						this.setSourceLine(line - 1);
-					}
-				}
-			}
+			this.debugInfoOffset = mthCode.getDebugInfoOffset();
 		} catch (Exception e) {
 			if (!noCode) {
 				noCode = true;
@@ -139,9 +122,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		if (noCode) {
 			return;
 		}
-		if (instructions != null) {
-			instructions.clear();
-		}
+		instructions = null;
 		blocks = null;
 		exitBlocks = null;
 		exceptionHandlers.clear();
@@ -199,8 +180,9 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		if (accFlags.isStatic()) {
 			thisArg = null;
 		} else {
-			thisArg = InsnArg.parameterReg(pos - 1, parentClass.getClassInfo().getType());
-			thisArg.setName("this");
+			MthParameterArg arg = InsnArg.parameterReg(pos - 1, parentClass.getClassInfo().getType());
+			arg.markAsThis();
+			thisArg = arg;
 		}
 		if (args.isEmpty()) {
 			argsList = Collections.emptyList();
@@ -241,7 +223,8 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		return genericMap;
 	}
 
-	private void initTryCatches(Code mthCode, InsnNode[] insnByOffset) {
+	private void initTryCatches(Code mthCode) {
+		InsnNode[] insnByOffset = instructions;
 		CatchHandler[] catchBlocks = mthCode.getCatchHandlers();
 		Try[] tries = mthCode.getTries();
 
@@ -311,9 +294,13 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		}
 	}
 
-	private void initJumps(InsnNode[] insnByOffset) {
-		for (InsnNode insn : getInstructions()) {
-			int offset = insn.getOffset();
+	private void initJumps() {
+		InsnNode[] insnByOffset = instructions;
+		for (int offset = 0; offset < insnByOffset.length; offset++) {
+			InsnNode insn = insnByOffset[offset];
+			if (insn == null) {
+				continue;
+			}
 			switch (insn.getType()) {
 				case SWITCH: {
 					SwitchNode sw = (SwitchNode) insn;
@@ -367,8 +354,12 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		return noCode;
 	}
 
-	public List<InsnNode> getInstructions() {
+	public InsnNode[] getInstructions() {
 		return instructions;
+	}
+
+	public void unloadInsnArr() {
+		this.instructions = null;
 	}
 
 	public void initBasicBlocks() {
@@ -377,10 +368,6 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 	}
 
 	public void finishBasicBlocks() {
-		// after filling basic blocks we don't need instructions list anymore
-		instructions.clear();
-		instructions = null;
-
 		((ArrayList<BlockNode>) blocks).trimToSize();
 		((ArrayList<BlockNode>) exitBlocks).trimToSize();
 
@@ -477,6 +464,10 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 
 	public int getRegsCount() {
 		return regsCount;
+	}
+
+	public int getDebugInfoOffset() {
+		return debugInfoOffset;
 	}
 
 	public SSAVar makeNewSVar(int regNum, int[] versions, RegisterArg arg) {

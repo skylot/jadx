@@ -32,7 +32,7 @@ public class SSATransform extends AbstractVisitor {
 		process(mth);
 	}
 
-	public void process(MethodNode mth) {
+	private void process(MethodNode mth) {
 		LiveVarAnalysis la = new LiveVarAnalysis(mth);
 		la.runAnalysis();
 		for (int i = 0; i < mth.getRegsCount(); i++) {

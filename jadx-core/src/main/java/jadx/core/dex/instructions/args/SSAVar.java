@@ -9,6 +9,7 @@ public class SSAVar {
 
 	private final int regNum;
 	private final int version;
+	private VarName varName;
 
 	private RegisterArg assign;
 	private final List<RegisterArg> useList = new ArrayList<RegisterArg>(2);
@@ -22,7 +23,6 @@ public class SSAVar {
 		this.assign = assign;
 
 		if (assign != null) {
-			mergeName(assign);
 			assign.setSVar(this);
 		}
 	}
@@ -52,7 +52,6 @@ public class SSAVar {
 	}
 
 	public void use(RegisterArg arg) {
-		mergeName(arg);
 		if (arg.getSVar() != null) {
 			arg.getSVar().removeUse(arg);
 		}
@@ -103,35 +102,27 @@ public class SSAVar {
 	}
 
 	public void setName(String name) {
-		if (assign != null) {
-			assign.setName(name);
-		}
-		for (int i = 0, useListSize = useList.size(); i < useListSize; i++) {
-			useList.get(i).setName(name);
-		}
-	}
-
-	public void setVariableName(String name) {
-		setName(name);
-		if (isUsedInPhi()) {
-			PhiInsn phi = getUsedInPhi();
-			phi.getResult().getSVar().setVariableName(name);
-			for (InsnArg arg : phi.getArguments()) {
-				if (arg.isRegister()) {
-					RegisterArg reg = (RegisterArg) arg;
-					SSAVar sVar = reg.getSVar();
-					if (sVar != this && !name.equals(reg.getName())) {
-						sVar.setVariableName(name);
-					}
-				}
+		if (name != null) {
+			if (varName == null) {
+				varName = new VarName();
 			}
+			varName.setName(name);
 		}
 	}
 
-	public void mergeName(RegisterArg arg) {
-		if (arg.getName() != null) {
-			setName(arg.getName());
+	public String getName() {
+		if (varName == null) {
+			return null;
 		}
+		return varName.getName();
+	}
+
+	public VarName getVarName() {
+		return varName;
+	}
+
+	public void setVarName(VarName varName) {
+		this.varName = varName;
 	}
 
 	@Override

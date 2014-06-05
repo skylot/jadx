@@ -77,7 +77,7 @@ public class TestGenerics extends AbstractTest {
 	public static boolean use() {
 		Pair<Integer, String> p1 = new OrderedPair<Integer, String>(1, "str1");
 		Pair<Integer, String> p2 = new OrderedPair<Integer, String>(2, "str2");
-		boolean same = Util.<Integer, String> compare(p1, p2);
+		boolean same = Util.<Integer, String>compare(p1, p2);
 		return same;
 	}
 
@@ -107,9 +107,11 @@ public class TestGenerics extends AbstractTest {
 
 	public static <T extends Comparable<T>> int countGreaterThan(T[] anArray, T elem) {
 		int count = 0;
-		for (T e : anArray)
-			if (e.compareTo(elem) > 0)
+		for (T e : anArray) {
+			if (e.compareTo(elem) > 0) {
 				++count;
+			}
+		}
 		return count;
 	}
 
@@ -117,8 +119,9 @@ public class TestGenerics extends AbstractTest {
 	}
 
 	public static void printList(List<?> list) {
-		for (Object elem : list)
+		for (Object elem : list) {
 			System.out.print(elem + " ");
+		}
 		System.out.println();
 	}
 

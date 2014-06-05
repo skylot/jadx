@@ -26,7 +26,7 @@ public abstract class InsnArg extends Typed {
 		return reg(InsnUtils.getArg(insn, argNum), type);
 	}
 
-	public static RegisterArg parameterReg(int regNum, ArgType type) {
+	public static MthParameterArg parameterReg(int regNum, ArgType type) {
 		return new MthParameterArg(regNum, type);
 	}
 
@@ -113,7 +113,7 @@ public abstract class InsnArg extends Typed {
 	}
 
 	public boolean isThis() {
-		// must be implemented in RegisterArg
+		// must be implemented in RegisterArg and MthParameterArg
 		return false;
 	}
 }

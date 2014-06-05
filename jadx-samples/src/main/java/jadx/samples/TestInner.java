@@ -56,6 +56,7 @@ public class TestInner extends AbstractTest {
 			{
 				count += 5;
 			}
+
 			@Override
 			public void run() {
 				count += 6;
@@ -68,6 +69,7 @@ public class TestInner extends AbstractTest {
 			{
 				count += 7;
 			}
+
 			@Override
 			public String toString() {
 				count += 8;

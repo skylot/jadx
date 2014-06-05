@@ -5,7 +5,7 @@ public class TestCF2 extends AbstractTest {
 	private boolean ready = false;
 
 	public int simple_loops() throws InterruptedException {
-		int[] a = new int[] { 1, 2, 4, 6, 8 };
+		int[] a = new int[]{1, 2, 4, 6, 8};
 		int b = 0;
 		for (int i = 0; i < a.length; i++) {
 			b += a[i];
@@ -21,8 +21,9 @@ public class TestCF2 extends AbstractTest {
 	 */
 	public void run() throws InterruptedException {
 		while (true) {
-			if (!ready)
+			if (!ready) {
 				ready_mutex.wait();
+			}
 			ready = false;
 			func();
 		}
@@ -88,8 +89,9 @@ public class TestCF2 extends AbstractTest {
 	public void do_while_return2(boolean k) throws InterruptedException {
 		int i = 3;
 		do {
-			if (k)
+			if (k) {
 				return;
+			}
 			i++;
 		} while (i < 5);
 	}

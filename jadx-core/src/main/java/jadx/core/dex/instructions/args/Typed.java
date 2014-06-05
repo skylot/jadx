@@ -28,12 +28,4 @@ public abstract class Typed {
 	public boolean merge(InsnArg arg) {
 		return merge(arg.getType());
 	}
-
-	public void mergeDebugInfo(RegisterArg arg) {
-		this.type = arg.getType();
-		if (this instanceof Named) {
-			Named n = (Named) this;
-			n.setName(arg.getName());
-		}
-	}
 }

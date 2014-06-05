@@ -5,14 +5,16 @@ import java.io.IOException;
 public class TestTryCatch extends AbstractTest {
 
 	private static boolean exc(Object obj) throws Exception {
-		if (obj == null)
+		if (obj == null) {
 			throw new Exception("test");
+		}
 		return (obj instanceof Object);
 	}
 
 	private static boolean exc2(Object obj) throws IOException {
-		if (obj == null)
+		if (obj == null) {
 			throw new IOException();
+		}
 		return true;
 	}
 
@@ -41,10 +43,11 @@ public class TestTryCatch extends AbstractTest {
 		try {
 			return exc(obj);
 		} catch (Exception e) {
-			if (obj != null)
+			if (obj != null) {
 				return true;
-			else
+			} else {
 				return false;
+			}
 		}
 	}
 
@@ -78,8 +81,9 @@ public class TestTryCatch extends AbstractTest {
 		try {
 			res = "" + exc(obj);
 			boolean f = exc2("a");
-			if (!f)
+			if (!f) {
 				res = "f == false";
+			}
 		} catch (Exception e) {
 			res = "exc";
 		}
@@ -95,8 +99,9 @@ public class TestTryCatch extends AbstractTest {
 			} catch (IOException e) {
 				res = true;
 			} catch (Throwable e) {
-				if (obj == null)
+				if (obj == null) {
 					obj = new Object();
+				}
 			}
 		}
 	}
@@ -112,8 +117,9 @@ public class TestTryCatch extends AbstractTest {
 				res = true;
 				obj = new Object();
 			} catch (Throwable e) {
-				if (obj == null)
+				if (obj == null) {
 					res = false;
+				}
 			}
 		}
 	}
@@ -137,16 +143,18 @@ public class TestTryCatch extends AbstractTest {
 		} catch (Exception e) {
 			e.toString();
 		} finally {
-			if (!mDiscovering)
+			if (!mDiscovering) {
 				mDiscovering = true;
+			}
 		}
 		return mDiscovering;
 	}
 
 	private static boolean testSynchronize(Object obj) throws InterruptedException {
 		synchronized (obj) {
-			if (obj instanceof String)
+			if (obj instanceof String) {
 				return false;
+			}
 			obj.wait(5);
 		}
 		return true;
@@ -171,8 +179,9 @@ public class TestTryCatch extends AbstractTest {
 	public int catchInLoop(int i, int j) {
 		while (true) {
 			try {
-				while (i < j)
+				while (i < j) {
 					i = j++ / i;
+				}
 			} catch (RuntimeException e) {
 				i = 10;
 				continue;

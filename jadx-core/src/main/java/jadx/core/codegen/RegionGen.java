@@ -277,7 +277,7 @@ public class RegionGen extends InsnGen {
 				useClass(code, handler.getCatchType());
 			}
 			code.add(' ');
-			code.add(mgen.assignNamedArg(handler.getArg()));
+			code.add(mgen.getNameGen().assignNamedArg(handler.getArg()));
 			code.add(") {");
 			makeRegionIndent(code, region);
 		}

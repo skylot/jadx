@@ -60,6 +60,9 @@ public class BlockMakerVisitor extends AbstractVisitor {
 
 		// split into blocks
 		for (InsnNode insn : mth.getInstructions()) {
+			if (insn == null) {
+				continue;
+			}
 			boolean startNew = false;
 			if (prevInsn != null) {
 				InsnType type = prevInsn.getType();
@@ -443,10 +446,18 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			if (returnInsn.getArgsCount() != 0 && !isReturnArgAssignInPred(preds, returnInsn)) {
 				return false;
 			}
+			boolean first = true;
 			for (BlockNode pred : preds) {
 				BlockNode newRetBlock = startNewBlock(mth, exitBlock.getStartOffset());
 				newRetBlock.add(AFlag.SYNTHETIC);
-				newRetBlock.getInstructions().add(duplicateReturnInsn(returnInsn));
+				InsnNode newRetInsn;
+				if (first) {
+					newRetInsn = returnInsn;
+					first = false;
+				} else {
+					newRetInsn = duplicateReturnInsn(returnInsn);
+				}
+				newRetBlock.getInstructions().add(newRetInsn);
 				removeConnection(pred, exitBlock);
 				connect(pred, newRetBlock);
 			}

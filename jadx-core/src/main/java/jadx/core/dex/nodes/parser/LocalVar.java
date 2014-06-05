@@ -8,17 +8,19 @@ import jadx.core.utils.InsnUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class LocalVar extends RegisterArg {
-
+final class LocalVar {
 	private static final Logger LOG = LoggerFactory.getLogger(LocalVar.class);
 
-	private boolean isEnd;
+	private int regNum;
+	private String name;
+	private ArgType type;
 
+	private boolean isEnd;
 	private int startAddr;
 	private int endAddr;
 
 	public LocalVar(DexNode dex, int rn, int nameId, int typeId, int signId) {
-		super(rn, ArgType.UNKNOWN);
+		this.regNum = rn;
 		String name = (nameId == DexNode.NO_INDEX ? null : dex.getString(nameId));
 		ArgType type = (typeId == DexNode.NO_INDEX ? null : dex.getType(typeId));
 		String sign = (signId == DexNode.NO_INDEX ? null : dex.getString(signId));
@@ -27,7 +29,7 @@ final class LocalVar extends RegisterArg {
 	}
 
 	public LocalVar(RegisterArg arg) {
-		super(arg.getRegNum(), arg.getType());
+		this.regNum = arg.getRegNum();
 		init(arg.getName(), arg.getType(), null);
 	}
 
@@ -42,8 +44,8 @@ final class LocalVar extends RegisterArg {
 				LOG.error("Can't parse signature for local variable: " + sign, e);
 			}
 		}
-		setName(name);
-		forceType(type);
+		this.name = name;
+		this.type = type;
 	}
 
 	private boolean checkSignature(ArgType type, String sign, ArgType gType) {
@@ -70,6 +72,18 @@ final class LocalVar extends RegisterArg {
 	public void end(int addr, int line) {
 		this.isEnd = true;
 		this.endAddr = addr;
+	}
+
+	public int getRegNum() {
+		return regNum;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public ArgType getType() {
+		return type;
 	}
 
 	public boolean isEnd() {

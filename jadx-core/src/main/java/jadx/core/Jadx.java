@@ -6,6 +6,7 @@ import jadx.core.dex.visitors.BlockMakerVisitor;
 import jadx.core.dex.visitors.ClassModifier;
 import jadx.core.dex.visitors.CodeShrinker;
 import jadx.core.dex.visitors.ConstInlinerVisitor;
+import jadx.core.dex.visitors.DebugInfoVisitor;
 import jadx.core.dex.visitors.DotGraphVisitor;
 import jadx.core.dex.visitors.EnumVisitor;
 import jadx.core.dex.visitors.FallbackModeVisitor;
@@ -54,6 +55,7 @@ public class Jadx {
 		} else {
 			passes.add(new BlockMakerVisitor());
 			passes.add(new SSATransform());
+			passes.add(new DebugInfoVisitor());
 			passes.add(new TypeInference());
 
 			passes.add(new ConstInlinerVisitor());

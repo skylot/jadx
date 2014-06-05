@@ -5,6 +5,7 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.VarName;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
@@ -66,6 +67,7 @@ public class ProcessVariables extends AbstractVisitor {
 
 	private static class Usage {
 		private RegisterArg arg;
+		private VarName varName;
 		private IRegion argRegion;
 		private final Set<IRegion> usage = new HashSet<IRegion>(2);
 		private final Set<IRegion> assigns = new HashSet<IRegion>(2);
@@ -76,6 +78,14 @@ public class ProcessVariables extends AbstractVisitor {
 
 		public RegisterArg getArg() {
 			return arg;
+		}
+
+		public VarName getVarName() {
+			return varName;
+		}
+
+		public void setVarName(VarName varName) {
+			this.varName = varName;
 		}
 
 		public void setArgRegion(IRegion argRegion) {
@@ -102,7 +112,14 @@ public class ProcessVariables extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
+		if (mth.isNoCode()) {
+			return;
+		}
+
 		final Map<Variable, Usage> usageMap = new LinkedHashMap<Variable, Usage>();
+		for (RegisterArg arg : mth.getArguments(true)) {
+			addToUsageMap(arg, usageMap);
+		}
 
 		// collect all variables usage
 		IRegionVisitor collect = new TracedRegionVisitor() {
@@ -209,6 +226,17 @@ public class ProcessVariables extends AbstractVisitor {
 		if (usage == null) {
 			usage = new Usage();
 			usageMap.put(varId, usage);
+		}
+		// merge variables names
+		if (usage.getVarName() == null) {
+			VarName argVN = arg.getSVar().getVarName();
+			if (argVN == null) {
+				argVN = new VarName();
+				arg.getSVar().setVarName(argVN);
+			}
+			usage.setVarName(argVN);
+		} else {
+			arg.getSVar().setVarName(usage.getVarName());
 		}
 		return usage;
 	}

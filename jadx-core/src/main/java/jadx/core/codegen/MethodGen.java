@@ -1,13 +1,11 @@
 package jadx.core.codegen;
 
-import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.annotations.MethodParameters;
 import jadx.core.dex.attributes.nodes.JadxErrorAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -21,10 +19,8 @@ import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.DecodeException;
 
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,25 +32,22 @@ public class MethodGen {
 
 	private final MethodNode mth;
 	private final ClassGen classGen;
-	private final boolean fallback;
 	private final AnnotationGen annotationGen;
-
-	private final Set<String> varNames = new HashSet<String>();
+	private final NameGen nameGen;
 
 	public MethodGen(ClassGen classGen, MethodNode mth) {
 		this.mth = mth;
 		this.classGen = classGen;
-		this.fallback = classGen.isFallbackMode();
 		this.annotationGen = classGen.getAnnotationGen();
-
-		List<RegisterArg> args = mth.getArguments(true);
-		for (RegisterArg arg : args) {
-			varNames.add(makeArgName(arg));
-		}
+		this.nameGen = new NameGen(classGen.isFallbackMode());
 	}
 
 	public ClassGen getClassGen() {
 		return classGen;
+	}
+
+	public NameGen getNameGen() {
+		return nameGen;
 	}
 
 	public MethodNode getMethodNode() {
@@ -124,9 +117,7 @@ public class MethodGen {
 	}
 
 	private void addMethodArguments(CodeWriter argsCode, List<RegisterArg> args) {
-		MethodParameters paramsAnnotation =
-				mth.get(AType.ANNOTATION_MTH_PARAMETERS);
-
+		MethodParameters paramsAnnotation = mth.get(AType.ANNOTATION_MTH_PARAMETERS);
 		int i = 0;
 		for (Iterator<RegisterArg> it = args.iterator(); it.hasNext(); ) {
 			RegisterArg arg = it.next();
@@ -150,81 +141,13 @@ public class MethodGen {
 				classGen.useType(argsCode, arg.getType());
 			}
 			argsCode.add(' ');
-			argsCode.add(makeArgName(arg));
+			argsCode.add(nameGen.assignArg(arg));
 
 			i++;
 			if (it.hasNext()) {
 				argsCode.add(", ");
 			}
 		}
-	}
-
-	/**
-	 * Make variable name for register,
-	 * Name contains register number and
-	 * variable type or name (if debug info available)
-	 */
-	public String makeArgName(RegisterArg arg) {
-		String name = arg.getName();
-		String base = "r" + arg.getRegNum();
-		if (fallback) {
-			if (name != null) {
-				return base + "_" + name;
-			}
-			return base;
-		} else {
-			if (name != null) {
-				if (Consts.DEBUG) {
-					return base + "_" + name;
-				}
-				return name;
-			} else {
-				ArgType type = arg.getType();
-				if (type.isPrimitive()) {
-					return base + type.getPrimitiveType().getShortName().toLowerCase();
-				} else {
-					// TODO: prettify variable name
-					return base + "_" + Utils.escape(type.toString());
-				}
-			}
-		}
-	}
-
-	/**
-	 * Put variable declaration and return variable name (used for assignments)
-	 *
-	 * @param arg register variable
-	 * @return variable name
-	 */
-	public String assignArg(RegisterArg arg) {
-		String name = makeArgName(arg);
-		if (varNames.add(name) || fallback) {
-			return name;
-		}
-		name = getUniqVarName(name);
-		arg.getSVar().setVariableName(name);
-		return name;
-	}
-
-	public String assignNamedArg(NamedArg arg) {
-		String name = arg.getName();
-		if (varNames.add(name) || fallback) {
-			return name;
-		}
-		name = getUniqVarName(name);
-		arg.setName(name);
-		return name;
-	}
-
-	private String getUniqVarName(String name) {
-		String r;
-		int i = 2;
-		do {
-			r = name + "_" + i;
-			i++;
-		} while (varNames.contains(r));
-		varNames.add(r);
-		return r;
 	}
 
 	public void addInstructions(CodeWriter code) throws CodegenException {
@@ -283,20 +206,23 @@ public class MethodGen {
 				return;
 			}
 		}
-		List<InsnNode> insns = mth.getInstructions();
-		if (insns == null) {
+		InsnNode[] insnArr = mth.getInstructions();
+		if (insnArr == null) {
 			code.startLine("// Can't load method instructions.");
 			return;
 		}
 		if (mth.getThisArg() != null) {
-			code.startLine(getFallbackMethodGen(mth).makeArgName(mth.getThisArg())).add(" = this;");
+			code.startLine(getFallbackMethodGen(mth).nameGen.useArg(mth.getThisArg())).add(" = this;");
 		}
-		addFallbackInsns(code, mth, insns, true);
+		addFallbackInsns(code, mth, insnArr, true);
 	}
 
-	public static void addFallbackInsns(CodeWriter code, MethodNode mth, List<InsnNode> insns, boolean addLabels) {
+	public static void addFallbackInsns(CodeWriter code, MethodNode mth, InsnNode[] insnArr, boolean addLabels) {
 		InsnGen insnGen = new InsnGen(getFallbackMethodGen(mth), true);
-		for (InsnNode insn : insns) {
+		for (InsnNode insn : insnArr) {
+			if (insn == null) {
+				continue;
+			}
 			if (addLabels) {
 				if (insn.contains(AType.JUMP)
 						|| insn.contains(AType.EXC_HANDLER)) {

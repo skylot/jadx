@@ -11,7 +11,6 @@ import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.parser.FieldValueAttr;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +20,6 @@ public class RegisterArg extends InsnArg implements Named {
 
 	protected final int regNum;
 	protected SSAVar sVar;
-	protected String name;
 
 	public RegisterArg(int rn) {
 		this.regNum = rn;
@@ -49,32 +47,41 @@ public class RegisterArg extends InsnArg implements Named {
 		this.sVar = sVar;
 	}
 
+	public String getName() {
+		if (sVar == null) {
+			return null;
+		}
+		return sVar.getName();
+	}
+
+	public void setName(String name) {
+		if (sVar != null) {
+			sVar.setName(name);
+		}
+	}
+
+	public boolean isNameEquals(InsnArg arg) {
+		String n = getName();
+		if (n == null || !(arg instanceof Named)) {
+			return false;
+		}
+		return n.equals(((Named) arg).getName());
+	}
+
 	@Override
 	public void setType(ArgType type) {
 		if (sVar != null) {
 			sVar.setType(type);
-		} else {
-			throw new JadxRuntimeException("SSA variable equals null");
 		}
+	}
+
+	public void mergeDebugInfo(ArgType type, String name) {
+		setType(type);
+		setName(name);
 	}
 
 	public void forceType(ArgType type) {
 		this.type = type;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public boolean isNameEquals(InsnArg arg) {
-		if (name == null || !(arg instanceof Named)) {
-			return false;
-		}
-		return name.equals(((Named) arg).getName());
-	}
-
-	public void setName(String newName) {
-		this.name = newName;
 	}
 
 	/**
@@ -113,17 +120,15 @@ public class RegisterArg extends InsnArg implements Named {
 
 	@Override
 	public boolean isThis() {
-		if ("this".equals(name)) {
+		if ("this".equals(getName())) {
 			return true;
 		}
 		// maybe it was moved from 'this' register
 		InsnNode ai = getAssignInsn();
 		if (ai != null && ai.getType() == InsnType.MOVE) {
 			InsnArg arg = ai.getArg(0);
-			if (arg != this
-					&& arg.isRegister()
-					&& "this".equals(((RegisterArg) arg).getName())) {
-				return true;
+			if (arg != this) {
+				return arg.isThis();
 			}
 		}
 		return false;
@@ -196,8 +201,8 @@ public class RegisterArg extends InsnArg implements Named {
 		if (sVar != null) {
 			sb.append("_").append(sVar.getVersion());
 		}
-		if (name != null) {
-			sb.append(" '").append(name).append("'");
+		if (getName() != null) {
+			sb.append(" '").append(getName()).append("'");
 		}
 		sb.append(" ");
 		sb.append(type);

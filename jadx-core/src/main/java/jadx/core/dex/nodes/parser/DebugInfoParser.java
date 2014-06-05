@@ -226,19 +226,18 @@ public class DebugInfoParser {
 	}
 
 	private static void fillLocals(InsnNode insn, LocalVar var) {
-		if (insn.getResult() != null) {
-			merge(insn.getResult(), var);
-		}
+		merge(insn.getResult(), var);
 		for (InsnArg arg : insn.getArguments()) {
 			merge(arg, var);
 		}
 	}
 
 	private static void merge(InsnArg arg, LocalVar var) {
-		if (arg != null
-				&& arg.isRegister()
-				&& var.getRegNum() == ((RegisterArg) arg).getRegNum()) {
-			arg.mergeDebugInfo(var);
+		if (arg != null && arg.isRegister()) {
+			RegisterArg reg = (RegisterArg) arg;
+			if (var.getRegNum() == reg.getRegNum()) {
+				reg.mergeDebugInfo(var.getType(), var.getName());
+			}
 		}
 	}
 }
