@@ -6,19 +6,26 @@ import jadx.core.dex.nodes.MethodNode;
 
 import java.util.List;
 
-public final class JavaMethod {
+public final class JavaMethod implements JavaNode {
 	private final MethodNode mth;
 	private final JavaClass parent;
 
-	public JavaMethod(JavaClass cls, MethodNode m) {
+	JavaMethod(JavaClass cls, MethodNode m) {
 		this.parent = cls;
 		this.mth = m;
 	}
 
+	@Override
 	public String getName() {
-		return mth.getMethodInfo().getName();
+		return mth.getName();
 	}
 
+	@Override
+	public String getFullName() {
+		return mth.getMethodInfo().getFullName();
+	}
+
+	@Override
 	public JavaClass getDeclaringClass() {
 		return parent;
 	}

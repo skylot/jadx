@@ -35,7 +35,6 @@ public class Position {
 		}
 		Position position = (Position) obj;
 		return line == position.line && cls.equals(position.cls);
-
 	}
 
 	@Override

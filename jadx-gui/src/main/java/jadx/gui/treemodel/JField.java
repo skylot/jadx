@@ -56,7 +56,12 @@ public class JField extends JNode {
 	}
 
 	@Override
-	public String toString() {
+	public String makeString() {
 		return Utils.typeFormat(field.getName(), field.getType());
+	}
+
+	@Override
+	public String makeLongString() {
+		return Utils.typeFormat(field.getFullName(), field.getType());
 	}
 }

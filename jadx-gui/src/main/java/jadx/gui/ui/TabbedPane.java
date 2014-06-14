@@ -65,10 +65,6 @@ class TabbedPane extends JTabbedPane {
 		return mainWindow;
 	}
 
-	void showCode(final JClass cls, final int line) {
-		showCode(new Position(cls, line));
-	}
-
 	void showCode(final Position pos) {
 		final CodePanel codePanel = getCodePanel(pos.getCls());
 		SwingUtilities.invokeLater(new Runnable() {

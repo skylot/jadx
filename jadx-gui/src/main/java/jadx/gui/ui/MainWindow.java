@@ -5,10 +5,12 @@ import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.Position;
 import jadx.gui.utils.Utils;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -21,6 +23,7 @@ import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.ProgressMonitor;
+import javax.swing.SwingUtilities;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -28,6 +31,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.ExpandVetoException;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.BorderLayout;
@@ -59,8 +63,10 @@ public class MainWindow extends JFrame {
 	private static final ImageIcon ICON_OPEN = Utils.openIcon("folder");
 	private static final ImageIcon ICON_SAVE_ALL = Utils.openIcon("disk_multiple");
 	private static final ImageIcon ICON_CLOSE = Utils.openIcon("cross");
+	private static final ImageIcon ICON_SYNC = Utils.openIcon("sync");
 	private static final ImageIcon ICON_FLAT_PKG = Utils.openIcon("empty_logical_package_obj");
-	private static final ImageIcon ICON_SEARCH = Utils.openIcon("magnifier");
+	private static final ImageIcon ICON_SEARCH = Utils.openIcon("wand");
+	private static final ImageIcon ICON_FIND = Utils.openIcon("magnifier");
 	private static final ImageIcon ICON_BACK = Utils.openIcon("icon_back");
 	private static final ImageIcon ICON_FORWARD = Utils.openIcon("icon_forward");
 
@@ -116,11 +122,14 @@ public class MainWindow extends JFrame {
 		tree.expandRow(0);
 	}
 
-	private void toggleFlattenPackage() {
+	private void toggleFlattenPackage(JToggleButton btn, JCheckBoxMenuItem menuItem) {
 		Object root = treeModel.getRoot();
 		if (root instanceof JRoot) {
 			JRoot treeRoot = (JRoot) root;
-			treeRoot.setFlatPackages(!treeRoot.isFlatPackages());
+			boolean flatPkg = !treeRoot.isFlatPackages();
+			btn.setSelected(flatPkg);
+			menuItem.setState(flatPkg);
+			treeRoot.setFlatPackages(flatPkg);
 			treeModel.reload();
 			tree.expandRow(0);
 		}
@@ -132,12 +141,28 @@ public class MainWindow extends JFrame {
 			JNode node = (JNode) obj;
 			JClass cls = node.getRootClass();
 			if (cls != null) {
-				tabbedPane.showCode(cls, node.getLine());
+				tabbedPane.showCode(new Position(cls, node.getLine()));
 			}
 		}
 	}
 
-	private void toggleSearch() {
+	private void syncWithEditor() {
+		CodePanel selectedCodePanel = tabbedPane.getSelectedCodePanel();
+		if (selectedCodePanel == null) {
+			return;
+		}
+		JClass jCls = selectedCodePanel.getCls();
+		TreeNode[] pathNodes = treeModel.getPathToRoot(jCls);
+		if (pathNodes == null) {
+			return;
+		}
+		TreePath path = new TreePath(pathNodes);
+		tree.setSelectionPath(path);
+		tree.expandPath(path);
+		tree.makeVisible(path);
+	}
+
+	private void toggleFind() {
 		CodePanel codePanel = tabbedPane.getSelectedCodePanel();
 		if (codePanel != null) {
 			codePanel.getSearchBar().toggle();
@@ -147,7 +172,7 @@ public class MainWindow extends JFrame {
 	private void initMenuAndToolbar() {
 		JMenuBar menuBar = new JMenuBar();
 
-		JMenu file = new JMenu("File");
+		JMenu file = new JMenu(NLS.str("menu.file"));
 		file.setMnemonic(KeyEvent.VK_F);
 
 		JMenuItem exit = new JMenuItem(NLS.str("file.exit"), ICON_CLOSE);
@@ -176,7 +201,65 @@ public class MainWindow extends JFrame {
 		file.addSeparator();
 		file.add(exit);
 
+		JMenu view = new JMenu(NLS.str("menu.view"));
+		view.setMnemonic(KeyEvent.VK_V);
+
+		final JCheckBoxMenuItem flatPkgMenuItem = new JCheckBoxMenuItem(NLS.str("menu.flatten"), ICON_FLAT_PKG);
+		view.add(flatPkgMenuItem);
+
+		JMenuItem syncItem = new JMenuItem(NLS.str("menu.sync"), ICON_SYNC);
+		view.add(syncItem);
+		syncItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				syncWithEditor();
+			}
+		});
+
+		JMenu nav = new JMenu(NLS.str("menu.navigation"));
+		nav.setMnemonic(KeyEvent.VK_N);
+
+		JMenuItem search = new JMenuItem(NLS.str("menu.search"), ICON_SEARCH);
+		nav.add(search);
+		ActionListener searchAction = new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				final SearchDialog dialog = new SearchDialog(MainWindow.this, tabbedPane, wrapper);
+				dialog.prepare();
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						dialog.setVisible(true);
+					}
+				});
+			}
+		};
+		search.addActionListener(searchAction);
+
+		JMenuItem find = new JMenuItem(NLS.str("menu.find_in_file"), ICON_FIND);
+		nav.add(find);
+		ActionListener findAction = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				toggleFind();
+			}
+		};
+		find.addActionListener(findAction);
+
+		JMenu help = new JMenu(NLS.str("menu.help"));
+		help.setMnemonic(KeyEvent.VK_H);
+
+		JMenuItem about = new JMenuItem(NLS.str("menu.about"));
+		help.add(about);
+		about.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				AboutDialog ad = new AboutDialog();
+				ad.setVisible(true);
+			}
+		});
+
 		menuBar.add(file);
+		menuBar.add(view);
+		menuBar.add(nav);
+		menuBar.add(help);
 		setJMenuBar(menuBar);
 
 		JToolBar toolbar = new JToolBar();
@@ -199,26 +282,39 @@ public class MainWindow extends JFrame {
 
 		toolbar.addSeparator();
 
-		final JToggleButton flatPkgButton = new JToggleButton(ICON_FLAT_PKG);
-		flatPkgButton.addActionListener(new ActionListener() {
+		final JButton syncButton = new JButton(ICON_SYNC);
+		syncButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				toggleFlattenPackage();
+				syncWithEditor();
 			}
 		});
-		flatPkgButton.setToolTipText(NLS.str("tree.flatten"));
+		syncButton.setToolTipText(NLS.str("menu.sync"));
+		toolbar.add(syncButton);
+
+		final JToggleButton flatPkgButton = new JToggleButton(ICON_FLAT_PKG);
+		ActionListener flatPkgAction = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				toggleFlattenPackage(flatPkgButton, flatPkgMenuItem);
+			}
+		};
+		flatPkgButton.addActionListener(flatPkgAction);
+		flatPkgMenuItem.addActionListener(flatPkgAction);
+
+		flatPkgButton.setToolTipText(NLS.str("menu.flatten"));
 		toolbar.add(flatPkgButton);
 		toolbar.addSeparator();
 
 		final JButton searchButton = new JButton(ICON_SEARCH);
-		searchButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				toggleSearch();
-			}
-		});
-		searchButton.setToolTipText(NLS.str("search"));
+		searchButton.addActionListener(searchAction);
+		searchButton.setToolTipText(NLS.str("menu.search"));
 		toolbar.add(searchButton);
+
+		final JButton findButton = new JButton(ICON_FIND);
+		findButton.addActionListener(findAction);
+		findButton.setToolTipText(NLS.str("menu.find_in_file"));
+		toolbar.add(findButton);
 
 		toolbar.addSeparator();
 
@@ -251,7 +347,7 @@ public class MainWindow extends JFrame {
 		splitPane.setResizeWeight(SPLIT_PANE_RESIZE_WEIGHT);
 		mainPanel.add(splitPane);
 
-		DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode("Please open file");
+		DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode(NLS.str("msg.open_file"));
 		treeModel = new DefaultTreeModel(treeRoot);
 		tree = new JTree(treeModel);
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);

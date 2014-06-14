@@ -28,7 +28,7 @@ public class TextNode extends JNode {
 	}
 
 	@Override
-	public String toString() {
+	public String makeString() {
 		return label;
 	}
 }

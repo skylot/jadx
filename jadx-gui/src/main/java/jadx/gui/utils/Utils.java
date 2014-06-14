@@ -18,6 +18,9 @@ public class Utils {
 	private static final ImageIcon ICON_ABSTRACT = Utils.openIcon("abstract_co");
 	private static final ImageIcon ICON_NATIVE = Utils.openIcon("native_co");
 
+	private Utils() {
+	}
+
 	public static ImageIcon openIcon(String name) {
 		String iconPath = "/icons-16/" + name + ".png";
 		URL resource = Utils.class.getResource(iconPath);

@@ -33,7 +33,7 @@ public class JPackage extends JNode implements Comparable<JPackage> {
 		this.classes = new ArrayList<JClass>(1);
 	}
 
-	public void update() {
+	public final void update() {
 		removeAllChildren();
 		for (JPackage pkg : innerPackages) {
 			pkg.update();
@@ -98,7 +98,12 @@ public class JPackage extends JNode implements Comparable<JPackage> {
 	}
 
 	@Override
-	public String toString() {
+	public String makeString() {
+		return name;
+	}
+
+	@Override
+	public String makeLongString() {
 		return name;
 	}
 }

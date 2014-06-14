@@ -75,22 +75,25 @@ public class JClass extends JNode {
 	@Override
 	public Icon getIcon() {
 		AccessInfo accessInfo = cls.getAccessInfo();
-
 		if (accessInfo.isEnum()) {
 			return ICON_ENUM;
-		} else if (accessInfo.isAnnotation()) {
-			return ICON_ANNOTATION;
-		} else if (accessInfo.isInterface()) {
-			return ICON_INTERFACE;
-		} else if (accessInfo.isProtected()) {
-			return ICON_CLASS_PROTECTED;
-		} else if (accessInfo.isPrivate()) {
-			return ICON_CLASS_PRIVATE;
-		} else if (accessInfo.isPublic()) {
-			return ICON_CLASS;
-		} else {
-			return ICON_CLASS_DEFAULT;
 		}
+		if (accessInfo.isAnnotation()) {
+			return ICON_ANNOTATION;
+		}
+		if (accessInfo.isInterface()) {
+			return ICON_INTERFACE;
+		}
+		if (accessInfo.isProtected()) {
+			return ICON_CLASS_PROTECTED;
+		}
+		if (accessInfo.isPrivate()) {
+			return ICON_CLASS_PRIVATE;
+		}
+		if (accessInfo.isPublic()) {
+			return ICON_CLASS;
+		}
+		return ICON_CLASS_DEFAULT;
 	}
 
 	@Override
@@ -126,7 +129,12 @@ public class JClass extends JNode {
 	}
 
 	@Override
-	public String toString() {
-		return cls.getShortName();
+	public String makeString() {
+		return cls.getName();
+	}
+
+	@Override
+	public String makeLongString() {
+		return cls.getFullName();
 	}
 }

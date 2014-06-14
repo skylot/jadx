@@ -57,14 +57,13 @@ public class JMethod extends JNode {
 		return icon;
 	}
 
-	@Override
-	public String toString() {
+	private String makeBaseString() {
 		if (mth.isClassInit()) {
 			return "{...}";
 		}
 		StringBuilder base = new StringBuilder();
 		if (mth.isConstructor()) {
-			base.append(mth.getDeclaringClass().getShortName());
+			base.append(mth.getDeclaringClass().getName());
 		} else {
 			base.append(mth.getName());
 		}
@@ -76,6 +75,17 @@ public class JMethod extends JNode {
 			}
 		}
 		base.append(')');
-		return Utils.typeFormat(base.toString(), mth.getReturnType());
+		return base.toString();
+	}
+
+	@Override
+	public String makeString() {
+		return Utils.typeFormat(makeBaseString(), mth.getReturnType());
+	}
+
+	@Override
+	public String makeLongString() {
+		String name = mth.getDeclaringClass().getFullName() + "." + makeBaseString();
+		return Utils.typeFormat(name, mth.getReturnType());
 	}
 }

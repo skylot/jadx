@@ -1,6 +1,6 @@
 package jadx.cli;
 
-import jadx.api.Decompiler;
+import jadx.api.JadxDecompiler;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.JadxException;
 
@@ -26,7 +26,7 @@ public class JadxCLI {
 
 	static void processAndSave(JadxCLIArgs jadxArgs) throws JadxException {
 		try {
-			Decompiler jadx = new Decompiler(jadxArgs);
+			JadxDecompiler jadx = new JadxDecompiler(jadxArgs);
 			jadx.loadFiles(jadxArgs.getInput());
 			jadx.setOutputDir(jadxArgs.getOutDir());
 			jadx.save();

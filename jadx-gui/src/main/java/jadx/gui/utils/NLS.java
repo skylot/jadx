@@ -11,7 +11,10 @@ public class NLS {
 		load(new Locale("en", "US"));
 	}
 
-	public static void load(Locale locale) {
+	private NLS() {
+	}
+
+	private static void load(Locale locale) {
 		messages = ResourceBundle.getBundle("i18n/Messages", locale);
 	}
 

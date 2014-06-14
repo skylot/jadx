@@ -7,7 +7,6 @@ import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,18 +14,29 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-public final class JavaClass {
+public final class JavaClass implements JavaNode {
 
-	private final Decompiler decompiler;
+	private final JadxDecompiler decompiler;
 	private final ClassNode cls;
+	private final JavaClass parent;
 
 	private List<JavaClass> innerClasses = Collections.emptyList();
 	private List<JavaField> fields = Collections.emptyList();
 	private List<JavaMethod> methods = Collections.emptyList();
 
-	JavaClass(Decompiler decompiler, ClassNode classNode) {
+	JavaClass(ClassNode classNode, JadxDecompiler decompiler) {
 		this.decompiler = decompiler;
 		this.cls = classNode;
+		this.parent = null;
+	}
+
+	/**
+	 * Inner classes constructor
+	 */
+	JavaClass(ClassNode classNode, JavaClass parent) {
+		this.decompiler = null;
+		this.cls = classNode;
+		this.parent = parent;
 	}
 
 	public String getCode() {
@@ -43,7 +53,7 @@ public final class JavaClass {
 
 	public void decompile() {
 		if (decompiler == null) {
-			throw new JadxRuntimeException("Can't decompile inner class");
+			return;
 		}
 		if (cls.getCode() == null) {
 			decompiler.processClass(cls);
@@ -61,7 +71,7 @@ public final class JavaClass {
 			List<JavaClass> list = new ArrayList<JavaClass>(inClsCount);
 			for (ClassNode inner : cls.getInnerClasses()) {
 				if (!inner.contains(AFlag.DONT_GENERATE)) {
-					JavaClass javaClass = new JavaClass(null, inner);
+					JavaClass javaClass = new JavaClass(inner, this);
 					javaClass.load();
 					list.add(javaClass);
 				}
@@ -74,7 +84,7 @@ public final class JavaClass {
 			List<JavaField> flds = new ArrayList<JavaField>(fieldsCount);
 			for (FieldNode f : cls.getFields()) {
 				if (!f.contains(AFlag.DONT_GENERATE)) {
-					flds.add(new JavaField(f));
+					flds.add(new JavaField(f, this));
 				}
 			}
 			this.fields = Collections.unmodifiableList(flds);
@@ -135,16 +145,23 @@ public final class JavaClass {
 		return cls.getCode().getLineMapping().get(decompiledLine);
 	}
 
+	@Override
+	public String getName() {
+		return cls.getShortName();
+	}
+
+	@Override
 	public String getFullName() {
 		return cls.getFullName();
 	}
 
-	public String getShortName() {
-		return cls.getShortName();
-	}
-
 	public String getPackage() {
 		return cls.getPackage();
+	}
+
+	@Override
+	public JavaClass getDeclaringClass() {
+		return parent;
 	}
 
 	public AccessInfo getAccessInfo() {
@@ -152,14 +169,17 @@ public final class JavaClass {
 	}
 
 	public List<JavaClass> getInnerClasses() {
+		decompile();
 		return innerClasses;
 	}
 
 	public List<JavaField> getFields() {
+		decompile();
 		return fields;
 	}
 
 	public List<JavaMethod> getMethods() {
+		decompile();
 		return methods;
 	}
 

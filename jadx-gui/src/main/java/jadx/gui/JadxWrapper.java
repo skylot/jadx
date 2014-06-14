@@ -1,7 +1,7 @@
 package jadx.gui;
 
-import jadx.api.Decompiler;
 import jadx.api.IJadxArgs;
+import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaPackage;
 import jadx.core.utils.exceptions.DecodeException;
@@ -18,11 +18,11 @@ import org.slf4j.LoggerFactory;
 public class JadxWrapper {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxWrapper.class);
 
-	private final Decompiler decompiler;
+	private final JadxDecompiler decompiler;
 	private File openFile;
 
 	public JadxWrapper(IJadxArgs jadxArgs) {
-		this.decompiler = new Decompiler(jadxArgs);
+		this.decompiler = new JadxDecompiler(jadxArgs);
 	}
 
 	public void openFile(File file) {
@@ -53,7 +53,7 @@ public class JadxWrapper {
 					progressMonitor.close();
 					LOG.info("done");
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+					LOG.error("Save interrupted", e);
 				}
 			}
 		};

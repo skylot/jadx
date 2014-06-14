@@ -10,7 +10,7 @@ public class Factory {
 		return new JavaPackage(name, classes);
 	}
 
-	public static JavaClass newClass(Decompiler decompiler, ClassNode classNode) {
-		return new JavaClass(decompiler, classNode);
+	public static JavaClass newClass(JadxDecompiler decompiler, ClassNode classNode) {
+		return new JavaClass(classNode, decompiler);
 	}
 }

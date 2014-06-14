@@ -23,22 +23,24 @@ import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
+import java.util.Map;
 
 public class LineNumbers extends JPanel implements CaretListener {
+	private static final long serialVersionUID = -4978268673635308190L;
 
-	private final static Border OUTER = new MatteBorder(0, 0, 0, 1, Color.LIGHT_GRAY);
-	private final static int HEIGHT = Integer.MAX_VALUE - 1000000;
+	private static final Border OUTER = new MatteBorder(0, 0, 0, 1, Color.LIGHT_GRAY);
 
-	public static final Color FOREGROUND = Color.GRAY;
-	public static final Color BACKGROUND = CodeArea.BACKGROUND;
-	public static final Color CURRENT_LINE_FOREGROUND = new Color(227, 0, 0);
+	private static final int HEIGHT = Integer.MAX_VALUE - 1000000;
+	private static final Color FOREGROUND = Color.GRAY;
+	private static final Color BACKGROUND = CodeArea.BACKGROUND;
+	private static final Color CURRENT_LINE_FOREGROUND = new Color(227, 0, 0);
 
 	private CodeArea codeArea;
 	private boolean useSourceLines = true;
 
 	private int lastDigits;
 	private int lastLine;
-	private HashMap<String, FontMetrics> fonts;
+	private Map<String, FontMetrics> fonts;
 
 	public LineNumbers(CodeArea component) {
 		this.codeArea = component;

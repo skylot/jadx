@@ -13,15 +13,19 @@ import javax.swing.text.BadLocationException;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class SearchBar extends JToolBar {
 	private static final long serialVersionUID = 1836871286618633003L;
+
+	private static final Logger LOG = LoggerFactory.getLogger(SearchDialog.class);
 
 	private static final Color COLOR_BG_ERROR = new Color(0xFFDFDE);
 	private static final Color COLOR_BG_WARN = new Color(0xFFFDD9);
@@ -47,15 +51,7 @@ class SearchBar extends JToolBar {
 		add(findLabel);
 
 		searchField = new JTextField(30);
-		searchField.addKeyListener(new KeyListener() {
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
+		searchField.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				switch (e.getKeyCode()) {
@@ -152,7 +148,7 @@ class SearchBar extends JToolBar {
 			return;
 		}
 
-		boolean forward = (direction >= 0);
+		boolean forward = direction >= 0;
 		boolean matchCase = matchCaseCB.isSelected();
 		boolean regex = regexCB.isSelected();
 		boolean wholeWord = wholeWordCB.isSelected();
@@ -179,7 +175,7 @@ class SearchBar extends JToolBar {
 					rTextArea.setCaretPosition(rTextArea.getLineStartOffset(lineNum));
 				}
 			} catch (BadLocationException e) {
-				e.printStackTrace();
+				LOG.error("Caret move error", e);
 			}
 		}
 

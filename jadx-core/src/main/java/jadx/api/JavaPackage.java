@@ -2,7 +2,7 @@ package jadx.api;
 
 import java.util.List;
 
-public final class JavaPackage implements Comparable<JavaPackage> {
+public final class JavaPackage implements JavaNode, Comparable<JavaPackage> {
 	private final String name;
 	private final List<JavaClass> classes;
 
@@ -11,12 +11,24 @@ public final class JavaPackage implements Comparable<JavaPackage> {
 		this.classes = classes;
 	}
 
+	@Override
 	public String getName() {
+		return name;
+	}
+
+	@Override
+	public String getFullName() {
+		// TODO: store full package name
 		return name;
 	}
 
 	public List<JavaClass> getClasses() {
 		return classes;
+	}
+
+	@Override
+	public JavaClass getDeclaringClass() {
+		return null;
 	}
 
 	@Override

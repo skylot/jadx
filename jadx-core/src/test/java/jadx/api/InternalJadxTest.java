@@ -36,7 +36,7 @@ public abstract class InternalJadxTest extends TestUtils {
 	protected String outDir = "test-out-tmp";
 
 	public ClassNode getClassNode(Class<?> clazz) {
-		Decompiler d = new Decompiler();
+		JadxDecompiler d = new JadxDecompiler();
 		try {
 			d.loadFile(getJarForClass(clazz));
 		} catch (Exception e) {

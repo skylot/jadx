@@ -1,6 +1,6 @@
 package jadx.tests
 
-import jadx.api.Decompiler
+import jadx.api.JadxDecompiler
 import jadx.api.IJadxArgs
 import jadx.core.dex.nodes.MethodNode
 import jadx.core.utils.ErrorsCounter
@@ -12,7 +12,7 @@ class TestAPI extends Specification {
 
     def "no loaded files"() {
         setup:
-        def d = new Decompiler()
+        def d = new JadxDecompiler()
         when:
         def classes = d.getClasses()
         def packages = d.getPackages()
@@ -24,7 +24,7 @@ class TestAPI extends Specification {
 
     def "save with no loaded files"() {
         when:
-        new Decompiler().save()
+        new JadxDecompiler().save()
         then:
         def e = thrown(JadxRuntimeException)
         e.message == "No loaded files"
@@ -32,7 +32,7 @@ class TestAPI extends Specification {
 
     def "load empty files list"() {
         when:
-        new Decompiler().loadFiles(Collections.emptyList())
+        new JadxDecompiler().loadFiles(Collections.emptyList())
         then:
         def e = thrown(JadxException)
         e.message == "Empty file list"
@@ -40,14 +40,14 @@ class TestAPI extends Specification {
 
     def "load null"() {
         when:
-        new Decompiler().loadFile(null)
+        new JadxDecompiler().loadFile(null)
         then:
         thrown(NullPointerException)
     }
 
     def "load missing file"() {
         when:
-        new Decompiler().loadFile(new File("_.dex"))
+        new JadxDecompiler().loadFile(new File("_.dex"))
         then:
         def e = thrown(JadxException)
         e.message == "Error load file: _.dex"
@@ -58,29 +58,29 @@ class TestAPI extends Specification {
         setup:
         def args = Mock(IJadxArgs)
         when:
-        new Decompiler(args)
+        new JadxDecompiler(args)
         then:
         noExceptionThrown()
     }
 
     def "get errors count for new decompiler"() {
         expect:
-        new Decompiler().getErrorsCount() == 0
+        new JadxDecompiler().getErrorsCount() == 0
     }
 
     def "get errors count after one more init"() {
         setup:
-        new Decompiler()
+        new JadxDecompiler()
         def mth = Mock(MethodNode)
         when:
         ErrorsCounter.methodError(mth, "")
-        def d = new Decompiler()
+        def d = new JadxDecompiler()
         then:
         d.getErrorsCount() == 0
     }
 
     def "decompiler toString()"() {
         expect:
-        new Decompiler().toString() == "jadx decompiler"
+        new JadxDecompiler().toString() == "jadx decompiler"
     }
 }

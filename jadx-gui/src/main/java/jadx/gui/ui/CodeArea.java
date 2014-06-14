@@ -31,8 +31,6 @@ class CodeArea extends RSyntaxTextArea {
 	private static final long serialVersionUID = 6312736869579635796L;
 
 	public static final Color BACKGROUND = new Color(0xf7f7f7);
-	private static final Color JUMP_FOREGROUND = new Color(0x785523);
-	private static final Color JUMP_BACKGROUND = new Color(0xE6E6FF);
 
 	private final CodePanel codePanel;
 	private final JClass cls;
@@ -104,11 +102,11 @@ class CodeArea extends RSyntaxTextArea {
 	}
 
 	void scrollToLine(int line) {
-		line--;
-		if (line < 0) {
-			line = 0;
+		int lineNum = line - 1;
+		if (lineNum < 0) {
+			lineNum = 0;
 		}
-		setCaretAtLine(line);
+		setCaretAtLine(lineNum);
 		centerCurrentLine();
 		forceCurrentLineHighlightRepaint();
 	}
@@ -154,29 +152,30 @@ class CodeArea extends RSyntaxTextArea {
 		public LinkGeneratorResult isLinkAtOffset(RSyntaxTextArea textArea, int offset) {
 			try {
 				Token token = textArea.modelToToken(offset);
-				if (token != null) {
-					offset = token.getOffset();
+				if (token == null) {
+					return null;
 				}
-				final Position defPos = getPosition(jCls, textArea, offset);
-				if (defPos != null) {
-					final int sourceOffset = offset;
-					return new LinkGeneratorResult() {
-						@Override
-						public HyperlinkEvent execute() {
-							return new HyperlinkEvent(defPos, HyperlinkEvent.EventType.ACTIVATED, null,
-									defPos.getCls().getFullName());
-						}
+				final int sourceOffset = token.getOffset();
+				final Position defPos = getPosition(jCls, textArea, sourceOffset);
+				if (defPos == null) {
+					return null;
+				}
+				return new LinkGeneratorResult() {
+					@Override
+					public HyperlinkEvent execute() {
+						return new HyperlinkEvent(defPos, HyperlinkEvent.EventType.ACTIVATED, null,
+								defPos.getCls().getFullName());
+					}
 
-						@Override
-						public int getSourceOffset() {
-							return sourceOffset;
-						}
-					};
-				}
+					@Override
+					public int getSourceOffset() {
+						return sourceOffset;
+					}
+				};
 			} catch (Exception e) {
 				LOG.error("isLinkAtOffset error", e);
+				return null;
 			}
-			return null;
 		}
 
 		@Override

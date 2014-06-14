@@ -30,7 +30,7 @@ public class JRoot extends JNode {
 		update();
 	}
 
-	public void update() {
+	public final void update() {
 		removeAllChildren();
 		if (flatPackages) {
 			for (JavaPackage pkg : wrapper.getPackages()) {
@@ -85,7 +85,6 @@ public class JRoot extends JNode {
 				it.remove();
 			}
 		}
-
 		// use identity set for collect inner packages
 		Set<JPackage> innerPackages = Collections.newSetFromMap(new IdentityHashMap<JPackage, Boolean>());
 		for (JPackage pkg : pkgMap.values()) {
@@ -150,7 +149,7 @@ public class JRoot extends JNode {
 	}
 
 	@Override
-	public String toString() {
+	public String makeString() {
 		File file = wrapper.getOpenFile();
 		return file != null ? file.getName() : "File not open";
 	}

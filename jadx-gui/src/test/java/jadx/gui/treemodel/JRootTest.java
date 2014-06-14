@@ -1,6 +1,6 @@
 package jadx.gui.treemodel;
 
-import jadx.api.Decompiler;
+import jadx.api.JadxDecompiler;
 import jadx.api.Factory;
 import jadx.api.IJadxArgs;
 import jadx.api.JavaClass;
@@ -20,12 +20,12 @@ import static org.mockito.Mockito.mock;
 public class JRootTest {
 
 	private JRoot root;
-	private Decompiler decompiler;
+	private JadxDecompiler decompiler;
 
 	@Before
 	public void init() {
 		root = new JRoot(mock(JadxWrapper.class));
-		decompiler = new Decompiler(mock(IJadxArgs.class));
+		decompiler = new JadxDecompiler(mock(IJadxArgs.class));
 	}
 
 	@Test

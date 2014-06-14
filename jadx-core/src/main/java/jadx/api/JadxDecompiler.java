@@ -44,8 +44,8 @@ import org.slf4j.LoggerFactory;
  *  }
  * </code></pre>
  */
-public final class Decompiler {
-	private static final Logger LOG = LoggerFactory.getLogger(Decompiler.class);
+public final class JadxDecompiler {
+	private static final Logger LOG = LoggerFactory.getLogger(JadxDecompiler.class);
 
 	private final IJadxArgs args;
 	private final List<InputFile> inputFiles = new ArrayList<InputFile>();
@@ -56,12 +56,12 @@ public final class Decompiler {
 	private List<IDexTreeVisitor> passes;
 	private List<JavaClass> classes;
 
-	public Decompiler() {
+	public JadxDecompiler() {
 		this.args = new DefaultJadxArgs();
 		init();
 	}
 
-	public Decompiler(IJadxArgs jadxArgs) {
+	public JadxDecompiler(IJadxArgs jadxArgs) {
 		this.args = jadxArgs;
 		init();
 	}
@@ -143,7 +143,7 @@ public final class Decompiler {
 			List<ClassNode> classNodeList = root.getClasses(false);
 			List<JavaClass> clsList = new ArrayList<JavaClass>(classNodeList.size());
 			for (ClassNode classNode : classNodeList) {
-				clsList.add(new JavaClass(this, classNode));
+				clsList.add(new JavaClass(classNode, this));
 			}
 			classes = Collections.unmodifiableList(clsList);
 		}
@@ -174,7 +174,7 @@ public final class Decompiler {
 			Collections.sort(pkg.getClasses(), new Comparator<JavaClass>() {
 				@Override
 				public int compare(JavaClass o1, JavaClass o2) {
-					return o1.getShortName().compareTo(o2.getShortName());
+					return o1.getName().compareTo(o2.getName());
 				}
 			});
 		}
