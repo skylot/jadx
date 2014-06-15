@@ -26,12 +26,14 @@ class TestSignatureParser extends Specification {
         new SignatureParser(str).consumeType() == result
 
         where:
-        str               | result
-        "TD;"             | genericType("D")
-        "La<TV;Lb;>;"     | generic("La;", genericType("V"), object("b"))
-        "La<Lb<Lc;>;>;"   | generic("La;", generic("Lb;", object("Lc;")))
-        "La<TD;>.c;"      | genericInner(generic("La;", genericType("D")), "c", null)
-        "La<Lb;>.c<TV;>;" | genericInner(generic("La;", object("Lb;")), "c", genericType("V"))
+        str                     | result
+        "TD;"                   | genericType("D")
+        "La<TV;Lb;>;"           | generic("La;", genericType("V"), object("b"))
+        "La<Lb<Lc;>;>;"         | generic("La;", generic("Lb;", object("Lc;")))
+        "La/b/C<Ld/E<Lf/G;>;>;" | generic("La/b/C;", generic("Ld/E;", object("Lf/G;")))
+        "La<TD;>.c;"            | genericInner(generic("La;", genericType("D")), "c", null)
+        "La<TD;>.c/d;"          | genericInner(generic("La;", genericType("D")), "c.d", null)
+        "La<Lb;>.c<TV;>;"       | genericInner(generic("La;", object("Lb;")), "c", genericType("V"))
     }
 
     def "inner generic"() {
@@ -83,6 +85,16 @@ class TestSignatureParser extends Specification {
         then:
         argTypes.size() == 1
         argTypes.get(0) == generic("Ljava/util/List;", wildcard())
+    }
+
+    def "method args 2"() {
+        when:
+        def argTypes = new SignatureParser("(La/b/C<TT;>.d/E;)V").consumeMethodArgs()
+        then:
+        argTypes.size() == 1
+        def argType = argTypes.get(0)
+        argType.getObject().indexOf('/') == -1
+        argTypes.get(0) == genericInner(generic("La/b/C;", genericType("T")), "d.E", null)
     }
 
     def "generic map: bad signature"() {

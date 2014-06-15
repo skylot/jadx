@@ -16,9 +16,8 @@ public class Utils {
 		int last = obj.length() - 1;
 		if (obj.charAt(0) == 'L' && obj.charAt(last) == ';') {
 			return obj.substring(1, last).replace('/', '.');
-		} else {
-			return obj;
 		}
+		return obj;
 	}
 
 	public static String makeQualifiedObjectName(String obj) {

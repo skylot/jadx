@@ -6,7 +6,6 @@ import jadx.core.dex.attributes.annotations.Annotation;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -159,7 +158,13 @@ public class SignatureParser {
 		} while (ch != '<' && ch != ';');
 
 		if (ch == ';') {
-			return ArgType.object(incompleteType ? slice() : inclusiveSlice());
+			String obj;
+			if (incompleteType) {
+				obj = slice().replace('/', '.');
+			} else {
+				obj = inclusiveSlice();
+			}
+			return ArgType.object(obj);
 		} else {
 			// generic type start ('<')
 			String obj = slice();
@@ -184,7 +189,7 @@ public class SignatureParser {
 	}
 
 	private ArgType[] consumeGenericArgs() {
-		List<ArgType> list = new ArrayList<ArgType>(1);
+		List<ArgType> list = new LinkedList<ArgType>();
 		ArgType type;
 		do {
 			if (lookAhead('*')) {
