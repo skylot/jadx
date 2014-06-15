@@ -6,12 +6,12 @@ import jadx.core.dex.info.FieldInfo;
 public final class FieldArg extends RegisterArg {
 
 	private final FieldInfo field;
-	// regArg equal 'null' for static fields
-	private final RegisterArg regArg;
+	// instArg equal 'null' for static fields
+	private final InsnArg instArg;
 
-	public FieldArg(FieldInfo field, RegisterArg reg) {
+	public FieldArg(FieldInfo field, InsnArg reg) {
 		super(-1);
-		this.regArg = reg;
+		this.instArg = reg;
 		this.field = field;
 	}
 
@@ -19,12 +19,12 @@ public final class FieldArg extends RegisterArg {
 		return field;
 	}
 
-	public RegisterArg getRegisterArg() {
-		return regArg;
+	public InsnArg getInstanceArg() {
+		return instArg;
 	}
 
 	public boolean isStatic() {
-		return regArg == null;
+		return instArg == null;
 	}
 
 	@Override
@@ -54,7 +54,7 @@ public final class FieldArg extends RegisterArg {
 		if (!field.equals(fieldArg.field)) {
 			return false;
 		}
-		if (regArg != null ? !regArg.equals(fieldArg.regArg) : fieldArg.regArg != null) {
+		if (instArg != null ? !instArg.equals(fieldArg.instArg) : fieldArg.instArg != null) {
 			return false;
 		}
 		return true;
@@ -64,7 +64,7 @@ public final class FieldArg extends RegisterArg {
 	public int hashCode() {
 		int result = super.hashCode();
 		result = 31 * result + field.hashCode();
-		result = 31 * result + (regArg != null ? regArg.hashCode() : 0);
+		result = 31 * result + (instArg != null ? instArg.hashCode() : 0);
 		return result;
 	}
 

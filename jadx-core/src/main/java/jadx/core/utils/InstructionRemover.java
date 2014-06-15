@@ -3,6 +3,7 @@ package jadx.core.utils;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
@@ -65,15 +66,22 @@ public class InstructionRemover {
 			mth.removeSVar(r.getSVar());
 		}
 		for (InsnArg arg : insn.getArguments()) {
-			if (arg instanceof RegisterArg) {
-				RegisterArg reg = (RegisterArg) arg;
-				SSAVar sVar = reg.getSVar();
-				if (sVar != null) {
-					sVar.removeUse(reg);
-				}
-			}
+			unbindArgUsage(mth, arg);
 		}
 		insn.add(AFlag.INCONSISTENT_CODE);
+	}
+
+	public static void unbindArgUsage(MethodNode mth, InsnArg arg) {
+		if (arg instanceof RegisterArg) {
+			RegisterArg reg = (RegisterArg) arg;
+			SSAVar sVar = reg.getSVar();
+			if (sVar != null) {
+				sVar.removeUse(reg);
+			}
+		} else if (arg instanceof InsnWrapArg) {
+			InsnWrapArg wrap = (InsnWrapArg) arg;
+			unbindInsn(mth, wrap.getWrapInsn());
+		}
 	}
 
 	// Don't use 'insns.removeAll(toRemove)' because it will remove instructions by content

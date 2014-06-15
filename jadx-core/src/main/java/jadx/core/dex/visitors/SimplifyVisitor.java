@@ -14,7 +14,6 @@ import jadx.core.dex.instructions.args.FieldArg;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
-import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
@@ -186,9 +185,9 @@ public class SimplifyVisitor extends AbstractVisitor {
 			return null;
 		}
 		try {
-			RegisterArg reg = null;
+			InsnArg reg = null;
 			if (getType == InsnType.IGET) {
-				reg = ((RegisterArg) get.getArg(0));
+				reg = get.getArg(0);
 			}
 			FieldArg fArg = new FieldArg(field, reg);
 			if (reg != null) {

@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Jadx API usage example:
  * <pre><code>
- *  Decompiler jadx = new Decompiler();
+ *  JadxDecompiler jadx = new JadxDecompiler();
  *  jadx.loadFile(new File("classes.dex"));
  *  jadx.setOutputDir(new File("out"));
  *  jadx.save();

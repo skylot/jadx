@@ -1,4 +1,4 @@
-package jadx.tests.internal;
+package jadx.tests.internal.arith;
 
 import jadx.api.InternalJadxTest;
 import jadx.core.dex.nodes.ClassNode;

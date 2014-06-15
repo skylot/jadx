@@ -101,7 +101,7 @@ public class InsnGen {
 			if (f.isStatic()) {
 				staticField(code, f.getField());
 			} else {
-				instanceField(code, f.getField(), f.getRegisterArg());
+				instanceField(code, f.getField(), f.getInstanceArg());
 			}
 		} else {
 			throw new CodegenException("Unknown arg type " + arg);
