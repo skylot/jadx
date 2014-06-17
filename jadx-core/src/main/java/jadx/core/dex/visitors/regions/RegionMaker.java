@@ -28,6 +28,7 @@ import jadx.core.utils.BlockUtils;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.RegionUtils;
+import jadx.core.utils.exceptions.JadxOverflowException;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -49,8 +50,12 @@ import static jadx.core.utils.BlockUtils.selectOther;
 public class RegionMaker {
 	private static final Logger LOG = LoggerFactory.getLogger(RegionMaker.class);
 
+	// 'dumb' guard to prevent endless loop in regions processing
+	private static final int REGIONS_LIMIT = 1000 * 1000;
+
 	private final MethodNode mth;
 	private BitSet processedBlocks;
+	private int regionsCount;
 
 	public RegionMaker(MethodNode mth) {
 		this.mth = mth;
@@ -67,6 +72,10 @@ public class RegionMaker {
 			} else {
 				processedBlocks.set(id);
 			}
+		}
+		regionsCount++;
+		if (regionsCount > REGIONS_LIMIT) {
+			throw new JadxOverflowException("Regions count limit reached");
 		}
 
 		Region r = new Region(stack.peekRegion());

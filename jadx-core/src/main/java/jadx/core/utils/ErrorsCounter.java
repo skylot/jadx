@@ -5,6 +5,7 @@ import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.attributes.nodes.JadxErrorAttr;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.exceptions.JadxOverflowException;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -32,9 +33,9 @@ public class ErrorsCounter {
 		errorsCount++;
 
 		if (e != null) {
-			if (e.getClass() == StackOverflowError.class) {
+			if (e.getClass() == JadxOverflowException.class) {
 				// don't print full stack trace
-				e = new StackOverflowError(e.getMessage());
+				e = new JadxOverflowException(e.getMessage());
 				LOG.error(msg);
 			} else {
 				LOG.error(msg, e);
