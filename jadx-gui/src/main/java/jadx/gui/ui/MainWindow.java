@@ -76,6 +76,7 @@ public class MainWindow extends JFrame {
 
 	private JTree tree;
 	private DefaultTreeModel treeModel;
+	private JRoot treeRoot;
 	private TabbedPane tabbedPane;
 
 	public MainWindow(JadxWrapper wrapper) {
@@ -116,7 +117,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void initTree() {
-		JRoot treeRoot = new JRoot(wrapper);
+		treeRoot = new JRoot(wrapper);
 		treeModel.setRoot(treeRoot);
 		treeModel.reload();
 		tree.expandRow(0);
@@ -152,13 +153,20 @@ public class MainWindow extends JFrame {
 			return;
 		}
 		JClass jCls = selectedCodePanel.getCls();
+		if (jCls.getParent() == null && treeRoot != null) {
+			// node not register in tree
+			jCls = treeRoot.searchClassInTree(jCls);
+			if (jCls == null) {
+				LOG.error("Class not found in tree");
+				return;
+			}
+		}
 		TreeNode[] pathNodes = treeModel.getPathToRoot(jCls);
 		if (pathNodes == null) {
 			return;
 		}
 		TreePath path = new TreePath(pathNodes);
 		tree.setSelectionPath(path);
-		tree.expandPath(path);
 		tree.makeVisible(path);
 	}
 

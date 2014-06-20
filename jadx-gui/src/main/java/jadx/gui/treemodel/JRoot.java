@@ -9,6 +9,7 @@ import javax.swing.ImageIcon;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
@@ -120,6 +121,17 @@ public class JRoot extends JNode {
 			}
 			prevPkg.getInnerPackages().add(pkg);
 		}
+	}
+
+	public JClass searchClassInTree(JClass node) {
+		Enumeration en = this.breadthFirstEnumeration();
+		while (en.hasMoreElements()) {
+			Object obj = en.nextElement();
+			if (node.equals(obj)) {
+				return (JClass) obj;
+			}
+		}
+		return null;
 	}
 
 	public boolean isFlatPackages() {
