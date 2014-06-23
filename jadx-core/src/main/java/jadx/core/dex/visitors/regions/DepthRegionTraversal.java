@@ -5,8 +5,11 @@ import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.ExceptionHandler;
+import jadx.core.utils.exceptions.JadxOverflowException;
 
 public class DepthRegionTraversal {
+
+	private static final int ITERATIVE_LIMIT = 500;
 
 	private DepthRegionTraversal() {
 	}
@@ -24,8 +27,12 @@ public class DepthRegionTraversal {
 
 	public static void traverseAllIterative(MethodNode mth, IRegionIterativeVisitor visitor) {
 		boolean repeat;
+		int k = 0;
 		do {
 			repeat = traverseAllIterativeInternal(mth, visitor);
+			if (k++ > ITERATIVE_LIMIT) {
+				throw new JadxOverflowException("Iterative traversal limit reached, method: " + mth);
+			}
 		} while (repeat);
 	}
 
