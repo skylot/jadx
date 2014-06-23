@@ -203,10 +203,7 @@ public class BlockUtils {
 	}
 
 	public static boolean isPathExists(BlockNode start, BlockNode end) {
-		if (start == end) {
-			return true;
-		}
-		if (end.isDominator(start)) {
+		if (start == end || end.isDominator(start)) {
 			return true;
 		}
 		return traverseSuccessorsUntil(start, end, new BitSet());

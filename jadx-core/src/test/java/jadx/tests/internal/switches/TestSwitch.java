@@ -1,4 +1,4 @@
-package jadx.tests.internal;
+package jadx.tests.internal.switches;
 
 import jadx.api.InternalJadxTest;
 import jadx.core.dex.nodes.ClassNode;
@@ -6,6 +6,7 @@ import jadx.core.dex.nodes.ClassNode;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 public class TestSwitch extends InternalJadxTest {
@@ -45,5 +46,9 @@ public class TestSwitch extends InternalJadxTest {
 
 		assertThat(code, containsString("case '/':"));
 		assertThat(code, containsString(indent(5) + "break;"));
+		assertThat(code, containsString(indent(4) + "default:"));
+
+		assertEquals(1, count(code, "i++"));
+		assertEquals(4, count(code, "break;"));
 	}
 }

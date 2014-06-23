@@ -627,7 +627,7 @@ public class RegionMaker {
 
 		BitSet succ = BlockUtils.blocksToBitSet(mth, block.getSuccessors());
 		BitSet domsOn = BlockUtils.blocksToBitSet(mth, block.getDominatesOn());
-		domsOn.and(succ); // filter 'out' block
+		domsOn.xor(succ); // filter 'out' block
 
 		BlockNode defCase = getBlockByOffset(insn.getDefaultCaseOffset(), block.getSuccessors());
 		if (defCase != null) {
@@ -642,13 +642,11 @@ public class RegionMaker {
 		}
 		if (outCount > 1) {
 			// filter successors of other blocks
+			List<BlockNode> blocks = mth.getBasicBlocks();
 			for (int i = domsOn.nextSetBit(0); i >= 0; i = domsOn.nextSetBit(i + 1)) {
-				BlockNode b = mth.getBasicBlocks().get(i);
+				BlockNode b = blocks.get(i);
 				for (BlockNode s : b.getCleanSuccessors()) {
-					int id = s.getId();
-					if (domsOn.get(id)) {
-						domsOn.clear(id);
-					}
+					domsOn.clear(s.getId());
 				}
 			}
 			outCount = domsOn.cardinality();
@@ -658,19 +656,27 @@ public class RegionMaker {
 		if (outCount == 1) {
 			out = mth.getBasicBlocks().get(domsOn.nextSetBit(0));
 		} else if (outCount == 0) {
-			// default and out blocks are same
-			out = defCase;
+			// one or several case blocks are empty,
+			// run expensive algorithm for find 'out' block
+			for (BlockNode maybeOut : block.getSuccessors()) {
+				boolean allReached = true;
+				for (BlockNode s : block.getSuccessors()) {
+					if (!BlockUtils.isPathExists(s, maybeOut)) {
+						allReached = false;
+						break;
+					}
+				}
+				if (allReached) {
+					out = maybeOut;
+					break;
+				}
+			}
 		}
 
 		stack.push(sw);
 		if (out != null) {
 			stack.addExit(out);
 		}
-//		else {
-//			for (BlockNode e : BlockUtils.bitSetToBlocks(mth, domsOn)) {
-//				stack.addExit(e);
-//			}
-//		}
 
 		if (!stack.containsExit(defCase)) {
 			sw.setDefaultCase(makeRegion(defCase, stack));

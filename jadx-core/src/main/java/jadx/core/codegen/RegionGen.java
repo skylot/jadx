@@ -199,7 +199,7 @@ public class RegionGen extends InsnGen {
 		SwitchNode insn = (SwitchNode) sw.getHeader().getInstructions().get(0);
 		InsnArg arg = insn.getArg(0);
 		code.startLine("switch (");
-		addArg(code, arg);
+		addArg(code, arg, false);
 		code.add(") {");
 		code.incIndent();
 
