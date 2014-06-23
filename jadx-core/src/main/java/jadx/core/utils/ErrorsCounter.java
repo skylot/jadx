@@ -7,7 +7,11 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.JadxOverflowException;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -66,7 +70,14 @@ public class ErrorsCounter {
 	public static void printReport() {
 		if (getErrorCount() > 0) {
 			LOG.error(getErrorCount() + " errors occured in following nodes:");
-			for (Object node : ERROR_NODES) {
+			List<Object> nodes = new ArrayList<Object>(ERROR_NODES);
+			Collections.sort(nodes, new Comparator<Object>() {
+				@Override
+				public int compare(Object o1, Object o2) {
+					return String.valueOf(o1).compareTo(String.valueOf(o2));
+				}
+			});
+			for (Object node : nodes) {
 				String nodeName = node.getClass().getSimpleName().replace("Node", "");
 				LOG.error("  " + nodeName + ": " + node);
 			}
