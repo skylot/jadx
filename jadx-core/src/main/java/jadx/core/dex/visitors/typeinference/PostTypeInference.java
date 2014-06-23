@@ -15,7 +15,7 @@ import java.util.List;
 
 public class PostTypeInference {
 
-	public static boolean visit(MethodNode mth, InsnNode insn) {
+	public static boolean process(MethodNode mth, InsnNode insn) {
 		switch (insn.getType()) {
 			case CONST:
 				RegisterArg res = insn.getResult();

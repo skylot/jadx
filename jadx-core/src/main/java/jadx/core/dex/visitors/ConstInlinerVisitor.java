@@ -80,7 +80,7 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 	}
 
 	/**
-	 * This is method similar to PostTypeInference.visit method,
+	 * This is method similar to PostTypeInference.process method,
 	 * but contains some expensive operations needed only after constant inline
 	 */
 	private static void fixTypes(MethodNode mth, InsnNode insn, LiteralArg litArg) {

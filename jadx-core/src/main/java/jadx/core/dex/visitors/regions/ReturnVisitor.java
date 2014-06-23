@@ -12,13 +12,11 @@ import jadx.core.dex.regions.IfRegion;
 import jadx.core.dex.regions.LoopRegion;
 import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.visitors.AbstractVisitor;
-import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.JadxException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Set;
 
 /**
  * Remove unnecessary return instructions for void methods
@@ -85,7 +83,7 @@ public class ReturnVisitor extends AbstractVisitor {
 						IContainer subBlock = itSubBlock.previous();
 						if (subBlock == curContainer) {
 							break;
-						} else if (notEmpty(subBlock)) {
+						} else if (!isEmpty(subBlock)) {
 							return false;
 						}
 					}
@@ -95,25 +93,25 @@ public class ReturnVisitor extends AbstractVisitor {
 			return true;
 		}
 
-		private static boolean notEmpty(IContainer subBlock) {
-			if (subBlock.contains(AFlag.RETURN)) {
-				return false;
-			}
-			int insnCount = RegionUtils.insnsCount(subBlock);
-			if (insnCount > 1) {
-				return true;
-			}
-			if (insnCount == 1) {
-				// don't count one 'return' instruction (it will be removed later)
-				Set<BlockNode> blocks = new HashSet<BlockNode>();
-				RegionUtils.getAllRegionBlocks(subBlock, blocks);
-				for (BlockNode node : blocks) {
-					if (!node.contains(AFlag.RETURN) && !node.getInstructions().isEmpty()) {
-						return true;
+		/**
+		 * Check if container not contains instructions,
+		 * don't count one 'return' instruction (it will be removed later).
+ 		 */
+		private static boolean isEmpty(IContainer container) {
+			if (container instanceof BlockNode) {
+				BlockNode block = (BlockNode) container;
+				return block.getInstructions().isEmpty() || block.contains(AFlag.RETURN);
+			} else if (container instanceof IRegion) {
+				IRegion region = (IRegion) container;
+				for (IContainer block : region.getSubBlocks()) {
+					if(!isEmpty(block)) {
+						return false;
 					}
 				}
+				return true;
+			} else {
+				throw new JadxRuntimeException("Unknown container type: " + container.getClass());
 			}
-			return false;
 		}
 	}
 }

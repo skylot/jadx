@@ -19,7 +19,7 @@ public class FinishTypeInference extends AbstractVisitor {
 			change = false;
 			for (BlockNode block : mth.getBasicBlocks()) {
 				for (InsnNode insn : block.getInstructions()) {
-					if (PostTypeInference.visit(mth, insn)) {
+					if (PostTypeInference.process(mth, insn)) {
 						change = true;
 					}
 				}
