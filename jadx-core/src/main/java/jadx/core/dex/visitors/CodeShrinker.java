@@ -192,7 +192,11 @@ public class CodeShrinker extends AbstractVisitor {
 //					continue;
 //				}
 				SSAVar sVar = arg.getSVar();
-				if (sVar.getAssign() == null || sVar.getVariableUseCount() != 1) {
+				if (sVar.getAssign() == null) {
+					continue;
+				}
+				// allow inline only one use arg or 'this'
+				if (sVar.getVariableUseCount() != 1 && !arg.isThis()) {
 					continue;
 				}
 				InsnNode assignInsn = sVar.getAssign().getParentInsn();

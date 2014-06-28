@@ -1,4 +1,4 @@
-package jadx.tests.internal;
+package jadx.tests.internal.usethis;
 
 import jadx.api.InternalJadxTest;
 import jadx.core.dex.nodes.ClassNode;
@@ -30,7 +30,6 @@ public class TestRedundantThis extends InternalJadxTest {
 	// @Test
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
-
 		String code = cls.getCode().toString();
 
 		assertThat(code, not(containsString("this.f1();")));
