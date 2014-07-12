@@ -203,8 +203,13 @@ public class BlockUtils {
 	}
 
 	public static boolean isPathExists(BlockNode start, BlockNode end) {
-		if (start == end || end.isDominator(start)) {
+		if (start == end
+				|| end.isDominator(start)
+				|| start.getCleanSuccessors().contains(end)) {
 			return true;
+		}
+		if (start.getPredecessors().contains(end)) {
+			return false;
 		}
 		return traverseSuccessorsUntil(start, end, new BitSet());
 	}
@@ -256,6 +261,12 @@ public class BlockUtils {
 			if (isPathExists(b1, end) && isPathExists(b2, end)) {
 				return end;
 			}
+		}
+		if (isPathExists(b1, b2)) {
+			return b2;
+		}
+		if (isPathExists(b2, b1)) {
+			return b1;
 		}
 		return null;
 	}

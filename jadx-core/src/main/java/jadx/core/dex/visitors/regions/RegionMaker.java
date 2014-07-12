@@ -8,13 +8,11 @@ import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.InsnArg;
-import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.Edge;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.regions.IfCondition;
 import jadx.core.dex.regions.IfInfo;
 import jadx.core.dex.regions.IfRegion;
 import jadx.core.dex.regions.LoopRegion;
@@ -42,10 +40,9 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static jadx.core.dex.regions.IfCondition.Mode;
+import static jadx.core.dex.visitors.regions.IfMakerHelper.mergeNestedIfNodes;
 import static jadx.core.utils.BlockUtils.getBlockByOffset;
 import static jadx.core.utils.BlockUtils.isPathExists;
-import static jadx.core.utils.BlockUtils.selectOther;
 
 public class RegionMaker {
 	private static final Logger LOG = LoggerFactory.getLogger(RegionMaker.class);
@@ -110,29 +107,26 @@ public class RegionMaker {
 			}
 		}
 
-		if (!processed) {
-			int size = block.getInstructions().size();
-			if (size == 1) {
-				InsnNode insn = block.getInstructions().get(0);
-				switch (insn.getType()) {
-					case IF:
-						next = processIf(r, block, (IfNode) insn, stack);
-						processed = true;
-						break;
+		if (!processed && block.getInstructions().size() == 1) {
+			InsnNode insn = block.getInstructions().get(0);
+			switch (insn.getType()) {
+				case IF:
+					next = processIf(r, block, (IfNode) insn, stack);
+					processed = true;
+					break;
 
-					case SWITCH:
-						next = processSwitch(r, block, (SwitchNode) insn, stack);
-						processed = true;
-						break;
+				case SWITCH:
+					next = processSwitch(r, block, (SwitchNode) insn, stack);
+					processed = true;
+					break;
 
-					case MONITOR_ENTER:
-						next = processMonitorEnter(r, block, insn, stack);
-						processed = true;
-						break;
+				case MONITOR_ENTER:
+					next = processMonitorEnter(r, block, insn, stack);
+					processed = true;
+					break;
 
-					default:
-						break;
-				}
+				default:
+					break;
 			}
 		}
 		if (!processed) {
@@ -170,10 +164,7 @@ public class RegionMaker {
 		LoopRegion loopRegion = null;
 
 		// exit block with loop condition
-		BlockNode condBlock = null;
-
-		// first block in loop
-		BlockNode bThen = null;
+		IfInfo condInfo = null;
 
 		for (BlockNode exit : exitBlocks) {
 			if (exit.contains(AType.EXC_HANDLER)
@@ -185,7 +176,7 @@ public class RegionMaker {
 				continue;
 			}
 			ifnode = (IfNode) insn;
-			condBlock = exit;
+			BlockNode condBlock = exit;
 
 			loopRegion = new LoopRegion(curRegion, condBlock, condBlock == loop.getEnd());
 			boolean found = true;
@@ -205,46 +196,31 @@ public class RegionMaker {
 				// try another exit
 				continue;
 			}
-
-			List<BlockNode> merged = new ArrayList<BlockNode>(2);
-			IfInfo mergedIf = mergeNestedIfNodes(condBlock, ifnode, merged);
-			if (mergedIf != null) {
-				condBlock = mergedIf.getIfnode();
-				if (!loop.getLoopBlocks().contains(mergedIf.getThenBlock())) {
-					// invert loop condition if it points to exit
-					loopRegion.setCondition(IfCondition.invert(mergedIf.getCondition()));
-					bThen = mergedIf.getElseBlock();
-				} else {
-					loopRegion.setCondition(mergedIf.getCondition());
-					bThen = mergedIf.getThenBlock();
-				}
-				exitBlocks.removeAll(merged);
+			condInfo = mergeNestedIfNodes(condBlock);
+			if (condInfo == null) {
+				condInfo = IfMakerHelper.makeIfInfo(condBlock);
 			}
 			break;
 		}
-
 		// endless loop
 		if (loopRegion == null) {
 			return makeEndlessLoop(curRegion, stack, loop, loopStart);
 		}
 
-		if (bThen == null) {
-			bThen = ifnode.getThenBlock();
+		if (!loop.getLoopBlocks().contains(condInfo.getThenBlock())) {
+			// invert loop condition if 'then' points to exit
+			condInfo = IfInfo.invert(condInfo);
 		}
-		BlockNode loopBody = null;
-		for (BlockNode s : condBlock.getSuccessors()) {
-			if (loop.getLoopBlocks().contains(s)) {
-				loopBody = s;
-				break;
-			}
-		}
+		loopRegion.setCondition(condInfo.getCondition());
+		exitBlocks.removeAll(condInfo.getMergedBlocks());
+
+		BlockNode bThen = condInfo.getThenBlock();
 
 		curRegion.getSubBlocks().add(loopRegion);
 		stack.push(loopRegion);
 
-		exitBlocks.remove(condBlock);
 		if (exitBlocks.size() > 0) {
-			BlockNode loopExit = BlockUtils.selectOtherSafe(loopBody, condBlock.getCleanSuccessors());
+			BlockNode loopExit = condInfo.getElseBlock();
 			if (loopExit != null) {
 				// add 'break' instruction before path cross between main loop exit and subexit
 				for (Edge exitEdge : loop.getExitEdges()) {
@@ -267,10 +243,7 @@ public class RegionMaker {
 			loopRegion.setBody(makeRegion(loopStart, stack));
 			loopStart.addAttr(AType.LOOP, loop);
 		} else {
-			if (bThen != loopBody) {
-				loopRegion.setCondition(IfCondition.invert(loopRegion.getCondition()));
-			}
-			out = selectOther(loopBody, condBlock.getSuccessors());
+			out = condInfo.getElseBlock();
 			if (out.contains(AFlag.LOOP_START)
 					&& !out.getAll(AType.LOOP).contains(loop)
 					&& stack.peekRegion() instanceof LoopRegion) {
@@ -282,6 +255,7 @@ public class RegionMaker {
 				}
 			}
 			stack.addExit(out);
+			BlockNode loopBody = condInfo.getThenBlock();
 			loopRegion.setBody(makeRegion(loopBody, stack));
 		}
 		stack.pop();
@@ -415,7 +389,7 @@ public class RegionMaker {
 		IfRegion ifRegion = new IfRegion(currentRegion, block);
 		currentRegion.getSubBlocks().add(ifRegion);
 
-		IfInfo mergedIf = mergeNestedIfNodes(block, ifnode, null);
+		IfInfo mergedIf = mergeNestedIfNodes(block);
 		if (mergedIf != null) {
 			ifRegion.setCondition(mergedIf.getCondition());
 			thenBlock = mergedIf.getThenBlock();
@@ -474,130 +448,6 @@ public class RegionMaker {
 
 		stack.pop();
 		return out;
-	}
-
-	private IfInfo mergeNestedIfNodes(BlockNode block, IfNode ifnode, List<BlockNode> merged) {
-		IfInfo info = new IfInfo();
-		info.setIfnode(block);
-		info.setCondition(IfCondition.fromIfBlock(block));
-		info.setThenBlock(ifnode.getThenBlock());
-		info.setElseBlock(ifnode.getElseBlock());
-		return mergeNestedIfNodes(info, merged);
-	}
-
-	private IfInfo mergeNestedIfNodes(IfInfo info, List<BlockNode> merged) {
-		BlockNode bThen = info.getThenBlock();
-		BlockNode bElse = info.getElseBlock();
-		if (bThen == bElse) {
-			return null;
-		}
-
-		BlockNode ifBlock = info.getIfnode();
-		BlockNode nestedIfBlock = getNextIfBlock(ifBlock);
-		if (nestedIfBlock == null) {
-			return null;
-		}
-
-		IfNode nestedIfInsn = (IfNode) nestedIfBlock.getInstructions().get(0);
-		IfCondition nestedCondition = IfCondition.fromIfNode(nestedIfInsn);
-		BlockNode nbThen = nestedIfInsn.getThenBlock();
-		BlockNode nbElse = nestedIfInsn.getElseBlock();
-
-		IfCondition condition = info.getCondition();
-		boolean inverted = false;
-		if (isPathExists(bElse, nestedIfBlock)) {
-			// else branch
-			if (!isEqualPaths(bThen, nbThen)) {
-				if (!isEqualPaths(bThen, nbElse)) {
-					// not connected conditions
-					return null;
-				}
-				nestedIfInsn.invertCondition();
-				inverted = true;
-			}
-			condition = IfCondition.merge(Mode.OR, condition, nestedCondition);
-		} else {
-			// then branch
-			if (!isEqualPaths(bElse, nbElse)) {
-				if (!isEqualPaths(bElse, nbThen)) {
-					// not connected conditions
-					return null;
-				}
-				nestedIfInsn.invertCondition();
-				inverted = true;
-			}
-			condition = IfCondition.merge(Mode.AND, condition, nestedCondition);
-		}
-		if (merged != null) {
-			merged.add(nestedIfBlock);
-		}
-		nestedIfBlock.add(AFlag.SKIP);
-		BlockNode blockToNestedIfBlock = BlockUtils.getNextBlockToPath(ifBlock, nestedIfBlock);
-		skipSimplePath(BlockUtils.selectOther(blockToNestedIfBlock, ifBlock.getCleanSuccessors()));
-
-		IfInfo result = new IfInfo();
-		result.setIfnode(nestedIfBlock);
-		result.setCondition(condition);
-		result.setThenBlock(inverted ? nbElse : nbThen);
-		result.setElseBlock(inverted ? nbThen : nbElse);
-
-		// search next nested if block
-		IfInfo next = mergeNestedIfNodes(result, merged);
-		if (next != null) {
-			return next;
-		}
-		return result;
-	}
-
-	private BlockNode getNextIfBlock(BlockNode block) {
-		for (BlockNode succ : block.getSuccessors()) {
-			BlockNode nestedIfBlock = getIfNode(succ);
-			if (nestedIfBlock != null && nestedIfBlock != block) {
-				return nestedIfBlock;
-			}
-		}
-		return null;
-	}
-
-	private static BlockNode getIfNode(BlockNode block) {
-		if (block != null && !block.contains(AType.LOOP)) {
-			List<InsnNode> insns = block.getInstructions();
-			if (insns.size() == 1 && insns.get(0).getType() == InsnType.IF) {
-				return block;
-			}
-			// skip block
-			List<BlockNode> successors = block.getSuccessors();
-			if (successors.size() == 1) {
-				BlockNode next = successors.get(0);
-				boolean pass = true;
-				if (block.getInstructions().size() != 0) {
-					for (InsnNode insn : block.getInstructions()) {
-						RegisterArg res = insn.getResult();
-						if (res == null) {
-							pass = false;
-							break;
-						}
-						List<RegisterArg> useList = res.getSVar().getUseList();
-						if (useList.size() != 1) {
-							pass = false;
-							break;
-						} else {
-							InsnArg arg = useList.get(0);
-							InsnNode usePlace = arg.getParentInsn();
-							if (!BlockUtils.blockContains(block, usePlace)
-									&& !BlockUtils.blockContains(next, usePlace)) {
-								pass = false;
-								break;
-							}
-						}
-					}
-				}
-				if (pass) {
-					return getIfNode(next);
-				}
-			}
-		}
-		return null;
 	}
 
 	private BlockNode processSwitch(IRegion currentRegion, BlockNode block, SwitchNode insn, RegionStack stack) {
@@ -749,7 +599,7 @@ public class RegionMaker {
 		handler.getHandlerRegion().addAttr(excHandlerAttr);
 	}
 
-	private void skipSimplePath(BlockNode block) {
+	static void skipSimplePath(BlockNode block) {
 		while (block != null
 				&& block.getCleanSuccessors().size() < 2
 				&& block.getPredecessors().size() == 1) {
@@ -758,7 +608,7 @@ public class RegionMaker {
 		}
 	}
 
-	private static boolean isEqualPaths(BlockNode b1, BlockNode b2) {
+	static boolean isEqualPaths(BlockNode b1, BlockNode b2) {
 		if (b1 == b2) {
 			return true;
 		}

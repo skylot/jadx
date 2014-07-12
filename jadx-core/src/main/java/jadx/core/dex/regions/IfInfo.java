@@ -2,41 +2,64 @@ package jadx.core.dex.regions;
 
 import jadx.core.dex.nodes.BlockNode;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public final class IfInfo {
-	IfCondition condition;
-	BlockNode ifnode;
-	BlockNode thenBlock;
-	BlockNode elseBlock;
+	private final IfCondition condition;
+	private final Set<BlockNode> mergedBlocks = new HashSet<BlockNode>();
+	private final BlockNode thenBlock;
+	private final BlockNode elseBlock;
+	@Deprecated
+	private BlockNode ifBlock;
+
+	public IfInfo(IfCondition condition, BlockNode thenBlock, BlockNode elseBlock) {
+		this.condition = condition;
+		this.thenBlock = thenBlock;
+		this.elseBlock = elseBlock;
+	}
+
+	public IfInfo(IfCondition condition, IfInfo info) {
+		this.condition = condition;
+		this.thenBlock = info.getThenBlock();
+		this.elseBlock = info.getElseBlock();
+		this.mergedBlocks.addAll(info.getMergedBlocks());
+	}
+
+	public static IfInfo invert(IfInfo info) {
+		IfInfo tmpIf = new IfInfo(IfCondition.invert(info.getCondition()),
+				info.getElseBlock(), info.getThenBlock());
+		tmpIf.setIfBlock(info.getIfBlock());
+		tmpIf.getMergedBlocks().addAll(info.getMergedBlocks());
+		return tmpIf;
+	}
 
 	public IfCondition getCondition() {
 		return condition;
 	}
 
-	public void setCondition(IfCondition condition) {
-		this.condition = condition;
-	}
-
-	public BlockNode getIfnode() {
-		return ifnode;
-	}
-
-	public void setIfnode(BlockNode ifnode) {
-		this.ifnode = ifnode;
+	public Set<BlockNode> getMergedBlocks() {
+		return mergedBlocks;
 	}
 
 	public BlockNode getThenBlock() {
 		return thenBlock;
 	}
 
-	public void setThenBlock(BlockNode thenBlock) {
-		this.thenBlock = thenBlock;
-	}
-
 	public BlockNode getElseBlock() {
 		return elseBlock;
 	}
 
-	public void setElseBlock(BlockNode elseBlock) {
-		this.elseBlock = elseBlock;
+	public BlockNode getIfBlock() {
+		return ifBlock;
+	}
+
+	public void setIfBlock(BlockNode ifBlock) {
+		this.ifBlock = ifBlock;
+	}
+
+	@Override
+	public String toString() {
+		return "IfInfo: " + condition + ", then: " + thenBlock + ", else: " + elseBlock;
 	}
 }

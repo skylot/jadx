@@ -60,17 +60,19 @@ public class Jadx {
 
 			passes.add(new ConstInlinerVisitor());
 			passes.add(new FinishTypeInference());
-
+			passes.add(new EliminatePhiNodes());
 			if (args.isRawCFGOutput()) {
 				passes.add(new DotGraphVisitor(outDir, false, true));
 			}
-
-			passes.add(new EliminatePhiNodes());
 
 			passes.add(new ModVisitor());
 			passes.add(new EnumVisitor());
 
 			passes.add(new CodeShrinker());
+			if (args.isCFGOutput()) {
+				passes.add(new DotGraphVisitor(outDir, false));
+			}
+
 			passes.add(new RegionMakerVisitor());
 			passes.add(new IfRegionVisitor());
 			passes.add(new ReturnVisitor());
@@ -87,10 +89,6 @@ public class Jadx {
 			passes.add(new MethodInlineVisitor());
 			passes.add(new ClassModifier());
 			passes.add(new PrepareForCodeGen());
-
-			if (args.isCFGOutput()) {
-				passes.add(new DotGraphVisitor(outDir, false));
-			}
 		}
 		passes.add(new CodeGen(args));
 		return passes;

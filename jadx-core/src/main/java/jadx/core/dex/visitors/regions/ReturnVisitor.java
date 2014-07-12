@@ -43,7 +43,7 @@ public class ReturnVisitor extends AbstractVisitor {
 				if (insns.size() == 1
 						&& blockNotInLoop(mth, block)
 						&& noTrailInstructions(block)) {
-					insns.remove(insns.size() - 1);
+					insns.remove(0);
 					block.remove(AFlag.RETURN);
 				}
 			}
@@ -96,7 +96,7 @@ public class ReturnVisitor extends AbstractVisitor {
 		/**
 		 * Check if container not contains instructions,
 		 * don't count one 'return' instruction (it will be removed later).
- 		 */
+		 */
 		private static boolean isEmpty(IContainer container) {
 			if (container instanceof BlockNode) {
 				BlockNode block = (BlockNode) container;
@@ -104,7 +104,7 @@ public class ReturnVisitor extends AbstractVisitor {
 			} else if (container instanceof IRegion) {
 				IRegion region = (IRegion) container;
 				for (IContainer block : region.getSubBlocks()) {
-					if(!isEmpty(block)) {
+					if (!isEmpty(block)) {
 						return false;
 					}
 				}

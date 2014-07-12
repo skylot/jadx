@@ -8,7 +8,6 @@ import org.junit.Test;
 public class TestConditions2 extends InternalJadxTest {
 
 	public static class TestCls {
-
 		int c;
 		String d;
 		String f;

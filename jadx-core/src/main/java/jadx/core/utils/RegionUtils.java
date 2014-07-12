@@ -39,7 +39,7 @@ public class RegionUtils {
 	 */
 	public static boolean hasExitBlock(IContainer container) {
 		if (container instanceof BlockNode) {
-			return ((BlockNode) container).getSuccessors().size() == 0;
+			return ((BlockNode) container).getSuccessors().isEmpty();
 		} else if (container instanceof IRegion) {
 			List<IContainer> blocks = ((IRegion) container).getSubBlocks();
 			return !blocks.isEmpty()

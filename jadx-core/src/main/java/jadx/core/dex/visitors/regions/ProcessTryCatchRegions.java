@@ -151,7 +151,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 				aReg.setParent(newRegion);
 			}
 		}
-		
+
 		return newRegion;
 	}
 

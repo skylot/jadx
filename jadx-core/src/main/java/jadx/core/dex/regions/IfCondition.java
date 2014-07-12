@@ -69,13 +69,8 @@ public final class IfCondition {
 			IfCondition n = new IfCondition(a);
 			n.addArg(b);
 			return n;
-		} else if (b.getMode() == mode) {
-			IfCondition n = new IfCondition(b);
-			n.addArg(a);
-			return n;
-		} else {
-			return new IfCondition(mode, Arrays.asList(a, b));
 		}
+		return new IfCondition(mode, Arrays.asList(a, b));
 	}
 
 	public Mode getMode() {

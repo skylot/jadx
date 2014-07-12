@@ -25,6 +25,9 @@ import jadx.core.dex.trycatch.SplitterBlockAttr;
  */
 public class AType<T extends IAttribute> {
 
+	private AType() {
+	}
+
 	public static final AType<AttrList<JumpInfo>> JUMP = new AType<AttrList<JumpInfo>>();
 	public static final AType<AttrList<LoopInfo>> LOOP = new AType<AttrList<LoopInfo>>();
 

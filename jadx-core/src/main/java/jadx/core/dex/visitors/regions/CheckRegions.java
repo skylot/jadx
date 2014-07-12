@@ -30,16 +30,14 @@ public class CheckRegions extends AbstractVisitor {
 
 		// check if all blocks included in regions
 		final Set<BlockNode> blocksInRegions = new HashSet<BlockNode>();
-		IRegionVisitor collectBlocks = new AbstractRegionVisitor() {
+		DepthRegionTraversal.traverseAll(mth, new AbstractRegionVisitor() {
 			@Override
 			public void processBlock(MethodNode mth, IBlock container) {
 				if (container instanceof BlockNode) {
 					blocksInRegions.add((BlockNode) container);
 				}
 			}
-		};
-		DepthRegionTraversal.traverseAll(mth, collectBlocks);
-
+		});
 		if (mth.getBasicBlocks().size() != blocksInRegions.size()) {
 			for (BlockNode block : mth.getBasicBlocks()) {
 				if (!blocksInRegions.contains(block)
@@ -52,19 +50,17 @@ public class CheckRegions extends AbstractVisitor {
 		}
 
 		// check loop conditions
-		IRegionVisitor checkLoops = new AbstractRegionVisitor() {
+		DepthRegionTraversal.traverseAll(mth, new AbstractRegionVisitor() {
 			@Override
 			public void enterRegion(MethodNode mth, IRegion region) {
 				if (region instanceof LoopRegion) {
-					LoopRegion loop = (LoopRegion) region;
-					BlockNode loopHeader = loop.getHeader();
+					BlockNode loopHeader = ((LoopRegion) region).getHeader();
 					if (loopHeader != null && loopHeader.getInstructions().size() != 1) {
 						ErrorsCounter.methodError(mth, "Incorrect condition in loop: " + loopHeader);
 						mth.add(AFlag.INCONSISTENT_CODE);
 					}
 				}
 			}
-		};
-		DepthRegionTraversal.traverseAll(mth, checkLoops);
+		});
 	}
 }

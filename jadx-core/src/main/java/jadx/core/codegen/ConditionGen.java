@@ -75,7 +75,7 @@ public class ConditionGen extends InsnGen {
 			} else if (op == IfOp.NE) {
 				// != true
 				code.add('!');
-				boolean wrap = isWrapNeeded(firstArg);
+				boolean wrap = isArgWrapNeeded(firstArg);
 				if (wrap) {
 					code.add('(');
 				}
@@ -88,9 +88,9 @@ public class ConditionGen extends InsnGen {
 			LOG.warn(ErrorsCounter.formatErrorMsg(mth, "Unsupported boolean condition " + op.getSymbol()));
 		}
 
-		addArg(code, firstArg, isWrapNeeded(firstArg));
+		addArg(code, firstArg, isArgWrapNeeded(firstArg));
 		code.add(' ').add(op.getSymbol()).add(' ');
-		addArg(code, secondArg, isWrapNeeded(secondArg));
+		addArg(code, secondArg, isArgWrapNeeded(secondArg));
 	}
 
 	private void addNot(CodeWriter code, IfCondition condition) throws CodegenException {
@@ -110,15 +110,16 @@ public class ConditionGen extends InsnGen {
 	}
 
 	private boolean isWrapNeeded(IfCondition condition) {
-		return !condition.isCompare();
+		return !condition.isCompare() && condition.getMode() != IfCondition.Mode.NOT;
 	}
 
-	private static boolean isWrapNeeded(InsnArg arg) {
+	private static boolean isArgWrapNeeded(InsnArg arg) {
 		if (!arg.isInsnWrap()) {
 			return false;
 		}
 		InsnNode insn = ((InsnWrapArg) arg).getWrapInsn();
-		if (insn.getType() == InsnType.ARITH) {
+		InsnType insnType = insn.getType();
+		if (insnType == InsnType.ARITH) {
 			switch (((ArithNode) insn).getOp()) {
 				case ADD:
 				case SUB:
@@ -127,8 +128,18 @@ public class ConditionGen extends InsnGen {
 				case REM:
 					return false;
 			}
-		} else if (insn.getType() == InsnType.INVOKE) {
-			return false;
+		} else {
+			switch (insnType) {
+				case INVOKE:
+				case SGET:
+				case IGET:
+				case AGET:
+				case CONST:
+				case ARRAY_LENGTH:
+					return false;
+				default:
+					return true;
+			}
 		}
 		return true;
 	}

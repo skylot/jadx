@@ -14,6 +14,8 @@ import jadx.core.utils.RegionUtils;
 
 import java.util.List;
 
+import static jadx.core.utils.RegionUtils.insnsCount;
+
 public class IfRegionVisitor extends AbstractVisitor implements IRegionVisitor, IRegionIterativeVisitor {
 
 	@Override
@@ -60,10 +62,36 @@ public class IfRegionVisitor extends AbstractVisitor implements IRegionVisitor, 
 				invertIfRegion(ifRegion);
 			}
 		}
-		if (RegionUtils.isEmpty(ifRegion.getThenRegion())
-				|| hasSimpleReturnBlock(ifRegion.getThenRegion())) {
+		IContainer elseRegion = ifRegion.getElseRegion();
+		if (elseRegion == null || RegionUtils.isEmpty(elseRegion)) {
+			return;
+		}
+		boolean thenIsEmpty = RegionUtils.isEmpty(ifRegion.getThenRegion());
+		if (thenIsEmpty || hasSimpleReturnBlock(ifRegion.getThenRegion())) {
 			invertIfRegion(ifRegion);
 		}
+
+		if (!thenIsEmpty) {
+			// move 'if' from then to make 'else if' chain
+			if (isIfRegion(ifRegion.getThenRegion())
+					&& !isIfRegion(elseRegion)) {
+				invertIfRegion(ifRegion);
+			}
+
+		}
+	}
+
+	private static boolean isIfRegion(IContainer container) {
+		if (container instanceof IfRegion) {
+			return true;
+		}
+		if (container instanceof IRegion) {
+			List<IContainer> subBlocks = ((IRegion) container).getSubBlocks();
+			if (subBlocks.size() == 1 && subBlocks.get(0) instanceof IfRegion) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static void moveReturnToThenBlock(MethodNode mth, IfRegion ifRegion) {
@@ -95,7 +123,8 @@ public class IfRegionVisitor extends AbstractVisitor implements IRegionVisitor, 
 		if (ifRegion.getElseRegion() != null
 				&& !ifRegion.contains(AFlag.ELSE_IF_CHAIN)
 				&& !ifRegion.getElseRegion().contains(AFlag.ELSE_IF_CHAIN)
-				&& RegionUtils.hasExitBlock(ifRegion.getThenRegion())) {
+				&& RegionUtils.hasExitBlock(ifRegion.getThenRegion())
+				&& insnsCount(ifRegion.getThenRegion()) < 2) {
 			IRegion parent = ifRegion.getParent();
 			Region newRegion = new Region(parent);
 			if (parent.replaceSubBlock(ifRegion, newRegion)) {
