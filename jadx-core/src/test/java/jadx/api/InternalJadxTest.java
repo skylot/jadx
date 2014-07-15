@@ -7,17 +7,15 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
+import jadx.core.utils.files.FileUtils;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -94,7 +92,7 @@ public abstract class InternalJadxTest extends TestUtils {
 		File temp = File.createTempFile("jadx-tmp-", System.nanoTime() + ".jar");
 		JarOutputStream jo = new JarOutputStream(new FileOutputStream(temp));
 		for (File file : list) {
-			add(file, path + "/" + file.getName(), jo);
+			FileUtils.addFileToJar(jo, file, path + "/" + file.getName());
 		}
 		jo.close();
 		if (deleteTmpJar) {
@@ -127,29 +125,6 @@ public abstract class InternalJadxTest extends TestUtils {
 		return list;
 	}
 
-	private void add(File source, String entryName, JarOutputStream target) throws IOException {
-		BufferedInputStream in = null;
-		try {
-			JarEntry entry = new JarEntry(entryName);
-			entry.setTime(source.lastModified());
-			target.putNextEntry(entry);
-			in = new BufferedInputStream(new FileInputStream(source));
-
-			byte[] buffer = new byte[1024];
-			while (true) {
-				int count = in.read(buffer);
-				if (count == -1) {
-					break;
-				}
-				target.write(buffer, 0, count);
-			}
-			target.closeEntry();
-		} finally {
-			if (in != null) {
-				in.close();
-			}
-		}
-	}
 
 	// Use only for debug purpose
 	@Deprecated

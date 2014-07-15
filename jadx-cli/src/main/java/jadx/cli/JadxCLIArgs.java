@@ -20,7 +20,7 @@ import com.beust.jcommander.ParameterException;
 
 public final class JadxCLIArgs implements IJadxArgs {
 
-	@Parameter(description = "<input file> (.dex, .apk or .jar)")
+	@Parameter(description = "<input file> (.dex, .apk, .jar or .class)")
 	protected List<String> files;
 
 	@Parameter(names = {"-d", "--output-dir"}, description = "output directory")

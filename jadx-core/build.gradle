@@ -2,6 +2,7 @@ ext.jadxClasspath = 'clsp-data/android-4.3.jar'
 
 dependencies {
     compile files('lib/dx-1.8.jar')
+    compile 'org.ow2.asm:asm:5.0.3'
     runtime files(jadxClasspath)
 }
 

@@ -1,13 +1,15 @@
 package jadx.core.utils.files;
 
+import jadx.core.utils.AsmUtils;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxException;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -35,37 +37,44 @@ public class InputFile {
 		if (fileName.endsWith(".dex")) {
 			return new Dex(file);
 		}
+		if (fileName.endsWith(".class")) {
+			return loadFromClassFile(file);
+		}
 		if (fileName.endsWith(".apk")) {
-			byte[] data = openDexFromZip(file);
-			if (data == null) {
-				throw new JadxRuntimeException("File 'classes.dex' not found in file: " + file);
+			Dex dex = loadFromZip(file);
+			if (dex == null) {
+				throw new IOException("File 'classes.dex' not found in file: " + file);
 			}
-			return new Dex(data);
+			return dex;
 		}
 		if (fileName.endsWith(".jar")) {
 			// check if jar contains 'classes.dex'
-			byte[] data = openDexFromZip(file);
-			if (data != null) {
-				return new Dex(data);
+			Dex dex = loadFromZip(file);
+			if (dex != null) {
+				return dex;
 			}
-			try {
-				LOG.info("converting to dex: {} ...", fileName);
-				JavaToDex j2d = new JavaToDex();
-				byte[] ba = j2d.convert(file.getAbsolutePath());
-				if (ba.length == 0) {
-					throw new JadxException(j2d.isError() ? j2d.getDxErrors() : "Empty dx output");
-				} else if (j2d.isError()) {
-					LOG.warn("dx message: " + j2d.getDxErrors());
-				}
-				return new Dex(ba);
-			} catch (Throwable e) {
-				throw new DecodeException("java class to dex conversion error:\n " + e.getMessage(), e);
-			}
+			return loadFromJar(file);
 		}
 		throw new DecodeException("Unsupported input file format: " + file);
 	}
 
-	private byte[] openDexFromZip(File file) throws IOException {
+	private static Dex loadFromJar(File jarFile) throws DecodeException {
+		try {
+			LOG.info("converting to dex: {} ...", jarFile.getName());
+			JavaToDex j2d = new JavaToDex();
+			byte[] ba = j2d.convert(jarFile.getAbsolutePath());
+			if (ba.length == 0) {
+				throw new JadxException(j2d.isError() ? j2d.getDxErrors() : "Empty dx output");
+			} else if (j2d.isError()) {
+				LOG.warn("dx message: " + j2d.getDxErrors());
+			}
+			return new Dex(ba);
+		} catch (Throwable e) {
+			throw new DecodeException("java class to dex conversion error:\n " + e.getMessage(), e);
+		}
+	}
+
+	private static Dex loadFromZip(File file) throws IOException {
 		ZipFile zf = new ZipFile(file);
 		ZipEntry dex = zf.getEntry("classes.dex");
 		if (dex == null) {
@@ -87,7 +96,19 @@ public class InputFile {
 			}
 			zf.close();
 		}
-		return bytesOut.toByteArray();
+		return new Dex(bytesOut.toByteArray());
+	}
+
+	private static Dex loadFromClassFile(File file) throws IOException, DecodeException {
+		File outFile = File.createTempFile("jadx-tmp-", System.nanoTime() + ".jar");
+		outFile.deleteOnExit();
+		FileOutputStream out = new FileOutputStream(outFile);
+		JarOutputStream jo = new JarOutputStream(out);
+		String clsName = AsmUtils.getNameFromClassFile(file);
+		FileUtils.addFileToJar(jo, file, clsName + ".class");
+		jo.close();
+		out.close();
+		return loadFromJar(outFile);
 	}
 
 	public File getFile() {
