@@ -5,6 +5,9 @@ import jadx.core.codegen.CodeWriter;
 public class TestUtils {
 
 	public static String indent(int indent) {
+		if (indent == 1) {
+			return CodeWriter.INDENT;
+		}
 		StringBuilder sb = new StringBuilder(indent * CodeWriter.INDENT.length());
 		for (int i = 0; i < indent; i++) {
 			sb.append(CodeWriter.INDENT);

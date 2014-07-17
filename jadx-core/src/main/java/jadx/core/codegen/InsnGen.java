@@ -58,7 +58,7 @@ public class InsnGen {
 	protected final RootNode root;
 	protected final boolean fallback;
 
-	private static enum Flags {
+	private enum Flags {
 		BODY_ONLY,
 		BODY_ONLY_NOWRAP,
 	}

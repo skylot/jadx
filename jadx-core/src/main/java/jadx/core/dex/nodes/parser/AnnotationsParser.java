@@ -20,7 +20,7 @@ import com.android.dex.Dex.Section;
 
 public class AnnotationsParser {
 
-	private static final Annotation.Visibility[] VISIBILITIES = {
+	private static final Visibility[] VISIBILITIES = {
 			Visibility.BUILD,
 			Visibility.RUNTIME,
 			Visibility.SYSTEM

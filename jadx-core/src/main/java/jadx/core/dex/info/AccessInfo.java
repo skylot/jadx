@@ -8,7 +8,7 @@ public class AccessInfo {
 
 	private final int accFlags;
 
-	public static enum AFType {
+	public enum AFType {
 		CLASS, FIELD, METHOD
 	}
 

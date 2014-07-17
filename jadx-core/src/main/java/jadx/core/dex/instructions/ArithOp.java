@@ -17,7 +17,7 @@ public enum ArithOp {
 
 	private final String symbol;
 
-	private ArithOp(String symbol) {
+	ArithOp(String symbol) {
 		this.symbol = symbol;
 	}
 

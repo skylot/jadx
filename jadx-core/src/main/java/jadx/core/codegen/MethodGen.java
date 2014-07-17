@@ -132,7 +132,7 @@ public class MethodGen {
 				if (type.isArray()) {
 					ArgType elType = type.getArrayElement();
 					classGen.useType(argsCode, elType);
-					argsCode.add(" ...");
+					argsCode.add("...");
 				} else {
 					LOG.warn(ErrorsCounter.formatErrorMsg(mth, "Last argument in varargs method not array"));
 					classGen.useType(argsCode, arg.getType());

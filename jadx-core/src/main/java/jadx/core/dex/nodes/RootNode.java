@@ -48,11 +48,13 @@ public class RootNode {
 	}
 
 	private static void initClassPath(List<ClassNode> classes) throws IOException, DecodeException {
-		ClspGraph clsp = new ClspGraph();
-		clsp.load();
-		clsp.addApp(classes);
+		if (!ArgType.isClspSet()) {
+			ClspGraph clsp = new ClspGraph();
+			clsp.load();
+			clsp.addApp(classes);
 
-		ArgType.setClsp(clsp);
+			ArgType.setClsp(clsp);
+		}
 	}
 
 	private void initInnerClasses(List<ClassNode> classes) {

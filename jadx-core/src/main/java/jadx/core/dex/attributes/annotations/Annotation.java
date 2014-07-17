@@ -6,7 +6,7 @@ import java.util.Map;
 
 public class Annotation {
 
-	public static enum Visibility {
+	public enum Visibility {
 		BUILD, RUNTIME, SYSTEM
 	}
 

@@ -53,7 +53,7 @@ public class EnumClassAttr implements IAttribute {
 	private MethodNode staticMethod;
 
 	public EnumClassAttr(int fieldsCount) {
-		this.fields = new ArrayList<EnumClassAttr.EnumField>(fieldsCount);
+		this.fields = new ArrayList<EnumField>(fieldsCount);
 	}
 
 	public List<EnumField> getFields() {

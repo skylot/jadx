@@ -77,15 +77,15 @@ public class ClspGraph {
 			return clsName;
 		}
 		NClass cls = nameMap.get(implClsName);
-		if (cls != null) {
-			if (isImplements(clsName, implClsName)) {
-				return implClsName;
-			}
-			Set<String> anc = getAncestors(clsName);
-			return searchCommonParent(anc, cls);
+		if (cls == null) {
+			LOG.debug("Missing class: {}", implClsName);
+			return null;
 		}
-		LOG.debug("Missing class: {}", implClsName);
-		return null;
+		if (isImplements(clsName, implClsName)) {
+			return implClsName;
+		}
+		Set<String> anc = getAncestors(clsName);
+		return searchCommonParent(anc, cls);
 	}
 
 	private String searchCommonParent(Set<String> anc, NClass cls) {
@@ -93,11 +93,10 @@ public class ClspGraph {
 			String name = p.getName();
 			if (anc.contains(name)) {
 				return name;
-			} else {
-				String r = searchCommonParent(anc, p);
-				if (r != null) {
-					return r;
-				}
+			}
+			String r = searchCommonParent(anc, p);
+			if (r != null) {
+				return r;
 			}
 		}
 		return null;
@@ -109,17 +108,17 @@ public class ClspGraph {
 			return result;
 		}
 		NClass cls = nameMap.get(clsName);
-		if (cls != null) {
-			result = new HashSet<String>();
-			addAncestorsNames(cls, result);
-			if (result.isEmpty()) {
-				result = Collections.emptySet();
-			}
-			ancestorCache.put(clsName, result);
-			return result;
+		if (cls == null) {
+			LOG.debug("Missing class: {}", clsName);
+			return Collections.emptySet();
 		}
-		LOG.debug("Missing class: {}", clsName);
-		return Collections.emptySet();
+		result = new HashSet<String>();
+		addAncestorsNames(cls, result);
+		if (result.isEmpty()) {
+			result = Collections.emptySet();
+		}
+		ancestorCache.put(clsName, result);
+		return result;
 	}
 
 	private void addAncestorsNames(NClass cls, Set<String> result) {

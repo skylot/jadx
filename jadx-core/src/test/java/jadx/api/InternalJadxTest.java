@@ -51,6 +51,11 @@ public abstract class InternalJadxTest extends TestUtils {
 		}
 		// don't unload class
 
+		checkCode(cls);
+		return cls;
+	}
+
+	private static void checkCode(ClassNode cls) {
 		assertTrue("Inconsistent cls: " + cls,
 				!cls.contains(AFlag.INCONSISTENT_CODE) && !cls.contains(AType.JADX_ERROR));
 		for (MethodNode mthNode : cls.getMethods()) {
@@ -58,7 +63,6 @@ public abstract class InternalJadxTest extends TestUtils {
 					!mthNode.contains(AFlag.INCONSISTENT_CODE) && !mthNode.contains(AType.JADX_ERROR));
 		}
 		assertThat(cls.getCode().toString(), not(containsString("inconsistent")));
-		return cls;
 	}
 
 	protected List<IDexTreeVisitor> getPasses() {

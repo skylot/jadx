@@ -14,7 +14,7 @@ public class ConstructorInsn extends InsnNode {
 	private final CallType callType;
 	private final RegisterArg instanceArg;
 
-	private static enum CallType {
+	private enum CallType {
 		CONSTRUCTOR, // just new instance
 		SUPER, // super call
 		THIS, // call constructor from other constructor

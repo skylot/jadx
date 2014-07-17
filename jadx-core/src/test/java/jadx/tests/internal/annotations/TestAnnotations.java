@@ -5,6 +5,7 @@ import jadx.core.dex.nodes.ClassNode;
 
 import org.junit.Test;
 
+import static jadx.tests.utils.JadxMatchers.containsOne;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
@@ -52,13 +53,14 @@ public class TestAnnotations extends InternalJadxTest {
 		System.out.println(code);
 
 		assertThat(code, not(containsString("@A(a = 255)")));
-		assertThat(code, containsString("@A(a = -1)"));
-		assertThat(code, containsString("@A(a = -253)"));
-		assertThat(code, containsString("@A(a = -11253)"));
-		assertThat(code, containsString("@V(false)"));
+		assertThat(code, containsOne("@A(a = -1)"));
+		assertThat(code, containsOne("@A(a = -253)"));
+		assertThat(code, containsOne("@A(a = -11253)"));
+		assertThat(code, containsOne("@V(false)"));
 		assertThat(code, not(containsString("@D()")));
+		assertThat(code, containsOne("@D"));
 
-		assertThat(code, containsString("int a();"));
-		assertThat(code, containsString("float value() default 1.1f;"));
+		assertThat(code, containsOne("int a();"));
+		assertThat(code, containsOne("float value() default 1.1f;"));
 	}
 }

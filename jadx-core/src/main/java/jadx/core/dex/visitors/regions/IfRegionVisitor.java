@@ -7,6 +7,7 @@ import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.IfCondition;
+import jadx.core.dex.regions.IfCondition.Mode;
 import jadx.core.dex.regions.IfRegion;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.visitors.AbstractVisitor;
@@ -58,7 +59,7 @@ public class IfRegionVisitor extends AbstractVisitor implements IRegionVisitor, 
 	private static void simplifyIfCondition(IfRegion ifRegion) {
 		if (ifRegion.simplifyCondition()) {
 			IfCondition condition = ifRegion.getCondition();
-			if (condition.getMode() == IfCondition.Mode.NOT) {
+			if (condition.getMode() == Mode.NOT) {
 				invertIfRegion(ifRegion);
 			}
 		}

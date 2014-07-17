@@ -12,7 +12,7 @@ public enum IfOp {
 
 	private final String symbol;
 
-	private IfOp(String symbol) {
+	IfOp(String symbol) {
 		this.symbol = symbol;
 	}
 
@@ -23,19 +23,19 @@ public enum IfOp {
 	public IfOp invert() {
 		switch (this) {
 			case EQ:
-				return IfOp.NE;
+				return NE;
 			case NE:
-				return IfOp.EQ;
+				return EQ;
 
 			case LT:
-				return IfOp.GE;
+				return GE;
 			case LE:
-				return IfOp.GT;
+				return GT;
 
 			case GT:
-				return IfOp.LE;
+				return LE;
 			case GE:
-				return IfOp.LT;
+				return LT;
 
 			default:
 				throw new JadxRuntimeException("Unknown if operations type: " + this);

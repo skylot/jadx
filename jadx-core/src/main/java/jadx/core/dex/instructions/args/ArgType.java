@@ -48,6 +48,10 @@ public abstract class ArgType {
 		ArgType.clsp = clsp;
 	}
 
+	public static boolean isClspSet() {
+		return ArgType.clsp != null;
+	}
+
 	private static ArgType primitive(PrimitiveType stype) {
 		return new PrimitiveArg(stype);
 	}
@@ -174,7 +178,7 @@ public abstract class ArgType {
 		private final int bounds;
 
 		public WildcardType(ArgType obj, int bound) {
-			super(ArgType.OBJECT.getObject());
+			super(OBJECT.getObject());
 			this.type = obj;
 			this.bounds = bound;
 		}
@@ -214,7 +218,7 @@ public abstract class ArgType {
 			if (bounds == 0) {
 				return "?";
 			}
-			return "? " + (bounds == -1 ? "super" : "extends") + " " + type.toString();
+			return "? " + (bounds == -1 ? "super" : "extends") + " " + type;
 		}
 	}
 
@@ -398,7 +402,7 @@ public abstract class ArgType {
 	}
 
 	/**
-	 * @see jadx.core.dex.instructions.args.ArgType.WildcardType#getWildcardBounds()
+	 * @see WildcardType#getWildcardBounds()
 	 */
 	public int getWildcardBounds() {
 		return 0;
@@ -513,7 +517,7 @@ public abstract class ArgType {
 						return OBJECT;
 					} else {
 						ArgType res = merge(ea, eb);
-						return res == null ? null : ArgType.array(res);
+						return res == null ? null : array(res);
 					}
 				} else if (b.equals(OBJECT)) {
 					return OBJECT;

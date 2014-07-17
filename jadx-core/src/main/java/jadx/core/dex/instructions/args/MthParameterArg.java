@@ -2,7 +2,7 @@ package jadx.core.dex.instructions.args;
 
 public class MthParameterArg extends RegisterArg {
 
-	private boolean isThis = false;
+	private boolean isThis;
 
 	public MthParameterArg(int rn, ArgType type) {
 		super(rn, type);

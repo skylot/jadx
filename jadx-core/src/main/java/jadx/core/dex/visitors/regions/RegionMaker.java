@@ -403,12 +403,12 @@ public class RegionMaker {
 
 			// select 'then', 'else' and 'exit' blocks
 			if (bElse.getPredecessors().size() != 1
-					&& BlockUtils.isPathExists(bThen, bElse)) {
+					&& isPathExists(bThen, bElse)) {
 				thenBlock = bThen;
 				elseBlock = null;
 				out = bElse;
 			} else if (bThen.getPredecessors().size() != 1
-					&& BlockUtils.isPathExists(bElse, bThen)) {
+					&& isPathExists(bElse, bThen)) {
 				ifnode.invertCondition();
 				thenBlock = ifnode.getThenBlock();
 				elseBlock = null;
@@ -511,7 +511,7 @@ public class RegionMaker {
 			for (BlockNode maybeOut : block.getSuccessors()) {
 				boolean allReached = true;
 				for (BlockNode s : block.getSuccessors()) {
-					if (!BlockUtils.isPathExists(s, maybeOut)) {
+					if (!isPathExists(s, maybeOut)) {
 						allReached = false;
 						break;
 					}

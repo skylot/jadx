@@ -10,6 +10,7 @@ import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.regions.Compare;
 import jadx.core.dex.regions.IfCondition;
+import jadx.core.dex.regions.IfCondition.Mode;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -99,7 +100,7 @@ public class ConditionGen extends InsnGen {
 	}
 
 	private void addAndOr(CodeWriter code, IfCondition condition) throws CodegenException {
-		String mode = condition.getMode() == IfCondition.Mode.AND ? " && " : " || ";
+		String mode = condition.getMode() == Mode.AND ? " && " : " || ";
 		Iterator<IfCondition> it = condition.getArgs().iterator();
 		while (it.hasNext()) {
 			wrap(code, it.next());
@@ -110,7 +111,7 @@ public class ConditionGen extends InsnGen {
 	}
 
 	private boolean isWrapNeeded(IfCondition condition) {
-		return !condition.isCompare() && condition.getMode() != IfCondition.Mode.NOT;
+		return !condition.isCompare() && condition.getMode() != Mode.NOT;
 	}
 
 	private static boolean isArgWrapNeeded(InsnArg arg) {

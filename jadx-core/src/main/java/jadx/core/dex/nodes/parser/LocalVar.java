@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 final class LocalVar {
 	private static final Logger LOG = LoggerFactory.getLogger(LocalVar.class);
 
-	private int regNum;
+	private final int regNum;
 	private String name;
 	private ArgType type;
 

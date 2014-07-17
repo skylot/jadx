@@ -20,7 +20,7 @@ import java.util.List;
 
 public final class IfCondition {
 
-	public static enum Mode {
+	public enum Mode {
 		COMPARE,
 		NOT,
 		AND,
