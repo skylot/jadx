@@ -44,7 +44,7 @@ public class ClassGen {
 	private final boolean fallback;
 
 	private final Set<ClassInfo> imports = new HashSet<ClassInfo>();
-	private int clsDeclLine = 0;
+	private int clsDeclLine;
 
 	public ClassGen(ClassNode cls, ClassGen parentClsGen, boolean fallback) {
 		this.cls = cls;
@@ -103,7 +103,9 @@ public class ClassGen {
 		if (af.isInterface()) {
 			af = af.remove(AccessFlags.ACC_ABSTRACT);
 		} else if (af.isEnum()) {
-			af = af.remove(AccessFlags.ACC_FINAL).remove(AccessFlags.ACC_ABSTRACT);
+			af = af.remove(AccessFlags.ACC_FINAL)
+					.remove(AccessFlags.ACC_ABSTRACT)
+					.remove(AccessFlags.ACC_STATIC);
 		}
 
 		annotationGen.addForClass(clsCode);
@@ -203,29 +205,50 @@ public class ClassGen {
 
 	private void addInnerClasses(CodeWriter code, ClassNode cls) throws CodegenException {
 		for (ClassNode innerCls : cls.getInnerClasses()) {
+			if (innerCls.contains(AFlag.DONT_GENERATE)
+					|| innerCls.isAnonymous()) {
+				continue;
+			}
+			ClassGen inClGen = new ClassGen(innerCls, getParentGen(), fallback);
+			code.newLine();
+			inClGen.addClassCode(code);
+			imports.addAll(inClGen.getImports());
+		}
+	}
+
+	private boolean isInnerClassesPresents() {
+		for (ClassNode innerCls : cls.getInnerClasses()) {
 			if (!innerCls.isAnonymous()) {
-				ClassGen inClGen = new ClassGen(innerCls, getParentGen(), fallback);
-				code.newLine();
-				inClGen.addClassCode(code);
-				imports.addAll(inClGen.getImports());
+				return true;
 			}
 		}
+		return false;
 	}
 
 	private void addMethods(CodeWriter code) {
 		for (MethodNode mth : cls.getMethods()) {
-			if (!mth.contains(AFlag.DONT_GENERATE)) {
-				try {
-					if (code.getLine() != clsDeclLine) {
-						code.newLine();
-					}
-					addMethod(code, mth);
-				} catch (Exception e) {
-					String msg = ErrorsCounter.methodError(mth, "Method generation error", e);
-					code.startLine("/* " + msg + CodeWriter.NL + Utils.getStackTrace(e) + " */");
-				}
+			if (mth.contains(AFlag.DONT_GENERATE)) {
+				continue;
+			}
+			if (code.getLine() != clsDeclLine) {
+				code.newLine();
+			}
+			try {
+				addMethod(code, mth);
+			} catch (Exception e) {
+				String msg = ErrorsCounter.methodError(mth, "Method generation error", e);
+				code.startLine("/* " + msg + CodeWriter.NL + Utils.getStackTrace(e) + " */");
 			}
 		}
+	}
+
+	private boolean isMethodsPresents() {
+		for (MethodNode mth : cls.getMethods()) {
+			if (!mth.contains(AFlag.DONT_GENERATE)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private void addMethod(CodeWriter code, MethodNode mth) throws CodegenException {
@@ -284,6 +307,15 @@ public class ClassGen {
 		}
 	}
 
+	private boolean isFieldsPresents() {
+		for (FieldNode field : cls.getFields()) {
+			if (!field.contains(AFlag.DONT_GENERATE)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private void addEnumFields(CodeWriter code) throws CodegenException {
 		EnumClassAttr enumFields = cls.get(AType.ENUM_CLASS);
 		if (enumFields == null) {
@@ -310,21 +342,23 @@ public class ClassGen {
 				code.add(')');
 			}
 			if (f.getCls() != null) {
+				code.add(' ');
 				new ClassGen(f.getCls(), this, fallback).addClassBody(code);
 			}
 			if (it.hasNext()) {
 				code.add(',');
 			}
 		}
-		if (enumFields.getFields().isEmpty()) {
-			code.startLine();
+		if (isMethodsPresents() || isFieldsPresents() || isInnerClassesPresents()) {
+			if (enumFields.getFields().isEmpty()) {
+				code.startLine();
+			}
+			code.add(';');
 		}
-		code.add(';');
-		code.newLine();
 	}
 
 	public void useType(CodeWriter code, ArgType type) {
-		final PrimitiveType stype = type.getPrimitiveType();
+		PrimitiveType stype = type.getPrimitiveType();
 		if (stype == null) {
 			code.add(type.toString());
 		} else if (stype == PrimitiveType.OBJECT) {

@@ -1,5 +1,8 @@
 package jadx.tests.utils;
 
+import jadx.api.TestUtils;
+
+import org.hamcrest.Description;
 import org.hamcrest.core.SubstringMatcher;
 
 public class CountString extends SubstringMatcher {
@@ -13,21 +16,21 @@ public class CountString extends SubstringMatcher {
 
 	@Override
 	protected boolean evalSubstringOf(String string) {
-		return this.count == countStr(string, substring);
+		return this.count == count(string);
 	}
 
 	@Override
 	protected String relationship() {
-		return "containing " + count + " occurrence of";
+		return "containing <" + count + "> occurrence of";
 	}
 
-	private static int countStr(String string, String substring) {
-		int cnt = 0;
-		int idx = 0;
-		while ((idx = string.indexOf(substring, idx)) != -1) {
-			idx++;
-			cnt++;
-		}
-		return cnt;
+	@Override
+	public void describeMismatchSafely(String item, Description mismatchDescription) {
+		mismatchDescription.appendText("found ").appendValue(count(item))
+				.appendText(" in \"").appendText(item).appendText("\"");
+	}
+
+	private int count(String string) {
+		return TestUtils.count(string, substring);
 	}
 }
