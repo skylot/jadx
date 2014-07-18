@@ -3,17 +3,15 @@ jdk:
     - oraclejdk7
     - openjdk7
     - openjdk6
-env:
-    - TERM=dumb
 
 before_install:
     - chmod +x gradlew
 
 script:
-    - ./gradlew clean build dist
+    - TERM=dumb ./gradlew clean build dist
 
 after_success:
-    - ./gradlew jacocoTestReport coveralls
+    - TERM=dumb ./gradlew jacocoTestReport coveralls
 
 notifications:
     email:

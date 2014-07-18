@@ -56,7 +56,7 @@ buildscript {
 
     dependencies {
         // setup coveralls (http://coveralls.io/) see http://github.com/kt3k/coveralls-gradle-plugin
-        classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:0.4.0'
+        classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:0.6.1'
     }
 }
 
@@ -88,5 +88,5 @@ task clean(type: Delete) {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.12'
+    gradleVersion = '2.0'
 }
