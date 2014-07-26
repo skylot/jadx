@@ -33,8 +33,20 @@ public class CheckRegions extends AbstractVisitor {
 		DepthRegionTraversal.traverseAll(mth, new AbstractRegionVisitor() {
 			@Override
 			public void processBlock(MethodNode mth, IBlock container) {
-				if (container instanceof BlockNode) {
-					blocksInRegions.add((BlockNode) container);
+				if (!(container instanceof BlockNode)) {
+					return;
+				}
+				BlockNode block = (BlockNode) container;
+				if (blocksInRegions.add(block)) {
+					return;
+				}
+				if (!block.contains(AFlag.RETURN)
+						&& !block.contains(AFlag.SKIP)
+						&& !block.contains(AFlag.SYNTHETIC)
+						&& !block.getInstructions().isEmpty()) {
+					// TODO
+					// mth.add(AFlag.INCONSISTENT_CODE);
+					LOG.debug(" Duplicated block: {} in {}", block, mth);
 				}
 			}
 		});
