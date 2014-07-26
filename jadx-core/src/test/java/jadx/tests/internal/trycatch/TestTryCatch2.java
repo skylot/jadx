@@ -18,10 +18,10 @@ public class TestTryCatch2 extends InternalJadxTest {
 				synchronized (obj) {
 					obj.wait(5);
 				}
+				return true;
 			} catch (InterruptedException e) {
 				return false;
 			}
-			return true;
 		}
 	}
 
@@ -34,12 +34,8 @@ public class TestTryCatch2 extends InternalJadxTest {
 		assertThat(code, containsString("try {"));
 		assertThat(code, containsString("synchronized (obj) {"));
 		assertThat(code, containsString("obj.wait(5);"));
+		assertThat(code, containsString("return true;"));
 		assertThat(code, containsString("} catch (InterruptedException e) {"));
-
-		// TODO
-		assertThat(code, containsString(" = false;"));
-		assertThat(code, containsString(" = true;"));
-//		assertThat(code, containsString("return false;"));
-//		assertThat(code, containsString("return true;"));
+		assertThat(code, containsString("return false;"));
 	}
 }

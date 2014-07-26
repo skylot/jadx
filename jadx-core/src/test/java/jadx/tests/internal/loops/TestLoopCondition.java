@@ -5,7 +5,7 @@ import jadx.core.dex.nodes.ClassNode;
 
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.containsString;
+import static jadx.tests.utils.JadxMatchers.containsOne;
 import static org.junit.Assert.assertThat;
 
 public class TestLoopCondition extends InternalJadxTest {
@@ -48,8 +48,12 @@ public class TestLoopCondition extends InternalJadxTest {
 		String code = cls.getCode().toString();
 		System.out.println(code);
 
-		assertThat(code, containsString("i < this.f.length()"));
-		assertThat(code, containsString("list.set(i, \"ABC\")"));
-		assertThat(code, containsString("list.set(i, \"DEF\")"));
+		assertThat(code, containsOne("i < this.f.length()"));
+		assertThat(code, containsOne("list.set(i, \"ABC\")"));
+		assertThat(code, containsOne("list.set(i, \"DEF\")"));
+
+		assertThat(code, containsOne("if (j == 2) {"));
+		assertThat(code, containsOne("setEnabled(true);"));
+		assertThat(code, containsOne("setEnabled(false);"));
 	}
 }

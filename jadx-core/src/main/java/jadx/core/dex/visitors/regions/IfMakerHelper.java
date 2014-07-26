@@ -8,29 +8,99 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
+import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.IfCondition;
 import jadx.core.dex.regions.IfCondition.Mode;
 import jadx.core.dex.regions.IfInfo;
 import jadx.core.utils.BlockUtils;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import static jadx.core.utils.BlockUtils.isPathExists;
 
 public class IfMakerHelper {
+
 	private IfMakerHelper() {
 	}
 
 	static IfInfo makeIfInfo(BlockNode ifBlock) {
-		return makeIfInfo(ifBlock, IfCondition.fromIfBlock(ifBlock));
+		IfNode ifNode = (IfNode) ifBlock.getInstructions().get(0);
+		IfCondition condition = IfCondition.fromIfNode(ifNode);
+		IfInfo info = new IfInfo(condition, ifNode.getThenBlock(), ifNode.getElseBlock());
+		info.setIfBlock(ifBlock);
+		info.getMergedBlocks().add(ifBlock);
+		return info;
 	}
 
-	static IfInfo mergeNestedIfNodes(BlockNode block) {
-		IfInfo info = makeIfInfo(block);
-		return mergeNestedIfNodes(info);
+	static IfInfo restructureIf(MethodNode mth, BlockNode block, IfInfo info) {
+		final BlockNode thenBlock = info.getThenBlock();
+		final BlockNode elseBlock = info.getElseBlock();
+
+		// select 'then', 'else' and 'exit' blocks
+		if (thenBlock.contains(AFlag.RETURN) && elseBlock.contains(AFlag.RETURN)) {
+			info.setOutBlock(null);
+			return info;
+		}
+		boolean badThen = !allPathsFromIf(thenBlock, info);
+		boolean badElse = !allPathsFromIf(elseBlock, info);
+		if (badThen && badElse) {
+			return null;
+		}
+		if (badThen || badElse) {
+			if (badElse && isPathExists(thenBlock, elseBlock)) {
+				info = new IfInfo(info.getCondition(), thenBlock, null);
+				info.setOutBlock(elseBlock);
+			} else if (badThen && isPathExists(elseBlock, thenBlock)) {
+				info = IfInfo.invert(info);
+				info = new IfInfo(info.getCondition(), info.getThenBlock(), null);
+				info.setOutBlock(thenBlock);
+			} else if (badElse) {
+				info = new IfInfo(info.getCondition(), thenBlock, null);
+				info.setOutBlock(null);
+			} else {
+				info = IfInfo.invert(info);
+				info = new IfInfo(info.getCondition(), info.getThenBlock(), null);
+				info.setOutBlock(null);
+			}
+		} else {
+			List<BlockNode> thenSC = thenBlock.getCleanSuccessors();
+			List<BlockNode> elseSC = elseBlock.getCleanSuccessors();
+			if (thenSC.size() == 1 && sameElements(thenSC, elseSC)) {
+				info.setOutBlock(thenSC.get(0));
+			} else if (info.getMergedBlocks().size() == 1
+					&& block.getDominatesOn().size() == 2) {
+				info.setOutBlock(BlockUtils.getPathCross(mth, thenBlock, elseBlock));
+			}
+		}
+		if (info.getOutBlock() == null) {
+			for (BlockNode d : block.getDominatesOn()) {
+				if (d != thenBlock && d != elseBlock
+						&& !info.getMergedBlocks().contains(d)
+						&& isPathExists(thenBlock, d)) {
+					info.setOutBlock(d);
+					break;
+				}
+			}
+		}
+		if (BlockUtils.isBackEdge(block, info.getOutBlock())) {
+			info.setOutBlock(null);
+		}
+		return info;
 	}
 
-	private static IfInfo mergeNestedIfNodes(IfInfo currentIf) {
+	private static boolean allPathsFromIf(BlockNode block, IfInfo info) {
+		List<BlockNode> preds = block.getPredecessors();
+		Set<BlockNode> ifBlocks = info.getMergedBlocks();
+		return ifBlocks.containsAll(preds);
+	}
+
+	private static boolean sameElements(Collection<BlockNode> c1, Collection<BlockNode> c2) {
+		return c1.size() == c2.size() && c1.containsAll(c2);
+	}
+
+	static IfInfo mergeNestedIfNodes(IfInfo currentIf) {
 		BlockNode curThen = currentIf.getThenBlock();
 		BlockNode curElse = currentIf.getElseBlock();
 		if (curThen == curElse) {
@@ -91,14 +161,6 @@ public class IfMakerHelper {
 	private static boolean isInversionNeeded(IfInfo currentIf, IfInfo nextIf) {
 		return RegionMaker.isEqualPaths(currentIf.getElseBlock(), nextIf.getThenBlock())
 				|| RegionMaker.isEqualPaths(currentIf.getThenBlock(), nextIf.getElseBlock());
-	}
-
-	private static IfInfo makeIfInfo(BlockNode ifBlock, IfCondition condition) {
-		IfNode ifnode = (IfNode) ifBlock.getInstructions().get(0);
-		IfInfo info = new IfInfo(condition, ifnode.getThenBlock(), ifnode.getElseBlock());
-		info.setIfBlock(ifBlock);
-		info.getMergedBlocks().add(ifBlock);
-		return info;
 	}
 
 	private static boolean checkConditionBranches(BlockNode from, BlockNode to) {

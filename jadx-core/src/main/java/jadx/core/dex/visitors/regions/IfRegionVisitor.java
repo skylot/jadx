@@ -51,6 +51,7 @@ public class IfRegionVisitor extends AbstractVisitor implements IRegionVisitor, 
 	private static void processIfRegion(MethodNode mth, IfRegion ifRegion) {
 		simplifyIfCondition(ifRegion);
 		moveReturnToThenBlock(mth, ifRegion);
+		moveBreakToThenBlock(ifRegion);
 		markElseIfChains(ifRegion);
 
 		TernaryMod.makeTernaryInsn(mth, ifRegion);
@@ -103,6 +104,13 @@ public class IfRegionVisitor extends AbstractVisitor implements IRegionVisitor, 
 		}
 	}
 
+	private static void moveBreakToThenBlock(IfRegion ifRegion) {
+		if (ifRegion.getElseRegion() != null
+				&& RegionUtils.hasBreakInsn(ifRegion.getElseRegion())) {
+			invertIfRegion(ifRegion);
+		}
+	}
+
 	/**
 	 * Mark if-else-if chains
 	 */
@@ -124,7 +132,7 @@ public class IfRegionVisitor extends AbstractVisitor implements IRegionVisitor, 
 		if (ifRegion.getElseRegion() != null
 				&& !ifRegion.contains(AFlag.ELSE_IF_CHAIN)
 				&& !ifRegion.getElseRegion().contains(AFlag.ELSE_IF_CHAIN)
-				&& RegionUtils.hasExitBlock(ifRegion.getThenRegion())
+				&& hasBranchTerminator(ifRegion)
 				&& insnsCount(ifRegion.getThenRegion()) < 2) {
 			IRegion parent = ifRegion.getParent();
 			Region newRegion = new Region(parent);
@@ -136,6 +144,12 @@ public class IfRegionVisitor extends AbstractVisitor implements IRegionVisitor, 
 			}
 		}
 		return false;
+	}
+
+	private static boolean hasBranchTerminator(IfRegion ifRegion) {
+		// TODO: check for exception throw
+		return RegionUtils.hasExitBlock(ifRegion.getThenRegion())
+				|| RegionUtils.hasBreakInsn(ifRegion.getThenRegion());
 	}
 
 	private static void invertIfRegion(IfRegion ifRegion) {

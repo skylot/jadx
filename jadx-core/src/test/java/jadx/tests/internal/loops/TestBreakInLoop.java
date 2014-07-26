@@ -5,8 +5,7 @@ import jadx.core.dex.nodes.ClassNode;
 
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertEquals;
+import static jadx.tests.utils.JadxMatchers.containsOne;
 import static org.junit.Assert.assertThat;
 
 public class TestBreakInLoop extends InternalJadxTest {
@@ -33,8 +32,12 @@ public class TestBreakInLoop extends InternalJadxTest {
 		String code = cls.getCode().toString();
 		System.out.println(code);
 
-		assertEquals(1, count(code, "this.f++;"));
-		assertThat(code, containsString("if (i < b) {"));
-		assertThat(code, containsString("break;"));
+		assertThat(code, containsOne("this.f++;"));
+//		assertThat(code, containsOne("a[i]++;"));
+		assertThat(code, containsOne("if (i < b) {"));
+		assertThat(code, containsOne("break;"));
+		assertThat(code, containsOne("i++;"));
+
+//		assertThat(code, countString(0, "else"));
 	}
 }

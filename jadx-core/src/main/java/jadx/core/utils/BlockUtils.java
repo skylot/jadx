@@ -9,7 +9,9 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -101,13 +103,13 @@ public class BlockUtils {
 		return false;
 	}
 
-	public static boolean lastInsnType(BlockNode block, InsnType type) {
+	public static boolean checkLastInsnType(BlockNode block, InsnType expectedType) {
 		List<InsnNode> insns = block.getInstructions();
 		if (insns.isEmpty()) {
 			return false;
 		}
 		InsnNode insn = insns.get(insns.size() - 1);
-		return insn.getType() == type;
+		return insn.getType() == expectedType;
 	}
 
 	public static BlockNode getBlockByInsn(MethodNode mth, InsnNode insn) {
@@ -287,5 +289,16 @@ public class BlockUtils {
 				collectWhileDominates(dominator, node, result);
 			}
 		}
+	}
+
+	public static List<BlockNode> buildSimplePath(BlockNode block) {
+		List<BlockNode> list = new LinkedList<BlockNode>();
+		while (block != null
+				&& block.getCleanSuccessors().size() < 2
+				&& block.getPredecessors().size() == 1) {
+			list.add(block);
+			block = getNextBlock(block);
+		}
+		return list.isEmpty() ? Collections.<BlockNode>emptyList() : list;
 	}
 }

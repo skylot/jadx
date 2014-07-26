@@ -125,7 +125,9 @@ public final class LoopRegion extends AbstractRegion {
 		if (conditionBlock != null) {
 			all.add(conditionBlock);
 		}
-		all.add(body);
+		if (body != null) {
+			all.add(body);
+		}
 		return Collections.unmodifiableList(all);
 	}
 

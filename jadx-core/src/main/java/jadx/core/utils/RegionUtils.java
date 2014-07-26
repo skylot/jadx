@@ -2,6 +2,7 @@ package jadx.core.utils;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
@@ -46,6 +47,18 @@ public class RegionUtils {
 					&& hasExitBlock(blocks.get(blocks.size() - 1));
 		} else {
 			throw new JadxRuntimeException("Unknown container type: " + container.getClass());
+		}
+	}
+
+	public static boolean hasBreakInsn(IContainer container) {
+		if (container instanceof BlockNode) {
+			return BlockUtils.checkLastInsnType((BlockNode) container, InsnType.BREAK);
+		} else if (container instanceof IRegion) {
+			List<IContainer> blocks = ((IRegion) container).getSubBlocks();
+			return !blocks.isEmpty()
+					&& hasBreakInsn(blocks.get(blocks.size() - 1));
+		} else {
+			throw new JadxRuntimeException("Unknown container type: " + container);
 		}
 	}
 

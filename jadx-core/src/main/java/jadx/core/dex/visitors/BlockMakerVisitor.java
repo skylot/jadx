@@ -331,7 +331,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 	private static void markReturnBlocks(MethodNode mth) {
 		mth.getExitBlocks().clear();
 		for (BlockNode block : mth.getBasicBlocks()) {
-			if (BlockUtils.lastInsnType(block, InsnType.RETURN)) {
+			if (BlockUtils.checkLastInsnType(block, InsnType.RETURN)) {
 				block.add(AFlag.RETURN);
 				mth.getExitBlocks().add(block);
 			}
@@ -399,7 +399,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			if (loops.size() == 1) {
 				LoopInfo loop = loops.get(0);
 				List<Edge> edges = loop.getExitEdges();
-				if (edges.size() > 1) {
+				if (!edges.isEmpty()) {
 					boolean change = false;
 					for (Edge edge : edges) {
 						BlockNode target = edge.getTarget();
@@ -414,10 +414,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 				}
 			}
 		}
-		if (splitReturn(mth)) {
-			return true;
-		}
-		return false;
+		return splitReturn(mth);
 	}
 
 	private static BlockNode insertBlockBetween(MethodNode mth, BlockNode source, BlockNode target) {
@@ -439,7 +436,6 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		BlockNode exitBlock = mth.getExitBlocks().get(0);
 		if (exitBlock.getPredecessors().size() > 1
 				&& exitBlock.getInstructions().size() == 1
-				&& !exitBlock.getInstructions().get(0).contains(AType.CATCH_BLOCK)
 				&& !exitBlock.contains(AFlag.SYNTHETIC)) {
 			InsnNode returnInsn = exitBlock.getInstructions().get(0);
 			List<BlockNode> preds = new ArrayList<BlockNode>(exitBlock.getPredecessors());

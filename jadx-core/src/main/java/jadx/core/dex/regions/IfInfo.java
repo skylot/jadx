@@ -10,6 +10,7 @@ public final class IfInfo {
 	private final Set<BlockNode> mergedBlocks = new HashSet<BlockNode>();
 	private final BlockNode thenBlock;
 	private final BlockNode elseBlock;
+	private BlockNode outBlock;
 	@Deprecated
 	private BlockNode ifBlock;
 
@@ -48,6 +49,14 @@ public final class IfInfo {
 
 	public BlockNode getElseBlock() {
 		return elseBlock;
+	}
+
+	public BlockNode getOutBlock() {
+		return outBlock;
+	}
+
+	public void setOutBlock(BlockNode outBlock) {
+		this.outBlock = outBlock;
 	}
 
 	public BlockNode getIfBlock() {
