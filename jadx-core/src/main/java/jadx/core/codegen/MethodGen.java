@@ -9,7 +9,6 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.regions.Region;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.FallbackModeVisitor;
@@ -151,47 +150,31 @@ public class MethodGen {
 	}
 
 	public void addInstructions(CodeWriter code) throws CodegenException {
-		if (mth.contains(AType.JADX_ERROR)) {
-			code.startLine("throw new UnsupportedOperationException(\"Method not decompiled: ");
-			code.add(mth.toString());
-			code.add("\");");
+		if (mth.contains(AType.JADX_ERROR)
+				|| mth.contains(AFlag.INCONSISTENT_CODE)
+				|| mth.getRegion() == null) {
+			code.startLine("throw new UnsupportedOperationException(\"Method not decompiled: ")
+					.add(mth.toString())
+					.add("\");");
 
-			JadxErrorAttr err = mth.get(AType.JADX_ERROR);
-			code.startLine("/* JADX: method processing error */");
-			Throwable cause = err.getCause();
-			if (cause != null) {
-				code.newLine();
-				code.add("/*");
-				code.startLine("Error: ").add(Utils.getStackTrace(cause));
-				code.add("*/");
+			if (mth.contains(AType.JADX_ERROR)) {
+				JadxErrorAttr err = mth.get(AType.JADX_ERROR);
+				code.startLine("/* JADX: method processing error */");
+				Throwable cause = err.getCause();
+				if (cause != null) {
+					code.newLine();
+					code.add("/*");
+					code.startLine("Error: ").add(Utils.getStackTrace(cause));
+					code.add("*/");
+				}
 			}
-			makeMethodDump(code);
-		} else if (mth.contains(AFlag.INCONSISTENT_CODE)) {
 			code.startLine("/*");
 			addFallbackMethodCode(code);
 			code.startLine("*/");
-			code.newLine();
 		} else {
-			Region startRegion = mth.getRegion();
-			if (startRegion != null) {
-				(new RegionGen(this)).makeRegion(code, startRegion);
-			} else {
-				addFallbackMethodCode(code);
-			}
+			RegionGen regionGen = new RegionGen(this);
+			regionGen.makeRegion(code, mth.getRegion());
 		}
-	}
-
-	private void makeMethodDump(CodeWriter code) {
-		code.startLine("/*");
-		getFallbackMethodGen(mth).addDefinition(code);
-		code.add(" {");
-		code.incIndent();
-
-		addFallbackMethodCode(code);
-
-		code.decIndent();
-		code.startLine('}');
-		code.startLine("*/");
 	}
 
 	public void addFallbackMethodCode(CodeWriter code) {
@@ -212,7 +195,7 @@ public class MethodGen {
 			return;
 		}
 		if (mth.getThisArg() != null) {
-			code.startLine(getFallbackMethodGen(mth).nameGen.useArg(mth.getThisArg())).add(" = this;");
+			code.startLine(nameGen.useArg(mth.getThisArg())).add(" = this;");
 		}
 		addFallbackInsns(code, mth, insnArr, true);
 	}
@@ -248,7 +231,7 @@ public class MethodGen {
 	/**
 	 * Return fallback variant of method codegen
 	 */
-	private static MethodGen getFallbackMethodGen(MethodNode mth) {
+	static MethodGen getFallbackMethodGen(MethodNode mth) {
 		ClassGen clsGen = new ClassGen(mth.getParentClass(), null, true);
 		return new MethodGen(clsGen, mth);
 	}

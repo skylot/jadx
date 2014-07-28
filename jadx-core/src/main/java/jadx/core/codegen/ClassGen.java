@@ -252,8 +252,8 @@ public class ClassGen {
 	}
 
 	private void addMethod(CodeWriter code, MethodNode mth) throws CodegenException {
-		MethodGen mthGen = new MethodGen(this, mth);
 		if (mth.getAccessFlags().isAbstract() || mth.getAccessFlags().isNative()) {
+			MethodGen mthGen = new MethodGen(this, mth);
 			mthGen.addDefinition(code);
 			if (cls.getAccessFlags().isAnnotation()) {
 				Object def = annotationGen.getAnnotationDefaultValue(mth.getName());
@@ -269,6 +269,12 @@ public class ClassGen {
 				code.startLine("/* JADX WARNING: inconsistent code. */");
 				code.startLine("/* Code decompiled incorrectly, please refer to instructions dump. */");
 				ErrorsCounter.methodError(mth, "Inconsistent code");
+			}
+			MethodGen mthGen;
+			if (badCode || mth.contains(AType.JADX_ERROR)) {
+				mthGen = MethodGen.getFallbackMethodGen(mth);
+			} else {
+				mthGen = new MethodGen(this, mth);
 			}
 			if (mthGen.addDefinition(code)) {
 				code.add(' ');

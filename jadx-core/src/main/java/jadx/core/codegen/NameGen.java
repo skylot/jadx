@@ -91,7 +91,7 @@ public class NameGen {
 		String name = arg.getName();
 		if (fallback) {
 			String base = "r" + arg.getRegNum();
-			if (name != null) {
+			if (name != null && !name.equals("this")) {
 				return base + "_" + name;
 			}
 			return base;
