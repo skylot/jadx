@@ -30,7 +30,8 @@ class CodeArea extends RSyntaxTextArea {
 
 	private static final long serialVersionUID = 6312736869579635796L;
 
-	public static final Color BACKGROUND = new Color(0xf7f7f7);
+	public static final Color BACKGROUND = new Color(0xFAFAFA);
+	public static final Color JUMP_TOKEN_FGD = new Color(0x491BA1);
 
 	private final CodePanel codePanel;
 	private final JClass cls;
@@ -72,11 +73,11 @@ class CodeArea extends RSyntaxTextArea {
 	}
 
 	@Override
-	public boolean getUnderlineForToken(Token t) {
+	public Color getForegroundForToken(Token t) {
 		if (isJumpToken(t)) {
-			return true;
+			return JUMP_TOKEN_FGD;
 		}
-		return super.getUnderlineForToken(t);
+		return super.getForegroundForToken(t);
 	}
 
 	static Position getPosition(JClass jCls, RSyntaxTextArea textArea, int offset) {
