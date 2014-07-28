@@ -102,12 +102,24 @@ public class InputFile {
 	private static Dex loadFromClassFile(File file) throws IOException, DecodeException {
 		File outFile = File.createTempFile("jadx-tmp-", System.nanoTime() + ".jar");
 		outFile.deleteOnExit();
-		FileOutputStream out = new FileOutputStream(outFile);
-		JarOutputStream jo = new JarOutputStream(out);
-		String clsName = AsmUtils.getNameFromClassFile(file);
-		FileUtils.addFileToJar(jo, file, clsName + ".class");
-		jo.close();
-		out.close();
+		FileOutputStream out = null;
+		JarOutputStream jo = null;
+		try {
+			out = new FileOutputStream(outFile);
+			jo = new JarOutputStream(out);
+			String clsName = AsmUtils.getNameFromClassFile(file);
+			if (clsName == null) {
+				throw new IOException("Can't read class name from file: " + file);
+			}
+			FileUtils.addFileToJar(jo, file, clsName + ".class");
+		} finally {
+			if (jo != null) {
+				jo.close();
+			}
+			if (out != null) {
+				out.close();
+			}
+		}
 		return loadFromJar(outFile);
 	}
 

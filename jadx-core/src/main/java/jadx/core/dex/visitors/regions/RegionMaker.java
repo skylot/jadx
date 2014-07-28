@@ -338,18 +338,23 @@ public class RegionMaker {
 			InstructionRemover.unbindInsn(mth, exitInsn);
 		}
 
-		block = getNextBlock(block);
+		BlockNode body = getNextBlock(block);
+		if (body == null) {
+			mth.add(AFlag.INCONSISTENT_CODE);
+			LOG.warn("Unexpected end of synchronized block");
+			return null;
+		}
 		BlockNode exit;
 		if (exits.size() == 1) {
 			exit = getNextBlock(exits.iterator().next());
 		} else {
 			cacheSet.clear();
-			exit = traverseMonitorExitsCross(block, exits, cacheSet);
+			exit = traverseMonitorExitsCross(body, exits, cacheSet);
 		}
 
 		stack.push(synchRegion);
 		stack.addExit(exit);
-		synchRegion.getSubBlocks().add(makeRegion(block, stack));
+		synchRegion.getSubBlocks().add(makeRegion(body, stack));
 		stack.pop();
 		return exit;
 	}

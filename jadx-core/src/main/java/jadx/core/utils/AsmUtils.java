@@ -12,9 +12,18 @@ public class AsmUtils {
 	}
 
 	public static String getNameFromClassFile(File file) throws IOException {
-		FileInputStream in = new FileInputStream(file);
-		ClassReader classReader = new ClassReader(in);
-		return classReader.getClassName();
+		String className = null;
+		FileInputStream in = null;
+		try {
+			in = new FileInputStream(file);
+			ClassReader classReader = new ClassReader(in);
+			className = classReader.getClassName();
+		} finally {
+			if (in != null) {
+				in.close();
+			}
+		}
+		return className;
 	}
 
 }
