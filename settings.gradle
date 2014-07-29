@@ -1,3 +1,6 @@
 rootProject.name = 'jadx'
 
-include 'jadx-core', 'jadx-samples', 'jadx-cli', 'jadx-gui'
+include 'jadx-core'
+include 'jadx-cli'
+include 'jadx-gui'
+include 'jadx-samples'
