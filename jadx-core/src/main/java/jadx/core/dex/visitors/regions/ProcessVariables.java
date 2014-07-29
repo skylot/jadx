@@ -200,10 +200,15 @@ public class ProcessVariables extends AbstractVisitor {
 					it.remove();
 				}
 			}
-			if (set.isEmpty()) {
+			IRegion region = null;
+			if (!set.isEmpty()) {
+				region = set.iterator().next();
+			} else if (!u.getAssigns().isEmpty()) {
+				region = u.getAssigns().iterator().next();
+			}
+			if (region == null) {
 				continue;
 			}
-			IRegion region = set.iterator().next();
 			IRegion parent = region;
 			boolean declare = false;
 			while (parent != null) {
@@ -215,7 +220,6 @@ public class ProcessVariables extends AbstractVisitor {
 				region = parent;
 				parent = region.getParent();
 			}
-
 			if (!declare) {
 				declareVar(mth.getRegion(), u.getArg());
 			}
