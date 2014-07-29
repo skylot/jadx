@@ -87,7 +87,8 @@ public class CodeShrinker extends AbstractVisitor {
 		}
 
 		public WrapInfo checkInline(int assignPos, RegisterArg arg) {
-			if (assignPos >= inlineBorder || !canMove(assignPos, inlineBorder)) {
+			if (!arg.isThis()
+					&& (assignPos >= inlineBorder || !canMove(assignPos, inlineBorder))) {
 				return null;
 			}
 			inlineBorder = assignPos;
@@ -205,13 +206,9 @@ public class CodeShrinker extends AbstractVisitor {
 				}
 				int assignPos = insnList.getIndex(assignInsn);
 				if (assignPos != -1) {
-					if (assignInsn.canReorder()) {
-						wrapList.add(argsInfo.inline(assignPos, arg));
-					} else {
-						WrapInfo wrapInfo = argsInfo.checkInline(assignPos, arg);
-						if (wrapInfo != null) {
-							wrapList.add(wrapInfo);
-						}
+					WrapInfo wrapInfo = argsInfo.checkInline(assignPos, arg);
+					if (wrapInfo != null) {
+						wrapList.add(wrapInfo);
 					}
 				} else {
 					// another block
