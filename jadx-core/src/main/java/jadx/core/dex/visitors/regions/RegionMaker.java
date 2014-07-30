@@ -571,8 +571,9 @@ public class RegionMaker {
 						LOG.debug(ErrorsCounter.formatErrorMsg(mth, "No successors for splitter: " + splitter));
 						continue;
 					}
-					BlockNode cross = BlockUtils.getPathCross(mth, s.get(0), handler);
-					if (cross != null) {
+					BlockNode ss = s.get(0);
+					BlockNode cross = BlockUtils.getPathCross(mth, ss, handler);
+					if (cross != null && cross != ss && cross != handler) {
 						exits.add(cross);
 					}
 				}
