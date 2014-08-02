@@ -255,7 +255,7 @@ public class BlockUtils {
 		}
 		BitSet b = new BitSet();
 		b.or(b1.getDomFrontier());
-		b.or(b2.getDomFrontier());
+		b.and(b2.getDomFrontier());
 		b.clear(b1.getId());
 		b.clear(b2.getId());
 		if (b.cardinality() == 1) {

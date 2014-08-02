@@ -273,13 +273,15 @@ public class RegionMaker {
 		}
 
 		Region body = makeRegion(loopStart, stack);
-		if (!RegionUtils.isRegionContainsBlock(body, loop.getEnd())) {
-			body.getSubBlocks().add(loop.getEnd());
+		BlockNode loopEnd = loop.getEnd();
+		if (!RegionUtils.isRegionContainsBlock(body, loopEnd)
+				&& !loopEnd.contains(AType.EXC_HANDLER)) {
+			body.getSubBlocks().add(loopEnd);
 		}
 		loopRegion.setBody(body);
 
 		if (loopExit == null) {
-			BlockNode next = getNextBlock(loop.getEnd());
+			BlockNode next = getNextBlock(loopEnd);
 			loopExit = RegionUtils.isRegionContainsBlock(body, next) ? null : next;
 		}
 		stack.pop();

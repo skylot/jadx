@@ -259,6 +259,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 					if (ct1 != ct2 && ct2.containsAllHandlers(ct1)) {
 						for (ExceptionHandler h : ct1.getHandlers()) {
 							ct2.removeHandler(this, h);
+							h.setTryBlock(ct1);
 						}
 					}
 				}

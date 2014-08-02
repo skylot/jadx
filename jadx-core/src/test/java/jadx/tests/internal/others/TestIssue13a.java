@@ -11,12 +11,14 @@ import org.junit.Test;
 import static jadx.tests.utils.JadxMatchers.containsOne;
 import static org.junit.Assert.assertThat;
 
-public class TestIssue13 extends InternalJadxTest {
+public class TestIssue13a extends InternalJadxTest {
 
 	public static class TestCls {
 		private static final String TAG = "Parcel";
-		private static HashMap<ClassLoader, HashMap<String, Parcelable.Creator>> mCreators;
+		private static final HashMap<ClassLoader, HashMap<String, Parcelable.Creator>>
+				mCreators = new HashMap<ClassLoader, HashMap<String, Parcelable.Creator>>();
 
+		@SuppressWarnings("unchecked")
 		public final <T extends Parcelable> T test(ClassLoader loader) {
 			String name = readString();
 			if (name == null) {
