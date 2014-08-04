@@ -66,37 +66,91 @@ public class TypeGen {
 	}
 
 	public static String formatShort(short s) {
-		return "(short) " + wrapNegNum(s < 0, Short.toString(s));
+		if (s == Short.MAX_VALUE) {
+			return "Short.MAX_VALUE";
+		}
+		if (s == Short.MIN_VALUE) {
+			return "Short.MIN_VALUE";
+		}
+		return "(short) " + Short.toString(s);
 	}
 
 	public static String formatByte(byte b) {
-		return "(byte) " + wrapNegNum(b < 0, Byte.toString(b));
+		if (b == Byte.MAX_VALUE) {
+			return "Byte.MAX_VALUE";
+		}
+		if (b == Byte.MIN_VALUE) {
+			return "Byte.MIN_VALUE";
+		}
+		return "(byte) " + Byte.toString(b);
 	}
 
 	public static String formatInteger(int i) {
-		return wrapNegNum(i < 0, Integer.toString(i));
+		if (i == Integer.MAX_VALUE) {
+			return "Integer.MAX_VALUE";
+		}
+		if (i == Integer.MIN_VALUE) {
+			return "Integer.MIN_VALUE";
+		}
+		return Integer.toString(i);
+	}
+
+	public static String formatLong(long l) {
+		if (l == Long.MAX_VALUE) {
+			return "Long.MAX_VALUE";
+		}
+		if (l == Long.MIN_VALUE) {
+			return "Long.MIN_VALUE";
+		}
+		String str = Long.toString(l);
+		if (Math.abs(l) >= Integer.MAX_VALUE) {
+			str += "L";
+		}
+		return str;
 	}
 
 	public static String formatDouble(double d) {
-		return wrapNegNum(d < 0, Double.toString(d) + "d");
+		if (Double.isNaN(d)) {
+			return "Double.NaN";
+		}
+		if (d == Double.NEGATIVE_INFINITY) {
+			return "Double.NEGATIVE_INFINITY";
+		}
+		if (d == Double.POSITIVE_INFINITY) {
+			return "Double.POSITIVE_INFINITY";
+		}
+		if (d == Double.MIN_VALUE) {
+			return "Double.MIN_VALUE";
+		}
+		if (d == Double.MAX_VALUE) {
+			return "Double.MAX_VALUE";
+		}
+		if (d == Double.MIN_NORMAL) {
+			return "Double.MIN_NORMAL";
+		}
+		return Double.toString(d) + "d";
 	}
 
 	public static String formatFloat(float f) {
-		return wrapNegNum(f < 0, Float.toString(f) + "f");
-	}
-
-	public static String formatLong(long lit) {
-		String l = Long.toString(lit);
-		if (lit == Long.MIN_VALUE || Math.abs(lit) >= Integer.MAX_VALUE) {
-			l += "L";
+		if (Float.isNaN(f)) {
+			return "Float.NaN";
 		}
-		return wrapNegNum(lit < 0, l);
+		if (f == Float.NEGATIVE_INFINITY) {
+			return "Float.NEGATIVE_INFINITY";
+		}
+		if (f == Float.POSITIVE_INFINITY) {
+			return "Float.POSITIVE_INFINITY";
+		}
+		if (f == Float.MIN_VALUE) {
+			return "Float.MIN_VALUE";
+		}
+		if (f == Float.MAX_VALUE) {
+			return "Float.MAX_VALUE";
+		}
+		if (f == Float.MIN_NORMAL) {
+			return "Float.MIN_NORMAL";
+		}
+		return Float.toString(f) + "f";
 	}
 
-	private static String wrapNegNum(boolean lz, String str) {
-//		if (lz)
-//			return "(" + str + ")";
-//		else
-		return str;
-	}
 }
