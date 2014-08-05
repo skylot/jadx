@@ -1,6 +1,10 @@
 package jadx.api;
 
+import java.io.File;
+
 public interface IJadxArgs {
+	File getOutDir();
+
 	int getThreadsCount();
 
 	boolean isCFGOutput();

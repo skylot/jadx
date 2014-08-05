@@ -7,7 +7,6 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.SaveCode;
-import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -57,12 +56,13 @@ public final class JadxDecompiler {
 	private List<JavaClass> classes;
 
 	public JadxDecompiler() {
-		this.args = new DefaultJadxArgs();
-		init();
+		this(new DefaultJadxArgs());
 	}
 
 	public JadxDecompiler(IJadxArgs jadxArgs) {
 		this.args = jadxArgs;
+		this.outDir = jadxArgs.getOutDir();
+		reset();
 		init();
 	}
 
@@ -72,17 +72,20 @@ public final class JadxDecompiler {
 	}
 
 	void init() {
-		reset();
 		if (outDir == null) {
-			outDir = new File("jadx-output");
+			outDir = new DefaultJadxArgs().getOutDir();
 		}
 		this.passes = Jadx.getPassesList(args, outDir);
 	}
 
 	void reset() {
 		ClassInfo.clearCache();
-		ErrorsCounter.reset();
 		classes = null;
+		root = null;
+	}
+
+	public static String getVersion() {
+		return Jadx.getVersion();
 	}
 
 	public void loadFile(File file) throws JadxException {
@@ -182,7 +185,17 @@ public final class JadxDecompiler {
 	}
 
 	public int getErrorsCount() {
-		return ErrorsCounter.getErrorCount();
+		if (root == null) {
+			return 0;
+		}
+		return root.getErrorsCounter().getErrorCount();
+	}
+
+	public void printErrorsReport() {
+		if (root == null) {
+			return;
+		}
+		root.getErrorsCounter().printReport();
 	}
 
 	void parse() throws DecodeException {
@@ -214,6 +227,6 @@ public final class JadxDecompiler {
 
 	@Override
 	public String toString() {
-		return "jadx decompiler";
+		return "jadx decompiler " + getVersion();
 	}
 }

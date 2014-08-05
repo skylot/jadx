@@ -20,20 +20,20 @@ import org.slf4j.LoggerFactory;
 public class ErrorsCounter {
 	private static final Logger LOG = LoggerFactory.getLogger(ErrorsCounter.class);
 
-	private static final Set<Object> ERROR_NODES = new HashSet<Object>();
-	private static int errorsCount;
+	private final Set<Object> errorNodes = new HashSet<Object>();
+	private int errorsCount;
 
-	public static int getErrorCount() {
+	public int getErrorCount() {
 		return errorsCount;
 	}
 
-	public static void reset() {
-		ERROR_NODES.clear();
+	public void reset() {
+		errorNodes.clear();
 		errorsCount = 0;
 	}
 
-	private static void addError(IAttributeNode node, String msg, Throwable e) {
-		ERROR_NODES.add(node);
+	private void addError(IAttributeNode node, String msg, Throwable e) {
+		errorNodes.add(node);
 		errorsCount++;
 
 		if (e != null) {
@@ -53,13 +53,13 @@ public class ErrorsCounter {
 
 	public static String classError(ClassNode cls, String errorMsg, Throwable e) {
 		String msg = formatErrorMsg(cls, errorMsg);
-		addError(cls, msg, e);
+		cls.dex().root().getErrorsCounter().addError(cls, msg, e);
 		return msg;
 	}
 
 	public static String methodError(MethodNode mth, String errorMsg, Throwable e) {
 		String msg = formatErrorMsg(mth, errorMsg);
-		addError(mth, msg, e);
+		mth.dex().root().getErrorsCounter().addError(mth, msg, e);
 		return msg;
 	}
 
@@ -67,10 +67,10 @@ public class ErrorsCounter {
 		return methodError(mth, errorMsg, null);
 	}
 
-	public static void printReport() {
+	public void printReport() {
 		if (getErrorCount() > 0) {
 			LOG.error(getErrorCount() + " errors occured in following nodes:");
-			List<Object> nodes = new ArrayList<Object>(ERROR_NODES);
+			List<Object> nodes = new ArrayList<Object>(errorNodes);
 			Collections.sort(nodes, new Comparator<Object>() {
 				@Override
 				public int compare(Object o1, Object o2) {
@@ -92,7 +92,7 @@ public class ErrorsCounter {
 		return msg + " in method: " + mth;
 	}
 
-	private static String formatException(Throwable e) {
+	private String formatException(Throwable e) {
 		if (e == null || e.getMessage() == null) {
 			return "";
 		} else {
@@ -100,11 +100,11 @@ public class ErrorsCounter {
 		}
 	}
 
-	public static String formatErrorMsg(ClassNode cls, String msg, Throwable e) {
+	public String formatErrorMsg(ClassNode cls, String msg, Throwable e) {
 		return formatErrorMsg(cls, msg) + formatException(e);
 	}
 
-	public static String formatErrorMsg(MethodNode mth, String msg, Throwable e) {
+	public String formatErrorMsg(MethodNode mth, String msg, Throwable e) {
 		return formatErrorMsg(mth, msg) + formatException(e);
 	}
 }

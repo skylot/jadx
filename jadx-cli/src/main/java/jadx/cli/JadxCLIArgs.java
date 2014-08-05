@@ -1,7 +1,7 @@
 package jadx.cli;
 
 import jadx.api.IJadxArgs;
-import jadx.core.Consts;
+import jadx.api.JadxDecompiler;
 import jadx.core.utils.exceptions.JadxException;
 
 import java.io.File;
@@ -105,7 +105,7 @@ public final class JadxCLIArgs implements IJadxArgs {
 		// print usage in not sorted fields order (by default its sorted by description)
 		PrintStream out = System.out;
 		out.println();
-		out.println("jadx - dex to java decompiler, version: " + Consts.JADX_VERSION);
+		out.println("jadx - dex to java decompiler, version: " + JadxDecompiler.getVersion());
 		out.println();
 		out.println("usage: jadx [options] " + jc.getMainParameterDescription());
 		out.println("options:");
@@ -148,6 +148,7 @@ public final class JadxCLIArgs implements IJadxArgs {
 		return input;
 	}
 
+	@Override
 	public File getOutDir() {
 		return outputDir;
 	}

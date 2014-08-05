@@ -3,6 +3,7 @@ package jadx.core.dex.nodes;
 import jadx.core.clsp.ClspGraph;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.files.InputFile;
 
@@ -14,6 +15,7 @@ import java.util.Map;
 
 public class RootNode {
 	private final Map<String, ClassNode> names = new HashMap<String, ClassNode>();
+	private final ErrorsCounter errorsCounter = new ErrorsCounter();
 	private List<DexNode> dexNodes;
 
 	public void load(List<InputFile> dexFiles) throws DecodeException {
@@ -100,5 +102,9 @@ public class RootNode {
 	public ClassNode resolveClass(ClassInfo cls) {
 		String fullName = cls.getFullName();
 		return searchClassByName(fullName);
+	}
+
+	public ErrorsCounter getErrorsCounter() {
+		return errorsCounter;
 	}
 }

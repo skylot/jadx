@@ -1,6 +1,13 @@
 package jadx.api;
 
+import java.io.File;
+
 public class DefaultJadxArgs implements IJadxArgs {
+
+	@Override
+	public File getOutDir() {
+		return new File("jadx-output");
+	}
 
 	@Override
 	public int getThreadsCount() {

@@ -1,9 +1,6 @@
 package jadx.tests
-
-import jadx.api.JadxDecompiler
 import jadx.api.IJadxArgs
-import jadx.core.dex.nodes.MethodNode
-import jadx.core.utils.ErrorsCounter
+import jadx.api.JadxDecompiler
 import jadx.core.utils.exceptions.JadxException
 import jadx.core.utils.exceptions.JadxRuntimeException
 import spock.lang.Specification
@@ -66,21 +63,5 @@ class TestAPI extends Specification {
     def "get errors count for new decompiler"() {
         expect:
         new JadxDecompiler().getErrorsCount() == 0
-    }
-
-    def "get errors count after one more init"() {
-        setup:
-        new JadxDecompiler()
-        def mth = Mock(MethodNode)
-        when:
-        ErrorsCounter.methodError(mth, "")
-        def d = new JadxDecompiler()
-        then:
-        d.getErrorsCount() == 0
-    }
-
-    def "decompiler toString()"() {
-        expect:
-        new JadxDecompiler().toString() == "jadx decompiler"
     }
 }

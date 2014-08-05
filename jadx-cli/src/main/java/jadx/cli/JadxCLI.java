@@ -1,7 +1,6 @@
 package jadx.cli;
 
 import jadx.api.JadxDecompiler;
-import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.JadxException;
 
 import java.io.File;
@@ -12,33 +11,29 @@ import org.slf4j.LoggerFactory;
 public class JadxCLI {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxCLI.class);
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws JadxException {
 		try {
 			JadxCLIArgs jadxArgs = new JadxCLIArgs();
 			if (processArgs(jadxArgs, args)) {
 				processAndSave(jadxArgs);
 			}
-		} catch (JadxException e) {
-			LOG.error(e.getMessage());
+		} catch (Throwable e) {
+			LOG.error("jadx error: " + e.getMessage(), e);
 			System.exit(1);
 		}
 	}
 
 	static void processAndSave(JadxCLIArgs jadxArgs) throws JadxException {
-		try {
-			JadxDecompiler jadx = new JadxDecompiler(jadxArgs);
-			jadx.loadFiles(jadxArgs.getInput());
-			jadx.setOutputDir(jadxArgs.getOutDir());
-			jadx.save();
-		} catch (Throwable e) {
-			throw new JadxException("jadx error: " + e.getMessage(), e);
+		JadxDecompiler jadx = new JadxDecompiler(jadxArgs);
+		jadx.setOutputDir(jadxArgs.getOutDir());
+		jadx.loadFiles(jadxArgs.getInput());
+		jadx.save();
+		if (jadx.getErrorsCount() != 0) {
+			jadx.printErrorsReport();
+			LOG.error("finished with errors");
+		} else {
+			LOG.info("done");
 		}
-		if (ErrorsCounter.getErrorCount() != 0) {
-			ErrorsCounter.printReport();
-			throw new JadxException("finished with errors");
-		}
-		LOG.info("done");
-
 	}
 
 	static boolean processArgs(JadxCLIArgs jadxArgs, String[] args) throws JadxException {

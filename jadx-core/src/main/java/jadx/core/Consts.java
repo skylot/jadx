@@ -1,8 +1,6 @@
 package jadx.core;
 
 public class Consts {
-	public static final String JADX_VERSION = Jadx.getVersion();
-
 	public static final boolean DEBUG = false;
 
 	public static final String CLASS_OBJECT = "java.lang.Object";

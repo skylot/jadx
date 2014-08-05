@@ -172,7 +172,7 @@ public class NameGen {
 		}
 	}
 
-	public static String getAliasForObject(String name) {
+	private static String getAliasForObject(String name) {
 		return OBJ_ALIAS.get(name);
 	}
 
