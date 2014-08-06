@@ -301,4 +301,25 @@ public class BlockUtils {
 		}
 		return list.isEmpty() ? Collections.<BlockNode>emptyList() : list;
 	}
+
+	/**
+	 * Return true if on path from start to end no instructions and no branches.
+	 */
+	public static boolean isEmptySimplePath(BlockNode start, BlockNode end) {
+		if (start == end && start.getInstructions().isEmpty()) {
+			return true;
+		}
+		if (!start.getInstructions().isEmpty() || start.getCleanSuccessors().size() != 1) {
+			return false;
+		}
+		BlockNode block = getNextBlock(start);
+		while (block != null
+				&& block != end
+				&& block.getCleanSuccessors().size() < 2
+				&& block.getPredecessors().size() == 1
+				&& block.getInstructions().isEmpty()) {
+			block = getNextBlock(block);
+		}
+		return block == end;
+	}
 }

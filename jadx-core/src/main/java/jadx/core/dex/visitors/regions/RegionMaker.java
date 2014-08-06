@@ -231,7 +231,8 @@ public class RegionMaker {
 			}
 			LoopRegion loopRegion = new LoopRegion(curRegion, block, block == loop.getEnd());
 			boolean found;
-			if (block == loop.getStart() || block == loop.getEnd()) {
+			if (block == loop.getStart() || block == loop.getEnd()
+					|| BlockUtils.isEmptySimplePath(loop.getStart(), block)) {
 				found = true;
 			} else if (block.getPredecessors().contains(loop.getStart())) {
 				loopRegion.setPreCondition(loop.getStart());

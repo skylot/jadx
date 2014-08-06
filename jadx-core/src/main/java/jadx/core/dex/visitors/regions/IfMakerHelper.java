@@ -18,9 +18,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static jadx.core.utils.BlockUtils.isPathExists;
 
 public class IfMakerHelper {
+	private static final Logger LOG = LoggerFactory.getLogger(IfMakerHelper.class);
 
 	private IfMakerHelper() {
 	}
@@ -59,10 +63,12 @@ public class IfMakerHelper {
 			} else if (badElse) {
 				info = new IfInfo(info.getCondition(), thenBlock, null);
 				info.setOutBlock(null);
+				LOG.debug("Stop processing blocks after bad 'else' in 'if': {}, method: {}", info, mth);
 			} else {
 				info = IfInfo.invert(info);
 				info = new IfInfo(info.getCondition(), info.getThenBlock(), null);
 				info.setOutBlock(null);
+				LOG.debug("Stop processing blocks after bad 'then' in 'if': {}, method: {}", info, mth);
 			}
 		} else {
 			List<BlockNode> thenSC = thenBlock.getCleanSuccessors();
@@ -93,7 +99,12 @@ public class IfMakerHelper {
 	private static boolean allPathsFromIf(BlockNode block, IfInfo info) {
 		List<BlockNode> preds = block.getPredecessors();
 		Set<BlockNode> ifBlocks = info.getMergedBlocks();
-		return ifBlocks.containsAll(preds);
+		for (BlockNode pred : preds) {
+			if (!ifBlocks.contains(pred) && !pred.contains(AFlag.LOOP_END)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private static boolean sameElements(Collection<BlockNode> c1, Collection<BlockNode> c2) {

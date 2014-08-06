@@ -86,6 +86,11 @@ public class BlockNode extends AttrNode implements IBlock {
 		for (BlockNode b : sucList) {
 			if (b.contains(AType.EXC_HANDLER)) {
 				toRemove.add(b);
+			} else if (b.contains(AFlag.SYNTHETIC)) {
+				List<BlockNode> s = b.getSuccessors();
+				if (s.size() == 1 && s.get(0).contains(AType.EXC_HANDLER)) {
+					toRemove.add(b);
+				}
 			}
 		}
 		if (block.contains(AFlag.LOOP_END)) {
