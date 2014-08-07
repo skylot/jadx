@@ -50,26 +50,16 @@ public class IfMakerHelper {
 		boolean badThen = !allPathsFromIf(thenBlock, info);
 		boolean badElse = !allPathsFromIf(elseBlock, info);
 		if (badThen && badElse) {
+			LOG.debug("Stop processing blocks after 'if': {}, method: {}", info, mth);
 			return null;
 		}
-		if (badThen || badElse) {
-			if (badElse && isPathExists(thenBlock, elseBlock)) {
-				info = new IfInfo(info.getCondition(), thenBlock, null);
-				info.setOutBlock(elseBlock);
-			} else if (badThen && isPathExists(elseBlock, thenBlock)) {
-				info = IfInfo.invert(info);
-				info = new IfInfo(info.getCondition(), info.getThenBlock(), null);
-				info.setOutBlock(thenBlock);
-			} else if (badElse) {
-				info = new IfInfo(info.getCondition(), thenBlock, null);
-				info.setOutBlock(null);
-				LOG.debug("Stop processing blocks after bad 'else' in 'if': {}, method: {}", info, mth);
-			} else {
-				info = IfInfo.invert(info);
-				info = new IfInfo(info.getCondition(), info.getThenBlock(), null);
-				info.setOutBlock(null);
-				LOG.debug("Stop processing blocks after bad 'then' in 'if': {}, method: {}", info, mth);
-			}
+		if (badElse) {
+			info = new IfInfo(info.getCondition(), thenBlock, null);
+			info.setOutBlock(elseBlock);
+		} else if (badThen) {
+			info = IfInfo.invert(info);
+			info = new IfInfo(info.getCondition(), elseBlock, null);
+			info.setOutBlock(thenBlock);
 		} else {
 			List<BlockNode> thenSC = thenBlock.getCleanSuccessors();
 			List<BlockNode> elseSC = elseBlock.getCleanSuccessors();
