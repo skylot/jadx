@@ -47,7 +47,7 @@ public class InstructionRemover {
 		if (toRemove.isEmpty()) {
 			return;
 		}
-		removeAll(insns, toRemove);
+		removeAll(mth, insns, toRemove);
 		toRemove.clear();
 	}
 
@@ -86,7 +86,7 @@ public class InstructionRemover {
 
 	// Don't use 'insns.removeAll(toRemove)' because it will remove instructions by content
 	// and here can be several instructions with same content
-	private void removeAll(List<InsnNode> insns, List<InsnNode> toRemove) {
+	private static void removeAll(MethodNode mth, List<InsnNode> insns, List<InsnNode> toRemove) {
 		for (InsnNode rem : toRemove) {
 			unbindInsn(mth, rem);
 			int insnsCount = insns.size();
@@ -117,6 +117,10 @@ public class InstructionRemover {
 				return;
 			}
 		}
+	}
+
+	public static void removeAll(MethodNode mth, BlockNode block, List<InsnNode> insns) {
+		removeAll(mth, block.getInstructions(), insns);
 	}
 
 	public static void remove(MethodNode mth, BlockNode block, int index) {

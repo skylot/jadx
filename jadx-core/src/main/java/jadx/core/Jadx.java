@@ -57,13 +57,13 @@ public class Jadx {
 			passes.add(new SSATransform());
 			passes.add(new DebugInfoVisitor());
 			passes.add(new TypeInference());
+			if (args.isRawCFGOutput()) {
+				passes.add(new DotGraphVisitor(outDir, false, true));
+			}
 
 			passes.add(new ConstInlinerVisitor());
 			passes.add(new FinishTypeInference());
 			passes.add(new EliminatePhiNodes());
-			if (args.isRawCFGOutput()) {
-				passes.add(new DotGraphVisitor(outDir, false, true));
-			}
 
 			passes.add(new ModVisitor());
 			passes.add(new EnumVisitor());

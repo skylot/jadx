@@ -8,9 +8,11 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.exceptions.JadxException;
 
@@ -24,35 +26,52 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
+		List<InsnNode> toRemove = new ArrayList<InsnNode>();
 		for (BlockNode block : mth.getBasicBlocks()) {
-			InstructionRemover remover = new InstructionRemover(mth, block);
+			toRemove.clear();
 			for (InsnNode insn : block.getInstructions()) {
 				if (checkInsn(mth, block, insn)) {
-					remover.add(insn);
+					toRemove.add(insn);
 				}
 			}
-			remover.perform();
+			if (!toRemove.isEmpty()) {
+				InstructionRemover.removeAll(mth, block, toRemove);
+			}
 		}
 	}
 
 	private static boolean checkInsn(MethodNode mth, BlockNode block, InsnNode insn) {
-		if (insn.getType() == InsnType.CONST) {
-			InsnArg arg = insn.getArg(0);
-			if (arg.isLiteral()) {
-				ArgType resType = insn.getResult().getType();
-				// make sure arg has correct type
-				if (!arg.getType().isTypeKnown()) {
-					arg.merge(resType);
+		if (insn.getType() != InsnType.CONST) {
+			return false;
+		}
+		InsnArg arg = insn.getArg(0);
+		if (!arg.isLiteral()) {
+			return false;
+		}
+		SSAVar sVar = insn.getResult().getSVar();
+		if (mth.getExceptionHandlersCount() != 0) {
+			for (RegisterArg useArg : sVar.getUseList()) {
+				InsnNode parentInsn = useArg.getParentInsn();
+				if (parentInsn != null) {
+					// TODO: speed up expensive operations
+					BlockNode useBlock = BlockUtils.getBlockByInsn(mth, parentInsn);
+					if (!BlockUtils.isCleanPathExists(block, useBlock)) {
+						return false;
+					}
 				}
-				long lit = ((LiteralArg) arg).getLiteral();
-				return replaceConst(mth, insn, lit);
 			}
 		}
-		return false;
+		ArgType resType = insn.getResult().getType();
+		// make sure arg has correct type
+		if (!arg.getType().isTypeKnown()) {
+			arg.merge(resType);
+		}
+		long lit = ((LiteralArg) arg).getLiteral();
+		return replaceConst(mth, sVar, lit);
 	}
 
-	private static boolean replaceConst(MethodNode mth, InsnNode insn, long literal) {
-		List<RegisterArg> use = new ArrayList<RegisterArg>(insn.getResult().getSVar().getUseList());
+	private static boolean replaceConst(MethodNode mth, SSAVar sVar, long literal) {
+		List<RegisterArg> use = new ArrayList<RegisterArg>(sVar.getUseList());
 		int replaceCount = 0;
 		for (RegisterArg arg : use) {
 //			if (arg.getSVar().isUsedInPhi()) {

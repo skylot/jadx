@@ -29,6 +29,7 @@ import static org.junit.Assert.fail;
 public abstract class InternalJadxTest extends TestUtils {
 
 	protected boolean outputCFG = false;
+	protected boolean isFallback = false;
 	protected boolean deleteTmpJar = true;
 
 	protected String outDir = "test-out-tmp";
@@ -75,6 +76,11 @@ public abstract class InternalJadxTest extends TestUtils {
 			@Override
 			public boolean isRawCFGOutput() {
 				return outputCFG;
+			}
+
+			@Override
+			public boolean isFallbackMode() {
+				return isFallback;
 			}
 		}, new File(outDir));
 	}
@@ -134,6 +140,12 @@ public abstract class InternalJadxTest extends TestUtils {
 	@Deprecated
 	protected void setOutputCFG() {
 		this.outputCFG = true;
+	}
+
+	// Use only for debug purpose
+	@Deprecated
+	protected void setFallback() {
+		this.isFallback = true;
 	}
 
 	// Use only for debug purpose

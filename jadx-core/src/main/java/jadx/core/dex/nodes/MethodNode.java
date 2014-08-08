@@ -442,6 +442,10 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		return exceptionHandlers.isEmpty();
 	}
 
+	public int getExceptionHandlersCount() {
+		return exceptionHandlers.size();
+	}
+
 	/**
 	 * Return true if exists method with same name and arguments count
 	 */

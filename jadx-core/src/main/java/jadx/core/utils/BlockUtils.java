@@ -216,6 +216,29 @@ public class BlockUtils {
 		return traverseSuccessorsUntil(start, end, new BitSet());
 	}
 
+	public static boolean isCleanPathExists(BlockNode start, BlockNode end) {
+		if (start == end || start.getCleanSuccessors().contains(end)) {
+			return true;
+		}
+		return traverseCleanSuccessorsUntil(start, end, new BitSet());
+	}
+
+	private static boolean traverseCleanSuccessorsUntil(BlockNode from, BlockNode until, BitSet visited) {
+		for (BlockNode s : from.getCleanSuccessors()) {
+			if (s == until) {
+				return true;
+			}
+			int id = s.getId();
+			if (!visited.get(id) && !s.contains(AType.EXC_HANDLER)) {
+				visited.set(id);
+				if (traverseSuccessorsUntil(s, until, visited)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	public static boolean isOnlyOnePathExists(BlockNode start, BlockNode end) {
 		if (start == end) {
 			return true;
