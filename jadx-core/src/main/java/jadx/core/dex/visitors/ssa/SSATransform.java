@@ -32,17 +32,18 @@ public class SSATransform extends AbstractVisitor {
 		process(mth);
 	}
 
-	private void process(MethodNode mth) {
+	private static void process(MethodNode mth) {
 		LiveVarAnalysis la = new LiveVarAnalysis(mth);
 		la.runAnalysis();
-		for (int i = 0; i < mth.getRegsCount(); i++) {
+		int regsCount = mth.getRegsCount();
+		for (int i = 0; i < regsCount; i++) {
 			placePhi(mth, i, la);
 		}
 		renameVariables(mth);
 		removeUselessPhi(mth);
 	}
 
-	private void placePhi(MethodNode mth, int regNum, LiveVarAnalysis la) {
+	private static void placePhi(MethodNode mth, int regNum, LiveVarAnalysis la) {
 		List<BlockNode> blocks = mth.getBasicBlocks();
 		int blocksCount = blocks.size();
 		BitSet hasPhi = new BitSet(blocksCount);
@@ -71,7 +72,7 @@ public class SSATransform extends AbstractVisitor {
 		}
 	}
 
-	private void addPhi(BlockNode block, int regNum) {
+	private static void addPhi(BlockNode block, int regNum) {
 		PhiListAttr phiList = block.get(AType.PHI_LIST);
 		if (phiList == null) {
 			phiList = new PhiListAttr();
@@ -82,7 +83,7 @@ public class SSATransform extends AbstractVisitor {
 		block.getInstructions().add(0, phiInsn);
 	}
 
-	private void renameVariables(MethodNode mth) {
+	private static void renameVariables(MethodNode mth) {
 		int regsCount = mth.getRegsCount();
 		SSAVar[] vars = new SSAVar[regsCount];
 		int[] versions = new int[regsCount];
@@ -94,7 +95,7 @@ public class SSATransform extends AbstractVisitor {
 		renameVar(mth, vars, versions, mth.getEnterBlock());
 	}
 
-	private void renameVar(MethodNode mth, SSAVar[] vars, int[] vers, BlockNode block) {
+	private static void renameVar(MethodNode mth, SSAVar[] vars, int[] vers, BlockNode block) {
 		SSAVar[] inputVars = Arrays.copyOf(vars, vars.length);
 		for (InsnNode insn : block.getInstructions()) {
 			if (insn.getType() != InsnType.PHI) {
@@ -142,7 +143,7 @@ public class SSATransform extends AbstractVisitor {
 		System.arraycopy(inputVars, 0, vars, 0, vars.length);
 	}
 
-	private void removeUselessPhi(MethodNode mth) {
+	private static void removeUselessPhi(MethodNode mth) {
 		List<PhiInsn> insnToRemove = new ArrayList<PhiInsn>();
 		for (SSAVar var : mth.getSVars()) {
 			// phi result not used
@@ -165,7 +166,7 @@ public class SSATransform extends AbstractVisitor {
 		removePhiList(mth, insnToRemove);
 	}
 
-	private void removePhiWithSameArgs(PhiInsn phi, List<PhiInsn> insnToRemove) {
+	private static void removePhiWithSameArgs(PhiInsn phi, List<PhiInsn> insnToRemove) {
 		if (phi.getArgsCount() <= 1) {
 			insnToRemove.add(phi);
 			return;
@@ -189,7 +190,7 @@ public class SSATransform extends AbstractVisitor {
 		}
 	}
 
-	private void removePhiList(MethodNode mth, List<PhiInsn> insnToRemove) {
+	private static void removePhiList(MethodNode mth, List<PhiInsn> insnToRemove) {
 		if (insnToRemove.isEmpty()) {
 			return;
 		}

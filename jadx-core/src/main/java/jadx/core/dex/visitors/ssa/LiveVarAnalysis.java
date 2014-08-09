@@ -20,7 +20,6 @@ public class LiveVarAnalysis {
 
 	public LiveVarAnalysis(MethodNode mth) {
 		this.mth = mth;
-		runAnalysis();
 	}
 
 	public void runAnalysis() {

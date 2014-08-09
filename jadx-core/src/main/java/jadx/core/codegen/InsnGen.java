@@ -566,7 +566,7 @@ public class InsnGen {
 	private void makeConstructor(ConstructorInsn insn, CodeWriter code)
 			throws CodegenException {
 		ClassNode cls = mth.dex().resolveClass(insn.getClassType());
-		if (cls != null && cls.isAnonymous()) {
+		if (cls != null && cls.isAnonymous() && !fallback) {
 			// anonymous class construction
 			ClassInfo parent;
 			if (cls.getInterfaces().size() == 1) {
