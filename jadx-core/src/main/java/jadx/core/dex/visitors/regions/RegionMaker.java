@@ -598,6 +598,12 @@ public class RegionMaker {
 
 		RegionStack stack = new RegionStack(mth);
 		stack.addExits(exits);
+
+		BlockNode exit = BlockUtils.traverseWhileDominates(start, start);
+		if (exit != null && RegionUtils.isRegionContainsBlock(mth.getRegion(), exit)) {
+			stack.addExit(exit);
+		}
+
 		handler.setHandlerRegion(makeRegion(start, stack));
 
 		ExcHandlerAttr excHandlerAttr = start.get(AType.EXC_HANDLER);

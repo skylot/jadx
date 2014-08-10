@@ -42,9 +42,8 @@ public class RegionMakerVisitor extends AbstractVisitor {
 
 	private static void postProcessRegions(MethodNode mth) {
 		// make try-catch regions
-		if (!mth.isNoExceptionHandlers()) {
-			DepthRegionTraversal.traverse(mth, new ProcessTryCatchRegions(mth));
-		}
+		ProcessTryCatchRegions.process(mth);
+
 		// merge conditions in loops
 		if (mth.getLoopsCount() != 0) {
 			DepthRegionTraversal.traverseAll(mth, new AbstractRegionVisitor() {

@@ -11,7 +11,9 @@ import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.JadxException;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -47,6 +49,7 @@ public class CheckRegions extends AbstractVisitor {
 					// TODO
 					// mth.add(AFlag.INCONSISTENT_CODE);
 					LOG.debug(" Duplicated block: {} in {}", block, mth);
+					// printRegionsWithBlock(mth, block);
 				}
 			}
 		});
@@ -74,5 +77,18 @@ public class CheckRegions extends AbstractVisitor {
 				}
 			}
 		});
+	}
+
+	private static void printRegionsWithBlock(MethodNode mth, final BlockNode block) {
+		final List<IRegion> regions = new ArrayList<IRegion>();
+		DepthRegionTraversal.traverseAll(mth, new TracedRegionVisitor() {
+			@Override
+			public void processBlockTraced(MethodNode mth, IBlock container, IRegion currentRegion) {
+				if (block.equals(container)) {
+					regions.add(currentRegion);
+				}
+			}
+		});
+		LOG.debug(" Found block: {} in regions: {}", block, regions);
 	}
 }

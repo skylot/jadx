@@ -12,12 +12,12 @@ public abstract class TracedRegionVisitor implements IRegionVisitor {
 	protected final Deque<IRegion> regionStack = new ArrayDeque<IRegion>();
 
 	@Override
-	public void enterRegion(MethodNode mth, IRegion region) {
+	public final void enterRegion(MethodNode mth, IRegion region) {
 		regionStack.push(region);
 	}
 
 	@Override
-	public void processBlock(MethodNode mth, IBlock container) {
+	public final void processBlock(MethodNode mth, IBlock container) {
 		IRegion curRegion = regionStack.peek();
 		processBlockTraced(mth, container, curRegion);
 	}
@@ -25,7 +25,7 @@ public abstract class TracedRegionVisitor implements IRegionVisitor {
 	public abstract void processBlockTraced(MethodNode mth, IBlock container, IRegion currentRegion);
 
 	@Override
-	public void leaveRegion(MethodNode mth, IRegion region) {
+	public final void leaveRegion(MethodNode mth, IRegion region) {
 		regionStack.pop();
 	}
 }
