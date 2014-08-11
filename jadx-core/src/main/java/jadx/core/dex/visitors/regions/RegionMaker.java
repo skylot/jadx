@@ -213,7 +213,21 @@ public class RegionMaker {
 			}
 			stack.addExit(out);
 			BlockNode loopBody = condInfo.getThenBlock();
-			loopRegion.setBody(makeRegion(loopBody, stack));
+			Region body = makeRegion(loopBody, stack);
+			// add blocks from loop start to first condition block
+			BlockNode conditionBlock = condInfo.getIfBlock();
+			if (loopStart != conditionBlock) {
+				Set<BlockNode> blocks = BlockUtils.getAllPathsBlocks(loopStart, conditionBlock);
+				blocks.remove(conditionBlock);
+				for (BlockNode block : blocks) {
+					if (block.getInstructions().isEmpty()
+							&& !block.contains(AFlag.SKIP)
+							&& !RegionUtils.isRegionContainsBlock(body, block)) {
+						body.add(block);
+					}
+				}
+			}
+			loopRegion.setBody(body);
 		}
 		stack.pop();
 		return out;
@@ -569,7 +583,7 @@ public class RegionMaker {
 			Set<BlockNode> exits = new HashSet<BlockNode>();
 			for (BlockNode splitter : splitters) {
 				for (BlockNode handler : blocks) {
-					List<BlockNode> s = splitter.getCleanSuccessors();
+					List<BlockNode> s = splitter.getSuccessors();
 					if (s.isEmpty()) {
 						LOG.debug(ErrorsCounter.formatErrorMsg(mth, "No successors for splitter: " + splitter));
 						continue;
