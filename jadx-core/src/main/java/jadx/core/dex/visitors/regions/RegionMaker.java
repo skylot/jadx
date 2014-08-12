@@ -199,9 +199,11 @@ public class RegionMaker {
 			BlockNode thenBlock = condInfo.getThenBlock();
 			out = (thenBlock == loopStart ? condInfo.getElseBlock() : thenBlock);
 			loopStart.remove(AType.LOOP);
+			loop.getEnd().add(AFlag.SKIP);
 			stack.addExit(loop.getEnd());
 			loopRegion.setBody(makeRegion(loopStart, stack));
 			loopStart.addAttr(AType.LOOP, loop);
+			loop.getEnd().remove(AFlag.SKIP);
 		} else {
 			out = condInfo.getElseBlock();
 			if (outerRegion != null
