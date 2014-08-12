@@ -13,22 +13,22 @@ import com.android.dex.Leb128;
 
 public class EncValueParser {
 
-	public static final int ENCODED_BYTE = 0x00;
-	public static final int ENCODED_SHORT = 0x02;
-	public static final int ENCODED_CHAR = 0x03;
-	public static final int ENCODED_INT = 0x04;
-	public static final int ENCODED_LONG = 0x06;
-	public static final int ENCODED_FLOAT = 0x10;
-	public static final int ENCODED_DOUBLE = 0x11;
-	public static final int ENCODED_STRING = 0x17;
-	public static final int ENCODED_TYPE = 0x18;
-	public static final int ENCODED_FIELD = 0x19;
-	public static final int ENCODED_ENUM = 0x1b;
-	public static final int ENCODED_METHOD = 0x1a;
-	public static final int ENCODED_ARRAY = 0x1c;
-	public static final int ENCODED_ANNOTATION = 0x1d;
-	public static final int ENCODED_NULL = 0x1e;
-	public static final int ENCODED_BOOLEAN = 0x1f;
+	private static final int ENCODED_BYTE = 0x00;
+	private static final int ENCODED_SHORT = 0x02;
+	private static final int ENCODED_CHAR = 0x03;
+	private static final int ENCODED_INT = 0x04;
+	private static final int ENCODED_LONG = 0x06;
+	private static final int ENCODED_FLOAT = 0x10;
+	private static final int ENCODED_DOUBLE = 0x11;
+	private static final int ENCODED_STRING = 0x17;
+	private static final int ENCODED_TYPE = 0x18;
+	private static final int ENCODED_FIELD = 0x19;
+	private static final int ENCODED_ENUM = 0x1b;
+	private static final int ENCODED_METHOD = 0x1a;
+	private static final int ENCODED_ARRAY = 0x1c;
+	private static final int ENCODED_ANNOTATION = 0x1d;
+	private static final int ENCODED_NULL = 0x1e;
+	private static final int ENCODED_BOOLEAN = 0x1f;
 
 	protected final Section in;
 
