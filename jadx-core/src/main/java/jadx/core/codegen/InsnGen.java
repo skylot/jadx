@@ -496,7 +496,7 @@ public class InsnGen {
 		useType(code, insn.getResult().getType());
 		code.add('{');
 		for (int i = 0; i < c; i++) {
-			addArg(code, insn.getArg(i));
+			addArg(code, insn.getArg(i), false);
 			if (i + 1 < c) {
 				code.add(", ");
 			}

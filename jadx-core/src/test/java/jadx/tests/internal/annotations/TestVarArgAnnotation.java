@@ -39,7 +39,7 @@ public class TestVarArgAnnotation extends InternalJadxTest {
 
 		// TODO:
 		assertThat(code, containsString("test1(new int[]{1, 2});"));
-		assertThat(code, containsString("test2(3, objArr);"));
+		assertThat(code, containsString("test2(3, new Object[]{\"1\", Integer.valueOf(7)});"));
 
 		// negative case
 		assertThat(code, containsString("void test3(int[] a) {"));

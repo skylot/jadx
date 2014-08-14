@@ -14,6 +14,7 @@ import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.MethodInlineVisitor;
 import jadx.core.dex.visitors.ModVisitor;
 import jadx.core.dex.visitors.PrepareForCodeGen;
+import jadx.core.dex.visitors.ReSugarCode;
 import jadx.core.dex.visitors.SimplifyVisitor;
 import jadx.core.dex.visitors.regions.CheckRegions;
 import jadx.core.dex.visitors.regions.IfRegionVisitor;
@@ -69,6 +70,7 @@ public class Jadx {
 			passes.add(new EnumVisitor());
 
 			passes.add(new CodeShrinker());
+			passes.add(new ReSugarCode());
 			if (args.isCFGOutput()) {
 				passes.add(new DotGraphVisitor(outDir, false));
 			}

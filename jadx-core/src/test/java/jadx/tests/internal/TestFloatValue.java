@@ -25,7 +25,7 @@ public class TestFloatValue extends InternalJadxTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, not(containsString("1073741824")));
-		assertThat(code, containsString("0.55f;"));
+		assertThat(code, containsString("0.55f"));
 		assertThat(code, containsString("fa[0] = fa[0] / 2.0f;"));
 	}
 }

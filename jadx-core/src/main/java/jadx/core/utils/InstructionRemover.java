@@ -26,17 +26,23 @@ public class InstructionRemover {
 	private static final Logger LOG = LoggerFactory.getLogger(InstructionRemover.class);
 
 	private final MethodNode mth;
-	private final List<InsnNode> insns;
 	private final List<InsnNode> toRemove;
+	private List<InsnNode> instrList;
 
-	public InstructionRemover(MethodNode mth, BlockNode block) {
-		this(mth, block.getInstructions());
+	public InstructionRemover(MethodNode mth) {
+		this(mth, null);
 	}
 
-	public InstructionRemover(MethodNode mth, List<InsnNode> instructions) {
+	public InstructionRemover(MethodNode mth, BlockNode block) {
 		this.mth = mth;
-		this.insns = instructions;
 		this.toRemove = new ArrayList<InsnNode>();
+		if (block != null) {
+			this.instrList = block.getInstructions();
+		}
+	}
+
+	public void setBlock(BlockNode block) {
+		this.instrList = block.getInstructions();
 	}
 
 	public void add(InsnNode insn) {
@@ -47,7 +53,7 @@ public class InstructionRemover {
 		if (toRemove.isEmpty()) {
 			return;
 		}
-		removeAll(mth, insns, toRemove);
+		removeAll(mth, instrList, toRemove);
 		toRemove.clear();
 	}
 
@@ -84,7 +90,7 @@ public class InstructionRemover {
 		}
 	}
 
-	// Don't use 'insns.removeAll(toRemove)' because it will remove instructions by content
+	// Don't use 'instrList.removeAll(toRemove)' because it will remove instructions by content
 	// and here can be several instructions with same content
 	private static void removeAll(MethodNode mth, List<InsnNode> insns, List<InsnNode> toRemove) {
 		for (InsnNode rem : toRemove) {
