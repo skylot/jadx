@@ -1,5 +1,6 @@
 package jadx.core.dex.visitors.regions;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
@@ -44,7 +45,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 			DepthRegionTraversal.traverseAll(mth, new AbstractRegionVisitor() {
 				@Override
 				public void leaveRegion(MethodNode mth, IRegion region) {
-					checkAndWrap(tryBlocksMap, region);
+					checkAndWrap(mth, tryBlocksMap, region);
 				}
 			});
 			if (k++ > 100) {
@@ -98,13 +99,16 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 		}
 	}
 
-	private static void checkAndWrap(Map<BlockNode, TryCatchBlock> tryBlocksMap, IRegion region) {
+	private static void checkAndWrap(MethodNode mth, Map<BlockNode, TryCatchBlock> tryBlocksMap, IRegion region) {
 		// search dominator blocks in this region (don't need to go deeper)
 		for (Map.Entry<BlockNode, TryCatchBlock> entry : tryBlocksMap.entrySet()) {
 			BlockNode dominator = entry.getKey();
 			if (region.getSubBlocks().contains(dominator)) {
 				TryCatchBlock tb = tryBlocksMap.get(dominator);
-				wrapBlocks(region, tb, dominator);
+				if (!wrapBlocks(region, tb, dominator)) {
+					LOG.warn("Can't wrap try/catch for {}, method: {}", dominator, mth);
+					mth.add(AFlag.INCONSISTENT_CODE);
+				}
 				tryBlocksMap.remove(dominator);
 				return;
 			}
@@ -114,9 +118,10 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 	/**
 	 * Extract all block dominated by 'dominator' to separate region and mark as try/catch block
 	 */
-	private static void wrapBlocks(IRegion region, TryCatchBlock tb, BlockNode dominator) {
+	private static boolean wrapBlocks(IRegion region, TryCatchBlock tb, BlockNode dominator) {
 		Region newRegion = new Region(region);
-		for (IContainer cont : region.getSubBlocks()) {
+		List<IContainer> subBlocks = region.getSubBlocks();
+		for (IContainer cont : subBlocks) {
 			if (RegionUtils.isDominatedBy(dominator, cont)) {
 				if (isHandlerPath(tb, cont)) {
 					break;
@@ -125,13 +130,14 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 			}
 		}
 		if (newRegion.getSubBlocks().isEmpty()) {
-			return;
+			return false;
 		}
 		// replace first node by region
 		IContainer firstNode = newRegion.getSubBlocks().get(0);
-		int i = region.getSubBlocks().indexOf(firstNode);
-		region.getSubBlocks().set(i, newRegion);
-		region.getSubBlocks().removeAll(newRegion.getSubBlocks());
+		if (!region.replaceSubBlock(firstNode, newRegion)) {
+			return false;
+		}
+		subBlocks.removeAll(newRegion.getSubBlocks());
 
 		newRegion.addAttr(tb.getCatchAttr());
 
@@ -142,6 +148,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 				aReg.setParent(newRegion);
 			}
 		}
+		return true;
 	}
 
 	private static boolean isHandlerPath(TryCatchBlock tb, IContainer cont) {

@@ -102,6 +102,19 @@ public final class IfRegion extends AbstractRegion {
 	}
 
 	@Override
+	public boolean replaceSubBlock(IContainer oldBlock, IContainer newBlock) {
+		if (oldBlock == thenRegion) {
+			thenRegion = newBlock;
+			return true;
+		}
+		if (oldBlock == elseRegion) {
+			elseRegion = newBlock;
+			return true;
+		}
+		return false;
+	}
+
+	@Override
 	public String baseString() {
 		if (ternRegion != null) {
 			return ternRegion.baseString();
