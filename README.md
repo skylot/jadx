@@ -38,7 +38,7 @@ Run **jadx** on itself:
 
 ### Usage
 ```
-jadx[-gui] [options] <input file> (.dex, .apk or .jar)
+jadx[-gui] [options] <input file> (.dex, .apk, .jar or .class)
 options:
  -d, --output-dir    - output directory
  -j, --threads-count - processing threads count
@@ -51,6 +51,16 @@ Example:
  jadx -d out classes.dex
 ```
 
+### Troubleshooting
+##### Out of memory error:
+  - Reduce processing threads count (`-j` option) 
+  - Increase maximum java heap size:
+    * command line (example for linux): 
+      `JAVA_OPTS="-Xmx4G" jadx -j 1 some.apk`
+    * edit 'jadx' script (jadx.bat on Windows) and setup bigger heap size:
+      `DEFAULT_JVM_OPTS="-Xmx2500M"`
+
+---------------------------------------
 *Licensed under the Apache 2.0 License*
 
 *Copyright 2014 by Skylot*

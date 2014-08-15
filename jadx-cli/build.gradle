@@ -9,16 +9,6 @@ dependencies {
     compile 'ch.qos.logback:logback-classic:1.1.2'
 }
 
-startScripts {
-    doLast {
-        // increase default max heap size
-        String var = 'DEFAULT_JVM_OPTS='
-        String args = '-Xmx1300M'
-        unixScript.text = unixScript.text.replace(var + '""', var + '"' + args + '"')
-        windowsScript.text = windowsScript.text.replace(var, var + args)
-    }
-}
-
 applicationDistribution.with {
     into('') {
         from '../.'
