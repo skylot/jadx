@@ -196,10 +196,7 @@ public class InsnGen {
 				state.add(flag);
 				makeInsnBody(code, insn, state);
 			} else {
-				code.startLine();
-				if (insn.getSourceLine() != 0) {
-					code.attachSourceLine(insn.getSourceLine());
-				}
+				code.startLineWithNum(insn.getSourceLine());
 				if (insn.getResult() != null && insn.getType() != InsnType.ARITH_ONEARG) {
 					assignVar(code, insn);
 					code.add(" = ");
@@ -304,7 +301,7 @@ public class InsnGen {
 				addArg(code, insn.getArg(0));
 				code.add(" == ");
 				addArg(code, insn.getArg(1));
-				code.add("? 0 : -1))");
+				code.add(" ? 0 : -1))");
 				break;
 
 			case INSTANCE_OF: {

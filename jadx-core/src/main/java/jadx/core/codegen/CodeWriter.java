@@ -22,6 +22,8 @@ public class CodeWriter {
 	public static final String NL = System.getProperty("line.separator");
 	public static final String INDENT = "    ";
 
+	private static final boolean ADD_LINE_NUMBERS = false;
+
 	private static final String[] INDENT_CACHE = {
 			"",
 			INDENT,
@@ -43,6 +45,9 @@ public class CodeWriter {
 	public CodeWriter() {
 		this.indent = 0;
 		this.indentStr = "";
+		if (ADD_LINE_NUMBERS) {
+			incIndent(2);
+		}
 	}
 
 	public CodeWriter startLine() {
@@ -62,6 +67,26 @@ public class CodeWriter {
 		addLine();
 		addLineIndent();
 		add(str);
+		return this;
+	}
+
+	public CodeWriter startLineWithNum(int sourceLine) {
+		if (sourceLine == 0) {
+			startLine();
+			return this;
+		}
+		if (ADD_LINE_NUMBERS) {
+			newLine();
+			attachSourceLine(sourceLine);
+			String ln = "/* " + sourceLine + " */ ";
+			add(ln);
+			if (indentStr.length() > ln.length()) {
+				add(indentStr.substring(ln.length()));
+			}
+		} else {
+			startLine();
+			attachSourceLine(sourceLine);
+		}
 		return this;
 	}
 

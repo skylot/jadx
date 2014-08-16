@@ -101,14 +101,11 @@ public class RegionGen extends InsnGen {
 	}
 
 	private void makeIf(IfRegion region, CodeWriter code, boolean newLine) throws CodegenException {
-		if (region.getTernRegion() != null) {
-			makeSimpleBlock(region.getTernRegion().getBlock(), code);
-			return;
-		}
 		if (newLine) {
-			code.startLine();
+			code.startLineWithNum(region.getSourceLine());
+		} else {
+			code.attachSourceLine(region.getSourceLine());
 		}
-		code.attachSourceLine(region.getSourceLine());
 		code.add("if (");
 		new ConditionGen(this).add(code, region.getCondition());
 		code.add(") {");

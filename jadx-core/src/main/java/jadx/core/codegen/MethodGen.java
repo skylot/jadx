@@ -78,8 +78,8 @@ public class MethodGen {
 		if (clsAccFlags.isAnnotation()) {
 			ai = ai.remove(AccessFlags.ACC_PUBLIC);
 		}
-		code.startLine(ai.makeString());
-		code.attachSourceLine(mth.getSourceLine());
+		code.startLineWithNum(mth.getSourceLine());
+		code.add(ai.makeString());
 
 		if (classGen.addGenericMap(code, mth.getGenericMap())) {
 			code.add(' ');
