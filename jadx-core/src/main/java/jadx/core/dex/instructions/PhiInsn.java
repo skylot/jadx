@@ -21,6 +21,14 @@ public class PhiInsn extends InsnNode {
 		return (RegisterArg) super.getArg(n);
 	}
 
+	public boolean removeArg(RegisterArg arg) {
+		boolean isRemoved = super.removeArg(arg);
+		if (isRemoved) {
+			arg.getSVar().setUsedInPhi(null);
+		}
+		return isRemoved;
+	}
+
 	@Override
 	public String toString() {
 		return "PHI: " + getResult() + " = " + Utils.listToString(getArguments());

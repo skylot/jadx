@@ -15,9 +15,11 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
+import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.regions.IfCondition;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,6 +64,9 @@ public class SimplifyVisitor extends AbstractVisitor {
 			case IF:
 				simplifyIf((IfNode) insn);
 				break;
+			case TERNARY:
+				simplifyTernary((TernaryInsn)insn);
+				break;
 
 			case INVOKE:
 				return convertInvoke(mth, insn);
@@ -102,6 +107,16 @@ public class SimplifyVisitor extends AbstractVisitor {
 					LOG.warn("TODO: cmp" + insn);
 				}
 			}
+		}
+	}
+
+	/**
+	 * Simplify condition in ternary operation
+	 */
+	private static void simplifyTernary(TernaryInsn insn) {
+		IfCondition condition = insn.getCondition();
+		if (condition.isCompare()) {
+			simplifyIf(condition.getCompare().getInsn());
 		}
 	}
 

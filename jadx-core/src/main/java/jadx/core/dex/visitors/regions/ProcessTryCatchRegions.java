@@ -106,7 +106,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 			if (region.getSubBlocks().contains(dominator)) {
 				TryCatchBlock tb = tryBlocksMap.get(dominator);
 				if (!wrapBlocks(region, tb, dominator)) {
-					LOG.warn("Can't wrap try/catch for {}, method: {}", dominator, mth);
+					LOG.warn("Can't wrap try/catch for {}, method: {}", region, mth);
 					mth.add(AFlag.INCONSISTENT_CODE);
 				}
 				tryBlocksMap.remove(dominator);

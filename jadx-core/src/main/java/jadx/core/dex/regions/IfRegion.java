@@ -16,8 +16,6 @@ public final class IfRegion extends AbstractRegion {
 	private IContainer thenRegion;
 	private IContainer elseRegion;
 
-	private TernaryRegion ternRegion;
-
 	public IfRegion(IRegion parent, BlockNode header) {
 		super(parent);
 		assert header.getInstructions().size() == 1;
@@ -53,14 +51,6 @@ public final class IfRegion extends AbstractRegion {
 		return header;
 	}
 
-	public void setTernRegion(TernaryRegion ternRegion) {
-		this.ternRegion = ternRegion;
-	}
-
-	public TernaryRegion getTernRegion() {
-		return ternRegion;
-	}
-
 	public boolean simplifyCondition() {
 		IfCondition cond = IfCondition.simplify(condition);
 		if (cond != condition) {
@@ -87,9 +77,6 @@ public final class IfRegion extends AbstractRegion {
 
 	@Override
 	public List<IContainer> getSubBlocks() {
-		if (ternRegion != null) {
-			return ternRegion.getSubBlocks();
-		}
 		ArrayList<IContainer> all = new ArrayList<IContainer>(3);
 		all.add(header);
 		if (thenRegion != null) {
@@ -116,9 +103,6 @@ public final class IfRegion extends AbstractRegion {
 
 	@Override
 	public String baseString() {
-		if (ternRegion != null) {
-			return ternRegion.baseString();
-		}
 		StringBuilder sb = new StringBuilder();
 		if (thenRegion != null) {
 			sb.append(thenRegion.baseString());
@@ -131,9 +115,6 @@ public final class IfRegion extends AbstractRegion {
 
 	@Override
 	public String toString() {
-		if (ternRegion != null) {
-			return ternRegion.toString();
-		}
 		return "IF(" + condition + ") then " + thenRegion + " else " + elseRegion;
 	}
 }

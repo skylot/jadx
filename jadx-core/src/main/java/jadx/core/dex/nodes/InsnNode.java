@@ -101,6 +101,17 @@ public class InsnNode extends LineAttrNode {
 		return false;
 	}
 
+	protected boolean removeArg(InsnArg arg) {
+		int count = getArgsCount();
+		for (int i = 0; i < count; i++) {
+			if (arg == arguments.get(i)) {
+				arguments.remove(i);
+				return true;
+			}
+		}
+		return false;
+	}
+
 	protected void addReg(DecodedInstruction insn, int i, ArgType type) {
 		addArg(InsnArg.reg(insn, i, type));
 	}

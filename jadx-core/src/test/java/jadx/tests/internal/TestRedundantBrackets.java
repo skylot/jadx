@@ -52,8 +52,8 @@ public class TestRedundantBrackets extends InternalJadxTest {
 		assertThat(code, not(containsString("return;")));
 
 		assertThat(code, containsString("return obj instanceof String ? ((String) obj).length() : 0;"));
-		assertThat(code, containsString("if (a + b < 10)"));
-//		assertThat(code, containsString("if ((a & b) != 0)"));
+		assertThat(code, containsString("a + b < 10"));
+		assertThat(code, containsString("(a & b) != 0"));
 		assertThat(code, containsString("if (num == 4 || num == 6 || num == 8 || num == 10)"));
 
 		assertThat(code, containsString("a[1] = n * 2;"));

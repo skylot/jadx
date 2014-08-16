@@ -50,7 +50,7 @@ public class IfMakerHelper {
 		boolean badThen = !allPathsFromIf(thenBlock, info);
 		boolean badElse = !allPathsFromIf(elseBlock, info);
 		if (badThen && badElse) {
-			LOG.debug("Stop processing blocks after 'if': {}, method: {}", info, mth);
+			LOG.debug("Stop processing blocks after 'if': {}, method: {}", info.getIfBlock(), mth);
 			return null;
 		}
 		if (badElse) {

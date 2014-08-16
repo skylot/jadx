@@ -21,6 +21,16 @@ public class IfRegionVisitor extends AbstractVisitor implements IRegionVisitor, 
 
 	@Override
 	public void visit(MethodNode mth) {
+		// collapse ternary operators
+		DepthRegionTraversal.traverseAllIterative(mth, new IRegionIterativeVisitor() {
+			@Override
+			public boolean visitRegion(MethodNode mth, IRegion region) {
+				if (region instanceof IfRegion) {
+					return TernaryMod.makeTernaryInsn(mth, (IfRegion) region);
+				}
+				return false;
+			}
+		});
 		DepthRegionTraversal.traverseAll(mth, this);
 		DepthRegionTraversal.traverseAllIterative(mth, this);
 	}
@@ -53,8 +63,6 @@ public class IfRegionVisitor extends AbstractVisitor implements IRegionVisitor, 
 		moveReturnToThenBlock(mth, ifRegion);
 		moveBreakToThenBlock(ifRegion);
 		markElseIfChains(ifRegion);
-
-		TernaryMod.makeTernaryInsn(mth, ifRegion);
 	}
 
 	private static void simplifyIfCondition(IfRegion ifRegion) {
