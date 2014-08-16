@@ -30,14 +30,26 @@ public class DotGraphVisitor extends AbstractVisitor {
 	private final boolean useRegions;
 	private final boolean rawInsn;
 
-	public DotGraphVisitor(File outDir, boolean useRegions, boolean rawInsn) {
+	public static DotGraphVisitor dump(File outDir) {
+		return new DotGraphVisitor(outDir, false, false);
+	}
+
+	public static DotGraphVisitor dumpRaw(File outDir) {
+		return new DotGraphVisitor(outDir, false, true);
+	}
+
+	public static DotGraphVisitor dumpRegions(File outDir) {
+		return new DotGraphVisitor(outDir, true, false);
+	}
+
+	public static DotGraphVisitor dumpRawRegions(File outDir) {
+		return new DotGraphVisitor(outDir, true, true);
+	}
+
+	private DotGraphVisitor(File outDir, boolean useRegions, boolean rawInsn) {
 		this.dir = outDir;
 		this.useRegions = useRegions;
 		this.rawInsn = rawInsn;
-	}
-
-	public DotGraphVisitor(File outDir, boolean useRegions) {
-		this(outDir, useRegions, false);
 	}
 
 	@Override

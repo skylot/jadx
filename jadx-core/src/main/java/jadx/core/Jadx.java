@@ -59,7 +59,7 @@ public class Jadx {
 			passes.add(new DebugInfoVisitor());
 			passes.add(new TypeInference());
 			if (args.isRawCFGOutput()) {
-				passes.add(new DotGraphVisitor(outDir, false, true));
+				passes.add(DotGraphVisitor.dumpRaw(outDir));
 			}
 
 			passes.add(new ConstInlinerVisitor());
@@ -72,7 +72,7 @@ public class Jadx {
 			passes.add(new CodeShrinker());
 			passes.add(new ReSugarCode());
 			if (args.isCFGOutput()) {
-				passes.add(new DotGraphVisitor(outDir, false));
+				passes.add(DotGraphVisitor.dump(outDir));
 			}
 
 			passes.add(new RegionMakerVisitor());
@@ -85,7 +85,7 @@ public class Jadx {
 			passes.add(new CheckRegions());
 
 			if (args.isCFGOutput()) {
-				passes.add(new DotGraphVisitor(outDir, true));
+				passes.add(DotGraphVisitor.dumpRegions(outDir));
 			}
 
 			passes.add(new MethodInlineVisitor());
