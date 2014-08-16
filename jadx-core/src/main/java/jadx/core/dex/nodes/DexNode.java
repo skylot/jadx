@@ -31,16 +31,12 @@ public class DexNode {
 	private final RootNode root;
 	private final Dex dexBuf;
 	private final List<ClassNode> classes = new ArrayList<ClassNode>();
-	private final String[] strings;
 
 	private final Map<Object, FieldNode> constFields = new HashMap<Object, FieldNode>();
 
 	public DexNode(RootNode root, InputFile input) {
 		this.root = root;
 		this.dexBuf = input.getDexBuffer();
-
-		List<String> stringList = dexBuf.strings();
-		this.strings = stringList.toArray(new String[stringList.size()]);
 	}
 
 	public void loadClasses() throws DecodeException {
@@ -80,7 +76,7 @@ public class DexNode {
 	// DexBuffer wrappers
 
 	public String getString(int index) {
-		return strings[index];
+		return dexBuf.strings().get(index);
 	}
 
 	public ArgType getType(int index) {
