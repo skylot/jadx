@@ -4,6 +4,7 @@ import jadx.gui.JadxWrapper;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JRoot;
+import jadx.gui.utils.JadxPreferences;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Position;
 import jadx.gui.utils.Utils;
@@ -79,6 +80,10 @@ public class MainWindow extends JFrame {
 	private JRoot treeRoot;
 	private TabbedPane tabbedPane;
 
+	private JCheckBoxMenuItem flatPkgMenuItem;
+	private JToggleButton flatPkgButton;
+	private boolean isFlattenPackage;
+
 	public MainWindow(JadxWrapper wrapper) {
 		this.wrapper = wrapper;
 
@@ -91,8 +96,16 @@ public class MainWindow extends JFrame {
 		fileChooser.setAcceptAllFileFilterUsed(true);
 		fileChooser.setFileFilter(new FileNameExtensionFilter("supported files", "dex", "apk", "jar"));
 		fileChooser.setToolTipText(NLS.str("file.open"));
+		
+		String currentDirectory = JadxPreferences.getLastOpenFilePath();
+		if (!currentDirectory.isEmpty()) {
+			fileChooser.setCurrentDirectory(new File(currentDirectory));
+		}
+
 		int ret = fileChooser.showDialog(mainPanel, NLS.str("file.open"));
 		if (ret == JFileChooser.APPROVE_OPTION) {
+			JadxPreferences.putLastOpenFilePath(fileChooser.getCurrentDirectory().getPath());
+			
 			openFile(fileChooser.getSelectedFile());
 		}
 	}
@@ -107,9 +120,16 @@ public class MainWindow extends JFrame {
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		fileChooser.setToolTipText(NLS.str("file.save_all_msg"));
+
+		String currentDirectory = JadxPreferences.getLastSaveFilePath();
+		if (!currentDirectory.isEmpty()) {
+			fileChooser.setCurrentDirectory(new File(currentDirectory));
+		}
+		
 		int ret = fileChooser.showDialog(mainPanel, NLS.str("file.select"));
 		if (ret == JFileChooser.APPROVE_OPTION) {
-
+			JadxPreferences.putLastSaveFilePath(fileChooser.getCurrentDirectory().getPath());
+			
 			ProgressMonitor progressMonitor = new ProgressMonitor(mainPanel, "Saving sources", "", 0, 100);
 			progressMonitor.setMillisToPopup(500);
 			wrapper.saveAll(fileChooser.getSelectedFile(), progressMonitor);
@@ -118,19 +138,27 @@ public class MainWindow extends JFrame {
 
 	private void initTree() {
 		treeRoot = new JRoot(wrapper);
+		treeRoot.setFlatPackages(isFlattenPackage);
 		treeModel.setRoot(treeRoot);
 		treeModel.reload();
 		tree.expandRow(0);
 	}
 
-	private void toggleFlattenPackage(JToggleButton btn, JCheckBoxMenuItem menuItem) {
+	private void toggleFlattenPackage() {
+		setFlattenPackage(!isFlattenPackage);
+	}
+
+	private void setFlattenPackage(boolean value) {
+		isFlattenPackage = value;
+		JadxPreferences.putFlattenPackage(isFlattenPackage);
+
+		flatPkgButton.setSelected(isFlattenPackage);
+		flatPkgMenuItem.setState(isFlattenPackage);
+
 		Object root = treeModel.getRoot();
 		if (root instanceof JRoot) {
 			JRoot treeRoot = (JRoot) root;
-			boolean flatPkg = !treeRoot.isFlatPackages();
-			btn.setSelected(flatPkg);
-			menuItem.setState(flatPkg);
-			treeRoot.setFlatPackages(flatPkg);
+			treeRoot.setFlatPackages(isFlattenPackage);
 			treeModel.reload();
 			tree.expandRow(0);
 		}
@@ -212,8 +240,11 @@ public class MainWindow extends JFrame {
 		JMenu view = new JMenu(NLS.str("menu.view"));
 		view.setMnemonic(KeyEvent.VK_V);
 
-		final JCheckBoxMenuItem flatPkgMenuItem = new JCheckBoxMenuItem(NLS.str("menu.flatten"), ICON_FLAT_PKG);
+		isFlattenPackage = JadxPreferences.getFlattenPackage();
+
+		flatPkgMenuItem = new JCheckBoxMenuItem(NLS.str("menu.flatten"), ICON_FLAT_PKG);
 		view.add(flatPkgMenuItem);
+		flatPkgMenuItem.setState(isFlattenPackage);
 
 		JMenuItem syncItem = new JMenuItem(NLS.str("menu.sync"), ICON_SYNC);
 		view.add(syncItem);
@@ -300,11 +331,12 @@ public class MainWindow extends JFrame {
 		syncButton.setToolTipText(NLS.str("menu.sync"));
 		toolbar.add(syncButton);
 
-		final JToggleButton flatPkgButton = new JToggleButton(ICON_FLAT_PKG);
+		flatPkgButton = new JToggleButton(ICON_FLAT_PKG);
+		flatPkgButton.setSelected(isFlattenPackage);
 		ActionListener flatPkgAction = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				toggleFlattenPackage(flatPkgButton, flatPkgMenuItem);
+				toggleFlattenPackage();
 			}
 		};
 		flatPkgButton.addActionListener(flatPkgAction);
