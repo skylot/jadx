@@ -339,12 +339,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 	}
 
 	public String getName() {
-		String name = mthInfo.getName();
-		if (name.equals(parentClass.getShortName())) {
-			return name + "_";
-		} else {
-			return name;
-		}
+		return mthInfo.getName();
 	}
 
 	public ClassNode getParentClass() {
