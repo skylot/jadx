@@ -11,7 +11,11 @@ import jadx.core.utils.Utils;
 
 public class TernaryInsn extends InsnNode {
 
-	private final IfCondition condition;
+	private IfCondition condition;
+
+	public TernaryInsn(IfCondition condition, RegisterArg result) {
+		this(condition, result, LiteralArg.TRUE, LiteralArg.FALSE);
+	}
 
 	public TernaryInsn(IfCondition condition, RegisterArg result, InsnArg th, InsnArg els) {
 		super(InsnType.TERNARY, 2);
@@ -31,6 +35,20 @@ public class TernaryInsn extends InsnNode {
 
 	public IfCondition getCondition() {
 		return condition;
+	}
+
+	public void simplifyCondition() {
+		condition = IfCondition.simplify(condition);
+		if (condition.getMode() == IfCondition.Mode.NOT) {
+			invert();
+		}
+	}
+
+	private void invert() {
+		condition = IfCondition.invert(condition);
+		InsnArg tmp = getArg(0);
+		setArg(0, getArg(1));
+		setArg(1, tmp);
 	}
 
 	@Override

@@ -65,7 +65,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 				simplifyIf((IfNode) insn);
 				break;
 			case TERNARY:
-				simplifyTernary((TernaryInsn)insn);
+				simplifyTernary((TernaryInsn) insn);
 				break;
 
 			case INVOKE:
@@ -117,6 +117,8 @@ public class SimplifyVisitor extends AbstractVisitor {
 		IfCondition condition = insn.getCondition();
 		if (condition.isCompare()) {
 			simplifyIf(condition.getCompare().getInsn());
+		} else {
+			insn.simplifyCondition();
 		}
 	}
 

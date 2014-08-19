@@ -20,15 +20,6 @@ public class TestConditions14 extends InternalJadxTest {
 			System.out.println("1");
 			return true;
 		}
-
-//		public static boolean test2(Object a, Object b) {
-//			if (a == null ? b != null : !a.equals(b)) {
-//				return false;
-//			}
-//			System.out.println("2");
-//			return true;
-//		}
-
 	}
 
 	@Test

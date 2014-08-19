@@ -22,6 +22,7 @@ public final class IfCondition {
 
 	public enum Mode {
 		COMPARE,
+		TERNARY,
 		NOT,
 		AND,
 		OR
@@ -64,6 +65,10 @@ public final class IfCondition {
 		return new IfCondition(new Compare(insn));
 	}
 
+	public static IfCondition ternary(IfCondition a, IfCondition b, IfCondition c) {
+		return new IfCondition(Mode.TERNARY, Arrays.asList(a, b, c));
+	}
+
 	public static IfCondition merge(Mode mode, IfCondition a, IfCondition b) {
 		if (a.getMode() == mode) {
 			IfCondition n = new IfCondition(a);
@@ -89,6 +94,10 @@ public final class IfCondition {
 		return args.get(1);
 	}
 
+	public IfCondition third() {
+		return args.get(2);
+	}
+
 	public void addArg(IfCondition c) {
 		args.add(c);
 	}
@@ -106,6 +115,8 @@ public final class IfCondition {
 		switch (mode) {
 			case COMPARE:
 				return new IfCondition(cond.getCompare().invert());
+			case TERNARY:
+				return ternary(not(cond.first()), cond.third(), cond.second());
 			case NOT:
 				return cond.first();
 			case AND:
@@ -154,7 +165,10 @@ public final class IfCondition {
 			cond = new IfCondition(cond.getMode(), args);
 		}
 		if (cond.getMode() == Mode.NOT && cond.first().getMode() == Mode.NOT) {
-			cond = cond.first().first();
+			cond = invert(cond.first());
+		}
+		if (cond.getMode() == Mode.TERNARY && cond.first().getMode() == Mode.NOT) {
+			cond = invert(cond);
 		}
 
 		// for condition with a lot of negations => make invert
@@ -216,6 +230,8 @@ public final class IfCondition {
 		switch (mode) {
 			case COMPARE:
 				return compare.toString();
+			case TERNARY:
+				return first() + " ? " + second() + " : " + third();
 			case NOT:
 				return "!" + first();
 			case AND:

@@ -33,6 +33,10 @@ public class ConditionGen extends InsnGen {
 				addCompare(code, condition.getCompare());
 				break;
 
+			case TERNARY:
+				addTernary(code, condition);
+				break;
+
 			case NOT:
 				addNot(code, condition);
 				break;
@@ -43,7 +47,7 @@ public class ConditionGen extends InsnGen {
 				break;
 
 			default:
-				throw new JadxRuntimeException("Unknown condition mode: " + condition);
+				throw new JadxRuntimeException("Unknown condition mode: " + condition.getMode());
 		}
 	}
 
@@ -92,6 +96,14 @@ public class ConditionGen extends InsnGen {
 		addArg(code, firstArg, isArgWrapNeeded(firstArg));
 		code.add(' ').add(op.getSymbol()).add(' ');
 		addArg(code, secondArg, isArgWrapNeeded(secondArg));
+	}
+
+	private void addTernary(CodeWriter code, IfCondition condition) throws CodegenException {
+		add(code, condition.first());
+		code.add(" ? ");
+		add(code, condition.second());
+		code.add(" : ");
+		add(code, condition.third());
 	}
 
 	private void addNot(CodeWriter code, IfCondition condition) throws CodegenException {

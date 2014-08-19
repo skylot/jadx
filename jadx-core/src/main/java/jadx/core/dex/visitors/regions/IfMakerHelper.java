@@ -101,6 +101,11 @@ public class IfMakerHelper {
 		return c1.size() == c2.size() && c1.containsAll(c2);
 	}
 
+	static IfInfo searchNestedIf(IfInfo info) {
+		IfInfo tmp = mergeNestedIfNodes(info);
+		return tmp != null ? tmp : info;
+	}
+
 	static IfInfo mergeNestedIfNodes(IfInfo currentIf) {
 		BlockNode curThen = currentIf.getThenBlock();
 		BlockNode curElse = currentIf.getElseBlock();
@@ -126,12 +131,13 @@ public class IfMakerHelper {
 		if (!RegionMaker.isEqualPaths(curElse, nextIf.getElseBlock())
 				&& !RegionMaker.isEqualPaths(curThen, nextIf.getThenBlock())) {
 			// complex condition, run additional checks
-			if (checkConditionBranches(curThen, curElse) || checkConditionBranches(curElse, curThen)) {
+			if (checkConditionBranches(curThen, curElse)
+					|| checkConditionBranches(curElse, curThen)) {
 				return null;
 			}
 			BlockNode otherBranchBlock = followThenBranch ? curElse : curThen;
 			if (!isPathExists(nextIf.getIfBlock(), otherBranchBlock)) {
-				return null;
+				return checkForTernaryInCondition(currentIf);
 			}
 			if (isPathExists(nextIf.getThenBlock(), otherBranchBlock)
 					&& isPathExists(nextIf.getElseBlock(), otherBranchBlock)) {
@@ -152,9 +158,43 @@ public class IfMakerHelper {
 
 		IfInfo result = mergeIfInfo(currentIf, nextIf, followThenBranch);
 		// search next nested if block
-		IfInfo next = mergeNestedIfNodes(result);
-		if (next != null) {
-			return next;
+		return searchNestedIf(result);
+	}
+
+	private static IfInfo checkForTernaryInCondition(IfInfo currentIf) {
+		IfInfo nextThen = getNextIf(currentIf, currentIf.getThenBlock());
+		IfInfo nextElse = getNextIf(currentIf, currentIf.getElseBlock());
+		if (nextThen == null || nextElse == null) {
+			return null;
+		}
+		if (!nextThen.getIfBlock().getDomFrontier().equals(nextElse.getIfBlock().getDomFrontier())) {
+			return null;
+		}
+		nextThen = searchNestedIf(nextThen);
+		nextElse = searchNestedIf(nextElse);
+		if (nextThen.getThenBlock() == nextElse.getThenBlock()
+				&& nextThen.getElseBlock() == nextElse.getElseBlock()) {
+			return mergeTernaryConditions(currentIf, nextThen, nextElse);
+		}
+		if (nextThen.getThenBlock() == nextElse.getElseBlock()
+				&& nextThen.getElseBlock() == nextElse.getThenBlock()) {
+			nextElse = IfInfo.invert(nextElse);
+			return mergeTernaryConditions(currentIf, nextThen, nextElse);
+		}
+
+		return null;
+	}
+
+	private static IfInfo mergeTernaryConditions(IfInfo currentIf, IfInfo nextThen, IfInfo nextElse) {
+		IfCondition newCondition = IfCondition.ternary(currentIf.getCondition(),
+				nextThen.getCondition(), nextElse.getCondition());
+		IfInfo result = new IfInfo(newCondition, nextThen.getThenBlock(), nextThen.getElseBlock());
+		result.setIfBlock(currentIf.getIfBlock());
+		result.getMergedBlocks().addAll(currentIf.getMergedBlocks());
+		result.getMergedBlocks().addAll(nextThen.getMergedBlocks());
+		result.getMergedBlocks().addAll(nextElse.getMergedBlocks());
+		for (BlockNode blockNode : result.getMergedBlocks()) {
+			blockNode.add(AFlag.SKIP);
 		}
 		return result;
 	}
