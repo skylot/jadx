@@ -61,6 +61,20 @@ Example:
     * edit 'jadx' script (jadx.bat on Windows) and setup bigger heap size:
       `DEFAULT_JVM_OPTS="-Xmx2500M"`
 
+
+### Contribution
+
+To support this project you can:
+  - Post thoughts about new features/optimizations that important to you
+  - Submit bug using one of following patterns:
+    * Java code examples which decompiles incorrectly
+    * Error log and link to _public available_ apk file or app page on Google play
+
+And any other comments will be very helpfull, 
+because at current stage of development it is very time consuming 
+to **find** new bugs, design and implement new features.
+Also I need to **prioritize** these task for complete most important at first.
+
 ---------------------------------------
 *Licensed under the Apache 2.0 License*
 
