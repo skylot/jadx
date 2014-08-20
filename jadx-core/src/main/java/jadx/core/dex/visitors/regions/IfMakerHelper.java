@@ -47,8 +47,8 @@ public class IfMakerHelper {
 			info.setOutBlock(null);
 			return info;
 		}
-		boolean badThen = !allPathsFromIf(thenBlock, info);
-		boolean badElse = !allPathsFromIf(elseBlock, info);
+		boolean badThen = thenBlock.contains(AFlag.LOOP_START) || !allPathsFromIf(thenBlock, info);
+		boolean badElse = elseBlock.contains(AFlag.LOOP_START) || !allPathsFromIf(elseBlock, info);
 		if (badThen && badElse) {
 			LOG.debug("Stop processing blocks after 'if': {}, method: {}", info.getIfBlock(), mth);
 			return null;
