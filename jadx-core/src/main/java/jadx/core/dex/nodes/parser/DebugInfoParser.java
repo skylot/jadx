@@ -51,6 +51,36 @@ public class DebugInfoParser {
 		this.insnByOffset = insnByOffset;
 	}
 
+	/**
+	 * Gets previous instructions address
+	 * 
+	 * @param start_offs address for backward search
+	 * @return previous instruction address, or -1 if no instructions found
+	 */
+	private int prevInsnAddress(int start_offs)
+	{
+		int prevInsnAddr = start_offs;
+		while ((prevInsnAddr >= 0) && (insnByOffset[prevInsnAddr] == null)) {
+			prevInsnAddr--;
+		}
+
+		return prevInsnAddr;
+	}
+
+	private int fixLocalVarStartAddr(int addr, int regNum) {
+		int result = addr;
+
+		int prevAddr = prevInsnAddress(addr-1);
+		if (prevAddr >= 0) {
+			InsnNode prevInsn = insnByOffset[prevAddr];
+			if (prevInsn.isUtilizeRegister(regNum)) {
+				result = prevAddr;
+			}
+		}
+		
+		return result;
+	}
+
 	public void process() throws DecodeException {
 		int addr = 0;
 		int line = section.readUleb128();
@@ -96,7 +126,7 @@ public class DebugInfoParser {
 					int nameId = section.readUleb128() - 1;
 					int type = section.readUleb128() - 1;
 					LocalVar var = new LocalVar(dex, regNum, nameId, type, DexNode.NO_INDEX);
-					startVar(var, addr, line);
+					startVar(var, fixLocalVarStartAddr(addr, regNum), line);
 					break;
 				}
 				case DBG_START_LOCAL_EXTENDED: {
@@ -105,7 +135,7 @@ public class DebugInfoParser {
 					int type = section.readUleb128() - 1;
 					int sign = section.readUleb128() - 1;
 					LocalVar var = new LocalVar(dex, regNum, nameId, type, sign);
-					startVar(var, addr, line);
+					startVar(var, fixLocalVarStartAddr(addr, regNum), line);
 					break;
 				}
 				case DBG_RESTART_LOCAL: {
@@ -114,7 +144,7 @@ public class DebugInfoParser {
 					if (var != null) {
 						var.end(addr, line);
 						setVar(var);
-						var.start(addr, line);
+						var.start(fixLocalVarStartAddr(addr, regNum), line);
 					}
 					break;
 				}
@@ -158,9 +188,14 @@ public class DebugInfoParser {
 			c = section.readByte() & 0xFF;
 		}
 
+		int lastInsnAddr = prevInsnAddress(insnByOffset.length - 1);
+		if (lastInsnAddr < 0) {
+			lastInsnAddr = 0;
+		}
+
 		for (LocalVar var : locals) {
 			if (var != null && !var.isEnd()) {
-				var.end(addr, line);
+				var.end(lastInsnAddr, line);
 				setVar(var);
 			}
 		}
@@ -222,20 +257,30 @@ public class DebugInfoParser {
 				fillLocals(insn, var);
 			}
 		}
-		merge(activeRegisters[var.getRegNum()], var);
+		merge(activeRegisters[var.getRegNum()], var, null);
 	}
 
 	private static void fillLocals(InsnNode insn, LocalVar var) {
-		merge(insn.getResult(), var);
+		merge(insn.getResult(), var, insn);
 		for (InsnArg arg : insn.getArguments()) {
-			merge(arg, var);
+			merge(arg, var, insn);
 		}
 	}
 
-	private static void merge(InsnArg arg, LocalVar var) {
+	private static void merge(InsnArg arg, LocalVar var, InsnNode insn) {
 		if (arg != null && arg.isRegister()) {
 			RegisterArg reg = (RegisterArg) arg;
 			if (var.getRegNum() == reg.getRegNum()) {
+				if (insn == null) {
+					insn = reg.getParentInsn();
+					if (insn != null) {
+						if ((var.getStartAddr() > insn.getOffset())
+							|| (insn.getOffset() > var.getEndAddr())) {
+							return;
+						}
+					}
+				}
+
 				reg.mergeDebugInfo(var.getType(), var.getName());
 			}
 		}

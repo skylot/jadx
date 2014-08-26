@@ -70,8 +70,10 @@ final class LocalVar {
 	}
 
 	public void end(int addr, int line) {
-		this.isEnd = true;
-		this.endAddr = addr;
+		if (!isEnd) {
+			this.isEnd = true;
+			this.endAddr = addr;
+		}
 	}
 
 	public int getRegNum() {

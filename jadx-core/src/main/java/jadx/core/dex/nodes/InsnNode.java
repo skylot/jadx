@@ -35,6 +35,27 @@ public class InsnNode extends LineAttrNode {
 		}
 	}
 
+	/**
+	 * Checks that instruction utilizes register <tt>rn</tt>
+	 * @param rn the register number for checking
+	 * @return true when the register used by instruction, else false
+	 */
+	public boolean isUtilizeRegister(int rn) {
+		if (result != null) {
+			if (result.getRegNum() == rn) {
+				return true;
+			}
+		}
+
+		for (InsnArg arg : arguments) {
+			if (arg.isRegister() && ((RegisterArg) arg).getRegNum() == rn) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	public void setResult(RegisterArg res) {
 		if (res != null) {
 			res.setParentInsn(this);
