@@ -1,7 +1,10 @@
 package jadx.core.utils;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -113,13 +116,38 @@ public class BlockUtils {
 	}
 
 	public static BlockNode getBlockByInsn(MethodNode mth, InsnNode insn) {
-		assert insn != null;
+		if (insn.contains(AFlag.WRAPPED)) {
+			return getBlockByWrappedInsn(mth, insn);
+		}
 		for (BlockNode bn : mth.getBasicBlocks()) {
 			if (blockContains(bn, insn)) {
 				return bn;
 			}
 		}
 		return null;
+	}
+
+	private static BlockNode getBlockByWrappedInsn(MethodNode mth, InsnNode insn) {
+		for (BlockNode bn : mth.getBasicBlocks()) {
+			for (InsnNode bi : bn.getInstructions()) {
+				if (bi == insn || foundWrappedInsn(bi, insn)) {
+					return bn;
+				}
+			}
+		}
+		return null;
+	}
+
+	private static boolean foundWrappedInsn(InsnNode container, InsnNode insn) {
+		for (InsnArg arg : container.getArguments()) {
+			if (arg.isInsnWrap()) {
+				InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
+				if (wrapInsn == insn || foundWrappedInsn(wrapInsn, insn)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	public static BitSet blocksToBitSet(MethodNode mth, List<BlockNode> blocks) {

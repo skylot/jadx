@@ -1,7 +1,11 @@
 package jadx.core.dex.instructions.args;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,18 +80,36 @@ public abstract class InsnArg extends Typed {
 			return null;
 		}
 		if (parent == insn) {
-			LOG.debug("Can't wrap instruction info itself: " + insn);
+			LOG.debug("Can't wrap instruction info itself: {}", insn);
+			Thread.dumpStack();
 			return null;
 		}
+		int i = getArgIndex(parent, this);
+		if (i == -1) {
+			return null;
+		}
+		insn.add(AFlag.WRAPPED);
+		InsnArg arg = wrapArg(insn);
+		parent.setArg(i, arg);
+		return arg;
+	}
+
+	public static void updateParentInsn(InsnNode fromInsn, InsnNode toInsn) {
+		List<RegisterArg> args = new ArrayList<RegisterArg>();
+		fromInsn.getRegisterArgs(args);
+		for (RegisterArg reg : args) {
+			reg.setParentInsn(toInsn);
+		}
+	}
+
+	private static int getArgIndex(InsnNode parent, InsnArg arg) {
 		int count = parent.getArgsCount();
 		for (int i = 0; i < count; i++) {
-			if (parent.getArg(i) == this) {
-				InsnArg arg = wrapArg(insn);
-				parent.setArg(i, arg);
-				return arg;
+			if (parent.getArg(i) == arg) {
+				return i;
 			}
 		}
-		return null;
+		return -1;
 	}
 
 	public static InsnArg wrapArg(InsnNode insn) {

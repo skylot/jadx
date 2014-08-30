@@ -214,6 +214,7 @@ public class CodeShrinker extends AbstractVisitor {
 					// another block
 					BlockNode assignBlock = BlockUtils.getBlockByInsn(mth, assignInsn);
 					if (assignBlock != null
+							&& assignInsn != arg.getParentInsn()
 							&& canMoveBetweenBlocks(assignInsn, assignBlock, block, argsInfo.getInsn())) {
 						arg.wrapInstruction(assignInsn);
 						InsnList.remove(assignBlock, assignInsn);

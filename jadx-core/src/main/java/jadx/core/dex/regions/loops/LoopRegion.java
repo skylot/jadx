@@ -1,4 +1,4 @@
-package jadx.core.dex.regions;
+package jadx.core.dex.regions.loops;
 
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -6,6 +6,8 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
+import jadx.core.dex.regions.AbstractRegion;
+import jadx.core.dex.regions.conditions.IfCondition;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,6 +22,8 @@ public final class LoopRegion extends AbstractRegion {
 	private BlockNode preCondition;
 	private IContainer body;
 	private final boolean conditionAtEnd;
+
+	private LoopType type;
 
 	public LoopRegion(IRegion parent, BlockNode header, boolean reversed) {
 		super(parent);
@@ -114,6 +118,15 @@ public final class LoopRegion extends AbstractRegion {
 			preCondInsns.clear();
 			preCondition = null;
 		}
+	}
+
+
+	public LoopType getType() {
+		return type;
+	}
+
+	public void setType(LoopType type) {
+		this.type = type;
 	}
 
 	@Override

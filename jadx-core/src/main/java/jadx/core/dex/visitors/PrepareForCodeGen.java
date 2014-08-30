@@ -141,6 +141,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 			}
 			if (replace) {
 				ArithNode newArith = new ArithNode(arith.getOp(), res, arith.getArg(1));
+				InsnArg.updateParentInsn(arith, newArith);
 				list.set(i, newArith);
 			}
 		}

@@ -5,7 +5,7 @@ import jadx.core.dex.nodes.ClassNode;
 
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.containsString;
+import static jadx.tests.utils.JadxMatchers.containsOne;
 import static org.junit.Assert.assertThat;
 
 public class TestInline2 extends InternalJadxTest {
@@ -30,9 +30,7 @@ public class TestInline2 extends InternalJadxTest {
 		String code = cls.getCode().toString();
 		System.out.println(code);
 
-		assertThat(code, containsString("i < a.length"));
-		assertThat(code, containsString("long i2 ="));
-		assertThat(code, containsString("+ i2"));
-		assertThat(code, containsString("i2--;"));
+		assertThat(code, containsOne("for (int i = 0; i < a.length; i++) {"));
+		assertThat(code, containsOne("for (long i2 = (long) b; i2 > 0; i2--) {"));
 	}
 }

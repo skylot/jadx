@@ -14,17 +14,20 @@ import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
-import jadx.core.dex.regions.IfCondition;
-import jadx.core.dex.regions.IfRegion;
-import jadx.core.dex.regions.LoopRegion;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.regions.SynchronizedRegion;
+import jadx.core.dex.regions.conditions.IfCondition;
+import jadx.core.dex.regions.conditions.IfRegion;
+import jadx.core.dex.regions.loops.IndexLoop;
+import jadx.core.dex.regions.loops.LoopRegion;
+import jadx.core.dex.regions.loops.LoopType;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.CodegenException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.List;
 
@@ -92,7 +95,9 @@ public class RegionGen extends InsnGen {
 
 	private void makeSimpleBlock(IBlock block, CodeWriter code) throws CodegenException {
 		for (InsnNode insn : block.getInstructions()) {
-			makeInsn(insn, code);
+			if (!insn.contains(AFlag.SKIP)) {
+				makeInsn(insn, code);
+			}
 		}
 		ForceReturnAttr retAttr = block.get(AType.FORCE_RETURN);
 		if (retAttr != null) {
@@ -166,8 +171,24 @@ public class RegionGen extends InsnGen {
 			code.startLine('}');
 			return code;
 		}
-
 		ConditionGen conditionGen = new ConditionGen(this);
+		LoopType type = region.getType();
+		if (type != null) {
+			if (type instanceof IndexLoop) {
+				IndexLoop indexLoop = (IndexLoop) type;
+				code.startLine("for (");
+				makeInsn(indexLoop.getInitInsn(), code, Flags.INLINE);
+				code.add("; ");
+				conditionGen.add(code, condition);
+				code.add("; ");
+				makeInsn(indexLoop.getIncrInsn(), code, Flags.INLINE);
+				code.add(") {");
+				makeRegionIndent(code, region.getBody());
+				code.startLine('}');
+				return code;
+			}
+			throw new JadxRuntimeException("Unknown loop type: " + type.getClass());
+		}
 		if (region.isConditionAtEnd()) {
 			code.startLine("do {");
 			makeRegionIndent(code, region.getBody());

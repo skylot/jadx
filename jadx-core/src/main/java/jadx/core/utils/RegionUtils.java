@@ -6,6 +6,9 @@ import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
+import jadx.core.dex.nodes.InsnNode;
+import jadx.core.dex.regions.SwitchRegion;
+import jadx.core.dex.regions.conditions.IfRegion;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlock;
@@ -30,6 +33,29 @@ public class RegionUtils {
 			IRegion region = (IRegion) container;
 			List<IContainer> blocks = region.getSubBlocks();
 			return !blocks.isEmpty() && hasExitEdge(blocks.get(blocks.size() - 1));
+		} else {
+			throw new JadxRuntimeException("Unknown container type: " + container.getClass());
+		}
+	}
+
+	public static InsnNode getLastInsn(IContainer container) {
+		if (container instanceof BlockNode) {
+			BlockNode block = (BlockNode) container;
+			List<InsnNode> insnList = block.getInstructions();
+			if (insnList.isEmpty()) {
+				return null;
+			}
+			return insnList.get(insnList.size() - 1);
+		} else if (container instanceof IfRegion
+				|| container instanceof SwitchRegion) {
+			return null;
+		} else if (container instanceof IRegion) {
+			IRegion region = (IRegion) container;
+			List<IContainer> blocks = region.getSubBlocks();
+			if (blocks.isEmpty()) {
+				return null;
+			}
+			return getLastInsn(blocks.get(blocks.size() - 1));
 		} else {
 			throw new JadxRuntimeException("Unknown container type: " + container.getClass());
 		}

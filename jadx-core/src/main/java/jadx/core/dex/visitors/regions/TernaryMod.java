@@ -12,7 +12,7 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.regions.IfRegion;
+import jadx.core.dex.regions.conditions.IfRegion;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.visitors.CodeShrinker;
 import jadx.core.utils.InsnList;

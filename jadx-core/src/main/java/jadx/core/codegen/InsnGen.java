@@ -58,9 +58,10 @@ public class InsnGen {
 	protected final RootNode root;
 	protected final boolean fallback;
 
-	private enum Flags {
+	protected enum Flags {
 		BODY_ONLY,
 		BODY_ONLY_NOWRAP,
+		INLINE
 	}
 
 	public InsnGen(MethodGen mgen, boolean fallback) {
@@ -186,7 +187,7 @@ public class InsnGen {
 		return makeInsn(insn, code, null);
 	}
 
-	private boolean makeInsn(InsnNode insn, CodeWriter code, Flags flag) throws CodegenException {
+	protected boolean makeInsn(InsnNode insn, CodeWriter code, Flags flag) throws CodegenException {
 		try {
 			if (insn.getType() == InsnType.NOP) {
 				return false;
@@ -196,13 +197,17 @@ public class InsnGen {
 				state.add(flag);
 				makeInsnBody(code, insn, state);
 			} else {
-				code.startLineWithNum(insn.getSourceLine());
+				if (flag != Flags.INLINE) {
+					code.startLineWithNum(insn.getSourceLine());
+				}
 				if (insn.getResult() != null && insn.getType() != InsnType.ARITH_ONEARG) {
 					assignVar(code, insn);
 					code.add(" = ");
 				}
 				makeInsnBody(code, insn, state);
-				code.add(';');
+				if (flag != Flags.INLINE) {
+					code.add(';');
+				}
 			}
 		} catch (Throwable th) {
 			throw new CodegenException(mth, "Error generate insn: " + insn, th);

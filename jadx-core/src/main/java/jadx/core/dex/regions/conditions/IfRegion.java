@@ -1,8 +1,9 @@
-package jadx.core.dex.regions;
+package jadx.core.dex.regions.conditions;
 
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
+import jadx.core.dex.regions.AbstractRegion;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -77,7 +78,7 @@ public final class IfRegion extends AbstractRegion {
 
 	@Override
 	public List<IContainer> getSubBlocks() {
-		ArrayList<IContainer> all = new ArrayList<IContainer>(3);
+		List<IContainer> all = new ArrayList<IContainer>(3);
 		all.add(header);
 		if (thenRegion != null) {
 			all.add(thenRegion);

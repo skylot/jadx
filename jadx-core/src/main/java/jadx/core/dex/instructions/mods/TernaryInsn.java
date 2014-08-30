@@ -5,7 +5,7 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
-import jadx.core.dex.regions.IfCondition;
+import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.Utils;
 

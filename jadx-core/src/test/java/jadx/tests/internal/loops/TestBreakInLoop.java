@@ -6,6 +6,7 @@ import jadx.core.dex.nodes.ClassNode;
 import org.junit.Test;
 
 import static jadx.tests.utils.JadxMatchers.containsOne;
+import static jadx.tests.utils.JadxMatchers.countString;
 import static org.junit.Assert.assertThat;
 
 public class TestBreakInLoop extends InternalJadxTest {
@@ -14,13 +15,11 @@ public class TestBreakInLoop extends InternalJadxTest {
 		private int f;
 
 		private void test(int[] a, int b) {
-			int i = 0;
-			while (i < a.length) {
+			for (int i = 0; i < a.length; i++) {
 				a[i]++;
 				if (i < b) {
 					break;
 				}
-				i++;
 			}
 			this.f++;
 		}
@@ -32,12 +31,12 @@ public class TestBreakInLoop extends InternalJadxTest {
 		String code = cls.getCode().toString();
 		System.out.println(code);
 
-		assertThat(code, containsOne("this.f++;"));
+		assertThat(code, containsOne("for (int i = 0; i < a.length; i++) {"));
 //		assertThat(code, containsOne("a[i]++;"));
 		assertThat(code, containsOne("if (i < b) {"));
 		assertThat(code, containsOne("break;"));
-		assertThat(code, containsOne("i++;"));
+		assertThat(code, containsOne("this.f++;"));
 
-//		assertThat(code, countString(0, "else"));
+		assertThat(code, countString(0, "else"));
 	}
 }

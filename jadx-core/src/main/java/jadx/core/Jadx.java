@@ -18,6 +18,7 @@ import jadx.core.dex.visitors.ReSugarCode;
 import jadx.core.dex.visitors.SimplifyVisitor;
 import jadx.core.dex.visitors.regions.CheckRegions;
 import jadx.core.dex.visitors.regions.IfRegionVisitor;
+import jadx.core.dex.visitors.regions.LoopRegionVisitor;
 import jadx.core.dex.visitors.regions.ProcessVariables;
 import jadx.core.dex.visitors.regions.RegionMakerVisitor;
 import jadx.core.dex.visitors.regions.ReturnVisitor;
@@ -91,6 +92,7 @@ public class Jadx {
 			passes.add(new MethodInlineVisitor());
 			passes.add(new ClassModifier());
 			passes.add(new PrepareForCodeGen());
+			passes.add(new LoopRegionVisitor());
 		}
 		passes.add(new CodeGen(args));
 		return passes;

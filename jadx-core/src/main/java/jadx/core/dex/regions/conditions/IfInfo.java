@@ -1,4 +1,4 @@
-package jadx.core.dex.regions;
+package jadx.core.dex.regions.conditions;
 
 import jadx.core.dex.nodes.BlockNode;
 

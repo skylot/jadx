@@ -5,15 +5,15 @@ import jadx.core.dex.instructions.IfOp;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
-import jadx.core.dex.regions.Compare;
-import jadx.core.dex.regions.IfCondition;
+import jadx.core.dex.regions.conditions.Compare;
+import jadx.core.dex.regions.conditions.IfCondition;
 
 import org.junit.Test;
 
-import static jadx.core.dex.regions.IfCondition.Mode;
-import static jadx.core.dex.regions.IfCondition.merge;
-import static jadx.core.dex.regions.IfCondition.not;
-import static jadx.core.dex.regions.IfCondition.simplify;
+import static jadx.core.dex.regions.conditions.IfCondition.Mode;
+import static jadx.core.dex.regions.conditions.IfCondition.merge;
+import static jadx.core.dex.regions.conditions.IfCondition.not;
+import static jadx.core.dex.regions.conditions.IfCondition.simplify;
 import static org.junit.Assert.assertEquals;
 
 public class TestIfCondition {

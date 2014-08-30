@@ -19,7 +19,7 @@ import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.regions.IfCondition;
+import jadx.core.dex.regions.conditions.IfCondition;
 
 import java.util.ArrayList;
 import java.util.Collections;

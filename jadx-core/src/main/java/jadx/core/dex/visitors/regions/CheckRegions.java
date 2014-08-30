@@ -6,7 +6,7 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.regions.LoopRegion;
+import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.JadxException;

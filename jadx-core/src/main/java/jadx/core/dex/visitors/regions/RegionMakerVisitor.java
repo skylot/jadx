@@ -4,7 +4,7 @@ import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.regions.LoopRegion;
+import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.SynchronizedRegion;
 import jadx.core.dex.visitors.AbstractVisitor;
