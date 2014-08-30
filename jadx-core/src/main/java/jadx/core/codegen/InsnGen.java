@@ -28,8 +28,11 @@ import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.instructions.mods.TernaryInsn;
+import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.IContainer;
+import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
@@ -129,7 +132,16 @@ public class InsnGen {
 	}
 
 	private void instanceField(CodeWriter code, FieldInfo field, InsnArg arg) throws CodegenException {
-		FieldNode fieldNode = mth.getParentClass().searchField(field);
+		ClassNode pCls = mth.getParentClass();
+		FieldNode fieldNode = pCls.searchField(field);
+
+		while ((fieldNode == null) 
+					&& (pCls.getParentClass() != pCls) && (pCls.getParentClass() != null))
+		{
+			pCls = pCls.getParentClass();
+			fieldNode = pCls.searchField(field);
+		}
+
 		if (fieldNode != null) {
 			FieldReplaceAttr replace = fieldNode.get(AType.FIELD_REPLACE);
 			if (replace != null) {
@@ -565,6 +577,31 @@ public class InsnGen {
 		code.add("[]{").add(str.toString()).add('}');
 	}
 
+	private void suppressParentConstructorCall(IContainer container) {
+		if (container instanceof BlockNode) {
+			BlockNode block = (BlockNode) container;
+
+			for (Iterator<InsnNode> it = block.getInstructions().iterator(); it.hasNext(); ) {
+				InsnNode n = it.next();
+				if (n.getType() == InsnType.CONSTRUCTOR) {
+					try {
+						it.remove();
+					} catch (UnsupportedOperationException e) {
+						LOG.warn("Can't remove instruction {}", n);
+					}
+				}
+			}
+
+		} else if (container instanceof IRegion) {
+			IRegion region = (IRegion) container;
+			for (IContainer block : region.getSubBlocks()) {
+				suppressParentConstructorCall(block);
+			}
+		} else {
+			throw new JadxRuntimeException("Unknown container type: " + container.getClass());
+		}
+	}
+
 	private void makeConstructor(ConstructorInsn insn, CodeWriter code)
 			throws CodegenException {
 		ClassNode cls = mth.dex().resolveClass(insn.getClassType());
@@ -579,6 +616,8 @@ public class InsnGen {
 			cls.add(AFlag.DONT_GENERATE);
 			MethodNode defCtr = cls.getDefaultConstructor();
 			if (defCtr != null) {
+				suppressParentConstructorCall(defCtr.getRegion());
+
 				if (RegionUtils.notEmpty(defCtr.getRegion())) {
 					defCtr.add(AFlag.ANONYMOUS_CONSTRUCTOR);
 				} else {
