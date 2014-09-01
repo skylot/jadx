@@ -130,7 +130,7 @@ public class BlockUtils {
 	private static BlockNode getBlockByWrappedInsn(MethodNode mth, InsnNode insn) {
 		for (BlockNode bn : mth.getBasicBlocks()) {
 			for (InsnNode bi : bn.getInstructions()) {
-				if (bi == insn || foundWrappedInsn(bi, insn)) {
+				if (bi == insn || foundWrappedInsn(bi, insn) != null) {
 					return bn;
 				}
 			}
@@ -138,16 +138,35 @@ public class BlockUtils {
 		return null;
 	}
 
-	private static boolean foundWrappedInsn(InsnNode container, InsnNode insn) {
-		for (InsnArg arg : container.getArguments()) {
-			if (arg.isInsnWrap()) {
-				InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
-				if (wrapInsn == insn || foundWrappedInsn(wrapInsn, insn)) {
-					return true;
+	public static InsnArg searchWrappedInsnParent(MethodNode mth, InsnNode insn) {
+		if (!insn.contains(AFlag.WRAPPED)) {
+			return null;
+		}
+		for (BlockNode bn : mth.getBasicBlocks()) {
+			for (InsnNode bi : bn.getInstructions()) {
+				InsnArg res = foundWrappedInsn(bi, insn);
+				if (res != null) {
+					return res;
 				}
 			}
 		}
-		return false;
+		return null;
+	}
+
+	private static InsnArg foundWrappedInsn(InsnNode container, InsnNode insn) {
+		for (InsnArg arg : container.getArguments()) {
+			if (arg.isInsnWrap()) {
+				InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
+				if (wrapInsn == insn) {
+					return arg;
+				}
+				InsnArg res = foundWrappedInsn(wrapInsn, insn);
+				if (res != null) {
+					return res;
+				}
+			}
+		}
+		return null;
 	}
 
 	public static BitSet blocksToBitSet(MethodNode mth, List<BlockNode> blocks) {

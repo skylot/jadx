@@ -166,7 +166,11 @@ public class TernaryMod {
 			if (!arg.isRegister()) {
 				continue;
 			}
-			int sourceLine = ((RegisterArg) arg).getAssignInsn().getSourceLine();
+			InsnNode assignInsn = ((RegisterArg) arg).getAssignInsn();
+			if (assignInsn == null) {
+				continue;
+			}
+			int sourceLine = assignInsn.getSourceLine();
 			if (sourceLine != 0) {
 				Integer count = map.get(sourceLine);
 				if (count != null) {

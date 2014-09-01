@@ -35,6 +35,12 @@ public class InsnNode extends LineAttrNode {
 		}
 	}
 
+	public static InsnNode wrapArg(InsnArg arg) {
+		InsnNode insn = new InsnNode(InsnType.ARGS, 1);
+		insn.addArg(arg);
+		return insn;
+	}
+
 	public void setResult(RegisterArg res) {
 		if (res != null) {
 			res.setParentInsn(this);

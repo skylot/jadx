@@ -19,6 +19,7 @@ import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.regions.SynchronizedRegion;
 import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.dex.regions.conditions.IfRegion;
+import jadx.core.dex.regions.loops.ForEachLoop;
 import jadx.core.dex.regions.loops.IndexLoop;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.regions.loops.LoopType;
@@ -182,6 +183,17 @@ public class RegionGen extends InsnGen {
 				conditionGen.add(code, condition);
 				code.add("; ");
 				makeInsn(indexLoop.getIncrInsn(), code, Flags.INLINE);
+				code.add(") {");
+				makeRegionIndent(code, region.getBody());
+				code.startLine('}');
+				return code;
+			}
+			if (type instanceof ForEachLoop) {
+				ForEachLoop forEachLoop = (ForEachLoop) type;
+				code.startLine("for (");
+				declareVar(code, forEachLoop.getVarArg());
+				code.add(" : ");
+				addArg(code, forEachLoop.getIterableArg(), false);
 				code.add(") {");
 				makeRegionIndent(code, region.getBody());
 				code.startLine('}');

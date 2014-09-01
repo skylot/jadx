@@ -55,7 +55,7 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 				if (parentInsn != null) {
 					// TODO: speed up expensive operations
 					BlockNode useBlock = BlockUtils.getBlockByInsn(mth, parentInsn);
-					if (!BlockUtils.isCleanPathExists(block, useBlock)) {
+					if (useBlock == null || !BlockUtils.isCleanPathExists(block, useBlock)) {
 						return false;
 					}
 				}

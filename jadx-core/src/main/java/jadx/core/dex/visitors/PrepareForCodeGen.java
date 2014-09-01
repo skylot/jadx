@@ -132,7 +132,6 @@ public class PrepareForCodeGen extends AbstractVisitor {
 			RegisterArg res = arith.getResult();
 			InsnArg arg = arith.getArg(0);
 			boolean replace = false;
-
 			if (res.equals(arg)) {
 				replace = true;
 			} else if (arg.isRegister()) {
@@ -140,9 +139,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 				replace = res.equalRegisterAndType(regArg);
 			}
 			if (replace) {
-				ArithNode newArith = new ArithNode(arith.getOp(), res, arith.getArg(1));
-				InsnArg.updateParentInsn(arith, newArith);
-				list.set(i, newArith);
+				arith.add(AFlag.ARITH_ONEARG);
 			}
 		}
 	}

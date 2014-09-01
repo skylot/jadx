@@ -14,7 +14,7 @@ public class TestInline2 extends InternalJadxTest {
 		public int test() throws InterruptedException {
 			int[] a = new int[]{1, 2, 4, 6, 8};
 			int b = 0;
-			for (int i = 0; i < a.length; i++) {
+			for (int i = 0; i < a.length; i+=2) {
 				b += a[i];
 			}
 			for (long i = b; i > 0; i--) {
@@ -30,7 +30,8 @@ public class TestInline2 extends InternalJadxTest {
 		String code = cls.getCode().toString();
 		System.out.println(code);
 
-		assertThat(code, containsOne("for (int i = 0; i < a.length; i++) {"));
+		assertThat(code, containsOne("int[] a = new int[]{1, 2, 4, 6, 8};"));
+		assertThat(code, containsOne("for (int i = 0; i < a.length; i += 2) {"));
 		assertThat(code, containsOne("for (long i2 = (long) b; i2 > 0; i2--) {"));
 	}
 }

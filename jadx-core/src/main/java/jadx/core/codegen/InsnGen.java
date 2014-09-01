@@ -179,7 +179,7 @@ public class InsnGen {
 		mgen.getClassGen().useClass(code, cls);
 	}
 
-	private void useType(CodeWriter code, ArgType type) {
+	protected void useType(CodeWriter code, ArgType type) {
 		mgen.getClassGen().useType(code, type);
 	}
 
@@ -200,7 +200,7 @@ public class InsnGen {
 				if (flag != Flags.INLINE) {
 					code.startLineWithNum(insn.getSourceLine());
 				}
-				if (insn.getResult() != null && insn.getType() != InsnType.ARITH_ONEARG) {
+				if (insn.getResult() != null && !insn.contains(AFlag.ARITH_ONEARG)) {
 					assignVar(code, insn);
 					code.add(" = ");
 				}
@@ -255,10 +255,6 @@ public class InsnGen {
 
 			case ARITH:
 				makeArith((ArithNode) insn, code, state);
-				break;
-
-			case ARITH_ONEARG:
-				makeArithOneArg((ArithNode) insn, code);
 				break;
 
 			case NEG: {
@@ -761,6 +757,10 @@ public class InsnGen {
 	}
 
 	private void makeArith(ArithNode insn, CodeWriter code, EnumSet<Flags> state) throws CodegenException {
+		if (insn.contains(AFlag.ARITH_ONEARG)) {
+			makeArithOneArg(insn, code);
+			return;
+		}
 		// wrap insn in brackets for save correct operation order
 		boolean wrap = state.contains(Flags.BODY_ONLY) && !insn.contains(AFlag.DONT_WRAP);
 		if (wrap) {
@@ -778,7 +778,7 @@ public class InsnGen {
 
 	private void makeArithOneArg(ArithNode insn, CodeWriter code) throws CodegenException {
 		ArithOp op = insn.getOp();
-		InsnArg arg = insn.getArg(0);
+		InsnArg arg = insn.getArg(1);
 		// "++" or "--"
 		if (arg.isLiteral() && (op == ArithOp.ADD || op == ArithOp.SUB)) {
 			LiteralArg lit = (LiteralArg) arg;

@@ -1,5 +1,6 @@
 package jadx.core.dex.instructions;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -51,10 +52,8 @@ public class ArithNode extends InsnNode {
 	}
 
 	public ArithNode(ArithOp op, RegisterArg res, InsnArg a) {
-		super(InsnType.ARITH_ONEARG, 1);
-		this.op = op;
-		setResult(res);
-		addArg(a);
+		this(op, res, res, a);
+		add(AFlag.ARITH_ONEARG);
 	}
 
 	public ArithOp getOp() {
@@ -85,7 +84,7 @@ public class ArithNode extends InsnNode {
 				+ getResult() + " = "
 				+ getArg(0) + " "
 				+ op.getSymbol() + " "
-				+ (getArgsCount() == 2 ? getArg(1) : "");
+				+ getArg(1);
 	}
 
 }

@@ -78,6 +78,10 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 					}
 				}
 			}
+			if (bs == null) {
+				LOG.debug(" Can't build try/catch dominators bitset, tb: {}, mth: {} ", tb, mth);
+				continue;
+			}
 
 			// intersect to get dominator of dominators
 			List<BlockNode> domBlocks = BlockUtils.bitSetToBlocks(mth, bs);

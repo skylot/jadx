@@ -24,6 +24,7 @@ public enum AFlag {
 	ELSE_IF_CHAIN,
 
 	WRAPPED,
+	ARITH_ONEARG,
 
 	INCONSISTENT_CODE, // warning about incorrect decompilation
 }
