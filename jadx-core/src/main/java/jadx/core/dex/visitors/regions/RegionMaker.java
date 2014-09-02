@@ -40,8 +40,10 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static jadx.core.dex.visitors.regions.IfMakerHelper.confirmMerge;
 import static jadx.core.dex.visitors.regions.IfMakerHelper.makeIfInfo;
 import static jadx.core.dex.visitors.regions.IfMakerHelper.mergeNestedIfNodes;
+import static jadx.core.dex.visitors.regions.IfMakerHelper.searchNestedIf;
 import static jadx.core.utils.BlockUtils.getBlockByOffset;
 import static jadx.core.utils.BlockUtils.getNextBlock;
 import static jadx.core.utils.BlockUtils.isPathExists;
@@ -169,11 +171,9 @@ public class RegionMaker {
 		IRegion outerRegion = stack.peekRegion();
 		stack.push(loopRegion);
 
-		IfInfo info = makeIfInfo(loopRegion.getHeader());
-		IfInfo condInfo = mergeNestedIfNodes(info);
-		if (condInfo == null) {
-			condInfo = info;
-		}
+		IfInfo condInfo = makeIfInfo(loopRegion.getHeader());
+		condInfo = searchNestedIf(condInfo);
+		confirmMerge(condInfo);
 		if (!loop.getLoopBlocks().contains(condInfo.getThenBlock())) {
 			// invert loop condition if 'then' points to exit
 			condInfo = IfInfo.invert(condInfo);
@@ -450,6 +450,7 @@ public class RegionMaker {
 				return null;
 			}
 		}
+		confirmMerge(currentIf);
 
 		IfRegion ifRegion = new IfRegion(currentRegion, block);
 		ifRegion.setCondition(currentIf.getCondition());
@@ -624,15 +625,6 @@ public class RegionMaker {
 
 		ExcHandlerAttr excHandlerAttr = start.get(AType.EXC_HANDLER);
 		handler.getHandlerRegion().addAttr(excHandlerAttr);
-	}
-
-	static void skipSimplePath(BlockNode block) {
-		while (block != null
-				&& block.getCleanSuccessors().size() < 2
-				&& block.getPredecessors().size() == 1) {
-			block.add(AFlag.SKIP);
-			block = getNextBlock(block);
-		}
 	}
 
 	static boolean isEqualPaths(BlockNode b1, BlockNode b2) {

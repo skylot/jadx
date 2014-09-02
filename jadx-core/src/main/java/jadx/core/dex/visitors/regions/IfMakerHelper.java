@@ -21,6 +21,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static jadx.core.utils.BlockUtils.getNextBlock;
 import static jadx.core.utils.BlockUtils.isPathExists;
 
 public class IfMakerHelper {
@@ -36,6 +37,11 @@ public class IfMakerHelper {
 		info.setIfBlock(ifBlock);
 		info.getMergedBlocks().add(ifBlock);
 		return info;
+	}
+
+	static IfInfo searchNestedIf(IfInfo info) {
+		IfInfo tmp = mergeNestedIfNodes(info);
+		return tmp != null ? tmp : info;
 	}
 
 	static IfInfo restructureIf(MethodNode mth, BlockNode block, IfInfo info) {
@@ -54,11 +60,11 @@ public class IfMakerHelper {
 			return null;
 		}
 		if (badElse) {
-			info = new IfInfo(info.getCondition(), thenBlock, null);
+			info = new IfInfo(info, thenBlock, null);
 			info.setOutBlock(elseBlock);
 		} else if (badThen) {
 			info = IfInfo.invert(info);
-			info = new IfInfo(info.getCondition(), elseBlock, null);
+			info = new IfInfo(info, elseBlock, null);
 			info.setOutBlock(thenBlock);
 		} else {
 			List<BlockNode> thenSC = thenBlock.getCleanSuccessors();
@@ -99,11 +105,6 @@ public class IfMakerHelper {
 
 	private static boolean sameElements(Collection<BlockNode> c1, Collection<BlockNode> c2) {
 		return c1.size() == c2.size() && c1.containsAll(c2);
-	}
-
-	static IfInfo searchNestedIf(IfInfo info) {
-		IfInfo tmp = mergeNestedIfNodes(info);
-		return tmp != null ? tmp : info;
 	}
 
 	static IfInfo mergeNestedIfNodes(IfInfo currentIf) {
@@ -181,7 +182,6 @@ public class IfMakerHelper {
 			nextElse = IfInfo.invert(nextElse);
 			return mergeTernaryConditions(currentIf, nextThen, nextElse);
 		}
-
 		return null;
 	}
 
@@ -193,9 +193,10 @@ public class IfMakerHelper {
 		result.getMergedBlocks().addAll(currentIf.getMergedBlocks());
 		result.getMergedBlocks().addAll(nextThen.getMergedBlocks());
 		result.getMergedBlocks().addAll(nextElse.getMergedBlocks());
-		for (BlockNode blockNode : result.getMergedBlocks()) {
-			blockNode.add(AFlag.SKIP);
-		}
+		result.getSkipBlocks().addAll(currentIf.getSkipBlocks());
+		result.getSkipBlocks().addAll(nextThen.getSkipBlocks());
+		result.getSkipBlocks().addAll(nextElse.getSkipBlocks());
+		confirmMerge(result);
 		return result;
 	}
 
@@ -210,17 +211,28 @@ public class IfMakerHelper {
 
 	private static IfInfo mergeIfInfo(IfInfo first, IfInfo second, boolean followThenBranch) {
 		Mode mergeOperation = followThenBranch ? Mode.AND : Mode.OR;
-		BlockNode otherPathBlock = followThenBranch ? first.getElseBlock() : first.getThenBlock();
-		RegionMaker.skipSimplePath(otherPathBlock);
-		first.getIfBlock().add(AFlag.SKIP);
-		second.getIfBlock().add(AFlag.SKIP);
 
 		IfCondition condition = IfCondition.merge(mergeOperation, first.getCondition(), second.getCondition());
 		IfInfo result = new IfInfo(condition, second);
 		result.setIfBlock(first.getIfBlock());
 		result.getMergedBlocks().addAll(first.getMergedBlocks());
 		result.getMergedBlocks().addAll(second.getMergedBlocks());
+		result.getSkipBlocks().addAll(first.getSkipBlocks());
+		result.getSkipBlocks().addAll(second.getSkipBlocks());
+
+		BlockNode otherPathBlock = followThenBranch ? first.getElseBlock() : first.getThenBlock();
+		skipSimplePath(otherPathBlock, result.getSkipBlocks());
 		return result;
+	}
+
+	static void confirmMerge(IfInfo info) {
+		for (BlockNode block : info.getMergedBlocks()) {
+			block.add(AFlag.SKIP);
+		}
+		for (BlockNode block : info.getSkipBlocks()) {
+			block.add(AFlag.SKIP);
+		}
+		info.getSkipBlocks().clear();
 	}
 
 	private static IfInfo getNextIf(IfInfo info, BlockNode block) {
@@ -289,5 +301,14 @@ public class IfMakerHelper {
 			return getNextIfNode(next);
 		}
 		return null;
+	}
+
+	private static void skipSimplePath(BlockNode block, List<BlockNode> skipped) {
+		while (block != null
+				&& block.getCleanSuccessors().size() < 2
+				&& block.getPredecessors().size() == 1) {
+			skipped.add(block);
+			block = getNextBlock(block);
+		}
 	}
 }

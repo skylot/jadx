@@ -3,35 +3,47 @@ package jadx.core.dex.regions.conditions;
 import jadx.core.dex.nodes.BlockNode;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 public final class IfInfo {
 	private final IfCondition condition;
-	private final Set<BlockNode> mergedBlocks = new HashSet<BlockNode>();
+	private final Set<BlockNode> mergedBlocks;
 	private final BlockNode thenBlock;
 	private final BlockNode elseBlock;
+	private final List<BlockNode> skipBlocks;
 	private BlockNode outBlock;
 	@Deprecated
 	private BlockNode ifBlock;
 
 	public IfInfo(IfCondition condition, BlockNode thenBlock, BlockNode elseBlock) {
-		this.condition = condition;
-		this.thenBlock = thenBlock;
-		this.elseBlock = elseBlock;
+		this(condition, thenBlock, elseBlock, new HashSet<BlockNode>(), new LinkedList<BlockNode>());
 	}
 
 	public IfInfo(IfCondition condition, IfInfo info) {
+		this(condition, info.getThenBlock(), info.getElseBlock(), info.getMergedBlocks(), info.getSkipBlocks());
+	}
+
+	public IfInfo(IfInfo info, BlockNode thenBlock, BlockNode elseBlock) {
+		this(info.getCondition(), thenBlock, elseBlock, info.getMergedBlocks(), info.getSkipBlocks());
+	}
+
+	private IfInfo(IfCondition condition, BlockNode thenBlock, BlockNode elseBlock,
+	              Set<BlockNode> mergedBlocks, List<BlockNode> skipBlocks) {
 		this.condition = condition;
-		this.thenBlock = info.getThenBlock();
-		this.elseBlock = info.getElseBlock();
-		this.mergedBlocks.addAll(info.getMergedBlocks());
+		this.thenBlock = thenBlock;
+		this.elseBlock = elseBlock;
+		this.mergedBlocks = mergedBlocks;
+		this.skipBlocks = skipBlocks;
 	}
 
 	public static IfInfo invert(IfInfo info) {
-		IfInfo tmpIf = new IfInfo(IfCondition.invert(info.getCondition()),
-				info.getElseBlock(), info.getThenBlock());
+		IfCondition invertedCondition = IfCondition.invert(info.getCondition());
+		IfInfo tmpIf = new IfInfo(invertedCondition,
+				info.getElseBlock(), info.getThenBlock(),
+				info.getMergedBlocks(), info.getSkipBlocks());
 		tmpIf.setIfBlock(info.getIfBlock());
-		tmpIf.getMergedBlocks().addAll(info.getMergedBlocks());
 		return tmpIf;
 	}
 
@@ -57,6 +69,10 @@ public final class IfInfo {
 
 	public void setOutBlock(BlockNode outBlock) {
 		this.outBlock = outBlock;
+	}
+
+	public List<BlockNode> getSkipBlocks() {
+		return skipBlocks;
 	}
 
 	public BlockNode getIfBlock() {
