@@ -377,10 +377,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 
 	public MethodNode getDefaultConstructor() {
 		for (MethodNode mth : methods) {
-			if (mth.getAccessFlags().isConstructor()
-					&& mth.getMethodInfo().isConstructor()
-					&& (mth.getMethodInfo().getArgsCount() == 0
-					|| (mth.getArguments(false) != null && mth.getArguments(false).isEmpty()))) {
+			if (mth.isDefaultConstructor()) {
 				return mth;
 			}
 		}

@@ -76,6 +76,12 @@ public class ModVisitor extends AbstractVisitor {
 									remove = true;
 								}
 							}
+
+							// remove super() call in instance initializer
+							if (parentClass.isAnonymous() && mth.isDefaultConstructor() && co.isSuper()) {
+								remove = true;
+							} 
+
 							if (remove) {
 								remover.add(insn);
 							} else {
