@@ -461,6 +461,31 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		}
 		return false;
 	}
+	
+	public boolean isDefaultConstructor() {
+		boolean result = false;
+
+		if (accFlags.isConstructor() && mthInfo.isConstructor()) {
+			int defaultArgCount = 0;
+
+			/** workaround for non-static inner class constructor, that has
+			 * synthetic argument */
+			if ((parentClass != null) && parentClass.getClassInfo().isInner()) {
+				if (!parentClass.getAccessFlags().isStatic()) {
+					ClassNode outerCls = parentClass.getParentClass();
+					if ((argsList != null) && (argsList.size() >= 1)) {
+						if (argsList.get(0).getType().equals(outerCls.getClassInfo().getType())) {
+							defaultArgCount = 1;
+						}
+					}
+				}
+			}
+
+			result = (argsList == null) || (argsList.size() == defaultArgCount);
+		}
+
+		return result;
+	} 
 
 	public int getRegsCount() {
 		return regsCount;

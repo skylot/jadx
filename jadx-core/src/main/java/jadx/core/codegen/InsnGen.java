@@ -129,8 +129,16 @@ public class InsnGen {
 	}
 
 	private void instanceField(CodeWriter code, FieldInfo field, InsnArg arg) throws CodegenException {
-		FieldNode fieldNode = mth.getParentClass().searchField(field);
-		if (fieldNode != null) {
+		ClassNode pCls = mth.getParentClass();
+		FieldNode fieldNode = pCls.searchField(field);
+
+		while ((fieldNode == null) 
+					&& (pCls.getParentClass() != pCls) && (pCls.getParentClass() != null))
+		{
+			pCls = pCls.getParentClass();
+			fieldNode = pCls.searchField(field);
+		}
+ 		if (fieldNode != null) {
 			FieldReplaceAttr replace = fieldNode.get(AType.FIELD_REPLACE);
 			if (replace != null) {
 				FieldInfo info = replace.getFieldInfo();
