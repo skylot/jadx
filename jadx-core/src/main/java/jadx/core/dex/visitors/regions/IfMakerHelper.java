@@ -190,12 +190,7 @@ public class IfMakerHelper {
 				nextThen.getCondition(), nextElse.getCondition());
 		IfInfo result = new IfInfo(newCondition, nextThen.getThenBlock(), nextThen.getElseBlock());
 		result.setIfBlock(currentIf.getIfBlock());
-		result.getMergedBlocks().addAll(currentIf.getMergedBlocks());
-		result.getMergedBlocks().addAll(nextThen.getMergedBlocks());
-		result.getMergedBlocks().addAll(nextElse.getMergedBlocks());
-		result.getSkipBlocks().addAll(currentIf.getSkipBlocks());
-		result.getSkipBlocks().addAll(nextThen.getSkipBlocks());
-		result.getSkipBlocks().addAll(nextElse.getSkipBlocks());
+		result.merge(currentIf, nextThen, nextElse);
 		confirmMerge(result);
 		return result;
 	}
@@ -215,10 +210,7 @@ public class IfMakerHelper {
 		IfCondition condition = IfCondition.merge(mergeOperation, first.getCondition(), second.getCondition());
 		IfInfo result = new IfInfo(condition, second);
 		result.setIfBlock(first.getIfBlock());
-		result.getMergedBlocks().addAll(first.getMergedBlocks());
-		result.getMergedBlocks().addAll(second.getMergedBlocks());
-		result.getSkipBlocks().addAll(first.getSkipBlocks());
-		result.getSkipBlocks().addAll(second.getSkipBlocks());
+		result.merge(first, second);
 
 		BlockNode otherPathBlock = followThenBranch ? first.getElseBlock() : first.getThenBlock();
 		skipSimplePath(otherPathBlock, result.getSkipBlocks());
@@ -303,7 +295,7 @@ public class IfMakerHelper {
 		return null;
 	}
 
-	private static void skipSimplePath(BlockNode block, List<BlockNode> skipped) {
+	private static void skipSimplePath(BlockNode block, Set<BlockNode> skipped) {
 		while (block != null
 				&& block.getCleanSuccessors().size() < 2
 				&& block.getPredecessors().size() == 1) {

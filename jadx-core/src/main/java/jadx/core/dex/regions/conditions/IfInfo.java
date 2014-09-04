@@ -3,8 +3,6 @@ package jadx.core.dex.regions.conditions;
 import jadx.core.dex.nodes.BlockNode;
 
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 public final class IfInfo {
@@ -12,13 +10,13 @@ public final class IfInfo {
 	private final Set<BlockNode> mergedBlocks;
 	private final BlockNode thenBlock;
 	private final BlockNode elseBlock;
-	private final List<BlockNode> skipBlocks;
+	private final Set<BlockNode> skipBlocks;
 	private BlockNode outBlock;
 	@Deprecated
 	private BlockNode ifBlock;
 
 	public IfInfo(IfCondition condition, BlockNode thenBlock, BlockNode elseBlock) {
-		this(condition, thenBlock, elseBlock, new HashSet<BlockNode>(), new LinkedList<BlockNode>());
+		this(condition, thenBlock, elseBlock, new HashSet<BlockNode>(), new HashSet<BlockNode>());
 	}
 
 	public IfInfo(IfCondition condition, IfInfo info) {
@@ -30,7 +28,7 @@ public final class IfInfo {
 	}
 
 	private IfInfo(IfCondition condition, BlockNode thenBlock, BlockNode elseBlock,
-	              Set<BlockNode> mergedBlocks, List<BlockNode> skipBlocks) {
+	              Set<BlockNode> mergedBlocks, Set<BlockNode> skipBlocks) {
 		this.condition = condition;
 		this.thenBlock = thenBlock;
 		this.elseBlock = elseBlock;
@@ -47,12 +45,23 @@ public final class IfInfo {
 		return tmpIf;
 	}
 
+	public void merge(IfInfo... arr) {
+		for (IfInfo info : arr) {
+			mergedBlocks.addAll(info.getMergedBlocks());
+			skipBlocks.addAll(info.getSkipBlocks());
+		}
+	}
+
 	public IfCondition getCondition() {
 		return condition;
 	}
 
 	public Set<BlockNode> getMergedBlocks() {
 		return mergedBlocks;
+	}
+
+	public Set<BlockNode> getSkipBlocks() {
+		return skipBlocks;
 	}
 
 	public BlockNode getThenBlock() {
@@ -69,10 +78,6 @@ public final class IfInfo {
 
 	public void setOutBlock(BlockNode outBlock) {
 		this.outBlock = outBlock;
-	}
-
-	public List<BlockNode> getSkipBlocks() {
-		return skipBlocks;
 	}
 
 	public BlockNode getIfBlock() {
