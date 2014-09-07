@@ -123,23 +123,20 @@ public class PrepareForCodeGen extends AbstractVisitor {
 	 */
 	private static void modifyArith(BlockNode block) {
 		List<InsnNode> list = block.getInstructions();
-		for (int i = 0; i < list.size(); i++) {
-			InsnNode insn = list.get(i);
-			if (insn.getType() != InsnType.ARITH) {
-				continue;
-			}
-			ArithNode arith = (ArithNode) insn;
-			RegisterArg res = arith.getResult();
-			InsnArg arg = arith.getArg(0);
-			boolean replace = false;
-			if (res.equals(arg)) {
-				replace = true;
-			} else if (arg.isRegister()) {
-				RegisterArg regArg = (RegisterArg) arg;
-				replace = res.equalRegisterAndType(regArg);
-			}
-			if (replace) {
-				arith.add(AFlag.ARITH_ONEARG);
+		for (InsnNode insn : list) {
+			if (insn.getType() == InsnType.ARITH) {
+				RegisterArg res = insn.getResult();
+				InsnArg arg = insn.getArg(0);
+				boolean replace = false;
+				if (res.equals(arg)) {
+					replace = true;
+				} else if (arg.isRegister()) {
+					RegisterArg regArg = (RegisterArg) arg;
+					replace = res.equalRegisterAndType(regArg);
+				}
+				if (replace) {
+					insn.add(AFlag.ARITH_ONEARG);
+				}
 			}
 		}
 	}

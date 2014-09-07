@@ -20,7 +20,7 @@ import jadx.core.dex.regions.SynchronizedRegion;
 import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.dex.regions.conditions.IfRegion;
 import jadx.core.dex.regions.loops.ForEachLoop;
-import jadx.core.dex.regions.loops.IndexLoop;
+import jadx.core.dex.regions.loops.ForLoop;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.regions.loops.LoopType;
 import jadx.core.dex.trycatch.CatchAttr;
@@ -175,14 +175,14 @@ public class RegionGen extends InsnGen {
 		ConditionGen conditionGen = new ConditionGen(this);
 		LoopType type = region.getType();
 		if (type != null) {
-			if (type instanceof IndexLoop) {
-				IndexLoop indexLoop = (IndexLoop) type;
+			if (type instanceof ForLoop) {
+				ForLoop forLoop = (ForLoop) type;
 				code.startLine("for (");
-				makeInsn(indexLoop.getInitInsn(), code, Flags.INLINE);
+				makeInsn(forLoop.getInitInsn(), code, Flags.INLINE);
 				code.add("; ");
 				conditionGen.add(code, condition);
 				code.add("; ");
-				makeInsn(indexLoop.getIncrInsn(), code, Flags.INLINE);
+				makeInsn(forLoop.getIncrInsn(), code, Flags.INLINE);
 				code.add(") {");
 				makeRegionIndent(code, region.getBody());
 				code.startLine('}');

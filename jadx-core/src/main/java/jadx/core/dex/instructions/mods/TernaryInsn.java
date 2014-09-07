@@ -9,7 +9,9 @@ import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.Utils;
 
-public class TernaryInsn extends InsnNode {
+import java.util.List;
+
+public final class TernaryInsn extends InsnNode {
 
 	private IfCondition condition;
 
@@ -49,6 +51,12 @@ public class TernaryInsn extends InsnNode {
 		InsnArg tmp = getArg(0);
 		setArg(0, getArg(1));
 		setArg(1, tmp);
+	}
+
+	@Override
+	public void getRegisterArgs(List<RegisterArg> list) {
+		super.getRegisterArgs(list);
+		list.addAll(condition.getRegisterArgs());
 	}
 
 	@Override

@@ -1,11 +1,15 @@
 package jadx.core.dex.visitors.regions;
 
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
 import jadx.core.dex.instructions.IfOp;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.InvokeNode;
+import jadx.core.dex.instructions.InvokeType;
 import jadx.core.dex.instructions.PhiInsn;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
@@ -19,7 +23,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.conditions.Compare;
 import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.dex.regions.loops.ForEachLoop;
-import jadx.core.dex.regions.loops.IndexLoop;
+import jadx.core.dex.regions.loops.ForLoop;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.regions.loops.LoopType;
 import jadx.core.dex.visitors.AbstractVisitor;
@@ -28,6 +32,7 @@ import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.RegionUtils;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -57,6 +62,9 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 			return;
 		}
 		if (checkForIndexedLoop(mth, loopRegion, condition)) {
+			return;
+		}
+		if (checkIterableForEach(mth, loopRegion, condition)) {
 			return;
 		}
 	}
@@ -103,7 +111,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 			loopRegion.setType(arrForEach);
 			return true;
 		}
-		loopRegion.setType(new IndexLoop(initInsn, incrInsn));
+		loopRegion.setType(new ForLoop(initInsn, incrInsn));
 		return true;
 	}
 
@@ -182,6 +190,107 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 			}
 		}
 		return new ForEachLoop(iterVar, len.getArg(0));
+	}
+
+	private static boolean checkIterableForEach(MethodNode mth, LoopRegion loopRegion, IfCondition condition) {
+		List<RegisterArg> condArgs = condition.getRegisterArgs();
+		if (condArgs.size() != 1) {
+			return false;
+		}
+		RegisterArg iteratorArg = condArgs.get(0);
+		SSAVar sVar = iteratorArg.getSVar();
+		if (sVar == null || sVar.isUsedInPhi()) {
+			return false;
+		}
+		List<RegisterArg> useList = sVar.getUseList();
+		InsnNode assignInsn = iteratorArg.getAssignInsn();
+		if (useList.size() != 2
+				|| assignInsn == null
+				|| !checkInvoke(assignInsn, null, "iterator()Ljava/util/Iterator;", 0)) {
+			return false;
+		}
+		InsnArg iterableArg = assignInsn.getArg(0);
+		InsnNode hasNextCall = useList.get(0).getParentInsn();
+		InsnNode nextCall = useList.get(1).getParentInsn();
+		if (!checkInvoke(hasNextCall, "java.util.Iterator", "hasNext()Z", 0)
+				|| !checkInvoke(nextCall, "java.util.Iterator", "next()Ljava/lang/Object;", 0)) {
+			return false;
+		}
+		List<InsnNode> toSkip = new LinkedList<InsnNode>();
+		RegisterArg iterVar = nextCall.getResult();
+		if (nextCall.contains(AFlag.WRAPPED)) {
+			InsnArg wrapArg = BlockUtils.searchWrappedInsnParent(mth, nextCall);
+			if (wrapArg != null) {
+				InsnNode parentInsn = wrapArg.getParentInsn();
+				if (parentInsn.getType() != InsnType.CHECK_CAST) {
+					parentInsn.replaceArg(wrapArg, iterVar);
+				} else {
+					iterVar = parentInsn.getResult();
+					InsnArg castArg = BlockUtils.searchWrappedInsnParent(mth, parentInsn);
+					if (castArg != null) {
+						castArg.getParentInsn().replaceArg(castArg, iterVar);
+					} else {
+						// cast not inlined
+						toSkip.add(parentInsn);
+					}
+				}
+			} else {
+				LOG.warn(" Wrapped insn not found: {}, mth: {}", nextCall, mth);
+				return false;
+			}
+		} else {
+			toSkip.add(nextCall);
+		}
+		if (!fixIterableType(iterableArg, iterVar)) {
+			return false;
+		}
+
+		assignInsn.add(AFlag.SKIP);
+		for (InsnNode insnNode : toSkip) {
+			insnNode.add(AFlag.SKIP);
+		}
+		loopRegion.setType(new ForEachLoop(iterVar, iterableArg));
+		return true;
+	}
+
+	private static boolean fixIterableType(InsnArg iterableArg, RegisterArg iterVar) {
+		ArgType type = iterableArg.getType();
+		if (type.isGeneric()) {
+			ArgType[] genericTypes = type.getGenericTypes();
+			if (genericTypes != null && genericTypes.length == 1) {
+				ArgType gType = genericTypes[0];
+				if (ArgType.isInstanceOf(gType, iterVar.getType())) {
+					return true;
+				} else {
+					LOG.warn("Generic type differs: {} and {}", type, iterVar.getType());
+				}
+			}
+		} else {
+			if (!iterableArg.isRegister()) {
+				return true;
+			}
+			// TODO: add checks
+			type = ArgType.generic(type.getObject(), new ArgType[]{iterVar.getType()});
+			iterableArg.setType(type);
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Check if instruction is a interface invoke with corresponding parameters.
+	 */
+	private static boolean checkInvoke(InsnNode insn, String declClsFullName, String mthId, int argsCount) {
+		if (insn.getType() == InsnType.INVOKE) {
+			InvokeNode inv = (InvokeNode) insn;
+			MethodInfo callMth = inv.getCallMth();
+			if (callMth.getArgsCount() == argsCount
+					&& callMth.getShortId().equals(mthId)
+					&& inv.getInvokeType() == InvokeType.INTERFACE) {
+				return declClsFullName == null || callMth.getDeclClass().getFullName().equals(declClsFullName);
+			}
+		}
+		return false;
 	}
 
 	private static boolean usedOnlyInLoop(MethodNode mth, LoopRegion loopRegion, RegisterArg arg) {

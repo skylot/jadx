@@ -2,12 +2,15 @@ package jadx.core.utils;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
+import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
@@ -138,6 +141,14 @@ public class BlockUtils {
 		return null;
 	}
 
+	public static InsnNode searchInsnParent(MethodNode mth, InsnNode insn) {
+		InsnArg insnArg = searchWrappedInsnParent(mth, insn);
+		if (insnArg == null) {
+			return null;
+		}
+		return insnArg.getParentInsn();
+	}
+
 	public static InsnArg searchWrappedInsnParent(MethodNode mth, InsnNode insn) {
 		if (!insn.contains(AFlag.WRAPPED)) {
 			return null;
@@ -164,6 +175,23 @@ public class BlockUtils {
 				if (res != null) {
 					return res;
 				}
+			}
+		}
+		if (container instanceof TernaryInsn) {
+			return foundWrappedInsnInCondition(((TernaryInsn) container).getCondition(), insn);
+		}
+		return null;
+	}
+
+	private static InsnArg foundWrappedInsnInCondition(IfCondition cond, InsnNode insn) {
+		if (cond.isCompare()) {
+			IfNode cmpInsn = cond.getCompare().getInsn();
+			return foundWrappedInsn(cmpInsn, insn);
+		}
+		for (IfCondition nestedCond : cond.getArgs()) {
+			InsnArg res = foundWrappedInsnInCondition(nestedCond, insn);
+			if (res != null) {
+				return res;
 			}
 		}
 		return null;

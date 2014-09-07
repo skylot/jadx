@@ -3,7 +3,6 @@ package jadx.core.dex.regions.conditions;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IfOp;
 import jadx.core.dex.instructions.InsnType;
-import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -209,14 +208,7 @@ public final class IfCondition {
 	public List<RegisterArg> getRegisterArgs() {
 		List<RegisterArg> list = new LinkedList<RegisterArg>();
 		if (mode == Mode.COMPARE) {
-			InsnArg a = compare.getA();
-			if (a.isRegister()) {
-				list.add((RegisterArg) a);
-			}
-			InsnArg b = compare.getB();
-			if (b.isRegister()) {
-				list.add((RegisterArg) b);
-			}
+			compare.getInsn().getRegisterArgs(list);
 		} else {
 			for (IfCondition arg : args) {
 				list.addAll(arg.getRegisterArgs());

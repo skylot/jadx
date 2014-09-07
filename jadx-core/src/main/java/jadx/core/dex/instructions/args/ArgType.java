@@ -543,6 +543,16 @@ public abstract class ArgType {
 		return true;
 	}
 
+	public static boolean isInstanceOf(ArgType type, ArgType of) {
+		if (type.equals(of)) {
+			return true;
+		}
+		if (!type.isObject() || !of.isObject()) {
+			return false;
+		}
+		return clsp.isImplements(type.getObject(), of.getObject());
+	}
+
 	public static ArgType parse(String type) {
 		char f = type.charAt(0);
 		switch (f) {
