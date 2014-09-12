@@ -52,6 +52,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 	private final Method methodData;
 	private int regsCount;
 	private InsnNode[] instructions;
+	private int codeSize;
 	private int debugInfoOffset;
 	private boolean noCode;
 
@@ -82,6 +83,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		try {
 			if (noCode) {
 				regsCount = 0;
+				codeSize = 0;
 				initMethodTypes();
 				return;
 			}
@@ -94,6 +96,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 			InsnDecoder decoder = new InsnDecoder(this);
 			decoder.decodeInsns(mthCode);
 			instructions = decoder.process();
+			codeSize = instructions.length;
 
 			initTryCatches(mthCode);
 			initJumps();
@@ -348,6 +351,10 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 
 	public boolean isNoCode() {
 		return noCode;
+	}
+
+	public int getCodeSize() {
+		return codeSize;
 	}
 
 	public InsnNode[] getInstructions() {

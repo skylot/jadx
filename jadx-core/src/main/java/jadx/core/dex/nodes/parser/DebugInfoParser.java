@@ -3,6 +3,7 @@ package jadx.core.dex.nodes.parser;
 import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -112,8 +113,9 @@ public class DebugInfoParser {
 					int regNum = section.readUleb128();
 					LocalVar var = locals[regNum];
 					if (var != null) {
-						var.end(addr, line);
-						setVar(var);
+						if (var.end(addr, line)) {
+							setVar(var);
+						}
 						var.start(addr, line);
 					}
 					break;
@@ -160,7 +162,7 @@ public class DebugInfoParser {
 
 		for (LocalVar var : locals) {
 			if (var != null && !var.isEnd()) {
-				var.end(addr, line);
+				var.end(mth.getCodeSize()-1, line);
 				setVar(var);
 			}
 		}
@@ -236,7 +238,27 @@ public class DebugInfoParser {
 		if (arg != null && arg.isRegister()) {
 			RegisterArg reg = (RegisterArg) arg;
 			if (var.getRegNum() == reg.getRegNum()) {
-				reg.mergeDebugInfo(var.getType(), var.getName());
+				SSAVar ssaVar = reg.getSVar();
+
+				boolean mergeRequired = false;
+
+				if (ssaVar != null) {
+					int ssaEnd = ssaVar.getEndAddr();
+					int ssaStart = ssaVar.getStartAddr();
+					int localStart = var.getStartAddr();
+					int localEnd = var.getEndAddr();
+
+					boolean isIntersected = !((localEnd < ssaStart) || (ssaEnd < localStart));
+					if (isIntersected && (ssaEnd <= localEnd)) {
+						mergeRequired = true;
+					}
+				} else {
+					mergeRequired = true;
+				}
+				
+				if (mergeRequired) {
+					reg.mergeDebugInfo(var.getType(), var.getName());
+				}
 			}
 		}
 	}

@@ -69,9 +69,20 @@ final class LocalVar {
 		this.startAddr = addr;
 	}
 
-	public void end(int addr, int line) {
-		this.isEnd = true;
-		this.endAddr = addr;
+	/**
+	 * Sets end address of local variable
+	 * @param addr address
+	 * @param line source line
+	 * @return <b>true</b> if local variable was active, else <b>false</b>
+	 */
+	public boolean end(int addr, int line) {
+		if (!isEnd) {
+			this.isEnd = true;
+			this.endAddr = addr;
+			return true;
+		}
+
+		return false;
 	}
 
 	public int getRegNum() {

@@ -11,6 +11,9 @@ public class SSAVar {
 	private final int version;
 	private VarName varName;
 
+	private int startUseAddr;
+	private int endUseAddr;
+
 	private RegisterArg assign;
 	private final List<RegisterArg> useList = new ArrayList<RegisterArg>(2);
 	private PhiInsn usedInPhi;
@@ -25,11 +28,62 @@ public class SSAVar {
 		if (assign != null) {
 			assign.setSVar(this);
 		}
+
+		startUseAddr = -1;
+		endUseAddr = -1;
 	}
 
 	public int getRegNum() {
 		return regNum;
 	}
+
+	public int getStartAddr() {
+		if (startUseAddr == -1) {
+			calcUsageAddrRange();
+		}
+		return startUseAddr;
+	}
+
+	public int getEndAddr() {
+		if (endUseAddr == -1) {
+			calcUsageAddrRange();
+		}
+
+		return endUseAddr;
+	}
+
+	private void calcUsageAddrRange() {
+		int start = Integer.MAX_VALUE;
+		int end = Integer.MIN_VALUE;
+
+		if (assign != null) {
+			if (assign.getParentInsn() != null) {
+				int insnAddr = assign.getParentInsn().getOffset();
+
+				if (insnAddr >= 0) {
+					start = Math.min(insnAddr, start);
+					end = Math.max(insnAddr, end);
+				}
+			}
+		}
+
+		for (RegisterArg arg : useList) {
+			if (arg.getParentInsn() != null) {
+				int insnAddr = arg.getParentInsn().getOffset();
+
+				if (insnAddr >= 0) {
+					start = Math.min(insnAddr, start);
+					end = Math.max(insnAddr, end);
+				}
+			}
+		}
+
+		if ((start != Integer.MAX_VALUE) 
+				&& (end != Integer.MIN_VALUE)) {
+			startUseAddr = start;
+			endUseAddr = end;
+		}
+	} 
 
 	public int getVersion() {
 		return version;
