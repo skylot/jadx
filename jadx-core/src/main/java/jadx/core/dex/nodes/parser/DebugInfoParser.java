@@ -171,6 +171,8 @@ public class DebugInfoParser {
 
 	private int addrChange(int addr, int addrInc, int line) {
 		int newAddr = addr + addrInc;
+		int maxAddr = insnByOffset.length - 1;
+		newAddr = Math.min(newAddr, maxAddr);
 		for (int i = addr + 1; i <= newAddr; i++) {
 			InsnNode insn = insnByOffset[i];
 			if (insn == null) {
@@ -255,7 +257,7 @@ public class DebugInfoParser {
 				} else {
 					mergeRequired = true;
 				}
-				
+
 				if (mergeRequired) {
 					reg.mergeDebugInfo(var.getType(), var.getName());
 				}

@@ -64,6 +64,10 @@ public class ConstructorInsn extends InsnNode {
 		return callMth.getDeclClass();
 	}
 
+	public boolean isNewInstance() {
+		return callType == CallType.CONSTRUCTOR;
+	}
+
 	public boolean isSuper() {
 		return callType == CallType.SUPER;
 	}

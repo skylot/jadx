@@ -41,8 +41,10 @@ public class ModVisitor extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
-		removeStep(mth);
-		replaceStep(mth);
+
+		InstructionRemover remover = new InstructionRemover(mth);
+		replaceStep(mth, remover);
+		removeStep(mth, remover);
 
 		checkArgsNames(mth);
 
@@ -51,55 +53,16 @@ public class ModVisitor extends AbstractVisitor {
 		}
 	}
 
-	private static void replaceStep(MethodNode mth) {
+	private static void replaceStep(MethodNode mth, InstructionRemover remover) {
 		ClassNode parentClass = mth.getParentClass();
 		for (BlockNode block : mth.getBasicBlocks()) {
-			InstructionRemover remover = new InstructionRemover(mth, block);
-
+			remover.setBlock(block);
 			int size = block.getInstructions().size();
 			for (int i = 0; i < size; i++) {
 				InsnNode insn = block.getInstructions().get(i);
 				switch (insn.getType()) {
 					case INVOKE:
-						InvokeNode inv = (InvokeNode) insn;
-						MethodInfo callMth = inv.getCallMth();
-						if (callMth.isConstructor()) {
-							ConstructorInsn co = new ConstructorInsn(mth, inv);
-							removeInsnForArg(remover, co.getInstanceArg());
-							boolean remove = false;
-							if (co.isSuper() && (co.getArgsCount() == 0 || parentClass.isEnum())) {
-								remove = true;
-							} else if (co.isThis() && co.getArgsCount() == 0) {
-								MethodNode defCo = mth.getParentClass().searchMethodByName(callMth.getShortId());
-								if (defCo == null || defCo.isNoCode()) {
-									// default constructor not implemented
-									remove = true;
-								}
-							}
-
-							// remove super() call in instance initializer
-							if (parentClass.isAnonymous() && mth.isDefaultConstructor() && co.isSuper()) {
-								remove = true;
-							} 
-
-							if (remove) {
-								remover.add(insn);
-							} else {
-								replaceInsn(block, i, co);
-							}
-						} else {
-							if (inv.getArgsCount() > 0) {
-								for (int j = 0; j < inv.getArgsCount(); j++) {
-									InsnArg arg = inv.getArg(j);
-									if (arg.isLiteral()) {
-										FieldNode f = parentClass.getConstFieldByLiteralArg((LiteralArg) arg);
-										if (f != null) {
-											arg.wrapInstruction(new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0));
-										}
-									}
-								}
-							}
-						}
+						processInvoke(mth, block, i, remover);
 						break;
 
 					case CONST:
@@ -151,17 +114,76 @@ public class ModVisitor extends AbstractVisitor {
 		}
 	}
 
+	private static void processInvoke(MethodNode mth, BlockNode block, int insnNumber, InstructionRemover remover) {
+		ClassNode parentClass = mth.getParentClass();
+		InsnNode insn = block.getInstructions().get(insnNumber);
+		InvokeNode inv = (InvokeNode) insn;
+		MethodInfo callMth = inv.getCallMth();
+		if (callMth.isConstructor()) {
+			InsnNode instArgAssignInsn = ((RegisterArg) inv.getArg(0)).getAssignInsn();
+			ConstructorInsn co = new ConstructorInsn(mth, inv);
+			boolean remove = false;
+			if (co.isSuper() && (co.getArgsCount() == 0 || parentClass.isEnum())) {
+				remove = true;
+			} else if (co.isThis() && co.getArgsCount() == 0) {
+				MethodNode defCo = parentClass.searchMethodByName(callMth.getShortId());
+				if (defCo == null || defCo.isNoCode()) {
+					// default constructor not implemented
+					remove = true;
+				}
+			}
+			// remove super() call in instance initializer
+			if (parentClass.isAnonymous() && mth.isDefaultConstructor() && co.isSuper()) {
+				remove = true;
+			}
+			if (remove) {
+				remover.add(insn);
+			} else {
+				replaceInsn(block, insnNumber, co);
+				if (co.isNewInstance()) {
+					removeAssignChain(instArgAssignInsn, remover, InsnType.NEW_INSTANCE);
+				}
+			}
+		} else if (inv.getArgsCount() > 0) {
+			for (int j = 0; j < inv.getArgsCount(); j++) {
+				InsnArg arg = inv.getArg(j);
+				if (arg.isLiteral()) {
+					FieldNode f = parentClass.getConstFieldByLiteralArg((LiteralArg) arg);
+					if (f != null) {
+						arg.wrapInstruction(new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0));
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Remove instructions on 'move' chain until instruction with type 'insnType'
+	 */
+	private static void removeAssignChain(InsnNode insn, InstructionRemover remover, InsnType insnType) {
+		if (insn == null) {
+			return;
+		}
+		remover.add(insn);
+		InsnType type = insn.getType();
+		if (type == insnType) {
+			return;
+		}
+		if (type == InsnType.MOVE) {
+			RegisterArg arg = (RegisterArg) insn.getArg(0);
+			removeAssignChain(arg.getAssignInsn(), remover, insnType);
+		}
+	}
+
 	/**
 	 * Remove unnecessary instructions
 	 */
-	private static void removeStep(MethodNode mth) {
+	private static void removeStep(MethodNode mth, InstructionRemover remover) {
 		for (BlockNode block : mth.getBasicBlocks()) {
-			InstructionRemover remover = new InstructionRemover(mth, block);
-
+			remover.setBlock(block);
 			int size = block.getInstructions().size();
 			for (int i = 0; i < size; i++) {
 				InsnNode insn = block.getInstructions().get(i);
-
 				switch (insn.getType()) {
 					case NOP:
 					case GOTO:
@@ -257,16 +279,6 @@ public class ModVisitor extends AbstractVisitor {
 		InsnNode prevInsn = block.getInstructions().get(i);
 		insn.copyAttributesFrom(prevInsn);
 		block.getInstructions().set(i, insn);
-	}
-
-	/**
-	 * In argument not used in other instructions then remove assign instruction.
-	 */
-	private static void removeInsnForArg(InstructionRemover remover, RegisterArg arg) {
-		if (arg.getSVar().getUseCount() == 0
-				&& arg.getAssignInsn() != null) {
-			remover.add(arg.getAssignInsn());
-		}
 	}
 
 	private static void checkArgsNames(MethodNode mth) {
