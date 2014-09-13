@@ -7,6 +7,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
+import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.FileUtils;
 
 import java.io.File;
@@ -30,21 +31,30 @@ public abstract class InternalJadxTest extends TestUtils {
 
 	protected boolean outputCFG = false;
 	protected boolean isFallback = false;
-	protected boolean deleteTmpJar = true;
+	protected boolean deleteTmpFiles = true;
 
 	protected String outDir = "test-out-tmp";
 
 	public ClassNode getClassNode(Class<?> clazz) {
-		JadxDecompiler d = new JadxDecompiler();
 		try {
-			d.loadFile(getJarForClass(clazz));
+			File jar = getJarForClass(clazz);
+			return getClassNodeFromFile(jar, clazz.getName());
 		} catch (Exception e) {
 			fail(e.getMessage());
 		}
-		String clsName = clazz.getName();
+		return null;
+	}
+
+	public ClassNode getClassNodeFromFile(File file, String clsName) {
+		JadxDecompiler d = new JadxDecompiler();
+		try {
+			d.loadFile(file);
+		} catch (JadxException e) {
+			fail(e.getMessage());
+		}
 		ClassNode cls = d.getRoot().searchClassByName(clsName);
 		assertNotNull("Class not found: " + clsName, cls);
-		assertEquals(cls.getFullName(), clazz.getName());
+		assertEquals(cls.getFullName(), clsName);
 
 		cls.load();
 		for (IDexTreeVisitor visitor : getPasses()) {
@@ -99,16 +109,26 @@ public abstract class InternalJadxTest extends TestUtils {
 		String path = cls.getPackage().getName().replace('.', '/');
 		List<File> list = getClassFilesWithInners(cls);
 
-		File temp = File.createTempFile("jadx-tmp-", System.nanoTime() + ".jar");
+		File temp = createTempFile(".jar");
 		JarOutputStream jo = new JarOutputStream(new FileOutputStream(temp));
 		for (File file : list) {
 			FileUtils.addFileToJar(jo, file, path + "/" + file.getName());
 		}
 		jo.close();
-		if (deleteTmpJar) {
-			temp.deleteOnExit();
-		} else {
-			System.out.println("Temporary jar file path: " + temp.getAbsolutePath());
+		return temp;
+	}
+
+	protected File createTempFile(String suffix) {
+		File temp = null;
+		try {
+			temp = File.createTempFile("jadx-tmp-", System.nanoTime() + suffix);
+			if (deleteTmpFiles) {
+				temp.deleteOnExit();
+			} else {
+				System.out.println("Temporary file path: " + temp.getAbsolutePath());
+			}
+		} catch (IOException e) {
+			fail(e.getMessage());
 		}
 		return temp;
 	}
@@ -135,7 +155,6 @@ public abstract class InternalJadxTest extends TestUtils {
 		return list;
 	}
 
-
 	// Use only for debug purpose
 	@Deprecated
 	protected void setOutputCFG() {
@@ -151,6 +170,6 @@ public abstract class InternalJadxTest extends TestUtils {
 	// Use only for debug purpose
 	@Deprecated
 	protected void notDeleteTmpJar() {
-		this.deleteTmpJar = false;
+		this.deleteTmpFiles = false;
 	}
 }
