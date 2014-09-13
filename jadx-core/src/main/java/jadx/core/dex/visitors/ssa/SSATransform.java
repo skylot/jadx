@@ -80,6 +80,7 @@ public class SSATransform extends AbstractVisitor {
 		}
 		PhiInsn phiInsn = new PhiInsn(regNum, block.getPredecessors().size());
 		phiList.getList().add(phiInsn);
+		phiInsn.setOffset(block.getStartOffset());
 		block.getInstructions().add(0, phiInsn);
 	}
 
