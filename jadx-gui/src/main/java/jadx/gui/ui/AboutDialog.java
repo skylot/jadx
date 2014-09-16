@@ -1,8 +1,9 @@
 package jadx.gui.ui;
 
-import jadx.core.Jadx;
+import jadx.api.JadxDecompiler;
 import jadx.gui.utils.NLS;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -26,7 +27,7 @@ class AboutDialog extends JDialog {
 	public final void initUI() {
 		Font font = new Font("Serif", Font.BOLD, 13);
 
-		JLabel name = new JLabel("JADX");
+		JLabel name = new JLabel("jadx");
 		name.setFont(font);
 		name.setAlignmentX(0.5f);
 
@@ -34,11 +35,12 @@ class AboutDialog extends JDialog {
 		desc.setFont(font);
 		desc.setAlignmentX(0.5f);
 
-		JLabel version = new JLabel("version: " + Jadx.getVersion());
+		JLabel version = new JLabel("version: " + JadxDecompiler.getVersion());
 		version.setFont(font);
 		version.setAlignmentX(0.5f);
 
 		JPanel textPane = new JPanel();
+		textPane.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 		textPane.setLayout(new BoxLayout(textPane, BoxLayout.PAGE_AXIS));
 		textPane.add(Box.createRigidArea(new Dimension(0, 10)));
 		textPane.add(name);

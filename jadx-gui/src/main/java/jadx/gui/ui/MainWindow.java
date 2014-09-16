@@ -4,11 +4,15 @@ import jadx.gui.JadxWrapper;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JRoot;
+import jadx.gui.update.JadxUpdate;
+import jadx.gui.update.data.Release;
 import jadx.gui.utils.JadxPreferences;
+import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Position;
 import jadx.gui.utils.Utils;
 
+import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
@@ -83,12 +87,25 @@ public class MainWindow extends JFrame {
 	private JCheckBoxMenuItem flatPkgMenuItem;
 	private JToggleButton flatPkgButton;
 	private boolean isFlattenPackage;
+	private Link updateLink;
 
 	public MainWindow(JadxWrapper wrapper) {
 		this.wrapper = wrapper;
 
 		initUI();
 		initMenuAndToolbar();
+		JadxUpdate.check(new JadxUpdate.IUpdateCallback() {
+			@Override
+			public void onUpdate(final Release r) {
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						updateLink.setText(String.format(NLS.str("menu.update_label"), r.getName()));
+						updateLink.setVisible(true);
+					}
+				});
+			}
+		});
 	}
 
 	public void openFile() {
@@ -96,16 +113,13 @@ public class MainWindow extends JFrame {
 		fileChooser.setAcceptAllFileFilterUsed(true);
 		fileChooser.setFileFilter(new FileNameExtensionFilter("supported files", "dex", "apk", "jar"));
 		fileChooser.setToolTipText(NLS.str("file.open"));
-		
 		String currentDirectory = JadxPreferences.getLastOpenFilePath();
 		if (!currentDirectory.isEmpty()) {
 			fileChooser.setCurrentDirectory(new File(currentDirectory));
 		}
-
 		int ret = fileChooser.showDialog(mainPanel, NLS.str("file.open"));
 		if (ret == JFileChooser.APPROVE_OPTION) {
 			JadxPreferences.putLastOpenFilePath(fileChooser.getCurrentDirectory().getPath());
-			
 			openFile(fileChooser.getSelectedFile());
 		}
 	}
@@ -125,12 +139,11 @@ public class MainWindow extends JFrame {
 		if (!currentDirectory.isEmpty()) {
 			fileChooser.setCurrentDirectory(new File(currentDirectory));
 		}
-		
+
 		int ret = fileChooser.showDialog(mainPanel, NLS.str("file.select"));
 		if (ret == JFileChooser.APPROVE_OPTION) {
 			JadxPreferences.putLastSaveFilePath(fileChooser.getCurrentDirectory().getPath());
-			
-			ProgressMonitor progressMonitor = new ProgressMonitor(mainPanel, "Saving sources", "", 0, 100);
+			ProgressMonitor progressMonitor = new ProgressMonitor(mainPanel, NLS.str("msg.saving_sources"), "", 0, 100);
 			progressMonitor.setMillisToPopup(500);
 			wrapper.saveAll(fileChooser.getSelectedFile(), progressMonitor);
 		}
@@ -377,6 +390,11 @@ public class MainWindow extends JFrame {
 		});
 		forwardButton.setToolTipText(NLS.str("nav.forward"));
 		toolbar.add(forwardButton);
+
+		toolbar.add(Box.createHorizontalGlue());
+		updateLink = new Link("", JadxUpdate.JADX_RELEASES_URL);
+		updateLink.setVisible(false);
+		toolbar.add(updateLink);
 
 		mainPanel.add(toolbar, BorderLayout.NORTH);
 	}
