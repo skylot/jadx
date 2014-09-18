@@ -38,13 +38,12 @@ public class EnumVisitor extends AbstractVisitor {
 
 		// collect enum fields, remove synthetic
 		List<FieldNode> enumFields = new ArrayList<FieldNode>();
-		for (Iterator<FieldNode> it = cls.getFields().iterator(); it.hasNext(); ) {
-			FieldNode f = it.next();
+		for (FieldNode f : cls.getFields()) {
 			if (f.getAccessFlags().isEnum()) {
 				enumFields.add(f);
-				it.remove();
+				f.add(AFlag.DONT_GENERATE);
 			} else if (f.getAccessFlags().isSynthetic()) {
-				it.remove();
+				f.add(AFlag.DONT_GENERATE);
 			}
 		}
 

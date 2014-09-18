@@ -12,25 +12,25 @@ public abstract class AttrNode implements IAttributeNode {
 
 	@Override
 	public void add(AFlag flag) {
-		getStorage().add(flag);
+		initStorage().add(flag);
 	}
 
 	@Override
 	public void addAttr(IAttribute attr) {
-		getStorage().add(attr);
+		initStorage().add(attr);
 	}
 
 	@Override
 	public <T> void addAttr(AType<AttrList<T>> type, T obj) {
-		getStorage().add(type, obj);
+		initStorage().add(type, obj);
 	}
 
 	@Override
 	public void copyAttributesFrom(AttrNode attrNode) {
-		getStorage().addAll(attrNode.storage);
+		initStorage().addAll(attrNode.storage);
 	}
 
-	AttributeStorage getStorage() {
+	AttributeStorage initStorage() {
 		AttributeStorage store = storage;
 		if (store == EMPTY_ATTR_STORAGE) {
 			store = new AttributeStorage();

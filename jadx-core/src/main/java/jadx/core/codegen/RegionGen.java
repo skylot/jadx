@@ -10,6 +10,7 @@ import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
@@ -239,7 +240,14 @@ public class RegionGen extends InsnGen {
 			IContainer c = sw.getCases().get(i);
 			for (Object k : keys) {
 				code.startLine("case ");
-				if (k instanceof IndexInsnNode) {
+				if (k instanceof FieldNode) {
+					FieldNode fn = (FieldNode) k;
+					if (fn.getParentClass().isEnum()) {
+						code.add(fn.getName());
+					} else {
+						staticField(code, fn.getFieldInfo());
+					}
+				} else if (k instanceof IndexInsnNode) {
 					staticField(code, (FieldInfo) ((IndexInsnNode) k).getIndex());
 				} else {
 					code.add(TypeGen.literalToString((Integer) k, arg.getType()));

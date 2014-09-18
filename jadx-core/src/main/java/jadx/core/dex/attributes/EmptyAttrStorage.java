@@ -5,7 +5,7 @@ import jadx.core.dex.attributes.annotations.Annotation;
 import java.util.Collections;
 import java.util.List;
 
-public class EmptyAttrStorage extends AttributeStorage {
+public final class EmptyAttrStorage extends AttributeStorage {
 
 	@Override
 	public boolean contains(AFlag flag) {
@@ -51,5 +51,10 @@ public class EmptyAttrStorage extends AttributeStorage {
 	@Override
 	public List<String> getAttributeStrings() {
 		return Collections.emptyList();
+	}
+
+	@Override
+	public String toString() {
+		return "";
 	}
 }

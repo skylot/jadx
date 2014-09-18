@@ -4,6 +4,7 @@ import jadx.core.dex.attributes.annotations.AnnotationsList;
 import jadx.core.dex.attributes.annotations.MethodParameters;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr;
+import jadx.core.dex.attributes.nodes.EnumMapAttr;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.attributes.nodes.ForceReturnAttr;
 import jadx.core.dex.attributes.nodes.JadxErrorAttr;
@@ -40,6 +41,7 @@ public class AType<T extends IAttribute> {
 	public static final AType<JadxErrorAttr> JADX_ERROR = new AType<JadxErrorAttr>();
 	public static final AType<MethodInlineAttr> METHOD_INLINE = new AType<MethodInlineAttr>();
 	public static final AType<EnumClassAttr> ENUM_CLASS = new AType<EnumClassAttr>();
+	public static final AType<EnumMapAttr> ENUM_MAP = new AType<EnumMapAttr>();
 	public static final AType<AnnotationsList> ANNOTATION_LIST = new AType<AnnotationsList>();
 	public static final AType<MethodParameters> ANNOTATION_MTH_PARAMETERS = new AType<MethodParameters>();
 	public static final AType<PhiListAttr> PHI_LIST = new AType<PhiListAttr>();
