@@ -15,15 +15,11 @@ public class CodeGen extends AbstractVisitor {
 
 	@Override
 	public boolean visit(ClassNode cls) throws CodegenException {
-		ClassGen clsGen = new ClassGen(cls, null, isFallbackMode());
+		ClassGen clsGen = new ClassGen(cls, null, args);
 		CodeWriter clsCode = clsGen.makeClass();
 		clsCode.finish();
 		cls.setCode(clsCode);
 		return false;
-	}
-
-	public boolean isFallbackMode() {
-		return args.isFallbackMode();
 	}
 
 }

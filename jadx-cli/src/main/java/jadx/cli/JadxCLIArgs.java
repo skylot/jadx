@@ -29,8 +29,11 @@ public final class JadxCLIArgs implements IJadxArgs {
 	@Parameter(names = {"-j", "--threads-count"}, description = "processing threads count")
 	protected int threadsCount = Runtime.getRuntime().availableProcessors();
 
-	@Parameter(names = {"-f", "--fallback"}, description = "make simple dump (using goto instead of 'if', 'for', etc)", help = true)
+	@Parameter(names = {"-f", "--fallback"}, description = "make simple dump (using goto instead of 'if', 'for', etc)")
 	protected boolean fallbackMode = false;
+
+	@Parameter(names = {"--show-bad-code"}, description = "show inconsistent code (incorrectly decompiled)")
+	protected boolean showInconsistentCode = false;
 
 	@Parameter(names = {"--cfg"}, description = "save methods control flow graph to dot file")
 	protected boolean cfgOutput = false;
@@ -179,6 +182,11 @@ public final class JadxCLIArgs implements IJadxArgs {
 	@Override
 	public boolean isFallbackMode() {
 		return fallbackMode;
+	}
+
+	@Override
+	public boolean isShowInconsistentCode() {
+		return showInconsistentCode;
 	}
 
 	@Override

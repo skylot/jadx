@@ -57,19 +57,22 @@ public class ErrorsCounter {
 		return msg;
 	}
 
+	public static String classError(ClassNode mth, String errorMsg) {
+		return classError(mth, errorMsg, null);
+	}
+
 	public static String methodError(MethodNode mth, String errorMsg, Throwable e) {
 		String msg = formatErrorMsg(mth, errorMsg);
 		mth.dex().root().getErrorsCounter().addError(mth, msg, e);
 		return msg;
 	}
-
 	public static String methodError(MethodNode mth, String errorMsg) {
 		return methodError(mth, errorMsg, null);
 	}
 
 	public void printReport() {
 		if (getErrorCount() > 0) {
-			LOG.error(getErrorCount() + " errors occured in following nodes:");
+			LOG.error(getErrorCount() + " errors occurred in following nodes:");
 			List<Object> nodes = new ArrayList<Object>(errorNodes);
 			Collections.sort(nodes, new Comparator<Object>() {
 				@Override

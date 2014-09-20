@@ -72,7 +72,6 @@ public class CheckRegions extends AbstractVisitor {
 					BlockNode loopHeader = ((LoopRegion) region).getHeader();
 					if (loopHeader != null && loopHeader.getInstructions().size() != 1) {
 						ErrorsCounter.methodError(mth, "Incorrect condition in loop: " + loopHeader);
-						mth.add(AFlag.INCONSISTENT_CODE);
 					}
 				}
 			}

@@ -27,6 +27,7 @@ import jadx.core.dex.regions.loops.LoopType;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlock;
+import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -155,8 +156,7 @@ public class RegionGen extends InsnGen {
 		if (header != null) {
 			List<InsnNode> headerInsns = header.getInstructions();
 			if (headerInsns.size() > 1) {
-				// write not inlined instructions from header
-				mth.add(AFlag.INCONSISTENT_CODE);
+				ErrorsCounter.methodError(mth, "Found not inlined instructions from loop header");
 				int last = headerInsns.size() - 1;
 				for (int i = 0; i < last; i++) {
 					InsnNode insn = headerInsns.get(i);

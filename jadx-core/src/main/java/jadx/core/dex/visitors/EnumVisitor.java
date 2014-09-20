@@ -18,6 +18,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.JadxException;
 
 import java.util.ArrayList;
@@ -79,9 +80,8 @@ public class EnumVisitor extends AbstractVisitor {
 		cls.addAttr(attr);
 
 		if (staticMethod == null) {
-			LOG.warn("Enum class init method not found: {}", cls);
+			ErrorsCounter.classError(cls, "Enum class init method not found");
 			// for this broken enum puts found fields and mark as inconsistent
-			cls.add(AFlag.INCONSISTENT_CODE);
 			for (FieldNode field : enumFields) {
 				attr.getFields().add(new EnumField(field.getName(), 0));
 			}

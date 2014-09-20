@@ -1,5 +1,6 @@
 package jadx.core.codegen;
 
+import jadx.api.IJadxArgs;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -43,8 +44,15 @@ public class ClassGen {
 	private final AnnotationGen annotationGen;
 	private final boolean fallback;
 
+	private boolean showInconsistentCode = false;
+
 	private final Set<ClassInfo> imports = new HashSet<ClassInfo>();
 	private int clsDeclLine;
+
+	public ClassGen(ClassNode cls, ClassGen parentClsGen, IJadxArgs jadxArgs) {
+		this(cls, parentClsGen, jadxArgs.isFallbackMode());
+		this.showInconsistentCode = jadxArgs.isShowInconsistentCode();
+	}
 
 	public ClassGen(ClassNode cls, ClassGen parentClsGen, boolean fallback) {
 		this.cls = cls;
@@ -269,6 +277,9 @@ public class ClassGen {
 				code.startLine("/* JADX WARNING: inconsistent code. */");
 				code.startLine("/* Code decompiled incorrectly, please refer to instructions dump. */");
 				ErrorsCounter.methodError(mth, "Inconsistent code");
+				if (showInconsistentCode) {
+					mth.remove(AFlag.INCONSISTENT_CODE);
+				}
 			}
 			MethodGen mthGen;
 			if (badCode || mth.contains(AType.JADX_ERROR)) {

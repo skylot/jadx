@@ -30,6 +30,11 @@ public class DefaultJadxArgs implements IJadxArgs {
 	}
 
 	@Override
+	public boolean isShowInconsistentCode() {
+		return false;
+	}
+
+	@Override
 	public boolean isVerbose() {
 		return false;
 	}

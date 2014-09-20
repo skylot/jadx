@@ -132,7 +132,7 @@ public class InsnGen {
 		ClassNode pCls = mth.getParentClass();
 		FieldNode fieldNode = pCls.searchField(field);
 
-		while ((fieldNode == null) 
+		while ((fieldNode == null)
 					&& (pCls.getParentClass() != pCls) && (pCls.getParentClass() != null))
 		{
 			pCls = pCls.getParentClass();
@@ -519,9 +519,10 @@ public class InsnGen {
 					"Incorrect type for fill-array insn " + InsnUtils.formatOffset(insn.getOffset())
 							+ ", element type: " + elType + ", insn element type: " + insnElementType
 			);
-			if (!elType.isTypeKnown()) {
-				elType = insnElementType.isTypeKnown() ? insnElementType : elType.selectFirst();
-			}
+		}
+		if (!elType.isTypeKnown()) {
+			LOG.warn("Unknown array element type: {} in mth: {}", elType);
+			elType = insnElementType.isTypeKnown() ? insnElementType : elType.selectFirst();
 		}
 		StringBuilder str = new StringBuilder();
 		Object data = insn.getData();

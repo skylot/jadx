@@ -1,6 +1,5 @@
 package jadx.core.dex.visitors.regions;
 
-import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
@@ -12,6 +11,7 @@ import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.utils.BlockUtils;
+import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -110,8 +110,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 			if (region.getSubBlocks().contains(dominator)) {
 				TryCatchBlock tb = tryBlocksMap.get(dominator);
 				if (!wrapBlocks(region, tb, dominator)) {
-					LOG.warn("Can't wrap try/catch for {}, method: {}", region, mth);
-					mth.add(AFlag.INCONSISTENT_CODE);
+					ErrorsCounter.methodError(mth, "Can't wrap try/catch for " + region);
 				}
 				tryBlocksMap.remove(dominator);
 				return;

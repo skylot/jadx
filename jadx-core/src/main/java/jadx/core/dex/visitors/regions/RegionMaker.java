@@ -359,8 +359,7 @@ public class RegionMaker {
 
 		BlockNode body = getNextBlock(block);
 		if (body == null) {
-			mth.add(AFlag.INCONSISTENT_CODE);
-			LOG.warn("Unexpected end of synchronized block");
+			ErrorsCounter.methodError(mth, "Unexpected end of synchronized block");
 			return null;
 		}
 		BlockNode exit;
