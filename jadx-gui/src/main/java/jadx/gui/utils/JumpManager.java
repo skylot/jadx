@@ -26,7 +26,7 @@ public class JumpManager {
 	}
 
 	private Position getCurrent() {
-		if (currentPos < list.size()) {
+		if (currentPos >= 0 && currentPos < list.size()) {
 			return list.get(currentPos);
 		}
 		return null;
@@ -41,9 +41,14 @@ public class JumpManager {
 	}
 
 	public Position getNext() {
+		int size = list.size();
+		if (size == 0) {
+			currentPos = 0;
+			return null;
+		}
 		int newPos = currentPos + 1;
-		if (newPos >= list.size()) {
-			currentPos = list.size() - 1;
+		if (newPos >= size) {
+			currentPos = size - 1;
 			return null;
 		}
 		Position position = list.get(newPos);

@@ -18,6 +18,15 @@ class TestJumpManager extends Specification {
         jm.getNext() == null
     }
 
+    def "empty history 2"() {
+        expect:
+        jm.getPrev() == null
+        jm.getNext() == null
+        jm.getPrev() == null
+        jm.getNext() == null
+        jm.getPrev() == null
+    }
+
     def "1 element"() {
         when:
         jm.addPosition(Mock(Position))
