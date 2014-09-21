@@ -1,11 +1,11 @@
 package jadx.tests.smali;
 
-import jadx.api.SmaliTest;
+import jadx.tests.api.SmaliTest;
 import jadx.core.dex.nodes.ClassNode;
 
 import org.junit.Test;
 
-import static jadx.tests.utils.JadxMatchers.containsOne;
+import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
