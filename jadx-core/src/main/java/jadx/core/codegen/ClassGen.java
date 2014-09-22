@@ -116,6 +116,11 @@ public class ClassGen {
 					.remove(AccessFlags.ACC_STATIC);
 		}
 
+		// 'static' modifier not allowed for top classes (not inner)
+		if (!cls.getClassInfo().isInner()) {
+			af = af.remove(AccessFlags.ACC_STATIC);
+		}
+
 		annotationGen.addForClass(clsCode);
 		insertSourceFileInfo(clsCode, cls);
 		clsCode.startLine(af.makeString());

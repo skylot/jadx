@@ -1,11 +1,14 @@
 package jadx.tests.integration.enums;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
+
+import java.lang.reflect.Method;
 
 import org.junit.Test;
 
 import static jadx.tests.api.utils.JadxMatchers.countString;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 public class TestSwitchOverEnum extends IntegrationTest {
@@ -20,8 +23,6 @@ public class TestSwitchOverEnum extends IntegrationTest {
 				return 1;
 			case TWO:
 				return 2;
-			case THREE:
-				return 3;
 		}
 		return 0;
 	}
@@ -35,5 +36,10 @@ public class TestSwitchOverEnum extends IntegrationTest {
 		assertThat(code, countString(1, "synthetic"));
 		assertThat(code, countString(2, "switch (c) {"));
 		assertThat(code, countString(2, "case ONE:"));
+
+		Method mth = getReflectMethod("testEnum", Count.class);
+		assertEquals(1, invoke(mth, Count.ONE));
+		assertEquals(2, invoke(mth, Count.TWO));
+		assertEquals(0, invoke(mth, Count.THREE));
 	}
 }

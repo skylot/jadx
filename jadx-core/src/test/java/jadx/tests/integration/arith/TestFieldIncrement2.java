@@ -10,11 +10,11 @@ import static org.junit.Assert.assertThat;
 
 public class TestFieldIncrement2 extends IntegrationTest {
 
-	class A {
-		int f = 5;
-	}
-
 	public static class TestCls {
+		private static class A {
+			int f = 5;
+		}
+
 		public A a;
 
 		public void test1(int n) {

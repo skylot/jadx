@@ -14,6 +14,7 @@ public class TestConstructor extends SmaliTest {
 
 	@Test
 	public void test() {
+		disableCompilation();
 		ClassNode cls = getClassNodeFromSmali("TestConstructor");
 		String code = cls.getCode().toString();
 		System.out.println(code);

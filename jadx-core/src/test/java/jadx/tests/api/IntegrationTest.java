@@ -1,8 +1,8 @@
 package jadx.tests.api;
 
-import jadx.api.JadxInternalAccess;
 import jadx.api.DefaultJadxArgs;
 import jadx.api.JadxDecompiler;
+import jadx.api.JadxInternalAccess;
 import jadx.core.Jadx;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -12,11 +12,13 @@ import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.FileUtils;
+import jadx.tests.api.compiler.DynamicCompiler;
 import jadx.tests.api.utils.TestUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -38,6 +40,9 @@ public abstract class IntegrationTest extends TestUtils {
 	protected boolean deleteTmpFiles = true;
 
 	protected String outDir = "test-out-tmp";
+
+	protected boolean compile = true;
+	private DynamicCompiler dynamicCompiler;
 
 	public ClassNode getClassNode(Class<?> clazz) {
 		try {
@@ -67,6 +72,7 @@ public abstract class IntegrationTest extends TestUtils {
 		// don't unload class
 
 		checkCode(cls);
+		compile(cls);
 		return cls;
 	}
 
@@ -106,6 +112,52 @@ public abstract class IntegrationTest extends TestUtils {
 			}
 		}
 		fail("Method not found " + method + " in class " + cls);
+		return null;
+	}
+
+	void compile(ClassNode cls) {
+		if (!compile) {
+			return;
+		}
+		try {
+			dynamicCompiler = new DynamicCompiler(cls);
+			boolean result = dynamicCompiler.compile();
+			assertTrue("Compilation failed on code: \n\n" + cls.getCode() + "\n", result);
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	public Object invoke(String method) throws Exception {
+		return invoke(method, new Class[0]);
+	}
+
+	public Object invoke(String method, Class[] types, Object... args) {
+		Method mth = getReflectMethod(method, types);
+		return invoke(mth, args);
+	}
+
+	public Method getReflectMethod(String method, Class... types) {
+		assertNotNull("dynamicCompiler not ready", dynamicCompiler);
+		try {
+			return dynamicCompiler.getMethod(method, types);
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+		return null;
+	}
+
+	public Object invoke(Method mth, Object... args) {
+		assertNotNull("dynamicCompiler not ready", dynamicCompiler);
+		assertNotNull("unknown method", mth);
+		try {
+			return dynamicCompiler.invoke(mth, args);
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
 		return null;
 	}
 
@@ -157,6 +209,12 @@ public abstract class IntegrationTest extends TestUtils {
 			}
 		}
 		return list;
+	}
+
+	// Try to make test class compilable
+	@Deprecated
+	public void disableCompilation() {
+		this.compile = false;
 	}
 
 	// Use only for debug purpose

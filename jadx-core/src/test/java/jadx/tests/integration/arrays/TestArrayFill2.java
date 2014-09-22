@@ -16,9 +16,10 @@ public class TestArrayFill2 extends IntegrationTest {
 			return new int[]{1, a + 1, 2};
 		}
 
-		public int[] test2(int a) {
-			return new int[]{1, a++, a * 2};
-		}
+		// TODO
+//		public int[] test2(int a) {
+//			return new int[]{1, a++, a * 2};
+//		}
 	}
 
 	@Test
