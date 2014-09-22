@@ -229,6 +229,7 @@ public class ModVisitor extends AbstractVisitor {
 		}
 		ExceptionHandler excHandler = handlerAttr.getHandler();
 		boolean noExitNode = true; // check if handler has exit edge to block not from this handler
+		boolean reThrow = false;
 		for (BlockNode excBlock : excHandler.getBlocks()) {
 			if (noExitNode) {
 				noExitNode = excHandler.getBlocks().containsAll(excBlock.getCleanSuccessors());
@@ -239,7 +240,7 @@ public class ModVisitor extends AbstractVisitor {
 			if (excHandler.isCatchAll()
 					&& size > 0
 					&& insns.get(size - 1).getType() == InsnType.THROW) {
-
+				reThrow = true;
 				InstructionRemover.remove(mth, excBlock, size - 1);
 
 				// move not removed instructions to 'finally' block
@@ -266,7 +267,7 @@ public class ModVisitor extends AbstractVisitor {
 		for (BlockNode excBlock : excHandler.getBlocks()) {
 			totalSize += excBlock.getInstructions().size();
 		}
-		if (totalSize == 0 && noExitNode) {
+		if (totalSize == 0 && noExitNode && reThrow) {
 			handlerAttr.getTryBlock().removeHandler(mth, excHandler);
 		}
 	}
