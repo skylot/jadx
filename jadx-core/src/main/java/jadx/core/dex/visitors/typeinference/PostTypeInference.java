@@ -3,6 +3,7 @@ package jadx.core.dex.visitors.typeinference;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InvokeNode;
+import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
@@ -92,6 +93,21 @@ public class PostTypeInference {
 					sVar.setType(castType);
 				}
 				return true;
+			}
+
+			case PHI: {
+				PhiInsn phi = (PhiInsn) insn;
+				SSAVar resultSVar = phi.getResult().getSVar();
+				if (resultSVar != null && !resultSVar.getType().isTypeKnown()) {
+					for (InsnArg arg : phi.getArguments()) {
+						ArgType argType = arg.getType();
+						if (argType.isTypeKnown()) {
+							resultSVar.setType(argType);
+							return true;
+						}
+					}
+				}
+				return false;
 			}
 
 			default:

@@ -12,7 +12,12 @@ import jadx.core.utils.exceptions.JadxException;
 import java.util.Iterator;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class EliminatePhiNodes extends AbstractVisitor {
+	private static final Logger LOG = LoggerFactory.getLogger(EliminatePhiNodes.class);
+
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
 		if (mth.isNoCode()) {
@@ -29,13 +34,20 @@ public class EliminatePhiNodes extends AbstractVisitor {
 			}
 			List<PhiInsn> list = phiList.getList();
 			for (PhiInsn phiInsn : list) {
-				for (Iterator<InsnNode> iterator = block.getInstructions().iterator(); iterator.hasNext(); ) {
-					InsnNode insn = iterator.next();
-					if (insn == phiInsn) {
-						iterator.remove();
-					}
-				}
+				removeInsn(mth, block, phiInsn);
 			}
 		}
+	}
+
+	private static void removeInsn(MethodNode mth, BlockNode block, PhiInsn phiInsn) {
+		Iterator<InsnNode> it = block.getInstructions().iterator();
+		while (it.hasNext()) {
+			InsnNode insn = it.next();
+			if (insn == phiInsn) {
+				it.remove();
+				return;
+			}
+		}
+		LOG.warn("Phi node not removed: {}, mth: {}", phiInsn, mth);
 	}
 }

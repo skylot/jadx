@@ -1,6 +1,5 @@
 package jadx.core.dex.visitors.typeinference;
 
-import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -9,7 +8,6 @@ import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.exceptions.JadxException;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.List;
 
@@ -43,7 +41,7 @@ public class TypeInference extends AbstractVisitor {
 		}
 	}
 
-	private ArgType processType(SSAVar var) {
+	private static ArgType processType(SSAVar var) {
 		RegisterArg assign = var.getAssign();
 		List<RegisterArg> useList = var.getUseList();
 		if (assign != null
@@ -58,17 +56,15 @@ public class TypeInference extends AbstractVisitor {
 		}
 		for (RegisterArg arg : useList) {
 			ArgType useType = arg.getType();
-			if (useType.isTypeKnown()) {
-				type = ArgType.merge(type, useType);
-			}
-			if (arg.getParentInsn().contains(AFlag.INCONSISTENT_CODE)) {
-				throw new JadxRuntimeException("not removed arg");
+			ArgType newType = ArgType.merge(type, useType);
+			if (newType != null) {
+				type = newType;
 			}
 		}
 		return type;
 	}
 
-	private void processPhiNode(PhiInsn phi) {
+	private static void processPhiNode(PhiInsn phi) {
 		ArgType type = phi.getResult().getType();
 		if (!type.isTypeKnown()) {
 			for (InsnArg arg : phi.getArguments()) {
@@ -86,7 +82,7 @@ public class TypeInference extends AbstractVisitor {
 		}
 	}
 
-	private String processVarName(SSAVar var) {
+	private static String processVarName(SSAVar var) {
 		String name = null;
 		if (var.getAssign() != null) {
 			name = var.getAssign().getName();
