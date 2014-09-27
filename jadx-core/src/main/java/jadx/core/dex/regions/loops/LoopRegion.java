@@ -20,7 +20,7 @@ public final class LoopRegion extends AbstractRegion {
 	private final BlockNode conditionBlock;
 	// instruction which must be executed before condition in every loop
 	private BlockNode preCondition;
-	private IContainer body;
+	private IRegion body;
 	private final boolean conditionAtEnd;
 
 	private LoopType type;
@@ -44,11 +44,11 @@ public final class LoopRegion extends AbstractRegion {
 		return conditionBlock;
 	}
 
-	public IContainer getBody() {
+	public IRegion getBody() {
 		return body;
 	}
 
-	public void setBody(IContainer body) {
+	public void setBody(IRegion body) {
 		this.body = body;
 	}
 
@@ -142,6 +142,11 @@ public final class LoopRegion extends AbstractRegion {
 			all.add(body);
 		}
 		return Collections.unmodifiableList(all);
+	}
+
+	@Override
+	public boolean replaceSubBlock(IContainer oldBlock, IContainer newBlock) {
+		return false;
 	}
 
 	@Override
