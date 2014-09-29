@@ -190,6 +190,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		}
 		computeDominanceFrontier(mth);
 		registerLoops(mth);
+		processNestedLoops(mth);
 	}
 
 	private static BlockNode getBlock(int offset, Map<Integer, BlockNode> blocksMap) {
@@ -357,10 +358,35 @@ public class BlockMakerVisitor extends AbstractVisitor {
 
 	private static void registerLoops(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
-			List<LoopInfo> loops = block.getAll(AType.LOOP);
 			if (block.contains(AFlag.LOOP_START)) {
-				for (LoopInfo loop : loops) {
+				for (LoopInfo loop : block.getAll(AType.LOOP)) {
 					mth.registerLoop(loop);
+				}
+			}
+		}
+	}
+
+	private static void processNestedLoops(MethodNode mth) {
+		if (mth.getLoopsCount() == 0) {
+			return;
+		}
+		for (LoopInfo outLoop : mth.getLoops()) {
+			for (LoopInfo innerLoop : mth.getLoops()) {
+				if (outLoop == innerLoop) {
+					continue;
+				}
+				if (outLoop.getLoopBlocks().containsAll(innerLoop.getLoopBlocks())) {
+					LoopInfo parentLoop = innerLoop.getParentLoop();
+					if (parentLoop != null) {
+						if (parentLoop.getLoopBlocks().containsAll(outLoop.getLoopBlocks())) {
+							outLoop.setParentLoop(parentLoop);
+							innerLoop.setParentLoop(outLoop);
+						} else {
+							parentLoop.setParentLoop(outLoop);
+						}
+					} else {
+						innerLoop.setParentLoop(outLoop);
+					}
 				}
 			}
 		}

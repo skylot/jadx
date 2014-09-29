@@ -7,7 +7,7 @@ import jadx.core.utils.Utils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,7 +24,7 @@ public class AttributeStorage {
 
 	public AttributeStorage() {
 		flags = EnumSet.noneOf(AFlag.class);
-		attributes = new HashMap<AType<?>, IAttribute>(2);
+		attributes = new IdentityHashMap<AType<?>, IAttribute>(AType.FIELDS_COUNT);
 	}
 
 	public void add(AFlag flag) {

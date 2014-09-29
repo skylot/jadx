@@ -3,6 +3,7 @@ package jadx.core.codegen;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
+import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.attributes.nodes.MethodInlineAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
@@ -289,6 +290,10 @@ public class InsnGen {
 
 			case BREAK:
 				code.add("break");
+				LoopLabelAttr labelAttr = insn.get(AType.LOOP_LABEL);
+				if (labelAttr != null) {
+					code.add(' ').add(mgen.getNameGen().getLoopLabel(labelAttr));
+				}
 				break;
 
 			case CONTINUE:

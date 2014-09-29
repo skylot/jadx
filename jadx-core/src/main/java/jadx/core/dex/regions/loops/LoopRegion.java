@@ -1,5 +1,6 @@
 package jadx.core.dex.regions.loops;
 
+import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
@@ -15,6 +16,7 @@ import java.util.List;
 
 public final class LoopRegion extends AbstractRegion {
 
+	private final LoopInfo info;
 	// loop header contains one 'if' insn, equals null for infinite loop
 	private IfCondition condition;
 	private final BlockNode conditionBlock;
@@ -25,11 +27,16 @@ public final class LoopRegion extends AbstractRegion {
 
 	private LoopType type;
 
-	public LoopRegion(IRegion parent, BlockNode header, boolean reversed) {
+	public LoopRegion(IRegion parent, LoopInfo info, BlockNode header, boolean reversed) {
 		super(parent);
+		this.info = info;
 		this.conditionBlock = header;
 		this.condition = IfCondition.fromIfBlock(header);
 		this.conditionAtEnd = reversed;
+	}
+
+	public LoopInfo getInfo() {
+		return info;
 	}
 
 	public IfCondition getCondition() {

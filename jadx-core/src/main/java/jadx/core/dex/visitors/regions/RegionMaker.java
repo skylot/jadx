@@ -4,6 +4,7 @@ import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.LoopInfo;
+import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.SwitchNode;
@@ -13,12 +14,12 @@ import jadx.core.dex.nodes.Edge;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.regions.conditions.IfInfo;
-import jadx.core.dex.regions.conditions.IfRegion;
-import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.regions.SynchronizedRegion;
+import jadx.core.dex.regions.conditions.IfInfo;
+import jadx.core.dex.regions.conditions.IfRegion;
+import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlock;
@@ -184,7 +185,7 @@ public class RegionMaker {
 		if (exitBlocks.size() > 0) {
 			BlockNode loopExit = condInfo.getElseBlock();
 			if (loopExit != null) {
-				// add 'break' instruction before path cross between main loop exit and subexit
+				// add 'break' instruction before path cross between main loop exit and sub-exit
 				for (Edge exitEdge : loop.getExitEdges()) {
 					if (!exitBlocks.contains(exitEdge.getSource())) {
 						continue;
@@ -245,7 +246,12 @@ public class RegionMaker {
 					|| block.getInstructions().get(0).getType() != InsnType.IF) {
 				continue;
 			}
-			LoopRegion loopRegion = new LoopRegion(curRegion, block, block == loop.getEnd());
+			List<LoopInfo> loops = block.getAll(AType.LOOP);
+			if (!loops.isEmpty() && loops.get(0) != loop) {
+				// skip nested loop condition
+				continue;
+			}
+			LoopRegion loopRegion = new LoopRegion(curRegion, loop, block, block == loop.getEnd());
 			boolean found;
 			if (block == loop.getStart() || block == loop.getEnd()
 					|| BlockUtils.isEmptySimplePath(loop.getStart(), block)) {
@@ -266,7 +272,7 @@ public class RegionMaker {
 	}
 
 	private BlockNode makeEndlessLoop(IRegion curRegion, RegionStack stack, LoopInfo loop, BlockNode loopStart) {
-		LoopRegion loopRegion = new LoopRegion(curRegion, null, false);
+		LoopRegion loopRegion = new LoopRegion(curRegion, loop, null, false);
 		curRegion.getSubBlocks().add(loopRegion);
 
 		loopStart.remove(AType.LOOP);
@@ -332,8 +338,22 @@ public class RegionMaker {
 			if (prev != null && isPathExists(loopExit, exit)) {
 				// found cross
 				if (canInsertBreak(exit)) {
-					prev.getInstructions().add(new InsnNode(InsnType.BREAK, 0));
+					InsnNode breakInsn = new InsnNode(InsnType.BREAK, 0);
+					prev.getInstructions().add(breakInsn);
 					stack.addExit(exit);
+					// add label to 'break' if needed
+					List<LoopInfo> loops = mth.getAllLoopsForBlock(exitEdge.getSource());
+					if (loops.size() >= 2) {
+						// find parent loop
+						for (LoopInfo loop : loops) {
+							if (loop.getParentLoop() == null) {
+								LoopLabelAttr labelAttr = new LoopLabelAttr(loop);
+								breakInsn.addAttr(labelAttr);
+								loop.getStart().addAttr(labelAttr);
+								break;
+							}
+						}
+					}
 				}
 				return;
 			}

@@ -2,6 +2,7 @@ package jadx.core.codegen;
 
 import jadx.core.Consts;
 import jadx.core.deobf.NameMapper;
+import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
@@ -72,6 +73,13 @@ public class NameGen {
 
 	public String useArg(RegisterArg arg) {
 		String name = makeArgName(arg);
+		varNames.add(name);
+		return name;
+	}
+
+	// TODO: avoid name collision with variables names
+	public String getLoopLabel(LoopLabelAttr attr) {
+		String name = "loop" + attr.getLoop().getId();
 		varNames.add(name);
 		return name;
 	}

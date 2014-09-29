@@ -10,6 +10,7 @@ import jadx.core.dex.attributes.nodes.ForceReturnAttr;
 import jadx.core.dex.attributes.nodes.JadxErrorAttr;
 import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.attributes.nodes.LoopInfo;
+import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.attributes.nodes.MethodInlineAttr;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.attributes.nodes.SourceFileAttr;
@@ -29,6 +30,8 @@ public class AType<T extends IAttribute> {
 	private AType() {
 	}
 
+	public static final int FIELDS_COUNT = 18;
+
 	public static final AType<AttrList<JumpInfo>> JUMP = new AType<AttrList<JumpInfo>>();
 	public static final AType<AttrList<LoopInfo>> LOOP = new AType<AttrList<LoopInfo>>();
 
@@ -47,4 +50,5 @@ public class AType<T extends IAttribute> {
 	public static final AType<PhiListAttr> PHI_LIST = new AType<PhiListAttr>();
 	public static final AType<SourceFileAttr> SOURCE_FILE = new AType<SourceFileAttr>();
 	public static final AType<DeclareVariablesAttr> DECLARE_VARIABLES = new AType<DeclareVariablesAttr>();
+	public static final AType<LoopLabelAttr> LOOP_LABEL = new AType<LoopLabelAttr>();
 }

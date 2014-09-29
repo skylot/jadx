@@ -4,6 +4,7 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
 import jadx.core.dex.attributes.nodes.ForceReturnAttr;
+import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.SwitchNode;
@@ -163,6 +164,10 @@ public class RegionGen extends InsnGen {
 					makeInsn(insn, code);
 				}
 			}
+		}
+		LoopLabelAttr labelAttr = region.getInfo().getStart().get(AType.LOOP_LABEL);
+		if (labelAttr != null) {
+			code.startLine(mgen.getNameGen().getLoopLabel(labelAttr)).add(':');
 		}
 
 		IfCondition condition = region.getCondition();

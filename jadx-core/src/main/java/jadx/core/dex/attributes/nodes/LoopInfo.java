@@ -17,6 +17,9 @@ public class LoopInfo {
 	private final BlockNode end;
 	private final Set<BlockNode> loopBlocks;
 
+	private int id;
+	private LoopInfo parentLoop;
+
 	public LoopInfo(BlockNode start, BlockNode end) {
 		this.start = start;
 		this.end = end;
@@ -69,8 +72,24 @@ public class LoopInfo {
 		return edges;
 	}
 
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public LoopInfo getParentLoop() {
+		return parentLoop;
+	}
+
+	public void setParentLoop(LoopInfo parentLoop) {
+		this.parentLoop = parentLoop;
+	}
+
 	@Override
 	public String toString() {
-		return "LOOP: " + start + "->" + end;
+		return "LOOP:" + id + ": " + start + "->" + end;
 	}
 }

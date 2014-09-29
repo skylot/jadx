@@ -406,10 +406,14 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		if (loops.isEmpty()) {
 			loops = new ArrayList<LoopInfo>(5);
 		}
+		loop.setId(loops.size());
 		loops.add(loop);
 	}
 
 	public LoopInfo getLoopForBlock(BlockNode block) {
+		if (loops.isEmpty()) {
+			return null;
+		}
 		for (LoopInfo loop : loops) {
 			if (loop.getLoopBlocks().contains(block)) {
 				return loop;
@@ -418,8 +422,25 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		return null;
 	}
 
+	public List<LoopInfo> getAllLoopsForBlock(BlockNode block) {
+		if (loops.isEmpty()) {
+			return Collections.emptyList();
+		}
+		List<LoopInfo> list = new ArrayList<LoopInfo>(loops.size());
+		for (LoopInfo loop : loops) {
+			if (loop.getLoopBlocks().contains(block)) {
+				list.add(loop);
+			}
+		}
+		return list;
+	}
+
 	public int getLoopsCount() {
 		return loops.size();
+	}
+
+	public Iterable<LoopInfo> getLoops() {
+		return loops;
 	}
 
 	public ExceptionHandler addExceptionHandler(ExceptionHandler handler) {
@@ -468,7 +489,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		}
 		return false;
 	}
-	
+
 	public boolean isDefaultConstructor() {
 		boolean result = false;
 
@@ -492,7 +513,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		}
 
 		return result;
-	} 
+	}
 
 	public int getRegsCount() {
 		return regsCount;
