@@ -33,10 +33,9 @@ public class TestBreakWithLabel extends IntegrationTest {
 	}
 
 	@Test
-	public void test() {
+	public void test() throws Exception {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsOne("loop0:"));
 		assertThat(code, containsOne("break loop0;"));

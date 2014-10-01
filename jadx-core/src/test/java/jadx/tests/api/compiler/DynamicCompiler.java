@@ -38,9 +38,13 @@ public class DynamicCompiler {
 		return Boolean.TRUE.equals(compilerTask.call());
 	}
 
+	private ClassLoader getClassLoader() {
+		return fileManager.getClassLoader(null);
+	}
+
 	private void makeInstance() throws Exception {
 		String fullName = clsNode.getFullName();
-		instance = fileManager.getClassLoader(null).loadClass(fullName).newInstance();
+		instance = getClassLoader().loadClass(fullName).newInstance();
 		if (instance == null) {
 			throw new NullPointerException("Instantiation failed");
 		}
@@ -54,6 +58,9 @@ public class DynamicCompiler {
 	}
 
 	public Method getMethod(String method, Class[] types) throws Exception {
+		for (Class type : types) {
+			checkType(type);
+		}
 		return getInstance().getClass().getMethod(method, types);
 	}
 
@@ -61,12 +68,17 @@ public class DynamicCompiler {
 		return mth.invoke(getInstance(), args);
 	}
 
-	public Object invoke(String method) throws Exception {
-		return invoke(method, new Class[0]);
-	}
-
-	public Object invoke(String method, Class[] types, Object... args) throws Exception {
-		Method mth = getMethod(method, types);
-		return invoke(mth, args);
+	private Class<?> checkType(Class type) throws ClassNotFoundException {
+		if (type.isPrimitive()) {
+			return type;
+		}
+		if (type.isArray()) {
+			return checkType(type.getComponentType());
+		}
+		Class<?> decompiledCls = getClassLoader().loadClass(type.getName());
+		if (type != decompiledCls) {
+			throw new IllegalArgumentException("Internal test class cannot be used in method invoke");
+		}
+		return decompiledCls;
 	}
 }

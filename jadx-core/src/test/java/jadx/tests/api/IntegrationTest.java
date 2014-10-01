@@ -18,7 +18,9 @@ import jadx.tests.api.utils.TestUtils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -71,8 +73,11 @@ public abstract class IntegrationTest extends TestUtils {
 		}
 		// don't unload class
 
+		System.out.println(cls.getCode());
+
 		checkCode(cls);
 		compile(cls);
+		runAutoCheck(clsName);
 		return cls;
 	}
 
@@ -102,7 +107,63 @@ public abstract class IntegrationTest extends TestUtils {
 			public boolean isFallbackMode() {
 				return isFallback;
 			}
+
+			@Override
+			public boolean isShowInconsistentCode() {
+				return true;
+			}
 		}, new File(outDir));
+	}
+
+	private void runAutoCheck(String clsName) {
+		try {
+			// run 'check' method from original class
+			Class<?> origCls;
+			try {
+				origCls = Class.forName(clsName);
+			} catch (ClassNotFoundException e) {
+				// ignore
+				return;
+			}
+			Method checkMth;
+			try {
+				checkMth = origCls.getMethod("check");
+			} catch (NoSuchMethodException e) {
+				// ignore
+				return;
+			}
+			if (!checkMth.getReturnType().equals(void.class)
+					|| !Modifier.isPublic(checkMth.getModifiers())
+					|| Modifier.isStatic(checkMth.getModifiers())) {
+				fail("Wrong 'check' method");
+				return;
+			}
+			try {
+				checkMth.invoke(origCls.newInstance());
+			} catch (InvocationTargetException ie) {
+				rethrow("Java check failed", ie);
+			}
+			// run 'check' method from decompiled class
+			try {
+				invoke("check");
+			} catch (InvocationTargetException ie) {
+				rethrow("Decompiled check failed", ie);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Auto check exception: " + e.getMessage());
+		}
+	}
+
+	private void rethrow(String msg, InvocationTargetException ie) {
+		Throwable cause = ie.getCause();
+		if (cause instanceof AssertionError) {
+			System.err.println(msg);
+			throw ((AssertionError) cause);
+		} else {
+			cause.printStackTrace();
+			fail(msg + cause.getMessage());
+		}
 	}
 
 	protected MethodNode getMethod(ClassNode cls, String method) {
@@ -133,7 +194,7 @@ public abstract class IntegrationTest extends TestUtils {
 		return invoke(method, new Class[0]);
 	}
 
-	public Object invoke(String method, Class[] types, Object... args) {
+	public Object invoke(String method, Class[] types, Object... args) throws Exception {
 		Method mth = getReflectMethod(method, types);
 		return invoke(mth, args);
 	}
@@ -149,16 +210,10 @@ public abstract class IntegrationTest extends TestUtils {
 		return null;
 	}
 
-	public Object invoke(Method mth, Object... args) {
+	public Object invoke(Method mth, Object... args) throws Exception {
 		assertNotNull("dynamicCompiler not ready", dynamicCompiler);
 		assertNotNull("unknown method", mth);
-		try {
-			return dynamicCompiler.invoke(mth, args);
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-		return null;
+		return dynamicCompiler.invoke(mth, args);
 	}
 
 	public File getJarForClass(Class<?> cls) throws IOException {
