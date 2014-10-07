@@ -230,6 +230,9 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		InsnNode[] insnByOffset = instructions;
 		CatchHandler[] catchBlocks = mthCode.getCatchHandlers();
 		Try[] tries = mthCode.getTries();
+		if (catchBlocks.length == 0 && tries.length == 0) {
+			return;
+		}
 
 		int hc = 0;
 		Set<Integer> addrs = new HashSet<Integer>();
@@ -287,13 +290,17 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 			int offset = aTry.getStartAddress();
 			int end = offset + aTry.getInstructionCount() - 1;
 
-			insnByOffset[offset].add(AFlag.TRY_ENTER);
+			InsnNode insn = insnByOffset[offset];
+			insn.add(AFlag.TRY_ENTER);
 			while (offset <= end && offset >= 0) {
-				catchBlock.addInsn(insnByOffset[offset]);
+				insn = insnByOffset[offset];
+				catchBlock.addInsn(insn);
 				offset = InsnDecoder.getNextInsnOffset(insnByOffset, offset);
 			}
 			if (insnByOffset[end] != null) {
 				insnByOffset[end].add(AFlag.TRY_LEAVE);
+			} else {
+				insn.add(AFlag.TRY_LEAVE);
 			}
 		}
 	}
@@ -498,13 +505,12 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 
 			/** workaround for non-static inner class constructor, that has
 			 * synthetic argument */
-			if ((parentClass != null) && parentClass.getClassInfo().isInner()) {
-				if (!parentClass.getAccessFlags().isStatic()) {
-					ClassNode outerCls = parentClass.getParentClass();
-					if ((argsList != null) && (argsList.size() >= 1)) {
-						if (argsList.get(0).getType().equals(outerCls.getClassInfo().getType())) {
-							defaultArgCount = 1;
-						}
+			if (parentClass.getClassInfo().isInner()
+					&& !parentClass.getAccessFlags().isStatic()) {
+				ClassNode outerCls = parentClass.getParentClass();
+				if ((argsList != null) && (argsList.size() >= 1)) {
+					if (argsList.get(0).getType().equals(outerCls.getClassInfo().getType())) {
+						defaultArgCount = 1;
 					}
 				}
 			}

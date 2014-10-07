@@ -103,7 +103,9 @@ public class BlockMakerVisitor extends AbstractVisitor {
 				// add this insn in new block
 				block = startNewBlock(mth, -1);
 				curBlock.add(AFlag.SYNTHETIC);
-				block.addAttr(new SplitterBlockAttr(curBlock));
+				SplitterBlockAttr splitter = new SplitterBlockAttr(curBlock);
+				block.addAttr(splitter);
+				curBlock.addAttr(splitter);
 				connect(curBlock, block);
 				curBlock = block;
 			} else {
@@ -131,12 +133,16 @@ public class BlockMakerVisitor extends AbstractVisitor {
 				// get synthetic block for handlers
 				SplitterBlockAttr spl = block.get(AType.SPLITTER_BLOCK);
 				if (catches != null && spl != null) {
-					BlockNode connBlock = spl.getBlock();
+					BlockNode splitterBlock = spl.getBlock();
+					boolean tryEnd = insn.contains(AFlag.TRY_LEAVE);
 					for (ExceptionHandler h : catches.getTryBlock().getHandlers()) {
-						BlockNode destBlock = getBlock(h.getHandleOffset(), blocksMap);
+						BlockNode handlerBlock = getBlock(h.getHandleOffset(), blocksMap);
 						// skip self loop in handler
-						if (connBlock != destBlock) {
-							connect(connBlock, destBlock);
+						if (splitterBlock != handlerBlock) {
+							connect(splitterBlock, handlerBlock);
+						}
+						if (tryEnd) {
+							connect(block, handlerBlock);
 						}
 					}
 				}

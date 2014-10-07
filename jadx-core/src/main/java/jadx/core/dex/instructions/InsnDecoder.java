@@ -44,7 +44,7 @@ public class InsnDecoder {
 			while (in.hasMore()) {
 				decoded[in.cursor()] = DecodedInstruction.decode(in);
 			}
-		} catch (EOFException e) {
+		} catch (Exception e) {
 			throw new DecodeException(method, "", e);
 		}
 		insnArr = decoded;

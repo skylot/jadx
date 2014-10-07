@@ -246,16 +246,16 @@ public class BlockUtils {
 		Set<BlockNode> set = new HashSet<BlockNode>();
 		set.add(start);
 		if (start != end) {
-			addPredcessors(set, end, start);
+			addPredecessors(set, end, start);
 		}
 		return set;
 	}
 
-	private static void addPredcessors(Set<BlockNode> set, BlockNode from, BlockNode until) {
+	private static void addPredecessors(Set<BlockNode> set, BlockNode from, BlockNode until) {
 		set.add(from);
 		for (BlockNode pred : from.getPredecessors()) {
 			if (pred != until && !set.contains(pred)) {
-				addPredcessors(set, pred, until);
+				addPredecessors(set, pred, until);
 			}
 		}
 	}

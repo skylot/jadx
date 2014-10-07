@@ -182,7 +182,7 @@ public class RegionMaker {
 		loopRegion.setCondition(condInfo.getCondition());
 		exitBlocks.removeAll(condInfo.getMergedBlocks());
 
-		if (exitBlocks.size() > 0) {
+		if (!exitBlocks.isEmpty()) {
 			BlockNode loopExit = condInfo.getElseBlock();
 			if (loopExit != null) {
 				// add 'break' instruction before path cross between main loop exit and sub-exit
@@ -264,6 +264,25 @@ public class RegionMaker {
 				found = false;
 			}
 			if (found) {
+				List<LoopInfo> list = mth.getAllLoopsForBlock(block);
+				if (list.size() >= 2) {
+					// bad condition if successors going out of all loops
+					boolean allOuter = true;
+					for (BlockNode outerBlock : block.getCleanSuccessors()) {
+						List<LoopInfo> outLoopList = mth.getAllLoopsForBlock(outerBlock);
+						outLoopList.remove(loop);
+						if (!outLoopList.isEmpty()) {
+							// goes to outer loop
+							allOuter = false;
+							break;
+						}
+					}
+					if (allOuter) {
+						found = false;
+					}
+				}
+			}
+			if (found) {
 				return loopRegion;
 			}
 		}
@@ -281,16 +300,13 @@ public class RegionMaker {
 		BlockNode loopExit = null;
 		// insert 'break' for exits
 		List<Edge> exitEdges = loop.getExitEdges();
-		if (exitEdges.size() == 1) {
-			for (Edge exitEdge : exitEdges) {
-				BlockNode exit = exitEdge.getTarget();
-				if (canInsertBreak(exit)) {
-					exit.getInstructions().add(new InsnNode(InsnType.BREAK, 0));
-					BlockNode nextBlock = getNextBlock(exit);
-					if (nextBlock != null) {
-						stack.addExit(nextBlock);
-						loopExit = nextBlock;
-					}
+		for (Edge exitEdge : exitEdges) {
+			BlockNode exit = exitEdge.getTarget();
+			if (tryInsertBreak(stack, exit, exitEdge)) {
+				BlockNode nextBlock = getNextBlock(exit);
+				if (nextBlock != null) {
+					stack.addExit(nextBlock);
+					loopExit = nextBlock;
 				}
 			}
 		}
@@ -313,7 +329,8 @@ public class RegionMaker {
 	}
 
 	private boolean canInsertBreak(BlockNode exit) {
-		if (exit.contains(AFlag.RETURN)) {
+		if (exit.contains(AFlag.RETURN)
+				|| BlockUtils.checkLastInsnType(exit, InsnType.BREAK)) {
 			return false;
 		}
 		List<BlockNode> simplePath = BlockUtils.buildSimplePath(exit);
@@ -331,35 +348,60 @@ public class RegionMaker {
 		return true;
 	}
 
-	private void tryInsertBreak(RegionStack stack, BlockNode loopExit, Edge exitEdge) {
-		BlockNode prev = null;
+	private boolean tryInsertBreak(RegionStack stack, BlockNode loopExit, Edge exitEdge) {
 		BlockNode exit = exitEdge.getTarget();
-		while (exit != null) {
-			if (prev != null && isPathExists(loopExit, exit)) {
-				// found cross
-				if (canInsertBreak(exit)) {
-					InsnNode breakInsn = new InsnNode(InsnType.BREAK, 0);
-					prev.getInstructions().add(breakInsn);
-					stack.addExit(exit);
-					// add label to 'break' if needed
-					List<LoopInfo> loops = mth.getAllLoopsForBlock(exitEdge.getSource());
-					if (loops.size() >= 2) {
-						// find parent loop
-						for (LoopInfo loop : loops) {
-							if (loop.getParentLoop() == null) {
-								LoopLabelAttr labelAttr = new LoopLabelAttr(loop);
-								breakInsn.addAttr(labelAttr);
-								loop.getStart().addAttr(labelAttr);
-								break;
-							}
-						}
-					}
+		BlockNode insertBlock = null;
+		boolean confirm = false;
+		// process special cases
+		if (loopExit == exit) {
+			// try/catch at loop end
+			BlockNode source = exitEdge.getSource();
+			if (source.contains(AType.CATCH_BLOCK)) {
+				BlockNode other = BlockUtils.selectOther(loopExit, source.getSuccessors());
+				if (other != null && other.contains(AType.EXC_HANDLER)) {
+					insertBlock = source;
+					confirm = true;
 				}
-				return;
 			}
-			prev = exit;
-			exit = getNextBlock(exit);
 		}
+		if (!confirm) {
+			while (exit != null) {
+				if (insertBlock != null && isPathExists(loopExit, exit)) {
+					// found cross
+					if (canInsertBreak(insertBlock)) {
+						confirm = true;
+						break;
+					}
+					return false;
+				}
+				insertBlock = exit;
+				List<BlockNode> cs = exit.getCleanSuccessors();
+				exit = cs.size() == 1 ? cs.get(0) : null;
+			}
+		}
+		if (!confirm) {
+			return false;
+		}
+		InsnNode breakInsn = new InsnNode(InsnType.BREAK, 0);
+		insertBlock.getInstructions().add(breakInsn);
+		stack.addExit(exit);
+		// add label to 'break' if needed
+		List<LoopInfo> loops = mth.getAllLoopsForBlock(exitEdge.getSource());
+		if (loops.size() >= 2) {
+			// find parent loop
+			for (LoopInfo loop : loops) {
+				LoopInfo parentLoop = loop.getParentLoop();
+				if (parentLoop == null
+						&& loop.getEnd() != exit
+						&& !loop.getExitNodes().contains(exit)) {
+					LoopLabelAttr labelAttr = new LoopLabelAttr(loop);
+					breakInsn.addAttr(labelAttr);
+					loop.getStart().addAttr(labelAttr);
+					break;
+				}
+			}
+		}
+		return true;
 	}
 
 	private final Set<BlockNode> cacheSet = new HashSet<BlockNode>();

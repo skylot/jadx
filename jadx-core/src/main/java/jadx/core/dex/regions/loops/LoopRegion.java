@@ -88,25 +88,24 @@ public final class LoopRegion extends AbstractRegion {
 			InsnNode insn = insns.get(i);
 			if (insn.getResult() == null) {
 				return false;
-			} else {
-				RegisterArg res = insn.getResult();
-				if (res.getSVar().getUseCount() > 1) {
-					return false;
-				}
-				boolean found = false;
-				// search result arg in other insns
-				for (int j = i + 1; j < size; j++) {
-					if (insns.get(i).containsArg(res)) {
-						found = true;
-					}
-				}
-				// or in if insn
-				if (!found && ifInsn.containsArg(res)) {
+			}
+			RegisterArg res = insn.getResult();
+			if (res.getSVar().getUseCount() > 1) {
+				return false;
+			}
+			boolean found = false;
+			// search result arg in other insns
+			for (int j = i + 1; j < size; j++) {
+				if (insns.get(i).containsArg(res)) {
 					found = true;
 				}
-				if (!found) {
-					return false;
-				}
+			}
+			// or in if insn
+			if (!found && ifInsn.containsArg(res)) {
+				found = true;
+			}
+			if (!found) {
+				return false;
 			}
 		}
 		return true;
@@ -163,6 +162,6 @@ public final class LoopRegion extends AbstractRegion {
 
 	@Override
 	public String toString() {
-		return "LOOP: " + baseString();
+		return "LOOP:" + info.getId() + ": " + baseString();
 	}
 }
