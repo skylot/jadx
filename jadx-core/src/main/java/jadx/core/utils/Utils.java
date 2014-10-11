@@ -1,8 +1,5 @@
 package jadx.core.utils;
 
-import jadx.core.utils.exceptions.JadxRuntimeException;
-
-import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Iterator;
@@ -92,16 +89,5 @@ public class Utils {
 		PrintWriter pw = new PrintWriter(sw, true);
 		throwable.printStackTrace(pw);
 		return sw.getBuffer().toString();
-	}
-
-	public static void makeDirsForFile(File file) {
-		File dir = file.getParentFile();
-		if (dir != null && !dir.exists()) {
-			// if directory already created in other thread mkdirs will return false,
-			// so check dir existence again
-			if (!dir.mkdirs() && !dir.exists()) {
-				throw new JadxRuntimeException("Can't create directory " + dir);
-			}
-		}
 	}
 }

@@ -2,7 +2,7 @@ package jadx.core.codegen;
 
 import jadx.api.CodePosition;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
-import jadx.core.utils.Utils;
+import jadx.core.utils.files.FileUtils;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -288,7 +288,7 @@ public class CodeWriter {
 
 		PrintWriter out = null;
 		try {
-			Utils.makeDirsForFile(file);
+			FileUtils.makeDirsForFile(file);
 			out = new PrintWriter(file, "UTF-8");
 			String code = buf.toString();
 			code = removeFirstEmptyLine(code);

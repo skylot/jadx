@@ -13,6 +13,7 @@ import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.FileUtils;
 import jadx.tests.api.compiler.DynamicCompiler;
+import jadx.tests.api.compiler.StaticCompiler;
 import jadx.tests.api.utils.TestUtils;
 
 import java.io.File;
@@ -24,12 +25,15 @@ import java.lang.reflect.Modifier;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.jar.JarOutputStream;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -37,9 +41,14 @@ import static org.junit.Assert.fail;
 
 public abstract class IntegrationTest extends TestUtils {
 
+	private static final String TEST_DIRECTORY = "src/test/java";
+	private static final String TEST_DIRECTORY2 = "jadx-core/" + TEST_DIRECTORY;
+
 	protected boolean outputCFG = false;
 	protected boolean isFallback = false;
 	protected boolean deleteTmpFiles = true;
+
+	protected boolean withDebugInfo = true;
 
 	protected String outDir = "test-out-tmp";
 
@@ -183,7 +192,7 @@ public abstract class IntegrationTest extends TestUtils {
 		try {
 			dynamicCompiler = new DynamicCompiler(cls);
 			boolean result = dynamicCompiler.compile();
-			assertTrue("Compilation failed on code: \n\n" + cls.getCode() + "\n", result);
+			assertTrue("Compilation failed", result);
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -218,7 +227,16 @@ public abstract class IntegrationTest extends TestUtils {
 
 	public File getJarForClass(Class<?> cls) throws IOException {
 		String path = cls.getPackage().getName().replace('.', '/');
-		List<File> list = getClassFilesWithInners(cls);
+		List<File> list;
+		if (!withDebugInfo) {
+			list = compileClass(cls);
+		} else {
+			list = getClassFilesWithInners(cls);
+			if (list.isEmpty()) {
+				list = compileClass(cls);
+			}
+		}
+		assertNotEquals("File list is empty", 0, list.size());
 
 		File temp = createTempFile(".jar");
 		JarOutputStream jo = new JarOutputStream(new FileOutputStream(temp));
@@ -244,6 +262,18 @@ public abstract class IntegrationTest extends TestUtils {
 		return temp;
 	}
 
+	private static File createTempDir(String prefix) throws IOException {
+		File baseDir = new File(System.getProperty("java.io.tmpdir"));
+		String baseName = prefix + "-" + System.nanoTime();
+		for (int counter = 1; counter < 1000; counter++) {
+			File tempDir = new File(baseDir, baseName + counter);
+			if (tempDir.mkdir()) {
+				return tempDir;
+			}
+		}
+		throw new IOException("Failed to create temp directory");
+	}
+
 	private List<File> getClassFilesWithInners(Class<?> cls) {
 		List<File> list = new ArrayList<File>();
 		String pkgName = cls.getPackage().getName();
@@ -264,6 +294,39 @@ public abstract class IntegrationTest extends TestUtils {
 			}
 		}
 		return list;
+	}
+
+	private List<File> compileClass(Class<?> cls) throws IOException {
+		String fileName = cls.getName();
+		int end = fileName.indexOf('$');
+		if (end != -1) {
+			fileName = fileName.substring(0, end);
+		}
+		fileName = fileName.replace('.', '/') + ".java";
+		File file = new File(TEST_DIRECTORY, fileName);
+		if (!file.exists()) {
+			file = new File(TEST_DIRECTORY2, fileName);
+		}
+		assertTrue("Test source file not found: " + fileName, file.exists());
+
+		File outTmp = createTempDir("jadx-tmp-classes");
+		outTmp.deleteOnExit();
+		List<File> files = StaticCompiler.compile(Arrays.asList(file), outTmp, withDebugInfo);
+		String filter = outTmp.getAbsolutePath() + File.separator + cls.getName().replace('.', '/');
+		Iterator<File> iterator = files.iterator();
+		while (iterator.hasNext()) {
+			File next = iterator.next();
+			if (!next.getAbsolutePath().startsWith(filter)) {
+				iterator.remove();
+			} else {
+				next.deleteOnExit();
+			}
+		}
+		return files;
+	}
+
+	public void noDebugInfo() {
+		this.withDebugInfo = false;
 	}
 
 	// Try to make test class compilable

@@ -1,5 +1,7 @@
 package jadx.core.utils.files;
 
+import jadx.core.utils.exceptions.JadxRuntimeException;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,6 +34,17 @@ public class FileUtils {
 		} finally {
 			if (in != null) {
 				in.close();
+			}
+		}
+	}
+
+	public static void makeDirsForFile(File file) {
+		File dir = file.getParentFile();
+		if (dir != null && !dir.exists()) {
+			// if directory already created in other thread mkdirs will return false,
+			// so check dir existence again
+			if (!dir.mkdirs() && !dir.exists()) {
+				throw new JadxRuntimeException("Can't create directory " + dir);
 			}
 		}
 	}

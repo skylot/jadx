@@ -3,9 +3,9 @@ package jadx.core.clsp;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.utils.files.FileUtils;
 
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -102,7 +102,7 @@ public class ClsSet {
 	}
 
 	void save(File output) throws IOException {
-		Utils.makeDirsForFile(output);
+		FileUtils.makeDirsForFile(output);
 
 		BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(output));
 		try {
