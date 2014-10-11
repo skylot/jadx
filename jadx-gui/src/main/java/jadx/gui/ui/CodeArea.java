@@ -64,6 +64,13 @@ class CodeArea extends RSyntaxTextArea {
 
 	private boolean isJumpToken(Token token) {
 		if (token.getType() == TokenTypes.IDENTIFIER) {
+			// fast skip
+			if (token.length() == 1) {
+				char ch = token.getTextArray()[token.getTextOffset()];
+				if (ch == '.' || ch == ',' || ch == ';') {
+					return false;
+				}
+			}
 			Position pos = getPosition(cls, this, token.getOffset());
 			if (pos != null) {
 				return true;

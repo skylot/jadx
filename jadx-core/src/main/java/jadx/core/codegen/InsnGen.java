@@ -526,7 +526,7 @@ public class InsnGen {
 			);
 		}
 		if (!elType.isTypeKnown()) {
-			LOG.warn("Unknown array element type: {} in mth: {}", elType);
+			LOG.warn("Unknown array element type: {} in mth: {}", elType, mth);
 			elType = insnElementType.isTypeKnown() ? insnElementType : elType.selectFirst();
 		}
 		StringBuilder str = new StringBuilder();

@@ -127,6 +127,9 @@ public class SSATransform extends AbstractVisitor {
 					throw new JadxRuntimeException("Can't find predecessor for " + block + " " + s);
 				}
 				for (PhiInsn phiInsn : phiList.getList()) {
+					if (j >= phiInsn.getArgsCount()) {
+						continue;
+					}
 					int regNum = phiInsn.getResult().getRegNum();
 					SSAVar var = vars[regNum];
 					if (var == null) {

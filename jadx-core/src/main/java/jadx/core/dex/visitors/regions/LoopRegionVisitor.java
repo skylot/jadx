@@ -171,6 +171,10 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		if (!arrayArg.equals(arrGetInsn.getArg(0))) {
 			return null;
 		}
+		RegisterArg iterVar = arrGetInsn.getResult();
+		if (iterVar == null) {
+			return null;
+		}
 
 		// array for each loop confirmed
 		len.add(AFlag.SKIP);
@@ -179,8 +183,6 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 
 		// inline array variable
 		CodeShrinker.shrinkMethod(mth);
-
-		RegisterArg iterVar = arrGetInsn.getResult();
 		if (arrGetInsn.contains(AFlag.WRAPPED)) {
 			InsnArg wrapArg = BlockUtils.searchWrappedInsnParent(mth, arrGetInsn);
 			if (wrapArg != null) {
@@ -241,7 +243,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		} else {
 			toSkip.add(nextCall);
 		}
-		if (!fixIterableType(iterableArg, iterVar)) {
+		if (iterVar == null || !fixIterableType(iterableArg, iterVar)) {
 			return false;
 		}
 
@@ -310,7 +312,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		}
 		BlockNode block = BlockUtils.getBlockByInsn(mth, parentInsn);
 		if (block == null) {
-			LOG.debug("Instruction not found: {}, mth: {}", parentInsn, mth);
+			LOG.debug(" LoopRegionVisitor: instruction not found: {}, mth: {}", parentInsn, mth);
 			return false;
 		}
 		return RegionUtils.isRegionContainsBlock(loopRegion, block);
