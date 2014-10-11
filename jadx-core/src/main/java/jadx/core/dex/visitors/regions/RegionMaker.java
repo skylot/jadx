@@ -356,7 +356,8 @@ public class RegionMaker {
 		if (loopExit == exit) {
 			// try/catch at loop end
 			BlockNode source = exitEdge.getSource();
-			if (source.contains(AType.CATCH_BLOCK)) {
+			if (source.contains(AType.CATCH_BLOCK)
+					&& source.getSuccessors().size() == 2) {
 				BlockNode other = BlockUtils.selectOther(loopExit, source.getSuccessors());
 				if (other != null && other.contains(AType.EXC_HANDLER)) {
 					insertBlock = source;

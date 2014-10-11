@@ -1,5 +1,6 @@
 package jadx.core.dex.visitors.ssa;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.instructions.InsnType;
@@ -40,7 +41,11 @@ public class SSATransform extends AbstractVisitor {
 			placePhi(mth, i, la);
 		}
 		renameVariables(mth);
-		removeUselessPhi(mth);
+		fixLastTryCatchAssign(mth);
+		if (removeUselessPhi(mth)) {
+			renameVariables(mth);
+		}
+
 	}
 
 	private static void placePhi(MethodNode mth, int regNum, LiveVarAnalysis la) {
@@ -147,7 +152,27 @@ public class SSATransform extends AbstractVisitor {
 		System.arraycopy(inputVars, 0, vars, 0, vars.length);
 	}
 
-	private static void removeUselessPhi(MethodNode mth) {
+	private static void fixLastTryCatchAssign(MethodNode mth) {
+		for (BlockNode block : mth.getBasicBlocks()) {
+			PhiListAttr phiList = block.get(AType.PHI_LIST);
+			if (phiList == null || !block.contains(AType.EXC_HANDLER)) {
+				continue;
+			}
+			for (PhiInsn phi : phiList.getList()) {
+				for (int i = 0; i < phi.getArgsCount(); i++) {
+					RegisterArg arg = phi.getArg(i);
+					InsnNode parentInsn = arg.getAssignInsn();
+					if (parentInsn != null
+							&& parentInsn.getResult() != null
+							&& parentInsn.contains(AFlag.TRY_LEAVE)) {
+						phi.removeArg(arg);
+					}
+				}
+			}
+		}
+	}
+
+	private static boolean removeUselessPhi(MethodNode mth) {
 		List<PhiInsn> insnToRemove = new ArrayList<PhiInsn>();
 		for (SSAVar var : mth.getSVars()) {
 			// phi result not used
@@ -167,7 +192,7 @@ public class SSATransform extends AbstractVisitor {
 				removePhiWithSameArgs(phi, insnToRemove);
 			}
 		}
-		removePhiList(mth, insnToRemove);
+		return removePhiList(mth, insnToRemove);
 	}
 
 	private static void removePhiWithSameArgs(PhiInsn phi, List<PhiInsn> insnToRemove) {
@@ -194,9 +219,9 @@ public class SSATransform extends AbstractVisitor {
 		}
 	}
 
-	private static void removePhiList(MethodNode mth, List<PhiInsn> insnToRemove) {
+	private static boolean removePhiList(MethodNode mth, List<PhiInsn> insnToRemove) {
 		if (insnToRemove.isEmpty()) {
-			return;
+			return false;
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {
 			PhiListAttr phiList = block.get(AType.PHI_LIST);
@@ -217,5 +242,6 @@ public class SSATransform extends AbstractVisitor {
 			}
 		}
 		insnToRemove.clear();
+		return true;
 	}
 }
