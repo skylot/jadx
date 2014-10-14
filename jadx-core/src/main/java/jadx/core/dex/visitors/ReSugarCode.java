@@ -3,6 +3,7 @@ package jadx.core.dex.visitors;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.EnumMapAttr;
+import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
@@ -106,31 +107,38 @@ public class ReSugarCode extends AbstractVisitor {
 		FieldNode enumMapField = enumMapInfo.getMapField();
 		InsnArg invArg = enumMapInfo.getArg();
 
-		EnumMapAttr enumMapAttr = getEnumMap(mth, enumMapField);
-		if (enumMapAttr == null) {
+		EnumMapAttr.KeyValueMap valueMap = getEnumMap(mth, enumMapField);
+		if (valueMap == null) {
 			return null;
 		}
 		Object[] keys = insn.getKeys();
-		for (int i = 0; i < keys.length; i++) {
-			Object key = keys[i];
-			Object newKey = enumMapAttr.getMap().get(key);
-			if (newKey != null) {
-				keys[i] = newKey;
-			} else {
+		for (Object key : keys) {
+			Object newKey = valueMap.get(key);
+			if (newKey == null) {
 				return null;
 			}
 		}
-		enumMapField.getParentClass().add(AFlag.DONT_GENERATE);
-		insn.replaceArg(arg, invArg);
+		// replace confirmed
+		if (!insn.replaceArg(arg, invArg)) {
+			return null;
+		}
+		for (int i = 0; i < keys.length; i++) {
+			keys[i] = valueMap.get(keys[i]);
+		}
+		enumMapField.add(AFlag.DONT_GENERATE);
+		checkAndHideClass(enumMapField.getParentClass());
 		return null;
 	}
 
-	private static EnumMapAttr getEnumMap(MethodNode mth, FieldNode field) {
+	private static EnumMapAttr.KeyValueMap getEnumMap(MethodNode mth, FieldNode field) {
 		ClassNode syntheticClass = field.getParentClass();
 		EnumMapAttr mapAttr = syntheticClass.get(AType.ENUM_MAP);
 		if (mapAttr != null) {
-			return mapAttr;
+			return mapAttr.getMap(field);
 		}
+		mapAttr = new EnumMapAttr();
+		syntheticClass.addAttr(mapAttr);
+
 		MethodNode clsInitMth = syntheticClass.searchMethodByName("<clinit>()V");
 		if (clsInitMth == null || clsInitMth.isNoCode()) {
 			return null;
@@ -147,32 +155,28 @@ public class ReSugarCode extends AbstractVisitor {
 				return null;
 			}
 		}
-		mapAttr = new EnumMapAttr();
 		for (BlockNode block : clsInitMth.getBasicBlocks()) {
 			for (InsnNode insn : block.getInstructions()) {
 				if (insn.getType() == InsnType.APUT) {
-					addToEnumMap(mth, field, mapAttr, insn);
+					addToEnumMap(mth, mapAttr, insn);
 				}
 			}
 		}
-		if (mapAttr.getMap().isEmpty()) {
-			return null;
-		}
-		syntheticClass.addAttr(mapAttr);
-		return mapAttr;
+		return mapAttr.getMap(field);
 	}
 
-	private static void addToEnumMap(MethodNode mth, FieldNode field, EnumMapAttr mapAttr, InsnNode insn) {
-		InsnArg litArg = insn.getArg(2);
+	private static void addToEnumMap(MethodNode mth, EnumMapAttr mapAttr, InsnNode aputInsn) {
+		InsnArg litArg = aputInsn.getArg(2);
 		if (!litArg.isLiteral()) {
 			return;
 		}
-		EnumMapInfo mapInfo = checkEnumMapAccess(mth, insn);
+		EnumMapInfo mapInfo = checkEnumMapAccess(mth, aputInsn);
 		if (mapInfo == null) {
 			return;
 		}
 		InsnArg enumArg = mapInfo.getArg();
-		if (mapInfo.getMapField() != field || !enumArg.isInsnWrap()) {
+		FieldNode field = mapInfo.getMapField();
+		if (field == null || !enumArg.isInsnWrap()) {
 			return;
 		}
 		InsnNode sget = ((InsnWrapArg) enumArg).getWrapInsn();
@@ -188,7 +192,7 @@ public class ReSugarCode extends AbstractVisitor {
 			return;
 		}
 		int literal = (int) ((LiteralArg) litArg).getLiteral();
-		mapAttr.getMap().put(literal, fieldNode);
+		mapAttr.add(field, literal, fieldNode);
 	}
 
 	public static EnumMapInfo checkEnumMapAccess(MethodNode mth, InsnNode checkInsn) {
@@ -219,6 +223,20 @@ public class ReSugarCode extends AbstractVisitor {
 			return null;
 		}
 		return new EnumMapInfo(inv.getArg(0), enumMapField);
+	}
+
+	/**
+	 * If all static final synthetic fields have DONT_GENERATE => hide whole class
+	 */
+	private static void checkAndHideClass(ClassNode cls) {
+		for (FieldNode field : cls.getFields()) {
+			AccessInfo af = field.getAccessFlags();
+			if (af.isSynthetic() && af.isStatic() && af.isFinal()
+					&& !field.contains(AFlag.DONT_GENERATE)) {
+				return;
+			}
+		}
+		cls.add(AFlag.DONT_GENERATE);
 	}
 
 	private static class EnumMapInfo {
