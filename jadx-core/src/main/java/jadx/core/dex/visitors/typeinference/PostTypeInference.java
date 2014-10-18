@@ -16,6 +16,9 @@ import java.util.List;
 
 public class PostTypeInference {
 
+	private PostTypeInference() {
+	}
+
 	public static boolean process(MethodNode mth, InsnNode insn) {
 		switch (insn.getType()) {
 			case CONST:
@@ -25,7 +28,7 @@ public class PostTypeInference {
 					long lit = litArg.getLiteral();
 					if (lit != 0) {
 						// incorrect literal value for object
-						ArgType type = (lit == 1 ? ArgType.BOOLEAN : ArgType.INT);
+						ArgType type = lit == 1 ? ArgType.BOOLEAN : ArgType.INT;
 						// can't merge with object -> force it
 						litArg.setType(type);
 						res.getSVar().setType(type);
@@ -115,15 +118,6 @@ public class PostTypeInference {
 				break;
 		}
 		return false;
-
-	}
-
-	static void setType(InsnArg arg, ArgType type) {
-		if (arg.isRegister()) {
-			((RegisterArg) arg).getSVar().setType(type);
-		} else {
-			arg.setType(type);
-		}
 	}
 
 	private static boolean fixArrayTypes(InsnArg array, InsnArg elem) {

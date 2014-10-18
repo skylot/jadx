@@ -12,8 +12,6 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.DecodeException;
 
-import java.io.EOFException;
-
 import com.android.dex.Code;
 import com.android.dx.io.OpcodeInfo;
 import com.android.dx.io.Opcodes;

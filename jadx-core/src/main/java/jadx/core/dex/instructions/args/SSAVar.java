@@ -29,7 +29,6 @@ public class SSAVar {
 		if (assign != null) {
 			assign.setSVar(this);
 		}
-
 		startUseAddr = -1;
 		endUseAddr = -1;
 	}
@@ -52,30 +51,23 @@ public class SSAVar {
 		int start = Integer.MAX_VALUE;
 		int end = Integer.MIN_VALUE;
 
-		if (assign != null) {
-			if (assign.getParentInsn() != null) {
-				int insnAddr = assign.getParentInsn().getOffset();
-
-				if (insnAddr >= 0) {
-					start = Math.min(insnAddr, start);
-					end = Math.max(insnAddr, end);
-				}
+		if (assign != null && assign.getParentInsn() != null) {
+			int insnAddr = assign.getParentInsn().getOffset();
+			if (insnAddr >= 0) {
+				start = Math.min(insnAddr, start);
+				end = Math.max(insnAddr, end);
 			}
 		}
-
 		for (RegisterArg arg : useList) {
 			if (arg.getParentInsn() != null) {
 				int insnAddr = arg.getParentInsn().getOffset();
-
 				if (insnAddr >= 0) {
 					start = Math.min(insnAddr, start);
 					end = Math.max(insnAddr, end);
 				}
 			}
 		}
-
-		if ((start != Integer.MAX_VALUE)
-				&& (end != Integer.MIN_VALUE)) {
+		if (start != Integer.MAX_VALUE && end != Integer.MIN_VALUE) {
 			startUseAddr = start;
 			endUseAddr = end;
 		}

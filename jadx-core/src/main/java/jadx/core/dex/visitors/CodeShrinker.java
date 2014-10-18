@@ -55,7 +55,7 @@ public class CodeShrinker extends AbstractVisitor {
 		}
 
 		public static List<RegisterArg> getArgs(InsnNode insn) {
-			LinkedList<RegisterArg> args = new LinkedList<RegisterArg>();
+			List<RegisterArg> args = new LinkedList<RegisterArg>();
 			addArgs(insn, args);
 			return args;
 		}
@@ -105,9 +105,9 @@ public class CodeShrinker extends AbstractVisitor {
 			if (start > to) {
 				throw new JadxRuntimeException("Invalid inline insn positions: " + start + " - " + to);
 			}
-			BitSet args = new BitSet();
+			BitSet movedSet = new BitSet();
 			for (RegisterArg arg : movedArgs) {
-				args.set(arg.getRegNum());
+				movedSet.set(arg.getRegNum());
 			}
 			for (int i = start; i < to; i++) {
 				ArgsInfo argsInfo = argsList.get(i);
@@ -115,7 +115,7 @@ public class CodeShrinker extends AbstractVisitor {
 					continue;
 				}
 				InsnNode curInsn = argsInfo.insn;
-				if (!curInsn.canReorder() || usedArgAssign(curInsn, args)) {
+				if (!curInsn.canReorder() || usedArgAssign(curInsn, movedSet)) {
 					return false;
 				}
 			}
@@ -187,7 +187,8 @@ public class CodeShrinker extends AbstractVisitor {
 		List<WrapInfo> wrapList = new ArrayList<WrapInfo>();
 		for (ArgsInfo argsInfo : argsList) {
 			List<RegisterArg> args = argsInfo.getArgs();
-			for (ListIterator<RegisterArg> it = args.listIterator(args.size()); it.hasPrevious(); ) {
+			ListIterator<RegisterArg> it = args.listIterator(args.size());
+			while (it.hasPrevious()) {
 				RegisterArg arg = it.previous();
 //				if (arg.getName() != null) {
 //					continue;
@@ -293,7 +294,7 @@ public class CodeShrinker extends AbstractVisitor {
 				}
 			}
 			// remove method args
-			if (list.size() != 0 && args.size() != 0) {
+			if (!list.isEmpty() && !args.isEmpty()) {
 				list.removeAll(args);
 			}
 			i++;

@@ -218,7 +218,7 @@ public class ReSugarCode extends AbstractVisitor {
 		if (!(index instanceof FieldInfo)) {
 			return null;
 		}
-		FieldNode enumMapField = mth.dex().resolveField(((FieldInfo) index));
+		FieldNode enumMapField = mth.dex().resolveField((FieldInfo) index);
 		if (enumMapField == null || !enumMapField.getAccessFlags().isSynthetic()) {
 			return null;
 		}

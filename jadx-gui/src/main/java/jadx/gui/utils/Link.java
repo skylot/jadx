@@ -12,9 +12,14 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static java.awt.Desktop.Action;
 
 public class Link extends JLabel implements MouseListener {
+	private static final Logger LOG = LoggerFactory.getLogger(JLabel.class);
+
 	private String url;
 
 	public Link(String text, String url) {
@@ -42,10 +47,12 @@ public class Link extends JLabel implements MouseListener {
 
 	@Override
 	public void mousePressed(MouseEvent arg0) {
+		// ignore
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
+		// ignore
 	}
 
 	private void browse() {
@@ -56,9 +63,9 @@ public class Link extends JLabel implements MouseListener {
 					desktop.browse(new java.net.URI(url));
 					return;
 				} catch (IOException e) {
-					e.printStackTrace();
+					LOG.debug("Open url error", e);
 				} catch (URISyntaxException e) {
-					e.printStackTrace();
+					LOG.debug("Open url error", e);
 				}
 			}
 		}
@@ -78,13 +85,13 @@ public class Link extends JLabel implements MouseListener {
 				return;
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.debug("Open url error", e);
 		}
 		showUrlDialog();
 	}
 
 	private void showUrlDialog() {
-		JTextArea urlArea = new JTextArea("Can't open browser. Please browse to:\n"+url);
+		JTextArea urlArea = new JTextArea("Can't open browser. Please browse to:\n" + url);
 		JOptionPane.showMessageDialog(null, urlArea);
 	}
 }

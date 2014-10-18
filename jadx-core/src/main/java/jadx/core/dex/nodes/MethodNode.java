@@ -204,9 +204,8 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 			list.add(thisArg);
 			list.addAll(argsList);
 			return list;
-		} else {
-			return argsList;
 		}
+		return argsList;
 	}
 
 	public RegisterArg removeFirstArgument() {
@@ -277,7 +276,6 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		for (TryCatchBlock ct : catches) {
 			for (ExceptionHandler eh : ct.getHandlers()) {
 				int addr = eh.getHandleOffset();
-				// assert addrs.add(addr) : "Instruction already contains EXC_HANDLER attribute";
 				ExcHandlerAttr ehAttr = new ExcHandlerAttr(ct, eh);
 				insnByOffset[addr].addAttr(ehAttr);
 			}
@@ -313,18 +311,17 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 				continue;
 			}
 			switch (insn.getType()) {
-				case SWITCH: {
+				case SWITCH:
 					SwitchNode sw = (SwitchNode) insn;
 					for (int target : sw.getTargets()) {
 						addJump(insnByOffset, offset, target);
 					}
 					// default case
-					int next = InsnDecoder.getNextInsnOffset(insnByOffset, offset);
-					if (next != -1) {
-						addJump(insnByOffset, offset, next);
+					int nextInsnOffset = InsnDecoder.getNextInsnOffset(insnByOffset, offset);
+					if (nextInsnOffset != -1) {
+						addJump(insnByOffset, offset, nextInsnOffset);
 					}
 					break;
-				}
 
 				case IF:
 					int next = InsnDecoder.getNextInsnOffset(insnByOffset, offset);
@@ -499,25 +496,19 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 
 	public boolean isDefaultConstructor() {
 		boolean result = false;
-
 		if (accFlags.isConstructor() && mthInfo.isConstructor()) {
 			int defaultArgCount = 0;
-
-			/** workaround for non-static inner class constructor, that has
-			 * synthetic argument */
+			/** workaround for non-static inner class constructor, that has synthetic argument */
 			if (parentClass.getClassInfo().isInner()
 					&& !parentClass.getAccessFlags().isStatic()) {
 				ClassNode outerCls = parentClass.getParentClass();
-				if ((argsList != null) && (argsList.size() >= 1)) {
-					if (argsList.get(0).getType().equals(outerCls.getClassInfo().getType())) {
-						defaultArgCount = 1;
-					}
+				if (argsList != null && !argsList.isEmpty()
+						&& argsList.get(0).getType().equals(outerCls.getClassInfo().getType())) {
+					defaultArgCount = 1;
 				}
 			}
-
 			result = (argsList == null) || (argsList.size() == defaultArgCount);
 		}
-
 		return result;
 	}
 

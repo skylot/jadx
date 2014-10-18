@@ -47,6 +47,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,14 +133,13 @@ public class InsnGen {
 	private void instanceField(CodeWriter code, FieldInfo field, InsnArg arg) throws CodegenException {
 		ClassNode pCls = mth.getParentClass();
 		FieldNode fieldNode = pCls.searchField(field);
-
-		while ((fieldNode == null)
-					&& (pCls.getParentClass() != pCls) && (pCls.getParentClass() != null))
-		{
+		while (fieldNode == null
+				&& pCls.getParentClass() != pCls
+				&& pCls.getParentClass() != null) {
 			pCls = pCls.getParentClass();
 			fieldNode = pCls.searchField(field);
 		}
- 		if (fieldNode != null) {
+		if (fieldNode != null) {
 			FieldReplaceAttr replace = fieldNode.get(AType.FIELD_REPLACE);
 			if (replace != null) {
 				FieldInfo info = replace.getFieldInfo();
@@ -201,7 +201,7 @@ public class InsnGen {
 			if (insn.getType() == InsnType.NOP) {
 				return false;
 			}
-			EnumSet<Flags> state = EnumSet.noneOf(Flags.class);
+			Set<Flags> state = EnumSet.noneOf(Flags.class);
 			if (flag == Flags.BODY_ONLY || flag == Flags.BODY_ONLY_NOWRAP) {
 				state.add(flag);
 				makeInsnBody(code, insn, state);
@@ -224,7 +224,7 @@ public class InsnGen {
 		return true;
 	}
 
-	private void makeInsnBody(CodeWriter code, InsnNode insn, EnumSet<Flags> state) throws CodegenException {
+	private void makeInsnBody(CodeWriter code, InsnNode insn, Set<Flags> state) throws CodegenException {
 		switch (insn.getType()) {
 			case CONST_STR:
 				String str = ((ConstStringNode) insn).getString();
@@ -748,7 +748,7 @@ public class InsnGen {
 		return true;
 	}
 
-	private void makeTernary(TernaryInsn insn, CodeWriter code, EnumSet<Flags> state) throws CodegenException {
+	private void makeTernary(TernaryInsn insn, CodeWriter code, Set<Flags> state) throws CodegenException {
 		boolean wrap = state.contains(Flags.BODY_ONLY);
 		if (wrap) {
 			code.add('(');
@@ -770,7 +770,7 @@ public class InsnGen {
 		}
 	}
 
-	private void makeArith(ArithNode insn, CodeWriter code, EnumSet<Flags> state) throws CodegenException {
+	private void makeArith(ArithNode insn, CodeWriter code, Set<Flags> state) throws CodegenException {
 		if (insn.contains(AFlag.ARITH_ONEARG)) {
 			makeArithOneArg(insn, code);
 			return;

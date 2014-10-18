@@ -66,6 +66,7 @@ public class ErrorsCounter {
 		mth.dex().root().getErrorsCounter().addError(mth, msg, e);
 		return msg;
 	}
+
 	public static String methodError(MethodNode mth, String errorMsg) {
 		return methodError(mth, errorMsg, null);
 	}

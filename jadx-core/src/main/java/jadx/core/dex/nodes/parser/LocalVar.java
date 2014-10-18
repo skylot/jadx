@@ -21,9 +21,9 @@ final class LocalVar {
 
 	public LocalVar(DexNode dex, int rn, int nameId, int typeId, int signId) {
 		this.regNum = rn;
-		String name = (nameId == DexNode.NO_INDEX ? null : dex.getString(nameId));
-		ArgType type = (typeId == DexNode.NO_INDEX ? null : dex.getType(typeId));
-		String sign = (signId == DexNode.NO_INDEX ? null : dex.getString(signId));
+		String name = nameId == DexNode.NO_INDEX ? null : dex.getString(nameId);
+		ArgType type = typeId == DexNode.NO_INDEX ? null : dex.getType(typeId);
+		String sign = signId == DexNode.NO_INDEX ? null : dex.getString(signId);
 
 		init(name, type, sign);
 	}
@@ -56,10 +56,8 @@ final class LocalVar {
 				LOG.warn("Generic type in debug info not equals: {} != {}", type, gType);
 			}
 			apply = true;
-		} else if (el.isGenericType()) {
-			apply = true;
 		} else {
-			apply = false;
+			apply = el.isGenericType();
 		}
 		return apply;
 	}
@@ -71,6 +69,7 @@ final class LocalVar {
 
 	/**
 	 * Sets end address of local variable
+	 *
 	 * @param addr address
 	 * @param line source line
 	 * @return <b>true</b> if local variable was active, else <b>false</b>
@@ -81,7 +80,6 @@ final class LocalVar {
 			this.endAddr = addr;
 			return true;
 		}
-
 		return false;
 	}
 

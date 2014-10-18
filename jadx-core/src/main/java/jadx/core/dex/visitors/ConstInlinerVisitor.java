@@ -150,7 +150,7 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 				InvokeNode inv = (InvokeNode) insn;
 				List<ArgType> types = inv.getCallMth().getArgumentsTypes();
 				int count = insn.getArgsCount();
-				int k = (types.size() == count ? 0 : -1);
+				int k = types.size() == count ? 0 : -1;
 				for (int i = 0; i < count; i++) {
 					InsnArg arg = insn.getArg(i);
 					if (!arg.getType().isTypeKnown()) {

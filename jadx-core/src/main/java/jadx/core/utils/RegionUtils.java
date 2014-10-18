@@ -27,7 +27,7 @@ public class RegionUtils {
 	public static boolean hasExitEdge(IContainer container) {
 		if (container instanceof BlockNode) {
 			BlockNode block = (BlockNode) container;
-			return block.getSuccessors().size() != 0
+			return !block.getSuccessors().isEmpty()
 					&& !block.contains(AFlag.RETURN);
 		} else if (container instanceof IRegion) {
 			IRegion region = (IRegion) container;
@@ -109,7 +109,7 @@ public class RegionUtils {
 
 	public static boolean notEmpty(IContainer container) {
 		if (container instanceof BlockNode) {
-			return ((BlockNode) container).getInstructions().size() != 0;
+			return !((BlockNode) container).getInstructions().isEmpty();
 		} else if (container instanceof IRegion) {
 			IRegion region = (IRegion) container;
 			for (IContainer block : region.getSubBlocks()) {

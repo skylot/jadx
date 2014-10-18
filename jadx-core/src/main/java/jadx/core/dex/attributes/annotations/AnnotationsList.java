@@ -32,6 +32,10 @@ public class AnnotationsList implements IAttribute {
 		return map.size();
 	}
 
+	public boolean isEmpty() {
+		return map.isEmpty();
+	}
+
 	@Override
 	public AType<AnnotationsList> getType() {
 		return AType.ANNOTATION_LIST;

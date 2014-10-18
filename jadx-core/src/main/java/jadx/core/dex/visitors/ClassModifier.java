@@ -125,7 +125,7 @@ public class ClassModifier extends AbstractVisitor {
 				List<InsnNode> insns = mth.getBasicBlocks().get(0).getInstructions();
 				if (insns.size() == 1 && insns.get(0).getType() == InsnType.CONSTRUCTOR) {
 					ConstructorInsn constr = (ConstructorInsn) insns.get(0);
-					if (constr.isThis() && mth.getArguments(false).size() >= 1) {
+					if (constr.isThis() && !mth.getArguments(false).isEmpty()) {
 						mth.removeFirstArgument();
 						mth.add(AFlag.DONT_GENERATE);
 					}
@@ -167,7 +167,7 @@ public class ClassModifier extends AbstractVisitor {
 
 	private static boolean allBlocksEmpty(List<BlockNode> blocks) {
 		for (BlockNode block : blocks) {
-			if (block.getInstructions().size() != 0) {
+			if (!block.getInstructions().isEmpty()) {
 				return false;
 			}
 		}

@@ -1,8 +1,8 @@
 package jadx.gui.treemodel;
 
-import jadx.api.JadxDecompiler;
 import jadx.api.Factory;
 import jadx.api.IJadxArgs;
+import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaPackage;
 import jadx.core.dex.nodes.ClassNode;

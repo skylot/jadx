@@ -206,13 +206,10 @@ public class MethodGen {
 			if (insn == null) {
 				continue;
 			}
-			if (addLabels) {
-				if (insn.contains(AType.JUMP)
-						|| insn.contains(AType.EXC_HANDLER)) {
-					code.decIndent();
-					code.startLine(getLabelName(insn.getOffset()) + ":");
-					code.incIndent();
-				}
+			if (addLabels && (insn.contains(AType.JUMP) || insn.contains(AType.EXC_HANDLER))) {
+				code.decIndent();
+				code.startLine(getLabelName(insn.getOffset()) + ":");
+				code.incIndent();
 			}
 			try {
 				if (insnGen.makeInsn(insn, code)) {

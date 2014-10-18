@@ -38,11 +38,11 @@ public final class LiteralArg extends InsnArg {
 
 	public boolean isInteger() {
 		PrimitiveType type = this.type.getPrimitiveType();
-		return (type == PrimitiveType.INT
+		return type == PrimitiveType.INT
 				|| type == PrimitiveType.BYTE
 				|| type == PrimitiveType.CHAR
 				|| type == PrimitiveType.SHORT
-				|| type == PrimitiveType.LONG);
+				|| type == PrimitiveType.LONG;
 	}
 
 	@Override

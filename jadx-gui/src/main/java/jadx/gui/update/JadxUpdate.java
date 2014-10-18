@@ -3,6 +3,7 @@ package jadx.gui.update;
 import jadx.api.JadxDecompiler;
 import jadx.gui.update.data.Release;
 
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Type;
@@ -29,7 +30,8 @@ public class JadxUpdate {
 
 	private static final Gson GSON = new Gson();
 
-	private static final Type RELEASES_LIST_TYPE = new TypeToken<List<Release>>() {}.getType();
+	private static final Type RELEASES_LIST_TYPE = new TypeToken<List<Release>>() {
+	}.getType();
 
 	private static final Comparator<Release> RELEASE_COMPARATOR = new Comparator<Release>() {
 		@Override
@@ -38,12 +40,15 @@ public class JadxUpdate {
 		}
 	};
 
-	public static interface IUpdateCallback {
+	public interface IUpdateCallback {
 		void onUpdate(Release r);
 	}
 
+	private JadxUpdate() {
+	}
+
 	public static void check(final IUpdateCallback callback) {
-		Runnable run =  new Runnable() {
+		Runnable run = new Runnable() {
 			@Override
 			public void run() {
 				try {
@@ -62,7 +67,7 @@ public class JadxUpdate {
 		thread.start();
 	}
 
-	private static Release checkForNewRelease() throws Exception {
+	private static Release checkForNewRelease() throws IOException {
 		String version = JadxDecompiler.getVersion();
 		if (version.contains("dev")) {
 			LOG.debug("Ignore check for update: development version");
@@ -92,7 +97,7 @@ public class JadxUpdate {
 		return latest;
 	}
 
-	private static <T> T get(String url, Type type) throws Exception {
+	private static <T> T get(String url, Type type) throws IOException {
 		URL obj = new URL(url);
 		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 		con.setRequestMethod("GET");

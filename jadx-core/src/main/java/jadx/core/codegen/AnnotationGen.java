@@ -43,7 +43,7 @@ public class AnnotationGen {
 
 	public void addForParameter(CodeWriter code, MethodParameters paramsAnnotations, int n) {
 		AnnotationsList aList = paramsAnnotations.getParamList().get(n);
-		if (aList == null || aList.size() == 0) {
+		if (aList == null || aList.isEmpty()) {
 			return;
 		}
 		for (Annotation a : aList.getAll()) {
@@ -54,7 +54,7 @@ public class AnnotationGen {
 
 	private void add(IAttributeNode node, CodeWriter code) {
 		AnnotationsList aList = node.get(AType.ANNOTATION_LIST);
-		if (aList == null || aList.size() == 0) {
+		if (aList == null || aList.isEmpty()) {
 			return;
 		}
 		for (Annotation a : aList.getAll()) {

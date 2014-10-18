@@ -2,6 +2,9 @@ package jadx.gui.update;
 
 public class VersionComparator {
 
+	private VersionComparator() {
+	}
+
 	public static int checkAndCompare(String str1, String str2) {
 		try {
 			return compare(clean(str1), clean(str2));

@@ -244,7 +244,7 @@ public class ModVisitor extends AbstractVisitor {
 				InstructionRemover.remove(mth, excBlock, size - 1);
 
 				// move not removed instructions to 'finally' block
-				if (insns.size() != 0) {
+				if (!insns.isEmpty()) {
 					// TODO: support instructions from several blocks
 					// tryBlock.setFinalBlockFromInsns(mth, insns);
 					// TODO: because of incomplete realization don't extract final block,
@@ -255,14 +255,13 @@ public class ModVisitor extends AbstractVisitor {
 		}
 
 		List<InsnNode> blockInsns = block.getInstructions();
-		if (blockInsns.size() > 0) {
+		if (!blockInsns.isEmpty()) {
 			InsnNode insn = blockInsns.get(0);
 			if (insn.getType() == InsnType.MOVE_EXCEPTION
 					&& insn.getResult().getSVar().getUseCount() == 0) {
 				InstructionRemover.remove(mth, block, 0);
 			}
 		}
-
 		int totalSize = 0;
 		for (BlockNode excBlock : excHandler.getBlocks()) {
 			totalSize += excBlock.getInstructions().size();

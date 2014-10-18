@@ -16,30 +16,32 @@ public class TestOverloadedMethodInvoke extends IntegrationTest {
 	public static class TestCls {
 		int c;
 
-		public void method(Throwable th) {
+		public void method(Throwable th, int a) {
 			c++;
 			if (th != null) {
 				c += 100;
 			}
+			c += a;
 		}
 
-		public void method(Exception e) {
+		public void method(Exception e, int a) {
 			c += 1000;
 			if (e != null) {
 				c += 10000;
 			}
+			c += a;
 		}
 
 		public void test(Throwable th, Exception e) {
-			method(e);
-			method(th);
-			method((Throwable) e);
-			method((Exception) th);
+			method(e, 10);
+			method(th, 100);
+			method((Throwable) e, 1000);
+			method((Exception) th, 10000);
 		}
 
 		public void check() {
 			test(null, new Exception());
-			assertEquals(12102, c);
+			assertEquals(23212, c);
 		}
 	}
 
@@ -48,11 +50,11 @@ public class TestOverloadedMethodInvoke extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsString("public void test(Throwable th, Exception e) {"));
-		assertThat(code, containsOne("method(e);"));
-		assertThat(code, containsOne("method(th);"));
-		assertThat(code, containsOne("method((Throwable) e);"));
-		assertThat(code, containsOne("method((Exception) th);"));
+		assertThat(code, containsOne("public void test(Throwable th, Exception e) {"));
+		assertThat(code, containsOne("method(e, 10);"));
+		assertThat(code, containsOne("method(th, 100);"));
+		assertThat(code, containsOne("method((Throwable) e, 1000);"));
+		assertThat(code, containsOne("method((Exception) th, 10000);"));
 		assertThat(code, not(containsString("(Exception) e")));
 	}
 }

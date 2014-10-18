@@ -8,6 +8,9 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class TypeGen {
 
+	private TypeGen() {
+	}
+
 	public static String signature(ArgType type) {
 		PrimitiveType stype = type.getPrimitiveType();
 		if (stype == PrimitiveType.OBJECT) {

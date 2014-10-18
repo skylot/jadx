@@ -47,12 +47,7 @@ public class TypeInference extends AbstractVisitor {
 		if (assign != null && (useList.isEmpty() || var.isTypeImmutable())) {
 			return assign.getType();
 		}
-		ArgType type;
-		if (assign != null) {
-			type = assign.getType();
-		} else {
-			type = ArgType.UNKNOWN;
-		}
+		ArgType type = assign != null ? assign.getType() : ArgType.UNKNOWN;
 		for (RegisterArg arg : useList) {
 			ArgType useType = arg.getType();
 			ArgType newType = ArgType.merge(type, useType);

@@ -126,7 +126,6 @@ public final class LoopRegion extends AbstractRegion {
 		}
 	}
 
-
 	public LoopType getType() {
 		return type;
 	}

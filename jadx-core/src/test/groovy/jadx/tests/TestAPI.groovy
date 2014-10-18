@@ -1,4 +1,5 @@
 package jadx.tests
+
 import jadx.api.IJadxArgs
 import jadx.api.JadxDecompiler
 import jadx.core.utils.exceptions.JadxException

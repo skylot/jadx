@@ -162,7 +162,7 @@ public class DebugInfoParser {
 
 		for (LocalVar var : locals) {
 			if (var != null && !var.isEnd()) {
-				var.end(mth.getCodeSize()-1, line);
+				var.end(mth.getCodeSize() - 1, line);
 				setVar(var);
 			}
 		}

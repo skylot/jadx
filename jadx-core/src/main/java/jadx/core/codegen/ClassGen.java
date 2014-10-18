@@ -148,7 +148,7 @@ public class ClassGen {
 			clsCode.add(' ');
 		}
 
-		if (cls.getInterfaces().size() > 0 && !af.isAnnotation()) {
+		if (!cls.getInterfaces().isEmpty() && !af.isAnnotation()) {
 			if (cls.getAccessFlags().isInterface()) {
 				clsCode.add("extends ");
 			} else {
@@ -347,7 +347,7 @@ public class ClassGen {
 		for (Iterator<EnumField> it = enumFields.getFields().iterator(); it.hasNext(); ) {
 			EnumField f = it.next();
 			code.startLine(f.getName());
-			if (f.getArgs().size() != 0) {
+			if (!f.getArgs().isEmpty()) {
 				code.add('(');
 				for (Iterator<InsnArg> aIt = f.getArgs().iterator(); aIt.hasNext(); ) {
 					InsnArg arg = aIt.next();
@@ -403,8 +403,8 @@ public class ClassGen {
 			code.attachAnnotation(classNode);
 		}
 		String baseClass = useClassInternal(cls.getClassInfo(), classInfo);
-		ArgType[] generics = classInfo.getType().getGenericTypes();
 		code.add(baseClass);
+		ArgType[] generics = classInfo.getType().getGenericTypes();
 		if (generics != null) {
 			code.add('<');
 			int len = generics.length;
@@ -451,7 +451,7 @@ public class ClassGen {
 			if (classNode != null && !classNode.getAccessFlags().isPublic()) {
 				return shortName;
 			}
-			if (searchCollision(cls.dex(), useCls, shortName)) {
+			if (searchCollision(cls.dex(), useCls, classInfo)) {
 				return fullName;
 			}
 			if (classInfo.getPackage().equals(useCls.getPackage())) {
@@ -497,22 +497,24 @@ public class ClassGen {
 		return false;
 	}
 
-	private static boolean searchCollision(DexNode dex, ClassInfo useCls, String shortName) {
+	private static boolean searchCollision(DexNode dex, ClassInfo useCls, ClassInfo searchCls) {
 		if (useCls == null) {
 			return false;
 		}
+		String shortName = searchCls.getShortName();
 		if (useCls.getShortName().equals(shortName)) {
 			return true;
 		}
 		ClassNode classNode = dex.resolveClass(useCls);
 		if (classNode != null) {
 			for (ClassNode inner : classNode.getInnerClasses()) {
-				if (inner.getShortName().equals(shortName)) {
+				if (inner.getShortName().equals(shortName)
+						&& !inner.getClassInfo().equals(searchCls)) {
 					return true;
 				}
 			}
 		}
-		return searchCollision(dex, useCls.getParentClass(), shortName);
+		return searchCollision(dex, useCls.getParentClass(), searchCls);
 	}
 
 	private void insertSourceFileInfo(CodeWriter code, AttrNode node) {

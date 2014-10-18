@@ -1,7 +1,7 @@
 package jadx.tests.smali;
 
-import jadx.tests.api.SmaliTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.SmaliTest;
 
 import org.junit.Test;
 

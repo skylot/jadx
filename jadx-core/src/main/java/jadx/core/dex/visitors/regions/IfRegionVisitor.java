@@ -6,10 +6,10 @@ import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.dex.regions.conditions.IfCondition.Mode;
 import jadx.core.dex.regions.conditions.IfRegion;
-import jadx.core.dex.regions.Region;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.RegionUtils;
 

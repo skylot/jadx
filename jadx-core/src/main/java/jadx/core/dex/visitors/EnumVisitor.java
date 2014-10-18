@@ -114,21 +114,17 @@ public class EnumVisitor extends AbstractVisitor {
 		for (InsnNode insn : insns) {
 			if (insn.getType() == InsnType.CONSTRUCTOR) {
 				ConstructorInsn co = (ConstructorInsn) insn;
-
 				if (insn.getArgsCount() < 2) {
 					continue;
 				}
-
 				ClassInfo clsInfo = co.getClassType();
 				ClassNode constrCls = cls.dex().resolveClass(clsInfo);
 				if (constrCls == null) {
 					continue;
 				}
-
 				if (!clsInfo.equals(cls.getClassInfo()) && !constrCls.getAccessFlags().isEnum()) {
 					continue;
 				}
-
 				RegisterArg nameArg = (RegisterArg) insn.getArg(0);
 				// InsnArg pos = insn.getArg(1);
 				// TODO add check: pos == j
@@ -136,7 +132,6 @@ public class EnumVisitor extends AbstractVisitor {
 				if (name == null) {
 					throw new JadxException("Unknown enum field name: " + cls);
 				}
-
 				EnumField field = new EnumField(name, insn.getArgsCount() - 2);
 				attr.getFields().add(field);
 				for (int i = 2; i < insn.getArgsCount(); i++) {

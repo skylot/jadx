@@ -6,6 +6,9 @@ import jadx.core.dex.nodes.InsnNode;
 
 public class SelectTypeVisitor {
 
+	private SelectTypeVisitor() {
+	}
+
 	public static void visit(InsnNode insn) {
 		InsnArg res = insn.getResult();
 		if (res != null && !res.getType().isTypeKnown()) {
