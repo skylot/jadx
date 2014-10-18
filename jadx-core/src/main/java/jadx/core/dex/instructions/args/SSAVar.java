@@ -19,6 +19,7 @@ public class SSAVar {
 	private PhiInsn usedInPhi;
 
 	private ArgType type;
+	private boolean typeImmutable;
 
 	public SSAVar(int regNum, int v, RegisterArg assign) {
 		this.regNum = regNum;
@@ -33,10 +34,6 @@ public class SSAVar {
 		endUseAddr = -1;
 	}
 
-	public int getRegNum() {
-		return regNum;
-	}
-
 	public int getStartAddr() {
 		if (startUseAddr == -1) {
 			calcUsageAddrRange();
@@ -48,7 +45,6 @@ public class SSAVar {
 		if (endUseAddr == -1) {
 			calcUsageAddrRange();
 		}
-
 		return endUseAddr;
 	}
 
@@ -78,12 +74,16 @@ public class SSAVar {
 			}
 		}
 
-		if ((start != Integer.MAX_VALUE) 
+		if ((start != Integer.MAX_VALUE)
 				&& (end != Integer.MIN_VALUE)) {
 			startUseAddr = start;
 			endUseAddr = end;
 		}
-	} 
+	}
+
+	public int getRegNum() {
+		return regNum;
+	}
 
 	public int getVersion() {
 		return version;
@@ -141,18 +141,30 @@ public class SSAVar {
 		return useList.size() + usedInPhi.getResult().getSVar().getUseCount();
 	}
 
-	public ArgType getType() {
-		return type;
-	}
-
 	public void setType(ArgType type) {
-		this.type = type;
+		ArgType acceptedType;
+		if (typeImmutable) {
+			// don't change type, just update types in useList
+			acceptedType = this.type;
+		} else {
+			acceptedType = type;
+			this.type = acceptedType;
+		}
 		if (assign != null) {
-			assign.type = type;
+			assign.type = acceptedType;
 		}
 		for (int i = 0, useListSize = useList.size(); i < useListSize; i++) {
-			useList.get(i).type = type;
+			useList.get(i).type = acceptedType;
 		}
+	}
+
+	public void setTypeImmutable(ArgType type) {
+		setType(type);
+		this.typeImmutable = true;
+	}
+
+	public boolean isTypeImmutable() {
+		return typeImmutable;
 	}
 
 	public void setName(String name) {

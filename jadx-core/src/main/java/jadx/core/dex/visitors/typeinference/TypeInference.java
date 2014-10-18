@@ -44,8 +44,7 @@ public class TypeInference extends AbstractVisitor {
 	private static ArgType processType(SSAVar var) {
 		RegisterArg assign = var.getAssign();
 		List<RegisterArg> useList = var.getUseList();
-		if (assign != null
-				&& (useList.isEmpty() || assign.isTypeImmutable())) {
+		if (assign != null && (useList.isEmpty() || var.isTypeImmutable())) {
 			return assign.getType();
 		}
 		ArgType type;

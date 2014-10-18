@@ -680,7 +680,7 @@ public class InsnGen {
 				if (!arg.getType().equals(origType)) {
 					code.add('(');
 					useType(code, origType);
-					code.add(')');
+					code.add(") ");
 					addArg(code, arg, true);
 				} else {
 					addArg(code, arg, false);

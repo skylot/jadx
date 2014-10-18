@@ -39,6 +39,7 @@ public class MthParameterArg extends RegisterArg {
 		if (isThis) {
 			sVar.setName("this");
 		}
+		sVar.setTypeImmutable(type);
 		super.setSVar(sVar);
 	}
 

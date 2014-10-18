@@ -80,6 +80,7 @@ public class RegisterArg extends InsnArg implements Named {
 		setName(name);
 	}
 
+	@Deprecated
 	public void forceType(ArgType type) {
 		this.type = type;
 	}

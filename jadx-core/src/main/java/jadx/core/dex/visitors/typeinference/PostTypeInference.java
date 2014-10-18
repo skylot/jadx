@@ -85,20 +85,21 @@ public class PostTypeInference {
 
 			case CHECK_CAST: {
 				ArgType castType = (ArgType) ((IndexInsnNode) insn).getIndex();
-				SSAVar sVar = insn.getResult().getSVar();
+				RegisterArg result = insn.getResult();
 				// don't override generic types of same base class
-				boolean skip = castType.isObject() && castType.getObject().equals(sVar.getType().getObject());
+				boolean skip = castType.isObject() && castType.getObject().equals(result.getType().getObject());
 				if (!skip) {
 					// workaround for compiler bug (see TestDuplicateCast)
-					sVar.setType(castType);
+					result.getSVar().setType(castType);
 				}
 				return true;
 			}
 
 			case PHI: {
 				PhiInsn phi = (PhiInsn) insn;
-				SSAVar resultSVar = phi.getResult().getSVar();
-				if (resultSVar != null && !resultSVar.getType().isTypeKnown()) {
+				RegisterArg result = phi.getResult();
+				SSAVar resultSVar = result.getSVar();
+				if (resultSVar != null && !result.getType().isTypeKnown()) {
 					for (InsnArg arg : phi.getArguments()) {
 						ArgType argType = arg.getType();
 						if (argType.isTypeKnown()) {
