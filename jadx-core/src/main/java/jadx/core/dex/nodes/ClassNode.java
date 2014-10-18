@@ -354,6 +354,11 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 		return parentClass;
 	}
 
+	public ClassNode getTopParentClass() {
+		ClassNode parent = getParentClass();
+		return parent == this ? this : parent.getParentClass();
+	}
+
 	public List<ClassNode> getInnerClasses() {
 		return innerClasses;
 	}

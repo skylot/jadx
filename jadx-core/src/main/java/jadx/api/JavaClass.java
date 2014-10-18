@@ -116,28 +116,31 @@ public final class JavaClass implements JavaNode {
 	public CodePosition getDefinitionPosition(int line, int offset) {
 		Map<CodePosition, Object> map = getCodeAnnotations();
 		Object obj = map.get(new CodePosition(line, offset));
-		if (obj instanceof LineAttrNode) {
-			ClassNode clsNode = null;
-			if (obj instanceof ClassNode) {
-				clsNode = (ClassNode) obj;
-			} else if (obj instanceof MethodNode) {
-				clsNode = ((MethodNode) obj).getParentClass();
-			} else if (obj instanceof FieldNode) {
-				clsNode = ((FieldNode) obj).getParentClass();
-			}
-			if (clsNode == null) {
-				return null;
-			}
-			clsNode = clsNode.getParentClass();
-			JavaClass jCls = decompiler.findJavaClass(clsNode);
-			if (jCls == null) {
-				return null;
-			}
-			jCls.decompile();
-			int defLine = ((LineAttrNode) obj).getDecompiledLine();
-			return new CodePosition(jCls, defLine, 0);
+		if (!(obj instanceof LineAttrNode)) {
+			return null;
 		}
-		return null;
+		ClassNode clsNode = null;
+		if (obj instanceof ClassNode) {
+			clsNode = (ClassNode) obj;
+		} else if (obj instanceof MethodNode) {
+			clsNode = ((MethodNode) obj).getParentClass();
+		} else if (obj instanceof FieldNode) {
+			clsNode = ((FieldNode) obj).getParentClass();
+		}
+		if (clsNode == null) {
+			return null;
+		}
+		clsNode = clsNode.getTopParentClass();
+		JavaClass jCls = decompiler.findJavaClass(clsNode);
+		if (jCls == null) {
+			return null;
+		}
+		jCls.decompile();
+		int defLine = ((LineAttrNode) obj).getDecompiledLine();
+		if (defLine == 0) {
+			return null;
+		}
+		return new CodePosition(jCls, defLine, 0);
 	}
 
 	public Integer getSourceLine(int decompiledLine) {
