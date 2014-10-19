@@ -1,7 +1,7 @@
 package jadx.tests.integration.loops;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import org.junit.Test;
 
@@ -29,7 +29,6 @@ public class TestBreakInLoop extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsOne("for (int i = 0; i < a.length; i++) {"));
 //		assertThat(code, containsOne("a[i]++;"));

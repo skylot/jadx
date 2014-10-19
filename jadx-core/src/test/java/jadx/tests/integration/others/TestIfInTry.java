@@ -1,7 +1,7 @@
 package jadx.tests.integration.others;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,7 +43,6 @@ public class TestIfInTry extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsOne("if (a != 0) {"));
 		assertThat(code, containsOne("} catch (Exception e) {"));

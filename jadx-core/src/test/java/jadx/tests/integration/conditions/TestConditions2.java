@@ -1,7 +1,7 @@
 package jadx.tests.integration.conditions;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import org.junit.Test;
 
@@ -27,7 +27,6 @@ public class TestConditions2 extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 //		assertThat(code, containsString("return;"));
 //		assertThat(code, not(containsString("else")));

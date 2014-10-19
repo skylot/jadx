@@ -1,7 +1,7 @@
 package jadx.tests.integration.loops;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import org.junit.Test;
 
@@ -33,7 +33,6 @@ public class TestLoopCondition3 extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsOne("while (a < 12) {"));
 		assertThat(code, containsOne("if (b + a < 9 && b < 8) {"));

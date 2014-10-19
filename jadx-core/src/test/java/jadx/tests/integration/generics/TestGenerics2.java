@@ -1,7 +1,7 @@
 package jadx.tests.integration.generics;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
@@ -38,7 +38,6 @@ public class TestGenerics2 extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsString("public ItemReference(V item, Object id, ReferenceQueue<? super V> queue) {"));
 		assertThat(code, containsString("public V get(Object id) {"));

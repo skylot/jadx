@@ -1,7 +1,7 @@
 package jadx.tests.integration.inner;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import org.junit.Test;
 
@@ -43,7 +43,6 @@ public class TestAnonymousClass3 extends IntegrationTest {
 		disableCompilation();
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsString(indent(4) + "public void run() {"));
 		assertThat(code, containsString(indent(3) + "}.start();"));

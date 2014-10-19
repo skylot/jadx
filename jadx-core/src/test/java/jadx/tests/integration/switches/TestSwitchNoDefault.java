@@ -1,7 +1,7 @@
 package jadx.tests.integration.switches;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import org.junit.Test;
 
@@ -34,7 +34,6 @@ public class TestSwitchNoDefault extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertEquals(4, count(code, "break;"));
 		assertEquals(1, count(code, "System.out.println(s);"));

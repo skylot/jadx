@@ -1,7 +1,7 @@
 package jadx.tests.integration.enums;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 import jadx.tests.api.utils.JadxMatchers;
 
 import org.junit.Test;
@@ -32,7 +32,6 @@ public class TestEnums2 extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, JadxMatchers.containsLines(1,
 				"public enum Operation {",

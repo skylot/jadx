@@ -1,7 +1,7 @@
 package jadx.tests.integration.variables;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -60,7 +60,6 @@ public class TestVariables4 extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsString("} catch (InvocationTargetException e) {"));
 		assertThat(code, containsString("pass = false;"));

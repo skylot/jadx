@@ -1,7 +1,7 @@
 package jadx.tests.integration;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import org.junit.Test;
 
@@ -27,7 +27,6 @@ public class TestStringBuilderElimination extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(MyException.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsString("MyException(String str, Exception e) {"));
 		assertThat(code, containsString("super(\"msg:\" + str, e);"));

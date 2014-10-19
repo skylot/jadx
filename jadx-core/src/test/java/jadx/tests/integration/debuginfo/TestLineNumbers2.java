@@ -1,8 +1,8 @@
 package jadx.tests.integration.debuginfo;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import java.lang.ref.WeakReference;
 import java.util.Map;
@@ -38,7 +38,6 @@ public class TestLineNumbers2 extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		CodeWriter codeWriter = cls.getCode();
 		String code = codeWriter.toString();
-		System.out.println(code);
 
 		Map<Integer, Integer> lineMapping = codeWriter.getLineMapping();
 		assertEquals("{8=18, 11=22, 12=23, 13=24, 14=28, 16=25, 17=26, 18=28, 21=31, 22=32}",

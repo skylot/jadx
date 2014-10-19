@@ -19,7 +19,7 @@ public class TestOverloadedMethodInvoke extends IntegrationTest {
 		public void method(Throwable th) {
 			c++;
 			if (th != null) {
-				c+=100;
+				c += 100;
 			}
 		}
 

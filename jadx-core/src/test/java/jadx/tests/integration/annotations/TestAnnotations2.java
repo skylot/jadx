@@ -1,7 +1,7 @@
 package jadx.tests.integration.annotations;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -30,7 +30,6 @@ public class TestAnnotations2 extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsString("@Target({ElementType.TYPE})"));
 		assertThat(code, containsString("@Retention(RetentionPolicy.RUNTIME)"));

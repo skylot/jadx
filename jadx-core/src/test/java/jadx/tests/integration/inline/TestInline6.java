@@ -1,7 +1,7 @@
 package jadx.tests.integration.inline;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import org.junit.Test;
 
@@ -26,7 +26,6 @@ public class TestInline6 extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsString("System.out.println(System.nanoTime() - start);"));
 		assertThat(code, not(containsString("System.out.println(System.nanoTime() - System.nanoTime());")));

@@ -1,7 +1,7 @@
 package jadx.tests.integration.loops;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import org.junit.Test;
 
@@ -32,7 +32,6 @@ public class TestLoopDetection2 extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsOne("int c = a + b;"));
 		assertThat(code, containsOne("for (int i = a; i < b; i++) {"));

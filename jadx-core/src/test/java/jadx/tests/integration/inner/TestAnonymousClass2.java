@@ -1,7 +1,7 @@
 package jadx.tests.integration.inner;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import org.junit.Test;
 
@@ -50,7 +50,6 @@ public class TestAnonymousClass2 extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, not(containsString("synthetic")));
 		assertThat(code, not(containsString("AnonymousClass_")));

@@ -1,7 +1,7 @@
 package jadx.tests.integration.loops;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import java.util.List;
 
@@ -36,7 +36,6 @@ public class TestNestedLoops extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsOne("for (String s1 : l1) {"));
 		assertThat(code, containsOne("for (String s2 : l2) {"));

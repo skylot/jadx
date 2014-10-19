@@ -1,7 +1,7 @@
 package jadx.tests.integration.inner;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import java.util.Timer;
 import java.util.TimerTask;

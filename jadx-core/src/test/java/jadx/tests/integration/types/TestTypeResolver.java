@@ -1,7 +1,7 @@
 package jadx.tests.integration.types;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import org.junit.Test;
 
@@ -25,7 +25,6 @@ public class TestTypeResolver extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsString("this(b1, b2, 0, 0, 0);"));
 		assertThat(code, not(containsString("= this;")));

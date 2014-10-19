@@ -1,11 +1,11 @@
 package jadx.tests.integration;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.tests.api.IntegrationTest;
 
 import java.util.List;
 

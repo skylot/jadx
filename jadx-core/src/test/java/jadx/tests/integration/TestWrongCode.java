@@ -1,7 +1,7 @@
 package jadx.tests.integration;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import org.junit.Test;
 
@@ -19,7 +19,9 @@ public class TestWrongCode extends IntegrationTest {
 
 		@SuppressWarnings("empty")
 		private int test2(int a) {
-			if (a == 0);
+			if (a == 0) {
+				;
+			}
 			return a;
 		}
 	}
@@ -29,7 +31,6 @@ public class TestWrongCode extends IntegrationTest {
 		disableCompilation();
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, not(containsString("return false.length;")));
 		assertThat(code, containsString("return null.length;"));

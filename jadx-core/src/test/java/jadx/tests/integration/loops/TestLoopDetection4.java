@@ -1,7 +1,7 @@
 package jadx.tests.integration.loops;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import java.util.Iterator;
 
@@ -38,7 +38,6 @@ public class TestLoopDetection4 extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsOne("while (this.iterator.hasNext()) {"));
 		assertThat(code, containsOne("if (filtered != null) {"));

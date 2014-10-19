@@ -1,7 +1,7 @@
 package jadx.tests.integration.trycatch;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import java.io.File;
 
@@ -33,7 +33,6 @@ public class TestInlineInCatch extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsOne("File output = null;"));
 		assertThat(code, containsOne("output = File.createTempFile(\"f\", \"a\", "));

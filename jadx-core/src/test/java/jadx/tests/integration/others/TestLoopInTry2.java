@@ -1,10 +1,10 @@
 package jadx.tests.integration.others;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.DecodeException;
+import jadx.tests.api.IntegrationTest;
 
 import java.io.EOFException;
 
@@ -44,7 +44,6 @@ public class TestLoopInTry2 extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsOne("try {"));
 		assertThat(code, containsOne("while (in.hasMore()) {"));

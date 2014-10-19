@@ -1,7 +1,7 @@
 package jadx.tests.integration.loops;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import java.io.IOException;
 import java.util.List;
@@ -44,7 +44,6 @@ public class TestIterableForEach2 extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsOne("for (Authorization auth : service.getAuthorizations()) {"));
 		assertThat(code, containsOne("if (isValid(auth)) {"));

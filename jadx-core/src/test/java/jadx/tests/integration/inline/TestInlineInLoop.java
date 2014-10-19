@@ -1,7 +1,7 @@
 package jadx.tests.integration.inline;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import org.junit.Test;
 
@@ -36,7 +36,6 @@ public class TestInlineInLoop extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsOne("int c"));
 		assertThat(code, containsOne("c = b + 1"));

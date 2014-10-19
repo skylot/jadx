@@ -1,7 +1,7 @@
 package jadx.tests.integration.conditions;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import org.junit.Test;
 
@@ -24,7 +24,6 @@ public class TestCmpOp2 extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsString("return a > b;"));
 		assertThat(code, containsString("return ((double) c) < d;"));

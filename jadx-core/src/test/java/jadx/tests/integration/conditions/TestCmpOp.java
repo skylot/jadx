@@ -1,7 +1,7 @@
 package jadx.tests.integration.conditions;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import org.junit.Test;
 
@@ -52,7 +52,6 @@ public class TestCmpOp extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsString("return a > 3.0f;"));
 		assertThat(code, containsString("return b < 2.0f;"));

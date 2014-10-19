@@ -1,7 +1,7 @@
 package jadx.tests.integration.generics;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import java.util.List;
 
@@ -31,7 +31,6 @@ public class TestGenerics3 extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsString("mthExtendsArray(List<? extends byte[]> list)"));
 		assertThat(code, containsString("mthSuperArray(List<? super int[]> list)"));

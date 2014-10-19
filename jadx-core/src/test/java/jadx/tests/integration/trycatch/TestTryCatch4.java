@@ -1,7 +1,7 @@
 package jadx.tests.integration.trycatch;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -33,7 +33,6 @@ public class TestTryCatch4 extends IntegrationTest {
 		disableCompilation();
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsString("try {"));
 		assertThat(code, containsString("output = new FileOutputStream(new File(\"f\"));"));

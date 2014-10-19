@@ -1,7 +1,7 @@
 package jadx.tests.integration.others;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -91,7 +91,6 @@ public class TestIssue13a extends IntegrationTest {
 		disableCompilation();
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		for (int i = 1; i <= 7; i++) {
 			assertThat(code, containsOne("\"" + i + "\""));

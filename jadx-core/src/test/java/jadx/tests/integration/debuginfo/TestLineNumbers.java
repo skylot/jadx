@@ -1,11 +1,11 @@
 package jadx.tests.integration.debuginfo;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.tests.api.IntegrationTest;
 
 import org.junit.Test;
 

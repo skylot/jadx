@@ -1,7 +1,7 @@
 package jadx.tests.integration.others;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -80,7 +80,6 @@ public class TestIssue13b extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, countString(4, "} catch ("));
 		assertThat(code, countString(3, "Log.e("));

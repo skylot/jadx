@@ -1,7 +1,7 @@
 package jadx.tests.integration.arith;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import org.junit.Test;
 
@@ -48,7 +48,6 @@ public class TestSpecialValues extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsOne("Float.NaN, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY, " +
 				"Float.MIN_VALUE, Float.MAX_VALUE, Float.MIN_NORMAL"));

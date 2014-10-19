@@ -1,7 +1,7 @@
 package jadx.tests.integration.conditions;
 
-import jadx.tests.api.IntegrationTest;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -61,7 +61,6 @@ public class TestConditions3 extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsString("return null;"));
 		assertThat(code, not(containsString("else")));
