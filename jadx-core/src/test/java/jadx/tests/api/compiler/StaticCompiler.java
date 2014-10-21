@@ -72,8 +72,12 @@ public class StaticCompiler {
 	private static class ClassFileObject extends SimpleJavaFileObject {
 		private File file;
 
+		private static final boolean isWindowsOS = (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0); 
+
 		protected ClassFileObject(File file, Kind kind) {
-			super(URI.create("file://" + file.getAbsolutePath()), kind);
+			super((isWindowsOS)
+						? URI.create("file:///" + file.getAbsolutePath().replace('\\', '/')) 
+						: URI.create("file://" + file.getAbsolutePath()), kind); 
 			this.file = file;
 		}
 
