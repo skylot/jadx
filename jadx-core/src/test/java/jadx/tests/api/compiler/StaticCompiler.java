@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -73,7 +72,7 @@ public class StaticCompiler {
 		private File file;
 
 		protected ClassFileObject(File file, Kind kind) {
-			super(URI.create("file://" + file.getAbsolutePath()), kind);
+			super(file.toURI(), kind);
 			this.file = file;
 		}
 

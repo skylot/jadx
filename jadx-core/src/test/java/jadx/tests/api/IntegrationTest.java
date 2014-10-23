@@ -312,15 +312,16 @@ public abstract class IntegrationTest extends TestUtils {
 		File outTmp = createTempDir("jadx-tmp-classes");
 		outTmp.deleteOnExit();
 		List<File> files = StaticCompiler.compile(Arrays.asList(file), outTmp, withDebugInfo);
-		String filter = outTmp.getAbsolutePath() + File.separator + cls.getName().replace('.', '/');
+		// remove classes which are parents for test class
 		Iterator<File> iterator = files.iterator();
 		while (iterator.hasNext()) {
 			File next = iterator.next();
-			if (!next.getAbsolutePath().startsWith(filter)) {
+			if (!next.getName().contains(cls.getSimpleName())) {
 				iterator.remove();
-			} else {
-				next.deleteOnExit();
 			}
+		}
+		for (File clsFile : files) {
+			clsFile.deleteOnExit();
 		}
 		return files;
 	}
