@@ -2,8 +2,10 @@ package jadx.core.utils;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.mods.TernaryInsn;
@@ -119,12 +121,29 @@ public class BlockUtils {
 	}
 
 	public static BlockNode getBlockByInsn(MethodNode mth, InsnNode insn) {
+		if (insn instanceof PhiInsn) {
+			return searchBlockWithPhi(mth, (PhiInsn) insn);
+		}
 		if (insn.contains(AFlag.WRAPPED)) {
 			return getBlockByWrappedInsn(mth, insn);
 		}
 		for (BlockNode bn : mth.getBasicBlocks()) {
 			if (blockContains(bn, insn)) {
 				return bn;
+			}
+		}
+		return null;
+	}
+
+	private static BlockNode searchBlockWithPhi(MethodNode mth, PhiInsn insn) {
+		for (BlockNode block : mth.getBasicBlocks()) {
+			PhiListAttr phiListAttr = block.get(AType.PHI_LIST);
+			if (phiListAttr != null) {
+				for (PhiInsn phiInsn : phiListAttr.getList()) {
+					if (phiInsn == insn) {
+						return block;
+					}
+				}
 			}
 		}
 		return null;

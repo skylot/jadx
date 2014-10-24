@@ -72,7 +72,7 @@ public class AttributeStorage {
 		if (attrList == null) {
 			return Collections.emptyList();
 		}
-		return attrList.getList();
+		return Collections.unmodifiableList(attrList.getList());
 	}
 
 	public void remove(AFlag flag) {

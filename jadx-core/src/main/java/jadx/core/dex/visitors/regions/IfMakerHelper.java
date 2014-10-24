@@ -2,6 +2,7 @@ package jadx.core.dex.visitors.regions;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -53,8 +54,8 @@ public class IfMakerHelper {
 			info.setOutBlock(null);
 			return info;
 		}
-		boolean badThen = thenBlock.contains(AFlag.LOOP_START) || !allPathsFromIf(thenBlock, info);
-		boolean badElse = elseBlock.contains(AFlag.LOOP_START) || !allPathsFromIf(elseBlock, info);
+		boolean badThen = isBadBranchBlock(info, thenBlock);
+		boolean badElse = isBadBranchBlock(info, elseBlock);
 		if (badThen && badElse) {
 			LOG.debug("Stop processing blocks after 'if': {}, method: {}", info.getIfBlock(), mth);
 			return null;
@@ -90,6 +91,26 @@ public class IfMakerHelper {
 			info.setOutBlock(null);
 		}
 		return info;
+	}
+
+	private static boolean isBadBranchBlock(IfInfo info, BlockNode block) {
+		// check if block at end of loop edge
+		if (block.contains(AFlag.LOOP_START) && block.getPredecessors().size() == 1) {
+			BlockNode pred = block.getPredecessors().get(0);
+			if (pred.contains(AFlag.LOOP_END)) {
+				List<LoopInfo> startLoops = block.getAll(AType.LOOP);
+				List<LoopInfo> endLoops = pred.getAll(AType.LOOP);
+				// search for same loop
+				for (LoopInfo startLoop : startLoops) {
+					for (LoopInfo endLoop : endLoops) {
+						if (startLoop == endLoop) {
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return !allPathsFromIf(block, info);
 	}
 
 	private static boolean allPathsFromIf(BlockNode block, IfInfo info) {

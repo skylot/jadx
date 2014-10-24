@@ -84,7 +84,8 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 			return false;
 		}
 		PhiInsn phiInsn = incrArg.getSVar().getUsedInPhi();
-		if (phiInsn.getArgsCount() != 2
+		if (phiInsn == null
+				|| phiInsn.getArgsCount() != 2
 				|| !phiInsn.getArg(1).equals(incrArg)
 				|| incrArg.getSVar().getUseCount() != 1) {
 			return false;
@@ -101,6 +102,12 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		}
 		if (!usedOnlyInLoop(mth, loopRegion, arg)) {
 			return false;
+		}
+		// can't make loop if argument from increment instruction is assign in loop
+		for (InsnArg iArg : incrInsn.getArguments()) {
+			if (iArg.isRegister() && assignOnlyInLoop(mth, loopRegion, (RegisterArg) iArg)) {
+				return false;
+			}
 		}
 
 		// all checks passed
@@ -188,7 +195,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 			if (wrapArg != null) {
 				wrapArg.getParentInsn().replaceArg(wrapArg, iterVar);
 			} else {
-				LOG.debug(" Wrapped insn not found: {}, mth: {}", arrGetInsn, mth);
+				LOG.debug(" checkArrayForEach: Wrapped insn not found: {}, mth: {}", arrGetInsn, mth);
 			}
 		}
 		return new ForEachLoop(iterVar, len.getArg(0));
@@ -237,7 +244,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 					}
 				}
 			} else {
-				LOG.warn(" Wrapped insn not found: {}, mth: {}", nextCall, mth);
+				LOG.warn(" checkIterableForEach: Wrapped insn not found: {}, mth: {}", nextCall, mth);
 				return false;
 			}
 		} else {
@@ -293,6 +300,25 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 			}
 		}
 		return false;
+	}
+
+	private static boolean assignOnlyInLoop(MethodNode mth, LoopRegion loopRegion, RegisterArg arg) {
+		InsnNode assignInsn = arg.getAssignInsn();
+		if (assignInsn == null) {
+			return true;
+		}
+		if (!argInLoop(mth, loopRegion, assignInsn.getResult())) {
+			return false;
+		}
+		if (assignInsn instanceof PhiInsn) {
+			PhiInsn phiInsn = (PhiInsn) assignInsn;
+			for (InsnArg phiArg : phiInsn.getArguments()) {
+				if (!assignOnlyInLoop(mth, loopRegion, (RegisterArg) phiArg)) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	private static boolean usedOnlyInLoop(MethodNode mth, LoopRegion loopRegion, RegisterArg arg) {
