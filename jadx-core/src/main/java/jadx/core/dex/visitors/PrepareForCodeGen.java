@@ -32,7 +32,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 		for (BlockNode block : blocks) {
 			removeInstructions(block);
 			checkInline(block);
-			removeParenthesis(block);
+//			removeParenthesis(block);
 			modifyArith(block);
 		}
 	}
