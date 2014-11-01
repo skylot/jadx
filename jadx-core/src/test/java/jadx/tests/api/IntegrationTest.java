@@ -121,6 +121,11 @@ public abstract class IntegrationTest extends TestUtils {
 			public boolean isShowInconsistentCode() {
 				return true;
 			}
+
+			@Override
+			public int getThreadsCount() {
+				return 1;
+			}
 		}, new File(outDir));
 	}
 

@@ -1,5 +1,6 @@
 package jadx.core.dex.visitors;
 
+import jadx.core.codegen.TypeGen;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.MethodInfo;
@@ -143,6 +144,10 @@ public class ModVisitor extends AbstractVisitor {
 				if (co.isNewInstance()) {
 					removeAssignChain(instArgAssignInsn, remover, InsnType.NEW_INSTANCE);
 				}
+				ConstructorInsn replace = processConstructor(mth, co);
+				if (replace != null) {
+					replaceInsn(block, insnNumber, replace);
+				}
 			}
 		} else if (inv.getArgsCount() > 0) {
 			for (int j = 0; j < inv.getArgsCount(); j++) {
@@ -155,6 +160,42 @@ public class ModVisitor extends AbstractVisitor {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Replace call of synthetic constructor
+	 */
+	private static ConstructorInsn processConstructor(MethodNode mth, ConstructorInsn co) {
+		MethodNode callMth = mth.dex().resolveMethod(co.getCallMth());
+		if (callMth != null
+				&& callMth.getAccessFlags().isSynthetic()
+				&& allArgsNull(co)) {
+			// if all arguments is null => replace with default constructor
+			ClassNode classNode = mth.dex().resolveClass(callMth.getParentClass().getClassInfo());
+			boolean passThis = co.getArgsCount() >= 1 && co.getArg(0).isThis();
+			String ctrId = "<init>(" + (passThis ? TypeGen.signature(co.getArg(0).getType()) : "") + ")V";
+			MethodNode defCtr = classNode.searchMethodByName(ctrId);
+			if (defCtr != null) {
+				ConstructorInsn newInsn = new ConstructorInsn(defCtr.getMethodInfo(), co.getCallType(), co.getInstanceArg());
+				newInsn.setResult(co.getResult());
+				return newInsn;
+			}
+		}
+		return null;
+	}
+
+	private static boolean allArgsNull(InsnNode insn) {
+		for (InsnArg insnArg : insn.getArguments()) {
+			if (insnArg.isLiteral()) {
+				LiteralArg lit = (LiteralArg) insnArg;
+				if (lit.getLiteral() != 0) {
+					return false;
+				}
+			} else if (!insnArg.isThis()) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**

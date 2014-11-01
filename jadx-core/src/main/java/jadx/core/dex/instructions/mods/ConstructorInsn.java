@@ -52,6 +52,13 @@ public class ConstructorInsn extends InsnNode {
 		setSourceLine(invoke.getSourceLine());
 	}
 
+	public ConstructorInsn(MethodInfo callMth, CallType callType, RegisterArg instanceArg) {
+		super(InsnType.CONSTRUCTOR, callMth.getArgsCount());
+		this.callMth = callMth;
+		this.callType = callType;
+		this.instanceArg = instanceArg;
+	}
+
 	public MethodInfo getCallMth() {
 		return callMth;
 	}
@@ -62,6 +69,10 @@ public class ConstructorInsn extends InsnNode {
 
 	public ClassInfo getClassType() {
 		return callMth.getDeclClass();
+	}
+
+	public CallType getCallType() {
+		return callType;
 	}
 
 	public boolean isNewInstance() {
