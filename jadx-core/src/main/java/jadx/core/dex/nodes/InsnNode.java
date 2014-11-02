@@ -170,7 +170,6 @@ public class InsnNode extends LineAttrNode {
 			case NEW_ARRAY:
 			case NEW_MULTIDIM_ARRAY:
 			case STR_CONCAT:
-			case MOVE_EXCEPTION:
 				return true;
 
 			default:

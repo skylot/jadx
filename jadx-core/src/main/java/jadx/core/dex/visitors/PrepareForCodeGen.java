@@ -45,6 +45,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 				case NOP:
 				case MONITOR_ENTER:
 				case MONITOR_EXIT:
+				case MOVE_EXCEPTION:
 					it.remove();
 					break;
 

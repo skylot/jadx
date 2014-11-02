@@ -200,7 +200,9 @@ public class CodeShrinker extends AbstractVisitor {
 					continue;
 				}
 				InsnNode assignInsn = sVar.getAssign().getParentInsn();
-				if (assignInsn == null || assignInsn instanceof PhiInsn) {
+				if (assignInsn == null
+						|| assignInsn instanceof PhiInsn
+						|| assignInsn.getType() == InsnType.MOVE_EXCEPTION) {
 					continue;
 				}
 				int assignPos = insnList.getIndex(assignInsn);

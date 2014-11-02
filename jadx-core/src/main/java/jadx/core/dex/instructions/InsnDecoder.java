@@ -4,7 +4,6 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
-import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.DexNode;
@@ -404,8 +403,7 @@ public class InsnDecoder {
 
 			case Opcodes.MOVE_EXCEPTION:
 				return insn(InsnType.MOVE_EXCEPTION,
-						InsnArg.reg(insn, 0, ArgType.unknown(PrimitiveType.OBJECT)),
-						new NamedArg("e", ArgType.unknown(PrimitiveType.OBJECT)));
+						InsnArg.reg(insn, 0, ArgType.unknown(PrimitiveType.OBJECT)));
 
 			case Opcodes.RETURN_VOID:
 				return new InsnNode(InsnType.RETURN, 0);

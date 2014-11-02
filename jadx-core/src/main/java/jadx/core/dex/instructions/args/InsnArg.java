@@ -30,8 +30,8 @@ public abstract class InsnArg extends Typed {
 		return reg(InsnUtils.getArg(insn, argNum), type);
 	}
 
-	public static MthParameterArg parameterReg(int regNum, ArgType type) {
-		return new MthParameterArg(regNum, type);
+	public static TypeImmutableArg typeImmutableReg(int regNum, ArgType type) {
+		return new TypeImmutableArg(regNum, type);
 	}
 
 	public static LiteralArg lit(long literal, ArgType type) {

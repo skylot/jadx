@@ -14,7 +14,9 @@ import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
+import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.ClassNode;
@@ -298,9 +300,27 @@ public class ModVisitor extends AbstractVisitor {
 		List<InsnNode> blockInsns = block.getInstructions();
 		if (!blockInsns.isEmpty()) {
 			InsnNode insn = blockInsns.get(0);
-			if (insn.getType() == InsnType.MOVE_EXCEPTION
-					&& insn.getResult().getSVar().getUseCount() == 0) {
-				InstructionRemover.remove(mth, block, 0);
+			if (insn.getType() == InsnType.MOVE_EXCEPTION) {
+				// result arg used both in this insn and exception handler,
+				RegisterArg resArg = insn.getResult();
+				ArgType type = excHandler.isCatchAll() ? ArgType.THROWABLE : excHandler.getCatchType().getType();
+				String name = excHandler.isCatchAll() ? "th" : "e";
+				if (resArg.getName() == null) {
+					resArg.setName(name);
+				}
+				SSAVar sVar = insn.getResult().getSVar();
+				if (sVar.getUseCount() == 0) {
+					excHandler.setArg(new NamedArg(name, type));
+					InstructionRemover.remove(mth, block, 0);
+				} else if (sVar.isUsedInPhi()) {
+					// exception var moved to external variable => replace with 'move' insn
+					InsnNode moveInsn = new InsnNode(InsnType.MOVE, 1);
+					moveInsn.setResult(insn.getResult());
+					NamedArg namedArg = new NamedArg(name, type);
+					moveInsn.addArg(namedArg);
+					excHandler.setArg(namedArg);
+					replaceInsn(block, 0, moveInsn);
+				}
 			}
 		}
 		int totalSize = 0;

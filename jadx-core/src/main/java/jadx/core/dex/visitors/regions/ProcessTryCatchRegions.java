@@ -7,6 +7,7 @@ import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.AbstractRegion;
 import jadx.core.dex.regions.Region;
+import jadx.core.dex.regions.TryCatchRegion;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
@@ -129,33 +130,36 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 			region = loop.getBody();
 		}
 
-		Region newRegion = new Region(region);
+		Region tryRegion = new Region(region);
 		List<IContainer> subBlocks = region.getSubBlocks();
 		for (IContainer cont : subBlocks) {
 			if (RegionUtils.isDominatedBy(dominator, cont)) {
 				if (isHandlerPath(tb, cont)) {
 					break;
 				}
-				newRegion.getSubBlocks().add(cont);
+				tryRegion.getSubBlocks().add(cont);
 			}
 		}
-		if (newRegion.getSubBlocks().isEmpty()) {
+		if (tryRegion.getSubBlocks().isEmpty()) {
 			return false;
 		}
+
+		TryCatchRegion tryCatchRegion = new TryCatchRegion(region, tryRegion);
+		tryRegion.setParent(tryCatchRegion);
+		tryCatchRegion.setTryCatchBlock(tb.getCatchAttr().getTryBlock());
+
 		// replace first node by region
-		IContainer firstNode = newRegion.getSubBlocks().get(0);
-		if (!region.replaceSubBlock(firstNode, newRegion)) {
+		IContainer firstNode = tryRegion.getSubBlocks().get(0);
+		if (!region.replaceSubBlock(firstNode, tryCatchRegion)) {
 			return false;
 		}
-		subBlocks.removeAll(newRegion.getSubBlocks());
+		subBlocks.removeAll(tryRegion.getSubBlocks());
 
-		newRegion.addAttr(tb.getCatchAttr());
-
-		// fix parents
-		for (IContainer cont : newRegion.getSubBlocks()) {
+		// fix parents for tryRegion sub blocks
+		for (IContainer cont : tryRegion.getSubBlocks()) {
 			if (cont instanceof AbstractRegion) {
 				AbstractRegion aReg = (AbstractRegion) cont;
-				aReg.setParent(newRegion);
+				aReg.setParent(tryRegion);
 			}
 		}
 		return true;

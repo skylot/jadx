@@ -12,7 +12,6 @@ import static org.junit.Assert.assertThat;
 public class TestIfTryInCatch extends IntegrationTest {
 
 	public static class TestCls {
-		private static final String TAG = "TAG";
 		private Exception exception;
 		private java.lang.Object data;
 
@@ -35,11 +34,11 @@ public class TestIfTryInCatch extends IntegrationTest {
 		}
 
 		private static boolean b(Object obj) {
-			return false;
+			return obj == null;
 		}
 
 		private static boolean a(Exception e) {
-			return false;
+			return e instanceof RuntimeException;
 		}
 
 		private Object f() {

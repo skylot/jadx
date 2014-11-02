@@ -23,10 +23,11 @@ public class TestArgInline extends IntegrationTest {
 
 	@Test
 	public void test() {
+		noDebugInfo();
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsString("a++;"));
-		assertThat(code, not(containsString("a = a + 1;")));
+		assertThat(code, containsString("i++;"));
+		assertThat(code, not(containsString("i = i + 1;")));
 	}
 }

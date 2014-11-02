@@ -4,6 +4,7 @@ import jadx.core.codegen.NameGen;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
+import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.VarName;
@@ -158,6 +159,22 @@ public class ProcessVariables extends AbstractVisitor {
 			usageMap.remove(new Variable(arg));
 		}
 
+		Iterator<Entry<Variable, Usage>> umIt = usageMap.entrySet().iterator();
+		while (umIt.hasNext()) {
+			Entry<Variable, Usage> entry = umIt.next();
+			Usage u = entry.getValue();
+			// if no assigns => remove
+			if (u.getAssigns().isEmpty()) {
+				umIt.remove();
+				continue;
+			}
+
+			// variable declared at 'catch' clause
+			InsnNode parentInsn = u.getArg().getParentInsn();
+			if (parentInsn == null || parentInsn.getType() == InsnType.MOVE_EXCEPTION) {
+				umIt.remove();
+			}
+		}
 		if (usageMap.isEmpty()) {
 			return;
 		}
@@ -168,13 +185,6 @@ public class ProcessVariables extends AbstractVisitor {
 		for (Iterator<Entry<Variable, Usage>> it = usageMap.entrySet().iterator(); it.hasNext(); ) {
 			Entry<Variable, Usage> entry = it.next();
 			Usage u = entry.getValue();
-
-			// if no assigns => remove
-			if (u.getAssigns().isEmpty()) {
-				it.remove();
-				continue;
-			}
-
 			// check if variable can be declared at current assigns
 			for (IRegion assignRegion : u.getAssigns()) {
 				if (u.getArgRegion() == assignRegion
@@ -185,6 +195,9 @@ public class ProcessVariables extends AbstractVisitor {
 					break;
 				}
 			}
+		}
+		if (usageMap.isEmpty()) {
+			return;
 		}
 
 		// apply
@@ -262,7 +275,7 @@ public class ProcessVariables extends AbstractVisitor {
 	}
 
 	private static int calculateOrder(IContainer container, Map<IContainer, Integer> regionsOrder,
-	                                  int id, boolean inc) {
+			int id, boolean inc) {
 		if (!(container instanceof IRegion)) {
 			return id;
 		}
@@ -299,8 +312,8 @@ public class ProcessVariables extends AbstractVisitor {
 				&& isAllRegionsAfter(region, pos, u.getUseRegions(), regionsOrder);
 	}
 
-	private static boolean isAllRegionsAfter(IRegion region, Integer pos,
-	                                         Set<IRegion> regions, Map<IContainer, Integer> regionsOrder) {
+	private static boolean isAllRegionsAfter(IRegion region, int pos,
+			Set<IRegion> regions, Map<IContainer, Integer> regionsOrder) {
 		for (IRegion r : regions) {
 			if (r == region) {
 				continue;
@@ -313,7 +326,7 @@ public class ProcessVariables extends AbstractVisitor {
 			if (pos > rPos) {
 				return false;
 			}
-			if (pos.equals(rPos)) {
+			if (pos == rPos) {
 				return isAllRegionsAfterRecursive(region, regions);
 			}
 		}

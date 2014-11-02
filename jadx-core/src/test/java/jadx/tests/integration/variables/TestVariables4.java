@@ -67,4 +67,10 @@ public class TestVariables4 extends IntegrationTest {
 		assertThat(code, containsString("System.err.println(\"Class '\" + clsName + \"' not found\");"));
 		assertThat(code, containsString("return pass;"));
 	}
+
+	@Test
+	public void test2() {
+		noDebugInfo();
+		getClassNode(TestCls.class);
+	}
 }

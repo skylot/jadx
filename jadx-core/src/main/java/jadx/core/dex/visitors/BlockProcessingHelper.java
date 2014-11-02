@@ -4,7 +4,7 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.instructions.args.NamedArg;
+import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
@@ -43,30 +43,24 @@ public class BlockProcessingHelper {
 	 * Set exception handler attribute for whole block
 	 */
 	private static void markExceptionHandlers(BlockNode block) {
-		if (!block.getInstructions().isEmpty()) {
-			InsnNode me = block.getInstructions().get(0);
-			ExcHandlerAttr handlerAttr = me.get(AType.EXC_HANDLER);
-			if (handlerAttr != null && me.getType() == InsnType.MOVE_EXCEPTION) {
-				ExceptionHandler excHandler = handlerAttr.getHandler();
-				assert me.getOffset() == excHandler.getHandleOffset();
-				// set correct type for 'move-exception' operation
-				RegisterArg resArg = me.getResult();
-				NamedArg excArg = (NamedArg) me.getArg(0);
-				ArgType type;
-				if (excHandler.isCatchAll()) {
-					type = ArgType.THROWABLE;
-					excArg.setName("th");
-				} else {
-					type = excHandler.getCatchType().getType();
-					excArg.setName("e");
-				}
-				resArg.forceType(type);
-				excArg.setType(type);
-
-				excHandler.setArg(excArg);
-				block.addAttr(handlerAttr);
-			}
+		if (block.getInstructions().isEmpty()) {
+			return;
 		}
+		InsnNode me = block.getInstructions().get(0);
+		ExcHandlerAttr handlerAttr = me.get(AType.EXC_HANDLER);
+		if (handlerAttr == null || me.getType() != InsnType.MOVE_EXCEPTION) {
+			return;
+		}
+		ExceptionHandler excHandler = handlerAttr.getHandler();
+		block.addAttr(handlerAttr);
+		// set correct type for 'move-exception' operation
+		ArgType type = excHandler.isCatchAll() ? ArgType.THROWABLE : excHandler.getCatchType().getType();
+
+		RegisterArg resArg = me.getResult();
+		resArg = InsnArg.reg(resArg.getRegNum(), type);
+		me.setResult(resArg);
+
+		excHandler.setArg(resArg);
 	}
 
 	private static void processExceptionHandlers(MethodNode mth, BlockNode block) {

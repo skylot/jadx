@@ -436,14 +436,6 @@ public class InsnGen {
 				}
 				break;
 
-			case MOVE_EXCEPTION:
-				if (isFallback()) {
-					code.add("move-exception");
-				} else {
-					addArg(code, insn.getArg(0));
-				}
-				break;
-
 			case TERNARY:
 				makeTernary((TernaryInsn) insn, code, state);
 				break;
@@ -470,6 +462,11 @@ public class InsnGen {
 			case GOTO:
 				assert isFallback();
 				code.add("goto ").add(MethodGen.getLabelName(((GotoNode) insn).getTarget()));
+				break;
+
+			case MOVE_EXCEPTION:
+				assert isFallback();
+				code.add("move-exception");
 				break;
 
 			case SWITCH:

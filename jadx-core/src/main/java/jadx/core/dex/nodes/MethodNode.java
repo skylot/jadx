@@ -15,9 +15,9 @@ import jadx.core.dex.instructions.InsnDecoder;
 import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
-import jadx.core.dex.instructions.args.MthParameterArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
+import jadx.core.dex.instructions.args.TypeImmutableArg;
 import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
@@ -183,7 +183,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		if (accFlags.isStatic()) {
 			thisArg = null;
 		} else {
-			MthParameterArg arg = InsnArg.parameterReg(pos - 1, parentClass.getClassInfo().getType());
+			TypeImmutableArg arg = InsnArg.typeImmutableReg(pos - 1, parentClass.getClassInfo().getType());
 			arg.markAsThis();
 			thisArg = arg;
 		}
@@ -193,7 +193,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		}
 		argsList = new ArrayList<RegisterArg>(args.size());
 		for (ArgType arg : args) {
-			argsList.add(InsnArg.parameterReg(pos, arg));
+			argsList.add(InsnArg.typeImmutableReg(pos, arg));
 			pos += arg.getRegCount();
 		}
 	}

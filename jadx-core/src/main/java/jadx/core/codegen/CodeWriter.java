@@ -292,7 +292,7 @@ public class CodeWriter {
 			out = new PrintWriter(file, "UTF-8");
 			String code = buf.toString();
 			code = removeFirstEmptyLine(code);
-			out.print(code);
+			out.println(code);
 		} catch (Exception e) {
 			LOG.error("Save file error", e);
 		} finally {

@@ -2,7 +2,7 @@ package jadx.core.dex.trycatch;
 
 import jadx.core.Consts;
 import jadx.core.dex.info.ClassInfo;
-import jadx.core.dex.instructions.args.NamedArg;
+import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.utils.InsnUtils;
@@ -18,7 +18,7 @@ public class ExceptionHandler {
 	private BlockNode handlerBlock;
 	private final List<BlockNode> blocks = new ArrayList<BlockNode>();
 	private IContainer handlerRegion;
-	private NamedArg arg;
+	private InsnArg arg;
 
 	private TryCatchBlock tryBlock;
 
@@ -63,11 +63,11 @@ public class ExceptionHandler {
 		this.handlerRegion = handlerRegion;
 	}
 
-	public NamedArg getArg() {
+	public InsnArg getArg() {
 		return arg;
 	}
 
-	public void setArg(NamedArg arg) {
+	public void setArg(InsnArg arg) {
 		this.arg = arg;
 	}
 

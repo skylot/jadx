@@ -9,6 +9,7 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -19,13 +20,13 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.regions.SynchronizedRegion;
+import jadx.core.dex.regions.TryCatchRegion;
 import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.dex.regions.conditions.IfRegion;
 import jadx.core.dex.regions.loops.ForEachLoop;
 import jadx.core.dex.regions.loops.ForLoop;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.regions.loops.LoopType;
-import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.utils.ErrorsCounter;
@@ -59,6 +60,8 @@ public class RegionGen extends InsnGen {
 					makeSwitch((SwitchRegion) cont, code);
 				} else if (cont instanceof LoopRegion) {
 					makeLoop((LoopRegion) cont, code);
+				} else if (cont instanceof TryCatchRegion) {
+					makeTryCatch((TryCatchRegion) cont, code);
 				} else if (cont instanceof SynchronizedRegion) {
 					makeSynchronizedRegion((SynchronizedRegion) cont, code);
 				}
@@ -80,14 +83,9 @@ public class RegionGen extends InsnGen {
 	}
 
 	private void makeSimpleRegion(CodeWriter code, Region region) throws CodegenException {
-		CatchAttr tc = region.get(AType.CATCH_BLOCK);
-		if (tc != null) {
-			makeTryCatch(region, tc.getTryBlock(), code);
-		} else {
-			declareVars(code, region);
-			for (IContainer c : region.getSubBlocks()) {
-				makeRegion(code, c);
-			}
+		declareVars(code, region);
+		for (IContainer c : region.getSubBlocks()) {
+			makeRegion(code, c);
 		}
 	}
 
@@ -283,11 +281,11 @@ public class RegionGen extends InsnGen {
 		}
 	}
 
-	private void makeTryCatch(IContainer region, TryCatchBlock tryCatchBlock, CodeWriter code)
-			throws CodegenException {
+	private void makeTryCatch(TryCatchRegion region, CodeWriter code) throws CodegenException {
+		TryCatchBlock tryCatchBlock = region.geTryCatchBlock();
 		code.startLine("try {");
-		region.remove(AType.CATCH_BLOCK);
-		makeRegionIndent(code, region);
+		makeRegionIndent(code, region.getTryRegion());
+		// TODO: move search of 'allHandler' to 'TryCatchRegion'
 		ExceptionHandler allHandler = null;
 		for (ExceptionHandler handler : tryCatchBlock.getHandlers()) {
 			if (!handler.isCatchAll()) {
@@ -309,20 +307,25 @@ public class RegionGen extends InsnGen {
 		code.startLine('}');
 	}
 
-	private void makeCatchBlock(CodeWriter code, ExceptionHandler handler)
-			throws CodegenException {
+	private void makeCatchBlock(CodeWriter code, ExceptionHandler handler) throws CodegenException {
 		IContainer region = handler.getHandlerRegion();
-		if (region != null) {
-			code.startLine("} catch (");
+		if (region == null) {
+			return;
+		}
+		code.startLine("} catch (");
+		InsnArg arg = handler.getArg();
+		if (arg instanceof RegisterArg) {
+			declareVar(code, (RegisterArg) arg);
+		} else if (arg instanceof NamedArg) {
 			if (handler.isCatchAll()) {
 				code.add("Throwable");
 			} else {
 				useClass(code, handler.getCatchType());
 			}
 			code.add(' ');
-			code.add(mgen.getNameGen().assignNamedArg(handler.getArg()));
-			code.add(") {");
-			makeRegionIndent(code, region);
+			code.add(mgen.getNameGen().assignNamedArg((NamedArg) arg));
 		}
+		code.add(") {");
+		makeRegionIndent(code, region);
 	}
 }

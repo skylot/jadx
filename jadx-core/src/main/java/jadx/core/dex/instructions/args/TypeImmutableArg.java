@@ -1,10 +1,10 @@
 package jadx.core.dex.instructions.args;
 
-public class MthParameterArg extends RegisterArg {
+public class TypeImmutableArg extends RegisterArg {
 
 	private boolean isThis;
 
-	public MthParameterArg(int rn, ArgType type) {
+	public TypeImmutableArg(int rn, ArgType type) {
 		super(rn, type);
 	}
 
@@ -48,13 +48,13 @@ public class MthParameterArg extends RegisterArg {
 		if (this == obj) {
 			return true;
 		}
-		if (!(obj instanceof MthParameterArg)) {
+		if (!(obj instanceof TypeImmutableArg)) {
 			return false;
 		}
 		if (!super.equals(obj)) {
 			return false;
 		}
-		MthParameterArg that = (MthParameterArg) obj;
+		TypeImmutableArg that = (TypeImmutableArg) obj;
 		return isThis == that.isThis;
 	}
 
