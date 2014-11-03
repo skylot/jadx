@@ -32,13 +32,14 @@ subprojects {
 
         testCompile 'ch.qos.logback:logback-classic:1.1.2'
         testCompile 'junit:junit:4.11'
-        testCompile 'org.mockito:mockito-core:1.9.5'
+        testCompile 'org.mockito:mockito-core:1.10.10'
         testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
         testCompile 'cglib:cglib-nodep:3.1'
     }
 
     repositories {
         mavenCentral()
+        jcenter()
     }
 
     jacocoTestReport {
