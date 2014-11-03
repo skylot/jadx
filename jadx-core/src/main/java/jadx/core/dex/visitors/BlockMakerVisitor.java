@@ -427,9 +427,9 @@ public class BlockMakerVisitor extends AbstractVisitor {
 					return true;
 				}
 			}
-			// insert additional blocks if loop has several exits
 			if (loops.size() == 1) {
 				LoopInfo loop = loops.get(0);
+				// insert additional blocks for possible 'break' insertion
 				List<Edge> edges = loop.getExitEdges();
 				if (!edges.isEmpty()) {
 					boolean change = false;
@@ -437,6 +437,21 @@ public class BlockMakerVisitor extends AbstractVisitor {
 						BlockNode target = edge.getTarget();
 						if (!target.contains(AFlag.SYNTHETIC)) {
 							insertBlockBetween(mth, edge.getSource(), target);
+							change = true;
+						}
+					}
+					if (change) {
+						return true;
+					}
+				}
+				// insert additional blocks for possible 'continue' insertion
+				BlockNode loopEnd = loop.getEnd();
+				if (loopEnd.getPredecessors().size() > 1) {
+					boolean change = false;
+					List<BlockNode> nodes = new ArrayList<BlockNode>(loopEnd.getPredecessors());
+					for (BlockNode pred : nodes) {
+						if (!pred.contains(AFlag.SYNTHETIC)) {
+							insertBlockBetween(mth, pred, loopEnd);
 							change = true;
 						}
 					}

@@ -439,4 +439,14 @@ public class BlockUtils {
 		}
 		return block == end;
 	}
+
+	/**
+	 * Return successor of synthetic block or same block otherwise.
+	 */
+	public static BlockNode skipSyntheticSuccessor(BlockNode block) {
+		if (block.isSynthetic() && !block.getSuccessors().isEmpty()) {
+			return block.getSuccessors().get(0);
+		}
+		return block;
+	}
 }

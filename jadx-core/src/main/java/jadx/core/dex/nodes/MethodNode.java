@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -519,7 +520,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		return debugInfoOffset;
 	}
 
-	public SSAVar makeNewSVar(int regNum, int[] versions, RegisterArg arg) {
+	public SSAVar makeNewSVar(int regNum, int[] versions, @NotNull RegisterArg arg) {
 		SSAVar var = new SSAVar(regNum, versions[regNum], arg);
 		versions[regNum]++;
 		if (sVars.isEmpty()) {

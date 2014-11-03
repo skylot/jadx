@@ -36,7 +36,7 @@ public class InsnNode extends LineAttrNode {
 	}
 
 	public static InsnNode wrapArg(InsnArg arg) {
-		InsnNode insn = new InsnNode(InsnType.ARGS, 1);
+		InsnNode insn = new InsnNode(InsnType.ONE_ARG, 1);
 		insn.addArg(arg);
 		return insn;
 	}

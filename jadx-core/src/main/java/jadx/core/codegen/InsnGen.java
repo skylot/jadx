@@ -440,7 +440,7 @@ public class InsnGen {
 				makeTernary((TernaryInsn) insn, code, state);
 				break;
 
-			case ARGS:
+			case ONE_ARG:
 				addArg(code, insn.getArg(0));
 				break;
 

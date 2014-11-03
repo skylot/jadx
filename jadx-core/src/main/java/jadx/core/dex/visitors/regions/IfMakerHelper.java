@@ -239,13 +239,19 @@ public class IfMakerHelper {
 	}
 
 	static void confirmMerge(IfInfo info) {
-		for (BlockNode block : info.getMergedBlocks()) {
-			block.add(AFlag.SKIP);
+		if (info.getMergedBlocks().size() > 1) {
+			for (BlockNode block : info.getMergedBlocks()) {
+				if (block != info.getIfBlock()) {
+					block.add(AFlag.SKIP);
+				}
+			}
 		}
-		for (BlockNode block : info.getSkipBlocks()) {
-			block.add(AFlag.SKIP);
+		if (!info.getSkipBlocks().isEmpty()) {
+			for (BlockNode block : info.getSkipBlocks()) {
+				block.add(AFlag.SKIP);
+			}
+			info.getSkipBlocks().clear();
 		}
-		info.getSkipBlocks().clear();
 	}
 
 	private static IfInfo getNextIf(IfInfo info, BlockNode block) {

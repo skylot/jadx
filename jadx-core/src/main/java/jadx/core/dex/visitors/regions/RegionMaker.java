@@ -166,7 +166,9 @@ public class RegionMaker {
 
 		LoopRegion loopRegion = makeLoopRegion(curRegion, loop, exitBlocks);
 		if (loopRegion == null) {
-			return makeEndlessLoop(curRegion, stack, loop, loopStart);
+			BlockNode exit = makeEndlessLoop(curRegion, stack, loop, loopStart);
+			insertContinueInsns(loop);
+			return exit;
 		}
 		curRegion.getSubBlocks().add(loopRegion);
 		IRegion outerRegion = stack.peekRegion();
@@ -233,6 +235,7 @@ public class RegionMaker {
 			loopRegion.setBody(body);
 		}
 		stack.pop();
+		insertContinueInsns(loop);
 		return out;
 	}
 
@@ -359,9 +362,12 @@ public class RegionMaker {
 			if (source.contains(AType.CATCH_BLOCK)
 					&& source.getSuccessors().size() == 2) {
 				BlockNode other = BlockUtils.selectOther(loopExit, source.getSuccessors());
-				if (other != null && other.contains(AType.EXC_HANDLER)) {
-					insertBlock = source;
-					confirm = true;
+				if (other != null) {
+					other = BlockUtils.skipSyntheticSuccessor(other);
+					if (other.contains(AType.EXC_HANDLER)) {
+						insertBlock = source;
+						confirm = true;
+					}
 				}
 			}
 		}
@@ -400,6 +406,45 @@ public class RegionMaker {
 					loop.getStart().addAttr(labelAttr);
 					break;
 				}
+			}
+		}
+		return true;
+	}
+
+	private static void insertContinueInsns(LoopInfo loop) {
+		BlockNode loopEnd = loop.getEnd();
+		List<BlockNode> predecessors = loopEnd.getPredecessors();
+		if (predecessors.size() <= 1) {
+			return;
+		}
+		for (BlockNode pred : predecessors) {
+			if (!pred.contains(AFlag.SYNTHETIC)
+					|| BlockUtils.checkLastInsnType(pred, InsnType.CONTINUE)) {
+				continue;
+			}
+			List<BlockNode> nodes = pred.getPredecessors();
+			if (nodes.isEmpty()) {
+				continue;
+			}
+			BlockNode codePred = nodes.get(0);
+			if (codePred.contains(AFlag.SKIP)) {
+				continue;
+			}
+			if (!isDominatedOnBlocks(codePred, predecessors)) {
+				for (BlockNode blockNode : predecessors) {
+					if (blockNode != pred && BlockUtils.isPathExists(codePred, blockNode)) {
+						InsnNode cont = new InsnNode(InsnType.CONTINUE, 0);
+						pred.getInstructions().add(cont);
+					}
+				}
+			}
+		}
+	}
+
+	private static boolean isDominatedOnBlocks(BlockNode dom, List<BlockNode> blocks) {
+		for (BlockNode node : blocks) {
+			if (!node.isDominator(dom)) {
+				return false;
 			}
 		}
 		return true;
@@ -444,7 +489,7 @@ public class RegionMaker {
 	 * Traverse from monitor-enter thru successors and collect blocks contains monitor-exit
 	 */
 	private static void traverseMonitorExits(SynchronizedRegion region, InsnArg arg, BlockNode block,
-	                                         Set<BlockNode> exits, Set<BlockNode> visited) {
+			Set<BlockNode> exits, Set<BlockNode> visited) {
 		visited.add(block);
 		for (InsnNode insn : block.getInstructions()) {
 			if (insn.getType() == InsnType.MONITOR_EXIT
