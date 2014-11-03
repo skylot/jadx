@@ -152,6 +152,18 @@ public class InsnNode extends LineAttrNode {
 		}
 	}
 
+	public boolean isConstInsn() {
+		switch (getType()) {
+			case CONST:
+			case CONST_STR:
+			case CONST_CLASS:
+				return true;
+
+			default:
+				return false;
+		}
+	}
+
 	public boolean canReorder() {
 		switch (getType()) {
 			case CONST:

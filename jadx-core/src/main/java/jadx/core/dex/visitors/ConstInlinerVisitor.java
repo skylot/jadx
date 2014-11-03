@@ -4,6 +4,7 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
+import jadx.core.dex.instructions.InvokeType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
@@ -12,7 +13,6 @@ import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.exceptions.JadxException;
 
@@ -30,7 +30,7 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			toRemove.clear();
 			for (InsnNode insn : block.getInstructions()) {
-				if (checkInsn(mth, block, insn)) {
+				if (checkInsn(mth, insn)) {
 					toRemove.add(insn);
 				}
 			}
@@ -40,7 +40,7 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 		}
 	}
 
-	private static boolean checkInsn(MethodNode mth, BlockNode block, InsnNode insn) {
+	private static boolean checkInsn(MethodNode mth, InsnNode insn) {
 		if (insn.getType() != InsnType.CONST) {
 			return false;
 		}
@@ -48,15 +48,22 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 		if (!arg.isLiteral()) {
 			return false;
 		}
+		long lit = ((LiteralArg) arg).getLiteral();
+
 		SSAVar sVar = insn.getResult().getSVar();
-		if (mth.getExceptionHandlersCount() != 0) {
+		if (lit == 0) {
+			// don't inline null object if:
+			// - used as instance arg in invoke instruction
 			for (RegisterArg useArg : sVar.getUseList()) {
 				InsnNode parentInsn = useArg.getParentInsn();
 				if (parentInsn != null) {
-					// TODO: speed up expensive operations
-					BlockNode useBlock = BlockUtils.getBlockByInsn(mth, parentInsn);
-					if (useBlock == null || !BlockUtils.isCleanPathExists(block, useBlock)) {
-						return false;
+					InsnType insnType = parentInsn.getType();
+					if (insnType == InsnType.INVOKE) {
+						InvokeNode inv = (InvokeNode) parentInsn;
+						if (inv.getInvokeType() != InvokeType.STATIC
+								&& inv.getArg(0) == useArg) {
+							return false;
+						}
 					}
 				}
 			}
@@ -66,7 +73,6 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 		if (!arg.getType().isTypeKnown()) {
 			arg.merge(resType);
 		}
-		long lit = ((LiteralArg) arg).getLiteral();
 		return replaceConst(mth, sVar, lit);
 	}
 
@@ -84,6 +90,10 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 			LiteralArg litArg;
 			if (use.size() == 1 || arg.isTypeImmutable()) {
 				// arg used only in one place
+				litArg = InsnArg.lit(literal, arg.getType());
+			} else if (useInsn.getType() == InsnType.MOVE
+					&& !useInsn.getResult().getType().isTypeKnown()) {
+				// save type for 'move' instructions (hard to find type in chains of 'move')
 				litArg = InsnArg.lit(literal, arg.getType());
 			} else {
 				// in most cases type not equal arg.getType()

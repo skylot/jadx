@@ -45,7 +45,6 @@ public class SSATransform extends AbstractVisitor {
 		if (removeUselessPhi(mth)) {
 			renameVariables(mth);
 		}
-
 	}
 
 	private static void placePhi(MethodNode mth, int regNum, LiveVarAnalysis la) {

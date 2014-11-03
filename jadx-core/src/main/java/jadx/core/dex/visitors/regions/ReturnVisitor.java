@@ -9,6 +9,7 @@ import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.SwitchRegion;
+import jadx.core.dex.regions.TryCatchRegion;
 import jadx.core.dex.regions.conditions.IfRegion;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.visitors.AbstractVisitor;
@@ -72,7 +73,8 @@ public class ReturnVisitor extends AbstractVisitor {
 			for (IRegion region : regionStack) {
 				// ignore paths on other branches
 				if (region instanceof IfRegion
-						|| region instanceof SwitchRegion) {
+						|| region instanceof SwitchRegion
+						|| region instanceof TryCatchRegion) {
 					curContainer = region;
 					continue;
 				}

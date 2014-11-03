@@ -13,6 +13,7 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.BlockUtils;
+import jadx.core.utils.EmptyBitSet;
 import jadx.core.utils.InsnList;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -97,7 +98,8 @@ public class CodeShrinker extends AbstractVisitor {
 		}
 
 		private boolean canMove(int from, int to) {
-			List<RegisterArg> movedArgs = argsList.get(from).getArgs();
+			ArgsInfo startInfo = argsList.get(from);
+			List<RegisterArg> movedArgs = startInfo.getArgs();
 			int start = from + 1;
 			if (start == to) {
 				// previous instruction or on edge of inline border
@@ -106,9 +108,17 @@ public class CodeShrinker extends AbstractVisitor {
 			if (start > to) {
 				throw new JadxRuntimeException("Invalid inline insn positions: " + start + " - " + to);
 			}
-			BitSet movedSet = new BitSet();
-			for (RegisterArg arg : movedArgs) {
-				movedSet.set(arg.getRegNum());
+			BitSet movedSet;
+			if (movedArgs.isEmpty()) {
+				if (startInfo.insn.isConstInsn()) {
+					return true;
+				}
+				movedSet = EmptyBitSet.EMPTY;
+			} else {
+				movedSet = new BitSet();
+				for (RegisterArg arg : movedArgs) {
+					movedSet.set(arg.getRegNum());
+				}
 			}
 			for (int i = start; i < to; i++) {
 				ArgsInfo argsInfo = argsList.get(i);
@@ -188,6 +198,9 @@ public class CodeShrinker extends AbstractVisitor {
 		List<WrapInfo> wrapList = new ArrayList<WrapInfo>();
 		for (ArgsInfo argsInfo : argsList) {
 			List<RegisterArg> args = argsInfo.getArgs();
+			if (args.isEmpty()) {
+				continue;
+			}
 			ListIterator<RegisterArg> it = args.listIterator(args.size());
 			while (it.hasPrevious()) {
 				RegisterArg arg = it.previous();
@@ -234,7 +247,7 @@ public class CodeShrinker extends AbstractVisitor {
 	}
 
 	private static boolean canMoveBetweenBlocks(InsnNode assignInsn, BlockNode assignBlock,
-	                                            BlockNode useBlock, InsnNode useInsn) {
+			BlockNode useBlock, InsnNode useInsn) {
 		if (!BlockUtils.isPathExists(assignBlock, useBlock)) {
 			return false;
 		}

@@ -72,8 +72,10 @@ public class NameGen {
 	}
 
 	public String useArg(RegisterArg arg) {
-		String name = makeArgName(arg);
-		varNames.add(name);
+		String name = arg.getName();
+		if (name == null) {
+			return getFallbackName(arg);
+		}
 		return name;
 	}
 
@@ -96,14 +98,10 @@ public class NameGen {
 	}
 
 	private String makeArgName(RegisterArg arg) {
-		String name = arg.getName();
 		if (fallback) {
-			String base = "r" + arg.getRegNum();
-			if (name != null && !name.equals("this")) {
-				return base + "_" + name;
-			}
-			return base;
+			return getFallbackName(arg);
 		}
+		String name = arg.getName();
 		String varName;
 		if (name != null) {
 			if ("this".equals(name)) {
@@ -117,6 +115,15 @@ public class NameGen {
 			return varName + "R";
 		}
 		return varName;
+	}
+
+	private String getFallbackName(RegisterArg arg) {
+		String name = arg.getName();
+		String base = "r" + arg.getRegNum();
+		if (name != null && !name.equals("this")) {
+			return base + "_" + name;
+		}
+		return base;
 	}
 
 	private static String makeNameForType(ArgType type) {

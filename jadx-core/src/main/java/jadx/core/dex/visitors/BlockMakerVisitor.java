@@ -16,7 +16,6 @@ import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.SplitterBlockAttr;
 import jadx.core.utils.BlockUtils;
-import jadx.core.utils.EmptyBitSet;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
@@ -28,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static jadx.core.utils.EmptyBitSet.EMPTY;
+
 public class BlockMakerVisitor extends AbstractVisitor {
 
 	// leave these instructions alone in block node
@@ -36,9 +37,8 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			InsnType.IF,
 			InsnType.SWITCH,
 			InsnType.MONITOR_ENTER,
-			InsnType.MONITOR_EXIT);
-
-	private static final BitSet EMPTY_BITSET = new EmptyBitSet();
+			InsnType.MONITOR_EXIT
+	);
 
 	@Override
 	public void visit(MethodNode mth) {
@@ -298,7 +298,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 
 	private static void computeDominanceFrontier(MethodNode mth) {
 		for (BlockNode exit : mth.getExitBlocks()) {
-			exit.setDomFrontier(EMPTY_BITSET);
+			exit.setDomFrontier(EMPTY);
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {
 			computeBlockDF(mth, block);
@@ -330,7 +330,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			}
 		}
 		if (domFrontier == null || domFrontier.cardinality() == 0) {
-			domFrontier = EMPTY_BITSET;
+			domFrontier = EMPTY;
 		}
 		block.setDomFrontier(domFrontier);
 	}

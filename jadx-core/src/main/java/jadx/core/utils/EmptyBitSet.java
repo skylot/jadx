@@ -2,9 +2,11 @@ package jadx.core.utils;
 
 import java.util.BitSet;
 
-public class EmptyBitSet extends BitSet {
+public final class EmptyBitSet extends BitSet {
 
 	private static final long serialVersionUID = -1194884945157778639L;
+
+	public static final BitSet EMPTY = new EmptyBitSet();
 
 	public EmptyBitSet() {
 		super(0);
@@ -62,7 +64,7 @@ public class EmptyBitSet extends BitSet {
 
 	@Override
 	public BitSet get(int fromIndex, int toIndex) {
-		throw new UnsupportedOperationException();
+		return EMPTY;
 	}
 
 	@Override
@@ -83,5 +85,10 @@ public class EmptyBitSet extends BitSet {
 	@Override
 	public void andNot(BitSet set) {
 		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Object clone() {
+		return this;
 	}
 }

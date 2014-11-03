@@ -82,7 +82,9 @@ public abstract class IntegrationTest extends TestUtils {
 		}
 		// don't unload class
 
+		System.out.println("-----------------------------------------------------------");
 		System.out.println(cls.getCode());
+		System.out.println("-----------------------------------------------------------");
 
 		checkCode(cls);
 		compile(cls);
@@ -163,6 +165,7 @@ public abstract class IntegrationTest extends TestUtils {
 			} catch (InvocationTargetException ie) {
 				rethrow("Decompiled check failed", ie);
 			}
+			System.out.println("Auto check: PASSED");
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Auto check exception: " + e.getMessage());
