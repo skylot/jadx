@@ -104,7 +104,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 						&& ((LiteralArg) insn.getArg(1)).getLiteral() == 0) {
 					insn.changeCondition(insn.getOp(), wi.getArg(0), wi.getArg(1));
 				} else {
-					LOG.warn("TODO: cmp" + insn);
+					LOG.warn("TODO: cmp {}", insn);
 				}
 			}
 		}

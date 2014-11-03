@@ -292,7 +292,7 @@ public class RegionGen extends InsnGen {
 				makeCatchBlock(code, handler);
 			} else {
 				if (allHandler != null) {
-					LOG.warn("Several 'all' handlers in try/catch block in " + mth);
+					LOG.warn("Several 'all' handlers in try/catch block in {}", mth);
 				}
 				allHandler = handler;
 			}

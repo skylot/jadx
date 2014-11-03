@@ -22,7 +22,7 @@ public final class ProcessClass {
 				DepthTraversal.visit(visitor, cls);
 			}
 		} catch (Exception e) {
-			LOG.error("Class process exception: " + cls, e);
+			LOG.error("Class process exception: {}", cls, e);
 		} finally {
 			cls.unload();
 		}

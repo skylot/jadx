@@ -41,7 +41,7 @@ final class LocalVar {
 					type = gType;
 				}
 			} catch (Exception e) {
-				LOG.error("Can't parse signature for local variable: " + sign, e);
+				LOG.error("Can't parse signature for local variable: {}", sign, e);
 			}
 		}
 		this.name = name;

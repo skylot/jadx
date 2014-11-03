@@ -132,7 +132,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 			try {
 				new AnnotationsParser(this).parse(offset);
 			} catch (DecodeException e) {
-				LOG.error("Error parsing annotations in " + this, e);
+				LOG.error("Error parsing annotations in {}", this, e);
 			}
 		}
 	}
@@ -184,7 +184,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 				}
 			}
 		} catch (JadxRuntimeException e) {
-			LOG.error("Class signature parse error: " + this, e);
+			LOG.error("Class signature parse error: {}", this, e);
 		}
 	}
 
@@ -198,7 +198,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 						field.setType(gType);
 					}
 				} catch (JadxRuntimeException e) {
-					LOG.error("Field signature parse error: " + field, e);
+					LOG.error("Field signature parse error: {}", field, e);
 				}
 			}
 		}

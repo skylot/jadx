@@ -150,9 +150,9 @@ public class AnnotationGen {
 			// must be a static field
 			FieldInfo field = (FieldInfo) val;
 			InsnGen.makeStaticFieldAccess(code, field, classGen);
-		} else if (val instanceof List) {
+		} else if (val instanceof Iterable) {
 			code.add('{');
-			Iterator<?> it = ((List) val).iterator();
+			Iterator<?> it = ((Iterable) val).iterator();
 			while (it.hasNext()) {
 				Object obj = it.next();
 				encodeValue(code, obj);

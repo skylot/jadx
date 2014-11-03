@@ -25,7 +25,7 @@ import jadx.core.dex.instructions.args.FieldArg;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
-import jadx.core.dex.instructions.args.NamedArg;
+import jadx.core.dex.instructions.args.Named;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.instructions.mods.TernaryInsn;
@@ -98,7 +98,7 @@ public class InsnGen {
 			Flags flag = wrap ? Flags.BODY_ONLY : Flags.BODY_ONLY_NOWRAP;
 			makeInsn(((InsnWrapArg) arg).getWrapInsn(), code, flag);
 		} else if (arg.isNamed()) {
-			code.add(((NamedArg) arg).getName());
+			code.add(((Named) arg).getName());
 		} else if (arg.isField()) {
 			FieldArg f = (FieldArg) arg;
 			if (f.isStatic()) {

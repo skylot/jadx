@@ -96,7 +96,7 @@ public class ClsSet {
 	private static NClass getCls(String fullName, Map<String, NClass> names) {
 		NClass id = names.get(fullName);
 		if (id == null && !names.containsKey(fullName)) {
-			LOG.warn("Class not found: " + fullName);
+			LOG.warn("Class not found: {}", fullName);
 		}
 		return id;
 	}
@@ -132,7 +132,7 @@ public class ClsSet {
 			out.writeBytes(JADX_CLS_SET_HEADER);
 			out.writeByte(VERSION);
 
-			LOG.info("Classes count: " + classes.length);
+			LOG.info("Classes count: {}", classes.length);
 			out.writeInt(classes.length);
 			for (NClass cls : classes) {
 				writeString(out, cls.getName());

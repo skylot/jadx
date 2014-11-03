@@ -1,6 +1,5 @@
 package jadx.core.utils;
 
-import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
@@ -66,9 +65,6 @@ public class InstructionRemover {
 	public static void unbindInsn(MethodNode mth, InsnNode insn) {
 		RegisterArg r = insn.getResult();
 		if (r != null && r.getSVar() != null) {
-			if (Consts.DEBUG && r.getSVar().getUseCount() != 0) {
-				LOG.debug("Unbind insn with result: {}", insn);
-			}
 			mth.removeSVar(r.getSVar());
 		}
 		for (InsnArg arg : insn.getArguments()) {

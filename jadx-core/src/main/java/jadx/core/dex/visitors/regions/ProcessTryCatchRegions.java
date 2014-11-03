@@ -100,7 +100,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 
 			TryCatchBlock prevTB = tryBlocksMap.put(domBlock, tb);
 			if (prevTB != null) {
-				LOG.info("!!! TODO: merge try blocks in " + mth);
+				LOG.info("!!! TODO: merge try blocks in {}", mth);
 			}
 		}
 	}

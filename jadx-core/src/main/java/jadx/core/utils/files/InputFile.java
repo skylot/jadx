@@ -66,7 +66,7 @@ public class InputFile {
 			if (ba.length == 0) {
 				throw new JadxException(j2d.isError() ? j2d.getDxErrors() : "Empty dx output");
 			} else if (j2d.isError()) {
-				LOG.warn("dx message: " + j2d.getDxErrors());
+				LOG.warn("dx message: {}", j2d.getDxErrors());
 			}
 			return new Dex(ba);
 		} catch (Throwable e) {

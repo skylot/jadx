@@ -15,6 +15,7 @@ public class TypeImmutableArg extends RegisterArg {
 
 	@Override
 	public void setType(ArgType type) {
+		// not allowed
 	}
 
 	public void markAsThis() {

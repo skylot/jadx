@@ -73,7 +73,7 @@ public class ErrorsCounter {
 
 	public void printReport() {
 		if (getErrorCount() > 0) {
-			LOG.error(getErrorCount() + " errors occurred in following nodes:");
+			LOG.error("{} errors occurred in following nodes:", getErrorCount());
 			List<Object> nodes = new ArrayList<Object>(errorNodes);
 			Collections.sort(nodes, new Comparator<Object>() {
 				@Override
@@ -83,7 +83,7 @@ public class ErrorsCounter {
 			});
 			for (Object node : nodes) {
 				String nodeName = node.getClass().getSimpleName().replace("Node", "");
-				LOG.error("  " + nodeName + ": " + node);
+				LOG.error("  {}: {}", nodeName, node);
 			}
 		}
 	}

@@ -39,7 +39,7 @@ public class ConvertToClsSet {
 			}
 		}
 		for (InputFile inputFile : inputFiles) {
-			LOG.info("Loaded: " + inputFile.getFile());
+			LOG.info("Loaded: {}", inputFile.getFile());
 		}
 
 		RootNode root = new RootNode();
@@ -48,7 +48,7 @@ public class ConvertToClsSet {
 		ClsSet set = new ClsSet();
 		set.load(root);
 		set.save(output);
-		LOG.info("Output: " + output);
+		LOG.info("Output: {}", output);
 		LOG.info("done");
 	}
 

@@ -70,7 +70,7 @@ public class RegionMaker {
 		if (Consts.DEBUG) {
 			int id = startBlock.getId();
 			if (processedBlocks.get(id)) {
-				LOG.debug(" Block already processed: " + startBlock + ", mth: " + mth);
+				LOG.debug(" Block already processed: {}, mth: {}", startBlock, mth);
 			} else {
 				processedBlocks.set(id);
 			}
@@ -502,9 +502,13 @@ public class RegionMaker {
 			// invert simple condition (compiler often do it)
 			currentIf = IfInfo.invert(currentIf);
 		}
-		currentIf = IfMakerHelper.restructureIf(mth, block, currentIf);
-		if (currentIf == null) {
-			// invalid merged if, check simple one again
+		IfInfo modifiedIf = IfMakerHelper.restructureIf(mth, block, currentIf);
+		if (modifiedIf != null) {
+			currentIf = modifiedIf;
+		} else {
+			if (currentIf.getMergedBlocks().size() <= 1) {
+				return null;
+			}
 			currentIf = makeIfInfo(block);
 			currentIf = IfMakerHelper.restructureIf(mth, block, currentIf);
 			if (currentIf == null) {
