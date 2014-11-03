@@ -104,8 +104,10 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 			return false;
 		}
 		// can't make loop if argument from increment instruction is assign in loop
-		for (InsnArg iArg : incrInsn.getArguments()) {
-			if (iArg.isRegister() && assignOnlyInLoop(mth, loopRegion, (RegisterArg) iArg)) {
+		List<RegisterArg> args = new LinkedList<RegisterArg>();
+		incrInsn.getRegisterArgs(args);
+		for (RegisterArg iArg : args) {
+			if (assignOnlyInLoop(mth, loopRegion, (RegisterArg) iArg)) {
 				return false;
 			}
 		}
