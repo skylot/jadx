@@ -60,8 +60,8 @@ public class TernaryMod {
 		}
 
 		if (t.getResult() != null && e.getResult() != null) {
-			if (!t.getResult().equalRegisterAndType(e.getResult())
-					|| !t.getResult().getSVar().isUsedInPhi()) {
+			PhiInsn phi = t.getResult().getSVar().getUsedInPhi();
+			if (phi == null || !t.getResult().equalRegisterAndType(e.getResult())) {
 				return false;
 			}
 			if (!ifRegion.getParent().replaceSubBlock(ifRegion, header)) {
@@ -71,7 +71,6 @@ public class TernaryMod {
 			InsnList.remove(eb, e);
 
 			RegisterArg resArg;
-			PhiInsn phi = t.getResult().getSVar().getUsedInPhi();
 			if (phi.getArgsCount() == 2) {
 				resArg = phi.getResult();
 			} else {

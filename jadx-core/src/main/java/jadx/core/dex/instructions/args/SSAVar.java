@@ -5,6 +5,9 @@ import jadx.core.dex.instructions.PhiInsn;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 public class SSAVar {
 
 	private final int regNum;
@@ -14,21 +17,21 @@ public class SSAVar {
 	private int startUseAddr;
 	private int endUseAddr;
 
+	@NotNull
 	private RegisterArg assign;
 	private final List<RegisterArg> useList = new ArrayList<RegisterArg>(2);
+	@Nullable
 	private PhiInsn usedInPhi;
 
 	private ArgType type;
 	private boolean typeImmutable;
 
-	public SSAVar(int regNum, int v, RegisterArg assign) {
+	public SSAVar(int regNum, int v, @NotNull RegisterArg assign) {
 		this.regNum = regNum;
 		this.version = v;
 		this.assign = assign;
 
-		if (assign != null) {
-			assign.setSVar(this);
-		}
+		assign.setSVar(this);
 		startUseAddr = -1;
 		endUseAddr = -1;
 	}
@@ -51,7 +54,7 @@ public class SSAVar {
 		int start = Integer.MAX_VALUE;
 		int end = Integer.MIN_VALUE;
 
-		if (assign != null && assign.getParentInsn() != null) {
+		if (assign.getParentInsn() != null) {
 			int insnAddr = assign.getParentInsn().getOffset();
 			if (insnAddr >= 0) {
 				start = Math.min(insnAddr, start);
@@ -81,11 +84,12 @@ public class SSAVar {
 		return version;
 	}
 
+	@NotNull
 	public RegisterArg getAssign() {
 		return assign;
 	}
 
-	public void setAssign(RegisterArg assign) {
+	public void setAssign(@NotNull RegisterArg assign) {
 		this.assign = assign;
 	}
 
@@ -114,10 +118,11 @@ public class SSAVar {
 		}
 	}
 
-	public void setUsedInPhi(PhiInsn usedInPhi) {
+	public void setUsedInPhi(@Nullable PhiInsn usedInPhi) {
 		this.usedInPhi = usedInPhi;
 	}
 
+	@Nullable
 	public PhiInsn getUsedInPhi() {
 		return usedInPhi;
 	}
@@ -127,7 +132,7 @@ public class SSAVar {
 	}
 
 	public int getVariableUseCount() {
-		if (!isUsedInPhi()) {
+		if (usedInPhi == null) {
 			return useList.size();
 		}
 		return useList.size() + usedInPhi.getResult().getSVar().getUseCount();
@@ -142,9 +147,7 @@ public class SSAVar {
 			acceptedType = type;
 			this.type = acceptedType;
 		}
-		if (assign != null) {
-			assign.type = acceptedType;
-		}
+		assign.type = acceptedType;
 		for (int i = 0, useListSize = useList.size(); i < useListSize; i++) {
 			useList.get(i).type = acceptedType;
 		}

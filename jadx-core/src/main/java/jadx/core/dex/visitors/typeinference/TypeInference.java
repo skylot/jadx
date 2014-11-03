@@ -28,15 +28,14 @@ public class TypeInference extends AbstractVisitor {
 
 			// search variable name
 			String name = processVarName(var);
-			if (name != null) {
-				var.setName(name);
-			}
+			var.setName(name);
 		}
 
 		// fix type for vars used only in Phi nodes
 		for (SSAVar sVar : mth.getSVars()) {
-			if (sVar.isUsedInPhi()) {
-				processPhiNode(sVar.getUsedInPhi());
+			PhiInsn phi = sVar.getUsedInPhi();
+			if (phi != null) {
+				processPhiNode(phi);
 			}
 		}
 	}
@@ -44,10 +43,10 @@ public class TypeInference extends AbstractVisitor {
 	private static ArgType processType(SSAVar var) {
 		RegisterArg assign = var.getAssign();
 		List<RegisterArg> useList = var.getUseList();
-		if (assign != null && (useList.isEmpty() || var.isTypeImmutable())) {
+		if (useList.isEmpty() || var.isTypeImmutable()) {
 			return assign.getType();
 		}
-		ArgType type = assign != null ? assign.getType() : ArgType.UNKNOWN;
+		ArgType type = assign.getType();
 		for (RegisterArg arg : useList) {
 			ArgType useType = arg.getType();
 			ArgType newType = ArgType.merge(type, useType);
@@ -77,19 +76,16 @@ public class TypeInference extends AbstractVisitor {
 	}
 
 	private static String processVarName(SSAVar var) {
-		String name = null;
-		if (var.getAssign() != null) {
-			name = var.getAssign().getName();
-		}
+		String name = var.getAssign().getName();
 		if (name != null) {
 			return name;
 		}
 		for (RegisterArg arg : var.getUseList()) {
 			String vName = arg.getName();
 			if (vName != null) {
-				name = vName;
+				return vName;
 			}
 		}
-		return name;
+		return null;
 	}
 }

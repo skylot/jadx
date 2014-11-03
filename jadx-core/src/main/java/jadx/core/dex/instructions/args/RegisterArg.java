@@ -19,7 +19,8 @@ public class RegisterArg extends InsnArg implements Named {
 	private static final Logger LOG = LoggerFactory.getLogger(RegisterArg.class);
 
 	protected final int regNum;
-	protected SSAVar sVar;
+	// not null after SSATransform pass
+	private SSAVar sVar;
 
 	public RegisterArg(int rn) {
 		this.regNum = rn;
@@ -139,11 +140,7 @@ public class RegisterArg extends InsnArg implements Named {
 		if (sVar == null) {
 			return null;
 		}
-		RegisterArg assign = sVar.getAssign();
-		if (assign != null) {
-			return assign.getParentInsn();
-		}
-		return null;
+		return sVar.getAssign().getParentInsn();
 	}
 
 	public InsnNode getPhiAssignInsn() {
@@ -151,12 +148,9 @@ public class RegisterArg extends InsnArg implements Named {
 		if (usePhi != null) {
 			return usePhi;
 		}
-		RegisterArg assign = sVar.getAssign();
-		if (assign != null) {
-			InsnNode parent = assign.getParentInsn();
-			if (parent != null && parent.getType() == InsnType.PHI) {
-				return parent;
-			}
+		InsnNode parent = sVar.getAssign().getParentInsn();
+		if (parent != null && parent.getType() == InsnType.PHI) {
+			return parent;
 		}
 		return null;
 	}
