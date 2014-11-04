@@ -201,6 +201,7 @@ public abstract class IntegrationTest extends TestUtils {
 			dynamicCompiler = new DynamicCompiler(cls);
 			boolean result = dynamicCompiler.compile();
 			assertTrue("Compilation failed", result);
+			System.out.println("Compilation: PASSED");
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail(e.getMessage());

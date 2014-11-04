@@ -34,6 +34,10 @@ public abstract class InsnArg extends Typed {
 		return new TypeImmutableArg(regNum, type);
 	}
 
+	public static RegisterArg reg(int regNum, ArgType type, boolean typeImmutable) {
+		return typeImmutable ? new TypeImmutableArg(regNum, type) : new RegisterArg(regNum, type);
+	}
+
 	public static LiteralArg lit(long literal, ArgType type) {
 		return new LiteralArg(literal, type);
 	}

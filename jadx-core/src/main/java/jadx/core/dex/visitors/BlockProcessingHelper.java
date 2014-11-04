@@ -1,5 +1,6 @@
 package jadx.core.dex.visitors;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
@@ -59,6 +60,7 @@ public class BlockProcessingHelper {
 		RegisterArg resArg = me.getResult();
 		resArg = InsnArg.reg(resArg.getRegNum(), type);
 		me.setResult(resArg);
+		me.add(AFlag.DONT_INLINE);
 
 		excHandler.setArg(resArg);
 	}

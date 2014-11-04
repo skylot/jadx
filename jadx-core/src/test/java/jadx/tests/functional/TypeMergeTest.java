@@ -20,6 +20,7 @@ import static jadx.core.dex.instructions.args.ArgType.OBJECT;
 import static jadx.core.dex.instructions.args.ArgType.STRING;
 import static jadx.core.dex.instructions.args.ArgType.UNKNOWN;
 import static jadx.core.dex.instructions.args.ArgType.UNKNOWN_OBJECT;
+import static jadx.core.dex.instructions.args.ArgType.array;
 import static jadx.core.dex.instructions.args.ArgType.genericType;
 import static jadx.core.dex.instructions.args.ArgType.object;
 import static jadx.core.dex.instructions.args.ArgType.unknown;
@@ -59,13 +60,6 @@ public class TypeMergeTest {
 				unknown(PrimitiveType.OBJECT, PrimitiveType.ARRAY),
 				unknown(PrimitiveType.OBJECT));
 
-		check(ArgType.array(INT), ArgType.array(BYTE), ArgType.OBJECT);
-		first(ArgType.array(INT), ArgType.array(INT));
-		first(ArgType.array(STRING), ArgType.array(STRING));
-
-		first(OBJECT, ArgType.array(INT));
-		first(OBJECT, ArgType.array(STRING));
-
 		ArgType objExc = object("java.lang.Exception");
 		ArgType objThr = object("java.lang.Throwable");
 		ArgType objIO = object("java.io.IOException");
@@ -81,6 +75,18 @@ public class TypeMergeTest {
 
 		ArgType generic = genericType("T");
 		first(generic, objExc);
+	}
+
+	@Test
+	public void testArrayMerge() {
+		check(array(INT), array(BYTE), ArgType.OBJECT);
+		first(array(INT), array(INT));
+		first(array(STRING), array(STRING));
+
+		first(OBJECT, array(INT));
+		first(OBJECT, array(STRING));
+
+		first(array(unknown(PrimitiveType.INT, PrimitiveType.FLOAT)), unknown(PrimitiveType.ARRAY));
 	}
 
 	private void first(ArgType t1, ArgType t2) {

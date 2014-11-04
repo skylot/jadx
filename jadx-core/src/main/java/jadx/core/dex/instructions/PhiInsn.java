@@ -1,5 +1,6 @@
 package jadx.core.dex.instructions;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -14,6 +15,7 @@ public class PhiInsn extends InsnNode {
 		for (int i = 0; i < predecessors; i++) {
 			addReg(regNum, ArgType.UNKNOWN);
 		}
+		add(AFlag.DONT_INLINE);
 	}
 
 	@Override

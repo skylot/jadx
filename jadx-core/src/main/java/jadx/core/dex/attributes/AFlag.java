@@ -15,6 +15,7 @@ public enum AFlag {
 	DONT_WRAP,
 
 	DONT_SHRINK,
+	DONT_INLINE,
 	DONT_GENERATE,
 	SKIP,
 

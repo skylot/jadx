@@ -9,6 +9,7 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.InsnUtils;
 import jadx.core.utils.exceptions.DecodeException;
 
 import com.android.dex.Code;
@@ -620,16 +621,19 @@ public class InsnDecoder {
 		int resReg = getMoveResultRegister(insnArr, offset);
 		ArgType arrType = dex.getType(insn.getIndex());
 		ArgType elType = arrType.getArrayElement();
-		InsnArg[] regs = new InsnArg[insn.getRegisterCount()];
+		boolean typeImmutable = elType.isPrimitive();
+		int regsCount = insn.getRegisterCount();
+		InsnArg[] regs = new InsnArg[regsCount];
 		if (isRange) {
 			int r = insn.getA();
-			for (int i = 0; i < insn.getRegisterCount(); i++) {
-				regs[i] = InsnArg.reg(r, elType);
+			for (int i = 0; i < regsCount; i++) {
+				regs[i] = InsnArg.reg(r, elType, typeImmutable);
 				r++;
 			}
 		} else {
-			for (int i = 0; i < insn.getRegisterCount(); i++) {
-				regs[i] = InsnArg.reg(insn, i, elType);
+			for (int i = 0; i < regsCount; i++) {
+				int regNum = InsnUtils.getArg(insn, i);
+				regs[i] = InsnArg.reg(regNum, elType, typeImmutable);
 			}
 		}
 		return insn(InsnType.FILLED_NEW_ARRAY,

@@ -2,7 +2,6 @@ package jadx.core.dex.visitors;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.InsnType;
-import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -213,9 +212,7 @@ public class CodeShrinker extends AbstractVisitor {
 					continue;
 				}
 				InsnNode assignInsn = sVar.getAssign().getParentInsn();
-				if (assignInsn == null
-						|| assignInsn instanceof PhiInsn
-						|| assignInsn.getType() == InsnType.MOVE_EXCEPTION) {
+				if (assignInsn == null || assignInsn.contains(AFlag.DONT_INLINE)) {
 					continue;
 				}
 				int assignPos = insnList.getIndex(assignInsn);

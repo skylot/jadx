@@ -107,7 +107,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		List<RegisterArg> args = new LinkedList<RegisterArg>();
 		incrInsn.getRegisterArgs(args);
 		for (RegisterArg iArg : args) {
-			if (assignOnlyInLoop(mth, loopRegion, (RegisterArg) iArg)) {
+			if (assignOnlyInLoop(mth, loopRegion, iArg)) {
 				return false;
 			}
 		}

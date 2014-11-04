@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
+
 public abstract class ArgType {
 
 	public static final ArgType INT = primitive(PrimitiveType.INT);
@@ -93,9 +95,27 @@ public abstract class ArgType {
 	}
 
 	private abstract static class KnownType extends ArgType {
+
+		private static final PrimitiveType[] EMPTY_POSSIBLES = new PrimitiveType[0];
+
 		@Override
 		public boolean isTypeKnown() {
 			return true;
+		}
+
+		@Override
+		public boolean contains(PrimitiveType type) {
+			return getPrimitiveType() == type;
+		}
+
+		@Override
+		public ArgType selectFirst() {
+			return null;
+		}
+
+		@Override
+		public PrimitiveType[] getPossibleTypes() {
+			return EMPTY_POSSIBLES;
 		}
 	}
 
@@ -269,6 +289,7 @@ public abstract class ArgType {
 	}
 
 	private static final class ArrayArg extends KnownType {
+		public static final PrimitiveType[] ARRAY_POSSIBLES = new PrimitiveType[]{PrimitiveType.ARRAY};
 		private final ArgType arrayElement;
 
 		public ArrayArg(ArgType arrayElement) {
@@ -289,6 +310,21 @@ public abstract class ArgType {
 		@Override
 		public PrimitiveType getPrimitiveType() {
 			return PrimitiveType.ARRAY;
+		}
+
+		@Override
+		public boolean isTypeKnown() {
+			return arrayElement.isTypeKnown();
+		}
+
+		@Override
+		public ArgType selectFirst() {
+			return array(arrayElement.selectFirst());
+		}
+
+		@Override
+		public PrimitiveType[] getPossibleTypes() {
+			return ARRAY_POSSIBLES;
 		}
 
 		@Override
@@ -343,8 +379,10 @@ public abstract class ArgType {
 		@Override
 		public ArgType selectFirst() {
 			PrimitiveType f = possibleTypes[0];
-			if (f == PrimitiveType.OBJECT || f == PrimitiveType.ARRAY) {
-				return object(Consts.CLASS_OBJECT);
+			if (contains(PrimitiveType.OBJECT)) {
+				return OBJECT;
+			} else if (contains(PrimitiveType.ARRAY)) {
+				return array(OBJECT);
 			} else {
 				return primitive(f);
 			}
@@ -428,18 +466,13 @@ public abstract class ArgType {
 		return this;
 	}
 
-	public boolean contains(PrimitiveType type) {
-		throw new UnsupportedOperationException();
-	}
+	public abstract boolean contains(PrimitiveType type);
 
-	public ArgType selectFirst() {
-		throw new UnsupportedOperationException();
-	}
+	public abstract ArgType selectFirst();
 
-	public PrimitiveType[] getPossibleTypes() {
-		return null;
-	}
+	public abstract PrimitiveType[] getPossibleTypes();
 
+	@Nullable
 	public static ArgType merge(ArgType a, ArgType b) {
 		if (a == null || b == null) {
 			return null;
@@ -458,13 +491,18 @@ public abstract class ArgType {
 		if (a == UNKNOWN) {
 			return b;
 		}
+
+		if (a.isArray()) {
+			return mergeArrays((ArrayArg) a, b);
+		} else if (b.isArray()) {
+			return mergeArrays((ArrayArg) b, a);
+		}
 		if (!a.isTypeKnown()) {
 			if (b.isTypeKnown()) {
 				if (a.contains(b.getPrimitiveType())) {
 					return b;
-				} else {
-					return null;
 				}
+				return null;
 			} else {
 				// both types unknown
 				List<PrimitiveType> types = new ArrayList<PrimitiveType>();
@@ -475,7 +513,8 @@ public abstract class ArgType {
 				}
 				if (types.isEmpty()) {
 					return null;
-				} else if (types.size() == 1) {
+				}
+				if (types.size() == 1) {
 					PrimitiveType nt = types.get(0);
 					if (nt == PrimitiveType.OBJECT || nt == PrimitiveType.ARRAY) {
 						return unknown(nt);
@@ -499,35 +538,38 @@ public abstract class ArgType {
 				String bObj = b.getObject();
 				if (aObj.equals(bObj)) {
 					return a.getGenericTypes() != null ? a : b;
-				} else if (aObj.equals(Consts.CLASS_OBJECT)) {
+				}
+				if (aObj.equals(Consts.CLASS_OBJECT)) {
 					return b;
-				} else if (bObj.equals(Consts.CLASS_OBJECT)) {
+				}
+				if (bObj.equals(Consts.CLASS_OBJECT)) {
 					return a;
-				} else {
-					// different objects
-					String obj = clsp.getCommonAncestor(aObj, bObj);
-					return obj == null ? null : object(obj);
 				}
-			}
-			if (a.isArray()) {
-				if (b.isArray()) {
-					ArgType ea = a.getArrayElement();
-					ArgType eb = b.getArrayElement();
-					if (ea.isPrimitive() && eb.isPrimitive()) {
-						return OBJECT;
-					} else {
-						ArgType res = merge(ea, eb);
-						return res == null ? null : array(res);
-					}
-				} else if (b.equals(OBJECT)) {
-					return OBJECT;
-				} else {
-					return null;
-				}
+				String obj = clsp.getCommonAncestor(aObj, bObj);
+				return obj == null ? null : object(obj);
 			}
 			if (a.isPrimitive() && b.isPrimitive() && a.getRegCount() == b.getRegCount()) {
 				return primitive(PrimitiveType.getSmaller(a.getPrimitiveType(), b.getPrimitiveType()));
 			}
+		}
+		return null;
+	}
+
+	private static ArgType mergeArrays(ArrayArg array, ArgType b) {
+		if (b.isArray()) {
+			ArgType ea = array.getArrayElement();
+			ArgType eb = b.getArrayElement();
+			if (ea.isPrimitive() && eb.isPrimitive()) {
+				return OBJECT;
+			}
+			ArgType res = merge(ea, eb);
+			return res == null ? null : array(res);
+		}
+		if (b.contains(PrimitiveType.ARRAY)) {
+			return array;
+		}
+		if (b.equals(OBJECT)) {
+			return OBJECT;
 		}
 		return null;
 	}

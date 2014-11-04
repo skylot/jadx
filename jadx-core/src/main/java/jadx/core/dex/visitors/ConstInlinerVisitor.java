@@ -1,5 +1,6 @@
 package jadx.core.dex.visitors;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
@@ -52,21 +53,13 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 
 		SSAVar sVar = insn.getResult().getSVar();
 		if (lit == 0) {
-			// don't inline null object if:
-			// - used as instance arg in invoke instruction
-			for (RegisterArg useArg : sVar.getUseList()) {
-				InsnNode parentInsn = useArg.getParentInsn();
-				if (parentInsn != null) {
-					InsnType insnType = parentInsn.getType();
-					if (insnType == InsnType.INVOKE) {
-						InvokeNode inv = (InvokeNode) parentInsn;
-						if (inv.getInvokeType() != InvokeType.STATIC
-								&& inv.getArg(0) == useArg) {
-							return false;
-						}
-					}
+			if (checkObjectInline(sVar)) {
+				if (sVar.getUseCount() == 1) {
+					insn.getResult().getAssignInsn().add(AFlag.DONT_INLINE);
 				}
+				return false;
 			}
+
 		}
 		ArgType resType = insn.getResult().getType();
 		// make sure arg has correct type
@@ -74,6 +67,32 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 			arg.merge(resType);
 		}
 		return replaceConst(mth, sVar, lit);
+	}
+
+	/**
+	 * Don't inline null object if:
+	 * - used as instance arg in invoke instruction
+	 * - used in 'array.length'
+	 */
+	private static boolean checkObjectInline(SSAVar sVar) {
+		for (RegisterArg useArg : sVar.getUseList()) {
+			InsnNode insn = useArg.getParentInsn();
+			if (insn != null) {
+				InsnType insnType = insn.getType();
+				if (insnType == InsnType.INVOKE) {
+					InvokeNode inv = (InvokeNode) insn;
+					if (inv.getInvokeType() != InvokeType.STATIC
+							&& inv.getArg(0) == useArg) {
+						return true;
+					}
+				} else if (insnType == InsnType.ARRAY_LENGTH) {
+					if (insn.getArg(0) == useArg) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	private static boolean replaceConst(MethodNode mth, SSAVar sVar, long literal) {

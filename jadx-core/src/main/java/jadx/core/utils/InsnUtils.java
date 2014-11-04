@@ -35,11 +35,7 @@ public class InsnUtils {
 	}
 
 	public static String insnTypeToString(InsnType type) {
-		return insnTypeToString(type.toString());
-	}
-
-	public static String insnTypeToString(String str) {
-		return String.format("%s  ", str);
+		return type.toString() + "  ";
 	}
 
 	public static String indexToString(Object index) {
@@ -49,7 +45,7 @@ public class InsnUtils {
 		if (index instanceof String) {
 			return "\"" + index + "\"";
 		} else {
-			return " " + index;
+			return index.toString();
 		}
 	}
 }
