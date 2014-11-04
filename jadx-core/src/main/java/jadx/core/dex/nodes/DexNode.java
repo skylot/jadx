@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.android.dex.ClassData;
 import com.android.dex.ClassData.Method;
 import com.android.dex.ClassDef;
@@ -49,10 +51,12 @@ public class DexNode {
 		return classes;
 	}
 
+	@Nullable
 	public ClassNode resolveClass(ClassInfo clsInfo) {
 		return root.resolveClass(clsInfo);
 	}
 
+	@Nullable
 	public MethodNode resolveMethod(MethodInfo mth) {
 		ClassNode cls = resolveClass(mth.getDeclClass());
 		if (cls != null) {
@@ -61,6 +65,7 @@ public class DexNode {
 		return null;
 	}
 
+	@Nullable
 	public FieldNode resolveField(FieldInfo field) {
 		ClassNode cls = resolveClass(field.getDeclClass());
 		if (cls != null) {

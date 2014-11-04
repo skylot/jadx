@@ -1,4 +1,4 @@
-package jadx.tests.integration.annotations;
+package jadx.tests.integration.invoke;
 
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
@@ -8,7 +8,7 @@ import org.junit.Test;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertThat;
 
-public class TestVarArgAnnotation extends IntegrationTest {
+public class TestVarArg extends IntegrationTest {
 
 	public static class TestCls {
 
@@ -36,9 +36,8 @@ public class TestVarArgAnnotation extends IntegrationTest {
 		assertThat(code, containsString("void test1(int... a) {"));
 		assertThat(code, containsString("void test2(int i, Object... a) {"));
 
-		// TODO:
-		assertThat(code, containsString("test1(new int[]{1, 2});"));
-		assertThat(code, containsString("test2(3, new Object[]{\"1\", Integer.valueOf(7)});"));
+		assertThat(code, containsString("test1(1, 2);"));
+		assertThat(code, containsString("test2(3, \"1\", Integer.valueOf(7));"));
 
 		// negative case
 		assertThat(code, containsString("void test3(int[] a) {"));

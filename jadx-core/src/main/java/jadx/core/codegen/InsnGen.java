@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -513,6 +514,13 @@ public class InsnGen {
 	}
 
 	private void fillArray(FillArrayNode insn, CodeWriter code) throws CodegenException {
+		String filledArray = makeArrayElements(insn);
+		code.add("new ");
+		useType(code, insn.getElementType());
+		code.add("[]{").add(filledArray).add('}');
+	}
+
+	private String makeArrayElements(FillArrayNode insn) throws CodegenException {
 		ArgType insnArrayType = insn.getResult().getType();
 		ArgType insnElementType = insnArrayType.getArrayElement();
 		ArgType elType = insn.getElementType();
@@ -526,6 +534,8 @@ public class InsnGen {
 			LOG.warn("Unknown array element type: {} in mth: {}", elType, mth);
 			elType = insnElementType.isTypeKnown() ? insnElementType : elType.selectFirst();
 		}
+		insn.mergeElementType(elType);
+
 		StringBuilder str = new StringBuilder();
 		Object data = insn.getData();
 		switch (elType.getPrimitiveType()) {
@@ -567,9 +577,7 @@ public class InsnGen {
 		}
 		int len = str.length();
 		str.delete(len - 2, len);
-		code.add("new ");
-		useType(code, elType);
-		code.add("[]{").add(str.toString()).add('}');
+		return str.toString();
 	}
 
 	private void makeConstructor(ConstructorInsn insn, CodeWriter code)
@@ -613,7 +621,7 @@ public class InsnGen {
 			code.add("new ");
 			useClass(code, insn.getClassType());
 		}
-		generateArguments(code, insn, 0, mth.dex().resolveMethod(insn.getCallMth()));
+		generateMethodArguments(code, insn, 0, mth.dex().resolveMethod(insn.getCallMth()));
 	}
 
 	private void makeInvoke(InvokeNode insn, CodeWriter code) throws CodegenException {
@@ -658,47 +666,74 @@ public class InsnGen {
 			code.attachAnnotation(callMthNode);
 		}
 		code.add(callMth.getName());
-		generateArguments(code, insn, k, callMthNode);
+		generateMethodArguments(code, insn, k, callMthNode);
 	}
 
-	private void generateArguments(CodeWriter code, InsnNode insn, int k, MethodNode callMth) throws CodegenException {
+	private void generateMethodArguments(CodeWriter code, InsnNode insn, int startArgNum,
+			@Nullable MethodNode callMth) throws CodegenException {
+		int k = startArgNum;
 		if (callMth != null && callMth.contains(AFlag.SKIP_FIRST_ARG)) {
 			k++;
 		}
 		int argsCount = insn.getArgsCount();
-		if (callMth != null && callMth.isArgsOverload()) {
-			// add additional argument casts for overloaded methods
-			List<ArgType> originalType = callMth.getMethodInfo().getArgumentsTypes();
-			int origPos = 0;
-			code.add('(');
+		code.add('(');
+		if (k < argsCount) {
+			boolean overloaded = callMth != null && callMth.isArgsOverload();
 			for (int i = k; i < argsCount; i++) {
 				InsnArg arg = insn.getArg(i);
-				ArgType origType = originalType.get(origPos);
-				if (!arg.getType().equals(origType)) {
-					code.add('(');
-					useType(code, origType);
-					code.add(") ");
-					addArg(code, arg, true);
-				} else {
-					addArg(code, arg, false);
+				boolean cast = overloaded && processOverloadedArg(code, callMth, arg, i - startArgNum);
+				if (!cast && i == argsCount - 1 && processVarArg(code, callMth, arg)) {
+					continue;
 				}
+				addArg(code, arg, false);
 				if (i < argsCount - 1) {
 					code.add(", ");
 				}
-				origPos++;
 			}
-			code.add(')');
-		} else {
+		}
+		code.add(')');
+	}
+
+	/**
+	 * Add additional cast for overloaded method argument.
+	 */
+	private boolean processOverloadedArg(CodeWriter code, MethodNode callMth, InsnArg arg, int origPos) {
+		ArgType origType = callMth.getMethodInfo().getArgumentsTypes().get(origPos);
+		if (!arg.getType().equals(origType)) {
 			code.add('(');
-			if (k < argsCount) {
-				addArg(code, insn.getArg(k), false);
-				for (int i = k + 1; i < argsCount; i++) {
+			useType(code, origType);
+			code.add(") ");
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Expand varArgs from filled array.
+	 */
+	private boolean processVarArg(CodeWriter code, MethodNode callMth, InsnArg lastArg) throws CodegenException {
+		if (callMth == null || !callMth.getAccessFlags().isVarArgs()) {
+			return false;
+		}
+		if (!lastArg.getType().isArray() || !lastArg.isInsnWrap()) {
+			return false;
+		}
+		InsnNode insn = ((InsnWrapArg) lastArg).getWrapInsn();
+		if (insn.getType() == InsnType.FILLED_NEW_ARRAY) {
+			int count = insn.getArgsCount();
+			for (int i = 0; i < count; i++) {
+				InsnArg elemArg = insn.getArg(i);
+				addArg(code, elemArg, false);
+				if (i < count - 1) {
 					code.add(", ");
-					addArg(code, insn.getArg(i), false);
 				}
 			}
-			code.add(')');
+			return true;
+		} else if (insn.getType() == InsnType.FILL_ARRAY) {
+			code.add(makeArrayElements((FillArrayNode) insn));
+			return true;
 		}
+		return false;
 	}
 
 	private boolean inlineMethod(MethodNode callMthNode, InvokeNode insn, CodeWriter code) throws CodegenException {

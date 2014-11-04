@@ -45,7 +45,6 @@ public class TestInvokeInCatch extends IntegrationTest {
 		assertThat(code, not(containsString("return;")));
 		assertThat(code, containsOne("} catch (IOException e) {"));
 		assertThat(code, containsOne("if (b == 1) {"));
-//		assertThat(code, containsOne("log(TAG, \"Error: {}\", e.getMessage());"));
-		assertThat(code, containsOne("log(TAG, \"Error: {}\", new String[]{e.getMessage()});"));
+		assertThat(code, containsOne("log(TAG, \"Error: {}\", e.getMessage());"));
 	}
 }
