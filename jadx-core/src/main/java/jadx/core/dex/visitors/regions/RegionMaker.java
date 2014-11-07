@@ -167,7 +167,7 @@ public class RegionMaker {
 		LoopRegion loopRegion = makeLoopRegion(curRegion, loop, exitBlocks);
 		if (loopRegion == null) {
 			BlockNode exit = makeEndlessLoop(curRegion, stack, loop, loopStart);
-			insertContinueInsns(loop);
+			insertContinue(loop);
 			return exit;
 		}
 		curRegion.getSubBlocks().add(loopRegion);
@@ -192,7 +192,7 @@ public class RegionMaker {
 					if (!exitBlocks.contains(exitEdge.getSource())) {
 						continue;
 					}
-					tryInsertBreak(stack, loopExit, exitEdge);
+					insertBreak(stack, loopExit, exitEdge);
 				}
 			}
 		}
@@ -235,7 +235,7 @@ public class RegionMaker {
 			loopRegion.setBody(body);
 		}
 		stack.pop();
-		insertContinueInsns(loop);
+		insertContinue(loop);
 		return out;
 	}
 
@@ -305,7 +305,7 @@ public class RegionMaker {
 		List<Edge> exitEdges = loop.getExitEdges();
 		for (Edge exitEdge : exitEdges) {
 			BlockNode exit = exitEdge.getTarget();
-			if (tryInsertBreak(stack, exit, exitEdge)) {
+			if (insertBreak(stack, exit, exitEdge)) {
 				BlockNode nextBlock = getNextBlock(exit);
 				if (nextBlock != null) {
 					stack.addExit(nextBlock);
@@ -351,7 +351,7 @@ public class RegionMaker {
 		return true;
 	}
 
-	private boolean tryInsertBreak(RegionStack stack, BlockNode loopExit, Edge exitEdge) {
+	private boolean insertBreak(RegionStack stack, BlockNode loopExit, Edge exitEdge) {
 		BlockNode exit = exitEdge.getTarget();
 		BlockNode insertBlock = null;
 		boolean confirm = false;
@@ -393,52 +393,85 @@ public class RegionMaker {
 		insertBlock.getInstructions().add(breakInsn);
 		stack.addExit(exit);
 		// add label to 'break' if needed
-		List<LoopInfo> loops = mth.getAllLoopsForBlock(exitEdge.getSource());
-		if (loops.size() >= 2) {
-			// find parent loop
-			for (LoopInfo loop : loops) {
-				LoopInfo parentLoop = loop.getParentLoop();
-				if (parentLoop == null
-						&& loop.getEnd() != exit
-						&& !loop.getExitNodes().contains(exit)) {
-					LoopLabelAttr labelAttr = new LoopLabelAttr(loop);
-					breakInsn.addAttr(labelAttr);
-					loop.getStart().addAttr(labelAttr);
-					break;
-				}
-			}
-		}
+		addBreakLabel(exitEdge, exit, breakInsn);
 		return true;
 	}
 
-	private static void insertContinueInsns(LoopInfo loop) {
+	private void addBreakLabel(Edge exitEdge, BlockNode exit, InsnNode breakInsn) {
+		BlockNode outBlock = BlockUtils.getNextBlock(exitEdge.getTarget());
+		if (outBlock == null) {
+			return;
+		}
+		List<LoopInfo> exitLoop = mth.getAllLoopsForBlock(outBlock);
+		if (!exitLoop.isEmpty()) {
+			return;
+		}
+		List<LoopInfo> inLoops = mth.getAllLoopsForBlock(exitEdge.getSource());
+		if (inLoops.size() < 2) {
+			return;
+		}
+		// search for parent loop
+		LoopInfo parentLoop = null;
+		for (LoopInfo loop : inLoops) {
+			if (loop.getParentLoop() == null) {
+				parentLoop = loop;
+				break;
+			}
+		}
+		if (parentLoop == null) {
+			return;
+		}
+		if (parentLoop.getEnd() != exit && !parentLoop.getExitNodes().contains(exit)) {
+			LoopLabelAttr labelAttr = new LoopLabelAttr(parentLoop);
+			breakInsn.addAttr(labelAttr);
+			parentLoop.getStart().addAttr(labelAttr);
+		}
+	}
+
+	private static void insertContinue(LoopInfo loop) {
 		BlockNode loopEnd = loop.getEnd();
 		List<BlockNode> predecessors = loopEnd.getPredecessors();
 		if (predecessors.size() <= 1) {
 			return;
 		}
+		Set<BlockNode> loopExitNodes = loop.getExitNodes();
 		for (BlockNode pred : predecessors) {
-			if (!pred.contains(AFlag.SYNTHETIC)
-					|| BlockUtils.checkLastInsnType(pred, InsnType.CONTINUE)) {
-				continue;
-			}
-			List<BlockNode> nodes = pred.getPredecessors();
-			if (nodes.isEmpty()) {
-				continue;
-			}
-			BlockNode codePred = nodes.get(0);
-			if (codePred.contains(AFlag.SKIP)) {
-				continue;
-			}
-			if (!isDominatedOnBlocks(codePred, predecessors)) {
-				for (BlockNode blockNode : predecessors) {
-					if (blockNode != pred && BlockUtils.isPathExists(codePred, blockNode)) {
-						InsnNode cont = new InsnNode(InsnType.CONTINUE, 0);
-						pred.getInstructions().add(cont);
-					}
-				}
+			if (canInsertContinue(pred, predecessors, loopEnd, loopExitNodes)) {
+				InsnNode cont = new InsnNode(InsnType.CONTINUE, 0);
+				pred.getInstructions().add(cont);
 			}
 		}
+	}
+
+	private static boolean canInsertContinue(BlockNode pred, List<BlockNode> predecessors, BlockNode loopEnd,
+			Set<BlockNode> loopExitNodes) {
+		if (!pred.contains(AFlag.SYNTHETIC)
+				|| BlockUtils.checkLastInsnType(pred, InsnType.CONTINUE)) {
+			return false;
+		}
+		List<BlockNode> preds = pred.getPredecessors();
+		if (preds.isEmpty()) {
+			return false;
+		}
+		BlockNode codePred = preds.get(0);
+		if (codePred.contains(AFlag.SKIP)) {
+			return false;
+		}
+		if (loopEnd.isDominator(codePred)
+				|| loopExitNodes.contains(codePred)) {
+			return false;
+		}
+		if (isDominatedOnBlocks(codePred, predecessors)) {
+			return false;
+		}
+		boolean gotoExit = false;
+		for (BlockNode exit : loopExitNodes) {
+			if (BlockUtils.isPathExists(codePred, exit)) {
+				gotoExit = true;
+				break;
+			}
+		}
+		return gotoExit;
 	}
 
 	private static boolean isDominatedOnBlocks(BlockNode dom, List<BlockNode> blocks) {
@@ -601,7 +634,7 @@ public class RegionMaker {
 		}
 
 		Map<BlockNode, List<Object>> blocksMap = new LinkedHashMap<BlockNode, List<Object>>(len);
-		for (Entry<Integer, List<Object>> entry : casesMap.entrySet()) {
+		for (Map.Entry<Integer, List<Object>> entry : casesMap.entrySet()) {
 			BlockNode c = getBlockByOffset(entry.getKey(), block.getSuccessors());
 			assert c != null;
 			blocksMap.put(c, entry.getValue());
