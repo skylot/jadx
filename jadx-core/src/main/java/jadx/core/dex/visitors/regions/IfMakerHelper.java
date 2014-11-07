@@ -175,6 +175,8 @@ public class IfMakerHelper {
 				if (isInversionNeeded(currentIf, nextIf)) {
 					nextIf = IfInfo.invert(nextIf);
 				}
+			} else {
+				return currentIf;
 			}
 		}
 

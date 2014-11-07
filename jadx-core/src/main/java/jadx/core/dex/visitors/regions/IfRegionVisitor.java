@@ -45,7 +45,7 @@ public class IfRegionVisitor extends AbstractVisitor implements IRegionVisitor, 
 	@Override
 	public boolean visitRegion(MethodNode mth, IRegion region) {
 		if (region instanceof IfRegion) {
-			return removeRedundantElseBlock((IfRegion) region);
+			return removeRedundantElseBlock(mth, (IfRegion) region);
 		}
 		return false;
 	}
@@ -136,28 +136,38 @@ public class IfRegionVisitor extends AbstractVisitor implements IRegionVisitor, 
 		}
 	}
 
-	private static boolean removeRedundantElseBlock(IfRegion ifRegion) {
-		if (ifRegion.getElseRegion() != null
-				&& !ifRegion.contains(AFlag.ELSE_IF_CHAIN)
-				&& !ifRegion.getElseRegion().contains(AFlag.ELSE_IF_CHAIN)
-				&& hasBranchTerminator(ifRegion)
-				&& insnsCount(ifRegion.getThenRegion()) < 2) {
-			IRegion parent = ifRegion.getParent();
-			Region newRegion = new Region(parent);
-			if (parent.replaceSubBlock(ifRegion, newRegion)) {
-				newRegion.add(ifRegion);
-				newRegion.add(ifRegion.getElseRegion());
-				ifRegion.setElseRegion(null);
-				return true;
-			}
+	private static boolean removeRedundantElseBlock(MethodNode mth, IfRegion ifRegion) {
+		if (ifRegion.getElseRegion() == null
+				|| ifRegion.contains(AFlag.ELSE_IF_CHAIN)
+				|| ifRegion.getElseRegion().contains(AFlag.ELSE_IF_CHAIN)) {
+			return false;
+		}
+		if (!hasBranchTerminator(ifRegion.getThenRegion())) {
+			return false;
+		}
+		// code style check:
+		// will remove 'return;' from 'then' and 'else' with one instruction
+		// see #jadx.tests.integration.conditions.TestConditions9
+		if (mth.getReturnType() == ArgType.VOID
+				&& insnsCount(ifRegion.getThenRegion()) == 2
+				&& insnsCount(ifRegion.getElseRegion()) == 2) {
+			return false;
+		}
+		IRegion parent = ifRegion.getParent();
+		Region newRegion = new Region(parent);
+		if (parent.replaceSubBlock(ifRegion, newRegion)) {
+			newRegion.add(ifRegion);
+			newRegion.add(ifRegion.getElseRegion());
+			ifRegion.setElseRegion(null);
+			return true;
 		}
 		return false;
 	}
 
-	private static boolean hasBranchTerminator(IfRegion ifRegion) {
+	private static boolean hasBranchTerminator(IContainer region) {
 		// TODO: check for exception throw
-		return RegionUtils.hasExitBlock(ifRegion.getThenRegion())
-				|| RegionUtils.hasBreakInsn(ifRegion.getThenRegion());
+		return RegionUtils.hasExitBlock(region)
+				|| RegionUtils.hasBreakInsn(region);
 	}
 
 	private static void invertIfRegion(IfRegion ifRegion) {
