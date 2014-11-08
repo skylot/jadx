@@ -27,6 +27,7 @@ import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.utils.InstructionRemover;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -144,7 +145,21 @@ public class ModVisitor extends AbstractVisitor {
 			} else {
 				replaceInsn(block, insnNumber, co);
 				if (co.isNewInstance()) {
-					removeAssignChain(instArgAssignInsn, remover, InsnType.NEW_INSTANCE);
+					InsnNode newInstInsn = removeAssignChain(instArgAssignInsn, remover, InsnType.NEW_INSTANCE);
+					if (newInstInsn != null) {
+						RegisterArg instArg = newInstInsn.getResult();
+						RegisterArg resultArg = co.getResult();
+						if (!resultArg.equals(instArg)) {
+							// replace all usages of 'instArg' with result of this constructor instruction
+							for (RegisterArg useArg : new ArrayList<RegisterArg>(instArg.getSVar().getUseList())) {
+								RegisterArg dup = resultArg.duplicate();
+								InsnNode parentInsn = useArg.getParentInsn();
+								parentInsn.replaceArg(useArg, dup);
+								dup.setParentInsn(parentInsn);
+								resultArg.getSVar().use(dup);
+							}
+						}
+					}
 				}
 				ConstructorInsn replace = processConstructor(mth, co);
 				if (replace != null) {
@@ -169,21 +184,24 @@ public class ModVisitor extends AbstractVisitor {
 	 */
 	private static ConstructorInsn processConstructor(MethodNode mth, ConstructorInsn co) {
 		MethodNode callMth = mth.dex().resolveMethod(co.getCallMth());
-		if (callMth != null
-				&& callMth.getAccessFlags().isSynthetic()
-				&& allArgsNull(co)) {
-			// if all arguments is null => replace with default constructor
-			ClassNode classNode = mth.dex().resolveClass(callMth.getParentClass().getClassInfo());
-			boolean passThis = co.getArgsCount() >= 1 && co.getArg(0).isThis();
-			String ctrId = "<init>(" + (passThis ? TypeGen.signature(co.getArg(0).getType()) : "") + ")V";
-			MethodNode defCtr = classNode.searchMethodByName(ctrId);
-			if (defCtr != null) {
-				ConstructorInsn newInsn = new ConstructorInsn(defCtr.getMethodInfo(), co.getCallType(), co.getInstanceArg());
-				newInsn.setResult(co.getResult());
-				return newInsn;
-			}
+		if (callMth == null
+				|| !callMth.getAccessFlags().isSynthetic()
+				|| !allArgsNull(co)) {
+			return null;
 		}
-		return null;
+		ClassNode classNode = mth.dex().resolveClass(callMth.getParentClass().getClassInfo());
+		if (classNode == null) {
+			return null;
+		}
+		boolean passThis = co.getArgsCount() >= 1 && co.getArg(0).isThis();
+		String ctrId = "<init>(" + (passThis ? TypeGen.signature(co.getArg(0).getType()) : "") + ")V";
+		MethodNode defCtr = classNode.searchMethodByName(ctrId);
+		if (defCtr == null) {
+			return null;
+		}
+		ConstructorInsn newInsn = new ConstructorInsn(defCtr.getMethodInfo(), co.getCallType(), co.getInstanceArg());
+		newInsn.setResult(co.getResult());
+		return newInsn;
 	}
 
 	private static boolean allArgsNull(InsnNode insn) {
@@ -203,19 +221,20 @@ public class ModVisitor extends AbstractVisitor {
 	/**
 	 * Remove instructions on 'move' chain until instruction with type 'insnType'
 	 */
-	private static void removeAssignChain(InsnNode insn, InstructionRemover remover, InsnType insnType) {
+	private static InsnNode removeAssignChain(InsnNode insn, InstructionRemover remover, InsnType insnType) {
 		if (insn == null) {
-			return;
+			return null;
 		}
 		remover.add(insn);
 		InsnType type = insn.getType();
 		if (type == insnType) {
-			return;
+			return insn;
 		}
 		if (type == InsnType.MOVE) {
 			RegisterArg arg = (RegisterArg) insn.getArg(0);
-			removeAssignChain(arg.getAssignInsn(), remover, insnType);
+			return removeAssignChain(arg.getAssignInsn(), remover, insnType);
 		}
+		return null;
 	}
 
 	/**

@@ -54,10 +54,7 @@ public class NameGen {
 			return name;
 		}
 		name = getUniqueVarName(name);
-		SSAVar sVar = arg.getSVar();
-		if (sVar != null) {
-			sVar.setName(name);
-		}
+		arg.setName(name);
 		return name;
 	}
 

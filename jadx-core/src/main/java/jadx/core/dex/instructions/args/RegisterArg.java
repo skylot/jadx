@@ -81,9 +81,10 @@ public class RegisterArg extends InsnArg implements Named {
 		setName(name);
 	}
 
-	@Deprecated
-	public void forceType(ArgType type) {
-		this.type = type;
+	public RegisterArg duplicate() {
+		RegisterArg dup = new RegisterArg(getRegNum(), getType());
+		dup.setSVar(sVar);
+		return dup;
 	}
 
 	/**
