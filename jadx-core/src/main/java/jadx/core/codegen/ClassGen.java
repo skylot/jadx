@@ -24,6 +24,7 @@ import jadx.core.utils.exceptions.CodegenException;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -38,6 +39,13 @@ import com.android.dx.rop.code.AccessFlags;
 
 public class ClassGen {
 	private static final Logger LOG = LoggerFactory.getLogger(ClassGen.class);
+
+	public static final Comparator<MethodNode> METHOD_LINE_COMPARATOR = new Comparator<MethodNode>() {
+		@Override
+		public int compare(MethodNode a, MethodNode b) {
+			return Utils.compare(a.getSourceLine(), b.getSourceLine());
+		}
+	};
 
 	private final ClassNode cls;
 	private final ClassGen parentGen;
@@ -239,7 +247,8 @@ public class ClassGen {
 	}
 
 	private void addMethods(CodeWriter code) {
-		for (MethodNode mth : cls.getMethods()) {
+		List<MethodNode> methods = sortMethodsByLine(cls.getMethods());
+		for (MethodNode mth : methods) {
 			if (mth.contains(AFlag.DONT_GENERATE)) {
 				continue;
 			}
@@ -253,6 +262,12 @@ public class ClassGen {
 				code.startLine("/* " + msg + CodeWriter.NL + Utils.getStackTrace(e) + " */");
 			}
 		}
+	}
+
+	private static List<MethodNode> sortMethodsByLine(List<MethodNode> methods) {
+		List<MethodNode> out = new ArrayList<MethodNode>(methods);
+		Collections.sort(out, METHOD_LINE_COMPARATOR);
+		return out;
 	}
 
 	private boolean isMethodsPresents() {
