@@ -16,6 +16,8 @@ import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,46 +25,83 @@ import org.slf4j.LoggerFactory;
 public class ConditionGen extends InsnGen {
 	private static final Logger LOG = LoggerFactory.getLogger(ConditionGen.class);
 
+	private static class CondStack {
+		private final Queue<IfCondition> stack = new LinkedList<IfCondition>();
+
+		public Queue<IfCondition> getStack() {
+			return stack;
+		}
+
+		public void push(IfCondition cond) {
+			stack.add(cond);
+		}
+
+		public IfCondition pop() {
+			return stack.poll();
+		}
+	}
+
 	public ConditionGen(InsnGen insnGen) {
 		super(insnGen.mgen, insnGen.fallback);
 	}
 
 	void add(CodeWriter code, IfCondition condition) throws CodegenException {
+		add(code, new CondStack(), condition);
+	}
+
+	void wrap(CodeWriter code, IfCondition condition) throws CodegenException {
+		wrap(code, new CondStack(), condition);
+	}
+
+	private void add(CodeWriter code, CondStack stack, IfCondition condition) throws CodegenException {
+		stack.push(condition);
 		switch (condition.getMode()) {
 			case COMPARE:
-				addCompare(code, condition.getCompare());
+				addCompare(code, stack, condition.getCompare());
 				break;
 
 			case TERNARY:
-				addTernary(code, condition);
+				addTernary(code, stack, condition);
 				break;
 
 			case NOT:
-				addNot(code, condition);
+				addNot(code, stack, condition);
 				break;
 
 			case AND:
 			case OR:
-				addAndOr(code, condition);
+				addAndOr(code, stack, condition);
 				break;
 
 			default:
 				throw new JadxRuntimeException("Unknown condition mode: " + condition.getMode());
 		}
+		stack.pop();
 	}
 
-	void wrap(CodeWriter code, IfCondition cond) throws CodegenException {
+	private void wrap(CodeWriter code, CondStack stack, IfCondition cond) throws CodegenException {
 		boolean wrap = isWrapNeeded(cond);
 		if (wrap) {
 			code.add('(');
 		}
-		add(code, cond);
+		add(code, stack, cond);
 		if (wrap) {
 			code.add(')');
 		}
 	}
 
-	private void addCompare(CodeWriter code, Compare compare) throws CodegenException {
+	private void wrap(CodeWriter code, InsnArg firstArg) throws CodegenException {
+		boolean wrap = isArgWrapNeeded(firstArg);
+		if (wrap) {
+			code.add('(');
+		}
+		addArg(code, firstArg, false);
+		if (wrap) {
+			code.add(')');
+		}
+	}
+
+	private void addCompare(CodeWriter code, CondStack stack, Compare compare) throws CodegenException {
 		IfOp op = compare.getOp();
 		InsnArg firstArg = compare.getA();
 		InsnArg secondArg = compare.getB();
@@ -75,19 +114,16 @@ public class ConditionGen extends InsnGen {
 			}
 			if (op == IfOp.EQ) {
 				// == true
-				addArg(code, firstArg, false);
+				if (stack.getStack().size() == 1) {
+					addArg(code, firstArg, false);
+				} else {
+					wrap(code, firstArg);
+				}
 				return;
 			} else if (op == IfOp.NE) {
 				// != true
 				code.add('!');
-				boolean wrap = isArgWrapNeeded(firstArg);
-				if (wrap) {
-					code.add('(');
-				}
-				addArg(code, firstArg, false);
-				if (wrap) {
-					code.add(')');
-				}
+				wrap(code, firstArg);
 				return;
 			}
 			LOG.warn(ErrorsCounter.formatErrorMsg(mth, "Unsupported boolean condition " + op.getSymbol()));
@@ -98,24 +134,24 @@ public class ConditionGen extends InsnGen {
 		addArg(code, secondArg, isArgWrapNeeded(secondArg));
 	}
 
-	private void addTernary(CodeWriter code, IfCondition condition) throws CodegenException {
-		add(code, condition.first());
+	private void addTernary(CodeWriter code, CondStack stack, IfCondition condition) throws CodegenException {
+		add(code, stack, condition.first());
 		code.add(" ? ");
-		add(code, condition.second());
+		add(code, stack, condition.second());
 		code.add(" : ");
-		add(code, condition.third());
+		add(code, stack, condition.third());
 	}
 
-	private void addNot(CodeWriter code, IfCondition condition) throws CodegenException {
+	private void addNot(CodeWriter code, CondStack stack, IfCondition condition) throws CodegenException {
 		code.add('!');
-		wrap(code, condition.getArgs().get(0));
+		wrap(code, stack, condition.getArgs().get(0));
 	}
 
-	private void addAndOr(CodeWriter code, IfCondition condition) throws CodegenException {
+	private void addAndOr(CodeWriter code, CondStack stack, IfCondition condition) throws CodegenException {
 		String mode = condition.getMode() == Mode.AND ? " && " : " || ";
 		Iterator<IfCondition> it = condition.getArgs().iterator();
 		while (it.hasNext()) {
-			wrap(code, it.next());
+			wrap(code, stack, it.next());
 			if (it.hasNext()) {
 				code.add(mode);
 			}
@@ -123,7 +159,13 @@ public class ConditionGen extends InsnGen {
 	}
 
 	private boolean isWrapNeeded(IfCondition condition) {
-		return !condition.isCompare() && condition.getMode() != Mode.NOT;
+		if (condition.isCompare()) {
+			return false;
+		}
+		if (condition.getMode() != Mode.NOT) {
+			return true;
+		}
+		return false;
 	}
 
 	private static boolean isArgWrapNeeded(InsnArg arg) {

@@ -140,9 +140,8 @@ public class RegionMaker {
 		}
 		if (next != null && !stack.containsExit(block) && !stack.containsExit(next)) {
 			return next;
-		} else {
-			return null;
 		}
+		return null;
 	}
 
 	private BlockNode processLoop(IRegion curRegion, LoopInfo loop, RegionStack stack) {
