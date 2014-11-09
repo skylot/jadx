@@ -82,7 +82,6 @@ public class Jadx {
 
 			passes.add(new CodeShrinker());
 			passes.add(new SimplifyVisitor());
-			passes.add(new ProcessVariables());
 			passes.add(new CheckRegions());
 
 			if (args.isCFGOutput()) {
@@ -93,6 +92,7 @@ public class Jadx {
 			passes.add(new ClassModifier());
 			passes.add(new PrepareForCodeGen());
 			passes.add(new LoopRegionVisitor());
+			passes.add(new ProcessVariables());
 		}
 		passes.add(new CodeGen(args));
 		return passes;

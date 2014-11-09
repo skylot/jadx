@@ -15,6 +15,9 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.regions.conditions.IfRegion;
+import jadx.core.dex.regions.loops.ForLoop;
+import jadx.core.dex.regions.loops.LoopRegion;
+import jadx.core.dex.regions.loops.LoopType;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.JadxException;
@@ -112,45 +115,77 @@ public class ProcessVariables extends AbstractVisitor {
 		}
 	}
 
+	private static class CollectUsageRegionVisitor extends TracedRegionVisitor {
+		private final List<RegisterArg> args;
+		private final Map<Variable, Usage> usageMap;
+
+		public CollectUsageRegionVisitor(Map<Variable, Usage> usageMap) {
+			this.usageMap = usageMap;
+			args = new ArrayList<RegisterArg>();
+		}
+
+		@Override
+		public void processBlockTraced(MethodNode mth, IBlock container, IRegion curRegion) {
+			regionProcess(mth, curRegion);
+			int len = container.getInstructions().size();
+			for (int i = 0; i < len; i++) {
+				InsnNode insn = container.getInstructions().get(i);
+				if (insn.contains(AFlag.SKIP)) {
+					continue;
+				}
+				args.clear();
+				processInsn(insn, curRegion);
+			}
+		}
+
+		private void regionProcess(MethodNode mth, IRegion region) {
+			if (region instanceof LoopRegion) {
+				LoopRegion loopRegion = (LoopRegion) region;
+				LoopType loopType = loopRegion.getType();
+				if (loopType instanceof ForLoop) {
+					ForLoop forLoop = (ForLoop) loopType;
+					processInsn(forLoop.getInitInsn(), region);
+					processInsn(forLoop.getIncrInsn(), region);
+				}
+			}
+		}
+
+		void processInsn(InsnNode insn, IRegion curRegion) {
+			if (insn == null) {
+				return;
+			}
+			// result
+			RegisterArg result = insn.getResult();
+			if (result != null && result.isRegister()) {
+				Usage u = addToUsageMap(result, usageMap);
+				if (u.getArg() == null) {
+					u.setArg(result);
+					u.setArgRegion(curRegion);
+				}
+				u.getAssigns().add(curRegion);
+			}
+			// args
+			args.clear();
+			insn.getRegisterArgs(args);
+			for (RegisterArg arg : args) {
+				Usage u = addToUsageMap(arg, usageMap);
+				u.getUseRegions().add(curRegion);
+			}
+		}
+	}
+
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
 		if (mth.isNoCode()) {
 			return;
 		}
-
 		final Map<Variable, Usage> usageMap = new LinkedHashMap<Variable, Usage>();
 		for (RegisterArg arg : mth.getArguments(true)) {
 			addToUsageMap(arg, usageMap);
 		}
 
 		// collect all variables usage
-		IRegionVisitor collect = new TracedRegionVisitor() {
-			@Override
-			public void processBlockTraced(MethodNode mth, IBlock container, IRegion curRegion) {
-				int len = container.getInstructions().size();
-				List<RegisterArg> args = new ArrayList<RegisterArg>();
-				for (int i = 0; i < len; i++) {
-					InsnNode insn = container.getInstructions().get(i);
-					// result
-					RegisterArg result = insn.getResult();
-					if (result != null && result.isRegister()) {
-						Usage u = addToUsageMap(result, usageMap);
-						if (u.getArg() == null) {
-							u.setArg(result);
-							u.setArgRegion(curRegion);
-						}
-						u.getAssigns().add(curRegion);
-					}
-					// args
-					args.clear();
-					insn.getRegisterArgs(args);
-					for (RegisterArg arg : args) {
-						Usage u = addToUsageMap(arg, usageMap);
-						u.getUseRegions().add(curRegion);
-					}
-				}
-			}
-		};
+		IRegionVisitor collect = new CollectUsageRegionVisitor(usageMap);
 		DepthRegionTraversal.traverseAll(mth, collect);
 
 		// reduce assigns map
@@ -189,10 +224,10 @@ public class ProcessVariables extends AbstractVisitor {
 			for (IRegion assignRegion : u.getAssigns()) {
 				if (u.getArgRegion() == assignRegion
 						&& canDeclareInRegion(u, assignRegion, regionsOrder)) {
-					u.getArg().getParentInsn().add(AFlag.DECLARE_VAR);
-					processVar(u.getArg());
-					it.remove();
-					break;
+					if (declareAtAssign(u)) {
+						it.remove();
+						break;
+					}
 				}
 			}
 		}
@@ -239,7 +274,7 @@ public class ProcessVariables extends AbstractVisitor {
 		}
 	}
 
-	Usage addToUsageMap(RegisterArg arg, Map<Variable, Usage> usageMap) {
+	private static Usage addToUsageMap(RegisterArg arg, Map<Variable, Usage> usageMap) {
 		Variable varId = new Variable(arg);
 		Usage usage = usageMap.get(varId);
 		if (usage == null) {
@@ -258,6 +293,17 @@ public class ProcessVariables extends AbstractVisitor {
 			arg.getSVar().setVarName(usage.getVarName());
 		}
 		return usage;
+	}
+
+	private static boolean declareAtAssign(Usage u) {
+		RegisterArg arg = u.getArg();
+		InsnNode parentInsn = arg.getParentInsn();
+		if (!arg.equals(parentInsn.getResult())) {
+			return false;
+		}
+		parentInsn.add(AFlag.DECLARE_VAR);
+		processVar(arg);
+		return true;
 	}
 
 	private static void declareVar(IContainer region, RegisterArg arg) {
@@ -307,6 +353,14 @@ public class ProcessVariables extends AbstractVisitor {
 		if (pos == null) {
 			LOG.debug("TODO: Not found order for region {} for {}", region, u);
 			return false;
+		}
+		// workaround for declare variables used in several loops
+		if (region instanceof LoopRegion) {
+			for (IRegion r : u.getAssigns()) {
+				if (!RegionUtils.isRegionContainsRegion(region, r)) {
+					return false;
+				}
+			}
 		}
 		return isAllRegionsAfter(region, pos, u.getAssigns(), regionsOrder)
 				&& isAllRegionsAfter(region, pos, u.getUseRegions(), regionsOrder);
