@@ -6,7 +6,11 @@ import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class TypeGen {
+	private static final Logger LOG = LoggerFactory.getLogger(TypeGen.class);
 
 	private TypeGen() {
 	}
@@ -59,7 +63,8 @@ public class TypeGen {
 			case OBJECT:
 			case ARRAY:
 				if (lit != 0) {
-					throw new JadxRuntimeException("Wrong object literal: " + type + " = " + lit);
+					LOG.warn("Wrong object literal: " + lit + " for type: " + type);
+					return Long.toString(lit);
 				}
 				return "null";
 
