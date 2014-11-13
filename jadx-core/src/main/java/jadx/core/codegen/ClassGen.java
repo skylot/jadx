@@ -302,7 +302,7 @@ public class ClassGen {
 				}
 			}
 			MethodGen mthGen;
-			if (badCode || mth.contains(AType.JADX_ERROR)) {
+			if (badCode || mth.contains(AType.JADX_ERROR) || fallback) {
 				mthGen = MethodGen.getFallbackMethodGen(mth);
 			} else {
 				mthGen = new MethodGen(this, mth);
@@ -313,7 +313,11 @@ public class ClassGen {
 			code.add('{');
 			code.incIndent();
 			insertSourceFileInfo(code, mth);
-			mthGen.addInstructions(code);
+			if (fallback) {
+				mthGen.addFallbackMethodCode(code);
+			} else {
+				mthGen.addInstructions(code);
+			}
 			code.decIndent();
 			code.startLine('}');
 		}
@@ -535,7 +539,7 @@ public class ClassGen {
 	private void insertSourceFileInfo(CodeWriter code, AttrNode node) {
 		SourceFileAttr sourceFileAttr = node.get(AType.SOURCE_FILE);
 		if (sourceFileAttr != null) {
-			code.startLine("// compiled from: ").add(sourceFileAttr.getFileName());
+			code.startLine("/* compiled from: ").add(sourceFileAttr.getFileName()).add(" */");
 		}
 	}
 

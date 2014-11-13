@@ -70,7 +70,7 @@ public class NameGen {
 
 	public String useArg(RegisterArg arg) {
 		String name = arg.getName();
-		if (name == null) {
+		if (name == null || fallback) {
 			return getFallbackName(arg);
 		}
 		return name;
@@ -117,10 +117,7 @@ public class NameGen {
 	private String getFallbackName(RegisterArg arg) {
 		String name = arg.getName();
 		String base = "r" + arg.getRegNum();
-		if (name != null && !name.equals("this")) {
-			return base + "_" + name;
-		}
-		return base;
+		return name != null ? base + "_" + name : base;
 	}
 
 	private static String makeNameForType(ArgType type) {

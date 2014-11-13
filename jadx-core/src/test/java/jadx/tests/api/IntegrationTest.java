@@ -335,13 +335,15 @@ public abstract class IntegrationTest extends TestUtils {
 		return files;
 	}
 
-	public void noDebugInfo() {
+	protected void noDebugInfo() {
 		this.withDebugInfo = false;
 	}
 
-	// Try to make test class compilable
-	@Deprecated
-	public void disableCompilation() {
+	protected void setFallback() {
+		this.isFallback = true;
+	}
+
+	protected void disableCompilation() {
 		this.compile = false;
 	}
 
@@ -349,12 +351,6 @@ public abstract class IntegrationTest extends TestUtils {
 	@Deprecated
 	protected void setOutputCFG() {
 		this.outputCFG = true;
-	}
-
-	// Use only for debug purpose
-	@Deprecated
-	protected void setFallback() {
-		this.isFallback = true;
 	}
 
 	// Use only for debug purpose

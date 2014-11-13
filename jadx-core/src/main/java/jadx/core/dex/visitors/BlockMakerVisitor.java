@@ -45,6 +45,8 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
+		mth.checkInstructions();
+
 		mth.initBasicBlocks();
 		splitBasicBlocks(mth);
 		processBlocksTree(mth);

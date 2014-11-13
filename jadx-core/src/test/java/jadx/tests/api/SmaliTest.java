@@ -25,7 +25,7 @@ public class SmaliTest extends IntegrationTest {
 		return getClassNodeFromFile(outDex, fullClsName);
 	}
 
-	private File getSmaliFile(String clsName) {
+	private static File getSmaliFile(String clsName) {
 		File smaliFile = new File(SMALI_TESTS_DIR, clsName + SMALI_TESTS_EXT);
 		if (smaliFile.exists()) {
 			return smaliFile;
@@ -38,7 +38,7 @@ public class SmaliTest extends IntegrationTest {
 		return null;
 	}
 
-	public boolean compileSmali(File input, File output) {
+	private static boolean compileSmali(File input, File output) {
 		List<String> args = new ArrayList<String>();
 		args.add(input.getAbsolutePath());
 
