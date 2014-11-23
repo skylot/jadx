@@ -116,6 +116,6 @@ public final class IfRegion extends AbstractRegion {
 
 	@Override
 	public String toString() {
-		return "IF(" + condition + ") then " + thenRegion + " else " + elseRegion;
+		return "IF " + header + " then " + thenRegion + " else " + elseRegion;
 	}
 }

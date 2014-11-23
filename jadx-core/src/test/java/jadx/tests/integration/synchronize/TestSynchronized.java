@@ -38,5 +38,8 @@ public class TestSynchronized extends IntegrationTest {
 		assertThat(code, containsString("synchronized (this.o) {"));
 
 		assertThat(code, not(containsString(indent(3) + ";")));
+		assertThat(code, not(containsString("try {")));
+		assertThat(code, not(containsString("} catch (Throwable th) {")));
+		assertThat(code, not(containsString("throw th;")));
 	}
 }

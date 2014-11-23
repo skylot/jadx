@@ -1,14 +1,11 @@
 package jadx.core.dex.trycatch;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.nodes.BlockNode;
-import jadx.core.dex.nodes.IBlock;
-import jadx.core.dex.nodes.IContainer;
-import jadx.core.dex.nodes.InsnContainer;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.Utils;
 
 import java.util.ArrayList;
@@ -19,7 +16,6 @@ import java.util.List;
 public class TryCatchBlock {
 
 	private final List<ExceptionHandler> handlers;
-	private IContainer finalRegion;
 
 	// references for fast remove/modify
 	private final List<InsnNode> insns;
@@ -55,6 +51,7 @@ public class TryCatchBlock {
 		for (Iterator<ExceptionHandler> it = handlers.iterator(); it.hasNext(); ) {
 			ExceptionHandler h = it.next();
 			if (h == handler) {
+				unbindHandler(h);
 				it.remove();
 				break;
 			}
@@ -64,29 +61,20 @@ public class TryCatchBlock {
 		}
 	}
 
+	private void unbindHandler(ExceptionHandler handler) {
+		for (BlockNode block : handler.getBlocks()) {
+			block.add(AFlag.SKIP);
+		}
+	}
+
 	private void removeWholeBlock(MethodNode mth) {
-		if (finalRegion != null) {
-			// search catch attr
-			for (BlockNode block : mth.getBasicBlocks()) {
-				CatchAttr cb = block.get(AType.CATCH_BLOCK);
-				if (cb == attr) {
-					for (ExceptionHandler eh : mth.getExceptionHandlers()) {
-						if (eh.getBlocks().contains(block)) {
-							TryCatchBlock tb = eh.getTryBlock();
-							tb.setFinalRegionFromInsns(mth, ((IBlock) finalRegion).getInstructions());
-						}
-					}
-				}
-			}
-		} else {
-			// self destruction
-			for (InsnNode insn : insns) {
-				insn.removeAttr(attr);
-			}
-			insns.clear();
-			for (BlockNode block : mth.getBasicBlocks()) {
-				block.removeAttr(attr);
-			}
+		// self destruction
+		for (InsnNode insn : insns) {
+			insn.removeAttr(attr);
+		}
+		insns.clear();
+		for (BlockNode block : mth.getBasicBlocks()) {
+			block.removeAttr(attr);
 		}
 	}
 
@@ -108,36 +96,11 @@ public class TryCatchBlock {
 		return attr;
 	}
 
-	public IContainer getFinalRegion() {
-		return finalRegion;
-	}
-
-	public void setFinalRegion(IContainer finalRegion) {
-		this.finalRegion = finalRegion;
-	}
-
-	public void setFinalRegionFromInsns(MethodNode mth, List<InsnNode> insns) {
-		List<InsnNode> finalBlockInsns = new ArrayList<InsnNode>(insns);
-		setFinalRegion(new InsnContainer(finalBlockInsns));
-
-		InstructionRemover.unbindInsnList(mth, finalBlockInsns);
-
-		// remove these instructions from other handlers
-		for (ExceptionHandler h : getHandlers()) {
-			for (BlockNode ehb : h.getBlocks()) {
-				ehb.getInstructions().removeAll(finalBlockInsns);
-			}
+	public boolean merge(MethodNode mth, TryCatchBlock tryBlock) {
+		if (tryBlock == this) {
+			return false;
 		}
-		// remove from blocks with this catch
-		for (BlockNode b : mth.getBasicBlocks()) {
-			CatchAttr ca = b.get(AType.CATCH_BLOCK);
-			if (attr == ca) {
-				b.getInstructions().removeAll(finalBlockInsns);
-			}
-		}
-	}
 
-	public void merge(MethodNode mth, TryCatchBlock tryBlock) {
 		for (InsnNode insn : tryBlock.getInsns()) {
 			this.addInsn(insn);
 		}
@@ -148,6 +111,7 @@ public class TryCatchBlock {
 		// clear
 		tryBlock.handlers.clear();
 		tryBlock.removeWholeBlock(mth);
+		return true;
 	}
 
 	@Override

@@ -23,6 +23,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
+
 public class BlockUtils {
 
 	private BlockUtils() {
@@ -112,12 +114,17 @@ public class BlockUtils {
 	}
 
 	public static boolean checkLastInsnType(BlockNode block, InsnType expectedType) {
+		InsnNode insn = getLastInsn(block);
+		return insn != null && insn.getType() == expectedType;
+	}
+
+	@Nullable
+	public static InsnNode getLastInsn(BlockNode block) {
 		List<InsnNode> insns = block.getInstructions();
 		if (insns.isEmpty()) {
-			return false;
+			return null;
 		}
-		InsnNode insn = insns.get(insns.size() - 1);
-		return insn.getType() == expectedType;
+		return insns.get(insns.size() - 1);
 	}
 
 	public static BlockNode getBlockByInsn(MethodNode mth, InsnNode insn) {
@@ -135,7 +142,7 @@ public class BlockUtils {
 		return null;
 	}
 
-	private static BlockNode searchBlockWithPhi(MethodNode mth, PhiInsn insn) {
+	public static BlockNode searchBlockWithPhi(MethodNode mth, PhiInsn insn) {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			PhiListAttr phiListAttr = block.get(AType.PHI_LIST);
 			if (phiListAttr != null) {
@@ -225,7 +232,11 @@ public class BlockUtils {
 	}
 
 	public static List<BlockNode> bitSetToBlocks(MethodNode mth, BitSet bs) {
-		List<BlockNode> blocks = new ArrayList<BlockNode>(bs.cardinality());
+		int size = bs.cardinality();
+		if (size == 0) {
+			return Collections.emptyList();
+		}
+		List<BlockNode> blocks = new ArrayList<BlockNode>(size);
 		for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
 			BlockNode block = mth.getBasicBlocks().get(i);
 			blocks.add(block);

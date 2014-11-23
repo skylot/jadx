@@ -1,8 +1,7 @@
-package jadx.core.dex.visitors;
+package jadx.core.dex.visitors.blocksmaker;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -14,14 +13,16 @@ import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlock;
+import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InstructionRemover;
 
-import java.util.List;
+import java.util.Iterator;
 
-public class BlockProcessingHelper {
+public class BlockExceptionHandler extends AbstractVisitor {
 
-	public static void visit(MethodNode mth) {
+	@Override
+	public void visit(MethodNode mth) {
 		if (mth.isNoCode()) {
 			return;
 		}
@@ -30,13 +31,22 @@ public class BlockProcessingHelper {
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {
 			block.updateCleanSuccessors();
-			initBlocksInIfNodes(block);
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {
 			processExceptionHandlers(mth, block);
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {
 			processTryCatchBlocks(mth, block);
+		}
+
+		for (BlockNode block : mth.getBasicBlocks()) {
+			Iterator<InsnNode> it = block.getInstructions().iterator();
+			while (it.hasNext()) {
+				InsnNode insn = it.next();
+				if (insn.getType() == InsnType.NOP) {
+					it.remove();
+				}
+			}
 		}
 	}
 
@@ -88,24 +98,35 @@ public class BlockProcessingHelper {
 
 				// if 'throw' in exception handler block have 'catch' - merge these catch blocks
 				for (InsnNode insn : excBlock.getInstructions()) {
-					if (insn.getType() == InsnType.THROW) {
-						CatchAttr catchAttr = insn.get(AType.CATCH_BLOCK);
-						if (catchAttr != null) {
-							TryCatchBlock handlerBlock = handlerAttr.getTryBlock();
-							TryCatchBlock catchBlock = catchAttr.getTryBlock();
-							if (handlerBlock != catchBlock) { // TODO: why it can be?
-								handlerBlock.merge(mth, catchBlock);
-								catchBlock.removeInsn(insn);
-							}
-						}
+					CatchAttr catchAttr = insn.get(AType.CATCH_BLOCK);
+					if (catchAttr == null) {
+						continue;
+					}
+					if (insn.getType() == InsnType.THROW
+							|| onlyAllHandler(catchAttr.getTryBlock())) {
+						TryCatchBlock handlerBlock = handlerAttr.getTryBlock();
+						TryCatchBlock catchBlock = catchAttr.getTryBlock();
+						handlerBlock.merge(mth, catchBlock);
 					}
 				}
 			}
 		}
 	}
 
+	private static boolean onlyAllHandler(TryCatchBlock tryBlock) {
+		if (tryBlock.getHandlersCount() == 1) {
+			ExceptionHandler eh = tryBlock.getHandlers().iterator().next();
+			if (eh.isCatchAll() || eh.isFinally()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * If all instructions in block have same 'catch' attribute mark it as 'TryCatch' block.
+	 */
 	private static void processTryCatchBlocks(MethodNode mth, BlockNode block) {
-		// if all instructions in block have same 'catch' attribute mark it as 'TryCatch' block
 		CatchAttr commonCatchAttr = null;
 		for (InsnNode insn : block.getInstructions()) {
 			CatchAttr catchAttr = insn.get(AType.CATCH_BLOCK);
@@ -135,19 +156,6 @@ public class BlockProcessingHelper {
 			if (bh != null && bh.getHandler().getHandleOffset() == addr) {
 				handler.setHandlerBlock(block);
 				break;
-			}
-		}
-	}
-
-	/**
-	 * Init 'then' and 'else' blocks for 'if' instruction.
-	 */
-	private static void initBlocksInIfNodes(BlockNode block) {
-		List<InsnNode> instructions = block.getInstructions();
-		if (instructions.size() == 1) {
-			InsnNode insn = instructions.get(0);
-			if (insn.getType() == InsnType.IF) {
-				((IfNode) insn).initBlocks(block);
 			}
 		}
 	}

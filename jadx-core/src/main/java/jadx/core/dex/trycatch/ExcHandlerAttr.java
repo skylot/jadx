@@ -28,8 +28,8 @@ public class ExcHandlerAttr implements IAttribute {
 
 	@Override
 	public String toString() {
-		return "ExcHandler: "
-				+ (handler.isCatchAll() ? "all" : handler.getCatchType())
-				+ " " + handler.getArg();
+		return "ExcHandler: " + (handler.isFinally()
+				? " FINALLY"
+				: (handler.isCatchAll() ? "all" : handler.getCatchType()) + " " + handler.getArg());
 	}
 }

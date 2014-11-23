@@ -3,6 +3,7 @@ package jadx.core.dex.nodes;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
+import jadx.core.dex.attributes.nodes.IgnoreEdgeAttr;
 import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.utils.InsnUtils;
 
@@ -98,6 +99,10 @@ public class BlockNode extends AttrNode implements IBlock {
 			for (LoopInfo loop : loops) {
 				toRemove.add(loop.getStart());
 			}
+		}
+		IgnoreEdgeAttr ignoreEdgeAttr = block.get(AType.IGNORE_EDGE);
+		if (ignoreEdgeAttr != null) {
+			toRemove.addAll(ignoreEdgeAttr.getBlocks());
 		}
 		if (toRemove.isEmpty()) {
 			return sucList;

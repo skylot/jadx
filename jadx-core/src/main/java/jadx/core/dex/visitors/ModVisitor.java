@@ -28,7 +28,6 @@ import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.utils.InstructionRemover;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,10 +50,6 @@ public class ModVisitor extends AbstractVisitor {
 		removeStep(mth, remover);
 
 		checkArgsNames(mth);
-
-		for (BlockNode block : mth.getBasicBlocks()) {
-			processExceptionHandler(mth, block);
-		}
 	}
 
 	private static void replaceStep(MethodNode mth, InstructionRemover remover) {
@@ -108,6 +103,10 @@ public class ModVisitor extends AbstractVisitor {
 								arg.wrapInstruction(new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0));
 							}
 						}
+						break;
+
+					case MOVE_EXCEPTION:
+						processMoveException(mth, block, insn, remover);
 						break;
 
 					default:
@@ -284,70 +283,33 @@ public class ModVisitor extends AbstractVisitor {
 		}
 	}
 
-	private static void processExceptionHandler(MethodNode mth, BlockNode block) {
-		ExcHandlerAttr handlerAttr = block.get(AType.EXC_HANDLER);
-		if (handlerAttr == null) {
+	private static void processMoveException(MethodNode mth, BlockNode block, InsnNode insn,
+			InstructionRemover remover) {
+		ExcHandlerAttr excHandlerAttr = block.get(AType.EXC_HANDLER);
+		if (excHandlerAttr == null) {
 			return;
 		}
-		ExceptionHandler excHandler = handlerAttr.getHandler();
-		boolean noExitNode = true; // check if handler has exit edge to block not from this handler
-		boolean reThrow = false;
-		for (BlockNode excBlock : excHandler.getBlocks()) {
-			if (noExitNode) {
-				noExitNode = excHandler.getBlocks().containsAll(excBlock.getCleanSuccessors());
-			}
+		ExceptionHandler excHandler = excHandlerAttr.getHandler();
 
-			List<InsnNode> insns = excBlock.getInstructions();
-			int size = insns.size();
-			if (excHandler.isCatchAll()
-					&& size > 0
-					&& insns.get(size - 1).getType() == InsnType.THROW) {
-				reThrow = true;
-				InstructionRemover.remove(mth, excBlock, size - 1);
-
-				// move not removed instructions to 'finally' block
-				if (!insns.isEmpty()) {
-					// TODO: support instructions from several blocks
-					// tryBlock.setFinalBlockFromInsns(mth, insns);
-					// TODO: because of incomplete realization don't extract final block,
-					// just remove unnecessary instructions
-					insns.clear();
-				}
-			}
+		// result arg used both in this insn and exception handler,
+		RegisterArg resArg = insn.getResult();
+		ArgType type = excHandler.isCatchAll() ? ArgType.THROWABLE : excHandler.getCatchType().getType();
+		String name = excHandler.isCatchAll() ? "th" : "e";
+		if (resArg.getName() == null) {
+			resArg.setName(name);
 		}
-
-		List<InsnNode> blockInsns = block.getInstructions();
-		if (!blockInsns.isEmpty()) {
-			InsnNode insn = blockInsns.get(0);
-			if (insn.getType() == InsnType.MOVE_EXCEPTION) {
-				// result arg used both in this insn and exception handler,
-				RegisterArg resArg = insn.getResult();
-				ArgType type = excHandler.isCatchAll() ? ArgType.THROWABLE : excHandler.getCatchType().getType();
-				String name = excHandler.isCatchAll() ? "th" : "e";
-				if (resArg.getName() == null) {
-					resArg.setName(name);
-				}
-				SSAVar sVar = insn.getResult().getSVar();
-				if (sVar.getUseCount() == 0) {
-					excHandler.setArg(new NamedArg(name, type));
-					InstructionRemover.remove(mth, block, 0);
-				} else if (sVar.isUsedInPhi()) {
-					// exception var moved to external variable => replace with 'move' insn
-					InsnNode moveInsn = new InsnNode(InsnType.MOVE, 1);
-					moveInsn.setResult(insn.getResult());
-					NamedArg namedArg = new NamedArg(name, type);
-					moveInsn.addArg(namedArg);
-					excHandler.setArg(namedArg);
-					replaceInsn(block, 0, moveInsn);
-				}
-			}
-		}
-		int totalSize = 0;
-		for (BlockNode excBlock : excHandler.getBlocks()) {
-			totalSize += excBlock.getInstructions().size();
-		}
-		if (totalSize == 0 && noExitNode && reThrow) {
-			handlerAttr.getTryBlock().removeHandler(mth, excHandler);
+		SSAVar sVar = insn.getResult().getSVar();
+		if (sVar.getUseCount() == 0) {
+			excHandler.setArg(new NamedArg(name, type));
+			remover.add(insn);
+		} else if (sVar.isUsedInPhi()) {
+			// exception var moved to external variable => replace with 'move' insn
+			InsnNode moveInsn = new InsnNode(InsnType.MOVE, 1);
+			moveInsn.setResult(insn.getResult());
+			NamedArg namedArg = new NamedArg(name, type);
+			moveInsn.addArg(namedArg);
+			excHandler.setArg(namedArg);
+			replaceInsn(block, 0, moveInsn);
 		}
 	}
 

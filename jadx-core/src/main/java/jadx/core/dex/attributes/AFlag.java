@@ -10,6 +10,7 @@ public enum AFlag {
 	SYNTHETIC,
 
 	RETURN, // block contains only return instruction
+	ORIG_RETURN,
 
 	DECLARE_VAR,
 	DONT_WRAP,
@@ -18,6 +19,7 @@ public enum AFlag {
 	DONT_INLINE,
 	DONT_GENERATE,
 	SKIP,
+	REMOVE,
 
 	SKIP_FIRST_ARG,
 	ANONYMOUS_CONSTRUCTOR,

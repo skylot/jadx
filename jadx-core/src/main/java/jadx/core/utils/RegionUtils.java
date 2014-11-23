@@ -183,10 +183,6 @@ public class RegionUtils {
 							return true;
 						}
 					}
-					if (tb.getFinalRegion() != null
-							&& isRegionContainsRegion(tb.getFinalRegion(), region)) {
-						return true;
-					}
 				}
 				if (isRegionContainsRegion(b, region)) {
 					return true;

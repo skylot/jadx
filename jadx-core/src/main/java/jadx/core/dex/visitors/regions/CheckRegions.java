@@ -4,6 +4,7 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBlock;
+import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.loops.LoopRegion;
@@ -11,9 +12,8 @@ import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.JadxException;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -30,9 +30,11 @@ public class CheckRegions extends AbstractVisitor {
 			return;
 		}
 
+		// printRegion(mth, mth.getRegion(), "|");
+
 		// check if all blocks included in regions
 		final Set<BlockNode> blocksInRegions = new HashSet<BlockNode>();
-		DepthRegionTraversal.traverseAll(mth, new AbstractRegionVisitor() {
+		DepthRegionTraversal.traverse(mth, new AbstractRegionVisitor() {
 			@Override
 			public void processBlock(MethodNode mth, IBlock container) {
 				if (!(container instanceof BlockNode)) {
@@ -49,7 +51,7 @@ public class CheckRegions extends AbstractVisitor {
 					// TODO
 					// mth.add(AFlag.INCONSISTENT_CODE);
 					LOG.debug(" Duplicated block: {} in {}", block, mth);
-					// printRegionsWithBlock(mth, block);
+					printRegionsWithBlock(mth, block);
 				}
 			}
 		});
@@ -79,7 +81,7 @@ public class CheckRegions extends AbstractVisitor {
 	}
 
 	private static void printRegionsWithBlock(MethodNode mth, final BlockNode block) {
-		final List<IRegion> regions = new ArrayList<IRegion>();
+		final Set<IRegion> regions = new LinkedHashSet<IRegion>();
 		DepthRegionTraversal.traverseAll(mth, new TracedRegionVisitor() {
 			@Override
 			public void processBlockTraced(MethodNode mth, IBlock container, IRegion currentRegion) {
@@ -89,5 +91,16 @@ public class CheckRegions extends AbstractVisitor {
 			}
 		});
 		LOG.debug(" Found block: {} in regions: {}", block, regions);
+	}
+
+	private void printRegion(MethodNode mth, IRegion region, String indent) {
+		LOG.debug(indent + region);
+		for (IContainer container : region.getSubBlocks()) {
+			if (container instanceof IRegion) {
+				printRegion(mth, (IRegion) container, indent + "  ");
+			} else {
+				LOG.debug(indent + "  " + container);
+			}
+		}
 	}
 }

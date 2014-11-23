@@ -1,10 +1,8 @@
-package jadx.core.dex.visitors;
+package jadx.core.dex.visitors.blocksmaker;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.attributes.nodes.LoopInfo;
-import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -12,172 +10,37 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.Edge;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.trycatch.CatchAttr;
-import jadx.core.dex.trycatch.ExceptionHandler;
-import jadx.core.dex.trycatch.SplitterBlockAttr;
+import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static jadx.core.dex.visitors.blocksmaker.BlockSplitter.connect;
+import static jadx.core.dex.visitors.blocksmaker.BlockSplitter.removeConnection;
 import static jadx.core.utils.EmptyBitSet.EMPTY;
 
-public class BlockMakerVisitor extends AbstractVisitor {
-
-	// leave these instructions alone in block node
-	private static final Set<InsnType> SEPARATE_INSNS = EnumSet.of(
-			InsnType.RETURN,
-			InsnType.IF,
-			InsnType.SWITCH,
-			InsnType.MONITOR_ENTER,
-			InsnType.MONITOR_EXIT
-	);
+public class BlockProcessor extends AbstractVisitor {
+	private static final Logger LOG = LoggerFactory.getLogger(BlockProcessor.class);
 
 	@Override
 	public void visit(MethodNode mth) {
 		if (mth.isNoCode()) {
 			return;
 		}
-		mth.checkInstructions();
-
-		mth.initBasicBlocks();
-		splitBasicBlocks(mth);
 		processBlocksTree(mth);
-		BlockProcessingHelper.visit(mth);
-		mth.finishBasicBlocks();
 	}
 
-	private static void splitBasicBlocks(MethodNode mth) {
-		InsnNode prevInsn = null;
-		Map<Integer, BlockNode> blocksMap = new HashMap<Integer, BlockNode>();
-		BlockNode curBlock = startNewBlock(mth, 0);
-		mth.setEnterBlock(curBlock);
-
-		// split into blocks
-		for (InsnNode insn : mth.getInstructions()) {
-			if (insn == null) {
-				continue;
-			}
-			boolean startNew = false;
-			if (prevInsn != null) {
-				InsnType type = prevInsn.getType();
-				if (type == InsnType.GOTO
-						|| type == InsnType.THROW
-						|| SEPARATE_INSNS.contains(type)) {
-
-					if (type == InsnType.RETURN || type == InsnType.THROW) {
-						mth.addExitBlock(curBlock);
-					}
-					BlockNode block = startNewBlock(mth, insn.getOffset());
-					if (type == InsnType.MONITOR_ENTER || type == InsnType.MONITOR_EXIT) {
-						connect(curBlock, block);
-					}
-					curBlock = block;
-					startNew = true;
-				} else {
-					startNew = isSplitByJump(prevInsn, insn)
-							|| SEPARATE_INSNS.contains(insn.getType())
-							|| isDoWhile(blocksMap, curBlock, insn);
-					if (startNew) {
-						BlockNode block = startNewBlock(mth, insn.getOffset());
-						connect(curBlock, block);
-						curBlock = block;
-					}
-				}
-			}
-			// for try/catch make empty block for connect handlers
-			if (insn.contains(AFlag.TRY_ENTER)) {
-				BlockNode block;
-				if (insn.getOffset() != 0 && !startNew) {
-					block = startNewBlock(mth, insn.getOffset());
-					connect(curBlock, block);
-					curBlock = block;
-				}
-				blocksMap.put(insn.getOffset(), curBlock);
-
-				// add this insn in new block
-				block = startNewBlock(mth, -1);
-				curBlock.add(AFlag.SYNTHETIC);
-				SplitterBlockAttr splitter = new SplitterBlockAttr(curBlock);
-				block.addAttr(splitter);
-				curBlock.addAttr(splitter);
-				connect(curBlock, block);
-				curBlock = block;
-			} else {
-				blocksMap.put(insn.getOffset(), curBlock);
-			}
-			curBlock.getInstructions().add(insn);
-			prevInsn = insn;
-		}
-		// setup missing connections
-		setupConnections(mth, blocksMap);
-	}
-
-	private static void setupConnections(MethodNode mth, Map<Integer, BlockNode> blocksMap) {
-		for (BlockNode block : mth.getBasicBlocks()) {
-			for (InsnNode insn : block.getInstructions()) {
-				List<JumpInfo> jumps = insn.getAll(AType.JUMP);
-				for (JumpInfo jump : jumps) {
-					BlockNode srcBlock = getBlock(jump.getSrc(), blocksMap);
-					BlockNode thisBlock = getBlock(jump.getDest(), blocksMap);
-					connect(srcBlock, thisBlock);
-				}
-
-				// connect exception handlers
-				CatchAttr catches = insn.get(AType.CATCH_BLOCK);
-				// get synthetic block for handlers
-				SplitterBlockAttr spl = block.get(AType.SPLITTER_BLOCK);
-				if (catches != null && spl != null) {
-					BlockNode splitterBlock = spl.getBlock();
-					boolean tryEnd = insn.contains(AFlag.TRY_LEAVE);
-					for (ExceptionHandler h : catches.getTryBlock().getHandlers()) {
-						BlockNode handlerBlock = getBlock(h.getHandleOffset(), blocksMap);
-						// skip self loop in handler
-						if (splitterBlock != handlerBlock) {
-							connect(splitterBlock, handlerBlock);
-						}
-						if (tryEnd) {
-							connect(block, handlerBlock);
-						}
-					}
-				}
-			}
-		}
-	}
-
-	private static boolean isSplitByJump(InsnNode prevInsn, InsnNode currentInsn) {
-		List<JumpInfo> pJumps = prevInsn.getAll(AType.JUMP);
-		for (JumpInfo jump : pJumps) {
-			if (jump.getSrc() == prevInsn.getOffset()) {
-				return true;
-			}
-		}
-		List<JumpInfo> cJumps = currentInsn.getAll(AType.JUMP);
-		for (JumpInfo jump : cJumps) {
-			if (jump.getDest() == currentInsn.getOffset()) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private static boolean isDoWhile(Map<Integer, BlockNode> blocksMap, BlockNode curBlock, InsnNode insn) {
-		// split 'do-while' block (last instruction: 'if', target this block)
-		if (insn.getType() == InsnType.IF) {
-			IfNode ifs = (IfNode) (insn);
-			BlockNode targetBlock = blocksMap.get(ifs.getTarget());
-			if (targetBlock == curBlock) {
-				return true;
-			}
-		}
-		return false;
+	public static void rerun(MethodNode mth) {
+		removeBlocks(mth);
+		clearBlocksState(mth);
+		processBlocksTree(mth);
 	}
 
 	private static void processBlocksTree(MethodNode mth) {
@@ -199,32 +62,6 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		computeDominanceFrontier(mth);
 		registerLoops(mth);
 		processNestedLoops(mth);
-	}
-
-	private static BlockNode getBlock(int offset, Map<Integer, BlockNode> blocksMap) {
-		BlockNode block = blocksMap.get(offset);
-		assert block != null;
-		return block;
-	}
-
-	private static void connect(BlockNode from, BlockNode to) {
-		if (!from.getSuccessors().contains(to)) {
-			from.getSuccessors().add(to);
-		}
-		if (!to.getPredecessors().contains(from)) {
-			to.getPredecessors().add(from);
-		}
-	}
-
-	private static void removeConnection(BlockNode from, BlockNode to) {
-		from.getSuccessors().remove(to);
-		to.getPredecessors().remove(from);
-	}
-
-	private static BlockNode startNewBlock(MethodNode mth, int offset) {
-		BlockNode block = new BlockNode(mth.getBasicBlocks().size(), offset);
-		mth.getBasicBlocks().add(block);
-		return block;
 	}
 
 	private static void computeDominators(MethodNode mth) {
@@ -308,14 +145,18 @@ public class BlockMakerVisitor extends AbstractVisitor {
 	}
 
 	private static void computeBlockDF(MethodNode mth, BlockNode block) {
+		if (block.getDomFrontier() != null) {
+			return;
+		}
 		for (BlockNode c : block.getDominatesOn()) {
 			computeBlockDF(mth, c);
 		}
+		List<BlockNode> blocks = mth.getBasicBlocks();
 		BitSet domFrontier = null;
 		for (BlockNode s : block.getSuccessors()) {
 			if (s.getIDom() != block) {
 				if (domFrontier == null) {
-					domFrontier = new BitSet();
+					domFrontier = new BitSet(blocks.size());
 				}
 				domFrontier.set(s.getId());
 			}
@@ -323,9 +164,9 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		for (BlockNode c : block.getDominatesOn()) {
 			BitSet frontier = c.getDomFrontier();
 			for (int p = frontier.nextSetBit(0); p >= 0; p = frontier.nextSetBit(p + 1)) {
-				if (mth.getBasicBlocks().get(p).getIDom() != block) {
+				if (blocks.get(p).getIDom() != block) {
 					if (domFrontier == null) {
-						domFrontier = new BitSet();
+						domFrontier = new BitSet(blocks.size());
 					}
 					domFrontier.set(p);
 				}
@@ -418,7 +259,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 				}
 				if (oneHeader) {
 					// several back edges connected to one loop header => make additional block
-					BlockNode newLoopHeader = startNewBlock(mth, block.getStartOffset());
+					BlockNode newLoopHeader = BlockSplitter.startNewBlock(mth, block.getStartOffset());
 					newLoopHeader.add(AFlag.SYNTHETIC);
 					connect(newLoopHeader, block);
 					for (LoopInfo la : loops) {
@@ -438,7 +279,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 					for (Edge edge : edges) {
 						BlockNode target = edge.getTarget();
 						if (!target.contains(AFlag.SYNTHETIC)) {
-							insertBlockBetween(mth, edge.getSource(), target);
+							BlockSplitter.insertBlockBetween(mth, edge.getSource(), target);
 							change = true;
 						}
 					}
@@ -453,7 +294,7 @@ public class BlockMakerVisitor extends AbstractVisitor {
 					List<BlockNode> nodes = new ArrayList<BlockNode>(loopEnd.getPredecessors());
 					for (BlockNode pred : nodes) {
 						if (!pred.contains(AFlag.SYNTHETIC)) {
-							insertBlockBetween(mth, pred, loopEnd);
+							BlockSplitter.insertBlockBetween(mth, pred, loopEnd);
 							change = true;
 						}
 					}
@@ -464,15 +305,6 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			}
 		}
 		return splitReturn(mth);
-	}
-
-	private static BlockNode insertBlockBetween(MethodNode mth, BlockNode source, BlockNode target) {
-		BlockNode newBlock = startNewBlock(mth, target.getStartOffset());
-		newBlock.add(AFlag.SYNTHETIC);
-		removeConnection(source, target);
-		connect(source, newBlock);
-		connect(newBlock, target);
-		return newBlock;
 	}
 
 	/**
@@ -493,11 +325,12 @@ public class BlockMakerVisitor extends AbstractVisitor {
 			}
 			boolean first = true;
 			for (BlockNode pred : preds) {
-				BlockNode newRetBlock = startNewBlock(mth, exitBlock.getStartOffset());
+				BlockNode newRetBlock = BlockSplitter.startNewBlock(mth, exitBlock.getStartOffset());
 				newRetBlock.add(AFlag.SYNTHETIC);
 				InsnNode newRetInsn;
 				if (first) {
 					newRetInsn = returnInsn;
+					newRetBlock.add(AFlag.ORIG_RETURN);
 					first = false;
 				} else {
 					newRetInsn = duplicateReturnInsn(returnInsn);
@@ -546,6 +379,21 @@ public class BlockMakerVisitor extends AbstractVisitor {
 		insn.setOffset(returnInsn.getOffset());
 		insn.setSourceLine(returnInsn.getSourceLine());
 		return insn;
+	}
+
+	private static void removeBlocks(MethodNode mth) {
+		Iterator<BlockNode> it = mth.getBasicBlocks().iterator();
+		while (it.hasNext()) {
+			BlockNode block = it.next();
+			if (block.contains(AFlag.REMOVE)) {
+				if (!block.getPredecessors().isEmpty()
+						|| !block.getSuccessors().isEmpty()) {
+					LOG.error("Block {} not deleted, method: {}", block, mth);
+				} else {
+					it.remove();
+				}
+			}
+		}
 	}
 
 	private static void clearBlocksState(MethodNode mth) {

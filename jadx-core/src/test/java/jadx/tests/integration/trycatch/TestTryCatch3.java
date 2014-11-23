@@ -6,27 +6,47 @@ import jadx.tests.api.IntegrationTest;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class TestTryCatch3 extends IntegrationTest {
 
 	public static class TestCls {
-		private final static Object obj = new Object();
-		private boolean mDiscovering;
+		private int f = 0;
 
 		private boolean test(Object obj) {
-			this.mDiscovering = false;
+			boolean res;
 			try {
-				exc(obj);
+				res = exc(obj);
 			} catch (Exception e) {
-				e.toString();
+				res = false;
 			} finally {
-				mDiscovering = true;
+				f++;
 			}
-			return mDiscovering;
+			return res;
 		}
 
-		private void exc(Object obj) throws Exception {
+		private boolean exc(Object obj) throws Exception {
+			if ("r".equals(obj)) {
+				throw new AssertionError();
+			}
+			return true;
+		}
+
+		public void check() {
+			f = 0;
+			assertTrue(test(null));
+			assertEquals(1, f);
+
+			f = 0;
+			try {
+				test("r");
+			} catch (AssertionError e) {
+				// pass
+			}
+			assertEquals(1, f);
 		}
 	}
 
@@ -38,5 +58,16 @@ public class TestTryCatch3 extends IntegrationTest {
 		assertThat(code, containsString("try {"));
 		assertThat(code, containsString("exc(obj);"));
 		assertThat(code, containsString("} catch (Exception e) {"));
+
+		assertThat(code, not(containsString("throw th;")));
+	}
+
+	@Test
+	public void test2() {
+		noDebugInfo();
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, not(containsString("throw th;")));
 	}
 }

@@ -21,6 +21,7 @@ public class ExceptionHandler {
 	private InsnArg arg;
 
 	private TryCatchBlock tryBlock;
+	private boolean isFinally;
 
 	public ExceptionHandler(int addr, ClassInfo type) {
 		this.handleOffset = addr;
@@ -77,6 +78,14 @@ public class ExceptionHandler {
 
 	public TryCatchBlock getTryBlock() {
 		return tryBlock;
+	}
+
+	public boolean isFinally() {
+		return isFinally;
+	}
+
+	public void setFinally(boolean isFinally) {
+		this.isFinally = isFinally;
 	}
 
 	@Override

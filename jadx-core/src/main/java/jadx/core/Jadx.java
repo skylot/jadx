@@ -2,7 +2,6 @@ package jadx.core;
 
 import jadx.api.IJadxArgs;
 import jadx.core.codegen.CodeGen;
-import jadx.core.dex.visitors.BlockMakerVisitor;
 import jadx.core.dex.visitors.ClassModifier;
 import jadx.core.dex.visitors.CodeShrinker;
 import jadx.core.dex.visitors.ConstInlinerVisitor;
@@ -16,6 +15,11 @@ import jadx.core.dex.visitors.ModVisitor;
 import jadx.core.dex.visitors.PrepareForCodeGen;
 import jadx.core.dex.visitors.ReSugarCode;
 import jadx.core.dex.visitors.SimplifyVisitor;
+import jadx.core.dex.visitors.blocksmaker.BlockExceptionHandler;
+import jadx.core.dex.visitors.blocksmaker.BlockFinallyExtract;
+import jadx.core.dex.visitors.blocksmaker.BlockFinish;
+import jadx.core.dex.visitors.blocksmaker.BlockProcessor;
+import jadx.core.dex.visitors.blocksmaker.BlockSplitter;
 import jadx.core.dex.visitors.regions.CheckRegions;
 import jadx.core.dex.visitors.regions.IfRegionVisitor;
 import jadx.core.dex.visitors.regions.LoopRegionVisitor;
@@ -55,10 +59,16 @@ public class Jadx {
 		if (args.isFallbackMode()) {
 			passes.add(new FallbackModeVisitor());
 		} else {
-			passes.add(new BlockMakerVisitor());
+			passes.add(new BlockSplitter());
+			passes.add(new BlockProcessor());
+			passes.add(new BlockExceptionHandler());
+			passes.add(new BlockFinallyExtract());
+			passes.add(new BlockFinish());
+
 			passes.add(new SSATransform());
 			passes.add(new DebugInfoVisitor());
 			passes.add(new TypeInference());
+
 			if (args.isRawCFGOutput()) {
 				passes.add(DotGraphVisitor.dumpRaw(outDir));
 			}
@@ -72,6 +82,7 @@ public class Jadx {
 
 			passes.add(new CodeShrinker());
 			passes.add(new ReSugarCode());
+
 			if (args.isCFGOutput()) {
 				passes.add(DotGraphVisitor.dump(outDir));
 			}

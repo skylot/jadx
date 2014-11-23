@@ -237,31 +237,32 @@ public class DebugInfoParser {
 	}
 
 	private static void merge(InsnArg arg, LocalVar var) {
-		if (arg != null && arg.isRegister()) {
-			RegisterArg reg = (RegisterArg) arg;
-			if (var.getRegNum() == reg.getRegNum()) {
-				SSAVar ssaVar = reg.getSVar();
+		if (arg == null || !arg.isRegister()) {
+			return;
+		}
+		RegisterArg reg = (RegisterArg) arg;
+		if (var.getRegNum() != reg.getRegNum()) {
+			return;
+		}
+		boolean mergeRequired = false;
 
-				boolean mergeRequired = false;
+		SSAVar ssaVar = reg.getSVar();
+		if (ssaVar != null) {
+			int ssaEnd = ssaVar.getEndAddr();
+			int ssaStart = ssaVar.getStartAddr();
+			int localStart = var.getStartAddr();
+			int localEnd = var.getEndAddr();
 
-				if (ssaVar != null) {
-					int ssaEnd = ssaVar.getEndAddr();
-					int ssaStart = ssaVar.getStartAddr();
-					int localStart = var.getStartAddr();
-					int localEnd = var.getEndAddr();
-
-					boolean isIntersected = !((localEnd < ssaStart) || (ssaEnd < localStart));
-					if (isIntersected && (ssaEnd <= localEnd)) {
-						mergeRequired = true;
-					}
-				} else {
-					mergeRequired = true;
-				}
-
-				if (mergeRequired) {
-					reg.mergeDebugInfo(var.getType(), var.getName());
-				}
+			boolean isIntersected = !((localEnd < ssaStart) || (ssaEnd < localStart));
+			if (isIntersected && (ssaEnd <= localEnd)) {
+				mergeRequired = true;
 			}
+		} else {
+			mergeRequired = true;
+		}
+
+		if (mergeRequired) {
+			reg.mergeDebugInfo(var.getType(), var.getName());
 		}
 	}
 }

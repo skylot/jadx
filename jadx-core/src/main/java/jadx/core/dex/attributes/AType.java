@@ -7,6 +7,7 @@ import jadx.core.dex.attributes.nodes.EnumClassAttr;
 import jadx.core.dex.attributes.nodes.EnumMapAttr;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.attributes.nodes.ForceReturnAttr;
+import jadx.core.dex.attributes.nodes.IgnoreEdgeAttr;
 import jadx.core.dex.attributes.nodes.JadxErrorAttr;
 import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.attributes.nodes.LoopInfo;
@@ -51,4 +52,5 @@ public class AType<T extends IAttribute> {
 	public static final AType<SourceFileAttr> SOURCE_FILE = new AType<SourceFileAttr>();
 	public static final AType<DeclareVariablesAttr> DECLARE_VARIABLES = new AType<DeclareVariablesAttr>();
 	public static final AType<LoopLabelAttr> LOOP_LABEL = new AType<LoopLabelAttr>();
+	public static final AType<IgnoreEdgeAttr> IGNORE_EDGE = new AType<IgnoreEdgeAttr>();
 }

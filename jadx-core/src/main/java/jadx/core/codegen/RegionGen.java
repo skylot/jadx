@@ -28,13 +28,13 @@ import jadx.core.dex.regions.loops.ForLoop;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.regions.loops.LoopType;
 import jadx.core.dex.trycatch.ExceptionHandler;
-import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -282,27 +282,28 @@ public class RegionGen extends InsnGen {
 	}
 
 	private void makeTryCatch(TryCatchRegion region, CodeWriter code) throws CodegenException {
-		TryCatchBlock tryCatchBlock = region.geTryCatchBlock();
 		code.startLine("try {");
 		makeRegionIndent(code, region.getTryRegion());
 		// TODO: move search of 'allHandler' to 'TryCatchRegion'
 		ExceptionHandler allHandler = null;
-		for (ExceptionHandler handler : tryCatchBlock.getHandlers()) {
-			if (!handler.isCatchAll()) {
-				makeCatchBlock(code, handler);
-			} else {
+		for (Map.Entry<ExceptionHandler, IContainer> entry : region.getCatchRegions().entrySet()) {
+			ExceptionHandler handler = entry.getKey();
+			if (handler.isCatchAll()) {
 				if (allHandler != null) {
 					LOG.warn("Several 'all' handlers in try/catch block in {}", mth);
 				}
 				allHandler = handler;
+			} else {
+				makeCatchBlock(code, handler);
 			}
 		}
 		if (allHandler != null) {
 			makeCatchBlock(code, allHandler);
 		}
-		if (tryCatchBlock.getFinalRegion() != null) {
+		IContainer finallyRegion = region.getFinallyRegion();
+		if (finallyRegion != null) {
 			code.startLine("} finally {");
-			makeRegionIndent(code, tryCatchBlock.getFinalRegion());
+			makeRegionIndent(code, finallyRegion);
 		}
 		code.startLine('}');
 	}

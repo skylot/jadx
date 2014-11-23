@@ -22,6 +22,7 @@ import jadx.core.dex.regions.conditions.IfRegion;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
+import jadx.core.dex.trycatch.SplitterBlockAttr;
 import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.ErrorsCounter;
@@ -316,7 +317,8 @@ public class RegionMaker {
 		Region body = makeRegion(loopStart, stack);
 		BlockNode loopEnd = loop.getEnd();
 		if (!RegionUtils.isRegionContainsBlock(body, loopEnd)
-				&& !loopEnd.contains(AType.EXC_HANDLER)) {
+				&& !loopEnd.contains(AType.EXC_HANDLER)
+				&& !inExceptionHandlerBlocks(loopEnd)) {
 			body.getSubBlocks().add(loopEnd);
 		}
 		loopRegion.setBody(body);
@@ -328,6 +330,18 @@ public class RegionMaker {
 		stack.pop();
 		loopStart.addAttr(AType.LOOP, loop);
 		return loopExit;
+	}
+
+	private boolean inExceptionHandlerBlocks(BlockNode loopEnd) {
+		if (mth.getExceptionHandlersCount() == 0) {
+			return false;
+		}
+		for (ExceptionHandler eh : mth.getExceptionHandlers()) {
+			if (eh.getBlocks().contains(loopEnd)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private boolean canInsertBreak(BlockNode exit) {
@@ -747,23 +761,33 @@ public class RegionMaker {
 		}
 	}
 
+	// TODO add blocks common for several handlers to some region
 	private void processExcHandler(ExceptionHandler handler, Set<BlockNode> exits) {
 		BlockNode start = handler.getHandlerBlock();
 		if (start == null) {
 			return;
 		}
-
-		// TODO extract finally part which exists in all handlers from same try block
-		// TODO add blocks common for several handlers to some region
-
 		RegionStack stack = new RegionStack(mth);
-		stack.addExits(exits);
-
-		BlockNode exit = BlockUtils.traverseWhileDominates(start, start);
-		if (exit != null && RegionUtils.isRegionContainsBlock(mth.getRegion(), exit)) {
-			stack.addExit(exit);
+		BlockNode dom;
+		if (handler.isFinally()) {
+			SplitterBlockAttr splitterAttr = start.get(AType.SPLITTER_BLOCK);
+			if (splitterAttr == null) {
+				return;
+			}
+			dom = splitterAttr.getBlock();
+		} else {
+			dom = start;
+			stack.addExits(exits);
 		}
-
+		BitSet domFrontier = dom.getDomFrontier();
+		List<BlockNode> handlerExits = BlockUtils.bitSetToBlocks(mth, domFrontier);
+		boolean inLoop = mth.getLoopForBlock(start) != null;
+		for (BlockNode exit : handlerExits) {
+			if ((!inLoop || BlockUtils.isPathExists(start, exit))
+					&& RegionUtils.isRegionContainsBlock(mth.getRegion(), exit)) {
+				stack.addExit(exit);
+			}
+		}
 		handler.setHandlerRegion(makeRegion(start, stack));
 
 		ExcHandlerAttr excHandlerAttr = start.get(AType.EXC_HANDLER);

@@ -446,6 +446,8 @@ public class InsnGen {
 				break;
 
 			case PHI:
+				assert isFallback();
+				code.add("PHI(").add(String.valueOf(insn.getArgsCount())).add(")");
 				break;
 
 			/* fallback mode instructions */

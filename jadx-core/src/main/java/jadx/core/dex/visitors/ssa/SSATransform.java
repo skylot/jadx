@@ -105,16 +105,17 @@ public class SSATransform extends AbstractVisitor {
 		for (InsnNode insn : block.getInstructions()) {
 			if (insn.getType() != InsnType.PHI) {
 				for (InsnArg arg : insn.getArguments()) {
-					if (arg.isRegister()) {
-						RegisterArg reg = (RegisterArg) arg;
-						int regNum = reg.getRegNum();
-						SSAVar var = vars[regNum];
-						if (var == null) {
-							var = mth.makeNewSVar(regNum, vers, null);
-							vars[regNum] = var;
-						}
-						var.use(reg);
+					if (!arg.isRegister()) {
+						continue;
 					}
+					RegisterArg reg = (RegisterArg) arg;
+					int regNum = reg.getRegNum();
+					SSAVar var = vars[regNum];
+					if (var == null) {
+						throw new JadxRuntimeException("Not initialized variable reg: " + regNum
+								+ ", insn: " + insn + ", block:" + block + ", method: " + mth);
+					}
+					var.use(reg);
 				}
 			}
 			RegisterArg result = insn.getResult();
@@ -125,24 +126,24 @@ public class SSATransform extends AbstractVisitor {
 		}
 		for (BlockNode s : block.getSuccessors()) {
 			PhiListAttr phiList = s.get(AType.PHI_LIST);
-			if (phiList != null) {
-				int j = s.getPredecessors().indexOf(block);
-				if (j == -1) {
-					throw new JadxRuntimeException("Can't find predecessor for " + block + " " + s);
+			if (phiList == null) {
+				continue;
+			}
+			int j = s.getPredecessors().indexOf(block);
+			if (j == -1) {
+				throw new JadxRuntimeException("Can't find predecessor for " + block + " " + s);
+			}
+			for (PhiInsn phiInsn : phiList.getList()) {
+				if (j >= phiInsn.getArgsCount()) {
+					continue;
 				}
-				for (PhiInsn phiInsn : phiList.getList()) {
-					if (j >= phiInsn.getArgsCount()) {
-						continue;
-					}
-					int regNum = phiInsn.getResult().getRegNum();
-					SSAVar var = vars[regNum];
-					if (var == null) {
-						var = mth.makeNewSVar(regNum, vers, null);
-						vars[regNum] = var;
-					}
-					var.use(phiInsn.getArg(j));
-					var.setUsedInPhi(phiInsn);
+				int regNum = phiInsn.getResult().getRegNum();
+				SSAVar var = vars[regNum];
+				if (var == null) {
+					continue;
 				}
+				var.use(phiInsn.getArg(j));
+				var.setUsedInPhi(phiInsn);
 			}
 		}
 		for (BlockNode domOn : block.getDominatesOn()) {
@@ -231,7 +232,10 @@ public class SSATransform extends AbstractVisitor {
 			for (PhiInsn phiInsn : insnToRemove) {
 				if (list.remove(phiInsn)) {
 					for (InsnArg arg : phiInsn.getArguments()) {
-						((RegisterArg) arg).getSVar().setUsedInPhi(null);
+						SSAVar sVar = ((RegisterArg) arg).getSVar();
+						if (sVar != null) {
+							sVar.setUsedInPhi(null);
+						}
 					}
 					InstructionRemover.remove(mth, block, phiInsn);
 				}
