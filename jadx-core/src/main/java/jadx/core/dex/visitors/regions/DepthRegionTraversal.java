@@ -61,7 +61,8 @@ public class DepthRegionTraversal {
 		return false;
 	}
 
-	private static boolean traverseIterativeInternal(MethodNode mth, IRegionIterativeVisitor visitor, IContainer container) {
+	private static boolean traverseIterativeInternal(MethodNode mth, IRegionIterativeVisitor visitor,
+			IContainer container) {
 		if (container instanceof IRegion) {
 			IRegion region = (IRegion) container;
 			if (visitor.visitRegion(mth, region)) {

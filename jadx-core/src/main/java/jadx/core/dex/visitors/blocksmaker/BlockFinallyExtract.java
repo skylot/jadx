@@ -293,10 +293,11 @@ public class BlockFinallyExtract extends AbstractVisitor {
 	}
 
 	private static boolean sameInsns(InsnNode remInsn, InsnNode fInsn, BlocksRemoveInfo removeInfo) {
-		if (remInsn.getType() != fInsn.getType()
-				|| remInsn.getArgsCount() != fInsn.getArgsCount()) {
+		if (!remInsn.isSame(fInsn)) {
 			return false;
 		}
+		// TODO: check instance arg in ConstructorInsn
+		// TODO: compare literals
 		for (int i = 0; i < remInsn.getArgsCount(); i++) {
 			InsnArg remArg = remInsn.getArg(i);
 			InsnArg fArg = fInsn.getArg(i);
@@ -328,7 +329,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 			return true;
 		}
 		if (remBlock.getPredecessors().size() != 1) {
-			LOG.warn("Finally extract failed: remBlock pred: {}, {}", remBlock, remBlock.getPredecessors());
+			LOG.warn("Finally extract failed: remBlock pred: {}, {}, method: {}", remBlock, remBlock.getPredecessors(), mth);
 			return false;
 		}
 		BlockNode remBlockPred = remBlock.getPredecessors().get(0);

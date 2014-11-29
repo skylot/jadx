@@ -21,23 +21,6 @@ public class GotoNode extends InsnNode {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (!(obj instanceof GotoNode) || !super.equals(obj)) {
-			return false;
-		}
-		GotoNode gotoNode = (GotoNode) obj;
-		return target == gotoNode.target;
-	}
-
-	@Override
-	public int hashCode() {
-		return 31 * super.hashCode() + target;
-	}
-
-	@Override
 	public String toString() {
 		return super.toString() + "-> " + InsnUtils.formatOffset(target);
 	}

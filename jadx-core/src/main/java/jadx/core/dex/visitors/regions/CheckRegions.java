@@ -51,7 +51,7 @@ public class CheckRegions extends AbstractVisitor {
 					// TODO
 					// mth.add(AFlag.INCONSISTENT_CODE);
 					LOG.debug(" Duplicated block: {} in {}", block, mth);
-					printRegionsWithBlock(mth, block);
+					// printRegionsWithBlock(mth, block);
 				}
 			}
 		});

@@ -60,20 +60,15 @@ public final class TernaryInsn extends InsnNode {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean isSame(InsnNode obj) {
 		if (this == obj) {
 			return true;
 		}
-		if (!(obj instanceof TernaryInsn) || !super.equals(obj)) {
+		if (!(obj instanceof TernaryInsn) || !super.isSame(obj)) {
 			return false;
 		}
 		TernaryInsn that = (TernaryInsn) obj;
 		return condition.equals(that.condition);
-	}
-
-	@Override
-	public int hashCode() {
-		return 31 * super.hashCode() + condition.hashCode();
 	}
 
 	@Override

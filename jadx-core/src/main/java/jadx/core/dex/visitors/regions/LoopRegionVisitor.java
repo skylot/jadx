@@ -124,7 +124,8 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		return true;
 	}
 
-	private static LoopType checkArrayForEach(MethodNode mth, InsnNode initInsn, InsnNode incrInsn, IfCondition condition) {
+	private static LoopType checkArrayForEach(MethodNode mth, InsnNode initInsn, InsnNode incrInsn,
+			IfCondition condition) {
 		if (!(incrInsn instanceof ArithNode)) {
 			return null;
 		}

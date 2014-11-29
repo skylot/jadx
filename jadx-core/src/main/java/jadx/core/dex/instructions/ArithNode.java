@@ -61,20 +61,15 @@ public class ArithNode extends InsnNode {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean isSame(InsnNode obj) {
 		if (this == obj) {
 			return true;
 		}
-		if (!(obj instanceof ArithNode) || !super.equals(obj)) {
+		if (!(obj instanceof ArithNode) || !super.isSame(obj)) {
 			return false;
 		}
-		ArithNode that = (ArithNode) obj;
-		return op == that.op;
-	}
-
-	@Override
-	public int hashCode() {
-		return 31 * super.hashCode() + op.hashCode();
+		ArithNode other = (ArithNode) obj;
+		return op == other.op;
 	}
 
 	@Override

@@ -16,20 +16,15 @@ public final class ConstStringNode extends InsnNode {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean isSame(InsnNode obj) {
 		if (this == obj) {
 			return true;
 		}
-		if (!(obj instanceof ConstStringNode) || !super.equals(obj)) {
+		if (!(obj instanceof ConstStringNode) || !super.isSame(obj)) {
 			return false;
 		}
-		ConstStringNode that = (ConstStringNode) obj;
-		return str.equals(that.str);
-	}
-
-	@Override
-	public int hashCode() {
-		return 31 * super.hashCode() + str.hashCode();
+		ConstStringNode other = (ConstStringNode) obj;
+		return str.equals(other.str);
 	}
 
 	@Override

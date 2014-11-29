@@ -56,7 +56,6 @@ public class InsnDecoder {
 				InsnNode insn = decode(rawInsn, i);
 				if (insn != null) {
 					insn.setOffset(i);
-					insn.setInsnHashCode(calcHashCode(rawInsn));
 				}
 				instructions[i] = insn;
 			} else {
@@ -65,21 +64,6 @@ public class InsnDecoder {
 		}
 		insnArr = null;
 		return instructions;
-	}
-
-	private int calcHashCode(DecodedInstruction insn) {
-		int hash = insn.getOpcode();
-		hash = hash * 31 + insn.getClass().getName().hashCode();
-		hash = hash * 31 + insn.getFormat().ordinal();
-		hash = hash * 31 + insn.getRegisterCount();
-		hash = hash * 31 + insn.getIndex();
-		hash = hash * 31 + insn.getTarget();
-		hash = hash * 31 + insn.getA();
-		hash = hash * 31 + insn.getB();
-		hash = hash * 31 + insn.getC();
-		hash = hash * 31 + insn.getD();
-		hash = hash * 31 + insn.getE();
-		return hash;
 	}
 
 	private InsnNode decode(DecodedInstruction insn, int offset) throws DecodeException {

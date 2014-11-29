@@ -22,7 +22,6 @@ public class InsnNode extends LineAttrNode {
 	private RegisterArg result;
 	private final List<InsnArg> arguments;
 	protected int offset;
-	protected int insnHashCode = super.hashCode();
 
 	public InsnNode(InsnType type, int argsCount) {
 		this.insnType = type;
@@ -197,39 +196,31 @@ public class InsnNode extends LineAttrNode {
 				+ Utils.listToString(arguments);
 	}
 
-	public void setInsnHashCode(int insnHashCode) {
-		this.insnHashCode = insnHashCode;
+	/**
+	 * Compare instruction only by identity.
+	 */
+	@Override
+	public final int hashCode() {
+		return super.hashCode();
 	}
 
+	/**
+	 * Compare instruction only by identity.
+	 */
 	@Override
-	public int hashCode() {
-		return insnHashCode;
+	public final boolean equals(Object obj) {
+		return super.equals(obj);
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
+	/**
+	 * 'Soft' equals, don't compare arguments, only instruction specific parameters.
+	 */
+	public boolean isSame(InsnNode other) {
+		if (this == other) {
 			return true;
 		}
-		if (obj == null) {
-			return false;
-		}
-		if (hashCode() != obj.hashCode()) {
-			return false;
-		}
-		if (!(obj instanceof InsnNode)) {
-			return false;
-		}
-		InsnNode other = (InsnNode) obj;
-		if (insnType != other.insnType) {
-			return false;
-		}
-		if (arguments.size() != other.arguments.size()) {
-			return false;
-		}
-
-		// TODO !!! finish equals
-		return true;
+		return insnType == other.insnType
+				&& arguments.size() == other.arguments.size();
 	}
 
 }

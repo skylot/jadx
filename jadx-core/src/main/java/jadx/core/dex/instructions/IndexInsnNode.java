@@ -17,20 +17,15 @@ public class IndexInsnNode extends InsnNode {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean isSame(InsnNode obj) {
 		if (this == obj) {
 			return true;
 		}
-		if (!(obj instanceof IndexInsnNode) || !super.equals(obj)) {
+		if (!(obj instanceof IndexInsnNode) || !super.isSame(obj)) {
 			return false;
 		}
-		IndexInsnNode that = (IndexInsnNode) obj;
-		return index == null ? that.index == null : index.equals(that.index);
-	}
-
-	@Override
-	public int hashCode() {
-		return 31 * super.hashCode() + (index != null ? index.hashCode() : 0);
+		IndexInsnNode other = (IndexInsnNode) obj;
+		return index == null ? other.index == null : index.equals(other.index);
 	}
 
 	@Override

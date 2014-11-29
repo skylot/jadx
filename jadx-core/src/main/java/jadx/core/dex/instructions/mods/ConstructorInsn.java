@@ -92,26 +92,16 @@ public class ConstructorInsn extends InsnNode {
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
+	public boolean isSame(InsnNode obj) {
+		if (this == obj) {
 			return true;
 		}
-		if (!(o instanceof ConstructorInsn) || !super.equals(o)) {
+		if (!(obj instanceof ConstructorInsn) || !super.isSame(obj)) {
 			return false;
 		}
-		ConstructorInsn that = (ConstructorInsn) o;
-		return callMth.equals(that.callMth)
-				&& callType == that.callType
-				&& instanceArg.equals(that.instanceArg);
-	}
-
-	@Override
-	public int hashCode() {
-		int result = super.hashCode();
-		result = 31 * result + callMth.hashCode();
-		result = 31 * result + callType.hashCode();
-		result = 31 * result + instanceArg.hashCode();
-		return result;
+		ConstructorInsn other = (ConstructorInsn) obj;
+		return callMth.equals(other.callMth)
+				&& callType == other.callType;
 	}
 
 	@Override

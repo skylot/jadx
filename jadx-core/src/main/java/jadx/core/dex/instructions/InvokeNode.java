@@ -45,23 +45,15 @@ public class InvokeNode extends InsnNode {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean isSame(InsnNode obj) {
 		if (this == obj) {
 			return true;
 		}
-		if (!(obj instanceof InvokeNode) || !super.equals(obj)) {
+		if (!(obj instanceof InvokeNode) || !super.isSame(obj)) {
 			return false;
 		}
-		InvokeNode that = (InvokeNode) obj;
-		return type == that.type && mth.equals(that.mth);
-	}
-
-	@Override
-	public int hashCode() {
-		int result = super.hashCode();
-		result = 31 * result + type.hashCode();
-		result = 31 * result + mth.hashCode();
-		return result;
+		InvokeNode other = (InvokeNode) obj;
+		return type == other.type && mth.equals(other.mth);
 	}
 
 	@Override

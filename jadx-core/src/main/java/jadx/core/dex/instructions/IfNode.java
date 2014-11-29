@@ -4,6 +4,7 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
 
 import com.android.dx.io.instructions.DecodedInstruction;
@@ -71,20 +72,15 @@ public class IfNode extends GotoNode {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean isSame(InsnNode obj) {
 		if (this == obj) {
 			return true;
 		}
-		if (!(obj instanceof IfNode) || !super.equals(obj)) {
+		if (!(obj instanceof IfNode) || !super.isSame(obj)) {
 			return false;
 		}
-		IfNode ifNode = (IfNode) obj;
-		return op == ifNode.op;
-	}
-
-	@Override
-	public int hashCode() {
-		return 31 * super.hashCode() + op.hashCode();
+		IfNode other = (IfNode) obj;
+		return op == other.op;
 	}
 
 	@Override

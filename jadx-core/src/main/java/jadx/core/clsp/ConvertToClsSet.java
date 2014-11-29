@@ -52,7 +52,8 @@ public class ConvertToClsSet {
 		LOG.info("done");
 	}
 
-	private static void addFilesFromDirectory(File dir, List<InputFile> inputFiles) throws IOException, DecodeException {
+	private static void addFilesFromDirectory(File dir,
+			List<InputFile> inputFiles) throws IOException, DecodeException {
 		File[] files = dir.listFiles();
 		if (files == null) {
 			return;

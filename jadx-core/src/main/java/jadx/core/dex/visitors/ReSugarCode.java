@@ -66,7 +66,8 @@ public class ReSugarCode extends AbstractVisitor {
 	/**
 	 * Replace new array and sequence of array-put to new filled-array instruction.
 	 */
-	private static InsnNode processNewArray(MethodNode mth, List<InsnNode> instructions, int i, InstructionRemover remover) {
+	private static InsnNode processNewArray(MethodNode mth, List<InsnNode> instructions, int i,
+			InstructionRemover remover) {
 		InsnNode insn = instructions.get(i);
 		InsnArg arg = insn.getArg(0);
 		if (!arg.isLiteral()) {
