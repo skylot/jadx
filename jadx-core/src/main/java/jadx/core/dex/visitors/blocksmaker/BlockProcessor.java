@@ -315,34 +315,40 @@ public class BlockProcessor extends AbstractVisitor {
 			return false;
 		}
 		BlockNode exitBlock = mth.getExitBlocks().get(0);
-		if (exitBlock.getPredecessors().size() > 1
-				&& exitBlock.getInstructions().size() == 1
-				&& !exitBlock.contains(AFlag.SYNTHETIC)) {
-			InsnNode returnInsn = exitBlock.getInstructions().get(0);
-			List<BlockNode> preds = new ArrayList<BlockNode>(exitBlock.getPredecessors());
-			if (returnInsn.getArgsCount() != 0 && !isReturnArgAssignInPred(preds, returnInsn)) {
-				return false;
-			}
-			boolean first = true;
-			for (BlockNode pred : preds) {
-				BlockNode newRetBlock = BlockSplitter.startNewBlock(mth, exitBlock.getStartOffset());
-				newRetBlock.add(AFlag.SYNTHETIC);
-				InsnNode newRetInsn;
-				if (first) {
-					newRetInsn = returnInsn;
-					newRetBlock.add(AFlag.ORIG_RETURN);
-					first = false;
-				} else {
-					newRetInsn = duplicateReturnInsn(returnInsn);
-				}
-				newRetBlock.getInstructions().add(newRetInsn);
-				removeConnection(pred, exitBlock);
-				connect(pred, newRetBlock);
-			}
-			cleanExitNodes(mth);
-			return true;
+		if (exitBlock.getInstructions().size() != 1
+				|| exitBlock.contains(AFlag.SYNTHETIC)) {
+			return false;
 		}
-		return false;
+		List<BlockNode> preds = exitBlock.getPredecessors();
+		if (preds.size() < 2) {
+			return false;
+		}
+		preds = BlockUtils.filterPredecessors(exitBlock);
+		if (preds.size() < 2) {
+			return false;
+		}
+		InsnNode returnInsn = exitBlock.getInstructions().get(0);
+		if (returnInsn.getArgsCount() != 0 && !isReturnArgAssignInPred(preds, returnInsn)) {
+			return false;
+		}
+		boolean first = true;
+		for (BlockNode pred : preds) {
+			BlockNode newRetBlock = BlockSplitter.startNewBlock(mth, exitBlock.getStartOffset());
+			newRetBlock.add(AFlag.SYNTHETIC);
+			InsnNode newRetInsn;
+			if (first) {
+				newRetInsn = returnInsn;
+				newRetBlock.add(AFlag.ORIG_RETURN);
+				first = false;
+			} else {
+				newRetInsn = duplicateReturnInsn(returnInsn);
+			}
+			newRetBlock.getInstructions().add(newRetInsn);
+			removeConnection(pred, exitBlock);
+			connect(pred, newRetBlock);
+		}
+		cleanExitNodes(mth);
+		return true;
 	}
 
 	private static boolean isReturnArgAssignInPred(List<BlockNode> preds, InsnNode returnInsn) {

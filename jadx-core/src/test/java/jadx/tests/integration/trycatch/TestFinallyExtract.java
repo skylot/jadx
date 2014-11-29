@@ -30,7 +30,6 @@ public class TestFinallyExtract extends IntegrationTest {
 
 	@Test
 	public void test() {
-		setOutputCFG();
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 

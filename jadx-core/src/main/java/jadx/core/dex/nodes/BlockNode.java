@@ -179,7 +179,7 @@ public class BlockNode extends AttrNode implements IBlock {
 
 	@Override
 	public int hashCode() {
-		return id; // TODO id can change during reindex
+		return startOffset;
 	}
 
 	@Override
@@ -187,23 +187,11 @@ public class BlockNode extends AttrNode implements IBlock {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
-			return false;
-		}
-		if (hashCode() != obj.hashCode()) {
-			return false;
-		}
 		if (!(obj instanceof BlockNode)) {
 			return false;
 		}
 		BlockNode other = (BlockNode) obj;
-		if (id != other.id) {
-			return false;
-		}
-		if (startOffset != other.startOffset) {
-			return false;
-		}
-		return true;
+		return id == other.id && startOffset == other.startOffset;
 	}
 
 	@Override

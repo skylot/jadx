@@ -359,7 +359,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 		BlockNode sOut = out.getSecond();
 
 		// redirect out edges
-		List<BlockNode> filtPreds = filterPredecessors(sOut);
+		List<BlockNode> filtPreds = BlockUtils.filterPredecessors(sOut);
 		if (filtPreds.size() > 1) {
 			BlockNode pred = sOut.getPredecessors().get(0);
 			BlockNode newPred = BlockSplitter.insertBlockBetween(mth, pred, sOut);
@@ -444,18 +444,6 @@ public class BlockFinallyExtract extends AbstractVisitor {
 			from.addAttr(edgeAttr);
 		}
 		edgeAttr.getBlocks().add(toBlock);
-	}
-
-	private static List<BlockNode> filterPredecessors(BlockNode block) {
-		List<BlockNode> predecessors = block.getPredecessors();
-		List<BlockNode> list = new ArrayList<BlockNode>(predecessors.size());
-		for (BlockNode pred : predecessors) {
-			IgnoreEdgeAttr edgeAttr = pred.get(AType.IGNORE_EDGE);
-			if (edgeAttr == null || !edgeAttr.contains(block)) {
-				list.add(pred);
-			}
-		}
-		return list;
 	}
 
 	private static int countInstructions(ExceptionHandler excHandler) {

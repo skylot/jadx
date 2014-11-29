@@ -86,6 +86,17 @@ public class SimplifyVisitor extends AbstractVisitor {
 				}
 				break;
 
+			case MOVE:
+				InsnArg firstArg = insn.getArg(0);
+				if (firstArg.isLiteral()) {
+					InsnNode constInsn = new InsnNode(InsnType.CONST, 1);
+					constInsn.setResult(insn.getResult());
+					constInsn.addArg(firstArg);
+					constInsn.copyAttributesFrom(insn);
+					return constInsn;
+				}
+				break;
+
 			default:
 				break;
 		}

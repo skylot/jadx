@@ -2,6 +2,7 @@ package jadx.core.utils;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.IgnoreEdgeAttr;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
@@ -77,6 +78,25 @@ public class BlockUtils {
 			}
 		}
 		return ret;
+	}
+
+	/**
+	 * Return predecessors list without blocks contains 'IGNORE_EDGE' attribute.
+	 *
+	 * @return new list of filtered predecessors
+	 */
+	public static List<BlockNode> filterPredecessors(BlockNode block) {
+		List<BlockNode> predecessors = block.getPredecessors();
+		List<BlockNode> list = new ArrayList<BlockNode>(predecessors.size());
+		for (BlockNode pred : predecessors) {
+			IgnoreEdgeAttr edgeAttr = pred.get(AType.IGNORE_EDGE);
+			if (edgeAttr == null) {
+				list.add(pred);
+			} else if (!edgeAttr.contains(block)) {
+				list.add(pred);
+			}
+		}
+		return list;
 	}
 
 	public static boolean isBackEdge(BlockNode from, BlockNode to) {
