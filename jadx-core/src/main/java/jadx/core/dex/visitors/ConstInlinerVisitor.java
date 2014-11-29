@@ -52,14 +52,14 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 		long lit = ((LiteralArg) arg).getLiteral();
 
 		SSAVar sVar = insn.getResult().getSVar();
-		if (lit == 0) {
-			if (checkObjectInline(sVar)) {
-				if (sVar.getUseCount() == 1) {
-					insn.getResult().getAssignInsn().add(AFlag.DONT_INLINE);
+		if (lit == 0 && checkObjectInline(sVar)) {
+			if (sVar.getUseCount() == 1) {
+				InsnNode assignInsn = insn.getResult().getAssignInsn();
+				if (assignInsn != null) {
+					assignInsn.add(AFlag.DONT_INLINE);
 				}
-				return false;
 			}
-
+			return false;
 		}
 		ArgType resType = insn.getResult().getType();
 		// make sure arg has correct type

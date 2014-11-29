@@ -7,6 +7,7 @@ import jadx.core.utils.InsnUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +21,7 @@ public abstract class InsnArg extends Typed {
 
 	private static final Logger LOG = LoggerFactory.getLogger(InsnArg.class);
 
+	@Nullable("Null for method arguments")
 	protected InsnNode parentInsn;
 
 	public static RegisterArg reg(int regNum, ArgType type) {
@@ -70,6 +72,7 @@ public abstract class InsnArg extends Typed {
 		return false;
 	}
 
+	@Nullable
 	public InsnNode getParentInsn() {
 		return parentInsn;
 	}

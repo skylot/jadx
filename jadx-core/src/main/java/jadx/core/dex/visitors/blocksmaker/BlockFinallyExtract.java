@@ -468,6 +468,10 @@ public class BlockFinallyExtract extends AbstractVisitor {
 		if (pred == null) {
 			return;
 		}
+		IgnoreEdgeAttr edgeAttr = pred.get(AType.IGNORE_EDGE);
+		if (edgeAttr == null) {
+			return;
+		}
 		List<BlockNode> merge = new LinkedList<BlockNode>();
 		for (BlockNode blockNode : pred.getSuccessors()) {
 			if (blockNode.contains(AFlag.RETURN)) {
@@ -488,7 +492,6 @@ public class BlockFinallyExtract extends AbstractVisitor {
 		if (origReturnBlock == null) {
 			return;
 		}
-		IgnoreEdgeAttr edgeAttr = pred.get(AType.IGNORE_EDGE);
 		for (BlockNode mb : merge) {
 			if (mb == origReturnBlock) {
 				continue;

@@ -535,6 +535,9 @@ public class InsnGen {
 		if (!elType.isTypeKnown()) {
 			LOG.warn("Unknown array element type: {} in mth: {}", elType, mth);
 			elType = insnElementType.isTypeKnown() ? insnElementType : elType.selectFirst();
+			if (elType == null) {
+				throw new JadxRuntimeException("Null array element type");
+			}
 		}
 		insn.mergeElementType(elType);
 

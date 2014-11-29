@@ -102,7 +102,7 @@ public class JadxUpdate {
 		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 		con.setRequestMethod("GET");
 		if (con.getResponseCode() == 200) {
-			Reader reader = new InputStreamReader(con.getInputStream());
+			Reader reader = new InputStreamReader(con.getInputStream(), "UTF-8");
 			return GSON.fromJson(reader, type);
 		}
 		return null;
