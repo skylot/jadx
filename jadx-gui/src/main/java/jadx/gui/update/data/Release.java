@@ -2,10 +2,15 @@ package jadx.gui.update.data;
 
 import java.util.List;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Release {
 	private int id;
 	private String name;
-	private boolean prerelease;
+
+	@SerializedName("prerelease")
+	private boolean preRelease;
+
 	private List<Asset> assets;
 
 	public String getName() {
@@ -24,12 +29,12 @@ public class Release {
 		this.id = id;
 	}
 
-	public boolean isPrerelease() {
-		return prerelease;
+	public boolean isPreRelease() {
+		return preRelease;
 	}
 
-	public void setPrerelease(boolean prerelease) {
-		this.prerelease = prerelease;
+	public void setPreRelease(boolean preRelease) {
+		this.preRelease = preRelease;
 	}
 
 	public List<Asset> getAssets() {
@@ -45,11 +50,8 @@ public class Release {
 		StringBuilder sb = new StringBuilder();
 		sb.append(name);
 		for (Asset asset : getAssets()) {
-			sb.append('\n');
-			sb.append("  ").append(asset.getName())
-					.append(", asset id: ").append(asset.getId())
-					.append(", size: ").append(asset.getSize())
-					.append(", dc: ").append(asset.getDownload_count());
+			sb.append("\n ");
+			sb.append(asset);
 		}
 		return sb.toString();
 	}

@@ -19,6 +19,7 @@ import java.awt.event.KeyEvent;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
+import org.fife.ui.rtextarea.SearchResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,18 +154,13 @@ class SearchBar extends JToolBar {
 		boolean regex = regexCB.isSelected();
 		boolean wholeWord = wholeWordCB.isSelected();
 
-		if (markAllCB.isSelected()) {
-			rTextArea.markAll(searchText, matchCase, wholeWord, regex);
-		} else {
-			rTextArea.clearMarkAllHighlights();
-		}
-
 		SearchContext context = new SearchContext();
 		context.setSearchFor(searchText);
 		context.setMatchCase(matchCase);
 		context.setRegularExpression(regex);
 		context.setSearchForward(forward);
 		context.setWholeWord(wholeWord);
+		context.setMarkAll(markAllCB.isSelected());
 
 		// TODO hack: move cursor before previous search for not jump to next occurrence
 		if (direction == 0 && !COLOR_BG_ERROR.equals(searchField.getBackground())) {
@@ -179,8 +175,8 @@ class SearchBar extends JToolBar {
 			}
 		}
 
-		boolean found = SearchEngine.find(rTextArea, context);
-		if (!found) {
+		SearchResult result = SearchEngine.find(rTextArea, context);
+		if (!result.wasFound()) {
 			int pos = SearchEngine.getNextMatchPos(searchText, rTextArea.getText(), forward, matchCase, wholeWord);
 			if (pos != -1) {
 				rTextArea.setCaretPosition(forward ? 0 : rTextArea.getDocument().getLength() - 1);

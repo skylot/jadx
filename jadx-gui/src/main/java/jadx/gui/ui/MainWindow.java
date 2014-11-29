@@ -5,6 +5,7 @@ import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.update.JadxUpdate;
+import jadx.gui.update.JadxUpdate.IUpdateCallback;
 import jadx.gui.update.data.Release;
 import jadx.gui.utils.JadxPreferences;
 import jadx.gui.utils.Link;
@@ -94,7 +95,12 @@ public class MainWindow extends JFrame {
 
 		initUI();
 		initMenuAndToolbar();
-		JadxUpdate.check(new JadxUpdate.IUpdateCallback() {
+		checkForUpdate();
+	}
+
+	private void checkForUpdate() {
+		// TODO: add option for disable update checks
+		JadxUpdate.check(new IUpdateCallback() {
 			@Override
 			public void onUpdate(final Release r) {
 				SwingUtilities.invokeLater(new Runnable() {

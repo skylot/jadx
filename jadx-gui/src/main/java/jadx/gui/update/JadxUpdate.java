@@ -81,7 +81,7 @@ public class JadxUpdate {
 		for (Iterator<Release> it = list.iterator(); it.hasNext(); ) {
 			Release release = it.next();
 			if (release.getName().equalsIgnoreCase(version)
-					|| release.isPrerelease()) {
+					|| release.isPreRelease()) {
 				it.remove();
 			}
 		}
@@ -90,10 +90,10 @@ public class JadxUpdate {
 		}
 		Collections.sort(list, RELEASE_COMPARATOR);
 		Release latest = list.get(list.size() - 1);
-		if (VersionComparator.checkAndCompare(version, latest.getName()) == 0) {
+		if (VersionComparator.checkAndCompare(version, latest.getName()) >= 0) {
 			return null;
 		}
-		LOG.debug("Found new version: {}", latest);
+		LOG.info("Found new jadx version: {}", latest);
 		return latest;
 	}
 

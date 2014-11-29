@@ -1,12 +1,20 @@
 package jadx.gui.update.data;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Asset {
 	private int id;
-	private String url;
 	private String name;
-	private String label;
 	private long size;
-	private int download_count;
+
+	@SerializedName("download_count")
+	private int downloadCount;
+
+	@SerializedName("browser_download_url")
+	private String downloadUrl;
+
+	@SerializedName("created_at")
+	private String createdAt;
 
 	public int getId() {
 		return id;
@@ -14,14 +22,6 @@ public class Asset {
 
 	public void setId(int id) {
 		this.id = id;
-	}
-
-	public String getUrl() {
-		return url;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
 	}
 
 	public String getName() {
@@ -32,14 +32,6 @@ public class Asset {
 		this.name = name;
 	}
 
-	public String getLabel() {
-		return label;
-	}
-
-	public void setLabel(String label) {
-		this.label = label;
-	}
-
 	public long getSize() {
 		return size;
 	}
@@ -48,11 +40,36 @@ public class Asset {
 		this.size = size;
 	}
 
-	public int getDownload_count() {
-		return download_count;
+	public int getDownloadCount() {
+		return downloadCount;
 	}
 
-	public void setDownload_count(int download_count) {
-		this.download_count = download_count;
+	public void setDownloadCount(int downloadCount) {
+		this.downloadCount = downloadCount;
+	}
+
+	public String getDownloadUrl() {
+		return downloadUrl;
+	}
+
+	public void setDownloadUrl(String downloadUrl) {
+		this.downloadUrl = downloadUrl;
+	}
+
+	public String getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(String createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	@Override
+	public String toString() {
+		return name
+				+ ", size: " + String.format("%.2fMB", size / 1024. /1024.)
+				+ ", downloads count: " + downloadCount
+				+ ", url: " + downloadUrl
+				+ ", date: " + createdAt;
 	}
 }
