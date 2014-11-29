@@ -1,13 +1,26 @@
-ext.jadxVersion = file('version').readLines().get(0)
-version = jadxVersion
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+}
+
+plugins {
+    id "com.github.kt3k.coveralls" version "2.0.1"
+    id "info.solidsoft.pitest" version "1.1.1"
+//    id "com.github.ben-manes.versions" version "0.6"
+}
 
 apply plugin: 'sonar-runner'
+
+ext.jadxVersion = file('version').readLines().get(0)
+version = jadxVersion
 
 subprojects {
     apply plugin: 'java'
     apply plugin: 'groovy'
     apply plugin: 'jacoco'
-    apply plugin: 'coveralls'
+    apply plugin: 'com.github.kt3k.coveralls'
 
     version = jadxVersion
 
@@ -32,7 +45,7 @@ subprojects {
 
         testCompile 'ch.qos.logback:logback-classic:1.1.2'
         testCompile 'junit:junit:4.11'
-        testCompile 'org.mockito:mockito-core:1.10.10'
+        testCompile 'org.mockito:mockito-core:1.10.13'
         testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
         testCompile 'cglib:cglib-nodep:3.1'
     }
@@ -50,15 +63,12 @@ subprojects {
     }
 }
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        // setup coveralls (http://coveralls.io/) see http://github.com/kt3k/coveralls-gradle-plugin
-        classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:0.6.1'
-    }
+/* Sonar runner configuration */
+repositories {
+    mavenCentral()
+}
+sonarRunner {
+    toolVersion = '2.4'
 }
 
 task copyArtifacts(type: Sync, dependsOn: ['jadx-cli:installApp', 'jadx-gui:installApp']) {
@@ -81,13 +91,17 @@ task dist(dependsOn: pack) {
 task samples(dependsOn: 'jadx-samples:samples') {
 }
 
-task build(dependsOn: [dist, samples]) {
+task pitest(overwrite: true, dependsOn: 'jadx-core:pitest') {
 }
 
-task clean(type: Delete) {
+task cleanBuildDir(type: Delete) {
     delete buildDir
 }
 
+build.dependsOn(dist, samples)
+
+clean.dependsOn(cleanBuildDir)
+
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.0'
+    gradleVersion = '2.2.1'
 }

@@ -6,7 +6,7 @@ dependencies {
     compile(project(":jadx-core"))
     compile(project(":jadx-cli"))
     compile 'com.fifesoft:rsyntaxtextarea:2.5.0'
-    compile 'com.google.code.gson:gson:2.3'
+    compile 'com.google.code.gson:gson:2.3.1'
 }
 
 applicationDistribution.with {

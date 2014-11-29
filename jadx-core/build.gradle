@@ -1,5 +1,7 @@
 ext.jadxClasspath = 'clsp-data/android-4.3.jar'
 
+apply plugin: "info.solidsoft.pitest"
+
 dependencies {
     runtime files(jadxClasspath)
 
@@ -15,3 +17,10 @@ task packTests(type: Jar) {
     from sourceSets.test.output
 }
 
+pitest {
+    excludedMethods = ['toString']
+    threads = 4
+    enableDefaultIncrementalAnalysis = true
+    outputFormats = ['XML', 'HTML']
+    jvmArgs = ['-Xmx12G']
+}
