@@ -87,6 +87,17 @@ public class SimplifyVisitor extends AbstractVisitor {
 				}
 				break;
 
+			case MOVE:
+				InsnArg firstArg = insn.getArg(0);
+				if (firstArg.isLiteral()) {
+					InsnNode constInsn = new InsnNode(InsnType.CONST, 1);
+					constInsn.setResult(insn.getResult());
+					constInsn.addArg(firstArg);
+					constInsn.copyAttributesFrom(insn);
+					return constInsn;
+				}
+				break;
+
 			default:
 				break;
 		}
@@ -124,65 +135,65 @@ public class SimplifyVisitor extends AbstractVisitor {
 	}
 
 	private static InsnNode convertInvoke(MethodNode mth, InsnNode insn) {
-	  MethodInfo callMth = ((InvokeNode) insn).getCallMth();
+          MethodInfo callMth = ((InvokeNode) insn).getCallMth();
 
           // If this is a 'new StringBuilder(xxx).append(yyy).append(zzz).toString(), 
           // convert it to STRING_CONCAT pseudo instruction.
-	  if (callMth.getDeclClass().getFullName().equals(Consts.CLASS_STRING_BUILDER)
-	      && callMth.getShortId().equals(Consts.MTH_TOSTRING_SIGNATURE)
-	      && insn.getArg(0).isInsnWrap()) {
-	    try {
-	      List<InsnNode> chain = flattenInsnChain(insn);
-	      int constrIndex = -1;  //RAF
-	      // Case where new StringBuilder() is called with NO args (the entire
-	      // string is created using .append() calls:
-	      if (chain.size()>1 && chain.get(0).getType()==InsnType.CONSTRUCTOR) {
-	        constrIndex = 0;
-	      } else if (chain.size()>2 && chain.get(1).getType()==InsnType.CONSTRUCTOR) {
-	        //RAF Case where the first string element is String arg to the 
-	        // new StringBuilder("xxx") constructor
-	        constrIndex = 1;
-	      } else if (chain.size()>3 && chain.get(2).getType()==InsnType.CONSTRUCTOR) {
-	        //RAF Case where the first string element is String.valueOf() arg 
-	        // to the new StringBuilder(String.valueOf(zzz)) constructor
-	        constrIndex = 2;
-	      }
+          if (callMth.getDeclClass().getFullName().equals(Consts.CLASS_STRING_BUILDER)
+              && callMth.getShortId().equals(Consts.MTH_TOSTRING_SIGNATURE)
+              && insn.getArg(0).isInsnWrap()) {
+            try {
+              List<InsnNode> chain = flattenInsnChain(insn);
+              int constrIndex = -1;  //RAF
+              // Case where new StringBuilder() is called with NO args (the entire
+              // string is created using .append() calls:
+              if (chain.size()>1 && chain.get(0).getType()==InsnType.CONSTRUCTOR) {
+                constrIndex = 0;
+              } else if (chain.size()>2 && chain.get(1).getType()==InsnType.CONSTRUCTOR) {
+                //RAF Case where the first string element is String arg to the 
+                // new StringBuilder("xxx") constructor
+                constrIndex = 1;
+              } else if (chain.size()>3 && chain.get(2).getType()==InsnType.CONSTRUCTOR) {
+                //RAF Case where the first string element is String.valueOf() arg 
+                // to the new StringBuilder(String.valueOf(zzz)) constructor
+                constrIndex = 2;
+              }
 
-	      if (constrIndex != -1) {  // If we found a CONSTRUCTOR, is it a StringBuilder?
-	        ConstructorInsn constr = (ConstructorInsn) chain.get(constrIndex);
-	        if (constr.getClassType().getFullName().equals(Consts.CLASS_STRING_BUILDER)) {
-	          int len = chain.size(),  argInd = 1;
-	          InsnNode concatInsn = new InsnNode(InsnType.STR_CONCAT, len-1);
-	          InsnNode argInsn;
-	          if (constrIndex > 0) {  // There was an arg to the StringBuilder constr
-	            InsnWrapArg iwa;
-	            if (constrIndex==2 
-	                && (argInsn = chain.get(1)).getType()==InsnType.INVOKE
-	                && ((InvokeNode)argInsn).getCallMth().getName().compareTo("valueOf")==0) {
-	              // The argument of new StringBuilder() is a String.valueOf(chainElement0)
-	              iwa = (InsnWrapArg)argInsn.getArg(0);
-	              argInd = 3;  // Cause for loop below to skip to after the constructor
-	            } else {
-	              ConstStringNode csn = (ConstStringNode)chain.get(0);
-	              iwa = new InsnWrapArg(csn);
-	              argInd = 2;  // Cause for loop below to skip to after the constructor
-	            }
-	            concatInsn.addArg(iwa);
-	          }
+              if (constrIndex != -1) {  // If we found a CONSTRUCTOR, is it a StringBuilder?
+                ConstructorInsn constr = (ConstructorInsn) chain.get(constrIndex);
+                if (constr.getClassType().getFullName().equals(Consts.CLASS_STRING_BUILDER)) {
+                  int len = chain.size(),  argInd = 1;
+                  InsnNode concatInsn = new InsnNode(InsnType.STR_CONCAT, len-1);
+                  InsnNode argInsn;
+                  if (constrIndex > 0) {  // There was an arg to the StringBuilder constr
+                    InsnWrapArg iwa;
+                    if (constrIndex==2 
+                        && (argInsn = chain.get(1)).getType()==InsnType.INVOKE
+                        && ((InvokeNode)argInsn).getCallMth().getName().compareTo("valueOf")==0) {
+                      // The argument of new StringBuilder() is a String.valueOf(chainElement0)
+                      iwa = (InsnWrapArg)argInsn.getArg(0);
+                      argInd = 3;  // Cause for loop below to skip to after the constructor
+                    } else {
+                      ConstStringNode csn = (ConstStringNode)chain.get(0);
+                      iwa = new InsnWrapArg(csn);
+                      argInd = 2;  // Cause for loop below to skip to after the constructor
+                    }
+                    concatInsn.addArg(iwa);
+                  }
 
-	          for (; argInd < len; argInd++) {  // Add the .append(xxx) arg string to concat 
-	            concatInsn.addArg(chain.get(argInd).getArg(1));
-	          }
-	          concatInsn.setResult(insn.getResult());
-	          return concatInsn;
-	        } // end of if constructor is for StringBuilder
-	      } // end of if we found a constructor early in the chain
+                  for (; argInd < len; argInd++) {  // Add the .append(xxx) arg string to concat 
+                    concatInsn.addArg(chain.get(argInd).getArg(1));
+                  }
+                  concatInsn.setResult(insn.getResult());
+                  return concatInsn;
+                } // end of if constructor is for StringBuilder
+              } // end of if we found a constructor early in the chain
 
-	    } catch (Throwable e) {
-	      LOG.debug("Can't convert string concatenation: {} insn: {}", mth, insn, e);
-	    }
-	  }
-	  return null;
+            } catch (Throwable e) {
+              LOG.debug("Can't convert string concatenation: {} insn: {}", mth, insn, e);
+            }
+          }
+          return null;
 	}
 
 	private static InsnNode simplifyArith(InsnNode insn) {
