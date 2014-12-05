@@ -113,6 +113,13 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 				TryCatchBlock tb = tryBlocksMap.get(dominator);
 				if (!wrapBlocks(region, tb, dominator)) {
 					ErrorsCounter.methodError(mth, "Can't wrap try/catch for " + region);
+				} else { //RAF
+					// The handlers have been added to the TryCatchRegion, remove them 
+					// from the method handlers list so they are not duplicated.
+					List<ExceptionHandler> mthExHndlrs = (List<ExceptionHandler>)mth.getExceptionHandlers();
+					for (ExceptionHandler hndlr : tb.getHandlers()) {
+						mthExHndlrs.remove(hndlr);
+					}
 				}
 				tryBlocksMap.remove(dominator);
 				return;
