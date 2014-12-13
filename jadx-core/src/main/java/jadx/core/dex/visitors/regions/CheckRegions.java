@@ -30,7 +30,7 @@ public class CheckRegions extends AbstractVisitor {
 			return;
 		}
 
-		// printRegion(mth, mth.getRegion(), "|");
+		// printRegion(mth);
 
 		// check if all blocks included in regions
 		final Set<BlockNode> blocksInRegions = new HashSet<BlockNode>();
@@ -91,6 +91,11 @@ public class CheckRegions extends AbstractVisitor {
 			}
 		});
 		LOG.debug(" Found block: {} in regions: {}", block, regions);
+	}
+
+	private void printRegion(MethodNode mth) {
+		LOG.debug("|" + mth.toString());
+		printRegion(mth, mth.getRegion(), "| ");
 	}
 
 	private void printRegion(MethodNode mth, IRegion region, String indent) {

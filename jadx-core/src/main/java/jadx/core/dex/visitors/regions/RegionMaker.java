@@ -49,6 +49,7 @@ import static jadx.core.dex.visitors.regions.IfMakerHelper.searchNestedIf;
 import static jadx.core.utils.BlockUtils.getBlockByOffset;
 import static jadx.core.utils.BlockUtils.getNextBlock;
 import static jadx.core.utils.BlockUtils.isPathExists;
+import static jadx.core.utils.BlockUtils.skipSyntheticSuccessor;
 
 public class RegionMaker {
 	private static final Logger LOG = LoggerFactory.getLogger(RegionMaker.class);
@@ -811,15 +812,12 @@ public class RegionMaker {
 	}
 
 	private static boolean isSyntheticPath(BlockNode b1, BlockNode b2) {
-		if (!b1.isSynthetic() || !b2.isSynthetic()) {
-			return false;
-		}
-		BlockNode n1 = getNextBlock(b1);
-		BlockNode n2 = getNextBlock(b2);
-		return isEqualPaths(n1, n2);
+		BlockNode n1 = skipSyntheticSuccessor(b1);
+		BlockNode n2 = skipSyntheticSuccessor(b2);
+		return (n1 != b1 || n2 != b2) && isEqualPaths(n1, n2);
 	}
 
-	private static boolean isReturnBlocks(BlockNode b1, BlockNode b2) {
+	public static boolean isReturnBlocks(BlockNode b1, BlockNode b2) {
 		if (!b1.isReturnBlock() || !b2.isReturnBlock()) {
 			return false;
 		}
@@ -830,9 +828,9 @@ public class RegionMaker {
 		}
 		InsnNode i1 = b1Insns.get(0);
 		InsnNode i2 = b2Insns.get(0);
-		if (i1.getArgsCount() == 0 || i2.getArgsCount() == 0) {
+		if (i1.getArgsCount() != i2.getArgsCount()) {
 			return false;
 		}
-		return i1.getArg(0).equals(i2.getArg(0));
+		return i1.getArgsCount() == 0 || i1.getArg(0).equals(i2.getArg(0));
 	}
 }

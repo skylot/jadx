@@ -14,6 +14,7 @@ import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.dex.regions.conditions.IfCondition.Mode;
 import jadx.core.dex.regions.conditions.IfInfo;
 import jadx.core.utils.BlockUtils;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.Collection;
 import java.util.List;
@@ -22,6 +23,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static jadx.core.dex.visitors.regions.RegionMaker.isEqualPaths;
+import static jadx.core.dex.visitors.regions.RegionMaker.isReturnBlocks;
 import static jadx.core.utils.BlockUtils.getNextBlock;
 import static jadx.core.utils.BlockUtils.isPathExists;
 
@@ -117,6 +120,7 @@ public class IfMakerHelper {
 		List<BlockNode> preds = block.getPredecessors();
 		Set<BlockNode> ifBlocks = info.getMergedBlocks();
 		for (BlockNode pred : preds) {
+			pred = BlockUtils.skipSyntheticPredecessor(pred);
 			if (!ifBlocks.contains(pred) && !pred.contains(AFlag.LOOP_END)) {
 				return false;
 			}
@@ -150,21 +154,17 @@ public class IfMakerHelper {
 			// invert current node for match pattern
 			nextIf = IfInfo.invert(nextIf);
 		}
-		if (!RegionMaker.isEqualPaths(curElse, nextIf.getElseBlock())
-				&& !RegionMaker.isEqualPaths(curThen, nextIf.getThenBlock())) {
+		if (!isEqualPaths(curThen, nextIf.getThenBlock())
+				&& !isEqualPaths(curElse, nextIf.getElseBlock())) {
 			// complex condition, run additional checks
 			if (checkConditionBranches(curThen, curElse)
 					|| checkConditionBranches(curElse, curThen)) {
 				return null;
 			}
 			BlockNode otherBranchBlock = followThenBranch ? curElse : curThen;
+			otherBranchBlock = BlockUtils.skipSyntheticSuccessor(otherBranchBlock);
 			if (!isPathExists(nextIf.getIfBlock(), otherBranchBlock)) {
 				return checkForTernaryInCondition(currentIf);
-			}
-			if (isPathExists(nextIf.getThenBlock(), otherBranchBlock)
-					&& isPathExists(nextIf.getElseBlock(), otherBranchBlock)) {
-				// both branches paths points to one block
-				return null;
 			}
 
 			// this is nested conditions with different mode (i.e (a && b) || c),
@@ -174,6 +174,9 @@ public class IfMakerHelper {
 				nextIf = tmpIf;
 				if (isInversionNeeded(currentIf, nextIf)) {
 					nextIf = IfInfo.invert(nextIf);
+				}
+				if (!canMerge(currentIf, nextIf, followThenBranch)) {
+					return currentIf;
 				}
 			} else {
 				return currentIf;
@@ -219,8 +222,16 @@ public class IfMakerHelper {
 	}
 
 	private static boolean isInversionNeeded(IfInfo currentIf, IfInfo nextIf) {
-		return RegionMaker.isEqualPaths(currentIf.getElseBlock(), nextIf.getThenBlock())
-				|| RegionMaker.isEqualPaths(currentIf.getThenBlock(), nextIf.getElseBlock());
+		return isEqualPaths(currentIf.getElseBlock(), nextIf.getThenBlock())
+				|| isEqualPaths(currentIf.getThenBlock(), nextIf.getElseBlock());
+	}
+
+	private static boolean canMerge(IfInfo a, IfInfo b, boolean followThenBranch) {
+		if (followThenBranch) {
+			return isEqualPaths(a.getElseBlock(), b.getElseBlock());
+		} else {
+			return isEqualPaths(a.getThenBlock(), b.getThenBlock());
+		}
 	}
 
 	private static boolean checkConditionBranches(BlockNode from, BlockNode to) {
@@ -231,13 +242,42 @@ public class IfMakerHelper {
 		Mode mergeOperation = followThenBranch ? Mode.AND : Mode.OR;
 
 		IfCondition condition = IfCondition.merge(mergeOperation, first.getCondition(), second.getCondition());
-		IfInfo result = new IfInfo(condition, second);
+		// skip synthetic successor if both parts leads to same block
+		BlockNode thenBlock;
+		BlockNode elseBlock;
+		if (followThenBranch) {
+			thenBlock = second.getThenBlock();
+			elseBlock = getCrossBlock(first.getElseBlock(), second.getElseBlock());
+		} else {
+			thenBlock = getCrossBlock(first.getThenBlock(), second.getThenBlock());
+			elseBlock = second.getElseBlock();
+		}
+		IfInfo result = new IfInfo(condition, thenBlock, elseBlock);
 		result.setIfBlock(first.getIfBlock());
 		result.merge(first, second);
 
 		BlockNode otherPathBlock = followThenBranch ? first.getElseBlock() : first.getThenBlock();
 		skipSimplePath(otherPathBlock, result.getSkipBlocks());
 		return result;
+	}
+
+	private static BlockNode getCrossBlock(BlockNode first, BlockNode second) {
+		if (isSameBlocks(first, second)) {
+			return second;
+		}
+		BlockNode firstSkip = BlockUtils.skipSyntheticSuccessor(first);
+		if (isSameBlocks(firstSkip, second)) {
+			return second;
+		}
+		BlockNode secondSkip = BlockUtils.skipSyntheticSuccessor(second);
+		if (isSameBlocks(firstSkip, secondSkip) || isSameBlocks(first, secondSkip)) {
+			return secondSkip;
+		}
+		throw new JadxRuntimeException("Unexpected merge pattern");
+	}
+
+	private static boolean isSameBlocks(BlockNode first, BlockNode second) {
+		return first == second || isReturnBlocks(first, second);
 	}
 
 	static void confirmMerge(IfInfo info) {

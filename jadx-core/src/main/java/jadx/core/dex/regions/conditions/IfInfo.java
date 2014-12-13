@@ -19,10 +19,6 @@ public final class IfInfo {
 		this(condition, thenBlock, elseBlock, new HashSet<BlockNode>(), new HashSet<BlockNode>());
 	}
 
-	public IfInfo(IfCondition condition, IfInfo info) {
-		this(condition, info.getThenBlock(), info.getElseBlock(), info.getMergedBlocks(), info.getSkipBlocks());
-	}
-
 	public IfInfo(IfInfo info, BlockNode thenBlock, BlockNode elseBlock) {
 		this(info.getCondition(), thenBlock, elseBlock, info.getMergedBlocks(), info.getSkipBlocks());
 	}
@@ -90,6 +86,6 @@ public final class IfInfo {
 
 	@Override
 	public String toString() {
-		return "IfInfo: " + condition + ", then: " + thenBlock + ", else: " + elseBlock;
+		return "IfInfo: then: " + thenBlock + ", else: " + elseBlock;
 	}
 }

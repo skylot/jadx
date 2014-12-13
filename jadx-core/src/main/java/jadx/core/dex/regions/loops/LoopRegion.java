@@ -156,7 +156,7 @@ public final class LoopRegion extends AbstractRegion {
 
 	@Override
 	public String baseString() {
-		return body.baseString();
+		return body == null ? "-" : body.baseString();
 	}
 
 	@Override

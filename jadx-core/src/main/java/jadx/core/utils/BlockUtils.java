@@ -452,8 +452,18 @@ public class BlockUtils {
 	 * Return successor of synthetic block or same block otherwise.
 	 */
 	public static BlockNode skipSyntheticSuccessor(BlockNode block) {
-		if (block.isSynthetic() && !block.getSuccessors().isEmpty()) {
+		if (block.isSynthetic() && block.getSuccessors().size() == 1) {
 			return block.getSuccessors().get(0);
+		}
+		return block;
+	}
+
+	/**
+	 * Return predecessor of synthetic block or same block otherwise.
+	 */
+	public static BlockNode skipSyntheticPredecessor(BlockNode block) {
+		if (block.isSynthetic() && block.getPredecessors().size() == 1) {
+			return block.getPredecessors().get(0);
 		}
 		return block;
 	}
