@@ -13,6 +13,8 @@ script:
 after_success:
     - TERM=dumb ./gradlew jacocoTestReport coveralls
 
+sudo: false
+
 cache:
     directories:
         - $HOME/.gradle
