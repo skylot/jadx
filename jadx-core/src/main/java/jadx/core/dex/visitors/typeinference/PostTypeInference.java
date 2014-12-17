@@ -8,7 +8,6 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
-import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 
@@ -100,22 +99,39 @@ public class PostTypeInference {
 
 			case PHI: {
 				PhiInsn phi = (PhiInsn) insn;
-				RegisterArg result = phi.getResult();
-				SSAVar resultSVar = result.getSVar();
-				if (resultSVar != null && !result.getType().isTypeKnown()) {
+				ArgType type = phi.getResult().getType();
+				if (!type.isTypeKnown()) {
 					for (InsnArg arg : phi.getArguments()) {
-						ArgType argType = arg.getType();
-						if (argType.isTypeKnown()) {
-							resultSVar.setType(argType);
-							return true;
+						if (arg.getType().isTypeKnown()) {
+							type = arg.getType();
+							break;
 						}
 					}
 				}
-				return false;
+				boolean changed = false;
+				if (updateType(phi.getResult(), type)) {
+					changed = true;
+				}
+				for (int i = 0; i < phi.getArgsCount(); i++) {
+					RegisterArg arg = phi.getArg(i);
+					if (updateType(arg, type)) {
+						changed = true;
+					}
+				}
+				return changed;
 			}
 
 			default:
 				break;
+		}
+		return false;
+	}
+
+	private static boolean updateType(RegisterArg arg, ArgType type) {
+		ArgType prevType = arg.getType();
+		if (prevType == null || !prevType.equals(type)) {
+			arg.setType(type);
+			return true;
 		}
 		return false;
 	}
