@@ -224,7 +224,8 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		InsnArg iterableArg = assignInsn.getArg(0);
 		InsnNode hasNextCall = useList.get(0).getParentInsn();
 		InsnNode nextCall = useList.get(1).getParentInsn();
-		if (!checkInvoke(hasNextCall, "java.util.Iterator", "hasNext()Z", 0)
+		if (hasNextCall == null || nextCall == null
+				|| !checkInvoke(hasNextCall, "java.util.Iterator", "hasNext()Z", 0)
 				|| !checkInvoke(nextCall, "java.util.Iterator", "next()Ljava/lang/Object;", 0)) {
 			return false;
 		}
@@ -239,7 +240,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 				} else {
 					iterVar = parentInsn.getResult();
 					InsnArg castArg = BlockUtils.searchWrappedInsnParent(mth, parentInsn);
-					if (castArg != null) {
+					if (castArg != null && castArg.getParentInsn() != null) {
 						castArg.getParentInsn().replaceArg(castArg, iterVar);
 					} else {
 						// cast not inlined
@@ -266,27 +267,34 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 	}
 
 	private static boolean fixIterableType(InsnArg iterableArg, RegisterArg iterVar) {
-		ArgType type = iterableArg.getType();
-		if (type.isGeneric()) {
-			ArgType[] genericTypes = type.getGenericTypes();
-			if (genericTypes != null && genericTypes.length == 1) {
-				ArgType gType = genericTypes[0];
-				if (ArgType.isInstanceOf(gType, iterVar.getType())) {
-					return true;
-				} else {
-					LOG.warn("Generic type differs: {} and {}", type, iterVar.getType());
-				}
+		ArgType iterableType = iterableArg.getType();
+		ArgType varType = iterVar.getType();
+		if (iterableType.isGeneric()) {
+			ArgType[] genericTypes = iterableType.getGenericTypes();
+			if (genericTypes == null || genericTypes.length != 1) {
+				return false;
 			}
-		} else {
-			if (!iterableArg.isRegister()) {
+			ArgType gType = genericTypes[0];
+			if (gType.equals(varType)) {
 				return true;
 			}
-			// TODO: add checks
-			type = ArgType.generic(type.getObject(), new ArgType[]{iterVar.getType()});
-			iterableArg.setType(type);
+			if (gType.isGenericType()) {
+				iterVar.setType(gType);
+				return true;
+			}
+			if (ArgType.isInstanceOf(gType, varType)) {
+				return true;
+			}
+			LOG.warn("Generic type differs: {} and {}", gType, varType);
+			return false;
+		}
+		if (!iterableArg.isRegister()) {
 			return true;
 		}
-		return false;
+		// TODO: add checks
+		iterableType = ArgType.generic(iterableType.getObject(), new ArgType[]{varType});
+		iterableArg.setType(iterableType);
+		return true;
 	}
 
 	/**
