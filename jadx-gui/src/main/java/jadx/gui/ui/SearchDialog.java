@@ -71,7 +71,7 @@ public class SearchDialog extends JDialog {
 
 	private JTextField searchField;
 	private ResultsModel resultsModel;
-	private JList resultsList;
+	private JList<Object> resultsList;
 	private JProgressBar busyBar;
 
 	public SearchDialog(Frame owner, TabbedPane tabbedPane, JadxWrapper wrapper) {
@@ -171,7 +171,7 @@ public class SearchDialog extends JDialog {
 		}
 	}
 
-	private static class ResultsModel extends DefaultListModel {
+	private static class ResultsModel extends DefaultListModel<Object> {
 		private static final long serialVersionUID = -7821286846923903208L;
 
 		private void setResults(List<JavaNode> results) {
@@ -186,7 +186,7 @@ public class SearchDialog extends JDialog {
 		}
 	}
 
-	private static class ResultsCellRenderer implements ListCellRenderer {
+	private static class ResultsCellRenderer implements ListCellRenderer<Object> {
 		private final Color selectedBackground;
 		private final Color selectedForeground;
 
@@ -197,7 +197,7 @@ public class SearchDialog extends JDialog {
 		}
 
 		@Override
-		public Component getListCellRendererComponent(JList list,
+		public Component getListCellRendererComponent(JList<?> list,
 		                                              Object obj, int index, boolean isSelected, boolean cellHasFocus) {
 			if (!(obj instanceof JNode)) {
 				return null;
@@ -244,7 +244,7 @@ public class SearchDialog extends JDialog {
 		codeChBox.setEnabled(false);
 
 		resultsModel = new ResultsModel();
-		resultsList = new JList(resultsModel);
+		resultsList = new JList<Object>(resultsModel);
 		resultsList.setCellRenderer(new ResultsCellRenderer());
 		resultsList.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent evt) {
