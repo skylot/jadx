@@ -40,7 +40,7 @@ public class InputFile {
 		if (fileName.endsWith(".class")) {
 			return loadFromClassFile(file);
 		}
-		if (fileName.endsWith(".apk")) {
+		if (fileName.endsWith(".apk") || fileName.endsWith(".zip")) {
 			Dex dex = loadFromZip(file);
 			if (dex == null) {
 				throw new IOException("File 'classes.dex' not found in file: " + file);
