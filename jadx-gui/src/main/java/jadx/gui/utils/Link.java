@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import static java.awt.Desktop.Action;
 
 public class Link extends JLabel implements MouseListener {
+	private static final long serialVersionUID = 0L; // TODO: Generate random serialvers with serialver/eclipse
 	private static final Logger LOG = LoggerFactory.getLogger(JLabel.class);
 
 	private String url;

@@ -10,7 +10,7 @@ import javax.swing.Icon;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 public abstract class JNode extends DefaultMutableTreeNode {
-
+	private static final long serialVersionUID = 1337L; // TODO: Create your own serialvers with serialver/eclipse
 	public static JNode makeFrom(JavaNode node) {
 		if (node instanceof JavaClass) {
 			JClass p = (JClass) makeFrom(node.getDeclaringClass());
