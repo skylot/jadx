@@ -28,6 +28,7 @@ public class BinaryXMLParser {
 		} catch(FileNotFoundException fnfe) { die("FNFE"); }
 		catch(UnsupportedEncodingException uee) { die("UEE"); }
 		if(null==writer) die("null==writer");
+		writer.println("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
 		File manifest = new File(xmlfilepath);
 		if(null==manifest) die("null==manifest");
 		bytes = new byte[(int) manifest.length()];
