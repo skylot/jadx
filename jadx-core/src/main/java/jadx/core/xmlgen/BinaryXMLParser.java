@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.io.PrintWriter;
 
 public class BinaryXMLParser {
 	private byte[] bytes;
@@ -16,8 +17,14 @@ public class BinaryXMLParser {
 	private int count;
 	private String nsPrefix="ERROR";
 	private int numtabs=-1;
-	public BinaryXMLParser(String xmlfilepath) {
-		System.out.println(xmlfilepath);
+	PrintWriter writer;
+	public BinaryXMLParser(String xmlfilepath, String xmloutfilepath) {
+		//System.out.println(xmlfilepath);
+		try {
+			writer = new PrintWriter(xmloutfilepath,"UTF-8");
+		} catch(FileNotFoundException fnfe) { die("FNFE"); }
+		catch(UnsupportedEncodingException uee) { die("UEE"); }
+		if(null==writer) die("null==writer");
 		File manifest = new File(xmlfilepath);
 		if(null==manifest) die("null==manifest");
 		bytes = new byte[(int) manifest.length()];
@@ -55,6 +62,7 @@ public class BinaryXMLParser {
 			else die("Type: " + Integer.toHexString(type) + " not yet implemented");
 			//System.out.println("COUNT: "+Integer.toHexString(count));
 		}
+		writer.close();
 		//die("Done");
 	}
 
@@ -88,7 +96,7 @@ public class BinaryXMLParser {
 			System.arraycopy(bytes, count, str, 0, strlen*2);
 			count+=strlen*2;
 			strings[i] = new String(str, Charset.forName("UTF-16LE"));
-			System.out.println("index i["+i+"] string: " + strings[i]);
+			//System.out.println("index i["+i+"] string: " + strings[i]);
 			count+=2;
 		}
 	}
@@ -96,12 +104,12 @@ public class BinaryXMLParser {
 	private void parseResourceMap() {
 		if(cInt16(bytes, count) != 0x8) die("Header size of resmap is not 8!");
 		int rhsize = cInt32(bytes, count);
-		System.out.println("RHeader Size: " + rhsize);
+		//System.out.println("RHeader Size: " + rhsize);
 		int[] ids = new int[(rhsize-8)/4];
 		for(int i=0; i<ids.length; i++) {
 			ids[i]=cInt32(bytes, count);
-			System.out.println("i["+i+"] ID: "+ids[i]);
-			System.out.println("Hex: 0x0" + Integer.toHexString(ids[i]) + " should be: " + strings[i]);
+			//System.out.println("i["+i+"] ID: "+ids[i]);
+			//System.out.println("Hex: 0x0" + Integer.toHexString(ids[i]) + " should be: " + strings[i]);
 		}
 	}
 
@@ -114,10 +122,10 @@ public class BinaryXMLParser {
 		int comment = cInt32(bytes, count);
 		//System.out.println("Comment: 0x" + Integer.toHexString(comment));
 		int beginPrefix = cInt32(bytes, count);
-		System.out.println("Prefix: " + strings[beginPrefix]);
+		//System.out.println("Prefix: " + strings[beginPrefix]);
 		nsPrefix = strings[beginPrefix];
 		int beginURI = cInt32(bytes, count);
-		System.out.println("URI: " + strings[beginURI]);
+		//System.out.println("URI: " + strings[beginURI]);
 		//System.out.println("COUNT: "+Integer.toHexString(count));
 	}
 
@@ -130,10 +138,10 @@ public class BinaryXMLParser {
 		int comment = cInt32(bytes, count);
 		//System.out.println("Comment: 0x" + Integer.toHexString(comment));
 		int endPrefix = cInt32(bytes, count);
-		System.out.println("Prefix: " + strings[endPrefix]);
+		//System.out.println("Prefix: " + strings[endPrefix]);
 		nsPrefix = strings[endPrefix];
 		int endURI = cInt32(bytes, count);
-		System.out.println("URI: " + strings[endURI]);
+		//System.out.println("URI: " + strings[endURI]);
 	}
 
 	private void parseElement() {
@@ -150,8 +158,8 @@ public class BinaryXMLParser {
 		//System.out.println("Namespace: 0x" + Integer.toHexString(startNS));
 		int startNSName = cInt32(bytes, count); // what to do with this id?
 		//System.out.println("Namespace name: " + strings[startNSName]);
-		for(int i=0; i<numtabs; i++) System.out.print("\t");
-		System.out.print("<" + strings[startNSName]);
+		for(int i=0; i<numtabs; i++) writer.print("\t");
+		writer.print("<" + strings[startNSName]);
 		int attributeStart = cInt16(bytes, count);
 		if(attributeStart != 0x14) die("startNS's attributeStart is not 0x14");
 		int attributeSize = cInt16(bytes, count);
@@ -164,7 +172,7 @@ public class BinaryXMLParser {
 		//System.out.println("startNS: classIndex: " + classIndex);
 		int styleIndex = cInt16(bytes, count);
 		//System.out.println("startNS: styleIndex: " + styleIndex);
-		if(attributeCount>0) System.out.print(" ");
+		if(attributeCount>0) writer.print(" ");
 		for(int i=0; i<attributeCount; i++) {
 			int attributeNS = cInt32(bytes, count);
 			int attributeName = cInt32(bytes, count);
@@ -184,19 +192,19 @@ public class BinaryXMLParser {
 			System.out.println("ai["+i+"] dt: " + attrValDataType);
 			System.out.println("ai["+i+"] d: " + attrValData);
 */
-			if(attributeNS != -1) System.out.print(nsPrefix+":");
-			if(attrValDataType==0x3) System.out.print(strings[attributeName] + "=\"" + strings[attrValData]+"\"");
-			else if(attrValDataType==0x10) System.out.print(strings[attributeName] + "=\"" + attrValData+"\"");
+			if(attributeNS != -1) writer.print(nsPrefix+":");
+			if(attrValDataType==0x3) writer.print(strings[attributeName] + "=\"" + strings[attrValData]+"\"");
+			else if(attrValDataType==0x10) writer.print(strings[attributeName] + "=\"" + attrValData+"\"");
 			else if(attrValDataType==0x12) {
 				// TODO: data is always -1, FIXME
-				if(attrValData==0) System.out.print(strings[attributeName] + "=\"false\"");
-				else if(attrValData==1 || attrValData==-1) System.out.print(strings[attributeName] + "=\"true\"");
-				else System.out.print(strings[attributeName] + "=\"UNKNOWN\"");
+				if(attrValData==0) writer.print(strings[attributeName] + "=\"false\"");
+				else if(attrValData==1 || attrValData==-1) writer.print(strings[attributeName] + "=\"true\"");
+				else writer.print(strings[attributeName] + "=\"UNKNOWN\"");
 			}
-			else System.out.print(strings[attributeName] + " = UNKNOWN DATA TYPE: " + attrValDataType);
-			System.out.print(" ");
+			else writer.print(strings[attributeName] + " = UNKNOWN DATA TYPE: " + attrValDataType);
+			writer.print(" ");
 		}
-		System.out.println(">");
+		writer.println(">");
 	}
 
 	private void parseElementEnd() {
@@ -209,10 +217,10 @@ public class BinaryXMLParser {
 		//System.out.println("Comment: 0x" + Integer.toHexString(comment));
 		int elementNS = cInt32(bytes, count);
 		int elementName = cInt32(bytes, count);
-		for(int i=0; i<numtabs; i++) System.out.print("\t");
-		System.out.print("</");
-		if(elementNS != -1) System.out.print(strings[elementNS]+":");
-		System.out.println(strings[elementName]+">");
+		for(int i=0; i<numtabs; i++) writer.print("\t");
+		writer.print("</");
+		if(elementNS != -1) writer.print(strings[elementNS]+":");
+		writer.println(strings[elementName]+">");
 		numtabs-=1;
 	}
 

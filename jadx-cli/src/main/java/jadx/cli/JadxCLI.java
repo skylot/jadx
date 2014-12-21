@@ -14,7 +14,7 @@ public class JadxCLI {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxCLI.class);
 
 	public static void main(String[] args) throws JadxException {
-		BinaryXMLParser bxp = new BinaryXMLParser(args[0]);
+		BinaryXMLParser bxp = new BinaryXMLParser(args[0],args[1]);
 		bxp.parse();
 		System.exit(4);
 		try {
