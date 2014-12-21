@@ -15,6 +15,7 @@ public class BinaryXMLParser {
 	private String[] strings;
 	private int count;
 	private String nsPrefix="ERROR";
+	private int numtabs=-1;
 	public BinaryXMLParser(String xmlfilepath) {
 		System.out.println(xmlfilepath);
 		File manifest = new File(xmlfilepath);
@@ -136,6 +137,7 @@ public class BinaryXMLParser {
 	}
 
 	private void parseElement() {
+		numtabs+=1;
 		if(cInt16(bytes, count) != 0x0010) die("ELEMENT HEADER SIZE is not 0x10");
 		//if(cInt32(bytes, count) != 0x0060) die("ELEMENT CHUNK SIZE is not 0x60");
 		count+=4;
@@ -148,7 +150,8 @@ public class BinaryXMLParser {
 		//System.out.println("Namespace: 0x" + Integer.toHexString(startNS));
 		int startNSName = cInt32(bytes, count); // what to do with this id?
 		//System.out.println("Namespace name: " + strings[startNSName]);
-		System.out.println("<" + strings[startNSName] + "");
+		for(int i=0; i<numtabs; i++) System.out.print("\t");
+		System.out.print("<" + strings[startNSName]);
 		int attributeStart = cInt16(bytes, count);
 		if(attributeStart != 0x14) die("startNS's attributeStart is not 0x14");
 		int attributeSize = cInt16(bytes, count);
@@ -161,6 +164,7 @@ public class BinaryXMLParser {
 		//System.out.println("startNS: classIndex: " + classIndex);
 		int styleIndex = cInt16(bytes, count);
 		//System.out.println("startNS: styleIndex: " + styleIndex);
+		if(attributeCount>0) System.out.print(" ");
 		for(int i=0; i<attributeCount; i++) {
 			int attributeNS = cInt32(bytes, count);
 			int attributeName = cInt32(bytes, count);
@@ -173,15 +177,24 @@ public class BinaryXMLParser {
 			int attrValData = cInt32(bytes, count);
 /*
 			System.out.println("ai["+i+"] ns: " + attributeNS);
+			//if(attributeNS!=-1) System.out.println("ai["+i+"] Sns: " + strings[attributeNS]);
 			System.out.println("ai["+i+"] name: " + attributeName);
+			if(attributeName!=-1) System.out.println("ai["+i+"] Sns: " + strings[attributeName]);
 			System.out.println("ai["+i+"] rawval: " + attributeRawValue);
 			System.out.println("ai["+i+"] dt: " + attrValDataType);
 			System.out.println("ai["+i+"] d: " + attrValData);
 */
 			if(attributeNS != -1) System.out.print(nsPrefix+":");
-			if(attrValDataType==0x3) System.out.println(strings[attributeName] + "=" + strings[attrValData]);
-			else if(attrValDataType==0x10) System.out.println(strings[attributeName] + "=" + attrValData);
-			else System.out.println(strings[attributeName] + " = UNKNOWN DATA TYPE: " + attrValDataType);
+			if(attrValDataType==0x3) System.out.print(strings[attributeName] + "=\"" + strings[attrValData]+"\"");
+			else if(attrValDataType==0x10) System.out.print(strings[attributeName] + "=\"" + attrValData+"\"");
+			else if(attrValDataType==0x12) {
+				// TODO: data is always -1, FIXME
+				if(attrValData==0) System.out.print(strings[attributeName] + "=\"false\"");
+				else if(attrValData==1 || attrValData==-1) System.out.print(strings[attributeName] + "=\"true\"");
+				else System.out.print(strings[attributeName] + "=\"UNKNOWN\"");
+			}
+			else System.out.print(strings[attributeName] + " = UNKNOWN DATA TYPE: " + attrValDataType);
+			System.out.print(" ");
 		}
 		System.out.println(">");
 	}
@@ -196,9 +209,11 @@ public class BinaryXMLParser {
 		//System.out.println("Comment: 0x" + Integer.toHexString(comment));
 		int elementNS = cInt32(bytes, count);
 		int elementName = cInt32(bytes, count);
+		for(int i=0; i<numtabs; i++) System.out.print("\t");
 		System.out.print("</");
 		if(elementNS != -1) System.out.print(strings[elementNS]+":");
 		System.out.println(strings[elementName]+">");
+		numtabs-=1;
 	}
 
 	private int cInt8(byte[] bytes, int offset) {
