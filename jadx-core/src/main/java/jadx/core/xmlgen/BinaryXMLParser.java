@@ -168,11 +168,13 @@ public class BinaryXMLParser {
 			if(cInt8(bytes, count) != 0) die("res0 is not 0");
 			int attrValDataType = cInt8(bytes, count);
 			int attrValData = cInt32(bytes, count);
+/*
 			System.out.println("ai["+i+"] ns: " + attributeNS);
 			System.out.println("ai["+i+"] name: " + attributeName);
 			System.out.println("ai["+i+"] rawval: " + attributeRawValue);
 			System.out.println("ai["+i+"] dt: " + attrValDataType);
 			System.out.println("ai["+i+"] d: " + attrValData);
+*/
 			if(attributeNS != -1) System.out.print(nsPrefix+":");
 			if(attrValDataType==0x3) System.out.println(strings[attributeName] + "=" + strings[attrValData]);
 			else if(attrValDataType==0x10) System.out.println(strings[attributeName] + "=" + attrValData);
