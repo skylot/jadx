@@ -52,7 +52,7 @@ public class BinaryXMLParser {
 			else if(type==0x0103) parseElementEnd();
 			else if(type==0x0000) continue; // NullType is just doing nothing
 			else die("Type: " + Integer.toHexString(type) + " not yet implemented");
-			System.out.println("COUNT: "+Integer.toHexString(count));
+			//System.out.println("COUNT: "+Integer.toHexString(count));
 		}
 		//die("Done");
 	}
@@ -109,14 +109,15 @@ public class BinaryXMLParser {
 		if(cInt32(bytes, count) != 0x18) die("NAMESPACE header chunk is not 0x18 big");
 		int beginLineNumber = cInt32(bytes, count);
 		//if(beginLineNumber!=2) die("NAMESPACE beginning line number != 2 not supported yet");
-		System.out.println("NAMESPACE BEGIN Line: " + beginLineNumber);
-		System.out.println("Comment: 0x" + Integer.toHexString(cInt32(bytes, count)));
+		//System.out.println("NAMESPACE BEGIN Line: " + beginLineNumber);
+		int comment = cInt32(bytes, count);
+		//System.out.println("Comment: 0x" + Integer.toHexString(comment));
 		int beginPrefix = cInt32(bytes, count);
 		System.out.println("Prefix: " + strings[beginPrefix]);
 		nsPrefix = strings[beginPrefix];
 		int beginURI = cInt32(bytes, count);
 		System.out.println("URI: " + strings[beginURI]);
-		System.out.println("COUNT: "+Integer.toHexString(count));
+		//System.out.println("COUNT: "+Integer.toHexString(count));
 	}
 
 	private void parseNameSpaceEnd() {
@@ -124,8 +125,9 @@ public class BinaryXMLParser {
 		if(cInt32(bytes, count) != 0x18) die("NAMESPACE header chunk is not 0x18 big");
 		int endLineNumber = cInt32(bytes, count);
 		//if(endLineNumber!=2) die("NAMESPACE begining line number != 2 not supported yet");
-		System.out.println("NAMESPACE END Line: " + endLineNumber);
-		System.out.println("Comment: 0x" + Integer.toHexString(cInt32(bytes, count)));
+		//System.out.println("NAMESPACE END Line: " + endLineNumber);
+		int comment = cInt32(bytes, count);
+		//System.out.println("Comment: 0x" + Integer.toHexString(comment));
 		int endPrefix = cInt32(bytes, count);
 		System.out.println("Prefix: " + strings[endPrefix]);
 		nsPrefix = strings[endPrefix];
@@ -138,26 +140,27 @@ public class BinaryXMLParser {
 		//if(cInt32(bytes, count) != 0x0060) die("ELEMENT CHUNK SIZE is not 0x60");
 		count+=4;
 		int elementLineNumber = cInt32(bytes, count);
-		System.out.println("elementLineNumber: " + elementLineNumber);
-		System.out.println("Comment: 0x" + Integer.toHexString(cInt32(bytes, count)));
-		System.out.println("COUNT: "+Integer.toHexString(count));
+		//System.out.println("elementLineNumber: " + elementLineNumber);
+		int comment = cInt32(bytes, count);
+		//System.out.println("Comment: 0x" + Integer.toHexString(comment));
+		//System.out.println("COUNT: "+Integer.toHexString(count));
 		int startNS = cInt32(bytes, count);
-		System.out.println("Namespace: 0x" + Integer.toHexString(startNS));
+		//System.out.println("Namespace: 0x" + Integer.toHexString(startNS));
 		int startNSName = cInt32(bytes, count); // what to do with this id?
-		System.out.println("Namespace name: " + strings[startNSName]);
+		//System.out.println("Namespace name: " + strings[startNSName]);
 		System.out.println("<" + strings[startNSName] + "");
 		int attributeStart = cInt16(bytes, count);
 		if(attributeStart != 0x14) die("startNS's attributeStart is not 0x14");
 		int attributeSize = cInt16(bytes, count);
 		if(attributeSize != 0x14) die("startNS's attributeSize is not 0x14");
 		int attributeCount = cInt16(bytes, count); 
-		System.out.println("startNS: attributeCount: " + attributeCount);
+		//System.out.println("startNS: attributeCount: " + attributeCount);
 		int idIndex = cInt16(bytes, count);
-		System.out.println("startNS: idIndex: " + idIndex);
+		//System.out.println("startNS: idIndex: " + idIndex);
 		int classIndex = cInt16(bytes, count);
-		System.out.println("startNS: classIndex: " + classIndex);
+		//System.out.println("startNS: classIndex: " + classIndex);
 		int styleIndex = cInt16(bytes, count);
-		System.out.println("startNS: styleIndex: " + styleIndex);
+		//System.out.println("startNS: styleIndex: " + styleIndex);
 		for(int i=0; i<attributeCount; i++) {
 			int attributeNS = cInt32(bytes, count);
 			int attributeName = cInt32(bytes, count);
@@ -188,8 +191,9 @@ public class BinaryXMLParser {
 		if(cInt32(bytes, count) != 0x18) die("ELEMENT END header chunk is not 0x18 big");
 		int endLineNumber = cInt32(bytes, count);
 		//if(endLineNumber!=2) die("NAMESPACE beginning line number != 2 not supported yet");
-		System.out.println("ELEMENT END Line:" + endLineNumber);
-		System.out.println("Comment: 0x" + Integer.toHexString(cInt32(bytes, count)));
+		//System.out.println("ELEMENT END Line:" + endLineNumber);
+		int comment = cInt32(bytes, count);
+		//System.out.println("Comment: 0x" + Integer.toHexString(comment));
 		int elementNS = cInt32(bytes, count);
 		int elementName = cInt32(bytes, count);
 		System.out.print("</");
