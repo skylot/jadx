@@ -16,7 +16,10 @@ public class BinaryXMLParser {
 	private String[] strings;
 	private int count;
 	private String nsPrefix="ERROR";
+	private String nsURI="ERROR";
+	private String currentTag="ERROR";
 	private int numtabs=-1;
+	private boolean wasOneLiner=false;
 	PrintWriter writer;
 	public BinaryXMLParser(String xmlfilepath, String xmloutfilepath) {
 		//System.out.println(xmlfilepath);
@@ -126,6 +129,7 @@ public class BinaryXMLParser {
 		nsPrefix = strings[beginPrefix];
 		int beginURI = cInt32(bytes, count);
 		//System.out.println("URI: " + strings[beginURI]);
+		nsURI=strings[beginURI];
 		//System.out.println("COUNT: "+Integer.toHexString(count));
 	}
 
@@ -141,6 +145,7 @@ public class BinaryXMLParser {
 		//System.out.println("Prefix: " + strings[endPrefix]);
 		nsPrefix = strings[endPrefix];
 		int endURI = cInt32(bytes, count);
+		nsURI=strings[endURI];
 		//System.out.println("URI: " + strings[endURI]);
 	}
 
@@ -149,15 +154,20 @@ public class BinaryXMLParser {
 		if(cInt16(bytes, count) != 0x0010) die("ELEMENT HEADER SIZE is not 0x10");
 		//if(cInt32(bytes, count) != 0x0060) die("ELEMENT CHUNK SIZE is not 0x60");
 		count+=4;
-		int elementLineNumber = cInt32(bytes, count);
-		//System.out.println("elementLineNumber: " + elementLineNumber);
+		int elementBegLineNumber = cInt32(bytes, count);
+		//System.out.println("ELEMENT BEG Line: " + elementBegLineNumber + " of " + strings[startNSName]);
 		int comment = cInt32(bytes, count);
 		//System.out.println("Comment: 0x" + Integer.toHexString(comment));
 		//System.out.println("COUNT: "+Integer.toHexString(count));
 		int startNS = cInt32(bytes, count);
 		//System.out.println("Namespace: 0x" + Integer.toHexString(startNS));
-		int startNSName = cInt32(bytes, count); // what to do with this id?
+		int startNSName = cInt32(bytes, count); // actually is elementName...
 		//System.out.println("Namespace name: " + strings[startNSName]);
+		if(!wasOneLiner && !"ERROR".equals(currentTag) && !currentTag.equals(strings[startNSName])) {
+			writer.println(">");
+		}
+		wasOneLiner=false;
+		currentTag=strings[startNSName];
 		for(int i=0; i<numtabs; i++) writer.print("\t");
 		writer.print("<" + strings[startNSName]);
 		int attributeStart = cInt16(bytes, count);
@@ -172,6 +182,7 @@ public class BinaryXMLParser {
 		//System.out.println("startNS: classIndex: " + classIndex);
 		int styleIndex = cInt16(bytes, count);
 		//System.out.println("startNS: styleIndex: " + styleIndex);
+		if("manifest".equals(strings[startNSName])) writer.print(" xmlns:\""+nsURI+"\"");
 		if(attributeCount>0) writer.print(" ");
 		for(int i=0; i<attributeCount; i++) {
 			int attributeNS = cInt32(bytes, count);
@@ -183,7 +194,7 @@ public class BinaryXMLParser {
 			if(cInt8(bytes, count) != 0) die("res0 is not 0");
 			int attrValDataType = cInt8(bytes, count);
 			int attrValData = cInt32(bytes, count);
-/*
+/*(
 			System.out.println("ai["+i+"] ns: " + attributeNS);
 			//if(attributeNS!=-1) System.out.println("ai["+i+"] Sns: " + strings[attributeNS]);
 			System.out.println("ai["+i+"] name: " + attributeName);
@@ -193,6 +204,7 @@ public class BinaryXMLParser {
 			System.out.println("ai["+i+"] d: " + attrValData);
 */
 			if(attributeNS != -1) writer.print(nsPrefix+":");
+			//writer.print(strings[attributeName] + "=\"");
 			if(attrValDataType==0x3) writer.print(strings[attributeName] + "=\"" + strings[attrValData]+"\"");
 			else if(attrValDataType==0x10) writer.print(strings[attributeName] + "=\"" + attrValData+"\"");
 			else if(attrValDataType==0x12) {
@@ -200,11 +212,12 @@ public class BinaryXMLParser {
 				if(attrValData==0) writer.print(strings[attributeName] + "=\"false\"");
 				else if(attrValData==1 || attrValData==-1) writer.print(strings[attributeName] + "=\"true\"");
 				else writer.print(strings[attributeName] + "=\"UNKNOWN\"");
-			}
+			} else if(attrValDataType==0x1) writer.print(strings[attributeName] + "=\"0x" + Integer.toHexString(attrValData) + "\"");
 			else writer.print(strings[attributeName] + " = UNKNOWN DATA TYPE: " + attrValDataType);
-			writer.print(" ");
+			if((i+1)<attributeCount) writer.print(" ");
 		}
-		writer.println(">");
+		//writer.println(">");
+		//System.out.println("ELEMENT BEG Line: " + elementBegLineNumber + " of " + strings[startNSName]);
 	}
 
 	private void parseElementEnd() {
@@ -212,16 +225,22 @@ public class BinaryXMLParser {
 		if(cInt32(bytes, count) != 0x18) die("ELEMENT END header chunk is not 0x18 big");
 		int endLineNumber = cInt32(bytes, count);
 		//if(endLineNumber!=2) die("NAMESPACE beginning line number != 2 not supported yet");
-		//System.out.println("ELEMENT END Line:" + endLineNumber);
 		int comment = cInt32(bytes, count);
 		//System.out.println("Comment: 0x" + Integer.toHexString(comment));
 		int elementNS = cInt32(bytes, count);
 		int elementName = cInt32(bytes, count);
-		for(int i=0; i<numtabs; i++) writer.print("\t");
-		writer.print("</");
-		if(elementNS != -1) writer.print(strings[elementNS]+":");
-		writer.println(strings[elementName]+">");
+		if(currentTag==strings[elementName]) {
+			writer.println("/>");
+			wasOneLiner=true;
+		} else {
+			for(int i=0; i<numtabs; i++) writer.print("\t");
+			writer.print("</");
+			if(elementNS != -1) writer.print(strings[elementNS]+":");
+			writer.println(strings[elementName]+">");
+		}
 		numtabs-=1;
+		//System.out.println("ELEMENT END Line: " + endLineNumber + " of " + strings[elementName]);
+		// TODO: Mind linenumbers for real original file ;)
 	}
 
 	private int cInt8(byte[] bytes, int offset) {
