@@ -8,10 +8,15 @@ import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.xmlgen.BinaryXMLParser;
+
 public class JadxCLI {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxCLI.class);
 
 	public static void main(String[] args) throws JadxException {
+		BinaryXMLParser bxp = new BinaryXMLParser(args[0]);
+		bxp.parse();
+		System.exit(4);
 		try {
 			JadxCLIArgs jadxArgs = new JadxCLIArgs();
 			if (processArgs(jadxArgs, args)) {
