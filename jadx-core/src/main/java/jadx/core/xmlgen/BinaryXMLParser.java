@@ -204,16 +204,17 @@ public class BinaryXMLParser {
 			System.out.println("ai["+i+"] d: " + attrValData);
 */
 			if(attributeNS != -1) writer.print(nsPrefix+":");
-			//writer.print(strings[attributeName] + "=\"");
-			if(attrValDataType==0x3) writer.print(strings[attributeName] + "=\"" + strings[attrValData]+"\"");
-			else if(attrValDataType==0x10) writer.print(strings[attributeName] + "=\"" + attrValData+"\"");
+			writer.print(strings[attributeName] + "=\"");
+			if(attrValDataType==0x3) writer.print(strings[attrValData]);
+			else if(attrValDataType==0x10) writer.print(attrValData);
 			else if(attrValDataType==0x12) {
 				// TODO: data is always -1, FIXME
-				if(attrValData==0) writer.print(strings[attributeName] + "=\"false\"");
-				else if(attrValData==1 || attrValData==-1) writer.print(strings[attributeName] + "=\"true\"");
-				else writer.print(strings[attributeName] + "=\"UNKNOWN\"");
-			} else if(attrValDataType==0x1) writer.print(strings[attributeName] + "=\"0x" + Integer.toHexString(attrValData) + "\"");
-			else writer.print(strings[attributeName] + " = UNKNOWN DATA TYPE: " + attrValDataType);
+				if(attrValData==0) writer.print("false");
+				else if(attrValData==1 || attrValData==-1) writer.print("true");
+				else writer.print("UNKNOWN_BOOLEAN_TYPE");
+			} else if(attrValDataType==0x1) writer.print("0x" + Integer.toHexString(attrValData));
+			else writer.print("UNKNOWN_DATA_TYPE_" + attrValDataType);
+			writer.print("\"");
 			if((i+1)<attributeCount) writer.print(" ");
 		}
 		//writer.println(">");
