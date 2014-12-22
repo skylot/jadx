@@ -38,4 +38,9 @@ public class DefaultJadxArgs implements IJadxArgs {
 	public boolean isVerbose() {
 		return false;
 	}
+
+	@Override
+	public boolean isXMLTest() {
+		return false;
+	}
 }

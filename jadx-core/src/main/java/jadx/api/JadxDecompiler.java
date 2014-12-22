@@ -11,6 +11,7 @@ import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.InputFile;
+import jadx.core.xmlgen.BinaryXMLParser;
 
 import java.io.File;
 import java.io.IOException;
@@ -202,6 +203,16 @@ public final class JadxDecompiler {
 		reset();
 		root = new RootNode();
 		LOG.info("loading ...");
+		if(this.args.isXMLTest()) {
+			InputFile inf = inputFiles.get(0);
+			try {
+				BinaryXMLParser bxp = new BinaryXMLParser(InputFile.loadXMLBuffer(inf.getFile()), "./AndroidManifest.xml");
+				//BinaryXMLParser bxp = new BinaryXMLParser(InputFile.loadXMLBuffer(inf.getFile()), "AndroidManifest.xml");
+				bxp.parse();
+			} catch(IOException ioe) {
+				LOG.info("Decompiling AndroidManifest.xml failed!");
+			}
+		}
 		root.load(inputFiles);
 	}
 

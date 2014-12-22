@@ -76,7 +76,27 @@ public class BinaryXMLParser {
 				die("IAE");
 			}
 		}
-		
+	}
+
+	public BinaryXMLParser(byte[] xmlfilebytes, String xmloutfilepath) {
+		System.out.println("XMLOUTFILEPATH: " + xmloutfilepath);
+		try {
+			writer = new PrintWriter(xmloutfilepath,"UTF-8");
+		} catch(FileNotFoundException fnfe) { die("FNFE"); }
+		catch(UnsupportedEncodingException uee) { die("UEE"); }
+		if(null==writer) die("null==writer");
+		writer.println("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+		bytes = xmlfilebytes;
+		count=0;
+		styleMap = new HashMap<Integer, String>();
+		if(null==styleMap) die("null==styleMap");
+		for(Field f : android.R.style.class.getFields()) {
+			try {
+				styleMap.put(f.getInt(f.getType()),f.getName());
+			} catch(IllegalAccessException iae) {
+				die("IAE");
+			}
+		}
 	}
 
 	public void parse() {
