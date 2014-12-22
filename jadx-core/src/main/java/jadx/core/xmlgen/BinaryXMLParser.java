@@ -11,6 +11,14 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.io.PrintWriter;
 
+import java.lang.reflect.Field;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import android.R.style;
+//import android.content.res.Resources;
+
 public class BinaryXMLParser {
 	private byte[] bytes;
 	private String[] strings;
@@ -21,6 +29,7 @@ public class BinaryXMLParser {
 	private int numtabs=-1;
 	private boolean wasOneLiner=false;
 	PrintWriter writer;
+	Map<Integer, String> styleMap = null;
 	public BinaryXMLParser(String xmlfilepath, String xmloutfilepath) {
 		//System.out.println(xmlfilepath);
 		try {
@@ -48,6 +57,16 @@ public class BinaryXMLParser {
 		} catch(FileNotFoundException fnfe) { die("FILE NOT FOUND"); }
 		catch(IOException ioe) { die("IOE"); }
 		count=0;
+		styleMap = new HashMap<Integer, String>();
+		if(null==styleMap) die("null==styleMap");
+		for(Field f : android.R.style.class.getFields()) {
+			try {
+				styleMap.put(f.getInt(f.getType()),f.getName());
+			} catch(IllegalAccessException iae) {
+				die("IAE");
+			}
+		}
+		
 	}
 
 	public void parse() {
@@ -182,7 +201,7 @@ public class BinaryXMLParser {
 		int classIndex = cInt16(bytes, count);
 		//System.out.println("startNS: classIndex: " + classIndex);
 		int styleIndex = cInt16(bytes, count);
-		//System.out.println("startNS: styleIndex: " + styleIndex);
+		if(styleIndex!=0) System.out.println("startNS: styleIndex: " + styleIndex);
 		if("manifest".equals(strings[startNSName])) writer.print(" xmlns:\""+nsURI+"\"");
 		if(attributeCount>0) writer.print(" ");
 		for(int i=0; i<attributeCount; i++) {
@@ -213,8 +232,39 @@ public class BinaryXMLParser {
 				if(attrValData==0) writer.print("false");
 				else if(attrValData==1 || attrValData==-1) writer.print("true");
 				else writer.print("UNKNOWN_BOOLEAN_TYPE");
-			} else if(attrValDataType==0x1) writer.print("0x" + Integer.toHexString(attrValData));
-			else writer.print("UNKNOWN_DATA_TYPE_" + attrValDataType);
+			} else if(attrValDataType==0x1) {
+				if(attrValData<0x7f000000) {
+					//System.out.println("0x"+Integer.toHexString(attrValData));
+					//System.out.println(styleMap.get(attrValData));
+					//System.out.println(android.R.style.class);
+					writer.print("@*");
+					if(attributeNS != -1) writer.print(nsPrefix+":");
+					writer.print("style/"+styleMap.get(attrValData).replaceAll("_", "."));
+				} else {
+					writer.print("0x" + Integer.toHexString(attrValData));
+				}
+			}
+			else {
+/*
+	//System.out.println("ai["+i+"] ns: " + attributeNS);
+	//if(attributeNS!=-1) System.out.println("ai["+i+"] Sns: " + strings[attributeNS]);
+	//System.out.println("ai["+i+"] name: " + attributeName);
+	if(attributeName!=-1) System.out.println("ai["+i+"] Sns: " + strings[attributeName]);
+	System.out.println("ai["+i+"] rawval: " + attributeRawValue);
+	if(attributeRawValue!=-1) System.out.println("ai["+i+"] Sns: " + strings[attributeRawValue]);
+	System.out.println("ai["+i+"] dt: " + attrValDataType);
+	System.out.println("ai["+i+"] d: " + attrValData);
+*/
+				if("configChanges".equals(strings[attributeName])) {
+					if(attrValData==1152) writer.print("orientation");
+					else if(attrValData==4016) writer.print("keyboard|keyboardHidden|orientation|screenLayout|uiMode");
+					else if(attrValData==176) writer.print("keyboard|keyboardHidden|orientation");
+					else if(attrValData==160) writer.print("keyboardHidden|orientation");
+					else writer.print("UNKNOWN_DATA_"+Integer.toHexString(attrValData));
+				} else {
+					writer.print("UNKNOWN_DATA_TYPE_" + attrValDataType);
+				}
+			}
 			writer.print("\"");
 			if((i+1)<attributeCount) writer.print(" ");
 		}
