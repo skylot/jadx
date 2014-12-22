@@ -17,7 +17,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 import android.R.style;
-//import android.content.res.Resources;
+
+/* TODO:
+	Don't die when error occurs
+	Check error cases, maybe checked const values are not always the same
+	Better error messages
+	What to do, when Binary XML Manifest is > size(int)?
+	Check for missung chunk size types
+	Implement missing data types
+	Use linenumbers to recreate EXACT AndroidManifest
+	Check Element chunk size
+*/
 
 public class BinaryXMLParser {
 	private byte[] bytes;
@@ -28,10 +38,10 @@ public class BinaryXMLParser {
 	private String currentTag="ERROR";
 	private int numtabs=-1;
 	private boolean wasOneLiner=false;
-	PrintWriter writer;
-	Map<Integer, String> styleMap = null;
+	private PrintWriter writer;
+	private Map<Integer, String> styleMap = null;
+
 	public BinaryXMLParser(String xmlfilepath, String xmloutfilepath) {
-		//System.out.println(xmlfilepath);
 		try {
 			writer = new PrintWriter(xmloutfilepath,"UTF-8");
 		} catch(FileNotFoundException fnfe) { die("FNFE"); }
@@ -83,10 +93,8 @@ public class BinaryXMLParser {
 			else if(type==0x0103) parseElementEnd();
 			else if(type==0x0000) continue; // NullType is just doing nothing
 			else die("Type: " + Integer.toHexString(type) + " not yet implemented");
-			//System.out.println("COUNT: "+Integer.toHexString(count));
 		}
 		writer.close();
-		//die("Done");
 	}
 
 	private void parseStringPool() {
@@ -97,29 +105,18 @@ public class BinaryXMLParser {
 		int flags = cInt32(bytes, count);
 		int stringsStart = cInt32(bytes, count);
 		int stylesStart = cInt32(bytes, count);
-/*
-		System.out.println(hsize);
-		System.out.println(stringCount);
-		System.out.println(styleCount);
-		System.out.println(flags);
-		System.out.println(stringsStart);
-		System.out.println(stylesStart);
-*/
 		int[] stringsOffsets = new int[stringCount];
 		for(int i=0; i<stringCount; i++) {
 			stringsOffsets[i] = cInt32(bytes, count);
-			//System.out.println("i["+i+"]: " + stringsOffsets[i]);
 		}
 		strings = new String[stringCount];
 		for(int i=0; i<stringCount; i++) {
 			int off = 8 + stringsStart + stringsOffsets[i];
 			int strlen = cInt16(bytes, off);
-			//System.out.println("strlen: " + strlen);
 			byte[] str = new byte[strlen*2];
 			System.arraycopy(bytes, count, str, 0, strlen*2);
 			count+=strlen*2;
 			strings[i] = new String(str, Charset.forName("UTF-16LE"));
-			//System.out.println("index i["+i+"] string: " + strings[i]);
 			count+=2;
 		}
 	}
@@ -127,12 +124,9 @@ public class BinaryXMLParser {
 	private void parseResourceMap() {
 		if(cInt16(bytes, count) != 0x8) die("Header size of resmap is not 8!");
 		int rhsize = cInt32(bytes, count);
-		//System.out.println("RHeader Size: " + rhsize);
 		int[] ids = new int[(rhsize-8)/4];
 		for(int i=0; i<ids.length; i++) {
 			ids[i]=cInt32(bytes, count);
-			//System.out.println("i["+i+"] ID: "+ids[i]);
-			//System.out.println("Hex: 0x0" + Integer.toHexString(ids[i]) + " should be: " + strings[i]);
 		}
 	}
 
@@ -140,49 +134,32 @@ public class BinaryXMLParser {
 		if(cInt16(bytes, count) != 0x0010) die("NAMESPACE header is not 0x0010");
 		if(cInt32(bytes, count) != 0x18) die("NAMESPACE header chunk is not 0x18 big");
 		int beginLineNumber = cInt32(bytes, count);
-		//if(beginLineNumber!=2) die("NAMESPACE beginning line number != 2 not supported yet");
-		//System.out.println("NAMESPACE BEGIN Line: " + beginLineNumber);
 		int comment = cInt32(bytes, count);
-		//System.out.println("Comment: 0x" + Integer.toHexString(comment));
 		int beginPrefix = cInt32(bytes, count);
-		//System.out.println("Prefix: " + strings[beginPrefix]);
 		nsPrefix = strings[beginPrefix];
 		int beginURI = cInt32(bytes, count);
-		//System.out.println("URI: " + strings[beginURI]);
 		nsURI=strings[beginURI];
-		//System.out.println("COUNT: "+Integer.toHexString(count));
 	}
 
 	private void parseNameSpaceEnd() {
 		if(cInt16(bytes, count) != 0x0010) die("NAMESPACE header is not 0x0010");
 		if(cInt32(bytes, count) != 0x18) die("NAMESPACE header chunk is not 0x18 big");
 		int endLineNumber = cInt32(bytes, count);
-		//if(endLineNumber!=2) die("NAMESPACE begining line number != 2 not supported yet");
-		//System.out.println("NAMESPACE END Line: " + endLineNumber);
 		int comment = cInt32(bytes, count);
-		//System.out.println("Comment: 0x" + Integer.toHexString(comment));
 		int endPrefix = cInt32(bytes, count);
-		//System.out.println("Prefix: " + strings[endPrefix]);
 		nsPrefix = strings[endPrefix];
 		int endURI = cInt32(bytes, count);
 		nsURI=strings[endURI];
-		//System.out.println("URI: " + strings[endURI]);
 	}
 
 	private void parseElement() {
 		numtabs+=1;
 		if(cInt16(bytes, count) != 0x0010) die("ELEMENT HEADER SIZE is not 0x10");
-		//if(cInt32(bytes, count) != 0x0060) die("ELEMENT CHUNK SIZE is not 0x60");
-		count+=4;
+		count+=4; // TODO: Check element chunk size
 		int elementBegLineNumber = cInt32(bytes, count);
-		//System.out.println("ELEMENT BEG Line: " + elementBegLineNumber + " of " + strings[startNSName]);
 		int comment = cInt32(bytes, count);
-		//System.out.println("Comment: 0x" + Integer.toHexString(comment));
-		//System.out.println("COUNT: "+Integer.toHexString(count));
 		int startNS = cInt32(bytes, count);
-		//System.out.println("Namespace: 0x" + Integer.toHexString(startNS));
 		int startNSName = cInt32(bytes, count); // actually is elementName...
-		//System.out.println("Namespace name: " + strings[startNSName]);
 		if(!wasOneLiner && !"ERROR".equals(currentTag) && !currentTag.equals(strings[startNSName])) {
 			writer.println(">");
 		}
@@ -195,13 +172,9 @@ public class BinaryXMLParser {
 		int attributeSize = cInt16(bytes, count);
 		if(attributeSize != 0x14) die("startNS's attributeSize is not 0x14");
 		int attributeCount = cInt16(bytes, count); 
-		//System.out.println("startNS: attributeCount: " + attributeCount);
 		int idIndex = cInt16(bytes, count);
-		//System.out.println("startNS: idIndex: " + idIndex);
 		int classIndex = cInt16(bytes, count);
-		//System.out.println("startNS: classIndex: " + classIndex);
 		int styleIndex = cInt16(bytes, count);
-		if(styleIndex!=0) System.out.println("startNS: styleIndex: " + styleIndex);
 		if("manifest".equals(strings[startNSName])) writer.print(" xmlns:\""+nsURI+"\"");
 		if(attributeCount>0) writer.print(" ");
 		for(int i=0; i<attributeCount; i++) {
@@ -209,34 +182,21 @@ public class BinaryXMLParser {
 			int attributeName = cInt32(bytes, count);
 			int attributeRawValue = cInt32(bytes, count);
 			int attrValSize = cInt16(bytes, count);
-			//System.out.println(attrValSize);
 			if(attrValSize != 0x08) die("attrValSize != 0x08 not supported");
 			if(cInt8(bytes, count) != 0) die("res0 is not 0");
 			int attrValDataType = cInt8(bytes, count);
 			int attrValData = cInt32(bytes, count);
-/*(
-			System.out.println("ai["+i+"] ns: " + attributeNS);
-			//if(attributeNS!=-1) System.out.println("ai["+i+"] Sns: " + strings[attributeNS]);
-			System.out.println("ai["+i+"] name: " + attributeName);
-			if(attributeName!=-1) System.out.println("ai["+i+"] Sns: " + strings[attributeName]);
-			System.out.println("ai["+i+"] rawval: " + attributeRawValue);
-			System.out.println("ai["+i+"] dt: " + attrValDataType);
-			System.out.println("ai["+i+"] d: " + attrValData);
-*/
 			if(attributeNS != -1) writer.print(nsPrefix+":");
 			writer.print(strings[attributeName] + "=\"");
 			if(attrValDataType==0x3) writer.print(strings[attrValData]);
 			else if(attrValDataType==0x10) writer.print(attrValData);
 			else if(attrValDataType==0x12) {
-				// TODO: data is always -1, FIXME
+				// FIXME: What to do, when data is always -1?
 				if(attrValData==0) writer.print("false");
 				else if(attrValData==1 || attrValData==-1) writer.print("true");
 				else writer.print("UNKNOWN_BOOLEAN_TYPE");
 			} else if(attrValDataType==0x1) {
 				if(attrValData<0x7f000000) {
-					//System.out.println("0x"+Integer.toHexString(attrValData));
-					//System.out.println(styleMap.get(attrValData));
-					//System.out.println(android.R.style.class);
 					writer.print("@*");
 					if(attributeNS != -1) writer.print(nsPrefix+":");
 					writer.print("style/"+styleMap.get(attrValData).replaceAll("_", "."));
@@ -245,16 +205,6 @@ public class BinaryXMLParser {
 				}
 			}
 			else {
-/*
-	//System.out.println("ai["+i+"] ns: " + attributeNS);
-	//if(attributeNS!=-1) System.out.println("ai["+i+"] Sns: " + strings[attributeNS]);
-	//System.out.println("ai["+i+"] name: " + attributeName);
-	if(attributeName!=-1) System.out.println("ai["+i+"] Sns: " + strings[attributeName]);
-	System.out.println("ai["+i+"] rawval: " + attributeRawValue);
-	if(attributeRawValue!=-1) System.out.println("ai["+i+"] Sns: " + strings[attributeRawValue]);
-	System.out.println("ai["+i+"] dt: " + attrValDataType);
-	System.out.println("ai["+i+"] d: " + attrValData);
-*/
 				if("configChanges".equals(strings[attributeName])) {
 					if(attrValData==1152) writer.print("orientation");
 					else if(attrValData==4016) writer.print("keyboard|keyboardHidden|orientation|screenLayout|uiMode");
@@ -268,17 +218,13 @@ public class BinaryXMLParser {
 			writer.print("\"");
 			if((i+1)<attributeCount) writer.print(" ");
 		}
-		//writer.println(">");
-		//System.out.println("ELEMENT BEG Line: " + elementBegLineNumber + " of " + strings[startNSName]);
 	}
 
 	private void parseElementEnd() {
 		if(cInt16(bytes, count) != 0x0010) die("ELEMENT END header is not 0x0010");
 		if(cInt32(bytes, count) != 0x18) die("ELEMENT END header chunk is not 0x18 big");
 		int endLineNumber = cInt32(bytes, count);
-		//if(endLineNumber!=2) die("NAMESPACE beginning line number != 2 not supported yet");
 		int comment = cInt32(bytes, count);
-		//System.out.println("Comment: 0x" + Integer.toHexString(comment));
 		int elementNS = cInt32(bytes, count);
 		int elementName = cInt32(bytes, count);
 		if(currentTag==strings[elementName]) {
@@ -291,8 +237,6 @@ public class BinaryXMLParser {
 			writer.println(strings[elementName]+">");
 		}
 		numtabs-=1;
-		//System.out.println("ELEMENT END Line: " + endLineNumber + " of " + strings[elementName]);
-		// TODO: Mind linenumbers for real original file ;)
 	}
 
 	private int cInt8(byte[] bytes, int offset) {
