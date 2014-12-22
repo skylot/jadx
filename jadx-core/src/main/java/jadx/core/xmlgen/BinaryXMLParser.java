@@ -232,7 +232,7 @@ public class BinaryXMLParser {
 		int elementNS = cInt32(bytes, count);
 		int elementName = cInt32(bytes, count);
 		if(currentTag==strings[elementName]) {
-			writer.println("/>");
+			writer.println(" />");
 			wasOneLiner=true;
 		} else {
 			for(int i=0; i<numtabs; i++) writer.print("\t");
