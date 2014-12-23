@@ -41,7 +41,6 @@ subprojects {
     }
 
     dependencies {
-		compile 'com.google.android:android:4.1.1.4'
         compile 'org.slf4j:slf4j-api:1.7.7'
 
         testCompile 'ch.qos.logback:logback-classic:1.1.2'

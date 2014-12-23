@@ -203,14 +203,17 @@ public final class JadxDecompiler {
 		reset();
 		root = new RootNode();
 		LOG.info("loading ...");
-		if(this.args.isXMLTest()) {
+		if (this.args.isXMLTest()) {
 			InputFile inf = inputFiles.get(0);
 			try {
-				BinaryXMLParser bxp = new BinaryXMLParser(InputFile.loadXMLBuffer(inf.getFile()), "./AndroidManifest.xml");
-				//BinaryXMLParser bxp = new BinaryXMLParser(InputFile.loadXMLBuffer(inf.getFile()), "AndroidManifest.xml");
-				bxp.parse();
-			} catch(IOException ioe) {
-				LOG.info("Decompiling AndroidManifest.xml failed!");
+				byte[] buffer = InputFile.loadXMLBuffer(inf.getFile());
+				if (buffer != null) {
+					File out = new File(args.getOutDir(), "AndroidManifest.xml");
+					BinaryXMLParser bxp = new BinaryXMLParser();
+					bxp.parse(buffer, out);
+				}
+			} catch (Exception e) {
+				LOG.info("Decompiling AndroidManifest.xml failed!", e);
 			}
 		}
 		root.load(inputFiles);

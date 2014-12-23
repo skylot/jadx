@@ -77,7 +77,7 @@ public class InputFile {
 	public static byte[] loadXMLBuffer(File file) throws IOException { // FIXME: Public.. Please fix
 		ZipFile zf = new ZipFile(file);
 		ZipEntry xml = zf.getEntry("AndroidManifest.xml");
-		if(null == xml) {
+		if (xml == null) {
 			zf.close();
 			return null;
 		}
@@ -91,7 +91,9 @@ public class InputFile {
 				bytesOut.write(buffer, 0, count);
 			}
 		} finally {
-			if(null != in) in.close();
+			if (null != in) {
+				in.close();
+			}
 			zf.close();
 		}
 		return bytesOut.toByteArray();

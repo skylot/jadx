@@ -47,7 +47,7 @@ public final class JadxCLIArgs implements IJadxArgs {
 	@Parameter(names = {"-h", "--help"}, description = "print this help", help = true)
 	protected boolean printHelp = false;
 
-	@Parameter(names = {"-x", "--xml"}, description = "try to decode the AndroidManifest.xml, save at current dir")
+	@Parameter(names = {"-x", "--xml"}, description = "try to decode the AndroidManifest.xml")
 	protected boolean xmlTest = false;
 
 	private final List<File> input = new ArrayList<File>(1);
