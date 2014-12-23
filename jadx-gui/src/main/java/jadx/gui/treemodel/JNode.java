@@ -10,7 +10,6 @@ import javax.swing.Icon;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 public abstract class JNode extends DefaultMutableTreeNode {
-
 	public static JNode makeFrom(JavaNode node) {
 		if (node instanceof JavaClass) {
 			JClass p = (JClass) makeFrom(node.getDeclaringClass());
