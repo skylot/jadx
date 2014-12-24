@@ -1,6 +1,10 @@
 package jadx.core.xmlgen;
 
 import jadx.core.codegen.CodeWriter;
+import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.nodes.DexNode;
+import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.io.File;
@@ -40,16 +44,28 @@ public class BinaryXMLParser {
 	private boolean wasOneLiner = false;
 
 	private CodeWriter writer;
-	private Map<Integer, String> styleMap = null;
+	private Map<Integer, String> styleMap = new HashMap<Integer, String>();
+	private Map<Integer, FieldNode> localStyleMap = new HashMap<Integer, FieldNode>();
+	private final ManifestAttributes attributes;
 
-	public BinaryXMLParser() {
-		styleMap = new HashMap<Integer, String>();
+	public BinaryXMLParser(RootNode root) {
 		try {
 			for (Field f : AndroidR.style.class.getFields()) {
 				styleMap.put(f.getInt(f.getType()), f.getName());
 			}
-			//TODO: also add application constant fields
-		} catch (IllegalAccessException e) {
+			// add application constants
+			for (DexNode dexNode : root.getDexNodes()) {
+				for (Map.Entry<Object, FieldNode> entry : dexNode.getConstFields().entrySet()) {
+					Object key = entry.getKey();
+					FieldNode field = entry.getValue();
+					if (field.getType().equals(ArgType.INT) && key instanceof Integer) {
+						localStyleMap.put((Integer) key, field);
+					}
+				}
+			}
+			attributes = new ManifestAttributes();
+			attributes.parse();
+		} catch (Exception e) {
 			throw new JadxRuntimeException("BinaryXMLParser init error", e);
 		}
 	}
@@ -194,7 +210,7 @@ public class BinaryXMLParser {
 		}
 		wasOneLiner = false;
 		currentTag = strings[startNSName];
-		writer.startLine("<" + strings[startNSName]);
+		writer.startLine("<").add(strings[startNSName]);
 		int attributeStart = cInt16(bytes, count);
 		if (attributeStart != 0x14) {
 			die("startNS's attributeStart is not 0x14");
@@ -208,7 +224,7 @@ public class BinaryXMLParser {
 		int classIndex = cInt16(bytes, count);
 		int styleIndex = cInt16(bytes, count);
 		if ("manifest".equals(strings[startNSName])) {
-			writer.add(" xmlns:\"" + nsURI + "\"");
+			writer.add(" xmlns:\"").add(nsURI).add("\"");
 		}
 		if (attributeCount > 0) {
 			writer.add(" ");
@@ -227,53 +243,59 @@ public class BinaryXMLParser {
 			int attrValDataType = cInt8(bytes, count);
 			int attrValData = cInt32(bytes, count);
 			if (attributeNS != -1) {
-				writer.add(nsPrefix + ":");
+				writer.add(nsPrefix).add(':');
 			}
-			writer.add(strings[attributeName] + "=\"");
-			if (attrValDataType == 0x3) {
-				writer.add(strings[attrValData]);
-			} else if (attrValDataType == 0x10) {
-				writer.add(String.valueOf(attrValData));
-			} else if (attrValDataType == 0x12) {
-				// FIXME: What to do, when data is always -1?
-				if (attrValData == 0) {
-					writer.add("false");
-				} else if (attrValData == 1 || attrValData == -1) {
-					writer.add("true");
-				} else {
-					writer.add("UNKNOWN_BOOLEAN_TYPE");
-				}
-			} else if (attrValDataType == 0x1) {
-				String name = styleMap.get(attrValData);
-				if (name != null) {
-					writer.add("@*");
-					if (attributeNS != -1) {
-						writer.add(nsPrefix + ":");
-					}
-					writer.add("style/" + name.replaceAll("_", "."));
-				} else {
-					writer.add("0x" + Integer.toHexString(attrValData));
-				}
+			String attrName = strings[attributeName];
+			writer.add(attrName).add("=\"");
+			String decodedAttr = attributes.decode(attrName, attrValData);
+			if (decodedAttr != null) {
+				writer.add(decodedAttr);
 			} else {
-				// TODO: extract values names from here:
-				// https://github.com/android/platform_frameworks_base/blob/master/core/res/res/values/attrs_manifest.xml
-				if ("configChanges".equals(strings[attributeName])) {
-					if (attrValData == 1152) {
-						writer.add("orientation");
-					} else if (attrValData == 4016) {
-						writer.add("keyboard|keyboardHidden|orientation|screenLayout|uiMode");
-					} else if (attrValData == 176) {
-						writer.add("keyboard|keyboardHidden|orientation");
-					} else if (attrValData == 160) {
-						writer.add("keyboardHidden|orientation");
-					} else {
-						writer.add("UNKNOWN_DATA_" + Integer.toHexString(attrValData));
-					}
-				} else {
-					writer.add("UNKNOWN_DATA_TYPE_" + attrValDataType);
+				switch (attrValDataType) {
+					case 0x3:
+						writer.add(strings[attrValData]);
+						break;
+
+					case 0x10:
+						writer.add(String.valueOf(attrValData));
+						break;
+
+					case 0x12:
+						// FIXME: What to do, when data is always -1?
+						if (attrValData == 0) {
+							writer.add("false");
+						} else if (attrValData == 1 || attrValData == -1) {
+							writer.add("true");
+						} else {
+							writer.add("UNKNOWN_BOOLEAN_TYPE");
+						}
+						break;
+
+					case 0x1:
+						String name = styleMap.get(attrValData);
+						if (name != null) {
+							writer.add("@*");
+							if (attributeNS != -1) {
+								writer.add(nsPrefix).add(':');
+							}
+							writer.add("style/").add(name.replaceAll("_", "."));
+						} else {
+							FieldNode field = localStyleMap.get(attrValData);
+							if (field != null) {
+								String cls = field.getParentClass().getShortName().toLowerCase();
+								writer.add("@").add(cls).add("/").add(field.getName());
+							} else {
+								writer.add("0x").add(Integer.toHexString(attrValData));
+							}
+						}
+						break;
+
+					default:
+						writer.add("UNKNOWN_DATA_TYPE_" + attrValDataType);
+						break;
 				}
 			}
-			writer.add("\"");
+			writer.add('"');
 			if ((i + 1) < attributeCount) {
 				writer.add(" ");
 			}
@@ -292,16 +314,18 @@ public class BinaryXMLParser {
 		int elementNS = cInt32(bytes, count);
 		int elementName = cInt32(bytes, count);
 		if (currentTag.equals(strings[elementName])) {
-			writer.add("/>");
+			writer.add(" />");
 			wasOneLiner = true;
 		} else {
 			writer.startLine("</");
 			if (elementNS != -1) {
-				writer.add(strings[elementNS] + ":");
+				writer.add(strings[elementNS]).add(':');
 			}
-			writer.add(strings[elementName] + ">");
+			writer.add(strings[elementName]).add(">");
 		}
-		writer.decIndent();
+		if (writer.getIndent() != 0) {
+			writer.decIndent();
+		}
 	}
 
 	private int cInt8(byte[] bytes, int offset) {

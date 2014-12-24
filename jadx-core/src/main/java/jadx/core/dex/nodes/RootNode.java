@@ -104,6 +104,10 @@ public class RootNode {
 		return searchClassByName(fullName);
 	}
 
+	public List<DexNode> getDexNodes() {
+		return dexNodes;
+	}
+
 	public ErrorsCounter getErrorsCounter() {
 		return errorsCounter;
 	}

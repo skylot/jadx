@@ -174,6 +174,10 @@ public class CodeWriter {
 		updateIndent();
 	}
 
+	public int getIndent() {
+		return indent;
+	}
+
 	public int getLine() {
 		return line;
 	}
