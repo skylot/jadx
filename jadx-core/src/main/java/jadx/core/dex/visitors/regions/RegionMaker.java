@@ -705,6 +705,9 @@ public class RegionMaker {
 		stack.push(sw);
 		if (out != null) {
 			stack.addExit(out);
+		} else {
+			LOG.warn("Can't detect out node for switch block: {} in {}",
+					block.toString(), mth.toString());
 		}
 
 		if (!stack.containsExit(defCase)) {
