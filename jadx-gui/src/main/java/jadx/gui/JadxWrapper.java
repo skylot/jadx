@@ -42,6 +42,7 @@ public class JadxWrapper {
 			public void run() {
 				try {
 					decompiler.setOutputDir(dir);
+					decompiler.parseAndSaveXML();
 					ThreadPoolExecutor ex = (ThreadPoolExecutor) decompiler.getSaveExecutor();
 					ex.shutdown();
 					while (ex.isTerminating()) {
