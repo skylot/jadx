@@ -653,38 +653,44 @@ public class RegionMaker {
 			assert c != null;
 			blocksMap.put(c, entry.getValue());
 		}
-
-		BitSet succ = BlockUtils.blocksToBitSet(mth, block.getSuccessors());
-		BitSet domsOn = BlockUtils.blocksToBitSet(mth, block.getDominatesOn());
-		domsOn.xor(succ); // filter 'out' block
-
 		BlockNode defCase = getBlockByOffset(insn.getDefaultCaseOffset(), block.getSuccessors());
 		if (defCase != null) {
 			blocksMap.remove(defCase);
 		}
+		LoopInfo loop = mth.getLoopForBlock(block);
 
-		int outCount = domsOn.cardinality();
-		if (outCount > 1) {
-			// remove exception handlers
-			BlockUtils.cleanBitSet(mth, domsOn);
-			outCount = domsOn.cardinality();
+		BitSet outs = new BitSet(mth.getBasicBlocks().size());
+		outs.or(block.getDomFrontier());
+		for (BlockNode s : block.getCleanSuccessors()) {
+			outs.or(s.getDomFrontier());
 		}
-		if (outCount > 1) {
-			// filter successors of other blocks
+		stack.push(sw);
+		stack.addExits(BlockUtils.bitSetToBlocks(mth, outs));
+
+		// filter 'out' block
+		if (outs.cardinality() > 1) {
+			// remove exception handlers
+			BlockUtils.cleanBitSet(mth, outs);
+		}
+		if (outs.cardinality() > 1) {
+			// filter loop start and successors of other blocks
 			List<BlockNode> blocks = mth.getBasicBlocks();
-			for (int i = domsOn.nextSetBit(0); i >= 0; i = domsOn.nextSetBit(i + 1)) {
+			for (int i = outs.nextSetBit(0); i >= 0; i = outs.nextSetBit(i + 1)) {
 				BlockNode b = blocks.get(i);
-				for (BlockNode s : b.getCleanSuccessors()) {
-					domsOn.clear(s.getId());
+				if (b.contains(AFlag.LOOP_START)) {
+					outs.clear(b.getId());
+				} else {
+					for (BlockNode s : b.getCleanSuccessors()) {
+						outs.clear(s.getId());
+					}
 				}
 			}
-			outCount = domsOn.cardinality();
 		}
 
-		BlockNode out = null;
-		if (outCount == 1) {
-			out = mth.getBasicBlocks().get(domsOn.nextSetBit(0));
-		} else if (outCount == 0) {
+		if (loop != null && outs.cardinality() > 1) {
+			outs.clear(loop.getEnd().getId());
+		}
+		if (outs.cardinality() == 0) {
 			// one or several case blocks are empty,
 			// run expensive algorithm for find 'out' block
 			for (BlockNode maybeOut : block.getSuccessors()) {
@@ -696,18 +702,24 @@ public class RegionMaker {
 					}
 				}
 				if (allReached) {
-					out = maybeOut;
+					outs.set(maybeOut.getId());
 					break;
 				}
 			}
 		}
-
-		stack.push(sw);
-		if (out != null) {
+		BlockNode out = null;
+		if (outs.cardinality() == 1) {
+			out = mth.getBasicBlocks().get(outs.nextSetBit(0));
 			stack.addExit(out);
-		} else {
-			LOG.warn("Can't detect out node for switch block: {} in {}",
-					block.toString(), mth.toString());
+		} else if (loop == null && outs.cardinality() > 1) {
+			LOG.warn("Can't detect out node for switch block: {} in {}", block, mth);
+		}
+		if (loop != null) {
+			// check if 'continue' must be inserted
+			BlockNode end = loop.getEnd();
+			if (out != end && out != null) {
+				insertContinueInSwitch(block, out, end);
+			}
 		}
 
 		if (!stack.containsExit(defCase)) {
@@ -725,6 +737,24 @@ public class RegionMaker {
 
 		stack.pop();
 		return out;
+	}
+
+	private static void insertContinueInSwitch(BlockNode block, BlockNode out, BlockNode end) {
+		int endId = end.getId();
+		for (BlockNode s : block.getCleanSuccessors()) {
+			if (s.getDomFrontier().get(endId) && s != out) {
+				// search predecessor of loop end on path from this successor
+				List<BlockNode> list = BlockUtils.collectBlocksDominatedBy(s, s);
+				for (BlockNode p : end.getPredecessors()) {
+					if (list.contains(p)) {
+						if (p.isSynthetic()) {
+							p.getInstructions().add(new InsnNode(InsnType.CONTINUE, 0));
+						}
+						break;
+					}
+				}
+			}
+		}
 	}
 
 	public void processTryCatchBlocks(MethodNode mth) {

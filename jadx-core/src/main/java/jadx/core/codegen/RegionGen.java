@@ -272,7 +272,7 @@ public class RegionGen extends InsnGen {
 		boolean addBreak = true;
 		if (RegionUtils.notEmpty(c)) {
 			makeRegionIndent(code, c);
-			if (!RegionUtils.hasExitEdge(c)) {
+			if (RegionUtils.hasExitEdge(c)) {
 				addBreak = false;
 			}
 		}

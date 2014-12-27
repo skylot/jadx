@@ -1,6 +1,5 @@
 package jadx.core.utils;
 
-import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.BlockNode;
@@ -26,9 +25,15 @@ public class RegionUtils {
 
 	public static boolean hasExitEdge(IContainer container) {
 		if (container instanceof BlockNode) {
-			BlockNode block = (BlockNode) container;
-			return !block.getSuccessors().isEmpty()
-					&& !block.contains(AFlag.RETURN);
+			InsnNode lastInsn = BlockUtils.getLastInsn((BlockNode) container);
+			if (lastInsn == null) {
+				return false;
+			}
+			InsnType type = lastInsn.getType();
+			return type == InsnType.RETURN
+					|| type == InsnType.CONTINUE
+					|| type == InsnType.BREAK
+					|| type == InsnType.THROW;
 		} else if (container instanceof IRegion) {
 			IRegion region = (IRegion) container;
 			List<IContainer> blocks = region.getSubBlocks();
