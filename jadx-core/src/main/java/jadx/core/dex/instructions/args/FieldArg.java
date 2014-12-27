@@ -2,14 +2,17 @@ package jadx.core.dex.instructions.args;
 
 import jadx.core.dex.info.FieldInfo;
 
+import org.jetbrains.annotations.Nullable;
+
 // TODO: don't extend RegisterArg (now used as a result of instruction)
 public final class FieldArg extends RegisterArg {
 
 	private final FieldInfo field;
 	// instArg equal 'null' for static fields
+	@Nullable
 	private final InsnArg instArg;
 
-	public FieldArg(FieldInfo field, InsnArg reg) {
+	public FieldArg(FieldInfo field, @Nullable InsnArg reg) {
 		super(-1);
 		this.instArg = reg;
 		this.field = field;

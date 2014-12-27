@@ -55,8 +55,7 @@ public class TypeImmutableArg extends RegisterArg {
 		if (!super.equals(obj)) {
 			return false;
 		}
-		TypeImmutableArg that = (TypeImmutableArg) obj;
-		return isThis == that.isThis;
+		return isThis == ((TypeImmutableArg) obj).isThis;
 	}
 
 	@Override

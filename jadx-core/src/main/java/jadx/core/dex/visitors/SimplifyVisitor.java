@@ -137,7 +137,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 	private static InsnNode convertInvoke(MethodNode mth, InsnNode insn) {
           MethodInfo callMth = ((InvokeNode) insn).getCallMth();
 
-          // If this is a 'new StringBuilder(xxx).append(yyy).append(zzz).toString(), 
+          // If this is a 'new StringBuilder(xxx).append(yyy).append(zzz).toString(),
           // convert it to STRING_CONCAT pseudo instruction.
           if (callMth.getDeclClass().getFullName().equals(Consts.CLASS_STRING_BUILDER)
               && callMth.getShortId().equals(Consts.MTH_TOSTRING_SIGNATURE)
@@ -150,11 +150,11 @@ public class SimplifyVisitor extends AbstractVisitor {
               if (chain.size()>1 && chain.get(0).getType()==InsnType.CONSTRUCTOR) {
                 constrIndex = 0;
               } else if (chain.size()>2 && chain.get(1).getType()==InsnType.CONSTRUCTOR) {
-                //RAF Case where the first string element is String arg to the 
+                //RAF Case where the first string element is String arg to the
                 // new StringBuilder("xxx") constructor
                 constrIndex = 1;
               } else if (chain.size()>3 && chain.get(2).getType()==InsnType.CONSTRUCTOR) {
-                //RAF Case where the first string element is String.valueOf() arg 
+                //RAF Case where the first string element is String.valueOf() arg
                 // to the new StringBuilder(String.valueOf(zzz)) constructor
                 constrIndex = 2;
               }
@@ -167,7 +167,7 @@ public class SimplifyVisitor extends AbstractVisitor {
                   InsnNode argInsn;
                   if (constrIndex > 0) {  // There was an arg to the StringBuilder constr
                     InsnWrapArg iwa;
-                    if (constrIndex==2 
+                    if (constrIndex==2
                         && (argInsn = chain.get(1)).getType()==InsnType.INVOKE
                         && ((InvokeNode)argInsn).getCallMth().getName().compareTo("valueOf")==0) {
                       // The argument of new StringBuilder() is a String.valueOf(chainElement0)
@@ -181,7 +181,7 @@ public class SimplifyVisitor extends AbstractVisitor {
                     concatInsn.addArg(iwa);
                   }
 
-                  for (; argInd < len; argInd++) {  // Add the .append(xxx) arg string to concat 
+                  for (; argInd < len; argInd++) {  // Add the .append(xxx) arg string to concat
                     concatInsn.addArg(chain.get(argInd).getArg(1));
                   }
                   concatInsn.setResult(insn.getResult());
@@ -252,6 +252,10 @@ public class SimplifyVisitor extends AbstractVisitor {
 			InsnArg reg = null;
 			if (getType == InsnType.IGET) {
 				reg = get.getArg(0);
+				InsnArg putReg = insn.getArg(1);
+				if (!reg.equals(putReg)) {
+					return null;
+				}
 			}
 			FieldArg fArg = new FieldArg(field, reg);
 			if (reg != null) {
@@ -268,7 +272,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 				}
 				return new ArithNode(ArithOp.ADD, fArg, InsnArg.wrapArg(concat));
 			}
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			LOG.debug("Can't convert field arith insn: {}, mth: {}", insn, mth, e);
 		}
 		return null;
