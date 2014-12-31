@@ -18,18 +18,18 @@ public class DepthRegionTraversal {
 		traverseInternal(mth, visitor, mth.getRegion());
 	}
 
-	public static void traverseAll(MethodNode mth, IRegionVisitor visitor) {
+	public static void traverseIncludingExcHandlers(MethodNode mth, IRegionVisitor visitor) {
 		traverseInternal(mth, visitor, mth.getRegion());
 		for (ExceptionHandler h : mth.getExceptionHandlers()) {
 			traverseInternal(mth, visitor, h.getHandlerRegion());
 		}
 	}
 
-	public static void traverseAllIterative(MethodNode mth, IRegionIterativeVisitor visitor) {
+	public static void traverseIterative(MethodNode mth, IRegionIterativeVisitor visitor) {
 		boolean repeat;
 		int k = 0;
 		do {
-			repeat = traverseAllIterativeInternal(mth, visitor);
+			repeat = traverseIterativeInternal(mth, visitor, mth.getRegion());
 			if (k++ > ITERATIVE_LIMIT) {
 				throw new JadxOverflowException("Iterative traversal limit reached, method: " + mth);
 			}
@@ -47,18 +47,6 @@ public class DepthRegionTraversal {
 			}
 			visitor.leaveRegion(mth, region);
 		}
-	}
-
-	private static boolean traverseAllIterativeInternal(MethodNode mth, IRegionIterativeVisitor visitor) {
-		if (traverseIterativeInternal(mth, visitor, mth.getRegion())) {
-			return true;
-		}
-		for (ExceptionHandler h : mth.getExceptionHandlers()) {
-			if (traverseIterativeInternal(mth, visitor, h.getHandlerRegion())) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	private static boolean traverseIterativeInternal(MethodNode mth, IRegionIterativeVisitor visitor,

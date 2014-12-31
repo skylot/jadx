@@ -19,20 +19,22 @@ import static jadx.core.utils.RegionUtils.insnsCount;
 
 public class IfRegionVisitor extends AbstractVisitor implements IRegionVisitor, IRegionIterativeVisitor {
 
+	private static final TernaryVisitor TERNARY_VISITOR = new TernaryVisitor();
+
 	@Override
 	public void visit(MethodNode mth) {
 		// collapse ternary operators
-		DepthRegionTraversal.traverseAllIterative(mth, new IRegionIterativeVisitor() {
-			@Override
-			public boolean visitRegion(MethodNode mth, IRegion region) {
-				if (region instanceof IfRegion) {
-					return TernaryMod.makeTernaryInsn(mth, (IfRegion) region);
-				}
-				return false;
-			}
-		});
-		DepthRegionTraversal.traverseAll(mth, this);
-		DepthRegionTraversal.traverseAllIterative(mth, this);
+		DepthRegionTraversal.traverseIterative(mth, TERNARY_VISITOR);
+		DepthRegionTraversal.traverse(mth, this);
+		DepthRegionTraversal.traverseIterative(mth, this);
+	}
+
+	private static class TernaryVisitor implements IRegionIterativeVisitor {
+		@Override
+		public boolean visitRegion(MethodNode mth, IRegion region) {
+			return region instanceof IfRegion
+					&& TernaryMod.makeTernaryInsn(mth, (IfRegion) region);
+		}
 	}
 
 	@Override

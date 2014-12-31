@@ -67,7 +67,7 @@ public class CheckRegions extends AbstractVisitor {
 		}
 
 		// check loop conditions
-		DepthRegionTraversal.traverseAll(mth, new AbstractRegionVisitor() {
+		DepthRegionTraversal.traverse(mth, new AbstractRegionVisitor() {
 			@Override
 			public void enterRegion(MethodNode mth, IRegion region) {
 				if (region instanceof LoopRegion) {
@@ -82,7 +82,7 @@ public class CheckRegions extends AbstractVisitor {
 
 	private static void printRegionsWithBlock(MethodNode mth, final BlockNode block) {
 		final Set<IRegion> regions = new LinkedHashSet<IRegion>();
-		DepthRegionTraversal.traverseAll(mth, new TracedRegionVisitor() {
+		DepthRegionTraversal.traverse(mth, new TracedRegionVisitor() {
 			@Override
 			public void processBlockTraced(MethodNode mth, IBlock container, IRegion currentRegion) {
 				if (block.equals(container)) {

@@ -186,7 +186,7 @@ public class ProcessVariables extends AbstractVisitor {
 
 		// collect all variables usage
 		IRegionVisitor collect = new CollectUsageRegionVisitor(usageMap);
-		DepthRegionTraversal.traverseAll(mth, collect);
+		DepthRegionTraversal.traverse(mth, collect);
 
 		// reduce assigns map
 		List<RegisterArg> mthArgs = mth.getArguments(true);

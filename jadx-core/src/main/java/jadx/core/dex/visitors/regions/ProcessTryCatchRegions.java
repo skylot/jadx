@@ -44,7 +44,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 
 		int k = 0;
 		while (!tryBlocksMap.isEmpty()) {
-			DepthRegionTraversal.traverseAll(mth, new AbstractRegionVisitor() {
+			DepthRegionTraversal.traverseIncludingExcHandlers(mth, new AbstractRegionVisitor() {
 				@Override
 				public void leaveRegion(MethodNode mth, IRegion region) {
 					checkAndWrap(mth, tryBlocksMap, region);

@@ -43,7 +43,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 
 	@Override
 	public void visit(MethodNode mth) {
-		DepthRegionTraversal.traverseAll(mth, this);
+		DepthRegionTraversal.traverse(mth, this);
 	}
 
 	@Override
