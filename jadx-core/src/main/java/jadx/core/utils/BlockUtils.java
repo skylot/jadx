@@ -11,6 +11,7 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.conditions.IfCondition;
@@ -133,13 +134,13 @@ public class BlockUtils {
 		return false;
 	}
 
-	public static boolean checkLastInsnType(BlockNode block, InsnType expectedType) {
+	public static boolean checkLastInsnType(IBlock block, InsnType expectedType) {
 		InsnNode insn = getLastInsn(block);
 		return insn != null && insn.getType() == expectedType;
 	}
 
 	@Nullable
-	public static InsnNode getLastInsn(BlockNode block) {
+	public static InsnNode getLastInsn(IBlock block) {
 		List<InsnNode> insns = block.getInstructions();
 		if (insns.isEmpty()) {
 			return null;

@@ -1,6 +1,7 @@
 package jadx.core.dex.regions.conditions;
 
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.IBranchRegion;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.regions.AbstractRegion;
@@ -9,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public final class IfRegion extends AbstractRegion {
+public final class IfRegion extends AbstractRegion implements IBranchRegion {
 
 	private final BlockNode header;
 
@@ -87,6 +88,14 @@ public final class IfRegion extends AbstractRegion {
 			all.add(elseRegion);
 		}
 		return Collections.unmodifiableList(all);
+	}
+
+	@Override
+	public List<IContainer> getBranches() {
+		List<IContainer> branches = new ArrayList<IContainer>(2);
+		branches.add(thenRegion);
+		branches.add(elseRegion);
+		return Collections.unmodifiableList(branches);
 	}
 
 	@Override

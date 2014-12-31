@@ -4,13 +4,11 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBlock;
+import jadx.core.dex.nodes.IBranchRegion;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.regions.SwitchRegion;
-import jadx.core.dex.regions.TryCatchRegion;
-import jadx.core.dex.regions.conditions.IfRegion;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.exceptions.JadxException;
@@ -28,11 +26,11 @@ public class ReturnVisitor extends AbstractVisitor {
 	public void visit(MethodNode mth) throws JadxException {
 		// remove useless returns in void methods
 		if (mth.getReturnType().equals(ArgType.VOID)) {
-			DepthRegionTraversal.traverseAll(mth, new Process());
+			DepthRegionTraversal.traverse(mth, new ReturnRemoverVisitor());
 		}
 	}
 
-	private static final class Process extends TracedRegionVisitor {
+	private static final class ReturnRemoverVisitor extends TracedRegionVisitor {
 		@Override
 		public void processBlockTraced(MethodNode mth, IBlock container, IRegion currentRegion) {
 			if (container.getClass() != BlockNode.class) {
@@ -72,9 +70,7 @@ public class ReturnVisitor extends AbstractVisitor {
 			IContainer curContainer = block;
 			for (IRegion region : regionStack) {
 				// ignore paths on other branches
-				if (region instanceof IfRegion
-						|| region instanceof SwitchRegion
-						|| region instanceof TryCatchRegion) {
+				if (region instanceof IBranchRegion) {
 					curContainer = region;
 					continue;
 				}
@@ -100,8 +96,8 @@ public class ReturnVisitor extends AbstractVisitor {
 		 * don't count one 'return' instruction (it will be removed later).
 		 */
 		private static boolean isEmpty(IContainer container) {
-			if (container instanceof BlockNode) {
-				BlockNode block = (BlockNode) container;
+			if (container instanceof IBlock) {
+				IBlock block = (IBlock) container;
 				return block.getInstructions().isEmpty() || block.contains(AFlag.RETURN);
 			} else if (container instanceof IRegion) {
 				IRegion region = (IRegion) container;

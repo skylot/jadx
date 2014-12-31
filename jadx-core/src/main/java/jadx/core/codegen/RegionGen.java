@@ -257,28 +257,15 @@ public class RegionGen extends InsnGen {
 				}
 				code.add(':');
 			}
-			makeCaseBlock(c, code);
+			makeRegionIndent(code, c);
 		}
 		if (sw.getDefaultCase() != null) {
 			code.startLine("default:");
-			makeCaseBlock(sw.getDefaultCase(), code);
+			makeRegionIndent(code, sw.getDefaultCase());
 		}
 		code.decIndent();
 		code.startLine('}');
 		return code;
-	}
-
-	private void makeCaseBlock(IContainer c, CodeWriter code) throws CodegenException {
-		boolean addBreak = true;
-		if (RegionUtils.notEmpty(c)) {
-			makeRegionIndent(code, c);
-			if (RegionUtils.hasExitEdge(c)) {
-				addBreak = false;
-			}
-		}
-		if (addBreak) {
-			code.startLine().addIndent().add("break;");
-		}
 	}
 
 	private void makeTryCatch(TryCatchRegion region, CodeWriter code) throws CodegenException {

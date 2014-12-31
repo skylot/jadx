@@ -24,8 +24,7 @@ public class CountString extends SubstringMatcher {
 
 	@Override
 	public void describeMismatchSafely(String item, Description mismatchDescription) {
-		mismatchDescription.appendText("found ").appendValue(count(item))
-				.appendText(" in \"").appendText(item).appendText("\"");
+		mismatchDescription.appendText("found ").appendValue(count(item));
 	}
 
 	private int count(String string) {

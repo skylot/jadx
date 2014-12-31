@@ -1,5 +1,6 @@
 package jadx.core.dex.regions;
 
+import jadx.core.dex.nodes.IBranchRegion;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.trycatch.ExceptionHandler;
@@ -12,7 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public final class TryCatchRegion extends AbstractRegion {
+public final class TryCatchRegion extends AbstractRegion implements IBranchRegion {
 
 	private final IContainer tryRegion;
 	private Map<ExceptionHandler, IContainer> catchRegions = Collections.emptyMap();
@@ -69,6 +70,11 @@ public final class TryCatchRegion extends AbstractRegion {
 			all.add(finallyRegion);
 		}
 		return Collections.unmodifiableList(all);
+	}
+
+	@Override
+	public List<IContainer> getBranches() {
+		return getSubBlocks();
 	}
 
 	@Override

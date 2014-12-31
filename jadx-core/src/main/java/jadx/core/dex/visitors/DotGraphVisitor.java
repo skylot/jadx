@@ -6,6 +6,7 @@ import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
@@ -113,7 +114,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 					processRegion(mth, h.getHandlerRegion());
 				}
 			}
-			Set<BlockNode> regionsBlocks = new HashSet<BlockNode>(mth.getBasicBlocks().size());
+			Set<IBlock> regionsBlocks = new HashSet<IBlock>(mth.getBasicBlocks().size());
 			RegionUtils.getAllRegionBlocks(mth.getRegion(), regionsBlocks);
 			for (ExceptionHandler handler : mth.getExceptionHandlers()) {
 				IContainer handlerRegion = handler.getHandlerRegion();
@@ -147,6 +148,8 @@ public class DotGraphVisitor extends AbstractVisitor {
 				dot.startLine('}');
 			} else if (region instanceof BlockNode) {
 				processBlock(mth, (BlockNode) region, false);
+			} else if (region instanceof IBlock) {
+				processIBlock(mth, (IBlock) region, false);
 			}
 		}
 
@@ -189,6 +192,24 @@ public class DotGraphVisitor extends AbstractVisitor {
 			}
 		}
 
+		private void processIBlock(MethodNode mth, IBlock block, boolean error) {
+			String attrs = attributesString(block);
+			dot.startLine(makeName(block));
+			dot.add(" [shape=record,");
+			if (error) {
+				dot.add("color=red,");
+			}
+			dot.add("label=\"{");
+			if (attrs.length() != 0) {
+				dot.add(attrs);
+			}
+			String insns = insertInsns(mth, block);
+			if (insns.length() != 0) {
+				dot.add('|').add(insns);
+			}
+			dot.add("}\"];");
+		}
+
 		private void addEdge(BlockNode from, BlockNode to, String style) {
 			conn.startLine(makeName(from)).add(" -> ").add(makeName(to));
 			conn.add(style);
@@ -207,13 +228,15 @@ public class DotGraphVisitor extends AbstractVisitor {
 			String name;
 			if (c instanceof BlockNode) {
 				name = "Node_" + ((BlockNode) c).getId();
+			} else if (c instanceof IBlock) {
+				name = "Node_" + c.getClass().getSimpleName() + "_" + c.hashCode();
 			} else {
 				name = "cluster_" + c.getClass().getSimpleName() + "_" + c.hashCode();
 			}
 			return name;
 		}
 
-		private String insertInsns(MethodNode mth, BlockNode block) {
+		private String insertInsns(MethodNode mth, IBlock block) {
 			if (rawInsn) {
 				StringBuilder str = new StringBuilder();
 				for (InsnNode insn : block.getInstructions()) {

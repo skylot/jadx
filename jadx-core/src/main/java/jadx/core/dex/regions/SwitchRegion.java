@@ -1,6 +1,7 @@
 package jadx.core.dex.regions;
 
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.IBranchRegion;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 
@@ -8,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public final class SwitchRegion extends AbstractRegion {
+public final class SwitchRegion extends AbstractRegion implements IBranchRegion {
 
 	private final BlockNode header;
 
@@ -57,6 +58,14 @@ public final class SwitchRegion extends AbstractRegion {
 			all.add(defCase);
 		}
 		return Collections.unmodifiableList(all);
+	}
+
+	@Override
+	public List<IContainer> getBranches() {
+		List<IContainer> branches = new ArrayList<IContainer>(cases.size() + 1);
+		branches.addAll(cases);
+		branches.add(defCase);
+		return Collections.unmodifiableList(branches);
 	}
 
 	@Override

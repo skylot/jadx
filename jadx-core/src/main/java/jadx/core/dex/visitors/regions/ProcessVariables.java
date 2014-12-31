@@ -9,12 +9,11 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.VarName;
 import jadx.core.dex.nodes.IBlock;
+import jadx.core.dex.nodes.IBranchRegion;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.regions.SwitchRegion;
-import jadx.core.dex.regions.conditions.IfRegion;
 import jadx.core.dex.regions.loops.ForLoop;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.regions.loops.LoopType;
@@ -331,8 +330,7 @@ public class ProcessVariables extends AbstractVisitor {
 			return id;
 		}
 		for (IContainer c : region.getSubBlocks()) {
-			if (c instanceof IfRegion
-					|| c instanceof SwitchRegion) {
+			if (c instanceof IBranchRegion) {
 				// on branch set for all inner regions same order id
 				id = calculateOrder(c, regionsOrder, inc ? id + 1 : id, false);
 			} else {
