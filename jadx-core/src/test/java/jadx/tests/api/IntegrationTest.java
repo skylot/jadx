@@ -128,6 +128,11 @@ public abstract class IntegrationTest extends TestUtils {
 			public int getThreadsCount() {
 				return 1;
 			}
+
+			@Override
+			public boolean isSkipResources() {
+				return true;
+			}
 		}, new File(outDir));
 	}
 

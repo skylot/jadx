@@ -17,5 +17,7 @@ public interface IJadxArgs {
 
 	boolean isVerbose();
 
-	boolean isXMLTest();
+	boolean isSkipResources();
+
+	boolean isSkipSources();
 }

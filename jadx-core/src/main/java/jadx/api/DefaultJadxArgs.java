@@ -40,7 +40,12 @@ public class DefaultJadxArgs implements IJadxArgs {
 	}
 
 	@Override
-	public boolean isXMLTest() {
+	public boolean isSkipResources() {
+		return false;
+	}
+
+	@Override
+	public boolean isSkipSources() {
 		return false;
 	}
 }
