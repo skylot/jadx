@@ -4,6 +4,7 @@ import javax.swing.Icon;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class OverlayIcon implements Icon {
@@ -17,6 +18,11 @@ public class OverlayIcon implements Icon {
 
 	public OverlayIcon(Icon icon) {
 		this.icon = icon;
+	}
+
+	public OverlayIcon(Icon icon, Icon... ovrIcons) {
+		this.icon = icon;
+		Collections.addAll(icons, ovrIcons);
 	}
 
 	@Override

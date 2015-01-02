@@ -10,6 +10,8 @@ import jadx.gui.utils.Utils;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+
 public class JClass extends JNode {
 	private static final long serialVersionUID = -1239986875244097177L;
 
@@ -68,8 +70,13 @@ public class JClass extends JNode {
 		}
 	}
 
-	public String getCode() {
+	public String getContent() {
 		return cls.getCode();
+	}
+
+	@Override
+	public String getSyntaxName() {
+		return SyntaxConstants.SYNTAX_STYLE_JAVA;
 	}
 
 	@Override
@@ -116,6 +123,11 @@ public class JClass extends JNode {
 	@Override
 	public int getLine() {
 		return cls.getDecompiledLine();
+	}
+
+	@Override
+	public Integer getSourceLine(int line) {
+		return cls.getSourceLine(line);
 	}
 
 	@Override

@@ -16,15 +16,19 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-public class JRootTest {
+public class JSourcesTest {
 
-	private JRoot root;
+	private JSources sources;
 	private JadxDecompiler decompiler;
 
 	@Before
 	public void init() {
-		root = new JRoot(mock(JadxWrapper.class));
+		JRoot root = mock(JRoot.class);
+		when(root.isFlatPackages()).thenReturn(false);
+		JadxWrapper wrapper = mock(JadxWrapper.class);
+		sources = new JSources(root, wrapper);
 		decompiler = new JadxDecompiler(mock(IJadxArgs.class));
 	}
 
@@ -33,7 +37,7 @@ public class JRootTest {
 		String pkgName = "a.b.c.d.e";
 
 		List<JavaPackage> packages = Arrays.asList(newPkg(pkgName));
-		List<JPackage> out = root.getHierarchyPackages(packages);
+		List<JPackage> out = sources.getHierarchyPackages(packages);
 
 		assertEquals(out.size(), 1);
 		JPackage jpkg = out.get(0);
@@ -48,7 +52,7 @@ public class JRootTest {
 				newPkg("a.c"),
 				newPkg("a.d")
 		);
-		List<JPackage> out = root.getHierarchyPackages(packages);
+		List<JPackage> out = sources.getHierarchyPackages(packages);
 
 		assertEquals(out.size(), 1);
 		JPackage jpkg = out.get(0);
@@ -64,7 +68,7 @@ public class JRootTest {
 				newPkg("a.b.p2"),
 				newPkg("a.b.p3")
 		);
-		List<JPackage> out = root.getHierarchyPackages(packages);
+		List<JPackage> out = sources.getHierarchyPackages(packages);
 
 		assertEquals(out.size(), 1);
 		JPackage jpkg = out.get(0);
@@ -82,7 +86,7 @@ public class JRootTest {
 				newPkg("d.e"),
 				newPkg("d.f.a")
 		);
-		List<JPackage> out = root.getHierarchyPackages(packages);
+		List<JPackage> out = sources.getHierarchyPackages(packages);
 
 		assertEquals(out.size(), 2);
 		assertEquals(out.get(0).getName(), "a");

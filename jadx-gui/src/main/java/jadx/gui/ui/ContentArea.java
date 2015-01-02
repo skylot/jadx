@@ -2,6 +2,7 @@ package jadx.gui.ui;
 
 import jadx.api.CodePosition;
 import jadx.gui.treemodel.JClass;
+import jadx.gui.treemodel.JNode;
 import jadx.gui.utils.Position;
 
 import javax.swing.JViewport;
@@ -18,31 +19,26 @@ import java.awt.Rectangle;
 import org.fife.ui.rsyntaxtextarea.LinkGenerator;
 import org.fife.ui.rsyntaxtextarea.LinkGeneratorResult;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class CodeArea extends RSyntaxTextArea {
-	private static final Logger LOG = LoggerFactory.getLogger(CodeArea.class);
+class ContentArea extends RSyntaxTextArea {
+	private static final Logger LOG = LoggerFactory.getLogger(ContentArea.class);
 
 	private static final long serialVersionUID = 6312736869579635796L;
 
 	public static final Color BACKGROUND = new Color(0xFAFAFA);
 	public static final Color JUMP_TOKEN_FGD = new Color(0x491BA1);
 
-	private final CodePanel codePanel;
-	private final JClass cls;
+	private final ContentPanel contentPanel;
+	private final JNode node;
 
-	CodeArea(CodePanel panel) {
-		this.codePanel = panel;
-		this.cls = panel.getCls();
-
-		setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
-		SyntaxScheme scheme = getSyntaxScheme();
-		scheme.getStyle(Token.FUNCTION).foreground = Color.BLACK;
+	ContentArea(ContentPanel panel) {
+		this.contentPanel = panel;
+		this.node = panel.getNode();
 
 		setMarkOccurrences(true);
 		setBackground(BACKGROUND);
@@ -54,12 +50,19 @@ class CodeArea extends RSyntaxTextArea {
 		}
 		caret.setVisible(true);
 
-		setHyperlinksEnabled(true);
-		CodeLinkGenerator codeLinkProcessor = new CodeLinkGenerator(cls);
-		setLinkGenerator(codeLinkProcessor);
-		addHyperlinkListener(codeLinkProcessor);
+		setSyntaxEditingStyle(node.getSyntaxName());
 
-		setText(cls.getCode());
+		if (node instanceof JClass) {
+			SyntaxScheme scheme = getSyntaxScheme();
+			scheme.getStyle(Token.FUNCTION).foreground = Color.BLACK;
+
+			setHyperlinksEnabled(true);
+			CodeLinkGenerator codeLinkProcessor = new CodeLinkGenerator((JClass) node);
+			setLinkGenerator(codeLinkProcessor);
+			addHyperlinkListener(codeLinkProcessor);
+		}
+
+		setText(node.getContent());
 	}
 
 	private boolean isJumpToken(Token token) {
@@ -71,9 +74,11 @@ class CodeArea extends RSyntaxTextArea {
 					return false;
 				}
 			}
-			Position pos = getPosition(cls, this, token.getOffset());
-			if (pos != null) {
-				return true;
+			if (node instanceof JClass) {
+				Position pos = getPosition((JClass) node, this, token.getOffset());
+				if (pos != null) {
+					return true;
+				}
 			}
 		}
 		return false;
@@ -102,11 +107,11 @@ class CodeArea extends RSyntaxTextArea {
 	}
 
 	Position getCurrentPosition() {
-		return new Position(cls, getCaretLineNumber() + 1);
+		return new Position(node, getCaretLineNumber() + 1);
 	}
 
 	Integer getSourceLine(int line) {
-		return cls.getCls().getSourceLine(line);
+		return node.getSourceLine(line);
 	}
 
 	void scrollToLine(int line) {
@@ -172,7 +177,7 @@ class CodeArea extends RSyntaxTextArea {
 					@Override
 					public HyperlinkEvent execute() {
 						return new HyperlinkEvent(defPos, HyperlinkEvent.EventType.ACTIVATED, null,
-								defPos.getCls().getFullName());
+								defPos.getNode().makeLongString());
 					}
 
 					@Override
@@ -192,7 +197,7 @@ class CodeArea extends RSyntaxTextArea {
 			if (obj instanceof Position) {
 				Position pos = (Position) obj;
 				LOG.debug("Code jump to: {}", pos);
-				TabbedPane tabbedPane = codePanel.getTabbedPane();
+				TabbedPane tabbedPane = contentPanel.getTabbedPane();
 				tabbedPane.getJumpManager().addPosition(getCurrentPosition());
 				tabbedPane.getJumpManager().addPosition(pos);
 				tabbedPane.showCode(pos);

@@ -3,6 +3,7 @@ package jadx.gui.ui;
 import jadx.gui.JadxWrapper;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.treemodel.JResource;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.update.JadxUpdate;
 import jadx.gui.update.JadxUpdate.IUpdateCallback;
@@ -159,8 +160,12 @@ public class MainWindow extends JFrame {
 		treeRoot = new JRoot(wrapper);
 		treeRoot.setFlatPackages(isFlattenPackage);
 		treeModel.setRoot(treeRoot);
+		reloadTree();
+	}
+
+	private void reloadTree() {
 		treeModel.reload();
-		tree.expandRow(0);
+		tree.expandRow(1);
 	}
 
 	private void toggleFlattenPackage() {
@@ -178,37 +183,46 @@ public class MainWindow extends JFrame {
 		if (root instanceof JRoot) {
 			JRoot treeRoot = (JRoot) root;
 			treeRoot.setFlatPackages(isFlattenPackage);
-			treeModel.reload();
-			tree.expandRow(0);
+			reloadTree();
 		}
 	}
 
 	private void treeClickAction() {
-		Object obj = tree.getLastSelectedPathComponent();
-		if (obj instanceof JNode) {
-			JNode node = (JNode) obj;
-			JClass cls = node.getRootClass();
-			if (cls != null) {
-				tabbedPane.showCode(new Position(cls, node.getLine()));
+		try {
+			Object obj = tree.getLastSelectedPathComponent();
+			if (obj instanceof JResource) {
+				JResource res = (JResource) obj;
+				if (res.getContent() != null) {
+					tabbedPane.showCode(new Position(res, res.getLine()));
+				}
 			}
+			if (obj instanceof JNode) {
+				JNode node = (JNode) obj;
+				JClass cls = node.getRootClass();
+				if (cls != null) {
+					tabbedPane.showCode(new Position(cls, node.getLine()));
+				}
+			}
+		} catch (Exception e) {
+			LOG.error("Content loading error", e);
 		}
 	}
 
 	private void syncWithEditor() {
-		CodePanel selectedCodePanel = tabbedPane.getSelectedCodePanel();
-		if (selectedCodePanel == null) {
+		ContentPanel selectedContentPanel = tabbedPane.getSelectedCodePanel();
+		if (selectedContentPanel == null) {
 			return;
 		}
-		JClass jCls = selectedCodePanel.getCls();
-		if (jCls.getParent() == null && treeRoot != null) {
+		JNode node = selectedContentPanel.getNode();
+		if (node.getParent() == null && treeRoot != null) {
 			// node not register in tree
-			jCls = treeRoot.searchClassInTree(jCls);
-			if (jCls == null) {
+			node = treeRoot.searchClassInTree(node);
+			if (node == null) {
 				LOG.error("Class not found in tree");
 				return;
 			}
 		}
-		TreeNode[] pathNodes = treeModel.getPathToRoot(jCls);
+		TreeNode[] pathNodes = treeModel.getPathToRoot(node);
 		if (pathNodes == null) {
 			return;
 		}
@@ -218,9 +232,9 @@ public class MainWindow extends JFrame {
 	}
 
 	private void toggleFind() {
-		CodePanel codePanel = tabbedPane.getSelectedCodePanel();
-		if (codePanel != null) {
-			codePanel.getSearchBar().toggle();
+		ContentPanel contentPanel = tabbedPane.getSelectedCodePanel();
+		if (contentPanel != null) {
+			contentPanel.getSearchBar().toggle();
 		}
 	}
 
@@ -432,8 +446,8 @@ public class MainWindow extends JFrame {
 		tree.setCellRenderer(new DefaultTreeCellRenderer() {
 			@Override
 			public Component getTreeCellRendererComponent(JTree tree,
-			                                              Object value, boolean selected, boolean expanded,
-			                                              boolean isLeaf, int row, boolean focused) {
+					Object value, boolean selected, boolean expanded,
+					boolean isLeaf, int row, boolean focused) {
 				Component c = super.getTreeCellRendererComponent(tree, value, selected, expanded, isLeaf, row, focused);
 				if (value instanceof JNode) {
 					setIcon(((JNode) value).getIcon());

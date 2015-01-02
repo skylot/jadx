@@ -4,6 +4,7 @@ import jadx.api.IJadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaPackage;
+import jadx.api.ResourceFile;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxException;
 
@@ -42,7 +43,6 @@ public class JadxWrapper {
 			public void run() {
 				try {
 					decompiler.setOutputDir(dir);
-					decompiler.parseAndSaveXML();
 					ThreadPoolExecutor ex = (ThreadPoolExecutor) decompiler.getSaveExecutor();
 					ex.shutdown();
 					while (ex.isTerminating()) {
@@ -67,6 +67,10 @@ public class JadxWrapper {
 
 	public List<JavaPackage> getPackages() {
 		return decompiler.getPackages();
+	}
+
+	public List<ResourceFile> getResources() {
+		return decompiler.getResources();
 	}
 
 	public File getOpenFile() {
