@@ -33,10 +33,33 @@ public class BinaryXMLParser {
 
 	private static final Logger LOG = LoggerFactory.getLogger(BinaryXMLParser.class);
 
-	private static final Charset STRING_CHARSET = Charset.forName("UTF-16LE");
+	private static final Charset STRING_CHARSET_UTF16 = Charset.forName("UTF-16LE");
+	private static final Charset STRING_CHARSET_UTF8 = Charset.forName("UTF-8");
+
+	private static final int RES_NULL_TYPE = 0x0000;
+	private static final int RES_STRING_POOL_TYPE = 0x0001;
+	private static final int RES_TABLE_TYPE = 0x0002;
+
+	private static final int RES_XML_TYPE = 0x0003;
+	private static final int RES_XML_FIRST_CHUNK_TYPE = 0x0100;
+	private static final int RES_XML_START_NAMESPACE_TYPE = 0x0100;
+	private static final int RES_XML_END_NAMESPACE_TYPE = 0x0101;
+	private static final int RES_XML_START_ELEMENT_TYPE = 0x0102;
+	private static final int RES_XML_END_ELEMENT_TYPE = 0x0103;
+	private static final int RES_XML_CDATA_TYPE = 0x0104;
+	private static final int RES_XML_LAST_CHUNK_TYPE = 0x017f;
+	private static final int RES_XML_RESOURCE_MAP_TYPE = 0x0180;
+
+	private static final int RES_TABLE_PACKAGE_TYPE = 0x0200;
+	private static final int RES_TABLE_TYPE_TYPE = 0x0201;
+	private static final int RES_TABLE_TYPE_SPEC_TYPE = 0x0202;
+
+	// string pool flags
+	private static final int SORTED_FLAG = 1;
+	private static final int UTF8_FLAG = 1 << 8;
 
 	private CodeWriter writer;
-	private InputStream input;
+	private ParserStream is;
 	private String[] strings;
 
 	private String nsPrefix = "ERROR";
@@ -76,7 +99,7 @@ public class BinaryXMLParser {
 	public synchronized CodeWriter parse(InputStream inputStream) {
 		writer = new CodeWriter();
 		writer.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-		input = inputStream;
+		is = new ParserStream(inputStream);
 		firstElement = true;
 		try {
 			decode();
@@ -92,36 +115,36 @@ public class BinaryXMLParser {
 	}
 
 	void decode() throws IOException {
-		if (cInt16() != 0x0003) {
+		if (is.readInt16() != 0x0003) {
 			die("Version is not 3");
 		}
-		if (cInt16() != 0x0008) {
+		if (is.readInt16() != 0x0008) {
 			die("Size of header is not 8");
 		}
-		cInt32();
-		while (input.available() != 0) {
-			int type = cInt16();
+		int size = is.readInt32();
+		while (is.getPos() < size) {
+			int type = is.readInt16();
 			switch (type) {
-				case 0x0001:
+				case RES_NULL_TYPE:
+					// NullType is just doing nothing
+					break;
+				case RES_STRING_POOL_TYPE:
 					parseStringPool();
 					break;
-				case 0x0180:
+				case RES_XML_RESOURCE_MAP_TYPE:
 					parseResourceMap();
 					break;
-				case 0x0100:
+				case RES_XML_START_NAMESPACE_TYPE:
 					parseNameSpace();
 					break;
-				case 0x0101:
+				case RES_XML_END_NAMESPACE_TYPE:
 					parseNameSpaceEnd();
 					break;
-				case 0x0102:
+				case RES_XML_START_ELEMENT_TYPE:
 					parseElement();
 					break;
-				case 0x0103:
+				case RES_XML_END_ELEMENT_TYPE:
 					parseElementEnd();
-					break;
-				case 0x0000:
-					// NullType is just doing nothing
 					break;
 
 				default:
@@ -132,68 +155,88 @@ public class BinaryXMLParser {
 	}
 
 	private void parseStringPool() throws IOException {
-		if (cInt16() != 0x001c) {
+		if (is.readInt16() != 0x001c) {
 			die("Header header size not 28");
 		}
-		int hsize = cInt32();
-		int stringCount = cInt32();
-		int styleCount = cInt32();
-		int flags = cInt32();
-		int stringsStart = cInt32();
-		int stylesStart = cInt32();
-		int[] stringsOffsets = new int[stringCount];
-		for (int i = 0; i < stringCount; i++) {
-			stringsOffsets[i] = cInt32();
-		}
+		int hsize = is.readInt32();
+		int stringCount = is.readInt32();
+		int styleCount = is.readInt32();
+		int flags = is.readInt32();
+		int stringsStart = is.readInt32();
+		int stylesStart = is.readInt32();
+		// skip string offsets
+		is.skip(stringCount * 4);
 		strings = new String[stringCount];
-		for (int i = 0; i < stringCount; i++) {
-			int off = 8 + stringsStart + stringsOffsets[i];
-			int strlen = cInt16();
-			byte[] str = new byte[strlen * 2];
-			readToArray(str);
-			strings[i] = new String(str, STRING_CHARSET);
-			cInt16();
+		if ((flags & UTF8_FLAG) != 0) {
+			// UTF-8
+			long start = is.getPos();
+			for (int i = 0; i < stringCount; i++) {
+				int charsCount = is.decodeLength8();
+				int len = is.decodeLength8();
+				strings[i] = new String(is.readArray(len), STRING_CHARSET_UTF8);
+				int zero = is.readInt8();
+				if (zero != 0) {
+					die("Not a trailing zero at string end: " + zero + ", " + strings[i]);
+				}
+			}
+			long shift = is.getPos() - start;
+			if (shift % 2 != 0) {
+				is.skip(1);
+			}
+		} else {
+			// UTF-16
+			for (int i = 0; i < stringCount; i++) {
+				int len = is.decodeLength16();
+				strings[i] = new String(is.readArray(len * 2), STRING_CHARSET_UTF16);
+				int zero = is.readInt16();
+				if (zero != 0) {
+					die("Not a trailing zero at string end: " + zero + ", " + strings[i]);
+				}
+			}
+		}
+		if (styleCount != 0) {
+			die("Styles parsing in string pool not yet implemented");
 		}
 	}
 
 	private void parseResourceMap() throws IOException {
-		if (cInt16() != 0x8) {
+		if (is.readInt16() != 0x8) {
 			die("Header size of resmap is not 8!");
 		}
-		int rhsize = cInt32();
+		int rhsize = is.readInt32();
 		int[] ids = new int[(rhsize - 8) / 4];
 		for (int i = 0; i < ids.length; i++) {
-			ids[i] = cInt32();
+			ids[i] = is.readInt32();
 		}
 	}
 
 	private void parseNameSpace() throws IOException {
-		if (cInt16() != 0x10) {
+		if (is.readInt16() != 0x10) {
 			die("NAMESPACE header is not 0x0010");
 		}
-		if (cInt32() != 0x18) {
+		if (is.readInt32() != 0x18) {
 			die("NAMESPACE header chunk is not 0x18 big");
 		}
-		int beginLineNumber = cInt32();
-		int comment = cInt32();
-		int beginPrefix = cInt32();
+		int beginLineNumber = is.readInt32();
+		int comment = is.readInt32();
+		int beginPrefix = is.readInt32();
 		nsPrefix = strings[beginPrefix];
-		int beginURI = cInt32();
+		int beginURI = is.readInt32();
 		nsURI = strings[beginURI];
 	}
 
 	private void parseNameSpaceEnd() throws IOException {
-		if (cInt16() != 0x10) {
+		if (is.readInt16() != 0x10) {
 			die("NAMESPACE header is not 0x0010");
 		}
-		if (cInt32() != 0x18) {
+		if (is.readInt32() != 0x18) {
 			die("NAMESPACE header chunk is not 0x18 big");
 		}
-		int endLineNumber = cInt32();
-		int comment = cInt32();
-		int endPrefix = cInt32();
+		int endLineNumber = is.readInt32();
+		int comment = is.readInt32();
+		int endPrefix = is.readInt32();
 		nsPrefix = strings[endPrefix];
-		int endURI = cInt32();
+		int endURI = is.readInt32();
 		nsURI = strings[endURI];
 	}
 
@@ -203,15 +246,15 @@ public class BinaryXMLParser {
 		} else {
 			writer.incIndent();
 		}
-		if (cInt16() != 0x10) {
+		if (is.readInt16() != 0x10) {
 			die("ELEMENT HEADER SIZE is not 0x10");
 		}
 		// TODO: Check element chunk size
-		cInt32();
-		int elementBegLineNumber = cInt32();
-		int comment = cInt32();
-		int startNS = cInt32();
-		int startNSName = cInt32(); // actually is elementName...
+		is.readInt32();
+		int elementBegLineNumber = is.readInt32();
+		int comment = is.readInt32();
+		int startNS = is.readInt32();
+		int startNSName = is.readInt32(); // actually is elementName...
 		if (!wasOneLiner && !"ERROR".equals(currentTag) && !currentTag.equals(strings[startNSName])) {
 			writer.add(">");
 		}
@@ -219,18 +262,18 @@ public class BinaryXMLParser {
 		currentTag = strings[startNSName];
 		writer.startLine("<").add(strings[startNSName]);
 		writer.attachSourceLine(elementBegLineNumber);
-		int attributeStart = cInt16();
+		int attributeStart = is.readInt16();
 		if (attributeStart != 0x14) {
 			die("startNS's attributeStart is not 0x14");
 		}
-		int attributeSize = cInt16();
+		int attributeSize = is.readInt16();
 		if (attributeSize != 0x14) {
 			die("startNS's attributeSize is not 0x14");
 		}
-		int attributeCount = cInt16();
-		int idIndex = cInt16();
-		int classIndex = cInt16();
-		int styleIndex = cInt16();
+		int attributeCount = is.readInt16();
+		int idIndex = is.readInt16();
+		int classIndex = is.readInt16();
+		int styleIndex = is.readInt16();
 		if ("manifest".equals(strings[startNSName])) {
 			writer.add(" xmlns:\"").add(nsURI).add("\"");
 		}
@@ -247,18 +290,18 @@ public class BinaryXMLParser {
 	}
 
 	private void parseAttribute(int i) throws IOException {
-		int attributeNS = cInt32();
-		int attributeName = cInt32();
-		int attributeRawValue = cInt32();
-		int attrValSize = cInt16();
+		int attributeNS = is.readInt32();
+		int attributeName = is.readInt32();
+		int attributeRawValue = is.readInt32();
+		int attrValSize = is.readInt16();
 		if (attrValSize != 0x08) {
 			die("attrValSize != 0x08 not supported");
 		}
-		if (cInt8() != 0) {
+		if (is.readInt8() != 0) {
 			die("res0 is not 0");
 		}
-		int attrValDataType = cInt8();
-		int attrValData = cInt32();
+		int attrValDataType = is.readInt8();
+		int attrValData = is.readInt32();
 		if (attributeNS != -1) {
 			writer.add(nsPrefix).add(':');
 		}
@@ -319,16 +362,16 @@ public class BinaryXMLParser {
 	}
 
 	private void parseElementEnd() throws IOException {
-		if (cInt16() != 0x10) {
+		if (is.readInt16() != 0x10) {
 			die("ELEMENT END header is not 0x10");
 		}
-		if (cInt32() != 0x18) {
+		if (is.readInt32() != 0x18) {
 			die("ELEMENT END header chunk is not 0x18 big");
 		}
-		int endLineNumber = cInt32();
-		int comment = cInt32();
-		int elementNS = cInt32();
-		int elementName = cInt32();
+		int endLineNumber = is.readInt32();
+		int comment = is.readInt32();
+		int elementNS = is.readInt32();
+		int elementName = is.readInt32();
 		if (currentTag.equals(strings[elementName])) {
 			writer.add(" />");
 			wasOneLiner = true;
@@ -345,38 +388,8 @@ public class BinaryXMLParser {
 		}
 	}
 
-	private int cInt8() throws IOException {
-		return input.read();
-	}
-
-	private int cInt16() throws IOException {
-		int b1 = input.read();
-		int b2 = input.read();
-		return (b2 & 0xFF) << 8 | (b1 & 0xFF);
-	}
-
-	private int cInt32() throws IOException {
-		InputStream in = input;
-		int b1 = in.read();
-		int b2 = in.read();
-		int b3 = in.read();
-		int b4 = in.read();
-		return b4 << 24 | (b3 & 0xFF) << 16 | (b2 & 0xFF) << 8 | (b1 & 0xFF);
-	}
-
-	private void readToArray(byte[] arr) throws IOException {
-		int count = arr.length;
-		int pos = input.read(arr, 0, count);
-		while (pos < count) {
-			int read = input.read(arr, pos, count - pos);
-			if (read == -1) {
-				throw new IOException("No data, can't read " + count + " bytes");
-			}
-			pos += read;
-		}
-	}
-
 	private void die(String message) {
-		throw new JadxRuntimeException("Decode error: " + message);
+		throw new JadxRuntimeException("Decode error: " + message
+				+ ", position: 0x" + Long.toHexString(is.getPos()));
 	}
 }

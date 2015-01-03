@@ -36,13 +36,13 @@ public enum ResourceType {
 			case CODE:
 			case ARSC:
 			case LIB:
-			case XML:
 			case FONT:
 			case IMG:
 			case UNKNOWN:
 				return false;
 
 			case MANIFEST:
+			case XML:
 				return true;
 		}
 		return false;
