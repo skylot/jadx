@@ -144,7 +144,6 @@ public class JResource extends JNode implements Comparable<JResource> {
 	private boolean isSupportedForView(ResourceType type) {
 		switch (type) {
 			case CODE:
-			case ARSC:
 			case FONT:
 			case IMG:
 			case LIB:
@@ -152,6 +151,7 @@ public class JResource extends JNode implements Comparable<JResource> {
 
 			case MANIFEST:
 			case XML:
+			case ARSC:
 			case UNKNOWN:
 				return true;
 		}

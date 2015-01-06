@@ -11,7 +11,6 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,37 +28,11 @@ import org.slf4j.LoggerFactory;
 	Check Element chunk size
 */
 
-public class BinaryXMLParser {
+public class BinaryXMLParser extends CommonBinaryParser {
 
 	private static final Logger LOG = LoggerFactory.getLogger(BinaryXMLParser.class);
 
-	private static final Charset STRING_CHARSET_UTF16 = Charset.forName("UTF-16LE");
-	private static final Charset STRING_CHARSET_UTF8 = Charset.forName("UTF-8");
-
-	private static final int RES_NULL_TYPE = 0x0000;
-	private static final int RES_STRING_POOL_TYPE = 0x0001;
-	private static final int RES_TABLE_TYPE = 0x0002;
-
-	private static final int RES_XML_TYPE = 0x0003;
-	private static final int RES_XML_FIRST_CHUNK_TYPE = 0x0100;
-	private static final int RES_XML_START_NAMESPACE_TYPE = 0x0100;
-	private static final int RES_XML_END_NAMESPACE_TYPE = 0x0101;
-	private static final int RES_XML_START_ELEMENT_TYPE = 0x0102;
-	private static final int RES_XML_END_ELEMENT_TYPE = 0x0103;
-	private static final int RES_XML_CDATA_TYPE = 0x0104;
-	private static final int RES_XML_LAST_CHUNK_TYPE = 0x017f;
-	private static final int RES_XML_RESOURCE_MAP_TYPE = 0x0180;
-
-	private static final int RES_TABLE_PACKAGE_TYPE = 0x0200;
-	private static final int RES_TABLE_TYPE_TYPE = 0x0201;
-	private static final int RES_TABLE_TYPE_SPEC_TYPE = 0x0202;
-
-	// string pool flags
-	private static final int SORTED_FLAG = 1;
-	private static final int UTF8_FLAG = 1 << 8;
-
 	private CodeWriter writer;
-	private ParserStream is;
 	private String[] strings;
 
 	private String nsPrefix = "ERROR";
@@ -129,7 +102,7 @@ public class BinaryXMLParser {
 					// NullType is just doing nothing
 					break;
 				case RES_STRING_POOL_TYPE:
-					parseStringPool();
+					strings = parseStringPoolNoType();
 					break;
 				case RES_XML_RESOURCE_MAP_TYPE:
 					parseResourceMap();
@@ -151,51 +124,6 @@ public class BinaryXMLParser {
 					die("Type: " + Integer.toHexString(type) + " not yet implemented");
 					break;
 			}
-		}
-	}
-
-	private void parseStringPool() throws IOException {
-		if (is.readInt16() != 0x001c) {
-			die("Header header size not 28");
-		}
-		int hsize = is.readInt32();
-		int stringCount = is.readInt32();
-		int styleCount = is.readInt32();
-		int flags = is.readInt32();
-		int stringsStart = is.readInt32();
-		int stylesStart = is.readInt32();
-		// skip string offsets
-		is.skip(stringCount * 4);
-		strings = new String[stringCount];
-		if ((flags & UTF8_FLAG) != 0) {
-			// UTF-8
-			long start = is.getPos();
-			for (int i = 0; i < stringCount; i++) {
-				int charsCount = is.decodeLength8();
-				int len = is.decodeLength8();
-				strings[i] = new String(is.readArray(len), STRING_CHARSET_UTF8);
-				int zero = is.readInt8();
-				if (zero != 0) {
-					die("Not a trailing zero at string end: " + zero + ", " + strings[i]);
-				}
-			}
-			long shift = is.getPos() - start;
-			if (shift % 2 != 0) {
-				is.skip(1);
-			}
-		} else {
-			// UTF-16
-			for (int i = 0; i < stringCount; i++) {
-				int len = is.decodeLength16();
-				strings[i] = new String(is.readArray(len * 2), STRING_CHARSET_UTF16);
-				int zero = is.readInt16();
-				if (zero != 0) {
-					die("Not a trailing zero at string end: " + zero + ", " + strings[i]);
-				}
-			}
-		}
-		if (styleCount != 0) {
-			die("Styles parsing in string pool not yet implemented");
 		}
 	}
 
@@ -356,7 +284,7 @@ public class BinaryXMLParser {
 				break;
 
 			default:
-				writer.add("UNKNOWN_DATA_TYPE_" + attrValDataType);
+				writer.add("UNKNOWN_DATA_TYPE_0x" + Integer.toHexString(attrValDataType));
 				break;
 		}
 	}
@@ -386,10 +314,5 @@ public class BinaryXMLParser {
 		if (writer.getIndent() != 0) {
 			writer.decIndent();
 		}
-	}
-
-	private void die(String message) {
-		throw new JadxRuntimeException("Decode error: " + message
-				+ ", position: 0x" + Long.toHexString(is.getPos()));
 	}
 }

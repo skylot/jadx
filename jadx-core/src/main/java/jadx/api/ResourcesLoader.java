@@ -2,7 +2,9 @@ package jadx.api;
 
 import jadx.api.ResourceFile.ZipRef;
 import jadx.core.codegen.CodeWriter;
+import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.InputFile;
+import jadx.core.xmlgen.ResTableParser;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -19,11 +21,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 // TODO: move to core package
-final class ResourcesLoader {
+public final class ResourcesLoader {
 	private static final Logger LOG = LoggerFactory.getLogger(ResourcesLoader.class);
 
 	private static final int READ_BUFFER_SIZE = 8 * 1024;
-	private static final int LOAD_SIZE_LIMIT = 500 * 1024;
+	private static final int LOAD_SIZE_LIMIT = 10 * 1024 * 1024;
 
 	private JadxDecompiler jadxRef;
 
@@ -81,6 +83,9 @@ final class ResourcesLoader {
 			case MANIFEST:
 			case XML:
 				return jadxRef.getXmlParser().parse(inputStream);
+
+			case ARSC:
+				return new ResTableParser().decodeToCodeWriter(inputStream);
 		}
 		return loadToCodeWriter(inputStream);
 	}
