@@ -7,6 +7,7 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.xmlgen.entry.ValuesParser;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,8 +43,10 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private boolean firstElement;
 	private boolean wasOneLiner = false;
 
-	private Map<Integer, String> styleMap = new HashMap<Integer, String>();
-	private Map<Integer, FieldNode> localStyleMap = new HashMap<Integer, FieldNode>();
+	private final Map<Integer, String> styleMap = new HashMap<Integer, String>();
+	private final Map<Integer, FieldNode> localStyleMap = new HashMap<Integer, FieldNode>();
+	private final Map<Integer, String> resNames;
+	private ValuesParser valuesParser;
 
 	private final ManifestAttributes attributes;
 
@@ -62,6 +65,9 @@ public class BinaryXMLParser extends CommonBinaryParser {
 					}
 				}
 			}
+
+			resNames = root.getResourcesNames();
+
 			attributes = new ManifestAttributes();
 			attributes.parse();
 		} catch (Exception e) {
@@ -103,6 +109,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 					break;
 				case RES_STRING_POOL_TYPE:
 					strings = parseStringPoolNoType();
+					valuesParser = new ValuesParser(strings, resNames);
 					break;
 				case RES_XML_RESOURCE_MAP_TYPE:
 					parseResourceMap();
@@ -121,7 +128,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 					break;
 
 				default:
-					die("Type: " + Integer.toHexString(type) + " not yet implemented");
+					die("Type: 0x" + Integer.toHexString(type) + " not yet implemented");
 					break;
 			}
 		}
@@ -244,48 +251,32 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	}
 
 	private void decodeAttribute(int attributeNS, int attrValDataType, int attrValData) {
-		switch (attrValDataType) {
-			case 0x3:
-				writer.add(strings[attrValData]);
-				break;
-
-			case 0x10:
-				writer.add(String.valueOf(attrValData));
-				break;
-
-			case 0x12:
-				// FIXME: What to do, when data is always -1?
-				if (attrValData == 0) {
-					writer.add("false");
-				} else if (attrValData == 1 || attrValData == -1) {
-					writer.add("true");
-				} else {
-					writer.add("UNKNOWN_BOOLEAN_TYPE");
+		if (attrValDataType == TYPE_REFERENCE) {
+			// reference custom processing
+			String name = styleMap.get(attrValData);
+			if (name != null) {
+				writer.add("@*");
+				if (attributeNS != -1) {
+					writer.add(nsPrefix).add(':');
 				}
-				break;
-
-			case 0x1:
-				String name = styleMap.get(attrValData);
-				if (name != null) {
-					writer.add("@*");
-					if (attributeNS != -1) {
-						writer.add(nsPrefix).add(':');
-					}
-					writer.add("style/").add(name.replaceAll("_", "."));
+				writer.add("style/").add(name.replaceAll("_", "."));
+			} else {
+				FieldNode field = localStyleMap.get(attrValData);
+				if (field != null) {
+					String cls = field.getParentClass().getShortName().toLowerCase();
+					writer.add("@").add(cls).add("/").add(field.getName());
 				} else {
-					FieldNode field = localStyleMap.get(attrValData);
-					if (field != null) {
-						String cls = field.getParentClass().getShortName().toLowerCase();
-						writer.add("@").add(cls).add("/").add(field.getName());
+					String resName = resNames.get(attrValData);
+					if (resName != null) {
+						writer.add("@").add(resName);
 					} else {
 						writer.add("0x").add(Integer.toHexString(attrValData));
 					}
 				}
-				break;
-
-			default:
-				writer.add("UNKNOWN_DATA_TYPE_0x" + Integer.toHexString(attrValDataType));
-				break;
+			}
+		} else {
+			String str = valuesParser.decodeValue(attrValDataType, attrValData);
+			writer.add(str);
 		}
 	}
 

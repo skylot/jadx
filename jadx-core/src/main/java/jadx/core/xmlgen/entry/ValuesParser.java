@@ -1,11 +1,11 @@
 package jadx.core.xmlgen.entry;
 
 import jadx.core.xmlgen.ParserConstants;
-import jadx.core.xmlgen.ResourceStorage;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,11 +14,11 @@ public class ValuesParser extends ParserConstants {
 	private static final Logger LOG = LoggerFactory.getLogger(ValuesParser.class);
 
 	private final String[] strings;
-	private final ResourceStorage resStorage;
+	private final Map<Integer, String> resMap;
 
-	public ValuesParser(String[] strings, ResourceStorage resourceStorage) {
+	public ValuesParser(String[] strings, Map<Integer, String> resMap) {
 		this.strings = strings;
-		this.resStorage = resourceStorage;
+		this.resMap = resMap;
 	}
 
 	public String getValueString(ResourceEntry ri) {
@@ -43,6 +43,10 @@ public class ValuesParser extends ParserConstants {
 	public String decodeValue(RawValue value) {
 		int dataType = value.getDataType();
 		int data = value.getData();
+		return decodeValue(dataType, data);
+	}
+
+	public String decodeValue(int dataType, int data) {
 		switch (dataType) {
 			case TYPE_NULL:
 				return null;
@@ -67,19 +71,19 @@ public class ValuesParser extends ParserConstants {
 				return String.format("#%03x", data & 0xFFF);
 
 			case TYPE_REFERENCE: {
-				ResourceEntry ri = resStorage.getByRef(data);
+				String ri = resMap.get(data);
 				if (ri == null) {
 					return "?unknown_ref: " + Integer.toHexString(data);
 				}
-				return ri.formatAsRef();
+				return "@" + ri;
 			}
 
 			case TYPE_ATTRIBUTE: {
-				ResourceEntry ri = resStorage.getByRef(data);
+				String ri = resMap.get(data);
 				if (ri == null) {
-					return "?unknown_ref: " + Integer.toHexString(data);
+					return "?unknown_attr_ref: " + Integer.toHexString(data);
 				}
-				return ri.formatAsAttribute();
+				return "?" + ri;
 			}
 
 			case TYPE_DIMENSION:
@@ -101,9 +105,9 @@ public class ValuesParser extends ParserConstants {
 				return null;
 			}
 		}
-		ResourceEntry ri = resStorage.getByRef(ref);
+		String ri = resMap.get(ref);
 		if (ri != null) {
-			return ri.getTypeName() + "." + ri.getKeyName();
+			return ri.replace('/', '.');
 		}
 		return "?0x" + Integer.toHexString(nameRef);
 	}

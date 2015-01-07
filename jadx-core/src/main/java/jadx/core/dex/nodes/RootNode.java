@@ -12,7 +12,6 @@ import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.InputFile;
 import jadx.core.xmlgen.ResTableParser;
 import jadx.core.xmlgen.ResourceStorage;
-import jadx.core.xmlgen.entry.ResourceEntry;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,6 +31,10 @@ public class RootNode {
 	private final ErrorsCounter errorsCounter = new ErrorsCounter();
 
 	private List<DexNode> dexNodes;
+
+	/**
+	 * Resources *
+	 */
 	private Map<Integer, String> resourcesNames = new HashMap<Integer, String>();
 	@Nullable
 	private String appPackage;
@@ -95,10 +98,7 @@ public class RootNode {
 		}
 
 		ResourceStorage resStorage = parser.getResStorage();
-		appPackage = resStorage.getAppPackage();
-		for (ResourceEntry entry : resStorage.getResources()) {
-			resourcesNames.put(entry.getId(), entry.getTypeName() + "." + entry.getKeyName());
-		}
+		resourcesNames = resStorage.getResourcesNames();
 	}
 
 	public void initAppResClass() {

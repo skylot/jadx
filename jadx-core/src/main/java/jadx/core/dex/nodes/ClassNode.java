@@ -281,7 +281,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 		if (field == null && obj instanceof Integer) {
 			String str = dex.root().getResourcesNames().get(obj);
 			if (str != null) {
-				return new ResRefField(dex, str);
+				return new ResRefField(dex, str.replace('/', '.'));
 			}
 		}
 		return field;

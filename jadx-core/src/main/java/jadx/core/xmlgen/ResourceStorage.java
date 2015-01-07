@@ -7,7 +7,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ResourceStorage {
 
@@ -48,5 +50,13 @@ public class ResourceStorage {
 
 	public void setAppPackage(String appPackage) {
 		this.appPackage = appPackage;
+	}
+
+	public Map<Integer, String> getResourcesNames() {
+		Map<Integer, String> map = new HashMap<Integer, String>();
+		for (ResourceEntry entry : list) {
+			map.put(entry.getId(), entry.getTypeName() + "/" + entry.getKeyName());
+		}
+		return map;
 	}
 }

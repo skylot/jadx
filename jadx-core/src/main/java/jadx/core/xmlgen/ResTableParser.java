@@ -71,7 +71,10 @@ public class ResTableParser extends CommonBinaryParser {
 		}
 
 		CodeWriter writer = new CodeWriter();
-		ValuesParser vp = new ValuesParser(strings, resStorage);
+		writer.add("app package: ").add(resStorage.getAppPackage());
+		writer.startLine();
+
+		ValuesParser vp = new ValuesParser(strings, resStorage.getResourcesNames());
 		for (ResourceEntry ri : resStorage.getResources()) {
 			writer.startLine(ri + ": " + vp.getValueString(ri));
 		}

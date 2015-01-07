@@ -73,14 +73,6 @@ public final class ResourceEntry {
 		return config;
 	}
 
-	public String formatAsRef() {
-		return "@" + typeName + "/" + keyName;
-	}
-
-	public String formatAsAttribute() {
-		return "?" + typeName + "/" + keyName;
-	}
-
 	@Override
 	public String toString() {
 		return "  0x" + Integer.toHexString(id) + " (" + id + ")" + config + " = " + typeName + "." + keyName;
