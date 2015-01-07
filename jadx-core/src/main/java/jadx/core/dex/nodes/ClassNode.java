@@ -35,6 +35,7 @@ import com.android.dex.ClassData;
 import com.android.dex.ClassData.Field;
 import com.android.dex.ClassData.Method;
 import com.android.dex.ClassDef;
+import com.android.dx.rop.code.AccessFlags;
 
 public class ClassNode extends LineAttrNode implements ILoadable {
 	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
@@ -124,6 +125,17 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 		} catch (Exception e) {
 			throw new DecodeException("Error decode class: " + getFullName(), e);
 		}
+	}
+
+	// empty synthetic class
+	public ClassNode(DexNode dex, ClassInfo clsInfo) {
+		this.dex = dex;
+		this.clsInfo = clsInfo;
+		this.interfaces = Collections.emptyList();
+		this.methods = Collections.emptyList();
+		this.fields = Collections.emptyList();
+		this.accessFlags = new AccessInfo(AccessFlags.ACC_PUBLIC | AccessFlags.ACC_SYNTHETIC, AFType.CLASS);
+		this.parentClass = this;
 	}
 
 	private void loadAnnotations(ClassDef cls) {
@@ -265,6 +277,12 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 
 		if (field == null && searchGlobal) {
 			field = dex.getConstFields().get(obj);
+		}
+		if (field == null && obj instanceof Integer) {
+			String str = dex.root().getResourcesNames().get(obj);
+			if (str != null) {
+				return new ResRefField(dex, str);
+			}
 		}
 		return field;
 	}

@@ -253,6 +253,8 @@ public final class JadxDecompiler {
 		root = new RootNode();
 		LOG.info("loading ...");
 		root.load(inputFiles);
+		root.loadResources(getResources());
+		root.initAppResClass();
 	}
 
 	void processClass(ClassNode cls) {

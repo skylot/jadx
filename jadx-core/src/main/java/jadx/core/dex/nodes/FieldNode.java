@@ -23,6 +23,13 @@ public class FieldNode extends LineAttrNode {
 		this.accFlags = new AccessInfo(field.getAccessFlags(), AFType.FIELD);
 	}
 
+	public FieldNode(ClassNode cls, FieldInfo fieldInfo, int accessFlags) {
+		this.parent = cls;
+		this.fieldInfo = fieldInfo;
+		this.type = fieldInfo.getType();
+		this.accFlags = new AccessInfo(accessFlags, AFType.FIELD);
+	}
+
 	public FieldInfo getFieldInfo() {
 		return fieldInfo;
 	}

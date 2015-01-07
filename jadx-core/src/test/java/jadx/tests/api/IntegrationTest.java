@@ -8,6 +8,7 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.exceptions.JadxException;
@@ -26,8 +27,10 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.jar.JarOutputStream;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -47,8 +50,9 @@ public abstract class IntegrationTest extends TestUtils {
 	protected boolean outputCFG = false;
 	protected boolean isFallback = false;
 	protected boolean deleteTmpFiles = true;
-
 	protected boolean withDebugInfo = true;
+
+	protected Map<Integer, String> resMap = Collections.emptyMap();
 
 	protected String outDir = "test-out-tmp";
 
@@ -72,7 +76,10 @@ public abstract class IntegrationTest extends TestUtils {
 		} catch (JadxException e) {
 			fail(e.getMessage());
 		}
-		ClassNode cls = JadxInternalAccess.getRoot(d).searchClassByName(clsName);
+		RootNode root = JadxInternalAccess.getRoot(d);
+		root.getResourcesNames().putAll(resMap);
+
+		ClassNode cls = root.searchClassByName(clsName);
 		assertNotNull("Class not found: " + clsName, cls);
 		assertEquals(cls.getFullName(), clsName);
 
@@ -338,6 +345,10 @@ public abstract class IntegrationTest extends TestUtils {
 			clsFile.deleteOnExit();
 		}
 		return files;
+	}
+
+	public void setResMap(Map<Integer, String> resMap) {
+		this.resMap = resMap;
 	}
 
 	protected void noDebugInfo() {

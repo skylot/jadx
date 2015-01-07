@@ -41,7 +41,12 @@ public final class ResourcesLoader {
 		return list;
 	}
 
-	static CodeWriter loadContent(JadxDecompiler jadxRef, ZipRef zipRef, ResourceType type) {
+	public static interface ResourceDecoder {
+		Object decode(long size, InputStream is) throws IOException;
+	}
+
+	public static Object decodeStream(ResourceFile rf, ResourceDecoder decoder) throws JadxException {
+		ZipRef zipRef = rf.getZipRef();
 		if (zipRef == null) {
 			return null;
 		}
@@ -50,18 +55,13 @@ public final class ResourcesLoader {
 		try {
 			zipFile = new ZipFile(zipRef.getZipFile());
 			ZipEntry entry = zipFile.getEntry(zipRef.getEntryName());
-			if (entry != null) {
-				if (entry.getSize() > LOAD_SIZE_LIMIT) {
-					return new CodeWriter().add("File too big, size: "
-							+ String.format("%.2f KB", entry.getSize() / 1024.));
-				}
-				inputStream = new BufferedInputStream(zipFile.getInputStream(entry));
-				return decode(jadxRef, type, inputStream);
-			} else {
-				LOG.warn("Zip entry not found: {}", zipRef);
+			if (entry == null) {
+				throw new IOException("Zip entry not found: " + zipRef);
 			}
-		} catch (IOException e) {
-			LOG.error("Error load: " + zipRef, e);
+			inputStream = new BufferedInputStream(zipFile.getInputStream(entry));
+			return decoder.decode(entry.getSize(), inputStream);
+		} catch (Exception e) {
+			throw new JadxException("Error load: " + zipRef, e);
 		} finally {
 			try {
 				if (zipFile != null) {
@@ -74,10 +74,27 @@ public final class ResourcesLoader {
 				LOG.debug("Error close zip file: " + zipRef, e);
 			}
 		}
+	}
+
+	static CodeWriter loadContent(final JadxDecompiler jadxRef, final ResourceFile rf) {
+		try {
+			return (CodeWriter) decodeStream(rf, new ResourceDecoder() {
+				@Override
+				public Object decode(long size, InputStream is) throws IOException {
+					if (size > LOAD_SIZE_LIMIT) {
+						return new CodeWriter().add("File too big, size: "
+								+ String.format("%.2f KB", size / 1024.));
+					}
+					return loadContent(jadxRef, rf.getType(), is);
+				}
+			});
+		} catch (JadxException e) {
+			LOG.error("Decode error", e);
+		}
 		return null;
 	}
 
-	private static CodeWriter decode(JadxDecompiler jadxRef, ResourceType type,
+	private static CodeWriter loadContent(JadxDecompiler jadxRef, ResourceType type,
 			InputStream inputStream) throws IOException {
 		switch (type) {
 			case MANIFEST:
@@ -103,7 +120,7 @@ public final class ResourcesLoader {
 				addEntry(list, file, entry);
 			}
 		} catch (IOException e) {
-			LOG.debug("Not a zip file: " + file.getAbsolutePath());
+			LOG.debug("Not a zip file: {}", file.getAbsolutePath());
 		} finally {
 			if (zip != null) {
 				try {

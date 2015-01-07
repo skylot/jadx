@@ -19,6 +19,7 @@ public class ResourceStorage {
 	};
 
 	private final List<ResourceEntry> list = new ArrayList<ResourceEntry>();
+	private String appPackage;
 
 	public Collection<ResourceEntry> getResources() {
 		return list;
@@ -39,5 +40,13 @@ public class ResourceStorage {
 			return null;
 		}
 		return list.get(index);
+	}
+
+	public String getAppPackage() {
+		return appPackage;
+	}
+
+	public void setAppPackage(String appPackage) {
+		this.appPackage = appPackage;
 	}
 }

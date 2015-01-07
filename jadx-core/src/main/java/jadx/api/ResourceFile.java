@@ -49,11 +49,15 @@ public class ResourceFile {
 	}
 
 	public CodeWriter getContent() {
-		return ResourcesLoader.loadContent(decompiler, zipRef, type);
+		return ResourcesLoader.loadContent(decompiler, this);
 	}
 
 	void setZipRef(ZipRef zipRef) {
 		this.zipRef = zipRef;
+	}
+
+	ZipRef getZipRef() {
+		return zipRef;
 	}
 
 	@Override
