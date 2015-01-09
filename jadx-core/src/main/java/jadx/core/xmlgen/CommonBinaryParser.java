@@ -27,6 +27,7 @@ public class CommonBinaryParser extends ParserConstants {
 		int[] stylesOffset = is.readInt32Array(styleCount);
 
 		is.checkPos(start + stringsStart, "Expected strings start");
+		long stringsEnd = stylesStart == 0 ? chunkEnd : start + stylesStart;
 		String[] strings = new String[stringCount];
 		if ((flags & UTF8_FLAG) != 0) {
 			// UTF-8
@@ -34,10 +35,10 @@ public class CommonBinaryParser extends ParserConstants {
 				// is.checkPos(start + stringsStart + stringsOffset[i], "Expected string start");
 				strings[i] = is.readString8();
 			}
+			is.skipToPos(stringsEnd, "Skip string8 padding");
 		} else {
 			// UTF-16
-			long end = stylesStart == 0 ? chunkEnd : start + stylesStart;
-			byte[] strArray = is.readInt8Array((int) (end - is.getPos()));
+			byte[] strArray = is.readInt8Array((int) (stringsEnd - is.getPos()));
 			for (int i = 0; i < stringCount; i++) {
 				// don't trust specified string length, read until \0
 				// stringsOffset can be same for different indexes
@@ -51,7 +52,7 @@ public class CommonBinaryParser extends ParserConstants {
 			}
 		}
 		// skip padding zeroes
-		is.skip(chunkEnd - is.getPos());
+		is.skipToPos(chunkEnd, "Skip string pool padding");
 		return strings;
 	}
 

@@ -143,12 +143,8 @@ public class ParserStream {
 		long pos = getPos();
 		if (pos < expectedOffset) {
 			skip(expectedOffset - pos);
-			pos = getPos();
 		}
-		if (pos != expectedOffset) {
-			throw new IOException(error + ", expected offset: 0x" + Long.toHexString(expectedOffset)
-					+ ", actual: 0x" + Long.toHexString(pos));
-		}
+		checkPos(expectedOffset, error);
 	}
 
 	public int decodeLength8() throws IOException {
