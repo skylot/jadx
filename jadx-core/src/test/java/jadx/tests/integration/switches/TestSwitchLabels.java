@@ -38,11 +38,11 @@ public class TestSwitchLabels extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-		assertThat(code, containsString("case CONST_ABC:"));
+		assertThat(code, containsString("case CONST_ABC"));
 		assertThat(code, containsString("return CONST_CDE;"));
 
 		cls.addInnerClass(getClassNode(TestCls.Inner.class));
-		assertThat(code, containsString("case CONST_CDE_PRIVATE:"));
+		assertThat(code, containsString("case CONST_CDE_PRIVATE"));
 		assertThat(code, containsString(".CONST_ABC;"));
 	}
 }

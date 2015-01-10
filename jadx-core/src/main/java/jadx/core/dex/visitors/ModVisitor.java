@@ -90,7 +90,7 @@ public class ModVisitor extends AbstractVisitor {
 						for (int k = 0; k < sn.getCasesCount(); k++) {
 							FieldNode f = parentClass.getConstField(sn.getKeys()[k]);
 							if (f != null) {
-								sn.getKeys()[k] = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
+								sn.getKeys()[k] = f;
 							}
 						}
 						break;

@@ -11,6 +11,7 @@ import static org.junit.Assert.assertThat;
 
 public class TestSwitchWithFallThroughCase extends IntegrationTest {
 
+	@SuppressWarnings("fallthrough")
 	public static class TestCls {
 		public String test(int a, boolean b, boolean c) {
 			String str = "";
