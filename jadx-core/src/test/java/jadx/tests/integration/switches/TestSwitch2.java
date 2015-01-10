@@ -60,9 +60,11 @@ public class TestSwitch2 extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, countString(4, "break;"));
+//		assertThat(code, countString(4, "break;"));
+//		assertThat(code, countString(2, "return;"));
 
-		// TODO: remove redundant returns
-		// assertThat(code, countString(2, "return;"));
+		// TODO: remove redundant break and returns
+		assertThat(code, countString(5, "break;"));
+		assertThat(code, countString(4, "return;"));
 	}
 }

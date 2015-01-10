@@ -8,8 +8,6 @@ import jadx.core.dex.nodes.IBranchRegion;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
-import jadx.core.dex.regions.SwitchRegion;
-import jadx.core.dex.regions.conditions.IfRegion;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlock;
@@ -60,8 +58,7 @@ public class RegionUtils {
 				return null;
 			}
 			return insnList.get(insnList.size() - 1);
-		} else if (container instanceof IfRegion
-				|| container instanceof SwitchRegion) {
+		} else if (container instanceof IBranchRegion) {
 			return null;
 		} else if (container instanceof IRegion) {
 			IRegion region = (IRegion) container;
@@ -233,6 +230,23 @@ public class RegionUtils {
 			parent = region.getParent();
 		}
 		return true;
+	}
+
+	public static IContainer getBlockContainer(IContainer container, BlockNode block) {
+		if (container instanceof IBlock) {
+			return container == block ? container : null;
+		} else if (container instanceof IRegion) {
+			IRegion region = (IRegion) container;
+			for (IContainer c : region.getSubBlocks()) {
+				IContainer res = getBlockContainer(c, block);
+				if (res != null) {
+					return res instanceof IBlock ? region : res;
+				}
+			}
+			return null;
+		} else {
+			throw new JadxRuntimeException("Unknown container type: " + container.getClass());
+		}
 	}
 
 	public static boolean isDominatedBy(BlockNode dom, IContainer cont) {

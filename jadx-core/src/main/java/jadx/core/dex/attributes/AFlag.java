@@ -29,5 +29,7 @@ public enum AFlag {
 	WRAPPED,
 	ARITH_ONEARG,
 
+	FALL_THROUGH,
+
 	INCONSISTENT_CODE, // warning about incorrect decompilation
 }

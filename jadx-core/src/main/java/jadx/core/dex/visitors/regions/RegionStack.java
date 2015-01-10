@@ -95,6 +95,12 @@ final class RegionStack {
 		}
 	}
 
+	public void removeExit(BlockNode exit) {
+		if (exit != null) {
+			curState.exits.remove(exit);
+		}
+	}
+
 	public boolean containsExit(BlockNode exit) {
 		return curState.exits.contains(exit);
 	}
