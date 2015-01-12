@@ -174,9 +174,14 @@ public class SimplifyVisitor extends AbstractVisitor {
                       iwa = (InsnWrapArg)argInsn.getArg(0);
                       argInd = 3;  // Cause for loop below to skip to after the constructor
                     } else {
-                      ConstStringNode csn = (ConstStringNode)chain.get(0);
-                      iwa = new InsnWrapArg(csn);
-                      argInd = 2;  // Cause for loop below to skip to after the constructor
+	                    InsnNode firstNode = chain.get(0);
+	                    if (firstNode instanceof ConstStringNode) {
+		                    ConstStringNode csn = (ConstStringNode) firstNode;
+		                    iwa = new InsnWrapArg(csn);
+		                    argInd = 2;  // Cause for loop below to skip to after the constructor
+	                    } else {
+		                    return null;
+	                    }
                     }
                     concatInsn.addArg(iwa);
                   }
