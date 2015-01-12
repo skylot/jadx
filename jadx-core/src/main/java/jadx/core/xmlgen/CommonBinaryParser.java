@@ -1,9 +1,9 @@
 package jadx.core.xmlgen;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 public class CommonBinaryParser extends ParserConstants {
-
 	protected ParserStream is;
 
 	protected String[] parseStringPool() throws IOException {
@@ -29,16 +29,14 @@ public class CommonBinaryParser extends ParserConstants {
 		is.checkPos(start + stringsStart, "Expected strings start");
 		long stringsEnd = stylesStart == 0 ? chunkEnd : start + stylesStart;
 		String[] strings = new String[stringCount];
+		byte[] strArray = is.readInt8Array((int) (stringsEnd - is.getPos()));
 		if ((flags & UTF8_FLAG) != 0) {
 			// UTF-8
 			for (int i = 0; i < stringCount; i++) {
-				// is.checkPos(start + stringsStart + stringsOffset[i], "Expected string start");
-				strings[i] = is.readString8();
+				strings[i] = extractString8(strArray, stringsOffset[i]);
 			}
-			is.skipToPos(stringsEnd, "Skip string8 padding");
 		} else {
 			// UTF-16
-			byte[] strArray = is.readInt8Array((int) (stringsEnd - is.getPos()));
 			for (int i = 0; i < stringCount; i++) {
 				// don't trust specified string length, read until \0
 				// stringsOffset can be same for different indexes
@@ -56,9 +54,22 @@ public class CommonBinaryParser extends ParserConstants {
 		return strings;
 	}
 
+	private static String extractString8(byte[] strArray, int offset) {
+		int start = offset + skipStrLen8(strArray, offset);
+		int len = strArray[start++];
+		if (len == 0) {
+			return "";
+		}
+		if ((len & 0x80) != 0) {
+			len = ((len & 0x7F) << 8) | (strArray[start++] & 0xFF);
+		}
+		byte[] arr = Arrays.copyOfRange(strArray, start, start + len);
+		return new String(arr, ParserStream.STRING_CHARSET_UTF8);
+	}
+
 	private static String extractString16(byte[] strArray, int offset) {
 		int len = strArray.length;
-		int start = offset + 2;
+		int start = offset + skipStrLen16(strArray, offset);
 		int end = start;
 		while (true) {
 			if (end + 1 >= len) {
@@ -69,7 +80,16 @@ public class CommonBinaryParser extends ParserConstants {
 			}
 			end += 2;
 		}
-		return new String(strArray, start, end - start, ParserStream.STRING_CHARSET_UTF16);
+		byte[] arr = Arrays.copyOfRange(strArray, start, end);
+		return new String(arr, ParserStream.STRING_CHARSET_UTF16);
+	}
+
+	private static int skipStrLen8(byte[] strArray, int offset) {
+		return (strArray[offset] & 0x80) == 0 ? 1 : 2;
+	}
+
+	private static int skipStrLen16(byte[] strArray, int offset) {
+		return (strArray[offset + 1] & 0x80) == 0 ? 2 : 4;
 	}
 
 	protected void die(String message) throws IOException {

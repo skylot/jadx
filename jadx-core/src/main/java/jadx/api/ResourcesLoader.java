@@ -2,6 +2,7 @@ package jadx.api;
 
 import jadx.api.ResourceFile.ZipRef;
 import jadx.core.codegen.CodeWriter;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.InputFile;
 import jadx.core.xmlgen.ResTableParser;
@@ -61,7 +62,7 @@ public final class ResourcesLoader {
 			inputStream = new BufferedInputStream(zipFile.getInputStream(entry));
 			return decoder.decode(entry.getSize(), inputStream);
 		} catch (Exception e) {
-			throw new JadxException("Error load: " + zipRef, e);
+			throw new JadxException("Error decode: " + zipRef.getEntryName(), e);
 		} finally {
 			try {
 				if (zipFile != null) {
@@ -90,8 +91,11 @@ public final class ResourcesLoader {
 			});
 		} catch (JadxException e) {
 			LOG.error("Decode error", e);
+			CodeWriter cw = new CodeWriter();
+			cw.add("Error decode ").add(rf.getType().toString().toLowerCase());
+			cw.startLine(Utils.getStackTrace(e.getCause()));
+			return cw;
 		}
-		return null;
 	}
 
 	private static CodeWriter loadContent(JadxDecompiler jadxRef, ResourceType type,

@@ -1,7 +1,6 @@
 package jadx.core.xmlgen;
 
 import jadx.core.codegen.CodeWriter;
-import jadx.core.utils.Utils;
 import jadx.core.xmlgen.entry.EntryConfig;
 import jadx.core.xmlgen.entry.RawNamedValue;
 import jadx.core.xmlgen.entry.RawValue;
@@ -59,16 +58,8 @@ public class ResTableParser extends CommonBinaryParser {
 		resStorage.finish();
 	}
 
-	public CodeWriter decodeToCodeWriter(InputStream inputStream) {
-		try {
-			decode(inputStream);
-		} catch (IOException e) {
-			LOG.debug("arsc decode failed", e);
-			CodeWriter cw = new CodeWriter();
-			cw.add("Error decode arsc");
-			cw.startLine(Utils.getStackTrace(e));
-			return cw;
-		}
+	public CodeWriter decodeToCodeWriter(InputStream inputStream) throws IOException {
+		decode(inputStream);
 
 		CodeWriter writer = new CodeWriter();
 		writer.add("app package: ").add(resStorage.getAppPackage());

@@ -5,7 +5,6 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.entry.ValuesParser;
 
@@ -75,20 +74,12 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		}
 	}
 
-	public synchronized CodeWriter parse(InputStream inputStream) {
+	public synchronized CodeWriter parse(InputStream inputStream) throws IOException {
 		writer = new CodeWriter();
 		writer.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
 		is = new ParserStream(inputStream);
 		firstElement = true;
-		try {
-			decode();
-		} catch (IOException e) {
-			LOG.debug("Binary xml decode failed", e);
-			CodeWriter cw = new CodeWriter();
-			cw.add("Error decode binary xml");
-			cw.startLine(Utils.getStackTrace(e));
-			return cw;
-		}
+		decode();
 		writer.finish();
 		return writer;
 	}

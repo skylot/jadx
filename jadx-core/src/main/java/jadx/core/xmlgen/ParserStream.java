@@ -9,6 +9,9 @@ public class ParserStream {
 	protected static final Charset STRING_CHARSET_UTF16 = Charset.forName("UTF-16LE");
 	protected static final Charset STRING_CHARSET_UTF8 = Charset.forName("UTF-8");
 
+	private static final int[] EMPTY_INT_ARRAY = new int[0];
+	private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
+
 	private final InputStream input;
 	private long readPos = 0;
 
@@ -46,34 +49,14 @@ public class ParserStream {
 		return readInt32() & 0xFFFFFFFFL;
 	}
 
-	public String readString8Fixed(int len) throws IOException {
-		String str = new String(readInt8Array(len), STRING_CHARSET_UTF8);
-		return str.trim();
-	}
-
 	public String readString16Fixed(int len) throws IOException {
 		String str = new String(readInt8Array(len * 2), STRING_CHARSET_UTF16);
 		return str.trim();
 	}
 
-	public String readString8() throws IOException {
-		decodeLength8();
-		int len = decodeLength8();
-		String str = new String(readInt8Array(len), STRING_CHARSET_UTF8);
-		checkInt8(0, "Not a trailing zero at string8 end");
-		return str;
-	}
-
-	public String readString16() throws IOException {
-		int len = decodeLength16();
-		String str = new String(readInt8Array(len), STRING_CHARSET_UTF16);
-		checkInt16(0, "Not a trailing zero at string16 end");
-		return str;
-	}
-
 	public int[] readInt32Array(int count) throws IOException {
 		if (count == 0) {
-			return new int[0];
+			return EMPTY_INT_ARRAY;
 		}
 		int[] arr = new int[count];
 		for (int i = 0; i < count; i++) {
@@ -84,7 +67,7 @@ public class ParserStream {
 
 	public byte[] readInt8Array(int count) throws IOException {
 		if (count == 0) {
-			return new byte[0];
+			return EMPTY_BYTE_ARRAY;
 		}
 		readPos += count;
 		byte[] arr = new byte[count];
@@ -145,22 +128,6 @@ public class ParserStream {
 			skip(expectedOffset - pos);
 		}
 		checkPos(expectedOffset, error);
-	}
-
-	public int decodeLength8() throws IOException {
-		int len = readInt8();
-		if ((len & 0x80) != 0) {
-			len = ((len & 0x7F) << 8) | readInt8();
-		}
-		return len;
-	}
-
-	public int decodeLength16() throws IOException {
-		int len = readInt16();
-		if ((len & 0x8000) != 0) {
-			len = ((len & 0x7FFF) << 16) | readInt16();
-		}
-		return len;
 	}
 
 	@Override
