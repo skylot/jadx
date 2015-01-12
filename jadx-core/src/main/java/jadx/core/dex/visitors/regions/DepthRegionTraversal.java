@@ -18,18 +18,30 @@ public class DepthRegionTraversal {
 		traverseInternal(mth, visitor, mth.getRegion());
 	}
 
-	public static void traverseIncludingExcHandlers(MethodNode mth, IRegionVisitor visitor) {
-		traverseInternal(mth, visitor, mth.getRegion());
-		for (ExceptionHandler h : mth.getExceptionHandlers()) {
-			traverseInternal(mth, visitor, h.getHandlerRegion());
-		}
-	}
-
 	public static void traverseIterative(MethodNode mth, IRegionIterativeVisitor visitor) {
 		boolean repeat;
 		int k = 0;
 		do {
-			repeat = traverseIterativeInternal(mth, visitor, mth.getRegion());
+			repeat = traverseIterativeStepInternal(mth, visitor, mth.getRegion());
+			if (k++ > ITERATIVE_LIMIT) {
+				throw new JadxOverflowException("Iterative traversal limit reached, method: " + mth);
+			}
+		} while (repeat);
+	}
+
+	public static void traverseIncludingExcHandlers(MethodNode mth, IRegionIterativeVisitor visitor) {
+		boolean repeat;
+		int k = 0;
+		do {
+			repeat = traverseIterativeStepInternal(mth, visitor, mth.getRegion());
+			if (!repeat) {
+				for (ExceptionHandler h : mth.getExceptionHandlers()) {
+					repeat = traverseIterativeStepInternal(mth, visitor, h.getHandlerRegion());
+					if (repeat) {
+						break;
+					}
+				}
+			}
 			if (k++ > ITERATIVE_LIMIT) {
 				throw new JadxOverflowException("Iterative traversal limit reached, method: " + mth);
 			}
@@ -49,7 +61,7 @@ public class DepthRegionTraversal {
 		}
 	}
 
-	private static boolean traverseIterativeInternal(MethodNode mth, IRegionIterativeVisitor visitor,
+	private static boolean traverseIterativeStepInternal(MethodNode mth, IRegionIterativeVisitor visitor,
 			IContainer container) {
 		if (container instanceof IRegion) {
 			IRegion region = (IRegion) container;
@@ -57,7 +69,7 @@ public class DepthRegionTraversal {
 				return true;
 			}
 			for (IContainer subCont : region.getSubBlocks()) {
-				if (traverseIterativeInternal(mth, visitor, subCont)) {
+				if (traverseIterativeStepInternal(mth, visitor, subCont)) {
 					return true;
 				}
 			}
