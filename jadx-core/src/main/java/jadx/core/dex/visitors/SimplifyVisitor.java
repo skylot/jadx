@@ -21,7 +21,6 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.conditions.IfCondition;
-import jadx.core.utils.InsnUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -79,29 +78,17 @@ public class SimplifyVisitor extends AbstractVisitor {
 
 			case CHECK_CAST:
 				InsnArg castArg = insn.getArg(0);
-				ArgType castArgType = castArg.getType();
+				ArgType argType = castArg.getType();
 
-				/*
-				 * Don't removes CHECK_CAST for wrapped INVOKE
-				 * if invoked method returns different type
-				 */
+				// Don't removes CHECK_CAST for wrapped INVOKE if invoked method returns different type
 				if (castArg.isInsnWrap()) {
-					InsnWrapArg castWrapArg = (InsnWrapArg) castArg;
-					InsnNode wrapInsn = castWrapArg.getWrapInsn();
-
+					InsnNode wrapInsn = ((InsnWrapArg) castArg).getWrapInsn();
 					if (wrapInsn.getType() == InsnType.INVOKE) {
-						InvokeNode invkInsn = (InvokeNode) wrapInsn;
-						castArgType = invkInsn.getCallMth().getReturnType();
-
-						if (invkInsn.getResult().getType()
-								!= invkInsn.getCallMth().getReturnType()) {
-							LOG.warn("Invoke without cast at {} in {}", InsnUtils.formatOffset(invkInsn.getOffset()), mth);
-						}
+						argType = ((InvokeNode) wrapInsn).getCallMth().getReturnType();
 					}
 				}
-
-				ArgType castType = (ArgType) ((IndexInsnNode) insn).getIndex();
-				if (!ArgType.isCastNeeded(castArgType, castType)) {
+				ArgType castToType = (ArgType) ((IndexInsnNode) insn).getIndex();
+				if (!ArgType.isCastNeeded(argType, castToType)) {
 					InsnNode insnNode = new InsnNode(InsnType.MOVE, 1);
 					insnNode.setOffset(insn.getOffset());
 					insnNode.setResult(insn.getResult());

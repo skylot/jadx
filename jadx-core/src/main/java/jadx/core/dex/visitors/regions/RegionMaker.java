@@ -693,7 +693,7 @@ public class RegionMaker {
 		// check cases order if fall through case exists
 		if (!fallThroughCases.isEmpty()) {
 			if (isBadCasesOrder(blocksMap, fallThroughCases)) {
-				LOG.debug("Fixing incorrect switch cases order");
+				LOG.debug("Fixing incorrect switch cases order, method: {}", mth);
 				blocksMap = reOrderSwitchCases(blocksMap, fallThroughCases);
 				if (isBadCasesOrder(blocksMap, fallThroughCases)) {
 					LOG.error("Can't fix incorrect switch cases order, method: {}", mth);
