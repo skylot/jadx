@@ -212,6 +212,21 @@ public class DebugInfoParser {
 			prev.end(addr, line);
 			setVar(prev);
 		}
+
+		RegisterArg activeReg = (RegisterArg) activeRegisters[var.getRegNum()];
+		if (activeReg != null) {
+			SSAVar ssaVar = activeReg.getSVar();
+			if ((ssaVar != null) && (ssaVar.getStartAddr() != -1)) {
+				if (ssaVar.getAssign() != null) {
+					if (ssaVar.getAssign().getParentInsn() != null) {
+						if (ssaVar.getAssign().getParentInsn().getOffset() >= 0) {
+							addr = ssaVar.getAssign().getParentInsn().getOffset();
+						}
+					}
+				}
+			}
+		}
+
 		var.start(addr, line);
 		locals[regNum] = var;
 	}
