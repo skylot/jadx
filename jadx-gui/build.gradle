@@ -5,7 +5,7 @@ mainClassName = "jadx.gui.JadxGUI"
 dependencies {
     compile(project(":jadx-core"))
     compile(project(":jadx-cli"))
-    compile 'com.fifesoft:rsyntaxtextarea:2.5.4'
+    compile 'com.fifesoft:rsyntaxtextarea:2.5.6'
     compile 'com.google.code.gson:gson:2.3.1'
 }
 

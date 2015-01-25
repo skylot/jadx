@@ -6,9 +6,9 @@ buildscript {
 }
 
 plugins {
-    id "com.github.kt3k.coveralls" version "2.0.1"
+    id "com.github.kt3k.coveralls" version "2.1.0"
     id "info.solidsoft.pitest" version "1.1.1"
-//    id "com.github.ben-manes.versions" version "0.6"
+//    id "com.github.ben-manes.versions" version "0.7"
 }
 
 apply plugin: 'sonar-runner'
@@ -41,18 +41,22 @@ subprojects {
     }
 
     dependencies {
-        compile 'org.slf4j:slf4j-api:1.7.7'
+        compile 'org.slf4j:slf4j-api:1.7.10'
 
         testCompile 'ch.qos.logback:logback-classic:1.1.2'
-        testCompile 'junit:junit:4.11'
-        testCompile 'org.mockito:mockito-core:1.10.13'
-        testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
+        testCompile 'junit:junit:4.12'
+        testCompile 'org.mockito:mockito-core:1.10.19'
+        testCompile 'org.spockframework:spock-core:1.0-groovy-2.3-SNAPSHOT'
         testCompile 'cglib:cglib-nodep:3.1'
     }
 
     repositories {
         mavenCentral()
+        mavenLocal()
         jcenter()
+        maven {
+            url "http://oss.sonatype.org/content/repositories/snapshots/"
+        }
     }
 
     jacocoTestReport {
