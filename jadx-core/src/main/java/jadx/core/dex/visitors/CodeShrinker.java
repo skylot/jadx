@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
+
 public class CodeShrinker extends AbstractVisitor {
 
 	@Override
@@ -227,20 +229,44 @@ public class CodeShrinker extends AbstractVisitor {
 					if (assignBlock != null
 							&& assignInsn != arg.getParentInsn()
 							&& canMoveBetweenBlocks(assignInsn, assignBlock, block, argsInfo.getInsn())) {
-						arg.wrapInstruction(assignInsn);
-						InsnList.remove(assignBlock, assignInsn);
+						if (inline(arg, assignInsn, assignBlock, mth)) {
+							InsnList.remove(assignBlock, assignInsn);
+						}
 					}
 				}
 			}
 		}
 		if (!wrapList.isEmpty()) {
 			for (WrapInfo wrapInfo : wrapList) {
-				wrapInfo.getArg().wrapInstruction(wrapInfo.getInsn());
+				inline(wrapInfo.getArg(), wrapInfo.getInsn(), block, mth);
 			}
 			for (WrapInfo wrapInfo : wrapList) {
 				insnList.remove(wrapInfo.getInsn());
 			}
 		}
+	}
+
+	private static boolean inline(RegisterArg arg, InsnNode insn, @Nullable BlockNode block, MethodNode mth) {
+		InsnNode parentInsn = arg.getParentInsn();
+		// replace move instruction if needed
+		if (parentInsn != null && parentInsn.getType() == InsnType.MOVE) {
+			if (block == null) {
+				block = BlockUtils.getBlockByInsn(mth, parentInsn);
+			}
+			if (block != null) {
+				int index = InsnList.getIndex(block.getInstructions(), parentInsn);
+				if (index != -1) {
+					insn.setResult(parentInsn.getResult());
+					insn.copyAttributesFrom(parentInsn);
+					insn.setOffset(parentInsn.getOffset());
+
+					block.getInstructions().set(index, insn);
+					return true;
+				}
+			}
+		}
+		// simple case
+		return arg.wrapInstruction(insn) != null;
 	}
 
 	private static boolean canMoveBetweenBlocks(InsnNode assignInsn, BlockNode assignBlock,
@@ -300,7 +326,7 @@ public class CodeShrinker extends AbstractVisitor {
 			for (RegisterArg rarg : list) {
 				InsnNode ai = rarg.getAssignInsn();
 				if (ai != assignInsn && ai != null && ai != rarg.getParentInsn()) {
-					rarg.wrapInstruction(ai);
+					inline(rarg, ai, null, mth);
 				}
 			}
 			// remove method args

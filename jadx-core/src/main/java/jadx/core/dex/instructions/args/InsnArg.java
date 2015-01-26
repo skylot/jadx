@@ -77,7 +77,7 @@ public abstract class InsnArg extends Typed {
 		return parentInsn;
 	}
 
-	public void setParentInsn(InsnNode parentInsn) {
+	public void setParentInsn(@Nullable InsnNode parentInsn) {
 		this.parentInsn = parentInsn;
 	}
 
@@ -88,7 +88,6 @@ public abstract class InsnArg extends Typed {
 		}
 		if (parent == insn) {
 			LOG.debug("Can't wrap instruction info itself: {}", insn);
-			Thread.dumpStack();
 			return null;
 		}
 		int i = getArgIndex(parent, this);
