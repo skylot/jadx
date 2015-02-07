@@ -297,19 +297,21 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 			case BOOLEAN:
 				return getConstField(literal == 1, false);
 			case CHAR:
-				return getConstField((char) literal, Math.abs(literal) > 1);
+				return getConstField((char) literal, Math.abs(literal) > 10);
 			case BYTE:
-				return getConstField((byte) literal, Math.abs(literal) > 1);
+				return getConstField((byte) literal, Math.abs(literal) > 10);
 			case SHORT:
-				return getConstField((short) literal, Math.abs(literal) > 1);
+				return getConstField((short) literal, Math.abs(literal) > 100);
 			case INT:
-				return getConstField((int) literal, Math.abs(literal) > 1);
+				return getConstField((int) literal, Math.abs(literal) > 100);
 			case LONG:
-				return getConstField(literal, Math.abs(literal) > 1);
+				return getConstField(literal, Math.abs(literal) > 1000);
 			case FLOAT:
-				return getConstField(Float.intBitsToFloat((int) literal), true);
+				float f = Float.intBitsToFloat((int) literal);
+				return getConstField(f, f != 0.0);
 			case DOUBLE:
-				return getConstField(Double.longBitsToDouble(literal), true);
+				double d = Double.longBitsToDouble(literal);
+				return getConstField(d, d != 0);
 		}
 		return null;
 	}

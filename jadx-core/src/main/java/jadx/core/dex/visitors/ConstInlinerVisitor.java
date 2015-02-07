@@ -12,6 +12,7 @@ import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.InstructionRemover;
@@ -103,7 +104,7 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 //				continue;
 //			}
 			InsnNode useInsn = arg.getParentInsn();
-			if (useInsn.getType() == InsnType.PHI) {
+			if (useInsn == null || useInsn.getType() == InsnType.PHI) {
 				continue;
 			}
 			LiteralArg litArg;
@@ -122,6 +123,11 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 			if (useInsn.replaceArg(arg, litArg)) {
 				fixTypes(mth, useInsn, litArg);
 				replaceCount++;
+
+				FieldNode f = mth.getParentClass().getConstFieldByLiteralArg(litArg);
+				if (f != null) {
+					litArg.wrapInstruction(new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0));
+				}
 			}
 		}
 		return replaceCount == use.size();
