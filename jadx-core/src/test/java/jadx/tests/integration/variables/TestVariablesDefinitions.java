@@ -29,7 +29,7 @@ public class TestVariablesDefinitions extends IntegrationTest {
 					DepthTraversal.visit(pass, cls);
 				}
 			} catch (Exception e) {
-				LOG.error("Decode exception: " + cls, e);
+				LOG.error("Decode exception: {}", cls, e);
 			}
 		}
 	}

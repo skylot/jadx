@@ -273,7 +273,7 @@ public class ResTableParser extends CommonBinaryParser {
 			if ((b1 & 0x80) == 0) {
 				str = new String(new char[]{(char) b1, (char) b2});
 			} else {
-				LOG.warn("TODO: parse locale: 0x" + Integer.toHexString(b1) + Integer.toHexString(b1));
+				LOG.warn("TODO: parse locale: 0x{}{}", Integer.toHexString(b1), Integer.toHexString(b2));
 			}
 		}
 		return str;

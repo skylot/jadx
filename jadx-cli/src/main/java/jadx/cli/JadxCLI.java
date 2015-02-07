@@ -18,7 +18,7 @@ public class JadxCLI {
 				processAndSave(jadxArgs);
 			}
 		} catch (Throwable e) {
-			LOG.error("jadx error: " + e.getMessage(), e);
+			LOG.error("jadx error: {}", e.getMessage(), e);
 			System.exit(1);
 		}
 	}
@@ -56,7 +56,7 @@ public class JadxCLI {
 			} else {
 				outDirName = name + "-jadx-out";
 			}
-			LOG.info("output directory: " + outDirName);
+			LOG.info("output directory: {}", outDirName);
 			outputDir = new File(outDirName);
 			jadxArgs.setOutputDir(outputDir);
 		}

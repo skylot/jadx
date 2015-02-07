@@ -94,17 +94,17 @@ public class CheckRegions extends AbstractVisitor {
 	}
 
 	private void printRegion(MethodNode mth) {
-		LOG.debug("|" + mth.toString());
+		LOG.debug("|{}", mth.toString());
 		printRegion(mth, mth.getRegion(), "| ");
 	}
 
 	private void printRegion(MethodNode mth, IRegion region, String indent) {
-		LOG.debug(indent + region);
+		LOG.debug("{}{}", indent, region);
 		for (IContainer container : region.getSubBlocks()) {
 			if (container instanceof IRegion) {
 				printRegion(mth, (IRegion) container, indent + "  ");
 			} else {
-				LOG.debug(indent + "  " + container);
+				LOG.debug("{}  {}", indent, container);
 			}
 		}
 	}

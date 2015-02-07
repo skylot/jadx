@@ -42,7 +42,7 @@ public final class ResourcesLoader {
 		return list;
 	}
 
-	public static interface ResourceDecoder {
+	public interface ResourceDecoder {
 		Object decode(long size, InputStream is) throws IOException;
 	}
 
@@ -72,7 +72,7 @@ public final class ResourcesLoader {
 					inputStream.close();
 				}
 			} catch (Exception e) {
-				LOG.debug("Error close zip file: " + zipRef, e);
+				LOG.debug("Error close zip file: {}", zipRef, e);
 			}
 		}
 	}
@@ -130,7 +130,7 @@ public final class ResourcesLoader {
 				try {
 					zip.close();
 				} catch (Exception e) {
-					LOG.error("Zip file close error: " + file.getAbsolutePath(), e);
+					LOG.error("Zip file close error: {}", file.getAbsolutePath(), e);
 				}
 			}
 		}

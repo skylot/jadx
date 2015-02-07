@@ -40,7 +40,7 @@ public class ErrorsCounter {
 			if (e.getClass() == JadxOverflowException.class) {
 				// don't print full stack trace
 				e = new JadxOverflowException(e.getMessage());
-				LOG.error(msg + ", message: " + e.getMessage());
+				LOG.error("{}, message: {}", msg, e.getMessage());
 			} else {
 				LOG.error(msg, e);
 			}

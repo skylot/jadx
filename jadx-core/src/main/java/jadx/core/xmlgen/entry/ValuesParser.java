@@ -92,7 +92,7 @@ public class ValuesParser extends ParserConstants {
 				return decodeComplex(data, true);
 
 			default:
-				LOG.warn("Unknown data type: 0x" + Integer.toHexString(dataType) + " " + data);
+				LOG.warn("Unknown data type: 0x{} {}", Integer.toHexString(dataType), data);
 				return "  ?0x" + Integer.toHexString(dataType) + " " + data;
 		}
 	}

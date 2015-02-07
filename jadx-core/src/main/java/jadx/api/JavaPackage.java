@@ -2,6 +2,8 @@ package jadx.api;
 
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+
 public final class JavaPackage implements JavaNode, Comparable<JavaPackage> {
 	private final String name;
 	private final List<JavaClass> classes;
@@ -32,7 +34,7 @@ public final class JavaPackage implements JavaNode, Comparable<JavaPackage> {
 	}
 
 	@Override
-	public int compareTo(JavaPackage o) {
+	public int compareTo(@NotNull JavaPackage o) {
 		return name.compareTo(o.name);
 	}
 

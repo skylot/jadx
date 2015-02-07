@@ -150,7 +150,7 @@ class ContentArea extends RSyntaxTextArea {
 		try {
 			setCaretPosition(getLineStartOffset(line));
 		} catch (BadLocationException e) {
-			LOG.debug("Can't scroll to " + line, e);
+			LOG.debug("Can't scroll to {}", line, e);
 		}
 	}
 

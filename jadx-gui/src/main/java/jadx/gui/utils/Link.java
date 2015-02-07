@@ -20,7 +20,7 @@ import static java.awt.Desktop.Action;
 public class Link extends JLabel implements MouseListener {
 	private static final long serialVersionUID = 3655322136444908178L;
 
-	private static final Logger LOG = LoggerFactory.getLogger(JLabel.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Link.class);
 
 	private String url;
 

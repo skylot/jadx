@@ -153,12 +153,8 @@ public class MethodGen {
 		if (mth.contains(AType.JADX_ERROR)
 				|| mth.contains(AFlag.INCONSISTENT_CODE)
 				|| mth.getRegion() == null) {
-			code.startLine("throw new UnsupportedOperationException(\"Method not decompiled: ")
-					.add(mth.toString())
-					.add("\");");
-
-			if (mth.contains(AType.JADX_ERROR)) {
-				JadxErrorAttr err = mth.get(AType.JADX_ERROR);
+			JadxErrorAttr err = mth.get(AType.JADX_ERROR);
+			if (err != null) {
 				code.startLine("/* JADX: method processing error */");
 				Throwable cause = err.getCause();
 				if (cause != null) {
@@ -171,6 +167,10 @@ public class MethodGen {
 			code.startLine("/*");
 			addFallbackMethodCode(code);
 			code.startLine("*/");
+
+			code.startLine("throw new UnsupportedOperationException(\"Method not decompiled: ")
+					.add(mth.toString())
+					.add("\");");
 		} else {
 			RegionGen regionGen = new RegionGen(this);
 			regionGen.makeRegion(code, mth.getRegion());

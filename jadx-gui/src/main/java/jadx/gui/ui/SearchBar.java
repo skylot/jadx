@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 class SearchBar extends JToolBar {
 	private static final long serialVersionUID = 1836871286618633003L;
 
-	private static final Logger LOG = LoggerFactory.getLogger(SearchDialog.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SearchBar.class);
 
 	private static final Color COLOR_BG_ERROR = new Color(0xFFDFDE);
 	private static final Color COLOR_BG_WARN = new Color(0xFFFDD9);

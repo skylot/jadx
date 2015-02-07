@@ -31,9 +31,9 @@ public class JadxWrapper {
 		try {
 			this.decompiler.loadFile(file);
 		} catch (DecodeException e) {
-			LOG.error("Error decode file: " + file, e);
+			LOG.error("Error decode file: {}", file, e);
 		} catch (JadxException e) {
-			LOG.error("Error open file: " + file, e);
+			LOG.error("Error open file: {}", file, e);
 		}
 	}
 
