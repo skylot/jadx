@@ -28,6 +28,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// TODO: run after code shrinker at final stage
 public class EnumVisitor extends AbstractVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(EnumVisitor.class);
 
@@ -91,6 +92,7 @@ public class EnumVisitor extends AbstractVisitor {
 
 		// move enum specific instruction from static method to separate list
 		BlockNode staticBlock = staticMethod.getBasicBlocks().get(0);
+		ClassInfo classInfo = cls.getClassInfo();
 		List<InsnNode> insns = new ArrayList<InsnNode>();
 		List<InsnNode> list = staticBlock.getInstructions();
 		int size = list.size();
@@ -100,13 +102,19 @@ public class EnumVisitor extends AbstractVisitor {
 			if (insn.getType() == InsnType.SPUT) {
 				IndexInsnNode fp = (IndexInsnNode) insn;
 				FieldInfo f = (FieldInfo) fp.getIndex();
-				if (f.getName().equals("$VALUES")) {
-					if (i == size - 1) {
-						cls.getMethods().remove(staticMethod);
-					} else {
-						list.subList(0, i + 1).clear();
+				if (f.getDeclClass().equals(classInfo)) {
+					FieldNode fieldNode = cls.searchField(f);
+					if (fieldNode != null
+							&& fieldNode.getAccessFlags().isSynthetic()
+							&& fieldNode.getType().isArray()
+							&& fieldNode.getType().getArrayRootElement().equals(classInfo.getType())) {
+						if (i == size - 1) {
+							cls.getMethods().remove(staticMethod);
+						} else {
+							list.subList(0, i + 1).clear();
+						}
+						break;
 					}
-					break;
 				}
 			}
 		}
@@ -122,7 +130,7 @@ public class EnumVisitor extends AbstractVisitor {
 				if (constrCls == null) {
 					continue;
 				}
-				if (!clsInfo.equals(cls.getClassInfo()) && !constrCls.getAccessFlags().isEnum()) {
+				if (!clsInfo.equals(classInfo) && !constrCls.getAccessFlags().isEnum()) {
 					continue;
 				}
 				RegisterArg nameArg = (RegisterArg) insn.getArg(0);
@@ -135,11 +143,11 @@ public class EnumVisitor extends AbstractVisitor {
 				EnumField field = new EnumField(name, insn.getArgsCount() - 2);
 				attr.getFields().add(field);
 				for (int i = 2; i < insn.getArgsCount(); i++) {
-					InsnArg constrArg;
 					InsnArg iArg = insn.getArg(i);
+					InsnArg constrArg = iArg;
 					if (iArg.isLiteral()) {
 						constrArg = iArg;
-					} else {
+					} else if (iArg.isRegister()) {
 						constrArg = CodeShrinker.inlineArgument(staticMethod, (RegisterArg) iArg);
 						if (constrArg == null) {
 							throw new JadxException("Can't inline constructor arg in enum: " + cls);
@@ -148,7 +156,7 @@ public class EnumVisitor extends AbstractVisitor {
 					field.getArgs().add(constrArg);
 				}
 
-				if (co.getClassType() != cls.getClassInfo()) {
+				if (!co.getClassType().equals(classInfo)) {
 					// enum contains additional methods
 					for (ClassNode innerCls : cls.getInnerClasses()) {
 						if (innerCls.getClassInfo().equals(co.getClassType())) {
