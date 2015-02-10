@@ -20,4 +20,12 @@ public interface IJadxArgs {
 	boolean isSkipResources();
 
 	boolean isSkipSources();
+
+	boolean isDeobfuscationOn();
+
+	int getDeobfuscationMinLength();
+
+	int getDeobfuscationMaxLength();
+
+	boolean isDeobfuscationForceSave();
 }

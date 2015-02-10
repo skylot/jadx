@@ -1,6 +1,7 @@
 package jadx.api;
 
 import jadx.core.codegen.CodeWriter;
+import jadx.core.deobf.Deobfuscator;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.info.AccessInfo;
@@ -150,16 +151,16 @@ public final class JavaClass implements JavaNode {
 
 	@Override
 	public String getName() {
-		return cls.getShortName();
+		return Deobfuscator.instance().getClassShortName(cls);
 	}
 
 	@Override
 	public String getFullName() {
-		return cls.getFullName();
+		return Deobfuscator.instance().getClassFullName(cls);
 	}
 
 	public String getPackage() {
-		return cls.getPackage();
+		return Deobfuscator.instance().getPackageName(cls.getPackage());
 	}
 
 	@Override
@@ -202,6 +203,6 @@ public final class JavaClass implements JavaNode {
 
 	@Override
 	public String toString() {
-		return getFullName();
+		return cls.getFullName() + "[ " + getFullName() + " ]";
 	}
 }

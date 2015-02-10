@@ -6,6 +6,7 @@ dependencies {
     runtime files(jadxClasspath)
 
     compile files('lib/dx-1.10.jar')
+    compile 'commons-io:commons-io:2.4'
     compile 'org.ow2.asm:asm:5.0.3'
     compile 'com.intellij:annotations:12.0'
 

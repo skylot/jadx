@@ -1,5 +1,6 @@
 package jadx.core.codegen;
 
+import jadx.core.deobf.Deobfuscator;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.annotations.MethodParameters;
@@ -85,7 +86,7 @@ public class MethodGen {
 			code.add(' ');
 		}
 		if (mth.getAccessFlags().isConstructor()) {
-			code.add(classGen.getClassNode().getShortName()); // constructor
+			code.add(Deobfuscator.instance().getClassShortName(classGen.getClassNode())); // constructor
 		} else {
 			classGen.useType(code, mth.getReturnType());
 			code.add(' ');

@@ -48,4 +48,24 @@ public class DefaultJadxArgs implements IJadxArgs {
 	public boolean isSkipSources() {
 		return false;
 	}
+
+	@Override
+	public boolean isDeobfuscationOn() {
+		return false;
+	}
+
+	@Override
+	public int getDeobfuscationMinLength() {
+		return Integer.MIN_VALUE+1;
+	}
+
+	@Override
+	public int getDeobfuscationMaxLength() {
+		return Integer.MAX_VALUE-1;
+	}
+
+	@Override
+	public boolean isDeobfuscationForceSave() {
+		return false;
+	}
 }
