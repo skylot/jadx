@@ -1,5 +1,7 @@
 package jadx.api;
 
+import jadx.core.deobf.Deobfuscator;
+
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
@@ -9,7 +11,7 @@ public final class JavaPackage implements JavaNode, Comparable<JavaPackage> {
 	private final List<JavaClass> classes;
 
 	JavaPackage(String name, List<JavaClass> classes) {
-		this.name = name;
+		this.name = Deobfuscator.instance().getPackageName(name);
 		this.classes = classes;
 	}
 

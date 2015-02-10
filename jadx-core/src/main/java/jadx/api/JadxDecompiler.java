@@ -3,6 +3,8 @@ package jadx.api;
 import jadx.core.Jadx;
 import jadx.core.ProcessClass;
 import jadx.core.codegen.CodeWriter;
+import jadx.core.deobf.DefaultDeobfuscator;
+import jadx.core.deobf.Deobfuscator;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
@@ -253,6 +255,51 @@ public final class JadxDecompiler {
 		root = new RootNode();
 		LOG.info("loading ...");
 		root.load(inputFiles);
+
+		if (args.isDeobfuscationOn()) {
+			final String firstInputFileName = inputFiles.get(0).getFile().getAbsolutePath();
+			final String inputPath = org.apache.commons.io.FilenameUtils.getFullPathNoEndSeparator(
+					firstInputFileName);
+			final String inputName = org.apache.commons.io.FilenameUtils.getBaseName(firstInputFileName);
+
+			final File deobfuscationMapFile = new File(inputPath, inputName + ".jobf");
+
+			DefaultDeobfuscator deobfuscator = new DefaultDeobfuscator();
+
+			if (deobfuscationMapFile.exists()) {
+				try {
+					deobfuscator.load(deobfuscationMapFile);
+				} catch (IOException e) {
+					LOG.error("Failed to load deobfuscation map file '{}'",
+							deobfuscationMapFile.getAbsolutePath());
+				}
+			}
+
+			deobfuscator.setInputData(root.getDexNodes());
+			deobfuscator.setMinNameLength(args.getDeobfuscationMinLength());
+			deobfuscator.setMaxNameLength(args.getDeobfuscationMaxLength());
+
+			deobfuscator.process();
+
+			try {
+				if (deobfuscationMapFile.exists()) {
+					if (args.isDeobfuscationForceSave()) {
+						deobfuscator.save(deobfuscationMapFile);
+					} else {
+						LOG.warn("Deobfuscation map file '{}' exists. Use command line option '--deobf=rewrite-cfg'" +
+								" to rewrite it", deobfuscationMapFile.getAbsolutePath());
+					}
+				} else {
+					deobfuscator.save(deobfuscationMapFile);
+				}
+			} catch (IOException e) {
+				LOG.error("Failed to load deobfuscation map file '{}'",
+						deobfuscationMapFile.getAbsolutePath());
+			}
+
+			Deobfuscator.setDeobfuscator(deobfuscator);
+		}
+
 		root.loadResources(getResources());
 		root.initAppResClass();
 	}

@@ -2,6 +2,7 @@ package jadx.core.codegen;
 
 import jadx.api.IJadxArgs;
 import jadx.core.Consts;
+import jadx.core.deobf.Deobfuscator;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
@@ -80,14 +81,14 @@ public class ClassGen {
 
 		CodeWriter clsCode = new CodeWriter();
 		if (!"".equals(cls.getPackage())) {
-			clsCode.add("package ").add(cls.getPackage()).add(';');
+			clsCode.add("package ").add(Deobfuscator.instance().getPackageName(cls.getPackage())).add(';');
 			clsCode.newLine();
 		}
 		int importsCount = imports.size();
 		if (importsCount != 0) {
 			List<String> sortImports = new ArrayList<String>(importsCount);
 			for (ClassInfo ic : imports) {
-				sortImports.add(ic.getFullName());
+				sortImports.add(Deobfuscator.instance().getClassFullName(ic));
 			}
 			Collections.sort(sortImports);
 
@@ -142,7 +143,7 @@ public class ClassGen {
 		} else {
 			clsCode.add("class ");
 		}
-		clsCode.add(cls.getShortName());
+		clsCode.add(Deobfuscator.instance().getClassShortName(cls));
 
 		addGenericMap(clsCode, cls.getGenericMap());
 		clsCode.add(' ');
@@ -453,7 +454,8 @@ public class ClassGen {
 		if (fallback) {
 			return fullName;
 		}
-		String shortName = classInfo.getShortName();
+		fullName = Deobfuscator.instance().getClassFullName(classInfo);
+		String shortName = Deobfuscator.instance().getClassShortName(classInfo);
 		if (classInfo.getPackage().equals("java.lang") && classInfo.getParentClass() == null) {
 			return shortName;
 		} else {
@@ -474,7 +476,7 @@ public class ClassGen {
 				return fullName;
 			}
 			if (classInfo.getPackage().equals(useCls.getPackage())) {
-				fullName = classInfo.getNameWithoutPackage();
+				fullName = Deobfuscator.instance().getClassName(classInfo);
 			}
 			for (ClassInfo importCls : getImports()) {
 				if (!importCls.equals(classInfo)

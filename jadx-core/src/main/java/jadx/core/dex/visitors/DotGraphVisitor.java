@@ -2,6 +2,7 @@ package jadx.core.dex.visitors;
 
 import jadx.core.codegen.CodeWriter;
 import jadx.core.codegen.MethodGen;
+import jadx.core.deobf.Deobfuscator;
 import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
@@ -104,7 +105,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 					+ (useRegions ? ".regions" : "")
 					+ (rawInsn ? ".raw" : "")
 					+ ".dot";
-			dot.save(dir, mth.getParentClass().getClassInfo().getFullPath() + "_graphs", fileName);
+			dot.save(dir, Deobfuscator.instance().getClassFullPath(mth.getParentClass().getClassInfo()) + "_graphs", fileName);
 		}
 
 		private void processMethodRegion(MethodNode mth) {

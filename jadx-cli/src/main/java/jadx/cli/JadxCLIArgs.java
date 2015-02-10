@@ -50,6 +50,18 @@ public final class JadxCLIArgs implements IJadxArgs {
 	@Parameter(names = {"-v", "--verbose"}, description = "verbose output")
 	protected boolean verbose = false;
 
+	@Parameter(names = {"--deobf"}, description = "activate deobfuscation")
+	protected boolean deobfuscationOn = false;
+
+	@Parameter(names = {"--deobf-min"}, description = "min length of name")
+	protected int deobfuscationMinLength = 2;
+
+	@Parameter(names = {"--deobf-max"}, description = "max length of name")
+	protected int deobfuscationMaxLength = 40;
+
+	@Parameter(names = {"--deobf-rewrite-cfg"}, description = "force to save deobfuscation map")
+	protected boolean deobfuscationForceSave = false;
+
 	@Parameter(names = {"-h", "--help"}, description = "print this help", help = true)
 	protected boolean printHelp = false;
 
@@ -208,5 +220,25 @@ public final class JadxCLIArgs implements IJadxArgs {
 	@Override
 	public boolean isVerbose() {
 		return verbose;
+	}
+
+	@Override
+	public boolean isDeobfuscationOn() {
+		return deobfuscationOn;
+	}
+
+	@Override
+	public int getDeobfuscationMinLength() {
+		return deobfuscationMinLength;
+	}
+
+	@Override
+	public int getDeobfuscationMaxLength() {
+		return deobfuscationMaxLength;
+	}
+
+	@Override
+	public boolean isDeobfuscationForceSave() {
+		return deobfuscationForceSave;
 	}
 }
