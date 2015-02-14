@@ -28,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.TestOnly;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -317,19 +318,19 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 	}
 
 	public FieldNode searchFieldById(int id) {
-		String name = FieldInfo.getNameById(dex, id);
+		return searchField(FieldInfo.fromDex(dex, id));
+	}
+
+	public FieldNode searchField(FieldInfo field) {
 		for (FieldNode f : fields) {
-			if (f.getName().equals(name)) {
+			if (f.getFieldInfo().equals(field)) {
 				return f;
 			}
 		}
 		return null;
 	}
 
-	public FieldNode searchField(FieldInfo field) {
-		return searchFieldByName(field.getName());
-	}
-
+	@TestOnly
 	public FieldNode searchFieldByName(String name) {
 		for (FieldNode f : fields) {
 			if (f.getName().equals(name)) {

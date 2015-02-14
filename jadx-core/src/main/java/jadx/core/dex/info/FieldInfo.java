@@ -25,10 +25,6 @@ public class FieldInfo {
 				dex.getType(field.getTypeIndex()));
 	}
 
-	public static String getNameById(DexNode dex, int ind) {
-		return dex.getString(dex.getFieldId(ind).getNameIndex());
-	}
-
 	public String getName() {
 		return name;
 	}
@@ -50,16 +46,9 @@ public class FieldInfo {
 			return false;
 		}
 		FieldInfo fieldInfo = (FieldInfo) o;
-		if (!name.equals(fieldInfo.name)) {
-			return false;
-		}
-		if (!type.equals(fieldInfo.type)) {
-			return false;
-		}
-		if (!declClass.equals(fieldInfo.declClass)) {
-			return false;
-		}
-		return true;
+		return name.equals(fieldInfo.name)
+				&& type.equals(fieldInfo.type)
+				&& declClass.equals(fieldInfo.declClass);
 	}
 
 	@Override
