@@ -191,12 +191,12 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 			// parse class generic map
 			genericMap = sp.consumeGenericMap();
 			// parse super class signature
-			superClass = ClassInfo.fromType(sp.consumeType());
+			superClass = ClassInfo.fromType(dex, sp.consumeType());
 			// parse interfaces signatures
 			for (int i = 0; i < interfaces.size(); i++) {
 				ArgType type = sp.consumeType();
 				if (type != null) {
-					interfaces.set(i, ClassInfo.fromType(type));
+					interfaces.set(i, ClassInfo.fromType(dex, type));
 				} else {
 					break;
 				}
@@ -228,7 +228,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 			try {
 				mth.load();
 			} catch (Exception e) {
-				LOG.error("Method load error:", e);
+				LOG.error("Method load error: {}", mth, e);
 				mth.addAttr(new JadxErrorAttr(e));
 			}
 		}

@@ -192,7 +192,7 @@ public class ClassGen {
 			if (type.isGenericType()) {
 				code.add(type.getObject());
 			} else {
-				useClass(code, ClassInfo.fromType(type));
+				useClass(code, ClassInfo.fromType(cls.dex(), type));
 			}
 			if (list != null && !list.isEmpty()) {
 				code.add(" extends ");
@@ -201,7 +201,7 @@ public class ClassGen {
 					if (g.isGenericType()) {
 						code.add(g.getObject());
 					} else {
-						useClass(code, ClassInfo.fromType(g));
+						useClass(code, ClassInfo.fromType(cls.dex(), g));
 					}
 					if (it.hasNext()) {
 						code.add(" & ");
@@ -407,7 +407,7 @@ public class ClassGen {
 			if (type.isGenericType()) {
 				code.add(type.getObject());
 			} else {
-				useClass(code, ClassInfo.fromType(type));
+				useClass(code, ClassInfo.fromType(cls.dex(), type));
 			}
 		} else if (stype == PrimitiveType.ARRAY) {
 			useType(code, type.getArrayElement());

@@ -6,7 +6,6 @@ import jadx.core.codegen.CodeGen;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.deobf.DefaultDeobfuscator;
 import jadx.core.deobf.Deobfuscator;
-import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.IDexTreeVisitor;
@@ -90,7 +89,6 @@ public final class JadxDecompiler {
 	}
 
 	void reset() {
-		ClassInfo.clearCache();
 		classes = null;
 		resources = null;
 		xmlParser = null;

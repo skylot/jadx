@@ -11,15 +11,20 @@ public class FieldInfo {
 	private final String name;
 	private final ArgType type;
 
-	public FieldInfo(ClassInfo declClass, String name, ArgType type) {
+	private FieldInfo(ClassInfo declClass, String name, ArgType type) {
 		this.declClass = declClass;
 		this.name = name;
 		this.type = type;
 	}
 
+	public static FieldInfo from(DexNode dex, ClassInfo declClass, String name, ArgType type) {
+		FieldInfo field = new FieldInfo(declClass, name, type);
+		return dex.getInfoStorage().getField(field);
+	}
+
 	public static FieldInfo fromDex(DexNode dex, int index) {
 		FieldId field = dex.getFieldId(index);
-		return new FieldInfo(
+		return from(dex,
 				ClassInfo.fromDex(dex, field.getDeclaringClassIndex()),
 				dex.getString(field.getNameIndex()),
 				dex.getType(field.getTypeIndex()));

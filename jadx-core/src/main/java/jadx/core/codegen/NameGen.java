@@ -14,6 +14,7 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.InsnNode;
+import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.Utils;
 
 import java.util.HashMap;
@@ -26,6 +27,7 @@ public class NameGen {
 	private static final Map<String, String> OBJ_ALIAS;
 
 	private final Set<String> varNames = new HashSet<String>();
+	private final MethodNode mth;
 	private final boolean fallback;
 
 	static {
@@ -45,7 +47,8 @@ public class NameGen {
 		OBJ_ALIAS.put("java.lang.Double", "d");
 	}
 
-	public NameGen(boolean fallback) {
+	public NameGen(MethodNode mth, boolean fallback) {
+		this.mth = mth;
 		this.fallback = fallback;
 	}
 
@@ -107,7 +110,7 @@ public class NameGen {
 			}
 			varName = name;
 		} else {
-			varName = makeNameForType(arg.getType());
+			varName = guessName(arg);
 		}
 		if (NameMapper.isReserved(varName)) {
 			return varName + "R";
@@ -119,7 +122,23 @@ public class NameGen {
 		return "r" + arg.getRegNum();
 	}
 
-	private static String makeNameForType(ArgType type) {
+	private String guessName(RegisterArg arg) {
+		SSAVar sVar = arg.getSVar();
+		if (sVar != null && sVar.getName() == null) {
+			RegisterArg assignArg = sVar.getAssign();
+			InsnNode assignInsn = assignArg.getParentInsn();
+			if (assignInsn != null) {
+				String name = makeNameFromInsn(assignInsn);
+				if (name != null && !NameMapper.isReserved(name)) {
+					assignArg.setName(name);
+					return name;
+				}
+			}
+		}
+		return makeNameForType(arg.getType());
+	}
+
+	private String makeNameForType(ArgType type) {
 		if (type.isPrimitive()) {
 			return makeNameForPrimitive(type);
 		} else if (type.isArray()) {
@@ -133,13 +152,13 @@ public class NameGen {
 		return type.getPrimitiveType().getShortName().toLowerCase();
 	}
 
-	private static String makeNameForObject(ArgType type) {
+	private String makeNameForObject(ArgType type) {
 		if (type.isObject()) {
 			String alias = getAliasForObject(type.getObject());
 			if (alias != null) {
 				return alias;
 			}
-			ClassInfo clsInfo = ClassInfo.fromType(type);
+			ClassInfo clsInfo = ClassInfo.fromType(mth.dex(), type);
 			String shortName = clsInfo.getShortName();
 			String vName = fromName(shortName);
 			if (vName != null) {
@@ -167,24 +186,11 @@ public class NameGen {
 		return null;
 	}
 
-	public static void guessName(RegisterArg arg) {
-		SSAVar sVar = arg.getSVar();
-		if (sVar == null || sVar.getName() != null) {
-			return;
-		}
-		RegisterArg assignArg = sVar.getAssign();
-		InsnNode assignInsn = assignArg.getParentInsn();
-		String name = makeNameFromInsn(assignInsn);
-		if (name != null && !NameMapper.isReserved(name)) {
-			assignArg.setName(name);
-		}
-	}
-
 	private static String getAliasForObject(String name) {
 		return OBJ_ALIAS.get(name);
 	}
 
-	private static String makeNameFromInsn(InsnNode insn) {
+	private String makeNameFromInsn(InsnNode insn) {
 		switch (insn.getType()) {
 			case INVOKE:
 				InvokeNode inv = (InvokeNode) insn;

@@ -40,7 +40,12 @@ public final class MethodInfo {
 	}
 
 	public static MethodInfo fromDex(DexNode dex, int mthIndex) {
-		return new MethodInfo(dex, mthIndex);
+		MethodInfo mth = dex.getInfoStorage().getMethod(mthIndex);
+		if (mth != null) {
+			return mth;
+		}
+		mth = new MethodInfo(dex, mthIndex);
+		return dex.getInfoStorage().putMethod(mthIndex, mth);
 	}
 
 	public String getName() {

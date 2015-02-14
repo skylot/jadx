@@ -4,14 +4,11 @@ import jadx.core.Consts;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.DexNode;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.io.File;
-import java.util.Map;
-import java.util.WeakHashMap;
 
 public final class ClassInfo {
-
-	private static final Map<ArgType, ClassInfo> CLASSINFO_CACHE = new WeakHashMap<ArgType, ClassInfo>();
 
 	private final ArgType type;
 	private String pkg;
@@ -20,11 +17,22 @@ public final class ClassInfo {
 	// for inner class not equals null
 	private ClassInfo parentClass;
 
-	private ClassInfo(ArgType type) {
-		assert type.isObject() : "Not class type: " + type;
+	private ClassInfo(DexNode dex, ArgType type) {
+		if (!type.isObject()) {
+			throw new JadxRuntimeException("Not class type: " + type);
+		}
 		this.type = type;
 
-		splitNames(true);
+		splitNames(dex, true);
+	}
+
+	public static ClassInfo fromType(DexNode dex, ArgType type) {
+		ClassInfo cls = dex.getInfoStorage().getCls(type);
+		if (cls != null) {
+			return cls;
+		}
+		cls = new ClassInfo(dex, type);
+		return dex.getInfoStorage().putCls(cls);
 	}
 
 	public static ClassInfo fromDex(DexNode dex, int clsIndex) {
@@ -35,27 +43,14 @@ public final class ClassInfo {
 		if (type.isArray()) {
 			type = ArgType.OBJECT;
 		}
-		return fromType(type);
+		return fromType(dex, type);
 	}
 
-	public static ClassInfo fromName(String clsName) {
-		return fromType(ArgType.object(clsName));
+	public static ClassInfo fromName(DexNode dex, String clsName) {
+		return fromType(dex, ArgType.object(clsName));
 	}
 
-	public static ClassInfo fromType(ArgType type) {
-		ClassInfo cls = CLASSINFO_CACHE.get(type);
-		if (cls == null) {
-			cls = new ClassInfo(type);
-			CLASSINFO_CACHE.put(type, cls);
-		}
-		return cls;
-	}
-
-	public static void clearCache() {
-		CLASSINFO_CACHE.clear();
-	}
-
-	private void splitNames(boolean canBeInner) {
+	private void splitNames(DexNode dex, boolean canBeInner) {
 		String fullObjectName = type.getObject();
 		assert fullObjectName.indexOf('/') == -1 : "Raw type: " + type;
 
@@ -73,7 +68,7 @@ public final class ClassInfo {
 		int sep = clsName.lastIndexOf('$');
 		if (canBeInner && sep > 0 && sep != clsName.length() - 1) {
 			String parClsName = pkg + "." + clsName.substring(0, sep);
-			parentClass = fromName(parClsName);
+			parentClass = fromName(dex, parClsName);
 			clsName = clsName.substring(sep + 1);
 		} else {
 			parentClass = null;
@@ -134,8 +129,8 @@ public final class ClassInfo {
 		return parentClass != null;
 	}
 
-	public void notInner() {
-		splitNames(false);
+	public void notInner(DexNode dex) {
+		splitNames(dex, false);
 	}
 
 	public ArgType getType() {

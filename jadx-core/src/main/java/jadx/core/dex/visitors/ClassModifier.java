@@ -50,7 +50,8 @@ public class ClassModifier extends AbstractVisitor {
 		// remove fields if it is synthetic and type is a outer class
 		for (FieldNode field : cls.getFields()) {
 			if (field.getAccessFlags().isSynthetic() && field.getType().isObject()) {
-				ClassNode fieldsCls = cls.dex().resolveClass(ClassInfo.fromType(field.getType()));
+				ClassInfo clsInfo = ClassInfo.fromType(cls.dex(), field.getType());
+				ClassNode fieldsCls = cls.dex().resolveClass(clsInfo);
 				ClassInfo parentClass = cls.getClassInfo().getParentClass();
 				if (fieldsCls != null
 						&& parentClass.equals(fieldsCls.getClassInfo())
@@ -62,7 +63,7 @@ public class ClassModifier extends AbstractVisitor {
 						}
 					}
 					if (found != 0) {
-						FieldInfo replace = new FieldInfo(parentClass, "this", parentClass.getType());
+						FieldInfo replace = FieldInfo.from(cls.dex(), parentClass, "this", parentClass.getType());
 						field.addAttr(new FieldReplaceAttr(replace, true));
 						field.add(AFlag.DONT_GENERATE);
 					}

@@ -117,7 +117,8 @@ public class RootNode {
 			appResClass = resCls;
 			return;
 		}
-		appResClass = new ClassNode(dexNodes.get(0), ClassInfo.fromName("R"));
+		DexNode firstDex = dexNodes.get(0);
+		appResClass = new ClassNode(firstDex, ClassInfo.fromName(firstDex, "R"));
 	}
 
 	private static void initClassPath(List<ClassNode> classes) throws IOException, DecodeException {
@@ -142,7 +143,7 @@ public class RootNode {
 			ClassNode parent = resolveClass(cls.getClassInfo().getParentClass());
 			if (parent == null) {
 				names.remove(cls.getFullName());
-				cls.getClassInfo().notInner();
+				cls.getClassInfo().notInner(cls.dex());
 				names.put(cls.getFullName(), cls);
 			} else {
 				parent.addInnerClass(cls);

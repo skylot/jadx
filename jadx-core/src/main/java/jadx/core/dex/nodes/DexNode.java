@@ -2,6 +2,7 @@ package jadx.core.dex.nodes;
 
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
+import jadx.core.dex.info.InfoStorage;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.exceptions.DecodeException;
@@ -35,6 +36,8 @@ public class DexNode {
 	private final List<ClassNode> classes = new ArrayList<ClassNode>();
 
 	private final Map<Object, FieldNode> constFields = new HashMap<Object, FieldNode>();
+
+	private final InfoStorage infoStorage = new InfoStorage();
 
 	public DexNode(RootNode root, InputFile input) {
 		this.root = root;
@@ -76,6 +79,10 @@ public class DexNode {
 
 	public Map<Object, FieldNode> getConstFields() {
 		return constFields;
+	}
+
+	public InfoStorage getInfoStorage() {
+		return infoStorage;
 	}
 
 	// DexBuffer wrappers

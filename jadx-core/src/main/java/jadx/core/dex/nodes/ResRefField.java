@@ -9,7 +9,7 @@ public class ResRefField extends FieldNode {
 
 	public ResRefField(DexNode dex, String str) {
 		super(dex.root().getAppResClass(),
-				new FieldInfo(dex.root().getAppResClass().getClassInfo(), str, ArgType.INT),
+				FieldInfo.from(dex, dex.root().getAppResClass().getClassInfo(), str, ArgType.INT),
 				AccessFlags.ACC_PUBLIC);
 	}
 }

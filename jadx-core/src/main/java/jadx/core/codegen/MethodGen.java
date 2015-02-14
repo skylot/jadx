@@ -39,7 +39,7 @@ public class MethodGen {
 		this.mth = mth;
 		this.classGen = classGen;
 		this.annotationGen = classGen.getAnnotationGen();
-		this.nameGen = new NameGen(classGen.isFallbackMode());
+		this.nameGen = new NameGen(mth, classGen.isFallbackMode());
 	}
 
 	public ClassGen getClassGen() {
