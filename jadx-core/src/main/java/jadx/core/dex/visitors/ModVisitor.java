@@ -4,9 +4,11 @@ import jadx.core.codegen.TypeGen;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ConstClassNode;
 import jadx.core.dex.instructions.ConstStringNode;
 import jadx.core.dex.instructions.FillArrayNode;
+import jadx.core.dex.instructions.FilledNewArrayNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
@@ -25,9 +27,13 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
+import jadx.core.utils.ErrorsCounter;
+import jadx.core.utils.InsnUtils;
 import jadx.core.utils.InstructionRemover;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,18 +101,62 @@ public class ModVisitor extends AbstractVisitor {
 						}
 						break;
 
-					case RETURN:
-						if (insn.getArgsCount() > 0 && insn.getArg(0).isLiteral()) {
-							LiteralArg arg = (LiteralArg) insn.getArg(0);
-							FieldNode f = parentClass.getConstFieldByLiteralArg(arg);
-							if (f != null) {
-								arg.wrapInstruction(new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0));
+					case NEW_ARRAY:
+						// create array in 'fill-array' instruction
+						int next = i + 1;
+						if (next < size) {
+							InsnNode ni = block.getInstructions().get(next);
+							if (ni.getType() == InsnType.FILL_ARRAY) {
+								ni.getResult().merge(insn.getResult());
+								((FillArrayNode) ni).mergeElementType(insn.getResult().getType().getArrayElement());
+								remover.add(insn);
 							}
 						}
 						break;
 
+					case FILL_ARRAY:
+						InsnNode filledArr = makeFilledArrayInsn(mth, (FillArrayNode) insn);
+						replaceInsn(block, i, filledArr);
+						break;
+
 					case MOVE_EXCEPTION:
 						processMoveException(mth, block, insn, remover);
+						break;
+
+					case ARITH:
+						ArithNode arithNode = (ArithNode) insn;
+						if (arithNode.getArgsCount() == 2) {
+							InsnArg litArg = arithNode.getArg(1);
+							if (litArg.isLiteral()) {
+								FieldNode f = parentClass.getConstFieldByLiteralArg((LiteralArg) litArg);
+								if (f != null) {
+									InsnNode fGet = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
+									insn.replaceArg(litArg, InsnArg.wrapArg(fGet));
+								}
+							}
+						}
+						break;
+
+					default:
+						break;
+				}
+			}
+			remover.perform();
+		}
+	}
+
+	/**
+	 * Remove unnecessary instructions
+	 */
+	private static void removeStep(MethodNode mth, InstructionRemover remover) {
+		for (BlockNode block : mth.getBasicBlocks()) {
+			remover.setBlock(block);
+			for (InsnNode insn : block.getInstructions()) {
+				switch (insn.getType()) {
+					case NOP:
+					case GOTO:
+					case NEW_INSTANCE:
+						remover.add(insn);
 						break;
 
 					default:
@@ -122,49 +172,50 @@ public class ModVisitor extends AbstractVisitor {
 		InsnNode insn = block.getInstructions().get(insnNumber);
 		InvokeNode inv = (InvokeNode) insn;
 		MethodInfo callMth = inv.getCallMth();
-		if (callMth.isConstructor()) {
-			InsnNode instArgAssignInsn = ((RegisterArg) inv.getArg(0)).getAssignInsn();
-			ConstructorInsn co = new ConstructorInsn(mth, inv);
-			boolean remove = false;
-			if (co.isSuper() && (co.getArgsCount() == 0 || parentClass.isEnum())) {
-				remove = true;
-			} else if (co.isThis() && co.getArgsCount() == 0) {
-				MethodNode defCo = parentClass.searchMethodByName(callMth.getShortId());
-				if (defCo == null || defCo.isNoCode()) {
-					// default constructor not implemented
-					remove = true;
-				}
-			}
-			// remove super() call in instance initializer
-			if (parentClass.isAnonymous() && mth.isDefaultConstructor() && co.isSuper()) {
+		if (!callMth.isConstructor()) {
+			return;
+		}
+		InsnNode instArgAssignInsn = ((RegisterArg) inv.getArg(0)).getAssignInsn();
+		ConstructorInsn co = new ConstructorInsn(mth, inv);
+		boolean remove = false;
+		if (co.isSuper() && (co.getArgsCount() == 0 || parentClass.isEnum())) {
+			remove = true;
+		} else if (co.isThis() && co.getArgsCount() == 0) {
+			MethodNode defCo = parentClass.searchMethodByName(callMth.getShortId());
+			if (defCo == null || defCo.isNoCode()) {
+				// default constructor not implemented
 				remove = true;
 			}
-			if (remove) {
-				remover.add(insn);
-			} else {
-				replaceInsn(block, insnNumber, co);
-				if (co.isNewInstance()) {
-					InsnNode newInstInsn = removeAssignChain(instArgAssignInsn, remover, InsnType.NEW_INSTANCE);
-					if (newInstInsn != null) {
-						RegisterArg instArg = newInstInsn.getResult();
-						RegisterArg resultArg = co.getResult();
-						if (!resultArg.equals(instArg)) {
-							// replace all usages of 'instArg' with result of this constructor instruction
-							for (RegisterArg useArg : new ArrayList<RegisterArg>(instArg.getSVar().getUseList())) {
-								RegisterArg dup = resultArg.duplicate();
-								InsnNode parentInsn = useArg.getParentInsn();
-								parentInsn.replaceArg(useArg, dup);
-								dup.setParentInsn(parentInsn);
-								resultArg.getSVar().use(dup);
-							}
-						}
+		}
+		// remove super() call in instance initializer
+		if (parentClass.isAnonymous() && mth.isDefaultConstructor() && co.isSuper()) {
+			remove = true;
+		}
+		if (remove) {
+			remover.add(insn);
+			return;
+		}
+		replaceInsn(block, insnNumber, co);
+		if (co.isNewInstance()) {
+			InsnNode newInstInsn = removeAssignChain(instArgAssignInsn, remover, InsnType.NEW_INSTANCE);
+			if (newInstInsn != null) {
+				RegisterArg instArg = newInstInsn.getResult();
+				RegisterArg resultArg = co.getResult();
+				if (!resultArg.equals(instArg)) {
+					// replace all usages of 'instArg' with result of this constructor instruction
+					for (RegisterArg useArg : new ArrayList<RegisterArg>(instArg.getSVar().getUseList())) {
+						RegisterArg dup = resultArg.duplicate();
+						InsnNode parentInsn = useArg.getParentInsn();
+						parentInsn.replaceArg(useArg, dup);
+						dup.setParentInsn(parentInsn);
+						resultArg.getSVar().use(dup);
 					}
 				}
-				ConstructorInsn replace = processConstructor(mth, co);
-				if (replace != null) {
-					replaceInsn(block, insnNumber, replace);
-				}
 			}
+		}
+		ConstructorInsn replace = processConstructor(mth, co);
+		if (replace != null) {
+			replaceInsn(block, insnNumber, replace);
 		}
 	}
 
@@ -191,6 +242,41 @@ public class ModVisitor extends AbstractVisitor {
 		ConstructorInsn newInsn = new ConstructorInsn(defCtr.getMethodInfo(), co.getCallType(), co.getInstanceArg());
 		newInsn.setResult(co.getResult());
 		return newInsn;
+	}
+
+	private static InsnNode makeFilledArrayInsn(MethodNode mth, FillArrayNode insn) {
+		ArgType insnArrayType = insn.getResult().getType();
+		ArgType insnElementType = insnArrayType.getArrayElement();
+		ArgType elType = insn.getElementType();
+		if (!elType.equals(insnElementType) && !insnArrayType.equals(ArgType.OBJECT)) {
+			ErrorsCounter.methodError(mth,
+					"Incorrect type for fill-array insn " + InsnUtils.formatOffset(insn.getOffset())
+							+ ", element type: " + elType + ", insn element type: " + insnElementType
+			);
+		}
+		if (!elType.isTypeKnown()) {
+			LOG.warn("Unknown array element type: {} in mth: {}", elType, mth);
+			elType = insnElementType.isTypeKnown() ? insnElementType : elType.selectFirst();
+			if (elType == null) {
+				throw new JadxRuntimeException("Null array element type");
+			}
+		}
+		insn.mergeElementType(elType);
+		elType = insn.getElementType();
+
+		List<LiteralArg> list = insn.getLiteralArgs();
+		InsnNode filledArr = new FilledNewArrayNode(elType, list.size());
+		filledArr.setResult(insn.getResult());
+		for (LiteralArg arg : list) {
+			FieldNode f = mth.getParentClass().getConstFieldByLiteralArg(arg);
+			if (f != null) {
+				InsnNode fGet = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
+				filledArr.addArg(InsnArg.wrapArg(fGet));
+			} else {
+				filledArr.addArg(arg);
+			}
+		}
+		return filledArr;
 	}
 
 	private static boolean allArgsNull(InsnNode insn) {
@@ -224,53 +310,6 @@ public class ModVisitor extends AbstractVisitor {
 			return removeAssignChain(arg.getAssignInsn(), remover, insnType);
 		}
 		return null;
-	}
-
-	/**
-	 * Remove unnecessary instructions
-	 */
-	private static void removeStep(MethodNode mth, InstructionRemover remover) {
-		for (BlockNode block : mth.getBasicBlocks()) {
-			remover.setBlock(block);
-			int size = block.getInstructions().size();
-			for (int i = 0; i < size; i++) {
-				InsnNode insn = block.getInstructions().get(i);
-				switch (insn.getType()) {
-					case NOP:
-					case GOTO:
-					case NEW_INSTANCE:
-						remover.add(insn);
-						break;
-
-					case NEW_ARRAY:
-						// create array in 'fill-array' instruction
-						int next = i + 1;
-						if (next < size) {
-							InsnNode ni = block.getInstructions().get(next);
-							if (ni.getType() == InsnType.FILL_ARRAY) {
-								ni.getResult().merge(insn.getResult());
-								((FillArrayNode) ni).mergeElementType(insn.getResult().getType().getArrayElement());
-								remover.add(insn);
-							}
-						}
-						break;
-
-					case RETURN:
-						if (insn.getArgsCount() == 0) {
-							if (mth.getBasicBlocks().size() == 1 && i == size - 1) {
-								remover.add(insn);
-							} else if (mth.getMethodInfo().isClassInit()) {
-								remover.add(insn);
-							}
-						}
-						break;
-
-					default:
-						break;
-				}
-			}
-			remover.perform();
-		}
 	}
 
 	private static void processMoveException(MethodNode mth, BlockNode block, InsnNode insn,
@@ -310,6 +349,7 @@ public class ModVisitor extends AbstractVisitor {
 	private static void replaceInsn(BlockNode block, int i, InsnNode insn) {
 		InsnNode prevInsn = block.getInstructions().get(i);
 		insn.copyAttributesFrom(prevInsn);
+		insn.setSourceLine(prevInsn.getSourceLine());
 		block.getInstructions().set(i, insn);
 	}
 

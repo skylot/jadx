@@ -115,9 +115,7 @@ public class NameGen {
 	}
 
 	private String getFallbackName(RegisterArg arg) {
-		String name = arg.getName();
-		String base = "r" + arg.getRegNum();
-		return name != null ? base + "_" + name : base;
+		return "r" + arg.getRegNum();
 	}
 
 	private static String makeNameForType(ArgType type) {

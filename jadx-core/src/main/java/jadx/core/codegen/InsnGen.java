@@ -13,6 +13,7 @@ import jadx.core.dex.instructions.ArithOp;
 import jadx.core.dex.instructions.ConstClassNode;
 import jadx.core.dex.instructions.ConstStringNode;
 import jadx.core.dex.instructions.FillArrayNode;
+import jadx.core.dex.instructions.FilledNewArrayNode;
 import jadx.core.dex.instructions.GotoNode;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IndexInsnNode;
@@ -34,14 +35,13 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.ErrorsCounter;
-import jadx.core.utils.InsnUtils;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -359,12 +359,8 @@ public class InsnGen {
 				code.add(".length");
 				break;
 
-			case FILL_ARRAY:
-				fillArray((FillArrayNode) insn, code);
-				break;
-
 			case FILLED_NEW_ARRAY:
-				filledNewArray(insn, code);
+				filledNewArray((FilledNewArrayNode) insn, code);
 				break;
 
 			case AGET:
@@ -490,6 +486,25 @@ public class InsnGen {
 				code.startLine('}');
 				break;
 
+			case FILL_ARRAY:
+				assert isFallback();
+				FillArrayNode arrayNode = (FillArrayNode) insn;
+				Object data = arrayNode.getData();
+				String arrStr;
+				if (data instanceof int[]) {
+					arrStr = Arrays.toString((int[]) data);
+				} else if (data instanceof short[]) {
+					arrStr = Arrays.toString((short[]) data);
+				} else if (data instanceof byte[]) {
+					arrStr = Arrays.toString((byte[]) data);
+				} else if (data instanceof long[]) {
+					arrStr = Arrays.toString((long[]) data);
+				} else {
+					arrStr = "?";
+				}
+				code.add('{').add(arrStr.substring(1, arrStr.length() - 1)).add('}');
+				break;
+
 			case NEW_INSTANCE:
 				// only fallback - make new instance in constructor invoke
 				assert isFallback();
@@ -501,11 +516,11 @@ public class InsnGen {
 		}
 	}
 
-	private void filledNewArray(InsnNode insn, CodeWriter code) throws CodegenException {
-		int c = insn.getArgsCount();
+	private void filledNewArray(FilledNewArrayNode insn, CodeWriter code) throws CodegenException {
 		code.add("new ");
-		useType(code, insn.getResult().getType());
+		useType(code, insn.getArrayType());
 		code.add('{');
+		int c = insn.getArgsCount();
 		for (int i = 0; i < c; i++) {
 			addArg(code, insn.getArg(i), false);
 			if (i + 1 < c) {
@@ -513,76 +528,6 @@ public class InsnGen {
 			}
 		}
 		code.add('}');
-	}
-
-	private void fillArray(FillArrayNode insn, CodeWriter code) throws CodegenException {
-		String filledArray = makeArrayElements(insn);
-		code.add("new ");
-		useType(code, insn.getElementType());
-		code.add("[]{").add(filledArray).add('}');
-	}
-
-	private String makeArrayElements(FillArrayNode insn) throws CodegenException {
-		ArgType insnArrayType = insn.getResult().getType();
-		ArgType insnElementType = insnArrayType.getArrayElement();
-		ArgType elType = insn.getElementType();
-		if (!elType.equals(insnElementType) && !insnArrayType.equals(ArgType.OBJECT)) {
-			ErrorsCounter.methodError(mth,
-					"Incorrect type for fill-array insn " + InsnUtils.formatOffset(insn.getOffset())
-							+ ", element type: " + elType + ", insn element type: " + insnElementType
-			);
-		}
-		if (!elType.isTypeKnown()) {
-			LOG.warn("Unknown array element type: {} in mth: {}", elType, mth);
-			elType = insnElementType.isTypeKnown() ? insnElementType : elType.selectFirst();
-			if (elType == null) {
-				throw new JadxRuntimeException("Null array element type");
-			}
-		}
-		insn.mergeElementType(elType);
-
-		StringBuilder str = new StringBuilder();
-		Object data = insn.getData();
-		switch (elType.getPrimitiveType()) {
-			case BOOLEAN:
-			case BYTE:
-				byte[] array = (byte[]) data;
-				for (byte b : array) {
-					str.append(TypeGen.literalToString(b, elType));
-					str.append(", ");
-				}
-				break;
-			case SHORT:
-			case CHAR:
-				short[] sarray = (short[]) data;
-				for (short b : sarray) {
-					str.append(TypeGen.literalToString(b, elType));
-					str.append(", ");
-				}
-				break;
-			case INT:
-			case FLOAT:
-				int[] iarray = (int[]) data;
-				for (int b : iarray) {
-					str.append(TypeGen.literalToString(b, elType));
-					str.append(", ");
-				}
-				break;
-			case LONG:
-			case DOUBLE:
-				long[] larray = (long[]) data;
-				for (long b : larray) {
-					str.append(TypeGen.literalToString(b, elType));
-					str.append(", ");
-				}
-				break;
-
-			default:
-				throw new CodegenException(mth, "Unknown type: " + elType);
-		}
-		int len = str.length();
-		str.delete(len - 2, len);
-		return str.toString();
 	}
 
 	private void makeConstructor(ConstructorInsn insn, CodeWriter code)
@@ -733,9 +678,6 @@ public class InsnGen {
 					code.add(", ");
 				}
 			}
-			return true;
-		} else if (insn.getType() == InsnType.FILL_ARRAY) {
-			code.add(makeArrayElements((FillArrayNode) insn));
 			return true;
 		}
 		return false;

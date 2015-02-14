@@ -620,9 +620,14 @@ public class InsnDecoder {
 				regs[i] = InsnArg.reg(regNum, elType, typeImmutable);
 			}
 		}
-		return insn(InsnType.FILLED_NEW_ARRAY,
-				resReg == -1 ? null : InsnArg.reg(resReg, arrType),
-				regs);
+		InsnNode node = new FilledNewArrayNode(elType, regs == null ? 0 : regs.length);
+		node.setResult(resReg == -1 ? null : InsnArg.reg(resReg, arrType));
+		if (regs != null) {
+			for (InsnArg arg : regs) {
+				node.addArg(arg);
+			}
+		}
+		return node;
 	}
 
 	private InsnNode cmp(DecodedInstruction insn, InsnType itype, ArgType argType) {
@@ -687,17 +692,6 @@ public class InsnDecoder {
 		InsnNode node = new InsnNode(type, 1);
 		node.setResult(res);
 		node.addArg(arg);
-		return node;
-	}
-
-	private InsnNode insn(InsnType type, RegisterArg res, InsnArg... args) {
-		InsnNode node = new InsnNode(type, args == null ? 0 : args.length);
-		node.setResult(res);
-		if (args != null) {
-			for (InsnArg arg : args) {
-				node.addArg(arg);
-			}
-		}
 		return node;
 	}
 

@@ -5,10 +5,12 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.EnumMapAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.FieldInfo;
+import jadx.core.dex.instructions.FilledNewArrayNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.SwitchNode;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
@@ -78,7 +80,8 @@ public class ReSugarCode extends AbstractVisitor {
 		if (len <= 0 || i + len >= size || instructions.get(i + len).getType() != InsnType.APUT) {
 			return null;
 		}
-		InsnNode filledArr = new InsnNode(InsnType.FILLED_NEW_ARRAY, len);
+		ArgType arrType = insn.getResult().getType();
+		InsnNode filledArr = new FilledNewArrayNode(arrType.getArrayElement(), len);
 		filledArr.setResult(insn.getResult());
 		for (int j = 0; j < len; j++) {
 			InsnNode put = instructions.get(i + 1 + j);

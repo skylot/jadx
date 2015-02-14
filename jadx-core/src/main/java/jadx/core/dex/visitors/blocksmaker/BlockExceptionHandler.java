@@ -17,8 +17,6 @@ import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InstructionRemover;
 
-import java.util.Iterator;
-
 public class BlockExceptionHandler extends AbstractVisitor {
 
 	@Override
@@ -37,16 +35,6 @@ public class BlockExceptionHandler extends AbstractVisitor {
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {
 			processTryCatchBlocks(mth, block);
-		}
-
-		for (BlockNode block : mth.getBasicBlocks()) {
-			Iterator<InsnNode> it = block.getInstructions().iterator();
-			while (it.hasNext()) {
-				InsnNode insn = it.next();
-				if (insn.getType() == InsnType.NOP) {
-					it.remove();
-				}
-			}
 		}
 	}
 

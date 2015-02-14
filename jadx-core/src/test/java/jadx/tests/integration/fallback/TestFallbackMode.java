@@ -30,7 +30,7 @@ public class TestFallbackMode extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsString("public int test(int r2) {"));
-		assertThat(code, containsString("r1_this = this;"));
+		assertThat(code, containsString("r1 = this;"));
 		assertThat(code, containsString("L_0x0004:"));
 		assertThat(code, not(containsString("throw new UnsupportedOperationException")));
 	}
