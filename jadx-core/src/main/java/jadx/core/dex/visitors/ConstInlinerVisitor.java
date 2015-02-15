@@ -9,12 +9,14 @@ import jadx.core.dex.instructions.InvokeType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
+import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.visitors.typeinference.PostTypeInference;
 import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.exceptions.JadxException;
 
@@ -124,7 +126,13 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 				fixTypes(mth, useInsn, litArg);
 				replaceCount++;
 
-				FieldNode f = mth.getParentClass().getConstFieldByLiteralArg(litArg);
+				FieldNode f = null;
+				ArgType litArgType = litArg.getType();
+				if (litArgType.isTypeKnown()) {
+					f = mth.getParentClass().getConstFieldByLiteralArg(litArg);
+				} else if (litArgType.contains(PrimitiveType.INT)) {
+					f = mth.getParentClass().getConstField((int) literal, false);
+				}
 				if (f != null) {
 					litArg.wrapInstruction(new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0));
 				}
@@ -138,6 +146,7 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 	 * but contains some expensive operations needed only after constant inline
 	 */
 	private static void fixTypes(MethodNode mth, InsnNode insn, LiteralArg litArg) {
+		PostTypeInference.process(mth, insn);
 		switch (insn.getType()) {
 			case CONST:
 				insn.getArg(0).merge(insn.getResult());

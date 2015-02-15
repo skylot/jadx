@@ -279,10 +279,16 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 		if (field == null && searchGlobal) {
 			field = dex.getConstFields().get(obj);
 		}
-		if (field == null && obj instanceof Integer) {
+		if (obj instanceof Integer) {
 			String str = dex.root().getResourcesNames().get(obj);
 			if (str != null) {
-				return new ResRefField(dex, str.replace('/', '.'));
+				ResRefField resField = new ResRefField(dex, str.replace('/', '.'));
+				if (field == null) {
+					return resField;
+				}
+				if (!field.getName().equals(resField.getName())) {
+					field = resField;
+				}
 			}
 		}
 		return field;
