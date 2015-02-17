@@ -20,6 +20,7 @@ import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.InvokeType;
+import jadx.core.dex.instructions.NewArrayNode;
 import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.FieldArg;
@@ -341,7 +342,7 @@ public class InsnGen {
 				break;
 
 			case NEW_ARRAY: {
-				ArgType arrayType = insn.getResult().getType();
+				ArgType arrayType = ((NewArrayNode) insn).getArrayType();
 				code.add("new ");
 				useType(code, arrayType.getArrayRootElement());
 				code.add('[');

@@ -3,11 +3,13 @@ package jadx.core.dex.instructions;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.InsnNode;
 
+import org.jetbrains.annotations.NotNull;
+
 public class FilledNewArrayNode extends InsnNode {
 
 	private final ArgType elemType;
 
-	public FilledNewArrayNode(ArgType elemType, int size) {
+	public FilledNewArrayNode(@NotNull ArgType elemType, int size) {
 		super(InsnType.FILLED_NEW_ARRAY, size);
 		this.elemType = elemType;
 	}

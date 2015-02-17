@@ -222,7 +222,9 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 				break;
 
 			case NEW_ARRAY:
-				litArg.merge(ArgType.INT);
+				if (litArg == insn.getArg(0)) {
+					litArg.merge(ArgType.INT);
+				}
 				break;
 
 			default:

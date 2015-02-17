@@ -9,6 +9,7 @@ import jadx.core.dex.instructions.FilledNewArrayNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
+import jadx.core.dex.instructions.NewArrayNode;
 import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -70,19 +71,21 @@ public class ReSugarCode extends AbstractVisitor {
 	 */
 	private static InsnNode processNewArray(MethodNode mth, List<InsnNode> instructions, int i,
 			InstructionRemover remover) {
-		InsnNode insn = instructions.get(i);
-		InsnArg arg = insn.getArg(0);
+		NewArrayNode newArrayInsn = (NewArrayNode) instructions.get(i);
+		InsnArg arg = newArrayInsn.getArg(0);
 		if (!arg.isLiteral()) {
 			return null;
 		}
 		int len = (int) ((LiteralArg) arg).getLiteral();
 		int size = instructions.size();
-		if (len <= 0 || i + len >= size || instructions.get(i + len).getType() != InsnType.APUT) {
+		if (len <= 0
+				|| i + len >= size
+				|| instructions.get(i + len).getType() != InsnType.APUT) {
 			return null;
 		}
-		ArgType arrType = insn.getResult().getType();
+		ArgType arrType = newArrayInsn.getArrayType();
 		InsnNode filledArr = new FilledNewArrayNode(arrType.getArrayElement(), len);
-		filledArr.setResult(insn.getResult());
+		filledArr.setResult(newArrayInsn.getResult());
 		for (int j = 0; j < len; j++) {
 			InsnNode put = instructions.get(i + 1 + j);
 			if (put.getType() != InsnType.APUT) {

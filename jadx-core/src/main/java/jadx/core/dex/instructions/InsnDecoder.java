@@ -535,8 +535,9 @@ public class InsnDecoder {
 						InsnArg.reg(insn, 0, dex.getType(insn.getIndex())));
 
 			case Opcodes.NEW_ARRAY:
-				return insn(InsnType.NEW_ARRAY,
-						InsnArg.reg(insn, 0, dex.getType(insn.getIndex())),
+				ArgType arrType = dex.getType(insn.getIndex());
+				return new NewArrayNode(arrType,
+						InsnArg.reg(insn, 0, arrType),
 						InsnArg.reg(insn, 1, ArgType.INT));
 
 			case Opcodes.FILL_ARRAY_DATA:

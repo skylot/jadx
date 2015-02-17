@@ -12,6 +12,7 @@ import jadx.core.dex.instructions.FilledNewArrayNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
+import jadx.core.dex.instructions.NewArrayNode;
 import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -108,7 +109,8 @@ public class ModVisitor extends AbstractVisitor {
 							InsnNode ni = block.getInstructions().get(next);
 							if (ni.getType() == InsnType.FILL_ARRAY) {
 								ni.getResult().merge(insn.getResult());
-								((FillArrayNode) ni).mergeElementType(insn.getResult().getType().getArrayElement());
+								ArgType arrType = ((NewArrayNode) insn).getArrayType();
+								((FillArrayNode) ni).mergeElementType(arrType.getArrayElement());
 								remover.add(insn);
 							}
 						}
