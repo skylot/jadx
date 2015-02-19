@@ -24,9 +24,11 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jetbrains.annotations.TestOnly;
 import org.slf4j.Logger;
@@ -57,6 +59,9 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 	private CodeWriter code;
 	// store parent for inner classes or 'this' otherwise
 	private ClassNode parentClass;
+
+	private ProcessState state = ProcessState.NOT_LOADED;
+	private final Set<ClassNode> dependencies = new HashSet<ClassNode>();
 
 	public ClassNode(DexNode dex, ClassDef cls) throws DecodeException {
 		this.dex = dex;
@@ -450,6 +455,18 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 
 	public CodeWriter getCode() {
 		return code;
+	}
+
+	public ProcessState getState() {
+		return state;
+	}
+
+	public void setState(ProcessState state) {
+		this.state = state;
+	}
+
+	public Set<ClassNode> getDependencies() {
+		return dependencies;
 	}
 
 	@Override

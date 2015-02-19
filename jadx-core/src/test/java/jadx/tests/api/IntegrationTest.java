@@ -4,6 +4,8 @@ import jadx.api.DefaultJadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
 import jadx.core.Jadx;
+import jadx.core.ProcessClass;
+import jadx.core.codegen.CodeGen;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.ClassNode;
@@ -11,6 +13,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
+import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.FileUtils;
 import jadx.tests.api.compiler.DynamicCompiler;
@@ -51,6 +54,7 @@ public abstract class IntegrationTest extends TestUtils {
 	protected boolean isFallback = false;
 	protected boolean deleteTmpFiles = true;
 	protected boolean withDebugInfo = true;
+	protected boolean unloadCls = true;
 
 	protected Map<Integer, String> resMap = Collections.emptyMap();
 
@@ -64,16 +68,18 @@ public abstract class IntegrationTest extends TestUtils {
 			File jar = getJarForClass(clazz);
 			return getClassNodeFromFile(jar, clazz.getName());
 		} catch (Exception e) {
+			e.printStackTrace();
 			fail(e.getMessage());
 		}
 		return null;
 	}
 
 	public ClassNode getClassNodeFromFile(File file, String clsName) {
-		JadxDecompiler d = new JadxDecompiler();
+		JadxDecompiler d = new JadxDecompiler(getArgs());
 		try {
 			d.loadFile(file);
 		} catch (JadxException e) {
+			e.printStackTrace();
 			fail(e.getMessage());
 		}
 		RootNode root = JadxInternalAccess.getRoot(d);
@@ -83,11 +89,11 @@ public abstract class IntegrationTest extends TestUtils {
 		assertNotNull("Class not found: " + clsName, cls);
 		assertEquals(cls.getFullName(), clsName);
 
-		cls.load();
-		for (IDexTreeVisitor visitor : getPasses()) {
-			DepthTraversal.visit(visitor, cls);
+		if (unloadCls) {
+			decompile(d, cls);
+		} else {
+			decompileWithoutUnload(d, cls);
 		}
-		// don't unload class
 
 		System.out.println("-----------------------------------------------------------");
 		System.out.println(cls.getCode());
@@ -97,6 +103,26 @@ public abstract class IntegrationTest extends TestUtils {
 		compile(cls);
 		runAutoCheck(clsName);
 		return cls;
+	}
+
+	private void decompile(JadxDecompiler jadx, ClassNode cls) {
+		List<IDexTreeVisitor> passes = Jadx.getPassesList(jadx.getArgs(), new File(outDir));
+		ProcessClass.process(cls, passes, new CodeGen(jadx.getArgs()));
+	}
+
+	private void decompileWithoutUnload(JadxDecompiler d, ClassNode cls) {
+		cls.load();
+		List<IDexTreeVisitor> passes = Jadx.getPassesList(d.getArgs(), new File(outDir));
+		for (IDexTreeVisitor visitor : passes) {
+			DepthTraversal.visit(visitor, cls);
+		}
+		try {
+			new CodeGen(d.getArgs()).visit(cls);
+		} catch (CodegenException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+		// don't unload class
 	}
 
 	private static void checkCode(ClassNode cls) {
@@ -109,8 +135,8 @@ public abstract class IntegrationTest extends TestUtils {
 		assertThat(cls.getCode().toString(), not(containsString("inconsistent")));
 	}
 
-	protected List<IDexTreeVisitor> getPasses() {
-		return Jadx.getPassesList(new DefaultJadxArgs() {
+	private DefaultJadxArgs getArgs() {
+		return new DefaultJadxArgs() {
 			@Override
 			public boolean isCFGOutput() {
 				return outputCFG;
@@ -140,7 +166,7 @@ public abstract class IntegrationTest extends TestUtils {
 			public boolean isSkipResources() {
 				return true;
 			}
-		}, new File(outDir));
+		};
 	}
 
 	private void runAutoCheck(String clsName) {
@@ -361,6 +387,10 @@ public abstract class IntegrationTest extends TestUtils {
 
 	protected void disableCompilation() {
 		this.compile = false;
+	}
+
+	protected void dontUnloadClass() {
+		this.unloadCls = false;
 	}
 
 	// Use only for debug purpose

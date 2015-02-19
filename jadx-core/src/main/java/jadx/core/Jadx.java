@@ -1,11 +1,11 @@
 package jadx.core;
 
 import jadx.api.IJadxArgs;
-import jadx.core.codegen.CodeGen;
 import jadx.core.dex.visitors.ClassModifier;
 import jadx.core.dex.visitors.CodeShrinker;
 import jadx.core.dex.visitors.ConstInlineVisitor;
 import jadx.core.dex.visitors.DebugInfoVisitor;
+import jadx.core.dex.visitors.DependencyCollector;
 import jadx.core.dex.visitors.DotGraphVisitor;
 import jadx.core.dex.visitors.EnumVisitor;
 import jadx.core.dex.visitors.FallbackModeVisitor;
@@ -104,8 +104,9 @@ public class Jadx {
 			passes.add(new PrepareForCodeGen());
 			passes.add(new LoopRegionVisitor());
 			passes.add(new ProcessVariables());
+
+			passes.add(new DependencyCollector());
 		}
-		passes.add(new CodeGen(args));
 		return passes;
 	}
 

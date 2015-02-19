@@ -2,6 +2,7 @@ package jadx.api;
 
 import jadx.core.Jadx;
 import jadx.core.ProcessClass;
+import jadx.core.codegen.CodeGen;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.deobf.DefaultDeobfuscator;
 import jadx.core.deobf.Deobfuscator;
@@ -57,6 +58,8 @@ public final class JadxDecompiler {
 
 	private RootNode root;
 	private List<IDexTreeVisitor> passes;
+	private CodeGen codeGen;
+
 	private List<JavaClass> classes;
 	private List<ResourceFile> resources;
 
@@ -83,6 +86,7 @@ public final class JadxDecompiler {
 			outDir = new DefaultJadxArgs().getOutDir();
 		}
 		this.passes = Jadx.getPassesList(args, outDir);
+		this.codeGen = new CodeGen(args);
 	}
 
 	void reset() {
@@ -305,7 +309,7 @@ public final class JadxDecompiler {
 	}
 
 	void processClass(ClassNode cls) {
-		ProcessClass.process(cls, passes);
+		ProcessClass.process(cls, passes, codeGen);
 	}
 
 	RootNode getRoot() {
@@ -329,6 +333,10 @@ public final class JadxDecompiler {
 			}
 		}
 		return null;
+	}
+
+	public IJadxArgs getArgs() {
+		return args;
 	}
 
 	@Override
