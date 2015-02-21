@@ -42,7 +42,11 @@ public class AnnotationGen {
 	}
 
 	public void addForParameter(CodeWriter code, MethodParameters paramsAnnotations, int n) {
-		AnnotationsList aList = paramsAnnotations.getParamList().get(n);
+		List<AnnotationsList> paramList = paramsAnnotations.getParamList();
+		if (n >= paramList.size()) {
+			return;
+		}
+		AnnotationsList aList = paramList.get(n);
 		if (aList == null || aList.isEmpty()) {
 			return;
 		}
