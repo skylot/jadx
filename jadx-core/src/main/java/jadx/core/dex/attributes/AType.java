@@ -22,16 +22,11 @@ import jadx.core.dex.trycatch.SplitterBlockAttr;
 
 /**
  * Attribute types enumeration,
- * uses generic type for omit cast after in 'AttributeStorage.get' method
+ * uses generic type for omit cast after 'AttributeStorage.get' method
  *
  * @param <T> attribute class implementation
  */
 public class AType<T extends IAttribute> {
-
-	private AType() {
-	}
-
-	public static final int FIELDS_COUNT = 18;
 
 	public static final AType<AttrList<JumpInfo>> JUMP = new AType<AttrList<JumpInfo>>();
 	public static final AType<AttrList<LoopInfo>> LOOP = new AType<AttrList<LoopInfo>>();

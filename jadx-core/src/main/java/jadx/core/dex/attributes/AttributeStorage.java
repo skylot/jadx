@@ -24,7 +24,7 @@ public class AttributeStorage {
 
 	public AttributeStorage() {
 		flags = EnumSet.noneOf(AFlag.class);
-		attributes = new IdentityHashMap<AType<?>, IAttribute>(AType.FIELDS_COUNT);
+		attributes = new IdentityHashMap<AType<?>, IAttribute>();
 	}
 
 	public void add(AFlag flag) {
