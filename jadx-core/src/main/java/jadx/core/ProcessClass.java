@@ -33,9 +33,7 @@ public final class ProcessClass {
 					for (IDexTreeVisitor visitor : passes) {
 						DepthTraversal.visit(visitor, cls);
 					}
-					for (ClassNode clsNode : cls.getDependencies()) {
-						process(clsNode, passes, null);
-					}
+					processDependencies(cls, passes);
 					cls.setState(PROCESSED);
 				}
 				if (cls.getState() == PROCESSED && codeGen != null) {
@@ -50,6 +48,16 @@ public final class ProcessClass {
 					cls.setState(UNLOADED);
 				}
 			}
+		}
+	}
+
+	static void processDependencies(ClassNode cls, List<IDexTreeVisitor> passes) {
+		for (ClassNode depCls : cls.getDependencies()) {
+			if (cls.getTopParentClass() == cls) {
+				// ignore inner classes of this class
+				continue;
+			}
+			process(depCls, passes, null);
 		}
 	}
 }

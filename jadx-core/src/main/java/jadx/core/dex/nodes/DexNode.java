@@ -33,7 +33,10 @@ public class DexNode {
 
 	private final RootNode root;
 	private final Dex dexBuf;
+	private final InputFile file;
+
 	private final List<ClassNode> classes = new ArrayList<ClassNode>();
+	private final Map<ClassInfo, ClassNode> clsMap = new HashMap<ClassInfo, ClassNode>();
 
 	private final Map<Object, FieldNode> constFields = new HashMap<Object, FieldNode>();
 
@@ -41,12 +44,36 @@ public class DexNode {
 
 	public DexNode(RootNode root, InputFile input) {
 		this.root = root;
+		this.file = input;
 		this.dexBuf = input.getDexBuffer();
 	}
 
 	public void loadClasses() throws DecodeException {
 		for (ClassDef cls : dexBuf.classDefs()) {
-			classes.add(new ClassNode(this, cls));
+			ClassNode clsNode = new ClassNode(this, cls);
+			classes.add(clsNode);
+			clsMap.put(clsNode.getClassInfo(), clsNode);
+		}
+	}
+
+	void initInnerClasses() {
+		// move inner classes
+		List<ClassNode> inner = new ArrayList<ClassNode>();
+		for (ClassNode cls : classes) {
+			if (cls.getClassInfo().isInner()) {
+				inner.add(cls);
+			}
+		}
+		for (ClassNode cls : inner) {
+			ClassInfo clsInfo = cls.getClassInfo();
+			ClassNode parent = resolveClass(clsInfo.getParentClass());
+			if (parent == null) {
+				clsMap.remove(clsInfo);
+				clsInfo.notInner(cls.dex());
+				clsMap.put(clsInfo, cls);
+			} else {
+				parent.addInnerClass(cls);
+			}
 		}
 	}
 
@@ -56,7 +83,7 @@ public class DexNode {
 
 	@Nullable
 	public ClassNode resolveClass(ClassInfo clsInfo) {
-		return root.resolveClass(clsInfo);
+		return clsMap.get(clsInfo);
 	}
 
 	@Nullable
@@ -83,6 +110,10 @@ public class DexNode {
 
 	public InfoStorage getInfoStorage() {
 		return infoStorage;
+	}
+
+	public InputFile getInputFile() {
+		return file;
 	}
 
 	// DexBuffer wrappers

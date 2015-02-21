@@ -1,5 +1,6 @@
 package jadx.core.clsp;
 
+import jadx.api.DefaultJadxArgs;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.files.InputFile;
@@ -42,7 +43,7 @@ public class ConvertToClsSet {
 			LOG.info("Loaded: {}", inputFile.getFile());
 		}
 
-		RootNode root = new RootNode();
+		RootNode root = new RootNode(new DefaultJadxArgs());
 		root.load(inputFiles);
 
 		ClsSet set = new ClsSet();

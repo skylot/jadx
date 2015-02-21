@@ -26,6 +26,7 @@ public abstract class ArgType {
 	public static final ArgType OBJECT = object(Consts.CLASS_OBJECT);
 	public static final ArgType CLASS = object(Consts.CLASS_CLASS);
 	public static final ArgType STRING = object(Consts.CLASS_STRING);
+	public static final ArgType ENUM = object(Consts.CLASS_ENUM);
 	public static final ArgType THROWABLE = object(Consts.CLASS_THROWABLE);
 
 	public static final ArgType UNKNOWN = unknown(PrimitiveType.values());

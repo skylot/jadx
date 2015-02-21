@@ -5,7 +5,7 @@ import jadx.core.dex.nodes.DexNode;
 
 import com.android.dex.FieldId;
 
-public class FieldInfo {
+public final class FieldInfo {
 
 	private final ClassInfo declClass;
 	private final String name;

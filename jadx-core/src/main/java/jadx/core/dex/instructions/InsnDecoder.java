@@ -621,12 +621,10 @@ public class InsnDecoder {
 				regs[i] = InsnArg.reg(regNum, elType, typeImmutable);
 			}
 		}
-		InsnNode node = new FilledNewArrayNode(elType, regs == null ? 0 : regs.length);
+		InsnNode node = new FilledNewArrayNode(elType, regs.length);
 		node.setResult(resReg == -1 ? null : InsnArg.reg(resReg, arrType));
-		if (regs != null) {
-			for (InsnArg arg : regs) {
-				node.addArg(arg);
-			}
+		for (InsnArg arg : regs) {
+			node.addArg(arg);
 		}
 		return node;
 	}

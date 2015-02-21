@@ -2,7 +2,6 @@ package jadx.core.dex.visitors;
 
 import jadx.api.IJadxArgs;
 import jadx.core.codegen.CodeWriter;
-import jadx.core.deobf.Deobfuscator;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.utils.exceptions.CodegenException;
 
@@ -25,7 +24,7 @@ public class SaveCode extends AbstractVisitor {
 
 	public static void save(File dir, IJadxArgs args, ClassNode cls) {
 		CodeWriter clsCode = cls.getCode();
-		String fileName = Deobfuscator.instance().getClassFullPath(cls.getClassInfo()) + ".java";
+		String fileName = cls.getClassInfo().getFullPath() + ".java";
 		if (args.isFallbackMode()) {
 			fileName += ".jadx";
 		}

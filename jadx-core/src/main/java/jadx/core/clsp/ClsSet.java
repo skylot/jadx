@@ -1,6 +1,6 @@
 package jadx.core.clsp;
 
-import jadx.core.dex.info.ClassInfo;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.DecodeException;
@@ -77,15 +77,15 @@ public class ClsSet {
 
 	public static NClass[] makeParentsArray(ClassNode cls, Map<String, NClass> names) {
 		List<NClass> parents = new ArrayList<NClass>(1 + cls.getInterfaces().size());
-		ClassInfo superClass = cls.getSuperClass();
+		ArgType superClass = cls.getSuperClass();
 		if (superClass != null) {
-			NClass c = getCls(superClass.getRawName(), names);
+			NClass c = getCls(superClass.getObject(), names);
 			if (c != null) {
 				parents.add(c);
 			}
 		}
-		for (ClassInfo iface : cls.getInterfaces()) {
-			NClass c = getCls(iface.getRawName(), names);
+		for (ArgType iface : cls.getInterfaces()) {
+			NClass c = getCls(iface.getObject(), names);
 			if (c != null) {
 				parents.add(c);
 			}

@@ -14,6 +14,7 @@ import jadx.core.dex.visitors.MethodInlineVisitor;
 import jadx.core.dex.visitors.ModVisitor;
 import jadx.core.dex.visitors.PrepareForCodeGen;
 import jadx.core.dex.visitors.ReSugarCode;
+import jadx.core.dex.visitors.RenameVisitor;
 import jadx.core.dex.visitors.SimplifyVisitor;
 import jadx.core.dex.visitors.blocksmaker.BlockExceptionHandler;
 import jadx.core.dex.visitors.blocksmaker.BlockFinallyExtract;
@@ -106,6 +107,10 @@ public class Jadx {
 			passes.add(new ProcessVariables());
 
 			passes.add(new DependencyCollector());
+
+			if (args.isDeobfuscationOn()) {
+				passes.add(new RenameVisitor());
+			}
 		}
 		return passes;
 	}

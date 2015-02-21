@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,8 +47,8 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 	private final DexNode dex;
 	private final ClassInfo clsInfo;
 	private final AccessInfo accessFlags;
-	private ClassInfo superClass;
-	private List<ClassInfo> interfaces;
+	private ArgType superClass;
+	private List<ArgType> interfaces;
 	private Map<ArgType, List<ArgType>> genericMap;
 
 	private final List<MethodNode> methods;
@@ -70,11 +71,11 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 			if (cls.getSupertypeIndex() == DexNode.NO_INDEX) {
 				this.superClass = null;
 			} else {
-				this.superClass = ClassInfo.fromDex(dex, cls.getSupertypeIndex());
+				this.superClass = dex.getType(cls.getSupertypeIndex());
 			}
-			this.interfaces = new ArrayList<ClassInfo>(cls.getInterfaces().length);
+			this.interfaces = new ArrayList<ArgType>(cls.getInterfaces().length);
 			for (short interfaceIdx : cls.getInterfaces()) {
-				this.interfaces.add(ClassInfo.fromDex(dex, interfaceIdx));
+				this.interfaces.add(dex.getType(interfaceIdx));
 			}
 			if (cls.getClassDataOffset() != 0) {
 				ClassData clsData = dex.readClassData(cls);
@@ -111,7 +112,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 			int sfIdx = cls.getSourceFileIndex();
 			if (sfIdx != DexNode.NO_INDEX) {
 				String fileName = dex.getString(sfIdx);
-				if (!this.getFullName().contains(fileName.replace(".java", ""))
+				if (!clsInfo.getFullName().contains(fileName.replace(".java", ""))
 						&& !fileName.equals("SourceFile")) {
 					this.addAttr(new SourceFileAttr(fileName));
 					LOG.debug("Class '{}' compiled from '{}'", this, fileName);
@@ -129,7 +130,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 			this.accessFlags = new AccessInfo(accFlagsValue, AFType.CLASS);
 
 		} catch (Exception e) {
-			throw new DecodeException("Error decode class: " + getFullName(), e);
+			throw new DecodeException("Error decode class: " + clsInfo, e);
 		}
 	}
 
@@ -191,12 +192,12 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 			// parse class generic map
 			genericMap = sp.consumeGenericMap();
 			// parse super class signature
-			superClass = ClassInfo.fromType(dex, sp.consumeType());
+			superClass = sp.consumeType();
 			// parse interfaces signatures
 			for (int i = 0; i < interfaces.size(); i++) {
 				ArgType type = sp.consumeType();
 				if (type != null) {
-					interfaces.set(i, ClassInfo.fromType(dex, type));
+					interfaces.set(i, type);
 				} else {
 					break;
 				}
@@ -247,11 +248,12 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 		}
 	}
 
-	public ClassInfo getSuperClass() {
+	@Nullable
+	public ArgType getSuperClass() {
 		return superClass;
 	}
 
-	public List<ClassInfo> getInterfaces() {
+	public List<ArgType> getInterfaces() {
 		return interfaces;
 	}
 
@@ -403,12 +405,14 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 	}
 
 	public boolean isEnum() {
-		return getAccessFlags().isEnum() && getSuperClass().getFullName().equals(Consts.CLASS_ENUM);
+		return getAccessFlags().isEnum()
+				&& getSuperClass() != null
+				&& getSuperClass().getObject().equals(ArgType.ENUM.getObject());
 	}
 
 	public boolean isAnonymous() {
 		return clsInfo.isInner()
-				&& getShortName().startsWith(Consts.ANONYMOUS_CLASS_PREFIX)
+				&& clsInfo.getShortName().startsWith(Consts.ANONYMOUS_CLASS_PREFIX)
 				&& getDefaultConstructor() != null;
 	}
 
@@ -429,24 +433,34 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 		return dex;
 	}
 
+	public String getRawName() {
+		return clsInfo.getRawName();
+	}
+
+	/**
+	 * Internal class info (don't use in code generation and external api).
+	 */
 	public ClassInfo getClassInfo() {
 		return clsInfo;
 	}
 
+	/**
+	 * Class info for external usage (code generation and external api).
+	 */
+	public ClassInfo getAlias() {
+		return clsInfo.getAlias();
+	}
+
 	public String getShortName() {
-		return clsInfo.getShortName();
+		return clsInfo.getAlias().getShortName();
 	}
 
 	public String getFullName() {
-		return clsInfo.getFullName();
+		return clsInfo.getAlias().getFullName();
 	}
 
 	public String getPackage() {
-		return clsInfo.getPackage();
-	}
-
-	public String getRawName() {
-		return clsInfo.getRawName();
+		return clsInfo.getAlias().getPackage();
 	}
 
 	public void setCode(CodeWriter code) {
@@ -471,6 +485,6 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 
 	@Override
 	public String toString() {
-		return getFullName();
+		return clsInfo.getFullName();
 	}
 }

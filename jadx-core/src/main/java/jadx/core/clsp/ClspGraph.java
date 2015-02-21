@@ -45,16 +45,10 @@ public class ClspGraph {
 			throw new JadxRuntimeException("Classpath must be loaded first");
 		}
 		int size = classes.size();
-		for (ClassNode cls : classes) {
-			size += cls.getInnerClasses().size();
-		}
 		NClass[] nClasses = new NClass[size];
 		int k = 0;
 		for (ClassNode cls : classes) {
 			nClasses[k++] = addClass(cls);
-			for (ClassNode inner : cls.getInnerClasses()) {
-				nClasses[k++] = addClass(inner);
-			}
 		}
 		for (int i = 0; i < size; i++) {
 			nClasses[i].setParents(ClsSet.makeParentsArray(classes.get(i), nameMap));
@@ -62,8 +56,9 @@ public class ClspGraph {
 	}
 
 	private NClass addClass(ClassNode cls) {
-		NClass nClass = new NClass(cls.getRawName(), -1);
-		nameMap.put(cls.getRawName(), nClass);
+		String rawName = cls.getRawName();
+		NClass nClass = new NClass(rawName, -1);
+		nameMap.put(rawName, nClass);
 		return nClass;
 	}
 

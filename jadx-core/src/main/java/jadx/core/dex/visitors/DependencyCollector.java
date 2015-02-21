@@ -31,8 +31,8 @@ public class DependencyCollector extends AbstractVisitor {
 
 	private static void processClass(ClassNode cls, DexNode dex, Set<ClassNode> depList) {
 		addDep(dex, depList, cls.getSuperClass());
-		for (ClassInfo clsInfo : cls.getInterfaces()) {
-			addDep(dex, depList, clsInfo);
+		for (ArgType iType : cls.getInterfaces()) {
+			addDep(dex, depList, iType);
 		}
 		for (FieldNode fieldNode : cls.getFields()) {
 			addDep(dex, depList, fieldNode.getType());
@@ -77,7 +77,7 @@ public class DependencyCollector extends AbstractVisitor {
 	private static void addDep(DexNode dex, Set<ClassNode> depList, ArgType type) {
 		if (type != null) {
 			if (type.isObject()) {
-				addDep(dex, depList, ClassInfo.fromName(type.getObject()));
+				addDep(dex, depList, ClassInfo.fromName(dex, type.getObject()));
 				ArgType[] genericTypes = type.getGenericTypes();
 				if (type.isGeneric() && genericTypes != null) {
 					for (ArgType argType : genericTypes) {

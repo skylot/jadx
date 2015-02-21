@@ -14,7 +14,7 @@ public class PackageNode {
 	private List<PackageNode> innerPackages = Collections.emptyList();
 
 	public static final char separatorChar = '.';
-	
+
 	private String packageName;
 	private String packageAlias;
 
@@ -51,14 +51,14 @@ public class PackageNode {
 		if (packageAlias != null) {
 			return packageAlias;
 		}
-		
+
 		return packageName;
 	}
 
 	public void setAlias(String alias) {
 		packageAlias = alias;
 	}
-	
+
 	public boolean hasAlias() {
 		return (packageAlias != null);
 	}
@@ -108,9 +108,8 @@ public class PackageNode {
 
 	/**
 	 * Gets inner package node by name
-	 * 
+	 *
 	 * @param name inner package name
-	 * 
 	 * @return package node or {@code null}
 	 */
 	public PackageNode getInnerPackageByName(String name) {
@@ -127,7 +126,7 @@ public class PackageNode {
 
 	/**
 	 * Fills stack with parent packages exclude root node
-	 * 
+	 *
 	 * @return stack with parent packages
 	 */
 	private Stack<PackageNode> getParentPackages() {

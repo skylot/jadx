@@ -199,7 +199,7 @@ public class ClassModifier extends AbstractVisitor {
 	 */
 	private static void processStaticFieldAssign(ClassNode cls, IndexInsnNode insn) {
 		FieldInfo field = (FieldInfo) insn.getIndex();
-		String thisClass = cls.getFullName();
+		String thisClass = cls.getClassInfo().getFullName();
 		if (field.getDeclClass().getFullName().equals(thisClass)) {
 			FieldNode fn = cls.searchField(field);
 			if (fn != null && fn.getAccessFlags().isFinal()) {

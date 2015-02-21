@@ -56,12 +56,12 @@ public class DefaultJadxArgs implements IJadxArgs {
 
 	@Override
 	public int getDeobfuscationMinLength() {
-		return Integer.MIN_VALUE+1;
+		return Integer.MIN_VALUE + 1;
 	}
 
 	@Override
 	public int getDeobfuscationMaxLength() {
-		return Integer.MAX_VALUE-1;
+		return Integer.MAX_VALUE - 1;
 	}
 
 	@Override

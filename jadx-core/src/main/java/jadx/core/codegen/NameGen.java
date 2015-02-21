@@ -158,8 +158,8 @@ public class NameGen {
 			if (alias != null) {
 				return alias;
 			}
-			ClassInfo clsInfo = ClassInfo.fromType(mth.dex(), type);
-			String shortName = clsInfo.getShortName();
+			ClassInfo extClsInfo = ClassInfo.extCls(mth.dex(), type);
+			String shortName = extClsInfo.getShortName();
 			String vName = fromName(shortName);
 			if (vName != null) {
 				return vName;
@@ -223,12 +223,12 @@ public class NameGen {
 		return null;
 	}
 
-	private static String makeNameFromInvoke(MethodInfo callMth) {
+	private String makeNameFromInvoke(MethodInfo callMth) {
 		String name = callMth.getName();
 		if (name.startsWith("get") || name.startsWith("set")) {
 			return fromName(name.substring(3));
 		}
-		ArgType declType = callMth.getDeclClass().getType();
+		ArgType declType = callMth.getDeclClass().getAlias().getType();
 		if ("iterator".equals(name)) {
 			return "it";
 		}

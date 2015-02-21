@@ -1,6 +1,5 @@
 package jadx.tests.api;
 
-import jadx.core.Consts;
 import jadx.core.dex.nodes.ClassNode;
 
 import java.io.File;
@@ -21,8 +20,7 @@ public class SmaliTest extends IntegrationTest {
 		File smaliFile = getSmaliFile(clsName);
 		File outDex = createTempFile(".dex");
 		compileSmali(smaliFile, outDex);
-		String fullClsName = Consts.DEFAULT_PACKAGE_NAME + "." + clsName;
-		return getClassNodeFromFile(outDex, fullClsName);
+		return getClassNodeFromFile(outDex, clsName);
 	}
 
 	private static File getSmaliFile(String clsName) {

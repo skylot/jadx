@@ -1,11 +1,11 @@
 package jadx.core.codegen;
 
-import jadx.core.deobf.Deobfuscator;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.annotations.MethodParameters;
 import jadx.core.dex.attributes.nodes.JadxErrorAttr;
 import jadx.core.dex.info.AccessInfo;
+import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
@@ -86,7 +86,7 @@ public class MethodGen {
 			code.add(' ');
 		}
 		if (mth.getAccessFlags().isConstructor()) {
-			code.add(Deobfuscator.instance().getClassShortName(classGen.getClassNode())); // constructor
+			code.add(classGen.getClassNode().getShortName()); // constructor
 		} else {
 			classGen.useType(code, mth.getReturnType());
 			code.add(' ');
@@ -209,7 +209,7 @@ public class MethodGen {
 	public static void addFallbackInsns(CodeWriter code, MethodNode mth, InsnNode[] insnArr, boolean addLabels) {
 		InsnGen insnGen = new InsnGen(getFallbackMethodGen(mth), true);
 		for (InsnNode insn : insnArr) {
-			if (insn == null) {
+			if (insn == null || insn.getType() == InsnType.NOP) {
 				continue;
 			}
 			if (addLabels && (insn.contains(AType.JUMP) || insn.contains(AType.EXC_HANDLER))) {

@@ -2,7 +2,6 @@ package jadx.core.dex.visitors;
 
 import jadx.core.codegen.CodeWriter;
 import jadx.core.codegen.MethodGen;
-import jadx.core.deobf.Deobfuscator;
 import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
@@ -68,7 +67,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 
 		public void process(MethodNode mth) {
 			dot.startLine("digraph \"CFG for");
-			dot.add(escape(mth.getParentClass().getFullName() + "." + mth.getMethodInfo().getShortId()));
+			dot.add(escape(mth.getParentClass() + "." + mth.getMethodInfo().getShortId()));
 			dot.add("\" {");
 
 			if (useRegions) {
@@ -85,7 +84,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 			dot.startLine("MethodNode[shape=record,label=\"{");
 			dot.add(escape(mth.getAccessFlags().makeString()));
 			dot.add(escape(mth.getReturnType() + " "
-					+ mth.getParentClass().getFullName() + "." + mth.getName()
+					+ mth.getParentClass() + "." + mth.getName()
 					+ "(" + Utils.listToString(mth.getArguments(true)) + ") "));
 
 			String attrs = attributesString(mth);
@@ -105,7 +104,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 					+ (useRegions ? ".regions" : "")
 					+ (rawInsn ? ".raw" : "")
 					+ ".dot";
-			dot.save(dir, Deobfuscator.instance().getClassFullPath(mth.getParentClass().getClassInfo()) + "_graphs", fileName);
+			dot.save(dir, mth.getParentClass().getClassInfo().getFullPath() + "_graphs", fileName);
 		}
 
 		private void processMethodRegion(MethodNode mth) {

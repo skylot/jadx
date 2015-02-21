@@ -162,14 +162,14 @@ public class InsnGen {
 
 	public static void makeStaticFieldAccess(CodeWriter code, FieldInfo field, ClassGen clsGen) {
 		ClassInfo declClass = field.getDeclClass();
-		boolean fieldFromThisClass = clsGen.getClassNode().getFullName().startsWith(declClass.getFullName());
+		boolean fieldFromThisClass = clsGen.getClassNode().getClassInfo().equals(declClass);
 		if (!fieldFromThisClass) {
 			// Android specific resources class handler
 			ClassInfo parentClass = declClass.getParentClass();
 			if (parentClass != null && parentClass.getShortName().equals("R")) {
 				clsGen.useClass(code, parentClass);
 				code.add('.');
-				code.add(declClass.getShortName());
+				code.add(declClass.getAlias().getShortName());
 			} else {
 				clsGen.useClass(code, declClass);
 			}
@@ -186,6 +186,10 @@ public class InsnGen {
 		makeStaticFieldAccess(code, field, mgen.getClassGen());
 	}
 
+	public void useClass(CodeWriter code, ArgType type) {
+		mgen.getClassGen().useClass(code, type);
+	}
+
 	public void useClass(CodeWriter code, ClassInfo cls) {
 		mgen.getClassGen().useClass(code, cls);
 	}
@@ -200,9 +204,6 @@ public class InsnGen {
 
 	protected boolean makeInsn(InsnNode insn, CodeWriter code, Flags flag) throws CodegenException {
 		try {
-			if (insn.getType() == InsnType.NOP) {
-				return false;
-			}
 			Set<Flags> state = EnumSet.noneOf(Flags.class);
 			if (flag == Flags.BODY_ONLY || flag == Flags.BODY_ONLY_NOWRAP) {
 				state.add(flag);
@@ -531,7 +532,7 @@ public class InsnGen {
 		ClassNode cls = mth.dex().resolveClass(insn.getClassType());
 		if (cls != null && cls.isAnonymous() && !fallback) {
 			// anonymous class construction
-			ClassInfo parent;
+			ArgType parent;
 			if (cls.getInterfaces().size() == 1) {
 				parent = cls.getInterfaces().get(0);
 			} else {
@@ -600,7 +601,7 @@ public class InsnGen {
 				break;
 
 			case STATIC:
-				ClassInfo insnCls = mth.getParentClass().getClassInfo();
+				ClassInfo insnCls = mth.getParentClass().getAlias();
 				ClassInfo declClass = callMth.getDeclClass();
 				if (!insnCls.equals(declClass)) {
 					useClass(code, declClass);

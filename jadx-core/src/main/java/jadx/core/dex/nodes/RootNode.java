@@ -1,5 +1,6 @@
 package jadx.core.dex.nodes;
 
+import jadx.api.IJadxArgs;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.api.ResourcesLoader;
@@ -27,18 +28,18 @@ import org.slf4j.LoggerFactory;
 public class RootNode {
 	private static final Logger LOG = LoggerFactory.getLogger(RootNode.class);
 
-	private final Map<String, ClassNode> names = new HashMap<String, ClassNode>();
 	private final ErrorsCounter errorsCounter = new ErrorsCounter();
+	private final IJadxArgs args;
 
 	private List<DexNode> dexNodes;
-
-	/**
-	 * Resources *
-	 */
 	private Map<Integer, String> resourcesNames = new HashMap<Integer, String>();
 	@Nullable
 	private String appPackage;
 	private ClassNode appResClass;
+
+	public RootNode(IJadxArgs args) {
+		this.args = args;
+	}
 
 	public void load(List<InputFile> dexFiles) throws DecodeException {
 		dexNodes = new ArrayList<DexNode>(dexFiles.size());
@@ -54,21 +55,7 @@ public class RootNode {
 		for (DexNode dexNode : dexNodes) {
 			dexNode.loadClasses();
 		}
-
-		List<ClassNode> classes = new ArrayList<ClassNode>();
-		for (DexNode dexNode : dexNodes) {
-			for (ClassNode cls : dexNode.getClasses()) {
-				names.put(cls.getFullName(), cls);
-			}
-			classes.addAll(dexNode.getClasses());
-		}
-
-		try {
-			initClassPath(classes);
-		} catch (IOException e) {
-			throw new DecodeException("Error loading classpath", e);
-		}
-		initInnerClasses(classes);
+		initInnerClasses();
 	}
 
 	public void loadResources(List<ResourceFile> resources) {
@@ -99,55 +86,52 @@ public class RootNode {
 
 		ResourceStorage resStorage = parser.getResStorage();
 		resourcesNames = resStorage.getResourcesNames();
+		appPackage = resStorage.getAppPackage();
 	}
 
 	public void initAppResClass() {
-		ClassNode resCls = null;
-		if (appPackage != null) {
-			resCls = searchClassByName(appPackage + ".R");
-		} else {
-			for (ClassNode cls : names.values()) {
-				if (cls.getShortName().equals("R")) {
-					resCls = cls;
-					break;
-				}
-			}
-		}
-		if (resCls != null) {
-			appResClass = resCls;
+		ClassNode resCls;
+		if (appPackage == null) {
+			appResClass = makeClass("R");
 			return;
 		}
+		String fullName = appPackage + ".R";
+		resCls = searchClassByName(fullName);
+		if (resCls != null) {
+			appResClass = resCls;
+		} else {
+			appResClass = makeClass(fullName);
+		}
+	}
+
+	private ClassNode makeClass(String clsName) {
 		DexNode firstDex = dexNodes.get(0);
-		appResClass = new ClassNode(firstDex, ClassInfo.fromName(firstDex, "R"));
+		ClassInfo r = ClassInfo.fromName(firstDex, clsName);
+		return new ClassNode(firstDex, r);
 	}
 
-	private static void initClassPath(List<ClassNode> classes) throws IOException, DecodeException {
-		if (!ArgType.isClspSet()) {
-			ClspGraph clsp = new ClspGraph();
-			clsp.load();
-			clsp.addApp(classes);
+	public void initClassPath() throws DecodeException {
+		try {
+			if (!ArgType.isClspSet()) {
+				ClspGraph clsp = new ClspGraph();
+				clsp.load();
 
-			ArgType.setClsp(clsp);
+				List<ClassNode> classes = new ArrayList<ClassNode>();
+				for (DexNode dexNode : dexNodes) {
+					classes.addAll(dexNode.getClasses());
+				}
+				clsp.addApp(classes);
+
+				ArgType.setClsp(clsp);
+			}
+		} catch (IOException e) {
+			throw new DecodeException("Error loading classpath", e);
 		}
 	}
 
-	private void initInnerClasses(List<ClassNode> classes) {
-		// move inner classes
-		List<ClassNode> inner = new ArrayList<ClassNode>();
-		for (ClassNode cls : classes) {
-			if (cls.getClassInfo().isInner()) {
-				inner.add(cls);
-			}
-		}
-		for (ClassNode cls : inner) {
-			ClassNode parent = resolveClass(cls.getClassInfo().getParentClass());
-			if (parent == null) {
-				names.remove(cls.getFullName());
-				cls.getClassInfo().notInner(cls.dex());
-				names.put(cls.getFullName(), cls);
-			} else {
-				parent.addInnerClass(cls);
-			}
+	private void initInnerClasses() {
+		for (DexNode dexNode : dexNodes) {
+			dexNode.initInnerClasses();
 		}
 	}
 
@@ -168,12 +152,14 @@ public class RootNode {
 	}
 
 	public ClassNode searchClassByName(String fullName) {
-		return names.get(fullName);
-	}
-
-	public ClassNode resolveClass(ClassInfo cls) {
-		String fullName = cls.getFullName();
-		return searchClassByName(fullName);
+		for (DexNode dexNode : dexNodes) {
+			ClassInfo clsInfo = ClassInfo.fromName(dexNode, fullName);
+			ClassNode cls = dexNode.resolveClass(clsInfo);
+			if (cls != null) {
+				return cls;
+			}
+		}
+		return null;
 	}
 
 	public List<DexNode> getDexNodes() {
@@ -195,5 +181,9 @@ public class RootNode {
 
 	public ClassNode getAppResClass() {
 		return appResClass;
+	}
+
+	public IJadxArgs getArgs() {
+		return args;
 	}
 }

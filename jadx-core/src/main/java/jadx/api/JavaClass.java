@@ -1,7 +1,6 @@
 package jadx.api;
 
 import jadx.core.codegen.CodeWriter;
-import jadx.core.deobf.Deobfuscator;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.info.AccessInfo;
@@ -116,6 +115,9 @@ public final class JavaClass implements JavaNode {
 
 	public CodePosition getDefinitionPosition(int line, int offset) {
 		Map<CodePosition, Object> map = getCodeAnnotations();
+		if (map.isEmpty()) {
+			return null;
+		}
 		Object obj = map.get(new CodePosition(line, offset));
 		if (!(obj instanceof LineAttrNode)) {
 			return null;
@@ -151,16 +153,16 @@ public final class JavaClass implements JavaNode {
 
 	@Override
 	public String getName() {
-		return Deobfuscator.instance().getClassShortName(cls);
+		return cls.getShortName();
 	}
 
 	@Override
 	public String getFullName() {
-		return Deobfuscator.instance().getClassFullName(cls);
+		return cls.getFullName();
 	}
 
 	public String getPackage() {
-		return Deobfuscator.instance().getPackageName(cls.getPackage());
+		return cls.getPackage();
 	}
 
 	@Override

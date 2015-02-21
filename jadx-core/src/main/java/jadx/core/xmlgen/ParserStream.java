@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
+import org.jetbrains.annotations.NotNull;
+
 public class ParserStream {
 
 	protected static final Charset STRING_CHARSET_UTF16 = Charset.forName("UTF-16LE");
@@ -15,7 +17,7 @@ public class ParserStream {
 	private final InputStream input;
 	private long readPos = 0;
 
-	public ParserStream(InputStream inputStream) {
+	public ParserStream(@NotNull InputStream inputStream) {
 		this.input = inputStream;
 	}
 

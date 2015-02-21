@@ -16,17 +16,27 @@ public final class ClassInfo {
 	private String fullName;
 	// for inner class not equals null
 	private ClassInfo parentClass;
+	// class info after rename (deobfuscation)
+	private ClassInfo alias;
 
 	private ClassInfo(DexNode dex, ArgType type) {
-		if (!type.isObject()) {
+		this(dex, type, true);
+	}
+
+	private ClassInfo(DexNode dex, ArgType type, boolean inner) {
+		if (!type.isObject() || type.isGeneric()) {
 			throw new JadxRuntimeException("Not class type: " + type);
 		}
 		this.type = type;
+		this.alias = this;
 
-		splitNames(dex, true);
+		splitNames(dex, inner);
 	}
 
 	public static ClassInfo fromType(DexNode dex, ArgType type) {
+		if (type.isArray()) {
+			type = ArgType.OBJECT;
+		}
 		ClassInfo cls = dex.getInfoStorage().getCls(type);
 		if (cls != null) {
 			return cls;
@@ -39,26 +49,32 @@ public final class ClassInfo {
 		if (clsIndex == DexNode.NO_INDEX) {
 			return null;
 		}
-		ArgType type = dex.getType(clsIndex);
-		if (type.isArray()) {
-			type = ArgType.OBJECT;
-		}
-		return fromType(dex, type);
+		return fromType(dex, dex.getType(clsIndex));
 	}
 
 	public static ClassInfo fromName(DexNode dex, String clsName) {
 		return fromType(dex, ArgType.object(clsName));
 	}
 
+	public static ClassInfo extCls(DexNode dex, ArgType type) {
+		ClassInfo classInfo = fromName(dex, type.getObject());
+		return classInfo.alias;
+	}
+
+	public void rename(DexNode dex, String fullName) {
+		this.alias = new ClassInfo(dex, ArgType.object(fullName), isInner());
+	}
+
+	public ClassInfo getAlias() {
+		return alias;
+	}
+
 	private void splitNames(DexNode dex, boolean canBeInner) {
 		String fullObjectName = type.getObject();
-		assert fullObjectName.indexOf('/') == -1 : "Raw type: " + type;
-
 		String clsName;
 		int dot = fullObjectName.lastIndexOf('.');
 		if (dot == -1) {
-			// rename default package if it used from class with package (often for obfuscated apps),
-			pkg = Consts.DEFAULT_PACKAGE_NAME;
+			pkg = "";
 			clsName = fullObjectName;
 		} else {
 			pkg = fullObjectName.substring(0, dot);
@@ -83,8 +99,12 @@ public final class ClassInfo {
 		if (NameMapper.isReserved(clsName)) {
 			clsName += "_";
 		}
-		this.fullName = (parentClass != null ? parentClass.getFullName() : pkg) + "." + clsName;
 		this.name = clsName;
+		if (parentClass != null) {
+			this.fullName = parentClass.fullName + "." + clsName;
+		} else {
+			this.fullName = pkg.isEmpty() ? clsName : pkg + "." + clsName;
+		}
 	}
 
 	public String getFullPath() {
@@ -97,28 +117,23 @@ public final class ClassInfo {
 		return fullName;
 	}
 
-	public boolean isObject() {
-		return fullName.equals(Consts.CLASS_OBJECT);
-	}
-
 	public String getShortName() {
 		return name;
-	}
-
-	public String getRawName() {
-		return type.getObject();
 	}
 
 	public String getPackage() {
 		return pkg;
 	}
 
-	public boolean isPackageDefault() {
-		return pkg.isEmpty() || pkg.equals(Consts.DEFAULT_PACKAGE_NAME);
+	public String getRawName() {
+		return type.getObject();
 	}
 
 	public String getNameWithoutPackage() {
-		return (parentClass != null ? parentClass.getNameWithoutPackage() + "." : "") + name;
+		if (parentClass == null) {
+			return name;
+		}
+		return parentClass.getNameWithoutPackage() + "." + name;
 	}
 
 	public ClassInfo getParentClass() {
@@ -154,7 +169,7 @@ public final class ClassInfo {
 		}
 		if (obj instanceof ClassInfo) {
 			ClassInfo other = (ClassInfo) obj;
-			return this.getFullName().equals(other.getFullName());
+			return this.type.equals(other.type);
 		}
 		return false;
 	}
