@@ -41,9 +41,8 @@ public class TestTernary3 extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		// TODO:
-		assertThat(code, containsOne("return (n == null || !(arg instanceof Named)) "
-				+ "? false : n.equals(((Named) arg).getName());"));
+		assertThat(code, containsOne("if (n == null || !(arg instanceof Named)) {"));
+		assertThat(code, containsOne("return n.equals(((Named) arg).getName());"));
 
 		assertThat(code, not(containsString("if ((arg instanceof RegisterArg)) {")));
 	}

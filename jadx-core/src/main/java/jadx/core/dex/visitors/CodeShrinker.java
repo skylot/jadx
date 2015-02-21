@@ -249,19 +249,28 @@ public class CodeShrinker extends AbstractVisitor {
 	private static boolean inline(RegisterArg arg, InsnNode insn, @Nullable BlockNode block, MethodNode mth) {
 		InsnNode parentInsn = arg.getParentInsn();
 		// replace move instruction if needed
-		if (parentInsn != null && parentInsn.getType() == InsnType.MOVE) {
-			if (block == null) {
-				block = BlockUtils.getBlockByInsn(mth, parentInsn);
-			}
-			if (block != null) {
-				int index = InsnList.getIndex(block.getInstructions(), parentInsn);
-				if (index != -1) {
-					insn.setResult(parentInsn.getResult());
-					insn.copyAttributesFrom(parentInsn);
-					insn.setOffset(parentInsn.getOffset());
+		if (parentInsn != null) {
+			switch (parentInsn.getType()) {
+				case MOVE: {
+					if (block == null) {
+						block = BlockUtils.getBlockByInsn(mth, parentInsn);
+					}
+					if (block != null) {
+						int index = InsnList.getIndex(block.getInstructions(), parentInsn);
+						if (index != -1) {
+							insn.setResult(parentInsn.getResult());
+							insn.copyAttributesFrom(parentInsn);
+							insn.setOffset(parentInsn.getOffset());
 
-					block.getInstructions().set(index, insn);
-					return true;
+							block.getInstructions().set(index, insn);
+							return true;
+						}
+					}
+					break;
+				}
+				case RETURN: {
+					parentInsn.setSourceLine(insn.getSourceLine());
+					break;
 				}
 			}
 		}

@@ -69,7 +69,7 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 		if (!arg.getType().isTypeKnown()) {
 			arg.merge(resType);
 		}
-		return replaceConst(mth, sVar, lit);
+		return replaceConst(mth, insn, lit);
 	}
 
 	/**
@@ -98,13 +98,11 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 		return false;
 	}
 
-	private static boolean replaceConst(MethodNode mth, SSAVar sVar, long literal) {
+	private static boolean replaceConst(MethodNode mth, InsnNode constInsn, long literal) {
+		SSAVar sVar = constInsn.getResult().getSVar();
 		List<RegisterArg> use = new ArrayList<RegisterArg>(sVar.getUseList());
 		int replaceCount = 0;
 		for (RegisterArg arg : use) {
-//			if (arg.getSVar().isUsedInPhi()) {
-//				continue;
-//			}
 			InsnNode useInsn = arg.getParentInsn();
 			if (useInsn == null || useInsn.getType() == InsnType.PHI) {
 				continue;
@@ -125,6 +123,9 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 			if (useInsn.replaceArg(arg, litArg)) {
 				fixTypes(mth, useInsn, litArg);
 				replaceCount++;
+				if (useInsn.getType() == InsnType.RETURN) {
+					useInsn.setSourceLine(constInsn.getSourceLine());
+				}
 
 				FieldNode f = null;
 				ArgType litArgType = litArg.getType();
