@@ -13,7 +13,7 @@ public class TestArgInline extends IntegrationTest {
 
 	public static class TestCls {
 
-		public void method(int a) {
+		public void test(int a) {
 			while (a < 10) {
 				int b = a + 1;
 				a = b;

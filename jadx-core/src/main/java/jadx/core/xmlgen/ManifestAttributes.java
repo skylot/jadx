@@ -154,6 +154,6 @@ public class ManifestAttributes {
 				return sb.deleteCharAt(sb.length() - 1).toString();
 			}
 		}
-		return "UNKNOWN_DATA_" + Integer.toHexString(value);
+		return "UNKNOWN_DATA_0x" + Integer.toHexString(value);
 	}
 }

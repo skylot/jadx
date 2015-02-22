@@ -12,6 +12,7 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.parser.FieldValueAttr;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +45,7 @@ public class RegisterArg extends InsnArg implements Named {
 		return sVar;
 	}
 
-	void setSVar(SSAVar sVar) {
+	void setSVar(@NotNull SSAVar sVar) {
 		this.sVar = sVar;
 	}
 
@@ -162,7 +163,7 @@ public class RegisterArg extends InsnArg implements Named {
 
 	@Override
 	public int hashCode() {
-		return (regNum * 31 + type.hashCode()) * 31 + (sVar != null ? sVar.hashCode() : 0);
+		return regNum * 31 + type.hashCode();
 	}
 
 	@Override

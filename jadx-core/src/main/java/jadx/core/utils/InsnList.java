@@ -29,12 +29,11 @@ public final class InsnList implements Iterable<InsnNode> {
 	}
 
 	public static int getIndex(List<InsnNode> list, InsnNode insn) {
-		int i = 0;
-		for (InsnNode curObj : list) {
-			if (curObj == insn) {
+		int size = list.size();
+		for (int i = 0; i < size; i++) {
+			if (list.get(i) == insn) {
 				return i;
 			}
-			i++;
 		}
 		return -1;
 	}

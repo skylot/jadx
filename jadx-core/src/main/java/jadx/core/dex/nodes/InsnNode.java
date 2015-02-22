@@ -111,6 +111,10 @@ public class InsnNode extends LineAttrNode {
 		for (int i = 0; i < count; i++) {
 			if (arg == arguments.get(i)) {
 				arguments.remove(i);
+				if (arg instanceof RegisterArg) {
+					RegisterArg reg = (RegisterArg) arg;
+					reg.getSVar().removeUse(reg);
+				}
 				return true;
 			}
 		}

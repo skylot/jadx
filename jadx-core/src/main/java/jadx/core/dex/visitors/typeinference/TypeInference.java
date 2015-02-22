@@ -71,7 +71,10 @@ public class TypeInference extends AbstractVisitor {
 		for (int i = 0; i < phi.getArgsCount(); i++) {
 			RegisterArg arg = phi.getArg(i);
 			arg.setType(type);
-			arg.getSVar().setName(phi.getResult().getName());
+			SSAVar sVar = arg.getSVar();
+			if (sVar != null) {
+				sVar.setName(phi.getResult().getName());
+			}
 		}
 	}
 

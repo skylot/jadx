@@ -14,9 +14,14 @@ public final class BlocksRemoveInfo {
 	private final Set<BlocksPair> processed = new HashSet<BlocksPair>();
 	private final Set<BlocksPair> outs = new HashSet<BlocksPair>();
 	private final Map<RegisterArg, RegisterArg> regMap = new HashMap<RegisterArg, RegisterArg>();
-	private final BlocksPair start;
+
+	private BlocksPair start;
+	private BlocksPair end;
 
 	private int startSplitIndex;
+	private int endSplitIndex;
+
+	private BlockNode startPredecessor;
 
 	public BlocksRemoveInfo(BlocksPair start) {
 		this.start = start;
@@ -34,12 +39,40 @@ public final class BlocksRemoveInfo {
 		return start;
 	}
 
+	public void setStart(BlocksPair start) {
+		this.start = start;
+	}
+
+	public BlocksPair getEnd() {
+		return end;
+	}
+
+	public void setEnd(BlocksPair end) {
+		this.end = end;
+	}
+
 	public int getStartSplitIndex() {
 		return startSplitIndex;
 	}
 
 	public void setStartSplitIndex(int startSplitIndex) {
 		this.startSplitIndex = startSplitIndex;
+	}
+
+	public int getEndSplitIndex() {
+		return endSplitIndex;
+	}
+
+	public void setEndSplitIndex(int endSplitIndex) {
+		this.endSplitIndex = endSplitIndex;
+	}
+
+	public void setStartPredecessor(BlockNode startPredecessor) {
+		this.startPredecessor = startPredecessor;
+	}
+
+	public BlockNode getStartPredecessor() {
+		return startPredecessor;
 	}
 
 	public Map<RegisterArg, RegisterArg> getRegMap() {
@@ -69,6 +102,7 @@ public final class BlocksRemoveInfo {
 	@Override
 	public String toString() {
 		return "BRI start: " + start
+				+ ", end: " + end
 				+ ", list: " + processed
 				+ ", outs: " + outs
 				+ ", regMap: " + regMap

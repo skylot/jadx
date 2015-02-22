@@ -1,6 +1,8 @@
 package jadx.core.utils;
 
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -63,14 +65,38 @@ public class InstructionRemover {
 	}
 
 	public static void unbindInsn(MethodNode mth, InsnNode insn) {
+		unbindResult(mth, insn);
+		for (InsnArg arg : insn.getArguments()) {
+			unbindArgUsage(mth, arg);
+		}
+		if (insn.getType() == InsnType.PHI) {
+			for (InsnArg arg : insn.getArguments()) {
+				if (arg instanceof RegisterArg) {
+					fixUsedInPhiFlag((RegisterArg) arg);
+				}
+			}
+		}
+		insn.add(AFlag.INCONSISTENT_CODE);
+	}
+
+	public static void fixUsedInPhiFlag(RegisterArg useReg) {
+		PhiInsn usedIn = null;
+		for (RegisterArg reg : useReg.getSVar().getUseList()) {
+			InsnNode parentInsn = reg.getParentInsn();
+			if (parentInsn != null
+					&& parentInsn.getType() == InsnType.PHI
+					&& parentInsn.containsArg(useReg)) {
+				usedIn = (PhiInsn) parentInsn;
+			}
+		}
+		useReg.getSVar().setUsedInPhi(usedIn);
+	}
+
+	public static void unbindResult(MethodNode mth, InsnNode insn) {
 		RegisterArg r = insn.getResult();
 		if (r != null && r.getSVar() != null) {
 			mth.removeSVar(r.getSVar());
 		}
-		for (InsnArg arg : insn.getArguments()) {
-			unbindArgUsage(mth, arg);
-		}
-		insn.add(AFlag.INCONSISTENT_CODE);
 	}
 
 	public static void unbindArgUsage(MethodNode mth, InsnArg arg) {
@@ -122,6 +148,9 @@ public class InstructionRemover {
 	}
 
 	public static void removeAll(MethodNode mth, BlockNode block, List<InsnNode> insns) {
+		if (insns.isEmpty()) {
+			return;
+		}
 		removeAll(mth, block.getInstructions(), insns);
 	}
 

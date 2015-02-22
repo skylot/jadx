@@ -4,7 +4,7 @@ import jadx.api.IJadxArgs;
 import jadx.core.codegen.CodeGen;
 import jadx.core.dex.visitors.ClassModifier;
 import jadx.core.dex.visitors.CodeShrinker;
-import jadx.core.dex.visitors.ConstInlinerVisitor;
+import jadx.core.dex.visitors.ConstInlineVisitor;
 import jadx.core.dex.visitors.DebugInfoVisitor;
 import jadx.core.dex.visitors.DotGraphVisitor;
 import jadx.core.dex.visitors.EnumVisitor;
@@ -73,7 +73,7 @@ public class Jadx {
 				passes.add(DotGraphVisitor.dumpRaw(outDir));
 			}
 
-			passes.add(new ConstInlinerVisitor());
+			passes.add(new ConstInlineVisitor());
 			passes.add(new FinishTypeInference());
 			passes.add(new EliminatePhiNodes());
 

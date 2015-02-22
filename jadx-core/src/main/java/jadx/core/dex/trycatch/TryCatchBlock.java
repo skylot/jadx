@@ -64,11 +64,26 @@ public class TryCatchBlock {
 	private void unbindHandler(ExceptionHandler handler) {
 		for (BlockNode block : handler.getBlocks()) {
 			block.add(AFlag.SKIP);
+			ExcHandlerAttr excHandlerAttr = block.get(AType.EXC_HANDLER);
+			if (excHandlerAttr != null) {
+				if (excHandlerAttr.getHandler().equals(handler)) {
+					block.remove(AType.EXC_HANDLER);
+				}
+			}
+			SplitterBlockAttr splitter = handler.getHandlerBlock().get(AType.SPLITTER_BLOCK);
+			if (splitter != null) {
+				splitter.getBlock().remove(AType.SPLITTER_BLOCK);
+			}
 		}
 	}
 
 	private void removeWholeBlock(MethodNode mth) {
 		// self destruction
+		for (Iterator<ExceptionHandler> it = handlers.iterator(); it.hasNext(); ) {
+			ExceptionHandler h = it.next();
+			unbindHandler(h);
+			it.remove();
+		}
 		for (InsnNode insn : insns) {
 			insn.removeAttr(attr);
 		}
@@ -83,9 +98,22 @@ public class TryCatchBlock {
 		insn.addAttr(attr);
 	}
 
-	public void removeInsn(InsnNode insn) {
+	public void removeInsn(MethodNode mth, InsnNode insn) {
 		insns.remove(insn);
 		insn.remove(AType.CATCH_BLOCK);
+		if (insns.isEmpty()) {
+			removeWholeBlock(mth);
+		}
+	}
+
+	public void removeBlock(MethodNode mth, BlockNode block) {
+		for (InsnNode insn : block.getInstructions()) {
+			insns.remove(insn);
+			insn.remove(AType.CATCH_BLOCK);
+		}
+		if (insns.isEmpty()) {
+			removeWholeBlock(mth);
+		}
 	}
 
 	public Iterable<InsnNode> getInsns() {

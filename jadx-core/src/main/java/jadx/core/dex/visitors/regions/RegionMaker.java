@@ -878,7 +878,6 @@ public class RegionMaker {
 		}
 	}
 
-	// TODO add blocks common for several handlers to some region
 	private void processExcHandler(ExceptionHandler handler, Set<BlockNode> exits) {
 		BlockNode start = handler.getHandlerBlock();
 		if (start == null) {

@@ -10,6 +10,7 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.Edge;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -396,6 +397,10 @@ public class BlockProcessor extends AbstractVisitor {
 						|| !block.getSuccessors().isEmpty()) {
 					LOG.error("Block {} not deleted, method: {}", block, mth);
 				} else {
+					CatchAttr catchAttr = block.get(AType.CATCH_BLOCK);
+					if (catchAttr != null) {
+						catchAttr.getTryBlock().removeBlock(mth, block);
+					}
 					it.remove();
 				}
 			}

@@ -23,7 +23,7 @@ import jadx.core.utils.exceptions.JadxException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ConstInlinerVisitor extends AbstractVisitor {
+public class ConstInlineVisitor extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
@@ -38,14 +38,12 @@ public class ConstInlinerVisitor extends AbstractVisitor {
 					toRemove.add(insn);
 				}
 			}
-			if (!toRemove.isEmpty()) {
-				InstructionRemover.removeAll(mth, block, toRemove);
-			}
+			InstructionRemover.removeAll(mth, block, toRemove);
 		}
 	}
 
 	private static boolean checkInsn(MethodNode mth, InsnNode insn) {
-		if (insn.getType() != InsnType.CONST) {
+		if (insn.getType() != InsnType.CONST || insn.contains(AFlag.DONT_INLINE)) {
 			return false;
 		}
 		InsnArg arg = insn.getArg(0);

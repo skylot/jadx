@@ -52,7 +52,7 @@ public class TestContinueInLoop2 extends IntegrationTest {
 								TryCatchBlock catchBlock = catchAttr.getTryBlock();
 								if (handlerBlock != catchBlock) {
 									handlerBlock.merge(mth, catchBlock);
-									catchBlock.removeInsn(insn);
+									catchBlock.removeInsn(mth, insn);
 								}
 							}
 						}

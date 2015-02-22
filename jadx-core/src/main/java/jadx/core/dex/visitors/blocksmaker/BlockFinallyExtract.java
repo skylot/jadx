@@ -9,7 +9,7 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.trycatch.ExcHandlerAttr;
+import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.SplitterBlockAttr;
 import jadx.core.dex.trycatch.TryCatchBlock;
@@ -18,7 +18,6 @@ import jadx.core.dex.visitors.blocksmaker.helpers.BlocksPair;
 import jadx.core.dex.visitors.blocksmaker.helpers.BlocksRemoveInfo;
 import jadx.core.dex.visitors.ssa.LiveVarAnalysis;
 import jadx.core.utils.BlockUtils;
-import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
@@ -35,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static jadx.core.dex.visitors.blocksmaker.BlockSplitter.connect;
-import static jadx.core.dex.visitors.blocksmaker.BlockSplitter.insertBlockBetween;
 import static jadx.core.dex.visitors.blocksmaker.BlockSplitter.removeConnection;
 
 public class BlockFinallyExtract extends AbstractVisitor {
@@ -48,10 +46,8 @@ public class BlockFinallyExtract extends AbstractVisitor {
 		}
 
 		boolean reloadBlocks = false;
-		List<BlockNode> basicBlocks = mth.getBasicBlocks();
-		for (int i = 0; i < basicBlocks.size(); i++) {
-			BlockNode block = basicBlocks.get(i);
-			if (processExceptionHandler(mth, block)) {
+		for (ExceptionHandler excHandler : mth.getExceptionHandlers()) {
+			if (processExceptionHandler(mth, excHandler)) {
 				reloadBlocks = true;
 			}
 		}
@@ -61,13 +57,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 		}
 	}
 
-	private static boolean processExceptionHandler(MethodNode mth, BlockNode block) {
-		ExcHandlerAttr handlerAttr = block.get(AType.EXC_HANDLER);
-		if (handlerAttr == null) {
-			return false;
-		}
-		ExceptionHandler excHandler = handlerAttr.getHandler();
-
+	private static boolean processExceptionHandler(MethodNode mth, ExceptionHandler excHandler) {
 		// check if handler has exit edge to block not from this handler
 		boolean noExitNode = true;
 		boolean reThrowRemoved = false;
@@ -82,16 +72,16 @@ public class BlockFinallyExtract extends AbstractVisitor {
 					&& size != 0
 					&& insns.get(size - 1).getType() == InsnType.THROW) {
 				reThrowRemoved = true;
-				InstructionRemover.remove(mth, excBlock, size - 1);
+				insns.remove(size - 1);
 			}
 		}
 		if (reThrowRemoved && noExitNode
-				&& extractFinally(mth, block, excHandler)) {
+				&& extractFinally(mth, excHandler)) {
 			return true;
 		}
 		int totalSize = countInstructions(excHandler);
 		if (totalSize == 0 && reThrowRemoved && noExitNode) {
-			handlerAttr.getTryBlock().removeHandler(mth, excHandler);
+			excHandler.getTryBlock().removeHandler(mth, excHandler);
 		}
 		return false;
 	}
@@ -99,7 +89,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 	/**
 	 * Search and remove common code from 'catch' and 'handlers'.
 	 */
-	private static boolean extractFinally(MethodNode mth, BlockNode handlerBlock, ExceptionHandler handler) {
+	private static boolean extractFinally(MethodNode mth, ExceptionHandler handler) {
 		int count = handler.getBlocks().size();
 		BitSet bs = new BitSet(count);
 		List<BlockNode> blocks = new ArrayList<BlockNode>(count);
@@ -171,19 +161,103 @@ public class BlockFinallyExtract extends AbstractVisitor {
 			return false;
 		}
 
-		// 'finally' extract confirmed
+		/* 'finally' extract confirmed, run remove steps */
+
+		LiveVarAnalysis laBefore = null;
+		boolean runReMap = isReMapNeeded(removes);
+		if (runReMap) {
+			laBefore = new LiveVarAnalysis(mth);
+			laBefore.runAnalysis();
+		}
+
 		for (BlocksRemoveInfo removeInfo : removes) {
 			if (!applyRemove(mth, removeInfo)) {
 				return false;
 			}
 		}
-		handler.setFinally(true);
+
+		LiveVarAnalysis laAfter = null;
+
 		// remove 'move-exception' instruction
-		if (BlockUtils.checkLastInsnType(handlerBlock, InsnType.MOVE_EXCEPTION)) {
-			InstructionRemover.remove(mth, handlerBlock, handlerBlock.getInstructions().size() - 1);
-			handlerBlock.add(AFlag.SKIP);
+		BlockNode handlerBlock = handler.getHandlerBlock();
+		InsnNode me = BlockUtils.getLastInsn(handlerBlock);
+		if (me != null && me.getType() == InsnType.MOVE_EXCEPTION) {
+			boolean replaced = false;
+			List<InsnNode> insnsList = handlerBlock.getInstructions();
+			if (!handlerBlock.getCleanSuccessors().isEmpty()) {
+				laAfter = new LiveVarAnalysis(mth);
+				laAfter.runAnalysis();
+
+				RegisterArg resArg = me.getResult();
+				BlockNode succ = handlerBlock.getCleanSuccessors().get(0);
+				if (laAfter.isLive(succ.getId(), resArg.getRegNum())) {
+					// kill variable
+					InsnNode kill = new InsnNode(InsnType.NOP, 0);
+					kill.setResult(resArg);
+					kill.add(AFlag.REMOVE);
+					insnsList.set(insnsList.size() - 1, kill);
+					replaced = true;
+				}
+			}
+			if (!replaced) {
+				insnsList.remove(insnsList.size() - 1);
+				handlerBlock.add(AFlag.SKIP);
+			}
 		}
+
+		// generate 'move' instruction for mapped register pairs
+		if (runReMap) {
+			if (laAfter == null) {
+				laAfter = new LiveVarAnalysis(mth);
+				laAfter.runAnalysis();
+			}
+			performVariablesReMap(mth, removes, laBefore, laAfter);
+		}
+
+		handler.setFinally(true);
 		return true;
+	}
+
+	private static void performVariablesReMap(MethodNode mth, List<BlocksRemoveInfo> removes,
+			LiveVarAnalysis laBefore, LiveVarAnalysis laAfter) {
+		BitSet processed = new BitSet(mth.getRegsCount());
+		for (BlocksRemoveInfo removeInfo : removes) {
+			processed.clear();
+			BlockNode insertBlock = removeInfo.getStart().getSecond();
+			if (removeInfo.getRegMap().isEmpty() || insertBlock == null) {
+				continue;
+			}
+			for (Map.Entry<RegisterArg, RegisterArg> entry : removeInfo.getRegMap().entrySet()) {
+				RegisterArg from = entry.getKey();
+				int regNum = from.getRegNum();
+				if (!processed.get(regNum)) {
+					if (laBefore.isLive(insertBlock.getId(), regNum)) {
+						// remap variable
+						RegisterArg to = entry.getValue();
+						InsnNode move = new InsnNode(InsnType.MOVE, 1);
+						move.setResult(to);
+						move.addArg(from);
+						insertBlock.getInstructions().add(move);
+					} else if (laAfter.isLive(insertBlock.getId(), regNum)) {
+						// kill variable
+						InsnNode kill = new InsnNode(InsnType.NOP, 0);
+						kill.setResult(from);
+						kill.add(AFlag.REMOVE);
+						insertBlock.getInstructions().add(0, kill);
+					}
+					processed.set(regNum);
+				}
+			}
+		}
+	}
+
+	private static boolean isReMapNeeded(List<BlocksRemoveInfo> removes) {
+		for (BlocksRemoveInfo removeInfo : removes) {
+			if (!removeInfo.getRegMap().isEmpty()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static BlocksRemoveInfo removeInsns(MethodNode mth, BlockNode remBlock, List<BlockNode> blocks, BitSet bs) {
@@ -223,14 +297,36 @@ public class BlockFinallyExtract extends AbstractVisitor {
 			return null;
 		}
 		// first - fast check
-		int delta = remInsns.size() - startInsns.size();
-		if (!checkInsns(remInsns, startInsns, delta, null)) {
-			return null;
+		int startPos = remInsns.size() - startInsns.size();
+		int endPos = 0;
+		if (!checkInsns(remInsns, startInsns, startPos, null)) {
+			if (checkInsns(remInsns, startInsns, 0, null)) {
+				startPos = 0;
+				endPos = startInsns.size();
+			} else {
+				boolean found = false;
+				for (int i = 1; i < startPos; i++) {
+					if (checkInsns(remInsns, startInsns, i, null)) {
+						startPos = i;
+						endPos = startInsns.size() + i;
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					return null;
+				}
+			}
 		}
-		BlocksRemoveInfo removeInfo = new BlocksRemoveInfo(new BlocksPair(remBlock, startBlock));
-		removeInfo.setStartSplitIndex(delta);
+		BlocksPair startPair = new BlocksPair(remBlock, startBlock);
+		BlocksRemoveInfo removeInfo = new BlocksRemoveInfo(startPair);
+		removeInfo.setStartSplitIndex(startPos);
+		removeInfo.setEndSplitIndex(endPos);
+		if (endPos != 0) {
+			removeInfo.setEnd(startPair);
+		}
 		// second - run checks again for collect registers mapping
-		if (!checkInsns(remInsns, startInsns, delta, removeInfo)) {
+		if (!checkInsns(remInsns, startInsns, startPos, removeInfo)) {
 			return null;
 		}
 		return removeInfo;
@@ -255,18 +351,23 @@ public class BlockFinallyExtract extends AbstractVisitor {
 				&& !sameBlocks(remBlock, startBlock, removeInfo)) {
 			return false;
 		}
-		removeInfo.getProcessed().add(new BlocksPair(remBlock, startBlock));
+		BlocksPair currentPair = new BlocksPair(remBlock, startBlock);
+		removeInfo.getProcessed().add(currentPair);
 
 		List<BlockNode> baseCS = startBlock.getCleanSuccessors();
 		List<BlockNode> remCS = remBlock.getCleanSuccessors();
 		if (baseCS.size() != remCS.size()) {
-			removeInfo.getOuts().add(new BlocksPair(remBlock, startBlock));
+			removeInfo.getOuts().add(currentPair);
 			return true;
 		}
 		for (int i = 0; i < baseCS.size(); i++) {
 			BlockNode sBlock = baseCS.get(i);
 			BlockNode rBlock = remCS.get(i);
 			if (bs.get(sBlock.getId())) {
+				if (removeInfo.getEndSplitIndex() != 0) {
+					// end block is not correct
+					return false;
+				}
 				if (!checkBlocksTree(rBlock, sBlock, removeInfo, bs)) {
 					return false;
 				}
@@ -277,17 +378,21 @@ public class BlockFinallyExtract extends AbstractVisitor {
 		return true;
 	}
 
-	private static boolean sameBlocks(BlockNode remBlock, BlockNode startBlock, BlocksRemoveInfo removeInfo) {
+	private static boolean sameBlocks(BlockNode remBlock, BlockNode finallyBlock, BlocksRemoveInfo removeInfo) {
 		List<InsnNode> first = remBlock.getInstructions();
-		List<InsnNode> second = startBlock.getInstructions();
-		if (first.size() != second.size()) {
+		List<InsnNode> second = finallyBlock.getInstructions();
+		if (first.size() < second.size()) {
 			return false;
 		}
-		int size = first.size();
+		int size = second.size();
 		for (int i = 0; i < size; i++) {
 			if (!sameInsns(first.get(i), second.get(i), removeInfo)) {
 				return false;
 			}
+		}
+		if (first.size() > second.size()) {
+			removeInfo.setEndSplitIndex(second.size());
+			removeInfo.setEnd(new BlocksPair(remBlock, finallyBlock));
 		}
 		return true;
 	}
@@ -332,27 +437,43 @@ public class BlockFinallyExtract extends AbstractVisitor {
 			LOG.warn("Finally extract failed: remBlock pred: {}, {}, method: {}", remBlock, remBlock.getPredecessors(), mth);
 			return false;
 		}
+
 		BlockNode remBlockPred = remBlock.getPredecessors().get(0);
-		int splitIndex = removeInfo.getStartSplitIndex();
-		if (splitIndex > 0) {
-			// split start block (remBlock)
-			BlockNode newBlock = insertBlockBetween(mth, remBlockPred, remBlock);
-			for (int i = 0; i < splitIndex; i++) {
-				InsnNode insnNode = remBlock.getInstructions().get(i);
-				insnNode.add(AFlag.SKIP);
-				newBlock.getInstructions().add(insnNode);
-			}
-			Iterator<InsnNode> it = remBlock.getInstructions().iterator();
-			while (it.hasNext()) {
-				InsnNode insnNode = it.next();
-				if (insnNode.contains(AFlag.SKIP)) {
-					it.remove();
+		removeInfo.setStartPredecessor(remBlockPred);
+
+		int startSplitIndex = removeInfo.getStartSplitIndex();
+		int endSplitIndex = removeInfo.getEndSplitIndex();
+		if (removeInfo.getStart().equals(removeInfo.getEnd())) {
+			removeInfo.setEndSplitIndex(endSplitIndex - startSplitIndex);
+		}
+		// split start block (remBlock)
+		if (startSplitIndex > 0) {
+			remBlock = splitBlock(mth, remBlock, startSplitIndex);
+			// change start block in removeInfo
+			removeInfo.getProcessed().remove(removeInfo.getStart());
+			BlocksPair newStart = new BlocksPair(remBlock, startBlock);
+			removeInfo.setStart(newStart);
+			removeInfo.getProcessed().add(newStart);
+		}
+		// split end block
+		if (endSplitIndex > 0) {
+			BlocksPair end = removeInfo.getEnd();
+			BlockNode newOut = splitBlock(mth, end.getFirst(), endSplitIndex);
+			for (BlockNode s : newOut.getSuccessors()) {
+				BlocksPair replaceOut = null;
+				Iterator<BlocksPair> it = removeInfo.getOuts().iterator();
+				while (it.hasNext()) {
+					BlocksPair outPair = it.next();
+					if (outPair.getFirst().equals(s)) {
+						it.remove();
+						replaceOut = new BlocksPair(newOut, outPair.getSecond());
+						break;
+					}
+				}
+				if (replaceOut != null) {
+					removeInfo.getOuts().add(replaceOut);
 				}
 			}
-			for (InsnNode insnNode : newBlock.getInstructions()) {
-				insnNode.remove(AFlag.SKIP);
-			}
-			remBlockPred = newBlock;
 		}
 
 		BlocksPair out = removeInfo.getOuts().iterator().next();
@@ -377,8 +498,8 @@ public class BlockFinallyExtract extends AbstractVisitor {
 			BlockNode pred = filtPreds.get(0);
 			BlockNode repl = removeInfo.getBySecond(pred);
 			if (repl == null) {
-				throw new JadxRuntimeException("Block not found by " + pred
-						+ ", in " + removeInfo + ", method: " + mth);
+				LOG.error("Block not found by {}, in {}, method: {}", pred, removeInfo, mth);
+				return false;
 			}
 			removeConnection(pred, rOut);
 			addIgnoredEdge(repl, rOut);
@@ -396,39 +517,56 @@ public class BlockFinallyExtract extends AbstractVisitor {
 			connect(pred, rOut);
 		}
 
-		// generate 'move' instruction for mapped register pairs
-		if (!removeInfo.getRegMap().isEmpty()) {
-			// TODO: very expensive operation
-			LiveVarAnalysis la = new LiveVarAnalysis(mth);
-			la.runAnalysis();
-			for (Map.Entry<RegisterArg, RegisterArg> entry : removeInfo.getRegMap().entrySet()) {
-				RegisterArg from = entry.getKey();
-				if (la.isLive(remBlockPred.getId(), from.getRegNum())) {
-					RegisterArg to = entry.getValue();
-					InsnNode move = new InsnNode(InsnType.MOVE, 1);
-					move.setResult(to);
-					move.addArg(from);
-					remBlockPred.getInstructions().add(move);
-				}
-			}
-		}
-
 		// mark blocks for remove
-		markForRemove(remBlock);
+		markForRemove(mth, remBlock);
 		for (BlocksPair pair : removeInfo.getProcessed()) {
-			markForRemove(pair.getFirst());
+			markForRemove(mth, pair.getFirst());
 			BlockNode second = pair.getSecond();
 			second.updateCleanSuccessors();
 		}
 		return true;
 	}
 
+	private static BlockNode splitBlock(MethodNode mth, BlockNode block, int splitIndex) {
+		BlockNode newBlock = BlockSplitter.startNewBlock(mth, -1);
+
+		newBlock.getSuccessors().addAll(block.getSuccessors());
+		for (BlockNode s : new ArrayList<BlockNode>(block.getSuccessors())) {
+			removeConnection(block, s);
+			connect(newBlock, s);
+		}
+		block.getSuccessors().clear();
+		connect(block, newBlock);
+		block.updateCleanSuccessors();
+		newBlock.updateCleanSuccessors();
+
+		List<InsnNode> insns = block.getInstructions();
+		int size = insns.size();
+		for (int i = splitIndex; i < size; i++) {
+			InsnNode insnNode = insns.get(i);
+			insnNode.add(AFlag.SKIP);
+			newBlock.getInstructions().add(insnNode);
+		}
+		Iterator<InsnNode> it = insns.iterator();
+		while (it.hasNext()) {
+			InsnNode insnNode = it.next();
+			if (insnNode.contains(AFlag.SKIP)) {
+				it.remove();
+			}
+		}
+		for (InsnNode insnNode : newBlock.getInstructions()) {
+			insnNode.remove(AFlag.SKIP);
+		}
+		return newBlock;
+	}
+
 	/**
 	 * Unbind block for removing.
 	 */
-	private static void markForRemove(BlockNode block) {
+	private static void markForRemove(MethodNode mth, BlockNode block) {
 		for (BlockNode p : block.getPredecessors()) {
 			p.getSuccessors().remove(block);
+			p.updateCleanSuccessors();
 		}
 		for (BlockNode s : block.getSuccessors()) {
 			s.getPredecessors().remove(block);
@@ -436,6 +574,17 @@ public class BlockFinallyExtract extends AbstractVisitor {
 		block.getPredecessors().clear();
 		block.getSuccessors().clear();
 		block.add(AFlag.REMOVE);
+		block.remove(AFlag.SKIP);
+
+		CatchAttr catchAttr = block.get(AType.CATCH_BLOCK);
+		if (catchAttr != null) {
+			catchAttr.getTryBlock().removeBlock(mth, block);
+			for (BlockNode skipBlock : mth.getBasicBlocks()) {
+				if (skipBlock.contains(AFlag.SKIP)) {
+					markForRemove(mth, skipBlock);
+				}
+			}
+		}
 	}
 
 	private static void addIgnoredEdge(BlockNode from, BlockNode toBlock) {
@@ -500,7 +649,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 			for (BlockNode remPred : mb.getPredecessors()) {
 				connect(remPred, origReturnBlock);
 			}
-			markForRemove(mb);
+			markForRemove(mth, mb);
 			edgeAttr.getBlocks().remove(mb);
 		}
 	}
