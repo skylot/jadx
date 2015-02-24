@@ -19,9 +19,14 @@ public class DebugInfoVisitor extends AbstractVisitor {
 			debugInfoParser.process();
 
 			if (insnArr.length != 0) {
-				int line = insnArr[0].getSourceLine();
-				if (line != 0) {
-					mth.setSourceLine(line - 1);
+				for (InsnNode insn : insnArr) {
+					if (insn != null) {
+						int line = insn.getSourceLine();
+						if (line != 0) {
+							mth.setSourceLine(line - 1);
+						}
+						break;
+					}
 				}
 			}
 			if (!mth.getReturnType().equals(ArgType.VOID)) {
