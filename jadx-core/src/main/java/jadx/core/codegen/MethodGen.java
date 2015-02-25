@@ -180,14 +180,19 @@ public class MethodGen {
 
 	public void addFallbackMethodCode(CodeWriter code) {
 		if (mth.getInstructions() == null) {
-			// load original instructions
-			try {
-				mth.load();
-				DepthTraversal.visit(new FallbackModeVisitor(), mth);
-			} catch (DecodeException e) {
-				LOG.error("Error reload instructions in fallback mode:", e);
-				code.startLine("// Can't loadFile method instructions: " + e.getMessage());
-				return;
+			JadxErrorAttr errorAttr = mth.get(AType.JADX_ERROR);
+			if (errorAttr == null
+					|| errorAttr.getCause() == null
+					|| !errorAttr.getCause().getClass().equals(DecodeException.class)) {
+				// load original instructions
+				try {
+					mth.load();
+					DepthTraversal.visit(new FallbackModeVisitor(), mth);
+				} catch (DecodeException e) {
+					LOG.error("Error reload instructions in fallback mode:", e);
+					code.startLine("// Can't load method instructions: " + e.getMessage());
+					return;
+				}
 			}
 		}
 		InsnNode[] insnArr = mth.getInstructions();

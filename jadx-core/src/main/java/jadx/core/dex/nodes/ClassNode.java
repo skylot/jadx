@@ -222,8 +222,8 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 		for (MethodNode mth : getMethods()) {
 			try {
 				mth.load();
-			} catch (DecodeException e) {
-				LOG.error("Method load error", e);
+			} catch (Exception e) {
+				LOG.error("Method load error:", e);
 				mth.addAttr(new JadxErrorAttr(e));
 			}
 		}

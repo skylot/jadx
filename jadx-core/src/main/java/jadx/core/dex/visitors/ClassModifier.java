@@ -156,7 +156,8 @@ public class ClassModifier extends AbstractVisitor {
 			// remove public empty constructors
 			if (af.isConstructor()
 					&& af.isPublic()
-					&& mth.getArguments(false).isEmpty()) {
+					&& mth.getArguments(false).isEmpty()
+					&& !mth.contains(AType.JADX_ERROR)) {
 				List<BlockNode> bb = mth.getBasicBlocks();
 				if (bb == null || bb.isEmpty() || allBlocksEmpty(bb)) {
 					mth.add(AFlag.DONT_GENERATE);
