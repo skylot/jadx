@@ -663,7 +663,8 @@ public class RegionMaker {
 
 		Map<BlockNode, BlockNode> fallThroughCases = new LinkedHashMap<BlockNode, BlockNode>();
 
-		BitSet outs = new BitSet(mth.getBasicBlocks().size());
+		List<BlockNode> basicBlocks = mth.getBasicBlocks();
+		BitSet outs = new BitSet(basicBlocks.size());
 		outs.or(block.getDomFrontier());
 		for (BlockNode s : block.getCleanSuccessors()) {
 			BitSet df = s.getDomFrontier();
@@ -672,8 +673,8 @@ public class RegionMaker {
 				if (df.cardinality() > 2) {
 					LOG.debug("Unexpected case pattern, block: {}, mth: {}", s, mth);
 				} else {
-					BlockNode first = mth.getBasicBlocks().get(df.nextSetBit(0));
-					BlockNode second = mth.getBasicBlocks().get(df.nextSetBit(first.getId() + 1));
+					BlockNode first = basicBlocks.get(df.nextSetBit(0));
+					BlockNode second = basicBlocks.get(df.nextSetBit(first.getId() + 1));
 					if (second.getDomFrontier().get(first.getId())) {
 						fallThroughCases.put(s, second);
 						df = new BitSet(df.size());
@@ -687,6 +688,11 @@ public class RegionMaker {
 			}
 			outs.or(df);
 		}
+		outs.clear(block.getId());
+		if (loop != null) {
+			outs.clear(loop.getStart().getId());
+		}
+
 		stack.push(sw);
 		stack.addExits(BlockUtils.bitSetToBlocks(mth, outs));
 
@@ -709,9 +715,8 @@ public class RegionMaker {
 		}
 		if (outs.cardinality() > 1) {
 			// filter loop start and successors of other blocks
-			List<BlockNode> blocks = mth.getBasicBlocks();
 			for (int i = outs.nextSetBit(0); i >= 0; i = outs.nextSetBit(i + 1)) {
-				BlockNode b = blocks.get(i);
+				BlockNode b = basicBlocks.get(i);
 				outs.andNot(b.getDomFrontier());
 				if (b.contains(AFlag.LOOP_START)) {
 					outs.clear(b.getId());
@@ -745,7 +750,7 @@ public class RegionMaker {
 		}
 		BlockNode out = null;
 		if (outs.cardinality() == 1) {
-			out = mth.getBasicBlocks().get(outs.nextSetBit(0));
+			out = basicBlocks.get(outs.nextSetBit(0));
 			stack.addExit(out);
 		} else if (loop == null && outs.cardinality() > 1) {
 			LOG.warn("Can't detect out node for switch block: {} in {}", block, mth);
