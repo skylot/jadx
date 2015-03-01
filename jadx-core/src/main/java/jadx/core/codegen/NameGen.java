@@ -4,6 +4,7 @@ import jadx.core.Consts;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.info.ClassInfo;
+import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -187,14 +188,7 @@ public class NameGen {
 		switch (insn.getType()) {
 			case INVOKE:
 				InvokeNode inv = (InvokeNode) insn;
-				String name = inv.getCallMth().getName();
-				if (name.startsWith("get") || name.startsWith("set")) {
-					return fromName(name.substring(3));
-				}
-				if ("iterator".equals(name)) {
-					return "it";
-				}
-				return name;
+				return makeNameFromInvoke(inv.getCallMth());
 
 			case CONSTRUCTOR:
 				ConstructorInsn co = (ConstructorInsn) insn;
@@ -221,5 +215,23 @@ public class NameGen {
 				break;
 		}
 		return null;
+	}
+
+	private static String makeNameFromInvoke(MethodInfo callMth) {
+		String name = callMth.getName();
+		if (name.startsWith("get") || name.startsWith("set")) {
+			return fromName(name.substring(3));
+		}
+		ArgType declType = callMth.getDeclClass().getType();
+		if ("iterator".equals(name)) {
+			return "it";
+		}
+		if ("toString".equals(name)) {
+			return makeNameForType(declType);
+		}
+		if ("forName".equals(name) && declType.equals(ArgType.CLASS)) {
+			return OBJ_ALIAS.get(Consts.CLASS_CLASS);
+		}
+		return name;
 	}
 }
