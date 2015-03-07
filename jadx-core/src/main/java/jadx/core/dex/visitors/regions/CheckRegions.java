@@ -4,7 +4,6 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBlock;
-import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.loops.LoopRegion;
@@ -13,7 +12,6 @@ import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.JadxException;
 
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -29,8 +27,6 @@ public class CheckRegions extends AbstractVisitor {
 				|| mth.contains(AType.JADX_ERROR)) {
 			return;
 		}
-
-		// printRegion(mth);
 
 		// check if all blocks included in regions
 		final Set<BlockNode> blocksInRegions = new HashSet<BlockNode>();
@@ -51,7 +47,6 @@ public class CheckRegions extends AbstractVisitor {
 					// TODO
 					// mth.add(AFlag.INCONSISTENT_CODE);
 					LOG.debug(" Duplicated block: {} in {}", block, mth);
-					// printRegionsWithBlock(mth, block);
 				}
 			}
 		});
@@ -78,34 +73,5 @@ public class CheckRegions extends AbstractVisitor {
 				}
 			}
 		});
-	}
-
-	private static void printRegionsWithBlock(MethodNode mth, final BlockNode block) {
-		final Set<IRegion> regions = new LinkedHashSet<IRegion>();
-		DepthRegionTraversal.traverse(mth, new TracedRegionVisitor() {
-			@Override
-			public void processBlockTraced(MethodNode mth, IBlock container, IRegion currentRegion) {
-				if (block.equals(container)) {
-					regions.add(currentRegion);
-				}
-			}
-		});
-		LOG.debug(" Found block: {} in regions: {}", block, regions);
-	}
-
-	private void printRegion(MethodNode mth) {
-		LOG.debug("|{}", mth.toString());
-		printRegion(mth, mth.getRegion(), "| ");
-	}
-
-	private void printRegion(MethodNode mth, IRegion region, String indent) {
-		LOG.debug("{}{}", indent, region);
-		for (IContainer container : region.getSubBlocks()) {
-			if (container instanceof IRegion) {
-				printRegion(mth, (IRegion) container, indent + "  ");
-			} else {
-				LOG.debug("{}  {}", indent, container);
-			}
-		}
 	}
 }
