@@ -548,7 +548,7 @@ public class RegionMaker {
 				return;
 			}
 		}
-		for (BlockNode node : block.getCleanSuccessors()) {
+		for (BlockNode node : block.getSuccessors()) {
 			if (!visited.contains(node)) {
 				traverseMonitorExits(region, arg, node, exits, visited);
 			}
