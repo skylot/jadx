@@ -53,7 +53,8 @@ public class ClassModifier extends AbstractVisitor {
 				ClassNode fieldsCls = cls.dex().resolveClass(ClassInfo.fromType(field.getType()));
 				ClassInfo parentClass = cls.getClassInfo().getParentClass();
 				if (fieldsCls != null
-						&& parentClass.equals(fieldsCls.getClassInfo())) {
+						&& parentClass.equals(fieldsCls.getClassInfo())
+						&& field.getName().startsWith("this$") /* TODO: don't check name */) {
 					int found = 0;
 					for (MethodNode mth : cls.getMethods()) {
 						if (removeFieldUsageFromConstructor(mth, field, fieldsCls)) {
@@ -75,7 +76,7 @@ public class ClassModifier extends AbstractVisitor {
 			return false;
 		}
 		List<RegisterArg> args = mth.getArguments(false);
-		if (args.isEmpty()) {
+		if (args.isEmpty() || mth.contains(AFlag.SKIP_FIRST_ARG)) {
 			return false;
 		}
 		RegisterArg arg = args.get(0);
