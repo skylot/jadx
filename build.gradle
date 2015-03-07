@@ -6,9 +6,9 @@ buildscript {
 }
 
 plugins {
-    id "com.github.kt3k.coveralls" version "2.1.0"
-    id "info.solidsoft.pitest" version "1.1.1"
-//    id "com.github.ben-manes.versions" version "0.7"
+    id "com.github.kt3k.coveralls" version "2.3.1"
+    id "info.solidsoft.pitest" version "1.1.4"
+//    id "com.github.ben-manes.versions" version "0.8"
 }
 
 apply plugin: 'sonar-runner'
@@ -45,8 +45,9 @@ subprojects {
 
         testCompile 'ch.qos.logback:logback-classic:1.1.2'
         testCompile 'junit:junit:4.12'
+        testCompile 'org.hamcrest:hamcrest-library:1.3'
         testCompile 'org.mockito:mockito-core:1.10.19'
-        testCompile 'org.spockframework:spock-core:1.0-groovy-2.3-SNAPSHOT'
+        testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
         testCompile 'cglib:cglib-nodep:3.1'
     }
 
@@ -54,9 +55,6 @@ subprojects {
         mavenCentral()
         mavenLocal()
         jcenter()
-        maven {
-            url "http://oss.sonatype.org/content/repositories/snapshots/"
-        }
     }
 
     jacocoTestReport {
@@ -107,5 +105,5 @@ build.dependsOn(dist, samples)
 clean.dependsOn(cleanBuildDir)
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.2.1'
+    gradleVersion = '2.3'
 }
