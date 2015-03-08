@@ -62,7 +62,14 @@ public final class ClassInfo {
 	}
 
 	public void rename(DexNode dex, String fullName) {
-		this.alias = new ClassInfo(dex, ArgType.object(fullName), isInner());
+		ClassInfo newAlias = new ClassInfo(dex, ArgType.object(fullName), isInner());
+		if (!alias.getFullName().equals(newAlias.getFullName())) {
+			this.alias = newAlias;
+		}
+	}
+
+	public boolean isRenamed() {
+		return alias != this;
 	}
 
 	public ClassInfo getAlias() {

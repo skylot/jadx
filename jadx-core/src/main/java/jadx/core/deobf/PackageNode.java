@@ -1,7 +1,5 @@
 package jadx.core.deobf;
 
-import jadx.core.dex.nodes.ClassNode;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -10,12 +8,11 @@ import java.util.Stack;
 public class PackageNode {
 
 	private PackageNode parentPackage;
-	private List<ClassNode> innerClasses = Collections.emptyList();
 	private List<PackageNode> innerPackages = Collections.emptyList();
 
-	public static final char separatorChar = '.';
+	private static final char separatorChar = '.';
 
-	private String packageName;
+	private final String packageName;
 	private String packageAlias;
 
 	private String cachedPackageFullName;
@@ -40,10 +37,8 @@ public class PackageNode {
 				result.append(separatorChar);
 				result.append(pp.pop().getName());
 			}
-
 			cachedPackageFullName = result.toString();
 		}
-
 		return cachedPackageFullName;
 	}
 
@@ -51,7 +46,6 @@ public class PackageNode {
 		if (packageAlias != null) {
 			return packageAlias;
 		}
-
 		return packageName;
 	}
 
@@ -60,7 +54,7 @@ public class PackageNode {
 	}
 
 	public boolean hasAlias() {
-		return (packageAlias != null);
+		return packageAlias != null;
 	}
 
 	public String getFullAlias() {
@@ -72,10 +66,8 @@ public class PackageNode {
 				result.append(separatorChar);
 				result.append(pp.pop().getAlias());
 			}
-
 			cachedPackageFullAlias = result.toString();
 		}
-
 		return cachedPackageFullAlias;
 	}
 
@@ -85,17 +77,6 @@ public class PackageNode {
 
 	public List<PackageNode> getInnerPackages() {
 		return innerPackages;
-	}
-
-	public List<ClassNode> getInnerClasses() {
-		return innerClasses;
-	}
-
-	public void addInnerClass(ClassNode cls) {
-		if (innerClasses.isEmpty()) {
-			innerClasses = new ArrayList<ClassNode>();
-		}
-		innerClasses.add(cls);
 	}
 
 	public void addInnerPackage(PackageNode pkg) {
@@ -120,7 +101,6 @@ public class PackageNode {
 				break;
 			}
 		}
-
 		return result;
 	}
 
@@ -140,7 +120,6 @@ public class PackageNode {
 			currentP = parentP;
 			parentP = currentP.getParentPackage();
 		}
-
 		return pp;
 	}
 }

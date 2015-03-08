@@ -3,8 +3,15 @@ package jadx.core.deobf;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class NameMapper {
+
+	private static final Pattern VALID_JAVA_IDENTIFIER = Pattern.compile(
+			"\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*");
+
+	private static final Pattern VALID_JAVA_FULL_IDENTIFIER = Pattern.compile(
+			"(" + VALID_JAVA_IDENTIFIER + "\\.)*" + VALID_JAVA_IDENTIFIER);
 
 	private static final Set<String> RESERVED_NAMES = new HashSet<String>(
 			Arrays.asList(new String[]{
@@ -68,4 +75,11 @@ public class NameMapper {
 		return RESERVED_NAMES.contains(str);
 	}
 
+	public static boolean isValidIdentifier(String str) {
+		return VALID_JAVA_IDENTIFIER.matcher(str).matches();
+	}
+
+	public static boolean isValidFullIdentifier(String str) {
+		return VALID_JAVA_FULL_IDENTIFIER.matcher(str).matches();
+	}
 }

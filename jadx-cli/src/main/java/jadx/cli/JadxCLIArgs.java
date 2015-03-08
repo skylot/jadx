@@ -57,7 +57,7 @@ public final class JadxCLIArgs implements IJadxArgs {
 	protected int deobfuscationMinLength = 2;
 
 	@Parameter(names = {"--deobf-max"}, description = "max length of name")
-	protected int deobfuscationMaxLength = 40;
+	protected int deobfuscationMaxLength = 64;
 
 	@Parameter(names = {"--deobf-rewrite-cfg"}, description = "force to save deobfuscation map")
 	protected boolean deobfuscationForceSave = false;

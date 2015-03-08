@@ -112,8 +112,10 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 			int sfIdx = cls.getSourceFileIndex();
 			if (sfIdx != DexNode.NO_INDEX) {
 				String fileName = dex.getString(sfIdx);
-				if (!clsInfo.getFullName().contains(fileName.replace(".java", ""))
-						&& !fileName.equals("SourceFile")) {
+				if (clsInfo != null
+						&& !clsInfo.getFullName().contains(fileName.replace(".java", ""))
+						&& !fileName.equals("SourceFile")
+						&& !fileName.equals("\"")) {
 					this.addAttr(new SourceFileAttr(fileName));
 					LOG.debug("Class '{}' compiled from '{}'", this, fileName);
 				}

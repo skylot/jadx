@@ -130,6 +130,7 @@ public class ClassGen {
 
 		annotationGen.addForClass(clsCode);
 		insertSourceFileInfo(clsCode, cls);
+		insertRenameInfo(clsCode, cls);
 		clsCode.startLine(af.makeString());
 		if (af.isInterface()) {
 			if (af.isAnnotation()) {
@@ -544,6 +545,13 @@ public class ClassGen {
 		SourceFileAttr sourceFileAttr = node.get(AType.SOURCE_FILE);
 		if (sourceFileAttr != null) {
 			code.startLine("/* compiled from: ").add(sourceFileAttr.getFileName()).add(" */");
+		}
+	}
+
+	private void insertRenameInfo(CodeWriter code, ClassNode cls) {
+		ClassInfo classInfo = cls.getClassInfo();
+		if (classInfo.isRenamed()) {
+			code.startLine("/* renamed from: ").add(classInfo.getFullName()).add(" */");
 		}
 	}
 
