@@ -209,7 +209,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		for (int i = 0; i < attributeCount; i++) {
 			parseAttribute(i);
 			writer.add('"');
-			if ((i + 1) < attributeCount) {
+			if (i + 1 < attributeCount) {
 				writer.add(" ");
 			}
 		}
@@ -267,7 +267,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			}
 		} else {
 			String str = valuesParser.decodeValue(attrValDataType, attrValData);
-			writer.add(str);
+			writer.add(str != null ? str : "null");
 		}
 	}
 

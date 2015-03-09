@@ -13,6 +13,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Caret;
 import javax.swing.text.DefaultCaret;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 
@@ -135,9 +136,13 @@ class ContentArea extends RSyntaxTextArea {
 				return;
 			}
 			int extentHeight = viewport.getExtentSize().height;
-			int viewHeight = viewport.getViewSize().height;
+			Dimension viewSize = viewport.getViewSize();
+			if (viewSize == null) {
+				return;
+			}
+			int viewHeight = viewSize.height;
 
-			int y = Math.max(0, r.y - (extentHeight / 2));
+			int y = Math.max(0, r.y - extentHeight / 2);
 			y = Math.min(y, viewHeight - extentHeight);
 
 			viewport.setViewPosition(new Point(0, y));

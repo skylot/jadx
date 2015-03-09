@@ -49,9 +49,16 @@ public class ManifestAttributes {
 	private final Map<String, MAttr> attrMap = new HashMap<String, MAttr>();
 
 	public ManifestAttributes() throws Exception {
-		InputStream xmlStream = ManifestAttributes.class.getResourceAsStream(MANIFEST_ATTR_XML);
-		DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-		doc = dBuilder.parse(xmlStream);
+		InputStream xmlStream = null;
+		try {
+			xmlStream = ManifestAttributes.class.getResourceAsStream(MANIFEST_ATTR_XML);
+			DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			doc = dBuilder.parse(xmlStream);
+		} finally {
+			if (xmlStream != null) {
+				xmlStream.close();
+			}
+		}
 	}
 
 	public void parse() {

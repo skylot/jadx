@@ -103,7 +103,7 @@ public class DebugUtils {
 				}
 				for (InsnArg arg : insn.getArguments()) {
 					if (arg instanceof RegisterArg) {
-						checkSSAVar(mth, insn, ((RegisterArg) arg));
+						checkSSAVar(mth, insn, (RegisterArg) arg);
 					}
 				}
 			}
@@ -131,7 +131,7 @@ public class DebugUtils {
 			List<PhiInsn> phis = new ArrayList<PhiInsn>();
 			for (InsnNode insn : block.getInstructions()) {
 				if (insn.getType() == InsnType.PHI) {
-					PhiInsn phi = ((PhiInsn) insn);
+					PhiInsn phi = (PhiInsn) insn;
 					phis.add(phi);
 					if (phi.getArgsCount() != phi.getBlockBinds().size()) {
 						throw new JadxRuntimeException("Incorrect args and binds in PHI");

@@ -61,7 +61,7 @@ public class CommonBinaryParser extends ParserConstants {
 			return "";
 		}
 		if ((len & 0x80) != 0) {
-			len = ((len & 0x7F) << 8) | (strArray[start++] & 0xFF);
+			len = (len & 0x7F) << 8 | strArray[start++] & 0xFF;
 		}
 		byte[] arr = Arrays.copyOfRange(strArray, start, start + len);
 		return new String(arr, ParserStream.STRING_CHARSET_UTF8);

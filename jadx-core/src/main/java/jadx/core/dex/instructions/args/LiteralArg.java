@@ -47,7 +47,7 @@ public final class LiteralArg extends InsnArg {
 
 	@Override
 	public int hashCode() {
-		return (int) (literal ^ (literal >>> 32)) + 31 * getType().hashCode();
+		return (int) (literal ^ literal >>> 32) + 31 * getType().hashCode();
 	}
 
 	@Override

@@ -150,11 +150,11 @@ public class ParserConstants {
 	protected static final int ATTR_MANY = ResMakeInternal(9);
 
 	private static int ResMakeInternal(int entry) {
-		return 0x01000000 | (entry & 0xFFFF);
+		return 0x01000000 | entry & 0xFFFF;
 	}
 
 	protected static boolean isResInternalId(int resid) {
-		return ((resid & 0xFFFF0000) != 0 && (resid & 0xFF0000) == 0);
+		return (resid & 0xFFFF0000) != 0 && (resid & 0xFF0000) == 0;
 	}
 
 	// Bit mask of allowed types, for use with ATTR_TYPE.

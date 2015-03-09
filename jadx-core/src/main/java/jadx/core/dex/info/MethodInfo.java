@@ -111,16 +111,9 @@ public final class MethodInfo {
 			return false;
 		}
 		MethodInfo other = (MethodInfo) obj;
-		if (!shortId.equals(other.shortId)) {
-			return false;
-		}
-		if (!retType.equals(other.retType)) {
-			return false;
-		}
-		if (!declClass.equals(other.declClass)) {
-			return false;
-		}
-		return true;
+		return shortId.equals(other.shortId)
+				&& retType.equals(other.retType)
+				&& declClass.equals(other.declClass);
 	}
 
 	@Override

@@ -203,7 +203,7 @@ public class RegionMaker {
 		BlockNode out;
 		if (loopRegion.isConditionAtEnd()) {
 			BlockNode thenBlock = condInfo.getThenBlock();
-			out = (thenBlock == loopStart ? condInfo.getElseBlock() : thenBlock);
+			out = thenBlock == loopStart ? condInfo.getElseBlock() : thenBlock;
 			loopStart.remove(AType.LOOP);
 			loop.getEnd().add(AFlag.SKIP);
 			stack.addExit(loop.getEnd());
@@ -922,13 +922,7 @@ public class RegionMaker {
 		if (b1 == null || b2 == null) {
 			return false;
 		}
-		if (isReturnBlocks(b1, b2)) {
-			return true;
-		}
-		if (isSyntheticPath(b1, b2)) {
-			return true;
-		}
-		return false;
+		return isReturnBlocks(b1, b2) || isSyntheticPath(b1, b2);
 	}
 
 	private static boolean isSyntheticPath(BlockNode b1, BlockNode b2) {

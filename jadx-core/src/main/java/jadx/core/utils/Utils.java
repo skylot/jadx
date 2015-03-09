@@ -85,6 +85,9 @@ public class Utils {
 	}
 
 	public static String getStackTrace(Throwable throwable) {
+		if (throwable == null) {
+			return "";
+		}
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw, true);
 		throwable.printStackTrace(pw);
@@ -92,6 +95,6 @@ public class Utils {
 	}
 
 	public static int compare(int x, int y) {
-		return (x < y) ? -1 : ((x == y) ? 0 : 1);
+		return x < y ? -1 : x == y ? 0 : 1;
 	}
 }

@@ -28,7 +28,7 @@ public final class ResourcesLoader {
 	private static final int READ_BUFFER_SIZE = 8 * 1024;
 	private static final int LOAD_SIZE_LIMIT = 10 * 1024 * 1024;
 
-	private JadxDecompiler jadxRef;
+	private final JadxDecompiler jadxRef;
 
 	ResourcesLoader(JadxDecompiler jadxRef) {
 		this.jadxRef = jadxRef;

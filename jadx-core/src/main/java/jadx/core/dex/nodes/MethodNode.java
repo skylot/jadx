@@ -75,8 +75,8 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		this.mthInfo = MethodInfo.fromDex(classNode.dex(), mthData.getMethodIndex());
 		this.parentClass = classNode;
 		this.accFlags = new AccessInfo(mthData.getAccessFlags(), AFType.METHOD);
-		this.noCode = (mthData.getCodeOffset() == 0);
-		this.methodData = (noCode ? null : mthData);
+		this.noCode = mthData.getCodeOffset() == 0;
+		this.methodData = noCode ? null : mthData;
 	}
 
 	@Override
@@ -527,7 +527,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 					defaultArgCount = 1;
 				}
 			}
-			result = (argsList == null) || (argsList.size() == defaultArgCount);
+			result = argsList == null || argsList.size() == defaultArgCount;
 		}
 		return result;
 	}

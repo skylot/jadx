@@ -113,8 +113,8 @@ public class ValuesParser extends ParserConstants {
 	}
 
 	private String decodeComplex(int data, boolean isFraction) {
-		double value = (data & (COMPLEX_MANTISSA_MASK << COMPLEX_MANTISSA_SHIFT))
-				* RADIX_MULTS[(data >> COMPLEX_RADIX_SHIFT) & COMPLEX_RADIX_MASK];
+		double value = (data & COMPLEX_MANTISSA_MASK << COMPLEX_MANTISSA_SHIFT)
+				* RADIX_MULTS[data >> COMPLEX_RADIX_SHIFT & COMPLEX_RADIX_MASK];
 		int unitType = data & COMPLEX_UNIT_MASK;
 		String unit;
 		if (isFraction) {

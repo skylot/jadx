@@ -189,7 +189,7 @@ public class RegionUtils {
 			for (IContainer b : r.getSubBlocks()) {
 				// process try block
 				CatchAttr cb = b.get(AType.CATCH_BLOCK);
-				if (cb != null && (b instanceof IRegion)) {
+				if (cb != null && b instanceof IRegion) {
 					TryCatchBlock tb = cb.getTryBlock();
 					for (ExceptionHandler eh : tb.getHandlers()) {
 						if (isRegionContainsRegion(eh.getHandlerRegion(), region)) {

@@ -194,7 +194,7 @@ public class BlockSplitter extends AbstractVisitor {
 	private static boolean isDoWhile(Map<Integer, BlockNode> blocksMap, BlockNode curBlock, InsnNode insn) {
 		// split 'do-while' block (last instruction: 'if', target this block)
 		if (insn.getType() == InsnType.IF) {
-			IfNode ifs = (IfNode) (insn);
+			IfNode ifs = (IfNode) insn;
 			BlockNode targetBlock = blocksMap.get(ifs.getTarget());
 			if (targetBlock == curBlock) {
 				return true;

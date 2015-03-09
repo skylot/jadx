@@ -1,5 +1,7 @@
 package jadx.core.dex.instructions.args;
 
+import org.jetbrains.annotations.NotNull;
+
 public class TypeImmutableArg extends RegisterArg {
 
 	private boolean isThis;
@@ -36,7 +38,7 @@ public class TypeImmutableArg extends RegisterArg {
 	}
 
 	@Override
-	void setSVar(SSAVar sVar) {
+	void setSVar(@NotNull SSAVar sVar) {
 		if (isThis) {
 			sVar.setName("this");
 		}

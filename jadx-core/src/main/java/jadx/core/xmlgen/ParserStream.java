@@ -34,7 +34,7 @@ public class ParserStream {
 		readPos += 2;
 		int b1 = input.read();
 		int b2 = input.read();
-		return (b2 & 0xFF) << 8 | (b1 & 0xFF);
+		return (b2 & 0xFF) << 8 | b1 & 0xFF;
 	}
 
 	public int readInt32() throws IOException {
@@ -44,7 +44,7 @@ public class ParserStream {
 		int b2 = in.read();
 		int b3 = in.read();
 		int b4 = in.read();
-		return b4 << 24 | (b3 & 0xFF) << 16 | (b2 & 0xFF) << 8 | (b1 & 0xFF);
+		return b4 << 24 | (b3 & 0xFF) << 16 | (b2 & 0xFF) << 8 | b1 & 0xFF;
 	}
 
 	public long readUInt32() throws IOException {

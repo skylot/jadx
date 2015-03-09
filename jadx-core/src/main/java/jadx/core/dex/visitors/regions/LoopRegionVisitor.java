@@ -195,7 +195,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		CodeShrinker.shrinkMethod(mth);
 		if (arrGetInsn.contains(AFlag.WRAPPED)) {
 			InsnArg wrapArg = BlockUtils.searchWrappedInsnParent(mth, arrGetInsn);
-			if (wrapArg != null) {
+			if (wrapArg != null && wrapArg.getParentInsn() != null) {
 				wrapArg.getParentInsn().replaceArg(wrapArg, iterVar);
 			} else {
 				LOG.debug(" checkArrayForEach: Wrapped insn not found: {}, mth: {}", arrGetInsn, mth);
@@ -233,7 +233,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		RegisterArg iterVar = nextCall.getResult();
 		if (nextCall.contains(AFlag.WRAPPED)) {
 			InsnArg wrapArg = BlockUtils.searchWrappedInsnParent(mth, nextCall);
-			if (wrapArg != null) {
+			if (wrapArg != null && wrapArg.getParentInsn() != null) {
 				InsnNode parentInsn = wrapArg.getParentInsn();
 				if (parentInsn.getType() != InsnType.CHECK_CAST) {
 					parentInsn.replaceArg(wrapArg, iterVar);

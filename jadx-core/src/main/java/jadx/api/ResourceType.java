@@ -10,7 +10,7 @@ public enum ResourceType {
 	LIB(".so"),
 	UNKNOWN;
 
-	private String[] exts;
+	private final String[] exts;
 
 	ResourceType(String... exts) {
 		this.exts = exts;

@@ -249,7 +249,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 		}
 		InsnNode wrap = ((InsnWrapArg) arg).getWrapInsn();
 		InsnType wrapType = wrap.getType();
-		if ((wrapType != InsnType.ARITH && wrapType != InsnType.STR_CONCAT)
+		if (wrapType != InsnType.ARITH && wrapType != InsnType.STR_CONCAT
 				|| !wrap.getArg(0).isInsnWrap()) {
 			return null;
 		}

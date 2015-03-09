@@ -282,7 +282,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 			field = cn.constFields.get(obj);
 		}
 		while (field == null
-				&& (cn.clsInfo.getParentClass() != null)
+				&& cn.clsInfo.getParentClass() != null
 				&& (cn = dex.resolveClass(cn.clsInfo.getParentClass())) != null);
 
 		if (field == null && searchGlobal) {

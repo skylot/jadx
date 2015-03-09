@@ -162,10 +162,7 @@ public class ConditionGen extends InsnGen {
 		if (condition.isCompare()) {
 			return false;
 		}
-		if (condition.getMode() != Mode.NOT) {
-			return true;
-		}
-		return false;
+		return condition.getMode() != Mode.NOT;
 	}
 
 	private static boolean isArgWrapNeeded(InsnArg arg) {

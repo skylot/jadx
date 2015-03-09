@@ -32,9 +32,9 @@ public class AccessInfo {
 	}
 
 	public AccessInfo getVisibility() {
-		int f = (accFlags & AccessFlags.ACC_PUBLIC)
-				| (accFlags & AccessFlags.ACC_PROTECTED)
-				| (accFlags & AccessFlags.ACC_PRIVATE);
+		int f = accFlags & AccessFlags.ACC_PUBLIC
+				| accFlags & AccessFlags.ACC_PROTECTED
+				| accFlags & AccessFlags.ACC_PRIVATE;
 		return new AccessInfo(f, type);
 	}
 

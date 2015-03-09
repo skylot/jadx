@@ -149,7 +149,7 @@ public class DebugInfoParser {
 						int adjustedOpcode = c - DBG_FIRST_SPECIAL;
 						int addrInc = adjustedOpcode / DBG_LINE_RANGE;
 						addr = addrChange(addr, addrInc, line);
-						line += DBG_LINE_BASE + (adjustedOpcode % DBG_LINE_RANGE);
+						line += DBG_LINE_BASE + adjustedOpcode % DBG_LINE_RANGE;
 						setLine(addr, line);
 					} else {
 						throw new DecodeException("Unknown debug insn code: " + c);
@@ -263,8 +263,8 @@ public class DebugInfoParser {
 			int localStart = var.getStartAddr();
 			int localEnd = var.getEndAddr();
 
-			boolean isIntersected = !((localEnd < ssaStart) || (ssaEnd < localStart));
-			if (isIntersected && (ssaEnd <= localEnd)) {
+			boolean isIntersected = !(localEnd < ssaStart || ssaEnd < localStart);
+			if (isIntersected && ssaEnd <= localEnd) {
 				mergeRequired = true;
 			}
 		} else {
