@@ -73,10 +73,10 @@ sonarRunner {
     toolVersion = '2.4'
 }
 
-task copyArtifacts(type: Sync, dependsOn: ['jadx-cli:installApp', 'jadx-gui:installApp']) {
+task copyArtifacts(type: Sync, dependsOn: ['jadx-cli:installDist', 'jadx-gui:installDist']) {
     destinationDir file("$buildDir/jadx")
     ['jadx-cli', 'jadx-gui'].each {
-        from tasks.getByPath(":${it}:installApp").destinationDir
+        from tasks.getByPath(":${it}:installDist").destinationDir
     }
 }
 

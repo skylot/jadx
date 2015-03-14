@@ -1,8 +1,8 @@
 The majority of jadx is written and copyrighted by me (Skylot)
-and released under the Apache 2.0 license:
+and released under the Apache 2.0 license (see LICENSE file for full license text):
 
 *******************************************************************************
-Copyright 2013, Skylot
+Copyright 2015, Skylot
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ limitations under the License.
 *******************************************************************************
 
 
-Various portions of the code including dx library are taken from 
-the Android Open Source Project, and are used in accordance with 
+Various portions of the code including dx library are taken from
+the Android Open Source Project, and are used in accordance with
 the following license:
 
 *******************************************************************************
@@ -74,10 +74,10 @@ Copyright (c) 2004-2011 QOS.ch
  distribute,  sublicense, and/or sell  copies of  the Software,  and to
  permit persons to whom the Software  is furnished to do so, subject to
  the following conditions:
- 
+
  The  above  copyright  notice  and  this permission  notice  shall  be
  included in all copies or substantial portions of the Software.
- 
+
  THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
  EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
  MERCHANTABILITY,    FITNESS    FOR    A   PARTICULAR    PURPOSE    AND
@@ -92,14 +92,14 @@ Logback source code and binaries are dual-licensed under the EPL v1.0 and the LG
 
 *******************************************************************************
 Logback: the reliable, generic, fast and flexible logging framework.
-Copyright (C) 1999-2012, QOS.ch. All rights reserved. 
+Copyright (C) 1999-2012, QOS.ch. All rights reserved.
 
 This program and the accompanying materials are dual-licensed under
 either the terms of the Eclipse Public License v1.0 as published by
 the Eclipse Foundation
- 
+
   or (per the licensee's choosing)
- 
+
 under the terms of the GNU Lesser General Public License version 2.1
 as published by the Free Software Foundation.
 *******************************************************************************
@@ -144,7 +144,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 Jadx-gui components
 ===================
 
-RSyntaxTextArea library licensed under modified BSD liense:
+RSyntaxTextArea library licensed under modified BSD license:
 
 *******************************************************************************
 Copyright (c) 2012, Robert Futrell
