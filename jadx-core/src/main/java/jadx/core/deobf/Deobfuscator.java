@@ -55,7 +55,7 @@ public class Deobfuscator {
 	}
 
 	public void execute() {
-		if (deobfMapFile.exists()) {
+		if (deobfMapFile.exists() && !args.isDeobfuscationForceSave()) {
 			try {
 				load();
 			} catch (IOException e) {
@@ -295,6 +295,7 @@ public class Deobfuscator {
 		if (!deobfMapFile.exists()) {
 			return;
 		}
+		LOG.info("Loading obfuscation map from: {}", deobfMapFile.getAbsoluteFile());
 		List<String> lines = FileUtils.readLines(deobfMapFile, MAP_FILE_CHARSET);
 		for (String l : lines) {
 			l = l.trim();

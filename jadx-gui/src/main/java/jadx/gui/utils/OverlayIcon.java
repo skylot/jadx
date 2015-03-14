@@ -42,10 +42,10 @@ public class OverlayIcon implements Icon {
 
 		icon.paintIcon(c, g, x, y);
 		int k = 0;
-		for (Icon icon : icons) {
-			int dx = (int) (OVERLAY_POS[k++] * (w - icon.getIconWidth()));
-			int dy = (int) (OVERLAY_POS[k++] * (h - icon.getIconHeight()));
-			icon.paintIcon(c, g, x + dx, y + dy);
+		for (Icon subIcon : icons) {
+			int dx = (int) (OVERLAY_POS[k++] * (w - subIcon.getIconWidth()));
+			int dy = (int) (OVERLAY_POS[k++] * (h - subIcon.getIconHeight()));
+			subIcon.paintIcon(c, g, x + dx, y + dy);
 		}
 	}
 

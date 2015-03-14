@@ -299,7 +299,7 @@ public class SearchDialog extends JDialog {
 		buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
 		buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
 		buttonPane.add(busyBar);
-		searchPane.add(Box.createRigidArea(new Dimension(5, 0)));
+		buttonPane.add(Box.createRigidArea(new Dimension(5, 0)));
 		buttonPane.add(Box.createHorizontalGlue());
 		buttonPane.add(openBtn);
 		buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));

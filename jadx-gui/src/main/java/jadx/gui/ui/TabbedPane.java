@@ -200,10 +200,7 @@ class TabbedPane extends JTabbedPane {
 			closeAll.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					List<ContentPanel> contentPanels = new ArrayList<ContentPanel>(openTabs.values());
-					for (ContentPanel panel : contentPanels) {
-						closeCodePanel(panel);
-					}
+					closeAllTabs();
 				}
 			});
 			menu.add(closeAll);
@@ -229,5 +226,12 @@ class TabbedPane extends JTabbedPane {
 			}
 		}
 		return menu;
+	}
+
+	public void closeAllTabs() {
+		List<ContentPanel> contentPanels = new ArrayList<ContentPanel>(openTabs.values());
+		for (ContentPanel panel : contentPanels) {
+			closeCodePanel(panel);
+		}
 	}
 }

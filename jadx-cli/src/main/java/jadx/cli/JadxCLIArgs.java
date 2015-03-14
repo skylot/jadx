@@ -18,7 +18,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterDescription;
 import com.beust.jcommander.ParameterException;
 
-public final class JadxCLIArgs implements IJadxArgs {
+public class JadxCLIArgs implements IJadxArgs {
 
 	@Parameter(description = "<input file> (.dex, .apk, .jar or .class)")
 	protected List<String> files;
