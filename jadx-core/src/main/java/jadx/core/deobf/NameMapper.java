@@ -76,10 +76,23 @@ public class NameMapper {
 	}
 
 	public static boolean isValidIdentifier(String str) {
-		return VALID_JAVA_IDENTIFIER.matcher(str).matches();
+		return VALID_JAVA_IDENTIFIER.matcher(str).matches() && isAllCharsPrintable(str);
 	}
 
 	public static boolean isValidFullIdentifier(String str) {
-		return VALID_JAVA_FULL_IDENTIFIER.matcher(str).matches();
+		return VALID_JAVA_FULL_IDENTIFIER.matcher(str).matches() && isAllCharsPrintable(str);
+	}
+
+	public static boolean isPrintableChar(int c) {
+		return 32 <= c && c <= 126;
+	}
+
+	public static boolean isAllCharsPrintable(String str) {
+		for (int i = 0; i < str.length(); i++) {
+			 if (!isPrintableChar(str.charAt(i))) {
+				 return false;
+			 }
+		}
+		return true;
 	}
 }

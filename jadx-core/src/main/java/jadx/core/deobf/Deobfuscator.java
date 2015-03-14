@@ -28,8 +28,8 @@ public class Deobfuscator {
 	private static final boolean DEBUG = false;
 
 	private static final String MAP_FILE_CHARSET = "UTF-8";
-	private static final String classNameSeparator = ".";
-	private static final String innerClassSeparator = "$";
+	private static final String CLASS_NAME_SEPARATOR = ".";
+	private static final String INNER_CLASS_SEPARATOR = "$";
 
 	private final Map<ClassInfo, DeobfClsInfo> clsMap = new HashMap<ClassInfo, DeobfClsInfo>();
 	private final IJadxArgs args;
@@ -43,6 +43,7 @@ public class Deobfuscator {
 	private int clsIndex = 0;
 
 	private final PackageNode rootPackage = new PackageNode("");
+	private final Set<String> pkgSet = new TreeSet<String>();
 	private Map<String, String> preLoadClsMap = Collections.emptyMap();
 
 	public Deobfuscator(IJadxArgs args, @NotNull List<DexNode> dexNodes, File deobfMapFile) {
@@ -106,14 +107,14 @@ public class Deobfuscator {
 	 * @return package node object or {@code null} if no package found and <b>create</b> set to {@code false}
 	 */
 	private PackageNode getPackageNode(String fullPkgName, boolean create) {
-		if (fullPkgName.isEmpty() || fullPkgName.equals(classNameSeparator)) {
+		if (fullPkgName.isEmpty() || fullPkgName.equals(CLASS_NAME_SEPARATOR)) {
 			return rootPackage;
 		}
 		PackageNode result = rootPackage;
 		PackageNode parentNode;
 		do {
 			String pkgName;
-			int idx = fullPkgName.indexOf(classNameSeparator);
+			int idx = fullPkgName.indexOf(CLASS_NAME_SEPARATOR);
 
 			if (idx > -1) {
 				pkgName = fullPkgName.substring(0, idx);
@@ -154,7 +155,7 @@ public class Deobfuscator {
 				} else {
 					prefix = getNameWithoutPackage(parentClass.getClassInfo());
 				}
-				prefix += innerClassSeparator;
+				prefix += INNER_CLASS_SEPARATOR;
 			} else {
 				prefix = "";
 			}
@@ -163,7 +164,7 @@ public class Deobfuscator {
 		}
 
 		public String getFullName() {
-			return pkg.getFullAlias() + classNameSeparator + makeNameWithoutPkg();
+			return pkg.getFullAlias() + CLASS_NAME_SEPARATOR + makeNameWithoutPkg();
 		}
 	}
 
@@ -177,7 +178,7 @@ public class Deobfuscator {
 			} else {
 				prefix = getNameWithoutPackage(parentClsInfo);
 			}
-			prefix += innerClassSeparator;
+			prefix += INNER_CLASS_SEPARATOR;
 		} else {
 			prefix = "";
 		}
@@ -220,17 +221,8 @@ public class Deobfuscator {
 			}
 		}
 		String clsName = cls.getClassInfo().getShortName();
-		return String.format("C%04d%s", clsIndex++, short4LongName(clsName));
+		return String.format("C%04d%s", clsIndex++, makeName(clsName));
 	}
-
-	private String short4LongName(String name) {
-		if (name.length() > maxLength) {
-			return "x" + Integer.toHexString(name.hashCode());
-		}
-		return name;
-	}
-
-	private final Set<String> pkgSet = new TreeSet<String>();
 
 	private void doPkg(PackageNode pkg, String fullName) {
 		if (pkgSet.contains(fullName)) {
@@ -248,8 +240,8 @@ public class Deobfuscator {
 		}
 
 		final String pkgName = pkg.getName();
-		if (shouldRename(pkgName) && !pkg.hasAlias()) {
-			final String pkgAlias = String.format("p%03d%s", pkgIndex++, short4LongName(pkgName));
+		if (!pkg.hasAlias() && shouldRename(pkgName)) {
+			final String pkgAlias = String.format("p%03d%s", pkgIndex++, makeName(pkgName));
 			pkg.setAlias(pkgAlias);
 		}
 	}
@@ -263,7 +255,34 @@ public class Deobfuscator {
 	}
 
 	private boolean shouldRename(String s) {
-		return s.length() > maxLength || s.length() < minLength || NameMapper.isReserved(s);
+		return s.length() > maxLength
+				|| s.length() < minLength
+				|| NameMapper.isReserved(s)
+				|| !NameMapper.isAllCharsPrintable(s);
+	}
+
+	private String makeName(String name) {
+		if (name.length() > maxLength) {
+			return "x" + Integer.toHexString(name.hashCode());
+		}
+		if (NameMapper.isReserved(name)) {
+			return name;
+		}
+		if (!NameMapper.isAllCharsPrintable(name)) {
+			return removeInvalidChars(name);
+		}
+		return name;
+	}
+
+	private String removeInvalidChars(String name) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < name.length(); i++) {
+			int ch = name.charAt(i);
+			if (NameMapper.isPrintableChar(ch)) {
+				sb.append((char) ch);
+			}
+		}
+		return sb.toString();
 	}
 
 	private void dumpClassAlias(ClassNode cls) {
@@ -300,13 +319,13 @@ public class Deobfuscator {
 		for (String l : lines) {
 			l = l.trim();
 			if (l.startsWith("p ")) {
-				String va[] = splitAndTrim(l);
+				String[] va = splitAndTrim(l);
 				if (va.length == 2) {
 					PackageNode pkg = getPackageNode(va[0], true);
 					pkg.setAlias(va[1]);
 				}
 			} else if (l.startsWith("c ")) {
-				String va[] = splitAndTrim(l);
+				String[] va = splitAndTrim(l);
 				if (va.length == 2) {
 					if (preLoadClsMap.isEmpty()) {
 						preLoadClsMap = new HashMap<String, String>();
@@ -385,6 +404,6 @@ public class Deobfuscator {
 		if (deobfClsInfo != null) {
 			return deobfClsInfo.getFullName();
 		}
-		return getPackageName(clsInfo.getPackage()) + classNameSeparator + getClassName(clsInfo);
+		return getPackageName(clsInfo.getPackage()) + CLASS_NAME_SEPARATOR + getClassName(clsInfo);
 	}
 }

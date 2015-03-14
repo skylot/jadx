@@ -1,7 +1,6 @@
 package jadx.core.dex.info;
 
 import jadx.core.Consts;
-import jadx.core.deobf.NameMapper;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -102,9 +101,6 @@ public final class ClassInfo {
 			clsName = Consts.ANONYMOUS_CLASS_PREFIX + clsName;
 		} else if (firstChar == '$') {
 			clsName = "_" + clsName;
-		}
-		if (NameMapper.isReserved(clsName)) {
-			clsName += "_";
 		}
 		this.name = clsName;
 		if (parentClass != null) {
