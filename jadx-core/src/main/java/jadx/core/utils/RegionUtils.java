@@ -271,7 +271,7 @@ public class RegionUtils {
 		}
 	}
 
-	public static boolean hasPathThruBlock(BlockNode block, IContainer cont) {
+	public static boolean hasPathThroughBlock(BlockNode block, IContainer cont) {
 		if (block == cont) {
 			return true;
 		}
@@ -282,7 +282,7 @@ public class RegionUtils {
 		} else if (cont instanceof IRegion) {
 			IRegion region = (IRegion) cont;
 			for (IContainer c : region.getSubBlocks()) {
-				if (!hasPathThruBlock(block, c)) {
+				if (!hasPathThroughBlock(block, c)) {
 					return false;
 				}
 			}

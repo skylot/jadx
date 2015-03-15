@@ -19,6 +19,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -340,6 +341,25 @@ public class BlockUtils {
 			return false;
 		}
 		return traverseSuccessorsUntil(start, end, new BitSet());
+	}
+
+	public static BlockNode getTopBlock(Collection<BlockNode> blocks) {
+		if (blocks.size() == 1) {
+			return blocks.iterator().next();
+		}
+		for (BlockNode from : blocks) {
+			boolean top = true;
+			for (BlockNode to : blocks) {
+				if (from != to && !isPathExists(from, to)) {
+					top = false;
+					break;
+				}
+			}
+			if (top) {
+				return from;
+			}
+		}
+		return null;
 	}
 
 	public static boolean isOnlyOnePathExists(BlockNode start, BlockNode end) {

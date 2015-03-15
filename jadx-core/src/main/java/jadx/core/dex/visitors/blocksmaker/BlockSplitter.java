@@ -151,26 +151,30 @@ public class BlockSplitter extends AbstractVisitor {
 					BlockNode thisBlock = getBlock(jump.getDest(), blocksMap);
 					connect(srcBlock, thisBlock);
 				}
+				connectExceptionHandlers(blocksMap, block, insn);
+			}
+		}
+	}
 
-				// connect exception handlers
-				CatchAttr catches = insn.get(AType.CATCH_BLOCK);
-				// get synthetic block for handlers
-				SplitterBlockAttr spl = block.get(AType.SPLITTER_BLOCK);
-				if (catches != null && spl != null) {
-					BlockNode splitterBlock = spl.getBlock();
-					boolean tryEnd = insn.contains(AFlag.TRY_LEAVE);
-					for (ExceptionHandler h : catches.getTryBlock().getHandlers()) {
-						BlockNode handlerBlock = getBlock(h.getHandleOffset(), blocksMap);
-						// skip self loop in handler
-						if (splitterBlock != handlerBlock) {
-							handlerBlock.addAttr(spl);
-							connect(splitterBlock, handlerBlock);
-						}
-						if (tryEnd) {
-							connect(block, handlerBlock);
-						}
-					}
+	private static void connectExceptionHandlers(Map<Integer, BlockNode> blocksMap, BlockNode block, InsnNode insn) {
+		CatchAttr catches = insn.get(AType.CATCH_BLOCK);
+		SplitterBlockAttr spl = block.get(AType.SPLITTER_BLOCK);
+		if (catches == null || spl == null) {
+			return;
+		}
+		BlockNode splitterBlock = spl.getBlock();
+		boolean tryEnd = insn.contains(AFlag.TRY_LEAVE);
+		for (ExceptionHandler h : catches.getTryBlock().getHandlers()) {
+			BlockNode handlerBlock = getBlock(h.getHandleOffset(), blocksMap);
+			// skip self loop in handler
+			if (splitterBlock != handlerBlock) {
+				if (!handlerBlock.contains(AType.SPLITTER_BLOCK)) {
+					handlerBlock.addAttr(spl);
 				}
+				connect(splitterBlock, handlerBlock);
+			}
+			if (tryEnd) {
+				connect(block, handlerBlock);
 			}
 		}
 	}

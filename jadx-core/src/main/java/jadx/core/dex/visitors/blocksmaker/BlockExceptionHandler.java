@@ -65,37 +65,38 @@ public class BlockExceptionHandler extends AbstractVisitor {
 
 	private static void processExceptionHandlers(MethodNode mth, BlockNode block) {
 		ExcHandlerAttr handlerAttr = block.get(AType.EXC_HANDLER);
-		if (handlerAttr != null) {
-			ExceptionHandler excHandler = handlerAttr.getHandler();
-			excHandler.addBlock(block);
-			for (BlockNode node : BlockUtils.collectBlocksDominatedBy(block, block)) {
-				excHandler.addBlock(node);
-			}
-			for (BlockNode excBlock : excHandler.getBlocks()) {
-				// remove 'monitor-exit' from exception handler blocks
-				InstructionRemover remover = new InstructionRemover(mth, excBlock);
-				for (InsnNode insn : excBlock.getInstructions()) {
-					if (insn.getType() == InsnType.MONITOR_ENTER) {
-						break;
-					}
-					if (insn.getType() == InsnType.MONITOR_EXIT) {
-						remover.add(insn);
-					}
+		if (handlerAttr == null) {
+			return;
+		}
+		ExceptionHandler excHandler = handlerAttr.getHandler();
+		excHandler.addBlock(block);
+		for (BlockNode node : BlockUtils.collectBlocksDominatedBy(block, block)) {
+			excHandler.addBlock(node);
+		}
+		for (BlockNode excBlock : excHandler.getBlocks()) {
+			// remove 'monitor-exit' from exception handler blocks
+			InstructionRemover remover = new InstructionRemover(mth, excBlock);
+			for (InsnNode insn : excBlock.getInstructions()) {
+				if (insn.getType() == InsnType.MONITOR_ENTER) {
+					break;
 				}
-				remover.perform();
+				if (insn.getType() == InsnType.MONITOR_EXIT) {
+					remover.add(insn);
+				}
+			}
+			remover.perform();
 
-				// if 'throw' in exception handler block have 'catch' - merge these catch blocks
-				for (InsnNode insn : excBlock.getInstructions()) {
-					CatchAttr catchAttr = insn.get(AType.CATCH_BLOCK);
-					if (catchAttr == null) {
-						continue;
-					}
-					if (insn.getType() == InsnType.THROW
-							|| onlyAllHandler(catchAttr.getTryBlock())) {
-						TryCatchBlock handlerBlock = handlerAttr.getTryBlock();
-						TryCatchBlock catchBlock = catchAttr.getTryBlock();
-						handlerBlock.merge(mth, catchBlock);
-					}
+			// if 'throw' in exception handler block have 'catch' - merge these catch blocks
+			for (InsnNode insn : excBlock.getInstructions()) {
+				CatchAttr catchAttr = insn.get(AType.CATCH_BLOCK);
+				if (catchAttr == null) {
+					continue;
+				}
+				if (insn.getType() == InsnType.THROW
+						|| onlyAllHandler(catchAttr.getTryBlock())) {
+					TryCatchBlock handlerBlock = handlerAttr.getTryBlock();
+					TryCatchBlock catchBlock = catchAttr.getTryBlock();
+					handlerBlock.merge(mth, catchBlock);
 				}
 			}
 		}

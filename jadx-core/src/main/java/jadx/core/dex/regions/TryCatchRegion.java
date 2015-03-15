@@ -84,8 +84,14 @@ public final class TryCatchRegion extends AbstractRegion implements IBranchRegio
 
 	@Override
 	public String toString() {
-		return "Try: " + tryRegion
-				+ " catches: " + Utils.listToString(catchRegions.values())
-				+ (finallyRegion == null ? "" : " finally: " + finallyRegion);
+		StringBuilder sb = new StringBuilder();
+		sb.append("Try: ").append(tryRegion);
+		if (!catchRegions.isEmpty()) {
+			sb.append(" catches: ").append(Utils.listToString(catchRegions.values()));
+		}
+		if (finallyRegion != null) {
+			sb.append(" finally: ").append(finallyRegion);
+		}
+		return sb.toString();
 	}
 }

@@ -12,6 +12,7 @@ import jadx.core.dex.regions.TryCatchRegion;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
+import jadx.core.dex.trycatch.SplitterBlockAttr;
 import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.ErrorsCounter;
@@ -65,39 +66,28 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 
 		// for each try block search nearest dominator block
 		for (TryCatchBlock tb : tryBlocks) {
-			BitSet bs = null;
-			// build bitset with dominators of blocks covered with this try/catch block
-			for (BlockNode block : mth.getBasicBlocks()) {
-				CatchAttr c = block.get(AType.CATCH_BLOCK);
-				if (c != null && c.getTryBlock() == tb) {
-					if (bs == null) {
-						bs = (BitSet) block.getDoms().clone();
-					} else {
-						bs.and(block.getDoms());
-					}
+			BitSet bs = new BitSet(mth.getBasicBlocks().size());
+			for (ExceptionHandler excHandler : tb.getHandlers()) {
+				SplitterBlockAttr splitter = excHandler.getHandlerBlock().get(AType.SPLITTER_BLOCK);
+				if (splitter != null) {
+					BlockNode block = splitter.getBlock();
+					bs.set(block.getId());
 				}
 			}
-			if (bs == null) {
-				LOG.debug(" Can't build try/catch dominators bitset, tb: {}, mth: {} ", tb, mth);
-				continue;
-			}
-
-			// intersect to get dominator of dominators
 			List<BlockNode> domBlocks = BlockUtils.bitSetToBlocks(mth, bs);
-			for (BlockNode block : domBlocks) {
-				bs.andNot(block.getDoms());
-			}
-			domBlocks = BlockUtils.bitSetToBlocks(mth, bs);
+			BlockNode domBlock;
 			if (domBlocks.size() != 1) {
-				throw new JadxRuntimeException(
-						"Exception block dominator not found, method:" + mth + ". bs: " + bs);
+				domBlock = BlockUtils.getTopBlock(domBlocks);
+				if (domBlock == null) {
+					throw new JadxRuntimeException(
+							"Exception block dominator not found, method:" + mth + ". bs: " + domBlocks);
+				}
+			} else {
+				domBlock = domBlocks.get(0);
 			}
-
-			BlockNode domBlock = domBlocks.get(0);
-
 			TryCatchBlock prevTB = tryBlocksMap.put(domBlock, tb);
 			if (prevTB != null) {
-				LOG.info("!!! TODO: merge try blocks in {}", mth);
+				ErrorsCounter.methodError(mth, "Failed to process nested try/catch");
 			}
 		}
 	}
@@ -136,7 +126,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 		Region tryRegion = new Region(replaceRegion);
 		List<IContainer> subBlocks = replaceRegion.getSubBlocks();
 		for (IContainer cont : subBlocks) {
-			if (RegionUtils.isDominatedBy(dominator, cont)) {
+			if (RegionUtils.hasPathThroughBlock(dominator, cont)) {
 				if (isHandlerPath(tb, cont)) {
 					break;
 				}
@@ -170,7 +160,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 
 	private static boolean isHandlerPath(TryCatchBlock tb, IContainer cont) {
 		for (ExceptionHandler h : tb.getHandlers()) {
-			if (RegionUtils.hasPathThruBlock(h.getHandlerBlock(), cont)) {
+			if (RegionUtils.hasPathThroughBlock(h.getHandlerBlock(), cont)) {
 				return true;
 			}
 		}

@@ -59,6 +59,10 @@ public class DebugUtils {
 		printRegions(mth, false);
 	}
 
+	public static void printRegion(MethodNode mth, IRegion region, boolean printInsn) {
+		printRegion(mth, region, "", printInsn);
+	}
+
 	public static void printRegions(MethodNode mth, boolean printInsns) {
 		LOG.debug("|{}", mth.toString());
 		printRegion(mth, mth.getRegion(), "|  ", printInsns);
