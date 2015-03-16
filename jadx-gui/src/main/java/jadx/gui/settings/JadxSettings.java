@@ -2,6 +2,8 @@ package jadx.gui.settings;
 
 import jadx.cli.JadxCLIArgs;
 
+import javax.swing.JLabel;
+import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -13,6 +15,8 @@ public class JadxSettings extends JadxCLIArgs {
 	private static final String USER_HOME = System.getProperty("user.home");
 	private static final int RECENT_FILES_COUNT = 15;
 
+	private static final Font DEFAULT_FONT = new JLabel().getFont();
+
 	static final Set<String> SKIP_FIELDS = new HashSet<String>(Arrays.asList(
 			"files", "input", "outputDir", "printHelp"
 	));
@@ -22,6 +26,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private boolean flattenPackage = false;
 	private boolean checkForUpdates = true;
 	private List<String> recentFiles = new ArrayList<String>();
+	private String fontStr = "";
 
 	public void sync() {
 		JadxSettingsAdapter.store(this);
@@ -125,5 +130,29 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setDeobfuscationForceSave(boolean deobfuscationForceSave) {
 		this.deobfuscationForceSave = deobfuscationForceSave;
+	}
+
+	public Font getFont() {
+		if (fontStr.isEmpty()) {
+			return DEFAULT_FONT;
+		}
+		return Font.decode(fontStr);
+	}
+
+	public void setFont(Font font) {
+		this.fontStr = font.getFontName() + addStyleName(font.getStyle()) + "-" + font.getSize();
+	}
+
+	private static String addStyleName(int style) {
+		switch (style) {
+			case Font.BOLD:
+				return "-BOLD";
+			case Font.PLAIN:
+				return "-PLAIN";
+			case Font.ITALIC:
+				return "-ITALIC";
+			default:
+				return "";
+		}
 	}
 }

@@ -1,6 +1,7 @@
 package jadx.gui.ui;
 
 import jadx.api.CodePosition;
+import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.utils.Position;
@@ -45,6 +46,7 @@ class ContentArea extends RSyntaxTextArea {
 		setBackground(BACKGROUND);
 		setAntiAliasingEnabled(true);
 		setEditable(false);
+		loadSettings();
 		Caret caret = getCaret();
 		if (caret instanceof DefaultCaret) {
 			((DefaultCaret) caret).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
@@ -64,6 +66,11 @@ class ContentArea extends RSyntaxTextArea {
 		}
 
 		setText(node.getContent());
+	}
+
+	public void loadSettings() {
+		JadxSettings settings = contentPanel.getTabbedPane().getMainWindow().getSettings();
+		setFont(settings.getFont());
 	}
 
 	private boolean isJumpToken(Token token) {

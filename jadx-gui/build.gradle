@@ -7,6 +7,7 @@ dependencies {
     compile(project(":jadx-cli"))
     compile 'com.fifesoft:rsyntaxtextarea:2.5.6'
     compile 'com.google.code.gson:gson:2.3.1'
+    compile files('libs/jfontchooser-1.0.5.jar')
 }
 
 applicationDistribution.with {

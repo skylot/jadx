@@ -234,4 +234,10 @@ class TabbedPane extends JTabbedPane {
 			closeCodePanel(panel);
 		}
 	}
+
+	public void loadSettings() {
+		for (ContentPanel panel : openTabs.values()) {
+			panel.getContentArea().loadSettings();
+		}
+	}
 }

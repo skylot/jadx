@@ -2,6 +2,7 @@ package jadx.gui.settings;
 
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
+import say.swing.JFontChooser;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -20,6 +21,7 @@ import javax.swing.event.ChangeListener;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -28,9 +30,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class JadxSettingsWindow extends JDialog {
 	private static final long serialVersionUID = -1804570470377354148L;
+
+	private static final Logger LOG = LoggerFactory.getLogger(JadxSettingsWindow.class);
 
 	private final MainWindow mainWindow;
 	private final JadxSettings settings;
@@ -204,6 +213,22 @@ public class JadxSettingsWindow extends JDialog {
 			}
 		});
 
+		JButton fontBtn = new JButton(NLS.str("preferences.select_font"));
+		fontBtn.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				JFontChooser fontChooser = new JFontChooser();
+				fontChooser.setSelectedFont(settings.getFont());
+				int result = fontChooser.showDialog(JadxSettingsWindow.this);
+				if (result == JFontChooser.OK_OPTION) {
+					Font font = fontChooser.getSelectedFont();
+					LOG.info("Selected Font : {}", font);
+					settings.setFont(font);
+					mainWindow.updateFont(font);
+				}
+			}
+		});
+
 		SettingsGroup other = new SettingsGroup(NLS.str("preferences.other"));
 		other.addRow(NLS.str("preferences.check_for_updates"), update);
 		other.addRow(NLS.str("preferences.threads"), threadsCount);
@@ -212,6 +237,7 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.skipResourcesDecode"), resourceDecode);
 		other.addRow(NLS.str("preferences.cfg"), cfg);
 		other.addRow(NLS.str("preferences.raw_cfg"), rawCfg);
+		other.addRow(NLS.str("preferences.font"), fontBtn);
 		return other;
 	}
 

@@ -48,6 +48,7 @@ import javax.swing.tree.TreeSelectionModel;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.DisplayMode;
+import java.awt.Font;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
@@ -572,6 +573,15 @@ public class MainWindow extends JFrame {
 		int h = mode.getHeight();
 		setLocation((int) (w * BORDER_RATIO), (int) (h * BORDER_RATIO));
 		setSize((int) (w * WINDOW_RATIO), (int) (h * WINDOW_RATIO));
+	}
+
+	public void updateFont(Font font) {
+		setFont(font);
+		tabbedPane.loadSettings();
+	}
+
+	public JadxSettings getSettings() {
+		return settings;
 	}
 
 	private class OpenListener implements ActionListener {
