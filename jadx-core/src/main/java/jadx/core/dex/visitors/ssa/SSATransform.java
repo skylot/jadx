@@ -202,14 +202,19 @@ public class SSATransform extends AbstractVisitor {
 
 	private static void fixPhiInTryCatch(PhiInsn phi) {
 		int argsCount = phi.getArgsCount();
-		for (int i = 0; i < argsCount; i++) {
-			RegisterArg arg = phi.getArg(i);
+		int k = 0;
+		while (k < argsCount) {
+			RegisterArg arg = phi.getArg(k);
 			InsnNode parentInsn = arg.getAssignInsn();
 			if (parentInsn != null
 					&& parentInsn.getResult() != null
 					&& parentInsn.contains(AFlag.TRY_LEAVE)) {
-				phi.removeArg(arg);
+				if (phi.removeArg(arg)) {
+					argsCount--;
+					continue;
+				}
 			}
+			k++;
 		}
 	}
 

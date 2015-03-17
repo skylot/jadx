@@ -1,5 +1,6 @@
 package jadx.core.dex.visitors;
 
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -39,7 +40,7 @@ public class DependencyCollector extends AbstractVisitor {
 		}
 		// TODO: process annotations and generics
 		for (MethodNode methodNode : cls.getMethods()) {
-			if (methodNode.isNoCode()) {
+			if (methodNode.isNoCode() || methodNode.contains(AType.JADX_ERROR)) {
 				continue;
 			}
 			processMethod(dex, depList, methodNode);

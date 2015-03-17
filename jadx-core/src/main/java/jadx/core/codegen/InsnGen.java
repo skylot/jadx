@@ -554,7 +554,7 @@ public class InsnGen {
 				useClass(code, parent);
 			}
 			code.add("() ");
-			new ClassGen(cls, mgen.getClassGen().getParentGen(), fallback).addClassBody(code);
+			new ClassGen(cls, mgen.getClassGen().getParentGen()).addClassBody(code);
 			return;
 		}
 		if (insn.isSelf()) {

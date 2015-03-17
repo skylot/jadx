@@ -312,8 +312,9 @@ public class BlockUtils {
 		}
 	}
 
-	private static boolean traverseSuccessorsUntil(BlockNode from, BlockNode until, BitSet visited) {
-		for (BlockNode s : from.getCleanSuccessors()) {
+	private static boolean traverseSuccessorsUntil(BlockNode from, BlockNode until, BitSet visited, boolean clean) {
+		List<BlockNode> nodes = clean ? from.getCleanSuccessors() : from.getSuccessors();
+		for (BlockNode s : nodes) {
 			if (s == until) {
 				return true;
 			}
@@ -323,7 +324,7 @@ public class BlockUtils {
 				if (until.isDominator(s)) {
 					return true;
 				}
-				if (traverseSuccessorsUntil(s, until, visited)) {
+				if (traverseSuccessorsUntil(s, until, visited, clean)) {
 					return true;
 				}
 			}
@@ -340,7 +341,19 @@ public class BlockUtils {
 		if (start.getPredecessors().contains(end)) {
 			return false;
 		}
-		return traverseSuccessorsUntil(start, end, new BitSet());
+		return traverseSuccessorsUntil(start, end, new BitSet(), true);
+	}
+
+	public static boolean isAnyPathExists(BlockNode start, BlockNode end) {
+		if (start == end
+				|| end.isDominator(start)
+				|| start.getSuccessors().contains(end)) {
+			return true;
+		}
+		if (start.getPredecessors().contains(end)) {
+			return false;
+		}
+		return traverseSuccessorsUntil(start, end, new BitSet(), false);
 	}
 
 	public static BlockNode getTopBlock(Collection<BlockNode> blocks) {
@@ -350,7 +363,7 @@ public class BlockUtils {
 		for (BlockNode from : blocks) {
 			boolean top = true;
 			for (BlockNode to : blocks) {
-				if (from != to && !isPathExists(from, to)) {
+				if (from != to && !isAnyPathExists(from, to)) {
 					top = false;
 					break;
 				}

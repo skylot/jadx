@@ -50,21 +50,24 @@ public class ClassGen {
 	private final ClassGen parentGen;
 	private final AnnotationGen annotationGen;
 	private final boolean fallback;
-
-	private boolean showInconsistentCode = false;
+	private final boolean showInconsistentCode;
 
 	private final Set<ClassInfo> imports = new HashSet<ClassInfo>();
 	private int clsDeclLine;
 
-	public ClassGen(ClassNode cls, ClassGen parentClsGen, IJadxArgs jadxArgs) {
-		this(cls, parentClsGen, jadxArgs.isFallbackMode());
-		this.showInconsistentCode = jadxArgs.isShowInconsistentCode();
+	public ClassGen(ClassNode cls, IJadxArgs jadxArgs) {
+		this(cls, null, jadxArgs.isFallbackMode(), jadxArgs.isShowInconsistentCode());
 	}
 
-	public ClassGen(ClassNode cls, ClassGen parentClsGen, boolean fallback) {
+	public ClassGen(ClassNode cls, ClassGen parentClsGen) {
+		this(cls, parentClsGen, parentClsGen.fallback, parentClsGen.showInconsistentCode);
+	}
+
+	public ClassGen(ClassNode cls, ClassGen parentClsGen, boolean fallback, boolean showBadCode) {
 		this.cls = cls;
 		this.parentGen = parentClsGen;
 		this.fallback = fallback;
+		this.showInconsistentCode = showBadCode;
 
 		this.annotationGen = new AnnotationGen(cls, this);
 	}
@@ -230,7 +233,7 @@ public class ClassGen {
 					|| innerCls.isAnonymous()) {
 				continue;
 			}
-			ClassGen inClGen = new ClassGen(innerCls, getParentGen(), fallback);
+			ClassGen inClGen = new ClassGen(innerCls, getParentGen());
 			code.newLine();
 			inClGen.addClassCode(code);
 			imports.addAll(inClGen.getImports());
@@ -299,6 +302,7 @@ public class ClassGen {
 				ErrorsCounter.methodError(mth, "Inconsistent code");
 				if (showInconsistentCode) {
 					mth.remove(AFlag.INCONSISTENT_CODE);
+					badCode = false;
 				}
 			}
 			MethodGen mthGen;
@@ -384,7 +388,7 @@ public class ClassGen {
 			}
 			if (f.getCls() != null) {
 				code.add(' ');
-				new ClassGen(f.getCls(), this, fallback).addClassBody(code);
+				new ClassGen(f.getCls(), this).addClassBody(code);
 			}
 			if (it.hasNext()) {
 				code.add(',');

@@ -88,8 +88,10 @@ public class TryCatchBlock {
 			insn.removeAttr(attr);
 		}
 		insns.clear();
-		for (BlockNode block : mth.getBasicBlocks()) {
-			block.removeAttr(attr);
+		if (mth.getBasicBlocks() != null) {
+			for (BlockNode block : mth.getBasicBlocks()) {
+				block.removeAttr(attr);
+			}
 		}
 	}
 
