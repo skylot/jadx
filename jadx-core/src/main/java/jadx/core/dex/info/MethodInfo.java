@@ -17,10 +17,12 @@ public final class MethodInfo {
 	private final List<ArgType> args;
 	private final ClassInfo declClass;
 	private final String shortId;
+	private String alias;
 
 	private MethodInfo(DexNode dex, int mthIndex) {
 		MethodId mthId = dex.getMethodId(mthIndex);
 		name = dex.getString(mthId.getNameIndex());
+		alias = name;
 		declClass = ClassInfo.fromDex(dex, mthId.getDeclaringClassIndex());
 
 		ProtoId proto = dex.getProtoId(mthId.getProtoIndex());
@@ -89,6 +91,18 @@ public final class MethodInfo {
 
 	public boolean isClassInit() {
 		return name.equals("<clinit>");
+	}
+
+	public String getAlias() {
+		return alias;
+	}
+
+	public void setAlias(String alias) {
+		this.alias = alias;
+	}
+
+	public boolean isRenamed() {
+		return !name.equals(alias);
 	}
 
 	@Override

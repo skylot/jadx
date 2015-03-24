@@ -90,7 +90,7 @@ public class MethodGen {
 		} else {
 			classGen.useType(code, mth.getReturnType());
 			code.add(' ');
-			code.add(mth.getName());
+			code.add(mth.getAlias());
 		}
 		code.add('(');
 

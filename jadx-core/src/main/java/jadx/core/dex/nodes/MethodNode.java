@@ -369,6 +369,10 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		return mthInfo.getName();
 	}
 
+	public String getAlias() {
+		return mthInfo.getAlias();
+	}
+
 	public ClassNode getParentClass() {
 		return parentClass;
 	}

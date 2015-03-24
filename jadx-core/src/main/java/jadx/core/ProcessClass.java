@@ -53,10 +53,6 @@ public final class ProcessClass {
 
 	static void processDependencies(ClassNode cls, List<IDexTreeVisitor> passes) {
 		for (ClassNode depCls : cls.getDependencies()) {
-			if (cls.getTopParentClass() == cls) {
-				// ignore inner classes of this class
-				continue;
-			}
 			process(depCls, passes, null);
 		}
 	}

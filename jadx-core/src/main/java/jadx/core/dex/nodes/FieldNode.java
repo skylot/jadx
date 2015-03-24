@@ -42,6 +42,10 @@ public class FieldNode extends LineAttrNode {
 		return fieldInfo.getName();
 	}
 
+	public String getAlias() {
+		return fieldInfo.getAlias();
+	}
+
 	public ArgType getType() {
 		return type;
 	}

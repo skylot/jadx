@@ -2,6 +2,9 @@ package jadx.core.dex.visitors;
 
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.ClassInfo;
+import jadx.core.dex.info.FieldInfo;
+import jadx.core.dex.instructions.IndexInsnNode;
+import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
@@ -73,6 +76,21 @@ public class DependencyCollector extends AbstractVisitor {
 				addDep(dex, depList, arg.getType());
 			}
 		}
+		processCustomInsn(dex, depList, insnNode);
+	}
+
+	private static void processCustomInsn(DexNode dex, Set<ClassNode> depList, InsnNode insn) {
+		if (insn instanceof IndexInsnNode) {
+			Object index = ((IndexInsnNode) insn).getIndex();
+			if (index instanceof FieldInfo) {
+				addDep(dex, depList, ((FieldInfo) index).getDeclClass());
+			} else if (index instanceof ArgType) {
+				addDep(dex, depList, (ArgType) index);
+			}
+		} else if (insn instanceof InvokeNode) {
+			ClassInfo declClass = ((InvokeNode) insn).getCallMth().getDeclClass();
+			addDep(dex, depList, declClass);
+		}
 	}
 
 	private static void addDep(DexNode dex, Set<ClassNode> depList, ArgType type) {
@@ -94,15 +112,14 @@ public class DependencyCollector extends AbstractVisitor {
 	private static void addDep(DexNode dex, Set<ClassNode> depList, ClassInfo clsInfo) {
 		if (clsInfo != null) {
 			ClassNode node = dex.resolveClass(clsInfo);
-			if (node != null) {
-				depList.add(node);
-			}
+			addDep(dex, depList, node);
 		}
 	}
 
 	private static void addDep(DexNode dex, Set<ClassNode> depList, ClassNode clsNode) {
 		if (clsNode != null) {
-			depList.add(clsNode);
+			// add only top classes
+			depList.add(clsNode.getTopParentClass());
 		}
 	}
 }

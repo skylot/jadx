@@ -1,5 +1,6 @@
 package jadx.core.dex.info;
 
+import jadx.core.codegen.TypeGen;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.DexNode;
 
@@ -10,11 +11,13 @@ public final class FieldInfo {
 	private final ClassInfo declClass;
 	private final String name;
 	private final ArgType type;
+	private String alias;
 
 	private FieldInfo(ClassInfo declClass, String name, ArgType type) {
 		this.declClass = declClass;
 		this.name = name;
 		this.type = type;
+		this.alias = name;
 	}
 
 	public static FieldInfo from(DexNode dex, ClassInfo declClass, String name, ArgType type) {
@@ -40,6 +43,22 @@ public final class FieldInfo {
 
 	public ClassInfo getDeclClass() {
 		return declClass;
+	}
+
+	public String getAlias() {
+		return alias;
+	}
+
+	public void setAlias(String alias) {
+		this.alias = alias;
+	}
+
+	public String getFullId() {
+		return declClass.getFullName() + "." + name + ":" + TypeGen.signature(type);
+	}
+
+	public boolean isRenamed() {
+		return !name.equals(alias);
 	}
 
 	@Override

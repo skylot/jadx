@@ -7,10 +7,10 @@ import java.util.Stack;
 
 public class PackageNode {
 
+	private static final char SEPARATOR_CHAR = '.';
+
 	private PackageNode parentPackage;
 	private List<PackageNode> innerPackages = Collections.emptyList();
-
-	private static final char separatorChar = '.';
 
 	private final String packageName;
 	private String packageAlias;
@@ -34,7 +34,7 @@ public class PackageNode {
 			StringBuilder result = new StringBuilder();
 			result.append(pp.pop().getName());
 			while (pp.size() > 0) {
-				result.append(separatorChar);
+				result.append(SEPARATOR_CHAR);
 				result.append(pp.pop().getName());
 			}
 			cachedPackageFullName = result.toString();
@@ -63,7 +63,7 @@ public class PackageNode {
 			StringBuilder result = new StringBuilder();
 			result.append(pp.pop().getAlias());
 			while (pp.size() > 0) {
-				result.append(separatorChar);
+				result.append(SEPARATOR_CHAR);
 				result.append(pp.pop().getAlias());
 			}
 			cachedPackageFullAlias = result.toString();

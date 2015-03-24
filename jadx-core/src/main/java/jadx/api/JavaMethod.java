@@ -17,7 +17,7 @@ public final class JavaMethod implements JavaNode {
 
 	@Override
 	public String getName() {
-		return mth.getName();
+		return mth.getAlias();
 	}
 
 	@Override

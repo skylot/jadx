@@ -108,9 +108,7 @@ public class Jadx {
 
 			passes.add(new DependencyCollector());
 
-			if (args.isDeobfuscationOn()) {
-				passes.add(new RenameVisitor());
-			}
+			passes.add(new RenameVisitor());
 		}
 		return passes;
 	}

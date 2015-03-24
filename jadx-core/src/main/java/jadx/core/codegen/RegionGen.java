@@ -245,7 +245,7 @@ public class RegionGen extends InsnGen {
 				if (k instanceof FieldNode) {
 					FieldNode fn = (FieldNode) k;
 					if (fn.getParentClass().isEnum()) {
-						code.add(fn.getName());
+						code.add(fn.getAlias());
 					} else {
 						staticField(code, fn.getFieldInfo());
 						// print original value, sometimes replace with incorrect field

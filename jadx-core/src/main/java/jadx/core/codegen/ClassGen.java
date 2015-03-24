@@ -337,7 +337,7 @@ public class ClassGen {
 			code.startLine(f.getAccessFlags().makeString());
 			useType(code, f.getType());
 			code.add(' ');
-			code.add(f.getName());
+			code.add(f.getAlias());
 			FieldValueAttr fv = f.get(AType.FIELD_VALUE);
 			if (fv != null) {
 				code.add(" = ");

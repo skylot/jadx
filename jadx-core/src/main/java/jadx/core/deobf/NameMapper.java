@@ -88,10 +88,11 @@ public class NameMapper {
 	}
 
 	public static boolean isAllCharsPrintable(String str) {
-		for (int i = 0; i < str.length(); i++) {
-			 if (!isPrintableChar(str.charAt(i))) {
-				 return false;
-			 }
+		int len = str.length();
+		for (int i = 0; i < len; i++) {
+			if (!isPrintableChar(str.charAt(i))) {
+				return false;
+			}
 		}
 		return true;
 	}

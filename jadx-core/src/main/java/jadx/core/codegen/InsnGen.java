@@ -157,7 +157,7 @@ public class InsnGen {
 		if (fieldNode != null) {
 			code.attachAnnotation(fieldNode);
 		}
-		code.add(field.getName());
+		code.add(field.getAlias());
 	}
 
 	public static void makeStaticFieldAccess(CodeWriter code, FieldInfo field, ClassGen clsGen) {
@@ -179,7 +179,7 @@ public class InsnGen {
 		if (fieldNode != null) {
 			code.attachAnnotation(fieldNode);
 		}
-		code.add(field.getName());
+		code.add(field.getAlias());
 	}
 
 	protected void staticField(CodeWriter code, FieldInfo field) {
@@ -612,7 +612,7 @@ public class InsnGen {
 		if (callMthNode != null) {
 			code.attachAnnotation(callMthNode);
 		}
-		code.add(callMth.getName());
+		code.add(callMth.getAlias());
 		generateMethodArguments(code, insn, k, callMthNode);
 	}
 

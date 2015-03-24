@@ -16,12 +16,12 @@ public final class JavaField implements JavaNode {
 
 	@Override
 	public String getName() {
-		return field.getName();
+		return field.getAlias();
 	}
 
 	@Override
 	public String getFullName() {
-		return parent.getFullName() + "." + field.getName();
+		return parent.getFullName() + "." + getName();
 	}
 
 	@Override
