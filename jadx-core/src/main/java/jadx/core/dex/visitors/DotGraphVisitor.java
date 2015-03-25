@@ -15,6 +15,7 @@ import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.RegionUtils;
+import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
 
 import java.io.File;
@@ -100,7 +101,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 			dot.startLine('}');
 			dot.startLine();
 
-			String fileName = Utils.escape(mth.getMethodInfo().getShortId())
+			String fileName = StringUtils.escape(mth.getMethodInfo().getShortId())
 					+ (useRegions ? ".regions" : "")
 					+ (rawInsn ? ".raw" : "")
 					+ ".dot";

@@ -15,7 +15,7 @@ import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.utils.Utils;
+import jadx.core.utils.StringUtils;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -165,7 +165,7 @@ public class NameGen {
 				return vName;
 			}
 		}
-		return Utils.escape(type.toString());
+		return StringUtils.escape(type.toString());
 	}
 
 	private static String fromName(String name) {
