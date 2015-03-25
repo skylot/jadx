@@ -1,10 +1,15 @@
 package jadx.core.utils;
 
+import jadx.api.JadxDecompiler;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.Iterator;
 
 public class Utils {
+
+	public static final String JADX_API_PACKAGE = JadxDecompiler.class.getPackage().getName();
 
 	private Utils() {
 	}
@@ -90,8 +95,39 @@ public class Utils {
 		}
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw, true);
+		filterRecursive(throwable);
 		throwable.printStackTrace(pw);
 		return sw.getBuffer().toString();
+	}
+
+	private static void filterRecursive(Throwable th) {
+		try {
+			filter(th);
+		} catch (Exception e) {
+			// ignore filter exceptions
+		}
+		Throwable cause = th.getCause();
+		if (cause != null) {
+			filterRecursive(cause);
+		}
+	}
+
+	private static void filter(Throwable th) {
+		StackTraceElement[] stackTrace = th.getStackTrace();
+		int cutIndex = -1;
+		int length = stackTrace.length;
+		for (int i = 0; i < length; i++) {
+			StackTraceElement stackTraceElement = stackTrace[i];
+			if (stackTraceElement.getClassName().startsWith(JADX_API_PACKAGE)) {
+				cutIndex = i;
+			} else if (cutIndex > 0) {
+				cutIndex = i;
+				break;
+			}
+		}
+		if (cutIndex > 0 && cutIndex < length) {
+			th.setStackTrace(Arrays.copyOfRange(stackTrace, 0, cutIndex));
+		}
 	}
 
 	public static int compare(int x, int y) {
