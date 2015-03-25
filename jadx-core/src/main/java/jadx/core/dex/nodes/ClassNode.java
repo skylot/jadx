@@ -152,7 +152,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 		if (offset != 0) {
 			try {
 				new AnnotationsParser(this).parse(offset);
-			} catch (DecodeException e) {
+			} catch (Exception e) {
 				LOG.error("Error parsing annotations in {}", this, e);
 			}
 		}
