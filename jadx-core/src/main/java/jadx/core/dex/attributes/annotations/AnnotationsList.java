@@ -5,11 +5,14 @@ import jadx.core.dex.attributes.IAttribute;
 import jadx.core.utils.Utils;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class AnnotationsList implements IAttribute {
+
+	public static final AnnotationsList EMPTY = new AnnotationsList(Collections.<Annotation>emptyList());
 
 	private final Map<String, Annotation> map;
 

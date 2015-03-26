@@ -71,8 +71,14 @@ public class AnnotationsParser {
 	}
 
 	private AnnotationsList readAnnotationSet(int offset) throws DecodeException {
+		if (offset == 0) {
+			return AnnotationsList.EMPTY;
+		}
 		Section section = dex.openSection(offset);
 		int size = section.readInt();
+		if (size == 0) {
+			return AnnotationsList.EMPTY;
+		}
 		List<Annotation> list = new ArrayList<Annotation>(size);
 		for (int i = 0; i < size; i++) {
 			Section anSection = dex.openSection(section.readInt());
@@ -86,7 +92,8 @@ public class AnnotationsParser {
 		EncValueParser parser = new EncValueParser(dex, s);
 		Visibility visibility = null;
 		if (readVisibility) {
-			visibility = VISIBILITIES[s.readByte()];
+			byte v = s.readByte();
+			visibility = VISIBILITIES[v];
 		}
 		int typeIndex = s.readUleb128();
 		int size = s.readUleb128();
