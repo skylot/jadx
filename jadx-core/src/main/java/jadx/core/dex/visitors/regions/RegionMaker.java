@@ -912,7 +912,11 @@ public class RegionMaker {
 		handler.setHandlerRegion(makeRegion(start, stack));
 
 		ExcHandlerAttr excHandlerAttr = start.get(AType.EXC_HANDLER);
-		handler.getHandlerRegion().addAttr(excHandlerAttr);
+		if (excHandlerAttr == null) {
+			LOG.warn("Missing exception handler attribute for start block");
+		} else {
+			handler.getHandlerRegion().addAttr(excHandlerAttr);
+		}
 	}
 
 	static boolean isEqualPaths(BlockNode b1, BlockNode b2) {

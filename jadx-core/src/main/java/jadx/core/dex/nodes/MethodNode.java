@@ -126,9 +126,11 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 				list.add(resultArg);
 			}
 			insnNode.getRegisterArgs(list);
-			for (int i = 0, listSize = list.size(); i < listSize; i++) {
+			int argsCount = list.size();
+			for (int i = 0; i < argsCount; i++) {
 				if (list.get(i).getRegNum() >= regsCount) {
-					throw new JadxRuntimeException("Incorrect register number in instruction: " + insnNode);
+					throw new JadxRuntimeException("Incorrect register number in instruction: " + insnNode
+							+ ", expected to be less than " + regsCount);
 				}
 			}
 		}

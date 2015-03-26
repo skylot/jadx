@@ -106,13 +106,17 @@ public class ConstInlineVisitor extends AbstractVisitor {
 				continue;
 			}
 			LiteralArg litArg;
+			ArgType argType = arg.getType();
+			if (argType.isObject() && literal != 0) {
+				argType = ArgType.NARROW_NUMBERS;
+			}
 			if (use.size() == 1 || arg.isTypeImmutable()) {
 				// arg used only in one place
-				litArg = InsnArg.lit(literal, arg.getType());
+				litArg = InsnArg.lit(literal, argType);
 			} else if (useInsn.getType() == InsnType.MOVE
 					&& !useInsn.getResult().getType().isTypeKnown()) {
 				// save type for 'move' instructions (hard to find type in chains of 'move')
-				litArg = InsnArg.lit(literal, arg.getType());
+				litArg = InsnArg.lit(literal, argType);
 			} else {
 				// in most cases type not equal arg.getType()
 				// just set unknown type and run type fixer

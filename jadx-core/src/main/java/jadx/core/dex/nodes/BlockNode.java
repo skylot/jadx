@@ -5,6 +5,7 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.attributes.nodes.IgnoreEdgeAttr;
 import jadx.core.dex.attributes.nodes.LoopInfo;
+import jadx.core.utils.EmptyBitSet;
 import jadx.core.utils.InsnUtils;
 
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ public class BlockNode extends AttrNode implements IBlock {
 	private List<BlockNode> cleanSuccessors;
 
 	// all dominators
-	private BitSet doms;
+	private BitSet doms = EmptyBitSet.EMPTY;
 	// dominance frontier
 	private BitSet domFrontier;
 	// immediate dominator

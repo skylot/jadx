@@ -18,7 +18,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private static final Font DEFAULT_FONT = new JLabel().getFont();
 
 	static final Set<String> SKIP_FIELDS = new HashSet<String>(Arrays.asList(
-			"files", "input", "outputDir", "printHelp"
+			"files", "input", "outputDir", "verbose", "printHelp"
 	));
 
 	private String lastOpenFilePath = USER_HOME;
