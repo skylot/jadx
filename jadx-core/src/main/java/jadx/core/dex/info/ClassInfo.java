@@ -1,6 +1,5 @@
 package jadx.core.dex.info;
 
-import jadx.core.Consts;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -95,19 +94,15 @@ public final class ClassInfo {
 		} else {
 			parentClass = null;
 		}
-
-		char firstChar = clsName.charAt(0);
-		if (Character.isDigit(firstChar)) {
-			clsName = Consts.ANONYMOUS_CLASS_PREFIX + clsName;
-		} else if (firstChar == '$') {
-			clsName = "_" + clsName;
-		}
 		this.name = clsName;
+		this.fullName = makeFullClsName(clsName);
+	}
+
+	public String makeFullClsName(String shortName) {
 		if (parentClass != null) {
-			this.fullName = parentClass.fullName + "." + clsName;
-		} else {
-			this.fullName = pkg.isEmpty() ? clsName : pkg + "." + clsName;
+			return parentClass.fullName + "." + shortName;
 		}
+		return pkg.isEmpty() ? shortName : pkg + "." + shortName;
 	}
 
 	public String getFullPath() {

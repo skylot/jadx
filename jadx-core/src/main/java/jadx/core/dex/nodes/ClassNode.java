@@ -112,13 +112,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 			int sfIdx = cls.getSourceFileIndex();
 			if (sfIdx != DexNode.NO_INDEX) {
 				String fileName = dex.getString(sfIdx);
-				if (clsInfo != null
-						&& !clsInfo.getFullName().contains(fileName.replace(".java", ""))
-						&& !fileName.equals("SourceFile")
-						&& !fileName.equals("\"")) {
-					this.addAttr(new SourceFileAttr(fileName));
-					LOG.debug("Class '{}' compiled from '{}'", this, fileName);
-				}
+				addSourceFilenameAttr(fileName);
 			}
 
 			// restore original access flags from dalvik annotation if present
@@ -223,6 +217,32 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 				}
 			}
 		}
+	}
+
+	private void addSourceFilenameAttr(String fileName) {
+		if (fileName == null) {
+			return;
+		}
+		if (fileName.endsWith(".java")) {
+			fileName = fileName.substring(0, fileName.length() - 5);
+		}
+		if (fileName.isEmpty()
+				|| fileName.equals("SourceFile")
+				|| fileName.equals("\"")) {
+			return;
+		}
+		if (clsInfo != null) {
+			String name = clsInfo.getShortName();
+			if (fileName.equals(name)) {
+				return;
+			}
+			if (fileName.contains("$")
+					&& fileName.endsWith("$" + name)) {
+				return;
+			}
+		}
+		this.addAttr(new SourceFileAttr(fileName));
+		LOG.debug("Class '{}' compiled from '{}'", this, fileName);
 	}
 
 	@Override

@@ -96,7 +96,7 @@ public class ClsSet {
 	private static NClass getCls(String fullName, Map<String, NClass> names) {
 		NClass id = names.get(fullName);
 		if (id == null && !names.containsKey(fullName)) {
-			LOG.warn("Class not found: {}", fullName);
+			LOG.debug("Class not found: {}", fullName);
 		}
 		return id;
 	}

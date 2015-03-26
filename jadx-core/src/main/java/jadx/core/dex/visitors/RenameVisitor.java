@@ -1,9 +1,11 @@
 package jadx.core.dex.visitors;
 
 import jadx.api.IJadxArgs;
+import jadx.core.Consts;
 import jadx.core.codegen.TypeGen;
 import jadx.core.deobf.Deobfuscator;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
@@ -17,11 +19,8 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.jetbrains.annotations.NotNull;
-
 public class RenameVisitor extends AbstractVisitor {
 
-	@NotNull
 	private Deobfuscator deobfuscator;
 
 	@Override
@@ -29,9 +28,14 @@ public class RenameVisitor extends AbstractVisitor {
 		IJadxArgs args = root.getArgs();
 		File deobfMapFile = new File(args.getOutDir(), "deobf_map.jobf");
 		deobfuscator = new Deobfuscator(args, root.getDexNodes(), deobfMapFile);
-		if (args.isDeobfuscationOn()) {
+		boolean deobfuscationOn = args.isDeobfuscationOn();
+		if (deobfuscationOn) {
 			// TODO: check classes for case sensitive names (issue #24)
 			deobfuscator.execute();
+		} else {
+			for (ClassNode classNode : root.getClasses(true)) {
+				checkClassName(classNode);
+			}
 		}
 	}
 
@@ -43,6 +47,21 @@ public class RenameVisitor extends AbstractVisitor {
 			visit(inner);
 		}
 		return false;
+	}
+
+	private void checkClassName(ClassNode cls) {
+		ClassInfo classInfo = cls.getClassInfo();
+		String clsName = classInfo.getAlias().getShortName();
+		String newShortName = null;
+		char firstChar = clsName.charAt(0);
+		if (Character.isDigit(firstChar)) {
+			newShortName = Consts.ANONYMOUS_CLASS_PREFIX + clsName;
+		} else if (firstChar == '$') {
+			newShortName = "C" + clsName;
+		}
+		if (newShortName != null) {
+			classInfo.rename(cls.dex(), classInfo.makeFullClsName(newShortName));
+		}
 	}
 
 	private void checkFields(ClassNode cls) {

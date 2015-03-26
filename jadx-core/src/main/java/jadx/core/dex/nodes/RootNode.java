@@ -137,11 +137,11 @@ public class RootNode {
 
 	public List<ClassNode> getClasses(boolean includeInner) {
 		List<ClassNode> classes = new ArrayList<ClassNode>();
-		for (DexNode dexNode : dexNodes) {
-			for (ClassNode cls : dexNode.getClasses()) {
-				if (includeInner) {
-					classes.add(cls);
-				} else {
+		for (DexNode dex : dexNodes) {
+			if (includeInner) {
+				classes.addAll(dex.getClasses());
+			} else {
+				for (ClassNode cls : dex.getClasses()) {
 					if (!cls.getClassInfo().isInner()) {
 						classes.add(cls);
 					}
