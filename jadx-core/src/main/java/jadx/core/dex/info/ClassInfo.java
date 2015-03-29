@@ -138,6 +138,14 @@ public final class ClassInfo {
 		return parentClass;
 	}
 
+	public ClassInfo getTopParentClass() {
+		if (parentClass != null) {
+			ClassInfo topCls = parentClass.getTopParentClass();
+			return topCls != null ? topCls : parentClass;
+		}
+		return null;
+	}
+
 	public boolean isInner() {
 		return parentClass != null;
 	}

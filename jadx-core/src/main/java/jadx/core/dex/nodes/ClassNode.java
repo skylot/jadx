@@ -240,6 +240,10 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 					&& fileName.endsWith("$" + name)) {
 				return;
 			}
+			ClassInfo parentClass = clsInfo.getTopParentClass();
+			if (parentClass != null && fileName.equals(parentClass.getShortName())) {
+				return;
+			}
 		}
 		this.addAttr(new SourceFileAttr(fileName));
 		LOG.debug("Class '{}' compiled from '{}'", this, fileName);
@@ -434,7 +438,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 
 	public boolean isAnonymous() {
 		return clsInfo.isInner()
-				&& clsInfo.getShortName().startsWith(Consts.ANONYMOUS_CLASS_PREFIX)
+				&& clsInfo.getAlias().getShortName().startsWith(Consts.ANONYMOUS_CLASS_PREFIX)
 				&& getDefaultConstructor() != null;
 	}
 

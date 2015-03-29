@@ -40,7 +40,15 @@ public class ClassModifier extends AbstractVisitor {
 		removeEmptyMethods(cls);
 
 		checkFieldsInit(cls);
+
+		markAnonymousClass(cls);
 		return false;
+	}
+
+	private void markAnonymousClass(ClassNode cls) {
+		if (cls.isAnonymous()) {
+			cls.add(AFlag.ANONYMOUS_CLASS);
+		}
 	}
 
 	private static void removeSyntheticFields(ClassNode cls) {
