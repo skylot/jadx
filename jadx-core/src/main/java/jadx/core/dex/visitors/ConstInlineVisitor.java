@@ -13,6 +13,7 @@ import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -65,7 +66,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 		ArgType resType = insn.getResult().getType();
 		// make sure arg has correct type
 		if (!arg.getType().isTypeKnown()) {
-			arg.merge(resType);
+			arg.merge(mth.dex(), resType);
 		}
 		return replaceConst(mth, insn, lit);
 	}
@@ -149,30 +150,31 @@ public class ConstInlineVisitor extends AbstractVisitor {
 	 * but contains some expensive operations needed only after constant inline
 	 */
 	private static void fixTypes(MethodNode mth, InsnNode insn, LiteralArg litArg) {
+		DexNode dex = mth.dex();
 		PostTypeInference.process(mth, insn);
 		switch (insn.getType()) {
 			case CONST:
-				insn.getArg(0).merge(insn.getResult());
+				insn.getArg(0).merge(dex, insn.getResult());
 				break;
 
 			case MOVE:
-				insn.getResult().merge(insn.getArg(0));
-				insn.getArg(0).merge(insn.getResult());
+				insn.getResult().merge(dex, insn.getArg(0));
+				insn.getArg(0).merge(dex, insn.getResult());
 				break;
 
 			case IPUT:
 			case SPUT:
 				IndexInsnNode node = (IndexInsnNode) insn;
-				insn.getArg(0).merge(((FieldInfo) node.getIndex()).getType());
+				insn.getArg(0).merge(dex, ((FieldInfo) node.getIndex()).getType());
 				break;
 
 			case IF: {
 				InsnArg arg0 = insn.getArg(0);
 				InsnArg arg1 = insn.getArg(1);
 				if (arg0 == litArg) {
-					arg0.merge(arg1);
+					arg0.merge(dex, arg1);
 				} else {
-					arg1.merge(arg0);
+					arg1.merge(dex, arg0);
 				}
 				break;
 			}
@@ -181,15 +183,15 @@ public class ConstInlineVisitor extends AbstractVisitor {
 				InsnArg arg0 = insn.getArg(0);
 				InsnArg arg1 = insn.getArg(1);
 				if (arg0 == litArg) {
-					arg0.merge(arg1);
+					arg0.merge(dex, arg1);
 				} else {
-					arg1.merge(arg0);
+					arg1.merge(dex, arg0);
 				}
 				break;
 
 			case RETURN:
 				if (insn.getArgsCount() != 0) {
-					insn.getArg(0).merge(mth.getReturnType());
+					insn.getArg(0).merge(dex, mth.getReturnType());
 				}
 				break;
 
@@ -207,26 +209,26 @@ public class ConstInlineVisitor extends AbstractVisitor {
 						} else {
 							type = mth.getParentClass().getClassInfo().getType();
 						}
-						arg.merge(type);
+						arg.merge(dex, type);
 					}
 					k++;
 				}
 				break;
 
 			case ARITH:
-				litArg.merge(insn.getResult());
+				litArg.merge(dex, insn.getResult());
 				break;
 
 			case APUT:
 			case AGET:
 				if (litArg == insn.getArg(1)) {
-					litArg.merge(ArgType.INT);
+					litArg.merge(dex, ArgType.INT);
 				}
 				break;
 
 			case NEW_ARRAY:
 				if (litArg == insn.getArg(0)) {
-					litArg.merge(ArgType.INT);
+					litArg.merge(dex, ArgType.INT);
 				}
 				break;
 

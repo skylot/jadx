@@ -8,6 +8,7 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 
@@ -19,6 +20,7 @@ public class PostTypeInference {
 	}
 
 	public static boolean process(MethodNode mth, InsnNode insn) {
+		DexNode dex = mth.dex();
 		switch (insn.getType()) {
 			case CONST:
 				RegisterArg res = insn.getResult();
@@ -34,31 +36,31 @@ public class PostTypeInference {
 						return true;
 					}
 				}
-				return litArg.merge(res);
+				return litArg.merge(dex, res);
 
 			case MOVE: {
 				boolean change = false;
-				if (insn.getResult().merge(insn.getArg(0))) {
+				if (insn.getResult().merge(dex, insn.getArg(0))) {
 					change = true;
 				}
-				if (insn.getArg(0).merge(insn.getResult())) {
+				if (insn.getArg(0).merge(dex, insn.getResult())) {
 					change = true;
 				}
 				return change;
 			}
 
 			case AGET:
-				return fixArrayTypes(insn.getArg(0), insn.getResult());
+				return fixArrayTypes(dex, insn.getArg(0), insn.getResult());
 
 			case APUT:
-				return fixArrayTypes(insn.getArg(0), insn.getArg(2));
+				return fixArrayTypes(dex, insn.getArg(0), insn.getArg(2));
 
 			case IF: {
 				boolean change = false;
-				if (insn.getArg(1).merge(insn.getArg(0))) {
+				if (insn.getArg(1).merge(dex, insn.getArg(0))) {
 					change = true;
 				}
-				if (insn.getArg(0).merge(insn.getArg(1))) {
+				if (insn.getArg(0).merge(dex, insn.getArg(1))) {
 					change = true;
 				}
 				return change;
@@ -138,12 +140,12 @@ public class PostTypeInference {
 		return false;
 	}
 
-	private static boolean fixArrayTypes(InsnArg array, InsnArg elem) {
+	private static boolean fixArrayTypes(DexNode dex, InsnArg array, InsnArg elem) {
 		boolean change = false;
-		if (!elem.getType().isTypeKnown() && elem.merge(array.getType().getArrayElement())) {
+		if (!elem.getType().isTypeKnown() && elem.merge(dex, array.getType().getArrayElement())) {
 			change = true;
 		}
-		if (!array.getType().isTypeKnown() && array.merge(ArgType.array(elem.getType()))) {
+		if (!array.getType().isTypeKnown() && array.merge(dex, ArgType.array(elem.getType()))) {
 			change = true;
 		}
 		return change;

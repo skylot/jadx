@@ -108,9 +108,9 @@ public class ModVisitor extends AbstractVisitor {
 						if (next < size) {
 							InsnNode ni = block.getInstructions().get(next);
 							if (ni.getType() == InsnType.FILL_ARRAY) {
-								ni.getResult().merge(insn.getResult());
+								ni.getResult().merge(mth.dex(), insn.getResult());
 								ArgType arrType = ((NewArrayNode) insn).getArrayType();
-								((FillArrayNode) ni).mergeElementType(arrType.getArrayElement());
+								((FillArrayNode) ni).mergeElementType(mth.dex(), arrType.getArrayElement());
 								remover.add(insn);
 							}
 						}
@@ -263,7 +263,7 @@ public class ModVisitor extends AbstractVisitor {
 				throw new JadxRuntimeException("Null array element type");
 			}
 		}
-		insn.mergeElementType(elType);
+		insn.mergeElementType(mth.dex(), elType);
 		elType = insn.getElementType();
 
 		List<LiteralArg> list = insn.getLiteralArgs();

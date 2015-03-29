@@ -1,5 +1,7 @@
 package jadx.core.dex.instructions.args;
 
+import jadx.core.dex.nodes.DexNode;
+
 public abstract class Typed {
 
 	protected ArgType type;
@@ -16,8 +18,8 @@ public abstract class Typed {
 		return false;
 	}
 
-	public boolean merge(ArgType newType) {
-		ArgType m = ArgType.merge(type, newType);
+	public boolean merge(DexNode dex, ArgType newType) {
+		ArgType m = ArgType.merge(dex, type, newType);
 		if (m != null && !m.equals(type)) {
 			setType(m);
 			return true;
@@ -25,7 +27,7 @@ public abstract class Typed {
 		return false;
 	}
 
-	public boolean merge(InsnArg arg) {
-		return merge(arg.getType());
+	public boolean merge(DexNode dex, InsnArg arg) {
+		return merge(dex, arg.getType());
 	}
 }

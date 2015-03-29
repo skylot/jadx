@@ -1,7 +1,7 @@
 package jadx.core.dex.instructions.args;
 
 import jadx.core.Consts;
-import jadx.core.clsp.ClspGraph;
+import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.utils.Utils;
 
@@ -44,16 +44,6 @@ public abstract class ArgType {
 	public static final ArgType WIDE = unknown(PrimitiveType.LONG, PrimitiveType.DOUBLE);
 
 	protected int hash;
-
-	private static ClspGraph clsp;
-
-	public static void setClsp(ClspGraph clsp) {
-		ArgType.clsp = clsp;
-	}
-
-	public static boolean isClspSet() {
-		return ArgType.clsp != null;
-	}
 
 	private static ArgType primitive(PrimitiveType stype) {
 		return new PrimitiveArg(stype);
@@ -474,29 +464,28 @@ public abstract class ArgType {
 	public abstract PrimitiveType[] getPossibleTypes();
 
 	@Nullable
-	public static ArgType merge(ArgType a, ArgType b) {
+	public static ArgType merge(@Nullable DexNode dex, ArgType a, ArgType b) {
 		if (a == null || b == null) {
 			return null;
 		}
 		if (a.equals(b)) {
 			return a;
 		}
-		ArgType res = mergeInternal(a, b);
+		ArgType res = mergeInternal(dex, a, b);
 		if (res == null) {
-			res = mergeInternal(b, a); // swap
+			res = mergeInternal(dex, b, a); // swap
 		}
 		return res;
 	}
 
-	private static ArgType mergeInternal(ArgType a, ArgType b) {
+	private static ArgType mergeInternal(@Nullable DexNode dex, ArgType a, ArgType b) {
 		if (a == UNKNOWN) {
 			return b;
 		}
-
 		if (a.isArray()) {
-			return mergeArrays((ArrayArg) a, b);
+			return mergeArrays(dex, (ArrayArg) a, b);
 		} else if (b.isArray()) {
-			return mergeArrays((ArrayArg) b, a);
+			return mergeArrays(dex, (ArrayArg) b, a);
 		}
 		if (!a.isTypeKnown()) {
 			if (b.isTypeKnown()) {
@@ -546,7 +535,10 @@ public abstract class ArgType {
 				if (bObj.equals(Consts.CLASS_OBJECT)) {
 					return a;
 				}
-				String obj = clsp.getCommonAncestor(aObj, bObj);
+				if (dex == null) {
+					return null;
+				}
+				String obj = dex.root().getClsp().getCommonAncestor(aObj, bObj);
 				return obj == null ? null : object(obj);
 			}
 			if (a.isPrimitive() && b.isPrimitive() && a.getRegCount() == b.getRegCount()) {
@@ -556,14 +548,14 @@ public abstract class ArgType {
 		return null;
 	}
 
-	private static ArgType mergeArrays(ArrayArg array, ArgType b) {
+	private static ArgType mergeArrays(DexNode dex, ArrayArg array, ArgType b) {
 		if (b.isArray()) {
 			ArgType ea = array.getArrayElement();
 			ArgType eb = b.getArrayElement();
 			if (ea.isPrimitive() && eb.isPrimitive()) {
 				return OBJECT;
 			}
-			ArgType res = merge(ea, eb);
+			ArgType res = merge(dex, ea, eb);
 			return res == null ? null : array(res);
 		}
 		if (b.contains(PrimitiveType.ARRAY)) {
@@ -575,25 +567,25 @@ public abstract class ArgType {
 		return null;
 	}
 
-	public static boolean isCastNeeded(ArgType from, ArgType to) {
+	public static boolean isCastNeeded(DexNode dex, ArgType from, ArgType to) {
 		if (from.equals(to)) {
 			return false;
 		}
 		if (from.isObject() && to.isObject()
-				&& clsp.isImplements(from.getObject(), to.getObject())) {
+				&& dex.root().getClsp().isImplements(from.getObject(), to.getObject())) {
 			return false;
 		}
 		return true;
 	}
 
-	public static boolean isInstanceOf(ArgType type, ArgType of) {
+	public static boolean isInstanceOf(DexNode dex, ArgType type, ArgType of) {
 		if (type.equals(of)) {
 			return true;
 		}
 		if (!type.isObject() || !of.isObject()) {
 			return false;
 		}
-		return clsp.isImplements(type.getObject(), of.getObject());
+		return dex.root().getClsp().isImplements(type.getObject(), of.getObject());
 	}
 
 	public static ArgType parse(String type) {

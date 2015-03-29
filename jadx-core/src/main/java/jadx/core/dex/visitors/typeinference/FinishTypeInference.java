@@ -1,6 +1,7 @@
 package jadx.core.dex.visitors.typeinference;
 
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.AbstractVisitor;
@@ -31,9 +32,10 @@ public class FinishTypeInference extends AbstractVisitor {
 		} while (change);
 
 		// last chance to set correct value (just use first type from 'possible' list)
+		DexNode dex = mth.dex();
 		for (BlockNode block : mth.getBasicBlocks()) {
 			for (InsnNode insn : block.getInstructions()) {
-				SelectTypeVisitor.visit(insn);
+				SelectTypeVisitor.visit(dex, insn);
 			}
 		}
 

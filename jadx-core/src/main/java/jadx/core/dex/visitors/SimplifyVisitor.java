@@ -88,7 +88,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 					}
 				}
 				ArgType castToType = (ArgType) ((IndexInsnNode) insn).getIndex();
-				if (!ArgType.isCastNeeded(argType, castToType)) {
+				if (!ArgType.isCastNeeded(mth.dex(), argType, castToType)) {
 					InsnNode insnNode = new InsnNode(InsnType.MOVE, 1);
 					insnNode.setOffset(insn.getOffset());
 					insnNode.setResult(insn.getResult());

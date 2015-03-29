@@ -4,6 +4,7 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
+import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -57,8 +58,8 @@ public final class FillArrayNode extends InsnNode {
 		return elemType;
 	}
 
-	public void mergeElementType(ArgType foundElemType) {
-		ArgType r = ArgType.merge(elemType, foundElemType);
+	public void mergeElementType(DexNode dex, ArgType foundElemType) {
+		ArgType r = ArgType.merge(dex, elemType, foundElemType);
 		if (r != null) {
 			elemType = r;
 		}

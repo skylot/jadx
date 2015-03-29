@@ -5,6 +5,7 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
+import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.exceptions.JadxException;
@@ -18,9 +19,10 @@ public class TypeInference extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
+		DexNode dex = mth.dex();
 		for (SSAVar var : mth.getSVars()) {
 			// inference variable type
-			ArgType type = processType(var);
+			ArgType type = processType(dex, var);
 			if (type == null) {
 				type = ArgType.UNKNOWN;
 			}
@@ -40,7 +42,7 @@ public class TypeInference extends AbstractVisitor {
 		}
 	}
 
-	private static ArgType processType(SSAVar var) {
+	private static ArgType processType(DexNode dex, SSAVar var) {
 		RegisterArg assign = var.getAssign();
 		List<RegisterArg> useList = var.getUseList();
 		if (useList.isEmpty() || var.isTypeImmutable()) {
@@ -49,7 +51,7 @@ public class TypeInference extends AbstractVisitor {
 		ArgType type = assign.getType();
 		for (RegisterArg arg : useList) {
 			ArgType useType = arg.getType();
-			ArgType newType = ArgType.merge(type, useType);
+			ArgType newType = ArgType.merge(dex, type, useType);
 			if (newType != null) {
 				type = newType;
 			}

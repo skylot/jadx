@@ -16,6 +16,7 @@ import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
@@ -254,7 +255,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		} else {
 			toSkip.add(nextCall);
 		}
-		if (iterVar == null || !fixIterableType(iterableArg, iterVar)) {
+		if (iterVar == null || !fixIterableType(mth.dex(), iterableArg, iterVar)) {
 			return false;
 		}
 
@@ -266,7 +267,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		return true;
 	}
 
-	private static boolean fixIterableType(InsnArg iterableArg, RegisterArg iterVar) {
+	private static boolean fixIterableType(DexNode dex, InsnArg iterableArg, RegisterArg iterVar) {
 		ArgType iterableType = iterableArg.getType();
 		ArgType varType = iterVar.getType();
 		if (iterableType.isGeneric()) {
@@ -282,7 +283,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 				iterVar.setType(gType);
 				return true;
 			}
-			if (ArgType.isInstanceOf(gType, varType)) {
+			if (ArgType.isInstanceOf(dex, gType, varType)) {
 				return true;
 			}
 			LOG.warn("Generic type differs: {} and {}", gType, varType);

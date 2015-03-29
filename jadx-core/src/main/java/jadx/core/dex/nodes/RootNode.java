@@ -6,7 +6,6 @@ import jadx.api.ResourceType;
 import jadx.api.ResourcesLoader;
 import jadx.core.clsp.ClspGraph;
 import jadx.core.dex.info.ClassInfo;
-import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxException;
@@ -36,6 +35,7 @@ public class RootNode {
 	@Nullable
 	private String appPackage;
 	private ClassNode appResClass;
+	private ClspGraph clsp;
 
 	public RootNode(IJadxArgs args) {
 		this.args = args;
@@ -112,7 +112,7 @@ public class RootNode {
 
 	public void initClassPath() throws DecodeException {
 		try {
-			if (!ArgType.isClspSet()) {
+			if (this.clsp == null) {
 				ClspGraph clsp = new ClspGraph();
 				clsp.load();
 
@@ -122,7 +122,7 @@ public class RootNode {
 				}
 				clsp.addApp(classes);
 
-				ArgType.setClsp(clsp);
+				this.clsp = clsp;
 			}
 		} catch (IOException e) {
 			throw new DecodeException("Error loading classpath", e);
@@ -164,6 +164,10 @@ public class RootNode {
 
 	public List<DexNode> getDexNodes() {
 		return dexNodes;
+	}
+
+	public ClspGraph getClsp() {
+		return clsp;
 	}
 
 	public ErrorsCounter getErrorsCounter() {
