@@ -25,6 +25,9 @@ public final class ProcessClass {
 	}
 
 	public static void process(ClassNode cls, List<IDexTreeVisitor> passes, @Nullable CodeGen codeGen) {
+		if (codeGen == null && cls.getState() == PROCESSED) {
+			return;
+		}
 		synchronized (cls) {
 			try {
 				if (cls.getState() == NOT_LOADED) {
@@ -33,10 +36,10 @@ public final class ProcessClass {
 					for (IDexTreeVisitor visitor : passes) {
 						DepthTraversal.visit(visitor, cls);
 					}
-					processDependencies(cls, passes);
 					cls.setState(PROCESSED);
 				}
 				if (cls.getState() == PROCESSED && codeGen != null) {
+					processDependencies(cls, passes);
 					codeGen.visit(cls);
 					cls.setState(GENERATED);
 				}
