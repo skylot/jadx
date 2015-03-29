@@ -615,6 +615,9 @@ public class MainWindow extends JFrame {
 					}
 				});
 			}
+			if (recentFiles.getItemCount() == 0) {
+				recentFiles.add(new JMenuItem(NLS.str("menu.no_recent_files")));
+			}
 		}
 
 		@Override
