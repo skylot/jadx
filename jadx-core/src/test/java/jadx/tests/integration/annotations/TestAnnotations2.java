@@ -19,7 +19,7 @@ public class TestAnnotations2 extends IntegrationTest {
 
 		@Target({ElementType.TYPE})
 		@Retention(RetentionPolicy.RUNTIME)
-		public static @interface A {
+		public @interface A {
 			int i();
 
 			float f();
@@ -33,7 +33,7 @@ public class TestAnnotations2 extends IntegrationTest {
 
 		assertThat(code, containsString("@Target({ElementType.TYPE})"));
 		assertThat(code, containsString("@Retention(RetentionPolicy.RUNTIME)"));
-		assertThat(code, containsString("public static @interface A {"));
+		assertThat(code, containsString("public @interface A {"));
 		assertThat(code, containsString("float f();"));
 		assertThat(code, containsString("int i();"));
 	}

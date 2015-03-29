@@ -12,7 +12,7 @@ import static org.junit.Assert.assertThat;
 public class TestClassGen extends IntegrationTest {
 
 	public static class TestCls {
-		public static interface I {
+		public interface I {
 			int test();
 
 			public int test3();
@@ -28,7 +28,7 @@ public class TestClassGen extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsString("public static interface I {"));
+		assertThat(code, containsString("public interface I {"));
 		assertThat(code, containsString(indent(2) + "int test();"));
 		assertThat(code, not(containsString("public int test();")));
 		assertThat(code, containsString(indent(2) + "int test3();"));

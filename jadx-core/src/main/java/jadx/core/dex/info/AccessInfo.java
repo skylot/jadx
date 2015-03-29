@@ -25,10 +25,9 @@ public class AccessInfo {
 
 	public AccessInfo remove(int flag) {
 		if (containsFlag(flag)) {
-			return new AccessInfo(accFlags - flag, type);
-		} else {
-			return this;
+			return new AccessInfo(accFlags & ~flag, type);
 		}
+		return this;
 	}
 
 	public AccessInfo getVisibility() {

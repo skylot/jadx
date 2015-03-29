@@ -119,7 +119,8 @@ public class ClassGen {
 	public void addClassDeclaration(CodeWriter clsCode) {
 		AccessInfo af = cls.getAccessFlags();
 		if (af.isInterface()) {
-			af = af.remove(AccessFlags.ACC_ABSTRACT);
+			af = af.remove(AccessFlags.ACC_ABSTRACT)
+					.remove(AccessFlags.ACC_STATIC);
 		} else if (af.isEnum()) {
 			af = af.remove(AccessFlags.ACC_FINAL)
 					.remove(AccessFlags.ACC_ABSTRACT)
