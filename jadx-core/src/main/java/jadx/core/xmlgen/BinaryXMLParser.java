@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 public class BinaryXMLParser extends CommonBinaryParser {
 
 	private static final Logger LOG = LoggerFactory.getLogger(BinaryXMLParser.class);
+	private static final String ANDROID_R_STYLE_CLS = "android.R$style";
 
 	private CodeWriter writer;
 	private String[] strings;
@@ -51,8 +52,13 @@ public class BinaryXMLParser extends CommonBinaryParser {
 
 	public BinaryXMLParser(RootNode root) {
 		try {
-			for (Field f : AndroidR.style.class.getFields()) {
-				styleMap.put(f.getInt(f.getType()), f.getName());
+			try {
+				Class rStyleCls = Class.forName(ANDROID_R_STYLE_CLS);
+				for (Field f : rStyleCls.getFields()) {
+					styleMap.put(f.getInt(f.getType()), f.getName());
+				}
+			} catch (Throwable th) {
+				LOG.error("R class loading failed", th);
 			}
 			// add application constants
 			for (DexNode dexNode : root.getDexNodes()) {

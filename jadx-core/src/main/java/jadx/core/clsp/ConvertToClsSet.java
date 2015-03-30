@@ -63,7 +63,10 @@ public class ConvertToClsSet {
 			if (file.isDirectory()) {
 				addFilesFromDirectory(file, inputFiles);
 			}
-			if (file.getName().endsWith(".dex")) {
+			String fileName = file.getName();
+			if (fileName.endsWith(".dex")
+					|| fileName.endsWith(".jar")
+					|| fileName.endsWith(".apk")) {
 				inputFiles.add(new InputFile(file));
 			}
 		}

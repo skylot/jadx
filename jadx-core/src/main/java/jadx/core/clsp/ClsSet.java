@@ -114,7 +114,6 @@ public class ClsSet {
 				try {
 					out.putNextEntry(new ZipEntry(CLST_PKG_PATH + "/" + CLST_FILENAME));
 					save(out);
-					out.closeEntry();
 				} finally {
 					out.close();
 				}

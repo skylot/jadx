@@ -1,5 +1,7 @@
 package jadx.core.xmlgen;
 
+import jadx.core.utils.exceptions.JadxException;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.InputStream;
@@ -17,7 +19,7 @@ import org.w3c.dom.NodeList;
 public class ManifestAttributes {
 	private static final Logger LOG = LoggerFactory.getLogger(ManifestAttributes.class);
 
-	private static final String MANIFEST_ATTR_XML = "/attrs_manifest.xml";
+	private static final String MANIFEST_ATTR_XML = "/android/attrs_manifest.xml";
 
 	private enum MAttrType {
 		ENUM, FLAG
@@ -52,6 +54,9 @@ public class ManifestAttributes {
 		InputStream xmlStream = null;
 		try {
 			xmlStream = ManifestAttributes.class.getResourceAsStream(MANIFEST_ATTR_XML);
+			if (xmlStream == null) {
+				throw new JadxException(MANIFEST_ATTR_XML + " not found in classpath");
+			}
 			DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 			doc = dBuilder.parse(xmlStream);
 		} finally {

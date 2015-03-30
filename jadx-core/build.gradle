@@ -1,4 +1,4 @@
-ext.jadxClasspath = 'clsp-data/android-4.3.jar'
+ext.jadxClasspath = 'clsp-data/android-5.1.jar'
 
 apply plugin: "info.solidsoft.pitest"
 
