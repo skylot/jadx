@@ -3,6 +3,7 @@ package jadx.tests.integration.inner;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -47,6 +48,7 @@ public class TestAnonymousClass2 extends IntegrationTest {
 	}
 
 	@Test
+	@Ignore
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
