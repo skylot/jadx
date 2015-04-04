@@ -19,7 +19,11 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.io.IOCase;
+
 public class RenameVisitor extends AbstractVisitor {
+
+	private static final boolean CASE_SENSITIVE_FS = IOCase.SYSTEM.isCaseSensitive();
 
 	private Deobfuscator deobfuscator;
 
@@ -30,12 +34,9 @@ public class RenameVisitor extends AbstractVisitor {
 		deobfuscator = new Deobfuscator(args, root.getDexNodes(), deobfMapFile);
 		boolean deobfuscationOn = args.isDeobfuscationOn();
 		if (deobfuscationOn) {
-			// TODO: check classes for case sensitive names (issue #24)
 			deobfuscator.execute();
 		}
-		for (ClassNode classNode : root.getClasses(true)) {
-			checkClassName(classNode);
-		}
+		checkClasses(root);
 	}
 
 	@Override
@@ -46,6 +47,23 @@ public class RenameVisitor extends AbstractVisitor {
 			visit(inner);
 		}
 		return false;
+	}
+
+	private void checkClasses(RootNode root) {
+		Set<String> clsNames = new HashSet<String>();
+		for (ClassNode cls : root.getClasses(true)) {
+			checkClassName(cls);
+			if (!CASE_SENSITIVE_FS) {
+				ClassInfo classInfo = cls.getClassInfo();
+				String clsFileName = classInfo.getAlias().getFullPath();
+				if (!clsNames.add(clsFileName.toLowerCase())) {
+					String newShortName = deobfuscator.getClsAlias(cls);
+					String newFullName = classInfo.makeFullClsName(newShortName, true);
+					classInfo.rename(cls.dex(), newFullName);
+					clsNames.add(classInfo.getAlias().getFullPath().toLowerCase());
+				}
+			}
+		}
 	}
 
 	private void checkClassName(ClassNode cls) {

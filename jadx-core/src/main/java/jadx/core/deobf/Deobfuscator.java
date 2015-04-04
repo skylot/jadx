@@ -198,9 +198,16 @@ public class Deobfuscator {
 			return;
 		}
 		if (shouldRename(classInfo.getShortName())) {
-			alias = makeClsAlias(cls);
-			clsMap.put(classInfo, new DeobfClsInfo(this, cls, pkg, alias));
+			makeClsAlias(cls);
 		}
+	}
+
+	public String getClsAlias(ClassNode cls) {
+		DeobfClsInfo deobfClsInfo = clsMap.get(cls.getClassInfo());
+		if (deobfClsInfo != null) {
+			return deobfClsInfo.getAlias();
+		}
+		return makeClsAlias(cls);
 	}
 
 	private String makeClsAlias(ClassNode cls) {
@@ -217,8 +224,13 @@ public class Deobfuscator {
 				return name;
 			}
 		}
-		String clsName = cls.getClassInfo().getShortName();
-		return String.format("C%04d%s", clsIndex++, makeName(clsName));
+		ClassInfo classInfo = cls.getClassInfo();
+		String clsName = classInfo.getShortName();
+		String alias = String.format("C%04d%s", clsIndex++, makeName(clsName));
+
+		PackageNode pkg = getPackageNode(classInfo.getPackage(), true);
+		clsMap.put(classInfo, new DeobfClsInfo(this, cls, pkg, alias));
+		return alias;
 	}
 
 	@Nullable
