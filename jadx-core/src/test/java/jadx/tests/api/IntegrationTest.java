@@ -29,17 +29,17 @@ import java.lang.reflect.Modifier;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.JarOutputStream;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -86,8 +86,8 @@ public abstract class IntegrationTest extends TestUtils {
 		root.getResourcesNames().putAll(resMap);
 
 		ClassNode cls = root.searchClassByName(clsName);
-		assertNotNull("Class not found: " + clsName, cls);
-		assertEquals(cls.getFullName(), clsName);
+		assertThat("Class not found: " + clsName, cls, notNullValue());
+		assertThat(clsName, is(cls.getClassInfo().getFullName()));
 
 		if (unloadCls) {
 			decompile(d, cls);
@@ -214,7 +214,7 @@ public abstract class IntegrationTest extends TestUtils {
 		Throwable cause = ie.getCause();
 		if (cause instanceof AssertionError) {
 			System.err.println(msg);
-			throw ((AssertionError) cause);
+			throw (AssertionError) cause;
 		} else {
 			cause.printStackTrace();
 			fail(msg + cause.getMessage());
@@ -283,7 +283,7 @@ public abstract class IntegrationTest extends TestUtils {
 				list = compileClass(cls);
 			}
 		}
-		assertNotEquals("File list is empty", 0, list.size());
+		assertThat("File list is empty", list, not(empty()));
 
 		File temp = createTempFile(".jar");
 		JarOutputStream jo = new JarOutputStream(new FileOutputStream(temp));
@@ -354,11 +354,12 @@ public abstract class IntegrationTest extends TestUtils {
 		if (!file.exists()) {
 			file = new File(TEST_DIRECTORY2, fileName);
 		}
-		assertTrue("Test source file not found: " + fileName, file.exists());
+		assertThat("Test source file not found: " + fileName, file.exists(), is(true));
+		List<File> compileFileList = Collections.singletonList(file);
 
 		File outTmp = createTempDir("jadx-tmp-classes");
 		outTmp.deleteOnExit();
-		List<File> files = StaticCompiler.compile(Arrays.asList(file), outTmp, withDebugInfo);
+		List<File> files = StaticCompiler.compile(compileFileList, outTmp, withDebugInfo);
 		// remove classes which are parents for test class
 		Iterator<File> iterator = files.iterator();
 		while (iterator.hasNext()) {

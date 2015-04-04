@@ -79,6 +79,11 @@ public class RenameVisitor extends AbstractVisitor {
 		if (newShortName != null) {
 			classInfo.rename(cls.dex(), classInfo.makeFullClsName(newShortName, true));
 		}
+		if (classInfo.getAlias().getPackage().isEmpty()) {
+			String fullName = classInfo.makeFullClsName(classInfo.getAlias().getShortName(), true);
+			String newFullName = Consts.DEFAULT_PACKAGE_NAME + "." + fullName;
+			classInfo.rename(cls.dex(), newFullName);
+		}
 	}
 
 	private void checkFields(ClassNode cls) {
