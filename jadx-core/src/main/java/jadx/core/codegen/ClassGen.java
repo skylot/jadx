@@ -462,44 +462,44 @@ public class ClassGen {
 		if (fallback) {
 			return fullName;
 		}
-		fullName = extClsInfo.getFullName();
 		String shortName = extClsInfo.getShortName();
 		if (extClsInfo.getPackage().equals("java.lang") && extClsInfo.getParentClass() == null) {
 			return shortName;
-		} else {
-			// don't add import if this class inner for current class
-			if (isClassInnerFor(extClsInfo, useCls)) {
-				return shortName;
-			}
-			// don't add import if this class from same package
-			if (extClsInfo.getPackage().equals(useCls.getPackage()) && !extClsInfo.isInner()) {
-				return shortName;
-			}
-			// don't add import if class not public (must be accessed using inheritance)
-			ClassNode classNode = cls.dex().resolveClass(extClsInfo);
-			if (classNode != null && !classNode.getAccessFlags().isPublic()) {
-				return shortName;
-			}
-			if (searchCollision(cls.dex(), useCls, extClsInfo)) {
-				return fullName;
-			}
-			if (extClsInfo.getPackage().equals(useCls.getPackage())) {
-				fullName = extClsInfo.getNameWithoutPackage();
-			}
-			for (ClassInfo importCls : getImports()) {
-				if (!importCls.equals(extClsInfo)
-						&& importCls.getShortName().equals(shortName)) {
-					if (extClsInfo.isInner()) {
-						String parent = useClassInternal(useCls, extClsInfo.getParentClass().getAlias());
-						return parent + "." + shortName;
-					} else {
-						return fullName;
-					}
-				}
-			}
-			addImport(extClsInfo);
+		}
+		if (isClassInnerFor(useCls, extClsInfo)) {
 			return shortName;
 		}
+		if (isBothClassesInOneTopClass(useCls, extClsInfo)) {
+			return shortName;
+		}
+		// don't add import if this class from same package
+		if (extClsInfo.getPackage().equals(useCls.getPackage()) && !extClsInfo.isInner()) {
+			return shortName;
+		}
+		// don't add import if class not public (must be accessed using inheritance)
+		ClassNode classNode = cls.dex().resolveClass(extClsInfo);
+		if (classNode != null && !classNode.getAccessFlags().isPublic()) {
+			return shortName;
+		}
+		if (searchCollision(cls.dex(), useCls, extClsInfo)) {
+			return fullName;
+		}
+		if (extClsInfo.getPackage().equals(useCls.getPackage())) {
+			fullName = extClsInfo.getNameWithoutPackage();
+		}
+		for (ClassInfo importCls : getImports()) {
+			if (!importCls.equals(extClsInfo)
+					&& importCls.getShortName().equals(shortName)) {
+				if (extClsInfo.isInner()) {
+					String parent = useClassInternal(useCls, extClsInfo.getParentClass().getAlias());
+					return parent + "." + shortName;
+				} else {
+					return fullName;
+				}
+			}
+		}
+		addImport(extClsInfo);
+		return shortName;
 	}
 
 	private void addImport(ClassInfo classInfo) {
@@ -516,6 +516,16 @@ public class ClassGen {
 		} else {
 			return imports;
 		}
+	}
+
+	private static boolean isBothClassesInOneTopClass(ClassInfo useCls, ClassInfo extClsInfo) {
+		ClassInfo a = useCls.getTopParentClass();
+		ClassInfo b = extClsInfo.getTopParentClass();
+		if (a != null) {
+			return a.equals(b);
+		}
+		// useCls - is a top class
+		return useCls.equals(b);
 	}
 
 	private static boolean isClassInnerFor(ClassInfo inner, ClassInfo parent) {

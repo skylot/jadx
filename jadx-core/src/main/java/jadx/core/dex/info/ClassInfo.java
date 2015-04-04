@@ -95,12 +95,13 @@ public final class ClassInfo {
 			parentClass = null;
 		}
 		this.name = clsName;
-		this.fullName = makeFullClsName(clsName);
+		this.fullName = makeFullClsName(clsName, false);
 	}
 
-	public String makeFullClsName(String shortName) {
+	public String makeFullClsName(String shortName, boolean raw) {
 		if (parentClass != null) {
-			return parentClass.fullName + "." + shortName;
+			String innerSep = raw ? "$" : ".";
+			return parentClass.makeFullClsName(parentClass.getShortName(), raw) + innerSep + shortName;
 		}
 		return pkg.isEmpty() ? shortName : pkg + "." + shortName;
 	}

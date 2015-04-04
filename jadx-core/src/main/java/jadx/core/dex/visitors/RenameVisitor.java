@@ -32,10 +32,9 @@ public class RenameVisitor extends AbstractVisitor {
 		if (deobfuscationOn) {
 			// TODO: check classes for case sensitive names (issue #24)
 			deobfuscator.execute();
-		} else {
-			for (ClassNode classNode : root.getClasses(true)) {
-				checkClassName(classNode);
-			}
+		}
+		for (ClassNode classNode : root.getClasses(true)) {
+			checkClassName(classNode);
 		}
 	}
 
@@ -60,7 +59,7 @@ public class RenameVisitor extends AbstractVisitor {
 			newShortName = "C" + clsName;
 		}
 		if (newShortName != null) {
-			classInfo.rename(cls.dex(), classInfo.makeFullClsName(newShortName));
+			classInfo.rename(cls.dex(), classInfo.makeFullClsName(newShortName, true));
 		}
 	}
 
