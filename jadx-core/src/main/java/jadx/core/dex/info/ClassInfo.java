@@ -107,9 +107,10 @@ public final class ClassInfo {
 	}
 
 	public String getFullPath() {
-		return pkg.replace('.', File.separatorChar)
+		ClassInfo alias = getAlias();
+		return alias.getPackage().replace('.', File.separatorChar)
 				+ File.separatorChar
-				+ getNameWithoutPackage().replace('.', '_');
+				+ alias.getNameWithoutPackage().replace('.', '_');
 	}
 
 	public String getFullName() {
