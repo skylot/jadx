@@ -127,9 +127,9 @@ public class ClassGen {
 					.remove(AccessFlags.ACC_STATIC);
 		}
 
-		// 'static' modifier not allowed for top classes (not inner)
+		// 'static' and 'private' modifier not allowed for top classes (not inner)
 		if (!cls.getAlias().isInner()) {
-			af = af.remove(AccessFlags.ACC_STATIC);
+			af = af.remove(AccessFlags.ACC_STATIC).remove(AccessFlags.ACC_PRIVATE);
 		}
 
 		annotationGen.addForClass(clsCode);
@@ -370,7 +370,7 @@ public class ClassGen {
 		InsnGen igen = null;
 		for (Iterator<EnumField> it = enumFields.getFields().iterator(); it.hasNext(); ) {
 			EnumField f = it.next();
-			code.startLine(f.getName());
+			code.startLine(f.getField().getAlias());
 			ConstructorInsn constrInsn = f.getConstrInsn();
 			if (constrInsn.getArgsCount() > f.getStartArg()) {
 				if (igen == null) {
@@ -393,6 +393,9 @@ public class ClassGen {
 				code.startLine();
 			}
 			code.add(';');
+			if (isFieldsPresents()) {
+				code.startLine();
+			}
 		}
 	}
 

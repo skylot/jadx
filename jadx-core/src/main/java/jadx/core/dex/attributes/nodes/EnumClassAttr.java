@@ -2,6 +2,7 @@ package jadx.core.dex.attributes.nodes;
 
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttribute;
+import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -12,19 +13,19 @@ import java.util.List;
 public class EnumClassAttr implements IAttribute {
 
 	public static class EnumField {
-		private final String name;
+		private final FieldInfo field;
 		private final ConstructorInsn constrInsn;
 		private final int startArg;
 		private ClassNode cls;
 
-		public EnumField(String name, ConstructorInsn co, int startArg) {
-			this.name = name;
+		public EnumField(FieldInfo field, ConstructorInsn co, int startArg) {
+			this.field = field;
 			this.constrInsn = co;
 			this.startArg = startArg;
 		}
 
-		public String getName() {
-			return name;
+		public FieldInfo getField() {
+			return field;
 		}
 
 		public ConstructorInsn getConstrInsn() {
@@ -45,7 +46,7 @@ public class EnumClassAttr implements IAttribute {
 
 		@Override
 		public String toString() {
-			return name + "(" + constrInsn + ") " + cls;
+			return field + "(" + constrInsn + ") " + cls;
 		}
 	}
 

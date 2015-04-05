@@ -1,6 +1,7 @@
 package jadx.core.dex.visitors;
 
 import jadx.core.codegen.TypeGen;
+import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.EnumClassAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr.EnumField;
@@ -138,12 +139,18 @@ public class EnumVisitor extends AbstractVisitor {
 			if (!clsInfo.equals(classInfo) && !constrCls.getAccessFlags().isEnum()) {
 				continue;
 			}
+			FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) putInsn).getIndex();
 			String name = getConstString(cls.dex(), co.getArg(0));
-			if (name == null) {
-				throw new JadxException("Unknown enum field name: " + cls);
+			if (name != null
+					&& !fieldInfo.getAlias().equals(name)
+					&& NameMapper.isValidIdentifier(name)) {
+				// LOG.debug("Rename enum field: '{}' to '{}' in {}", fieldInfo.getName(), name, cls);
+				fieldInfo.setAlias(name);
 			}
-			EnumField field = new EnumField(name, co, 2);
+
+			EnumField field = new EnumField(fieldInfo, co, 2);
 			attr.getFields().add(field);
+
 			if (!co.getClassType().equals(classInfo)) {
 				// enum contains additional methods
 				for (ClassNode innerCls : cls.getInnerClasses()) {
