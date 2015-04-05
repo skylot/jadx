@@ -616,7 +616,7 @@ public class InsnGen {
 		generateMethodArguments(code, insn, k, callMthNode);
 	}
 
-	private void generateMethodArguments(CodeWriter code, InsnNode insn, int startArgNum,
+	void generateMethodArguments(CodeWriter code, InsnNode insn, int startArgNum,
 			@Nullable MethodNode callMth) throws CodegenException {
 		int k = startArgNum;
 		if (callMth != null && callMth.contains(AFlag.SKIP_FIRST_ARG)) {

@@ -2,37 +2,37 @@ package jadx.core.dex.attributes.nodes;
 
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttribute;
-import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.utils.Utils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class EnumClassAttr implements IAttribute {
 
 	public static class EnumField {
 		private final String name;
-		private final List<InsnArg> args;
+		private final ConstructorInsn constrInsn;
+		private final int startArg;
 		private ClassNode cls;
 
-		public EnumField(String name, int argsCount) {
+		public EnumField(String name, ConstructorInsn co, int startArg) {
 			this.name = name;
-			if (argsCount != 0) {
-				this.args = new ArrayList<InsnArg>(argsCount);
-			} else {
-				this.args = Collections.emptyList();
-			}
+			this.constrInsn = co;
+			this.startArg = startArg;
 		}
 
 		public String getName() {
 			return name;
 		}
 
-		public List<InsnArg> getArgs() {
-			return args;
+		public ConstructorInsn getConstrInsn() {
+			return constrInsn;
+		}
+
+		public int getStartArg() {
+			return startArg;
 		}
 
 		public ClassNode getCls() {
@@ -45,7 +45,7 @@ public class EnumClassAttr implements IAttribute {
 
 		@Override
 		public String toString() {
-			return name + "(" + Utils.listToString(args) + ") " + cls;
+			return name + "(" + constrInsn + ") " + cls;
 		}
 	}
 

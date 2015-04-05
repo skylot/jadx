@@ -1,11 +1,26 @@
 package jadx.core.utils;
 
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.info.FieldInfo;
+import jadx.core.dex.instructions.ConstClassNode;
+import jadx.core.dex.instructions.ConstStringNode;
+import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.nodes.DexNode;
+import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.InsnNode;
+import jadx.core.dex.nodes.parser.FieldValueAttr;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.android.dx.io.instructions.DecodedInstruction;
 
 public class InsnUtils {
+
+	private static final Logger LOG = LoggerFactory.getLogger(InsnUtils.class);
 
 	private InsnUtils() {
 	}
@@ -47,5 +62,35 @@ public class InsnUtils {
 		} else {
 			return index.toString();
 		}
+	}
+
+	/**
+	 * Return constant value from insn or null if not constant.
+	 *
+	 * @return LiteralArg, String, ArgType or null
+	 */
+	@Nullable
+	public static Object getConstValueByInsn(DexNode dex, InsnNode insn) {
+		switch (insn.getType()) {
+			case CONST:
+				return insn.getArg(0);
+			case CONST_STR:
+				return ((ConstStringNode) insn).getString();
+			case CONST_CLASS:
+				return ((ConstClassNode) insn).getClsType();
+			case SGET:
+				FieldInfo f = (FieldInfo) ((IndexInsnNode) insn).getIndex();
+				FieldNode fieldNode = dex.resolveField(f);
+				if (fieldNode != null) {
+					FieldValueAttr attr = fieldNode.get(AType.FIELD_VALUE);
+					if (attr != null) {
+						return attr.getValue();
+					}
+				} else {
+					LOG.warn("Field {} not found in dex {}", f, dex);
+				}
+				break;
+		}
+		return null;
 	}
 }

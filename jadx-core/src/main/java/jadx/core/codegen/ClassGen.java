@@ -10,8 +10,8 @@ import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
+import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -371,21 +371,14 @@ public class ClassGen {
 		for (Iterator<EnumField> it = enumFields.getFields().iterator(); it.hasNext(); ) {
 			EnumField f = it.next();
 			code.startLine(f.getName());
-			if (!f.getArgs().isEmpty()) {
-				code.add('(');
-				for (Iterator<InsnArg> aIt = f.getArgs().iterator(); aIt.hasNext(); ) {
-					InsnArg arg = aIt.next();
-					if (igen == null) {
-						// don't init mth gen if this is simple enum
-						MethodGen mthGen = new MethodGen(this, enumFields.getStaticMethod());
-						igen = new InsnGen(mthGen, false);
-					}
-					igen.addArg(code, arg);
-					if (aIt.hasNext()) {
-						code.add(", ");
-					}
+			ConstructorInsn constrInsn = f.getConstrInsn();
+			if (constrInsn.getArgsCount() > f.getStartArg()) {
+				if (igen == null) {
+					MethodGen mthGen = new MethodGen(this, enumFields.getStaticMethod());
+					igen = new InsnGen(mthGen, false);
 				}
-				code.add(')');
+				MethodNode callMth = cls.dex().resolveMethod(constrInsn.getCallMth());
+				igen.generateMethodArguments(code, constrInsn, f.getStartArg(), callMth);
 			}
 			if (f.getCls() != null) {
 				code.add(' ');

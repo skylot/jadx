@@ -318,36 +318,4 @@ public class CodeShrinker extends AbstractVisitor {
 		}
 		throw new JadxRuntimeException("Can't process instruction move : " + assignBlock);
 	}
-
-	@Deprecated
-	public static InsnArg inlineArgument(MethodNode mth, RegisterArg arg) {
-		InsnNode assignInsn = arg.getAssignInsn();
-		if (assignInsn == null) {
-			return null;
-		}
-		// recursively wrap all instructions
-		List<RegisterArg> list = new ArrayList<RegisterArg>();
-		List<RegisterArg> args = mth.getArguments(false);
-		int i = 0;
-		do {
-			list.clear();
-			assignInsn.getRegisterArgs(list);
-			for (RegisterArg rarg : list) {
-				InsnNode ai = rarg.getAssignInsn();
-				if (ai != assignInsn && ai != null && ai != rarg.getParentInsn()) {
-					inline(rarg, ai, null, mth);
-				}
-			}
-			// remove method args
-			if (!list.isEmpty() && !args.isEmpty()) {
-				list.removeAll(args);
-			}
-			i++;
-			if (i > 1000) {
-				throw new JadxRuntimeException("Can't inline arguments for: " + arg + " insn: " + assignInsn);
-			}
-		} while (!list.isEmpty());
-
-		return arg.wrapInstruction(assignInsn);
-	}
 }

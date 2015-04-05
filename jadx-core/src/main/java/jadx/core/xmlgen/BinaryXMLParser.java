@@ -53,7 +53,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	public BinaryXMLParser(RootNode root) {
 		try {
 			try {
-				Class rStyleCls = Class.forName(ANDROID_R_STYLE_CLS);
+				Class<?> rStyleCls = Class.forName(ANDROID_R_STYLE_CLS);
 				for (Field f : rStyleCls.getFields()) {
 					styleMap.put(f.getInt(f.getType()), f.getName());
 				}

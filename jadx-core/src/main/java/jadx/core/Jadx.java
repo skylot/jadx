@@ -79,7 +79,6 @@ public class Jadx {
 			passes.add(new EliminatePhiNodes());
 
 			passes.add(new ModVisitor());
-			passes.add(new EnumVisitor());
 
 			passes.add(new CodeShrinker());
 			passes.add(new ReSugarCode());
@@ -102,6 +101,7 @@ public class Jadx {
 
 			passes.add(new MethodInlineVisitor());
 			passes.add(new ClassModifier());
+			passes.add(new EnumVisitor());
 			passes.add(new PrepareForCodeGen());
 			passes.add(new LoopRegionVisitor());
 			passes.add(new ProcessVariables());
