@@ -29,7 +29,13 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@JadxVisitor(
+		name = "ReSugarCode",
+		desc = "Simplify synthetic or verbose code",
+		runAfter = CodeShrinker.class
+)
 public class ReSugarCode extends AbstractVisitor {
+
 	private static final Logger LOG = LoggerFactory.getLogger(ReSugarCode.class);
 
 	@Override

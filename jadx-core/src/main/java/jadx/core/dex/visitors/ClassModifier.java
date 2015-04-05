@@ -22,6 +22,11 @@ import jadx.core.utils.exceptions.JadxException;
 
 import java.util.List;
 
+@JadxVisitor(
+		name = "ClassModifier",
+		desc = "Remove synthetic classes, methods and fields",
+		runAfter = ModVisitor.class
+)
 public class ClassModifier extends AbstractVisitor {
 
 	@Override
@@ -129,6 +134,7 @@ public class ClassModifier extends AbstractVisitor {
 			if (af.isBridge() && af.isSynthetic() && !isMethodUniq(cls, mth)) {
 				// TODO add more checks before method deletion
 				mth.add(AFlag.DONT_GENERATE);
+				continue;
 			}
 			// remove synthetic constructor for inner non-static classes
 			if (af.isSynthetic() && af.isConstructor() && mth.getBasicBlocks().size() == 2) {
