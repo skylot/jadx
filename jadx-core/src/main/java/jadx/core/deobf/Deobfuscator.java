@@ -211,26 +211,34 @@ public class Deobfuscator {
 	}
 
 	private String makeClsAlias(ClassNode cls) {
-		SourceFileAttr sourceFileAttr = cls.get(AType.SOURCE_FILE);
-		if (sourceFileAttr != null) {
-			String name = sourceFileAttr.getFileName();
-			if (name.endsWith(".java")) {
-				name = name.substring(0, name.length() - ".java".length());
-			}
-			if (NameMapper.isValidIdentifier(name)
-					&& !NameMapper.isReserved(name)) {
-				// TODO: check if no class with this name exists or already renamed
-				cls.remove(AType.SOURCE_FILE);
-				return name;
-			}
-		}
 		ClassInfo classInfo = cls.getClassInfo();
-		String clsName = classInfo.getShortName();
-		String alias = String.format("C%04d%s", clsIndex++, makeName(clsName));
-
+		String alias = getAliasFromSourceFile(cls);
+		if (alias == null) {
+			String clsName = classInfo.getShortName();
+			alias = String.format("C%04d%s", clsIndex++, makeName(clsName));
+		}
 		PackageNode pkg = getPackageNode(classInfo.getPackage(), true);
 		clsMap.put(classInfo, new DeobfClsInfo(this, cls, pkg, alias));
 		return alias;
+	}
+
+	@Nullable
+	private String getAliasFromSourceFile(ClassNode cls) {
+		SourceFileAttr sourceFileAttr = cls.get(AType.SOURCE_FILE);
+		if (sourceFileAttr == null) {
+			return null;
+		}
+		String name = sourceFileAttr.getFileName();
+		if (name.endsWith(".java")) {
+			name = name.substring(0, name.length() - ".java".length());
+		}
+		if (NameMapper.isValidIdentifier(name)
+				&& !NameMapper.isReserved(name)) {
+			// TODO: check if no class with this name exists or already renamed
+			cls.remove(AType.SOURCE_FILE);
+			return name;
+		}
+		return null;
 	}
 
 	@Nullable
