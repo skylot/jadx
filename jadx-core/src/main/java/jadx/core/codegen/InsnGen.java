@@ -575,9 +575,12 @@ public class InsnGen {
 		MethodInfo callMth = insn.getCallMth();
 
 		// inline method
-		MethodNode callMthNode = mth.dex().resolveMethod(callMth);
-		if (callMthNode != null && inlineMethod(callMthNode, insn, code)) {
-			return;
+		MethodNode callMthNode = mth.dex().deepResolveMethod(callMth);
+		if (callMthNode != null) {
+			if (inlineMethod(callMthNode, insn, code)) {
+				return;
+			}
+			callMth = callMthNode.getMethodInfo();
 		}
 
 		int k = 0;

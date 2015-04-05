@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.android.dex.ClassData;
@@ -87,10 +88,60 @@ public class DexNode {
 	}
 
 	@Nullable
-	public MethodNode resolveMethod(MethodInfo mth) {
+	public ClassNode resolveClass(@NotNull ArgType type) {
+		if (type.isGeneric()) {
+			type = ArgType.object(type.getObject());
+		}
+		return resolveClass(ClassInfo.fromType(this, type));
+	}
+
+	@Nullable
+	public MethodNode resolveMethod(@NotNull MethodInfo mth) {
 		ClassNode cls = resolveClass(mth.getDeclClass());
 		if (cls != null) {
 			return cls.searchMethod(mth);
+		}
+		return null;
+	}
+
+	/**
+	 * Search method in class hierarchy.
+	 */
+	@Nullable
+	public MethodNode deepResolveMethod(@NotNull MethodInfo mth) {
+		ClassNode cls = resolveClass(mth.getDeclClass());
+		if (cls == null) {
+			return null;
+		}
+		return deepResolveMethod(cls, mth.makeSignature(false));
+	}
+
+	@Nullable
+	private MethodNode deepResolveMethod(@NotNull ClassNode cls, String signature) {
+		for (MethodNode m : cls.getMethods()) {
+			if (m.getMethodInfo().getShortId().startsWith(signature)) {
+				return m;
+			}
+		}
+		MethodNode found;
+		ArgType superClass = cls.getSuperClass();
+		if (superClass != null) {
+			ClassNode superNode = resolveClass(superClass);
+			if (superNode != null) {
+				found = deepResolveMethod(superNode, signature);
+				if (found != null) {
+					return found;
+				}
+			}
+		}
+		for (ArgType iFaceType : cls.getInterfaces()) {
+			ClassNode iFaceNode = resolveClass(iFaceType);
+			if (iFaceNode != null) {
+				found = deepResolveMethod(iFaceNode, signature);
+				if (found != null) {
+					return found;
+				}
+			}
 		}
 		return null;
 	}

@@ -28,17 +28,7 @@ public final class MethodInfo {
 		ProtoId proto = dex.getProtoId(mthId.getProtoIndex());
 		retType = dex.getType(proto.getReturnTypeIndex());
 		args = dex.readParamList(proto.getParametersOffset());
-
-		StringBuilder signature = new StringBuilder();
-		signature.append(name);
-		signature.append('(');
-		for (ArgType arg : args) {
-			signature.append(TypeGen.signature(arg));
-		}
-		signature.append(')');
-		signature.append(TypeGen.signature(retType));
-
-		shortId = signature.toString();
+		shortId = makeSignature(true);
 	}
 
 	public static MethodInfo fromDex(DexNode dex, int mthIndex) {
@@ -48,6 +38,20 @@ public final class MethodInfo {
 		}
 		mth = new MethodInfo(dex, mthIndex);
 		return dex.getInfoStorage().putMethod(mthIndex, mth);
+	}
+
+	public String makeSignature(boolean includeRetType) {
+		StringBuilder signature = new StringBuilder();
+		signature.append(name);
+		signature.append('(');
+		for (ArgType arg : args) {
+			signature.append(TypeGen.signature(arg));
+		}
+		signature.append(')');
+		if (includeRetType) {
+			signature.append(TypeGen.signature(retType));
+		}
+		return signature.toString();
 	}
 
 	public String getName() {
