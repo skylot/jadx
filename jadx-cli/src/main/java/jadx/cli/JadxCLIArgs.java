@@ -8,7 +8,9 @@ import java.io.File;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,28 +134,27 @@ public class JadxCLIArgs implements IJadxArgs {
 		out.println("options:");
 
 		List<ParameterDescription> params = jc.getParameters();
-
+		Map<String, ParameterDescription> paramsMap = new LinkedHashMap<String, ParameterDescription>(params.size());
 		int maxNamesLen = 0;
 		for (ParameterDescription p : params) {
+			paramsMap.put(p.getParameterized().getName(), p);
 			int len = p.getNames().length();
 			if (len > maxNamesLen) {
 				maxNamesLen = len;
 			}
 		}
-
-		Field[] fields = this.getClass().getDeclaredFields();
+		Field[] fields = JadxCLIArgs.class.getDeclaredFields();
 		for (Field f : fields) {
-			for (ParameterDescription p : params) {
-				String name = f.getName();
-				if (name.equals(p.getParameterized().getName())) {
-					StringBuilder opt = new StringBuilder();
-					opt.append(' ').append(p.getNames());
-					addSpaces(opt, maxNamesLen - opt.length() + 2);
-					opt.append("- ").append(p.getDescription());
-					out.println(opt.toString());
-					break;
-				}
+			String name = f.getName();
+			ParameterDescription p = paramsMap.get(name);
+			if (p == null) {
+				continue;
 			}
+			StringBuilder opt = new StringBuilder();
+			opt.append(' ').append(p.getNames());
+			addSpaces(opt, maxNamesLen - opt.length() + 2);
+			opt.append("- ").append(p.getDescription());
+			out.println(opt);
 		}
 		out.println("Example:");
 		out.println(" jadx -d out classes.dex");
