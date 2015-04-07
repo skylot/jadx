@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static jadx.core.dex.visitors.blocksmaker.BlockSplitter.connect;
+import static jadx.core.dex.visitors.blocksmaker.BlockSplitter.insertBlockBetween;
 import static jadx.core.dex.visitors.blocksmaker.BlockSplitter.removeConnection;
 
 public class BlockFinallyExtract extends AbstractVisitor {
@@ -511,10 +512,11 @@ public class BlockFinallyExtract extends AbstractVisitor {
 
 		// redirect input edges
 		for (BlockNode pred : new ArrayList<BlockNode>(remBlock.getPredecessors())) {
-			removeConnection(pred, remBlock);
-			connect(pred, startBlock);
-			addIgnoredEdge(pred, startBlock);
-			connect(pred, rOut);
+			BlockNode middle = insertBlockBetween(mth, pred, remBlock);
+			removeConnection(middle, remBlock);
+			connect(middle, startBlock);
+			addIgnoredEdge(middle, startBlock);
+			connect(middle, rOut);
 		}
 
 		// mark blocks for remove
