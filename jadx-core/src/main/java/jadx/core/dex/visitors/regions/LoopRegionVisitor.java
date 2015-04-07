@@ -16,7 +16,6 @@ import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
-import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
@@ -232,14 +231,23 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		}
 		List<InsnNode> toSkip = new LinkedList<InsnNode>();
 		RegisterArg iterVar = nextCall.getResult();
+		if (iterVar == null) {
+			return false;
+		}
 		if (nextCall.contains(AFlag.WRAPPED)) {
 			InsnArg wrapArg = BlockUtils.searchWrappedInsnParent(mth, nextCall);
 			if (wrapArg != null && wrapArg.getParentInsn() != null) {
 				InsnNode parentInsn = wrapArg.getParentInsn();
 				if (parentInsn.getType() != InsnType.CHECK_CAST) {
+					if (!fixIterableType(mth, iterableArg, iterVar)) {
+						return false;
+					}
 					parentInsn.replaceArg(wrapArg, iterVar);
 				} else {
 					iterVar = parentInsn.getResult();
+					if (iterVar == null || !fixIterableType(mth, iterableArg, iterVar)) {
+						return false;
+					}
 					InsnArg castArg = BlockUtils.searchWrappedInsnParent(mth, parentInsn);
 					if (castArg != null && castArg.getParentInsn() != null) {
 						castArg.getParentInsn().replaceArg(castArg, iterVar);
@@ -255,9 +263,6 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		} else {
 			toSkip.add(nextCall);
 		}
-		if (iterVar == null || !fixIterableType(mth.dex(), iterableArg, iterVar)) {
-			return false;
-		}
 
 		assignInsn.add(AFlag.SKIP);
 		for (InsnNode insnNode : toSkip) {
@@ -267,7 +272,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		return true;
 	}
 
-	private static boolean fixIterableType(DexNode dex, InsnArg iterableArg, RegisterArg iterVar) {
+	private static boolean fixIterableType(MethodNode mth, InsnArg iterableArg, RegisterArg iterVar) {
 		ArgType iterableType = iterableArg.getType();
 		ArgType varType = iterVar.getType();
 		if (iterableType.isGeneric()) {
@@ -283,10 +288,16 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 				iterVar.setType(gType);
 				return true;
 			}
-			if (ArgType.isInstanceOf(dex, gType, varType)) {
+			if (ArgType.isInstanceOf(mth.dex(), gType, varType)) {
 				return true;
 			}
-			LOG.warn("Generic type differs: {} and {}", gType, varType);
+			ArgType wildcardType = gType.getWildcardType();
+			if (wildcardType != null
+					&& gType.getWildcardBounds() == 1
+					&& ArgType.isInstanceOf(mth.dex(), wildcardType, varType)) {
+				return true;
+			}
+			LOG.warn("Generic type differs: '{}' and '{}' in {}", gType, varType, mth);
 			return false;
 		}
 		if (!iterableArg.isRegister()) {
