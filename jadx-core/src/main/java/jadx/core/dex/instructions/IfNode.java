@@ -14,9 +14,11 @@ import static jadx.core.utils.BlockUtils.selectOther;
 
 public class IfNode extends GotoNode {
 
+	// change default types priority
 	private static final ArgType ARG_TYPE = ArgType.unknown(
-			PrimitiveType.INT, PrimitiveType.OBJECT, PrimitiveType.ARRAY,
-			PrimitiveType.BOOLEAN, PrimitiveType.SHORT, PrimitiveType.CHAR);
+			PrimitiveType.INT,
+			PrimitiveType.OBJECT, PrimitiveType.ARRAY,
+			PrimitiveType.BOOLEAN, PrimitiveType.BYTE, PrimitiveType.SHORT, PrimitiveType.CHAR);
 
 	protected IfOp op;
 
