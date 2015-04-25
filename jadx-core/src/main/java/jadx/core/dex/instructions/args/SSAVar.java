@@ -1,5 +1,6 @@
 package jadx.core.dex.instructions.args;
 
+import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.instructions.PhiInsn;
 
 import java.util.ArrayList;
@@ -8,7 +9,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SSAVar {
+public class SSAVar extends AttrNode {
 
 	private final int regNum;
 	private final int version;

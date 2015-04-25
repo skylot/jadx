@@ -17,7 +17,6 @@ public class TestConstructor extends SmaliTest {
 		disableCompilation();
 		ClassNode cls = getClassNodeFromSmali("TestConstructor");
 		String code = cls.getCode().toString();
-		System.out.println(code);
 
 		assertThat(code, containsOne("new SomeObject(arg3);"));
 		assertThat(code, not(containsString("= someObject")));

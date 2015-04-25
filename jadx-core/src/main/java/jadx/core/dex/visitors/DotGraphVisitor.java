@@ -23,7 +23,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DotGraphVisitor extends AbstractVisitor {
+
+	private static final Logger LOG = LoggerFactory.getLogger(DotGraphVisitor.class);
 
 	private static final String NL = "\\l";
 	private static final boolean PRINT_DOMINATORS = false;
@@ -52,6 +57,8 @@ public class DotGraphVisitor extends AbstractVisitor {
 		this.dir = outDir;
 		this.useRegions = useRegions;
 		this.rawInsn = rawInsn;
+		LOG.debug("DOT {}{}graph dump dir: {}",
+				useRegions ? "regions " : "", rawInsn ? "raw " : "", outDir.getAbsolutePath());
 	}
 
 	@Override

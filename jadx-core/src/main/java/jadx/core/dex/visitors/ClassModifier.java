@@ -76,8 +76,7 @@ public class ClassModifier extends AbstractVisitor {
 						}
 					}
 					if (found != 0) {
-						FieldInfo replace = FieldInfo.from(cls.dex(), parentClass, "this", parentClass.getType());
-						field.addAttr(new FieldReplaceAttr(replace, true));
+						field.addAttr(new FieldReplaceAttr(parentClass));
 						field.add(AFlag.DONT_GENERATE);
 					}
 				}

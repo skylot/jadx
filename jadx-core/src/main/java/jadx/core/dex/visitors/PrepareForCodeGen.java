@@ -21,6 +21,11 @@ import java.util.List;
  * most of this modification breaks register dependencies,
  * so this pass must be just before CodeGen.
  */
+@JadxVisitor(
+		name = "PrepareForCodeGen",
+		desc = "Prepare instructions for code generation pass",
+		runAfter = {CodeShrinker.class, ClassModifier.class}
+)
 public class PrepareForCodeGen extends AbstractVisitor {
 
 	@Override

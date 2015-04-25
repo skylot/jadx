@@ -77,25 +77,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 				return convertFieldArith(mth, insn);
 
 			case CHECK_CAST:
-				InsnArg castArg = insn.getArg(0);
-				ArgType argType = castArg.getType();
-
-				// Don't removes CHECK_CAST for wrapped INVOKE if invoked method returns different type
-				if (castArg.isInsnWrap()) {
-					InsnNode wrapInsn = ((InsnWrapArg) castArg).getWrapInsn();
-					if (wrapInsn.getType() == InsnType.INVOKE) {
-						argType = ((InvokeNode) wrapInsn).getCallMth().getReturnType();
-					}
-				}
-				ArgType castToType = (ArgType) ((IndexInsnNode) insn).getIndex();
-				if (!ArgType.isCastNeeded(mth.dex(), argType, castToType)) {
-					InsnNode insnNode = new InsnNode(InsnType.MOVE, 1);
-					insnNode.setOffset(insn.getOffset());
-					insnNode.setResult(insn.getResult());
-					insnNode.addArg(castArg);
-					return insnNode;
-				}
-				break;
+				return processCast(mth, insn);
 
 			case MOVE:
 				InsnArg firstArg = insn.getArg(0);
@@ -112,6 +94,28 @@ public class SimplifyVisitor extends AbstractVisitor {
 				break;
 		}
 		return null;
+	}
+
+	private static InsnNode processCast(MethodNode mth, InsnNode insn) {
+		InsnArg castArg = insn.getArg(0);
+		ArgType argType = castArg.getType();
+
+		// Don't removes CHECK_CAST for wrapped INVOKE if invoked method returns different type
+		if (castArg.isInsnWrap()) {
+			InsnNode wrapInsn = ((InsnWrapArg) castArg).getWrapInsn();
+			if (wrapInsn.getType() == InsnType.INVOKE) {
+				argType = ((InvokeNode) wrapInsn).getCallMth().getReturnType();
+			}
+		}
+		ArgType castToType = (ArgType) ((IndexInsnNode) insn).getIndex();
+		if (ArgType.isCastNeeded(mth.dex(), argType, castToType)) {
+			return null;
+		}
+		InsnNode insnNode = new InsnNode(InsnType.MOVE, 1);
+		insnNode.setOffset(insn.getOffset());
+		insnNode.setResult(insn.getResult());
+		insnNode.addArg(castArg);
+		return insnNode;
 	}
 
 	/**

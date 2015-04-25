@@ -2,24 +2,39 @@ package jadx.core.dex.attributes.nodes;
 
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttribute;
-import jadx.core.dex.info.FieldInfo;
+import jadx.core.dex.info.ClassInfo;
+import jadx.core.dex.instructions.args.InsnArg;
 
 public class FieldReplaceAttr implements IAttribute {
 
-	private final FieldInfo fieldInfo;
-	private final boolean isOuterClass;
-
-	public FieldReplaceAttr(FieldInfo fieldInfo, boolean isOuterClass) {
-		this.fieldInfo = fieldInfo;
-		this.isOuterClass = isOuterClass;
+	public enum ReplaceWith {
+		CLASS_INSTANCE,
+		VAR
 	}
 
-	public FieldInfo getFieldInfo() {
-		return fieldInfo;
+	private final ReplaceWith replaceType;
+	private final Object replaceObj;
+
+	public FieldReplaceAttr(ClassInfo cls) {
+		this.replaceType = ReplaceWith.CLASS_INSTANCE;
+		this.replaceObj = cls;
 	}
 
-	public boolean isOuterClass() {
-		return isOuterClass;
+	public FieldReplaceAttr(InsnArg reg) {
+		this.replaceType = ReplaceWith.VAR;
+		this.replaceObj = reg;
+	}
+
+	public ReplaceWith getReplaceType() {
+		return replaceType;
+	}
+
+	public ClassInfo getClsRef() {
+		return (ClassInfo) replaceObj;
+	}
+
+	public InsnArg getVarRef() {
+		return (InsnArg) replaceObj;
 	}
 
 	@Override
@@ -29,6 +44,6 @@ public class FieldReplaceAttr implements IAttribute {
 
 	@Override
 	public String toString() {
-		return "REPLACE: " + fieldInfo;
+		return "REPLACE: " + replaceType + " " + replaceObj;
 	}
 }

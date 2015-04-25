@@ -8,6 +8,7 @@ import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.CatchAttr;
@@ -125,6 +126,10 @@ public class MethodGen {
 			// add argument annotation
 			if (paramsAnnotation != null) {
 				annotationGen.addForParameter(argsCode, paramsAnnotation, i);
+			}
+			SSAVar argSVar = arg.getSVar();
+			if (argSVar!= null && argSVar.contains(AFlag.FINAL)) {
+				argsCode.add("final ");
 			}
 			if (!it.hasNext() && mth.getAccessFlags().isVarArgs()) {
 				// change last array argument to varargs

@@ -2,7 +2,11 @@ package jadx.core.dex.visitors;
 
 import jadx.core.codegen.TypeGen;
 import jadx.core.deobf.NameMapper;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
+import jadx.core.dex.info.ClassInfo;
+import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ConstClassNode;
@@ -34,7 +38,10 @@ import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +50,11 @@ import org.slf4j.LoggerFactory;
  * Visitor for modify method instructions
  * (remove, replace, process exception handlers)
  */
+@JadxVisitor(
+		name = "ModVisitor",
+		desc = "Modify method instructions",
+		runBefore = CodeShrinker.class
+)
 public class ModVisitor extends AbstractVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(ModVisitor.class);
 
@@ -197,7 +209,6 @@ public class ModVisitor extends AbstractVisitor {
 			remover.add(insn);
 			return;
 		}
-		replaceInsn(block, insnNumber, co);
 		if (co.isNewInstance()) {
 			InsnNode newInstInsn = removeAssignChain(instArgAssignInsn, remover, InsnType.NEW_INSTANCE);
 			if (newInstInsn != null) {
@@ -217,8 +228,107 @@ public class ModVisitor extends AbstractVisitor {
 		}
 		ConstructorInsn replace = processConstructor(mth, co);
 		if (replace != null) {
-			replaceInsn(block, insnNumber, replace);
+			co = replace;
 		}
+		replaceInsn(block, insnNumber, co);
+
+		processAnonymousConstructor(mth, co);
+	}
+
+	private static void processAnonymousConstructor(MethodNode mth, ConstructorInsn co) {
+		MethodInfo callMth = co.getCallMth();
+		MethodNode callMthNode = mth.dex().resolveMethod(callMth);
+		if (callMthNode == null) {
+			return;
+		}
+		ClassNode classNode = callMthNode.getParentClass();
+		ClassInfo classInfo = classNode.getClassInfo();
+		ClassNode parentClass = mth.getParentClass();
+		if (!classInfo.isInner()
+				|| !Character.isDigit(classInfo.getShortName().charAt(0))
+				|| !parentClass.getInnerClasses().contains(classNode)) {
+			return;
+		}
+		if (!classNode.getAccessFlags().isStatic()
+				&& (callMth.getArgsCount() == 0
+				|| !callMth.getArgumentsTypes().get(0).equals(parentClass.getClassInfo().getType()))) {
+			return;
+		}
+		// TODO: calculate this constructor and other constructor usage
+		Map<InsnArg, FieldNode> argsMap = getArgsToFieldsMapping(callMthNode, co);
+		if (argsMap.isEmpty()) {
+			return;
+		}
+
+		// all checks passed
+		classNode.add(AFlag.ANONYMOUS_CLASS);
+		callMthNode.add(AFlag.DONT_GENERATE);
+		for (Map.Entry<InsnArg, FieldNode> entry : argsMap.entrySet()) {
+			FieldNode field = entry.getValue();
+			if (field == null) {
+				continue;
+			}
+			InsnArg arg = entry.getKey();
+			field.addAttr(new FieldReplaceAttr(arg));
+			field.add(AFlag.DONT_GENERATE);
+			if (arg.isRegister()) {
+				RegisterArg reg = (RegisterArg) arg;
+				SSAVar sVar = reg.getSVar();
+				if (sVar != null) {
+					sVar.add(AFlag.FINAL);
+					sVar.add(AFlag.DONT_INLINE);
+					sVar.add(AFlag.SKIP_ARG);
+				}
+			}
+		}
+	}
+
+	private static Map<InsnArg, FieldNode> getArgsToFieldsMapping(MethodNode callMthNode, ConstructorInsn co) {
+		Map<InsnArg, FieldNode> map = new LinkedHashMap<InsnArg, FieldNode>();
+		ClassNode parentClass = callMthNode.getParentClass();
+		List<RegisterArg> argList = callMthNode.getArguments(false);
+		int startArg = parentClass.getAccessFlags().isStatic() ? 0 : 1;
+		int argsCount = argList.size();
+		for (int i = startArg; i < argsCount; i++) {
+			RegisterArg arg = argList.get(i);
+			InsnNode useInsn = getParentInsnSkipMove(arg);
+			if (useInsn == null) {
+				return Collections.emptyMap();
+			}
+			FieldNode fieldNode = null;
+			if (useInsn.getType() == InsnType.IPUT) {
+				FieldInfo field = (FieldInfo) ((IndexInsnNode) useInsn).getIndex();
+				fieldNode = parentClass.searchField(field);
+				if (fieldNode == null || !fieldNode.getAccessFlags().isSynthetic()) {
+					return Collections.emptyMap();
+				}
+			} else if (useInsn.getType() == InsnType.CONSTRUCTOR) {
+				ConstructorInsn superConstr = (ConstructorInsn) useInsn;
+				if (!superConstr.isSuper()) {
+					return Collections.emptyMap();
+				}
+			} else {
+				return Collections.emptyMap();
+			}
+			map.put(co.getArg(i), fieldNode);
+		}
+		return map;
+	}
+
+	private static InsnNode getParentInsnSkipMove(RegisterArg arg) {
+		SSAVar sVar = arg.getSVar();
+		if (sVar.getUseCount() != 1) {
+			return null;
+		}
+		RegisterArg useArg = sVar.getUseList().get(0);
+		InsnNode parentInsn = useArg.getParentInsn();
+		if (parentInsn == null) {
+			return null;
+		}
+		if (parentInsn.getType() == InsnType.MOVE) {
+			return getParentInsnSkipMove(parentInsn.getResult());
+		}
+		return parentInsn;
 	}
 
 	/**

@@ -29,6 +29,7 @@ import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.Named;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.ClassNode;
@@ -123,6 +124,9 @@ public class InsnGen {
 	}
 
 	public void declareVar(CodeWriter code, RegisterArg arg) {
+		if (arg.getSVar().contains(AFlag.FINAL)) {
+			code.add("final ");
+		}
 		useType(code, arg.getType());
 		code.add(' ');
 		code.add(mgen.getNameGen().assignArg(arg));
@@ -144,16 +148,19 @@ public class InsnGen {
 		if (fieldNode != null) {
 			FieldReplaceAttr replace = fieldNode.get(AType.FIELD_REPLACE);
 			if (replace != null) {
-				FieldInfo info = replace.getFieldInfo();
-				if (replace.isOuterClass()) {
-					useClass(code, info.getDeclClass());
-					code.add(".this");
+				switch (replace.getReplaceType()) {
+					case CLASS_INSTANCE:
+						useClass(code, replace.getClsRef());
+						code.add(".this");
+						break;
+					case VAR:
+						addArg(code, replace.getVarRef());
+						break;
 				}
 				return;
 			}
 		}
 		addArgDot(code, arg);
-		fieldNode = mth.dex().resolveField(field);
 		if (fieldNode != null) {
 			code.attachAnnotation(fieldNode);
 		}
@@ -531,30 +538,7 @@ public class InsnGen {
 			throws CodegenException {
 		ClassNode cls = mth.dex().resolveClass(insn.getClassType());
 		if (cls != null && cls.contains(AFlag.ANONYMOUS_CLASS) && !fallback) {
-			// anonymous class construction
-			ArgType parent;
-			if (cls.getInterfaces().size() == 1) {
-				parent = cls.getInterfaces().get(0);
-			} else {
-				parent = cls.getSuperClass();
-			}
-			cls.add(AFlag.DONT_GENERATE);
-			MethodNode defCtr = cls.getDefaultConstructor();
-			if (defCtr != null) {
-				if (RegionUtils.notEmpty(defCtr.getRegion())) {
-					defCtr.add(AFlag.ANONYMOUS_CONSTRUCTOR);
-				} else {
-					defCtr.add(AFlag.DONT_GENERATE);
-				}
-			}
-			code.add("new ");
-			if (parent == null) {
-				code.add("Object");
-			} else {
-				useClass(code, parent);
-			}
-			code.add("() ");
-			new ClassGen(cls, mgen.getClassGen().getParentGen()).addClassBody(code);
+			inlineAnonymousConstr(code, cls, insn);
 			return;
 		}
 		if (insn.isSelf()) {
@@ -568,7 +552,37 @@ public class InsnGen {
 			code.add("new ");
 			useClass(code, insn.getClassType());
 		}
-		generateMethodArguments(code, insn, 0, mth.dex().resolveMethod(insn.getCallMth()));
+		MethodNode callMth = mth.dex().resolveMethod(insn.getCallMth());
+		generateMethodArguments(code, insn, 0, callMth);
+	}
+
+	private void inlineAnonymousConstr(CodeWriter code, ClassNode cls, ConstructorInsn insn) throws CodegenException {
+		// anonymous class construction
+		ArgType parent;
+		if (cls.getInterfaces().size() == 1) {
+			parent = cls.getInterfaces().get(0);
+		} else {
+			parent = cls.getSuperClass();
+		}
+		cls.add(AFlag.DONT_GENERATE);
+		MethodNode defCtr = cls.getDefaultConstructor();
+		if (defCtr != null) {
+			if (RegionUtils.notEmpty(defCtr.getRegion())) {
+				defCtr.add(AFlag.ANONYMOUS_CONSTRUCTOR);
+			} else {
+				defCtr.add(AFlag.DONT_GENERATE);
+			}
+		}
+		code.add("new ");
+		if (parent == null) {
+			code.add("Object");
+		} else {
+			useClass(code, parent);
+		}
+		MethodNode callMth = mth.dex().resolveMethod(insn.getCallMth());
+		generateMethodArguments(code, insn, 0, callMth);
+		code.add(' ');
+		new ClassGen(cls, mgen.getClassGen().getParentGen()).addClassBody(code);
 	}
 
 	private void makeInvoke(InvokeNode insn, CodeWriter code) throws CodegenException {
@@ -631,6 +645,12 @@ public class InsnGen {
 			boolean overloaded = callMth != null && callMth.isArgsOverload();
 			for (int i = k; i < argsCount; i++) {
 				InsnArg arg = insn.getArg(i);
+				if (arg.isRegister()) {
+					SSAVar sVar = ((RegisterArg) arg).getSVar();
+					if (sVar != null && sVar.contains(AFlag.SKIP_ARG)) {
+						continue;
+					}
+				}
 				boolean cast = overloaded && processOverloadedArg(code, callMth, arg, i - startArgNum);
 				if (!cast && i == argsCount - 1 && processVarArg(code, callMth, arg)) {
 					continue;

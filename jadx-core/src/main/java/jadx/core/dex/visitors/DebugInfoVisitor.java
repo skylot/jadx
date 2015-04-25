@@ -18,6 +18,7 @@ public class DebugInfoVisitor extends AbstractVisitor {
 			DebugInfoParser debugInfoParser = new DebugInfoParser(mth, debugOffset, insnArr);
 			debugInfoParser.process();
 
+			// set method source line from first instruction
 			if (insnArr.length != 0) {
 				for (InsnNode insn : insnArr) {
 					if (insn != null) {
@@ -30,7 +31,7 @@ public class DebugInfoVisitor extends AbstractVisitor {
 				}
 			}
 			if (!mth.getReturnType().equals(ArgType.VOID)) {
-				// fix debug for splitter 'return' instructions
+				// fix debug info for splitter 'return' instructions
 				for (BlockNode exit : mth.getExitBlocks()) {
 					InsnNode ret = BlockUtils.getLastInsn(exit);
 					if (ret == null) {

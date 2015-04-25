@@ -8,6 +8,7 @@ public enum AFlag {
 	LOOP_END,
 
 	SYNTHETIC,
+	FINAL, // SSAVar attribute for make var final
 
 	RETURN, // block contains only return instruction
 	ORIG_RETURN,
@@ -22,6 +23,7 @@ public enum AFlag {
 	REMOVE,
 
 	SKIP_FIRST_ARG,
+	SKIP_ARG, // skip argument in invoke call
 	ANONYMOUS_CONSTRUCTOR,
 	ANONYMOUS_CLASS,
 

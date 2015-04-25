@@ -55,7 +55,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 	}
 
 	private static void searchTryCatchDominators(MethodNode mth, Map<BlockNode, TryCatchBlock> tryBlocksMap) {
-		final Set<TryCatchBlock> tryBlocks = new HashSet<TryCatchBlock>();
+		Set<TryCatchBlock> tryBlocks = new HashSet<TryCatchBlock>();
 		// collect all try/catch blocks
 		for (BlockNode block : mth.getBasicBlocks()) {
 			CatchAttr c = block.get(AType.CATCH_BLOCK);
