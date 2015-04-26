@@ -111,6 +111,10 @@ public class AttributeStorage {
 		return list;
 	}
 
+	public boolean isEmpty() {
+		return flags.isEmpty() && attributes.isEmpty();
+	}
+
 	@Override
 	public String toString() {
 		List<String> list = getAttributeStrings();

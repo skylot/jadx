@@ -29,7 +29,6 @@ import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.Named;
 import jadx.core.dex.instructions.args.RegisterArg;
-import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.ClassNode;
@@ -645,20 +644,17 @@ public class InsnGen {
 			boolean overloaded = callMth != null && callMth.isArgsOverload();
 			for (int i = k; i < argsCount; i++) {
 				InsnArg arg = insn.getArg(i);
-				if (arg.isRegister()) {
-					SSAVar sVar = ((RegisterArg) arg).getSVar();
-					if (sVar != null && sVar.contains(AFlag.SKIP_ARG)) {
-						continue;
-					}
+				if (arg.contains(AFlag.SKIP_ARG)) {
+					continue;
+				}
+				if (i != k) {
+					code.add(", ");
 				}
 				boolean cast = overloaded && processOverloadedArg(code, callMth, arg, i - startArgNum);
 				if (!cast && i == argsCount - 1 && processVarArg(code, callMth, arg)) {
 					continue;
 				}
 				addArg(code, arg, false);
-				if (i < argsCount - 1) {
-					code.add(", ");
-				}
 			}
 		}
 		code.add(')');

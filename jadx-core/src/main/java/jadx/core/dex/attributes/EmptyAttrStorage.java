@@ -54,6 +54,11 @@ public final class EmptyAttrStorage extends AttributeStorage {
 	}
 
 	@Override
+	public boolean isEmpty() {
+		return true;
+	}
+
+	@Override
 	public String toString() {
 		return "";
 	}

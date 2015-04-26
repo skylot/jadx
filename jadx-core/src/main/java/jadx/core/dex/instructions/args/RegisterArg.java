@@ -79,6 +79,7 @@ public class RegisterArg extends InsnArg implements Named {
 	public RegisterArg duplicate() {
 		RegisterArg dup = new RegisterArg(getRegNum(), getType());
 		dup.setSVar(sVar);
+		dup.copyAttributesFrom(this);
 		return dup;
 	}
 

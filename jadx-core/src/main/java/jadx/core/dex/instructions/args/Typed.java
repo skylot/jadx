@@ -1,8 +1,9 @@
 package jadx.core.dex.instructions.args;
 
+import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.nodes.DexNode;
 
-public abstract class Typed {
+public abstract class Typed extends AttrNode {
 
 	protected ArgType type;
 

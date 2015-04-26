@@ -277,8 +277,8 @@ public class ModVisitor extends AbstractVisitor {
 				if (sVar != null) {
 					sVar.add(AFlag.FINAL);
 					sVar.add(AFlag.DONT_INLINE);
-					sVar.add(AFlag.SKIP_ARG);
 				}
+				reg.add(AFlag.SKIP_ARG);
 			}
 		}
 	}

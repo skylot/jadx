@@ -27,10 +27,13 @@ public abstract class AttrNode implements IAttributeNode {
 
 	@Override
 	public void copyAttributesFrom(AttrNode attrNode) {
-		initStorage().addAll(attrNode.storage);
+		AttributeStorage copyFrom = attrNode.storage;
+		if (!copyFrom.isEmpty()) {
+			initStorage().addAll(copyFrom);
+		}
 	}
 
-	AttributeStorage initStorage() {
+	private AttributeStorage initStorage() {
 		AttributeStorage store = storage;
 		if (store == EMPTY_ATTR_STORAGE) {
 			store = new AttributeStorage();
