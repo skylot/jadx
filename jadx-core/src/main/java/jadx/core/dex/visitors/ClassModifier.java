@@ -11,6 +11,7 @@ import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.ClassNode;
@@ -135,13 +136,24 @@ public class ClassModifier extends AbstractVisitor {
 				mth.add(AFlag.DONT_GENERATE);
 				continue;
 			}
-			// remove synthetic constructor for inner non-static classes
+			// remove synthetic constructor for inner classes
 			if (af.isSynthetic() && af.isConstructor() && mth.getBasicBlocks().size() == 2) {
 				List<InsnNode> insns = mth.getBasicBlocks().get(0).getInstructions();
 				if (insns.size() == 1 && insns.get(0).getType() == InsnType.CONSTRUCTOR) {
 					ConstructorInsn constr = (ConstructorInsn) insns.get(0);
-					if (constr.isThis() && !mth.getArguments(false).isEmpty()) {
-						mth.removeFirstArgument();
+					List<RegisterArg> args = mth.getArguments(false);
+					if (constr.isThis() && !args.isEmpty()) {
+						// remove first arg for non-static class (references to outer class)
+						if (args.get(0).getType().equals(cls.getParentClass().getClassInfo().getType())) {
+							args.get(0).add(AFlag.SKIP_ARG);
+						}
+						// remove unused args
+						for (RegisterArg arg : args) {
+							SSAVar sVar = arg.getSVar();
+							if (sVar != null && sVar.getUseCount() == 0) {
+								arg.add(AFlag.SKIP_ARG);
+							}
+						}
 						mth.add(AFlag.DONT_GENERATE);
 					}
 				}

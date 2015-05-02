@@ -647,6 +647,10 @@ public class InsnGen {
 				if (arg.contains(AFlag.SKIP_ARG)) {
 					continue;
 				}
+				RegisterArg callArg = getCallMthArg(callMth, i - startArgNum);
+				if (callArg != null && callArg.contains(AFlag.SKIP_ARG)) {
+					continue;
+				}
 				if (i != k) {
 					code.add(", ");
 				}
@@ -658,6 +662,17 @@ public class InsnGen {
 			}
 		}
 		code.add(')');
+	}
+
+	private static RegisterArg getCallMthArg(@Nullable MethodNode callMth, int num) {
+		if (callMth == null) {
+			return null;
+		}
+		List<RegisterArg> args = callMth.getArguments(false);
+		if (args != null && num < args.size()) {
+			return args.get(num);
+		}
+		return null;
 	}
 
 	/**
