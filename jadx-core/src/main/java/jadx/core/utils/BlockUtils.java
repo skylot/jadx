@@ -72,14 +72,42 @@ public class BlockUtils {
 		return null;
 	}
 
+	public static boolean isBlockMustBeCleared(BlockNode b) {
+		if (b.contains(AType.EXC_HANDLER) || b.contains(AFlag.SKIP)) {
+			return true;
+		}
+		if (b.contains(AFlag.SYNTHETIC)) {
+			List<BlockNode> s = b.getSuccessors();
+			if (s.size() == 1 && s.get(0).contains(AType.EXC_HANDLER)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Remove exception handlers from block nodes list
+	 */
 	private static List<BlockNode> cleanBlockList(List<BlockNode> list) {
 		List<BlockNode> ret = new ArrayList<BlockNode>(list.size());
 		for (BlockNode block : list) {
-			if (!block.contains(AType.EXC_HANDLER)) {
+			if (!isBlockMustBeCleared(block)) {
 				ret.add(block);
 			}
 		}
 		return ret;
+	}
+
+	/**
+	 * Remove exception handlers from block nodes bitset
+	 */
+	public static void cleanBitSet(MethodNode mth, BitSet bs) {
+		for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+			BlockNode block = mth.getBasicBlocks().get(i);
+			if (isBlockMustBeCleared(block)) {
+				bs.clear(i);
+			}
+		}
 	}
 
 	/**
@@ -109,18 +137,6 @@ public class BlockUtils {
 			return false; // already checked
 		}
 		return from.getSuccessors().contains(to);
-	}
-
-	/**
-	 * Remove exception handlers from block nodes bitset
-	 */
-	public static void cleanBitSet(MethodNode mth, BitSet bs) {
-		for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
-			BlockNode block = mth.getBasicBlocks().get(i);
-			if (block.contains(AType.EXC_HANDLER)) {
-				bs.clear(i);
-			}
-		}
 	}
 
 	/**
@@ -459,6 +475,20 @@ public class BlockUtils {
 			block = getNextBlock(block);
 		}
 		return list.isEmpty() ? Collections.<BlockNode>emptyList() : list;
+	}
+
+	/**
+	 * Set 'SKIP' flag for all synthetic predecessors from start block.
+	 */
+	public static void skipPredSyntheticPaths(BlockNode block) {
+		for (BlockNode pred : block.getPredecessors()) {
+			if (pred.contains(AFlag.SYNTHETIC)
+					&& !pred.contains(AType.SPLITTER_BLOCK)
+					&& pred.getInstructions().isEmpty()) {
+				pred.add(AFlag.SKIP);
+				skipPredSyntheticPaths(pred);
+			}
+		}
 	}
 
 	/**

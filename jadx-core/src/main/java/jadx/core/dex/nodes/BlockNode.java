@@ -5,6 +5,7 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.attributes.nodes.IgnoreEdgeAttr;
 import jadx.core.dex.attributes.nodes.LoopInfo;
+import jadx.core.utils.BlockUtils;
 import jadx.core.utils.EmptyBitSet;
 import jadx.core.utils.InsnUtils;
 
@@ -86,13 +87,8 @@ public class BlockNode extends AttrNode implements IBlock {
 		}
 		List<BlockNode> toRemove = new LinkedList<BlockNode>();
 		for (BlockNode b : sucList) {
-			if (b.contains(AType.EXC_HANDLER)) {
+			if (BlockUtils.isBlockMustBeCleared(b)) {
 				toRemove.add(b);
-			} else if (b.contains(AFlag.SYNTHETIC)) {
-				List<BlockNode> s = b.getSuccessors();
-				if (s.size() == 1 && s.get(0).contains(AType.EXC_HANDLER)) {
-					toRemove.add(b);
-				}
 			}
 		}
 		if (block.contains(AFlag.LOOP_END)) {

@@ -6,6 +6,7 @@ import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.BlockUtils;
 import jadx.core.utils.Utils;
 
 import java.util.ArrayList;
@@ -63,6 +64,8 @@ public class TryCatchBlock {
 
 	private void unbindHandler(ExceptionHandler handler) {
 		for (BlockNode block : handler.getBlocks()) {
+			// skip synthetic loop exit blocks
+			BlockUtils.skipPredSyntheticPaths(block);
 			block.add(AFlag.SKIP);
 			ExcHandlerAttr excHandlerAttr = block.get(AType.EXC_HANDLER);
 			if (excHandlerAttr != null) {
