@@ -640,6 +640,7 @@ public class InsnGen {
 		}
 		int argsCount = insn.getArgsCount();
 		code.add('(');
+		boolean firstArg = true;
 		if (k < argsCount) {
 			boolean overloaded = callMth != null && callMth.isArgsOverload();
 			for (int i = k; i < argsCount; i++) {
@@ -651,7 +652,7 @@ public class InsnGen {
 				if (callArg != null && callArg.contains(AFlag.SKIP_ARG)) {
 					continue;
 				}
-				if (i != k) {
+				if (!firstArg) {
 					code.add(", ");
 				}
 				boolean cast = overloaded && processOverloadedArg(code, callMth, arg, i - startArgNum);
@@ -659,6 +660,7 @@ public class InsnGen {
 					continue;
 				}
 				addArg(code, arg, false);
+				firstArg = false;
 			}
 		}
 		code.add(')');
