@@ -19,6 +19,15 @@ applicationDistribution.with {
     }
 }
 
+jar {
+    manifest {
+        attributes(
+			"Main-Class": mainClassName,
+			"Class-Path": configurations.compile.collect { it.getName() }.join(' ')
+		)
+    }
+}
+
 test {
     jacoco {
         // coveralls plugin not support multi-project
