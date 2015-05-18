@@ -30,7 +30,13 @@ public class RenameVisitor extends AbstractVisitor {
 	@Override
 	public void init(RootNode root) {
 		IJadxArgs args = root.getArgs();
-		File deobfMapFile = new File(args.getOutDir(), "deobf_map.jobf");
+
+		final String firstInputFileName = root.getDexNodes().get(0).getInputFile().getFile().getAbsolutePath();
+		final String inputPath = org.apache.commons.io.FilenameUtils.getFullPathNoEndSeparator(
+				firstInputFileName);
+		final String inputName = org.apache.commons.io.FilenameUtils.getBaseName(firstInputFileName);
+
+		File deobfMapFile = new File(inputPath, inputName + ".jobf");
 		deobfuscator = new Deobfuscator(args, root.getDexNodes(), deobfMapFile);
 		boolean deobfuscationOn = args.isDeobfuscationOn();
 		if (deobfuscationOn) {
