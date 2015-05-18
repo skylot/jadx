@@ -6,13 +6,17 @@ import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,6 +43,9 @@ public class Deobfuscator {
 	private final Map<ClassInfo, DeobfClsInfo> clsMap = new HashMap<ClassInfo, DeobfClsInfo>();
 	private final Map<FieldInfo, String> fldMap = new HashMap<FieldInfo, String>();
 	private final Map<MethodInfo, String> mthMap = new HashMap<MethodInfo, String>();
+
+	private final Map<MethodInfo, OverridedMethodsNode> ovrdMap = new HashMap<MethodInfo, OverridedMethodsNode>();
+	private final List<OverridedMethodsNode> ovrd = new ArrayList<OverridedMethodsNode>();
 
 	private final PackageNode rootPackage = new PackageNode("");
 	private final Set<String> pkgSet = new TreeSet<String>();
@@ -98,6 +105,32 @@ public class Deobfuscator {
 				processClass(dexNode, cls);
 			}
 		}
+		postProcess();
+	}
+
+	private void postProcess() {
+		int id = 1;
+		for (OverridedMethodsNode o : ovrd) {
+
+			Iterator<MethodInfo> it = o.getMethods().iterator();
+			if (it.hasNext()) {
+				MethodInfo mth = it.next();
+
+				if (mth.isRenamed() && !mth.isAliasFromPreset()) {
+					mth.setAlias(String.format("mo%d%s", id, makeName(mth.getName())));
+				}
+				String firstMethodAlias = mth.getAlias();
+
+				while (it.hasNext()) {
+					mth = it.next();
+					if (!mth.getAlias().equals(firstMethodAlias)) {
+						mth.setAlias(firstMethodAlias);
+					}
+				}
+			}
+
+			id++;
+		}
 	}
 
 	void clear() {
@@ -105,6 +138,98 @@ public class Deobfuscator {
 		clsMap.clear();
 		fldMap.clear();
 		mthMap.clear();
+
+		ovrd.clear();
+		ovrdMap.clear();
+	}
+
+	@Nullable
+	private static ClassNode resolveOverridingInternal(DexNode dex, ClassNode cls, String signature,
+			Set<MethodInfo> overrideSet, ClassNode rootClass) {
+		ClassNode result = null;
+
+		for (MethodNode m : cls.getMethods()) {
+			if (m.getMethodInfo().getShortId().startsWith(signature)) {
+				result = cls;
+				if (!overrideSet.contains(m.getMethodInfo())) {
+					overrideSet.add(m.getMethodInfo());
+				}
+				break;
+			}
+		}
+
+		ArgType superClass = cls.getSuperClass();
+		if (superClass != null) {
+			ClassNode superNode = dex.resolveClass(superClass);
+			if (superNode != null) {
+				ClassNode clsWithMth = resolveOverridingInternal(dex, superNode, signature, overrideSet, rootClass);
+				if (clsWithMth != null) {
+					if ((result != null) && (result != cls)) {
+						if (clsWithMth != result) {
+							LOG.warn(String.format("Multiple overriding '%s' from '%s' and '%s' in '%s'",
+									signature,
+									result.getFullName(), clsWithMth.getFullName(),
+									rootClass.getFullName()));
+						}
+					} else {
+						result = clsWithMth;
+					}
+				}
+			}
+		}
+
+		for (ArgType iFaceType : cls.getInterfaces()) {
+			ClassNode iFaceNode = dex.resolveClass(iFaceType);
+			if (iFaceNode != null) {
+				ClassNode clsWithMth = resolveOverridingInternal(dex, iFaceNode, signature, overrideSet, rootClass);
+				if (clsWithMth != null) {
+					if ((result != null) && (result != cls)) {
+						if (clsWithMth != result) {
+							LOG.warn(String.format("Multiple overriding '%s' from '%s' and '%s' in '%s'",
+									signature,
+									result.getFullName(), clsWithMth.getFullName(),
+									rootClass.getFullName()));
+						}
+					} else {
+						result = clsWithMth;
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+
+	private void resolveOverriding(DexNode dex, ClassNode cls, MethodNode mth) {
+		Set<MethodInfo> overrideSet = new HashSet<MethodInfo>();
+		resolveOverridingInternal(dex, cls, mth.getMethodInfo().makeSignature(false), overrideSet, cls);
+
+		if (overrideSet.size() > 1) {
+			OverridedMethodsNode overrideNode = null;
+			for (MethodInfo _mth : overrideSet) {
+				if (ovrdMap.containsKey(_mth)) {
+					overrideNode = ovrdMap.get(_mth);
+					break;
+				}
+			}
+
+			if (overrideNode == null) {
+				overrideNode = new OverridedMethodsNode(overrideSet);
+				ovrd.add(overrideNode);
+			}
+
+			for (MethodInfo _mth : overrideSet) {
+				if (!ovrdMap.containsKey(_mth)) {
+					ovrdMap.put(_mth, overrideNode);
+					if (!overrideNode.contains(_mth)) {
+						overrideNode.add(_mth);
+					}
+				}
+			}
+		} else {
+			overrideSet.clear();
+			overrideSet = null;
+		}
 	}
 
 	private void processClass(DexNode dex, ClassNode cls) {
@@ -125,6 +250,10 @@ public class Deobfuscator {
 			String alias = getMethodAlias(mth);
 			if (alias != null) {
 				methodInfo.setAlias(alias);
+			}
+
+			if (mth.isVirtual()) {
+				resolveOverriding(dex, cls, mth);
 			}
 		}
 	}
@@ -277,6 +406,7 @@ public class Deobfuscator {
 		alias = deobfPresets.getForMth(methodInfo);
 		if (alias != null) {
 			mthMap.put(methodInfo, alias);
+			methodInfo.setAliasFromPreset(true);
 			return alias;
 		}
 		if (shouldRename(mth.getName())) {
