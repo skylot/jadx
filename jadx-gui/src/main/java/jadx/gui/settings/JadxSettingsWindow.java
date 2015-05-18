@@ -141,11 +141,21 @@ public class JadxSettingsWindow extends JDialog {
 			}
 		});
 
+		JCheckBox deobfSourceAlias = new JCheckBox();
+		deobfSourceAlias.setSelected(settings.useSourceNameAsClassAlias());
+		deobfSourceAlias.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				settings.setUseSourceNameAsClassAlias(e.getStateChange() == ItemEvent.SELECTED);
+				needReload();
+			}
+		});
+
 		SettingsGroup deobfGroup = new SettingsGroup(NLS.str("preferences.deobfuscation"));
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_on"), deobfOn);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_force"), deobfForce);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_min_len"), minLen);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_max_len"), maxLen);
+		deobfGroup.addRow(NLS.str("preferences.deobfuscation_source_alias"), deobfSourceAlias);
 		deobfGroup.end();
 		return deobfGroup;
 	}

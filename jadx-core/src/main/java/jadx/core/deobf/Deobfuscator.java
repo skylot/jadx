@@ -45,6 +45,8 @@ public class Deobfuscator {
 
 	private final int maxLength;
 	private final int minLength;
+	private final boolean useSourceNameAsAlias;
+
 	private int pkgIndex = 0;
 	private int clsIndex = 0;
 	private int fldIndex = 0;
@@ -56,6 +58,7 @@ public class Deobfuscator {
 
 		this.minLength = args.getDeobfuscationMinLength();
 		this.maxLength = args.getDeobfuscationMaxLength();
+		this.useSourceNameAsAlias = args.useSourceNameAsClassAlias();
 
 		this.deobfPresets = new DeobfPresets(this, deobfMapFile);
 	}
@@ -212,7 +215,12 @@ public class Deobfuscator {
 
 	private String makeClsAlias(ClassNode cls) {
 		ClassInfo classInfo = cls.getClassInfo();
-		String alias = getAliasFromSourceFile(cls);
+		String alias = null;
+
+		if (this.useSourceNameAsAlias) {
+			alias = getAliasFromSourceFile(cls);
+		}
+
 		if (alias == null) {
 			String clsName = classInfo.getShortName();
 			alias = String.format("C%04d%s", clsIndex++, makeName(clsName));

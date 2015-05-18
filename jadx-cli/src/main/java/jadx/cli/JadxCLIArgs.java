@@ -64,6 +64,9 @@ public class JadxCLIArgs implements IJadxArgs {
 	@Parameter(names = {"--deobf-rewrite-cfg"}, description = "force to save deobfuscation map")
 	protected boolean deobfuscationForceSave = false;
 
+	@Parameter(names = {"--deobf-use-sourcename"}, description = "use source file name as class name alias")
+	protected boolean deobfuscationUseSourceNameAsAlias = false;
+
 	@Parameter(names = {"-h", "--help"}, description = "print this help", help = true)
 	protected boolean printHelp = false;
 
@@ -241,5 +244,10 @@ public class JadxCLIArgs implements IJadxArgs {
 	@Override
 	public boolean isDeobfuscationForceSave() {
 		return deobfuscationForceSave;
+	}
+
+	@Override
+	public boolean useSourceNameAsClassAlias() {
+		return deobfuscationUseSourceNameAsAlias;
 	}
 }

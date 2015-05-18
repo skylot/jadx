@@ -28,4 +28,6 @@ public interface IJadxArgs {
 	int getDeobfuscationMaxLength();
 
 	boolean isDeobfuscationForceSave();
+
+	boolean useSourceNameAsClassAlias();
 }

@@ -68,4 +68,9 @@ public class DefaultJadxArgs implements IJadxArgs {
 	public boolean isDeobfuscationForceSave() {
 		return false;
 	}
+
+	@Override
+	public boolean useSourceNameAsClassAlias() {
+		return false;
+	}
 }
