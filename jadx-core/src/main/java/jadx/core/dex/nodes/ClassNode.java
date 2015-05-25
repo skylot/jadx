@@ -86,10 +86,10 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 				fields = new ArrayList<FieldNode>(fieldsCount);
 
 				for (Method mth : clsData.getDirectMethods()) {
-					methods.add(new MethodNode(this, mth));
+					methods.add(new MethodNode(this, mth, false));
 				}
 				for (Method mth : clsData.getVirtualMethods()) {
-					methods.add(new MethodNode(this, mth));
+					methods.add(new MethodNode(this, mth, true));
 				}
 
 				for (Field f : clsData.getStaticFields()) {

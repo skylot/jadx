@@ -18,11 +18,13 @@ public final class MethodInfo {
 	private final ClassInfo declClass;
 	private final String shortId;
 	private String alias;
+	private boolean aliasFromPreset;
 
 	private MethodInfo(DexNode dex, int mthIndex) {
 		MethodId mthId = dex.getMethodId(mthIndex);
 		name = dex.getString(mthId.getNameIndex());
 		alias = name;
+		aliasFromPreset = false;
 		declClass = ClassInfo.fromDex(dex, mthId.getDeclaringClassIndex());
 
 		ProtoId proto = dex.getProtoId(mthId.getProtoIndex());
@@ -107,6 +109,14 @@ public final class MethodInfo {
 
 	public boolean isRenamed() {
 		return !name.equals(alias);
+	}
+
+	public boolean isAliasFromPreset() {
+		return aliasFromPreset;
+	}
+
+	public void setAliasFromPreset(boolean value) {
+		aliasFromPreset = value;
 	}
 
 	@Override

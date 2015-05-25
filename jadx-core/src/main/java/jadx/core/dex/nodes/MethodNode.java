@@ -56,6 +56,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 	private int codeSize;
 	private int debugInfoOffset;
 	private boolean noCode;
+	private boolean methodIsVirtual;
 
 	private ArgType retType;
 	private RegisterArg thisArg;
@@ -71,12 +72,13 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 	private List<ExceptionHandler> exceptionHandlers = Collections.emptyList();
 	private List<LoopInfo> loops = Collections.emptyList();
 
-	public MethodNode(ClassNode classNode, Method mthData) {
+	public MethodNode(ClassNode classNode, Method mthData, boolean isVirtual) {
 		this.mthInfo = MethodInfo.fromDex(classNode.dex(), mthData.getMethodIndex());
 		this.parentClass = classNode;
 		this.accFlags = new AccessInfo(mthData.getAccessFlags(), AFType.METHOD);
 		this.noCode = mthData.getCodeOffset() == 0;
 		this.methodData = noCode ? null : mthData;
+		this.methodIsVirtual = isVirtual;
 	}
 
 	@Override
@@ -536,6 +538,10 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 			result = argsList == null || argsList.size() == defaultArgCount;
 		}
 		return result;
+	}
+
+	public boolean isVirtual() {
+		return methodIsVirtual;
 	}
 
 	public int getRegsCount() {

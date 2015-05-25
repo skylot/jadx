@@ -132,6 +132,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.deobfuscationForceSave = deobfuscationForceSave;
 	}
 
+	public void setUseSourceNameAsClassAlias(boolean useSourceNameAsAlias) {
+		this.deobfuscationUseSourceNameAsAlias = useSourceNameAsAlias;
+	}
+
 	public Font getFont() {
 		if (fontStr.isEmpty()) {
 			return DEFAULT_FONT;
