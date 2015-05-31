@@ -1,6 +1,6 @@
 apply plugin: 'application'
 
-mainClassName = "jadx.gui.JadxGUI"
+mainClassName = 'jadx.gui.JadxGUI'
 
 dependencies {
     compile(project(":jadx-core"))
@@ -22,9 +22,19 @@ applicationDistribution.with {
 jar {
     manifest {
         attributes(
-			"Main-Class": mainClassName,
-			"Class-Path": configurations.compile.collect { it.getName() }.join(' ')
-		)
+                "Main-Class": mainClassName,
+                "Class-Path": configurations.compile.collect { it.getName() }.join(' ')
+        )
+    }
+}
+
+startScripts {
+    doLast {
+        def str = windowsScript.text
+        str = str.replaceAll('java.exe', 'javaw.exe')
+        str = str.replaceAll('"%JAVA_EXE%" %DEFAULT_JVM_OPTS%',
+                'start "jadx-gui" /B "%JAVA_EXE%" %DEFAULT_JVM_OPTS%')
+        windowsScript.text = str
     }
 }
 
