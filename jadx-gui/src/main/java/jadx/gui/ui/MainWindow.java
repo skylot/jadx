@@ -84,6 +84,7 @@ public class MainWindow extends JFrame {
 	private static final ImageIcon ICON_FORWARD = Utils.openIcon("icon_forward");
 	private static final ImageIcon ICON_PREF = Utils.openIcon("wrench");
 	private static final ImageIcon ICON_DEOBF = Utils.openIcon("lock_edit");
+	private static final ImageIcon ICON_LOG = Utils.openIcon("report");
 
 	private final JadxWrapper wrapper;
 	private final JadxSettings settings;
@@ -375,6 +376,19 @@ public class MainWindow extends JFrame {
 		};
 		find.addActionListener(findAction);
 
+		JMenu tools = new JMenu(NLS.str("menu.tools"));
+		tools.setMnemonic(KeyEvent.VK_T);
+
+		JMenuItem logItem = new JMenuItem(NLS.str("menu.log"), ICON_LOG);
+		ActionListener logAction = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				new LogViewer().setVisible(true);
+			}
+		};
+		logItem.addActionListener(logAction);
+		tools.add(logItem);
+
 		JMenu help = new JMenu(NLS.str("menu.help"));
 		help.setMnemonic(KeyEvent.VK_H);
 
@@ -390,6 +404,7 @@ public class MainWindow extends JFrame {
 		menuBar.add(file);
 		menuBar.add(view);
 		menuBar.add(nav);
+		menuBar.add(tools);
 		menuBar.add(help);
 		setJMenuBar(menuBar);
 
@@ -470,6 +485,10 @@ public class MainWindow extends JFrame {
 			}
 		});
 
+		JButton logBtn = new JButton(ICON_LOG);
+		logBtn.setToolTipText(NLS.str("menu.log"));
+		logBtn.addActionListener(logAction);
+
 		updateLink = new Link("", JadxUpdate.JADX_RELEASES_URL);
 		updateLink.setVisible(false);
 
@@ -493,6 +512,9 @@ public class MainWindow extends JFrame {
 		toolbar.addSeparator();
 
 		toolbar.add(deobfToggleBtn);
+		toolbar.addSeparator();
+
+		toolbar.add(logBtn);
 		toolbar.addSeparator();
 
 		toolbar.add(prefButton);

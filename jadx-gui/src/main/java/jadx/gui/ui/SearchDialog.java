@@ -9,6 +9,7 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.NameIndex;
 import jadx.gui.utils.Position;
+import jadx.gui.utils.TextStandardActions;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -198,7 +199,7 @@ public class SearchDialog extends JDialog {
 
 		@Override
 		public Component getListCellRendererComponent(JList list,
-		                                              Object obj, int index, boolean isSelected, boolean cellHasFocus) {
+				Object obj, int index, boolean isSelected, boolean cellHasFocus) {
 			if (!(obj instanceof JNode)) {
 				return null;
 			}
@@ -317,7 +318,7 @@ public class SearchDialog extends JDialog {
 		setSize(700, 500);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		setModalityType(ModalityType.APPLICATION_MODAL);
+		setModalityType(ModalityType.MODELESS);
 	}
 
 	private JCheckBox makeOptionsCheckBox(String name, final SearchOptions opt) {

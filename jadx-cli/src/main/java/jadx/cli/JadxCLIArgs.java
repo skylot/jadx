@@ -116,7 +116,8 @@ public class JadxCLIArgs implements IJadxArgs {
 			if (isVerbose()) {
 				ch.qos.logback.classic.Logger rootLogger =
 						(ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-				rootLogger.setLevel(ch.qos.logback.classic.Level.DEBUG);
+				// remove INFO ThresholdFilter
+				rootLogger.getAppender("STDOUT").clearAllFilters();
 			}
 		} catch (JadxException e) {
 			System.err.println("ERROR: " + e.getMessage());

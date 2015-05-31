@@ -3,6 +3,7 @@ package jadx.gui;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsAdapter;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.LogCollector;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -15,6 +16,7 @@ public class JadxGUI {
 
 	public static void main(String[] args) {
 		try {
+			LogCollector.register();
 			final JadxSettings jadxArgs = JadxSettingsAdapter.load();
 			// overwrite loaded settings by command line arguments
 			if (!jadxArgs.processArgs(args)) {
