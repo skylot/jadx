@@ -1,5 +1,6 @@
 package jadx.gui.ui;
 
+import jadx.gui.utils.TextStandardActions;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
 
@@ -73,6 +74,7 @@ class SearchBar extends JToolBar {
 				search(1);
 			}
 		});
+		new TextStandardActions(searchField);
 		add(searchField);
 
 		JButton prevButton = new JButton(NLS.str("search.previous"));

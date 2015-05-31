@@ -236,6 +236,7 @@ public class SearchDialog extends JDialog {
 		searchField = new JTextField();
 		searchField.setAlignmentX(LEFT_ALIGNMENT);
 		searchField.getDocument().addDocumentListener(new SearchFieldListener());
+		new TextStandardActions(searchField);
 
 		JCheckBox clsChBox = makeOptionsCheckBox(NLS.str("search_dialog.class"), SearchOptions.CLASS);
 		JCheckBox mthChBox = makeOptionsCheckBox(NLS.str("search_dialog.method"), SearchOptions.METHOD);
