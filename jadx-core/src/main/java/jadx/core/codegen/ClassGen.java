@@ -561,7 +561,8 @@ public class ClassGen {
 
 	private void insertRenameInfo(CodeWriter code, ClassNode cls) {
 		ClassInfo classInfo = cls.getClassInfo();
-		if (classInfo.isRenamed()) {
+		if (classInfo.isRenamed()
+				&& !cls.getShortName().equals(cls.getAlias().getShortName())) {
 			code.startLine("/* renamed from: ").add(classInfo.getFullName()).add(" */");
 		}
 	}
