@@ -1,6 +1,8 @@
 package jadx.core.dex.visitors.regions;
 
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.EdgeInsnAttr;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBlock;
@@ -19,6 +21,7 @@ import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.JadxException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -75,8 +78,31 @@ public class RegionMakerVisitor extends AbstractVisitor {
 			} else if (region instanceof SwitchRegion) {
 				// insert 'break' in switch cases (run after try/catch insertion)
 				processSwitch(mth, (SwitchRegion) region);
+			} else if (region instanceof Region) {
+				insertEdgeInsn((Region) region);
 			}
 		}
+	}
+
+	/**
+	 * Insert insn block from edge insn attribute.
+	 */
+	private static void insertEdgeInsn(Region region) {
+		List<IContainer> subBlocks = region.getSubBlocks();
+		if (subBlocks.isEmpty()) {
+			return;
+		}
+		IContainer last = subBlocks.get(subBlocks.size() - 1);
+		List<EdgeInsnAttr> edgeInsnAttrs = last.getAll(AType.EDGE_INSN);
+		if (edgeInsnAttrs.isEmpty()) {
+			return;
+		}
+		EdgeInsnAttr insnAttr = edgeInsnAttrs.get(0);
+		if (!insnAttr.getStart().equals(last)) {
+			return;
+		}
+		List<InsnNode> insns = Collections.singletonList(insnAttr.getInsn());
+		region.add(new InsnContainer(insns));
 	}
 
 	private static void processSwitch(MethodNode mth, SwitchRegion sw) {

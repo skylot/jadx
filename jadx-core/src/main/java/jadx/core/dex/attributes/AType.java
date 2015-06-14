@@ -3,6 +3,7 @@ package jadx.core.dex.attributes;
 import jadx.core.dex.attributes.annotations.AnnotationsList;
 import jadx.core.dex.attributes.annotations.MethodParameters;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
+import jadx.core.dex.attributes.nodes.EdgeInsnAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr;
 import jadx.core.dex.attributes.nodes.EnumMapAttr;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
@@ -30,6 +31,7 @@ public class AType<T extends IAttribute> {
 
 	public static final AType<AttrList<JumpInfo>> JUMP = new AType<AttrList<JumpInfo>>();
 	public static final AType<AttrList<LoopInfo>> LOOP = new AType<AttrList<LoopInfo>>();
+	public static final AType<AttrList<EdgeInsnAttr>> EDGE_INSN = new AType<AttrList<EdgeInsnAttr>>();
 
 	public static final AType<ExcHandlerAttr> EXC_HANDLER = new AType<ExcHandlerAttr>();
 	public static final AType<CatchAttr> CATCH_BLOCK = new AType<CatchAttr>();

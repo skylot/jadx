@@ -3,6 +3,7 @@ package jadx.core.dex.visitors.regions;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.EdgeInsnAttr;
 import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.instructions.IfNode;
@@ -409,7 +410,7 @@ public class RegionMaker {
 			return false;
 		}
 		InsnNode breakInsn = new InsnNode(InsnType.BREAK, 0);
-		insertBlock.getInstructions().add(breakInsn);
+		EdgeInsnAttr.addEdgeInsn(insertBlock, insertBlock.getSuccessors().get(0), breakInsn);
 		stack.addExit(exit);
 		// add label to 'break' if needed
 		addBreakLabel(exitEdge, exit, breakInsn);
@@ -619,8 +620,9 @@ public class RegionMaker {
 		ifRegion.setCondition(currentIf.getCondition());
 		currentRegion.getSubBlocks().add(ifRegion);
 
+		BlockNode outBlock = currentIf.getOutBlock();
 		stack.push(ifRegion);
-		stack.addExit(currentIf.getOutBlock());
+		stack.addExit(outBlock);
 
 		ifRegion.setThenRegion(makeRegion(currentIf.getThenBlock(), stack));
 		BlockNode elseBlock = currentIf.getElseBlock();
@@ -630,8 +632,41 @@ public class RegionMaker {
 			ifRegion.setElseRegion(makeRegion(elseBlock, stack));
 		}
 
+		// insert edge insns in new 'else' branch
+		// TODO: make more common algorithm
+		if (ifRegion.getElseRegion() == null && outBlock != null) {
+			List<EdgeInsnAttr> edgeInsnAttrs = outBlock.getAll(AType.EDGE_INSN);
+			if (!edgeInsnAttrs.isEmpty()) {
+				Region elseRegion = new Region(ifRegion);
+				for (EdgeInsnAttr edgeInsnAttr : edgeInsnAttrs) {
+					if (edgeInsnAttr.getEnd().equals(outBlock)) {
+						addEdgeInsn(currentIf, elseRegion, edgeInsnAttr);
+					}
+				}
+				ifRegion.setElseRegion(elseRegion);
+			}
+		}
+
 		stack.pop();
-		return currentIf.getOutBlock();
+		return outBlock;
+	}
+
+	private void addEdgeInsn(IfInfo ifInfo, Region region, EdgeInsnAttr edgeInsnAttr) {
+		BlockNode start = edgeInsnAttr.getStart();
+		if (start.contains(AFlag.SKIP)) {
+			return;
+		}
+		boolean fromThisIf = false;
+		for (BlockNode ifBlock : ifInfo.getMergedBlocks()) {
+			if (ifBlock.getSuccessors().contains(start)) {
+				fromThisIf = true;
+				break;
+			}
+		}
+		if (!fromThisIf) {
+			return;
+		}
+		region.add(start);
 	}
 
 	private BlockNode processSwitch(IRegion currentRegion, BlockNode block, SwitchNode insn, RegionStack stack) {
