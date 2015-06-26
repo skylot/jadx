@@ -9,6 +9,7 @@ import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.exceptions.JadxException;
@@ -31,6 +32,13 @@ public class ReturnVisitor extends AbstractVisitor {
 	}
 
 	private static final class ReturnRemoverVisitor extends TracedRegionVisitor {
+
+		@Override
+		public boolean enterRegion(MethodNode mth, IRegion region) {
+			super.enterRegion(mth, region);
+			return !(region instanceof SwitchRegion);
+		}
+
 		@Override
 		public void processBlockTraced(MethodNode mth, IBlock container, IRegion currentRegion) {
 			if (container.getClass() != BlockNode.class) {

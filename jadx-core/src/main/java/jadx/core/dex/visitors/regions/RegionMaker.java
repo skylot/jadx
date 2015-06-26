@@ -30,6 +30,7 @@ import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.JadxOverflowException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -690,7 +691,9 @@ public class RegionMaker {
 		Map<BlockNode, List<Object>> blocksMap = new LinkedHashMap<BlockNode, List<Object>>(len);
 		for (Map.Entry<Integer, List<Object>> entry : casesMap.entrySet()) {
 			BlockNode c = getBlockByOffset(entry.getKey(), block.getSuccessors());
-			assert c != null;
+			if (c == null) {
+				throw new JadxRuntimeException("Switch block not found by offset: " + entry.getKey());
+			}
 			blocksMap.put(c, entry.getValue());
 		}
 		BlockNode defCase = getBlockByOffset(insn.getDefaultCaseOffset(), block.getSuccessors());

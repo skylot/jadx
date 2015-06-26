@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -442,6 +443,7 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		loops.add(loop);
 	}
 
+	@Nullable
 	public LoopInfo getLoopForBlock(BlockNode block) {
 		if (loops.isEmpty()) {
 			return null;
