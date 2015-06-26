@@ -8,7 +8,10 @@ public interface IRegionVisitor {
 
 	void processBlock(MethodNode mth, IBlock container);
 
-	void enterRegion(MethodNode mth, IRegion region);
+	/**
+	 * @return true for traverse sub-blocks, false otherwise.
+	 */
+	boolean enterRegion(MethodNode mth, IRegion region);
 
 	void leaveRegion(MethodNode mth, IRegion region);
 

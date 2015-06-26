@@ -38,10 +38,11 @@ public class IfRegionVisitor extends AbstractVisitor implements IRegionVisitor, 
 	}
 
 	@Override
-	public void enterRegion(MethodNode mth, IRegion region) {
+	public boolean enterRegion(MethodNode mth, IRegion region) {
 		if (region instanceof IfRegion) {
 			processIfRegion(mth, (IfRegion) region);
 		}
+		return true;
 	}
 
 	@Override

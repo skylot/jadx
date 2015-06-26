@@ -7,7 +7,8 @@ import jadx.core.dex.nodes.MethodNode;
 public abstract class AbstractRegionVisitor implements IRegionVisitor {
 
 	@Override
-	public void enterRegion(MethodNode mth, IRegion region) {
+	public boolean enterRegion(MethodNode mth, IRegion region) {
+		return true;
 	}
 
 	@Override

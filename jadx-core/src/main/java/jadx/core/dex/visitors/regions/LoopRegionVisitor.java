@@ -47,10 +47,11 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 	}
 
 	@Override
-	public void enterRegion(MethodNode mth, IRegion region) {
+	public boolean enterRegion(MethodNode mth, IRegion region) {
 		if (region instanceof LoopRegion) {
 			processLoopRegion(mth, (LoopRegion) region);
 		}
+		return true;
 	}
 
 	private static void processLoopRegion(MethodNode mth, LoopRegion loopRegion) {

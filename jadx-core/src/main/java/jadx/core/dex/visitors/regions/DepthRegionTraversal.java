@@ -53,9 +53,10 @@ public class DepthRegionTraversal {
 			visitor.processBlock(mth, (IBlock) container);
 		} else if (container instanceof IRegion) {
 			IRegion region = (IRegion) container;
-			visitor.enterRegion(mth, region);
-			for (IContainer subCont : region.getSubBlocks()) {
-				traverseInternal(mth, visitor, subCont);
+			if (visitor.enterRegion(mth, region)) {
+				for (IContainer subCont : region.getSubBlocks()) {
+					traverseInternal(mth, visitor, subCont);
+				}
 			}
 			visitor.leaveRegion(mth, region);
 		}

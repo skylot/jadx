@@ -64,13 +64,14 @@ public class CheckRegions extends AbstractVisitor {
 		// check loop conditions
 		DepthRegionTraversal.traverse(mth, new AbstractRegionVisitor() {
 			@Override
-			public void enterRegion(MethodNode mth, IRegion region) {
+			public boolean enterRegion(MethodNode mth, IRegion region) {
 				if (region instanceof LoopRegion) {
 					BlockNode loopHeader = ((LoopRegion) region).getHeader();
 					if (loopHeader != null && loopHeader.getInstructions().size() != 1) {
 						ErrorsCounter.methodError(mth, "Incorrect condition in loop: " + loopHeader);
 					}
 				}
+				return true;
 			}
 		});
 	}
