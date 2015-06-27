@@ -57,8 +57,8 @@ public class ErrorsCounter {
 		return msg;
 	}
 
-	public static String classError(ClassNode mth, String errorMsg) {
-		return classError(mth, errorMsg, null);
+	public static String classError(ClassNode cls, String errorMsg) {
+		return classError(cls, errorMsg, null);
 	}
 
 	public static String methodError(MethodNode mth, String errorMsg, Throwable e) {

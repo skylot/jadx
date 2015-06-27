@@ -36,6 +36,7 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.CodegenException;
@@ -44,10 +45,8 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
@@ -557,6 +556,11 @@ public class InsnGen {
 
 	private void inlineAnonymousConstr(CodeWriter code, ClassNode cls, ConstructorInsn insn) throws CodegenException {
 		// anonymous class construction
+		if (cls.contains(AFlag.DONT_GENERATE)) {
+			code.add("/* anonymous class already generated */");
+			ErrorsCounter.methodError(mth, "Anonymous class already generated: " + cls);
+			return;
+		}
 		ArgType parent;
 		if (cls.getInterfaces().size() == 1) {
 			parent = cls.getInterfaces().get(0);
@@ -734,9 +738,9 @@ public class InsnGen {
 				regs[callArg.getRegNum()] = arg;
 			}
 			// replace args
+			InsnNode inlCopy = inl.copy();
 			List<RegisterArg> inlArgs = new ArrayList<RegisterArg>();
-			inl.getRegisterArgs(inlArgs);
-			Map<RegisterArg, InsnArg> toRevert = new HashMap<RegisterArg, InsnArg>();
+			inlCopy.getRegisterArgs(inlArgs);
 			for (RegisterArg r : inlArgs) {
 				int regNum = r.getRegNum();
 				if (regNum >= regs.length) {
@@ -746,16 +750,11 @@ public class InsnGen {
 					if (repl == null) {
 						LOG.warn("Not passed register {} in method call: {} from {}", r, callMthNode, mth);
 					} else {
-						inl.replaceArg(r, repl);
-						toRevert.put(r, repl);
+						inlCopy.replaceArg(r, repl);
 					}
 				}
 			}
-			makeInsn(inl, code, Flags.BODY_ONLY);
-			// revert changes in 'MethodInlineAttr'
-			for (Map.Entry<RegisterArg, InsnArg> e : toRevert.entrySet()) {
-				inl.replaceArg(e.getValue(), e.getKey());
-			}
+			makeInsn(inlCopy, code, Flags.BODY_ONLY);
 		}
 		return true;
 	}
