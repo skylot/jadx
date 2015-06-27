@@ -450,7 +450,7 @@ public class InsnGen {
 
 			/* fallback mode instructions */
 			case IF:
-				assert isFallback() : "if insn in not fallback mode";
+				fallbackOnlyInsn(insn);
 				IfNode ifInsn = (IfNode) insn;
 				code.add("if (");
 				addArg(code, insn.getArg(0));
@@ -461,17 +461,17 @@ public class InsnGen {
 				break;
 
 			case GOTO:
-				assert isFallback();
+				fallbackOnlyInsn(insn);
 				code.add("goto ").add(MethodGen.getLabelName(((GotoNode) insn).getTarget()));
 				break;
 
 			case MOVE_EXCEPTION:
-				assert isFallback();
+				fallbackOnlyInsn(insn);
 				code.add("move-exception");
 				break;
 
 			case SWITCH:
-				assert isFallback();
+				fallbackOnlyInsn(insn);
 				SwitchNode sw = (SwitchNode) insn;
 				code.add("switch(");
 				addArg(code, insn.getArg(0));
@@ -489,7 +489,7 @@ public class InsnGen {
 				break;
 
 			case FILL_ARRAY:
-				assert isFallback();
+				fallbackOnlyInsn(insn);
 				FillArrayNode arrayNode = (FillArrayNode) insn;
 				Object data = arrayNode.getData();
 				String arrStr;
@@ -509,12 +509,18 @@ public class InsnGen {
 
 			case NEW_INSTANCE:
 				// only fallback - make new instance in constructor invoke
-				assert isFallback();
+				fallbackOnlyInsn(insn);
 				code.add("new " + insn.getResult().getType());
 				break;
 
 			default:
 				throw new CodegenException(mth, "Unknown instruction: " + insn.getType());
+		}
+	}
+
+	private void fallbackOnlyInsn(InsnNode insn) throws CodegenException {
+		if (!fallback) {
+			throw new CodegenException(insn.getType() + " can be used only in fallback mode");
 		}
 	}
 

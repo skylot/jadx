@@ -40,7 +40,6 @@ public class ArithNode extends InsnNode {
 				addReg(insn, 2, type);
 			}
 		}
-		assert getArgsCount() == 2;
 	}
 
 	public ArithNode(ArithOp op, RegisterArg res, InsnArg a, InsnArg b) {

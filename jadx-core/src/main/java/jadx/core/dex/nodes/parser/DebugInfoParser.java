@@ -11,10 +11,14 @@ import jadx.core.utils.exceptions.DecodeException;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.android.dex.Dex.Section;
 
 public class DebugInfoParser {
 
+	private static final Logger LOG = LoggerFactory.getLogger(DebugInfoParser.class);
 	private static final int DBG_END_SEQUENCE = 0x00;
 	private static final int DBG_ADVANCE_PC = 0x01;
 	private static final int DBG_ADVANCE_LINE = 0x02;
@@ -58,13 +62,13 @@ public class DebugInfoParser {
 
 		int paramsCount = section.readUleb128();
 		List<RegisterArg> mthArgs = mth.getArguments(false);
-		assert paramsCount == mthArgs.size();
-
 		for (int i = 0; i < paramsCount; i++) {
 			int id = section.readUleb128() - 1;
 			if (id != DexNode.NO_INDEX) {
 				String name = dex.getString(id);
-				mthArgs.get(i).setName(name);
+				if (i < mthArgs.size()) {
+					mthArgs.get(i).setName(name);
+				}
 			}
 		}
 

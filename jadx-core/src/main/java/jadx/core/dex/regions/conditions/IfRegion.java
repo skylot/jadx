@@ -5,6 +5,7 @@ import jadx.core.dex.nodes.IBranchRegion;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.regions.AbstractRegion;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,7 +21,9 @@ public final class IfRegion extends AbstractRegion implements IBranchRegion {
 
 	public IfRegion(IRegion parent, BlockNode header) {
 		super(parent);
-		assert header.getInstructions().size() == 1;
+		if (header.getInstructions().size() != 1) {
+			throw new JadxRuntimeException("Expected only one instruction in 'if' header");
+		}
 		this.header = header;
 		this.condition = IfCondition.fromIfBlock(header);
 	}
