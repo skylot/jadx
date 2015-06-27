@@ -16,6 +16,11 @@ public final class ConstStringNode extends InsnNode {
 	}
 
 	@Override
+	public InsnNode copy() {
+		return copyCommonParams(new ConstStringNode(str));
+	}
+
+	@Override
 	public boolean isSame(InsnNode obj) {
 		if (this == obj) {
 			return true;

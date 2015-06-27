@@ -36,12 +36,23 @@ public class InvokeNode extends InsnNode {
 		}
 	}
 
+	private InvokeNode(MethodInfo mth, InvokeType invokeType, int argsCount) {
+		super(InsnType.INVOKE, argsCount);
+		this.mth = mth;
+		this.type = invokeType;
+	}
+
 	public InvokeType getInvokeType() {
 		return type;
 	}
 
 	public MethodInfo getCallMth() {
 		return mth;
+	}
+
+	@Override
+	public InsnNode copy() {
+		return copyCommonParams(new InvokeNode(mth, type, getArgsCount()));
 	}
 
 	@Override
