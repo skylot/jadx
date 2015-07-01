@@ -16,7 +16,8 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.nodes.parser.AnnotationsParser;
-import jadx.core.dex.nodes.parser.FieldValueAttr;
+import jadx.core.dex.nodes.parser.FieldInitAttr;
+import jadx.core.dex.nodes.parser.FieldInitAttr.InitType;
 import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.nodes.parser.StaticValuesParser;
 import jadx.core.utils.exceptions.DecodeException;
@@ -155,25 +156,28 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 	private void loadStaticValues(ClassDef cls, List<FieldNode> staticFields) throws DecodeException {
 		for (FieldNode f : staticFields) {
 			if (f.getAccessFlags().isFinal()) {
-				f.addAttr(new FieldValueAttr(null));
+				f.addAttr(FieldInitAttr.NULL_VALUE);
 			}
 		}
-
 		int offset = cls.getStaticValuesOffset();
-		if (offset != 0) {
-			StaticValuesParser parser = new StaticValuesParser(dex, dex.openSection(offset));
-			int count = parser.processFields(staticFields);
-			constFields = new LinkedHashMap<Object, FieldNode>(count);
-			for (FieldNode f : staticFields) {
-				AccessInfo accFlags = f.getAccessFlags();
-				if (accFlags.isStatic() && accFlags.isFinal()) {
-					FieldValueAttr fv = f.get(AType.FIELD_VALUE);
-					if (fv != null && fv.getValue() != null) {
-						if (accFlags.isPublic()) {
-							dex.getConstFields().put(fv.getValue(), f);
-						}
-						constFields.put(fv.getValue(), f);
+		if (offset == 0) {
+			return;
+		}
+		StaticValuesParser parser = new StaticValuesParser(dex, dex.openSection(offset));
+		int count = parser.processFields(staticFields);
+		if (count == 0) {
+			return;
+		}
+		constFields = new LinkedHashMap<Object, FieldNode>(count);
+		for (FieldNode f : staticFields) {
+			AccessInfo accFlags = f.getAccessFlags();
+			if (accFlags.isStatic() && accFlags.isFinal()) {
+				FieldInitAttr fv = f.get(AType.FIELD_INIT);
+				if (fv != null && fv.getValue() != null && fv.getValueType() == InitType.CONST) {
+					if (accFlags.isPublic()) {
+						dex.getConstFields().put(fv.getValue(), f);
 					}
+					constFields.put(fv.getValue(), f);
 				}
 			}
 		}
@@ -442,6 +446,12 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 				&& getDefaultConstructor() != null;
 	}
 
+	@Nullable
+	public MethodNode getClassInitMth() {
+		return searchMethodByName("<clinit>()V");
+	}
+
+	@Nullable
 	public MethodNode getDefaultConstructor() {
 		for (MethodNode mth : methods) {
 			if (mth.isDefaultConstructor()) {

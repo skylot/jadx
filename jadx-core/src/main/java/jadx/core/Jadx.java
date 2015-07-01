@@ -8,6 +8,7 @@ import jadx.core.dex.visitors.DebugInfoVisitor;
 import jadx.core.dex.visitors.DependencyCollector;
 import jadx.core.dex.visitors.DotGraphVisitor;
 import jadx.core.dex.visitors.EnumVisitor;
+import jadx.core.dex.visitors.ExtractFieldInit;
 import jadx.core.dex.visitors.FallbackModeVisitor;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.MethodInlineVisitor;
@@ -96,6 +97,7 @@ public class Jadx {
 			}
 
 			passes.add(new MethodInlineVisitor());
+			passes.add(new ExtractFieldInit());
 			passes.add(new ClassModifier());
 			passes.add(new EnumVisitor());
 			passes.add(new PrepareForCodeGen());

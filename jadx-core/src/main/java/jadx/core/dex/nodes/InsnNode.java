@@ -13,6 +13,7 @@ import jadx.core.utils.InsnUtils;
 import jadx.core.utils.Utils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -157,12 +158,12 @@ public class InsnNode extends LineAttrNode {
 		this.offset = offset;
 	}
 
-	public void getRegisterArgs(List<RegisterArg> list) {
+	public void getRegisterArgs(Collection<RegisterArg> collection) {
 		for (InsnArg arg : this.getArguments()) {
 			if (arg.isRegister()) {
-				list.add((RegisterArg) arg);
+				collection.add((RegisterArg) arg);
 			} else if (arg.isInsnWrap()) {
-				((InsnWrapArg) arg).getWrapInsn().getRegisterArgs(list);
+				((InsnWrapArg) arg).getWrapInsn().getRegisterArgs(collection);
 			}
 		}
 	}
@@ -235,8 +236,27 @@ public class InsnNode extends LineAttrNode {
 		if (this == other) {
 			return true;
 		}
-		return insnType == other.insnType
-				&& arguments.size() == other.arguments.size();
+		if (insnType != other.insnType
+				|| arguments.size() != other.arguments.size()) {
+			return false;
+		}
+		// check wrapped instructions
+		int size = arguments.size();
+		for (int i = 0; i < size; i++) {
+			InsnArg arg = arguments.get(i);
+			InsnArg otherArg = other.arguments.get(i);
+			if (arg.isInsnWrap()) {
+				if (!otherArg.isInsnWrap()) {
+					return false;
+				}
+				InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
+				InsnNode otherWrapInsn = ((InsnWrapArg) otherArg).getWrapInsn();
+				if (!wrapInsn.isSame(otherWrapInsn)) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	protected <T extends InsnNode> T copyCommonParams(T copy) {

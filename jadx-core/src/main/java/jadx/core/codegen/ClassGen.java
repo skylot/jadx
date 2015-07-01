@@ -15,8 +15,10 @@ import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.nodes.parser.FieldValueAttr;
+import jadx.core.dex.nodes.parser.FieldInitAttr;
+import jadx.core.dex.nodes.parser.FieldInitAttr.InitType;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.CodegenException;
@@ -339,13 +341,18 @@ public class ClassGen {
 			useType(code, f.getType());
 			code.add(' ');
 			code.add(f.getAlias());
-			FieldValueAttr fv = f.get(AType.FIELD_VALUE);
+			FieldInitAttr fv = f.get(AType.FIELD_INIT);
 			if (fv != null) {
 				code.add(" = ");
 				if (fv.getValue() == null) {
 					code.add(TypeGen.literalToString(0, f.getType()));
 				} else {
-					annotationGen.encodeValue(code, fv.getValue());
+					if (fv.getValueType() == InitType.CONST) {
+						annotationGen.encodeValue(code, fv.getValue());
+					} else if (fv.getValueType() == InitType.INSN) {
+						InsnGen insnGen = makeInsnGen(fv.getInsnMth());
+						addInsnBody(insnGen, code, fv.getInsn());
+					}
 				}
 			}
 			code.add(';');
@@ -374,8 +381,7 @@ public class ClassGen {
 			ConstructorInsn constrInsn = f.getConstrInsn();
 			if (constrInsn.getArgsCount() > f.getStartArg()) {
 				if (igen == null) {
-					MethodGen mthGen = new MethodGen(this, enumFields.getStaticMethod());
-					igen = new InsnGen(mthGen, false);
+					igen = makeInsnGen(enumFields.getStaticMethod());
 				}
 				MethodNode callMth = cls.dex().resolveMethod(constrInsn.getCallMth());
 				igen.generateMethodArguments(code, constrInsn, f.getStartArg(), callMth);
@@ -396,6 +402,19 @@ public class ClassGen {
 			if (isFieldsPresents()) {
 				code.startLine();
 			}
+		}
+	}
+
+	private InsnGen makeInsnGen(MethodNode mth) {
+		MethodGen mthGen = new MethodGen(this, mth);
+		return new InsnGen(mthGen, false);
+	}
+
+	private void addInsnBody(InsnGen insnGen, CodeWriter code, InsnNode insn) {
+		try {
+			insnGen.makeInsn(insn, code, InsnGen.Flags.BODY_ONLY_NOWRAP);
+		} catch (Exception e) {
+			ErrorsCounter.classError(cls, "Failed to generate init code", e);
 		}
 	}
 

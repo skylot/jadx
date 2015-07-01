@@ -9,7 +9,7 @@ import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
-import jadx.core.dex.nodes.parser.FieldValueAttr;
+import jadx.core.dex.nodes.parser.FieldInitAttr;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import org.jetbrains.annotations.Nullable;
@@ -82,7 +82,7 @@ public class InsnUtils {
 				FieldInfo f = (FieldInfo) ((IndexInsnNode) insn).getIndex();
 				FieldNode fieldNode = dex.resolveField(f);
 				if (fieldNode != null) {
-					FieldValueAttr attr = fieldNode.get(AType.FIELD_VALUE);
+					FieldInitAttr attr = fieldNode.get(AType.FIELD_INIT);
 					if (attr != null) {
 						return attr.getValue();
 					}

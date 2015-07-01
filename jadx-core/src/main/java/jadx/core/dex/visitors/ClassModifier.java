@@ -18,6 +18,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.exceptions.JadxException;
 
@@ -44,8 +45,6 @@ public class ClassModifier extends AbstractVisitor {
 		removeSyntheticFields(cls);
 		removeSyntheticMethods(cls);
 		removeEmptyMethods(cls);
-
-		checkFieldsInit(cls);
 
 		markAnonymousClass(cls);
 		return false;
@@ -182,53 +181,13 @@ public class ClassModifier extends AbstractVisitor {
 
 			// remove public empty constructors
 			if (af.isConstructor()
-					&& af.isPublic()
+					&& (af.isPublic() || af.isStatic())
 					&& mth.getArguments(false).isEmpty()
 					&& !mth.contains(AType.JADX_ERROR)) {
 				List<BlockNode> bb = mth.getBasicBlocks();
-				if (bb == null || bb.isEmpty() || allBlocksEmpty(bb)) {
+				if (bb == null || bb.isEmpty() || BlockUtils.isAllBlocksEmpty(bb)) {
 					mth.add(AFlag.DONT_GENERATE);
 				}
-			}
-		}
-	}
-
-	private static boolean allBlocksEmpty(List<BlockNode> blocks) {
-		for (BlockNode block : blocks) {
-			if (!block.getInstructions().isEmpty()) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private static void checkFieldsInit(ClassNode cls) {
-		MethodNode clinit = cls.searchMethodByName("<clinit>()V");
-		if (clinit == null
-				|| !clinit.getAccessFlags().isStatic()
-				|| clinit.isNoCode()) {
-			return;
-		}
-
-		for (BlockNode block : clinit.getBasicBlocks()) {
-			for (InsnNode insn : block.getInstructions()) {
-				if (insn.getType() == InsnType.SPUT) {
-					processStaticFieldAssign(cls, (IndexInsnNode) insn);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Remove field initialization if it assign in "<clinit>" method
-	 */
-	private static void processStaticFieldAssign(ClassNode cls, IndexInsnNode insn) {
-		FieldInfo field = (FieldInfo) insn.getIndex();
-		String thisClass = cls.getClassInfo().getFullName();
-		if (field.getDeclClass().getFullName().equals(thisClass)) {
-			FieldNode fn = cls.searchField(field);
-			if (fn != null && fn.getAccessFlags().isFinal()) {
-				fn.remove(AType.FIELD_VALUE);
 			}
 		}
 	}

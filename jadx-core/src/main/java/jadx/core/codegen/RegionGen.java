@@ -15,7 +15,7 @@ import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
-import jadx.core.dex.nodes.parser.FieldValueAttr;
+import jadx.core.dex.nodes.parser.FieldInitAttr;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.regions.SynchronizedRegion;
@@ -249,7 +249,7 @@ public class RegionGen extends InsnGen {
 					} else {
 						staticField(code, fn.getFieldInfo());
 						// print original value, sometimes replace with incorrect field
-						FieldValueAttr valueAttr = fn.get(AType.FIELD_VALUE);
+						FieldInitAttr valueAttr = fn.get(AType.FIELD_INIT);
 						if (valueAttr != null && valueAttr.getValue() != null) {
 							code.add(" /*").add(valueAttr.getValue().toString()).add("*/");
 						}
