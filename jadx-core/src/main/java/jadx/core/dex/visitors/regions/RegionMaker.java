@@ -504,18 +504,21 @@ public class RegionMaker {
 		return true;
 	}
 
-	private final Set<BlockNode> cacheSet = new HashSet<BlockNode>();
-
 	private BlockNode processMonitorEnter(IRegion curRegion, BlockNode block, InsnNode insn, RegionStack stack) {
 		SynchronizedRegion synchRegion = new SynchronizedRegion(curRegion, insn);
 		synchRegion.getSubBlocks().add(block);
 		curRegion.getSubBlocks().add(synchRegion);
 
 		Set<BlockNode> exits = new HashSet<BlockNode>();
-		cacheSet.clear();
+		Set<BlockNode> cacheSet = new HashSet<BlockNode>();
 		traverseMonitorExits(synchRegion, insn.getArg(0), block, exits, cacheSet);
 
 		for (InsnNode exitInsn : synchRegion.getExitInsns()) {
+			BlockNode insnBlock = BlockUtils.getBlockByInsn(mth, exitInsn);
+			if (insnBlock != null) {
+				insnBlock.add(AFlag.SKIP);
+			}
+			exitInsn.add(AFlag.SKIP);
 			InstructionRemover.unbindInsn(mth, exitInsn);
 		}
 
@@ -524,16 +527,26 @@ public class RegionMaker {
 			ErrorsCounter.methodError(mth, "Unexpected end of synchronized block");
 			return null;
 		}
-		BlockNode exit;
+		BlockNode exit = null;
 		if (exits.size() == 1) {
 			exit = getNextBlock(exits.iterator().next());
-		} else {
+		} else if (exits.size() > 1) {
 			cacheSet.clear();
 			exit = traverseMonitorExitsCross(body, exits, cacheSet);
 		}
 
 		stack.push(synchRegion);
-		stack.addExit(exit);
+		if (exit != null) {
+			stack.addExit(exit);
+		} else {
+			for (BlockNode exitBlock : exits) {
+				// don't add exit blocks which leads to method end blocks ('return', 'throw', etc)
+				List<BlockNode> list = BlockUtils.buildSimplePath(exitBlock);
+				if (list.isEmpty() || !list.get(list.size() - 1).getSuccessors().isEmpty()) {
+					stack.addExit(exitBlock);
+				}
+			}
+		}
 		synchRegion.getSubBlocks().add(makeRegion(body, stack));
 		stack.pop();
 		return exit;
