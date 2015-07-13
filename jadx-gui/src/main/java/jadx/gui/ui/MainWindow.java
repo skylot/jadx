@@ -10,6 +10,7 @@ import jadx.gui.treemodel.JRoot;
 import jadx.gui.update.JadxUpdate;
 import jadx.gui.update.JadxUpdate.IUpdateCallback;
 import jadx.gui.update.data.Release;
+import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Position;
@@ -88,6 +89,7 @@ public class MainWindow extends JFrame {
 
 	private final JadxWrapper wrapper;
 	private final JadxSettings settings;
+	private final CacheObject cacheObject;
 
 	private JPanel mainPanel;
 
@@ -105,6 +107,7 @@ public class MainWindow extends JFrame {
 	public MainWindow(JadxSettings settings) {
 		this.wrapper = new JadxWrapper(settings);
 		this.settings = settings;
+		this.cacheObject = new CacheObject();
 
 		initUI();
 		initMenuAndToolbar();
@@ -162,6 +165,7 @@ public class MainWindow extends JFrame {
 	}
 
 	public void openFile(File file) {
+		cacheObject.reset();
 		wrapper.openFile(file);
 		deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
 		settings.addRecentFile(file.getAbsolutePath());
@@ -355,10 +359,9 @@ public class MainWindow extends JFrame {
 		nav.add(search);
 		ActionListener searchAction = new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
-				final SearchDialog dialog = new SearchDialog(MainWindow.this, tabbedPane, wrapper);
-				dialog.prepare();
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
+						SearchDialog dialog = new SearchDialog(MainWindow.this, tabbedPane, wrapper);
 						dialog.setVisible(true);
 					}
 				});
@@ -604,6 +607,10 @@ public class MainWindow extends JFrame {
 
 	public JadxSettings getSettings() {
 		return settings;
+	}
+
+	public CacheObject getCacheObject() {
+		return cacheObject;
 	}
 
 	private class OpenListener implements ActionListener {
