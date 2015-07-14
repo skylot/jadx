@@ -16,6 +16,7 @@ import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -23,6 +24,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
@@ -61,14 +63,14 @@ public class SearchDialog extends JDialog {
 	private static final Logger LOG = LoggerFactory.getLogger(SearchDialog.class);
 	private static final int MAX_RESULTS_COUNT = 500;
 
-	private enum SearchOptions {
+	enum SearchOptions {
 		CLASS,
 		METHOD,
 		FIELD,
 		CODE
 	}
 
-	private static final Set<SearchOptions> OPTIONS = EnumSet.allOf(SearchOptions.class);
+	private Set<SearchOptions> options = EnumSet.allOf(SearchOptions.class);
 
 	private final TabbedPane tabbedPane;
 	private final JadxWrapper wrapper;
@@ -79,11 +81,12 @@ public class SearchDialog extends JDialog {
 	private JList resultsList;
 	private JProgressBar busyBar;
 
-	public SearchDialog(MainWindow mainWindow, TabbedPane tabbedPane, JadxWrapper wrapper) {
+	public SearchDialog(MainWindow mainWindow, Set<SearchOptions> options) {
 		super(mainWindow);
-		this.tabbedPane = tabbedPane;
-		this.wrapper = wrapper;
+		this.tabbedPane = mainWindow.getTabbedPane();
+		this.wrapper = mainWindow.getWrapper();
 		this.cache = mainWindow.getCacheObject();
+		this.options = options;
 
 		initUI();
 		addWindowListener(new WindowAdapter() {
@@ -93,6 +96,7 @@ public class SearchDialog extends JDialog {
 					@Override
 					public void run() {
 						prepare();
+						searchField.requestFocus();
 					}
 				});
 			}
@@ -126,23 +130,23 @@ public class SearchDialog extends JDialog {
 	private synchronized void performSearch() {
 		resultsModel.removeAllElements();
 		String text = searchField.getText();
-		if (text == null || text.isEmpty() || OPTIONS.isEmpty()) {
+		if (text == null || text.isEmpty() || options.isEmpty()) {
 			return;
 		}
 		TextSearchIndex index = cache.getTextIndex();
 		if (index == null) {
 			return;
 		}
-		if (OPTIONS.contains(SearchOptions.CLASS)) {
+		if (options.contains(SearchOptions.CLASS)) {
 			resultsModel.addAll(index.searchClsName(text));
 		}
-		if (OPTIONS.contains(SearchOptions.METHOD)) {
+		if (options.contains(SearchOptions.METHOD)) {
 			resultsModel.addAll(index.searchMthName(text));
 		}
-		if (OPTIONS.contains(SearchOptions.FIELD)) {
+		if (options.contains(SearchOptions.FIELD)) {
 			resultsModel.addAll(index.searchFldName(text));
 		}
-		if (OPTIONS.contains(SearchOptions.CODE)) {
+		if (options.contains(SearchOptions.CODE)) {
 			resultsModel.addAll(index.searchCode(text));
 		}
 		LOG.info("Search returned {} results", resultsModel.size());
@@ -321,7 +325,7 @@ public class SearchDialog extends JDialog {
 		buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 		buttonPane.add(cancelButton);
 
-		final Container contentPane = getContentPane();
+		Container contentPane = getContentPane();
 		contentPane.add(searchPane, BorderLayout.PAGE_START);
 		contentPane.add(listPane, BorderLayout.CENTER);
 		contentPane.add(buttonPane, BorderLayout.PAGE_END);
@@ -339,7 +343,15 @@ public class SearchDialog extends JDialog {
 			}
 		});
 
-		setTitle(NLS.str("menu.search"));
+		KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+		getRootPane().registerKeyboardAction(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+			}
+		}, stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+		setTitle(NLS.str("menu.text_search"));
 		pack();
 		setSize(700, 500);
 		setLocationRelativeTo(null);
@@ -350,13 +362,13 @@ public class SearchDialog extends JDialog {
 	private JCheckBox makeOptionsCheckBox(String name, final SearchOptions opt) {
 		final JCheckBox chBox = new JCheckBox(name);
 		chBox.setAlignmentX(LEFT_ALIGNMENT);
-		chBox.setSelected(OPTIONS.contains(opt));
+		chBox.setSelected(options.contains(opt));
 		chBox.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
 				if (chBox.isSelected()) {
-					OPTIONS.add(opt);
+					options.add(opt);
 				} else {
-					OPTIONS.remove(opt);
+					options.remove(opt);
 				}
 				performSearch();
 			}

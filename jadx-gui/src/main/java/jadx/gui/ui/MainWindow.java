@@ -7,6 +7,7 @@ import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.treemodel.JRoot;
+import jadx.gui.ui.SearchDialog.SearchOptions;
 import jadx.gui.update.JadxUpdate;
 import jadx.gui.update.JadxUpdate.IUpdateCallback;
 import jadx.gui.update.data.Release;
@@ -16,9 +17,10 @@ import jadx.gui.utils.NLS;
 import jadx.gui.utils.Position;
 import jadx.gui.utils.Utils;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -60,9 +62,12 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.Arrays;
+import java.util.EnumSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static javax.swing.KeyStroke.getKeyStroke;
 
 @SuppressWarnings("serial")
 public class MainWindow extends JFrame {
@@ -181,7 +186,7 @@ public class MainWindow extends JFrame {
 		}
 	}
 
-	private void saveAllAction() {
+	private void saveAll() {
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		fileChooser.setToolTipText(NLS.str("file.save_all_msg"));
@@ -273,165 +278,156 @@ public class MainWindow extends JFrame {
 		TreePath path = new TreePath(pathNodes);
 		tree.setSelectionPath(path);
 		tree.makeVisible(path);
-	}
-
-	private void toggleFind() {
-		ContentPanel contentPanel = tabbedPane.getSelectedCodePanel();
-		if (contentPanel != null) {
-			contentPanel.getSearchBar().toggle();
-		}
+		tree.requestFocus();
 	}
 
 	private void initMenuAndToolbar() {
-		JMenuBar menuBar = new JMenuBar();
-
-		JMenu file = new JMenu(NLS.str("menu.file"));
-		file.setMnemonic(KeyEvent.VK_F);
-
-		JMenuItem exit = new JMenuItem(NLS.str("file.exit"), ICON_CLOSE);
-		exit.setMnemonic(KeyEvent.VK_E);
-		exit.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent event) {
-				dispose();
-			}
-		});
-
-		JMenuItem open = new JMenuItem(NLS.str("file.open"), ICON_OPEN);
-		open.setMnemonic(KeyEvent.VK_O);
-		open.addActionListener(new OpenListener());
-
-		JMenuItem saveAll = new JMenuItem(NLS.str("file.save_all"), ICON_SAVE_ALL);
-		saveAll.setMnemonic(KeyEvent.VK_S);
-		saveAll.addActionListener(new ActionListener() {
+		Action openAction = new AbstractAction(NLS.str("file.open"), ICON_OPEN) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				saveAllAction();
+				openFile();
 			}
-		});
+		};
+		openAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.open"));
+		openAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK));
+
+		Action saveAllAction = new AbstractAction(NLS.str("file.save_all"), ICON_SAVE_ALL) {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				saveAll();
+			}
+		};
+		saveAllAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.save_all"));
+		saveAllAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
 
 		JMenu recentFiles = new JMenu(NLS.str("menu.recent_files"));
 		recentFiles.addMenuListener(new RecentFilesMenuListener(recentFiles));
 
-		JMenuItem preferences = new JMenuItem(NLS.str("menu.preferences"), ICON_PREF);
-		ActionListener prefAction = new ActionListener() {
-			public void actionPerformed(ActionEvent event) {
-				final JadxSettingsWindow dialog = new JadxSettingsWindow(MainWindow.this, settings);
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						dialog.setVisible(true);
-					}
-				});
+		Action prefsAction = new AbstractAction(NLS.str("menu.preferences"), ICON_PREF) {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				new JadxSettingsWindow(MainWindow.this, settings).setVisible(true);
 			}
 		};
-		preferences.addActionListener(prefAction);
+		prefsAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.preferences"));
+		prefsAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_P,
+				KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK));
 
-		file.add(open);
-		file.add(saveAll);
-		file.addSeparator();
-		file.add(recentFiles);
-		file.addSeparator();
-		file.add(preferences);
-		file.addSeparator();
-		file.add(exit);
-
-		JMenu view = new JMenu(NLS.str("menu.view"));
-		view.setMnemonic(KeyEvent.VK_V);
+		Action exitAction = new AbstractAction(NLS.str("file.exit"), ICON_CLOSE) {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+			}
+		};
 
 		isFlattenPackage = settings.isFlattenPackage();
-
 		flatPkgMenuItem = new JCheckBoxMenuItem(NLS.str("menu.flatten"), ICON_FLAT_PKG);
-		view.add(flatPkgMenuItem);
 		flatPkgMenuItem.setState(isFlattenPackage);
 
-		JMenuItem syncItem = new JMenuItem(NLS.str("menu.sync"), ICON_SYNC);
-		view.add(syncItem);
-		syncItem.addActionListener(new ActionListener() {
+		Action syncAction = new AbstractAction(NLS.str("menu.sync"), ICON_SYNC) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				syncWithEditor();
 			}
-		});
-
-		JMenu nav = new JMenu(NLS.str("menu.navigation"));
-		nav.setMnemonic(KeyEvent.VK_N);
-
-		JMenuItem search = new JMenuItem(NLS.str("menu.search"), ICON_SEARCH);
-		nav.add(search);
-		ActionListener searchAction = new ActionListener() {
-			public void actionPerformed(ActionEvent event) {
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						SearchDialog dialog = new SearchDialog(MainWindow.this, tabbedPane, wrapper);
-						dialog.setVisible(true);
-					}
-				});
-			}
 		};
-		search.addActionListener(searchAction);
+		syncAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.sync"));
+		syncAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK));
 
-		JMenuItem find = new JMenuItem(NLS.str("menu.find_in_file"), ICON_FIND);
-		nav.add(find);
-		ActionListener findAction = new ActionListener() {
+		Action textSearchAction = new AbstractAction(NLS.str("menu.text_search"), ICON_SEARCH) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				toggleFind();
+				new SearchDialog(MainWindow.this, EnumSet.of(SearchOptions.CODE)).setVisible(true);
 			}
 		};
-		find.addActionListener(findAction);
+		textSearchAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.text_search"));
+		textSearchAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_F,
+				KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK));
 
-		JMenu tools = new JMenu(NLS.str("menu.tools"));
-		tools.setMnemonic(KeyEvent.VK_T);
+		Action clsSearchAction = new AbstractAction(NLS.str("menu.class_search"), ICON_FIND) {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				new SearchDialog(MainWindow.this, EnumSet.of(SearchOptions.CLASS)).setVisible(true);
+			}
+		};
+		clsSearchAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.class_search"));
+		clsSearchAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
 
-		JMenuItem logItem = new JMenuItem(NLS.str("menu.log"), ICON_LOG);
-		ActionListener logAction = new ActionListener() {
+		Action logAction = new AbstractAction(NLS.str("menu.log"), ICON_LOG) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				new LogViewer().setVisible(true);
 			}
 		};
-		logItem.addActionListener(logAction);
-		tools.add(logItem);
+		logAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.log"));
+		logAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_L,
+				KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK));
+
+		Action aboutAction = new AbstractAction(NLS.str("menu.about")) {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				new AboutDialog().setVisible(true);
+			}
+		};
+
+		Action backAction = new AbstractAction(NLS.str("nav.back"), ICON_BACK) {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tabbedPane.navBack();
+			}
+		};
+		backAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("nav.back"));
+		backAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_LEFT,
+				KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
+
+		Action forwardAction = new AbstractAction(NLS.str("nav.forward"), ICON_FORWARD) {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tabbedPane.navForward();
+			}
+		};
+		forwardAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("nav.forward"));
+		forwardAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_RIGHT,
+				KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
+
+		JMenu file = new JMenu(NLS.str("menu.file"));
+		file.setMnemonic(KeyEvent.VK_F);
+		file.add(openAction);
+		file.add(saveAllAction);
+		file.addSeparator();
+		file.add(recentFiles);
+		file.addSeparator();
+		file.add(prefsAction);
+		file.addSeparator();
+		file.add(exitAction);
+
+		JMenu view = new JMenu(NLS.str("menu.view"));
+		view.setMnemonic(KeyEvent.VK_V);
+		view.add(flatPkgMenuItem);
+		view.add(syncAction);
+
+		JMenu nav = new JMenu(NLS.str("menu.navigation"));
+		nav.setMnemonic(KeyEvent.VK_N);
+		nav.add(textSearchAction);
+		nav.add(clsSearchAction);
+		nav.addSeparator();
+		nav.add(backAction);
+		nav.add(forwardAction);
+
+		JMenu tools = new JMenu(NLS.str("menu.tools"));
+		tools.setMnemonic(KeyEvent.VK_T);
+		tools.add(logAction);
 
 		JMenu help = new JMenu(NLS.str("menu.help"));
 		help.setMnemonic(KeyEvent.VK_H);
+		help.add(aboutAction);
 
-		JMenuItem about = new JMenuItem(NLS.str("menu.about"));
-		help.add(about);
-		about.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent event) {
-				AboutDialog ad = new AboutDialog();
-				ad.setVisible(true);
-			}
-		});
-
+		JMenuBar menuBar = new JMenuBar();
 		menuBar.add(file);
 		menuBar.add(view);
 		menuBar.add(nav);
 		menuBar.add(tools);
 		menuBar.add(help);
 		setJMenuBar(menuBar);
-
-		final JButton openButton = new JButton(ICON_OPEN);
-		openButton.addActionListener(new OpenListener());
-		openButton.setToolTipText(NLS.str("file.open"));
-
-		final JButton saveAllButton = new JButton(ICON_SAVE_ALL);
-		saveAllButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				saveAllAction();
-			}
-		});
-		saveAllButton.setToolTipText(NLS.str("file.save_all"));
-
-		final JButton syncButton = new JButton(ICON_SYNC);
-		syncButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				syncWithEditor();
-			}
-		});
-		syncButton.setToolTipText(NLS.str("menu.sync"));
 
 		flatPkgButton = new JToggleButton(ICON_FLAT_PKG);
 		flatPkgButton.setSelected(isFlattenPackage);
@@ -441,40 +437,9 @@ public class MainWindow extends JFrame {
 				toggleFlattenPackage();
 			}
 		};
-		flatPkgButton.addActionListener(flatPkgAction);
 		flatPkgMenuItem.addActionListener(flatPkgAction);
-
+		flatPkgButton.addActionListener(flatPkgAction);
 		flatPkgButton.setToolTipText(NLS.str("menu.flatten"));
-
-		final JButton searchButton = new JButton(ICON_SEARCH);
-		searchButton.addActionListener(searchAction);
-		searchButton.setToolTipText(NLS.str("menu.search"));
-
-		final JButton findButton = new JButton(ICON_FIND);
-		findButton.addActionListener(findAction);
-		findButton.setToolTipText(NLS.str("menu.find_in_file"));
-
-		final JButton backButton = new JButton(ICON_BACK);
-		backButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				tabbedPane.navBack();
-			}
-		});
-		backButton.setToolTipText(NLS.str("nav.back"));
-
-		final JButton forwardButton = new JButton(ICON_FORWARD);
-		forwardButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				tabbedPane.navForward();
-			}
-		});
-		forwardButton.setToolTipText(NLS.str("nav.forward"));
-
-		final JButton prefButton = new JButton(ICON_PREF);
-		prefButton.addActionListener(prefAction);
-		prefButton.setToolTipText(NLS.str("menu.preferences"));
 
 		deobfToggleBtn = new JToggleButton(ICON_DEOBF);
 		deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
@@ -488,41 +453,29 @@ public class MainWindow extends JFrame {
 			}
 		});
 
-		JButton logBtn = new JButton(ICON_LOG);
-		logBtn.setToolTipText(NLS.str("menu.log"));
-		logBtn.addActionListener(logAction);
-
 		updateLink = new Link("", JadxUpdate.JADX_RELEASES_URL);
 		updateLink.setVisible(false);
 
 		JToolBar toolbar = new JToolBar();
 		toolbar.setFloatable(false);
-
-		toolbar.add(openButton);
-		toolbar.add(saveAllButton);
+		toolbar.add(openAction);
+		toolbar.add(saveAllAction);
 		toolbar.addSeparator();
-
-		toolbar.add(syncButton);
+		toolbar.add(syncAction);
 		toolbar.add(flatPkgButton);
 		toolbar.addSeparator();
-
-		toolbar.add(searchButton);
-		toolbar.add(findButton);
+		toolbar.add(textSearchAction);
+		toolbar.add(clsSearchAction);
 		toolbar.addSeparator();
-
-		toolbar.add(backButton);
-		toolbar.add(forwardButton);
+		toolbar.add(backAction);
+		toolbar.add(forwardAction);
 		toolbar.addSeparator();
-
 		toolbar.add(deobfToggleBtn);
 		toolbar.addSeparator();
-
-		toolbar.add(logBtn);
+		toolbar.add(logAction);
 		toolbar.addSeparator();
-
-		toolbar.add(prefButton);
+		toolbar.add(prefsAction);
 		toolbar.addSeparator();
-
 		toolbar.add(Box.createHorizontalGlue());
 		toolbar.add(updateLink);
 
@@ -605,18 +558,20 @@ public class MainWindow extends JFrame {
 		tabbedPane.loadSettings();
 	}
 
+	public JadxWrapper getWrapper() {
+		return wrapper;
+	}
+
+	public TabbedPane getTabbedPane() {
+		return tabbedPane;
+	}
+
 	public JadxSettings getSettings() {
 		return settings;
 	}
 
 	public CacheObject getCacheObject() {
 		return cacheObject;
-	}
-
-	private class OpenListener implements ActionListener {
-		public void actionPerformed(ActionEvent event) {
-			openFile();
-		}
 	}
 
 	private class RecentFilesMenuListener implements MenuListener {
