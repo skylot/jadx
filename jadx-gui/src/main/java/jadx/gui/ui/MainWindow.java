@@ -48,12 +48,15 @@ import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.DisplayMode;
 import java.awt.Font;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -108,6 +111,8 @@ public class MainWindow extends JFrame {
 	private JToggleButton deobfToggleBtn;
 	private boolean isFlattenPackage;
 	private Link updateLink;
+	
+	private DropTarget dropTarget;
 
 	public MainWindow(JadxSettings settings) {
 		this.wrapper = new JadxWrapper(settings);
@@ -540,6 +545,8 @@ public class MainWindow extends JFrame {
 		tabbedPane = new TabbedPane(this);
 		splitPane.setRightComponent(tabbedPane);
 
+		dropTarget = new DropTarget(this, DnDConstants.ACTION_COPY, new MainDropTarget(this));
+		
 		setContentPane(mainPanel);
 		setTitle(DEFAULT_TITLE);
 	}
