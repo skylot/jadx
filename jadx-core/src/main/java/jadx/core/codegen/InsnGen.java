@@ -79,9 +79,9 @@ public class InsnGen {
 	}
 
 	public void addArgDot(CodeWriter code, InsnArg arg) throws CodegenException {
-		int len = code.length();
+		int len = code.bufLength();
 		addArg(code, arg, true);
-		if (len != code.length()) {
+		if (len != code.bufLength()) {
 			code.add('.');
 		}
 	}

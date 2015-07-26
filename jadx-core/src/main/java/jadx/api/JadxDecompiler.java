@@ -5,6 +5,8 @@ import jadx.core.ProcessClass;
 import jadx.core.codegen.CodeGen;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.SaveCode;
@@ -61,6 +63,10 @@ public final class JadxDecompiler {
 	private List<ResourceFile> resources;
 
 	private BinaryXMLParser xmlParser;
+
+	private Map<ClassNode, JavaClass> classesMap = new HashMap<ClassNode, JavaClass>();
+	private Map<MethodNode, JavaMethod> methodsMap = new HashMap<MethodNode, JavaMethod>();
+	private Map<FieldNode, JavaField> fieldsMap = new HashMap<FieldNode, JavaField>();
 
 	public JadxDecompiler() {
 		this(new DefaultJadxArgs());
@@ -189,8 +195,11 @@ public final class JadxDecompiler {
 		if (classes == null) {
 			List<ClassNode> classNodeList = root.getClasses(false);
 			List<JavaClass> clsList = new ArrayList<JavaClass>(classNodeList.size());
+			classesMap.clear();
 			for (ClassNode classNode : classNodeList) {
-				clsList.add(new JavaClass(classNode, this));
+				JavaClass javaClass = new JavaClass(classNode, this);
+				clsList.add(javaClass);
+				classesMap.put(classNode, javaClass);
 			}
 			classes = Collections.unmodifiableList(clsList);
 		}
@@ -292,16 +301,16 @@ public final class JadxDecompiler {
 		return xmlParser;
 	}
 
-	JavaClass findJavaClass(ClassNode cls) {
-		if (cls == null) {
-			return null;
-		}
-		for (JavaClass javaClass : getClasses()) {
-			if (javaClass.getClassNode().equals(cls)) {
-				return javaClass;
-			}
-		}
-		return null;
+	Map<ClassNode, JavaClass> getClassesMap() {
+		return classesMap;
+	}
+
+	Map<MethodNode, JavaMethod> getMethodsMap() {
+		return methodsMap;
+	}
+
+	Map<FieldNode, JavaField> getFieldsMap() {
+		return fieldsMap;
 	}
 
 	public IJadxArgs getArgs() {

@@ -34,6 +34,16 @@ public final class JavaPackage implements JavaNode, Comparable<JavaPackage> {
 	}
 
 	@Override
+	public JavaClass getTopParentClass() {
+		return null;
+	}
+
+	@Override
+	public int getDecompiledLine() {
+		return 0;
+	}
+
+	@Override
 	public int compareTo(@NotNull JavaPackage o) {
 		return name.compareTo(o.name);
 	}

@@ -29,6 +29,11 @@ public final class JavaField implements JavaNode {
 		return parent;
 	}
 
+	@Override
+	public JavaClass getTopParentClass() {
+		return parent.getTopParentClass();
+	}
+
 	public AccessInfo getAccessFlags() {
 		return field.getAccessFlags();
 	}
@@ -39,5 +44,20 @@ public final class JavaField implements JavaNode {
 
 	public int getDecompiledLine() {
 		return field.getDecompiledLine();
+	}
+
+	@Override
+	public int hashCode() {
+		return field.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		return this == o || o instanceof JavaField && field.equals(((JavaField) o).field);
+	}
+
+	@Override
+	public String toString() {
+		return field.toString();
 	}
 }

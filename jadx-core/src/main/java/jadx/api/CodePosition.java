@@ -2,24 +2,32 @@ package jadx.api;
 
 public final class CodePosition {
 
-	private final JavaClass cls;
+	private final JavaNode node;
 	private final int line;
 	private final int offset;
 
-	public CodePosition(JavaClass cls, int line, int offset) {
-		this.cls = cls;
+	public CodePosition(JavaNode node, int line, int offset) {
+		this.node = node;
 		this.line = line;
 		this.offset = offset;
 	}
 
 	public CodePosition(int line, int offset) {
-		this.cls = null;
+		this.node = null;
 		this.line = line;
 		this.offset = offset;
 	}
 
+	public JavaNode getNode() {
+		return node;
+	}
+
 	public JavaClass getJavaClass() {
-		return cls;
+		JavaClass parent = node.getDeclaringClass();
+		if (parent == null && node instanceof JavaClass) {
+			return (JavaClass) node;
+		}
+		return parent;
 	}
 
 	public int getLine() {
@@ -28,10 +36,6 @@ public final class CodePosition {
 
 	public int getOffset() {
 		return offset;
-	}
-
-	public boolean isSet() {
-		return line != 0 || offset != 0;
 	}
 
 	@Override
@@ -53,6 +57,6 @@ public final class CodePosition {
 
 	@Override
 	public String toString() {
-		return line + ":" + offset + (cls != null ? " " + cls : "");
+		return line + ":" + offset + (node != null ? " " + node : "");
 	}
 }

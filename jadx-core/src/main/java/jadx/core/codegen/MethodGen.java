@@ -57,8 +57,8 @@ public class MethodGen {
 
 	public boolean addDefinition(CodeWriter code) {
 		if (mth.getMethodInfo().isClassInit()) {
-			code.startLine("static");
 			code.attachDefinition(mth);
+			code.startLine("static");
 			return true;
 		}
 		if (mth.contains(AFlag.ANONYMOUS_CONSTRUCTOR)) {
@@ -87,10 +87,12 @@ public class MethodGen {
 			code.add(' ');
 		}
 		if (mth.getAccessFlags().isConstructor()) {
+			code.attachDefinition(mth);
 			code.add(classGen.getClassNode().getShortName()); // constructor
 		} else {
 			classGen.useType(code, mth.getReturnType());
 			code.add(' ');
+			code.attachDefinition(mth);
 			code.add(mth.getAlias());
 		}
 		code.add('(');
@@ -113,7 +115,6 @@ public class MethodGen {
 		code.add(')');
 
 		annotationGen.addThrows(mth, code);
-		code.attachDefinition(mth);
 		return true;
 	}
 

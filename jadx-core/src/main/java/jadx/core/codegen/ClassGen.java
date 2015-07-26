@@ -148,6 +148,7 @@ public class ClassGen {
 		} else {
 			clsCode.add("class ");
 		}
+		clsCode.attachDefinition(cls);
 		clsCode.add(cls.getShortName());
 
 		addGenericMap(clsCode, cls.getGenericMap());
@@ -179,7 +180,6 @@ public class ClassGen {
 				clsCode.add(' ');
 			}
 		}
-		clsCode.attachDefinition(cls);
 	}
 
 	public boolean addGenericMap(CodeWriter code, Map<ArgType, List<ArgType>> gmap) {
@@ -340,6 +340,7 @@ public class ClassGen {
 			code.startLine(f.getAccessFlags().makeString());
 			useType(code, f.getType());
 			code.add(' ');
+			code.attachDefinition(f);
 			code.add(f.getAlias());
 			FieldInitAttr fv = f.get(AType.FIELD_INIT);
 			if (fv != null) {
@@ -356,7 +357,6 @@ public class ClassGen {
 				}
 			}
 			code.add(';');
-			code.attachDefinition(f);
 		}
 	}
 

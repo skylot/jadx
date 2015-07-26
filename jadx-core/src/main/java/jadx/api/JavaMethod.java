@@ -30,6 +30,11 @@ public final class JavaMethod implements JavaNode {
 		return parent;
 	}
 
+	@Override
+	public JavaClass getTopParentClass() {
+		return parent.getTopParentClass();
+	}
+
 	public AccessInfo getAccessFlags() {
 		return mth.getAccessFlags();
 	}
@@ -52,5 +57,20 @@ public final class JavaMethod implements JavaNode {
 
 	public int getDecompiledLine() {
 		return mth.getDecompiledLine();
+	}
+
+	@Override
+	public int hashCode() {
+		return mth.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		return this == o || o instanceof JavaMethod && mth.equals(((JavaMethod) o).mth);
+	}
+
+	@Override
+	public String toString() {
+		return mth.toString();
 	}
 }

@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +34,9 @@ public class CodeWriter {
 			INDENT + INDENT + INDENT + INDENT + INDENT,
 	};
 
-	private final StringBuilder buf = new StringBuilder();
+	private StringBuilder buf = new StringBuilder();
+	@Nullable
+	private String code;
 	private String indentStr;
 	private int indent;
 
@@ -113,7 +116,7 @@ public class CodeWriter {
 		}
 		line += code.line;
 		offset = code.offset;
-		buf.append(code);
+		buf.append(code.buf);
 		return this;
 	}
 
@@ -194,12 +197,13 @@ public class CodeWriter {
 		}
 	}
 
-	public Object attachDefinition(LineAttrNode obj) {
-		return attachAnnotation(new DefinitionWrapper(obj), new CodePosition(line, offset));
+	public void attachDefinition(LineAttrNode obj) {
+		attachAnnotation(obj);
+		attachAnnotation(new DefinitionWrapper(obj), new CodePosition(line, offset));
 	}
 
-	public Object attachAnnotation(Object obj) {
-		return attachAnnotation(obj, new CodePosition(line, offset + 1));
+	public void attachAnnotation(Object obj) {
+		attachAnnotation(obj, new CodePosition(line, offset + 1));
 	}
 
 	private Object attachAnnotation(Object obj, CodePosition pos) {
@@ -232,7 +236,11 @@ public class CodeWriter {
 	}
 
 	public void finish() {
+		removeFirstEmptyLine();
 		buf.trimToSize();
+		code = buf.toString();
+		buf = null;
+
 		Iterator<Map.Entry<CodePosition, Object>> it = annotations.entrySet().iterator();
 		while (it.hasNext()) {
 			Map.Entry<CodePosition, Object> entry = it.next();
@@ -245,28 +253,23 @@ public class CodeWriter {
 		}
 	}
 
-	private static String removeFirstEmptyLine(String str) {
-		if (str.startsWith(NL)) {
-			return str.substring(NL.length());
+	private void removeFirstEmptyLine() {
+		if (buf.indexOf(NL) == 0) {
+			buf.delete(0, NL.length());
 		}
-		return str;
 	}
 
-	public int length() {
+	public int bufLength() {
 		return buf.length();
 	}
 
-	public boolean isEmpty() {
-		return buf.length() == 0;
-	}
-
-	public boolean notEmpty() {
-		return buf.length() != 0;
+	public String getCodeStr() {
+		return code;
 	}
 
 	@Override
 	public String toString() {
-		return buf.toString();
+		return buf == null ? code : buf.toString();
 	}
 
 	public void save(File dir, String subDir, String fileName) {
@@ -278,6 +281,9 @@ public class CodeWriter {
 	}
 
 	public void save(File file) {
+		if (code == null) {
+			finish();
+		}
 		String name = file.getName();
 		if (name.length() > MAX_FILENAME_LENGTH) {
 			int dotIndex = name.indexOf('.');
@@ -294,8 +300,6 @@ public class CodeWriter {
 		try {
 			FileUtils.makeDirsForFile(file);
 			out = new PrintWriter(file, "UTF-8");
-			String code = buf.toString();
-			code = removeFirstEmptyLine(code);
 			out.println(code);
 		} catch (Exception e) {
 			LOG.error("Save file error", e);
@@ -304,22 +308,5 @@ public class CodeWriter {
 				out.close();
 			}
 		}
-	}
-
-	@Override
-	public int hashCode() {
-		return buf.toString().hashCode();
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (!(o instanceof CodeWriter)) {
-			return false;
-		}
-		CodeWriter that = (CodeWriter) o;
-		return buf.toString().equals(that.buf.toString());
 	}
 }

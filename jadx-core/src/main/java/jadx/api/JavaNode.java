@@ -7,4 +7,8 @@ public interface JavaNode {
 	String getFullName();
 
 	JavaClass getDeclaringClass();
+
+	JavaClass getTopParentClass();
+
+	int getDecompiledLine();
 }
