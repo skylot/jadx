@@ -1,53 +1,28 @@
 package jadx.gui.ui;
 
-import jadx.api.JavaClass;
-import jadx.gui.JadxWrapper;
-import jadx.gui.treemodel.JNode;
-import jadx.gui.treemodel.TextNode;
-import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.Position;
 import jadx.gui.utils.TextSearchIndex;
 import jadx.gui.utils.TextStandardActions;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.KeyStroke;
-import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
-import javax.swing.UIDefaults;
-import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.Container;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.EnumSet;
@@ -56,12 +31,11 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SearchDialog extends JDialog {
+public class SearchDialog extends CommonSearchDialog {
 
 	private static final long serialVersionUID = -5105405456969134105L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(SearchDialog.class);
-	private static final int MAX_RESULTS_COUNT = 500;
 
 	enum SearchOptions {
 		CLASS,
@@ -72,67 +46,43 @@ public class SearchDialog extends JDialog {
 
 	private Set<SearchOptions> options = EnumSet.allOf(SearchOptions.class);
 
-	private final TabbedPane tabbedPane;
-	private final JadxWrapper wrapper;
-	private final CacheObject cache;
-
 	private JTextField searchField;
-	private ResultsModel resultsModel;
-	private JList resultsList;
-	private JProgressBar busyBar;
 
 	public SearchDialog(MainWindow mainWindow, Set<SearchOptions> options) {
 		super(mainWindow);
-		this.tabbedPane = mainWindow.getTabbedPane();
-		this.wrapper = mainWindow.getWrapper();
-		this.cache = mainWindow.getCacheObject();
 		this.options = options;
 
 		initUI();
 		addWindowListener(new WindowAdapter() {
 			@Override
-			public void windowActivated(WindowEvent e) {
+			public void windowOpened(WindowEvent e) {
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						prepare();
-						searchField.requestFocus();
+						openInit();
 					}
 				});
 			}
 		});
 	}
 
-	public void prepare() {
-		TextSearchIndex index = cache.getTextIndex();
-		if (index != null) {
-			return;
+	protected void openInit() {
+		prepare();
+		String lastSearch = cache.getLastSearch();
+		if (lastSearch != null) {
+			searchField.setText(lastSearch);
+			searchField.selectAll();
 		}
-		LoadTask task = new LoadTask();
-		task.execute();
-	}
-
-	private void loadData() {
-		TextSearchIndex index = cache.getTextIndex();
-		if (index != null) {
-			return;
-		}
-		index = new TextSearchIndex();
-		for (JavaClass cls : wrapper.getClasses()) {
-			index.indexNames(cls);
-		}
-		for (JavaClass cls : wrapper.getClasses()) {
-			index.indexCode(cls);
-		}
-		cache.setTextIndex(index);
+		searchField.requestFocus();
 	}
 
 	private synchronized void performSearch() {
-		resultsModel.removeAllElements();
+		resultsModel.clear();
 		String text = searchField.getText();
 		if (text == null || text.isEmpty() || options.isEmpty()) {
 			return;
 		}
+		cache.setLastSearch(text);
 		TextSearchIndex index = cache.getTextIndex();
 		if (index == null) {
 			return;
@@ -149,92 +99,9 @@ public class SearchDialog extends JDialog {
 		if (options.contains(SearchOptions.CODE)) {
 			resultsModel.addAll(index.searchCode(text));
 		}
-		LOG.info("Search returned {} results", resultsModel.size());
+		highlightText = text;
+		resultsTable.updateTable();
 	}
-
-	private void openSelectedItem() {
-		int selectedId = resultsList.getSelectedIndex();
-		if (selectedId == -1) {
-			return;
-		}
-		JNode node = (JNode) resultsModel.get(selectedId);
-		tabbedPane.showCode(new Position(node.getRootClass(), node.getLine()));
-
-		dispose();
-	}
-
-	private class LoadTask extends SwingWorker<Void, Void> {
-		public LoadTask() {
-			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-			busyBar.setVisible(true);
-			searchField.setEnabled(false);
-			resultsList.setEnabled(false);
-		}
-
-		@Override
-		public Void doInBackground() {
-			loadData();
-			return null;
-		}
-
-		@Override
-		public void done() {
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					setCursor(null);
-					searchField.setEnabled(true);
-					resultsList.setEnabled(true);
-					busyBar.setVisible(false);
-				}
-			});
-		}
-	}
-
-	private static class ResultsModel extends DefaultListModel {
-		private static final long serialVersionUID = -7821286846923903208L;
-
-		private void addAll(Iterable<? extends JNode> nodes) {
-			for (JNode node : nodes) {
-				if (size() >= MAX_RESULTS_COUNT) {
-					if (size() == MAX_RESULTS_COUNT) {
-						addElement(new TextNode("Search results truncated (limit: " + MAX_RESULTS_COUNT + ")"));
-					}
-					return;
-				}
-				addElement(node);
-			}
-		}
-	}
-
-	private static class ResultsCellRenderer implements ListCellRenderer {
-		private final Color selectedBackground;
-		private final Color selectedForeground;
-
-		ResultsCellRenderer() {
-			UIDefaults defaults = UIManager.getDefaults();
-			selectedBackground = defaults.getColor("List.selectionBackground");
-			selectedForeground = defaults.getColor("List.selectionForeground");
-		}
-
-		@Override
-		public Component getListCellRendererComponent(JList list,
-				Object obj, int index, boolean isSelected, boolean cellHasFocus) {
-			if (!(obj instanceof JNode)) {
-				return null;
-			}
-			JNode value = (JNode) obj;
-			JLabel label = new JLabel();
-			label.setOpaque(true);
-			label.setIcon(value.getIcon());
-			label.setText(value.makeLongString());
-			if (isSelected) {
-				label.setBackground(selectedBackground);
-				label.setForeground(selectedForeground);
-			}
-			return label;
-		}
-	}
-
 	private class SearchFieldListener implements DocumentListener {
 
 		public void changedUpdate(DocumentEvent e) {
@@ -263,17 +130,6 @@ public class SearchDialog extends JDialog {
 		JCheckBox fldChBox = makeOptionsCheckBox(NLS.str("search_dialog.field"), SearchOptions.FIELD);
 		JCheckBox codeChBox = makeOptionsCheckBox(NLS.str("search_dialog.code"), SearchOptions.CODE);
 
-		resultsModel = new ResultsModel();
-		resultsList = new JList(resultsModel);
-		resultsList.setCellRenderer(new ResultsCellRenderer());
-		resultsList.addMouseListener(new MouseAdapter() {
-			public void mouseClicked(MouseEvent evt) {
-				if (evt.getClickCount() == 2) {
-					openSelectedItem();
-				}
-			}
-		});
-
 		JPanel searchOptions = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		searchOptions.setBorder(BorderFactory.createTitledBorder(NLS.str("search_dialog.search_in")));
 		searchOptions.add(clsChBox);
@@ -292,68 +148,30 @@ public class SearchDialog extends JDialog {
 		searchPane.add(searchOptions);
 		searchPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		JPanel listPane = new JPanel();
-		listPane.setLayout(new BoxLayout(listPane, BoxLayout.PAGE_AXIS));
-		listPane.add(new JScrollPane(resultsList));
-		listPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-
-		busyBar = new JProgressBar();
-		busyBar.setIndeterminate(true);
-		busyBar.setVisible(false);
-
-		//Create and initialize the buttons.
-		JButton cancelButton = new JButton(NLS.str("search_dialog.cancel"));
-		cancelButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent event) {
-				dispose();
-			}
-		});
-		JButton openBtn = new JButton(NLS.str("search_dialog.open"));
-		openBtn.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent event) {
-				openSelectedItem();
-			}
-		});
-
-		JPanel buttonPane = new JPanel();
-		buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
-		buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-		buttonPane.add(busyBar);
-		buttonPane.add(Box.createRigidArea(new Dimension(5, 0)));
-		buttonPane.add(Box.createHorizontalGlue());
-		buttonPane.add(openBtn);
-		buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
-		buttonPane.add(cancelButton);
+		initCommon();
+		JPanel resultsPanel = initResultsTable();
+		JPanel buttonPane = initButtonsPanel();
 
 		Container contentPane = getContentPane();
 		contentPane.add(searchPane, BorderLayout.PAGE_START);
-		contentPane.add(listPane, BorderLayout.CENTER);
+		contentPane.add(resultsPanel, BorderLayout.CENTER);
 		contentPane.add(buttonPane, BorderLayout.PAGE_END);
-		getRootPane().setDefaultButton(openBtn);
 
 		searchField.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					resultsList.requestFocus();
-					if (!resultsModel.isEmpty()) {
-						resultsList.setSelectedIndex(0);
+					if (resultsModel.getRowCount() != 0) {
+						resultsTable.setRowSelectionInterval(0, 0);
 					}
+					resultsTable.requestFocus();
 				}
 			}
 		});
 
-		KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
-		getRootPane().registerKeyboardAction(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				dispose();
-			}
-		}, stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
-
 		setTitle(NLS.str("menu.text_search"));
 		pack();
-		setSize(700, 500);
+		setSize(800, 500);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		setModalityType(ModalityType.MODELESS);
@@ -374,5 +192,15 @@ public class SearchDialog extends JDialog {
 			}
 		});
 		return chBox;
+	}
+
+	@Override
+	protected void loadFinished() {
+		searchField.setEnabled(true);
+	}
+
+	@Override
+	protected void loadStart() {
+		searchField.setEnabled(false);
 	}
 }

@@ -23,7 +23,6 @@ public class MainDropTarget implements DropTargetListener {
 	private final MainWindow mainWindow;
 
 	public MainDropTarget(MainWindow mainWindow) {
-		super();
 		this.mainWindow = mainWindow;
 	}
 
@@ -50,6 +49,7 @@ public class MainDropTarget implements DropTargetListener {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public void drop(DropTargetDropEvent dtde) {
 		if (!dtde.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
 			dtde.rejectDrop();
@@ -57,7 +57,6 @@ public class MainDropTarget implements DropTargetListener {
 		}
 		dtde.acceptDrop(dtde.getDropAction());
 		try {
-
 			Transferable transferable = dtde.getTransferable();
 			List<File> transferData = (List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor);
 			if (transferData != null && transferData.size() > 0) {
@@ -65,7 +64,6 @@ public class MainDropTarget implements DropTargetListener {
 				// load first file
 				mainWindow.openFile(transferData.get(0));
 			}
-
 		} catch (Exception e) {
 			LOG.error("File drop operation failed", e);
 		}
@@ -73,7 +71,5 @@ public class MainDropTarget implements DropTargetListener {
 
 	@Override
 	public void dragExit(DropTargetEvent dte) {
-
 	}
-
 }

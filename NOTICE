@@ -144,7 +144,8 @@ THE POSSIBILITY OF SUCH DAMAGE.
 Jadx-gui components
 ===================
 
-RSyntaxTextArea library licensed under modified BSD license:
+RSyntaxTextArea library (https://github.com/bobbylight/RSyntaxTextArea)
+licensed under modified BSD license:
 
 *******************************************************************************
 Copyright (c) 2012, Robert Futrell
@@ -174,8 +175,27 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************
 
 
+Concurrent Trees (https://code.google.com/p/concurrent-trees/)
+licenced under Apache License 2.0:
+
+*******************************************************************************
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*******************************************************************************
+
+
 Icons copied from several places:
  - Eclipse Project (JDT UI) - licensed under EPL v1.0 (http://www.eclipse.org/legal/epl-v10.html)
- - famfamfam silk icon set (http://www.famfamfam.com/lab/icons/silk/) - licensed under Creative Commons Attribution 2.5 License (http://creativecommons.org/licenses/by/2.5/)
+ - famfamfam silk icon set (http://www.famfamfam.com/lab/icons/silk/) - licensed
+     under Creative Commons Attribution 2.5 License (http://creativecommons.org/licenses/by/2.5/)
 
 JFontChooser Component - http://sourceforge.jp/projects/jfontchooser/

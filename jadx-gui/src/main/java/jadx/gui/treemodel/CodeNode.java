@@ -1,27 +1,50 @@
 package jadx.gui.treemodel;
 
-import jadx.api.JavaClass;
-import jadx.gui.utils.Utils;
+import jadx.api.JavaNode;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 
-public class CodeNode extends JClass {
+public class CodeNode extends JNode {
 
-	private static final ImageIcon ICON = Utils.openIcon("file_obj");
+	private static final long serialVersionUID = 1658650786734966545L;
 
+	private final JNode jNode;
+	private final JClass jParent;
 	private final String line;
 	private final int lineNum;
 
-	public CodeNode(JavaClass javaClass, int lineNum, String line) {
-		super(javaClass, (JClass) makeFrom(javaClass.getDeclaringClass()));
+	public CodeNode(JavaNode javaNode, int lineNum, String line) {
+		this.jNode = makeFrom(javaNode);
+		this.jParent = jNode.getJParent();
 		this.line = line;
 		this.lineNum = lineNum;
 	}
 
 	@Override
 	public Icon getIcon() {
-		return ICON;
+		return jNode.getIcon();
+	}
+
+	@Override
+	public JavaNode getJavaNode() {
+		return jNode.getJavaNode();
+	}
+
+	@Override
+	public JClass getJParent() {
+		return getRootClass();
+	}
+
+	@Override
+	public JClass getRootClass() {
+		JClass parent = jParent;
+		if (parent != null) {
+			return parent.getRootClass();
+		}
+		if (jNode instanceof JClass) {
+			return (JClass) jNode;
+		}
+		return null;
 	}
 
 	@Override
@@ -30,17 +53,22 @@ public class CodeNode extends JClass {
 	}
 
 	@Override
+	public String makeDescString() {
+		return line;
+	}
+
+	@Override
+	public boolean hasDescString() {
+		return true;
+	}
+
+	@Override
 	public String makeString() {
-		return getCls().getFullName() + ":" + lineNum + "   " + line;
+		return jNode.makeLongString();
 	}
 
 	@Override
 	public String makeLongString() {
-		return makeString();
-	}
-
-	@Override
-	public String toString() {
 		return makeString();
 	}
 }

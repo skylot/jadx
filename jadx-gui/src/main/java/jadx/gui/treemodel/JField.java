@@ -1,6 +1,7 @@
 package jadx.gui.treemodel;
 
 import jadx.api.JavaField;
+import jadx.api.JavaNode;
 import jadx.core.dex.info.AccessInfo;
 import jadx.gui.utils.OverlayIcon;
 import jadx.gui.utils.Utils;
@@ -25,6 +26,11 @@ public class JField extends JNode {
 	public JField(JavaField javaField, JClass jClass) {
 		this.field = javaField;
 		this.jParent = jClass;
+	}
+
+	@Override
+	public JavaNode getJavaNode() {
+		return field;
 	}
 
 	@Override
@@ -63,5 +69,15 @@ public class JField extends JNode {
 	@Override
 	public String makeLongString() {
 		return Utils.typeFormat(field.getFullName(), field.getType());
+	}
+
+	@Override
+	public int hashCode() {
+		return field.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		return this == o || o instanceof JField && field.equals(((JField) o).field);
 	}
 }

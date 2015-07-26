@@ -239,6 +239,14 @@ public class JadxSettingsWindow extends JDialog {
 			}
 		});
 
+		JCheckBox fastSearch = new JCheckBox();
+		fastSearch.setSelected(settings.isUseFastSearch());
+		fastSearch.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				settings.setUseFastSearch(e.getStateChange() == ItemEvent.SELECTED);
+			}
+		});
+
 		SettingsGroup other = new SettingsGroup(NLS.str("preferences.other"));
 		other.addRow(NLS.str("preferences.check_for_updates"), update);
 		other.addRow(NLS.str("preferences.threads"), threadsCount);
@@ -248,6 +256,7 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.cfg"), cfg);
 		other.addRow(NLS.str("preferences.raw_cfg"), rawCfg);
 		other.addRow(NLS.str("preferences.font"), fontBtn);
+		other.addRow(NLS.str("preferences.fast_search"), fastSearch);
 		return other;
 	}
 

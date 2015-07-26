@@ -2,6 +2,7 @@ package jadx.gui.settings;
 
 import jadx.gui.JadxGUI;
 
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.prefs.Preferences;
 
@@ -25,7 +26,9 @@ public class JadxSettingsAdapter {
 	private static ExclusionStrategy EXCLUDE_FIELDS = new ExclusionStrategy() {
 		@Override
 		public boolean shouldSkipField(FieldAttributes f) {
-			return JadxSettings.SKIP_FIELDS.contains(f.getName());
+			return JadxSettings.SKIP_FIELDS.contains(f.getName())
+					|| f.hasModifier(Modifier.PUBLIC)
+					|| f.hasModifier(Modifier.TRANSIENT);
 		}
 
 		@Override

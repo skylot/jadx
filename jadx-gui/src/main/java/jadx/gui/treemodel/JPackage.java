@@ -9,6 +9,8 @@ import javax.swing.ImageIcon;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+
 public class JPackage extends JNode implements Comparable<JPackage> {
 	private static final long serialVersionUID = -4120718634156839804L;
 
@@ -45,6 +47,7 @@ public class JPackage extends JNode implements Comparable<JPackage> {
 		}
 	}
 
+	@Override
 	public String getName() {
 		return name;
 	}
@@ -77,7 +80,7 @@ public class JPackage extends JNode implements Comparable<JPackage> {
 	}
 
 	@Override
-	public int compareTo(JPackage o) {
+	public int compareTo(@NotNull JPackage o) {
 		return name.compareTo(o.name);
 	}
 

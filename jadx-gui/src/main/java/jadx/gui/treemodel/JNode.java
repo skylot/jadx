@@ -13,20 +13,20 @@ import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 
 public abstract class JNode extends DefaultMutableTreeNode {
 	public static JNode makeFrom(JavaNode node) {
+		if (node == null) {
+			return null;
+		}
 		if (node instanceof JavaClass) {
 			JClass p = (JClass) makeFrom(node.getDeclaringClass());
 			return new JClass((JavaClass) node, p);
 		}
 		if (node instanceof JavaMethod) {
 			JavaMethod mth = (JavaMethod) node;
-			return new JMethod(mth, new JClass(mth.getDeclaringClass()));
+			return new JMethod(mth, (JClass) makeFrom(mth.getDeclaringClass()));
 		}
 		if (node instanceof JavaField) {
 			JavaField fld = (JavaField) node;
-			return new JField(fld, new JClass(fld.getDeclaringClass()));
-		}
-		if (node == null) {
-			return null;
+			return new JField(fld, (JClass) makeFrom(fld.getDeclaringClass()));
 		}
 		throw new JadxRuntimeException("Unknown type for JavaNode: " + node.getClass());
 	}
@@ -37,6 +37,10 @@ public abstract class JNode extends DefaultMutableTreeNode {
 	 * Return top level JClass or self if already at top.
 	 */
 	public JClass getRootClass() {
+		return null;
+	}
+
+	public JavaNode getJavaNode() {
 		return null;
 	}
 
@@ -58,7 +62,23 @@ public abstract class JNode extends DefaultMutableTreeNode {
 
 	public abstract Icon getIcon();
 
+	public String getName() {
+		JavaNode javaNode = getJavaNode();
+		if (javaNode == null) {
+			return null;
+		}
+		return javaNode.getName();
+	}
+
 	public abstract String makeString();
+
+	public String makeDescString() {
+		return null;
+	}
+
+	public boolean hasDescString() {
+		return false;
+	}
 
 	public String makeLongString() {
 		return makeString();

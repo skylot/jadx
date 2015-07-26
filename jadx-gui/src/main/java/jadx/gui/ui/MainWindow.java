@@ -1,6 +1,9 @@
 package jadx.gui.ui;
 
 import jadx.gui.JadxWrapper;
+import jadx.gui.jobs.BackgroundWorker;
+import jadx.gui.jobs.DecompileJob;
+import jadx.gui.jobs.IndexJob;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsWindow;
 import jadx.gui.treemodel.JClass;
@@ -48,7 +51,6 @@ import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.DisplayMode;
@@ -66,6 +68,8 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,7 +115,9 @@ public class MainWindow extends JFrame {
 	private JToggleButton deobfToggleBtn;
 	private boolean isFlattenPackage;
 	private Link updateLink;
-	
+	private ProgressPanel progressPane;
+	private BackgroundWorker backgroundWorker;
+
 	private DropTarget dropTarget;
 
 	public MainWindow(JadxSettings settings) {
@@ -119,6 +125,7 @@ public class MainWindow extends JFrame {
 		this.settings = settings;
 		this.cacheObject = new CacheObject();
 
+		resetCache();
 		initUI();
 		initMenuAndToolbar();
 		checkForUpdate();
@@ -175,18 +182,45 @@ public class MainWindow extends JFrame {
 	}
 
 	public void openFile(File file) {
-		cacheObject.reset();
+		tabbedPane.closeAllTabs();
+		resetCache();
 		wrapper.openFile(file);
 		deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
 		settings.addRecentFile(file.getAbsolutePath());
 		initTree();
 		setTitle(DEFAULT_TITLE + " - " + file.getName());
+		runBackgroundJobs();
+	}
+
+	protected void resetCache() {
+		cacheObject.reset();
+		int threadsCount = settings.getThreadsCount();
+		cacheObject.setDecompileJob(new DecompileJob(wrapper, threadsCount));
+		cacheObject.setIndexJob(new IndexJob(wrapper, settings, cacheObject));
+	}
+
+	private synchronized void runBackgroundJobs() {
+		cancelBackgroundJobs();
+		backgroundWorker = new BackgroundWorker(cacheObject, progressPane);
+		new Timer().schedule(new TimerTask() {
+			@Override
+			public void run() {
+				backgroundWorker.exec();
+			}
+		}, 1000);
+	}
+
+	public synchronized void cancelBackgroundJobs() {
+		if (backgroundWorker != null) {
+			backgroundWorker.stop();
+			backgroundWorker = new BackgroundWorker(cacheObject, progressPane);
+			resetCache();
+		}
 	}
 
 	public void reOpenFile() {
 		File openedFile = wrapper.getOpenFile();
 		if (openedFile != null) {
-			tabbedPane.closeAllTabs();
 			openFile(openedFile);
 		}
 	}
@@ -247,14 +281,14 @@ public class MainWindow extends JFrame {
 			if (obj instanceof JResource) {
 				JResource res = (JResource) obj;
 				if (res.getContent() != null) {
-					tabbedPane.showCode(new Position(res, res.getLine()));
+					tabbedPane.codeJump(new Position(res, res.getLine()));
 				}
 			}
 			if (obj instanceof JNode) {
 				JNode node = (JNode) obj;
 				JClass cls = node.getRootClass();
 				if (cls != null) {
-					tabbedPane.showCode(new Position(cls, node.getLine()));
+					tabbedPane.codeJump(new Position(cls, node.getLine()));
 				}
 			}
 		} catch (Exception e) {
@@ -539,14 +573,18 @@ public class MainWindow extends JFrame {
 			}
 		});
 
-		JScrollPane treeScrollPane = new JScrollPane(tree);
-		splitPane.setLeftComponent(treeScrollPane);
+		progressPane = new ProgressPanel(this, true);
+
+		JPanel leftPane = new JPanel(new BorderLayout());
+		leftPane.add(new JScrollPane(tree), BorderLayout.CENTER);
+		leftPane.add(progressPane, BorderLayout.PAGE_END);
+		splitPane.setLeftComponent(leftPane);
 
 		tabbedPane = new TabbedPane(this);
 		splitPane.setRightComponent(tabbedPane);
 
 		dropTarget = new DropTarget(this, DnDConstants.ACTION_COPY, new MainDropTarget(this));
-		
+
 		setContentPane(mainPanel);
 		setTitle(DEFAULT_TITLE);
 	}
@@ -565,6 +603,12 @@ public class MainWindow extends JFrame {
 		tabbedPane.loadSettings();
 	}
 
+	@Override
+	public void dispose() {
+		cancelBackgroundJobs();
+		super.dispose();
+	}
+
 	public JadxWrapper getWrapper() {
 		return wrapper;
 	}
@@ -579,6 +623,10 @@ public class MainWindow extends JFrame {
 
 	public CacheObject getCacheObject() {
 		return cacheObject;
+	}
+
+	public BackgroundWorker getBackgroundWorker() {
+		return backgroundWorker;
 	}
 
 	private class RecentFilesMenuListener implements MenuListener {
@@ -619,4 +667,5 @@ public class MainWindow extends JFrame {
 		public void menuCanceled(MenuEvent e) {
 		}
 	}
+
 }

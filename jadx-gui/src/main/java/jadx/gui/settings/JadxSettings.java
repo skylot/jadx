@@ -2,7 +2,6 @@ package jadx.gui.settings;
 
 import jadx.cli.JadxCLIArgs;
 
-import javax.swing.JLabel;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,12 +9,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+
 public class JadxSettings extends JadxCLIArgs {
 
 	private static final String USER_HOME = System.getProperty("user.home");
 	private static final int RECENT_FILES_COUNT = 15;
 
-	private static final Font DEFAULT_FONT = new JLabel().getFont();
+	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
 	static final Set<String> SKIP_FIELDS = new HashSet<String>(Arrays.asList(
 			"files", "input", "outputDir", "verbose", "printHelp"
@@ -27,6 +28,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private boolean checkForUpdates = true;
 	private List<String> recentFiles = new ArrayList<String>();
 	private String fontStr = "";
+	private boolean useFastSearch = false;
 
 	public void sync() {
 		JadxSettingsAdapter.store(this);
@@ -73,10 +75,8 @@ public class JadxSettings extends JadxCLIArgs {
 	}
 
 	public void addRecentFile(String filePath) {
-		if (recentFiles.contains(filePath)) {
-			return;
-		}
-		recentFiles.add(filePath);
+		recentFiles.remove(filePath);
+		recentFiles.add(0, filePath);
 		int count = recentFiles.size();
 		if (count > RECENT_FILES_COUNT) {
 			recentFiles.subList(0, count - RECENT_FILES_COUNT).clear();
@@ -134,6 +134,14 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setUseSourceNameAsClassAlias(boolean useSourceNameAsAlias) {
 		this.deobfuscationUseSourceNameAsAlias = useSourceNameAsAlias;
+	}
+
+	public boolean isUseFastSearch() {
+		return useFastSearch;
+	}
+
+	public void setUseFastSearch(boolean useFastSearch) {
+		this.useFastSearch = useFastSearch;
 	}
 
 	public Font getFont() {

@@ -49,7 +49,7 @@ public class LogCollector extends CyclicBufferAppender<ILoggingEvent> {
 
 	public LogCollector() {
 		setName("LogCollector");
-		setMaxSize(50000);
+		setMaxSize(5000);
 	}
 
 	@Override

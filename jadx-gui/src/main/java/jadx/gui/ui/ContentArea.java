@@ -1,15 +1,21 @@
 package jadx.gui.ui;
 
 import jadx.api.CodePosition;
+import jadx.api.JavaNode;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.utils.Position;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JPopupMenu;
 import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Caret;
 import javax.swing.text.DefaultCaret;
@@ -17,6 +23,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
 
 import org.fife.ui.rsyntaxtextarea.LinkGenerator;
 import org.fife.ui.rsyntaxtextarea.LinkGeneratorResult;
@@ -63,9 +70,21 @@ class ContentArea extends RSyntaxTextArea {
 			CodeLinkGenerator codeLinkProcessor = new CodeLinkGenerator((JClass) node);
 			setLinkGenerator(codeLinkProcessor);
 			addHyperlinkListener(codeLinkProcessor);
+			addMenuItems(this, (JClass) node);
 		}
 
 		setText(node.getContent());
+	}
+
+	private void addMenuItems(ContentArea contentArea, JClass jCls) {
+		Action findUsage = new FindUsageAction(contentArea, jCls);
+		// TODO: hotkey works only when popup menu is shown
+		// findUsage.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_F7, KeyEvent.ALT_DOWN_MASK));
+
+		JPopupMenu popup = getPopupMenu();
+		popup.addSeparator();
+		popup.add(findUsage);
+		popup.addPopupMenuListener((PopupMenuListener) findUsage);
 	}
 
 	public void loadSettings() {
@@ -83,7 +102,7 @@ class ContentArea extends RSyntaxTextArea {
 				}
 			}
 			if (node instanceof JClass) {
-				Position pos = getPosition((JClass) node, this, token.getOffset());
+				Position pos = getDefPosition((JClass) node, this, token.getOffset());
 				if (pos != null) {
 					return true;
 				}
@@ -100,21 +119,30 @@ class ContentArea extends RSyntaxTextArea {
 		return super.getForegroundForToken(t);
 	}
 
-	static Position getPosition(JClass jCls, RSyntaxTextArea textArea, int offset) {
+	static Position getDefPosition(JClass jCls, RSyntaxTextArea textArea, int offset) {
+		JavaNode node = getJavaNodeAtOffset(jCls, textArea, offset);
+		if (node == null) {
+			return null;
+		}
+		CodePosition pos = jCls.getCls().getDefinitionPosition(node);
+		if (pos == null) {
+			return null;
+		}
+		return new Position(pos);
+	}
+
+	static JavaNode getJavaNodeAtOffset(JClass jCls, RSyntaxTextArea textArea, int offset) {
 		try {
 			int line = textArea.getLineOfOffset(offset);
 			int lineOffset = offset - textArea.getLineStartOffset(line);
-			CodePosition pos = jCls.getCls().getDefinitionPosition(line + 1, lineOffset + 1);
-			if (pos != null && pos.isSet()) {
-				return new Position(pos);
-			}
+			return jCls.getCls().getJavaNodeAtPosition(line + 1, lineOffset + 1);
 		} catch (BadLocationException e) {
-			LOG.error("Can't get line by offset", e);
+			LOG.error("Can't get java node by offset", e);
 		}
 		return null;
 	}
 
-	Position getCurrentPosition() {
+	public Position getCurrentPosition() {
 		return new Position(node, getCaretLineNumber() + 1);
 	}
 
@@ -166,6 +194,52 @@ class ContentArea extends RSyntaxTextArea {
 		}
 	}
 
+	private class FindUsageAction extends AbstractAction implements PopupMenuListener {
+		private static final long serialVersionUID = 4692546569977976384L;
+
+		private final ContentArea contentArea;
+		private final JClass jCls;
+
+		private JavaNode node;
+
+		public FindUsageAction(ContentArea contentArea, JClass jCls) {
+			super("Find Usage");
+			this.contentArea = contentArea;
+			this.jCls = jCls;
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if (node == null) {
+				return;
+			}
+			MainWindow mainWindow = contentPanel.getTabbedPane().getMainWindow();
+			UsageDialog usageDialog = new UsageDialog(mainWindow, JNode.makeFrom(node));
+			usageDialog.setVisible(true);
+		}
+
+		@Override
+		public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+			node = null;
+			Point pos = contentArea.getMousePosition();
+			if (pos != null) {
+				Token token = contentArea.viewToToken(pos);
+				if (token != null) {
+					node = getJavaNodeAtOffset(jCls, contentArea, token.getOffset());
+				}
+			}
+			setEnabled(node != null);
+		}
+
+		@Override
+		public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+		}
+
+		@Override
+		public void popupMenuCanceled(PopupMenuEvent e) {
+		}
+	}
+
 	private class CodeLinkGenerator implements LinkGenerator, HyperlinkListener {
 		private final JClass jCls;
 
@@ -181,7 +255,7 @@ class ContentArea extends RSyntaxTextArea {
 					return null;
 				}
 				final int sourceOffset = token.getOffset();
-				final Position defPos = getPosition(jCls, textArea, sourceOffset);
+				final Position defPos = getDefPosition(jCls, textArea, sourceOffset);
 				if (defPos == null) {
 					return null;
 				}
@@ -207,12 +281,7 @@ class ContentArea extends RSyntaxTextArea {
 		public void hyperlinkUpdate(HyperlinkEvent e) {
 			Object obj = e.getSource();
 			if (obj instanceof Position) {
-				Position pos = (Position) obj;
-				LOG.debug("Code jump to: {}", pos);
-				TabbedPane tabbedPane = contentPanel.getTabbedPane();
-				tabbedPane.getJumpManager().addPosition(getCurrentPosition());
-				tabbedPane.getJumpManager().addPosition(pos);
-				tabbedPane.showCode(pos);
+				contentPanel.getTabbedPane().codeJump((Position) obj);
 			}
 		}
 	}

@@ -24,7 +24,7 @@ public class JResource extends JNode implements Comparable<JResource> {
 	private static final ImageIcon JAVA_ICON = Utils.openIcon("java_ovr");
 	private static final ImageIcon ERROR_ICON = Utils.openIcon("error_co");
 
-	public static enum JResType {
+	public enum JResType {
 		ROOT,
 		DIR,
 		FILE

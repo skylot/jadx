@@ -3,6 +3,7 @@ package jadx.gui.treemodel;
 import jadx.api.JavaClass;
 import jadx.api.JavaField;
 import jadx.api.JavaMethod;
+import jadx.api.JavaNode;
 import jadx.core.dex.info.AccessInfo;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
@@ -104,6 +105,11 @@ public class JClass extends JNode {
 	}
 
 	@Override
+	public JavaNode getJavaNode() {
+		return cls;
+	}
+
+	@Override
 	public JClass getJParent() {
 		return jParent;
 	}
@@ -114,6 +120,11 @@ public class JClass extends JNode {
 			return this;
 		}
 		return jParent.getRootClass();
+	}
+
+	@Override
+	public String getName() {
+		return cls.getName();
 	}
 
 	public String getFullName() {

@@ -7,7 +7,7 @@ import jadx.core.dex.nodes.MethodNode;
 
 public class FieldInitAttr implements IAttribute {
 
-	public static FieldInitAttr NULL_VALUE = constValue(null);
+	public static final FieldInitAttr NULL_VALUE = constValue(null);
 
 	public enum InitType {
 		CONST,

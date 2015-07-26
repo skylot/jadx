@@ -16,6 +16,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicButtonUI;
+import javax.swing.text.BadLocationException;
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -29,8 +30,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 class TabbedPane extends JTabbedPane {
 
+	private static final Logger LOG = LoggerFactory.getLogger(TabbedPane.class);
 	private static final long serialVersionUID = -8833600618794570904L;
 
 	private static final ImageIcon ICON_CLOSE = Utils.openIcon("cross");
@@ -65,17 +71,44 @@ class TabbedPane extends JTabbedPane {
 		return mainWindow;
 	}
 
-	void showCode(final Position pos) {
+	private void showCode(final Position pos) {
 		final ContentPanel contentPanel = getCodePanel(pos.getNode());
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
 				setSelectedComponent(contentPanel);
 				ContentArea contentArea = contentPanel.getContentArea();
-				contentArea.scrollToLine(pos.getLine());
+				int line = pos.getLine();
+				if (line < 0) {
+					try {
+						line = 1 + contentArea.getLineOfOffset(-line);
+					} catch (BadLocationException e) {
+						LOG.error("Can't get line for: {}", pos, e);
+						line = pos.getNode().getLine();
+					}
+				}
+				contentArea.scrollToLine(line);
 				contentArea.requestFocus();
 			}
 		});
+	}
+
+	public void codeJump(Position pos) {
+		Position curPos = getCurrentPosition();
+		if (curPos != null) {
+			jumps.addPosition(curPos);
+			jumps.addPosition(pos);
+		}
+		showCode(pos);
+	}
+
+	@Nullable
+	private Position getCurrentPosition() {
+		ContentPanel selectedCodePanel = getSelectedCodePanel();
+		if (selectedCodePanel == null) {
+			return null;
+		}
+		return selectedCodePanel.getContentArea().getCurrentPosition();
 	}
 
 	public void navBack() {
@@ -116,6 +149,7 @@ class TabbedPane extends JTabbedPane {
 		return panel;
 	}
 
+	@Nullable
 	ContentPanel getSelectedCodePanel() {
 		return (ContentPanel) getSelectedComponent();
 	}

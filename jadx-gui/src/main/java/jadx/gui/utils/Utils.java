@@ -84,4 +84,30 @@ public class Utils {
 		}
 		return overIcon;
 	}
+
+	public static boolean isFreeMemoryAvailable() {
+		Runtime runtime = Runtime.getRuntime();
+		long maxMemory = runtime.maxMemory();
+		long totalFree = runtime.freeMemory() + maxMemory - runtime.totalMemory();
+		return totalFree > maxMemory * 0.2;
+	}
+
+	public static String memoryInfo() {
+		Runtime runtime = Runtime.getRuntime();
+		StringBuilder sb = new StringBuilder();
+		long maxMemory = runtime.maxMemory();
+		long allocatedMemory = runtime.totalMemory();
+		long freeMemory = runtime.freeMemory();
+
+		sb.append("free: ").append(format(freeMemory));
+		sb.append(", allocated: ").append(format(allocatedMemory));
+		sb.append(", max: ").append(format(maxMemory));
+		sb.append(", total free: ").append(format(freeMemory + maxMemory - allocatedMemory));
+
+		return sb.toString();
+	}
+
+	private static String format(long mem) {
+		return Long.toString((long) (mem / 1024. / 1024.)) + "MB";
+	}
 }

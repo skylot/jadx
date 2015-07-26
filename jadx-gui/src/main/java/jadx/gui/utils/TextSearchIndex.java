@@ -3,18 +3,17 @@ package jadx.gui.utils;
 import jadx.api.JavaClass;
 import jadx.api.JavaField;
 import jadx.api.JavaMethod;
+import jadx.api.JavaNode;
+import jadx.core.codegen.CodeWriter;
 import jadx.gui.treemodel.CodeNode;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.CommonSearchDialog;
 
-import java.io.BufferedReader;
-import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.googlecode.concurrenttrees.radix.node.concrete.DefaultCharArrayNodeFactory;
-import com.googlecode.concurrenttrees.suffix.ConcurrentSuffixTree;
-import com.googlecode.concurrenttrees.suffix.SuffixTree;
 
 public class TextSearchIndex {
 
@@ -25,15 +24,16 @@ public class TextSearchIndex {
 	private SuffixTree<JNode> fldNamesTree;
 	private SuffixTree<CodeNode> codeTree;
 
+	private List<JavaClass> skippedClasses = new ArrayList<JavaClass>();
+
 	public TextSearchIndex() {
-		clsNamesTree = new ConcurrentSuffixTree<JNode>(new DefaultCharArrayNodeFactory());
-		mthNamesTree = new ConcurrentSuffixTree<JNode>(new DefaultCharArrayNodeFactory());
-		fldNamesTree = new ConcurrentSuffixTree<JNode>(new DefaultCharArrayNodeFactory());
-		codeTree = new ConcurrentSuffixTree<CodeNode>(new DefaultCharArrayNodeFactory());
+		clsNamesTree = new SuffixTree<JNode>();
+		mthNamesTree = new SuffixTree<JNode>();
+		fldNamesTree = new SuffixTree<JNode>();
+		codeTree = new SuffixTree<CodeNode>();
 	}
 
 	public void indexNames(JavaClass cls) {
-		cls.decompile();
 		clsNamesTree.put(cls.getFullName(), JNode.makeFrom(cls));
 		for (JavaMethod mth : cls.getMethods()) {
 			mthNamesTree.put(mth.getFullName(), JNode.makeFrom(mth));
@@ -46,18 +46,15 @@ public class TextSearchIndex {
 		}
 	}
 
-	public void indexCode(JavaClass cls) {
+	public void indexCode(JavaClass cls, CodeLinesInfo linesInfo, String[] lines) {
 		try {
-			String code = cls.getCode();
-			BufferedReader bufReader = new BufferedReader(new StringReader(code));
-			String line;
-			int lineNum = 0;
-			while ((line = bufReader.readLine()) != null) {
-				lineNum++;
-				line = line.trim();
+			int count = lines.length;
+			for (int i = 0; i < count; i++) {
+				String line = lines[i];
 				if (!line.isEmpty()) {
-					CodeNode node = new CodeNode(cls, lineNum, line);
-					codeTree.put(line, node);
+					int lineNum = i + 1;
+					JavaNode node = linesInfo.getJavaNodeByLine(lineNum);
+					codeTree.put(line, new CodeNode(node == null ? cls : node, lineNum, line));
 				}
 			}
 		} catch (Exception e) {
@@ -78,6 +75,59 @@ public class TextSearchIndex {
 	}
 
 	public Iterable<CodeNode> searchCode(String text) {
-		return codeTree.getValuesForKeysContaining(text);
+		Iterable<CodeNode> items;
+		if (codeTree.size() > 0) {
+			items = codeTree.getValuesForKeysContaining(text);
+			if (skippedClasses.isEmpty()) {
+				return items;
+			}
+		} else {
+			items = null;
+		}
+		List<CodeNode> list = new ArrayList<CodeNode>();
+		if (items != null) {
+			for (CodeNode item : items) {
+				list.add(item);
+			}
+		}
+		addSkippedClasses(list, text);
+		return list;
+	}
+
+	private void addSkippedClasses(List<CodeNode> list, String text) {
+		for (JavaClass javaClass : skippedClasses) {
+			String code = javaClass.getCode();
+			int pos = 0;
+			while (pos != -1) {
+				pos = searchNext(list, text, javaClass, code, pos);
+			}
+			if (list.size() > CommonSearchDialog.MAX_RESULTS_COUNT) {
+				return;
+			}
+		}
+	}
+
+	private int searchNext(List<CodeNode> list, String text, JavaNode javaClass, String code, int startPos) {
+		int pos = code.indexOf(text, startPos);
+		if (pos == -1) {
+			return -1;
+		}
+		int lineStart = 1 + code.lastIndexOf(CodeWriter.NL, pos);
+		int lineEnd = code.indexOf(CodeWriter.NL, pos + text.length());
+		String line = code.substring(lineStart, lineEnd == -1 ? code.length() : lineEnd);
+		list.add(new CodeNode(javaClass, -pos, line.trim()));
+		return lineEnd;
+	}
+
+	public void classCodeIndexSkipped(JavaClass cls) {
+		this.skippedClasses.add(cls);
+	}
+
+	public List<JavaClass> getSkippedClasses() {
+		return skippedClasses;
+	}
+
+	public int getSkippedCount() {
+		return skippedClasses.size();
 	}
 }

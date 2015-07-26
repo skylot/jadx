@@ -1,6 +1,7 @@
 package jadx.gui.treemodel;
 
 import jadx.api.JavaMethod;
+import jadx.api.JavaNode;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.gui.utils.OverlayIcon;
@@ -30,8 +31,17 @@ public class JMethod extends JNode {
 	}
 
 	@Override
+	public JavaNode getJavaNode() {
+		return mth;
+	}
+
+	@Override
 	public JClass getJParent() {
 		return jParent;
+	}
+
+	public ArgType getReturnType() {
+		return mth.getReturnType();
 	}
 
 	@Override
@@ -57,7 +67,7 @@ public class JMethod extends JNode {
 		return icon;
 	}
 
-	private String makeBaseString() {
+	String makeBaseString() {
 		if (mth.isClassInit()) {
 			return "{...}";
 		}
@@ -80,12 +90,22 @@ public class JMethod extends JNode {
 
 	@Override
 	public String makeString() {
-		return Utils.typeFormat(makeBaseString(), mth.getReturnType());
+		return Utils.typeFormat(makeBaseString(), getReturnType());
 	}
 
 	@Override
 	public String makeLongString() {
 		String name = mth.getDeclaringClass().getFullName() + "." + makeBaseString();
-		return Utils.typeFormat(name, mth.getReturnType());
+		return Utils.typeFormat(name, getReturnType());
+	}
+
+	@Override
+	public int hashCode() {
+		return mth.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		return this == o || o instanceof JMethod && mth.equals(((JMethod) o).mth);
 	}
 }
