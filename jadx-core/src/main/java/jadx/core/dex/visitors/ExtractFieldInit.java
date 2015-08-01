@@ -6,6 +6,8 @@ import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.ClassNode;
@@ -189,14 +191,22 @@ public class ExtractFieldInit extends AbstractVisitor {
 	}
 
 	private static boolean checkInsn(InsnNode insn) {
+		InsnArg arg = insn.getArg(0);
+		if (arg.isInsnWrap()) {
+			InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
+			if (!wrapInsn.canReorderRecursive() && insn.contains(AType.CATCH_BLOCK)) {
+				return false;
+			}
+		} else {
+			return arg.isLiteral() || arg.isThis();
+		}
 		Set<RegisterArg> regs = new HashSet<RegisterArg>();
 		insn.getRegisterArgs(regs);
-		if (regs.isEmpty()) {
-			return true;
-		}
-		for (RegisterArg reg : regs) {
-			if (!reg.isThis()) {
-				return false;
+		if (!regs.isEmpty()) {
+			for (RegisterArg reg : regs) {
+				if (!reg.isThis()) {
+					return false;
+				}
 			}
 		}
 		return true;
