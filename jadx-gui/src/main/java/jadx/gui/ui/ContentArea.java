@@ -214,7 +214,8 @@ class ContentArea extends RSyntaxTextArea {
 				return;
 			}
 			MainWindow mainWindow = contentPanel.getTabbedPane().getMainWindow();
-			UsageDialog usageDialog = new UsageDialog(mainWindow, JNode.makeFrom(node));
+			JNode jNode = mainWindow.getCacheObject().getNodeCache().makeFrom(node);
+			UsageDialog usageDialog = new UsageDialog(mainWindow, jNode);
 			usageDialog.setVisible(true);
 		}
 

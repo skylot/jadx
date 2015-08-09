@@ -24,7 +24,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -57,7 +56,7 @@ public class JadxSettingsWindow extends JDialog {
 
 	private void initUI() {
 		JPanel panel = new JPanel();
-		panel.setLayout(new GridLayout(0, 1, 10, 5));
+		panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		panel.add(makeDeobfuscationGroup());
 		panel.add(makeOtherGroup());
@@ -102,7 +101,6 @@ public class JadxSettingsWindow extends JDialog {
 	}
 
 	private SettingsGroup makeDeobfuscationGroup() {
-
 		JCheckBox deobfOn = new JCheckBox();
 		deobfOn.setSelected(settings.isDeobfuscationOn());
 		deobfOn.addItemListener(new ItemListener() {
@@ -239,7 +237,16 @@ public class JadxSettingsWindow extends JDialog {
 			}
 		});
 
+		JCheckBox autoStartJobs = new JCheckBox();
+		autoStartJobs.setSelected(settings.isAutoStartJobs());
+		autoStartJobs.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				settings.setAutoStartJobs(e.getStateChange() == ItemEvent.SELECTED);
+			}
+		});
+
 		JCheckBox fastSearch = new JCheckBox();
+		fastSearch.setEnabled(false);
 		fastSearch.setSelected(settings.isUseFastSearch());
 		fastSearch.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
@@ -257,6 +264,7 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.raw_cfg"), rawCfg);
 		other.addRow(NLS.str("preferences.font"), fontBtn);
 		other.addRow(NLS.str("preferences.fast_search"), fastSearch);
+		other.addRow(NLS.str("preferences.start_jobs"), autoStartJobs);
 		return other;
 	}
 

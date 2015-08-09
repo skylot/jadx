@@ -99,10 +99,11 @@ public class Utils {
 		long allocatedMemory = runtime.totalMemory();
 		long freeMemory = runtime.freeMemory();
 
-		sb.append("free: ").append(format(freeMemory));
+		sb.append("heap: ").append(format(allocatedMemory - freeMemory));
 		sb.append(", allocated: ").append(format(allocatedMemory));
-		sb.append(", max: ").append(format(maxMemory));
+		sb.append(", free: ").append(format(freeMemory));
 		sb.append(", total free: ").append(format(freeMemory + maxMemory - allocatedMemory));
+		sb.append(", max: ").append(format(maxMemory));
 
 		return sb.toString();
 	}

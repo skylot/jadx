@@ -1,7 +1,7 @@
 package jadx.gui.ui;
 
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.TextSearchIndex;
+import jadx.gui.utils.search.TextSearchIndex;
 import jadx.gui.utils.TextStandardActions;
 
 import javax.swing.BorderFactory;

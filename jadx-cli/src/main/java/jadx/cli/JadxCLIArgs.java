@@ -29,7 +29,7 @@ public class JadxCLIArgs implements IJadxArgs {
 	protected String outDirName;
 
 	@Parameter(names = {"-j", "--threads-count"}, description = "processing threads count")
-	protected int threadsCount = Runtime.getRuntime().availableProcessors();
+	protected int threadsCount = Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
 
 	@Parameter(names = {"-f", "--fallback"}, description = "make simple dump (using goto instead of 'if', 'for', etc)")
 	protected boolean fallbackMode = false;

@@ -1,6 +1,7 @@
 package jadx.gui.treemodel;
 
 import jadx.api.JavaNode;
+import jadx.gui.utils.search.StringRef;
 
 import javax.swing.Icon;
 
@@ -10,12 +11,12 @@ public class CodeNode extends JNode {
 
 	private final JNode jNode;
 	private final JClass jParent;
-	private final String line;
+	private final StringRef line;
 	private final int lineNum;
 
-	public CodeNode(JavaNode javaNode, int lineNum, String line) {
-		this.jNode = makeFrom(javaNode);
-		this.jParent = jNode.getJParent();
+	public CodeNode(JNode jNode, int lineNum, StringRef line) {
+		this.jNode = jNode;
+		this.jParent = this.jNode.getJParent();
 		this.line = line;
 		this.lineNum = lineNum;
 	}
@@ -54,7 +55,7 @@ public class CodeNode extends JNode {
 
 	@Override
 	public String makeDescString() {
-		return line;
+		return line.toString();
 	}
 
 	@Override

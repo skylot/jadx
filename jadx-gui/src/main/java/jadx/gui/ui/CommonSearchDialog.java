@@ -7,7 +7,7 @@ import jadx.gui.treemodel.TextNode;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Position;
-import jadx.gui.utils.TextSearchIndex;
+import jadx.gui.utils.search.TextSearchIndex;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -56,7 +56,7 @@ public abstract class CommonSearchDialog extends JDialog {
 	private static final Logger LOG = LoggerFactory.getLogger(CommonSearchDialog.class);
 	private static final long serialVersionUID = 8939332306115370276L;
 
-	public static final int MAX_RESULTS_COUNT = 1000;
+	public static final int MAX_RESULTS_COUNT = 100;
 
 	protected final TabbedPane tabbedPane;
 	protected final CacheObject cache;
@@ -328,7 +328,10 @@ public abstract class CommonSearchDialog extends JDialog {
 				textArea.setRows(1);
 				textArea.setColumns(textArea.getText().length());
 				if (highlightText != null) {
-					SearchEngine.markAll(textArea, new SearchContext(highlightText));
+					SearchContext searchContext = new SearchContext(highlightText);
+					searchContext.setMatchCase(true);
+					searchContext.setMarkAll(true);
+					SearchEngine.markAll(textArea, searchContext);
 				}
 				return textArea;
 			}

@@ -2,6 +2,7 @@ package jadx.gui.utils;
 
 import jadx.gui.jobs.DecompileJob;
 import jadx.gui.jobs.IndexJob;
+import jadx.gui.utils.search.TextSearchIndex;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -13,10 +14,12 @@ public class CacheObject {
 	private TextSearchIndex textIndex;
 	private CodeUsageInfo usageInfo;
 	private String lastSearch;
+	private JNodeCache jNodeCache = new JNodeCache();
 
 	public void reset() {
 		textIndex = null;
 		lastSearch = null;
+		jNodeCache = new JNodeCache();
 		usageInfo = null;
 	}
 
@@ -61,5 +64,9 @@ public class CacheObject {
 
 	public void setIndexJob(IndexJob indexJob) {
 		this.indexJob = indexJob;
+	}
+
+	public JNodeCache getNodeCache() {
+		return jNodeCache;
 	}
 }

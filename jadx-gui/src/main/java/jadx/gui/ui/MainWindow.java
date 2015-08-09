@@ -194,20 +194,23 @@ public class MainWindow extends JFrame {
 
 	protected void resetCache() {
 		cacheObject.reset();
-		int threadsCount = settings.getThreadsCount();
+		// TODO: decompilation freezes sometime with several threads
+		int threadsCount = 1; // settings.getThreadsCount();
 		cacheObject.setDecompileJob(new DecompileJob(wrapper, threadsCount));
-		cacheObject.setIndexJob(new IndexJob(wrapper, settings, cacheObject));
+		cacheObject.setIndexJob(new IndexJob(wrapper, cacheObject, threadsCount, settings.isUseFastSearch()));
 	}
 
 	private synchronized void runBackgroundJobs() {
 		cancelBackgroundJobs();
 		backgroundWorker = new BackgroundWorker(cacheObject, progressPane);
-		new Timer().schedule(new TimerTask() {
-			@Override
-			public void run() {
-				backgroundWorker.exec();
-			}
-		}, 1000);
+		if (settings.isAutoStartJobs()) {
+			new Timer().schedule(new TimerTask() {
+				@Override
+				public void run() {
+					backgroundWorker.exec();
+				}
+			}, 1000);
+		}
 	}
 
 	public synchronized void cancelBackgroundJobs() {

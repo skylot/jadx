@@ -29,6 +29,11 @@ public class JadxSettings extends JadxCLIArgs {
 	private List<String> recentFiles = new ArrayList<String>();
 	private String fontStr = "";
 	private boolean useFastSearch = false;
+	private boolean autoStartJobs = true;
+
+	public JadxSettings() {
+		setSkipResources(true);
+	}
 
 	public void sync() {
 		JadxSettingsAdapter.store(this);
@@ -137,11 +142,20 @@ public class JadxSettings extends JadxCLIArgs {
 	}
 
 	public boolean isUseFastSearch() {
-		return useFastSearch;
+		return false;
+//		return useFastSearch;
 	}
 
 	public void setUseFastSearch(boolean useFastSearch) {
 		this.useFastSearch = useFastSearch;
+	}
+
+	public boolean isAutoStartJobs() {
+		return autoStartJobs;
+	}
+
+	public void setAutoStartJobs(boolean autoStartJobs) {
+		this.autoStartJobs = autoStartJobs;
 	}
 
 	public Font getFont() {

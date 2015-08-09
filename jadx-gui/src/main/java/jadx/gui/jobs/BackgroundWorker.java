@@ -2,7 +2,7 @@ package jadx.gui.jobs;
 
 import jadx.gui.ui.ProgressPanel;
 import jadx.gui.utils.CacheObject;
-import jadx.gui.utils.TextSearchIndex;
+import jadx.gui.utils.search.TextSearchIndex;
 import jadx.gui.utils.Utils;
 
 import javax.swing.SwingUtilities;

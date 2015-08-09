@@ -3,12 +3,15 @@ package jadx.gui.jobs;
 import jadx.api.JavaClass;
 import jadx.core.codegen.CodeWriter;
 import jadx.gui.JadxWrapper;
-import jadx.gui.settings.JadxSettings;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.CodeLinesInfo;
 import jadx.gui.utils.CodeUsageInfo;
-import jadx.gui.utils.TextSearchIndex;
+import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.Utils;
+import jadx.gui.utils.search.StringRef;
+import jadx.gui.utils.search.TextSearchIndex;
+
+import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -20,15 +23,16 @@ public class IndexJob extends BackgroundJob {
 	private final CacheObject cache;
 	private final boolean useFastSearch;
 
-	public IndexJob(JadxWrapper wrapper, JadxSettings settings, CacheObject cache) {
-		super(wrapper, settings.getThreadsCount());
-		this.useFastSearch = settings.isUseFastSearch();
+	public IndexJob(JadxWrapper wrapper, CacheObject cache, int threadsCount, boolean useFastSearch) {
+		super(wrapper, threadsCount);
+		this.useFastSearch = useFastSearch;
 		this.cache = cache;
 	}
 
 	protected void runJob() {
-		final TextSearchIndex index = new TextSearchIndex();
-		final CodeUsageInfo usageInfo = new CodeUsageInfo();
+		JNodeCache nodeCache = cache.getNodeCache();
+		final TextSearchIndex index = new TextSearchIndex(nodeCache, useFastSearch);
+		final CodeUsageInfo usageInfo = new CodeUsageInfo(nodeCache);
 		cache.setTextIndex(index);
 		cache.setUsageInfo(usageInfo);
 		for (final JavaClass cls : wrapper.getClasses()) {
@@ -39,10 +43,10 @@ public class IndexJob extends BackgroundJob {
 						index.indexNames(cls);
 
 						CodeLinesInfo linesInfo = new CodeLinesInfo(cls);
-						String[] lines = splitIntoLines(cls);
+						List<StringRef> lines = splitLines(cls);
 
 						usageInfo.processClass(cls, linesInfo, lines);
-						if (useFastSearch && Utils.isFreeMemoryAvailable()) {
+						if (Utils.isFreeMemoryAvailable()) {
 							index.indexCode(cls, linesInfo, lines);
 						} else {
 							index.classCodeIndexSkipped(cls);
@@ -56,11 +60,11 @@ public class IndexJob extends BackgroundJob {
 	}
 
 	@NotNull
-	protected String[] splitIntoLines(JavaClass cls) {
-		String[] lines = cls.getCode().split(CodeWriter.NL);
-		int count = lines.length;
-		for (int i = 0; i < count; i++) {
-			lines[i] = lines[i].trim();
+	protected List<StringRef> splitLines(JavaClass cls) {
+		List<StringRef> lines = StringRef.split(cls.getCode(), CodeWriter.NL);
+		int size = lines.size();
+		for (int i = 0; i < size; i++) {
+			lines.set(i, lines.get(i).trim());
 		}
 		return lines;
 	}
