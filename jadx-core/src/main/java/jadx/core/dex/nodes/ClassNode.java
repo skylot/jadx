@@ -25,6 +25,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -64,6 +65,9 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 
 	private ProcessState state = ProcessState.NOT_LOADED;
 	private final Set<ClassNode> dependencies = new HashSet<ClassNode>();
+
+	// cache maps
+	private Map<MethodInfo, MethodNode> mthInfoMap = Collections.emptyMap();
 
 	public ClassNode(DexNode dex, ClassDef cls) throws DecodeException {
 		this.dex = dex;
@@ -126,6 +130,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 			}
 			this.accessFlags = new AccessInfo(accFlagsValue, AFType.CLASS);
 
+			buildCache();
 		} catch (Exception e) {
 			throw new DecodeException("Error decode class: " + clsInfo, e);
 		}
@@ -278,6 +283,13 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 		}
 	}
 
+	private void buildCache() {
+		mthInfoMap = new HashMap<MethodInfo, MethodNode>(methods.size());
+		for (MethodNode mth : methods) {
+			mthInfoMap.put(mth.getMethodInfo(), mth);
+		}
+	}
+
 	@Nullable
 	public ArgType getSuperClass() {
 		return superClass;
@@ -384,12 +396,7 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 	}
 
 	public MethodNode searchMethod(MethodInfo mth) {
-		for (MethodNode m : methods) {
-			if (m.getMethodInfo().equals(mth)) {
-				return m;
-			}
-		}
-		return null;
+		return mthInfoMap.get(mth);
 	}
 
 	public MethodNode searchMethodByName(String shortId) {

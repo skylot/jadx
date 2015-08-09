@@ -132,10 +132,7 @@ public final class MethodInfo {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
+		if (!(obj instanceof MethodInfo)) {
 			return false;
 		}
 		MethodInfo other = (MethodInfo) obj;

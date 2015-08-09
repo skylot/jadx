@@ -513,11 +513,11 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		}
 
 		String name = getName();
-		List<MethodNode> methods = parentClass.getMethods();
-		for (MethodNode method : methods) {
+		for (MethodNode method : parentClass.getMethods()) {
+			MethodInfo otherMthInfo = method.mthInfo;
 			if (this != method
-					&& method.getName().equals(name)
-					&& method.mthInfo.getArgumentsTypes().size() == argsCount) {
+					&& otherMthInfo.getArgumentsTypes().size() == argsCount
+					&& otherMthInfo.getName().equals(name)) {
 				return true;
 			}
 		}
