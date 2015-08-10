@@ -1,6 +1,7 @@
 package jadx.gui.ui;
 
 import ch.qos.logback.classic.Level;
+import jadx.gui.settings.JadxSettings;
 import jadx.gui.utils.LogCollector;
 import jadx.gui.utils.NLS;
 
@@ -24,11 +25,14 @@ class LogViewer extends JDialog {
 	private static final Level[] LEVEL_ITEMS = {Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR};
 
 	private static Level level = Level.WARN;
+	private final JadxSettings settings;
 	private RSyntaxTextArea textPane;
 
-	public LogViewer() {
+	public LogViewer(JadxSettings settings) {
+		this.settings = settings;
 		initUI();
 		registerLogListener();
+		settings.loadWindowPos(this);
 	}
 
 	public final void initUI() {
@@ -98,11 +102,13 @@ class LogViewer extends JDialog {
 	}
 
 	private void close() {
-		LogCollector.getInstance().resetListener();
 		dispose();
 	}
 
-	public static void main(String[] args) {
-		new LogViewer().setVisible(true);
+	@Override
+	public void dispose() {
+		LogCollector.getInstance().resetListener();
+		settings.saveWindowPos(this);
+		super.dispose();
 	}
 }

@@ -12,6 +12,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SwingConstants;
@@ -52,6 +53,13 @@ public class JadxSettingsWindow extends JDialog {
 		this.startSettings = JadxSettingsAdapter.makeString(settings);
 
 		initUI();
+
+		setTitle(NLS.str("preferences.title"));
+		setSize(400, 550);
+		setLocationRelativeTo(null);
+		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		setModalityType(ModalityType.APPLICATION_MODAL);
+		pack();
 	}
 
 	private void initUI() {
@@ -79,9 +87,29 @@ public class JadxSettingsWindow extends JDialog {
 			}
 		});
 
+		JButton resetBtn = new JButton(NLS.str("preferences.reset"));
+		resetBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				int res = JOptionPane.showConfirmDialog(
+						JadxSettingsWindow.this,
+						NLS.str("preferences.reset_message"),
+						NLS.str("preferences.reset_title"),
+						JOptionPane.YES_NO_OPTION);
+				if (res == JOptionPane.YES_OPTION) {
+					String defaults = JadxSettingsAdapter.makeString(new JadxSettings());
+					JadxSettingsAdapter.fill(settings, defaults);
+					getContentPane().removeAll();
+					initUI();
+					pack();
+					repaint();
+				}
+			}
+		});
+
 		JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
 		buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+		buttonPane.add(resetBtn);
 		buttonPane.add(Box.createHorizontalGlue());
 		buttonPane.add(saveBtn);
 		buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
@@ -91,13 +119,6 @@ public class JadxSettingsWindow extends JDialog {
 		contentPane.add(panel, BorderLayout.CENTER);
 		contentPane.add(buttonPane, BorderLayout.PAGE_END);
 		getRootPane().setDefaultButton(saveBtn);
-
-		setTitle(NLS.str("preferences.title"));
-		setSize(400, 550);
-		setLocationRelativeTo(null);
-		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		setModalityType(ModalityType.APPLICATION_MODAL);
-		pack();
 	}
 
 	private SettingsGroup makeDeobfuscationGroup() {

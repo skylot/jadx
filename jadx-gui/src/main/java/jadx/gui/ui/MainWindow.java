@@ -397,7 +397,7 @@ public class MainWindow extends JFrame {
 		Action logAction = new AbstractAction(NLS.str("menu.log"), ICON_LOG) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new LogViewer().setVisible(true);
+				new LogViewer(settings).setVisible(true);
 			}
 		};
 		logAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.log"));
@@ -593,6 +593,9 @@ public class MainWindow extends JFrame {
 	}
 
 	public void setLocationAndPosition() {
+		if (this.settings.loadWindowPos(this)) {
+			return;
+		}
 		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 		DisplayMode mode = gd.getDisplayMode();
 		int w = mode.getWidth();
@@ -608,6 +611,7 @@ public class MainWindow extends JFrame {
 
 	@Override
 	public void dispose() {
+		settings.saveWindowPos(this);
 		cancelBackgroundJobs();
 		super.dispose();
 	}

@@ -1,6 +1,7 @@
 package jadx.gui.ui;
 
 import jadx.gui.jobs.BackgroundJob;
+import jadx.gui.jobs.BackgroundWorker;
 import jadx.gui.jobs.DecompileJob;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.TextNode;
@@ -78,6 +79,10 @@ public abstract class CommonSearchDialog extends JDialog {
 		this.codeFont = mainWindow.getSettings().getFont();
 	}
 
+	public void loadWindowPos() {
+		mainWindow.getSettings().loadWindowPos(this);
+	}
+
 	public void prepare() {
 		if (cache.getIndexJob().isComplete()) {
 			loadFinishedCommon();
@@ -98,6 +103,12 @@ public abstract class CommonSearchDialog extends JDialog {
 		tabbedPane.codeJump(new Position(node.getRootClass(), node.getLine()));
 
 		dispose();
+	}
+
+	@Override
+	public void dispose() {
+		mainWindow.getSettings().saveWindowPos(this);
+		super.dispose();
 	}
 
 	protected void initCommon() {
@@ -348,7 +359,11 @@ public abstract class CommonSearchDialog extends JDialog {
 		@Override
 		public Void doInBackground() {
 			try {
-				mainWindow.getBackgroundWorker().exec();
+				BackgroundWorker backgroundWorker = mainWindow.getBackgroundWorker();
+				if (backgroundWorker == null) {
+					return null;
+				}
+				backgroundWorker.exec();
 
 				DecompileJob decompileJob = cache.getDecompileJob();
 				progressPane.changeLabel(this, decompileJob.getInfoString());

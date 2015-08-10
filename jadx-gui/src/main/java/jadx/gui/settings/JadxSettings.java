@@ -3,10 +3,13 @@ package jadx.gui.settings;
 import jadx.cli.JadxCLIArgs;
 
 import java.awt.Font;
+import java.awt.Window;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
@@ -30,6 +33,8 @@ public class JadxSettings extends JadxCLIArgs {
 	private String fontStr = "";
 	private boolean useFastSearch = false;
 	private boolean autoStartJobs = true;
+
+	private Map<String, WindowLocation> windowPos = new HashMap<String, WindowLocation>();
 
 	public JadxSettings() {
 		setSkipResources(true);
@@ -87,6 +92,25 @@ public class JadxSettings extends JadxCLIArgs {
 			recentFiles.subList(0, count - RECENT_FILES_COUNT).clear();
 		}
 		sync();
+	}
+
+	public void saveWindowPos(Window window) {
+		WindowLocation pos = new WindowLocation(window.getClass().getSimpleName(),
+				window.getX(), window.getY(),
+				window.getWidth(), window.getHeight()
+		);
+		windowPos.put(pos.getWindowId(), pos);
+		sync();
+	}
+
+	public boolean loadWindowPos(Window window) {
+		WindowLocation pos = windowPos.get(window.getClass().getSimpleName());
+		if (pos == null) {
+			return false;
+		}
+		window.setLocation(pos.getX(), pos.getY());
+		window.setSize(pos.getWidth(), pos.getHeight());
+		return true;
 	}
 
 	public void setThreadsCount(int threadsCount) {

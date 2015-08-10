@@ -64,6 +64,7 @@ public class SearchDialog extends CommonSearchDialog {
 				});
 			}
 		});
+		loadWindowPos();
 	}
 
 	protected void openInit() {

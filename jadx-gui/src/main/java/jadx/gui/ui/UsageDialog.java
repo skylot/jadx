@@ -43,6 +43,7 @@ public class UsageDialog extends CommonSearchDialog {
 				});
 			}
 		});
+		loadWindowPos();
 	}
 
 	protected void openInit() {
