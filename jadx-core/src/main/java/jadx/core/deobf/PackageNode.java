@@ -61,10 +61,15 @@ public class PackageNode {
 		if (cachedPackageFullAlias == null) {
 			Stack<PackageNode> pp = getParentPackages();
 			StringBuilder result = new StringBuilder();
-			result.append(pp.pop().getAlias());
-			while (pp.size() > 0) {
-				result.append(SEPARATOR_CHAR);
+
+			if (pp.size() > 0) {
 				result.append(pp.pop().getAlias());
+				while (pp.size() > 0) {
+					result.append(SEPARATOR_CHAR);
+					result.append(pp.pop().getAlias());
+				}
+			} else {
+				result.append(this.getAlias());
 			}
 			cachedPackageFullAlias = result.toString();
 		}
