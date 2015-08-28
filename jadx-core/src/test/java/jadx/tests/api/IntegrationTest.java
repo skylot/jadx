@@ -247,7 +247,7 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	public Object invoke(String method) throws Exception {
-		return invoke(method, new Class[0]);
+		return invoke(method, new Class<?>[0]);
 	}
 
 	public Object invoke(String method, Class[] types, Object... args) throws Exception {

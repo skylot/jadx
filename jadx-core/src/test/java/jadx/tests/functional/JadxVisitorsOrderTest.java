@@ -34,7 +34,7 @@ public class JadxVisitorsOrderTest {
 	}
 
 	private static List<String> check(List<IDexTreeVisitor> passes) {
-		List<Class> classList = new ArrayList<Class>(passes.size());
+		List<Class<?>> classList = new ArrayList<Class<?>>(passes.size());
 		for (IDexTreeVisitor pass : passes) {
 			classList.add(pass.getClass());
 		}

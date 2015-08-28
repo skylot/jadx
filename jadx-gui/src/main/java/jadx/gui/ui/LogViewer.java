@@ -41,6 +41,7 @@ class LogViewer extends JDialog {
 
 		JPanel controlPane = new JPanel();
 		controlPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		@SuppressWarnings("unchecked")
 		final JComboBox cb = new JComboBox(LEVEL_ITEMS);
 		cb.setSelectedItem(level);
 		cb.addActionListener(new ActionListener() {

@@ -71,7 +71,7 @@ public class JRoot extends JNode {
 	}
 
 	public JNode searchClassInTree(JNode node) {
-		Enumeration en = this.breadthFirstEnumeration();
+		Enumeration<?> en = this.breadthFirstEnumeration();
 		while (en.hasMoreElements()) {
 			Object obj = en.nextElement();
 			if (node.equals(obj)) {
