@@ -58,7 +58,7 @@ public class DynamicCompiler {
 	}
 
 	public Method getMethod(String method, Class[] types) throws Exception {
-		for (Class type : types) {
+		for (Class<?> type : types) {
 			checkType(type);
 		}
 		return getInstance().getClass().getMethod(method, types);
@@ -68,7 +68,7 @@ public class DynamicCompiler {
 		return mth.invoke(getInstance(), args);
 	}
 
-	private Class<?> checkType(Class type) throws ClassNotFoundException {
+	private Class<?> checkType(Class<?> type) throws ClassNotFoundException {
 		if (type.isPrimitive()) {
 			return type;
 		}
