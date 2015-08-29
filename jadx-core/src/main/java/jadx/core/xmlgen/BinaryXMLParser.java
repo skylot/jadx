@@ -1,5 +1,6 @@
 package jadx.core.xmlgen;
 
+import jadx.api.ResourcesLoader;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.DexNode;
@@ -81,22 +82,30 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	}
 
 	public synchronized CodeWriter parse(InputStream inputStream) throws IOException {
+		is = new ParserStream(inputStream);
+		if (!isBinaryXml()) {
+			return ResourcesLoader.loadToCodeWriter(inputStream);
+		}
 		writer = new CodeWriter();
 		writer.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-		is = new ParserStream(inputStream);
 		firstElement = true;
 		decode();
 		writer.finish();
 		return writer;
 	}
 
+	private boolean isBinaryXml() throws IOException {
+		is.mark(4);
+		int v = is.readInt16(); // version
+		int h = is.readInt16(); // header size
+		if (v == 0x0003 && h == 0x0008) {
+			return true;
+		}
+		is.reset();
+		return false;
+	}
+
 	void decode() throws IOException {
-		if (is.readInt16() != 0x0003) {
-			die("Version is not 3");
-		}
-		if (is.readInt16() != 0x0008) {
-			die("Size of header is not 8");
-		}
 		int size = is.readInt32();
 		while (is.getPos() < size) {
 			int type = is.readInt16();

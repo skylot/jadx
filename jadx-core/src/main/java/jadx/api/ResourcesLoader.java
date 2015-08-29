@@ -53,6 +53,7 @@ public final class ResourcesLoader {
 		}
 		ZipFile zipFile = null;
 		InputStream inputStream = null;
+		Object result = null;
 		try {
 			zipFile = new ZipFile(zipRef.getZipFile());
 			ZipEntry entry = zipFile.getEntry(zipRef.getEntryName());
@@ -60,7 +61,7 @@ public final class ResourcesLoader {
 				throw new IOException("Zip entry not found: " + zipRef);
 			}
 			inputStream = new BufferedInputStream(zipFile.getInputStream(entry));
-			return decoder.decode(entry.getSize(), inputStream);
+			result = decoder.decode(entry.getSize(), inputStream);
 		} catch (Exception e) {
 			throw new JadxException("Error decode: " + zipRef.getEntryName(), e);
 		} finally {
@@ -75,6 +76,7 @@ public final class ResourcesLoader {
 				LOG.debug("Error close zip file: {}", zipRef, e);
 			}
 		}
+		return result;
 	}
 
 	static CodeWriter loadContent(final JadxDecompiler jadxRef, final ResourceFile rf) {
@@ -148,7 +150,7 @@ public final class ResourcesLoader {
 		// LOG.debug("Add resource entry: {}, size: {}", name, entry.getSize());
 	}
 
-	private static CodeWriter loadToCodeWriter(InputStream is) throws IOException {
+	public static CodeWriter loadToCodeWriter(InputStream is) throws IOException {
 		CodeWriter cw = new CodeWriter();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream(READ_BUFFER_SIZE);
 		byte[] buffer = new byte[READ_BUFFER_SIZE];

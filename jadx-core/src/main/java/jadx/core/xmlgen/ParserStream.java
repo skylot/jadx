@@ -132,6 +132,17 @@ public class ParserStream {
 		checkPos(expectedOffset, error);
 	}
 
+	public void mark(int len) throws IOException {
+		if (!input.markSupported()) {
+			throw new IOException("Mark not supported for input stream " + input.getClass());
+		}
+		input.mark(len);
+	}
+
+	public void reset() throws IOException {
+		input.reset();
+	}
+
 	@Override
 	public String toString() {
 		return "pos: 0x" + Long.toHexString(readPos);
