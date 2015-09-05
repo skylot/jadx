@@ -49,7 +49,10 @@ public class RegionMakerVisitor extends AbstractVisitor {
 		mth.setRegion(rm.makeRegion(mth.getEnterBlock(), state));
 
 		if (!mth.isNoExceptionHandlers()) {
-			rm.processTryCatchBlocks(mth);
+			IRegion expOutBlock = rm.processTryCatchBlocks(mth);
+			if (expOutBlock != null) {
+				mth.getRegion().add(expOutBlock);
+			}
 		}
 
 		postProcessRegions(mth);

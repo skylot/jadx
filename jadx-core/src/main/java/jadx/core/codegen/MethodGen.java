@@ -167,7 +167,7 @@ public class MethodGen {
 				if (cause != null) {
 					code.newLine();
 					code.add("/*");
-					code.startLine("Error: ").add(Utils.getStackTrace(cause));
+					code.newLine().add("Error: ").add(Utils.getStackTrace(cause));
 					code.add("*/");
 				}
 			}

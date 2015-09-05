@@ -12,6 +12,8 @@ import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.Edge;
+import jadx.core.dex.nodes.IBlock;
+import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -899,7 +901,7 @@ public class RegionMaker {
 		}
 	}
 
-	public void processTryCatchBlocks(MethodNode mth) {
+	public IRegion processTryCatchBlocks(MethodNode mth) {
 		Set<TryCatchBlock> tcs = new HashSet<TryCatchBlock>();
 		for (ExceptionHandler handler : mth.getExceptionHandlers()) {
 			tcs.add(handler.getTryBlock());
@@ -935,6 +937,40 @@ public class RegionMaker {
 				processExcHandler(handler, exits);
 			}
 		}
+		return processHandlersOutBlocks(mth, tcs);
+	}
+
+	/**
+	 * Search handlers successor blocks not included in any region.
+	 */
+	protected IRegion processHandlersOutBlocks(MethodNode mth, Set<TryCatchBlock> tcs) {
+		Set<IBlock> allRegionBlocks = new HashSet<IBlock>();
+		RegionUtils.getAllRegionBlocks(mth.getRegion(), allRegionBlocks);
+
+		Set<IBlock> succBlocks = new HashSet<IBlock>();
+		for (TryCatchBlock tc : tcs) {
+			for (ExceptionHandler handler : tc.getHandlers()) {
+				IContainer region = handler.getHandlerRegion();
+				if (region != null) {
+					IBlock lastBlock = RegionUtils.getLastBlock(region);
+					if (lastBlock instanceof BlockNode) {
+						succBlocks.addAll(((BlockNode) lastBlock).getSuccessors());
+					}
+					RegionUtils.getAllRegionBlocks(region, allRegionBlocks);
+				}
+			}
+		}
+		succBlocks.removeAll(allRegionBlocks);
+		if (succBlocks.isEmpty()) {
+			return null;
+		}
+		Region excOutRegion = new Region(mth.getRegion());
+		for (IBlock block : succBlocks) {
+			if (block instanceof BlockNode) {
+				excOutRegion.add(makeRegion((BlockNode) block, new RegionStack(mth)));
+			}
+		}
+		return excOutRegion;
 	}
 
 	private void processExcHandler(ExceptionHandler handler, Set<BlockNode> exits) {
@@ -980,7 +1016,7 @@ public class RegionMaker {
 		if (b1 == null || b2 == null) {
 			return false;
 		}
-		return isReturnBlocks(b1, b2) || isSyntheticPath(b1, b2);
+		return isEqualReturnBlocks(b1, b2) || isSyntheticPath(b1, b2);
 	}
 
 	private static boolean isSyntheticPath(BlockNode b1, BlockNode b2) {
@@ -989,7 +1025,7 @@ public class RegionMaker {
 		return (n1 != b1 || n2 != b2) && isEqualPaths(n1, n2);
 	}
 
-	public static boolean isReturnBlocks(BlockNode b1, BlockNode b2) {
+	public static boolean isEqualReturnBlocks(BlockNode b1, BlockNode b2) {
 		if (!b1.isReturnBlock() || !b2.isReturnBlock()) {
 			return false;
 		}

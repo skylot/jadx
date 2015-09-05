@@ -264,8 +264,10 @@ public class ClassGen {
 			try {
 				addMethod(code, mth);
 			} catch (Exception e) {
-				String msg = ErrorsCounter.methodError(mth, "Method generation error", e);
-				code.startLine("/* " + msg + CodeWriter.NL + Utils.getStackTrace(e) + " */");
+				code.newLine().add("/*");
+				code.newLine().add(ErrorsCounter.methodError(mth, "Method generation error", e));
+				code.newLine().add(Utils.getStackTrace(e));
+				code.newLine().add("*/");
 			}
 		}
 	}

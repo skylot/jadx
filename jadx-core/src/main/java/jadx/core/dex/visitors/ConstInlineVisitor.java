@@ -103,7 +103,9 @@ public class ConstInlineVisitor extends AbstractVisitor {
 		int replaceCount = 0;
 		for (RegisterArg arg : use) {
 			InsnNode useInsn = arg.getParentInsn();
-			if (useInsn == null || useInsn.getType() == InsnType.PHI) {
+			if (useInsn == null
+					|| useInsn.getType() == InsnType.PHI
+					|| useInsn.getType() == InsnType.MERGE) {
 				continue;
 			}
 			LiteralArg litArg;

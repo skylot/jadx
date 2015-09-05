@@ -10,7 +10,12 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import java.util.BitSet;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class LiveVarAnalysis {
+	private static final Logger LOG = LoggerFactory.getLogger(LiveVarAnalysis.class);
+
 	private final MethodNode mth;
 
 	private BitSet[] uses;
@@ -37,7 +42,15 @@ public class LiveVarAnalysis {
 	}
 
 	public boolean isLive(int blockId, int regNum) {
+		if (blockId >= liveIn.length) {
+			LOG.warn("LiveVarAnalysis: out of bounds block: {}, max: {}", blockId, liveIn.length);
+			return false;
+		}
 		return liveIn[blockId].get(regNum);
+	}
+
+	public boolean isLive(BlockNode block, int regNum) {
+		return isLive(block.getId(), regNum);
 	}
 
 	private void fillBasicBlockInfo() {

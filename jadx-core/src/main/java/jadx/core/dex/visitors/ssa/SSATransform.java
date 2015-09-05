@@ -93,7 +93,7 @@ public class SSATransform extends AbstractVisitor {
 		}
 	}
 
-	private static void addPhi(MethodNode mth, BlockNode block, int regNum) {
+	public static PhiInsn addPhi(MethodNode mth, BlockNode block, int regNum) {
 		PhiListAttr phiList = block.get(AType.PHI_LIST);
 		if (phiList == null) {
 			phiList = new PhiListAttr();
@@ -112,6 +112,7 @@ public class SSATransform extends AbstractVisitor {
 		phiList.getList().add(phiInsn);
 		phiInsn.setOffset(block.getStartOffset());
 		block.getInstructions().add(0, phiInsn);
+		return phiInsn;
 	}
 
 	private static void renameVariables(MethodNode mth) {
@@ -124,11 +125,16 @@ public class SSATransform extends AbstractVisitor {
 		// init method arguments
 		for (RegisterArg arg : mth.getArguments(true)) {
 			int regNum = arg.getRegNum();
-			vars[regNum] = mth.makeNewSVar(regNum, versions, arg);
+			vars[regNum] = newSSAVar(mth, versions, arg, regNum);
 		}
 		BlockNode enterBlock = mth.getEnterBlock();
 		initPhiInEnterBlock(vars, enterBlock);
 		renameVar(mth, vars, versions, enterBlock);
+	}
+
+	private static SSAVar newSSAVar(MethodNode mth, int[] versions, RegisterArg arg, int regNum) {
+		int version = versions[regNum]++;
+		return mth.makeNewSVar(regNum, version, arg);
 	}
 
 	private static void initPhiInEnterBlock(SSAVar[] vars, BlockNode enterBlock) {
@@ -168,7 +174,7 @@ public class SSATransform extends AbstractVisitor {
 			RegisterArg result = insn.getResult();
 			if (result != null) {
 				int regNum = result.getRegNum();
-				vars[regNum] = mth.makeNewSVar(regNum, vers, result);
+				vars[regNum] = newSSAVar(mth, vers, result, regNum);
 			}
 		}
 		for (BlockNode s : block.getSuccessors()) {

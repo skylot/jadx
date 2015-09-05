@@ -162,7 +162,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 			return false;
 		}
 
-		/* 'finally' extract confirmed, run remove steps */
+		// 'finally' extract confirmed, run remove steps
 
 		LiveVarAnalysis laBefore = null;
 		boolean runReMap = isReMapNeeded(removes);
@@ -191,7 +191,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 
 				RegisterArg resArg = me.getResult();
 				BlockNode succ = handlerBlock.getCleanSuccessors().get(0);
-				if (laAfter.isLive(succ.getId(), resArg.getRegNum())) {
+				if (laAfter.isLive(succ, resArg.getRegNum())) {
 					// kill variable
 					InsnNode kill = new InsnNode(InsnType.NOP, 0);
 					kill.setResult(resArg);
@@ -224,31 +224,56 @@ public class BlockFinallyExtract extends AbstractVisitor {
 		BitSet processed = new BitSet(mth.getRegsCount());
 		for (BlocksRemoveInfo removeInfo : removes) {
 			processed.clear();
-			BlockNode insertBlock = removeInfo.getStart().getSecond();
+			BlocksPair start = removeInfo.getStart();
+			BlockNode insertBlockBefore = start.getFirst();
+			BlockNode insertBlock = start.getSecond();
 			if (removeInfo.getRegMap().isEmpty() || insertBlock == null) {
 				continue;
 			}
 			for (Map.Entry<RegisterArg, RegisterArg> entry : removeInfo.getRegMap().entrySet()) {
-				RegisterArg from = entry.getKey();
-				int regNum = from.getRegNum();
-				if (!processed.get(regNum)) {
-					if (laBefore.isLive(insertBlock.getId(), regNum)) {
+				RegisterArg fromReg = entry.getKey();
+				RegisterArg toReg = entry.getValue();
+				int fromRegNum = fromReg.getRegNum();
+				int toRegNum = toReg.getRegNum();
+				if (!processed.get(fromRegNum)) {
+					boolean liveFromBefore = laBefore.isLive(insertBlockBefore, fromRegNum);
+					boolean liveFromAfter = laAfter.isLive(insertBlock, fromRegNum);
+					// boolean liveToBefore = laBefore.isLive(insertBlock, toRegNum);
+					boolean liveToAfter = laAfter.isLive(insertBlock, toRegNum);
+					if (liveToAfter && liveFromBefore) {
+						// merge 'to' and 'from' registers
+						InsnNode merge = new InsnNode(InsnType.MERGE, 2);
+						merge.setResult(toReg.duplicate());
+						merge.addArg(toReg.duplicate());
+						merge.addArg(fromReg.duplicate());
+						injectInsn(mth, insertBlock, merge);
+					} else if (liveFromBefore) {
 						// remap variable
-						RegisterArg to = entry.getValue();
 						InsnNode move = new InsnNode(InsnType.MOVE, 1);
-						move.setResult(to);
-						move.addArg(from);
-						insertBlock.getInstructions().add(move);
-					} else if (laAfter.isLive(insertBlock.getId(), regNum)) {
+						move.setResult(toReg.duplicate());
+						move.addArg(fromReg.duplicate());
+						injectInsn(mth, insertBlock, move);
+					} else if (liveFromAfter) {
 						// kill variable
 						InsnNode kill = new InsnNode(InsnType.NOP, 0);
-						kill.setResult(from);
+						kill.setResult(fromReg.duplicate());
 						kill.add(AFlag.REMOVE);
-						insertBlock.getInstructions().add(0, kill);
+						injectInsn(mth, insertBlock, kill);
 					}
-					processed.set(regNum);
+					processed.set(fromRegNum);
 				}
 			}
+		}
+	}
+
+	private static void injectInsn(MethodNode mth, BlockNode insertBlock, InsnNode insn) {
+		insn.add(AFlag.SYNTHETIC);
+		if (insertBlock.getInstructions().isEmpty()) {
+			insertBlock.getInstructions().add(insn);
+		} else {
+			BlockNode succBlock = splitBlock(mth, insertBlock, 0);
+			BlockNode predBlock = succBlock.getPredecessors().get(0);
+			predBlock.getInstructions().add(insn);
 		}
 	}
 
@@ -270,11 +295,41 @@ public class BlockFinallyExtract extends AbstractVisitor {
 		if (removeInfo == null) {
 			return null;
 		}
-		if (removeInfo.getOuts().size() != 1) {
-			LOG.debug("Unexpected finally block outs count: {}", removeInfo.getOuts());
-			return null;
+		Set<BlocksPair> outs = removeInfo.getOuts();
+		if (outs.size() == 1) {
+			return removeInfo;
 		}
-		return removeInfo;
+		// check if several 'return' blocks maps to one out
+		if (mergeReturns(mth, outs)) {
+			return removeInfo;
+		}
+		LOG.debug("Unexpected finally block outs count: {}", outs);
+		return null;
+	}
+
+	private static boolean mergeReturns(MethodNode mth, Set<BlocksPair> outs) {
+		Set<BlockNode> rightOuts = new HashSet<BlockNode>();
+		boolean allReturns = true;
+		for (BlocksPair outPair : outs) {
+			BlockNode first = outPair.getFirst();
+			if (!first.isReturnBlock()) {
+				allReturns = false;
+			}
+			rightOuts.add(outPair.getSecond());
+		}
+		if (!allReturns || rightOuts.size() != 1) {
+			return false;
+		}
+		Iterator<BlocksPair> it = outs.iterator();
+		while (it.hasNext()) {
+			BlocksPair out = it.next();
+			BlockNode returnBlock = out.getFirst();
+			if (!returnBlock.contains(AFlag.ORIG_RETURN)) {
+				markForRemove(mth, returnBlock);
+				it.remove();
+			}
+		}
+		return true;
 	}
 
 	private static BlocksRemoveInfo checkFromFirstBlock(BlockNode remBlock, BlockNode startBlock, BitSet bs) {
@@ -453,7 +508,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 			// change start block in removeInfo
 			removeInfo.getProcessed().remove(removeInfo.getStart());
 			BlocksPair newStart = new BlocksPair(remBlock, startBlock);
-			removeInfo.setStart(newStart);
+//			removeInfo.setStart(newStart);
 			removeInfo.getProcessed().add(newStart);
 		}
 		// split end block
@@ -529,6 +584,11 @@ public class BlockFinallyExtract extends AbstractVisitor {
 		return true;
 	}
 
+	/**
+	 * Split one block into connected 2 blocks with same connections.
+	 *
+	 * @return new successor block
+	 */
 	private static BlockNode splitBlock(MethodNode mth, BlockNode block, int splitIndex) {
 		BlockNode newBlock = BlockSplitter.startNewBlock(mth, -1);
 
@@ -653,6 +713,53 @@ public class BlockFinallyExtract extends AbstractVisitor {
 			}
 			markForRemove(mth, mb);
 			edgeAttr.getBlocks().remove(mb);
+		}
+		mergeSyntheticPredecessors(mth, origReturnBlock);
+	}
+
+	private static void mergeSyntheticPredecessors(MethodNode mth, BlockNode block) {
+		List<BlockNode> preds = new ArrayList<BlockNode>(block.getPredecessors());
+		Iterator<BlockNode> it = preds.iterator();
+		while (it.hasNext()) {
+			BlockNode predBlock = it.next();
+			if (!predBlock.isSynthetic()) {
+				it.remove();
+			}
+		}
+		if (preds.size() < 2) {
+			return;
+		}
+		BlockNode commonBlock = null;
+		for (BlockNode predBlock : preds) {
+			List<BlockNode> successors = predBlock.getSuccessors();
+			if (successors.size() != 2) {
+				return;
+			}
+			BlockNode cmnBlk = BlockUtils.selectOtherSafe(block, successors);
+			if (commonBlock == null) {
+				commonBlock = cmnBlk;
+			} else if (cmnBlk != commonBlock) {
+				return;
+			}
+			if (!predBlock.contains(AType.IGNORE_EDGE)) {
+				return;
+			}
+		}
+		if (commonBlock == null) {
+			return;
+		}
+
+		// merge confirmed
+		BlockNode mergeBlock = null;
+		for (BlockNode predBlock : preds) {
+			if (mergeBlock == null) {
+				mergeBlock = predBlock;
+				continue;
+			}
+			for (BlockNode remPred : predBlock.getPredecessors()) {
+				connect(remPred, mergeBlock);
+			}
+			markForRemove(mth, predBlock);
 		}
 	}
 

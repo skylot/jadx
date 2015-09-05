@@ -554,14 +554,24 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		return debugInfoOffset;
 	}
 
-	public SSAVar makeNewSVar(int regNum, int[] versions, @NotNull RegisterArg arg) {
-		SSAVar var = new SSAVar(regNum, versions[regNum], arg);
-		versions[regNum]++;
+	public SSAVar makeNewSVar(int regNum, int version, @NotNull RegisterArg assignArg) {
+		SSAVar var = new SSAVar(regNum, version, assignArg);
 		if (sVars.isEmpty()) {
 			sVars = new ArrayList<SSAVar>();
 		}
 		sVars.add(var);
 		return var;
+	}
+
+	public int getNextSVarVersion(int regNum) {
+		int v = -1;
+		for (SSAVar sVar : sVars) {
+			if (sVar.getRegNum() == regNum) {
+				v = Math.max(v, sVar.getVersion());
+			}
+		}
+		v++;
+		return v;
 	}
 
 	public void removeSVar(SSAVar var) {

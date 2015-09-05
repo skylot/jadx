@@ -72,6 +72,22 @@ public class RegionUtils {
 		}
 	}
 
+	public static IBlock getLastBlock(IContainer container) {
+		if (container instanceof IBlock) {
+			return (IBlock) container;
+		} else if (container instanceof IBranchRegion) {
+			return null;
+		} else if (container instanceof IRegion) {
+			List<IContainer> blocks = ((IRegion) container).getSubBlocks();
+			if (blocks.isEmpty()) {
+				return null;
+			}
+			return getLastBlock(blocks.get(blocks.size() - 1));
+		} else {
+			throw new JadxRuntimeException(unknownContainerType(container));
+		}
+	}
+
 	/**
 	 * Return true if last block in region has no successors
 	 */

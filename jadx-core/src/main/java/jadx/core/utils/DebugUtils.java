@@ -36,7 +36,11 @@ public class DebugUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(DebugUtils.class);
 
 	public static void dump(MethodNode mth) {
-		File out = new File("test-graph-tmp");
+		dump(mth, "");
+	}
+
+	public static void dump(MethodNode mth, String desc) {
+		File out = new File("test-graph" + desc + "-tmp");
 		DotGraphVisitor.dump(out).visit(mth);
 		DotGraphVisitor.dumpRaw(out).visit(mth);
 		DotGraphVisitor.dumpRegions(out).visit(mth);

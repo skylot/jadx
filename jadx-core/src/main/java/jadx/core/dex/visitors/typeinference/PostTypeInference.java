@@ -3,7 +3,6 @@ package jadx.core.dex.visitors.typeinference;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InvokeNode;
-import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
@@ -101,11 +100,11 @@ public class PostTypeInference {
 				return true;
 			}
 
-			case PHI: {
-				PhiInsn phi = (PhiInsn) insn;
-				ArgType type = phi.getResult().getType();
+			case PHI:
+			case MERGE: {
+				ArgType type = insn.getResult().getType();
 				if (!type.isTypeKnown()) {
-					for (InsnArg arg : phi.getArguments()) {
+					for (InsnArg arg : insn.getArguments()) {
 						if (arg.getType().isTypeKnown()) {
 							type = arg.getType();
 							break;
@@ -113,11 +112,11 @@ public class PostTypeInference {
 					}
 				}
 				boolean changed = false;
-				if (updateType(phi.getResult(), type)) {
+				if (updateType(insn.getResult(), type)) {
 					changed = true;
 				}
-				for (int i = 0; i < phi.getArgsCount(); i++) {
-					RegisterArg arg = phi.getArg(i);
+				for (int i = 0; i < insn.getArgsCount(); i++) {
+					RegisterArg arg = (RegisterArg) insn.getArg(i);
 					if (updateType(arg, type)) {
 						changed = true;
 					}

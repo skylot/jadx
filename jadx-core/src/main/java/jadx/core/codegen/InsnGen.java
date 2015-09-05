@@ -510,7 +510,18 @@ public class InsnGen {
 			case NEW_INSTANCE:
 				// only fallback - make new instance in constructor invoke
 				fallbackOnlyInsn(insn);
-				code.add("new " + insn.getResult().getType());
+				code.add("new ").add(insn.getResult().getType().toString());
+				break;
+
+			case PHI:
+			case MERGE:
+				fallbackOnlyInsn(insn);
+				code.add(insn.getType().toString()).add("(");
+				for (InsnArg insnArg : insn.getArguments()) {
+					addArg(code, insnArg);
+					code.add(' ');
+				}
+				code.add(")");
 				break;
 
 			default:

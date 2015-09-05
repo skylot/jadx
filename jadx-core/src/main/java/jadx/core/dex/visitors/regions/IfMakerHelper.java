@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static jadx.core.dex.visitors.regions.RegionMaker.isEqualPaths;
-import static jadx.core.dex.visitors.regions.RegionMaker.isReturnBlocks;
+import static jadx.core.dex.visitors.regions.RegionMaker.isEqualReturnBlocks;
 import static jadx.core.utils.BlockUtils.getNextBlock;
 import static jadx.core.utils.BlockUtils.isPathExists;
 
@@ -277,7 +277,7 @@ public class IfMakerHelper {
 	}
 
 	private static boolean isSameBlocks(BlockNode first, BlockNode second) {
-		return first == second || isReturnBlocks(first, second);
+		return first == second || isEqualReturnBlocks(first, second);
 	}
 
 	static void confirmMerge(IfInfo info) {

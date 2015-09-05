@@ -256,17 +256,17 @@ public class ProcessVariables extends AbstractVisitor {
 				continue;
 			}
 			IRegion parent = region;
-			boolean declare = false;
+			boolean declared = false;
 			while (parent != null) {
 				if (canDeclareInRegion(u, region, regionsOrder)) {
 					declareVar(region, u.getArg());
-					declare = true;
+					declared = true;
 					break;
 				}
 				region = parent;
 				parent = region.getParent();
 			}
-			if (!declare) {
+			if (!declared) {
 				declareVar(mth.getRegion(), u.getArg());
 			}
 		}

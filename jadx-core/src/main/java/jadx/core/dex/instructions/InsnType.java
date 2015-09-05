@@ -65,6 +65,9 @@ public enum InsnType {
 	ONE_ARG,
 	PHI,
 
+	// merge all arguments in one
+	MERGE,
+
 	// TODO: now multidimensional arrays created using Array.newInstance function
 	NEW_MULTIDIM_ARRAY
 }
