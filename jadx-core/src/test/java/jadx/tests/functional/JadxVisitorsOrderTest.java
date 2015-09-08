@@ -1,6 +1,6 @@
 package jadx.tests.functional;
 
-import jadx.api.DefaultJadxArgs;
+import jadx.api.JadxArgs;
 import jadx.core.Jadx;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
@@ -24,7 +24,7 @@ public class JadxVisitorsOrderTest {
 
 	@Test
 	public void testOrder() {
-		List<IDexTreeVisitor> passes = Jadx.getPassesList(new DefaultJadxArgs(), new File("out"));
+		List<IDexTreeVisitor> passes = Jadx.getPassesList(new JadxArgs(), new File("out"));
 
 		List<String> errors = check(passes);
 		for (String str : errors) {

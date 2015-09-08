@@ -69,7 +69,7 @@ public final class JadxDecompiler {
 	private Map<FieldNode, JavaField> fieldsMap = new HashMap<FieldNode, JavaField>();
 
 	public JadxDecompiler() {
-		this(new DefaultJadxArgs());
+		this(new JadxArgs());
 	}
 
 	public JadxDecompiler(IJadxArgs jadxArgs) {
@@ -86,7 +86,7 @@ public final class JadxDecompiler {
 
 	void init() {
 		if (outDir == null) {
-			outDir = new DefaultJadxArgs().getOutDir();
+			outDir = new JadxArgs().getOutDir();
 		}
 		this.passes = Jadx.getPassesList(args, outDir);
 		this.codeGen = new CodeGen(args);

@@ -1,6 +1,7 @@
 package jadx.tests.api;
 
-import jadx.api.DefaultJadxArgs;
+import jadx.api.IJadxArgs;
+import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
 import jadx.core.Jadx;
@@ -135,38 +136,15 @@ public abstract class IntegrationTest extends TestUtils {
 		assertThat(cls.getCode().toString(), not(containsString("inconsistent")));
 	}
 
-	private DefaultJadxArgs getArgs() {
-		return new DefaultJadxArgs() {
-			@Override
-			public boolean isCFGOutput() {
-				return outputCFG;
-			}
-
-			@Override
-			public boolean isRawCFGOutput() {
-				return outputCFG;
-			}
-
-			@Override
-			public boolean isFallbackMode() {
-				return isFallback;
-			}
-
-			@Override
-			public boolean isShowInconsistentCode() {
-				return true;
-			}
-
-			@Override
-			public int getThreadsCount() {
-				return 1;
-			}
-
-			@Override
-			public boolean isSkipResources() {
-				return true;
-			}
-		};
+	private IJadxArgs getArgs() {
+		JadxArgs args = new JadxArgs();
+		args.setCfgOutput(outputCFG);
+		args.setRawCFGOutput(outputCFG);
+		args.setFallbackMode(isFallback);
+		args.setShowInconsistentCode(true);
+		args.setThreadsCount(1);
+		args.setSkipResources(true);
+		return args;
 	}
 
 	private void runAutoCheck(String clsName) {
