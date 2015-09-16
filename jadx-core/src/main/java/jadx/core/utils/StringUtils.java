@@ -95,4 +95,23 @@ public class StringUtils {
 		}
 		return sb.toString();
 	}
+
+	public static String escapeXML(String str) {
+		int len = str.length();
+		StringBuilder sb = new StringBuilder(len);
+		for (int i = 0; i < len; i++) {
+			char c = str.charAt(i);
+			switch (c) {
+				case '&': sb.append("&amp;"); break;
+				case '<': sb.append("&lt;"); break;
+				case '>': sb.append("&gt;"); break;
+				case '"': sb.append("&quot;"); break;
+				case '\'': sb.append("&apos;"); break;
+				default:
+					sb.append(c);
+					break;
+			}
+		}
+		return sb.toString();
+	}
 }

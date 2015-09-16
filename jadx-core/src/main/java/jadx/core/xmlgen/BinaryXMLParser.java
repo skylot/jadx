@@ -6,6 +6,7 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.entry.ValuesParser;
 
@@ -123,6 +124,9 @@ public class BinaryXMLParser extends CommonBinaryParser {
 				case RES_XML_START_NAMESPACE_TYPE:
 					parseNameSpace();
 					break;
+				case RES_XML_CDATA_TYPE:
+					parseCData();
+					break;
 				case RES_XML_END_NAMESPACE_TYPE:
 					parseNameSpaceEnd();
 					break;
@@ -179,6 +183,27 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		nsPrefix = strings[endPrefix];
 		int endURI = is.readInt32();
 		nsURI = strings[endURI];
+	}
+
+	private void parseCData() throws IOException {
+		if (is.readInt16() != 0x10) {
+			die("CDATA header is not 0x10");
+		}
+		if (is.readInt32() != 0x1C) {
+			die("CDATA header chunk is not 0x1C");
+		}
+		int lineNumber = is.readInt32();
+		is.skip(4);
+
+		int strIndex = is.readInt32();
+		String str = strings[strIndex];
+
+		writer.startLine().addIndent();
+		writer.attachSourceLine(lineNumber);
+		writer.add(StringUtils.escapeXML(str.trim())); // TODO: wrap into CDATA for easier reading
+
+		int size = is.readInt16();
+		is.skip(size - 2);
 	}
 
 	private void parseElement() throws IOException {
