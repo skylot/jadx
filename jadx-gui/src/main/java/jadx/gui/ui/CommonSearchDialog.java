@@ -42,6 +42,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
@@ -155,14 +156,20 @@ public abstract class CommonSearchDialog extends JDialog {
 		resultsModel = new ResultsModel();
 		resultsTable = new ResultsTable(resultsModel);
 		resultsTable.setShowHorizontalLines(false);
-//		resultsTable.setAutoCreateColumnsFromModel(true);
 		resultsTable.setDragEnabled(false);
 		resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		resultsTable.setBackground(ContentArea.BACKGROUND);
 		resultsTable.setColumnSelectionAllowed(false);
 		resultsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		resultsTable.setAutoscrolls(false);
-		resultsTable.setDefaultRenderer(Object.class, new ResultsTableCellRenderer());
+
+		ResultsTableCellRenderer renderer = new ResultsTableCellRenderer();
+		Enumeration<TableColumn> columns = resultsTable.getColumnModel().getColumns();
+		while (columns.hasMoreElements()) {
+			TableColumn column = columns.nextElement();
+			column.setCellRenderer(renderer);
+		}
+
 		resultsTable.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent evt) {
 				if (evt.getClickCount() == 2) {
