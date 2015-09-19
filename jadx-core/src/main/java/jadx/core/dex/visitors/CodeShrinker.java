@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 
-import org.jetbrains.annotations.Nullable;
-
 public class CodeShrinker extends AbstractVisitor {
 
 	@Override
@@ -38,6 +36,7 @@ public class CodeShrinker extends AbstractVisitor {
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {
 			shrinkBlock(mth, block);
+			simplifyMoveInsns(block);
 		}
 	}
 
@@ -231,53 +230,28 @@ public class CodeShrinker extends AbstractVisitor {
 					if (assignBlock != null
 							&& assignInsn != arg.getParentInsn()
 							&& canMoveBetweenBlocks(assignInsn, assignBlock, block, argsInfo.getInsn())) {
-						if (inline(arg, assignInsn, assignBlock, mth)) {
-							InsnList.remove(assignBlock, assignInsn);
-						}
+						inline(arg, assignInsn, assignBlock);
 					}
 				}
 			}
 		}
 		if (!wrapList.isEmpty()) {
 			for (WrapInfo wrapInfo : wrapList) {
-				inline(wrapInfo.getArg(), wrapInfo.getInsn(), block, mth);
-			}
-			for (WrapInfo wrapInfo : wrapList) {
-				insnList.remove(wrapInfo.getInsn());
+				inline(wrapInfo.getArg(), wrapInfo.getInsn(), block);
 			}
 		}
 	}
 
-	private static boolean inline(RegisterArg arg, InsnNode insn, @Nullable BlockNode block, MethodNode mth) {
+	private static boolean inline(RegisterArg arg, InsnNode insn, BlockNode block) {
 		InsnNode parentInsn = arg.getParentInsn();
-		// replace move instruction if needed
-		if (parentInsn != null) {
-			switch (parentInsn.getType()) {
-				case MOVE: {
-					if (block == null) {
-						block = BlockUtils.getBlockByInsn(mth, parentInsn);
-					}
-					if (block != null) {
-						int index = InsnList.getIndex(block.getInstructions(), parentInsn);
-						if (index != -1) {
-							insn.setResult(parentInsn.getResult());
-							insn.copyAttributesFrom(parentInsn);
-							insn.setOffset(parentInsn.getOffset());
-
-							block.getInstructions().set(index, insn);
-							return true;
-						}
-					}
-					break;
-				}
-				case RETURN: {
-					parentInsn.setSourceLine(insn.getSourceLine());
-					break;
-				}
-			}
+		if (parentInsn != null && parentInsn.getType() == InsnType.RETURN) {
+			parentInsn.setSourceLine(insn.getSourceLine());
 		}
-		// simple case
-		return arg.wrapInstruction(insn) != null;
+		boolean replaced = arg.wrapInstruction(insn) != null;
+		if (replaced) {
+			InsnList.remove(block, insn);
+		}
+		return replaced;
 	}
 
 	private static boolean canMoveBetweenBlocks(InsnNode assignInsn, BlockNode assignBlock,
@@ -319,5 +293,25 @@ public class CodeShrinker extends AbstractVisitor {
 			}
 		}
 		throw new JadxRuntimeException("Can't process instruction move : " + assignBlock);
+	}
+
+	private static void simplifyMoveInsns(BlockNode block) {
+		List<InsnNode> insns = block.getInstructions();
+		int size = insns.size();
+		for (int i = 0; i < size; i++) {
+			InsnNode insn = insns.get(i);
+			if (insn.getType() == InsnType.MOVE) {
+				// replace 'move' with wrapped insn
+				InsnArg arg = insn.getArg(0);
+				if (arg.isInsnWrap()) {
+					InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
+					wrapInsn.setResult(insn.getResult());
+					wrapInsn.copyAttributesFrom(insn);
+					wrapInsn.setOffset(insn.getOffset());
+					wrapInsn.remove(AFlag.WRAPPED);
+					block.getInstructions().set(i, wrapInsn);
+				}
+			}
+		}
 	}
 }
