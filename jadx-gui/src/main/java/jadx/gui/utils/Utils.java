@@ -36,7 +36,9 @@ public class Utils {
 	}
 
 	public static String typeFormat(String name, ArgType type) {
-		return "<html>" + name + "<span style='color:#888888;'> : " + typeStr(type) + "</span></html>";
+		return "<html><body><nobr>" + name
+				+ "<span style='color:#888888;'> : " + typeStr(type) + "</span>"
+				+ "</nobr></body></html>";
 	}
 
 	public static String typeStr(ArgType type) {

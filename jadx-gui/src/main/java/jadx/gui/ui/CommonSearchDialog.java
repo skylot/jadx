@@ -23,6 +23,7 @@ import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.UIDefaults;
 import javax.swing.UIManager;
@@ -43,13 +44,16 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -309,7 +313,9 @@ public abstract class CommonSearchDialog extends JDialog {
 		private final Color selectedBackground;
 		private final Color selectedForeground;
 
-		ResultsTableCellRenderer() {
+		private Map<Integer, Component> componentCache = new HashMap<Integer, Component>();
+
+		public ResultsTableCellRenderer() {
 			UIDefaults defaults = UIManager.getDefaults();
 			selectedBackground = defaults.getColor("List.selectionBackground");
 			selectedForeground = defaults.getColor("List.selectionForeground");
@@ -318,22 +324,33 @@ public abstract class CommonSearchDialog extends JDialog {
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object obj, boolean isSelected,
 				boolean hasFocus, int row, int column) {
-			if (!(obj instanceof JNode)) {
-				return null;
+			int id = (row << 2) | column;
+			Component comp = componentCache.get(id);
+			if (comp == null && (obj instanceof JNode)) {
+				comp = makeCell((JNode) obj, column);
+				componentCache.put(id, comp);
 			}
-			JNode node = (JNode) obj;
+			if (comp != null) {
+				updateSelection(comp, isSelected);
+			}
+			return comp;
+		}
 
+		private void updateSelection(Component comp, boolean isSelected) {
+			if (isSelected) {
+				comp.setBackground(selectedBackground);
+				comp.setForeground(selectedForeground);
+			} else {
+				comp.setBackground(ContentArea.BACKGROUND);
+			}
+		}
+
+		@Nullable
+		protected Component makeCell(JNode node, int column) {
 			if (column == 0) {
-				JLabel label = new JLabel();
+				JLabel label = new JLabel(node.makeLongString() + "  ", node.getIcon(), SwingConstants.LEFT);
 				label.setOpaque(true);
-				if (isSelected) {
-					label.setBackground(selectedBackground);
-					label.setForeground(selectedForeground);
-				} else {
-					label.setBackground(ContentArea.BACKGROUND);
-				}
-				label.setIcon(node.getIcon());
-				label.setText(node.makeLongString() + "  ");
+				label.setToolTipText(label.getText());
 				return label;
 			}
 			if (node.hasDescString()) {
@@ -341,7 +358,6 @@ public abstract class CommonSearchDialog extends JDialog {
 				textArea.setFont(codeFont);
 				textArea.setEditable(false);
 				textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
-				textArea.setBackground(isSelected ? selectedBackground : ContentArea.BACKGROUND);
 				textArea.setText("  " + node.makeDescString());
 				textArea.setRows(1);
 				textArea.setColumns(textArea.getText().length());
@@ -355,6 +371,7 @@ public abstract class CommonSearchDialog extends JDialog {
 			}
 			return null;
 		}
+
 	}
 
 	private class LoadTask extends SwingWorker<Void, Void> {
