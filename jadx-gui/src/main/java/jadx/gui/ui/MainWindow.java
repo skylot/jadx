@@ -320,6 +320,7 @@ public class MainWindow extends JFrame {
 		TreePath path = new TreePath(pathNodes);
 		tree.setSelectionPath(path);
 		tree.makeVisible(path);
+		tree.scrollPathToVisible(path);
 		tree.requestFocus();
 	}
 
