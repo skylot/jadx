@@ -360,6 +360,11 @@ public class ModVisitor extends AbstractVisitor {
 		ArgType insnArrayType = insn.getResult().getType();
 		ArgType insnElementType = insnArrayType.getArrayElement();
 		ArgType elType = insn.getElementType();
+		if (!elType.isTypeKnown() && insnElementType.isPrimitive()) {
+			if (elType.contains(insnElementType.getPrimitiveType())) {
+				elType = insnElementType;
+			}
+		}
 		if (!elType.equals(insnElementType) && !insnArrayType.equals(ArgType.OBJECT)) {
 			ErrorsCounter.methodError(mth,
 					"Incorrect type for fill-array insn " + InsnUtils.formatOffset(insn.getOffset())
