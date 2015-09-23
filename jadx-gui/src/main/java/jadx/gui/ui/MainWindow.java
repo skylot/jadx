@@ -110,10 +110,13 @@ public class MainWindow extends JFrame {
 	private JRoot treeRoot;
 	private TabbedPane tabbedPane;
 
-	private JCheckBoxMenuItem flatPkgMenuItem;
-	private JToggleButton flatPkgButton;
-	private JToggleButton deobfToggleBtn;
 	private boolean isFlattenPackage;
+	private JToggleButton flatPkgButton;
+	private JCheckBoxMenuItem flatPkgMenuItem;
+
+	private JToggleButton deobfToggleBtn;
+	private JCheckBoxMenuItem deobfMenuItem;
+
 	private Link updateLink;
 	private ProgressPanel progressPane;
 	private BackgroundWorker backgroundWorker;
@@ -278,6 +281,16 @@ public class MainWindow extends JFrame {
 		}
 	}
 
+	private void toggleDeobfuscation() {
+		boolean deobfOn = !settings.isDeobfuscationOn();
+		settings.setDeobfuscationOn(deobfOn);
+		settings.sync();
+
+		deobfToggleBtn.setSelected(deobfOn);
+		deobfMenuItem.setState(deobfOn);
+		reOpenFile();
+	}
+
 	private void treeClickAction() {
 		try {
 			Object obj = tree.getLastSelectedPathComponent();
@@ -383,8 +396,8 @@ public class MainWindow extends JFrame {
 			}
 		};
 		textSearchAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.text_search"));
-		textSearchAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_F,
-				KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK));
+		textSearchAction.putValue(Action.ACCELERATOR_KEY,
+				getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK));
 
 		Action clsSearchAction = new AbstractAction(NLS.str("menu.class_search"), ICON_FIND) {
 			@Override
@@ -394,6 +407,23 @@ public class MainWindow extends JFrame {
 		};
 		clsSearchAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.class_search"));
 		clsSearchAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
+
+		Action deobfAction = new AbstractAction(NLS.str("preferences.deobfuscation"), ICON_DEOBF) {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				toggleDeobfuscation();
+			}
+		};
+		deobfAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("preferences.deobfuscation"));
+		deobfAction.putValue(Action.ACCELERATOR_KEY,
+				getKeyStroke(KeyEvent.VK_D, KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
+
+		deobfToggleBtn = new JToggleButton(deobfAction);
+		deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
+		deobfToggleBtn.setText("");
+
+		deobfMenuItem = new JCheckBoxMenuItem(deobfAction);
+		deobfMenuItem.setState(settings.isDeobfuscationOn());
 
 		Action logAction = new AbstractAction(NLS.str("menu.log"), ICON_LOG) {
 			@Override
@@ -458,6 +488,7 @@ public class MainWindow extends JFrame {
 
 		JMenu tools = new JMenu(NLS.str("menu.tools"));
 		tools.setMnemonic(KeyEvent.VK_T);
+		tools.add(deobfMenuItem);
 		tools.add(logAction);
 
 		JMenu help = new JMenu(NLS.str("menu.help"));
@@ -483,18 +514,6 @@ public class MainWindow extends JFrame {
 		flatPkgMenuItem.addActionListener(flatPkgAction);
 		flatPkgButton.addActionListener(flatPkgAction);
 		flatPkgButton.setToolTipText(NLS.str("menu.flatten"));
-
-		deobfToggleBtn = new JToggleButton(ICON_DEOBF);
-		deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
-		deobfToggleBtn.setToolTipText(NLS.str("preferences.deobfuscation"));
-		deobfToggleBtn.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				settings.setDeobfuscationOn(deobfToggleBtn.isSelected());
-				settings.sync();
-				reOpenFile();
-			}
-		});
 
 		updateLink = new Link("", JadxUpdate.JADX_RELEASES_URL);
 		updateLink.setVisible(false);
