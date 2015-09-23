@@ -157,7 +157,8 @@ public abstract class CommonSearchDialog extends JDialog {
 	}
 
 	protected JPanel initResultsTable() {
-		resultsModel = new ResultsModel();
+		ResultsTableCellRenderer renderer = new ResultsTableCellRenderer();
+		resultsModel = new ResultsModel(renderer);
 		resultsTable = new ResultsTable(resultsModel);
 		resultsTable.setShowHorizontalLines(false);
 		resultsTable.setDragEnabled(false);
@@ -167,7 +168,6 @@ public abstract class CommonSearchDialog extends JDialog {
 		resultsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		resultsTable.setAutoscrolls(false);
 
-		ResultsTableCellRenderer renderer = new ResultsTableCellRenderer();
 		Enumeration<TableColumn> columns = resultsTable.getColumnModel().getColumns();
 		while (columns.hasMoreElements()) {
 			TableColumn column = columns.nextElement();
@@ -257,7 +257,12 @@ public abstract class CommonSearchDialog extends JDialog {
 		private static final String[] COLUMN_NAMES = {"Node", "Code"};
 
 		private final List<JNode> rows = new ArrayList<JNode>();
+		private final ResultsTableCellRenderer renderer;
 		private boolean addDescColumn;
+
+		public ResultsModel(ResultsTableCellRenderer renderer) {
+			this.renderer = renderer;
+		}
 
 		protected void addAll(Iterable<? extends JNode> nodes) {
 			for (JNode node : nodes) {
@@ -282,6 +287,7 @@ public abstract class CommonSearchDialog extends JDialog {
 		public void clear() {
 			addDescColumn = false;
 			rows.clear();
+			renderer.clear();
 		}
 
 		public boolean isAddDescColumn() {
@@ -312,11 +318,13 @@ public abstract class CommonSearchDialog extends JDialog {
 	protected class ResultsTableCellRenderer implements TableCellRenderer {
 		private final Color selectedBackground;
 		private final Color selectedForeground;
+		private final Color foreground;
 
 		private Map<Integer, Component> componentCache = new HashMap<Integer, Component>();
 
 		public ResultsTableCellRenderer() {
 			UIDefaults defaults = UIManager.getDefaults();
+			foreground = defaults.getColor("List.foreground");
 			selectedBackground = defaults.getColor("List.selectionBackground");
 			selectedForeground = defaults.getColor("List.selectionForeground");
 		}
@@ -342,6 +350,7 @@ public abstract class CommonSearchDialog extends JDialog {
 				comp.setForeground(selectedForeground);
 			} else {
 				comp.setBackground(ContentArea.BACKGROUND);
+				comp.setForeground(foreground);
 			}
 		}
 
@@ -372,6 +381,9 @@ public abstract class CommonSearchDialog extends JDialog {
 			return null;
 		}
 
+		public void clear() {
+			componentCache.clear();
+		}
 	}
 
 	private class LoadTask extends SwingWorker<Void, Void> {

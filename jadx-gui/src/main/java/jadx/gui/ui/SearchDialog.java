@@ -81,11 +81,13 @@ public class SearchDialog extends CommonSearchDialog {
 		resultsModel.clear();
 		String text = searchField.getText();
 		if (text == null || text.isEmpty() || options.isEmpty()) {
+			resultsTable.updateTable();
 			return;
 		}
 		cache.setLastSearch(text);
 		TextSearchIndex index = cache.getTextIndex();
 		if (index == null) {
+			resultsTable.updateTable();
 			return;
 		}
 		if (options.contains(SearchOptions.CLASS)) {
