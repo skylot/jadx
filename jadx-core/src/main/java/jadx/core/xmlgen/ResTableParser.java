@@ -159,12 +159,8 @@ public class ResTableParser extends CommonBinaryParser {
 	}
 
 	private void parseTypeChunk(long start, PackageChunk pkg) throws IOException {
-		int headerSize = is.readInt16();
-		if (headerSize != 0x34 && headerSize != 0x38 && headerSize != 0x44) {
-			die("Unexpected type header size: 0x" + Integer.toHexString(headerSize));
-		}
-		/*int size =*/
-		is.readInt32();
+		/*int headerSize = */ is.readInt16();
+		/*int size = */ is.readInt32();
 
 		int id = is.readInt8();
 		is.checkInt8(0, "type chunk, res0");
