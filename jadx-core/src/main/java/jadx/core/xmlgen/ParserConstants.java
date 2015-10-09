@@ -1,5 +1,8 @@
 package jadx.core.xmlgen;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ParserConstants {
 
 	/**
@@ -141,6 +144,7 @@ public class ParserConstants {
 	protected static final int ATTR_MAX = ResMakeInternal(2);
 	// Localization of this resource is can be encouraged or required with an aapt flag if this is set
 	protected static final int ATTR_L10N = ResMakeInternal(3);
+
 	// for plural support, see android.content.res.PluralRules#attrForQuantity(int)
 	protected static final int ATTR_OTHER = ResMakeInternal(4);
 	protected static final int ATTR_ZERO = ResMakeInternal(5);
@@ -148,6 +152,17 @@ public class ParserConstants {
 	protected static final int ATTR_TWO = ResMakeInternal(7);
 	protected static final int ATTR_FEW = ResMakeInternal(8);
 	protected static final int ATTR_MANY = ResMakeInternal(9);
+
+	protected static final Map<Integer, String> PLURALS_MAP = new HashMap<Integer, String>() {
+		{
+			put(ATTR_OTHER, "other");
+			put(ATTR_ZERO, "zero");
+			put(ATTR_ONE, "one");
+			put(ATTR_TWO, "two");
+			put(ATTR_FEW, "few");
+			put(ATTR_MANY, "many");
+		}
+	};
 
 	private static int ResMakeInternal(int entry) {
 		return 0x01000000 | entry & 0xFFFF;

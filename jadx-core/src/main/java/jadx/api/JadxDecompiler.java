@@ -3,7 +3,6 @@ package jadx.api;
 import jadx.core.Jadx;
 import jadx.core.ProcessClass;
 import jadx.core.codegen.CodeGen;
-import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -15,6 +14,7 @@ import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.InputFile;
 import jadx.core.xmlgen.BinaryXMLParser;
+import jadx.core.xmlgen.ResourcesSaver;
 
 import java.io.File;
 import java.io.IOException;
@@ -150,7 +150,7 @@ public final class JadxDecompiler {
 		return getSaveExecutor(!args.isSkipSources(), !args.isSkipResources());
 	}
 
-	private ExecutorService getSaveExecutor(boolean saveSources, boolean saveResources) {
+	private ExecutorService getSaveExecutor(boolean saveSources, final boolean saveResources) {
 		if (root == null) {
 			throw new JadxRuntimeException("No loaded files");
 		}
@@ -172,17 +172,7 @@ public final class JadxDecompiler {
 		}
 		if (saveResources) {
 			for (final ResourceFile resourceFile : getResources()) {
-				executor.execute(new Runnable() {
-					@Override
-					public void run() {
-						if (ResourceType.isSupportedForUnpack(resourceFile.getType())) {
-							CodeWriter cw = resourceFile.getContent();
-							if (cw != null) {
-								cw.save(new File(outDir, resourceFile.getName()));
-							}
-						}
-					}
-				});
+				executor.execute(new ResourcesSaver(outDir, resourceFile));
 			}
 		}
 		return executor;
@@ -294,7 +284,7 @@ public final class JadxDecompiler {
 		return root;
 	}
 
-	BinaryXMLParser getXmlParser() {
+	synchronized BinaryXMLParser getXmlParser() {
 		if (xmlParser == null) {
 			xmlParser = new BinaryXMLParser(root);
 		}
@@ -321,4 +311,5 @@ public final class JadxDecompiler {
 	public String toString() {
 		return "jadx decompiler " + getVersion();
 	}
+
 }

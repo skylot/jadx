@@ -4,6 +4,8 @@ import jadx.core.utils.exceptions.JadxException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -15,10 +17,12 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 public class ManifestAttributes {
 	private static final Logger LOG = LoggerFactory.getLogger(ManifestAttributes.class);
 
+	private static final String ATTR_XML = "/android/attrs.xml";
 	private static final String MANIFEST_ATTR_XML = "/android/attrs_manifest.xml";
 
 	private enum MAttrType {
@@ -27,7 +31,7 @@ public class ManifestAttributes {
 
 	private static class MAttr {
 		private final MAttrType type;
-		private final Map<Integer, String> values = new LinkedHashMap<Integer, String>();
+		private final Map<Long, String> values = new LinkedHashMap<Long, String>();
 
 		public MAttr(MAttrType type) {
 			this.type = type;
@@ -37,7 +41,7 @@ public class ManifestAttributes {
 			return type;
 		}
 
-		public Map<Integer, String> getValues() {
+		public Map<Long, String> getValues() {
 			return values;
 		}
 
@@ -47,15 +51,23 @@ public class ManifestAttributes {
 		}
 	}
 
-	private final Document doc;
 	private final Map<String, MAttr> attrMap = new HashMap<String, MAttr>();
 
 	public ManifestAttributes() throws Exception {
-		InputStream xmlStream = null;
+	}
+
+	public void parseAll() throws Exception {
+		parse(loadXML(ATTR_XML));
+		parse(loadXML(MANIFEST_ATTR_XML));
+		LOG.debug("Loaded android attributes count: {}", attrMap.size());
+	}
+
+	private Document loadXML(String xml) throws JadxException, ParserConfigurationException, SAXException, IOException {
+		Document doc;InputStream xmlStream = null;
 		try {
-			xmlStream = ManifestAttributes.class.getResourceAsStream(MANIFEST_ATTR_XML);
+			xmlStream = ManifestAttributes.class.getResourceAsStream(xml);
 			if (xmlStream == null) {
-				throw new JadxException(MANIFEST_ATTR_XML + " not found in classpath");
+				throw new JadxException(xml + " not found in classpath");
 			}
 			DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 			doc = dBuilder.parse(xmlStream);
@@ -64,9 +76,10 @@ public class ManifestAttributes {
 				xmlStream.close();
 			}
 		}
+		return doc;
 	}
 
-	public void parse() {
+	private void parse(Document doc) {
 		NodeList nodeList = doc.getChildNodes();
 		for (int count = 0; count < nodeList.getLength(); count++) {
 			Node node = nodeList.item(count);
@@ -127,13 +140,13 @@ public class ManifestAttributes {
 					Node valueNode = attributes.getNamedItem("value");
 					if (valueNode != null) {
 						try {
-							int key;
+							long key;
 							String nodeValue = valueNode.getNodeValue();
-							if (attr.getType() == MAttrType.ENUM) {
-								key = Integer.parseInt(nodeValue);
+							if (nodeValue.startsWith("0x")) {
+								nodeValue = nodeValue.substring(2);
+								key = Long.parseLong(nodeValue, 16);
 							} else {
-								nodeValue = nodeValue.replace("0x", "");
-								key = Integer.parseInt(nodeValue, 16);
+								key = Long.parseLong(nodeValue);
 							}
 							attr.getValues().put(key, nameNode.getNodeValue());
 						} catch (NumberFormatException e) {
@@ -145,7 +158,7 @@ public class ManifestAttributes {
 		}
 	}
 
-	public String decode(String attrName, int value) {
+	public String decode(String attrName, long value) {
 		MAttr attr = attrMap.get(attrName);
 		if (attr == null) {
 			return null;
@@ -157,7 +170,7 @@ public class ManifestAttributes {
 			}
 		} else if (attr.getType() == MAttrType.FLAG) {
 			StringBuilder sb = new StringBuilder();
-			for (Map.Entry<Integer, String> entry : attr.getValues().entrySet()) {
+			for (Map.Entry<Long, String> entry : attr.getValues().entrySet()) {
 				if ((value & entry.getKey()) != 0) {
 					sb.append(entry.getValue()).append('|');
 				}
@@ -166,6 +179,6 @@ public class ManifestAttributes {
 				return sb.deleteCharAt(sb.length() - 1).toString();
 			}
 		}
-		return "UNKNOWN_DATA_0x" + Integer.toHexString(value);
+		return "UNKNOWN_DATA_0x" + Long.toHexString(value);
 	}
 }

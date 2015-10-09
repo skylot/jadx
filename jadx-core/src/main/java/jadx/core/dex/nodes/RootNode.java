@@ -10,6 +10,7 @@ import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.InputFile;
+import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.ResTableParser;
 import jadx.core.xmlgen.ResourceStorage;
 
@@ -74,7 +75,7 @@ public class RootNode {
 		try {
 			ResourcesLoader.decodeStream(arsc, new ResourcesLoader.ResourceDecoder() {
 				@Override
-				public Object decode(long size, InputStream is) throws IOException {
+				public ResContainer decode(long size, InputStream is) throws IOException {
 					parser.decode(is);
 					return null;
 				}

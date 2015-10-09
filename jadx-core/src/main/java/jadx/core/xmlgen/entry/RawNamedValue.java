@@ -16,4 +16,9 @@ public class RawNamedValue {
 	public RawValue getRawValue() {
 		return rawValue;
 	}
+
+	@Override
+	public String toString() {
+		return "RawNamedValue{nameRef=" + nameRef + ", rawValue=" + rawValue + '}';
+	}
 }

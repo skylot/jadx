@@ -20,8 +20,7 @@ public class EntryConfig {
 		return country;
 	}
 
-	@Override
-	public String toString() {
+	public String getLocale() {
 		StringBuilder sb = new StringBuilder();
 		if (language != null) {
 			sb.append(language);
@@ -29,6 +28,13 @@ public class EntryConfig {
 		if (country != null) {
 			sb.append("-r").append(country);
 		}
+		return sb.toString();
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getLocale());
 		if (sb.length() != 0) {
 			sb.insert(0, " [");
 			sb.append(']');

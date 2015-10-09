@@ -34,7 +34,6 @@ public enum ResourceType {
 	public static boolean isSupportedForUnpack(ResourceType type) {
 		switch (type) {
 			case CODE:
-			case ARSC:
 			case LIB:
 			case FONT:
 			case IMG:
@@ -43,6 +42,7 @@ public enum ResourceType {
 
 			case MANIFEST:
 			case XML:
+			case ARSC:
 				return true;
 		}
 		return false;

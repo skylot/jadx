@@ -27,30 +27,14 @@ public class StringUtils {
 
 	private static void processChar(int c, StringBuilder res) {
 		switch (c) {
-			case '\n':
-				res.append("\\n");
-				break;
-			case '\r':
-				res.append("\\r");
-				break;
-			case '\t':
-				res.append("\\t");
-				break;
-			case '\b':
-				res.append("\\b");
-				break;
-			case '\f':
-				res.append("\\f");
-				break;
-			case '\'':
-				res.append('\'');
-				break;
-			case '"':
-				res.append("\\\"");
-				break;
-			case '\\':
-				res.append("\\\\");
-				break;
+			case '\n': res.append("\\n"); break;
+			case '\r': res.append("\\r"); break;
+			case '\t': res.append("\\t"); break;
+			case '\b': res.append("\\b"); break;
+			case '\f': res.append("\\f"); break;
+			case '\'': res.append('\''); break;
+			case '"': res.append("\\\""); break;
+			case '\\': res.append("\\\\"); break;
 
 			default:
 				if (32 <= c && c <= 126) {
@@ -107,6 +91,31 @@ public class StringUtils {
 				case '>': sb.append("&gt;"); break;
 				case '"': sb.append("&quot;"); break;
 				case '\'': sb.append("&apos;"); break;
+				default:
+					sb.append(c);
+					break;
+			}
+		}
+		return sb.toString();
+	}
+
+	public static String escapeResValue(String str) {
+		int len = str.length();
+		StringBuilder sb = new StringBuilder(len);
+		for (int i = 0; i < len; i++) {
+			char c = str.charAt(i);
+			switch (c) {
+				case '&': sb.append("&amp;"); break;
+				case '<': sb.append("&lt;"); break;
+				case '>': sb.append("&gt;"); break;
+				case '"': sb.append("&quot;"); break;
+				case '\'': sb.append("&apos;"); break;
+
+				case '\n': sb.append("\\n"); break;
+				case '\r': sb.append("\\r"); break;
+				case '\t': sb.append("\\t"); break;
+				case '\b': sb.append("\\b"); break;
+				case '\f': sb.append("\\f"); break;
 				default:
 					sb.append(c);
 					break;

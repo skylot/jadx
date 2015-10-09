@@ -1,6 +1,6 @@
 package jadx.api;
 
-import jadx.core.codegen.CodeWriter;
+import jadx.core.xmlgen.ResContainer;
 
 import java.io.File;
 
@@ -48,7 +48,7 @@ public class ResourceFile {
 		return type;
 	}
 
-	public CodeWriter getContent() {
+	public ResContainer getContent() {
 		return ResourcesLoader.loadContent(decompiler, this);
 	}
 

@@ -58,9 +58,19 @@ public class ResTableParser extends CommonBinaryParser {
 		resStorage.finish();
 	}
 
-	public CodeWriter decodeToCodeWriter(InputStream inputStream) throws IOException {
+	public ResContainer decodeFiles(InputStream inputStream) throws IOException {
 		decode(inputStream);
 
+		ValuesParser vp = new ValuesParser(strings, resStorage.getResourcesNames());
+		ResXmlGen resGen = new ResXmlGen(resStorage, vp);
+
+		ResContainer res = ResContainer.multiFile("res");
+		res.setContent(makeDump());
+		res.getSubFiles().addAll(resGen.makeResourcesXml());
+		return res;
+	}
+
+	public CodeWriter makeDump() throws IOException {
 		CodeWriter writer = new CodeWriter();
 		writer.add("app package: ").add(resStorage.getAppPackage());
 		writer.startLine();
