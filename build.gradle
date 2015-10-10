@@ -108,5 +108,5 @@ build.dependsOn(dist, samples)
 clean.dependsOn(cleanBuildDir)
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.3'
+    gradleVersion = '2.7'
 }
