@@ -93,6 +93,9 @@ task dist(dependsOn: pack) {
 task samples(dependsOn: 'jadx-samples:samples') {
 }
 
+task testAppCheck(dependsOn: 'jadx-test-app:testAppCheck') {
+}
+
 task pitest(overwrite: true, dependsOn: 'jadx-core:pitest') {
 }
 

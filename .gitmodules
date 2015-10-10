@@ -1,0 +1,3 @@
+[submodule "jadx-test-app/test-app"]
+	path = jadx-test-app/test-app
+	url = git://github.com/skylot/jadx-test-app.git

@@ -1,0 +1,69 @@
+project.ext {
+    testAppDir = 'test-app'
+    testAppTmpDir = 'test-app-tmp'
+
+    buildFile = "${testAppTmpDir}/build.gradle"
+    apkFile = "${testAppTmpDir}/build/outputs/apk/test-app-tmp-debug.apk"
+    outSrcDir = "${testAppTmpDir}/src/main/java"
+    outResDir = "${testAppTmpDir}/src/main"
+    checkTask = 'connectedCheck'
+}
+
+dependencies {
+    compile(project(":jadx-cli"))
+}
+
+sonarRunner {
+    skipProject = true
+}
+
+task deleteTmp(type:Delete) {
+    delete testAppTmpDir
+}
+
+task copyApp(type:Copy, dependsOn: deleteTmp) {
+    from testAppDir
+    into testAppTmpDir
+}
+
+task buildApp(type:Exec, dependsOn: copyApp) {
+    workingDir testAppTmpDir
+    commandLine "./gradlew clean build ${checkTask}".split(' ')
+}
+
+task removeSource(type:Delete, dependsOn: buildApp) {
+    delete "${outResDir}/**"
+}
+
+task runJadxSrc(type: JavaExec, dependsOn: removeSource) {
+    classpath = sourceSets.main.output + configurations.compile
+    main = project(':jadx-cli').mainClassName
+    args = ['-d', outSrcDir, '-r', apkFile, '-v']
+}
+
+task runJadxResources(type: JavaExec, dependsOn: runJadxSrc) {
+    classpath = sourceSets.main.output + configurations.compile
+    main = project(':jadx-cli').mainClassName
+    args = ['-d', outResDir, '-s', apkFile, '-v']
+}
+
+task decompile(type:Delete, dependsOn: runJadxResources) {
+    delete "${outSrcDir}/com/github/skylot/jadx/testapp/BuildConfig.java"
+    delete "${outSrcDir}/com/github/skylot/jadx/testapp/R.java"
+}
+
+task runChecks(type:Exec, dependsOn: decompile) {
+    workingDir testAppTmpDir
+    commandLine "./gradlew clean build ${checkTask}".split(' ')
+}
+
+task testAppCheck(dependsOn: runChecks) {
+    doFirst {
+        def buildFile = file(buildFile)
+        if (!buildFile.exists() || !buildFile.isFile()) {
+            throw new StopExecutionException("Test app not found")
+        }
+    }
+}
+
+clean.dependsOn deleteTmp
