@@ -70,6 +70,8 @@ public class PrepareForCodeGen extends AbstractVisitor {
 						it.remove();
 					}
 					break;
+				default:
+					break;
 			}
 		}
 	}

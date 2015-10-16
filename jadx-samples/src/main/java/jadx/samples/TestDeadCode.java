@@ -1,5 +1,6 @@
 package jadx.samples;
 
+@SuppressWarnings("unused")
 public class TestDeadCode extends AbstractTest {
 
 	private void test1(int i) {

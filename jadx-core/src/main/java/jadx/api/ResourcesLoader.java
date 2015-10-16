@@ -112,8 +112,9 @@ public final class ResourcesLoader {
 
 			case ARSC:
 				return new ResTableParser().decodeFiles(inputStream);
+			default:
+				return ResContainer.singleFile(rf.getName(), loadToCodeWriter(inputStream));
 		}
-		return ResContainer.singleFile(rf.getName(), loadToCodeWriter(inputStream));
 	}
 
 	private void loadFile(List<ResourceFile> list, File file) {

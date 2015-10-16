@@ -5,6 +5,7 @@ package jadx.samples;
  * <a href="http://stackoverflow.com/questions/2840183/is-there-any-java-decompiler-that-can-correctly-decompile-calls-to-overloaded-me">
  * stackoverflow question</a>
  */
+@SuppressWarnings("unused")
 public class TestTypeResolver2 extends AbstractTest {
 
 	private static String result = "";

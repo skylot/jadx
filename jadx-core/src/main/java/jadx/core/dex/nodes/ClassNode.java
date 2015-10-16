@@ -368,6 +368,8 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 			case DOUBLE:
 				double d = Double.longBitsToDouble(literal);
 				return getConstField(d, d != 0);
+			default:
+				break;
 		}
 		return null;
 	}

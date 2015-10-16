@@ -179,6 +179,8 @@ public class ConditionGen extends InsnGen {
 				case DIV:
 				case REM:
 					return false;
+				default:
+					break;
 			}
 		} else {
 			switch (insnType) {
