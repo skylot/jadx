@@ -90,6 +90,9 @@ public class InsnUtils {
 					LOG.warn("Field {} not found in dex {}", f, dex);
 				}
 				break;
+			default:
+				LOG.warn("Unknown instruction type " + insn.getType());
+				break;
 		}
 		return null;
 	}

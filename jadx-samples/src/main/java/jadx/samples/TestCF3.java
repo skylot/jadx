@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class TestCF3 extends AbstractTest {
 
 	public String f = "str//ing";

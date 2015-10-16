@@ -37,7 +37,7 @@ public class TestIssue13a extends IntegrationTest {
 						Class<?> c = loader == null ?
 								Class.forName(name) : Class.forName(name, true, loader);
 						Field f = c.getField("CREATOR");
-						creator = (Parcelable.Creator) f.get(null);
+						creator = (Parcelable.Creator<T>) f.get(null);
 					} catch (IllegalAccessException e) {
 						Log.e(TAG, "1" + name + ", e: " + e);
 						throw new RuntimeException("2" + name);

@@ -155,6 +155,8 @@ public class JResource extends JNode implements Comparable<JResource> {
 			case MANIFEST:
 			case XML:
 				return SyntaxConstants.SYNTAX_STYLE_XML;
+			default:
+				break;
 		}
 		String syntax = getSyntaxByExtension(resFile.getName());
 		if (syntax != null) {

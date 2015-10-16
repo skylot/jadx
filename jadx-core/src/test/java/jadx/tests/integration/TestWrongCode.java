@@ -10,6 +10,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 
+@SuppressWarnings({ "null", "unused" })
 public class TestWrongCode extends IntegrationTest {
 
 	public static class TestCls {
@@ -18,7 +19,6 @@ public class TestWrongCode extends IntegrationTest {
 			return a.length;
 		}
 
-		@SuppressWarnings("empty")
 		private int test2(int a) {
 			if (a == 0) {
 				;

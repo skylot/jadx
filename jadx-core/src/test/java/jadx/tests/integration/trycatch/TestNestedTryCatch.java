@@ -12,6 +12,7 @@ import static org.junit.Assert.assertThat;
 public class TestNestedTryCatch extends IntegrationTest {
 
 	public static class TestCls {
+		@SuppressWarnings("unused")
 		private void f() {
 			try {
 				Thread.sleep(1);

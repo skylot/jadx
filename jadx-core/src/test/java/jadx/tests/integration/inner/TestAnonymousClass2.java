@@ -9,6 +9,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 
+@SuppressWarnings("unused")
 public class TestAnonymousClass2 extends IntegrationTest {
 
 	public static class TestCls {

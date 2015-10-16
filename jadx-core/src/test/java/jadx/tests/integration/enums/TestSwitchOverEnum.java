@@ -15,6 +15,7 @@ public class TestSwitchOverEnum extends IntegrationTest {
 		ONE, TWO, THREE
 	}
 
+	@SuppressWarnings("incomplete-switch")
 	public int testEnum(Count c) {
 		switch (c) {
 			case ONE:

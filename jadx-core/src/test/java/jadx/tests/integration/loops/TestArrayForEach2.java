@@ -8,6 +8,7 @@ import org.junit.Test;
 import static jadx.tests.api.utils.JadxMatchers.containsLines;
 import static org.junit.Assert.assertThat;
 
+@SuppressWarnings("unused")
 public class TestArrayForEach2 extends IntegrationTest {
 
 	public static class TestCls {

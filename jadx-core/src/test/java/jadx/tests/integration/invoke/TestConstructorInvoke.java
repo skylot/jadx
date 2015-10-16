@@ -8,6 +8,7 @@ import org.junit.Test;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThat;
 
+@SuppressWarnings("unused")
 public class TestConstructorInvoke extends IntegrationTest {
 
 	public class TestCls {

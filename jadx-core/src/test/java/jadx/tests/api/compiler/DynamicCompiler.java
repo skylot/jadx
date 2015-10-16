@@ -57,7 +57,7 @@ public class DynamicCompiler {
 		return instance;
 	}
 
-	public Method getMethod(String method, Class[] types) throws Exception {
+	public Method getMethod(String method, Class<?>[] types) throws Exception {
 		for (Class<?> type : types) {
 			checkType(type);
 		}

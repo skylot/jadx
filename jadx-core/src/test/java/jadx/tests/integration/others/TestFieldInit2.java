@@ -9,6 +9,7 @@ import static jadx.tests.api.utils.JadxMatchers.containsLines;
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.junit.Assert.assertThat;
 
+@SuppressWarnings("unused")
 public class TestFieldInit2 extends IntegrationTest {
 
 	public static class TestCls {
