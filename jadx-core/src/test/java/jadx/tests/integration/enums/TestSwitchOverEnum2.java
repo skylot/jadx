@@ -9,6 +9,7 @@ import static jadx.tests.api.utils.JadxMatchers.countString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
+@SuppressWarnings("incomplete-switch")
 public class TestSwitchOverEnum2 extends IntegrationTest {
 
 	public enum Count {

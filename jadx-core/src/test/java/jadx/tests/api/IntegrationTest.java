@@ -228,12 +228,12 @@ public abstract class IntegrationTest extends TestUtils {
 		return invoke(method, new Class<?>[0]);
 	}
 
-	public Object invoke(String method, Class[] types, Object... args) throws Exception {
+	public Object invoke(String method, Class<?>[] types, Object... args) throws Exception {
 		Method mth = getReflectMethod(method, types);
 		return invoke(mth, args);
 	}
 
-	public Method getReflectMethod(String method, Class... types) {
+	public Method getReflectMethod(String method, Class<?>... types) {
 		assertNotNull("dynamicCompiler not ready", dynamicCompiler);
 		try {
 			return dynamicCompiler.getMethod(method, types);

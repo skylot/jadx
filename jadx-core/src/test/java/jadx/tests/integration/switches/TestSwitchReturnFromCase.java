@@ -10,6 +10,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
+@SuppressWarnings("unused")
 public class TestSwitchReturnFromCase extends IntegrationTest {
 
 	public static class TestCls {

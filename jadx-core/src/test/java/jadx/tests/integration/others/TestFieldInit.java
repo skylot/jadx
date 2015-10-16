@@ -14,6 +14,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
+@SuppressWarnings("unused")
 public class TestFieldInit extends IntegrationTest {
 
 	public static class TestCls {

@@ -11,6 +11,7 @@ import org.junit.Test;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertThat;
 
+@SuppressWarnings("unused")
 public class TestVariables4 extends IntegrationTest {
 
 	public static class TestCls {

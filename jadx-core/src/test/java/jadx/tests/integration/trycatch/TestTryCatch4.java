@@ -16,6 +16,7 @@ import static org.junit.Assert.assertThat;
 public class TestTryCatch4 extends IntegrationTest {
 
 	public static class TestCls {
+		@SuppressWarnings({ "resource", "unused" })
 		private Object test(Object obj) {
 			FileOutputStream output = null;
 			try {
