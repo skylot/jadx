@@ -105,7 +105,11 @@ public class ResXmlGen {
 			cw.add(' ').add(attrName).add("=\"").add(attrValue).add('"');
 		}
 		cw.add('>');
-		cw.add(StringUtils.escapeResValue(valueStr));
+		if (typeName.equals("string")) {
+			cw.add(StringUtils.escapeResStrValue(valueStr));
+		} else {
+			cw.add(StringUtils.escapeResValue(valueStr));
+		}
 		cw.add("</").add(typeName).add('>');
 	}
 

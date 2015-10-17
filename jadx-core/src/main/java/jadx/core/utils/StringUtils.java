@@ -123,4 +123,29 @@ public class StringUtils {
 		}
 		return sb.toString();
 	}
+
+	public static String escapeResStrValue(String str) {
+		int len = str.length();
+		StringBuilder sb = new StringBuilder(len);
+		for (int i = 0; i < len; i++) {
+			char c = str.charAt(i);
+			switch (c) {
+				case '&': sb.append("&amp;"); break;
+				case '<': sb.append("&lt;"); break;
+				case '>': sb.append("&gt;"); break;
+				case '"': sb.append("\\\""); break;
+				case '\'': sb.append("\\'"); break;
+
+				case '\n': sb.append("\\n"); break;
+				case '\r': sb.append("\\r"); break;
+				case '\t': sb.append("\\t"); break;
+				case '\b': sb.append("\\b"); break;
+				case '\f': sb.append("\\f"); break;
+				default:
+					sb.append(c);
+					break;
+			}
+		}
+		return sb.toString();
+	}
 }
