@@ -116,7 +116,12 @@ public final class JadxDecompiler {
 		inputFiles.clear();
 		for (File file : files) {
 			try {
-				inputFiles.add(new InputFile(file));
+				InputFile inputFile = new InputFile(file);
+				inputFiles.add(inputFile);
+				while (inputFile.nextDexIndex != -1) {
+					inputFile = new InputFile(file, inputFile.nextDexIndex);
+					inputFiles.add(inputFile);
+				}
 			} catch (IOException e) {
 				throw new JadxException("Error load file: " + file, e);
 			}

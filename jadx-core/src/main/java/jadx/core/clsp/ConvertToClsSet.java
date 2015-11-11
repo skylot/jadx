@@ -36,7 +36,12 @@ public class ConvertToClsSet {
 			if (f.isDirectory()) {
 				addFilesFromDirectory(f, inputFiles);
 			} else {
-				inputFiles.add(new InputFile(f));
+				InputFile inputFile = new InputFile(f);
+				inputFiles.add(inputFile);
+				while (inputFile.nextDexIndex != -1) {
+					inputFile = new InputFile(f, inputFile.nextDexIndex);
+					inputFiles.add(inputFile);
+				}
 			}
 		}
 		for (InputFile inputFile : inputFiles) {
@@ -67,7 +72,12 @@ public class ConvertToClsSet {
 			if (fileName.endsWith(".dex")
 					|| fileName.endsWith(".jar")
 					|| fileName.endsWith(".apk")) {
-				inputFiles.add(new InputFile(file));
+				InputFile inputFile = new InputFile(file);
+				inputFiles.add(inputFile);
+				while (inputFile.nextDexIndex != -1) {
+					inputFile = new InputFile(file, inputFile.nextDexIndex);
+					inputFiles.add(inputFile);
+				}
 			}
 		}
 	}

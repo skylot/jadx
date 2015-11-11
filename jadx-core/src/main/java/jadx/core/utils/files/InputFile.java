@@ -23,11 +23,18 @@ public class InputFile {
 
 	private final File file;
 	private final Dex dexBuf;
+	public int nextDexIndex = -1;
+	private final int dexIndex;
 
 	public InputFile(File file) throws IOException, DecodeException {
+		this(file, 0);
+	}
+
+	public InputFile(File file, int dexIndex) throws IOException, DecodeException {
 		if (!file.exists()) {
 			throw new IOException("File not found: " + file.getAbsolutePath());
 		}
+		this.dexIndex = dexIndex;
 		this.file = file;
 		this.dexBuf = loadDexBuffer();
 	}
@@ -41,7 +48,7 @@ public class InputFile {
 			return loadFromClassFile(file);
 		}
 		if (fileName.endsWith(".apk") || fileName.endsWith(".zip")) {
-			Dex dex = loadFromZip(file);
+			Dex dex = loadFromZip(this,file);
 			if (dex == null) {
 				throw new IOException("File 'classes.dex' not found in file: " + file);
 			}
@@ -49,7 +56,7 @@ public class InputFile {
 		}
 		if (fileName.endsWith(".jar")) {
 			// check if jar contains 'classes.dex'
-			Dex dex = loadFromZip(file);
+			Dex dex = loadFromZip(this,file);
 			if (dex != null) {
 				return dex;
 			}
@@ -74,12 +81,25 @@ public class InputFile {
 		}
 	}
 
-	private static Dex loadFromZip(File file) throws IOException {
+	private static Dex loadFromZip(InputFile ipf, File file) throws IOException {
 		ZipFile zf = new ZipFile(file);
-		ZipEntry dex = zf.getEntry("classes.dex");
+		String dexName = "classes.dex";
+		String futureDexName = "classes2.dex";
+		if (ipf.dexIndex != 0) {
+			dexName = "classes" + ipf.dexIndex + ".dex";
+			futureDexName = "classes" + (ipf.dexIndex + 1) + ".dex";
+		}
+		ZipEntry dex = zf.getEntry(dexName);
 		if (dex == null) {
 			zf.close();
 			return null;
+		}
+		try {
+			ZipEntry futureDex = zf.getEntry(futureDexName);
+			if (futureDex != null) {
+				ipf.nextDexIndex = ipf.dexIndex == 0 ? 2 : ipf.dexIndex + 1;
+			}
+		} catch (Exception ex) {
 		}
 		ByteArrayOutputStream bytesOut = new ByteArrayOutputStream();
 		InputStream in = null;
