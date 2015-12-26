@@ -6,7 +6,7 @@ import jadx.core.dex.info.InfoStorage;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.exceptions.DecodeException;
-import jadx.core.utils.files.InputFile;
+import jadx.core.utils.files.DexFile;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,7 +34,7 @@ public class DexNode {
 
 	private final RootNode root;
 	private final Dex dexBuf;
-	private final InputFile file;
+	private final DexFile file;
 
 	private final List<ClassNode> classes = new ArrayList<ClassNode>();
 	private final Map<ClassInfo, ClassNode> clsMap = new HashMap<ClassInfo, ClassNode>();
@@ -43,10 +43,10 @@ public class DexNode {
 
 	private final InfoStorage infoStorage = new InfoStorage();
 
-	public DexNode(RootNode root, InputFile input) {
+	public DexNode(RootNode root, DexFile input) {
 		this.root = root;
 		this.file = input;
-		this.dexBuf = input.getDexBuffer();
+		this.dexBuf = input.getDexBuf();
 	}
 
 	public void loadClasses() throws DecodeException {
@@ -163,7 +163,7 @@ public class DexNode {
 		return infoStorage;
 	}
 
-	public InputFile getInputFile() {
+	public DexFile getDexFile() {
 		return file;
 	}
 

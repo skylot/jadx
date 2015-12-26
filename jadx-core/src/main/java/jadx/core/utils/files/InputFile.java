@@ -3,16 +3,19 @@ package jadx.core.utils.files;
 import jadx.core.utils.AsmUtils;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,47 +25,93 @@ public class InputFile {
 	private static final Logger LOG = LoggerFactory.getLogger(InputFile.class);
 
 	private final File file;
-	private final Dex dexBuf;
-	public int nextDexIndex = -1;
-	private final int dexIndex;
+	private final List<DexFile> dexFiles = new ArrayList<DexFile>();
 
-	public InputFile(File file) throws IOException, DecodeException {
-		this(file, 0);
+	public static void addFilesFrom(File file, List<InputFile> list) throws IOException, DecodeException {
+		InputFile inputFile = new InputFile(file);
+		inputFile.searchDexFiles();
+		list.add(inputFile);
 	}
 
-	public InputFile(File file, int dexIndex) throws IOException, DecodeException {
+	private InputFile(File file) throws IOException, DecodeException {
 		if (!file.exists()) {
 			throw new IOException("File not found: " + file.getAbsolutePath());
 		}
-		this.dexIndex = dexIndex;
 		this.file = file;
-		this.dexBuf = loadDexBuffer();
 	}
 
-	private Dex loadDexBuffer() throws IOException, DecodeException {
+	private void searchDexFiles() throws IOException, DecodeException {
 		String fileName = file.getName();
 		if (fileName.endsWith(".dex")) {
-			return new Dex(file);
+			addDexFile(new Dex(file));
+			return;
 		}
 		if (fileName.endsWith(".class")) {
-			return loadFromClassFile(file);
+			addDexFile(loadFromClassFile(file));
+			return;
 		}
 		if (fileName.endsWith(".apk") || fileName.endsWith(".zip")) {
-			Dex dex = loadFromZip(this,file);
-			if (dex == null) {
-				throw new IOException("File 'classes.dex' not found in file: " + file);
-			}
-			return dex;
+			loadFromZip(".dex");
+			return;
 		}
 		if (fileName.endsWith(".jar")) {
-			// check if jar contains 'classes.dex'
-			Dex dex = loadFromZip(this,file);
-			if (dex != null) {
-				return dex;
+			// check if jar contains '.dex' files
+			if (loadFromZip(".dex")) {
+				return;
 			}
-			return loadFromJar(file);
+			addDexFile(loadFromJar(file));
+			return;
+		}
+		if (fileName.endsWith(".aar")) {
+			loadFromZip(".jar");
+			return;
 		}
 		throw new DecodeException("Unsupported input file format: " + file);
+	}
+
+	private void addDexFile(Dex dexBuf) throws IOException {
+		addDexFile("", dexBuf);
+	}
+
+	private void addDexFile(String fileName, Dex dexBuf) throws IOException {
+		dexFiles.add(new DexFile(this, fileName, dexBuf));
+	}
+
+	private boolean loadFromZip(String ext) throws IOException, DecodeException {
+		ZipFile zf = new ZipFile(file);
+		int index = 0;
+		while (true) {
+			String entryName = "classes" + (index == 0 ? "" : index) + ext;
+			ZipEntry entry = zf.getEntry(entryName);
+			if (entry == null) {
+				break;
+			}
+			InputStream inputStream = zf.getInputStream(entry);
+			try {
+				if (ext.equals(".dex")) {
+					addDexFile(entryName, new Dex(inputStream));
+				} else if (ext.equals(".jar")) {
+					File jarFile = FileUtils.createTempFile(entryName);
+					FileOutputStream fos = new FileOutputStream(jarFile);
+					try {
+						IOUtils.copy(inputStream, fos);
+					} finally {
+						fos.close();
+					}
+					addDexFile(entryName, loadFromJar(jarFile));
+				} else {
+					throw new JadxRuntimeException("Unexpected extension in zip: " + ext);
+				}
+			} finally {
+				inputStream.close();
+			}
+			index++;
+			if (index == 1) {
+				index = 2;
+			}
+		}
+		zf.close();
+		return index > 0;
 	}
 
 	private static Dex loadFromJar(File jarFile) throws DecodeException {
@@ -81,47 +130,8 @@ public class InputFile {
 		}
 	}
 
-	private static Dex loadFromZip(InputFile ipf, File file) throws IOException {
-		ZipFile zf = new ZipFile(file);
-		String dexName = "classes.dex";
-		String futureDexName = "classes2.dex";
-		if (ipf.dexIndex != 0) {
-			dexName = "classes" + ipf.dexIndex + ".dex";
-			futureDexName = "classes" + (ipf.dexIndex + 1) + ".dex";
-		}
-		ZipEntry dex = zf.getEntry(dexName);
-		if (dex == null) {
-			zf.close();
-			return null;
-		}
-		try {
-			ZipEntry futureDex = zf.getEntry(futureDexName);
-			if (futureDex != null) {
-				ipf.nextDexIndex = ipf.dexIndex == 0 ? 2 : ipf.dexIndex + 1;
-			}
-		} catch (Exception ex) {
-		}
-		ByteArrayOutputStream bytesOut = new ByteArrayOutputStream();
-		InputStream in = null;
-		try {
-			in = zf.getInputStream(dex);
-			byte[] buffer = new byte[8192];
-			int count;
-			while ((count = in.read(buffer)) != -1) {
-				bytesOut.write(buffer, 0, count);
-			}
-		} finally {
-			if (in != null) {
-				in.close();
-			}
-			zf.close();
-		}
-		return new Dex(bytesOut.toByteArray());
-	}
-
 	private static Dex loadFromClassFile(File file) throws IOException, DecodeException {
-		File outFile = File.createTempFile("jadx-tmp-", System.nanoTime() + ".jar");
-		outFile.deleteOnExit();
+		File outFile = FileUtils.createTempFile("cls.jar");
 		FileOutputStream out = null;
 		JarOutputStream jo = null;
 		try {
@@ -147,12 +157,12 @@ public class InputFile {
 		return file;
 	}
 
-	public Dex getDexBuffer() {
-		return dexBuf;
+	public List<DexFile> getDexFiles() {
+		return dexFiles;
 	}
 
 	@Override
 	public String toString() {
-		return file.toString();
+		return file.getAbsolutePath();
 	}
 }

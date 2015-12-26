@@ -85,12 +85,7 @@ public final class ResourcesLoader {
 			return decodeStream(rf, new ResourceDecoder() {
 				@Override
 				public ResContainer decode(long size, InputStream is) throws IOException {
-					if (size > LOAD_SIZE_LIMIT) {
-						return ResContainer.singleFile(rf.getName(),
-								new CodeWriter().add("File too big, size: "
-										+ String.format("%.2f KB", size / 1024.)));
-					}
-					return loadContent(jadxRef, rf, is);
+					return loadContent(jadxRef, rf, is, size);
 				}
 			});
 		} catch (JadxException e) {
@@ -103,7 +98,7 @@ public final class ResourcesLoader {
 	}
 
 	private static ResContainer loadContent(JadxDecompiler jadxRef, ResourceFile rf,
-			InputStream inputStream) throws IOException {
+			InputStream inputStream, long size) throws IOException {
 		switch (rf.getType()) {
 			case MANIFEST:
 			case XML:
@@ -112,6 +107,10 @@ public final class ResourcesLoader {
 
 			case ARSC:
 				return new ResTableParser().decodeFiles(inputStream);
+		}
+		if (size > LOAD_SIZE_LIMIT) {
+			return ResContainer.singleFile(rf.getName(),
+					new CodeWriter().add("File too big, size: " + String.format("%.2f KB", size / 1024.)));
 		}
 		return ResContainer.singleFile(rf.getName(), loadToCodeWriter(inputStream));
 	}

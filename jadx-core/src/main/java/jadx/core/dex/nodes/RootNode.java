@@ -9,6 +9,7 @@ import jadx.core.dex.info.ClassInfo;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxException;
+import jadx.core.utils.files.DexFile;
 import jadx.core.utils.files.InputFile;
 import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.ResTableParser;
@@ -42,16 +43,18 @@ public class RootNode {
 		this.args = args;
 	}
 
-	public void load(List<InputFile> dexFiles) throws DecodeException {
-		dexNodes = new ArrayList<DexNode>(dexFiles.size());
-		for (InputFile dex : dexFiles) {
-			DexNode dexNode;
-			try {
-				dexNode = new DexNode(this, dex);
-			} catch (Exception e) {
-				throw new DecodeException("Error decode file: " + dex, e);
+	public void load(List<InputFile> inputFiles) throws DecodeException {
+		dexNodes = new ArrayList<DexNode>();
+		for (InputFile input : inputFiles) {
+			for (DexFile dexFile : input.getDexFiles()) {
+				try {
+					LOG.debug("Load: {}", dexFile);
+					DexNode dexNode = new DexNode(this, dexFile);
+					dexNodes.add(dexNode);
+				} catch (Exception e) {
+					throw new DecodeException("Error decode file: " + dexFile, e);
+				}
 			}
-			dexNodes.add(dexNode);
 		}
 		for (DexNode dexNode : dexNodes) {
 			dexNode.loadClasses();

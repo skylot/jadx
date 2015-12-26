@@ -1,10 +1,10 @@
 package jadx.api;
 
 public enum ResourceType {
-	CODE(".dex", ".class"),
+	CODE(".dex", ".jar", ".class"),
 	MANIFEST("AndroidManifest.xml"),
-	XML(".xml"), // TODO binary or not?
-	ARSC(".arsc"), // TODO decompile !!!
+	XML(".xml"),
+	ARSC(".arsc"),
 	FONT(".ttf"),
 	IMG(".png", ".gif", ".jpg"),
 	LIB(".so"),

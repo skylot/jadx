@@ -36,12 +36,7 @@ public class ConvertToClsSet {
 			if (f.isDirectory()) {
 				addFilesFromDirectory(f, inputFiles);
 			} else {
-				InputFile inputFile = new InputFile(f);
-				inputFiles.add(inputFile);
-				while (inputFile.nextDexIndex != -1) {
-					inputFile = new InputFile(f, inputFile.nextDexIndex);
-					inputFiles.add(inputFile);
-				}
+				InputFile.addFilesFrom(f, inputFiles);
 			}
 		}
 		for (InputFile inputFile : inputFiles) {
@@ -58,8 +53,7 @@ public class ConvertToClsSet {
 		LOG.info("done");
 	}
 
-	private static void addFilesFromDirectory(File dir,
-			List<InputFile> inputFiles) throws IOException, DecodeException {
+	private static void addFilesFromDirectory(File dir, List<InputFile> inputFiles) {
 		File[] files = dir.listFiles();
 		if (files == null) {
 			return;
@@ -67,19 +61,13 @@ public class ConvertToClsSet {
 		for (File file : files) {
 			if (file.isDirectory()) {
 				addFilesFromDirectory(file, inputFiles);
-			}
-			String fileName = file.getName();
-			if (fileName.endsWith(".dex")
-					|| fileName.endsWith(".jar")
-					|| fileName.endsWith(".apk")) {
-				InputFile inputFile = new InputFile(file);
-				inputFiles.add(inputFile);
-				while (inputFile.nextDexIndex != -1) {
-					inputFile = new InputFile(file, inputFile.nextDexIndex);
-					inputFiles.add(inputFile);
+			} else {
+				try {
+					InputFile.addFilesFrom(file, inputFiles);
+				} catch (Exception e) {
+					LOG.warn("Skip file: {}, load error: {}", file, e.getMessage());
 				}
 			}
 		}
 	}
-
 }

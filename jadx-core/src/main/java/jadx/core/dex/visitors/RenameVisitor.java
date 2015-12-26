@@ -14,11 +14,13 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxException;
+import jadx.core.utils.files.InputFile;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOCase;
 
 public class RenameVisitor extends AbstractVisitor {
@@ -31,10 +33,10 @@ public class RenameVisitor extends AbstractVisitor {
 	public void init(RootNode root) {
 		IJadxArgs args = root.getArgs();
 
-		final String firstInputFileName = root.getDexNodes().get(0).getInputFile().getFile().getAbsolutePath();
-		final String inputPath = org.apache.commons.io.FilenameUtils.getFullPathNoEndSeparator(
-				firstInputFileName);
-		final String inputName = org.apache.commons.io.FilenameUtils.getBaseName(firstInputFileName);
+		InputFile firstInputFile = root.getDexNodes().get(0).getDexFile().getInputFile();
+		final String firstInputFileName = firstInputFile.getFile().getAbsolutePath();
+		final String inputPath = FilenameUtils.getFullPathNoEndSeparator(firstInputFileName);
+		final String inputName = FilenameUtils.getBaseName(firstInputFileName);
 
 		File deobfMapFile = new File(inputPath, inputName + ".jobf");
 		deobfuscator = new Deobfuscator(args, root.getDexNodes(), deobfMapFile);
