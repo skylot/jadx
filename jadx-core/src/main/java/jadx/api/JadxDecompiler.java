@@ -248,6 +248,7 @@ public final class JadxDecompiler {
 		if (root == null) {
 			return;
 		}
+		root.getClsp().printMissingClasses();
 		root.getErrorsCounter().printReport();
 	}
 

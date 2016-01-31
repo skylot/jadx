@@ -5,6 +5,7 @@ import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,6 +25,8 @@ public class ClspGraph {
 
 	private final Map<String, Set<String>> ancestorCache = new WeakHashMap<String, Set<String>>();
 	private Map<String, NClass> nameMap;
+
+	private final Set<String> missingClasses = new HashSet<String>();
 
 	public void load() throws IOException, DecodeException {
 		ClsSet set = new ClsSet();
@@ -73,7 +76,7 @@ public class ClspGraph {
 		}
 		NClass cls = nameMap.get(implClsName);
 		if (cls == null) {
-			LOG.debug("Missing class: {}", implClsName);
+			missingClasses.add(clsName);
 			return null;
 		}
 		if (isImplements(clsName, implClsName)) {
@@ -104,7 +107,7 @@ public class ClspGraph {
 		}
 		NClass cls = nameMap.get(clsName);
 		if (cls == null) {
-			LOG.debug("Missing class: {}", clsName);
+			missingClasses.add(clsName);
 			return Collections.emptySet();
 		}
 		result = new HashSet<String>();
@@ -120,6 +123,21 @@ public class ClspGraph {
 		result.add(cls.getName());
 		for (NClass p : cls.getParents()) {
 			addAncestorsNames(p, result);
+		}
+	}
+
+	public void printMissingClasses() {
+		int count = missingClasses.size();
+		if (count == 0) {
+			return;
+		}
+		LOG.warn("Found {} references to unknown classes", count);
+		if (LOG.isDebugEnabled()) {
+			List<String> clsNames = new ArrayList<String>(missingClasses);
+			Collections.sort(clsNames);
+			for (String cls : clsNames) {
+				LOG.debug("  {}", cls);
+			}
 		}
 	}
 }

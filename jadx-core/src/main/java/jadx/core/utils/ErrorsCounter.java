@@ -27,11 +27,6 @@ public class ErrorsCounter {
 		return errorsCount;
 	}
 
-	public void reset() {
-		errorNodes.clear();
-		errorsCount = 0;
-	}
-
 	private void addError(IAttributeNode node, String msg, Throwable e) {
 		errorNodes.add(node);
 		errorsCount++;
