@@ -42,20 +42,22 @@ Run **jadx** on itself:
 ```
 jadx[-gui] [options] <input file> (.dex, .apk, .jar or .class)
 options:
- -d, --output-dir        - output directory
- -j, --threads-count     - processing threads count
- -f, --fallback          - make simple dump (using goto instead of 'if', 'for', etc)
- -r, --no-res            - do not decode resources
- -s, --no-src            - do not decompile source code
-     --show-bad-code     - show inconsistent code (incorrectly decompiled)
-     --cfg               - save methods control flow graph to dot file
-     --raw-cfg           - save methods control flow graph (use raw instructions)
- -v, --verbose           - verbose output
-     --deobf             - activate deobfuscation
-     --deobf-min         - min length of name
-     --deobf-max         - max length of name
-     --deobf-rewrite-cfg - force to save deobfuscation map
- -h, --help              - print this help
+ -d, --output-dir           - output directory
+ -j, --threads-count        - processing threads count
+ -f, --fallback             - make simple dump (using goto instead of 'if', 'for', etc)
+ -r, --no-res               - do not decode resources
+ -s, --no-src               - do not decompile source code
+     --show-bad-code        - show inconsistent code (incorrectly decompiled)
+     --cfg                  - save methods control flow graph to dot file
+     --raw-cfg              - save methods control flow graph (use raw instructions)
+ -v, --verbose              - verbose output
+     --deobf                - activate deobfuscation
+     --deobf-min            - min length of name
+     --deobf-max            - max length of name
+     --deobf-rewrite-cfg    - force to save deobfuscation map
+     --deobf-use-sourcename - use source file name as class name alias
+     --escape-unicode       - escape non latin characters in strings (with \u)
+ -h, --help                 - print this help
 Example:
  jadx -d out classes.dex
 ```

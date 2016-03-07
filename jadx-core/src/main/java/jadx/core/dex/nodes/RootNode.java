@@ -7,6 +7,7 @@ import jadx.api.ResourcesLoader;
 import jadx.core.clsp.ClspGraph;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.utils.ErrorsCounter;
+import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.DexFile;
@@ -31,6 +32,7 @@ public class RootNode {
 
 	private final ErrorsCounter errorsCounter = new ErrorsCounter();
 	private final IJadxArgs args;
+	private final StringUtils stringUtils;
 
 	private List<DexNode> dexNodes;
 	private Map<Integer, String> resourcesNames = new HashMap<Integer, String>();
@@ -41,6 +43,7 @@ public class RootNode {
 
 	public RootNode(IJadxArgs args) {
 		this.args = args;
+		this.stringUtils = new StringUtils(args);
 	}
 
 	public void load(List<InputFile> inputFiles) throws DecodeException {
@@ -193,5 +196,9 @@ public class RootNode {
 
 	public IJadxArgs getArgs() {
 		return args;
+	}
+
+	public StringUtils getStringUtils() {
+		return stringUtils;
 	}
 }

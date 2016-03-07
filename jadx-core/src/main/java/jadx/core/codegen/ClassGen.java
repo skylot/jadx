@@ -348,7 +348,7 @@ public class ClassGen {
 			if (fv != null) {
 				code.add(" = ");
 				if (fv.getValue() == null) {
-					code.add(TypeGen.literalToString(0, f.getType()));
+					code.add(TypeGen.literalToString(0, f.getType(), cls));
 				} else {
 					if (fv.getValueType() == InitType.CONST) {
 						annotationGen.encodeValue(code, fv.getValue());

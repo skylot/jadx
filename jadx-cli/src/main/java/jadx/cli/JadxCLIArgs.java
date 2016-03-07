@@ -1,5 +1,7 @@
 package jadx.cli;
 
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
 import jadx.api.IJadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.core.utils.exceptions.JadxException;
@@ -67,6 +69,9 @@ public class JadxCLIArgs implements IJadxArgs {
 	@Parameter(names = {"--deobf-use-sourcename"}, description = "use source file name as class name alias")
 	protected boolean deobfuscationUseSourceNameAsAlias = false;
 
+	@Parameter(names = {"--escape-unicode"}, description = "escape non latin characters in strings (with \\u)")
+	protected boolean escapeUnicode = false;
+
 	@Parameter(names = {"-h", "--help"}, description = "print this help", help = true)
 	protected boolean printHelp = false;
 
@@ -117,7 +122,10 @@ public class JadxCLIArgs implements IJadxArgs {
 				ch.qos.logback.classic.Logger rootLogger =
 						(ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 				// remove INFO ThresholdFilter
-				rootLogger.getAppender("STDOUT").clearAllFilters();
+				Appender<ILoggingEvent> appender = rootLogger.getAppender("STDOUT");
+				if (appender != null) {
+					appender.clearAllFilters();
+				}
 			}
 		} catch (JadxException e) {
 			System.err.println("ERROR: " + e.getMessage());
@@ -250,5 +258,10 @@ public class JadxCLIArgs implements IJadxArgs {
 	@Override
 	public boolean useSourceNameAsClassAlias() {
 		return deobfuscationUseSourceNameAsAlias;
+	}
+
+	@Override
+	public boolean escapeUnicode() {
+		return escapeUnicode;
 	}
 }

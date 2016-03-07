@@ -30,4 +30,6 @@ public interface IJadxArgs {
 	boolean isDeobfuscationForceSave();
 
 	boolean useSourceNameAsClassAlias();
+
+	boolean escapeUnicode();
 }

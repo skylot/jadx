@@ -43,7 +43,7 @@ import com.android.dex.ClassData.Method;
 import com.android.dex.ClassDef;
 import com.android.dx.rop.code.AccessFlags;
 
-public class ClassNode extends LineAttrNode implements ILoadable {
+public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
 
 	private final DexNode dex;
@@ -472,8 +472,14 @@ public class ClassNode extends LineAttrNode implements ILoadable {
 		return accessFlags;
 	}
 
+	@Override
 	public DexNode dex() {
 		return dex;
+	}
+
+	@Override
+	public RootNode root() {
+		return dex.root();
 	}
 
 	public String getRawName() {

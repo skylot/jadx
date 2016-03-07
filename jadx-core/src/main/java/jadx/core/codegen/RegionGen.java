@@ -255,7 +255,7 @@ public class RegionGen extends InsnGen {
 						}
 					}
 				} else if (k instanceof Integer) {
-					code.add(TypeGen.literalToString((Integer) k, arg.getType()));
+					code.add(TypeGen.literalToString((Integer) k, arg.getType(), mth));
 				} else {
 					throw new JadxRuntimeException("Unexpected key in switch: " + (k != null ? k.getClass() : null));
 				}

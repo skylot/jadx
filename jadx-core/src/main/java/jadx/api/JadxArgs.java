@@ -24,6 +24,8 @@ public class JadxArgs implements IJadxArgs {
 	private int deobfuscationMinLength = 0;
 	private int deobfuscationMaxLength = Integer.MAX_VALUE;
 
+	private boolean escapeUnicode = false;
+
 	@Override
 	public File getOutDir() {
 		return outDir;
@@ -148,5 +150,14 @@ public class JadxArgs implements IJadxArgs {
 
 	public void setDeobfuscationMaxLength(int deobfuscationMaxLength) {
 		this.deobfuscationMaxLength = deobfuscationMaxLength;
+	}
+
+	@Override
+	public boolean escapeUnicode() {
+		return escapeUnicode;
+	}
+
+	public void setEscapeUnicode(boolean escapeUnicode) {
+		this.escapeUnicode = escapeUnicode;
 	}
 }

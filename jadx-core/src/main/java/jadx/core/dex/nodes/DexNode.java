@@ -28,7 +28,7 @@ import com.android.dex.MethodId;
 import com.android.dex.ProtoId;
 import com.android.dex.TypeList;
 
-public class DexNode {
+public class DexNode implements IDexNode {
 
 	public static final int NO_INDEX = -1;
 
@@ -210,8 +210,14 @@ public class DexNode {
 		return dexBuf.open(offset);
 	}
 
+	@Override
 	public RootNode root() {
 		return root;
+	}
+
+	@Override
+	public DexNode dex() {
+		return this;
 	}
 
 	@Override

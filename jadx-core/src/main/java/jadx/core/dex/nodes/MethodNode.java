@@ -44,7 +44,7 @@ import com.android.dex.Code;
 import com.android.dex.Code.CatchHandler;
 import com.android.dex.Code.Try;
 
-public class MethodNode extends LineAttrNode implements ILoadable {
+public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodNode.class);
 
 	private final MethodInfo mthInfo;
@@ -594,8 +594,14 @@ public class MethodNode extends LineAttrNode implements ILoadable {
 		this.region = region;
 	}
 
+	@Override
 	public DexNode dex() {
 		return parentClass.dex();
+	}
+
+	@Override
+	public RootNode root() {
+		return dex().root();
 	}
 
 	public MethodInfo getMethodInfo() {

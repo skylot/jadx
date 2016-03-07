@@ -130,11 +130,11 @@ public class AnnotationGen {
 			return;
 		}
 		if (val instanceof String) {
-			code.add(StringUtils.unescapeString((String) val));
+			code.add(getStringUtils().unescapeString((String) val));
 		} else if (val instanceof Integer) {
 			code.add(TypeGen.formatInteger((Integer) val));
 		} else if (val instanceof Character) {
-			code.add(StringUtils.unescapeChar((Character) val));
+			code.add(getStringUtils().unescapeChar((Character) val));
 		} else if (val instanceof Boolean) {
 			code.add(Boolean.TRUE.equals(val) ? "true" : "false");
 		} else if (val instanceof Float) {
@@ -171,5 +171,9 @@ public class AnnotationGen {
 			// TODO: also can be method values
 			throw new JadxRuntimeException("Can't decode value: " + val + " (" + val.getClass() + ")");
 		}
+	}
+
+	private StringUtils getStringUtils() {
+		return cls.dex().root().getStringUtils();
 	}
 }

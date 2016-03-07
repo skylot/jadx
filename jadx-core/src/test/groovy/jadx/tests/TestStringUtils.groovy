@@ -1,13 +1,17 @@
 package jadx.tests
 
+import jadx.api.JadxArgs
 import jadx.core.utils.StringUtils
 import spock.lang.Specification
 
 class TestStringUtils extends Specification {
 
     def "unescape string"() {
+        def args = new JadxArgs()
+        args.setEscapeUnicode(true)
+        def stringUtils = new StringUtils(args)
         expect:
-        StringUtils.unescapeString(input) == "\"$expected\""
+        stringUtils.unescapeString(input) == "\"$expected\""
 
         where:
         input    | expected
@@ -26,12 +30,14 @@ class TestStringUtils extends Specification {
 
     def "unescape char"() {
         expect:
-        StringUtils.unescapeChar(input as char) == "'$expected'"
+        new StringUtils(new JadxArgs()).unescapeChar(input as char) == "'$expected'"
 
         where:
         input | expected
         'a'   | "a"
+        ' '   | " "
         '\n'  | "\\n"
         '\''  | "\\\'"
+        '\0'  | "\\u0000"
     }
 }

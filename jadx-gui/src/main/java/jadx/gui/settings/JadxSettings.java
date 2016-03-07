@@ -165,6 +165,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.deobfuscationUseSourceNameAsAlias = useSourceNameAsAlias;
 	}
 
+	public void setEscapeUnicode(boolean escapeUnicode) {
+		this.escapeUnicode = escapeUnicode;
+	}
+
 	public boolean isUseFastSearch() {
 		return false;
 //		return useFastSearch;
