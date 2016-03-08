@@ -200,7 +200,7 @@ public class MainWindow extends JFrame {
 		// TODO: decompilation freezes sometime with several threads
 		int threadsCount = 1; // settings.getThreadsCount();
 		cacheObject.setDecompileJob(new DecompileJob(wrapper, threadsCount));
-		cacheObject.setIndexJob(new IndexJob(wrapper, cacheObject, threadsCount, settings.isUseFastSearch()));
+		cacheObject.setIndexJob(new IndexJob(wrapper, cacheObject, threadsCount));
 	}
 
 	private synchronized void runBackgroundJobs() {

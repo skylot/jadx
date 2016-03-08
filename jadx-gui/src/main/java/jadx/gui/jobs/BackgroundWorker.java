@@ -60,9 +60,7 @@ public class BackgroundWorker extends SwingWorker<Void, Void> {
 			LOG.debug("Memory usage: After gc: {}", Utils.memoryInfo());
 
 			TextSearchIndex searchIndex = cache.getTextIndex();
-			if (cache.getIndexJob().isUseFastSearch()
-					&& searchIndex != null
-					&& searchIndex.getSkippedCount() > 0) {
+			if (searchIndex != null && searchIndex.getSkippedCount() > 0) {
 				LOG.warn("Indexing of some classes skipped, count: {}, low memory: {}",
 						searchIndex.getSkippedCount(), Utils.memoryInfo());
 			}

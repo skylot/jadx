@@ -21,17 +21,15 @@ public class IndexJob extends BackgroundJob {
 
 	private static final Logger LOG = LoggerFactory.getLogger(IndexJob.class);
 	private final CacheObject cache;
-	private final boolean useFastSearch;
 
-	public IndexJob(JadxWrapper wrapper, CacheObject cache, int threadsCount, boolean useFastSearch) {
+	public IndexJob(JadxWrapper wrapper, CacheObject cache, int threadsCount) {
 		super(wrapper, threadsCount);
-		this.useFastSearch = useFastSearch;
 		this.cache = cache;
 	}
 
 	protected void runJob() {
 		JNodeCache nodeCache = cache.getNodeCache();
-		final TextSearchIndex index = new TextSearchIndex(nodeCache, useFastSearch);
+		final TextSearchIndex index = new TextSearchIndex(nodeCache);
 		final CodeUsageInfo usageInfo = new CodeUsageInfo(nodeCache);
 		cache.setTextIndex(index);
 		cache.setUsageInfo(usageInfo);
@@ -72,9 +70,5 @@ public class IndexJob extends BackgroundJob {
 	@Override
 	public String getInfoString() {
 		return "Indexing: ";
-	}
-
-	public boolean isUseFastSearch() {
-		return useFastSearch;
 	}
 }

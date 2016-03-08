@@ -22,7 +22,6 @@ public class TextSearchIndex {
 	private static final Logger LOG = LoggerFactory.getLogger(TextSearchIndex.class);
 
 	private final JNodeCache nodeCache;
-	private final boolean useFastSearch;
 
 	private SearchIndex<JNode> clsNamesIndex;
 	private SearchIndex<JNode> mthNamesIndex;
@@ -31,17 +30,12 @@ public class TextSearchIndex {
 
 	private List<JavaClass> skippedClasses = new ArrayList<JavaClass>();
 
-	public TextSearchIndex(JNodeCache nodeCache, boolean useFastSearch) {
+	public TextSearchIndex(JNodeCache nodeCache) {
 		this.nodeCache = nodeCache;
-		this.useFastSearch = useFastSearch;
-		this.clsNamesIndex = initIndex();
-		this.mthNamesIndex = initIndex();
-		this.fldNamesIndex = initIndex();
-		this.codeIndex = useFastSearch ? new SuffixTree<CodeNode>() : new CodeIndex<CodeNode>();
-	}
-
-	private <T> SearchIndex<T> initIndex() {
-		return useFastSearch ? new SuffixTree<T>() : new SimpleIndex<T>();
+		this.clsNamesIndex = new SimpleIndex<JNode>();
+		this.mthNamesIndex = new SimpleIndex<JNode>();
+		this.fldNamesIndex = new SimpleIndex<JNode>();
+		this.codeIndex = new CodeIndex<CodeNode>();
 	}
 
 	public void indexNames(JavaClass cls) {
