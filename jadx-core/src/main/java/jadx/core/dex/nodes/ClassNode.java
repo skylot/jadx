@@ -2,7 +2,6 @@ package jadx.core.dex.nodes;
 
 import jadx.core.Consts;
 import jadx.core.codegen.CodeWriter;
-import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.annotations.Annotation;
 import jadx.core.dex.attributes.nodes.JadxErrorAttr;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
@@ -14,10 +13,8 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.LiteralArg;
-import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.nodes.parser.AnnotationsParser;
 import jadx.core.dex.nodes.parser.FieldInitAttr;
-import jadx.core.dex.nodes.parser.FieldInitAttr.InitType;
 import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.nodes.parser.StaticValuesParser;
 import jadx.core.utils.exceptions.DecodeException;
@@ -27,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,6 +37,7 @@ import com.android.dex.ClassData;
 import com.android.dex.ClassData.Field;
 import com.android.dex.ClassData.Method;
 import com.android.dex.ClassDef;
+import com.android.dex.Dex;
 import com.android.dx.rop.code.AccessFlags;
 
 public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
@@ -55,7 +52,6 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 
 	private final List<MethodNode> methods;
 	private final List<FieldNode> fields;
-	private Map<Object, FieldNode> constFields = Collections.emptyMap();
 	private List<ClassNode> innerClasses = Collections.emptyList();
 
 	// store decompiled code
@@ -168,24 +164,12 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 		if (offset == 0) {
 			return;
 		}
-		StaticValuesParser parser = new StaticValuesParser(dex, dex.openSection(offset));
-		int count = parser.processFields(staticFields);
-		if (count == 0) {
-			return;
-		}
-		constFields = new LinkedHashMap<Object, FieldNode>(count);
-		for (FieldNode f : staticFields) {
-			AccessInfo accFlags = f.getAccessFlags();
-			if (accFlags.isStatic() && accFlags.isFinal()) {
-				FieldInitAttr fv = f.get(AType.FIELD_INIT);
-				if (fv != null && fv.getValue() != null && fv.getValueType() == InitType.CONST) {
-					if (accFlags.isPublic()) {
-						dex.getConstFields().put(fv.getValue(), f);
-					}
-					constFields.put(fv.getValue(), f);
-				}
-			}
-		}
+		Dex.Section section = dex.openSection(offset);
+		StaticValuesParser parser = new StaticValuesParser(dex, section);
+		parser.processFields(staticFields);
+
+		// process const fields
+		root().getConstValues().processConstFields(this, staticFields);
 	}
 
 	private void parseClassSignature() {
@@ -315,61 +299,14 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 		return getConstField(obj, true);
 	}
 
+	@Nullable
 	public FieldNode getConstField(Object obj, boolean searchGlobal) {
-		ClassNode cn = this;
-		FieldNode field;
-		do {
-			field = cn.constFields.get(obj);
-		}
-		while (field == null
-				&& cn.clsInfo.getParentClass() != null
-				&& (cn = dex.resolveClass(cn.clsInfo.getParentClass())) != null);
-
-		if (field == null && searchGlobal) {
-			field = dex.getConstFields().get(obj);
-		}
-		if (obj instanceof Integer) {
-			String str = dex.root().getResourcesNames().get(obj);
-			if (str != null) {
-				ResRefField resField = new ResRefField(dex, str.replace('/', '.'));
-				if (field == null) {
-					return resField;
-				}
-				if (!field.getName().equals(resField.getName())) {
-					field = resField;
-				}
-			}
-		}
-		return field;
+		return root().getConstValues().getConstField(this, obj, searchGlobal);
 	}
 
+	@Nullable
 	public FieldNode getConstFieldByLiteralArg(LiteralArg arg) {
-		PrimitiveType type = arg.getType().getPrimitiveType();
-		if (type == null) {
-			return null;
-		}
-		long literal = arg.getLiteral();
-		switch (type) {
-			case BOOLEAN:
-				return getConstField(literal == 1, false);
-			case CHAR:
-				return getConstField((char) literal, Math.abs(literal) > 10);
-			case BYTE:
-				return getConstField((byte) literal, Math.abs(literal) > 10);
-			case SHORT:
-				return getConstField((short) literal, Math.abs(literal) > 100);
-			case INT:
-				return getConstField((int) literal, Math.abs(literal) > 100);
-			case LONG:
-				return getConstField(literal, Math.abs(literal) > 1000);
-			case FLOAT:
-				float f = Float.intBitsToFloat((int) literal);
-				return getConstField(f, f != 0.0);
-			case DOUBLE:
-				double d = Double.longBitsToDouble(literal);
-				return getConstField(d, d != 0);
-		}
-		return null;
+		return root().getConstValues().getConstFieldByLiteralArg(this, arg);
 	}
 
 	public FieldNode searchFieldById(int id) {
@@ -530,6 +467,24 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 
 	public Set<ClassNode> getDependencies() {
 		return dependencies;
+	}
+
+	@Override
+	public int hashCode() {
+		return clsInfo.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o instanceof ClassNode) {
+			ClassNode other = (ClassNode) o;
+			return clsInfo.equals(other.clsInfo);
+		}
+		return false;
+
 	}
 
 	@Override

@@ -2,8 +2,8 @@ package jadx.core.xmlgen;
 
 import jadx.api.ResourcesLoader;
 import jadx.core.codegen.CodeWriter;
+import jadx.core.dex.info.ConstStorage;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.StringUtils;
@@ -64,17 +64,16 @@ public class BinaryXMLParser extends CommonBinaryParser {
 				LOG.error("R class loading failed", th);
 			}
 			// add application constants
-			for (DexNode dexNode : root.getDexNodes()) {
-				for (Map.Entry<Object, FieldNode> entry : dexNode.getConstFields().entrySet()) {
-					Object key = entry.getKey();
-					FieldNode field = entry.getValue();
-					if (field.getType().equals(ArgType.INT) && key instanceof Integer) {
-						localStyleMap.put((Integer) key, field);
-					}
+			ConstStorage constStorage = root.getConstValues();
+			Map<Object, FieldNode> constFields = constStorage.getGlobalConstFields();
+			for (Map.Entry<Object, FieldNode> entry : constFields.entrySet()) {
+				Object key = entry.getKey();
+				FieldNode field = entry.getValue();
+				if (field.getType().equals(ArgType.INT) && key instanceof Integer) {
+					localStyleMap.put((Integer) key, field);
 				}
 			}
-
-			resNames = root.getResourcesNames();
+			resNames = constStorage.getResourcesNames();
 
 			attributes = new ManifestAttributes();
 			attributes.parseAll();

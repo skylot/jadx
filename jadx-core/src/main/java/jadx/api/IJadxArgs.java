@@ -32,4 +32,9 @@ public interface IJadxArgs {
 	boolean useSourceNameAsClassAlias();
 
 	boolean escapeUnicode();
+
+	/**
+	 * Replace constant values with static final fields with same value
+	 */
+	boolean isReplaceConsts();
 }

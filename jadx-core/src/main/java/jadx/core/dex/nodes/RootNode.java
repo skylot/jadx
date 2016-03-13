@@ -6,6 +6,7 @@ import jadx.api.ResourceType;
 import jadx.api.ResourcesLoader;
 import jadx.core.clsp.ClspGraph;
 import jadx.core.dex.info.ClassInfo;
+import jadx.core.dex.info.ConstStorage;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.DecodeException;
@@ -19,9 +20,7 @@ import jadx.core.xmlgen.ResourceStorage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -33,9 +32,9 @@ public class RootNode {
 	private final ErrorsCounter errorsCounter = new ErrorsCounter();
 	private final IJadxArgs args;
 	private final StringUtils stringUtils;
+	private final ConstStorage constValues;
 
 	private List<DexNode> dexNodes;
-	private Map<Integer, String> resourcesNames = new HashMap<Integer, String>();
 	@Nullable
 	private String appPackage;
 	private ClassNode appResClass;
@@ -44,6 +43,7 @@ public class RootNode {
 	public RootNode(IJadxArgs args) {
 		this.args = args;
 		this.stringUtils = new StringUtils(args);
+		this.constValues = new ConstStorage(args);
 	}
 
 	public void load(List<InputFile> inputFiles) throws DecodeException {
@@ -92,7 +92,7 @@ public class RootNode {
 		}
 
 		ResourceStorage resStorage = parser.getResStorage();
-		resourcesNames = resStorage.getResourcesNames();
+		constValues.setResourcesNames(resStorage.getResourcesNames());
 		appPackage = resStorage.getAppPackage();
 	}
 
@@ -181,10 +181,6 @@ public class RootNode {
 		return errorsCounter;
 	}
 
-	public Map<Integer, String> getResourcesNames() {
-		return resourcesNames;
-	}
-
 	@Nullable
 	public String getAppPackage() {
 		return appPackage;
@@ -200,5 +196,9 @@ public class RootNode {
 
 	public StringUtils getStringUtils() {
 		return stringUtils;
+	}
+
+	public ConstStorage getConstValues() {
+		return constValues;
 	}
 }

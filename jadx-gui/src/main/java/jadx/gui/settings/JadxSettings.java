@@ -168,6 +168,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.escapeUnicode = escapeUnicode;
 	}
 
+	public void setReplaceConsts(boolean replaceConsts) {
+		this.replaceConsts = replaceConsts;
+	}
+
 	public boolean isAutoStartJobs() {
 		return autoStartJobs;
 	}

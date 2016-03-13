@@ -367,7 +367,8 @@ public class BlockProcessor extends AbstractVisitor {
 	}
 
 	private static void cleanExitNodes(MethodNode mth) {
-		for (Iterator<BlockNode> iterator = mth.getExitBlocks().iterator(); iterator.hasNext(); ) {
+		Iterator<BlockNode> iterator = mth.getExitBlocks().iterator();
+		while (iterator.hasNext()) {
 			BlockNode exitBlock = iterator.next();
 			if (exitBlock.getPredecessors().isEmpty()) {
 				mth.getBasicBlocks().remove(exitBlock);

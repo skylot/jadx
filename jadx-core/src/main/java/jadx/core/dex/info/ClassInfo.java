@@ -167,7 +167,7 @@ public final class ClassInfo {
 
 	@Override
 	public int hashCode() {
-		return fullName.hashCode();
+		return type.hashCode();
 	}
 
 	@Override

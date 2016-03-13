@@ -257,11 +257,21 @@ public class JadxSettingsWindow extends JDialog {
 			}
 		});
 
+		JCheckBox replaceConsts = new JCheckBox();
+		replaceConsts.setSelected(settings.isReplaceConsts());
+		replaceConsts.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				settings.setReplaceConsts(e.getStateChange() == ItemEvent.SELECTED);
+				needReload();
+			}
+		});
+
 		SettingsGroup other = new SettingsGroup(NLS.str("preferences.decompile"));
 		other.addRow(NLS.str("preferences.threads"), threadsCount);
 		other.addRow(NLS.str("preferences.start_jobs"), autoStartJobs);
 		other.addRow(NLS.str("preferences.showInconsistentCode"), showInconsistentCode);
 		other.addRow(NLS.str("preferences.escapeUnicode"), escapeUnicode);
+		other.addRow(NLS.str("preferences.replaceConsts"), replaceConsts);
 		other.addRow(NLS.str("preferences.fallback"), fallback);
 		other.addRow(NLS.str("preferences.skipResourcesDecode"), resourceDecode);
 		return other;

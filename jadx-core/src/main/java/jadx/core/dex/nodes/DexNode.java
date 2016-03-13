@@ -39,8 +39,6 @@ public class DexNode implements IDexNode {
 	private final List<ClassNode> classes = new ArrayList<ClassNode>();
 	private final Map<ClassInfo, ClassNode> clsMap = new HashMap<ClassInfo, ClassNode>();
 
-	private final Map<Object, FieldNode> constFields = new HashMap<Object, FieldNode>();
-
 	private final InfoStorage infoStorage = new InfoStorage();
 
 	public DexNode(RootNode root, DexFile input) {
@@ -153,10 +151,6 @@ public class DexNode implements IDexNode {
 			return cls.searchField(field);
 		}
 		return null;
-	}
-
-	public Map<Object, FieldNode> getConstFields() {
-		return constFields;
 	}
 
 	public InfoStorage getInfoStorage() {

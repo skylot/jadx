@@ -6,6 +6,7 @@ import jadx.tests.api.IntegrationTest;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 public class TestSwitchLabels extends IntegrationTest {
@@ -42,7 +43,23 @@ public class TestSwitchLabels extends IntegrationTest {
 		assertThat(code, containsString("return CONST_CDE;"));
 
 		cls.addInnerClass(getClassNode(TestCls.Inner.class));
-		assertThat(code, containsString("case CONST_CDE_PRIVATE"));
+		assertThat(code, not(containsString("case CONST_CDE_PRIVATE")));
 		assertThat(code, containsString(".CONST_ABC;"));
+	}
+
+	@Test
+	public void testWithDisabledConstReplace() {
+		getArgs().setReplaceConsts(false);
+
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+		assertThat(code, not(containsString("case CONST_ABC")));
+		assertThat(code, containsString("case 2748"));
+		assertThat(code, not(containsString("return CONST_CDE;")));
+		assertThat(code, containsString("return 3294;"));
+
+		cls.addInnerClass(getClassNode(TestCls.Inner.class));
+		assertThat(code, not(containsString("case CONST_CDE_PRIVATE")));
+		assertThat(code, not(containsString(".CONST_ABC;")));
 	}
 }

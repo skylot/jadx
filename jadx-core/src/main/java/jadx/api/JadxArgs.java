@@ -25,6 +25,7 @@ public class JadxArgs implements IJadxArgs {
 	private int deobfuscationMaxLength = Integer.MAX_VALUE;
 
 	private boolean escapeUnicode = false;
+	private boolean replaceConsts = true;
 
 	@Override
 	public File getOutDir() {
@@ -159,5 +160,14 @@ public class JadxArgs implements IJadxArgs {
 
 	public void setEscapeUnicode(boolean escapeUnicode) {
 		this.escapeUnicode = escapeUnicode;
+	}
+
+	@Override
+	public boolean isReplaceConsts() {
+		return replaceConsts;
+	}
+
+	public void setReplaceConsts(boolean replaceConsts) {
+		this.replaceConsts = replaceConsts;
 	}
 }
