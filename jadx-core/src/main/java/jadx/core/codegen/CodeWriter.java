@@ -16,6 +16,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static jadx.core.utils.files.FileUtils.close;
+
 public class CodeWriter {
 	private static final Logger LOG = LoggerFactory.getLogger(CodeWriter.class);
 	private static final int MAX_FILENAME_LENGTH = 128;
@@ -304,9 +306,7 @@ public class CodeWriter {
 		} catch (Exception e) {
 			LOG.error("Save file error", e);
 		} finally {
-			if (out != null) {
-				out.close();
-			}
+			close(out);
 		}
 	}
 }

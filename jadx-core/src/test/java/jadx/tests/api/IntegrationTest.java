@@ -15,7 +15,6 @@ import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxException;
-import jadx.core.utils.files.FileUtils;
 import jadx.tests.api.compiler.DynamicCompiler;
 import jadx.tests.api.compiler.StaticCompiler;
 import jadx.tests.api.utils.TestUtils;
@@ -35,6 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.jar.JarOutputStream;
 
+import static jadx.core.utils.files.FileUtils.addFileToJar;
+import static jadx.core.utils.files.FileUtils.close;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
@@ -261,9 +262,9 @@ public abstract class IntegrationTest extends TestUtils {
 		File temp = createTempFile(".jar");
 		JarOutputStream jo = new JarOutputStream(new FileOutputStream(temp));
 		for (File file : list) {
-			FileUtils.addFileToJar(jo, file, path + "/" + file.getName());
+			addFileToJar(jo, file, path + "/" + file.getName());
 		}
-		jo.close();
+		close(jo);
 		return temp;
 	}
 

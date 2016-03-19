@@ -11,6 +11,10 @@ import com.android.dx.command.DxConsole;
 import com.android.dx.command.dexer.Main;
 import com.android.dx.command.dexer.Main.Arguments;
 
+import static com.android.dx.command.dexer.Main.run;
+import static jadx.core.utils.files.FileUtils.close;
+import static java.lang.System.setOut;
+
 public class JavaToDex {
 
 	private static final String CHARSET_NAME = "UTF-8";
@@ -41,14 +45,14 @@ public class JavaToDex {
 		PrintStream oldOut = System.out;
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
-			System.setOut(new PrintStream(baos, true, CHARSET_NAME));
+			setOut(new PrintStream(baos, true, CHARSET_NAME));
 			DxArgs args = new DxArgs("-", new String[]{javaFile});
 			resetOutDexVar();
-			Main.run(args);
-			baos.close();
+			run(args);
 		} catch (Throwable e) {
 			throw new JadxException("dx exception: " + e.getMessage(), e);
 		} finally {
+			close(baos);
 			System.setOut(oldOut);
 		}
 		try {

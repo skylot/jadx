@@ -27,6 +27,8 @@ import java.util.zip.ZipOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static jadx.core.utils.files.FileUtils.close;
+
 /**
  * Classes list for import into classpath graph
  */
@@ -115,13 +117,13 @@ public class ClsSet {
 					out.putNextEntry(new ZipEntry(CLST_PKG_PATH + "/" + CLST_FILENAME));
 					save(out);
 				} finally {
-					out.close();
+					close(out);
 				}
 			} else {
 				throw new JadxRuntimeException("Unknown file format: " + outputName);
 			}
 		} finally {
-			outputStream.close();
+			close(outputStream);
 		}
 	}
 
@@ -144,7 +146,7 @@ public class ClsSet {
 				}
 			}
 		} finally {
-			out.close();
+			close(out);
 		}
 	}
 
@@ -156,7 +158,7 @@ public class ClsSet {
 		try {
 			load(input);
 		} finally {
-			input.close();
+			close(input);
 		}
 	}
 
@@ -177,13 +179,13 @@ public class ClsSet {
 						entry = in.getNextEntry();
 					}
 				} finally {
-					in.close();
+					close(in);
 				}
 			} else {
 				throw new JadxRuntimeException("Unknown file format: " + name);
 			}
 		} finally {
-			inputStream.close();
+			close(inputStream);
 		}
 	}
 
@@ -213,7 +215,7 @@ public class ClsSet {
 				classes[i].setParents(parents);
 			}
 		} finally {
-			in.close();
+			close(in);
 		}
 	}
 

@@ -19,6 +19,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import static jadx.core.utils.files.FileUtils.close;
+
 public class ManifestAttributes {
 	private static final Logger LOG = LoggerFactory.getLogger(ManifestAttributes.class);
 
@@ -63,7 +65,8 @@ public class ManifestAttributes {
 	}
 
 	private Document loadXML(String xml) throws JadxException, ParserConfigurationException, SAXException, IOException {
-		Document doc;InputStream xmlStream = null;
+		Document doc;
+		InputStream xmlStream = null;
 		try {
 			xmlStream = ManifestAttributes.class.getResourceAsStream(xml);
 			if (xmlStream == null) {
@@ -72,9 +75,7 @@ public class ManifestAttributes {
 			DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 			doc = dBuilder.parse(xmlStream);
 		} finally {
-			if (xmlStream != null) {
-				xmlStream.close();
-			}
+			close(xmlStream);
 		}
 		return doc;
 	}

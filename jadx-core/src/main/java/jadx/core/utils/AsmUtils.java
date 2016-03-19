@@ -6,6 +6,8 @@ import java.io.IOException;
 
 import org.objectweb.asm.ClassReader;
 
+import static jadx.core.utils.files.FileUtils.close;
+
 public class AsmUtils {
 
 	private AsmUtils() {
@@ -19,9 +21,7 @@ public class AsmUtils {
 			ClassReader classReader = new ClassReader(in);
 			className = classReader.getClassName();
 		} finally {
-			if (in != null) {
-				in.close();
-			}
+			close(in);
 		}
 		return className;
 	}

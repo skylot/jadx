@@ -22,11 +22,14 @@ import java.util.zip.ZipFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static jadx.core.utils.files.FileUtils.READ_BUFFER_SIZE;
+import static jadx.core.utils.files.FileUtils.close;
+import static jadx.core.utils.files.FileUtils.copyStream;
+
 // TODO: move to core package
 public final class ResourcesLoader {
 	private static final Logger LOG = LoggerFactory.getLogger(ResourcesLoader.class);
 
-	private static final int READ_BUFFER_SIZE = 8 * 1024;
 	private static final int LOAD_SIZE_LIMIT = 10 * 1024 * 1024;
 
 	private final JadxDecompiler jadxRef;
@@ -70,12 +73,10 @@ public final class ResourcesLoader {
 				if (zipFile != null) {
 					zipFile.close();
 				}
-				if (inputStream != null) {
-					inputStream.close();
-				}
 			} catch (Exception e) {
-				LOG.debug("Error close zip file: {}", zipRef, e);
+				LOG.error("Error close zip file: {}", zipRef, e);
 			}
+			close(inputStream);
 		}
 		return result;
 	}
@@ -149,24 +150,12 @@ public final class ResourcesLoader {
 		ResourceFile rf = new ResourceFile(jadxRef, name, type);
 		rf.setZipRef(new ZipRef(zipFile, name));
 		list.add(rf);
-		// LOG.debug("Add resource entry: {}, size: {}", name, entry.getSize());
 	}
 
 	public static CodeWriter loadToCodeWriter(InputStream is) throws IOException {
 		CodeWriter cw = new CodeWriter();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream(READ_BUFFER_SIZE);
-		byte[] buffer = new byte[READ_BUFFER_SIZE];
-		int count;
-		try {
-			while ((count = is.read(buffer)) != -1) {
-				baos.write(buffer, 0, count);
-			}
-		} finally {
-			try {
-				is.close();
-			} catch (Exception ignore) {
-			}
-		}
+		copyStream(is, baos);
 		cw.add(baos.toString("UTF-8"));
 		return cw;
 	}
