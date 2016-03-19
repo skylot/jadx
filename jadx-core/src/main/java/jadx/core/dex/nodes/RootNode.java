@@ -9,6 +9,7 @@ import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.ConstStorage;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.StringUtils;
+import jadx.core.utils.android.AndroidResourcesUtils;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.DexFile;
@@ -97,24 +98,7 @@ public class RootNode {
 	}
 
 	public void initAppResClass() {
-		ClassNode resCls;
-		if (appPackage == null) {
-			appResClass = makeClass("R");
-			return;
-		}
-		String fullName = appPackage + ".R";
-		resCls = searchClassByName(fullName);
-		if (resCls != null) {
-			appResClass = resCls;
-		} else {
-			appResClass = makeClass(fullName);
-		}
-	}
-
-	private ClassNode makeClass(String clsName) {
-		DexNode firstDex = dexNodes.get(0);
-		ClassInfo r = ClassInfo.fromName(firstDex, clsName);
-		return new ClassNode(firstDex, r);
+		appResClass = AndroidResourcesUtils.searchAppResClass(this);
 	}
 
 	public void initClassPath() throws DecodeException {
@@ -167,6 +151,18 @@ public class RootNode {
 			}
 		}
 		return null;
+	}
+
+	public List<ClassNode> searchClassByShortName(String shortName) {
+		List<ClassNode> list = new ArrayList<ClassNode>();
+		for (DexNode dexNode : dexNodes) {
+			for (ClassNode cls : dexNode.getClasses()) {
+				if (cls.getClassInfo().getShortName().equals(shortName)) {
+					list.add(cls);
+				}
+			}
+		}
+		return list;
 	}
 
 	public List<DexNode> getDexNodes() {

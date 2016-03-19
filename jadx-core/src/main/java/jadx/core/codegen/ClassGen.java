@@ -501,6 +501,10 @@ public class ClassGen {
 		if (searchCollision(cls.dex(), useCls, extClsInfo)) {
 			return fullName;
 		}
+		// ignore classes from default package
+		if (extClsInfo.isDefaultPackage()) {
+			return shortName;
+		}
 		if (extClsInfo.getPackage().equals(useCls.getPackage())) {
 			fullName = extClsInfo.getNameWithoutPackage();
 		}

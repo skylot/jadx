@@ -125,6 +125,10 @@ public final class ClassInfo {
 		return pkg;
 	}
 
+	public boolean isDefaultPackage() {
+		return pkg.isEmpty();
+	}
+
 	public String getRawName() {
 		return type.getObject();
 	}

@@ -9,6 +9,8 @@ import java.util.Map;
 import org.junit.Test;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 public class TestRFieldRestore extends IntegrationTest {
@@ -31,5 +33,6 @@ public class TestRFieldRestore extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 		assertThat(code, containsOne("return R.id.Button;"));
+		assertThat(code, not(containsString("import R;")));
 	}
 }

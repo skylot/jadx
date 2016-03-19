@@ -52,6 +52,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static jadx.core.utils.android.AndroidResourcesUtils.handleAppResField;
+
 public class InsnGen {
 	private static final Logger LOG = LoggerFactory.getLogger(InsnGen.class);
 
@@ -169,12 +171,7 @@ public class InsnGen {
 		boolean fieldFromThisClass = clsGen.getClassNode().getClassInfo().equals(declClass);
 		if (!fieldFromThisClass) {
 			// Android specific resources class handler
-			ClassInfo parentClass = declClass.getParentClass();
-			if (parentClass != null && parentClass.getShortName().equals("R")) {
-				clsGen.useClass(code, parentClass);
-				code.add('.');
-				code.add(declClass.getAlias().getShortName());
-			} else {
+			if (!handleAppResField(code, clsGen, declClass)) {
 				clsGen.useClass(code, declClass);
 			}
 			code.add('.');
