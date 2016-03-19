@@ -53,7 +53,6 @@ import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -246,7 +245,7 @@ public abstract class CommonSearchDialog extends JDialog {
 				column.setPreferredWidth(colWidth);
 			}
 			if (codeComp != null) {
-				setRowHeight(codeComp.getPreferredSize().height + 4);
+				setRowHeight(Math.max(20, codeComp.getPreferredSize().height + 4));
 			}
 			updateUI();
 		}
@@ -320,6 +319,8 @@ public abstract class CommonSearchDialog extends JDialog {
 		private final Color selectedForeground;
 		private final Color foreground;
 
+		private final JLabel emptyLabel = new JLabel();
+
 		private Map<Integer, Component> componentCache = new HashMap<Integer, Component>();
 
 		public ResultsTableCellRenderer() {
@@ -332,15 +333,17 @@ public abstract class CommonSearchDialog extends JDialog {
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object obj, boolean isSelected,
 				boolean hasFocus, int row, int column) {
-			int id = (row << 2) | column;
+			int id = row << 2 | column;
 			Component comp = componentCache.get(id);
-			if (comp == null && (obj instanceof JNode)) {
-				comp = makeCell((JNode) obj, column);
-				componentCache.put(id, comp);
+			if (comp == null) {
+				if (obj instanceof JNode) {
+					comp = makeCell((JNode) obj, column);
+					componentCache.put(id, comp);
+				} else {
+					comp = emptyLabel;
+				}
 			}
-			if (comp != null) {
-				updateSelection(comp, isSelected);
-			}
+			updateSelection(comp, isSelected);
 			return comp;
 		}
 
@@ -354,31 +357,30 @@ public abstract class CommonSearchDialog extends JDialog {
 			}
 		}
 
-		@Nullable
-		protected Component makeCell(JNode node, int column) {
+		private Component makeCell(JNode node, int column) {
 			if (column == 0) {
 				JLabel label = new JLabel(node.makeLongString() + "  ", node.getIcon(), SwingConstants.LEFT);
 				label.setOpaque(true);
 				label.setToolTipText(label.getText());
 				return label;
 			}
-			if (node.hasDescString()) {
-				RSyntaxTextArea textArea = new RSyntaxTextArea();
-				textArea.setFont(codeFont);
-				textArea.setEditable(false);
-				textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
-				textArea.setText("  " + node.makeDescString());
-				textArea.setRows(1);
-				textArea.setColumns(textArea.getText().length());
-				if (highlightText != null) {
-					SearchContext searchContext = new SearchContext(highlightText);
-					searchContext.setMatchCase(true);
-					searchContext.setMarkAll(true);
-					SearchEngine.markAll(textArea, searchContext);
-				}
-				return textArea;
+			if (!node.hasDescString()) {
+				return emptyLabel;
 			}
-			return null;
+			RSyntaxTextArea textArea = new RSyntaxTextArea();
+			textArea.setFont(codeFont);
+			textArea.setEditable(false);
+			textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
+			textArea.setText("  " + node.makeDescString());
+			textArea.setRows(1);
+			textArea.setColumns(textArea.getText().length());
+			if (highlightText != null) {
+				SearchContext searchContext = new SearchContext(highlightText);
+				searchContext.setMatchCase(true);
+				searchContext.setMarkAll(true);
+				SearchEngine.markAll(textArea, searchContext);
+			}
+			return textArea;
 		}
 
 		public void clear() {
