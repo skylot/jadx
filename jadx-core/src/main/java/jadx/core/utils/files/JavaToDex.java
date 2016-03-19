@@ -5,6 +5,7 @@ import jadx.core.utils.exceptions.JadxException;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 
 import com.android.dx.command.DxConsole;
 import com.android.dx.command.dexer.Main;
@@ -23,6 +24,8 @@ public class JavaToDex {
 			optimize = true;
 			localInfo = true;
 			coreLibrary = true;
+
+			debug = true;
 		}
 	}
 
@@ -40,6 +43,7 @@ public class JavaToDex {
 		try {
 			System.setOut(new PrintStream(baos, true, CHARSET_NAME));
 			DxArgs args = new DxArgs("-", new String[]{javaFile});
+			resetOutDexVar();
 			Main.run(args);
 			baos.close();
 		} catch (Throwable e) {
@@ -56,11 +60,21 @@ public class JavaToDex {
 		return baos.toByteArray();
 	}
 
+	private void resetOutDexVar() throws JadxException {
+		try {
+			Field outputDex = Main.class.getDeclaredField("outputDex");
+			outputDex.setAccessible(true);
+			outputDex.set(null, null);
+		} catch (Exception e) {
+			throw new JadxException("Failed to reset outputDex field", e);
+		}
+	}
+
 	public String getDxErrors() {
 		return dxErrors;
 	}
 
 	public boolean isError() {
-		return dxErrors != null && dxErrors.length() > 0;
+		return dxErrors != null && !dxErrors.isEmpty();
 	}
 }

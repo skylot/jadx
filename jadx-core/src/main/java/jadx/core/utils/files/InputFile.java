@@ -121,7 +121,8 @@ public class InputFile {
 			byte[] ba = j2d.convert(jarFile.getAbsolutePath());
 			if (ba.length == 0) {
 				throw new JadxException(j2d.isError() ? j2d.getDxErrors() : "Empty dx output");
-			} else if (j2d.isError()) {
+			}
+			if (j2d.isError()) {
 				LOG.warn("dx message: {}", j2d.getDxErrors());
 			}
 			return new Dex(ba);
