@@ -81,7 +81,7 @@ public class JResource extends JNode implements Comparable<JResource> {
 		if (!loaded && resFile != null && type == JResType.FILE) {
 			loaded = true;
 			if (isSupportedForView(resFile.getType())) {
-				ResContainer rc = resFile.getContent();
+				ResContainer rc = resFile.loadContent();
 				if (rc != null) {
 					addSubFiles(rc, this, 0);
 				}
@@ -149,9 +149,13 @@ public class JResource extends JNode implements Comparable<JResource> {
 
 	@Override
 	public String getSyntaxName() {
+		if (resFile == null) {
+			return null;
+		}
 		switch (resFile.getType()) {
 			case CODE:
 				return super.getSyntaxName();
+
 			case MANIFEST:
 			case XML:
 				return SyntaxConstants.SYNTAX_STYLE_XML;
@@ -205,21 +209,25 @@ public class JResource extends JNode implements Comparable<JResource> {
 		return FILE_ICON;
 	}
 
-	private boolean isSupportedForView(ResourceType type) {
+	public static boolean isSupportedForView(ResourceType type) {
 		switch (type) {
 			case CODE:
 			case FONT:
-			case IMG:
 			case LIB:
 				return false;
 
 			case MANIFEST:
 			case XML:
 			case ARSC:
+			case IMG:
 			case UNKNOWN:
 				return true;
 		}
 		return true;
+	}
+
+	public ResourceFile getResFile() {
+		return resFile;
 	}
 
 	@Override

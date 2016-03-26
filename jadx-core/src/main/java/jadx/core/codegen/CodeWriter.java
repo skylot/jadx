@@ -20,7 +20,6 @@ import static jadx.core.utils.files.FileUtils.close;
 
 public class CodeWriter {
 	private static final Logger LOG = LoggerFactory.getLogger(CodeWriter.class);
-	private static final int MAX_FILENAME_LENGTH = 128;
 
 	public static final String NL = System.getProperty("line.separator");
 	public static final String INDENT = "    ";
@@ -286,22 +285,10 @@ public class CodeWriter {
 		if (code == null) {
 			finish();
 		}
-		String name = file.getName();
-		if (name.length() > MAX_FILENAME_LENGTH) {
-			int dotIndex = name.indexOf('.');
-			int cutAt = MAX_FILENAME_LENGTH - name.length() + dotIndex - 1;
-			if (cutAt <= 0) {
-				name = name.substring(0, MAX_FILENAME_LENGTH - 1);
-			} else {
-				name = name.substring(0, cutAt) + name.substring(dotIndex);
-			}
-			file = new File(file.getParentFile(), name);
-		}
-
+		File outFile = FileUtils.prepareFile(file);
 		PrintWriter out = null;
 		try {
-			FileUtils.makeDirsForFile(file);
-			out = new PrintWriter(file, "UTF-8");
+			out = new PrintWriter(outFile, "UTF-8");
 			out.println(code);
 		} catch (Exception e) {
 			LOG.error("Save file error", e);
@@ -309,4 +296,5 @@ public class CodeWriter {
 			close(out);
 		}
 	}
+
 }

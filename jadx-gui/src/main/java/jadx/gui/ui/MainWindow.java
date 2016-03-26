@@ -1,5 +1,6 @@
 package jadx.gui.ui;
 
+import jadx.api.ResourceFile;
 import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.BackgroundWorker;
 import jadx.gui.jobs.DecompileJob;
@@ -139,7 +140,7 @@ public class MainWindow extends JFrame {
 		setLocationAndPosition();
 		setVisible(true);
 		setLocationRelativeTo(null);
-		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
 		if (settings.getInput().isEmpty()) {
 			openFile();
@@ -169,7 +170,7 @@ public class MainWindow extends JFrame {
 	public void openFile() {
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setAcceptAllFileFilterUsed(true);
-		String[] exts = {"apk", "dex", "jar", "class", "zip"};
+		String[] exts = {"apk", "dex", "jar", "class", "zip", "aar"};
 		String description = "supported files: " + Arrays.toString(exts).replace('[', '(').replace(']', ')');
 		fileChooser.setFileFilter(new FileNameExtensionFilter(description, exts));
 		fileChooser.setToolTipText(NLS.str("file.open"));
@@ -245,7 +246,7 @@ public class MainWindow extends JFrame {
 		if (ret == JFileChooser.APPROVE_OPTION) {
 			settings.setLastSaveFilePath(fileChooser.getCurrentDirectory().getPath());
 			ProgressMonitor progressMonitor = new ProgressMonitor(mainPanel, NLS.str("msg.saving_sources"), "", 0, 100);
-			progressMonitor.setMillisToPopup(500);
+			progressMonitor.setMillisToPopup(0);
 			wrapper.saveAll(fileChooser.getSelectedFile(), progressMonitor);
 		}
 	}
@@ -296,11 +297,11 @@ public class MainWindow extends JFrame {
 			Object obj = tree.getLastSelectedPathComponent();
 			if (obj instanceof JResource) {
 				JResource res = (JResource) obj;
-				if (res.getContent() != null) {
-					tabbedPane.codeJump(new Position(res, res.getLine()));
+				ResourceFile resFile = res.getResFile();
+				if (resFile != null && JResource.isSupportedForView(resFile.getType())) {
+					tabbedPane.showResource(res);
 				}
-			}
-			if (obj instanceof JNode) {
+			} else if (obj instanceof JNode) {
 				JNode node = (JNode) obj;
 				JClass cls = node.getRootClass();
 				if (cls != null) {

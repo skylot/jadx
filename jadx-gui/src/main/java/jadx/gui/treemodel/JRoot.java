@@ -52,7 +52,11 @@ public class JRoot extends JNode {
 				String name = parts[i];
 				JResource subRF = getResourceByName(curRf, name);
 				if (subRF == null) {
-					subRF = new JResource(rf, name, i != count - 1 ? JResType.DIR : JResType.FILE);
+					if (i != count - 1) {
+						subRF = new JResource(null, name, JResType.DIR);
+					} else {
+						subRF = new JResource(rf, name, JResType.FILE);
+					}
 					curRf.getFiles().add(subRF);
 				}
 				curRf = subRF;

@@ -34,18 +34,18 @@ import org.fife.ui.rsyntaxtextarea.TokenTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class ContentArea extends RSyntaxTextArea {
-	private static final Logger LOG = LoggerFactory.getLogger(ContentArea.class);
+class CodeArea extends RSyntaxTextArea {
+	private static final Logger LOG = LoggerFactory.getLogger(CodeArea.class);
 
 	private static final long serialVersionUID = 6312736869579635796L;
 
 	public static final Color BACKGROUND = new Color(0xFAFAFA);
 	public static final Color JUMP_TOKEN_FGD = new Color(0x491BA1);
 
-	private final ContentPanel contentPanel;
+	private final CodePanel contentPanel;
 	private final JNode node;
 
-	ContentArea(ContentPanel panel) {
+	CodeArea(CodePanel panel) {
 		this.contentPanel = panel;
 		this.node = panel.getNode();
 
@@ -76,8 +76,8 @@ class ContentArea extends RSyntaxTextArea {
 		setText(node.getContent());
 	}
 
-	private void addMenuItems(ContentArea contentArea, JClass jCls) {
-		Action findUsage = new FindUsageAction(contentArea, jCls);
+	private void addMenuItems(CodeArea codeArea, JClass jCls) {
+		Action findUsage = new FindUsageAction(codeArea, jCls);
 		// TODO: hotkey works only when popup menu is shown
 		// findUsage.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_F7, KeyEvent.ALT_DOWN_MASK));
 
@@ -197,14 +197,14 @@ class ContentArea extends RSyntaxTextArea {
 	private class FindUsageAction extends AbstractAction implements PopupMenuListener {
 		private static final long serialVersionUID = 4692546569977976384L;
 
-		private final ContentArea contentArea;
+		private final CodeArea codeArea;
 		private final JClass jCls;
 
 		private JavaNode node;
 
-		public FindUsageAction(ContentArea contentArea, JClass jCls) {
+		public FindUsageAction(CodeArea codeArea, JClass jCls) {
 			super("Find Usage");
-			this.contentArea = contentArea;
+			this.codeArea = codeArea;
 			this.jCls = jCls;
 		}
 
@@ -222,11 +222,11 @@ class ContentArea extends RSyntaxTextArea {
 		@Override
 		public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
 			node = null;
-			Point pos = contentArea.getMousePosition();
+			Point pos = codeArea.getMousePosition();
 			if (pos != null) {
-				Token token = contentArea.viewToToken(pos);
+				Token token = codeArea.viewToToken(pos);
 				if (token != null) {
-					node = getJavaNodeAtOffset(jCls, contentArea, token.getOffset());
+					node = getJavaNodeAtOffset(jCls, codeArea, token.getOffset());
 				}
 			}
 			setEnabled(node != null);

@@ -108,6 +108,9 @@ public final class ResourcesLoader {
 
 			case ARSC:
 				return new ResTableParser().decodeFiles(inputStream);
+
+			case IMG:
+				return ResContainer.singleImageFile(rf.getName(), inputStream);
 		}
 		if (size > LOAD_SIZE_LIMIT) {
 			return ResContainer.singleFile(rf.getName(),

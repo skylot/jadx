@@ -13,7 +13,7 @@ public class ResourceFileContent extends ResourceFile {
 	}
 
 	@Override
-	public ResContainer getContent() {
+	public ResContainer loadContent() {
 		return ResContainer.singleFile(getName(), content);
 	}
 }

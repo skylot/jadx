@@ -1,6 +1,9 @@
 package jadx.gui.ui;
 
+import jadx.api.ResourceFile;
+import jadx.api.ResourceType;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.treemodel.JResource;
 import jadx.gui.utils.JumpManager;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Position;
@@ -72,23 +75,39 @@ class TabbedPane extends JTabbedPane {
 	}
 
 	private void showCode(final Position pos) {
-		final ContentPanel contentPanel = getCodePanel(pos.getNode());
+		final CodePanel contentPanel = (CodePanel) getContentPanel(pos.getNode());
+		if (contentPanel == null) {
+			return;
+		}
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
 				setSelectedComponent(contentPanel);
-				ContentArea contentArea = contentPanel.getContentArea();
+				CodeArea codeArea = contentPanel.getCodeArea();
 				int line = pos.getLine();
 				if (line < 0) {
 					try {
-						line = 1 + contentArea.getLineOfOffset(-line);
+						line = 1 + codeArea.getLineOfOffset(-line);
 					} catch (BadLocationException e) {
 						LOG.error("Can't get line for: {}", pos, e);
 						line = pos.getNode().getLine();
 					}
 				}
-				contentArea.scrollToLine(line);
-				contentArea.requestFocus();
+				codeArea.scrollToLine(line);
+				codeArea.requestFocus();
+			}
+		});
+	}
+
+	public void showResource(JResource res) {
+		final ContentPanel contentPanel = getContentPanel(res);
+		if (contentPanel == null) {
+			return;
+		}
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				setSelectedComponent(contentPanel);
 			}
 		});
 	}
@@ -105,10 +124,10 @@ class TabbedPane extends JTabbedPane {
 	@Nullable
 	private Position getCurrentPosition() {
 		ContentPanel selectedCodePanel = getSelectedCodePanel();
-		if (selectedCodePanel == null) {
-			return null;
+		if (selectedCodePanel instanceof CodePanel) {
+			return ((CodePanel) selectedCodePanel).getCodeArea().getCurrentPosition();
 		}
-		return selectedCodePanel.getContentArea().getCurrentPosition();
+		return null;
 	}
 
 	public void navBack() {
@@ -125,11 +144,7 @@ class TabbedPane extends JTabbedPane {
 		}
 	}
 
-	public JumpManager getJumpManager() {
-		return jumps;
-	}
-
-	private void addCodePanel(ContentPanel contentPanel) {
+	private void addContentPanel(ContentPanel contentPanel) {
 		openTabs.put(contentPanel.getNode(), contentPanel);
 		add(contentPanel);
 	}
@@ -139,14 +154,34 @@ class TabbedPane extends JTabbedPane {
 		remove(contentPanel);
 	}
 
-	private ContentPanel getCodePanel(JNode cls) {
-		ContentPanel panel = openTabs.get(cls);
+	@Nullable
+	private ContentPanel getContentPanel(JNode node) {
+		ContentPanel panel = openTabs.get(node);
 		if (panel == null) {
-			panel = new ContentPanel(this, cls);
-			addCodePanel(panel);
+			panel = makeContentPanel(node);
+			if (panel == null) {
+				return null;
+			}
+			addContentPanel(panel);
 			setTabComponentAt(indexOfComponent(panel), makeTabComponent(panel));
 		}
 		return panel;
+	}
+
+	@Nullable
+	private ContentPanel makeContentPanel(JNode node) {
+		if (node instanceof JResource) {
+			JResource res = (JResource) node;
+			ResourceFile resFile = res.getResFile();
+			if (resFile != null) {
+				if (resFile.getType() == ResourceType.IMG) {
+					return new ImagePanel(this, res);
+				}
+			} else {
+				return null;
+			}
+		}
+		return new CodePanel(this, node);
 	}
 
 	@Nullable
@@ -271,7 +306,7 @@ class TabbedPane extends JTabbedPane {
 
 	public void loadSettings() {
 		for (ContentPanel panel : openTabs.values()) {
-			panel.getContentArea().loadSettings();
+			panel.loadSettings();
 		}
 	}
 }

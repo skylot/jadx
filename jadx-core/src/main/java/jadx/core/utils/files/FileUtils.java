@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +20,7 @@ public class FileUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(FileUtils.class);
 
 	public static final int READ_BUFFER_SIZE = 8 * 1024;
+	private static final int MAX_FILENAME_LENGTH = 128;
 
 	private FileUtils() {
 	}
@@ -80,5 +82,22 @@ public class FileUtils {
 		} catch (IOException e) {
 			LOG.error("Close exception for {}", c, e);
 		}
+	}
+
+	@NotNull
+	public static File prepareFile(File file) {
+		String name = file.getName();
+		if (name.length() > MAX_FILENAME_LENGTH) {
+			int dotIndex = name.indexOf('.');
+			int cutAt = MAX_FILENAME_LENGTH - name.length() + dotIndex - 1;
+			if (cutAt <= 0) {
+				name = name.substring(0, MAX_FILENAME_LENGTH - 1);
+			} else {
+				name = name.substring(0, cutAt) + name.substring(dotIndex);
+			}
+			file = new File(file.getParentFile(), name);
+		}
+		makeDirsForFile(file);
+		return file;
 	}
 }

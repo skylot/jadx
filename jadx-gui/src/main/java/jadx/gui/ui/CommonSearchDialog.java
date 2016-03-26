@@ -162,7 +162,7 @@ public abstract class CommonSearchDialog extends JDialog {
 		resultsTable.setShowHorizontalLines(false);
 		resultsTable.setDragEnabled(false);
 		resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		resultsTable.setBackground(ContentArea.BACKGROUND);
+		resultsTable.setBackground(CodeArea.BACKGROUND);
 		resultsTable.setColumnSelectionAllowed(false);
 		resultsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		resultsTable.setAutoscrolls(false);
@@ -352,7 +352,7 @@ public abstract class CommonSearchDialog extends JDialog {
 				comp.setBackground(selectedBackground);
 				comp.setForeground(selectedForeground);
 			} else {
-				comp.setBackground(ContentArea.BACKGROUND);
+				comp.setBackground(CodeArea.BACKGROUND);
 				comp.setForeground(foreground);
 			}
 		}

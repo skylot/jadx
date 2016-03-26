@@ -48,7 +48,7 @@ public class ResourceFile {
 		return type;
 	}
 
-	public ResContainer getContent() {
+	public ResContainer loadContent() {
 		return ResourcesLoader.loadContent(decompiler, this);
 	}
 

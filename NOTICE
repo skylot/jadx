@@ -193,9 +193,21 @@ limitations under the License.
 *******************************************************************************
 
 
+Image Viewer (https://github.com/kazocsaba/imageviewer)
+
+*******************************************************************************
+Copyright (c) 2008-2012 Kazó Csaba
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*******************************************************************************
+
+JFontChooser Component - http://sourceforge.jp/projects/jfontchooser/
+
 Icons copied from several places:
  - Eclipse Project (JDT UI) - licensed under EPL v1.0 (http://www.eclipse.org/legal/epl-v10.html)
  - famfamfam silk icon set (http://www.famfamfam.com/lab/icons/silk/) - licensed
      under Creative Commons Attribution 2.5 License (http://creativecommons.org/licenses/by/2.5/)
-
-JFontChooser Component - http://sourceforge.jp/projects/jfontchooser/
