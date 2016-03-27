@@ -40,6 +40,9 @@ public class JadxCLIArgs implements IJadxArgs {
 	@Parameter(names = {"-s", "--no-src"}, description = "do not decompile source code")
 	protected boolean skipSources = false;
 
+	@Parameter(names = {"-e", "--export-gradle"}, description = "save as android gradle project")
+	protected boolean exportAsGradleProject = false;
+
 	@Parameter(names = {"--show-bad-code"}, description = "show inconsistent code (incorrectly decompiled)")
 	protected boolean showInconsistentCode = false;
 
@@ -280,5 +283,10 @@ public class JadxCLIArgs implements IJadxArgs {
 	@Override
 	public boolean isReplaceConsts() {
 		return replaceConsts;
+	}
+
+	@Override
+	public boolean isExportAsGradleProject() {
+		return exportAsGradleProject;
 	}
 }

@@ -89,6 +89,7 @@ public class MainWindow extends JFrame {
 
 	private static final ImageIcon ICON_OPEN = Utils.openIcon("folder");
 	private static final ImageIcon ICON_SAVE_ALL = Utils.openIcon("disk_multiple");
+	private static final ImageIcon ICON_EXPORT = Utils.openIcon("database_save");
 	private static final ImageIcon ICON_CLOSE = Utils.openIcon("cross");
 	private static final ImageIcon ICON_SYNC = Utils.openIcon("sync");
 	private static final ImageIcon ICON_FLAT_PKG = Utils.openIcon("empty_logical_package_obj");
@@ -232,7 +233,13 @@ public class MainWindow extends JFrame {
 		}
 	}
 
-	private void saveAll() {
+	private void saveAll(boolean export) {
+		settings.setExportAsGradleProject(export);
+		if (export) {
+			settings.setSkipSources(false);
+			settings.setSkipResources(false);
+		}
+
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		fileChooser.setToolTipText(NLS.str("file.save_all_msg"));
@@ -351,11 +358,20 @@ public class MainWindow extends JFrame {
 		Action saveAllAction = new AbstractAction(NLS.str("file.save_all"), ICON_SAVE_ALL) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				saveAll();
+				saveAll(false);
 			}
 		};
 		saveAllAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.save_all"));
 		saveAllAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
+
+		Action exportAction = new AbstractAction(NLS.str("file.export_gradle"), ICON_EXPORT) {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				saveAll(true);
+			}
+		};
+		exportAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.export_gradle"));
+		exportAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_E, KeyEvent.CTRL_DOWN_MASK));
 
 		JMenu recentFiles = new JMenu(NLS.str("menu.recent_files"));
 		recentFiles.addMenuListener(new RecentFilesMenuListener(recentFiles));
@@ -467,6 +483,7 @@ public class MainWindow extends JFrame {
 		file.setMnemonic(KeyEvent.VK_F);
 		file.add(openAction);
 		file.add(saveAllAction);
+		file.add(exportAction);
 		file.addSeparator();
 		file.add(recentFiles);
 		file.addSeparator();
@@ -523,6 +540,7 @@ public class MainWindow extends JFrame {
 		toolbar.setFloatable(false);
 		toolbar.add(openAction);
 		toolbar.add(saveAllAction);
+		toolbar.add(exportAction);
 		toolbar.addSeparator();
 		toolbar.add(syncAction);
 		toolbar.add(flatPkgButton);

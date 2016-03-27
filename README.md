@@ -46,6 +46,7 @@ options:
  -j, --threads-count        - processing threads count
  -r, --no-res               - do not decode resources
  -s, --no-src               - do not decompile source code
+ -e, --export-gradle        - save as android gradle project
      --show-bad-code        - show inconsistent code (incorrectly decompiled)
      --no-replace-consts    - don't replace constant value with matching constant field
      --escape-unicode       - escape non latin characters in strings (with \u)

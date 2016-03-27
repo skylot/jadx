@@ -26,6 +26,7 @@ public class JadxArgs implements IJadxArgs {
 
 	private boolean escapeUnicode = false;
 	private boolean replaceConsts = true;
+	private boolean exportAsGradleProject = false;
 
 	@Override
 	public File getOutDir() {
@@ -169,5 +170,14 @@ public class JadxArgs implements IJadxArgs {
 
 	public void setReplaceConsts(boolean replaceConsts) {
 		this.replaceConsts = replaceConsts;
+	}
+
+	@Override
+	public boolean isExportAsGradleProject() {
+		return exportAsGradleProject;
+	}
+
+	public void setExportAsGradleProject(boolean exportAsGradleProject) {
+		this.exportAsGradleProject = exportAsGradleProject;
 	}
 }

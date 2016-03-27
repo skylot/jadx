@@ -3,12 +3,14 @@ package jadx.api;
 import jadx.core.Jadx;
 import jadx.core.ProcessClass;
 import jadx.core.codegen.CodeGen;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.SaveCode;
+import jadx.core.export.ExportGradleProject;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -150,7 +152,7 @@ public final class JadxDecompiler {
 		return getSaveExecutor(!args.isSkipSources(), !args.isSkipResources());
 	}
 
-	private ExecutorService getSaveExecutor(boolean saveSources, final boolean saveResources) {
+	private ExecutorService getSaveExecutor(boolean saveSources, boolean saveResources) {
 		if (root == null) {
 			throw new JadxRuntimeException("No loaded files");
 		}
@@ -159,23 +161,46 @@ public final class JadxDecompiler {
 
 		LOG.info("processing ...");
 		ExecutorService executor = Executors.newFixedThreadPool(threadsCount);
+
+		File sourcesOutDir;
+		File resOutDir;
+		if (args.isExportAsGradleProject()) {
+			ExportGradleProject export = new ExportGradleProject(root, outDir);
+			export.init();
+			sourcesOutDir = export.getSrcOutDir();
+			resOutDir = export.getResOutDir();
+		} else {
+			sourcesOutDir = outDir;
+			resOutDir = outDir;
+		}
 		if (saveSources) {
-			for (final JavaClass cls : getClasses()) {
-				executor.execute(new Runnable() {
-					@Override
-					public void run() {
-						cls.decompile();
-						SaveCode.save(outDir, args, cls.getClassNode());
-					}
-				});
-			}
+			appendSourcesSave(executor, sourcesOutDir);
 		}
 		if (saveResources) {
-			for (final ResourceFile resourceFile : getResources()) {
-				executor.execute(new ResourcesSaver(outDir, resourceFile));
-			}
+			appendResourcesSave(executor, resOutDir);
 		}
 		return executor;
+	}
+
+	private void appendResourcesSave(ExecutorService executor, File outDir) {
+		for (ResourceFile resourceFile : getResources()) {
+			executor.execute(new ResourcesSaver(outDir, resourceFile));
+		}
+	}
+
+	private void appendSourcesSave(ExecutorService executor, final File outDir) {
+		for (final JavaClass cls : getClasses()) {
+			if (cls.getClassNode().contains(AFlag.DONT_GENERATE)) {
+				continue;
+			}
+			executor.execute(new Runnable() {
+				@Override
+				public void run() {
+					cls.decompile();
+					SaveCode.save(outDir, args, cls.getClassNode());
+				}
+			});
+		}
 	}
 
 	public List<JavaClass> getClasses() {

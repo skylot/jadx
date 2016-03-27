@@ -1,11 +1,10 @@
-project.ext {
+ext {
     testAppDir = 'test-app'
     testAppTmpDir = 'test-app-tmp'
 
-    buildFile = "${testAppTmpDir}/build.gradle"
+    tmpBuildFile = "${testAppTmpDir}/build.gradle"
     apkFile = "${testAppTmpDir}/build/outputs/apk/test-app-tmp-debug.apk"
-    outSrcDir = "${testAppTmpDir}/src/main/java"
-    outResDir = "${testAppTmpDir}/src/main"
+    outCodeDir = "${testAppTmpDir}/src/main"
     checkTask = 'connectedCheck'
 }
 
@@ -32,24 +31,30 @@ task buildApp(type:Exec, dependsOn: copyApp) {
 }
 
 task removeSource(type:Delete, dependsOn: buildApp) {
-    delete "${outResDir}/**"
+    delete outCodeDir
 }
 
-task runJadxSrc(type: JavaExec, dependsOn: removeSource) {
+task runJadx(type: JavaExec, dependsOn: removeSource) {
     classpath = sourceSets.main.output + configurations.compile
     main = project(':jadx-cli').mainClassName
-    args = ['-d', outSrcDir, '-r', apkFile, '-v']
+    args = ['-d', testAppTmpDir, apkFile, '-v', '-e']
 }
 
-task runJadxResources(type: JavaExec, dependsOn: runJadxSrc) {
-    classpath = sourceSets.main.output + configurations.compile
-    main = project(':jadx-cli').mainClassName
-    args = ['-d', outResDir, '-s', apkFile, '-v']
+task decompile(dependsOn: runJadx) {
+    doLast {
+        injectDependencies()
+    }
 }
 
-task decompile(type:Delete, dependsOn: runJadxResources) {
-    delete "${outSrcDir}/com/github/skylot/jadx/testapp/BuildConfig.java"
-    delete "${outSrcDir}/com/github/skylot/jadx/testapp/R.java"
+def injectDependencies() {
+    def fileContent = file(tmpBuildFile).getText('UTF-8')
+    def updatedContent = fileContent.replaceAll(
+            '// some dependencies',
+            """
+    androidTestCompile 'junit:junit:4.12'
+    androidTestCompile 'org.hamcrest:hamcrest-library:1.3'
+            """)
+    file(tmpBuildFile).write(updatedContent, 'UTF-8')
 }
 
 task runChecks(type:Exec, dependsOn: decompile) {

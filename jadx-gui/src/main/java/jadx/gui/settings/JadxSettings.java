@@ -180,6 +180,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.autoStartJobs = autoStartJobs;
 	}
 
+	public void setExportAsGradleProject(boolean exportAsGradleProject) {
+		this.exportAsGradleProject = exportAsGradleProject;
+	}
+
 	public Font getFont() {
 		if (fontStr.isEmpty()) {
 			return DEFAULT_FONT;

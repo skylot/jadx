@@ -37,4 +37,9 @@ public interface IJadxArgs {
 	 * Replace constant values with static final fields with same value
 	 */
 	boolean isReplaceConsts();
+
+	/**
+	 * Save as gradle project
+	 */
+	boolean isExportAsGradleProject();
 }
