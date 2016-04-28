@@ -12,6 +12,9 @@ Command line and GUI tools for produce Java source code from Android Dex and Apk
 
 ![jadx-gui screenshot](http://skylot.github.io/jadx/jadx-gui.png)
 
+### add by qi
+add: check file's type by file header
+
 ### Downloads
 - [unstable](https://drone.io/github.com/skylot/jadx/files)
 - from [github](https://github.com/skylot/jadx/releases)
