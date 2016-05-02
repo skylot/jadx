@@ -106,7 +106,6 @@ public class FileUtils {
 		return file;
 	}
 
-	//add by qi
 	public static String bytesToHex(byte[] bytes) {
 		char[] hexArray = "0123456789abcdef".toCharArray();
 		if (bytes == null || bytes.length <= 0) {
@@ -121,7 +120,6 @@ public class FileUtils {
 		return new String(hexChars);
 	}
 
-	//add by qi
 	public static boolean isZipfile(File file) {
 		boolean isZipfile = false;
 		InputStream is = null;
@@ -149,7 +147,6 @@ public class FileUtils {
 		return isZipfile;
 	}
 
-	//add by qi
 	public static List<String> getZipfileList(File file) {
 		List<String> filelist = new ArrayList<String>();
 		ZipFile zipFile = null;
@@ -170,7 +167,6 @@ public class FileUtils {
 		return filelist;
 	}
 
-	//add by qi
 	public static boolean isApkfile(File file) {
 		boolean isApkfile = false;
 		if (isZipfile(file)) {
@@ -182,7 +178,6 @@ public class FileUtils {
 		return isApkfile;
 	}
 
-	//add by qi
 	public static boolean isZipDexfile(File file) {
 		boolean isZipDexFile = false;
 		if (isZipfile(file)) {

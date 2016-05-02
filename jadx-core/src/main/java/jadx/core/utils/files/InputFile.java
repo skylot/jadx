@@ -54,7 +54,7 @@ public class InputFile {
 			addDexFile(loadFromClassFile(file));
 			return;
 		}
-		//modifed by qi：add isApkfile() and isZipdexfile()
+
 		if (fileName.endsWith(".apk") || fileName.endsWith(".zip") || isApkfile(file) || isZipDexfile(file)) {
 			loadFromZip(".dex");
 			return;
