@@ -1,17 +1,18 @@
 package jadx.gui.treemodel;
 
-import jadx.api.ResourceFile;
-import jadx.gui.JadxWrapper;
-import jadx.gui.treemodel.JResource.JResType;
-import jadx.gui.utils.Utils;
-
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import java.io.File;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.regex.Pattern;
+
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+
+import jadx.api.ResourceFile;
+import jadx.gui.JadxWrapper;
+import jadx.gui.treemodel.JResource.JResType;
+import jadx.gui.utils.Utils;
 
 public class JRoot extends JNode {
 	private static final long serialVersionUID = 8888495789773527342L;
@@ -45,7 +46,13 @@ public class JRoot extends JNode {
 		JResource root = new JResource(null, "Resources", JResType.ROOT);
 		String splitPathStr = Pattern.quote(File.separator);
 		for (ResourceFile rf : resources) {
-			String[] parts = new File(rf.getName()).getPath().split(splitPathStr);
+			String rfName;
+			if (rf.getZipRef() != null) {
+				rfName = rf.getName();
+			} else {
+				rfName = new File(rf.getName()).getName();
+			}
+			String[] parts = new File(rfName).getPath().split(splitPathStr);
 			JResource curRf = root;
 			int count = parts.length;
 			for (int i = 0; i < count; i++) {

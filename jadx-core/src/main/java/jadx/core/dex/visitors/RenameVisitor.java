@@ -10,6 +10,7 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
@@ -18,6 +19,7 @@ import jadx.core.utils.files.InputFile;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.io.FilenameUtils;
@@ -33,13 +35,17 @@ public class RenameVisitor extends AbstractVisitor {
 	public void init(RootNode root) {
 		IJadxArgs args = root.getArgs();
 
-		InputFile firstInputFile = root.getDexNodes().get(0).getDexFile().getInputFile();
+		List<DexNode> dexNodes = root.getDexNodes();
+		if (dexNodes.size() == 0) {
+			return;
+		}
+		InputFile firstInputFile = dexNodes.get(0).getDexFile().getInputFile();
 		final String firstInputFileName = firstInputFile.getFile().getAbsolutePath();
 		final String inputPath = FilenameUtils.getFullPathNoEndSeparator(firstInputFileName);
 		final String inputName = FilenameUtils.getBaseName(firstInputFileName);
 
 		File deobfMapFile = new File(inputPath, inputName + ".jobf");
-		deobfuscator = new Deobfuscator(args, root.getDexNodes(), deobfMapFile);
+		deobfuscator = new Deobfuscator(args, dexNodes, deobfMapFile);
 		boolean deobfuscationOn = args.isDeobfuscationOn();
 		if (deobfuscationOn) {
 			deobfuscator.execute();

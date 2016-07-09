@@ -48,7 +48,11 @@ public class AndroidResourcesUtils {
 	}
 
 	private static ClassNode makeClass(RootNode root, String clsName) {
-		DexNode firstDex = root.getDexNodes().get(0);
+		List<DexNode> dexNodes = root.getDexNodes();
+		if (dexNodes.size() == 0) {
+			return null;
+		}
+		DexNode firstDex = dexNodes.get(0);
 		ClassInfo r = ClassInfo.fromName(firstDex, clsName);
 		return new ClassNode(firstDex, r);
 	}

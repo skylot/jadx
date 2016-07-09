@@ -171,7 +171,7 @@ public class MainWindow extends JFrame {
 	public void openFile() {
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setAcceptAllFileFilterUsed(true);
-		String[] exts = {"apk", "dex", "jar", "class", "zip", "aar"};
+		String[] exts = {"apk", "dex", "jar", "class", "zip", "aar", "arsc"};
 		String description = "supported files: " + Arrays.toString(exts).replace('[', '(').replace(']', ')');
 		fileChooser.setFileFilter(new FileNameExtensionFilter(description, exts));
 		fileChooser.setToolTipText(NLS.str("file.open"));

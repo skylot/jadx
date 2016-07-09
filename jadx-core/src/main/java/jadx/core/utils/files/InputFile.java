@@ -68,7 +68,7 @@ public class InputFile {
 			loadFromZip(".jar");
 			return;
 		}
-		throw new DecodeException("Unsupported input file format: " + file);
+		//throw new DecodeException("Unsupported input file format: " + file);
 	}
 
 	private void addDexFile(Dex dexBuf) throws IOException {
