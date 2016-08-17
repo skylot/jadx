@@ -31,6 +31,7 @@ public class SearchDialog extends CommonSearchDialog {
 	private Set<SearchOptions> options = EnumSet.allOf(SearchOptions.class);
 
 	private JTextField searchField;
+	private JCheckBox caseChBox;
 
 	public SearchDialog(MainWindow mainWindow, Set<SearchOptions> options) {
 		super(mainWindow);
@@ -65,19 +66,21 @@ public class SearchDialog extends CommonSearchDialog {
 			resultsTable.updateTable();
 			return;
 		}
+		boolean caseInsensitive = caseChBox.isSelected();
 		if (options.contains(SearchOptions.CLASS)) {
-			resultsModel.addAll(index.searchClsName(text));
+			resultsModel.addAll(index.searchClsName(text, caseInsensitive));
 		}
 		if (options.contains(SearchOptions.METHOD)) {
-			resultsModel.addAll(index.searchMthName(text));
+			resultsModel.addAll(index.searchMthName(text, caseInsensitive));
 		}
 		if (options.contains(SearchOptions.FIELD)) {
-			resultsModel.addAll(index.searchFldName(text));
+			resultsModel.addAll(index.searchFldName(text, caseInsensitive));
 		}
 		if (options.contains(SearchOptions.CODE)) {
-			resultsModel.addAll(index.searchCode(text));
+			resultsModel.addAll(index.searchCode(text, caseInsensitive));
 		}
 		highlightText = text;
+		highlightTextCaseInsensitive = caseInsensitive;
 		resultsTable.updateTable();
 	}
 
@@ -114,24 +117,38 @@ public class SearchDialog extends CommonSearchDialog {
 
 	private void initUI() {
 		JLabel findLabel = new JLabel(NLS.str("search_dialog.open_by_name"));
-
 		searchField = new JTextField();
 		searchField.setAlignmentX(LEFT_ALIGNMENT);
 		searchField.getDocument().addDocumentListener(new SearchFieldListener());
 		new TextStandardActions(searchField);
+
+		caseChBox = new JCheckBox(NLS.str("search_dialog.ignorecase"));
+		caseChBox.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				performSearch();
+			}
+		});
 
 		JCheckBox clsChBox = makeOptionsCheckBox(NLS.str("search_dialog.class"), SearchOptions.CLASS);
 		JCheckBox mthChBox = makeOptionsCheckBox(NLS.str("search_dialog.method"), SearchOptions.METHOD);
 		JCheckBox fldChBox = makeOptionsCheckBox(NLS.str("search_dialog.field"), SearchOptions.FIELD);
 		JCheckBox codeChBox = makeOptionsCheckBox(NLS.str("search_dialog.code"), SearchOptions.CODE);
 
+		JPanel searchInPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		searchInPanel.setBorder(BorderFactory.createTitledBorder(NLS.str("search_dialog.search_in")));
+		searchInPanel.add(clsChBox);
+		searchInPanel.add(mthChBox);
+		searchInPanel.add(fldChBox);
+		searchInPanel.add(codeChBox);
+
 		JPanel searchOptions = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		searchOptions.setBorder(BorderFactory.createTitledBorder(NLS.str("search_dialog.search_in")));
-		searchOptions.add(clsChBox);
-		searchOptions.add(mthChBox);
-		searchOptions.add(fldChBox);
-		searchOptions.add(codeChBox);
-		searchOptions.setAlignmentX(LEFT_ALIGNMENT);
+		searchOptions.setBorder(BorderFactory.createTitledBorder(NLS.str("search_dialog.options")));
+		searchOptions.add(caseChBox);
+
+		Box box = Box.createHorizontalBox();
+		box.setAlignmentX(LEFT_ALIGNMENT);
+		box.add(searchInPanel);
+		box.add(searchOptions);
 
 		JPanel searchPane = new JPanel();
 		searchPane.setLayout(new BoxLayout(searchPane, BoxLayout.PAGE_AXIS));
@@ -140,7 +157,7 @@ public class SearchDialog extends CommonSearchDialog {
 		searchPane.add(Box.createRigidArea(new Dimension(0, 5)));
 		searchPane.add(searchField);
 		searchPane.add(Box.createRigidArea(new Dimension(0, 5)));
-		searchPane.add(searchOptions);
+		searchPane.add(box);
 		searchPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		initCommon();

@@ -109,4 +109,11 @@ public class Utils {
 	private static String format(long mem) {
 		return Long.toString((long) (mem / 1024. / 1024.)) + "MB";
 	}
+
+	/**
+	 * Adapt character case for case insensitive searches
+	 */
+	public static char caseChar(char ch, boolean toLower) {
+		return toLower ? Character.toLowerCase(ch) : ch;
+	}
 }

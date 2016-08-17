@@ -10,7 +10,7 @@ public interface SearchIndex<V> {
 
 	boolean isStringRefSupported();
 
-	List<V> getValuesForKeysContaining(String str);
+	List<V> getValuesForKeysContaining(String str, boolean caseInsensitive);
 
 	int size();
 }

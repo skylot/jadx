@@ -7,7 +7,7 @@ import java.util.List;
 public class SimpleIndex<T> implements SearchIndex<T> {
 
 	private final List<String> keys = new ArrayList<>();
-	private final List<T> values = new ArrayList<>();
+	private final List<T> values = new ArrayList<T>();
 
 	@Override
 	public void put(String str, T value) {
@@ -26,14 +26,20 @@ public class SimpleIndex<T> implements SearchIndex<T> {
 	}
 
 	@Override
-	public List<T> getValuesForKeysContaining(String str) {
+	public List<T> getValuesForKeysContaining(String str, boolean caseInsensitive) {
 		int size = size();
 		if (size == 0) {
 			return Collections.emptyList();
 		}
+		if (caseInsensitive) {
+			str = str.toLowerCase();
+		}
 		List<T> results = new ArrayList<>();
 		for (int i = 0; i < size; i++) {
 			String key = keys.get(i);
+			if (caseInsensitive) {
+				key = key.toLowerCase();
+			}
 			if (key.contains(str)) {
 				results.add(values.get(i));
 			}
