@@ -105,9 +105,10 @@ public class TextStandardActions {
 	}
 
 	private void addKeyActions() {
-		KeyStroke undoKey = KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_MASK);
+		int shortcut = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+		KeyStroke undoKey = KeyStroke.getKeyStroke(KeyEvent.VK_Z, shortcut);
 		textComponent.getInputMap().put(undoKey, undoAction);
-		KeyStroke redoKey = KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_MASK);
+		KeyStroke redoKey = KeyStroke.getKeyStroke(KeyEvent.VK_R, shortcut);
 		textComponent.getInputMap().put(redoKey, redoAction);
 	}
 
