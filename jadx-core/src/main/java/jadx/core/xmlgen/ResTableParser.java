@@ -136,9 +136,9 @@ public class ResTableParser extends CommonBinaryParser {
 		}
 
 		PackageChunk pkg = new PackageChunk(id, name, typeStrings, keyStrings);
-		if (id == 0x7F) {
+		//if (id == 0x7F) {
 			resStorage.setAppPackage(name);
-		}
+		//}
 
 		while (is.getPos() < endPos) {
 			long chunkStart = is.getPos();
