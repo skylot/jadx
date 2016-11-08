@@ -52,20 +52,19 @@ public class InputFile {
 			addDexFile(loadFromClassFile(file));
 			return;
 		}
-		if (fileName.endsWith(".apk") || fileName.endsWith(".zip")) {
-			loadFromZip(".dex");
-			return;
-		}
-		if (fileName.endsWith(".jar")) {
-			// check if jar contains '.dex' files
+		if (FileUtils.isZipFile(file)) {
+			// check if zip contains '.dex' files
 			if (loadFromZip(".dex")) {
 				return;
 			}
-			addDexFile(loadFromJar(file));
-			return;
-		}
-		if (fileName.endsWith(".aar")) {
-			loadFromZip(".jar");
+			if (fileName.endsWith(".jar")) {
+				addDexFile(loadFromJar(file));
+				return;
+			}
+			if (fileName.endsWith(".aar")) {
+				loadFromZip(".jar");
+				return;
+			}
 			return;
 		}
 		//throw new DecodeException("Unsupported input file format: " + file);

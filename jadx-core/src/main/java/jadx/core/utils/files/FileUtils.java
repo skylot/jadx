@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
 
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -99,5 +101,23 @@ public class FileUtils {
 		}
 		makeDirsForFile(file);
 		return file;
+	}
+
+	public static boolean isZipFile(final File file) throws IOException {
+		ZipFile zipFile = null;
+		try {
+			zipFile = new ZipFile(file);
+			return zipFile.entries().hasMoreElements();
+		} catch (ZipException e) {
+			return false;
+		} finally {
+			if (zipFile != null) {
+				try {
+					zipFile.close();
+				} catch (IOException e) {
+					LOG.error(e.getMessage());
+				}
+			}
+		}
 	}
 }
