@@ -28,7 +28,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private String lastOpenFilePath = USER_HOME;
 	private String lastSaveFilePath = USER_HOME;
 	private boolean flattenPackage = false;
-	private boolean checkForUpdates = true;
+	private boolean checkForUpdates = false;
 	private List<String> recentFiles = new ArrayList<String>();
 	private String fontStr = "";
 	private boolean autoStartJobs = true;
