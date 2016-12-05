@@ -13,10 +13,6 @@ compileJava {
     options.compilerArgs << '-g:none'
 }
 
-sonarRunner {
-    skipProject = true
-}
-
 task samplesRun(type: JavaExec, dependsOn: compileJava) {  
     classpath = sourceSets.main.output
     main = mainSamplesClass  

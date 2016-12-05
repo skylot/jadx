@@ -11,8 +11,6 @@ plugins {
 //    id "com.github.ben-manes.versions" version "0.8"
 }
 
-apply plugin: 'sonar-runner'
-
 ext.jadxVersion = file('version').readLines().get(0)
 version = jadxVersion
 
@@ -63,14 +61,6 @@ subprojects {
             html.enabled = true
         }
     }
-}
-
-/* Sonar runner configuration */
-repositories {
-    mavenCentral()
-}
-sonarRunner {
-    toolVersion = '2.4'
 }
 
 task copyArtifacts(type: Sync, dependsOn: ['jadx-cli:installDist', 'jadx-gui:installDist']) {
