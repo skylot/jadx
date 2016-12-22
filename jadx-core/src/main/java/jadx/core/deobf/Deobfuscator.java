@@ -1,16 +1,9 @@
 package jadx.core.deobf;
 
-import jadx.api.IJadxArgs;
-import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.nodes.SourceFileAttr;
-import jadx.core.dex.info.ClassInfo;
-import jadx.core.dex.info.FieldInfo;
-import jadx.core.dex.info.MethodInfo;
-import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.DexNode;
-import jadx.core.dex.nodes.FieldNode;
-import jadx.core.dex.nodes.MethodNode;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -22,10 +15,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jadx.api.IJadxArgs;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.SourceFileAttr;
+import jadx.core.dex.info.ClassInfo;
+import jadx.core.dex.info.FieldInfo;
+import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.DexNode;
+import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.MethodNode;
 
 public class Deobfuscator {
 	private static final Logger LOG = LoggerFactory.getLogger(Deobfuscator.class);
@@ -43,6 +43,7 @@ public class Deobfuscator {
 	private final Map<ClassInfo, DeobfClsInfo> clsMap = new HashMap<ClassInfo, DeobfClsInfo>();
 	private final Map<FieldInfo, String> fldMap = new HashMap<FieldInfo, String>();
 	private final Map<MethodInfo, String> mthMap = new HashMap<MethodInfo, String>();
+	private final Map<String, Integer> aliasMap = new HashMap<String, Integer>();
 
 	private final Map<MethodInfo, OverridedMethodsNode> ovrdMap = new HashMap<MethodInfo, OverridedMethodsNode>();
 	private final List<OverridedMethodsNode> ovrd = new ArrayList<OverridedMethodsNode>();
@@ -369,6 +370,10 @@ public class Deobfuscator {
 		if (name.endsWith(".java")) {
 			name = name.substring(0, name.length() - ".java".length());
 		}
+		Integer integer = aliasMap.get(name);
+		integer = integer == null ? 0 : ++integer;
+		aliasMap.put(name, integer);
+		name = name + "$" + integer;
 		if (NameMapper.isValidIdentifier(name)
 				&& !NameMapper.isReserved(name)) {
 			// TODO: check if no class with this name exists or already renamed
