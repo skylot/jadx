@@ -41,7 +41,6 @@ startScripts {
 
 test {
     jacoco {
-        // coveralls plugin not support multi-project
         enabled = false
     }
 }

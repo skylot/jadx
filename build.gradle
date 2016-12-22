@@ -1,24 +1,10 @@
-buildscript {
-    repositories {
-        mavenCentral()
-        jcenter()
-    }
-}
-
-plugins {
-    id "com.github.kt3k.coveralls" version "2.3.1"
-    id "info.solidsoft.pitest" version "1.1.4"
-//    id "com.github.ben-manes.versions" version "0.8"
-}
-
 ext.jadxVersion = file('version').readLines().get(0)
 version = jadxVersion
 
-subprojects {
+allprojects {
     apply plugin: 'java'
     apply plugin: 'groovy'
     apply plugin: 'jacoco'
-    apply plugin: 'com.github.kt3k.coveralls'
 
     version = jadxVersion
 
@@ -50,14 +36,14 @@ subprojects {
     }
 
     repositories {
-        mavenCentral()
         mavenLocal()
+        mavenCentral()
         jcenter()
     }
 
     jacocoTestReport {
         reports {
-            xml.enabled = true // coveralls plugin depends on xml format report
+            xml.enabled = true
             html.enabled = true
         }
     }
@@ -97,6 +83,3 @@ build.dependsOn(dist, samples)
 
 clean.dependsOn(cleanBuildDir)
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '2.7'
-}

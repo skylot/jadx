@@ -1,7 +1,5 @@
 ext.jadxClasspath = 'clsp-data/android-5.1.jar'
 
-apply plugin: "info.solidsoft.pitest"
-
 dependencies {
     runtime files(jadxClasspath)
 
@@ -14,15 +12,3 @@ dependencies {
     testCompile 'org.smali:smali:2.0.3'
 }
 
-task packTests(type: Jar) {
-    classifier = 'tests'
-    from sourceSets.test.output
-}
-
-pitest {
-    excludedMethods = ['toString']
-    threads = 4
-    enableDefaultIncrementalAnalysis = true
-    outputFormats = ['XML', 'HTML']
-    jvmArgs = ['-Xmx12G']
-}

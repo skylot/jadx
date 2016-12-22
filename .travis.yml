@@ -11,17 +11,10 @@ script:
     - TERM=dumb ./gradlew clean build dist
 
 after_success:
-    - TERM=dumb ./gradlew jacocoTestReport coveralls
+    - TERM=dumb ./gradlew jacocoTestReport
+    - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
 
 sudo: false
-
-cache:
-    directories:
-        - $HOME/.gradle/caches/
-        - $HOME/.gradle/wrapper/
-
-before_cache:
-    - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
 
 notifications:
     email:
