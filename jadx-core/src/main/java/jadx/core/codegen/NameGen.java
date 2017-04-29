@@ -164,6 +164,7 @@ public class NameGen {
 			if (vName != null) {
 				return vName;
 			}
+			return StringUtils.escape(shortName.toLowerCase());
 		}
 		return StringUtils.escape(type.toString());
 	}
