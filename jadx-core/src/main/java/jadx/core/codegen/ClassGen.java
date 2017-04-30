@@ -339,6 +339,10 @@ public class ClassGen {
 				continue;
 			}
 			annotationGen.addForField(code, f);
+
+			if(f.getFieldInfo().isRenamed()) {
+				code.startLine("/* renamed from: ").add(f.getName()).add(" */");
+			}
 			code.startLine(f.getAccessFlags().makeString());
 			useType(code, f.getType());
 			code.add(' ');
@@ -586,9 +590,8 @@ public class ClassGen {
 
 	private void insertRenameInfo(CodeWriter code, ClassNode cls) {
 		ClassInfo classInfo = cls.getClassInfo();
-		if (classInfo.isRenamed()
-				&& !cls.getShortName().equals(cls.getAlias().getShortName())) {
-			code.startLine("/* renamed from: ").add(classInfo.getFullName()).add(" */");
+		if (classInfo.isRenamed()) {
+			code.startLine("/* renamed from: ").add(classInfo.getType().getObject()).add(" */");
 		}
 	}
 

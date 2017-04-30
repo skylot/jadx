@@ -80,6 +80,10 @@ public class MethodGen {
 		if (clsAccFlags.isAnnotation()) {
 			ai = ai.remove(AccessFlags.ACC_PUBLIC);
 		}
+
+		if(mth.getMethodInfo().isRenamed()) {
+			code.startLine("/* renamed from: ").add(mth.getName()).add(" */");
+		}
 		code.startLineWithNum(mth.getSourceLine());
 		code.add(ai.makeString());
 
