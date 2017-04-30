@@ -7,6 +7,7 @@ import jadx.api.ResourcesLoader;
 import jadx.core.clsp.ClspGraph;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.ConstStorage;
+import jadx.core.dex.info.InfoStorage;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.android.AndroidResourcesUtils;
@@ -34,6 +35,7 @@ public class RootNode {
 	private final IJadxArgs args;
 	private final StringUtils stringUtils;
 	private final ConstStorage constValues;
+	private final InfoStorage infoStorage = new InfoStorage();
 
 	private List<DexNode> dexNodes;
 	@Nullable
@@ -53,7 +55,7 @@ public class RootNode {
 			for (DexFile dexFile : input.getDexFiles()) {
 				try {
 					LOG.debug("Load: {}", dexFile);
-					DexNode dexNode = new DexNode(this, dexFile);
+					DexNode dexNode = new DexNode(this, dexFile, dexNodes.size());
 					dexNodes.add(dexNode);
 				} catch (Exception e) {
 					throw new DecodeException("Error decode file: " + dexFile, e);
@@ -197,4 +199,9 @@ public class RootNode {
 	public ConstStorage getConstValues() {
 		return constValues;
 	}
+
+	public InfoStorage getInfoStorage() {
+		return infoStorage;
+	}
+
 }

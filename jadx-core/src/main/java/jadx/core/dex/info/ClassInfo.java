@@ -35,12 +35,12 @@ public final class ClassInfo {
 		if (type.isArray()) {
 			type = ArgType.OBJECT;
 		}
-		ClassInfo cls = dex.getInfoStorage().getCls(type);
+		ClassInfo cls = dex.root().getInfoStorage().getCls(type);
 		if (cls != null) {
 			return cls;
 		}
 		cls = new ClassInfo(dex, type);
-		return dex.getInfoStorage().putCls(cls);
+		return dex.root().getInfoStorage().putCls(cls);
 	}
 
 	public static ClassInfo fromDex(DexNode dex, int clsIndex) {
