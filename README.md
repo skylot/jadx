@@ -1,9 +1,12 @@
 ## JADX
 
 [![Build Status](https://travis-ci.org/skylot/jadx.png?branch=master)](https://travis-ci.org/skylot/jadx)
-[![Build Status](https://drone.io/github.com/skylot/jadx/status.png)](https://drone.io/github.com/skylot/jadx/latest)
+[![Build Status](https://gitlab.com/skylot/jadx/badges/master/build.svg)](https://gitlab.com/skylot/jadx/commits/master)
+[![coverage report](https://gitlab.com/skylot/jadx/badges/master/coverage.svg)](https://gitlab.com/skylot/jadx/commits/master)
 [![Code Coverage](https://codecov.io/gh/skylot/jadx/branch/master/graph/badge.svg)](https://codecov.io/gh/skylot/jadx)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/2166/badge.svg)](https://scan.coverity.com/projects/2166)
+[![Latest release](https://img.shields.io/github/release/skylot/jadx.svg)](https://github.com/skylot/jadx/releases/latest)
+[![Latest release downloads](https://img.shields.io/github/downloads/skylot/jadx/latest/total.svg)](https://github.com/skylot/jadx/releases/latest)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
 **jadx** - Dex to Java decompiler
@@ -14,7 +17,7 @@ Command line and GUI tools for produce Java source code from Android Dex and Apk
 
 
 ### Downloads
-- [unstable](https://drone.io/github.com/skylot/jadx/files)
+- [unstable](https://gitlab.com/skylot/jadx/builds/artifacts/master/browse/build?job=build)
 - from [github](https://github.com/skylot/jadx/releases)
 - from [sourceforge](http://sourceforge.net/projects/jadx/files/)
 
@@ -91,4 +94,4 @@ Also I need to **prioritize** these task for complete most important at first.
 ---------------------------------------
 *Licensed under the Apache 2.0 License*
 
-*Copyright 2016 by Skylot*
+*Copyright 2018 by Skylot*

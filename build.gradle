@@ -1,3 +1,7 @@
+plugins {
+    id 'com.github.ksoichiro.console.reporter' version '0.5.0'
+}
+
 ext.jadxVersion = file('version').readLines().get(0)
 version = jadxVersion
 
@@ -5,6 +9,7 @@ allprojects {
     apply plugin: 'java'
     apply plugin: 'groovy'
     apply plugin: 'jacoco'
+    apply plugin: 'com.github.ksoichiro.console.reporter'
 
     version = jadxVersion
 
@@ -70,9 +75,6 @@ task samples(dependsOn: 'jadx-samples:samples') {
 }
 
 task testAppCheck(dependsOn: 'jadx-test-app:testAppCheck') {
-}
-
-task pitest(overwrite: true, dependsOn: 'jadx-core:pitest') {
 }
 
 task cleanBuildDir(type: Delete) {
