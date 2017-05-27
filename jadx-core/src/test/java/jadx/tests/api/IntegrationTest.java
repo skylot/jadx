@@ -1,5 +1,20 @@
 package jadx.tests.api;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.jar.JarOutputStream;
+
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
@@ -18,21 +33,6 @@ import jadx.core.utils.exceptions.JadxException;
 import jadx.tests.api.compiler.DynamicCompiler;
 import jadx.tests.api.compiler.StaticCompiler;
 import jadx.tests.api.utils.TestUtils;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.jar.JarOutputStream;
 
 import static jadx.core.utils.files.FileUtils.addFileToJar;
 import static jadx.core.utils.files.FileUtils.close;
@@ -296,7 +296,7 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	private List<File> getClassFilesWithInners(Class<?> cls) {
-		List<File> list = new ArrayList<File>();
+		List<File> list = new ArrayList<>();
 		String pkgName = cls.getPackage().getName();
 		URL pkgResource = ClassLoader.getSystemClassLoader().getResource(pkgName.replace('.', '/'));
 		if (pkgResource != null) {

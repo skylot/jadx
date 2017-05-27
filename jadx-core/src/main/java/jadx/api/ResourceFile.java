@@ -1,8 +1,8 @@
 package jadx.api;
 
-import java.io.File;
-
 import jadx.core.xmlgen.ResContainer;
+
+import java.io.File;
 
 public class ResourceFile {
 

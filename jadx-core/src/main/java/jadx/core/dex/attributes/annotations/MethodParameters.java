@@ -12,7 +12,7 @@ public class MethodParameters implements IAttribute {
 	private final List<AnnotationsList> paramList;
 
 	public MethodParameters(int paramCount) {
-		paramList = new ArrayList<AnnotationsList>(paramCount);
+		paramList = new ArrayList<>(paramCount);
 	}
 
 	public List<AnnotationsList> getParamList() {

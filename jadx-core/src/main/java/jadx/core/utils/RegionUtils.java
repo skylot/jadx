@@ -185,7 +185,7 @@ public class RegionUtils {
 		CatchAttr cb = region.get(AType.CATCH_BLOCK);
 		if (cb != null) {
 			TryCatchBlock tb = cb.getTryBlock();
-			List<IContainer> list = new ArrayList<IContainer>(tb.getHandlersCount());
+			List<IContainer> list = new ArrayList<>(tb.getHandlersCount());
 			for (ExceptionHandler eh : tb.getHandlers()) {
 				list.add(eh.getHandlerRegion());
 			}

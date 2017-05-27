@@ -16,14 +16,15 @@ import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.android.dex.Dex;
 
-import static jadx.core.utils.files.FileUtils.*;
+import static jadx.core.utils.files.FileUtils.close;
+import static jadx.core.utils.files.FileUtils.isApkFile;
+import static jadx.core.utils.files.FileUtils.isZipDexFile;
 
 public class InputFile {
 	private static final Logger LOG = LoggerFactory.getLogger(InputFile.class);
@@ -55,7 +56,7 @@ public class InputFile {
 			addDexFile(loadFromClassFile(file));
 			return;
 		}
-		if (isApkfile(file) || isZipDexfile(file)) {
+		if (isApkFile(file) || isZipDexFile(file)) {
 			loadFromZip(".dex");
 			return;
 		}
@@ -74,7 +75,7 @@ public class InputFile {
 			}
 			return;
 		}
-//		throw new DecodeException("Unsupported input file format: " + file);
+		throw new DecodeException("Unsupported input file format: " + file);
 	}
 
 	private void addDexFile(Dex dexBuf) throws IOException {
@@ -86,56 +87,56 @@ public class InputFile {
 	}
 
 	private boolean loadFromZip(String ext) throws IOException, DecodeException {
-		ZipFile zf = new ZipFile(file);
-
-		// Input file could be .apk or .zip files
-		// we should consider the input file could contain only one single dex, multi-dex, or instantRun support dex for Android .apk files
-		String instantRunDexSuffix = "classes" + ext;
 		int index = 0;
-		for (Enumeration<? extends ZipEntry> e = zf.entries(); e.hasMoreElements(); ) {
-			ZipEntry entry = e.nextElement();
-			String entryName = entry.getName();
+		try (ZipFile zf = new ZipFile(file)) {
+			// Input file could be .apk or .zip files
+			// we should consider the input file could contain only one single dex, multi-dex, or instantRun support dex for Android .apk files
+			String instantRunDexSuffix = "classes" + ext;
+			for (Enumeration<? extends ZipEntry> e = zf.entries(); e.hasMoreElements(); ) {
+				ZipEntry entry = e.nextElement();
+				String entryName = entry.getName();
 
-			InputStream inputStream = zf.getInputStream(entry);
-			try {
-				if ((entryName.startsWith("classes") && entryName.endsWith(ext)) || entryName.endsWith(instantRunDexSuffix)) {
-					if (ext.equals(".dex")) {
-						index++;
-						addDexFile(entryName, new Dex(inputStream));
-					} else if (ext.equals(".jar")) {
-						index++;
-						File jarFile = FileUtils.createTempFile(entryName);
+				InputStream inputStream = zf.getInputStream(entry);
+				try {
+					if ((entryName.startsWith("classes") && entryName.endsWith(ext))
+							|| entryName.endsWith(instantRunDexSuffix)) {
+						if (ext.equals(".dex")) {
+							index++;
+							addDexFile(entryName, new Dex(inputStream));
+						} else if (ext.equals(".jar")) {
+							index++;
+							File jarFile = FileUtils.createTempFile(entryName);
+							FileOutputStream fos = new FileOutputStream(jarFile);
+							try {
+								IOUtils.copy(inputStream, fos);
+							} finally {
+								close(fos);
+							}
+							addDexFile(entryName, loadFromJar(jarFile));
+						} else {
+							throw new JadxRuntimeException("Unexpected extension in zip: " + ext);
+						}
+					} else if (entryName.equals("instant-run.zip") && ext.equals(".dex")) {
+						File jarFile = FileUtils.createTempFile("instant-run.zip");
 						FileOutputStream fos = new FileOutputStream(jarFile);
 						try {
 							IOUtils.copy(inputStream, fos);
 						} finally {
 							close(fos);
 						}
-						addDexFile(entryName, loadFromJar(jarFile));
-					} else {
-						throw new JadxRuntimeException("Unexpected extension in zip: " + ext);
+						InputFile tempFile = new InputFile(jarFile);
+						tempFile.loadFromZip(ext);
+						List<DexFile> dexFiles = tempFile.getDexFiles();
+						if (!dexFiles.isEmpty()) {
+							index += dexFiles.size();
+							this.dexFiles.addAll(dexFiles);
+						}
 					}
-				} else if (entryName.equals("instant-run.zip") && ext.equals(".dex")) {
-					File jarFile = FileUtils.createTempFile("instant-run.zip");
-					FileOutputStream fos = new FileOutputStream(jarFile);
-					try {
-						IOUtils.copy(inputStream, fos);
-					} finally {
-						close(fos);
-					}
-					InputFile tempFile = new InputFile(jarFile);
-					tempFile.loadFromZip(ext);
-					List<DexFile> dexFiles = tempFile.getDexFiles();
-					if (!dexFiles.isEmpty()) {
-						index += dexFiles.size();
-						this.dexFiles.addAll(dexFiles);
-					}
+				} finally {
+					close(inputStream);
 				}
-			} finally {
-				close(inputStream);
 			}
 		}
-		zf.close();
 		return index > 0;
 	}
 

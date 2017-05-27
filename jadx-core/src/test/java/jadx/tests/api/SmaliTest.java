@@ -1,16 +1,16 @@
 package jadx.tests.api;
 
-import jadx.core.dex.nodes.ClassNode;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.jf.smali.main;
 
+import jadx.core.dex.nodes.ClassNode;
+
 import static org.junit.Assert.fail;
 
-public class SmaliTest extends IntegrationTest {
+public abstract class SmaliTest extends IntegrationTest {
 
 	private static final String SMALI_TESTS_PROJECT = "jadx-core";
 	private static final String SMALI_TESTS_DIR = "src/test/smali";
@@ -37,7 +37,7 @@ public class SmaliTest extends IntegrationTest {
 	}
 
 	private static boolean compileSmali(File input, File output) {
-		List<String> args = new ArrayList<String>();
+		List<String> args = new ArrayList<>();
 		args.add(input.getAbsolutePath());
 
 		args.add("-o");

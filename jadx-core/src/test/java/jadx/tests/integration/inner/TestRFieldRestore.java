@@ -1,12 +1,12 @@
 package jadx.tests.integration.inner;
 
-import jadx.core.dex.nodes.ClassNode;
-import jadx.tests.api.IntegrationTest;
-
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
+
+import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.Matchers.containsString;
@@ -26,7 +26,7 @@ public class TestRFieldRestore extends IntegrationTest {
 		// unknown R class
 		disableCompilation();
 
-		Map<Integer, String> map = new HashMap<Integer, String>();
+		Map<Integer, String> map = new HashMap<>();
 		map.put(2131230730, "id.Button");
 		setResMap(map);
 

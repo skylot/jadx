@@ -1,32 +1,25 @@
 package jadx.gui.ui;
 
-import ch.qos.logback.classic.Level;
-import jadx.gui.settings.JadxSettings;
-import jadx.gui.utils.LogCollector;
-import jadx.gui.utils.NLS;
-
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.SwingUtilities;
-import java.awt.BorderLayout;
-import java.awt.Container;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import ch.qos.logback.classic.Level;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+
+import jadx.gui.settings.JadxSettings;
+import jadx.gui.utils.LogCollector;
+import jadx.gui.utils.NLS;
 
 class LogViewer extends JDialog {
 	private static final long serialVersionUID = -2188700277429054641L;
 	private static final Level[] LEVEL_ITEMS = {Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR};
 
 	private static Level level = Level.WARN;
-	private final JadxSettings settings;
-	private RSyntaxTextArea textPane;
+
+	private final transient JadxSettings settings;
+	private transient RSyntaxTextArea textPane;
 
 	public LogViewer(JadxSettings settings) {
 		this.settings = settings;
@@ -41,8 +34,7 @@ class LogViewer extends JDialog {
 
 		JPanel controlPane = new JPanel();
 		controlPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		@SuppressWarnings("unchecked")
-		final JComboBox cb = new JComboBox(LEVEL_ITEMS);
+		final JComboBox<Level> cb = new JComboBox<>(LEVEL_ITEMS);
 		cb.setSelectedItem(level);
 		cb.addActionListener(new ActionListener() {
 			@Override

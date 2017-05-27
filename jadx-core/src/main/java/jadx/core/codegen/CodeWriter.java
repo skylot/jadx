@@ -16,23 +16,21 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static jadx.core.utils.files.FileUtils.close;
-
 public class CodeWriter {
 	private static final Logger LOG = LoggerFactory.getLogger(CodeWriter.class);
 
 	public static final String NL = System.getProperty("line.separator");
-	public static final String INDENT = "    ";
+	public static final String INDENT_STR = "    ";
 
 	private static final boolean ADD_LINE_NUMBERS = false;
 
 	private static final String[] INDENT_CACHE = {
 			"",
-			INDENT,
-			INDENT + INDENT,
-			INDENT + INDENT + INDENT,
-			INDENT + INDENT + INDENT + INDENT,
-			INDENT + INDENT + INDENT + INDENT + INDENT,
+			INDENT_STR,
+			INDENT_STR + INDENT_STR,
+			INDENT_STR + INDENT_STR + INDENT_STR,
+			INDENT_STR + INDENT_STR + INDENT_STR + INDENT_STR,
+			INDENT_STR + INDENT_STR + INDENT_STR + INDENT_STR + INDENT_STR,
 	};
 
 	private StringBuilder buf = new StringBuilder();
@@ -127,7 +125,7 @@ public class CodeWriter {
 	}
 
 	public CodeWriter addIndent() {
-		add(INDENT);
+		add(INDENT_STR);
 		return this;
 	}
 
@@ -148,9 +146,9 @@ public class CodeWriter {
 		if (curIndent < INDENT_CACHE.length) {
 			this.indentStr = INDENT_CACHE[curIndent];
 		} else {
-			StringBuilder s = new StringBuilder(curIndent * INDENT.length());
+			StringBuilder s = new StringBuilder(curIndent * INDENT_STR.length());
 			for (int i = 0; i < curIndent; i++) {
-				s.append(INDENT);
+				s.append(INDENT_STR);
 			}
 			this.indentStr = s.toString();
 		}
@@ -209,7 +207,7 @@ public class CodeWriter {
 
 	private Object attachAnnotation(Object obj, CodePosition pos) {
 		if (annotations.isEmpty()) {
-			annotations = new HashMap<CodePosition, Object>();
+			annotations = new HashMap<>();
 		}
 		return annotations.put(pos, obj);
 	}
@@ -227,7 +225,7 @@ public class CodeWriter {
 
 	private void attachSourceLine(int decompiledLine, int sourceLine) {
 		if (lineMap.isEmpty()) {
-			lineMap = new TreeMap<Integer, Integer>();
+			lineMap = new TreeMap<>();
 		}
 		lineMap.put(decompiledLine, sourceLine);
 	}
@@ -286,15 +284,10 @@ public class CodeWriter {
 			finish();
 		}
 		File outFile = FileUtils.prepareFile(file);
-		PrintWriter out = null;
-		try {
-			out = new PrintWriter(outFile, "UTF-8");
+		try (PrintWriter out = new PrintWriter(outFile, "UTF-8")) {
 			out.println(code);
 		} catch (Exception e) {
 			LOG.error("Save file error", e);
-		} finally {
-			close(out);
 		}
 	}
-
 }

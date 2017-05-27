@@ -81,7 +81,7 @@ public class MethodGen {
 			ai = ai.remove(AccessFlags.ACC_PUBLIC);
 		}
 
-		if(mth.getMethodInfo().isRenamed()) {
+		if (mth.getMethodInfo().isRenamed()) {
 			code.startLine("/* renamed from: ").add(mth.getName()).add(" */");
 		}
 		code.startLineWithNum(mth.getSourceLine());
@@ -133,7 +133,7 @@ public class MethodGen {
 				annotationGen.addForParameter(argsCode, paramsAnnotation, i);
 			}
 			SSAVar argSVar = arg.getSVar();
-			if (argSVar!= null && argSVar.contains(AFlag.FINAL)) {
+			if (argSVar != null && argSVar.contains(AFlag.FINAL)) {
 				argsCode.add("final ");
 			}
 			if (!it.hasNext() && mth.getAccessFlags().isVarArgs()) {

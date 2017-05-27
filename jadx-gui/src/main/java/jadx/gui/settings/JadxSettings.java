@@ -1,9 +1,6 @@
 package jadx.gui.settings;
 
-import jadx.cli.JadxCLIArgs;
-
-import java.awt.Font;
-import java.awt.Window;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,6 +11,8 @@ import java.util.Set;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
+import jadx.cli.JadxCLIArgs;
+
 public class JadxSettings extends JadxCLIArgs {
 
 	private static final String USER_HOME = System.getProperty("user.home");
@@ -21,7 +20,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
-	static final Set<String> SKIP_FIELDS = new HashSet<String>(Arrays.asList(
+	static final Set<String> SKIP_FIELDS = new HashSet<>(Arrays.asList(
 			"files", "input", "outputDir", "verbose", "printHelp"
 	));
 
@@ -29,11 +28,11 @@ public class JadxSettings extends JadxCLIArgs {
 	private String lastSaveFilePath = USER_HOME;
 	private boolean flattenPackage = false;
 	private boolean checkForUpdates = false;
-	private List<String> recentFiles = new ArrayList<String>();
+	private List<String> recentFiles = new ArrayList<>();
 	private String fontStr = "";
 	private boolean autoStartJobs = false;
 
-	private Map<String, WindowLocation> windowPos = new HashMap<String, WindowLocation>();
+	private Map<String, WindowLocation> windowPos = new HashMap<>();
 
 	public JadxSettings() {
 		setSkipResources(true);

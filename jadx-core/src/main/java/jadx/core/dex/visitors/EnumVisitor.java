@@ -64,7 +64,7 @@ public class EnumVisitor extends AbstractVisitor {
 		String valuesMethod = "values()" + TypeGen.signature(ArgType.array(clsType));
 
 		// collect enum fields, remove synthetic
-		List<FieldNode> enumFields = new ArrayList<FieldNode>();
+		List<FieldNode> enumFields = new ArrayList<>();
 		for (FieldNode f : cls.getFields()) {
 			if (f.getAccessFlags().isEnum()) {
 				enumFields.add(f);
@@ -101,7 +101,7 @@ public class EnumVisitor extends AbstractVisitor {
 
 		// move enum specific instruction from static method to separate list
 		BlockNode staticBlock = staticMethod.getBasicBlocks().get(0);
-		List<InsnNode> enumPutInsns = new ArrayList<InsnNode>();
+		List<InsnNode> enumPutInsns = new ArrayList<>();
 		List<InsnNode> list = staticBlock.getInstructions();
 		int size = list.size();
 		for (int i = 0; i < size; i++) {

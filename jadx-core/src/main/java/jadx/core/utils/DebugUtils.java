@@ -35,6 +35,9 @@ import org.slf4j.LoggerFactory;
 public class DebugUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(DebugUtils.class);
 
+	private DebugUtils() {
+	}
+
 	public static void dump(MethodNode mth) {
 		dump(mth, "");
 	}
@@ -46,8 +49,8 @@ public class DebugUtils {
 		DotGraphVisitor.dumpRegions(out).visit(mth);
 	}
 
-	public static void printRegionsWithBlock(MethodNode mth, final BlockNode block) {
-		final Set<IRegion> regions = new LinkedHashSet<IRegion>();
+	public static void printRegionsWithBlock(MethodNode mth, BlockNode block) {
+		Set<IRegion> regions = new LinkedHashSet<>();
 		DepthRegionTraversal.traverse(mth, new TracedRegionVisitor() {
 			@Override
 			public void processBlockTraced(MethodNode mth, IBlock container, IRegion currentRegion) {
@@ -126,17 +129,15 @@ public class DebugUtils {
 		}
 		for (RegisterArg useArg : sVar.getUseList()) {
 			InsnNode parentInsn = useArg.getParentInsn();
-			if (parentInsn != null) {
-				if (!parentInsn.containsArg(useArg)) {
-					throw new JadxRuntimeException("Incorrect use info in PHI insn");
-				}
+			if (parentInsn != null && !parentInsn.containsArg(useArg)) {
+				throw new JadxRuntimeException("Incorrect use info in PHI insn");
 			}
 		}
 	}
 
 	private static void checkPHI(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
-			List<PhiInsn> phis = new ArrayList<PhiInsn>();
+			List<PhiInsn> phis = new ArrayList<>();
 			for (InsnNode insn : block.getInstructions()) {
 				if (insn.getType() == InsnType.PHI) {
 					PhiInsn phi = (PhiInsn) insn;

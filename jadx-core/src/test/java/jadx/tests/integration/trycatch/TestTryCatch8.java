@@ -1,12 +1,14 @@
 package jadx.tests.integration.trycatch;
 
+import org.junit.Test;
+
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import org.junit.Test;
-
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.isA;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class TestTryCatch8 extends IntegrationTest {

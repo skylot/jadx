@@ -27,7 +27,7 @@ public class ValuesParser extends ParserConstants {
 			return decodeValue(simpleValue);
 		}
 		List<RawNamedValue> namedValues = ri.getNamedValues();
-		List<String> strList = new ArrayList<String>(namedValues.size());
+		List<String> strList = new ArrayList<>(namedValues.size());
 		for (RawNamedValue value : namedValues) {
 			String nameStr = decodeNameRef(value.getNameRef());
 			String valueStr = decodeValue(value.getRawValue());
@@ -159,14 +159,14 @@ public class ValuesParser extends ParserConstants {
 	}
 
 	private static String doubleToString(double value) {
-		if (value == Math.ceil(value)) {
+		if (Double.compare(value, Math.floor(value)) == 0
+				&& !Double.isInfinite(value)) {
 			return Integer.toString((int) value);
-		} else {
-			// remove trailing zeroes
-			NumberFormat f = NumberFormat.getInstance();
-			f.setMaximumFractionDigits(4);
-			f.setMinimumIntegerDigits(1);
-			return f.format(value);
 		}
+		// remove trailing zeroes
+		NumberFormat f = NumberFormat.getInstance();
+		f.setMaximumFractionDigits(4);
+		f.setMinimumIntegerDigits(1);
+		return f.format(value);
 	}
 }

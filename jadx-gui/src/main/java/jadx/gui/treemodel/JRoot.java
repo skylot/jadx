@@ -1,5 +1,6 @@
 package jadx.gui.treemodel;
 
+import javax.swing.*;
 import java.io.File;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -11,6 +12,11 @@ import javax.swing.ImageIcon;
 
 import jadx.api.ResourceFile;
 import jadx.gui.JadxWrapper;
+import jadx.api.ResourceFile;
+import jadx.gui.JadxWrapper;
+import jadx.gui.treemodel.JResource.JResType;
+import jadx.gui.utils.Utils;
+
 import jadx.gui.treemodel.JResource.JResType;
 import jadx.gui.utils.Utils;
 
@@ -19,9 +25,9 @@ public class JRoot extends JNode {
 
 	private static final ImageIcon ROOT_ICON = Utils.openIcon("java_model_obj");
 
-	private final JadxWrapper wrapper;
+	private final transient JadxWrapper wrapper;
 
-	private boolean flatPackages = false;
+	private transient boolean flatPackages = false;
 
 	public JRoot(JadxWrapper wrapper) {
 		this.wrapper = wrapper;

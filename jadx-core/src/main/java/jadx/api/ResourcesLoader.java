@@ -1,7 +1,12 @@
 package jadx.api;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jadx.api.ResourceFile.ZipRef;
+import jadx.core.codegen.CodeWriter;
+import jadx.core.utils.Utils;
+import jadx.core.utils.exceptions.JadxException;
+import jadx.core.utils.files.InputFile;
+import jadx.core.xmlgen.ResContainer;
+import jadx.core.xmlgen.ResTableParser;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -15,13 +20,8 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import jadx.api.ResourceFile.ZipRef;
-import jadx.core.codegen.CodeWriter;
-import jadx.core.utils.Utils;
-import jadx.core.utils.exceptions.JadxException;
-import jadx.core.utils.files.InputFile;
-import jadx.core.xmlgen.ResContainer;
-import jadx.core.xmlgen.ResTableParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static jadx.core.utils.files.FileUtils.READ_BUFFER_SIZE;
 import static jadx.core.utils.files.FileUtils.close;
@@ -40,7 +40,7 @@ public final class ResourcesLoader {
 	}
 
 	List<ResourceFile> load(List<InputFile> inputFiles) {
-		List<ResourceFile> list = new ArrayList<ResourceFile>(inputFiles.size());
+		List<ResourceFile> list = new ArrayList<>(inputFiles.size());
 		for (InputFile file : inputFiles) {
 			loadFile(list, file.getFile());
 		}
@@ -54,7 +54,7 @@ public final class ResourcesLoader {
 	public static ResContainer decodeStream(ResourceFile rf, ResourceDecoder decoder) throws JadxException {
 		ZipFile zipFile = null;
 		InputStream inputStream = null;
-		ResContainer result = null;
+		ResContainer result;
 		try {
 			long size;
 			ZipRef zipRef = rf.getZipRef();
@@ -87,14 +87,9 @@ public final class ResourcesLoader {
 		return result;
 	}
 
-	static ResContainer loadContent(final JadxDecompiler jadxRef, final ResourceFile rf) {
+	static ResContainer loadContent(JadxDecompiler jadxRef, ResourceFile rf) {
 		try {
-			return decodeStream(rf, new ResourceDecoder() {
-				@Override
-				public ResContainer decode(long size, InputStream is) throws IOException {
-					return loadContent(jadxRef, rf, is, size);
-				}
-			});
+			return decodeStream(rf, (size, is) -> loadContent(jadxRef, rf, is, size));
 		} catch (JadxException e) {
 			LOG.error("Decode error", e);
 			CodeWriter cw = new CodeWriter();

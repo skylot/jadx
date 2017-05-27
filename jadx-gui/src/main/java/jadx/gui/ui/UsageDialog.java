@@ -1,51 +1,28 @@
 package jadx.gui.ui;
 
+import javax.swing.*;
+import java.awt.*;
+
 import jadx.gui.treemodel.JNode;
 import jadx.gui.utils.CodeUsageInfo;
 import jadx.gui.utils.NLS;
-
-import javax.swing.BorderFactory;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.FlowLayout;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class UsageDialog extends CommonSearchDialog {
 
 	private static final long serialVersionUID = -5105405789969134105L;
 
-	private static final Logger LOG = LoggerFactory.getLogger(UsageDialog.class);
-
-	private final JNode node;
+	private final transient JNode node;
 
 	public UsageDialog(MainWindow mainWindow, JNode node) {
 		super(mainWindow);
 		this.node = node;
 
 		initUI();
-		addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowOpened(WindowEvent e) {
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						openInit();
-					}
-				});
-			}
-		});
+		registerInitOnOpen();
 		loadWindowPos();
 	}
 
+	@Override
 	protected void openInit() {
 		prepare();
 	}
@@ -57,6 +34,7 @@ public class UsageDialog extends CommonSearchDialog {
 
 	@Override
 	protected void loadStart() {
+		// no op
 	}
 
 	private synchronized void performSearch() {

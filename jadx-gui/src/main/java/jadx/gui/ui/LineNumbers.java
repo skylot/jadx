@@ -1,6 +1,6 @@
 package jadx.gui.ui;
 
-import javax.swing.JPanel;
+import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
@@ -12,14 +12,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.Utilities;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
@@ -30,9 +23,9 @@ public class LineNumbers extends JPanel implements CaretListener {
 
 	private static final Border OUTER = new MatteBorder(0, 0, 0, 1, Color.LIGHT_GRAY);
 
-	private static final int HEIGHT = Integer.MAX_VALUE - 1000000;
-	private static final Color FOREGROUND = Color.GRAY;
-	private static final Color BACKGROUND = CodeArea.BACKGROUND;
+	private static final int NUM_HEIGHT = Integer.MAX_VALUE - 1000000;
+	private static final Color NUM_FOREGROUND = Color.GRAY;
+	private static final Color NUM_BACKGROUND = CodeArea.CODE_BACKGROUND;
 	private static final Color CURRENT_LINE_FOREGROUND = new Color(227, 0, 0);
 
 	private CodeArea codeArea;
@@ -45,8 +38,8 @@ public class LineNumbers extends JPanel implements CaretListener {
 	public LineNumbers(CodeArea component) {
 		this.codeArea = component;
 		setFont(component.getFont());
-		setBackground(BACKGROUND);
-		setForeground(FOREGROUND);
+		setBackground(NUM_BACKGROUND);
+		setForeground(NUM_FOREGROUND);
 
 		setBorderGap(5);
 		setPreferredWidth();
@@ -82,7 +75,7 @@ public class LineNumbers extends JPanel implements CaretListener {
 
 			Dimension d = getPreferredSize();
 			if (d != null) {
-				d.setSize(preferredWidth, HEIGHT);
+				d.setSize(preferredWidth, NUM_HEIGHT);
 				setPreferredSize(d);
 				setSize(d);
 			}
@@ -104,7 +97,7 @@ public class LineNumbers extends JPanel implements CaretListener {
 				if (isCurrentLine(rowStartOffset)) {
 					g.setColor(CURRENT_LINE_FOREGROUND);
 				} else {
-					g.setColor(FOREGROUND);
+					g.setColor(NUM_FOREGROUND);
 				}
 				String lineNumber = getTextLineNumber(rowStartOffset);
 				int stringWidth = fontMetrics.stringWidth(lineNumber);
@@ -154,7 +147,7 @@ public class LineNumbers extends JPanel implements CaretListener {
 			descent = fontMetrics.getDescent();
 		} else {
 			if (fonts == null) {
-				fonts = new HashMap<String, FontMetrics>();
+				fonts = new HashMap<>();
 			}
 			Element root = codeArea.getDocument().getDefaultRootElement();
 			int index = root.getElementIndex(rowStartOffset);

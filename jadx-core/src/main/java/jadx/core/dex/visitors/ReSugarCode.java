@@ -65,7 +65,8 @@ public class ReSugarCode extends AbstractVisitor {
 				return processNewArray(mth, instructions, i, remover);
 
 			case SWITCH:
-				return processEnumSwitch(mth, (SwitchNode) insn);
+				processEnumSwitch(mth, (SwitchNode) insn);
+				return null;
 
 			default:
 				return null;
@@ -104,43 +105,43 @@ public class ReSugarCode extends AbstractVisitor {
 		return filledArr;
 	}
 
-	private static InsnNode processEnumSwitch(MethodNode mth, SwitchNode insn) {
+	private static void processEnumSwitch(MethodNode mth, SwitchNode insn) {
 		InsnArg arg = insn.getArg(0);
 		if (!arg.isInsnWrap()) {
-			return null;
+			return;
 		}
 		InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
 		if (wrapInsn.getType() != InsnType.AGET) {
-			return null;
+			return;
 		}
 		EnumMapInfo enumMapInfo = checkEnumMapAccess(mth, wrapInsn);
 		if (enumMapInfo == null) {
-			return null;
+			return;
 		}
 		FieldNode enumMapField = enumMapInfo.getMapField();
 		InsnArg invArg = enumMapInfo.getArg();
 
 		EnumMapAttr.KeyValueMap valueMap = getEnumMap(mth, enumMapField);
 		if (valueMap == null) {
-			return null;
+			return;
 		}
 		Object[] keys = insn.getKeys();
 		for (Object key : keys) {
 			Object newKey = valueMap.get(key);
 			if (newKey == null) {
-				return null;
+				return;
 			}
 		}
 		// replace confirmed
 		if (!insn.replaceArg(arg, invArg)) {
-			return null;
+			return;
 		}
 		for (int i = 0; i < keys.length; i++) {
 			keys[i] = valueMap.get(keys[i]);
 		}
 		enumMapField.add(AFlag.DONT_GENERATE);
 		checkAndHideClass(enumMapField.getParentClass());
-		return null;
+		return;
 	}
 
 	private static EnumMapAttr.KeyValueMap getEnumMap(MethodNode mth, FieldNode field) {

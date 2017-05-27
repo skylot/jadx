@@ -1,13 +1,13 @@
 package jadx.tests.integration.debuginfo;
 
-import jadx.core.codegen.CodeWriter;
-import jadx.core.dex.nodes.ClassNode;
-import jadx.tests.api.IntegrationTest;
-
 import java.lang.ref.WeakReference;
 import java.util.Map;
 
 import org.junit.Test;
+
+import jadx.core.codegen.CodeWriter;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import static org.junit.Assert.assertEquals;
 
@@ -23,7 +23,7 @@ public class TestLineNumbers2 extends IntegrationTest {
 			TestCls store = f != null ? f.get() : null;
 			if (store == null) {
 				store = new TestCls(s);
-				f = new WeakReference<TestCls>(store);
+				f = new WeakReference<>(store);
 			}
 			return store;
 		}

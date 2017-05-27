@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
@@ -31,17 +32,13 @@ public class FileUtils {
 	}
 
 	public static void addFileToJar(JarOutputStream jar, File source, String entryName) throws IOException {
-		BufferedInputStream in = null;
-		try {
+		try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(source))) {
 			JarEntry entry = new JarEntry(entryName);
 			entry.setTime(source.lastModified());
 			jar.putNextEntry(entry);
 
-			in = new BufferedInputStream(new FileInputStream(source));
 			copyStream(in, jar);
 			jar.closeEntry();
-		} finally {
-			close(in);
 		}
 	}
 
@@ -91,22 +88,27 @@ public class FileUtils {
 
 	@NotNull
 	public static File prepareFile(File file) {
-		String name = file.getName();
-		if (name.length() > MAX_FILENAME_LENGTH) {
-			int dotIndex = name.indexOf('.');
-			int cutAt = MAX_FILENAME_LENGTH - name.length() + dotIndex - 1;
-			if (cutAt <= 0) {
-				name = name.substring(0, MAX_FILENAME_LENGTH - 1);
-			} else {
-				name = name.substring(0, cutAt) + name.substring(dotIndex);
-			}
-			file = new File(file.getParentFile(), name);
-		}
-		makeDirsForFile(file);
-		return file;
+		File saveFile = cutFileName(file);
+		makeDirsForFile(saveFile);
+		return saveFile;
 	}
 
-	public static String bytesToHex(byte[] bytes) {
+	private static File cutFileName(File file) {
+		String name = file.getName();
+		if (name.length() <= MAX_FILENAME_LENGTH) {
+			return file;
+		}
+		int dotIndex = name.indexOf('.');
+		int cutAt = MAX_FILENAME_LENGTH - name.length() + dotIndex - 1;
+		if (cutAt <= 0) {
+			name = name.substring(0, MAX_FILENAME_LENGTH - 1);
+		} else {
+			name = name.substring(0, cutAt) + name.substring(dotIndex);
+		}
+		return new File(file.getParentFile(), name);
+	}
+
+	private static String bytesToHex(byte[] bytes) {
 		char[] hexArray = "0123456789abcdef".toCharArray();
 		if (bytes == null || bytes.length <= 0) {
 			return null;
@@ -120,77 +122,54 @@ public class FileUtils {
 		return new String(hexChars);
 	}
 
-	public static boolean isZipfile(File file) {
-		boolean isZipfile = false;
-		InputStream is = null;
-		try {
+	private static boolean isZipFile(File file) {
+		try (InputStream is = new FileInputStream(file)) {
 			byte[] headers = new byte[4];
-			is = new FileInputStream(file);
-			is.read(headers, 0, 4);
-			System.out.println(bytesToHex(headers));
-			String headerString = bytesToHex(headers);
-			if (headerString.equals("504b0304")) {
-				isZipfile = true;
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			if (is != null) {
-				try {
-					is.close();
-				} catch (IOException e) {
-					e.printStackTrace();
+			int read = is.read(headers, 0, 4);
+			if (read == headers.length) {
+				String headerString = bytesToHex(headers);
+				if (Objects.equals(headerString, "504b0304")) {
+					return true;
 				}
 			}
+		} catch (Exception e) {
+			LOG.error("Failed read zip file: {}", file.getAbsolutePath(), e);
 		}
-
-		return isZipfile;
+		return false;
 	}
 
-	public static List<String> getZipfileList(File file) {
-		List<String> filelist = new ArrayList<String>();
-		ZipFile zipFile = null;
-		try {
-			zipFile = new ZipFile(file);
+	private static List<String> getZipFileList(File file) {
+		List<String> filesList = new ArrayList<>();
+		try (ZipFile zipFile = new ZipFile(file)) {
 			Enumeration<? extends ZipEntry> entries = zipFile.entries();
-
 			while (entries.hasMoreElements()) {
 				ZipEntry entry = entries.nextElement();
-				filelist.add(entry.getName());
-				System.out.println(entry.getName());
+				filesList.add(entry.getName());
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.out.println(e.getMessage());
+		} catch (Exception e) {
+			LOG.error("Error read zip file '{}'", file.getAbsolutePath(), e);
 		}
-
-		return filelist;
+		return filesList;
 	}
 
-	public static boolean isApkfile(File file) {
-		boolean isApkfile = false;
-		if (isZipfile(file)) {
-			List<String> filelist = getZipfileList(file);
-			if (filelist.contains("AndroidManifest.xml") && filelist.contains("classes.dex")) {
-				isApkfile = true;
-			}
+	public static boolean isApkFile(File file) {
+		if (!isZipFile(file)) {
+			return false;
 		}
-		return isApkfile;
+		List<String> filesList = getZipFileList(file);
+		return filesList.contains("AndroidManifest.xml")
+				&& filesList.contains("classes.dex");
 	}
 
-	public static boolean isZipDexfile(File file) {
-		boolean isZipDexFile = false;
-		if (isZipfile(file) && isZipFileCanBeOpen(file)) {
-			List<String> filelist = getZipfileList(file);
-			if (filelist.contains("classes.dex")) {
-				isZipDexFile = true;
-			}
+	public static boolean isZipDexFile(File file) {
+		if (!isZipFile(file) || !isZipFileCanBeOpen(file)) {
+			return false;
 		}
-
-		return isZipDexFile;
+		List<String> filesList = getZipFileList(file);
+		return filesList.contains("classes.dex");
 	}
 
-	public static boolean isZipFileCanBeOpen(final File file) {
+	private static boolean isZipFileCanBeOpen(File file) {
 		ZipFile zipFile = null;
 		try {
 			zipFile = new ZipFile(file);

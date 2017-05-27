@@ -89,7 +89,7 @@ public final class ClassInfo {
 		int sep = clsName.lastIndexOf('$');
 		if (canBeInner && sep > 0 && sep != clsName.length() - 1) {
 			String parClsName = pkg + "." + clsName.substring(0, sep);
-			if(pkg.length() == 0) {
+			if (pkg.isEmpty()) {
 				parClsName = clsName.substring(0, sep);
 			}
 

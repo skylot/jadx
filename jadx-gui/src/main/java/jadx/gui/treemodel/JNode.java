@@ -1,13 +1,15 @@
 package jadx.gui.treemodel;
 
-import jadx.api.JavaNode;
-
-import javax.swing.Icon;
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 
+import jadx.api.JavaNode;
+
 public abstract class JNode extends DefaultMutableTreeNode {
+
+	private static final long serialVersionUID = -5154479091781041008L;
 
 	public abstract JClass getJParent();
 

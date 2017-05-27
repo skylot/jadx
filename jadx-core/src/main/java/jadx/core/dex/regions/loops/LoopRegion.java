@@ -136,7 +136,7 @@ public final class LoopRegion extends AbstractRegion {
 
 	@Override
 	public List<IContainer> getSubBlocks() {
-		List<IContainer> all = new ArrayList<IContainer>(3);
+		List<IContainer> all = new ArrayList<>(3);
 		if (preCondition != null) {
 			all.add(preCondition);
 		}

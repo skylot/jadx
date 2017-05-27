@@ -752,7 +752,7 @@ public class InsnGen {
 			}
 			// replace args
 			InsnNode inlCopy = inl.copy();
-			List<RegisterArg> inlArgs = new ArrayList<RegisterArg>();
+			List<RegisterArg> inlArgs = new ArrayList<>();
 			inlCopy.getRegisterArgs(inlArgs);
 			for (RegisterArg r : inlArgs) {
 				int regNum = r.getRegNum();

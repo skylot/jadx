@@ -1,15 +1,14 @@
 package jadx.gui.treemodel;
 
+import javax.swing.*;
+import java.util.Iterator;
+
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.gui.utils.OverlayIcon;
 import jadx.gui.utils.Utils;
-
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import java.util.Iterator;
 
 public class JMethod extends JNode {
 	private static final long serialVersionUID = 3834526867464663751L;
@@ -22,8 +21,8 @@ public class JMethod extends JNode {
 	private static final ImageIcon ICON_CONSTRUCTOR = Utils.openIcon("constr_ovr");
 	private static final ImageIcon ICON_SYNC = Utils.openIcon("synch_co");
 
-	private final JavaMethod mth;
-	private final JClass jParent;
+	private final transient JavaMethod mth;
+	private final transient JClass jParent;
 
 	public JMethod(JavaMethod javaMethod, JClass jClass) {
 		this.mth = javaMethod;

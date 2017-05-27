@@ -9,7 +9,7 @@ import java.util.Deque;
 
 public abstract class TracedRegionVisitor implements IRegionVisitor {
 
-	protected final Deque<IRegion> regionStack = new ArrayDeque<IRegion>();
+	protected final Deque<IRegion> regionStack = new ArrayDeque<>();
 
 	@Override
 	public boolean enterRegion(MethodNode mth, IRegion region) {

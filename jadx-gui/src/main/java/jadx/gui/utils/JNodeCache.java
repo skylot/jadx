@@ -1,5 +1,8 @@
 package jadx.gui.utils;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import jadx.api.JavaClass;
 import jadx.api.JavaField;
 import jadx.api.JavaMethod;
@@ -10,12 +13,9 @@ import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class JNodeCache {
 
-	private final Map<JavaNode, JNode> cache = new HashMap<JavaNode, JNode>();
+	private final Map<JavaNode, JNode> cache = new HashMap<>();
 
 	public JNode makeFrom(JavaNode javaNode) {
 		if (javaNode == null) {

@@ -86,9 +86,4 @@ public final class EmptyBitSet extends BitSet {
 	public void andNot(BitSet set) {
 		throw new UnsupportedOperationException();
 	}
-
-	@Override
-	public Object clone() {
-		return this;
-	}
 }

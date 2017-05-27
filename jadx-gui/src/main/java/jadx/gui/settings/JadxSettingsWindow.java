@@ -1,31 +1,9 @@
 package jadx.gui.settings;
 
-import jadx.gui.ui.MainWindow;
-import jadx.gui.utils.NLS;
-import say.swing.JFontChooser;
-
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JSpinner;
-import javax.swing.SwingConstants;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -35,17 +13,21 @@ import java.awt.event.MouseEvent;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import say.swing.JFontChooser;
+
+import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.NLS;
 
 public class JadxSettingsWindow extends JDialog {
 	private static final long serialVersionUID = -1804570470377354148L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(JadxSettingsWindow.class);
 
-	private final MainWindow mainWindow;
-	private final JadxSettings settings;
-	private final String startSettings;
+	private final transient MainWindow mainWindow;
+	private final transient JadxSettings settings;
+	private final transient String startSettings;
 
-	private boolean needReload = false;
+	private transient boolean needReload = false;
 
 	public JadxSettingsWindow(MainWindow mainWindow, JadxSettings settings) {
 		this.mainWindow = mainWindow;

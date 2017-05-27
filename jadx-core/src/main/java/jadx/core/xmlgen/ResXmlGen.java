@@ -15,13 +15,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class ResXmlGen {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ResXmlGen.class);
-	private static final Set<String> SKIP_RES_TYPES = new HashSet<String>(Arrays.asList(
+	private static final Set<String> SKIP_RES_TYPES = new HashSet<>(Arrays.asList(
 			"layout",
 			"mipmap",
 			"id"
@@ -36,7 +32,7 @@ public class ResXmlGen {
 	}
 
 	public List<ResContainer> makeResourcesXml() {
-		Map<String, CodeWriter> contMap = new HashMap<String, CodeWriter>();
+		Map<String, CodeWriter> contMap = new HashMap<>();
 		for (ResourceEntry ri : resStorage.getResources()) {
 			if (SKIP_RES_TYPES.contains(ri.getTypeName())) {
 				continue;
@@ -53,7 +49,7 @@ public class ResXmlGen {
 			addValue(cw, ri);
 		}
 
-		List<ResContainer> files = new ArrayList<ResContainer>(contMap.size());
+		List<ResContainer> files = new ArrayList<>(contMap.size());
 		for (Map.Entry<String, CodeWriter> entry : contMap.entrySet()) {
 			String fileName = entry.getKey();
 			CodeWriter content = entry.getValue();

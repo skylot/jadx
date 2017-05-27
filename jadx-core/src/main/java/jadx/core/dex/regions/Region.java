@@ -12,7 +12,7 @@ public final class Region extends AbstractRegion {
 
 	public Region(IRegion parent) {
 		super(parent);
-		this.blocks = new ArrayList<IContainer>(1);
+		this.blocks = new ArrayList<>(1);
 	}
 
 	@Override

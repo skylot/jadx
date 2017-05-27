@@ -114,7 +114,7 @@ public class StringRef implements CharSequence {
 			return Collections.emptyList();
 		}
 		int pos = -targetLen;
-		List<StringRef> list = new ArrayList<StringRef>();
+		List<StringRef> list = new ArrayList<>();
 		while (true) {
 			int start = pos + targetLen;
 			pos = indexOf(str, 0, len, splitBy, 0, targetLen, start);

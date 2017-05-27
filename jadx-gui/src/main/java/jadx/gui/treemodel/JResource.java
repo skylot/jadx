@@ -1,5 +1,12 @@
 package jadx.gui.treemodel;
 
+import javax.swing.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+
 import jadx.api.ResourceFile;
 import jadx.api.ResourceFileContent;
 import jadx.api.ResourceType;
@@ -7,14 +14,6 @@ import jadx.core.codegen.CodeWriter;
 import jadx.core.xmlgen.ResContainer;
 import jadx.gui.utils.OverlayIcon;
 import jadx.gui.utils.Utils;
-
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 
 public class JResource extends JNode implements Comparable<JResource> {
 	private static final long serialVersionUID = -201018424302612434L;
@@ -32,15 +31,15 @@ public class JResource extends JNode implements Comparable<JResource> {
 		FILE
 	}
 
-	private final String name;
-	private final String shortName;
-	private final List<JResource> files = new ArrayList<JResource>(1);
-	private final JResType type;
-	private final ResourceFile resFile;
+	private final transient String name;
+	private final transient String shortName;
+	private final transient List<JResource> files = new ArrayList<>(1);
+	private final transient JResType type;
+	private final transient ResourceFile resFile;
 
-	private boolean loaded;
-	private String content;
-	private Map<Integer, Integer> lineMapping;
+	private transient boolean loaded;
+	private transient String content;
+	private transient Map<Integer, Integer> lineMapping;
 
 	public JResource(ResourceFile resFile, String name, JResType type) {
 		this(resFile, name, name, type);
@@ -62,13 +61,14 @@ public class JResource extends JNode implements Comparable<JResource> {
 		}
 	}
 
-	protected void loadContent() {
+	private void loadContent() {
 		getContent();
 		for (JResource res : files) {
 			res.loadContent();
 		}
 	}
 
+	@Override
 	public String getName() {
 		return name;
 	}
@@ -77,6 +77,7 @@ public class JResource extends JNode implements Comparable<JResource> {
 		return files;
 	}
 
+	@Override
 	public String getContent() {
 		if (!loaded && resFile != null && type == JResType.FILE) {
 			loaded = true;
@@ -90,18 +91,18 @@ public class JResource extends JNode implements Comparable<JResource> {
 		return content;
 	}
 
-	protected void addSubFiles(ResContainer rc, JResource root, int depth) {
+	private void addSubFiles(ResContainer rc, JResource root, int depth) {
 		CodeWriter cw = rc.getContent();
 		if (cw != null) {
 			if (depth == 0) {
 				root.lineMapping = cw.getLineMapping();
 				root.content = cw.toString();
 			} else {
-				String name = rc.getName();
-				String[] path = name.split("/");
-				String shortName = path.length == 0 ? name : path[path.length - 1];
-				ResourceFileContent fileContent = new ResourceFileContent(shortName, ResourceType.XML, cw);
-				addPath(path, root, new JResource(fileContent, name, shortName, JResType.FILE));
+				String resName = rc.getName();
+				String[] path = resName.split("/");
+				String resShortName = path.length == 0 ? resName : path[path.length - 1];
+				ResourceFileContent fileContent = new ResourceFileContent(resShortName, ResourceType.XML, cw);
+				addPath(path, root, new JResource(fileContent, resName, resShortName, JResType.FILE));
 			}
 		}
 		List<ResContainer> subFiles = rc.getSubFiles();
@@ -117,13 +118,14 @@ public class JResource extends JNode implements Comparable<JResource> {
 			root.getFiles().add(jResource);
 			return;
 		}
+		JResource currentRoot = root;
 		int last = path.length - 1;
 		for (int i = 0; i <= last; i++) {
 			String f = path[i];
 			if (i == last) {
-				root.getFiles().add(jResource);
+				currentRoot.getFiles().add(jResource);
 			} else {
-				root = getResDir(root, f);
+				currentRoot = getResDir(currentRoot, f);
 			}
 		}
 	}
@@ -159,12 +161,14 @@ public class JResource extends JNode implements Comparable<JResource> {
 			case MANIFEST:
 			case XML:
 				return SyntaxConstants.SYNTAX_STYLE_XML;
+
+			default:
+				String syntax = getSyntaxByExtension(resFile.getName());
+				if (syntax != null) {
+					return syntax;
+				}
+				return super.getSyntaxName();
 		}
-		String syntax = getSyntaxByExtension(resFile.getName());
-		if (syntax != null) {
-			return syntax;
-		}
-		return super.getSyntaxName();
 	}
 
 	private String getSyntaxByExtension(String name) {

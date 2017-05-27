@@ -2,7 +2,6 @@ package jadx.core.dex.nodes;
 
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
-import jadx.core.dex.info.InfoStorage;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.exceptions.DecodeException;
@@ -37,8 +36,8 @@ public class DexNode implements IDexNode {
 	private final DexFile file;
 	private final int dexId;
 
-	private final List<ClassNode> classes = new ArrayList<ClassNode>();
-	private final Map<ClassInfo, ClassNode> clsMap = new HashMap<ClassInfo, ClassNode>();
+	private final List<ClassNode> classes = new ArrayList<>();
+	private final Map<ClassInfo, ClassNode> clsMap = new HashMap<>();
 
 	public DexNode(RootNode root, DexFile input, int dexId) {
 		this.root = root;
@@ -57,7 +56,7 @@ public class DexNode implements IDexNode {
 
 	void initInnerClasses() {
 		// move inner classes
-		List<ClassNode> inner = new ArrayList<ClassNode>();
+		List<ClassNode> inner = new ArrayList<>();
 		for (ClassNode cls : classes) {
 			if (cls.getClassInfo().isInner()) {
 				inner.add(cls);
@@ -185,7 +184,7 @@ public class DexNode implements IDexNode {
 
 	public List<ArgType> readParamList(int parametersOffset) {
 		TypeList paramList = dexBuf.readTypeList(parametersOffset);
-		List<ArgType> args = new ArrayList<ArgType>(paramList.getTypes().length);
+		List<ArgType> args = new ArrayList<>(paramList.getTypes().length);
 		for (short t : paramList.getTypes()) {
 			args.add(getType(t));
 		}

@@ -1,12 +1,12 @@
 package jadx.tests.integration.loops;
 
-import jadx.core.dex.nodes.ClassNode;
-import jadx.tests.api.IntegrationTest;
-
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
+
+import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.Matchers.is;
@@ -39,7 +39,7 @@ public class TestBreakInComplexIf extends IntegrationTest {
 		}
 
 		public void check() {
-			Map<String, Point> map = new HashMap<String, Point>();
+			Map<String, Point> map = new HashMap<>();
 			map.put("3", new Point(100, 100));
 			map.put("4", new Point(60, 100));
 			assertThat(test(map, 2), is(3));

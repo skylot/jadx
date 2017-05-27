@@ -72,7 +72,7 @@ public final class JavaClass implements JavaNode {
 		JadxDecompiler rootDecompiler = getRootDecompiler();
 		int inClsCount = cls.getInnerClasses().size();
 		if (inClsCount != 0) {
-			List<JavaClass> list = new ArrayList<JavaClass>(inClsCount);
+			List<JavaClass> list = new ArrayList<>(inClsCount);
 			for (ClassNode inner : cls.getInnerClasses()) {
 				if (!inner.contains(AFlag.DONT_GENERATE)) {
 					JavaClass javaClass = new JavaClass(inner, this);
@@ -86,7 +86,7 @@ public final class JavaClass implements JavaNode {
 
 		int fieldsCount = cls.getFields().size();
 		if (fieldsCount != 0) {
-			List<JavaField> flds = new ArrayList<JavaField>(fieldsCount);
+			List<JavaField> flds = new ArrayList<>(fieldsCount);
 			for (FieldNode f : cls.getFields()) {
 				if (!f.contains(AFlag.DONT_GENERATE)) {
 					JavaField javaField = new JavaField(f, this);
@@ -99,7 +99,7 @@ public final class JavaClass implements JavaNode {
 
 		int methodsCount = cls.getMethods().size();
 		if (methodsCount != 0) {
-			List<JavaMethod> mths = new ArrayList<JavaMethod>(methodsCount);
+			List<JavaMethod> mths = new ArrayList<>(methodsCount);
 			for (MethodNode m : cls.getMethods()) {
 				if (!m.contains(AFlag.DONT_GENERATE)) {
 					JavaMethod javaMethod = new JavaMethod(this, m);
@@ -134,7 +134,7 @@ public final class JavaClass implements JavaNode {
 		if (map.isEmpty() || decompiler == null) {
 			return Collections.emptyMap();
 		}
-		Map<CodePosition, JavaNode> resultMap = new HashMap<CodePosition, JavaNode>(map.size());
+		Map<CodePosition, JavaNode> resultMap = new HashMap<>(map.size());
 		for (Map.Entry<CodePosition, Object> entry : map.entrySet()) {
 			CodePosition codePosition = entry.getKey();
 			Object obj = entry.getValue();

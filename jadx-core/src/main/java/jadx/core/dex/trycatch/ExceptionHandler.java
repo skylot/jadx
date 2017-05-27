@@ -16,7 +16,7 @@ public class ExceptionHandler {
 	private final int handleOffset;
 
 	private BlockNode handlerBlock;
-	private final List<BlockNode> blocks = new ArrayList<BlockNode>();
+	private final List<BlockNode> blocks = new ArrayList<>();
 	private IContainer handlerRegion;
 	private InsnArg arg;
 

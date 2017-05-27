@@ -1,21 +1,12 @@
 package jadx.gui.ui;
 
-import jadx.api.JadxDecompiler;
-import jadx.gui.utils.NLS;
-
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Font;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+import jadx.api.JadxDecompiler;
+import jadx.gui.utils.NLS;
 
 class AboutDialog extends JDialog {
 	private static final long serialVersionUID = 5763493590584039096L;

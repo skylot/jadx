@@ -70,7 +70,7 @@ public class ResTableParser extends CommonBinaryParser {
 		return res;
 	}
 
-	public CodeWriter makeDump() throws IOException {
+	public CodeWriter makeDump() {
 		CodeWriter writer = new CodeWriter();
 		writer.add("app package: ").add(resStorage.getAppPackage());
 		writer.startLine();
@@ -137,7 +137,7 @@ public class ResTableParser extends CommonBinaryParser {
 
 		PackageChunk pkg = new PackageChunk(id, name, typeStrings, keyStrings);
 		//if (id == 0x7F) {
-			resStorage.setAppPackage(name);
+		resStorage.setAppPackage(name);
 		//}
 
 		while (is.getPos() < endPos) {
@@ -169,8 +169,10 @@ public class ResTableParser extends CommonBinaryParser {
 	}
 
 	private void parseTypeChunk(long start, PackageChunk pkg) throws IOException {
-		/*int headerSize = */ is.readInt16();
-		/*int size = */ is.readInt32();
+		/*int headerSize = */
+		is.readInt16();
+		/*int size = */
+		is.readInt32();
 
 		int id = is.readInt8();
 		is.checkInt8(0, "type chunk, res0");
@@ -211,7 +213,7 @@ public class ResTableParser extends CommonBinaryParser {
 			int parentRef = is.readInt32();
 			ri.setParentRef(parentRef);
 			int count = is.readInt32();
-			List<RawNamedValue> values = new ArrayList<RawNamedValue>(count);
+			List<RawNamedValue> values = new ArrayList<>(count);
 			for (int i = 0; i < count; i++) {
 				values.add(parseValueMap());
 			}

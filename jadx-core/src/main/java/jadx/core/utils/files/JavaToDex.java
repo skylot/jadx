@@ -1,12 +1,12 @@
 package jadx.core.utils.files;
 
+import jadx.core.utils.exceptions.JadxException;
+
 import java.io.ByteArrayOutputStream;
 
 import com.android.dx.command.dexer.DxContext;
 import com.android.dx.command.dexer.Main;
 import com.android.dx.command.dexer.Main.Arguments;
-
-import jadx.core.utils.exceptions.JadxException;
 
 import static jadx.core.utils.files.FileUtils.close;
 

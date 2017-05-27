@@ -1,7 +1,5 @@
 package jadx.tests.api.compiler;
 
-import jadx.core.utils.files.FileUtils;
-
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaCompiler;
@@ -18,11 +16,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import jadx.core.utils.files.FileUtils;
+
 import static javax.tools.JavaCompiler.CompilationTask;
 
 public class StaticCompiler {
 
-	private static final List<String> COMMON_ARGS = Arrays.asList("-source 1.6 -target 1.6".split(" "));
+	private static final List<String> COMMON_ARGS = Arrays.asList("-source 1.7 -target 1.7".split(" "));
 
 	public static List<File> compile(List<File> files, File outDir, boolean includeDebugInfo) throws IOException {
 
@@ -32,7 +32,7 @@ public class StaticCompiler {
 
 		StaticFileManager staticFileManager = new StaticFileManager(fileManager, outDir);
 
-		List<String> options = new ArrayList<String>();
+		List<String> options = new ArrayList<>();
 		options.add(includeDebugInfo ? "-g" : "-g:none");
 		options.addAll(COMMON_ARGS);
 		CompilationTask task = compiler.getTask(null, staticFileManager, null, options, null, compilationUnits);
@@ -45,7 +45,7 @@ public class StaticCompiler {
 	}
 
 	private static class StaticFileManager extends ForwardingJavaFileManager<StandardJavaFileManager> {
-		private List<File> files = new ArrayList<File>();
+		private List<File> files = new ArrayList<>();
 		private File outDir;
 
 		protected StaticFileManager(StandardJavaFileManager fileManager, File outDir) {

@@ -1,15 +1,13 @@
 package jadx.gui.ui;
 
-import jadx.gui.treemodel.JNode;
-import jadx.gui.utils.Utils;
-
-import javax.swing.AbstractAction;
-import javax.swing.JScrollPane;
-import javax.swing.KeyStroke;
-import java.awt.BorderLayout;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+
+import jadx.gui.treemodel.JNode;
+import jadx.gui.utils.Utils;
 
 class CodePanel extends ContentPanel {
 
@@ -50,10 +48,12 @@ class CodePanel extends ContentPanel {
 		codeArea.loadSettings();
 	}
 
+	@Override
 	TabbedPane getTabbedPane() {
 		return tabbedPane;
 	}
 
+	@Override
 	JNode getNode() {
 		return node;
 	}

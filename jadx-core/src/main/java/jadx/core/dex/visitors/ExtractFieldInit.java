@@ -102,7 +102,7 @@ public class ExtractFieldInit extends AbstractVisitor {
 
 	private static class InitInfo {
 		private final MethodNode constrMth;
-		private final List<InsnNode> putInsns = new ArrayList<InsnNode>();
+		private final List<InsnNode> putInsns = new ArrayList<>();
 
 		private InitInfo(MethodNode constrMth) {
 			this.constrMth = constrMth;
@@ -122,7 +122,7 @@ public class ExtractFieldInit extends AbstractVisitor {
 		if (constrList.isEmpty()) {
 			return;
 		}
-		List<InitInfo> infoList = new ArrayList<InitInfo>(constrList.size());
+		List<InitInfo> infoList = new ArrayList<>(constrList.size());
 		for (MethodNode constrMth : constrList) {
 			if (constrMth.isNoCode() || constrMth.getBasicBlocks().isEmpty()) {
 				return;
@@ -151,7 +151,7 @@ public class ExtractFieldInit extends AbstractVisitor {
 		if (common == null) {
 			return;
 		}
-		Set<FieldInfo> fields = new HashSet<FieldInfo>();
+		Set<FieldInfo> fields = new HashSet<>();
 		for (InsnNode insn : common.getPutInsns()) {
 			FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) insn).getIndex();
 			FieldNode field = cls.dex().resolveField(fieldInfo);
@@ -200,7 +200,7 @@ public class ExtractFieldInit extends AbstractVisitor {
 		} else {
 			return arg.isLiteral() || arg.isThis();
 		}
-		Set<RegisterArg> regs = new HashSet<RegisterArg>();
+		Set<RegisterArg> regs = new HashSet<>();
 		insn.getRegisterArgs(regs);
 		if (!regs.isEmpty()) {
 			for (RegisterArg reg : regs) {
@@ -213,7 +213,7 @@ public class ExtractFieldInit extends AbstractVisitor {
 	}
 
 	private static List<MethodNode> getConstructorsList(ClassNode cls) {
-		List<MethodNode> list = new ArrayList<MethodNode>();
+		List<MethodNode> list = new ArrayList<>();
 		for (MethodNode mth : cls.getMethods()) {
 			AccessInfo accFlags = mth.getAccessFlags();
 			if (!accFlags.isStatic() && accFlags.isConstructor()) {
@@ -230,7 +230,7 @@ public class ExtractFieldInit extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return Collections.emptyList();
 		}
-		List<InsnNode> assignInsns = new ArrayList<InsnNode>();
+		List<InsnNode> assignInsns = new ArrayList<>();
 		for (BlockNode block : mth.getBasicBlocks()) {
 			for (InsnNode insn : block.getInstructions()) {
 				if (insn.getType() == putInsn) {

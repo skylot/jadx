@@ -1,12 +1,12 @@
 package jadx.tests.integration.inline;
 
-import jadx.core.dex.nodes.ClassNode;
-import jadx.tests.api.IntegrationTest;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
+
+import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.junit.Assert.assertThat;
@@ -25,7 +25,7 @@ public class TestIssue86 extends IntegrationTest {
 		private static final String DESC_TAG = "desc-tag";
 
 		private List<Day> test(String response) {
-			List<Day> reportList = new ArrayList<Day>();
+			List<Day> reportList = new ArrayList<>();
 			try {
 				System.out.println(response);
 				if (response != null

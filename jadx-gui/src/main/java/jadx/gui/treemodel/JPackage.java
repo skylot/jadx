@@ -1,15 +1,14 @@
 package jadx.gui.treemodel;
 
-import jadx.api.JavaClass;
-import jadx.api.JavaPackage;
-import jadx.gui.utils.Utils;
-
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
+
+import jadx.api.JavaClass;
+import jadx.api.JavaPackage;
+import jadx.gui.utils.Utils;
 
 public class JPackage extends JNode implements Comparable<JPackage> {
 	private static final long serialVersionUID = -4120718634156839804L;
@@ -18,12 +17,12 @@ public class JPackage extends JNode implements Comparable<JPackage> {
 
 	private String name;
 	private final List<JClass> classes;
-	private final List<JPackage> innerPackages = new ArrayList<JPackage>(1);
+	private final List<JPackage> innerPackages = new ArrayList<>(1);
 
 	public JPackage(JavaPackage pkg) {
 		this.name = pkg.getName();
 		List<JavaClass> javaClasses = pkg.getClasses();
-		this.classes = new ArrayList<JClass>(javaClasses.size());
+		this.classes = new ArrayList<>(javaClasses.size());
 		for (JavaClass javaClass : javaClasses) {
 			classes.add(new JClass(javaClass));
 		}
@@ -32,7 +31,7 @@ public class JPackage extends JNode implements Comparable<JPackage> {
 
 	public JPackage(String name) {
 		this.name = name;
-		this.classes = new ArrayList<JClass>(1);
+		this.classes = new ArrayList<>(1);
 	}
 
 	public final void update() {

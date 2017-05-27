@@ -10,7 +10,7 @@ import java.util.Map;
 public class EnumMapAttr implements IAttribute {
 
 	public static class KeyValueMap {
-		private final Map<Object, Object> map = new HashMap<Object, Object>();
+		private final Map<Object, Object> map = new HashMap<>();
 
 		public Object get(Object key) {
 			return map.get(key);
@@ -21,7 +21,7 @@ public class EnumMapAttr implements IAttribute {
 		}
 	}
 
-	private final Map<FieldNode, KeyValueMap> fieldsMap = new HashMap<FieldNode, KeyValueMap>();
+	private final Map<FieldNode, KeyValueMap> fieldsMap = new HashMap<>();
 
 	public KeyValueMap getMap(FieldNode field) {
 		return fieldsMap.get(field);

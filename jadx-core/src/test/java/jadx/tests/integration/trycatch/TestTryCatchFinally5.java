@@ -1,12 +1,12 @@
 package jadx.tests.integration.trycatch;
 
-import jadx.core.dex.nodes.ClassNode;
-import jadx.tests.api.IntegrationTest;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
+
+import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.junit.Assert.assertThat;
@@ -24,7 +24,7 @@ public class TestTryCatchFinally5 extends IntegrationTest {
 				if (!d.first()) {
 					return null;
 				}
-				List<E> list = new ArrayList<E>();
+				List<E> list = new ArrayList<>();
 				do {
 					list.add(b.load(d));
 				} while (d.toNext());

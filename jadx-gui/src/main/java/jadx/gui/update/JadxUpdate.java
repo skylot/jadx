@@ -1,8 +1,5 @@
 package jadx.gui.update;
 
-import jadx.api.JadxDecompiler;
-import jadx.gui.update.data.Release;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -14,11 +11,13 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import jadx.api.JadxDecompiler;
+import jadx.gui.update.data.Release;
 
 public class JadxUpdate {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxUpdate.class);

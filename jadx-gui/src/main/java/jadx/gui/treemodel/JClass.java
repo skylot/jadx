@@ -1,5 +1,9 @@
 package jadx.gui.treemodel;
 
+import javax.swing.*;
+
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+
 import jadx.api.JavaClass;
 import jadx.api.JavaField;
 import jadx.api.JavaMethod;
@@ -7,11 +11,6 @@ import jadx.api.JavaNode;
 import jadx.core.dex.info.AccessInfo;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
-
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-
-import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 
 public class JClass extends JNode {
 	private static final long serialVersionUID = -1239986875244097177L;
@@ -24,9 +23,9 @@ public class JClass extends JNode {
 	private static final ImageIcon ICON_ENUM = Utils.openIcon("enum_obj");
 	private static final ImageIcon ICON_ANNOTATION = Utils.openIcon("annotation_obj");
 
-	private final JavaClass cls;
-	private final JClass jParent;
-	private boolean loaded;
+	private final transient JavaClass cls;
+	private final transient JClass jParent;
+	private transient boolean loaded;
 
 	public JClass(JavaClass cls) {
 		this.cls = cls;
@@ -71,6 +70,7 @@ public class JClass extends JNode {
 		}
 	}
 
+	@Override
 	public String getContent() {
 		return cls.getCode();
 	}

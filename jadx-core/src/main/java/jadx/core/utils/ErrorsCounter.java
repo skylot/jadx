@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 public class ErrorsCounter {
 	private static final Logger LOG = LoggerFactory.getLogger(ErrorsCounter.class);
 
-	private final Set<Object> errorNodes = new HashSet<Object>();
+	private final Set<Object> errorNodes = new HashSet<>();
 	private int errorsCount;
 
 	public int getErrorCount() {
@@ -69,7 +69,7 @@ public class ErrorsCounter {
 	public void printReport() {
 		if (getErrorCount() > 0) {
 			LOG.error("{} errors occurred in following nodes:", getErrorCount());
-			List<Object> nodes = new ArrayList<Object>(errorNodes);
+			List<Object> nodes = new ArrayList<>(errorNodes);
 			Collections.sort(nodes, new Comparator<Object>() {
 				@Override
 				public int compare(Object o1, Object o2) {

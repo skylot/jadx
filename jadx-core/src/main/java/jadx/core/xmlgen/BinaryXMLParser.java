@@ -46,8 +46,8 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private boolean firstElement;
 	private boolean wasOneLiner = false;
 
-	private final Map<Integer, String> styleMap = new HashMap<Integer, String>();
-	private final Map<Integer, FieldNode> localStyleMap = new HashMap<Integer, FieldNode>();
+	private final Map<Integer, String> styleMap = new HashMap<>();
+	private final Map<Integer, FieldNode> localStyleMap = new HashMap<>();
 	private final Map<Integer, String> resNames;
 	private ValuesParser valuesParser;
 
@@ -55,14 +55,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 
 	public BinaryXMLParser(RootNode root) {
 		try {
-			try {
-				Class<?> rStyleCls = Class.forName(ANDROID_R_STYLE_CLS);
-				for (Field f : rStyleCls.getFields()) {
-					styleMap.put(f.getInt(f.getType()), f.getName());
-				}
-			} catch (Throwable th) {
-				LOG.error("R class loading failed", th);
-			}
+			loadStyles();
 			// add application constants
 			ConstStorage constStorage = root.getConstValues();
 			Map<Object, FieldNode> constFields = constStorage.getGlobalConstFields();
@@ -79,6 +72,17 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			attributes.parseAll();
 		} catch (Exception e) {
 			throw new JadxRuntimeException("BinaryXMLParser init error", e);
+		}
+	}
+
+	private void loadStyles() {
+		try {
+			Class<?> rStyleCls = Class.forName(ANDROID_R_STYLE_CLS);
+			for (Field f : rStyleCls.getFields()) {
+				styleMap.put(f.getInt(f.getType()), f.getName());
+			}
+		} catch (Exception th) {
+			LOG.error("R class loading failed", th);
 		}
 	}
 
@@ -122,13 +126,11 @@ public class BinaryXMLParser extends CommonBinaryParser {
 					parseResourceMap();
 					break;
 				case RES_XML_START_NAMESPACE_TYPE:
+				case RES_XML_END_NAMESPACE_TYPE:
 					parseNameSpace();
 					break;
 				case RES_XML_CDATA_TYPE:
 					parseCData();
-					break;
-				case RES_XML_END_NAMESPACE_TYPE:
-					parseNameSpaceEnd();
 					break;
 				case RES_XML_START_ELEMENT_TYPE:
 					parseElement();
@@ -162,27 +164,12 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		if (is.readInt32() != 0x18) {
 			die("NAMESPACE header chunk is not 0x18 big");
 		}
-		int beginLineNumber = is.readInt32();
+		int lineNumber = is.readInt32();
 		int comment = is.readInt32();
-		int beginPrefix = is.readInt32();
-		nsPrefix = strings[beginPrefix];
-		int beginURI = is.readInt32();
-		nsURI = strings[beginURI];
-	}
-
-	private void parseNameSpaceEnd() throws IOException {
-		if (is.readInt16() != 0x10) {
-			die("NAMESPACE header is not 0x0010");
-		}
-		if (is.readInt32() != 0x18) {
-			die("NAMESPACE header chunk is not 0x18 big");
-		}
-		int endLineNumber = is.readInt32();
-		int comment = is.readInt32();
-		int endPrefix = is.readInt32();
-		nsPrefix = strings[endPrefix];
-		int endURI = is.readInt32();
-		nsURI = strings[endURI];
+		int idPrefix = is.readInt32();
+		nsPrefix = strings[idPrefix];
+		int idURI = is.readInt32();
+		nsURI = strings[idURI];
 	}
 
 	private void parseCData() throws IOException {
@@ -202,7 +189,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		writer.attachSourceLine(lineNumber);
 		writer.add(StringUtils.escapeXML(str.trim())); // TODO: wrap into CDATA for easier reading
 
-		int size = is.readInt16();
+		long size = is.readInt16();
 		is.skip(size - 2);
 	}
 
@@ -244,7 +231,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		if ("manifest".equals(currentTag) || writer.getIndent() == 0) {
 			writer.add(" xmlns:android=\"").add(nsURI).add("\"");
 		}
-		boolean attrNewLine = attributeCount == 1 ? false : ATTR_NEW_LINE;
+		boolean attrNewLine = attributeCount != 1 && ATTR_NEW_LINE;
 		for (int i = 0; i < attributeCount; i++) {
 			parseAttribute(i, attrNewLine);
 		}

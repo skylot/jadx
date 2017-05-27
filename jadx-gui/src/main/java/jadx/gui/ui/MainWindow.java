@@ -1,5 +1,36 @@
 package jadx.gui.ui;
 
+import javax.swing.*;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeWillExpandListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.ExpandVetoException;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+import java.awt.*;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jadx.api.ResourceFile;
 import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.BackgroundWorker;
@@ -20,60 +51,6 @@ import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Position;
 import jadx.gui.utils.Utils;
-
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.Box;
-import javax.swing.ImageIcon;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JToggleButton;
-import javax.swing.JToolBar;
-import javax.swing.JTree;
-import javax.swing.ProgressMonitor;
-import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
-import javax.swing.event.MenuEvent;
-import javax.swing.event.MenuListener;
-import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeWillExpandListener;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.ExpandVetoException;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.DisplayMode;
-import java.awt.Font;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DropTarget;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static javax.swing.KeyStroke.getKeyStroke;
 
@@ -101,9 +78,9 @@ public class MainWindow extends JFrame {
 	private static final ImageIcon ICON_DEOBF = Utils.openIcon("lock_edit");
 	private static final ImageIcon ICON_LOG = Utils.openIcon("report");
 
-	private final JadxWrapper wrapper;
-	private final JadxSettings settings;
-	private final CacheObject cacheObject;
+	private final transient JadxWrapper wrapper;
+	private final transient JadxSettings settings;
+	private final transient CacheObject cacheObject;
 
 	private JPanel mainPanel;
 
@@ -119,11 +96,9 @@ public class MainWindow extends JFrame {
 	private JToggleButton deobfToggleBtn;
 	private JCheckBoxMenuItem deobfMenuItem;
 
-	private Link updateLink;
-	private ProgressPanel progressPane;
-	private BackgroundWorker backgroundWorker;
-
-	private DropTarget dropTarget;
+	private transient Link updateLink;
+	private transient ProgressPanel progressPane;
+	private transient BackgroundWorker backgroundWorker;
 
 	public MainWindow(JadxSettings settings) {
 		this.wrapper = new JadxWrapper(settings);
@@ -179,7 +154,7 @@ public class MainWindow extends JFrame {
 		if (!currentDirectory.isEmpty()) {
 			fileChooser.setCurrentDirectory(new File(currentDirectory));
 		}
-		int ret = fileChooser.showDialog(mainPanel, NLS.str("file.open"));
+		int ret = fileChooser.showDialog(mainPanel, NLS.str("file.open_title"));
 		if (ret == JFileChooser.APPROVE_OPTION) {
 			settings.setLastOpenFilePath(fileChooser.getCurrentDirectory().getPath());
 			openFile(fileChooser.getSelectedFile());
@@ -346,7 +321,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void initMenuAndToolbar() {
-		Action openAction = new AbstractAction(NLS.str("file.open"), ICON_OPEN) {
+		Action openAction = new AbstractAction(NLS.str("file.open_action"), ICON_OPEN) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				openFile();
@@ -569,8 +544,8 @@ public class MainWindow extends JFrame {
 		splitPane.setResizeWeight(SPLIT_PANE_RESIZE_WEIGHT);
 		mainPanel.add(splitPane);
 
-		DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode(NLS.str("msg.open_file"));
-		treeModel = new DefaultTreeModel(treeRoot);
+		DefaultMutableTreeNode treeRootNode = new DefaultMutableTreeNode(NLS.str("msg.open_file"));
+		treeModel = new DefaultTreeModel(treeRootNode);
 		tree = new JTree(treeModel);
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		tree.addMouseListener(new MouseAdapter() {
@@ -625,7 +600,7 @@ public class MainWindow extends JFrame {
 		tabbedPane = new TabbedPane(this);
 		splitPane.setRightComponent(tabbedPane);
 
-		dropTarget = new DropTarget(this, DnDConstants.ACTION_COPY, new MainDropTarget(this));
+		new DropTarget(this, DnDConstants.ACTION_COPY, new MainDropTarget(this));
 
 		setContentPane(mainPanel);
 		setTitle(DEFAULT_TITLE);

@@ -20,7 +20,7 @@ public class ResourceStorage {
 		}
 	};
 
-	private final List<ResourceEntry> list = new ArrayList<ResourceEntry>();
+	private final List<ResourceEntry> list = new ArrayList<>();
 	private String appPackage;
 
 	public Collection<ResourceEntry> getResources() {
@@ -53,7 +53,7 @@ public class ResourceStorage {
 	}
 
 	public Map<Integer, String> getResourcesNames() {
-		Map<Integer, String> map = new HashMap<Integer, String>();
+		Map<Integer, String> map = new HashMap<>();
 		for (ResourceEntry entry : list) {
 			map.put(entry.getId(), entry.getTypeName() + "/" + entry.getKeyName());
 		}

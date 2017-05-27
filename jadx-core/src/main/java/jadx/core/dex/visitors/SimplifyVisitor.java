@@ -298,7 +298,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 	}
 
 	private static List<InsnNode> flattenInsnChain(InsnNode insn) {
-		List<InsnNode> chain = new ArrayList<InsnNode>();
+		List<InsnNode> chain = new ArrayList<>();
 		InsnArg i = insn.getArg(0);
 		while (i.isInsnWrap()) {
 			InsnNode wrapInsn = ((InsnWrapArg) i).getWrapInsn();

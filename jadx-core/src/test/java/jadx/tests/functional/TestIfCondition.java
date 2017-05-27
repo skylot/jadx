@@ -1,5 +1,7 @@
 package jadx.tests.functional;
 
+import org.junit.Test;
+
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IfOp;
 import jadx.core.dex.instructions.args.ArgType;
@@ -7,8 +9,6 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.regions.conditions.Compare;
 import jadx.core.dex.regions.conditions.IfCondition;
-
-import org.junit.Test;
 
 import static jadx.core.dex.regions.conditions.IfCondition.Mode;
 import static jadx.core.dex.regions.conditions.IfCondition.merge;
