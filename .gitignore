@@ -13,6 +13,7 @@ out/
 bin/
 target/
 build/
+classes/
 idea/
 .gradle/
 gradle.properties
