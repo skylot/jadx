@@ -1,5 +1,6 @@
 plugins {
     id 'com.github.ksoichiro.console.reporter' version '0.5.0'
+    id 'org.sonarqube' version '2.4'
 }
 
 ext.jadxVersion = file('version').readLines().get(0)
@@ -51,6 +52,13 @@ allprojects {
             xml.enabled = true
             html.enabled = true
         }
+    }
+}
+
+sonarqube {
+    properties {
+        property 'sonar.exclusions', '**/jadx/samples/**/*,**/test-app/**/*'
+        property 'sonar.coverage.exclusions', '**/jadx/gui/**/*'
     }
 }
 

@@ -1,10 +1,11 @@
 ## JADX
 
 [![Build Status](https://travis-ci.org/skylot/jadx.png?branch=master)](https://travis-ci.org/skylot/jadx)
-[![Build Status](https://gitlab.com/skylot/jadx/badges/master/build.svg)](https://gitlab.com/skylot/jadx/commits/master)
-[![coverage report](https://gitlab.com/skylot/jadx/badges/master/coverage.svg)](https://gitlab.com/skylot/jadx/commits/master)
+[![Gitlab CI](https://gitlab.com/skylot/jadx/badges/master/build.svg)](https://gitlab.com/skylot/jadx/builds)
+[![Jadx Core Coverage](https://gitlab.com/skylot/jadx/badges/master/coverage.svg)](https://gitlab.com/skylot/jadx/builds)
 [![Code Coverage](https://codecov.io/gh/skylot/jadx/branch/master/graph/badge.svg)](https://codecov.io/gh/skylot/jadx)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/2166/badge.svg)](https://scan.coverity.com/projects/2166)
+[![SonarQube Bugs](https://sonarcloud.io/api/badges/measure?key=jadx&metric=bugs)](https://sonarcloud.io/dashboard?id=jadx)
 [![Latest release](https://img.shields.io/github/release/skylot/jadx.svg)](https://github.com/skylot/jadx/releases/latest)
 [![Latest release downloads](https://img.shields.io/github/downloads/skylot/jadx/latest/total.svg)](https://github.com/skylot/jadx/releases/latest)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
@@ -23,6 +24,8 @@ Command line and GUI tools for produce Java source code from Android Dex and Apk
 
 
 ### Building from source
+Java 8 JDK or higher must be installed:
+
     git clone https://github.com/skylot/jadx.git
     cd jadx
     ./gradlew dist
@@ -38,7 +41,7 @@ Run **jadx** on itself:
 
     cd build/jadx/
     bin/jadx -d out lib/jadx-core-*.jar
-    #or
+    # or
     bin/jadx-gui lib/jadx-core-*.jar
 
 
@@ -85,11 +88,6 @@ To support this project you can:
   - Submit bug using one of following patterns:
     * Java code examples which decompiles incorrectly
     * Error log and link to _public available_ apk file or app page on Google play
-
-And any other comments will be very helpfull,
-because at current stage of development it is very time consuming
-to **find** new bugs, design and implement new features.
-Also I need to **prioritize** these task for complete most important at first.
 
 ---------------------------------------
 *Licensed under the Apache 2.0 License*
