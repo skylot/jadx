@@ -1,5 +1,6 @@
 package jadx.api;
 
+import java.util.concurrent.ConcurrentHashMap;
 import jadx.core.Jadx;
 import jadx.core.ProcessClass;
 import jadx.core.codegen.CodeGen;
@@ -66,9 +67,9 @@ public final class JadxDecompiler {
 
 	private BinaryXMLParser xmlParser;
 
-	private Map<ClassNode, JavaClass> classesMap = new java.util.concurrent.ConcurrentHashMap<ClassNode, JavaClass>();
-	private Map<MethodNode, JavaMethod> methodsMap = new java.util.concurrent.ConcurrentHashMap<MethodNode, JavaMethod>();
-	private Map<FieldNode, JavaField> fieldsMap = new java.util.concurrent.ConcurrentHashMap<FieldNode, JavaField>();
+	private Map<ClassNode, JavaClass> classesMap = new ConcurrentHashMap<>();
+	private Map<MethodNode, JavaMethod> methodsMap = new ConcurrentHashMap<>();
+	private Map<FieldNode, JavaField> fieldsMap = new ConcurrentHashMap<>();
 
 	public JadxDecompiler() {
 		this(new JadxArgs());
