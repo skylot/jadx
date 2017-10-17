@@ -61,7 +61,7 @@ public abstract class CommonSearchDialog extends JDialog {
 	private static final Logger LOG = LoggerFactory.getLogger(CommonSearchDialog.class);
 	private static final long serialVersionUID = 8939332306115370276L;
 
-	public static final int MAX_RESULTS_COUNT = 100;
+	public static final int MAX_RESULTS_COUNT = 200;
 
 	protected final TabbedPane tabbedPane;
 	protected final CacheObject cache;
