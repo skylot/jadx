@@ -29,6 +29,8 @@ public class Deobfuscator {
     public static final String CLASS_NAME_SEPARATOR = ".";
     public static final String INNER_CLASS_SEPARATOR = "$";
 
+    public static boolean RenameClassWithSourceName = false;
+
     private final IJadxArgs args;
     @NotNull
     private final List<DexNode> dexNodes;
@@ -214,7 +216,10 @@ public class Deobfuscator {
     private void processClass(DexNode dex, ClassNode cls) {
         ClassInfo clsInfo = cls.getClassInfo();
         String fullName = getClassFullName(clsInfo);
-        if (!fullName.equals(clsInfo.getFullName()) && !StringUtils.isContainNumber(fullName)) {
+        String sourceName = getFullNameWithSourceName(cls);
+        if (sourceName != null && RenameClassWithSourceName) {
+            clsInfo.rename(dex, sourceName);
+        } else if (!fullName.equals(clsInfo.getFullName()) && !StringUtils.isContainNumber(fullName)) {
             clsInfo.rename(dex, fullName);
         }
         for (FieldNode field : cls.getFields()) {
@@ -325,7 +330,7 @@ public class Deobfuscator {
         ClassInfo classInfo = cls.getClassInfo();
         String alias = null;
 
-        if (this.useSourceNameAsAlias) {
+        if (this.useSourceNameAsAlias || true) {
             alias = getAliasFromSourceFile(cls);
         }
 
@@ -453,6 +458,18 @@ public class Deobfuscator {
             return removeInvalidChars(name);
         }
         return name;
+    }
+
+    public String getFullNameWithSourceName(ClassNode classNode) {
+        String aliasFromSourceFile = getAliasFromSourceFile(classNode);
+        if (aliasFromSourceFile == null) {
+            return null;
+        }
+        String aPackage = classNode.getClassInfo().getPackage();
+        if (aPackage == null) {
+            return null;
+        }
+        return getPackageName(aPackage) + CLASS_NAME_SEPARATOR + aliasFromSourceFile;
     }
 
     private String removeInvalidChars(String name) {
