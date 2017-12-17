@@ -50,6 +50,7 @@ public class JadxSettingsAdapter {
 				return new JadxSettings();
 			}
 			LOG.debug("Loaded settings: {}", makeString(settings));
+			settings.fixOnLoad();
 			return settings;
 		} catch (Exception e) {
 			LOG.error("Error load settings", e);

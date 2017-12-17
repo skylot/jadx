@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 public class JadxCLI {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxCLI.class);
 
-	public static void main(String[] args) throws JadxException {
+	public static void main(String[] args) {
 		try {
 			JadxCLIArgs jadxArgs = new JadxCLIArgs();
 			if (processArgs(jadxArgs, args)) {

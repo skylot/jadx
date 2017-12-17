@@ -43,6 +43,12 @@ public class JadxSettings extends JadxCLIArgs {
 		JadxSettingsAdapter.store(this);
 	}
 
+	public void fixOnLoad() {
+		if (threadsCount <= 0) {
+			threadsCount = DEFAULT_THREADS_COUNT;
+		}
+	}
+
 	public String getLastOpenFilePath() {
 		return lastOpenFilePath;
 	}

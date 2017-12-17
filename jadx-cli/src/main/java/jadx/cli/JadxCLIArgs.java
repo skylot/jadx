@@ -25,6 +25,8 @@ import com.beust.jcommander.ParameterException;
 
 public class JadxCLIArgs implements IJadxArgs {
 
+	protected static final int DEFAULT_THREADS_COUNT = Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
+
 	@Parameter(description = "<input file> (.dex, .apk, .jar or .class)")
 	protected List<String> files;
 
@@ -32,7 +34,7 @@ public class JadxCLIArgs implements IJadxArgs {
 	protected String outDirName;
 
 	@Parameter(names = {"-j", "--threads-count"}, description = "processing threads count")
-	protected int threadsCount = Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
+	protected int threadsCount = DEFAULT_THREADS_COUNT;
 
 	@Parameter(names = {"-r", "--no-res"}, description = "do not decode resources")
 	protected boolean skipResources = false;
@@ -108,7 +110,7 @@ public class JadxCLIArgs implements IJadxArgs {
 		}
 		try {
 			if (threadsCount <= 0) {
-				throw new JadxException("Threads count must be positive");
+				throw new JadxException("Threads count must be positive, got: " + threadsCount);
 			}
 			if (files != null) {
 				for (String fileName : files) {
