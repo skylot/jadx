@@ -12,6 +12,9 @@ Command line and GUI tools for produce Java source code from Android Dex and Apk
 
 ![jadx-gui screenshot](http://skylot.github.io/jadx/jadx-gui.png)
 
+### Deobfuscation
+![jadx-deobf screenshot](./deobfuscation.png)
+
 ### Downloads
 - [unstable](https://drone.io/github.com/skylot/jadx/files)
 - from [github](https://github.com/skylot/jadx/releases)

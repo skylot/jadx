@@ -1,15 +1,14 @@
 package jadx.core.utils.files;
 
+import com.android.dx.command.DxConsole;
+import com.android.dx.command.dexer.Main;
+import com.android.dx.command.dexer.Main.Arguments;
 import jadx.core.utils.exceptions.JadxException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
-
-import com.android.dx.command.DxConsole;
-import com.android.dx.command.dexer.Main;
-import com.android.dx.command.dexer.Main.Arguments;
 
 import static com.android.dx.command.dexer.Main.run;
 import static jadx.core.utils.files.FileUtils.close;

@@ -5,8 +5,8 @@ applicationName = 'jadx'
 
 dependencies {
     compile(project(':jadx-core'))
-    compile 'com.beust:jcommander:1.47'
-    compile 'ch.qos.logback:logback-classic:1.1.2'
+    compile 'com.beust:jcommander:1.72'
+    compile 'ch.qos.logback:logback-classic:1.2.3'
 }
 
 applicationDistribution.with {
@@ -16,5 +16,9 @@ applicationDistribution.with {
         include 'NOTICE'
         include 'LICENSE'
     }
+}
+
+startScripts {
+    defaultJvmOpts = [ '-Xms2g', '-Xmx4g' ]
 }
 
