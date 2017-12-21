@@ -225,13 +225,13 @@ public class StringUtils {
         return sb.toString();
     }
 
-    private static final Pattern P0 = Pattern.compile("^[0oO]+$");
+    private static final Pattern P0 = Pattern.compile("^[0o]+$");
     private static final Pattern P1 = Pattern.compile("^[iI]+$");
     private static final Pattern P2 = Pattern.compile("^[uv]+$");
     private static final Pattern P3 = Pattern.compile("[0-9]");
 
     public static boolean deobfuseName(String name) {
-        return name != null && !"".equals(name) && (P0.matcher(name).matches() || P1.matcher(name).matches() || P2.matcher(name.toLowerCase()).matches());
+        return name != null && !"".equals(name) && (P0.matcher(name.toLowerCase()).matches() || P1.matcher(name).matches() || P2.matcher(name.toLowerCase()).matches());
     }
 
     public static boolean isContainNumber(String clsName) {

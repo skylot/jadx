@@ -330,13 +330,13 @@ public class Deobfuscator {
         ClassInfo classInfo = cls.getClassInfo();
         String alias = null;
 
-        if (this.useSourceNameAsAlias || true) {
+        if (this.useSourceNameAsAlias || RenameClassWithSourceName) {
             alias = getAliasFromSourceFile(cls);
         }
 
         if (alias == null) {
             String clsName = classInfo.getShortName();
-            if (clsName.isEmpty() || Character.isDigit(clsName.charAt(0)) || StringUtils.deobfuseName(clsName)) {
+            if (clsName.isEmpty() || Character.isDigit(clsName.charAt(0)) || shouldRename(clsName)) {
                 alias = NameFactory.nextName();
             } else {
                 alias = clsName;
