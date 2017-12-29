@@ -31,7 +31,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private boolean checkForUpdates = false;
 	private List<String> recentFiles = new ArrayList<String>();
 	private String fontStr = "";
-	private boolean autoStartJobs = true;
+	private boolean autoStartJobs = false;
 
 	private Map<String, WindowLocation> windowPos = new HashMap<String, WindowLocation>();
 
