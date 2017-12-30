@@ -6,6 +6,7 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
+import jadx.core.utils.files.ZipSecurity;
 
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -173,7 +174,7 @@ public class ClsSet {
 				try {
 					ZipEntry entry = in.getNextEntry();
 					while (entry != null) {
-						if (entry.getName().endsWith(CLST_EXTENSION)) {
+						if (entry.getName().endsWith(CLST_EXTENSION) && ZipSecurity.isValidZipEntry(entry)) {
 							load(in);
 						}
 						entry = in.getNextEntry();

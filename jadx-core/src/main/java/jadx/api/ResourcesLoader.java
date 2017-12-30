@@ -5,6 +5,7 @@ import jadx.core.codegen.CodeWriter;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.InputFile;
+import jadx.core.utils.files.ZipSecurity;
 import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.ResTableParser;
 
@@ -64,6 +65,10 @@ public final class ResourcesLoader {
 			if (entry == null) {
 				throw new IOException("Zip entry not found: " + zipRef);
 			}
+			if(!ZipSecurity.isValidZipEntry(entry)) {
+				return null;
+			}
+			
 			inputStream = new BufferedInputStream(zipFile.getInputStream(entry));
 			result = decoder.decode(entry.getSize(), inputStream);
 		} catch (Exception e) {
@@ -129,7 +134,9 @@ public final class ResourcesLoader {
 			Enumeration<? extends ZipEntry> entries = zip.entries();
 			while (entries.hasMoreElements()) {
 				ZipEntry entry = entries.nextElement();
-				addEntry(list, file, entry);
+				if(ZipSecurity.isValidZipEntry(entry)) {
+					addEntry(list, file, entry);
+				}
 			}
 		} catch (IOException e) {
 			LOG.debug("Not a zip file: {}", file.getAbsolutePath());

@@ -3,7 +3,6 @@ package jadx.core.xmlgen;
 import jadx.core.utils.exceptions.JadxException;
 
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,7 +71,7 @@ public class ManifestAttributes {
 			if (xmlStream == null) {
 				throw new JadxException(xml + " not found in classpath");
 			}
-			DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			DocumentBuilder dBuilder = XmlSecurity.getSecureDbf().newDocumentBuilder();
 			doc = dBuilder.parse(xmlStream);
 		} finally {
 			close(xmlStream);

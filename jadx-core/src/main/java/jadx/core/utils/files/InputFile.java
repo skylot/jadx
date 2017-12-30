@@ -88,6 +88,13 @@ public class InputFile {
 			if (entry == null) {
 				break;
 			}
+			
+			// security check
+			if(!ZipSecurity.isValidZipEntry(entry)) {
+				index++;
+				continue;
+			}
+			
 			InputStream inputStream = zf.getInputStream(entry);
 			try {
 				if (ext.equals(".dex")) {
