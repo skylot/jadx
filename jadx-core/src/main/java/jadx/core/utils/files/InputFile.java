@@ -55,8 +55,7 @@ public class InputFile {
 			addDexFile(loadFromClassFile(file));
 			return;
 		}
-
-		if (fileName.endsWith(".apk") || fileName.endsWith(".zip") || isApkfile(file) || isZipDexfile(file)) {
+		if (isApkfile(file) || isZipDexfile(file)) {
 			loadFromZip(".dex");
 			return;
 		}
@@ -65,14 +64,17 @@ public class InputFile {
 			if (loadFromZip(".dex")) {
 				return;
 			}
-			addDexFile(loadFromJar(file));
+			if (fileName.endsWith(".jar")) {
+				addDexFile(loadFromJar(file));
+				return;
+			}
+			if (fileName.endsWith(".aar")) {
+				loadFromZip(".jar");
+				return;
+			}
 			return;
 		}
-		if (fileName.endsWith(".aar")) {
-			loadFromZip(".jar");
-			return;
-		}
-		throw new DecodeException("Unsupported input file format: " + file);
+//		throw new DecodeException("Unsupported input file format: " + file);
 	}
 
 	private void addDexFile(Dex dexBuf) throws IOException {

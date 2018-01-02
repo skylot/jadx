@@ -9,11 +9,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.jar.JarEntry;
-import java.util.jar.JarOutputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -112,7 +112,7 @@ public class FileUtils {
 			return null;
 		}
 		char[] hexChars = new char[bytes.length * 2];
-		for ( int j = 0; j < bytes.length; j++ ) {
+		for (int j = 0; j < bytes.length; j++) {
 			int v = bytes[j] & 0xFF;
 			hexChars[j * 2] = hexArray[v >>> 4];
 			hexChars[j * 2 + 1] = hexArray[v & 0x0F];
@@ -154,7 +154,7 @@ public class FileUtils {
 			zipFile = new ZipFile(file);
 			Enumeration<? extends ZipEntry> entries = zipFile.entries();
 
-			while(entries.hasMoreElements()){
+			while (entries.hasMoreElements()) {
 				ZipEntry entry = entries.nextElement();
 				filelist.add(entry.getName());
 				System.out.println(entry.getName());
@@ -180,7 +180,7 @@ public class FileUtils {
 
 	public static boolean isZipDexfile(File file) {
 		boolean isZipDexFile = false;
-		if (isZipfile(file)) {
+		if (isZipfile(file) && isZipFileCanBeOpen(file)) {
 			List<String> filelist = getZipfileList(file);
 			if (filelist.contains("classes.dex")) {
 				isZipDexFile = true;
@@ -188,5 +188,23 @@ public class FileUtils {
 		}
 
 		return isZipDexFile;
+	}
+
+	public static boolean isZipFileCanBeOpen(final File file) {
+		ZipFile zipFile = null;
+		try {
+			zipFile = new ZipFile(file);
+			return zipFile.entries().hasMoreElements();
+		} catch (Exception e) {
+			return false;
+		} finally {
+			if (zipFile != null) {
+				try {
+					zipFile.close();
+				} catch (IOException e) {
+					LOG.error(e.getMessage());
+				}
+			}
+		}
 	}
 }

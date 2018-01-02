@@ -1,8 +1,8 @@
 package jadx.api;
 
-import jadx.core.xmlgen.ResContainer;
-
 import java.io.File;
+
+import jadx.core.xmlgen.ResContainer;
 
 public class ResourceFile {
 
@@ -56,7 +56,7 @@ public class ResourceFile {
 		this.zipRef = zipRef;
 	}
 
-	ZipRef getZipRef() {
+	public ZipRef getZipRef() {
 		return zipRef;
 	}
 
