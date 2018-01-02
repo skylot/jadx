@@ -10,6 +10,8 @@ out/
 *.ipr
 *.iws
 
+**/.DS_Store
+
 bin/
 target/
 build/
