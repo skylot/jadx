@@ -30,6 +30,7 @@ jar {
 }
 
 startScripts {
+    defaultJvmOpts = [ '-Xms2g', '-Xmx4g' ]
     doLast {
         def str = windowsScript.text
         str = str.replaceAll('java.exe', 'javaw.exe')
