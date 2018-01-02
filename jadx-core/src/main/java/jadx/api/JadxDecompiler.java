@@ -66,9 +66,9 @@ public final class JadxDecompiler {
 
 	private BinaryXMLParser xmlParser;
 
-	private Map<ClassNode, JavaClass> classesMap = new HashMap<ClassNode, JavaClass>();
-	private Map<MethodNode, JavaMethod> methodsMap = new HashMap<MethodNode, JavaMethod>();
-	private Map<FieldNode, JavaField> fieldsMap = new HashMap<FieldNode, JavaField>();
+	private Map<ClassNode, JavaClass> classesMap = new java.util.concurrent.ConcurrentHashMap<ClassNode, JavaClass>();
+	private Map<MethodNode, JavaMethod> methodsMap = new java.util.concurrent.ConcurrentHashMap<MethodNode, JavaMethod>();
+	private Map<FieldNode, JavaField> fieldsMap = new java.util.concurrent.ConcurrentHashMap<FieldNode, JavaField>();
 
 	public JadxDecompiler() {
 		this(new JadxArgs());

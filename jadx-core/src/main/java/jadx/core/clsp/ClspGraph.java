@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 public class ClspGraph {
 	private static final Logger LOG = LoggerFactory.getLogger(ClspGraph.class);
 
-	private final Map<String, Set<String>> ancestorCache = new WeakHashMap<String, Set<String>>();
+	private final Map<String, Set<String>> ancestorCache = Collections.synchronizedMap(new WeakHashMap<String, Set<String>>());
 	private Map<String, NClass> nameMap;
 
 	private final Set<String> missingClasses = new HashSet<String>();

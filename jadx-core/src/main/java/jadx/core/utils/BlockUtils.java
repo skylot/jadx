@@ -453,15 +453,18 @@ public class BlockUtils {
 	 */
 	public static List<BlockNode> collectBlocksDominatedBy(BlockNode dominator, BlockNode start) {
 		List<BlockNode> result = new ArrayList<BlockNode>();
-		collectWhileDominates(dominator, start, result);
+		HashSet<BlockNode> visited = new HashSet<BlockNode>();
+		collectWhileDominates(dominator, start, result, visited);
 		return result;
 	}
 
-	private static void collectWhileDominates(BlockNode dominator, BlockNode child, List<BlockNode> result) {
+	private static void collectWhileDominates(BlockNode dominator, BlockNode child, List<BlockNode> result, HashSet<BlockNode> visited) {
+		if (visited.contains(child)) return;
+		visited.add(child);
 		for (BlockNode node : child.getCleanSuccessors()) {
 			if (node.isDominator(dominator)) {
 				result.add(node);
-				collectWhileDominates(dominator, node, result);
+				collectWhileDominates(dominator, node, result, visited);
 			}
 		}
 	}
