@@ -11,6 +11,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -99,5 +104,89 @@ public class FileUtils {
 		}
 		makeDirsForFile(file);
 		return file;
+	}
+
+	public static String bytesToHex(byte[] bytes) {
+		char[] hexArray = "0123456789abcdef".toCharArray();
+		if (bytes == null || bytes.length <= 0) {
+			return null;
+		}
+		char[] hexChars = new char[bytes.length * 2];
+		for ( int j = 0; j < bytes.length; j++ ) {
+			int v = bytes[j] & 0xFF;
+			hexChars[j * 2] = hexArray[v >>> 4];
+			hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+		}
+		return new String(hexChars);
+	}
+
+	public static boolean isZipfile(File file) {
+		boolean isZipfile = false;
+		InputStream is = null;
+		try {
+			byte[] headers = new byte[4];
+			is = new FileInputStream(file);
+			is.read(headers, 0, 4);
+			System.out.println(bytesToHex(headers));
+			String headerString = bytesToHex(headers);
+			if (headerString.equals("504b0304")) {
+				isZipfile = true;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (is != null) {
+				try {
+					is.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		return isZipfile;
+	}
+
+	public static List<String> getZipfileList(File file) {
+		List<String> filelist = new ArrayList<String>();
+		ZipFile zipFile = null;
+		try {
+			zipFile = new ZipFile(file);
+			Enumeration<? extends ZipEntry> entries = zipFile.entries();
+
+			while(entries.hasMoreElements()){
+				ZipEntry entry = entries.nextElement();
+				filelist.add(entry.getName());
+				System.out.println(entry.getName());
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.out.println(e.getMessage());
+		}
+
+		return filelist;
+	}
+
+	public static boolean isApkfile(File file) {
+		boolean isApkfile = false;
+		if (isZipfile(file)) {
+			List<String> filelist = getZipfileList(file);
+			if (filelist.contains("AndroidManifest.xml") && filelist.contains("classes.dex")) {
+				isApkfile = true;
+			}
+		}
+		return isApkfile;
+	}
+
+	public static boolean isZipDexfile(File file) {
+		boolean isZipDexFile = false;
+		if (isZipfile(file)) {
+			List<String> filelist = getZipfileList(file);
+			if (filelist.contains("classes.dex")) {
+				isZipDexFile = true;
+			}
+		}
+
+		return isZipDexFile;
 	}
 }
