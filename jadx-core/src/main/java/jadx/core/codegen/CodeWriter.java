@@ -3,6 +3,7 @@ package jadx.core.codegen;
 import jadx.api.CodePosition;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.utils.files.FileUtils;
+import jadx.core.utils.files.ZipSecurity;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -272,10 +273,16 @@ public class CodeWriter {
 	}
 
 	public void save(File dir, String subDir, String fileName) {
+		if(!ZipSecurity.isValidZipEntryName(subDir) || !ZipSecurity.isValidZipEntryName(fileName)) {
+			return;
+		}
 		save(dir, new File(subDir, fileName).getPath());
 	}
 
 	public void save(File dir, String fileName) {
+		if(!ZipSecurity.isValidZipEntryName(fileName)) {
+			return;
+		}
 		save(new File(dir, fileName));
 	}
 

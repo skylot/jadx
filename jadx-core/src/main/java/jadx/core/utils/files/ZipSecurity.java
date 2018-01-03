@@ -10,7 +10,7 @@ public class ZipSecurity {
 	private static final Logger LOG = LoggerFactory.getLogger(ZipSecurity.class);
 	
 	// size of uncompressed zip entry shouldn't be bigger of compressed in MAX_SIZE_DIFF times
-	private static final int MAX_SIZE_DIFF = 5;
+	private static final int MAX_SIZE_DIFF = 10;
 	
 	private static boolean isInSubDirectory(File base, File file) {
 	    if (file == null) {
@@ -32,11 +32,11 @@ public class ZipSecurity {
 			if(isInSubDirectory(currentPath, canonical)) {
 				return true;
 			}
-			LOG.debug("Path traversal attack detected, invalid name: {}", entryName);
+			LOG.error("Path traversal attack detected, invalid name: {}", entryName);
 			return false;
 		}
 		catch(Exception e) {
-			LOG.debug("Path traversal attack detected, invalid name: {}", entryName);
+			LOG.error("Path traversal attack detected, invalid name: {}", entryName);
 			return false;
 		}
 	}
@@ -48,7 +48,8 @@ public class ZipSecurity {
 			return true;
 		}
 		if(compressedSize * MAX_SIZE_DIFF < uncompressedSize) {
-			LOG.debug("Zip bomp attack detected, invalid sizes: compressed {}, uncompressed {}", compressedSize, uncompressedSize);
+			LOG.error("Zip bomp attack detected, invalid sizes: compressed {}, uncompressed {}, name {}",
+					compressedSize, uncompressedSize, entry.getName());
 			return true;
 		}
 		return false;
