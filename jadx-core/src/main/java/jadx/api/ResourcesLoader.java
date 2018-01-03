@@ -157,8 +157,10 @@ public final class ResourcesLoader {
 	private void addResourceFile(List<ResourceFile> list, File file) {
 		String name = file.getAbsolutePath();
 		ResourceType type = ResourceType.getFileType(name);
-		ResourceFile rf = new ResourceFile(jadxRef, name, type);
-		list.add(rf);
+		ResourceFile rf = ResourceFile.createResourceFileInstance(jadxRef, name, type);
+		if(rf != null) {
+			list.add(rf);
+		}
 	}
 
 	private void addEntry(List<ResourceFile> list, File zipFile, ZipEntry entry) {
@@ -167,9 +169,11 @@ public final class ResourcesLoader {
 		}
 		String name = entry.getName();
 		ResourceType type = ResourceType.getFileType(name);
-		ResourceFile rf = new ResourceFile(jadxRef, name, type);
-		rf.setZipRef(new ZipRef(zipFile, name));
-		list.add(rf);
+		ResourceFile rf = ResourceFile.createResourceFileInstance(jadxRef, name, type);
+		if(rf != null) {
+			rf.setZipRef(new ZipRef(zipFile, name));
+			list.add(rf);
+		}
 	}
 
 	public static CodeWriter loadToCodeWriter(InputStream is) throws IOException {

@@ -101,8 +101,10 @@ public class JResource extends JNode implements Comparable<JResource> {
 				String resName = rc.getName();
 				String[] path = resName.split("/");
 				String resShortName = path.length == 0 ? resName : path[path.length - 1];
-				ResourceFileContent fileContent = new ResourceFileContent(resShortName, ResourceType.XML, cw);
-				addPath(path, root, new JResource(fileContent, resName, resShortName, JResType.FILE));
+				ResourceFileContent fileContent = ResourceFileContent.createResourceFileContentInstance(resShortName, ResourceType.XML, cw);
+				if(fileContent != null) {
+					addPath(path, root, new JResource(fileContent, resName, resShortName, JResType.FILE));
+				}
 			}
 		}
 		List<ResContainer> subFiles = rc.getSubFiles();

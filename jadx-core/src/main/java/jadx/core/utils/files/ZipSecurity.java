@@ -3,7 +3,12 @@ package jadx.core.utils.files;
 import java.io.File;
 import java.util.zip.ZipEntry;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ZipSecurity {
+	private static final Logger LOG = LoggerFactory.getLogger(ZipSecurity.class);
+	
 	// size of uncompressed zip entry shouldn't be bigger of compressed in MAX_SIZE_DIFF times
 	private static final int MAX_SIZE_DIFF = 5;
 	
@@ -24,9 +29,14 @@ public class ZipSecurity {
 		try {
 			File currentPath = new File(".").getCanonicalFile();
 			File canonical = new File(currentPath, entryName).getCanonicalFile();
-			return isInSubDirectory(currentPath, canonical);
+			if(isInSubDirectory(currentPath, canonical)) {
+				return true;
+			}
+			LOG.debug("Path traversal attack detected, invalid name: {}", entryName);
+			return false;
 		}
 		catch(Exception e) {
+			LOG.debug("Path traversal attack detected, invalid name: {}", entryName);
 			return false;
 		}
 	}
@@ -37,7 +47,11 @@ public class ZipSecurity {
 		if(compressedSize < 0 || uncompressedSize < 0) {
 			return true;
 		}
-		return compressedSize * MAX_SIZE_DIFF < uncompressedSize;
+		if(compressedSize * MAX_SIZE_DIFF < uncompressedSize) {
+			LOG.debug("Zip bomp attack detected, invalid sizes: compressed {}, uncompressed {}", compressedSize, uncompressedSize);
+			return true;
+		}
+		return false;
 	}
 	
 	public static boolean isValidZipEntry(ZipEntry entry) {
