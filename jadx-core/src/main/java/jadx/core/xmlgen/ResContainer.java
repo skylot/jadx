@@ -81,6 +81,23 @@ public class ResContainer implements Comparable<ResContainer> {
 	}
 
 	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof ResContainer)) {
+			return false;
+		}
+		ResContainer that = (ResContainer) o;
+		return name.equals(that.name);
+	}
+
+	@Override
+	public int hashCode() {
+		return name.hashCode();
+	}
+
+	@Override
 	public String toString() {
 		return "Res{" + name + ", subFiles=" + subFiles + "}";
 	}

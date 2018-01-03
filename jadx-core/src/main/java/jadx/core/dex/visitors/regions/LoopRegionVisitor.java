@@ -105,7 +105,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 			return false;
 		}
 		// can't make loop if argument from increment instruction is assign in loop
-		List<RegisterArg> args = new LinkedList<RegisterArg>();
+		List<RegisterArg> args = new LinkedList<>();
 		incrInsn.getRegisterArgs(args);
 		for (RegisterArg iArg : args) {
 			if (assignOnlyInLoop(mth, loopRegion, iArg)) {
@@ -230,7 +230,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 				|| !checkInvoke(nextCall, "java.util.Iterator", "next()Ljava/lang/Object;", 0)) {
 			return false;
 		}
-		List<InsnNode> toSkip = new LinkedList<InsnNode>();
+		List<InsnNode> toSkip = new LinkedList<>();
 		RegisterArg iterVar = nextCall.getResult();
 		if (iterVar == null) {
 			return false;

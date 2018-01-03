@@ -134,7 +134,7 @@ public class ModVisitor extends AbstractVisitor {
 						break;
 
 					case MOVE_EXCEPTION:
-						processMoveException(mth, block, insn, remover);
+						processMoveException(block, insn, remover);
 						break;
 
 					case ARITH:
@@ -216,7 +216,7 @@ public class ModVisitor extends AbstractVisitor {
 				RegisterArg resultArg = co.getResult();
 				if (!resultArg.equals(instArg)) {
 					// replace all usages of 'instArg' with result of this constructor instruction
-					for (RegisterArg useArg : new ArrayList<RegisterArg>(instArg.getSVar().getUseList())) {
+					for (RegisterArg useArg : new ArrayList<>(instArg.getSVar().getUseList())) {
 						RegisterArg dup = resultArg.duplicate();
 						InsnNode parentInsn = useArg.getParentInsn();
 						parentInsn.replaceArg(useArg, dup);
@@ -284,7 +284,7 @@ public class ModVisitor extends AbstractVisitor {
 	}
 
 	private static Map<InsnArg, FieldNode> getArgsToFieldsMapping(MethodNode callMthNode, ConstructorInsn co) {
-		Map<InsnArg, FieldNode> map = new LinkedHashMap<InsnArg, FieldNode>();
+		Map<InsnArg, FieldNode> map = new LinkedHashMap<>();
 		ClassNode parentClass = callMthNode.getParentClass();
 		List<RegisterArg> argList = callMthNode.getArguments(false);
 		int startArg = parentClass.getAccessFlags().isStatic() ? 0 : 1;
@@ -360,10 +360,10 @@ public class ModVisitor extends AbstractVisitor {
 		ArgType insnArrayType = insn.getResult().getType();
 		ArgType insnElementType = insnArrayType.getArrayElement();
 		ArgType elType = insn.getElementType();
-		if (!elType.isTypeKnown() && insnElementType.isPrimitive()) {
-			if (elType.contains(insnElementType.getPrimitiveType())) {
-				elType = insnElementType;
-			}
+		if (!elType.isTypeKnown()
+				&& insnElementType.isPrimitive()
+				&& elType.contains(insnElementType.getPrimitiveType())) {
+			elType = insnElementType;
 		}
 		if (!elType.equals(insnElementType) && !insnArrayType.equals(ArgType.OBJECT)) {
 			ErrorsCounter.methodError(mth,
@@ -429,8 +429,7 @@ public class ModVisitor extends AbstractVisitor {
 		return null;
 	}
 
-	private static void processMoveException(MethodNode mth, BlockNode block, InsnNode insn,
-			InstructionRemover remover) {
+	private static void processMoveException(BlockNode block, InsnNode insn, InstructionRemover remover) {
 		ExcHandlerAttr excHandlerAttr = block.get(AType.EXC_HANDLER);
 		if (excHandlerAttr == null) {
 			return;

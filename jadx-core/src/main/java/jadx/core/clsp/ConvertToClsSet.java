@@ -30,7 +30,7 @@ public class ConvertToClsSet {
 		}
 		File output = new File(args[0]);
 
-		List<InputFile> inputFiles = new ArrayList<InputFile>(args.length - 1);
+		List<InputFile> inputFiles = new ArrayList<>(args.length - 1);
 		for (int i = 1; i < args.length; i++) {
 			File f = new File(args[i]);
 			if (f.isDirectory()) {

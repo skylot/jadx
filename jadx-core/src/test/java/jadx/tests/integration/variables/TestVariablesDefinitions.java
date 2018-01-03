@@ -1,14 +1,14 @@
 package jadx.tests.integration.variables;
 
-import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.visitors.DepthTraversal;
-import jadx.core.dex.visitors.IDexTreeVisitor;
-import jadx.tests.api.IntegrationTest;
-
 import java.util.List;
 
 import org.junit.Test;
 import org.slf4j.Logger;
+
+import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.visitors.DepthTraversal;
+import jadx.core.dex.visitors.IDexTreeVisitor;
+import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.CoreMatchers.containsString;

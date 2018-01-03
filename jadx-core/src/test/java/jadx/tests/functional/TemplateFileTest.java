@@ -1,8 +1,8 @@
 package jadx.tests.functional;
 
-import jadx.core.export.TemplateFile;
-
 import org.junit.Test;
+
+import jadx.core.export.TemplateFile;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThat;

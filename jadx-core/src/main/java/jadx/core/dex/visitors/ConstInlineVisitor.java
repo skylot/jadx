@@ -31,7 +31,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
-		List<InsnNode> toRemove = new ArrayList<InsnNode>();
+		List<InsnNode> toRemove = new ArrayList<>();
 		for (BlockNode block : mth.getBasicBlocks()) {
 			toRemove.clear();
 			for (InsnNode insn : block.getInstructions()) {
@@ -99,7 +99,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 
 	private static boolean replaceConst(MethodNode mth, InsnNode constInsn, long literal) {
 		SSAVar sVar = constInsn.getResult().getSVar();
-		List<RegisterArg> use = new ArrayList<RegisterArg>(sVar.getUseList());
+		List<RegisterArg> use = new ArrayList<>(sVar.getUseList());
 		int replaceCount = 0;
 		for (RegisterArg arg : use) {
 			InsnNode useInsn = arg.getParentInsn();

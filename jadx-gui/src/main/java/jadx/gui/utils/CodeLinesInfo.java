@@ -1,15 +1,15 @@
 package jadx.gui.utils;
 
-import jadx.api.JavaClass;
-import jadx.api.JavaMethod;
-import jadx.api.JavaNode;
-
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
+import jadx.api.JavaClass;
+import jadx.api.JavaMethod;
+import jadx.api.JavaNode;
+
 public class CodeLinesInfo {
-	private NavigableMap<Integer, JavaNode> map = new TreeMap<Integer, JavaNode>();
+	private NavigableMap<Integer, JavaNode> map = new TreeMap<>();
 
 	public CodeLinesInfo(JavaClass cls) {
 		addClass(cls);

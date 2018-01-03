@@ -22,7 +22,7 @@ public final class FieldInfo {
 
 	public static FieldInfo from(DexNode dex, ClassInfo declClass, String name, ArgType type) {
 		FieldInfo field = new FieldInfo(declClass, name, type);
-		return dex.getInfoStorage().getField(field);
+		return dex.root().getInfoStorage().getField(field);
 	}
 
 	public static FieldInfo fromDex(DexNode dex, int index) {

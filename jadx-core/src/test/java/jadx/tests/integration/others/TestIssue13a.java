@@ -1,12 +1,12 @@
 package jadx.tests.integration.others;
 
-import jadx.core.dex.nodes.ClassNode;
-import jadx.tests.api.IntegrationTest;
-
 import java.lang.reflect.Field;
 import java.util.HashMap;
 
 import org.junit.Test;
+
+import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.junit.Assert.assertThat;
@@ -16,7 +16,7 @@ public class TestIssue13a extends IntegrationTest {
 	public static class TestCls {
 		private static final String TAG = "Parcel";
 		private static final HashMap<ClassLoader, HashMap<String, Parcelable.Creator<?>>>
-				mCreators = new HashMap<ClassLoader, HashMap<String, Parcelable.Creator<?>>>();
+				mCreators = new HashMap<>();
 
 		@SuppressWarnings("unchecked")
 		public final <T extends Parcelable> T test(ClassLoader loader) {
@@ -28,7 +28,7 @@ public class TestIssue13a extends IntegrationTest {
 			synchronized (mCreators) {
 				HashMap<String, Parcelable.Creator<?>> map = mCreators.get(loader);
 				if (map == null) {
-					map = new HashMap<String, Parcelable.Creator<?>>();
+					map = new HashMap<>();
 					mCreators.put(loader, map);
 				}
 				creator = (Parcelable.Creator<T>) map.get(name);

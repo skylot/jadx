@@ -101,7 +101,7 @@ public abstract class InsnArg extends Typed {
 	}
 
 	public static void updateParentInsn(InsnNode fromInsn, InsnNode toInsn) {
-		List<RegisterArg> args = new ArrayList<RegisterArg>();
+		List<RegisterArg> args = new ArrayList<>();
 		fromInsn.getRegisterArgs(args);
 		for (RegisterArg reg : args) {
 			reg.setParentInsn(toInsn);

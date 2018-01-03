@@ -82,7 +82,7 @@ public final class IfRegion extends AbstractRegion implements IBranchRegion {
 
 	@Override
 	public List<IContainer> getSubBlocks() {
-		List<IContainer> all = new ArrayList<IContainer>(3);
+		List<IContainer> all = new ArrayList<>(3);
 		all.add(header);
 		if (thenRegion != null) {
 			all.add(thenRegion);
@@ -95,7 +95,7 @@ public final class IfRegion extends AbstractRegion implements IBranchRegion {
 
 	@Override
 	public List<IContainer> getBranches() {
-		List<IContainer> branches = new ArrayList<IContainer>(2);
+		List<IContainer> branches = new ArrayList<>(2);
 		branches.add(thenRegion);
 		branches.add(elseRegion);
 		return Collections.unmodifiableList(branches);

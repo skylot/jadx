@@ -1,5 +1,11 @@
 package jadx.gui.treemodel;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import jadx.api.Factory;
 import jadx.api.IJadxArgs;
 import jadx.api.JadxDecompiler;
@@ -7,12 +13,6 @@ import jadx.api.JavaClass;
 import jadx.api.JavaPackage;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.gui.JadxWrapper;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;

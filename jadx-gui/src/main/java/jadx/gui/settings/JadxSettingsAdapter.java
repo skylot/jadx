@@ -1,19 +1,18 @@
 package jadx.gui.settings;
 
-import jadx.gui.JadxGUI;
-
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.prefs.Preferences;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.InstanceCreator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import jadx.gui.JadxGUI;
 
 public class JadxSettingsAdapter {
 
@@ -50,6 +49,7 @@ public class JadxSettingsAdapter {
 				return new JadxSettings();
 			}
 			LOG.debug("Loaded settings: {}", makeString(settings));
+			settings.fixOnLoad();
 			return settings;
 		} catch (Exception e) {
 			LOG.error("Error load settings", e);

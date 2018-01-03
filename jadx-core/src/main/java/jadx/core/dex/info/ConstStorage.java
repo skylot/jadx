@@ -20,9 +20,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class ConstStorage {
 
-	private static final class Values {
-		private final Map<Object, FieldNode> values = new HashMap<Object, FieldNode>();
-		private final Set<Object> duplicates = new HashSet<Object>();
+	private static final class ValueStorage {
+		private final Map<Object, FieldNode> values = new HashMap<>();
+		private final Set<Object> duplicates = new HashSet<>();
 
 		public Map<Object, FieldNode> getValues() {
 			return values;
@@ -55,10 +55,10 @@ public class ConstStorage {
 	}
 
 	private final boolean replaceEnabled;
-	private final Values globalValues = new Values();
-	private final Map<ClassNode, Values> classes = new HashMap<ClassNode, Values>();
+	private final ValueStorage globalValues = new ValueStorage();
+	private final Map<ClassNode, ValueStorage> classes = new HashMap<>();
 
-	private Map<Integer, String> resourcesNames = new HashMap<Integer, String>();
+	private Map<Integer, String> resourcesNames = new HashMap<>();
 
 	public ConstStorage(IJadxArgs args) {
 		this.replaceEnabled = args.isReplaceConsts();
@@ -90,10 +90,10 @@ public class ConstStorage {
 		}
 	}
 
-	private Values getClsValues(ClassNode cls) {
-		Values classValues = classes.get(cls);
+	private ValueStorage getClsValues(ClassNode cls) {
+		ValueStorage classValues = classes.get(cls);
 		if (classValues == null) {
-			classValues = new Values();
+			classValues = new ValueStorage();
 			classes.put(cls, classValues);
 		}
 		return classValues;
@@ -117,7 +117,7 @@ public class ConstStorage {
 		}
 		ClassNode current = cls;
 		while (current != null) {
-			Values classValues = classes.get(current);
+			ValueStorage classValues = classes.get(current);
 			if (classValues != null) {
 				FieldNode field = classValues.get(value);
 				if (field != null) {
@@ -161,12 +161,14 @@ public class ConstStorage {
 				return getConstField(cls, literal, Math.abs(literal) > 1000);
 			case FLOAT:
 				float f = Float.intBitsToFloat((int) literal);
-				return getConstField(cls, f, f != 0.0);
+				return getConstField(cls, f, Float.compare(f, 0) == 0);
 			case DOUBLE:
 				double d = Double.longBitsToDouble(literal);
-				return getConstField(cls, d, d != 0);
+				return getConstField(cls, d, Double.compare(d, 0) == 0);
+
+			default:
+				return null;
 		}
-		return null;
 	}
 
 	public void setResourcesNames(Map<Integer, String> resourcesNames) {

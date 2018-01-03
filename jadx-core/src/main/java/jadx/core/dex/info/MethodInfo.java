@@ -34,12 +34,12 @@ public final class MethodInfo {
 	}
 
 	public static MethodInfo fromDex(DexNode dex, int mthIndex) {
-		MethodInfo mth = dex.getInfoStorage().getMethod(mthIndex);
+		MethodInfo mth = dex.root().getInfoStorage().getMethod(dex, mthIndex);
 		if (mth != null) {
 			return mth;
 		}
 		mth = new MethodInfo(dex, mthIndex);
-		return dex.getInfoStorage().putMethod(mthIndex, mth);
+		return dex.root().getInfoStorage().putMethod(dex, mthIndex, mth);
 	}
 
 	public String makeSignature(boolean includeRetType) {

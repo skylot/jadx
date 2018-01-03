@@ -8,7 +8,7 @@ import java.util.List;
 public class AttrList<T> implements IAttribute {
 
 	private final AType<AttrList<T>> type;
-	private final List<T> list = new LinkedList<T>();
+	private final List<T> list = new LinkedList<>();
 
 	public AttrList(AType<AttrList<T>> type) {
 		this.type = type;

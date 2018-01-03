@@ -1,15 +1,15 @@
 package jadx.tests.integration.trycatch;
 
-import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.visitors.DepthTraversal;
-import jadx.core.dex.visitors.IDexTreeVisitor;
-import jadx.tests.api.IntegrationTest;
-
 import java.util.List;
 
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.visitors.DepthTraversal;
+import jadx.core.dex.visitors.IDexTreeVisitor;
+import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.junit.Assert.assertThat;

@@ -35,12 +35,12 @@ public final class ClassInfo {
 		if (type.isArray()) {
 			type = ArgType.OBJECT;
 		}
-		ClassInfo cls = dex.getInfoStorage().getCls(type);
+		ClassInfo cls = dex.root().getInfoStorage().getCls(type);
 		if (cls != null) {
 			return cls;
 		}
 		cls = new ClassInfo(dex, type);
-		return dex.getInfoStorage().putCls(cls);
+		return dex.root().getInfoStorage().putCls(cls);
 	}
 
 	public static ClassInfo fromDex(DexNode dex, int clsIndex) {
@@ -89,6 +89,10 @@ public final class ClassInfo {
 		int sep = clsName.lastIndexOf('$');
 		if (canBeInner && sep > 0 && sep != clsName.length() - 1) {
 			String parClsName = pkg + "." + clsName.substring(0, sep);
+			if (pkg.isEmpty()) {
+				parClsName = clsName.substring(0, sep);
+			}
+
 			parentClass = fromName(dex, parClsName);
 			clsName = clsName.substring(sep + 1);
 		} else {

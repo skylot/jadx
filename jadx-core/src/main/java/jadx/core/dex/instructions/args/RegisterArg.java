@@ -6,12 +6,11 @@ import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class RegisterArg extends InsnArg implements Named {
-	private static final Logger LOG = LoggerFactory.getLogger(RegisterArg.class);
 
 	protected final int regNum;
 	// not null after SSATransform pass
@@ -151,23 +150,13 @@ public class RegisterArg extends InsnArg implements Named {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
-			return false;
-		}
 		if (!(obj instanceof RegisterArg)) {
 			return false;
 		}
 		RegisterArg other = (RegisterArg) obj;
-		if (regNum != other.regNum) {
-			return false;
-		}
-		if (!type.equals(other.type)) {
-			return false;
-		}
-		if (sVar != null && !sVar.equals(other.getSVar())) {
-			return false;
-		}
-		return true;
+		return regNum == other.regNum
+				&& type.equals(other.type)
+				&& Objects.equals(sVar, other.getSVar());
 	}
 
 	@Override

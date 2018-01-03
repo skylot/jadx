@@ -36,7 +36,7 @@ public class InstructionRemover {
 
 	public InstructionRemover(MethodNode mth, BlockNode block) {
 		this.mth = mth;
-		this.toRemove = new ArrayList<InsnNode>();
+		this.toRemove = new ArrayList<>();
 		if (block != null) {
 			this.instrList = block.getInstructions();
 		}

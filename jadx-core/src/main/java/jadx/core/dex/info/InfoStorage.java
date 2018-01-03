@@ -1,15 +1,16 @@
 package jadx.core.dex.info;
 
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.nodes.DexNode;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class InfoStorage {
 
-	private final Map<ArgType, ClassInfo> classes = new HashMap<ArgType, ClassInfo>();
-	private final Map<Integer, MethodInfo> methods = new HashMap<Integer, MethodInfo>();
-	private final Map<FieldInfo, FieldInfo> fields = new HashMap<FieldInfo, FieldInfo>();
+	private final Map<ArgType, ClassInfo> classes = new HashMap<>();
+	private final Map<Integer, MethodInfo> methods = new HashMap<>();
+	private final Map<FieldInfo, FieldInfo> fields = new HashMap<>();
 
 	public ClassInfo getCls(ArgType type) {
 		return classes.get(type);
@@ -22,13 +23,17 @@ public class InfoStorage {
 		}
 	}
 
-	public MethodInfo getMethod(int mtdId) {
-		return methods.get(mtdId);
+	private int generateMethodLookupId(DexNode dex, int mthId) {
+		return dex.getDexId() << 16 | mthId;
 	}
 
-	public MethodInfo putMethod(int mthId, MethodInfo mth) {
+	public MethodInfo getMethod(DexNode dex, int mtdId) {
+		return methods.get(generateMethodLookupId(dex, mtdId));
+	}
+
+	public MethodInfo putMethod(DexNode dex, int mthId, MethodInfo mth) {
 		synchronized (methods) {
-			MethodInfo prev = methods.put(mthId, mth);
+			MethodInfo prev = methods.put(generateMethodLookupId(dex, mthId), mth);
 			return prev == null ? mth : prev;
 		}
 	}

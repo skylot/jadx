@@ -1,10 +1,8 @@
 package jadx.core.xmlgen;
 
-import jadx.core.utils.exceptions.JadxException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -16,9 +14,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
-import static jadx.core.utils.files.FileUtils.close;
 
 public class ManifestAttributes {
 	private static final Logger LOG = LoggerFactory.getLogger(ManifestAttributes.class);
@@ -32,7 +27,7 @@ public class ManifestAttributes {
 
 	private static class MAttr {
 		private final MAttrType type;
-		private final Map<Long, String> values = new LinkedHashMap<Long, String>();
+		private final Map<Long, String> values = new LinkedHashMap<>();
 
 		public MAttr(MAttrType type) {
 			this.type = type;
@@ -52,29 +47,24 @@ public class ManifestAttributes {
 		}
 	}
 
-	private final Map<String, MAttr> attrMap = new HashMap<String, MAttr>();
+	private final Map<String, MAttr> attrMap = new HashMap<>();
 
-	public ManifestAttributes() throws Exception {
-	}
-
-	public void parseAll() throws Exception {
+	public void parseAll() {
 		parse(loadXML(ATTR_XML));
 		parse(loadXML(MANIFEST_ATTR_XML));
 		LOG.debug("Loaded android attributes count: {}", attrMap.size());
 	}
 
-	private Document loadXML(String xml) throws JadxException, ParserConfigurationException, SAXException, IOException {
+	private Document loadXML(String xml) {
 		Document doc;
-		InputStream xmlStream = null;
-		try {
-			xmlStream = ManifestAttributes.class.getResourceAsStream(xml);
+		try (InputStream xmlStream = ManifestAttributes.class.getResourceAsStream(xml)) {
 			if (xmlStream == null) {
-				throw new JadxException(xml + " not found in classpath");
+				throw new JadxRuntimeException(xml + " not found in classpath");
 			}
 			DocumentBuilder dBuilder = XmlSecurity.getSecureDbf().newDocumentBuilder();
 			doc = dBuilder.parse(xmlStream);
-		} finally {
-			close(xmlStream);
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Xml load error, file: " + xml, e);
 		}
 		return doc;
 	}
@@ -83,10 +73,9 @@ public class ManifestAttributes {
 		NodeList nodeList = doc.getChildNodes();
 		for (int count = 0; count < nodeList.getLength(); count++) {
 			Node node = nodeList.item(count);
-			if (node.getNodeType() == Node.ELEMENT_NODE) {
-				if (node.hasChildNodes()) {
-					parseAttrList(node.getChildNodes());
-				}
+			if (node.getNodeType() == Node.ELEMENT_NODE
+					&& node.hasChildNodes()) {
+				parseAttrList(node.getChildNodes());
 			}
 		}
 	}
@@ -121,7 +110,6 @@ public class ManifestAttributes {
 			Node tempNode = nodeList.item(count);
 			if (tempNode.getNodeType() == Node.ELEMENT_NODE
 					&& tempNode.hasAttributes()) {
-
 				if (attr == null) {
 					if (tempNode.getNodeName().equals("enum")) {
 						attr = new MAttr(MAttrType.ENUM);
@@ -133,7 +121,6 @@ public class ManifestAttributes {
 					}
 					attrMap.put(name, attr);
 				}
-
 				NamedNodeMap attributes = tempNode.getAttributes();
 				Node nameNode = attributes.getNamedItem("name");
 				if (nameNode != null) {

@@ -42,7 +42,7 @@ public class InsnNode extends LineAttrNode {
 		if (argsCount == 0) {
 			this.arguments = Collections.emptyList();
 		} else {
-			this.arguments = new ArrayList<InsnArg>(argsCount);
+			this.arguments = new ArrayList<>(argsCount);
 		}
 	}
 

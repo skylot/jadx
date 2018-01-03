@@ -1,14 +1,14 @@
 package jadx.tests.integration.trycatch;
 
-import jadx.core.clsp.NClass;
-import jadx.core.dex.nodes.ClassNode;
-import jadx.tests.api.IntegrationTest;
-
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
 import org.junit.Test;
+
+import jadx.core.clsp.NClass;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.junit.Assert.assertThat;

@@ -79,7 +79,7 @@ public class AnnotationsParser {
 		if (size == 0) {
 			return AnnotationsList.EMPTY;
 		}
-		List<Annotation> list = new ArrayList<Annotation>(size);
+		List<Annotation> list = new ArrayList<>(size);
 		for (int i = 0; i < size; i++) {
 			Section anSection = dex.openSection(section.readInt());
 			Annotation a = readAnnotation(dex, anSection, true);
@@ -97,7 +97,7 @@ public class AnnotationsParser {
 		}
 		int typeIndex = s.readUleb128();
 		int size = s.readUleb128();
-		Map<String, Object> values = new LinkedHashMap<String, Object>(size);
+		Map<String, Object> values = new LinkedHashMap<>(size);
 		for (int i = 0; i < size; i++) {
 			String name = dex.getString(s.readUleb128());
 			values.put(name, parser.parseValue());

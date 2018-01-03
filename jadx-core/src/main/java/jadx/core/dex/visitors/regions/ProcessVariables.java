@@ -72,8 +72,8 @@ public class ProcessVariables extends AbstractVisitor {
 		private RegisterArg arg;
 		private VarName varName;
 		private IRegion argRegion;
-		private final Set<IRegion> usage = new HashSet<IRegion>(2);
-		private final Set<IRegion> assigns = new HashSet<IRegion>(2);
+		private final Set<IRegion> usage = new HashSet<>(2);
+		private final Set<IRegion> assigns = new HashSet<>(2);
 
 		public void setArg(RegisterArg arg) {
 			this.arg = arg;
@@ -119,7 +119,7 @@ public class ProcessVariables extends AbstractVisitor {
 
 		public CollectUsageRegionVisitor(Map<Variable, Usage> usageMap) {
 			this.usageMap = usageMap;
-			args = new ArrayList<RegisterArg>();
+			args = new ArrayList<>();
 		}
 
 		@Override
@@ -177,7 +177,7 @@ public class ProcessVariables extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
-		final Map<Variable, Usage> usageMap = new LinkedHashMap<Variable, Usage>();
+		Map<Variable, Usage> usageMap = new LinkedHashMap<>();
 		for (RegisterArg arg : mth.getArguments(true)) {
 			addToUsageMap(arg, usageMap);
 		}
@@ -212,7 +212,7 @@ public class ProcessVariables extends AbstractVisitor {
 			return;
 		}
 
-		Map<IContainer, Integer> regionsOrder = new HashMap<IContainer, Integer>();
+		Map<IContainer, Integer> regionsOrder = new HashMap<>();
 		calculateOrder(mth.getRegion(), regionsOrder, 0, true);
 
 		for (Iterator<Entry<Variable, Usage>> it = usageMap.entrySet().iterator(); it.hasNext(); ) {

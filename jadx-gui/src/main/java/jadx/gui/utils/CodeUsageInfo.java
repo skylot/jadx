@@ -1,5 +1,11 @@
 package jadx.gui.utils;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import jadx.api.CodePosition;
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
@@ -7,16 +13,10 @@ import jadx.gui.treemodel.CodeNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.utils.search.StringRef;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 public class CodeUsageInfo {
 
 	public static class UsageInfo {
-		private final List<CodeNode> usageList = new ArrayList<CodeNode>();
+		private final List<CodeNode> usageList = new ArrayList<>();
 
 		public List<CodeNode> getUsageList() {
 			return usageList;
@@ -29,7 +29,7 @@ public class CodeUsageInfo {
 		this.nodeCache = nodeCache;
 	}
 
-	private final Map<JNode, UsageInfo> usageMap = new HashMap<JNode, UsageInfo>();
+	private final Map<JNode, UsageInfo> usageMap = new HashMap<>();
 
 	public void processClass(JavaClass javaClass, CodeLinesInfo linesInfo, List<StringRef> lines) {
 		Map<CodePosition, JavaNode> usage = javaClass.getUsageMap();

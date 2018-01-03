@@ -13,7 +13,7 @@ public class NameMapper {
 	private static final Pattern VALID_JAVA_FULL_IDENTIFIER = Pattern.compile(
 			"(" + VALID_JAVA_IDENTIFIER + "\\.)*" + VALID_JAVA_IDENTIFIER);
 
-	private static final Set<String> RESERVED_NAMES = new HashSet<String>(
+	private static final Set<String> RESERVED_NAMES = new HashSet<>(
 			Arrays.asList(new String[]{
 					"abstract",
 					"assert",

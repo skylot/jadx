@@ -56,7 +56,7 @@ public class ResourceFile {
 		this.zipRef = zipRef;
 	}
 
-	ZipRef getZipRef() {
+	public ZipRef getZipRef() {
 		return zipRef;
 	}
 

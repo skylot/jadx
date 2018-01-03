@@ -1,9 +1,10 @@
 package jadx.core.deobf;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
-import java.util.Stack;
 
 public class PackageNode {
 
@@ -29,11 +30,11 @@ public class PackageNode {
 
 	public String getFullName() {
 		if (cachedPackageFullName == null) {
-			Stack<PackageNode> pp = getParentPackages();
+			Deque<PackageNode> pp = getParentPackages();
 
 			StringBuilder result = new StringBuilder();
 			result.append(pp.pop().getName());
-			while (pp.size() > 0) {
+			while (!pp.isEmpty()) {
 				result.append(SEPARATOR_CHAR);
 				result.append(pp.pop().getName());
 			}
@@ -59,12 +60,12 @@ public class PackageNode {
 
 	public String getFullAlias() {
 		if (cachedPackageFullAlias == null) {
-			Stack<PackageNode> pp = getParentPackages();
+			Deque<PackageNode> pp = getParentPackages();
 			StringBuilder result = new StringBuilder();
 
-			if (pp.size() > 0) {
+			if (!pp.isEmpty()) {
 				result.append(pp.pop().getAlias());
-				while (pp.size() > 0) {
+				while (!pp.isEmpty()) {
 					result.append(SEPARATOR_CHAR);
 					result.append(pp.pop().getAlias());
 				}
@@ -86,7 +87,7 @@ public class PackageNode {
 
 	public void addInnerPackage(PackageNode pkg) {
 		if (innerPackages.isEmpty()) {
-			innerPackages = new ArrayList<PackageNode>();
+			innerPackages = new ArrayList<>();
 		}
 		innerPackages.add(pkg);
 		pkg.parentPackage = this;
@@ -114,16 +115,15 @@ public class PackageNode {
 	 *
 	 * @return stack with parent packages
 	 */
-	private Stack<PackageNode> getParentPackages() {
-		Stack<PackageNode> pp = new Stack<PackageNode>();
+	private Deque<PackageNode> getParentPackages() {
+		Deque<PackageNode> pp = new ArrayDeque<>();
 
-		PackageNode currentP = this;
-		PackageNode parentP = currentP.getParentPackage();
-
-		while (currentP != parentP) {
-			pp.push(currentP);
-			currentP = parentP;
-			parentP = currentP.getParentPackage();
+		PackageNode currentPkg = this;
+		PackageNode parentPkg = currentPkg.getParentPackage();
+		while (currentPkg != parentPkg) {
+			pp.push(currentPkg);
+			currentPkg = parentPkg;
+			parentPkg = currentPkg.getParentPackage();
 		}
 		return pp;
 	}

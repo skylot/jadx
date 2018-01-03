@@ -83,7 +83,7 @@ public class EncValueParser {
 
 			case ENCODED_ARRAY:
 				int count = Leb128.readUnsignedLeb128(in);
-				List<Object> values = new ArrayList<Object>(count);
+				List<Object> values = new ArrayList<>(count);
 				for (int i = 0; i < count; i++) {
 					values.add(parseValue());
 				}

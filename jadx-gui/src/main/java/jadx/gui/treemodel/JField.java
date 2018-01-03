@@ -1,13 +1,12 @@
 package jadx.gui.treemodel;
 
+import javax.swing.*;
+
 import jadx.api.JavaField;
 import jadx.api.JavaNode;
 import jadx.core.dex.info.AccessInfo;
 import jadx.gui.utils.OverlayIcon;
 import jadx.gui.utils.Utils;
-
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 
 public class JField extends JNode {
 	private static final long serialVersionUID = 1712572192106793359L;
@@ -20,8 +19,8 @@ public class JField extends JNode {
 	private static final ImageIcon ICON_TRANSIENT = Utils.openIcon("transient_co");
 	private static final ImageIcon ICON_VOLATILE = Utils.openIcon("volatile_co");
 
-	private final JavaField field;
-	private final JClass jParent;
+	private final transient JavaField field;
+	private final transient JClass jParent;
 
 	public JField(JavaField javaField, JClass jClass) {
 		this.field = javaField;

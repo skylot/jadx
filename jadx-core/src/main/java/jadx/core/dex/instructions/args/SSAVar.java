@@ -20,7 +20,7 @@ public class SSAVar extends AttrNode {
 
 	@NotNull
 	private RegisterArg assign;
-	private final List<RegisterArg> useList = new ArrayList<RegisterArg>(2);
+	private final List<RegisterArg> useList = new ArrayList<>(2);
 	@Nullable
 	private PhiInsn usedInPhi;
 

@@ -1,8 +1,8 @@
 package jadx.api;
 
-import jadx.core.dex.nodes.ClassNode;
-
 import java.util.List;
+
+import jadx.core.dex.nodes.ClassNode;
 
 public class Factory {
 

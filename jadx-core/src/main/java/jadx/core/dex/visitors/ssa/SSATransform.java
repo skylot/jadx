@@ -69,7 +69,7 @@ public class SSATransform extends AbstractVisitor {
 		int blocksCount = blocks.size();
 		BitSet hasPhi = new BitSet(blocksCount);
 		BitSet processed = new BitSet(blocksCount);
-		Deque<BlockNode> workList = new LinkedList<BlockNode>();
+		Deque<BlockNode> workList = new LinkedList<>();
 
 		BitSet assignBlocks = la.getAssignBlocks(regNum);
 		for (int id = assignBlocks.nextSetBit(0); id >= 0; id = assignBlocks.nextSetBit(id + 1)) {
@@ -221,11 +221,10 @@ public class SSATransform extends AbstractVisitor {
 			InsnNode parentInsn = arg.getAssignInsn();
 			if (parentInsn != null
 					&& parentInsn.getResult() != null
-					&& parentInsn.contains(AFlag.TRY_LEAVE)) {
-				if (phi.removeArg(arg)) {
-					argsCount--;
-					continue;
-				}
+					&& parentInsn.contains(AFlag.TRY_LEAVE)
+					&& phi.removeArg(arg)) {
+				argsCount--;
+				continue;
 			}
 			k++;
 		}
@@ -256,7 +255,7 @@ public class SSATransform extends AbstractVisitor {
 
 	private static boolean fixUselessPhi(MethodNode mth) {
 		boolean changed = false;
-		List<PhiInsn> insnToRemove = new ArrayList<PhiInsn>();
+		List<PhiInsn> insnToRemove = new ArrayList<>();
 		for (SSAVar var : mth.getSVars()) {
 			// phi result not used
 			if (var.getUseCount() == 0) {
@@ -385,7 +384,7 @@ public class SSATransform extends AbstractVisitor {
 			return false;
 		}
 		List<RegisterArg> useList = resVar.getUseList();
-		for (RegisterArg useArg : new ArrayList<RegisterArg>(useList)) {
+		for (RegisterArg useArg : new ArrayList<>(useList)) {
 			InsnNode useInsn = useArg.getParentInsn();
 			if (useInsn == null || useInsn == phi) {
 				return false;

@@ -1,13 +1,16 @@
 package jadx.gui.ui;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
+
 import hu.kazocsaba.imageviewer.ImageViewer;
+
 import jadx.api.ResourceFile;
 import jadx.gui.treemodel.JResource;
 
-import java.awt.BorderLayout;
-import java.awt.image.BufferedImage;
-
 public class ImagePanel extends ContentPanel {
+
+	private static final long serialVersionUID = 4071356367073142688L;
 
 	ImagePanel(TabbedPane panel, JResource res) {
 		super(panel, res);
@@ -23,5 +26,6 @@ public class ImagePanel extends ContentPanel {
 
 	@Override
 	public void loadSettings() {
+		// no op
 	}
 }

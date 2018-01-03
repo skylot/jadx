@@ -1,23 +1,23 @@
 package jadx.cli;
 
-import jadx.api.JadxDecompiler;
-import jadx.core.utils.exceptions.JadxException;
-
 import java.io.File;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.JadxDecompiler;
+import jadx.core.utils.exceptions.JadxException;
+
 public class JadxCLI {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxCLI.class);
 
-	public static void main(String[] args) throws JadxException {
+	public static void main(String[] args) {
 		try {
 			JadxCLIArgs jadxArgs = new JadxCLIArgs();
 			if (processArgs(jadxArgs, args)) {
 				processAndSave(jadxArgs);
 			}
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			LOG.error("jadx error: {}", e.getMessage(), e);
 			System.exit(1);
 		}

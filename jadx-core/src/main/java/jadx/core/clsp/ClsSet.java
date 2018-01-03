@@ -49,7 +49,7 @@ public class ClsSet {
 
 	public void load(RootNode root) {
 		List<ClassNode> list = root.getClasses(true);
-		Map<String, NClass> names = new HashMap<String, NClass>(list.size());
+		Map<String, NClass> names = new HashMap<>(list.size());
 		int k = 0;
 		for (ClassNode cls : list) {
 			String clsRawName = cls.getRawName();
@@ -79,7 +79,7 @@ public class ClsSet {
 	}
 
 	public static NClass[] makeParentsArray(ClassNode cls, Map<String, NClass> names) {
-		List<NClass> parents = new ArrayList<NClass>(1 + cls.getInterfaces().size());
+		List<NClass> parents = new ArrayList<>(1 + cls.getInterfaces().size());
 		ArgType superClass = cls.getSuperClass();
 		if (superClass != null) {
 			NClass c = getCls(superClass.getObject(), names);
@@ -106,9 +106,7 @@ public class ClsSet {
 
 	void save(File output) throws IOException {
 		FileUtils.makeDirsForFile(output);
-
-		BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(output));
-		try {
+		try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(output))) {
 			String outputName = output.getName();
 			if (outputName.endsWith(CLST_EXTENSION)) {
 				save(outputStream);
@@ -123,14 +121,11 @@ public class ClsSet {
 			} else {
 				throw new JadxRuntimeException("Unknown file format: " + outputName);
 			}
-		} finally {
-			close(outputStream);
 		}
 	}
 
 	public void save(OutputStream output) throws IOException {
-		DataOutputStream out = new DataOutputStream(output);
-		try {
+		try (DataOutputStream out = new DataOutputStream(output)) {
 			out.writeBytes(JADX_CLS_SET_HEADER);
 			out.writeByte(VERSION);
 
@@ -146,32 +141,25 @@ public class ClsSet {
 					out.writeInt(parent.getId());
 				}
 			}
-		} finally {
-			close(out);
 		}
 	}
 
 	public void load() throws IOException, DecodeException {
-		InputStream input = getClass().getResourceAsStream(CLST_FILENAME);
-		if (input == null) {
-			throw new JadxRuntimeException("Can't load classpath file: " + CLST_FILENAME);
-		}
-		try {
+		try (InputStream input = getClass().getResourceAsStream(CLST_FILENAME)) {
+			if (input == null) {
+				throw new JadxRuntimeException("Can't load classpath file: " + CLST_FILENAME);
+			}
 			load(input);
-		} finally {
-			close(input);
 		}
 	}
 
 	public void load(File input) throws IOException, DecodeException {
 		String name = input.getName();
-		InputStream inputStream = new FileInputStream(input);
-		try {
+		try (InputStream inputStream = new FileInputStream(input)) {
 			if (name.endsWith(CLST_EXTENSION)) {
 				load(inputStream);
 			} else if (name.endsWith(".jar")) {
-				ZipInputStream in = new ZipInputStream(inputStream);
-				try {
+				try (ZipInputStream in = new ZipInputStream(inputStream)) {
 					ZipEntry entry = in.getNextEntry();
 					while (entry != null) {
 						if (entry.getName().endsWith(CLST_EXTENSION) && ZipSecurity.isValidZipEntry(entry)) {
@@ -179,20 +167,15 @@ public class ClsSet {
 						}
 						entry = in.getNextEntry();
 					}
-				} finally {
-					close(in);
 				}
 			} else {
 				throw new JadxRuntimeException("Unknown file format: " + name);
 			}
-		} finally {
-			close(inputStream);
 		}
 	}
 
 	public void load(InputStream input) throws IOException, DecodeException {
-		DataInputStream in = new DataInputStream(input);
-		try {
+		try (DataInputStream in = new DataInputStream(input)) {
 			byte[] header = new byte[JADX_CLS_SET_HEADER.length()];
 			int readHeaderLength = in.read(header);
 			int version = in.readByte();
@@ -215,8 +198,6 @@ public class ClsSet {
 				}
 				classes[i].setParents(parents);
 			}
-		} finally {
-			close(in);
 		}
 	}
 

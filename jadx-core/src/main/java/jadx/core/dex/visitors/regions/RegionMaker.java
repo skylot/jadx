@@ -158,7 +158,7 @@ public class RegionMaker {
 
 		// set exit blocks scan order priority
 		// this can help if loop have several exits (after using 'break' or 'return' in loop)
-		List<BlockNode> exitBlocks = new ArrayList<BlockNode>(exitBlocksSet.size());
+		List<BlockNode> exitBlocks = new ArrayList<>(exitBlocksSet.size());
 		BlockNode nextStart = getNextBlock(loopStart);
 		if (nextStart != null && exitBlocksSet.remove(nextStart)) {
 			exitBlocks.add(nextStart);
@@ -511,8 +511,8 @@ public class RegionMaker {
 		synchRegion.getSubBlocks().add(block);
 		curRegion.getSubBlocks().add(synchRegion);
 
-		Set<BlockNode> exits = new HashSet<BlockNode>();
-		Set<BlockNode> cacheSet = new HashSet<BlockNode>();
+		Set<BlockNode> exits = new HashSet<>();
+		Set<BlockNode> cacheSet = new HashSet<>();
 		traverseMonitorExits(synchRegion, insn.getArg(0), block, exits, cacheSet);
 
 		for (InsnNode exitInsn : synchRegion.getExitInsns()) {
@@ -691,19 +691,19 @@ public class RegionMaker {
 
 		int len = insn.getTargets().length;
 		// sort by target
-		Map<Integer, List<Object>> casesMap = new LinkedHashMap<Integer, List<Object>>(len);
+		Map<Integer, List<Object>> casesMap = new LinkedHashMap<>(len);
 		for (int i = 0; i < len; i++) {
 			Object key = insn.getKeys()[i];
 			int targ = insn.getTargets()[i];
 			List<Object> keys = casesMap.get(targ);
 			if (keys == null) {
-				keys = new ArrayList<Object>(2);
+				keys = new ArrayList<>(2);
 				casesMap.put(targ, keys);
 			}
 			keys.add(key);
 		}
 
-		Map<BlockNode, List<Object>> blocksMap = new LinkedHashMap<BlockNode, List<Object>>(len);
+		Map<BlockNode, List<Object>> blocksMap = new LinkedHashMap<>(len);
 		for (Map.Entry<Integer, List<Object>> entry : casesMap.entrySet()) {
 			BlockNode c = getBlockByOffset(entry.getKey(), block.getSuccessors());
 			if (c == null) {
@@ -717,7 +717,7 @@ public class RegionMaker {
 		}
 		LoopInfo loop = mth.getLoopForBlock(block);
 
-		Map<BlockNode, BlockNode> fallThroughCases = new LinkedHashMap<BlockNode, BlockNode>();
+		Map<BlockNode, BlockNode> fallThroughCases = new LinkedHashMap<>();
 
 		List<BlockNode> basicBlocks = mth.getBasicBlocks();
 		BitSet outs = new BitSet(basicBlocks.size());
@@ -753,14 +753,13 @@ public class RegionMaker {
 		stack.addExits(BlockUtils.bitSetToBlocks(mth, outs));
 
 		// check cases order if fall through case exists
-		if (!fallThroughCases.isEmpty()) {
+		if (!fallThroughCases.isEmpty()
+				&& isBadCasesOrder(blocksMap, fallThroughCases)) {
+			LOG.debug("Fixing incorrect switch cases order, method: {}", mth);
+			blocksMap = reOrderSwitchCases(blocksMap, fallThroughCases);
 			if (isBadCasesOrder(blocksMap, fallThroughCases)) {
-				LOG.debug("Fixing incorrect switch cases order, method: {}", mth);
-				blocksMap = reOrderSwitchCases(blocksMap, fallThroughCases);
-				if (isBadCasesOrder(blocksMap, fallThroughCases)) {
-					LOG.error("Can't fix incorrect switch cases order, method: {}", mth);
-					mth.add(AFlag.INCONSISTENT_CODE);
-				}
+				LOG.error("Can't fix incorrect switch cases order, method: {}", mth);
+				mth.add(AFlag.INCONSISTENT_CODE);
 			}
 		}
 
@@ -845,8 +844,8 @@ public class RegionMaker {
 		return out;
 	}
 
-	private boolean isBadCasesOrder(final Map<BlockNode, List<Object>> blocksMap,
-			final Map<BlockNode, BlockNode> fallThroughCases) {
+	private boolean isBadCasesOrder(Map<BlockNode, List<Object>> blocksMap,
+			Map<BlockNode, BlockNode> fallThroughCases) {
 		BlockNode nextCaseBlock = null;
 		for (BlockNode caseBlock : blocksMap.keySet()) {
 			if (nextCaseBlock != null && !caseBlock.equals(nextCaseBlock)) {
@@ -858,8 +857,8 @@ public class RegionMaker {
 	}
 
 	private Map<BlockNode, List<Object>> reOrderSwitchCases(Map<BlockNode, List<Object>> blocksMap,
-			final Map<BlockNode, BlockNode> fallThroughCases) {
-		List<BlockNode> list = new ArrayList<BlockNode>(blocksMap.size());
+			Map<BlockNode, BlockNode> fallThroughCases) {
+		List<BlockNode> list = new ArrayList<>(blocksMap.size());
 		list.addAll(blocksMap.keySet());
 		Collections.sort(list, new Comparator<BlockNode>() {
 			@Override
@@ -876,7 +875,7 @@ public class RegionMaker {
 			}
 		});
 
-		Map<BlockNode, List<Object>> newBlocksMap = new LinkedHashMap<BlockNode, List<Object>>(blocksMap.size());
+		Map<BlockNode, List<Object>> newBlocksMap = new LinkedHashMap<>(blocksMap.size());
 		for (BlockNode key : list) {
 			newBlocksMap.put(key, blocksMap.get(key));
 		}
@@ -902,13 +901,13 @@ public class RegionMaker {
 	}
 
 	public IRegion processTryCatchBlocks(MethodNode mth) {
-		Set<TryCatchBlock> tcs = new HashSet<TryCatchBlock>();
+		Set<TryCatchBlock> tcs = new HashSet<>();
 		for (ExceptionHandler handler : mth.getExceptionHandlers()) {
 			tcs.add(handler.getTryBlock());
 		}
 		for (TryCatchBlock tc : tcs) {
-			List<BlockNode> blocks = new ArrayList<BlockNode>(tc.getHandlersCount());
-			Set<BlockNode> splitters = new HashSet<BlockNode>();
+			List<BlockNode> blocks = new ArrayList<>(tc.getHandlersCount());
+			Set<BlockNode> splitters = new HashSet<>();
 			for (ExceptionHandler handler : tc.getHandlers()) {
 				BlockNode handlerBlock = handler.getHandlerBlock();
 				if (handlerBlock != null) {
@@ -918,7 +917,7 @@ public class RegionMaker {
 					LOG.debug(ErrorsCounter.formatErrorMsg(mth, "No exception handler block: " + handler));
 				}
 			}
-			Set<BlockNode> exits = new HashSet<BlockNode>();
+			Set<BlockNode> exits = new HashSet<>();
 			for (BlockNode splitter : splitters) {
 				for (BlockNode handler : blocks) {
 					List<BlockNode> s = splitter.getSuccessors();
@@ -944,10 +943,10 @@ public class RegionMaker {
 	 * Search handlers successor blocks not included in any region.
 	 */
 	protected IRegion processHandlersOutBlocks(MethodNode mth, Set<TryCatchBlock> tcs) {
-		Set<IBlock> allRegionBlocks = new HashSet<IBlock>();
+		Set<IBlock> allRegionBlocks = new HashSet<>();
 		RegionUtils.getAllRegionBlocks(mth.getRegion(), allRegionBlocks);
 
-		Set<IBlock> succBlocks = new HashSet<IBlock>();
+		Set<IBlock> succBlocks = new HashSet<>();
 		for (TryCatchBlock tc : tcs) {
 			for (ExceptionHandler handler : tc.getHandlers()) {
 				IContainer region = handler.getHandlerRegion();

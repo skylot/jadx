@@ -113,7 +113,7 @@ public class RegionMakerVisitor extends AbstractVisitor {
 			if (!(c instanceof Region)) {
 				continue;
 			}
-			Set<IBlock> blocks = new HashSet<IBlock>();
+			Set<IBlock> blocks = new HashSet<>();
 			RegionUtils.getAllRegionBlocks(c, blocks);
 			if (blocks.isEmpty()) {
 				addBreakToContainer((Region) c);
@@ -151,7 +151,7 @@ public class RegionMakerVisitor extends AbstractVisitor {
 		if (RegionUtils.hasExitEdge(c)) {
 			return;
 		}
-		List<InsnNode> insns = new ArrayList<InsnNode>(1);
+		List<InsnNode> insns = new ArrayList<>(1);
 		insns.add(new InsnNode(InsnType.BREAK, 0));
 		c.add(new InsnContainer(insns));
 	}

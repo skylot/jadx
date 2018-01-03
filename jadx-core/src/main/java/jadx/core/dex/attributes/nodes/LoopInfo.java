@@ -43,7 +43,7 @@ public class LoopInfo {
 	 * Exit nodes belongs to loop (contains in {@code loopBlocks})
 	 */
 	public Set<BlockNode> getExitNodes() {
-		Set<BlockNode> nodes = new HashSet<BlockNode>();
+		Set<BlockNode> nodes = new HashSet<>();
 		Set<BlockNode> blocks = getLoopBlocks();
 		for (BlockNode block : blocks) {
 			// exit: successor node not from this loop, (don't change to getCleanSuccessors)
@@ -60,7 +60,7 @@ public class LoopInfo {
 	 * Return loop exit edges.
 	 */
 	public List<Edge> getExitEdges() {
-		List<Edge> edges = new LinkedList<Edge>();
+		List<Edge> edges = new LinkedList<>();
 		Set<BlockNode> blocks = getLoopBlocks();
 		for (BlockNode block : blocks) {
 			for (BlockNode s : block.getSuccessors()) {

@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class CodeIndex<T> extends SearchIndex<T> {
+public class CodeIndex<T> implements SearchIndex<T> {
 
-	private final List<StringRef> keys = new ArrayList<StringRef>();
-	private final List<T> values = new ArrayList<T>();
+	private final List<StringRef> keys = new ArrayList<>();
+	private final List<T> values = new ArrayList<>();
 
 	@Override
 	public void put(String str, T value) {
@@ -34,7 +34,7 @@ public class CodeIndex<T> extends SearchIndex<T> {
 		if (size == 0) {
 			return Collections.emptyList();
 		}
-		List<T> results = new ArrayList<T>();
+		List<T> results = new ArrayList<>();
 		for (int i = 0; i < size; i++) {
 			StringRef key = keys.get(i);
 			if (key.indexOf(str) != -1) {

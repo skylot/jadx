@@ -54,7 +54,7 @@ public class ClassGen {
 	private final boolean fallback;
 	private final boolean showInconsistentCode;
 
-	private final Set<ClassInfo> imports = new HashSet<ClassInfo>();
+	private final Set<ClassInfo> imports = new HashSet<>();
 	private int clsDeclLine;
 
 	public ClassGen(ClassNode cls, IJadxArgs jadxArgs) {
@@ -89,7 +89,7 @@ public class ClassGen {
 		}
 		int importsCount = imports.size();
 		if (importsCount != 0) {
-			List<String> sortImports = new ArrayList<String>(importsCount);
+			List<String> sortImports = new ArrayList<>(importsCount);
 			for (ClassInfo ic : imports) {
 				sortImports.add(ic.getAlias().getFullName());
 			}
@@ -273,7 +273,7 @@ public class ClassGen {
 	}
 
 	private static List<MethodNode> sortMethodsByLine(List<MethodNode> methods) {
-		List<MethodNode> out = new ArrayList<MethodNode>(methods);
+		List<MethodNode> out = new ArrayList<>(methods);
 		Collections.sort(out, METHOD_LINE_COMPARATOR);
 		return out;
 	}
@@ -339,6 +339,10 @@ public class ClassGen {
 				continue;
 			}
 			annotationGen.addForField(code, f);
+
+			if (f.getFieldInfo().isRenamed()) {
+				code.startLine("/* renamed from: ").add(f.getName()).add(" */");
+			}
 			code.startLine(f.getAccessFlags().makeString());
 			useType(code, f.getType());
 			code.add(' ');
@@ -586,9 +590,8 @@ public class ClassGen {
 
 	private void insertRenameInfo(CodeWriter code, ClassNode cls) {
 		ClassInfo classInfo = cls.getClassInfo();
-		if (classInfo.isRenamed()
-				&& !cls.getShortName().equals(cls.getAlias().getShortName())) {
-			code.startLine("/* renamed from: ").add(classInfo.getFullName()).add(" */");
+		if (classInfo.isRenamed()) {
+			code.startLine("/* renamed from: ").add(classInfo.getType().getObject()).add(" */");
 		}
 	}
 

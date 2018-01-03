@@ -57,10 +57,7 @@ public final class FieldArg extends RegisterArg {
 		if (!field.equals(fieldArg.field)) {
 			return false;
 		}
-		if (instArg != null ? !instArg.equals(fieldArg.instArg) : fieldArg.instArg != null) {
-			return false;
-		}
-		return true;
+		return instArg != null ? instArg.equals(fieldArg.instArg) : fieldArg.instArg == null;
 	}
 
 	@Override

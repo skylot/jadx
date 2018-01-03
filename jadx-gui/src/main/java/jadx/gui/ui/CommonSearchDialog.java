@@ -1,47 +1,19 @@
 package jadx.gui.ui;
 
-import jadx.gui.jobs.BackgroundJob;
-import jadx.gui.jobs.BackgroundWorker;
-import jadx.gui.jobs.DecompileJob;
-import jadx.gui.treemodel.JNode;
-import jadx.gui.treemodel.TextNode;
-import jadx.gui.utils.CacheObject;
-import jadx.gui.utils.NLS;
-import jadx.gui.utils.Position;
-import jadx.gui.utils.search.TextSearchIndex;
-
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.KeyStroke;
-import javax.swing.ListSelectionModel;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.SwingConstants;
-import javax.swing.SwingWorker;
-import javax.swing.UIDefaults;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Font;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -56,6 +28,16 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.gui.jobs.BackgroundJob;
+import jadx.gui.jobs.BackgroundWorker;
+import jadx.gui.jobs.DecompileJob;
+import jadx.gui.treemodel.JNode;
+import jadx.gui.treemodel.TextNode;
+import jadx.gui.utils.CacheObject;
+import jadx.gui.utils.NLS;
+import jadx.gui.utils.Position;
+import jadx.gui.utils.search.TextSearchIndex;
+
 public abstract class CommonSearchDialog extends JDialog {
 
 	private static final Logger LOG = LoggerFactory.getLogger(CommonSearchDialog.class);
@@ -63,10 +45,10 @@ public abstract class CommonSearchDialog extends JDialog {
 
 	public static final int MAX_RESULTS_COUNT = 100;
 
-	protected final TabbedPane tabbedPane;
-	protected final CacheObject cache;
-	protected final MainWindow mainWindow;
-	protected final Font codeFont;
+	protected final transient TabbedPane tabbedPane;
+	protected final transient CacheObject cache;
+	protected final transient MainWindow mainWindow;
+	protected final transient Font codeFont;
 
 	protected ResultsModel resultsModel;
 	protected ResultsTable resultsTable;
@@ -83,6 +65,12 @@ public abstract class CommonSearchDialog extends JDialog {
 		this.codeFont = mainWindow.getSettings().getFont();
 	}
 
+	protected abstract void openInit();
+
+	protected abstract void loadFinished();
+
+	protected abstract void loadStart();
+
 	public void loadWindowPos() {
 		mainWindow.getSettings().loadWindowPos(this);
 	}
@@ -96,6 +84,20 @@ public abstract class CommonSearchDialog extends JDialog {
 		LoadTask task = new LoadTask();
 		task.addPropertyChangeListener(progressPane);
 		task.execute();
+	}
+
+	protected void registerInitOnOpen() {
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowOpened(WindowEvent e) {
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						openInit();
+					}
+				});
+			}
+		});
 	}
 
 	protected void openSelectedItem() {
@@ -162,7 +164,7 @@ public abstract class CommonSearchDialog extends JDialog {
 		resultsTable.setShowHorizontalLines(false);
 		resultsTable.setDragEnabled(false);
 		resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		resultsTable.setBackground(CodeArea.BACKGROUND);
+		resultsTable.setBackground(CodeArea.CODE_BACKGROUND);
 		resultsTable.setColumnSelectionAllowed(false);
 		resultsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		resultsTable.setAutoscrolls(false);
@@ -174,6 +176,7 @@ public abstract class CommonSearchDialog extends JDialog {
 		}
 
 		resultsTable.addMouseListener(new MouseAdapter() {
+			@Override
 			public void mouseClicked(MouseEvent evt) {
 				if (evt.getClickCount() == 2) {
 					openSelectedItem();
@@ -255,9 +258,9 @@ public abstract class CommonSearchDialog extends JDialog {
 		private static final long serialVersionUID = -7821286846923903208L;
 		private static final String[] COLUMN_NAMES = {"Node", "Code"};
 
-		private final List<JNode> rows = new ArrayList<JNode>();
-		private final ResultsTableCellRenderer renderer;
-		private boolean addDescColumn;
+		private final transient List<JNode> rows = new ArrayList<>();
+		private final transient ResultsTableCellRenderer renderer;
+		private transient boolean addDescColumn;
 
 		public ResultsModel(ResultsTableCellRenderer renderer) {
 			this.renderer = renderer;
@@ -321,7 +324,7 @@ public abstract class CommonSearchDialog extends JDialog {
 
 		private final JLabel emptyLabel = new JLabel();
 
-		private Map<Integer, Component> componentCache = new HashMap<Integer, Component>();
+		private Map<Integer, Component> componentCache = new HashMap<>();
 
 		public ResultsTableCellRenderer() {
 			UIDefaults defaults = UIManager.getDefaults();
@@ -332,7 +335,7 @@ public abstract class CommonSearchDialog extends JDialog {
 
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object obj, boolean isSelected,
-				boolean hasFocus, int row, int column) {
+		                                               boolean hasFocus, int row, int column) {
 			int id = row << 2 | column;
 			Component comp = componentCache.get(id);
 			if (comp == null) {
@@ -352,7 +355,7 @@ public abstract class CommonSearchDialog extends JDialog {
 				comp.setBackground(selectedBackground);
 				comp.setForeground(selectedForeground);
 			} else {
-				comp.setBackground(CodeArea.BACKGROUND);
+				comp.setBackground(CodeArea.CODE_BACKGROUND);
 				comp.setForeground(foreground);
 			}
 		}
@@ -442,9 +445,4 @@ public abstract class CommonSearchDialog extends JDialog {
 			warnLabel.setVisible(true);
 		}
 	}
-
-	protected abstract void loadFinished();
-
-	protected abstract void loadStart();
-
 }

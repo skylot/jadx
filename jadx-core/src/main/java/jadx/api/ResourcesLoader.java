@@ -12,6 +12,7 @@ import jadx.core.xmlgen.ResTableParser;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ public final class ResourcesLoader {
 	}
 
 	List<ResourceFile> load(List<InputFile> inputFiles) {
-		List<ResourceFile> list = new ArrayList<ResourceFile>(inputFiles.size());
+		List<ResourceFile> list = new ArrayList<>(inputFiles.size());
 		for (InputFile file : inputFiles) {
 			loadFile(list, file.getFile());
 		}
@@ -52,48 +53,49 @@ public final class ResourcesLoader {
 	}
 
 	public static ResContainer decodeStream(ResourceFile rf, ResourceDecoder decoder) throws JadxException {
-		ZipRef zipRef = rf.getZipRef();
-		if (zipRef == null) {
-			return null;
-		}
 		ZipFile zipFile = null;
 		InputStream inputStream = null;
-		ResContainer result = null;
+		ResContainer result;
 		try {
-			zipFile = new ZipFile(zipRef.getZipFile());
-			ZipEntry entry = zipFile.getEntry(zipRef.getEntryName());
-			if (entry == null) {
-				throw new IOException("Zip entry not found: " + zipRef);
+			long size;
+			ZipRef zipRef = rf.getZipRef();
+			if (zipRef == null) {
+				File file = new File(rf.getName());
+				inputStream = new BufferedInputStream(new FileInputStream(file));
+				size = file.length();
+			} else {
+				zipFile = new ZipFile(zipRef.getZipFile());
+				ZipEntry entry = zipFile.getEntry(zipRef.getEntryName());
+				
+				if(!ZipSecurity.isValidZipEntry(entry)) {
+					return null;
+				}
+				
+				if (entry == null) {
+					throw new IOException("Zip entry not found: " + zipRef);
+				}
+				inputStream = new BufferedInputStream(zipFile.getInputStream(entry));
+				size = entry.getSize();
 			}
-			if(!ZipSecurity.isValidZipEntry(entry)) {
-				return null;
-			}
-			
-			inputStream = new BufferedInputStream(zipFile.getInputStream(entry));
-			result = decoder.decode(entry.getSize(), inputStream);
+			result = decoder.decode(size, inputStream);
 		} catch (Exception e) {
-			throw new JadxException("Error decode: " + zipRef.getEntryName(), e);
+			throw new JadxException("Error decode: " + rf.getName(), e);
 		} finally {
 			try {
 				if (zipFile != null) {
 					zipFile.close();
 				}
 			} catch (Exception e) {
-				LOG.error("Error close zip file: {}", zipRef, e);
+				LOG.error("Error close zip file: {}", rf.getName(), e);
 			}
 			close(inputStream);
 		}
 		return result;
 	}
 
-	static ResContainer loadContent(final JadxDecompiler jadxRef, final ResourceFile rf) {
+	static ResContainer loadContent(JadxDecompiler jadxRef, ResourceFile rf) {
 		try {
-			return decodeStream(rf, new ResourceDecoder() {
-				@Override
-				public ResContainer decode(long size, InputStream is) throws IOException {
-					return loadContent(jadxRef, rf, is, size);
-				}
-			});
+			return decodeStream(rf, (size, is) -> loadContent(jadxRef, rf, is, size));
 		} catch (JadxException e) {
 			LOG.error("Decode error", e);
 			CodeWriter cw = new CodeWriter();
@@ -140,6 +142,7 @@ public final class ResourcesLoader {
 			}
 		} catch (IOException e) {
 			LOG.debug("Not a zip file: {}", file.getAbsolutePath());
+			addResourceFile(list, file);
 		} finally {
 			if (zip != null) {
 				try {
@@ -149,6 +152,13 @@ public final class ResourcesLoader {
 				}
 			}
 		}
+	}
+
+	private void addResourceFile(List<ResourceFile> list, File file) {
+		String name = file.getAbsolutePath();
+		ResourceType type = ResourceType.getFileType(name);
+		ResourceFile rf = new ResourceFile(jadxRef, name, type);
+		list.add(rf);
 	}
 
 	private void addEntry(List<ResourceFile> list, File zipFile, ZipEntry entry) {

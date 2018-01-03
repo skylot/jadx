@@ -218,8 +218,8 @@ public class TestCF3 extends AbstractTest {
 		assertTrue(enabled);
 
 		assertTrue(testNestedLoops(
-				new ArrayList<String>(Arrays.asList("a1", "a2")),
-				new ArrayList<String>(Arrays.asList("a1", "b2"))));
+				new ArrayList<>(Arrays.asList("a1", "a2")),
+				new ArrayList<>(Arrays.asList("a1", "b2"))));
 
 		List<String> list1 = Arrays.asList(null, "a", "b");
 		assertEquals(testReturnInLoop(list1), "a");

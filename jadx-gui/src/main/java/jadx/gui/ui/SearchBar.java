@@ -1,17 +1,8 @@
 package jadx.gui.ui;
 
-import jadx.gui.utils.TextStandardActions;
-import jadx.gui.utils.NLS;
-import jadx.gui.utils.Utils;
-
-import javax.swing.Icon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-import javax.swing.JToolBar;
+import javax.swing.*;
 import javax.swing.text.BadLocationException;
-import java.awt.Color;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -23,6 +14,10 @@ import org.fife.ui.rtextarea.SearchEngine;
 import org.fife.ui.rtextarea.SearchResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jadx.gui.utils.NLS;
+import jadx.gui.utils.TextStandardActions;
+import jadx.gui.utils.Utils;
 
 class SearchBar extends JToolBar {
 	private static final long serialVersionUID = 1836871286618633003L;

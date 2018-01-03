@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
@@ -22,6 +23,8 @@ import org.slf4j.LoggerFactory;
 import com.android.dex.Dex;
 
 import static jadx.core.utils.files.FileUtils.close;
+import static jadx.core.utils.files.FileUtils.isApkFile;
+import static jadx.core.utils.files.FileUtils.isZipDexFile;
 
 public class InputFile {
 	private static final Logger LOG = LoggerFactory.getLogger(InputFile.class);
@@ -44,6 +47,7 @@ public class InputFile {
 
 	private void searchDexFiles() throws IOException, DecodeException {
 		String fileName = file.getName();
+
 		if (fileName.endsWith(".dex")) {
 			addDexFile(new Dex(file));
 			return;
@@ -52,7 +56,7 @@ public class InputFile {
 			addDexFile(loadFromClassFile(file));
 			return;
 		}
-		if (fileName.endsWith(".apk") || fileName.endsWith(".zip")) {
+		if (isApkFile(file) || isZipDexFile(file)) {
 			loadFromZip(".dex");
 			return;
 		}
@@ -61,11 +65,14 @@ public class InputFile {
 			if (loadFromZip(".dex")) {
 				return;
 			}
-			addDexFile(loadFromJar(file));
-			return;
-		}
-		if (fileName.endsWith(".aar")) {
-			loadFromZip(".jar");
+			if (fileName.endsWith(".jar")) {
+				addDexFile(loadFromJar(file));
+				return;
+			}
+			if (fileName.endsWith(".aar")) {
+				loadFromZip(".jar");
+				return;
+			}
 			return;
 		}
 		throw new DecodeException("Unsupported input file format: " + file);
@@ -80,46 +87,61 @@ public class InputFile {
 	}
 
 	private boolean loadFromZip(String ext) throws IOException, DecodeException {
-		ZipFile zf = new ZipFile(file);
 		int index = 0;
-		while (true) {
-			String entryName = "classes" + (index == 0 ? "" : index) + ext;
-			ZipEntry entry = zf.getEntry(entryName);
-			if (entry == null) {
-				break;
-			}
-			
-			// security check
-			if(!ZipSecurity.isValidZipEntry(entry)) {
-				index++;
-				continue;
-			}
-			
-			InputStream inputStream = zf.getInputStream(entry);
-			try {
-				if (ext.equals(".dex")) {
-					addDexFile(entryName, new Dex(inputStream));
-				} else if (ext.equals(".jar")) {
-					File jarFile = FileUtils.createTempFile(entryName);
-					FileOutputStream fos = new FileOutputStream(jarFile);
-					try {
-						IOUtils.copy(inputStream, fos);
-					} finally {
-						close(fos);
-					}
-					addDexFile(entryName, loadFromJar(jarFile));
-				} else {
-					throw new JadxRuntimeException("Unexpected extension in zip: " + ext);
+		try (ZipFile zf = new ZipFile(file)) {
+			// Input file could be .apk or .zip files
+			// we should consider the input file could contain only one single dex, multi-dex, or instantRun support dex for Android .apk files
+			String instantRunDexSuffix = "classes" + ext;
+			for (Enumeration<? extends ZipEntry> e = zf.entries(); e.hasMoreElements(); ) {
+				ZipEntry entry = e.nextElement();
+				String entryName = entry.getName();
+				
+				// security check
+				if(!ZipSecurity.isValidZipEntry(entry)) {
+					continue;
 				}
-			} finally {
-				close(inputStream);
-			}
-			index++;
-			if (index == 1) {
-				index = 2;
+
+				InputStream inputStream = zf.getInputStream(entry);
+				try {
+					if ((entryName.startsWith("classes") && entryName.endsWith(ext))
+							|| entryName.endsWith(instantRunDexSuffix)) {
+						if (ext.equals(".dex")) {
+							index++;
+							addDexFile(entryName, new Dex(inputStream));
+						} else if (ext.equals(".jar")) {
+							index++;
+							File jarFile = FileUtils.createTempFile(entryName);
+							FileOutputStream fos = new FileOutputStream(jarFile);
+							try {
+								IOUtils.copy(inputStream, fos);
+							} finally {
+								close(fos);
+							}
+							addDexFile(entryName, loadFromJar(jarFile));
+						} else {
+							throw new JadxRuntimeException("Unexpected extension in zip: " + ext);
+						}
+					} else if (entryName.equals("instant-run.zip") && ext.equals(".dex")) {
+						File jarFile = FileUtils.createTempFile("instant-run.zip");
+						FileOutputStream fos = new FileOutputStream(jarFile);
+						try {
+							IOUtils.copy(inputStream, fos);
+						} finally {
+							close(fos);
+						}
+						InputFile tempFile = new InputFile(jarFile);
+						tempFile.loadFromZip(ext);
+						List<DexFile> dexFiles = tempFile.getDexFiles();
+						if (!dexFiles.isEmpty()) {
+							index += dexFiles.size();
+							this.dexFiles.addAll(dexFiles);
+						}
+					}
+				} finally {
+					close(inputStream);
+				}
 			}
 		}
-		zf.close();
 		return index > 0;
 	}
 
@@ -148,7 +170,7 @@ public class InputFile {
 			out = new FileOutputStream(outFile);
 			jo = new JarOutputStream(out);
 			String clsName = AsmUtils.getNameFromClassFile(file);
-			if (clsName == null) {
+			if (clsName == null || ZipSecurity.isValidZipEntryName(clsName)) {
 				throw new IOException("Can't read class name from file: " + file);
 			}
 			FileUtils.addFileToJar(jo, file, clsName + ".class");

@@ -1,16 +1,15 @@
 package jadx.gui.jobs;
 
-import jadx.gui.ui.ProgressPanel;
-import jadx.gui.utils.CacheObject;
-import jadx.gui.utils.search.TextSearchIndex;
-import jadx.gui.utils.Utils;
-
-import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
+import javax.swing.*;
 import java.util.concurrent.Future;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jadx.gui.ui.ProgressPanel;
+import jadx.gui.utils.CacheObject;
+import jadx.gui.utils.Utils;
+import jadx.gui.utils.search.TextSearchIndex;
 
 public class BackgroundWorker extends SwingWorker<Void, Void> {
 	private static final Logger LOG = LoggerFactory.getLogger(BackgroundWorker.class);

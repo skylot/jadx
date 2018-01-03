@@ -23,8 +23,8 @@ public class TryCatchBlock {
 	private final CatchAttr attr;
 
 	public TryCatchBlock() {
-		handlers = new LinkedList<ExceptionHandler>();
-		insns = new ArrayList<InsnNode>();
+		handlers = new LinkedList<>();
+		insns = new ArrayList<>();
 		attr = new CatchAttr(this);
 	}
 
@@ -68,10 +68,9 @@ public class TryCatchBlock {
 			BlockUtils.skipPredSyntheticPaths(block);
 			block.add(AFlag.SKIP);
 			ExcHandlerAttr excHandlerAttr = block.get(AType.EXC_HANDLER);
-			if (excHandlerAttr != null) {
-				if (excHandlerAttr.getHandler().equals(handler)) {
-					block.remove(AType.EXC_HANDLER);
-				}
+			if (excHandlerAttr != null
+					&& excHandlerAttr.getHandler().equals(handler)) {
+				block.remove(AType.EXC_HANDLER);
 			}
 			SplitterBlockAttr splitter = handler.getHandlerBlock().get(AType.SPLITTER_BLOCK);
 			if (splitter != null) {

@@ -1,44 +1,25 @@
 package jadx.gui.ui;
 
-import jadx.gui.utils.NLS;
-import jadx.gui.utils.TextStandardActions;
-import jadx.gui.utils.search.TextSearchIndex;
-
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-import javax.swing.Timer;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.util.EnumSet;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jadx.gui.utils.NLS;
+import jadx.gui.utils.TextStandardActions;
+import jadx.gui.utils.search.TextSearchIndex;
 
 public class SearchDialog extends CommonSearchDialog {
 
 	private static final long serialVersionUID = -5105405456969134105L;
-
-	private static final Logger LOG = LoggerFactory.getLogger(SearchDialog.class);
 
 	enum SearchOptions {
 		CLASS,
@@ -56,20 +37,11 @@ public class SearchDialog extends CommonSearchDialog {
 		this.options = options;
 
 		initUI();
-		addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowOpened(WindowEvent e) {
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						openInit();
-					}
-				});
-			}
-		});
+		registerInitOnOpen();
 		loadWindowPos();
 	}
 
+	@Override
 	protected void openInit() {
 		prepare();
 		String lastSearch = cache.getLastSearch();

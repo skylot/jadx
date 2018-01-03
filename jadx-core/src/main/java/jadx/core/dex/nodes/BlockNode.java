@@ -19,10 +19,10 @@ public class BlockNode extends AttrNode implements IBlock {
 
 	private int id;
 	private final int startOffset;
-	private final List<InsnNode> instructions = new ArrayList<InsnNode>(2);
+	private final List<InsnNode> instructions = new ArrayList<>(2);
 
-	private List<BlockNode> predecessors = new ArrayList<BlockNode>(1);
-	private List<BlockNode> successors = new ArrayList<BlockNode>(1);
+	private List<BlockNode> predecessors = new ArrayList<>(1);
+	private List<BlockNode> successors = new ArrayList<>(1);
 	private List<BlockNode> cleanSuccessors;
 
 	// all dominators
@@ -85,7 +85,7 @@ public class BlockNode extends AttrNode implements IBlock {
 		if (sucList.isEmpty()) {
 			return sucList;
 		}
-		List<BlockNode> toRemove = new LinkedList<BlockNode>();
+		List<BlockNode> toRemove = new LinkedList<>();
 		for (BlockNode b : sucList) {
 			if (BlockUtils.isBlockMustBeCleared(b)) {
 				toRemove.add(b);
@@ -104,7 +104,7 @@ public class BlockNode extends AttrNode implements IBlock {
 		if (toRemove.isEmpty()) {
 			return sucList;
 		}
-		List<BlockNode> result = new ArrayList<BlockNode>(sucList);
+		List<BlockNode> result = new ArrayList<>(sucList);
 		result.removeAll(toRemove);
 		return result;
 	}
@@ -161,7 +161,7 @@ public class BlockNode extends AttrNode implements IBlock {
 
 	public void addDominatesOn(BlockNode block) {
 		if (dominatesOn.isEmpty()) {
-			dominatesOn = new LinkedList<BlockNode>();
+			dominatesOn = new LinkedList<>();
 		}
 		dominatesOn.add(block);
 	}

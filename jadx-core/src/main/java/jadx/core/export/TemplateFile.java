@@ -1,5 +1,7 @@
 package jadx.core.export;
 
+import jadx.core.utils.exceptions.JadxRuntimeException;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -34,7 +36,7 @@ public class TemplateFile {
 
 	private final String templateName;
 	private final InputStream template;
-	private final Map<String, String> values = new HashMap<String, String>();
+	private final Map<String, String> values = new HashMap<>();
 
 	public static TemplateFile fromResources(String path) throws FileNotFoundException {
 		InputStream res = TemplateFile.class.getResourceAsStream(path);
@@ -44,7 +46,7 @@ public class TemplateFile {
 		return new TemplateFile(path, res);
 	}
 
-	private TemplateFile(String name, InputStream in) throws FileNotFoundException {
+	private TemplateFile(String name, InputStream in) {
 		this.templateName = name;
 		this.template = in;
 	}
@@ -76,9 +78,7 @@ public class TemplateFile {
 		if (template.available() == 0) {
 			throw new IOException("Template already processed");
 		}
-		InputStream in = null;
-		try {
-			in = new BufferedInputStream(template);
+		try (InputStream in = new BufferedInputStream(template)) {
 			ParserState state = new ParserState();
 			while (true) {
 				int ch = in.read();
@@ -92,8 +92,6 @@ public class TemplateFile {
 					out.write(ch);
 				}
 			}
-		} finally {
-			close(in);
 		}
 	}
 
@@ -142,7 +140,7 @@ public class TemplateFile {
 						return "{" + ch;
 
 					case END:
-						throw new RuntimeException("Expected variable end: '" + parser.curVariable
+						throw new JadxRuntimeException("Expected variable end: '" + parser.curVariable
 								+ "' (missing second '}')");
 				}
 				break;
@@ -154,7 +152,7 @@ public class TemplateFile {
 	private String processVar(String varName) {
 		String str = values.get(varName);
 		if (str == null) {
-			throw new RuntimeException("Unknown variable: '" + varName
+			throw new JadxRuntimeException("Unknown variable: '" + varName
 					+ "' in template: " + templateName);
 		}
 		return str;

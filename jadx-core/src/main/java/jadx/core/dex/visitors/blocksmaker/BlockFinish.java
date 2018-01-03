@@ -63,7 +63,7 @@ public class BlockFinish extends AbstractVisitor {
 		if (handlerBlock.getPredecessors().size() < 2) {
 			return;
 		}
-		Map<BlockNode, SplitterBlockAttr> splitters = new HashMap<BlockNode, SplitterBlockAttr>();
+		Map<BlockNode, SplitterBlockAttr> splitters = new HashMap<>();
 		for (BlockNode pred : handlerBlock.getPredecessors()) {
 			pred = BlockUtils.skipSyntheticPredecessor(pred);
 			SplitterBlockAttr splitterAttr = pred.get(AType.SPLITTER_BLOCK);

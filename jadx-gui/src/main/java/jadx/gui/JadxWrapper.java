@@ -1,5 +1,13 @@
 package jadx.gui;
 
+import javax.swing.*;
+import java.io.File;
+import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jadx.api.IJadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
@@ -7,14 +15,6 @@ import jadx.api.JavaPackage;
 import jadx.api.ResourceFile;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxException;
-
-import javax.swing.ProgressMonitor;
-import java.io.File;
-import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class JadxWrapper {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxWrapper.class);
@@ -55,6 +55,7 @@ public class JadxWrapper {
 					LOG.info("done");
 				} catch (InterruptedException e) {
 					LOG.error("Save interrupted", e);
+					Thread.currentThread().interrupt();
 				}
 			}
 		};

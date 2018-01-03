@@ -1,17 +1,17 @@
 package jadx.tests.integration.names;
 
-import jadx.core.dex.nodes.BlockNode;
-import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.visitors.ssa.LiveVarAnalysis;
-import jadx.tests.api.IntegrationTest;
-
 import java.util.BitSet;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.Test;
+
+import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.visitors.ssa.LiveVarAnalysis;
+import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.junit.Assert.assertThat;
@@ -25,7 +25,7 @@ public class TestNameAssign2 extends IntegrationTest {
 			int blocksCount = blocks.size();
 			BitSet hasPhi = new BitSet(blocksCount);
 			BitSet processed = new BitSet(blocksCount);
-			Deque<BlockNode> workList = new LinkedList<BlockNode>();
+			Deque<BlockNode> workList = new LinkedList<>();
 
 			BitSet assignBlocks = la.getAssignBlocks(regNum);
 			for (int id = assignBlocks.nextSetBit(0); id >= 0; id = assignBlocks.nextSetBit(id + 1)) {
