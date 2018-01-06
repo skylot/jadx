@@ -13,7 +13,7 @@ stages:
 build:
   stage: build
   script:
-    - sed -i " 1 s/.*/&-b${CI_JOB_ID}/" version
+    - sed -i " 1 s/.*/&-b$(git rev-list --count HEAD)-$(git rev-parse --short HEAD)/" version
     - cat version
     - ./gradlew -g /cache/.gradle clean build jacocoTestReport
     - ./gradlew -g /cache/.gradle clean sonarqube -Dsonar.host.url=$SONAR_HOST -Dsonar.organization=$SONAR_ORG -Dsonar.login=$SONAR_TOKEN
