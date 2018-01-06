@@ -7,16 +7,8 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-
 import jadx.api.ResourceFile;
 import jadx.gui.JadxWrapper;
-import jadx.api.ResourceFile;
-import jadx.gui.JadxWrapper;
-import jadx.gui.treemodel.JResource.JResType;
-import jadx.gui.utils.Utils;
-
 import jadx.gui.treemodel.JResource.JResType;
 import jadx.gui.utils.Utils;
 

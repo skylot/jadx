@@ -1,21 +1,20 @@
 package jadx.core.utils;
 
-import jadx.core.dex.attributes.AFlag;
-import jadx.core.dex.attributes.IAttributeNode;
-import jadx.core.dex.attributes.nodes.JadxErrorAttr;
-import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.MethodNode;
-import jadx.core.utils.exceptions.JadxOverflowException;
-
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.IAttributeNode;
+import jadx.core.dex.attributes.nodes.JadxErrorAttr;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.exceptions.JadxOverflowException;
 
 public class ErrorsCounter {
 	private static final Logger LOG = LoggerFactory.getLogger(ErrorsCounter.class);

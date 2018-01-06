@@ -6,8 +6,6 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -90,12 +88,7 @@ public abstract class CommonSearchDialog extends JDialog {
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowOpened(WindowEvent e) {
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						openInit();
-					}
-				});
+				SwingUtilities.invokeLater(CommonSearchDialog.this::openInit);
 			}
 		});
 	}
@@ -119,12 +112,7 @@ public abstract class CommonSearchDialog extends JDialog {
 
 	protected void initCommon() {
 		KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
-		getRootPane().registerKeyboardAction(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				dispose();
-			}
-		}, stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
+		getRootPane().registerKeyboardAction(e -> dispose(), stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
 	}
 
 	@NotNull
@@ -132,17 +120,9 @@ public abstract class CommonSearchDialog extends JDialog {
 		progressPane = new ProgressPanel(mainWindow, false);
 
 		JButton cancelButton = new JButton(NLS.str("search_dialog.cancel"));
-		cancelButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent event) {
-				dispose();
-			}
-		});
+		cancelButton.addActionListener(event -> dispose());
 		JButton openBtn = new JButton(NLS.str("search_dialog.open"));
-		openBtn.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent event) {
-				openSelectedItem();
-			}
-		});
+		openBtn.addActionListener(event -> openSelectedItem());
 		getRootPane().setDefaultButton(openBtn);
 
 		JPanel buttonPane = new JPanel();

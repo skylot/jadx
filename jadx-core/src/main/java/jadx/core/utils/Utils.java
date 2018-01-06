@@ -1,11 +1,11 @@
 package jadx.core.utils;
 
-import jadx.api.JadxDecompiler;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Iterator;
+
+import jadx.api.JadxDecompiler;
 
 public class Utils {
 
@@ -94,9 +94,5 @@ public class Utils {
 		if (cutIndex > 0 && cutIndex < length) {
 			th.setStackTrace(Arrays.copyOfRange(stackTrace, 0, cutIndex));
 		}
-	}
-
-	public static int compare(int x, int y) {
-		return x < y ? -1 : x == y ? 0 : 1;
 	}
 }

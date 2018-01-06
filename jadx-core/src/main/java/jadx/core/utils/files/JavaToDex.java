@@ -5,17 +5,14 @@ import java.io.ByteArrayOutputStream;
 import com.android.dx.command.dexer.DxContext;
 import com.android.dx.command.dexer.Main;
 import com.android.dx.command.dexer.Main.Arguments;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jadx.core.utils.exceptions.JadxException;
 
 public class JavaToDex {
 
-	private static final Logger LOG = LoggerFactory.getLogger(JavaToDex.class);
 	private static final String CHARSET_NAME = "UTF-8";
 
-	public static class DxArgs extends Arguments {
+	private static class DxArgs extends Arguments {
 		public DxArgs(DxContext context, String dexFile, String[] input) {
 			super(context);
 			outName = dexFile;

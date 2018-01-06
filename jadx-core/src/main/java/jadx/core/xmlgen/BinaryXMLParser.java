@@ -1,14 +1,5 @@
 package jadx.core.xmlgen;
 
-import jadx.api.ResourcesLoader;
-import jadx.core.codegen.CodeWriter;
-import jadx.core.dex.info.ConstStorage;
-import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.FieldNode;
-import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.core.xmlgen.entry.ValuesParser;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -17,6 +8,16 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jadx.api.ResourcesLoader;
+import jadx.core.codegen.CodeWriter;
+import jadx.core.dex.info.ConstStorage;
+import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.StringUtils;
+import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.xmlgen.entry.ValuesParser;
 
 /* TODO:
 	Don't die when error occurs
@@ -34,10 +35,12 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private static final Logger LOG = LoggerFactory.getLogger(BinaryXMLParser.class);
 	private static final String ANDROID_R_STYLE_CLS = "android.R$style";
 	private static final boolean ATTR_NEW_LINE = false;
-	private final Map<Integer, String> styleMap = new HashMap<Integer, String>();
-	private final Map<Integer, FieldNode> localStyleMap = new HashMap<Integer, FieldNode>();
+
+	private final Map<Integer, String> styleMap = new HashMap<>();
+	private final Map<Integer, FieldNode> localStyleMap = new HashMap<>();
 	private final Map<Integer, String> resNames;
 	private final Map<String, String> nsMap = new HashMap<>();
+
 	private CodeWriter writer;
 	private String[] strings;
 	private String currentTag = "ERROR";
@@ -48,14 +51,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 
 	public BinaryXMLParser(RootNode root) {
 		try {
-			try {
-				Class<?> rStyleCls = Class.forName(ANDROID_R_STYLE_CLS);
-				for (Field f : rStyleCls.getFields()) {
-					styleMap.put(f.getInt(f.getType()), f.getName());
-				}
-			} catch (Throwable th) {
-				LOG.error("R class loading failed", th);
-			}
+			readAndroidRStyleClass();
 			// add application constants
 			ConstStorage constStorage = root.getConstValues();
 			Map<Object, FieldNode> constFields = constStorage.getGlobalConstFields();
@@ -69,6 +65,17 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			resNames = constStorage.getResourcesNames();
 		} catch (Exception e) {
 			throw new JadxRuntimeException("BinaryXMLParser init error", e);
+		}
+	}
+
+	private void readAndroidRStyleClass() {
+		try {
+			Class<?> rStyleCls = Class.forName(ANDROID_R_STYLE_CLS);
+			for (Field f : rStyleCls.getFields()) {
+				styleMap.put(f.getInt(f.getType()), f.getName());
+			}
+		} catch (Exception th) {
+			LOG.error("Android R class loading failed", th);
 		}
 	}
 
@@ -186,13 +193,11 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int strIndex = is.readInt32();
 		String str = strings[strIndex];
 
+		writer.startLine().addIndent();
+		writer.attachSourceLine(lineNumber);
+		writer.add(StringUtils.escapeXML(str.trim()));
 
-		//TODO: what's this for?
-        /*writer.startLine().addIndent();
-        writer.attachSourceLine(lineNumber);
-        writer.add(StringUtils.escapeXML(str.trim()));*/
-
-		int size = is.readInt16();
+		long size = is.readInt16();
 		is.skip(size - 2);
 	}
 
@@ -236,7 +241,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 				writer.add(" xmlns:" + entry.getValue() + "=\"").add(entry.getKey()).add("\"");
 			}
 		}
-		boolean attrNewLine = attributeCount == 1 ? false : ATTR_NEW_LINE;
+		boolean attrNewLine = attributeCount != 1 && ATTR_NEW_LINE;
 		for (int i = 0; i < attributeCount; i++) {
 			parseAttribute(i, attrNewLine);
 		}
@@ -284,7 +289,6 @@ public class BinaryXMLParser extends CommonBinaryParser {
 				if (attributeNS != -1) {
 					writer.add(nsMap.get(strings[attributeNS])).add(':');
 				}
-				LOG.debug("decodeAttribute: " + attributeNS + " " + name);
 				writer.add("style/").add(name.replaceAll("_", "."));
 			} else {
 				FieldNode field = localStyleMap.get(attrValData);
@@ -304,7 +308,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 						}
 						writer.add(resName);
 					} else {
-						resName = ValuesParser.androidResMap.get(attrValData);
+						resName = ValuesParser.getAndroidResMap().get(attrValData);
 						if (resName != null) {
 							writer.add("@android:").add(resName);
 						} else if (attrValData == 0) {

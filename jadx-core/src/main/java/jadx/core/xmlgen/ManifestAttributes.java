@@ -56,7 +56,7 @@ public class ManifestAttributes {
 			try {
 				instance = new ManifestAttributes();
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOG.error("Failed to create ManifestAttributes", e);
 			}
 		}
 		return instance;

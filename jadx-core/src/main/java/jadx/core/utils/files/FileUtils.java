@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -179,20 +180,10 @@ public class FileUtils {
 	}
 
 	private static boolean isZipFileCanBeOpen(File file) {
-		ZipFile zipFile = null;
-		try {
-			zipFile = new ZipFile(file);
+		try (ZipFile zipFile = new ZipFile(file)) {
 			return zipFile.entries().hasMoreElements();
 		} catch (Exception e) {
 			return false;
-		} finally {
-			if (zipFile != null) {
-				try {
-					zipFile.close();
-				} catch (IOException e) {
-					LOG.error(e.getMessage());
-				}
-			}
 		}
 	}
 
@@ -214,8 +205,8 @@ public class FileUtils {
 				LOG.debug("Failed to detect filesystem case-sensitivity by file creation", e);
 			} finally {
 				try {
-					caseCheckUpper.delete();
-					caseCheckLow.delete();
+					Files.deleteIfExists(caseCheckUpper.toPath());
+					Files.deleteIfExists(caseCheckLow.toPath());
 				} catch (Exception e) {
 					// ignore
 				}

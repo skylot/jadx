@@ -1,10 +1,5 @@
 package jadx.core.xmlgen;
 
-import jadx.core.codegen.CodeWriter;
-import jadx.core.utils.android.Res9patchStreamDecoder;
-import jadx.core.utils.exceptions.JadxException;
-import jadx.core.utils.exceptions.JadxRuntimeException;
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -17,8 +12,16 @@ import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import jadx.core.codegen.CodeWriter;
+import jadx.core.utils.android.Res9patchStreamDecoder;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class ResContainer implements Comparable<ResContainer> {
+
+	private static final Logger LOG = LoggerFactory.getLogger(ResContainer.class);
 
 	private final String name;
 	private final List<ResContainer> subFiles;
@@ -34,21 +37,21 @@ public class ResContainer implements Comparable<ResContainer> {
 	}
 
 	public static ResContainer singleFile(String name, CodeWriter content) {
-		ResContainer resContainer = new ResContainer(name, Collections.<ResContainer>emptyList());
+		ResContainer resContainer = new ResContainer(name, Collections.emptyList());
 		resContainer.content = content;
 		return resContainer;
 	}
 
 	public static ResContainer singleImageFile(String name, InputStream content) {
-		ResContainer resContainer = new ResContainer(name, Collections.<ResContainer>emptyList());
+		ResContainer resContainer = new ResContainer(name, Collections.emptyList());
 		InputStream newContent = content;
 		if (name.endsWith(".9.png")) {
 			Res9patchStreamDecoder decoder = new Res9patchStreamDecoder();
 			ByteArrayOutputStream os = new ByteArrayOutputStream();
 			try {
 				decoder.decode(content, os);
-			} catch (JadxException e) {
-				e.printStackTrace();
+			} catch (Exception e) {
+				LOG.error("Failed to decode 9-patch png image", e);
 			}
 			newContent = new ByteArrayInputStream(os.toByteArray());
 		}
@@ -61,7 +64,7 @@ public class ResContainer implements Comparable<ResContainer> {
 	}
 
 	public static ResContainer multiFile(String name) {
-		return new ResContainer(name, new ArrayList<ResContainer>());
+		return new ResContainer(name, new ArrayList<>());
 	}
 
 	public String getName() {

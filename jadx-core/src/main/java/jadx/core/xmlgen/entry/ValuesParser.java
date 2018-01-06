@@ -18,11 +18,11 @@ import jadx.core.xmlgen.ResTableParser;
 public class ValuesParser extends ParserConstants {
 	private static final Logger LOG = LoggerFactory.getLogger(ValuesParser.class);
 
+	private static String[] androidStrings;
+	private static Map<Integer, String> androidResMap;
+
 	private final String[] strings;
 	private final Map<Integer, String> resMap;
-
-	public static String[] androidStrings;
-	public static Map<Integer, String> androidResMap;
 
 	public ValuesParser(String[] strings, Map<Integer, String> resMap) {
 		this.strings = strings;
@@ -31,14 +31,14 @@ public class ValuesParser extends ParserConstants {
 		if (androidStrings == null && androidResMap == null) {
 			try {
 				decodeAndroid();
-			} catch (IOException e) {
-				e.printStackTrace();
+			} catch (Exception e) {
+				LOG.error("Failed to decode Android Resource file", e);
 			}
 		}
 	}
 
-	private void decodeAndroid() throws IOException {
-		InputStream inputStream = new BufferedInputStream(getClass().getResourceAsStream("/resources.arsc"));
+	private static void decodeAndroid() throws IOException {
+		InputStream inputStream = new BufferedInputStream(ValuesParser.class.getResourceAsStream("/resources.arsc"));
 		ResTableParser androidParser = new ResTableParser();
 		androidParser.decode(inputStream);
 		androidStrings = androidParser.getStrings();
@@ -211,5 +211,9 @@ public class ValuesParser extends ParserConstants {
 		f.setMaximumFractionDigits(4);
 		f.setMinimumIntegerDigits(1);
 		return f.format(value);
+	}
+
+	public static Map<Integer, String> getAndroidResMap() {
+		return androidResMap;
 	}
 }

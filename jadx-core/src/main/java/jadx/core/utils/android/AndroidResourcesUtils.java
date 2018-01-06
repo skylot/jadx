@@ -1,5 +1,10 @@
 package jadx.core.utils.android;
 
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jadx.core.codegen.ClassGen;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.info.ClassInfo;
@@ -7,16 +12,14 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.RootNode;
 
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Android resources specific handlers
  */
 public class AndroidResourcesUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(AndroidResourcesUtils.class);
+
+	private AndroidResourcesUtils() {
+	}
 
 	public static ClassNode searchAppResClass(RootNode root) {
 		String appPackage = root.getAppPackage();
@@ -49,7 +52,7 @@ public class AndroidResourcesUtils {
 
 	private static ClassNode makeClass(RootNode root, String clsName) {
 		List<DexNode> dexNodes = root.getDexNodes();
-		if (dexNodes.size() == 0) {
+		if (dexNodes.isEmpty()) {
 			return null;
 		}
 		DexNode firstDex = dexNodes.get(0);

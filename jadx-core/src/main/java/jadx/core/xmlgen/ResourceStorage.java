@@ -1,8 +1,5 @@
 package jadx.core.xmlgen;
 
-import jadx.core.utils.Utils;
-import jadx.core.xmlgen.entry.ResourceEntry;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -11,14 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ResourceStorage {
+import jadx.core.xmlgen.entry.ResourceEntry;
 
-	private static final Comparator<ResourceEntry> COMPARATOR = new Comparator<ResourceEntry>() {
-		@Override
-		public int compare(ResourceEntry a, ResourceEntry b) {
-			return Utils.compare(a.getId(), b.getId());
-		}
-	};
+public class ResourceStorage {
 
 	private final List<ResourceEntry> list = new ArrayList<>();
 	private String appPackage;
@@ -32,12 +24,12 @@ public class ResourceStorage {
 	}
 
 	public void finish() {
-		Collections.sort(list, COMPARATOR);
+		list.sort(Comparator.comparingInt(ResourceEntry::getId));
 	}
 
 	public ResourceEntry getByRef(int refId) {
 		ResourceEntry key = new ResourceEntry(refId);
-		int index = Collections.binarySearch(list, key, COMPARATOR);
+		int index = Collections.binarySearch(list, key, Comparator.comparingInt(ResourceEntry::getId));
 		if (index < 0) {
 			return null;
 		}
