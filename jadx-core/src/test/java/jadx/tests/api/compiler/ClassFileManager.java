@@ -34,8 +34,8 @@ public class ClassFileManager extends ForwardingJavaFileManager<StandardJavaFile
 	}
 
 	private class DynamicClassLoader extends SecureClassLoader {
-		private final Map<String, JavaClassObject> clsMap = new HashMap<String, JavaClassObject>();
-		private final Map<String, Class<?>> clsCache = new HashMap<String, Class<?>>();
+		private final Map<String, JavaClassObject> clsMap = new HashMap<>();
+		private final Map<String, Class<?>> clsCache = new HashMap<>();
 
 		@Override
 		protected Class<?> findClass(String name) throws ClassNotFoundException {

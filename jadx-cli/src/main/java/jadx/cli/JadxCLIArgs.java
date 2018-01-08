@@ -1,11 +1,5 @@
 package jadx.cli;
 
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.Appender;
-import jadx.api.IJadxArgs;
-import jadx.api.JadxDecompiler;
-import jadx.core.utils.exceptions.JadxException;
-
 import java.io.File;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
@@ -14,16 +8,23 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterDescription;
 import com.beust.jcommander.ParameterException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import jadx.api.IJadxArgs;
+import jadx.api.JadxDecompiler;
+import jadx.core.utils.exceptions.JadxException;
 
 public class JadxCLIArgs implements IJadxArgs {
+
+	protected static final int DEFAULT_THREADS_COUNT = Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
 
 	@Parameter(description = "<input file> (.dex, .apk, .jar or .class)")
 	protected List<String> files;
@@ -32,7 +33,7 @@ public class JadxCLIArgs implements IJadxArgs {
 	protected String outDirName;
 
 	@Parameter(names = {"-j", "--threads-count"}, description = "processing threads count")
-	protected int threadsCount = Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
+	protected int threadsCount = DEFAULT_THREADS_COUNT;
 
 	@Parameter(names = {"-r", "--no-res"}, description = "do not decode resources")
 	protected boolean skipResources = false;
@@ -83,7 +84,7 @@ public class JadxCLIArgs implements IJadxArgs {
 	@Parameter(names = {"-h", "--help"}, description = "print this help", help = true)
 	protected boolean printHelp = false;
 
-	private final List<File> input = new ArrayList<File>(1);
+	private final List<File> input = new ArrayList<>(1);
 	private File outputDir;
 
 	public boolean processArgs(String[] args) {
@@ -108,7 +109,7 @@ public class JadxCLIArgs implements IJadxArgs {
 		}
 		try {
 			if (threadsCount <= 0) {
-				throw new JadxException("Threads count must be positive");
+				throw new JadxException("Threads count must be positive, got: " + threadsCount);
 			}
 			if (files != null) {
 				for (String fileName : files) {
@@ -154,7 +155,7 @@ public class JadxCLIArgs implements IJadxArgs {
 		out.println("options:");
 
 		List<ParameterDescription> params = jc.getParameters();
-		Map<String, ParameterDescription> paramsMap = new LinkedHashMap<String, ParameterDescription>(params.size());
+		Map<String, ParameterDescription> paramsMap = new LinkedHashMap<>(params.size());
 		int maxNamesLen = 0;
 		for (ParameterDescription p : params) {
 			paramsMap.put(p.getParameterized().getName(), p);

@@ -1,11 +1,6 @@
 package jadx.gui.treemodel;
 
-import jadx.api.JavaPackage;
-import jadx.gui.JadxWrapper;
-import jadx.gui.utils.Utils;
-
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,13 +10,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import jadx.api.JavaPackage;
+import jadx.gui.JadxWrapper;
+import jadx.gui.utils.Utils;
+
 public class JSources extends JNode {
 	private static final long serialVersionUID = 8962924556824862801L;
 
 	private static final ImageIcon ROOT_ICON = Utils.openIcon("packagefolder_obj");
 
-	private final JadxWrapper wrapper;
-	private final boolean flatPackages;
+	private final transient JadxWrapper wrapper;
+	private final transient boolean flatPackages;
 
 	public JSources(JRoot jRoot, JadxWrapper wrapper) {
 		this.flatPackages = jRoot.isFlatPackages();
@@ -52,7 +51,7 @@ public class JSources extends JNode {
 	 * @return root packages
 	 */
 	List<JPackage> getHierarchyPackages(List<JavaPackage> packages) {
-		Map<String, JPackage> pkgMap = new HashMap<String, JPackage>();
+		Map<String, JPackage> pkgMap = new HashMap<>();
 		for (JavaPackage pkg : packages) {
 			addPackage(pkgMap, new JPackage(pkg));
 		}
@@ -90,7 +89,7 @@ public class JSources extends JNode {
 			innerPackages.addAll(pkg.getInnerPackages());
 		}
 		// find root packages
-		List<JPackage> rootPkgs = new ArrayList<JPackage>();
+		List<JPackage> rootPkgs = new ArrayList<>();
 		for (JPackage pkg : pkgMap.values()) {
 			if (!innerPackages.contains(pkg)) {
 				rootPkgs.add(pkg);

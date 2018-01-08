@@ -49,7 +49,7 @@ public final class IfCondition {
 		if (c.mode == Mode.COMPARE) {
 			this.args = Collections.emptyList();
 		} else {
-			this.args = new ArrayList<IfCondition>(c.args);
+			this.args = new ArrayList<>(c.args);
 		}
 	}
 
@@ -121,7 +121,7 @@ public final class IfCondition {
 			case AND:
 			case OR:
 				List<IfCondition> args = cond.getArgs();
-				List<IfCondition> newArgs = new ArrayList<IfCondition>(args.size());
+				List<IfCondition> newArgs = new ArrayList<>(args.size());
 				for (IfCondition arg : args) {
 					newArgs.add(invert(arg));
 				}
@@ -154,7 +154,7 @@ public final class IfCondition {
 			IfCondition simpl = simplify(arg);
 			if (simpl != arg) {
 				if (args == null) {
-					args = new ArrayList<IfCondition>(cond.getArgs());
+					args = new ArrayList<>(cond.getArgs());
 				}
 				args.set(i, simpl);
 			}
@@ -206,7 +206,7 @@ public final class IfCondition {
 	}
 
 	public List<RegisterArg> getRegisterArgs() {
-		List<RegisterArg> list = new LinkedList<RegisterArg>();
+		List<RegisterArg> list = new LinkedList<>();
 		if (mode == Mode.COMPARE) {
 			compare.getInsn().getRegisterArgs(list);
 		} else {

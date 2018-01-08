@@ -1,17 +1,6 @@
 package jadx.gui.ui;
 
-import jadx.api.CodePosition;
-import jadx.api.JavaNode;
-import jadx.gui.settings.JadxSettings;
-import jadx.gui.treemodel.JClass;
-import jadx.gui.treemodel.JNode;
-import jadx.gui.utils.Position;
-
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.JPopupMenu;
-import javax.swing.JViewport;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.event.PopupMenuEvent;
@@ -19,10 +8,7 @@ import javax.swing.event.PopupMenuListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Caret;
 import javax.swing.text.DefaultCaret;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 
 import org.fife.ui.rsyntaxtextarea.LinkGenerator;
@@ -34,12 +20,19 @@ import org.fife.ui.rsyntaxtextarea.TokenTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.CodePosition;
+import jadx.api.JavaNode;
+import jadx.gui.settings.JadxSettings;
+import jadx.gui.treemodel.JClass;
+import jadx.gui.treemodel.JNode;
+import jadx.gui.utils.Position;
+
 class CodeArea extends RSyntaxTextArea {
 	private static final Logger LOG = LoggerFactory.getLogger(CodeArea.class);
 
 	private static final long serialVersionUID = 6312736869579635796L;
 
-	public static final Color BACKGROUND = new Color(0xFAFAFA);
+	public static final Color CODE_BACKGROUND = new Color(0xFAFAFA);
 	public static final Color JUMP_TOKEN_FGD = new Color(0x491BA1);
 
 	private final CodePanel contentPanel;
@@ -50,7 +43,7 @@ class CodeArea extends RSyntaxTextArea {
 		this.node = panel.getNode();
 
 		setMarkOccurrences(true);
-		setBackground(BACKGROUND);
+		setBackground(CODE_BACKGROUND);
 		setAntiAliasingEnabled(true);
 		setEditable(false);
 		loadSettings();
@@ -78,8 +71,6 @@ class CodeArea extends RSyntaxTextArea {
 
 	private void addMenuItems(CodeArea codeArea, JClass jCls) {
 		Action findUsage = new FindUsageAction(codeArea, jCls);
-		// TODO: hotkey works only when popup menu is shown
-		// findUsage.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_F7, KeyEvent.ALT_DOWN_MASK));
 
 		JPopupMenu popup = getPopupMenu();
 		popup.addSeparator();
@@ -197,10 +188,10 @@ class CodeArea extends RSyntaxTextArea {
 	private class FindUsageAction extends AbstractAction implements PopupMenuListener {
 		private static final long serialVersionUID = 4692546569977976384L;
 
-		private final CodeArea codeArea;
-		private final JClass jCls;
+		private final transient CodeArea codeArea;
+		private final transient JClass jCls;
 
-		private JavaNode node;
+		private transient JavaNode node;
 
 		public FindUsageAction(CodeArea codeArea, JClass jCls) {
 			super("Find Usage");

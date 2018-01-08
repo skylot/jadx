@@ -60,7 +60,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 	private ClassNode parentClass;
 
 	private ProcessState state = ProcessState.NOT_LOADED;
-	private final Set<ClassNode> dependencies = new HashSet<ClassNode>();
+	private final Set<ClassNode> dependencies = new HashSet<>();
 
 	// cache maps
 	private Map<MethodInfo, MethodNode> mthInfoMap = Collections.emptyMap();
@@ -74,7 +74,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 			} else {
 				this.superClass = dex.getType(cls.getSupertypeIndex());
 			}
-			this.interfaces = new ArrayList<ArgType>(cls.getInterfaces().length);
+			this.interfaces = new ArrayList<>(cls.getInterfaces().length);
 			for (short interfaceIdx : cls.getInterfaces()) {
 				this.interfaces.add(dex.getType(interfaceIdx));
 			}
@@ -83,8 +83,8 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 				int mthsCount = clsData.getDirectMethods().length + clsData.getVirtualMethods().length;
 				int fieldsCount = clsData.getStaticFields().length + clsData.getInstanceFields().length;
 
-				methods = new ArrayList<MethodNode>(mthsCount);
-				fields = new ArrayList<FieldNode>(fieldsCount);
+				methods = new ArrayList<>(mthsCount);
+				fields = new ArrayList<>(fieldsCount);
 
 				for (Method mth : clsData.getDirectMethods()) {
 					methods.add(new MethodNode(this, mth, false));
@@ -268,7 +268,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 	}
 
 	private void buildCache() {
-		mthInfoMap = new HashMap<MethodInfo, MethodNode>(methods.size());
+		mthInfoMap = new HashMap<>(methods.size());
 		for (MethodNode mth : methods) {
 			mthInfoMap.put(mth.getMethodInfo(), mth);
 		}
@@ -373,7 +373,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 
 	public void addInnerClass(ClassNode cls) {
 		if (innerClasses.isEmpty()) {
-			innerClasses = new ArrayList<ClassNode>(3);
+			innerClasses = new ArrayList<>(3);
 		}
 		innerClasses.add(cls);
 	}

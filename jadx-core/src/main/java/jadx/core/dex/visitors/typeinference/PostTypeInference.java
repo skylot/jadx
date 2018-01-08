@@ -149,5 +149,4 @@ public class PostTypeInference {
 		}
 		return change;
 	}
-
 }

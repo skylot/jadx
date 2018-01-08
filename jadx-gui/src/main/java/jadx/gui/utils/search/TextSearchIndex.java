@@ -1,5 +1,11 @@
 package jadx.gui.utils.search;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jadx.api.JavaClass;
 import jadx.api.JavaField;
 import jadx.api.JavaMethod;
@@ -10,12 +16,6 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.CommonSearchDialog;
 import jadx.gui.utils.CodeLinesInfo;
 import jadx.gui.utils.JNodeCache;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TextSearchIndex {
 
@@ -28,14 +28,14 @@ public class TextSearchIndex {
 	private SearchIndex<JNode> fldNamesIndex;
 	private SearchIndex<CodeNode> codeIndex;
 
-	private List<JavaClass> skippedClasses = new ArrayList<JavaClass>();
+	private List<JavaClass> skippedClasses = new ArrayList<>();
 
 	public TextSearchIndex(JNodeCache nodeCache) {
 		this.nodeCache = nodeCache;
-		this.clsNamesIndex = new SimpleIndex<JNode>();
-		this.mthNamesIndex = new SimpleIndex<JNode>();
-		this.fldNamesIndex = new SimpleIndex<JNode>();
-		this.codeIndex = new CodeIndex<CodeNode>();
+		this.clsNamesIndex = new SimpleIndex<>();
+		this.mthNamesIndex = new SimpleIndex<>();
+		this.fldNamesIndex = new SimpleIndex<>();
+		this.codeIndex = new CodeIndex<>();
 	}
 
 	public void indexNames(JavaClass cls) {
@@ -93,7 +93,7 @@ public class TextSearchIndex {
 				return items;
 			}
 		} else {
-			items = new ArrayList<CodeNode>();
+			items = new ArrayList<>();
 		}
 		addSkippedClasses(items, text);
 		return items;

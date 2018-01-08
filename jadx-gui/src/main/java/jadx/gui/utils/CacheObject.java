@@ -1,10 +1,10 @@
 package jadx.gui.utils;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.gui.jobs.DecompileJob;
 import jadx.gui.jobs.IndexJob;
 import jadx.gui.utils.search.TextSearchIndex;
-
-import org.jetbrains.annotations.Nullable;
 
 public class CacheObject {
 

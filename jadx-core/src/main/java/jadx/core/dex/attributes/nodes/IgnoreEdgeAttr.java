@@ -10,7 +10,7 @@ import java.util.Set;
 
 public class IgnoreEdgeAttr implements IAttribute {
 
-	private final Set<BlockNode> blocks = new HashSet<BlockNode>(3);
+	private final Set<BlockNode> blocks = new HashSet<>(3);
 
 	public Set<BlockNode> getBlocks() {
 		return blocks;

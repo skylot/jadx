@@ -1,7 +1,5 @@
 package jadx.tests.api.compiler;
 
-import jadx.core.dex.nodes.ClassNode;
-
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
@@ -9,6 +7,8 @@ import javax.tools.ToolProvider;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+
+import jadx.core.dex.nodes.ClassNode;
 
 import static javax.tools.JavaCompiler.CompilationTask;
 
@@ -31,7 +31,7 @@ public class DynamicCompiler {
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 		fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
 
-		List<JavaFileObject> jFiles = new ArrayList<JavaFileObject>(1);
+		List<JavaFileObject> jFiles = new ArrayList<>(1);
 		jFiles.add(new CharSequenceJavaFileObject(fullName, code));
 
 		CompilationTask compilerTask = compiler.getTask(null, fileManager, null, null, null, jFiles);

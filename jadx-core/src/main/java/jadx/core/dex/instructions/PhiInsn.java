@@ -21,7 +21,7 @@ public final class PhiInsn extends InsnNode {
 
 	public PhiInsn(int regNum, int predecessors) {
 		super(InsnType.PHI, predecessors);
-		this.blockBinds = new IdentityHashMap<RegisterArg, BlockNode>(predecessors);
+		this.blockBinds = new IdentityHashMap<>(predecessors);
 		setResult(InsnArg.reg(regNum, ArgType.UNKNOWN));
 		add(AFlag.DONT_INLINE);
 	}

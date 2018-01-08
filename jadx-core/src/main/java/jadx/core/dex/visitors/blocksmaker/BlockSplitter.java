@@ -47,7 +47,7 @@ public class BlockSplitter extends AbstractVisitor {
 
 	private static void splitBasicBlocks(MethodNode mth) {
 		InsnNode prevInsn = null;
-		Map<Integer, BlockNode> blocksMap = new HashMap<Integer, BlockNode>();
+		Map<Integer, BlockNode> blocksMap = new HashMap<>();
 		BlockNode curBlock = startNewBlock(mth, 0);
 		mth.setEnterBlock(curBlock);
 

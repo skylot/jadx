@@ -1,8 +1,8 @@
 package jadx.tests.api.utils;
 
-import jadx.core.codegen.CodeWriter;
-
 import org.hamcrest.Matcher;
+
+import jadx.core.codegen.CodeWriter;
 
 public class JadxMatchers {
 

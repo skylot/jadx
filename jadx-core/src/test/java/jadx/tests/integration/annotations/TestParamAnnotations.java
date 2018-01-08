@@ -1,14 +1,14 @@
 package jadx.tests.integration.annotations;
 
-import jadx.core.dex.nodes.ClassNode;
-import jadx.tests.api.IntegrationTest;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.junit.Test;
+
+import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertThat;

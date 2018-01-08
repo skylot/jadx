@@ -11,9 +11,9 @@ import java.util.Set;
 import org.jetbrains.annotations.Nullable;
 
 public final class BlocksRemoveInfo {
-	private final Set<BlocksPair> processed = new HashSet<BlocksPair>();
-	private final Set<BlocksPair> outs = new HashSet<BlocksPair>();
-	private final Map<RegisterArg, RegisterArg> regMap = new HashMap<RegisterArg, RegisterArg>();
+	private final Set<BlocksPair> processed = new HashSet<>();
+	private final Set<BlocksPair> outs = new HashSet<>();
+	private final Map<RegisterArg, RegisterArg> regMap = new HashMap<>();
 
 	private BlocksPair start;
 	private BlocksPair end;

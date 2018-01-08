@@ -20,8 +20,8 @@ public final class SwitchRegion extends AbstractRegion implements IBranchRegion 
 	public SwitchRegion(IRegion parent, BlockNode header) {
 		super(parent);
 		this.header = header;
-		this.keys = new ArrayList<List<Object>>();
-		this.cases = new ArrayList<IContainer>();
+		this.keys = new ArrayList<>();
+		this.cases = new ArrayList<>();
 	}
 
 	public BlockNode getHeader() {
@@ -51,7 +51,7 @@ public final class SwitchRegion extends AbstractRegion implements IBranchRegion 
 
 	@Override
 	public List<IContainer> getSubBlocks() {
-		List<IContainer> all = new ArrayList<IContainer>(cases.size() + 2);
+		List<IContainer> all = new ArrayList<>(cases.size() + 2);
 		all.add(header);
 		all.addAll(cases);
 		if (defCase != null) {
@@ -62,7 +62,7 @@ public final class SwitchRegion extends AbstractRegion implements IBranchRegion 
 
 	@Override
 	public List<IContainer> getBranches() {
-		List<IContainer> branches = new ArrayList<IContainer>(cases.size() + 1);
+		List<IContainer> branches = new ArrayList<>(cases.size() + 1);
 		branches.addAll(cases);
 		branches.add(defCase);
 		return Collections.unmodifiableList(branches);

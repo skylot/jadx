@@ -16,7 +16,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,15 +39,15 @@ public class Deobfuscator {
 	private final List<DexNode> dexNodes;
 	private final DeobfPresets deobfPresets;
 
-	private final Map<ClassInfo, DeobfClsInfo> clsMap = new HashMap<ClassInfo, DeobfClsInfo>();
-	private final Map<FieldInfo, String> fldMap = new HashMap<FieldInfo, String>();
-	private final Map<MethodInfo, String> mthMap = new HashMap<MethodInfo, String>();
+	private final Map<ClassInfo, DeobfClsInfo> clsMap = new HashMap<>();
+	private final Map<FieldInfo, String> fldMap = new HashMap<>();
+	private final Map<MethodInfo, String> mthMap = new HashMap<>();
 
-	private final Map<MethodInfo, OverridedMethodsNode> ovrdMap = new HashMap<MethodInfo, OverridedMethodsNode>();
-	private final List<OverridedMethodsNode> ovrd = new ArrayList<OverridedMethodsNode>();
+	private final Map<MethodInfo, OverridedMethodsNode> ovrdMap = new HashMap<>();
+	private final List<OverridedMethodsNode> ovrd = new ArrayList<>();
 
 	private final PackageNode rootPackage = new PackageNode("");
-	private final Set<String> pkgSet = new TreeSet<String>();
+	private final Set<String> pkgSet = new TreeSet<>();
 
 	private final int maxLength;
 	private final int minLength;
@@ -111,22 +110,23 @@ public class Deobfuscator {
 	private void postProcess() {
 		int id = 1;
 		for (OverridedMethodsNode o : ovrd) {
-
-			Iterator<MethodInfo> it = o.getMethods().iterator();
-			if (it.hasNext()) {
-				MethodInfo mth = it.next();
-
-				if (mth.isRenamed() && !mth.isAliasFromPreset()) {
-					mth.setAlias(String.format("mo%d%s", id, makeName(mth.getName())));
+			boolean aliasFromPreset = false;
+			String aliasToUse = null;
+			for (MethodInfo mth : o.getMethods()) {
+				if (mth.isAliasFromPreset()) {
+					aliasToUse = mth.getAlias();
+					aliasFromPreset = true;
 				}
-				String firstMethodAlias = mth.getAlias();
-
-				while (it.hasNext()) {
-					mth = it.next();
-					if (!mth.getAlias().equals(firstMethodAlias)) {
-						mth.setAlias(firstMethodAlias);
+			}
+			for (MethodInfo mth : o.getMethods()) {
+				if (aliasToUse == null) {
+					if (mth.isRenamed() && !mth.isAliasFromPreset()) {
+						mth.setAlias(String.format("mo%d%s", id, makeName(mth.getName())));
 					}
+					aliasToUse = mth.getAlias();
 				}
+				mth.setAlias(aliasToUse);
+				mth.setAliasFromPreset(aliasFromPreset);
 			}
 
 			id++;
@@ -201,9 +201,8 @@ public class Deobfuscator {
 	}
 
 	private void resolveOverriding(DexNode dex, ClassNode cls, MethodNode mth) {
-		Set<MethodInfo> overrideSet = new HashSet<MethodInfo>();
+		Set<MethodInfo> overrideSet = new HashSet<>();
 		resolveOverridingInternal(dex, cls, mth.getMethodInfo().makeSignature(false), overrideSet, cls);
-
 		if (overrideSet.size() > 1) {
 			OverridedMethodsNode overrideNode = null;
 			for (MethodInfo _mth : overrideSet) {
@@ -212,12 +211,10 @@ public class Deobfuscator {
 					break;
 				}
 			}
-
 			if (overrideNode == null) {
 				overrideNode = new OverridedMethodsNode(overrideSet);
 				ovrd.add(overrideNode);
 			}
-
 			for (MethodInfo _mth : overrideSet) {
 				if (!ovrdMap.containsKey(_mth)) {
 					ovrdMap.put(_mth, overrideNode);
@@ -228,7 +225,6 @@ public class Deobfuscator {
 			}
 		} else {
 			overrideSet.clear();
-			overrideSet = null;
 		}
 	}
 
@@ -442,9 +438,9 @@ public class Deobfuscator {
 			parentPkg = parentPkg.getParentPackage();
 		}
 
-		final String pkgName = pkg.getName();
+		String pkgName = pkg.getName();
 		if (!pkg.hasAlias() && shouldRename(pkgName)) {
-			final String pkgAlias = String.format("p%03d%s", pkgIndex++, makeName(pkgName));
+			String pkgAlias = String.format("p%03d%s", pkgIndex++, makeName(pkgName));
 			pkg.setAlias(pkgAlias);
 		}
 	}
@@ -501,7 +497,7 @@ public class Deobfuscator {
 	}
 
 	private String getPackageName(String packageName) {
-		final PackageNode pkg = getPackageNode(packageName, false);
+		PackageNode pkg = getPackageNode(packageName, false);
 		if (pkg != null) {
 			return pkg.getFullAlias();
 		}
@@ -509,7 +505,7 @@ public class Deobfuscator {
 	}
 
 	private String getClassName(ClassInfo clsInfo) {
-		final DeobfClsInfo deobfClsInfo = clsMap.get(clsInfo);
+		DeobfClsInfo deobfClsInfo = clsMap.get(clsInfo);
 		if (deobfClsInfo != null) {
 			return deobfClsInfo.makeNameWithoutPkg();
 		}
@@ -521,7 +517,7 @@ public class Deobfuscator {
 	}
 
 	private String getClassFullName(ClassInfo clsInfo) {
-		final DeobfClsInfo deobfClsInfo = clsMap.get(clsInfo);
+		DeobfClsInfo deobfClsInfo = clsMap.get(clsInfo);
 		if (deobfClsInfo != null) {
 			return deobfClsInfo.getFullName();
 		}

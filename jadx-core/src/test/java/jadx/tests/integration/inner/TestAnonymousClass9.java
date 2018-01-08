@@ -1,12 +1,12 @@
 package jadx.tests.integration.inner;
 
-import jadx.core.dex.nodes.ClassNode;
-import jadx.tests.api.IntegrationTest;
-
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 
 import org.junit.Test;
+
+import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.Matchers.containsString;

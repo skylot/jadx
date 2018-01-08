@@ -4,6 +4,7 @@ import jadx.api.IJadxArgs;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.utils.exceptions.CodegenException;
+import jadx.core.utils.files.ZipSecurity;
 
 import java.io.File;
 
@@ -25,7 +26,7 @@ public class SaveCode extends AbstractVisitor {
 	public static void save(File dir, IJadxArgs args, ClassNode cls) {
 		CodeWriter clsCode = cls.getCode();
 		String fileName = cls.getClassInfo().getFullPath() + ".java";
-		if (args.isFallbackMode()) {
+  		if (args.isFallbackMode()) {
 			fileName += ".jadx";
 		}
 		clsCode.save(dir, fileName);

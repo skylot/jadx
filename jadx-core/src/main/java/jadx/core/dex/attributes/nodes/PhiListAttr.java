@@ -9,7 +9,7 @@ import java.util.List;
 
 public class PhiListAttr implements IAttribute {
 
-	private final List<PhiInsn> list = new LinkedList<PhiInsn>();
+	private final List<PhiInsn> list = new LinkedList<>();
 
 	@Override
 	public AType<PhiListAttr> getType() {

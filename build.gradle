@@ -1,32 +1,22 @@
-buildscript {
-    repositories {
-        mavenCentral()
-        jcenter()
-    }
-}
-
 plugins {
-    id "com.github.kt3k.coveralls" version "2.3.1"
-    id "info.solidsoft.pitest" version "1.1.4"
-//    id "com.github.ben-manes.versions" version "0.8"
+    id 'com.github.ksoichiro.console.reporter' version '0.5.0'
+    id 'org.sonarqube' version '2.4'
 }
-
-apply plugin: 'sonar-runner'
 
 ext.jadxVersion = file('version').readLines().get(0)
 version = jadxVersion
 
-subprojects {
+allprojects {
     apply plugin: 'java'
     apply plugin: 'groovy'
     apply plugin: 'jacoco'
-    apply plugin: 'com.github.kt3k.coveralls'
+    apply plugin: 'com.github.ksoichiro.console.reporter'
 
     version = jadxVersion
 
     tasks.withType(JavaCompile) {
-        sourceCompatibility = JavaVersion.VERSION_1_6
-        targetCompatibility = JavaVersion.VERSION_1_6
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
 
         if (!"$it".contains(':jadx-samples:')) {
             options.compilerArgs << '-Xlint' << '-Xlint:unchecked' << '-Xlint:deprecation'
@@ -52,25 +42,24 @@ subprojects {
     }
 
     repositories {
-        mavenCentral()
         mavenLocal()
+        mavenCentral()
         jcenter()
     }
 
     jacocoTestReport {
         reports {
-            xml.enabled = true // coveralls plugin depends on xml format report
+            xml.enabled = true
             html.enabled = true
         }
     }
 }
 
-/* Sonar runner configuration */
-repositories {
-    mavenCentral()
-}
-sonarRunner {
-    toolVersion = '2.4'
+sonarqube {
+    properties {
+        property 'sonar.exclusions', '**/jadx/samples/**/*,**/test-app/**/*'
+        property 'sonar.coverage.exclusions', '**/jadx/gui/**/*'
+    }
 }
 
 task copyArtifacts(type: Sync, dependsOn: ['jadx-cli:installDist', 'jadx-gui:installDist']) {
@@ -96,9 +85,6 @@ task samples(dependsOn: 'jadx-samples:samples') {
 task testAppCheck(dependsOn: 'jadx-test-app:testAppCheck') {
 }
 
-task pitest(overwrite: true, dependsOn: 'jadx-core:pitest') {
-}
-
 task cleanBuildDir(type: Delete) {
     delete buildDir
 }
@@ -107,6 +93,3 @@ build.dependsOn(dist, samples)
 
 clean.dependsOn(cleanBuildDir)
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '2.7'
-}

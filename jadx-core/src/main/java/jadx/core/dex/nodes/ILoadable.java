@@ -6,8 +6,6 @@ public interface ILoadable {
 
 	/**
 	 * On demand loading
-	 *
-	 * @throws DecodeException
 	 */
 	void load() throws DecodeException;
 
@@ -15,5 +13,4 @@ public interface ILoadable {
 	 * Free resources
 	 */
 	void unload();
-
 }

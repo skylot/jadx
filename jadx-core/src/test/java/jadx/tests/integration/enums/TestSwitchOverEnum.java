@@ -1,9 +1,9 @@
 package jadx.tests.integration.enums;
 
+import org.junit.Test;
+
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import org.junit.Test;
 
 import static jadx.tests.api.utils.JadxMatchers.countString;
 import static org.junit.Assert.assertEquals;

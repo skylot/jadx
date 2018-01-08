@@ -1,15 +1,11 @@
 package jadx.gui.utils;
 
+import javax.swing.*;
+import java.net.URL;
+
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-
-import javax.swing.Action;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.KeyStroke;
-import java.net.URL;
 
 public class Utils {
 

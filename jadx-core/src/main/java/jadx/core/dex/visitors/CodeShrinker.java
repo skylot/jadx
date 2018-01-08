@@ -57,7 +57,7 @@ public class CodeShrinker extends AbstractVisitor {
 		}
 
 		public static List<RegisterArg> getArgs(InsnNode insn) {
-			List<RegisterArg> args = new LinkedList<RegisterArg>();
+			List<RegisterArg> args = new LinkedList<>();
 			addArgs(insn, args);
 			return args;
 		}
@@ -191,11 +191,11 @@ public class CodeShrinker extends AbstractVisitor {
 		}
 		InsnList insnList = new InsnList(block.getInstructions());
 		int insnCount = insnList.size();
-		List<ArgsInfo> argsList = new ArrayList<ArgsInfo>(insnCount);
+		List<ArgsInfo> argsList = new ArrayList<>(insnCount);
 		for (int i = 0; i < insnCount; i++) {
 			argsList.add(new ArgsInfo(insnList.get(i), argsList, i));
 		}
-		List<WrapInfo> wrapList = new ArrayList<WrapInfo>();
+		List<WrapInfo> wrapList = new ArrayList<>();
 		for (ArgsInfo argsInfo : argsList) {
 			List<RegisterArg> args = argsInfo.getArgs();
 			if (args.isEmpty()) {

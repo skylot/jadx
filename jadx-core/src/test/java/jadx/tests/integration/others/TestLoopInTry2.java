@@ -1,18 +1,17 @@
 package jadx.tests.integration.others;
 
+import java.io.EOFException;
+
+import com.android.dex.Code;
+import com.android.dx.io.instructions.DecodedInstruction;
+import com.android.dx.io.instructions.ShortArrayCodeInput;
+import org.junit.Test;
+
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.tests.api.IntegrationTest;
-
-import java.io.EOFException;
-
-import org.junit.Test;
-
-import com.android.dex.Code;
-import com.android.dx.io.instructions.DecodedInstruction;
-import com.android.dx.io.instructions.ShortArrayCodeInput;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.junit.Assert.assertThat;

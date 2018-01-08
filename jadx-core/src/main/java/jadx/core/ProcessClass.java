@@ -9,8 +9,6 @@ import jadx.core.utils.ErrorsCounter;
 import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static jadx.core.dex.nodes.ProcessState.GENERATED;
 import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
@@ -19,7 +17,6 @@ import static jadx.core.dex.nodes.ProcessState.STARTED;
 import static jadx.core.dex.nodes.ProcessState.UNLOADED;
 
 public final class ProcessClass {
-	private static final Logger LOG = LoggerFactory.getLogger(ProcessClass.class);
 
 	private ProcessClass() {
 	}
@@ -28,7 +25,7 @@ public final class ProcessClass {
 		if (codeGen == null && cls.getState() == PROCESSED) {
 			return;
 		}
-		synchronized (cls) {
+		synchronized (cls.getClassInfo()) {
 			try {
 				if (cls.getState() == NOT_LOADED) {
 					cls.load();
@@ -54,7 +51,7 @@ public final class ProcessClass {
 		}
 	}
 
-	static void processDependencies(ClassNode cls, List<IDexTreeVisitor> passes) {
+	private static void processDependencies(ClassNode cls, List<IDexTreeVisitor> passes) {
 		for (ClassNode depCls : cls.getDependencies()) {
 			process(depCls, passes, null);
 		}

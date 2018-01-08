@@ -1,8 +1,5 @@
 package jadx.tests.integration.others;
 
-import jadx.core.dex.nodes.ClassNode;
-import jadx.tests.api.IntegrationTest;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -10,6 +7,9 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 
 import org.junit.Test;
+
+import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static jadx.tests.api.utils.JadxMatchers.countString;

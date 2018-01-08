@@ -66,7 +66,7 @@ public final class FillArrayNode extends InsnNode {
 	}
 
 	public List<LiteralArg> getLiteralArgs() {
-		List<LiteralArg> list = new ArrayList<LiteralArg>(size);
+		List<LiteralArg> list = new ArrayList<>(size);
 		Object array = data;
 		if (array instanceof int[]) {
 			for (int b : (int[]) array) {

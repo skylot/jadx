@@ -65,7 +65,8 @@ public class BlockUtils {
 		if (size == 1) {
 			BlockNode first = blocks.get(0);
 			return first != node ? first : null;
-		} else if (size == 2) {
+		}
+		if (size == 2) {
 			BlockNode first = blocks.get(0);
 			return first != node ? first : blocks.get(1);
 		}
@@ -89,7 +90,7 @@ public class BlockUtils {
 	 * Remove exception handlers from block nodes list
 	 */
 	private static List<BlockNode> cleanBlockList(List<BlockNode> list) {
-		List<BlockNode> ret = new ArrayList<BlockNode>(list.size());
+		List<BlockNode> ret = new ArrayList<>(list.size());
 		for (BlockNode block : list) {
 			if (!isBlockMustBeCleared(block)) {
 				ret.add(block);
@@ -117,12 +118,10 @@ public class BlockUtils {
 	 */
 	public static List<BlockNode> filterPredecessors(BlockNode block) {
 		List<BlockNode> predecessors = block.getPredecessors();
-		List<BlockNode> list = new ArrayList<BlockNode>(predecessors.size());
+		List<BlockNode> list = new ArrayList<>(predecessors.size());
 		for (BlockNode pred : predecessors) {
 			IgnoreEdgeAttr edgeAttr = pred.get(AType.IGNORE_EDGE);
-			if (edgeAttr == null) {
-				list.add(pred);
-			} else if (!edgeAttr.contains(block)) {
+			if (edgeAttr == null || !edgeAttr.contains(block)) {
 				list.add(pred);
 			}
 		}
@@ -274,7 +273,7 @@ public class BlockUtils {
 		if (size == 0) {
 			return Collections.emptyList();
 		}
-		List<BlockNode> blocks = new ArrayList<BlockNode>(size);
+		List<BlockNode> blocks = new ArrayList<>(size);
 		for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
 			BlockNode block = mth.getBasicBlocks().get(i);
 			blocks.add(block);
@@ -311,7 +310,7 @@ public class BlockUtils {
 	 * Collect blocks from all possible execution paths from 'start' to 'end'
 	 */
 	public static Set<BlockNode> getAllPathsBlocks(BlockNode start, BlockNode end) {
-		Set<BlockNode> set = new HashSet<BlockNode>();
+		Set<BlockNode> set = new HashSet<>();
 		set.add(start);
 		if (start != end) {
 			addPredecessors(set, end, start);
@@ -398,9 +397,10 @@ public class BlockUtils {
 		if (!end.isDominator(start)) {
 			return false;
 		}
-		while (start.getCleanSuccessors().size() == 1) {
-			start = start.getCleanSuccessors().get(0);
-			if (start == end) {
+		BlockNode currentNode = start;
+		while (currentNode.getCleanSuccessors().size() == 1) {
+			currentNode = currentNode.getCleanSuccessors().get(0);
+			if (currentNode == end) {
 				return true;
 			}
 		}
@@ -452,29 +452,39 @@ public class BlockUtils {
 	 * Collect all block dominated by 'dominator', starting from 'start'
 	 */
 	public static List<BlockNode> collectBlocksDominatedBy(BlockNode dominator, BlockNode start) {
-		List<BlockNode> result = new ArrayList<BlockNode>();
-		collectWhileDominates(dominator, start, result);
+		List<BlockNode> result = new ArrayList<>();
+		HashSet<BlockNode> visited = new HashSet<BlockNode>();
+		collectWhileDominates(dominator, start, result, visited);
 		return result;
 	}
 
-	private static void collectWhileDominates(BlockNode dominator, BlockNode child, List<BlockNode> result) {
+	private static void collectWhileDominates(BlockNode dominator, BlockNode child, List<BlockNode> result,
+			HashSet<BlockNode> visited) {
+		if (visited.contains(child)) {
+			return;
+		}
+		visited.add(child);
 		for (BlockNode node : child.getCleanSuccessors()) {
 			if (node.isDominator(dominator)) {
 				result.add(node);
-				collectWhileDominates(dominator, node, result);
+				collectWhileDominates(dominator, node, result, visited);
 			}
 		}
 	}
 
 	public static List<BlockNode> buildSimplePath(BlockNode block) {
-		List<BlockNode> list = new LinkedList<BlockNode>();
-		while (block != null
-				&& block.getCleanSuccessors().size() < 2
-				&& block.getPredecessors().size() == 1) {
-			list.add(block);
-			block = getNextBlock(block);
+		List<BlockNode> list = new LinkedList<>();
+		BlockNode currentBlock = block;
+		while (currentBlock != null
+				&& currentBlock.getCleanSuccessors().size() < 2
+				&& currentBlock.getPredecessors().size() == 1) {
+			list.add(currentBlock);
+			currentBlock = getNextBlock(currentBlock);
 		}
-		return list.isEmpty() ? Collections.<BlockNode>emptyList() : list;
+		if (list.isEmpty()) {
+			return Collections.emptyList();
+		}
+		return list;
 	}
 
 	/**

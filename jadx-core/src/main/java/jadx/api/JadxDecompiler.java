@@ -26,6 +26,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -53,7 +54,7 @@ public final class JadxDecompiler {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxDecompiler.class);
 
 	private final IJadxArgs args;
-	private final List<InputFile> inputFiles = new ArrayList<InputFile>();
+	private final List<InputFile> inputFiles = new ArrayList<>();
 
 	private File outDir;
 
@@ -66,9 +67,9 @@ public final class JadxDecompiler {
 
 	private BinaryXMLParser xmlParser;
 
-	private Map<ClassNode, JavaClass> classesMap = new HashMap<ClassNode, JavaClass>();
-	private Map<MethodNode, JavaMethod> methodsMap = new HashMap<MethodNode, JavaMethod>();
-	private Map<FieldNode, JavaField> fieldsMap = new HashMap<FieldNode, JavaField>();
+	private Map<ClassNode, JavaClass> classesMap = new ConcurrentHashMap<>();
+	private Map<MethodNode, JavaMethod> methodsMap = new ConcurrentHashMap<>();
+	private Map<FieldNode, JavaField> fieldsMap = new ConcurrentHashMap<>();
 
 	public JadxDecompiler() {
 		this(new JadxArgs());
@@ -139,12 +140,13 @@ public final class JadxDecompiler {
 	}
 
 	private void save(boolean saveSources, boolean saveResources) {
+		ExecutorService ex = getSaveExecutor(saveSources, saveResources);
+		ex.shutdown();
 		try {
-			ExecutorService ex = getSaveExecutor(saveSources, saveResources);
-			ex.shutdown();
 			ex.awaitTermination(1, TimeUnit.DAYS);
 		} catch (InterruptedException e) {
-			throw new JadxRuntimeException("Save interrupted", e);
+			LOG.error("Save interrupted", e);
+			Thread.currentThread().interrupt();
 		}
 	}
 
@@ -188,17 +190,14 @@ public final class JadxDecompiler {
 		}
 	}
 
-	private void appendSourcesSave(ExecutorService executor, final File outDir) {
-		for (final JavaClass cls : getClasses()) {
+	private void appendSourcesSave(ExecutorService executor, File outDir) {
+		for (JavaClass cls : getClasses()) {
 			if (cls.getClassNode().contains(AFlag.DONT_GENERATE)) {
 				continue;
 			}
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					cls.decompile();
-					SaveCode.save(outDir, args, cls.getClassNode());
-				}
+			executor.execute(() -> {
+				cls.decompile();
+				SaveCode.save(outDir, args, cls.getClassNode());
 			});
 		}
 	}
@@ -209,7 +208,7 @@ public final class JadxDecompiler {
 		}
 		if (classes == null) {
 			List<ClassNode> classNodeList = root.getClasses(false);
-			List<JavaClass> clsList = new ArrayList<JavaClass>(classNodeList.size());
+			List<JavaClass> clsList = new ArrayList<>(classNodeList.size());
 			classesMap.clear();
 			for (ClassNode classNode : classNodeList) {
 				JavaClass javaClass = new JavaClass(classNode, this);
@@ -236,28 +235,19 @@ public final class JadxDecompiler {
 		if (classList.isEmpty()) {
 			return Collections.emptyList();
 		}
-		Map<String, List<JavaClass>> map = new HashMap<String, List<JavaClass>>();
+		Map<String, List<JavaClass>> map = new HashMap<>();
 		for (JavaClass javaClass : classList) {
 			String pkg = javaClass.getPackage();
-			List<JavaClass> clsList = map.get(pkg);
-			if (clsList == null) {
-				clsList = new ArrayList<JavaClass>();
-				map.put(pkg, clsList);
-			}
+			List<JavaClass> clsList = map.computeIfAbsent(pkg, k -> new ArrayList<>());
 			clsList.add(javaClass);
 		}
-		List<JavaPackage> packages = new ArrayList<JavaPackage>(map.size());
+		List<JavaPackage> packages = new ArrayList<>(map.size());
 		for (Map.Entry<String, List<JavaClass>> entry : map.entrySet()) {
 			packages.add(new JavaPackage(entry.getKey(), entry.getValue()));
 		}
 		Collections.sort(packages);
 		for (JavaPackage pkg : packages) {
-			Collections.sort(pkg.getClasses(), new Comparator<JavaClass>() {
-				@Override
-				public int compare(JavaClass o1, JavaClass o2) {
-					return o1.getName().compareTo(o2.getName());
-				}
-			});
+			pkg.getClasses().sort(Comparator.comparing(JavaClass::getName));
 		}
 		return Collections.unmodifiableList(packages);
 	}

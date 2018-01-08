@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,7 +94,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 	private static boolean extractFinally(MethodNode mth, ExceptionHandler handler) {
 		int count = handler.getBlocks().size();
 		BitSet bs = new BitSet(count);
-		List<BlockNode> blocks = new ArrayList<BlockNode>(count);
+		List<BlockNode> blocks = new ArrayList<>(count);
 		for (BlockNode block : handler.getBlocks()) {
 			List<InsnNode> insns = block.getInstructions();
 			if (!insns.isEmpty()) {
@@ -108,8 +109,8 @@ public class BlockFinallyExtract extends AbstractVisitor {
 			return false;
 		}
 
-		List<BlocksRemoveInfo> removes = new LinkedList<BlocksRemoveInfo>();
-		Set<BlockNode> splitters = new HashSet<BlockNode>();
+		List<BlocksRemoveInfo> removes = new LinkedList<>();
+		Set<BlockNode> splitters = new HashSet<>();
 
 		// remove 'finally' from handlers
 		TryCatchBlock tryBlock = handler.getTryBlock();
@@ -238,7 +239,6 @@ public class BlockFinallyExtract extends AbstractVisitor {
 				if (!processed.get(fromRegNum)) {
 					boolean liveFromBefore = laBefore.isLive(insertBlockBefore, fromRegNum);
 					boolean liveFromAfter = laAfter.isLive(insertBlock, fromRegNum);
-					// boolean liveToBefore = laBefore.isLive(insertBlock, toRegNum);
 					boolean liveToAfter = laAfter.isLive(insertBlock, toRegNum);
 					if (liveToAfter && liveFromBefore) {
 						// merge 'to' and 'from' registers
@@ -308,7 +308,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 	}
 
 	private static boolean mergeReturns(MethodNode mth, Set<BlocksPair> outs) {
-		Set<BlockNode> rightOuts = new HashSet<BlockNode>();
+		Set<BlockNode> rightOuts = new HashSet<>();
 		boolean allReturns = true;
 		for (BlocksPair outPair : outs) {
 			BlockNode first = outPair.getFirst();
@@ -346,7 +346,8 @@ public class BlockFinallyExtract extends AbstractVisitor {
 	/**
 	 * 'Finally' instructions can start in the middle of the first block.
 	 */
-	private static BlocksRemoveInfo isStartBlock(BlockNode remBlock, BlockNode startBlock) {
+	private static @Nullable
+	BlocksRemoveInfo isStartBlock(BlockNode remBlock, BlockNode startBlock) {
 		List<InsnNode> remInsns = remBlock.getInstructions();
 		List<InsnNode> startInsns = startBlock.getInstructions();
 		if (remInsns.size() < startInsns.size()) {
@@ -400,8 +401,8 @@ public class BlockFinallyExtract extends AbstractVisitor {
 		return true;
 	}
 
-	private static boolean checkBlocksTree(BlockNode remBlock, BlockNode startBlock, BlocksRemoveInfo removeInfo,
-			BitSet bs) {
+	private static boolean checkBlocksTree(BlockNode remBlock, BlockNode startBlock,
+			@NotNull BlocksRemoveInfo removeInfo, BitSet bs) {
 		// skip check on start block
 		if (!removeInfo.getProcessed().isEmpty()
 				&& !sameBlocks(remBlock, startBlock, removeInfo)) {
@@ -434,7 +435,8 @@ public class BlockFinallyExtract extends AbstractVisitor {
 		return true;
 	}
 
-	private static boolean sameBlocks(BlockNode remBlock, BlockNode finallyBlock, BlocksRemoveInfo removeInfo) {
+	private static boolean sameBlocks(BlockNode remBlock, BlockNode finallyBlock,
+			@NotNull BlocksRemoveInfo removeInfo) {
 		List<InsnNode> first = remBlock.getInstructions();
 		List<InsnNode> second = finallyBlock.getInstructions();
 		if (first.size() < second.size()) {
@@ -453,7 +455,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 		return true;
 	}
 
-	private static boolean sameInsns(InsnNode remInsn, InsnNode fInsn, BlocksRemoveInfo removeInfo) {
+	private static boolean sameInsns(InsnNode remInsn, InsnNode fInsn, @Nullable BlocksRemoveInfo removeInfo) {
 		if (!remInsn.isSame(fInsn)) {
 			return false;
 		}
@@ -541,7 +543,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 		if (filtPreds.size() > 1) {
 			BlockNode pred = sOut.getPredecessors().get(0);
 			BlockNode newPred = BlockSplitter.insertBlockBetween(mth, pred, sOut);
-			for (BlockNode predBlock : new ArrayList<BlockNode>(sOut.getPredecessors())) {
+			for (BlockNode predBlock : new ArrayList<>(sOut.getPredecessors())) {
 				if (predBlock != newPred) {
 					removeConnection(predBlock, sOut);
 					connect(predBlock, newPred);
@@ -566,7 +568,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 		}
 
 		// redirect input edges
-		for (BlockNode pred : new ArrayList<BlockNode>(remBlock.getPredecessors())) {
+		for (BlockNode pred : new ArrayList<>(remBlock.getPredecessors())) {
 			BlockNode middle = insertBlockBetween(mth, pred, remBlock);
 			removeConnection(middle, remBlock);
 			connect(middle, startBlock);
@@ -593,7 +595,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 		BlockNode newBlock = BlockSplitter.startNewBlock(mth, -1);
 
 		newBlock.getSuccessors().addAll(block.getSuccessors());
-		for (BlockNode s : new ArrayList<BlockNode>(block.getSuccessors())) {
+		for (BlockNode s : new ArrayList<>(block.getSuccessors())) {
 			removeConnection(block, s);
 			connect(newBlock, s);
 		}
@@ -684,7 +686,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 		if (edgeAttr == null) {
 			return;
 		}
-		List<BlockNode> merge = new LinkedList<BlockNode>();
+		List<BlockNode> merge = new LinkedList<>();
 		for (BlockNode blockNode : pred.getSuccessors()) {
 			if (blockNode.contains(AFlag.RETURN)) {
 				merge.add(blockNode);
@@ -718,7 +720,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 	}
 
 	private static void mergeSyntheticPredecessors(MethodNode mth, BlockNode block) {
-		List<BlockNode> preds = new ArrayList<BlockNode>(block.getPredecessors());
+		List<BlockNode> preds = new ArrayList<>(block.getPredecessors());
 		Iterator<BlockNode> it = preds.iterator();
 		while (it.hasNext()) {
 			BlockNode predBlock = it.next();

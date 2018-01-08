@@ -7,6 +7,7 @@ import jadx.api.ResourcesLoader;
 import jadx.core.clsp.ClspGraph;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.ConstStorage;
+import jadx.core.dex.info.InfoStorage;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.android.AndroidResourcesUtils;
@@ -34,6 +35,7 @@ public class RootNode {
 	private final IJadxArgs args;
 	private final StringUtils stringUtils;
 	private final ConstStorage constValues;
+	private final InfoStorage infoStorage = new InfoStorage();
 
 	private List<DexNode> dexNodes;
 	@Nullable
@@ -48,12 +50,12 @@ public class RootNode {
 	}
 
 	public void load(List<InputFile> inputFiles) throws DecodeException {
-		dexNodes = new ArrayList<DexNode>();
+		dexNodes = new ArrayList<>();
 		for (InputFile input : inputFiles) {
 			for (DexFile dexFile : input.getDexFiles()) {
 				try {
 					LOG.debug("Load: {}", dexFile);
-					DexNode dexNode = new DexNode(this, dexFile);
+					DexNode dexNode = new DexNode(this, dexFile, dexNodes.size());
 					dexNodes.add(dexNode);
 				} catch (Exception e) {
 					throw new DecodeException("Error decode file: " + dexFile, e);
@@ -78,7 +80,7 @@ public class RootNode {
 			LOG.debug("'.arsc' file not found");
 			return;
 		}
-		final ResTableParser parser = new ResTableParser();
+		ResTableParser parser = new ResTableParser();
 		try {
 			ResourcesLoader.decodeStream(arsc, new ResourcesLoader.ResourceDecoder() {
 				@Override
@@ -107,7 +109,7 @@ public class RootNode {
 				ClspGraph clsp = new ClspGraph();
 				clsp.load();
 
-				List<ClassNode> classes = new ArrayList<ClassNode>();
+				List<ClassNode> classes = new ArrayList<>();
 				for (DexNode dexNode : dexNodes) {
 					classes.addAll(dexNode.getClasses());
 				}
@@ -127,7 +129,7 @@ public class RootNode {
 	}
 
 	public List<ClassNode> getClasses(boolean includeInner) {
-		List<ClassNode> classes = new ArrayList<ClassNode>();
+		List<ClassNode> classes = new ArrayList<>();
 		for (DexNode dex : dexNodes) {
 			if (includeInner) {
 				classes.addAll(dex.getClasses());
@@ -154,7 +156,7 @@ public class RootNode {
 	}
 
 	public List<ClassNode> searchClassByShortName(String shortName) {
-		List<ClassNode> list = new ArrayList<ClassNode>();
+		List<ClassNode> list = new ArrayList<>();
 		for (DexNode dexNode : dexNodes) {
 			for (ClassNode cls : dexNode.getClasses()) {
 				if (cls.getClassInfo().getShortName().equals(shortName)) {
@@ -197,4 +199,9 @@ public class RootNode {
 	public ConstStorage getConstValues() {
 		return constValues;
 	}
+
+	public InfoStorage getInfoStorage() {
+		return infoStorage;
+	}
+
 }

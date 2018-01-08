@@ -96,7 +96,7 @@ public class RunTests {
 	}
 
 	private static List<String> getClasses(ClassLoader clsLoader, String packageName) {
-		List<String> clsList = new ArrayList<String>();
+		List<String> clsList = new ArrayList<>();
 		URL resource = clsLoader.getResource(packageName.replace('.', '/'));
 		if (resource != null) {
 			File path = new File(resource.getFile());

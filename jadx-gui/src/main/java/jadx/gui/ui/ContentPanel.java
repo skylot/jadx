@@ -1,10 +1,12 @@
 package jadx.gui.ui;
 
+import javax.swing.*;
+
 import jadx.gui.treemodel.JNode;
 
-import javax.swing.JPanel;
-
 abstract class ContentPanel extends JPanel {
+
+	private static final long serialVersionUID = 3237031760631677822L;
 
 	protected final TabbedPane tabbedPane;
 	protected final JNode node;

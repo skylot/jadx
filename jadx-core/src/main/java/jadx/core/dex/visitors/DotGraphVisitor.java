@@ -96,7 +96,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 					+ "(" + Utils.listToString(mth.getArguments(true)) + ") "));
 
 			String attrs = attributesString(mth);
-			if (attrs.length() != 0) {
+			if (!attrs.isEmpty()) {
 				dot.add(" | ").add(attrs);
 			}
 			dot.add("}\"];");
@@ -122,7 +122,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 					processRegion(mth, h.getHandlerRegion());
 				}
 			}
-			Set<IBlock> regionsBlocks = new HashSet<IBlock>(mth.getBasicBlocks().size());
+			Set<IBlock> regionsBlocks = new HashSet<>(mth.getBasicBlocks().size());
 			RegionUtils.getAllRegionBlocks(mth.getRegion(), regionsBlocks);
 			for (ExceptionHandler handler : mth.getExceptionHandlers()) {
 				IContainer handlerRegion = handler.getHandlerRegion();
@@ -143,7 +143,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 				dot.startLine("subgraph " + makeName(region) + " {");
 				dot.startLine("label = \"").add(r.toString());
 				String attrs = attributesString(r);
-				if (attrs.length() != 0) {
+				if (!attrs.isEmpty()) {
 					dot.add(" | ").add(attrs);
 				}
 				dot.add("\";");
@@ -171,11 +171,11 @@ public class DotGraphVisitor extends AbstractVisitor {
 			dot.add("label=\"{");
 			dot.add(String.valueOf(block.getId())).add("\\:\\ ");
 			dot.add(InsnUtils.formatOffset(block.getStartOffset()));
-			if (attrs.length() != 0) {
+			if (!attrs.isEmpty()) {
 				dot.add('|').add(attrs);
 			}
 			String insns = insertInsns(mth, block);
-			if (insns.length() != 0) {
+			if (!insns.isEmpty()) {
 				dot.add('|').add(insns);
 			}
 			dot.add("}\"];");
@@ -208,11 +208,11 @@ public class DotGraphVisitor extends AbstractVisitor {
 				dot.add("color=red,");
 			}
 			dot.add("label=\"{");
-			if (attrs.length() != 0) {
+			if (!attrs.isEmpty()) {
 				dot.add(attrs);
 			}
 			String insns = insertInsns(mth, block);
-			if (insns.length() != 0) {
+			if (!insns.isEmpty()) {
 				dot.add('|').add(insns);
 			}
 			dot.add("}\"];");

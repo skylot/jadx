@@ -1,5 +1,7 @@
 package jadx.tests.integration.loops;
 
+import org.junit.Test;
+
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.BlockNode;
@@ -13,8 +15,6 @@ import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InstructionRemover;
 import jadx.tests.api.IntegrationTest;
-
-import org.junit.Test;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.CoreMatchers.containsString;

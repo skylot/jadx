@@ -13,7 +13,7 @@ import java.util.List;
  */
 public class DeclareVariablesAttr implements IAttribute {
 
-	private final List<RegisterArg> vars = new LinkedList<RegisterArg>();
+	private final List<RegisterArg> vars = new LinkedList<>();
 
 	public Iterable<RegisterArg> getVars() {
 		return vars;

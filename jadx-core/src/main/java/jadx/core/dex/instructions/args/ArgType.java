@@ -140,16 +140,16 @@ public abstract class ArgType {
 	}
 
 	private static class ObjectType extends KnownType {
-		private final String object;
+		private final String objName;
 
 		public ObjectType(String obj) {
-			this.object = Utils.cleanObjectName(obj);
-			this.hash = object.hashCode();
+			this.objName = Utils.cleanObjectName(obj);
+			this.hash = objName.hashCode();
 		}
 
 		@Override
 		public String getObject() {
-			return object;
+			return objName;
 		}
 
 		@Override
@@ -164,12 +164,12 @@ public abstract class ArgType {
 
 		@Override
 		boolean internalEquals(Object obj) {
-			return object.equals(((ObjectType) obj).object);
+			return objName.equals(((ObjectType) obj).objName);
 		}
 
 		@Override
 		public String toString() {
-			return object;
+			return objName;
 		}
 	}
 
@@ -280,7 +280,7 @@ public abstract class ArgType {
 	}
 
 	private static final class ArrayArg extends KnownType {
-		public static final PrimitiveType[] ARRAY_POSSIBLES = new PrimitiveType[]{PrimitiveType.ARRAY};
+		private static final PrimitiveType[] ARRAY_POSSIBLES = new PrimitiveType[]{PrimitiveType.ARRAY};
 		private final ArgType arrayElement;
 
 		public ArrayArg(ArgType arrayElement) {
@@ -495,7 +495,7 @@ public abstract class ArgType {
 				return null;
 			} else {
 				// both types unknown
-				List<PrimitiveType> types = new ArrayList<PrimitiveType>();
+				List<PrimitiveType> types = new ArrayList<>();
 				for (PrimitiveType type : a.getPossibleTypes()) {
 					if (b.contains(type)) {
 						types.add(type);
@@ -622,8 +622,10 @@ public abstract class ArgType {
 				return DOUBLE;
 			case 'V':
 				return VOID;
+
+			default:
+				return null;
 		}
-		return null;
 	}
 
 	public int getRegCount() {

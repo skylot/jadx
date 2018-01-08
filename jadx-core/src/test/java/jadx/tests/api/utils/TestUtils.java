@@ -6,11 +6,11 @@ public class TestUtils {
 
 	public static String indent(int indent) {
 		if (indent == 1) {
-			return CodeWriter.INDENT;
+			return CodeWriter.INDENT_STR;
 		}
-		StringBuilder sb = new StringBuilder(indent * CodeWriter.INDENT.length());
+		StringBuilder sb = new StringBuilder(indent * CodeWriter.INDENT_STR.length());
 		for (int i = 0; i < indent; i++) {
-			sb.append(CodeWriter.INDENT);
+			sb.append(CodeWriter.INDENT_STR);
 		}
 		return sb.toString();
 	}
