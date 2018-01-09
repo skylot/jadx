@@ -49,7 +49,24 @@ public class ManifestAttributes {
 
 	private final Map<String, MAttr> attrMap = new HashMap<>();
 
-	public void parseAll() {
+	private static ManifestAttributes instance;
+
+	public static ManifestAttributes getInstance() {
+		if (instance == null) {
+			try {
+				instance = new ManifestAttributes();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return instance;
+	}
+
+	private ManifestAttributes() {
+		parseAll();
+	}
+
+	private void parseAll() {
 		parse(loadXML(ATTR_XML));
 		parse(loadXML(MANIFEST_ATTR_XML));
 		LOG.debug("Loaded android attributes count: {}", attrMap.size());
@@ -158,7 +175,10 @@ public class ManifestAttributes {
 		} else if (attr.getType() == MAttrType.FLAG) {
 			StringBuilder sb = new StringBuilder();
 			for (Map.Entry<Long, String> entry : attr.getValues().entrySet()) {
-				if ((value & entry.getKey()) != 0) {
+				if (value == entry.getKey()) {
+					sb = new StringBuilder(entry.getValue() + "|");
+					break;
+				} else if ((value & entry.getKey()) == entry.getKey()) {
 					sb.append(entry.getValue()).append('|');
 				}
 			}
@@ -166,6 +186,6 @@ public class ManifestAttributes {
 				return sb.deleteCharAt(sb.length() - 1).toString();
 			}
 		}
-		return "UNKNOWN_DATA_0x" + Long.toHexString(value);
+		return null;
 	}
 }

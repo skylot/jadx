@@ -6,7 +6,6 @@ import jadx.core.dex.info.ConstStorage;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.entry.ValuesParser;
 
@@ -35,27 +34,28 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private static final Logger LOG = LoggerFactory.getLogger(BinaryXMLParser.class);
 	private static final String ANDROID_R_STYLE_CLS = "android.R$style";
 	private static final boolean ATTR_NEW_LINE = false;
-
+	private final Map<Integer, String> styleMap = new HashMap<Integer, String>();
+	private final Map<Integer, FieldNode> localStyleMap = new HashMap<Integer, FieldNode>();
+	private final Map<Integer, String> resNames;
+	private final Map<String, String> nsMap = new HashMap<>();
 	private CodeWriter writer;
 	private String[] strings;
-
-	private String nsPrefix = "ERROR";
-	private String nsURI = "ERROR";
 	private String currentTag = "ERROR";
-
 	private boolean firstElement;
-	private boolean wasOneLiner = false;
-
-	private final Map<Integer, String> styleMap = new HashMap<>();
-	private final Map<Integer, FieldNode> localStyleMap = new HashMap<>();
-	private final Map<Integer, String> resNames;
 	private ValuesParser valuesParser;
-
-	private final ManifestAttributes attributes;
+	private boolean isLastEnd = true;
+	private boolean isOneLine = true;
 
 	public BinaryXMLParser(RootNode root) {
 		try {
-			loadStyles();
+			try {
+				Class<?> rStyleCls = Class.forName(ANDROID_R_STYLE_CLS);
+				for (Field f : rStyleCls.getFields()) {
+					styleMap.put(f.getInt(f.getType()), f.getName());
+				}
+			} catch (Throwable th) {
+				LOG.error("R class loading failed", th);
+			}
 			// add application constants
 			ConstStorage constStorage = root.getConstValues();
 			Map<Object, FieldNode> constFields = constStorage.getGlobalConstFields();
@@ -67,22 +67,8 @@ public class BinaryXMLParser extends CommonBinaryParser {
 				}
 			}
 			resNames = constStorage.getResourcesNames();
-
-			attributes = new ManifestAttributes();
-			attributes.parseAll();
 		} catch (Exception e) {
 			throw new JadxRuntimeException("BinaryXMLParser init error", e);
-		}
-	}
-
-	private void loadStyles() {
-		try {
-			Class<?> rStyleCls = Class.forName(ANDROID_R_STYLE_CLS);
-			for (Field f : rStyleCls.getFields()) {
-				styleMap.put(f.getInt(f.getType()), f.getName());
-			}
-		} catch (Exception th) {
-			LOG.error("R class loading failed", th);
 		}
 	}
 
@@ -126,11 +112,13 @@ public class BinaryXMLParser extends CommonBinaryParser {
 					parseResourceMap();
 					break;
 				case RES_XML_START_NAMESPACE_TYPE:
-				case RES_XML_END_NAMESPACE_TYPE:
 					parseNameSpace();
 					break;
 				case RES_XML_CDATA_TYPE:
 					parseCData();
+					break;
+				case RES_XML_END_NAMESPACE_TYPE:
+					parseNameSpaceEnd();
 					break;
 				case RES_XML_START_ELEMENT_TYPE:
 					parseElement();
@@ -164,12 +152,25 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		if (is.readInt32() != 0x18) {
 			die("NAMESPACE header chunk is not 0x18 big");
 		}
-		int lineNumber = is.readInt32();
+		int beginLineNumber = is.readInt32();
 		int comment = is.readInt32();
-		int idPrefix = is.readInt32();
-		nsPrefix = strings[idPrefix];
-		int idURI = is.readInt32();
-		nsURI = strings[idURI];
+		int beginPrefix = is.readInt32();
+		int beginURI = is.readInt32();
+		nsMap.computeIfAbsent(strings[beginURI], k -> strings[beginPrefix]);
+	}
+
+	private void parseNameSpaceEnd() throws IOException {
+		if (is.readInt16() != 0x10) {
+			die("NAMESPACE header is not 0x0010");
+		}
+		if (is.readInt32() != 0x18) {
+			die("NAMESPACE header chunk is not 0x18 big");
+		}
+		int endLineNumber = is.readInt32();
+		int comment = is.readInt32();
+		int endPrefix = is.readInt32();
+		int endURI = is.readInt32();
+		nsMap.computeIfAbsent(strings[endURI], k -> strings[endPrefix]);
 	}
 
 	private void parseCData() throws IOException {
@@ -185,11 +186,13 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int strIndex = is.readInt32();
 		String str = strings[strIndex];
 
-		writer.startLine().addIndent();
-		writer.attachSourceLine(lineNumber);
-		writer.add(StringUtils.escapeXML(str.trim())); // TODO: wrap into CDATA for easier reading
 
-		long size = is.readInt16();
+		//TODO: what's this for?
+        /*writer.startLine().addIndent();
+        writer.attachSourceLine(lineNumber);
+        writer.add(StringUtils.escapeXML(str.trim()));*/
+
+		int size = is.readInt16();
 		is.skip(size - 2);
 	}
 
@@ -208,11 +211,11 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int comment = is.readInt32();
 		int startNS = is.readInt32();
 		int startNSName = is.readInt32(); // actually is elementName...
-		if (!wasOneLiner && !"ERROR".equals(currentTag)
-				&& !currentTag.equals(strings[startNSName])) {
+		if (!isLastEnd && !"ERROR".equals(currentTag)) {
 			writer.add(">");
 		}
-		wasOneLiner = false;
+		isOneLine = true;
+		isLastEnd = false;
 		currentTag = strings[startNSName];
 		writer.startLine("<").add(currentTag);
 		writer.attachSourceLine(elementBegLineNumber);
@@ -229,9 +232,11 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int classIndex = is.readInt16();
 		int styleIndex = is.readInt16();
 		if ("manifest".equals(currentTag) || writer.getIndent() == 0) {
-			writer.add(" xmlns:android=\"").add(nsURI).add("\"");
+			for (Map.Entry<String, String> entry : nsMap.entrySet()) {
+				writer.add(" xmlns:" + entry.getValue() + "=\"").add(entry.getKey()).add("\"");
+			}
 		}
-		boolean attrNewLine = attributeCount != 1 && ATTR_NEW_LINE;
+		boolean attrNewLine = attributeCount == 1 ? false : ATTR_NEW_LINE;
 		for (int i = 0; i < attributeCount; i++) {
 			parseAttribute(i, attrNewLine);
 		}
@@ -258,10 +263,10 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			writer.add(' ');
 		}
 		if (attributeNS != -1) {
-			writer.add(nsPrefix).add(':');
+			writer.add(nsMap.get(strings[attributeNS])).add(':');
 		}
 		writer.add(attrName).add("=\"");
-		String decodedAttr = attributes.decode(attrName, attrValData);
+		String decodedAttr = ManifestAttributes.getInstance().decode(attrName, attrValData);
 		if (decodedAttr != null) {
 			writer.add(decodedAttr);
 		} else {
@@ -275,10 +280,11 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			// reference custom processing
 			String name = styleMap.get(attrValData);
 			if (name != null) {
-				writer.add("@*");
+				writer.add("@");
 				if (attributeNS != -1) {
-					writer.add(nsPrefix).add(':');
+					writer.add(nsMap.get(strings[attributeNS])).add(':');
 				}
+				LOG.debug("decodeAttribute: " + attributeNS + " " + name);
 				writer.add("style/").add(name.replaceAll("_", "."));
 			} else {
 				FieldNode field = localStyleMap.get(attrValData);
@@ -292,9 +298,20 @@ public class BinaryXMLParser extends CommonBinaryParser {
 				} else {
 					String resName = resNames.get(attrValData);
 					if (resName != null) {
-						writer.add("@").add(resName);
+						writer.add("@");
+						if (resName.startsWith("id/")) {
+							writer.add("+");
+						}
+						writer.add(resName);
 					} else {
-						writer.add("0x").add(Integer.toHexString(attrValData));
+						resName = ValuesParser.androidResMap.get(attrValData);
+						if (resName != null) {
+							writer.add("@android:").add(resName);
+						} else if (attrValData == 0) {
+							writer.add("@null");
+						} else {
+							writer.add("0x").add(Integer.toHexString(attrValData));
+						}
 					}
 				}
 			}
@@ -315,9 +332,8 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int comment = is.readInt32();
 		int elementNS = is.readInt32();
 		int elementName = is.readInt32();
-		if (currentTag.equals(strings[elementName])) {
+		if (currentTag.equals(strings[elementName]) && isOneLine && !isLastEnd) {
 			writer.add(" />");
-			wasOneLiner = true;
 		} else {
 			writer.startLine("</");
 			writer.attachSourceLine(endLineNumber);
@@ -326,6 +342,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			}
 			writer.add(strings[elementName]).add(">");
 		}
+		isLastEnd = true;
 		if (writer.getIndent() != 0) {
 			writer.decIndent();
 		}

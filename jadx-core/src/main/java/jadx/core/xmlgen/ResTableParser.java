@@ -87,6 +87,10 @@ public class ResTableParser extends CommonBinaryParser {
 		return resStorage;
 	}
 
+	public String[] getStrings() {
+		return strings;
+	}
+
 	void decodeTableChunk() throws IOException {
 		is.checkInt16(RES_TABLE_TYPE, "Not a table chunk");
 		is.checkInt16(0x000c, "Unexpected table header size");
@@ -250,27 +254,107 @@ public class ResTableParser extends CommonBinaryParser {
 		int orientation = is.readInt8();
 		int touchscreen = is.readInt8();
 		int density = is.readInt16();
-		/*
+
+		if (density != 0) {
+			config.setDensity(parseDensity(density));
+		}
+
 		is.readInt8(); // keyboard
 		is.readInt8(); // navigation
 		is.readInt8(); // inputFlags
 		is.readInt8(); // inputPad0
 
-		is.readInt16(); // screenWidth
-		is.readInt16(); // screenHeight
+		int screenWidth = is.readInt16();
+		int screenHeight = is.readInt16();
 
-		is.readInt16(); // sdkVersion
-		is.readInt16(); // minorVersion
+		if (screenWidth != 0 && screenHeight != 0) {
+			config.setScreenSize(screenWidth + "x" + screenHeight);
+		}
 
-		is.readInt8(); // screenLayout
-		is.readInt8(); // uiMode
-		is.readInt16(); // smallestScreenWidthDp
+		int sdkVersion = is.readInt16();
 
-		is.readInt16(); // screenWidthDp
-		is.readInt16(); // screenHeightDp
-		*/
+		if (sdkVersion != 0) {
+			config.setSdkVersion("v" + sdkVersion);
+		}
+
+		int minorVersion = is.readInt16();
+
+		int screenLayout = is.readInt8();
+		int uiMode = is.readInt8();
+		int smallestScreenWidthDp = is.readInt16();
+
+		int screenWidthDp = is.readInt16();
+		int screenHeightDp = is.readInt16();
+
+		if (screenLayout != 0) {
+			config.setScreenLayout(parseScreenLayout(screenLayout));
+		}
+
+		if (smallestScreenWidthDp != 0) {
+			config.setSmallestScreenWidthDp("sw" + smallestScreenWidthDp + "dp");
+		}
+
+		if (orientation != 0) {
+			config.setOrientation(parseOrientation(orientation));
+		}
+
+		if (screenWidthDp != 0) {
+			config.setScreenWidthDp("w" + screenWidthDp + "dp");
+		}
+
+		if (screenHeightDp != 0) {
+			config.setScreenHeightDp("h" + screenHeightDp + "dp");
+		}
+
 		is.skipToPos(start + size, "Skip config parsing");
 		return config;
+	}
+
+	private String parseOrientation(int orientation) {
+		if (orientation == 1) {
+			return "port";
+		} else if (orientation == 2) {
+			return "land";
+		} else {
+			return "o" + orientation;
+		}
+	}
+
+	private String parseScreenLayout(int screenLayout) {
+		switch (screenLayout) {
+			case 1:
+				return "small";
+			case 2:
+				return "normal";
+			case 3:
+				return "large";
+			case 4:
+				return "xlarge";
+			case 64:
+				return "ldltr";
+			case 128:
+				return "ldrtl";
+			default:
+				return "sl" + screenLayout;
+		}
+	}
+
+	private String parseDensity(int density) {
+		if (density == 120) {
+			return "ldpi";
+		} else if (density == 160) {
+			return "mdpi";
+		} else if (density == 240) {
+			return "hdpi";
+		} else if (density == 320) {
+			return "xhdpi";
+		} else if (density == 480) {
+			return "xxhdpi";
+		} else if (density == 640) {
+			return "xxxhdpi";
+		} else {
+			return density + "dpi";
+		}
 	}
 
 	private String parseLocale() throws IOException {
