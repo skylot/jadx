@@ -1,7 +1,11 @@
 package jadx.core.xmlgen.entry;
 
 import jadx.core.xmlgen.ParserConstants;
+import jadx.core.xmlgen.ResTableParser;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,9 +20,28 @@ public class ValuesParser extends ParserConstants {
 	private final String[] strings;
 	private final Map<Integer, String> resMap;
 
+	public static String[] androidStrings;
+	public static Map<Integer, String> androidResMap;
+
 	public ValuesParser(String[] strings, Map<Integer, String> resMap) {
 		this.strings = strings;
 		this.resMap = resMap;
+
+		if (androidStrings == null && androidResMap == null) {
+			try {
+				decodeAndroid();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private void decodeAndroid() throws IOException {
+		InputStream inputStream = new BufferedInputStream(getClass().getResourceAsStream("/resources.arsc"));
+		ResTableParser androidParser = new ResTableParser();
+		androidParser.decode(inputStream);
+		androidStrings = androidParser.getStrings();
+		androidResMap = androidParser.getResStorage().getResourcesNames();
 	}
 
 	public String getValueString(ResourceEntry ri) {
@@ -73,6 +96,11 @@ public class ValuesParser extends ParserConstants {
 			case TYPE_REFERENCE: {
 				String ri = resMap.get(data);
 				if (ri == null) {
+					String androidRi = androidResMap.get(data);
+					if (androidRi != null) {
+						return "@android:" + androidRi;
+					}
+					if (data == 0) return "0";
 					return "?unknown_ref: " + Integer.toHexString(data);
 				}
 				return "@" + ri;
@@ -81,6 +109,10 @@ public class ValuesParser extends ParserConstants {
 			case TYPE_ATTRIBUTE: {
 				String ri = resMap.get(data);
 				if (ri == null) {
+					String androidRi = androidResMap.get(data);
+					if (androidRi != null) {
+						return "?android:" + androidRi;
+					}
 					return "?unknown_attr_ref: " + Integer.toHexString(data);
 				}
 				return "?" + ri;
@@ -97,7 +129,7 @@ public class ValuesParser extends ParserConstants {
 		}
 	}
 
-	private String decodeNameRef(int nameRef) {
+	public String decodeNameRef(int nameRef) {
 		int ref = nameRef;
 		if (isResInternalId(nameRef)) {
 			ref = nameRef & ATTR_TYPE_ANY;
@@ -108,6 +140,11 @@ public class ValuesParser extends ParserConstants {
 		String ri = resMap.get(ref);
 		if (ri != null) {
 			return ri.replace('/', '.');
+		} else {
+			String androidRi = androidResMap.get(ref);
+			if (androidRi != null) {
+				return "android:" + androidRi.replace('/', '.');
+			}
 		}
 		return "?0x" + Integer.toHexString(nameRef);
 	}

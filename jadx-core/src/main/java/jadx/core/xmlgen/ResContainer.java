@@ -1,10 +1,14 @@
 package jadx.core.xmlgen;
 
 import jadx.core.codegen.CodeWriter;
+import jadx.core.utils.android.Res9patchStreamDecoder;
+import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -37,8 +41,19 @@ public class ResContainer implements Comparable<ResContainer> {
 
 	public static ResContainer singleImageFile(String name, InputStream content) {
 		ResContainer resContainer = new ResContainer(name, Collections.<ResContainer>emptyList());
+		InputStream newContent = content;
+		if (name.endsWith(".9.png")) {
+			Res9patchStreamDecoder decoder = new Res9patchStreamDecoder();
+			ByteArrayOutputStream os = new ByteArrayOutputStream();
+			try {
+				decoder.decode(content, os);
+			} catch (JadxException e) {
+				e.printStackTrace();
+			}
+			newContent = new ByteArrayInputStream(os.toByteArray());
+		}
 		try {
-			resContainer.image = ImageIO.read(content);
+			resContainer.image = ImageIO.read(newContent);
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Image load error", e);
 		}
