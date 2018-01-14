@@ -55,7 +55,7 @@ options:
  -s, --no-src               - do not decompile source code
  -e, --export-gradle        - save as android gradle project
      --show-bad-code        - show inconsistent code (incorrectly decompiled)
-     --no-imports           - disables use of imports, always writes entire package name
+     --no-imports           - disable use of imports, always write entire package name
      --no-replace-consts    - don't replace constant value with matching constant field
      --escape-unicode       - escape non latin characters in strings (with \u)
      --deobf                - activate deobfuscation
