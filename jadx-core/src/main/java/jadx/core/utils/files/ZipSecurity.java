@@ -10,7 +10,7 @@ public class ZipSecurity {
 	private static final Logger LOG = LoggerFactory.getLogger(ZipSecurity.class);
 	
 	// size of uncompressed zip entry shouldn't be bigger of compressed in MAX_SIZE_DIFF times
-	private static final int MAX_SIZE_DIFF = 10;
+	private static final int MAX_SIZE_DIFF = 25;
 	
 	private static boolean isInSubDirectory(File base, File file) {
 	    if (file == null) {
@@ -45,6 +45,8 @@ public class ZipSecurity {
 		long compressedSize   = entry.getCompressedSize();
 		long uncompressedSize = entry.getSize();
 		if(compressedSize < 0 || uncompressedSize < 0) {
+			LOG.error("Zip bomp attack detected, invalid sizes: compressed {}, uncompressed {}, name {}",
+					compressedSize, uncompressedSize, entry.getName());
 			return true;
 		}
 		if(compressedSize * MAX_SIZE_DIFF < uncompressedSize) {
