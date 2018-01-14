@@ -48,7 +48,7 @@ public class JadxCLIArgs implements IJadxArgs {
 	protected boolean showInconsistentCode = false;
 
 	@Parameter(names = {"--no-imports"}, converter = InvertedBooleanConverter.class,
-			description = "disables use of imports, always writes entire package name")
+			description = "disable use of imports, always write entire package name")
 	protected boolean useImports = true;
 
 	@Parameter(names = "--no-replace-consts", converter = InvertedBooleanConverter.class,
