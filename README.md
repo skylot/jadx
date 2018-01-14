@@ -14,7 +14,7 @@
 
 Command line and GUI tools for produce Java source code from Android Dex and Apk files
 
-![jadx-gui screenshot](http://skylot.github.io/jadx/jadx-gui.png)
+![jadx-gui screenshot](https://i.imgur.com/h917IBZ.png)
 
 
 ### Downloads
