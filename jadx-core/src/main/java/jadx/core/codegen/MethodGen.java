@@ -245,7 +245,7 @@ public class MethodGen {
 	 * Return fallback variant of method codegen
 	 */
 	public static MethodGen getFallbackMethodGen(MethodNode mth) {
-		ClassGen clsGen = new ClassGen(mth.getParentClass(), null, true, true);
+		ClassGen clsGen = new ClassGen(mth.getParentClass(), null, true, true, true);
 		return new MethodGen(clsGen, mth);
 	}
 

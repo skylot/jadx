@@ -47,6 +47,10 @@ public class JadxCLIArgs implements IJadxArgs {
 	@Parameter(names = {"--show-bad-code"}, description = "show inconsistent code (incorrectly decompiled)")
 	protected boolean showInconsistentCode = false;
 
+	@Parameter(names = {"--no-imports"}, converter = InvertedBooleanConverter.class,
+			description = "disables use of imports, always writes entire package name")
+	protected boolean useImports = true;
+
 	@Parameter(names = "--no-replace-consts", converter = InvertedBooleanConverter.class,
 			description = "don't replace constant value with matching constant field")
 	protected boolean replaceConsts = true;
@@ -244,6 +248,11 @@ public class JadxCLIArgs implements IJadxArgs {
 	@Override
 	public boolean isShowInconsistentCode() {
 		return showInconsistentCode;
+	}
+
+	@Override
+	public boolean isUsingImports() {
+		return useImports;
 	}
 
 	@Override

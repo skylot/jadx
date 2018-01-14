@@ -52,23 +52,25 @@ public class ClassGen {
 	private final ClassGen parentGen;
 	private final AnnotationGen annotationGen;
 	private final boolean fallback;
+	private final boolean useImports;
 	private final boolean showInconsistentCode;
 
 	private final Set<ClassInfo> imports = new HashSet<>();
 	private int clsDeclLine;
 
 	public ClassGen(ClassNode cls, IJadxArgs jadxArgs) {
-		this(cls, null, jadxArgs.isFallbackMode(), jadxArgs.isShowInconsistentCode());
+		this(cls, null, jadxArgs.isUsingImports(), jadxArgs.isFallbackMode(), jadxArgs.isShowInconsistentCode());
 	}
 
 	public ClassGen(ClassNode cls, ClassGen parentClsGen) {
-		this(cls, parentClsGen, parentClsGen.fallback, parentClsGen.showInconsistentCode);
+		this(cls, parentClsGen, parentClsGen.useImports, parentClsGen.fallback, parentClsGen.showInconsistentCode);
 	}
 
-	public ClassGen(ClassNode cls, ClassGen parentClsGen, boolean fallback, boolean showBadCode) {
+	public ClassGen(ClassNode cls, ClassGen parentClsGen, boolean useImports, boolean fallback, boolean showBadCode) {
 		this.cls = cls;
 		this.parentGen = parentClsGen;
 		this.fallback = fallback;
+		this.useImports = useImports;
 		this.showInconsistentCode = showBadCode;
 
 		this.annotationGen = new AnnotationGen(cls, this);
@@ -480,7 +482,7 @@ public class ClassGen {
 
 	private String useClassInternal(ClassInfo useCls, ClassInfo extClsInfo) {
 		String fullName = extClsInfo.getFullName();
-		if (fallback) {
+		if (fallback || !useImports) {
 			return fullName;
 		}
 		String shortName = extClsInfo.getShortName();

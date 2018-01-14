@@ -13,6 +13,8 @@ public class JadxArgs implements IJadxArgs {
 	private boolean isVerbose = false;
 	private boolean fallbackMode = false;
 	private boolean showInconsistentCode = false;
+	
+	private boolean useImports = false;
 
 	private boolean isSkipResources = false;
 	private boolean isSkipSources = false;
@@ -80,6 +82,15 @@ public class JadxArgs implements IJadxArgs {
 
 	public void setShowInconsistentCode(boolean showInconsistentCode) {
 		this.showInconsistentCode = showInconsistentCode;
+	}
+
+	@Override
+	public boolean isUsingImports() {
+		return useImports;
+	}
+
+	public void setUseImports(boolean useImports) {
+		this.useImports = useImports;
 	}
 
 	@Override

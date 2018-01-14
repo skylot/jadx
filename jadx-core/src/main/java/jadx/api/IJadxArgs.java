@@ -14,6 +14,8 @@ public interface IJadxArgs {
 	boolean isFallbackMode();
 
 	boolean isShowInconsistentCode();
+	
+	boolean isUsingImports();
 
 	boolean isVerbose();
 
