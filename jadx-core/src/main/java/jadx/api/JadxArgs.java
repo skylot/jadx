@@ -14,7 +14,7 @@ public class JadxArgs implements IJadxArgs {
 	private boolean fallbackMode = false;
 	private boolean showInconsistentCode = false;
 	
-	private boolean useImports = false;
+	private boolean useImports = true;
 
 	private boolean isSkipResources = false;
 	private boolean isSkipSources = false;
