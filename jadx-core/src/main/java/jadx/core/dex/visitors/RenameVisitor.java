@@ -1,5 +1,12 @@
 package jadx.core.dex.visitors;
 
+import java.io.File;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.io.FilenameUtils;
+
 import jadx.api.IJadxArgs;
 import jadx.core.Consts;
 import jadx.core.codegen.TypeGen;
@@ -15,19 +22,10 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxException;
+import jadx.core.utils.files.FileUtils;
 import jadx.core.utils.files.InputFile;
 
-import java.io.File;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOCase;
-
 public class RenameVisitor extends AbstractVisitor {
-
-	private static final boolean CASE_SENSITIVE_FS = IOCase.SYSTEM.isCaseSensitive();
 
 	private Deobfuscator deobfuscator;
 
@@ -36,7 +34,7 @@ public class RenameVisitor extends AbstractVisitor {
 		IJadxArgs args = root.getArgs();
 
 		List<DexNode> dexNodes = root.getDexNodes();
-		if (dexNodes.size() == 0) {
+		if (dexNodes.isEmpty()) {
 			return;
 		}
 		InputFile firstInputFile = dexNodes.get(0).getDexFile().getInputFile();
@@ -50,7 +48,8 @@ public class RenameVisitor extends AbstractVisitor {
 		if (deobfuscationOn) {
 			deobfuscator.execute();
 		}
-		checkClasses(root);
+		boolean isCaseSensitive = FileUtils.isCaseSensitiveFS(new File(inputPath)); // args.getOutDir() - not set in gui
+		checkClasses(root, isCaseSensitive);
 	}
 
 	@Override
@@ -63,11 +62,11 @@ public class RenameVisitor extends AbstractVisitor {
 		return false;
 	}
 
-	private void checkClasses(RootNode root) {
+	private void checkClasses(RootNode root, boolean caseSensitive) {
 		Set<String> clsNames = new HashSet<>();
 		for (ClassNode cls : root.getClasses(true)) {
 			checkClassName(cls);
-			if (!CASE_SENSITIVE_FS) {
+			if (!caseSensitive) {
 				ClassInfo classInfo = cls.getClassInfo();
 				String clsFileName = classInfo.getAlias().getFullPath();
 				if (!clsNames.add(clsFileName.toLowerCase())) {

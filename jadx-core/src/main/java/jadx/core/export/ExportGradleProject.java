@@ -40,8 +40,8 @@ public class ExportGradleProject {
 
 	public void init() {
 		try {
-			FileUtils.makeDirsForFile(srcOutDir);
-			FileUtils.makeDirsForFile(resOutDir);
+			FileUtils.makeDirs(srcOutDir);
+			FileUtils.makeDirs(resOutDir);
 			saveBuildGradle();
 			skipGeneratedClasses();
 		} catch (Exception e) {

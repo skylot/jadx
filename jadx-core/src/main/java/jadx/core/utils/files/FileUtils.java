@@ -1,7 +1,5 @@
 package jadx.core.utils.files;
 
-import jadx.core.utils.exceptions.JadxRuntimeException;
-
 import java.io.BufferedInputStream;
 import java.io.Closeable;
 import java.io.File;
@@ -18,9 +16,13 @@ import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.apache.commons.io.IOCase;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class FileUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(FileUtils.class);
@@ -43,12 +45,19 @@ public class FileUtils {
 	}
 
 	public static void makeDirsForFile(File file) {
-		File dir = file.getParentFile();
-		if (dir != null && !dir.exists()) {
-			// if directory already created in other thread mkdirs will return false,
-			// so check dir existence again
-			if (!dir.mkdirs() && !dir.exists()) {
-				throw new JadxRuntimeException("Can't create directory " + dir);
+		if (file != null) {
+			makeDirs(file.getParentFile());
+		}
+	}
+
+	private static final Object MKDIR_SYNC = new Object();
+
+	public static void makeDirs(@Nullable File dir) {
+		if (dir != null) {
+			synchronized (MKDIR_SYNC) {
+				if (!dir.exists() && !dir.mkdirs()) {
+					throw new JadxRuntimeException("Can't create directory " + dir);
+				}
 			}
 		}
 	}
@@ -185,5 +194,33 @@ public class FileUtils {
 				}
 			}
 		}
+	}
+
+	public static boolean isCaseSensitiveFS(File testDir) {
+		if (testDir != null) {
+			File caseCheckUpper = new File(testDir, "CaseCheck");
+			File caseCheckLow = new File(testDir, "casecheck");
+			try {
+				makeDirs(testDir);
+				if (caseCheckUpper.createNewFile()) {
+					boolean caseSensitive = !caseCheckLow.exists();
+					LOG.debug("Filesystem at {} is {} case-sensitive", testDir.getAbsolutePath(),
+							(caseSensitive ? "" : "NOT"));
+					return caseSensitive;
+				} else {
+					LOG.debug("Failed to create file: {}", caseCheckUpper.getAbsolutePath());
+				}
+			} catch (Exception e) {
+				LOG.debug("Failed to detect filesystem case-sensitivity by file creation", e);
+			} finally {
+				try {
+					caseCheckUpper.delete();
+					caseCheckLow.delete();
+				} catch (Exception e) {
+					// ignore
+				}
+			}
+		}
+		return IOCase.SYSTEM.isCaseSensitive();
 	}
 }
