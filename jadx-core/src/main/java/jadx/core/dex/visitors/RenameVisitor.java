@@ -82,11 +82,17 @@ public class RenameVisitor extends AbstractVisitor {
 
 	private void checkClassName(ClassNode cls) {
 		ClassInfo classInfo = cls.getClassInfo();
-		String clsName = classInfo.getAlias().getShortName();
+		ClassInfo alias = classInfo.getAlias();
+		String clsName = alias.getShortName();
+		String clsNameWithoutPkg = alias.getNameWithoutPackage();;
 		String newShortName = null;
 		char firstChar = clsName.charAt(0);
 		if (Character.isDigit(firstChar)) {
-			newShortName = Consts.ANONYMOUS_CLASS_PREFIX + clsName;
+			if(!clsNameWithoutPkg.isEmpty() && clsNameWithoutPkg.contains(".")){
+				newShortName = clsNameWithoutPkg.replace(".", "_");
+			}else {
+				newShortName = Consts.ANONYMOUS_CLASS_PREFIX + clsName;
+			}
 		} else if (firstChar == '$') {
 			newShortName = "C" + clsName;
 		}

@@ -2,6 +2,9 @@ package jadx.core.utils;
 
 import jadx.api.IJadxArgs;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class StringUtils {
 
 	private final boolean escapeUnicode;
@@ -192,5 +195,19 @@ public class StringUtils {
 		} else {
 			sb.append(c);
 		}
+	}
+
+	private static final Pattern P0 = Pattern.compile("^[0o]+$");
+	private static final Pattern P1 = Pattern.compile("^[iI]+$");
+	private static final Pattern P2 = Pattern.compile("^[uv]+$");
+	private static final Pattern P3 = Pattern.compile("[0-9]");
+
+	public static boolean dirtyName(String name) {
+		return name != null && !"".equals(name) && (P0.matcher(name.toLowerCase()).matches() || P1.matcher(name).matches() || P2.matcher(name.toLowerCase()).matches());
+	}
+
+	public static boolean hasNumber(String clsName) {
+		Matcher m = P3.matcher(clsName);
+		return m.find();
 	}
 }
