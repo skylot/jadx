@@ -11,7 +11,6 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.SaveCode;
 import jadx.core.export.ExportGradleProject;
-import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.InputFile;
@@ -57,6 +56,8 @@ public final class JadxDecompiler {
 	private final List<InputFile> inputFiles = new ArrayList<>();
 
 	private File outDir;
+	private File outDirRes;
+	private File outDirSrc;
 
 	private RootNode root;
 	private List<IDexTreeVisitor> passes;
@@ -71,25 +72,51 @@ public final class JadxDecompiler {
 	private Map<MethodNode, JavaMethod> methodsMap = new ConcurrentHashMap<>();
 	private Map<FieldNode, JavaField> fieldsMap = new ConcurrentHashMap<>();
 
-	public JadxDecompiler() {
+	public JadxDecompiler() throws JadxException {
 		this(new JadxArgs());
 	}
 
-	public JadxDecompiler(IJadxArgs jadxArgs) {
+	public JadxDecompiler(IJadxArgs jadxArgs) throws JadxException {
 		this.args = jadxArgs;
 		this.outDir = jadxArgs.getOutDir();
+		this.outDirSrc = jadxArgs.getOutDirSrc();
+		this.outDirRes = jadxArgs.getOutDirRes();
 		reset();
 		init();
 	}
 
-	public void setOutputDir(File outDir) {
+	public void setOutputDir(File outDir) throws JadxException {
 		this.outDir = outDir;
 		init();
 	}
 
-	void init() {
+	public void setOutputDirSrc(File outDirSrc) throws JadxException {
+		this.outDirSrc = outDirSrc;
+		init();
+	}
+
+	public void setOutputDirRes(File outDirRes) throws JadxException {
+		this.outDirRes = outDirRes;
+		init();
+	}
+
+	void init() throws JadxException {
+		if(outDir == null && outDirSrc == null) {
+			outDirSrc = new JadxArgs().getOutDirSrc();
+		}
+		if(outDir == null && outDirRes == null) {
+			outDirRes = new JadxArgs().getOutDirRes();
+		}
 		if (outDir == null) {
 			outDir = new JadxArgs().getOutDir();
+		}
+		else {
+			if(outDirSrc == null && outDirRes != null && !args.isSkipSources()) {
+				throw new JadxException("--output-dir-src must be specified");
+			}
+			if(outDirSrc != null && outDirRes == null && !args.isSkipResources()) {
+				throw new JadxException("--output-dir-res must be specified");
+			}
 		}
 		this.passes = Jadx.getPassesList(args, outDir);
 		this.codeGen = new CodeGen(args);
@@ -172,8 +199,8 @@ public final class JadxDecompiler {
 			sourcesOutDir = export.getSrcOutDir();
 			resOutDir = export.getResOutDir();
 		} else {
-			sourcesOutDir = outDir;
-			resOutDir = outDir;
+			sourcesOutDir = outDirSrc;
+			resOutDir = outDirRes;
 		}
 		if (saveSources) {
 			appendSourcesSave(executor, sourcesOutDir);
@@ -267,7 +294,7 @@ public final class JadxDecompiler {
 		root.getErrorsCounter().printReport();
 	}
 
-	void parse() throws DecodeException {
+	void parse() throws JadxException {
 		reset();
 		init();
 

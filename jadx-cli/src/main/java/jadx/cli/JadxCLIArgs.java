@@ -32,6 +32,12 @@ public class JadxCLIArgs implements IJadxArgs {
 	@Parameter(names = {"-d", "--output-dir"}, description = "output directory")
 	protected String outDirName;
 
+	@Parameter(names = {"-ds", "--output-dir-src"}, description = "output directory for sources")
+	protected String outDirNameSrc;
+
+	@Parameter(names = {"-dr", "--output-dir-res"}, description = "output directory for resources")
+	protected String outDirNameRes;
+
 	@Parameter(names = {"-j", "--threads-count"}, description = "processing threads count")
 	protected int threadsCount = DEFAULT_THREADS_COUNT;
 
@@ -90,6 +96,8 @@ public class JadxCLIArgs implements IJadxArgs {
 
 	private final List<File> input = new ArrayList<>(1);
 	private File outputDir;
+	private File outputDirSrc;
+	private File outputDirRes;
 
 	public boolean processArgs(String[] args) {
 		return parse(args) && process();
@@ -128,9 +136,22 @@ public class JadxCLIArgs implements IJadxArgs {
 			if (input.size() > 1) {
 				throw new JadxException("Only one input file is supported");
 			}
+			if(outDirNameSrc != null) {
+				outputDirSrc = new File(outDirNameSrc);
+			}
+			if(outDirNameRes != null) {
+				outputDirRes = new File(outDirNameRes);
+			}
 			if (outDirName != null) {
 				outputDir = new File(outDirName);
+				if(outputDirSrc == null) {
+					outputDirSrc = new File(outputDir, "source");
+				}
+				if(outputDirRes == null) {
+					outputDirRes = new File(outputDir, "res");
+				}
 			}
+			
 			if (isVerbose()) {
 				ch.qos.logback.classic.Logger rootLogger =
 						(ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
@@ -205,6 +226,16 @@ public class JadxCLIArgs implements IJadxArgs {
 	@Override
 	public File getOutDir() {
 		return outputDir;
+	}
+
+	@Override
+	public File getOutDirSrc() {
+		return outputDirSrc;
+	}
+
+	@Override
+	public File getOutDirRes() {
+		return outputDirRes;
 	}
 
 	public void setOutputDir(File outputDir) {

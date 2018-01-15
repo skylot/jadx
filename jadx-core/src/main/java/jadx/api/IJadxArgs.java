@@ -4,6 +4,10 @@ import java.io.File;
 
 public interface IJadxArgs {
 	File getOutDir();
+	
+	File getOutDirSrc();
+	
+	File getOutDirRes();
 
 	int getThreadsCount();
 

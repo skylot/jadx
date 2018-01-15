@@ -5,6 +5,8 @@ import java.io.File;
 public class JadxArgs implements IJadxArgs {
 
 	private File outDir = new File("jadx-output");
+	private File outDirSrc = new File(outDir, "source");
+	private File outDirRes = new File(outDir, "res");
 	private int threadsCount = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
 
 	private boolean cfgOutput = false;
@@ -37,6 +39,24 @@ public class JadxArgs implements IJadxArgs {
 
 	public void setOutDir(File outDir) {
 		this.outDir = outDir;
+	}
+
+	@Override
+	public File getOutDirSrc() {
+		return outDirSrc;
+	}
+
+	public void setOutDirSrc(File outDirSrc) {
+		this.outDirSrc = outDirSrc;
+	}
+
+	@Override
+	public File getOutDirRes() {
+		return outDirRes;
+	}
+
+	public void setOutDirRes(File outDirRes) {
+		this.outDirRes = outDirRes;
 	}
 
 	@Override

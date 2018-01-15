@@ -83,8 +83,9 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	public ClassNode getClassNodeFromFile(File file, String clsName) {
-		JadxDecompiler d = new JadxDecompiler(args);
+		JadxDecompiler d = null;
 		try {
+			d = new JadxDecompiler(args);
 			d.loadFile(file);
 		} catch (JadxException e) {
 			e.printStackTrace();
