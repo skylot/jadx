@@ -168,10 +168,7 @@ public class ManifestAttributes {
 			return null;
 		}
 		if (attr.getType() == MAttrType.ENUM) {
-			String name = attr.getValues().get(value);
-			if (name != null) {
-				return name;
-			}
+			return attr.getValues().get(value);
 		} else if (attr.getType() == MAttrType.FLAG) {
 			StringBuilder sb = new StringBuilder();
 			for (Map.Entry<Long, String> entry : attr.getValues().entrySet()) {
