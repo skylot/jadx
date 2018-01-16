@@ -5,6 +5,7 @@ import javax.swing.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.utils.exceptions.JadxException;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsAdapter;
 import jadx.gui.ui.MainWindow;
@@ -24,8 +25,13 @@ public class JadxGUI {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
-					MainWindow window = new MainWindow(jadxArgs);
-					window.open();
+					try {
+						MainWindow window = new MainWindow(jadxArgs);
+						window.open();
+					}
+					catch(JadxException e) {
+						throw new RuntimeException(e);
+					}
 				}
 			});
 		} catch (Throwable e) {

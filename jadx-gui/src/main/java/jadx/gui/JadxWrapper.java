@@ -22,7 +22,7 @@ public class JadxWrapper {
 	private final JadxDecompiler decompiler;
 	private File openFile;
 
-	public JadxWrapper(IJadxArgs jadxArgs) {
+	public JadxWrapper(IJadxArgs jadxArgs) throws JadxException {
 		this.decompiler = new JadxDecompiler(jadxArgs);
 	}
 
@@ -53,7 +53,7 @@ public class JadxWrapper {
 					}
 					progressMonitor.close();
 					LOG.info("done");
-				} catch (InterruptedException e) {
+				} catch (InterruptedException|JadxException e) {
 					LOG.error("Save interrupted", e);
 					Thread.currentThread().interrupt();
 				}

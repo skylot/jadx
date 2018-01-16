@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ResourceFile;
+import jadx.core.utils.exceptions.JadxException;
 import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.BackgroundWorker;
 import jadx.gui.jobs.DecompileJob;
@@ -100,7 +101,7 @@ public class MainWindow extends JFrame {
 	private transient ProgressPanel progressPane;
 	private transient BackgroundWorker backgroundWorker;
 
-	public MainWindow(JadxSettings settings) {
+	public MainWindow(JadxSettings settings) throws JadxException {
 		this.wrapper = new JadxWrapper(settings);
 		this.settings = settings;
 		this.cacheObject = new CacheObject();

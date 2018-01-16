@@ -12,6 +12,7 @@ import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaPackage;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.core.utils.exceptions.JadxException;
 import jadx.gui.JadxWrapper;
 
 import static org.junit.Assert.assertEquals;
@@ -24,7 +25,7 @@ public class JSourcesTest {
 	private JadxDecompiler decompiler;
 
 	@Before
-	public void init() {
+	public void init() throws JadxException {
 		JRoot root = mock(JRoot.class);
 		when(root.isFlatPackages()).thenReturn(false);
 		JadxWrapper wrapper = mock(JadxWrapper.class);
