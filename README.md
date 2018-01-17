@@ -1,8 +1,6 @@
 ## JADX
 
 [![Build Status](https://travis-ci.org/skylot/jadx.png?branch=master)](https://travis-ci.org/skylot/jadx)
-[![Gitlab CI](https://gitlab.com/skylot/jadx/badges/master/build.svg)](https://gitlab.com/skylot/jadx/builds)
-[![Jadx Core Coverage](https://gitlab.com/skylot/jadx/badges/master/coverage.svg)](https://gitlab.com/skylot/jadx/builds)
 [![Code Coverage](https://codecov.io/gh/skylot/jadx/branch/master/graph/badge.svg)](https://codecov.io/gh/skylot/jadx)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/2166/badge.svg)](https://scan.coverity.com/projects/2166)
 [![SonarQube Bugs](https://sonarcloud.io/api/badges/measure?key=jadx&metric=bugs)](https://sonarcloud.io/dashboard?id=jadx)
@@ -18,8 +16,9 @@ Command line and GUI tools for produce Java source code from Android Dex and Apk
 
 
 ### Downloads
-- [unstable](https://gitlab.com/skylot/jadx/builds/artifacts/master/browse/build?job=build)
+- [unstable](https://bintray.com/skylot/jadx/unstable#files)
 - from [github](https://github.com/skylot/jadx/releases)
+- from [bintray](https://bintray.com/skylot/jadx/releases#files)
 - from [sourceforge](http://sourceforge.net/projects/jadx/files/)
 
 

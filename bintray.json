@@ -1,0 +1,25 @@
+{
+  "package": {
+    "name": "unstable",
+    "repo": "jadx",
+    "subject": "skylot",
+    "desc": "Unstable",
+    "website_url": "https://github.com/skylot/jadx",
+    "issue_tracker_url": "https://github.com/skylot/jadx",
+    "vcs_url": "https://github.com/skylot/jadx",
+    "licenses": ["Apache-2.0"],
+    "labels": ["unstable"],
+    "public_download_numbers": false,
+    "public_stats": false
+  },
+
+  "version": {
+    "name": "BUILD_VERSION"
+  },
+
+  "files":
+  [
+    {"includePattern": "build/(jadx.*\.zip)", "uploadPattern": "$1"}
+  ],
+  "publish": true
+}
