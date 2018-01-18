@@ -1,8 +1,5 @@
 package jadx.core.xmlgen.entry;
 
-import jadx.core.xmlgen.ParserConstants;
-import jadx.core.xmlgen.ResTableParser;
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,8 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jadx.core.xmlgen.ParserConstants;
+import jadx.core.xmlgen.ResTableParser;
 
 public class ValuesParser extends ParserConstants {
 	private static final Logger LOG = LoggerFactory.getLogger(ValuesParser.class);
@@ -44,6 +45,7 @@ public class ValuesParser extends ParserConstants {
 		androidResMap = androidParser.getResStorage().getResourcesNames();
 	}
 
+	@Nullable
 	public String getValueString(ResourceEntry ri) {
 		RawValue simpleValue = ri.getSimpleValue();
 		if (simpleValue != null) {
@@ -63,12 +65,14 @@ public class ValuesParser extends ParserConstants {
 		return strList.toString();
 	}
 
+	@Nullable
 	public String decodeValue(RawValue value) {
 		int dataType = value.getDataType();
 		int data = value.getData();
 		return decodeValue(dataType, data);
 	}
 
+	@Nullable
 	public String decodeValue(int dataType, int data) {
 		switch (dataType) {
 			case TYPE_NULL:
@@ -100,7 +104,9 @@ public class ValuesParser extends ParserConstants {
 					if (androidRi != null) {
 						return "@android:" + androidRi;
 					}
-					if (data == 0) return "0";
+					if (data == 0) {
+						return "0";
+					}
 					return "?unknown_ref: " + Integer.toHexString(data);
 				}
 				return "@" + ri;

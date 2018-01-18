@@ -64,7 +64,7 @@ public class ResXmlGen {
 			cw.startLine();
 			cw.add('<').add(ri.getTypeName()).add(' ');
 			String itemTag = "item";
-			if (ri.getTypeName().equals("attr") && ri.getNamedValues().size() > 0) {
+			if (ri.getTypeName().equals("attr") && !ri.getNamedValues().isEmpty()) {
 				cw.add("name=\"").add(ri.getKeyName());
 				int type = ri.getNamedValues().get(0).getRawValue().getData();
 				if ((type & ValuesParser.ATTR_TYPE_ENUM) != 0) {
@@ -126,7 +126,7 @@ public class ResXmlGen {
 		String nameStr = vp.decodeNameRef(value.getNameRef());
 		String valueStr = vp.decodeValue(value.getRawValue());
 		if (!typeName.equals("attr")) {
-			if (valueStr.equals("0")) {
+			if (valueStr == null || valueStr.equals("0")) {
 				valueStr = "@null";
 			}
 			if (nameStr != null) {
@@ -154,6 +154,9 @@ public class ResXmlGen {
 	}
 
 	private void addSimpleValue(CodeWriter cw, String typeName, String itemTag, String attrName, String attrValue, String valueStr) {
+		if (valueStr == null) {
+			return;
+		}
 		if (valueStr.startsWith("res/")) {
 			// remove duplicated resources.
 			return;
