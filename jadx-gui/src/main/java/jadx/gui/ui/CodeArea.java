@@ -10,6 +10,8 @@ import javax.swing.text.Caret;
 import javax.swing.text.DefaultCaret;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import org.fife.ui.rsyntaxtextarea.LinkGenerator;
 import org.fife.ui.rsyntaxtextarea.LinkGeneratorResult;
@@ -17,6 +19,9 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenTypes;
+import org.fife.ui.rtextarea.SearchContext;
+import org.fife.ui.rtextarea.SearchEngine;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +71,36 @@ class CodeArea extends RSyntaxTextArea {
 			addMenuItems(this, (JClass) node);
 		}
 
+		registerWordHighlighter();
 		setText(node.getContent());
+	}
+
+	private void registerWordHighlighter() {
+		addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent evt) {
+				if (evt.getClickCount() % 2 == 0 && !evt.isConsumed()) {
+					evt.consume();
+					String str = getSelectedText();
+					if (str != null) {
+						highlightAllMatches(str);
+					}
+				} else {
+					highlightAllMatches(null);
+				}
+			}
+		});
+	}
+
+	/**
+	 * @param str - if null -> reset current highlights
+	 */
+	private void highlightAllMatches(@Nullable String str) {
+		SearchContext context = new SearchContext(str);
+		context.setMarkAll(true);
+		context.setMatchCase(true);
+		context.setWholeWord(true);
+		SearchEngine.markAll(this, context);
 	}
 
 	private void addMenuItems(CodeArea codeArea, JClass jCls) {
