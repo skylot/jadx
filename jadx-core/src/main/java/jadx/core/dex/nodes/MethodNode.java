@@ -113,7 +113,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 				load();
 				noCode = false;
 			}
-			throw new DecodeException(this, "Load method exception", e);
+			throw new DecodeException(this, "Load method exception: " + e.getMessage(), e);
 		}
 	}
 

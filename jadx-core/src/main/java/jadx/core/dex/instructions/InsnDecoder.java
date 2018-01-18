@@ -565,7 +565,7 @@ public class InsnDecoder {
 						InsnArg.reg(insn, 0, ArgType.UNKNOWN_OBJECT));
 		}
 
-		throw new DecodeException("Unknown instruction: " + OpcodeInfo.getName(insn.getOpcode()));
+		throw new DecodeException("Unknown instruction: '" + OpcodeInfo.getName(insn.getOpcode()) + "'");
 	}
 
 	private InsnNode decodeSwitch(DecodedInstruction insn, int offset, boolean packed) {

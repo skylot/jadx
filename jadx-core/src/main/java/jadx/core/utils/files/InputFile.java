@@ -146,19 +146,20 @@ public class InputFile {
 	}
 
 	private static Dex loadFromJar(File jarFile) throws DecodeException {
+		JavaToDex j2d = new JavaToDex();
 		try {
 			LOG.info("converting to dex: {} ...", jarFile.getName());
-			JavaToDex j2d = new JavaToDex();
 			byte[] ba = j2d.convert(jarFile.getAbsolutePath());
 			if (ba.length == 0) {
-				throw new JadxException(j2d.isError() ? j2d.getDxErrors() : "Empty dx output");
-			}
-			if (j2d.isError()) {
-				LOG.warn("dx message: {}", j2d.getDxErrors());
+				throw new JadxException("Empty dx output");
 			}
 			return new Dex(ba);
 		} catch (Throwable e) {
 			throw new DecodeException("java class to dex conversion error:\n " + e.getMessage(), e);
+		} finally {
+			if (j2d.isError()) {
+				LOG.warn("dx message: {}", j2d.getDxErrors());
+			}
 		}
 	}
 

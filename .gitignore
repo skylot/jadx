@@ -20,6 +20,7 @@ idea/
 .gradle/
 gradle.properties
 
+jadx-output/
 *-tmp/
 
 *.dex
