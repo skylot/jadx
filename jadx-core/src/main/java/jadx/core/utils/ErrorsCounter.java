@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 public class ErrorsCounter {
 	private static final Logger LOG = LoggerFactory.getLogger(ErrorsCounter.class);
 
-	private final Set<Object> errorNodes = new HashSet<>();
+	private final Set<IAttributeNode> errorNodes = new HashSet<>();
 	private int errorsCount;
 
 	public int getErrorCount() {
@@ -69,16 +69,14 @@ public class ErrorsCounter {
 	public void printReport() {
 		if (getErrorCount() > 0) {
 			LOG.error("{} errors occurred in following nodes:", getErrorCount());
-			List<Object> nodes = new ArrayList<>(errorNodes);
-			Collections.sort(nodes, new Comparator<Object>() {
-				@Override
-				public int compare(Object o1, Object o2) {
-					return String.valueOf(o1).compareTo(String.valueOf(o2));
-				}
-			});
-			for (Object node : nodes) {
+			List<String> errors = new ArrayList<>(errorNodes.size());
+			for (IAttributeNode node : errorNodes) {
 				String nodeName = node.getClass().getSimpleName().replace("Node", "");
-				LOG.error("  {}: {}", nodeName, node);
+				errors.add(nodeName + ": " + node);
+			}
+			Collections.sort(errors);
+			for (String err : errors) {
+				LOG.error("  {}", err);
 			}
 		}
 	}
