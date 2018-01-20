@@ -146,7 +146,7 @@ public final class JadxDecompiler {
 		inputFiles.clear();
 		for (File file : files) {
 			try {
-				InputFile.addFilesFrom(file, inputFiles);
+				InputFile.addFilesFrom(file, inputFiles, args.isSkipSources());
 			} catch (IOException e) {
 				throw new JadxException("Error load file: " + file, e);
 			}
