@@ -32,9 +32,9 @@ public class InputFile {
 	private final File file;
 	private final List<DexFile> dexFiles = new ArrayList<DexFile>();
 
-	public static void addFilesFrom(File file, List<InputFile> list) throws IOException, DecodeException {
+	public static void addFilesFrom(File file, List<InputFile> list, boolean... skipSources) throws IOException, DecodeException {
 		InputFile inputFile = new InputFile(file);
-		inputFile.searchDexFiles();
+		inputFile.searchDexFiles(skipSources[0]);
 		list.add(inputFile);
 	}
 
@@ -45,7 +45,7 @@ public class InputFile {
 		this.file = file;
 	}
 
-	private void searchDexFiles() throws IOException, DecodeException {
+	private void searchDexFiles(boolean skipSources) throws IOException, DecodeException {
 		String fileName = file.getName();
 
 		if (fileName.endsWith(".dex")) {
@@ -75,6 +75,8 @@ public class InputFile {
 			}
 			return;
 		}
+		if (skipSources) return;
+
 		throw new DecodeException("Unsupported input file format: " + file);
 	}
 
