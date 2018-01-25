@@ -69,6 +69,8 @@ public class InsnDecoder {
 	private InsnNode decode(DecodedInstruction insn, int offset) throws DecodeException {
 		switch (insn.getOpcode()) {
 			case Opcodes.NOP:
+				return new InsnNode(InsnType.NOP, 0);
+
 			case Opcodes.PACKED_SWITCH_PAYLOAD:
 			case Opcodes.SPARSE_SWITCH_PAYLOAD:
 			case Opcodes.FILL_ARRAY_DATA_PAYLOAD:

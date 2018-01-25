@@ -1,5 +1,11 @@
 package jadx.core.dex.visitors.blocksmaker;
 
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.JumpInfo;
@@ -13,13 +19,6 @@ import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.SplitterBlockAttr;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class BlockSplitter extends AbstractVisitor {
 
@@ -43,6 +42,7 @@ public class BlockSplitter extends AbstractVisitor {
 		mth.initBasicBlocks();
 		splitBasicBlocks(mth);
 		removeInsns(mth);
+		removeEmptyBlocks(mth);
 	}
 
 	private static void splitBasicBlocks(MethodNode mth) {
@@ -197,14 +197,12 @@ public class BlockSplitter extends AbstractVisitor {
 
 	private static boolean isDoWhile(Map<Integer, BlockNode> blocksMap, BlockNode curBlock, InsnNode insn) {
 		// split 'do-while' block (last instruction: 'if', target this block)
-		if (insn.getType() == InsnType.IF) {
-			IfNode ifs = (IfNode) insn;
-			BlockNode targetBlock = blocksMap.get(ifs.getTarget());
-			if (targetBlock == curBlock) {
-				return true;
-			}
+		if (insn.getType() != InsnType.IF) {
+			return false;
 		}
-		return false;
+		IfNode ifs = (IfNode) insn;
+		BlockNode targetBlock = blocksMap.get(ifs.getTarget());
+		return targetBlock == curBlock;
 	}
 
 	private static BlockNode getBlock(int offset, Map<Integer, BlockNode> blocksMap) {
@@ -217,14 +215,18 @@ public class BlockSplitter extends AbstractVisitor {
 
 	private static void removeInsns(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
-			Iterator<InsnNode> it = block.getInstructions().iterator();
-			while (it.hasNext()) {
-				InsnType insnType = it.next().getType();
-				if (insnType == InsnType.GOTO || insnType == InsnType.NOP) {
-					it.remove();
-				}
-			}
+			block.getInstructions().removeIf(insn -> {
+				InsnType insnType = insn.getType();
+				return insnType == InsnType.GOTO || insnType == InsnType.NOP;
+			});
 		}
 	}
 
+	private void removeEmptyBlocks(MethodNode mth) {
+		mth.getBasicBlocks().removeIf(block ->
+				block.getInstructions().isEmpty()
+						&& block.getPredecessors().isEmpty()
+						&& block.getSuccessors().isEmpty()
+		);
+	}
 }
