@@ -270,18 +270,13 @@ public class InsnGen {
 				makeArith((ArithNode) insn, code, state);
 				break;
 
-			case NEG: {
-				boolean wrap = state.contains(Flags.BODY_ONLY);
-				if (wrap) {
-					code.add('(');
-				}
-				code.add('-');
-				addArg(code, insn.getArg(0));
-				if (wrap) {
-					code.add(')');
-				}
+			case NEG:
+				oneArgInsn(code, insn, state, '-');
 				break;
-			}
+
+			case NOT:
+				oneArgInsn(code, insn, state, '~');
+				break;
 
 			case RETURN:
 				if (insn.getArgsCount() != 0) {
@@ -522,6 +517,18 @@ public class InsnGen {
 
 			default:
 				throw new CodegenException(mth, "Unknown instruction: " + insn.getType());
+		}
+	}
+
+	private void oneArgInsn(CodeWriter code, InsnNode insn, Set<Flags> state, char op) throws CodegenException {
+		boolean wrap = state.contains(Flags.BODY_ONLY);
+		if (wrap) {
+			code.add('(');
+		}
+		code.add(op);
+		addArg(code, insn.getArg(0));
+		if (wrap) {
+			code.add(')');
 		}
 	}
 

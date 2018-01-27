@@ -1,14 +1,11 @@
 package jadx.tests.api;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
-import org.jf.smali.main;
+import org.jf.smali.Smali;
+import org.jf.smali.SmaliOptions;
 
 import jadx.core.dex.nodes.ClassNode;
-
-import static org.junit.Assert.fail;
 
 public abstract class SmaliTest extends IntegrationTest {
 
@@ -16,11 +13,19 @@ public abstract class SmaliTest extends IntegrationTest {
 	private static final String SMALI_TESTS_DIR = "src/test/smali";
 	private static final String SMALI_TESTS_EXT = ".smali";
 
-	protected ClassNode getClassNodeFromSmali(String clsName) {
-		File smaliFile = getSmaliFile(clsName);
+	protected ClassNode getClassNodeFromSmali(String file, String clsName) {
+		File smaliFile = getSmaliFile(file);
 		File outDex = createTempFile(".dex");
 		compileSmali(smaliFile, outDex);
 		return getClassNodeFromFile(outDex, clsName);
+	}
+
+	protected ClassNode getClassNodeFromSmaliWithPath(String path, String clsName) {
+		return getClassNodeFromSmali(path + File.separatorChar + clsName, clsName);
+	}
+
+	protected ClassNode getClassNodeFromSmali(String clsName) {
+		return getClassNodeFromSmali(clsName, clsName);
 	}
 
 	private static File getSmaliFile(String clsName) {
@@ -32,18 +37,17 @@ public abstract class SmaliTest extends IntegrationTest {
 		if (smaliFile.exists()) {
 			return smaliFile;
 		}
-		fail("Smali file not found: " + SMALI_TESTS_DIR + "/" + clsName + SMALI_TESTS_EXT);
-		return null;
+		throw new AssertionError("Smali file not found: " + SMALI_TESTS_DIR + "/" + clsName + SMALI_TESTS_EXT);
 	}
 
 	private static boolean compileSmali(File input, File output) {
-		List<String> args = new ArrayList<>();
-		args.add(input.getAbsolutePath());
-
-		args.add("-o");
-		args.add(output.getAbsolutePath());
-
-		main.main(args.toArray(new String[args.size()]));
+		try {
+			SmaliOptions params = new SmaliOptions();
+			params.outputDexFile = output.getAbsolutePath();
+			Smali.assemble(params, input.getAbsolutePath());
+		} catch (Exception e) {
+			throw new AssertionError("Smali assemble error", e);
+		}
 		return true;
 	}
 }

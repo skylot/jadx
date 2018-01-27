@@ -324,6 +324,11 @@ public class InsnDecoder {
 			case Opcodes.NEG_DOUBLE:
 				return neg(insn, ArgType.DOUBLE);
 
+			case Opcodes.NOT_INT:
+				return not(insn, ArgType.INT);
+			case Opcodes.NOT_LONG:
+				return not(insn, ArgType.LONG);
+
 			case Opcodes.INT_TO_BYTE:
 				return cast(insn, ArgType.INT, ArgType.BYTE);
 			case Opcodes.INT_TO_CHAR:
@@ -694,6 +699,13 @@ public class InsnDecoder {
 
 	private InsnNode neg(DecodedInstruction insn, ArgType type) {
 		InsnNode inode = new InsnNode(InsnType.NEG, 1);
+		inode.setResult(InsnArg.reg(insn, 0, type));
+		inode.addArg(InsnArg.reg(insn, 1, type));
+		return inode;
+	}
+
+	private InsnNode not(DecodedInstruction insn, ArgType type) {
+		InsnNode inode = new InsnNode(InsnType.NOT, 1);
 		inode.setResult(InsnArg.reg(insn, 0, type));
 		inode.addArg(InsnArg.reg(insn, 1, type));
 		return inode;

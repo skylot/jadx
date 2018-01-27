@@ -35,7 +35,6 @@ import jadx.tests.api.compiler.StaticCompiler;
 import jadx.tests.api.utils.TestUtils;
 
 import static jadx.core.utils.files.FileUtils.addFileToJar;
-import static jadx.core.utils.files.FileUtils.close;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
@@ -261,11 +260,11 @@ public abstract class IntegrationTest extends TestUtils {
 		assertThat("File list is empty", list, not(empty()));
 
 		File temp = createTempFile(".jar");
-		JarOutputStream jo = new JarOutputStream(new FileOutputStream(temp));
-		for (File file : list) {
-			addFileToJar(jo, file, path + "/" + file.getName());
+		try (JarOutputStream jo = new JarOutputStream(new FileOutputStream(temp))) {
+			for (File file : list) {
+				addFileToJar(jo, file, path + "/" + file.getName());
+			}
 		}
-		close(jo);
 		return temp;
 	}
 
@@ -336,13 +335,7 @@ public abstract class IntegrationTest extends TestUtils {
 		outTmp.deleteOnExit();
 		List<File> files = StaticCompiler.compile(compileFileList, outTmp, withDebugInfo);
 		// remove classes which are parents for test class
-		Iterator<File> iterator = files.iterator();
-		while (iterator.hasNext()) {
-			File next = iterator.next();
-			if (!next.getName().contains(cls.getSimpleName())) {
-				iterator.remove();
-			}
-		}
+		files.removeIf(next -> !next.getName().contains(cls.getSimpleName()));
 		for (File clsFile : files) {
 			clsFile.deleteOnExit();
 		}

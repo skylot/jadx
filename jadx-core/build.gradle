@@ -9,6 +9,7 @@ dependencies {
     compile 'com.intellij:annotations:12.0'
     compile 'uk.com.robust-it:cloning:1.9.2'
 
-    testCompile 'org.smali:smali:2.0.3'
+    testCompile 'org.smali:smali:2.2.2'
+    testCompile 'org.smali:baksmali:2.2.2'
 }
 

@@ -81,26 +81,10 @@ public class ErrorsCounter {
 	}
 
 	public static String formatErrorMsg(ClassNode cls, String msg) {
-		return msg + " in class: " + cls;
+		return msg + " in class: " + cls + ", dex: " + cls.dex().getDexFile().getName();
 	}
 
 	public static String formatErrorMsg(MethodNode mth, String msg) {
-		return msg + " in method: " + mth;
-	}
-
-	private String formatException(Throwable e) {
-		if (e == null || e.getMessage() == null) {
-			return "";
-		} else {
-			return "\n error: " + e.getMessage();
-		}
-	}
-
-	public String formatErrorMsg(ClassNode cls, String msg, Throwable e) {
-		return formatErrorMsg(cls, msg) + formatException(e);
-	}
-
-	public String formatErrorMsg(MethodNode mth, String msg, Throwable e) {
-		return formatErrorMsg(mth, msg) + formatException(e);
+		return msg + " in method: " + mth + ", dex: " + mth.dex().getDexFile().getName();
 	}
 }

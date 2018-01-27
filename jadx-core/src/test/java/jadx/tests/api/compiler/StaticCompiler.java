@@ -22,7 +22,7 @@ import static javax.tools.JavaCompiler.CompilationTask;
 
 public class StaticCompiler {
 
-	private static final List<String> COMMON_ARGS = Arrays.asList("-source 1.7 -target 1.7".split(" "));
+	private static final List<String> COMMON_ARGS = Arrays.asList("-source 1.8 -target 1.8".split(" "));
 
 	public static List<File> compile(List<File> files, File outDir, boolean includeDebugInfo) throws IOException {
 

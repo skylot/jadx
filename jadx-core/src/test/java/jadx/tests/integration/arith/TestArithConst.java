@@ -1,4 +1,4 @@
-package jadx.tests.smali;
+package jadx.tests.integration.arith;
 
 import org.junit.Test;
 
@@ -13,7 +13,7 @@ public class TestArithConst extends SmaliTest {
 	@Test
 	public void test() {
 		noDebugInfo();
-		ClassNode cls = getClassNodeFromSmali("TestArithConst");
+		ClassNode cls = getClassNodeFromSmaliWithPath("arith", "TestArithConst");
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsOne("return i + CONST_INT;"));

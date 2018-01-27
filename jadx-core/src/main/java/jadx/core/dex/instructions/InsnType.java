@@ -8,6 +8,7 @@ public enum InsnType {
 
 	ARITH,
 	NEG,
+	NOT,
 
 	MOVE,
 	CAST,
