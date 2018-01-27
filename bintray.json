@@ -5,21 +5,30 @@
     "subject": "skylot",
     "desc": "Unstable",
     "website_url": "https://github.com/skylot/jadx",
-    "issue_tracker_url": "https://github.com/skylot/jadx",
-    "vcs_url": "https://github.com/skylot/jadx",
-    "licenses": ["Apache-2.0"],
-    "labels": ["unstable"],
-    "public_download_numbers": false,
-    "public_stats": false
+    "issue_tracker_url": "https://github.com/skylot/jadx/issues",
+    "vcs_url": "https://github.com/skylot/jadx.git",
+    "licenses": [
+      "Apache-2.0"
+    ],
+    "labels": [
+      "unstable"
+    ],
+    "public_download_numbers": true,
+    "public_stats": true
   },
-
   "version": {
-    "name": "BUILD_VERSION"
+    "name": "BUILD_VERSION",
+    "desc": "Dev build: BUILD_VERSION"
   },
-
-  "files":
-  [
-    {"includePattern": "build/(jadx.*\.zip)", "uploadPattern": "$1"}
+  "files": [
+    {
+      "includePattern": "build/(jadx.*\.zip)",
+      "uploadPattern": "$1",
+      "matrixParams": {
+        "override": 1
+      },
+      "list_in_downloads": true
+    }
   ],
   "publish": true
 }

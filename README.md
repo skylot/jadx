@@ -4,7 +4,6 @@
 [![Code Coverage](https://codecov.io/gh/skylot/jadx/branch/master/graph/badge.svg)](https://codecov.io/gh/skylot/jadx)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/2166/badge.svg)](https://scan.coverity.com/projects/2166)
 [![SonarQube Bugs](https://sonarcloud.io/api/badges/measure?key=jadx&metric=bugs)](https://sonarcloud.io/dashboard?id=jadx)
-[![Latest release](https://img.shields.io/github/release/skylot/jadx.svg)](https://github.com/skylot/jadx/releases/latest)
 [![Latest release downloads](https://img.shields.io/github/downloads/skylot/jadx/latest/total.svg)](https://github.com/skylot/jadx/releases/latest)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
@@ -16,11 +15,17 @@ Command line and GUI tools for produce Java source code from Android Dex and Apk
 
 
 ### Downloads
-- [unstable](https://bintray.com/skylot/jadx/unstable#files)
-- from [github](https://github.com/skylot/jadx/releases)
-- from [bintray](https://bintray.com/skylot/jadx/releases#files)
-- from [sourceforge](http://sourceforge.net/projects/jadx/files/)
+- latest [unstable build: ![Download](https://api.bintray.com/packages/skylot/jadx/unstable/images/download.svg) ](https://bintray.com/skylot/jadx/unstable/_latestVersion#files)
+- release from [github: ![Latest release](https://img.shields.io/github/release/skylot/jadx.svg)](https://github.com/skylot/jadx/releases/latest)
+- release from [bintray: ![Download](https://api.bintray.com/packages/skylot/jadx/releases/images/download.svg) ](https://bintray.com/skylot/jadx/releases/_latestVersion#files)
+- release from [sourceforge](http://sourceforge.net/projects/jadx/files/)
 
+After download unpack zip file go to `bin` directory and run:
+- `jadx` - command line version
+- `jadx-gui` - graphical version
+
+On Windows run `.bat` files with double-click\
+**Note:** ensure you have installed Java 8 64-bit version
 
 ### Building from source
 Java 8 JDK or higher must be installed:
@@ -72,6 +77,7 @@ options:
 Example:
  jadx -d out classes.dex
 ```
+These options also worked on jadx-gui running from command line and override options from preferences dialog
 
 ### Troubleshooting
 ##### Out of memory error:
