@@ -207,11 +207,13 @@ public class RegionGen extends InsnGen {
 		if (region.isConditionAtEnd()) {
 			code.startLine("do {");
 			makeRegionIndent(code, region.getBody());
-			code.startLine("} while (");
+			code.startLineWithNum(region.getConditionSourceLine());
+			code.add("} while (");
 			conditionGen.add(code, condition);
 			code.add(");");
 		} else {
-			code.startLine("while (");
+			code.startLineWithNum(region.getConditionSourceLine());
+			code.add("while (");
 			conditionGen.add(code, condition);
 			code.add(") {");
 			makeRegionIndent(code, region.getBody());

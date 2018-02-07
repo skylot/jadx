@@ -1,5 +1,9 @@
 package jadx.core.dex.regions.loops;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -9,15 +13,15 @@ import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.regions.AbstractRegion;
 import jadx.core.dex.regions.conditions.IfCondition;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import org.jetbrains.annotations.Nullable;
 
 public final class LoopRegion extends AbstractRegion {
 
 	private final LoopInfo info;
-	// loop header contains one 'if' insn, equals null for infinite loop
+	/**
+	 * loop header contains one 'if' insn, equals null for infinite loop
+	 */
+	@Nullable
 	private IfCondition condition;
 	private final BlockNode conditionBlock;
 	// instruction which must be executed before condition in every loop
@@ -27,7 +31,7 @@ public final class LoopRegion extends AbstractRegion {
 
 	private LoopType type;
 
-	public LoopRegion(IRegion parent, LoopInfo info, BlockNode header, boolean reversed) {
+	public LoopRegion(IRegion parent, LoopInfo info, @Nullable BlockNode header, boolean reversed) {
 		super(parent);
 		this.info = info;
 		this.conditionBlock = header;
@@ -124,6 +128,16 @@ public final class LoopRegion extends AbstractRegion {
 			preCondInsns.clear();
 			preCondition = null;
 		}
+	}
+
+	public int getConditionSourceLine() {
+		if (conditionBlock != null) {
+			List<InsnNode> condInsns = conditionBlock.getInstructions();
+			if (!condInsns.isEmpty()) {
+				return condInsns.get(0).getSourceLine();
+			}
+		}
+		return 0;
 	}
 
 	public LoopType getType() {
