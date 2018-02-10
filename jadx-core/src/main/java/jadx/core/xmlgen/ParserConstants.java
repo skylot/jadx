@@ -8,6 +8,9 @@ public class ParserConstants {
 	protected ParserConstants() {
 	}
 
+
+	protected static final String ANDROID_NS_URL = "http://schemas.android.com/apk/res/android";
+
 	/**
 	 * Chunk types
 	 */

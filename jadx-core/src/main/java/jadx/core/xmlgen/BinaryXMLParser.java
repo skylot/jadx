@@ -48,6 +48,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private ValuesParser valuesParser;
 	private boolean isLastEnd = true;
 	private boolean isOneLine = true;
+	private int[] resourceIds;
 
 	public BinaryXMLParser(RootNode root) {
 		try {
@@ -145,10 +146,11 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		if (is.readInt16() != 0x8) {
 			die("Header size of resmap is not 8!");
 		}
-		int rhsize = is.readInt32();
-		int[] ids = new int[(rhsize - 8) / 4];
-		for (int i = 0; i < ids.length; i++) {
-			ids[i] = is.readInt32();
+		int size = is.readInt32();
+		int len = (size - 8) / 4;
+		resourceIds = new int[len];
+		for (int i = 0; i < len; i++) {
+			resourceIds[i] = is.readInt32();
 		}
 	}
 
@@ -163,7 +165,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int comment = is.readInt32();
 		int beginPrefix = is.readInt32();
 		int beginURI = is.readInt32();
-		nsMap.computeIfAbsent(strings[beginURI], k -> strings[beginPrefix]);
+		nsMap.computeIfAbsent(getString(beginURI), k -> getString(beginPrefix));
 	}
 
 	private void parseNameSpaceEnd() throws IOException {
@@ -177,7 +179,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int comment = is.readInt32();
 		int endPrefix = is.readInt32();
 		int endURI = is.readInt32();
-		nsMap.computeIfAbsent(strings[endURI], k -> strings[endPrefix]);
+		nsMap.computeIfAbsent(getString(endURI), k -> getString(endPrefix));
 	}
 
 	private void parseCData() throws IOException {
@@ -191,7 +193,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		is.skip(4);
 
 		int strIndex = is.readInt32();
-		String str = strings[strIndex];
+		String str = getString(strIndex);
 
 		writer.startLine().addIndent();
 		writer.attachSourceLine(lineNumber);
@@ -221,7 +223,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		}
 		isOneLine = true;
 		isLastEnd = false;
-		currentTag = strings[startNSName];
+		currentTag = getString(startNSName);
 		writer.startLine("<").add(currentTag);
 		writer.attachSourceLine(elementBegLineNumber);
 		int attributeStart = is.readInt16();
@@ -261,15 +263,15 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int attrValDataType = is.readInt8();
 		int attrValData = is.readInt32();
 
-		String attrName = strings[attributeName];
 		if (newLine) {
 			writer.startLine().addIndent();
 		} else {
 			writer.add(' ');
 		}
 		if (attributeNS != -1) {
-			writer.add(nsMap.get(strings[attributeNS])).add(':');
+			writer.add(getAttributeNS(attributeNS)).add(':');
 		}
+		String attrName = getAttributeName(attributeName);
 		writer.add(attrName).add("=\"");
 		String decodedAttr = ManifestAttributes.getInstance().decode(attrName, attrValData);
 		if (decodedAttr != null) {
@@ -280,6 +282,47 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		writer.add('"');
 	}
 
+	private String getAttributeNS(int attributeNS) {
+		String attrUrl = getString(attributeNS);
+		if (attrUrl == null || attrUrl.isEmpty()) {
+			if (isResInternalId(attributeNS)) {
+				return null;
+			} else {
+				attrUrl = ANDROID_NS_URL;
+			}
+		}
+		String attrName = nsMap.get(attrUrl);
+		if (attrName == null) {
+			return "NOT_FOUND_NS_0x" + Integer.toHexString(attributeNS) + "_" + attrUrl;
+		}
+		return attrName;
+	}
+
+	private String getAttributeName(int id) {
+		String str = getString(id);
+		if (str == null || str.isEmpty()) {
+			int resId = resourceIds[id];
+			str = ValuesParser.getAndroidResMap().get(resId);
+			if (str == null) {
+				return "NOT_FOUND_0x" + Integer.toHexString(id);
+			}
+			// cut type before /
+			int typeEnd = str.indexOf('/');
+			if (typeEnd != -1) {
+				return str.substring(typeEnd + 1);
+			}
+			return str;
+		}
+		return str;
+	}
+
+	private String getString(int strId) {
+		if (0 <= strId && strId < strings.length) {
+			return strings[strId];
+		}
+		return "NOT_FOUND_STR_0x" + Integer.toHexString(strId);
+	}
+
 	private void decodeAttribute(int attributeNS, int attrValDataType, int attrValData) {
 		if (attrValDataType == TYPE_REFERENCE) {
 			// reference custom processing
@@ -287,7 +330,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			if (name != null) {
 				writer.add("@");
 				if (attributeNS != -1) {
-					writer.add(nsMap.get(strings[attributeNS])).add(':');
+					writer.add(getAttributeNS(attributeNS)).add(':');
 				}
 				writer.add("style/").add(name.replaceAll("_", "."));
 			} else {
@@ -336,15 +379,15 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int comment = is.readInt32();
 		int elementNS = is.readInt32();
 		int elementName = is.readInt32();
-		if (currentTag.equals(strings[elementName]) && isOneLine && !isLastEnd) {
-			writer.add(" />");
+		if (currentTag.equals(getString(elementName)) && isOneLine && !isLastEnd) {
+			writer.add("/>");
 		} else {
 			writer.startLine("</");
 			writer.attachSourceLine(endLineNumber);
 			if (elementNS != -1) {
-				writer.add(strings[elementNS]).add(':');
+				writer.add(getString(elementNS)).add(':');
 			}
-			writer.add(strings[elementName]).add(">");
+			writer.add(getString(elementName)).add(">");
 		}
 		isLastEnd = true;
 		if (writer.getIndent() != 0) {
