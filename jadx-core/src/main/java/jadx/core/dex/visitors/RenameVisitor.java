@@ -7,7 +7,7 @@ import java.util.Set;
 
 import org.apache.commons.io.FilenameUtils;
 
-import jadx.api.IJadxArgs;
+import jadx.api.JadxArgs;
 import jadx.core.Consts;
 import jadx.core.codegen.TypeGen;
 import jadx.core.deobf.Deobfuscator;
@@ -31,8 +31,6 @@ public class RenameVisitor extends AbstractVisitor {
 
 	@Override
 	public void init(RootNode root) {
-		IJadxArgs args = root.getArgs();
-
 		List<DexNode> dexNodes = root.getDexNodes();
 		if (dexNodes.isEmpty()) {
 			return;
@@ -43,6 +41,7 @@ public class RenameVisitor extends AbstractVisitor {
 		String inputName = FilenameUtils.getBaseName(firstInputFileName);
 
 		File deobfMapFile = new File(inputPath, inputName + ".jobf");
+		JadxArgs args = root.getArgs();
 		deobfuscator = new Deobfuscator(args, dexNodes, deobfMapFile);
 		boolean deobfuscationOn = args.isDeobfuscationOn();
 		if (deobfuscationOn) {

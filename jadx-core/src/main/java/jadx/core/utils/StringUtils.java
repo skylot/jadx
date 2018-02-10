@@ -1,13 +1,13 @@
 package jadx.core.utils;
 
-import jadx.api.IJadxArgs;
+import jadx.api.JadxArgs;
 
 public class StringUtils {
 
 	private final boolean escapeUnicode;
 
-	public StringUtils(IJadxArgs args) {
-		this.escapeUnicode = args.escapeUnicode();
+	public StringUtils(JadxArgs args) {
+		this.escapeUnicode = args.isEscapeUnicode();
 	}
 
 	public String unescapeString(String str) {

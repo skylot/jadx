@@ -8,7 +8,7 @@ import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.api.IJadxArgs;
+import jadx.api.JadxArgs;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
@@ -60,7 +60,7 @@ public class ConstStorage {
 
 	private Map<Integer, String> resourcesNames = new HashMap<>();
 
-	public ConstStorage(IJadxArgs args) {
+	public ConstStorage(JadxArgs args) {
 		this.replaceEnabled = args.isReplaceConsts();
 	}
 

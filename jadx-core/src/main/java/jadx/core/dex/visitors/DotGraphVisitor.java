@@ -23,42 +23,33 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class DotGraphVisitor extends AbstractVisitor {
-
-	private static final Logger LOG = LoggerFactory.getLogger(DotGraphVisitor.class);
 
 	private static final String NL = "\\l";
 	private static final boolean PRINT_DOMINATORS = false;
 
-	private final File dir;
 	private final boolean useRegions;
 	private final boolean rawInsn;
 
-	public static DotGraphVisitor dump(File outDir) {
-		return new DotGraphVisitor(outDir, false, false);
+	public static DotGraphVisitor dump() {
+		return new DotGraphVisitor(false, false);
 	}
 
-	public static DotGraphVisitor dumpRaw(File outDir) {
-		return new DotGraphVisitor(outDir, false, true);
+	public static DotGraphVisitor dumpRaw() {
+		return new DotGraphVisitor(false, true);
 	}
 
-	public static DotGraphVisitor dumpRegions(File outDir) {
-		return new DotGraphVisitor(outDir, true, false);
+	public static DotGraphVisitor dumpRegions() {
+		return new DotGraphVisitor(true, false);
 	}
 
-	public static DotGraphVisitor dumpRawRegions(File outDir) {
-		return new DotGraphVisitor(outDir, true, true);
+	public static DotGraphVisitor dumpRawRegions() {
+		return new DotGraphVisitor(true, true);
 	}
 
-	private DotGraphVisitor(File outDir, boolean useRegions, boolean rawInsn) {
-		this.dir = outDir;
+	private DotGraphVisitor(boolean useRegions, boolean rawInsn) {
 		this.useRegions = useRegions;
 		this.rawInsn = rawInsn;
-		LOG.debug("DOT {}{}graph dump dir: {}",
-				useRegions ? "regions " : "", rawInsn ? "raw " : "", outDir.getAbsolutePath());
 	}
 
 	@Override
@@ -66,12 +57,25 @@ public class DotGraphVisitor extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
-		new DumpDotGraph().process(mth);
+		File outRootDir = mth.root().getArgs().getOutDir();
+		new DumpDotGraph(outRootDir).process(mth);
+	}
+
+	public void save(File dir, MethodNode mth) {
+		if (mth.isNoCode()) {
+			return;
+		}
+		new DumpDotGraph(dir).process(mth);
 	}
 
 	private class DumpDotGraph {
 		private final CodeWriter dot = new CodeWriter();
 		private final CodeWriter conn = new CodeWriter();
+		private final File dir;
+
+		public DumpDotGraph(File dir) {
+			this.dir = dir;
+		}
 
 		public void process(MethodNode mth) {
 			dot.startLine("digraph \"CFG for");

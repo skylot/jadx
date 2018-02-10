@@ -11,6 +11,7 @@ import java.util.Set;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
+import jadx.api.JadxArgs;
 import jadx.cli.JadxCLIArgs;
 
 public class JadxSettings extends JadxCLIArgs {
@@ -44,7 +45,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void fixOnLoad() {
 		if (threadsCount <= 0) {
-			threadsCount = DEFAULT_THREADS_COUNT;
+			threadsCount = JadxArgs.DEFAULT_THREADS_COUNT;
 		}
 	}
 
@@ -165,8 +166,8 @@ public class JadxSettings extends JadxCLIArgs {
 		this.deobfuscationForceSave = deobfuscationForceSave;
 	}
 
-	public void setUseSourceNameAsClassAlias(boolean useSourceNameAsAlias) {
-		this.deobfuscationUseSourceNameAsAlias = useSourceNameAsAlias;
+	public void setDeobfuscationUseSourceNameAsAlias(boolean deobfuscationUseSourceNameAsAlias) {
+		this.deobfuscationUseSourceNameAsAlias = deobfuscationUseSourceNameAsAlias;
 	}
 
 	public void setEscapeUnicode(boolean escapeUnicode) {

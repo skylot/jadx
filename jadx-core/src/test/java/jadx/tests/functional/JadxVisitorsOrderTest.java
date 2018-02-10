@@ -1,6 +1,5 @@
 package jadx.tests.functional;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -24,7 +23,7 @@ public class JadxVisitorsOrderTest {
 
 	@Test
 	public void testOrder() {
-		List<IDexTreeVisitor> passes = Jadx.getPassesList(new JadxArgs(), new File("out"));
+		List<IDexTreeVisitor> passes = Jadx.getPassesList(new JadxArgs());
 
 		List<String> errors = check(passes);
 		for (String str : errors) {

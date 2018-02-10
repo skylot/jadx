@@ -145,10 +145,10 @@ public class JadxSettingsWindow extends JDialog {
 		});
 
 		JCheckBox deobfSourceAlias = new JCheckBox();
-		deobfSourceAlias.setSelected(settings.useSourceNameAsClassAlias());
+		deobfSourceAlias.setSelected(settings.isDeobfuscationUseSourceNameAsAlias());
 		deobfSourceAlias.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
-				settings.setUseSourceNameAsClassAlias(e.getStateChange() == ItemEvent.SELECTED);
+				settings.setDeobfuscationUseSourceNameAsAlias(e.getStateChange() == ItemEvent.SELECTED);
 				needReload();
 			}
 		});
@@ -219,6 +219,7 @@ public class JadxSettingsWindow extends JDialog {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				settings.setThreadsCount((Integer) threadsCount.getValue());
+				needReload();
 			}
 		});
 

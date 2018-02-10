@@ -46,7 +46,7 @@ public class DexNode implements IDexNode {
 		this.dexId = dexId;
 	}
 
-	public void loadClasses() throws DecodeException {
+	public void loadClasses() {
 		for (ClassDef cls : dexBuf.classDefs()) {
 			ClassNode clsNode = new ClassNode(this, cls);
 			classes.add(clsNode);

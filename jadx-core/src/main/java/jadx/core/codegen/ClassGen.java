@@ -12,7 +12,7 @@ import java.util.Set;
 
 import com.android.dx.rop.code.AccessFlags;
 
-import jadx.api.IJadxArgs;
+import jadx.api.JadxArgs;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
@@ -48,8 +48,8 @@ public class ClassGen {
 	private final Set<ClassInfo> imports = new HashSet<>();
 	private int clsDeclLine;
 
-	public ClassGen(ClassNode cls, IJadxArgs jadxArgs) {
-		this(cls, null, jadxArgs.isUsingImports(), jadxArgs.isFallbackMode(), jadxArgs.isShowInconsistentCode());
+	public ClassGen(ClassNode cls, JadxArgs jadxArgs) {
+		this(cls, null, jadxArgs.isUseImports(), jadxArgs.isFallbackMode(), jadxArgs.isShowInconsistentCode());
 	}
 
 	public ClassGen(ClassNode cls, ClassGen parentClsGen) {

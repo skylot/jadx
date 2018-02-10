@@ -1,21 +1,31 @@
 package jadx.api;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
-public class JadxArgs implements IJadxArgs {
+public class JadxArgs {
 
-	private File outDir = new File("jadx-output");
-	private File outDirSrc = new File(outDir, "source");
-	private File outDirRes = new File(outDir, "res");
-	private int threadsCount = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
+	public static final int DEFAULT_THREADS_COUNT = Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
+
+	public static final String DEFAULT_OUT_DIR = "jadx-output";
+	public static final String DEFAULT_SRC_DIR = "sources";
+	public static final String DEFAULT_RES_DIR = "resources";
+
+	private List<File> inputFiles = new ArrayList<>(1);
+
+	private File outDir;
+	private File outDirSrc;
+	private File outDirRes;
+
+	private int threadsCount = DEFAULT_THREADS_COUNT;
 
 	private boolean cfgOutput = false;
 	private boolean rawCFGOutput = false;
 
-	private boolean isVerbose = false;
 	private boolean fallbackMode = false;
 	private boolean showInconsistentCode = false;
-	
+
 	private boolean useImports = true;
 
 	private boolean isSkipResources = false;
@@ -32,7 +42,24 @@ public class JadxArgs implements IJadxArgs {
 	private boolean replaceConsts = true;
 	private boolean exportAsGradleProject = false;
 
-	@Override
+	public JadxArgs() {
+		// use default options
+	}
+
+	public void setRootDir(File rootDir) {
+		setOutDir(rootDir);
+		setOutDirSrc(new File(rootDir, DEFAULT_SRC_DIR));
+		setOutDirRes(new File(rootDir, DEFAULT_RES_DIR));
+	}
+
+	public List<File> getInputFiles() {
+		return inputFiles;
+	}
+
+	public void setInputFiles(List<File> inputFiles) {
+		this.inputFiles = inputFiles;
+	}
+
 	public File getOutDir() {
 		return outDir;
 	}
@@ -41,7 +68,6 @@ public class JadxArgs implements IJadxArgs {
 		this.outDir = outDir;
 	}
 
-	@Override
 	public File getOutDirSrc() {
 		return outDirSrc;
 	}
@@ -50,7 +76,6 @@ public class JadxArgs implements IJadxArgs {
 		this.outDirSrc = outDirSrc;
 	}
 
-	@Override
 	public File getOutDirRes() {
 		return outDirRes;
 	}
@@ -59,7 +84,6 @@ public class JadxArgs implements IJadxArgs {
 		this.outDirRes = outDirRes;
 	}
 
-	@Override
 	public int getThreadsCount() {
 		return threadsCount;
 	}
@@ -68,8 +92,7 @@ public class JadxArgs implements IJadxArgs {
 		this.threadsCount = threadsCount;
 	}
 
-	@Override
-	public boolean isCFGOutput() {
+	public boolean isCfgOutput() {
 		return cfgOutput;
 	}
 
@@ -77,7 +100,6 @@ public class JadxArgs implements IJadxArgs {
 		this.cfgOutput = cfgOutput;
 	}
 
-	@Override
 	public boolean isRawCFGOutput() {
 		return rawCFGOutput;
 	}
@@ -86,7 +108,6 @@ public class JadxArgs implements IJadxArgs {
 		this.rawCFGOutput = rawCFGOutput;
 	}
 
-	@Override
 	public boolean isFallbackMode() {
 		return fallbackMode;
 	}
@@ -95,7 +116,6 @@ public class JadxArgs implements IJadxArgs {
 		this.fallbackMode = fallbackMode;
 	}
 
-	@Override
 	public boolean isShowInconsistentCode() {
 		return showInconsistentCode;
 	}
@@ -104,8 +124,7 @@ public class JadxArgs implements IJadxArgs {
 		this.showInconsistentCode = showInconsistentCode;
 	}
 
-	@Override
-	public boolean isUsingImports() {
+	public boolean isUseImports() {
 		return useImports;
 	}
 
@@ -113,16 +132,6 @@ public class JadxArgs implements IJadxArgs {
 		this.useImports = useImports;
 	}
 
-	@Override
-	public boolean isVerbose() {
-		return isVerbose;
-	}
-
-	public void setVerbose(boolean verbose) {
-		isVerbose = verbose;
-	}
-
-	@Override
 	public boolean isSkipResources() {
 		return isSkipResources;
 	}
@@ -131,7 +140,6 @@ public class JadxArgs implements IJadxArgs {
 		isSkipResources = skipResources;
 	}
 
-	@Override
 	public boolean isSkipSources() {
 		return isSkipSources;
 	}
@@ -140,7 +148,6 @@ public class JadxArgs implements IJadxArgs {
 		isSkipSources = skipSources;
 	}
 
-	@Override
 	public boolean isDeobfuscationOn() {
 		return isDeobfuscationOn;
 	}
@@ -149,7 +156,6 @@ public class JadxArgs implements IJadxArgs {
 		isDeobfuscationOn = deobfuscationOn;
 	}
 
-	@Override
 	public boolean isDeobfuscationForceSave() {
 		return isDeobfuscationForceSave;
 	}
@@ -158,8 +164,7 @@ public class JadxArgs implements IJadxArgs {
 		isDeobfuscationForceSave = deobfuscationForceSave;
 	}
 
-	@Override
-	public boolean useSourceNameAsClassAlias() {
+	public boolean isUseSourceNameAsClassAlias() {
 		return useSourceNameAsClassAlias;
 	}
 
@@ -167,7 +172,6 @@ public class JadxArgs implements IJadxArgs {
 		this.useSourceNameAsClassAlias = useSourceNameAsClassAlias;
 	}
 
-	@Override
 	public int getDeobfuscationMinLength() {
 		return deobfuscationMinLength;
 	}
@@ -176,7 +180,6 @@ public class JadxArgs implements IJadxArgs {
 		this.deobfuscationMinLength = deobfuscationMinLength;
 	}
 
-	@Override
 	public int getDeobfuscationMaxLength() {
 		return deobfuscationMaxLength;
 	}
@@ -185,8 +188,7 @@ public class JadxArgs implements IJadxArgs {
 		this.deobfuscationMaxLength = deobfuscationMaxLength;
 	}
 
-	@Override
-	public boolean escapeUnicode() {
+	public boolean isEscapeUnicode() {
 		return escapeUnicode;
 	}
 
@@ -194,7 +196,6 @@ public class JadxArgs implements IJadxArgs {
 		this.escapeUnicode = escapeUnicode;
 	}
 
-	@Override
 	public boolean isReplaceConsts() {
 		return replaceConsts;
 	}
@@ -203,7 +204,6 @@ public class JadxArgs implements IJadxArgs {
 		this.replaceConsts = replaceConsts;
 	}
 
-	@Override
 	public boolean isExportAsGradleProject() {
 		return exportAsGradleProject;
 	}

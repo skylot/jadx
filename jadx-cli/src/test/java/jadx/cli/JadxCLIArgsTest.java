@@ -8,7 +8,7 @@ import static org.junit.Assert.assertThat;
 public class JadxCLIArgsTest {
 
 	@Test
-	public void testInvertedBooleanOption() throws Exception {
+	public void testInvertedBooleanOption() {
 		assertThat(parse("--no-replace-consts").isReplaceConsts(), is(false));
 		assertThat(parse("").isReplaceConsts(), is(true));
 	}

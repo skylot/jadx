@@ -65,7 +65,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 	// cache maps
 	private Map<MethodInfo, MethodNode> mthInfoMap = Collections.emptyMap();
 
-	public ClassNode(DexNode dex, ClassDef cls) throws DecodeException {
+	public ClassNode(DexNode dex, ClassDef cls) {
 		this.dex = dex;
 		this.clsInfo = ClassInfo.fromDex(dex, cls.getTypeIndex());
 		try {
@@ -128,7 +128,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 
 			buildCache();
 		} catch (Exception e) {
-			throw new DecodeException("Error decode class: " + clsInfo, e);
+			throw new JadxRuntimeException("Error decode class: " + clsInfo, e);
 		}
 	}
 

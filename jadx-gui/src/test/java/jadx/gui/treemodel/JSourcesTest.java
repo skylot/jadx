@@ -7,7 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import jadx.api.Factory;
-import jadx.api.IJadxArgs;
+import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaPackage;
@@ -30,7 +30,7 @@ public class JSourcesTest {
 		when(root.isFlatPackages()).thenReturn(false);
 		JadxWrapper wrapper = mock(JadxWrapper.class);
 		sources = new JSources(root, wrapper);
-		decompiler = new JadxDecompiler(mock(IJadxArgs.class));
+		decompiler = new JadxDecompiler(new JadxArgs());
 	}
 
 	@Test

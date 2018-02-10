@@ -27,12 +27,13 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ResourceFile;
-import jadx.core.utils.exceptions.JadxException;
 import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.BackgroundWorker;
 import jadx.gui.jobs.DecompileJob;
@@ -101,7 +102,7 @@ public class MainWindow extends JFrame {
 	private transient ProgressPanel progressPane;
 	private transient BackgroundWorker backgroundWorker;
 
-	public MainWindow(JadxSettings settings) throws JadxException {
+	public MainWindow(JadxSettings settings) {
 		this.wrapper = new JadxWrapper(settings);
 		this.settings = settings;
 		this.cacheObject = new CacheObject();
@@ -119,10 +120,10 @@ public class MainWindow extends JFrame {
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-		if (settings.getInput().isEmpty()) {
+		if (settings.getFiles().isEmpty()) {
 			openFile();
 		} else {
-			openFile(settings.getInput().get(0));
+			openFile(new File(settings.getFiles().get(0)));
 		}
 	}
 
@@ -689,5 +690,4 @@ public class MainWindow extends JFrame {
 		public void menuCanceled(MenuEvent e) {
 		}
 	}
-
 }

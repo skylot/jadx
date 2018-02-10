@@ -2,38 +2,38 @@ package jadx.gui;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.IJadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaPackage;
 import jadx.api.ResourceFile;
-import jadx.core.utils.exceptions.DecodeException;
-import jadx.core.utils.exceptions.JadxException;
+import jadx.gui.settings.JadxSettings;
 
 public class JadxWrapper {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxWrapper.class);
 
-	private final JadxDecompiler decompiler;
+	private final JadxSettings settings;
+	private JadxDecompiler decompiler;
 	private File openFile;
 
-	public JadxWrapper(IJadxArgs jadxArgs) throws JadxException {
-		this.decompiler = new JadxDecompiler(jadxArgs);
+	public JadxWrapper(JadxSettings settings) {
+		this.settings = settings;
 	}
 
 	public void openFile(File file) {
 		this.openFile = file;
 		try {
-			this.decompiler.loadFile(file);
-		} catch (DecodeException e) {
-			LOG.error("Error decode file: {}", file, e);
-		} catch (JadxException e) {
-			LOG.error("Error open file: {}", file, e);
+			this.decompiler = new JadxDecompiler(settings.toJadxArgs());
+			this.decompiler.getArgs().setInputFiles(Collections.singletonList(file));
+			this.decompiler.load();
+		} catch (Exception e) {
+			LOG.error("Error load file: {}", file, e);
 		}
 	}
 
@@ -42,7 +42,7 @@ public class JadxWrapper {
 			@Override
 			public void run() {
 				try {
-					decompiler.setOutputDir(dir);
+					decompiler.getArgs().setRootDir(dir);
 					ThreadPoolExecutor ex = (ThreadPoolExecutor) decompiler.getSaveExecutor();
 					ex.shutdown();
 					while (ex.isTerminating()) {
@@ -53,7 +53,7 @@ public class JadxWrapper {
 					}
 					progressMonitor.close();
 					LOG.info("done");
-				} catch (InterruptedException|JadxException e) {
+				} catch (InterruptedException e) {
 					LOG.error("Save interrupted", e);
 					Thread.currentThread().interrupt();
 				}

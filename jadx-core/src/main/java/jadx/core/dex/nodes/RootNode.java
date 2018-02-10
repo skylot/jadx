@@ -1,6 +1,15 @@
 package jadx.core.dex.nodes;
 
-import jadx.api.IJadxArgs;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import jadx.api.JadxArgs;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.api.ResourcesLoader;
@@ -11,28 +20,19 @@ import jadx.core.dex.info.InfoStorage;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.android.AndroidResourcesUtils;
-import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.DexFile;
 import jadx.core.utils.files.InputFile;
 import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.ResTableParser;
 import jadx.core.xmlgen.ResourceStorage;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class RootNode {
 	private static final Logger LOG = LoggerFactory.getLogger(RootNode.class);
 
 	private final ErrorsCounter errorsCounter = new ErrorsCounter();
-	private final IJadxArgs args;
+	private final JadxArgs args;
 	private final StringUtils stringUtils;
 	private final ConstStorage constValues;
 	private final InfoStorage infoStorage = new InfoStorage();
@@ -43,13 +43,13 @@ public class RootNode {
 	private ClassNode appResClass;
 	private ClspGraph clsp;
 
-	public RootNode(IJadxArgs args) {
+	public RootNode(JadxArgs args) {
 		this.args = args;
 		this.stringUtils = new StringUtils(args);
 		this.constValues = new ConstStorage(args);
 	}
 
-	public void load(List<InputFile> inputFiles) throws DecodeException {
+	public void load(List<InputFile> inputFiles) {
 		dexNodes = new ArrayList<>();
 		for (InputFile input : inputFiles) {
 			for (DexFile dexFile : input.getDexFiles()) {
@@ -58,7 +58,7 @@ public class RootNode {
 					DexNode dexNode = new DexNode(this, dexFile, dexNodes.size());
 					dexNodes.add(dexNode);
 				} catch (Exception e) {
-					throw new DecodeException("Error decode file: " + dexFile, e);
+					throw new JadxRuntimeException("Error decode file: " + dexFile, e);
 				}
 			}
 		}
@@ -103,22 +103,22 @@ public class RootNode {
 		appResClass = AndroidResourcesUtils.searchAppResClass(this);
 	}
 
-	public void initClassPath() throws DecodeException {
+	public void initClassPath() {
 		try {
 			if (this.clsp == null) {
-				ClspGraph clsp = new ClspGraph();
-				clsp.load();
+				ClspGraph newClsp = new ClspGraph();
+				newClsp.load();
 
 				List<ClassNode> classes = new ArrayList<>();
 				for (DexNode dexNode : dexNodes) {
 					classes.addAll(dexNode.getClasses());
 				}
-				clsp.addApp(classes);
+				newClsp.addApp(classes);
 
-				this.clsp = clsp;
+				this.clsp = newClsp;
 			}
-		} catch (IOException e) {
-			throw new DecodeException("Error loading classpath", e);
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Error loading classpath", e);
 		}
 	}
 
@@ -188,10 +188,6 @@ public class RootNode {
 		return appResClass;
 	}
 
-	public IJadxArgs getArgs() {
-		return args;
-	}
-
 	public StringUtils getStringUtils() {
 		return stringUtils;
 	}
@@ -204,4 +200,7 @@ public class RootNode {
 		return infoStorage;
 	}
 
+	public JadxArgs getArgs() {
+		return args;
+	}
 }

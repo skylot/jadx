@@ -10,7 +10,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.JarOutputStream;
@@ -29,7 +28,6 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.exceptions.CodegenException;
-import jadx.core.utils.exceptions.JadxException;
 import jadx.tests.api.compiler.DynamicCompiler;
 import jadx.tests.api.compiler.StaticCompiler;
 import jadx.tests.api.utils.TestUtils;
@@ -65,6 +63,7 @@ public abstract class IntegrationTest extends TestUtils {
 
 	public IntegrationTest() {
 		args = new JadxArgs();
+		args.setOutDir(new File(outDir));
 		args.setShowInconsistentCode(true);
 		args.setThreadsCount(1);
 		args.setSkipResources(true);
@@ -84,9 +83,10 @@ public abstract class IntegrationTest extends TestUtils {
 	public ClassNode getClassNodeFromFile(File file, String clsName) {
 		JadxDecompiler d = null;
 		try {
+			args.setInputFiles(Collections.singletonList(file));
 			d = new JadxDecompiler(args);
-			d.loadFile(file);
-		} catch (JadxException e) {
+			d.load();
+		} catch (Exception e) {
 			e.printStackTrace();
 			fail(e.getMessage());
 		}
@@ -114,18 +114,18 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	private void decompile(JadxDecompiler jadx, ClassNode cls) {
-		List<IDexTreeVisitor> passes = Jadx.getPassesList(jadx.getArgs(), new File(outDir));
-		ProcessClass.process(cls, passes, new CodeGen(jadx.getArgs()));
+		List<IDexTreeVisitor> passes = Jadx.getPassesList(jadx.getArgs());
+		ProcessClass.process(cls, passes, new CodeGen());
 	}
 
 	private void decompileWithoutUnload(JadxDecompiler d, ClassNode cls) {
 		cls.load();
-		List<IDexTreeVisitor> passes = Jadx.getPassesList(d.getArgs(), new File(outDir));
+		List<IDexTreeVisitor> passes = Jadx.getPassesList(d.getArgs());
 		for (IDexTreeVisitor visitor : passes) {
 			DepthTraversal.visit(visitor, cls);
 		}
 		try {
-			new CodeGen(d.getArgs()).visit(cls);
+			new CodeGen().visit(cls);
 		} catch (CodegenException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

@@ -1,6 +1,6 @@
 package jadx.core.deobf;
 
-import jadx.api.IJadxArgs;
+import jadx.api.JadxArgs;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.info.ClassInfo;
@@ -34,7 +34,7 @@ public class Deobfuscator {
 	public static final String CLASS_NAME_SEPARATOR = ".";
 	public static final String INNER_CLASS_SEPARATOR = "$";
 
-	private final IJadxArgs args;
+	private final JadxArgs args;
 	@NotNull
 	private final List<DexNode> dexNodes;
 	private final DeobfPresets deobfPresets;
@@ -58,13 +58,13 @@ public class Deobfuscator {
 	private int fldIndex = 0;
 	private int mthIndex = 0;
 
-	public Deobfuscator(IJadxArgs args, @NotNull List<DexNode> dexNodes, File deobfMapFile) {
+	public Deobfuscator(JadxArgs args, @NotNull List<DexNode> dexNodes, File deobfMapFile) {
 		this.args = args;
 		this.dexNodes = dexNodes;
 
 		this.minLength = args.getDeobfuscationMinLength();
 		this.maxLength = args.getDeobfuscationMaxLength();
-		this.useSourceNameAsAlias = args.useSourceNameAsClassAlias();
+		this.useSourceNameAsAlias = args.isUseSourceNameAsClassAlias();
 
 		this.deobfPresets = new DeobfPresets(this, deobfMapFile);
 	}

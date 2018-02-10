@@ -214,4 +214,12 @@ public class FileUtils {
 		}
 		return IOCase.SYSTEM.isCaseSensitive();
 	}
+
+	public static File toFile(String path) {
+		if (path == null) {
+			return null;
+		}
+		return new File(path);
+	}
+
 }
