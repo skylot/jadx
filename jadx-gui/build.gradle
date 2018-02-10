@@ -6,7 +6,7 @@ dependencies {
     compile(project(":jadx-core"))
     compile(project(":jadx-cli"))
     compile 'com.fifesoft:rsyntaxtextarea:2.6.1'
-    compile 'com.google.code.gson:gson:2.3.1'
+    compile 'com.google.code.gson:gson:2.8.2'
     compile files('libs/jfontchooser-1.0.5.jar')
     compile 'hu.kazocsaba:image-viewer:1.2.3'
 }
@@ -30,7 +30,7 @@ jar {
 }
 
 startScripts {
-    defaultJvmOpts = [ '-Xms2g', '-Xmx4g' ]
+    defaultJvmOpts = [ '-d64', '-Xms512M', '-Xmx4g' ]
     doLast {
         def str = windowsScript.text
         str = str.replaceAll('java.exe', 'javaw.exe')
