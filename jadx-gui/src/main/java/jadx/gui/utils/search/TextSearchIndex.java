@@ -73,22 +73,22 @@ public class TextSearchIndex {
 		}
 	}
 
-	public List<JNode> searchClsName(String text) {
-		return clsNamesIndex.getValuesForKeysContaining(text);
+	public List<JNode> searchClsName(String text, boolean caseInsensitive) {
+		return clsNamesIndex.getValuesForKeysContaining(text, caseInsensitive);
 	}
 
-	public List<JNode> searchMthName(String text) {
-		return mthNamesIndex.getValuesForKeysContaining(text);
+	public List<JNode> searchMthName(String text, boolean caseInsensitive) {
+		return mthNamesIndex.getValuesForKeysContaining(text, caseInsensitive);
 	}
 
-	public List<JNode> searchFldName(String text) {
-		return fldNamesIndex.getValuesForKeysContaining(text);
+	public List<JNode> searchFldName(String text, boolean caseInsensitive) {
+		return fldNamesIndex.getValuesForKeysContaining(text, caseInsensitive);
 	}
 
-	public List<CodeNode> searchCode(String text) {
+	public List<CodeNode> searchCode(String text, boolean caseInsensitive) {
 		List<CodeNode> items;
 		if (codeIndex.size() > 0) {
-			items = codeIndex.getValuesForKeysContaining(text);
+			items = codeIndex.getValuesForKeysContaining(text, caseInsensitive);
 			if (skippedClasses.isEmpty()) {
 				return items;
 			}
@@ -106,7 +106,7 @@ public class TextSearchIndex {
 			while (pos != -1) {
 				pos = searchNext(list, text, javaClass, code, pos);
 			}
-			if (list.size() > CommonSearchDialog.MAX_RESULTS_COUNT) {
+			if (list.size() > CommonSearchDialog.RESULTS_PER_PAGE) {
 				return;
 			}
 		}

@@ -37,7 +37,8 @@ public class UsageDialog extends CommonSearchDialog {
 		// no op
 	}
 
-	private synchronized void performSearch() {
+	@Override
+	protected synchronized void performSearch() {
 		resultsModel.clear();
 
 		CodeUsageInfo usageInfo = cache.getUsageInfo();
@@ -47,7 +48,7 @@ public class UsageDialog extends CommonSearchDialog {
 		resultsModel.addAll(usageInfo.getUsageList(node));
 		// TODO: highlight only needed node usage
 		highlightText = null;
-		resultsTable.updateTable();
+		super.performSearch();
 	}
 
 	private void initUI() {
