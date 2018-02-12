@@ -53,35 +53,37 @@ public class SearchDialog extends CommonSearchDialog {
 		searchField.requestFocus();
 	}
 
-	private synchronized void performSearch() {
+	@Override
+	protected synchronized void performSearch() {
 		resultsModel.clear();
 		String text = searchField.getText();
 		if (text == null || text.isEmpty() || options.isEmpty()) {
-			resultsTable.updateTable();
 			return;
 		}
-		cache.setLastSearch(text);
-		TextSearchIndex index = cache.getTextIndex();
-		if (index == null) {
-			resultsTable.updateTable();
-			return;
+		try {
+			cache.setLastSearch(text);
+			TextSearchIndex index = cache.getTextIndex();
+			if (index == null) {
+				return;
+			}
+			boolean caseInsensitive = caseChBox.isSelected();
+			if (options.contains(SearchOptions.CLASS)) {
+				resultsModel.addAll(index.searchClsName(text, caseInsensitive));
+			}
+			if (options.contains(SearchOptions.METHOD)) {
+				resultsModel.addAll(index.searchMthName(text, caseInsensitive));
+			}
+			if (options.contains(SearchOptions.FIELD)) {
+				resultsModel.addAll(index.searchFldName(text, caseInsensitive));
+			}
+			if (options.contains(SearchOptions.CODE)) {
+				resultsModel.addAll(index.searchCode(text, caseInsensitive));
+			}
+			highlightText = text;
+			highlightTextCaseInsensitive = caseInsensitive;
+		} finally {
+			super.performSearch();
 		}
-		boolean caseInsensitive = caseChBox.isSelected();
-		if (options.contains(SearchOptions.CLASS)) {
-			resultsModel.addAll(index.searchClsName(text, caseInsensitive));
-		}
-		if (options.contains(SearchOptions.METHOD)) {
-			resultsModel.addAll(index.searchMthName(text, caseInsensitive));
-		}
-		if (options.contains(SearchOptions.FIELD)) {
-			resultsModel.addAll(index.searchFldName(text, caseInsensitive));
-		}
-		if (options.contains(SearchOptions.CODE)) {
-			resultsModel.addAll(index.searchCode(text, caseInsensitive));
-		}
-		highlightText = text;
-		highlightTextCaseInsensitive = caseInsensitive;
-		resultsTable.updateTable();
 	}
 
 	private class SearchFieldListener implements DocumentListener, ActionListener {
@@ -92,7 +94,8 @@ public class SearchDialog extends CommonSearchDialog {
 			if (timer != null) {
 				timer.restart();
 			} else {
-				timer = new Timer(300, this);
+				timer = new Timer(400, this);
+				timer.setRepeats(false);
 				timer.start();
 			}
 		}

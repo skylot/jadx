@@ -106,7 +106,7 @@ public class TextSearchIndex {
 			while (pos != -1) {
 				pos = searchNext(list, text, javaClass, code, pos);
 			}
-			if (list.size() > CommonSearchDialog.MAX_RESULTS_COUNT) {
+			if (list.size() > CommonSearchDialog.RESULTS_PER_PAGE) {
 				return;
 			}
 		}
