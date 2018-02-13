@@ -270,7 +270,7 @@ public class JadxSettingsWindow extends JDialog {
 		});
 
 		JCheckBox cfg = new JCheckBox();
-		cfg.setSelected(settings.isCFGOutput());
+		cfg.setSelected(settings.isCfgOutput());
 		cfg.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
 				settings.setCfgOutput(e.getStateChange() == ItemEvent.SELECTED);
@@ -279,7 +279,7 @@ public class JadxSettingsWindow extends JDialog {
 		});
 
 		JCheckBox rawCfg = new JCheckBox();
-		rawCfg.setSelected(settings.isRawCFGOutput());
+		rawCfg.setSelected(settings.isRawCfgOutput());
 		rawCfg.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
 				settings.setRawCfgOutput(e.getStateChange() == ItemEvent.SELECTED);

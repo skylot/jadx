@@ -5,7 +5,7 @@
             <level>INFO</level>
         </filter>
         <encoder>
-            <pattern>%d{HH:mm:ss} %-5level - %msg%n</pattern>
+            <pattern>%-5level - %msg%n</pattern>
         </encoder>
     </appender>
 

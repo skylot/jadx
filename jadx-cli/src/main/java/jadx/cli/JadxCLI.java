@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxDecompiler;
+import jadx.core.utils.exceptions.JadxArgsValidateException;
 
 public class JadxCLI {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxCLI.class);
@@ -22,7 +23,12 @@ public class JadxCLI {
 
 	static void processAndSave(JadxCLIArgs inputArgs) {
 		JadxDecompiler jadx = new JadxDecompiler(inputArgs.toJadxArgs());
-		jadx.load();
+		try {
+			jadx.load();
+		} catch (JadxArgsValidateException e) {
+			LOG.error("Incorrect arguments: {}", e.getMessage());
+			System.exit(1);
+		}
 		jadx.save();
 		if (jadx.getErrorsCount() != 0) {
 			jadx.printErrorsReport();

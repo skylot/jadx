@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
-import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterDescription;
@@ -25,7 +24,7 @@ import jadx.core.utils.files.FileUtils;
 
 public class JadxCLIArgs {
 
-	@Parameter(description = "<input file> (.dex, .apk, .jar or .class)")
+	@Parameter(description = "<input file> (.apk, .dex, .jar or .class)")
 	protected List<String> files = new ArrayList<>(1);
 
 	@Parameter(names = {"-d", "--output-dir"}, description = "output directory")
@@ -37,9 +36,6 @@ public class JadxCLIArgs {
 	@Parameter(names = {"-dr", "--output-dir-res"}, description = "output directory for resources")
 	protected String outDirRes;
 
-	@Parameter(names = {"-j", "--threads-count"}, description = "processing threads count")
-	protected int threadsCount = JadxArgs.DEFAULT_THREADS_COUNT;
-
 	@Parameter(names = {"-r", "--no-res"}, description = "do not decode resources")
 	protected boolean skipResources = false;
 
@@ -49,15 +45,16 @@ public class JadxCLIArgs {
 	@Parameter(names = {"-e", "--export-gradle"}, description = "save as android gradle project")
 	protected boolean exportAsGradleProject = false;
 
+	@Parameter(names = {"-j", "--threads-count"}, description = "processing threads count")
+	protected int threadsCount = JadxArgs.DEFAULT_THREADS_COUNT;
+
 	@Parameter(names = {"--show-bad-code"}, description = "show inconsistent code (incorrectly decompiled)")
 	protected boolean showInconsistentCode = false;
 
-	@Parameter(names = {"--no-imports"}, converter = InvertedBooleanConverter.class,
-			description = "disable use of imports, always write entire package name")
+	@Parameter(names = {"--no-imports"}, description = "disable use of imports, always write entire package name")
 	protected boolean useImports = true;
 
-	@Parameter(names = "--no-replace-consts", converter = InvertedBooleanConverter.class,
-			description = "don't replace constant value with matching constant field")
+	@Parameter(names = "--no-replace-consts", description = "don't replace constant value with matching constant field")
 	protected boolean replaceConsts = true;
 
 	@Parameter(names = {"--escape-unicode"}, description = "escape non latin characters in strings (with \\u)")
@@ -90,6 +87,9 @@ public class JadxCLIArgs {
 	@Parameter(names = {"-v", "--verbose"}, description = "verbose output")
 	protected boolean verbose = false;
 
+	@Parameter(names = {"--version"}, description = "print jadx version")
+	protected boolean printVersion = false;
+
 	@Parameter(names = {"-h", "--help"}, description = "print this help", help = true)
 	protected boolean printHelp = false;
 
@@ -99,7 +99,7 @@ public class JadxCLIArgs {
 
 	private boolean parse(String[] args) {
 		try {
-			new JCommander(this, args);
+			makeJCommander().parse(args);
 			return true;
 		} catch (ParameterException e) {
 			System.err.println("Arguments parse error: " + e.getMessage());
@@ -108,16 +108,24 @@ public class JadxCLIArgs {
 		}
 	}
 
+	private JCommander makeJCommander() {
+		return JCommander.newBuilder().addObject(this).build();
+	}
+
 	private boolean process() {
-		if (isPrintHelp()) {
+		if (printHelp) {
 			printUsage();
+			return false;
+		}
+		if (printVersion) {
+			System.out.println(JadxDecompiler.getVersion());
 			return false;
 		}
 		try {
 			if (threadsCount <= 0) {
 				throw new JadxException("Threads count must be positive, got: " + threadsCount);
 			}
-			if (isVerbose()) {
+			if (verbose) {
 				ch.qos.logback.classic.Logger rootLogger =
 						(ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 				// remove INFO ThresholdFilter
@@ -135,7 +143,7 @@ public class JadxCLIArgs {
 	}
 
 	public void printUsage() {
-		JCommander jc = new JCommander(this);
+		JCommander jc = makeJCommander();
 		// print usage in not sorted fields order (by default its sorted by description)
 		PrintStream out = System.out;
 		out.println();
@@ -162,13 +170,13 @@ public class JadxCLIArgs {
 				continue;
 			}
 			StringBuilder opt = new StringBuilder();
-			opt.append(' ').append(p.getNames());
+			opt.append("  ").append(p.getNames());
 			addSpaces(opt, maxNamesLen - opt.length() + 2);
 			opt.append("- ").append(p.getDescription());
 			out.println(opt);
 		}
 		out.println("Example:");
-		out.println(" jadx -d out classes.dex");
+		out.println("  jadx -d out classes.dex");
 	}
 
 	private static void addSpaces(StringBuilder str, int count) {
@@ -202,13 +210,6 @@ public class JadxCLIArgs {
 		return args;
 	}
 
-	public static class InvertedBooleanConverter implements IStringConverter<Boolean> {
-		@Override
-		public Boolean convert(String value) {
-			return "false".equals(value);
-		}
-	}
-
 	public List<String> getFiles() {
 		return files;
 	}
@@ -225,10 +226,6 @@ public class JadxCLIArgs {
 		return outDirRes;
 	}
 
-	public boolean isPrintHelp() {
-		return printHelp;
-	}
-
 	public boolean isSkipResources() {
 		return skipResources;
 	}
@@ -241,14 +238,6 @@ public class JadxCLIArgs {
 		return threadsCount;
 	}
 
-	public boolean isCFGOutput() {
-		return cfgOutput;
-	}
-
-	public boolean isRawCFGOutput() {
-		return rawCfgOutput;
-	}
-
 	public boolean isFallbackMode() {
 		return fallbackMode;
 	}
@@ -259,10 +248,6 @@ public class JadxCLIArgs {
 
 	public boolean isUseImports() {
 		return useImports;
-	}
-
-	public boolean isVerbose() {
-		return verbose;
 	}
 
 	public boolean isDeobfuscationOn() {
@@ -287,6 +272,18 @@ public class JadxCLIArgs {
 
 	public boolean escapeUnicode() {
 		return escapeUnicode;
+	}
+
+	public boolean isEscapeUnicode() {
+		return escapeUnicode;
+	}
+
+	public boolean isCfgOutput() {
+		return cfgOutput;
+	}
+
+	public boolean isRawCfgOutput() {
+		return rawCfgOutput;
 	}
 
 	public boolean isReplaceConsts() {
