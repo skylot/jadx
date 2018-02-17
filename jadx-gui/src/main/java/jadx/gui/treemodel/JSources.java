@@ -12,6 +12,7 @@ import java.util.Set;
 
 import jadx.api.JavaPackage;
 import jadx.gui.JadxWrapper;
+import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
 
 public class JSources extends JNode {
@@ -132,6 +133,6 @@ public class JSources extends JNode {
 
 	@Override
 	public String makeString() {
-		return "Source code";
+		return NLS.str("tree.sources_title");
 	}
 }

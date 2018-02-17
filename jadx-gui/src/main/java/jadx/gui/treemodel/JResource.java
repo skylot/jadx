@@ -6,16 +6,20 @@ import java.util.List;
 import java.util.Map;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.jetbrains.annotations.NotNull;
 
 import jadx.api.ResourceFile;
 import jadx.api.ResourceFileContent;
 import jadx.api.ResourceType;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.xmlgen.ResContainer;
+import jadx.gui.utils.NLS;
 import jadx.gui.utils.OverlayIcon;
 import jadx.gui.utils.Utils;
 
-public class JResource extends JNode implements Comparable<JResource> {
+import static jadx.api.ResourceFileContent.createResourceFileContentInstance;
+
+public class JResource extends JLoadableNode implements Comparable<JResource> {
 	private static final long serialVersionUID = -201018424302612434L;
 
 	private static final ImageIcon ROOT_ICON = Utils.openIcon("cf_obj");
@@ -50,22 +54,35 @@ public class JResource extends JNode implements Comparable<JResource> {
 		this.name = name;
 		this.shortName = shortName;
 		this.type = type;
+		this.loaded = false;
 	}
 
 	public final void update() {
-		loadContent();
 		removeAllChildren();
-		for (JResource res : files) {
-			res.update();
-			add(res);
+		if (!loaded) {
+			if (type == JResType.DIR
+					|| type == JResType.ROOT
+					|| resFile.getType() == ResourceType.ARSC) {
+				add(new TextNode(NLS.str("tree.loading")));
+			}
+		} else {
+			loadContent();
+			for (JResource res : files) {
+				res.update();
+				add(res);
+			}
 		}
+	}
+
+	@Override
+	public void loadNode() {
+		loadContent();
+		loaded = true;
+		update();
 	}
 
 	private void loadContent() {
 		getContent();
-		for (JResource res : files) {
-			res.loadContent();
-		}
 	}
 
 	@Override
@@ -101,8 +118,8 @@ public class JResource extends JNode implements Comparable<JResource> {
 				String resName = rc.getName();
 				String[] path = resName.split("/");
 				String resShortName = path.length == 0 ? resName : path[path.length - 1];
-				ResourceFileContent fileContent = ResourceFileContent.createResourceFileContentInstance(resShortName, ResourceType.XML, cw);
-				if(fileContent != null) {
+				ResourceFileContent fileContent = createResourceFileContentInstance(resShortName, ResourceType.XML, cw);
+				if (fileContent != null) {
 					addPath(path, root, new JResource(fileContent, resName, resShortName, JResType.FILE));
 				}
 			}
@@ -242,7 +259,7 @@ public class JResource extends JNode implements Comparable<JResource> {
 	}
 
 	@Override
-	public int compareTo(JResource o) {
+	public int compareTo(@NotNull JResource o) {
 		return name.compareTo(o.name);
 	}
 
@@ -266,5 +283,4 @@ public class JResource extends JNode implements Comparable<JResource> {
 	public int hashCode() {
 		return name.hashCode();
 	}
-
 }

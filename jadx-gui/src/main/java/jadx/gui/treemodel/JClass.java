@@ -12,7 +12,7 @@ import jadx.core.dex.info.AccessInfo;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
 
-public class JClass extends JNode {
+public class JClass extends JLoadableNode {
 	private static final long serialVersionUID = -1239986875244097177L;
 
 	private static final ImageIcon ICON_CLASS = Utils.openIcon("class_obj");
@@ -41,6 +41,11 @@ public class JClass extends JNode {
 
 	public JavaClass getCls() {
 		return cls;
+	}
+
+	@Override
+	public void loadNode() {
+		getRootClass().load();
 	}
 
 	public synchronized void load() {

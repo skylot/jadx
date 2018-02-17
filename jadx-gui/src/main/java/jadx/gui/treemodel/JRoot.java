@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import jadx.api.ResourceFile;
 import jadx.gui.JadxWrapper;
 import jadx.gui.treemodel.JResource.JResType;
+import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
 
 public class JRoot extends JNode {
@@ -41,7 +42,7 @@ public class JRoot extends JNode {
 		if (resources.isEmpty()) {
 			return Collections.emptyList();
 		}
-		JResource root = new JResource(null, "Resources", JResType.ROOT);
+		JResource root = new JResource(null, NLS.str("tree.resources_title"), JResType.ROOT);
 		String splitPathStr = Pattern.quote(File.separator);
 		for (ResourceFile rf : resources) {
 			String rfName;

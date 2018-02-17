@@ -41,6 +41,7 @@ import jadx.gui.jobs.IndexJob;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsWindow;
 import jadx.gui.treemodel.JClass;
+import jadx.gui.treemodel.JLoadableNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.treemodel.JRoot;
@@ -581,9 +582,8 @@ public class MainWindow extends JFrame {
 			public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException {
 				TreePath path = event.getPath();
 				Object node = path.getLastPathComponent();
-				if (node instanceof JClass) {
-					JClass cls = (JClass) node;
-					cls.getRootClass().load();
+				if (node instanceof JLoadableNode) {
+					((JLoadableNode) node).loadNode();
 				}
 			}
 

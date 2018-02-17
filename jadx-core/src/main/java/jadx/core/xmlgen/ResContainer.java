@@ -51,7 +51,7 @@ public class ResContainer implements Comparable<ResContainer> {
 			try {
 				decoder.decode(content, os);
 			} catch (Exception e) {
-				LOG.error("Failed to decode 9-patch png image", e);
+				LOG.error("Failed to decode 9-patch png image, path: {}", name, e);
 			}
 			newContent = new ByteArrayInputStream(os.toByteArray());
 		}
