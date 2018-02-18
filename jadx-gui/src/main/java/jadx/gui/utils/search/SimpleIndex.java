@@ -7,7 +7,7 @@ import java.util.List;
 public class SimpleIndex<T> implements SearchIndex<T> {
 
 	private final List<String> keys = new ArrayList<>();
-	private final List<T> values = new ArrayList<T>();
+	private final List<T> values = new ArrayList<>();
 
 	@Override
 	public void put(String str, T value) {

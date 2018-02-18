@@ -12,7 +12,8 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.tests.api.IntegrationTest;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -39,12 +40,12 @@ public class TestDuplicateCast extends IntegrationTest {
 		assertThat(code, containsString("return (int[]) o;"));
 
 		List<InsnNode> insns = mth.getBasicBlocks().get(1).getInstructions();
-		assertEquals(insns.size(), 1);
+		assertThat(insns, hasSize(1));
 		InsnNode insnNode = insns.get(0);
-		assertEquals(InsnType.RETURN, insnNode.getType());
+		assertThat(insnNode.getType(), is(InsnType.RETURN));
 		assertTrue(insnNode.getArg(0).isInsnWrap());
 		InsnNode wrapInsn = ((InsnWrapArg) insnNode.getArg(0)).getWrapInsn();
-		assertEquals(InsnType.CHECK_CAST, wrapInsn.getType());
+		assertThat(wrapInsn.getType(), is(InsnType.CHECK_CAST));
 		assertFalse(wrapInsn.getArg(0).isInsnWrap());
 	}
 }

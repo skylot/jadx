@@ -12,8 +12,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.*;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -143,7 +145,7 @@ public abstract class CommonSearchDialog extends JDialog {
 	protected JPanel initResultsTable() {
 		ResultsTableCellRenderer renderer = new ResultsTableCellRenderer();
 		resultsModel = new ResultsModel(renderer);
-		resultsModel.addTableModelListener((e) -> updateProgressLabel());
+		resultsModel.addTableModelListener(e -> updateProgressLabel());
 		resultsTable = new ResultsTable(resultsModel);
 		resultsTable.setShowHorizontalLines(false);
 		resultsTable.setDragEnabled(false);
@@ -183,24 +185,24 @@ public abstract class CommonSearchDialog extends JDialog {
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED));
 
 		JPanel paginationPanel = new JPanel();
-		paginationPanel.setAlignmentX( Component.LEFT_ALIGNMENT );
+		paginationPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 		paginationPanel.setLayout(new BoxLayout(paginationPanel, BoxLayout.X_AXIS));
 		resultsInfoLabel = new JLabel("");
 
 		JButton nextPageButton = new JButton("->");
 		nextPageButton.setToolTipText(NLS.str("search_dialog.next_page"));
-		nextPageButton.addActionListener((e) -> {
+		nextPageButton.addActionListener(e -> {
 			resultsModel.nextPage();
 			resultsTable.updateTable();
-			resultsTable.scrollRectToVisible(new Rectangle(0,0,1,1));
+			resultsTable.scrollRectToVisible(new Rectangle(0, 0, 1, 1));
 		});
 
 		JButton prevPageButton = new JButton("<-");
 		prevPageButton.setToolTipText(NLS.str("search_dialog.prev_page"));
-		prevPageButton.addActionListener((e) -> {
+		prevPageButton.addActionListener(e -> {
 			resultsModel.prevPage();
 			resultsTable.updateTable();
-			resultsTable.scrollRectToVisible(new Rectangle(0,0,1,1));
+			resultsTable.scrollRectToVisible(new Rectangle(0, 0, 1, 1));
 		});
 
 		paginationPanel.add(prevPageButton);
@@ -309,8 +311,9 @@ public abstract class CommonSearchDialog extends JDialog {
 		}
 
 		public int getDisplayedResultsStart() {
-			if (rows.size() == 0)
+			if (rows.isEmpty()) {
 				return 0;
+			}
 			return start + 1;
 		}
 
@@ -373,7 +376,7 @@ public abstract class CommonSearchDialog extends JDialog {
 
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object obj, boolean isSelected,
-													   boolean hasFocus, int row, int column) {
+		                                               boolean hasFocus, int row, int column) {
 			int id = row << 2 | column;
 			Component comp = componentCache.get(id);
 			if (comp == null) {

@@ -195,8 +195,8 @@ public class FileUtils {
 				makeDirs(testDir);
 				if (caseCheckUpper.createNewFile()) {
 					boolean caseSensitive = !caseCheckLow.exists();
-					LOG.debug("Filesystem at {} is {} case-sensitive", testDir.getAbsolutePath(),
-							(caseSensitive ? "" : "NOT"));
+					LOG.debug("Filesystem at {} is {}case-sensitive", testDir.getAbsolutePath(),
+							(caseSensitive ? "" : "NOT "));
 					return caseSensitive;
 				} else {
 					LOG.debug("Failed to create file: {}", caseCheckUpper.getAbsolutePath());

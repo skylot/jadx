@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,12 +27,12 @@ public class ErrorsCounter {
 		return errorsCount;
 	}
 
-	private void addError(IAttributeNode node, String msg, Throwable e) {
+	private synchronized void addError(IAttributeNode node, String msg, @Nullable Throwable e) {
 		errorNodes.add(node);
 		errorsCount++;
 
 		if (e != null) {
-			if (e.getClass() == JadxOverflowException.class) {
+			if (e instanceof JadxOverflowException) {
 				// don't print full stack trace
 				e = new JadxOverflowException(e.getMessage());
 				LOG.error("{}, message: {}", msg, e.getMessage());

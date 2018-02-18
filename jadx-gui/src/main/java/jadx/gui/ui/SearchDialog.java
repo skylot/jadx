@@ -6,11 +6,8 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.util.EnumSet;
 import java.util.Set;
 
 import jadx.gui.utils.NLS;
@@ -28,7 +25,7 @@ public class SearchDialog extends CommonSearchDialog {
 		CODE
 	}
 
-	private Set<SearchOptions> options = EnumSet.allOf(SearchOptions.class);
+	private Set<SearchOptions> options;
 
 	private JTextField searchField;
 	private JCheckBox caseChBox;
@@ -87,7 +84,6 @@ public class SearchDialog extends CommonSearchDialog {
 	}
 
 	private class SearchFieldListener implements DocumentListener, ActionListener {
-
 		private Timer timer;
 
 		private synchronized void change() {
@@ -126,11 +122,7 @@ public class SearchDialog extends CommonSearchDialog {
 		new TextStandardActions(searchField);
 
 		caseChBox = new JCheckBox(NLS.str("search_dialog.ignorecase"));
-		caseChBox.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				performSearch();
-			}
-		});
+		caseChBox.addItemListener(e -> performSearch());
 
 		JCheckBox clsChBox = makeOptionsCheckBox(NLS.str("search_dialog.class"), SearchOptions.CLASS);
 		JCheckBox mthChBox = makeOptionsCheckBox(NLS.str("search_dialog.method"), SearchOptions.METHOD);
@@ -196,15 +188,13 @@ public class SearchDialog extends CommonSearchDialog {
 		final JCheckBox chBox = new JCheckBox(name);
 		chBox.setAlignmentX(LEFT_ALIGNMENT);
 		chBox.setSelected(options.contains(opt));
-		chBox.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				if (chBox.isSelected()) {
-					options.add(opt);
-				} else {
-					options.remove(opt);
-				}
-				performSearch();
+		chBox.addItemListener(e -> {
+			if (chBox.isSelected()) {
+				options.add(opt);
+			} else {
+				options.remove(opt);
 			}
+			performSearch();
 		});
 		return chBox;
 	}

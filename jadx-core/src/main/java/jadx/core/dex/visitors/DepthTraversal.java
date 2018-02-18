@@ -17,7 +17,7 @@ public class DepthTraversal {
 					visit(visitor, mth);
 				}
 			}
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			ErrorsCounter.classError(cls,
 					e.getClass().getSimpleName() + " in pass: " + visitor.getClass().getSimpleName(), e);
 		}
@@ -29,7 +29,7 @@ public class DepthTraversal {
 		}
 		try {
 			visitor.visit(mth);
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			ErrorsCounter.methodError(mth,
 					e.getClass().getSimpleName() + " in pass: " + visitor.getClass().getSimpleName(), e);
 		}

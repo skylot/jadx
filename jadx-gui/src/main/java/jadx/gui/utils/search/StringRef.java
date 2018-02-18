@@ -1,11 +1,12 @@
 package jadx.gui.utils.search;
 
-import static jadx.gui.utils.Utils.caseChar;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
+
+import static jadx.gui.utils.Utils.caseChar;
 
 public class StringRef implements CharSequence {
 
@@ -82,8 +83,8 @@ public class StringRef implements CharSequence {
 	}
 
 	private static int indexOf(String source, int sourceOffset, int sourceCount,
-			String target, int targetOffset, int targetCount,
-			int fromIndex, boolean caseInsensitive) {
+	                           String target, int targetOffset, int targetCount,
+	                           int fromIndex, boolean caseInsensitive) {
 		if (fromIndex >= sourceCount) {
 			return (targetCount == 0 ? sourceCount : -1);
 		}
@@ -187,5 +188,4 @@ public class StringRef implements CharSequence {
 		int offset = this.offset;
 		return refStr.substring(offset, offset + len);
 	}
-
 }

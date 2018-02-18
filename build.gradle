@@ -24,6 +24,10 @@ allprojects {
         }
     }
 
+    compileJava {
+        options.encoding = "UTF-8"
+    }
+
     jar {
         version = jadxVersion
         manifest {
