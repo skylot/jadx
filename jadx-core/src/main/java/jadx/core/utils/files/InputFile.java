@@ -13,6 +13,7 @@ import java.util.zip.ZipFile;
 
 import com.android.dex.Dex;
 import org.apache.commons.io.IOUtils;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,8 +106,11 @@ public class InputFile {
 							|| entryName.endsWith(instantRunDexSuffix)) {
 						switch (ext) {
 							case ".dex":
-								index++;
-								addDexFile(entryName, new Dex(inputStream));
+								Dex dexBuf = makeDexBuf(entryName, inputStream);
+								if (dexBuf != null) {
+									addDexFile(entryName, dexBuf);
+									index++;
+								}
 								break;
 
 							case ".jar":
@@ -138,6 +142,16 @@ public class InputFile {
 			}
 		}
 		return index > 0;
+	}
+
+	@Nullable
+	private Dex makeDexBuf(String entryName, InputStream inputStream) {
+		try {
+			return new Dex(inputStream);
+		} catch (Exception e) {
+			LOG.error("Failed to load file: {}, error: {}", entryName, e.getMessage(), e);
+			return null;
+		}
 	}
 
 	private static Dex loadFromJar(File jarFile) throws DecodeException {
