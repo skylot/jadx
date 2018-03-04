@@ -34,4 +34,7 @@ public class DepthTraversal {
 					e.getClass().getSimpleName() + " in pass: " + visitor.getClass().getSimpleName(), e);
 		}
 	}
+
+	private DepthTraversal() {
+	}
 }
