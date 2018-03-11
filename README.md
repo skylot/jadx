@@ -2,9 +2,7 @@
 
 [![Build Status](https://travis-ci.org/skylot/jadx.png?branch=master)](https://travis-ci.org/skylot/jadx)
 [![Code Coverage](https://codecov.io/gh/skylot/jadx/branch/master/graph/badge.svg)](https://codecov.io/gh/skylot/jadx)
-[![Coverity Scan Build Status](https://scan.coverity.com/projects/2166/badge.svg)](https://scan.coverity.com/projects/2166)
 [![SonarQube Bugs](https://sonarcloud.io/api/badges/measure?key=jadx&metric=bugs)](https://sonarcloud.io/dashboard?id=jadx)
-[![Latest release downloads](https://img.shields.io/github/downloads/skylot/jadx/latest/total.svg)](https://github.com/skylot/jadx/releases/latest)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
 **jadx** - Dex to Java decompiler
