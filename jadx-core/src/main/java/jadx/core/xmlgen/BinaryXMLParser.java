@@ -194,10 +194,13 @@ public class BinaryXMLParser extends CommonBinaryParser {
 
 		int strIndex = is.readInt32();
 		String str = getString(strIndex);
-
-		writer.startLine().addIndent();
+		if (!isLastEnd) {
+			isLastEnd = true;
+			writer.add(">");
+		}
 		writer.attachSourceLine(lineNumber);
-		writer.add(StringUtils.escapeXML(str.trim()));
+		String escapedStr = StringUtils.escapeXML(str);
+		writer.add(escapedStr);
 
 		long size = is.readInt16();
 		is.skip(size - 2);
@@ -384,9 +387,9 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		} else {
 			writer.startLine("</");
 			writer.attachSourceLine(endLineNumber);
-			if (elementNS != -1) {
-				writer.add(getString(elementNS)).add(':');
-			}
+//			if (elementNS != -1) {
+//				writer.add(getString(elementNS)).add(':');
+//			}
 			writer.add(getString(elementName)).add(">");
 		}
 		isLastEnd = true;
