@@ -48,6 +48,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private ValuesParser valuesParser;
 	private boolean isLastEnd = true;
 	private boolean isOneLine = true;
+	private int namespaceDepth = 0;
 	private int[] resourceIds;
 
 	public BinaryXMLParser(RootNode root) {
@@ -136,6 +137,10 @@ public class BinaryXMLParser extends CommonBinaryParser {
 					break;
 
 				default:
+					if (namespaceDepth == 0) {
+						// skip padding on file end
+						return;
+					}
 					die("Type: 0x" + Integer.toHexString(type) + " not yet implemented");
 					break;
 			}
@@ -166,6 +171,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int beginPrefix = is.readInt32();
 		int beginURI = is.readInt32();
 		nsMap.computeIfAbsent(getString(beginURI), k -> getString(beginPrefix));
+		namespaceDepth++;
 	}
 
 	private void parseNameSpaceEnd() throws IOException {
@@ -179,6 +185,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int comment = is.readInt32();
 		int endPrefix = is.readInt32();
 		int endURI = is.readInt32();
+		namespaceDepth--;
 		nsMap.computeIfAbsent(getString(endURI), k -> getString(endPrefix));
 	}
 
@@ -381,8 +388,9 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int endLineNumber = is.readInt32();
 		int comment = is.readInt32();
 		int elementNS = is.readInt32();
-		int elementName = is.readInt32();
-		if (currentTag.equals(getString(elementName)) && isOneLine && !isLastEnd) {
+		int elementNameId = is.readInt32();
+		String elemName = getString(elementNameId);
+		if (currentTag.equals(elemName) && isOneLine && !isLastEnd) {
 			writer.add("/>");
 		} else {
 			writer.startLine("</");
@@ -390,7 +398,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 //			if (elementNS != -1) {
 //				writer.add(getString(elementNS)).add(':');
 //			}
-			writer.add(getString(elementName)).add(">");
+			writer.add(elemName).add(">");
 		}
 		isLastEnd = true;
 		if (writer.getIndent() != 0) {
