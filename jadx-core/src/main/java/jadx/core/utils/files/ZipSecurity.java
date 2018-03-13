@@ -10,7 +10,7 @@ public class ZipSecurity {
 	private static final Logger LOG = LoggerFactory.getLogger(ZipSecurity.class);
 
 	// size of uncompressed zip entry shouldn't be bigger of compressed in MAX_SIZE_DIFF times
-	private static final int MAX_SIZE_DIFF = 25;
+	private static final int MAX_SIZE_DIFF = 100;
 
 	private ZipSecurity() {}
 
