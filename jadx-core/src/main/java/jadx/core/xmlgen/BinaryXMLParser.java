@@ -250,7 +250,13 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int styleIndex = is.readInt16();
 		if ("manifest".equals(currentTag) || writer.getIndent() == 0) {
 			for (Map.Entry<String, String> entry : nsMap.entrySet()) {
-				writer.add(" xmlns:" + entry.getValue() + "=\"").add(entry.getKey()).add("\"");
+				String nsValue = entry.getValue();
+				writer.add(" xmlns");
+				if (nsValue != null && !nsValue.trim().isEmpty()) {
+					writer.add(':');
+					writer.add(nsValue);
+				}
+				writer.add("=\"").add(entry.getKey()).add("\"");
 			}
 		}
 		boolean attrNewLine = attributeCount != 1 && ATTR_NEW_LINE;
