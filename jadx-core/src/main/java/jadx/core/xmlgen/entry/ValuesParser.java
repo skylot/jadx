@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
@@ -86,7 +87,7 @@ public class ValuesParser extends ParserConstants {
 			case TYPE_INT_BOOLEAN:
 				return data == 0 ? "false" : "true";
 			case TYPE_FLOAT:
-				return Float.toString(Float.intBitsToFloat(data));
+				return floatToString(Float.intBitsToFloat(data));
 
 			case TYPE_INT_COLOR_ARGB8:
 				return String.format("#%08x", data);
@@ -207,10 +208,14 @@ public class ValuesParser extends ParserConstants {
 			return Integer.toString((int) value);
 		}
 		// remove trailing zeroes
-		NumberFormat f = NumberFormat.getInstance();
+		NumberFormat f = NumberFormat.getInstance(Locale.ROOT);
 		f.setMaximumFractionDigits(4);
 		f.setMinimumIntegerDigits(1);
 		return f.format(value);
+	}
+
+	private static String floatToString(float value) {
+		return doubleToString((double) value);
 	}
 
 	public static Map<Integer, String> getAndroidResMap() {
