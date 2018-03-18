@@ -22,10 +22,11 @@ after_success:
 
 deploy:
     provider: bintray
+    edge:
+      branch: v1.8.47
     file: bintray.json
     user: skylot
-    key:
-      secure: bBzfhraRwT5w+FkAcQnWJQgt4i894k595g4gNFf8dGpBsvPUvGzoa/SUaokrmlj5UCFc12k7j6aZswNITGjBuAf2fDVRwMQCH9ORiqIcJWuemQPHB7iAQjITGXKwef6zWKcZSkVuMtUMmGymYSsqpya+pSqwdP5rLbWPgGixEaQ=
+    key: $BINTRAY_KEY
     skip_cleanup: true
     on:
       branch: master
