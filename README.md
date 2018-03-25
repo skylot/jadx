@@ -16,7 +16,6 @@ Command line and GUI tools for produce Java source code from Android Dex and Apk
 - latest [unstable build: ![Download](https://api.bintray.com/packages/skylot/jadx/unstable/images/download.svg) ](https://bintray.com/skylot/jadx/unstable/_latestVersion#files)
 - release from [github: ![Latest release](https://img.shields.io/github/release/skylot/jadx.svg)](https://github.com/skylot/jadx/releases/latest)
 - release from [bintray: ![Download](https://api.bintray.com/packages/skylot/jadx/releases/images/download.svg) ](https://bintray.com/skylot/jadx/releases/_latestVersion#files)
-- release from [sourceforge](http://sourceforge.net/projects/jadx/files/)
 
 After download unpack zip file go to `bin` directory and run:
 - `jadx` - command line version
