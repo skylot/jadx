@@ -256,7 +256,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 					writer.add(':');
 					writer.add(nsValue);
 				}
-				writer.add("=\"").add(entry.getKey()).add("\"");
+				writer.add("=\"").add(StringUtils.escapeXML(entry.getKey())).add("\"");
 			}
 		}
 		boolean attrNewLine = attributeCount != 1 && ATTR_NEW_LINE;
@@ -291,7 +291,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		writer.add(attrName).add("=\"");
 		String decodedAttr = ManifestAttributes.getInstance().decode(attrName, attrValData);
 		if (decodedAttr != null) {
-			writer.add(decodedAttr);
+			writer.add(StringUtils.escapeXML(decodedAttr));
 		} else {
 			decodeAttribute(attributeNS, attrValDataType, attrValData);
 		}
@@ -380,7 +380,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			}
 		} else {
 			String str = valuesParser.decodeValue(attrValDataType, attrValData);
-			writer.add(str != null ? str : "null");
+			writer.add(str != null ? StringUtils.escapeXML(str) : "null");
 		}
 	}
 
