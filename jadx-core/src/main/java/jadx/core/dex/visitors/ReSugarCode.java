@@ -1,5 +1,6 @@
 package jadx.core.dex.visitors;
 
+import jadx.core.ProcessClass;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.EnumMapAttr;
@@ -141,7 +142,6 @@ public class ReSugarCode extends AbstractVisitor {
 		}
 		enumMapField.add(AFlag.DONT_GENERATE);
 		checkAndHideClass(enumMapField.getParentClass());
-		return;
 	}
 
 	private static EnumMapAttr.KeyValueMap getEnumMap(MethodNode mth, FieldNode field) {
@@ -150,33 +150,35 @@ public class ReSugarCode extends AbstractVisitor {
 		if (mapAttr != null) {
 			return mapAttr.getMap(field);
 		}
-		mapAttr = new EnumMapAttr();
-		syntheticClass.addAttr(mapAttr);
+		synchronized (ProcessClass.getSyncObj(syntheticClass)) {
+			mapAttr = new EnumMapAttr();
+			syntheticClass.addAttr(mapAttr);
 
-		MethodNode clsInitMth = syntheticClass.searchMethodByName("<clinit>()V");
-		if (clsInitMth == null || clsInitMth.isNoCode()) {
-			return null;
-		}
-		if (clsInitMth.getBasicBlocks() == null) {
-			try {
-				clsInitMth.load();
-			} catch (DecodeException e) {
-				LOG.error("Load failed", e);
+			MethodNode clsInitMth = syntheticClass.searchMethodByName("<clinit>()V");
+			if (clsInitMth == null || clsInitMth.isNoCode()) {
 				return null;
 			}
 			if (clsInitMth.getBasicBlocks() == null) {
-				// TODO:
-				return null;
-			}
-		}
-		for (BlockNode block : clsInitMth.getBasicBlocks()) {
-			for (InsnNode insn : block.getInstructions()) {
-				if (insn.getType() == InsnType.APUT) {
-					addToEnumMap(mth, mapAttr, insn);
+				try {
+					clsInitMth.load();
+				} catch (DecodeException e) {
+					LOG.error("Load failed", e);
+					return null;
+				}
+				if (clsInitMth.getBasicBlocks() == null) {
+					// TODO:
+					return null;
 				}
 			}
+			for (BlockNode block : clsInitMth.getBasicBlocks()) {
+				for (InsnNode insn : block.getInstructions()) {
+					if (insn.getType() == InsnType.APUT) {
+						addToEnumMap(mth, mapAttr, insn);
+					}
+				}
+			}
+			return mapAttr.getMap(field);
 		}
-		return mapAttr.getMap(field);
 	}
 
 	private static void addToEnumMap(MethodNode mth, EnumMapAttr mapAttr, InsnNode aputInsn) {

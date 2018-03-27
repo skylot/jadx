@@ -254,8 +254,9 @@ public class CodeWriter {
 	}
 
 	private void removeFirstEmptyLine() {
-		if (buf.indexOf(NL) == 0) {
-			buf.delete(0, NL.length());
+		int len = NL.length();
+		if (buf.substring(0, len).equals(NL)) {
+			buf.delete(0, len);
 		}
 	}
 

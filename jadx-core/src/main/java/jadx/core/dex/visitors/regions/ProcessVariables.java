@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -72,8 +73,8 @@ public class ProcessVariables extends AbstractVisitor {
 		private RegisterArg arg;
 		private VarName varName;
 		private IRegion argRegion;
-		private final Set<IRegion> usage = new HashSet<>(2);
-		private final Set<IRegion> assigns = new HashSet<>(2);
+		private final Set<IRegion> usage = new LinkedHashSet<>(2);
+		private final Set<IRegion> assigns = new LinkedHashSet<>(2);
 
 		public void setArg(RegisterArg arg) {
 			this.arg = arg;

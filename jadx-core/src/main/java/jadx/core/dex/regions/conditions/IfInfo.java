@@ -16,7 +16,7 @@ public final class IfInfo {
 	private BlockNode ifBlock;
 
 	public IfInfo(IfCondition condition, BlockNode thenBlock, BlockNode elseBlock) {
-		this(condition, thenBlock, elseBlock, new HashSet<BlockNode>(), new HashSet<BlockNode>());
+		this(condition, thenBlock, elseBlock, new HashSet<>(), new HashSet<>());
 	}
 
 	public IfInfo(IfInfo info, BlockNode thenBlock, BlockNode elseBlock) {

@@ -19,6 +19,7 @@ import jadx.core.utils.StringUtils;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,7 +27,7 @@ public class NameGen {
 
 	private static final Map<String, String> OBJ_ALIAS;
 
-	private final Set<String> varNames = new HashSet<>();
+	private final Set<String> varNames = new LinkedHashSet<>();
 	private final MethodNode mth;
 	private final boolean fallback;
 

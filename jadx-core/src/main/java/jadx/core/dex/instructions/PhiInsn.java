@@ -11,6 +11,7 @@ import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
@@ -21,7 +22,7 @@ public final class PhiInsn extends InsnNode {
 
 	public PhiInsn(int regNum, int predecessors) {
 		super(InsnType.PHI, predecessors);
-		this.blockBinds = new IdentityHashMap<>(predecessors);
+		this.blockBinds = new LinkedHashMap<>(predecessors);
 		setResult(InsnArg.reg(regNum, ArgType.UNKNOWN));
 		add(AFlag.DONT_INLINE);
 	}
