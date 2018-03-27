@@ -1,3 +1,8 @@
+plugins {
+    id 'edu.sc.seis.launch4j' version '2.4.3'
+    id 'com.github.johnrengelman.shadow' version '2.0.2'
+}
+
 apply plugin: 'application'
 
 mainClassName = 'jadx.gui.JadxGUI'
@@ -38,6 +43,20 @@ startScripts {
                 'start "jadx-gui" /B "%JAVA_EXE%" %DEFAULT_JVM_OPTS%')
         windowsScript.text = str
     }
+}
+
+launch4j {
+    mainClassName = 'jadx.gui.JadxGUI'
+    copyConfigurable = project.tasks.shadowJar.outputs.files
+    jar = "lib/${project.tasks.shadowJar.archiveName}"
+//  icon = "${projectDir}/icons/myApp.ico"
+    outfile = "jadx-gui-${version}.exe"
+    copyright = 'Skylot'
+    windowTitle = 'jadx'
+    jreRuntimeBits = "64"
+    initialHeapPercent = 5
+    maxHeapSize = 4096
+    maxHeapPercent = 70
 }
 
 test {

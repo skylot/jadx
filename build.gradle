@@ -96,17 +96,29 @@ task pack(type: Zip, dependsOn: copyArtifacts) {
     from copyArtifacts.destinationDir
 }
 
-task dist(dependsOn: pack) {
+task copyExe(type: Copy, dependsOn: 'jadx-gui:createExe') {
+    group 'jadx'
+    description = 'Copy exe to build dir'
+    destinationDir buildDir
+    from tasks.getByPath('jadx-gui:createExe').outputs
+    include '*.exe'
+}
+
+task dist(dependsOn: [pack, copyExe]) {
+    group 'jadx'
     description = 'Build jadx distribution zip'
 }
 
 task samples(dependsOn: 'jadx-samples:samples') {
+    group 'jadx'
 }
 
 task testAppCheck(dependsOn: 'jadx-test-app:testAppCheck') {
+    group 'jadx'
 }
 
 task cleanBuildDir(type: Delete) {
+    group 'jadx'
     delete buildDir
 }
 

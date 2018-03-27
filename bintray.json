@@ -22,7 +22,7 @@
   },
   "files": [
     {
-      "includePattern": "build/(jadx.*\.zip)",
+      "includePattern": "build/(jadx.*\.(zip|exe))",
       "uploadPattern": "$1",
       "matrixParams": {
         "override": 1

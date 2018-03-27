@@ -33,6 +33,7 @@ task samplesJadxCompile(type: JavaCompile, dependsOn: samplesJadxCreate) {
     classpath = configurations.compile
     destinationDir = file samplesJadxOutDir
     source = samplesJadxSrcDir
+    options.encoding = "UTF-8"
 }
 
 task samplesJadxRun(type: JavaExec, dependsOn: samplesJadxCompile) {  

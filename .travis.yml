@@ -3,7 +3,7 @@ jdk:
     - oraclejdk8
 
 env:
-    - TERM=dumb
+    - TERM=dumb GRADLE_OPTS="-Dorg.gradle.daemon=false"
 
 before_install:
     - chmod +x gradlew
