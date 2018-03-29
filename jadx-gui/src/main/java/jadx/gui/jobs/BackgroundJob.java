@@ -1,5 +1,6 @@
 package jadx.gui.jobs;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -38,10 +39,13 @@ public abstract class BackgroundJob {
 
 	private class ShutdownTask extends FutureTask<Boolean> {
 		public ShutdownTask() {
-			super(() -> {
-				runJob();
-				executor.shutdown();
-				return executor.awaitTermination(1, TimeUnit.HOURS);
+			super(new Callable<Boolean>() {
+				@Override
+				public Boolean call() throws Exception {
+					runJob();
+					executor.shutdown();
+					return executor.awaitTermination(5, TimeUnit.MINUTES);
+				}
 			});
 		}
 

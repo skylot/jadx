@@ -462,6 +462,11 @@ public abstract class CommonSearchDialog extends JDialog {
 
 		@Override
 		public void done() {
+			try {
+				get();
+			} catch (Exception e) {
+				LOG.error("Load task failed", e);
+			}
 			loadFinishedCommon();
 			loadFinished();
 		}
