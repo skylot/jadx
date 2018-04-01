@@ -171,7 +171,7 @@ public class JadxCLIArgs {
 			}
 			StringBuilder opt = new StringBuilder();
 			opt.append("  ").append(p.getNames());
-			addSpaces(opt, maxNamesLen - opt.length() + 2);
+			addSpaces(opt, maxNamesLen - opt.length() + 3);
 			opt.append("- ").append(p.getDescription());
 			out.println(opt);
 		}
