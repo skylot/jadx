@@ -66,16 +66,22 @@ public class Link extends JLabel implements MouseListener {
 		try {
 			String os = System.getProperty("os.name").toLowerCase();
 			if (os.contains("win")) {
-				Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + url);
+				new ProcessBuilder()
+					.command(new String[] {"rundll32", "url.dll,FileProtocolHandler", url})
+					.start();
 				return;
 			}
 			if (os.contains("mac")) {
-				Runtime.getRuntime().exec("open " + url);
+				new ProcessBuilder()
+					.command(new String[] {"open", url})
+					.start();
 				return;
 			}
 			Map<String, String> env = System.getenv();
 			if (env.get("BROWSER") != null) {
-				Runtime.getRuntime().exec(env.get("BROWSER") + " " + url);
+				new ProcessBuilder()
+					.command(new String[] {env.get("BROWSER"), url})
+					.start();
 				return;
 			}
 		} catch (Exception e) {
