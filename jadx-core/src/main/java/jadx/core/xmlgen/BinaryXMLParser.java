@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +42,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private final Map<Integer, FieldNode> localStyleMap = new HashMap<>();
 	private final Map<Integer, String> resNames;
 	private final Map<String, String> nsMap = new HashMap<>();
+	private Set<String> nsMapGenerated;
 
 	private CodeWriter writer;
 	private String[] strings;
@@ -86,6 +89,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		if (!isBinaryXml()) {
 			return ResourcesLoader.loadToCodeWriter(inputStream);
 		}
+		nsMapGenerated = new HashSet<>();
 		writer = new CodeWriter();
 		writer.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
 		firstElement = true;
@@ -317,11 +321,12 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private String generateNameForNS(String attrUrl) {
 		for(int i = 1; ; i++) {
 			String attrName = "ns" + i;
-			if(!nsMap.containsValue(attrName)) {
+			if(!nsMap.containsValue(attrName) && !nsMapGenerated.contains(attrName)) {
+				nsMapGenerated.add(attrName);
 				// do not add generated value to nsMap
 				// because attrUrl might be used in a neighbor element, but never defined
 				writer.add("xmlns:").add(attrName)
-					.add("=\"").add(attrUrl).add("\"");
+					.add("=\"").add(attrUrl).add("\" ");
 				return attrName;
 			}
 		}
