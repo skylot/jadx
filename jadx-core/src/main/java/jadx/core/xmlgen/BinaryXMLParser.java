@@ -309,9 +309,22 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		}
 		String attrName = nsMap.get(attrUrl);
 		if (attrName == null) {
-			return "NOT_FOUND_NS_0x" + Integer.toHexString(attributeNS) + "_" + attrUrl;
+			attrName = generateNameForNS(attrUrl);
 		}
 		return attrName;
+	}
+	
+	private String generateNameForNS(String attrUrl) {
+		for(int i = 1; ; i++) {
+			String attrName = "ns" + i;
+			if(!nsMap.containsValue(attrName)) {
+				// do not add generated value to nsMap
+				// because attrUrl might be used in a neighbor element, but never defined
+				writer.add("xmlns:").add(attrName)
+					.add("=\"").add(attrUrl).add("\"");
+				return attrName;
+			}
+		}
 	}
 
 	private String getAttributeName(int id) {
