@@ -174,7 +174,11 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int comment = is.readInt32();
 		int beginPrefix = is.readInt32();
 		int beginURI = is.readInt32();
-		nsMap.computeIfAbsent(getString(beginURI), k -> getString(beginPrefix));
+		
+		String nsValue = getString(beginPrefix);
+		if(!nsMap.containsValue(nsValue)) {
+			nsMap.putIfAbsent(getString(beginURI), nsValue);
+		}
 		namespaceDepth++;
 	}
 
@@ -190,7 +194,11 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int endPrefix = is.readInt32();
 		int endURI = is.readInt32();
 		namespaceDepth--;
-		nsMap.computeIfAbsent(getString(endURI), k -> getString(endPrefix));
+		
+		String nsValue = getString(endPrefix);
+		if(!nsMap.containsValue(nsValue)) {
+			nsMap.putIfAbsent(getString(endURI), nsValue);
+		}
 	}
 
 	private void parseCData() throws IOException {
