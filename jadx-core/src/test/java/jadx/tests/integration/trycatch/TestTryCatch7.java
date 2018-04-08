@@ -29,10 +29,11 @@ public class TestTryCatch7 extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		String excVarName = "exception";
+		String excVarName = "e";
+		String catchExcVarName = "e2";
 		assertThat(code, containsOne("Exception " + excVarName + " = new Exception();"));
-		assertThat(code, containsOne("} catch (Exception e) {"));
-		assertThat(code, containsOne(excVarName + " = e;"));
+		assertThat(code, containsOne("} catch (Exception " + catchExcVarName + ") {"));
+		assertThat(code, containsOne(excVarName + " = " + catchExcVarName + ";"));
 		assertThat(code, containsOne(excVarName + ".printStackTrace();"));
 		assertThat(code, containsOne("return " + excVarName + ";"));
 	}

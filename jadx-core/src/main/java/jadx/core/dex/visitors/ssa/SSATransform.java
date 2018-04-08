@@ -8,6 +8,7 @@ import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
+import jadx.core.dex.instructions.args.VarName;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -141,14 +142,7 @@ public class SSATransform extends AbstractVisitor {
 		PhiListAttr phiList = enterBlock.get(AType.PHI_LIST);
 		if (phiList != null) {
 			for (PhiInsn phiInsn : phiList.getList()) {
-				int regNum = phiInsn.getResult().getRegNum();
-				SSAVar var = vars[regNum];
-				if (var == null) {
-					continue;
-				}
-				RegisterArg arg = phiInsn.bindArg(enterBlock);
-				var.use(arg);
-				var.setUsedInPhi(phiInsn);
+				bindPhiArg(vars, enterBlock, phiInsn);
 			}
 		}
 	}
@@ -183,20 +177,24 @@ public class SSATransform extends AbstractVisitor {
 				continue;
 			}
 			for (PhiInsn phiInsn : phiList.getList()) {
-				int regNum = phiInsn.getResult().getRegNum();
-				SSAVar var = vars[regNum];
-				if (var == null) {
-					continue;
-				}
-				RegisterArg arg = phiInsn.bindArg(block);
-				var.use(arg);
-				var.setUsedInPhi(phiInsn);
+				bindPhiArg(vars, block, phiInsn);
 			}
 		}
 		for (BlockNode domOn : block.getDominatesOn()) {
 			renameVar(mth, vars, vers, domOn);
 		}
 		System.arraycopy(inputVars, 0, vars, 0, vars.length);
+	}
+
+	private static void bindPhiArg(SSAVar[] vars, BlockNode block, PhiInsn phiInsn) {
+		int regNum = phiInsn.getResult().getRegNum();
+		SSAVar var = vars[regNum];
+		if (var == null) {
+			return;
+		}
+		RegisterArg arg = phiInsn.bindArg(block);
+		var.use(arg);
+		var.setUsedInPhi(phiInsn);
 	}
 
 	/**

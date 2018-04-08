@@ -14,7 +14,7 @@ public class TestConditions10 extends IntegrationTest {
 
 	public static class TestCls {
 
-		public void test(boolean a, int b) throws Exception {
+		public void test(boolean a, int b) {
 			if (a || b > 2) {
 				b++;
 			}

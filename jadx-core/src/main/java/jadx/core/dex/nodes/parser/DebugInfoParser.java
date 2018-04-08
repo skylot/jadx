@@ -78,6 +78,8 @@ public class DebugInfoParser {
 		addrChange(-1, 1, line);
 		setLine(addr, line);
 
+		boolean varsInfoFound = false;
+
 		int c = section.readByte() & 0xFF;
 		while (c != DBG_END_SEQUENCE) {
 			switch (c) {
@@ -98,6 +100,7 @@ public class DebugInfoParser {
 					int type = section.readUleb128() - 1;
 					LocalVar var = new LocalVar(dex, regNum, nameId, type, DexNode.NO_INDEX);
 					startVar(var, addr, line);
+					varsInfoFound = true;
 					break;
 				}
 				case DBG_START_LOCAL_EXTENDED: {
@@ -107,6 +110,7 @@ public class DebugInfoParser {
 					int sign = section.readUleb128() - 1;
 					LocalVar var = new LocalVar(dex, regNum, nameId, type, sign);
 					startVar(var, addr, line);
+					varsInfoFound = true;
 					break;
 				}
 				case DBG_RESTART_LOCAL: {
@@ -118,6 +122,7 @@ public class DebugInfoParser {
 						}
 						var.start(addr, line);
 					}
+					varsInfoFound = true;
 					break;
 				}
 				case DBG_END_LOCAL: {
@@ -127,6 +132,7 @@ public class DebugInfoParser {
 						var.end(addr, line);
 						setVar(var);
 					}
+					varsInfoFound = true;
 					break;
 				}
 
@@ -160,10 +166,12 @@ public class DebugInfoParser {
 			c = section.readByte() & 0xFF;
 		}
 
-		for (LocalVar var : locals) {
-			if (var != null && !var.isEnd()) {
-				var.end(mth.getCodeSize() - 1, line);
-				setVar(var);
+		if (varsInfoFound) {
+			for (LocalVar var : locals) {
+				if (var != null && !var.isEnd()) {
+					var.end(mth.getCodeSize() - 1, line);
+					setVar(var);
+				}
 			}
 		}
 		setSourceLines(addr, insnByOffset.length, line);

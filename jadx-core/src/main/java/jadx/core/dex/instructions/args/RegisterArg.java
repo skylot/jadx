@@ -63,6 +63,21 @@ public class RegisterArg extends InsnArg implements Named {
 		return n.equals(((Named) arg).getName());
 	}
 
+	public void mergeName(InsnArg arg) {
+		if (arg instanceof Named) {
+			Named otherArg = (Named) arg;
+			String otherName = otherArg.getName();
+			String name = getName();
+			if (!Objects.equals(name, otherName)) {
+				if (name == null) {
+					setName(otherName);
+				} else if (otherName == null) {
+					otherArg.setName(name);
+				}
+			}
+		}
+	}
+
 	@Override
 	public void setType(ArgType type) {
 		if (sVar != null) {
