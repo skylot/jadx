@@ -1,11 +1,13 @@
 package jadx.core.dex.attributes.nodes;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.jetbrains.annotations.Nullable;
+
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.nodes.FieldNode;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class EnumMapAttr implements IAttribute {
 
@@ -21,9 +23,14 @@ public class EnumMapAttr implements IAttribute {
 		}
 	}
 
-	private final Map<FieldNode, KeyValueMap> fieldsMap = new HashMap<>();
+	@Nullable
+	private Map<FieldNode, KeyValueMap> fieldsMap;
 
+	@Nullable
 	public KeyValueMap getMap(FieldNode field) {
+		if (fieldsMap == null) {
+			return null;
+		}
 		return fieldsMap.get(field);
 	}
 
@@ -31,9 +38,16 @@ public class EnumMapAttr implements IAttribute {
 		KeyValueMap map = getMap(field);
 		if (map == null) {
 			map = new KeyValueMap();
+			if (fieldsMap == null) {
+				fieldsMap = new HashMap<>();
+			}
 			fieldsMap.put(field, map);
 		}
 		map.put(key, value);
+	}
+
+	public boolean isEmpty() {
+		return fieldsMap == null || fieldsMap.isEmpty();
 	}
 
 	@Override
@@ -45,5 +59,4 @@ public class EnumMapAttr implements IAttribute {
 	public String toString() {
 		return "Enum fields map: " + fieldsMap;
 	}
-
 }
