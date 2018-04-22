@@ -1,10 +1,11 @@
 package jadx.core.dex.info;
 
+import java.io.File;
+
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.DexNode;
+import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-
-import java.io.File;
 
 public final class ClassInfo {
 
@@ -17,50 +18,50 @@ public final class ClassInfo {
 	// class info after rename (deobfuscation)
 	private ClassInfo alias;
 
-	private ClassInfo(DexNode dex, ArgType type) {
-		this(dex, type, true);
+	private ClassInfo(RootNode root, ArgType type) {
+		this(root, type, true);
 	}
 
-	private ClassInfo(DexNode dex, ArgType type, boolean inner) {
+	private ClassInfo(RootNode root, ArgType type, boolean inner) {
 		if (!type.isObject() || type.isGeneric()) {
 			throw new JadxRuntimeException("Not class type: " + type);
 		}
 		this.type = type;
 		this.alias = this;
 
-		splitNames(dex, inner);
+		splitNames(root, inner);
 	}
 
-	public static ClassInfo fromType(DexNode dex, ArgType type) {
+	public static ClassInfo fromType(RootNode root, ArgType type) {
 		if (type.isArray()) {
 			type = ArgType.OBJECT;
 		}
-		ClassInfo cls = dex.root().getInfoStorage().getCls(type);
+		ClassInfo cls = root.getInfoStorage().getCls(type);
 		if (cls != null) {
 			return cls;
 		}
-		cls = new ClassInfo(dex, type);
-		return dex.root().getInfoStorage().putCls(cls);
+		cls = new ClassInfo(root, type);
+		return root.getInfoStorage().putCls(cls);
 	}
 
 	public static ClassInfo fromDex(DexNode dex, int clsIndex) {
 		if (clsIndex == DexNode.NO_INDEX) {
 			return null;
 		}
-		return fromType(dex, dex.getType(clsIndex));
+		return fromType(dex.root(), dex.getType(clsIndex));
 	}
 
-	public static ClassInfo fromName(DexNode dex, String clsName) {
-		return fromType(dex, ArgType.object(clsName));
+	public static ClassInfo fromName(RootNode root, String clsName) {
+		return fromType(root, ArgType.object(clsName));
 	}
 
-	public static ClassInfo extCls(DexNode dex, ArgType type) {
-		ClassInfo classInfo = fromName(dex, type.getObject());
+	public static ClassInfo extCls(RootNode root, ArgType type) {
+		ClassInfo classInfo = fromName(root, type.getObject());
 		return classInfo.alias;
 	}
 
-	public void rename(DexNode dex, String fullName) {
-		ClassInfo newAlias = new ClassInfo(dex, ArgType.object(fullName), isInner());
+	public void rename(RootNode root, String fullName) {
+		ClassInfo newAlias = new ClassInfo(root, ArgType.object(fullName), isInner());
 		if (!alias.getFullName().equals(newAlias.getFullName())) {
 			this.alias = newAlias;
 		}
@@ -74,7 +75,7 @@ public final class ClassInfo {
 		return alias;
 	}
 
-	private void splitNames(DexNode dex, boolean canBeInner) {
+	private void splitNames(RootNode root, boolean canBeInner) {
 		String fullObjectName = type.getObject();
 		String clsName;
 		int dot = fullObjectName.lastIndexOf('.');
@@ -93,7 +94,7 @@ public final class ClassInfo {
 				parClsName = clsName.substring(0, sep);
 			}
 
-			parentClass = fromName(dex, parClsName);
+			parentClass = fromName(root, parClsName);
 			clsName = clsName.substring(sep + 1);
 		} else {
 			parentClass = null;
@@ -111,10 +112,10 @@ public final class ClassInfo {
 	}
 
 	public String getFullPath() {
-		ClassInfo alias = getAlias();
-		return alias.getPackage().replace('.', File.separatorChar)
+		ClassInfo usedAlias = getAlias();
+		return usedAlias.getPackage().replace('.', File.separatorChar)
 				+ File.separatorChar
-				+ alias.getNameWithoutPackage().replace('.', '_');
+				+ usedAlias.getNameWithoutPackage().replace('.', '_');
 	}
 
 	public String getFullName() {
@@ -160,8 +161,8 @@ public final class ClassInfo {
 		return parentClass != null;
 	}
 
-	public void notInner(DexNode dex) {
-		splitNames(dex, false);
+	public void notInner(RootNode root) {
+		splitNames(root, false);
 	}
 
 	public ArgType getType() {

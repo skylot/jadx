@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -72,6 +74,16 @@ public class FileUtils {
 			throw new JadxRuntimeException("Failed to create temp file with suffix: " + suffix);
 		}
 		return temp;
+	}
+
+	public static File createTempDir(String suffix) {
+		try {
+			Path path = Files.createTempDirectory("jadx-tmp-" + System.nanoTime() + "-" + suffix);
+			path.toFile().deleteOnExit();
+			return path.toFile();
+		} catch (IOException e) {
+			throw new JadxRuntimeException("Failed to create temp directory with suffix: " + suffix);
+		}
 	}
 
 	public static void copyStream(InputStream input, OutputStream output) throws IOException {

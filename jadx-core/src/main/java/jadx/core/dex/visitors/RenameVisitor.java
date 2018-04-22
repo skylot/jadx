@@ -71,7 +71,7 @@ public class RenameVisitor extends AbstractVisitor {
 				if (!clsNames.add(clsFileName.toLowerCase())) {
 					String newShortName = deobfuscator.getClsAlias(cls);
 					String newFullName = classInfo.makeFullClsName(newShortName, true);
-					classInfo.rename(cls.dex(), newFullName);
+					classInfo.rename(cls.root(), newFullName);
 					clsNames.add(classInfo.getAlias().getFullPath().toLowerCase());
 				}
 			}
@@ -89,12 +89,12 @@ public class RenameVisitor extends AbstractVisitor {
 			newShortName = "C" + clsName;
 		}
 		if (newShortName != null) {
-			classInfo.rename(cls.dex(), classInfo.makeFullClsName(newShortName, true));
+			classInfo.rename(cls.root(), classInfo.makeFullClsName(newShortName, true));
 		}
 		if (classInfo.getAlias().getPackage().isEmpty()) {
 			String fullName = classInfo.makeFullClsName(classInfo.getAlias().getShortName(), true);
 			String newFullName = Consts.DEFAULT_PACKAGE_NAME + "." + fullName;
-			classInfo.rename(cls.dex(), newFullName);
+			classInfo.rename(cls.root(), newFullName);
 		}
 	}
 
@@ -103,7 +103,7 @@ public class RenameVisitor extends AbstractVisitor {
 		for (FieldNode field : cls.getFields()) {
 			FieldInfo fieldInfo = field.getFieldInfo();
 			if (!names.add(fieldInfo.getAlias())) {
-				fieldInfo.setAlias(deobfuscator.makeFieldAlias(field));
+				deobfuscator.renameField(field);
 			}
 		}
 	}
@@ -114,22 +114,10 @@ public class RenameVisitor extends AbstractVisitor {
 			if (mth.contains(AFlag.DONT_GENERATE)) {
 				continue;
 			}
-			MethodInfo methodInfo = mth.getMethodInfo();
-			String signature = makeMethodSignature(methodInfo);
+			String signature = mth.getMethodInfo().makeSignature(false);
 			if (!names.add(signature)) {
-				methodInfo.setAlias(deobfuscator.makeMethodAlias(mth));
+				deobfuscator.renameMethod(mth);
 			}
 		}
-	}
-
-	private static String makeMethodSignature(MethodInfo methodInfo) {
-		StringBuilder signature = new StringBuilder();
-		signature.append(methodInfo.getAlias());
-		signature.append('(');
-		for (ArgType arg : methodInfo.getArgumentsTypes()) {
-			signature.append(TypeGen.signature(arg));
-		}
-		signature.append(')');
-		return signature.toString();
 	}
 }

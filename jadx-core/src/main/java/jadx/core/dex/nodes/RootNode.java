@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,7 @@ import jadx.core.clsp.ClspGraph;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.ConstStorage;
 import jadx.core.dex.info.InfoStorage;
+import jadx.core.dex.info.MethodInfo;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.android.AndroidResourcesUtils;
@@ -144,15 +146,21 @@ public class RootNode {
 		return classes;
 	}
 
-	public ClassNode searchClassByName(String fullName) {
+	@Nullable
+	public ClassNode resolveClass(ClassInfo clsInfo) {
 		for (DexNode dexNode : dexNodes) {
-			ClassInfo clsInfo = ClassInfo.fromName(dexNode, fullName);
-			ClassNode cls = dexNode.resolveClass(clsInfo);
+			ClassNode cls = dexNode.resolveClassLocal(clsInfo);
 			if (cls != null) {
 				return cls;
 			}
 		}
 		return null;
+	}
+
+	@Nullable
+	public ClassNode searchClassByName(String fullName) {
+		ClassInfo clsInfo = ClassInfo.fromName(this, fullName);
+		return resolveClass(clsInfo);
 	}
 
 	public List<ClassNode> searchClassByShortName(String shortName) {
@@ -165,6 +173,15 @@ public class RootNode {
 			}
 		}
 		return list;
+	}
+
+	@Nullable
+	public MethodNode deepResolveMethod(@NotNull MethodInfo mth) {
+		ClassNode cls = resolveClass(mth.getDeclClass());
+		if (cls == null) {
+			return null;
+		}
+		return cls.dex().deepResolveMethod(cls, mth.makeSignature(false));
 	}
 
 	public List<DexNode> getDexNodes() {

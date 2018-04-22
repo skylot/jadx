@@ -55,8 +55,7 @@ public class AndroidResourcesUtils {
 		if (dexNodes.isEmpty()) {
 			return null;
 		}
-		DexNode firstDex = dexNodes.get(0);
-		ClassInfo r = ClassInfo.fromName(firstDex, clsName);
-		return new ClassNode(firstDex, r);
+		ClassInfo r = ClassInfo.fromName(root, clsName);
+		return new ClassNode(dexNodes.get(0), r);
 	}
 }

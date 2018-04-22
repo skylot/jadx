@@ -65,7 +65,7 @@ public class DexNode implements IDexNode {
 			ClassNode parent = resolveClass(clsInfo.getParentClass());
 			if (parent == null) {
 				clsMap.remove(clsInfo);
-				clsInfo.notInner(cls.dex());
+				clsInfo.notInner(root);
 				clsMap.put(clsInfo, cls);
 			} else {
 				parent.addInnerClass(cls);
@@ -78,8 +78,13 @@ public class DexNode implements IDexNode {
 	}
 
 	@Nullable
-	public ClassNode resolveClass(ClassInfo clsInfo) {
+	ClassNode resolveClassLocal(ClassInfo clsInfo) {
 		return clsMap.get(clsInfo);
+	}
+
+	@Nullable
+	public ClassNode resolveClass(ClassInfo clsInfo) {
+		return root.resolveClass(clsInfo);
 	}
 
 	@Nullable
@@ -87,7 +92,7 @@ public class DexNode implements IDexNode {
 		if (type.isGeneric()) {
 			type = ArgType.object(type.getObject());
 		}
-		return resolveClass(ClassInfo.fromType(this, type));
+		return resolveClass(ClassInfo.fromType(root, type));
 	}
 
 	@Nullable
@@ -99,20 +104,8 @@ public class DexNode implements IDexNode {
 		return null;
 	}
 
-	/**
-	 * Search method in class hierarchy.
-	 */
 	@Nullable
-	public MethodNode deepResolveMethod(@NotNull MethodInfo mth) {
-		ClassNode cls = resolveClass(mth.getDeclClass());
-		if (cls == null) {
-			return null;
-		}
-		return deepResolveMethod(cls, mth.makeSignature(false));
-	}
-
-	@Nullable
-	private MethodNode deepResolveMethod(@NotNull ClassNode cls, String signature) {
+	MethodNode deepResolveMethod(@NotNull ClassNode cls, String signature) {
 		for (MethodNode m : cls.getMethods()) {
 			if (m.getMethodInfo().getShortId().startsWith(signature)) {
 				return m;

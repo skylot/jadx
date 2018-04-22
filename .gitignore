@@ -29,3 +29,4 @@ jadx-output/
 *.log
 *.cfg
 
+jadx-core/src/test/java/jadx/tests/external/

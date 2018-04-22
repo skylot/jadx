@@ -159,7 +159,7 @@ public class NameGen {
 			if (alias != null) {
 				return alias;
 			}
-			ClassInfo extClsInfo = ClassInfo.extCls(mth.dex(), type);
+			ClassInfo extClsInfo = ClassInfo.extCls(mth.root(), type);
 			String shortName = extClsInfo.getShortName();
 			String vName = fromName(shortName);
 			if (vName != null) {

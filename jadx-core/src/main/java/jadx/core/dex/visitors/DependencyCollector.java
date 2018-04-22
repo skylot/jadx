@@ -96,7 +96,7 @@ public class DependencyCollector extends AbstractVisitor {
 	private static void addDep(DexNode dex, Set<ClassNode> depList, ArgType type) {
 		if (type != null) {
 			if (type.isObject()) {
-				addDep(dex, depList, ClassInfo.fromName(dex, type.getObject()));
+				addDep(dex, depList, ClassInfo.fromName(dex.root(), type.getObject()));
 				ArgType[] genericTypes = type.getGenericTypes();
 				if (type.isGeneric() && genericTypes != null) {
 					for (ArgType argType : genericTypes) {

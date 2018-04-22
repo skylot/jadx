@@ -63,7 +63,7 @@ public class ClassModifier extends AbstractVisitor {
 		// remove fields if it is synthetic and type is a outer class
 		for (FieldNode field : cls.getFields()) {
 			if (field.getAccessFlags().isSynthetic() && field.getType().isObject()) {
-				ClassInfo clsInfo = ClassInfo.fromType(cls.dex(), field.getType());
+				ClassInfo clsInfo = ClassInfo.fromType(cls.root(), field.getType());
 				ClassNode fieldsCls = cls.dex().resolveClass(clsInfo);
 				ClassInfo parentClass = cls.getClassInfo().getParentClass();
 				if (fieldsCls != null

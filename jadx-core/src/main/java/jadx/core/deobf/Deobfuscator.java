@@ -1,17 +1,5 @@
 package jadx.core.deobf;
 
-import jadx.api.JadxArgs;
-import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.nodes.SourceFileAttr;
-import jadx.core.dex.info.ClassInfo;
-import jadx.core.dex.info.FieldInfo;
-import jadx.core.dex.info.MethodInfo;
-import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.DexNode;
-import jadx.core.dex.nodes.FieldNode;
-import jadx.core.dex.nodes.MethodNode;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,6 +13,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jadx.api.JadxArgs;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.SourceFileAttr;
+import jadx.core.dex.info.ClassInfo;
+import jadx.core.dex.info.FieldInfo;
+import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.DexNode;
+import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.MethodNode;
 
 public class Deobfuscator {
 	private static final Logger LOG = LoggerFactory.getLogger(Deobfuscator.class);
@@ -89,7 +89,7 @@ public class Deobfuscator {
 	private void preProcess() {
 		for (DexNode dexNode : dexNodes) {
 			for (ClassNode cls : dexNode.getClasses()) {
-				doClass(cls);
+				preProcessClass(cls);
 			}
 		}
 	}
@@ -101,7 +101,7 @@ public class Deobfuscator {
 		}
 		for (DexNode dexNode : dexNodes) {
 			for (ClassNode cls : dexNode.getClasses()) {
-				processClass(dexNode, cls);
+				processClass(cls);
 			}
 		}
 		postProcess();
@@ -128,7 +128,6 @@ public class Deobfuscator {
 				mth.setAlias(aliasToUse);
 				mth.setAliasFromPreset(aliasFromPreset);
 			}
-
 			id++;
 		}
 	}
@@ -145,15 +144,13 @@ public class Deobfuscator {
 
 	@Nullable
 	private static ClassNode resolveOverridingInternal(DexNode dex, ClassNode cls, String signature,
-			Set<MethodInfo> overrideSet, ClassNode rootClass) {
+	                                                   Set<MethodInfo> overrideSet, ClassNode rootClass) {
 		ClassNode result = null;
 
 		for (MethodNode m : cls.getMethods()) {
 			if (m.getMethodInfo().getShortId().startsWith(signature)) {
 				result = cls;
-				if (!overrideSet.contains(m.getMethodInfo())) {
-					overrideSet.add(m.getMethodInfo());
-				}
+				overrideSet.add(m.getMethodInfo());
 				break;
 			}
 		}
@@ -196,13 +193,14 @@ public class Deobfuscator {
 				}
 			}
 		}
-
 		return result;
 	}
 
-	private void resolveOverriding(DexNode dex, ClassNode cls, MethodNode mth) {
+	private void resolveOverriding(MethodNode mth) {
 		Set<MethodInfo> overrideSet = new HashSet<>();
-		resolveOverridingInternal(dex, cls, mth.getMethodInfo().makeSignature(false), overrideSet, cls);
+		String mthSignature = mth.getMethodInfo().makeSignature(false);
+		ClassNode cls = mth.getParentClass();
+		resolveOverridingInternal(mth.dex(), cls, mthSignature, overrideSet, cls);
 		if (overrideSet.size() > 1) {
 			OverridedMethodsNode overrideNode = null;
 			for (MethodInfo _mth : overrideSet) {
@@ -223,34 +221,42 @@ public class Deobfuscator {
 					}
 				}
 			}
-		} else {
-			overrideSet.clear();
 		}
+		overrideSet.clear();
 	}
 
-	private void processClass(DexNode dex, ClassNode cls) {
+	private void processClass(ClassNode cls) {
 		ClassInfo clsInfo = cls.getClassInfo();
 		String fullName = getClassFullName(clsInfo);
 		if (!fullName.equals(clsInfo.getFullName())) {
-			clsInfo.rename(dex, fullName);
+			clsInfo.rename(cls.dex().root(), fullName);
 		}
 		for (FieldNode field : cls.getFields()) {
-			FieldInfo fieldInfo = field.getFieldInfo();
-			String alias = getFieldAlias(field);
-			if (alias != null) {
-				fieldInfo.setAlias(alias);
-			}
+			renameField(field);
 		}
 		for (MethodNode mth : cls.getMethods()) {
-			MethodInfo methodInfo = mth.getMethodInfo();
-			String alias = getMethodAlias(mth);
-			if (alias != null) {
-				methodInfo.setAlias(alias);
-			}
+			renameMethod(mth);
+		}
+		for (ClassNode innerCls : cls.getInnerClasses()) {
+			processClass(innerCls);
+		}
+	}
 
-			if (mth.isVirtual()) {
-				resolveOverriding(dex, cls, mth);
-			}
+	public void renameField(FieldNode field) {
+		FieldInfo fieldInfo = field.getFieldInfo();
+		String alias = getFieldAlias(field);
+		if (alias != null) {
+			fieldInfo.setAlias(alias);
+		}
+	}
+
+	public void renameMethod(MethodNode mth) {
+		String alias = getMethodAlias(mth);
+		if (alias != null) {
+			mth.getMethodInfo().setAlias(alias);
+		}
+		if (mth.isVirtual()) {
+			resolveOverriding(mth);
 		}
 	}
 
@@ -311,7 +317,7 @@ public class Deobfuscator {
 		return prefix + clsInfo.getShortName();
 	}
 
-	private void doClass(ClassNode cls) {
+	private void preProcessClass(ClassNode cls) {
 		ClassInfo classInfo = cls.getClassInfo();
 		String pkgFullName = classInfo.getPackage();
 		PackageNode pkg = getPackageNode(pkgFullName, true);
@@ -320,13 +326,14 @@ public class Deobfuscator {
 		String alias = deobfPresets.getForCls(classInfo);
 		if (alias != null) {
 			clsMap.put(classInfo, new DeobfClsInfo(this, cls, pkg, alias));
-			return;
+		} else {
+			if (!clsMap.containsKey(classInfo)
+					&& shouldRename(classInfo.getShortName())) {
+				makeClsAlias(cls);
+			}
 		}
-		if (clsMap.containsKey(classInfo)) {
-			return;
-		}
-		if (shouldRename(classInfo.getShortName())) {
-			makeClsAlias(cls);
+		for (ClassNode innerCls : cls.getInnerClasses()) {
+			preProcessClass(innerCls);
 		}
 	}
 
@@ -361,21 +368,33 @@ public class Deobfuscator {
 		if (sourceFileAttr == null) {
 			return null;
 		}
+		if (cls.getClassInfo().isInner()) {
+			return null;
+		}
 		String name = sourceFileAttr.getFileName();
 		if (name.endsWith(".java")) {
 			name = name.substring(0, name.length() - ".java".length());
+		} else if (name.endsWith(".kt")) {
+			name = name.substring(0, name.length() - ".kt".length());
 		}
-		if (NameMapper.isValidIdentifier(name)
-				&& !NameMapper.isReserved(name)) {
-			// TODO: check if no class with this name exists or already renamed
-			cls.remove(AType.SOURCE_FILE);
-			return name;
+		if (!NameMapper.isValidIdentifier(name) || NameMapper.isReserved(name)) {
+			return null;
 		}
-		return null;
+		for (DeobfClsInfo deobfClsInfo : clsMap.values()) {
+			if (deobfClsInfo.getAlias().equals(name)) {
+				return null;
+			}
+		}
+		ClassNode otherCls = cls.dex().root().searchClassByName(cls.getPackage() + "." + name);
+		if (otherCls != null) {
+			return null;
+		}
+		cls.remove(AType.SOURCE_FILE);
+		return name;
 	}
 
 	@Nullable
-	public String getFieldAlias(FieldNode field) {
+	private String getFieldAlias(FieldNode field) {
 		FieldInfo fieldInfo = field.getFieldInfo();
 		String alias = fldMap.get(fieldInfo);
 		if (alias != null) {
@@ -393,7 +412,7 @@ public class Deobfuscator {
 	}
 
 	@Nullable
-	public String getMethodAlias(MethodNode mth) {
+	private String getMethodAlias(MethodNode mth) {
 		MethodInfo methodInfo = mth.getMethodInfo();
 		String alias = mthMap.get(methodInfo);
 		if (alias != null) {

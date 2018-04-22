@@ -48,7 +48,7 @@ public abstract class IntegrationTest extends TestUtils {
 	private static final String TEST_DIRECTORY = "src/test/java";
 	private static final String TEST_DIRECTORY2 = "jadx-core/" + TEST_DIRECTORY;
 
-	private JadxArgs args;
+	protected JadxArgs args;
 
 	protected boolean deleteTmpFiles = true;
 	protected boolean withDebugInfo = true;
@@ -113,27 +113,31 @@ public abstract class IntegrationTest extends TestUtils {
 		return cls;
 	}
 
-	private void decompile(JadxDecompiler jadx, ClassNode cls) {
+	protected void decompile(JadxDecompiler jadx, ClassNode cls) {
 		List<IDexTreeVisitor> passes = Jadx.getPassesList(jadx.getArgs());
 		ProcessClass.process(cls, passes, new CodeGen());
 	}
 
-	private void decompileWithoutUnload(JadxDecompiler d, ClassNode cls) {
+	protected void decompileWithoutUnload(JadxDecompiler d, ClassNode cls) {
 		cls.load();
 		List<IDexTreeVisitor> passes = Jadx.getPassesList(d.getArgs());
 		for (IDexTreeVisitor visitor : passes) {
 			DepthTraversal.visit(visitor, cls);
 		}
-		try {
-			new CodeGen().visit(cls);
-		} catch (CodegenException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
+		generateClsCode(cls);
 		// don't unload class
 	}
 
-	private static void checkCode(ClassNode cls) {
+	protected void generateClsCode(ClassNode cls) {
+		try {
+			new CodeGen().visit(cls);
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	protected static void checkCode(ClassNode cls) {
 		assertTrue("Inconsistent cls: " + cls,
 				!cls.contains(AFlag.INCONSISTENT_CODE) && !cls.contains(AType.JADX_ERROR));
 		for (MethodNode mthNode : cls.getMethods()) {
@@ -368,6 +372,13 @@ public abstract class IntegrationTest extends TestUtils {
 
 	protected void dontUnloadClass() {
 		this.unloadCls = false;
+	}
+
+	protected void enableDeobfuscation() {
+		args.setDeobfuscationOn(true);
+		args.setDeobfuscationForceSave(true);
+		args.setDeobfuscationMinLength(2);
+		args.setDeobfuscationMaxLength(64);
 	}
 
 	// Use only for debug purpose

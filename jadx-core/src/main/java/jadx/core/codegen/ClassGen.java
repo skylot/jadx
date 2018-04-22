@@ -435,7 +435,7 @@ public class ClassGen {
 	}
 
 	public void useClass(CodeWriter code, ArgType type) {
-		useClass(code, ClassInfo.extCls(cls.dex(), type));
+		useClass(code, ClassInfo.extCls(cls.root(), type));
 		ArgType[] generics = type.getGenericTypes();
 		if (generics != null) {
 			code.add('<');
