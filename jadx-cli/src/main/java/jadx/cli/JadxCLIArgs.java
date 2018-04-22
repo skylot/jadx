@@ -63,10 +63,10 @@ public class JadxCLIArgs {
 	@Parameter(names = {"--deobf"}, description = "activate deobfuscation")
 	protected boolean deobfuscationOn = false;
 
-	@Parameter(names = {"--deobf-min"}, description = "min length of name")
+	@Parameter(names = {"--deobf-min"}, description = "min length of name, renamed if shorter")
 	protected int deobfuscationMinLength = 2;
 
-	@Parameter(names = {"--deobf-max"}, description = "max length of name")
+	@Parameter(names = {"--deobf-max"}, description = "max length of name, renamed if longer")
 	protected int deobfuscationMaxLength = 64;
 
 	@Parameter(names = {"--deobf-rewrite-cfg"}, description = "force to save deobfuscation map")
@@ -162,7 +162,8 @@ public class JadxCLIArgs {
 				maxNamesLen = len;
 			}
 		}
-		Field[] fields = JadxCLIArgs.class.getDeclaredFields();
+		JadxCLIArgs args = new JadxCLIArgs();
+		Field[] fields = args.getClass().getDeclaredFields();
 		for (Field f : fields) {
 			String name = f.getName();
 			ParameterDescription p = paramsMap.get(name);
@@ -173,10 +174,23 @@ public class JadxCLIArgs {
 			opt.append("  ").append(p.getNames());
 			addSpaces(opt, maxNamesLen - opt.length() + 3);
 			opt.append("- ").append(p.getDescription());
+			addDefaultValue(args, f, opt);
 			out.println(opt);
 		}
 		out.println("Example:");
 		out.println("  jadx -d out classes.dex");
+	}
+
+	private void addDefaultValue(JadxCLIArgs args, Field f, StringBuilder opt) {
+		Class<?> fieldType = f.getType();
+		if (fieldType == int.class) {
+			try {
+				int val = f.getInt(args);
+				opt.append(" (default: ").append(val).append(")");
+			} catch (Exception e) {
+				// ignore
+			}
+		}
 	}
 
 	private static void addSpaces(StringBuilder str, int count) {
