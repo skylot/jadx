@@ -1,7 +1,5 @@
 package jadx.core.xmlgen;
 
-import jadx.core.utils.exceptions.JadxRuntimeException;
-
 import javax.xml.parsers.DocumentBuilder;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -14,6 +12,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class ManifestAttributes {
 	private static final Logger LOG = LoggerFactory.getLogger(ManifestAttributes.class);

@@ -1,9 +1,9 @@
 package jadx.core.dex.attributes;
 
-import jadx.core.utils.Utils;
-
 import java.util.LinkedList;
 import java.util.List;
+
+import jadx.core.utils.Utils;
 
 public class AttrList<T> implements IAttribute {
 

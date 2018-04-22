@@ -1,5 +1,24 @@
 package jadx.core.dex.nodes;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.android.dex.ClassData;
+import com.android.dex.ClassData.Field;
+import com.android.dex.ClassData.Method;
+import com.android.dex.ClassDef;
+import com.android.dex.Dex;
+import com.android.dx.rop.code.AccessFlags;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jadx.core.Consts;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.annotations.Annotation;
@@ -19,26 +38,6 @@ import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.nodes.parser.StaticValuesParser;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.android.dex.ClassData;
-import com.android.dex.ClassData.Field;
-import com.android.dex.ClassData.Method;
-import com.android.dex.ClassDef;
-import com.android.dex.Dex;
-import com.android.dx.rop.code.AccessFlags;
 
 public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);

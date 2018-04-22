@@ -1,5 +1,7 @@
 package jadx.core.dex.instructions.mods;
 
+import java.util.Collection;
+
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
@@ -8,8 +10,6 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.Utils;
-
-import java.util.Collection;
 
 public final class TernaryInsn extends InsnNode {
 

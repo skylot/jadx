@@ -9,13 +9,10 @@ import org.apache.commons.io.FilenameUtils;
 
 import jadx.api.JadxArgs;
 import jadx.core.Consts;
-import jadx.core.codegen.TypeGen;
 import jadx.core.deobf.Deobfuscator;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
-import jadx.core.dex.info.MethodInfo;
-import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;

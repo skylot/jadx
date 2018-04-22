@@ -1,5 +1,13 @@
 package jadx.core.dex.visitors.blocksmaker;
 
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Iterator;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.LoopInfo;
@@ -14,14 +22,6 @@ import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Iterator;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static jadx.core.dex.visitors.blocksmaker.BlockSplitter.connect;
 import static jadx.core.dex.visitors.blocksmaker.BlockSplitter.removeConnection;

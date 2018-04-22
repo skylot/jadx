@@ -1,5 +1,12 @@
 package jadx.core.dex.visitors.blocksmaker;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
@@ -10,13 +17,6 @@ import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.SplitterBlockAttr;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.BlockUtils;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class BlockFinish extends AbstractVisitor {
 

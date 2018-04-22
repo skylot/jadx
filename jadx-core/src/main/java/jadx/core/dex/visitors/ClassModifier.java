@@ -1,5 +1,7 @@
 package jadx.core.dex.visitors;
 
+import java.util.List;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
@@ -21,8 +23,6 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.exceptions.JadxException;
-
-import java.util.List;
 
 @JadxVisitor(
 		name = "ClassModifier",

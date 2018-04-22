@@ -1,5 +1,8 @@
 package jadx.core.dex.visitors;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jadx.core.codegen.TypeGen;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
@@ -24,19 +27,12 @@ import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.exceptions.JadxException;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @JadxVisitor(
 		name = "EnumVisitor",
 		desc = "Restore enum classes",
 		runAfter = {CodeShrinker.class, ModVisitor.class}
 )
 public class EnumVisitor extends AbstractVisitor {
-	private static final Logger LOG = LoggerFactory.getLogger(EnumVisitor.class);
 
 	@Override
 	public boolean visit(ClassNode cls) throws JadxException {
@@ -178,9 +174,7 @@ public class EnumVisitor extends AbstractVisitor {
 	private boolean isEnumArrayField(ClassInfo classInfo, FieldNode fieldNode) {
 		if (fieldNode.getAccessFlags().isSynthetic()) {
 			ArgType fType = fieldNode.getType();
-			if (fType.isArray() && fType.getArrayRootElement().equals(classInfo.getType())) {
-				return true;
-			}
+			return fType.isArray() && fType.getArrayRootElement().equals(classInfo.getType());
 		}
 		return false;
 	}

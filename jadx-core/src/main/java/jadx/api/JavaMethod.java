@@ -1,10 +1,10 @@
 package jadx.api;
 
+import java.util.List;
+
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.MethodNode;
-
-import java.util.List;
 
 public final class JavaMethod implements JavaNode {
 	private final MethodNode mth;

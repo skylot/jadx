@@ -1,14 +1,14 @@
 package jadx.core.dex.instructions.args;
 
+import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
+
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
-
-import java.util.Objects;
-
-import org.jetbrains.annotations.NotNull;
 
 public class RegisterArg extends InsnArg implements Named {
 

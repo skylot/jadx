@@ -1,5 +1,7 @@
 package jadx.core.dex.visitors.regions;
 
+import java.util.List;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.IBlock;
@@ -12,8 +14,6 @@ import jadx.core.dex.regions.conditions.IfCondition.Mode;
 import jadx.core.dex.regions.conditions.IfRegion;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.RegionUtils;
-
-import java.util.List;
 
 import static jadx.core.utils.RegionUtils.insnsCount;
 

@@ -1,13 +1,13 @@
 package jadx.core.dex.regions;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBranchRegion;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public final class SwitchRegion extends AbstractRegion implements IBranchRegion {
 

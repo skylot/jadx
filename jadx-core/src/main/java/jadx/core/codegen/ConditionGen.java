@@ -4,9 +4,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.IfOp;
 import jadx.core.dex.instructions.InsnType;
@@ -23,7 +20,6 @@ import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class ConditionGen extends InsnGen {
-	private static final Logger LOG = LoggerFactory.getLogger(ConditionGen.class);
 
 	private static class CondStack {
 		private final Queue<IfCondition> stack = new LinkedList<>();

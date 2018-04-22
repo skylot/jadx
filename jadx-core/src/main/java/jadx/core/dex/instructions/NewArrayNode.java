@@ -1,11 +1,11 @@
 package jadx.core.dex.instructions;
 
+import org.jetbrains.annotations.NotNull;
+
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
-
-import org.jetbrains.annotations.NotNull;
 
 public class NewArrayNode extends InsnNode {
 

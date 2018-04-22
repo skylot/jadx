@@ -1,17 +1,16 @@
 package jadx.core.dex.instructions.args;
 
-import jadx.core.dex.attributes.AFlag;
-import jadx.core.dex.nodes.InsnNode;
-import jadx.core.utils.InsnUtils;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import com.android.dx.io.instructions.DecodedInstruction;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.android.dx.io.instructions.DecodedInstruction;
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.nodes.InsnNode;
+import jadx.core.utils.InsnUtils;
 
 /**
  * Instruction argument,

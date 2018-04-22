@@ -1,5 +1,8 @@
 package jadx.core.dex.visitors;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
@@ -20,9 +23,6 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.typeinference.PostTypeInference;
 import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.exceptions.JadxException;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ConstInlineVisitor extends AbstractVisitor {
 
@@ -79,18 +79,19 @@ public class ConstInlineVisitor extends AbstractVisitor {
 	private static boolean checkObjectInline(SSAVar sVar) {
 		for (RegisterArg useArg : sVar.getUseList()) {
 			InsnNode insn = useArg.getParentInsn();
-			if (insn != null) {
-				InsnType insnType = insn.getType();
-				if (insnType == InsnType.INVOKE) {
-					InvokeNode inv = (InvokeNode) insn;
-					if (inv.getInvokeType() != InvokeType.STATIC
-							&& inv.getArg(0) == useArg) {
-						return true;
-					}
-				} else if (insnType == InsnType.ARRAY_LENGTH) {
-					if (insn.getArg(0) == useArg) {
-						return true;
-					}
+			if (insn == null) {
+				continue;
+			}
+			InsnType insnType = insn.getType();
+			if (insnType == InsnType.INVOKE) {
+				InvokeNode inv = (InvokeNode) insn;
+				if (inv.getInvokeType() != InvokeType.STATIC
+						&& inv.getArg(0) == useArg) {
+					return true;
+				}
+			} else if (insnType == InsnType.ARRAY_LENGTH) {
+				if (insn.getArg(0) == useArg) {
+					return true;
 				}
 			}
 		}
@@ -170,16 +171,16 @@ public class ConstInlineVisitor extends AbstractVisitor {
 				insn.getArg(0).merge(dex, ((FieldInfo) node.getIndex()).getType());
 				break;
 
-			case IF: {
-				InsnArg arg0 = insn.getArg(0);
-				InsnArg arg1 = insn.getArg(1);
-				if (arg0 == litArg) {
-					arg0.merge(dex, arg1);
+			case IF:
+				InsnArg firstArg = insn.getArg(0);
+				InsnArg secondArg = insn.getArg(1);
+				if (firstArg == litArg) {
+					firstArg.merge(dex, secondArg);
 				} else {
-					arg1.merge(dex, arg0);
+					secondArg.merge(dex, firstArg);
 				}
 				break;
-			}
+
 			case CMP_G:
 			case CMP_L:
 				InsnArg arg0 = insn.getArg(0);

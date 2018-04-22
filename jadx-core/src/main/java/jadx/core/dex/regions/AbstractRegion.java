@@ -1,11 +1,11 @@
 package jadx.core.dex.regions;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class AbstractRegion extends AttrNode implements IRegion {
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractRegion.class);

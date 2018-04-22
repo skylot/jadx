@@ -1,5 +1,10 @@
 package jadx.core.utils;
 
+import com.android.dx.io.instructions.DecodedInstruction;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.ConstClassNode;
@@ -11,12 +16,6 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.parser.FieldInitAttr;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.android.dx.io.instructions.DecodedInstruction;
 
 public class InsnUtils {
 

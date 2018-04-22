@@ -1,12 +1,5 @@
 package jadx.core.xmlgen;
 
-import jadx.core.codegen.CodeWriter;
-import jadx.core.xmlgen.entry.EntryConfig;
-import jadx.core.xmlgen.entry.RawNamedValue;
-import jadx.core.xmlgen.entry.RawValue;
-import jadx.core.xmlgen.entry.ResourceEntry;
-import jadx.core.xmlgen.entry.ValuesParser;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -14,6 +7,13 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jadx.core.codegen.CodeWriter;
+import jadx.core.xmlgen.entry.EntryConfig;
+import jadx.core.xmlgen.entry.RawNamedValue;
+import jadx.core.xmlgen.entry.RawValue;
+import jadx.core.xmlgen.entry.ResourceEntry;
+import jadx.core.xmlgen.entry.ValuesParser;
 
 public class ResTableParser extends CommonBinaryParser {
 

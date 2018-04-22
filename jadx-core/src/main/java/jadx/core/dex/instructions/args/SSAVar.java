@@ -1,13 +1,13 @@
 package jadx.core.dex.instructions.args;
 
-import jadx.core.dex.attributes.AttrNode;
-import jadx.core.dex.instructions.PhiInsn;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import jadx.core.dex.attributes.AttrNode;
+import jadx.core.dex.instructions.PhiInsn;
 
 public class SSAVar extends AttrNode {
 

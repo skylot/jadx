@@ -1,11 +1,11 @@
 package jadx.core.dex.regions;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
-
-import java.util.LinkedList;
-import java.util.List;
 
 public final class SynchronizedRegion extends AbstractRegion {
 

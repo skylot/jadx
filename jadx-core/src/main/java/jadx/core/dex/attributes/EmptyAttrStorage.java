@@ -1,9 +1,9 @@
 package jadx.core.dex.attributes;
 
-import jadx.core.dex.attributes.annotations.Annotation;
-
 import java.util.Collections;
 import java.util.List;
+
+import jadx.core.dex.attributes.annotations.Annotation;
 
 public final class EmptyAttrStorage extends AttributeStorage {
 

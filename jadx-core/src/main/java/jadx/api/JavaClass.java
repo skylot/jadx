@@ -1,13 +1,5 @@
 package jadx.api;
 
-import jadx.core.codegen.CodeWriter;
-import jadx.core.dex.attributes.AFlag;
-import jadx.core.dex.attributes.nodes.LineAttrNode;
-import jadx.core.dex.info.AccessInfo;
-import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.FieldNode;
-import jadx.core.dex.nodes.MethodNode;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,6 +8,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
+
+import jadx.core.codegen.CodeWriter;
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.nodes.LineAttrNode;
+import jadx.core.dex.info.AccessInfo;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.MethodNode;
 
 public final class JavaClass implements JavaNode {
 

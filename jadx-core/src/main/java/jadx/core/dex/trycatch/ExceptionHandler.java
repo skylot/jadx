@@ -1,14 +1,14 @@
 package jadx.core.dex.trycatch;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jadx.core.Consts;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.utils.InsnUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ExceptionHandler {
 

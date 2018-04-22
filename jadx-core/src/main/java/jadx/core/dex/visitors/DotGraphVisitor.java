@@ -1,5 +1,10 @@
 package jadx.core.dex.visitors;
 
+import java.io.File;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import jadx.core.codegen.CodeWriter;
 import jadx.core.codegen.MethodGen;
 import jadx.core.dex.attributes.IAttributeNode;
@@ -17,11 +22,6 @@ import jadx.core.utils.InsnUtils;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
-
-import java.io.File;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public class DotGraphVisitor extends AbstractVisitor {
 

@@ -1,8 +1,8 @@
 package jadx.core.dex.nodes;
 
-import jadx.core.dex.attributes.AttrNode;
-
 import java.util.List;
+
+import jadx.core.dex.attributes.AttrNode;
 
 public class InsnContainer extends AttrNode implements IBlock {
 

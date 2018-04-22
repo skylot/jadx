@@ -1,10 +1,10 @@
 package jadx.core.dex.regions;
 
-import jadx.core.dex.nodes.IContainer;
-import jadx.core.dex.nodes.IRegion;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import jadx.core.dex.nodes.IContainer;
+import jadx.core.dex.nodes.IRegion;
 
 public final class Region extends AbstractRegion {
 

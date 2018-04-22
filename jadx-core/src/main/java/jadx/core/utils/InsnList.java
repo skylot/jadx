@@ -1,10 +1,10 @@
 package jadx.core.utils;
 
-import jadx.core.dex.nodes.BlockNode;
-import jadx.core.dex.nodes.InsnNode;
-
 import java.util.Iterator;
 import java.util.List;
+
+import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.InsnNode;
 
 public final class InsnList implements Iterable<InsnNode> {
 

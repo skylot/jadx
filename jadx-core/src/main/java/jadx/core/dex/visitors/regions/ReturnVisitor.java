@@ -1,5 +1,8 @@
 package jadx.core.dex.visitors.regions;
 
+import java.util.List;
+import java.util.ListIterator;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.BlockNode;
@@ -14,9 +17,6 @@ import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-
-import java.util.List;
-import java.util.ListIterator;
 
 /**
  * Remove unnecessary return instructions for void methods

@@ -1,5 +1,10 @@
 package jadx.core.dex.instructions;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.android.dx.io.instructions.FillArrayDataPayloadDecodedInstruction;
+
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
@@ -7,11 +12,6 @@ import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import com.android.dx.io.instructions.FillArrayDataPayloadDecodedInstruction;
 
 public final class FillArrayNode extends InsnNode {
 

@@ -1,14 +1,14 @@
 package jadx.core.dex.visitors.blocksmaker.helpers;
 
-import jadx.core.dex.instructions.args.RegisterArg;
-import jadx.core.dex.nodes.BlockNode;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
+
+import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.nodes.BlockNode;
 
 public final class BlocksRemoveInfo {
 	private final Set<BlocksPair> processed = new HashSet<>();

@@ -1,14 +1,14 @@
 package jadx.core.dex.info;
 
-import jadx.core.codegen.TypeGen;
-import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.DexNode;
-import jadx.core.utils.Utils;
-
 import java.util.List;
 
 import com.android.dex.MethodId;
 import com.android.dex.ProtoId;
+
+import jadx.core.codegen.TypeGen;
+import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.nodes.DexNode;
+import jadx.core.utils.Utils;
 
 public final class MethodInfo {
 
