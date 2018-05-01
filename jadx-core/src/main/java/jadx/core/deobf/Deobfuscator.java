@@ -3,7 +3,7 @@ package jadx.core.deobf;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -142,87 +142,72 @@ public class Deobfuscator {
 		ovrdMap.clear();
 	}
 
-	@Nullable
-	private static ClassNode resolveOverridingInternal(DexNode dex, ClassNode cls, String signature,
-	                                                   Set<MethodInfo> overrideSet, ClassNode rootClass) {
-		ClassNode result = null;
+	private void resolveOverriding(MethodNode mth) {
+		Set<ClassNode> clsParents = new LinkedHashSet<>();
+		collectClassHierarchy(mth.getParentClass(), clsParents);
 
-		for (MethodNode m : cls.getMethods()) {
-			if (m.getMethodInfo().getShortId().startsWith(signature)) {
-				result = cls;
-				overrideSet.add(m.getMethodInfo());
-				break;
+		String mthSignature = mth.getMethodInfo().makeSignature(false);
+		Set<MethodInfo> overrideSet = new LinkedHashSet<>();
+		for (ClassNode classNode : clsParents) {
+			MethodInfo methodInfo = getMthOverride(classNode.getMethods(), mthSignature);
+			if (methodInfo != null) {
+				overrideSet.add(methodInfo);
 			}
 		}
-
-		ArgType superClass = cls.getSuperClass();
-		if (superClass != null) {
-			ClassNode superNode = dex.resolveClass(superClass);
-			if (superNode != null) {
-				ClassNode clsWithMth = resolveOverridingInternal(dex, superNode, signature, overrideSet, rootClass);
-				if (clsWithMth != null) {
-					if ((result != null) && (result != cls)) {
-						if (clsWithMth != result) {
-							LOG.warn(String.format("Multiple overriding '%s' from '%s' and '%s' in '%s'",
-									signature,
-									result.getFullName(), clsWithMth.getFullName(),
-									rootClass.getFullName()));
-						}
-					} else {
-						result = clsWithMth;
-					}
-				}
+		if (overrideSet.isEmpty()) {
+			return;
+		}
+		OverridedMethodsNode overrideNode = getOverrideMethodsNode(overrideSet);
+		if (overrideNode == null) {
+			overrideNode = new OverridedMethodsNode(overrideSet);
+			ovrd.add(overrideNode);
+		}
+		for (MethodInfo overrideMth : overrideSet) {
+			if (!ovrdMap.containsKey(overrideMth)) {
+				ovrdMap.put(overrideMth, overrideNode);
+				overrideNode.add(overrideMth);
 			}
 		}
-
-		for (ArgType iFaceType : cls.getInterfaces()) {
-			ClassNode iFaceNode = dex.resolveClass(iFaceType);
-			if (iFaceNode != null) {
-				ClassNode clsWithMth = resolveOverridingInternal(dex, iFaceNode, signature, overrideSet, rootClass);
-				if (clsWithMth != null) {
-					if ((result != null) && (result != cls)) {
-						if (clsWithMth != result) {
-							LOG.warn(String.format("Multiple overriding '%s' from '%s' and '%s' in '%s'",
-									signature,
-									result.getFullName(), clsWithMth.getFullName(),
-									rootClass.getFullName()));
-						}
-					} else {
-						result = clsWithMth;
-					}
-				}
-			}
-		}
-		return result;
 	}
 
-	private void resolveOverriding(MethodNode mth) {
-		Set<MethodInfo> overrideSet = new HashSet<>();
-		String mthSignature = mth.getMethodInfo().makeSignature(false);
-		ClassNode cls = mth.getParentClass();
-		resolveOverridingInternal(mth.dex(), cls, mthSignature, overrideSet, cls);
-		if (overrideSet.size() > 1) {
-			OverridedMethodsNode overrideNode = null;
-			for (MethodInfo _mth : overrideSet) {
-				if (ovrdMap.containsKey(_mth)) {
-					overrideNode = ovrdMap.get(_mth);
-					break;
+	private OverridedMethodsNode getOverrideMethodsNode(Set<MethodInfo> overrideSet) {
+		for (MethodInfo overrideMth : overrideSet) {
+			OverridedMethodsNode node = ovrdMap.get(overrideMth);
+			if (node != null) {
+				return node;
+			}
+		}
+		return null;
+	}
+
+	private MethodInfo getMthOverride(List<MethodNode> methods, String mthSignature) {
+		for (MethodNode m : methods) {
+			MethodInfo mthInfo = m.getMethodInfo();
+			if (mthInfo.getShortId().startsWith(mthSignature)) {
+				return mthInfo;
+			}
+		}
+		return null;
+	}
+
+	private void collectClassHierarchy(ClassNode cls, Set<ClassNode> collected) {
+		boolean added = collected.add(cls);
+		if (added) {
+			ArgType superClass = cls.getSuperClass();
+			if (superClass != null) {
+				ClassNode superNode = cls.dex().resolveClass(superClass);
+				if (superNode != null) {
+					collectClassHierarchy(superNode, collected);
 				}
 			}
-			if (overrideNode == null) {
-				overrideNode = new OverridedMethodsNode(overrideSet);
-				ovrd.add(overrideNode);
-			}
-			for (MethodInfo _mth : overrideSet) {
-				if (!ovrdMap.containsKey(_mth)) {
-					ovrdMap.put(_mth, overrideNode);
-					if (!overrideNode.contains(_mth)) {
-						overrideNode.add(_mth);
-					}
+
+			for (ArgType argType : cls.getInterfaces()) {
+				ClassNode interfaceNode = cls.dex().resolveClass(argType);
+				if (interfaceNode != null) {
+					collectClassHierarchy(interfaceNode, collected);
 				}
 			}
 		}
-		overrideSet.clear();
 	}
 
 	private void processClass(ClassNode cls) {

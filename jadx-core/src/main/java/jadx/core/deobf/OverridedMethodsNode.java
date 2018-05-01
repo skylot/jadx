@@ -4,7 +4,7 @@ import java.util.Set;
 
 import jadx.core.dex.info.MethodInfo;
 
-/* package */ class OverridedMethodsNode {
+class OverridedMethodsNode {
 
 	private Set<MethodInfo> methods;
 
