@@ -126,7 +126,11 @@ public final class JavaClass implements JavaNode {
 
 	private Map<CodePosition, Object> getCodeAnnotations() {
 		decompile();
-		return cls.getCode().getAnnotations();
+		CodeWriter code = cls.getCode();
+		if (code == null) {
+			return Collections.emptyMap();
+		}
+		return code.getAnnotations();
 	}
 
 	public Map<CodePosition, JavaNode> getUsageMap() {
