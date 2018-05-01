@@ -120,9 +120,11 @@ public class ClspGraph {
 	}
 
 	private void addAncestorsNames(NClass cls, Set<String> result) {
-		result.add(cls.getName());
-		for (NClass p : cls.getParents()) {
-			addAncestorsNames(p, result);
+		boolean isNew = result.add(cls.getName());
+		if (isNew) {
+			for (NClass p : cls.getParents()) {
+				addAncestorsNames(p, result);
+			}
 		}
 	}
 
