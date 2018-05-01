@@ -72,10 +72,13 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 			}
 			BitSet bs = new BitSet(mth.getBasicBlocks().size());
 			for (ExceptionHandler excHandler : tb.getHandlers()) {
-				SplitterBlockAttr splitter = excHandler.getHandlerBlock().get(AType.SPLITTER_BLOCK);
-				if (splitter != null) {
-					BlockNode block = splitter.getBlock();
-					bs.set(block.getId());
+				BlockNode handlerBlock = excHandler.getHandlerBlock();
+				if (handlerBlock != null) {
+					SplitterBlockAttr splitter = handlerBlock.get(AType.SPLITTER_BLOCK);
+					if (splitter != null) {
+						BlockNode block = splitter.getBlock();
+						bs.set(block.getId());
+					}
 				}
 			}
 			List<BlockNode> domBlocks = BlockUtils.bitSetToBlocks(mth, bs);
@@ -164,7 +167,9 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 
 	private static boolean isHandlerPath(TryCatchBlock tb, IContainer cont) {
 		for (ExceptionHandler h : tb.getHandlers()) {
-			if (RegionUtils.hasPathThroughBlock(h.getHandlerBlock(), cont)) {
+			BlockNode handlerBlock = h.getHandlerBlock();
+			if (handlerBlock != null
+					&& RegionUtils.hasPathThroughBlock(handlerBlock, cont)) {
 				return true;
 			}
 		}
