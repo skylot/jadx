@@ -22,7 +22,7 @@ public class DebugInfoVisitor extends AbstractVisitor {
 	public void visit(MethodNode mth) throws JadxException {
 		try {
 			int debugOffset = mth.getDebugInfoOffset();
-			if (debugOffset > 0) {
+			if (debugOffset > 0 && mth.dex().checkOffset(debugOffset)) {
 				processDebugInfo(mth, debugOffset);
 			}
 		} catch (Exception e) {
