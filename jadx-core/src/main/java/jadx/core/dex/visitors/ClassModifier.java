@@ -11,6 +11,7 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
@@ -133,29 +134,62 @@ public class ClassModifier extends AbstractVisitor {
 			if (af.isBridge() && af.isSynthetic() && !isMethodUniq(cls, mth)) {
 				// TODO add more checks before method deletion
 				mth.add(AFlag.DONT_GENERATE);
-				continue;
-			}
-			// remove synthetic constructor for inner classes
-			if (af.isSynthetic() && af.isConstructor() && mth.getBasicBlocks().size() == 2) {
-				List<InsnNode> insns = mth.getBasicBlocks().get(0).getInstructions();
-				if (insns.size() == 1 && insns.get(0).getType() == InsnType.CONSTRUCTOR) {
-					ConstructorInsn constr = (ConstructorInsn) insns.get(0);
+			} else {
+				// remove synthetic constructor for inner classes
+				if (af.isSynthetic() && af.isConstructor() && mth.getBasicBlocks().size() == 2) {
 					List<RegisterArg> args = mth.getArguments(false);
-					if (constr.isThis() && !args.isEmpty()) {
-						// remove first arg for non-static class (references to outer class)
-						if (args.get(0).getType().equals(cls.getParentClass().getClassInfo().getType())) {
-							args.get(0).add(AFlag.SKIP_ARG);
-						}
-						// remove unused args
-						for (RegisterArg arg : args) {
-							SSAVar sVar = arg.getSVar();
-							if (sVar != null && sVar.getUseCount() == 0) {
-								arg.add(AFlag.SKIP_ARG);
-							}
-						}
-						mth.add(AFlag.DONT_GENERATE);
+					if (isRemovedClassInArgs(cls, args)) {
+						modifySyntheticMethod(cls, mth, args);
 					}
 				}
+			}
+		}
+	}
+
+	private static boolean isRemovedClassInArgs(ClassNode cls, List<RegisterArg> mthArgs) {
+		for (RegisterArg arg : mthArgs) {
+			ArgType argType = arg.getType();
+			if (!argType.isObject()) {
+				continue;
+			}
+			ClassNode argCls = cls.dex().resolveClass(argType);
+			if (argCls == null) {
+				// check if missing class from current top class
+				ClassInfo argClsInfo = ClassInfo.fromType(cls.root(), argType);
+				if (argClsInfo.isInner()
+						&& cls.getFullName().startsWith(argClsInfo.getParentClass().getFullName())) {
+					return true;
+				}
+			} else {
+				if (argCls.contains(AFlag.DONT_GENERATE)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Remove synthetic constructor and redirect calls to existing constructor
+	 */
+	private static void modifySyntheticMethod(ClassNode cls, MethodNode mth, List<RegisterArg> args) {
+		List<InsnNode> insns = mth.getBasicBlocks().get(0).getInstructions();
+		if (insns.size() == 1 && insns.get(0).getType() == InsnType.CONSTRUCTOR) {
+			ConstructorInsn constr = (ConstructorInsn) insns.get(0);
+			if (constr.isThis() && !args.isEmpty()) {
+				// remove first arg for non-static class (references to outer class)
+				RegisterArg firstArg = args.get(0);
+				if (firstArg.getType().equals(cls.getParentClass().getClassInfo().getType())) {
+					firstArg.add(AFlag.SKIP_ARG);
+				}
+				// remove unused args
+				for (RegisterArg arg : args) {
+					SSAVar sVar = arg.getSVar();
+					if (sVar != null && sVar.getUseCount() == 0) {
+						arg.add(AFlag.SKIP_ARG);
+					}
+				}
+				mth.add(AFlag.DONT_GENERATE);
 			}
 		}
 	}
@@ -191,5 +225,4 @@ public class ClassModifier extends AbstractVisitor {
 			}
 		}
 	}
-
 }

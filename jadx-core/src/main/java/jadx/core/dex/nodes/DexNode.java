@@ -210,7 +210,7 @@ public class DexNode implements IDexNode {
 
 	@Override
 	public String toString() {
-		return "DEX";
+		return "DEX: " + file;
 	}
 
 }

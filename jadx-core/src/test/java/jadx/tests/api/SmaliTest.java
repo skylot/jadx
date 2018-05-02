@@ -37,7 +37,7 @@ public abstract class SmaliTest extends IntegrationTest {
 		if (smaliFile.exists()) {
 			return smaliFile;
 		}
-		throw new AssertionError("Smali file not found: " + SMALI_TESTS_DIR + "/" + clsName + SMALI_TESTS_EXT);
+		throw new AssertionError("Smali file not found: " + smaliFile.getAbsolutePath());
 	}
 
 	private static boolean compileSmali(File input, File output) {
