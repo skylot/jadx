@@ -1,9 +1,13 @@
 package jadx.gui.utils;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 import org.jetbrains.annotations.Nullable;
 
 import jadx.gui.jobs.DecompileJob;
 import jadx.gui.jobs.IndexJob;
+import jadx.gui.ui.SearchDialog;
 import jadx.gui.utils.search.TextSearchIndex;
 
 public class CacheObject {
@@ -14,13 +18,21 @@ public class CacheObject {
 	private TextSearchIndex textIndex;
 	private CodeUsageInfo usageInfo;
 	private String lastSearch;
-	private JNodeCache jNodeCache = new JNodeCache();
+	private JNodeCache jNodeCache;
+	private Set<SearchDialog.SearchOptions> lastSearchOptions;
+
+	public CacheObject() {
+		reset();
+	}
 
 	public void reset() {
+		decompileJob = null;
+		indexJob = null;
 		textIndex = null;
 		lastSearch = null;
 		jNodeCache = new JNodeCache();
 		usageInfo = null;
+		lastSearchOptions = EnumSet.noneOf(SearchDialog.SearchOptions.class);
 	}
 
 	public DecompileJob getDecompileJob() {
@@ -68,5 +80,13 @@ public class CacheObject {
 
 	public JNodeCache getNodeCache() {
 		return jNodeCache;
+	}
+
+	public void setLastSearchOptions(Set<SearchDialog.SearchOptions> lastSearchOptions) {
+		this.lastSearchOptions = lastSearchOptions;
+	}
+
+	public Set<SearchDialog.SearchOptions> getLastSearchOptions() {
+		return lastSearchOptions;
 	}
 }

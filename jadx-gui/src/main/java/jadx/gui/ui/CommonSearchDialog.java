@@ -215,8 +215,12 @@ public abstract class CommonSearchDialog extends JDialog {
 	}
 
 	protected void updateProgressLabel() {
-		String statusText = String.format(NLS.str("search_dialog.info_label"), resultsModel.getDisplayedResultsStart(),
-				resultsModel.getDisplayedResultsEnd(), resultsModel.getResultCount());
+		String statusText = String.format(
+				NLS.str("search_dialog.info_label"),
+				resultsModel.getDisplayedResultsStart(),
+				resultsModel.getDisplayedResultsEnd(),
+				resultsModel.getResultCount()
+		);
 		resultsInfoLabel.setText(statusText);
 	}
 
@@ -283,16 +287,15 @@ public abstract class CommonSearchDialog extends JDialog {
 
 		protected void addAll(Collection<? extends JNode> nodes) {
 			rows.ensureCapacity(rows.size() + nodes.size());
-			for (JNode node : nodes) {
-				add(node);
+			rows.addAll(nodes);
+			if (!addDescColumn) {
+				for (JNode row : rows) {
+					if (row.hasDescString()) {
+						addDescColumn = true;
+						break;
+					}
+				}
 			}
-		}
-
-		private void add(JNode node) {
-			if (node.hasDescString()) {
-				addDescColumn = true;
-			}
-			rows.add(node);
 		}
 
 		public void clear() {
@@ -339,7 +342,10 @@ public abstract class CommonSearchDialog extends JDialog {
 
 		@Override
 		public int getRowCount() {
-			return rows.size() - start;
+			if (rows.isEmpty()) {
+				return 0;
+			}
+			return getDisplayedResultsEnd() - getDisplayedResultsStart();
 		}
 
 		@Override

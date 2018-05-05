@@ -1,10 +1,18 @@
 package jadx.gui.utils.search;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import jadx.gui.utils.Utils;
+
 public class CodeIndex<T> implements SearchIndex<T> {
+
+	private static final Logger LOG = LoggerFactory.getLogger(CodeIndex.class);
 
 	private final List<StringRef> keys = new ArrayList<>();
 	private final List<T> values = new ArrayList<>();
@@ -28,23 +36,27 @@ public class CodeIndex<T> implements SearchIndex<T> {
 		return true;
 	}
 
+	private boolean isMatched(StringRef key, String str, boolean caseInsensitive) {
+		return key.indexOf(str, caseInsensitive) != -1;
+	}
+
 	@Override
-	public List<T> getValuesForKeysContaining(String str, boolean caseInsensitive) {
-		int size = size();
-		if (size == 0) {
-			return Collections.emptyList();
-		}
-		if (caseInsensitive) {
-			str = str.toLowerCase();
-		}
-		List<T> results = new ArrayList<>();
-		for (int i = 0; i < size; i++) {
-			StringRef key = keys.get(i);
-			if (key.indexOf(str, caseInsensitive) != -1) {
-				results.add(values.get(i));
+	public Flowable<T> search(final String searchStr, final boolean caseInsensitive) {
+		return Flowable.create(emitter -> {
+			int size = size();
+			LOG.debug("Code search started: {} ...", searchStr);
+			for (int i = 0; i < size; i++) {
+				if (isMatched(keys.get(i), searchStr, caseInsensitive)) {
+					emitter.onNext(values.get(i));
+				}
+				if (emitter.isCancelled()) {
+					LOG.debug("Code search canceled: {}", searchStr);
+					return;
+				}
 			}
-		}
-		return results;
+			LOG.debug("Code search complete: {}, memory usage: {}", searchStr, Utils.memoryInfo());
+			emitter.onComplete();
+		}, BackpressureStrategy.LATEST);
 	}
 
 	@Override

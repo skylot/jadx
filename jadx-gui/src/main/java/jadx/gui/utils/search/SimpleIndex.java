@@ -1,8 +1,11 @@
 package jadx.gui.utils.search;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
+import org.apache.commons.lang3.StringUtils;
 
 public class SimpleIndex<T> implements SearchIndex<T> {
 
@@ -25,26 +28,28 @@ public class SimpleIndex<T> implements SearchIndex<T> {
 		return false;
 	}
 
-	@Override
-	public List<T> getValuesForKeysContaining(String str, boolean caseInsensitive) {
-		int size = size();
-		if (size == 0) {
-			return Collections.emptyList();
-		}
+	private boolean isMatched(String str, String searchStr, boolean caseInsensitive) {
 		if (caseInsensitive) {
-			str = str.toLowerCase();
+			return StringUtils.containsIgnoreCase(str, searchStr);
+		} else {
+			return str.contains(searchStr);
 		}
-		List<T> results = new ArrayList<>();
-		for (int i = 0; i < size; i++) {
-			String key = keys.get(i);
-			if (caseInsensitive) {
-				key = key.toLowerCase();
+	}
+
+	@Override
+	public Flowable<T> search(final String searchStr, final boolean caseInsensitive) {
+		return Flowable.create(emitter -> {
+			int size = size();
+			for (int i = 0; i < size; i++) {
+				if (isMatched(keys.get(i), searchStr, caseInsensitive)) {
+					emitter.onNext(values.get(i));
+				}
+				if (emitter.isCancelled()) {
+					return;
+				}
 			}
-			if (key.contains(str)) {
-				results.add(values.get(i));
-			}
-		}
-		return results;
+			emitter.onComplete();
+		}, BackpressureStrategy.LATEST);
 	}
 
 	@Override

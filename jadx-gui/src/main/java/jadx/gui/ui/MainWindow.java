@@ -24,7 +24,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -43,7 +42,6 @@ import jadx.gui.treemodel.JLoadableNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.treemodel.JRoot;
-import jadx.gui.ui.SearchDialog.SearchOptions;
 import jadx.gui.update.JadxUpdate;
 import jadx.gui.update.JadxUpdate.IUpdateCallback;
 import jadx.gui.update.data.Release;
@@ -385,7 +383,7 @@ public class MainWindow extends JFrame {
 		Action textSearchAction = new AbstractAction(NLS.str("menu.text_search"), ICON_SEARCH) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new SearchDialog(MainWindow.this, EnumSet.of(SearchOptions.CODE)).setVisible(true);
+				new SearchDialog(MainWindow.this, true).setVisible(true);
 			}
 		};
 		textSearchAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.text_search"));
@@ -395,7 +393,7 @@ public class MainWindow extends JFrame {
 		Action clsSearchAction = new AbstractAction(NLS.str("menu.class_search"), ICON_FIND) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new SearchDialog(MainWindow.this, EnumSet.of(SearchOptions.CLASS)).setVisible(true);
+				new SearchDialog(MainWindow.this, false).setVisible(true);
 			}
 		};
 		clsSearchAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.class_search"));

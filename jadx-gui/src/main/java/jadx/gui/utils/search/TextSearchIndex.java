@@ -2,7 +2,12 @@ package jadx.gui.utils.search;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
+import io.reactivex.FlowableEmitter;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,9 +18,16 @@ import jadx.api.JavaNode;
 import jadx.core.codegen.CodeWriter;
 import jadx.gui.treemodel.CodeNode;
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.CommonSearchDialog;
+import jadx.gui.ui.SearchDialog;
 import jadx.gui.utils.CodeLinesInfo;
 import jadx.gui.utils.JNodeCache;
+import jadx.gui.utils.Utils;
+
+import static jadx.gui.ui.SearchDialog.SearchOptions.CLASS;
+import static jadx.gui.ui.SearchDialog.SearchOptions.CODE;
+import static jadx.gui.ui.SearchDialog.SearchOptions.FIELD;
+import static jadx.gui.ui.SearchDialog.SearchOptions.IGNORE_CASE;
+import static jadx.gui.ui.SearchDialog.SearchOptions.METHOD;
 
 public class TextSearchIndex {
 
@@ -41,7 +53,7 @@ public class TextSearchIndex {
 	public void indexNames(JavaClass cls) {
 		clsNamesIndex.put(cls.getFullName(), nodeCache.makeFrom(cls));
 		for (JavaMethod mth : cls.getMethods()) {
-			mthNamesIndex.put(mth.getFullName(), this.nodeCache.makeFrom(mth));
+			mthNamesIndex.put(mth.getFullName(), nodeCache.makeFrom(mth));
 		}
 		for (JavaField fld : cls.getFields()) {
 			fldNamesIndex.put(fld.getFullName(), nodeCache.makeFrom(fld));
@@ -73,63 +85,75 @@ public class TextSearchIndex {
 		}
 	}
 
-	public List<JNode> searchClsName(String text, boolean caseInsensitive) {
-		return clsNamesIndex.getValuesForKeysContaining(text, caseInsensitive);
-	}
+	public Flowable<JNode> buildSearch(String text, Set<SearchDialog.SearchOptions> options) {
+		boolean ignoreCase = options.contains(IGNORE_CASE);
+		LOG.debug("Building search, ignoreCase: {}", ignoreCase);
 
-	public List<JNode> searchMthName(String text, boolean caseInsensitive) {
-		return mthNamesIndex.getValuesForKeysContaining(text, caseInsensitive);
-	}
-
-	public List<JNode> searchFldName(String text, boolean caseInsensitive) {
-		return fldNamesIndex.getValuesForKeysContaining(text, caseInsensitive);
-	}
-
-	public List<CodeNode> searchCode(String text, boolean caseInsensitive) {
-		List<CodeNode> items;
-		if (codeIndex.size() > 0) {
-			items = codeIndex.getValuesForKeysContaining(text, caseInsensitive);
-			if (skippedClasses.isEmpty()) {
-				return items;
+		Flowable<JNode> result = Flowable.empty();
+		if (options.contains(CLASS)) {
+			result = Flowable.concat(result, clsNamesIndex.search(text, ignoreCase));
+		}
+		if (options.contains(METHOD)) {
+			result = Flowable.concat(result, mthNamesIndex.search(text, ignoreCase));
+		}
+		if (options.contains(FIELD)) {
+			result = Flowable.concat(result, fldNamesIndex.search(text, ignoreCase));
+		}
+		if (options.contains(CODE)) {
+			if (codeIndex.size() > 0) {
+				result = Flowable.concat(result, codeIndex.search(text, ignoreCase));
 			}
+			if (!skippedClasses.isEmpty()) {
+				result = Flowable.concat(result, searchInSkippedClasses(text, ignoreCase));
+			}
+		}
+		return result;
+	}
+
+	public Flowable<CodeNode> searchInSkippedClasses(final String searchStr, final boolean caseInsensitive) {
+		return Flowable.create(emitter -> {
+			LOG.debug("Skipped code search started: {} ...", searchStr);
+			for (JavaClass javaClass : skippedClasses) {
+				String code = javaClass.getCode();
+				int pos = 0;
+				while (pos != -1) {
+					pos = searchNext(emitter, searchStr, javaClass, code, pos, caseInsensitive);
+					if (emitter.isCancelled()) {
+						LOG.debug("Skipped Code search canceled: {}", searchStr);
+						return;
+					}
+				}
+				if (!Utils.isFreeMemoryAvailable()) {
+					LOG.warn("Skipped code search stopped due to memory limit: {}", Utils.memoryInfo());
+					emitter.onComplete();
+					return;
+				}
+			}
+			LOG.debug("Skipped code search complete: {}, memory usage: {}", searchStr, Utils.memoryInfo());
+			emitter.onComplete();
+		}, BackpressureStrategy.LATEST);
+	}
+
+	private int searchNext(FlowableEmitter<CodeNode> emitter, String text, JavaNode javaClass, String code,
+	                       int startPos, boolean ignoreCase) {
+		int pos;
+		if (ignoreCase) {
+			pos = StringUtils.indexOfIgnoreCase(code, text, startPos);
 		} else {
-			items = new ArrayList<>();
+			pos = code.indexOf(text, startPos);
 		}
-		addSkippedClasses(items, text);
-		return items;
-	}
-
-	private void addSkippedClasses(List<CodeNode> list, String text) {
-		for (JavaClass javaClass : skippedClasses) {
-			String code = javaClass.getCode();
-			int pos = 0;
-			while (pos != -1) {
-				pos = searchNext(list, text, javaClass, code, pos);
-			}
-			if (list.size() > CommonSearchDialog.RESULTS_PER_PAGE) {
-				return;
-			}
-		}
-	}
-
-	private int searchNext(List<CodeNode> list, String text, JavaNode javaClass, String code, int startPos) {
-		int pos = code.indexOf(text, startPos);
 		if (pos == -1) {
 			return -1;
 		}
 		int lineStart = 1 + code.lastIndexOf(CodeWriter.NL, pos);
 		int lineEnd = code.indexOf(CodeWriter.NL, pos + text.length());
 		StringRef line = StringRef.subString(code, lineStart, lineEnd == -1 ? code.length() : lineEnd);
-		list.add(new CodeNode(nodeCache.makeFrom(javaClass), -pos, line.trim()));
+		emitter.onNext(new CodeNode(nodeCache.makeFrom(javaClass), -pos, line.trim()));
 		return lineEnd;
 	}
 
 	public void classCodeIndexSkipped(JavaClass cls) {
 		this.skippedClasses.add(cls);
-	}
-
-	public List<JavaClass> getSkippedClasses() {
-		return skippedClasses;
 	}
 
 	public int getSkippedCount() {

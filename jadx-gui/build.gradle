@@ -14,6 +14,11 @@ dependencies {
     compile 'com.google.code.gson:gson:2.8.2'
     compile files('libs/jfontchooser-1.0.5.jar')
     compile 'hu.kazocsaba:image-viewer:1.2.3'
+
+    compile 'org.apache.commons:commons-lang3:3.7'
+
+    compile 'io.reactivex.rxjava2:rxjava:2.1.13'
+    compile "com.github.akarnokd:rxjava2-swing:0.2.12"
 }
 
 applicationDistribution.with {
@@ -35,7 +40,7 @@ jar {
 }
 
 startScripts {
-    defaultJvmOpts = [ '-Xms128M', '-Xmx4g' ]
+    defaultJvmOpts = ['-Xms128M', '-Xmx4g']
     doLast {
         def str = windowsScript.text
         str = str.replaceAll('java.exe', 'javaw.exe')
