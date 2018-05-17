@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -43,6 +44,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private final Map<Integer, String> resNames;
 	private final Map<String, String> nsMap = new HashMap<>();
 	private Set<String> nsMapGenerated;
+	private final Map<String, String> tagAttrDeobfNames = new HashMap<>();
 
 	private CodeWriter writer;
 	private String[] strings;
@@ -245,7 +247,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		}
 		isOneLine = true;
 		isLastEnd = false;
-		currentTag = getString(startNSName);
+		currentTag = getValidTagAttributeName(getString(startNSName));
 		writer.startLine("<").add(currentTag);
 		writer.attachSourceLine(elementBegLineNumber);
 		int attributeStart = is.readInt16();
@@ -299,7 +301,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		if (attributeNS != -1) {
 			writer.add(getAttributeNS(attributeNS)).add(':');
 		}
-		String attrName = getAttributeName(attributeName);
+		String attrName = getValidTagAttributeName(getAttributeName(attributeName));
 		writer.add(attrName).add("=\"");
 		String decodedAttr = ManifestAttributes.getInstance().decode(attrName, attrValData);
 		if (decodedAttr != null) {
@@ -421,7 +423,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int comment = is.readInt32();
 		int elementNS = is.readInt32();
 		int elementNameId = is.readInt32();
-		String elemName = getString(elementNameId);
+		String elemName = getValidTagAttributeName(getString(elementNameId));
 		if (currentTag.equals(elemName) && isOneLine && !isLastEnd) {
 			writer.add("/>");
 		} else {
@@ -436,5 +438,31 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		if (writer.getIndent() != 0) {
 			writer.decIndent();
 		}
+	}
+	
+	private String getValidTagAttributeName(String originalName) {
+		if(XMLChar.isValidName(originalName)) {
+			return originalName;
+		}
+		if(tagAttrDeobfNames.containsKey(originalName)) {
+			return tagAttrDeobfNames.get(originalName);
+		}
+		String generated;
+		do {
+			generated = generateTagAttrName();
+		}
+		while(tagAttrDeobfNames.containsValue(generated));
+		tagAttrDeobfNames.put(originalName, generated);
+		return generated;
+	}
+	
+	private static String generateTagAttrName() {
+		final int length = 6;
+		Random r = new Random();
+		StringBuilder sb = new StringBuilder();
+		for(int i = 1; i <= length; i++) {
+			sb.append((char)(r.nextInt(26) + 'a'));
+		}
+		return sb.toString();
 	}
 }
