@@ -10,6 +10,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Arrays;
+import java.util.Collection;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -160,7 +162,15 @@ public class JadxSettingsWindow extends JDialog {
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_max_len"), maxLen);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_source_alias"), deobfSourceAlias);
 		deobfGroup.end();
+
+		Collection<JComponent> connectedComponents = Arrays.asList(deobfForce, minLen, maxLen, deobfSourceAlias);
+		deobfOn.addItemListener(e -> enableComponentList(connectedComponents, e.getStateChange() == ItemEvent.SELECTED));
+		enableComponentList(connectedComponents, settings.isDeobfuscationOn());
 		return deobfGroup;
+	}
+
+	private void enableComponentList(Collection<JComponent> connectedComponents, boolean enabled) {
+		connectedComponents.forEach(comp -> comp.setEnabled(enabled));
 	}
 
 	private SettingsGroup makeEditorGroup() {
@@ -213,8 +223,9 @@ public class JadxSettingsWindow extends JDialog {
 			}
 		});
 
-		final JSpinner threadsCount = new JSpinner();
-		threadsCount.setValue(settings.getThreadsCount());
+		SpinnerNumberModel spinnerModel = new SpinnerNumberModel(
+				settings.getThreadsCount(), 1, Runtime.getRuntime().availableProcessors() * 2, 1);
+		final JSpinner threadsCount = new JSpinner(spinnerModel);
 		threadsCount.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
@@ -329,6 +340,8 @@ public class JadxSettingsWindow extends JDialog {
 			c.weightx = 0.2;
 			c.fill = GridBagConstraints.HORIZONTAL;
 			add(comp, c);
+
+			comp.addPropertyChangeListener("enabled", evt -> jLabel.setEnabled((boolean) evt.getNewValue()));
 		}
 
 		public void end() {
