@@ -40,7 +40,7 @@ jar {
 }
 
 startScripts {
-    defaultJvmOpts = ['-Xms128M', '-Xmx4g']
+    defaultJvmOpts = ['-Xms128M', '-Xmx4g', '-Dawt.useSystemAAFontSettings=lcd', '-Dswing.aatext=true']
     doLast {
         def str = windowsScript.text
         str = str.replaceAll('java.exe', 'javaw.exe')
@@ -58,10 +58,12 @@ launch4j {
     outfile = "jadx-gui-${version}.exe"
     copyright = 'Skylot'
     windowTitle = 'jadx'
+    jvmOptions = ['-Dawt.useSystemAAFontSettings=lcd', '-Dswing.aatext=true']
     jreRuntimeBits = "64"
     initialHeapPercent = 5
     maxHeapSize = 4096
     maxHeapPercent = 70
+
 }
 
 test {

@@ -19,6 +19,8 @@ import say.swing.JFontChooser;
 
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
+import static jadx.gui.utils.Utils.FONT_HACK;
+
 
 public class JadxSettingsWindow extends JDialog {
 	private static final long serialVersionUID = -1804570470377354148L;
@@ -37,6 +39,7 @@ public class JadxSettingsWindow extends JDialog {
 		this.startSettings = JadxSettingsAdapter.makeString(settings);
 
 		initUI();
+		registerBundledFonts();
 
 		setTitle(NLS.str("preferences.title"));
 		setSize(400, 550);
@@ -44,6 +47,13 @@ public class JadxSettingsWindow extends JDialog {
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		setModalityType(ModalityType.APPLICATION_MODAL);
 		pack();
+	}
+
+	public static void registerBundledFonts() {
+		GraphicsEnvironment grEnv = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		if (FONT_HACK != null) {
+			grEnv.registerFont(FONT_HACK);
+		}
 	}
 
 	private void initUI() {

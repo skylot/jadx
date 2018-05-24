@@ -1,18 +1,26 @@
 package jadx.gui.utils;
 
-import javax.swing.*;
+import java.awt.*;
+import java.io.InputStream;
 import java.net.URL;
+import javax.swing.*;
 
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Utils {
+	private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
 
-	private static final ImageIcon ICON_STATIC = Utils.openIcon("static_co");
-	private static final ImageIcon ICON_FINAL = Utils.openIcon("final_co");
-	private static final ImageIcon ICON_ABSTRACT = Utils.openIcon("abstract_co");
-	private static final ImageIcon ICON_NATIVE = Utils.openIcon("native_co");
+	private static final ImageIcon ICON_STATIC = openIcon("static_co");
+	private static final ImageIcon ICON_FINAL = openIcon("final_co");
+	private static final ImageIcon ICON_ABSTRACT = openIcon("abstract_co");
+	private static final ImageIcon ICON_NATIVE = openIcon("native_co");
+
+	public static final Font FONT_HACK = openFontTTF("Hack-Regular");
 
 	private Utils() {
 	}
@@ -24,6 +32,18 @@ public class Utils {
 			throw new JadxRuntimeException("Icon not found: " + iconPath);
 		}
 		return new ImageIcon(resource);
+	}
+
+	@Nullable
+	public static Font openFontTTF(String name) {
+		String fontPath = "/fonts/" + name + ".ttf";
+		try (InputStream is = Utils.class.getResourceAsStream(fontPath)) {
+			Font font = Font.createFont(Font.TRUETYPE_FONT, is);
+			return font.deriveFont(12f);
+		} catch (Exception e) {
+			LOG.error("Failed load font by path: {}", fontPath, e);
+			return null;
+		}
 	}
 
 	public static void addKeyBinding(JComponent comp, KeyStroke key, String id, Action action) {

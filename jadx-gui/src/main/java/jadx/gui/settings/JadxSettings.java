@@ -16,6 +16,8 @@ import org.slf4j.LoggerFactory;
 import jadx.api.JadxArgs;
 import jadx.cli.JadxCLIArgs;
 
+import static jadx.gui.utils.Utils.FONT_HACK;
+
 public class JadxSettings extends JadxCLIArgs {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxSettings.class);
 
@@ -23,7 +25,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private static final int RECENT_FILES_COUNT = 15;
 	private static final int CURRENT_SETTINGS_VERSION = 1;
 
-	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
+	private static final Font DEFAULT_FONT = FONT_HACK != null ? FONT_HACK : new RSyntaxTextArea().getFont();
 
 	static final Set<String> SKIP_FIELDS = new HashSet<>(Arrays.asList(
 			"files", "input", "outputDir", "verbose", "printHelp"
