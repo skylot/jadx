@@ -36,6 +36,7 @@ public class JRoot extends JNode {
 			jRes.update();
 			add(jRes);
 		}
+		add(new JCertificate());
 	}
 
 	private List<JResource> getHierarchyResources(List<ResourceFile> resources) {
