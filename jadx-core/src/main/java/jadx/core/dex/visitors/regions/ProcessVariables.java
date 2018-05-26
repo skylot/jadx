@@ -64,7 +64,7 @@ public class ProcessVariables extends AbstractVisitor {
 
 		@Override
 		public String toString() {
-			return regNum + " " + type;
+			return "r" + regNum + ":" + type;
 		}
 	}
 
@@ -119,7 +119,7 @@ public class ProcessVariables extends AbstractVisitor {
 
 		public CollectUsageRegionVisitor(Map<Variable, Usage> usageMap) {
 			this.usageMap = usageMap;
-			args = new ArrayList<>();
+			this.args = new ArrayList<>();
 		}
 
 		@Override
@@ -177,8 +177,10 @@ public class ProcessVariables extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
+		List<RegisterArg> mthArguments = mth.getArguments(true);
+
 		Map<Variable, Usage> usageMap = new LinkedHashMap<>();
-		for (RegisterArg arg : mth.getArguments(true)) {
+		for (RegisterArg arg : mthArguments) {
 			addToUsageMap(arg, usageMap);
 		}
 
@@ -187,8 +189,7 @@ public class ProcessVariables extends AbstractVisitor {
 		DepthRegionTraversal.traverse(mth, collect);
 
 		// reduce assigns map
-		List<RegisterArg> mthArgs = mth.getArguments(true);
-		for (RegisterArg arg : mthArgs) {
+		for (RegisterArg arg : mthArguments) {
 			usageMap.remove(new Variable(arg));
 		}
 
@@ -349,6 +350,10 @@ public class ProcessVariables extends AbstractVisitor {
 					return false;
 				}
 			}
+		}
+		// can't declare in else-if chain between 'else' and next 'if'
+		if (region.contains(AFlag.ELSE_IF_CHAIN)) {
+			return false;
 		}
 		return isAllRegionsAfter(region, pos, u.getAssigns(), regionsOrder)
 				&& isAllRegionsAfter(region, pos, u.getUseRegions(), regionsOrder);

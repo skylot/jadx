@@ -94,10 +94,6 @@ public class Jadx {
 			passes.add(new SimplifyVisitor());
 			passes.add(new CheckRegions());
 
-			if (args.isCfgOutput()) {
-				passes.add(DotGraphVisitor.dumpRegions());
-			}
-
 			passes.add(new MethodInlineVisitor());
 			passes.add(new ExtractFieldInit());
 			passes.add(new ClassModifier());
@@ -105,6 +101,10 @@ public class Jadx {
 			passes.add(new PrepareForCodeGen());
 			passes.add(new LoopRegionVisitor());
 			passes.add(new ProcessVariables());
+
+			if (args.isCfgOutput()) {
+				passes.add(DotGraphVisitor.dumpRegions());
+			}
 
 			passes.add(new DependencyCollector());
 

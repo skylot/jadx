@@ -56,8 +56,6 @@ public final class ProcessClass {
 	}
 
 	private static void processDependencies(ClassNode cls, List<IDexTreeVisitor> passes) {
-		for (ClassNode depCls : cls.getDependencies()) {
-			process(depCls, passes, null);
-		}
+		cls.getDependencies().forEach(depCls -> process(depCls, passes, null));
 	}
 }

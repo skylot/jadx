@@ -10,12 +10,8 @@ public class DepthTraversal {
 	public static void visit(IDexTreeVisitor visitor, ClassNode cls) {
 		try {
 			if (visitor.visit(cls)) {
-				for (ClassNode inCls : cls.getInnerClasses()) {
-					visit(visitor, inCls);
-				}
-				for (MethodNode mth : cls.getMethods()) {
-					visit(visitor, mth);
-				}
+				cls.getInnerClasses().forEach(inCls -> visit(visitor, inCls));
+				cls.getMethods().forEach(mth -> visit(visitor, mth));
 			}
 		} catch (Exception e) {
 			ErrorsCounter.classError(cls,

@@ -76,7 +76,7 @@ public class DebugUtils {
 	}
 
 	private static void printRegion(MethodNode mth, IRegion region, String indent, boolean printInsns) {
-		LOG.debug("{}{}", indent, region);
+		LOG.debug("{}{} {}", indent, region, region.getAttributesString());
 		indent += "|  ";
 		for (IContainer container : region.getSubBlocks()) {
 			if (container instanceof IRegion) {
@@ -99,9 +99,9 @@ public class DebugUtils {
 				CodeWriter code = new CodeWriter();
 				ig.makeInsn(insn, code);
 				String insnStr = code.toString().substring(CodeWriter.NL.length());
-				LOG.debug("{} - {}", indent, insnStr);
+				LOG.debug("{}> {}", indent, insnStr);
 			} catch (CodegenException e) {
-				LOG.debug("{} - {}", indent, insn);
+				LOG.debug("{}>!! {}", indent, insn);
 			}
 		}
 	}
