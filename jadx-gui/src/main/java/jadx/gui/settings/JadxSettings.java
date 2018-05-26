@@ -10,21 +10,24 @@ import java.util.Map;
 import java.util.Set;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
 import jadx.cli.JadxCLIArgs;
 
 public class JadxSettings extends JadxCLIArgs {
+	private static final Logger LOG = LoggerFactory.getLogger(JadxSettings.class);
 
 	private static final String USER_HOME = System.getProperty("user.home");
 	private static final int RECENT_FILES_COUNT = 15;
+	private static final int CURRENT_SETTINGS_VERSION = 1;
 
 	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
 	static final Set<String> SKIP_FIELDS = new HashSet<>(Arrays.asList(
 			"files", "input", "outputDir", "verbose", "printHelp"
 	));
-
 	private String lastOpenFilePath = USER_HOME;
 	private String lastSaveFilePath = USER_HOME;
 	private boolean flattenPackage = false;
@@ -33,10 +36,11 @@ public class JadxSettings extends JadxCLIArgs {
 	private String fontStr = "";
 	private boolean autoStartJobs = false;
 
+	private int settingsVersion = 0;
+
 	private Map<String, WindowLocation> windowPos = new HashMap<>();
 
 	public JadxSettings() {
-		setSkipResources(true);
 	}
 
 	public void sync() {
@@ -46,6 +50,9 @@ public class JadxSettings extends JadxCLIArgs {
 	public void fixOnLoad() {
 		if (threadsCount <= 0) {
 			threadsCount = JadxArgs.DEFAULT_THREADS_COUNT;
+		}
+		if (settingsVersion != CURRENT_SETTINGS_VERSION) {
+			upgradeSettings(settingsVersion);
 		}
 	}
 
@@ -212,5 +219,21 @@ public class JadxSettings extends JadxCLIArgs {
 			default:
 				return "";
 		}
+	}
+
+	private void upgradeSettings(int fromVersion) {
+		LOG.debug("upgrade settings from version: {} to {}", fromVersion, CURRENT_SETTINGS_VERSION);
+		if (fromVersion == 0) {
+			setDeobfuscationMinLength(4);
+			setDeobfuscationUseSourceNameAsAlias(true);
+			setDeobfuscationForceSave(true);
+			setThreadsCount(1);
+			setReplaceConsts(true);
+			setSkipResources(false);
+			setAutoStartJobs(false);
+//			fromVersion++;
+		}
+		settingsVersion = CURRENT_SETTINGS_VERSION;
+		sync();
 	}
 }
