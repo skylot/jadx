@@ -11,5 +11,7 @@ dependencies {
 
     testCompile 'org.smali:smali:2.2.2'
     testCompile 'org.smali:baksmali:2.2.2'
+
+    testCompile 'org.apache.commons:commons-lang3:3.7'
 }
 

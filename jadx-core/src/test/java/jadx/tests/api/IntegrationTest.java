@@ -48,6 +48,14 @@ public abstract class IntegrationTest extends TestUtils {
 	private static final String TEST_DIRECTORY = "src/test/java";
 	private static final String TEST_DIRECTORY2 = "jadx-core/" + TEST_DIRECTORY;
 
+	/**
+	 * Run auto check method if defined:
+	 * <pre>
+	 *     public static void check()
+	 * </pre>
+	 */
+	public static final String CHECK_METHOD_NAME = "check";
+
 	protected JadxArgs args;
 
 	protected boolean deleteTmpFiles = true;
@@ -159,7 +167,7 @@ public abstract class IntegrationTest extends TestUtils {
 			}
 			Method checkMth;
 			try {
-				checkMth = origCls.getMethod("check");
+				checkMth = origCls.getMethod(CHECK_METHOD_NAME);
 			} catch (NoSuchMethodException e) {
 				// ignore
 				return;
@@ -173,7 +181,7 @@ public abstract class IntegrationTest extends TestUtils {
 			try {
 				checkMth.invoke(origCls.newInstance());
 			} catch (InvocationTargetException ie) {
-				rethrow("Java check failed", ie);
+				rethrow("Original check failed", ie);
 			}
 			// run 'check' method from decompiled class
 			try {

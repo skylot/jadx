@@ -28,5 +28,3 @@ jadx-output/
 *.dump
 *.log
 *.cfg
-
-jadx-core/src/test/java/jadx/tests/external/
