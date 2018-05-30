@@ -88,6 +88,12 @@ public class XmlDeobf {
 				e.setAttribute("android:name", newClassName);
 			}
 		}
+		
+		String newClassName = getNewClassName(rootNode, e.getTagName());
+		if(newClassName != null) {
+			// namespaceURI == null?
+			e.getOwnerDocument().renameNode(e, null, newClassName);
+		}
 
 		NodeList list = e.getChildNodes();
 		for(int i = 0; i < list.getLength(); i++) {

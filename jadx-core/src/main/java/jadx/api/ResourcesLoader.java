@@ -104,7 +104,12 @@ public final class ResourcesLoader {
 				return resContainer;
 
 			case ARSC:
-				return new ResTableParser().decodeFiles(inputStream);
+				ResContainer arscResContainer = new ResTableParser()
+					.decodeFiles(inputStream);
+				if(jadxRef.getArgs().isDeobfuscationOn()) {
+					XmlDeobf.deobfXmlDocument(jadxRef.getRoot(), arscResContainer);
+				}
+				return arscResContainer;
 
 			case IMG:
 				return ResContainer.singleImageFile(rf.getName(), inputStream);
