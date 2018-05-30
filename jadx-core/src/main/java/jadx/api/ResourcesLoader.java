@@ -23,6 +23,7 @@ import jadx.core.utils.files.InputFile;
 import jadx.core.utils.files.ZipSecurity;
 import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.ResTableParser;
+import jadx.core.xmlgen.XmlDeobf;
 
 import static jadx.core.utils.files.FileUtils.READ_BUFFER_SIZE;
 import static jadx.core.utils.files.FileUtils.copyStream;
@@ -95,8 +96,12 @@ public final class ResourcesLoader {
 		switch (rf.getType()) {
 			case MANIFEST:
 			case XML:
-				return ResContainer.singleFile(rf.getName(),
+				ResContainer resContainer = ResContainer.singleFile(rf.getName(),
 						jadxRef.getXmlParser().parse(inputStream));
+				if(jadxRef.getArgs().isDeobfuscationOn()) {
+					XmlDeobf.deobfXmlDocument(jadxRef.getRoot(), resContainer);
+				}
+				return resContainer;
 
 			case ARSC:
 				return new ResTableParser().decodeFiles(inputStream);
