@@ -45,12 +45,11 @@ public class CertificateManager {
 		try {
 			cf = CertificateFactory.getInstance("X.509");
 			InputStream in = new FileInputStream(f);
-			Collection<? extends Certificate> certs = cf
-					.generateCertificates(in);
+			Collection<? extends Certificate> certs = cf.generateCertificates(in);
 			in.close();
 			return certs;
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 		return null;
