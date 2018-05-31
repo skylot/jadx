@@ -253,8 +253,8 @@ public class BlockSplitter extends AbstractVisitor {
 		}
 	}
 
-	static void removeEmptyDetachedBlocks(MethodNode mth) {
-		mth.getBasicBlocks().removeIf(block ->
+	static boolean removeEmptyDetachedBlocks(MethodNode mth) {
+		return mth.getBasicBlocks().removeIf(block ->
 				block.getInstructions().isEmpty()
 						&& block.getPredecessors().isEmpty()
 						&& block.getSuccessors().isEmpty()

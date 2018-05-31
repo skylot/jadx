@@ -96,4 +96,8 @@ public abstract class AttrNode implements IAttributeNode {
 	public String getAttributesString() {
 		return storage.toString();
 	}
+
+	public boolean isAttrStorageEmpty() {
+		return storage.isEmpty();
+	}
 }
