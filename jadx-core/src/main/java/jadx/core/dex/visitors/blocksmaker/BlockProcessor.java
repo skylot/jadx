@@ -24,7 +24,6 @@ import jadx.core.utils.BlockUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.visitors.blocksmaker.BlockSplitter.connect;
-import static jadx.core.dex.visitors.blocksmaker.BlockSplitter.removeConnection;
 import static jadx.core.utils.EmptyBitSet.EMPTY;
 
 public class BlockProcessor extends AbstractVisitor {
@@ -39,7 +38,7 @@ public class BlockProcessor extends AbstractVisitor {
 	}
 
 	public static void rerun(MethodNode mth) {
-		removeBlocks(mth);
+		removeMarkedBlocks(mth);
 		clearBlocksState(mth);
 		processBlocksTree(mth);
 	}
@@ -247,65 +246,69 @@ public class BlockProcessor extends AbstractVisitor {
 			if (block.getPredecessors().isEmpty() && block != mth.getEnterBlock()) {
 				throw new JadxRuntimeException("Unreachable block: " + block);
 			}
-
-			// check loops
-			List<LoopInfo> loops = block.getAll(AType.LOOP);
-			if (loops.size() > 1) {
-				boolean oneHeader = true;
-				for (LoopInfo loop : loops) {
-					if (loop.getStart() != block) {
-						oneHeader = false;
-						break;
-					}
-				}
-				if (oneHeader) {
-					// several back edges connected to one loop header => make additional block
-					BlockNode newLoopHeader = BlockSplitter.startNewBlock(mth, block.getStartOffset());
-					newLoopHeader.add(AFlag.SYNTHETIC);
-					connect(newLoopHeader, block);
-					for (LoopInfo la : loops) {
-						BlockNode node = la.getEnd();
-						removeConnection(node, block);
-						connect(node, newLoopHeader);
-					}
-					return true;
-				}
-			}
-			if (loops.size() == 1) {
-				LoopInfo loop = loops.get(0);
-				// insert additional blocks for possible 'break' insertion
-				List<Edge> edges = loop.getExitEdges();
-				if (!edges.isEmpty()) {
-					boolean change = false;
-					for (Edge edge : edges) {
-						BlockNode target = edge.getTarget();
-						if (!target.contains(AFlag.SYNTHETIC)) {
-							BlockSplitter.insertBlockBetween(mth, edge.getSource(), target);
-							change = true;
-						}
-					}
-					if (change) {
-						return true;
-					}
-				}
-				// insert additional blocks for possible 'continue' insertion
-				BlockNode loopEnd = loop.getEnd();
-				if (loopEnd.getPredecessors().size() > 1) {
-					boolean change = false;
-					List<BlockNode> nodes = new ArrayList<>(loopEnd.getPredecessors());
-					for (BlockNode pred : nodes) {
-						if (!pred.contains(AFlag.SYNTHETIC)) {
-							BlockSplitter.insertBlockBetween(mth, pred, loopEnd);
-							change = true;
-						}
-					}
-					if (change) {
-						return true;
-					}
-				}
+			if (checkLoops(mth, block)) {
+				return true;
 			}
 		}
 		return splitReturn(mth);
+	}
+
+	private static boolean checkLoops(MethodNode mth, BlockNode block) {
+		// check loops
+		List<LoopInfo> loops = block.getAll(AType.LOOP);
+		if (loops.size() > 1) {
+			boolean oneHeader = true;
+			for (LoopInfo loop : loops) {
+				if (loop.getStart() != block) {
+					oneHeader = false;
+					break;
+				}
+			}
+			if (oneHeader) {
+				// several back edges connected to one loop header => make additional block
+				BlockNode newLoopEnd = BlockSplitter.startNewBlock(mth, block.getStartOffset());
+				newLoopEnd.add(AFlag.SYNTHETIC);
+				connect(newLoopEnd, block);
+				for (LoopInfo la : loops) {
+					BlockSplitter.replaceConnection(la.getEnd(), block, newLoopEnd);
+				}
+				return true;
+			}
+		}
+		if (loops.size() == 1) {
+			LoopInfo loop = loops.get(0);
+			// insert additional blocks for possible 'break' insertion
+			List<Edge> edges = loop.getExitEdges();
+			if (!edges.isEmpty()) {
+				boolean change = false;
+				for (Edge edge : edges) {
+					BlockNode target = edge.getTarget();
+					if (!target.contains(AFlag.SYNTHETIC)) {
+						BlockSplitter.insertBlockBetween(mth, edge.getSource(), target);
+						change = true;
+					}
+				}
+				if (change) {
+					return true;
+				}
+			}
+			// insert additional blocks for possible 'continue' insertion
+			BlockNode loopEnd = loop.getEnd();
+			if (loopEnd.getPredecessors().size() > 1) {
+				boolean change = false;
+				List<BlockNode> nodes = new ArrayList<>(loopEnd.getPredecessors());
+				for (BlockNode pred : nodes) {
+					if (!pred.contains(AFlag.SYNTHETIC)) {
+						BlockSplitter.insertBlockBetween(mth, pred, loopEnd);
+						change = true;
+					}
+				}
+				if (change) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -334,7 +337,7 @@ public class BlockProcessor extends AbstractVisitor {
 		}
 		boolean first = true;
 		for (BlockNode pred : preds) {
-			BlockNode newRetBlock = BlockSplitter.startNewBlock(mth, exitBlock.getStartOffset());
+			BlockNode newRetBlock = BlockSplitter.startNewBlock(mth, -1);
 			newRetBlock.add(AFlag.SYNTHETIC);
 			InsnNode newRetInsn;
 			if (first) {
@@ -345,8 +348,7 @@ public class BlockProcessor extends AbstractVisitor {
 				newRetInsn = duplicateReturnInsn(returnInsn);
 			}
 			newRetBlock.getInstructions().add(newRetInsn);
-			removeConnection(pred, exitBlock);
-			connect(pred, newRetBlock);
+			BlockSplitter.replaceConnection(pred, exitBlock, newRetBlock);
 		}
 		cleanExitNodes(mth);
 		return true;
@@ -389,35 +391,32 @@ public class BlockProcessor extends AbstractVisitor {
 		return insn;
 	}
 
-	private static void removeBlocks(MethodNode mth) {
-		Iterator<BlockNode> it = mth.getBasicBlocks().iterator();
-		while (it.hasNext()) {
-			BlockNode block = it.next();
+	private static void removeMarkedBlocks(MethodNode mth) {
+		mth.getBasicBlocks().removeIf(block -> {
 			if (block.contains(AFlag.REMOVE)) {
-				if (!block.getPredecessors().isEmpty()
-						|| !block.getSuccessors().isEmpty()) {
-					LOG.error("Block {} not deleted, method: {}", block, mth);
+				if (!block.getPredecessors().isEmpty() || !block.getSuccessors().isEmpty()) {
+					LOG.warn("Block {} not deleted, method: {}", block, mth);
 				} else {
 					CatchAttr catchAttr = block.get(AType.CATCH_BLOCK);
 					if (catchAttr != null) {
 						catchAttr.getTryBlock().removeBlock(mth, block);
 					}
-					it.remove();
+					return true;
 				}
 			}
-		}
+			return false;
+		});
 	}
 
 	private static void clearBlocksState(MethodNode mth) {
-		for (BlockNode block : mth.getBasicBlocks()) {
+		mth.getBasicBlocks().forEach(block -> {
 			block.remove(AType.LOOP);
 			block.remove(AFlag.LOOP_START);
 			block.remove(AFlag.LOOP_END);
-
 			block.setDoms(null);
 			block.setIDom(null);
 			block.setDomFrontier(null);
 			block.getDominatesOn().clear();
-		}
+		});
 	}
 }

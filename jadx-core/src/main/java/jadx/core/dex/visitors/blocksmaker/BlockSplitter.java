@@ -11,6 +11,7 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.TargetInsnNode;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -18,6 +19,7 @@ import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.SplitterBlockAttr;
 import jadx.core.dex.visitors.AbstractVisitor;
+import jadx.core.utils.BlockUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class BlockSplitter extends AbstractVisitor {
@@ -42,7 +44,20 @@ public class BlockSplitter extends AbstractVisitor {
 		mth.initBasicBlocks();
 		splitBasicBlocks(mth);
 		removeInsns(mth);
-		removeEmptyBlocks(mth);
+		removeEmptyDetachedBlocks(mth);
+		initBlocksInTargetNodes(mth);
+	}
+
+	/**
+	 * Init 'then' and 'else' blocks for 'if' instruction.
+	 */
+	private static void initBlocksInTargetNodes(MethodNode mth) {
+		mth.getBasicBlocks().forEach(block -> {
+			InsnNode lastInsn = BlockUtils.getLastInsn(block);
+			if (lastInsn instanceof TargetInsnNode) {
+				((TargetInsnNode) lastInsn).initBlocks(block);
+			}
+		});
 	}
 
 	private static void splitBasicBlocks(MethodNode mth) {
@@ -133,13 +148,29 @@ public class BlockSplitter extends AbstractVisitor {
 		to.getPredecessors().remove(from);
 	}
 
+	static void replaceConnection(BlockNode source, BlockNode oldDest, BlockNode newDest) {
+		removeConnection(source, oldDest);
+		connect(source, newDest);
+		replaceTarget(source, oldDest, newDest);
+	}
+
 	static BlockNode insertBlockBetween(MethodNode mth, BlockNode source, BlockNode target) {
 		BlockNode newBlock = startNewBlock(mth, target.getStartOffset());
 		newBlock.add(AFlag.SYNTHETIC);
 		removeConnection(source, target);
 		connect(source, newBlock);
 		connect(newBlock, target);
+		replaceTarget(source, target, newBlock);
+		source.updateCleanSuccessors();
+		newBlock.updateCleanSuccessors();
 		return newBlock;
+	}
+
+	static void replaceTarget(BlockNode source, BlockNode oldTarget, BlockNode newTarget) {
+		InsnNode lastInsn = BlockUtils.getLastInsn(source);
+		if (lastInsn instanceof TargetInsnNode) {
+			((TargetInsnNode) lastInsn).replaceTargetBlock(oldTarget, newTarget);
+		}
 	}
 
 	private static void setupConnections(MethodNode mth, Map<Integer, BlockNode> blocksMap) {
@@ -222,7 +253,7 @@ public class BlockSplitter extends AbstractVisitor {
 		}
 	}
 
-	private void removeEmptyBlocks(MethodNode mth) {
+	static void removeEmptyDetachedBlocks(MethodNode mth) {
 		mth.getBasicBlocks().removeIf(block ->
 				block.getInstructions().isEmpty()
 						&& block.getPredecessors().isEmpty()

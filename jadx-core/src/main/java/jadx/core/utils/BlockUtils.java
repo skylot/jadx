@@ -453,13 +453,12 @@ public class BlockUtils {
 	 */
 	public static List<BlockNode> collectBlocksDominatedBy(BlockNode dominator, BlockNode start) {
 		List<BlockNode> result = new ArrayList<>();
-		HashSet<BlockNode> visited = new HashSet<BlockNode>();
+		Set<BlockNode> visited = new HashSet<>();
 		collectWhileDominates(dominator, start, result, visited);
 		return result;
 	}
 
-	private static void collectWhileDominates(BlockNode dominator, BlockNode child, List<BlockNode> result,
-			HashSet<BlockNode> visited) {
+	private static void collectWhileDominates(BlockNode dominator, BlockNode child, List<BlockNode> result, Set<BlockNode> visited) {
 		if (visited.contains(child)) {
 			return;
 		}

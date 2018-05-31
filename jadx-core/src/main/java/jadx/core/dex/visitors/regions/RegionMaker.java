@@ -2,8 +2,6 @@ package jadx.core.dex.visitors.regions;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -46,13 +44,11 @@ import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.JadxOverflowException;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.visitors.regions.IfMakerHelper.confirmMerge;
 import static jadx.core.dex.visitors.regions.IfMakerHelper.makeIfInfo;
 import static jadx.core.dex.visitors.regions.IfMakerHelper.mergeNestedIfNodes;
 import static jadx.core.dex.visitors.regions.IfMakerHelper.searchNestedIf;
-import static jadx.core.utils.BlockUtils.getBlockByOffset;
 import static jadx.core.utils.BlockUtils.getNextBlock;
 import static jadx.core.utils.BlockUtils.isPathExists;
 import static jadx.core.utils.BlockUtils.skipSyntheticSuccessor;
@@ -691,27 +687,14 @@ public class RegionMaker {
 
 		int len = insn.getTargets().length;
 		// sort by target
-		Map<Integer, List<Object>> casesMap = new LinkedHashMap<>(len);
+		Map<BlockNode, List<Object>> blocksMap = new LinkedHashMap<>(len);
 		for (int i = 0; i < len; i++) {
 			Object key = insn.getKeys()[i];
-			int targ = insn.getTargets()[i];
-			List<Object> keys = casesMap.get(targ);
-			if (keys == null) {
-				keys = new ArrayList<>(2);
-				casesMap.put(targ, keys);
-			}
+			BlockNode targ = insn.getTargetBlocks()[i];
+			List<Object> keys = blocksMap.computeIfAbsent(targ, k -> new ArrayList<>(2));
 			keys.add(key);
 		}
-
-		Map<BlockNode, List<Object>> blocksMap = new LinkedHashMap<>(len);
-		for (Map.Entry<Integer, List<Object>> entry : casesMap.entrySet()) {
-			BlockNode c = getBlockByOffset(entry.getKey(), block.getSuccessors());
-			if (c == null) {
-				throw new JadxRuntimeException("Switch block not found by offset: " + entry.getKey());
-			}
-			blocksMap.put(c, entry.getValue());
-		}
-		BlockNode defCase = getBlockByOffset(insn.getDefaultCaseOffset(), block.getSuccessors());
+		BlockNode defCase = insn.getDefTargetBlock();
 		if (defCase != null) {
 			blocksMap.remove(defCase);
 		}
@@ -860,19 +843,16 @@ public class RegionMaker {
 			Map<BlockNode, BlockNode> fallThroughCases) {
 		List<BlockNode> list = new ArrayList<>(blocksMap.size());
 		list.addAll(blocksMap.keySet());
-		Collections.sort(list, new Comparator<BlockNode>() {
-			@Override
-			public int compare(BlockNode a, BlockNode b) {
-				BlockNode nextA = fallThroughCases.get(a);
-				if (nextA != null) {
-					if (b.equals(nextA)) {
-						return -1;
-					}
-				} else if (a.equals(fallThroughCases.get(b))) {
-					return 1;
+		list.sort((a, b) -> {
+			BlockNode nextA = fallThroughCases.get(a);
+			if (nextA != null) {
+				if (b.equals(nextA)) {
+					return -1;
 				}
-				return 0;
+			} else if (a.equals(fallThroughCases.get(b))) {
+				return 1;
 			}
+			return 0;
 		});
 
 		Map<BlockNode, List<Object>> newBlocksMap = new LinkedHashMap<>(blocksMap.size());

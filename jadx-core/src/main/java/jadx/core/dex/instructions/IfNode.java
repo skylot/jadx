@@ -56,6 +56,7 @@ public class IfNode extends GotoNode {
 		setArg(1, arg2);
 	}
 
+	@Override
 	public void initBlocks(BlockNode curBlock) {
 		thenBlock = getBlockByOffset(target, curBlock.getSuccessors());
 		if (curBlock.getSuccessors().size() == 1) {
@@ -63,6 +64,19 @@ public class IfNode extends GotoNode {
 		} else {
 			elseBlock = selectOther(thenBlock, curBlock.getSuccessors());
 		}
+	}
+
+	@Override
+	public boolean replaceTargetBlock(BlockNode origin, BlockNode replace) {
+		if (thenBlock == origin) {
+			thenBlock = replace;
+			return true;
+		}
+		if (elseBlock == origin) {
+			elseBlock = replace;
+			return true;
+		}
+		return false;
 	}
 
 	public BlockNode getThenBlock() {
