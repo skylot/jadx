@@ -99,7 +99,8 @@ public final class ResourcesLoader {
 						jadxRef.getXmlParser().parse(inputStream));
 
 			case ARSC:
-				return new ResTableParser().decodeFiles(inputStream);
+				return new ResTableParser()
+					.decodeFiles(inputStream);
 
 			case IMG:
 				return ResContainer.singleImageFile(rf.getName(), inputStream);
