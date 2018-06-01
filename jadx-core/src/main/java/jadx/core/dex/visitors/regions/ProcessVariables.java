@@ -1,7 +1,6 @@
 package jadx.core.dex.visitors.regions;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -9,9 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -21,7 +17,6 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.VarName;
 import jadx.core.dex.nodes.IBlock;
-import jadx.core.dex.nodes.IBranchRegion;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
@@ -34,7 +29,6 @@ import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.JadxException;
 
 public class ProcessVariables extends AbstractVisitor {
-	private static final Logger LOG = LoggerFactory.getLogger(ProcessVariables.class);
 
 	private static class Variable {
 		private final int regNum;
@@ -213,16 +207,13 @@ public class ProcessVariables extends AbstractVisitor {
 			return;
 		}
 
-		Map<IContainer, Integer> regionsOrder = new HashMap<>();
-		calculateOrder(mth.getRegion(), regionsOrder, 0, true);
-
 		for (Iterator<Entry<Variable, Usage>> it = usageMap.entrySet().iterator(); it.hasNext(); ) {
 			Entry<Variable, Usage> entry = it.next();
 			Usage u = entry.getValue();
 			// check if variable can be declared at current assigns
 			for (IRegion assignRegion : u.getAssigns()) {
 				if (u.getArgRegion() == assignRegion
-						&& canDeclareInRegion(u, assignRegion, regionsOrder)
+						&& canDeclareInRegion(u, assignRegion)
 						&& declareAtAssign(u)) {
 					it.remove();
 					break;
@@ -258,7 +249,7 @@ public class ProcessVariables extends AbstractVisitor {
 			IRegion parent = region;
 			boolean declared = false;
 			while (parent != null) {
-				if (canDeclareInRegion(u, region, regionsOrder)) {
+				if (canDeclareInRegion(u, region)) {
 					declareVar(region, u.getArg());
 					declared = true;
 					break;
@@ -311,38 +302,7 @@ public class ProcessVariables extends AbstractVisitor {
 		dv.addVar(arg);
 	}
 
-	private static int calculateOrder(IContainer container, Map<IContainer, Integer> regionsOrder, int id, boolean inc) {
-		if (!(container instanceof IRegion)) {
-			return id;
-		}
-		IRegion region = (IRegion) container;
-		Integer previous = regionsOrder.put(region, id);
-		if (previous != null) {
-			return id;
-		}
-		for (IContainer c : region.getSubBlocks()) {
-			if (c instanceof IBranchRegion) {
-				// on branch set for all inner regions same order id
-				id = calculateOrder(c, regionsOrder, inc ? id + 1 : id, false);
-			} else {
-				List<IContainer> handlers = RegionUtils.getExcHandlersForRegion(c);
-				if (!handlers.isEmpty()) {
-					for (IContainer handler : handlers) {
-						id = calculateOrder(handler, regionsOrder, inc ? id + 1 : id, inc);
-					}
-				}
-				id = calculateOrder(c, regionsOrder, inc ? id + 1 : id, inc);
-			}
-		}
-		return id;
-	}
-
-	private static boolean canDeclareInRegion(Usage u, IRegion region, Map<IContainer, Integer> regionsOrder) {
-		Integer pos = regionsOrder.get(region);
-		if (pos == null) {
-			LOG.debug("TODO: Not found order for region {} for {}", region, u);
-			return false;
-		}
+	private static boolean canDeclareInRegion(Usage u, IRegion region) {
 		// workaround for declare variables used in several loops
 		if (region instanceof LoopRegion) {
 			for (IRegion r : u.getAssigns()) {
@@ -355,32 +315,12 @@ public class ProcessVariables extends AbstractVisitor {
 		if (region.contains(AFlag.ELSE_IF_CHAIN)) {
 			return false;
 		}
-		return isAllRegionsAfter(region, pos, u.getAssigns(), regionsOrder)
-				&& isAllRegionsAfter(region, pos, u.getUseRegions(), regionsOrder);
+		// TODO: make index for faster search
+		return isAllRegionsAfter(region, u.getAssigns())
+				&& isAllRegionsAfter(region, u.getUseRegions());
 	}
 
-	private static boolean isAllRegionsAfter(IRegion region, int pos,
-	                                         Set<IRegion> regions, Map<IContainer, Integer> regionsOrder) {
-		for (IRegion r : regions) {
-			if (r == region) {
-				continue;
-			}
-			Integer rPos = regionsOrder.get(r);
-			if (rPos == null) {
-				LOG.debug("TODO: Not found order for region {} in {}", r, regionsOrder);
-				return false;
-			}
-			if (pos > rPos) {
-				return false;
-			}
-			if (pos == rPos) {
-				return isAllRegionsAfterRecursive(region, regions);
-			}
-		}
-		return true;
-	}
-
-	private static boolean isAllRegionsAfterRecursive(IRegion region, Set<IRegion> others) {
+	private static boolean isAllRegionsAfter(IRegion region, Set<IRegion> others) {
 		for (IRegion r : others) {
 			if (!RegionUtils.isRegionContainsRegion(region, r)) {
 				return false;

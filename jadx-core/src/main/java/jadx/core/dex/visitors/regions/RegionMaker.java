@@ -192,10 +192,9 @@ public class RegionMaker {
 			if (loopExit != null) {
 				// add 'break' instruction before path cross between main loop exit and sub-exit
 				for (Edge exitEdge : loop.getExitEdges()) {
-					if (!exitBlocks.contains(exitEdge.getSource())) {
-						continue;
+					if (exitBlocks.contains(exitEdge.getSource())) {
+						insertBreak(stack, loopExit, exitEdge);
 					}
-					insertBreak(stack, loopExit, exitEdge);
 				}
 			}
 		}
@@ -207,7 +206,8 @@ public class RegionMaker {
 			loopStart.remove(AType.LOOP);
 			loop.getEnd().add(AFlag.SKIP);
 			stack.addExit(loop.getEnd());
-			loopRegion.setBody(makeRegion(loopStart, stack));
+			Region body = makeRegion(loopStart, stack);
+			loopRegion.setBody(body);
 			loopStart.addAttr(AType.LOOP, loop);
 			loop.getEnd().remove(AFlag.SKIP);
 		} else {
@@ -303,16 +303,31 @@ public class RegionMaker {
 		loopStart.remove(AType.LOOP);
 		stack.push(loopRegion);
 
-		BlockNode loopExit = null;
+		BlockNode out = null;
 		// insert 'break' for exits
 		List<Edge> exitEdges = loop.getExitEdges();
-		for (Edge exitEdge : exitEdges) {
+		if (exitEdges.size() == 1) {
+			Edge exitEdge = exitEdges.get(0);
 			BlockNode exit = exitEdge.getTarget();
 			if (insertBreak(stack, exit, exitEdge)) {
 				BlockNode nextBlock = getNextBlock(exit);
 				if (nextBlock != null) {
 					stack.addExit(nextBlock);
-					loopExit = nextBlock;
+					out = nextBlock;
+				}
+			}
+		} else {
+			for (Edge exitEdge : exitEdges) {
+				BlockNode exit = exitEdge.getTarget();
+				List<BlockNode> blocks = BlockUtils.bitSetToBlocks(mth, exit.getDomFrontier());
+				for (BlockNode block : blocks) {
+					if (BlockUtils.isPathExists(exit, block)) {
+						stack.addExit(block);
+						insertBreak(stack, block, exitEdge);
+						out = block;
+					} else {
+						insertBreak(stack, exit, exitEdge);
+					}
 				}
 			}
 		}
@@ -326,13 +341,13 @@ public class RegionMaker {
 		}
 		loopRegion.setBody(body);
 
-		if (loopExit == null) {
+		if (out == null) {
 			BlockNode next = getNextBlock(loopEnd);
-			loopExit = RegionUtils.isRegionContainsBlock(body, next) ? null : next;
+			out = RegionUtils.isRegionContainsBlock(body, next) ? null : next;
 		}
 		stack.pop();
 		loopStart.addAttr(AType.LOOP, loop);
-		return loopExit;
+		return out;
 	}
 
 	private boolean inExceptionHandlerBlocks(BlockNode loopEnd) {
@@ -463,7 +478,7 @@ public class RegionMaker {
 	}
 
 	private static boolean canInsertContinue(BlockNode pred, List<BlockNode> predecessors, BlockNode loopEnd,
-			Set<BlockNode> loopExitNodes) {
+	                                         Set<BlockNode> loopExitNodes) {
 		if (!pred.contains(AFlag.SYNTHETIC)
 				|| BlockUtils.checkLastInsnType(pred, InsnType.CONTINUE)) {
 			return false;
@@ -553,8 +568,8 @@ public class RegionMaker {
 	/**
 	 * Traverse from monitor-enter thru successors and collect blocks contains monitor-exit
 	 */
-	private static void traverseMonitorExits(SynchronizedRegion region, InsnArg arg, BlockNode block,
-			Set<BlockNode> exits, Set<BlockNode> visited) {
+	private static void traverseMonitorExits(SynchronizedRegion region, InsnArg arg, BlockNode block, Set<BlockNode> exits,
+	                                         Set<BlockNode> visited) {
 		visited.add(block);
 		for (InsnNode insn : block.getInstructions()) {
 			if (insn.getType() == InsnType.MONITOR_EXIT
@@ -828,7 +843,7 @@ public class RegionMaker {
 	}
 
 	private boolean isBadCasesOrder(Map<BlockNode, List<Object>> blocksMap,
-			Map<BlockNode, BlockNode> fallThroughCases) {
+	                                Map<BlockNode, BlockNode> fallThroughCases) {
 		BlockNode nextCaseBlock = null;
 		for (BlockNode caseBlock : blocksMap.keySet()) {
 			if (nextCaseBlock != null && !caseBlock.equals(nextCaseBlock)) {

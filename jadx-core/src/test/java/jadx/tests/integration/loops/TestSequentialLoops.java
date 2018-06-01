@@ -14,7 +14,7 @@ import static org.junit.Assert.assertThat;
 public class TestSequentialLoops extends IntegrationTest {
 
 	public static class TestCls {
-		public int test7(int a, int b) {
+		public int test(int a, int b) {
 			int c = b;
 			int z;
 
