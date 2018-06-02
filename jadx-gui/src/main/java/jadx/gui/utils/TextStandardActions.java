@@ -1,8 +1,6 @@
 package jadx.gui.utils;
 
 import javax.swing.*;
-import javax.swing.event.UndoableEditEvent;
-import javax.swing.event.UndoableEditListener;
 import javax.swing.text.JTextComponent;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
@@ -102,26 +100,22 @@ public class TextStandardActions {
 	}
 
 	private void addKeyActions() {
-		KeyStroke undoKey = KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_MASK);
+		KeyStroke undoKey = KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK);
 		textComponent.getInputMap().put(undoKey, undoAction);
-		KeyStroke redoKey = KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_MASK);
+		KeyStroke redoKey = KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_DOWN_MASK);
 		textComponent.getInputMap().put(redoKey, redoAction);
 	}
 
 	private void registerListeners() {
 		textComponent.addMouseListener(new MouseAdapter() {
+			@Override
 			public void mouseReleased(MouseEvent e) {
-				if (e.getModifiers() == InputEvent.BUTTON3_MASK
-						&& e.getSource() == textComponent) {
+				if (e.getButton() == 3 && e.getSource() == textComponent) {
 					process(e);
 				}
 			}
 		});
-		textComponent.getDocument().addUndoableEditListener(new UndoableEditListener() {
-			public void undoableEditHappened(UndoableEditEvent event) {
-				undoManager.addEdit(event.getEdit());
-			}
-		});
+		textComponent.getDocument().addUndoableEditListener(event -> undoManager.addEdit(event.getEdit()));
 	}
 
 	private void process(MouseEvent e) {

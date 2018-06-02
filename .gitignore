@@ -18,7 +18,6 @@ build/
 classes/
 idea/
 .gradle/
-gradle.properties
 
 jadx-output/
 *-tmp/

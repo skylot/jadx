@@ -5,12 +5,12 @@ dependencies {
 
     compile files('lib/dx-1.14.jar')
     compile 'commons-io:commons-io:2.6'
-    compile 'org.ow2.asm:asm:6.0'
-    compile 'org.jetbrains:annotations:15.0'
-    compile 'uk.com.robust-it:cloning:1.9.9'
+    compile 'org.ow2.asm:asm:6.2'
+    compile 'org.jetbrains:annotations:16.0.2'
+    compile 'uk.com.robust-it:cloning:1.9.10'
 
-    testCompile 'org.smali:smali:2.2.2'
-    testCompile 'org.smali:baksmali:2.2.2'
+    testCompile 'org.smali:smali:2.2.3'
+    testCompile 'org.smali:baksmali:2.2.3'
 
     testCompile 'org.apache.commons:commons-lang3:3.7'
 }
