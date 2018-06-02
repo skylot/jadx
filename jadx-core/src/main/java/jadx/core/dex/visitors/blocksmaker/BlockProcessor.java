@@ -21,6 +21,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.BlockUtils;
+import jadx.core.utils.exceptions.JadxOverflowException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.visitors.blocksmaker.BlockSplitter.connect;
@@ -68,11 +69,16 @@ public class BlockProcessor extends AbstractVisitor {
 		processNestedLoops(mth);
 	}
 
-	private static boolean removeEmptyBlock(MethodNode mth, BlockNode block) {
-		if (block.getInstructions().isEmpty()
+	private static boolean canRemoveBlock(BlockNode block) {
+		return block.getInstructions().isEmpty()
 				&& !block.isSynthetic()
 				&& block.isAttrStorageEmpty()
-				&& block.getSuccessors().size() <= 1) {
+				&& block.getSuccessors().size() <= 1
+				&& !block.getPredecessors().isEmpty();
+	}
+
+	private static boolean removeEmptyBlock(BlockNode block) {
+		if (canRemoveBlock(block)) {
 			LOG.debug("Removing empty block: {}", block);
 			if (block.getSuccessors().size() == 1) {
 				BlockNode successor = block.getSuccessors().get(0);
@@ -245,7 +251,13 @@ public class BlockProcessor extends AbstractVisitor {
 			exit.setDomFrontier(EMPTY);
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {
-			computeBlockDF(mth, block);
+			try {
+				computeBlockDF(mth, block);
+			} catch (StackOverflowError e) {
+				throw new JadxOverflowException("Failed compute block dominance frontier");
+			} catch (Exception e) {
+				throw new JadxRuntimeException("Failed compute block dominance frontier", e);
+			}
 		}
 	}
 
@@ -253,7 +265,7 @@ public class BlockProcessor extends AbstractVisitor {
 		if (block.getDomFrontier() != null) {
 			return;
 		}
-		block.getDominatesOn().forEach(c -> computeBlockDF(mth, c));
+		block.getDominatesOn().forEach(domBlock -> computeBlockDF(mth, domBlock));
 		List<BlockNode> blocks = mth.getBasicBlocks();
 		BitSet domFrontier = null;
 		for (BlockNode s : block.getSuccessors()) {
@@ -367,7 +379,7 @@ public class BlockProcessor extends AbstractVisitor {
 			}
 		}
 		for (BlockNode basicBlock : basicBlocks) {
-			if (removeEmptyBlock(mth, basicBlock)) {
+			if (removeEmptyBlock(basicBlock)) {
 				changed = true;
 			}
 		}
