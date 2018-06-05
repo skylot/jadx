@@ -119,13 +119,6 @@ public class CodeWriter {
 		buf.append(code.buf);
 		return this;
 	}
-	
-	public void updateContent(String newData) {
-		offset = newData.length();
-		buf = new StringBuilder(newData);
-		line = newData.split(NL).length + 1;
-		code = newData;
-	}
 
 	public CodeWriter newLine() {
 		addLine();
