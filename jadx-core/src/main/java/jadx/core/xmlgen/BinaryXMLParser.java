@@ -251,8 +251,8 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		}
 		isOneLine = true;
 		isLastEnd = false;
-		currentTag = getValidTagAttributeName(getString(startNSName));
-		currentTag = deobfClassName(currentTag);
+		currentTag = deobfClassName(getString(startNSName));
+		currentTag = getValidTagAttributeName(currentTag);
 		writer.startLine("<").add(currentTag);
 		writer.attachSourceLine(elementBegLineNumber);
 		int attributeStart = is.readInt16();
@@ -441,7 +441,8 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int comment = is.readInt32();
 		int elementNS = is.readInt32();
 		int elementNameId = is.readInt32();
-		String elemName = getValidTagAttributeName(getString(elementNameId));
+		String elemName = deobfClassName(getString(elementNameId));
+		elemName = getValidTagAttributeName(elemName);
 		if (currentTag.equals(elemName) && isOneLine && !isLastEnd) {
 			writer.add("/>");
 		} else {
