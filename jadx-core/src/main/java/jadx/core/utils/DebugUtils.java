@@ -45,7 +45,7 @@ public class DebugUtils {
 	}
 
 	public static void dump(MethodNode mth, String desc) {
-		File out = new File("test-graph" + desc + "-tmp");
+		File out = new File("test-graph-" + desc + "-tmp");
 		DotGraphVisitor.dump().save(out, mth);
 		DotGraphVisitor.dumpRaw().save(out, mth);
 		DotGraphVisitor.dumpRegions().save(out, mth);
