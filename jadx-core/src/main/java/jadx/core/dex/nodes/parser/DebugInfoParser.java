@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.android.dex.Dex.Section;
 
+import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -280,7 +281,14 @@ public class DebugInfoParser {
 		}
 
 		if (mergeRequired) {
-			reg.mergeDebugInfo(var.getType(), var.getName());
+			applyDebugInfo(reg, var);
+		}
+	}
+
+	private static void applyDebugInfo(RegisterArg reg, LocalVar var) {
+		String varName = var.getName();
+		if (NameMapper.isValidIdentifier(varName)) {
+			reg.mergeDebugInfo(var.getType(), varName);
 		}
 	}
 }

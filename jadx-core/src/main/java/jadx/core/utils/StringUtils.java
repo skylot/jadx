@@ -198,4 +198,8 @@ public class StringUtils {
 			sb.append(c);
 		}
 	}
+
+	public static boolean notEmpty(String str) {
+		return str != null && !str.isEmpty();
+	}
 }
