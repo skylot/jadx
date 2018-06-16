@@ -1,10 +1,14 @@
 package jadx.core.dex.visitors.blocksmaker;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
@@ -18,6 +22,8 @@ import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InstructionRemover;
 
 public class BlockExceptionHandler extends AbstractVisitor {
+
+	private static final Logger LOG = LoggerFactory.getLogger(BlockExceptionHandler.class);
 
 	@Override
 	public void visit(MethodNode mth) {
@@ -47,20 +53,22 @@ public class BlockExceptionHandler extends AbstractVisitor {
 		}
 		InsnNode me = block.getInstructions().get(0);
 		ExcHandlerAttr handlerAttr = me.get(AType.EXC_HANDLER);
-		if (handlerAttr == null || me.getType() != InsnType.MOVE_EXCEPTION) {
+		if (handlerAttr == null) {
 			return;
 		}
 		ExceptionHandler excHandler = handlerAttr.getHandler();
 		block.addAttr(handlerAttr);
-		// set correct type for 'move-exception' operation
-		ArgType type = excHandler.isCatchAll() ? ArgType.THROWABLE : excHandler.getCatchType().getType();
-
-		RegisterArg resArg = me.getResult();
-		resArg = InsnArg.reg(resArg.getRegNum(), type);
-		me.setResult(resArg);
-		me.add(AFlag.DONT_INLINE);
-
-		excHandler.setArg(resArg);
+		ArgType argType = excHandler.isCatchAll() ? ArgType.THROWABLE : excHandler.getCatchType().getType();
+		if (me.getType() == InsnType.MOVE_EXCEPTION) {
+			// set correct type for 'move-exception' operation
+			RegisterArg resArg = InsnArg.reg(me.getResult().getRegNum(), argType);
+			me.setResult(resArg);
+			me.add(AFlag.DONT_INLINE);
+			excHandler.setArg(resArg);
+		} else {
+			// handler arguments not used
+			excHandler.setArg(new NamedArg("unused", argType));
+		}
 	}
 
 	private static void processExceptionHandlers(MethodNode mth, BlockNode block) {
@@ -146,6 +154,9 @@ public class BlockExceptionHandler extends AbstractVisitor {
 				handler.setHandlerBlock(block);
 				break;
 			}
+		}
+		if (handler.getHandlerBlock() == null) {
+			LOG.warn("Exception handler block not set for {}, mth: {}", handler, mth);
 		}
 	}
 }
