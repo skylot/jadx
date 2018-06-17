@@ -197,8 +197,12 @@ public final class JadxDecompiler {
 				continue;
 			}
 			executor.execute(() -> {
-				cls.decompile();
-				SaveCode.save(outDir, args, cls.getClassNode());
+				try {
+					cls.decompile();
+					SaveCode.save(outDir, args, cls.getClassNode());
+				} catch (Exception e) {
+					LOG.error("Error saving class: {}", cls.getFullName(), e);
+				}
 			});
 		}
 	}
