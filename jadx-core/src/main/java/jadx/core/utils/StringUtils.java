@@ -202,4 +202,18 @@ public class StringUtils {
 	public static boolean notEmpty(String str) {
 		return str != null && !str.isEmpty();
 	}
+
+	public static int countMatches(String str, String subStr) {
+		if (str == null || str.isEmpty() || subStr == null || subStr.isEmpty()) {
+			return 0;
+		}
+		int subStrLen = subStr.length();
+		int count = 0;
+		int idx = 0;
+		while ((idx = str.indexOf(subStr, idx)) != -1) {
+			count++;
+			idx += subStrLen;
+		}
+		return count;
+	}
 }

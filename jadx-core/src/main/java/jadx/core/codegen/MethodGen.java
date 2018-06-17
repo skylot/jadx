@@ -170,7 +170,7 @@ public class MethodGen {
 				if (cause != null) {
 					code.newLine();
 					code.add("/*");
-					code.newLine().add("Error: ").add(Utils.getStackTrace(cause));
+					code.newLine().add("Error: ").addMultiLine(Utils.getStackTrace(cause));
 					code.add("*/");
 				}
 			}
