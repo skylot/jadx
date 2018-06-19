@@ -41,7 +41,7 @@ class TabbedPane extends JTabbedPane {
 	private transient JumpManager jumps = new JumpManager();
 
 	TabbedPane(MainWindow window) {
-		mainWindow = window;
+		this.mainWindow = window;
 
 		setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 

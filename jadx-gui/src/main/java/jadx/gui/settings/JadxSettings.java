@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
 import jadx.cli.JadxCLIArgs;
+import jadx.gui.ui.CodeArea;
 
 import static jadx.gui.utils.Utils.FONT_HACK;
 
@@ -23,7 +24,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private static final String USER_HOME = System.getProperty("user.home");
 	private static final int RECENT_FILES_COUNT = 15;
-	private static final int CURRENT_SETTINGS_VERSION = 1;
+	private static final int CURRENT_SETTINGS_VERSION = 2;
 
 	private static final Font DEFAULT_FONT = FONT_HACK != null ? FONT_HACK : new RSyntaxTextArea().getFont();
 
@@ -36,6 +37,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private boolean checkForUpdates = false;
 	private List<String> recentFiles = new ArrayList<>();
 	private String fontStr = "";
+	private String editorThemePath = "";
 	private boolean autoStartJobs = false;
 
 	private int settingsVersion = 0;
@@ -210,6 +212,14 @@ public class JadxSettings extends JadxCLIArgs {
 		this.fontStr = font.getFontName() + addStyleName(font.getStyle()) + "-" + font.getSize();
 	}
 
+	public String getEditorThemePath() {
+		return editorThemePath;
+	}
+
+	public void setEditorThemePath(String editorThemePath) {
+		this.editorThemePath = editorThemePath;
+	}
+
 	private static String addStyleName(int style) {
 		switch (style) {
 			case Font.BOLD:
@@ -233,7 +243,10 @@ public class JadxSettings extends JadxCLIArgs {
 			setReplaceConsts(true);
 			setSkipResources(false);
 			setAutoStartJobs(false);
-//			fromVersion++;
+			fromVersion++;
+		}
+		if (fromVersion == 1) {
+			setEditorThemePath(CodeArea.getAllThemes()[0].getPath());
 		}
 		settingsVersion = CURRENT_SETTINGS_VERSION;
 		sync();

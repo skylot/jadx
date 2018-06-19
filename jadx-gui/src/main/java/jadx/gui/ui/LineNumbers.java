@@ -18,15 +18,13 @@ import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
+import org.fife.ui.rsyntaxtextarea.Token;
+
 public class LineNumbers extends JPanel implements CaretListener {
 	private static final long serialVersionUID = -4978268673635308190L;
 
-	private static final Border OUTER = new MatteBorder(0, 0, 0, 1, Color.LIGHT_GRAY);
-
 	private static final int NUM_HEIGHT = Integer.MAX_VALUE - 1000000;
-	private static final Color NUM_FOREGROUND = Color.GRAY;
-	private static final Color NUM_BACKGROUND = CodeArea.CODE_BACKGROUND;
-	private static final Color CURRENT_LINE_FOREGROUND = new Color(227, 0, 0);
 
 	private CodeArea codeArea;
 	private boolean useSourceLines = true;
@@ -35,11 +33,19 @@ public class LineNumbers extends JPanel implements CaretListener {
 	private int lastLine;
 	private Map<String, FontMetrics> fonts;
 
+	private transient final Color numberColor;
+	private transient final Color currentColor;
+	private transient final Border border;
+
 	public LineNumbers(CodeArea component) {
 		this.codeArea = component;
 		setFont(component.getFont());
-		setBackground(NUM_BACKGROUND);
-		setForeground(NUM_FOREGROUND);
+		SyntaxScheme syntaxScheme = codeArea.getSyntaxScheme();
+		numberColor = syntaxScheme.getStyle(Token.LITERAL_NUMBER_DECIMAL_INT).foreground;
+		currentColor = syntaxScheme.getStyle(Token.LITERAL_STRING_DOUBLE_QUOTE).foreground;
+		border = new MatteBorder(0, 0, 0, 1, syntaxScheme.getStyle(Token.COMMENT_MULTILINE).foreground);
+		setBackground(codeArea.getBackground());
+		setForeground(numberColor);
 
 		setBorderGap(5);
 		setPreferredWidth();
@@ -58,7 +64,7 @@ public class LineNumbers extends JPanel implements CaretListener {
 
 	public void setBorderGap(int borderGap) {
 		Border inner = new EmptyBorder(0, borderGap, 0, borderGap);
-		setBorder(new CompoundBorder(OUTER, inner));
+		setBorder(new CompoundBorder(border, inner));
 		lastDigits = 0;
 	}
 
@@ -85,6 +91,8 @@ public class LineNumbers extends JPanel implements CaretListener {
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
+		g.setFont(codeArea.getFont());
+
 		FontMetrics fontMetrics = codeArea.getFontMetrics(codeArea.getFont());
 		Insets insets = getInsets();
 		int availableWidth = getSize().width - insets.left - insets.right;
@@ -95,9 +103,9 @@ public class LineNumbers extends JPanel implements CaretListener {
 		while (rowStartOffset <= endOffset) {
 			try {
 				if (isCurrentLine(rowStartOffset)) {
-					g.setColor(CURRENT_LINE_FOREGROUND);
+					g.setColor(currentColor);
 				} else {
-					g.setColor(NUM_FOREGROUND);
+					g.setColor(numberColor);
 				}
 				String lineNumber = getTextLineNumber(rowStartOffset);
 				int stringWidth = fontMetrics.stringWidth(lineNumber);

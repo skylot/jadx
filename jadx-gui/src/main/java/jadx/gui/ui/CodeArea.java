@@ -16,7 +16,6 @@ import java.awt.event.MouseEvent;
 import org.fife.ui.rsyntaxtextarea.LinkGenerator;
 import org.fife.ui.rsyntaxtextarea.LinkGeneratorResult;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenTypes;
 import org.fife.ui.rtextarea.SearchContext;
@@ -32,13 +31,10 @@ import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.utils.Position;
 
-class CodeArea extends RSyntaxTextArea {
+public final class CodeArea extends RSyntaxTextArea {
 	private static final Logger LOG = LoggerFactory.getLogger(CodeArea.class);
 
 	private static final long serialVersionUID = 6312736869579635796L;
-
-	public static final Color CODE_BACKGROUND = new Color(0xFAFAFA);
-	public static final Color JUMP_TOKEN_FGD = new Color(0x491BA1);
 
 	private final CodePanel contentPanel;
 	private final JNode node;
@@ -48,10 +44,9 @@ class CodeArea extends RSyntaxTextArea {
 		this.node = panel.getNode();
 
 		setMarkOccurrences(true);
-		setBackground(CODE_BACKGROUND);
-		setAntiAliasingEnabled(true);
 		setEditable(false);
 		loadSettings();
+
 		Caret caret = getCaret();
 		if (caret instanceof DefaultCaret) {
 			((DefaultCaret) caret).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
@@ -59,18 +54,13 @@ class CodeArea extends RSyntaxTextArea {
 		caret.setVisible(true);
 
 		setSyntaxEditingStyle(node.getSyntaxName());
-
 		if (node instanceof JClass) {
-			SyntaxScheme scheme = getSyntaxScheme();
-			scheme.getStyle(Token.FUNCTION).foreground = Color.BLACK;
-
 			setHyperlinksEnabled(true);
 			CodeLinkGenerator codeLinkProcessor = new CodeLinkGenerator((JClass) node);
 			setLinkGenerator(codeLinkProcessor);
 			addHyperlinkListener(codeLinkProcessor);
 			addMenuItems(this, (JClass) node);
 		}
-
 		registerWordHighlighter();
 		setText(node.getContent());
 	}
@@ -113,8 +103,21 @@ class CodeArea extends RSyntaxTextArea {
 	}
 
 	public void loadSettings() {
-		JadxSettings settings = contentPanel.getTabbedPane().getMainWindow().getSettings();
-		setFont(settings.getFont());
+		loadCommonSettings(contentPanel.getTabbedPane().getMainWindow(), this);
+	}
+
+	public static void loadCommonSettings(MainWindow mainWindow, RSyntaxTextArea area) {
+		area.setAntiAliasingEnabled(true);
+		mainWindow.getEditorTheme().apply(area);
+
+		JadxSettings settings = mainWindow.getSettings();
+		area.setFont(settings.getFont());
+	}
+
+	public static RSyntaxTextArea getDefaultArea(MainWindow mainWindow) {
+		RSyntaxTextArea area = new RSyntaxTextArea();
+		loadCommonSettings(mainWindow, area);
+		return area;
 	}
 
 	private boolean isJumpToken(Token token) {
@@ -129,6 +132,16 @@ class CodeArea extends RSyntaxTextArea {
 			if (node instanceof JClass) {
 				Position pos = getDefPosition((JClass) node, this, token.getOffset());
 				if (pos != null) {
+					// don't underline definition place
+					try {
+						int defLine = pos.getLine();
+						int lineOfOffset = getLineOfOffset(token.getOffset()) + 1;
+						if (defLine == lineOfOffset) {
+							return false;
+						}
+					} catch (BadLocationException e) {
+						return false;
+					}
 					return true;
 				}
 			}
@@ -136,13 +149,13 @@ class CodeArea extends RSyntaxTextArea {
 		return false;
 	}
 
-	@Override
-	public Color getForegroundForToken(Token t) {
-		if (isJumpToken(t)) {
-			return JUMP_TOKEN_FGD;
-		}
-		return super.getForegroundForToken(t);
-	}
+//	@Override
+//	public Color getForegroundForToken(Token t) {
+//		if (isJumpToken(t)) {
+//			return getHyperlinkForeground();
+//		}
+//		return super.getForegroundForToken(t);
+//	}
 
 	static Position getDefPosition(JClass jCls, RSyntaxTextArea textArea, int offset) {
 		JavaNode node = getJavaNodeAtOffset(jCls, textArea, offset);
@@ -310,5 +323,39 @@ class CodeArea extends RSyntaxTextArea {
 				contentPanel.getTabbedPane().codeJump((Position) obj);
 			}
 		}
+	}
+
+	public static final class EditorTheme {
+		private final String name;
+		private final String path;
+
+		public EditorTheme(String name, String path) {
+			this.name = name;
+			this.path = path;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public String getPath() {
+			return path;
+		}
+
+		@Override
+		public String toString() {
+			return name;
+		}
+	}
+
+	public static EditorTheme[] getAllThemes() {
+		return new EditorTheme[]{
+				new EditorTheme("default", "/org/fife/ui/rsyntaxtextarea/themes/default.xml"),
+				new EditorTheme("eclipse", "/org/fife/ui/rsyntaxtextarea/themes/eclipse.xml"),
+				new EditorTheme("idea", "/org/fife/ui/rsyntaxtextarea/themes/idea.xml"),
+				new EditorTheme("vs", "/org/fife/ui/rsyntaxtextarea/themes/vs.xml"),
+				new EditorTheme("dark", "/org/fife/ui/rsyntaxtextarea/themes/dark.xml"),
+				new EditorTheme("monokai", "/org/fife/ui/rsyntaxtextarea/themes/monokai.xml")
+		};
 	}
 }

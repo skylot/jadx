@@ -24,7 +24,7 @@ class CodePanel extends ContentPanel {
 		searchBar = new SearchBar(codeArea);
 
 		scrollPane = new JScrollPane(codeArea);
-		scrollPane.setRowHeaderView(new LineNumbers(codeArea));
+		initLineNumbers();
 
 		setLayout(new BorderLayout());
 		add(searchBar, BorderLayout.NORTH);
@@ -32,6 +32,10 @@ class CodePanel extends ContentPanel {
 
 		KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK);
 		Utils.addKeyBinding(codeArea, key, "SearchAction", new SearchAction());
+	}
+
+	private void initLineNumbers() {
+		scrollPane.setRowHeaderView(new LineNumbers(codeArea));
 	}
 
 	private class SearchAction extends AbstractAction {
@@ -46,6 +50,8 @@ class CodePanel extends ContentPanel {
 	@Override
 	public void loadSettings() {
 		codeArea.loadSettings();
+		initLineNumbers();
+		updateUI();
 	}
 
 	@Override

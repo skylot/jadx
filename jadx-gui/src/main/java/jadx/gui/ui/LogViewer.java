@@ -2,8 +2,6 @@ package jadx.gui.ui;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import ch.qos.logback.classic.Level;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
@@ -21,28 +19,25 @@ class LogViewer extends JDialog {
 	private final transient JadxSettings settings;
 	private transient RSyntaxTextArea textPane;
 
-	public LogViewer(JadxSettings settings) {
-		this.settings = settings;
-		initUI();
+	public LogViewer(MainWindow mainWindow) {
+		this.settings = mainWindow.getSettings();
+		initUI(mainWindow);
 		registerLogListener();
 		settings.loadWindowPos(this);
 	}
 
-	public final void initUI() {
-		textPane = new RSyntaxTextArea();
+	public final void initUI(MainWindow mainWindow) {
+		textPane = CodeArea.getDefaultArea(mainWindow);
 		textPane.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
 		JPanel controlPane = new JPanel();
 		controlPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		final JComboBox<Level> cb = new JComboBox<>(LEVEL_ITEMS);
 		cb.setSelectedItem(level);
-		cb.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int i = cb.getSelectedIndex();
-				level = LEVEL_ITEMS[i];
-				registerLogListener();
-			}
+		cb.addActionListener(e -> {
+			int i = cb.getSelectedIndex();
+			level = LEVEL_ITEMS[i];
+			registerLogListener();
 		});
 		JLabel levelLabel = new JLabel(NLS.str("log.level"));
 		levelLabel.setLabelFor(cb);
@@ -52,11 +47,7 @@ class LogViewer extends JDialog {
 		JScrollPane scrollPane = new JScrollPane(textPane);
 
 		JButton close = new JButton(NLS.str("tabs.close"));
-		close.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent event) {
-				close();
-			}
-		});
+		close.addActionListener(event -> close());
 		close.setAlignmentX(0.5f);
 
 		Container contentPane = getContentPane();
@@ -84,11 +75,9 @@ class LogViewer extends JDialog {
 
 			@Override
 			public void onAppend(final String logStr) {
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						textPane.append(logStr);
-						textPane.updateUI();
-					}
+				SwingUtilities.invokeLater(() -> {
+					textPane.append(logStr);
+					textPane.updateUI();
 				});
 			}
 		});
