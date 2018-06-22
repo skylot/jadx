@@ -85,7 +85,7 @@ public class CertificateManager {
 	static String generateText(Certificate cert) {
 		StringBuilder str = new StringBuilder();
 		String type = cert.getType();
-		append(str, NLS.str("certificate.certType"), type);
+		append(str, NLS.str("certificate.cert_type"), type);
 		if (!type.equals("X.509")) {
 			str.append(cert.toString());
 
@@ -96,12 +96,12 @@ public class CertificateManager {
 				X509Certificate x509cert = (X509Certificate) cert;
 
 				// Get subject
-				Principal principal = x509cert.getSubjectDN();
-				append(str, NLS.str("certificate.сertSubject"), principal.getName());
+				Principal subjectDN = x509cert.getSubjectDN();
+				append(str, NLS.str("certificate.cert_subject"), subjectDN.getName());
 
 				// Get issuer
-				principal = x509cert.getIssuerDN();
-				append(str, NLS.str("certificate.сertIssuer"), principal.getName());
+				Principal issuerDN = x509cert.getIssuerDN();
+				append(str, NLS.str("certificate.cert_issuer"), issuerDN.getName());
 
 				// seral number
 				append(str, NLS.str("certificate.serialNumber"), "0x"
@@ -120,7 +120,7 @@ public class CertificateManager {
 				append(str, NLS.str("certificate.serialSigOID"), x509cert.getSigAlgOID());
 				// Fingerprint:
 				try {
-					append(str, NLS.str("certificate.sSerialMD5"), getThumbPrint(x509cert, "MD5"));
+					append(str, NLS.str("certificate.serialMD5"), getThumbPrint(x509cert, "MD5"));
 					append(str, NLS.str("certificate.serialSHA1"), getThumbPrint(x509cert, "SHA-1"));
 					append(str, NLS.str("certificate.serialSHA256"), getThumbPrint(x509cert, "SHA-256"));
 				} catch (CertificateEncodingException
@@ -130,13 +130,13 @@ public class CertificateManager {
 				}
 				str.append("\n");
 
-				RSAPublicKey pub = (RSAPublicKey) cert.getPublicKey();
+			/*	RSAPublicKey pub = (RSAPublicKey) cert.getPublicKey();
 
 				append(str, NLS.str("certificate.serialPubKey"), "");
 				append(str, NLS.str("certificate.serialAlgName"), pub.getAlgorithm());
 				append(str, NLS.str("certificate.serialPubKeyExponent"), pub.getPublicExponent().toString(16));
 				append(str, NLS.str("certificate.serialPubKeyModulus"), pub.getModulus().toString(10));
-
+*/
 			}
 
 		}
