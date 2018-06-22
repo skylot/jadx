@@ -2,8 +2,6 @@ package jadx.core.dex.visitors.regions;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -52,7 +50,6 @@ import static jadx.core.dex.visitors.regions.IfMakerHelper.confirmMerge;
 import static jadx.core.dex.visitors.regions.IfMakerHelper.makeIfInfo;
 import static jadx.core.dex.visitors.regions.IfMakerHelper.mergeNestedIfNodes;
 import static jadx.core.dex.visitors.regions.IfMakerHelper.searchNestedIf;
-import static jadx.core.utils.BlockUtils.getBlockByOffset;
 import static jadx.core.utils.BlockUtils.getNextBlock;
 import static jadx.core.utils.BlockUtils.isPathExists;
 import static jadx.core.utils.BlockUtils.skipSyntheticSuccessor;
@@ -64,34 +61,21 @@ public class RegionMaker {
 	private static final int REGIONS_LIMIT = 1000 * 1000;
 
 	private final MethodNode mth;
-	private BitSet processedBlocks;
 	private int regionsCount;
 
 	public RegionMaker(MethodNode mth) {
 		this.mth = mth;
-		if (Consts.DEBUG) {
-			this.processedBlocks = new BitSet(mth.getBasicBlocks().size());
-		}
 	}
 
 	public Region makeRegion(BlockNode startBlock, RegionStack stack) {
-		if (Consts.DEBUG) {
-			int id = startBlock.getId();
-			if (processedBlocks.get(id)) {
-				LOG.debug(" Block already processed: {}, mth: {}", startBlock, mth);
-			} else {
-				processedBlocks.set(id);
-			}
-		}
-		regionsCount++;
-		if (regionsCount > REGIONS_LIMIT) {
-			throw new JadxOverflowException("Regions count limit reached");
-		}
-
 		Region r = new Region(stack.peekRegion());
 		BlockNode next = startBlock;
 		while (next != null) {
 			next = traverse(r, next, stack);
+			regionsCount++;
+			if (regionsCount > REGIONS_LIMIT) {
+				throw new JadxRuntimeException("Regions count limit reached");
+			}
 		}
 		return r;
 	}
@@ -196,10 +180,9 @@ public class RegionMaker {
 			if (loopExit != null) {
 				// add 'break' instruction before path cross between main loop exit and sub-exit
 				for (Edge exitEdge : loop.getExitEdges()) {
-					if (!exitBlocks.contains(exitEdge.getSource())) {
-						continue;
+					if (exitBlocks.contains(exitEdge.getSource())) {
+						insertBreak(stack, loopExit, exitEdge);
 					}
-					insertBreak(stack, loopExit, exitEdge);
 				}
 			}
 		}
@@ -211,7 +194,8 @@ public class RegionMaker {
 			loopStart.remove(AType.LOOP);
 			loop.getEnd().add(AFlag.SKIP);
 			stack.addExit(loop.getEnd());
-			loopRegion.setBody(makeRegion(loopStart, stack));
+			Region body = makeRegion(loopStart, stack);
+			loopRegion.setBody(body);
 			loopStart.addAttr(AType.LOOP, loop);
 			loop.getEnd().remove(AFlag.SKIP);
 		} else {
@@ -307,16 +291,31 @@ public class RegionMaker {
 		loopStart.remove(AType.LOOP);
 		stack.push(loopRegion);
 
-		BlockNode loopExit = null;
+		BlockNode out = null;
 		// insert 'break' for exits
 		List<Edge> exitEdges = loop.getExitEdges();
-		for (Edge exitEdge : exitEdges) {
+		if (exitEdges.size() == 1) {
+			Edge exitEdge = exitEdges.get(0);
 			BlockNode exit = exitEdge.getTarget();
 			if (insertBreak(stack, exit, exitEdge)) {
 				BlockNode nextBlock = getNextBlock(exit);
 				if (nextBlock != null) {
 					stack.addExit(nextBlock);
-					loopExit = nextBlock;
+					out = nextBlock;
+				}
+			}
+		} else {
+			for (Edge exitEdge : exitEdges) {
+				BlockNode exit = exitEdge.getTarget();
+				List<BlockNode> blocks = BlockUtils.bitSetToBlocks(mth, exit.getDomFrontier());
+				for (BlockNode block : blocks) {
+					if (BlockUtils.isPathExists(exit, block)) {
+						stack.addExit(block);
+						insertBreak(stack, block, exitEdge);
+						out = block;
+					} else {
+						insertBreak(stack, exit, exitEdge);
+					}
 				}
 			}
 		}
@@ -330,13 +329,13 @@ public class RegionMaker {
 		}
 		loopRegion.setBody(body);
 
-		if (loopExit == null) {
+		if (out == null) {
 			BlockNode next = getNextBlock(loopEnd);
-			loopExit = RegionUtils.isRegionContainsBlock(body, next) ? null : next;
+			out = RegionUtils.isRegionContainsBlock(body, next) ? null : next;
 		}
 		stack.pop();
 		loopStart.addAttr(AType.LOOP, loop);
-		return loopExit;
+		return out;
 	}
 
 	private boolean inExceptionHandlerBlocks(BlockNode loopEnd) {
@@ -467,7 +466,7 @@ public class RegionMaker {
 	}
 
 	private static boolean canInsertContinue(BlockNode pred, List<BlockNode> predecessors, BlockNode loopEnd,
-			Set<BlockNode> loopExitNodes) {
+	                                         Set<BlockNode> loopExitNodes) {
 		if (!pred.contains(AFlag.SYNTHETIC)
 				|| BlockUtils.checkLastInsnType(pred, InsnType.CONTINUE)) {
 			return false;
@@ -557,8 +556,8 @@ public class RegionMaker {
 	/**
 	 * Traverse from monitor-enter thru successors and collect blocks contains monitor-exit
 	 */
-	private static void traverseMonitorExits(SynchronizedRegion region, InsnArg arg, BlockNode block,
-			Set<BlockNode> exits, Set<BlockNode> visited) {
+	private static void traverseMonitorExits(SynchronizedRegion region, InsnArg arg, BlockNode block, Set<BlockNode> exits,
+	                                         Set<BlockNode> visited) {
 		visited.add(block);
 		for (InsnNode insn : block.getInstructions()) {
 			if (insn.getType() == InsnType.MONITOR_EXIT
@@ -691,27 +690,14 @@ public class RegionMaker {
 
 		int len = insn.getTargets().length;
 		// sort by target
-		Map<Integer, List<Object>> casesMap = new LinkedHashMap<>(len);
+		Map<BlockNode, List<Object>> blocksMap = new LinkedHashMap<>(len);
 		for (int i = 0; i < len; i++) {
 			Object key = insn.getKeys()[i];
-			int targ = insn.getTargets()[i];
-			List<Object> keys = casesMap.get(targ);
-			if (keys == null) {
-				keys = new ArrayList<>(2);
-				casesMap.put(targ, keys);
-			}
+			BlockNode targ = insn.getTargetBlocks()[i];
+			List<Object> keys = blocksMap.computeIfAbsent(targ, k -> new ArrayList<>(2));
 			keys.add(key);
 		}
-
-		Map<BlockNode, List<Object>> blocksMap = new LinkedHashMap<>(len);
-		for (Map.Entry<Integer, List<Object>> entry : casesMap.entrySet()) {
-			BlockNode c = getBlockByOffset(entry.getKey(), block.getSuccessors());
-			if (c == null) {
-				throw new JadxRuntimeException("Switch block not found by offset: " + entry.getKey());
-			}
-			blocksMap.put(c, entry.getValue());
-		}
-		BlockNode defCase = getBlockByOffset(insn.getDefaultCaseOffset(), block.getSuccessors());
+		BlockNode defCase = insn.getDefTargetBlock();
 		if (defCase != null) {
 			blocksMap.remove(defCase);
 		}
@@ -845,7 +831,7 @@ public class RegionMaker {
 	}
 
 	private boolean isBadCasesOrder(Map<BlockNode, List<Object>> blocksMap,
-			Map<BlockNode, BlockNode> fallThroughCases) {
+	                                Map<BlockNode, BlockNode> fallThroughCases) {
 		BlockNode nextCaseBlock = null;
 		for (BlockNode caseBlock : blocksMap.keySet()) {
 			if (nextCaseBlock != null && !caseBlock.equals(nextCaseBlock)) {
@@ -860,19 +846,16 @@ public class RegionMaker {
 			Map<BlockNode, BlockNode> fallThroughCases) {
 		List<BlockNode> list = new ArrayList<>(blocksMap.size());
 		list.addAll(blocksMap.keySet());
-		Collections.sort(list, new Comparator<BlockNode>() {
-			@Override
-			public int compare(BlockNode a, BlockNode b) {
-				BlockNode nextA = fallThroughCases.get(a);
-				if (nextA != null) {
-					if (b.equals(nextA)) {
-						return -1;
-					}
-				} else if (a.equals(fallThroughCases.get(b))) {
-					return 1;
+		list.sort((a, b) -> {
+			BlockNode nextA = fallThroughCases.get(a);
+			if (nextA != null) {
+				if (b.equals(nextA)) {
+					return -1;
 				}
-				return 0;
+			} else if (a.equals(fallThroughCases.get(b))) {
+				return 1;
 			}
+			return 0;
 		});
 
 		Map<BlockNode, List<Object>> newBlocksMap = new LinkedHashMap<>(blocksMap.size());

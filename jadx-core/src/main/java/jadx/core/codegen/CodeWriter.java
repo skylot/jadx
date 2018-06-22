@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.CodePosition;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
+import jadx.core.utils.StringUtils;
 import jadx.core.utils.files.FileUtils;
 import jadx.core.utils.files.ZipSecurity;
 
@@ -89,6 +90,15 @@ public class CodeWriter {
 		} else {
 			startLine();
 			attachSourceLine(sourceLine);
+		}
+		return this;
+	}
+
+	public CodeWriter addMultiLine(String str) {
+		buf.append(str);
+		if (str.contains(NL)) {
+			line += StringUtils.countMatches(str, NL);
+			offset = 0;
 		}
 		return this;
 	}

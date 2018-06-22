@@ -6,6 +6,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.jetbrains.annotations.TestOnly;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +33,7 @@ import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 @Deprecated
+@TestOnly
 public class DebugUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(DebugUtils.class);
 
@@ -43,7 +45,7 @@ public class DebugUtils {
 	}
 
 	public static void dump(MethodNode mth, String desc) {
-		File out = new File("test-graph" + desc + "-tmp");
+		File out = new File("test-graph-" + desc + "-tmp");
 		DotGraphVisitor.dump().save(out, mth);
 		DotGraphVisitor.dumpRaw().save(out, mth);
 		DotGraphVisitor.dumpRegions().save(out, mth);
@@ -76,7 +78,7 @@ public class DebugUtils {
 	}
 
 	private static void printRegion(MethodNode mth, IRegion region, String indent, boolean printInsns) {
-		LOG.debug("{}{}", indent, region);
+		LOG.debug("{}{} {}", indent, region, region.getAttributesString());
 		indent += "|  ";
 		for (IContainer container : region.getSubBlocks()) {
 			if (container instanceof IRegion) {
@@ -99,9 +101,9 @@ public class DebugUtils {
 				CodeWriter code = new CodeWriter();
 				ig.makeInsn(insn, code);
 				String insnStr = code.toString().substring(CodeWriter.NL.length());
-				LOG.debug("{} - {}", indent, insnStr);
+				LOG.debug("{}> {}\t{}", indent, insnStr, insn.getAttributesString());
 			} catch (CodegenException e) {
-				LOG.debug("{} - {}", indent, insn);
+				LOG.debug("{}>!! {}", indent, insn);
 			}
 		}
 	}

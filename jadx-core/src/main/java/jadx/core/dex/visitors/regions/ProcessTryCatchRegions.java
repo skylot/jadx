@@ -86,8 +86,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 			if (domBlocks.size() != 1) {
 				domBlock = BlockUtils.getTopBlock(domBlocks);
 				if (domBlock == null) {
-					throw new JadxRuntimeException(
-							"Exception block dominator not found, method:" + mth + ". bs: " + domBlocks);
+					throw new JadxRuntimeException("Exception block dominator not found, method:" + mth + ", dom blocks: " + domBlocks);
 				}
 			} else {
 				domBlock = domBlocks.get(0);

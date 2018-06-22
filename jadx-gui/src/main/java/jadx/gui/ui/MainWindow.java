@@ -23,10 +23,12 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.fife.ui.rsyntaxtextarea.Theme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,6 +100,7 @@ public class MainWindow extends JFrame {
 	private transient Link updateLink;
 	private transient ProgressPanel progressPane;
 	private transient BackgroundWorker backgroundWorker;
+	private transient Theme editorTheme;
 
 	public MainWindow(JadxSettings settings) {
 		this.wrapper = new JadxWrapper(settings);
@@ -107,7 +110,14 @@ public class MainWindow extends JFrame {
 		resetCache();
 		initUI();
 		initMenuAndToolbar();
+		applySettings();
 		checkForUpdate();
+	}
+
+	private void applySettings() {
+		setFont(settings.getFont());
+		setEditorTheme(settings.getEditorThemePath());
+		loadSettings();
 	}
 
 	public void open() {
@@ -419,7 +429,7 @@ public class MainWindow extends JFrame {
 		Action logAction = new AbstractAction(NLS.str("menu.log"), ICON_LOG) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new LogViewer(settings).setVisible(true);
+				new LogViewer(MainWindow.this).setVisible(true);
 			}
 		};
 		logAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.log"));
@@ -613,6 +623,26 @@ public class MainWindow extends JFrame {
 
 	public void updateFont(Font font) {
 		setFont(font);
+	}
+
+	public void setEditorTheme(String editorThemePath) {
+		try {
+			editorTheme = Theme.load(getClass().getResourceAsStream(editorThemePath));
+		} catch (Exception e) {
+			LOG.error("Can't load editor theme from classpath: {}", editorThemePath);
+			try {
+				editorTheme = Theme.load(new FileInputStream(editorThemePath));
+			} catch (Exception e2) {
+				LOG.error("Can't load editor theme from file: {}", editorThemePath);
+			}
+		}
+	}
+
+	public Theme getEditorTheme() {
+		return editorTheme;
+	}
+
+	public void loadSettings() {
 		tabbedPane.loadSettings();
 	}
 

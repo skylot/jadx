@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static jadx.core.utils.StringUtils.notEmpty;
+
 public class NameMapper {
 
 	private static final Pattern VALID_JAVA_IDENTIFIER = Pattern.compile(
@@ -76,11 +78,15 @@ public class NameMapper {
 	}
 
 	public static boolean isValidIdentifier(String str) {
-		return VALID_JAVA_IDENTIFIER.matcher(str).matches() && isAllCharsPrintable(str);
+		return notEmpty(str)
+				&& VALID_JAVA_IDENTIFIER.matcher(str).matches()
+				&& isAllCharsPrintable(str);
 	}
 
 	public static boolean isValidFullIdentifier(String str) {
-		return VALID_JAVA_FULL_IDENTIFIER.matcher(str).matches() && isAllCharsPrintable(str);
+		return notEmpty(str)
+				&& VALID_JAVA_FULL_IDENTIFIER.matcher(str).matches()
+				&& isAllCharsPrintable(str);
 	}
 
 	public static boolean isPrintableChar(int c) {

@@ -5,7 +5,7 @@ applicationName = 'jadx'
 
 dependencies {
     compile(project(':jadx-core'))
-    compile 'com.beust:jcommander:1.72'
+    compile 'com.beust:jcommander:1.74'
     compile 'ch.qos.logback:logback-classic:1.2.3'
 }
 

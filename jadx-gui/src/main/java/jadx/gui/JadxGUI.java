@@ -21,15 +21,27 @@ public class JadxGUI {
 			if (!settings.processArgs(args)) {
 				return;
 			}
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-			SwingUtilities.invokeLater(() -> {
-				MainWindow window = new MainWindow(settings);
-				window.open();
-			});
+			if (!tryDefaultLookAndFeel()) {
+				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			}
+			SwingUtilities.invokeLater(new MainWindow(settings)::open);
 		} catch (Exception e) {
 			LOG.error("Error: {}", e.getMessage(), e);
 			System.exit(1);
 		}
+	}
+
+	private static boolean tryDefaultLookAndFeel() {
+		String defLaf = System.getProperty("swing.defaultlaf");
+		if (defLaf != null) {
+			try {
+				UIManager.setLookAndFeel(defLaf);
+				return true;
+			} catch (Exception e) {
+				LOG.error("Failed to set default laf: {}", defLaf, e);
+			}
+		}
+		return false;
 	}
 }
 

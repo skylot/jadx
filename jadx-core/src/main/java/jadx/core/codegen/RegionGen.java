@@ -134,17 +134,16 @@ public class RegionGen extends InsnGen {
 	 * Connect if-else-if block
 	 */
 	private boolean connectElseIf(CodeWriter code, IContainer els) throws CodegenException {
-		if (!els.contains(AFlag.ELSE_IF_CHAIN)) {
-			return false;
-		}
-		if (!(els instanceof Region)) {
-			return false;
-		}
-		List<IContainer> subBlocks = ((Region) els).getSubBlocks();
-		if (subBlocks.size() == 1
-				&& subBlocks.get(0) instanceof IfRegion) {
-			makeIf((IfRegion) subBlocks.get(0), code, false);
-			return true;
+		if (els.contains(AFlag.ELSE_IF_CHAIN) && els instanceof Region) {
+			List<IContainer> subBlocks = ((Region) els).getSubBlocks();
+			if (subBlocks.size() == 1) {
+				IContainer elseBlock = subBlocks.get(0);
+				if (elseBlock instanceof IfRegion) {
+					declareVars(code, elseBlock);
+					makeIf((IfRegion) elseBlock, code, false);
+					return true;
+				}
+			}
 		}
 		return false;
 	}

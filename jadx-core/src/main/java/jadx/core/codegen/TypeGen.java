@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
+import jadx.core.deobf.NameMapper;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.nodes.IDexNode;
@@ -57,7 +58,11 @@ public class TypeGen {
 			case BOOLEAN:
 				return lit == 0 ? "false" : "true";
 			case CHAR:
-				return stringUtils.unescapeChar((char) lit);
+				char ch = (char) lit;
+				if (!NameMapper.isPrintableChar(ch)) {
+					return Integer.toString(ch);
+				}
+				return stringUtils.unescapeChar(ch);
 			case BYTE:
 				return formatByte((byte) lit);
 			case SHORT:
@@ -171,5 +176,4 @@ public class TypeGen {
 		}
 		return Float.toString(f) + "f";
 	}
-
 }

@@ -64,6 +64,10 @@ public final class JavaClass implements JavaNode {
 		}
 	}
 
+	public synchronized void unload() {
+		cls.unload();
+	}
+
 	ClassNode getClassNode() {
 		return cls;
 	}
@@ -107,12 +111,7 @@ public final class JavaClass implements JavaNode {
 					rootDecompiler.getMethodsMap().put(m, javaMethod);
 				}
 			}
-			Collections.sort(mths, new Comparator<JavaMethod>() {
-				@Override
-				public int compare(JavaMethod o1, JavaMethod o2) {
-					return o1.getName().compareTo(o2.getName());
-				}
-			});
+			mths.sort(Comparator.comparing(JavaMethod::getName));
 			this.methods = Collections.unmodifiableList(mths);
 		}
 	}

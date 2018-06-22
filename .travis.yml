@@ -1,39 +1,49 @@
 language: java
-jdk:
-    - oraclejdk8
-
-env:
-    - TERM=dumb GRADLE_OPTS="-Dorg.gradle.daemon=false"
+sudo: false
+dist: trusty
 
 before_install:
-    - chmod +x gradlew
+  - wget https://github.com/sormuras/bach/raw/master/install-jdk.sh
+  - chmod +x gradlew
+
+env:
+  global:
+    - TERM=dumb
+
+matrix:
+  include:
+    - env: JDK=oracle-8
+      jdk: oraclejdk8
+    - env: JDK=oracle-10
+      install: . ./install-jdk.sh -F 10 -L BCL
 
 script:
-    - sed -i " 1 s/.*/&-b$TRAVIS_BUILD_NUMBER-$(git rev-parse --short HEAD)/" version
-    - cat version
-    - sed -i "s/BUILD_VERSION/$(head -c -1 version)/g" bintray.json
-    - ./gradlew clean build
+  - java -version
+  - sed -i " 1 s/.*/&-b$TRAVIS_BUILD_NUMBER-$(git rev-parse --short HEAD)/" version
+  - cat version
+  - sed -i "s/BUILD_VERSION/$(head -c -1 version)/g" bintray.json
+  - ./gradlew clean build
 
 after_success:
-    - ./gradlew clean build jacocoTestReport
-    - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
-    - ./gradlew clean sonarqube -Dsonar.host.url=$SONAR_HOST -Dsonar.organization=$SONAR_ORG -Dsonar.login=$SONAR_TOKEN
-    - ./gradlew clean dist
+  - test $JDK = "oracle-8" && ./gradlew clean build jacocoTestReport && bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
+  - test $JDK = "oracle-8" && ./gradlew clean sonarqube -Dsonar.host.url=$SONAR_HOST -Dsonar.organization=$SONAR_ORG -Dsonar.login=$SONAR_TOKEN || echo "Skip sonar build and upload"
+
+before_deploy:
+  - ./gradlew clean dist
 
 deploy:
-    provider: bintray
-    edge:
-      branch: v1.8.47
-    file: bintray.json
-    user: skylot
-    key: $BINTRAY_KEY
-    skip_cleanup: true
-    on:
-      branch: master
-      tags: false
-
-sudo: false
+  provider: bintray
+  edge:
+    branch: v1.8.47
+  file: bintray.json
+  user: skylot
+  key: $BINTRAY_KEY
+  skip_cleanup: true
+  on:
+    branch: master
+    tags: false
+    condition: $JDK = oracle-8
 
 notifications:
-    email:
-        - skylot@gmail.com
+  email:
+    - skylot@gmail.com

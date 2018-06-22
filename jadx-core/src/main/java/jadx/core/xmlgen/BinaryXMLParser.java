@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -43,6 +44,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private final Map<Integer, String> resNames;
 	private final Map<String, String> nsMap = new HashMap<>();
 	private Set<String> nsMapGenerated;
+	private final Map<String, String> tagAttrDeobfNames = new HashMap<>();
 
 	private CodeWriter writer;
 	private String[] strings;
@@ -53,12 +55,16 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private boolean isOneLine = true;
 	private int namespaceDepth = 0;
 	private int[] resourceIds;
+	
+	private RootNode rootNode;
+	private String appPackageName;
 
-	public BinaryXMLParser(RootNode root) {
+	public BinaryXMLParser(RootNode rootNode) {
+		this.rootNode = rootNode;
 		try {
 			readAndroidRStyleClass();
 			// add application constants
-			ConstStorage constStorage = root.getConstValues();
+			ConstStorage constStorage = rootNode.getConstValues();
 			Map<Object, FieldNode> constFields = constStorage.getGlobalConstFields();
 			for (Map.Entry<Object, FieldNode> entry : constFields.entrySet()) {
 				Object key = entry.getKey();
@@ -245,7 +251,8 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		}
 		isOneLine = true;
 		isLastEnd = false;
-		currentTag = getString(startNSName);
+		currentTag = deobfClassName(getString(startNSName));
+		currentTag = getValidTagAttributeName(currentTag);
 		writer.startLine("<").add(currentTag);
 		writer.attachSourceLine(elementBegLineNumber);
 		int attributeStart = is.readInt16();
@@ -296,16 +303,23 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		} else {
 			writer.add(' ');
 		}
+		String shortNsName = null;
 		if (attributeNS != -1) {
-			writer.add(getAttributeNS(attributeNS)).add(':');
+			shortNsName = getAttributeNS(attributeNS);
+			writer.add(shortNsName).add(':');
 		}
-		String attrName = getAttributeName(attributeName);
+		String attrName = getValidTagAttributeName(getAttributeName(attributeName));
 		writer.add(attrName).add("=\"");
 		String decodedAttr = ManifestAttributes.getInstance().decode(attrName, attrValData);
 		if (decodedAttr != null) {
+			memorizePackageName(attrName, decodedAttr);
+			if(isDeobfCandidateAttr(shortNsName, attrName)) {
+				decodedAttr = deobfClassName(decodedAttr);
+			}
 			writer.add(StringUtils.escapeXML(decodedAttr));
 		} else {
-			decodeAttribute(attributeNS, attrValDataType, attrValData);
+			decodeAttribute(attributeNS, attrValDataType, attrValData,
+					shortNsName, attrName);
 		}
 		writer.add('"');
 	}
@@ -365,7 +379,9 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		return "NOT_FOUND_STR_0x" + Integer.toHexString(strId);
 	}
 
-	private void decodeAttribute(int attributeNS, int attrValDataType, int attrValData) {
+	private void decodeAttribute(int attributeNS, int attrValDataType, int attrValData,
+			String shortNsName, String attrName) {
+		
 		if (attrValDataType == TYPE_REFERENCE) {
 			// reference custom processing
 			String name = styleMap.get(attrValData);
@@ -406,6 +422,10 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			}
 		} else {
 			String str = valuesParser.decodeValue(attrValDataType, attrValData);
+			memorizePackageName(attrName, str);
+			if(isDeobfCandidateAttr(shortNsName, attrName)) {
+				str = deobfClassName(str);
+			}
 			writer.add(str != null ? StringUtils.escapeXML(str) : "null");
 		}
 	}
@@ -421,7 +441,8 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int comment = is.readInt32();
 		int elementNS = is.readInt32();
 		int elementNameId = is.readInt32();
-		String elemName = getString(elementNameId);
+		String elemName = deobfClassName(getString(elementNameId));
+		elemName = getValidTagAttributeName(elemName);
 		if (currentTag.equals(elemName) && isOneLine && !isLastEnd) {
 			writer.add("/>");
 		} else {
@@ -435,6 +456,58 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		isLastEnd = true;
 		if (writer.getIndent() != 0) {
 			writer.decIndent();
+		}
+	}
+	
+	private String getValidTagAttributeName(String originalName) {
+		if(XMLChar.isValidName(originalName)) {
+			return originalName;
+		}
+		if(tagAttrDeobfNames.containsKey(originalName)) {
+			return tagAttrDeobfNames.get(originalName);
+		}
+		String generated;
+		do {
+			generated = generateTagAttrName();
+		}
+		while(tagAttrDeobfNames.containsValue(generated));
+		tagAttrDeobfNames.put(originalName, generated);
+		return generated;
+	}
+	
+	private static String generateTagAttrName() {
+		final int length = 6;
+		Random r = new Random();
+		StringBuilder sb = new StringBuilder();
+		for(int i = 1; i <= length; i++) {
+			sb.append((char)(r.nextInt(26) + 'a'));
+		}
+		return sb.toString();
+	}
+	
+	private String deobfClassName(String className) {
+		String newName = XmlDeobf.deobfClassName(rootNode, className,
+				appPackageName);
+		if(newName != null) {
+			return newName;
+		}
+		return className;
+	}
+	
+	private boolean isDeobfCandidateAttr(String shortNsName, String attrName) {
+		String fullName;
+		if(shortNsName != null) {
+			fullName = shortNsName + ":" + attrName;
+		}
+		else {
+			return false;
+		}
+		return "android:name".equals(fullName);
+	}
+	
+	private void memorizePackageName(String attrName, String attrValue) {
+		if("manifest".equals(currentTag) && "package".equals(attrName)) {
+			appPackageName = attrValue;
 		}
 	}
 }

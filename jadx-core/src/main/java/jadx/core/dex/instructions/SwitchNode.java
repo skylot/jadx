@@ -1,16 +1,23 @@
 package jadx.core.dex.instructions;
 
 import java.util.Arrays;
+import java.util.List;
 
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
 
-public class SwitchNode extends InsnNode {
+import static jadx.core.utils.BlockUtils.getBlockByOffset;
+
+public class SwitchNode extends TargetInsnNode {
 
 	private final Object[] keys;
 	private final int[] targets;
 	private final int def; // next instruction
+
+	private BlockNode[] targetBlocks;
+	private BlockNode defTargetBlock;
 
 	public SwitchNode(InsnArg arg, Object[] keys, int[] targets, int def) {
 		super(InsnType.SWITCH, 1);
@@ -34,6 +41,42 @@ public class SwitchNode extends InsnNode {
 
 	public int getDefaultCaseOffset() {
 		return def;
+	}
+
+	public BlockNode[] getTargetBlocks() {
+		return targetBlocks;
+	}
+
+	public BlockNode getDefTargetBlock() {
+		return defTargetBlock;
+	}
+
+	@Override
+	public void initBlocks(BlockNode curBlock) {
+		List<BlockNode> successors = curBlock.getSuccessors();
+		int len = targets.length;
+		targetBlocks = new BlockNode[len];
+		for (int i = 0; i < len; i++) {
+			targetBlocks[i] = getBlockByOffset(targets[i], successors);
+		}
+		defTargetBlock = getBlockByOffset(def, successors);
+	}
+
+	@Override
+	public boolean replaceTargetBlock(BlockNode origin, BlockNode replace) {
+		int count = 0;
+		int len = targetBlocks.length;
+		for (int i = 0; i < len; i++) {
+			if (targetBlocks[i] == origin) {
+				targetBlocks[i] = replace;
+				count++;
+			}
+		}
+		if (defTargetBlock == origin) {
+			defTargetBlock = replace;
+			count++;
+		}
+		return count > 0;
 	}
 
 	@Override
