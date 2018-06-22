@@ -21,9 +21,7 @@ public final class Region extends AbstractRegion {
 	}
 
 	public void add(IContainer region) {
-		if (region instanceof AbstractRegion) {
-			((AbstractRegion) region).setParent(this);
-		}
+		updateParent(region, this);
 		blocks.add(region);
 	}
 
@@ -32,6 +30,7 @@ public final class Region extends AbstractRegion {
 		int i = blocks.indexOf(oldBlock);
 		if (i != -1) {
 			blocks.set(i, newBlock);
+			updateParent(newBlock, this);
 			return true;
 		}
 		return false;

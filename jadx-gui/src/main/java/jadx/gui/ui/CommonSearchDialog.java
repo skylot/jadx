@@ -23,6 +23,7 @@ import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -152,7 +153,7 @@ public abstract class CommonSearchDialog extends JDialog {
 		resultsTable.setShowHorizontalLines(false);
 		resultsTable.setDragEnabled(false);
 		resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		resultsTable.setBackground(CodeArea.CODE_BACKGROUND);
+//		resultsTable.setBackground(CodeArea.CODE_BACKGROUND);
 		resultsTable.setColumnSelectionAllowed(false);
 		resultsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		resultsTable.setAutoscrolls(false);
@@ -259,6 +260,7 @@ public abstract class CommonSearchDialog extends JDialog {
 			if (!model.isAddDescColumn()) {
 				firstColMaxWidth = width;
 			}
+			Component nodeComp = null;
 			Component codeComp = null;
 			for (int col = 0; col < columnCount; col++) {
 				int colWidth = 50;
@@ -268,6 +270,9 @@ public abstract class CommonSearchDialog extends JDialog {
 						continue;
 					}
 					colWidth = Math.max(comp.getPreferredSize().width, colWidth);
+					if (nodeComp == null && col == 0) {
+						nodeComp = comp;
+					}
 					if (codeComp == null && col == 1) {
 						codeComp = comp;
 					}
@@ -281,10 +286,16 @@ public abstract class CommonSearchDialog extends JDialog {
 				TableColumn column = columnModel.getColumn(col);
 				column.setPreferredWidth(colWidth);
 			}
-			if (codeComp != null) {
-				setRowHeight(Math.max(20, codeComp.getPreferredSize().height + 4));
-			}
+//				setRowHeight(Math.max(nodeComp.getPreferredSize().height, codeComp.getPreferredSize().height + 4));
 			updateUI();
+			setRowHeight(Math.max(getHeight(nodeComp), getHeight(codeComp) + 4));
+		}
+
+		private int getHeight(@Nullable Component nodeComp) {
+			if (nodeComp != null) {
+				return Math.max(nodeComp.getHeight(), nodeComp.getPreferredSize().height);
+			}
+			return 0;
 		}
 	}
 
@@ -381,19 +392,15 @@ public abstract class CommonSearchDialog extends JDialog {
 	}
 
 	protected class ResultsTableCellRenderer implements TableCellRenderer {
-		private final Color selectedBackground;
-		private final Color selectedForeground;
-		private final Color foreground;
-
 		private final JLabel emptyLabel = new JLabel();
-
+		private final Color codeSelectedColor;
+		private final Color codeBackground;
 		private Map<Integer, Component> componentCache = new HashMap<>();
 
 		public ResultsTableCellRenderer() {
-			UIDefaults defaults = UIManager.getDefaults();
-			foreground = defaults.getColor("List.foreground");
-			selectedBackground = defaults.getColor("List.selectionBackground");
-			selectedForeground = defaults.getColor("List.selectionForeground");
+			RSyntaxTextArea area = CodeArea.getDefaultArea(mainWindow);
+			this.codeSelectedColor = area.getSelectionColor();
+			this.codeBackground = area.getBackground();
 		}
 
 		@Override
@@ -403,29 +410,38 @@ public abstract class CommonSearchDialog extends JDialog {
 			Component comp = componentCache.get(id);
 			if (comp == null) {
 				if (obj instanceof JNode) {
-					comp = makeCell((JNode) obj, column);
+					comp = makeCell(table, (JNode) obj, column);
 					componentCache.put(id, comp);
 				} else {
 					comp = emptyLabel;
 				}
 			}
-			updateSelection(comp, isSelected);
+			updateSelection(table, comp, isSelected);
 			return comp;
 		}
 
-		private void updateSelection(Component comp, boolean isSelected) {
-			if (isSelected) {
-				comp.setBackground(selectedBackground);
-				comp.setForeground(selectedForeground);
+		private void updateSelection(JTable table, Component comp, boolean isSelected) {
+			if (comp instanceof RSyntaxTextArea) {
+				if (isSelected) {
+					comp.setBackground(codeSelectedColor);
+				} else {
+					comp.setBackground(codeBackground);
+				}
 			} else {
-				comp.setBackground(CodeArea.CODE_BACKGROUND);
-				comp.setForeground(foreground);
+				if (isSelected) {
+					comp.setBackground(table.getSelectionBackground());
+					comp.setForeground(table.getSelectionForeground());
+				} else {
+					comp.setBackground(table.getBackground());
+					comp.setForeground(table.getForeground());
+				}
 			}
 		}
 
-		private Component makeCell(JNode node, int column) {
+		private Component makeCell(JTable table, JNode node, int column) {
 			if (column == 0) {
 				JLabel label = new JLabel(node.makeLongString() + "  ", node.getIcon(), SwingConstants.LEFT);
+				label.setFont(table.getFont());
 				label.setOpaque(true);
 				label.setToolTipText(label.getText());
 				return label;
@@ -433,13 +449,13 @@ public abstract class CommonSearchDialog extends JDialog {
 			if (!node.hasDescString()) {
 				return emptyLabel;
 			}
-			RSyntaxTextArea textArea = new RSyntaxTextArea();
-			textArea.setFont(codeFont);
+			RSyntaxTextArea textArea = CodeArea.getDefaultArea(mainWindow);
+			textArea.setLayout(new GridLayout(1, 1));
 			textArea.setEditable(false);
 			textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
 			textArea.setText("  " + node.makeDescString());
 			textArea.setRows(1);
-			textArea.setColumns(textArea.getText().length());
+			textArea.setColumns(textArea.getText().length() + 1);
 			if (highlightText != null) {
 				SearchContext searchContext = new SearchContext(highlightText);
 				searchContext.setMatchCase(!highlightTextCaseInsensitive);

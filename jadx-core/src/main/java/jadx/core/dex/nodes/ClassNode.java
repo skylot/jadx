@@ -39,6 +39,8 @@ import jadx.core.dex.nodes.parser.StaticValuesParser;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
+import static jadx.core.dex.nodes.ProcessState.UNLOADED;
+
 public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
 
@@ -264,6 +266,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 		for (ClassNode innerCls : getInnerClasses()) {
 			innerCls.unload();
 		}
+		setState(UNLOADED);
 	}
 
 	private void buildCache() {

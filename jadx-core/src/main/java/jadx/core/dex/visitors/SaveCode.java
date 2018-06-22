@@ -6,6 +6,7 @@ import jadx.api.JadxArgs;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class SaveCode {
 
@@ -16,6 +17,9 @@ public class SaveCode {
 			return;
 		}
 		CodeWriter clsCode = cls.getCode();
+		if (clsCode == null) {
+			throw new JadxRuntimeException("Code not generated for class " + cls.getFullName());
+		}
 		String fileName = cls.getClassInfo().getFullPath() + ".java";
 		if (args.isFallbackMode()) {
 			fileName += ".jadx";

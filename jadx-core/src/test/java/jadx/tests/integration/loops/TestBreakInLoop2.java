@@ -9,6 +9,7 @@ import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.anyOf;
 
 public class TestBreakInLoop2 extends IntegrationTest {
 
@@ -43,7 +44,7 @@ public class TestBreakInLoop2 extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsOne("while (true) {"));
-		assertThat(code, containsOne("break;"));
+		assertThat(code, anyOf(containsOne("break;"), containsOne("return;")));
 		assertThat(code, containsOne("throw ex;"));
 		assertThat(code, containsOne("data.clear();"));
 		assertThat(code, containsOne("Thread.sleep(100);"));

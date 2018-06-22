@@ -577,8 +577,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 			BlockNode newPred = BlockSplitter.insertBlockBetween(mth, pred, sOut);
 			for (BlockNode predBlock : new ArrayList<>(sOut.getPredecessors())) {
 				if (predBlock != newPred) {
-					removeConnection(predBlock, sOut);
-					connect(predBlock, newPred);
+					BlockSplitter.replaceConnection(predBlock, sOut, newPred);
 				}
 			}
 			rOut.getPredecessors().clear();
@@ -605,6 +604,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 			connect(middle, startBlock);
 			addIgnoredEdge(middle, startBlock);
 			connect(middle, rOut);
+			BlockSplitter.replaceTarget(middle, remBlock, rOut);
 		}
 
 		// mark blocks for remove

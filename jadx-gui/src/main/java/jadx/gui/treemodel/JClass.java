@@ -51,6 +51,7 @@ public class JClass extends JLoadableNode {
 	public synchronized void load() {
 		if (!loaded) {
 			cls.decompile();
+			cls.unload();
 			loaded = true;
 		}
 		update();

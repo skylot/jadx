@@ -37,7 +37,7 @@ public class TestLoopConditionInvoke extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsOne("do {"));
-		assertThat(code, containsOne("if (ch == '\\u0000') {"));
+		assertThat(code, containsOne("if (ch == 0) {"));
 		assertThat(code, containsOne("this.pos = startPos;"));
 		assertThat(code, containsOne("return false;"));
 		assertThat(code, containsOne("} while (ch != lastChar);"));

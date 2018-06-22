@@ -10,11 +10,9 @@ import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.ErrorsCounter;
 
-import static jadx.core.dex.nodes.ProcessState.GENERATED;
 import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
 import static jadx.core.dex.nodes.ProcessState.PROCESSED;
 import static jadx.core.dex.nodes.ProcessState.STARTED;
-import static jadx.core.dex.nodes.ProcessState.UNLOADED;
 
 public final class ProcessClass {
 
@@ -38,15 +36,9 @@ public final class ProcessClass {
 				if (cls.getState() == PROCESSED && codeGen != null) {
 					processDependencies(cls, passes);
 					codeGen.visit(cls);
-					cls.setState(GENERATED);
 				}
 			} catch (Exception e) {
 				ErrorsCounter.classError(cls, e.getClass().getSimpleName(), e);
-			} finally {
-				if (cls.getState() == GENERATED) {
-					cls.unload();
-					cls.setState(UNLOADED);
-				}
 			}
 		}
 	}
@@ -56,8 +48,6 @@ public final class ProcessClass {
 	}
 
 	private static void processDependencies(ClassNode cls, List<IDexTreeVisitor> passes) {
-		for (ClassNode depCls : cls.getDependencies()) {
-			process(depCls, passes, null);
-		}
+		cls.getDependencies().forEach(depCls -> process(depCls, passes, null));
 	}
 }

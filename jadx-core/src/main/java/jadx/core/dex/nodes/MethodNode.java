@@ -403,14 +403,20 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 	}
 
 	public void finishBasicBlocks() {
-		((ArrayList<BlockNode>) blocks).trimToSize();
-		((ArrayList<BlockNode>) exitBlocks).trimToSize();
+		trimList(blocks);
+		trimList(exitBlocks);
 
 		blocks = Collections.unmodifiableList(blocks);
 		exitBlocks = Collections.unmodifiableList(exitBlocks);
 
 		for (BlockNode block : blocks) {
 			block.lock();
+		}
+	}
+
+	private void trimList(List<BlockNode> blocks) {
+		if (blocks instanceof ArrayList) {
+			((ArrayList<BlockNode>)blocks).trimToSize();
 		}
 	}
 

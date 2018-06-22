@@ -52,6 +52,8 @@ public class JadxWrapper {
 						Thread.sleep(500);
 					}
 					progressMonitor.close();
+					LOG.info("decompilation complete, freeing memory ...");
+					decompiler.getClasses().forEach(JavaClass::unload);
 					LOG.info("done");
 				} catch (InterruptedException e) {
 					LOG.error("Save interrupted", e);

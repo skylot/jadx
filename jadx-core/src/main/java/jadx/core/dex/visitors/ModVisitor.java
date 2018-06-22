@@ -249,14 +249,9 @@ public class ModVisitor extends AbstractVisitor {
 				|| !parentClass.getInnerClasses().contains(classNode)) {
 			return;
 		}
-		if (!classNode.getAccessFlags().isStatic()
-				&& (callMth.getArgsCount() == 0
-				|| !callMth.getArgumentsTypes().get(0).equals(parentClass.getClassInfo().getType()))) {
-			return;
-		}
 		// TODO: calculate this constructor and other constructor usage
 		Map<InsnArg, FieldNode> argsMap = getArgsToFieldsMapping(callMthNode, co);
-		if (argsMap.isEmpty()) {
+		if (argsMap.isEmpty() && !callMthNode.getArguments(true).isEmpty()) {
 			return;
 		}
 
@@ -285,9 +280,14 @@ public class ModVisitor extends AbstractVisitor {
 
 	private static Map<InsnArg, FieldNode> getArgsToFieldsMapping(MethodNode callMthNode, ConstructorInsn co) {
 		Map<InsnArg, FieldNode> map = new LinkedHashMap<>();
-		ClassNode parentClass = callMthNode.getParentClass();
+		MethodInfo callMth = callMthNode.getMethodInfo();
+		ClassNode cls = callMthNode.getParentClass();
+		ClassNode parentClass = cls.getParentClass();
 		List<RegisterArg> argList = callMthNode.getArguments(false);
-		int startArg = parentClass.getAccessFlags().isStatic() ? 0 : 1;
+		int startArg = 0;
+		if (callMth.getArgsCount() != 0 && callMth.getArgumentsTypes().get(0).equals(parentClass.getClassInfo().getType())) {
+			startArg = 1;
+		}
 		int argsCount = argList.size();
 		for (int i = startArg; i < argsCount; i++) {
 			RegisterArg arg = argList.get(i);
@@ -298,7 +298,7 @@ public class ModVisitor extends AbstractVisitor {
 			FieldNode fieldNode = null;
 			if (useInsn.getType() == InsnType.IPUT) {
 				FieldInfo field = (FieldInfo) ((IndexInsnNode) useInsn).getIndex();
-				fieldNode = parentClass.searchField(field);
+				fieldNode = cls.searchField(field);
 				if (fieldNode == null || !fieldNode.getAccessFlags().isSynthetic()) {
 					return Collections.emptyMap();
 				}

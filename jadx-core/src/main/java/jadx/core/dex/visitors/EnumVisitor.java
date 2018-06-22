@@ -16,6 +16,7 @@ import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
+import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.ClassNode;
@@ -26,6 +27,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.exceptions.JadxException;
+import org.jetbrains.annotations.Nullable;
 
 @JadxVisitor(
 		name = "EnumVisitor",
@@ -185,10 +187,18 @@ public class EnumVisitor extends AbstractVisitor {
 		}
 		InsnArg arg = putInsn.getArg(0);
 		if (arg.isInsnWrap()) {
-			InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
-			if (wrapInsn.getType() == InsnType.CONSTRUCTOR) {
-				return (ConstructorInsn) wrapInsn;
-			}
+			return castConstructorInsn(((InsnWrapArg) arg).getWrapInsn());
+		}
+		if (arg.isRegister()) {
+			return castConstructorInsn(((RegisterArg) arg).getAssignInsn());
+		}
+		return null;
+	}
+
+	@Nullable
+	private ConstructorInsn castConstructorInsn(InsnNode coCandidate) {
+		if (coCandidate != null && coCandidate.getType() == InsnType.CONSTRUCTOR) {
+			return (ConstructorInsn) coCandidate;
 		}
 		return null;
 	}
