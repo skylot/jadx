@@ -65,7 +65,7 @@ public class ResTableParser extends CommonBinaryParser {
 		ResXmlGen resGen = new ResXmlGen(resStorage, vp);
 
 		ResContainer res = ResContainer.multiFile("res");
-		res.setContent(makeDump());
+		res.setContent(makeXmlDump());
 		res.getSubFiles().addAll(resGen.makeResourcesXml());
 		return res;
 	}
@@ -79,6 +79,23 @@ public class ResTableParser extends CommonBinaryParser {
 		for (ResourceEntry ri : resStorage.getResources()) {
 			writer.startLine(ri + ": " + vp.getValueString(ri));
 		}
+		writer.finish();
+		return writer;
+	}
+	
+	public CodeWriter makeXmlDump() {
+		CodeWriter writer = new CodeWriter();
+		writer.startLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+		writer.startLine("<resources>");
+		writer.incIndent();
+
+		for (ResourceEntry ri : resStorage.getResources()) {
+			String format = String.format("<public type=\"%s\" name=\"%s\" id=\"%s\" />",
+					ri.getTypeName(), ri.getKeyName(), ri.getId());
+			writer.startLine(format);
+		}
+		writer.decIndent();
+		writer.startLine("</resources>");
 		writer.finish();
 		return writer;
 	}

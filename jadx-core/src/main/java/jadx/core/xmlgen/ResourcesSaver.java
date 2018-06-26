@@ -46,6 +46,7 @@ public class ResourcesSaver implements Runnable {
 		if (subFiles.isEmpty()) {
 			save(rc, outDir);
 		} else {
+			saveToFile(rc, new File(outDir, "res/values/public.xml"));
 			for (ResContainer subFile : subFiles) {
 				saveResources(subFile);
 			}
@@ -65,6 +66,10 @@ public class ResourcesSaver implements Runnable {
 			}
 			return;
 		}
+		saveToFile(rc, outFile);
+	}
+	
+	private void saveToFile(ResContainer rc, File outFile) {
 		CodeWriter cw = rc.getContent();
 		if (cw != null) {
 			cw.save(outFile);
