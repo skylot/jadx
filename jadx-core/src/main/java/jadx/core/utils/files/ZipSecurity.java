@@ -28,6 +28,7 @@ public class ZipSecurity {
 	public static boolean isInSubDirectory(File baseDir, File file) {
 		try {
 			file = file.getCanonicalFile();
+			baseDir = baseDir.getCanonicalFile();
 		}
 		catch(IOException e) {
 			return false;
