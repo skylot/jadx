@@ -1,6 +1,7 @@
 package jadx.core.utils.files;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.zip.ZipEntry;
 
 import org.slf4j.Logger;
@@ -14,14 +15,24 @@ public class ZipSecurity {
 
 	private ZipSecurity() {}
 
-	private static boolean isInSubDirectory(File base, File file) {
-		if (file == null) {
+	private static boolean isInSubDirectoryInternal(File baseDir, File canonFile) {
+		if (canonFile == null) {
 			return false;
 		}
-		if (file.equals(base)) {
+		if (canonFile.equals(baseDir)) {
 			return true;
 		}
-		return isInSubDirectory(base, file.getParentFile());
+		return isInSubDirectoryInternal(baseDir, canonFile.getParentFile());
+	}
+	
+	public static boolean isInSubDirectory(File baseDir, File file) {
+		try {
+			file = file.getCanonicalFile();
+		}
+		catch(IOException e) {
+			return false;
+		}
+		return isInSubDirectoryInternal(baseDir, file);
 	}
 
 	// checks that entry name contains no any traversals
@@ -30,7 +41,7 @@ public class ZipSecurity {
 		try {
 			File currentPath = new File(".").getCanonicalFile();
 			File canonical = new File(currentPath, entryName).getCanonicalFile();
-			if (isInSubDirectory(currentPath, canonical)) {
+			if (isInSubDirectoryInternal(currentPath, canonical)) {
 				return true;
 			}
 			LOG.error("Path traversal attack detected, invalid name: {}", entryName);
