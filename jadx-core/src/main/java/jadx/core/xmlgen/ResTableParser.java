@@ -3,7 +3,9 @@ package jadx.core.xmlgen;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,10 +91,13 @@ public class ResTableParser extends CommonBinaryParser {
 		writer.startLine("<resources>");
 		writer.incIndent();
 
+		Set<String> addedValues = new HashSet<>();
 		for (ResourceEntry ri : resStorage.getResources()) {
-			String format = String.format("<public type=\"%s\" name=\"%s\" id=\"%s\" />",
-					ri.getTypeName(), ri.getKeyName(), ri.getId());
-			writer.startLine(format);
+			if(addedValues.add(ri.getTypeName() + "." + ri.getKeyName())) {
+				String format = String.format("<public type=\"%s\" name=\"%s\" id=\"%s\" />",
+						ri.getTypeName(), ri.getKeyName(), ri.getId());
+				writer.startLine(format);
+			}
 		}
 		writer.decIndent();
 		writer.startLine("</resources>");
