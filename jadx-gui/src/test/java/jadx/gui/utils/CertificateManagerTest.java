@@ -69,6 +69,20 @@ public class CertificateManagerTest  {
         Assert.assertTrue(string.contains("O=\"UJMRFVV CN=EDCVBGT C=TG\""));
 
     }
+    @Test
+    public void decodeRSAKeySignature() {
+        String string = certificateManagerRSA.generateSignature();
+        Assert.assertTrue(string.contains("SHA256withRSA"));
+        Assert.assertTrue(string.contains("1.2.840.113549.1.1.11"));
+
+    }
+    @Test
+    public void decodeDSAKeySignature() {
+        String string = certificateManagerDSA.generateSignature();
+        Assert.assertTrue(string.contains("SHA1withDSA"));
+        Assert.assertTrue(string.contains("1.2.840.10040.4.3"));
+
+    }
 
 
 

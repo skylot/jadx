@@ -75,20 +75,25 @@ public class CertificateManager {
 
 	}
 
+	String generateSignature()
+	{
+		StringBuilder builder = new StringBuilder();
+		append(builder, NLS.str("certificate.serialSigType"), x509cert.getSigAlgName());
+		append(builder, NLS.str("certificate.serialSigOID"), x509cert.getSigAlgOID());
+
+		return  builder.toString();
+	}
 
 	String generateTextForX509()
 	{
 		StringBuilder builder = new StringBuilder();
 		if(x509cert!=null){
 			builder.append(generateHeader());
-
-
+			builder.append("\n");
+			builder.append(generateSignature());
 			builder.append("\n");
 
-			append(builder, NLS.str("certificate.serialSignature"), "");
 
-			append(builder, NLS.str("certificate.serialAlgName"), x509cert.getSigAlgName());
-			append(builder, NLS.str("certificate.serialSigOID"), x509cert.getSigAlgOID());
 			// Fingerprint:
 			try {
 				append(builder, NLS.str("certificate.serialMD5"), getThumbPrint(x509cert, "MD5"));
