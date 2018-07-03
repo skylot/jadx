@@ -3,10 +3,13 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
+import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.DSAPublicKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Collection;
 
 public class CertificateManager {
@@ -99,6 +102,41 @@ public class CertificateManager {
 		return  builder.toString();
 	}
 
+	String generatePublicKey()
+	{
+		PublicKey publicKey = x509cert.getPublicKey();
+		if(publicKey instanceof RSAPublicKey)
+		{
+			return generateRSAPublicKey();
+		}
+		if(publicKey instanceof DSAPublicKey)
+		{
+			return generateDSAPublicKey();
+		}
+		return "";
+	}
+	String generateRSAPublicKey()
+	{
+		RSAPublicKey pub = (RSAPublicKey) cert.getPublicKey();
+		StringBuilder builder = new StringBuilder();
+
+		append(builder, NLS.str("certificate.serialPubKeyType"), pub.getAlgorithm());
+		append(builder, NLS.str("certificate.serialPubKeyExponent"), pub.getPublicExponent().toString(10));
+		append(builder, NLS.str("certificate.serialPubKeyModulus"), pub.getModulus().toString(10));
+
+		return builder.toString();
+	}
+
+	String generateDSAPublicKey()
+	{
+		DSAPublicKey pub = (DSAPublicKey) cert.getPublicKey();
+		StringBuilder builder = new StringBuilder();
+		append(builder, NLS.str("certificate.serialPubKeyType"), pub.getAlgorithm());
+		append(builder, NLS.str("certificate.serialPubKeyY"), pub.getY().toString(10));
+
+		return builder.toString();
+
+	}
 
 	String generateTextForX509()
 	{
@@ -106,6 +144,10 @@ public class CertificateManager {
 		if(x509cert!=null){
 			builder.append(generateHeader());
 			builder.append("\n");
+
+			builder.append(generatePublicKey());
+			builder.append("\n");
+
 			builder.append(generateSignature());
 			builder.append("\n");
 			builder.append(generateFingerprint());
