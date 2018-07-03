@@ -1,7 +1,4 @@
 package jadx.gui.utils;
-
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -11,54 +8,9 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 
 public class CertificateManager {
-
-	/*
-	private String info;
-
-	CertificateManager(LinkedList<File> allFiles) {
-		info = findCertificates(allFiles);
-	}
-	public String getInfo()
-	{
-		return info;
-	}
-
-	public static String findCertificates(final LinkedList<File> allFiles) {
-		ArrayList<Certificate> certs = new ArrayList<>(2);
-		for (File file : allFiles) {
-			String path = file.getAbsolutePath();
-			path = path.toUpperCase();
-			if (path.contains("META-INF")
-					&& (path.endsWith(".RSA") || path.endsWith(".DSA"))) {
-				certs.addAll(readCertificates(file));
-			}
-		}
-		return generateText(certs);
-	}
-
-	static private Collection<? extends Certificate> readCertificates(File f) {
-		CertificateFactory cf;
-		try {
-			cf = CertificateFactory.getInstance("X.509");
-			InputStream in = new FileInputStream(f);
-			Collection<? extends Certificate> certs = cf.generateCertificates(in);
-			in.close();
-			return certs;
-		} catch (Exception e) {
-
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-*/
-
-
 	static public String decode(InputStream in){
 		StringBuilder strBuild = new StringBuilder();
 		Collection<? extends Certificate> certificates =readCertificates(in);
@@ -95,27 +47,25 @@ public class CertificateManager {
 			if (cert instanceof X509Certificate) {
 				X509Certificate x509cert = (X509Certificate) cert;
 
+				append(str, NLS.str("certificate.serialSigVer"),((Integer) x509cert.getVersion()).toString());
+				// seral number
+				append(str, NLS.str("certificate.serialNumber"), "0x" + x509cert.getSerialNumber().toString(16));
+
 				// Get subject
 				Principal subjectDN = x509cert.getSubjectDN();
 				append(str, NLS.str("certificate.cert_subject"), subjectDN.getName());
 
 				// Get issuer
-				Principal issuerDN = x509cert.getIssuerDN();
-				append(str, NLS.str("certificate.cert_issuer"), issuerDN.getName());
+//				Principal issuerDN = x509cert.getIssuerDN();
+//				append(str, NLS.str("certificate.cert_issuer"), issuerDN.getName());
 
-				// seral number
-				append(str, NLS.str("certificate.serialNumber"), "0x"
-						+ x509cert.getSerialNumber().toString(16));
 
-				append(str, NLS.str("certificate.serialValidFrom"), x509cert.getNotBefore()
-						.toString());
-				append(str, NLS.str("certificate.serialValidUntil"), x509cert.getNotAfter()
-						.toString());
+				append(str, NLS.str("certificate.serialValidFrom"), x509cert.getNotBefore().toString());
+				append(str, NLS.str("certificate.serialValidUntil"), x509cert.getNotAfter().toString());
 				str.append("\n");
 
 				append(str, NLS.str("certificate.serialSignature"), "");
-				append(str, NLS.str("certificate.serialSigVer"),
-						((Integer) x509cert.getVersion()).toString());
+
 				append(str, NLS.str("certificate.serialAlgName"), x509cert.getSigAlgName());
 				append(str, NLS.str("certificate.serialSigOID"), x509cert.getSigAlgOID());
 				// Fingerprint:
@@ -123,20 +73,20 @@ public class CertificateManager {
 					append(str, NLS.str("certificate.serialMD5"), getThumbPrint(x509cert, "MD5"));
 					append(str, NLS.str("certificate.serialSHA1"), getThumbPrint(x509cert, "SHA-1"));
 					append(str, NLS.str("certificate.serialSHA256"), getThumbPrint(x509cert, "SHA-256"));
+/*
+					RSAPublicKey pub = (RSAPublicKey) cert.getPublicKey();
+					append(str, NLS.str("certificate.serialPubKey"), "");
+					append(str, NLS.str("certificate.serialAlgName"), pub.getAlgorithm());
+					append(str, NLS.str("certificate.serialPubKeyExponent"), pub.getPublicExponent().toString(10));
+					append(str, NLS.str("certificate.serialPubKeyModulus"), pub.getModulus().toString(10));
+*/
+
 				} catch (CertificateEncodingException
 						| NoSuchAlgorithmException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				str.append("\n");
 
-			/*	RSAPublicKey pub = (RSAPublicKey) cert.getPublicKey();
-
-				append(str, NLS.str("certificate.serialPubKey"), "");
-				append(str, NLS.str("certificate.serialAlgName"), pub.getAlgorithm());
-				append(str, NLS.str("certificate.serialPubKeyExponent"), pub.getPublicExponent().toString(16));
-				append(str, NLS.str("certificate.serialPubKeyModulus"), pub.getModulus().toString(10));
-*/
 			}
 
 		}

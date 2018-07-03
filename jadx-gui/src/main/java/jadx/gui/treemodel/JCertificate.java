@@ -1,14 +1,11 @@
 package jadx.gui.treemodel;
 import jadx.api.ResourceFile;
-
-import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.ZipSecurity;
 import jadx.gui.utils.CertificateManager;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
 import javax.swing.*;
 import java.io.*;
-import java.util.LinkedList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -39,15 +36,7 @@ public class JCertificate extends JNode {
 	@Override
 	public String getContent() {
 
-/*
-		ResourceFile.ZipRef zipRef = rf.getZipRef();
-		if (zipRef == null) {
-			File file = new File(rf.getName());
-			LinkedList<File> list = new LinkedList<>();
-			list.add(file);
-			return CertificateManager.findCertificates(list);
-		}
-*/
+
 		try {
 			ResourceFile.ZipRef zipRef = rf.getZipRef();
 			if (zipRef == null) {
@@ -73,18 +62,8 @@ public class JCertificate extends JNode {
 			e.printStackTrace();
 		//	throw new JadxException("Error decode: " + rf.getName(), e);
 		}
-		/*
-		if (!loaded && resFile != null && type == JResource.JResType.FILE) {
-			loaded = true;
-			if (isSupportedForView(resFile.getType())) {
-				ResContainer rc = resFile.loadContent();
-				if (rc != null) {
-					addSubFiles(rc, this, 0);
-				}
-			}
-		}
-		return content;*/
-		return "test";
+
+		return null;
 	}
 
 
