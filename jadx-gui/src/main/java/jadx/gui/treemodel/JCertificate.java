@@ -36,7 +36,6 @@ public class JCertificate extends JNode {
 	@Override
 	public String getContent() {
 
-
 		try {
 			ResourceFile.ZipRef zipRef = rf.getZipRef();
 			if (zipRef == null) {

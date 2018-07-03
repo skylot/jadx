@@ -7,15 +7,16 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.security.interfaces.RSAPublicKey;
 import java.util.Collection;
 
 public class CertificateManager {
 	static public String decode(InputStream in){
 		StringBuilder strBuild = new StringBuilder();
 		Collection<? extends Certificate> certificates =readCertificates(in);
-		for(Certificate cert:certificates){
-			strBuild.append(generateText(cert));
+		if(certificates!=null) {
+			for (Certificate cert : certificates) {
+				strBuild.append(generateText(cert));
+			}
 		}
 		return strBuild.toString();
 	}
@@ -58,6 +59,8 @@ public class CertificateManager {
 				// Get issuer
 //				Principal issuerDN = x509cert.getIssuerDN();
 //				append(str, NLS.str("certificate.cert_issuer"), issuerDN.getName());
+
+
 
 
 				append(str, NLS.str("certificate.serialValidFrom"), x509cert.getNotBefore().toString());
