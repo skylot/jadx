@@ -80,9 +80,25 @@ public class CertificateManager {
 		StringBuilder builder = new StringBuilder();
 		append(builder, NLS.str("certificate.serialSigType"), x509cert.getSigAlgName());
 		append(builder, NLS.str("certificate.serialSigOID"), x509cert.getSigAlgOID());
-
 		return  builder.toString();
 	}
+
+	String generateFingerprint()
+	{
+		StringBuilder builder = new StringBuilder();
+		try {
+			append(builder, NLS.str("certificate.serialMD5"), getThumbPrint(x509cert, "MD5"));
+			append(builder, NLS.str("certificate.serialSHA1"), getThumbPrint(x509cert, "SHA-1"));
+			append(builder, NLS.str("certificate.serialSHA256"), getThumbPrint(x509cert, "SHA-256"));
+
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (CertificateEncodingException e) {
+			e.printStackTrace();
+		}
+		return  builder.toString();
+	}
+
 
 	String generateTextForX509()
 	{
@@ -92,13 +108,12 @@ public class CertificateManager {
 			builder.append("\n");
 			builder.append(generateSignature());
 			builder.append("\n");
+			builder.append(generateFingerprint());
 
 
 			// Fingerprint:
-			try {
-				append(builder, NLS.str("certificate.serialMD5"), getThumbPrint(x509cert, "MD5"));
-				append(builder, NLS.str("certificate.serialSHA1"), getThumbPrint(x509cert, "SHA-1"));
-				append(builder, NLS.str("certificate.serialSHA256"), getThumbPrint(x509cert, "SHA-256"));
+
+
 /*
 					RSAPublicKey pub = (RSAPublicKey) cert.getPublicKey();
 					append(str, NLS.str("certificate.serialPubKey"), "");
@@ -107,10 +122,7 @@ public class CertificateManager {
 					append(str, NLS.str("certificate.serialPubKeyModulus"), pub.getModulus().toString(10));
 */
 
-			} catch (CertificateEncodingException
-					| NoSuchAlgorithmException e) {
-				e.printStackTrace();
-			}
+
 
 		}
 

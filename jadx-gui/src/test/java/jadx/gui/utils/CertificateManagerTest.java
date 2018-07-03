@@ -74,14 +74,26 @@ public class CertificateManagerTest  {
         String string = certificateManagerRSA.generateSignature();
         Assert.assertTrue(string.contains("SHA256withRSA"));
         Assert.assertTrue(string.contains("1.2.840.113549.1.1.11"));
-
     }
     @Test
     public void decodeDSAKeySignature() {
         String string = certificateManagerDSA.generateSignature();
         Assert.assertTrue(string.contains("SHA1withDSA"));
         Assert.assertTrue(string.contains("1.2.840.10040.4.3"));
-
+    }
+    @Test
+    public void decodeRSAFingerprint() {
+        String string = certificateManagerRSA.generateFingerprint();
+        Assert.assertTrue(string.contains("61 18 0A 71 3F C9 55 16 4E 04 E3 C5 45 08 D9 11"));
+        Assert.assertTrue(string.contains("A0 6E A6 06 DB 2C 6F 3A 16 56 7F 75 97 7B AE 85 C2 13 09 37"));
+        Assert.assertTrue(string.contains("12 53 E8 BB C8 AA 27 A8 49 9B F8 0D 6E 68 CE 32 35 50 DE 55 A7 E7 8C 29 51 00 96 D7 56 F4 54 44"));
+    }
+    @Test
+    public void decodeDSAFingerprint() {
+        String string = certificateManagerDSA.generateFingerprint();
+        Assert.assertTrue(string.contains("D9 06 A6 2D 1F 79 8C 9D A6 EF 40 C7 2E C2 EA 0B"));
+        Assert.assertTrue(string.contains("18 E9 9C D4 A1 40 8F 63 FA EC 2E 62 A0 F2 AE B7 3F C3 C2 04"));
+        Assert.assertTrue(string.contains("74 F9 48 64 EE AC 92 26 53 2C 7A 0E 55 BE 5E D8 2F A7 D9 A9 99 F5 D5 21 2C 51 21 C4 31 AD 73 40"));
     }
 
 
