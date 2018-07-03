@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsAdapter;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.utils.LogCollector;
+import jadx.gui.utils.logs.LogCollector;
 
 public class JadxGUI {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxGUI.class);

@@ -7,8 +7,9 @@ import ch.qos.logback.classic.Level;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 import jadx.gui.settings.JadxSettings;
-import jadx.gui.utils.LogCollector;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.logs.ILogListener;
+import jadx.gui.utils.logs.LogCollector;
 
 class LogViewer extends JDialog {
 	private static final long serialVersionUID = -2188700277429054641L;
@@ -67,7 +68,7 @@ class LogViewer extends JDialog {
 		LogCollector logCollector = LogCollector.getInstance();
 		logCollector.resetListener();
 		textPane.setText("");
-		logCollector.registerListener(new LogCollector.ILogListener() {
+		logCollector.registerListener(new ILogListener() {
 			@Override
 			public Level getFilterLevel() {
 				return level;
@@ -75,10 +76,7 @@ class LogViewer extends JDialog {
 
 			@Override
 			public void onAppend(final String logStr) {
-				SwingUtilities.invokeLater(() -> {
-					textPane.append(logStr);
-					textPane.updateUI();
-				});
+				SwingUtilities.invokeLater(() -> textPane.append(logStr));
 			}
 		});
 	}
