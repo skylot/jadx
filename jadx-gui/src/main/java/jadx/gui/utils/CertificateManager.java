@@ -10,17 +10,21 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 
 public class CertificateManager {
+
 	static public String decode(InputStream in){
 		StringBuilder strBuild = new StringBuilder();
-		Collection<? extends Certificate> certificates =readCertificates(in);
+		Collection<? extends Certificate> certificates = readCertificates(in);
 		if(certificates!=null) {
 			for (Certificate cert : certificates) {
-				strBuild.append(generateText(cert));
+				CertificateManager certificateManager= new CertificateManager(cert);
+				strBuild.append(certificateManager.generateText());
 			}
 		}
 		return strBuild.toString();
 	}
-	static private Collection<? extends Certificate> readCertificates(InputStream in) {
+
+
+	 static Collection<? extends Certificate> readCertificates(InputStream in) {
 		CertificateFactory cf;
 		try {
 			cf = CertificateFactory.getInstance("X.509");
@@ -28,54 +32,68 @@ public class CertificateManager {
 			in.close();
 			return certs;
 		} catch (Exception e) {
-
 			e.printStackTrace();
 		}
 		return null;
 	}
 
 
-	static String generateText(Certificate cert) {
-		StringBuilder str = new StringBuilder();
+	private X509Certificate x509cert;
+	private Certificate cert;
+
+	public  CertificateManager(Certificate cert)
+	{
+		this.cert = cert;
 		String type = cert.getType();
-		append(str, NLS.str("certificate.cert_type"), type);
-		if (!type.equals("X.509")) {
-			str.append(cert.toString());
-
-		} else {
-
-
+		if (type.equals("X.509")) {
 			if (cert instanceof X509Certificate) {
-				X509Certificate x509cert = (X509Certificate) cert;
-
-				append(str, NLS.str("certificate.serialSigVer"),((Integer) x509cert.getVersion()).toString());
-				// seral number
-				append(str, NLS.str("certificate.serialNumber"), "0x" + x509cert.getSerialNumber().toString(16));
-
-				// Get subject
-				Principal subjectDN = x509cert.getSubjectDN();
-				append(str, NLS.str("certificate.cert_subject"), subjectDN.getName());
-
-				// Get issuer
-//				Principal issuerDN = x509cert.getIssuerDN();
-//				append(str, NLS.str("certificate.cert_issuer"), issuerDN.getName());
+				x509cert = (X509Certificate) cert;
+			}
+		}
+	}
 
 
+	String generateHeader()
+	{
+		StringBuilder builder = new StringBuilder();
+		append(builder, NLS.str("certificate.cert_type"), x509cert.getType());
+		append(builder, NLS.str("certificate.serialSigVer"),((Integer) x509cert.getVersion()).toString());
+		// seral number
+		append(builder, NLS.str("certificate.serialNumber"), "0x" + x509cert.getSerialNumber().toString(16));
+
+		// Get subject
+		Principal subjectDN = x509cert.getSubjectDN();
+		append(builder, NLS.str("certificate.cert_subject"), subjectDN.getName());
+
+		// Get issuer
+//		Principal issuerDN = x509cert.getIssuerDN();
+//		append(str, NLS.str("certificate.cert_issuer"), issuerDN.getName());
+
+		append(builder, NLS.str("certificate.serialValidFrom"), x509cert.getNotBefore().toString());
+		append(builder, NLS.str("certificate.serialValidUntil"), x509cert.getNotAfter().toString());
+		return  builder.toString();
+
+	}
 
 
-				append(str, NLS.str("certificate.serialValidFrom"), x509cert.getNotBefore().toString());
-				append(str, NLS.str("certificate.serialValidUntil"), x509cert.getNotAfter().toString());
-				str.append("\n");
+	String generateTextForX509()
+	{
+		StringBuilder builder = new StringBuilder();
+		if(x509cert!=null){
+			builder.append(generateHeader());
 
-				append(str, NLS.str("certificate.serialSignature"), "");
 
-				append(str, NLS.str("certificate.serialAlgName"), x509cert.getSigAlgName());
-				append(str, NLS.str("certificate.serialSigOID"), x509cert.getSigAlgOID());
-				// Fingerprint:
-				try {
-					append(str, NLS.str("certificate.serialMD5"), getThumbPrint(x509cert, "MD5"));
-					append(str, NLS.str("certificate.serialSHA1"), getThumbPrint(x509cert, "SHA-1"));
-					append(str, NLS.str("certificate.serialSHA256"), getThumbPrint(x509cert, "SHA-256"));
+			builder.append("\n");
+
+			append(builder, NLS.str("certificate.serialSignature"), "");
+
+			append(builder, NLS.str("certificate.serialAlgName"), x509cert.getSigAlgName());
+			append(builder, NLS.str("certificate.serialSigOID"), x509cert.getSigAlgOID());
+			// Fingerprint:
+			try {
+				append(builder, NLS.str("certificate.serialMD5"), getThumbPrint(x509cert, "MD5"));
+				append(builder, NLS.str("certificate.serialSHA1"), getThumbPrint(x509cert, "SHA-1"));
+				append(builder, NLS.str("certificate.serialSHA256"), getThumbPrint(x509cert, "SHA-256"));
 /*
 					RSAPublicKey pub = (RSAPublicKey) cert.getPublicKey();
 					append(str, NLS.str("certificate.serialPubKey"), "");
@@ -84,14 +102,30 @@ public class CertificateManager {
 					append(str, NLS.str("certificate.serialPubKeyModulus"), pub.getModulus().toString(10));
 */
 
-				} catch (CertificateEncodingException
-						| NoSuchAlgorithmException e) {
-					e.printStackTrace();
-				}
-				str.append("\n");
-
+			} catch (CertificateEncodingException
+					| NoSuchAlgorithmException e) {
+				e.printStackTrace();
 			}
 
+		}
+
+
+
+
+		return builder.toString();
+
+
+	}
+
+
+
+	 private String generateText() {
+		StringBuilder str = new StringBuilder();
+		String type = cert.getType();
+		if (!type.equals("X.509")) {
+			str.append(cert.toString());
+		} else {
+			str.append(generateTextForX509());
 		}
 		return str.toString();
 	}
