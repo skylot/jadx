@@ -11,7 +11,8 @@ public class CertificatePanel extends ContentPanel {
         setLayout(new BorderLayout());
         JTextArea textArea = new JTextArea(jnode.getContent());
         textArea.setFont(textArea.getFont().deriveFont(12f)); // will only change size to 12pt
-        add(textArea);
+        JScrollPane sp = new JScrollPane(textArea);
+        add(sp);
     }
 
     @Override
