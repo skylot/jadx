@@ -77,7 +77,8 @@ public class RenameVisitor extends AbstractVisitor {
 
 	private void checkClassName(ClassNode cls) {
 		ClassInfo classInfo = cls.getClassInfo();
-		String clsName = classInfo.getAlias().getShortName();
+		ClassInfo alias = classInfo.getAlias();
+		String clsName = alias.getShortName();
 		String newShortName = null;
 		char firstChar = clsName.charAt(0);
 		if (Character.isDigit(firstChar)) {
@@ -86,10 +87,10 @@ public class RenameVisitor extends AbstractVisitor {
 			newShortName = "C" + clsName;
 		}
 		if (newShortName != null) {
-			classInfo.rename(cls.root(), classInfo.makeFullClsName(newShortName, true));
+			classInfo.rename(cls.root(), alias.makeFullClsName(newShortName, true));
 		}
-		if (classInfo.getAlias().getPackage().isEmpty()) {
-			String fullName = classInfo.makeFullClsName(classInfo.getAlias().getShortName(), true);
+		if (alias.getPackage().isEmpty()) {
+			String fullName = alias.makeFullClsName(alias.getShortName(), true);
 			String newFullName = Consts.DEFAULT_PACKAGE_NAME + "." + fullName;
 			classInfo.rename(cls.root(), newFullName);
 		}

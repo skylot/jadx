@@ -1,21 +1,25 @@
-package jadx.gui.utils;
+package jadx.gui.utils.logs;
+
+import java.util.Deque;
+import java.util.LinkedList;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.Layout;
-import ch.qos.logback.core.read.CyclicBufferAppender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
-public class LogCollector extends CyclicBufferAppender<ILoggingEvent> {
-	private static LogCollector instance = new LogCollector();
+public class LogCollector extends AppenderBase<ILoggingEvent> {
+	public static final int BUFFER_SIZE = 5000;
 
+	private static final LogCollector INSTANCE = new LogCollector();
 	public static LogCollector getInstance() {
-		return instance;
+		return INSTANCE;
 	}
 
 	public static void register() {
@@ -27,18 +31,11 @@ public class LogCollector extends CyclicBufferAppender<ILoggingEvent> {
 		layout.setPattern("%-5level: %msg%n");
 		layout.start();
 
-		instance.setContext(loggerContext);
-		instance.setLayout(layout);
-		instance.start();
+		INSTANCE.setContext(loggerContext);
+		INSTANCE.setLayout(layout);
+		INSTANCE.start();
 
-		rootLogger.addAppender(instance);
-	}
-
-	public interface ILogListener {
-
-		Level getFilterLevel();
-
-		void onAppend(String logStr);
+		rootLogger.addAppender(INSTANCE);
 	}
 
 	private Layout<ILoggingEvent> layout;
@@ -46,19 +43,28 @@ public class LogCollector extends CyclicBufferAppender<ILoggingEvent> {
 	@Nullable
 	private ILogListener listener;
 
+	private final Deque<LogEvent> buffer = new LinkedList<>();
+
 	public LogCollector() {
 		setName("LogCollector");
-		setMaxSize(5000);
 	}
 
 	@Override
 	protected void append(ILoggingEvent event) {
-		super.append(event);
-		if (listener != null
-				&& event.getLevel().isGreaterOrEqual(listener.getFilterLevel())) {
-			synchronized (this) {
-				listener.onAppend(layout.doLayout(event));
+		synchronized (this) {
+			Level level = event.getLevel();
+			String msg = layout.doLayout(event);
+			store(level, msg);
+			if (listener != null && level.isGreaterOrEqual(listener.getFilterLevel())) {
+				listener.onAppend(msg);
 			}
+		}
+	}
+
+	private void store(Level level, String msg) {
+		buffer.addLast(new LogEvent(level, msg));
+		if (buffer.size() > BUFFER_SIZE) {
+			buffer.pollFirst();
 		}
 	}
 
@@ -79,11 +85,9 @@ public class LogCollector extends CyclicBufferAppender<ILoggingEvent> {
 
 	private String init(Level filterLevel) {
 		StringBuilder sb = new StringBuilder();
-		int length = getLength();
-		for (int i = 0; i < length; i++) {
-			ILoggingEvent event = get(i);
+		for (LogEvent event : buffer) {
 			if (event.getLevel().isGreaterOrEqual(filterLevel)) {
-				sb.append(layout.doLayout(event));
+				sb.append(event.getMsg());
 			}
 		}
 		return sb.toString();

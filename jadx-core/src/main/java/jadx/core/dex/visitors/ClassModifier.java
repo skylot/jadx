@@ -67,9 +67,7 @@ public class ClassModifier extends AbstractVisitor {
 				ClassInfo clsInfo = ClassInfo.fromType(cls.root(), field.getType());
 				ClassNode fieldsCls = cls.dex().resolveClass(clsInfo);
 				ClassInfo parentClass = cls.getClassInfo().getParentClass();
-				if (fieldsCls != null
-						&& parentClass.equals(fieldsCls.getClassInfo())
-						&& field.getName().startsWith("this$") /* TODO: don't check name */) {
+				if (fieldsCls != null && parentClass.equals(fieldsCls.getClassInfo())) {
 					int found = 0;
 					for (MethodNode mth : cls.getMethods()) {
 						if (removeFieldUsageFromConstructor(mth, field, fieldsCls)) {

@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.core.codegen.CodeWriter;
+import jadx.core.utils.files.ZipSecurity;
 
 import static jadx.core.utils.files.FileUtils.prepareFile;
 
@@ -46,6 +47,7 @@ public class ResourcesSaver implements Runnable {
 		if (subFiles.isEmpty()) {
 			save(rc, outDir);
 		} else {
+			saveToFile(rc, new File(outDir, "res/values/public.xml"));
 			for (ResContainer subFile : subFiles) {
 				saveResources(subFile);
 			}
@@ -59,12 +61,29 @@ public class ResourcesSaver implements Runnable {
 			String ext = FilenameUtils.getExtension(outFile.getName());
 			try {
 				outFile = prepareFile(outFile);
+				
+				if(!ZipSecurity.isInSubDirectory(outDir, outFile)) {
+					LOG.error("Path traversal attack detected, invalid resource name: {}",
+							outFile.getPath());
+					return;
+				}
+				
 				ImageIO.write(image, ext, outFile);
 			} catch (IOException e) {
 				LOG.error("Failed to save image: {}", rc.getName(), e);
 			}
 			return;
 		}
+		
+		if(!ZipSecurity.isInSubDirectory(outDir, outFile)) {
+			LOG.error("Path traversal attack detected, invalid resource name: {}",
+					rc.getFileName());
+			return;
+		}
+		saveToFile(rc, outFile);
+	}
+	
+	private void saveToFile(ResContainer rc, File outFile) {
 		CodeWriter cw = rc.getContent();
 		if (cw != null) {
 			cw.save(outFile);
