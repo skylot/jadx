@@ -152,24 +152,7 @@ public class CertificateManager {
 			builder.append("\n");
 			builder.append(generateFingerprint());
 
-
-			// Fingerprint:
-
-
-/*
-					RSAPublicKey pub = (RSAPublicKey) cert.getPublicKey();
-					append(str, NLS.str("certificate.serialPubKey"), "");
-					append(str, NLS.str("certificate.serialAlgName"), pub.getAlgorithm());
-					append(str, NLS.str("certificate.serialPubKeyExponent"), pub.getPublicExponent().toString(10));
-					append(str, NLS.str("certificate.serialPubKeyModulus"), pub.getModulus().toString(10));
-*/
-
-
-
 		}
-
-
-
 
 		return builder.toString();
 
