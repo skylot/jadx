@@ -83,8 +83,8 @@ public class JRoot extends JNode {
 		for (ResourceFile rf : resources) {
 
 			if (rf.getZipRef() != null) {
-				String rfName = rf.getName();
-				if (rfName.contains("/CERT.DSA")||rfName.contains("/CERT.RSA")) {
+				String rfName = rf.getName().toUpperCase();
+				if (rfName.endsWith(".DSA")||rfName.endsWith(".RSA")) {
 					return new JCertificate(rf);
 				}
 
