@@ -180,6 +180,9 @@ public class SignatureParser {
 				next();
 				// type parsing not completed, proceed to inner class
 				ArgType inner = consumeObjectType(true);
+				if (inner == null) {
+					throw new JadxRuntimeException("No inner type found: " + debugString());
+				}
 				return ArgType.genericInner(genericType, inner.getObject(), inner.getGenericTypes());
 			} else {
 				consume(';');
@@ -289,6 +292,9 @@ public class SignatureParser {
 	}
 
 	private String debugString() {
+		if (pos >= sign.length()) {
+			return sign;
+		}
 		return sign + " at position " + pos + " ('" + sign.charAt(pos) + "')";
 	}
 

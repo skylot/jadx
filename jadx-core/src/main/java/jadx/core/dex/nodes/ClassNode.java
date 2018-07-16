@@ -192,23 +192,23 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 					break;
 				}
 			}
-		} catch (JadxRuntimeException e) {
+		} catch (Exception e) {
 			LOG.error("Class signature parse error: {}", this, e);
 		}
 	}
 
 	private void setFieldsTypesFromSignature() {
 		for (FieldNode field : fields) {
-			SignatureParser sp = SignatureParser.fromNode(field);
-			if (sp != null) {
-				try {
+			try {
+				SignatureParser sp = SignatureParser.fromNode(field);
+				if (sp != null) {
 					ArgType gType = sp.consumeType();
 					if (gType != null) {
 						field.setType(gType);
 					}
-				} catch (JadxRuntimeException e) {
-					LOG.error("Field signature parse error: {}", field, e);
 				}
+			} catch (Exception e) {
+				LOG.error("Field signature parse error: {}.{}", this.getFullName(), field.getName(), e);
 			}
 		}
 	}
