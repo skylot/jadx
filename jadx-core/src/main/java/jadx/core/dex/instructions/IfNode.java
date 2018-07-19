@@ -68,15 +68,16 @@ public class IfNode extends GotoNode {
 
 	@Override
 	public boolean replaceTargetBlock(BlockNode origin, BlockNode replace) {
+		boolean replaced = false;
 		if (thenBlock == origin) {
 			thenBlock = replace;
-			return true;
+			replaced = true;
 		}
 		if (elseBlock == origin) {
 			elseBlock = replace;
-			return true;
+			replaced = true;
 		}
-		return false;
+		return replaced;
 	}
 
 	public BlockNode getThenBlock() {
