@@ -79,7 +79,6 @@ public class BlockProcessor extends AbstractVisitor {
 
 	private static boolean removeEmptyBlock(BlockNode block) {
 		if (canRemoveBlock(block)) {
-			LOG.debug("Removing empty block: {}", block);
 			if (block.getSuccessors().size() == 1) {
 				BlockNode successor = block.getSuccessors().get(0);
 				block.getPredecessors().forEach(pred -> {

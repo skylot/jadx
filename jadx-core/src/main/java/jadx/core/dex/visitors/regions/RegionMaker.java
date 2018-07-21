@@ -12,7 +12,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.EdgeInsnAttr;
@@ -43,7 +42,6 @@ import jadx.core.utils.BlockUtils;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.RegionUtils;
-import jadx.core.utils.exceptions.JadxOverflowException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.visitors.regions.IfMakerHelper.confirmMerge;
@@ -62,12 +60,20 @@ public class RegionMaker {
 
 	private final MethodNode mth;
 	private int regionsCount;
+	private Region[] regionByBlock;
 
 	public RegionMaker(MethodNode mth) {
 		this.mth = mth;
+		this.regionByBlock = new Region[mth.getBasicBlocks().size()];
 	}
 
 	public Region makeRegion(BlockNode startBlock, RegionStack stack) {
+		int startBlockId = startBlock.getId();
+		Region region = regionByBlock[startBlockId];
+		if (region != null) {
+			return region;
+		}
+
 		Region r = new Region(stack.peekRegion());
 		BlockNode next = startBlock;
 		while (next != null) {
@@ -77,6 +83,7 @@ public class RegionMaker {
 				throw new JadxRuntimeException("Regions count limit reached");
 			}
 		}
+		regionByBlock[startBlockId] = r;
 		return r;
 	}
 

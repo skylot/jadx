@@ -5,7 +5,7 @@ import jadx.core.utils.InsnUtils;
 
 public class GotoNode extends TargetInsnNode {
 
-	protected int target;
+	protected final int target;
 
 	public GotoNode(int target) {
 		this(InsnType.GOTO, target, 0);

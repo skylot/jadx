@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.function.Function;
 
 import jadx.api.JadxDecompiler;
 
@@ -26,19 +27,30 @@ public class Utils {
 		return 'L' + obj.replace('.', '/') + ';';
 	}
 
-	public static String listToString(Iterable<?> list) {
-		if (list == null) {
+	public static String listToString(Iterable<?> objects) {
+		return listToString(objects, ", ");
+	}
+
+	public static String listToString(Iterable<?> objects, String joiner) {
+		if (objects == null) {
 			return "";
 		}
-		StringBuilder str = new StringBuilder();
-		for (Iterator<?> it = list.iterator(); it.hasNext(); ) {
-			Object o = it.next();
-			str.append(o);
-			if (it.hasNext()) {
-				str.append(", ");
-			}
+		StringBuilder sb = new StringBuilder();
+		listToString(sb, objects, joiner, Object::toString);
+		return sb.toString();
+	}
+
+	public static <T> void listToString(StringBuilder sb, Iterable<T> objects, String joiner, Function<T, String> toStr) {
+		if (objects == null) {
+			return;
 		}
-		return str.toString();
+		Iterator<T> it = objects.iterator();
+		if (it.hasNext()) {
+			sb.append(toStr.apply(it.next()));
+		}
+		while (it.hasNext()) {
+			sb.append(joiner).append(toStr.apply(it.next()));
+		}
 	}
 
 	public static String arrayToString(Object[] array) {

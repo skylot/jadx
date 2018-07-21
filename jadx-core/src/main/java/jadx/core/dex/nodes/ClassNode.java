@@ -240,7 +240,6 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 			}
 		}
 		this.addAttr(new SourceFileAttr(fileName));
-		LOG.debug("Class '{}' compiled from '{}'", this, fileName);
 	}
 
 	@Override
@@ -486,7 +485,6 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 			return clsInfo.equals(other.clsInfo);
 		}
 		return false;
-
 	}
 
 	@Override

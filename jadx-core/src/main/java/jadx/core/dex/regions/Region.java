@@ -5,6 +5,7 @@ import java.util.List;
 
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
+import jadx.core.utils.Utils;
 
 public final class Region extends AbstractRegion {
 
@@ -39,15 +40,19 @@ public final class Region extends AbstractRegion {
 	@Override
 	public String baseString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(blocks.size());
-		for (IContainer cont : blocks) {
-			sb.append(cont.baseString());
+		int size = blocks.size();
+		sb.append('(');
+		sb.append(size);
+		if (size > 0) {
+			sb.append(':');
+			Utils.listToString(sb, blocks, "|", IContainer::baseString);
 		}
+		sb.append(')');
 		return sb.toString();
 	}
 
 	@Override
 	public String toString() {
-		return "R:" + baseString();
+		return "R" + baseString();
 	}
 }

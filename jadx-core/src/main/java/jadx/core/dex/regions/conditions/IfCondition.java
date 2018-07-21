@@ -142,11 +142,10 @@ public final class IfCondition {
 			Compare c = cond.getCompare();
 			simplifyCmpOp(c);
 			if (c.getOp() == IfOp.EQ && c.getB().isLiteral() && c.getB().equals(LiteralArg.FALSE)) {
-				return not(new IfCondition(c.invert()));
+				cond = not(new IfCondition(c.invert()));
 			} else {
 				c.normalize();
 			}
-			return cond;
 		}
 		List<IfCondition> args = null;
 		for (int i = 0; i < cond.getArgs().size(); i++) {
@@ -225,7 +224,7 @@ public final class IfCondition {
 			case TERNARY:
 				return first() + " ? " + second() + " : " + third();
 			case NOT:
-				return "!" + first();
+				return "!(" + first() + ")";
 			case AND:
 			case OR:
 				String op = mode == Mode.OR ? " || " : " && ";
