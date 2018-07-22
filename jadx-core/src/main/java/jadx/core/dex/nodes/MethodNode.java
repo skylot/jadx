@@ -152,8 +152,12 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 		}
 		instructions = null;
 		blocks = null;
+		enterBlock = null;
 		exitBlocks = null;
 		exceptionHandlers.clear();
+		sVars.clear();
+		region = null;
+		loops.clear();
 	}
 
 	private boolean parseSignature() {
