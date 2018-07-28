@@ -15,6 +15,8 @@ import jadx.core.utils.BlockUtils;
 import jadx.core.utils.EmptyBitSet;
 import jadx.core.utils.InsnUtils;
 
+import static jadx.core.utils.Utils.lockList;
+
 public class BlockNode extends AttrNode implements IBlock {
 
 	private int id;
@@ -68,13 +70,6 @@ public class BlockNode extends AttrNode implements IBlock {
 		successors = lockList(successors);
 		predecessors = lockList(predecessors);
 		dominatesOn = lockList(dominatesOn);
-	}
-
-	List<BlockNode> lockList(List<BlockNode> list) {
-		if (list.isEmpty()) {
-			return Collections.emptyList();
-		}
-		return Collections.unmodifiableList(list);
 	}
 
 	/**

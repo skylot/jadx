@@ -43,6 +43,8 @@ import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
+import static jadx.core.utils.Utils.lockList;
+
 public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodNode.class);
 
@@ -154,10 +156,10 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 		blocks = null;
 		enterBlock = null;
 		exitBlocks = null;
-		exceptionHandlers.clear();
+		exceptionHandlers = Collections.emptyList();
 		sVars.clear();
 		region = null;
-		loops.clear();
+		loops = Collections.emptyList();
 	}
 
 	private boolean parseSignature() {
@@ -407,21 +409,10 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 	}
 
 	public void finishBasicBlocks() {
-		trimList(blocks);
-		trimList(exitBlocks);
-
-		blocks = Collections.unmodifiableList(blocks);
-		exitBlocks = Collections.unmodifiableList(exitBlocks);
-
-		for (BlockNode block : blocks) {
-			block.lock();
-		}
-	}
-
-	private void trimList(List<BlockNode> blocks) {
-		if (blocks instanceof ArrayList) {
-			((ArrayList<BlockNode>)blocks).trimToSize();
-		}
+		blocks = lockList(blocks);
+		exitBlocks = lockList(exitBlocks);
+		loops = lockList(loops);
+		blocks.forEach(BlockNode::lock);
 	}
 
 	public List<BlockNode> getBasicBlocks() {

@@ -3,7 +3,9 @@ package jadx.core.utils;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.function.Function;
 
 import jadx.api.JadxDecompiler;
@@ -106,5 +108,16 @@ public class Utils {
 		if (cutIndex > 0 && cutIndex < length) {
 			th.setStackTrace(Arrays.copyOfRange(stackTrace, 0, cutIndex));
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> List<T> lockList(List<T> list) {
+		if (list.isEmpty()) {
+			return Collections.emptyList();
+		}
+		if (list.size() == 1) {
+			return Collections.singletonList(list.get(0));
+		}
+		return new ImmutableList<>(list.toArray());
 	}
 }
