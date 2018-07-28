@@ -91,6 +91,7 @@ public class BlockSplitter extends AbstractVisitor {
 					startNew = isSplitByJump(prevInsn, insn)
 							|| SEPARATE_INSNS.contains(insn.getType())
 							|| isDoWhile(blocksMap, curBlock, insn)
+							|| insn.contains(AType.EXC_HANDLER)
 							|| prevInsn.contains(AFlag.TRY_LEAVE)
 							|| prevInsn.getType() == InsnType.MOVE_EXCEPTION;
 					if (startNew) {

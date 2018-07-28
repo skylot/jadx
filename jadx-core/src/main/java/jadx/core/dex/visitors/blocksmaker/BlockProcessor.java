@@ -418,8 +418,9 @@ public class BlockProcessor extends AbstractVisitor {
 				boolean change = false;
 				for (Edge edge : edges) {
 					BlockNode target = edge.getTarget();
-					if (!target.contains(AFlag.SYNTHETIC)) {
-						BlockSplitter.insertBlockBetween(mth, edge.getSource(), target);
+					BlockNode source = edge.getSource();
+					if (!target.contains(AFlag.SYNTHETIC) && !source.contains(AFlag.SYNTHETIC)) {
+						BlockSplitter.insertBlockBetween(mth, source, target);
 						change = true;
 					}
 				}
