@@ -17,8 +17,8 @@ dependencies {
 
     compile 'org.apache.commons:commons-lang3:3.7'
 
-    compile 'io.reactivex.rxjava2:rxjava:2.1.14'
-    compile "com.github.akarnokd:rxjava2-swing:0.2.13"
+    compile 'io.reactivex.rxjava2:rxjava:2.1.17'
+    compile "com.github.akarnokd:rxjava2-swing:0.2.16"
 }
 
 applicationDistribution.with {
