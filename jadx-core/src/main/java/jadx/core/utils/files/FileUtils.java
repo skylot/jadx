@@ -57,7 +57,7 @@ public class FileUtils {
 	public static void makeDirs(@Nullable File dir) {
 		if (dir != null) {
 			synchronized (MKDIR_SYNC) {
-				if (!dir.exists() && !dir.mkdirs()) {
+				if (!dir.mkdirs() && !dir.isDirectory()) {
 					throw new JadxRuntimeException("Can't create directory " + dir);
 				}
 			}
