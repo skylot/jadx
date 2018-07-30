@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.RandomAccess;
 import java.util.function.Consumer;
@@ -21,9 +22,13 @@ import org.jetbrains.annotations.NotNull;
 public final class ImmutableList<E> implements List<E>, RandomAccess {
 	private final E[] arr;
 
-	@SuppressWarnings("unchecked")
-	public ImmutableList(Object[] arr) {
-		this.arr = (E[]) Objects.requireNonNull(arr);
+	@SuppressWarnings({"unchecked", "SuspiciousArrayCast"})
+	public ImmutableList(Collection<E> col) {
+		this((E[]) Objects.requireNonNull(col).toArray());
+	}
+
+	public ImmutableList(E[] arr) {
+		this.arr = Objects.requireNonNull(arr);
 	}
 
 	@Override
@@ -88,7 +93,11 @@ public final class ImmutableList<E> implements List<E>, RandomAccess {
 
 			@Override
 			public E next() {
-				return arr[index++];
+				try {
+					return arr[index++];
+				} catch (IndexOutOfBoundsException e) {
+					throw new NoSuchElementException(e.getMessage());
+				}
 			}
 		};
 	}
@@ -103,14 +112,14 @@ public final class ImmutableList<E> implements List<E>, RandomAccess {
 	@NotNull
 	@Override
 	public Object[] toArray() {
-		return arr;
+		return Arrays.copyOf(arr, arr.length);
 	}
 
 	@NotNull
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T[] toArray(@NotNull T[] a) {
-		return (T[]) arr;
+		return (T[]) Arrays.copyOf(arr, arr.length);
 	}
 
 	@Override
