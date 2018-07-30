@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.security.SecureClassLoader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import static javax.tools.JavaFileObject.Kind;
 
@@ -34,8 +36,8 @@ public class ClassFileManager extends ForwardingJavaFileManager<StandardJavaFile
 	}
 
 	private class DynamicClassLoader extends SecureClassLoader {
-		private final Map<String, JavaClassObject> clsMap = new HashMap<>();
-		private final Map<String, Class<?>> clsCache = new HashMap<>();
+		private final Map<String, JavaClassObject> clsMap = new ConcurrentHashMap<>();
+		private final Map<String, Class<?>> clsCache = new ConcurrentHashMap<>();
 
 		@Override
 		protected Class<?> findClass(String name) throws ClassNotFoundException {
