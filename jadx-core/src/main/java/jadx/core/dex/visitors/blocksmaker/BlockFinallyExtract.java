@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -194,10 +195,20 @@ public class BlockFinallyExtract extends AbstractVisitor {
 			laBefore.runAnalysis();
 		}
 
+		int removeApplied = 0;
 		for (BlocksRemoveInfo removeInfo : removes) {
-			if (!applyRemove(mth, removeInfo)) {
-				return false;
+			if (applyRemove(mth, removeInfo)) {
+				removeApplied++;
+				removeInfo.setApplied(true);
 			}
+		}
+		if (removeApplied == 0) {
+			return false;
+		}
+		if (removeApplied != removes.size()) {
+			throw new JadxRuntimeException("Some finally instructions failed to remove: "
+					+ removes.stream().filter(n -> !n.isApplied()).map(BlocksRemoveInfo::toString).collect(Collectors.joining(","))
+			);
 		}
 
 		LiveVarAnalysis laAfter = null;

@@ -14,6 +14,7 @@ import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.EmptyBitSet;
 import jadx.core.utils.InsnUtils;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.utils.Utils.lockList;
 
@@ -70,6 +71,9 @@ public class BlockNode extends AttrNode implements IBlock {
 		successors = lockList(successors);
 		predecessors = lockList(predecessors);
 		dominatesOn = lockList(dominatesOn);
+		if (domFrontier == null) {
+			throw new JadxRuntimeException("Dominance frontier not set for block: " + this);
+		}
 	}
 
 	/**

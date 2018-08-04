@@ -23,6 +23,8 @@ public final class BlocksRemoveInfo {
 
 	private BlockNode startPredecessor;
 
+	private boolean applied;
+
 	public BlocksRemoveInfo(BlocksPair start) {
 		this.start = start;
 	}
@@ -99,13 +101,22 @@ public final class BlocksRemoveInfo {
 		return null;
 	}
 
+	public boolean isApplied() {
+		return applied;
+	}
+
+	public void setApplied(boolean applied) {
+		this.applied = applied;
+	}
+
 	@Override
 	public String toString() {
-		return "BRI start: " + start
+		return "BRI{start: " + start
 				+ ", end: " + end
-				+ ", list: " + processed
+				+ ", processed: " + processed
 				+ ", outs: " + outs
 				+ ", regMap: " + regMap
-				+ ", split: " + startSplitIndex;
+				+ ", split: " + startSplitIndex + "-" + endSplitIndex
+				+ "}";
 	}
 }
