@@ -134,8 +134,14 @@ public class CodeShrinker extends AbstractVisitor {
 		}
 
 		private static boolean usedArgAssign(InsnNode insn, BitSet args) {
+			if (args.isEmpty()) {
+				return false;
+			}
 			RegisterArg result = insn.getResult();
-			return result != null && args.get(result.getRegNum());
+			if (result == null || result.isField()) {
+				return false;
+			}
+			return args.get(result.getRegNum());
 		}
 
 		public WrapInfo inline(int assignInsnPos, RegisterArg arg) {
