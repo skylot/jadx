@@ -30,7 +30,6 @@ public class DependencyCollector extends AbstractVisitor {
 			processClass(inner, dex, depList);
 		}
 		depList.remove(cls);
-		removeInnerClassesFromDeps(cls, depList);
 		return false;
 	}
 
@@ -122,12 +121,5 @@ public class DependencyCollector extends AbstractVisitor {
 			// add only top classes
 			depList.add(clsNode.getTopParentClass());
 		}
-	}
-
-	private void removeInnerClassesFromDeps(ClassNode cls, Set<ClassNode> depList) {
-		cls.getInnerClasses().forEach(inner -> {
-			depList.remove(inner);
-			removeInnerClassesFromDeps(inner, depList);
-		});
 	}
 }

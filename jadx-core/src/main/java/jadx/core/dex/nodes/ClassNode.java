@@ -354,8 +354,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 		if (parentClass == null) {
 			if (clsInfo.isInner()) {
 				ClassNode parent = dex().resolveClass(clsInfo.getParentClass());
-				parent = parent == null ? this : parent;
-				parentClass = parent;
+				parentClass = parent == null ? this : parent;
 			} else {
 				parentClass = this;
 			}
@@ -365,7 +364,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 
 	public ClassNode getTopParentClass() {
 		ClassNode parent = getParentClass();
-		return parent == this ? this : parent.getParentClass();
+		return parent == this ? this : parent.getTopParentClass();
 	}
 
 	public List<ClassNode> getInnerClasses() {
