@@ -44,6 +44,11 @@ public class DebugUtils {
 		dump(mth, "");
 	}
 
+	public static void dumpRaw(MethodNode mth, String desc) {
+		File out = new File("test-graph-" + desc + "-tmp");
+		DotGraphVisitor.dumpRaw().save(out, mth);
+	}
+
 	public static void dump(MethodNode mth, String desc) {
 		File out = new File("test-graph-" + desc + "-tmp");
 		DotGraphVisitor.dump().save(out, mth);

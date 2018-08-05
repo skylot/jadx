@@ -87,7 +87,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		PhiInsn phiInsn = incrArg.getSVar().getUsedInPhi();
 		if (phiInsn == null
 				|| phiInsn.getArgsCount() != 2
-				|| !phiInsn.getArg(1).equals(incrArg)
+				|| !phiInsn.containsArg(incrArg)
 				|| incrArg.getSVar().getUseCount() != 1) {
 			return false;
 		}
@@ -289,13 +289,13 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 				iterVar.setType(gType);
 				return true;
 			}
-			if (ArgType.isInstanceOf(mth.dex(), gType, varType)) {
+			if (ArgType.isInstanceOf(mth.root(), gType, varType)) {
 				return true;
 			}
 			ArgType wildcardType = gType.getWildcardType();
 			if (wildcardType != null
 					&& gType.getWildcardBounds() == 1
-					&& ArgType.isInstanceOf(mth.dex(), wildcardType, varType)) {
+					&& ArgType.isInstanceOf(mth.root(), wildcardType, varType)) {
 				return true;
 			}
 			LOG.warn("Generic type differs: '{}' and '{}' in {}", gType, varType, mth);

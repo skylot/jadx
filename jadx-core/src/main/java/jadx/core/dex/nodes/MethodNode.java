@@ -54,17 +54,18 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 	private final AccessInfo accFlags;
 
 	private final Method methodData;
+	private final boolean methodIsVirtual;
+
+	private boolean noCode;
 	private int regsCount;
 	private InsnNode[] instructions;
 	private int codeSize;
 	private int debugInfoOffset;
-	private boolean noCode;
-	private boolean methodIsVirtual;
 
 	private ArgType retType;
 	private RegisterArg thisArg;
 	private List<RegisterArg> argsList;
-	private List<SSAVar> sVars = Collections.emptyList();
+	private List<SSAVar> sVars;
 	private Map<ArgType, List<ArgType>> genericMap;
 
 	private List<BlockNode> blocks;
@@ -72,8 +73,8 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 	private List<BlockNode> exitBlocks;
 
 	private Region region;
-	private List<ExceptionHandler> exceptionHandlers = Collections.emptyList();
-	private List<LoopInfo> loops = Collections.emptyList();
+	private List<ExceptionHandler> exceptionHandlers;
+	private List<LoopInfo> loops;
 
 	public MethodNode(ClassNode classNode, Method mthData, boolean isVirtual) {
 		this.mthInfo = MethodInfo.fromDex(classNode.dex(), mthData.getMethodIndex());
@@ -82,6 +83,26 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 		this.noCode = mthData.getCodeOffset() == 0;
 		this.methodData = noCode ? null : mthData;
 		this.methodIsVirtual = isVirtual;
+		unload();
+	}
+
+	@Override
+	public void unload() {
+		if (noCode) {
+			return;
+		}
+		retType = null;
+		thisArg = null;
+		argsList = Collections.emptyList();
+		sVars = Collections.emptyList();
+		genericMap = null;
+		instructions = null;
+		blocks = null;
+		enterBlock = null;
+		exitBlocks = null;
+		region = null;
+		exceptionHandlers = Collections.emptyList();
+		loops = Collections.emptyList();
 	}
 
 	@Override
@@ -146,21 +167,6 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 			retType = mthInfo.getReturnType();
 			initArguments(mthInfo.getArgumentsTypes());
 		}
-	}
-
-	@Override
-	public void unload() {
-		if (noCode) {
-			return;
-		}
-		instructions = null;
-		blocks = null;
-		enterBlock = null;
-		exitBlocks = null;
-		exceptionHandlers = Collections.emptyList();
-		sVars.clear();
-		region = null;
-		loops = Collections.emptyList();
 	}
 
 	private boolean parseSignature() {
@@ -535,7 +541,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 					&& !parentClass.getAccessFlags().isStatic()) {
 				ClassNode outerCls = parentClass.getParentClass();
 				if (argsList != null && !argsList.isEmpty()
-						&& argsList.get(0).getType().equals(outerCls.getClassInfo().getType())) {
+						&& argsList.get(0).getInitType().equals(outerCls.getClassInfo().getType())) {
 					defaultArgCount = 1;
 				}
 			}
@@ -611,8 +617,13 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 		return "method";
 	}
 
-	public void addWarn(String errStr) {
-		ErrorsCounter.methodWarn(this, errStr);
+	public void addWarn(String warnStr) {
+		ErrorsCounter.methodWarn(this, warnStr);
+	}
+
+	public void addComment(String commentStr) {
+		addAttr(AType.COMMENTS, commentStr);
+		LOG.info("{} in {}", commentStr, this);
 	}
 
 	public void addError(String errStr, Exception e) {

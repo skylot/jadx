@@ -1,54 +1,48 @@
-package jadx.core.dex.nodes.parser;
+package jadx.core.dex.visitors.debuginfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.utils.InsnUtils;
 
-final class LocalVar {
+public final class LocalVar {
 	private static final Logger LOG = LoggerFactory.getLogger(LocalVar.class);
 
 	private final int regNum;
-	private String name;
-	private ArgType type;
+	private final String name;
+	private final ArgType type;
 
 	private boolean isEnd;
 	private int startAddr;
 	private int endAddr;
 
 	public LocalVar(DexNode dex, int rn, int nameId, int typeId, int signId) {
-		this.regNum = rn;
-		String name = nameId == DexNode.NO_INDEX ? null : dex.getString(nameId);
-		ArgType type = typeId == DexNode.NO_INDEX ? null : dex.getType(typeId);
-		String sign = signId == DexNode.NO_INDEX ? null : dex.getString(signId);
-
-		init(name, type, sign);
+		this(rn, dex.getString(nameId), dex.getType(typeId), dex.getString(signId));
 	}
 
-	public LocalVar(RegisterArg arg) {
-		this.regNum = arg.getRegNum();
-		init(arg.getName(), arg.getType(), null);
+	public LocalVar(int regNum, String name, ArgType type) {
+		this(regNum, name, type, null);
 	}
 
-	private void init(String name, ArgType type, String sign) {
+	public LocalVar(int regNum, String name, ArgType type, String sign) {
+		this.regNum = regNum;
+		this.name = name;
 		if (sign != null) {
 			try {
 				ArgType gType = ArgType.generic(sign);
-				if (checkSignature(type, sign, gType)) {
+				if (checkSignature(type, gType)) {
 					type = gType;
 				}
 			} catch (Exception e) {
 				LOG.error("Can't parse signature for local variable: {}", sign, e);
 			}
 		}
-		this.name = name;
 		this.type = type;
 	}
 
-	private boolean checkSignature(ArgType type, String sign, ArgType gType) {
+	private boolean checkSignature(ArgType type, ArgType gType) {
 		boolean apply;
 		ArgType el = gType.getArrayRootElement();
 		if (el.isGeneric()) {
@@ -62,7 +56,7 @@ final class LocalVar {
 		return apply;
 	}
 
-	public void start(int addr, int line) {
+	public void start(int addr) {
 		this.isEnd = false;
 		this.startAddr = addr;
 	}
@@ -71,16 +65,15 @@ final class LocalVar {
 	 * Sets end address of local variable
 	 *
 	 * @param addr address
-	 * @param line source line
 	 * @return <b>true</b> if local variable was active, else <b>false</b>
 	 */
-	public boolean end(int addr, int line) {
-		if (!isEnd) {
-			this.isEnd = true;
-			this.endAddr = addr;
-			return true;
+	public boolean end(int addr) {
+		if (isEnd) {
+			return false;
 		}
-		return false;
+		this.isEnd = true;
+		this.endAddr = addr;
+		return true;
 	}
 
 	public int getRegNum() {
@@ -119,8 +112,8 @@ final class LocalVar {
 
 	@Override
 	public String toString() {
-		return super.toString() + " " + (isEnd
-				? "end: " + InsnUtils.formatOffset(startAddr) + "-" + InsnUtils.formatOffset(endAddr)
-				: "active: " + InsnUtils.formatOffset(startAddr));
+		return InsnUtils.formatOffset(startAddr)
+				+ "-" + (isEnd ? InsnUtils.formatOffset(endAddr) : "     ")
+				+ ": r" + regNum + " '" + name + "' " + type;
 	}
 }

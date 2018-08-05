@@ -45,6 +45,7 @@ public class NameGen {
 		OBJ_ALIAS.put("java.lang.Float", "f");
 		OBJ_ALIAS.put("java.lang.Long", "l");
 		OBJ_ALIAS.put("java.lang.Double", "d");
+		OBJ_ALIAS.put("java.lang.StringBuilder", "sb");
 	}
 
 	public NameGen(MethodNode mth, boolean fallback) {
@@ -108,13 +109,22 @@ public class NameGen {
 		String name = arg.getName();
 		String varName = name != null ? name : guessName(arg);
 		if (NameMapper.isReserved(varName)) {
-			return varName + "R";
+			varName = varName + "R";
+		}
+		if (!NameMapper.isValidIdentifier(varName)) {
+			varName = getFallbackName(arg);
 		}
 		return varName;
 	}
 
 	private String getFallbackName(RegisterArg arg) {
-		return "r" + arg.getRegNum();
+		StringBuilder sb = new StringBuilder();
+		sb.append('r').append(arg.getRegNum());
+		SSAVar sVar = arg.getSVar();
+		if (sVar != null) {
+			sb.append('v').append(sVar.getVersion());
+		}
+		return sb.toString();
 	}
 
 	private String guessName(RegisterArg arg) {
@@ -130,7 +140,11 @@ public class NameGen {
 				}
 			}
 		}
-		return makeNameForType(arg.getType());
+		ArgType type = arg.getType();
+		if (!type.isTypeKnown() && arg.getInitType().isTypeKnown()) {
+			type = arg.getInitType();
+		}
+		return makeNameForType(type);
 	}
 
 	private String makeNameForType(ArgType type) {
@@ -235,6 +249,9 @@ public class NameGen {
 		}
 		if ("forName".equals(name) && declType.equals(ArgType.CLASS)) {
 			return OBJ_ALIAS.get(Consts.CLASS_CLASS);
+		}
+		if (name.startsWith("to")) {
+			return fromName(name.substring(2));
 		}
 		return name;
 	}

@@ -8,15 +8,11 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.instructions.PhiInsn;
+import jadx.core.dex.visitors.typeinference.TypeInfo;
 
 public class SSAVar extends AttrNode {
-
 	private final int regNum;
 	private final int version;
-	private VarName varName;
-
-	private int startUseAddr;
-	private int endUseAddr;
 
 	@NotNull
 	private RegisterArg assign;
@@ -24,8 +20,8 @@ public class SSAVar extends AttrNode {
 	@Nullable
 	private PhiInsn usedInPhi;
 
-	private ArgType type;
-	private boolean typeImmutable;
+	private TypeInfo typeInfo = new TypeInfo();
+	private VarName varName;
 
 	public SSAVar(int regNum, int v, @NotNull RegisterArg assign) {
 		this.regNum = regNum;
@@ -33,48 +29,6 @@ public class SSAVar extends AttrNode {
 		this.assign = assign;
 
 		assign.setSVar(this);
-		startUseAddr = -1;
-		endUseAddr = -1;
-	}
-
-	public int getStartAddr() {
-		if (startUseAddr == -1) {
-			calcUsageAddrRange();
-		}
-		return startUseAddr;
-	}
-
-	public int getEndAddr() {
-		if (endUseAddr == -1) {
-			calcUsageAddrRange();
-		}
-		return endUseAddr;
-	}
-
-	private void calcUsageAddrRange() {
-		int start = Integer.MAX_VALUE;
-		int end = Integer.MIN_VALUE;
-
-		if (assign.getParentInsn() != null) {
-			int insnAddr = assign.getParentInsn().getOffset();
-			if (insnAddr >= 0) {
-				start = Math.min(insnAddr, start);
-				end = Math.max(insnAddr, end);
-			}
-		}
-		for (RegisterArg arg : useList) {
-			if (arg.getParentInsn() != null) {
-				int insnAddr = arg.getParentInsn().getOffset();
-				if (insnAddr >= 0) {
-					start = Math.min(insnAddr, start);
-					end = Math.max(insnAddr, end);
-				}
-			}
-		}
-		if (start != Integer.MAX_VALUE && end != Integer.MIN_VALUE) {
-			startUseAddr = start;
-			endUseAddr = end;
-		}
 	}
 
 	public int getRegNum() {
@@ -139,30 +93,6 @@ public class SSAVar extends AttrNode {
 		return useList.size() + usedInPhi.getResult().getSVar().getUseCount();
 	}
 
-	public void setType(ArgType type) {
-		ArgType acceptedType;
-		if (typeImmutable) {
-			// don't change type, just update types in useList
-			acceptedType = this.type;
-		} else {
-			acceptedType = type;
-			this.type = acceptedType;
-		}
-		assign.type = acceptedType;
-		for (int i = 0, useListSize = useList.size(); i < useListSize; i++) {
-			useList.get(i).type = acceptedType;
-		}
-	}
-
-	public void setTypeImmutable(ArgType type) {
-		setType(type);
-		this.typeImmutable = true;
-	}
-
-	public boolean isTypeImmutable() {
-		return typeImmutable;
-	}
-
 	public void setName(String name) {
 		if (name != null) {
 			if (varName == null) {
@@ -187,6 +117,14 @@ public class SSAVar extends AttrNode {
 		this.varName = varName;
 	}
 
+	public TypeInfo getTypeInfo() {
+		return typeInfo;
+	}
+
+	public void setTypeInfo(TypeInfo typeInfo) {
+		this.typeInfo = typeInfo;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -206,6 +144,6 @@ public class SSAVar extends AttrNode {
 
 	@Override
 	public String toString() {
-		return "r" + regNum + "_" + version;
+		return "r" + regNum + ":" + version + " " + typeInfo.getType();
 	}
 }

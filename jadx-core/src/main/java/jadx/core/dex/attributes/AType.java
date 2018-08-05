@@ -12,10 +12,12 @@ import jadx.core.dex.attributes.nodes.IgnoreEdgeAttr;
 import jadx.core.dex.attributes.nodes.JadxError;
 import jadx.core.dex.attributes.nodes.JadxWarn;
 import jadx.core.dex.attributes.nodes.JumpInfo;
+import jadx.core.dex.attributes.nodes.LocalVarsDebugInfoAttr;
 import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.attributes.nodes.MethodInlineAttr;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
+import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
 import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.nodes.parser.FieldInitAttr;
 import jadx.core.dex.trycatch.CatchAttr;
@@ -54,6 +56,12 @@ public class AType<T extends IAttribute> {
 	public static final AType<DeclareVariablesAttr> DECLARE_VARIABLES = new AType<>();
 	public static final AType<LoopLabelAttr> LOOP_LABEL = new AType<>();
 	public static final AType<IgnoreEdgeAttr> IGNORE_EDGE = new AType<>();
+
+	// method
+	public static final AType<LocalVarsDebugInfoAttr> LOCAL_VARS_DEBUG_INFO = new AType<>();
+
+	// registers
+	public static final AType<RegDebugInfoAttr> REG_DEBUG_INFO = new AType<>();
 
 	private AType() {
 	}

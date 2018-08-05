@@ -47,6 +47,9 @@ public class BlockSplitter extends AbstractVisitor {
 		removeInsns(mth);
 		removeEmptyDetachedBlocks(mth);
 		initBlocksInTargetNodes(mth);
+
+		removeJumpAttributes(mth.getInstructions());
+		mth.unloadInsnArr();
 	}
 
 	/**
@@ -303,5 +306,13 @@ public class BlockSplitter extends AbstractVisitor {
 						&& block.getPredecessors().isEmpty()
 						&& block.getSuccessors().isEmpty()
 		);
+	}
+
+	private void removeJumpAttributes(InsnNode[] insnArr) {
+		for (InsnNode insn : insnArr) {
+			if (insn != null && insn.contains(AType.JUMP)) {
+				insn.remove(AType.JUMP);
+			}
+		}
 	}
 }

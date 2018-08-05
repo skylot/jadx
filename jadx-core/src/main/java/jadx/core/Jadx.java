@@ -13,7 +13,7 @@ import jadx.api.JadxArgs;
 import jadx.core.dex.visitors.ClassModifier;
 import jadx.core.dex.visitors.CodeShrinker;
 import jadx.core.dex.visitors.ConstInlineVisitor;
-import jadx.core.dex.visitors.DebugInfoVisitor;
+import jadx.core.dex.visitors.ConstructorVisitor;
 import jadx.core.dex.visitors.DependencyCollector;
 import jadx.core.dex.visitors.DotGraphVisitor;
 import jadx.core.dex.visitors.EnumVisitor;
@@ -31,6 +31,8 @@ import jadx.core.dex.visitors.blocksmaker.BlockFinallyExtract;
 import jadx.core.dex.visitors.blocksmaker.BlockFinish;
 import jadx.core.dex.visitors.blocksmaker.BlockProcessor;
 import jadx.core.dex.visitors.blocksmaker.BlockSplitter;
+import jadx.core.dex.visitors.debuginfo.DebugInfoApplyVisitor;
+import jadx.core.dex.visitors.debuginfo.DebugInfoParseVisitor;
 import jadx.core.dex.visitors.regions.CheckRegions;
 import jadx.core.dex.visitors.regions.IfRegionVisitor;
 import jadx.core.dex.visitors.regions.LoopRegionVisitor;
@@ -39,8 +41,7 @@ import jadx.core.dex.visitors.regions.RegionMakerVisitor;
 import jadx.core.dex.visitors.regions.ReturnVisitor;
 import jadx.core.dex.visitors.ssa.EliminatePhiNodes;
 import jadx.core.dex.visitors.ssa.SSATransform;
-import jadx.core.dex.visitors.typeinference.FinishTypeInference;
-import jadx.core.dex.visitors.typeinference.TypeInference;
+import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
 
 public class Jadx {
 	private static final Logger LOG = LoggerFactory.getLogger(Jadx.class);
@@ -59,29 +60,27 @@ public class Jadx {
 		if (args.isFallbackMode()) {
 			passes.add(new FallbackModeVisitor());
 		} else {
+			passes.add(new DebugInfoParseVisitor());
 			passes.add(new BlockSplitter());
+			if (args.isRawCFGOutput()) {
+				passes.add(DotGraphVisitor.dumpRaw());
+			}
+
 			passes.add(new BlockProcessor());
 			passes.add(new BlockExceptionHandler());
 			passes.add(new BlockFinallyExtract());
 			passes.add(new BlockFinish());
 
 			passes.add(new SSATransform());
-			passes.add(new DebugInfoVisitor());
-			passes.add(new TypeInference());
-
-			if (args.isRawCFGOutput()) {
-				passes.add(DotGraphVisitor.dumpRaw());
-			}
-
+			passes.add(new ConstructorVisitor());
 			passes.add(new ConstInlineVisitor());
-			passes.add(new FinishTypeInference());
+			passes.add(new TypeInferenceVisitor());
 			passes.add(new EliminatePhiNodes());
+			passes.add(new DebugInfoApplyVisitor());
 
 			passes.add(new ModVisitor());
-
 			passes.add(new CodeShrinker());
 			passes.add(new ReSugarCode());
-
 			if (args.isCfgOutput()) {
 				passes.add(DotGraphVisitor.dump());
 			}

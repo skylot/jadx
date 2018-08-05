@@ -31,8 +31,19 @@ public abstract class InsnArg extends Typed {
 		return reg(InsnUtils.getArg(insn, argNum), type);
 	}
 
+	public static RegisterArg typeImmutableIfKnownReg(DecodedInstruction insn, int argNum, ArgType type) {
+		if (type.isTypeKnown()) {
+			return typeImmutableReg(InsnUtils.getArg(insn, argNum), type);
+		}
+		return reg(InsnUtils.getArg(insn, argNum), type);
+	}
+
 	public static TypeImmutableArg typeImmutableReg(int regNum, ArgType type) {
 		return new TypeImmutableArg(regNum, type);
+	}
+
+	public static TypeImmutableArg typeImmutableReg(DecodedInstruction insn, int argNum, ArgType type) {
+		return typeImmutableReg(InsnUtils.getArg(insn, argNum), type);
 	}
 
 	public static RegisterArg reg(int regNum, ArgType type, boolean typeImmutable) {

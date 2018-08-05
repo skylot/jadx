@@ -121,6 +121,6 @@ public class AttributeStorage {
 		if (list.isEmpty()) {
 			return "";
 		}
-		return "A:{" + Utils.listToString(list) + "}";
+		return "A[" + Utils.listToString(list) + "]";
 	}
 }

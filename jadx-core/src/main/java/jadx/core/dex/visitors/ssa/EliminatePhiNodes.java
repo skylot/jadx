@@ -1,5 +1,6 @@
 package jadx.core.dex.visitors.ssa;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -106,12 +107,12 @@ public class EliminatePhiNodes extends AbstractVisitor {
 		RegisterArg newAssignArg = oldArg.duplicate(newRegNum, null);
 		SSAVar newSVar = mth.makeNewSVar(newRegNum, mth.getNextSVarVersion(newRegNum), newAssignArg);
 		newSVar.setName(oldSVar.getName());
-		newSVar.setType(assignArg.getType());
+		mth.root().getTypeUpdate().apply(newSVar, assignArg.getType());
 
 		if (assignParentInsn != null) {
 			assignParentInsn.setResult(newAssignArg);
 		}
-		for (RegisterArg useArg : oldSVar.getUseList()) {
+		for (RegisterArg useArg : new ArrayList<>(oldSVar.getUseList())) {
 			RegisterArg newUseArg = useArg.duplicate(newRegNum, newSVar);
 			InsnNode parentInsn = useArg.getParentInsn();
 			if (parentInsn != null) {

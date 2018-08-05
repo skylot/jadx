@@ -818,7 +818,10 @@ public class RegionMaker {
 		}
 
 		if (!stack.containsExit(defCase)) {
-			sw.setDefaultCase(makeRegion(defCase, stack));
+			Region defRegion = makeRegion(defCase, stack);
+			if (RegionUtils.notEmpty(defRegion)) {
+				sw.setDefaultCase(defRegion);
+			}
 		}
 		for (Entry<BlockNode, List<Object>> entry : blocksMap.entrySet()) {
 			BlockNode caseBlock = entry.getKey();

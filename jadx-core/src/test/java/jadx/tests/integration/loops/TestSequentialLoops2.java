@@ -48,4 +48,15 @@ public class TestSequentialLoops2 extends IntegrationTest {
 		assertThat(code, containsOne("return c"));
 		assertThat(code, countString(2, "<= 127"));
 	}
+
+	@Test
+	public void testNoDebug() {
+		noDebugInfo();
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, countString(2, "while ("));
+		assertThat(code, containsString("break;"));
+		assertThat(code, countString(2, "<= 127"));
+	}
 }

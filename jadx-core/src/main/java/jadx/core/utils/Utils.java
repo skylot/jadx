@@ -57,16 +57,15 @@ public class Utils {
 		}
 	}
 
-	public static String arrayToString(Object[] array) {
-		if (array == null) {
+	public static <T> String arrayToStr(T[] arr) {
+		int len = arr == null ? 0 : arr.length;
+		if (len == 0) {
 			return "";
 		}
 		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < array.length; i++) {
-			if (i != 0) {
-				sb.append(", ");
-			}
-			sb.append(array[i]);
+		sb.append(arr[0]);
+		for (int i = 1; i < len; i++) {
+			sb.append(", ").append(arr[i]);
 		}
 		return sb.toString();
 	}

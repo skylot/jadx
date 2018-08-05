@@ -14,7 +14,7 @@ public class FieldNode extends LineAttrNode {
 	private final FieldInfo fieldInfo;
 	private final AccessInfo accFlags;
 
-	private ArgType type; // store signature
+	private ArgType type;
 
 	public FieldNode(ClassNode cls, Field field) {
 		this(cls, FieldInfo.fromDex(cls.dex(), field.getFieldIndex()),

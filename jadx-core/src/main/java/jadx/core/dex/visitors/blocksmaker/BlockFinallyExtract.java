@@ -507,7 +507,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 					RegisterArg mapReg = removeInfo.getRegMap().get(remArg);
 					if (mapReg == null) {
 						removeInfo.getRegMap().put(remReg, fReg);
-					} else if (!mapReg.equalRegisterAndType(fReg)) {
+					} else if (!mapReg.equalRegister(fReg)) {
 						return false;
 					}
 				}

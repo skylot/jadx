@@ -176,7 +176,8 @@ public class SimplifyVisitor extends AbstractVisitor {
 				if (constrIndex != -1) {  // If we found a CONSTRUCTOR, is it a StringBuilder?
 					ConstructorInsn constr = (ConstructorInsn) chain.get(constrIndex);
 					if (constr.getClassType().getFullName().equals(Consts.CLASS_STRING_BUILDER)) {
-						int len = chain.size(), argInd = 1;
+						int len = chain.size();
+						int argInd = 1;
 						InsnNode concatInsn = new InsnNode(InsnType.STR_CONCAT, len - 1);
 						InsnNode argInsn;
 						if (constrIndex > 0) {  // There was an arg to the StringBuilder constr
@@ -282,14 +283,13 @@ public class SimplifyVisitor extends AbstractVisitor {
 			if (wrapType == InsnType.ARITH) {
 				ArithNode ar = (ArithNode) wrap;
 				return new ArithNode(ar.getOp(), fArg, ar.getArg(1));
-			} else {
-				int argsCount = wrap.getArgsCount();
-				InsnNode concat = new InsnNode(InsnType.STR_CONCAT, argsCount - 1);
-				for (int i = 1; i < argsCount; i++) {
-					concat.addArg(wrap.getArg(i));
-				}
-				return new ArithNode(ArithOp.ADD, fArg, InsnArg.wrapArg(concat));
 			}
+			int argsCount = wrap.getArgsCount();
+			InsnNode concat = new InsnNode(InsnType.STR_CONCAT, argsCount - 1);
+			for (int i = 1; i < argsCount; i++) {
+				concat.addArg(wrap.getArg(i));
+			}
+			return new ArithNode(ArithOp.ADD, fArg, InsnArg.wrapArg(concat));
 		} catch (Exception e) {
 			LOG.debug("Can't convert field arith insn: {}, mth: {}", insn, mth, e);
 		}

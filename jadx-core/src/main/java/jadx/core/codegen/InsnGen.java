@@ -1,7 +1,6 @@
 package jadx.core.codegen;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
@@ -484,19 +483,7 @@ public class InsnGen {
 			case FILL_ARRAY:
 				fallbackOnlyInsn(insn);
 				FillArrayNode arrayNode = (FillArrayNode) insn;
-				Object data = arrayNode.getData();
-				String arrStr;
-				if (data instanceof int[]) {
-					arrStr = Arrays.toString((int[]) data);
-				} else if (data instanceof short[]) {
-					arrStr = Arrays.toString((short[]) data);
-				} else if (data instanceof byte[]) {
-					arrStr = Arrays.toString((byte[]) data);
-				} else if (data instanceof long[]) {
-					arrStr = Arrays.toString((long[]) data);
-				} else {
-					arrStr = "?";
-				}
+				String arrStr = arrayNode.dataToString();
 				code.add('{').add(arrStr.substring(1, arrStr.length() - 1)).add('}');
 				break;
 

@@ -124,6 +124,7 @@ public class MethodGen {
 		int i = 0;
 		for (Iterator<RegisterArg> it = args.iterator(); it.hasNext(); ) {
 			RegisterArg arg = it.next();
+			ArgType argType = arg.getInitType();
 
 			// add argument annotation
 			if (paramsAnnotation != null) {
@@ -135,17 +136,16 @@ public class MethodGen {
 			}
 			if (!it.hasNext() && mth.getAccessFlags().isVarArgs()) {
 				// change last array argument to varargs
-				ArgType type = arg.getType();
-				if (type.isArray()) {
-					ArgType elType = type.getArrayElement();
+				if (argType.isArray()) {
+					ArgType elType = argType.getArrayElement();
 					classGen.useType(argsCode, elType);
 					argsCode.add("...");
 				} else {
 					LOG.warn(ErrorsCounter.formatMsg(mth, "Last argument in varargs method not array"));
-					classGen.useType(argsCode, arg.getType());
+					classGen.useType(argsCode, argType);
 				}
 			} else {
-				classGen.useType(argsCode, arg.getType());
+				classGen.useType(argsCode, argType);
 			}
 			argsCode.add(' ');
 			argsCode.add(nameGen.assignArg(arg));

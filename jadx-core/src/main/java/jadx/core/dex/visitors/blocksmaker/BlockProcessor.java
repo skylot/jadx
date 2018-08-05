@@ -3,6 +3,7 @@ package jadx.core.dex.visitors.blocksmaker;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -61,17 +62,27 @@ public class BlockProcessor extends AbstractVisitor {
 			markReturnBlocks(mth);
 
 			if (i++ > 100) {
-				throw new AssertionError("Can't fix method cfg: " + mth);
+				mth.addWarn("CFG modification limit reached, blocks count: " + mth.getBasicBlocks().size());
+				break;
 			}
 		}
+		checkForUnreachableBlocks(mth);
+
 		computeDominanceFrontier(mth);
 		registerLoops(mth);
 		processNestedLoops(mth);
 	}
 
+	private static void checkForUnreachableBlocks(MethodNode mth) {
+		mth.getBasicBlocks().forEach(block -> {
+			if (block.getPredecessors().isEmpty() && block != mth.getEnterBlock()) {
+				throw new JadxRuntimeException("Unreachable block: " + block);
+			}
+		});
+	}
+
 	private static boolean canRemoveBlock(BlockNode block) {
 		return block.getInstructions().isEmpty()
-				&& !block.isSynthetic()
 				&& block.isAttrStorageEmpty()
 				&& block.getSuccessors().size() <= 1
 				&& !block.getPredecessors().isEmpty();
@@ -112,6 +123,7 @@ public class BlockProcessor extends AbstractVisitor {
 				if (lastInsn != null && lastInsn.getType() == InsnType.IF) {
 					return false;
 				}
+				// TODO: implement insn extraction into separate block for partial predecessors
 				int sameInsnCount = getSameLastInsnCount(predecessors);
 				if (sameInsnCount > 0) {
 					List<InsnNode> insns = getLastInsns(predecessors.get(0), sameInsnCount);
@@ -187,10 +199,20 @@ public class BlockProcessor extends AbstractVisitor {
 		}
 
 		BlockNode entryBlock = mth.getEnterBlock();
+		calcDominators(basicBlocks, entryBlock);
+		markLoops(mth);
+
+		// clear self dominance
+		basicBlocks.forEach(block -> block.getDoms().clear(block.getId()));
+
+		calcImmediateDominators(basicBlocks, entryBlock);
+	}
+
+	private static void calcDominators(List<BlockNode> basicBlocks, BlockNode entryBlock) {
 		entryBlock.getDoms().clear();
 		entryBlock.getDoms().set(entryBlock.getId());
 
-		BitSet dset = new BitSet(nBlocks);
+		BitSet domSet = new BitSet(basicBlocks.size());
 		boolean changed;
 		do {
 			changed = false;
@@ -200,25 +222,21 @@ public class BlockProcessor extends AbstractVisitor {
 				}
 				BitSet d = block.getDoms();
 				if (!changed) {
-					dset.clear();
-					dset.or(d);
+					domSet.clear();
+					domSet.or(d);
 				}
 				for (BlockNode pred : block.getPredecessors()) {
 					d.and(pred.getDoms());
 				}
 				d.set(block.getId());
-				if (!changed && !d.equals(dset)) {
+				if (!changed && !d.equals(domSet)) {
 					changed = true;
 				}
 			}
 		} while (changed);
+	}
 
-		markLoops(mth);
-
-		// clear self dominance
-		basicBlocks.forEach(block -> block.getDoms().clear(block.getId()));
-
-		// calculate immediate dominators
+	private static void calcImmediateDominators(List<BlockNode> basicBlocks, BlockNode entryBlock) {
 		for (BlockNode block : basicBlocks) {
 			if (block == entryBlock) {
 				continue;
@@ -305,7 +323,7 @@ public class BlockProcessor extends AbstractVisitor {
 	private static void markLoops(MethodNode mth) {
 		mth.getBasicBlocks().forEach(block -> {
 			// Every successor that dominates its predecessor is a header of a loop,
-			// block -> succ is a back edge.
+			// block -> successor is a back edge.
 			block.getSuccessors().forEach(successor -> {
 				if (block.getDoms().get(successor.getId())) {
 					successor.add(AFlag.LOOP_START);
@@ -354,14 +372,7 @@ public class BlockProcessor extends AbstractVisitor {
 	}
 
 	private static boolean modifyBlocksTree(MethodNode mth) {
-		List<BlockNode> basicBlocks = mth.getBasicBlocks();
-		for (BlockNode block : basicBlocks) {
-			if (block.getPredecessors().isEmpty() && block != mth.getEnterBlock()) {
-				throw new JadxRuntimeException("Unreachable block: " + block);
-			}
-		}
-
-		for (BlockNode block : basicBlocks) {
+		for (BlockNode block : mth.getBasicBlocks()) {
 			if (checkLoops(mth, block)) {
 				return true;
 			}
@@ -389,58 +400,94 @@ public class BlockProcessor extends AbstractVisitor {
 	}
 
 	private static boolean checkLoops(MethodNode mth, BlockNode block) {
-		// check loops
 		List<LoopInfo> loops = block.getAll(AType.LOOP);
-		if (loops.size() > 1) {
-			boolean oneHeader = true;
-			for (LoopInfo loop : loops) {
-				if (loop.getStart() != block) {
-					oneHeader = false;
-					break;
+		int loopsCount = loops.size();
+		if (loopsCount == 0) {
+			return false;
+		}
+		if (loopsCount > 1 && splitLoops(mth, block, loops)) {
+			return true;
+		}
+		if (loopsCount == 1) {
+			LoopInfo loop = loops.get(0);
+			return insertBlocksForBreak(mth, loop)
+					|| insertBlocksForContinue(mth, loop)
+					|| insertBlockForProdecessors(mth, loop);
+		}
+		return false;
+	}
+
+	/**
+	 * Insert additional blocks for possible 'break' insertion
+	 */
+	private static boolean insertBlocksForBreak(MethodNode mth, LoopInfo loop) {
+		boolean change = false;
+		List<Edge> edges = loop.getExitEdges();
+		if (!edges.isEmpty()) {
+			for (Edge edge : edges) {
+				BlockNode target = edge.getTarget();
+				BlockNode source = edge.getSource();
+				if (!target.contains(AFlag.SYNTHETIC) && !source.contains(AFlag.SYNTHETIC)) {
+					BlockSplitter.insertBlockBetween(mth, source, target);
+					change = true;
 				}
-			}
-			if (oneHeader) {
-				// several back edges connected to one loop header => make additional block
-				BlockNode newLoopEnd = BlockSplitter.startNewBlock(mth, block.getStartOffset());
-				newLoopEnd.add(AFlag.SYNTHETIC);
-				connect(newLoopEnd, block);
-				for (LoopInfo la : loops) {
-					BlockSplitter.replaceConnection(la.getEnd(), block, newLoopEnd);
-				}
-				return true;
 			}
 		}
-		if (loops.size() == 1) {
-			LoopInfo loop = loops.get(0);
-			// insert additional blocks for possible 'break' insertion
-			List<Edge> edges = loop.getExitEdges();
-			if (!edges.isEmpty()) {
-				boolean change = false;
-				for (Edge edge : edges) {
-					BlockNode target = edge.getTarget();
-					BlockNode source = edge.getSource();
-					if (!target.contains(AFlag.SYNTHETIC) && !source.contains(AFlag.SYNTHETIC)) {
-						BlockSplitter.insertBlockBetween(mth, source, target);
-						change = true;
-					}
-				}
-				if (change) {
-					return true;
+		return change;
+	}
+
+	/**
+	 * Insert additional blocks for possible 'continue' insertion
+	 */
+	private static boolean insertBlocksForContinue(MethodNode mth, LoopInfo loop) {
+		BlockNode loopEnd = loop.getEnd();
+		boolean change = false;
+		List<BlockNode> preds = loopEnd.getPredecessors();
+		if (preds.size() > 1) {
+			for (BlockNode pred : new ArrayList<>(preds)) {
+				if (!pred.contains(AFlag.SYNTHETIC)) {
+					BlockSplitter.insertBlockBetween(mth, pred, loopEnd);
+					change = true;
 				}
 			}
-			// insert additional blocks for possible 'continue' insertion
-			BlockNode loopEnd = loop.getEnd();
-			if (loopEnd.getPredecessors().size() > 1) {
-				boolean change = false;
-				List<BlockNode> nodes = new ArrayList<>(loopEnd.getPredecessors());
-				for (BlockNode pred : nodes) {
-					if (!pred.contains(AFlag.SYNTHETIC)) {
-						BlockSplitter.insertBlockBetween(mth, pred, loopEnd);
-						change = true;
-					}
-				}
-				return change;
+		}
+		return change;
+	}
+
+	/**
+	 * Insert additional block if loop header has several predecessors (exclude back edges)
+	 */
+	private static boolean insertBlockForProdecessors(MethodNode mth, LoopInfo loop) {
+		BlockNode loopHeader = loop.getStart();
+		List<BlockNode> preds = loopHeader.getPredecessors();
+		if (preds.size() > 2) {
+			List<BlockNode> blocks = new LinkedList<>(preds);
+			blocks.removeIf(block -> block.contains(AFlag.LOOP_END));
+			BlockNode first = blocks.remove(0);
+			BlockNode preHeader = BlockSplitter.insertBlockBetween(mth, first, loopHeader);
+			blocks.forEach(block -> BlockSplitter.replaceConnection(block, loopHeader, preHeader));
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean splitLoops(MethodNode mth, BlockNode block, List<LoopInfo> loops) {
+		boolean oneHeader = true;
+		for (LoopInfo loop : loops) {
+			if (loop.getStart() != block) {
+				oneHeader = false;
+				break;
 			}
+		}
+		if (oneHeader) {
+			// several back edges connected to one loop header => make additional block
+			BlockNode newLoopEnd = BlockSplitter.startNewBlock(mth, block.getStartOffset());
+			newLoopEnd.add(AFlag.SYNTHETIC);
+			connect(newLoopEnd, block);
+			for (LoopInfo la : loops) {
+				BlockSplitter.replaceConnection(la.getEnd(), block, newLoopEnd);
+			}
+			return true;
 		}
 		return false;
 	}
@@ -518,7 +565,7 @@ public class BlockProcessor extends AbstractVisitor {
 		InsnNode insn = new InsnNode(returnInsn.getType(), returnInsn.getArgsCount());
 		if (returnInsn.getArgsCount() == 1) {
 			RegisterArg arg = (RegisterArg) returnInsn.getArg(0);
-			insn.addArg(InsnArg.reg(arg.getRegNum(), arg.getType()));
+			insn.addArg(InsnArg.reg(arg.getRegNum(), arg.getInitType()));
 		}
 		insn.copyAttributesFrom(returnInsn);
 		insn.setOffset(returnInsn.getOffset());

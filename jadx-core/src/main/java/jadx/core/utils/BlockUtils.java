@@ -556,4 +556,38 @@ public class BlockUtils {
 		blocks.forEach(block -> insns.addAll(block.getInstructions()));
 		return insns;
 	}
+
+	/**
+	 * Replace insn by index i in block,
+	 * for proper copy attributes, assume attributes are not overlap
+	 */
+	public static void replaceInsn(BlockNode block, int i, InsnNode insn) {
+		InsnNode prevInsn = block.getInstructions().get(i);
+		insn.copyAttributesFrom(prevInsn);
+		insn.setSourceLine(prevInsn.getSourceLine());
+		insn.setOffset(prevInsn.getOffset());
+		block.getInstructions().set(i, insn);
+	}
+
+	public static boolean replaceInsn(BlockNode block, InsnNode oldInsn, InsnNode newInsn) {
+		List<InsnNode> instructions = block.getInstructions();
+		int size = instructions.size();
+		for (int i = 0; i < size; i++) {
+			InsnNode instruction = instructions.get(i);
+			if (instruction == oldInsn) {
+				replaceInsn(block, i, newInsn);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static boolean replaceInsn(MethodNode mth, InsnNode oldInsn, InsnNode newInsn) {
+		for (BlockNode block : mth.getBasicBlocks()) {
+			if (replaceInsn(block, oldInsn, newInsn)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

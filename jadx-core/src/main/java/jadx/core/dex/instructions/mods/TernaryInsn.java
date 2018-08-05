@@ -15,10 +15,6 @@ public final class TernaryInsn extends InsnNode {
 
 	private IfCondition condition;
 
-	public TernaryInsn(IfCondition condition, RegisterArg result) {
-		this(condition, result, LiteralArg.TRUE, LiteralArg.FALSE);
-	}
-
 	public TernaryInsn(IfCondition condition, RegisterArg result, InsnArg th, InsnArg els) {
 		super(InsnType.TERNARY, 2);
 		setResult(result);

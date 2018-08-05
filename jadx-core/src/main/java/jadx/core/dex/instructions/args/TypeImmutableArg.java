@@ -1,6 +1,8 @@
 package jadx.core.dex.instructions.args;
 
-import org.jetbrains.annotations.NotNull;
+import java.util.Objects;
+
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class TypeImmutableArg extends RegisterArg {
 
@@ -15,12 +17,11 @@ public class TypeImmutableArg extends RegisterArg {
 
 	@Override
 	public void setType(ArgType type) {
-		// not allowed
-	}
-
-	@Override
-	void setSVar(@NotNull SSAVar sVar) {
-		sVar.setTypeImmutable(type);
-		super.setSVar(sVar);
+		// allow set only initial type
+		if (Objects.equals(this.type, type)) {
+			super.setType(type);
+		} else {
+			throw new JadxRuntimeException("Can't change arg with immutable type");
+		}
 	}
 }

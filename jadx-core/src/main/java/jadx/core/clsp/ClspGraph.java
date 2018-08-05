@@ -23,7 +23,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 public class ClspGraph {
 	private static final Logger LOG = LoggerFactory.getLogger(ClspGraph.class);
 
-	private final Map<String, Set<String>> ancestorCache = Collections.synchronizedMap(new WeakHashMap<String, Set<String>>());
+	private final Map<String, Set<String>> ancestorCache = Collections.synchronizedMap(new WeakHashMap<>());
 	private Map<String, NClass> nameMap;
 
 	private final Set<String> missingClasses = new HashSet<>();
@@ -56,6 +56,10 @@ public class ClspGraph {
 		for (int i = 0; i < size; i++) {
 			nClasses[i].setParents(ClsSet.makeParentsArray(classes.get(i), nameMap));
 		}
+	}
+
+	public boolean isClsKnown(String fullName) {
+		return nameMap.containsKey(fullName);
 	}
 
 	private NClass addClass(ClassNode cls) {

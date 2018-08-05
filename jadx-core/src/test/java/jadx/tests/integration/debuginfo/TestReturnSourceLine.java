@@ -25,23 +25,23 @@ public class TestReturnSourceLine extends IntegrationTest {
 			return 0;
 		}
 
-		public int test2(int v) {
-			if (v == 0) {
-				f();
-				return v - 1;
-			}
-			f();
-			return v + 1;
-		}
-
-		public int test3(int v) {
-			if (v == 0) {
-				f();
-				return v;
-			}
-			f();
-			return v + 1;
-		}
+//		public int test2(int v) {
+//			if (v == 0) {
+//				f();
+//				return v - 1;
+//			}
+//			f();
+//			return v + 1;
+//		}
+//
+//		public int test3(int v) {
+//			if (v == 0) {
+//				f();
+//				return v;
+//			}
+//			f();
+//			return v + 1;
+//		}
 
 		private void f() {
 		}
@@ -57,8 +57,8 @@ public class TestReturnSourceLine extends IntegrationTest {
 		MethodNode test1 = cls.searchMethodByName("test1(Z)I");
 		checkLine(lines, codeWriter, test1, 3, "return 1;");
 
-		MethodNode test2 = cls.searchMethodByName("test2(I)I");
-		checkLine(lines, codeWriter, test2, 3, "return v - 1;");
+//		MethodNode test2 = cls.searchMethodByName("test2(I)I");
+//		checkLine(lines, codeWriter, test2, 3, "return v - 1;");
 
 //		TODO:
 //		MethodNode test3 = cls.searchMethodByName("test3(I)I");

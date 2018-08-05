@@ -53,7 +53,7 @@ public abstract class IntegrationTest extends TestUtils {
 	/**
 	 * Run auto check method if defined:
 	 * <pre>
-	 *     public static void check()
+	 *     public void check() {}
 	 * </pre>
 	 */
 	public static final String CHECK_METHOD_NAME = "check";

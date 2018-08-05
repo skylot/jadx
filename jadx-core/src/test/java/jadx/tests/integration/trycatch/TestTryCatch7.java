@@ -29,8 +29,8 @@ public class TestTryCatch7 extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		String excVarName = "e";
-		String catchExcVarName = "e2";
+		String excVarName = "exception";
+		String catchExcVarName = "e";
 		assertThat(code, containsOne("Exception " + excVarName + " = new Exception();"));
 		assertThat(code, containsOne("} catch (Exception " + catchExcVarName + ") {"));
 		assertThat(code, containsOne(excVarName + " = " + catchExcVarName + ";"));

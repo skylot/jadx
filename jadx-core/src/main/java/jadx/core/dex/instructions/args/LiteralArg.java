@@ -17,9 +17,10 @@ public final class LiteralArg extends InsnArg {
 			} else if (!type.isTypeKnown()
 					&& !type.contains(PrimitiveType.LONG)
 					&& !type.contains(PrimitiveType.DOUBLE)) {
-				ArgType m = ArgType.merge(null, type, ArgType.NARROW_NUMBERS);
-				if (m != null) {
-					type = m;
+				if (value != 1) {
+					type = ArgType.NARROW_NUMBERS_NO_BOOL;
+				} else {
+					type = ArgType.NARROW_NUMBERS;
 				}
 			}
 		}

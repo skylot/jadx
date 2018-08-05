@@ -29,7 +29,10 @@ public class TestGenerics2 extends IntegrationTest {
 
 			public V get(Object id) {
 				WeakReference<V> ref = this.items.get(id);
-				return (ref != null) ? ref.get() : null;
+				if (ref != null) {
+					return ref.get();
+				}
+				return null;
 			}
 		}
 	}
@@ -42,6 +45,6 @@ public class TestGenerics2 extends IntegrationTest {
 		assertThat(code, containsString("public ItemReference(V item, Object id, ReferenceQueue<? super V> queue) {"));
 		assertThat(code, containsString("public V get(Object id) {"));
 		assertThat(code, containsString("WeakReference<V> ref = "));
-		assertThat(code, containsString("return ref != null ? ref.get() : null;"));
+		assertThat(code, containsString("return ref.get();"));
 	}
 }

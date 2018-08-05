@@ -39,5 +39,15 @@ public class TestArith3 extends IntegrationTest {
 		assertThat(code, containsOne("while (n + 4 < buffer.length) {"));
 		assertThat(code, containsOne("n += len + 5;"));
 		assertThat(code, not(containsString("; n += len + 5) {")));
+		assertThat(code, not(containsString("default:")));
+	}
+
+	@Test
+	public void testNoDebug() {
+		noDebugInfo();
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, containsOne("while ("));
 	}
 }

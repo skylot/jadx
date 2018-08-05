@@ -7,6 +7,8 @@ import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
@@ -34,6 +36,10 @@ public class TestSwitchBreak extends IntegrationTest {
 			}
 			return s;
 		}
+
+		public void check() {
+			assertThat(test(9), is("1--4--1--4--1-"));
+		}
 	}
 
 	@Test
@@ -43,7 +49,8 @@ public class TestSwitchBreak extends IntegrationTest {
 
 		assertThat(code, containsString("switch (a % 4) {"));
 		assertEquals(4, count(code, "case "));
-		assertEquals(3, count(code, "break;"));
+		assertEquals(2, count(code, "break;"));
+		assertThat(code, not(containsString("default:")));
 
 		// TODO finish break with label from switch
 		assertThat(code, containsOne("return s + \"+\";"));

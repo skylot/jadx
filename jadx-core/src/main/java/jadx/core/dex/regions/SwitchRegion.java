@@ -64,7 +64,9 @@ public final class SwitchRegion extends AbstractRegion implements IBranchRegion 
 	public List<IContainer> getBranches() {
 		List<IContainer> branches = new ArrayList<>(cases.size() + 1);
 		branches.addAll(cases);
-		branches.add(defCase);
+		if (defCase != null) {
+			branches.add(defCase);
+		}
 		return Collections.unmodifiableList(branches);
 	}
 

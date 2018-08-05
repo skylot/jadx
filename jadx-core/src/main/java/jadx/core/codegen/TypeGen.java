@@ -47,9 +47,16 @@ public class TypeGen {
 		if (type == null || !type.isTypeKnown()) {
 			String n = Long.toString(lit);
 			if (Math.abs(lit) > 100) {
-				n += "; // 0x" + Long.toHexString(lit)
-						+ " float:" + Float.intBitsToFloat((int) lit)
-						+ " double:" + Double.longBitsToDouble(lit);
+				StringBuilder sb = new StringBuilder();
+				sb.append(n).append("(0x").append(Long.toHexString(lit));
+				if (type == null || type.contains(PrimitiveType.FLOAT)) {
+					sb.append(", float:").append(Float.intBitsToFloat((int) lit));
+				}
+				if (type == null || type.contains(PrimitiveType.DOUBLE)) {
+					sb.append(", double:").append(Double.longBitsToDouble(lit));
+				}
+				sb.append(')');
+				return sb.toString();
 			}
 			return n;
 		}

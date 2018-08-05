@@ -89,7 +89,7 @@ public class InstructionRemover {
 
 	public static void unbindResult(MethodNode mth, InsnNode insn) {
 		RegisterArg r = insn.getResult();
-		if (r != null && r.getSVar() != null) {
+		if (r != null && r.getSVar() != null && mth != null) {
 			mth.removeSVar(r.getSVar());
 		}
 	}
