@@ -386,11 +386,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			// reference custom processing
 			String name = styleMap.get(attrValData);
 			if (name != null) {
-				writer.add("@");
-				if (attributeNS != -1) {
-					writer.add(getAttributeNS(attributeNS)).add(':');
-				}
-				writer.add("style/").add(name.replaceAll("_", "."));
+				writer.add("@style/").add(name.replaceAll("_", "."));
 			} else {
 				FieldNode field = localStyleMap.get(attrValData);
 				if (field != null) {
