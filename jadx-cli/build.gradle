@@ -19,5 +19,5 @@ applicationDistribution.with {
 }
 
 startScripts {
-    defaultJvmOpts = [ '-Xms2g', '-Xmx4g' ]
+    defaultJvmOpts = ['-Xms128M', '-Xmx4g']
 }
