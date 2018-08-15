@@ -24,7 +24,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private static final String USER_HOME = System.getProperty("user.home");
 	private static final int RECENT_FILES_COUNT = 15;
-	private static final int CURRENT_SETTINGS_VERSION = 2;
+	private static final int CURRENT_SETTINGS_VERSION = 3;
 
 	private static final Font DEFAULT_FONT = FONT_HACK != null ? FONT_HACK : new RSyntaxTextArea().getFont();
 
@@ -236,7 +236,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private void upgradeSettings(int fromVersion) {
 		LOG.debug("upgrade settings from version: {} to {}", fromVersion, CURRENT_SETTINGS_VERSION);
 		if (fromVersion == 0) {
-			setDeobfuscationMinLength(4);
+			setDeobfuscationMinLength(3);
 			setDeobfuscationUseSourceNameAsAlias(true);
 			setDeobfuscationForceSave(true);
 			setThreadsCount(1);
@@ -247,6 +247,12 @@ public class JadxSettings extends JadxCLIArgs {
 		}
 		if (fromVersion == 1) {
 			setEditorThemePath(CodeArea.getAllThemes()[0].getPath());
+			fromVersion++;
+		}
+		if (fromVersion == 2) {
+			if (getDeobfuscationMinLength() == 4) {
+				setDeobfuscationMinLength(3);
+			}
 		}
 		settingsVersion = CURRENT_SETTINGS_VERSION;
 		sync();
