@@ -157,7 +157,7 @@ public class RegisterArg extends InsnArg implements Named {
 
 	@Override
 	public int hashCode() {
-		return regNum * 31 + type.hashCode();
+		return regNum;
 	}
 
 	@Override
