@@ -25,6 +25,7 @@ import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.tests.api.IntegrationTest;
 
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -58,7 +59,7 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		} else {
 			Pattern clsPtrn = Pattern.compile(clsPatternStr);
 			Pattern mthPtrn = mthPatternStr == null ? null : Pattern.compile(mthPatternStr);
-			processMthByPatterns(jadx, clsPtrn, mthPtrn);
+			processByPatterns(jadx, clsPtrn, mthPtrn);
 		}
 		printErrorReport(jadx);
 	}
@@ -69,44 +70,53 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		}
 	}
 
-	private void processMthByPatterns(JadxDecompiler jadx, Pattern clsPattern, @Nullable Pattern mthPattern) {
+	private void processByPatterns(JadxDecompiler jadx, Pattern clsPattern, @Nullable Pattern mthPattern) {
 		List<IDexTreeVisitor> passes = Jadx.getPassesList(jadx.getArgs());
 		RootNode root = JadxInternalAccess.getRoot(jadx);
+		int processed = 0;
 		for (ClassNode classNode : root.getClasses(true)) {
 			String clsFullName = classNode.getClassInfo().getFullName();
 			if (clsPattern.matcher(clsFullName).matches()) {
-				classNode.load();
-				boolean decompile = false;
-				if (mthPattern == null) {
-					decompile = true;
-				} else {
-					for (MethodNode mth : classNode.getMethods()) {
-						if (mthPattern.matcher(mth.getName()).matches()) {
-							decompile = true;
-							break;
-						}
-					}
-				}
-				if (decompile) {
-					for (IDexTreeVisitor visitor : passes) {
-						DepthTraversal.visit(visitor, classNode);
-					}
-					try {
-						new CodeGen().visit(classNode);
-					} catch (Exception e) {
-						throw new JadxRuntimeException("Codegen failed", e);
-					}
-					LOG.warn("\n Print class: {}, {}", classNode.getFullName(), classNode.dex());
-					if (mthPattern != null) {
-						printMethods(classNode, mthPattern);
-					} else {
-						LOG.info("Code: \n{}", classNode.getCode());
-					}
-					checkCode(classNode);
-//					SaveCode.save(jadx.getArgs().getOutDirSrc(), jadx.getArgs(), classNode);
+				if (processCls(mthPattern, passes, classNode)) {
+					processed++;
 				}
 			}
 		}
+		assertThat("No classes processed", processed, greaterThan(0));
+	}
+
+	private boolean processCls(@Nullable Pattern mthPattern, List<IDexTreeVisitor> passes, ClassNode classNode) {
+		classNode.load();
+		boolean decompile = false;
+		if (mthPattern == null) {
+			decompile = true;
+		} else {
+			for (MethodNode mth : classNode.getMethods()) {
+				if (mthPattern.matcher(mth.getName()).matches()) {
+					decompile = true;
+					break;
+				}
+			}
+		}
+		if (!decompile) {
+			return false;
+		}
+		for (IDexTreeVisitor visitor : passes) {
+			DepthTraversal.visit(visitor, classNode);
+		}
+		try {
+			new CodeGen().visit(classNode);
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Codegen failed", e);
+		}
+		LOG.warn("\n Print class: {}, {}", classNode.getFullName(), classNode.dex());
+		if (mthPattern != null) {
+			printMethods(classNode, mthPattern);
+		} else {
+			LOG.info("Code: \n{}", classNode.getCode());
+		}
+		checkCode(classNode);
+		return true;
 	}
 
 	private void printMethods(ClassNode classNode, @NotNull Pattern mthPattern) {

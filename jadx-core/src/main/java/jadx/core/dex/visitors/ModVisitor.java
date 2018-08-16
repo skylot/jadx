@@ -396,14 +396,14 @@ public class ModVisitor extends AbstractVisitor {
 		return filledArr;
 	}
 
-	private static boolean allArgsNull(InsnNode insn) {
+	private static boolean allArgsNull(ConstructorInsn insn) {
 		for (InsnArg insnArg : insn.getArguments()) {
 			if (insnArg.isLiteral()) {
 				LiteralArg lit = (LiteralArg) insnArg;
 				if (lit.getLiteral() != 0) {
 					return false;
 				}
-			} else if (!insnArg.isThis()) {
+			} else {
 				return false;
 			}
 		}
