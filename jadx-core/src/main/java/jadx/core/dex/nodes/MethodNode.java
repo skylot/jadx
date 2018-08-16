@@ -193,11 +193,11 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 				}
 			}
 			initArguments(argsTypes);
+			return true;
 		} catch (JadxRuntimeException e) {
 			LOG.error("Method signature parse error: {}", this, e);
 			return false;
 		}
-		return true;
 	}
 
 	private void initArguments(List<ArgType> args) {
@@ -214,7 +214,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 			thisArg = null;
 		} else {
 			TypeImmutableArg arg = InsnArg.typeImmutableReg(pos - 1, parentClass.getClassInfo().getType());
-			arg.markAsThis();
+			arg.add(AFlag.THIS);
 			thisArg = arg;
 		}
 		if (args.isEmpty()) {
@@ -243,6 +243,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 		return argsList.remove(0);
 	}
 
+	@Nullable
 	public RegisterArg getThisArg() {
 		return thisArg;
 	}

@@ -53,6 +53,7 @@ public class SSATransform extends AbstractVisitor {
 
 		fixLastAssignInTry(mth);
 		removeBlockerInsns(mth);
+		markThisArg(mth);
 
 		boolean repeatFix;
 		int k = 0;
@@ -404,5 +405,12 @@ public class SSATransform extends AbstractVisitor {
 		}
 		InstructionRemover.unbindInsn(mth, phi);
 		return true;
+	}
+
+	private static void markThisArg(MethodNode mth) {
+		RegisterArg thisArg = mth.getThisArg();
+		if (thisArg != null) {
+			thisArg.getSVar().getUseList().forEach(arg -> arg.add(AFlag.THIS));
+		}
 	}
 }

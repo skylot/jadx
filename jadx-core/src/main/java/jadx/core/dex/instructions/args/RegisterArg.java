@@ -4,6 +4,7 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.nodes.DexNode;
@@ -118,7 +119,7 @@ public class RegisterArg extends InsnArg implements Named {
 
 	@Override
 	public boolean isThis() {
-		if ("this".equals(getName())) {
+		if (contains(AFlag.THIS)) {
 			return true;
 		}
 		// maybe it was moved from 'this' register

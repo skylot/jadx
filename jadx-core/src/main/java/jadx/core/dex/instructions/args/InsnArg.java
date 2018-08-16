@@ -140,7 +140,7 @@ public abstract class InsnArg extends Typed {
 	}
 
 	public boolean isThis() {
-		// must be implemented in RegisterArg and MthParameterArg
+		// must be implemented in RegisterArg
 		return false;
 	}
 }

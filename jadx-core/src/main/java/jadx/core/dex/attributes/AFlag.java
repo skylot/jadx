@@ -26,6 +26,7 @@ public enum AFlag {
 	SKIP_ARG, // skip argument in invoke call
 	ANONYMOUS_CONSTRUCTOR,
 	ANONYMOUS_CLASS,
+	THIS,
 
 	ELSE_IF_CHAIN,
 
