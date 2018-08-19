@@ -1,19 +1,14 @@
 package jadx.gui.settings;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.stream.Stream;
 
+import jadx.gui.utils.LangLocale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import say.swing.JFontChooser;
@@ -34,6 +29,7 @@ public class JadxSettingsWindow extends JDialog {
 	private final transient MainWindow mainWindow;
 	private final transient JadxSettings settings;
 	private final transient String startSettings;
+	private final transient LangLocale prevLang;
 
 	private transient boolean needReload = false;
 
@@ -41,16 +37,17 @@ public class JadxSettingsWindow extends JDialog {
 		this.mainWindow = mainWindow;
 		this.settings = settings;
 		this.startSettings = JadxSettingsAdapter.makeString(settings);
+		this.prevLang = settings.getLangLocale();
 
 		initUI();
 		registerBundledFonts();
 
 		setTitle(NLS.str("preferences.title"));
 		setSize(400, 550);
-		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		setModalityType(ModalityType.APPLICATION_MODAL);
 		pack();
+		setLocationRelativeTo(null);
 	}
 
 	public static void registerBundledFonts() {
@@ -70,39 +67,41 @@ public class JadxSettingsWindow extends JDialog {
 		panel.add(makeOtherGroup());
 
 		JButton saveBtn = new JButton(NLS.str("preferences.save"));
-		saveBtn.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent event) {
-				settings.sync();
-				if (needReload) {
-					mainWindow.reOpenFile();
-				}
-				dispose();
+		saveBtn.addActionListener(event -> {
+			settings.sync();
+			if (needReload) {
+				mainWindow.reOpenFile();
 			}
+			if (!settings.getLangLocale().equals(prevLang)){
+				JOptionPane.showMessageDialog(
+						this,
+						NLS.str("msg.language_changed", settings.getLangLocale()),
+						NLS.str("msg.language_changed_title", settings.getLangLocale()),
+						JOptionPane.INFORMATION_MESSAGE
+				);
+			}
+			dispose();
 		});
 		JButton cancelButton = new JButton(NLS.str("preferences.cancel"));
-		cancelButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent event) {
-				JadxSettingsAdapter.fill(settings, startSettings);
-				dispose();
-			}
+		cancelButton.addActionListener(event -> {
+			JadxSettingsAdapter.fill(settings, startSettings);
+			dispose();
 		});
 
 		JButton resetBtn = new JButton(NLS.str("preferences.reset"));
-		resetBtn.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent event) {
-				int res = JOptionPane.showConfirmDialog(
-						JadxSettingsWindow.this,
-						NLS.str("preferences.reset_message"),
-						NLS.str("preferences.reset_title"),
-						JOptionPane.YES_NO_OPTION);
-				if (res == JOptionPane.YES_OPTION) {
-					String defaults = JadxSettingsAdapter.makeString(new JadxSettings());
-					JadxSettingsAdapter.fill(settings, defaults);
-					getContentPane().removeAll();
-					initUI();
-					pack();
-					repaint();
-				}
+		resetBtn.addActionListener(event -> {
+			int res = JOptionPane.showConfirmDialog(
+					JadxSettingsWindow.this,
+					NLS.str("preferences.reset_message"),
+					NLS.str("preferences.reset_title"),
+					JOptionPane.YES_NO_OPTION);
+			if (res == JOptionPane.YES_OPTION) {
+				String defaults = JadxSettingsAdapter.makeString(new JadxSettings());
+				JadxSettingsAdapter.fill(settings, defaults);
+				getContentPane().removeAll();
+				initUI();
+				pack();
+				repaint();
 			}
 		});
 
@@ -124,49 +123,37 @@ public class JadxSettingsWindow extends JDialog {
 	private SettingsGroup makeDeobfuscationGroup() {
 		JCheckBox deobfOn = new JCheckBox();
 		deobfOn.setSelected(settings.isDeobfuscationOn());
-		deobfOn.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				settings.setDeobfuscationOn(e.getStateChange() == ItemEvent.SELECTED);
-				needReload();
-			}
+		deobfOn.addItemListener(e -> {
+			settings.setDeobfuscationOn(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
 		});
 
 		JCheckBox deobfForce = new JCheckBox();
 		deobfForce.setSelected(settings.isDeobfuscationForceSave());
-		deobfForce.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				settings.setDeobfuscationForceSave(e.getStateChange() == ItemEvent.SELECTED);
-				needReload();
-			}
+		deobfForce.addItemListener(e -> {
+			settings.setDeobfuscationForceSave(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
 		});
 
-		final JSpinner minLen = new JSpinner();
+		JSpinner minLen = new JSpinner();
 		minLen.setValue(settings.getDeobfuscationMinLength());
-		minLen.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				settings.setDeobfuscationMinLength((Integer) minLen.getValue());
-				needReload();
-			}
+		minLen.addChangeListener(e -> {
+			settings.setDeobfuscationMinLength((Integer) minLen.getValue());
+			needReload();
 		});
 
-		final JSpinner maxLen = new JSpinner();
+		JSpinner maxLen = new JSpinner();
 		maxLen.setValue(settings.getDeobfuscationMaxLength());
-		maxLen.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				settings.setDeobfuscationMaxLength((Integer) maxLen.getValue());
-				needReload();
-			}
+		maxLen.addChangeListener(e -> {
+			settings.setDeobfuscationMaxLength((Integer) maxLen.getValue());
+			needReload();
 		});
 
 		JCheckBox deobfSourceAlias = new JCheckBox();
 		deobfSourceAlias.setSelected(settings.isDeobfuscationUseSourceNameAsAlias());
-		deobfSourceAlias.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				settings.setDeobfuscationUseSourceNameAsAlias(e.getStateChange() == ItemEvent.SELECTED);
-				needReload();
-			}
+		deobfSourceAlias.addItemListener(e -> {
+			settings.setDeobfuscationUseSourceNameAsAlias(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
 		});
 
 		SettingsGroup deobfGroup = new SettingsGroup(NLS.str("preferences.deobfuscation"));
@@ -206,7 +193,7 @@ public class JadxSettingsWindow extends JDialog {
 		});
 
 		EditorTheme[] editorThemes = CodeArea.getAllThemes();
-		final JComboBox<EditorTheme> themesCbx = new JComboBox<>(editorThemes);
+		JComboBox<EditorTheme> themesCbx = new JComboBox<>(editorThemes);
 		for (EditorTheme theme: editorThemes) {
 			if (theme.getPath().equals(settings.getEditorThemePath())) {
 				themesCbx.setSelectedItem(theme);
@@ -230,66 +217,49 @@ public class JadxSettingsWindow extends JDialog {
 	private SettingsGroup makeDecompilationGroup() {
 		JCheckBox fallback = new JCheckBox();
 		fallback.setSelected(settings.isFallbackMode());
-		fallback.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				settings.setFallbackMode(e.getStateChange() == ItemEvent.SELECTED);
-				needReload();
-			}
+		fallback.addItemListener(e -> {
+			settings.setFallbackMode(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
 		});
 
 		JCheckBox showInconsistentCode = new JCheckBox();
 		showInconsistentCode.setSelected(settings.isShowInconsistentCode());
-		showInconsistentCode.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				settings.setShowInconsistentCode(e.getStateChange() == ItemEvent.SELECTED);
-				needReload();
-			}
+		showInconsistentCode.addItemListener(e -> {
+			settings.setShowInconsistentCode(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
 		});
 
 		JCheckBox resourceDecode = new JCheckBox();
 		resourceDecode.setSelected(settings.isSkipResources());
-		resourceDecode.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				settings.setSkipResources(e.getStateChange() == ItemEvent.SELECTED);
-				needReload();
-			}
+		resourceDecode.addItemListener(e -> {
+			settings.setSkipResources(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
 		});
 
 		SpinnerNumberModel spinnerModel = new SpinnerNumberModel(
 				settings.getThreadsCount(), 1, Runtime.getRuntime().availableProcessors() * 2, 1);
-		final JSpinner threadsCount = new JSpinner(spinnerModel);
-		threadsCount.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				settings.setThreadsCount((Integer) threadsCount.getValue());
-				needReload();
-			}
+		JSpinner threadsCount = new JSpinner(spinnerModel);
+		threadsCount.addChangeListener(e -> {
+			settings.setThreadsCount((Integer) threadsCount.getValue());
+			needReload();
 		});
 
 		JCheckBox autoStartJobs = new JCheckBox();
 		autoStartJobs.setSelected(settings.isAutoStartJobs());
-		autoStartJobs.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				settings.setAutoStartJobs(e.getStateChange() == ItemEvent.SELECTED);
-			}
-		});
+		autoStartJobs.addItemListener(e -> settings.setAutoStartJobs(e.getStateChange() == ItemEvent.SELECTED));
 
 		JCheckBox escapeUnicode = new JCheckBox();
 		escapeUnicode.setSelected(settings.escapeUnicode());
-		escapeUnicode.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				settings.setEscapeUnicode(e.getStateChange() == ItemEvent.SELECTED);
-				needReload();
-			}
+		escapeUnicode.addItemListener(e -> {
+			settings.setEscapeUnicode(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
 		});
 
 		JCheckBox replaceConsts = new JCheckBox();
 		replaceConsts.setSelected(settings.isReplaceConsts());
-		replaceConsts.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				settings.setReplaceConsts(e.getStateChange() == ItemEvent.SELECTED);
-				needReload();
-			}
+		replaceConsts.addItemListener(e -> {
+			settings.setReplaceConsts(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
 		});
 
 		SettingsGroup other = new SettingsGroup(NLS.str("preferences.decompile"));
@@ -304,33 +274,35 @@ public class JadxSettingsWindow extends JDialog {
 	}
 
 	private SettingsGroup makeOtherGroup() {
+		JComboBox<LangLocale> languageCbx = new JComboBox<>(NLS.getI18nLocales());
+		for (LangLocale locale: NLS.getI18nLocales()) {
+			if (locale.equals(settings.getLangLocale())) {
+				languageCbx.setSelectedItem(locale);
+				break;
+			}
+		}
+		languageCbx.addActionListener(e -> settings.setLangLocale((LangLocale) languageCbx.getSelectedItem()));
+
 		JCheckBox update = new JCheckBox();
 		update.setSelected(settings.isCheckForUpdates());
-		update.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				settings.setCheckForUpdates(e.getStateChange() == ItemEvent.SELECTED);
-			}
-		});
+		update.addItemListener(e -> settings.setCheckForUpdates(e.getStateChange() == ItemEvent.SELECTED));
 
 		JCheckBox cfg = new JCheckBox();
 		cfg.setSelected(settings.isCfgOutput());
-		cfg.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				settings.setCfgOutput(e.getStateChange() == ItemEvent.SELECTED);
-				needReload();
-			}
+		cfg.addItemListener(e -> {
+			settings.setCfgOutput(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
 		});
 
 		JCheckBox rawCfg = new JCheckBox();
 		rawCfg.setSelected(settings.isRawCfgOutput());
-		rawCfg.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				settings.setRawCfgOutput(e.getStateChange() == ItemEvent.SELECTED);
-				needReload();
-			}
+		rawCfg.addItemListener(e -> {
+			settings.setRawCfgOutput(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
 		});
 
 		SettingsGroup other = new SettingsGroup(NLS.str("preferences.other"));
+		other.addRow(NLS.str("preferences.language"), languageCbx);
 		other.addRow(NLS.str("preferences.check_for_updates"), update);
 		other.addRow(NLS.str("preferences.cfg"), cfg);
 		other.addRow(NLS.str("preferences.raw_cfg"), rawCfg);

@@ -154,7 +154,7 @@ public class MainWindow extends JFrame {
 		String[] exts = {"apk", "dex", "jar", "class", "zip", "aar", "arsc"};
 		String description = "supported files: " + Arrays.toString(exts).replace('[', '(').replace(']', ')');
 		fileChooser.setFileFilter(new FileNameExtensionFilter(description, exts));
-		fileChooser.setToolTipText(NLS.str("file.open"));
+		fileChooser.setToolTipText(NLS.str("file.open_action"));
 		String currentDirectory = settings.getLastOpenFilePath();
 		if (!currentDirectory.isEmpty()) {
 			fileChooser.setCurrentDirectory(new File(currentDirectory));
@@ -409,7 +409,7 @@ public class MainWindow extends JFrame {
 		clsSearchAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.class_search"));
 		clsSearchAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
 
-		Action deobfAction = new AbstractAction(NLS.str("preferences.deobfuscation"), ICON_DEOBF) {
+		Action deobfAction = new AbstractAction(NLS.str("menu.deobfuscation"), ICON_DEOBF) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				toggleDeobfuscation();
