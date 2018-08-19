@@ -8,7 +8,6 @@ import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Collection;
 
-import jadx.gui.utils.LangLocale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import say.swing.JFontChooser;
@@ -16,6 +15,7 @@ import say.swing.JFontChooser;
 import jadx.gui.ui.CodeArea;
 import jadx.gui.ui.CodeArea.EditorTheme;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 
 import static jadx.gui.utils.Utils.FONT_HACK;
@@ -135,17 +135,17 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
-		JSpinner minLen = new JSpinner();
-		minLen.setValue(settings.getDeobfuscationMinLength());
-		minLen.addChangeListener(e -> {
-			settings.setDeobfuscationMinLength((Integer) minLen.getValue());
+		SpinnerNumberModel minLenModel = new SpinnerNumberModel(settings.getDeobfuscationMinLength(), 0, Integer.MAX_VALUE, 1);
+		JSpinner minLenSpinner = new JSpinner(minLenModel);
+		minLenSpinner.addChangeListener(e -> {
+			settings.setDeobfuscationMinLength((Integer) minLenSpinner.getValue());
 			needReload();
 		});
 
-		JSpinner maxLen = new JSpinner();
-		maxLen.setValue(settings.getDeobfuscationMaxLength());
-		maxLen.addChangeListener(e -> {
-			settings.setDeobfuscationMaxLength((Integer) maxLen.getValue());
+		SpinnerNumberModel maxLenModel = new SpinnerNumberModel(settings.getDeobfuscationMaxLength(), 0, Integer.MAX_VALUE, 1);
+		JSpinner maxLenSpinner = new JSpinner(maxLenModel);
+		maxLenSpinner.addChangeListener(e -> {
+			settings.setDeobfuscationMaxLength((Integer) maxLenSpinner.getValue());
 			needReload();
 		});
 
@@ -159,12 +159,12 @@ public class JadxSettingsWindow extends JDialog {
 		SettingsGroup deobfGroup = new SettingsGroup(NLS.str("preferences.deobfuscation"));
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_on"), deobfOn);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_force"), deobfForce);
-		deobfGroup.addRow(NLS.str("preferences.deobfuscation_min_len"), minLen);
-		deobfGroup.addRow(NLS.str("preferences.deobfuscation_max_len"), maxLen);
+		deobfGroup.addRow(NLS.str("preferences.deobfuscation_min_len"), minLenSpinner);
+		deobfGroup.addRow(NLS.str("preferences.deobfuscation_max_len"), maxLenSpinner);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_source_alias"), deobfSourceAlias);
 		deobfGroup.end();
 
-		Collection<JComponent> connectedComponents = Arrays.asList(deobfForce, minLen, maxLen, deobfSourceAlias);
+		Collection<JComponent> connectedComponents = Arrays.asList(deobfForce, minLenSpinner, maxLenSpinner, deobfSourceAlias);
 		deobfOn.addItemListener(e -> enableComponentList(connectedComponents, e.getStateChange() == ItemEvent.SELECTED));
 		enableComponentList(connectedComponents, settings.isDeobfuscationOn());
 		return deobfGroup;

@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import jadx.gui.utils.LangLocale;
-import jadx.gui.utils.NLS;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +16,8 @@ import org.slf4j.LoggerFactory;
 import jadx.api.JadxArgs;
 import jadx.cli.JadxCLIArgs;
 import jadx.gui.ui.CodeArea;
+import jadx.gui.utils.LangLocale;
+import jadx.gui.utils.NLS;
 
 import static jadx.gui.utils.Utils.FONT_HACK;
 
@@ -57,6 +57,12 @@ public class JadxSettings extends JadxCLIArgs {
 	public void fixOnLoad() {
 		if (threadsCount <= 0) {
 			threadsCount = JadxArgs.DEFAULT_THREADS_COUNT;
+		}
+		if (deobfuscationMinLength < 0) {
+			deobfuscationMinLength = 0;
+		}
+		if (deobfuscationMaxLength < 0) {
+			deobfuscationMaxLength = 0;
 		}
 		if (settingsVersion != CURRENT_SETTINGS_VERSION) {
 			upgradeSettings(settingsVersion);
