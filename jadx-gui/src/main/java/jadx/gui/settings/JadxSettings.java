@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import jadx.gui.utils.LangLocale;
+import jadx.gui.utils.NLS;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +26,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private static final String USER_HOME = System.getProperty("user.home");
 	private static final int RECENT_FILES_COUNT = 15;
-	private static final int CURRENT_SETTINGS_VERSION = 3;
+	private static final int CURRENT_SETTINGS_VERSION = 4;
 
 	private static final Font DEFAULT_FONT = FONT_HACK != null ? FONT_HACK : new RSyntaxTextArea().getFont();
 
@@ -38,6 +40,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private List<String> recentFiles = new ArrayList<>();
 	private String fontStr = "";
 	private String editorThemePath = "";
+	private LangLocale langLocale = NLS.defaultLocale();
 	private boolean autoStartJobs = false;
 
 	private int settingsVersion = 0;
@@ -149,6 +152,14 @@ public class JadxSettings extends JadxCLIArgs {
 		this.showInconsistentCode = showInconsistentCode;
 	}
 
+	public LangLocale getLangLocale(){
+		return this.langLocale;
+	}
+
+	public void setLangLocale(LangLocale langLocale) {
+		this.langLocale = langLocale;
+	}
+
 	public void setCfgOutput(boolean cfgOutput) {
 		this.cfgOutput = cfgOutput;
 	}
@@ -253,6 +264,10 @@ public class JadxSettings extends JadxCLIArgs {
 			if (getDeobfuscationMinLength() == 4) {
 				setDeobfuscationMinLength(3);
 			}
+			fromVersion++;
+		}
+		if (fromVersion == 3) {
+			setLangLocale(NLS.defaultLocale());
 		}
 		settingsVersion = CURRENT_SETTINGS_VERSION;
 		sync();

@@ -55,7 +55,7 @@ class AboutDialog extends JDialog {
 
 		setModalityType(ModalityType.APPLICATION_MODAL);
 
-		setTitle("About JADX");
+		setTitle(NLS.str("about_dialog.title"));
 		pack();
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setLocationRelativeTo(null);
