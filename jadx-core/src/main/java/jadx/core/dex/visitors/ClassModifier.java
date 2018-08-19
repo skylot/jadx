@@ -11,8 +11,10 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
@@ -44,8 +46,8 @@ public class ClassModifier extends AbstractVisitor {
 			return false;
 		}
 		removeSyntheticFields(cls);
-		removeSyntheticMethods(cls);
-		removeEmptyMethods(cls);
+		cls.getMethods().forEach(mth -> removeSyntheticMethods(cls, mth));
+		cls.getMethods().forEach(ClassModifier::removeEmptyMethods);
 
 		markAnonymousClass(cls);
 		return false;
@@ -122,24 +124,23 @@ public class ClassModifier extends AbstractVisitor {
 		return true;
 	}
 
-	private static void removeSyntheticMethods(ClassNode cls) {
-		for (MethodNode mth : cls.getMethods()) {
-			if (mth.isNoCode()) {
-				continue;
-			}
-			AccessInfo af = mth.getAccessFlags();
-			// remove bridge methods
-			if (af.isBridge() && af.isSynthetic() && !isMethodUniq(cls, mth)) {
-				// TODO add more checks before method deletion
-				mth.add(AFlag.DONT_GENERATE);
-			} else {
-				// remove synthetic constructor for inner classes
-				if (af.isSynthetic() && af.isConstructor() && mth.getBasicBlocks().size() == 2) {
-					List<RegisterArg> args = mth.getArguments(false);
-					if (isRemovedClassInArgs(cls, args)) {
-						modifySyntheticMethod(cls, mth, args);
-					}
-				}
+	private static void removeSyntheticMethods(ClassNode cls, MethodNode mth) {
+		if (mth.isNoCode()) {
+			return;
+		}
+		AccessInfo af = mth.getAccessFlags();
+		if (!af.isSynthetic()) {
+			return;
+		}
+		if (removeBridgeMethod(cls, mth)) {
+			mth.add(AFlag.DONT_GENERATE);
+			return;
+		}
+		// remove synthetic constructor for inner classes
+		if (af.isConstructor() && mth.getBasicBlocks().size() == 2) {
+			List<RegisterArg> args = mth.getArguments(false);
+			if (isRemovedClassInArgs(cls, args)) {
+				modifySyntheticMethod(cls, mth, args);
 			}
 		}
 	}
@@ -192,7 +193,40 @@ public class ClassModifier extends AbstractVisitor {
 		}
 	}
 
-	private static boolean isMethodUniq(ClassNode cls, MethodNode mth) {
+	private static boolean removeBridgeMethod(ClassNode cls, MethodNode mth) {
+		List<InsnNode> allInsns = BlockUtils.collectAllInsns(mth.getBasicBlocks());
+		if (allInsns.size() == 1) {
+			InsnNode wrappedInsn = allInsns.get(0);
+			if (wrappedInsn.getType() == InsnType.RETURN) {
+				InsnArg arg = wrappedInsn.getArg(0);
+				if (arg.isInsnWrap()) {
+					wrappedInsn = ((InsnWrapArg) arg).getWrapInsn();
+				}
+			}
+			if (checkSyntheticWrapper(mth, wrappedInsn)) {
+				return true;
+			}
+		}
+		return !isMethodUnique(cls, mth);
+	}
+
+	private static boolean checkSyntheticWrapper(MethodNode mth, InsnNode insn) {
+		InsnType insnType = insn.getType();
+		if (insnType == InsnType.INVOKE) {
+			MethodInfo callMth = ((InvokeNode) insn).getCallMth();
+			MethodNode wrappedMth = mth.root().deepResolveMethod(callMth);
+			if (wrappedMth != null) {
+				String alias = mth.getAlias();
+				if (!wrappedMth.getAlias().equals(alias) && wrappedMth.isVirtual()) {
+					wrappedMth.getMethodInfo().setAlias(alias);
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean isMethodUnique(ClassNode cls, MethodNode mth) {
 		MethodInfo mi = mth.getMethodInfo();
 		for (MethodNode otherMth : cls.getMethods()) {
 			if (otherMth != mth) {
@@ -207,19 +241,16 @@ public class ClassModifier extends AbstractVisitor {
 		return true;
 	}
 
-	private static void removeEmptyMethods(ClassNode cls) {
-		for (MethodNode mth : cls.getMethods()) {
-			AccessInfo af = mth.getAccessFlags();
-
-			// remove public empty constructors
-			if (af.isConstructor()
-					&& (af.isPublic() || af.isStatic())
-					&& mth.getArguments(false).isEmpty()
-					&& !mth.contains(AType.JADX_ERROR)) {
-				List<BlockNode> bb = mth.getBasicBlocks();
-				if (bb == null || bb.isEmpty() || BlockUtils.isAllBlocksEmpty(bb)) {
-					mth.add(AFlag.DONT_GENERATE);
-				}
+	private static void removeEmptyMethods(MethodNode mth) {
+		AccessInfo af = mth.getAccessFlags();
+		// remove public empty constructors
+		if (af.isConstructor()
+				&& (af.isPublic() || af.isStatic())
+				&& mth.getArguments(false).isEmpty()
+				&& !mth.contains(AType.JADX_ERROR)) {
+			List<BlockNode> bb = mth.getBasicBlocks();
+			if (bb == null || bb.isEmpty() || BlockUtils.isAllBlocksEmpty(bb)) {
+				mth.add(AFlag.DONT_GENERATE);
 			}
 		}
 	}

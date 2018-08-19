@@ -550,4 +550,10 @@ public class BlockUtils {
 		}
 		return true;
 	}
+
+	public static List<InsnNode> collectAllInsns(List<BlockNode> blocks) {
+		List<InsnNode> insns = new ArrayList<>();
+		blocks.forEach(block -> insns.addAll(block.getInstructions()));
+		return insns;
+	}
 }
