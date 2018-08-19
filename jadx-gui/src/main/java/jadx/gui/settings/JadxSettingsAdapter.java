@@ -46,7 +46,8 @@ public class JadxSettingsAdapter {
 			String jsonSettings = PREFS.get(JADX_GUI_KEY, "");
 			JadxSettings settings = fromString(jsonSettings);
 			if (settings == null) {
-				return new JadxSettings();
+				LOG.debug("Created new settings.");
+				settings = new JadxSettings();
 			}
 			settings.fixOnLoad();
 			LOG.debug("Loaded settings: {}", makeString(settings));
