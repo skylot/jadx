@@ -2,7 +2,9 @@ package jadx.core.deobf;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +50,7 @@ public class Deobfuscator {
 
 	private final PackageNode rootPackage = new PackageNode("");
 	private final Set<String> pkgSet = new TreeSet<>();
+	private final Set<String> reservedClsNames = new HashSet<>();
 
 	private final int maxLength;
 	private final int minLength;
@@ -87,6 +90,11 @@ public class Deobfuscator {
 	}
 
 	private void preProcess() {
+		for (DexNode dexNode : dexNodes) {
+			for (ClassNode cls : dexNode.getClasses()) {
+				Collections.addAll(reservedClsNames, cls.getPackage().split("\\."));
+			}
+		}
 		for (DexNode dexNode : dexNodes) {
 			for (ClassNode cls : dexNode.getClasses()) {
 				preProcessClass(cls);
@@ -312,9 +320,11 @@ public class Deobfuscator {
 		if (alias != null) {
 			clsMap.put(classInfo, new DeobfClsInfo(this, cls, pkg, alias));
 		} else {
-			if (!clsMap.containsKey(classInfo)
-					&& shouldRename(classInfo.getShortName())) {
-				makeClsAlias(cls);
+			if (!clsMap.containsKey(classInfo)) {
+				String clsShortName = classInfo.getShortName();
+				if (shouldRename(clsShortName) || reservedClsNames.contains(clsShortName)) {
+					makeClsAlias(cls);
+				}
 			}
 		}
 		for (ClassNode innerCls : cls.getInnerClasses()) {
