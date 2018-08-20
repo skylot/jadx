@@ -454,7 +454,8 @@ public class BlockProcessor extends AbstractVisitor {
 		}
 		BlockNode exitBlock = mth.getExitBlocks().get(0);
 		if (exitBlock.getInstructions().size() != 1
-				|| exitBlock.contains(AFlag.SYNTHETIC)) {
+				|| exitBlock.contains(AFlag.SYNTHETIC)
+				|| exitBlock.contains(AType.SPLITTER_BLOCK)) {
 			return false;
 		}
 		List<BlockNode> preds = exitBlock.getPredecessors();
