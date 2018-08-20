@@ -235,6 +235,11 @@ public class DexNode implements IDexNode {
 		return this;
 	}
 
+	@Override
+	public String typeName() {
+		return "dex";
+	}
+
 	public int getDexId() {
 		return dexId;
 	}
@@ -243,5 +248,4 @@ public class DexNode implements IDexNode {
 	public String toString() {
 		return "DEX: " + file;
 	}
-
 }

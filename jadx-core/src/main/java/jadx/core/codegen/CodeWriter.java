@@ -191,6 +191,11 @@ public class CodeWriter {
 		return indent;
 	}
 
+	public void setIndent(int indent) {
+		this.indent = indent;
+		updateIndent();
+	}
+
 	public int getLine() {
 		return line;
 	}

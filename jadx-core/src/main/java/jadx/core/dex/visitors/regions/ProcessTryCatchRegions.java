@@ -93,7 +93,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 			}
 			TryCatchBlock prevTB = tryBlocksMap.put(domBlock, tb);
 			if (prevTB != null) {
-				ErrorsCounter.methodError(mth, "Failed to process nested try/catch");
+				ErrorsCounter.methodWarn(mth, "Failed to process nested try/catch");
 			}
 		}
 	}
@@ -105,7 +105,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 			if (region.getSubBlocks().contains(dominator)) {
 				TryCatchBlock tb = tryBlocksMap.get(dominator);
 				if (!wrapBlocks(region, tb, dominator)) {
-					ErrorsCounter.methodError(mth, "Can't wrap try/catch for " + region);
+					ErrorsCounter.methodWarn(mth, "Can't wrap try/catch for " + region);
 				}
 				tryBlocksMap.remove(dominator);
 				return true;

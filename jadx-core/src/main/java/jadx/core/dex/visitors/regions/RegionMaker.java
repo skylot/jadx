@@ -532,7 +532,7 @@ public class RegionMaker {
 
 		BlockNode body = getNextBlock(block);
 		if (body == null) {
-			ErrorsCounter.methodError(mth, "Unexpected end of synchronized block");
+			ErrorsCounter.methodWarn(mth, "Unexpected end of synchronized block");
 			return null;
 		}
 		BlockNode exit = null;
@@ -904,7 +904,7 @@ public class RegionMaker {
 					blocks.add(handlerBlock);
 					splitters.addAll(handlerBlock.getPredecessors());
 				} else {
-					LOG.debug(ErrorsCounter.formatErrorMsg(mth, "No exception handler block: " + handler));
+					LOG.debug(ErrorsCounter.formatMsg(mth, "No exception handler block: " + handler));
 				}
 			}
 			Set<BlockNode> exits = new HashSet<>();
@@ -912,7 +912,7 @@ public class RegionMaker {
 				for (BlockNode handler : blocks) {
 					List<BlockNode> s = splitter.getSuccessors();
 					if (s.isEmpty()) {
-						LOG.debug(ErrorsCounter.formatErrorMsg(mth, "No successors for splitter: " + splitter));
+						LOG.debug(ErrorsCounter.formatMsg(mth, "No successors for splitter: " + splitter));
 						continue;
 					}
 					BlockNode ss = s.get(0);

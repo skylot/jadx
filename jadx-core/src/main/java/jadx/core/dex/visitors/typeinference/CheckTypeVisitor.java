@@ -23,6 +23,6 @@ public class CheckTypeVisitor {
 	}
 
 	private static void error(String msg, MethodNode mth, InsnNode insn) {
-		ErrorsCounter.methodError(mth, msg + ": " + insn);
+		ErrorsCounter.methodWarn(mth, msg + ": " + insn);
 	}
 }

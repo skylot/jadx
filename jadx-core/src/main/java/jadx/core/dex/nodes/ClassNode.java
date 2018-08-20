@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import jadx.core.Consts;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.annotations.Annotation;
-import jadx.core.dex.attributes.nodes.JadxErrorAttr;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.info.AccessInfo;
@@ -248,8 +247,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 			try {
 				mth.load();
 			} catch (Exception e) {
-				LOG.error("Method load error: {}", mth, e);
-				mth.addAttr(new JadxErrorAttr(e));
+				mth.addError("Method load error", e);
 			}
 		}
 		for (ClassNode innerCls : getInnerClasses()) {
@@ -416,6 +414,11 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 	@Override
 	public RootNode root() {
 		return dex.root();
+	}
+
+	@Override
+	public String typeName() {
+		return "class";
 	}
 
 	public String getRawName() {

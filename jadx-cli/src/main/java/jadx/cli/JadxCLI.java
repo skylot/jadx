@@ -10,31 +10,36 @@ public class JadxCLI {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxCLI.class);
 
 	public static void main(String[] args) {
+		int result = 0;
 		try {
 			JadxCLIArgs jadxArgs = new JadxCLIArgs();
 			if (jadxArgs.processArgs(args)) {
-				processAndSave(jadxArgs);
+				result = processAndSave(jadxArgs);
 			}
 		} catch (Exception e) {
 			LOG.error("jadx error: {}", e.getMessage(), e);
-			System.exit(1);
+			result = 1;
+		} finally {
+			System.exit(result);
 		}
 	}
 
-	static void processAndSave(JadxCLIArgs inputArgs) {
+	static int processAndSave(JadxCLIArgs inputArgs) {
 		JadxDecompiler jadx = new JadxDecompiler(inputArgs.toJadxArgs());
 		try {
 			jadx.load();
 		} catch (JadxArgsValidateException e) {
 			LOG.error("Incorrect arguments: {}", e.getMessage());
-			System.exit(1);
+			return 1;
 		}
 		jadx.save();
-		if (jadx.getErrorsCount() != 0) {
+		int errorsCount = jadx.getErrorsCount();
+		if (errorsCount != 0) {
 			jadx.printErrorsReport();
 			LOG.error("finished with errors");
 		} else {
 			LOG.info("done");
 		}
+		return errorsCount;
 	}
 }

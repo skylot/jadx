@@ -7,6 +7,7 @@ import java.util.Set;
 
 import jadx.core.Consts;
 import jadx.core.deobf.NameMapper;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.MethodInfo;
@@ -136,11 +137,11 @@ public class NameGen {
 	private String makeNameForType(ArgType type) {
 		if (type.isPrimitive()) {
 			return makeNameForPrimitive(type);
-		} else if (type.isArray()) {
-			return makeNameForType(type.getArrayRootElement()) + "Arr";
-		} else {
-			return makeNameForObject(type);
 		}
+		if (type.isArray()) {
+			return makeNameForType(type.getArrayRootElement()) + "Arr";
+		}
+		return makeNameForObject(type);
 	}
 
 	private static String makeNameForPrimitive(ArgType type) {

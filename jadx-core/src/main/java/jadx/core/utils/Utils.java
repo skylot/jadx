@@ -1,5 +1,6 @@
 package jadx.core.utils;
 
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import jadx.api.JadxDecompiler;
+import jadx.core.codegen.CodeWriter;
 
 public class Utils {
 
@@ -78,6 +80,30 @@ public class Utils {
 		filterRecursive(throwable);
 		throwable.printStackTrace(pw);
 		return sw.getBuffer().toString();
+	}
+
+	public static void appendStackTrace(CodeWriter code, Throwable throwable) {
+		if (throwable == null) {
+			return;
+		}
+		code.startLine();
+		OutputStream w = new OutputStream() {
+			@Override
+			public void write(int b) {
+				char c = (char) b;
+				if (c == '\r') {
+					// ignore
+				} else if (c == '\n') {
+					code.startLine();
+				} else {
+					code.add(c);
+				}
+			}
+		};
+		PrintWriter pw = new PrintWriter(w, true);
+		filterRecursive(throwable);
+		throwable.printStackTrace(pw);
+		pw.flush();
 	}
 
 	private static void filterRecursive(Throwable th) {

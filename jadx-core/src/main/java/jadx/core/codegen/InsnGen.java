@@ -580,7 +580,7 @@ public class InsnGen {
 		// anonymous class construction
 		if (cls.contains(AFlag.DONT_GENERATE)) {
 			code.add("/* anonymous class already generated */");
-			ErrorsCounter.methodError(mth, "Anonymous class already generated: " + cls);
+			ErrorsCounter.methodWarn(mth, "Anonymous class already generated: " + cls);
 			return;
 		}
 		ArgType parent;

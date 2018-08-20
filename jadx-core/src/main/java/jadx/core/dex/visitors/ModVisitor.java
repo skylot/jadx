@@ -366,7 +366,7 @@ public class ModVisitor extends AbstractVisitor {
 			elType = insnElementType;
 		}
 		if (!elType.equals(insnElementType) && !insnArrayType.equals(ArgType.OBJECT)) {
-			ErrorsCounter.methodError(mth,
+			ErrorsCounter.methodWarn(mth,
 					"Incorrect type for fill-array insn " + InsnUtils.formatOffset(insn.getOffset())
 							+ ", element type: " + elType + ", insn element type: " + insnElementType
 			);

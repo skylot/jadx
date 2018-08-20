@@ -18,6 +18,8 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.attributes.nodes.EnumClassAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr.EnumField;
+import jadx.core.dex.attributes.nodes.JadxError;
+import jadx.core.dex.attributes.nodes.JadxWarn;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.info.AccessInfo;
@@ -253,6 +255,7 @@ public class ClassGen {
 			if (code.getLine() != clsDeclLine) {
 				code.newLine();
 			}
+			int savedIndent = code.getIndent();
 			try {
 				addMethod(code, mth);
 			} catch (Exception e) {
@@ -260,6 +263,7 @@ public class ClassGen {
 				code.newLine().add(ErrorsCounter.methodError(mth, "Method generation error", e));
 				code.newLine().add(Utils.getStackTrace(e));
 				code.newLine().add("*/");
+				code.setIndent(savedIndent);
 			}
 		}
 	}
@@ -292,12 +296,11 @@ public class ClassGen {
 			}
 			code.add(';');
 		} else {
+			insertDecompilationProblems(code, mth);
 			boolean badCode = mth.contains(AFlag.INCONSISTENT_CODE);
 			if (badCode) {
-				code.startLine("/* JADX WARNING: inconsistent code. */");
-				code.startLine("/* Code decompiled incorrectly, please refer to instructions dump. */");
-				ErrorsCounter.methodError(mth, "Inconsistent code");
 				if (showInconsistentCode) {
+					code.startLine("/* Code decompiled incorrectly, please refer to instructions dump. */");
 					mth.remove(AFlag.INCONSISTENT_CODE);
 					badCode = false;
 				}
@@ -321,6 +324,26 @@ public class ClassGen {
 			}
 			code.decIndent();
 			code.startLine('}');
+		}
+	}
+
+	private void insertDecompilationProblems(CodeWriter code, MethodNode mth) {
+		List<JadxError> errors = mth.getAll(AType.JADX_ERROR);
+		List<JadxWarn> warns = mth.getAll(AType.JADX_WARN);
+		if (!errors.isEmpty()) {
+			errors.forEach(err -> {
+				code.startLine("/*  JADX ERROR: ").add(err.getError());
+				Throwable cause = err.getCause();
+				if (cause != null) {
+					code.incIndent();
+					Utils.appendStackTrace(code, cause);
+					code.decIndent();
+				}
+				code.add("*/");
+			});
+		}
+		if (!warns.isEmpty()) {
+			warns.forEach(warn -> code.startLine("/* JADX WARNING: ").add(warn.getWarn()).add(" */"));
 		}
 	}
 

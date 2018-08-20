@@ -264,6 +264,13 @@ public final class JadxDecompiler {
 		return root.getErrorsCounter().getErrorCount();
 	}
 
+	public int getWarnsCount() {
+		if (root == null) {
+			return 0;
+		}
+		return root.getErrorsCounter().getWarnsCount();
+	}
+
 	public void printErrorsReport() {
 		if (root == null) {
 			return;

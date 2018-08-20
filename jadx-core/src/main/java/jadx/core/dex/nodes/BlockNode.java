@@ -2,8 +2,6 @@ package jadx.core.dex.nodes;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 import jadx.core.dex.attributes.AFlag;
@@ -35,7 +33,7 @@ public class BlockNode extends AttrNode implements IBlock {
 	// immediate dominator
 	private BlockNode idom;
 	// blocks on which dominates this block
-	private List<BlockNode> dominatesOn = Collections.emptyList();
+	private List<BlockNode> dominatesOn = new ArrayList<>(3);
 
 	public BlockNode(int id, int offset) {
 		this.id = id;
@@ -84,7 +82,7 @@ public class BlockNode extends AttrNode implements IBlock {
 		if (sucList.isEmpty()) {
 			return sucList;
 		}
-		List<BlockNode> toRemove = new LinkedList<>();
+		List<BlockNode> toRemove = new ArrayList<>(sucList.size());
 		for (BlockNode b : sucList) {
 			if (BlockUtils.isBlockMustBeCleared(b)) {
 				toRemove.add(b);
@@ -159,9 +157,6 @@ public class BlockNode extends AttrNode implements IBlock {
 	}
 
 	public void addDominatesOn(BlockNode block) {
-		if (dominatesOn.isEmpty()) {
-			dominatesOn = new LinkedList<>();
-		}
 		dominatesOn.add(block);
 	}
 

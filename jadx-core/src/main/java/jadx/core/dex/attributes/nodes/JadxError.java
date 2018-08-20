@@ -1,15 +1,23 @@
 package jadx.core.dex.attributes.nodes;
 
-import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.IAttribute;
 import jadx.core.utils.Utils;
 
-public class JadxErrorAttr implements IAttribute {
+public class JadxError {
 
+	private final String error;
 	private final Throwable cause;
 
-	public JadxErrorAttr(Throwable cause) {
+	public JadxError(Throwable cause) {
+		this(null, cause);
+	}
+
+	public JadxError(String error, Throwable cause) {
+		this.error = error;
 		this.cause = cause;
+	}
+
+	public String getError() {
+		return error;
 	}
 
 	public Throwable getCause() {
@@ -17,17 +25,14 @@ public class JadxErrorAttr implements IAttribute {
 	}
 
 	@Override
-	public AType<JadxErrorAttr> getType() {
-		return AType.JADX_ERROR;
-	}
-
-	@Override
 	public String toString() {
 		StringBuilder str = new StringBuilder();
 		str.append("JadxError: ");
-		if (cause == null) {
-			str.append("null");
-		} else {
+		if (error != null) {
+			str.append(error);
+			str.append(' ');
+		}
+		if (cause != null) {
 			str.append(cause.getClass());
 			str.append(":");
 			str.append(cause.getMessage());
@@ -36,5 +41,4 @@ public class JadxErrorAttr implements IAttribute {
 		}
 		return str.toString();
 	}
-
 }

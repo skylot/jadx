@@ -17,11 +17,11 @@ public class JadxException extends Exception {
 	}
 
 	public JadxException(ClassNode cls, String msg, Throwable th) {
-		super(ErrorsCounter.formatErrorMsg(cls, msg), th);
+		super(ErrorsCounter.formatMsg(cls, msg), th);
 	}
 
 	public JadxException(MethodNode mth, String msg, Throwable th) {
-		super(ErrorsCounter.formatErrorMsg(mth, msg), th);
+		super(ErrorsCounter.formatMsg(mth, msg), th);
 	}
 
 }

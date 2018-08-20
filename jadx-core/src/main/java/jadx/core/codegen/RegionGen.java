@@ -153,7 +153,7 @@ public class RegionGen extends InsnGen {
 		if (header != null) {
 			List<InsnNode> headerInsns = header.getInstructions();
 			if (headerInsns.size() > 1) {
-				ErrorsCounter.methodError(mth, "Found not inlined instructions from loop header");
+				ErrorsCounter.methodWarn(mth, "Found not inlined instructions from loop header");
 				int last = headerInsns.size() - 1;
 				for (int i = 0; i < last; i++) {
 					InsnNode insn = headerInsns.get(i);

@@ -39,6 +39,7 @@ import jadx.core.dex.regions.Region;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlock;
+import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -603,6 +604,19 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 	@Override
 	public RootNode root() {
 		return dex().root();
+	}
+
+	@Override
+	public String typeName() {
+		return "method";
+	}
+
+	public void addWarn(String errStr) {
+		ErrorsCounter.methodWarn(this, errStr);
+	}
+
+	public void addError(String errStr, Exception e) {
+		ErrorsCounter.methodError(this, errStr, e);
 	}
 
 	public MethodInfo getMethodInfo() {

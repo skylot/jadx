@@ -55,7 +55,7 @@ public class RegisterArg extends InsnArg implements Named {
 	}
 
 	public void setName(String name) {
-		if (sVar != null) {
+		if (sVar != null && name != null) {
 			sVar.setName(name);
 		}
 	}

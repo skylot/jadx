@@ -529,7 +529,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 			return false;
 		}
 		if (removeInfo.getOuts().isEmpty()) {
-			ErrorsCounter.methodError(mth, "Failed to extract finally block: empty outs");
+			ErrorsCounter.methodWarn(mth, "Failed to extract finally block: empty outs");
 			return false;
 		}
 		// safe checks finished, altering blocks tree

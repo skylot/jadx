@@ -122,7 +122,7 @@ public class ConditionGen extends InsnGen {
 				wrap(code, firstArg);
 				return;
 			}
-			ErrorsCounter.methodError(mth, "Unsupported boolean condition " + op.getSymbol());
+			ErrorsCounter.methodWarn(mth, "Unsupported boolean condition " + op.getSymbol());
 		}
 
 		addArg(code, firstArg, isArgWrapNeeded(firstArg));
