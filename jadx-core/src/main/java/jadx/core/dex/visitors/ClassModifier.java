@@ -216,11 +216,30 @@ public class ClassModifier extends AbstractVisitor {
 			MethodInfo callMth = ((InvokeNode) insn).getCallMth();
 			MethodNode wrappedMth = mth.root().deepResolveMethod(callMth);
 			if (wrappedMth != null) {
+				// all args must be registers passed from method args (allow only casts insns)
+				for (InsnArg arg : insn.getArguments()) {
+					if (!registersAndCastsOnly(arg)) {
+						return false;
+					}
+				}
 				String alias = mth.getAlias();
 				if (!wrappedMth.getAlias().equals(alias) && wrappedMth.isVirtual()) {
 					wrappedMth.getMethodInfo().setAlias(alias);
 				}
 				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean registersAndCastsOnly(InsnArg arg) {
+		if (arg.isRegister()) {
+			return true;
+		}
+		if (arg.isInsnWrap()) {
+			InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
+			if (wrapInsn.getType() == InsnType.CHECK_CAST) {
+				return registersAndCastsOnly(wrapInsn.getArg(0));
 			}
 		}
 		return false;
