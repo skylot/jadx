@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.android.dex.Dex;
+import jadx.core.dex.info.FieldInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -181,7 +183,50 @@ public class RootNode {
 		if (cls == null) {
 			return null;
 		}
-		return cls.dex().deepResolveMethod(cls, mth.makeSignature(false));
+		MethodNode resolved;
+
+		//most of the time, the method node could be found in current dex.
+		DexNode declDex = cls.dex();
+		resolved = declDex.deepResolveMethod(cls, mth);
+		if (resolved != null){
+			return resolved;
+		}
+		for (DexNode dexNode : dexNodes) {
+			if(dexNodes == declDex) {
+				continue;
+			}
+			resolved = dexNode.deepResolveMethod(cls, mth);
+			if (resolved != null){
+				return resolved;
+			}
+		}
+		return null;
+	}
+
+	@Nullable
+	public FieldNode deepResolveField(@NotNull FieldInfo field) {
+		ClassNode cls = resolveClass(field.getDeclClass());
+		if (cls == null) {
+			return null;
+		}
+		FieldNode resolved;
+
+		//most of the time, the field node could be found in current dex.
+		DexNode declDex = cls.dex();
+		resolved = declDex.deepResolveField(cls, field);
+		if (resolved != null){
+			return resolved;
+		}
+		for (DexNode dexNode : dexNodes) {
+			if(dexNodes == declDex) {
+				continue;
+			}
+			resolved = dexNode.deepResolveField(cls, field);
+			if (resolved != null){
+				return resolved;
+			}
+		}
+		return null;
 	}
 
 	public List<DexNode> getDexNodes() {

@@ -95,6 +95,7 @@ public class DexNode implements IDexNode {
 		return resolveClass(ClassInfo.fromType(root, type));
 	}
 
+	@Deprecated
 	@Nullable
 	public MethodNode resolveMethod(@NotNull MethodInfo mth) {
 		ClassNode cls = resolveClass(mth.getDeclClass());
@@ -105,27 +106,23 @@ public class DexNode implements IDexNode {
 	}
 
 	@Nullable
-	MethodNode deepResolveMethod(@NotNull ClassNode cls, String signature) {
-		for (MethodNode m : cls.getMethods()) {
-			if (m.getMethodInfo().getShortId().startsWith(signature)) {
-				return m;
-			}
+	MethodNode deepResolveMethod(@NotNull ClassNode cls, MethodInfo methodInfo) {
+		MethodNode field = cls.searchMethodByName(methodInfo.getShortId());
+		if (field != null) {
+			return field;
 		}
+
 		MethodNode found;
-		ArgType superClass = cls.getSuperClass();
-		if (superClass != null) {
-			ClassNode superNode = resolveClass(superClass);
-			if (superNode != null) {
-				found = deepResolveMethod(superNode, signature);
-				if (found != null) {
-					return found;
-				}
+		ClassNode superNode = cls.getSuperClassNode();
+		if (superNode != null) {
+			found = deepResolveMethod(superNode, methodInfo);
+			if (found != null) {
+				return found;
 			}
 		}
-		for (ArgType iFaceType : cls.getInterfaces()) {
-			ClassNode iFaceNode = resolveClass(iFaceType);
-			if (iFaceNode != null) {
-				found = deepResolveMethod(iFaceNode, signature);
+		for (ClassNode interfaceNode : cls.getInterfaceNodes()) {
+			if(interfaceNode != null) {
+				found = deepResolveMethod(interfaceNode, methodInfo);
 				if (found != null) {
 					return found;
 				}
@@ -134,11 +131,38 @@ public class DexNode implements IDexNode {
 		return null;
 	}
 
+	@Deprecated
 	@Nullable
 	public FieldNode resolveField(FieldInfo field) {
 		ClassNode cls = resolveClass(field.getDeclClass());
 		if (cls != null) {
 			return cls.searchField(field);
+		}
+		return null;
+	}
+
+	@Nullable
+	FieldNode deepResolveField(@NotNull ClassNode cls, FieldInfo fieldInfo) {
+		FieldNode field = cls.searchFieldByName(fieldInfo.getName());
+		if (field != null) {
+			return field;
+		}
+
+		FieldNode found;
+		ClassNode superNode = cls.getSuperClassNode();
+		if (superNode != null) {
+			found = deepResolveField(superNode, fieldInfo);
+			if (found != null) {
+				return found;
+			}
+		}
+		for (ClassNode interfaceNode : cls.getInterfaceNodes()) {
+			if(interfaceNode != null) {
+				found = deepResolveField(interfaceNode, fieldInfo);
+				if (found != null) {
+					return found;
+				}
+			}
 		}
 		return null;
 	}

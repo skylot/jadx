@@ -201,17 +201,13 @@ public class Deobfuscator {
 	private void collectClassHierarchy(ClassNode cls, Set<ClassNode> collected) {
 		boolean added = collected.add(cls);
 		if (added) {
-			ArgType superClass = cls.getSuperClass();
+			ClassNode superClass = cls.getSuperClassNode();
 			if (superClass != null) {
-				ClassNode superNode = cls.dex().resolveClass(superClass);
-				if (superNode != null) {
-					collectClassHierarchy(superNode, collected);
-				}
+				collectClassHierarchy(superClass, collected);
 			}
 
-			for (ArgType argType : cls.getInterfaces()) {
-				ClassNode interfaceNode = cls.dex().resolveClass(argType);
-				if (interfaceNode != null) {
+			for (ClassNode interfaceNode : cls.getInterfaceNodes()) {
+				if(interfaceNode != null) {
 					collectClassHierarchy(interfaceNode, collected);
 				}
 			}
