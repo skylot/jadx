@@ -31,6 +31,7 @@ public class NLS {
 
 		i18nLocales.add(new LangLocale("en", "US")); // As default language
 		i18nLocales.add(new LangLocale("zh", "CN"));
+		i18nLocales.add(new LangLocale("es", "ES"));
 
 		i18nLocales.forEach(NLS::load);
 
