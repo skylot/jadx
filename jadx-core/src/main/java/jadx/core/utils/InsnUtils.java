@@ -78,7 +78,7 @@ public class InsnUtils {
 				return ((ConstClassNode) insn).getClsType();
 			case SGET:
 				FieldInfo f = (FieldInfo) ((IndexInsnNode) insn).getIndex();
-				FieldNode fieldNode = dex.resolveField(f);
+				FieldNode fieldNode = dex.root().deepResolveField(f);
 				if (fieldNode == null) {
 					LOG.warn("Field {} not found in dex {}", f, dex);
 					return null;

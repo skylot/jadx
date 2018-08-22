@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.android.dex.Dex;
+import jadx.core.dex.info.FieldInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -84,12 +86,9 @@ public class RootNode {
 		}
 		ResTableParser parser = new ResTableParser();
 		try {
-			ResourcesLoader.decodeStream(arsc, new ResourcesLoader.ResourceDecoder() {
-				@Override
-				public ResContainer decode(long size, InputStream is) throws IOException {
-					parser.decode(is);
-					return null;
-				}
+			ResourcesLoader.decodeStream(arsc, (size, is) -> {
+				parser.decode(is);
+				return null;
 			});
 		} catch (JadxException e) {
 			LOG.error("Failed to parse '.arsc' file", e);
@@ -182,6 +181,15 @@ public class RootNode {
 			return null;
 		}
 		return cls.dex().deepResolveMethod(cls, mth.makeSignature(false));
+	}
+
+	@Nullable
+	public FieldNode deepResolveField(@NotNull FieldInfo field) {
+		ClassNode cls = resolveClass(field.getDeclClass());
+		if (cls == null) {
+			return null;
+		}
+		return cls.dex().deepResolveField(cls, field);
 	}
 
 	public List<DexNode> getDexNodes() {

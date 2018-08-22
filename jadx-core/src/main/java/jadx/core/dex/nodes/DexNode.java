@@ -95,6 +95,7 @@ public class DexNode implements IDexNode {
 		return resolveClass(ClassInfo.fromType(root, type));
 	}
 
+	@Deprecated
 	@Nullable
 	public MethodNode resolveMethod(@NotNull MethodInfo mth) {
 		ClassNode cls = resolveClass(mth.getDeclClass());
@@ -134,11 +135,41 @@ public class DexNode implements IDexNode {
 		return null;
 	}
 
+	@Deprecated
 	@Nullable
 	public FieldNode resolveField(FieldInfo field) {
 		ClassNode cls = resolveClass(field.getDeclClass());
 		if (cls != null) {
 			return cls.searchField(field);
+		}
+		return null;
+	}
+
+	@Nullable
+	FieldNode deepResolveField(@NotNull ClassNode cls, FieldInfo fieldInfo) {
+		FieldNode field = cls.searchFieldByName(fieldInfo.getName());
+		if (field != null) {
+			return field;
+		}
+		FieldNode found;
+		ArgType superClass = cls.getSuperClass();
+		if (superClass != null) {
+			ClassNode superNode = resolveClass(superClass);
+			if (superNode != null) {
+				found = deepResolveField(superNode, fieldInfo);
+				if (found != null) {
+					return found;
+				}
+			}
+		}
+		for (ArgType iFaceType : cls.getInterfaces()) {
+			ClassNode iFaceNode = resolveClass(iFaceType);
+			if (iFaceNode != null) {
+				found = deepResolveField(iFaceNode, fieldInfo);
+				if (found != null) {
+					return found;
+				}
+			}
 		}
 		return null;
 	}
