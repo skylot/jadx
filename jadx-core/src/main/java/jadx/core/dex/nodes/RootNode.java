@@ -86,12 +86,9 @@ public class RootNode {
 		}
 		ResTableParser parser = new ResTableParser();
 		try {
-			ResourcesLoader.decodeStream(arsc, new ResourcesLoader.ResourceDecoder() {
-				@Override
-				public ResContainer decode(long size, InputStream is) throws IOException {
-					parser.decode(is);
-					return null;
-				}
+			ResourcesLoader.decodeStream(arsc, (size, is) -> {
+				parser.decode(is);
+				return null;
 			});
 		} catch (JadxException e) {
 			LOG.error("Failed to parse '.arsc' file", e);
@@ -183,24 +180,7 @@ public class RootNode {
 		if (cls == null) {
 			return null;
 		}
-		MethodNode resolved;
-
-		//most of the time, the method node could be found in current dex.
-		DexNode declDex = cls.dex();
-		resolved = declDex.deepResolveMethod(cls, mth);
-		if (resolved != null){
-			return resolved;
-		}
-		for (DexNode dexNode : dexNodes) {
-			if(dexNodes == declDex) {
-				continue;
-			}
-			resolved = dexNode.deepResolveMethod(cls, mth);
-			if (resolved != null){
-				return resolved;
-			}
-		}
-		return null;
+		return cls.dex().deepResolveMethod(cls, mth.makeSignature(false));
 	}
 
 	@Nullable
@@ -209,24 +189,7 @@ public class RootNode {
 		if (cls == null) {
 			return null;
 		}
-		FieldNode resolved;
-
-		//most of the time, the field node could be found in current dex.
-		DexNode declDex = cls.dex();
-		resolved = declDex.deepResolveField(cls, field);
-		if (resolved != null){
-			return resolved;
-		}
-		for (DexNode dexNode : dexNodes) {
-			if(dexNodes == declDex) {
-				continue;
-			}
-			resolved = dexNode.deepResolveField(cls, field);
-			if (resolved != null){
-				return resolved;
-			}
-		}
-		return null;
+		return cls.dex().deepResolveField(cls, field);
 	}
 
 	public List<DexNode> getDexNodes() {

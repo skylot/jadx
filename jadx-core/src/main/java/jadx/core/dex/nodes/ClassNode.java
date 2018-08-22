@@ -48,9 +48,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 	private final ClassInfo clsInfo;
 	private final AccessInfo accessFlags;
 	private ArgType superClass;
-	private ClassNode superClassNode;
 	private List<ArgType> interfaces;
-	private List<ClassNode> interfaceNodes; //some element is null whose declaration is out of the dex files
 	private Map<ArgType, List<ArgType>> genericMap;
 
 	private final List<MethodNode> methods;
@@ -74,17 +72,12 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 		try {
 			if (cls.getSupertypeIndex() == DexNode.NO_INDEX) {
 				this.superClass = null;
-				this.superClassNode = null;
 			} else {
 				this.superClass = dex.getType(cls.getSupertypeIndex());
-				this.superClassNode = dex.resolveClass(ClassInfo.fromType(dex.root(), superClass));
 			}
 			this.interfaces = new ArrayList<>(cls.getInterfaces().length);
-			this.interfaceNodes = new ArrayList<>(cls.getInterfaces().length);
 			for (short interfaceIdx : cls.getInterfaces()) {
-				ArgType intf = dex.getType(interfaceIdx);
-				this.interfaces.add(intf);
-				this.interfaceNodes.add(dex.resolveClass(intf));
+				this.interfaces.add(dex.getType(interfaceIdx));
 			}
 			if (cls.getClassDataOffset() != 0) {
 				ClassData clsData = dex.readClassData(cls);
@@ -145,7 +138,6 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 		this.dex = dex;
 		this.clsInfo = clsInfo;
 		this.interfaces = Collections.emptyList();
-		this.interfaceNodes = Collections.emptyList();
 		this.methods = Collections.emptyList();
 		this.fields = Collections.emptyList();
 		this.accessFlags = new AccessInfo(AccessFlags.ACC_PUBLIC | AccessFlags.ACC_SYNTHETIC, AFType.CLASS);
@@ -288,17 +280,8 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 		return superClass;
 	}
 
-	@Nullable
-	public ClassNode getSuperClassNode() {
-		return superClassNode;
-	}
-
 	public List<ArgType> getInterfaces() {
 		return interfaces;
-	}
-
-	public List<ClassNode> getInterfaceNodes() {
-		return interfaceNodes;
 	}
 
 	public Map<ArgType, List<ArgType>> getGenericMap() {

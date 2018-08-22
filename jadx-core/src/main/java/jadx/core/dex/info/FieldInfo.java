@@ -2,13 +2,9 @@ package jadx.core.dex.info;
 
 import com.android.dex.FieldId;
 
-import com.android.dx.io.instructions.DecodedInstruction;
 import jadx.core.codegen.TypeGen;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.DexNode;
-import jadx.core.dex.nodes.FieldNode;
-import jadx.core.dex.nodes.MethodNode;
 
 public final class FieldInfo {
 
