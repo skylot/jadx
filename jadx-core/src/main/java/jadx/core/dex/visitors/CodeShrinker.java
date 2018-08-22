@@ -89,8 +89,7 @@ public class CodeShrinker extends AbstractVisitor {
 		}
 
 		public WrapInfo checkInline(int assignPos, RegisterArg arg) {
-			if (!arg.isThis()
-					&& (assignPos >= inlineBorder || !canMove(assignPos, inlineBorder))) {
+			if (assignPos >= inlineBorder || !canMove(assignPos, inlineBorder)) {
 				return null;
 			}
 			inlineBorder = assignPos;
@@ -214,9 +213,9 @@ public class CodeShrinker extends AbstractVisitor {
 //					continue;
 //				}
 				SSAVar sVar = arg.getSVar();
-				// allow inline only one use arg or 'this'
+				// allow inline only one use arg
 				if (sVar == null
-						|| sVar.getVariableUseCount() != 1 && !arg.isThis()
+						|| sVar.getVariableUseCount() != 1
 						|| sVar.contains(AFlag.DONT_INLINE)) {
 					continue;
 				}

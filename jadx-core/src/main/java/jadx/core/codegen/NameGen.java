@@ -102,16 +102,11 @@ public class NameGen {
 		if (fallback) {
 			return getFallbackName(arg);
 		}
-		String name = arg.getName();
-		String varName;
-		if (name != null) {
-			if ("this".equals(name)) {
-				return name;
-			}
-			varName = name;
-		} else {
-			varName = guessName(arg);
+		if (arg.isThis()) {
+			return RegisterArg.THIS_ARG_NAME;
 		}
+		String name = arg.getName();
+		String varName = name != null ? name : guessName(arg);
 		if (NameMapper.isReserved(varName)) {
 			return varName + "R";
 		}
