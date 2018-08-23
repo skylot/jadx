@@ -1,5 +1,7 @@
 package jadx.core.dex.instructions;
 
+import java.util.List;
+
 import com.android.dx.io.instructions.DecodedInstruction;
 
 import jadx.core.dex.instructions.args.ArgType;
@@ -57,11 +59,12 @@ public class IfNode extends GotoNode {
 
 	@Override
 	public void initBlocks(BlockNode curBlock) {
-		thenBlock = getBlockByOffset(target, curBlock.getSuccessors());
-		if (curBlock.getSuccessors().size() == 1) {
+		List<BlockNode> successors = curBlock.getSuccessors();
+		thenBlock = getBlockByOffset(target, successors);
+		if (successors.size() == 1) {
 			elseBlock = thenBlock;
 		} else {
-			elseBlock = selectOther(thenBlock, curBlock.getSuccessors());
+			elseBlock = selectOther(thenBlock, successors);
 		}
 	}
 

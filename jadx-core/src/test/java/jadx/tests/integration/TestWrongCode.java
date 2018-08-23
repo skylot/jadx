@@ -5,6 +5,7 @@ import org.junit.Test;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
+import static jadx.tests.api.utils.JadxMatchers.containsLines;
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
@@ -18,10 +19,8 @@ public class TestWrongCode extends IntegrationTest {
 			return a.length;
 		}
 
-		@SuppressWarnings("empty")
 		private int test2(int a) {
 			if (a == 0) {
-				;
 			}
 			return a;
 		}
@@ -36,7 +35,11 @@ public class TestWrongCode extends IntegrationTest {
 		assertThat(code, containsOne("int[] a = null;"));
 		assertThat(code, containsOne("return a.length;"));
 
-		assertThat(code, containsString("return a == 0 ? a : a;"));
+		assertThat(code, containsLines(2,
+				"if (a == 0) {",
+				"}",
+				"return a;"
+		));
 	}
 
 	@Test

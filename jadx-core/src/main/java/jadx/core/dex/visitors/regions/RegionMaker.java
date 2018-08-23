@@ -60,21 +60,26 @@ public class RegionMaker {
 
 	private final MethodNode mth;
 	private int regionsCount;
-	private Region[] regionByBlock;
+	private BitSet processedBlocks;
 
 	public RegionMaker(MethodNode mth) {
 		this.mth = mth;
-		this.regionByBlock = new Region[mth.getBasicBlocks().size()];
+		this.processedBlocks = new BitSet(mth.getBasicBlocks().size());
 	}
 
 	public Region makeRegion(BlockNode startBlock, RegionStack stack) {
-		int startBlockId = startBlock.getId();
-		Region region = regionByBlock[startBlockId];
-		if (region != null) {
-			return region;
+		Region r = new Region(stack.peekRegion());
+		if (startBlock == null) {
+			return r;
 		}
 
-		Region r = new Region(stack.peekRegion());
+		int startBlockId = startBlock.getId();
+		if (processedBlocks.get(startBlockId)) {
+			mth.addWarn("Removed duplicated region for block: " + startBlock + " " + startBlock.getAttributesString());
+			return r;
+		}
+		processedBlocks.set(startBlockId);
+
 		BlockNode next = startBlock;
 		while (next != null) {
 			next = traverse(r, next, stack);
@@ -83,7 +88,6 @@ public class RegionMaker {
 				throw new JadxRuntimeException("Regions count limit reached");
 			}
 		}
-		regionByBlock[startBlockId] = r;
 		return r;
 	}
 
@@ -201,6 +205,7 @@ public class RegionMaker {
 			loopStart.remove(AType.LOOP);
 			loop.getEnd().add(AFlag.SKIP);
 			stack.addExit(loop.getEnd());
+			processedBlocks.clear(loopStart.getId());
 			Region body = makeRegion(loopStart, stack);
 			loopRegion.setBody(body);
 			loopStart.addAttr(AType.LOOP, loop);
@@ -296,6 +301,7 @@ public class RegionMaker {
 		curRegion.getSubBlocks().add(loopRegion);
 
 		loopStart.remove(AType.LOOP);
+		processedBlocks.clear(loopStart.getId());
 		stack.push(loopRegion);
 
 		BlockNode out = null;
@@ -850,7 +856,7 @@ public class RegionMaker {
 	}
 
 	private Map<BlockNode, List<Object>> reOrderSwitchCases(Map<BlockNode, List<Object>> blocksMap,
-			Map<BlockNode, BlockNode> fallThroughCases) {
+	                                                        Map<BlockNode, BlockNode> fallThroughCases) {
 		List<BlockNode> list = new ArrayList<>(blocksMap.size());
 		list.addAll(blocksMap.keySet());
 		list.sort((a, b) -> {
