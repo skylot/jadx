@@ -18,6 +18,7 @@ build/
 classes/
 idea/
 .gradle/
+node_modules/
 
 jadx-output/
 *-tmp/

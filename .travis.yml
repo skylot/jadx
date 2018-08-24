@@ -2,6 +2,12 @@ language: java
 sudo: false
 dist: trusty
 
+# don't build on tag push
+if: tag IS blank
+
+git:
+  depth: false
+
 before_install:
   - wget https://github.com/sormuras/bach/raw/master/install-jdk.sh
   - chmod +x gradlew
@@ -9,6 +15,7 @@ before_install:
 env:
   global:
     - TERM=dumb
+    - JADX_VERSION="$(git describe --abbrev=0 --tags)-b$TRAVIS_BUILD_NUMBER-$(git rev-parse --short HEAD)"
 
 matrix:
   include:
@@ -19,30 +26,24 @@ matrix:
 
 script:
   - java -version
-  - sed -i " 1 s/.*/&-b$TRAVIS_BUILD_NUMBER-$(git rev-parse --short HEAD)/" version
-  - cat version
-  - sed -i "s/BUILD_VERSION/$(head -c -1 version)/g" bintray.json
   - ./gradlew clean build
 
-after_success:
-  - test $JDK = "oracle-8" && ./gradlew clean build jacocoTestReport && bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
-  - test $JDK = "oracle-8" && ./gradlew clean sonarqube -Dsonar.host.url=$SONAR_HOST -Dsonar.organization=$SONAR_ORG -Dsonar.login=$SONAR_TOKEN || echo "Skip sonar build and upload"
-
-before_deploy:
-  - ./gradlew clean dist
-
 deploy:
-  provider: bintray
-  edge:
-    branch: v1.8.47
-  file: bintray.json
-  user: skylot
-  key: $BINTRAY_KEY
-  skip_cleanup: true
-  on:
-    branch: master
-    tags: false
-    condition: $JDK = oracle-8
+  - provider: script
+    skip_cleanup: true
+    on:
+      branch: master
+      tags: false
+      condition: $JDK = oracle-8
+    script: bash scripts/travis-master.sh
+
+  - provider: script
+    skip_cleanup: true
+    on:
+      branch: release
+      tags: false
+      condition: $JDK = oracle-8
+    script: bash scripts/travis-release.sh
 
 notifications:
   email:

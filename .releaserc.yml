@@ -1,0 +1,16 @@
+branch: release
+verifyConditions:
+  - '@semantic-release/github'
+prepare:
+  - path: '@semantic-release/exec'
+    cmd: "JADX_VERSION=${nextRelease.version} ./gradlew clean dist"
+publish:
+  - path: '@semantic-release/exec'
+    cmd: "JADX_VERSION=${nextRelease.version} BINTRAY_PACKAGE=releases bash scripts/bintray-upload.sh"
+  - path: '@semantic-release/github'
+    assets:
+      - path: 'build/*.zip'
+        label: 'zip bundle'
+      - path: 'build/*.exe'
+        label: 'jadx-gui windows'
+

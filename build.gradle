@@ -4,8 +4,9 @@ plugins {
     id 'com.github.ben-manes.versions' version '0.20.0'
 }
 
-ext.jadxVersion = file('version').readLines().get(0)
+ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
 version = jadxVersion
+println("jadx version: ${jadxVersion}")
 
 allprojects {
     apply plugin: 'java'
