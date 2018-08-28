@@ -15,7 +15,8 @@ before_install:
 env:
   global:
     - TERM=dumb
-    - JADX_VERSION="$(git describe --abbrev=0 --tags)-b$TRAVIS_BUILD_NUMBER-$(git rev-parse --short HEAD)"
+    - JADX_LAST_TAG=$(git describe --abbrev=0 --tags)
+    - JADX_VERSION="${JADX_LAST_TAG:1}-b$TRAVIS_BUILD_NUMBER-$(git rev-parse --short HEAD)"
 
 matrix:
   include:
