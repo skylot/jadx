@@ -3,21 +3,26 @@ package jadx.gui.ui;
 import javax.swing.*;
 import java.awt.*;
 
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+
 import jadx.gui.treemodel.JNode;
 
-public class CertificatePanel extends ContentPanel {
-    CertificatePanel(TabbedPane panel, JNode jnode) {
-        super(panel, jnode);
-        setLayout(new BorderLayout());
-        JTextArea textArea = new JTextArea(jnode.getContent());
-        textArea.setFont(textArea.getFont().deriveFont(12f)); // will only change size to 12pt
-        JScrollPane sp = new JScrollPane(textArea);
-        add(sp);
-    }
+public final class CertificatePanel extends ContentPanel {
+	private static final long serialVersionUID = 8566591625905036877L;
 
-    @Override
-    public void loadSettings() {
+	private final RSyntaxTextArea textArea;
 
+	CertificatePanel(TabbedPane panel, JNode jnode) {
+		super(panel, jnode);
+		setLayout(new BorderLayout());
+		textArea = new RSyntaxTextArea(jnode.getContent());
+		loadSettings();
+		JScrollPane sp = new JScrollPane(textArea);
+		add(sp);
+	}
 
-    }
+	@Override
+	public void loadSettings() {
+		CodeArea.loadCommonSettings(getTabbedPane().getMainWindow(), textArea);
+	}
 }
