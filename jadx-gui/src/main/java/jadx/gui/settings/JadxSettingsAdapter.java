@@ -1,7 +1,6 @@
 package jadx.gui.settings;
 
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
 import java.util.prefs.Preferences;
 
 import com.google.gson.ExclusionStrategy;

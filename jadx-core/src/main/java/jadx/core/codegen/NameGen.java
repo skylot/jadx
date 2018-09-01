@@ -7,7 +7,6 @@ import java.util.Set;
 
 import jadx.core.Consts;
 import jadx.core.deobf.NameMapper;
-import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.MethodInfo;

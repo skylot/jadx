@@ -2,19 +2,14 @@ package jadx.gui;
 
 import javax.swing.*;
 
-import jadx.gui.utils.LangLocale;
-import jadx.gui.utils.NLS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsAdapter;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.NLS;
 import jadx.gui.utils.logs.LogCollector;
-
-import java.util.Locale;
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
 
 public class JadxGUI {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxGUI.class);

@@ -91,19 +91,26 @@ public class Utils {
 			@Override
 			public void write(int b) {
 				char c = (char) b;
-				if (c == '\r') {
-					// ignore
-				} else if (c == '\n') {
-					code.startLine();
-				} else {
-					code.add(c);
+				switch (c) {
+					case '\n':
+						code.startLine();
+						break;
+
+					case '\r':
+						// ignore
+						break;
+
+					default:
+						code.add(c);
+						break;
 				}
 			}
 		};
-		PrintWriter pw = new PrintWriter(w, true);
-		filterRecursive(throwable);
-		throwable.printStackTrace(pw);
-		pw.flush();
+		try (PrintWriter pw = new PrintWriter(w, true)) {
+			filterRecursive(throwable);
+			throwable.printStackTrace(pw);
+			pw.flush();
+		}
 	}
 
 	private static void filterRecursive(Throwable th) {

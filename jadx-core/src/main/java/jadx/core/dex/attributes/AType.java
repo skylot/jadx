@@ -53,4 +53,7 @@ public class AType<T extends IAttribute> {
 	public static final AType<DeclareVariablesAttr> DECLARE_VARIABLES = new AType<>();
 	public static final AType<LoopLabelAttr> LOOP_LABEL = new AType<>();
 	public static final AType<IgnoreEdgeAttr> IGNORE_EDGE = new AType<>();
+
+	private AType() {
+	}
 }

@@ -1,21 +1,33 @@
 package jadx.gui.treemodel;
+
+import javax.swing.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jadx.api.ResourceFile;
 import jadx.core.utils.files.ZipSecurity;
 import jadx.gui.utils.CertificateManager;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
-import javax.swing.*;
-import java.io.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 public class JCertificate extends JNode {
+	private static final long serialVersionUID = 4308696770188518731L;
 
+	private static final Logger LOG = LoggerFactory.getLogger(JCertificate.class);
 	private static final ImageIcon CERTIFICATE_ICON = Utils.openIcon("certificate_obj");
-    private final transient ResourceFile rf;
+
+	private final transient ResourceFile rf;
 
 	public JCertificate(ResourceFile resFile) {
-        this.rf = resFile;
+		this.rf = resFile;
 	}
 
 	@Override
@@ -35,7 +47,6 @@ public class JCertificate extends JNode {
 
 	@Override
 	public String getContent() {
-
 		try {
 			ResourceFile.ZipRef zipRef = rf.getZipRef();
 			if (zipRef == null) {
@@ -53,17 +64,13 @@ public class JCertificate extends JNode {
 						return null;
 					}
 					try (InputStream inputStream = new BufferedInputStream(zipFile.getInputStream(entry))) {
-						return  CertificateManager.decode(inputStream);
+						return CertificateManager.decode(inputStream);
 					}
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-		//	throw new JadxException("Error decode: " + rf.getName(), e);
+			LOG.error("Certificate decode error: {}", rf.getName(), e);
+			return "Decode error: " + e.getMessage();
 		}
-
-		return null;
 	}
-
-
 }

@@ -2,9 +2,7 @@ package jadx.core.dex.instructions;
 
 import java.io.EOFException;
 
-import com.android.dex.ClassData;
 import com.android.dex.Code;
-import com.android.dex.FieldId;
 import com.android.dx.io.OpcodeInfo;
 import com.android.dx.io.Opcodes;
 import com.android.dx.io.instructions.DecodedInstruction;
@@ -12,9 +10,6 @@ import com.android.dx.io.instructions.FillArrayDataPayloadDecodedInstruction;
 import com.android.dx.io.instructions.PackedSwitchPayloadDecodedInstruction;
 import com.android.dx.io.instructions.ShortArrayCodeInput;
 import com.android.dx.io.instructions.SparseSwitchPayloadDecodedInstruction;
-import jadx.core.dex.info.ClassInfo;
-import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.FieldNode;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,17 +112,15 @@ public class InsnDecoder {
 						InsnArg.lit(insn, ArgType.WIDE));
 
 			case Opcodes.CONST_STRING:
-			case Opcodes.CONST_STRING_JUMBO: {
-				InsnNode node = new ConstStringNode(dex.getString(insn.getIndex()));
-				node.setResult(InsnArg.reg(insn, 0, ArgType.STRING));
-				return node;
-			}
+			case Opcodes.CONST_STRING_JUMBO:
+				InsnNode constStrInsn = new ConstStringNode(dex.getString(insn.getIndex()));
+				constStrInsn.setResult(InsnArg.reg(insn, 0, ArgType.STRING));
+				return constStrInsn;
 
-			case Opcodes.CONST_CLASS: {
-				InsnNode node = new ConstClassNode(dex.getType(insn.getIndex()));
-				node.setResult(InsnArg.reg(insn, 0, ArgType.CLASS));
-				return node;
-			}
+			case Opcodes.CONST_CLASS:
+				InsnNode constClsInsn = new ConstClassNode(dex.getType(insn.getIndex()));
+				constClsInsn.setResult(InsnArg.reg(insn, 0, ArgType.CLASS));
+				return constClsInsn;
 
 			case Opcodes.MOVE:
 			case Opcodes.MOVE_16:
@@ -427,20 +420,18 @@ public class InsnDecoder {
 						null,
 						InsnArg.reg(insn, 0, method.getReturnType()));
 
-			case Opcodes.INSTANCE_OF: {
-				InsnNode node = new IndexInsnNode(InsnType.INSTANCE_OF, dex.getType(insn.getIndex()), 1);
-				node.setResult(InsnArg.reg(insn, 0, ArgType.BOOLEAN));
-				node.addArg(InsnArg.reg(insn, 1, ArgType.UNKNOWN_OBJECT));
-				return node;
-			}
+			case Opcodes.INSTANCE_OF:
+				InsnNode instInsn = new IndexInsnNode(InsnType.INSTANCE_OF, dex.getType(insn.getIndex()), 1);
+				instInsn.setResult(InsnArg.reg(insn, 0, ArgType.BOOLEAN));
+				instInsn.addArg(InsnArg.reg(insn, 1, ArgType.UNKNOWN_OBJECT));
+				return instInsn;
 
-			case Opcodes.CHECK_CAST: {
+			case Opcodes.CHECK_CAST:
 				ArgType castType = dex.getType(insn.getIndex());
-				InsnNode node = new IndexInsnNode(InsnType.CHECK_CAST, castType, 1);
-				node.setResult(InsnArg.reg(insn, 0, castType));
-				node.addArg(InsnArg.reg(insn, 0, ArgType.UNKNOWN_OBJECT));
-				return node;
-			}
+				InsnNode checkCastInsn = new IndexInsnNode(InsnType.CHECK_CAST, castType, 1);
+				checkCastInsn.setResult(InsnArg.reg(insn, 0, castType));
+				checkCastInsn.addArg(InsnArg.reg(insn, 0, ArgType.UNKNOWN_OBJECT));
+				return checkCastInsn;
 
 			case Opcodes.IGET:
 			case Opcodes.IGET_BOOLEAN:
@@ -448,13 +439,12 @@ public class InsnDecoder {
 			case Opcodes.IGET_CHAR:
 			case Opcodes.IGET_SHORT:
 			case Opcodes.IGET_WIDE:
-			case Opcodes.IGET_OBJECT: {
-				FieldInfo field = FieldInfo.fromDex(dex, insn.getIndex());
-				InsnNode node = new IndexInsnNode(InsnType.IGET, field, 1);
-				node.setResult(InsnArg.reg(insn, 0, field.getType()));
-				node.addArg(InsnArg.reg(insn, 1, field.getDeclClass().getType()));
-				return node;
-			}
+			case Opcodes.IGET_OBJECT:
+				FieldInfo igetFld = FieldInfo.fromDex(dex, insn.getIndex());
+				InsnNode igetInsn = new IndexInsnNode(InsnType.IGET, igetFld, 1);
+				igetInsn.setResult(InsnArg.reg(insn, 0, igetFld.getType()));
+				igetInsn.addArg(InsnArg.reg(insn, 1, igetFld.getDeclClass().getType()));
+				return igetInsn;
 
 			case Opcodes.IPUT:
 			case Opcodes.IPUT_BOOLEAN:
@@ -462,13 +452,12 @@ public class InsnDecoder {
 			case Opcodes.IPUT_CHAR:
 			case Opcodes.IPUT_SHORT:
 			case Opcodes.IPUT_WIDE:
-			case Opcodes.IPUT_OBJECT: {
-				FieldInfo field = FieldInfo.fromDex(dex, insn.getIndex());
-				InsnNode node = new IndexInsnNode(InsnType.IPUT, field, 2);
-				node.addArg(InsnArg.reg(insn, 0, field.getType()));
-				node.addArg(InsnArg.reg(insn, 1, field.getDeclClass().getType()));
-				return node;
-			}
+			case Opcodes.IPUT_OBJECT:
+				FieldInfo iputFld = FieldInfo.fromDex(dex, insn.getIndex());
+				InsnNode iputInsn = new IndexInsnNode(InsnType.IPUT, iputFld, 2);
+				iputInsn.addArg(InsnArg.reg(insn, 0, iputFld.getType()));
+				iputInsn.addArg(InsnArg.reg(insn, 1, iputFld.getDeclClass().getType()));
+				return iputInsn;
 
 			case Opcodes.SGET:
 			case Opcodes.SGET_BOOLEAN:
@@ -476,12 +465,11 @@ public class InsnDecoder {
 			case Opcodes.SGET_CHAR:
 			case Opcodes.SGET_SHORT:
 			case Opcodes.SGET_WIDE:
-			case Opcodes.SGET_OBJECT: {
-				FieldInfo field = FieldInfo.fromDex(dex, insn.getIndex());
-				InsnNode node = new IndexInsnNode(InsnType.SGET, field, 0);
-				node.setResult(InsnArg.reg(insn, 0, field.getType()));
-				return node;
-			}
+			case Opcodes.SGET_OBJECT:
+				FieldInfo sgetFld = FieldInfo.fromDex(dex, insn.getIndex());
+				InsnNode sgetInsn = new IndexInsnNode(InsnType.SGET, sgetFld, 0);
+				sgetInsn.setResult(InsnArg.reg(insn, 0, sgetFld.getType()));
+				return sgetInsn;
 
 			case Opcodes.SPUT:
 			case Opcodes.SPUT_BOOLEAN:
@@ -489,19 +477,17 @@ public class InsnDecoder {
 			case Opcodes.SPUT_CHAR:
 			case Opcodes.SPUT_SHORT:
 			case Opcodes.SPUT_WIDE:
-			case Opcodes.SPUT_OBJECT: {
-				FieldInfo field = FieldInfo.fromDex(dex, insn.getIndex());
-				InsnNode node = new IndexInsnNode(InsnType.SPUT, field, 1);
-				node.addArg(InsnArg.reg(insn, 0, field.getType()));
-				return node;
-			}
+			case Opcodes.SPUT_OBJECT:
+				FieldInfo sputFld = FieldInfo.fromDex(dex, insn.getIndex());
+				InsnNode sputInsn = new IndexInsnNode(InsnType.SPUT, sputFld, 1);
+				sputInsn.addArg(InsnArg.reg(insn, 0, sputFld.getType()));
+				return sputInsn;
 
-			case Opcodes.ARRAY_LENGTH: {
-				InsnNode node = new InsnNode(InsnType.ARRAY_LENGTH, 1);
-				node.setResult(InsnArg.reg(insn, 0, ArgType.INT));
-				node.addArg(InsnArg.reg(insn, 1, ArgType.array(ArgType.UNKNOWN)));
-				return node;
-			}
+			case Opcodes.ARRAY_LENGTH:
+				InsnNode arrLenInsn = new InsnNode(InsnType.ARRAY_LENGTH, 1);
+				arrLenInsn.setResult(InsnArg.reg(insn, 0, ArgType.INT));
+				arrLenInsn.addArg(InsnArg.reg(insn, 1, ArgType.array(ArgType.UNKNOWN)));
+				return arrLenInsn;
 
 			case Opcodes.AGET:
 				return arrayGet(insn, ArgType.NARROW);

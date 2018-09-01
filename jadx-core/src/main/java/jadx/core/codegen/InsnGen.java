@@ -224,7 +224,7 @@ public class InsnGen {
 					code.add(';');
 				}
 			}
-		} catch (Throwable th) {
+		} catch (Exception th) {
 			throw new CodegenException(mth, "Error generate insn: " + insn, th);
 		}
 		return true;

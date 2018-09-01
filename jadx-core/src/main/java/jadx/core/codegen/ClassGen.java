@@ -298,12 +298,10 @@ public class ClassGen {
 		} else {
 			insertDecompilationProblems(code, mth);
 			boolean badCode = mth.contains(AFlag.INCONSISTENT_CODE);
-			if (badCode) {
-				if (showInconsistentCode) {
-					code.startLine("/* Code decompiled incorrectly, please refer to instructions dump. */");
-					mth.remove(AFlag.INCONSISTENT_CODE);
-					badCode = false;
-				}
+			if (badCode && showInconsistentCode) {
+				code.startLine("/* Code decompiled incorrectly, please refer to instructions dump. */");
+				mth.remove(AFlag.INCONSISTENT_CODE);
+				badCode = false;
 			}
 			MethodGen mthGen;
 			if (badCode || mth.contains(AType.JADX_ERROR) || fallback) {

@@ -1,9 +1,9 @@
 package jadx.gui.ui;
 
-import jadx.gui.treemodel.JNode;
-
 import javax.swing.*;
 import java.awt.*;
+
+import jadx.gui.treemodel.JNode;
 
 public class CertificatePanel extends ContentPanel {
     CertificatePanel(TabbedPane panel, JNode jnode) {

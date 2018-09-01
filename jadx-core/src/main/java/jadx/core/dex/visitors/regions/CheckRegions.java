@@ -45,14 +45,12 @@ public class CheckRegions extends AbstractVisitor {
 				if (blocksInRegions.add(block)) {
 					return;
 				}
-				if (!block.contains(AFlag.RETURN)
+				if (LOG.isDebugEnabled()
+						&& !block.contains(AFlag.RETURN)
 						&& !block.contains(AFlag.SKIP)
 						&& !block.contains(AFlag.SYNTHETIC)
 						&& !block.getInstructions().isEmpty()) {
-					if (LOG.isDebugEnabled()) {
-						LOG.debug("Duplicated block: {} - {}", mth, block);
-					}
-					//mth.addWarn("Duplicated block: " + block);
+					LOG.debug("Duplicated block: {} - {}", mth, block);
 				}
 			}
 		});
@@ -90,7 +88,8 @@ public class CheckRegions extends AbstractVisitor {
 		for (InsnNode insn : block.getInstructions()) {
 			try {
 				ig.makeInsn(insn, code);
-			} catch (CodegenException ignored) {
+			} catch (CodegenException e) {
+				// ignore
 			}
 		}
 		code.newLine().addIndent();
