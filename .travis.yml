@@ -12,6 +12,10 @@ before_install:
   - wget https://github.com/sormuras/bach/raw/master/install-jdk.sh
   - chmod +x gradlew
 
+# override install to skip 'gradle assemble'
+install:
+  - true
+
 env:
   global:
     - TERM=dumb
