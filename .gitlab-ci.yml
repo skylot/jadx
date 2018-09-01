@@ -12,9 +12,10 @@ stages:
 
 build:
   stage: build
+  before_script:
+    - export JADX_LAST_TAG="$(git describe --abbrev=0 --tags)"
+    - export JADX_VERSION="${JADX_LAST_TAG:1}-$(git rev-parse --short HEAD)"
   script:
-    - sed -i " 1 s/.*/&-glb$(git rev-list --count HEAD)-$(git rev-parse --short HEAD)/" version
-    - cat version
     - ./gradlew -g /cache/.gradle clean build jacocoTestReport
     - ./gradlew -g /cache/.gradle clean sonarqube -Dsonar.host.url=$SONAR_HOST -Dsonar.organization=$SONAR_ORG -Dsonar.login=$SONAR_TOKEN
     - ./gradlew -g /cache/.gradle clean dist
