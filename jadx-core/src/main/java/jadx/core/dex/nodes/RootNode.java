@@ -98,10 +98,7 @@ public class RootNode {
 		ResourceStorage resStorage = parser.getResStorage();
 		constValues.setResourcesNames(resStorage.getResourcesNames());
 		appPackage = resStorage.getAppPackage();
-	}
-
-	public void initAppResClass() {
-		appResClass = AndroidResourcesUtils.searchAppResClass(this);
+		appResClass = AndroidResourcesUtils.searchAppResClass(this, resStorage);
 	}
 
 	public void initClassPath() {
