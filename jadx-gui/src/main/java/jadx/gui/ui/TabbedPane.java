@@ -225,9 +225,12 @@ class TabbedPane extends JTabbedPane {
 	private JPopupMenu createTabPopupMenu(final ContentPanel contentPanel) {
 		JPopupMenu menu = new JPopupMenu();
 
-		JMenuItem copyRootClassName = new JMenuItem(NLS.str("tabs.copy_class_name"));
-		copyRootClassName.addActionListener(actionEvent -> copyRootClassName());
-		menu.add(copyRootClassName);
+		if (getNodeFullName() != null) {
+			JMenuItem copyRootClassName = new JMenuItem(NLS.str("tabs.copy_class_name"));
+			copyRootClassName.addActionListener(actionEvent -> copyRootClassName());
+			menu.add(copyRootClassName);
+			menu.addSeparator();
+		}
 
 		JMenuItem closeTab = new JMenuItem(NLS.str("tabs.close"));
 		closeTab.addActionListener(e -> closeCodePanel(contentPanel));
@@ -275,15 +278,25 @@ class TabbedPane extends JTabbedPane {
 	}
 
 	public void copyRootClassName() {
+		String name = getNodeFullName();
+		if (name != null) {
+			Utils.setClipboardString(name);
+		}
+	}
+
+	@Nullable
+	private String getNodeFullName() {
 		ContentPanel selectedPanel = getSelectedCodePanel();
 		if (selectedPanel != null) {
 			JNode node = selectedPanel.getNode();
 			JClass jClass = node.getRootClass();
 			if (jClass != null) {
-				String name = jClass.getFullName();
-				Utils.setClipboardString(name);
+				return jClass.getFullName();
+			} else {
+				return node.getName();
 			}
 		}
+		return null;
 	}
 
 	public void loadSettings() {

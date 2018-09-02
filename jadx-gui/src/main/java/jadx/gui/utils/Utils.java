@@ -141,9 +141,14 @@ public class Utils {
 		return toLower ? Character.toLowerCase(ch) : ch;
 	}
 
-	public static void setClipboardString(String text){
-		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-		Transferable transferable = new StringSelection(text);
-		clipboard.setContents(transferable, null);
+	public static void setClipboardString(String text) {
+		try {
+			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+			Transferable transferable = new StringSelection(text);
+			clipboard.setContents(transferable, null);
+			LOG.debug("String '{}' copied to clipboard", text);
+		} catch (Exception e) {
+			LOG.error("Failed copy string '{}' to clipboard", text, e);
+		}
 	}
 }
