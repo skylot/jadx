@@ -91,7 +91,6 @@ public final class JadxDecompiler {
 
 		root.initClassPath();
 		root.loadResources(getResources());
-		root.initAppResClass();
 
 		initVisitors();
 	}
