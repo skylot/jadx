@@ -55,16 +55,16 @@ import static jadx.core.utils.BlockUtils.skipSyntheticSuccessor;
 public class RegionMaker {
 	private static final Logger LOG = LoggerFactory.getLogger(RegionMaker.class);
 
-	// 'dumb' guard to prevent endless loop in regions processing
-	private static final int REGIONS_LIMIT = 1000 * 1000;
-
 	private final MethodNode mth;
+	private final int regionsLimit;
 	private int regionsCount;
 	private BitSet processedBlocks;
 
 	public RegionMaker(MethodNode mth) {
 		this.mth = mth;
-		this.processedBlocks = new BitSet(mth.getBasicBlocks().size());
+		int blocksCount = mth.getBasicBlocks().size();
+		this.processedBlocks = new BitSet(blocksCount);
+		this.regionsLimit = blocksCount * 100;
 	}
 
 	public Region makeRegion(BlockNode startBlock, RegionStack stack) {
@@ -84,7 +84,7 @@ public class RegionMaker {
 		while (next != null) {
 			next = traverse(r, next, stack);
 			regionsCount++;
-			if (regionsCount > REGIONS_LIMIT) {
+			if (regionsCount > regionsLimit) {
 				throw new JadxRuntimeException("Regions count limit reached");
 			}
 		}
