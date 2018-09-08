@@ -52,7 +52,7 @@ public class EnumVisitor extends AbstractVisitor {
 			}
 		}
 		if (staticMethod == null) {
-			ErrorsCounter.classError(cls, "Enum class init method not found");
+			ErrorsCounter.classWarn(cls, "Enum class init method not found");
 			return true;
 		}
 

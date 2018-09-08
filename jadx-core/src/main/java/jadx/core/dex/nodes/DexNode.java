@@ -46,10 +46,13 @@ public class DexNode implements IDexNode {
 
 	public void loadClasses() {
 		for (ClassDef cls : dexBuf.classDefs()) {
-			ClassNode clsNode = new ClassNode(this, cls);
-			classes.add(clsNode);
-			clsMap.put(clsNode.getClassInfo(), clsNode);
+			addClassNode(new ClassNode(this, cls));
 		}
+	}
+
+	public void addClassNode(ClassNode clsNode) {
+		classes.add(clsNode);
+		clsMap.put(clsNode.getClassInfo(), clsNode);
 	}
 
 	void initInnerClasses() {

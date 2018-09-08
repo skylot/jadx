@@ -74,8 +74,8 @@ public class ErrorsCounter {
 		return cls.dex().root().getErrorsCounter().addError(cls, errorMsg, e);
 	}
 
-	public static String classError(ClassNode cls, String errorMsg) {
-		return classError(cls, errorMsg, null);
+	public static String classWarn(ClassNode cls, String warnMsg) {
+		return cls.dex().root().getErrorsCounter().addWarning(cls, warnMsg);
 	}
 
 	public static String methodError(MethodNode mth, String errorMsg, Throwable e) {

@@ -37,11 +37,12 @@ public class RootNode {
 	private final ConstStorage constValues;
 	private final InfoStorage infoStorage = new InfoStorage();
 
+	private ClspGraph clsp;
 	private List<DexNode> dexNodes;
 	@Nullable
 	private String appPackage;
+	@Nullable
 	private ClassNode appResClass;
-	private ClspGraph clsp;
 
 	public RootNode(JadxArgs args) {
 		this.args = args;
@@ -90,8 +91,10 @@ public class RootNode {
 			LOG.error("Failed to parse '.arsc' file", e);
 			return;
 		}
+		processResources(parser.getResStorage());
+	}
 
-		ResourceStorage resStorage = parser.getResStorage();
+	public void processResources(ResourceStorage resStorage) {
 		constValues.setResourcesNames(resStorage.getResourcesNames());
 		appPackage = resStorage.getAppPackage();
 		appResClass = AndroidResourcesUtils.searchAppResClass(this, resStorage);

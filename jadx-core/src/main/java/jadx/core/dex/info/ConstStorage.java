@@ -15,8 +15,8 @@ import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
-import jadx.core.dex.nodes.ResRefField;
 import jadx.core.dex.nodes.parser.FieldInitAttr;
+import jadx.core.utils.ErrorsCounter;
 
 public class ConstStorage {
 
@@ -101,15 +101,15 @@ public class ConstStorage {
 
 	@Nullable
 	public FieldNode getConstField(ClassNode cls, Object value, boolean searchGlobal) {
-		DexNode dex = cls.dex();
-		if (value instanceof Integer) {
-			String str = resourcesNames.get(value);
-			if (str != null) {
-				return new ResRefField(dex, str.replace('/', '.'));
-			}
-		}
 		if (!replaceEnabled) {
 			return null;
+		}
+		DexNode dex = cls.dex();
+		if (value instanceof Integer) {
+			FieldNode rField = getResourceField((Integer) value, dex);
+			if (rField != null) {
+				return rField;
+			}
 		}
 		boolean foundInGlobal = globalValues.contains(value);
 		if (foundInGlobal && !searchGlobal) {
@@ -136,6 +136,31 @@ public class ConstStorage {
 		if (searchGlobal) {
 			return globalValues.get(value);
 		}
+		return null;
+	}
+
+	@Nullable
+	private FieldNode getResourceField(Integer value, DexNode dex) {
+		String str = resourcesNames.get(value);
+		if (str == null) {
+			return null;
+		}
+		ClassNode appResClass = dex.root().getAppResClass();
+		if (appResClass == null) {
+			return null;
+		}
+		String[] parts = str.split("/", 2);
+		if (parts.length != 2) {
+			return null;
+		}
+		String typeName = parts[0];
+		String fieldName = parts[1];
+		for (ClassNode innerClass : appResClass.getInnerClasses()) {
+			if (innerClass.getShortName().equals(typeName)) {
+				return innerClass.searchFieldByName(fieldName);
+			}
+		}
+		ErrorsCounter.classWarn(appResClass, "Not found resource field with id: " + value + ", name: " + str.replace('/', '.'));
 		return null;
 	}
 

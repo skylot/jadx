@@ -34,6 +34,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.parser.FieldInitAttr;
 import jadx.core.dex.nodes.parser.FieldInitAttr.InitType;
+import jadx.core.utils.CodegenUtils;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.CodegenException;
@@ -105,9 +106,8 @@ public class ClassGen {
 		if (cls.contains(AFlag.DONT_GENERATE)) {
 			return;
 		}
-		if (cls.contains(AFlag.INCONSISTENT_CODE)) {
-			code.startLine("// jadx: inconsistent code");
-		}
+		CodegenUtils.addComments(code, cls);
+		insertDecompilationProblems(code, cls);
 		addClassDeclaration(code);
 		addClassBody(code);
 	}
@@ -296,6 +296,7 @@ public class ClassGen {
 			}
 			code.add(';');
 		} else {
+			CodegenUtils.addComments(code, mth);
 			insertDecompilationProblems(code, mth);
 			boolean badCode = mth.contains(AFlag.INCONSISTENT_CODE);
 			if (badCode && showInconsistentCode) {
@@ -325,9 +326,9 @@ public class ClassGen {
 		}
 	}
 
-	private void insertDecompilationProblems(CodeWriter code, MethodNode mth) {
-		List<JadxError> errors = mth.getAll(AType.JADX_ERROR);
-		List<JadxWarn> warns = mth.getAll(AType.JADX_WARN);
+	private void insertDecompilationProblems(CodeWriter code, AttrNode node) {
+		List<JadxError> errors = node.getAll(AType.JADX_ERROR);
+		List<JadxWarn> warns = node.getAll(AType.JADX_WARN);
 		if (!errors.isEmpty()) {
 			errors.forEach(err -> {
 				code.startLine("/*  JADX ERROR: ").add(err.getError());
@@ -351,6 +352,7 @@ public class ClassGen {
 			if (f.contains(AFlag.DONT_GENERATE)) {
 				continue;
 			}
+			CodegenUtils.addComments(code, f);
 			annotationGen.addForField(code, f);
 
 			if (f.getFieldInfo().isRenamed()) {

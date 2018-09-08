@@ -13,7 +13,6 @@ import com.android.dex.ClassData.Field;
 import com.android.dex.ClassData.Method;
 import com.android.dex.ClassDef;
 import com.android.dex.Dex;
-import com.android.dx.rop.code.AccessFlags;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +50,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 
 	private final List<MethodNode> methods;
 	private final List<FieldNode> fields;
-	private List<ClassNode> innerClasses = Collections.emptyList();
+	private List<ClassNode> innerClasses = new ArrayList<>();
 
 	// store decompiled code
 	private CodeWriter code;
@@ -132,14 +131,16 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 	}
 
 	// empty synthetic class
-	public ClassNode(DexNode dex, ClassInfo clsInfo) {
+	public ClassNode(DexNode dex, String name, int accessFlags) {
 		this.dex = dex;
-		this.clsInfo = clsInfo;
-		this.interfaces = Collections.emptyList();
-		this.methods = Collections.emptyList();
-		this.fields = Collections.emptyList();
-		this.accessFlags = new AccessInfo(AccessFlags.ACC_PUBLIC | AccessFlags.ACC_SYNTHETIC, AFType.CLASS);
+		this.clsInfo = ClassInfo.fromName(dex.root(), name);
+		this.interfaces = new ArrayList<>();
+		this.methods = new ArrayList<>();
+		this.fields = new ArrayList<>();
+		this.accessFlags = new AccessInfo(accessFlags, AFType.CLASS);
 		this.parentClass = this;
+
+		dex.addClassNode(this);
 	}
 
 	private void loadAnnotations(ClassDef cls) {
@@ -368,10 +369,8 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 	}
 
 	public void addInnerClass(ClassNode cls) {
-		if (innerClasses.isEmpty()) {
-			innerClasses = new ArrayList<>(3);
-		}
 		innerClasses.add(cls);
+		cls.parentClass = this;
 	}
 
 	public boolean isEnum() {

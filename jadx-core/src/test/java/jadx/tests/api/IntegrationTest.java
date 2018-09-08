@@ -27,7 +27,8 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
-import jadx.core.utils.exceptions.CodegenException;
+import jadx.core.xmlgen.ResourceStorage;
+import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.tests.api.compiler.DynamicCompiler;
 import jadx.tests.api.compiler.StaticCompiler;
 import jadx.tests.api.utils.TestUtils;
@@ -99,7 +100,7 @@ public abstract class IntegrationTest extends TestUtils {
 			fail(e.getMessage());
 		}
 		RootNode root = JadxInternalAccess.getRoot(d);
-		root.getConstValues().getResourcesNames().putAll(resMap);
+		insertResources(root);
 
 		ClassNode cls = root.searchClassByName(clsName);
 		assertThat("Class not found: " + clsName, cls, notNullValue());
@@ -119,6 +120,20 @@ public abstract class IntegrationTest extends TestUtils {
 		compile(cls);
 		runAutoCheck(clsName);
 		return cls;
+	}
+
+	private void insertResources(RootNode root) {
+		if (resMap.isEmpty()) {
+			return;
+		}
+		ResourceStorage resStorage = new ResourceStorage();
+		for (Map.Entry<Integer, String> entry : resMap.entrySet()) {
+			Integer id = entry.getKey();
+			String name = entry.getValue();
+			String[] parts = name.split("\\.");
+			resStorage.add(new ResourceEntry(id, "", parts[0], parts[1]));
+		}
+		root.processResources(resStorage);
 	}
 
 	protected void decompile(JadxDecompiler jadx, ClassNode cls) {
