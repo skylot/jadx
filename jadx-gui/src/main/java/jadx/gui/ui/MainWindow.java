@@ -293,11 +293,10 @@ public class MainWindow extends JFrame {
 				if (resFile != null && JResource.isSupportedForView(resFile.getType())) {
 					tabbedPane.showResource(res);
 				}
-			}else if (obj instanceof JCertificate) {
+			} else if (obj instanceof JCertificate) {
 				JCertificate cert = (JCertificate) obj;
 				tabbedPane.showCertificate(cert);
-			}
-			else if (obj instanceof JNode) {
+			} else if (obj instanceof JNode) {
 				JNode node = (JNode) obj;
 				JClass cls = node.getRootClass();
 				if (cls != null) {

@@ -276,6 +276,7 @@ public class InsnNode extends LineAttrNode {
 		}
 		return true;
 	}
+
 	/**
 	 * 'Hard' equals, compare all arguments
 	 */

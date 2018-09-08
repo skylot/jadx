@@ -158,7 +158,7 @@ public class JadxSettings extends JadxCLIArgs {
 		this.showInconsistentCode = showInconsistentCode;
 	}
 
-	public LangLocale getLangLocale(){
+	public LangLocale getLangLocale() {
 		return this.langLocale;
 	}
 

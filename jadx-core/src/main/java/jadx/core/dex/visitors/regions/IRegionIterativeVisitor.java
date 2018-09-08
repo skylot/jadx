@@ -9,5 +9,4 @@ public interface IRegionIterativeVisitor {
 	 * If return 'true' traversal will be restarted.
 	 */
 	boolean visitRegion(MethodNode mth, IRegion region);
-
 }

@@ -20,7 +20,6 @@ import jadx.gui.utils.NLS;
 
 import static jadx.gui.utils.Utils.FONT_HACK;
 
-
 public class JadxSettingsWindow extends JDialog {
 	private static final long serialVersionUID = -1804570470377354148L;
 
@@ -72,7 +71,7 @@ public class JadxSettingsWindow extends JDialog {
 			if (needReload) {
 				mainWindow.reOpenFile();
 			}
-			if (!settings.getLangLocale().equals(prevLang)){
+			if (!settings.getLangLocale().equals(prevLang)) {
 				JOptionPane.showMessageDialog(
 						this,
 						NLS.str("msg.language_changed", settings.getLangLocale()),
@@ -194,7 +193,7 @@ public class JadxSettingsWindow extends JDialog {
 
 		EditorTheme[] editorThemes = CodeArea.getAllThemes();
 		JComboBox<EditorTheme> themesCbx = new JComboBox<>(editorThemes);
-		for (EditorTheme theme: editorThemes) {
+		for (EditorTheme theme : editorThemes) {
 			if (theme.getPath().equals(settings.getEditorThemePath())) {
 				themesCbx.setSelectedItem(theme);
 				break;
@@ -275,7 +274,7 @@ public class JadxSettingsWindow extends JDialog {
 
 	private SettingsGroup makeOtherGroup() {
 		JComboBox<LangLocale> languageCbx = new JComboBox<>(NLS.getI18nLocales());
-		for (LangLocale locale: NLS.getI18nLocales()) {
+		for (LangLocale locale : NLS.getI18nLocales()) {
 			if (locale.equals(settings.getLangLocale())) {
 				languageCbx.setSelectedItem(locale);
 				break;

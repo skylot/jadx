@@ -24,5 +24,4 @@ public class CatchAttr implements IAttribute {
 	public String toString() {
 		return tryBlock.toString();
 	}
-
 }

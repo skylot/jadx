@@ -80,5 +80,4 @@ public class ArithNode extends InsnNode {
 				+ op.getSymbol() + " "
 				+ getArg(1);
 	}
-
 }

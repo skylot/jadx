@@ -27,7 +27,6 @@ public class Edge {
 		}
 		Edge edge = (Edge) o;
 		return source.equals(edge.source) && target.equals(edge.target);
-
 	}
 
 	@Override

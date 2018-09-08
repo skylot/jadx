@@ -92,5 +92,4 @@ public class BackgroundWorker extends SwingWorker<Void, Void> {
 	protected void done() {
 		progressPane.setVisible(false);
 	}
-
 }

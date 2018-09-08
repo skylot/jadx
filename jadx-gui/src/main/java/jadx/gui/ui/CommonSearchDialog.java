@@ -302,8 +302,8 @@ public abstract class CommonSearchDialog extends JDialog {
 	protected static class ResultsModel extends AbstractTableModel {
 		private static final long serialVersionUID = -7821286846923903208L;
 		private static final String[] COLUMN_NAMES = {
-						NLS.str("search_dialog.col_node"),
-						NLS.str("search_dialog.col_code")
+				NLS.str("search_dialog.col_node"),
+				NLS.str("search_dialog.col_code")
 		};
 
 		private final transient ArrayList<JNode> rows = new ArrayList<>();

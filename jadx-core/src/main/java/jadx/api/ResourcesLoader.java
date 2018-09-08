@@ -100,7 +100,7 @@ public final class ResourcesLoader {
 
 			case ARSC:
 				return new ResTableParser()
-					.decodeFiles(inputStream);
+						.decodeFiles(inputStream);
 
 			case IMG:
 				return ResContainer.singleImageFile(rf.getName(), inputStream);

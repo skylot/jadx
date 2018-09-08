@@ -26,5 +26,4 @@ public class ForceReturnAttr implements IAttribute {
 	public String toString() {
 		return "FORCE_RETURN " + Utils.listToString(returnInsn.getArguments());
 	}
-
 }

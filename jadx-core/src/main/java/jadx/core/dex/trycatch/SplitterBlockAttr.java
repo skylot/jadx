@@ -25,5 +25,4 @@ public class SplitterBlockAttr implements IAttribute {
 	public String toString() {
 		return "Splitter: " + block;
 	}
-
 }

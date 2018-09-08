@@ -260,7 +260,7 @@ public class CodeShrinker extends AbstractVisitor {
 	}
 
 	private static boolean canMoveBetweenBlocks(InsnNode assignInsn, BlockNode assignBlock,
-			BlockNode useBlock, InsnNode useInsn) {
+	                                            BlockNode useBlock, InsnNode useInsn) {
 		if (!BlockUtils.isPathExists(assignBlock, useBlock)) {
 			return false;
 		}

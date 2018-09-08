@@ -44,5 +44,4 @@ public class Annotation {
 	public String toString() {
 		return "Annotation[" + visibility + ", " + atype + ", " + values + "]";
 	}
-
 }

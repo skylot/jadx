@@ -38,7 +38,7 @@ public class JRoot extends JNode {
 		}
 
 		JCertificate certificate = getCertificate(wrapper.getResources());
-		if(certificate != null) {
+		if (certificate != null) {
 			add(certificate);
 		}
 	}
@@ -84,15 +84,12 @@ public class JRoot extends JNode {
 
 			if (rf.getZipRef() != null) {
 				String rfName = rf.getName().toUpperCase();
-				if (rfName.endsWith(".DSA")||rfName.endsWith(".RSA")) {
+				if (rfName.endsWith(".DSA") || rfName.endsWith(".RSA")) {
 					return new JCertificate(rf);
 				}
-
 			}
-
 		}
 		return null;
-
 	}
 
 	private JResource getResourceByName(JResource rf, String name) {

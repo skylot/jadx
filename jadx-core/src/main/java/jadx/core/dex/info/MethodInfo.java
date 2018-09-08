@@ -146,5 +146,4 @@ public final class MethodInfo {
 		return declClass.getFullName() + "." + name
 				+ "(" + Utils.listToString(args) + "):" + retType;
 	}
-
 }

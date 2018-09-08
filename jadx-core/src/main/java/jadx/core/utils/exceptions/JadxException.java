@@ -23,5 +23,4 @@ public class JadxException extends Exception {
 	public JadxException(MethodNode mth, String msg, Throwable th) {
 		super(ErrorsCounter.formatMsg(mth, msg), th);
 	}
-
 }

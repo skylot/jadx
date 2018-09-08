@@ -18,5 +18,4 @@ public abstract class AbstractRegionVisitor implements IRegionVisitor {
 	@Override
 	public void leaveRegion(MethodNode mth, IRegion region) {
 	}
-
 }

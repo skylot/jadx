@@ -55,7 +55,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private boolean isOneLine = true;
 	private int namespaceDepth = 0;
 	private int[] resourceIds;
-	
+
 	private RootNode rootNode;
 	private String appPackageName;
 
@@ -180,9 +180,9 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int comment = is.readInt32();
 		int beginPrefix = is.readInt32();
 		int beginURI = is.readInt32();
-		
+
 		String nsValue = getString(beginPrefix);
-		if(!nsMap.containsValue(nsValue)) {
+		if (!nsMap.containsValue(nsValue)) {
 			nsMap.putIfAbsent(getString(beginURI), nsValue);
 		}
 		namespaceDepth++;
@@ -200,9 +200,9 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int endPrefix = is.readInt32();
 		int endURI = is.readInt32();
 		namespaceDepth--;
-		
+
 		String nsValue = getString(endPrefix);
-		if(!nsMap.containsValue(nsValue)) {
+		if (!nsMap.containsValue(nsValue)) {
 			nsMap.putIfAbsent(getString(endURI), nsValue);
 		}
 	}
@@ -313,7 +313,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		String decodedAttr = ManifestAttributes.getInstance().decode(attrName, attrValData);
 		if (decodedAttr != null) {
 			memorizePackageName(attrName, decodedAttr);
-			if(isDeobfCandidateAttr(shortNsName, attrName)) {
+			if (isDeobfCandidateAttr(shortNsName, attrName)) {
 				decodedAttr = deobfClassName(decodedAttr);
 			}
 			writer.add(StringUtils.escapeXML(decodedAttr));
@@ -339,16 +339,16 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		}
 		return attrName;
 	}
-	
+
 	private String generateNameForNS(String attrUrl) {
-		for(int i = 1; ; i++) {
+		for (int i = 1; ; i++) {
 			String attrName = "ns" + i;
-			if(!nsMap.containsValue(attrName) && !nsMapGenerated.contains(attrName)) {
+			if (!nsMap.containsValue(attrName) && !nsMapGenerated.contains(attrName)) {
 				nsMapGenerated.add(attrName);
 				// do not add generated value to nsMap
 				// because attrUrl might be used in a neighbor element, but never defined
 				writer.add("xmlns:").add(attrName)
-					.add("=\"").add(attrUrl).add("\" ");
+						.add("=\"").add(attrUrl).add("\" ");
 				return attrName;
 			}
 		}
@@ -380,8 +380,8 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	}
 
 	private void decodeAttribute(int attributeNS, int attrValDataType, int attrValData,
-			String shortNsName, String attrName) {
-		
+	                             String shortNsName, String attrName) {
+
 		if (attrValDataType == TYPE_REFERENCE) {
 			// reference custom processing
 			String name = styleMap.get(attrValData);
@@ -419,7 +419,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		} else {
 			String str = valuesParser.decodeValue(attrValDataType, attrValData);
 			memorizePackageName(attrName, str);
-			if(isDeobfCandidateAttr(shortNsName, attrName)) {
+			if (isDeobfCandidateAttr(shortNsName, attrName)) {
 				str = deobfClassName(str);
 			}
 			writer.add(str != null ? StringUtils.escapeXML(str) : "null");
@@ -454,55 +454,54 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			writer.decIndent();
 		}
 	}
-	
+
 	private String getValidTagAttributeName(String originalName) {
-		if(XMLChar.isValidName(originalName)) {
+		if (XMLChar.isValidName(originalName)) {
 			return originalName;
 		}
-		if(tagAttrDeobfNames.containsKey(originalName)) {
+		if (tagAttrDeobfNames.containsKey(originalName)) {
 			return tagAttrDeobfNames.get(originalName);
 		}
 		String generated;
 		do {
 			generated = generateTagAttrName();
 		}
-		while(tagAttrDeobfNames.containsValue(generated));
+		while (tagAttrDeobfNames.containsValue(generated));
 		tagAttrDeobfNames.put(originalName, generated);
 		return generated;
 	}
-	
+
 	private static String generateTagAttrName() {
 		final int length = 6;
 		Random r = new Random();
 		StringBuilder sb = new StringBuilder();
-		for(int i = 1; i <= length; i++) {
-			sb.append((char)(r.nextInt(26) + 'a'));
+		for (int i = 1; i <= length; i++) {
+			sb.append((char) (r.nextInt(26) + 'a'));
 		}
 		return sb.toString();
 	}
-	
+
 	private String deobfClassName(String className) {
 		String newName = XmlDeobf.deobfClassName(rootNode, className,
 				appPackageName);
-		if(newName != null) {
+		if (newName != null) {
 			return newName;
 		}
 		return className;
 	}
-	
+
 	private boolean isDeobfCandidateAttr(String shortNsName, String attrName) {
 		String fullName;
-		if(shortNsName != null) {
+		if (shortNsName != null) {
 			fullName = shortNsName + ":" + attrName;
-		}
-		else {
+		} else {
 			return false;
 		}
 		return "android:name".equals(fullName);
 	}
-	
+
 	private void memorizePackageName(String attrName, String attrValue) {
-		if("manifest".equals(currentTag) && "package".equals(attrName)) {
+		if ("manifest".equals(currentTag) && "package".equals(attrName)) {
 			appPackageName = attrValue;
 		}
 	}

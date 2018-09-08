@@ -96,5 +96,4 @@ public class CommonBinaryParser extends ParserConstants {
 		throw new IOException("Decode error: " + message
 				+ ", position: 0x" + Long.toHexString(is.getPos()));
 	}
-
 }

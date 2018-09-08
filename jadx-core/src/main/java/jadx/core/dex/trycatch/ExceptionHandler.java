@@ -120,5 +120,4 @@ public class ExceptionHandler {
 		return (catchType == null ? "all"
 				: catchType.getShortName()) + " -> " + InsnUtils.formatOffset(handleOffset);
 	}
-
 }

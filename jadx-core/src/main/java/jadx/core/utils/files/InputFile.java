@@ -74,7 +74,9 @@ public class InputFile {
 			}
 			return;
 		}
-		if (skipSources) return;
+		if (skipSources) {
+			return;
+		}
 
 		throw new DecodeException("Unsupported input file format: " + file);
 	}

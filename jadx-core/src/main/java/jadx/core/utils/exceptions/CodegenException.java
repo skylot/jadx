@@ -30,5 +30,4 @@ public class CodegenException extends JadxException {
 	public CodegenException(MethodNode mth, String msg, Throwable th) {
 		super(mth, msg, th);
 	}
-
 }

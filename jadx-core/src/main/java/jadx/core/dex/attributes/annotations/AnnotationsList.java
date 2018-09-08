@@ -48,5 +48,4 @@ public class AnnotationsList implements IAttribute {
 	public String toString() {
 		return Utils.listToString(map.values());
 	}
-
 }

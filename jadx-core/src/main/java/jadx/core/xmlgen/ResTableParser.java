@@ -84,7 +84,7 @@ public class ResTableParser extends CommonBinaryParser {
 		writer.finish();
 		return writer;
 	}
-	
+
 	public CodeWriter makeXmlDump() {
 		CodeWriter writer = new CodeWriter();
 		writer.startLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
@@ -93,7 +93,7 @@ public class ResTableParser extends CommonBinaryParser {
 
 		Set<String> addedValues = new HashSet<>();
 		for (ResourceEntry ri : resStorage.getResources()) {
-			if(addedValues.add(ri.getTypeName() + "." + ri.getKeyName())) {
+			if (addedValues.add(ri.getTypeName() + "." + ri.getKeyName())) {
 				String format = String.format("<public type=\"%s\" name=\"%s\" id=\"%s\" />",
 						ri.getTypeName(), ri.getKeyName(), ri.getId());
 				writer.startLine(format);

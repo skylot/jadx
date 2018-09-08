@@ -205,7 +205,7 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 		if (ext.equals("html")) {
 			return SyntaxConstants.SYNTAX_STYLE_HTML;
 		}
-		if(ext.equals("arsc")) {
+		if (ext.equals("arsc")) {
 			return SyntaxConstants.SYNTAX_STYLE_XML;
 		}
 		return null;

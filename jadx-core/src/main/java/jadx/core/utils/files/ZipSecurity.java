@@ -24,13 +24,12 @@ public class ZipSecurity {
 		}
 		return isInSubDirectoryInternal(baseDir, canonFile.getParentFile());
 	}
-	
+
 	public static boolean isInSubDirectory(File baseDir, File file) {
 		try {
 			file = file.getCanonicalFile();
 			baseDir = baseDir.getCanonicalFile();
-		}
-		catch(IOException e) {
+		} catch (IOException e) {
 			return false;
 		}
 		return isInSubDirectoryInternal(baseDir, file);

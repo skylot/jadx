@@ -21,5 +21,4 @@ public class DecodeException extends JadxException {
 	public DecodeException(MethodNode mth, String msg, Throwable th) {
 		super(mth, msg, th);
 	}
-
 }

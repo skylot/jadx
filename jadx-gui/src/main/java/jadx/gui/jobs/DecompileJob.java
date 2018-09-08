@@ -24,5 +24,4 @@ public class DecompileJob extends BackgroundJob {
 	public String getInfoString() {
 		return "Decompiling: ";
 	}
-
 }

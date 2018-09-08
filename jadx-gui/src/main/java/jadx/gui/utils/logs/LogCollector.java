@@ -18,6 +18,7 @@ public class LogCollector extends AppenderBase<ILoggingEvent> {
 	public static final int BUFFER_SIZE = 5000;
 
 	private static final LogCollector INSTANCE = new LogCollector();
+
 	public static LogCollector getInstance() {
 		return INSTANCE;
 	}

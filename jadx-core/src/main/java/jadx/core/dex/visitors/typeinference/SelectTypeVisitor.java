@@ -27,5 +27,4 @@ public class SelectTypeVisitor {
 		ArgType newType = ArgType.merge(dex, t, t.selectFirst());
 		arg.setType(newType);
 	}
-
 }

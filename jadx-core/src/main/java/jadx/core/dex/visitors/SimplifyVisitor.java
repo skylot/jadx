@@ -207,7 +207,6 @@ public class SimplifyVisitor extends AbstractVisitor {
 						return concatInsn;
 					} // end of if constructor is for StringBuilder
 				} // end of if we found a constructor early in the chain
-
 			} catch (Exception e) {
 				LOG.warn("Can't convert string concatenation: {} insn: {}", mth, insn, e);
 			}

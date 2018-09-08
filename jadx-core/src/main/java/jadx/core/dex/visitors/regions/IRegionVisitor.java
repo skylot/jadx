@@ -14,5 +14,4 @@ public interface IRegionVisitor {
 	boolean enterRegion(MethodNode mth, IRegion region);
 
 	void leaveRegion(MethodNode mth, IRegion region);
-
 }

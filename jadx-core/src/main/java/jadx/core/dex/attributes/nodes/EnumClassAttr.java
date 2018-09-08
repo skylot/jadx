@@ -78,5 +78,4 @@ public class EnumClassAttr implements IAttribute {
 	public String toString() {
 		return "Enum fields: " + fields;
 	}
-
 }

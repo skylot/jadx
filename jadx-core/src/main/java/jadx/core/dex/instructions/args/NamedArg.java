@@ -35,7 +35,6 @@ public final class NamedArg extends InsnArg implements Named {
 			return false;
 		}
 		return name.equals(((NamedArg) o).name);
-
 	}
 
 	@Override

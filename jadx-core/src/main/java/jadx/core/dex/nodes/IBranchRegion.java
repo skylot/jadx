@@ -9,5 +9,4 @@ public interface IBranchRegion extends IRegion {
 	 * NOTE: Contains 'null' elements for indicate empty branches.
 	 */
 	List<IContainer> getBranches();
-
 }

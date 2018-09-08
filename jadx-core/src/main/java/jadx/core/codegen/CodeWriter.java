@@ -289,14 +289,14 @@ public class CodeWriter {
 	}
 
 	public void save(File dir, String subDir, String fileName) {
-		if(!ZipSecurity.isValidZipEntryName(subDir) || !ZipSecurity.isValidZipEntryName(fileName)) {
+		if (!ZipSecurity.isValidZipEntryName(subDir) || !ZipSecurity.isValidZipEntryName(fileName)) {
 			return;
 		}
 		save(dir, new File(subDir, fileName).getPath());
 	}
 
 	public void save(File dir, String fileName) {
-		if(!ZipSecurity.isValidZipEntryName(fileName)) {
+		if (!ZipSecurity.isValidZipEntryName(fileName)) {
 			return;
 		}
 		save(new File(dir, fileName));

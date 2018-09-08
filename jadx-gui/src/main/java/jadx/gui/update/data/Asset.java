@@ -67,7 +67,7 @@ public class Asset {
 	@Override
 	public String toString() {
 		return name
-				+ ", size: " + String.format("%.2fMB", size / 1024. /1024.)
+				+ ", size: " + String.format("%.2fMB", size / 1024. / 1024.)
 				+ ", downloads count: " + downloadCount
 				+ ", url: " + downloadUrl
 				+ ", date: " + createdAt;

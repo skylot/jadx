@@ -82,7 +82,7 @@ public class JadxSettingsAdapter {
 
 	private static <T> void populate(GsonBuilder builder, String json, Class<T> type, final T into) {
 		builder.registerTypeAdapter(type, (InstanceCreator<T>) t -> into)
-						.create()
-						.fromJson(json, type);
+				.create()
+				.fromJson(json, type);
 	}
 }

@@ -41,7 +41,7 @@ public class CodeUsageInfo {
 	}
 
 	private void addUsage(JNode jNode, JavaClass javaClass,
-			CodeLinesInfo linesInfo, CodePosition codePosition, List<StringRef> lines) {
+	                      CodeLinesInfo linesInfo, CodePosition codePosition, List<StringRef> lines) {
 		UsageInfo usageInfo = usageMap.get(jNode);
 		if (usageInfo == null) {
 			usageInfo = new UsageInfo();
