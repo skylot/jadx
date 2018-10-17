@@ -129,7 +129,7 @@ public class Deobfuscator {
 			for (MethodInfo mth : o.getMethods()) {
 				if (aliasToUse == null) {
 					if (mth.isRenamed() && !mth.isAliasFromPreset()) {
-						mth.setAlias(String.format("mo%d%s", id, makeName(mth.getName())));
+						mth.setAlias(String.format("mo%d%s", id, prepareNamePart(mth.getName())));
 					}
 					aliasToUse = mth.getAlias();
 				}
@@ -350,7 +350,7 @@ public class Deobfuscator {
 
 		if (alias == null) {
 			String clsName = classInfo.getShortName();
-			alias = String.format("C%04d%s", clsIndex++, makeName(clsName));
+			alias = String.format("C%04d%s", clsIndex++, prepareNamePart(clsName));
 		}
 		PackageNode pkg = getPackageNode(classInfo.getPackage(), true);
 		clsMap.put(classInfo, new DeobfClsInfo(this, cls, pkg, alias));
@@ -426,13 +426,13 @@ public class Deobfuscator {
 	}
 
 	public String makeFieldAlias(FieldNode field) {
-		String alias = String.format("f%d%s", fldIndex++, makeName(field.getName()));
+		String alias = String.format("f%d%s", fldIndex++, prepareNamePart(field.getName()));
 		fldMap.put(field.getFieldInfo(), alias);
 		return alias;
 	}
 
 	public String makeMethodAlias(MethodNode mth) {
-		String alias = String.format("m%d%s", mthIndex++, makeName(mth.getName()));
+		String alias = String.format("m%d%s", mthIndex++, prepareNamePart(mth.getName()));
 		mthMap.put(mth.getMethodInfo(), alias);
 		return alias;
 	}
@@ -454,24 +454,20 @@ public class Deobfuscator {
 
 		String pkgName = pkg.getName();
 		if (!pkg.hasAlias() && shouldRename(pkgName)) {
-			String pkgAlias = String.format("p%03d%s", pkgIndex++, makeName(pkgName));
+			String pkgAlias = String.format("p%03d%s", pkgIndex++, prepareNamePart(pkgName));
 			pkg.setAlias(pkgAlias);
 		}
 	}
 
 	private boolean shouldRename(String s) {
-		return s.length() > maxLength
-				|| s.length() < minLength
-				|| NameMapper.isReserved(s)
-				|| !NameMapper.isAllCharsPrintable(s);
+		int len = s.length();
+		return len < minLength || len > maxLength
+				|| !NameMapper.isValidIdentifier(s);
 	}
 
-	private String makeName(String name) {
+	private String prepareNamePart(String name) {
 		if (name.length() > maxLength) {
 			return "x" + Integer.toHexString(name.hashCode());
-		}
-		if (NameMapper.isReserved(name)) {
-			return name;
 		}
 		if (!NameMapper.isAllCharsPrintable(name)) {
 			return removeInvalidChars(name);

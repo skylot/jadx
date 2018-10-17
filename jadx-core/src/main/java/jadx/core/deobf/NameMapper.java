@@ -79,12 +79,14 @@ public class NameMapper {
 
 	public static boolean isValidIdentifier(String str) {
 		return notEmpty(str)
+				&& !isReserved(str)
 				&& VALID_JAVA_IDENTIFIER.matcher(str).matches()
 				&& isAllCharsPrintable(str);
 	}
 
 	public static boolean isValidFullIdentifier(String str) {
 		return notEmpty(str)
+				&& !isReserved(str)
 				&& VALID_JAVA_FULL_IDENTIFIER.matcher(str).matches()
 				&& isAllCharsPrintable(str);
 	}

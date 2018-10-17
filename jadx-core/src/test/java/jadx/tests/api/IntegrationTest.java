@@ -27,6 +27,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
+import jadx.core.utils.exceptions.JadxException;
 import jadx.core.xmlgen.ResourceStorage;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.tests.api.compiler.DynamicCompiler;
@@ -137,18 +138,32 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	protected void decompile(JadxDecompiler jadx, ClassNode cls) {
-		List<IDexTreeVisitor> passes = Jadx.getPassesList(jadx.getArgs());
+		List<IDexTreeVisitor> passes = getPassesList(jadx);
 		ProcessClass.process(cls, passes, new CodeGen());
 	}
 
-	protected void decompileWithoutUnload(JadxDecompiler d, ClassNode cls) {
+	protected void decompileWithoutUnload(JadxDecompiler jadx, ClassNode cls) {
 		cls.load();
-		List<IDexTreeVisitor> passes = Jadx.getPassesList(d.getArgs());
+		List<IDexTreeVisitor> passes = getPassesList(jadx);
 		for (IDexTreeVisitor visitor : passes) {
 			DepthTraversal.visit(visitor, cls);
 		}
 		generateClsCode(cls);
 		// don't unload class
+	}
+
+	private List<IDexTreeVisitor> getPassesList(JadxDecompiler jadx) {
+		RootNode root = JadxInternalAccess.getRoot(jadx);
+		List<IDexTreeVisitor> passesList = Jadx.getPassesList(jadx.getArgs());
+		passesList.forEach(pass -> {
+			try {
+				pass.init(root);
+			} catch (JadxException e) {
+				e.printStackTrace();
+				fail(e.getMessage());
+			}
+		});
+		return passesList;
 	}
 
 	protected void generateClsCode(ClassNode cls) {

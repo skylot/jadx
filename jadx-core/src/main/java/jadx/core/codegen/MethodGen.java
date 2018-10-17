@@ -78,7 +78,7 @@ public class MethodGen {
 			ai = ai.remove(AccessFlags.ACC_PUBLIC);
 		}
 
-		if (mth.getMethodInfo().isRenamed()) {
+		if (mth.getMethodInfo().isRenamed() && !ai.isConstructor()) {
 			code.startLine("/* renamed from: ").add(mth.getName()).add(" */");
 		}
 		code.startLineWithNum(mth.getSourceLine());
@@ -87,7 +87,7 @@ public class MethodGen {
 		if (classGen.addGenericMap(code, mth.getGenericMap())) {
 			code.add(' ');
 		}
-		if (mth.getAccessFlags().isConstructor()) {
+		if (ai.isConstructor()) {
 			code.attachDefinition(mth);
 			code.add(classGen.getClassNode().getShortName()); // constructor
 		} else {

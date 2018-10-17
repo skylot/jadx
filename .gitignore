@@ -9,6 +9,7 @@ out/
 *.iml
 *.ipr
 *.iws
+.attach_pid*
 
 **/.DS_Store
 

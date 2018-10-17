@@ -10,6 +10,7 @@ import org.apache.commons.io.FilenameUtils;
 import jadx.api.JadxArgs;
 import jadx.core.Consts;
 import jadx.core.deobf.Deobfuscator;
+import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
@@ -100,7 +101,8 @@ public class RenameVisitor extends AbstractVisitor {
 		Set<String> names = new HashSet<>();
 		for (FieldNode field : cls.getFields()) {
 			FieldInfo fieldInfo = field.getFieldInfo();
-			if (!names.add(fieldInfo.getAlias())) {
+			String fieldName = fieldInfo.getAlias();
+			if (!names.add(fieldName) || !NameMapper.isValidIdentifier(fieldName)) {
 				deobfuscator.renameField(field);
 			}
 		}
@@ -109,11 +111,11 @@ public class RenameVisitor extends AbstractVisitor {
 	private void checkMethods(ClassNode cls) {
 		Set<String> names = new HashSet<>();
 		for (MethodNode mth : cls.getMethods()) {
-			if (mth.contains(AFlag.DONT_GENERATE)) {
+			if (mth.contains(AFlag.DONT_GENERATE) || mth.getAccessFlags().isConstructor()) {
 				continue;
 			}
 			String signature = mth.getMethodInfo().makeSignature(false);
-			if (!names.add(signature)) {
+			if (!names.add(signature) || !NameMapper.isValidIdentifier(mth.getAlias())) {
 				deobfuscator.renameMethod(mth);
 			}
 		}
