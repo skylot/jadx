@@ -26,8 +26,6 @@ matrix:
   include:
     - env: JDK=oracle-8
       jdk: oraclejdk8
-    - env: JDK=oracle-10
-      install: . ./install-jdk.sh -F 10 -L BCL
 
 script:
   - java -version
