@@ -5,11 +5,13 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -30,6 +32,8 @@ public class ResContainer implements Comparable<ResContainer> {
 	private CodeWriter content;
 	@Nullable
 	private BufferedImage image;
+	@Nullable
+	private InputStream binary;
 
 	private ResContainer(String name, List<ResContainer> subFiles) {
 		this.name = name;
@@ -62,6 +66,17 @@ public class ResContainer implements Comparable<ResContainer> {
 		}
 		return resContainer;
 	}
+	
+	public static ResContainer singleBinaryFile(String name, InputStream content) {
+		ResContainer resContainer = new ResContainer(name, Collections.emptyList());
+		try {
+			resContainer.binary = new ByteArrayInputStream(IOUtils.toByteArray(content));
+		}
+		catch(IOException e) {
+			LOG.warn("Contents of the binary resource '{}' not saved, got exception {}", name, e);
+		}
+		return resContainer;
+	}
 
 	public static ResContainer multiFile(String name) {
 		return new ResContainer(name, new ArrayList<>());
@@ -78,6 +93,11 @@ public class ResContainer implements Comparable<ResContainer> {
 	@Nullable
 	public CodeWriter getContent() {
 		return content;
+	}
+	
+	@Nullable
+	public InputStream getBinary() {
+		return binary;
 	}
 
 	public void setContent(@Nullable CodeWriter content) {
