@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.ResourceFile;
 import jadx.core.codegen.CodeWriter;
+import jadx.core.utils.files.FileUtils;
 import jadx.core.utils.files.ZipSecurity;
 
 import static jadx.core.utils.files.FileUtils.prepareFile;
@@ -89,16 +90,16 @@ public class ResourcesSaver implements Runnable {
 			return;
 		}
 		InputStream binary = rc.getBinary();
-		if(binary != null) {
+		if (binary != null) {
 			try {
-				outFile.getParentFile().mkdirs();
-				FileOutputStream binaryFileStream = new FileOutputStream(outFile);
-				IOUtils.copy(binary, binaryFileStream);
-				binaryFileStream.close();
-				binary.close();
-			}
-			catch(IOException e) {
-				LOG.warn("Resource '{}' not saved, got exception {}", rc.getName(), e);
+				FileUtils.makeDirsForFile(outFile);
+				try (FileOutputStream binaryFileStream = new FileOutputStream(outFile)) {
+					IOUtils.copy(binary, binaryFileStream);
+				} finally {
+					binary.close();
+				}
+			} catch (Exception e) {
+				LOG.warn("Resource '{}' not saved, got exception", rc.getName(), e);
 			}
 			return;
 		}

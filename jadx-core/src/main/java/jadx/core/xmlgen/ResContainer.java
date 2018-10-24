@@ -5,7 +5,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -66,14 +65,14 @@ public class ResContainer implements Comparable<ResContainer> {
 		}
 		return resContainer;
 	}
-	
+
 	public static ResContainer singleBinaryFile(String name, InputStream content) {
 		ResContainer resContainer = new ResContainer(name, Collections.emptyList());
 		try {
+			// TODO: don't store binary files in memory
 			resContainer.binary = new ByteArrayInputStream(IOUtils.toByteArray(content));
-		}
-		catch(IOException e) {
-			LOG.warn("Contents of the binary resource '{}' not saved, got exception {}", name, e);
+		} catch (Exception e) {
+			LOG.warn("Contents of the binary resource '{}' not saved, got exception", name, e);
 		}
 		return resContainer;
 	}
@@ -94,7 +93,7 @@ public class ResContainer implements Comparable<ResContainer> {
 	public CodeWriter getContent() {
 		return content;
 	}
-	
+
 	@Nullable
 	public InputStream getBinary() {
 		return binary;
