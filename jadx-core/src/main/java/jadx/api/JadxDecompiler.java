@@ -175,11 +175,11 @@ public final class JadxDecompiler {
 			sourcesOutDir = args.getOutDirSrc();
 			resOutDir = args.getOutDirRes();
 		}
-		if (saveSources) {
-			appendSourcesSave(executor, sourcesOutDir);
-		}
 		if (saveResources) {
 			appendResourcesSave(executor, resOutDir);
+		}
+		if (saveSources) {
+			appendSourcesSave(executor, sourcesOutDir);
 		}
 		return executor;
 	}
