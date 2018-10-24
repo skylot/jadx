@@ -105,6 +105,12 @@ public final class ResourcesLoader {
 			case IMG:
 				return ResContainer.singleImageFile(rf.getName(), inputStream);
 
+			case CODE:
+			case LIB:
+			case FONT:
+			case UNKNOWN:
+				return ResContainer.singleBinaryFile(rf.getName(), inputStream);
+
 			default:
 				if (size > LOAD_SIZE_LIMIT) {
 					return ResContainer.singleFile(rf.getName(),

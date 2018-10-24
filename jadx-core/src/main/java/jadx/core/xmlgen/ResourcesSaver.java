@@ -3,10 +3,14 @@ package jadx.core.xmlgen;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.mockito.internal.util.io.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +34,6 @@ public class ResourcesSaver implements Runnable {
 
 	@Override
 	public void run() {
-		if (!ResourceType.isSupportedForUnpack(resourceFile.getType())) {
-			return;
-		}
 		ResContainer rc = resourceFile.loadContent();
 		if (rc != null) {
 			saveResources(rc);
@@ -87,6 +88,20 @@ public class ResourcesSaver implements Runnable {
 		CodeWriter cw = rc.getContent();
 		if (cw != null) {
 			cw.save(outFile);
+			return;
+		}
+		InputStream binary = rc.getBinary();
+		if(binary != null) {
+			try {
+				outFile.getParentFile().mkdirs();
+				FileOutputStream binaryFileStream = new FileOutputStream(outFile);
+				IOUtils.copy(binary, binaryFileStream);
+				binaryFileStream.close();
+				binary.close();
+			}
+			catch(IOException e) {
+				LOG.warn("Resource '{}' not saved, got exception {}", rc.getName(), e);
+			}
 			return;
 		}
 		LOG.warn("Resource '{}' not saved, unknown type", rc.getName());

@@ -30,21 +30,4 @@ public enum ResourceType {
 		}
 		return UNKNOWN;
 	}
-
-	public static boolean isSupportedForUnpack(ResourceType type) {
-		switch (type) {
-			case CODE:
-			case LIB:
-			case FONT:
-			case UNKNOWN:
-				return false;
-
-			case MANIFEST:
-			case XML:
-			case ARSC:
-			case IMG:
-				return true;
-		}
-		return false;
-	}
 }
