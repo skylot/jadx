@@ -10,12 +10,10 @@ import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.mockito.internal.util.io.IOUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ResourceFile;
-import jadx.api.ResourceType;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.utils.files.ZipSecurity;
 
