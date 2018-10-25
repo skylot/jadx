@@ -91,7 +91,24 @@ public class ClassGen {
 			Collections.sort(sortImports);
 
 			for (String imp : sortImports) {
-				clsCode.startLine("import ").add(imp).add(';');
+				ClassInfo importClassInfo = ClassInfo.fromName(cls.dex().root(), imp);
+				ClassNode classNode = cls.dex().resolveClass(importClassInfo);
+				// Clickable element seems to be limited by the next dot, therefore
+				// we can't just use the complete class name including packagename
+				int clsDotIdx = imp.lastIndexOf('.');
+				String pkg = "";
+				if (clsDotIdx >= 0) {
+					pkg = imp.substring(0, clsDotIdx + 1);
+					imp = imp.substring(clsDotIdx + 1);
+				}
+				clsCode.startLine("import ");
+				clsCode.add(pkg);
+				if (classNode != null) {
+					// attach the clickable link info to the class name
+					clsCode.attachAnnotation(classNode);
+				}
+				clsCode.add(imp);
+				clsCode.add(';');
 			}
 			clsCode.newLine();
 
