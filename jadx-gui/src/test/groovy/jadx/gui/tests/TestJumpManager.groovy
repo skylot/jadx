@@ -1,7 +1,7 @@
 package jadx.gui.tests
 
 import jadx.gui.utils.JumpManager
-import jadx.gui.utils.Position
+import jadx.gui.utils.JumpPosition
 import spock.lang.Specification
 
 class TestJumpManager extends Specification {
@@ -29,7 +29,7 @@ class TestJumpManager extends Specification {
 
     def "1 element"() {
         when:
-        jm.addPosition(Mock(Position))
+        jm.addPosition(Mock(JumpPosition))
         then:
         jm.getPrev() == null
         jm.getNext() == null
@@ -37,9 +37,9 @@ class TestJumpManager extends Specification {
 
     def "2 elements"() {
         when:
-        def mock1 = Mock(Position)
+        def mock1 = Mock(JumpPosition)
         jm.addPosition(mock1)
-        def mock2 = Mock(Position)
+        def mock2 = Mock(JumpPosition)
         jm.addPosition(mock2)
         // 1 - 2@
         then:
@@ -52,15 +52,15 @@ class TestJumpManager extends Specification {
 
     def "navigation"() {
         expect:
-        def mock1 = Mock(Position)
+        def mock1 = Mock(JumpPosition)
         jm.addPosition(mock1)
         // 1@
-        def mock2 = Mock(Position)
+        def mock2 = Mock(JumpPosition)
         jm.addPosition(mock2)
         // 1 - 2@
         jm.getPrev() == mock1
         // 1@ - 2
-        def mock3 = Mock(Position)
+        def mock3 = Mock(JumpPosition)
         jm.addPosition(mock3)
         // 1 - 3@
         jm.getNext() == null
@@ -71,23 +71,23 @@ class TestJumpManager extends Specification {
 
     def "navigation2"() {
         expect:
-        def mock1 = Mock(Position)
+        def mock1 = Mock(JumpPosition)
         jm.addPosition(mock1)
         // 1@
-        def mock2 = Mock(Position)
+        def mock2 = Mock(JumpPosition)
         jm.addPosition(mock2)
         // 1 - 2@
-        def mock3 = Mock(Position)
+        def mock3 = Mock(JumpPosition)
         jm.addPosition(mock3)
         // 1 - 2 - 3@
-        def mock4 = Mock(Position)
+        def mock4 = Mock(JumpPosition)
         jm.addPosition(mock4)
         // 1 - 2 - 3 - 4@
         jm.getPrev() == mock3
         // 1 - 2 - 3@ - 4
         jm.getPrev() == mock2
         // 1 - 2@ - 3 - 4
-        def mock5 = Mock(Position)
+        def mock5 = Mock(JumpPosition)
         jm.addPosition(mock5)
         // 1 - 2 - 5@
         jm.getNext() == null
@@ -106,7 +106,7 @@ class TestJumpManager extends Specification {
 
     def "add same element"() {
         when:
-        def mock = Mock(Position)
+        def mock = Mock(JumpPosition)
         jm.addPosition(mock)
         jm.addPosition(mock)
         then:

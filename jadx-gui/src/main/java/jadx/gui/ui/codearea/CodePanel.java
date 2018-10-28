@@ -1,4 +1,4 @@
-package jadx.gui.ui;
+package jadx.gui.ui.codearea;
 
 import javax.swing.*;
 import java.awt.*;
@@ -7,9 +7,11 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.ContentPanel;
+import jadx.gui.ui.TabbedPane;
 import jadx.gui.utils.Utils;
 
-class CodePanel extends ContentPanel {
+public final class CodePanel extends ContentPanel {
 
 	private static final long serialVersionUID = 5310536092010045565L;
 
@@ -17,7 +19,7 @@ class CodePanel extends ContentPanel {
 	private final CodeArea codeArea;
 	private final JScrollPane scrollPane;
 
-	CodePanel(TabbedPane panel, JNode jnode) {
+	public CodePanel(TabbedPane panel, JNode jnode) {
 		super(panel, jnode);
 
 		codeArea = new CodeArea(this);
@@ -55,12 +57,12 @@ class CodePanel extends ContentPanel {
 	}
 
 	@Override
-	TabbedPane getTabbedPane() {
+	public TabbedPane getTabbedPane() {
 		return tabbedPane;
 	}
 
 	@Override
-	JNode getNode() {
+	public JNode getNode() {
 		return node;
 	}
 
@@ -68,7 +70,7 @@ class CodePanel extends ContentPanel {
 		return searchBar;
 	}
 
-	CodeArea getCodeArea() {
+	public CodeArea getCodeArea() {
 		return codeArea;
 	}
 

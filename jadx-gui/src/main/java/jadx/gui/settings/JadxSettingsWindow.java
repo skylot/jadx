@@ -12,8 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import say.swing.JFontChooser;
 
-import jadx.gui.ui.CodeArea;
-import jadx.gui.ui.CodeArea.EditorTheme;
+import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
@@ -191,7 +190,7 @@ public class JadxSettingsWindow extends JDialog {
 			}
 		});
 
-		EditorTheme[] editorThemes = CodeArea.getAllThemes();
+		EditorTheme[] editorThemes = EditorTheme.ALL_THEMES;
 		JComboBox<EditorTheme> themesCbx = new JComboBox<>(editorThemes);
 		for (EditorTheme theme : editorThemes) {
 			if (theme.getPath().equals(settings.getEditorThemePath())) {

@@ -1,4 +1,4 @@
-package jadx.gui.ui;
+package jadx.gui.ui.codearea;
 
 import javax.swing.*;
 import javax.swing.border.Border;

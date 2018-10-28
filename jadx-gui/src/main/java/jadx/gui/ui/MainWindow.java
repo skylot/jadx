@@ -51,7 +51,7 @@ import jadx.gui.update.data.Release;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.Position;
+import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.Utils;
 
 import static javax.swing.KeyStroke.getKeyStroke;
@@ -300,7 +300,7 @@ public class MainWindow extends JFrame {
 				JNode node = (JNode) obj;
 				JClass cls = node.getRootClass();
 				if (cls != null) {
-					tabbedPane.codeJump(new Position(cls, node.getLine()));
+					tabbedPane.codeJump(new JumpPosition(cls, node.getLine()));
 				}
 			}
 		} catch (Exception e) {

@@ -1,4 +1,4 @@
-package jadx.gui.ui;
+package jadx.gui.ui.codearea;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -112,12 +112,7 @@ class SearchBar extends JToolBar {
 
 		JButton closeButton = new JButton();
 		closeButton.setIcon(ICON_CLOSE);
-		closeButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				toggle();
-			}
-		});
+		closeButton.addActionListener(l -> toggle());
 		closeButton.setBorderPainted(false);
 		add(closeButton);
 

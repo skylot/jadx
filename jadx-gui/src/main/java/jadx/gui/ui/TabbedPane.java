@@ -21,12 +21,14 @@ import jadx.gui.treemodel.JCertificate;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
+import jadx.gui.ui.codearea.CodeArea;
+import jadx.gui.ui.codearea.CodePanel;
 import jadx.gui.utils.JumpManager;
+import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.Position;
 import jadx.gui.utils.Utils;
 
-class TabbedPane extends JTabbedPane {
+public class TabbedPane extends JTabbedPane {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TabbedPane.class);
 	private static final long serialVersionUID = -8833600618794570904L;
@@ -57,11 +59,11 @@ class TabbedPane extends JTabbedPane {
 		});
 	}
 
-	MainWindow getMainWindow() {
+	public MainWindow getMainWindow() {
 		return mainWindow;
 	}
 
-	private void showCode(final Position pos) {
+	private void showCode(final JumpPosition pos) {
 		final CodePanel contentPanel = (CodePanel) getContentPanel(pos.getNode());
 		if (contentPanel == null) {
 			return;
@@ -99,8 +101,8 @@ class TabbedPane extends JTabbedPane {
 		SwingUtilities.invokeLater(() -> setSelectedComponent(contentPanel));
 	}
 
-	public void codeJump(Position pos) {
-		Position curPos = getCurrentPosition();
+	public void codeJump(JumpPosition pos) {
+		JumpPosition curPos = getCurrentPosition();
 		if (curPos != null) {
 			jumps.addPosition(curPos);
 			jumps.addPosition(pos);
@@ -109,7 +111,7 @@ class TabbedPane extends JTabbedPane {
 	}
 
 	@Nullable
-	private Position getCurrentPosition() {
+	private JumpPosition getCurrentPosition() {
 		ContentPanel selectedCodePanel = getSelectedCodePanel();
 		if (selectedCodePanel instanceof CodePanel) {
 			return ((CodePanel) selectedCodePanel).getCodeArea().getCurrentPosition();
@@ -118,14 +120,14 @@ class TabbedPane extends JTabbedPane {
 	}
 
 	public void navBack() {
-		Position pos = jumps.getPrev();
+		JumpPosition pos = jumps.getPrev();
 		if (pos != null) {
 			showCode(pos);
 		}
 	}
 
 	public void navForward() {
-		Position pos = jumps.getNext();
+		JumpPosition pos = jumps.getNext();
 		if (pos != null) {
 			showCode(pos);
 		}

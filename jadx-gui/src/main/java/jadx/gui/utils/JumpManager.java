@@ -5,10 +5,10 @@ import java.util.List;
 
 public class JumpManager {
 
-	private List<Position> list = new ArrayList<>();
+	private List<JumpPosition> list = new ArrayList<>();
 	private int currentPos = 0;
 
-	public void addPosition(Position pos) {
+	public void addPosition(JumpPosition pos) {
 		if (pos.equals(getCurrent())) {
 			return;
 		}
@@ -25,14 +25,14 @@ public class JumpManager {
 		}
 	}
 
-	private Position getCurrent() {
+	private JumpPosition getCurrent() {
 		if (currentPos >= 0 && currentPos < list.size()) {
 			return list.get(currentPos);
 		}
 		return null;
 	}
 
-	public Position getPrev() {
+	public JumpPosition getPrev() {
 		if (currentPos == 0) {
 			return null;
 		}
@@ -40,7 +40,7 @@ public class JumpManager {
 		return list.get(currentPos);
 	}
 
-	public Position getNext() {
+	public JumpPosition getNext() {
 		int size = list.size();
 		if (size == 0) {
 			currentPos = 0;
@@ -51,7 +51,7 @@ public class JumpManager {
 			currentPos = size - 1;
 			return null;
 		}
-		Position position = list.get(newPos);
+		JumpPosition position = list.get(newPos);
 		if (position == null) {
 			return null;
 		}

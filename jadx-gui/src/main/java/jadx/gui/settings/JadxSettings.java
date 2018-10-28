@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
 import jadx.cli.JadxCLIArgs;
-import jadx.gui.ui.CodeArea;
+import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 
@@ -263,7 +263,7 @@ public class JadxSettings extends JadxCLIArgs {
 			fromVersion++;
 		}
 		if (fromVersion == 1) {
-			setEditorThemePath(CodeArea.getAllThemes()[0].getPath());
+			setEditorThemePath(EditorTheme.ALL_THEMES[0].getPath());
 			fromVersion++;
 		}
 		if (fromVersion == 2) {

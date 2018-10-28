@@ -31,9 +31,10 @@ import jadx.gui.jobs.BackgroundJob;
 import jadx.gui.jobs.BackgroundWorker;
 import jadx.gui.jobs.DecompileJob;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.Position;
+import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.search.TextSearchIndex;
 
 public abstract class CommonSearchDialog extends JDialog {
@@ -106,7 +107,7 @@ public abstract class CommonSearchDialog extends JDialog {
 			return;
 		}
 		JNode node = (JNode) resultsModel.getValueAt(selectedId, 0);
-		tabbedPane.codeJump(new Position(node.getRootClass(), node.getLine()));
+		tabbedPane.codeJump(new JumpPosition(node.getRootClass(), node.getLine()));
 
 		dispose();
 	}

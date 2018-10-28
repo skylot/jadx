@@ -1,7 +1,6 @@
 package jadx.core.codegen;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -84,35 +83,18 @@ public class ClassGen {
 		}
 		int importsCount = imports.size();
 		if (importsCount != 0) {
-			List<String> sortImports = new ArrayList<>(importsCount);
-			for (ClassInfo ic : imports) {
-				sortImports.add(ic.getAlias().getFullName());
-			}
-			Collections.sort(sortImports);
-
-			for (String imp : sortImports) {
-				ClassInfo importClassInfo = ClassInfo.fromName(cls.dex().root(), imp);
-				ClassNode classNode = cls.dex().resolveClass(importClassInfo);
-				// Clickable element seems to be limited by the next dot, therefore
-				// we can't just use the complete class name including packagename
-				int clsDotIdx = imp.lastIndexOf('.');
-				String pkg = "";
-				if (clsDotIdx >= 0) {
-					pkg = imp.substring(0, clsDotIdx + 1);
-					imp = imp.substring(clsDotIdx + 1);
-				}
+			List<ClassInfo> sortedImports = new ArrayList<>(imports);
+			sortedImports.sort(Comparator.comparing(classInfo -> classInfo.getAlias().getFullName()));
+			sortedImports.forEach(classInfo -> {
 				clsCode.startLine("import ");
-				clsCode.add(pkg);
+				ClassNode classNode = cls.root().resolveClass(classInfo);
 				if (classNode != null) {
-					// attach the clickable link info to the class name
 					clsCode.attachAnnotation(classNode);
 				}
-				clsCode.add(imp);
+				clsCode.add(classInfo.getAlias().getFullName());
 				clsCode.add(';');
-			}
+			});
 			clsCode.newLine();
-
-			sortImports.clear();
 			imports.clear();
 		}
 		clsCode.add(clsBody);
