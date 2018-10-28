@@ -58,6 +58,7 @@ launch4j {
     outfile = "jadx-gui-${version}.exe"
     copyright = 'Skylot'
     windowTitle = 'jadx'
+    companyName = 'jadx'
     jvmOptions = ['-Dawt.useSystemAAFontSettings=lcd', '-Dswing.aatext=true']
     jreRuntimeBits = "64"
     initialHeapPercent = 5
