@@ -182,7 +182,7 @@ public class JadxSettingsWindow extends JDialog {
 				int result = fontChooser.showDialog(JadxSettingsWindow.this);
 				if (result == JFontChooser.OK_OPTION) {
 					Font font = fontChooser.getSelectedFont();
-					LOG.info("Selected Font : {}", font);
+					LOG.debug("Selected Font: {}", font);
 					settings.setFont(font);
 					mainWindow.updateFont(font);
 					mainWindow.loadSettings();

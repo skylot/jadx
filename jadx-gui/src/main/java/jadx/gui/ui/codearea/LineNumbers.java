@@ -25,6 +25,7 @@ public class LineNumbers extends JPanel implements CaretListener {
 	private static final long serialVersionUID = -4978268673635308190L;
 
 	private static final int NUM_HEIGHT = Integer.MAX_VALUE - 1000000;
+	private static final Map<?, ?> DESKTOP_HINTS = (Map<?, ?>) Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints");
 
 	private CodeArea codeArea;
 	private boolean useSourceLines = true;
@@ -92,6 +93,7 @@ public class LineNumbers extends JPanel implements CaretListener {
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		g.setFont(codeArea.getFont());
+		applyRenderHints(g);
 
 		FontMetrics fontMetrics = codeArea.getFontMetrics(codeArea.getFont());
 		Insets insets = getInsets();
@@ -115,6 +117,19 @@ public class LineNumbers extends JPanel implements CaretListener {
 				rowStartOffset = Utilities.getRowEnd(codeArea, rowStartOffset) + 1;
 			} catch (Exception e) {
 				break;
+			}
+		}
+	}
+
+	private void applyRenderHints(Graphics g) {
+		if (g instanceof Graphics2D) {
+			Graphics2D g2d = (Graphics2D) g;
+			if (DESKTOP_HINTS != null) {
+				g2d.setRenderingHints(DESKTOP_HINTS);
+			} else {
+				g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+				g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+				g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 			}
 		}
 	}
