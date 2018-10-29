@@ -341,7 +341,7 @@ public class ClassGen {
 			});
 		}
 		if (!warns.isEmpty()) {
-			warns.forEach(warn -> code.startLine("/* JADX WARNING: ").add(warn.getWarn()).add(" */"));
+			warns.forEach(warn -> code.startLine("/* JADX WARNING: ").addMultiLine(warn.getWarn()).add(" */"));
 		}
 	}
 
