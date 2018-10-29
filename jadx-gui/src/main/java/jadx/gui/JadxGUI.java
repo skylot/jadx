@@ -19,7 +19,7 @@ public class JadxGUI {
 			LogCollector.register();
 			final JadxSettings settings = JadxSettingsAdapter.load();
 			// overwrite loaded settings by command line arguments
-			if (!settings.processArgs(args)) {
+			if (!settings.overrideProvided(args)) {
 				return;
 			}
 			if (!tryDefaultLookAndFeel()) {

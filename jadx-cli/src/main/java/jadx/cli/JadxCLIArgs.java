@@ -1,19 +1,12 @@
 package jadx.cli;
 
-import java.io.PrintStream;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
-import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import com.beust.jcommander.ParameterDescription;
-import com.beust.jcommander.ParameterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,27 +87,26 @@ public class JadxCLIArgs {
 	protected boolean printHelp = false;
 
 	public boolean processArgs(String[] args) {
-		return parse(args) && process();
+		JCommanderWrapper<JadxCLIArgs> jcw = new JCommanderWrapper<>(this);
+		return jcw.parse(args) && process(jcw);
 	}
 
-	private boolean parse(String[] args) {
-		try {
-			makeJCommander().parse(args);
-			return true;
-		} catch (ParameterException e) {
-			System.err.println("Arguments parse error: " + e.getMessage());
-			printUsage();
+	/**
+	 * Set values only for options provided in cmd.
+	 * Used to merge saved options and options passed in command line.
+	 */
+	public boolean overrideProvided(String[] args) {
+		JCommanderWrapper<JadxCLIArgs> jcw = new JCommanderWrapper<>(new JadxCLIArgs());
+		if (!jcw.parse(args)) {
 			return false;
 		}
+		jcw.overrideProvided(this);
+		return process(jcw);
 	}
 
-	private JCommander makeJCommander() {
-		return JCommander.newBuilder().addObject(this).build();
-	}
-
-	private boolean process() {
+	private boolean process(JCommanderWrapper jcw) {
 		if (printHelp) {
-			printUsage();
+			jcw.printUsage();
 			return false;
 		}
 		if (printVersion) {
@@ -136,67 +128,10 @@ public class JadxCLIArgs {
 			}
 		} catch (JadxException e) {
 			System.err.println("ERROR: " + e.getMessage());
-			printUsage();
+			jcw.printUsage();
 			return false;
 		}
 		return true;
-	}
-
-	public void printUsage() {
-		JCommander jc = makeJCommander();
-		// print usage in not sorted fields order (by default its sorted by description)
-		PrintStream out = System.out;
-		out.println();
-		out.println("jadx - dex to java decompiler, version: " + JadxDecompiler.getVersion());
-		out.println();
-		out.println("usage: jadx [options] " + jc.getMainParameterDescription());
-		out.println("options:");
-
-		List<ParameterDescription> params = jc.getParameters();
-		Map<String, ParameterDescription> paramsMap = new LinkedHashMap<>(params.size());
-		int maxNamesLen = 0;
-		for (ParameterDescription p : params) {
-			paramsMap.put(p.getParameterized().getName(), p);
-			int len = p.getNames().length();
-			if (len > maxNamesLen) {
-				maxNamesLen = len;
-			}
-		}
-		JadxCLIArgs args = new JadxCLIArgs();
-		Field[] fields = args.getClass().getDeclaredFields();
-		for (Field f : fields) {
-			String name = f.getName();
-			ParameterDescription p = paramsMap.get(name);
-			if (p == null) {
-				continue;
-			}
-			StringBuilder opt = new StringBuilder();
-			opt.append("  ").append(p.getNames());
-			addSpaces(opt, maxNamesLen - opt.length() + 3);
-			opt.append("- ").append(p.getDescription());
-			addDefaultValue(args, f, opt);
-			out.println(opt);
-		}
-		out.println("Example:");
-		out.println("  jadx -d out classes.dex");
-	}
-
-	private void addDefaultValue(JadxCLIArgs args, Field f, StringBuilder opt) {
-		Class<?> fieldType = f.getType();
-		if (fieldType == int.class) {
-			try {
-				int val = f.getInt(args);
-				opt.append(" (default: ").append(val).append(")");
-			} catch (Exception e) {
-				// ignore
-			}
-		}
-	}
-
-	private static void addSpaces(StringBuilder str, int count) {
-		for (int i = 0; i < count; i++) {
-			str.append(' ');
-		}
 	}
 
 	public JadxArgs toJadxArgs() {
