@@ -3,7 +3,7 @@ package jadx.gui.ui.codearea;
 public final class EditorTheme {
 	private static final String RSTA_THEME_PATH = "/org/fife/ui/rsyntaxtextarea/themes/";
 
-	public static final EditorTheme[] ALL_THEMES =
+	private static final EditorTheme[] ALL_THEMES =
 			new EditorTheme[]{
 					new EditorTheme("default"),
 					new EditorTheme("eclipse"),
@@ -12,6 +12,14 @@ public final class EditorTheme {
 					new EditorTheme("dark"),
 					new EditorTheme("monokai")
 			};
+
+	public static EditorTheme[] getAllThemes() {
+		return ALL_THEMES;
+	}
+
+	public static EditorTheme getDefaultTheme() {
+		return ALL_THEMES[0];
+	}
 
 	private final String name;
 	private final String path;

@@ -9,7 +9,10 @@ public abstract class TargetInsnNode extends InsnNode {
 		super(type, argsCount);
 	}
 
-	public abstract void initBlocks(BlockNode curBlock);
+	public void initBlocks(BlockNode curBlock) {
+	}
 
-	public abstract boolean replaceTargetBlock(BlockNode origin, BlockNode replace);
+	public boolean replaceTargetBlock(BlockNode origin, BlockNode replace) {
+		return false;
+	}
 }

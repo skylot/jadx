@@ -1,6 +1,5 @@
 package jadx.core.dex.instructions;
 
-import jadx.core.dex.nodes.BlockNode;
 import jadx.core.utils.InsnUtils;
 
 public class GotoNode extends TargetInsnNode {
@@ -18,15 +17,6 @@ public class GotoNode extends TargetInsnNode {
 
 	public int getTarget() {
 		return target;
-	}
-
-	@Override
-	public boolean replaceTargetBlock(BlockNode origin, BlockNode replace) {
-		return false;
-	}
-
-	@Override
-	public void initBlocks(BlockNode curBlock) {
 	}
 
 	@Override

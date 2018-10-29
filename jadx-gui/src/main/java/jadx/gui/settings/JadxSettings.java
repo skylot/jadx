@@ -276,7 +276,7 @@ public class JadxSettings extends JadxCLIArgs {
 			fromVersion++;
 		}
 		if (fromVersion == 1) {
-			setEditorThemePath(EditorTheme.ALL_THEMES[0].getPath());
+			setEditorThemePath(EditorTheme.getDefaultTheme().getPath());
 			fromVersion++;
 		}
 		if (fromVersion == 2) {

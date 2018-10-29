@@ -190,7 +190,7 @@ public class JadxSettingsWindow extends JDialog {
 			}
 		});
 
-		EditorTheme[] editorThemes = EditorTheme.ALL_THEMES;
+		EditorTheme[] editorThemes = EditorTheme.getAllThemes();
 		JComboBox<EditorTheme> themesCbx = new JComboBox<>(editorThemes);
 		for (EditorTheme theme : editorThemes) {
 			if (theme.getPath().equals(settings.getEditorThemePath())) {
