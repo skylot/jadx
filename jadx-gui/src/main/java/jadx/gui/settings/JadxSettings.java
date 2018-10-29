@@ -54,6 +54,12 @@ public class JadxSettings extends JadxCLIArgs {
 		JadxSettingsAdapter.store(this);
 	}
 
+	public void partialSync(ISettingsUpdater updater) {
+		JadxSettings settings = JadxSettingsAdapter.load();
+		updater.update(settings);
+		JadxSettingsAdapter.store(settings);
+	}
+
 	public void fixOnLoad() {
 		if (threadsCount <= 0) {
 			threadsCount = JadxArgs.DEFAULT_THREADS_COUNT;
@@ -75,7 +81,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setLastOpenFilePath(String lastOpenFilePath) {
 		this.lastOpenFilePath = lastOpenFilePath;
-		sync();
+		partialSync(settings -> settings.lastOpenFilePath = JadxSettings.this.lastOpenFilePath);
 	}
 
 	public String getLastSaveFilePath() {
@@ -84,7 +90,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setLastSaveFilePath(String lastSaveFilePath) {
 		this.lastSaveFilePath = lastSaveFilePath;
-		sync();
+		partialSync(settings -> settings.lastSaveFilePath = JadxSettings.this.lastSaveFilePath);
 	}
 
 	public boolean isFlattenPackage() {
@@ -93,7 +99,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setFlattenPackage(boolean flattenPackage) {
 		this.flattenPackage = flattenPackage;
-		sync();
+		partialSync(settings -> settings.flattenPackage = JadxSettings.this.flattenPackage);
 	}
 
 	public boolean isCheckForUpdates() {
@@ -116,7 +122,7 @@ public class JadxSettings extends JadxCLIArgs {
 		if (count > RECENT_FILES_COUNT) {
 			recentFiles.subList(RECENT_FILES_COUNT, count).clear();
 		}
-		sync();
+		partialSync(settings -> settings.recentFiles = recentFiles);
 	}
 
 	public void saveWindowPos(Window window) {
@@ -125,7 +131,7 @@ public class JadxSettings extends JadxCLIArgs {
 				window.getWidth(), window.getHeight()
 		);
 		windowPos.put(pos.getWindowId(), pos);
-		sync();
+		partialSync(settings -> settings.windowPos = windowPos);
 	}
 
 	public boolean loadWindowPos(Window window) {
