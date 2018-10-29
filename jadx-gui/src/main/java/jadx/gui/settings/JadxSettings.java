@@ -26,7 +26,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private static final String USER_HOME = System.getProperty("user.home");
 	private static final int RECENT_FILES_COUNT = 15;
-	private static final int CURRENT_SETTINGS_VERSION = 4;
+	private static final int CURRENT_SETTINGS_VERSION = 5;
 
 	private static final Font DEFAULT_FONT = FONT_HACK != null ? FONT_HACK : new RSyntaxTextArea().getFont();
 
@@ -206,6 +206,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.replaceConsts = replaceConsts;
 	}
 
+	public void setUseImports(boolean useImports) {
+		this.useImports = useImports;
+	}
+
 	public boolean isAutoStartJobs() {
 		return autoStartJobs;
 	}
@@ -274,6 +278,10 @@ public class JadxSettings extends JadxCLIArgs {
 		}
 		if (fromVersion == 3) {
 			setLangLocale(NLS.defaultLocale());
+			fromVersion++;
+		}
+		if (fromVersion == 4) {
+			setUseImports(true);
 		}
 		settingsVersion = CURRENT_SETTINGS_VERSION;
 		sync();

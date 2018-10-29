@@ -260,12 +260,20 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JCheckBox useImports = new JCheckBox();
+		useImports.setSelected(settings.isUseImports());
+		useImports.addItemListener(e -> {
+			settings.setUseImports(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
 		SettingsGroup other = new SettingsGroup(NLS.str("preferences.decompile"));
 		other.addRow(NLS.str("preferences.threads"), threadsCount);
 		other.addRow(NLS.str("preferences.start_jobs"), autoStartJobs);
 		other.addRow(NLS.str("preferences.showInconsistentCode"), showInconsistentCode);
 		other.addRow(NLS.str("preferences.escapeUnicode"), escapeUnicode);
 		other.addRow(NLS.str("preferences.replaceConsts"), replaceConsts);
+		other.addRow(NLS.str("preferences.useImports"), useImports);
 		other.addRow(NLS.str("preferences.fallback"), fallback);
 		other.addRow(NLS.str("preferences.skipResourcesDecode"), resourceDecode);
 		return other;
