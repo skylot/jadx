@@ -46,10 +46,13 @@ public class JadxSettingsAdapter {
 			JadxSettings settings = fromString(jsonSettings);
 			if (settings == null) {
 				LOG.debug("Created new settings.");
-				settings = new JadxSettings();
+				settings = JadxSettings.makeDefault();
+			} else {
+				settings.fixOnLoad();
 			}
-			settings.fixOnLoad();
-			LOG.debug("Loaded settings: {}", makeString(settings));
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Loaded settings: {}", makeString(settings));
+			}
 			return settings;
 		} catch (Exception e) {
 			LOG.error("Error load settings", e);

@@ -12,8 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import say.swing.JFontChooser;
 
-import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 
@@ -94,7 +94,7 @@ public class JadxSettingsWindow extends JDialog {
 					NLS.str("preferences.reset_title"),
 					JOptionPane.YES_NO_OPTION);
 			if (res == JOptionPane.YES_OPTION) {
-				String defaults = JadxSettingsAdapter.makeString(new JadxSettings());
+				String defaults = JadxSettingsAdapter.makeString(JadxSettings.makeDefault());
 				JadxSettingsAdapter.fill(settings, defaults);
 				getContentPane().removeAll();
 				initUI();

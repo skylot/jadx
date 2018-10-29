@@ -47,7 +47,10 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private Map<String, WindowLocation> windowPos = new HashMap<>();
 
-	public JadxSettings() {
+	public static JadxSettings makeDefault() {
+		JadxSettings jadxSettings = new JadxSettings();
+		jadxSettings.fixOnLoad();
+		return jadxSettings;
 	}
 
 	public void sync() {
