@@ -1,25 +1,24 @@
 package jadx.gui.utils;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.Vector;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 import org.jetbrains.annotations.NotNull;
 
 public class NLS {
-	private static final Charset JAVA_CHARSET = Charset.forName("ISO-8859-1");
-	private static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
 
 	private static Vector<LangLocale> i18nLocales = new Vector<>();
 
-	private static Map<LangLocale, Map<String, String>> i18nMessagesMap = new HashMap<>();
+	private static Map<LangLocale, ResourceBundle> i18nMessagesMap = new HashMap<>();
 
 	// Use these two fields to avoid invoking Map.get() method twice.
-	private static Map<String, String> localizedMessagesMap;
-	private static Map<String, String> fallbackMessagesMap;
+	private static ResourceBundle localizedMessagesMap;
+	private static ResourceBundle fallbackMessagesMap;
 
 	private static LangLocale currentLocale;
 	private static LangLocale localLocale;
@@ -42,37 +41,35 @@ public class NLS {
 	}
 
 	private static void load(LangLocale locale) {
-		ResourceBundle bundle = ResourceBundle.getBundle("i18n/Messages", locale.get());
-		Map<String, String> resMap = new HashMap<>();
-		for (String key : bundle.keySet()) {
-			String str = bundle.getString(key);
-			resMap.put(key, convertCharset(str));
+		ResourceBundle bundle;
+		ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+		String resName = String.format("i18n/Messages_%s.properties", locale.get());
+		URL bundleUrl = classLoader.getResource(resName);
+		try (Reader reader = new InputStreamReader(bundleUrl.openStream(), StandardCharsets.UTF_8)) {
+			bundle = new PropertyResourceBundle(reader);
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to load " + resName, e);
 		}
-		i18nMessagesMap.put(locale, resMap);
-	}
-
-	@NotNull
-	private static String convertCharset(String str) {
-		return new String(str.getBytes(JAVA_CHARSET), UTF8_CHARSET);
+		i18nMessagesMap.put(locale, bundle);
 	}
 
 	public static String str(String key) {
-		String str = localizedMessagesMap.get(key);
-		if (str != null) {
-			return str;
+		try {
+			return localizedMessagesMap.getString(key);
+		} catch (MissingResourceException e) {
+			return fallbackMessagesMap.getString(key); // definitely exists
 		}
-		return fallbackMessagesMap.get(key); // definitely exists
 	}
 
 	public static String str(String key, LangLocale locale) {
-		Map<String, String> strings = i18nMessagesMap.get(locale);
-		if (strings != null) {
-			String str = strings.get(key);
-			if (str != null) {
-				return str;
+		ResourceBundle bundle = i18nMessagesMap.get(locale);
+		if (bundle != null) {
+			try {
+				return bundle.getString(key);
+			} catch (MissingResourceException e) {
 			}
 		}
-		return fallbackMessagesMap.get(key); // definitely exists
+		return fallbackMessagesMap.getString(key); // definitely exists
 	}
 
 	public static void setLocale(LangLocale locale) {

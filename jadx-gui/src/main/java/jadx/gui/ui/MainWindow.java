@@ -340,7 +340,7 @@ public class MainWindow extends JFrame {
 				openFile();
 			}
 		};
-		openAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.open"));
+		openAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.open_action"));
 		openAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK));
 
 		Action saveAllAction = new AbstractAction(NLS.str("file.save_all"), ICON_SAVE_ALL) {
