@@ -7,6 +7,7 @@ import ch.qos.logback.classic.Level;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 import jadx.gui.settings.JadxSettings;
+import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.logs.ILogListener;
 import jadx.gui.utils.logs.LogCollector;

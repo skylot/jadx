@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
 import jadx.cli.JadxCLIArgs;
-import jadx.gui.ui.CodeArea;
+import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 
@@ -26,7 +26,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private static final String USER_HOME = System.getProperty("user.home");
 	private static final int RECENT_FILES_COUNT = 15;
-	private static final int CURRENT_SETTINGS_VERSION = 4;
+	private static final int CURRENT_SETTINGS_VERSION = 5;
 
 	private static final Font DEFAULT_FONT = FONT_HACK != null ? FONT_HACK : new RSyntaxTextArea().getFont();
 
@@ -47,11 +47,20 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private Map<String, WindowLocation> windowPos = new HashMap<>();
 
-	public JadxSettings() {
+	public static JadxSettings makeDefault() {
+		JadxSettings jadxSettings = new JadxSettings();
+		jadxSettings.fixOnLoad();
+		return jadxSettings;
 	}
 
 	public void sync() {
 		JadxSettingsAdapter.store(this);
+	}
+
+	public void partialSync(ISettingsUpdater updater) {
+		JadxSettings settings = JadxSettingsAdapter.load();
+		updater.update(settings);
+		JadxSettingsAdapter.store(settings);
 	}
 
 	public void fixOnLoad() {
@@ -75,7 +84,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setLastOpenFilePath(String lastOpenFilePath) {
 		this.lastOpenFilePath = lastOpenFilePath;
-		sync();
+		partialSync(settings -> settings.lastOpenFilePath = JadxSettings.this.lastOpenFilePath);
 	}
 
 	public String getLastSaveFilePath() {
@@ -84,7 +93,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setLastSaveFilePath(String lastSaveFilePath) {
 		this.lastSaveFilePath = lastSaveFilePath;
-		sync();
+		partialSync(settings -> settings.lastSaveFilePath = JadxSettings.this.lastSaveFilePath);
 	}
 
 	public boolean isFlattenPackage() {
@@ -93,7 +102,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setFlattenPackage(boolean flattenPackage) {
 		this.flattenPackage = flattenPackage;
-		sync();
+		partialSync(settings -> settings.flattenPackage = JadxSettings.this.flattenPackage);
 	}
 
 	public boolean isCheckForUpdates() {
@@ -116,7 +125,7 @@ public class JadxSettings extends JadxCLIArgs {
 		if (count > RECENT_FILES_COUNT) {
 			recentFiles.subList(RECENT_FILES_COUNT, count).clear();
 		}
-		sync();
+		partialSync(settings -> settings.recentFiles = recentFiles);
 	}
 
 	public void saveWindowPos(Window window) {
@@ -125,7 +134,7 @@ public class JadxSettings extends JadxCLIArgs {
 				window.getWidth(), window.getHeight()
 		);
 		windowPos.put(pos.getWindowId(), pos);
-		sync();
+		partialSync(settings -> settings.windowPos = windowPos);
 	}
 
 	public boolean loadWindowPos(Window window) {
@@ -206,6 +215,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.replaceConsts = replaceConsts;
 	}
 
+	public void setUseImports(boolean useImports) {
+		this.useImports = useImports;
+	}
+
 	public boolean isAutoStartJobs() {
 		return autoStartJobs;
 	}
@@ -263,7 +276,7 @@ public class JadxSettings extends JadxCLIArgs {
 			fromVersion++;
 		}
 		if (fromVersion == 1) {
-			setEditorThemePath(CodeArea.getAllThemes()[0].getPath());
+			setEditorThemePath(EditorTheme.getDefaultTheme().getPath());
 			fromVersion++;
 		}
 		if (fromVersion == 2) {
@@ -274,6 +287,10 @@ public class JadxSettings extends JadxCLIArgs {
 		}
 		if (fromVersion == 3) {
 			setLangLocale(NLS.defaultLocale());
+			fromVersion++;
+		}
+		if (fromVersion == 4) {
+			setUseImports(true);
 		}
 		settingsVersion = CURRENT_SETTINGS_VERSION;
 		sync();

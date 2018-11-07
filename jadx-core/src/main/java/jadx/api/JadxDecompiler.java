@@ -311,8 +311,36 @@ public final class JadxDecompiler {
 		return methodsMap;
 	}
 
+	JavaMethod getJavaMethodByNode(MethodNode mth) {
+		JavaMethod javaMethod = methodsMap.get(mth);
+		if (javaMethod != null) {
+			return javaMethod;
+		}
+		// parent class not loaded yet
+		JavaClass javaClass = classesMap.get(mth.getParentClass());
+		if (javaClass != null) {
+			javaClass.decompile();
+			return methodsMap.get(mth);
+		}
+		return null;
+	}
+
 	Map<FieldNode, JavaField> getFieldsMap() {
 		return fieldsMap;
+	}
+
+	JavaField getJavaFieldByNode(FieldNode fld) {
+		JavaField javaField = fieldsMap.get(fld);
+		if (javaField != null) {
+			return javaField;
+		}
+		// parent class not loaded yet
+		JavaClass javaClass = classesMap.get(fld.getParentClass());
+		if (javaClass != null) {
+			javaClass.decompile();
+			return fieldsMap.get(fld);
+		}
+		return null;
 	}
 
 	public JadxArgs getArgs() {

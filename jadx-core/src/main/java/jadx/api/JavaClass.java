@@ -160,10 +160,10 @@ public final class JavaClass implements JavaNode {
 			return getRootDecompiler().getClassesMap().get(obj);
 		}
 		if (obj instanceof MethodNode) {
-			return getRootDecompiler().getMethodsMap().get(obj);
+			return getRootDecompiler().getJavaMethodByNode(((MethodNode) obj));
 		}
 		if (obj instanceof FieldNode) {
-			return getRootDecompiler().getFieldsMap().get(obj);
+			return getRootDecompiler().getJavaFieldByNode((FieldNode) obj);
 		}
 		return null;
 	}
@@ -179,15 +179,6 @@ public final class JavaClass implements JavaNode {
 			return null;
 		}
 		return convertNode(obj);
-	}
-
-	@Nullable
-	public CodePosition getDefinitionPosition(int line, int offset) {
-		JavaNode javaNode = getJavaNodeAtPosition(line, offset);
-		if (javaNode == null) {
-			return null;
-		}
-		return getDefinitionPosition(javaNode);
 	}
 
 	@Nullable
@@ -265,6 +256,6 @@ public final class JavaClass implements JavaNode {
 
 	@Override
 	public String toString() {
-		return cls.getFullName() + "[ " + getFullName() + " ]";
+		return getFullName();
 	}
 }

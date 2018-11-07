@@ -30,9 +30,33 @@ public class JadxCLIArgsTest {
 		assertThat(parse("").isSkipSources(), is(false));
 	}
 
+	@Test
+	public void testOptionsOverride() {
+		assertThat(override(new JadxCLIArgs(), "--no-imports").isUseImports(), is(false));
+		assertThat(override(new JadxCLIArgs(), "").isUseImports(), is(true));
+
+		JadxCLIArgs args = new JadxCLIArgs();
+		args.useImports = false;
+		assertThat(override(args, "--no-imports").isUseImports(), is(false));
+
+		args = new JadxCLIArgs();
+		args.useImports = false;
+		assertThat(override(args, "").isUseImports(), is(false));
+	}
+
 	private JadxCLIArgs parse(String... args) {
-		JadxCLIArgs jadxArgs = new JadxCLIArgs();
+		return parse(new JadxCLIArgs(), args);
+	}
+
+	private JadxCLIArgs parse(JadxCLIArgs jadxArgs, String... args) {
 		boolean res = jadxArgs.processArgs(args);
+		assertThat(res, is(true));
+		LOG.info("Jadx args: {}", jadxArgs.toJadxArgs());
+		return jadxArgs;
+	}
+
+	private JadxCLIArgs override(JadxCLIArgs jadxArgs, String... args) {
+		boolean res = jadxArgs.overrideProvided(args);
 		assertThat(res, is(true));
 		LOG.info("Jadx args: {}", jadxArgs.toJadxArgs());
 		return jadxArgs;

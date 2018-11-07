@@ -12,9 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import say.swing.JFontChooser;
 
-import jadx.gui.ui.CodeArea;
-import jadx.gui.ui.CodeArea.EditorTheme;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 
@@ -95,7 +94,7 @@ public class JadxSettingsWindow extends JDialog {
 					NLS.str("preferences.reset_title"),
 					JOptionPane.YES_NO_OPTION);
 			if (res == JOptionPane.YES_OPTION) {
-				String defaults = JadxSettingsAdapter.makeString(new JadxSettings());
+				String defaults = JadxSettingsAdapter.makeString(JadxSettings.makeDefault());
 				JadxSettingsAdapter.fill(settings, defaults);
 				getContentPane().removeAll();
 				initUI();
@@ -183,7 +182,7 @@ public class JadxSettingsWindow extends JDialog {
 				int result = fontChooser.showDialog(JadxSettingsWindow.this);
 				if (result == JFontChooser.OK_OPTION) {
 					Font font = fontChooser.getSelectedFont();
-					LOG.info("Selected Font : {}", font);
+					LOG.debug("Selected Font: {}", font);
 					settings.setFont(font);
 					mainWindow.updateFont(font);
 					mainWindow.loadSettings();
@@ -191,7 +190,7 @@ public class JadxSettingsWindow extends JDialog {
 			}
 		});
 
-		EditorTheme[] editorThemes = CodeArea.getAllThemes();
+		EditorTheme[] editorThemes = EditorTheme.getAllThemes();
 		JComboBox<EditorTheme> themesCbx = new JComboBox<>(editorThemes);
 		for (EditorTheme theme : editorThemes) {
 			if (theme.getPath().equals(settings.getEditorThemePath())) {
@@ -261,12 +260,20 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JCheckBox useImports = new JCheckBox();
+		useImports.setSelected(settings.isUseImports());
+		useImports.addItemListener(e -> {
+			settings.setUseImports(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
 		SettingsGroup other = new SettingsGroup(NLS.str("preferences.decompile"));
 		other.addRow(NLS.str("preferences.threads"), threadsCount);
 		other.addRow(NLS.str("preferences.start_jobs"), autoStartJobs);
 		other.addRow(NLS.str("preferences.showInconsistentCode"), showInconsistentCode);
 		other.addRow(NLS.str("preferences.escapeUnicode"), escapeUnicode);
 		other.addRow(NLS.str("preferences.replaceConsts"), replaceConsts);
+		other.addRow(NLS.str("preferences.useImports"), useImports);
 		other.addRow(NLS.str("preferences.fallback"), fallback);
 		other.addRow(NLS.str("preferences.skipResourcesDecode"), resourceDecode);
 		return other;

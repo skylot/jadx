@@ -1,19 +1,12 @@
 package jadx.gui.utils;
 
-import jadx.api.CodePosition;
-import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 
-public class Position {
+public class JumpPosition {
 	private final JNode node;
 	private final int line;
 
-	public Position(CodePosition pos) {
-		this.node = new JClass(pos.getJavaClass());
-		this.line = pos.getLine();
-	}
-
-	public Position(JNode node, int line) {
+	public JumpPosition(JNode node, int line) {
 		this.node = node;
 		this.line = line;
 	}
@@ -31,10 +24,10 @@ public class Position {
 		if (this == obj) {
 			return true;
 		}
-		if (!(obj instanceof Position)) {
+		if (!(obj instanceof JumpPosition)) {
 			return false;
 		}
-		Position position = (Position) obj;
+		JumpPosition position = (JumpPosition) obj;
 		return line == position.line && node.equals(position.node);
 	}
 

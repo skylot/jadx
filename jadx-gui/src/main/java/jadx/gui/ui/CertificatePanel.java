@@ -6,6 +6,7 @@ import java.awt.*;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.codearea.CodeArea;
 
 public final class CertificatePanel extends ContentPanel {
 	private static final long serialVersionUID = 8566591625905036877L;
