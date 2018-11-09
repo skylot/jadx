@@ -1,6 +1,7 @@
 package jadx.core.dex.visitors;
 
 import java.util.List;
+import java.util.Objects;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -216,6 +217,9 @@ public class ClassModifier extends AbstractVisitor {
 			MethodInfo callMth = ((InvokeNode) insn).getCallMth();
 			MethodNode wrappedMth = mth.root().deepResolveMethod(callMth);
 			if (wrappedMth != null) {
+				if (callMth.getArgsCount() != mth.getMethodInfo().getArgsCount()) {
+					return false;
+				}
 				// all args must be registers passed from method args (allow only casts insns)
 				for (InsnArg arg : insn.getArguments()) {
 					if (!registersAndCastsOnly(arg)) {
@@ -223,9 +227,13 @@ public class ClassModifier extends AbstractVisitor {
 					}
 				}
 				String alias = mth.getAlias();
-				if (!wrappedMth.getAlias().equals(alias) && wrappedMth.isVirtual()) {
-					wrappedMth.getMethodInfo().setAlias(alias);
+				if (Objects.equals(wrappedMth.getAlias(), alias)) {
+					return true;
 				}
+				if (!wrappedMth.isVirtual()) {
+					return false;
+				}
+				wrappedMth.getMethodInfo().setAlias(alias);
 				return true;
 			}
 		}
