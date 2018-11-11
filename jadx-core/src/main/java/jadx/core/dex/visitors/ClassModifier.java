@@ -42,7 +42,8 @@ public class ClassModifier extends AbstractVisitor {
 		}
 		if (cls.getAccessFlags().isSynthetic()
 				&& cls.getFields().isEmpty()
-				&& cls.getMethods().isEmpty()) {
+				&& cls.getMethods().isEmpty()
+				&& cls.getInnerClasses().isEmpty()) {
 			cls.add(AFlag.DONT_GENERATE);
 			return false;
 		}
