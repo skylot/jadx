@@ -285,6 +285,7 @@ public class InsnNode extends LineAttrNode {
 			return true;
 		}
 		return isSame(other)
+				&& Objects.equals(result, other.result)
 				&& Objects.equals(arguments, other.arguments);
 	}
 
