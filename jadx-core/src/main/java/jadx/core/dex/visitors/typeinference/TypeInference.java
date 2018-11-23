@@ -56,11 +56,13 @@ public class TypeInference extends AbstractVisitor {
 		}
 		ArgType type = assign.getType();
 		for (RegisterArg arg : useList) {
-			ArgType useType = arg.getType();
-			ArgType newType = ArgType.merge(dex, type, useType);
-			if (newType != null) {
-				type = newType;
-			}
+		    ArgType useType = arg.getType();
+            if (!type.isTypeKnown() || !useType.isTypeKnown()) {
+                ArgType newType = ArgType.merge(dex, type, useType);
+                if (newType != null) {
+                    type = newType;
+                }
+            }
 		}
 		return type;
 	}
