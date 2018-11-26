@@ -1,8 +1,5 @@
 package jadx.core.dex.visitors.blocksmaker;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.instructions.InsnType;
@@ -23,8 +20,6 @@ import jadx.core.utils.InstructionRemover;
 
 public class BlockExceptionHandler extends AbstractVisitor {
 
-	private static final Logger LOG = LoggerFactory.getLogger(BlockExceptionHandler.class);
-
 	@Override
 	public void visit(MethodNode mth) {
 		if (mth.isNoCode()) {
@@ -40,7 +35,7 @@ public class BlockExceptionHandler extends AbstractVisitor {
 			processExceptionHandlers(mth, block);
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {
-			processTryCatchBlocks(mth, block);
+			processTryCatchBlocks(block);
 		}
 	}
 
@@ -48,27 +43,26 @@ public class BlockExceptionHandler extends AbstractVisitor {
 	 * Set exception handler attribute for whole block
 	 */
 	private static void markExceptionHandlers(BlockNode block) {
-		if (block.getInstructions().isEmpty()) {
-			return;
-		}
-		InsnNode me = block.getInstructions().get(0);
-		ExcHandlerAttr handlerAttr = me.get(AType.EXC_HANDLER);
+		ExcHandlerAttr handlerAttr = block.get(AType.EXC_HANDLER);
 		if (handlerAttr == null) {
 			return;
 		}
 		ExceptionHandler excHandler = handlerAttr.getHandler();
-		block.addAttr(handlerAttr);
 		ArgType argType = excHandler.isCatchAll() ? ArgType.THROWABLE : excHandler.getCatchType().getType();
-		if (me.getType() == InsnType.MOVE_EXCEPTION) {
-			// set correct type for 'move-exception' operation
-			RegisterArg resArg = InsnArg.reg(me.getResult().getRegNum(), argType);
-			me.setResult(resArg);
-			me.add(AFlag.DONT_INLINE);
-			excHandler.setArg(resArg);
-		} else {
-			// handler arguments not used
-			excHandler.setArg(new NamedArg("unused", argType));
+		if (!block.getInstructions().isEmpty()) {
+			InsnNode me = block.getInstructions().get(0);
+			if (me.getType() == InsnType.MOVE_EXCEPTION) {
+				// set correct type for 'move-exception' operation
+				RegisterArg resArg = InsnArg.reg(me.getResult().getRegNum(), argType);
+				resArg.copyAttributesFrom(me);
+				me.setResult(resArg);
+				me.add(AFlag.DONT_INLINE);
+				excHandler.setArg(resArg);
+				return;
+			}
 		}
+		// handler arguments not used
+		excHandler.setArg(new NamedArg("unused", argType));
 	}
 
 	private static void processExceptionHandlers(MethodNode mth, BlockNode block) {
@@ -113,9 +107,7 @@ public class BlockExceptionHandler extends AbstractVisitor {
 	private static boolean onlyAllHandler(TryCatchBlock tryBlock) {
 		if (tryBlock.getHandlersCount() == 1) {
 			ExceptionHandler eh = tryBlock.getHandlers().iterator().next();
-			if (eh.isCatchAll() || eh.isFinally()) {
-				return true;
-			}
+			return eh.isCatchAll() || eh.isFinally();
 		}
 		return false;
 	}
@@ -123,7 +115,7 @@ public class BlockExceptionHandler extends AbstractVisitor {
 	/**
 	 * If all instructions in block have same 'catch' attribute mark it as 'TryCatch' block.
 	 */
-	private static void processTryCatchBlocks(MethodNode mth, BlockNode block) {
+	private static void processTryCatchBlocks(BlockNode block) {
 		CatchAttr commonCatchAttr = null;
 		for (InsnNode insn : block.getInstructions()) {
 			CatchAttr catchAttr = insn.get(AType.CATCH_BLOCK);
@@ -139,24 +131,6 @@ public class BlockExceptionHandler extends AbstractVisitor {
 		}
 		if (commonCatchAttr != null) {
 			block.addAttr(commonCatchAttr);
-			// connect handler to block
-			for (ExceptionHandler handler : commonCatchAttr.getTryBlock().getHandlers()) {
-				connectHandler(mth, handler);
-			}
-		}
-	}
-
-	private static void connectHandler(MethodNode mth, ExceptionHandler handler) {
-		int addr = handler.getHandleOffset();
-		for (BlockNode block : mth.getBasicBlocks()) {
-			ExcHandlerAttr bh = block.get(AType.EXC_HANDLER);
-			if (bh != null && bh.getHandler().getHandleOffset() == addr) {
-				handler.setHandlerBlock(block);
-				break;
-			}
-		}
-		if (handler.getHandlerBlock() == null) {
-			LOG.warn("Exception handler block not set for {}, mth: {}", handler, mth);
 		}
 	}
 }
