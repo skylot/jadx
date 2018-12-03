@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.Consts;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.LiteralArg;
@@ -67,7 +68,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 			if (assignArg.isTypeImmutable()) {
 				ArgType initType = assignArg.getInitType();
 				TypeUpdateResult result = typeUpdate.apply(ssaVar, initType);
-				if (result == TypeUpdateResult.REJECT && LOG.isDebugEnabled()) {
+				if (Consts.DEBUG && result == TypeUpdateResult.REJECT && LOG.isDebugEnabled()) {
 					LOG.debug("Initial immutable type set rejected: {} -> {}", ssaVar, initType);
 				}
 			} else {
@@ -85,7 +86,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		if (bestTypeOpt.isPresent()) {
 			ArgType candidateType = bestTypeOpt.get();
 			TypeUpdateResult result = typeUpdate.apply(ssaVar, candidateType);
-			if (result == TypeUpdateResult.REJECT && LOG.isDebugEnabled()) {
+			if (Consts.DEBUG && result == TypeUpdateResult.REJECT && LOG.isDebugEnabled()) {
 				if (ssaVar.getTypeInfo().getType().equals(candidateType)) {
 					LOG.warn("Same type rejected: {} -> {}, bounds: {}", ssaVar, candidateType, bounds);
 				} else {

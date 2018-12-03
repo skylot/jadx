@@ -7,10 +7,10 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.Consts;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -81,7 +81,7 @@ public final class TypeUpdate {
 	private TypeUpdateResult updateTypeForSsaVar(TypeUpdateInfo updateInfo, SSAVar ssaVar, ArgType candidateType) {
 		TypeInfo typeInfo = ssaVar.getTypeInfo();
 		if (!inBounds(typeInfo.getBounds(), candidateType)) {
-			if (LOG.isDebugEnabled()) {
+			if (Consts.DEBUG && LOG.isDebugEnabled()) {
 				LOG.debug("Reject type '{}' for {} by bounds: {}", candidateType, ssaVar, typeInfo.getBounds());
 			}
 			return REJECT;
@@ -153,7 +153,6 @@ public final class TypeUpdate {
 		return true;
 	}
 
-	@Nullable
 	private boolean checkBound(ArgType candidateType, ITypeBound bound, ArgType boundType) {
 		TypeCompareEnum compareResult = comparator.compareTypes(candidateType, boundType);
 		switch (compareResult) {
@@ -166,9 +165,7 @@ public final class TypeUpdate {
 
 			case NARROW:
 				if (bound.getBound() == BoundEnum.ASSIGN) {
-					if (boundType.isTypeKnown() || !checkAssignForUnknown(boundType, candidateType)) {
-						return false;
-					}
+					return !boundType.isTypeKnown() && checkAssignForUnknown(boundType, candidateType);
 				}
 				return true;
 
