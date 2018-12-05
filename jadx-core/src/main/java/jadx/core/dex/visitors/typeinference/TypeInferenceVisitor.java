@@ -55,9 +55,13 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 
 		// try all possible types if var type is still unknown
 		mth.getSVars().forEach(var -> {
-			ArgType type = var.getTypeInfo().getType();
+			TypeInfo typeInfo = var.getTypeInfo();
+			ArgType type = typeInfo.getType();
 			if (type != null && !type.isTypeKnown()) {
-				tryAllTypes(var, type);
+				boolean changed = tryAllTypes(var, type);
+				if (!changed) {
+					mth.addComment("JADX WARNING: type inference failed for: " + var + ", bounds: " + typeInfo.getBounds());
+				}
 			}
 		});
 	}
@@ -153,14 +157,15 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		return new TypeBoundConst(BoundEnum.USE, regArg.getInitType());
 	}
 
-	private void tryAllTypes(SSAVar var, ArgType type) {
+	private boolean tryAllTypes(SSAVar var, ArgType type) {
 		List<ArgType> types = makePossibleTypesList(type);
 		for (ArgType candidateType : types) {
 			TypeUpdateResult result = typeUpdate.apply(var, candidateType);
 			if (result == TypeUpdateResult.CHANGED) {
-				break;
+				return true;
 			}
 		}
+		return false;
 	}
 
 	private List<ArgType> makePossibleTypesList(ArgType type) {
