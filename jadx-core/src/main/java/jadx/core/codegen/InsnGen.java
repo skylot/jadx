@@ -694,7 +694,7 @@ public class InsnGen {
 	 * Add additional cast for overloaded method argument.
 	 */
 	private boolean processOverloadedArg(CodeWriter code, MethodNode callMth, InsnArg arg, int origPos) {
-		ArgType origType = callMth.getMethodInfo().getArgumentsTypes().get(origPos);
+		ArgType origType = callMth.getArguments(false).get(origPos).getInitType();
 		if (!arg.getType().equals(origType)) {
 			code.add('(');
 			useType(code, origType);
