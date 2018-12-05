@@ -306,7 +306,18 @@ public final class TypeUpdate {
 		InsnArg firstArg = insn.getArg(0);
 		InsnArg secondArg = insn.getArg(1);
 		InsnArg updateArg = firstArg == arg ? secondArg : firstArg;
-		return updateTypeChecked(updateInfo, updateArg, candidateType);
+		TypeUpdateResult result = updateTypeChecked(updateInfo, updateArg, candidateType);
+		if (result == REJECT) {
+			// soft checks for objects and array - exact type not compared
+			ArgType updateArgType = updateArg.getType();
+			if (candidateType.isObject() && updateArgType.canBeObject()) {
+				return SAME;
+			}
+			if (candidateType.isArray() && updateArgType.canBeArray()) {
+				return SAME;
+			}
+		}
+		return result;
 	}
 
 	private static boolean isAssign(InsnNode insn, InsnArg arg) {
