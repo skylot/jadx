@@ -9,6 +9,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.Consts;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -34,8 +35,8 @@ import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
-		name = "Debug Info Parser",
-		desc = "Parse debug information (variable names and types, instruction lines)",
+		name = "Debug Info Apply",
+		desc = "Apply debug info to registers (type and names)",
 		runAfter = {
 				SSATransform.class,
 				TypeInferenceVisitor.class,
@@ -101,7 +102,7 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 				int startAddr = localVar.getStartAddr();
 				int endAddr = localVar.getEndAddr();
 				if (isInside(startOffset, startAddr, endAddr) || isInside(endOffset, startAddr, endAddr)) {
-					if (LOG.isDebugEnabled()) {
+					if (Consts.DEBUG && LOG.isDebugEnabled()) {
 						LOG.debug("Apply debug info by offset for: {} to {}", ssaVar, localVar);
 					}
 					applyDebugInfo(mth, ssaVar, localVar.getType(), localVar.getName());
@@ -126,15 +127,15 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 	}
 
 	public static void applyDebugInfo(MethodNode mth, SSAVar ssaVar, ArgType type, String varName) {
-		TypeUpdateResult result = mth.root().getTypeUpdate().apply(ssaVar, type);
+		if (NameMapper.isValidIdentifier(varName)) {
+			ssaVar.setName(varName);
+		}
+		TypeUpdateResult result = mth.root().getTypeUpdate().applyDebug(ssaVar, type);
 		if (result == TypeUpdateResult.REJECT) {
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Reject debug info of type: {} and name: '{}' for {}, mth: {}", type, varName, ssaVar, mth);
 			}
 		} else {
-			if (NameMapper.isValidIdentifier(varName)) {
-				ssaVar.setName(varName);
-			}
 			detachDebugInfo(ssaVar.getAssign());
 			ssaVar.getUseList().forEach(DebugInfoApplyVisitor::detachDebugInfo);
 		}

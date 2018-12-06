@@ -33,9 +33,20 @@ public final class TypeUpdate {
 	private final TypeUpdateRegistry listenerRegistry;
 	private final TypeCompare comparator;
 
+	private ThreadLocal<Boolean> applyDebug = new ThreadLocal<>();
+
 	public TypeUpdate(RootNode root) {
 		this.listenerRegistry = initListenerRegistry();
 		this.comparator = new TypeCompare(root);
+	}
+
+	public TypeUpdateResult applyDebug(SSAVar ssaVar, ArgType candidateType) {
+		try {
+			applyDebug.set(true);
+			return apply(ssaVar, candidateType);
+		} finally {
+			applyDebug.set(false);
+		}
 	}
 
 	public TypeUpdateResult apply(SSAVar ssaVar, ArgType candidateType) {
@@ -70,6 +81,16 @@ public final class TypeUpdate {
 		}
 		if (arg.isTypeImmutable() && currentType != ArgType.UNKNOWN) {
 			return REJECT;
+		}
+		TypeCompareEnum compareResult = comparator.compareTypes(candidateType, currentType);
+		if (compareResult == TypeCompareEnum.CONFLICT) {
+			return REJECT;
+		}
+		if (compareResult == TypeCompareEnum.WIDER || compareResult == TypeCompareEnum.WIDER_BY_GENERIC) {
+			// allow wider types for apply from debug info
+			if (applyDebug.get() != Boolean.TRUE) {
+				return REJECT;
+			}
 		}
 		if (arg instanceof RegisterArg) {
 			RegisterArg reg = (RegisterArg) arg;
@@ -315,6 +336,14 @@ public final class TypeUpdate {
 			}
 			if (candidateType.isArray() && updateArgType.canBeArray()) {
 				return SAME;
+			}
+			if (candidateType.isPrimitive()) {
+				if (updateArgType.canBePrimitive(candidateType.getPrimitiveType())) {
+					return SAME;
+				}
+				if (updateArgType.isTypeKnown() && candidateType.getRegCount() == updateArgType.getRegCount()) {
+					return SAME;
+				}
 			}
 		}
 		return result;

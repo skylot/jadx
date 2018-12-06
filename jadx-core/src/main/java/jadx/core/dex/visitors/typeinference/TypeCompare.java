@@ -193,9 +193,6 @@ public class TypeCompare {
 		return comparator;
 	}
 
-	/**
-	 *
-	 */
 	private final class ArgTypeComparator implements Comparator<ArgType> {
 		@Override
 		public int compare(ArgType a, ArgType b) {

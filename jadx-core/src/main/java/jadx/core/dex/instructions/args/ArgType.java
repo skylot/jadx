@@ -526,6 +526,11 @@ public abstract class ArgType {
 		return isArray() || (!isTypeKnown() && contains(PrimitiveType.ARRAY));
 	}
 
+	public boolean canBePrimitive(PrimitiveType primitiveType) {
+		return (isPrimitive() && getPrimitiveType() == primitiveType)
+				|| (!isTypeKnown() && contains(primitiveType));
+	}
+
 	public static ArgType convertFromPrimitiveType(PrimitiveType primitiveType) {
 		switch (primitiveType) {
 			case BOOLEAN:
