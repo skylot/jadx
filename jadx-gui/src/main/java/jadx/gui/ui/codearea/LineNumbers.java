@@ -20,8 +20,13 @@ import java.util.Map;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
 import org.fife.ui.rsyntaxtextarea.Token;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LineNumbers extends JPanel implements CaretListener {
+	private static final Logger LOG = LoggerFactory.getLogger(LineNumbers.class);
+
 	private static final long serialVersionUID = -4978268673635308190L;
 
 	private static final int NUM_HEIGHT = Integer.MAX_VALUE - 1000000;
@@ -92,30 +97,42 @@ public class LineNumbers extends JPanel implements CaretListener {
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		g.setFont(codeArea.getFont());
 		applyRenderHints(g);
 
-		FontMetrics fontMetrics = codeArea.getFontMetrics(codeArea.getFont());
+		Font font = codeArea.getFont();
+		font = font.deriveFont(font.getSize2D() - 1.0f);
+		g.setFont(font);
+
+		Dimension size = getSize();
+		g.setColor(codeArea.getBackground());
+		g.fillRect(0, 0, size.width, size.height);
+
+		FontMetrics fontMetrics = codeArea.getFontMetrics(font);
 		Insets insets = getInsets();
-		int availableWidth = getSize().width - insets.left - insets.right;
+		int availableWidth = size.width - insets.left - insets.right;
 		Rectangle clip = g.getClipBounds();
 		int rowStartOffset = codeArea.viewToModel(new Point(0, clip.y));
 		int endOffset = codeArea.viewToModel(new Point(0, clip.y + clip.height));
 
 		while (rowStartOffset <= endOffset) {
 			try {
-				if (isCurrentLine(rowStartOffset)) {
-					g.setColor(currentColor);
-				} else {
-					g.setColor(numberColor);
-				}
 				String lineNumber = getTextLineNumber(rowStartOffset);
-				int stringWidth = fontMetrics.stringWidth(lineNumber);
-				int x = availableWidth - stringWidth + insets.left;
-				int y = getOffsetY(rowStartOffset, fontMetrics);
-				g.drawString(lineNumber, x, y);
+				if (lineNumber != null) {
+					if (isCurrentLine(rowStartOffset)) {
+						g.setColor(currentColor);
+					} else {
+						g.setColor(numberColor);
+					}
+					int stringWidth = fontMetrics.stringWidth(lineNumber);
+					int x = availableWidth - stringWidth + insets.left;
+					int y = getOffsetY(rowStartOffset, fontMetrics);
+					g.drawString(lineNumber, x, y);
+				}
 				rowStartOffset = Utilities.getRowEnd(codeArea, rowStartOffset) + 1;
 			} catch (Exception e) {
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("Line numbers draw error", e);
+				}
 				break;
 			}
 		}
@@ -140,22 +157,23 @@ public class LineNumbers extends JPanel implements CaretListener {
 		return root.getElementIndex(rowStartOffset) == root.getElementIndex(caretPosition);
 	}
 
+	@Nullable
 	protected String getTextLineNumber(int rowStartOffset) {
 		Element root = codeArea.getDocument().getDefaultRootElement();
 		int index = root.getElementIndex(rowStartOffset);
 		Element line = root.getElement(index);
-		if (line.getStartOffset() == rowStartOffset) {
-			int lineNumber = index + 1;
-			if (useSourceLines) {
-				Integer sourceLine = codeArea.getSourceLine(lineNumber);
-				if (sourceLine != null) {
-					return String.valueOf(sourceLine);
-				}
-			} else {
-				return String.valueOf(lineNumber);
-			}
+		if (line.getStartOffset() != rowStartOffset) {
+			return null;
 		}
-		return "";
+		int lineNumber = index + 1;
+		if (useSourceLines) {
+			Integer sourceLine = codeArea.getSourceLine(lineNumber);
+			if (sourceLine == null) {
+				return null;
+			}
+			return String.valueOf(sourceLine);
+		}
+		return String.valueOf(lineNumber);
 	}
 
 	private int getOffsetY(int rowStartOffset, FontMetrics fontMetrics) throws BadLocationException {
