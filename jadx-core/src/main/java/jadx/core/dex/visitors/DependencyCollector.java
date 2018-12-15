@@ -11,6 +11,7 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.DexNode;
@@ -89,6 +90,9 @@ public class DependencyCollector extends AbstractVisitor {
 			}
 		} else if (insn instanceof InvokeNode) {
 			ClassInfo declClass = ((InvokeNode) insn).getCallMth().getDeclClass();
+			addDep(dex, depList, declClass);
+		} else if (insn instanceof ConstructorInsn) {
+			ClassInfo declClass = ((ConstructorInsn) insn).getCallMth().getDeclClass();
 			addDep(dex, depList, declClass);
 		}
 	}

@@ -602,11 +602,8 @@ public class InsnGen {
 
 		// inline method
 		MethodNode callMthNode = mth.root().deepResolveMethod(callMth);
-		if (callMthNode != null) {
-			if (inlineMethod(callMthNode, insn, code)) {
-				return;
-			}
-			callMth = callMthNode.getMethodInfo();
+		if (callMthNode != null && inlineMethod(callMthNode, insn, code)) {
+			return;
 		}
 
 		int k = 0;
@@ -640,8 +637,10 @@ public class InsnGen {
 		}
 		if (callMthNode != null) {
 			code.attachAnnotation(callMthNode);
+			code.add(callMthNode.getAlias());
+		} else {
+			code.add(callMth.getAlias());
 		}
-		code.add(callMth.getAlias());
 		generateMethodArguments(code, insn, k, callMthNode);
 	}
 
@@ -694,7 +693,14 @@ public class InsnGen {
 	 * Add additional cast for overloaded method argument.
 	 */
 	private boolean processOverloadedArg(CodeWriter code, MethodNode callMth, InsnArg arg, int origPos) {
-		ArgType origType = callMth.getArguments(false).get(origPos).getInitType();
+		ArgType origType;
+		List<RegisterArg> arguments = callMth.getArguments(false);
+		if (arguments.isEmpty()) {
+			mth.addComment("JADX WARN: used method not loaded: " + callMth + ", types can be incorrect");
+			origType = callMth.getMethodInfo().getArgumentsTypes().get(origPos);
+		} else {
+			origType = arguments.get(origPos).getInitType();
+		}
 		if (!arg.getType().equals(origType)) {
 			code.add('(');
 			useType(code, origType);

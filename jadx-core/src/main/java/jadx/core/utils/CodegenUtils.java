@@ -8,7 +8,7 @@ public class CodegenUtils {
 
 	public static void addComments(CodeWriter code, AttrNode node) {
 		for (String comment : node.getAll(AType.COMMENTS)) {
-			code.startLine("/* ").add(comment).add(" */");
+			code.startLine("/* ").addMultiLine(comment).add(" */");
 		}
 	}
 }
