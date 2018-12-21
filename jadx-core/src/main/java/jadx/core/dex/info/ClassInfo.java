@@ -111,6 +111,10 @@ public final class ClassInfo {
 		return pkg.isEmpty() ? shortName : pkg + "." + shortName;
 	}
 
+	public String makeRawFullName() {
+		return makeFullClsName(this.name, true);
+	}
+
 	public String getFullPath() {
 		ClassInfo usedAlias = getAlias();
 		return usedAlias.getPackage().replace('.', File.separatorChar)

@@ -112,7 +112,7 @@ class DeobfPresets {
 		for (DeobfClsInfo deobfClsInfo : deobfuscator.getClsMap().values()) {
 			if (deobfClsInfo.getAlias() != null) {
 				list.add(String.format("c %s = %s",
-						deobfClsInfo.getCls().getClassInfo().getFullName(), deobfClsInfo.getAlias()));
+						deobfClsInfo.getCls().getClassInfo().makeRawFullName(), deobfClsInfo.getAlias()));
 			}
 		}
 		for (FieldInfo fld : deobfuscator.getFldMap().keySet()) {
@@ -136,7 +136,7 @@ class DeobfPresets {
 	}
 
 	public String getForCls(ClassInfo cls) {
-		return clsPresetMap.get(cls.getFullName());
+		return clsPresetMap.get(cls.makeRawFullName());
 	}
 
 	public String getForFld(FieldInfo fld) {
