@@ -409,6 +409,9 @@ public class Deobfuscator {
 	@Nullable
 	private String getMethodAlias(MethodNode mth) {
 		MethodInfo methodInfo = mth.getMethodInfo();
+		if (methodInfo.isClassInit() || methodInfo.isConstructor()) {
+			return null;
+		}
 		String alias = mthMap.get(methodInfo);
 		if (alias != null) {
 			return alias;
