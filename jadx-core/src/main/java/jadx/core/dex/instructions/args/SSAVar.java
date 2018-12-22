@@ -1,13 +1,19 @@
 package jadx.core.dex.instructions.args;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
+import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
 import jadx.core.dex.instructions.PhiInsn;
+import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.typeinference.TypeInfo;
 
 public class SSAVar extends AttrNode {
@@ -145,5 +151,45 @@ public class SSAVar extends AttrNode {
 	@Override
 	public String toString() {
 		return "r" + regNum + ":" + version + " " + typeInfo.getType();
+	}
+
+	public String getDetailedVarInfo(MethodNode mth) {
+		Set<ArgType> types = new HashSet<>();
+		Set<String> names = Collections.emptySet();
+
+		List<RegisterArg> useArgs = new ArrayList<>(1 + useList.size());
+		useArgs.add(assign);
+		useArgs.addAll(useList);
+
+		if (mth.contains(AType.LOCAL_VARS_DEBUG_INFO)) {
+			names = new HashSet<>();
+			for (RegisterArg arg : useArgs) {
+				RegDebugInfoAttr debugInfoAttr = arg.get(AType.REG_DEBUG_INFO);
+				if (debugInfoAttr != null) {
+					names.add(debugInfoAttr.getName());
+					types.add(debugInfoAttr.getRegType());
+				}
+			}
+		}
+
+		for (RegisterArg arg : useArgs) {
+			ArgType initType = arg.getInitType();
+			if (initType.isTypeKnown()) {
+				types.add(initType);
+			}
+			ArgType type = arg.getType();
+			if (type.isTypeKnown()) {
+				types.add(type);
+			}
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append('r').append(regNum).append('v').append(version);
+		if (!names.isEmpty()) {
+			sb.append(", names: ").append(names);
+		}
+		if (!types.isEmpty()) {
+			sb.append(", types: ").append(types);
+		}
+		return sb.toString();
 	}
 }

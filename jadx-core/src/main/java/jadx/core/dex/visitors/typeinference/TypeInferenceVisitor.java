@@ -60,7 +60,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 			if (type != null && !type.isTypeKnown()) {
 				boolean changed = tryAllTypes(var, type);
 				if (!changed) {
-					mth.addComment("JADX WARNING: type inference failed for: " + var + ", bounds: " + typeInfo.getBounds());
+					mth.addComment("JADX WARNING: type inference failed for: " + var.getDetailedVarInfo(mth));
 				}
 			}
 		});
