@@ -57,6 +57,10 @@ public final class FieldInfo {
 		return declClass.getFullName() + "." + name + ":" + TypeGen.signature(type);
 	}
 
+	public String getRawFullId() {
+		return declClass.makeRawFullName() + "." + name + ":" + TypeGen.signature(type);
+	}
+
 	public boolean isRenamed() {
 		return !name.equals(alias);
 	}
