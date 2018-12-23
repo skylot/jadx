@@ -10,7 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
+import jadx.core.dex.nodes.*;
+import jadx.core.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -23,10 +26,6 @@ import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.DexNode;
-import jadx.core.dex.nodes.FieldNode;
-import jadx.core.dex.nodes.MethodNode;
 
 public class Deobfuscator {
 	private static final Logger LOG = LoggerFactory.getLogger(Deobfuscator.class);
@@ -56,6 +55,10 @@ public class Deobfuscator {
 	private final int minLength;
 	private final boolean useSourceNameAsAlias;
 
+	private final boolean useSourceNameAsAliasAlways;
+	private final int classesPerSourceFileThreshold = 20;
+	private final Set<String> sourceFileNamesToIgnore = new HashSet<>();
+
 	private int pkgIndex = 0;
 	private int clsIndex = 0;
 	private int fldIndex = 0;
@@ -68,6 +71,8 @@ public class Deobfuscator {
 		this.minLength = args.getDeobfuscationMinLength();
 		this.maxLength = args.getDeobfuscationMaxLength();
 		this.useSourceNameAsAlias = args.isUseSourceNameAsClassAlias();
+
+		useSourceNameAsAliasAlways = args.isDeobfuscationOn();
 
 		this.deobfPresets = new DeobfPresets(this, deobfMapFile);
 	}
@@ -96,6 +101,20 @@ public class Deobfuscator {
 			}
 		}
 		for (DexNode dexNode : dexNodes) {
+
+			// Collect names of sourcefile that are supposedly fake (e.g. "PG")
+			HashMap<String, Integer> freqMap = new HashMap<>();
+			dexNode.getClasses().forEach(cls -> {
+				SourceFileAttr attr = cls.get(AType.SOURCE_FILE);
+				if (attr != null && StringUtils.notEmpty(attr.getFileName())) {
+					int count = freqMap.getOrDefault(attr.getFileName(), 0);
+					freqMap.put(attr.getFileName(), count + 1);
+				}
+			});
+
+			Set<String> res = freqMap.entrySet().stream().filter(pair -> pair.getValue() > classesPerSourceFileThreshold).map(Map.Entry::getKey).collect(Collectors.toSet());
+			sourceFileNamesToIgnore.addAll(res);
+
 			for (ClassNode cls : dexNode.getClasses()) {
 				preProcessClass(cls);
 			}
@@ -322,7 +341,7 @@ public class Deobfuscator {
 		} else {
 			if (!clsMap.containsKey(classInfo)) {
 				String clsShortName = classInfo.getShortName();
-				if (shouldRename(clsShortName) || reservedClsNames.contains(clsShortName)) {
+				if (shouldRename(clsShortName) || reservedClsNames.contains(clsShortName) || (useSourceNameAsAliasAlways && cls.contains(AType.SOURCE_FILE))) {
 					makeClsAlias(cls);
 				}
 			}
@@ -344,7 +363,7 @@ public class Deobfuscator {
 		ClassInfo classInfo = cls.getClassInfo();
 		String alias = null;
 
-		if (this.useSourceNameAsAlias) {
+		if (this.useSourceNameAsAlias || this.useSourceNameAsAliasAlways) {
 			alias = getAliasFromSourceFile(cls);
 		}
 
@@ -363,6 +382,8 @@ public class Deobfuscator {
 		if (sourceFileAttr == null) {
 			return null;
 		}
+		if (sourceFileNamesToIgnore.contains(sourceFileAttr.getFileName()))
+			return null;
 		if (cls.getClassInfo().isInner()) {
 			return null;
 		}
@@ -375,17 +396,30 @@ public class Deobfuscator {
 		if (!NameMapper.isValidIdentifier(name) || NameMapper.isReserved(name)) {
 			return null;
 		}
-		for (DeobfClsInfo deobfClsInfo : clsMap.values()) {
-			if (deobfClsInfo.getAlias().equals(name)) {
+
+		if (aliasExists(cls.dex().root(), cls.getPackage(), name)) {
+			// Try prefixing class name with name of source file
+			name = String.format("%s_%s", name, cls.getAlias().getShortName());
+			if (aliasExists(cls.dex().root(),cls.getPackage(), name))
 				return null;
-			}
 		}
-		ClassNode otherCls = cls.dex().root().searchClassByName(cls.getPackage() + "." + name);
-		if (otherCls != null) {
-			return null;
-		}
+
 		cls.remove(AType.SOURCE_FILE);
 		return name;
+	}
+
+	private boolean aliasExists(RootNode dexRoot, String packageName, String shortNameCandidate) {
+		String fullNameCandidate = StringUtils.notEmpty(packageName) ? packageName + "." + shortNameCandidate : shortNameCandidate;
+		// Check if present in deobfuscation map using fully qualified ORIGINAL name
+		for (DeobfClsInfo deobfClsInfo : clsMap.values()) {
+			String fullName = StringUtils.notEmpty(deobfClsInfo.getCls().getPackage()) ? deobfClsInfo.getCls().getPackage() + "." + deobfClsInfo.getAlias() : deobfClsInfo.getAlias();
+			if (fullName.equals(fullNameCandidate)) {
+				return true;
+			}
+		}
+		// Check if present in global list of classes
+		ClassNode otherCls = dexRoot.searchClassByName(fullNameCandidate);
+		return otherCls != null;
 	}
 
 	@Nullable
