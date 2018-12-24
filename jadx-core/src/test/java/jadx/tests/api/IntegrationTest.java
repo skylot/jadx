@@ -22,6 +22,8 @@ import jadx.core.ProcessClass;
 import jadx.core.codegen.CodeGen;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.AttrList;
+import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
@@ -40,6 +42,7 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -176,13 +179,28 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	protected static void checkCode(ClassNode cls) {
-		assertTrue("Inconsistent cls: " + cls,
-				!cls.contains(AFlag.INCONSISTENT_CODE) && !cls.contains(AType.JADX_ERROR));
+		assertFalse("Inconsistent cls: " + cls, hasErrors(cls));
 		for (MethodNode mthNode : cls.getMethods()) {
-			assertTrue("Inconsistent method: " + mthNode,
-					!mthNode.contains(AFlag.INCONSISTENT_CODE) && !mthNode.contains(AType.JADX_ERROR));
+			assertFalse("Method with problems: " + mthNode, hasErrors(mthNode));
 		}
 		assertThat(cls.getCode().toString(), not(containsString("inconsistent")));
+	}
+
+	private static boolean hasErrors(IAttributeNode node) {
+		if (node.contains(AFlag.INCONSISTENT_CODE)
+				|| node.contains(AType.JADX_ERROR)
+				|| node.contains(AType.JADX_WARN)) {
+			return true;
+		}
+		AttrList<String> commentsAttr = node.get(AType.COMMENTS);
+		if (commentsAttr != null) {
+			for (String comment : commentsAttr.getList()) {
+				if (comment.contains("JADX WARN")) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private void runAutoCheck(String clsName) {
