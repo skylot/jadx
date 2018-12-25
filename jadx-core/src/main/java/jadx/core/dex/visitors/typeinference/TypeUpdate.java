@@ -181,7 +181,6 @@ public final class TypeUpdate {
 				return true;
 
 			case WIDER:
-			case WIDER_BY_GENERIC:
 				return bound.getBound() != BoundEnum.USE;
 
 			case NARROW:
@@ -190,6 +189,7 @@ public final class TypeUpdate {
 				}
 				return true;
 
+			case WIDER_BY_GENERIC:
 			case NARROW_BY_GENERIC:
 				// allow replace object to same object with known generic type
 				// due to incomplete information about external methods and fields
