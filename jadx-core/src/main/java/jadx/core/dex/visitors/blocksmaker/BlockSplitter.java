@@ -223,12 +223,13 @@ public class BlockSplitter extends AbstractVisitor {
 					BlockNode thisBlock = getBlock(jump.getDest(), blocksMap);
 					connect(srcBlock, thisBlock);
 				}
-				connectExceptionHandlers(block, insn);
+				connectExceptionHandlers(block, insn, blocksMap);
 			}
 		}
 	}
 
-	private static void connectExceptionHandlers(BlockNode block, InsnNode insn) {
+	private static void connectExceptionHandlers(BlockNode block, InsnNode insn,
+	                                             Map<Integer, BlockNode> blocksMap) {
 		CatchAttr catches = insn.get(AType.CATCH_BLOCK);
 		SplitterBlockAttr spl = block.get(AType.SPLITTER_BLOCK);
 		if (catches == null || spl == null) {
@@ -237,7 +238,7 @@ public class BlockSplitter extends AbstractVisitor {
 		BlockNode splitterBlock = spl.getBlock();
 		boolean tryEnd = insn.contains(AFlag.TRY_LEAVE);
 		for (ExceptionHandler h : catches.getTryBlock().getHandlers()) {
-			BlockNode handlerBlock = h.getHandlerBlock();
+			BlockNode handlerBlock = initHandlerBlock(h, blocksMap);
 			// skip self loop in handler
 			if (splitterBlock != handlerBlock) {
 				if (!handlerBlock.contains(AType.SPLITTER_BLOCK)) {
@@ -249,6 +250,16 @@ public class BlockSplitter extends AbstractVisitor {
 				connect(block, handlerBlock);
 			}
 		}
+	}
+
+	private static BlockNode initHandlerBlock(ExceptionHandler excHandler, Map<Integer, BlockNode> blocksMap) {
+		BlockNode handlerBlock = excHandler.getHandlerBlock();
+		if (handlerBlock != null) {
+			return handlerBlock;
+		}
+		BlockNode blockByOffset = getBlock(excHandler.getHandleOffset(), blocksMap);
+		excHandler.setHandlerBlock(blockByOffset);
+		return blockByOffset;
 	}
 
 	private static boolean isSplitByJump(InsnNode prevInsn, InsnNode currentInsn) {
