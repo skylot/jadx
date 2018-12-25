@@ -929,7 +929,7 @@ public class RegionMaker {
 				}
 			}
 			for (ExceptionHandler handler : tc.getHandlers()) {
-				processExcHandler(handler, exits);
+				processExcHandler(mth, handler, exits);
 			}
 		}
 		return processHandlersOutBlocks(mth, tcs);
@@ -968,12 +968,12 @@ public class RegionMaker {
 		return excOutRegion;
 	}
 
-	private void processExcHandler(ExceptionHandler handler, Set<BlockNode> exits) {
+	private void processExcHandler(MethodNode mth, ExceptionHandler handler, Set<BlockNode> exits) {
 		BlockNode start = handler.getHandlerBlock();
 		if (start == null) {
 			return;
 		}
-		RegionStack stack = new RegionStack(mth);
+		RegionStack stack = new RegionStack(this.mth);
 		BlockNode dom;
 		if (handler.isFinally()) {
 			SplitterBlockAttr splitterAttr = start.get(AType.SPLITTER_BLOCK);
@@ -986,11 +986,11 @@ public class RegionMaker {
 			stack.addExits(exits);
 		}
 		BitSet domFrontier = dom.getDomFrontier();
-		List<BlockNode> handlerExits = BlockUtils.bitSetToBlocks(mth, domFrontier);
-		boolean inLoop = mth.getLoopForBlock(start) != null;
+		List<BlockNode> handlerExits = BlockUtils.bitSetToBlocks(this.mth, domFrontier);
+		boolean inLoop = this.mth.getLoopForBlock(start) != null;
 		for (BlockNode exit : handlerExits) {
 			if ((!inLoop || BlockUtils.isPathExists(start, exit))
-					&& RegionUtils.isRegionContainsBlock(mth.getRegion(), exit)) {
+					&& RegionUtils.isRegionContainsBlock(this.mth.getRegion(), exit)) {
 				stack.addExit(exit);
 			}
 		}
@@ -998,7 +998,7 @@ public class RegionMaker {
 
 		ExcHandlerAttr excHandlerAttr = start.get(AType.EXC_HANDLER);
 		if (excHandlerAttr == null) {
-			LOG.warn("Missing exception handler attribute for start block");
+			mth.addWarn("Missing exception handler attribute for start block: " + start);
 		} else {
 			handler.getHandlerRegion().addAttr(excHandlerAttr);
 		}

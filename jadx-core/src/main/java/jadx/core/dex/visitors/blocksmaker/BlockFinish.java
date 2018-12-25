@@ -26,7 +26,7 @@ public class BlockFinish extends AbstractVisitor {
 
 		for (BlockNode block : mth.getBasicBlocks()) {
 			block.updateCleanSuccessors();
-			fixSplitterBlock(block);
+			fixSplitterBlock(mth, block);
 		}
 
 		mth.finishBasicBlocks();
@@ -36,7 +36,7 @@ public class BlockFinish extends AbstractVisitor {
 	 * For evey exception handler must be only one splitter block,
 	 * select correct one and remove others if necessary.
 	 */
-	private static void fixSplitterBlock(BlockNode block) {
+	private static void fixSplitterBlock(MethodNode mth, BlockNode block) {
 		ExcHandlerAttr excHandlerAttr = block.get(AType.EXC_HANDLER);
 		if (excHandlerAttr == null) {
 			return;
@@ -58,7 +58,7 @@ public class BlockFinish extends AbstractVisitor {
 		}
 		BlockNode topSplitter = BlockUtils.getTopBlock(splitters.keySet());
 		if (topSplitter == null) {
-			LOG.warn("Unknown top splitter block from list: {}", splitters);
+			mth.addWarn("Unknown top exception splitter block from list: " + splitters);
 			return;
 		}
 		for (Map.Entry<BlockNode, SplitterBlockAttr> entry : splitters.entrySet()) {
