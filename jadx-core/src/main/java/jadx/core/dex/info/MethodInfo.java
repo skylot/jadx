@@ -68,6 +68,10 @@ public final class MethodInfo {
 		return declClass.getFullName() + "." + shortId;
 	}
 
+	public String getRawFullId() {
+		return declClass.makeRawFullName() + "." + shortId;
+	}
+
 	/**
 	 * Method name and signature
 	 */

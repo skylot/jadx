@@ -135,21 +135,34 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		String[] lines = code.split(CodeWriter.NL);
 		for (MethodNode mth : classNode.getMethods()) {
 			if (isMthMatch(mth, mthPattern)) {
-				int decompiledLine = mth.getDecompiledLine();
+				int decompiledLine = mth.getDecompiledLine() - 1;
 				StringBuilder mthCode = new StringBuilder();
+				int startLine = getCommentLinesCount(lines, decompiledLine);
 				int brackets = 0;
-				for (int i = decompiledLine - 1; i > 0 && i < lines.length; i++) {
+				for (int i = startLine; i > 0 && i < lines.length; i++) {
 					String line = lines[i];
 					mthCode.append(line).append(CodeWriter.NL);
-					brackets += StringUtils.countMatches(line, '{');
-					brackets -= StringUtils.countMatches(line, '}');
-					if (brackets <= 0) {
-						break;
+					if (i >= decompiledLine) {
+						brackets += StringUtils.countMatches(line, '{');
+						brackets -= StringUtils.countMatches(line, '}');
+						if (brackets <= 0) {
+							break;
+						}
 					}
 				}
-				LOG.info("{}\n{}", mth.getMethodInfo().getShortId(), mthCode);
+				LOG.info("Print method: {}\n{}", mth.getMethodInfo().getShortId(), mthCode);
 			}
 		}
+	}
+
+	protected int getCommentLinesCount(String[] lines, int line) {
+		for (int i = line - 1; i > 0 && i < lines.length; i--) {
+			String str = lines[i];
+			if (str.isEmpty() || str.equals(CodeWriter.NL)) {
+				return i + 1;
+			}
+		}
+		return 0;
 	}
 
 	private void printErrorReport(JadxDecompiler jadx) {

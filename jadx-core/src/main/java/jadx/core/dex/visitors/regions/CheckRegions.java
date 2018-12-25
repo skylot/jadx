@@ -60,7 +60,7 @@ public class CheckRegions extends AbstractVisitor {
 						&& !block.getInstructions().isEmpty()
 						&& !block.contains(AFlag.SKIP)) {
 					String blockCode = getBlockInsnStr(mth, block);
-					mth.addWarn("Missing block: " + block + ", code:" + CodeWriter.NL + blockCode);
+					mth.addWarn("Missing block: " + block + ", code skipped:" + CodeWriter.NL + blockCode);
 				}
 			}
 		}
