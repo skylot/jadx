@@ -44,7 +44,7 @@ public abstract class BackgroundJob {
 				public Boolean call() throws Exception {
 					runJob();
 					executor.shutdown();
-					return executor.awaitTermination(5, TimeUnit.MINUTES);
+					return executor.awaitTermination(5, TimeUnit.DAYS);
 				}
 			});
 		}
