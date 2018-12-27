@@ -185,7 +185,7 @@ public class MainWindow extends JFrame {
 	protected void resetCache() {
 		cacheObject.reset();
 		// TODO: decompilation freezes sometime with several threads
-		int threadsCount = 1; // settings.getThreadsCount();
+		int threadsCount = settings.getThreadsCount();
 		cacheObject.setDecompileJob(new DecompileJob(wrapper, threadsCount));
 		cacheObject.setIndexJob(new IndexJob(wrapper, cacheObject, threadsCount));
 	}

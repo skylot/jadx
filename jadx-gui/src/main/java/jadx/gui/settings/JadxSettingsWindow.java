@@ -1,6 +1,8 @@
 package jadx.gui.settings;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
@@ -234,6 +236,13 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JCheckBox skipIndexing = new JCheckBox();
+		skipIndexing.setSelected(settings.isSkipClassIndexingIfLowMemory());
+		skipIndexing.addItemListener(e -> {
+			settings.setSkipClassIndexingIfLowMemory(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
 		SpinnerNumberModel spinnerModel = new SpinnerNumberModel(
 				settings.getThreadsCount(), 1, Runtime.getRuntime().availableProcessors() * 2, 1);
 		JSpinner threadsCount = new JSpinner(spinnerModel);
@@ -242,6 +251,24 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JTextField excludedPackages = new JTextField(settings.getExcludedPackages());
+		excludedPackages.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				settings.setExcludedPackages(excludedPackages.getText());
+				needReload();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				insertUpdate(e);
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				insertUpdate(e);
+			}
+		});
 		JCheckBox autoStartJobs = new JCheckBox();
 		autoStartJobs.setSelected(settings.isAutoStartJobs());
 		autoStartJobs.addItemListener(e -> settings.setAutoStartJobs(e.getStateChange() == ItemEvent.SELECTED));
@@ -269,6 +296,7 @@ public class JadxSettingsWindow extends JDialog {
 
 		SettingsGroup other = new SettingsGroup(NLS.str("preferences.decompile"));
 		other.addRow(NLS.str("preferences.threads"), threadsCount);
+		other.addRow(NLS.str("preferences.excludedPackages"), NLS.str("preferences.tooltip.excludedPackages"), excludedPackages);
 		other.addRow(NLS.str("preferences.start_jobs"), autoStartJobs);
 		other.addRow(NLS.str("preferences.showInconsistentCode"), showInconsistentCode);
 		other.addRow(NLS.str("preferences.escapeUnicode"), escapeUnicode);
@@ -276,6 +304,7 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.useImports"), useImports);
 		other.addRow(NLS.str("preferences.fallback"), fallback);
 		other.addRow(NLS.str("preferences.skipResourcesDecode"), resourceDecode);
+		other.addRow(NLS.str("preferences.skipClassIndexingIfLowMemory"), skipIndexing);
 		return other;
 	}
 
@@ -334,6 +363,10 @@ public class JadxSettingsWindow extends JDialog {
 		}
 
 		public void addRow(String label, JComponent comp) {
+			addRow(label, null, comp);
+		}
+
+		public void addRow(String label, String tooltip, JComponent comp) {
 			c.gridy = row++;
 			JLabel jLabel = new JLabel(label);
 			jLabel.setLabelFor(comp);
@@ -349,6 +382,12 @@ public class JadxSettingsWindow extends JDialog {
 			c.anchor = GridBagConstraints.CENTER;
 			c.weightx = 0.2;
 			c.fill = GridBagConstraints.HORIZONTAL;
+
+			if (tooltip != null) {
+				jLabel.setToolTipText(tooltip);
+				comp.setToolTipText(tooltip);
+			}
+
 			add(comp, c);
 
 			comp.addPropertyChangeListener("enabled", evt -> jLabel.setEnabled((boolean) evt.getNewValue()));

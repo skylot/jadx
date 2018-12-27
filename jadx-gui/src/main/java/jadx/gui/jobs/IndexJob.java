@@ -33,7 +33,8 @@ public class IndexJob extends BackgroundJob {
 		final CodeUsageInfo usageInfo = new CodeUsageInfo(nodeCache);
 		cache.setTextIndex(index);
 		cache.setUsageInfo(usageInfo);
-		for (final JavaClass cls : wrapper.getClasses()) {
+		final boolean alwaysIndex = !wrapper.getSettings().isSkipClassIndexingIfLowMemory();
+		for (final JavaClass cls : wrapper.getIncludedClasses()) {
 			addTask(new Runnable() {
 				@Override
 				public void run() {
@@ -44,7 +45,7 @@ public class IndexJob extends BackgroundJob {
 						List<StringRef> lines = splitLines(cls);
 
 						usageInfo.processClass(cls, linesInfo, lines);
-						if (Utils.isFreeMemoryAvailable()) {
+						if (alwaysIndex || Utils.isFreeMemoryAvailable()) {
 							index.indexCode(cls, linesInfo, lines);
 						} else {
 							index.classCodeIndexSkipped(cls);
