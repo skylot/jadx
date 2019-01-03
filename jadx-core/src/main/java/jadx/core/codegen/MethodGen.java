@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.android.dx.rop.code.AccessFlags;
+import jadx.core.dex.info.ClassInfo;
 import jadx.core.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -166,8 +167,10 @@ public class MethodGen {
 			addFallbackMethodCode(code);
 			code.startLine("*/");
 
+			ClassInfo clsAlias = mth.getParentClass().getAlias();
+
 			code.startLine("throw new UnsupportedOperationException(\"Method not decompiled: ")
-					.add(mth.getParentClass().getPackage())
+					.add(clsAlias.makeFullClsName(clsAlias.getShortName(), true))
 					.add(".")
 					.add(mth.getAlias())
 					.add("(")
