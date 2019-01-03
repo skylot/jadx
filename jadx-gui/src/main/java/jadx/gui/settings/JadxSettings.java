@@ -43,7 +43,6 @@ public class JadxSettings extends JadxCLIArgs {
 	private LangLocale langLocale = NLS.defaultLocale();
 	private boolean autoStartJobs = false;
 	protected String excludedPackages = "";
-	private boolean skipClassIndexingIfLowMemory = true;
 
 	private int settingsVersion = 0;
 
@@ -147,14 +146,6 @@ public class JadxSettings extends JadxCLIArgs {
 		window.setLocation(pos.getX(), pos.getY());
 		window.setSize(pos.getWidth(), pos.getHeight());
 		return true;
-	}
-
-	public boolean isSkipClassIndexingIfLowMemory() {
-		return skipClassIndexingIfLowMemory;
-	}
-
-	public void setSkipClassIndexingIfLowMemory(boolean skipClassIndexingIfLowMemory) {
-		this.skipClassIndexingIfLowMemory = skipClassIndexingIfLowMemory;
 	}
 
 	public String getExcludedPackages() {
