@@ -44,6 +44,8 @@ public class JadxSettings extends JadxCLIArgs {
 	private boolean autoStartJobs = false;
 	protected String excludedPackages = "";
 
+	private boolean showHeapUsageBar = true;
+
 	private int settingsVersion = 0;
 
 	private Map<String, WindowLocation> windowPos = new HashMap<>();
@@ -146,6 +148,15 @@ public class JadxSettings extends JadxCLIArgs {
 		window.setLocation(pos.getX(), pos.getY());
 		window.setSize(pos.getWidth(), pos.getHeight());
 		return true;
+	}
+
+	public boolean isShowHeapUsageBar() {
+		return showHeapUsageBar;
+	}
+
+	public void setShowHeapUsageBar(boolean showHeapUsageBar) {
+		this.showHeapUsageBar = showHeapUsageBar;
+		partialSync(settings -> settings.showHeapUsageBar = showHeapUsageBar);
 	}
 
 	public String getExcludedPackages() {
