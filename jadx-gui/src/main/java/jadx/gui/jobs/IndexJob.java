@@ -33,7 +33,7 @@ public class IndexJob extends BackgroundJob {
 		final CodeUsageInfo usageInfo = new CodeUsageInfo(nodeCache);
 		cache.setTextIndex(index);
 		cache.setUsageInfo(usageInfo);
-		for (final JavaClass cls : wrapper.getClasses()) {
+		for (final JavaClass cls : wrapper.getIncludedClasses()) {
 			addTask(new Runnable() {
 				@Override
 				public void run() {

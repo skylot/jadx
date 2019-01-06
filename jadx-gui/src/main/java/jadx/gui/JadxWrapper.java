@@ -5,6 +5,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,8 +65,32 @@ public class JadxWrapper {
 		new Thread(save).start();
 	}
 
+	/**
+	 * Get the complete list of classes
+	 * @return
+	 */
 	public List<JavaClass> getClasses() {
 		return decompiler.getClasses();
+	}
+
+	/**
+	 * Get all classes that are not excluded by the excluded packages settings
+	 * @return
+	 */
+	public List<JavaClass> getIncludedClasses() {
+		List<JavaClass> classList = decompiler.getClasses();
+		String excludedPackages = settings.getExcludedPackages().trim();
+		if (excludedPackages.length() == 0)
+			return classList;
+		String[] excluded = excludedPackages.split("[ ]+");
+
+		return classList.stream().filter(cls -> {
+			for (String exclude : excluded) {
+				if (cls.getFullName().startsWith(exclude))
+					return false;
+			}
+			return true;
+		}).collect(Collectors.toList());
 	}
 
 	public List<JavaPackage> getPackages() {
@@ -78,5 +103,9 @@ public class JadxWrapper {
 
 	public File getOpenFile() {
 		return openFile;
+	}
+
+	public JadxSettings getSettings() {
+		return settings;
 	}
 }
