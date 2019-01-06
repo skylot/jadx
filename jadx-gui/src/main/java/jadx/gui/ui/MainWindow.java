@@ -311,6 +311,15 @@ public class MainWindow extends JFrame {
 		}
 	}
 
+	private void treeRightClickAction(){
+		try {
+			DefaultMutableTreeNode node = (DefaultMutableTreeNode)tree.getLastSelectedPathComponent();
+			treeModel.removeNodeFromParent(node);
+		} catch (Exception e) {
+			LOG.error("Content removing error", e);
+		}
+	}
+
 	private void syncWithEditor() {
 		ContentPanel selectedContentPanel = tabbedPane.getSelectedCodePanel();
 		if (selectedContentPanel == null) {
@@ -568,10 +577,18 @@ public class MainWindow extends JFrame {
 		tree = new JTree(treeModel);
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		tree.addMouseListener(new MouseAdapter() {
+
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				treeClickAction();
+
+				if (SwingUtilities.isRightMouseButton(e)) {
+					treeRightClickAction();
+				}
+				else{
+					treeClickAction();
+				}
 			}
+
 		});
 		tree.addKeyListener(new KeyAdapter() {
 			@Override
