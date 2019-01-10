@@ -200,7 +200,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 								continue;
 							MethodInfo method = ((CallMthInterface) node).getCallMth();
 							if (node.getArgsCount() >= 2 && method.isConstructor() || method.getName().equals("append")) {
-								// process constructor constructor and append() calls
+								// process only constructor and append() calls
 								concatInsn.addArg(node.getArg(1));
 							}
 						}
