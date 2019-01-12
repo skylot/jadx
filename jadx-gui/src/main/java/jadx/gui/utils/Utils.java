@@ -48,6 +48,14 @@ public class Utils {
 		return new ImageIcon(resource);
 	}
 
+	public static Image openImage(String path) {
+		URL resource = Utils.class.getResource(path);
+		if (resource == null) {
+			throw new JadxRuntimeException("Image not found: " + path);
+		}
+		return Toolkit.getDefaultToolkit().createImage(resource);
+	}
+
 	@Nullable
 	public static Font openFontTTF(String name) {
 		String fontPath = "/fonts/" + name + ".ttf";

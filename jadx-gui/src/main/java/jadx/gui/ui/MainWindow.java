@@ -23,7 +23,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -114,6 +116,16 @@ public class MainWindow extends JFrame {
 		registerBundledFonts();
 		initUI();
 		initMenuAndToolbar();
+		setWindowIcons();
+	}
+
+	private void setWindowIcons() {
+		List<Image> icons = new ArrayList<>();
+		icons.add(Utils.openImage("/logos/jadx-logo-16px.png"));
+		icons.add(Utils.openImage("/logos/jadx-logo-32px.png"));
+		icons.add(Utils.openImage("/logos/jadx-logo-48px.png"));
+		icons.add(Utils.openImage("/logos/jadx-logo.png"));
+		setIconImages(icons);
 		loadSettings();
 		checkForUpdate();
 	}

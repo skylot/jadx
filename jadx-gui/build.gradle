@@ -56,7 +56,7 @@ launch4j {
     mainClassName = 'jadx.gui.JadxGUI'
     copyConfigurable = project.tasks.shadowJar.outputs.files
     jar = "lib/${project.tasks.shadowJar.archiveName}"
-//  icon = "${projectDir}/icons/myApp.ico"
+    icon = "${projectDir}/src/main/resources/logos/jadx-logo.ico"
     outfile = "jadx-gui-${version}.exe"
     copyright = 'Skylot'
     windowTitle = 'jadx'
