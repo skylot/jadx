@@ -9,7 +9,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.Utils;
 
-public class InvokeNode extends InsnNode {
+public class InvokeNode extends InsnNode implements CallMthInterface {
 
 	private final InvokeType type;
 	private final MethodInfo mth;

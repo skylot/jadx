@@ -2,13 +2,14 @@ package jadx.core.dex.instructions.mods;
 
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.instructions.CallMthInterface;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 
-public class ConstructorInsn extends InsnNode {
+public class ConstructorInsn extends InsnNode implements CallMthInterface {
 
 	private final MethodInfo callMth;
 	private final CallType callType;
