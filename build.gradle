@@ -1,5 +1,4 @@
 plugins {
-    id 'com.github.ksoichiro.console.reporter' version '0.5.0'
     id 'org.sonarqube' version '2.7'
     id 'com.github.ben-manes.versions' version '0.20.0'
 }
@@ -12,7 +11,6 @@ allprojects {
     apply plugin: 'java'
     apply plugin: 'groovy'
     apply plugin: 'jacoco'
-    apply plugin: 'com.github.ksoichiro.console.reporter'
 
     version = jadxVersion
 
