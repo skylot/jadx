@@ -9,7 +9,6 @@ git:
   depth: false
 
 before_install:
-  - wget https://github.com/sormuras/bach/raw/master/install-jdk.sh
   - chmod +x gradlew
 
 # override install to skip 'gradle assemble'
@@ -26,6 +25,8 @@ matrix:
   include:
     - env: JDK=oracle-8
       jdk: oraclejdk8
+    - env: JDK=openjdk11
+      jdk: openjdk11
 
 script:
   - java -version

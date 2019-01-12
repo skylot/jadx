@@ -69,15 +69,17 @@ public class TextSearchIndex {
 			int count = lines.size();
 			for (int i = 0; i < count; i++) {
 				StringRef line = lines.get(i);
-				if (line.length() != 0 && line.charAt(0) != '}') {
-					int lineNum = i + 1;
-					JavaNode node = linesInfo.getJavaNodeByLine(lineNum);
-					CodeNode codeNode = new CodeNode(nodeCache.makeFrom(node == null ? cls : node), lineNum, line);
-					if (strRefSupported) {
-						codeIndex.put(line, codeNode);
-					} else {
-						codeIndex.put(line.toString(), codeNode);
-					}
+				int lineLength = line.length();
+				if (lineLength == 0 || (lineLength == 1 && line.charAt(0) == '}')) {
+					continue;
+				}
+				int lineNum = i + 1;
+				JavaNode node = linesInfo.getJavaNodeByLine(lineNum);
+				CodeNode codeNode = new CodeNode(nodeCache.makeFrom(node == null ? cls : node), lineNum, line);
+				if (strRefSupported) {
+					codeIndex.put(line, codeNode);
+				} else {
+					codeIndex.put(line.toString(), codeNode);
 				}
 			}
 		} catch (Exception e) {
