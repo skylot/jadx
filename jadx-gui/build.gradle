@@ -10,15 +10,15 @@ mainClassName = 'jadx.gui.JadxGUI'
 dependencies {
     compile(project(":jadx-core"))
     compile(project(":jadx-cli"))
-    compile 'com.fifesoft:rsyntaxtextarea:2.6.1'
+    compile 'com.fifesoft:rsyntaxtextarea:3.0.0'
     compile 'com.google.code.gson:gson:2.8.5'
     compile files('libs/jfontchooser-1.0.5.jar')
     compile 'hu.kazocsaba:image-viewer:1.2.3'
 
-    compile 'org.apache.commons:commons-lang3:3.7'
+    compile 'org.apache.commons:commons-lang3:3.8.1'
 
-    compile 'io.reactivex.rxjava2:rxjava:2.1.17'
-    compile "com.github.akarnokd:rxjava2-swing:0.2.16"
+    compile 'io.reactivex.rxjava2:rxjava:2.2.5'
+    compile "com.github.akarnokd:rxjava2-swing:0.3.3"
 }
 
 applicationDistribution.with {

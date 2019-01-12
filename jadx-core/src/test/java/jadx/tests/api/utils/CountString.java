@@ -1,25 +1,21 @@
 package jadx.tests.api.utils;
 
 import org.hamcrest.Description;
-import org.hamcrest.core.SubstringMatcher;
+import org.hamcrest.TypeSafeMatcher;
 
-public class CountString extends SubstringMatcher {
+public class CountString extends TypeSafeMatcher<String> {
 
 	private final int count;
+	private final String substring;
 
 	public CountString(int count, String substring) {
-		super(substring);
 		this.count = count;
+		this.substring = substring;
 	}
 
 	@Override
-	protected boolean evalSubstringOf(String string) {
-		return this.count == count(string);
-	}
-
-	@Override
-	protected String relationship() {
-		return "containing <" + count + "> occurrence of";
+	protected boolean matchesSafely(String item) {
+		return this.count == count(item);
 	}
 
 	@Override
@@ -27,7 +23,12 @@ public class CountString extends SubstringMatcher {
 		mismatchDescription.appendText("found ").appendValue(count(item));
 	}
 
+	@Override
+	public void describeTo(Description description) {
+		description.appendText("containing <" + count + "> occurrence of ").appendValue(this.substring);
+	}
+
 	private int count(String string) {
-		return TestUtils.count(string, substring);
+		return TestUtils.count(string, this.substring);
 	}
 }
