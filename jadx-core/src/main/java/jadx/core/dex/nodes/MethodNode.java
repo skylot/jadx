@@ -230,7 +230,9 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 		}
 		argsList = new ArrayList<>(args.size());
 		for (ArgType arg : args) {
-			argsList.add(InsnArg.typeImmutableReg(pos, arg));
+			TypeImmutableArg regArg = InsnArg.typeImmutableReg(pos, arg);
+			regArg.add(AFlag.METHOD_ARGUMENT);
+			argsList.add(regArg);
 			pos += arg.getRegCount();
 		}
 	}

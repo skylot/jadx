@@ -5,6 +5,7 @@ import org.junit.Test;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
+import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
@@ -22,7 +23,7 @@ public class TestSynchronized extends IntegrationTest {
 
 		public int test2() {
 			synchronized (this.o) {
-				return i;
+				return this.i;
 			}
 		}
 	}
@@ -33,9 +34,9 @@ public class TestSynchronized extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, not(containsString("synchronized (this) {")));
-		assertThat(code, containsString("public synchronized boolean test1() {"));
-		assertThat(code, containsString("return this.f"));
-		assertThat(code, containsString("synchronized (this.o) {"));
+		assertThat(code, containsOne("public synchronized boolean test1() {"));
+		assertThat(code, containsOne("return this.f"));
+		assertThat(code, containsOne("synchronized (this.o) {"));
 
 		assertThat(code, not(containsString(indent(3) + ";")));
 		assertThat(code, not(containsString("try {")));

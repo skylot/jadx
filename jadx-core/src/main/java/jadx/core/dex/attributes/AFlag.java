@@ -26,6 +26,8 @@ public enum AFlag {
 	ANONYMOUS_CONSTRUCTOR,
 	ANONYMOUS_CLASS,
 	THIS,
+	METHOD_ARGUMENT, // RegisterArg attribute for method arguments
+	CUSTOM_DECLARE, // variable for this register don't need declaration
 
 	ELSE_IF_CHAIN,
 

@@ -38,7 +38,7 @@ public class RegisterArg extends InsnArg implements Named {
 	@Override
 	public void setType(ArgType type) {
 		if (sVar != null) {
-			sVar.getTypeInfo().setType(type);
+			sVar.setType(type);
 		}
 	}
 
@@ -165,6 +165,10 @@ public class RegisterArg extends InsnArg implements Named {
 
 	public boolean equalRegisterAndType(RegisterArg arg) {
 		return regNum == arg.regNum && type.equals(arg.type);
+	}
+
+	public boolean sameCodeVar(RegisterArg arg) {
+		return this.getSVar().getCodeVar() == arg.getSVar().getCodeVar();
 	}
 
 	@Override

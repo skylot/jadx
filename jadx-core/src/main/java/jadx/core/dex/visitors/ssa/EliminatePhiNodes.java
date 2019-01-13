@@ -1,16 +1,20 @@
 package jadx.core.dex.visitors.ssa;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.PhiInsn;
+import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
@@ -31,6 +35,7 @@ public class EliminatePhiNodes extends AbstractVisitor {
 		}
 		replaceMergeInstructions(mth);
 		removePhiInstructions(mth);
+		initCodeVars(mth);
 	}
 
 	private static void removePhiInstructions(MethodNode mth) {
@@ -56,6 +61,7 @@ public class EliminatePhiNodes extends AbstractVisitor {
 			}
 		}
 		LOG.warn("Phi node not removed: {}, mth: {}", phiInsn, mth);
+		phiInsn.add(AFlag.DONT_GENERATE);
 	}
 
 	private void replaceMergeInstructions(MethodNode mth) {
@@ -127,5 +133,63 @@ public class EliminatePhiNodes extends AbstractVisitor {
 		phiInsn.bindArg(newAssignArg.duplicate(), assignPred);
 		phiInsn.bindArg(newArg.duplicate(),
 				BlockUtils.selectOtherSafe(assignPred, block.getPredecessors()));
+	}
+
+	private void initCodeVars(MethodNode mth) {
+		for (RegisterArg mthArg : mth.getArguments(true)) {
+			initCodeVar(mthArg.getSVar());
+		}
+		for (SSAVar ssaVar : mth.getSVars()) {
+			initCodeVar(ssaVar);
+		}
+	}
+
+	private void initCodeVar(SSAVar ssaVar) {
+		if (ssaVar.isCodeVarSet()) {
+			return;
+		}
+		CodeVar codeVar = new CodeVar();
+		codeVar.setType(ssaVar.getTypeInfo().getType());
+		RegisterArg assignArg = ssaVar.getAssign();
+		if (assignArg.contains(AFlag.THIS)) {
+			codeVar.setName(RegisterArg.THIS_ARG_NAME);
+			codeVar.setThis(true);
+		}
+		if (assignArg.contains(AFlag.METHOD_ARGUMENT) || assignArg.contains(AFlag.CUSTOM_DECLARE)) {
+			codeVar.setDeclared(true);
+		}
+
+		setCodeVar(ssaVar, codeVar);
+	}
+
+	private static void setCodeVar(SSAVar ssaVar, CodeVar codeVar) {
+		ssaVar.setCodeVar(codeVar);
+		PhiInsn usedInPhi = ssaVar.getUsedInPhi();
+		if (usedInPhi != null) {
+			Set<SSAVar> vars = new HashSet<>();
+			collectConnectedVars(usedInPhi, vars);
+			vars.forEach(var -> {
+				if (var.isCodeVarSet()) {
+					codeVar.mergeFlagsFrom(var.getCodeVar());
+				}
+				var.setCodeVar(codeVar);
+			});
+		}
+	}
+
+	private static void collectConnectedVars(PhiInsn phiInsn, Set<SSAVar> vars) {
+		if (phiInsn == null) {
+			return;
+		}
+		SSAVar resultVar = phiInsn.getResult().getSVar();
+		if (vars.add(resultVar)) {
+			collectConnectedVars(resultVar.getUsedInPhi(), vars);
+		}
+		phiInsn.getArguments().forEach(arg -> {
+			SSAVar sVar = ((RegisterArg) arg).getSVar();
+			if (vars.add(sVar)) {
+				collectConnectedVars(sVar.getUsedInPhi(), vars);
+			}
+		});
 	}
 }

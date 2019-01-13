@@ -58,9 +58,13 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 			TypeInfo typeInfo = var.getTypeInfo();
 			ArgType type = typeInfo.getType();
 			if (type != null && !type.isTypeKnown()) {
-				boolean changed = tryAllTypes(var, type);
-				if (!changed) {
-					mth.addComment("JADX WARNING: type inference failed for: " + var.getDetailedVarInfo(mth));
+				if (var.getAssign().isTypeImmutable()) {
+					mth.addComment("JADX WARNING: type rejected for immutable type: " + var.getDetailedVarInfo(mth));
+				} else {
+					boolean changed = tryAllTypes(var, type);
+					if (!changed) {
+						mth.addComment("JADX WARNING: type inference failed for: " + var.getDetailedVarInfo(mth));
+					}
 				}
 			}
 		});

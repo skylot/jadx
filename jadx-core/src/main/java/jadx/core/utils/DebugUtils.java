@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.jetbrains.annotations.TestOnly;
@@ -196,6 +197,13 @@ public class DebugUtils {
 					throw new JadxRuntimeException("Used in phi incorrect");
 				}
 			}
+		}
+	}
+
+	public static void printMap(String desc, Map<?, ?> map) {
+		LOG.debug("Map of {}, size: {}", desc, map.size());
+		for (Map.Entry<?, ?> entry : map.entrySet()) {
+			LOG.debug("  {} : {}", entry.getKey(), entry.getValue());
 		}
 	}
 }

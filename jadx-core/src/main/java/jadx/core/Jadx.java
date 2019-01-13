@@ -36,9 +36,9 @@ import jadx.core.dex.visitors.debuginfo.DebugInfoParseVisitor;
 import jadx.core.dex.visitors.regions.CheckRegions;
 import jadx.core.dex.visitors.regions.IfRegionVisitor;
 import jadx.core.dex.visitors.regions.LoopRegionVisitor;
-import jadx.core.dex.visitors.regions.ProcessVariables;
 import jadx.core.dex.visitors.regions.RegionMakerVisitor;
 import jadx.core.dex.visitors.regions.ReturnVisitor;
+import jadx.core.dex.visitors.regions.variables.ProcessVariables;
 import jadx.core.dex.visitors.ssa.EliminatePhiNodes;
 import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
@@ -97,16 +97,15 @@ public class Jadx {
 			passes.add(new ExtractFieldInit());
 			passes.add(new ClassModifier());
 			passes.add(new EnumVisitor());
-			passes.add(new PrepareForCodeGen());
 			passes.add(new LoopRegionVisitor());
-			passes.add(new ProcessVariables());
 
+			passes.add(new ProcessVariables());
+			passes.add(new PrepareForCodeGen());
 			if (args.isCfgOutput()) {
 				passes.add(DotGraphVisitor.dumpRegions());
 			}
 
 			passes.add(new DependencyCollector());
-
 			passes.add(new RenameVisitor());
 		}
 		return passes;

@@ -4,6 +4,7 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.Map;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import jadx.core.dex.nodes.ClassNode;
@@ -46,5 +47,15 @@ public class TestGenerics2 extends IntegrationTest {
 		assertThat(code, containsString("public V get(Object id) {"));
 		assertThat(code, containsString("WeakReference<V> ref = "));
 		assertThat(code, containsString("return ref.get();"));
+	}
+
+	@Ignore("Make generic info propagation for methods (like Map.get)")
+	@Test
+	public void testDebug() {
+		noDebugInfo();
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, containsString("WeakReference<V> ref = "));
 	}
 }

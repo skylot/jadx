@@ -35,7 +35,7 @@ import jadx.core.utils.exceptions.JadxException;
 public class RegionMakerVisitor extends AbstractVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(RegionMakerVisitor.class);
 
-	private static final PostRegionVisitor POST_REGION_VISITOR = new PostRegionVisitor();
+	private static final IRegionVisitor POST_REGION_VISITOR = new PostRegionVisitor();
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {

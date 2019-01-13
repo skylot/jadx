@@ -13,7 +13,8 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.ssa.LiveVarAnalysis;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 public class TestNameAssign2 extends IntegrationTest {
@@ -58,7 +59,6 @@ public class TestNameAssign2 extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		// TODO:
-		assertThat(code, containsOne("int id;"));
+		assertThat(code, not(containsString("int id;")));
 	}
 }

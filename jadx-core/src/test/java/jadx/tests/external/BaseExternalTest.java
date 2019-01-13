@@ -97,6 +97,8 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		if (!decompile) {
 			return false;
 		}
+
+//		ProcessClass.process(classNode, passes, new CodeGen());
 		for (IDexTreeVisitor visitor : passes) {
 			DepthTraversal.visit(visitor, classNode);
 		}

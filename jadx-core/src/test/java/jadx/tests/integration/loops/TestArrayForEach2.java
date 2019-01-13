@@ -6,6 +6,8 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsLines;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 public class TestArrayForEach2 extends IntegrationTest {
@@ -25,6 +27,8 @@ public class TestArrayForEach2 extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
+
+		assertThat(code, not(containsString("int ")));
 
 		assertThat(code, containsLines(2,
 				"for (String s : str.split(\"\\n\")) {",

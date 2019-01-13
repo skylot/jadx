@@ -15,19 +15,22 @@ import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
 import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.typeinference.TypeInfo;
+import jadx.core.utils.StringUtils;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class SSAVar extends AttrNode {
 	private final int regNum;
 	private final int version;
 
-	@NotNull
 	private RegisterArg assign;
 	private final List<RegisterArg> useList = new ArrayList<>(2);
 	@Nullable
 	private PhiInsn usedInPhi;
 
 	private TypeInfo typeInfo = new TypeInfo();
-	private VarName varName;
+
+	@Nullable("Set in EliminatePhiNodes pass")
+	private CodeVar codeVar;
 
 	public SSAVar(int regNum, int v, @NotNull RegisterArg assign) {
 		this.regNum = regNum;
@@ -60,6 +63,13 @@ public class SSAVar extends AttrNode {
 
 	public int getUseCount() {
 		return useList.size();
+	}
+
+	public void setType(ArgType type) {
+		typeInfo.setType(type);
+		if (codeVar != null) {
+			codeVar.setType(type);
+		}
 	}
 
 	public void use(RegisterArg arg) {
@@ -101,34 +111,38 @@ public class SSAVar extends AttrNode {
 
 	public void setName(String name) {
 		if (name != null) {
-			if (varName == null) {
-				varName = new VarName();
+			if (codeVar == null) {
+				throw new JadxRuntimeException("CodeVar not initialized for name set in SSAVar: " + this);
 			}
-			varName.setName(name);
+			codeVar.setName(name);
 		}
 	}
 
 	public String getName() {
-		if (varName == null) {
+		if (codeVar == null) {
 			return null;
 		}
-		return varName.getName();
-	}
-
-	public VarName getVarName() {
-		return varName;
-	}
-
-	public void setVarName(VarName varName) {
-		this.varName = varName;
+		return codeVar.getName();
 	}
 
 	public TypeInfo getTypeInfo() {
 		return typeInfo;
 	}
 
-	public void setTypeInfo(TypeInfo typeInfo) {
-		this.typeInfo = typeInfo;
+	@NotNull
+	public CodeVar getCodeVar() {
+		if (codeVar == null) {
+			throw new JadxRuntimeException("Code variable not set in " + this);
+		}
+		return codeVar;
+	}
+
+	public void setCodeVar(@NotNull CodeVar codeVar) {
+		this.codeVar = codeVar;
+	}
+
+	public boolean isCodeVarSet() {
+		return codeVar != null;
 	}
 
 	@Override
@@ -148,9 +162,15 @@ public class SSAVar extends AttrNode {
 		return 31 * regNum + version;
 	}
 
+	public String toShortString() {
+		return "r" + regNum + ":" + version;
+	}
+
 	@Override
 	public String toString() {
-		return "r" + regNum + ":" + version + " " + typeInfo.getType();
+		return toShortString()
+				+ (StringUtils.notEmpty(getName()) ? " '" + getName() + "' " : "")
+				+ " " + typeInfo.getType();
 	}
 
 	public String getDetailedVarInfo(MethodNode mth) {

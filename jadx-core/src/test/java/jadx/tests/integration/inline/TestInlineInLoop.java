@@ -6,13 +6,12 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static jadx.tests.api.utils.JadxMatchers.countString;
 import static org.junit.Assert.assertThat;
 
 public class TestInlineInLoop extends IntegrationTest {
 
 	public static class TestCls {
-		public static void main(String[] args) throws Exception {
+		public static void main(String[] args) {
 			int a = 0;
 			int b = 4;
 			int c = 0;
@@ -37,11 +36,12 @@ public class TestInlineInLoop extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("int c"));
-		assertThat(code, containsOne("c = b + 1"));
-		assertThat(code, countString(2, "c = b;"));
-		assertThat(code, containsOne("b++;"));
-		assertThat(code, containsOne("b = c"));
+		// TODO: remove unused variables from test
+		assertThat(code, containsOne("int c = b + 1"));
+		assertThat(code, containsOne("int c2 = b;"));
+		assertThat(code, containsOne("int c3 = b;"));
+		assertThat(code, containsOne("int b2 = b + 1;"));
+		assertThat(code, containsOne("b = c3"));
 		assertThat(code, containsOne("a++;"));
 	}
 }

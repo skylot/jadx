@@ -34,10 +34,16 @@ import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.regions.loops.LoopType;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.CodeShrinker;
+import jadx.core.dex.visitors.JadxVisitor;
+import jadx.core.dex.visitors.regions.variables.ProcessVariables;
 import jadx.core.utils.BlockUtils;
-import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.RegionUtils;
 
+@JadxVisitor(
+		name = "LoopRegionVisitor",
+		desc = "Convert 'while' loops to 'for' loops (indexed or for-each)",
+		runBefore = {ProcessVariables.class}
+)
 public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(LoopRegionVisitor.class);
 
@@ -65,9 +71,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		if (checkForIndexedLoop(mth, loopRegion, condition)) {
 			return;
 		}
-		if (checkIterableForEach(mth, loopRegion, condition)) {
-			return;
-		}
+		checkIterableForEach(mth, loopRegion, condition);
 	}
 
 	/**
@@ -119,9 +123,9 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		LoopType arrForEach = checkArrayForEach(mth, initInsn, incrInsn, condition);
 		if (arrForEach != null) {
 			loopRegion.setType(arrForEach);
-			return true;
+		} else {
+			loopRegion.setType(new ForLoop(initInsn, incrInsn));
 		}
-		loopRegion.setType(new ForLoop(initInsn, incrInsn));
 		return true;
 	}
 
@@ -189,10 +193,15 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 
 		// array for each loop confirmed
 		len.add(AFlag.DONT_GENERATE);
+		incrInsn.getResult().add(AFlag.DONT_GENERATE);
+		condArg.add(AFlag.DONT_GENERATE);
+		bCondArg.add(AFlag.DONT_GENERATE);
 		arrGetInsn.add(AFlag.DONT_GENERATE);
-		InstructionRemover.unbindInsn(mth, len);
 
 		// inline array variable
+		if (arrayArg.isRegister()) {
+			((RegisterArg) arrayArg).getSVar().removeUse((RegisterArg) arrGetInsn.getArg(0));
+		}
 		CodeShrinker.shrinkMethod(mth);
 		if (arrGetInsn.contains(AFlag.WRAPPED)) {
 			InsnArg wrapArg = BlockUtils.searchWrappedInsnParent(mth, arrGetInsn);
@@ -215,18 +224,15 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		if (sVar == null || sVar.isUsedInPhi()) {
 			return false;
 		}
-		List<RegisterArg> useList = sVar.getUseList();
+		List<RegisterArg> itUseList = sVar.getUseList();
 		InsnNode assignInsn = iteratorArg.getAssignInsn();
-		if (useList.size() != 2
-				|| assignInsn == null
-				|| !checkInvoke(assignInsn, null, "iterator()Ljava/util/Iterator;", 0)) {
+		if (itUseList.size() != 2 || !checkInvoke(assignInsn, null, "iterator()Ljava/util/Iterator;", 0)) {
 			return false;
 		}
 		InsnArg iterableArg = assignInsn.getArg(0);
-		InsnNode hasNextCall = useList.get(0).getParentInsn();
-		InsnNode nextCall = useList.get(1).getParentInsn();
-		if (hasNextCall == null || nextCall == null
-				|| !checkInvoke(hasNextCall, "java.util.Iterator", "hasNext()Z", 0)
+		InsnNode hasNextCall = itUseList.get(0).getParentInsn();
+		InsnNode nextCall = itUseList.get(1).getParentInsn();
+		if (!checkInvoke(hasNextCall, "java.util.Iterator", "hasNext()Z", 0)
 				|| !checkInvoke(nextCall, "java.util.Iterator", "next()Ljava/lang/Object;", 0)) {
 			return false;
 		}
@@ -268,6 +274,9 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		assignInsn.add(AFlag.DONT_GENERATE);
 		for (InsnNode insnNode : toSkip) {
 			insnNode.add(AFlag.DONT_GENERATE);
+		}
+		for (RegisterArg itArg : itUseList) {
+			itArg.add(AFlag.DONT_GENERATE);
 		}
 		loopRegion.setType(new ForEachLoop(iterVar, iterableArg));
 		return true;
@@ -314,6 +323,9 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 	 * Check if instruction is a interface invoke with corresponding parameters.
 	 */
 	private static boolean checkInvoke(InsnNode insn, String declClsFullName, String mthId, int argsCount) {
+		if (insn == null) {
+			return false;
+		}
 		if (insn.getType() == InsnType.INVOKE) {
 			InvokeNode inv = (InvokeNode) insn;
 			MethodInfo callMth = inv.getCallMth();

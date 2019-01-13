@@ -57,6 +57,7 @@ public class BlockExceptionHandler extends AbstractVisitor {
 				resArg.copyAttributesFrom(me);
 				me.setResult(resArg);
 				me.add(AFlag.DONT_INLINE);
+				resArg.add(AFlag.CUSTOM_DECLARE);
 				excHandler.setArg(resArg);
 				return;
 			}

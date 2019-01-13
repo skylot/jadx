@@ -203,6 +203,10 @@ public class StringUtils {
 		return str != null && !str.isEmpty();
 	}
 
+	public static boolean isEmpty(String str) {
+		return str == null || str.isEmpty();
+	}
+
 	public static int countMatches(String str, String subStr) {
 		if (str == null || str.isEmpty() || subStr == null || subStr.isEmpty()) {
 			return 0;

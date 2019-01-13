@@ -57,6 +57,9 @@ public class TypeCompareTest {
 	public void compareArrays() {
 		firstIsNarrow(array(CHAR), OBJECT);
 		firstIsNarrow(array(CHAR), array(UNKNOWN));
+
+		firstIsNarrow(array(OBJECT), OBJECT);
+		firstIsNarrow(array(OBJECT), array(UNKNOWN_OBJECT));
 	}
 
 	@Test

@@ -1,6 +1,7 @@
 package jadx.core.codegen;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,6 +12,7 @@ import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.NamedArg;
@@ -45,7 +47,8 @@ public class NameGen {
 				"java.lang.Float", "f",
 				"java.lang.Long", "l",
 				"java.lang.Double", "d",
-				"java.lang.StringBuilder", "sb"
+				"java.lang.StringBuilder", "sb",
+				"java.lang.Exception", "exc"
 		);
 	}
 
@@ -54,13 +57,13 @@ public class NameGen {
 		this.fallback = fallback;
 	}
 
-	public String assignArg(RegisterArg arg) {
-		String name = makeArgName(arg);
+	public String assignArg(CodeVar var) {
+		String name = makeArgName(var);
 		if (fallback) {
 			return name;
 		}
 		name = getUniqueVarName(name);
-		arg.setName(name);
+		var.setName(name);
 		return name;
 	}
 
@@ -100,52 +103,50 @@ public class NameGen {
 		return r;
 	}
 
-	private String makeArgName(RegisterArg arg) {
+	private String makeArgName(CodeVar var) {
 		if (fallback) {
-			return getFallbackName(arg);
+			return getFallbackName(var);
 		}
-		if (arg.isThis()) {
+		if (var.isThis()) {
 			return RegisterArg.THIS_ARG_NAME;
 		}
-		String name = arg.getName();
-		String varName = name != null ? name : guessName(arg);
+		String name = var.getName();
+		String varName = name != null ? name : guessName(var);
 		if (NameMapper.isReserved(varName)) {
 			varName = varName + "R";
 		}
 		if (!NameMapper.isValidIdentifier(varName)) {
-			varName = getFallbackName(arg);
+			varName = getFallbackName(var);
 		}
 		return varName;
 	}
 
-	private String getFallbackName(RegisterArg arg) {
-		StringBuilder sb = new StringBuilder();
-		sb.append('r').append(arg.getRegNum());
-		SSAVar sVar = arg.getSVar();
-		if (sVar != null) {
-			sb.append('v').append(sVar.getVersion());
-		}
-		return sb.toString();
+	private String getFallbackName(CodeVar var) {
+		return getFallbackName(var.getSsaVars().get(0).getAssign());
 	}
 
-	private String guessName(RegisterArg arg) {
-		SSAVar sVar = arg.getSVar();
-		if (sVar != null && sVar.getName() == null) {
-			RegisterArg assignArg = sVar.getAssign();
-			InsnNode assignInsn = assignArg.getParentInsn();
-			if (assignInsn != null) {
-				String name = makeNameFromInsn(assignInsn);
-				if (name != null && !NameMapper.isReserved(name)) {
-					assignArg.setName(name);
-					return name;
+	private String getFallbackName(RegisterArg arg) {
+		return "r" + arg.getRegNum();
+	}
+
+	private String guessName(CodeVar var) {
+		List<SSAVar> ssaVars = var.getSsaVars();
+		if (ssaVars != null && !ssaVars.isEmpty()) {
+			// TODO: use all vars for better name generation
+			SSAVar ssaVar = ssaVars.get(0);
+			if (ssaVar != null && ssaVar.getName() == null) {
+				RegisterArg assignArg = ssaVar.getAssign();
+				InsnNode assignInsn = assignArg.getParentInsn();
+				if (assignInsn != null) {
+					String name = makeNameFromInsn(assignInsn);
+					if (name != null && !NameMapper.isReserved(name)) {
+						assignArg.setName(name);
+						return name;
+					}
 				}
 			}
 		}
-		ArgType type = arg.getType();
-		if (!type.isTypeKnown() && arg.getInitType().isTypeKnown()) {
-			type = arg.getInitType();
-		}
-		return makeNameForType(type);
+		return makeNameForType(var.getType());
 	}
 
 	private String makeNameForType(ArgType type) {

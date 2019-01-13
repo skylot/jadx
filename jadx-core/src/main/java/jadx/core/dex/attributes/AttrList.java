@@ -25,6 +25,6 @@ public class AttrList<T> implements IAttribute {
 
 	@Override
 	public String toString() {
-		return Utils.listToString(list);
+		return Utils.listToString(list, "\n");
 	}
 }

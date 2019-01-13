@@ -1,10 +1,10 @@
 package jadx.tests.integration;
 
+import org.junit.Test;
+
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.visitors.SimplifyVisitor;
-import jadx.core.utils.exceptions.JadxException;
 import jadx.tests.api.IntegrationTest;
-import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertThat;
@@ -14,7 +14,7 @@ import static org.junit.Assert.assertThat;
  *
  * @author Jan Peter Stotz
  */
-public class SimplifyVisitorStringBuilderTest extends IntegrationTest {
+public class TestStringBuilderElimination2 extends IntegrationTest {
 
 	public static class TestCls1 {
 		public String test() {
@@ -24,10 +24,8 @@ public class SimplifyVisitorStringBuilderTest extends IntegrationTest {
 	}
 
 	@Test
-	public void test1() throws JadxException {
-		ClassNode cls = getClassNode(SimplifyVisitorStringBuilderTest.TestCls1.class);
-		SimplifyVisitor visitor = new SimplifyVisitor();
-		visitor.visit(cls);
+	public void test1() {
+		ClassNode cls = getClassNode(TestStringBuilderElimination2.TestCls1.class);
 		String code = cls.getCode().toString();
 		assertThat(code, containsString("return \"[init]\" + \"a1\" + 'c' + 2 + 0 + 1.0f + 2.0d + true;"));
 	}
@@ -49,10 +47,8 @@ public class SimplifyVisitorStringBuilderTest extends IntegrationTest {
 	}
 
 	@Test
-	public void test2() throws JadxException {
-		ClassNode cls = getClassNode(SimplifyVisitorStringBuilderTest.TestCls2.class);
-		SimplifyVisitor visitor = new SimplifyVisitor();
-		visitor.visit(cls);
+	public void test2() {
+		ClassNode cls = getClassNode(TestStringBuilderElimination2.TestCls2.class);
 		String code = cls.getCode().toString();
 		assertThat(code, containsString("return \"[init]\" + \"a1\" + 'c' + 1 + 2 + 1.0f + 2.0d + true;"));
 	}
@@ -68,10 +64,8 @@ public class SimplifyVisitorStringBuilderTest extends IntegrationTest {
 	}
 
 	@Test
-	public void test3() throws JadxException {
-		ClassNode cls = getClassNode(SimplifyVisitorStringBuilderTest.TestClsStringUtilsReverse.class);
-		SimplifyVisitor visitor = new SimplifyVisitor();
-		visitor.visit(cls);
+	public void test3() {
+		ClassNode cls = getClassNode(TestClsStringUtilsReverse.class);
 		String code = cls.getCode().toString();
 		assertThat(code, containsString("return new StringBuilder(str).reverse().toString();"));
 	}
@@ -84,10 +78,8 @@ public class SimplifyVisitorStringBuilderTest extends IntegrationTest {
 	}
 
 	@Test
-	public void testChainWithDelete() throws JadxException {
+	public void testChainWithDelete() {
 		ClassNode cls = getClassNode(TestClsChainWithDelete.class);
-		SimplifyVisitor visitor = new SimplifyVisitor();
-		visitor.visit(cls);
 		String code = cls.getCode().toString();
 		assertThat(code, containsString("return new StringBuilder(\"[init]\").append(\"a1\").delete(1, 2).toString();"));
 	}

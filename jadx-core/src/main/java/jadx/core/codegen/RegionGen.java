@@ -14,6 +14,7 @@ import jadx.core.dex.attributes.nodes.ForceReturnAttr;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.SwitchNode;
+import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -75,7 +76,7 @@ public class RegionGen extends InsnGen {
 	private void declareVars(CodeWriter code, IContainer cont) {
 		DeclareVariablesAttr declVars = cont.get(AType.DECLARE_VARIABLES);
 		if (declVars != null) {
-			for (RegisterArg v : declVars.getVars()) {
+			for (CodeVar v : declVars.getVars()) {
 				code.startLine();
 				declareVar(code, v);
 				code.add(';');
@@ -323,7 +324,8 @@ public class RegionGen extends InsnGen {
 		code.add(' ');
 		InsnArg arg = handler.getArg();
 		if (arg instanceof RegisterArg) {
-			code.add(mgen.getNameGen().assignArg((RegisterArg) arg));
+			RegisterArg reg = (RegisterArg) arg;
+			code.add(mgen.getNameGen().assignArg(reg.getSVar().getCodeVar()));
 		} else if (arg instanceof NamedArg) {
 			code.add(mgen.getNameGen().assignNamedArg((NamedArg) arg));
 		}

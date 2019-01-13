@@ -1,4 +1,4 @@
-package jadx.tests.integration.arrays;
+package jadx.tests.integration.types;
 
 import org.junit.Test;
 
@@ -6,22 +6,22 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-public class TestArrays3 extends IntegrationTest {
+public class TestArrayTypes extends IntegrationTest {
+
 	public static class TestCls {
 
-		private Object test(byte[] bArr) {
-			return new Object[]{bArr};
+		public void test() {
+			Exception e = new Exception();
+			System.out.println(e);
+			use(new Object[]{e});
 		}
 
+		public void use(Object[] arr) {}
+
 		public void check() {
-			byte[] inputArr = {1, 2};
-			Object result = test(inputArr);
-			assertThat(result, instanceOf(Object[].class));
-			assertThat(((Object[])result)[0], is(inputArr));
+			test();
 		}
 	}
 
@@ -30,7 +30,7 @@ public class TestArrays3 extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("return new Object[]{bArr};"));
+		assertThat(code, containsOne("use(new Object[]{e});"));
 	}
 
 	@Test
@@ -39,6 +39,6 @@ public class TestArrays3 extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("return new Object[]{bArr};"));
+		assertThat(code, containsOne("use(new Object[]{exc});"));
 	}
 }

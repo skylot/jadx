@@ -4,8 +4,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.android.dx.rop.code.AccessFlags;
-import jadx.core.dex.info.ClassInfo;
-import jadx.core.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,8 +11,10 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.annotations.MethodParameters;
 import jadx.core.dex.info.AccessInfo;
+import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.InsnNode;
@@ -22,8 +22,8 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.FallbackModeVisitor;
-import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.InsnUtils;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.DecodeException;
 
@@ -108,10 +108,7 @@ public class MethodGen {
 			} else if (args.size() > 2) {
 				args = args.subList(2, args.size());
 			} else {
-				LOG.warn(ErrorsCounter.formatMsg(mth,
-						"Incorrect number of args for enum constructor: " + args.size()
-								+ " (expected >= 2)"
-				));
+				mth.addComment("JADX WARN: Incorrect number of args for enum constructor: " + args.size() + " (expected >= 2)");
 			}
 		}
 		addMethodArguments(code, args);
@@ -121,40 +118,48 @@ public class MethodGen {
 		return true;
 	}
 
-	private void addMethodArguments(CodeWriter argsCode, List<RegisterArg> args) {
+	private void addMethodArguments(CodeWriter code, List<RegisterArg> args) {
 		MethodParameters paramsAnnotation = mth.get(AType.ANNOTATION_MTH_PARAMETERS);
 		int i = 0;
-		for (Iterator<RegisterArg> it = args.iterator(); it.hasNext(); ) {
-			RegisterArg arg = it.next();
-			ArgType argType = arg.getInitType();
+		Iterator<RegisterArg> it = args.iterator();
+		while (it.hasNext()) {
+			RegisterArg mthArg = it.next();
+			SSAVar ssaVar = mthArg.getSVar();
+			CodeVar var;
+			if (ssaVar == null) {
+				// null for abstract or interface methods
+				var = CodeVar.fromMthArg(mthArg);
+			} else {
+				var = ssaVar.getCodeVar();
+			}
+			ArgType argType = var.getType();
 
 			// add argument annotation
 			if (paramsAnnotation != null) {
-				annotationGen.addForParameter(argsCode, paramsAnnotation, i);
+				annotationGen.addForParameter(code, paramsAnnotation, i);
 			}
-			SSAVar argSVar = arg.getSVar();
-			if (argSVar != null && argSVar.contains(AFlag.FINAL)) {
-				argsCode.add("final ");
+			if (var.isFinal()) {
+				code.add("final ");
 			}
 			if (!it.hasNext() && mth.getAccessFlags().isVarArgs()) {
 				// change last array argument to varargs
 				if (argType.isArray()) {
 					ArgType elType = argType.getArrayElement();
-					classGen.useType(argsCode, elType);
-					argsCode.add("...");
+					classGen.useType(code, elType);
+					code.add("...");
 				} else {
-					LOG.warn(ErrorsCounter.formatMsg(mth, "Last argument in varargs method not array"));
-					classGen.useType(argsCode, argType);
+					mth.addComment("JADX INFO: Last argument in varargs method is not array: " + var);
+					classGen.useType(code, argType);
 				}
 			} else {
-				classGen.useType(argsCode, argType);
+				classGen.useType(code, argType);
 			}
-			argsCode.add(' ');
-			argsCode.add(nameGen.assignArg(arg));
+			code.add(' ');
+			code.add(nameGen.assignArg(var));
 
 			i++;
 			if (it.hasNext()) {
-				argsCode.add(", ");
+				code.add(", ");
 			}
 		}
 	}

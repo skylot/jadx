@@ -33,6 +33,7 @@ import jadx.core.dex.instructions.InvokeType;
 import jadx.core.dex.instructions.NewArrayNode;
 import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.FieldArg;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
@@ -122,12 +123,16 @@ public class InsnGen {
 	}
 
 	public void declareVar(CodeWriter code, RegisterArg arg) {
-		if (arg.getSVar().contains(AFlag.FINAL)) {
+		declareVar(code, arg.getSVar().getCodeVar());
+	}
+
+	public void declareVar(CodeWriter code, CodeVar codeVar) {
+		if (codeVar.isFinal()) {
 			code.add("final ");
 		}
-		useType(code, arg.getType());
+		useType(code, codeVar.getType());
 		code.add(' ');
-		code.add(mgen.getNameGen().assignArg(arg));
+		code.add(mgen.getNameGen().assignArg(codeVar));
 	}
 
 	private String lit(LiteralArg arg) {

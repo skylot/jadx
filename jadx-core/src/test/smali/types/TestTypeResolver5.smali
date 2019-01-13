@@ -1,5 +1,5 @@
 .class public LTestTypeResolver5;
-.super Lcom/souq/app/activity/BaseContentActivity;
+.super Landroid/content/Context;
 .source "SourceFile"
 
 
@@ -17,7 +17,7 @@
 
     .prologue
     .line 35
-    invoke-direct {p0}, Lcom/souq/app/activity/BaseContentActivity;-><init>()V
+    invoke-direct {p0}, Landroid/content/Context;-><init>()V
 
     return-void
 .end method

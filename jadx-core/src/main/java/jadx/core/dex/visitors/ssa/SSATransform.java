@@ -419,7 +419,6 @@ public class SSATransform extends AbstractVisitor {
 			return;
 		}
 		arg.add(AFlag.THIS);
-		arg.setName(RegisterArg.THIS_ARG_NAME);
 		// mark all moved 'this'
 		InsnNode parentInsn = arg.getParentInsn();
 		if (parentInsn != null

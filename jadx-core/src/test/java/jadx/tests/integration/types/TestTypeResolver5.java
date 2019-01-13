@@ -10,18 +10,6 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 public class TestTypeResolver5 extends SmaliTest {
-	/*
-	  Smali Code equivalent:
-		public static class TestCls {
-			public int test1(int a) {
-				return ~a;
-			}
-
-			public long test2(long b) {
-				return ~b;
-			}
-		}
-	*/
 
 	@Test
 	public void test() {
@@ -30,8 +18,7 @@ public class TestTypeResolver5 extends SmaliTest {
 		ClassNode cls = getClassNodeFromSmaliWithPath("types", "TestTypeResolver5");
 		String code = cls.getCode().toString();
 
-//		assertThat(code, containsString("return ~a;"));
-//		assertThat(code, containsString("return ~b;"));
 		assertThat(code, not(containsString("Object string2")));
+		assertThat(code, not(containsString("r1v2")));
 	}
 }

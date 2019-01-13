@@ -24,7 +24,7 @@ public class TestTryCatch7 extends IntegrationTest {
 	}
 
 	@Test
-	public void test() {
+	public void testNoDebug() {
 		noDebugInfo();
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();

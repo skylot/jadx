@@ -45,6 +45,8 @@ public class ClsSet {
 
 	private static final String STRING_CHARSET = "US-ASCII";
 
+	private static final NClass[] EMPTY_NCLASS_ARRAY = new NClass[0];
+
 	private NClass[] classes;
 
 	public void load(RootNode root) {
@@ -93,7 +95,11 @@ public class ClsSet {
 				parents.add(c);
 			}
 		}
-		return parents.toArray(new NClass[parents.size()]);
+		int size = parents.size();
+		if (size == 0) {
+			return EMPTY_NCLASS_ARRAY;
+		}
+		return parents.toArray(new NClass[size]);
 	}
 
 	private static NClass getCls(String fullName, Map<String, NClass> names) {

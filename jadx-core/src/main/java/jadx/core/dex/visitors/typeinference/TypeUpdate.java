@@ -1,6 +1,7 @@
 package jadx.core.dex.visitors.typeinference;
 
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -30,7 +31,7 @@ import static jadx.core.dex.visitors.typeinference.TypeUpdateResult.SAME;
 public final class TypeUpdate {
 	private static final Logger LOG = LoggerFactory.getLogger(TypeUpdate.class);
 
-	private final TypeUpdateRegistry listenerRegistry;
+	private final Map<InsnType, ITypeListener> listenerRegistry;
 	private final TypeCompare comparator;
 
 	private ThreadLocal<Boolean> applyDebug = new ThreadLocal<>();
@@ -79,12 +80,13 @@ public final class TypeUpdate {
 		if (Objects.equals(currentType, candidateType)) {
 			return SAME;
 		}
-		if (arg.isTypeImmutable() && currentType != ArgType.UNKNOWN) {
-			return REJECT;
-		}
 		TypeCompareEnum compareResult = comparator.compareTypes(candidateType, currentType);
 		if (compareResult == TypeCompareEnum.CONFLICT) {
 			return REJECT;
+		}
+		if (arg.isTypeImmutable() && currentType != ArgType.UNKNOWN) {
+			// don't changed type, conflict already rejected
+			return SAME;
 		}
 		if (compareResult == TypeCompareEnum.WIDER || compareResult == TypeCompareEnum.WIDER_BY_GENERIC) {
 			// allow wider types for apply from debug info
@@ -147,21 +149,11 @@ public final class TypeUpdate {
 		if (insn == null) {
 			return SAME;
 		}
-		List<ITypeListener> listeners = listenerRegistry.getListenersForInsn(insn.getType());
-		if (listeners.isEmpty()) {
+		ITypeListener listener = listenerRegistry.get(insn.getType());
+		if (listener == null) {
 			return CHANGED;
 		}
-		boolean allSame = true;
-		for (ITypeListener listener : listeners) {
-			TypeUpdateResult updateResult = listener.update(updateInfo, insn, arg, candidateType);
-			if (updateResult == REJECT) {
-				return REJECT;
-			}
-			if (updateResult != SAME) {
-				allSame = false;
-			}
-		}
-		return allSame ? SAME : CHANGED;
+		return listener.update(updateInfo, insn, arg, candidateType);
 	}
 
 	private boolean inBounds(Set<ITypeBound> bounds, ArgType candidateType) {
@@ -227,18 +219,18 @@ public final class TypeUpdate {
 		return false;
 	}
 
-	private TypeUpdateRegistry initListenerRegistry() {
-		TypeUpdateRegistry registry = new TypeUpdateRegistry();
-		registry.add(InsnType.CONST, this::sameFirstArgListener);
-		registry.add(InsnType.MOVE, this::sameFirstArgListener);
-		registry.add(InsnType.PHI, this::allSameListener);
-		registry.add(InsnType.MERGE, this::allSameListener);
-		registry.add(InsnType.AGET, this::arrayGetListener);
-		registry.add(InsnType.APUT, this::arrayPutListener);
-		registry.add(InsnType.IF, this::ifListener);
-		registry.add(InsnType.ARITH, this::suggestAllSameListener);
-		registry.add(InsnType.NEG, this::suggestAllSameListener);
-		registry.add(InsnType.NOT, this::suggestAllSameListener);
+	private Map<InsnType, ITypeListener> initListenerRegistry() {
+		Map<InsnType, ITypeListener> registry = new EnumMap<>(InsnType.class);
+		registry.put(InsnType.CONST, this::sameFirstArgListener);
+		registry.put(InsnType.MOVE, this::sameFirstArgListener);
+		registry.put(InsnType.PHI, this::allSameListener);
+		registry.put(InsnType.MERGE, this::allSameListener);
+		registry.put(InsnType.AGET, this::arrayGetListener);
+		registry.put(InsnType.APUT, this::arrayPutListener);
+		registry.put(InsnType.IF, this::ifListener);
+		registry.put(InsnType.ARITH, this::suggestAllSameListener);
+		registry.put(InsnType.NEG, this::suggestAllSameListener);
+		registry.put(InsnType.NOT, this::suggestAllSameListener);
 		return registry;
 	}
 
@@ -314,7 +306,18 @@ public final class TypeUpdate {
 			if (arrayElement == null) {
 				return REJECT;
 			}
-			return updateTypeChecked(updateInfo, putArg, arrayElement);
+			TypeUpdateResult result = updateTypeChecked(updateInfo, putArg, arrayElement);
+			if (result == REJECT) {
+				ArgType putType = putArg.getType();
+				if (putType.isTypeKnown() && putType.isObject()) {
+					TypeCompareEnum compResult = comparator.compareTypes(arrayElement, putType);
+					if (compResult == TypeCompareEnum.WIDER || compResult == TypeCompareEnum.WIDER_BY_GENERIC) {
+						// allow wider result (i.e allow put in Object[] any objects)
+						return CHANGED;
+					}
+				}
+			}
+			return result;
 		}
 		if (arrArg == putArg) {
 			return updateTypeChecked(updateInfo, arrArg, ArgType.array(candidateType));
@@ -351,6 +354,10 @@ public final class TypeUpdate {
 
 	private static boolean isAssign(InsnNode insn, InsnArg arg) {
 		return insn.getResult() == arg;
+	}
+
+	public TypeCompare getComparator() {
+		return comparator;
 	}
 
 	public Comparator<ArgType> getArgTypeComparator() {
