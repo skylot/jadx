@@ -23,7 +23,7 @@ public class CodeIndex<T> implements SearchIndex<T> {
 	}
 
 	@Override
-	public void put(StringRef str, T value) {
+	public synchronized void put(StringRef str, T value) {
 		if (str == null || str.length() == 0) {
 			return;
 		}
