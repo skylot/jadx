@@ -180,6 +180,7 @@ public class SearchDialog extends CommonSearchDialog {
 						.toList()
 						.toFlowable(), 1)
 				.observeOn(SwingSchedulers.edt())
+				.doOnError(e -> LOG.error("Error while searching: {}", e.getMessage(), e))
 				.subscribe(this::processSearchResults);
 	}
 
