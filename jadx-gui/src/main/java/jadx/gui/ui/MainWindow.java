@@ -90,10 +90,12 @@ public class MainWindow extends JFrame {
 	private DefaultTreeModel treeModel;
 	private JRoot treeRoot;
 	private TabbedPane tabbedPane;
+	private HeapUsageBar heapUsageBar;
 
 	private boolean isFlattenPackage;
 	private JToggleButton flatPkgButton;
 	private JCheckBoxMenuItem flatPkgMenuItem;
+	private JCheckBoxMenuItem heapUsageBarMenuItem;
 
 	private JToggleButton deobfToggleBtn;
 	private JCheckBoxMenuItem deobfMenuItem;
@@ -124,6 +126,7 @@ public class MainWindow extends JFrame {
 	public void open() {
 		pack();
 		setLocationAndPosition();
+		heapUsageBar.setVisible(settings.isShowHeapUsageBar());
 		setVisible(true);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -185,7 +188,7 @@ public class MainWindow extends JFrame {
 	protected void resetCache() {
 		cacheObject.reset();
 		// TODO: decompilation freezes sometime with several threads
-		int threadsCount = 1; // settings.getThreadsCount();
+		int threadsCount = settings.getThreadsCount();
 		cacheObject.setDecompileJob(new DecompileJob(wrapper, threadsCount));
 		cacheObject.setIndexJob(new IndexJob(wrapper, cacheObject, threadsCount));
 	}
@@ -385,6 +388,13 @@ public class MainWindow extends JFrame {
 		flatPkgMenuItem = new JCheckBoxMenuItem(NLS.str("menu.flatten"), ICON_FLAT_PKG);
 		flatPkgMenuItem.setState(isFlattenPackage);
 
+		heapUsageBarMenuItem = new JCheckBoxMenuItem(NLS.str("menu.heapUsageBar"));
+		heapUsageBarMenuItem.setState(settings.isShowHeapUsageBar());
+		heapUsageBarMenuItem.addActionListener(event -> {
+			settings.setShowHeapUsageBar(!settings.isShowHeapUsageBar());
+			heapUsageBar.setVisible(settings.isShowHeapUsageBar());
+		});
+
 		Action syncAction = new AbstractAction(NLS.str("menu.sync"), ICON_SYNC) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -483,6 +493,7 @@ public class MainWindow extends JFrame {
 		view.setMnemonic(KeyEvent.VK_V);
 		view.add(flatPkgMenuItem);
 		view.add(syncAction);
+		view.add(heapUsageBarMenuItem);
 
 		JMenu nav = new JMenu(NLS.str("menu.navigation"));
 		nav.setMnemonic(KeyEvent.VK_N);
@@ -608,6 +619,9 @@ public class MainWindow extends JFrame {
 		splitPane.setRightComponent(tabbedPane);
 
 		new DropTarget(this, DnDConstants.ACTION_COPY, new MainDropTarget(this));
+
+		heapUsageBar = new HeapUsageBar();
+		mainPanel.add(heapUsageBar, BorderLayout.SOUTH);
 
 		setContentPane(mainPanel);
 		setTitle(DEFAULT_TITLE);

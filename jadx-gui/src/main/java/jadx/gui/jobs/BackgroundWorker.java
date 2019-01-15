@@ -3,6 +3,7 @@ package jadx.gui.jobs;
 import javax.swing.*;
 import java.util.concurrent.Future;
 
+import jadx.gui.utils.NLS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +63,9 @@ public class BackgroundWorker extends SwingWorker<Void, Void> {
 			if (searchIndex != null && searchIndex.getSkippedCount() > 0) {
 				LOG.warn("Indexing of some classes skipped, count: {}, low memory: {}",
 						searchIndex.getSkippedCount(), Utils.memoryInfo());
+				String msg = NLS.str("message.indexingClassesSkipped");
+				msg = String.format(msg, searchIndex.getSkippedCount());
+				JOptionPane.showMessageDialog(null, msg);
 			}
 		} catch (Exception e) {
 			LOG.error("Exception in background worker", e);

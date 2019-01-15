@@ -1,6 +1,8 @@
 package jadx.gui.settings;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
@@ -242,6 +244,16 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JButton editExcludedPackages = new JButton(NLS.str("preferences.excludedPackages.button"));
+		editExcludedPackages.addActionListener( event -> {
+
+			String result = JOptionPane.showInputDialog(this, NLS.str("preferences.excludedPackages.editDialog"),
+					settings.getExcludedPackages());
+			if (result !=null) {
+				settings.setExcludedPackages(result);
+			}
+		});
+
 		JCheckBox autoStartJobs = new JCheckBox();
 		autoStartJobs.setSelected(settings.isAutoStartJobs());
 		autoStartJobs.addItemListener(e -> settings.setAutoStartJobs(e.getStateChange() == ItemEvent.SELECTED));
@@ -269,6 +281,8 @@ public class JadxSettingsWindow extends JDialog {
 
 		SettingsGroup other = new SettingsGroup(NLS.str("preferences.decompile"));
 		other.addRow(NLS.str("preferences.threads"), threadsCount);
+		other.addRow(NLS.str("preferences.excludedPackages"), NLS.str("preferences.excludedPackages.tooltip"),
+				editExcludedPackages);
 		other.addRow(NLS.str("preferences.start_jobs"), autoStartJobs);
 		other.addRow(NLS.str("preferences.showInconsistentCode"), showInconsistentCode);
 		other.addRow(NLS.str("preferences.escapeUnicode"), escapeUnicode);
@@ -334,6 +348,10 @@ public class JadxSettingsWindow extends JDialog {
 		}
 
 		public void addRow(String label, JComponent comp) {
+			addRow(label, null, comp);
+		}
+
+		public void addRow(String label, String tooltip, JComponent comp) {
 			c.gridy = row++;
 			JLabel jLabel = new JLabel(label);
 			jLabel.setLabelFor(comp);
@@ -349,6 +367,12 @@ public class JadxSettingsWindow extends JDialog {
 			c.anchor = GridBagConstraints.CENTER;
 			c.weightx = 0.2;
 			c.fill = GridBagConstraints.HORIZONTAL;
+
+			if (tooltip != null) {
+				jLabel.setToolTipText(tooltip);
+				comp.setToolTipText(tooltip);
+			}
+
 			add(comp, c);
 
 			comp.addPropertyChangeListener("enabled", evt -> jLabel.setEnabled((boolean) evt.getNewValue()));

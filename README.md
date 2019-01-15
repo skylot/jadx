@@ -25,8 +25,13 @@ After download unpack zip file go to `bin` directory and run:
 On Windows run `.bat` files with double-click\
 **Note:** ensure you have installed Java 8 64-bit version
 
-### Building from source
-Java 8 JDK or higher must be installed:
+
+### Related projects:
+- [PyJadx](https://github.com/romainthomas/pyjadx) - python binding for jadx by [@romainthomas](https://github.com/romainthomas)
+
+
+### Building jadx from source
+JDK 8 or higher must be installed:
 
     git clone https://github.com/skylot/jadx.git
     cd jadx
