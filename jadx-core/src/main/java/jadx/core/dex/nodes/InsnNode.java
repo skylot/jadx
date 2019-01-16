@@ -8,6 +8,7 @@ import java.util.Objects;
 
 import com.android.dx.io.instructions.DecodedInstruction;
 import com.rits.cloning.Cloner;
+import org.jetbrains.annotations.Nullable;
 
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.instructions.InsnType;
@@ -54,16 +55,27 @@ public class InsnNode extends LineAttrNode {
 		return insn;
 	}
 
-	public void setResult(RegisterArg res) {
+	public void setResult(@Nullable RegisterArg res) {
 		if (res != null) {
 			res.setParentInsn(this);
+			SSAVar ssaVar = res.getSVar();
+			if (ssaVar != null) {
+				ssaVar.setAssign(res);
+			}
 		}
 		this.result = res;
 	}
 
 	public void addArg(InsnArg arg) {
-		arg.setParentInsn(this);
 		arguments.add(arg);
+		arg.setParentInsn(this);
+		if (arg.isRegister()) {
+			RegisterArg reg = (RegisterArg) arg;
+			SSAVar ssaVar = reg.getSVar();
+			if (ssaVar != null) {
+				ssaVar.use(reg);
+			}
+		}
 	}
 
 	public InsnType getType() {

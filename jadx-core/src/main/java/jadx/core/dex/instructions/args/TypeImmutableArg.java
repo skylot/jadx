@@ -24,4 +24,19 @@ public class TypeImmutableArg extends RegisterArg {
 			throw new JadxRuntimeException("Can't change arg with immutable type");
 		}
 	}
+
+	@Override
+	public RegisterArg duplicate() {
+		return duplicate(getRegNum(), getSVar());
+	}
+
+	@Override
+	public RegisterArg duplicate(int regNum, SSAVar sVar) {
+		RegisterArg dup = new TypeImmutableArg(regNum, getInitType());
+		if (sVar != null) {
+			dup.setSVar(sVar);
+		}
+		dup.copyAttributesFrom(this);
+		return dup;
+	}
 }

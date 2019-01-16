@@ -97,16 +97,21 @@ public class ReSugarCode extends AbstractVisitor {
 				|| instructions.get(i + len).getType() != InsnType.APUT) {
 			return null;
 		}
-		ArgType arrType = newArrayInsn.getArrayType();
-		InsnNode filledArr = new FilledNewArrayNode(arrType.getArrayElement(), len);
-		filledArr.setResult(newArrayInsn.getResult());
 		for (int j = 0; j < len; j++) {
 			InsnNode put = instructions.get(i + 1 + j);
 			if (put.getType() != InsnType.APUT) {
 				LOG.debug("Not a APUT in expected new filled array: {}, method: {}", put, mth);
 				return null;
 			}
-			filledArr.addArg(put.getArg(2));
+		}
+
+		// checks complete, apply
+		ArgType arrType = newArrayInsn.getArrayType();
+		InsnNode filledArr = new FilledNewArrayNode(arrType.getArrayElement(), len);
+		filledArr.setResult(newArrayInsn.getResult().duplicate());
+		for (int j = 0; j < len; j++) {
+			InsnNode put = instructions.get(i + 1 + j);
+			filledArr.addArg(put.getArg(2).duplicate());
 			remover.add(put);
 		}
 		return filledArr;

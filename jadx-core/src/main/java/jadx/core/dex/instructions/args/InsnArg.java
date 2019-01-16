@@ -153,4 +153,8 @@ public abstract class InsnArg extends Typed {
 	public boolean isThis() {
 		return contains(AFlag.THIS);
 	}
+
+	public InsnArg duplicate() {
+		return this;
+	}
 }

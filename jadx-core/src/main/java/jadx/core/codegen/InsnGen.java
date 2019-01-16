@@ -695,7 +695,7 @@ public class InsnGen {
 	private boolean processOverloadedArg(CodeWriter code, MethodNode callMth, InsnArg arg, int origPos) {
 		ArgType origType;
 		List<RegisterArg> arguments = callMth.getArguments(false);
-		if (arguments.isEmpty()) {
+		if (arguments == null || arguments.isEmpty()) {
 			mth.addComment("JADX WARN: used method not loaded: " + callMth + ", types can be incorrect");
 			origType = callMth.getMethodInfo().getArgumentsTypes().get(origPos);
 		} else {
