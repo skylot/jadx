@@ -221,6 +221,10 @@ public class ClassModifier extends AbstractVisitor {
 				if (callMth.getArgsCount() != mth.getMethodInfo().getArgsCount()) {
 					return false;
 				}
+				// rename method only from current class
+				if (!mth.getParentClass().equals(wrappedMth.getParentClass())) {
+					return false;
+				}
 				// all args must be registers passed from method args (allow only casts insns)
 				for (InsnArg arg : insn.getArguments()) {
 					if (!registersAndCastsOnly(arg)) {
