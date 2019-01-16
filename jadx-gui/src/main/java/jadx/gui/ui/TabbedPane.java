@@ -11,16 +11,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import jadx.gui.treemodel.*;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
-import jadx.gui.treemodel.JCertificate;
-import jadx.gui.treemodel.JClass;
-import jadx.gui.treemodel.JNode;
-import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.ui.codearea.CodePanel;
 import jadx.gui.utils.JumpManager;
@@ -93,8 +90,8 @@ public class TabbedPane extends JTabbedPane {
 		SwingUtilities.invokeLater(() -> setSelectedComponent(contentPanel));
 	}
 
-	public void showCertificate(JCertificate cert) {
-		final ContentPanel contentPanel = getContentPanel(cert);
+	public void showSimpleNode(JNode node) {
+		final ContentPanel contentPanel = getContentPanel(node);
 		if (contentPanel == null) {
 			return;
 		}
@@ -169,6 +166,9 @@ public class TabbedPane extends JTabbedPane {
 			} else {
 				return null;
 			}
+		}
+		if (node instanceof ApkSignature) {
+			return new HtmlPanel(this, node);
 		}
 		if (node instanceof JCertificate) {
 			return new CertificatePanel(this, node);

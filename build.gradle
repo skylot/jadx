@@ -48,6 +48,7 @@ allprojects {
         mavenLocal()
         mavenCentral()
         jcenter()
+        google()
     }
 
     jacoco {
