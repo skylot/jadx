@@ -1,9 +1,13 @@
 package jadx.gui.treemodel;
 
 import com.android.apksig.ApkVerifier;
-import com.android.apksig.apk.ApkFormatException;
+import jadx.api.ResourceType;
+import jadx.gui.JadxWrapper;
 import jadx.gui.utils.CertificateManager;
+import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +15,7 @@ import javax.swing.*;
 import java.io.File;
 import java.security.cert.Certificate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ApkSignature extends JNode {
 
@@ -20,12 +25,17 @@ public class ApkSignature extends JNode {
 	private final transient File openFile;
 	private String content = null;
 
-	public static ApkSignature getApkSignature(File openFile) {
+	public static ApkSignature getApkSignature(JadxWrapper wrapper) {
+		// Only show the ApkSignature node if an AndroidManifest.xml is present.
+		// Without a manifest the Google ApkVerifier refuses to work.
+		if (!wrapper.getResources().stream().anyMatch(r -> "AndroidManifest.xml".equals(r.getName()))) {
+			return null;
+		}
+		File openFile = wrapper.getOpenFile();
 		return new ApkSignature(openFile);
 	}
 
 	public ApkSignature(File openFile) {
-		super();
 		this.openFile = openFile;
 	}
 
@@ -51,69 +61,121 @@ public class ApkSignature extends JNode {
 		ApkVerifier verifier = new ApkVerifier.Builder(openFile).build();
 		try {
 			ApkVerifier.Result result = verifier.verify();
-			StringBuilder str = new StringBuilder();
-			str.append("<h1>APK signature verification result:</h1>");
+			StringEscapeUtils.Builder builder = StringEscapeUtils.builder(StringEscapeUtils.ESCAPE_HTML4);
+			builder.append("<h1>APK signature verification result:</h1>");
 
-			str.append("<p><b>");
+			builder.append("<p><b>");
 			if (result.isVerified()) {
-				str.append("Signature verification succeeded");
+				builder.escape(NLS.str("apkSignature.verificationSuccess"));
 			} else {
-				str.append("Signature verification failed\n");
+				builder.escape(NLS.str("apkSignature.verificationFailed"));
 			}
-			str.append("</b></p>");
+			builder.append("</b></p>");
 
-			writeIssues(str, "Errors", result.getErrors());
-			writeIssues(str, "Warnings", result.getWarnings());
+			final String err = NLS.str("apkSignature.errors");
+			final String warn = NLS.str("apkSignature.warnings");
+			final String sigSucc = NLS.str("apkSignature.signatureSuccess");
+			final String sigFail = NLS.str("apkSignature.signatureFailed");
 
-			if (result.isVerifiedUsingV1Scheme()) {
-				str.append("<h2>APK signature v1 found</h2>\n");
+			writeIssues(builder, err, result.getErrors());
+			writeIssues(builder, warn, result.getWarnings());
 
-				str.append("<blockquote>");
+			if (result.getV1SchemeSigners().size() > 0) {
+				builder.append("<h2>");
+				builder.escape(String.format(result.isVerifiedUsingV1Scheme() ? sigSucc : sigFail, 1));
+				builder.append("</h2>\n");
+
+				builder.append("<blockquote>");
 				for (ApkVerifier.Result.V1SchemeSignerInfo signer : result.getV1SchemeSigners()) {
-					str.append("<h3>Signer " + signer.getName() + " (" + signer.getSignatureFileName() + ")</h3>");
-					writeCertificate(str, signer.getCertificate());
-					writeIssues(str, "Errors", signer.getErrors());
-					writeIssues(str, "Warnings", signer.getWarnings());
+					builder.append("<h3>");
+					builder.escape(NLS.str("apkSignature.signer"));
+					builder.append(" ");
+					builder.escape(signer.getName());
+					builder.append(" (");
+					builder.escape(signer.getSignatureFileName());
+					builder.append(")");
+					builder.append("</h3>");
+					writeCertificate(builder, signer.getCertificate());
+					writeIssues(builder, err, signer.getErrors());
+					writeIssues(builder, warn, signer.getWarnings());
 				}
-				str.append("</blockquote>");
+				builder.append("</blockquote>");
 			}
-			if (result.isVerifiedUsingV2Scheme()) {
-				str.append("<h2>APK signature v2 found</h2>\n");
+			if (result.getV2SchemeSigners().size() > 0) {
+				builder.append("<h2>");
+				builder.escape(String.format(result.isVerifiedUsingV2Scheme() ? sigSucc : sigFail, 2));
+				builder.append("</h2>\n");
 
-				str.append("<blockquote>");
+				builder.append("<blockquote>");
 				for (ApkVerifier.Result.V2SchemeSignerInfo signer : result.getV2SchemeSigners()) {
-					str.append("<h3>Signer " + (signer.getIndex() + 1) + "</h3>");
-					writeCertificate(str, signer.getCertificate());
-					writeIssues(str, "Errors", signer.getErrors());
-					writeIssues(str, "Warnings", signer.getWarnings());
+					builder.append("<h3>");
+					builder.escape(NLS.str("apkSignature.signer"));
+					builder.append(" ");
+					builder.append(Integer.toString(signer.getIndex() + 1));
+					builder.append("</h3>");
+					writeCertificate(builder, signer.getCertificate());
+					writeIssues(builder, err, signer.getErrors());
+					writeIssues(builder, warn, signer.getWarnings());
 				}
-				str.append("</blockquote>");
+				builder.append("</blockquote>");
 			}
-			this.content = str.toString();
+			this.content = builder.toString();
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
-			this.content = String.format("<h1>APK verification failed: %s</h1><h2>Check log for details</h2>", e);
+			StringEscapeUtils.Builder builder = StringEscapeUtils.builder(StringEscapeUtils.ESCAPE_HTML4);
+			builder.append("<h1>");
+			builder.escape(NLS.str("apkSignature.exception"));
+			builder.append("</h1><pre>");
+			builder.escape(ExceptionUtils.getStackTrace(e));
+			builder.append("</pre>");
+			return builder.toString();
 		}
 		return this.content;
 	}
 
-	private void writeCertificate(StringBuilder str, Certificate cert) {
+	private void writeCertificate(StringEscapeUtils.Builder builder, Certificate cert) {
 		CertificateManager certMgr = new CertificateManager(cert);
-		str.append("<blockquote>");
-		str.append("<pre>" + certMgr.generateHeader() + "</pre>");
-		str.append("<pre>" + certMgr.generatePublicKey() + "</pre>");
-		str.append("<pre>" + certMgr.generateSignature() + "</pre>");
-		str.append("<pre>" + certMgr.generateFingerprint() + "</pre>");
-		str.append("</blockquote>");
+		builder.append("<blockquote><pre>");
+		builder.escape(certMgr.generateHeader());
+		builder.append("</pre><pre>");
+		builder.escape(certMgr.generatePublicKey());
+		builder.append("</pre><pre>");
+		builder.escape(certMgr.generateSignature());
+		builder.append("</pre><pre>");
+		builder.append(certMgr.generateFingerprint());
+		builder.append("</pre></blockquote>");
 	}
 
-	private void writeIssues(StringBuilder str, String issueType, List<ApkVerifier.IssueWithParams> issues) {
-		if (issues.size() > 0) {
-			str.append("<h3>" + issueType + "</h3><pre>");
-			for (ApkVerifier.IssueWithParams e : issues) {
-				str.append(e.toString() + "\n");
+	private void writeIssues(StringEscapeUtils.Builder builder, String issueType, List<ApkVerifier.IssueWithParams> issueList) {
+		if (issueList.size() > 0) {
+			builder.append("<h3>");
+			builder.escape(issueType);
+			builder.append("</h3>");
+			builder.append("<blockquote>");
+			// Unprotected Zip entry issues are very common, handle them separately
+			List<ApkVerifier.IssueWithParams> unprotIssues = issueList.stream().filter(i ->
+					i.getIssue() == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY).collect(Collectors.toList());
+			if (unprotIssues.size() > 0) {
+				builder.append("<h4>");
+				builder.escape(NLS.str("apkSignature.unprotectedEntry"));
+				builder.append("</h4><blockquote>");
+				for (ApkVerifier.IssueWithParams issue : unprotIssues) {
+					builder.escape((String) issue.getParams()[0]);
+					builder.append("<br>");
+				}
+				builder.append("</blockquote>");
 			}
-			str.append("</pre>\n");
+			List<ApkVerifier.IssueWithParams> remainingIssues = issueList.stream().filter(i ->
+					i.getIssue() != ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY).collect(Collectors.toList());
+			if (remainingIssues.size() > 0) {
+				builder.append("<pre>\n");
+				for (ApkVerifier.IssueWithParams issue : remainingIssues) {
+					builder.escape(issue.toString());
+					builder.append("\n");
+				}
+				builder.append("</pre>\n");
+			}
+			builder.append("</blockquote>");
 		}
 
 	}
