@@ -150,16 +150,15 @@ public class DexNode implements IDexNode {
 
 	@Nullable
 	FieldNode deepResolveField(@NotNull ClassNode cls, FieldInfo fieldInfo) {
-		FieldNode field = cls.searchFieldByName(fieldInfo.getName());
+		FieldNode field = cls.searchFieldByNameAndType(fieldInfo);
 		if (field != null) {
 			return field;
 		}
-		FieldNode found;
 		ArgType superClass = cls.getSuperClass();
 		if (superClass != null) {
 			ClassNode superNode = resolveClass(superClass);
 			if (superNode != null) {
-				found = deepResolveField(superNode, fieldInfo);
+				FieldNode found = deepResolveField(superNode, fieldInfo);
 				if (found != null) {
 					return found;
 				}
@@ -168,7 +167,7 @@ public class DexNode implements IDexNode {
 		for (ArgType iFaceType : cls.getInterfaces()) {
 			ClassNode iFaceNode = resolveClass(iFaceType);
 			if (iFaceNode != null) {
-				found = deepResolveField(iFaceNode, fieldInfo);
+				FieldNode found = deepResolveField(iFaceNode, fieldInfo);
 				if (found != null) {
 					return found;
 				}

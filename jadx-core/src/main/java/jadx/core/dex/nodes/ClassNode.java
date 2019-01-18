@@ -321,6 +321,15 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 		return null;
 	}
 
+	public FieldNode searchFieldByNameAndType(FieldInfo field) {
+		for (FieldNode f : fields) {
+			if (f.getFieldInfo().equalsNameAndType(field)) {
+				return f;
+			}
+		}
+		return null;
+	}
+
 	public FieldNode searchFieldByName(String name) {
 		for (FieldNode f : fields) {
 			if (f.getName().equals(name)) {
