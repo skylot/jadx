@@ -35,7 +35,7 @@ public class HeapUsageBar extends JProgressBar implements ActionListener {
 		setMaximum(maxKB);
 		maxGB = maxKB / TWO_TO_20;
 		update();
-		timer = new Timer(1000, this);
+		timer = new Timer(2000, this);
 	}
 
 	public void update() {
@@ -44,7 +44,7 @@ public class HeapUsageBar extends JProgressBar implements ActionListener {
 		setValue(usedKB);
 		setString(String.format(textFormat, (usedKB / TWO_TO_20), maxGB));
 
-		if (used > r.totalMemory() * 0.8) {
+		if (used > r.maxMemory() * 0.8) {
 			setForeground(RED);
 		} else {
 			setForeground(GREEN);
