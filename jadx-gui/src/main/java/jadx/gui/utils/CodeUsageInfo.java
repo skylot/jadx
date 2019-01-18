@@ -47,18 +47,11 @@ public class CodeUsageInfo {
 
 	private void addUsage(JNode jNode, JavaClass javaClass,
 	                      CodeLinesInfo linesInfo, CodePosition codePosition, List<StringRef> lines) {
-        UsageInfo usageInfo;
-        synchronized (jNode) {
-            usageInfo = usageMap.get(jNode);
-            if (usageInfo == null) {
-                usageInfo = new UsageInfo();
-                usageMap.put(jNode, usageInfo);
-            }
-        }
-		int line = codePosition.getLine();
-		JavaNode javaNodeByLine = linesInfo.getJavaNodeByLine(line);
-		StringRef codeLine = lines.get(line - 1);
-		JNode node = nodeCache.makeFrom(javaNodeByLine == null ? javaClass : javaNodeByLine);
+        UsageInfo usageInfo = usageMap.computeIfAbsent(jNode, key -> new UsageInfo());
+        int line = codePosition.getLine();
+        JavaNode javaNodeByLine = linesInfo.getJavaNodeByLine(line);
+        StringRef codeLine = lines.get(line - 1);
+        JNode node = nodeCache.makeFrom(javaNodeByLine == null ? javaClass : javaNodeByLine);
 		CodeNode codeNode = new CodeNode(node, line, codeLine);
 		usageInfo.addUsage(codeNode);
 	}
