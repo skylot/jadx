@@ -37,6 +37,11 @@ public class JRoot extends JNode {
 			add(jRes);
 		}
 
+		ApkSignature signature = ApkSignature.getApkSignature(wrapper);
+		if (signature != null) {
+			add(signature);
+		}
+
 		JCertificate certificate = getCertificate(wrapper.getResources());
 		if (certificate != null) {
 			add(certificate);

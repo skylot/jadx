@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import jadx.gui.treemodel.*;
 import org.fife.ui.rsyntaxtextarea.Theme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,12 +40,6 @@ import jadx.gui.jobs.DecompileJob;
 import jadx.gui.jobs.IndexJob;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsWindow;
-import jadx.gui.treemodel.JCertificate;
-import jadx.gui.treemodel.JClass;
-import jadx.gui.treemodel.JLoadableNode;
-import jadx.gui.treemodel.JNode;
-import jadx.gui.treemodel.JResource;
-import jadx.gui.treemodel.JRoot;
 import jadx.gui.update.JadxUpdate;
 import jadx.gui.update.JadxUpdate.IUpdateCallback;
 import jadx.gui.update.data.Release;
@@ -296,9 +291,8 @@ public class MainWindow extends JFrame {
 				if (resFile != null && JResource.isSupportedForView(resFile.getType())) {
 					tabbedPane.showResource(res);
 				}
-			} else if (obj instanceof JCertificate) {
-				JCertificate cert = (JCertificate) obj;
-				tabbedPane.showCertificate(cert);
+			} else if ((obj instanceof JCertificate) || (obj instanceof ApkSignature)) {
+				tabbedPane.showSimpleNode((JNode) obj);
 			} else if (obj instanceof JNode) {
 				JNode node = (JNode) obj;
 				JClass cls = node.getRootClass();

@@ -1,22 +1,8 @@
 package jadx.gui.ui;
 
-import javax.swing.*;
-import javax.swing.plaf.basic.BasicButtonUI;
-import javax.swing.text.BadLocationException;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
+import jadx.gui.treemodel.ApkSignature;
 import jadx.gui.treemodel.JCertificate;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
@@ -27,6 +13,29 @@ import jadx.gui.utils.JumpManager;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
+import javax.swing.plaf.basic.BasicButtonUI;
+import javax.swing.text.BadLocationException;
+import java.awt.Component;
+import java.awt.FlowLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class TabbedPane extends JTabbedPane {
 
@@ -93,8 +102,8 @@ public class TabbedPane extends JTabbedPane {
 		SwingUtilities.invokeLater(() -> setSelectedComponent(contentPanel));
 	}
 
-	public void showCertificate(JCertificate cert) {
-		final ContentPanel contentPanel = getContentPanel(cert);
+	public void showSimpleNode(JNode node) {
+		final ContentPanel contentPanel = getContentPanel(node);
 		if (contentPanel == null) {
 			return;
 		}
@@ -169,6 +178,9 @@ public class TabbedPane extends JTabbedPane {
 			} else {
 				return null;
 			}
+		}
+		if (node instanceof ApkSignature) {
+			return new HtmlPanel(this, node);
 		}
 		if (node instanceof JCertificate) {
 			return new CertificatePanel(this, node);
