@@ -39,8 +39,16 @@ public class Utils {
 		if (objects == null) {
 			return "";
 		}
+		return listToString(objects, joiner, Object::toString);
+	}
+
+	public static <T> String listToString(Iterable<T> objects, Function<T, String> toStr) {
+		return listToString(objects, ", ", toStr);
+	}
+
+	public static <T> String listToString(Iterable<T> objects, String joiner, Function<T, String> toStr) {
 		StringBuilder sb = new StringBuilder();
-		listToString(sb, objects, joiner, Object::toString);
+		listToString(sb, objects, joiner, toStr);
 		return sb.toString();
 	}
 

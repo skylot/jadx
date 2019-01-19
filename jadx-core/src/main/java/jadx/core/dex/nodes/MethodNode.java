@@ -96,16 +96,16 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 
 			DexNode dex = parentClass.dex();
 			Code mthCode = dex.readCode(methodData);
-			regsCount = mthCode.getRegistersSize();
+			this.regsCount = mthCode.getRegistersSize();
 			initMethodTypes();
 
 			InsnDecoder decoder = new InsnDecoder(this);
 			decoder.decodeInsns(mthCode);
-			instructions = decoder.process();
-			codeSize = instructions.length;
+			this.instructions = decoder.process();
+			this.codeSize = instructions.length;
 
-			initTryCatches(mthCode);
-			initJumps();
+			initTryCatches(this, mthCode, instructions);
+			initJumps(instructions);
 
 			this.debugInfoOffset = mthCode.getDebugInfoOffset();
 		} catch (Exception e) {
@@ -257,37 +257,37 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 		return genericMap;
 	}
 
-	private void initTryCatches(Code mthCode) {
-		InsnNode[] insnByOffset = instructions;
+	private static void initTryCatches(MethodNode mth, Code mthCode, InsnNode[] insnByOffset) {
 		CatchHandler[] catchBlocks = mthCode.getCatchHandlers();
 		Try[] tries = mthCode.getTries();
 		if (catchBlocks.length == 0 && tries.length == 0) {
 			return;
 		}
 
-		int hc = 0;
+		int handlersCount = 0;
 		Set<Integer> addrs = new HashSet<>();
 		List<TryCatchBlock> catches = new ArrayList<>(catchBlocks.length);
 
 		for (CatchHandler handler : catchBlocks) {
 			TryCatchBlock tcBlock = new TryCatchBlock();
 			catches.add(tcBlock);
-			for (int i = 0; i < handler.getAddresses().length; i++) {
-				int addr = handler.getAddresses()[i];
-				ClassInfo type = ClassInfo.fromDex(parentClass.dex(), handler.getTypeIndexes()[i]);
-				tcBlock.addHandler(this, addr, type);
+			int[] handlerAddrArr = handler.getAddresses();
+			for (int i = 0; i < handlerAddrArr.length; i++) {
+				int addr = handlerAddrArr[i];
+				ClassInfo type = ClassInfo.fromDex(mth.dex(), handler.getTypeIndexes()[i]);
+				tcBlock.addHandler(mth, addr, type);
 				addrs.add(addr);
-				hc++;
+				handlersCount++;
 			}
 			int addr = handler.getCatchAllAddress();
 			if (addr >= 0) {
-				tcBlock.addHandler(this, addr, null);
+				tcBlock.addHandler(mth, addr, null);
 				addrs.add(addr);
-				hc++;
+				handlersCount++;
 			}
 		}
 
-		if (hc > 0 && hc != addrs.size()) {
+		if (handlersCount > 0 && handlersCount != addrs.size()) {
 			// resolve nested try blocks:
 			// inner block contains all handlers from outer block => remove these handlers from inner block
 			// each handler must be only in one try/catch block
@@ -295,7 +295,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 				for (TryCatchBlock ct2 : catches) {
 					if (ct1 != ct2 && ct2.containsAllHandlers(ct1)) {
 						for (ExceptionHandler h : ct1.getHandlers()) {
-							ct2.removeHandler(this, h);
+							ct2.removeHandler(mth, h);
 							h.setTryBlock(ct1);
 						}
 					}
@@ -309,6 +309,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 			for (ExceptionHandler eh : ct.getHandlers()) {
 				int addr = eh.getHandleOffset();
 				ExcHandlerAttr ehAttr = new ExcHandlerAttr(ct, eh);
+				// TODO: don't override existing attribute
 				insnByOffset[addr].addAttr(ehAttr);
 			}
 		}
@@ -335,8 +336,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 		}
 	}
 
-	private void initJumps() {
-		InsnNode[] insnByOffset = instructions;
+	private static void initJumps(InsnNode[] insnByOffset) {
 		for (int offset = 0; offset < insnByOffset.length; offset++) {
 			InsnNode insn = insnByOffset[offset];
 			if (insn == null) {
@@ -484,7 +484,18 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 			exceptionHandlers = new ArrayList<>(2);
 		} else {
 			for (ExceptionHandler h : exceptionHandlers) {
-				if (h == handler || h.getHandleOffset() == handler.getHandleOffset()) {
+				if (h.equals(handler)) {
+					return h;
+				}
+				if (h.getHandleOffset() == handler.getHandleOffset()) {
+					if (h.getTryBlock() == handler.getTryBlock()) {
+						for (ClassInfo catchType : handler.getCatchTypes()) {
+							h.addCatchType(catchType);
+						}
+					} else {
+						// same handlers from different try blocks
+						// will merge later
+					}
 					return h;
 				}
 			}

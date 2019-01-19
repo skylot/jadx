@@ -438,7 +438,7 @@ public class ModVisitor extends AbstractVisitor {
 
 		// result arg used both in this insn and exception handler,
 		RegisterArg resArg = insn.getResult();
-		ArgType type = excHandler.isCatchAll() ? ArgType.THROWABLE : excHandler.getCatchType().getType();
+		ArgType type = excHandler.getArgType();
 		String name = excHandler.isCatchAll() ? "th" : "e";
 		if (resArg.getName() == null) {
 			resArg.setName(name);

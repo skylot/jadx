@@ -30,6 +30,6 @@ public class ExcHandlerAttr implements IAttribute {
 	public String toString() {
 		return "ExcHandler: " + (handler.isFinally()
 				? " FINALLY"
-				: (handler.isCatchAll() ? "all" : handler.getCatchType()) + " " + handler.getArg());
+				: handler.catchTypeStr() + " " + handler.getArg());
 	}
 }

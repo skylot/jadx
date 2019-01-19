@@ -2,12 +2,14 @@ package jadx.core.dex.info;
 
 import java.io.File;
 
+import org.jetbrains.annotations.NotNull;
+
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
-public final class ClassInfo {
+public final class ClassInfo implements Comparable<ClassInfo> {
 
 	private final ArgType type;
 	private String pkg;
@@ -193,5 +195,10 @@ public final class ClassInfo {
 			return this.type.equals(other.type);
 		}
 		return false;
+	}
+
+	@Override
+	public int compareTo(@NotNull ClassInfo o) {
+		return fullName.compareTo(o.fullName);
 	}
 }

@@ -48,7 +48,7 @@ public class BlockExceptionHandler extends AbstractVisitor {
 			return;
 		}
 		ExceptionHandler excHandler = handlerAttr.getHandler();
-		ArgType argType = excHandler.isCatchAll() ? ArgType.THROWABLE : excHandler.getCatchType().getType();
+		ArgType argType = excHandler.getArgType();
 		if (!block.getInstructions().isEmpty()) {
 			InsnNode me = block.getInstructions().get(0);
 			if (me.getType() == InsnType.MOVE_EXCEPTION) {
