@@ -20,7 +20,7 @@ dependencies {
 
     compile 'io.reactivex.rxjava2:rxjava:2.2.5'
     compile "com.github.akarnokd:rxjava2-swing:0.3.3"
-    compile 'com.android.tools.build:apksig:2.3.0'
+    compile 'com.android.tools.build:apksig:3.3.0'
 }
 
 applicationDistribution.with {
