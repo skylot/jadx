@@ -26,6 +26,16 @@ public class Utils {
 
 	public static final Font FONT_HACK = openFontTTF("Hack-Regular");
 
+	/**
+	 * The minimum about of memory in bytes we are trying to keep free, otherwise the application may run out of heap
+	 * which ends up in a Java garbage collector running "amok" (CPU utilization 100% for each core and the UI is
+	 * not responsive).
+	 *
+	 * We can calculate and store this value here as the maximum heap is fixed for each JVM instance
+	 * and can't be changed at runtime.
+	 */
+	public static final long MIN_FREE_MEMORY = calculateMinFreeMemory();
+
 	private Utils() {
 	}
 
@@ -107,11 +117,21 @@ public class Utils {
 		return overIcon;
 	}
 
+	/**
+	 * @return 20% of the maximum heap size limited to 512 MB (bytes)
+	 */
+	public static long calculateMinFreeMemory() {
+		Runtime runtime = Runtime.getRuntime();
+		long minFree = (long) (runtime.maxMemory() * 0.2);
+		minFree = Math.min(minFree, 512 * 1048576);
+		return minFree;
+	}
+
 	public static boolean isFreeMemoryAvailable() {
 		Runtime runtime = Runtime.getRuntime();
 		long maxMemory = runtime.maxMemory();
-		long totalFree = runtime.freeMemory() + maxMemory - runtime.totalMemory();
-		return totalFree > maxMemory * 0.2;
+		long totalFree = runtime.freeMemory() + (maxMemory - runtime.totalMemory());
+		return totalFree > MIN_FREE_MEMORY;
 	}
 
 	public static String memoryInfo() {
