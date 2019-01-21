@@ -1,6 +1,7 @@
 package jadx.gui.ui;
 
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.Utils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,7 +45,7 @@ public class HeapUsageBar extends JProgressBar implements ActionListener {
 		setValue(usedKB);
 		setString(String.format(textFormat, (usedKB / TWO_TO_20), maxGB));
 
-		if (used > r.maxMemory() * 0.8) {
+		if ((used + Utils.MIN_FREE_MEMORY) > r.maxMemory()) {
 			setForeground(RED);
 		} else {
 			setForeground(GREEN);
