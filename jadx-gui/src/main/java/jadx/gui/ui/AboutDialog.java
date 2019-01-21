@@ -2,8 +2,6 @@ package jadx.gui.ui;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import jadx.api.JadxDecompiler;
 import jadx.gui.utils.NLS;
@@ -42,11 +40,7 @@ class AboutDialog extends JDialog {
 		textPane.add(Box.createRigidArea(new Dimension(0, 20)));
 
 		JButton close = new JButton(NLS.str("tabs.close"));
-		close.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent event) {
-				dispose();
-			}
-		});
+		close.addActionListener(event -> dispose());
 		close.setAlignmentX(0.5f);
 
 		Container contentPane = getContentPane();

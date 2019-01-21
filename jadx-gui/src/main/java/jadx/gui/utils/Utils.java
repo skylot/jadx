@@ -30,7 +30,7 @@ public class Utils {
 	 * The minimum about of memory in bytes we are trying to keep free, otherwise the application may run out of heap
 	 * which ends up in a Java garbage collector running "amok" (CPU utilization 100% for each core and the UI is
 	 * not responsive).
-	 *
+	 * <p>
 	 * We can calculate and store this value here as the maximum heap is fixed for each JVM instance
 	 * and can't be changed at runtime.
 	 */
@@ -123,8 +123,7 @@ public class Utils {
 	public static long calculateMinFreeMemory() {
 		Runtime runtime = Runtime.getRuntime();
 		long minFree = (long) (runtime.maxMemory() * 0.2);
-		minFree = Math.min(minFree, 512 * 1048576);
-		return minFree;
+		return Math.min(minFree, 512 * 1024L * 1024L);
 	}
 
 	public static boolean isFreeMemoryAvailable() {
@@ -151,7 +150,7 @@ public class Utils {
 	}
 
 	private static String format(long mem) {
-		return Long.toString((long) (mem / 1024. / 1024.)) + "MB";
+		return (long) (mem / (double) (1024L * 1024L)) + "MB";
 	}
 
 	/**

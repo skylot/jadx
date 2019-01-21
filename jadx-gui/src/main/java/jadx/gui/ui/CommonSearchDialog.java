@@ -33,14 +33,14 @@ import jadx.gui.jobs.DecompileJob;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.utils.CacheObject;
-import jadx.gui.utils.NLS;
 import jadx.gui.utils.JumpPosition;
+import jadx.gui.utils.NLS;
 import jadx.gui.utils.search.TextSearchIndex;
 
 public abstract class CommonSearchDialog extends JDialog {
+	private static final long serialVersionUID = 8939332306115370276L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(CommonSearchDialog.class);
-	private static final long serialVersionUID = 8939332306115370276L;
 
 	public static final int RESULTS_PER_PAGE = 100;
 
@@ -399,7 +399,7 @@ public abstract class CommonSearchDialog extends JDialog {
 		private final JLabel emptyLabel = new JLabel();
 		private final Color codeSelectedColor;
 		private final Color codeBackground;
-		private Map<Integer, Component> componentCache = new HashMap<>();
+		private final Map<Integer, Component> componentCache = new HashMap<>();
 
 		public ResultsTableCellRenderer() {
 			RSyntaxTextArea area = CodeArea.getDefaultArea(mainWindow);

@@ -3,12 +3,12 @@ package jadx.gui.jobs;
 import javax.swing.*;
 import java.util.concurrent.Future;
 
-import jadx.gui.utils.NLS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.gui.ui.ProgressPanel;
 import jadx.gui.utils.CacheObject;
+import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
 import jadx.gui.utils.search.TextSearchIndex;
 
@@ -27,12 +27,7 @@ public class BackgroundWorker extends SwingWorker<Void, Void> {
 		if (isDone()) {
 			return;
 		}
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				progressPane.setVisible(true);
-			}
-		});
+		SwingUtilities.invokeLater(() -> progressPane.setVisible(true));
 		addPropertyChangeListener(progressPane);
 		execute();
 	}
@@ -46,7 +41,7 @@ public class BackgroundWorker extends SwingWorker<Void, Void> {
 	}
 
 	@Override
-	protected Void doInBackground() throws Exception {
+	protected Void doInBackground() {
 		try {
 			System.gc();
 			LOG.debug("Memory usage: Before decompile: {}", Utils.memoryInfo());

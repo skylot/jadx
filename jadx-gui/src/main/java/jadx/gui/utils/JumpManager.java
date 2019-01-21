@@ -5,7 +5,7 @@ import java.util.List;
 
 public class JumpManager {
 
-	private List<JumpPosition> list = new ArrayList<>();
+	private final List<JumpPosition> list = new ArrayList<>();
 	private int currentPos = 0;
 
 	public void addPosition(JumpPosition pos) {

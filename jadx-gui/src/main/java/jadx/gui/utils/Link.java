@@ -16,7 +16,7 @@ public class Link extends JLabel implements MouseListener {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Link.class);
 
-	private String url;
+	private final String url;
 
 	public Link(String text, String url) {
 		super(text);

@@ -1,4 +1,5 @@
 package jadx.gui.tests
+
 import jadx.gui.utils.search.StringRef
 import spock.lang.Specification
 

@@ -67,7 +67,6 @@ public class JadxWrapper {
 
 	/**
 	 * Get the complete list of classes
-	 * @return
 	 */
 	public List<JavaClass> getClasses() {
 		return decompiler.getClasses();
@@ -75,19 +74,20 @@ public class JadxWrapper {
 
 	/**
 	 * Get all classes that are not excluded by the excluded packages settings
-	 * @return
 	 */
 	public List<JavaClass> getIncludedClasses() {
 		List<JavaClass> classList = decompiler.getClasses();
 		String excludedPackages = settings.getExcludedPackages().trim();
-		if (excludedPackages.length() == 0)
+		if (excludedPackages.length() == 0) {
 			return classList;
+		}
 		String[] excluded = excludedPackages.split("[ ]+");
 
 		return classList.stream().filter(cls -> {
 			for (String exclude : excluded) {
-				if (cls.getFullName().startsWith(exclude))
+				if (cls.getFullName().startsWith(exclude)) {
 					return false;
+				}
 			}
 			return true;
 		}).collect(Collectors.toList());

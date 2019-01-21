@@ -21,8 +21,8 @@ public class CertificateManager {
 	private static final Logger LOG = LoggerFactory.getLogger(CertificateManager.class);
 	private static final String CERTIFICATE_TYPE_NAME = "X.509";
 
+	private final Certificate cert;
 	private X509Certificate x509cert;
-	private Certificate cert;
 
 	public static String decode(InputStream in) {
 		StringBuilder strBuild = new StringBuilder();

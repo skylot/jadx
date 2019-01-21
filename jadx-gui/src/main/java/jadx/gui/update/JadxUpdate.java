@@ -6,9 +6,8 @@ import java.io.Reader;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Collections;
+import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 
 import com.google.gson.Gson;
@@ -32,12 +31,8 @@ public class JadxUpdate {
 	private static final Type RELEASES_LIST_TYPE = new TypeToken<List<Release>>() {
 	}.getType();
 
-	private static final Comparator<Release> RELEASE_COMPARATOR = new Comparator<Release>() {
-		@Override
-		public int compare(Release o1, Release o2) {
-			return VersionComparator.checkAndCompare(o1.getName(), o2.getName());
-		}
-	};
+	private static final Comparator<Release> RELEASE_COMPARATOR = (o1, o2) ->
+			VersionComparator.checkAndCompare(o1.getName(), o2.getName());
 
 	public interface IUpdateCallback {
 		void onUpdate(Release r);
@@ -47,17 +42,14 @@ public class JadxUpdate {
 	}
 
 	public static void check(final IUpdateCallback callback) {
-		Runnable run = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Release release = checkForNewRelease();
-					if (release != null) {
-						callback.onUpdate(release);
-					}
-				} catch (Exception e) {
-					LOG.debug("Jadx update error", e);
+		Runnable run = () -> {
+			try {
+				Release release = checkForNewRelease();
+				if (release != null) {
+					callback.onUpdate(release);
 				}
+			} catch (Exception e) {
+				LOG.debug("Jadx update error", e);
 			}
 		};
 		Thread thread = new Thread(run);
@@ -77,17 +69,11 @@ public class JadxUpdate {
 		if (list == null) {
 			return null;
 		}
-		for (Iterator<Release> it = list.iterator(); it.hasNext(); ) {
-			Release release = it.next();
-			if (release.getName().equalsIgnoreCase(version)
-					|| release.isPreRelease()) {
-				it.remove();
-			}
-		}
+		list.removeIf(release -> release.getName().equalsIgnoreCase(version) || release.isPreRelease());
 		if (list.isEmpty()) {
 			return null;
 		}
-		Collections.sort(list, RELEASE_COMPARATOR);
+		list.sort(RELEASE_COMPARATOR);
 		Release latest = list.get(list.size() - 1);
 		if (VersionComparator.checkAndCompare(version, latest.getName()) >= 0) {
 			return null;
@@ -101,7 +87,7 @@ public class JadxUpdate {
 		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 		con.setRequestMethod("GET");
 		if (con.getResponseCode() == 200) {
-			Reader reader = new InputStreamReader(con.getInputStream(), "UTF-8");
+			Reader reader = new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8);
 			return GSON.fromJson(reader, type);
 		}
 		return null;

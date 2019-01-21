@@ -1,17 +1,10 @@
 package jadx.gui.ui;
 
+import javax.swing.*;
+import java.awt.*;
+
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.codearea.CodeArea;
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.plaf.PanelUI;
-import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 
 public final class HtmlPanel extends ContentPanel {
 	private static final long serialVersionUID = -6251262855835426245L;
@@ -36,14 +29,14 @@ public final class HtmlPanel extends ContentPanel {
 		textArea.setFont(settings.getFont());
 	}
 
-	private static class JHtmlPane extends JEditorPane {
-
-		boolean antiAliasingEnabled;
+	private static final class JHtmlPane extends JEditorPane {
+		private static final long serialVersionUID = 6886040384052136157L;
 
 		public JHtmlPane() {
 			setContentType("text/html");
 		}
 
+		@Override
 		public void paint(Graphics g) {
 			Graphics2D g2d = (Graphics2D) g.create();
 			try {
@@ -53,6 +46,5 @@ public final class HtmlPanel extends ContentPanel {
 				g2d.dispose();
 			}
 		}
-
 	}
 }

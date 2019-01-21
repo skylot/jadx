@@ -9,7 +9,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
@@ -28,7 +27,6 @@ import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import jadx.gui.treemodel.*;
 import org.fife.ui.rsyntaxtextarea.Theme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,13 +38,20 @@ import jadx.gui.jobs.DecompileJob;
 import jadx.gui.jobs.IndexJob;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsWindow;
+import jadx.gui.treemodel.ApkSignature;
+import jadx.gui.treemodel.JCertificate;
+import jadx.gui.treemodel.JClass;
+import jadx.gui.treemodel.JLoadableNode;
+import jadx.gui.treemodel.JNode;
+import jadx.gui.treemodel.JResource;
+import jadx.gui.treemodel.JRoot;
 import jadx.gui.update.JadxUpdate;
 import jadx.gui.update.JadxUpdate.IUpdateCallback;
 import jadx.gui.update.data.Release;
 import jadx.gui.utils.CacheObject;
+import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.Utils;
 
 import static javax.swing.KeyStroke.getKeyStroke;
@@ -90,7 +95,6 @@ public class MainWindow extends JFrame {
 	private boolean isFlattenPackage;
 	private JToggleButton flatPkgButton;
 	private JCheckBoxMenuItem flatPkgMenuItem;
-	private JCheckBoxMenuItem heapUsageBarMenuItem;
 
 	private JToggleButton deobfToggleBtn;
 	private JCheckBoxMenuItem deobfMenuItem;
@@ -382,7 +386,7 @@ public class MainWindow extends JFrame {
 		flatPkgMenuItem = new JCheckBoxMenuItem(NLS.str("menu.flatten"), ICON_FLAT_PKG);
 		flatPkgMenuItem.setState(isFlattenPackage);
 
-		heapUsageBarMenuItem = new JCheckBoxMenuItem(NLS.str("menu.heapUsageBar"));
+		JCheckBoxMenuItem heapUsageBarMenuItem = new JCheckBoxMenuItem(NLS.str("menu.heapUsageBar"));
 		heapUsageBarMenuItem.setState(settings.isShowHeapUsageBar());
 		heapUsageBarMenuItem.addActionListener(event -> {
 			settings.setShowHeapUsageBar(!settings.isShowHeapUsageBar());
@@ -589,7 +593,7 @@ public class MainWindow extends JFrame {
 		});
 		tree.addTreeWillExpandListener(new TreeWillExpandListener() {
 			@Override
-			public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException {
+			public void treeWillExpand(TreeExpansionEvent event) {
 				TreePath path = event.getPath();
 				Object node = path.getLastPathComponent();
 				if (node instanceof JLoadableNode) {
@@ -598,7 +602,8 @@ public class MainWindow extends JFrame {
 			}
 
 			@Override
-			public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException {
+			public void treeWillCollapse(TreeExpansionEvent event) {
+				// ignore
 			}
 		});
 
