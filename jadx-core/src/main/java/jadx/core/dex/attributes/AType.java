@@ -10,7 +10,6 @@ import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.attributes.nodes.ForceReturnAttr;
 import jadx.core.dex.attributes.nodes.IgnoreEdgeAttr;
 import jadx.core.dex.attributes.nodes.JadxError;
-import jadx.core.dex.attributes.nodes.JadxWarn;
 import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.attributes.nodes.LocalVarsDebugInfoAttr;
 import jadx.core.dex.attributes.nodes.LoopInfo;
@@ -37,7 +36,7 @@ public class AType<T extends IAttribute> {
 	public static final AType<AttrList<EdgeInsnAttr>> EDGE_INSN = new AType<>();
 
 	public static final AType<AttrList<JadxError>> JADX_ERROR = new AType<>(); // code failed to decompile completely
-	public static final AType<AttrList<JadxWarn>> JADX_WARN = new AType<>(); // mark code as inconsistent (code can be viewed)
+	public static final AType<AttrList<String>> JADX_WARN = new AType<>(); // mark code as inconsistent (code can be viewed)
 	public static final AType<AttrList<String>> COMMENTS = new AType<>(); // any additional info about decompilation
 
 	public static final AType<ExcHandlerAttr> EXC_HANDLER = new AType<>();

@@ -18,7 +18,6 @@ import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.attributes.nodes.EnumClassAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr.EnumField;
 import jadx.core.dex.attributes.nodes.JadxError;
-import jadx.core.dex.attributes.nodes.JadxWarn;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.info.AccessInfo;
@@ -327,7 +326,6 @@ public class ClassGen {
 
 	private void insertDecompilationProblems(CodeWriter code, AttrNode node) {
 		List<JadxError> errors = node.getAll(AType.JADX_ERROR);
-		List<JadxWarn> warns = node.getAll(AType.JADX_WARN);
 		if (!errors.isEmpty()) {
 			errors.forEach(err -> {
 				code.startLine("/*  JADX ERROR: ").add(err.getError());
@@ -340,8 +338,10 @@ public class ClassGen {
 				code.add("*/");
 			});
 		}
+		List<String> warns = node.getAll(AType.JADX_WARN);
 		if (!warns.isEmpty()) {
-			warns.forEach(warn -> code.startLine("/* JADX WARNING: ").addMultiLine(warn.getWarn()).add(" */"));
+			warns.stream().distinct()
+					.forEach(warn -> code.startLine("/* JADX WARNING: ").addMultiLine(warn).add(" */"));
 		}
 	}
 

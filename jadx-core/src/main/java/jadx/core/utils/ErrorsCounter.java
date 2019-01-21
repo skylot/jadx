@@ -14,7 +14,6 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.attributes.nodes.JadxError;
-import jadx.core.dex.attributes.nodes.JadxWarn;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.IDexNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -60,7 +59,7 @@ public class ErrorsCounter {
 		warnNodes.add(node);
 		warnsCount++;
 
-		node.addAttr(AType.JADX_WARN, new JadxWarn(warn));
+		node.addAttr(AType.JADX_WARN, warn);
 		if (!node.contains(AType.JADX_ERROR)) {
 			node.add(AFlag.INCONSISTENT_CODE);
 		}
