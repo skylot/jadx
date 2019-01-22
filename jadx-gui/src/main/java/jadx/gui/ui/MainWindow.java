@@ -111,16 +111,11 @@ public class MainWindow extends JFrame {
 		this.cacheObject = new CacheObject();
 
 		resetCache();
+		registerBundledFonts();
 		initUI();
 		initMenuAndToolbar();
-		applySettings();
-		checkForUpdate();
-	}
-
-	private void applySettings() {
-		setFont(settings.getFont());
-		setEditorTheme(settings.getEditorThemePath());
 		loadSettings();
+		checkForUpdate();
 	}
 
 	public void open() {
@@ -649,7 +644,14 @@ public class MainWindow extends JFrame {
 		setFont(font);
 	}
 
-	public void setEditorTheme(String editorThemePath) {
+	public static void registerBundledFonts() {
+		GraphicsEnvironment grEnv = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		if (Utils.FONT_HACK != null) {
+			grEnv.registerFont(Utils.FONT_HACK);
+		}
+	}
+
+	private void setEditorTheme(String editorThemePath) {
 		try {
 			editorTheme = Theme.load(getClass().getResourceAsStream(editorThemePath));
 		} catch (Exception e) {
@@ -667,6 +669,14 @@ public class MainWindow extends JFrame {
 	}
 
 	public void loadSettings() {
+		Font font = settings.getFont();
+		Font largerFont = font.deriveFont(font.getSize() + 2.f);
+
+		setFont(largerFont);
+		setEditorTheme(settings.getEditorThemePath());
+		tree.setFont(largerFont);
+		tree.setRowHeight(-1);
+
 		tabbedPane.loadSettings();
 	}
 

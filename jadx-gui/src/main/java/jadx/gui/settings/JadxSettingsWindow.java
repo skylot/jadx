@@ -17,8 +17,6 @@ import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 
-import static jadx.gui.utils.Utils.FONT_HACK;
-
 public class JadxSettingsWindow extends JDialog {
 	private static final long serialVersionUID = -1804570470377354148L;
 
@@ -38,7 +36,6 @@ public class JadxSettingsWindow extends JDialog {
 		this.prevLang = settings.getLangLocale();
 
 		initUI();
-		registerBundledFonts();
 
 		setTitle(NLS.str("preferences.title"));
 		setSize(400, 550);
@@ -46,13 +43,6 @@ public class JadxSettingsWindow extends JDialog {
 		setModalityType(ModalityType.APPLICATION_MODAL);
 		pack();
 		setLocationRelativeTo(null);
-	}
-
-	public static void registerBundledFonts() {
-		GraphicsEnvironment grEnv = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		if (FONT_HACK != null) {
-			grEnv.registerFont(FONT_HACK);
-		}
 	}
 
 	private void initUI() {
@@ -202,7 +192,6 @@ public class JadxSettingsWindow extends JDialog {
 			int i = themesCbx.getSelectedIndex();
 			EditorTheme editorTheme = editorThemes[i];
 			settings.setEditorThemePath(editorTheme.getPath());
-			mainWindow.setEditorTheme(editorTheme.getPath());
 			mainWindow.loadSettings();
 		});
 
