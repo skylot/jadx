@@ -219,4 +219,8 @@ public class LineNumbers extends JPanel implements CaretListener {
 			lastLine = currentLine;
 		}
 	}
+
+	public void setUseSourceLines(boolean useSourceLines) {
+		this.useSourceLines = useSourceLines;
+	}
 }

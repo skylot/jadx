@@ -1,84 +1,47 @@
 package jadx.core.xmlgen;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
-import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import jadx.api.ResourceFile;
 import jadx.core.codegen.CodeWriter;
-import jadx.core.utils.android.Res9patchStreamDecoder;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class ResContainer implements Comparable<ResContainer> {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ResContainer.class);
+	public enum DataType {
+		TEXT, DECODED_DATA, RES_LINK, RES_TABLE
+	}
 
+	private final DataType dataType;
 	private final String name;
+	private final Object data;
 	private final List<ResContainer> subFiles;
 
-	@Nullable
-	private CodeWriter content;
-	@Nullable
-	private BufferedImage image;
-	@Nullable
-	private InputStream binary;
-
-	private ResContainer(String name, List<ResContainer> subFiles) {
-		this.name = name;
-		this.subFiles = subFiles;
+	public static ResContainer textResource(String name, CodeWriter content) {
+		return new ResContainer(name, Collections.emptyList(), content, DataType.TEXT);
 	}
 
-	public static ResContainer singleFile(String name, CodeWriter content) {
-		ResContainer resContainer = new ResContainer(name, Collections.emptyList());
-		resContainer.content = content;
-		return resContainer;
+	public static ResContainer decodedData(String name, byte[] data) {
+		return new ResContainer(name, Collections.emptyList(), data, DataType.DECODED_DATA);
 	}
 
-	public static ResContainer singleImageFile(String name, InputStream content) {
-		ResContainer resContainer = new ResContainer(name, Collections.emptyList());
-		InputStream newContent = content;
-		if (name.endsWith(".9.png")) {
-			Res9patchStreamDecoder decoder = new Res9patchStreamDecoder();
-			ByteArrayOutputStream os = new ByteArrayOutputStream();
-			try {
-				decoder.decode(content, os);
-			} catch (Exception e) {
-				LOG.error("Failed to decode 9-patch png image, path: {}", name, e);
-			}
-			newContent = new ByteArrayInputStream(os.toByteArray());
-		}
-		try {
-			resContainer.image = ImageIO.read(newContent);
-		} catch (Exception e) {
-			throw new JadxRuntimeException("Image load error", e);
-		}
-		return resContainer;
+	public static ResContainer resourceFileLink(ResourceFile resFile) {
+		return new ResContainer(resFile.getName(), Collections.emptyList(), resFile, DataType.RES_LINK);
 	}
 
-	public static ResContainer singleBinaryFile(String name, InputStream content) {
-		ResContainer resContainer = new ResContainer(name, Collections.emptyList());
-		try {
-			// TODO: don't store binary files in memory
-			resContainer.binary = new ByteArrayInputStream(IOUtils.toByteArray(content));
-		} catch (Exception e) {
-			LOG.warn("Contents of the binary resource '{}' not saved, got exception", name, e);
-		}
-		return resContainer;
+	public static ResContainer resourceTable(String name, List<ResContainer> subFiles, CodeWriter rootContent) {
+		return new ResContainer(name, subFiles, rootContent, DataType.RES_TABLE);
 	}
 
-	public static ResContainer multiFile(String name) {
-		return new ResContainer(name, new ArrayList<>());
+	private ResContainer(String name, List<ResContainer> subFiles, Object data, DataType dataType) {
+		this.name = Objects.requireNonNull(name);
+		this.subFiles = Objects.requireNonNull(subFiles);
+		this.data = Objects.requireNonNull(data);
+		this.dataType = Objects.requireNonNull(dataType);
 	}
 
 	public String getName() {
@@ -89,27 +52,24 @@ public class ResContainer implements Comparable<ResContainer> {
 		return name.replace("/", File.separator);
 	}
 
-	@Nullable
-	public CodeWriter getContent() {
-		return content;
-	}
-
-	@Nullable
-	public InputStream getBinary() {
-		return binary;
-	}
-
-	public void setContent(@Nullable CodeWriter content) {
-		this.content = content;
-	}
-
-	@Nullable
-	public BufferedImage getImage() {
-		return image;
-	}
-
 	public List<ResContainer> getSubFiles() {
 		return subFiles;
+	}
+
+	public DataType getDataType() {
+		return dataType;
+	}
+
+	public CodeWriter getText() {
+		return (CodeWriter) data;
+	}
+
+	public byte[] getDecodedData() {
+		return (byte[]) data;
+	}
+
+	public ResourceFile getResLink() {
+		return (ResourceFile) data;
 	}
 
 	@Override
@@ -136,6 +96,6 @@ public class ResContainer implements Comparable<ResContainer> {
 
 	@Override
 	public String toString() {
-		return "Res{" + name + ", subFiles=" + subFiles + "}";
+		return "Res{" + name + ", type=" + dataType + ", subFiles=" + subFiles + "}";
 	}
 }

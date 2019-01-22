@@ -2,6 +2,7 @@ package jadx.gui.treemodel;
 
 import javax.swing.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -11,13 +12,12 @@ import org.jetbrains.annotations.NotNull;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceFileContent;
 import jadx.api.ResourceType;
+import jadx.api.ResourcesLoader;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.xmlgen.ResContainer;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.OverlayIcon;
 import jadx.gui.utils.Utils;
-
-import static jadx.api.ResourceFileContent.createResourceFileContentInstance;
 
 public class JResource extends JLoadableNode implements Comparable<JResource> {
 	private static final long serialVersionUID = -201018424302612434L;
@@ -43,7 +43,7 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 
 	private transient boolean loaded;
 	private transient String content;
-	private transient Map<Integer, Integer> lineMapping;
+	private transient Map<Integer, Integer> lineMapping = Collections.emptyMap();
 
 	public JResource(ResourceFile resFile, String name, JResType type) {
 		this(resFile, name, name, type);
@@ -58,15 +58,16 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 	}
 
 	public final void update() {
-		removeAllChildren();
-		if (!loaded) {
+		if (files.isEmpty()) {
 			if (type == JResType.DIR
 					|| type == JResType.ROOT
 					|| resFile.getType() == ResourceType.ARSC) {
+				// fake leaf to force show expand button
+				// real sub nodes will load on expand in loadNode() method
 				add(new TextNode(NLS.str("tree.loading")));
 			}
 		} else {
-			loadContent();
+			removeAllChildren();
 			for (JResource res : files) {
 				res.update();
 				add(res);
@@ -76,13 +77,8 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 
 	@Override
 	public void loadNode() {
-		loadContent();
-		loaded = true;
-		update();
-	}
-
-	private void loadContent() {
 		getContent();
+		update();
 	}
 
 	@Override
@@ -95,40 +91,68 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 	}
 
 	@Override
-	public String getContent() {
-		if (!loaded && resFile != null && type == JResType.FILE) {
-			loaded = true;
-			if (isSupportedForView(resFile.getType())) {
-				ResContainer rc = resFile.loadContent();
-				if (rc != null) {
-					addSubFiles(rc, this, 0);
-				}
-			}
+	public synchronized String getContent() {
+		if (loaded) {
+			return content;
 		}
-		return content;
+		if (resFile == null || type != JResType.FILE) {
+			return null;
+		}
+		if (!isSupportedForView(resFile.getType())) {
+			return null;
+		}
+		ResContainer rc = resFile.loadContent();
+		if (rc == null) {
+			return null;
+		}
+		if (rc.getDataType() == ResContainer.DataType.RES_TABLE) {
+			content = loadCurrentSingleRes(rc);
+			for (ResContainer subFile : rc.getSubFiles()) {
+				loadSubNodes(this, subFile, 1);
+			}
+			loaded = true;
+			return content;
+		}
+		// single node
+		return loadCurrentSingleRes(rc);
 	}
 
-	private void addSubFiles(ResContainer rc, JResource root, int depth) {
-		CodeWriter cw = rc.getContent();
-		if (cw != null) {
-			if (depth == 0) {
-				root.lineMapping = cw.getLineMapping();
-				root.content = cw.toString();
-			} else {
-				String resName = rc.getName();
-				String[] path = resName.split("/");
-				String resShortName = path.length == 0 ? resName : path[path.length - 1];
-				ResourceFileContent fileContent = createResourceFileContentInstance(resShortName, ResourceType.XML, cw);
-				if (fileContent != null) {
-					addPath(path, root, new JResource(fileContent, resName, resShortName, JResType.FILE));
+	private String loadCurrentSingleRes(ResContainer rc) {
+		switch (rc.getDataType()) {
+			case TEXT:
+			case RES_TABLE:
+				CodeWriter cw = rc.getText();
+				lineMapping = cw.getLineMapping();
+				return cw.toString();
+
+			case RES_LINK:
+				try {
+					return ResourcesLoader.decodeStream(rc.getResLink(), (size, is) -> {
+						if (size > 10 * 1024 * 1024L) {
+							return "File too large for view";
+						}
+						return ResourcesLoader.loadToCodeWriter(is).toString();
+					});
+				} catch (Exception e) {
+					return "Failed to load resource file: \n" + jadx.core.utils.Utils.getStackTrace(e);
 				}
-			}
+
+			case DECODED_DATA:
+			default:
+				return "Unexpected resource type: " + rc;
 		}
-		List<ResContainer> subFiles = rc.getSubFiles();
-		if (!subFiles.isEmpty()) {
-			for (ResContainer subFile : subFiles) {
-				addSubFiles(subFile, root, depth + 1);
-			}
+	}
+
+	private void loadSubNodes(JResource root, ResContainer rc, int depth) {
+		String resName = rc.getName();
+		String[] path = resName.split("/");
+		String resShortName = path.length == 0 ? resName : path[path.length - 1];
+		CodeWriter cw = rc.getText();
+		ResourceFileContent fileContent = new ResourceFileContent(resShortName, ResourceType.XML, cw);
+		addPath(path, root, new JResource(fileContent, resName, resShortName, JResType.FILE));
+
+		for (ResContainer subFile : rc.getSubFiles()) {
+			loadSubNodes(root, subFile, depth + 1);
 		}
 	}
 
@@ -190,25 +214,29 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 		}
 	}
 
+	private static final Map<String, String> EXTENSION_TO_FILE_SYNTAX = jadx.core.utils.Utils.newConstStringMap(
+			"java", SyntaxConstants.SYNTAX_STYLE_JAVA,
+			"js", SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT,
+			"ts", SyntaxConstants.SYNTAX_STYLE_TYPESCRIPT,
+			"json", SyntaxConstants.SYNTAX_STYLE_JSON,
+			"css", SyntaxConstants.SYNTAX_STYLE_CSS,
+			"less", SyntaxConstants.SYNTAX_STYLE_LESS,
+			"html", SyntaxConstants.SYNTAX_STYLE_HTML,
+			"xml", SyntaxConstants.SYNTAX_STYLE_XML,
+			"yaml", SyntaxConstants.SYNTAX_STYLE_YAML,
+			"properties", SyntaxConstants.SYNTAX_STYLE_PROPERTIES_FILE,
+			"ini", SyntaxConstants.SYNTAX_STYLE_INI,
+			"sql", SyntaxConstants.SYNTAX_STYLE_SQL,
+			"arsc", SyntaxConstants.SYNTAX_STYLE_XML
+	);
+
 	private String getSyntaxByExtension(String name) {
 		int dot = name.lastIndexOf('.');
 		if (dot == -1) {
 			return null;
 		}
 		String ext = name.substring(dot + 1);
-		if (ext.equals("js")) {
-			return SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT;
-		}
-		if (ext.equals("css")) {
-			return SyntaxConstants.SYNTAX_STYLE_CSS;
-		}
-		if (ext.equals("html")) {
-			return SyntaxConstants.SYNTAX_STYLE_HTML;
-		}
-		if (ext.equals("arsc")) {
-			return SyntaxConstants.SYNTAX_STYLE_XML;
-		}
-		return null;
+		return EXTENSION_TO_FILE_SYNTAX.get(ext);
 	}
 
 	@Override
@@ -254,6 +282,10 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 
 	public ResourceFile getResFile() {
 		return resFile;
+	}
+
+	public Map<Integer, Integer> getLineMapping() {
+		return lineMapping;
 	}
 
 	@Override

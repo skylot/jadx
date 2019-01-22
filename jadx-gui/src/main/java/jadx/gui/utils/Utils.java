@@ -135,18 +135,15 @@ public class Utils {
 
 	public static String memoryInfo() {
 		Runtime runtime = Runtime.getRuntime();
-		StringBuilder sb = new StringBuilder();
 		long maxMemory = runtime.maxMemory();
 		long allocatedMemory = runtime.totalMemory();
 		long freeMemory = runtime.freeMemory();
 
-		sb.append("heap: ").append(format(allocatedMemory - freeMemory));
-		sb.append(", allocated: ").append(format(allocatedMemory));
-		sb.append(", free: ").append(format(freeMemory));
-		sb.append(", total free: ").append(format(freeMemory + maxMemory - allocatedMemory));
-		sb.append(", max: ").append(format(maxMemory));
-
-		return sb.toString();
+		return "heap: " + format(allocatedMemory - freeMemory) +
+				", allocated: " + format(allocatedMemory) +
+				", free: " + format(freeMemory) +
+				", total free: " + format(freeMemory + maxMemory - allocatedMemory) +
+				", max: " + format(maxMemory);
 	}
 
 	private static String format(long mem) {

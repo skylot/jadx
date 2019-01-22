@@ -35,6 +35,13 @@ public class ResourceFile {
 	private final ResourceType type;
 	private ZipRef zipRef;
 
+	public static ResourceFile createResourceFile(JadxDecompiler decompiler, String name, ResourceType type) {
+		if (!ZipSecurity.isValidZipEntryName(name)) {
+			return null;
+		}
+		return new ResourceFile(decompiler, name, type);
+	}
+
 	protected ResourceFile(JadxDecompiler decompiler, String name, ResourceType type) {
 		this.decompiler = decompiler;
 		this.name = name;
@@ -64,12 +71,5 @@ public class ResourceFile {
 	@Override
 	public String toString() {
 		return "ResourceFile{name='" + name + '\'' + ", type=" + type + "}";
-	}
-
-	public static ResourceFile createResourceFileInstance(JadxDecompiler decompiler, String name, ResourceType type) {
-		if (!ZipSecurity.isValidZipEntryName(name)) {
-			return null;
-		}
-		return new ResourceFile(decompiler, name, type);
 	}
 }

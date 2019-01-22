@@ -66,23 +66,9 @@ public class ResTableParser extends CommonBinaryParser {
 		ValuesParser vp = new ValuesParser(strings, resStorage.getResourcesNames());
 		ResXmlGen resGen = new ResXmlGen(resStorage, vp);
 
-		ResContainer res = ResContainer.multiFile("res");
-		res.setContent(makeXmlDump());
-		res.getSubFiles().addAll(resGen.makeResourcesXml());
-		return res;
-	}
-
-	public CodeWriter makeDump() {
-		CodeWriter writer = new CodeWriter();
-		writer.add("app package: ").add(resStorage.getAppPackage());
-		writer.startLine();
-
-		ValuesParser vp = new ValuesParser(strings, resStorage.getResourcesNames());
-		for (ResourceEntry ri : resStorage.getResources()) {
-			writer.startLine(ri + ": " + vp.getValueString(ri));
-		}
-		writer.finish();
-		return writer;
+		CodeWriter content = makeXmlDump();
+		List<ResContainer> xmlFiles = resGen.makeResourcesXml();
+		return ResContainer.resourceTable("res", xmlFiles, content);
 	}
 
 	public CodeWriter makeXmlDump() {

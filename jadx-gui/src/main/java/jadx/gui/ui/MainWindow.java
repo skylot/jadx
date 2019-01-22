@@ -31,6 +31,7 @@ import org.fife.ui.rsyntaxtextarea.Theme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.JadxArgs;
 import jadx.api.ResourceFile;
 import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.BackgroundWorker;
@@ -221,12 +222,6 @@ public class MainWindow extends JFrame {
 	}
 
 	private void saveAll(boolean export) {
-		settings.setExportAsGradleProject(export);
-		if (export) {
-			settings.setSkipSources(false);
-			settings.setSkipResources(false);
-		}
-
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		fileChooser.setToolTipText(NLS.str("file.save_all_msg"));
@@ -238,6 +233,15 @@ public class MainWindow extends JFrame {
 
 		int ret = fileChooser.showDialog(mainPanel, NLS.str("file.select"));
 		if (ret == JFileChooser.APPROVE_OPTION) {
+			JadxArgs decompilerArgs = wrapper.getArgs();
+			decompilerArgs.setExportAsGradleProject(export);
+			if (export) {
+				decompilerArgs.setSkipSources(false);
+				decompilerArgs.setSkipResources(false);
+			} else {
+				decompilerArgs.setSkipSources(settings.isSkipSources());
+				decompilerArgs.setSkipResources(settings.isSkipResources());
+			}
 			settings.setLastSaveFilePath(fileChooser.getCurrentDirectory().getPath());
 			ProgressMonitor progressMonitor = new ProgressMonitor(mainPanel, NLS.str("msg.saving_sources"), "", 0, 100);
 			progressMonitor.setMillisToPopup(0);
@@ -289,6 +293,9 @@ public class MainWindow extends JFrame {
 	private void treeClickAction() {
 		try {
 			Object obj = tree.getLastSelectedPathComponent();
+			if (obj == null) {
+				return;
+			}
 			if (obj instanceof JResource) {
 				JResource res = (JResource) obj;
 				ResourceFile resFile = res.getResFile();

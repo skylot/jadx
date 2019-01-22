@@ -4,11 +4,17 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
 
 public class HeapUsageBar extends JProgressBar implements ActionListener {
+	private static final Logger LOG = LoggerFactory.getLogger(HeapUsageBar.class);
 	private static final long serialVersionUID = -8739563124249884967L;
 
 	private static final double TWO_TO_20 = 1048576d;
@@ -32,6 +38,16 @@ public class HeapUsageBar extends JProgressBar implements ActionListener {
 		maxGB = maxKB / TWO_TO_20;
 		update();
 		timer = new Timer(2000, this);
+		addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				Runtime.getRuntime().gc();
+				update();
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("Memory used: {}", Utils.memoryInfo());
+				}
+			}
+		});
 	}
 
 	public void update() {

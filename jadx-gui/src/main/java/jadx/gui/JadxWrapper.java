@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaPackage;
@@ -105,7 +106,7 @@ public class JadxWrapper {
 		return openFile;
 	}
 
-	public JadxSettings getSettings() {
-		return settings;
+	public JadxArgs getArgs() {
+		return decompiler.getArgs();
 	}
 }
