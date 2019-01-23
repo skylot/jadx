@@ -2,9 +2,9 @@ package jadx.gui.utils;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import jadx.api.CodePosition;
 import jadx.api.JavaClass;
@@ -21,6 +21,10 @@ public class CodeUsageInfo {
 		public List<CodeNode> getUsageList() {
 			return usageList;
 		}
+
+		public synchronized void addUsage(CodeNode codeNode) {
+			usageList.add(codeNode);
+		}
 	}
 
 	private final JNodeCache nodeCache;
@@ -29,7 +33,7 @@ public class CodeUsageInfo {
 		this.nodeCache = nodeCache;
 	}
 
-	private final Map<JNode, UsageInfo> usageMap = new HashMap<>();
+	private final Map<JNode, UsageInfo> usageMap = new ConcurrentHashMap<>();
 
 	public void processClass(JavaClass javaClass, CodeLinesInfo linesInfo, List<StringRef> lines) {
 		Map<CodePosition, JavaNode> usage = javaClass.getUsageMap();
@@ -42,17 +46,13 @@ public class CodeUsageInfo {
 
 	private void addUsage(JNode jNode, JavaClass javaClass,
 	                      CodeLinesInfo linesInfo, CodePosition codePosition, List<StringRef> lines) {
-		UsageInfo usageInfo = usageMap.get(jNode);
-		if (usageInfo == null) {
-			usageInfo = new UsageInfo();
-			usageMap.put(jNode, usageInfo);
-		}
+		UsageInfo usageInfo = usageMap.computeIfAbsent(jNode, key -> new UsageInfo());
 		int line = codePosition.getLine();
 		JavaNode javaNodeByLine = linesInfo.getJavaNodeByLine(line);
 		StringRef codeLine = lines.get(line - 1);
 		JNode node = nodeCache.makeFrom(javaNodeByLine == null ? javaClass : javaNodeByLine);
 		CodeNode codeNode = new CodeNode(node, line, codeLine);
-		usageInfo.getUsageList().add(codeNode);
+		usageInfo.addUsage(codeNode);
 	}
 
 	public List<CodeNode> getUsageList(JNode node) {

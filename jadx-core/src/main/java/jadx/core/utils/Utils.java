@@ -5,8 +5,10 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import jadx.api.JadxDecompiler;
@@ -39,8 +41,16 @@ public class Utils {
 		if (objects == null) {
 			return "";
 		}
+		return listToString(objects, joiner, Object::toString);
+	}
+
+	public static <T> String listToString(Iterable<T> objects, Function<T, String> toStr) {
+		return listToString(objects, ", ", toStr);
+	}
+
+	public static <T> String listToString(Iterable<T> objects, String joiner, Function<T, String> toStr) {
 		StringBuilder sb = new StringBuilder();
-		listToString(sb, objects, joiner, Object::toString);
+		listToString(sb, objects, joiner, toStr);
 		return sb.toString();
 	}
 
@@ -151,5 +161,17 @@ public class Utils {
 			return Collections.singletonList(list.get(0));
 		}
 		return new ImmutableList<>(list);
+	}
+
+	public static Map<String, String> newConstStringMap(String... parameters) {
+		int len = parameters.length;
+		if (len == 0) {
+			return Collections.emptyMap();
+		}
+		Map<String, String> result = new HashMap<>(len / 2);
+		for (int i = 0; i < len; i += 2) {
+			result.put(parameters[i], parameters[i + 1]);
+		}
+		return Collections.unmodifiableMap(result);
 	}
 }

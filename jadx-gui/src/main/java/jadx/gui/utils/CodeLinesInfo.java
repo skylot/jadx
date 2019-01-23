@@ -9,7 +9,7 @@ import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 
 public class CodeLinesInfo {
-	private NavigableMap<Integer, JavaNode> map = new TreeMap<>();
+	private final NavigableMap<Integer, JavaNode> map = new TreeMap<>();
 
 	public CodeLinesInfo(JavaClass cls) {
 		addClass(cls);

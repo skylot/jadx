@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.ClassInfo;
@@ -40,12 +42,14 @@ public class TryCatchBlock {
 		return handlers.containsAll(tb.handlers);
 	}
 
-	public ExceptionHandler addHandler(MethodNode mth, int addr, ClassInfo type) {
+	public ExceptionHandler addHandler(MethodNode mth, int addr, @Nullable ClassInfo type) {
 		ExceptionHandler handler = new ExceptionHandler(addr, type);
-		handler = mth.addExceptionHandler(handler);
-		handlers.add(handler);
 		handler.setTryBlock(this);
-		return handler;
+		ExceptionHandler addedHandler = mth.addExceptionHandler(handler);
+		if (addedHandler == handler || addedHandler.getTryBlock() != this) {
+			handlers.add(addedHandler);
+		}
+		return addedHandler;
 	}
 
 	public void removeHandler(MethodNode mth, ExceptionHandler handler) {

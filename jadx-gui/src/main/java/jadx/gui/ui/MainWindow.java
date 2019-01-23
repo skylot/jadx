@@ -9,7 +9,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
@@ -24,7 +23,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -32,6 +33,7 @@ import org.fife.ui.rsyntaxtextarea.Theme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.JadxArgs;
 import jadx.api.ResourceFile;
 import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.BackgroundWorker;
@@ -39,6 +41,7 @@ import jadx.gui.jobs.DecompileJob;
 import jadx.gui.jobs.IndexJob;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsWindow;
+import jadx.gui.treemodel.ApkSignature;
 import jadx.gui.treemodel.JCertificate;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JLoadableNode;
@@ -49,9 +52,9 @@ import jadx.gui.update.JadxUpdate;
 import jadx.gui.update.JadxUpdate.IUpdateCallback;
 import jadx.gui.update.data.Release;
 import jadx.gui.utils.CacheObject;
+import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.Utils;
 
 import static javax.swing.KeyStroke.getKeyStroke;
@@ -95,7 +98,6 @@ public class MainWindow extends JFrame {
 	private boolean isFlattenPackage;
 	private JToggleButton flatPkgButton;
 	private JCheckBoxMenuItem flatPkgMenuItem;
-	private JCheckBoxMenuItem heapUsageBarMenuItem;
 
 	private JToggleButton deobfToggleBtn;
 	private JCheckBoxMenuItem deobfMenuItem;
@@ -111,16 +113,21 @@ public class MainWindow extends JFrame {
 		this.cacheObject = new CacheObject();
 
 		resetCache();
+		registerBundledFonts();
 		initUI();
 		initMenuAndToolbar();
-		applySettings();
-		checkForUpdate();
+		setWindowIcons();
 	}
 
-	private void applySettings() {
-		setFont(settings.getFont());
-		setEditorTheme(settings.getEditorThemePath());
+	private void setWindowIcons() {
+		List<Image> icons = new ArrayList<>();
+		icons.add(Utils.openImage("/logos/jadx-logo-16px.png"));
+		icons.add(Utils.openImage("/logos/jadx-logo-32px.png"));
+		icons.add(Utils.openImage("/logos/jadx-logo-48px.png"));
+		icons.add(Utils.openImage("/logos/jadx-logo.png"));
+		setIconImages(icons);
 		loadSettings();
+		checkForUpdate();
 	}
 
 	public void open() {
@@ -222,12 +229,6 @@ public class MainWindow extends JFrame {
 	}
 
 	private void saveAll(boolean export) {
-		settings.setExportAsGradleProject(export);
-		if (export) {
-			settings.setSkipSources(false);
-			settings.setSkipResources(false);
-		}
-
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		fileChooser.setToolTipText(NLS.str("file.save_all_msg"));
@@ -239,6 +240,15 @@ public class MainWindow extends JFrame {
 
 		int ret = fileChooser.showDialog(mainPanel, NLS.str("file.select"));
 		if (ret == JFileChooser.APPROVE_OPTION) {
+			JadxArgs decompilerArgs = wrapper.getArgs();
+			decompilerArgs.setExportAsGradleProject(export);
+			if (export) {
+				decompilerArgs.setSkipSources(false);
+				decompilerArgs.setSkipResources(false);
+			} else {
+				decompilerArgs.setSkipSources(settings.isSkipSources());
+				decompilerArgs.setSkipResources(settings.isSkipResources());
+			}
 			settings.setLastSaveFilePath(fileChooser.getCurrentDirectory().getPath());
 			ProgressMonitor progressMonitor = new ProgressMonitor(mainPanel, NLS.str("msg.saving_sources"), "", 0, 100);
 			progressMonitor.setMillisToPopup(0);
@@ -290,15 +300,17 @@ public class MainWindow extends JFrame {
 	private void treeClickAction() {
 		try {
 			Object obj = tree.getLastSelectedPathComponent();
+			if (obj == null) {
+				return;
+			}
 			if (obj instanceof JResource) {
 				JResource res = (JResource) obj;
 				ResourceFile resFile = res.getResFile();
 				if (resFile != null && JResource.isSupportedForView(resFile.getType())) {
 					tabbedPane.showResource(res);
 				}
-			} else if (obj instanceof JCertificate) {
-				JCertificate cert = (JCertificate) obj;
-				tabbedPane.showCertificate(cert);
+			} else if ((obj instanceof JCertificate) || (obj instanceof ApkSignature)) {
+				tabbedPane.showSimpleNode((JNode) obj);
 			} else if (obj instanceof JNode) {
 				JNode node = (JNode) obj;
 				JClass cls = node.getRootClass();
@@ -388,7 +400,7 @@ public class MainWindow extends JFrame {
 		flatPkgMenuItem = new JCheckBoxMenuItem(NLS.str("menu.flatten"), ICON_FLAT_PKG);
 		flatPkgMenuItem.setState(isFlattenPackage);
 
-		heapUsageBarMenuItem = new JCheckBoxMenuItem(NLS.str("menu.heapUsageBar"));
+		JCheckBoxMenuItem heapUsageBarMenuItem = new JCheckBoxMenuItem(NLS.str("menu.heapUsageBar"));
 		heapUsageBarMenuItem.setState(settings.isShowHeapUsageBar());
 		heapUsageBarMenuItem.addActionListener(event -> {
 			settings.setShowHeapUsageBar(!settings.isShowHeapUsageBar());
@@ -595,7 +607,7 @@ public class MainWindow extends JFrame {
 		});
 		tree.addTreeWillExpandListener(new TreeWillExpandListener() {
 			@Override
-			public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException {
+			public void treeWillExpand(TreeExpansionEvent event) {
 				TreePath path = event.getPath();
 				Object node = path.getLastPathComponent();
 				if (node instanceof JLoadableNode) {
@@ -604,7 +616,8 @@ public class MainWindow extends JFrame {
 			}
 
 			@Override
-			public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException {
+			public void treeWillCollapse(TreeExpansionEvent event) {
+				// ignore
 			}
 		});
 
@@ -643,7 +656,14 @@ public class MainWindow extends JFrame {
 		setFont(font);
 	}
 
-	public void setEditorTheme(String editorThemePath) {
+	public static void registerBundledFonts() {
+		GraphicsEnvironment grEnv = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		if (Utils.FONT_HACK != null) {
+			grEnv.registerFont(Utils.FONT_HACK);
+		}
+	}
+
+	private void setEditorTheme(String editorThemePath) {
 		try {
 			editorTheme = Theme.load(getClass().getResourceAsStream(editorThemePath));
 		} catch (Exception e) {
@@ -661,6 +681,14 @@ public class MainWindow extends JFrame {
 	}
 
 	public void loadSettings() {
+		Font font = settings.getFont();
+		Font largerFont = font.deriveFont(font.getSize() + 2.f);
+
+		setFont(largerFont);
+		setEditorTheme(settings.getEditorThemePath());
+		tree.setFont(largerFont);
+		tree.setRowHeight(-1);
+
 		tabbedPane.loadSettings();
 	}
 

@@ -33,14 +33,14 @@ import jadx.gui.jobs.DecompileJob;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.utils.CacheObject;
-import jadx.gui.utils.NLS;
 import jadx.gui.utils.JumpPosition;
+import jadx.gui.utils.NLS;
 import jadx.gui.utils.search.TextSearchIndex;
 
 public abstract class CommonSearchDialog extends JDialog {
+	private static final long serialVersionUID = 8939332306115370276L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(CommonSearchDialog.class);
-	private static final long serialVersionUID = 8939332306115370276L;
 
 	public static final int RESULTS_PER_PAGE = 100;
 
@@ -397,12 +397,14 @@ public abstract class CommonSearchDialog extends JDialog {
 
 	protected class ResultsTableCellRenderer implements TableCellRenderer {
 		private final JLabel emptyLabel = new JLabel();
+		private final Font font;
 		private final Color codeSelectedColor;
 		private final Color codeBackground;
-		private Map<Integer, Component> componentCache = new HashMap<>();
+		private final Map<Integer, Component> componentCache = new HashMap<>();
 
 		public ResultsTableCellRenderer() {
 			RSyntaxTextArea area = CodeArea.getDefaultArea(mainWindow);
+			this.font = area.getFont();
 			this.codeSelectedColor = area.getSelectionColor();
 			this.codeBackground = area.getBackground();
 		}
@@ -414,7 +416,7 @@ public abstract class CommonSearchDialog extends JDialog {
 			Component comp = componentCache.get(id);
 			if (comp == null) {
 				if (obj instanceof JNode) {
-					comp = makeCell(table, (JNode) obj, column);
+					comp = makeCell((JNode) obj, column);
 					componentCache.put(id, comp);
 				} else {
 					comp = emptyLabel;
@@ -442,10 +444,10 @@ public abstract class CommonSearchDialog extends JDialog {
 			}
 		}
 
-		private Component makeCell(JTable table, JNode node, int column) {
+		private Component makeCell(JNode node, int column) {
 			if (column == 0) {
 				JLabel label = new JLabel(node.makeLongString() + "  ", node.getIcon(), SwingConstants.LEFT);
-				label.setFont(table.getFont());
+				label.setFont(font);
 				label.setOpaque(true);
 				label.setToolTipText(label.getText());
 				return label;

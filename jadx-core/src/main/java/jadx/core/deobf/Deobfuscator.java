@@ -243,11 +243,22 @@ public class Deobfuscator {
 		}
 	}
 
+	public void forceRenameField(FieldNode field) {
+		field.getFieldInfo().setAlias(makeFieldAlias(field));
+	}
+
 	public void renameMethod(MethodNode mth) {
 		String alias = getMethodAlias(mth);
 		if (alias != null) {
 			mth.getMethodInfo().setAlias(alias);
 		}
+		if (mth.isVirtual()) {
+			resolveOverriding(mth);
+		}
+	}
+
+	public void forceRenameMethod(MethodNode mth) {
+		mth.getMethodInfo().setAlias(makeMethodAlias(mth));
 		if (mth.isVirtual()) {
 			resolveOverriding(mth);
 		}

@@ -16,9 +16,11 @@ dependencies {
     compile 'hu.kazocsaba:image-viewer:1.2.3'
 
     compile 'org.apache.commons:commons-lang3:3.8.1'
+    compile 'org.apache.commons:commons-text:1.6'
 
     compile 'io.reactivex.rxjava2:rxjava:2.2.5'
     compile "com.github.akarnokd:rxjava2-swing:0.3.3"
+    compile 'com.android.tools.build:apksig:3.3.0'
 }
 
 applicationDistribution.with {
@@ -54,7 +56,7 @@ launch4j {
     mainClassName = 'jadx.gui.JadxGUI'
     copyConfigurable = project.tasks.shadowJar.outputs.files
     jar = "lib/${project.tasks.shadowJar.archiveName}"
-//  icon = "${projectDir}/icons/myApp.ico"
+    icon = "${projectDir}/src/main/resources/logos/jadx-logo.ico"
     outfile = "jadx-gui-${version}.exe"
     copyright = 'Skylot'
     windowTitle = 'jadx'

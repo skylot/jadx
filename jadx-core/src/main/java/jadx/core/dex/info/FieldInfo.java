@@ -65,6 +65,10 @@ public final class FieldInfo {
 		return !name.equals(alias);
 	}
 
+	public boolean equalsNameAndType(FieldInfo other) {
+		return name.equals(other.name) && type.equals(other.type);
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {

@@ -1,27 +1,57 @@
 package jadx.gui.ui;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 
 import hu.kazocsaba.imageviewer.ImageViewer;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 import jadx.api.ResourceFile;
+import jadx.api.ResourcesLoader;
+import jadx.core.utils.Utils;
+import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.xmlgen.ResContainer;
 import jadx.gui.treemodel.JResource;
+import jadx.gui.ui.codearea.CodeArea;
 
 public class ImagePanel extends ContentPanel {
-
 	private static final long serialVersionUID = 4071356367073142688L;
 
 	ImagePanel(TabbedPane panel, JResource res) {
 		super(panel, res);
-
-		ResourceFile resFile = res.getResFile();
-		BufferedImage img = resFile.loadContent().getImage();
-		ImageViewer imageViewer = new ImageViewer(img);
-		imageViewer.setZoomFactor(2.);
-
 		setLayout(new BorderLayout());
-		add(imageViewer.getComponent());
+		try {
+			BufferedImage img = loadImage(res);
+			ImageViewer imageViewer = new ImageViewer(img);
+			add(imageViewer.getComponent());
+		} catch (Exception e) {
+			RSyntaxTextArea textArea = CodeArea.getDefaultArea(panel.getMainWindow());
+			textArea.setText("Image load error: \n" + Utils.getStackTrace(e));
+			add(textArea);
+		}
+	}
+
+	private BufferedImage loadImage(JResource res) {
+		ResourceFile resFile = res.getResFile();
+		ResContainer resContainer = resFile.loadContent();
+		ResContainer.DataType dataType = resContainer.getDataType();
+		if (dataType == ResContainer.DataType.DECODED_DATA) {
+			try {
+				return ImageIO.read(new ByteArrayInputStream(resContainer.getDecodedData()));
+			} catch (Exception e) {
+				throw new JadxRuntimeException("Failed to load image", e);
+			}
+		} else if (dataType == ResContainer.DataType.RES_LINK) {
+			try {
+				return ResourcesLoader.decodeStream(resFile, (size, is) -> ImageIO.read(is));
+			} catch (Exception e) {
+				throw new JadxRuntimeException("Failed to load image", e);
+			}
+		} else {
+			throw new JadxRuntimeException("Unsupported resource image data type: " + resFile);
+		}
 	}
 
 	@Override

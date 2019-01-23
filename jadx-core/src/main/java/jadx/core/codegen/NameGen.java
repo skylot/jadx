@@ -1,6 +1,5 @@
 package jadx.core.codegen;
 
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -21,6 +20,7 @@ import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.StringUtils;
+import jadx.core.utils.Utils;
 
 public class NameGen {
 
@@ -31,21 +31,22 @@ public class NameGen {
 	private final boolean fallback;
 
 	static {
-		OBJ_ALIAS = new HashMap<>();
-		OBJ_ALIAS.put(Consts.CLASS_STRING, "str");
-		OBJ_ALIAS.put(Consts.CLASS_CLASS, "cls");
-		OBJ_ALIAS.put(Consts.CLASS_THROWABLE, "th");
-		OBJ_ALIAS.put(Consts.CLASS_OBJECT, "obj");
-		OBJ_ALIAS.put("java.util.Iterator", "it");
-		OBJ_ALIAS.put("java.lang.Boolean", "bool");
-		OBJ_ALIAS.put("java.lang.Short", "sh");
-		OBJ_ALIAS.put("java.lang.Integer", "num");
-		OBJ_ALIAS.put("java.lang.Character", "ch");
-		OBJ_ALIAS.put("java.lang.Byte", "b");
-		OBJ_ALIAS.put("java.lang.Float", "f");
-		OBJ_ALIAS.put("java.lang.Long", "l");
-		OBJ_ALIAS.put("java.lang.Double", "d");
-		OBJ_ALIAS.put("java.lang.StringBuilder", "sb");
+		OBJ_ALIAS = Utils.newConstStringMap(
+				Consts.CLASS_STRING, "str",
+				Consts.CLASS_CLASS, "cls",
+				Consts.CLASS_THROWABLE, "th",
+				Consts.CLASS_OBJECT, "obj",
+				"java.util.Iterator", "it",
+				"java.lang.Boolean", "bool",
+				"java.lang.Short", "sh",
+				"java.lang.Integer", "num",
+				"java.lang.Character", "ch",
+				"java.lang.Byte", "b",
+				"java.lang.Float", "f",
+				"java.lang.Long", "l",
+				"java.lang.Double", "d",
+				"java.lang.StringBuilder", "sb"
+		);
 	}
 
 	public NameGen(MethodNode mth, boolean fallback) {

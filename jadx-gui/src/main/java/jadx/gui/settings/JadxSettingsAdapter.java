@@ -21,7 +21,7 @@ public class JadxSettingsAdapter {
 
 	private static final Preferences PREFS = Preferences.userNodeForPackage(JadxGUI.class);
 
-	private static ExclusionStrategy EXCLUDE_FIELDS = new ExclusionStrategy() {
+	private static final ExclusionStrategy EXCLUDE_FIELDS = new ExclusionStrategy() {
 		@Override
 		public boolean shouldSkipField(FieldAttributes f) {
 			return JadxSettings.SKIP_FIELDS.contains(f.getName())

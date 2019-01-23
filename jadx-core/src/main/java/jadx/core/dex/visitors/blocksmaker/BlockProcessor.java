@@ -2,6 +2,7 @@ package jadx.core.dex.visitors.blocksmaker;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,6 +21,9 @@ import jadx.core.dex.nodes.Edge;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.CatchAttr;
+import jadx.core.dex.trycatch.ExcHandlerAttr;
+import jadx.core.dex.trycatch.ExceptionHandler;
+import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.exceptions.JadxOverflowException;
@@ -372,7 +376,17 @@ public class BlockProcessor extends AbstractVisitor {
 	}
 
 	private static boolean modifyBlocksTree(MethodNode mth) {
-		for (BlockNode block : mth.getBasicBlocks()) {
+		List<BlockNode> basicBlocks = mth.getBasicBlocks();
+		for (BlockNode block : basicBlocks) {
+			if (block.getPredecessors().isEmpty() && block != mth.getEnterBlock()) {
+				throw new JadxRuntimeException("Unreachable block: " + block);
+			}
+		}
+		if (mergeExceptionHandlers(mth)) {
+			removeMarkedBlocks(mth);
+			return true;
+		}
+		for (BlockNode block : basicBlocks) {
 			if (checkLoops(mth, block)) {
 				return true;
 			}
@@ -493,6 +507,85 @@ public class BlockProcessor extends AbstractVisitor {
 	}
 
 	/**
+	 * Merge handlers for multi-exception catch
+	 */
+	private static boolean mergeExceptionHandlers(MethodNode mth) {
+		for (BlockNode block : mth.getBasicBlocks()) {
+			ExcHandlerAttr excHandlerAttr = block.get(AType.EXC_HANDLER);
+			if (excHandlerAttr != null) {
+				List<BlockNode> blocksForMerge = collectExcHandlerBlocks(block, excHandlerAttr);
+				if (mergeHandlers(mth, blocksForMerge, excHandlerAttr)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private static List<BlockNode> collectExcHandlerBlocks(BlockNode block, ExcHandlerAttr excHandlerAttr) {
+		List<BlockNode> successors = block.getSuccessors();
+		if (successors.size() != 1) {
+			return Collections.emptyList();
+		}
+		RegisterArg reg = getMoveExceptionRegister(block);
+		if (reg == null) {
+			return Collections.emptyList();
+		}
+		TryCatchBlock tryBlock = excHandlerAttr.getTryBlock();
+		List<BlockNode> blocksForMerge = new ArrayList<>();
+		BlockNode nextBlock = successors.get(0);
+		for (BlockNode predBlock : nextBlock.getPredecessors()) {
+			if (predBlock != block
+					&& checkOtherExcHandler(predBlock, tryBlock, reg)) {
+				blocksForMerge.add(predBlock);
+			}
+		}
+		return blocksForMerge;
+	}
+
+	private static boolean checkOtherExcHandler(BlockNode predBlock, TryCatchBlock tryBlock, RegisterArg reg) {
+		ExcHandlerAttr otherExcHandlerAttr = predBlock.get(AType.EXC_HANDLER);
+		if (otherExcHandlerAttr == null) {
+			return false;
+		}
+		TryCatchBlock otherTryBlock = otherExcHandlerAttr.getTryBlock();
+		if (tryBlock != otherTryBlock) {
+			return false;
+		}
+		RegisterArg otherReg = getMoveExceptionRegister(predBlock);
+		if (otherReg == null || reg.getRegNum() != otherReg.getRegNum()) {
+			return false;
+		}
+		return true;
+	}
+
+	private static RegisterArg getMoveExceptionRegister(BlockNode block) {
+		if (block.getInstructions().isEmpty()) {
+			return null;
+		}
+		InsnNode insn = block.getInstructions().get(0);
+		if (insn.getType() != InsnType.MOVE_EXCEPTION) {
+			return null;
+		}
+		return insn.getResult();
+	}
+
+	private static boolean mergeHandlers(MethodNode mth, List<BlockNode> blocksForMerge, ExcHandlerAttr excHandlerAttr) {
+		if (blocksForMerge.isEmpty()) {
+			return false;
+		}
+		TryCatchBlock tryBlock = excHandlerAttr.getTryBlock();
+		for (BlockNode block : blocksForMerge) {
+			ExcHandlerAttr otherExcHandlerAttr = block.get(AType.EXC_HANDLER);
+			ExceptionHandler excHandler = otherExcHandlerAttr.getHandler();
+			excHandlerAttr.getHandler().addCatchTypes(excHandler.getCatchTypes());
+			tryBlock.removeHandler(mth, excHandler);
+			detachBlock(block);
+		}
+		return true;
+	}
+
+	/**
 	 * Splice return block if several predecessors presents
 	 */
 	private static boolean splitReturn(MethodNode mth) {
@@ -588,6 +681,20 @@ public class BlockProcessor extends AbstractVisitor {
 			}
 			return false;
 		});
+	}
+
+	private static void detachBlock(BlockNode block) {
+		for (BlockNode pred : block.getPredecessors()) {
+			pred.getSuccessors().remove(block);
+			pred.updateCleanSuccessors();
+		}
+		for (BlockNode successor : block.getSuccessors()) {
+			successor.getPredecessors().remove(block);
+		}
+		block.add(AFlag.REMOVE);
+		block.getInstructions().clear();
+		block.getPredecessors().clear();
+		block.getSuccessors().clear();
 	}
 
 	private static void clearBlocksState(MethodNode mth) {

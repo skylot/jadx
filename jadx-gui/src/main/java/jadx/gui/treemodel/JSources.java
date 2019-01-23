@@ -85,7 +85,7 @@ public class JSources extends JNode {
 			}
 		}
 		// use identity set for collect inner packages
-		Set<JPackage> innerPackages = Collections.newSetFromMap(new IdentityHashMap<JPackage, Boolean>());
+		Set<JPackage> innerPackages = Collections.newSetFromMap(new IdentityHashMap<>());
 		for (JPackage pkg : pkgMap.values()) {
 			innerPackages.addAll(pkg.getInnerPackages());
 		}

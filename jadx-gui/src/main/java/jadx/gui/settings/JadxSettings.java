@@ -150,7 +150,6 @@ public class JadxSettings extends JadxCLIArgs {
 		return true;
 	}
 
-
 	public boolean isShowHeapUsageBar() {
 		return showHeapUsageBar;
 	}

@@ -44,6 +44,7 @@ public class BlockSplitter extends AbstractVisitor {
 
 		mth.initBasicBlocks();
 		splitBasicBlocks(mth);
+		removeJumpAttr(mth);
 		removeInsns(mth);
 		removeEmptyDetachedBlocks(mth);
 		initBlocksInTargetNodes(mth);
@@ -297,6 +298,14 @@ public class BlockSplitter extends AbstractVisitor {
 			throw new JadxRuntimeException("Missing block: " + offset);
 		}
 		return block;
+	}
+
+	private void removeJumpAttr(MethodNode mth) {
+		for (BlockNode block : mth.getBasicBlocks()) {
+			for (InsnNode insn : block.getInstructions()) {
+				insn.remove(AType.JUMP);
+			}
+		}
 	}
 
 	private static void removeInsns(MethodNode mth) {

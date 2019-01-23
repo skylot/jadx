@@ -1,18 +1,27 @@
 package jadx.core.dex.trycatch;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
+
+import org.jetbrains.annotations.Nullable;
 
 import jadx.core.Consts;
 import jadx.core.dex.info.ClassInfo;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.utils.InsnUtils;
+import jadx.core.utils.Utils;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class ExceptionHandler {
 
-	private final ClassInfo catchType;
+	private final Set<ClassInfo> catchTypes = new TreeSet<>();
 	private final int handleOffset;
 
 	private BlockNode handlerBlock;
@@ -23,17 +32,57 @@ public class ExceptionHandler {
 	private TryCatchBlock tryBlock;
 	private boolean isFinally;
 
-	public ExceptionHandler(int addr, ClassInfo type) {
+	public ExceptionHandler(int addr, @Nullable ClassInfo type) {
 		this.handleOffset = addr;
-		this.catchType = type;
+		addCatchType(type);
 	}
 
-	public ClassInfo getCatchType() {
-		return catchType;
+	/**
+	 * Add exception type to catch block
+	 * @param type - null for 'all' or 'Throwable' handler
+	 */
+	public void addCatchType(@Nullable ClassInfo type) {
+		if (type != null) {
+			this.catchTypes.add(type);
+		} else {
+			if (!this.catchTypes.isEmpty()) {
+				throw new JadxRuntimeException("Null type added to not empty exception handler: " + this);
+			}
+		}
+	}
+
+	public void addCatchTypes(Collection<ClassInfo> types) {
+		for (ClassInfo type : types) {
+			addCatchType(type);
+		}
+	}
+
+	public Set<ClassInfo> getCatchTypes() {
+		return catchTypes;
+	}
+
+	public ArgType getArgType() {
+		if (isCatchAll()) {
+			return ArgType.THROWABLE;
+		}
+		Set<ClassInfo> types = getCatchTypes();
+		if (types.size() == 1) {
+			return types.iterator().next().getType();
+		} else {
+			return ArgType.THROWABLE;
+		}
 	}
 
 	public boolean isCatchAll() {
-		return catchType == null || catchType.getFullName().equals(Consts.CLASS_THROWABLE);
+		if (catchTypes.isEmpty()) {
+			return true;
+		}
+		for (ClassInfo classInfo : catchTypes) {
+			if (classInfo.getFullName().equals(Consts.CLASS_THROWABLE)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public int getHandleOffset() {
@@ -89,35 +138,30 @@ public class ExceptionHandler {
 	}
 
 	@Override
-	public int hashCode() {
-		return (catchType == null ? 0 : 31 * catchType.hashCode()) + handleOffset;
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		ExceptionHandler that = (ExceptionHandler) o;
+		return handleOffset == that.handleOffset &&
+				catchTypes.equals(that.catchTypes) &&
+				Objects.equals(tryBlock, that.tryBlock);
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		ExceptionHandler other = (ExceptionHandler) obj;
-		if (catchType == null) {
-			if (other.catchType != null) {
-				return false;
-			}
-		} else if (!catchType.equals(other.catchType)) {
-			return false;
-		}
-		return handleOffset == other.handleOffset;
+	public int hashCode() {
+		return Objects.hash(catchTypes, handleOffset /*, tryBlock*/);
+	}
+
+	public String catchTypeStr() {
+		return catchTypes.isEmpty() ? "all" : Utils.listToString(catchTypes, " | ", ClassInfo::getShortName);
 	}
 
 	@Override
 	public String toString() {
-		return (catchType == null ? "all"
-				: catchType.getShortName()) + " -> " + InsnUtils.formatOffset(handleOffset);
+		return catchTypeStr() + " -> " + InsnUtils.formatOffset(handleOffset);
 	}
 }

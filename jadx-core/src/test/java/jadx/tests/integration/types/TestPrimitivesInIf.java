@@ -37,7 +37,6 @@ public class TestPrimitivesInIf extends IntegrationTest {
 
 	@Test
 	public void test2() {
-		setOutputCFG();
 		noDebugInfo();
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();

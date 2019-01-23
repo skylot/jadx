@@ -22,7 +22,6 @@ import jadx.core.dex.visitors.typeinference.TypeUpdate;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.android.AndroidResourcesUtils;
-import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.DexFile;
 import jadx.core.utils.files.InputFile;
@@ -84,17 +83,16 @@ public class RootNode {
 			LOG.debug("'.arsc' file not found");
 			return;
 		}
-		ResTableParser parser = new ResTableParser();
 		try {
-			ResourcesLoader.decodeStream(arsc, (size, is) -> {
+			ResourceStorage resStorage = ResourcesLoader.decodeStream(arsc, (size, is) -> {
+				ResTableParser parser = new ResTableParser();
 				parser.decode(is);
-				return null;
+				return parser.getResStorage();
 			});
-		} catch (JadxException e) {
+			processResources(resStorage);
+		} catch (Exception e) {
 			LOG.error("Failed to parse '.arsc' file", e);
-			return;
 		}
-		processResources(parser.getResStorage());
 	}
 
 	public void processResources(ResourceStorage resStorage) {

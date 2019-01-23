@@ -1,8 +1,6 @@
 package jadx.gui.settings;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
@@ -18,8 +16,6 @@ import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
-
-import static jadx.gui.utils.Utils.FONT_HACK;
 
 public class JadxSettingsWindow extends JDialog {
 	private static final long serialVersionUID = -1804570470377354148L;
@@ -40,7 +36,6 @@ public class JadxSettingsWindow extends JDialog {
 		this.prevLang = settings.getLangLocale();
 
 		initUI();
-		registerBundledFonts();
 
 		setTitle(NLS.str("preferences.title"));
 		setSize(400, 550);
@@ -48,13 +43,6 @@ public class JadxSettingsWindow extends JDialog {
 		setModalityType(ModalityType.APPLICATION_MODAL);
 		pack();
 		setLocationRelativeTo(null);
-	}
-
-	public static void registerBundledFonts() {
-		GraphicsEnvironment grEnv = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		if (FONT_HACK != null) {
-			grEnv.registerFont(FONT_HACK);
-		}
 	}
 
 	private void initUI() {
@@ -204,7 +192,6 @@ public class JadxSettingsWindow extends JDialog {
 			int i = themesCbx.getSelectedIndex();
 			EditorTheme editorTheme = editorThemes[i];
 			settings.setEditorThemePath(editorTheme.getPath());
-			mainWindow.setEditorTheme(editorTheme.getPath());
 			mainWindow.loadSettings();
 		});
 
@@ -245,11 +232,11 @@ public class JadxSettingsWindow extends JDialog {
 		});
 
 		JButton editExcludedPackages = new JButton(NLS.str("preferences.excludedPackages.button"));
-		editExcludedPackages.addActionListener( event -> {
+		editExcludedPackages.addActionListener(event -> {
 
 			String result = JOptionPane.showInputDialog(this, NLS.str("preferences.excludedPackages.editDialog"),
 					settings.getExcludedPackages());
-			if (result !=null) {
+			if (result != null) {
 				settings.setExcludedPackages(result);
 			}
 		});

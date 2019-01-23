@@ -6,13 +6,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
+import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.ContentPanel;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.utils.Utils;
 
 public final class CodePanel extends ContentPanel {
-
 	private static final long serialVersionUID = 5310536092010045565L;
 
 	private final SearchBar searchBar;
@@ -24,7 +25,6 @@ public final class CodePanel extends ContentPanel {
 
 		codeArea = new CodeArea(this);
 		searchBar = new SearchBar(codeArea);
-
 		scrollPane = new JScrollPane(codeArea);
 		initLineNumbers();
 
@@ -37,7 +37,23 @@ public final class CodePanel extends ContentPanel {
 	}
 
 	private void initLineNumbers() {
-		scrollPane.setRowHeaderView(new LineNumbers(codeArea));
+		// TODO: fix slow line rendering on big files
+		if (codeArea.getDocument().getLength() <= 100_000) {
+			LineNumbers numbers = new LineNumbers(codeArea);
+			numbers.setUseSourceLines(isUseSourceLines());
+			scrollPane.setRowHeaderView(numbers);
+		}
+	}
+
+	private boolean isUseSourceLines() {
+		if (node instanceof JClass) {
+			return true;
+		}
+		if (node instanceof JResource) {
+			JResource resNode = (JResource) node;
+			return !resNode.getLineMapping().isEmpty();
+		}
+		return false;
 	}
 
 	private class SearchAction extends AbstractAction {

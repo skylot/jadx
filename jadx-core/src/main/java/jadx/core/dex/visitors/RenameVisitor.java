@@ -12,6 +12,7 @@ import jadx.core.Consts;
 import jadx.core.deobf.Deobfuscator;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.nodes.ClassNode;
@@ -19,7 +20,6 @@ import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.FileUtils;
 import jadx.core.utils.files.InputFile;
 
@@ -49,20 +49,12 @@ public class RenameVisitor extends AbstractVisitor {
 		checkClasses(root, isCaseSensitive);
 	}
 
-	@Override
-	public boolean visit(ClassNode cls) throws JadxException {
-		checkFields(cls);
-		checkMethods(cls);
-		for (ClassNode inner : cls.getInnerClasses()) {
-			visit(inner);
-		}
-		return false;
-	}
-
 	private void checkClasses(RootNode root, boolean caseSensitive) {
 		Set<String> clsNames = new HashSet<>();
 		for (ClassNode cls : root.getClasses(true)) {
 			checkClassName(cls);
+			checkFields(cls);
+			checkMethods(cls);
 			if (!caseSensitive) {
 				ClassInfo classInfo = cls.getClassInfo();
 				String clsFileName = classInfo.getAlias().getFullPath();
@@ -103,7 +95,7 @@ public class RenameVisitor extends AbstractVisitor {
 			FieldInfo fieldInfo = field.getFieldInfo();
 			String fieldName = fieldInfo.getAlias();
 			if (!names.add(fieldName) || !NameMapper.isValidIdentifier(fieldName)) {
-				deobfuscator.renameField(field);
+				deobfuscator.forceRenameField(field);
 			}
 		}
 	}
@@ -111,12 +103,16 @@ public class RenameVisitor extends AbstractVisitor {
 	private void checkMethods(ClassNode cls) {
 		Set<String> names = new HashSet<>();
 		for (MethodNode mth : cls.getMethods()) {
-			if (mth.contains(AFlag.DONT_GENERATE) || mth.getAccessFlags().isConstructor()) {
+			AccessInfo accessFlags = mth.getAccessFlags();
+			if (accessFlags.isConstructor()
+					|| accessFlags.isBridge()
+					|| accessFlags.isSynthetic()
+					|| mth.contains(AFlag.DONT_GENERATE)) {
 				continue;
 			}
 			String signature = mth.getMethodInfo().makeSignature(false);
 			if (!names.add(signature) || !NameMapper.isValidIdentifier(mth.getAlias())) {
-				deobfuscator.renameMethod(mth);
+				deobfuscator.forceRenameMethod(mth);
 			}
 		}
 	}

@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
+import jadx.gui.treemodel.ApkSignature;
 import jadx.gui.treemodel.JCertificate;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
@@ -93,8 +94,8 @@ public class TabbedPane extends JTabbedPane {
 		SwingUtilities.invokeLater(() -> setSelectedComponent(contentPanel));
 	}
 
-	public void showCertificate(JCertificate cert) {
-		final ContentPanel contentPanel = getContentPanel(cert);
+	public void showSimpleNode(JNode node) {
+		final ContentPanel contentPanel = getContentPanel(node);
 		if (contentPanel == null) {
 			return;
 		}
@@ -169,6 +170,9 @@ public class TabbedPane extends JTabbedPane {
 			} else {
 				return null;
 			}
+		}
+		if (node instanceof ApkSignature) {
+			return new HtmlPanel(this, node);
 		}
 		if (node instanceof JCertificate) {
 			return new CertificatePanel(this, node);

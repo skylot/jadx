@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ResourceFile.ZipRef;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.utils.Utils;
+import jadx.core.utils.android.Res9patchStreamDecoder;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.InputFile;
 import jadx.core.utils.files.ZipSecurity;
@@ -30,8 +31,6 @@ import static jadx.core.utils.files.FileUtils.copyStream;
 // TODO: move to core package
 public final class ResourcesLoader {
 	private static final Logger LOG = LoggerFactory.getLogger(ResourcesLoader.class);
-
-	private static final int LOAD_SIZE_LIMIT = 10 * 1024 * 1024;
 
 	private final JadxDecompiler jadxRef;
 
@@ -47,11 +46,11 @@ public final class ResourcesLoader {
 		return list;
 	}
 
-	public interface ResourceDecoder {
-		ResContainer decode(long size, InputStream is) throws IOException;
+	public interface ResourceDecoder<T> {
+		T decode(long size, InputStream is) throws IOException;
 	}
 
-	public static ResContainer decodeStream(ResourceFile rf, ResourceDecoder decoder) throws JadxException {
+	public static <T> T decodeStream(ResourceFile rf, ResourceDecoder<T> decoder) throws JadxException {
 		try {
 			ZipRef zipRef = rf.getZipRef();
 			if (zipRef == null) {
@@ -80,44 +79,48 @@ public final class ResourcesLoader {
 
 	static ResContainer loadContent(JadxDecompiler jadxRef, ResourceFile rf) {
 		try {
-			return decodeStream(rf, (size, is) -> loadContent(jadxRef, rf, is, size));
+			return decodeStream(rf, (size, is) -> loadContent(jadxRef, rf, is));
 		} catch (JadxException e) {
 			LOG.error("Decode error", e);
 			CodeWriter cw = new CodeWriter();
 			cw.add("Error decode ").add(rf.getType().toString().toLowerCase());
 			cw.startLine(Utils.getStackTrace(e.getCause()));
-			return ResContainer.singleFile(rf.getName(), cw);
+			return ResContainer.textResource(rf.getName(), cw);
 		}
 	}
 
 	private static ResContainer loadContent(JadxDecompiler jadxRef, ResourceFile rf,
-	                                        InputStream inputStream, long size) throws IOException {
+	                                        InputStream inputStream) throws IOException {
 		switch (rf.getType()) {
 			case MANIFEST:
 			case XML:
-				return ResContainer.singleFile(rf.getName(),
-						jadxRef.getXmlParser().parse(inputStream));
+				CodeWriter content = jadxRef.getXmlParser().parse(inputStream);
+				return ResContainer.textResource(rf.getName(), content);
 
 			case ARSC:
-				return new ResTableParser()
-						.decodeFiles(inputStream);
+				return new ResTableParser().decodeFiles(inputStream);
 
 			case IMG:
-				return ResContainer.singleImageFile(rf.getName(), inputStream);
-
-			case CODE:
-			case LIB:
-			case FONT:
-			case UNKNOWN:
-				return ResContainer.singleBinaryFile(rf.getName(), inputStream);
+				return decodeImage(rf, inputStream);
 
 			default:
-				if (size > LOAD_SIZE_LIMIT) {
-					return ResContainer.singleFile(rf.getName(),
-							new CodeWriter().add("File too big, size: " + String.format("%.2f KB", size / 1024.)));
-				}
-				return ResContainer.singleFile(rf.getName(), loadToCodeWriter(inputStream));
+				return ResContainer.resourceFileLink(rf);
 		}
+	}
+
+	private static ResContainer decodeImage(ResourceFile rf, InputStream inputStream) {
+		String name = rf.getName();
+		if (name.endsWith(".9.png")) {
+			Res9patchStreamDecoder decoder = new Res9patchStreamDecoder();
+			ByteArrayOutputStream os = new ByteArrayOutputStream();
+			try {
+				decoder.decode(inputStream, os);
+				return ResContainer.decodedData(rf.getName(), os.toByteArray());
+			} catch (Exception e) {
+				LOG.error("Failed to decode 9-patch png image, path: {}", name, e);
+			}
+		}
+		return ResContainer.resourceFileLink(rf);
 	}
 
 	private void loadFile(List<ResourceFile> list, File file) {
@@ -141,7 +144,7 @@ public final class ResourcesLoader {
 	private void addResourceFile(List<ResourceFile> list, File file) {
 		String name = file.getAbsolutePath();
 		ResourceType type = ResourceType.getFileType(name);
-		ResourceFile rf = ResourceFile.createResourceFileInstance(jadxRef, name, type);
+		ResourceFile rf = ResourceFile.createResourceFile(jadxRef, name, type);
 		if (rf != null) {
 			list.add(rf);
 		}
@@ -153,7 +156,7 @@ public final class ResourcesLoader {
 		}
 		String name = entry.getName();
 		ResourceType type = ResourceType.getFileType(name);
-		ResourceFile rf = ResourceFile.createResourceFileInstance(jadxRef, name, type);
+		ResourceFile rf = ResourceFile.createResourceFile(jadxRef, name, type);
 		if (rf != null) {
 			rf.setZipRef(new ZipRef(zipFile, name));
 			list.add(rf);

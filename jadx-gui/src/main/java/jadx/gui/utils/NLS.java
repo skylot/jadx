@@ -4,24 +4,29 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.MissingResourceException;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
+import java.util.Vector;
 
-import org.jetbrains.annotations.NotNull;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class NLS {
 
-	private static Vector<LangLocale> i18nLocales = new Vector<>();
+	private static final Vector<LangLocale> i18nLocales = new Vector<>();
 
-	private static Map<LangLocale, ResourceBundle> i18nMessagesMap = new HashMap<>();
+	private static final Map<LangLocale, ResourceBundle> i18nMessagesMap = new HashMap<>();
+
+	private static final ResourceBundle fallbackMessagesMap;
+	private static final LangLocale localLocale;
 
 	// Use these two fields to avoid invoking Map.get() method twice.
 	private static ResourceBundle localizedMessagesMap;
-	private static ResourceBundle fallbackMessagesMap;
-
 	private static LangLocale currentLocale;
-	private static LangLocale localLocale;
 
 	static {
 		localLocale = new LangLocale(Locale.getDefault());
@@ -45,10 +50,13 @@ public class NLS {
 		ClassLoader classLoader = ClassLoader.getSystemClassLoader();
 		String resName = String.format("i18n/Messages_%s.properties", locale.get());
 		URL bundleUrl = classLoader.getResource(resName);
+		if (bundleUrl == null) {
+			throw new JadxRuntimeException("Locale resource not found: " + resName);
+		}
 		try (Reader reader = new InputStreamReader(bundleUrl.openStream(), StandardCharsets.UTF_8)) {
 			bundle = new PropertyResourceBundle(reader);
 		} catch (IOException e) {
-			throw new RuntimeException("Failed to load " + resName, e);
+			throw new JadxRuntimeException("Failed to load " + resName, e);
 		}
 		i18nMessagesMap.put(locale, bundle);
 	}
@@ -66,7 +74,8 @@ public class NLS {
 		if (bundle != null) {
 			try {
 				return bundle.getString(key);
-			} catch (MissingResourceException e) {
+			} catch (MissingResourceException ignored) {
+				// use fallback string
 			}
 		}
 		return fallbackMessagesMap.getString(key); // definitely exists

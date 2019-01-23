@@ -1,50 +1,62 @@
 package jadx.gui.ui;
 
-import jadx.gui.utils.NLS;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import jadx.gui.utils.NLS;
+import jadx.gui.utils.Utils;
 
 public class HeapUsageBar extends JProgressBar implements ActionListener {
+	private static final Logger LOG = LoggerFactory.getLogger(HeapUsageBar.class);
+	private static final long serialVersionUID = -8739563124249884967L;
 
-	private static final double TWO_TO_20 = 1048576d; // 1024 * 1024
+	private static final double TWO_TO_20 = 1048576d;
 
-	private final Color GREEN = new Color(0, 180, 0);
-	private final Color RED = new Color(200, 0, 0);
+	private static final Color GREEN = new Color(0, 180, 0);
+	private static final Color RED = new Color(200, 0, 0);
 
-	private final Runtime r;
-
-	private String maxHeapStr;
-
-	private final Timer timer;
-
-	private final double maxGB;
+	private final transient Runtime runtime = Runtime.getRuntime();
+	private final transient Timer timer;
 
 	private final String textFormat;
+	private final double maxGB;
 
 	public HeapUsageBar() {
-		super();
-		textFormat = NLS.str("heapUsage.text");
-		r = Runtime.getRuntime();
+		this.textFormat = NLS.str("heapUsage.text");
 		setBorderPainted(false);
 		setStringPainted(true);
 		setValue(10);
-		int maxKB = (int) (r.maxMemory() / 1024);
+		int maxKB = (int) (runtime.maxMemory() / 1024);
 		setMaximum(maxKB);
 		maxGB = maxKB / TWO_TO_20;
 		update();
-		timer = new Timer(1000, this);
+		timer = new Timer(2000, this);
+		addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				Runtime.getRuntime().gc();
+				update();
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("Memory used: {}", Utils.memoryInfo());
+				}
+			}
+		});
 	}
 
 	public void update() {
-		long used = r.totalMemory() - r.freeMemory();
+		long used = runtime.totalMemory() - runtime.freeMemory();
 		int usedKB = (int) (used / 1024);
 		setValue(usedKB);
 		setString(String.format(textFormat, (usedKB / TWO_TO_20), maxGB));
 
-		if (used > r.totalMemory() * 0.8) {
+		if ((used + Utils.MIN_FREE_MEMORY) > runtime.maxMemory()) {
 			setForeground(RED);
 		} else {
 			setForeground(GREEN);

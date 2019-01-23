@@ -1,5 +1,6 @@
 package jadx.core.codegen;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -11,6 +12,7 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
 import jadx.core.dex.attributes.nodes.ForceReturnAttr;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
+import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.NamedArg;
@@ -306,16 +308,23 @@ public class RegionGen extends InsnGen {
 			return;
 		}
 		code.startLine("} catch (");
+		if (handler.isCatchAll()) {
+			code.add("Throwable");
+		} else {
+			Iterator<ClassInfo> it = handler.getCatchTypes().iterator();
+			if (it.hasNext()) {
+				useClass(code, it.next());
+			}
+			while (it.hasNext()) {
+				code.add(" | ");
+				useClass(code, it.next());
+			}
+		}
+		code.add(' ');
 		InsnArg arg = handler.getArg();
 		if (arg instanceof RegisterArg) {
-			declareVar(code, (RegisterArg) arg);
+			code.add(mgen.getNameGen().assignArg((RegisterArg) arg));
 		} else if (arg instanceof NamedArg) {
-			if (handler.isCatchAll()) {
-				code.add("Throwable");
-			} else {
-				useClass(code, handler.getCatchType());
-			}
-			code.add(' ');
 			code.add(mgen.getNameGen().assignNamedArg((NamedArg) arg));
 		}
 		code.add(") {");

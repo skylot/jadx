@@ -32,16 +32,16 @@ public class LineNumbers extends JPanel implements CaretListener {
 	private static final int NUM_HEIGHT = Integer.MAX_VALUE - 1000000;
 	private static final Map<?, ?> DESKTOP_HINTS = (Map<?, ?>) Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints");
 
-	private CodeArea codeArea;
+	private final CodeArea codeArea;
 	private boolean useSourceLines = true;
 
 	private int lastDigits;
 	private int lastLine;
 	private Map<String, FontMetrics> fonts;
 
-	private transient final Color numberColor;
-	private transient final Color currentColor;
-	private transient final Border border;
+	private final transient Color numberColor;
+	private final transient Color currentColor;
+	private final transient Border border;
 
 	public LineNumbers(CodeArea component) {
 		this.codeArea = component;
@@ -199,12 +199,10 @@ public class LineNumbers extends JPanel implements CaretListener {
 				String fontFamily = (String) as.getAttribute(StyleConstants.FontFamily);
 				Integer fontSize = (Integer) as.getAttribute(StyleConstants.FontSize);
 				String key = fontFamily + fontSize;
-				FontMetrics fm = fonts.get(key);
-				if (fm == null) {
+				FontMetrics fm = fonts.computeIfAbsent(key, k -> {
 					Font font = new Font(fontFamily, Font.PLAIN, fontSize);
-					fm = codeArea.getFontMetrics(font);
-					fonts.put(key, fm);
-				}
+					return codeArea.getFontMetrics(font);
+				});
 				descent = Math.max(descent, fm.getDescent());
 			}
 		}
@@ -220,5 +218,9 @@ public class LineNumbers extends JPanel implements CaretListener {
 			repaint();
 			lastLine = currentLine;
 		}
+	}
+
+	public void setUseSourceLines(boolean useSourceLines) {
+		this.useSourceLines = useSourceLines;
 	}
 }

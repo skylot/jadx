@@ -57,7 +57,7 @@ public class ResXmlGen {
 			content.decIndent();
 			content.startLine("</resources>");
 			content.finish();
-			files.add(ResContainer.singleFile(fileName, content));
+			files.add(ResContainer.textResource(fileName, content));
 		}
 		Collections.sort(files);
 		return files;

@@ -3,7 +3,7 @@ package jadx.gui.utils;
 import java.util.Locale;
 
 public class LangLocale {
-	private Locale locale;
+	private final Locale locale;
 
 	public LangLocale(Locale locale) {
 		this.locale = locale;
