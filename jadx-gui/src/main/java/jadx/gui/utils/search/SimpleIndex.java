@@ -12,10 +12,14 @@ public class SimpleIndex<T> implements SearchIndex<T> {
 	private final List<String> keys = new ArrayList<>();
 	private final List<T> values = new ArrayList<>();
 
+	private final Object syncData = new Object();
+
 	@Override
 	public void put(String str, T value) {
-		keys.add(str);
-		values.add(value);
+		synchronized (syncData) {
+			keys.add(str);
+			values.add(value);
+		}
 	}
 
 	@Override
@@ -39,13 +43,15 @@ public class SimpleIndex<T> implements SearchIndex<T> {
 	@Override
 	public Flowable<T> search(final String searchStr, final boolean caseInsensitive) {
 		return Flowable.create(emitter -> {
-			int size = size();
-			for (int i = 0; i < size; i++) {
-				if (isMatched(keys.get(i), searchStr, caseInsensitive)) {
-					emitter.onNext(values.get(i));
-				}
-				if (emitter.isCancelled()) {
-					return;
+			synchronized (syncData) {
+				int size = keys.size();
+				for (int i = 0; i < size; i++) {
+					if (isMatched(keys.get(i), searchStr, caseInsensitive)) {
+						emitter.onNext(values.get(i));
+					}
+					if (emitter.isCancelled()) {
+						return;
+					}
 				}
 			}
 			emitter.onComplete();
@@ -54,6 +60,8 @@ public class SimpleIndex<T> implements SearchIndex<T> {
 
 	@Override
 	public int size() {
-		return keys.size();
+		synchronized (syncData) {
+			return keys.size();
+		}
 	}
 }

@@ -176,6 +176,7 @@ public class SearchDialog extends CommonSearchDialog {
 				.subscribeOn(Schedulers.single())
 				.doOnNext(r -> LOG.debug("search event: {}", r))
 				.switchMap(text -> prepareSearch(text)
+						.doOnError(e -> LOG.error("Error prepare search: {}", e.getMessage(), e))
 						.subscribeOn(Schedulers.single())
 						.toList()
 						.toFlowable(), 1)
