@@ -62,6 +62,7 @@ public final class PhiInsn extends InsnNode {
 		RegisterArg reg = (RegisterArg) arg;
 		if (super.removeArg(reg)) {
 			blockBinds.remove(reg);
+			reg.getSVar().removeUse(reg);
 			InstructionRemover.fixUsedInPhiFlag(reg);
 			return true;
 		}
@@ -78,7 +79,9 @@ public final class PhiInsn extends InsnNode {
 			throw new JadxRuntimeException("Unknown predecessor block by arg " + from + " in PHI: " + this);
 		}
 		if (removeArg(from)) {
-			bindArg((RegisterArg) to, pred);
+			RegisterArg reg = (RegisterArg) to;
+			bindArg(reg, pred);
+			reg.getSVar().setUsedInPhi(this);
 		}
 		return true;
 	}

@@ -3,6 +3,7 @@ package jadx.core.dex.instructions.args;
 import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.PhiInsn;
@@ -118,7 +119,7 @@ public class RegisterArg extends InsnArg implements Named {
 		return duplicate(getRegNum(), sVar);
 	}
 
-	public RegisterArg duplicate(int regNum, SSAVar sVar) {
+	public RegisterArg duplicate(int regNum, @Nullable SSAVar sVar) {
 		RegisterArg dup = new RegisterArg(regNum, getInitType());
 		if (sVar != null) {
 			dup.setSVar(sVar);
@@ -140,6 +141,7 @@ public class RegisterArg extends InsnArg implements Named {
 		return InsnUtils.getConstValueByInsn(dex, parInsn);
 	}
 
+	@Nullable
 	public InsnNode getAssignInsn() {
 		if (sVar == null) {
 			return null;
@@ -196,7 +198,7 @@ public class RegisterArg extends InsnArg implements Named {
 		sb.append("(r");
 		sb.append(regNum);
 		if (sVar != null) {
-			sb.append(':').append(sVar.getVersion());
+			sb.append('v').append(sVar.getVersion());
 		}
 		if (getName() != null) {
 			sb.append(" '").append(getName()).append('\'');

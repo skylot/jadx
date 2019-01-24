@@ -701,7 +701,7 @@ public class InsnGen {
 		ArgType origType;
 		List<RegisterArg> arguments = callMth.getArguments(false);
 		if (arguments == null || arguments.isEmpty()) {
-			mth.addComment("JADX WARN: used method not loaded: " + callMth + ", types can be incorrect");
+			mth.addComment("JADX INFO: used method not loaded: " + callMth + ", types can be incorrect");
 			origType = callMth.getMethodInfo().getArgumentsTypes().get(origPos);
 		} else {
 			origType = arguments.get(origPos).getInitType();

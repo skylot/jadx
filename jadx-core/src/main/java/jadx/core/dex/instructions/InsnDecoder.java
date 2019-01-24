@@ -693,11 +693,19 @@ public class InsnDecoder {
 	}
 
 	private InsnNode arith(DecodedInstruction insn, ArithOp op, ArgType type) {
-		return new ArithNode(insn, op, type, false);
+		return new ArithNode(insn, op, fixTypeForBitOps(op, type), false);
 	}
 
 	private InsnNode arithLit(DecodedInstruction insn, ArithOp op, ArgType type) {
-		return new ArithNode(insn, op, type, true);
+		return new ArithNode(insn, op, fixTypeForBitOps(op, type), true);
+	}
+
+	private ArgType fixTypeForBitOps(ArithOp op, ArgType type) {
+		if (type == ArgType.INT
+				&& (op == ArithOp.AND || op == ArithOp.OR || op == ArithOp.XOR)) {
+			return ArgType.NARROW_NUMBERS_NO_FLOAT;
+		}
+		return type;
 	}
 
 	private InsnNode neg(DecodedInstruction insn, ArgType type) {

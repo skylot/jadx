@@ -163,7 +163,7 @@ public class SSAVar extends AttrNode {
 	}
 
 	public String toShortString() {
-		return "r" + regNum + ":" + version;
+		return "r" + regNum + "v" + version;
 	}
 
 	@Override

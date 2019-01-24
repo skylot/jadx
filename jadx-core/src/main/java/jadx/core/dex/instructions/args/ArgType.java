@@ -47,6 +47,10 @@ public abstract class ArgType {
 			PrimitiveType.INT, PrimitiveType.FLOAT,
 			PrimitiveType.SHORT, PrimitiveType.BYTE, PrimitiveType.CHAR);
 
+	public static final ArgType NARROW_NUMBERS_NO_FLOAT = unknown(
+			PrimitiveType.INT, PrimitiveType.BOOLEAN,
+			PrimitiveType.SHORT, PrimitiveType.BYTE, PrimitiveType.CHAR);
+
 	public static final ArgType WIDE = unknown(PrimitiveType.LONG, PrimitiveType.DOUBLE);
 
 	public static final ArgType INT_FLOAT = unknown(PrimitiveType.INT, PrimitiveType.FLOAT);

@@ -69,9 +69,22 @@ public class ClspGraph {
 		return nClass;
 	}
 
+	/**
+	 * @return {@code clsName} instanceof {@code implClsName}
+	 */
 	public boolean isImplements(String clsName, String implClsName) {
 		Set<String> anc = getAncestors(clsName);
 		return anc.contains(implClsName);
+	}
+
+	public List<String> getImplementations(String clsName) {
+		List<String> list = new ArrayList<>();
+		for (String cls : nameMap.keySet()) {
+			if (isImplements(cls, clsName)) {
+				list.add(cls);
+			}
+		}
+		return list;
 	}
 
 	public String getCommonAncestor(String clsName, String implClsName) {
@@ -104,7 +117,7 @@ public class ClspGraph {
 		return null;
 	}
 
-	private Set<String> getAncestors(String clsName) {
+	public Set<String> getAncestors(String clsName) {
 		Set<String> result = ancestorCache.get(clsName);
 		if (result != null) {
 			return result;

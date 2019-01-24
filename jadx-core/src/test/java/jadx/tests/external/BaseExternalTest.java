@@ -72,7 +72,7 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		int processed = 0;
 		for (ClassNode classNode : root.getClasses(true)) {
 			String clsFullName = classNode.getClassInfo().getFullName();
-			if (isMatch(clsFullName, clsPattern)) {
+			if (clsFullName.equals(clsPattern)) {
 				if (processCls(mthPattern, passes, classNode)) {
 					processed++;
 				}

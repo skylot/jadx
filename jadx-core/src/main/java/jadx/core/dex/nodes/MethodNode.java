@@ -575,6 +575,10 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 		return debugInfoOffset;
 	}
 
+	public SSAVar makeNewSVar(int regNum, @NotNull RegisterArg assignArg) {
+		return makeNewSVar(regNum, getNextSVarVersion(regNum), assignArg);
+	}
+
 	public SSAVar makeNewSVar(int regNum, int version, @NotNull RegisterArg assignArg) {
 		SSAVar var = new SSAVar(regNum, version, assignArg);
 		if (sVars.isEmpty()) {

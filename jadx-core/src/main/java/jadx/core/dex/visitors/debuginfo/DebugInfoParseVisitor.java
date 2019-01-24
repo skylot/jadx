@@ -56,7 +56,7 @@ public class DebugInfoParseVisitor extends AbstractVisitor {
 		if (localVars.isEmpty()) {
 			return;
 		}
-		if (Consts.DEBUG && LOG.isDebugEnabled()) {
+		if (Consts.DEBUG) {
 			LOG.debug("Parsed debug info for {}: ", mth);
 			localVars.forEach(v -> LOG.debug("  {}", v));
 		}

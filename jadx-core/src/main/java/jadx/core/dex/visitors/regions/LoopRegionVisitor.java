@@ -38,6 +38,7 @@ import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.regions.variables.ProcessVariables;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.RegionUtils;
+import jadx.core.utils.exceptions.JadxOverflowException;
 
 @JadxVisitor(
 		name = "LoopRegionVisitor",
@@ -112,8 +113,12 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		List<RegisterArg> args = new LinkedList<>();
 		incrInsn.getRegisterArgs(args);
 		for (RegisterArg iArg : args) {
-			if (assignOnlyInLoop(mth, loopRegion, iArg)) {
-				return false;
+			try {
+				if (assignOnlyInLoop(mth, loopRegion, iArg)) {
+					return false;
+				}
+			} catch (StackOverflowError error) {
+				throw new JadxOverflowException("LoopRegionVisitor.assignOnlyInLoop endless recursion");
 			}
 		}
 

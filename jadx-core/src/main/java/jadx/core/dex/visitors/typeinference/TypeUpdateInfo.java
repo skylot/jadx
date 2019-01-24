@@ -18,6 +18,10 @@ public class TypeUpdateInfo {
 		return updates.containsKey(arg);
 	}
 
+	public void rollbackUpdate(InsnArg arg) {
+		updates.remove(arg);
+	}
+
 	public Map<InsnArg, ArgType> getUpdates() {
 		return updates;
 	}

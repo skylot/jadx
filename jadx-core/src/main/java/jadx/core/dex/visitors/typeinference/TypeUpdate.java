@@ -34,22 +34,16 @@ public final class TypeUpdate {
 	private final Map<InsnType, ITypeListener> listenerRegistry;
 	private final TypeCompare comparator;
 
-	private ThreadLocal<Boolean> applyDebug = new ThreadLocal<>();
+	private ThreadLocal<Boolean> allowWider = new ThreadLocal<>();
 
 	public TypeUpdate(RootNode root) {
 		this.listenerRegistry = initListenerRegistry();
 		this.comparator = new TypeCompare(root);
 	}
 
-	public TypeUpdateResult applyDebug(SSAVar ssaVar, ArgType candidateType) {
-		try {
-			applyDebug.set(true);
-			return apply(ssaVar, candidateType);
-		} finally {
-			applyDebug.set(false);
-		}
-	}
-
+	/**
+	 * Perform recursive type checking and type propagation for all related variables
+	 */
 	public TypeUpdateResult apply(SSAVar ssaVar, ArgType candidateType) {
 		if (candidateType == null) {
 			return REJECT;
@@ -71,10 +65,21 @@ public final class TypeUpdate {
 		return CHANGED;
 	}
 
+	/**
+	 * Allow wider types for apply from debug info and some special cases
+	 */
+	public TypeUpdateResult applyWithWiderAllow(SSAVar ssaVar, ArgType candidateType) {
+		try {
+			allowWider.set(true);
+			return apply(ssaVar, candidateType);
+		} finally {
+			allowWider.set(false);
+		}
+	}
+
 	private TypeUpdateResult updateTypeChecked(TypeUpdateInfo updateInfo, InsnArg arg, ArgType candidateType) {
 		if (candidateType == null) {
-			LOG.warn("Reject null type update, arg: {}, info: {}", arg, updateInfo, new RuntimeException());
-			return REJECT;
+			throw new JadxRuntimeException("Null type update for arg: " + arg);
 		}
 		ArgType currentType = arg.getType();
 		if (Objects.equals(currentType, candidateType)) {
@@ -82,15 +87,20 @@ public final class TypeUpdate {
 		}
 		TypeCompareEnum compareResult = comparator.compareTypes(candidateType, currentType);
 		if (compareResult == TypeCompareEnum.CONFLICT) {
+			if (Consts.DEBUG) {
+				LOG.debug("Type rejected for {} due to conflict: candidate={}, current={}", arg, candidateType, currentType);
+			}
 			return REJECT;
 		}
 		if (arg.isTypeImmutable() && currentType != ArgType.UNKNOWN) {
 			// don't changed type, conflict already rejected
 			return SAME;
 		}
-		if (compareResult == TypeCompareEnum.WIDER || compareResult == TypeCompareEnum.WIDER_BY_GENERIC) {
-			// allow wider types for apply from debug info
-			if (applyDebug.get() != Boolean.TRUE) {
+		if (compareResult.isWider()) {
+			if (allowWider.get() != Boolean.TRUE) {
+				if (Consts.DEBUG) {
+					LOG.debug("Type rejected for {}: candidate={} is wider than current={}", arg, candidateType, currentType);
+				}
 				return REJECT;
 			}
 		}
@@ -104,7 +114,7 @@ public final class TypeUpdate {
 	private TypeUpdateResult updateTypeForSsaVar(TypeUpdateInfo updateInfo, SSAVar ssaVar, ArgType candidateType) {
 		TypeInfo typeInfo = ssaVar.getTypeInfo();
 		if (!inBounds(typeInfo.getBounds(), candidateType)) {
-			if (Consts.DEBUG && LOG.isDebugEnabled()) {
+			if (Consts.DEBUG) {
 				LOG.debug("Reject type '{}' for {} by bounds: {}", candidateType, ssaVar, typeInfo.getBounds());
 			}
 			return REJECT;
@@ -138,7 +148,11 @@ public final class TypeUpdate {
 		}
 		updateInfo.requestUpdate(arg, candidateType);
 		try {
-			return runListeners(updateInfo, arg, candidateType);
+			TypeUpdateResult result = runListeners(updateInfo, arg, candidateType);
+			if (result == REJECT) {
+				updateInfo.rollbackUpdate(arg);
+			}
+			return result;
 		} catch (StackOverflowError overflow) {
 			throw new JadxOverflowException("Type update terminated with stack overflow, arg: " + arg);
 		}
@@ -156,7 +170,7 @@ public final class TypeUpdate {
 		return listener.update(updateInfo, insn, arg, candidateType);
 	}
 
-	private boolean inBounds(Set<ITypeBound> bounds, ArgType candidateType) {
+	boolean inBounds(Set<ITypeBound> bounds, ArgType candidateType) {
 		for (ITypeBound bound : bounds) {
 			ArgType boundType = bound.getType();
 			if (boundType != null && !checkBound(candidateType, bound, boundType)) {
@@ -164,6 +178,14 @@ public final class TypeUpdate {
 			}
 		}
 		return true;
+	}
+
+	private boolean inBounds(InsnArg arg, ArgType candidateType) {
+		if (arg.isRegister()) {
+			TypeInfo typeInfo = ((RegisterArg) arg).getSVar().getTypeInfo();
+			return inBounds(typeInfo.getBounds(), candidateType);
+		}
+		return arg.getType().equals(candidateType);
 	}
 
 	private boolean checkBound(ArgType candidateType, ITypeBound bound, ArgType boundType) {
@@ -222,7 +244,7 @@ public final class TypeUpdate {
 	private Map<InsnType, ITypeListener> initListenerRegistry() {
 		Map<InsnType, ITypeListener> registry = new EnumMap<>(InsnType.class);
 		registry.put(InsnType.CONST, this::sameFirstArgListener);
-		registry.put(InsnType.MOVE, this::sameFirstArgListener);
+		registry.put(InsnType.MOVE, this::moveListener);
 		registry.put(InsnType.PHI, this::allSameListener);
 		registry.put(InsnType.MERGE, this::allSameListener);
 		registry.put(InsnType.AGET, this::arrayGetListener);
@@ -237,6 +259,27 @@ public final class TypeUpdate {
 	private TypeUpdateResult sameFirstArgListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
 		InsnArg changeArg = isAssign(insn, arg) ? insn.getArg(0) : insn.getResult();
 		return updateTypeChecked(updateInfo, changeArg, candidateType);
+	}
+
+	private TypeUpdateResult moveListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
+		boolean assignChanged = isAssign(insn, arg);
+		InsnArg changeArg = assignChanged ? insn.getArg(0) : insn.getResult();
+		TypeUpdateResult result = updateTypeChecked(updateInfo, changeArg, candidateType);
+		if (result == REJECT && changeArg.getType().isTypeKnown()) {
+			// allow result to be wider
+			if (assignChanged) {
+				TypeCompareEnum compareTypes = comparator.compareTypes(candidateType, changeArg.getType());
+				if (compareTypes.isWider() && inBounds(changeArg, candidateType)) {
+					return CHANGED;
+				}
+			} else {
+				TypeCompareEnum compareTypes = comparator.compareTypes(changeArg.getType(), candidateType);
+				if (compareTypes.isWider() && inBounds(changeArg, candidateType)) {
+					return CHANGED;
+				}
+			}
+		}
+		return result;
 	}
 
 	/**

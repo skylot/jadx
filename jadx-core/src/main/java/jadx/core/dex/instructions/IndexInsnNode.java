@@ -1,7 +1,10 @@
 package jadx.core.dex.instructions;
 
+import java.util.Objects;
+
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
+import jadx.core.utils.Utils;
 
 public class IndexInsnNode extends InsnNode {
 
@@ -30,11 +33,21 @@ public class IndexInsnNode extends InsnNode {
 			return false;
 		}
 		IndexInsnNode other = (IndexInsnNode) obj;
-		return index == null ? other.index == null : index.equals(other.index);
+		return Objects.equals(index, other.index);
 	}
 
 	@Override
 	public String toString() {
-		return super.toString() + " " + InsnUtils.indexToString(index);
+		switch (insnType) {
+			case CAST:
+			case CHECK_CAST:
+				return InsnUtils.formatOffset(offset) + ": "
+						+ InsnUtils.insnTypeToString(insnType)
+						+ getResult() + " = (" + InsnUtils.indexToString(index) + ") "
+						+ Utils.listToString(getArguments());
+
+			default:
+				return super.toString() + " " + InsnUtils.indexToString(index);
+		}
 	}
 }

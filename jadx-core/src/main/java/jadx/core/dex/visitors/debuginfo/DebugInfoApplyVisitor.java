@@ -53,9 +53,22 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 				applyDebugInfo(mth);
 				mth.remove(AType.LOCAL_VARS_DEBUG_INFO);
 			}
+			checkTypes(mth);
 		} catch (Exception e) {
 			LOG.error("Error to apply debug info: {}", ErrorsCounter.formatMsg(mth, e.getMessage()), e);
 		}
+	}
+
+	private static void checkTypes(MethodNode mth) {
+		if (mth.isNoCode() || mth.getSVars().isEmpty()) {
+			return;
+		}
+		mth.getSVars().forEach(var -> {
+			ArgType type = var.getTypeInfo().getType();
+			if (!type.isTypeKnown()) {
+				mth.addComment("JADX WARNING: type inference failed for: " + var.getDetailedVarInfo(mth));
+			}
+		});
 	}
 
 	private static void applyDebugInfo(MethodNode mth) {
@@ -80,6 +93,9 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 			applyDebugInfo(mth, ssaVar, debugInfo.getRegType(), debugInfo.getName());
 		} else {
 			LOG.warn("Multiple debug info for {}: {}", ssaVar, debugInfoSet);
+			for (RegDebugInfoAttr debugInfo : debugInfoSet) {
+				applyDebugInfo(mth, ssaVar, debugInfo.getRegType(), debugInfo.getName());
+			}
 		}
 	}
 
@@ -102,7 +118,7 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 				int startAddr = localVar.getStartAddr();
 				int endAddr = localVar.getEndAddr();
 				if (isInside(startOffset, startAddr, endAddr) || isInside(endOffset, startAddr, endAddr)) {
-					if (Consts.DEBUG && LOG.isDebugEnabled()) {
+					if (Consts.DEBUG) {
 						LOG.debug("Apply debug info by offset for: {} to {}", ssaVar, localVar);
 					}
 					applyDebugInfo(mth, ssaVar, localVar.getType(), localVar.getName());
@@ -127,15 +143,15 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 	}
 
 	public static void applyDebugInfo(MethodNode mth, SSAVar ssaVar, ArgType type, String varName) {
-		if (NameMapper.isValidIdentifier(varName)) {
-			ssaVar.setName(varName);
-		}
-		TypeUpdateResult result = mth.root().getTypeUpdate().applyDebug(ssaVar, type);
+		TypeUpdateResult result = mth.root().getTypeUpdate().applyWithWiderAllow(ssaVar, type);
 		if (result == TypeUpdateResult.REJECT) {
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Reject debug info of type: {} and name: '{}' for {}, mth: {}", type, varName, ssaVar, mth);
 			}
 		} else {
+			if (NameMapper.isValidIdentifier(varName)) {
+				ssaVar.setName(varName);
+			}
 			detachDebugInfo(ssaVar.getAssign());
 			ssaVar.getUseList().forEach(DebugInfoApplyVisitor::detachDebugInfo);
 		}
