@@ -33,6 +33,7 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.ConstInlineVisitor;
+import jadx.core.dex.visitors.InitCodeVariables;
 import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.utils.Utils;
@@ -131,7 +132,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 				if (Consts.DEBUG) {
 					if (ssaVar.getTypeInfo().getType().equals(candidateType)) {
 						LOG.info("Same type rejected: {} -> {}, bounds: {}", ssaVar, candidateType, bounds);
-					} else {
+					} else if (candidateType.isTypeKnown()) {
 						LOG.debug("Type set rejected: {} -> {}, bounds: {}", ssaVar, candidateType, bounds);
 					}
 				}
@@ -311,6 +312,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 				for (InsnArg phiArg : phiInsn.getArguments()) {
 					mergePhiBounds(((RegisterArg) phiArg).getSVar());
 				}
+				InitCodeVariables.initCodeVar(newSsaVar);
 				return true;
 			}
 		}

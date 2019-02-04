@@ -11,7 +11,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-public class TestTryCatch3 extends IntegrationTest {
+public class TestTryCatchFinally7 extends IntegrationTest {
 
 	public static class TestCls {
 		private int f = 0;

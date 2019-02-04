@@ -115,8 +115,8 @@ public class RegionMaker {
 			}
 		}
 
-		if (!processed && block.getInstructions().size() == 1) {
-			InsnNode insn = block.getInstructions().get(0);
+		InsnNode insn = BlockUtils.getLastInsn(block);
+		if (!processed && insn != null) {
 			switch (insn.getType()) {
 				case IF:
 					next = processIf(r, block, (IfNode) insn, stack);
@@ -247,9 +247,11 @@ public class RegionMaker {
 	 */
 	private LoopRegion makeLoopRegion(IRegion curRegion, LoopInfo loop, List<BlockNode> exitBlocks) {
 		for (BlockNode block : exitBlocks) {
-			if (block.contains(AType.EXC_HANDLER)
-					|| block.getInstructions().size() != 1
-					|| block.getInstructions().get(0).getType() != InsnType.IF) {
+			if (block.contains(AType.EXC_HANDLER)) {
+				continue;
+			}
+			InsnNode lastInsn = BlockUtils.getLastInsn(block);
+			if (lastInsn == null || lastInsn.getType() != InsnType.IF) {
 				continue;
 			}
 			List<LoopInfo> loops = block.getAll(AType.LOOP);
@@ -533,6 +535,7 @@ public class RegionMaker {
 				insnBlock.add(AFlag.DONT_GENERATE);
 			}
 			exitInsn.add(AFlag.DONT_GENERATE);
+			exitInsn.add(AFlag.REMOVE);
 			InstructionRemover.unbindInsn(mth, exitInsn);
 		}
 

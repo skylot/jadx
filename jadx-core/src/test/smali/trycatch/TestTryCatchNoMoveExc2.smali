@@ -1,4 +1,4 @@
-.class public LTestTryCatchNoMoveExc2;
+.class public Ltrycatch/TestTryCatchNoMoveExc2;
 .super Ljava/lang/Object;
 
 .method private static test(Ljava/lang/AutoCloseable;)V

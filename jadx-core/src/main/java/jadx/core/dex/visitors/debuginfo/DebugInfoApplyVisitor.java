@@ -26,7 +26,6 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
-import jadx.core.dex.visitors.ssa.EliminatePhiNodes;
 import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
 import jadx.core.dex.visitors.typeinference.TypeUpdateResult;
@@ -39,8 +38,7 @@ import jadx.core.utils.exceptions.JadxException;
 		desc = "Apply debug info to registers (type and names)",
 		runAfter = {
 				SSATransform.class,
-				TypeInferenceVisitor.class,
-				EliminatePhiNodes.class
+				TypeInferenceVisitor.class
 		}
 )
 public class DebugInfoApplyVisitor extends AbstractVisitor {

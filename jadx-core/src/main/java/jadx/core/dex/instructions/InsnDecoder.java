@@ -19,7 +19,6 @@ import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
-import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -405,12 +404,10 @@ public class InsnDecoder {
 				return new GotoNode(insn.getTarget());
 
 			case Opcodes.THROW:
-				return insn(InsnType.THROW, null,
-						InsnArg.reg(insn, 0, ArgType.unknown(PrimitiveType.OBJECT)));
+				return insn(InsnType.THROW, null, InsnArg.reg(insn, 0, ArgType.THROWABLE));
 
 			case Opcodes.MOVE_EXCEPTION:
-				return insn(InsnType.MOVE_EXCEPTION,
-						InsnArg.reg(insn, 0, ArgType.unknown(PrimitiveType.OBJECT)));
+				return insn(InsnType.MOVE_EXCEPTION, InsnArg.reg(insn, 0, ArgType.UNKNOWN_OBJECT_NO_ARRAY));
 
 			case Opcodes.RETURN_VOID:
 				return new InsnNode(InsnType.RETURN, 0);

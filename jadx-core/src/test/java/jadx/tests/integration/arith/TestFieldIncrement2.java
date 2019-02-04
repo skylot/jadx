@@ -32,8 +32,8 @@ public class TestFieldIncrement2 extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsString("this.a.f += n;"));
-		assertThat(code, containsString("a.f *= n;"));
-		// TODO
-		// assertThat(code, containsString("this.a.f *= n;"));
+		assertThat(code, containsString("a2.f *= n;"));
+		// TODO:
+		//  assertThat(code, containsString("this.a.f *= n;"));
 	}
 }

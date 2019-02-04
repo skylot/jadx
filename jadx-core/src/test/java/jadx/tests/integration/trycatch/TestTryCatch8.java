@@ -31,8 +31,8 @@ public class TestTryCatch8 extends IntegrationTest {
 			synchronized (this) {
 				try {
 					throw new MyException();
-				} catch (MyException e) {
-					this.e = e;
+				} catch (MyException myExc) {
+					this.e = myExc;
 				} catch (Exception x) {
 					this.e = new MyException("MyExc", x);
 				}
@@ -54,9 +54,19 @@ public class TestTryCatch8 extends IntegrationTest {
 
 		assertThat(code, containsOne("synchronized (this) {"));
 		assertThat(code, containsOne("throw new MyException();"));
-		assertThat(code, containsOne("} catch (MyException e) {"));
-		assertThat(code, containsOne("this.e = e;"));
+		assertThat(code, containsOne("} catch (MyException myExc) {"));
+		assertThat(code, containsOne("this.e = myExc;"));
 		assertThat(code, containsOne("} catch (Exception x) {"));
 		assertThat(code, containsOne("this.e = new MyException(\"MyExc\", x);"));
+	}
+
+	@Test
+	public void testNoDebug() {
+		noDebugInfo();
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, containsOne("synchronized (this) {"));
+		assertThat(code, containsOne("throw new MyException();"));
 	}
 }

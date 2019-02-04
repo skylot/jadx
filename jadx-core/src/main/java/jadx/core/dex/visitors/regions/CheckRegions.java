@@ -59,6 +59,7 @@ public class CheckRegions extends AbstractVisitor {
 				if (!blocksInRegions.contains(block)
 						&& !block.getInstructions().isEmpty()
 						&& !block.contains(AFlag.ADDED_TO_REGION)
+						&& !block.contains(AFlag.DONT_GENERATE)
 						&& !block.contains(AFlag.REMOVE)) {
 					String blockCode = getBlockInsnStr(mth, block);
 					mth.addWarn("Missing block: " + block + ", code skipped:" + CodeWriter.NL + blockCode);

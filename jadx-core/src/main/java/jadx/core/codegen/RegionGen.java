@@ -3,6 +3,7 @@ package jadx.core.codegen;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ import jadx.core.dex.regions.loops.ForLoop;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.regions.loops.LoopType;
 import jadx.core.dex.trycatch.ExceptionHandler;
+import jadx.core.utils.BlockUtils;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.CodegenException;
@@ -98,6 +100,10 @@ public class RegionGen extends InsnGen {
 	}
 
 	private void makeSimpleBlock(IBlock block, CodeWriter code) throws CodegenException {
+		if (block.contains(AFlag.DONT_GENERATE)) {
+			return;
+		}
+
 		for (InsnNode insn : block.getInstructions()) {
 			if (!insn.contains(AFlag.DONT_GENERATE)) {
 				makeInsn(insn, code);
@@ -233,7 +239,8 @@ public class RegionGen extends InsnGen {
 	}
 
 	private CodeWriter makeSwitch(SwitchRegion sw, CodeWriter code) throws CodegenException {
-		SwitchNode insn = (SwitchNode) sw.getHeader().getInstructions().get(0);
+		SwitchNode insn = (SwitchNode) BlockUtils.getLastInsn(sw.getHeader());
+		Objects.requireNonNull(insn, "Switch insn not found in header");
 		InsnArg arg = insn.getArg(0);
 		code.startLine("switch (");
 		addArg(code, arg, false);

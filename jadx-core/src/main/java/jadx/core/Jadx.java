@@ -20,6 +20,8 @@ import jadx.core.dex.visitors.EnumVisitor;
 import jadx.core.dex.visitors.ExtractFieldInit;
 import jadx.core.dex.visitors.FallbackModeVisitor;
 import jadx.core.dex.visitors.IDexTreeVisitor;
+import jadx.core.dex.visitors.InitCodeVariables;
+import jadx.core.dex.visitors.MarkFinallyVisitor;
 import jadx.core.dex.visitors.MethodInlineVisitor;
 import jadx.core.dex.visitors.ModVisitor;
 import jadx.core.dex.visitors.PrepareForCodeGen;
@@ -27,19 +29,18 @@ import jadx.core.dex.visitors.ReSugarCode;
 import jadx.core.dex.visitors.RenameVisitor;
 import jadx.core.dex.visitors.SimplifyVisitor;
 import jadx.core.dex.visitors.blocksmaker.BlockExceptionHandler;
-import jadx.core.dex.visitors.blocksmaker.BlockFinallyExtract;
 import jadx.core.dex.visitors.blocksmaker.BlockFinish;
 import jadx.core.dex.visitors.blocksmaker.BlockProcessor;
 import jadx.core.dex.visitors.blocksmaker.BlockSplitter;
 import jadx.core.dex.visitors.debuginfo.DebugInfoApplyVisitor;
 import jadx.core.dex.visitors.debuginfo.DebugInfoParseVisitor;
 import jadx.core.dex.visitors.regions.CheckRegions;
+import jadx.core.dex.visitors.regions.CleanRegions;
 import jadx.core.dex.visitors.regions.IfRegionVisitor;
 import jadx.core.dex.visitors.regions.LoopRegionVisitor;
 import jadx.core.dex.visitors.regions.RegionMakerVisitor;
 import jadx.core.dex.visitors.regions.ReturnVisitor;
 import jadx.core.dex.visitors.regions.variables.ProcessVariables;
-import jadx.core.dex.visitors.ssa.EliminatePhiNodes;
 import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
 
@@ -68,14 +69,14 @@ public class Jadx {
 
 			passes.add(new BlockProcessor());
 			passes.add(new BlockExceptionHandler());
-			passes.add(new BlockFinallyExtract());
 			passes.add(new BlockFinish());
 
 			passes.add(new SSATransform());
 			passes.add(new ConstructorVisitor());
+			passes.add(new InitCodeVariables());
+			passes.add(new MarkFinallyVisitor());
 			passes.add(new ConstInlineVisitor());
 			passes.add(new TypeInferenceVisitor());
-			passes.add(new EliminatePhiNodes());
 			passes.add(new DebugInfoApplyVisitor());
 
 			passes.add(new ModVisitor());
@@ -88,6 +89,7 @@ public class Jadx {
 			passes.add(new RegionMakerVisitor());
 			passes.add(new IfRegionVisitor());
 			passes.add(new ReturnVisitor());
+			passes.add(new CleanRegions());
 
 			passes.add(new CodeShrinker());
 			passes.add(new SimplifyVisitor());

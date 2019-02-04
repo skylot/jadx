@@ -36,6 +36,9 @@ public class PrepareForCodeGen extends AbstractVisitor {
 			return;
 		}
 		for (BlockNode block : blocks) {
+			if (block.contains(AFlag.DONT_GENERATE)) {
+				continue;
+			}
 			removeInstructions(block);
 			checkInline(block);
 //			removeParenthesis(block);

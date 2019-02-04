@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import jadx.core.dex.nodes.ClassNode;
@@ -12,7 +13,7 @@ import jadx.tests.api.IntegrationTest;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertThat;
 
-public class TestTryCatch5 extends IntegrationTest {
+public class TestTryCatchFinally8 extends IntegrationTest {
 
 	public static class TestCls {
 		private Object test(Object obj) {
@@ -41,9 +42,9 @@ public class TestTryCatch5 extends IntegrationTest {
 		}
 	}
 
+	@Ignore("Fix merged catch blocks (shared code between catches)")
 	@Test
 	public void test() {
-		disableCompilation();
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 

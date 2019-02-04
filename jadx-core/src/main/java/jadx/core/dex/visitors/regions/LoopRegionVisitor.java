@@ -197,7 +197,6 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		}
 
 		// array for each loop confirmed
-		len.add(AFlag.DONT_GENERATE);
 		incrInsn.getResult().add(AFlag.DONT_GENERATE);
 		condArg.add(AFlag.DONT_GENERATE);
 		bCondArg.add(AFlag.DONT_GENERATE);
@@ -208,6 +207,8 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 			((RegisterArg) arrayArg).getSVar().removeUse((RegisterArg) arrGetInsn.getArg(0));
 		}
 		CodeShrinker.shrinkMethod(mth);
+		len.add(AFlag.DONT_GENERATE);
+
 		if (arrGetInsn.contains(AFlag.WRAPPED)) {
 			InsnArg wrapArg = BlockUtils.searchWrappedInsnParent(mth, arrGetInsn);
 			if (wrapArg != null && wrapArg.getParentInsn() != null) {

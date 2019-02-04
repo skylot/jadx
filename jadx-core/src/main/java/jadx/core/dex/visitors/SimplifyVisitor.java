@@ -4,13 +4,21 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import jadx.core.dex.instructions.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.Consts;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.instructions.ArithNode;
+import jadx.core.dex.instructions.ArithOp;
+import jadx.core.dex.instructions.CallMthInterface;
+import jadx.core.dex.instructions.ConstStringNode;
+import jadx.core.dex.instructions.IfNode;
+import jadx.core.dex.instructions.IndexInsnNode;
+import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.FieldArg;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -44,6 +52,9 @@ public class SimplifyVisitor extends AbstractVisitor {
 	}
 
 	private static InsnNode simplifyInsn(MethodNode mth, InsnNode insn) {
+		if (insn.contains(AFlag.DONT_GENERATE)) {
+			return null;
+		}
 		for (InsnArg arg : insn.getArguments()) {
 			if (arg.isInsnWrap()) {
 				InsnNode ni = simplifyInsn(mth, ((InsnWrapArg) arg).getWrapInsn());

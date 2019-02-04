@@ -235,7 +235,6 @@ public class ModVisitor extends AbstractVisitor {
 				RegisterArg reg = (RegisterArg) arg;
 				SSAVar sVar = reg.getSVar();
 				if (sVar != null) {
-					sVar.add(AFlag.FINAL);
 					sVar.getCodeVar().setFinal(true);
 					sVar.add(AFlag.DONT_INLINE);
 				}

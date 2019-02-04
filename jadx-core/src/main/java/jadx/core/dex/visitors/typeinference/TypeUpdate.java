@@ -246,7 +246,6 @@ public final class TypeUpdate {
 		registry.put(InsnType.CONST, this::sameFirstArgListener);
 		registry.put(InsnType.MOVE, this::moveListener);
 		registry.put(InsnType.PHI, this::allSameListener);
-		registry.put(InsnType.MERGE, this::allSameListener);
 		registry.put(InsnType.AGET, this::arrayGetListener);
 		registry.put(InsnType.APUT, this::arrayPutListener);
 		registry.put(InsnType.IF, this::ifListener);

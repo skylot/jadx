@@ -30,7 +30,7 @@ public class RegDebugInfoAttr implements IAttribute {
 	}
 
 	@Override
-	public AType getType() {
+	public AType<RegDebugInfoAttr> getType() {
 		return AType.REG_DEBUG_INFO;
 	}
 

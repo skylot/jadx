@@ -15,6 +15,7 @@ import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
+import jadx.core.utils.BlockUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public final class IfCondition {
@@ -54,10 +55,11 @@ public final class IfCondition {
 	}
 
 	public static IfCondition fromIfBlock(BlockNode header) {
-		if (header == null) {
+		InsnNode lastInsn = BlockUtils.getLastInsn(header);
+		if (lastInsn == null) {
 			return null;
 		}
-		return fromIfNode((IfNode) header.getInstructions().get(0));
+		return fromIfNode((IfNode) lastInsn);
 	}
 
 	public static IfCondition fromIfNode(IfNode insn) {

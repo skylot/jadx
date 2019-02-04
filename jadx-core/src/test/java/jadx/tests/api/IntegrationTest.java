@@ -17,7 +17,6 @@ import java.util.jar.JarOutputStream;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
-import jadx.core.Jadx;
 import jadx.core.ProcessClass;
 import jadx.core.codegen.CodeGen;
 import jadx.core.dex.attributes.AFlag;
@@ -29,7 +28,6 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
-import jadx.core.utils.exceptions.JadxException;
 import jadx.core.xmlgen.ResourceStorage;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.tests.api.compiler.DynamicCompiler;
@@ -141,32 +139,17 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	protected void decompile(JadxDecompiler jadx, ClassNode cls) {
-		List<IDexTreeVisitor> passes = getPassesList(jadx);
+		List<IDexTreeVisitor> passes = JadxInternalAccess.getPassList(jadx);
 		ProcessClass.process(cls, passes, new CodeGen());
 	}
 
 	protected void decompileWithoutUnload(JadxDecompiler jadx, ClassNode cls) {
 		cls.load();
-		List<IDexTreeVisitor> passes = getPassesList(jadx);
-		for (IDexTreeVisitor visitor : passes) {
+		for (IDexTreeVisitor visitor : JadxInternalAccess.getPassList(jadx)) {
 			DepthTraversal.visit(visitor, cls);
 		}
 		generateClsCode(cls);
 		// don't unload class
-	}
-
-	private List<IDexTreeVisitor> getPassesList(JadxDecompiler jadx) {
-		RootNode root = JadxInternalAccess.getRoot(jadx);
-		List<IDexTreeVisitor> passesList = Jadx.getPassesList(jadx.getArgs());
-		passesList.forEach(pass -> {
-			try {
-				pass.init(root);
-			} catch (JadxException e) {
-				e.printStackTrace();
-				fail(e.getMessage());
-			}
-		});
-		return passesList;
 	}
 
 	protected void generateClsCode(ClassNode cls) {
@@ -441,6 +424,11 @@ public abstract class IntegrationTest extends TestUtils {
 	@Deprecated
 	protected void setOutputCFG() {
 		this.args.setCfgOutput(true);
+		this.args.setRawCFGOutput(true);
+	}	// Use only for debug purpose
+
+	@Deprecated
+	protected void setOutputRawCFG() {
 		this.args.setRawCFGOutput(true);
 	}
 

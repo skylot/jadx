@@ -30,6 +30,8 @@ public abstract class ArgType {
 
 	public static final ArgType UNKNOWN = unknown(PrimitiveType.values());
 	public static final ArgType UNKNOWN_OBJECT = unknown(PrimitiveType.OBJECT, PrimitiveType.ARRAY);
+	public static final ArgType UNKNOWN_OBJECT_NO_ARRAY = unknown(PrimitiveType.OBJECT);
+	public static final ArgType UNKNOWN_ARRAY = array(UNKNOWN);
 
 	public static final ArgType NARROW = unknown(
 			PrimitiveType.INT, PrimitiveType.FLOAT,

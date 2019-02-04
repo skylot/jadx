@@ -16,6 +16,7 @@ import static jadx.core.dex.instructions.args.ArgType.NARROW;
 import static jadx.core.dex.instructions.args.ArgType.NARROW_INTEGRAL;
 import static jadx.core.dex.instructions.args.ArgType.OBJECT;
 import static jadx.core.dex.instructions.args.ArgType.UNKNOWN;
+import static jadx.core.dex.instructions.args.ArgType.UNKNOWN_ARRAY;
 import static jadx.core.dex.instructions.args.ArgType.UNKNOWN_OBJECT;
 import static jadx.core.dex.instructions.args.ArgType.array;
 import static org.hamcrest.Matchers.is;
@@ -60,6 +61,8 @@ public class TypeCompareTest {
 
 		firstIsNarrow(array(OBJECT), OBJECT);
 		firstIsNarrow(array(OBJECT), array(UNKNOWN_OBJECT));
+
+		firstIsNarrow(UNKNOWN_ARRAY, OBJECT);
 	}
 
 	@Test

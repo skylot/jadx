@@ -139,6 +139,7 @@ public class SSAVar extends AttrNode {
 
 	public void setCodeVar(@NotNull CodeVar codeVar) {
 		this.codeVar = codeVar;
+		codeVar.addSsaVar(this);
 	}
 
 	public boolean isCodeVarSet() {

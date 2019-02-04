@@ -27,7 +27,10 @@ import jadx.core.utils.exceptions.JadxOverflowException;
 @JadxVisitor(
 		name = "Constants Inline",
 		desc = "Inline constant registers into instructions",
-		runAfter = SSATransform.class,
+		runAfter = {
+				SSATransform.class,
+				MarkFinallyVisitor.class
+		},
 		runBefore = TypeInferenceVisitor.class
 )
 public class ConstInlineVisitor extends AbstractVisitor {
@@ -48,7 +51,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 	}
 
 	private static void checkInsn(MethodNode mth, InsnNode insn, List<InsnNode> toRemove) {
-		if (insn.contains(AFlag.DONT_INLINE)) {
+		if (insn.contains(AFlag.DONT_INLINE) || insn.contains(AFlag.DONT_GENERATE)) {
 			return;
 		}
 		InsnType insnType = insn.getType();
@@ -71,7 +74,34 @@ public class ConstInlineVisitor extends AbstractVisitor {
 			}
 			return;
 		}
+
+		if (checkForFinallyBlock(sVar)) {
+			return;
+		}
+
+		// all check passed, run replace
 		replaceConst(mth, insn, lit, toRemove);
+	}
+
+	private static boolean checkForFinallyBlock(SSAVar sVar) {
+		List<SSAVar> ssaVars = sVar.getCodeVar().getSsaVars();
+		if (ssaVars.size() <= 1) {
+			return false;
+		}
+		int countInsns = 0;
+		int countFinallyInsns = 0;
+		for (SSAVar ssaVar : ssaVars) {
+			for (RegisterArg reg : ssaVar.getUseList()) {
+				InsnNode parentInsn = reg.getParentInsn();
+				if (parentInsn != null) {
+					countInsns++;
+					if (parentInsn.contains(AFlag.FINALLY_INSNS)) {
+						countFinallyInsns++;
+					}
+				}
+			}
+		}
+		return countFinallyInsns != 0 && countFinallyInsns != countInsns;
 	}
 
 	/**
@@ -101,7 +131,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 		return false;
 	}
 
-	private static void replaceConst(MethodNode mth, InsnNode constInsn, long literal, List<InsnNode> toRemove) {
+	private static int replaceConst(MethodNode mth, InsnNode constInsn, long literal, List<InsnNode> toRemove) {
 		SSAVar ssaVar = constInsn.getResult().getSVar();
 		List<RegisterArg> useList = new ArrayList<>(ssaVar.getUseList());
 		int replaceCount = 0;
@@ -113,6 +143,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 		if (replaceCount == useList.size()) {
 			toRemove.add(constInsn);
 		}
+		return replaceCount;
 	}
 
 	private static boolean replaceArg(MethodNode mth, RegisterArg arg, long literal, InsnNode constInsn, List<InsnNode> toRemove) {
@@ -121,7 +152,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 			return false;
 		}
 		InsnType insnType = useInsn.getType();
-		if (insnType == InsnType.PHI || insnType == InsnType.MERGE) {
+		if (insnType == InsnType.PHI) {
 			return false;
 		}
 		ArgType argType = arg.getInitType();

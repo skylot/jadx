@@ -4,6 +4,10 @@ import jadx.core.codegen.CodeWriter;
 
 public class TestUtils {
 
+	public static String indent() {
+		return CodeWriter.INDENT_STR;
+	}
+
 	public static String indent(int indent) {
 		if (indent == 1) {
 			return CodeWriter.INDENT_STR;
@@ -24,5 +28,4 @@ public class TestUtils {
 		}
 		return count;
 	}
-
 }

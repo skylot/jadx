@@ -19,9 +19,9 @@ public class TestGenerics2 extends IntegrationTest {
 		private static class ItemReference<V> extends WeakReference<V> {
 			private Object id;
 
-			public ItemReference(V item, Object id, ReferenceQueue<? super V> queue) {
+			public ItemReference(V item, Object objId, ReferenceQueue<? super V> queue) {
 				super(item, queue);
-				this.id = id;
+				this.id = objId;
 			}
 		}
 
@@ -43,7 +43,7 @@ public class TestGenerics2 extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsString("public ItemReference(V item, Object id, ReferenceQueue<? super V> queue) {"));
+		assertThat(code, containsString("public ItemReference(V item, Object objId, ReferenceQueue<? super V> queue) {"));
 		assertThat(code, containsString("public V get(Object id) {"));
 		assertThat(code, containsString("WeakReference<V> ref = "));
 		assertThat(code, containsString("return ref.get();"));

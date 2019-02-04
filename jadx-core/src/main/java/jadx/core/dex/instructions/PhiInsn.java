@@ -24,6 +24,7 @@ public final class PhiInsn extends InsnNode {
 		this.blockBinds = new LinkedHashMap<>(predecessors);
 		setResult(InsnArg.reg(regNum, ArgType.UNKNOWN));
 		add(AFlag.DONT_INLINE);
+		add(AFlag.DONT_GENERATE);
 	}
 
 	public RegisterArg bindArg(BlockNode pred) {

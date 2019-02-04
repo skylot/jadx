@@ -24,13 +24,23 @@ public class TestTryCatch7 extends IntegrationTest {
 	}
 
 	@Test
+	public void test() {
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
+		check(code, "e", "ex");
+	}
+
+	@Test
 	public void testNoDebug() {
 		noDebugInfo();
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		String excVarName = "exception";
-		String catchExcVarName = "e";
+		check(code, "e", "e2");
+	}
+
+	private void check(String code, String excVarName, String catchExcVarName) {
 		assertThat(code, containsOne("Exception " + excVarName + " = new Exception();"));
 		assertThat(code, containsOne("} catch (Exception " + catchExcVarName + ") {"));
 		assertThat(code, containsOne(excVarName + " = " + catchExcVarName + ";"));

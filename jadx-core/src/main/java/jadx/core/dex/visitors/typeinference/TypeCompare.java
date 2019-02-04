@@ -114,6 +114,9 @@ public class TypeCompare {
 		if (unknown == ArgType.UNKNOWN_OBJECT && (known.isObject() || known.isArray())) {
 			return NARROW;
 		}
+		if (known.equals(ArgType.OBJECT) && unknown.isArray()) {
+			return WIDER;
+		}
 		PrimitiveType knownPrimitive;
 		if (known.isPrimitive()) {
 			knownPrimitive = known.getPrimitiveType();

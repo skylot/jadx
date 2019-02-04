@@ -1,12 +1,13 @@
 package jadx.core.dex.instructions.args;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class CodeVar {
 	private String name;
 	private ArgType type;
-	private List<SSAVar> ssaVars;
+	private List<SSAVar> ssaVars = new ArrayList<>(3);
 
 	private boolean isFinal;
 	private boolean isThis;
@@ -42,12 +43,14 @@ public class CodeVar {
 		return ssaVars;
 	}
 
-	public void setSsaVars(List<SSAVar> ssaVars) {
-		if (ssaVars.size() == 1) {
-			this.ssaVars = Collections.singletonList(ssaVars.get(0));
-		} else {
-			this.ssaVars = ssaVars;
+	public void addSsaVar(SSAVar ssaVar) {
+		if (!ssaVars.contains(ssaVar)) {
+			ssaVars.add(ssaVar);
 		}
+	}
+
+	public void setSsaVars(List<SSAVar> ssaVars) {
+		this.ssaVars = ssaVars;
 	}
 
 	public boolean isFinal() {

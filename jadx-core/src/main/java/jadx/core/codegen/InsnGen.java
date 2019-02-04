@@ -499,7 +499,6 @@ public class InsnGen {
 				break;
 
 			case PHI:
-			case MERGE:
 				fallbackOnlyInsn(insn);
 				code.add(insn.getType().toString()).add("(");
 				for (InsnArg insnArg : insn.getArguments()) {

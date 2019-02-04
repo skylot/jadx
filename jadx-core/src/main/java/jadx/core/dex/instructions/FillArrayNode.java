@@ -15,35 +15,38 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public final class FillArrayNode extends InsnNode {
 
+	private static final ArgType ONE_BYTE_TYPE = ArgType.unknown(PrimitiveType.BOOLEAN, PrimitiveType.BYTE);
+	private static final ArgType TWO_BYTES_TYPE = ArgType.unknown(PrimitiveType.SHORT, PrimitiveType.CHAR);
+	private static final ArgType FOUR_BYTES_TYPE = ArgType.unknown(PrimitiveType.INT, PrimitiveType.FLOAT);
+	private static final ArgType EIGHT_BYTES_TYPE = ArgType.unknown(PrimitiveType.LONG, PrimitiveType.DOUBLE);
+
 	private final Object data;
 	private final int size;
 	private ArgType elemType;
 
 	public FillArrayNode(int resReg, FillArrayDataPayloadDecodedInstruction payload) {
 		super(InsnType.FILL_ARRAY, 1);
-		ArgType elType;
-		switch (payload.getElementWidthUnit()) {
-			case 1:
-				elType = ArgType.unknown(PrimitiveType.BOOLEAN, PrimitiveType.BYTE);
-				break;
-			case 2:
-				elType = ArgType.unknown(PrimitiveType.SHORT, PrimitiveType.CHAR);
-				break;
-			case 4:
-				elType = ArgType.unknown(PrimitiveType.INT, PrimitiveType.FLOAT);
-				break;
-			case 8:
-				elType = ArgType.unknown(PrimitiveType.LONG, PrimitiveType.DOUBLE);
-				break;
-
-			default:
-				throw new JadxRuntimeException("Unknown array element width: " + payload.getElementWidthUnit());
-		}
+		ArgType elType = getElementType(payload.getElementWidthUnit());
 		addArg(InsnArg.reg(resReg, ArgType.array(elType)));
 
 		this.data = payload.getData();
 		this.size = payload.getSize();
 		this.elemType = elType;
+	}
+
+	private static ArgType getElementType(short elementWidthUnit) {
+		switch (elementWidthUnit) {
+			case 1:
+				return ONE_BYTE_TYPE;
+			case 2:
+				return TWO_BYTES_TYPE;
+			case 4:
+				return FOUR_BYTES_TYPE;
+			case 8:
+				return EIGHT_BYTES_TYPE;
+			default:
+				throw new JadxRuntimeException("Unknown array element width: " + elementWidthUnit);
+		}
 	}
 
 	public Object getData() {

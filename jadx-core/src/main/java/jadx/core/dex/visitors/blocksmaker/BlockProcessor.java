@@ -560,11 +560,8 @@ public class BlockProcessor extends AbstractVisitor {
 	}
 
 	private static RegisterArg getMoveExceptionRegister(BlockNode block) {
-		if (block.getInstructions().isEmpty()) {
-			return null;
-		}
-		InsnNode insn = block.getInstructions().get(0);
-		if (insn.getType() != InsnType.MOVE_EXCEPTION) {
+		InsnNode insn = BlockUtils.getLastInsn(block);
+		if (insn == null || insn.getType() != InsnType.MOVE_EXCEPTION) {
 			return null;
 		}
 		return insn.getResult();

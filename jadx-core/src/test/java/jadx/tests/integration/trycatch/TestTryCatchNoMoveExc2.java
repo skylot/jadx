@@ -26,7 +26,7 @@ public class TestTryCatchNoMoveExc2 extends SmaliTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNodeFromSmaliWithPath("trycatch", "TestTryCatchNoMoveExc2");
+		ClassNode cls = getClassNodeFromSmaliWithPkg("trycatch", "TestTryCatchNoMoveExc2");
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsOne("try {"));

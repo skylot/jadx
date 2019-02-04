@@ -19,6 +19,8 @@ import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.StringUtils;
@@ -55,6 +57,17 @@ public class NameGen {
 	public NameGen(MethodNode mth, boolean fallback) {
 		this.mth = mth;
 		this.fallback = fallback;
+		addNamesUsedInClass();
+	}
+
+	private void addNamesUsedInClass() {
+		ClassNode parentClass = mth.getParentClass();
+		for (FieldNode field : parentClass.getFields()) {
+			varNames.add(field.getAlias());
+		}
+		for (ClassNode innerClass : parentClass.getInnerClasses()) {
+			varNames.add(innerClass.getAlias().getShortName());
+		}
 	}
 
 	public String assignArg(CodeVar var) {

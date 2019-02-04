@@ -8,7 +8,7 @@ import jadx.tests.api.SmaliTest;
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.junit.Assert.assertThat;
 
-public class TestTryCatchNoMove extends SmaliTest {
+public class TestTryCatchNoMoveExc extends SmaliTest {
 
 //	private static void test(AutoCloseable closeable) {
 //		if (closeable != null) {
@@ -21,7 +21,7 @@ public class TestTryCatchNoMove extends SmaliTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNodeFromSmaliWithPath("trycatch", "TestTryCatchNoMove");
+		ClassNode cls = getClassNodeFromSmaliWithPkg("trycatch", "TestTryCatchNoMoveExc");
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsOne("if (autoCloseable != null) {"));

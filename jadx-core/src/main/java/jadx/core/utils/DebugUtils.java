@@ -107,9 +107,9 @@ public class DebugUtils {
 				CodeWriter code = new CodeWriter();
 				ig.makeInsn(insn, code);
 				String insnStr = code.toString().substring(CodeWriter.NL.length());
-				LOG.debug("{}> {}\t{}", indent, insnStr, insn.getAttributesString());
+				LOG.debug("{}|> {}\t{}", indent, insnStr, insn.getAttributesString());
 			} catch (CodegenException e) {
-				LOG.debug("{}>!! {}", indent, insn);
+				LOG.debug("{}|>!! {}", indent, insn);
 			}
 		}
 	}

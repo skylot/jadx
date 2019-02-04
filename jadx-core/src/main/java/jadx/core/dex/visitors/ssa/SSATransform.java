@@ -43,6 +43,10 @@ public class SSATransform extends AbstractVisitor {
 	}
 
 	private static void process(MethodNode mth) {
+		if (!mth.getSVars().isEmpty()) {
+			return;
+		}
+
 		LiveVarAnalysis la = new LiveVarAnalysis(mth);
 		la.runAnalysis();
 		int regsCount = mth.getRegsCount();
@@ -63,6 +67,8 @@ public class SSATransform extends AbstractVisitor {
 				throw new JadxRuntimeException("Phi nodes fix limit reached!");
 			}
 		} while (repeatFix);
+
+		hidePhiInsns(mth);
 	}
 
 	private static void placePhi(MethodNode mth, int regNum, LiveVarAnalysis la) {
@@ -117,9 +123,6 @@ public class SSATransform extends AbstractVisitor {
 	}
 
 	private static void renameVariables(MethodNode mth) {
-		if (!mth.getSVars().isEmpty()) {
-			throw new JadxRuntimeException("SSA rename variables already executed");
-		}
 		int regsCount = mth.getRegsCount();
 		SSAVar[] vars = new SSAVar[regsCount];
 		int[] versions = new int[regsCount];
@@ -430,6 +433,12 @@ public class SSATransform extends AbstractVisitor {
 				markThisArgs(resArg);
 				parentInsn.add(AFlag.DONT_GENERATE);
 			}
+		}
+	}
+
+	private static void hidePhiInsns(MethodNode mth) {
+		for (BlockNode block : mth.getBasicBlocks()) {
+			block.getInstructions().removeIf(insn -> insn.getType() == InsnType.PHI);
 		}
 	}
 }

@@ -223,6 +223,14 @@ public class CodeShrinker extends AbstractVisitor {
 				if (assignInsn == null || assignInsn.contains(AFlag.DONT_INLINE)) {
 					continue;
 				}
+				List<RegisterArg> useList = sVar.getUseList();
+				if (!useList.isEmpty()) {
+					InsnNode parentInsn = useList.get(0).getParentInsn();
+					if (parentInsn != null && parentInsn.contains(AFlag.DONT_GENERATE)) {
+						continue;
+					}
+				}
+
 				int assignPos = insnList.getIndex(assignInsn);
 				if (assignPos != -1) {
 					WrapInfo wrapInfo = argsInfo.checkInline(assignPos, arg);
