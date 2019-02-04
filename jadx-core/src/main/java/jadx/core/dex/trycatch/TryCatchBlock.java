@@ -70,7 +70,7 @@ public class TryCatchBlock {
 		for (BlockNode block : handler.getBlocks()) {
 			// skip synthetic loop exit blocks
 			BlockUtils.skipPredSyntheticPaths(block);
-			block.add(AFlag.SKIP);
+			block.add(AFlag.REMOVE);
 			ExcHandlerAttr excHandlerAttr = block.get(AType.EXC_HANDLER);
 			if (excHandlerAttr != null
 					&& excHandlerAttr.getHandler().equals(handler)) {

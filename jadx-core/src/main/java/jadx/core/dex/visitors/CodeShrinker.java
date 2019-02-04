@@ -31,7 +31,7 @@ public class CodeShrinker extends AbstractVisitor {
 	}
 
 	public static void shrinkMethod(MethodNode mth) {
-		if (mth.isNoCode() || mth.contains(AFlag.DONT_SHRINK)) {
+		if (mth.isNoCode()) {
 			return;
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {

@@ -122,7 +122,7 @@ public class ProcessVariables extends AbstractVisitor {
 			int len = container.getInstructions().size();
 			for (int i = 0; i < len; i++) {
 				InsnNode insn = container.getInstructions().get(i);
-				if (insn.contains(AFlag.SKIP)) {
+				if (insn.contains(AFlag.DONT_GENERATE)) {
 					continue;
 				}
 				args.clear();

@@ -236,7 +236,7 @@ public class BlockFinallyExtract extends AbstractVisitor {
 			}
 			if (!replaced) {
 				insnsList.remove(insnsList.size() - 1);
-				handlerBlock.add(AFlag.SKIP);
+				handlerBlock.add(AFlag.REMOVE);
 			}
 		}
 
@@ -650,18 +650,18 @@ public class BlockFinallyExtract extends AbstractVisitor {
 		int size = insns.size();
 		for (int i = splitIndex; i < size; i++) {
 			InsnNode insnNode = insns.get(i);
-			insnNode.add(AFlag.SKIP);
+			insnNode.add(AFlag.DONT_GENERATE);
 			newBlock.getInstructions().add(insnNode);
 		}
 		Iterator<InsnNode> it = insns.iterator();
 		while (it.hasNext()) {
 			InsnNode insnNode = it.next();
-			if (insnNode.contains(AFlag.SKIP)) {
+			if (insnNode.contains(AFlag.DONT_GENERATE)) {
 				it.remove();
 			}
 		}
 		for (InsnNode insnNode : newBlock.getInstructions()) {
-			insnNode.remove(AFlag.SKIP);
+			insnNode.remove(AFlag.DONT_GENERATE);
 		}
 		return newBlock;
 	}
@@ -680,13 +680,13 @@ public class BlockFinallyExtract extends AbstractVisitor {
 		block.getPredecessors().clear();
 		block.getSuccessors().clear();
 		block.add(AFlag.REMOVE);
-		block.remove(AFlag.SKIP);
+		block.remove(AFlag.DONT_GENERATE);
 
 		CatchAttr catchAttr = block.get(AType.CATCH_BLOCK);
 		if (catchAttr != null) {
 			catchAttr.getTryBlock().removeBlock(mth, block);
 			for (BlockNode skipBlock : mth.getBasicBlocks()) {
-				if (skipBlock.contains(AFlag.SKIP)) {
+				if (skipBlock.contains(AFlag.REMOVE)) {
 					markForRemove(mth, skipBlock);
 				}
 			}

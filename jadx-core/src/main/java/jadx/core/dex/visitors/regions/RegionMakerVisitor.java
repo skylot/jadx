@@ -126,7 +126,7 @@ public class RegionMakerVisitor extends AbstractVisitor {
 				BlockNode bn = (BlockNode) block;
 				for (BlockNode s : bn.getCleanSuccessors()) {
 					if (!blocks.contains(s)
-							&& !bn.contains(AFlag.SKIP)
+							&& !bn.contains(AFlag.ADDED_TO_REGION)
 							&& !s.contains(AFlag.FALL_THROUGH)) {
 						addBreak(mth, c, bn);
 						break;

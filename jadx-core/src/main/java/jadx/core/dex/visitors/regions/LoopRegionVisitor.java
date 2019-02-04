@@ -114,8 +114,8 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		}
 
 		// all checks passed
-		initInsn.add(AFlag.SKIP);
-		incrInsn.add(AFlag.SKIP);
+		initInsn.add(AFlag.DONT_GENERATE);
+		incrInsn.add(AFlag.DONT_GENERATE);
 		LoopType arrForEach = checkArrayForEach(mth, initInsn, incrInsn, condition);
 		if (arrForEach != null) {
 			loopRegion.setType(arrForEach);
@@ -188,8 +188,8 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		}
 
 		// array for each loop confirmed
-		len.add(AFlag.SKIP);
-		arrGetInsn.add(AFlag.SKIP);
+		len.add(AFlag.DONT_GENERATE);
+		arrGetInsn.add(AFlag.DONT_GENERATE);
 		InstructionRemover.unbindInsn(mth, len);
 
 		// inline array variable
@@ -265,9 +265,9 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 			toSkip.add(nextCall);
 		}
 
-		assignInsn.add(AFlag.SKIP);
+		assignInsn.add(AFlag.DONT_GENERATE);
 		for (InsnNode insnNode : toSkip) {
-			insnNode.add(AFlag.SKIP);
+			insnNode.add(AFlag.DONT_GENERATE);
 		}
 		loopRegion.setType(new ForEachLoop(iterVar, iterableArg));
 		return true;

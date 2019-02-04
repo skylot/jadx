@@ -98,7 +98,7 @@ public class RegionGen extends InsnGen {
 
 	private void makeSimpleBlock(IBlock block, CodeWriter code) throws CodegenException {
 		for (InsnNode insn : block.getInstructions()) {
-			if (!insn.contains(AFlag.SKIP)) {
+			if (!insn.contains(AFlag.DONT_GENERATE)) {
 				makeInsn(insn, code);
 			}
 		}

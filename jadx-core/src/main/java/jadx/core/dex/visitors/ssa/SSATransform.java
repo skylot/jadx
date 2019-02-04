@@ -429,7 +429,7 @@ public class SSATransform extends AbstractVisitor {
 			if (resArg.getRegNum() != arg.getRegNum()
 					&& !resArg.getSVar().isUsedInPhi()) {
 				markThisArgs(resArg);
-				parentInsn.add(AFlag.SKIP);
+				parentInsn.add(AFlag.DONT_GENERATE);
 			}
 		}
 	}

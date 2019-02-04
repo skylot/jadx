@@ -74,7 +74,7 @@ public class BlockUtils {
 	}
 
 	public static boolean isBlockMustBeCleared(BlockNode b) {
-		if (b.contains(AType.EXC_HANDLER) || b.contains(AFlag.SKIP)) {
+		if (b.contains(AType.EXC_HANDLER) || b.contains(AFlag.REMOVE)) {
 			return true;
 		}
 		if (b.contains(AFlag.SYNTHETIC)) {
@@ -495,7 +495,7 @@ public class BlockUtils {
 			if (pred.contains(AFlag.SYNTHETIC)
 					&& !pred.contains(AType.SPLITTER_BLOCK)
 					&& pred.getInstructions().isEmpty()) {
-				pred.add(AFlag.SKIP);
+				pred.add(AFlag.DONT_GENERATE);
 				skipPredSyntheticPaths(pred);
 			}
 		}

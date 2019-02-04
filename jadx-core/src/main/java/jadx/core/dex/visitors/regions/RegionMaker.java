@@ -203,13 +203,13 @@ public class RegionMaker {
 			BlockNode thenBlock = condInfo.getThenBlock();
 			out = thenBlock == loopStart ? condInfo.getElseBlock() : thenBlock;
 			loopStart.remove(AType.LOOP);
-			loop.getEnd().add(AFlag.SKIP);
+			loop.getEnd().add(AFlag.ADDED_TO_REGION);
 			stack.addExit(loop.getEnd());
 			processedBlocks.clear(loopStart.getId());
 			Region body = makeRegion(loopStart, stack);
 			loopRegion.setBody(body);
 			loopStart.addAttr(AType.LOOP, loop);
-			loop.getEnd().remove(AFlag.SKIP);
+			loop.getEnd().remove(AFlag.ADDED_TO_REGION);
 		} else {
 			out = condInfo.getElseBlock();
 			if (outerRegion != null
@@ -229,7 +229,7 @@ public class RegionMaker {
 				blocks.remove(conditionBlock);
 				for (BlockNode block : blocks) {
 					if (block.getInstructions().isEmpty()
-							&& !block.contains(AFlag.SKIP)
+							&& !block.contains(AFlag.ADDED_TO_REGION)
 							&& !RegionUtils.isRegionContainsBlock(body, block)) {
 						body.add(block);
 					}
@@ -489,7 +489,7 @@ public class RegionMaker {
 			return false;
 		}
 		BlockNode codePred = preds.get(0);
-		if (codePred.contains(AFlag.SKIP)) {
+		if (codePred.contains(AFlag.ADDED_TO_REGION)) {
 			return false;
 		}
 		if (loopEnd.isDominator(codePred)
@@ -530,9 +530,9 @@ public class RegionMaker {
 		for (InsnNode exitInsn : synchRegion.getExitInsns()) {
 			BlockNode insnBlock = BlockUtils.getBlockByInsn(mth, exitInsn);
 			if (insnBlock != null) {
-				insnBlock.add(AFlag.SKIP);
+				insnBlock.add(AFlag.DONT_GENERATE);
 			}
-			exitInsn.add(AFlag.SKIP);
+			exitInsn.add(AFlag.DONT_GENERATE);
 			InstructionRemover.unbindInsn(mth, exitInsn);
 		}
 
@@ -615,7 +615,7 @@ public class RegionMaker {
 	}
 
 	private BlockNode processIf(IRegion currentRegion, BlockNode block, IfNode ifnode, RegionStack stack) {
-		if (block.contains(AFlag.SKIP)) {
+		if (block.contains(AFlag.ADDED_TO_REGION)) {
 			// block already included in other 'if' region
 			return ifnode.getThenBlock();
 		}
@@ -681,7 +681,7 @@ public class RegionMaker {
 
 	private void addEdgeInsn(IfInfo ifInfo, Region region, EdgeInsnAttr edgeInsnAttr) {
 		BlockNode start = edgeInsnAttr.getStart();
-		if (start.contains(AFlag.SKIP)) {
+		if (start.contains(AFlag.ADDED_TO_REGION)) {
 			return;
 		}
 		boolean fromThisIf = false;

@@ -47,7 +47,7 @@ public class CheckRegions extends AbstractVisitor {
 				}
 				if (LOG.isDebugEnabled()
 						&& !block.contains(AFlag.RETURN)
-						&& !block.contains(AFlag.SKIP)
+						&& !block.contains(AFlag.REMOVE)
 						&& !block.contains(AFlag.SYNTHETIC)
 						&& !block.getInstructions().isEmpty()) {
 					LOG.debug("Duplicated block: {} - {}", mth, block);
@@ -58,7 +58,8 @@ public class CheckRegions extends AbstractVisitor {
 			for (BlockNode block : mth.getBasicBlocks()) {
 				if (!blocksInRegions.contains(block)
 						&& !block.getInstructions().isEmpty()
-						&& !block.contains(AFlag.SKIP)) {
+						&& !block.contains(AFlag.ADDED_TO_REGION)
+						&& !block.contains(AFlag.REMOVE)) {
 					String blockCode = getBlockInsnStr(mth, block);
 					mth.addWarn("Missing block: " + block + ", code skipped:" + CodeWriter.NL + blockCode);
 				}

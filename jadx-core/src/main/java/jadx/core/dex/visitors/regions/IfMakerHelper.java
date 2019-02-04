@@ -291,13 +291,13 @@ public class IfMakerHelper {
 		if (info.getMergedBlocks().size() > 1) {
 			for (BlockNode block : info.getMergedBlocks()) {
 				if (block != info.getIfBlock()) {
-					block.add(AFlag.SKIP);
+					block.add(AFlag.ADDED_TO_REGION);
 				}
 			}
 		}
 		if (!info.getSkipBlocks().isEmpty()) {
 			for (BlockNode block : info.getSkipBlocks()) {
-				block.add(AFlag.SKIP);
+				block.add(AFlag.ADDED_TO_REGION);
 			}
 			info.getSkipBlocks().clear();
 		}
@@ -325,7 +325,7 @@ public class IfMakerHelper {
 	}
 
 	private static BlockNode getNextIfNode(BlockNode block) {
-		if (block == null || block.contains(AType.LOOP) || block.contains(AFlag.SKIP)) {
+		if (block == null || block.contains(AType.LOOP) || block.contains(AFlag.ADDED_TO_REGION)) {
 			return null;
 		}
 		List<InsnNode> insns = block.getInstructions();

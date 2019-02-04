@@ -16,11 +16,10 @@ public enum AFlag {
 	DECLARE_VAR,
 	DONT_WRAP,
 
-	DONT_SHRINK,
 	DONT_INLINE,
-	DONT_GENERATE,
-	SKIP,
-	REMOVE,
+	DONT_GENERATE, // process as usual, but don't output to generated code
+	REMOVE, // can be completely removed
+	ADDED_TO_REGION,
 
 	SKIP_FIRST_ARG,
 	SKIP_ARG, // skip argument in invoke call
