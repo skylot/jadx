@@ -1,6 +1,10 @@
 package jadx.tests.api;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.jf.smali.Smali;
 import org.jf.smali.SmaliOptions;
@@ -16,7 +20,7 @@ public abstract class SmaliTest extends IntegrationTest {
 	protected ClassNode getClassNodeFromSmali(String file, String clsName) {
 		File smaliFile = getSmaliFile(file);
 		File outDex = createTempFile(".dex");
-		compileSmali(smaliFile, outDex);
+		compileSmali(outDex, Collections.singletonList(smaliFile));
 		return getClassNodeFromFile(outDex, clsName);
 	}
 
@@ -28,27 +32,37 @@ public abstract class SmaliTest extends IntegrationTest {
 		return getClassNodeFromSmali(pkg + File.separatorChar + clsName, pkg + '.' + clsName);
 	}
 
+	protected ClassNode getClassNodeFromSmaliFiles(String pkg, String testName, String clsName, String... smaliFileNames) {
+		File outDex = createTempFile(".dex");
+		List<File> smaliFiles = Arrays.stream(smaliFileNames)
+				.map(file -> getSmaliFile(pkg + File.separatorChar + testName + File.separatorChar + file))
+				.collect(Collectors.toList());
+		compileSmali(outDex, smaliFiles);
+		return getClassNodeFromFile(outDex, pkg + "." + clsName);
+	}
+
 	protected ClassNode getClassNodeFromSmali(String clsName) {
 		return getClassNodeFromSmali(clsName, clsName);
 	}
 
-	private static File getSmaliFile(String clsName) {
-		File smaliFile = new File(SMALI_TESTS_DIR, clsName + SMALI_TESTS_EXT);
+	private static File getSmaliFile(String baseName) {
+		File smaliFile = new File(SMALI_TESTS_DIR, baseName + SMALI_TESTS_EXT);
 		if (smaliFile.exists()) {
 			return smaliFile;
 		}
-		smaliFile = new File(SMALI_TESTS_PROJECT, smaliFile.getPath());
-		if (smaliFile.exists()) {
-			return smaliFile;
+		File pathFromRoot = new File(SMALI_TESTS_PROJECT, smaliFile.getPath());
+		if (pathFromRoot.exists()) {
+			return pathFromRoot;
 		}
-		throw new AssertionError("Smali file not found: " + smaliFile.getAbsolutePath());
+		throw new AssertionError("Smali file not found: " + smaliFile.getPath());
 	}
 
-	private static boolean compileSmali(File input, File output) {
+	private static boolean compileSmali(File output, List<File> inputFiles) {
 		try {
 			SmaliOptions params = new SmaliOptions();
 			params.outputDexFile = output.getAbsolutePath();
-			Smali.assemble(params, input.getAbsolutePath());
+			List<String> inputFileNames = inputFiles.stream().map(File::getAbsolutePath).collect(Collectors.toList());
+			Smali.assemble(params, inputFileNames);
 		} catch (Exception e) {
 			throw new AssertionError("Smali assemble error", e);
 		}
