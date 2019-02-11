@@ -1,6 +1,6 @@
 package jadx.core.dex.visitors.typeinference;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
@@ -10,7 +10,7 @@ import jadx.core.dex.instructions.args.ArgType;
 public class TypeInfo {
 	private ArgType type = ArgType.UNKNOWN;
 
-	private final Set<ITypeBound> bounds = new HashSet<>();
+	private final Set<ITypeBound> bounds = new LinkedHashSet<>();
 
 	@NotNull
 	public ArgType getType() {

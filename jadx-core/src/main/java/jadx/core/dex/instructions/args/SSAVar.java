@@ -139,6 +139,9 @@ public class SSAVar extends AttrNode {
 
 	public void setCodeVar(@NotNull CodeVar codeVar) {
 		this.codeVar = codeVar;
+		if (codeVar.getType() != null && !typeInfo.getType().equals(codeVar.getType())) {
+			throw new JadxRuntimeException("Unmached types for SSA and Code variables: " + this + " and " + codeVar);
+		}
 		codeVar.addSsaVar(this);
 	}
 

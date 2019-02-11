@@ -48,7 +48,7 @@ public final class TypeUpdate {
 		if (candidateType == null) {
 			return REJECT;
 		}
-		if (!candidateType.isTypeKnown() && ssaVar.getTypeInfo().getType().isTypeKnown()) {
+		if (!candidateType.isTypeKnown()/* && ssaVar.getTypeInfo().getType().isTypeKnown()*/) {
 			return REJECT;
 		}
 
@@ -86,14 +86,14 @@ public final class TypeUpdate {
 			return SAME;
 		}
 		TypeCompareEnum compareResult = comparator.compareTypes(candidateType, currentType);
-		if (compareResult == TypeCompareEnum.CONFLICT) {
-			if (Consts.DEBUG) {
-				LOG.debug("Type rejected for {} due to conflict: candidate={}, current={}", arg, candidateType, currentType);
-			}
-			return REJECT;
-		}
 		if (arg.isTypeImmutable() && currentType != ArgType.UNKNOWN) {
-			// don't changed type, conflict already rejected
+			// don't changed type
+			if (compareResult == TypeCompareEnum.CONFLICT) {
+				if (Consts.DEBUG) {
+					LOG.debug("Type rejected for {} due to conflict: candidate={}, current={}", arg, candidateType, currentType);
+				}
+				return REJECT;
+			}
 			return SAME;
 		}
 		if (compareResult.isWider()) {

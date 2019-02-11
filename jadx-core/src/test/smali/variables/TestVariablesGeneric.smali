@@ -1,4 +1,4 @@
-.class public LTestVariablesGeneric;
+.class public Lvariables/TestVariablesGeneric;
 .super Ljava/lang/Object;
 .source "SourceFile"
 

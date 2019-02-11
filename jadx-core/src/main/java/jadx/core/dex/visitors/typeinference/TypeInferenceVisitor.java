@@ -102,51 +102,58 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 
 	private boolean setBestType(SSAVar ssaVar) {
 		try {
+			ArgType codeVarType = ssaVar.getCodeVar().getType();
+			if (codeVarType != null) {
+				return applyImmutableType(ssaVar, codeVarType);
+			}
 			RegisterArg assignArg = ssaVar.getAssign();
-			if (!assignArg.isTypeImmutable()) {
-				return calculateFromBounds(ssaVar);
+			if (assignArg.isTypeImmutable()) {
+				return applyImmutableType(ssaVar, assignArg.getInitType());
 			}
-			ArgType initType = assignArg.getInitType();
-			TypeUpdateResult result = typeUpdate.apply(ssaVar, initType);
-			if (result == TypeUpdateResult.REJECT) {
-				if (Consts.DEBUG) {
-					LOG.info("Initial immutable type set rejected: {} -> {}", ssaVar, initType);
-				}
-				return false;
-			}
-			return true;
+			return calculateFromBounds(ssaVar);
 		} catch (Exception e) {
 			LOG.error("Failed to calculate best type for var: {}", ssaVar);
 			return false;
 		}
 	}
 
+	private boolean applyImmutableType(SSAVar ssaVar, ArgType initType) {
+		TypeUpdateResult result = typeUpdate.apply(ssaVar, initType);
+		if (result == TypeUpdateResult.REJECT) {
+			if (Consts.DEBUG) {
+				LOG.info("Initial immutable type set rejected: {} -> {}", ssaVar, initType);
+			}
+			return false;
+		}
+		return result == TypeUpdateResult.CHANGED;
+	}
+
 	private boolean calculateFromBounds(SSAVar ssaVar) {
 		TypeInfo typeInfo = ssaVar.getTypeInfo();
 		Set<ITypeBound> bounds = typeInfo.getBounds();
 		Optional<ArgType> bestTypeOpt = selectBestTypeFromBounds(bounds);
-		if (bestTypeOpt.isPresent()) {
-			ArgType candidateType = bestTypeOpt.get();
-			TypeUpdateResult result = typeUpdate.apply(ssaVar, candidateType);
-			if (result == TypeUpdateResult.REJECT) {
-				if (Consts.DEBUG) {
-					if (ssaVar.getTypeInfo().getType().equals(candidateType)) {
-						LOG.info("Same type rejected: {} -> {}, bounds: {}", ssaVar, candidateType, bounds);
-					} else if (candidateType.isTypeKnown()) {
-						LOG.debug("Type set rejected: {} -> {}, bounds: {}", ssaVar, candidateType, bounds);
-					}
+		if (!bestTypeOpt.isPresent()) {
+			if (Consts.DEBUG) {
+				LOG.warn("Failed to select best type from bounds, count={} : ", bounds.size());
+				for (ITypeBound bound : bounds) {
+					LOG.warn("  {}", bound);
 				}
-				return false;
 			}
-			return result == TypeUpdateResult.CHANGED;
+			return false;
 		}
-		if (Consts.DEBUG) {
-			LOG.warn("Failed to select best type from bounds, count={} : ", bounds.size());
-			for (ITypeBound bound : bounds) {
-				LOG.warn("  {}", bound);
+		ArgType candidateType = bestTypeOpt.get();
+		TypeUpdateResult result = typeUpdate.apply(ssaVar, candidateType);
+		if (result == TypeUpdateResult.REJECT) {
+			if (Consts.DEBUG) {
+				if (ssaVar.getTypeInfo().getType().equals(candidateType)) {
+					LOG.info("Same type rejected: {} -> {}, bounds: {}", ssaVar, candidateType, bounds);
+				} else if (candidateType.isTypeKnown()) {
+					LOG.debug("Type set rejected: {} -> {}, bounds: {}", ssaVar, candidateType, bounds);
+				}
 			}
+			return false;
 		}
-		return false;
+		return result == TypeUpdateResult.CHANGED;
 	}
 
 	private Optional<ArgType> selectBestTypeFromBounds(Set<ITypeBound> bounds) {

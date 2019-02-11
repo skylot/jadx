@@ -56,13 +56,13 @@ public class TestTryCatchFinally6 extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsLines(2,
-				"FileInputStream fileInputStream = null;",
+				"InputStream inputStream = null;",
 				"try {",
 				indent() + "call();",
-				indent() + "fileInputStream = new FileInputStream(\"1.txt\");",
+				indent() + "inputStream = new FileInputStream(\"1.txt\");",
 				"} finally {",
-				indent() + "if (fileInputStream != null) {",
-				indent() + indent() + "fileInputStream.close();",
+				indent() + "if (inputStream != null) {",
+				indent() + indent() + "inputStream.close();",
 				indent() + "}",
 				"}"
 		));

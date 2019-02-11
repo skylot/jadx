@@ -24,7 +24,7 @@ public class TestVariablesGeneric extends SmaliTest {
 	@Test
 	public void test() {
 		disableCompilation();
-		ClassNode cls = getClassNodeFromSmaliWithPath("variables", "TestVariablesGeneric");
+		ClassNode cls = getClassNodeFromSmaliWithPkg("variables", "TestVariablesGeneric");
 		String code = cls.getCode().toString();
 
 		assertThat(code, not(containsString("iVar2")));
