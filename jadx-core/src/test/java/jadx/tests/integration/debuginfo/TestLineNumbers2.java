@@ -19,7 +19,7 @@ public class TestLineNumbers2 extends IntegrationTest {
 		public TestCls(TestCls s) {
 		}
 
-		TestCls test(TestCls s) {
+		public TestCls test(TestCls s) {
 			TestCls store = f != null ? f.get() : null;
 			if (store == null) {
 				store = new TestCls(s);

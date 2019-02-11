@@ -40,6 +40,7 @@ public class JadxArgs {
 
 	private boolean escapeUnicode = false;
 	private boolean replaceConsts = true;
+	private boolean respectBytecodeAccModifiers = false;
 	private boolean exportAsGradleProject = false;
 
 	public JadxArgs() {
@@ -204,6 +205,14 @@ public class JadxArgs {
 		this.replaceConsts = replaceConsts;
 	}
 
+	public boolean isRespectBytecodeAccModifiers() {
+		return respectBytecodeAccModifiers;
+	}
+
+	public void setRespectBytecodeAccModifiers(boolean respectBytecodeAccModifiers) {
+		this.respectBytecodeAccModifiers = respectBytecodeAccModifiers;
+	}
+
 	public boolean isExportAsGradleProject() {
 		return exportAsGradleProject;
 	}
@@ -234,8 +243,10 @@ public class JadxArgs {
 		sb.append(", deobfuscationMaxLength=").append(deobfuscationMaxLength);
 		sb.append(", escapeUnicode=").append(escapeUnicode);
 		sb.append(", replaceConsts=").append(replaceConsts);
+		sb.append(", respectBytecodeAccModifiers=").append(respectBytecodeAccModifiers);
 		sb.append(", exportAsGradleProject=").append(exportAsGradleProject);
 		sb.append('}');
 		return sb.toString();
 	}
+
 }

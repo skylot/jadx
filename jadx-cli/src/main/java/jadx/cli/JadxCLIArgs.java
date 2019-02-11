@@ -53,6 +53,9 @@ public class JadxCLIArgs {
 	@Parameter(names = {"--escape-unicode"}, description = "escape non latin characters in strings (with \\u)")
 	protected boolean escapeUnicode = false;
 
+	@Parameter(names = {"--respect-bytecode-access-modifiers"}, description = "don't change original access modifiers")
+	protected boolean respectBytecodeAccessModifiers = false;
+
 	@Parameter(names = {"--deobf"}, description = "activate deobfuscation")
 	protected boolean deobfuscationOn = false;
 
@@ -154,6 +157,7 @@ public class JadxCLIArgs {
 		args.setDeobfuscationMaxLength(deobfuscationMaxLength);
 		args.setUseSourceNameAsClassAlias(deobfuscationUseSourceNameAsAlias);
 		args.setEscapeUnicode(escapeUnicode);
+		args.setRespectBytecodeAccModifiers(respectBytecodeAccessModifiers);
 		args.setExportAsGradleProject(exportAsGradleProject);
 		args.setUseImports(useImports);
 		return args;
@@ -237,6 +241,10 @@ public class JadxCLIArgs {
 
 	public boolean isReplaceConsts() {
 		return replaceConsts;
+	}
+
+	public boolean isRespectBytecodeAccessModifiers() {
+		return respectBytecodeAccessModifiers;
 	}
 
 	public boolean isExportAsGradleProject() {
