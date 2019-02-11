@@ -51,7 +51,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 
 	private final MethodInfo mthInfo;
 	private final ClassNode parentClass;
-	private final AccessInfo accFlags;
+	private AccessInfo accFlags;
 
 	private final Method methodData;
 	private final boolean methodIsVirtual;
@@ -609,6 +609,10 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 
 	public AccessInfo getAccessFlags() {
 		return accFlags;
+	}
+
+	public void setAccFlags(AccessInfo accFlags) {
+		this.accFlags = accFlags;
 	}
 
 	public Region getRegion() {

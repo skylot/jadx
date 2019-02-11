@@ -7,6 +7,9 @@ apply plugin: 'application'
 
 mainClassName = 'jadx.gui.JadxGUI'
 
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
 dependencies {
     compile(project(":jadx-core"))
     compile(project(":jadx-cli"))
@@ -42,7 +45,8 @@ jar {
 }
 
 startScripts {
-    defaultJvmOpts = ['-Xms128M', '-Xmx4g', '-Dawt.useSystemAAFontSettings=lcd', '-Dswing.aatext=true']
+    // The option -XX:+UseG1GC is only relevant for Java 8. Starting with Java 9 G1GC is already the default GC
+    defaultJvmOpts = ['-Xms128M', '-Xmx4g', '-Dawt.useSystemAAFontSettings=lcd', '-Dswing.aatext=true', '-XX:+UseG1GC']
     doLast {
         def str = windowsScript.text
         str = str.replaceAll('java.exe', 'javaw.exe')
@@ -61,7 +65,8 @@ launch4j {
     copyright = 'Skylot'
     windowTitle = 'jadx'
     companyName = 'jadx'
-    jvmOptions = ['-Dawt.useSystemAAFontSettings=lcd', '-Dswing.aatext=true']
+    jreMinVersion = '1.8.0'
+    jvmOptions = ['-Dawt.useSystemAAFontSettings=lcd', '-Dswing.aatext=true', '-XX:+UseG1GC']
     jreRuntimeBits = "64"
     initialHeapPercent = 5
     maxHeapSize = 4096

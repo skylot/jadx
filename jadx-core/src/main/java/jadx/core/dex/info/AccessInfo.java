@@ -6,6 +6,7 @@ import jadx.core.Consts;
 
 public class AccessInfo {
 
+	public static final int VISIBILITY_FLAGS = AccessFlags.ACC_PUBLIC | AccessFlags.ACC_PROTECTED | AccessFlags.ACC_PRIVATE;
 	private final int accFlags;
 
 	public enum AFType {
@@ -30,11 +31,24 @@ public class AccessInfo {
 		return this;
 	}
 
+	public AccessInfo add(int flag) {
+		if (!containsFlag(flag)) {
+			return new AccessInfo(accFlags | flag, type);
+		}
+		return this;
+	}
+
+	public AccessInfo changeVisibility(int flag) {
+		int currentVisFlags = accFlags & VISIBILITY_FLAGS;
+		if (currentVisFlags == flag) {
+			return this;
+		}
+		int unsetAllVisFlags = accFlags & ~VISIBILITY_FLAGS;
+		return new AccessInfo(unsetAllVisFlags | flag, type);
+	}
+
 	public AccessInfo getVisibility() {
-		int f = accFlags & AccessFlags.ACC_PUBLIC
-				| accFlags & AccessFlags.ACC_PROTECTED
-				| accFlags & AccessFlags.ACC_PRIVATE;
-		return new AccessInfo(f, type);
+		return new AccessInfo(accFlags & VISIBILITY_FLAGS, type);
 	}
 
 	public boolean isPublic() {

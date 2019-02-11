@@ -34,8 +34,8 @@ public class TestInnerClassSyntheticRename extends SmaliTest {
 		ClassNode cls = getClassNodeFromSmali("inner/TestInnerClassSyntheticRename", "com.github.skylot.testasync.MyAsync");
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("protected List<Uri> doInBackground(Uri... uriArr) {"));
-		assertThat(code, containsOne("protected void onPostExecute(List<Uri> list) {"));
+		assertThat(code, containsOne("List<Uri> doInBackground(Uri... uriArr) {"));
+		assertThat(code, containsOne("void onPostExecute(List<Uri> list) {"));
 		assertThat(code, not(containsString("synthetic")));
 	}
 }

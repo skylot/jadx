@@ -259,6 +259,13 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JCheckBox respectBytecodeAccessModifiers = new JCheckBox();
+		respectBytecodeAccessModifiers.setSelected(settings.isRespectBytecodeAccessModifiers());
+		respectBytecodeAccessModifiers.addItemListener(e -> {
+			settings.setRespectBytecodeAccessModifiers(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
 		JCheckBox useImports = new JCheckBox();
 		useImports.setSelected(settings.isUseImports());
 		useImports.addItemListener(e -> {
@@ -274,6 +281,7 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.showInconsistentCode"), showInconsistentCode);
 		other.addRow(NLS.str("preferences.escapeUnicode"), escapeUnicode);
 		other.addRow(NLS.str("preferences.replaceConsts"), replaceConsts);
+		other.addRow(NLS.str("preferences.respectBytecodeAccessModifiers"), respectBytecodeAccessModifiers);
 		other.addRow(NLS.str("preferences.useImports"), useImports);
 		other.addRow(NLS.str("preferences.fallback"), fallback);
 		other.addRow(NLS.str("preferences.skipResourcesDecode"), resourceDecode);
