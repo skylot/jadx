@@ -3,7 +3,9 @@ package jadx.core.dex.visitors.blocksmaker;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -25,7 +27,6 @@ import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.BlockUtils;
-import jadx.core.utils.exceptions.JadxOverflowException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.visitors.blocksmaker.BlockSplitter.connect;
@@ -220,7 +221,12 @@ public class BlockProcessor extends AbstractVisitor {
 		markLoops(mth);
 
 		// clear self dominance
-		basicBlocks.forEach(block -> block.getDoms().clear(block.getId()));
+		basicBlocks.forEach(block -> {
+			block.getDoms().clear(block.getId());
+			if (block.getDoms().isEmpty()) {
+				block.setDoms(EMPTY);
+			}
+		});
 
 		// calculate immediate dominators
 		for (BlockNode block : basicBlocks) {
@@ -253,11 +259,20 @@ public class BlockProcessor extends AbstractVisitor {
 		for (BlockNode exit : mth.getExitBlocks()) {
 			exit.setDomFrontier(EMPTY);
 		}
-		for (BlockNode block : mth.getBasicBlocks()) {
+		List<BlockNode> domSortedBlocks = new ArrayList<>(mth.getBasicBlocks().size());
+		Deque<BlockNode> stack = new LinkedList<>();
+		stack.push(mth.getEnterBlock());
+		while (!stack.isEmpty()) {
+			BlockNode node = stack.pop();
+			for (BlockNode dominated : node.getDominatesOn()) {
+				stack.push(dominated);
+			}
+			domSortedBlocks.add(node);
+		}
+		Collections.reverse(domSortedBlocks);
+		for (BlockNode block : domSortedBlocks) {
 			try {
 				computeBlockDF(mth, block);
-			} catch (StackOverflowError e) {
-				throw new JadxOverflowException("Failed compute block dominance frontier");
 			} catch (Exception e) {
 				throw new JadxRuntimeException("Failed compute block dominance frontier", e);
 			}
@@ -268,7 +283,6 @@ public class BlockProcessor extends AbstractVisitor {
 		if (block.getDomFrontier() != null) {
 			return;
 		}
-		block.getDominatesOn().forEach(domBlock -> computeBlockDF(mth, domBlock));
 		List<BlockNode> blocks = mth.getBasicBlocks();
 		BitSet domFrontier = null;
 		for (BlockNode s : block.getSuccessors()) {
@@ -281,6 +295,9 @@ public class BlockProcessor extends AbstractVisitor {
 		}
 		for (BlockNode c : block.getDominatesOn()) {
 			BitSet frontier = c.getDomFrontier();
+			if (frontier == null) {
+				throw new JadxRuntimeException("Dominance frontier not calculated for dominated block: " + c + ", from: " + block);
+			}
 			for (int p = frontier.nextSetBit(0); p >= 0; p = frontier.nextSetBit(p + 1)) {
 				if (blocks.get(p).getIDom() != block) {
 					if (domFrontier == null) {
@@ -290,7 +307,7 @@ public class BlockProcessor extends AbstractVisitor {
 				}
 			}
 		}
-		if (domFrontier == null || domFrontier.cardinality() == 0) {
+		if (domFrontier == null || domFrontier.isEmpty()) {
 			domFrontier = EMPTY;
 		}
 		block.setDomFrontier(domFrontier);
