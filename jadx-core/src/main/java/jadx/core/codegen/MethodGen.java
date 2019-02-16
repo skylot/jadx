@@ -4,15 +4,15 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.android.dx.rop.code.AccessFlags;
-import jadx.core.dex.info.ClassInfo;
-import jadx.core.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.annotations.MethodParameters;
 import jadx.core.dex.info.AccessInfo;
+import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -24,6 +24,7 @@ import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.FallbackModeVisitor;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.InsnUtils;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.DecodeException;
 
@@ -85,6 +86,9 @@ public class MethodGen {
 		}
 		code.startLineWithNum(mth.getSourceLine());
 		code.add(ai.makeString());
+		if (Consts.DEBUG) {
+			code.add(mth.isVirtual() ? "/* virtual */ " : "/* direct */ ");
+		}
 
 		if (classGen.addGenericMap(code, mth.getGenericMap())) {
 			code.add(' ');

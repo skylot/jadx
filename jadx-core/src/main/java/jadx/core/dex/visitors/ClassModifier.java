@@ -3,6 +3,8 @@ package jadx.core.dex.visitors;
 import java.util.List;
 import java.util.Objects;
 
+import com.android.dx.rop.code.AccessFlags;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
@@ -31,7 +33,10 @@ import jadx.core.utils.exceptions.JadxException;
 @JadxVisitor(
 		name = "ClassModifier",
 		desc = "Remove synthetic classes, methods and fields",
-		runAfter = ModVisitor.class
+		runAfter = {
+				ModVisitor.class,
+				FixAccessModifiers.class
+		}
 )
 public class ClassModifier extends AbstractVisitor {
 
@@ -218,6 +223,10 @@ public class ClassModifier extends AbstractVisitor {
 			MethodInfo callMth = ((InvokeNode) insn).getCallMth();
 			MethodNode wrappedMth = mth.root().deepResolveMethod(callMth);
 			if (wrappedMth != null) {
+				AccessInfo wrappedAccFlags = wrappedMth.getAccessFlags();
+				if (wrappedAccFlags.isStatic()) {
+					return false;
+				}
 				if (callMth.getArgsCount() != mth.getMethodInfo().getArgsCount()) {
 					return false;
 				}
@@ -235,8 +244,9 @@ public class ClassModifier extends AbstractVisitor {
 				if (Objects.equals(wrappedMth.getAlias(), alias)) {
 					return true;
 				}
-				if (!wrappedMth.isVirtual()) {
-					return false;
+				if (!wrappedAccFlags.isPublic()) {
+					// must be public
+					FixAccessModifiers.changeVisibility(wrappedMth, AccessFlags.ACC_PUBLIC);
 				}
 				wrappedMth.getMethodInfo().setAlias(alias);
 				return true;
