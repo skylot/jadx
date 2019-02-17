@@ -2,6 +2,7 @@ package jadx.core.dex.visitors;
 
 import com.android.dx.rop.code.AccessFlags;
 
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
@@ -25,22 +26,27 @@ public class FixAccessModifiers extends AbstractVisitor {
 		if (respectAccessModifiers) {
 			return;
 		}
-		AccessInfo accessFlags = mth.getAccessFlags();
-		int newVisFlag = fixVisibility(mth, accessFlags);
+		int newVisFlag = fixVisibility(mth);
 		if (newVisFlag != 0) {
-			AccessInfo newAccFlags = accessFlags.changeVisibility(newVisFlag);
-			if (newAccFlags != accessFlags) {
-				mth.setAccFlags(newAccFlags);
-				mth.addComment("Access modifiers changed, original: " + accessFlags.rawString());
-			}
+			changeVisibility(mth, newVisFlag);
 		}
 	}
 
-	private int fixVisibility(MethodNode mth, AccessInfo accessFlags) {
+	public static void changeVisibility(MethodNode mth, int newVisFlag) {
+		AccessInfo accessFlags = mth.getAccessFlags();
+		AccessInfo newAccFlags = accessFlags.changeVisibility(newVisFlag);
+		if (newAccFlags != accessFlags) {
+			mth.setAccFlags(newAccFlags);
+			mth.addAttr(AType.COMMENTS, "access modifiers changed from: " + accessFlags.rawString());
+		}
+	}
+
+	private static int fixVisibility(MethodNode mth) {
 		if (mth.isVirtual()) {
 			// make virtual methods public
 			return AccessFlags.ACC_PUBLIC;
 		} else {
+			AccessInfo accessFlags = mth.getAccessFlags();
 			if (accessFlags.isAbstract()) {
 				// make abstract methods public
 				return AccessFlags.ACC_PUBLIC;

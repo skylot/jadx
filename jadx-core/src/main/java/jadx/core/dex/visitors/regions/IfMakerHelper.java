@@ -266,7 +266,18 @@ public class IfMakerHelper {
 		result.setIfBlock(first.getIfBlock());
 		result.merge(first, second);
 
-		BlockNode otherPathBlock = followThenBranch ? first.getElseBlock() : first.getThenBlock();
+		BlockNode otherPathBlock;
+		if (followThenBranch) {
+			otherPathBlock = first.getElseBlock();
+			if (!otherPathBlock.equals(result.getElseBlock())) {
+				result.getSkipBlocks().add(otherPathBlock);
+			}
+		} else {
+			otherPathBlock = first.getThenBlock();
+			if (!otherPathBlock.equals(result.getThenBlock())) {
+				result.getSkipBlocks().add(otherPathBlock);
+			}
+		}
 		skipSimplePath(otherPathBlock, result.getSkipBlocks());
 		return result;
 	}

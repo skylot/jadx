@@ -7,6 +7,7 @@ import com.android.dx.rop.code.AccessFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.annotations.MethodParameters;
@@ -85,6 +86,9 @@ public class MethodGen {
 		}
 		code.startLineWithNum(mth.getSourceLine());
 		code.add(ai.makeString());
+		if (Consts.DEBUG) {
+			code.add(mth.isVirtual() ? "/* virtual */ " : "/* direct */ ");
+		}
 
 		if (classGen.addGenericMap(code, mth.getGenericMap())) {
 			code.add(' ');
