@@ -8,6 +8,7 @@ import java.awt.datatransfer.Transferable;
 import java.io.InputStream;
 import java.net.URL;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -174,5 +175,20 @@ public class Utils {
 		} catch (Exception e) {
 			LOG.error("Failed copy string '{}' to clipboard", text, e);
 		}
+	}
+
+	@NotNull
+	public static String getFontStyleName(int style) {
+		if (style == 0) {
+			return "plain";
+		}
+		StringBuilder sb = new StringBuilder();
+		if ((style & Font.BOLD) != 0) {
+			sb.append("bold");
+		}
+		if ((style & Font.ITALIC) != 0) {
+			sb.append(" italic");
+		}
+		return sb.toString().trim();
 	}
 }

@@ -18,6 +18,7 @@ import jadx.cli.JadxCLIArgs;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.Utils;
 
 import static jadx.gui.utils.Utils.FONT_HACK;
 
@@ -263,7 +264,14 @@ public class JadxSettings extends JadxCLIArgs {
 	}
 
 	public void setFont(Font font) {
-		this.fontStr = font.getFontName() + addStyleName(font.getStyle()) + "-" + font.getSize();
+		StringBuilder sb = new StringBuilder();
+		sb.append(font.getFontName());
+		String fontStyleName = Utils.getFontStyleName(font.getStyle()).replaceAll(" ", "");
+		if (!fontStyleName.isEmpty()) {
+			sb.append('-').append(fontStyleName.toUpperCase());
+		}
+		sb.append('-').append(font.getSize());
+		this.fontStr = sb.toString();
 	}
 
 	public String getEditorThemePath() {
@@ -272,19 +280,6 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setEditorThemePath(String editorThemePath) {
 		this.editorThemePath = editorThemePath;
-	}
-
-	private static String addStyleName(int style) {
-		switch (style) {
-			case Font.BOLD:
-				return "-BOLD";
-			case Font.PLAIN:
-				return "-PLAIN";
-			case Font.ITALIC:
-				return "-ITALIC";
-			default:
-				return "";
-		}
 	}
 
 	private void upgradeSettings(int fromVersion) {
