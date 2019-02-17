@@ -104,7 +104,9 @@ public class JadxSettingsWindow extends JDialog {
 		buttonPane.add(cancelButton);
 
 		Container contentPane = getContentPane();
-		contentPane.add(panel, BorderLayout.CENTER);
+		JScrollPane scrollPane = new JScrollPane(panel);
+		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		contentPane.add(scrollPane, BorderLayout.CENTER);
 		contentPane.add(buttonPane, BorderLayout.PAGE_END);
 		getRootPane().setDefaultButton(saveBtn);
 	}
