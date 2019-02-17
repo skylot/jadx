@@ -74,6 +74,7 @@ public class JadxSettingsWindow extends JDialog {
 		JButton cancelButton = new JButton(NLS.str("preferences.cancel"));
 		cancelButton.addActionListener(event -> {
 			JadxSettingsAdapter.fill(settings, startSettings);
+			mainWindow.loadSettings();
 			dispose();
 		});
 
@@ -87,6 +88,8 @@ public class JadxSettingsWindow extends JDialog {
 			if (res == JOptionPane.YES_OPTION) {
 				String defaults = JadxSettingsAdapter.makeString(JadxSettings.makeDefault());
 				JadxSettingsAdapter.fill(settings, defaults);
+				mainWindow.loadSettings();
+				needReload();
 				getContentPane().removeAll();
 				initUI();
 				pack();
@@ -197,7 +200,6 @@ public class JadxSettingsWindow extends JDialog {
 					Font font = fontChooser.getSelectedFont();
 					LOG.debug("Selected Font: {}", font);
 					settings.setFont(font);
-					mainWindow.updateFont(font);
 					mainWindow.loadSettings();
 					fontLabel.setText(getFontLabelStr());
 				}

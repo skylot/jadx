@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,16 +21,14 @@ import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
 
-import static jadx.gui.utils.Utils.FONT_HACK;
-
 public class JadxSettings extends JadxCLIArgs {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxSettings.class);
 
 	private static final String USER_HOME = System.getProperty("user.home");
 	private static final int RECENT_FILES_COUNT = 15;
-	private static final int CURRENT_SETTINGS_VERSION = 6;
+	private static final int CURRENT_SETTINGS_VERSION = 7;
 
-	private static final Font DEFAULT_FONT = FONT_HACK != null ? FONT_HACK : new RSyntaxTextArea().getFont();
+	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
 	static final Set<String> SKIP_FIELDS = new HashSet<>(Arrays.asList(
 			"files", "input", "outputDir", "verbose", "printHelp"
@@ -263,7 +262,11 @@ public class JadxSettings extends JadxCLIArgs {
 		return Font.decode(fontStr);
 	}
 
-	public void setFont(Font font) {
+	public void setFont(@Nullable Font font) {
+		if (font == null) {
+			this.fontStr = "";
+			return;
+		}
 		StringBuilder sb = new StringBuilder();
 		sb.append(font.getFontName());
 		String fontStyleName = Utils.getFontStyleName(font.getStyle()).replaceAll(" ", "");
@@ -314,6 +317,12 @@ public class JadxSettings extends JadxCLIArgs {
 		}
 		if (fromVersion == 5) {
 			setRespectBytecodeAccessModifiers(false);
+			fromVersion++;
+		}
+		if (fromVersion == 6) {
+			if (getFont().getFontName().equals("Hack Regular")) {
+				setFont(null);
+			}
 		}
 		settingsVersion = CURRENT_SETTINGS_VERSION;
 		sync();
