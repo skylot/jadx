@@ -44,6 +44,10 @@ public class InstructionRemover {
 	public void add(InsnNode insn) {
 		toRemove.add(insn);
 	}
+	public void addAndUnbind(MethodNode mth, InsnNode insn) {
+		toRemove.add(insn);
+		unbindInsn(mth, insn);
+	}
 
 	public void perform() {
 		if (toRemove.isEmpty()) {
@@ -65,7 +69,7 @@ public class InstructionRemover {
 			}
 		}
 		unbindResult(mth, insn);
-		insn.add(AFlag.INCONSISTENT_CODE);
+		insn.add(AFlag.REMOVE);
 	}
 
 	public static void fixUsedInPhiFlag(RegisterArg useReg) {

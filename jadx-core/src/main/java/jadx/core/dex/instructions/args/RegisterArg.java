@@ -5,8 +5,6 @@ import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import jadx.core.dex.instructions.InsnType;
-import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
@@ -115,6 +113,7 @@ public class RegisterArg extends InsnArg implements Named {
 		}
 	}
 
+	@Override
 	public RegisterArg duplicate() {
 		return duplicate(getRegNum(), sVar);
 	}
@@ -130,8 +129,6 @@ public class RegisterArg extends InsnArg implements Named {
 
 	/**
 	 * Return constant value from register assign or null if not constant
-	 *
-	 * @return LiteralArg, String or ArgType
 	 */
 	public Object getConstValue(DexNode dex) {
 		InsnNode parInsn = getAssignInsn();
@@ -149,20 +146,17 @@ public class RegisterArg extends InsnArg implements Named {
 		return sVar.getAssign().getParentInsn();
 	}
 
-	public InsnNode getPhiAssignInsn() {
-		PhiInsn usePhi = sVar.getUsedInPhi();
-		if (usePhi != null) {
-			return usePhi;
-		}
-		InsnNode parent = sVar.getAssign().getParentInsn();
-		if (parent != null && parent.getType() == InsnType.PHI) {
-			return parent;
-		}
-		return null;
-	}
-
 	public boolean equalRegister(RegisterArg arg) {
 		return regNum == arg.regNum;
+	}
+
+	public boolean sameRegAndSVar(InsnArg arg) {
+		if (!arg.isRegister()) {
+			return false;
+		}
+		RegisterArg reg = (RegisterArg) arg;
+		return regNum == reg.getRegNum()
+				&& Objects.equals(sVar, reg.getSVar());
 	}
 
 	public boolean equalRegisterAndType(RegisterArg arg) {

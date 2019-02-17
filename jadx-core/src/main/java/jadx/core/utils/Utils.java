@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.api.JadxDecompiler;
 import jadx.core.codegen.CodeWriter;
 
@@ -173,5 +175,13 @@ public class Utils {
 			result.put(parameters[i], parameters[i + 1]);
 		}
 		return Collections.unmodifiableMap(result);
+	}
+
+	@Nullable
+	public static <T> T last(List<T> list) {
+		if (list.isEmpty()) {
+			return null;
+		}
+		return list.get(list.size() - 1);
 	}
 }
