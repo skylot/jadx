@@ -11,8 +11,10 @@ import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.annotations.MethodParameters;
+import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
+import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.CodeVar;
@@ -136,7 +138,6 @@ public class MethodGen {
 			} else {
 				var = ssaVar.getCodeVar();
 			}
-			ArgType argType = var.getType();
 
 			// add argument annotation
 			if (paramsAnnotation != null) {
@@ -145,6 +146,7 @@ public class MethodGen {
 			if (var.isFinal()) {
 				code.add("final ");
 			}
+			ArgType argType = var.getType();
 			if (!it.hasNext() && mth.getAccessFlags().isVarArgs()) {
 				// change last array argument to varargs
 				if (argType.isArray()) {
@@ -197,6 +199,7 @@ public class MethodGen {
 		if (mth.getInstructions() == null) {
 			// load original instructions
 			try {
+				mth.unload();
 				mth.load();
 				DepthTraversal.visit(new FallbackModeVisitor(), mth);
 			} catch (DecodeException e) {
@@ -218,27 +221,57 @@ public class MethodGen {
 
 	public static void addFallbackInsns(CodeWriter code, MethodNode mth, InsnNode[] insnArr, boolean addLabels) {
 		InsnGen insnGen = new InsnGen(getFallbackMethodGen(mth), true);
+		InsnNode prevInsn = null;
 		for (InsnNode insn : insnArr) {
 			if (insn == null || insn.getType() == InsnType.NOP) {
 				continue;
 			}
-			if (addLabels && (insn.contains(AType.JUMP) || insn.contains(AType.EXC_HANDLER))) {
+			if (addLabels && needLabel(insn, prevInsn)) {
 				code.decIndent();
 				code.startLine(getLabelName(insn.getOffset()) + ":");
 				code.incIndent();
 			}
 			try {
-				if (insnGen.makeInsn(insn, code)) {
-					CatchAttr catchAttr = insn.get(AType.CATCH_BLOCK);
-					if (catchAttr != null) {
-						code.add("\t " + catchAttr);
+				code.startLine();
+				RegisterArg resArg = insn.getResult();
+				if (resArg != null) {
+					ArgType varType = resArg.getInitType();
+					if (varType.isTypeKnown()) {
+						code.add(varType.toString()).add(' ');
 					}
+				}
+				insnGen.makeInsn(insn, code, InsnGen.Flags.INLINE);
+				CatchAttr catchAttr = insn.get(AType.CATCH_BLOCK);
+				if (catchAttr != null) {
+					code.add("     // " + catchAttr);
 				}
 			} catch (CodegenException e) {
 				LOG.debug("Error generate fallback instruction: ", e.getCause());
 				code.startLine("// error: " + insn);
 			}
+			prevInsn = insn;
 		}
+	}
+
+	private static boolean needLabel(InsnNode insn, InsnNode prevInsn) {
+		if (insn.contains(AType.EXC_HANDLER)) {
+			return true;
+		}
+		if (insn.contains(AType.JUMP)) {
+			// don't add label for ifs else branch
+			if (prevInsn != null && prevInsn.getType() == InsnType.IF) {
+				List<JumpInfo> jumps = insn.getAll(AType.JUMP);
+				if (jumps.size() == 1) {
+					JumpInfo jump = jumps.get(0);
+					if (jump.getSrc() == prevInsn.getOffset() && jump.getDest() == insn.getOffset()) {
+						int target = ((IfNode) prevInsn).getTarget();
+						return insn.getOffset() == target;
+					}
+				}
+			}
+			return true;
+		}
+		return false;
 	}
 
 	/**

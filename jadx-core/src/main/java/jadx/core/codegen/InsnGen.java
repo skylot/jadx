@@ -205,11 +205,11 @@ public class InsnGen {
 		mgen.getClassGen().useType(code, type);
 	}
 
-	public boolean makeInsn(InsnNode insn, CodeWriter code) throws CodegenException {
-		return makeInsn(insn, code, null);
+	public void makeInsn(InsnNode insn, CodeWriter code) throws CodegenException {
+		makeInsn(insn, code, null);
 	}
 
-	protected boolean makeInsn(InsnNode insn, CodeWriter code, Flags flag) throws CodegenException {
+	protected void makeInsn(InsnNode insn, CodeWriter code, Flags flag) throws CodegenException {
 		try {
 			Set<Flags> state = EnumSet.noneOf(Flags.class);
 			if (flag == Flags.BODY_ONLY || flag == Flags.BODY_ONLY_NOWRAP) {
@@ -231,7 +231,6 @@ public class InsnGen {
 		} catch (Exception th) {
 			throw new CodegenException(mth, "Error generate insn: " + insn, th);
 		}
-		return true;
 	}
 
 	private void makeInsnBody(CodeWriter code, InsnNode insn, Set<Flags> state) throws CodegenException {
