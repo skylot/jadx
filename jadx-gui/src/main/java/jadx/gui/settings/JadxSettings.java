@@ -26,12 +26,12 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private static final String USER_HOME = System.getProperty("user.home");
 	private static final int RECENT_FILES_COUNT = 15;
-	private static final int CURRENT_SETTINGS_VERSION = 7;
+	private static final int CURRENT_SETTINGS_VERSION = 8;
 
 	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
 	static final Set<String> SKIP_FIELDS = new HashSet<>(Arrays.asList(
-			"files", "input", "outputDir", "verbose", "printHelp"
+			"files", "input", "outDir", "outDirSrc", "outDirRes", "verbose", "printVersion", "printHelp"
 	));
 	private String lastOpenFilePath = USER_HOME;
 	private String lastSaveFilePath = USER_HOME;
@@ -323,6 +323,12 @@ public class JadxSettings extends JadxCLIArgs {
 			if (getFont().getFontName().equals("Hack Regular")) {
 				setFont(null);
 			}
+			fromVersion++;
+		}
+		if (fromVersion == 7) {
+			outDir = null;
+			outDirSrc = null;
+			outDirRes = null;
 		}
 		settingsVersion = CURRENT_SETTINGS_VERSION;
 		sync();

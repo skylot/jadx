@@ -35,7 +35,7 @@ public class JadxWrapper {
 			this.decompiler.getArgs().setInputFiles(Collections.singletonList(file));
 			this.decompiler.load();
 		} catch (Exception e) {
-			LOG.error("Error load file: {}", file, e);
+			LOG.error("Jadx init error", e);
 		}
 	}
 
