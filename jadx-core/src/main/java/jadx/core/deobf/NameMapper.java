@@ -91,6 +91,14 @@ public class NameMapper {
 				&& isAllCharsPrintable(str);
 	}
 
+	public static boolean isValidIdentifierStart(int codePoint) {
+		return Character.isJavaIdentifierStart(codePoint);
+	}
+
+	public static boolean isValidIdentifierPart(int codePoint) {
+		return Character.isJavaIdentifierPart(codePoint);
+	}
+
 	public static boolean isPrintableChar(int c) {
 		return 32 <= c && c <= 126;
 	}
@@ -103,6 +111,49 @@ public class NameMapper {
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Return modified string with removed:
+	 * <p><ul>
+	 * <li> not printable chars (including unicode)
+	 * <li> chars not valid for java identifier part
+	 * </ul><p>
+	 * Note: this 'middle' method must be used with prefixed string:
+	 * <p><ul>
+	 * <li> can leave invalid chars for java identifier start (i.e numbers)
+	 * <li> result not checked for reserved words
+	 * </ul><p>
+	 */
+	public static String removeInvalidCharsMiddle(String name) {
+		if (isValidIdentifier(name) && isAllCharsPrintable(name)) {
+			return name;
+		}
+		int len = name.length();
+		StringBuilder sb = new StringBuilder(len);
+		for (int i = 0; i < len; i++) {
+			int codePoint = name.codePointAt(i);
+			if (isPrintableChar(codePoint) && isValidIdentifierPart(codePoint)) {
+				sb.append((char) codePoint);
+			}
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * Return string with removed invalid chars, see {@link #removeInvalidCharsMiddle}
+	 * <p>
+	 * Prepend prefix if first char is not valid as java identifier start char.
+	 */
+	public static String removeInvalidChars(String name, String prefix) {
+		String result = removeInvalidCharsMiddle(name);
+		if (!result.isEmpty()) {
+			int codePoint = result.codePointAt(0);
+			if (!isValidIdentifierStart(codePoint)) {
+				return prefix + result;
+			}
+		}
+		return result;
 	}
 
 	private NameMapper() {
