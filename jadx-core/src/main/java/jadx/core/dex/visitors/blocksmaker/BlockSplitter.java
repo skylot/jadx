@@ -1,7 +1,10 @@
 package jadx.core.dex.visitors.blocksmaker;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,6 +50,7 @@ public class BlockSplitter extends AbstractVisitor {
 		removeJumpAttr(mth);
 		removeInsns(mth);
 		removeEmptyDetachedBlocks(mth);
+		removeUnreachableBlocks(mth);
 		initBlocksInTargetNodes(mth);
 	}
 
@@ -323,5 +327,38 @@ public class BlockSplitter extends AbstractVisitor {
 						&& block.getPredecessors().isEmpty()
 						&& block.getSuccessors().isEmpty()
 		);
+	}
+
+	private void removeUnreachableBlocks(MethodNode mth) {
+		Set<BlockNode> toRemove = new LinkedHashSet<>();
+		for (BlockNode block : mth.getBasicBlocks()) {
+			if (block.getPredecessors().isEmpty() && block != mth.getEnterBlock()) {
+				toRemove.add(block);
+				collectSuccessors(block, toRemove);
+			}
+		}
+		if (!toRemove.isEmpty()) {
+			mth.getBasicBlocks().removeIf(toRemove::contains);
+
+			int insnsCount = toRemove.stream().mapToInt(block -> block.getInstructions().size()).sum();
+			mth.addAttr(AType.COMMENTS, "JADX INFO: unreachable blocks removed: " + toRemove.size()
+					+ ", instructions: " + insnsCount);
+		}
+	}
+
+	private void collectSuccessors(BlockNode startBlock, Set<BlockNode> toRemove) {
+		Deque<BlockNode> stack = new ArrayDeque<>();
+		stack.add(startBlock);
+		while (!stack.isEmpty()) {
+			BlockNode block = stack.pop();
+			if (!toRemove.contains(block)) {
+				for (BlockNode successor : block.getSuccessors()) {
+					if (toRemove.containsAll(successor.getPredecessors())) {
+						stack.push(successor);
+					}
+				}
+			}
+			toRemove.add(block);
+		}
 	}
 }
