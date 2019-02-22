@@ -77,8 +77,7 @@ public class InputFile {
 		if (skipSources) {
 			return;
 		}
-
-		throw new DecodeException("Unsupported input file format: " + file);
+		LOG.warn("No dex files found in {}", file);
 	}
 
 	private void addDexFile(Dex dexBuf) {

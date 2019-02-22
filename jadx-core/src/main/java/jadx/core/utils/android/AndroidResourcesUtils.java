@@ -54,6 +54,10 @@ public class AndroidResourcesUtils {
 		}
 		LOG.info("App 'R' class not found, put all resources ids to : '{}'", fullName);
 		resCls = makeClass(root, fullName, resStorage);
+		if (resCls == null) {
+			// We are in an APK without code therefore we don't have to update an 'R' class with the resources
+			return null;
+		}
 		addResourceFields(resCls, resStorage, false);
 		return resCls;
 	}
@@ -81,18 +85,18 @@ public class AndroidResourcesUtils {
 		return rCls;
 	}
 
-	private static void addResourceFields(ClassNode cls, ResourceStorage resStorage, boolean rClsExists) {
+	private static void addResourceFields(ClassNode resCls, ResourceStorage resStorage, boolean rClsExists) {
 		Map<String, ClassNode> innerClsMap = new TreeMap<>();
 		if (rClsExists) {
-			for (ClassNode innerClass : cls.getInnerClasses()) {
+			for (ClassNode innerClass : resCls.getInnerClasses()) {
 				innerClsMap.put(innerClass.getShortName(), innerClass);
 			}
 		}
 		for (ResourceEntry resource : resStorage.getResources()) {
 			ClassNode typeCls = innerClsMap.computeIfAbsent(resource.getTypeName(), name -> {
-				ClassNode newTypeCls = new ClassNode(cls.dex(), cls.getFullName() + "$" + name,
+				ClassNode newTypeCls = new ClassNode(resCls.dex(), resCls.getFullName() + "$" + name,
 						AccessFlags.ACC_PUBLIC | AccessFlags.ACC_STATIC | AccessFlags.ACC_FINAL);
-				cls.addInnerClass(newTypeCls);
+				resCls.addInnerClass(newTypeCls);
 				if (rClsExists) {
 					newTypeCls.addAttr(AType.COMMENTS, "added by JADX");
 				}
