@@ -214,12 +214,14 @@ public abstract class IntegrationTest extends TestUtils {
 				rethrow("Original check failed", ie);
 			}
 			// run 'check' method from decompiled class
-			try {
-				invoke("check");
-			} catch (InvocationTargetException ie) {
-				rethrow("Decompiled check failed", ie);
+			if (compile) {
+				try {
+					invoke("check");
+				} catch (InvocationTargetException ie) {
+					rethrow("Decompiled check failed", ie);
+				}
+				System.out.println("Auto check: PASSED");
 			}
-			System.out.println("Auto check: PASSED");
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Auto check exception: " + e.getMessage());

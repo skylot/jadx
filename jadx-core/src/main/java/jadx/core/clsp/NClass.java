@@ -7,7 +7,7 @@ public class NClass {
 
 	private final String name;
 	private NClass[] parents;
-	private int id;
+	private final int id;
 
 	public NClass(String name, int id) {
 		this.name = name;
@@ -20,10 +20,6 @@ public class NClass {
 
 	public int getId() {
 		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
 	}
 
 	public NClass[] getParents() {

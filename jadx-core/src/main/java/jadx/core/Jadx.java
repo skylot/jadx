@@ -95,10 +95,10 @@ public class Jadx {
 			passes.add(new SimplifyVisitor());
 			passes.add(new CheckRegions());
 
-			passes.add(new MethodInlineVisitor());
 			passes.add(new ExtractFieldInit());
 			passes.add(new FixAccessModifiers());
 			passes.add(new ClassModifier());
+			passes.add(new MethodInlineVisitor());
 			passes.add(new EnumVisitor());
 			passes.add(new PrepareForCodeGen());
 			passes.add(new LoopRegionVisitor());

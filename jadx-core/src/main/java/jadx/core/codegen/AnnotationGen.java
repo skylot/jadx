@@ -63,12 +63,7 @@ public class AnnotationGen {
 		}
 		for (Annotation a : aList.getAll()) {
 			String aCls = a.getAnnotationClass();
-			if (aCls.startsWith(Consts.DALVIK_ANNOTATION_PKG)) {
-				// skip
-				if (Consts.DEBUG) {
-					code.startLine("// " + a);
-				}
-			} else {
+			if (!aCls.startsWith(Consts.DALVIK_ANNOTATION_PKG)) {
 				code.startLine();
 				formatAnnotation(code, a);
 			}

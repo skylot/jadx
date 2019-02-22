@@ -4,6 +4,7 @@ import com.android.dx.rop.code.AccessFlags;
 
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.AccessInfo;
+import jadx.core.dex.nodes.ICodeNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 
@@ -32,12 +33,12 @@ public class FixAccessModifiers extends AbstractVisitor {
 		}
 	}
 
-	public static void changeVisibility(MethodNode mth, int newVisFlag) {
-		AccessInfo accessFlags = mth.getAccessFlags();
+	public static void changeVisibility(ICodeNode node, int newVisFlag) {
+		AccessInfo accessFlags = node.getAccessFlags();
 		AccessInfo newAccFlags = accessFlags.changeVisibility(newVisFlag);
 		if (newAccFlags != accessFlags) {
-			mth.setAccFlags(newAccFlags);
-			mth.addAttr(AType.COMMENTS, "access modifiers changed from: " + accessFlags.rawString());
+			node.setAccessFlags(newAccFlags);
+			node.addAttr(AType.COMMENTS, "access modifiers changed from: " + accessFlags.rawString());
 		}
 	}
 

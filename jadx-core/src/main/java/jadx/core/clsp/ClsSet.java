@@ -97,11 +97,11 @@ public class ClsSet {
 	}
 
 	private static NClass getCls(String fullName, Map<String, NClass> names) {
-		NClass id = names.get(fullName);
-		if (id == null && !names.containsKey(fullName)) {
+		NClass cls = names.get(fullName);
+		if (cls == null) {
 			LOG.debug("Class not found: {}", fullName);
 		}
-		return id;
+		return cls;
 	}
 
 	void save(File output) throws IOException {

@@ -8,11 +8,11 @@ import jadx.core.dex.info.AccessInfo.AFType;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.args.ArgType;
 
-public class FieldNode extends LineAttrNode {
+public class FieldNode extends LineAttrNode implements ICodeNode {
 
 	private final ClassNode parent;
 	private final FieldInfo fieldInfo;
-	private final AccessInfo accFlags;
+	private AccessInfo accFlags;
 
 	private ArgType type; // store signature
 
@@ -32,8 +32,14 @@ public class FieldNode extends LineAttrNode {
 		return fieldInfo;
 	}
 
+	@Override
 	public AccessInfo getAccessFlags() {
 		return accFlags;
+	}
+
+	@Override
+	public void setAccessFlags(AccessInfo accFlags) {
+		this.accFlags = accFlags;
 	}
 
 	public String getName() {
@@ -54,6 +60,21 @@ public class FieldNode extends LineAttrNode {
 
 	public ClassNode getParentClass() {
 		return parent;
+	}
+
+	@Override
+	public String typeName() {
+		return "field";
+	}
+
+	@Override
+	public DexNode dex() {
+		return parent.dex();
+	}
+
+	@Override
+	public RootNode root() {
+		return parent.root();
 	}
 
 	@Override

@@ -107,17 +107,22 @@ public class RenameVisitor extends AbstractVisitor {
 	}
 
 	private void checkMethods(ClassNode cls) {
+		for (MethodNode mth : cls.getMethods()) {
+			if (!NameMapper.isValidIdentifier(mth.getAlias())) {
+				deobfuscator.forceRenameMethod(mth);
+			}
+		}
 		Set<String> names = new HashSet<>();
 		for (MethodNode mth : cls.getMethods()) {
 			AccessInfo accessFlags = mth.getAccessFlags();
 			if (accessFlags.isConstructor()
 					|| accessFlags.isBridge()
 					|| accessFlags.isSynthetic()
-					|| mth.contains(AFlag.DONT_GENERATE)) {
+					|| mth.contains(AFlag.DONT_GENERATE) /* this flag not set yet */) {
 				continue;
 			}
-			String signature = mth.getMethodInfo().makeSignature(false);
-			if (!names.add(signature) || !NameMapper.isValidIdentifier(mth.getAlias())) {
+			String signature = mth.getMethodInfo().makeSignature(true, false);
+			if (!names.add(signature)) {
 				deobfuscator.forceRenameMethod(mth);
 			}
 		}

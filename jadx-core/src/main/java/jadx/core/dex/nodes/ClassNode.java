@@ -38,12 +38,12 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.nodes.ProcessState.UNLOADED;
 
-public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
+public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
 
 	private final DexNode dex;
 	private final ClassInfo clsInfo;
-	private final AccessInfo accessFlags;
+	private AccessInfo accessFlags;
 	private ArgType superClass;
 	private List<ArgType> interfaces;
 	private Map<ArgType, List<ArgType>> genericMap;
@@ -409,8 +409,14 @@ public class ClassNode extends LineAttrNode implements ILoadable, IDexNode {
 		return null;
 	}
 
+	@Override
 	public AccessInfo getAccessFlags() {
 		return accessFlags;
+	}
+
+	@Override
+	public void setAccessFlags(AccessInfo accessFlags) {
+		this.accessFlags = accessFlags;
 	}
 
 	@Override
