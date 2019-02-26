@@ -16,6 +16,7 @@ import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.Utils;
 
 public class JadxSettingsWindow extends JDialog {
 	private static final long serialVersionUID = -1804570470377354148L;
@@ -73,6 +74,7 @@ public class JadxSettingsWindow extends JDialog {
 		JButton cancelButton = new JButton(NLS.str("preferences.cancel"));
 		cancelButton.addActionListener(event -> {
 			JadxSettingsAdapter.fill(settings, startSettings);
+			mainWindow.loadSettings();
 			dispose();
 		});
 
@@ -86,6 +88,8 @@ public class JadxSettingsWindow extends JDialog {
 			if (res == JOptionPane.YES_OPTION) {
 				String defaults = JadxSettingsAdapter.makeString(JadxSettings.makeDefault());
 				JadxSettingsAdapter.fill(settings, defaults);
+				mainWindow.loadSettings();
+				needReload();
 				getContentPane().removeAll();
 				initUI();
 				pack();
@@ -103,7 +107,9 @@ public class JadxSettingsWindow extends JDialog {
 		buttonPane.add(cancelButton);
 
 		Container contentPane = getContentPane();
-		contentPane.add(panel, BorderLayout.CENTER);
+		JScrollPane scrollPane = new JScrollPane(panel);
+		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		contentPane.add(scrollPane, BorderLayout.CENTER);
 		contentPane.add(buttonPane, BorderLayout.PAGE_END);
 		getRootPane().setDefaultButton(saveBtn);
 	}
@@ -164,21 +170,6 @@ public class JadxSettingsWindow extends JDialog {
 
 	private SettingsGroup makeEditorGroup() {
 		JButton fontBtn = new JButton(NLS.str("preferences.select_font"));
-		fontBtn.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				JFontChooser fontChooser = new JFontChooser();
-				fontChooser.setSelectedFont(settings.getFont());
-				int result = fontChooser.showDialog(JadxSettingsWindow.this);
-				if (result == JFontChooser.OK_OPTION) {
-					Font font = fontChooser.getSelectedFont();
-					LOG.debug("Selected Font: {}", font);
-					settings.setFont(font);
-					mainWindow.updateFont(font);
-					mainWindow.loadSettings();
-				}
-			}
-		});
 
 		EditorTheme[] editorThemes = EditorTheme.getAllThemes();
 		JComboBox<EditorTheme> themesCbx = new JComboBox<>(editorThemes);
@@ -196,9 +187,31 @@ public class JadxSettingsWindow extends JDialog {
 		});
 
 		SettingsGroup other = new SettingsGroup(NLS.str("preferences.editor"));
-		other.addRow(NLS.str("preferences.font"), fontBtn);
+		JLabel fontLabel = other.addRow(getFontLabelStr(), fontBtn);
 		other.addRow(NLS.str("preferences.theme"), themesCbx);
+
+		fontBtn.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				JFontChooser fontChooser = new JFontChooser();
+				fontChooser.setSelectedFont(settings.getFont());
+				int result = fontChooser.showDialog(JadxSettingsWindow.this);
+				if (result == JFontChooser.OK_OPTION) {
+					Font font = fontChooser.getSelectedFont();
+					LOG.debug("Selected Font: {}", font);
+					settings.setFont(font);
+					mainWindow.loadSettings();
+					fontLabel.setText(getFontLabelStr());
+				}
+			}
+		});
 		return other;
+	}
+
+	private String getFontLabelStr() {
+		Font font = settings.getFont();
+		String fontStyleName = Utils.getFontStyleName(font.getStyle());
+		return NLS.str("preferences.font") + ": " + font.getFontName() + " " + fontStyleName + " " + font.getSize();
 	}
 
 	private SettingsGroup makeDecompilationGroup() {
@@ -342,11 +355,11 @@ public class JadxSettingsWindow extends JDialog {
 			c.weighty = 1.0;
 		}
 
-		public void addRow(String label, JComponent comp) {
-			addRow(label, null, comp);
+		public JLabel addRow(String label, JComponent comp) {
+			return addRow(label, null, comp);
 		}
 
-		public void addRow(String label, String tooltip, JComponent comp) {
+		public JLabel addRow(String label, String tooltip, JComponent comp) {
 			c.gridy = row++;
 			JLabel jLabel = new JLabel(label);
 			jLabel.setLabelFor(comp);
@@ -371,6 +384,7 @@ public class JadxSettingsWindow extends JDialog {
 			add(comp, c);
 
 			comp.addPropertyChangeListener("enabled", evt -> jLabel.setEnabled((boolean) evt.getNewValue()));
+			return jLabel;
 		}
 
 		public void end() {

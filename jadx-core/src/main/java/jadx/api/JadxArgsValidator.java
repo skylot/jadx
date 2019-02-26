@@ -53,13 +53,18 @@ public class JadxArgsValidator {
 			} else {
 				outDir = makeDirFromInput(args);
 			}
+			args.setOutDir(outDir);
 		}
-		args.setOutDir(outDir);
-		setFromOut(args);
+		if (srcDir == null) {
+			args.setOutDirSrc(new File(args.getOutDir(), JadxArgs.DEFAULT_SRC_DIR));
+		}
+		if (resDir == null) {
+			args.setOutDirRes(new File(args.getOutDir(), JadxArgs.DEFAULT_RES_DIR));
+		}
 
-		checkDir(args.getOutDir());
-		checkDir(args.getOutDirSrc());
-		checkDir(args.getOutDirRes());
+		checkDir(args.getOutDir(), "Output");
+		checkDir(args.getOutDirSrc(), "Source output");
+		checkDir(args.getOutDirRes(), "Resources output");
 	}
 
 	@NotNull
@@ -79,15 +84,6 @@ public class JadxArgsValidator {
 		return outDir;
 	}
 
-	private static void setFromOut(JadxArgs args) {
-		if (args.getOutDirSrc() == null) {
-			args.setOutDirSrc(new File(args.getOutDir(), JadxArgs.DEFAULT_SRC_DIR));
-		}
-		if (args.getOutDirRes() == null) {
-			args.setOutDirRes(new File(args.getOutDir(), JadxArgs.DEFAULT_RES_DIR));
-		}
-	}
-
 	private static void checkFile(File file) {
 		if (!file.exists()) {
 			throw new JadxArgsValidateException("File not found " + file.getAbsolutePath());
@@ -97,9 +93,9 @@ public class JadxArgsValidator {
 		}
 	}
 
-	private static void checkDir(File dir) {
+	private static void checkDir(File dir, String desc) {
 		if (dir != null && dir.exists() && !dir.isDirectory()) {
-			throw new JadxArgsValidateException("Output directory exists as file " + dir);
+			throw new JadxArgsValidateException(desc + " directory exists as file " + dir);
 		}
 	}
 

@@ -2,28 +2,44 @@ package jadx.core.dex.visitors;
 
 import java.util.List;
 
+import com.android.dx.rop.code.AccessFlags;
+
+import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodInlineAttr;
 import jadx.core.dex.info.AccessInfo;
+import jadx.core.dex.info.FieldInfo;
+import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.JadxException;
 
-/**
- * Inline synthetic methods.
- */
+@JadxVisitor(
+		name = "InlineMethods",
+		desc = "Inline synthetic static methods",
+		runAfter = {
+				FixAccessModifiers.class,
+				ClassModifier.class
+		}
+)
 public class MethodInlineVisitor extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
+		if (mth.isNoCode() || mth.contains(AFlag.DONT_GENERATE)) {
+			return;
+		}
 		AccessInfo accessFlags = mth.getAccessFlags();
-		if (accessFlags.isSynthetic()
-				&& accessFlags.isStatic()
+		if (accessFlags.isSynthetic() && accessFlags.isStatic()
 				&& mth.getBasicBlocks().size() == 2) {
 			BlockNode returnBlock = mth.getBasicBlocks().get(1);
 			if (returnBlock.contains(AFlag.RETURN) || returnBlock.getInstructions().isEmpty()) {
@@ -72,7 +88,47 @@ public class MethodInlineVisitor extends AbstractVisitor {
 	}
 
 	private static void addInlineAttr(MethodNode mth, InsnNode insn) {
-		mth.addAttr(new MethodInlineAttr(insn));
-		mth.add(AFlag.DONT_GENERATE);
+		if (fixVisibilityOfInlineCode(mth, insn)) {
+			if (Consts.DEBUG) {
+				mth.addAttr(AType.COMMENTS, "Removed for inline");
+			} else {
+				mth.addAttr(new MethodInlineAttr(insn));
+				mth.add(AFlag.DONT_GENERATE);
+			}
+		}
+	}
+
+	private static boolean fixVisibilityOfInlineCode(MethodNode mth, InsnNode insn) {
+		int newVisFlag = AccessFlags.ACC_PUBLIC; // TODO: calculate more precisely
+		InsnType insnType = insn.getType();
+		if (insnType == InsnType.INVOKE) {
+			InvokeNode invoke = (InvokeNode) insn;
+			MethodNode callMthNode = mth.root().deepResolveMethod(invoke.getCallMth());
+			if (callMthNode != null) {
+				FixAccessModifiers.changeVisibility(callMthNode, newVisFlag);
+			}
+			return true;
+		}
+		if (insnType == InsnType.ONE_ARG) {
+			InsnArg arg = insn.getArg(0);
+			if (!arg.isInsnWrap()) {
+				return false;
+			}
+			return fixVisibilityOfInlineCode(mth, ((InsnWrapArg) arg).getWrapInsn());
+		}
+		if (insn instanceof IndexInsnNode) {
+			Object indexObj = ((IndexInsnNode) insn).getIndex();
+			if (indexObj instanceof FieldInfo) {
+				FieldNode fieldNode = mth.root().deepResolveField(((FieldInfo) indexObj));
+				if (fieldNode != null) {
+					FixAccessModifiers.changeVisibility(fieldNode, newVisFlag);
+				}
+				return true;
+			}
+		}
+		if (Consts.DEBUG) {
+			mth.addAttr(AType.COMMENTS, "JADX DEBUG: can't inline method, not implemented redirect type: " + insn);
+		}
+		return false;
 	}
 }

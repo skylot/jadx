@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
@@ -624,6 +625,11 @@ public class InsnGen {
 				break;
 
 			case SUPER:
+				ClassInfo superCallCls = getClassForSuperCall(code, callMth);
+				if (superCallCls != null) {
+					useClass(code, superCallCls);
+					code.add('.');
+				}
 				// use 'super' instead 'this' in 0 arg
 				code.add("super").add('.');
 				k++;
@@ -645,6 +651,36 @@ public class InsnGen {
 			code.add(callMth.getAlias());
 		}
 		generateMethodArguments(code, insn, k, callMthNode);
+	}
+
+	@Nullable
+	private ClassInfo getClassForSuperCall(CodeWriter code, MethodInfo callMth) {
+		ClassNode useCls = mth.getParentClass();
+		ClassInfo insnCls = useCls.getAlias();
+		ClassInfo declClass = callMth.getDeclClass();
+		if (insnCls.equals(declClass)) {
+			return null;
+		}
+		ClassNode topClass = useCls.getTopParentClass();
+		if (topClass.getClassInfo().equals(declClass)) {
+			return declClass;
+		}
+		// search call class
+		ClassNode nextParent = useCls;
+		do {
+			ClassInfo nextClsInfo = nextParent.getClassInfo();
+			if (nextClsInfo.equals(declClass)
+					|| ArgType.isInstanceOf(mth.root(), nextClsInfo.getType(), declClass.getType())) {
+				if (nextParent == useCls) {
+					return null;
+				}
+				return nextClsInfo;
+			}
+			nextParent = nextParent.getParentClass();
+		} while (nextParent != null && nextParent != topClass);
+
+		// search failed, just return parent class
+		return useCls.getParentClass().getClassInfo();
 	}
 
 	void generateMethodArguments(CodeWriter code, InsnNode insn, int startArgNum,
@@ -744,6 +780,9 @@ public class InsnGen {
 			return false;
 		}
 		InsnNode inl = mia.getInsn();
+		if (Consts.DEBUG) {
+			code.add("/* inline method: ").add(callMthNode.toString()).add("*/").startLine();
+		}
 		if (callMthNode.getMethodInfo().getArgumentsTypes().isEmpty()) {
 			makeInsn(inl, code, Flags.BODY_ONLY);
 		} else {

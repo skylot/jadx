@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,20 +19,19 @@ import jadx.cli.JadxCLIArgs;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
-
-import static jadx.gui.utils.Utils.FONT_HACK;
+import jadx.gui.utils.Utils;
 
 public class JadxSettings extends JadxCLIArgs {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxSettings.class);
 
 	private static final String USER_HOME = System.getProperty("user.home");
 	private static final int RECENT_FILES_COUNT = 15;
-	private static final int CURRENT_SETTINGS_VERSION = 6;
+	private static final int CURRENT_SETTINGS_VERSION = 8;
 
-	private static final Font DEFAULT_FONT = FONT_HACK != null ? FONT_HACK : new RSyntaxTextArea().getFont();
+	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
 	static final Set<String> SKIP_FIELDS = new HashSet<>(Arrays.asList(
-			"files", "input", "outputDir", "verbose", "printHelp"
+			"files", "input", "outDir", "outDirSrc", "outDirRes", "verbose", "printVersion", "printHelp"
 	));
 	private String lastOpenFilePath = USER_HOME;
 	private String lastSaveFilePath = USER_HOME;
@@ -262,8 +262,19 @@ public class JadxSettings extends JadxCLIArgs {
 		return Font.decode(fontStr);
 	}
 
-	public void setFont(Font font) {
-		this.fontStr = font.getFontName() + addStyleName(font.getStyle()) + "-" + font.getSize();
+	public void setFont(@Nullable Font font) {
+		if (font == null) {
+			this.fontStr = "";
+			return;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append(font.getFontName());
+		String fontStyleName = Utils.getFontStyleName(font.getStyle()).replaceAll(" ", "");
+		if (!fontStyleName.isEmpty()) {
+			sb.append('-').append(fontStyleName.toUpperCase());
+		}
+		sb.append('-').append(font.getSize());
+		this.fontStr = sb.toString();
 	}
 
 	public String getEditorThemePath() {
@@ -272,19 +283,6 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setEditorThemePath(String editorThemePath) {
 		this.editorThemePath = editorThemePath;
-	}
-
-	private static String addStyleName(int style) {
-		switch (style) {
-			case Font.BOLD:
-				return "-BOLD";
-			case Font.PLAIN:
-				return "-PLAIN";
-			case Font.ITALIC:
-				return "-ITALIC";
-			default:
-				return "";
-		}
 	}
 
 	private void upgradeSettings(int fromVersion) {
@@ -319,6 +317,18 @@ public class JadxSettings extends JadxCLIArgs {
 		}
 		if (fromVersion == 5) {
 			setRespectBytecodeAccessModifiers(false);
+			fromVersion++;
+		}
+		if (fromVersion == 6) {
+			if (getFont().getFontName().equals("Hack Regular")) {
+				setFont(null);
+			}
+			fromVersion++;
+		}
+		if (fromVersion == 7) {
+			outDir = null;
+			outDirSrc = null;
+			outDirRes = null;
 		}
 		settingsVersion = CURRENT_SETTINGS_VERSION;
 		sync();

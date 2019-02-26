@@ -43,8 +43,12 @@ public final class MethodInfo {
 	}
 
 	public String makeSignature(boolean includeRetType) {
+		return makeSignature(false, includeRetType);
+	}
+
+	public String makeSignature(boolean useAlias, boolean includeRetType) {
 		StringBuilder signature = new StringBuilder();
-		signature.append(name);
+		signature.append(useAlias ? alias : name);
 		signature.append('(');
 		for (ArgType arg : args) {
 			signature.append(TypeGen.signature(arg));

@@ -46,7 +46,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.utils.Utils.lockList;
 
-public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
+public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodNode.class);
 
 	private final MethodInfo mthInfo;
@@ -607,12 +607,14 @@ public class MethodNode extends LineAttrNode implements ILoadable, IDexNode {
 		return sVars;
 	}
 
+	@Override
 	public AccessInfo getAccessFlags() {
 		return accFlags;
 	}
 
-	public void setAccFlags(AccessInfo accFlags) {
-		this.accFlags = accFlags;
+	@Override
+	public void setAccessFlags(AccessInfo newAccessFlags) {
+		this.accFlags = newAccessFlags;
 	}
 
 	public Region getRegion() {

@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import com.android.dx.rop.code.AccessFlags;
 
+import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
@@ -15,6 +16,7 @@ import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
+import jadx.core.dex.instructions.InvokeType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
@@ -140,7 +142,11 @@ public class ClassModifier extends AbstractVisitor {
 			return;
 		}
 		if (removeBridgeMethod(cls, mth)) {
-			mth.add(AFlag.DONT_GENERATE);
+			if (Consts.DEBUG) {
+				mth.addAttr(AType.COMMENTS, "Removed as synthetic bridge method");
+			} else {
+				mth.add(AFlag.DONT_GENERATE);
+			}
 			return;
 		}
 		// remove synthetic constructor for inner classes
@@ -219,40 +225,45 @@ public class ClassModifier extends AbstractVisitor {
 
 	private static boolean checkSyntheticWrapper(MethodNode mth, InsnNode insn) {
 		InsnType insnType = insn.getType();
-		if (insnType == InsnType.INVOKE) {
-			MethodInfo callMth = ((InvokeNode) insn).getCallMth();
-			MethodNode wrappedMth = mth.root().deepResolveMethod(callMth);
-			if (wrappedMth != null) {
-				AccessInfo wrappedAccFlags = wrappedMth.getAccessFlags();
-				if (wrappedAccFlags.isStatic()) {
-					return false;
-				}
-				if (callMth.getArgsCount() != mth.getMethodInfo().getArgsCount()) {
-					return false;
-				}
-				// rename method only from current class
-				if (!mth.getParentClass().equals(wrappedMth.getParentClass())) {
-					return false;
-				}
-				// all args must be registers passed from method args (allow only casts insns)
-				for (InsnArg arg : insn.getArguments()) {
-					if (!registersAndCastsOnly(arg)) {
-						return false;
-					}
-				}
-				String alias = mth.getAlias();
-				if (Objects.equals(wrappedMth.getAlias(), alias)) {
-					return true;
-				}
-				if (!wrappedAccFlags.isPublic()) {
-					// must be public
-					FixAccessModifiers.changeVisibility(wrappedMth, AccessFlags.ACC_PUBLIC);
-				}
-				wrappedMth.getMethodInfo().setAlias(alias);
-				return true;
+		if (insnType != InsnType.INVOKE) {
+			return false;
+		}
+		InvokeNode invokeInsn = (InvokeNode) insn;
+		if (invokeInsn.getInvokeType() == InvokeType.SUPER) {
+			return false;
+		}
+		MethodInfo callMth = invokeInsn.getCallMth();
+		MethodNode wrappedMth = mth.root().deepResolveMethod(callMth);
+		if (wrappedMth == null) {
+			return false;
+		}
+		AccessInfo wrappedAccFlags = wrappedMth.getAccessFlags();
+		if (wrappedAccFlags.isStatic()) {
+			return false;
+		}
+		if (callMth.getArgsCount() != mth.getMethodInfo().getArgsCount()) {
+			return false;
+		}
+		// rename method only from current class
+		if (!mth.getParentClass().equals(wrappedMth.getParentClass())) {
+			return false;
+		}
+		// all args must be registers passed from method args (allow only casts insns)
+		for (InsnArg arg : insn.getArguments()) {
+			if (!registersAndCastsOnly(arg)) {
+				return false;
 			}
 		}
-		return false;
+		// remove confirmed, change visibility and name if needed
+		if (!wrappedAccFlags.isPublic()) {
+			// must be public
+			FixAccessModifiers.changeVisibility(wrappedMth, AccessFlags.ACC_PUBLIC);
+		}
+		String alias = mth.getAlias();
+		if (!Objects.equals(wrappedMth.getAlias(), alias)) {
+			wrappedMth.getMethodInfo().setAlias(alias);
+		}
+		return true;
 	}
 
 	private static boolean registersAndCastsOnly(InsnArg arg) {
@@ -274,8 +285,7 @@ public class ClassModifier extends AbstractVisitor {
 			if (otherMth != mth) {
 				MethodInfo omi = otherMth.getMethodInfo();
 				if (omi.getName().equals(mi.getName())
-						&& omi.getArgumentsTypes().size() == mi.getArgumentsTypes().size()) {
-					// TODO: check objects types
+						&& Objects.equals(omi.getArgumentsTypes(), mi.getArgumentsTypes())) {
 					return false;
 				}
 			}

@@ -483,21 +483,7 @@ public class Deobfuscator {
 		if (name.length() > maxLength) {
 			return "x" + Integer.toHexString(name.hashCode());
 		}
-		if (!NameMapper.isAllCharsPrintable(name)) {
-			return removeInvalidChars(name);
-		}
-		return name;
-	}
-
-	private String removeInvalidChars(String name) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < name.length(); i++) {
-			int ch = name.charAt(i);
-			if (NameMapper.isPrintableChar(ch)) {
-				sb.append((char) ch);
-			}
-		}
-		return sb.toString();
+		return NameMapper.removeInvalidCharsMiddle(name);
 	}
 
 	private void dumpClassAlias(ClassNode cls) {

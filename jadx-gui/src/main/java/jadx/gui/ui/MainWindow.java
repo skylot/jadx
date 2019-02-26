@@ -652,10 +652,6 @@ public class MainWindow extends JFrame {
 		setSize((int) (w * WINDOW_RATIO), (int) (h * WINDOW_RATIO));
 	}
 
-	public void updateFont(Font font) {
-		setFont(font);
-	}
-
 	public static void registerBundledFonts() {
 		GraphicsEnvironment grEnv = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		if (Utils.FONT_HACK != null) {

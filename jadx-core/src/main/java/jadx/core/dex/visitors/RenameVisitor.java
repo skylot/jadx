@@ -72,14 +72,9 @@ public class RenameVisitor extends AbstractVisitor {
 		ClassInfo classInfo = cls.getClassInfo();
 		ClassInfo alias = classInfo.getAlias();
 		String clsName = alias.getShortName();
-		String newShortName = null;
-		char firstChar = clsName.charAt(0);
-		if (Character.isDigit(firstChar)) {
-			newShortName = Consts.ANONYMOUS_CLASS_PREFIX + clsName;
-		} else if (firstChar == '$') {
-			newShortName = "C" + clsName;
-		}
-		if (newShortName != null) {
+
+		String newShortName = fixClsShortName(clsName);
+		if (!newShortName.equals(clsName)) {
 			classInfo.rename(cls.root(), alias.makeFullClsName(newShortName, true));
 		}
 		if (alias.getPackage().isEmpty()) {
@@ -87,6 +82,17 @@ public class RenameVisitor extends AbstractVisitor {
 			String newFullName = Consts.DEFAULT_PACKAGE_NAME + "." + fullName;
 			classInfo.rename(cls.root(), newFullName);
 		}
+	}
+
+	private String fixClsShortName(String clsName) {
+		char firstChar = clsName.charAt(0);
+		if (Character.isDigit(firstChar)) {
+			return Consts.ANONYMOUS_CLASS_PREFIX + NameMapper.removeInvalidCharsMiddle(clsName);
+		}
+		if (firstChar == '$') {
+			return 'C' + NameMapper.removeInvalidCharsMiddle(clsName);
+		}
+		return NameMapper.removeInvalidChars(clsName, "C");
 	}
 
 	private void checkFields(ClassNode cls) {
@@ -101,17 +107,22 @@ public class RenameVisitor extends AbstractVisitor {
 	}
 
 	private void checkMethods(ClassNode cls) {
+		for (MethodNode mth : cls.getMethods()) {
+			if (!NameMapper.isValidIdentifier(mth.getAlias())) {
+				deobfuscator.forceRenameMethod(mth);
+			}
+		}
 		Set<String> names = new HashSet<>();
 		for (MethodNode mth : cls.getMethods()) {
 			AccessInfo accessFlags = mth.getAccessFlags();
 			if (accessFlags.isConstructor()
 					|| accessFlags.isBridge()
 					|| accessFlags.isSynthetic()
-					|| mth.contains(AFlag.DONT_GENERATE)) {
+					|| mth.contains(AFlag.DONT_GENERATE) /* this flag not set yet */) {
 				continue;
 			}
-			String signature = mth.getMethodInfo().makeSignature(false);
-			if (!names.add(signature) || !NameMapper.isValidIdentifier(mth.getAlias())) {
+			String signature = mth.getMethodInfo().makeSignature(true, false);
+			if (!names.add(signature)) {
 				deobfuscator.forceRenameMethod(mth);
 			}
 		}
