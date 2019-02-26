@@ -3,7 +3,6 @@ package jadx.core.codegen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.JadxArgs;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.PrimitiveType;
@@ -38,12 +37,7 @@ public class TypeGen {
 		return literalToString(lit, type, dexNode.root().getStringUtils());
 	}
 
-	@Deprecated
-	public static String literalToString(long lit, ArgType type) {
-		return literalToString(lit, type, new StringUtils(new JadxArgs()));
-	}
-
-	private static String literalToString(long lit, ArgType type, StringUtils stringUtils) {
+	public static String literalToString(long lit, ArgType type, StringUtils stringUtils) {
 		if (type == null || !type.isTypeKnown()) {
 			String n = Long.toString(lit);
 			if (Math.abs(lit) > 100) {
