@@ -252,6 +252,7 @@ public final class TypeUpdate {
 		registry.put(InsnType.ARITH, this::suggestAllSameListener);
 		registry.put(InsnType.NEG, this::suggestAllSameListener);
 		registry.put(InsnType.NOT, this::suggestAllSameListener);
+		registry.put(InsnType.CHECK_CAST, this::checkCastListener);
 		return registry;
 	}
 
@@ -263,20 +264,23 @@ public final class TypeUpdate {
 	private TypeUpdateResult moveListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
 		boolean assignChanged = isAssign(insn, arg);
 		InsnArg changeArg = assignChanged ? insn.getArg(0) : insn.getResult();
-		TypeUpdateResult result = updateTypeChecked(updateInfo, changeArg, candidateType);
-		if (result == REJECT && changeArg.getType().isTypeKnown()) {
+		boolean allowReject;
+		if (changeArg.getType().isTypeKnown()) {
 			// allow result to be wider
-			if (assignChanged) {
-				TypeCompareEnum compareTypes = comparator.compareTypes(candidateType, changeArg.getType());
-				if (compareTypes.isWider() && inBounds(changeArg, candidateType)) {
-					return CHANGED;
-				}
+			TypeCompareEnum compareTypes = comparator.compareTypes(candidateType, changeArg.getType());
+			boolean correctType = assignChanged ? compareTypes.isWider() : compareTypes.isNarrow();
+			if (correctType && inBounds(changeArg, candidateType)) {
+				allowReject = true;
 			} else {
-				TypeCompareEnum compareTypes = comparator.compareTypes(changeArg.getType(), candidateType);
-				if (compareTypes.isWider() && inBounds(changeArg, candidateType)) {
-					return CHANGED;
-				}
+				return REJECT;
 			}
+		} else {
+			allowReject = false;
+		}
+
+		TypeUpdateResult result = updateTypeChecked(updateInfo, changeArg, candidateType);
+		if (result == REJECT && allowReject) {
+			return CHANGED;
 		}
 		return result;
 	}
@@ -322,6 +326,15 @@ public final class TypeUpdate {
 			}
 		}
 		return allSame ? SAME : CHANGED;
+	}
+
+	private TypeUpdateResult checkCastListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
+		if (!isAssign(insn, arg)) {
+			return SAME;
+		}
+		InsnArg insnArg = insn.getArg(0);
+		TypeUpdateResult result = updateTypeChecked(updateInfo, insnArg, candidateType);
+		return result == REJECT ? SAME : result;
 	}
 
 	private TypeUpdateResult arrayGetListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
