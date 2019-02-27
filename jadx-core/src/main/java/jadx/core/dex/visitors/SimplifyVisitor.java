@@ -299,9 +299,6 @@ public class SimplifyVisitor extends AbstractVisitor {
 				}
 			}
 			FieldArg fArg = new FieldArg(field, reg);
-			if (reg != null) {
-				fArg.setType(get.getArg(0).getType());
-			}
 			if (wrapType == InsnType.ARITH) {
 				ArithNode ar = (ArithNode) wrap;
 				return new ArithNode(ar.getOp(), fArg, ar.getArg(1));

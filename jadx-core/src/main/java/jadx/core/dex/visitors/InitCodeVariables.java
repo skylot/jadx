@@ -78,8 +78,9 @@ public class InitCodeVariables extends AbstractVisitor {
 	private static void setCodeVarType(CodeVar codeVar, Set<SSAVar> vars) {
 		if (vars.size() > 1) {
 			List<ArgType> imTypes = vars.stream()
-					.filter(var -> var.contains(AFlag.METHOD_ARGUMENT))
+					.filter(var -> var.contains(AFlag.IMMUTABLE_TYPE))
 					.map(var -> var.getTypeInfo().getType())
+					.filter(ArgType::isTypeKnown)
 					.distinct()
 					.collect(Collectors.toList());
 			int imCount = imTypes.size();

@@ -28,7 +28,7 @@ public final class PhiInsn extends InsnNode {
 	}
 
 	public RegisterArg bindArg(BlockNode pred) {
-		RegisterArg arg = InsnArg.reg(getResult().getRegNum(), getResult().getType());
+		RegisterArg arg = InsnArg.reg(getResult().getRegNum(), getResult().getInitType());
 		bindArg(arg, pred);
 		return arg;
 	}

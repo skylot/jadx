@@ -1,7 +1,9 @@
 package jadx.tests.external;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -107,7 +109,8 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Codegen failed", e);
 		}
-		LOG.warn("\n Print class: {}, {}", classNode.getFullName(), classNode.dex());
+		LOG.info("----------------------------------------------------------------");
+		LOG.info("Print class: {}, {}", classNode.getFullName(), classNode.dex());
 		if (mthPattern != null) {
 			printMethods(classNode, mthPattern);
 		} else {
@@ -134,6 +137,9 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		if (code == null) {
 			return;
 		}
+
+		String dashLine = "======================================================================================";
+		Map<Integer, MethodNode> methodsMap = getMethodsMap(classNode);
 		String[] lines = code.split(CodeWriter.NL);
 		for (MethodNode mth : classNode.getMethods()) {
 			if (isMthMatch(mth, mthPattern)) {
@@ -142,8 +148,14 @@ public abstract class BaseExternalTest extends IntegrationTest {
 				int startLine = getCommentLinesCount(lines, decompiledLine);
 				int brackets = 0;
 				for (int i = startLine; i > 0 && i < lines.length; i++) {
+					// stop if next method started
+					MethodNode mthAtLine = methodsMap.get(i);
+					if (mthAtLine != null && !mthAtLine.equals(mth)) {
+						break;
+					}
 					String line = lines[i];
 					mthCode.append(line).append(CodeWriter.NL);
+					// also count brackets for detect method end
 					if (i >= decompiledLine) {
 						brackets += StringUtils.countMatches(line, '{');
 						brackets -= StringUtils.countMatches(line, '}');
@@ -152,9 +164,21 @@ public abstract class BaseExternalTest extends IntegrationTest {
 						}
 					}
 				}
-				LOG.info("Print method: {}\n{}", mth.getMethodInfo().getShortId(), mthCode);
+				LOG.info("Print method: {}\n{}\n{}\n{}", mth.getMethodInfo().getShortId(),
+						dashLine,
+						mthCode,
+						dashLine
+				);
 			}
 		}
+	}
+
+	public Map<Integer, MethodNode> getMethodsMap(ClassNode classNode) {
+		Map<Integer, MethodNode> linesMap = new HashMap<>();
+		for (MethodNode method : classNode.getMethods()) {
+			linesMap.put(method.getDecompiledLine() - 1, method);
+		}
+		return linesMap;
 	}
 
 	protected int getCommentLinesCount(String[] lines, int line) {

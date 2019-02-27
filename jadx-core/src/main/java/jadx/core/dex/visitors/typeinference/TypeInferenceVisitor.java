@@ -64,7 +64,9 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		// collect initial type bounds from assign and usages
 		mth.getSVars().forEach(this::attachBounds);
 		mth.getSVars().forEach(this::mergePhiBounds);
-		// start initial type propagation, check types from bounds
+
+		// start initial type propagation
+		mth.getSVars().forEach(this::setImmutableType);
 		mth.getSVars().forEach(this::setBestType);
 
 		// try other types if type is still unknown
@@ -100,7 +102,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 				+ ", time: " + time + " ms");
 	}
 
-	private boolean setBestType(SSAVar ssaVar) {
+	private boolean setImmutableType(SSAVar ssaVar) {
 		try {
 			ArgType codeVarType = ssaVar.getCodeVar().getType();
 			if (codeVarType != null) {
@@ -110,9 +112,25 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 			if (assignArg.isTypeImmutable()) {
 				return applyImmutableType(ssaVar, assignArg.getInitType());
 			}
+			if (ssaVar.contains(AFlag.IMMUTABLE_TYPE)) {
+				for (RegisterArg arg : ssaVar.getUseList()) {
+					if (arg.isTypeImmutable()) {
+						return applyImmutableType(ssaVar, arg.getInitType());
+					}
+				}
+			}
+			return false;
+		} catch (Exception e) {
+			LOG.error("Failed to set immutable type for var: {}", ssaVar, e);
+			return false;
+		}
+	}
+
+	private boolean setBestType(SSAVar ssaVar) {
+		try {
 			return calculateFromBounds(ssaVar);
 		} catch (Exception e) {
-			LOG.error("Failed to calculate best type for var: {}", ssaVar);
+			LOG.error("Failed to calculate best type for var: {}", ssaVar, e);
 			return false;
 		}
 	}

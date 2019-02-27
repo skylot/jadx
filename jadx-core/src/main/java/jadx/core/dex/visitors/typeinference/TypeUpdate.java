@@ -60,6 +60,10 @@ public final class TypeUpdate {
 		if (updates.isEmpty()) {
 			return SAME;
 		}
+		if (Consts.DEBUG && LOG.isDebugEnabled()) {
+			LOG.debug("Applying types, init for {} -> {}", ssaVar, candidateType);
+			updates.forEach(updateEntry -> LOG.debug("  {} -> {}", updateEntry.getType(), updateEntry.getArg()));
+		}
 		updates.forEach(TypeUpdateEntry::apply);
 		return CHANGED;
 	}

@@ -2,6 +2,7 @@ package jadx.core.dex.visitors.ssa;
 
 import java.util.Arrays;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
@@ -22,7 +23,8 @@ final class RenameState {
 				new int[regsCount]
 		);
 		for (RegisterArg arg : mth.getArguments(true)) {
-			state.startVar(arg);
+			SSAVar ssaVar = state.startVar(arg);
+			ssaVar.add(AFlag.METHOD_ARGUMENT);
 		}
 		return state;
 	}
@@ -51,9 +53,11 @@ final class RenameState {
 		return vars[regNum];
 	}
 
-	public void startVar(RegisterArg regArg) {
+	public SSAVar startVar(RegisterArg regArg) {
 		int regNum = regArg.getRegNum();
 		int version = versions[regNum]++;
-		vars[regNum] = mth.makeNewSVar(regNum, version, regArg);
+		SSAVar ssaVar = mth.makeNewSVar(regNum, version, regArg);
+		vars[regNum] = ssaVar;
+		return ssaVar;
 	}
 }

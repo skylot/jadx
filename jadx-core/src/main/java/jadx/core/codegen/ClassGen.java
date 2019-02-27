@@ -258,8 +258,8 @@ public class ClassGen {
 				addMethod(code, mth);
 			} catch (Exception e) {
 				code.newLine().add("/*");
-				code.newLine().add(ErrorsCounter.methodError(mth, "Method generation error", e));
-				code.newLine().add(Utils.getStackTrace(e));
+				code.newLine().addMultiLine(ErrorsCounter.methodError(mth, "Method generation error", e));
+				code.newLine().addMultiLine(Utils.getStackTrace(e));
 				code.newLine().add("*/");
 				code.setIndent(savedIndent);
 			}

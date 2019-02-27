@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +17,7 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.Edge;
@@ -180,7 +182,43 @@ public class BlockProcessor extends AbstractVisitor {
 	}
 
 	private static boolean isSame(InsnNode insn, InsnNode curInsn) {
-		return /*insn.getType() == InsnType.MOVE &&*/ insn.isDeepEquals(curInsn) && insn.canReorder();
+		return isInsnsEquals(insn, curInsn) && insn.canReorder();
+	}
+
+	private static boolean isInsnsEquals(InsnNode insn, InsnNode otherInsn) {
+		if (insn == otherInsn) {
+			return true;
+		}
+		if (insn.isSame(otherInsn)
+				&& sameArgs(insn.getResult(), otherInsn.getResult())) {
+			int argsCount = insn.getArgsCount();
+			for (int i = 0; i < argsCount; i++) {
+				if (!sameArgs(insn.getArg(i), otherInsn.getArg(i))) {
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean sameArgs(@Nullable InsnArg arg, @Nullable InsnArg otherArg) {
+		if (arg == otherArg) {
+			return true;
+		}
+		if (arg == null || otherArg == null) {
+			return false;
+		}
+		if (arg.getClass().equals(otherArg.getClass())) {
+			if (arg.isRegister()) {
+				return ((RegisterArg) arg).getRegNum() == ((RegisterArg) otherArg).getRegNum();
+			}
+			if (arg.isLiteral()) {
+				return ((LiteralArg) arg).getLiteral() == ((LiteralArg) otherArg).getLiteral();
+			}
+			throw new JadxRuntimeException("Unexpected InsnArg types: " + arg + " and " + otherArg);
+		}
+		return false;
 	}
 
 	private static InsnNode getInsnsFromEnd(BlockNode block, int number) {

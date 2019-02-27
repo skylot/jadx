@@ -6,7 +6,7 @@ import java.util.List;
 
 public class CodeVar {
 	private String name;
-	private ArgType type; // nullable before type inference, set only for immutable types
+	private ArgType type; // before type inference can be null and set only for immutable types
 	private List<SSAVar> ssaVars = new ArrayList<>(3);
 
 	private boolean isFinal;

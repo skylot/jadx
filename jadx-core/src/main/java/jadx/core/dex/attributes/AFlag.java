@@ -26,7 +26,16 @@ public enum AFlag {
 	ANONYMOUS_CLASS,
 
 	THIS,
-	METHOD_ARGUMENT, // RegisterArg attribute for method arguments
+
+	/**
+	 * RegisterArg attribute for method arguments
+	 */
+	METHOD_ARGUMENT,
+
+	/**
+	 * Type of RegisterArg or SSAVar can't be changed
+	 */
+	IMMUTABLE_TYPE,
 
 	CUSTOM_DECLARE, // variable for this register don't need declaration
 	DECLARE_VAR,

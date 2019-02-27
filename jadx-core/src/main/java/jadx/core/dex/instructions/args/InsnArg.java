@@ -38,16 +38,20 @@ public abstract class InsnArg extends Typed {
 		return reg(InsnUtils.getArg(insn, argNum), type);
 	}
 
-	public static TypeImmutableArg typeImmutableReg(int regNum, ArgType type) {
-		return new TypeImmutableArg(regNum, type);
-	}
-
-	public static TypeImmutableArg typeImmutableReg(DecodedInstruction insn, int argNum, ArgType type) {
+	public static RegisterArg typeImmutableReg(DecodedInstruction insn, int argNum, ArgType type) {
 		return typeImmutableReg(InsnUtils.getArg(insn, argNum), type);
 	}
 
+	public static RegisterArg typeImmutableReg(int regNum, ArgType type) {
+		return reg(regNum, type, true);
+	}
+
 	public static RegisterArg reg(int regNum, ArgType type, boolean typeImmutable) {
-		return typeImmutable ? new TypeImmutableArg(regNum, type) : new RegisterArg(regNum, type);
+		RegisterArg reg = new RegisterArg(regNum, type);
+		if (typeImmutable) {
+			reg.add(AFlag.IMMUTABLE_TYPE);
+		}
+		return reg;
 	}
 
 	public static LiteralArg lit(long literal, ArgType type) {

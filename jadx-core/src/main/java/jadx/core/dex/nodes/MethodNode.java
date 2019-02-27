@@ -33,7 +33,6 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
-import jadx.core.dex.instructions.args.TypeImmutableArg;
 import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
@@ -220,8 +219,9 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		if (accFlags.isStatic()) {
 			thisArg = null;
 		} else {
-			TypeImmutableArg arg = InsnArg.typeImmutableReg(pos - 1, parentClass.getClassInfo().getType());
+			RegisterArg arg = InsnArg.reg(pos - 1, parentClass.getClassInfo().getType());
 			arg.add(AFlag.THIS);
+			arg.add(AFlag.IMMUTABLE_TYPE);
 			thisArg = arg;
 		}
 		if (args.isEmpty()) {
@@ -230,8 +230,9 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		}
 		argsList = new ArrayList<>(args.size());
 		for (ArgType arg : args) {
-			TypeImmutableArg regArg = InsnArg.typeImmutableReg(pos, arg);
+			RegisterArg regArg = InsnArg.reg(pos, arg);
 			regArg.add(AFlag.METHOD_ARGUMENT);
+			regArg.add(AFlag.IMMUTABLE_TYPE);
 			argsList.add(regArg);
 			pos += arg.getRegCount();
 		}

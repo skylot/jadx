@@ -29,7 +29,7 @@ public class SSAVar extends AttrNode {
 
 	private TypeInfo typeInfo = new TypeInfo();
 
-	@Nullable("Set in EliminatePhiNodes pass")
+	@Nullable("Set in InitCodeVariables pass")
 	private CodeVar codeVar;
 
 	public SSAVar(int regNum, int v, @NotNull RegisterArg assign) {
@@ -65,7 +65,8 @@ public class SSAVar extends AttrNode {
 		return useList.size();
 	}
 
-	public void setType(ArgType type) {
+	// must be used only from RegisterArg#setType()
+	void setType(ArgType type) {
 		typeInfo.setType(type);
 		if (codeVar != null) {
 			codeVar.setType(type);
@@ -139,9 +140,6 @@ public class SSAVar extends AttrNode {
 
 	public void setCodeVar(@NotNull CodeVar codeVar) {
 		this.codeVar = codeVar;
-		if (codeVar.getType() != null && !typeInfo.getType().equals(codeVar.getType())) {
-			throw new JadxRuntimeException("Unmached types for SSA and Code variables: " + this + " and " + codeVar);
-		}
 		codeVar.addSsaVar(this);
 	}
 

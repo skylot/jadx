@@ -3,7 +3,7 @@ package jadx.core.dex.visitors.typeinference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -75,7 +75,12 @@ public class TypeSearch {
 	private boolean applyResolvedVars() {
 		List<TypeSearchVarInfo> resolvedVars = state.getResolvedVars();
 		for (TypeSearchVarInfo var : resolvedVars) {
-			var.getVar().setType(var.getCurrentType());
+			SSAVar ssaVar = var.getVar();
+			ArgType resolvedType = var.getCurrentType();
+			ssaVar.getAssign().setType(resolvedType);
+			for (RegisterArg arg : ssaVar.getUseList()) {
+				arg.setType(resolvedType);
+			}
 		}
 		boolean applySuccess = true;
 		for (TypeSearchVarInfo var : resolvedVars) {
@@ -199,8 +204,8 @@ public class TypeSearch {
 			return;
 		}
 
-		Set<ArgType> assigns = new HashSet<>();
-		Set<ArgType> uses = new HashSet<>();
+		Set<ArgType> assigns = new LinkedHashSet<>();
+		Set<ArgType> uses = new LinkedHashSet<>();
 		Set<ITypeBound> bounds = ssaVar.getTypeInfo().getBounds();
 		for (ITypeBound bound : bounds) {
 			if (bound.getBound() == BoundEnum.ASSIGN) {
@@ -210,7 +215,7 @@ public class TypeSearch {
 			}
 		}
 
-		Set<ArgType> candidateTypes = new HashSet<>();
+		Set<ArgType> candidateTypes = new LinkedHashSet<>();
 		addCandidateTypes(bounds, candidateTypes, assigns);
 		addCandidateTypes(bounds, candidateTypes, uses);
 

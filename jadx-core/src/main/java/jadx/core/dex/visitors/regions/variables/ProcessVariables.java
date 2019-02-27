@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
@@ -42,6 +43,7 @@ public class ProcessVariables extends AbstractVisitor {
 		if (codeVars.isEmpty()) {
 			return;
 		}
+		checkCodeVars(mth, codeVars);
 		// TODO: reduce code vars by name if debug info applied. Need checks for variable scopes before reduce
 
 		// collect all variables usage
@@ -56,6 +58,29 @@ public class ProcessVariables extends AbstractVisitor {
 
 		for (Entry<CodeVar, List<VarUsage>> entry : codeVarUsage.entrySet()) {
 			declareVar(mth, entry.getKey(), entry.getValue());
+		}
+	}
+
+	private void checkCodeVars(MethodNode mth, List<CodeVar> codeVars) {
+		int unknownTypesCount = 0;
+		for (CodeVar codeVar : codeVars) {
+			codeVar.getSsaVars().stream()
+					.filter(ssaVar -> ssaVar.contains(AFlag.IMMUTABLE_TYPE))
+					.forEach(ssaVar -> {
+						ArgType ssaType = ssaVar.getAssign().getInitType();
+						if (ssaType.isTypeKnown() && !ssaType.equals(codeVar.getType())) {
+							mth.addWarn("Incorrect type for immutable var: ssa=" + ssaType
+									+ ", code=" + codeVar.getType()
+									+ ", for " + ssaVar.getDetailedVarInfo(mth));
+						}
+					});
+			if (codeVar.getType() == null) {
+				codeVar.setType(ArgType.UNKNOWN);
+				unknownTypesCount++;
+			}
+		}
+		if (unknownTypesCount != 0) {
+			mth.addWarn("Unknown variable types count: " + unknownTypesCount);
 		}
 	}
 
