@@ -1,28 +1,35 @@
 package jadx.core.dex.visitors.typeinference;
 
-import java.util.IdentityHashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 
 public class TypeUpdateInfo {
-
-	private final Map<InsnArg, ArgType> updates = new IdentityHashMap<>();
+	private final List<TypeUpdateEntry> updates = new ArrayList<>();
 
 	public void requestUpdate(InsnArg arg, ArgType changeType) {
-		updates.put(arg, changeType);
+		updates.add(new TypeUpdateEntry(arg, changeType));
 	}
 
 	public boolean isProcessed(InsnArg arg) {
-		return updates.containsKey(arg);
+		if (updates.isEmpty()) {
+			return false;
+		}
+		for (TypeUpdateEntry entry : updates) {
+			if (entry.getArg() == arg) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public void rollbackUpdate(InsnArg arg) {
-		updates.remove(arg);
+		updates.removeIf(updateEntry -> updateEntry.getArg() == arg);
 	}
 
-	public Map<InsnArg, ArgType> getUpdates() {
+	public List<TypeUpdateEntry> getUpdates() {
 		return updates;
 	}
 }

@@ -18,7 +18,6 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
-import jadx.core.dex.instructions.args.Typed;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxOverflowException;
@@ -57,11 +56,11 @@ public final class TypeUpdate {
 		if (result == REJECT) {
 			return result;
 		}
-		Map<InsnArg, ArgType> updates = updateInfo.getUpdates();
+		List<TypeUpdateEntry> updates = updateInfo.getUpdates();
 		if (updates.isEmpty()) {
 			return SAME;
 		}
-		updates.forEach(Typed::setType);
+		updates.forEach(TypeUpdateEntry::apply);
 		return CHANGED;
 	}
 
