@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.Consts;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -278,7 +279,7 @@ public final class TypeUpdate {
 				return REJECT;
 			}
 		} else {
-			allowReject = false;
+			allowReject = arg.isThis() || arg.contains(AFlag.IMMUTABLE_TYPE);
 		}
 
 		TypeUpdateResult result = updateTypeChecked(updateInfo, changeArg, candidateType);

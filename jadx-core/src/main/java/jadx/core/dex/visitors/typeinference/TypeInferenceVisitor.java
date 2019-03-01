@@ -35,7 +35,9 @@ import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.ConstInlineVisitor;
 import jadx.core.dex.visitors.InitCodeVariables;
 import jadx.core.dex.visitors.JadxVisitor;
+import jadx.core.dex.visitors.blocksmaker.BlockSplitter;
 import jadx.core.dex.visitors.ssa.SSATransform;
+import jadx.core.utils.BlockUtils;
 import jadx.core.utils.Utils;
 
 @JadxVisitor(
@@ -139,7 +141,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		TypeUpdateResult result = typeUpdate.apply(ssaVar, initType);
 		if (result == TypeUpdateResult.REJECT) {
 			if (Consts.DEBUG) {
-				LOG.info("Initial immutable type set rejected: {} -> {}", ssaVar, initType);
+				LOG.warn("Initial immutable type set rejected: {} -> {}", ssaVar, initType);
 			}
 			return false;
 		}
@@ -317,6 +319,15 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		for (Map.Entry<RegisterArg, BlockNode> entry : phiInsn.getBlockBinds().entrySet()) {
 			RegisterArg reg = entry.getKey();
 			if (reg.getSVar() == var) {
+				BlockNode blockNode = entry.getValue();
+				InsnNode lastInsn = BlockUtils.getLastInsn(blockNode);
+				if (lastInsn != null && BlockSplitter.SEPARATE_INSNS.contains(lastInsn.getType())) {
+					if (Consts.DEBUG) {
+						LOG.warn("Can't insert move for PHI in block with separate insn: {}", lastInsn);
+					}
+					return false;
+				}
+
 				int regNum = reg.getRegNum();
 				RegisterArg resultArg = reg.duplicate(regNum, null);
 				SSAVar newSsaVar = mth.makeNewSVar(regNum, resultArg);
@@ -326,7 +337,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 				moveInsn.setResult(resultArg);
 				moveInsn.addArg(arg);
 				moveInsn.add(AFlag.SYNTHETIC);
-				entry.getValue().getInstructions().add(moveInsn);
+				blockNode.getInstructions().add(moveInsn);
 
 				phiInsn.replaceArg(reg, reg.duplicate(regNum, newSsaVar));
 

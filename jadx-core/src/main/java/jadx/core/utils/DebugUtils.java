@@ -27,10 +27,13 @@ import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.DotGraphVisitor;
+import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.regions.DepthRegionTraversal;
 import jadx.core.dex.visitors.regions.TracedRegionVisitor;
 import jadx.core.utils.exceptions.CodegenException;
+import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 @Deprecated
@@ -68,6 +71,15 @@ public class DebugUtils {
 			}
 		});
 		LOG.debug(" Found block: {} in regions: {}", block, regions);
+	}
+
+	public static IDexTreeVisitor printRegionsVisitor() {
+		return new AbstractVisitor() {
+			@Override
+			public void visit(MethodNode mth) throws JadxException {
+				printRegions(mth, true);
+			}
+		};
 	}
 
 	public static void printRegions(MethodNode mth) {
