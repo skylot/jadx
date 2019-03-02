@@ -82,12 +82,7 @@ public class SSAVar extends AttrNode {
 	}
 
 	public void removeUse(RegisterArg arg) {
-		for (int i = 0, useListSize = useList.size(); i < useListSize; i++) {
-			if (useList.get(i) == arg) {
-				useList.remove(i);
-				break;
-			}
-		}
+		useList.removeIf(registerArg -> registerArg == arg);
 	}
 
 	public void setUsedInPhi(@Nullable PhiInsn usedInPhi) {

@@ -116,6 +116,8 @@ public class MethodGen {
 			} else {
 				mth.addComment("JADX WARN: Incorrect number of args for enum constructor: " + args.size() + " (expected >= 2)");
 			}
+		} else if (mth.contains(AFlag.SKIP_FIRST_ARG)) {
+			args = args.subList(1, args.size());
 		}
 		addMethodArguments(code, args);
 		code.add(')');

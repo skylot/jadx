@@ -262,6 +262,7 @@ public class ClassGen {
 				code.newLine().addMultiLine(Utils.getStackTrace(e));
 				code.newLine().add("*/");
 				code.setIndent(savedIndent);
+				mth.addError("Method generation error: " + e.getMessage(), e);
 			}
 		}
 	}

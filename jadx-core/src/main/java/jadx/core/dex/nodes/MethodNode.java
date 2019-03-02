@@ -248,9 +248,8 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return argsList;
 	}
 
-	public RegisterArg removeFirstArgument() {
+	public void skipFirstArgument() {
 		this.add(AFlag.SKIP_FIRST_ARG);
-		return argsList.remove(0);
 	}
 
 	@Nullable

@@ -120,7 +120,7 @@ public class ClassModifier extends AbstractVisitor {
 		if (!fieldInfo.equals(field.getFieldInfo()) || !putInsn.getArg(0).equals(arg)) {
 			return false;
 		}
-		mth.removeFirstArgument();
+		mth.skipFirstArgument();
 		InstructionRemover.remove(mth, block, insn);
 		// other arg usage -> wrap with IGET insn
 		if (arg.getSVar().getUseCount() != 0) {
