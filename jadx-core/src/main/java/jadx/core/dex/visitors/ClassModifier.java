@@ -47,10 +47,7 @@ public class ClassModifier extends AbstractVisitor {
 		for (ClassNode inner : cls.getInnerClasses()) {
 			visit(inner);
 		}
-		if (cls.getAccessFlags().isSynthetic()
-				&& cls.getFields().isEmpty()
-				&& cls.getMethods().isEmpty()
-				&& cls.getInnerClasses().isEmpty()) {
+		if (isEmptySyntheticClass(cls)) {
 			cls.add(AFlag.DONT_GENERATE);
 			return false;
 		}
@@ -60,6 +57,13 @@ public class ClassModifier extends AbstractVisitor {
 
 		markAnonymousClass(cls);
 		return false;
+	}
+
+	private static boolean isEmptySyntheticClass(ClassNode cls) {
+		return cls.getAccessFlags().isSynthetic()
+				&& cls.getFields().isEmpty()
+				&& cls.getMethods().isEmpty()
+				&& cls.getInnerClasses().isEmpty();
 	}
 
 	private void markAnonymousClass(ClassNode cls) {
@@ -173,7 +177,7 @@ public class ClassModifier extends AbstractVisitor {
 					return true;
 				}
 			} else {
-				if (argCls.contains(AFlag.DONT_GENERATE)) {
+				if (argCls.contains(AFlag.DONT_GENERATE) || isEmptySyntheticClass(argCls)) {
 					return true;
 				}
 			}
