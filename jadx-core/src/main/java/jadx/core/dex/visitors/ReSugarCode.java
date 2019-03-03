@@ -30,6 +30,7 @@ import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.InsnList;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.InstructionRemover;
@@ -39,7 +40,7 @@ import jadx.core.utils.exceptions.JadxException;
 @JadxVisitor(
 		name = "ReSugarCode",
 		desc = "Simplify synthetic or verbose code",
-		runAfter = CodeShrinker.class
+		runAfter = CodeShrinkVisitor.class
 )
 public class ReSugarCode extends AbstractVisitor {
 

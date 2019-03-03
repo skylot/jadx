@@ -37,6 +37,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
+import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.InstructionRemover;
@@ -51,7 +52,7 @@ import static jadx.core.utils.BlockUtils.replaceInsn;
 @JadxVisitor(
 		name = "ModVisitor",
 		desc = "Modify method instructions",
-		runBefore = CodeShrinker.class
+		runBefore = CodeShrinkVisitor.class
 )
 public class ModVisitor extends AbstractVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(ModVisitor.class);

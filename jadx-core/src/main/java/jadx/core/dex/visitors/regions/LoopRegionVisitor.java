@@ -33,7 +33,7 @@ import jadx.core.dex.regions.loops.ForLoop;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.regions.loops.LoopType;
 import jadx.core.dex.visitors.AbstractVisitor;
-import jadx.core.dex.visitors.CodeShrinker;
+import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.regions.variables.ProcessVariables;
 import jadx.core.utils.BlockUtils;
@@ -206,7 +206,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		if (arrayArg.isRegister()) {
 			((RegisterArg) arrayArg).getSVar().removeUse((RegisterArg) arrGetInsn.getArg(0));
 		}
-		CodeShrinker.shrinkMethod(mth);
+		CodeShrinkVisitor.shrinkMethod(mth);
 		len.add(AFlag.DONT_GENERATE);
 
 		if (arrGetInsn.contains(AFlag.WRAPPED)) {

@@ -15,6 +15,7 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.regions.variables.ProcessVariables;
+import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.exceptions.JadxException;
 
 /**
@@ -25,7 +26,7 @@ import jadx.core.utils.exceptions.JadxException;
 @JadxVisitor(
 		name = "PrepareForCodeGen",
 		desc = "Prepare instructions for code generation pass",
-		runAfter = {CodeShrinker.class, ClassModifier.class, ProcessVariables.class}
+		runAfter = {CodeShrinkVisitor.class, ClassModifier.class, ProcessVariables.class}
 )
 public class PrepareForCodeGen extends AbstractVisitor {
 

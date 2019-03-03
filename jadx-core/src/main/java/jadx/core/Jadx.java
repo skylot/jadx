@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
 import jadx.core.dex.visitors.ClassModifier;
-import jadx.core.dex.visitors.CodeShrinker;
+import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.dex.visitors.ConstInlineVisitor;
 import jadx.core.dex.visitors.ConstructorVisitor;
 import jadx.core.dex.visitors.DependencyCollector;
@@ -81,7 +81,7 @@ public class Jadx {
 			passes.add(new DebugInfoApplyVisitor());
 
 			passes.add(new ModVisitor());
-			passes.add(new CodeShrinker());
+			passes.add(new CodeShrinkVisitor());
 			passes.add(new ReSugarCode());
 			if (args.isCfgOutput()) {
 				passes.add(DotGraphVisitor.dump());
@@ -92,7 +92,7 @@ public class Jadx {
 			passes.add(new ReturnVisitor());
 			passes.add(new CleanRegions());
 
-			passes.add(new CodeShrinker());
+			passes.add(new CodeShrinkVisitor());
 			passes.add(new SimplifyVisitor());
 			passes.add(new CheckRegions());
 
