@@ -20,7 +20,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
-import jadx.core.utils.InstructionRemover;
+import jadx.core.utils.InsnRemover;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxOverflowException;
 
@@ -46,7 +46,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 			for (InsnNode insn : block.getInstructions()) {
 				checkInsn(mth, insn, toRemove);
 			}
-			InstructionRemover.removeAll(mth, block, toRemove);
+			InsnRemover.removeAllAndUnbind(mth, block, toRemove);
 		}
 	}
 

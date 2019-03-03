@@ -495,7 +495,7 @@ public class InsnGen {
 			case NEW_INSTANCE:
 				// only fallback - make new instance in constructor invoke
 				fallbackOnlyInsn(insn);
-				code.add("new ").add(insn.getResult().getType().toString());
+				code.add("new ").add(insn.getResult().getInitType().toString());
 				break;
 
 			case PHI:

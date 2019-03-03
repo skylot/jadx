@@ -41,7 +41,7 @@ import jadx.core.dex.trycatch.SplitterBlockAttr;
 import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.ErrorsCounter;
-import jadx.core.utils.InstructionRemover;
+import jadx.core.utils.InsnRemover;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -567,7 +567,7 @@ public class RegionMaker {
 			}
 			exitInsn.add(AFlag.DONT_GENERATE);
 			exitInsn.add(AFlag.REMOVE);
-			InstructionRemover.unbindInsn(mth, exitInsn);
+			InsnRemover.unbindInsn(mth, exitInsn);
 		}
 
 		BlockNode body = getNextBlock(block);

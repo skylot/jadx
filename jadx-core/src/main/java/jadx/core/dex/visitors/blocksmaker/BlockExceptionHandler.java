@@ -16,7 +16,7 @@ import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.BlockUtils;
-import jadx.core.utils.InstructionRemover;
+import jadx.core.utils.InsnRemover;
 
 public class BlockExceptionHandler extends AbstractVisitor {
 
@@ -77,13 +77,13 @@ public class BlockExceptionHandler extends AbstractVisitor {
 		}
 		for (BlockNode excBlock : excHandler.getBlocks()) {
 			// remove 'monitor-exit' from exception handler blocks
-			InstructionRemover remover = new InstructionRemover(mth, excBlock);
+			InsnRemover remover = new InsnRemover(mth, excBlock);
 			for (InsnNode insn : excBlock.getInstructions()) {
 				if (insn.getType() == InsnType.MONITOR_ENTER) {
 					break;
 				}
 				if (insn.getType() == InsnType.MONITOR_EXIT) {
-					remover.add(insn);
+					remover.addAndUnbind(insn);
 				}
 			}
 			remover.perform();

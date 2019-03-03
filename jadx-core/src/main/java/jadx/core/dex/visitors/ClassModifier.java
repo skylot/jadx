@@ -29,7 +29,7 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.BlockUtils;
-import jadx.core.utils.InstructionRemover;
+import jadx.core.utils.InsnRemover;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
@@ -131,7 +131,7 @@ public class ClassModifier extends AbstractVisitor {
 			return false;
 		}
 		mth.skipFirstArgument();
-		InstructionRemover.remove(mth, block, insn);
+		InsnRemover.remove(mth, block, insn);
 		// other arg usage -> wrap with IGET insn
 		if (arg.getSVar().getUseCount() != 0) {
 			InsnNode iget = new IndexInsnNode(InsnType.IGET, fieldInfo, 1);

@@ -33,7 +33,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.InsnList;
 import jadx.core.utils.InsnUtils;
-import jadx.core.utils.InstructionRemover;
+import jadx.core.utils.InsnRemover;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
 
@@ -57,7 +57,7 @@ public class ReSugarCode extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
-		InstructionRemover remover = new InstructionRemover(mth);
+		InsnRemover remover = new InsnRemover(mth);
 		for (BlockNode block : mth.getBasicBlocks()) {
 			remover.setBlock(block);
 			List<InsnNode> instructions = block.getInstructions();
@@ -69,14 +69,14 @@ public class ReSugarCode extends AbstractVisitor {
 		}
 	}
 
-	private static void process(MethodNode mth, List<InsnNode> instructions, int i, InstructionRemover remover) {
+	private static void process(MethodNode mth, List<InsnNode> instructions, int i, InsnRemover remover) {
 		InsnNode insn = instructions.get(i);
 		if (insn.contains(AFlag.REMOVE)) {
 			return;
 		}
 		switch (insn.getType()) {
 			case NEW_ARRAY:
-				processNewArray(mth, instructions, i, remover);
+				processNewArray(mth, (NewArrayNode) insn, instructions, remover);
 				break;
 
 			case SWITCH:
@@ -91,9 +91,8 @@ public class ReSugarCode extends AbstractVisitor {
 	/**
 	 * Replace new array and sequence of array-put to new filled-array instruction.
 	 */
-	private static void processNewArray(MethodNode mth, List<InsnNode> instructions, int i,
-	                                    InstructionRemover remover) {
-		NewArrayNode newArrayInsn = (NewArrayNode) instructions.get(i);
+	private static void processNewArray(MethodNode mth, NewArrayNode newArrayInsn,
+	                                    List<InsnNode> instructions, InsnRemover remover) {
 		InsnArg arrLenArg = newArrayInsn.getArg(0);
 		if (!arrLenArg.isLiteral()) {
 			return;
@@ -136,12 +135,13 @@ public class ReSugarCode extends AbstractVisitor {
 		// checks complete, apply
 		ArgType arrType = newArrayInsn.getArrayType();
 		InsnNode filledArr = new FilledNewArrayNode(arrType.getArrayElement(), len);
-		filledArr.setResult(arrArg.duplicate());
+		filledArr.setResult(arrArg);
 		for (InsnNode put : arrPuts) {
-			filledArr.addArg(put.getArg(2).duplicate());
-			remover.addAndUnbind(mth, put);
+			filledArr.addArg(put.getArg(2));
+			remover.addWithoutUnbind(put);
+			InsnRemover.unbindArgUsage(mth, put.getArg(0));
 		}
-		remover.addAndUnbind(mth, newArrayInsn);
+		remover.addWithoutUnbind(newArrayInsn);
 
 		int replaceIndex = InsnList.getIndex(instructions, Utils.last(arrPuts));
 		instructions.set(replaceIndex, filledArr);

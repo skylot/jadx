@@ -25,7 +25,7 @@ import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.regions.SynchronizedRegion;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.visitors.AbstractVisitor;
-import jadx.core.utils.InstructionRemover;
+import jadx.core.utils.InsnRemover;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.JadxException;
 
@@ -176,10 +176,10 @@ public class RegionMakerVisitor extends AbstractVisitor {
 			// replace synchronized block with inner region
 			startRegion.getSubBlocks().set(0, synchRegion.getRegion());
 			// remove 'monitor-enter' instruction
-			InstructionRemover.remove(mth, synchInsn);
+			InsnRemover.remove(mth, synchInsn);
 			// remove 'monitor-exit' instruction
 			for (InsnNode exit : synchRegion.getExitInsns()) {
-				InstructionRemover.remove(mth, exit);
+				InsnRemover.remove(mth, exit);
 			}
 			// run region cleaner again
 			CleanRegions.process(mth);

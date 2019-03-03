@@ -19,8 +19,8 @@ import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
+import jadx.core.utils.InsnRemover;
 import jadx.core.utils.InsnUtils;
-import jadx.core.utils.InstructionRemover;
 import jadx.core.utils.Utils;
 
 public class InsnNode extends LineAttrNode {
@@ -68,6 +68,15 @@ public class InsnNode extends LineAttrNode {
 
 	public void addArg(InsnArg arg) {
 		arguments.add(arg);
+		attachArg(arg);
+	}
+
+	public void setArg(int n, InsnArg arg) {
+		arguments.set(n, arg);
+		attachArg(arg);
+	}
+
+	private void attachArg(InsnArg arg) {
 		arg.setParentInsn(this);
 		if (arg.isRegister()) {
 			RegisterArg reg = (RegisterArg) arg;
@@ -108,22 +117,15 @@ public class InsnNode extends LineAttrNode {
 		return false;
 	}
 
-	public void setArg(int n, InsnArg arg) {
-		arg.setParentInsn(this);
-		arguments.set(n, arg);
-	}
-
 	/**
 	 * Replace instruction arg with another using recursive search.
-	 * <br>
-	 * <b>Caution:</b> this method don't change usage information for replaced argument.
 	 */
 	public boolean replaceArg(InsnArg from, InsnArg to) {
 		int count = getArgsCount();
 		for (int i = 0; i < count; i++) {
 			InsnArg arg = arguments.get(i);
 			if (arg == from) {
-				InstructionRemover.unbindArgUsage(null, arg);
+				InsnRemover.unbindArgUsage(null, arg);
 				setArg(i, to);
 				return true;
 			}
@@ -139,7 +141,7 @@ public class InsnNode extends LineAttrNode {
 		for (int i = 0; i < count; i++) {
 			if (arg == arguments.get(i)) {
 				arguments.remove(i);
-				InstructionRemover.unbindArgUsage(null, arg);
+				InsnRemover.unbindArgUsage(null, arg);
 				return true;
 			}
 		}

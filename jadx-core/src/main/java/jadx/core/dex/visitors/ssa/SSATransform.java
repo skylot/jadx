@@ -22,7 +22,7 @@ import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.blocksmaker.BlockFinish;
 import jadx.core.utils.InsnList;
-import jadx.core.utils.InstructionRemover;
+import jadx.core.utils.InsnRemover;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -235,7 +235,7 @@ public class SSATransform extends AbstractVisitor {
 					InsnNode parentInsn = arg.getAssignInsn();
 					if (parentInsn != null && parentInsn.contains(AFlag.REMOVE)) {
 						phi.removeArg(arg);
-						InstructionRemover.remove(mth, block, parentInsn);
+						InsnRemover.remove(mth, block, parentInsn);
 						removed = true;
 					}
 				}
@@ -283,7 +283,7 @@ public class SSATransform extends AbstractVisitor {
 					phi.removeArg(useArg);
 				}
 			}
-			InstructionRemover.remove(mth, block, phi);
+			InsnRemover.remove(mth, block, phi);
 			return true;
 		}
 		boolean allSame = phi.getArgsCount() == 1 || isSameArgs(phi);
@@ -326,7 +326,7 @@ public class SSATransform extends AbstractVisitor {
 							sVar.setUsedInPhi(null);
 						}
 					}
-					InstructionRemover.remove(mth, block, phiInsn);
+					InsnRemover.remove(mth, block, phiInsn);
 				}
 			}
 			if (list.isEmpty()) {
@@ -396,7 +396,7 @@ public class SSATransform extends AbstractVisitor {
 				assignInsn.add(AFlag.DONT_INLINE);
 			}
 		}
-		InstructionRemover.unbindInsn(mth, phi);
+		InsnRemover.unbindInsn(mth, phi);
 		return true;
 	}
 

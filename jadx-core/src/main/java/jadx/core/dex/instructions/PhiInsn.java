@@ -11,7 +11,7 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
-import jadx.core.utils.InstructionRemover;
+import jadx.core.utils.InsnRemover;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -64,7 +64,7 @@ public final class PhiInsn extends InsnNode {
 		if (super.removeArg(reg)) {
 			blockBinds.remove(reg);
 			reg.getSVar().removeUse(reg);
-			InstructionRemover.fixUsedInPhiFlag(reg);
+			InsnRemover.fixUsedInPhiFlag(reg);
 			return true;
 		}
 		return false;

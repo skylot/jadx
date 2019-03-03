@@ -28,6 +28,7 @@ import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.regions.DepthRegionTraversal;
 import jadx.core.utils.RegionUtils;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
 
 public class ProcessVariables extends AbstractVisitor {
@@ -148,9 +149,7 @@ public class ProcessVariables extends AbstractVisitor {
 					list.add(usage);
 				}
 			}
-			if (!list.isEmpty()) {
-				codeVarUsage.put(codeVar, list);
-			}
+			codeVarUsage.put(codeVar, Utils.lockList(list));
 		}
 		return codeVarUsage;
 	}

@@ -17,7 +17,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
 import jadx.core.utils.BlockUtils;
-import jadx.core.utils.InstructionRemover;
+import jadx.core.utils.InsnRemover;
 
 @JadxVisitor(
 		name = "ConstructorVisitor",
@@ -36,7 +36,7 @@ public class ConstructorVisitor extends AbstractVisitor {
 	}
 
 	private static void replaceInvoke(MethodNode mth) {
-		InstructionRemover remover = new InstructionRemover(mth);
+		InsnRemover remover = new InsnRemover(mth);
 		for (BlockNode block : mth.getBasicBlocks()) {
 			remover.setBlock(block);
 			int size = block.getInstructions().size();
@@ -50,7 +50,7 @@ public class ConstructorVisitor extends AbstractVisitor {
 		}
 	}
 
-	private static void processInvoke(MethodNode mth, BlockNode block, int indexInBlock, InstructionRemover remover) {
+	private static void processInvoke(MethodNode mth, BlockNode block, int indexInBlock, InsnRemover remover) {
 		ClassNode parentClass = mth.getParentClass();
 		InsnNode insn = block.getInstructions().get(indexInBlock);
 		InvokeNode inv = (InvokeNode) insn;
@@ -75,25 +75,24 @@ public class ConstructorVisitor extends AbstractVisitor {
 			remove = true;
 		}
 		if (remove) {
-			remover.add(insn);
+			remover.addAndUnbind(insn);
 			return;
 		}
 		if (co.isNewInstance()) {
 			InsnNode newInstInsn = removeAssignChain(mth, instArgAssignInsn, remover, InsnType.NEW_INSTANCE);
 			if (newInstInsn != null) {
+				remover.addWithoutUnbind(newInstInsn);
 				RegisterArg instArg = newInstInsn.getResult();
 				RegisterArg resultArg = co.getResult();
 				if (!resultArg.equals(instArg)) {
 					// replace all usages of 'instArg' with result of this constructor instruction
 					for (RegisterArg useArg : new ArrayList<>(instArg.getSVar().getUseList())) {
-						RegisterArg dup = resultArg.duplicate();
 						InsnNode parentInsn = useArg.getParentInsn();
-						parentInsn.replaceArg(useArg, dup);
-						dup.setParentInsn(parentInsn);
-						resultArg.getSVar().use(dup);
+						if (parentInsn != null) {
+							parentInsn.replaceArg(useArg, resultArg.duplicate());
+						}
 					}
 				}
-				newInstInsn.setResult(null); // don't unbind result arg on remove
 			}
 		}
 		ConstructorInsn replace = processConstructor(mth, co);
@@ -146,18 +145,18 @@ public class ConstructorVisitor extends AbstractVisitor {
 	/**
 	 * Remove instructions on 'move' chain until instruction with type 'insnType'
 	 */
-	private static InsnNode removeAssignChain(MethodNode mth, InsnNode insn, InstructionRemover remover, InsnType insnType) {
+	private static InsnNode removeAssignChain(MethodNode mth, InsnNode insn, InsnRemover remover, InsnType insnType) {
 		if (insn == null) {
 			return null;
-		}
-		if (insn.isAttrStorageEmpty()) {
-			remover.add(insn);
-		} else {
-			BlockUtils.replaceInsn(mth, insn, new InsnNode(InsnType.NOP, 0));
 		}
 		InsnType type = insn.getType();
 		if (type == insnType) {
 			return insn;
+		}
+		if (insn.isAttrStorageEmpty()) {
+			remover.addWithoutUnbind(insn);
+		} else {
+			BlockUtils.replaceInsn(mth, insn, new InsnNode(InsnType.NOP, 0));
 		}
 		if (type == InsnType.MOVE) {
 			RegisterArg arg = (RegisterArg) insn.getArg(0);

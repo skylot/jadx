@@ -40,7 +40,7 @@ import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.InsnUtils;
-import jadx.core.utils.InstructionRemover;
+import jadx.core.utils.InsnRemover;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.utils.BlockUtils.replaceInsn;
@@ -63,12 +63,12 @@ public class ModVisitor extends AbstractVisitor {
 			return;
 		}
 
-		InstructionRemover remover = new InstructionRemover(mth);
+		InsnRemover remover = new InsnRemover(mth);
 		replaceStep(mth, remover);
 		removeStep(mth, remover);
 	}
 
-	private static void replaceStep(MethodNode mth, InstructionRemover remover) {
+	private static void replaceStep(MethodNode mth, InsnRemover remover) {
 		ClassNode parentClass = mth.getParentClass();
 		for (BlockNode block : mth.getBasicBlocks()) {
 			remover.setBlock(block);
@@ -120,7 +120,7 @@ public class ModVisitor extends AbstractVisitor {
 								InsnNode filledArr = makeFilledArrayInsn(mth, (NewArrayNode) insn, (FillArrayNode) ni);
 								if (filledArr != null) {
 									replaceInsn(block, i, filledArr);
-									remover.add(ni);
+									remover.addAndUnbind(ni);
 								}
 							}
 						}
@@ -182,7 +182,7 @@ public class ModVisitor extends AbstractVisitor {
 	/**
 	 * Remove unnecessary instructions
 	 */
-	private static void removeStep(MethodNode mth, InstructionRemover remover) {
+	private static void removeStep(MethodNode mth, InsnRemover remover) {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			remover.setBlock(block);
 			for (InsnNode insn : block.getInstructions()) {
@@ -190,7 +190,7 @@ public class ModVisitor extends AbstractVisitor {
 					case NOP:
 					case GOTO:
 					case NEW_INSTANCE:
-						remover.add(insn);
+						remover.addAndUnbind(insn);
 						break;
 
 					default:
@@ -335,7 +335,7 @@ public class ModVisitor extends AbstractVisitor {
 		return filledArr;
 	}
 
-	private static void processMoveException(BlockNode block, InsnNode insn, InstructionRemover remover) {
+	private static void processMoveException(BlockNode block, InsnNode insn, InsnRemover remover) {
 		ExcHandlerAttr excHandlerAttr = block.get(AType.EXC_HANDLER);
 		if (excHandlerAttr == null) {
 			return;
@@ -352,7 +352,7 @@ public class ModVisitor extends AbstractVisitor {
 		SSAVar sVar = insn.getResult().getSVar();
 		if (sVar.getUseCount() == 0) {
 			excHandler.setArg(new NamedArg(name, type));
-			remover.add(insn);
+			remover.addAndUnbind(insn);
 		} else if (sVar.isUsedInPhi()) {
 			// exception var moved to external variable => replace with 'move' insn
 			InsnNode moveInsn = new InsnNode(InsnType.MOVE, 1);

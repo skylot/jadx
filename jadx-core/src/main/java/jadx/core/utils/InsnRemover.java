@@ -19,17 +19,17 @@ import jadx.core.dex.nodes.MethodNode;
  * Helper class for correct instructions removing,
  * can be used while iterating over instructions list
  */
-public class InstructionRemover {
+public class InsnRemover {
 
 	private final MethodNode mth;
 	private final List<InsnNode> toRemove;
 	private List<InsnNode> instrList;
 
-	public InstructionRemover(MethodNode mth) {
+	public InsnRemover(MethodNode mth) {
 		this(mth, null);
 	}
 
-	public InstructionRemover(MethodNode mth, BlockNode block) {
+	public InsnRemover(MethodNode mth, BlockNode block) {
 		this.mth = mth;
 		this.toRemove = new ArrayList<>();
 		if (block != null) {
@@ -41,20 +41,20 @@ public class InstructionRemover {
 		this.instrList = block.getInstructions();
 	}
 
-	public void add(InsnNode insn) {
-		toRemove.add(insn);
-	}
-
-	public void addAndUnbind(MethodNode mth, InsnNode insn) {
+	public void addAndUnbind(InsnNode insn) {
 		toRemove.add(insn);
 		unbindInsn(mth, insn);
+	}
+
+	public void addWithoutUnbind(InsnNode insn) {
+		toRemove.add(insn);
 	}
 
 	public void perform() {
 		if (toRemove.isEmpty()) {
 			return;
 		}
-		removeAll(mth, instrList, toRemove);
+		removeAll(instrList, toRemove);
 		toRemove.clear();
 	}
 
@@ -111,7 +111,7 @@ public class InstructionRemover {
 
 	// Don't use 'instrList.removeAll(toRemove)' because it will remove instructions by content
 	// and here can be several instructions with same content
-	private static void removeAll(MethodNode mth, List<InsnNode> insns, List<InsnNode> toRemove) {
+	private static void removeAll(List<InsnNode> insns, List<InsnNode> toRemove) {
 		if (toRemove == null || toRemove.isEmpty()) {
 			return;
 		}
@@ -120,7 +120,6 @@ public class InstructionRemover {
 			for (int i = 0; i < insnsCount; i++) {
 				if (insns.get(i) == rem) {
 					insns.remove(i);
-					unbindInsn(mth, rem);
 					break;
 				}
 			}
@@ -147,8 +146,11 @@ public class InstructionRemover {
 		}
 	}
 
-	public static void removeAll(MethodNode mth, BlockNode block, List<InsnNode> insns) {
-		removeAll(mth, block.getInstructions(), insns);
+	public static void removeAllAndUnbind(MethodNode mth, BlockNode block, List<InsnNode> insns) {
+		for (InsnNode insn : insns) {
+			unbindInsn(mth, insn);
+		}
+		removeAll(block.getInstructions(), insns);
 	}
 
 	public static void remove(MethodNode mth, BlockNode block, int index) {

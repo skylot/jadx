@@ -22,7 +22,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.parser.FieldInitAttr;
 import jadx.core.utils.BlockUtils;
-import jadx.core.utils.InstructionRemover;
+import jadx.core.utils.InsnRemover;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
@@ -92,7 +92,7 @@ public class ExtractFieldInit extends AbstractVisitor {
 				if (initInsns.size() == 1) {
 					InsnNode insn = initInsns.get(0);
 					if (checkInsn(insn)) {
-						InstructionRemover.remove(classInitMth, insn);
+						InsnRemover.remove(classInitMth, insn);
 						addFieldInitAttr(classInitMth, field, insn);
 					}
 				}
@@ -165,7 +165,7 @@ public class ExtractFieldInit extends AbstractVisitor {
 		// all checks passed
 		for (InitInfo info : infoList) {
 			for (InsnNode putInsn : info.getPutInsns()) {
-				InstructionRemover.remove(info.getConstrMth(), putInsn);
+				InsnRemover.remove(info.getConstrMth(), putInsn);
 			}
 		}
 		for (InsnNode insn : common.getPutInsns()) {
