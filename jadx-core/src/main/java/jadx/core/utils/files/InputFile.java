@@ -59,8 +59,8 @@ public class InputFile {
 			loadFromZip(".dex");
 			return;
 		}
-		if (fileName.endsWith(".jar")) {
-			// check if jar contains '.dex' files
+		if (fileName.endsWith(".jar") || fileName.endsWith(".aar")) {
+			// check if jar/aar contains '.dex' files
 			if (loadFromZip(".dex")) {
 				return;
 			}
