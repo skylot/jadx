@@ -15,8 +15,6 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ResourcesLoader;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.info.ConstStorage;
-import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -40,7 +38,6 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private static final boolean ATTR_NEW_LINE = false;
 
 	private final Map<Integer, String> styleMap = new HashMap<>();
-	private final Map<Integer, FieldNode> localStyleMap = new HashMap<>();
 	private final Map<Integer, String> resNames;
 	private final Map<String, String> nsMap = new HashMap<>();
 	private Set<String> nsMapGenerated;
@@ -63,16 +60,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		this.rootNode = rootNode;
 		try {
 			readAndroidRStyleClass();
-			// add application constants
 			ConstStorage constStorage = rootNode.getConstValues();
-			Map<Object, FieldNode> constFields = constStorage.getGlobalConstFields();
-			for (Map.Entry<Object, FieldNode> entry : constFields.entrySet()) {
-				Object key = entry.getKey();
-				FieldNode field = entry.getValue();
-				if (field.getType().equals(ArgType.INT) && key instanceof Integer) {
-					localStyleMap.put((Integer) key, field);
-				}
-			}
 			resNames = constStorage.getResourcesNames();
 		} catch (Exception e) {
 			throw new JadxRuntimeException("BinaryXMLParser init error", e);
@@ -381,38 +369,27 @@ public class BinaryXMLParser extends CommonBinaryParser {
 
 	private void decodeAttribute(int attributeNS, int attrValDataType, int attrValData,
 	                             String shortNsName, String attrName) {
-
 		if (attrValDataType == TYPE_REFERENCE) {
 			// reference custom processing
 			String name = styleMap.get(attrValData);
 			if (name != null) {
 				writer.add("@style/").add(name.replaceAll("_", "."));
 			} else {
-				FieldNode field = localStyleMap.get(attrValData);
-				if (field != null) {
-					String cls = field.getParentClass().getShortName().toLowerCase();
+				String resName = resNames.get(attrValData);
+				if (resName != null) {
 					writer.add("@");
-					if ("id".equals(cls)) {
-						writer.add('+');
+					if (resName.startsWith("id/")) {
+						writer.add("+");
 					}
-					writer.add(cls).add("/").add(field.getName());
+					writer.add(resName);
 				} else {
-					String resName = resNames.get(attrValData);
+					resName = ValuesParser.getAndroidResMap().get(attrValData);
 					if (resName != null) {
-						writer.add("@");
-						if (resName.startsWith("id/")) {
-							writer.add("+");
-						}
-						writer.add(resName);
+						writer.add("@android:").add(resName);
+					} else if (attrValData == 0) {
+						writer.add("@null");
 					} else {
-						resName = ValuesParser.getAndroidResMap().get(attrValData);
-						if (resName != null) {
-							writer.add("@android:").add(resName);
-						} else if (attrValData == 0) {
-							writer.add("@null");
-						} else {
-							writer.add("0x").add(Integer.toHexString(attrValData));
-						}
+						writer.add("0x").add(Integer.toHexString(attrValData));
 					}
 				}
 			}
