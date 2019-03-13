@@ -99,11 +99,17 @@ public class AndroidResourcesUtils {
 			}
 		}
 		for (ResourceEntry resource : resStorage.getResources()) {
+			final String resTypeName = resource.getTypeName();
 			ClassNode typeCls = innerClsMap.computeIfAbsent(
-					resource.getTypeName(),
+					resTypeName,
 					name -> addClassForResType(resCls, rClsExists, name)
 			);
-			String resName = resource.getKeyName();
+			final String resName;
+			if ("style".equals(resTypeName)) {
+				resName = resource.getKeyName().replace('.', '_');
+			} else {
+				resName = resource.getKeyName();
+			}
 			FieldNode rField = typeCls.searchFieldByName(resName);
 			if (rField == null) {
 				FieldInfo rFieldInfo = FieldInfo.from(typeCls.dex(), typeCls.getClassInfo(), resName, ArgType.INT);
