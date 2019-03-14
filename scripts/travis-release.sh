@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -xe
+set -e
 
 npm install -g semantic-release
 npm install -g semantic-release/exec
