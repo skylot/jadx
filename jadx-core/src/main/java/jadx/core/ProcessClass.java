@@ -2,8 +2,6 @@ package jadx.core;
 
 import java.util.List;
 
-import org.jetbrains.annotations.Nullable;
-
 import jadx.core.codegen.CodeGen;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.visitors.DepthTraversal;
@@ -19,8 +17,8 @@ public final class ProcessClass {
 	private ProcessClass() {
 	}
 
-	public static void process(ClassNode cls, List<IDexTreeVisitor> passes, @Nullable CodeGen codeGen) {
-		if (codeGen == null && cls.getState() == PROCESSED) {
+	public static void process(ClassNode cls, List<IDexTreeVisitor> passes, boolean generateCode) {
+		if (!generateCode && cls.getState() == PROCESSED) {
 			return;
 		}
 		synchronized (getSyncObj(cls)) {
@@ -33,9 +31,9 @@ public final class ProcessClass {
 					}
 					cls.setState(PROCESSED);
 				}
-				if (cls.getState() == PROCESSED && codeGen != null) {
+				if (cls.getState() == PROCESSED && generateCode) {
 					processDependencies(cls, passes);
-					codeGen.visit(cls);
+					CodeGen.generate(cls);
 				}
 			} catch (Exception e) {
 				ErrorsCounter.classError(cls, e.getClass().getSimpleName(), e);
@@ -48,6 +46,6 @@ public final class ProcessClass {
 	}
 
 	private static void processDependencies(ClassNode cls, List<IDexTreeVisitor> passes) {
-		cls.getDependencies().forEach(depCls -> process(depCls, passes, null));
+		cls.getDependencies().forEach(depCls -> process(depCls, passes, false));
 	}
 }

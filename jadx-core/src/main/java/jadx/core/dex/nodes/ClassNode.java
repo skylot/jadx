@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.core.Consts;
 import jadx.core.codegen.CodeWriter;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.annotations.Annotation;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.attributes.nodes.SourceFileAttr;
@@ -123,7 +124,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 				accFlagsValue = cls.getAccessFlags();
 			}
 			this.accessFlags = new AccessInfo(accFlagsValue, AFType.CLASS);
-
+			markAnonymousClass(this);
 			buildCache();
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Error decode class: " + clsInfo, e);
@@ -392,6 +393,29 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return clsInfo.isInner()
 				&& clsInfo.getAlias().getShortName().startsWith(Consts.ANONYMOUS_CLASS_PREFIX)
 				&& getDefaultConstructor() != null;
+	}
+
+	public boolean isLambdaCls() {
+		return accessFlags.isSynthetic() && accessFlags.isFinal()
+				&& clsInfo.getType().getObject().contains(".-$$Lambda$")
+				&& countStaticFields() == 0;
+	}
+
+	private int countStaticFields() {
+		int c = 0;
+		for (FieldNode field : fields) {
+			if (field.getAccessFlags().isStatic()) {
+				c++;
+			}
+		}
+		return c;
+	}
+
+	private static void markAnonymousClass(ClassNode cls) {
+		if (cls.isAnonymous() || cls.isLambdaCls()) {
+			cls.add(AFlag.ANONYMOUS_CLASS);
+			cls.add(AFlag.DONT_GENERATE);
+		}
 	}
 
 	@Nullable
