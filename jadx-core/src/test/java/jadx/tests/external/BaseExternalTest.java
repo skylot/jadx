@@ -15,12 +15,11 @@ import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
 import jadx.api.JavaClass;
 import jadx.core.Jadx;
-import jadx.core.codegen.CodeGen;
+import jadx.core.ProcessClass;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.tests.api.IntegrationTest;
@@ -77,7 +76,7 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		for (ClassNode classNode : root.getClasses(true)) {
 			String clsFullName = classNode.getClassInfo().getFullName();
 			if (clsPattern.matcher(clsFullName).matches()) {
-				if (processCls(mthPattern, passes, classNode)) {
+				if (processCls(jadx, mthPattern, passes, classNode)) {
 					processed++;
 				}
 			}
@@ -85,7 +84,7 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		assertThat("No classes processed", processed, greaterThan(0));
 	}
 
-	private boolean processCls(@Nullable Pattern mthPattern, List<IDexTreeVisitor> passes, ClassNode classNode) {
+	private boolean processCls(JadxDecompiler jadx, @Nullable Pattern mthPattern, List<IDexTreeVisitor> passes, ClassNode classNode) {
 		classNode.load();
 		boolean decompile = false;
 		if (mthPattern == null) {
@@ -101,11 +100,8 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		if (!decompile) {
 			return false;
 		}
-		for (IDexTreeVisitor visitor : passes) {
-			DepthTraversal.visit(visitor, classNode);
-		}
 		try {
-			new CodeGen().visit(classNode);
+			ProcessClass.process(classNode, passes, true);
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Codegen failed", e);
 		}

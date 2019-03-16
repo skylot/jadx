@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.BlockNode;
@@ -136,7 +138,10 @@ public class RegionUtils {
 		return !notEmpty(container);
 	}
 
-	public static boolean notEmpty(IContainer container) {
+	public static boolean notEmpty(@Nullable IContainer container) {
+		if (container == null) {
+			return false;
+		}
 		if (container instanceof IBlock) {
 			return !((IBlock) container).getInstructions().isEmpty();
 		} else if (container instanceof IRegion) {

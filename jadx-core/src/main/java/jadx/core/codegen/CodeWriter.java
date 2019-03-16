@@ -24,6 +24,8 @@ public class CodeWriter {
 	public static final String NL = System.getProperty("line.separator");
 	public static final String INDENT_STR = "    ";
 
+	public static final CodeWriter EMPTY = new CodeWriter().finish();
+
 	private static final boolean ADD_LINE_NUMBERS = false;
 
 	private static final String[] INDENT_CACHE = {
@@ -250,7 +252,7 @@ public class CodeWriter {
 		return lineMap;
 	}
 
-	public void finish() {
+	public CodeWriter finish() {
 		removeFirstEmptyLine();
 		buf.trimToSize();
 		code = buf.toString();
@@ -266,11 +268,12 @@ public class CodeWriter {
 				it.remove();
 			}
 		}
+		return this;
 	}
 
 	private void removeFirstEmptyLine() {
 		int len = NL.length();
-		if (buf.substring(0, len).equals(NL)) {
+		if (buf.length() > len && buf.substring(0, len).equals(NL)) {
 			buf.delete(0, len);
 		}
 	}

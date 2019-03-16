@@ -54,40 +54,46 @@ public class ClassModifier extends AbstractVisitor {
 			cls.add(AFlag.DONT_GENERATE);
 			return false;
 		}
-		removeSyntheticFields(cls);
-		cls.getMethods().forEach(mth -> removeSyntheticMethods(cls, mth));
-		cls.getMethods().forEach(ClassModifier::removeEmptyMethods);
-
 		markAnonymousClass(cls);
+		removeSyntheticFields(cls);
+		cls.getMethods().forEach(ClassModifier::removeSyntheticMethods);
+		cls.getMethods().forEach(ClassModifier::removeEmptyMethods);
 		return false;
 	}
 
 	private void markAnonymousClass(ClassNode cls) {
 		if (cls.isAnonymous()) {
 			cls.add(AFlag.ANONYMOUS_CLASS);
+			cls.add(AFlag.DONT_GENERATE);
 		}
 	}
 
+	/**
+	 * Remove synthetic fields if type is outer class or class will be inlined (anonymous)
+	 */
 	private static void removeSyntheticFields(ClassNode cls) {
-		if (!cls.getClassInfo().isInner() || cls.getAccessFlags().isStatic()) {
+		if (cls.getAccessFlags().isStatic()) {
 			return;
 		}
-		// remove fields if it is synthetic and type is a outer class
-		for (FieldNode field : cls.getFields()) {
-			if (field.getAccessFlags().isSynthetic() && field.getType().isObject()) {
-				ClassInfo clsInfo = ClassInfo.fromType(cls.root(), field.getType());
-				ClassNode fieldsCls = cls.dex().resolveClass(clsInfo);
-				ClassInfo parentClass = cls.getClassInfo().getParentClass();
-				if (fieldsCls != null && parentClass.equals(fieldsCls.getClassInfo())) {
-					int found = 0;
-					for (MethodNode mth : cls.getMethods()) {
-						if (removeFieldUsageFromConstructor(mth, field, fieldsCls)) {
-							found++;
+		boolean inline = cls.contains(AFlag.ANONYMOUS_CLASS);
+		if (inline || cls.getClassInfo().isInner()) {
+			for (FieldNode field : cls.getFields()) {
+				if (field.getAccessFlags().isSynthetic() && field.getType().isObject()) {
+					ClassInfo clsInfo = ClassInfo.fromType(cls.root(), field.getType());
+					ClassNode fieldsCls = cls.dex().resolveClass(clsInfo);
+					ClassInfo parentClass = cls.getClassInfo().getParentClass();
+					if (fieldsCls != null
+							&& (inline || parentClass.equals(fieldsCls.getClassInfo()))) {
+						int found = 0;
+						for (MethodNode mth : cls.getMethods()) {
+							if (removeFieldUsageFromConstructor(mth, field, fieldsCls)) {
+								found++;
+							}
 						}
-					}
-					if (found != 0) {
-						field.addAttr(new FieldReplaceAttr(parentClass));
-						field.add(AFlag.DONT_GENERATE);
+						if (found != 0) {
+							field.addAttr(new FieldReplaceAttr(fieldsCls.getClassInfo()));
+							field.add(AFlag.DONT_GENERATE);
+						}
 					}
 				}
 			}
@@ -133,7 +139,7 @@ public class ClassModifier extends AbstractVisitor {
 		return true;
 	}
 
-	private static void removeSyntheticMethods(ClassNode cls, MethodNode mth) {
+	private static void removeSyntheticMethods(MethodNode mth) {
 		if (mth.isNoCode()) {
 			return;
 		}
@@ -141,6 +147,7 @@ public class ClassModifier extends AbstractVisitor {
 		if (!af.isSynthetic()) {
 			return;
 		}
+		ClassNode cls = mth.getParentClass();
 		if (removeBridgeMethod(cls, mth)) {
 			if (Consts.DEBUG) {
 				mth.addAttr(AType.COMMENTS, "Removed as synthetic bridge method");

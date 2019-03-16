@@ -1,6 +1,6 @@
 plugins {
     id 'org.sonarqube' version '2.7'
-    id 'com.github.ben-manes.versions' version '0.20.0'
+    id 'com.github.ben-manes.versions' version '0.21.0'
 }
 
 ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
@@ -35,12 +35,12 @@ allprojects {
     }
 
     dependencies {
-        compile 'org.slf4j:slf4j-api:1.7.25'
+        compile 'org.slf4j:slf4j-api:1.7.26'
 
         testCompile 'ch.qos.logback:logback-classic:1.2.3'
         testCompile 'junit:junit:4.12'
         testCompile 'org.hamcrest:hamcrest-library:2.1'
-        testCompile 'org.mockito:mockito-core:2.23.4'
+        testCompile 'org.mockito:mockito-core:2.25.0'
         testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
     }
 

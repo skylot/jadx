@@ -48,7 +48,6 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -559,7 +558,7 @@ public class InsnGen {
 			throws CodegenException {
 		ClassNode cls = mth.dex().resolveClass(insn.getClassType());
 		if (cls != null && cls.contains(AFlag.ANONYMOUS_CLASS) && !fallback) {
-			inlineAnonymousConstr(code, cls, insn);
+			inlineAnonymousConstructor(code, cls, insn);
 			return;
 		}
 		if (insn.isSelf()) {
@@ -577,20 +576,14 @@ public class InsnGen {
 		generateMethodArguments(code, insn, 0, callMth);
 	}
 
-	private void inlineAnonymousConstr(CodeWriter code, ClassNode cls, ConstructorInsn insn) throws CodegenException {
-		// anonymous class construction
-		if (cls.contains(AFlag.DONT_GENERATE)) {
-			code.add("/* anonymous class already generated */");
-			ErrorsCounter.methodWarn(mth, "Anonymous class already generated: " + cls);
-			return;
-		}
+	private void inlineAnonymousConstructor(CodeWriter code, ClassNode cls, ConstructorInsn insn) throws CodegenException {
+		cls.add(AFlag.DONT_GENERATE);
 		ArgType parent;
 		if (cls.getInterfaces().size() == 1) {
 			parent = cls.getInterfaces().get(0);
 		} else {
 			parent = cls.getSuperClass();
 		}
-		cls.add(AFlag.DONT_GENERATE);
 		MethodNode defCtr = cls.getDefaultConstructor();
 		if (defCtr != null) {
 			if (RegionUtils.notEmpty(defCtr.getRegion())) {
