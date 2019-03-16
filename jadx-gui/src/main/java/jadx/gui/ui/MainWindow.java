@@ -82,6 +82,7 @@ public class MainWindow extends JFrame {
 	private static final ImageIcon ICON_PREF = Utils.openIcon("wrench");
 	private static final ImageIcon ICON_DEOBF = Utils.openIcon("lock_edit");
 	private static final ImageIcon ICON_LOG = Utils.openIcon("report");
+	private static final ImageIcon ICON_JADX = Utils.openIcon("jadx-logo");
 
 	private final transient JadxWrapper wrapper;
 	private final transient JadxSettings settings;
@@ -116,16 +117,7 @@ public class MainWindow extends JFrame {
 		registerBundledFonts();
 		initUI();
 		initMenuAndToolbar();
-		setWindowIcons();
-	}
-
-	private void setWindowIcons() {
-		List<Image> icons = new ArrayList<>();
-		icons.add(Utils.openImage("/logos/jadx-logo-16px.png"));
-		icons.add(Utils.openImage("/logos/jadx-logo-32px.png"));
-		icons.add(Utils.openImage("/logos/jadx-logo-48px.png"));
-		icons.add(Utils.openImage("/logos/jadx-logo.png"));
-		setIconImages(icons);
+		Utils.setWindowIcons(this);
 		loadSettings();
 		checkForUpdate();
 	}
@@ -462,7 +454,7 @@ public class MainWindow extends JFrame {
 		logAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_L,
 				KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK));
 
-		Action aboutAction = new AbstractAction(NLS.str("menu.about")) {
+		Action aboutAction = new AbstractAction(NLS.str("menu.about"), ICON_JADX) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				new AboutDialog().setVisible(true);
