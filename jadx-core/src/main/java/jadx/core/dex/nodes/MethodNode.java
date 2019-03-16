@@ -321,16 +321,24 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 			int offset = aTry.getStartAddress();
 			int end = offset + aTry.getInstructionCount() - 1;
 
-			InsnNode insn = insnByOffset[offset];
-			insn.add(AFlag.TRY_ENTER);
+			boolean tryBlockStarted = false;
+			InsnNode insn = null;
 			while (offset <= end && offset >= 0) {
 				insn = insnByOffset[offset];
-				catchBlock.addInsn(insn);
+				if (insn != null) {
+					if (tryBlockStarted) {
+						catchBlock.addInsn(insn);
+					} else if (insn.canThrowException()) {
+						insn.add(AFlag.TRY_ENTER);
+						catchBlock.addInsn(insn);
+						tryBlockStarted = true;
+					}
+				}
 				offset = InsnDecoder.getNextInsnOffset(insnByOffset, offset);
 			}
 			if (insnByOffset[end] != null) {
 				insnByOffset[end].add(AFlag.TRY_LEAVE);
-			} else {
+			} else if (insn != null) {
 				insn.add(AFlag.TRY_LEAVE);
 			}
 		}

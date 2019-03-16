@@ -316,4 +316,24 @@ public class InsnNode extends LineAttrNode {
 		}
 		return INSN_CLONER.deepClone(this);
 	}
+
+	public boolean canThrowException() {
+		switch (getType()) {
+			case RETURN:
+			case IF:
+			case GOTO:
+			case MOVE:
+			case MOVE_EXCEPTION:
+			case NEG:
+			case CONST:
+			case CONST_STR:
+			case CONST_CLASS:
+			case CMP_L:
+			case CMP_G:
+				return false;
+
+			default:
+				return true;
+		}
+	}
 }
