@@ -31,7 +31,7 @@ jobs:
   include:
     - stage: deploy-unstable
       jdk: openjdk8
-      if: branch = master AND env(BINTRAY_USER) IS present
+      if: branch = master AND env(BINTRAY_KEY) IS present
       script: bash scripts/travis-master.sh
 
     - stage: deploy-release
