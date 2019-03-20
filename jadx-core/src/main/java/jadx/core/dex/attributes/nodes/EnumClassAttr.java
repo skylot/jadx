@@ -70,6 +70,7 @@ public class EnumClassAttr implements IAttribute {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public AType<EnumClassAttr> getType() {
 		return AType.ENUM_CLASS;
 	}

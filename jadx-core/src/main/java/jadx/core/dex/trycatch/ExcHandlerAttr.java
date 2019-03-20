@@ -14,6 +14,7 @@ public class ExcHandlerAttr implements IAttribute {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public AType<ExcHandlerAttr> getType() {
 		return AType.EXC_HANDLER;
 	}

@@ -50,6 +50,7 @@ public class FieldInitAttr implements IAttribute {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public AType<FieldInitAttr> getType() {
 		return AType.FIELD_INIT;
 	}

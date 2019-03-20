@@ -24,6 +24,7 @@ public class DeclareVariablesAttr implements IAttribute {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public AType<DeclareVariablesAttr> getType() {
 		return AType.DECLARE_VARIABLES;
 	}

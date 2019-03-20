@@ -51,6 +51,7 @@ public class EnumMapAttr implements IAttribute {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public AType<EnumMapAttr> getType() {
 		return AType.ENUM_MAP;
 	}

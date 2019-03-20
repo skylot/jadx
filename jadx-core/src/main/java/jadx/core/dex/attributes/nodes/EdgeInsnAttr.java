@@ -25,6 +25,7 @@ public class EdgeInsnAttr implements IAttribute {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public AType<AttrList<EdgeInsnAttr>> getType() {
 		return AType.EDGE_INSN;
 	}

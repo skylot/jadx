@@ -20,6 +20,7 @@ public class MethodParameters implements IAttribute {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public AType<MethodParameters> getType() {
 		return AType.ANNOTATION_MTH_PARAMETERS;
 	}

@@ -19,6 +19,7 @@ public class AttrList<T> implements IAttribute {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public AType<AttrList<T>> getType() {
 		return type;
 	}

@@ -21,6 +21,7 @@ public class IgnoreEdgeAttr implements IAttribute {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public AType<IgnoreEdgeAttr> getType() {
 		return AType.IGNORE_EDGE;
 	}

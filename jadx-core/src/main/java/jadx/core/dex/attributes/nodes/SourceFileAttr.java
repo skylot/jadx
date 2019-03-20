@@ -16,6 +16,7 @@ public class SourceFileAttr implements IAttribute {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public AType<SourceFileAttr> getType() {
 		return AType.SOURCE_FILE;
 	}

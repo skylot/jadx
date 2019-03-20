@@ -40,6 +40,7 @@ public class AnnotationsList implements IAttribute {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public AType<AnnotationsList> getType() {
 		return AType.ANNOTATION_LIST;
 	}

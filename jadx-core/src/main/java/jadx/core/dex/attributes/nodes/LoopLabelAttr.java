@@ -16,6 +16,7 @@ public class LoopLabelAttr implements IAttribute {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public AType<LoopLabelAttr> getType() {
 		return AType.LOOP_LABEL;
 	}

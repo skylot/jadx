@@ -12,6 +12,7 @@ public class CatchAttr implements IAttribute {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public AType<CatchAttr> getType() {
 		return AType.CATCH_BLOCK;
 	}

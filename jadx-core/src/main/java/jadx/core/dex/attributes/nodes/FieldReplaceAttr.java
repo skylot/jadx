@@ -38,6 +38,7 @@ public class FieldReplaceAttr implements IAttribute {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public AType<FieldReplaceAttr> getType() {
 		return AType.FIELD_REPLACE;
 	}

@@ -17,6 +17,7 @@ public class MethodInlineAttr implements IAttribute {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public AType<MethodInlineAttr> getType() {
 		return AType.METHOD_INLINE;
 	}

@@ -17,6 +17,7 @@ public class SplitterBlockAttr implements IAttribute {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public AType<SplitterBlockAttr> getType() {
 		return AType.SPLITTER_BLOCK;
 	}

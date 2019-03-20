@@ -12,6 +12,7 @@ public class PhiListAttr implements IAttribute {
 	private final List<PhiInsn> list = new LinkedList<>();
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public AType<PhiListAttr> getType() {
 		return AType.PHI_LIST;
 	}

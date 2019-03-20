@@ -18,6 +18,7 @@ public class ForceReturnAttr implements IAttribute {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public AType<ForceReturnAttr> getType() {
 		return AType.FORCE_RETURN;
 	}
