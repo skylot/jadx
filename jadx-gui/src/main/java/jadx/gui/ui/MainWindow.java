@@ -1,6 +1,47 @@
 package jadx.gui.ui;
 
-import javax.swing.*;
+import static javax.swing.KeyStroke.getKeyStroke;
+
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.DisplayMode;
+import java.awt.Font;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.Arrays;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.ImageIcon;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
+import javax.swing.JTree;
+import javax.swing.ProgressMonitor;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.event.TreeExpansionEvent;
@@ -12,22 +53,6 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
-import java.awt.*;
-import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DropTarget;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import org.fife.ui.rsyntaxtextarea.Theme;
 import org.slf4j.Logger;
@@ -46,6 +71,7 @@ import jadx.gui.treemodel.JCertificate;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JLoadableNode;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.treemodel.JPackage;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.update.JadxUpdate;
@@ -56,8 +82,6 @@ import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
-
-import static javax.swing.KeyStroke.getKeyStroke;
 
 @SuppressWarnings("serial")
 public class MainWindow extends JFrame {
@@ -315,6 +339,14 @@ public class MainWindow extends JFrame {
 		}
 	}
 
+	private void treeRightClickAction(MouseEvent e) {
+		Object obj = tree.getLastSelectedPathComponent();
+		if (obj instanceof JPackage) {
+			JPackagePopUp menu = new JPackagePopUp((JPackage) obj);
+	        menu.show(e.getComponent(), e.getX(), e.getY());
+		}
+	}
+	
 	private void syncWithEditor() {
 		ContentPanel selectedContentPanel = tabbedPane.getSelectedCodePanel();
 		if (selectedContentPanel == null) {
@@ -574,7 +606,12 @@ public class MainWindow extends JFrame {
 		tree.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				treeClickAction();
+				if (SwingUtilities.isRightMouseButton(e)) {
+					treeRightClickAction(e);
+				}
+				else {
+					treeClickAction();
+				}
 			}
 		});
 		tree.addKeyListener(new KeyAdapter() {
@@ -593,6 +630,9 @@ public class MainWindow extends JFrame {
 				Component c = super.getTreeCellRendererComponent(tree, value, selected, expanded, isLeaf, row, focused);
 				if (value instanceof JNode) {
 					setIcon(((JNode) value).getIcon());
+				}
+				if (value instanceof JPackage) {
+					setEnabled(((JPackage) value).isEnabled());
 				}
 				return c;
 			}
@@ -738,6 +778,25 @@ public class MainWindow extends JFrame {
 
 		@Override
 		public void menuCanceled(MenuEvent e) {
+		}
+	}
+	
+	private class JPackagePopUp extends JPopupMenu {
+		JMenuItem excludeItem = new JCheckBoxMenuItem("Exclude");
+
+		public JPackagePopUp(JPackage pkg) {
+			excludeItem.setSelected(!pkg.isEnabled());
+			add(excludeItem);
+			excludeItem.addItemListener(e -> {
+				String fullName = pkg.getFullName();
+				if (excludeItem.isSelected()) {
+					wrapper.addExcludedPackage(fullName);
+				}
+				else {
+					wrapper.removeExcludedPackage(fullName);
+				}
+				reOpenFile();
+			});
 		}
 	}
 }
