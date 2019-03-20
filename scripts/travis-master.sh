@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -xe
+set -e
 
 # upload coverage to codecov
 ./gradlew clean build jacocoTestReport

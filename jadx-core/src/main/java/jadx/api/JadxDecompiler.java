@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import jadx.core.Jadx;
 import jadx.core.ProcessClass;
-import jadx.core.codegen.CodeGen;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -59,7 +58,6 @@ public final class JadxDecompiler {
 
 	private RootNode root;
 	private List<IDexTreeVisitor> passes;
-	private CodeGen codeGen;
 
 	private List<JavaClass> classes;
 	private List<ResourceFile> resources;
@@ -97,7 +95,6 @@ public final class JadxDecompiler {
 
 	void init() {
 		this.passes = Jadx.getPassesList(args);
-		this.codeGen = new CodeGen();
 	}
 
 	void reset() {
@@ -106,7 +103,6 @@ public final class JadxDecompiler {
 		xmlParser = null;
 		root = null;
 		passes = null;
-		codeGen = null;
 	}
 
 	public static String getVersion() {
@@ -215,9 +211,11 @@ public final class JadxDecompiler {
 			List<JavaClass> clsList = new ArrayList<>(classNodeList.size());
 			classesMap.clear();
 			for (ClassNode classNode : classNodeList) {
-				JavaClass javaClass = new JavaClass(classNode, this);
-				clsList.add(javaClass);
-				classesMap.put(classNode, javaClass);
+				if (!classNode.contains(AFlag.DONT_GENERATE)) {
+					JavaClass javaClass = new JavaClass(classNode, this);
+					clsList.add(javaClass);
+					classesMap.put(classNode, javaClass);
+				}
 			}
 			classes = Collections.unmodifiableList(clsList);
 		}
@@ -289,7 +287,7 @@ public final class JadxDecompiler {
 	}
 
 	void processClass(ClassNode cls) {
-		ProcessClass.process(cls, passes, codeGen);
+		ProcessClass.process(cls, passes, true);
 	}
 
 	RootNode getRoot() {

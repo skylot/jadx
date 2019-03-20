@@ -3,6 +3,7 @@ package jadx.gui.treemodel;
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -68,6 +69,14 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 			}
 		} else {
 			removeAllChildren();
+
+			Comparator<JResource> typeComparator
+				= (r1, r2) -> r1.type.ordinal() - r2.type.ordinal();
+			Comparator<JResource> nameComparator
+				= Comparator.comparing(JResource::getName, String.CASE_INSENSITIVE_ORDER);
+
+			files.sort(typeComparator.thenComparing(nameComparator));
+
 			for (JResource res : files) {
 				res.update();
 				add(res);

@@ -7,6 +7,8 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -190,5 +192,14 @@ public class Utils {
 			sb.append(" italic");
 		}
 		return sb.toString().trim();
+	}
+
+	public static void setWindowIcons(Window window) {
+		List<Image> icons = new ArrayList<>();
+		icons.add(Utils.openImage("/logos/jadx-logo-16px.png"));
+		icons.add(Utils.openImage("/logos/jadx-logo-32px.png"));
+		icons.add(Utils.openImage("/logos/jadx-logo-48px.png"));
+		icons.add(Utils.openImage("/logos/jadx-logo.png"));
+		window.setIconImages(icons);
 	}
 }

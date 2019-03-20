@@ -5,13 +5,17 @@ dependencies {
 
     compile files('lib/dx-1.16.jar')
     compile 'commons-io:commons-io:2.6'
-    compile 'org.ow2.asm:asm:7.0'
-    compile 'org.jetbrains:annotations:16.0.3'
-    compile 'uk.com.robust-it:cloning:1.9.11'
+    compile 'org.ow2.asm:asm:7.1'
+    compile 'org.jetbrains:annotations:17.0.0'
+    compile 'uk.com.robust-it:cloning:1.9.12'
 
-    testCompile 'org.smali:smali:2.2.5'
-    testCompile 'org.smali:baksmali:2.2.5'
+    testCompile 'org.smali:smali:2.2.6'
+    testCompile 'org.smali:baksmali:2.2.6'
 
     testCompile 'org.apache.commons:commons-lang3:3.8.1'
+
+    // update dependency in smali
+    testCompile 'com.google.guava:guava:27.1-jre'
+    testCompile 'com.beust:jcommander:1.74'
 }
 

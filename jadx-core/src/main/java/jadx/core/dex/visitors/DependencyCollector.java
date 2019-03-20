@@ -18,6 +18,7 @@ import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.nodes.parser.FieldInitAttr;
 import jadx.core.utils.exceptions.JadxException;
 
 public class DependencyCollector extends AbstractVisitor {
@@ -41,6 +42,12 @@ public class DependencyCollector extends AbstractVisitor {
 		}
 		for (FieldNode fieldNode : cls.getFields()) {
 			addDep(dex, depList, fieldNode.getType());
+
+			// process instructions from field init
+			FieldInitAttr fieldInitAttr = fieldNode.get(AType.FIELD_INIT);
+			if (fieldInitAttr != null && fieldInitAttr.getValueType() == FieldInitAttr.InitType.INSN) {
+				processInsn(dex, depList, fieldInitAttr.getInsn());
+			}
 		}
 		// TODO: process annotations and generics
 		for (MethodNode methodNode : cls.getMethods()) {

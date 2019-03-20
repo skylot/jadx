@@ -1,11 +1,14 @@
 package jadx.gui;
 
-import javax.swing.*;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
+
+import javax.swing.ProgressMonitor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,20 +81,36 @@ public class JadxWrapper {
 	 */
 	public List<JavaClass> getIncludedClasses() {
 		List<JavaClass> classList = decompiler.getClasses();
-		String excludedPackages = settings.getExcludedPackages().trim();
-		if (excludedPackages.length() == 0) {
+		List<String> excludedPackages = getExcludedPackages();
+		if (excludedPackages.isEmpty()) {
 			return classList;
 		}
-		String[] excluded = excludedPackages.split("[ ]+");
 
 		return classList.stream().filter(cls -> {
-			for (String exclude : excluded) {
+			for (String exclude : excludedPackages) {
 				if (cls.getFullName().startsWith(exclude)) {
 					return false;
 				}
 			}
 			return true;
 		}).collect(Collectors.toList());
+	}
+
+	public List<String> getExcludedPackages() {
+		String excludedPackages = settings.getExcludedPackages().trim();
+		return Arrays.asList(excludedPackages.split("[ ]+"));
+	}
+
+	public void addExcludedPackage(String packageToExclude) {
+		settings.setExcludedPackages(settings.getExcludedPackages() + ' ' + packageToExclude);
+		settings.sync();
+	}
+
+	public void removeExcludedPackage(String packageToRemoveFromExclusion) {
+		List<String> list = new ArrayList<>(getExcludedPackages());
+		list.remove(packageToRemoveFromExclusion);
+		settings.setExcludedPackages(String.join(" ", list));
+		settings.sync();
 	}
 
 	public List<JavaPackage> getPackages() {

@@ -97,7 +97,7 @@ public class ClassGen {
 			imports.clear();
 		}
 		clsCode.add(clsBody);
-		return clsCode;
+		return clsCode.finish();
 	}
 
 	public void addClassCode(CodeWriter code) throws CodegenException {

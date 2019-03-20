@@ -33,7 +33,7 @@ public class JSources extends JNode {
 		removeAllChildren();
 		if (flatPackages) {
 			for (JavaPackage pkg : wrapper.getPackages()) {
-				add(new JPackage(pkg));
+				add(new JPackage(pkg, wrapper));
 			}
 		} else {
 			// build packages hierarchy
@@ -54,7 +54,7 @@ public class JSources extends JNode {
 	List<JPackage> getHierarchyPackages(List<JavaPackage> packages) {
 		Map<String, JPackage> pkgMap = new HashMap<>();
 		for (JavaPackage pkg : packages) {
-			addPackage(pkgMap, new JPackage(pkg));
+			addPackage(pkgMap, new JPackage(pkg, wrapper));
 		}
 		// merge packages without classes
 		boolean repeat;
@@ -114,7 +114,7 @@ public class JSources extends JNode {
 			pkg.setName(shortName);
 			JPackage prevPkg = pkgs.get(prevPart);
 			if (prevPkg == null) {
-				prevPkg = new JPackage(prevPart);
+				prevPkg = new JPackage(prevPart, wrapper);
 				addPackage(pkgs, prevPkg);
 			}
 			prevPkg.getInnerPackages().add(pkg);

@@ -15,12 +15,11 @@ import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
 import jadx.api.JavaClass;
-import jadx.core.codegen.CodeGen;
+import jadx.core.ProcessClass;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.tests.api.IntegrationTest;
@@ -99,15 +98,10 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		if (!decompile) {
 			return false;
 		}
-
-//		ProcessClass.process(classNode, passes, new CodeGen());
-		for (IDexTreeVisitor visitor : passes) {
-			DepthTraversal.visit(visitor, classNode);
-		}
 		try {
-			new CodeGen().visit(classNode);
+			ProcessClass.process(classNode, passes, true);
 		} catch (Exception e) {
-			throw new JadxRuntimeException("Codegen failed", e);
+			throw new JadxRuntimeException("Class process failed", e);
 		}
 		LOG.info("----------------------------------------------------------------");
 		LOG.info("Print class: {}, {}", classNode.getFullName(), classNode.dex());

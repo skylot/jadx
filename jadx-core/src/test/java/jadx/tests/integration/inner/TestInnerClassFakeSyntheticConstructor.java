@@ -3,7 +3,6 @@ package jadx.tests.integration.inner;
 import org.junit.Test;
 
 import jadx.core.dex.nodes.ClassNode;
-import jadx.tests.api.IntegrationTest;
 import jadx.tests.api.SmaliTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;

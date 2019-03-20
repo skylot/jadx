@@ -333,4 +333,5 @@ public class JadxSettings extends JadxCLIArgs {
 		settingsVersion = CURRENT_SETTINGS_VERSION;
 		sync();
 	}
+
 }

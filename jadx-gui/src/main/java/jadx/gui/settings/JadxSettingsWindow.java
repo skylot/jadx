@@ -247,10 +247,14 @@ public class JadxSettingsWindow extends JDialog {
 		JButton editExcludedPackages = new JButton(NLS.str("preferences.excludedPackages.button"));
 		editExcludedPackages.addActionListener(event -> {
 
+			String oldExcludedPackages = settings.getExcludedPackages();
 			String result = JOptionPane.showInputDialog(this, NLS.str("preferences.excludedPackages.editDialog"),
 					settings.getExcludedPackages());
 			if (result != null) {
 				settings.setExcludedPackages(result);
+				if (!oldExcludedPackages.equals(result)) {
+					needReload();
+				}
 			}
 		});
 

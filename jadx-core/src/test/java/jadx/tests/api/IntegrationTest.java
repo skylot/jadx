@@ -140,7 +140,7 @@ public abstract class IntegrationTest extends TestUtils {
 
 	protected void decompile(JadxDecompiler jadx, ClassNode cls) {
 		List<IDexTreeVisitor> passes = JadxInternalAccess.getPassList(jadx);
-		ProcessClass.process(cls, passes, new CodeGen());
+		ProcessClass.process(cls, passes, true);
 	}
 
 	protected void decompileWithoutUnload(JadxDecompiler jadx, ClassNode cls) {
@@ -154,7 +154,7 @@ public abstract class IntegrationTest extends TestUtils {
 
 	protected void generateClsCode(ClassNode cls) {
 		try {
-			new CodeGen().visit(cls);
+			CodeGen.generate(cls);
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail(e.getMessage());

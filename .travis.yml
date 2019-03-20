@@ -12,8 +12,7 @@ before_install:
   - chmod +x gradlew
 
 # override install to skip 'gradle assemble'
-install:
-  - true
+install: true
 
 env:
   global:
@@ -21,34 +20,21 @@ env:
     - JADX_LAST_TAG=$(git describe --abbrev=0 --tags)
     - JADX_VERSION="${JADX_LAST_TAG:1}-b$TRAVIS_BUILD_NUMBER-$(git rev-parse --short HEAD)"
 
-matrix:
+jdk:
+  - openjdk8
+  - oraclejdk8
+  - openjdk11
+
+script: ./gradlew clean build
+
+jobs:
   include:
-    - env: JDK=oracle-8
-      jdk: oraclejdk8
-    - env: JDK=openjdk11
-      jdk: openjdk11
+    - stage: deploy-unstable
+      jdk: openjdk8
+      if: branch = master AND repo = env(MAIN_REPO) AND type = push
+      script: bash scripts/travis-master.sh
 
-script:
-  - java -version
-  - ./gradlew clean build
-
-deploy:
-  - provider: script
-    skip_cleanup: true
-    on:
-      branch: master
-      tags: false
-      condition: $JDK = oracle-8
-    script: bash scripts/travis-master.sh
-
-  - provider: script
-    skip_cleanup: true
-    on:
-      branch: release
-      tags: false
-      condition: $JDK = oracle-8
-    script: bash scripts/travis-release.sh
-
-notifications:
-  email:
-    - skylot@gmail.com
+    - stage: deploy-release
+      jdk: openjdk8
+      if: branch = release AND repo = env(MAIN_REPO) AND type = push
+      script: bash scripts/travis-release.sh
