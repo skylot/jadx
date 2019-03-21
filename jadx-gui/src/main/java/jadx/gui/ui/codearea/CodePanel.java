@@ -32,7 +32,15 @@ public final class CodePanel extends ContentPanel {
 		add(searchBar, BorderLayout.NORTH);
 		add(scrollPane);
 
-		KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK);
+		int modifiers;
+		if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+			modifiers = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+		}
+		else {
+			modifiers = InputEvent.CTRL_DOWN_MASK;
+		}
+
+		KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_F, modifiers);
 		Utils.addKeyBinding(codeArea, key, "SearchAction", new SearchAction());
 	}
 
