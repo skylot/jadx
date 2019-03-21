@@ -41,7 +41,6 @@ public class TestGenerics6 extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsOne("for (A a : as) {"));
-		// TODO: fix iterable arg type (unexpected cast to A in bytecode)
-//		assertThat(code, containsOne("for (I i : is) {"));
+		assertThat(code, containsOne("for (I i : is) {"));
 	}
 }
