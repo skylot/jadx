@@ -21,13 +21,13 @@ public class TestCF4 extends AbstractTest {
 		f = null;
 		c = 2;
 		testComplexIf("abcdef", 0);
-		assertEquals(c, (int) 'c');
+		assertEquals(c, 'c');
 
 		d = "";
 		f = null;
 		c = 0;
 		testComplexIf("abcdef", 0);
-		assertEquals(c, (int) 'a');
+		assertEquals(c, 'a');
 
 		d = "";
 		f = "1";
