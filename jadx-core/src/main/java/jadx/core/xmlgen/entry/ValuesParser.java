@@ -215,7 +215,7 @@ public class ValuesParser extends ParserConstants {
 	}
 
 	private static String floatToString(float value) {
-		return doubleToString((double) value);
+		return doubleToString(value);
 	}
 
 	public static Map<Integer, String> getAndroidResMap() {

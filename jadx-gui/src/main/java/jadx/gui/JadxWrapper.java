@@ -53,7 +53,7 @@ public class JadxWrapper {
 					while (ex.isTerminating()) {
 						long total = ex.getTaskCount();
 						long done = ex.getCompletedTaskCount();
-						progressMonitor.setProgress((int) (done * 100.0 / (double) total));
+						progressMonitor.setProgress((int) (done * 100.0 / total));
 						Thread.sleep(500);
 					}
 					progressMonitor.close();
