@@ -37,7 +37,6 @@ import jadx.core.utils.CodegenUtils;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.CodegenException;
-import net.bytebuddy.description.modifier.SynchronizationState;
 
 public class ClassGen {
 
