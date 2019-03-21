@@ -90,7 +90,7 @@ public class MethodGen {
 			code.add(mth.isVirtual() ? "/* virtual */ " : "/* direct */ ");
 		}
 
-		if (classGen.addGenericMap(code, mth.getGenericMap())) {
+		if (classGen.addGenericMap(code, mth.getGenericMap(), false)) {
 			code.add(' ');
 		}
 		if (ai.isConstructor()) {

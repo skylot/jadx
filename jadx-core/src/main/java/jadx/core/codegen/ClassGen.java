@@ -144,7 +144,7 @@ public class ClassGen {
 		clsCode.attachDefinition(cls);
 		clsCode.add(cls.getShortName());
 
-		addGenericMap(clsCode, cls.getGenericMap());
+		addGenericMap(clsCode, cls.getGenericMap(), true);
 		clsCode.add(' ');
 
 		ArgType sup = cls.getSuperClass();
@@ -175,7 +175,7 @@ public class ClassGen {
 		}
 	}
 
-	public boolean addGenericMap(CodeWriter code, Map<ArgType, List<ArgType>> gmap) {
+	public boolean addGenericMap(CodeWriter code, Map<ArgType, List<ArgType>> gmap, boolean classDeclaration) {
 		if (gmap == null || gmap.isEmpty()) {
 			return false;
 		}
@@ -200,6 +200,10 @@ public class ClassGen {
 						code.add(g.getObject());
 					} else {
 						useClass(code, g);
+
+						if (classDeclaration && !cls.getAlias().isInner()) {
+							addImport(ClassInfo.extCls(cls.root(), g));
+						}
 					}
 					if (it.hasNext()) {
 						code.add(" & ");
