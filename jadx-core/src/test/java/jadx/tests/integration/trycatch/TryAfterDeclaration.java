@@ -1,7 +1,7 @@
 package jadx.tests.integration.trycatch;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.FileInputStream;
 import java.io.IOException;
