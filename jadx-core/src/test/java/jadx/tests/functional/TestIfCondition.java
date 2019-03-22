@@ -20,7 +20,7 @@ import static jadx.core.dex.regions.conditions.IfCondition.merge;
 import static jadx.core.dex.regions.conditions.IfCondition.not;
 import static jadx.core.dex.regions.conditions.IfCondition.simplify;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestIfCondition {
 

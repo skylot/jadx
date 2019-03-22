@@ -40,10 +40,10 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public abstract class IntegrationTest extends TestUtils {
 
@@ -186,11 +186,13 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	protected static void checkCode(ClassNode cls) {
-		assertTrue("Inconsistent cls: " + cls,
-				!cls.contains(AFlag.INCONSISTENT_CODE) && !cls.contains(AType.JADX_ERROR));
+		assertTrue(
+				!cls.contains(AFlag.INCONSISTENT_CODE) && !cls.contains(AType.JADX_ERROR),
+				"Inconsistent cls: " + cls);
 		for (MethodNode mthNode : cls.getMethods()) {
-			assertTrue("Inconsistent method: " + mthNode,
-					!mthNode.contains(AFlag.INCONSISTENT_CODE) && !mthNode.contains(AType.JADX_ERROR));
+			assertTrue(
+					!mthNode.contains(AFlag.INCONSISTENT_CODE) && !mthNode.contains(AType.JADX_ERROR),
+					"Inconsistent method: " + mthNode);
 		}
 		assertThat(cls.getCode().toString(), not(containsString("inconsistent")));
 	}
@@ -266,7 +268,7 @@ public abstract class IntegrationTest extends TestUtils {
 		try {
 			dynamicCompiler = new DynamicCompiler(cls);
 			boolean result = dynamicCompiler.compile();
-			assertTrue("Compilation failed", result);
+			assertTrue(result, "Compilation failed");
 			System.out.println("Compilation: PASSED");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -284,7 +286,7 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	public Method getReflectMethod(String method, Class<?>... types) {
-		assertNotNull("dynamicCompiler not ready", dynamicCompiler);
+		assertNotNull(dynamicCompiler, "dynamicCompiler not ready");
 		try {
 			return dynamicCompiler.getMethod(method, types);
 		} catch (Exception e) {
@@ -295,8 +297,8 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	public Object invoke(Method mth, Object... args) throws Exception {
-		assertNotNull("dynamicCompiler not ready", dynamicCompiler);
-		assertNotNull("unknown method", mth);
+		assertNotNull(dynamicCompiler, "dynamicCompiler not ready");
+		assertNotNull(mth, "unknown method");
 		return dynamicCompiler.invoke(mth, args);
 	}
 

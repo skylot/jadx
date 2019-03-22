@@ -8,7 +8,7 @@ import jadx.core.utils.files.FileUtils;
 
 import static jadx.core.utils.files.FileUtils.toFile;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class JadxArgsValidatorOutDirsTest {
 

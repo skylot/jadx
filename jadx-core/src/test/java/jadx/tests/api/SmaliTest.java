@@ -1,5 +1,8 @@
 package jadx.tests.api;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
@@ -12,9 +15,6 @@ import org.jf.smali.SmaliOptions;
 
 import jadx.api.JadxDecompiler;
 import jadx.core.dex.nodes.ClassNode;
-
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
 
 public abstract class SmaliTest extends IntegrationTest {
 
