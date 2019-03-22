@@ -92,10 +92,11 @@ public class RenameVisitor extends AbstractVisitor {
 		if (firstChar == '$') {
 			return 'C' + NameMapper.removeInvalidCharsMiddle(clsName);
 		}
-		if (!NameMapper.isValidIdentifier(clsName)) {
-			return 'C' + clsName;
+		String cleanClsName = NameMapper.removeInvalidChars(clsName, "C");
+		if (!NameMapper.isValidIdentifier(cleanClsName)) {
+			return 'C' + cleanClsName;
 		}
-		return NameMapper.removeInvalidChars(clsName, "C");
+		return cleanClsName;
 	}
 
 	private void checkFields(ClassNode cls) {
