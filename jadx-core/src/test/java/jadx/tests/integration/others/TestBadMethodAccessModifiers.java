@@ -24,10 +24,10 @@ public class TestBadMethodAccessModifiers extends SmaliTest {
 			}
 		}
 	*/
+
 	@Test
 	public void test() {
-		ClassNode cls = getClassNodeFromSmaliFiles("others", "TestBadMethodAccessModifiers", "TestCls",
-				"TestCls$A", "TestCls$B", "TestCls");
+		ClassNode cls = getClassNodeFromSmaliFiles("others", "TestBadMethodAccessModifiers", "TestCls");
 		String code = cls.getCode().toString();
 
 		assertThat(code, not(containsString("protected void test() {")));
