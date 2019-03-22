@@ -8,7 +8,7 @@ import jadx.tests.api.SmaliTest;
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static jadx.tests.api.utils.JadxMatchers.countString;
 import static org.hamcrest.Matchers.anyOf;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestLoopCondition5 extends SmaliTest {
 

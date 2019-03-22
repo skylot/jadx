@@ -7,7 +7,7 @@ import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.countString;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestSwitch3 extends IntegrationTest {
 

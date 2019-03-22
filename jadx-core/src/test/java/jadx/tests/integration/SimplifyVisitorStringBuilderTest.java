@@ -7,7 +7,7 @@ import jadx.tests.api.IntegrationTest;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Test the StringBuilder simplification part of {@link SimplifyVisitor}

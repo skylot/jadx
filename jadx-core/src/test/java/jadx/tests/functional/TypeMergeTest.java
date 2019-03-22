@@ -14,9 +14,9 @@ import static jadx.core.dex.instructions.args.ArgType.array;
 import static jadx.core.dex.instructions.args.ArgType.genericType;
 import static jadx.core.dex.instructions.args.ArgType.object;
 import static jadx.core.dex.instructions.args.ArgType.unknown;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -115,10 +115,10 @@ public class TypeMergeTest {
 		ArgType res = ArgType.merge(dex, t1, t2);
 		String msg = format(t1, t2, exp, res);
 		if (exp == null) {
-			assertNull("Incorrect accept: " + msg, res);
+			assertNull(res, "Incorrect accept: " + msg);
 		} else {
-			assertNotNull("Incorrect reject: " + msg, res);
-			assertTrue("Incorrect result: " + msg, exp.equals(res));
+			assertNotNull(res, "Incorrect reject: " + msg);
+			assertTrue(exp.equals(res), "Incorrect result: " + msg);
 		}
 	}
 
