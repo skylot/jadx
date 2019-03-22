@@ -3,7 +3,7 @@ package jadx.tests.functional;
 import java.io.IOException;
 
 import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.clsp.ClspGraph;
 import jadx.core.dex.instructions.args.ArgType;

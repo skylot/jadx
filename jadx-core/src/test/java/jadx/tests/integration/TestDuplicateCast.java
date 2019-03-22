@@ -2,7 +2,7 @@ package jadx.tests.integration;
 
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnWrapArg;

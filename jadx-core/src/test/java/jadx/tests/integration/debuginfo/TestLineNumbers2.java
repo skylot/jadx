@@ -3,7 +3,7 @@ package jadx.tests.integration.debuginfo;
 import java.lang.ref.WeakReference;
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.nodes.ClassNode;

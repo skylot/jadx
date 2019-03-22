@@ -1,6 +1,6 @@
 package jadx.tests.integration.inner;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.tests.api.IntegrationTest;
 

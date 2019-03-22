@@ -3,7 +3,7 @@ package jadx.tests.integration.others;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;

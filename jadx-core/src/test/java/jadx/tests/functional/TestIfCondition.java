@@ -1,6 +1,6 @@
 package jadx.tests.functional;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IfOp;

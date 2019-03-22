@@ -1,6 +1,6 @@
 package jadx.tests.functional;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.export.TemplateFile;
 

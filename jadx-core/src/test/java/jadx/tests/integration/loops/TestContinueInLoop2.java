@@ -1,6 +1,6 @@
 package jadx.tests.integration.loops;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.instructions.InsnType;

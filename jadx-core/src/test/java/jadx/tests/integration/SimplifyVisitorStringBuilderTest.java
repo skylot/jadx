@@ -4,7 +4,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.visitors.SimplifyVisitor;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.tests.api.IntegrationTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertThat;
