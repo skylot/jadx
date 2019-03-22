@@ -25,7 +25,7 @@ public class TestGenerics6 extends IntegrationTest {
 			}
 		}
 
-		private interface  I {
+		private interface I {
 			void f();
 		}
 
