@@ -33,9 +33,7 @@ public class TestSyntheticMthRename extends SmaliTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNodeFromSmaliFiles("inner", "TestSyntheticMthRename", "TestCls",
-				"TestCls", "TestCls$I", "TestCls$A"
-		);
+		ClassNode cls = getClassNodeFromSmaliFiles("inner", "TestSyntheticMthRename", "TestCls");
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsOne("public String call(Runnable... p) {"));

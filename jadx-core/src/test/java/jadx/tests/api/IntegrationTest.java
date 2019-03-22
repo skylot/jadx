@@ -91,9 +91,21 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	public ClassNode getClassNodeFromFile(File file, String clsName) {
+		JadxDecompiler d = loadFiles(Collections.singletonList(file));
+		RootNode root = JadxInternalAccess.getRoot(d);
+
+		ClassNode cls = root.searchClassByName(clsName);
+		assertThat("Class not found: " + clsName, cls, notNullValue());
+		assertThat(clsName, is(cls.getClassInfo().getFullName()));
+
+		decompileAndCheckCls(d, cls);
+		return cls;
+	}
+
+	protected JadxDecompiler loadFiles(List<File> inputFiles) {
 		JadxDecompiler d = null;
 		try {
-			args.setInputFiles(Collections.singletonList(file));
+			args.setInputFiles(inputFiles);
 			d = new JadxDecompiler(args);
 			d.load();
 		} catch (Exception e) {
@@ -102,11 +114,10 @@ public abstract class IntegrationTest extends TestUtils {
 		}
 		RootNode root = JadxInternalAccess.getRoot(d);
 		insertResources(root);
+		return d;
+	}
 
-		ClassNode cls = root.searchClassByName(clsName);
-		assertThat("Class not found: " + clsName, cls, notNullValue());
-		assertThat(clsName, is(cls.getClassInfo().getFullName()));
-
+	protected void decompileAndCheckCls(JadxDecompiler d, ClassNode cls) {
 		if (unloadCls) {
 			decompile(d, cls);
 		} else {
@@ -119,8 +130,7 @@ public abstract class IntegrationTest extends TestUtils {
 
 		checkCode(cls);
 		compile(cls);
-		runAutoCheck(clsName);
-		return cls;
+		runAutoCheck(cls.getClassInfo().getFullName());
 	}
 
 	private void insertResources(RootNode root) {

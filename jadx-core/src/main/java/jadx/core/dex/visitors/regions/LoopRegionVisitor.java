@@ -116,7 +116,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		// all checks passed
 		initInsn.add(AFlag.SKIP);
 		incrInsn.add(AFlag.SKIP);
-		LoopType arrForEach = checkArrayForEach(mth, initInsn, incrInsn, condition);
+		LoopType arrForEach = checkArrayForEach(mth, loopRegion, initInsn, incrInsn, condition);
 		if (arrForEach != null) {
 			loopRegion.setType(arrForEach);
 			return true;
@@ -125,7 +125,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		return true;
 	}
 
-	private static LoopType checkArrayForEach(MethodNode mth, InsnNode initInsn, InsnNode incrInsn,
+	private static LoopType checkArrayForEach(MethodNode mth, LoopRegion loopRegion, InsnNode initInsn, InsnNode incrInsn,
 	                                          IfCondition condition) {
 		if (!(incrInsn instanceof ArithNode)) {
 			return null;
@@ -184,6 +184,9 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		}
 		RegisterArg iterVar = arrGetInsn.getResult();
 		if (iterVar == null) {
+			return null;
+		}
+		if (!usedOnlyInLoop(mth, loopRegion, iterVar)) {
 			return null;
 		}
 
