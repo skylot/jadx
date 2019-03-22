@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import jadx.core.dex.attributes.AFlag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -225,6 +226,8 @@ public class Deobfuscator {
 			clsInfo.rename(cls.dex().root(), fullName);
 		}
 		for (FieldNode field : cls.getFields()) {
+			if (field.contains(AFlag.DONT_RENAME))
+			    continue;
 			renameField(field);
 		}
 		for (MethodNode mth : cls.getMethods()) {

@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.android.dx.rop.code.AccessFlags;
+import jadx.core.dex.attributes.AFlag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -124,6 +125,7 @@ public class AndroidResourcesUtils {
 			if (fieldNode != null
 					&& !fieldNode.getName().equals(resName)
 					&& NameMapper.isValidIdentifier(resName)) {
+				fieldNode.add(AFlag.DONT_RENAME);
 				fieldNode.getFieldInfo().setAlias(resName);
 			}
 		}
