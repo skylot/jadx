@@ -202,10 +202,10 @@ public class ResXmlGen {
 
 	private String getFileName(ResourceEntry ri) {
 		StringBuilder sb = new StringBuilder();
-		String locale = ri.getConfig().getLocale();
+		String qualifiers = ri.getConfig().getQualifiers();
 		sb.append("res/values");
-		if (!locale.isEmpty()) {
-			sb.append('-').append(locale);
+		if (!qualifiers.isEmpty()) {
+			sb.append(qualifiers);
 		}
 		sb.append('/');
 		sb.append(ri.getTypeName());
