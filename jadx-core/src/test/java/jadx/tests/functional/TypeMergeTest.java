@@ -115,10 +115,10 @@ public class TypeMergeTest {
 		ArgType res = ArgType.merge(dex, t1, t2);
 		String msg = format(t1, t2, exp, res);
 		if (exp == null) {
-			assertNull("Incorrect accept: " + msg, res);
+			assertNull(res, "Incorrect accept: " + msg);
 		} else {
-			assertNotNull("Incorrect reject: " + msg, res);
-			assertTrue("Incorrect result: " + msg, exp.equals(res));
+			assertNotNull(res, "Incorrect reject: " + msg);
+			assertTrue(exp.equals(res), "Incorrect result: " + msg);
 		}
 	}
 
