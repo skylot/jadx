@@ -19,6 +19,7 @@ public enum AFlag {
 	DONT_SHRINK,
 	DONT_INLINE,
 	DONT_GENERATE,
+	DONT_RENAME, // do not rename during deobfuscation
 	SKIP,
 	REMOVE,
 

@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import jadx.core.dex.attributes.AFlag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -225,6 +226,8 @@ public class Deobfuscator {
 			clsInfo.rename(cls.dex().root(), fullName);
 		}
 		for (FieldNode field : cls.getFields()) {
+			if (field.contains(AFlag.DONT_RENAME))
+			    continue;
 			renameField(field);
 		}
 		for (MethodNode mth : cls.getMethods()) {
@@ -404,12 +407,6 @@ public class Deobfuscator {
 		FieldInfo fieldInfo = field.getFieldInfo();
 		String alias = fldMap.get(fieldInfo);
 		if (alias != null) {
-			return alias;
-		}
-		//check if field already has alias, because alias can be set from AndroidResourcesUtils
-		alias = fieldInfo.getAlias();
-		if (alias != null) {
-			fldMap.put(fieldInfo, alias);
 			return alias;
 		}
 		alias = deobfPresets.getForFld(fieldInfo);
