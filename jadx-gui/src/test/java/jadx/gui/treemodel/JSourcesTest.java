@@ -3,7 +3,7 @@ package jadx.gui.treemodel;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import jadx.api.Factory;
@@ -26,7 +26,7 @@ public class JSourcesTest {
 	private JSources sources;
 	private JadxDecompiler decompiler;
 
-	@Before
+	@BeforeEach
 	public void init() {
 		JRoot root = mock(JRoot.class);
 		when(root.isFlatPackages()).thenReturn(false);

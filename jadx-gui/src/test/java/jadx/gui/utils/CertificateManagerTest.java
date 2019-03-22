@@ -8,7 +8,7 @@ import java.security.cert.Certificate;
 import java.util.Collection;
 
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class CertificateManagerTest {
@@ -32,7 +32,7 @@ public class CertificateManagerTest {
 		}
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		emptyPath = getResourcePath(EMPTY);
 		certificateManagerRSA = getCertificateManger(RSA);
