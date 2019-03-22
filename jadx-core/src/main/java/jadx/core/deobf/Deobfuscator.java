@@ -406,6 +406,12 @@ public class Deobfuscator {
 		if (alias != null) {
 			return alias;
 		}
+		//check if field already has alias, because alias can be set from AndroidResourcesUtils
+		alias = fieldInfo.getAlias();
+		if (alias != null) {
+			fldMap.put(fieldInfo, alias);
+			return alias;
+		}
 		alias = deobfPresets.getForFld(fieldInfo);
 		if (alias != null) {
 			fldMap.put(fieldInfo, alias);
