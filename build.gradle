@@ -46,6 +46,10 @@ allprojects {
         testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.4.1'
     }
 
+    test {
+        useJUnitPlatform()
+    }
+
     repositories {
         mavenLocal()
         mavenCentral()
