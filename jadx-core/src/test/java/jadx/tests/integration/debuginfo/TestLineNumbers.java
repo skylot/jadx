@@ -1,6 +1,6 @@
 package jadx.tests.integration.debuginfo;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.nodes.LineAttrNode;

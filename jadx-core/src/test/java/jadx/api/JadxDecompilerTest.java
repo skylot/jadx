@@ -2,13 +2,13 @@ package jadx.api;
 
 import java.io.File;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 public class JadxDecompilerTest {
 
 	@Test
-	@Ignore
+	@Disabled
 	public void testExampleUsage() {
 		JadxArgs args = new JadxArgs();
 		args.getInputFiles().add(new File("test.apk"));

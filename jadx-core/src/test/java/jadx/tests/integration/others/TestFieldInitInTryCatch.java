@@ -3,7 +3,7 @@ package jadx.tests.integration.others;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;

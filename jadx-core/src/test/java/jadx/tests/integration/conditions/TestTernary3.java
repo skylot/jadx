@@ -1,6 +1,6 @@
 package jadx.tests.integration.conditions;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.Named;

@@ -2,7 +2,7 @@ package jadx.tests.integration.variables;
 
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 
 import jadx.core.dex.nodes.ClassNode;

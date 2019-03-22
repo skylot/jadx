@@ -1,22 +1,22 @@
 package jadx.tests.functional;
 
-import java.io.IOException;
-
-import org.junit.Before;
-import org.junit.Test;
-
-import jadx.core.clsp.ClspGraph;
-import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.DexNode;
-import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.exceptions.DecodeException;
-
 import static jadx.core.dex.instructions.args.ArgType.STRING;
 import static jadx.core.dex.instructions.args.ArgType.object;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import jadx.core.clsp.ClspGraph;
+import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.nodes.DexNode;
+import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.exceptions.DecodeException;
 
 public class JadxClasspathTest {
 
@@ -26,7 +26,7 @@ public class JadxClasspathTest {
 	private DexNode dex;
 	private ClspGraph clsp;
 
-	@Before
+	@BeforeEach
 	public void initClsp() throws IOException, DecodeException {
 		clsp = new ClspGraph();
 		clsp.load();

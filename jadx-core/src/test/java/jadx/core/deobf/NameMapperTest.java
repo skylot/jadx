@@ -1,6 +1,6 @@
 package jadx.core.deobf;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static jadx.core.deobf.NameMapper.isValidIdentifier;
 import static jadx.core.deobf.NameMapper.removeInvalidChars;
