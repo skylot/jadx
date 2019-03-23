@@ -33,11 +33,14 @@ public class JadxCLIArgsTest {
 	@Test
 	public void testOptionsOverride() {
 		assertThat(override(new JadxCLIArgs(), "--no-imports").isUseImports(), is(false));
+		assertThat(override(new JadxCLIArgs(), "--no-debug-info").isDebugInfo(), is(false));
 		assertThat(override(new JadxCLIArgs(), "").isUseImports(), is(true));
 
 		JadxCLIArgs args = new JadxCLIArgs();
 		args.useImports = false;
 		assertThat(override(args, "--no-imports").isUseImports(), is(false));
+		args.debugInfo = false;
+		assertThat(override(args, "--no-debug-info").isDebugInfo(), is(false));
 
 		args = new JadxCLIArgs();
 		args.useImports = false;
