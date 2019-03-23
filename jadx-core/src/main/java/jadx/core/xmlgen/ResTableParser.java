@@ -2,7 +2,6 @@ package jadx.core.xmlgen;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -216,8 +215,7 @@ public class ResTableParser extends CommonBinaryParser {
 	}
 
 	private void parseEntry(PackageChunk pkg, int typeId, int entryId, EntryConfig config) throws IOException {
-		/* int size = */
-		is.readInt16();
+		int size = is.readInt16();
 		int flags = is.readInt16();
 		int key = is.readInt32();
 
@@ -227,17 +225,17 @@ public class ResTableParser extends CommonBinaryParser {
 		ResourceEntry ri = new ResourceEntry(resRef, pkg.getName(), typeName, keyName);
 		ri.setConfig(config);
 
-		if ((flags & FLAG_COMPLEX) == 0) {
-			ri.setSimpleValue(parseValue());
-		} else {
+		if ((flags & FLAG_COMPLEX) != 0 || size == 16) {
 			int parentRef = is.readInt32();
-			ri.setParentRef(parentRef);
 			int count = is.readInt32();
+			ri.setParentRef(parentRef);
 			List<RawNamedValue> values = new ArrayList<>(count);
 			for (int i = 0; i < count; i++) {
 				values.add(parseValueMap());
 			}
 			ri.setNamedValues(values);
+		} else {
+			ri.setSimpleValue(parseValue());
 		}
 		resStorage.add(ri);
 	}
@@ -256,9 +254,8 @@ public class ResTableParser extends CommonBinaryParser {
 	}
 
 	private EntryConfig parseConfig() throws IOException {
+		long start = is.getPos();
 		int size = is.readInt32();
-		int read = 28;
-
 		if (size < 28) {
 			throw new IOException("Config size < 28");
 		}
@@ -273,19 +270,18 @@ public class ResTableParser extends CommonBinaryParser {
 
 		byte orientation = (byte) is.readInt8();
 		byte touchscreen = (byte) is.readInt8();
-
 		int density = is.readInt16();
 
 		byte keyboard = (byte) is.readInt8();
 		byte navigation = (byte) is.readInt8();
 		byte inputFlags = (byte) is.readInt8();
-		/* inputPad0 */is.readInt8();
+		is.readInt8(); // inputPad0
 
 		short screenWidth = (short) is.readInt16();
 		short screenHeight = (short) is.readInt16();
 
 		short sdkVersion = (short) is.readInt16();
-		/* minorVersion, now must always be 0 */is.readInt16();
+		is.readInt16(); // minorVersion must always be 0
 
 		byte screenLayout = 0;
 		byte uiMode = 0;
@@ -294,7 +290,6 @@ public class ResTableParser extends CommonBinaryParser {
 			screenLayout = (byte) is.readInt8();
 			uiMode = (byte) is.readInt8();
 			smallestScreenWidthDp = (short) is.readInt16();
-			read = 32;
 		}
 
 		short screenWidthDp = 0;
@@ -302,7 +297,6 @@ public class ResTableParser extends CommonBinaryParser {
 		if (size >= 36) {
 			screenWidthDp = (short) is.readInt16();
 			screenHeightDp = (short) is.readInt16();
-			read = 36;
 		}
 
 		char[] localeScript = null;
@@ -310,7 +304,6 @@ public class ResTableParser extends CommonBinaryParser {
 		if (size >= 48) {
 			localeScript = readScriptOrVariantChar(4).toCharArray();
 			localeVariant = readScriptOrVariantChar(8).toCharArray();
-			read = 48;
 		}
 
 		byte screenLayout2 = 0;
@@ -319,36 +312,9 @@ public class ResTableParser extends CommonBinaryParser {
 			screenLayout2 = (byte) is.readInt8();
 			colorMode = (byte) is.readInt8();
 			is.readInt16(); // reserved padding
-			read = 52;
 		}
 
-		if (size >= 56) {
-			is.readInt32();
-			read = 56;
-		}
-
-		int exceedingSize = size - KNOWN_CONFIG_BYTES;
-		if (exceedingSize > 0) {
-			byte[] buf = new byte[exceedingSize];
-			read += exceedingSize;
-			is.readFully(buf);
-			BigInteger exceedingBI = new BigInteger(1, buf);
-
-			if (exceedingBI.equals(BigInteger.ZERO)) {
-				LOG.info(String
-						.format("Config flags size > %d, but exceeding bytes are all zero, so it should be ok.",
-								KNOWN_CONFIG_BYTES));
-			} else {
-				LOG.warn(String.format("Config flags size > %d. Size = %d. Exceeding bytes: 0x%X.",
-						KNOWN_CONFIG_BYTES, size, exceedingBI));
-				isInvalid = true;
-			}
-		}
-
-		int remainingSize = size - read;
-		if (remainingSize > 0) {
-			is.skip(remainingSize);
-		}
+		is.skipToPos(start + size, "Config skip trailing bytes");
 
 		return new EntryConfig(mcc, mnc, language, country,
 				orientation, touchscreen, density, keyboard, navigation,
@@ -358,7 +324,7 @@ public class ResTableParser extends CommonBinaryParser {
 				colorMode, isInvalid, size);
 	}
 
-	private char[] unpackLocaleOrRegion(byte in0, byte in1, char base) throws IOException {
+	private char[] unpackLocaleOrRegion(byte in0, byte in1, char base) {
 		// check high bit, if so we have a packed 3 letter code
 		if (((in0 >> 7) & 1) == 1) {
 			int first = in1 & 0x1F;
@@ -367,23 +333,22 @@ public class ResTableParser extends CommonBinaryParser {
 
 			// since this function handles languages & regions, we add the value(s) to the base char
 			// which is usually 'a' or '0' depending on language or region.
-			return new char[] { (char) (first + base), (char) (second + base), (char) (third + base) };
+			return new char[]{(char) (first + base), (char) (second + base), (char) (third + base)};
 		}
-		return new char[] { (char) in0, (char) in1 };
+		return new char[]{(char) in0, (char) in1};
 	}
 
 	private String readScriptOrVariantChar(int length) throws IOException {
-		StringBuilder string = new StringBuilder(16);
-
-		while(length-- != 0) {
+		long start = is.getPos();
+		StringBuilder sb = new StringBuilder(16);
+		for (int i = 0; i < length; i++) {
 			short ch = (short) is.readInt8();
 			if (ch == 0) {
 				break;
 			}
-			string.append((char) ch);
+			sb.append((char) ch);
 		}
-		is.skip(length);
-
-		return string.toString();
+		is.skipToPos(start + length, "readScriptOrVariantChar");
+		return sb.toString();
 	}
 }
