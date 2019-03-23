@@ -99,8 +99,10 @@ public class JadxWrapper {
 
 	public List<String> getExcludedPackages() {
 		String excludedPackages = settings.getExcludedPackages().trim();
-		return Arrays.asList(excludedPackages.split("[ ]+"))
-				.stream().filter(s -> !s.isEmpty()).collect(Collectors.toList());
+		if (excludedPackages.isEmpty()) {
+			return Collections.emptyList();
+		}
+		return Arrays.asList(excludedPackages.split("[ ]+"));
 	}
 
 	public void addExcludedPackage(String packageToExclude) {
