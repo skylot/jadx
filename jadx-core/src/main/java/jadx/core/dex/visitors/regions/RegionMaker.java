@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -192,7 +193,7 @@ public class RegionMaker {
 				// add 'break' instruction before path cross between main loop exit and sub-exit
 				for (Edge exitEdge : loop.getExitEdges()) {
 					if (exitBlocks.contains(exitEdge.getSource())) {
-						insertBreak(stack, loopExit, exitEdge);
+						insertLoopBreak(stack, loop, loopExit, exitEdge);
 					}
 				}
 			}
@@ -288,12 +289,41 @@ public class RegionMaker {
 					}
 				}
 			}
+			if (found && !checkLoopExits(loop, block)) {
+				found = false;
+			}
 			if (found) {
 				return loopRegion;
 			}
 		}
 		// no exit found => endless loop
 		return null;
+	}
+
+	private boolean checkLoopExits(LoopInfo loop, BlockNode mainExitBlock) {
+		List<Edge> exitEdges = loop.getExitEdges();
+		if (exitEdges.size() < 2) {
+			return true;
+		}
+		Optional<Edge> mainEdgeOpt = exitEdges.stream().filter(edge -> edge.getSource() == mainExitBlock).findFirst();
+		if (!mainEdgeOpt.isPresent()) {
+			throw new JadxRuntimeException("Not found exit edge by exit block: " + mainExitBlock);
+		}
+		Edge mainExitEdge = mainEdgeOpt.get();
+		BlockNode mainOutBlock = skipSyntheticSuccessor(mainExitEdge.getTarget());
+		for (Edge exitEdge : exitEdges) {
+			if (exitEdge != mainExitEdge) {
+				BlockNode outBlock = skipSyntheticSuccessor(exitEdge.getTarget());
+				// all exit paths must be same or don't cross (will be inside loop)
+				if (!isEqualPaths(mainOutBlock, outBlock)) {
+					BlockNode crossBlock = BlockUtils.getPathCross(mth, mainOutBlock, outBlock);
+					if (crossBlock != null) {
+						return false;
+					}
+				}
+			}
+		}
+		return true;
 	}
 
 	private BlockNode makeEndlessLoop(IRegion curRegion, RegionStack stack, LoopInfo loop, BlockNode loopStart) {
@@ -310,7 +340,7 @@ public class RegionMaker {
 		if (exitEdges.size() == 1) {
 			Edge exitEdge = exitEdges.get(0);
 			BlockNode exit = exitEdge.getTarget();
-			if (insertBreak(stack, exit, exitEdge)) {
+			if (insertLoopBreak(stack, loop, exit, exitEdge)) {
 				BlockNode nextBlock = getNextBlock(exit);
 				if (nextBlock != null) {
 					stack.addExit(nextBlock);
@@ -324,10 +354,10 @@ public class RegionMaker {
 				for (BlockNode block : blocks) {
 					if (BlockUtils.isPathExists(exit, block)) {
 						stack.addExit(block);
-						insertBreak(stack, block, exitEdge);
+						insertLoopBreak(stack, loop, block, exitEdge);
 						out = block;
 					} else {
-						insertBreak(stack, exit, exitEdge);
+						insertLoopBreak(stack, loop, exit, exitEdge);
 					}
 				}
 			}
@@ -386,7 +416,7 @@ public class RegionMaker {
 		return true;
 	}
 
-	private boolean insertBreak(RegionStack stack, BlockNode loopExit, Edge exitEdge) {
+	private boolean insertLoopBreak(RegionStack stack, LoopInfo loop, BlockNode loopExit, Edge exitEdge) {
 		BlockNode exit = exitEdge.getTarget();
 		BlockNode insertBlock = null;
 		boolean confirm = false;
@@ -425,6 +455,7 @@ public class RegionMaker {
 			return false;
 		}
 		InsnNode breakInsn = new InsnNode(InsnType.BREAK, 0);
+		breakInsn.addAttr(AType.LOOP, loop);
 		EdgeInsnAttr.addEdgeInsn(insertBlock, insertBlock.getSuccessors().get(0), breakInsn);
 		stack.addExit(exit);
 		// add label to 'break' if needed

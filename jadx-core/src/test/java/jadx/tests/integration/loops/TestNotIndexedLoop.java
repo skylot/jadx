@@ -14,22 +14,28 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 
-public class TestIndexedLoop extends IntegrationTest {
+public class TestNotIndexedLoop extends IntegrationTest {
 
 	public static class TestCls {
 
 		public File test(File[] files) {
-			File file = null;
+			File file;
 			if (files != null) {
 				int length = files.length;
 				if (length == 0) {
 					file = null;
 				} else {
-					for (int i = 0; i < length; i++) {
+					int i = 0;
+					while (true) {
+						if (i >= length) {
+							file = null;
+							break;
+						}
 						file = files[i];
 						if (file.getName().equals("f")) {
 							break;
 						}
+						i++;
 					}
 				}
 			} else {
@@ -55,8 +61,8 @@ public class TestIndexedLoop extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, not(containsString("for (File file :")));
-		assertThat(code, containsOne("for (int i = 0; i < length; i++) {"));
+		assertThat(code, not(containsString("for (")));
+		assertThat(code, containsOne("while (true) {"));
 	}
 
 	@Test
@@ -65,7 +71,7 @@ public class TestIndexedLoop extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, not(containsString("for (File file :")));
-		assertThat(code, containsOne("for (int i = 0; i < length; i++) {"));
+		assertThat(code, not(containsString("for (")));
+		assertThat(code, containsOne("while (true) {"));
 	}
 }

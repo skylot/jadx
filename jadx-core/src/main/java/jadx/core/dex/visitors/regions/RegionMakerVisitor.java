@@ -104,6 +104,13 @@ public class RegionMakerVisitor extends AbstractVisitor {
 		if (!insnAttr.getStart().equals(last)) {
 			return;
 		}
+		if (last instanceof BlockNode) {
+			BlockNode block = (BlockNode) last;
+			if (block.getInstructions().isEmpty()) {
+				block.getInstructions().add(insnAttr.getInsn());
+				return;
+			}
+		}
 		List<InsnNode> insns = Collections.singletonList(insnAttr.getInsn());
 		region.add(new InsnContainer(insns));
 	}
