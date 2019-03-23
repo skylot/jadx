@@ -394,7 +394,7 @@ public class Deobfuscator {
 				return null;
 			}
 		}
-		ClassNode otherCls = cls.dex().root().searchClassByName(cls.getPackage() + "." + name);
+		ClassNode otherCls = cls.dex().root().searchClassByName(cls.getPackage() + '.' + name);
 		if (otherCls != null) {
 			return null;
 		}
@@ -484,7 +484,7 @@ public class Deobfuscator {
 
 	private String prepareNamePart(String name) {
 		if (name.length() > maxLength) {
-			return "x" + Integer.toHexString(name.hashCode());
+			return 'x' + Integer.toHexString(name.hashCode());
 		}
 		return NameMapper.removeInvalidCharsMiddle(name);
 	}

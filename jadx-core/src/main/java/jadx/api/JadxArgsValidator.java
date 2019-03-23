@@ -77,7 +77,7 @@ public class JadxArgsValidator {
 		if (pos != -1) {
 			outDirName = name.substring(0, pos);
 		} else {
-			outDirName = name + "-" + JadxArgs.DEFAULT_OUT_DIR;
+			outDirName = name + '-' + JadxArgs.DEFAULT_OUT_DIR;
 		}
 		LOG.info("output directory: {}", outDirName);
 		outDir = new File(outDirName);

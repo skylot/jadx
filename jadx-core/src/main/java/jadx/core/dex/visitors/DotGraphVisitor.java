@@ -241,9 +241,9 @@ public class DotGraphVisitor extends AbstractVisitor {
 			if (c instanceof BlockNode) {
 				name = "Node_" + ((BlockNode) c).getId();
 			} else if (c instanceof IBlock) {
-				name = "Node_" + c.getClass().getSimpleName() + "_" + c.hashCode();
+				name = "Node_" + c.getClass().getSimpleName() + '_' + c.hashCode();
 			} else {
-				name = "cluster_" + c.getClass().getSimpleName() + "_" + c.hashCode();
+				name = "cluster_" + c.getClass().getSimpleName() + '_' + c.hashCode();
 			}
 			return name;
 		}

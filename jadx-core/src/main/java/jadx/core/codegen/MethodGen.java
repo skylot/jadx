@@ -175,9 +175,9 @@ public class MethodGen {
 
 			code.startLine("throw new UnsupportedOperationException(\"Method not decompiled: ")
 					.add(clsAlias.makeFullClsName(clsAlias.getShortName(), true))
-					.add(".")
+					.add('.')
 					.add(mth.getAlias())
-					.add("(")
+					.add('(')
 					.add(Utils.listToString(mth.getMethodInfo().getArgumentsTypes()))
 					.add("):")
 					.add(mth.getMethodInfo().getReturnType().toString())
@@ -219,7 +219,7 @@ public class MethodGen {
 			}
 			if (addLabels && (insn.contains(AType.JUMP) || insn.contains(AType.EXC_HANDLER))) {
 				code.decIndent();
-				code.startLine(getLabelName(insn.getOffset()) + ":");
+				code.startLine(getLabelName(insn.getOffset()) + ':');
 				code.incIndent();
 			}
 			try {

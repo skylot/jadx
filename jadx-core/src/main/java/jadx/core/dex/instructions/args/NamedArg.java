@@ -44,6 +44,6 @@ public final class NamedArg extends InsnArg implements Named {
 
 	@Override
 	public String toString() {
-		return "(" + name + " " + type + ")";
+		return '(' + name + ' ' + type + ')';
 	}
 }

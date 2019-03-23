@@ -119,8 +119,8 @@ final class LocalVar {
 
 	@Override
 	public String toString() {
-		return super.toString() + " " + (isEnd
-				? "end: " + InsnUtils.formatOffset(startAddr) + "-" + InsnUtils.formatOffset(endAddr)
+		return super.toString() + ' ' + (isEnd
+				? "end: " + InsnUtils.formatOffset(startAddr) + '-' + InsnUtils.formatOffset(endAddr)
 				: "active: " + InsnUtils.formatOffset(startAddr));
 	}
 }

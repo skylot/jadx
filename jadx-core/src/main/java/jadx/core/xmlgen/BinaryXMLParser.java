@@ -209,7 +209,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		String str = getString(strIndex);
 		if (!isLastEnd) {
 			isLastEnd = true;
-			writer.add(">");
+			writer.add('>');
 		}
 		writer.attachSourceLine(lineNumber);
 		String escapedStr = StringUtils.escapeXML(str);
@@ -235,13 +235,13 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int startNS = is.readInt32();
 		int startNSName = is.readInt32(); // actually is elementName...
 		if (!isLastEnd && !"ERROR".equals(currentTag)) {
-			writer.add(">");
+			writer.add('>');
 		}
 		isOneLine = true;
 		isLastEnd = false;
 		currentTag = deobfClassName(getString(startNSName));
 		currentTag = getValidTagAttributeName(currentTag);
-		writer.startLine("<").add(currentTag);
+		writer.startLine('<').add(currentTag);
 		writer.attachSourceLine(elementBegLineNumber);
 		int attributeStart = is.readInt16();
 		if (attributeStart != 0x14) {
@@ -263,7 +263,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 					writer.add(':');
 					writer.add(nsValue);
 				}
-				writer.add("=\"").add(StringUtils.escapeXML(entry.getKey())).add("\"");
+				writer.add("=\"").add(StringUtils.escapeXML(entry.getKey())).add('"');
 			}
 		}
 		boolean attrNewLine = attributeCount != 1 && ATTR_NEW_LINE;
@@ -373,13 +373,13 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			// reference custom processing
 			String name = styleMap.get(attrValData);
 			if (name != null) {
-				writer.add("@style/").add(name.replaceAll("_", "."));
+				writer.add("@style/").add(name.replace('_', '.'));
 			} else {
 				String resName = resNames.get(attrValData);
 				if (resName != null) {
-					writer.add("@");
+					writer.add('@');
 					if (resName.startsWith("id/")) {
-						writer.add("+");
+						writer.add('+');
 					}
 					writer.add(resName);
 				} else {
@@ -424,7 +424,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 //			if (elementNS != -1) {
 //				writer.add(getString(elementNS)).add(':');
 //			}
-			writer.add(elemName).add(">");
+			writer.add(elemName).add('>');
 		}
 		isLastEnd = true;
 		if (writer.getIndent() != 0) {
@@ -470,7 +470,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private boolean isDeobfCandidateAttr(String shortNsName, String attrName) {
 		String fullName;
 		if (shortNsName != null) {
-			fullName = shortNsName + ":" + attrName;
+			fullName = shortNsName + ':' + attrName;
 		} else {
 			return false;
 		}

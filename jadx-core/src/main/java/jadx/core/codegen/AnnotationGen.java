@@ -164,7 +164,7 @@ public class AnnotationGen {
 			formatAnnotation(code, (Annotation) val);
 		} else {
 			// TODO: also can be method values
-			throw new JadxRuntimeException("Can't decode value: " + val + " (" + val.getClass() + ")");
+			throw new JadxRuntimeException("Can't decode value: " + val + " (" + val.getClass() + ')');
 		}
 	}
 

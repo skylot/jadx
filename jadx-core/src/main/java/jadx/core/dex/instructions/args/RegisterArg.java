@@ -169,17 +169,17 @@ public class RegisterArg extends InsnArg implements Named {
 		sb.append("(r");
 		sb.append(regNum);
 		if (sVar != null) {
-			sb.append("_").append(sVar.getVersion());
+			sb.append('_').append(sVar.getVersion());
 		}
 		if (getName() != null) {
-			sb.append(" '").append(getName()).append("'");
+			sb.append(" '").append(getName()).append('\'');
 		}
-		sb.append(" ");
+		sb.append(' ');
 		sb.append(type);
 		if (!isAttrStorageEmpty()) {
 			sb.append(' ').append(getAttributesString());
 		}
-		sb.append(")");
+		sb.append(')');
 		return sb.toString();
 	}
 }

@@ -57,6 +57,6 @@ public final class CodePosition {
 
 	@Override
 	public String toString() {
-		return line + ":" + offset + (node != null ? " " + node : "");
+		return line + ':' + offset + (node != null ? " " + node : "");
 	}
 }

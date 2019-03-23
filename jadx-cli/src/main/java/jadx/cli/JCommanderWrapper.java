@@ -90,7 +90,7 @@ public class JCommanderWrapper<T> {
 		if (fieldType == int.class) {
 			try {
 				int val = f.getInt(args);
-				opt.append(" (default: ").append(val).append(")");
+				opt.append(" (default: ").append(val).append(')');
 			} catch (Exception e) {
 				// ignore
 			}

@@ -44,6 +44,6 @@ public class FieldReplaceAttr implements IAttribute {
 
 	@Override
 	public String toString() {
-		return "REPLACE: " + replaceType + " " + replaceObj;
+		return "REPLACE: " + replaceType + ' ' + replaceObj;
 	}
 }

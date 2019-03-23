@@ -79,7 +79,7 @@ public class RenameVisitor extends AbstractVisitor {
 		}
 		if (alias.getPackage().isEmpty()) {
 			String fullName = alias.makeFullClsName(alias.getShortName(), true);
-			String newFullName = Consts.DEFAULT_PACKAGE_NAME + "." + fullName;
+			String newFullName = Consts.DEFAULT_PACKAGE_NAME + '.' + fullName;
 			classInfo.rename(cls.root(), newFullName);
 		}
 	}

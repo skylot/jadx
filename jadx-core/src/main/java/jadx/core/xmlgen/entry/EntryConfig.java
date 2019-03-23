@@ -450,7 +450,7 @@ public class EntryConfig {
         // denies values-xxx, anything else
         if (localeVariant == null && localeScript == null && (region[0] != '\00' || language[0] != '\00') &&
                 region.length != 3) {
-            sb.append("-").append(language);
+            sb.append('-').append(language);
             if (region[0] != '\00') {
                 sb.append("-r").append(region);
             }
@@ -463,13 +463,13 @@ public class EntryConfig {
                 sb.append(language);
             }
             if (localeScript != null && localeScript.length == 4) {
-                sb.append("+").append(localeScript);
+                sb.append('+').append(localeScript);
             }
             if ((region.length == 2 || region.length == 3) && region[0] != '\00') {
-                sb.append("+").append(region);
+                sb.append('+').append(region);
             }
             if (localeVariant != null && localeVariant.length >= 5) {
-                sb.append("+").append(toUpper(localeVariant));
+                sb.append('+').append(toUpper(localeVariant));
             }
         }
         return sb.toString();

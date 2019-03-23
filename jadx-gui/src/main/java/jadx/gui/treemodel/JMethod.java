@@ -94,7 +94,7 @@ public class JMethod extends JNode {
 
 	@Override
 	public String makeLongString() {
-		String name = mth.getDeclaringClass().getFullName() + "." + makeBaseString();
+		String name = mth.getDeclaringClass().getFullName() + '.' + makeBaseString();
 		return Utils.typeFormat(name, getReturnType());
 	}
 

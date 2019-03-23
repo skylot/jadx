@@ -473,7 +473,7 @@ public class ModVisitor extends AbstractVisitor {
 		for (RegisterArg arg : mth.getArguments(false)) {
 			String name = arg.getName();
 			if (name != null && NameMapper.isReserved(name)) {
-				name = name + "_";
+				name = name + '_';
 				arg.getSVar().setName(name);
 			}
 		}

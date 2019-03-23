@@ -35,6 +35,6 @@ public class IndexInsnNode extends InsnNode {
 
 	@Override
 	public String toString() {
-		return super.toString() + " " + InsnUtils.indexToString(index);
+		return super.toString() + ' ' + InsnUtils.indexToString(index);
 	}
 }
