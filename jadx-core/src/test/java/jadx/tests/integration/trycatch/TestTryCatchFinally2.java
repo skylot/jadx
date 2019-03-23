@@ -1,17 +1,19 @@
 package jadx.tests.integration.trycatch;
 
+import static jadx.tests.api.utils.JadxMatchers.containsOne;
+import static jadx.tests.api.utils.JadxMatchers.countString;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
 import org.junit.jupiter.api.Test;
 
+import jadx.NotYetImplemented;
 import jadx.core.clsp.NClass;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestTryCatchFinally2 extends IntegrationTest {
 
@@ -52,9 +54,16 @@ public class TestTryCatchFinally2 extends IntegrationTest {
 
 		assertThat(code, containsOne("for (NClass parent : parents) {"));
 
-		// TODO
-//		assertThat(code, countString(2, "for (NClass cls : classes) {"));
 		assertThat(code, containsOne("for (NClass cls : this.classes) {"));
 		assertThat(code, containsOne("for (NClass cls2 : this.classes) {"));
+	}
+
+	@Test
+	@NotYetImplemented
+	public void test2() {
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, countString(2, "for (NClass cls : classes) {"));
 	}
 }

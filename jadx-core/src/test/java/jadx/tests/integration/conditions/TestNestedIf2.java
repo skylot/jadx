@@ -52,6 +52,5 @@ public class TestNestedIf2 extends IntegrationTest {
 		assertThat(code, containsOne("if (executedCount != repeatCount && isRun(delta, object)) {"));
 		assertThat(code, containsOne("if (finished) {"));
 		assertThat(code, not(containsString("else")));
-
 	}
 }
