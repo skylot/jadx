@@ -67,7 +67,9 @@ public class Jadx {
 			passes.add(new BlockFinish());
 
 			passes.add(new SSATransform());
-			passes.add(new DebugInfoVisitor());
+			if (args.isDebugInfo()) {
+				passes.add(new DebugInfoVisitor());
+			}
 			passes.add(new TypeInference());
 
 			if (args.isRawCFGOutput()) {
