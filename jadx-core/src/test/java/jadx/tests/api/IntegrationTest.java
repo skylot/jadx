@@ -14,9 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.jar.JarOutputStream;
 
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import jadx.NotYetImplementedExtension;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
