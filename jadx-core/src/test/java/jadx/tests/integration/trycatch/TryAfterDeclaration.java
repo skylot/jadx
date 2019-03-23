@@ -8,14 +8,11 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import jadx.NotYetImplemented;
-import jadx.NotYetImplementedExtension;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-@ExtendWith(NotYetImplementedExtension.class)
 public class TryAfterDeclaration extends IntegrationTest {
 
 	/**

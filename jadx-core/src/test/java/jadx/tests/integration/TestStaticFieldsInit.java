@@ -34,7 +34,6 @@ public class TestStaticFieldsInit extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, not(containsString("public static final String s2 = null;")));
-		// TODO:
-		// assertThat(code, containsString("public static final String s3 = null;"));
+		assertThat(code, containsString("public static final String s3 = null;"));
 	}
 }

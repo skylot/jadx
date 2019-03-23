@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 
+import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
@@ -48,9 +49,17 @@ public class TestTryCatch5 extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsString("try {"));
-		// TODO:
-//		assertThat(code, containsString("output = new FileOutputStream(file);"));
-//		assertThat(code, containsString("} catch (IOException e) {"));
 		assertThat(code, containsString("file.delete();"));
+	}
+
+	@Test
+	@NotYetImplemented
+	public void test2() {
+		disableCompilation();
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, containsString("output = new FileOutputStream(file);"));
+		assertThat(code, containsString("} catch (IOException e) {"));
 	}
 }

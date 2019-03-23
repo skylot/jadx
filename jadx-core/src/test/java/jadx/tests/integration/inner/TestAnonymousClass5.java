@@ -79,7 +79,6 @@ public class TestAnonymousClass5 extends IntegrationTest {
 		assertThat(code, containsOne("map.get(name);"));
 		assertThat(code, not(containsString("access$008")));
 
-		// TODO
-//		assertThat(code, not(containsString("synthetic")));
+		assertThat(code, not(containsString("synthetic")));
 	}
 }

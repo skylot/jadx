@@ -1,17 +1,14 @@
 package jadx.tests.integration.loops;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import jadx.NotYetImplemented;
-import jadx.NotYetImplementedExtension;
-import jadx.core.dex.nodes.ClassNode;
-import jadx.tests.api.IntegrationTest;
-
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-@ExtendWith(NotYetImplementedExtension.class)
+import org.junit.jupiter.api.Test;
+
+import jadx.NotYetImplemented;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
+
 public class TestSynchronizedInEndlessLoop extends IntegrationTest {
 
 	public static class TestCls {
