@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttributeNode;
@@ -72,25 +74,43 @@ public class AnnotationGen {
 
 	private void formatAnnotation(CodeWriter code, Annotation a) {
 		code.add('@');
-		classGen.useType(code, a.getType());
+		ClassNode annCls = cls.dex().resolveClass(a.getType());
+		if (annCls != null) {
+			classGen.useClass(code, annCls);
+		} else {
+			classGen.useType(code, a.getType());
+		}
+
 		Map<String, Object> vl = a.getValues();
 		if (!vl.isEmpty()) {
 			code.add('(');
-			if (vl.size() == 1 && vl.containsKey("value")) {
-				encodeValue(code, vl.get("value"));
-			} else {
-				for (Iterator<Entry<String, Object>> it = vl.entrySet().iterator(); it.hasNext(); ) {
-					Entry<String, Object> e = it.next();
-					code.add(e.getKey());
+			for (Iterator<Entry<String, Object>> it = vl.entrySet().iterator(); it.hasNext(); ) {
+				Entry<String, Object> e = it.next();
+				String paramName = getParamName(annCls, e.getKey());
+				if (paramName.equals("value") && vl.size() == 1) {
+					// don't add "value = " if no other parameters
+				} else {
+					code.add(paramName);
 					code.add(" = ");
-					encodeValue(code, e.getValue());
-					if (it.hasNext()) {
-						code.add(", ");
-					}
+				}
+				encodeValue(code, e.getValue());
+				if (it.hasNext()) {
+					code.add(", ");
 				}
 			}
 			code.add(')');
 		}
+	}
+
+	private String getParamName(@Nullable ClassNode annCls, String paramName) {
+		if (annCls != null) {
+			// TODO: save value type and search using signature
+			MethodNode mth = annCls.searchMethodByShortName(paramName);
+			if (mth != null) {
+				return mth.getAlias();
+			}
+		}
+		return paramName;
 	}
 
 	@SuppressWarnings("unchecked")

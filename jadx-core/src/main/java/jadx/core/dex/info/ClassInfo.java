@@ -63,12 +63,16 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 	}
 
 	public void rename(RootNode root, String fullName) {
-		ClassInfo newAlias = new ClassInfo(root, ArgType.object(fullName), isInner());
+		ArgType clsType = ArgType.object(fullName);
+		ClassInfo newAlias = root.getInfoStorage().getCls(clsType);
+		if (newAlias == null) {
+			newAlias = new ClassInfo(root, clsType, isInner());
+			root.getInfoStorage().putCls(newAlias);
+		}
 		if (!alias.getFullName().equals(newAlias.getFullName())) {
 			this.alias = newAlias;
 		}
 	}
-
 	public boolean isRenamed() {
 		return alias != this;
 	}
@@ -169,6 +173,10 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 
 	public void notInner(RootNode root) {
 		splitNames(root, false);
+	}
+
+	public void updateNames(RootNode root) {
+		splitNames(root, isInner());
 	}
 
 	public ArgType getType() {

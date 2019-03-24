@@ -490,10 +490,20 @@ public class ClassGen {
 	public void useClass(CodeWriter code, ClassInfo classInfo) {
 		ClassNode classNode = cls.dex().resolveClass(classInfo);
 		if (classNode != null) {
-			code.attachAnnotation(classNode);
+			useClass(code, classNode);
+		} else {
+			addClsName(code, classInfo);
 		}
-		String baseClass = useClassInternal(cls.getAlias(), classInfo.getAlias());
-		code.add(baseClass);
+	}
+
+	public void useClass(CodeWriter code, ClassNode classNode) {
+		code.attachAnnotation(classNode);
+		addClsName(code, classNode.getClassInfo());
+	}
+
+	private void addClsName(CodeWriter code, ClassInfo classInfo) {
+		String clsName = useClassInternal(cls.getAlias(), classInfo.getAlias());
+		code.add(clsName);
 	}
 
 	private String useClassInternal(ClassInfo useCls, ClassInfo extClsInfo) {

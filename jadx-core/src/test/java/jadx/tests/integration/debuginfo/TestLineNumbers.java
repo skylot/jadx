@@ -46,11 +46,11 @@ public class TestLineNumbers extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		FieldNode field = cls.searchFieldByName("field");
-		MethodNode func = cls.searchMethodByName("func()V");
+		MethodNode func = cls.searchMethodByShortId("func()V");
 		ClassNode inner = cls.getInnerClasses().get(0);
-		MethodNode innerFunc = inner.searchMethodByName("innerFunc()V");
-		MethodNode innerFunc2 = inner.searchMethodByName("innerFunc2()V");
-		MethodNode innerFunc3 = inner.searchMethodByName("innerFunc3()V");
+		MethodNode innerFunc = inner.searchMethodByShortId("innerFunc()V");
+		MethodNode innerFunc2 = inner.searchMethodByShortId("innerFunc2()V");
+		MethodNode innerFunc3 = inner.searchMethodByShortId("innerFunc3()V");
 		FieldNode innerField = inner.searchFieldByName("innerField");
 
 		// check source lines (available only for instructions and methods)

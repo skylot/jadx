@@ -2,6 +2,7 @@ package jadx.core.dex.nodes;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,8 @@ public class DexNode implements IDexNode {
 		for (ClassDef cls : dexBuf.classDefs()) {
 			addClassNode(new ClassNode(this, cls));
 		}
+		// sort classes by name, expect top classes before inner
+		classes.sort(Comparator.comparing(ClassNode::getFullName));
 	}
 
 	public void addClassNode(ClassNode clsNode) {
@@ -63,6 +66,7 @@ public class DexNode implements IDexNode {
 				inner.add(cls);
 			}
 		}
+		List<ClassNode> updated = new ArrayList<>();
 		for (ClassNode cls : inner) {
 			ClassInfo clsInfo = cls.getClassInfo();
 			ClassNode parent = resolveClass(clsInfo.getParentClass());
@@ -70,8 +74,15 @@ public class DexNode implements IDexNode {
 				clsMap.remove(clsInfo);
 				clsInfo.notInner(root);
 				clsMap.put(clsInfo, cls);
+				updated.add(cls);
 			} else {
 				parent.addInnerClass(cls);
+			}
+		}
+		// reload names for inner classes of updated parents
+		for (ClassNode updCls : updated) {
+			for (ClassNode innerCls : updCls.getInnerClasses()) {
+				innerCls.getClassInfo().updateNames(root);
 			}
 		}
 	}

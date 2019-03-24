@@ -195,7 +195,7 @@ public class ModVisitor extends AbstractVisitor {
 		if (co.isSuper() && (co.getArgsCount() == 0 || parentClass.isEnum())) {
 			remove = true;
 		} else if (co.isThis() && co.getArgsCount() == 0) {
-			MethodNode defCo = parentClass.searchMethodByName(callMth.getShortId());
+			MethodNode defCo = parentClass.searchMethodByShortId(callMth.getShortId());
 			if (defCo == null || defCo.isNoCode()) {
 				// default constructor not implemented
 				remove = true;
@@ -347,7 +347,7 @@ public class ModVisitor extends AbstractVisitor {
 		}
 		boolean passThis = co.getArgsCount() >= 1 && co.getArg(0).isThis();
 		String ctrId = "<init>(" + (passThis ? TypeGen.signature(co.getArg(0).getType()) : "") + ")V";
-		MethodNode defCtr = classNode.searchMethodByName(ctrId);
+		MethodNode defCtr = classNode.searchMethodByShortId(ctrId);
 		if (defCtr == null) {
 			return null;
 		}

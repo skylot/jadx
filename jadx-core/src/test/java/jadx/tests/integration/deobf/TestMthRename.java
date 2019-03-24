@@ -30,10 +30,7 @@ public class TestMthRename extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsString("public abstract void mo1a();"));
 		assertThat(code, not(containsString("public abstract void a();")));
-
-		assertThat(code, containsString(".mo1a();"));
 		assertThat(code, not(containsString(".a();")));
 	}
 }
