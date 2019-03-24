@@ -1,10 +1,8 @@
 package jadx.tests.integration.loops;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import jadx.NotYetImplemented;
-import jadx.NotYetImplementedExtension;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
