@@ -43,8 +43,8 @@ public class TestTryCatch7 extends IntegrationTest {
 	private void check(String code, String excVarName, String catchExcVarName) {
 		assertThat(code, containsOne("Exception " + excVarName + " = new Exception();"));
 		assertThat(code, containsOne("} catch (Exception " + catchExcVarName + ") {"));
-		assertThat(code, containsOne(excVarName + " = " + catchExcVarName + ";"));
+		assertThat(code, containsOne(excVarName + " = " + catchExcVarName + ';'));
 		assertThat(code, containsOne(excVarName + ".printStackTrace();"));
-		assertThat(code, containsOne("return " + excVarName + ";"));
+		assertThat(code, containsOne("return " + excVarName + ';'));
 	}
 }

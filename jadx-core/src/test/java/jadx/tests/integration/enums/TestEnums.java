@@ -46,10 +46,10 @@ public class TestEnums extends IntegrationTest {
 		assertThat(code, containsLines(1, "public enum EmptyEnum {", "}"));
 		assertThat(code, containsLines(1,
 				"public enum EmptyEnum2 {",
-				indent(1) + ";",
+				indent(1) + ';',
 				"",
 				indent(1) + "public static void mth() {",
-				indent(1) + "}",
+				indent(1) + '}',
 				"}"));
 
 		assertThat(code, containsLines(1, "public enum Direction {",
@@ -64,7 +64,7 @@ public class TestEnums extends IntegrationTest {
 				"",
 				indent(1) + "public String test() {",
 				indent(2) + "return \"\";",
-				indent(1) + "}",
+				indent(1) + '}',
 				"}"));
 	}
 }

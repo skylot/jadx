@@ -49,7 +49,7 @@ public class ResContainer implements Comparable<ResContainer> {
 	}
 
 	public String getFileName() {
-		return name.replace("/", File.separator);
+		return name.replace('/', File.separatorChar);
 	}
 
 	public List<ResContainer> getSubFiles() {

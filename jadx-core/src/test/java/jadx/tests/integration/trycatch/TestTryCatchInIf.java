@@ -23,7 +23,7 @@ public class TestTryCatchInIf extends IntegrationTest {
 					} else {
 						key = Integer.parseInt(value);
 					}
-					return name + "=" + key;
+					return name + '=' + key;
 				} catch (NumberFormatException e) {
 					return "Failed to parse number";
 				}

@@ -65,7 +65,7 @@ public class RunTests {
 				msg = "not extends AbstractTest";
 			}
 			System.err.println(">> "
-					+ (pass ? "PASS" : "FAIL") + "\t"
+					+ (pass ? "PASS" : "FAIL") + '\t'
 					+ clsName
 					+ (msg == null ? "" : "\t - " + msg));
 			if (exc != null) {

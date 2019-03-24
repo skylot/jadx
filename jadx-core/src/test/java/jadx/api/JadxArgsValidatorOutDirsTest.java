@@ -44,8 +44,8 @@ public class JadxArgsValidatorOutDirsTest {
 		setOutDirs(null, null, null);
 		String inputFileBase = args.getInputFiles().get(0).getName().replace(".apk", "");
 		checkOutDirs(inputFileBase,
-				inputFileBase + "/" + JadxArgs.DEFAULT_SRC_DIR,
-				inputFileBase + "/" + JadxArgs.DEFAULT_RES_DIR);
+				inputFileBase + '/' + JadxArgs.DEFAULT_SRC_DIR,
+				inputFileBase + '/' + JadxArgs.DEFAULT_RES_DIR);
 	}
 
 	private void setOutDirs(String outDir, String srcDir, String resDir) {

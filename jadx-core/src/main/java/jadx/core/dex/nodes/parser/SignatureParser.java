@@ -169,7 +169,7 @@ public class SignatureParser {
 			// generic type start ('<')
 			String obj = slice();
 			if (!incompleteType) {
-				obj += ";";
+				obj += ';';
 			}
 			ArgType[] genArr = consumeGenericArgs();
 			consume('>');
@@ -211,7 +211,7 @@ public class SignatureParser {
 				list.add(type);
 			}
 		} while (type != null && !lookAhead('>'));
-		return list.toArray(new ArgType[list.size()]);
+		return list.toArray(new ArgType[0]);
 	}
 
 	/**

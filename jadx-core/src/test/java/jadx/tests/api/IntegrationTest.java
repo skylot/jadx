@@ -317,7 +317,7 @@ public abstract class IntegrationTest extends TestUtils {
 		File temp = createTempFile(".jar");
 		try (JarOutputStream jo = new JarOutputStream(new FileOutputStream(temp))) {
 			for (File file : list) {
-				addFileToJar(jo, file, path + "/" + file.getName());
+				addFileToJar(jo, file, path + '/' + file.getName());
 			}
 		}
 		return temp;
@@ -340,7 +340,7 @@ public abstract class IntegrationTest extends TestUtils {
 
 	private static File createTempDir(String prefix) throws IOException {
 		File baseDir = new File(System.getProperty("java.io.tmpdir"));
-		String baseName = prefix + "-" + System.nanoTime();
+		String baseName = prefix + '-' + System.nanoTime();
 		for (int counter = 1; counter < 1000; counter++) {
 			File tempDir = new File(baseDir, baseName + counter);
 			if (tempDir.mkdir()) {
@@ -360,7 +360,7 @@ public abstract class IntegrationTest extends TestUtils {
 				File directory = new File(pkgResource.toURI());
 				String[] files = directory.list();
 				for (String file : files) {
-					String fullName = pkgName + "." + file;
+					String fullName = pkgName + '.' + file;
 					if (fullName.startsWith(clsName)) {
 						list.add(new File(directory, file));
 					}

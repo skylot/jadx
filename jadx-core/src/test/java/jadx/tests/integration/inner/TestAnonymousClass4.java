@@ -37,9 +37,9 @@ public class TestAnonymousClass4 extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsOne(indent(3) + "new Thread() {"));
-		assertThat(code, containsOne(indent(4) + "{"));
+		assertThat(code, containsOne(indent(4) + '{'));
 		assertThat(code, containsOne("f = 1;"));
-		assertThat(code, countString(2, indent(4) + "}"));
+		assertThat(code, countString(2, indent(4) + '}'));
 		assertThat(code, containsOne(indent(4) + "public void run() {"));
 		assertThat(code, containsOne("d = 7.5"));
 		assertThat(code, containsOne(indent(3) + "}.start();"));

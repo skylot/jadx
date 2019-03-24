@@ -122,7 +122,7 @@ public class TypeCompareTest {
 
 	private void check(ArgType first, ArgType second, TypeCompareEnum expectedResult) {
 		TypeCompareEnum result = compare.compareTypes(first, second);
-		assertThat("Compare '" + first + "' vs '" + second + "'",
+		assertThat("Compare '" + first + "' vs '" + second + '\'',
 				result, is(expectedResult));
 	}
 }

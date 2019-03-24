@@ -184,9 +184,9 @@ public class MethodGen {
 
 			code.startLine("throw new UnsupportedOperationException(\"Method not decompiled: ")
 					.add(clsAlias.makeFullClsName(clsAlias.getShortName(), true))
-					.add(".")
+					.add('.')
 					.add(mth.getAlias())
-					.add("(")
+					.add('(')
 					.add(Utils.listToString(mth.getMethodInfo().getArgumentsTypes()))
 					.add("):")
 					.add(mth.getMethodInfo().getReturnType().toString())

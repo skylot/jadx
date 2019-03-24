@@ -129,7 +129,7 @@ public class TypeGen {
 		}
 		String str = Long.toString(l);
 		if (Math.abs(l) >= Integer.MAX_VALUE) {
-			str += "L";
+			str += 'L';
 		}
 		return str;
 	}

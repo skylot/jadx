@@ -182,9 +182,9 @@ public class ResXmlGen {
 		cw.add('<').add(itemTag);
 		if (attrName != null && attrValue != null) {
 			if (typeName.equals("attr")) {
-				cw.add(' ').add("name=\"").add(attrName.replace("id.", "")).add("\" value=\"").add(attrValue).add("\"");
+				cw.add(' ').add("name=\"").add(attrName.replace("id.", "")).add("\" value=\"").add(attrValue).add('"');
 			} else if (typeName.equals("style")) {
-				cw.add(' ').add("name=\"").add(attrName.replace("attr.", "")).add("\"");
+				cw.add(' ').add("name=\"").add(attrName.replace("attr.", "")).add('"');
 			} else {
 				cw.add(' ').add(attrName).add("=\"").add(attrValue).add('"');
 			}

@@ -12,7 +12,7 @@ public class TestStringProcessing extends AbstractTest {
 
 	public void testStringConcat() {
 		String s = "1";
-		assertEquals("a" + s, "a1");
+		assertEquals('a' + s, "a1");
 	}
 
 	@Override

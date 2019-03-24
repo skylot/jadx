@@ -18,7 +18,7 @@ public class TestStringBuilderElimination2 extends IntegrationTest {
 
 	public static class TestCls1 {
 		public String test() {
-			return new StringBuilder("[init]").append("a1").append('c').append(2).append(0l).append(1.0f).
+			return new StringBuilder("[init]").append("a1").append('c').append(2).append(0L).append(1.0f).
 					append(2.0d).append(true).toString();
 		}
 	}

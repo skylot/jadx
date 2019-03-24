@@ -67,7 +67,7 @@ public class FileUtils {
 	public static File createTempFile(String suffix) {
 		File temp;
 		try {
-			temp = File.createTempFile("jadx-tmp-", System.nanoTime() + "-" + suffix);
+			temp = File.createTempFile("jadx-tmp-", System.nanoTime() + '-' + suffix);
 			temp.deleteOnExit();
 		} catch (IOException e) {
 			throw new JadxRuntimeException("Failed to create temp file with suffix: " + suffix);
