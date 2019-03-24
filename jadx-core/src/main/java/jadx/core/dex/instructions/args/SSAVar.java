@@ -206,6 +206,6 @@ public class SSAVar extends AttrNode {
 
 	@Override
 	public String toString() {
-		return "r" + regNum + "_" + version;
+		return "r" + regNum + '_' + version;
 	}
 }

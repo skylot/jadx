@@ -76,7 +76,7 @@ public class RegionMaker {
 
 		int startBlockId = startBlock.getId();
 		if (processedBlocks.get(startBlockId)) {
-			mth.addWarn("Removed duplicated region for block: " + startBlock + " " + startBlock.getAttributesString());
+			mth.addWarn("Removed duplicated region for block: " + startBlock + ' ' + startBlock.getAttributesString());
 			return r;
 		}
 		processedBlocks.set(startBlockId);

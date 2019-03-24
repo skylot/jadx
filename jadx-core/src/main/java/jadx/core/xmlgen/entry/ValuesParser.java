@@ -60,7 +60,7 @@ public class ValuesParser extends ParserConstants {
 			if (nameStr == null) {
 				strList.add(valueStr);
 			} else {
-				strList.add(nameStr + "=" + valueStr);
+				strList.add(nameStr + '=' + valueStr);
 			}
 		}
 		return strList.toString();
@@ -110,7 +110,7 @@ public class ValuesParser extends ParserConstants {
 					}
 					return "?unknown_ref: " + Integer.toHexString(data);
 				}
-				return "@" + ri;
+				return '@' + ri;
 			}
 
 			case TYPE_ATTRIBUTE: {
@@ -122,7 +122,7 @@ public class ValuesParser extends ParserConstants {
 					}
 					return "?unknown_attr_ref: " + Integer.toHexString(data);
 				}
-				return "?" + ri;
+				return '?' + ri;
 			}
 
 			case TYPE_DIMENSION:
@@ -132,7 +132,7 @@ public class ValuesParser extends ParserConstants {
 
 			default:
 				LOG.warn("Unknown data type: 0x{} {}", Integer.toHexString(dataType), data);
-				return "  ?0x" + Integer.toHexString(dataType) + " " + data;
+				return "  ?0x" + Integer.toHexString(dataType) + ' ' + data;
 		}
 	}
 

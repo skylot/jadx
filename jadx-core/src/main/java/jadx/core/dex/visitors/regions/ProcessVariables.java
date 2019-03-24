@@ -58,7 +58,7 @@ public class ProcessVariables extends AbstractVisitor {
 
 		@Override
 		public String toString() {
-			return "r" + regNum + ":" + type;
+			return "r" + regNum + ':' + type;
 		}
 	}
 

@@ -130,6 +130,6 @@ public final class IfRegion extends AbstractRegion implements IBranchRegion {
 
 	@Override
 	public String toString() {
-		return "IF " + header + " then (" + thenRegion + ") else (" + elseRegion + ")";
+		return "IF " + header + " then (" + thenRegion + ") else (" + elseRegion + ')';
 	}
 }

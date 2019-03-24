@@ -57,7 +57,7 @@ public class InsnUtils {
 			return "";
 		}
 		if (index instanceof String) {
-			return "\"" + index + "\"";
+			return "\"" + index + '"';
 		}
 		return index.toString();
 	}

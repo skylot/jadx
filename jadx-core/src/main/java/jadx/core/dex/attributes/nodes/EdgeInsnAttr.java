@@ -43,6 +43,6 @@ public class EdgeInsnAttr implements IAttribute {
 
 	@Override
 	public String toString() {
-		return "EDGE_INSN: " + start + "->" + end + " " + insn;
+		return "EDGE_INSN: " + start + "->" + end + ' ' + insn;
 	}
 }

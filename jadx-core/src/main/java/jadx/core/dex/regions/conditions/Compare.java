@@ -44,6 +44,6 @@ public final class Compare {
 
 	@Override
 	public String toString() {
-		return getA() + " " + getOp().getSymbol() + " " + getB();
+		return getA() + " " + getOp().getSymbol() + ' ' + getB();
 	}
 }

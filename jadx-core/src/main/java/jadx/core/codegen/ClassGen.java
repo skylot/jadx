@@ -535,7 +535,7 @@ public class ClassGen {
 					&& importCls.getShortName().equals(shortName)) {
 				if (extClsInfo.isInner()) {
 					String parent = useClassInternal(useCls, extClsInfo.getParentClass().getAlias());
-					return parent + "." + shortName;
+					return parent + '.' + shortName;
 				} else {
 					return fullName;
 				}

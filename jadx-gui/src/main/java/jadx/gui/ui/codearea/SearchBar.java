@@ -44,7 +44,7 @@ class SearchBar extends JToolBar {
 	public SearchBar(RSyntaxTextArea textArea) {
 		rTextArea = textArea;
 
-		JLabel findLabel = new JLabel(NLS.str("search.find") + ":");
+		JLabel findLabel = new JLabel(NLS.str("search.find") + ':');
 		add(findLabel);
 
 		searchField = new JTextField(30);

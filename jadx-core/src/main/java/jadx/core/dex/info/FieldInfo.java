@@ -54,11 +54,11 @@ public final class FieldInfo {
 	}
 
 	public String getFullId() {
-		return declClass.getFullName() + "." + name + ":" + TypeGen.signature(type);
+		return declClass.getFullName() + '.' + name + ':' + TypeGen.signature(type);
 	}
 
 	public String getRawFullId() {
-		return declClass.makeRawFullName() + "." + name + ":" + TypeGen.signature(type);
+		return declClass.makeRawFullName() + '.' + name + ':' + TypeGen.signature(type);
 	}
 
 	public boolean isRenamed() {
@@ -93,6 +93,6 @@ public final class FieldInfo {
 
 	@Override
 	public String toString() {
-		return declClass + "." + name + " " + type;
+		return declClass + "." + name + ' ' + type;
 	}
 }

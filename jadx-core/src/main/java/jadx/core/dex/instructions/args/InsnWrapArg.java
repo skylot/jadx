@@ -62,6 +62,6 @@ public final class InsnWrapArg extends InsnArg {
 
 	@Override
 	public String toString() {
-		return "(wrap: " + type + "\n  " + wrappedInsn + ")";
+		return "(wrap: " + type + "\n  " + wrappedInsn + ')';
 	}
 }

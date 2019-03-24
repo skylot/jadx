@@ -81,7 +81,7 @@ public class ResTableParser extends CommonBinaryParser {
 
 		Set<String> addedValues = new HashSet<>();
 		for (ResourceEntry ri : resStorage.getResources()) {
-			if (addedValues.add(ri.getTypeName() + "." + ri.getKeyName())) {
+			if (addedValues.add(ri.getTypeName() + '.' + ri.getKeyName())) {
 				String format = String.format("<public type=\"%s\" name=\"%s\" id=\"%s\" />",
 						ri.getTypeName(), ri.getKeyName(), ri.getId());
 				writer.startLine(format);

@@ -133,7 +133,7 @@ public class AndroidResourcesUtils {
 
 	@NotNull
 	private static ClassNode addClassForResType(ClassNode resCls, boolean rClsExists, String typeName) {
-		ClassNode newTypeCls = new ClassNode(resCls.dex(), resCls.getFullName() + "$" + typeName,
+		ClassNode newTypeCls = new ClassNode(resCls.dex(), resCls.getFullName() + '$' + typeName,
 				AccessFlags.ACC_PUBLIC | AccessFlags.ACC_STATIC | AccessFlags.ACC_FINAL);
 		resCls.addInnerClass(newTypeCls);
 		if (rClsExists) {

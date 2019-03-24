@@ -69,10 +69,10 @@ public final class LiteralArg extends InsnArg {
 			if (getType().equals(ArgType.BOOLEAN) && (value.equals("true") || value.equals("false"))) {
 				return value;
 			}
-			return "(" + value + " " + type + ")";
+			return '(' + value + ' ' + type + ')';
 		} catch (JadxRuntimeException ex) {
 			// can't convert literal to string
-			return "(" + literal + " " + type + ")";
+			return "(" + literal + ' ' + type + ')';
 		}
 	}
 }

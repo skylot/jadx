@@ -25,7 +25,7 @@ public class PhiListAttr implements IAttribute {
 		StringBuilder sb = new StringBuilder();
 		sb.append("PHI: ");
 		for (PhiInsn phiInsn : list) {
-			sb.append('r').append(phiInsn.getResult().getRegNum()).append(" ");
+			sb.append('r').append(phiInsn.getResult().getRegNum()).append(' ');
 		}
 		return sb.toString();
 	}

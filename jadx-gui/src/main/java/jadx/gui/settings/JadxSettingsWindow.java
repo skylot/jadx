@@ -211,7 +211,7 @@ public class JadxSettingsWindow extends JDialog {
 	private String getFontLabelStr() {
 		Font font = settings.getFont();
 		String fontStyleName = Utils.getFontStyleName(font.getStyle());
-		return NLS.str("preferences.font") + ": " + font.getFontName() + " " + fontStyleName + " " + font.getSize();
+		return NLS.str("preferences.font") + ": " + font.getFontName() + ' ' + fontStyleName + ' ' + font.getSize();
 	}
 
 	private SettingsGroup makeDecompilationGroup() {
