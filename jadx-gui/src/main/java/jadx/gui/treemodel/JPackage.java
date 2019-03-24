@@ -46,7 +46,8 @@ public class JPackage extends JNode implements Comparable<JPackage> {
 	private void setEnabled(JadxWrapper wrapper) {
 		List<String> excludedPackages = wrapper.getExcludedPackages();
 		this.enabled = excludedPackages.isEmpty()
-				|| excludedPackages.stream().filter(p -> !p.isEmpty()).noneMatch(p -> name.startsWith(p));
+				|| excludedPackages.stream().filter(p -> !p.isEmpty())
+					.noneMatch(p -> name.equals(p) || name.startsWith(p + '.'));
 	}
 
 	public final void update() {

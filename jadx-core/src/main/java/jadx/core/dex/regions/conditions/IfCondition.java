@@ -226,7 +226,7 @@ public final class IfCondition {
 			case TERNARY:
 				return first() + " ? " + second() + " : " + third();
 			case NOT:
-				return "!(" + first() + ")";
+				return "!(" + first() + ')';
 			case AND:
 			case OR:
 				String op = mode == Mode.OR ? " || " : " && ";

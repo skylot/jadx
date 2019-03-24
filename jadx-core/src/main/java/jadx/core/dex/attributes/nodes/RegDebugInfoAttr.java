@@ -53,6 +53,6 @@ public class RegDebugInfoAttr implements IAttribute {
 
 	@Override
 	public String toString() {
-		return "D('" + name + "' " + type + ")";
+		return "D('" + name + "' " + type + ')';
 	}
 }

@@ -151,7 +151,7 @@ public class AnnotationGen {
 			InsnGen.makeStaticFieldAccess(code, field, classGen);
 		} else if (val instanceof Iterable) {
 			code.add('{');
-			Iterator<?> it = ((Iterable) val).iterator();
+			Iterator<?> it = ((Iterable<?>) val).iterator();
 			while (it.hasNext()) {
 				Object obj = it.next();
 				encodeValue(code, obj);
@@ -164,7 +164,7 @@ public class AnnotationGen {
 			formatAnnotation(code, (Annotation) val);
 		} else {
 			// TODO: also can be method values
-			throw new JadxRuntimeException("Can't decode value: " + val + " (" + val.getClass() + ")");
+			throw new JadxRuntimeException("Can't decode value: " + val + " (" + val.getClass() + ')');
 		}
 	}
 

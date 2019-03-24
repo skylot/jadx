@@ -61,7 +61,4 @@ public class AType<T extends IAttribute> {
 
 	// registers
 	public static final AType<RegDebugInfoAttr> REG_DEBUG_INFO = new AType<>();
-
-	private AType() {
-	}
 }

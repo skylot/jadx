@@ -94,6 +94,6 @@ public class CodeVar {
 
 	@Override
 	public String toString() {
-		return (isFinal ? "final " : "") + type + " " + name;
+		return (isFinal ? "final " : "") + type + ' ' + name;
 	}
 }

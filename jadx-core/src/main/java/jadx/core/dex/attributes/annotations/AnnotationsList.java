@@ -12,7 +12,7 @@ import jadx.core.utils.Utils;
 
 public class AnnotationsList implements IAttribute {
 
-	public static final AnnotationsList EMPTY = new AnnotationsList(Collections.<Annotation>emptyList());
+	public static final AnnotationsList EMPTY = new AnnotationsList(Collections.emptyList());
 
 	private final Map<String, Annotation> map;
 

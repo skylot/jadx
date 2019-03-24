@@ -160,14 +160,14 @@ public class SSAVar extends AttrNode {
 	}
 
 	public String toShortString() {
-		return "r" + regNum + "v" + version;
+		return "r" + regNum + 'v' + version;
 	}
 
 	@Override
 	public String toString() {
 		return toShortString()
 				+ (StringUtils.notEmpty(getName()) ? " '" + getName() + "' " : "")
-				+ " " + typeInfo.getType();
+				+ ' ' + typeInfo.getType();
 	}
 
 	public String getDetailedVarInfo(MethodNode mth) {

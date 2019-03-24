@@ -1,12 +1,12 @@
 package jadx.tests.integration.conditions;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestConditions15 extends IntegrationTest {
 
@@ -64,6 +64,5 @@ public class TestConditions15 extends IntegrationTest {
 
 		assertThat(code, containsOne("\"1\".equals(name)"));
 		assertThat(code, containsOne("\"30\".equals(name)"));
-
 	}
 }

@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
 import jadx.core.dex.visitors.ClassModifier;
-import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.dex.visitors.ConstInlineVisitor;
 import jadx.core.dex.visitors.ConstructorVisitor;
 import jadx.core.dex.visitors.DependencyCollector;
@@ -42,6 +41,7 @@ import jadx.core.dex.visitors.regions.LoopRegionVisitor;
 import jadx.core.dex.visitors.regions.RegionMakerVisitor;
 import jadx.core.dex.visitors.regions.ReturnVisitor;
 import jadx.core.dex.visitors.regions.variables.ProcessVariables;
+import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
 
@@ -62,7 +62,10 @@ public class Jadx {
 		if (args.isFallbackMode()) {
 			passes.add(new FallbackModeVisitor());
 		} else {
-			passes.add(new DebugInfoParseVisitor());
+			if (args.isDebugInfo()) {
+				passes.add(new DebugInfoParseVisitor());
+			}
+
 			passes.add(new BlockSplitter());
 			if (args.isRawCFGOutput()) {
 				passes.add(DotGraphVisitor.dumpRaw());
@@ -78,7 +81,9 @@ public class Jadx {
 			passes.add(new MarkFinallyVisitor());
 			passes.add(new ConstInlineVisitor());
 			passes.add(new TypeInferenceVisitor());
-			passes.add(new DebugInfoApplyVisitor());
+			if (args.isDebugInfo()) {
+				passes.add(new DebugInfoApplyVisitor());
+			}
 
 			passes.add(new ModVisitor());
 			passes.add(new CodeShrinkVisitor());

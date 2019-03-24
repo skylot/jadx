@@ -140,7 +140,7 @@ public class IfRegionVisitor extends AbstractVisitor {
 				|| ifRegion.getElseRegion().contains(AFlag.ELSE_IF_CHAIN)) {
 			return false;
 		}
-		if (!hasBranchTerminator(ifRegion.getThenRegion())) {
+		if (!RegionUtils.hasExitBlock(ifRegion.getThenRegion())) {
 			return false;
 		}
 		// code style check:
@@ -160,12 +160,6 @@ public class IfRegionVisitor extends AbstractVisitor {
 			return true;
 		}
 		return false;
-	}
-
-	private static boolean hasBranchTerminator(IContainer region) {
-		// TODO: check for exception throw
-		return RegionUtils.hasExitBlock(region)
-				|| RegionUtils.hasBreakInsn(region);
 	}
 
 	private static void invertIfRegion(IfRegion ifRegion) {

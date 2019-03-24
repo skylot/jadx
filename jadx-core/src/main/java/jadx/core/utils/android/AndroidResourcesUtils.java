@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import jadx.core.codegen.ClassGen;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.deobf.NameMapper;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
@@ -124,6 +125,7 @@ public class AndroidResourcesUtils {
 			if (fieldNode != null
 					&& !fieldNode.getName().equals(resName)
 					&& NameMapper.isValidIdentifier(resName)) {
+				fieldNode.add(AFlag.DONT_RENAME);
 				fieldNode.getFieldInfo().setAlias(resName);
 			}
 		}
@@ -131,7 +133,7 @@ public class AndroidResourcesUtils {
 
 	@NotNull
 	private static ClassNode addClassForResType(ClassNode resCls, boolean rClsExists, String typeName) {
-		ClassNode newTypeCls = new ClassNode(resCls.dex(), resCls.getFullName() + "$" + typeName,
+		ClassNode newTypeCls = new ClassNode(resCls.dex(), resCls.getFullName() + '$' + typeName,
 				AccessFlags.ACC_PUBLIC | AccessFlags.ACC_STATIC | AccessFlags.ACC_FINAL);
 		resCls.addInnerClass(newTypeCls);
 		if (rClsExists) {

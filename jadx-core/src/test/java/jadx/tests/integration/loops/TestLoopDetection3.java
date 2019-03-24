@@ -1,12 +1,13 @@
 package jadx.tests.integration.loops;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestLoopDetection3 extends IntegrationTest {
 
@@ -37,7 +38,14 @@ public class TestLoopDetection3 extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsString("while"));
-		// TODO
-		// assertThat(code, containsString("while (--pos >= 0) {"));
+	}
+
+	@Test
+	@NotYetImplemented
+	public void test2() {
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, containsString("while (--pos >= 0) {"));
 	}
 }

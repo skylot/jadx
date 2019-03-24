@@ -4,14 +4,14 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.Map;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestGenerics2 extends IntegrationTest {
 
@@ -49,8 +49,8 @@ public class TestGenerics2 extends IntegrationTest {
 		assertThat(code, containsString("return ref.get();"));
 	}
 
-	@Ignore("Make generic info propagation for methods (like Map.get)")
 	@Test
+	@NotYetImplemented("Make generic info propagation for methods (like Map.get)")
 	public void testDebug() {
 		noDebugInfo();
 		ClassNode cls = getClassNode(TestCls.class);

@@ -42,6 +42,6 @@ public class Annotation {
 
 	@Override
 	public String toString() {
-		return "Annotation[" + visibility + ", " + atype + ", " + values + "]";
+		return "Annotation[" + visibility + ", " + atype + ", " + values + ']';
 	}
 }

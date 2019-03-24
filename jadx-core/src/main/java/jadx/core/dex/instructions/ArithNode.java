@@ -76,8 +76,8 @@ public class ArithNode extends InsnNode {
 		return InsnUtils.formatOffset(offset) + ": "
 				+ InsnUtils.insnTypeToString(insnType)
 				+ getResult() + " = "
-				+ getArg(0) + " "
-				+ op.getSymbol() + " "
+				+ getArg(0) + ' '
+				+ op.getSymbol() + ' '
 				+ getArg(1);
 	}
 }

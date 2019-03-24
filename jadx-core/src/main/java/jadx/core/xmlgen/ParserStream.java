@@ -1,5 +1,6 @@
 package jadx.core.xmlgen;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -141,6 +142,25 @@ public class ParserStream {
 
 	public void reset() throws IOException {
 		input.reset();
+	}
+
+	public void readFully(byte[] b) throws IOException {
+		readFully(b, 0, b.length);
+	}
+
+	public void readFully(byte[] b, int off, int len) throws IOException {
+		readPos += len;
+		if (len < 0) {
+			throw new IndexOutOfBoundsException();
+		}
+		int n = 0;
+		while (n < len) {
+			int count = input.read(b, off + n, len - n);
+			if (count < 0) {
+				throw new EOFException();
+			}
+			n += count;
+		}
 	}
 
 	@Override

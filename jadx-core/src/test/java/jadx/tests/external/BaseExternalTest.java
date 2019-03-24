@@ -24,9 +24,9 @@ import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.tests.api.IntegrationTest;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 public abstract class BaseExternalTest extends IntegrationTest {
 	private static final Logger LOG = LoggerFactory.getLogger(BaseExternalTest.class);

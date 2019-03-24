@@ -47,6 +47,9 @@ public class JadxCLIArgs {
 	@Parameter(names = {"--no-imports"}, description = "disable use of imports, always write entire package name")
 	protected boolean useImports = true;
 
+	@Parameter(names = {"--no-debug-info"}, description = "disable debug info")
+	protected boolean debugInfo = true;
+
 	@Parameter(names = "--no-replace-consts", description = "don't replace constant value with matching constant field")
 	protected boolean replaceConsts = true;
 
@@ -160,6 +163,7 @@ public class JadxCLIArgs {
 		args.setRespectBytecodeAccModifiers(respectBytecodeAccessModifiers);
 		args.setExportAsGradleProject(exportAsGradleProject);
 		args.setUseImports(useImports);
+		args.setDebugInfo(debugInfo);
 		return args;
 	}
 
@@ -201,6 +205,10 @@ public class JadxCLIArgs {
 
 	public boolean isUseImports() {
 		return useImports;
+	}
+
+	public boolean isDebugInfo() {
+		return debugInfo;
 	}
 
 	public boolean isDeobfuscationOn() {

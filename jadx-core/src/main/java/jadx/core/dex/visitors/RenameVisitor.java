@@ -76,10 +76,11 @@ public class RenameVisitor extends AbstractVisitor {
 		String newShortName = fixClsShortName(clsName);
 		if (!newShortName.equals(clsName)) {
 			classInfo.rename(cls.root(), alias.makeFullClsName(newShortName, true));
+			alias = classInfo.getAlias();
 		}
 		if (alias.getPackage().isEmpty()) {
 			String fullName = alias.makeFullClsName(alias.getShortName(), true);
-			String newFullName = Consts.DEFAULT_PACKAGE_NAME + "." + fullName;
+			String newFullName = Consts.DEFAULT_PACKAGE_NAME + '.' + fullName;
 			classInfo.rename(cls.root(), newFullName);
 		}
 	}
@@ -92,7 +93,11 @@ public class RenameVisitor extends AbstractVisitor {
 		if (firstChar == '$') {
 			return 'C' + NameMapper.removeInvalidCharsMiddle(clsName);
 		}
-		return NameMapper.removeInvalidChars(clsName, "C");
+		String cleanClsName = NameMapper.removeInvalidChars(clsName, "C");
+		if (!NameMapper.isValidIdentifier(cleanClsName)) {
+			return 'C' + cleanClsName;
+		}
+		return cleanClsName;
 	}
 
 	private void checkFields(ClassNode cls) {

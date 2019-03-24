@@ -21,7 +21,7 @@ public final class JavaField implements JavaNode {
 
 	@Override
 	public String getFullName() {
-		return parent.getFullName() + "." + getName();
+		return parent.getFullName() + '.' + getName();
 	}
 
 	@Override

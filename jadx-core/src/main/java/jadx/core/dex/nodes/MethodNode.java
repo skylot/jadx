@@ -685,7 +685,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 	@Override
 	public String toString() {
 		return parentClass + "." + mthInfo.getName()
-				+ "(" + Utils.listToString(mthInfo.getArgumentsTypes()) + "):"
+				+ '(' + Utils.listToString(mthInfo.getArgumentsTypes()) + "):"
 				+ retType;
 	}
 }

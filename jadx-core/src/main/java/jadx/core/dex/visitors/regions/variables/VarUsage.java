@@ -28,6 +28,6 @@ class VarUsage {
 
 	@Override
 	public String toString() {
-		return "{" + (var == null ? "-" : var.toShortString()) + ", a:" + assigns + ", u:" + uses + "}";
+		return '{' + (var == null ? "-" : var.toShortString()) + ", a:" + assigns + ", u:" + uses + '}';
 	}
 }

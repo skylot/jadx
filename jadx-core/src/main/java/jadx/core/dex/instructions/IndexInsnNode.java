@@ -47,7 +47,7 @@ public class IndexInsnNode extends InsnNode {
 						+ Utils.listToString(getArguments());
 
 			default:
-				return super.toString() + " " + InsnUtils.indexToString(index);
+				return super.toString() + ' ' + InsnUtils.indexToString(index);
 		}
 	}
 }

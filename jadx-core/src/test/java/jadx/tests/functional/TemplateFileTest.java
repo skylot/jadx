@@ -1,11 +1,11 @@
 package jadx.tests.functional;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.export.TemplateFile;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertThat;
 
 public class TemplateFileTest {
 

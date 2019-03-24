@@ -15,6 +15,7 @@ public enum AFlag {
 	DONT_WRAP,
 	DONT_INLINE,
 	DONT_GENERATE, // process as usual, but don't output to generated code
+	DONT_RENAME, // do not rename during deobfuscation
 	REMOVE, // can be completely removed
 	ADDED_TO_REGION,
 

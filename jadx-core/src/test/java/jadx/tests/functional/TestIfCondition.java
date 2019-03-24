@@ -1,6 +1,6 @@
 package jadx.tests.functional;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IfOp;
@@ -19,8 +19,8 @@ import static jadx.core.dex.regions.conditions.IfCondition.Mode.OR;
 import static jadx.core.dex.regions.conditions.IfCondition.merge;
 import static jadx.core.dex.regions.conditions.IfCondition.not;
 import static jadx.core.dex.regions.conditions.IfCondition.simplify;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 public class TestIfCondition {
 

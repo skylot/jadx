@@ -470,7 +470,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private boolean isDeobfCandidateAttr(String shortNsName, String attrName) {
 		String fullName;
 		if (shortNsName != null) {
-			fullName = shortNsName + ":" + attrName;
+			fullName = shortNsName + ':' + attrName;
 		} else {
 			return false;
 		}

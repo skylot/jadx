@@ -2,9 +2,12 @@ package jadx.core.dex.visitors.typeinference;
 
 import java.util.Collections;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+import jadx.NotYetImplemented;
+import jadx.NotYetImplementedExtension;
 import jadx.api.JadxArgs;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.RootNode;
@@ -19,13 +22,14 @@ import static jadx.core.dex.instructions.args.ArgType.UNKNOWN;
 import static jadx.core.dex.instructions.args.ArgType.UNKNOWN_ARRAY;
 import static jadx.core.dex.instructions.args.ArgType.UNKNOWN_OBJECT;
 import static jadx.core.dex.instructions.args.ArgType.array;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
+@ExtendWith(NotYetImplementedExtension.class)
 public class TypeCompareTest {
 	private TypeCompare compare;
 
-	@Before
+	@BeforeEach
 	public void init() {
 		JadxArgs args = new JadxArgs();
 		RootNode root = new RootNode(args);
@@ -99,10 +103,15 @@ public class TypeCompareTest {
 
 		check(tType, ArgType.OBJECT, TypeCompareEnum.NARROW_BY_GENERIC);
 		check(ArgType.OBJECT, tType, TypeCompareEnum.WIDER_BY_GENERIC);
+	}
 
+	@Test
+	@NotYetImplemented
+	public void compareGenericTypesNYI() {
+		ArgType vType = ArgType.genericType("V");
 		// TODO: use extend types from generic declaration for more strict checks
-//		check(vType, ArgType.STRING, TypeCompareEnum.CONFLICT);
-//		check(ArgType.STRING, vType, TypeCompareEnum.CONFLICT);
+		check(vType, ArgType.STRING, TypeCompareEnum.CONFLICT);
+		check(ArgType.STRING, vType, TypeCompareEnum.CONFLICT);
 	}
 
 	private void firstIsNarrow(ArgType first, ArgType second) {

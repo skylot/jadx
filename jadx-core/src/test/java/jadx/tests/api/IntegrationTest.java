@@ -35,16 +35,16 @@ import jadx.tests.api.compiler.StaticCompiler;
 import jadx.tests.api.utils.TestUtils;
 
 import static jadx.core.utils.files.FileUtils.addFileToJar;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public abstract class IntegrationTest extends TestUtils {
 
@@ -92,9 +92,21 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	public ClassNode getClassNodeFromFile(File file, String clsName) {
+		JadxDecompiler d = loadFiles(Collections.singletonList(file));
+		RootNode root = JadxInternalAccess.getRoot(d);
+
+		ClassNode cls = root.searchClassByName(clsName);
+		assertThat("Class not found: " + clsName, cls, notNullValue());
+		assertThat(clsName, is(cls.getClassInfo().getFullName()));
+
+		decompileAndCheckCls(d, cls);
+		return cls;
+	}
+
+	protected JadxDecompiler loadFiles(List<File> inputFiles) {
 		JadxDecompiler d = null;
 		try {
-			args.setInputFiles(Collections.singletonList(file));
+			args.setInputFiles(inputFiles);
 			d = new JadxDecompiler(args);
 			d.load();
 		} catch (Exception e) {
@@ -103,11 +115,10 @@ public abstract class IntegrationTest extends TestUtils {
 		}
 		RootNode root = JadxInternalAccess.getRoot(d);
 		insertResources(root);
+		return d;
+	}
 
-		ClassNode cls = root.searchClassByName(clsName);
-		assertThat("Class not found: " + clsName, cls, notNullValue());
-		assertThat(clsName, is(cls.getClassInfo().getFullName()));
-
+	protected void decompileAndCheckCls(JadxDecompiler d, ClassNode cls) {
 		if (unloadCls) {
 			decompile(d, cls);
 		} else {
@@ -120,8 +131,7 @@ public abstract class IntegrationTest extends TestUtils {
 
 		checkCode(cls);
 		compile(cls);
-		runAutoCheck(clsName);
-		return cls;
+		runAutoCheck(cls.getClassInfo().getFullName());
 	}
 
 	private void insertResources(RootNode root) {
@@ -162,9 +172,9 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	protected static void checkCode(ClassNode cls) {
-		assertFalse("Inconsistent cls: " + cls, hasErrors(cls));
+		assertFalse(hasErrors(cls), "Inconsistent cls: " + cls);
 		for (MethodNode mthNode : cls.getMethods()) {
-			assertFalse("Method with problems: " + mthNode, hasErrors(mthNode));
+			assertFalse(hasErrors(mthNode), "Method with problems: " + mthNode);
 		}
 		assertThat(cls.getCode().toString(), not(containsString("inconsistent")));
 	}
@@ -257,7 +267,7 @@ public abstract class IntegrationTest extends TestUtils {
 		try {
 			dynamicCompiler = new DynamicCompiler(cls);
 			boolean result = dynamicCompiler.compile();
-			assertTrue("Compilation failed", result);
+			assertTrue(result, "Compilation failed");
 			System.out.println("Compilation: PASSED");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -275,7 +285,7 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	public Method getReflectMethod(String method, Class<?>... types) {
-		assertNotNull("dynamicCompiler not ready", dynamicCompiler);
+		assertNotNull(dynamicCompiler, "dynamicCompiler not ready");
 		try {
 			return dynamicCompiler.getMethod(method, types);
 		} catch (Exception e) {
@@ -286,8 +296,8 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	public Object invoke(Method mth, Object... args) throws Exception {
-		assertNotNull("dynamicCompiler not ready", dynamicCompiler);
-		assertNotNull("unknown method", mth);
+		assertNotNull(dynamicCompiler, "dynamicCompiler not ready");
+		assertNotNull(mth, "unknown method");
 		return dynamicCompiler.invoke(mth, args);
 	}
 
@@ -427,7 +437,7 @@ public abstract class IntegrationTest extends TestUtils {
 	protected void setOutputCFG() {
 		this.args.setCfgOutput(true);
 		this.args.setRawCFGOutput(true);
-	}	// Use only for debug purpose
+	}    // Use only for debug purpose
 
 	@Deprecated
 	protected void setOutputRawCFG() {

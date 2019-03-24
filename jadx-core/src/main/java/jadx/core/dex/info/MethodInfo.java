@@ -65,15 +65,15 @@ public final class MethodInfo {
 	}
 
 	public String getFullName() {
-		return declClass.getFullName() + "." + name;
+		return declClass.getFullName() + '.' + name;
 	}
 
 	public String getFullId() {
-		return declClass.getFullName() + "." + shortId;
+		return declClass.getFullName() + '.' + shortId;
 	}
 
 	public String getRawFullId() {
-		return declClass.makeRawFullName() + "." + shortId;
+		return declClass.makeRawFullName() + '.' + shortId;
 	}
 
 	/**
@@ -151,7 +151,7 @@ public final class MethodInfo {
 
 	@Override
 	public String toString() {
-		return declClass.getFullName() + "." + name
-				+ "(" + Utils.listToString(args) + "):" + retType;
+		return declClass.getFullName() + '.' + name
+				+ '(' + Utils.listToString(args) + "):" + retType;
 	}
 }

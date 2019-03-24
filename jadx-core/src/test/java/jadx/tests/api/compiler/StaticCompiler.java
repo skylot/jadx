@@ -55,7 +55,7 @@ public class StaticCompiler {
 
 		@Override
 		public JavaFileObject getJavaFileForOutput(Location location, String className, JavaFileObject.Kind kind,
-				FileObject sibling) throws IOException {
+		                                           FileObject sibling) throws IOException {
 			if (kind == JavaFileObject.Kind.CLASS) {
 				File file = new File(outDir, className.replace('.', '/') + ".class");
 				files.add(file);

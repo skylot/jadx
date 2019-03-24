@@ -106,6 +106,6 @@ public class ConstructorInsn extends InsnNode implements CallMthInterface {
 
 	@Override
 	public String toString() {
-		return super.toString() + " " + callMth + " " + callType;
+		return super.toString() + ' ' + callMth + ' ' + callType;
 	}
 }

@@ -126,7 +126,7 @@ public class NameGen {
 		String name = var.getName();
 		String varName = name != null ? name : guessName(var);
 		if (NameMapper.isReserved(varName)) {
-			varName = varName + "R";
+			varName = varName + 'R';
 		}
 		if (!NameMapper.isValidIdentifier(varName)) {
 			varName = getFallbackName(var);

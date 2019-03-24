@@ -1,11 +1,14 @@
 package jadx.tests.integration.conditions;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestTernary2 extends IntegrationTest {
 
@@ -32,7 +35,14 @@ public class TestTernary2 extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertEquals(1, count(code, "f(1, 0)"));
-		// TODO:
-//		assertThat(code, containsString("checkFalse(f(1, 0) == 0);"));
+	}
+
+	@Test
+	@NotYetImplemented
+	public void test2() {
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, containsString("assertTrue(f(1, 0) == 0);"));
 	}
 }

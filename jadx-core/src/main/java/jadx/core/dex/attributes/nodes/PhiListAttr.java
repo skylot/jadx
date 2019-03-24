@@ -25,10 +25,10 @@ public class PhiListAttr implements IAttribute {
 		StringBuilder sb = new StringBuilder();
 		sb.append("PHI: ");
 		for (PhiInsn phiInsn : list) {
-			sb.append('r').append(phiInsn.getResult().getRegNum()).append(" ");
+			sb.append('r').append(phiInsn.getResult().getRegNum()).append(' ');
 		}
 		for (PhiInsn phiInsn : list) {
-			sb.append("\n  ").append(phiInsn).append(" ").append(phiInsn.getAttributesString());
+			sb.append("\n  ").append(phiInsn).append(' ').append(phiInsn.getAttributesString());
 		}
 		return sb.toString();
 	}

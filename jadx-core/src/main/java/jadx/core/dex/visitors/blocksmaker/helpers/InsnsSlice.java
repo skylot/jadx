@@ -65,8 +65,8 @@ public class InsnsSlice {
 	public String toString() {
 		return "{["
 				+ insnsList.stream().map(insn -> insn.getType().toString()).collect(Collectors.joining(", "))
-				+ "]"
+				+ ']'
 				+ (complete ? " complete" : "")
-				+ "}";
+				+ '}';
 	}
 }

@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.info.ClassInfo;
@@ -225,6 +226,9 @@ public class Deobfuscator {
 			clsInfo.rename(cls.dex().root(), fullName);
 		}
 		for (FieldNode field : cls.getFields()) {
+			if (field.contains(AFlag.DONT_RENAME)) {
+				continue;
+			}
 			renameField(field);
 		}
 		for (MethodNode mth : cls.getMethods()) {
@@ -391,7 +395,7 @@ public class Deobfuscator {
 				return null;
 			}
 		}
-		ClassNode otherCls = cls.dex().root().searchClassByName(cls.getPackage() + "." + name);
+		ClassNode otherCls = cls.dex().root().searchClassByName(cls.getPackage() + '.' + name);
 		if (otherCls != null) {
 			return null;
 		}
@@ -481,7 +485,7 @@ public class Deobfuscator {
 
 	private String prepareNamePart(String name) {
 		if (name.length() > maxLength) {
-			return "x" + Integer.toHexString(name.hashCode());
+			return 'x' + Integer.toHexString(name.hashCode());
 		}
 		return NameMapper.removeInvalidCharsMiddle(name);
 	}

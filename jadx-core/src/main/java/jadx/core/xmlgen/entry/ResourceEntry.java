@@ -75,6 +75,6 @@ public final class ResourceEntry {
 
 	@Override
 	public String toString() {
-		return "  0x" + Integer.toHexString(id) + " (" + id + ")" + config + " = " + typeName + "." + keyName;
+		return "  0x" + Integer.toHexString(id) + " (" + id + ')' + config + " = " + typeName + '.' + keyName;
 	}
 }

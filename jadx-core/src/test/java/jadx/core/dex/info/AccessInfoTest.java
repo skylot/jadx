@@ -1,13 +1,13 @@
 package jadx.core.dex.info;
 
 import com.android.dx.rop.code.AccessFlags;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.info.AccessInfo.AFType;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 public class AccessInfoTest {
 

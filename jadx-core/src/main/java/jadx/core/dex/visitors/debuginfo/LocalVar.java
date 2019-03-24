@@ -113,7 +113,7 @@ public final class LocalVar {
 	@Override
 	public String toString() {
 		return InsnUtils.formatOffset(startAddr)
-				+ "-" + (isEnd ? InsnUtils.formatOffset(endAddr) : "     ")
+				+ '-' + (isEnd ? InsnUtils.formatOffset(endAddr) : "     ")
 				+ ": r" + regNum + " '" + name + "' " + type;
 	}
 }

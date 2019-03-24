@@ -119,7 +119,7 @@ public class ClsSet {
 			} else if (outputName.endsWith(".jar")) {
 				ZipOutputStream out = new ZipOutputStream(outputStream);
 				try {
-					out.putNextEntry(new ZipEntry(CLST_PKG_PATH + "/" + CLST_FILENAME));
+					out.putNextEntry(new ZipEntry(CLST_PKG_PATH + '/' + CLST_FILENAME));
 					save(out);
 				} finally {
 					close(out);

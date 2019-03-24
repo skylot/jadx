@@ -15,6 +15,8 @@ import jadx.core.xmlgen.entry.RawNamedValue;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.core.xmlgen.entry.ValuesParser;
 
+import static jadx.core.xmlgen.ParserConstants.PLURALS_MAP;
+
 public class ResXmlGen {
 
 	private static final Set<String> SKIP_RES_TYPES = new HashSet<>(Arrays.asList(
@@ -147,16 +149,24 @@ public class ResXmlGen {
 				}
 			}
 		}
-		if (typeName.equals("attr")) {
-			if (nameStr != null) {
-				addSimpleValue(cw, typeName, itemTag, nameStr, valueStr, "");
-			}
-		} else if (typeName.equals("style")) {
-			if (nameStr != null) {
-				addSimpleValue(cw, typeName, itemTag, nameStr, "", valueStr);
-			}
-		} else {
-			addSimpleValue(cw, typeName, itemTag, null, null, valueStr);
+		switch (typeName) {
+			case "attr":
+				if (nameStr != null) {
+					addSimpleValue(cw, typeName, itemTag, nameStr, valueStr, "");
+				}
+				break;
+			case "style":
+				if (nameStr != null) {
+					addSimpleValue(cw, typeName, itemTag, nameStr, "", valueStr);
+				}
+				break;
+			case "plurals":
+				final String quantity = PLURALS_MAP.get(value.getNameRef());
+				addSimpleValue(cw, typeName, itemTag, "quantity", quantity, valueStr);
+				break;
+			default:
+				addSimpleValue(cw, typeName, itemTag, null, null, valueStr);
+				break;
 		}
 	}
 
@@ -194,10 +204,10 @@ public class ResXmlGen {
 
 	private String getFileName(ResourceEntry ri) {
 		StringBuilder sb = new StringBuilder();
-		String locale = ri.getConfig().getLocale();
+		String qualifiers = ri.getConfig().getQualifiers();
 		sb.append("res/values");
-		if (!locale.isEmpty()) {
-			sb.append('-').append(locale);
+		if (!qualifiers.isEmpty()) {
+			sb.append(qualifiers);
 		}
 		sb.append('/');
 		sb.append(ri.getTypeName());

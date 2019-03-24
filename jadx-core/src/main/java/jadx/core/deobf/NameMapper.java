@@ -126,7 +126,7 @@ public class NameMapper {
 	 * </ul><p>
 	 */
 	public static String removeInvalidCharsMiddle(String name) {
-		if (isValidIdentifier(name) && isAllCharsPrintable(name)) {
+		if (isValidIdentifier(name)) {
 			return name;
 		}
 		int len = name.length();

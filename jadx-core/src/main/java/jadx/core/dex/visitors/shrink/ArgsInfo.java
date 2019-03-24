@@ -137,6 +137,6 @@ final class ArgsInfo {
 	public String toString() {
 		return "ArgsInfo: |" + inlineBorder
 				+ " ->" + (inlinedInsn == null ? "-" : inlinedInsn.pos)
-				+ " " + args + " : " + insn;
+				+ ' ' + args + " : " + insn;
 	}
 }

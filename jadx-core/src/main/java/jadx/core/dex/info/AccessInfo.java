@@ -203,6 +203,6 @@ public class AccessInfo {
 
 	@Override
 	public String toString() {
-		return "AccessInfo: " + type + " 0x" + Integer.toHexString(accFlags) + " (" + rawString() + ")";
+		return "AccessInfo: " + type + " 0x" + Integer.toHexString(accFlags) + " (" + rawString() + ')';
 	}
 }

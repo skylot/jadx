@@ -4,17 +4,17 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.sameInstance;
-import static org.junit.Assert.assertThat;
 
 public class TestAnonymousClass5 extends IntegrationTest {
 
@@ -79,7 +79,6 @@ public class TestAnonymousClass5 extends IntegrationTest {
 		assertThat(code, containsOne("map.get(name);"));
 		assertThat(code, not(containsString("access$008")));
 
-		// TODO
-//		assertThat(code, not(containsString("synthetic")));
+		assertThat(code, not(containsString("synthetic")));
 	}
 }

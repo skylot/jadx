@@ -43,7 +43,7 @@ public class ManifestAttributes {
 
 		@Override
 		public String toString() {
-			return "[" + type + ", " + values + "]";
+			return "[" + type + ", " + values + ']';
 		}
 	}
 
@@ -173,7 +173,7 @@ public class ManifestAttributes {
 			StringBuilder sb = new StringBuilder();
 			for (Map.Entry<Long, String> entry : attr.getValues().entrySet()) {
 				if (value == entry.getKey()) {
-					sb = new StringBuilder(entry.getValue() + "|");
+					sb = new StringBuilder(entry.getValue() + '|');
 					break;
 				} else if ((value & entry.getKey()) == entry.getKey()) {
 					sb.append(entry.getValue()).append('|');

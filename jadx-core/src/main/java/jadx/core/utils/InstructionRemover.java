@@ -44,6 +44,7 @@ public class InstructionRemover {
 	public void add(InsnNode insn) {
 		toRemove.add(insn);
 	}
+
 	public void addAndUnbind(MethodNode mth, InsnNode insn) {
 		toRemove.add(insn);
 		unbindInsn(mth, insn);

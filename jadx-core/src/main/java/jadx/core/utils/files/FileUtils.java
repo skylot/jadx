@@ -77,7 +77,7 @@ public class FileUtils {
 
 	public static File createTempDir(String suffix) {
 		try {
-			Path path = Files.createTempDirectory("jadx-tmp-" + System.nanoTime() + "-" + suffix);
+			Path path = Files.createTempDirectory("jadx-tmp-" + System.nanoTime() + '-' + suffix);
 			path.toFile().deleteOnExit();
 			return path.toFile();
 		} catch (IOException e) {

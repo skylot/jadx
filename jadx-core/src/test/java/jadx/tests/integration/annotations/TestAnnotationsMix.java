@@ -8,15 +8,18 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestAnnotationsMix extends IntegrationTest {
 
@@ -28,17 +31,17 @@ public class TestAnnotationsMix extends IntegrationTest {
 
 			Method err = cls.getMethod("error");
 			assertTrue(err.getExceptionTypes().length > 0);
-			assertTrue(err.getExceptionTypes()[0] == Exception.class);
+			assertSame(err.getExceptionTypes()[0], Exception.class);
 
 			Method d = cls.getMethod("depr", String[].class);
 			assertTrue(d.getAnnotations().length > 0);
-			assertTrue(d.getAnnotations()[0].annotationType() == Deprecated.class);
+			assertSame(d.getAnnotations()[0].annotationType(), Deprecated.class);
 
 			Method ma = cls.getMethod("test", String[].class);
 			assertTrue(ma.getAnnotations().length > 0);
 			MyAnnotation a = (MyAnnotation) ma.getAnnotations()[0];
-			assertTrue(a.num() == 7);
-			assertTrue(a.state() == Thread.State.TERMINATED);
+			assertEquals(7, a.num());
+			assertSame(a.state(), Thread.State.TERMINATED);
 			return true;
 		}
 
@@ -100,15 +103,21 @@ public class TestAnnotationsMix extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, not(containsString("int i = false;")));
-
-		// TODO
-//		assertThat(code, not(containsString("Thread thread = new Thread();")));
-//		assertThat(code, containsString("new Thread();"));
 	}
 
 	@Test
 	public void testNoDebug() {
 		noDebugInfo();
 		getClassNode(TestCls.class);
+	}
+
+	@Test
+	@NotYetImplemented
+	public void testNYI() {
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, not(containsString("Thread thread = new Thread();")));
+		assertThat(code, containsString("new Thread();"));
 	}
 }

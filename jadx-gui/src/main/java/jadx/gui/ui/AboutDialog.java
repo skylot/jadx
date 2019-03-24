@@ -34,7 +34,7 @@ class AboutDialog extends JDialog {
 		version.setAlignmentX(0.5f);
 
 		String javaVm = System.getProperty("java.vm.name");
-		String javaVer = System.getProperty("java.vm.version");
+		String javaVer = System.getProperty("java.version");
 
 		javaVm = javaVm == null ? "" : javaVm;
 

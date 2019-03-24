@@ -1,6 +1,6 @@
 package jadx.tests.integration.debuginfo;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
@@ -10,8 +10,8 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.tests.api.IntegrationTest;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestLineNumbers extends IntegrationTest {
 

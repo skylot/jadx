@@ -45,6 +45,6 @@ public abstract class AbstractTypeConstraint implements ITypeConstraint {
 
 	@Override
 	public String toString() {
-		return "(" + insn.getType() + ":" + Utils.listToString(relatedVars, SSAVar::toShortString) + ")";
+		return "(" + insn.getType() + ':' + Utils.listToString(relatedVars, SSAVar::toShortString) + ')';
 	}
 }

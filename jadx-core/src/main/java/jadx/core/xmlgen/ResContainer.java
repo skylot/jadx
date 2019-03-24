@@ -96,6 +96,6 @@ public class ResContainer implements Comparable<ResContainer> {
 
 	@Override
 	public String toString() {
-		return "Res{" + name + ", type=" + dataType + ", subFiles=" + subFiles + "}";
+		return "Res{" + name + ", type=" + dataType + ", subFiles=" + subFiles + '}';
 	}
 }

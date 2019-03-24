@@ -53,6 +53,6 @@ public final class Region extends AbstractRegion {
 
 	@Override
 	public String toString() {
-		return "R" + baseString();
+		return 'R' + baseString();
 	}
 }

@@ -92,7 +92,7 @@ public class MethodGen {
 			code.add(mth.isVirtual() ? "/* virtual */ " : "/* direct */ ");
 		}
 
-		if (classGen.addGenericMap(code, mth.getGenericMap())) {
+		if (classGen.addGenericMap(code, mth.getGenericMap(), false)) {
 			code.add(' ');
 		}
 		if (ai.isConstructor()) {
@@ -230,7 +230,7 @@ public class MethodGen {
 			}
 			if (addLabels && needLabel(insn, prevInsn)) {
 				code.decIndent();
-				code.startLine(getLabelName(insn.getOffset()) + ":");
+				code.startLine(getLabelName(insn.getOffset()) + ':');
 				code.incIndent();
 			}
 			try {
