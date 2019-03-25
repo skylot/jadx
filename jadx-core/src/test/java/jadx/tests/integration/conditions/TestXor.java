@@ -13,7 +13,7 @@ import jadx.tests.api.IntegrationTest;
 public class TestXor extends IntegrationTest {
 
 	public static class TestCls {
-		public boolean test1() {
+		public boolean test() {
 			return test2() ^ true;
 		}
 
