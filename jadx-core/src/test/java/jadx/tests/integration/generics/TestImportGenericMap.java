@@ -1,13 +1,13 @@
 package jadx.tests.integration.generics;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestImportGenericMap extends IntegrationTest {
 
@@ -25,16 +25,15 @@ public class TestImportGenericMap extends IntegrationTest {
 
 final class SuperClass<O extends SuperClass.ToImport> {
 
-    interface ToImport {
-    }
+	interface ToImport {
+	}
 
-    interface NotToImport {
-    }
+	interface NotToImport {
+	}
 
-    static final class Class1<C extends NotToImport> {
-    }
+	static final class Class1<C extends NotToImport> {
+	}
 
-    public <C extends NotToImport> SuperClass(Class1<C> zzf) {
-    }
-
+	public <C extends NotToImport> SuperClass(Class1<C> zzf) {
+	}
 }

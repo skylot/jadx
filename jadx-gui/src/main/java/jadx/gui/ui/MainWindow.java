@@ -1,13 +1,18 @@
 package jadx.gui.ui;
 
-import static javax.swing.KeyStroke.getKeyStroke;
-
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.DisplayMode;
-import java.awt.Font;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
+import javax.swing.*;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeWillExpandListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+import java.awt.*;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
@@ -21,38 +26,6 @@ import java.io.FileInputStream;
 import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.Box;
-import javax.swing.ImageIcon;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JToggleButton;
-import javax.swing.JToolBar;
-import javax.swing.JTree;
-import javax.swing.ProgressMonitor;
-import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
-import javax.swing.event.MenuEvent;
-import javax.swing.event.MenuListener;
-import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeWillExpandListener;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
 
 import org.fife.ui.rsyntaxtextarea.Theme;
 import org.slf4j.Logger;
@@ -82,6 +55,8 @@ import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
+
+import static javax.swing.KeyStroke.getKeyStroke;
 
 @SuppressWarnings("serial")
 public class MainWindow extends JFrame {
@@ -343,10 +318,10 @@ public class MainWindow extends JFrame {
 		Object obj = tree.getLastSelectedPathComponent();
 		if (obj instanceof JPackage) {
 			JPackagePopUp menu = new JPackagePopUp((JPackage) obj);
-	        menu.show(e.getComponent(), e.getX(), e.getY());
+			menu.show(e.getComponent(), e.getX(), e.getY());
 		}
 	}
-	
+
 	private void syncWithEditor() {
 		ContentPanel selectedContentPanel = tabbedPane.getSelectedCodePanel();
 		if (selectedContentPanel == null) {
@@ -608,8 +583,7 @@ public class MainWindow extends JFrame {
 			public void mouseClicked(MouseEvent e) {
 				if (SwingUtilities.isRightMouseButton(e)) {
 					treeRightClickAction(e);
-				}
-				else {
+				} else {
 					treeClickAction();
 				}
 			}
@@ -780,7 +754,7 @@ public class MainWindow extends JFrame {
 		public void menuCanceled(MenuEvent e) {
 		}
 	}
-	
+
 	private class JPackagePopUp extends JPopupMenu {
 		JMenuItem excludeItem = new JCheckBoxMenuItem("Exclude");
 
@@ -791,8 +765,7 @@ public class MainWindow extends JFrame {
 				String fullName = pkg.getFullName();
 				if (excludeItem.isSelected()) {
 					wrapper.addExcludedPackage(fullName);
-				}
-				else {
+				} else {
 					wrapper.removeExcludedPackage(fullName);
 				}
 				reOpenFile();

@@ -5,11 +5,11 @@ public class TestInner3 extends AbstractTest {
 	private String i0;
 
 	public class A {
-		
+
 		protected String a;
-		
+
 		public A() {
-			a="";
+			a = "";
 		}
 
 		public String a() {
@@ -39,7 +39,7 @@ public class TestInner3 extends AbstractTest {
 			public String i() {
 
 				String result = TestInner3.this.i0 + I0.this.i0 + I0.this.i1 + i0 + i1 + i2;
-				
+
 				A a = new A() {
 
 					public String a() {
@@ -82,5 +82,4 @@ public class TestInner3 extends AbstractTest {
 	public static void main(String[] args) throws Exception {
 		new TestInner2().testRun();
 	}
-
 }
