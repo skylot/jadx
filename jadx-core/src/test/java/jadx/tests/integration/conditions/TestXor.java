@@ -24,7 +24,7 @@ public class TestXor extends IntegrationTest {
 
 	@Test
 	@NotYetImplemented
-	public void test() {
+	public void test409() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
