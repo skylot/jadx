@@ -20,6 +20,7 @@ import jadx.core.dex.visitors.EnumVisitor;
 import jadx.core.dex.visitors.ExtractFieldInit;
 import jadx.core.dex.visitors.FallbackModeVisitor;
 import jadx.core.dex.visitors.FixAccessModifiers;
+import jadx.core.dex.visitors.GenericsTypeVisitor;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.MethodInlineVisitor;
 import jadx.core.dex.visitors.ModVisitor;
@@ -70,6 +71,7 @@ public class Jadx {
 			if (args.isDebugInfo()) {
 				passes.add(new DebugInfoVisitor());
 			}
+			passes.add(new GenericsTypeVisitor());
 			passes.add(new TypeInference());
 
 			if (args.isRawCFGOutput()) {

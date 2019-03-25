@@ -27,8 +27,6 @@ public class DebugInfoVisitor extends AbstractVisitor {
 			}
 		} catch (Exception e) {
 			LOG.error("Error in debug info parser: {}", ErrorsCounter.formatMsg(mth, e.getMessage()), e);
-		} finally {
-			mth.unloadInsnArr();
 		}
 	}
 
