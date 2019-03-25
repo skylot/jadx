@@ -3,9 +3,6 @@ package jadx.core.dex.visitors;
 import java.lang.reflect.Method;
 import java.util.Objects;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
@@ -13,12 +10,9 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.helpers.GenericTypeHelper;
-import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.JadxException;
 
 public class GenericsTypeVisitor extends AbstractVisitor {
-
-	private static final Logger LOG = LoggerFactory.getLogger(GenericsTypeVisitor.class);
 
 	private GenericTypeHelper helper = new GenericTypeHelper();
 
@@ -70,7 +64,9 @@ public class GenericsTypeVisitor extends AbstractVisitor {
 	private void processCheckCast(InsnNode node) {
 		ArgType type = node.getResult().getType();
 		RegisterArg arg = (RegisterArg) node.getArg(0);
-		helper.setType(arg, type, null);
+		if (!arg.getType().equals(type)) {
+			helper.setType(arg, type, null);
+		}
 	}
 
 }

@@ -101,7 +101,6 @@ public class GenericTypeHelper {
 			this.source = source;
 			this.typeName = typeName;
 			this.destination = destination;
-			System.out.println(this);
 		}
 
 		boolean handles(RegisterArg arg) {
