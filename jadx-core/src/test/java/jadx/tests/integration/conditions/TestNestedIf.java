@@ -42,6 +42,5 @@ public class TestNestedIf extends IntegrationTest {
 		assertThat(code, countString(2, "return false;"));
 		assertThat(code, containsOne("test1();"));
 		assertThat(code, containsOne("return true;"));
-
 	}
 }

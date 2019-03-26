@@ -30,6 +30,5 @@ public class TestConditions14 extends IntegrationTest {
 		assertThat(code, containsOne("boolean r = a == null ? b != null : !a.equals(b);"));
 		assertThat(code, containsOne("if (r) {"));
 		assertThat(code, containsOne("System.out.println(\"1\");"));
-
 	}
 }

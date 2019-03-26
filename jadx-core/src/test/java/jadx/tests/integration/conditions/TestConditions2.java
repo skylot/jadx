@@ -1,7 +1,12 @@
 package jadx.tests.integration.conditions;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
+
 import org.junit.jupiter.api.Test;
 
+import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
@@ -24,11 +29,12 @@ public class TestConditions2 extends IntegrationTest {
 	}
 
 	@Test
+	@NotYetImplemented
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-//		assertThat(code, containsString("return;"));
-//		assertThat(code, not(containsString("else")));
+		assertThat(code, containsString("return;"));
+		assertThat(code, not(containsString("else")));
 	}
 }
