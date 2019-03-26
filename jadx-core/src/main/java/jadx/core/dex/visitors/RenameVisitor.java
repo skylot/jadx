@@ -50,19 +50,23 @@ public class RenameVisitor extends AbstractVisitor {
 	}
 
 	private void checkClasses(RootNode root, boolean caseSensitive) {
-		Set<String> clsNames = new HashSet<>();
-		for (ClassNode cls : root.getClasses(true)) {
+		List<ClassNode> classes = root.getClasses(true);
+		for (ClassNode cls : classes) {
 			checkClassName(cls);
 			checkFields(cls);
 			checkMethods(cls);
-			if (!caseSensitive) {
-				ClassInfo classInfo = cls.getClassInfo();
-				String clsFileName = classInfo.getAlias().getFullPath();
-				if (!clsNames.add(clsFileName.toLowerCase())) {
+		}
+		if (!caseSensitive) {
+			Set<String> clsFullPaths = new HashSet<>(classes.size());
+			for (ClassNode cls : classes) {
+				ClassInfo clsInfo = cls.getClassInfo();
+				ClassInfo aliasClsInfo = clsInfo.getAlias();
+				if (!clsFullPaths.add(aliasClsInfo.getFullPath().toLowerCase())) {
 					String newShortName = deobfuscator.getClsAlias(cls);
-					String newFullName = classInfo.makeFullClsName(newShortName, true);
-					classInfo.rename(cls.root(), newFullName);
-					clsNames.add(classInfo.getAlias().getFullPath().toLowerCase());
+					String newFullName = aliasClsInfo.makeFullClsName(newShortName, true);
+
+					clsInfo.rename(root, newFullName);
+					clsFullPaths.add(clsInfo.getAlias().getFullPath().toLowerCase());
 				}
 			}
 		}
