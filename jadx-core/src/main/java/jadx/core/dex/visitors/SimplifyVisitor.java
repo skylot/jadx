@@ -256,11 +256,10 @@ public class SimplifyVisitor extends AbstractVisitor {
 						InsnArg.lit(-lit, litArg.getType()));
 			}
 			InsnArg firstArg = arith.getArg(0);
-			if (arith.getOp() == ArithOp.XOR && firstArg.getType() == ArgType.BOOLEAN) {
+			if (arith.getOp() == ArithOp.XOR && firstArg.getType() == ArgType.BOOLEAN
+					&& (lit == 0 || lit == 1)) {
 				InsnNode node = new InsnNode(lit == 0 ? InsnType.MOVE : InsnType.NOT, 1);
-				RegisterArg result = arith.getResult();
-				result.setType(ArgType.BOOLEAN);
-				node.setResult(result);
+				node.setResult(arith.getResult());
 				node.addArg(firstArg);
 				return node;
 			}
