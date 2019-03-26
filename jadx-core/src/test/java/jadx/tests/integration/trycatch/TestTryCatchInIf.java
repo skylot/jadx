@@ -6,8 +6,8 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestTryCatchInIf extends IntegrationTest {
 
@@ -23,7 +23,7 @@ public class TestTryCatchInIf extends IntegrationTest {
 					} else {
 						key = Integer.parseInt(value);
 					}
-					return name + "=" + key;
+					return name + '=' + key;
 				} catch (NumberFormatException e) {
 					return "Failed to parse number";
 				}

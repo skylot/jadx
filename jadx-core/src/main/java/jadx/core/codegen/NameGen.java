@@ -1,6 +1,7 @@
 package jadx.core.codegen;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,12 +12,15 @@ import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.StringUtils;
@@ -44,22 +48,35 @@ public class NameGen {
 				"java.lang.Byte", "b",
 				"java.lang.Float", "f",
 				"java.lang.Long", "l",
-				"java.lang.Double", "d"
+				"java.lang.Double", "d",
+				"java.lang.StringBuilder", "sb",
+				"java.lang.Exception", "exc"
 		);
 	}
 
 	public NameGen(MethodNode mth, boolean fallback) {
 		this.mth = mth;
 		this.fallback = fallback;
+		addNamesUsedInClass();
 	}
 
-	public String assignArg(RegisterArg arg) {
-		String name = makeArgName(arg);
+	private void addNamesUsedInClass() {
+		ClassNode parentClass = mth.getParentClass();
+		for (FieldNode field : parentClass.getFields()) {
+			varNames.add(field.getAlias());
+		}
+		for (ClassNode innerClass : parentClass.getInnerClasses()) {
+			varNames.add(innerClass.getAlias().getShortName());
+		}
+	}
+
+	public String assignArg(CodeVar var) {
+		String name = makeArgName(var);
 		if (fallback) {
 			return name;
 		}
 		name = getUniqueVarName(name);
-		arg.setName(name);
+		var.setName(name);
 		return name;
 	}
 
@@ -99,39 +116,50 @@ public class NameGen {
 		return r;
 	}
 
-	private String makeArgName(RegisterArg arg) {
+	private String makeArgName(CodeVar var) {
 		if (fallback) {
-			return getFallbackName(arg);
+			return getFallbackName(var);
 		}
-		if (arg.isThis()) {
+		if (var.isThis()) {
 			return RegisterArg.THIS_ARG_NAME;
 		}
-		String name = arg.getName();
-		String varName = name != null ? name : guessName(arg);
+		String name = var.getName();
+		String varName = name != null ? name : guessName(var);
 		if (NameMapper.isReserved(varName)) {
-			return varName + 'R';
+			varName = varName + 'R';
+		}
+		if (!NameMapper.isValidIdentifier(varName)) {
+			varName = getFallbackName(var);
 		}
 		return varName;
+	}
+
+	private String getFallbackName(CodeVar var) {
+		return getFallbackName(var.getSsaVars().get(0).getAssign());
 	}
 
 	private String getFallbackName(RegisterArg arg) {
 		return "r" + arg.getRegNum();
 	}
 
-	private String guessName(RegisterArg arg) {
-		SSAVar sVar = arg.getSVar();
-		if (sVar != null && sVar.getName() == null) {
-			RegisterArg assignArg = sVar.getAssign();
-			InsnNode assignInsn = assignArg.getParentInsn();
-			if (assignInsn != null) {
-				String name = makeNameFromInsn(assignInsn);
-				if (name != null && !NameMapper.isReserved(name)) {
-					assignArg.setName(name);
-					return name;
+	private String guessName(CodeVar var) {
+		List<SSAVar> ssaVars = var.getSsaVars();
+		if (ssaVars != null && !ssaVars.isEmpty()) {
+			// TODO: use all vars for better name generation
+			SSAVar ssaVar = ssaVars.get(0);
+			if (ssaVar != null && ssaVar.getName() == null) {
+				RegisterArg assignArg = ssaVar.getAssign();
+				InsnNode assignInsn = assignArg.getParentInsn();
+				if (assignInsn != null) {
+					String name = makeNameFromInsn(assignInsn);
+					if (name != null && !NameMapper.isReserved(name)) {
+						assignArg.setName(name);
+						return name;
+					}
 				}
 			}
 		}
-		return makeNameForType(arg.getType());
+		return makeNameForType(var.getType());
 	}
 
 	private String makeNameForType(ArgType type) {
@@ -236,6 +264,9 @@ public class NameGen {
 		}
 		if ("forName".equals(name) && declType.equals(ArgType.CLASS)) {
 			return OBJ_ALIAS.get(Consts.CLASS_CLASS);
+		}
+		if (name.startsWith("to")) {
+			return fromName(name.substring(2));
 		}
 		return name;
 	}

@@ -16,21 +16,21 @@ import static jadx.core.utils.BlockUtils.selectOther;
 
 public class IfNode extends GotoNode {
 
-	// change default types priority
-	private static final ArgType ARG_TYPE = ArgType.unknown(
-			PrimitiveType.INT,
-			PrimitiveType.OBJECT, PrimitiveType.ARRAY,
-			PrimitiveType.BOOLEAN, PrimitiveType.BYTE, PrimitiveType.SHORT, PrimitiveType.CHAR);
-
 	protected IfOp op;
 
 	private BlockNode thenBlock;
 	private BlockNode elseBlock;
 
 	public IfNode(DecodedInstruction insn, IfOp op) {
-		this(op, insn.getTarget(),
-				InsnArg.reg(insn, 0, ARG_TYPE),
-				insn.getRegisterCount() == 1 ? InsnArg.lit(0, ARG_TYPE) : InsnArg.reg(insn, 1, ARG_TYPE));
+		super(InsnType.IF, insn.getTarget(), 2);
+		this.op = op;
+		ArgType argType = narrowTypeByOp(op);
+		addArg(InsnArg.reg(insn, 0, argType));
+		if (insn.getRegisterCount() == 1) {
+			addArg(InsnArg.lit(0, argType));
+		} else {
+			addArg(InsnArg.reg(insn, 1, argType));
+		}
 	}
 
 	public IfNode(IfOp op, int targetOffset, InsnArg arg1, InsnArg arg2) {
@@ -38,6 +38,22 @@ public class IfNode extends GotoNode {
 		this.op = op;
 		addArg(arg1);
 		addArg(arg2);
+	}
+
+	// change default types priority
+	private static final ArgType WIDE_TYPE = ArgType.unknown(
+			PrimitiveType.INT, PrimitiveType.BOOLEAN,
+			PrimitiveType.OBJECT, PrimitiveType.ARRAY,
+			PrimitiveType.BYTE, PrimitiveType.SHORT, PrimitiveType.CHAR);
+
+	private static final ArgType NUMBERS_TYPE = ArgType.unknown(
+			PrimitiveType.INT, PrimitiveType.BYTE, PrimitiveType.SHORT, PrimitiveType.CHAR);
+
+	private static ArgType narrowTypeByOp(IfOp op) {
+		if (op == IfOp.EQ || op == IfOp.NE) {
+			return WIDE_TYPE;
+		}
+		return NUMBERS_TYPE;
 	}
 
 	public IfOp getOp() {

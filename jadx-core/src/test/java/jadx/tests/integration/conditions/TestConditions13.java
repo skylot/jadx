@@ -37,6 +37,5 @@ public class TestConditions13 extends IntegrationTest {
 		assertThat(code, containsOne("qualityReading = false;"));
 		assertThat(code, containsOne("} else if (raw == 0 || quality < 6 || !qualityReading) {"));
 		assertThat(code, not(containsString("return")));
-
 	}
 }

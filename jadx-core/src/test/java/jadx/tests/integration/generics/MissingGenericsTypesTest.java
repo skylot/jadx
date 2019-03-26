@@ -1,13 +1,13 @@
 package jadx.tests.integration.generics;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-
 import org.junit.jupiter.api.Test;
 
 import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 
 public class MissingGenericsTypesTest extends SmaliTest {
 

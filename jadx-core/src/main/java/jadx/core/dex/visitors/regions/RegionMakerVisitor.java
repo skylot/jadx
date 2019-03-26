@@ -35,7 +35,7 @@ import jadx.core.utils.exceptions.JadxException;
 public class RegionMakerVisitor extends AbstractVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(RegionMakerVisitor.class);
 
-	private static final PostRegionVisitor POST_REGION_VISITOR = new PostRegionVisitor();
+	private static final IRegionVisitor POST_REGION_VISITOR = new PostRegionVisitor();
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
@@ -54,7 +54,6 @@ public class RegionMakerVisitor extends AbstractVisitor {
 				mth.getRegion().add(expOutBlock);
 			}
 		}
-
 		postProcessRegions(mth);
 	}
 
@@ -85,82 +84,83 @@ public class RegionMakerVisitor extends AbstractVisitor {
 				insertEdgeInsn((Region) region);
 			}
 		}
-	}
 
-	/**
-	 * Insert insn block from edge insn attribute.
-	 */
-	private static void insertEdgeInsn(Region region) {
-		List<IContainer> subBlocks = region.getSubBlocks();
-		if (subBlocks.isEmpty()) {
-			return;
-		}
-		IContainer last = subBlocks.get(subBlocks.size() - 1);
-		List<EdgeInsnAttr> edgeInsnAttrs = last.getAll(AType.EDGE_INSN);
-		if (edgeInsnAttrs.isEmpty()) {
-			return;
-		}
-		EdgeInsnAttr insnAttr = edgeInsnAttrs.get(0);
-		if (!insnAttr.getStart().equals(last)) {
-			return;
-		}
-		if (last instanceof BlockNode) {
-			BlockNode block = (BlockNode) last;
-			if (block.getInstructions().isEmpty()) {
-				block.getInstructions().add(insnAttr.getInsn());
+		/**
+		 * Insert insn block from edge insn attribute.
+		 */
+		private static void insertEdgeInsn(Region region) {
+			List<IContainer> subBlocks = region.getSubBlocks();
+			if (subBlocks.isEmpty()) {
 				return;
 			}
-		}
-		List<InsnNode> insns = Collections.singletonList(insnAttr.getInsn());
-		region.add(new InsnContainer(insns));
-	}
-
-	private static void processSwitch(MethodNode mth, SwitchRegion sw) {
-		for (IContainer c : sw.getBranches()) {
-			if (!(c instanceof Region)) {
-				continue;
+			IContainer last = subBlocks.get(subBlocks.size() - 1);
+			List<EdgeInsnAttr> edgeInsnAttrs = last.getAll(AType.EDGE_INSN);
+			if (edgeInsnAttrs.isEmpty()) {
+				return;
 			}
-			Set<IBlock> blocks = new HashSet<>();
-			RegionUtils.getAllRegionBlocks(c, blocks);
-			if (blocks.isEmpty()) {
-				addBreakToContainer((Region) c);
-				continue;
+			EdgeInsnAttr insnAttr = edgeInsnAttrs.get(0);
+			if (!insnAttr.getStart().equals(last)) {
+				return;
 			}
-			for (IBlock block : blocks) {
-				if (!(block instanceof BlockNode)) {
-					continue;
+			if (last instanceof BlockNode) {
+				BlockNode block = (BlockNode) last;
+				if (block.getInstructions().isEmpty()) {
+					block.getInstructions().add(insnAttr.getInsn());
+					return;
 				}
-				BlockNode bn = (BlockNode) block;
-				for (BlockNode s : bn.getCleanSuccessors()) {
-					if (!blocks.contains(s)
-							&& !bn.contains(AFlag.SKIP)
-							&& !s.contains(AFlag.FALL_THROUGH)) {
-						addBreak(mth, c, bn);
-						break;
+			}
+			List<InsnNode> insns = Collections.singletonList(insnAttr.getInsn());
+			region.add(new InsnContainer(insns));
+		}
+
+		private static void processSwitch(MethodNode mth, SwitchRegion sw) {
+			for (IContainer c : sw.getBranches()) {
+				if (c instanceof Region) {
+					Set<IBlock> blocks = new HashSet<>();
+					RegionUtils.getAllRegionBlocks(c, blocks);
+					if (blocks.isEmpty()) {
+						addBreakToContainer((Region) c);
+					} else {
+						for (IBlock block : blocks) {
+							if (block instanceof BlockNode) {
+								addBreakForBlock(mth, c, blocks, (BlockNode) block);
+							}
+						}
 					}
 				}
 			}
 		}
-	}
 
-	private static void addBreak(MethodNode mth, IContainer c, BlockNode bn) {
-		IContainer blockContainer = RegionUtils.getBlockContainer(c, bn);
-		if (blockContainer instanceof Region) {
-			addBreakToContainer((Region) blockContainer);
-		} else if (c instanceof Region) {
-			addBreakToContainer((Region) c);
-		} else {
-			LOG.warn("Can't insert break, container: {}, block: {}, mth: {}", blockContainer, bn, mth);
+		private static void addBreakToContainer(Region c) {
+			if (RegionUtils.hasExitEdge(c)) {
+				return;
+			}
+			List<InsnNode> insns = new ArrayList<>(1);
+			insns.add(new InsnNode(InsnType.BREAK, 0));
+			c.add(new InsnContainer(insns));
 		}
-	}
 
-	private static void addBreakToContainer(Region c) {
-		if (RegionUtils.hasExitEdge(c)) {
-			return;
+		private static void addBreakForBlock(MethodNode mth, IContainer c, Set<IBlock> blocks, BlockNode bn) {
+			for (BlockNode s : bn.getCleanSuccessors()) {
+				if (!blocks.contains(s)
+						&& !bn.contains(AFlag.ADDED_TO_REGION)
+						&& !s.contains(AFlag.FALL_THROUGH)) {
+					addBreak(mth, c, bn);
+					return;
+				}
+			}
 		}
-		List<InsnNode> insns = new ArrayList<>(1);
-		insns.add(new InsnNode(InsnType.BREAK, 0));
-		c.add(new InsnContainer(insns));
+
+		private static void addBreak(MethodNode mth, IContainer c, BlockNode bn) {
+			IContainer blockContainer = RegionUtils.getBlockContainer(c, bn);
+			if (blockContainer instanceof Region) {
+				addBreakToContainer((Region) blockContainer);
+			} else if (c instanceof Region) {
+				addBreakToContainer((Region) c);
+			} else {
+				LOG.warn("Can't insert break, container: {}, block: {}, mth: {}", blockContainer, bn, mth);
+			}
+		}
 	}
 
 	private static void removeSynchronized(MethodNode mth) {

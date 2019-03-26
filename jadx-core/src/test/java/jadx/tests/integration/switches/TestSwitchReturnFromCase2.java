@@ -1,12 +1,13 @@
 package jadx.tests.integration.switches;
 
-import jadx.core.dex.nodes.ClassNode;
-import jadx.tests.api.IntegrationTest;
 import org.junit.jupiter.api.Test;
 
+import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
+
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestSwitchReturnFromCase2 extends IntegrationTest {

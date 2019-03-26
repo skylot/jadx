@@ -49,17 +49,17 @@ public class BlockExceptionHandler extends AbstractVisitor {
 		}
 		ExceptionHandler excHandler = handlerAttr.getHandler();
 		ArgType argType = excHandler.getArgType();
-		if (!block.getInstructions().isEmpty()) {
-			InsnNode me = block.getInstructions().get(0);
-			if (me.getType() == InsnType.MOVE_EXCEPTION) {
-				// set correct type for 'move-exception' operation
-				RegisterArg resArg = InsnArg.reg(me.getResult().getRegNum(), argType);
-				resArg.copyAttributesFrom(me);
-				me.setResult(resArg);
-				me.add(AFlag.DONT_INLINE);
-				excHandler.setArg(resArg);
-				return;
-			}
+		InsnNode me = BlockUtils.getLastInsn(block);
+		if (me != null && me.getType() == InsnType.MOVE_EXCEPTION) {
+			// set correct type for 'move-exception' operation
+			RegisterArg resArg = InsnArg.reg(me.getResult().getRegNum(), argType);
+			resArg.copyAttributesFrom(me);
+			me.setResult(resArg);
+			me.add(AFlag.DONT_INLINE);
+			resArg.add(AFlag.CUSTOM_DECLARE);
+			excHandler.setArg(resArg);
+			me.addAttr(handlerAttr);
+			return;
 		}
 		// handler arguments not used
 		excHandler.setArg(new NamedArg("unused", argType));

@@ -19,6 +19,9 @@ public class TestInlineInCatch extends IntegrationTest {
 			File output = null;
 			try {
 				output = File.createTempFile("f", "a", dir);
+				if (!output.exists()) {
+					return 1;
+				}
 				return 0;
 			} catch (Exception e) {
 				if (output != null) {

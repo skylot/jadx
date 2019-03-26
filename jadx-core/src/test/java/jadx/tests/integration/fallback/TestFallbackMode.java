@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
+import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -30,8 +31,10 @@ public class TestFallbackMode extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsString("public int test(int r2) {"));
-		assertThat(code, containsString("r1 = this;"));
-		assertThat(code, containsString("L_0x0004:"));
+		assertThat(code, containsOne("r1 = this;"));
+		assertThat(code, containsOne("L_0x0000:"));
+		assertThat(code, containsOne("L_0x0007:"));
+		assertThat(code, containsOne("int r2 = r2 + 1"));
 		assertThat(code, not(containsString("throw new UnsupportedOperationException")));
 	}
 }

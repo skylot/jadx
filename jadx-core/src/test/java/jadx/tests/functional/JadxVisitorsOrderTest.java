@@ -14,8 +14,8 @@ import jadx.core.Jadx;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
 
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 
 public class JadxVisitorsOrderTest {
 
@@ -40,16 +40,19 @@ public class JadxVisitorsOrderTest {
 		List<String> errors = new ArrayList<>();
 
 		Set<String> names = new HashSet<>();
+		Set<Class<?>> passClsSet = new HashSet<>();
 		for (int i = 0; i < passes.size(); i++) {
 			IDexTreeVisitor pass = passes.get(i);
-			JadxVisitor info = pass.getClass().getAnnotation(JadxVisitor.class);
+			Class<? extends IDexTreeVisitor> passClass = pass.getClass();
+			JadxVisitor info = passClass.getAnnotation(JadxVisitor.class);
 			if (info == null) {
-				LOG.warn("No JadxVisitor annotation for visitor: {}", pass.getClass().getName());
+				LOG.warn("No JadxVisitor annotation for visitor: {}", passClass.getName());
 				continue;
 			}
-			String passName = pass.getClass().getSimpleName();
-			if (!names.add(passName)) {
-				errors.add("Visitor name conflict: " + passName + ", class: " + pass.getClass().getName());
+			boolean firstOccurrence = passClsSet.add(passClass);
+			String passName = passClass.getSimpleName();
+			if (firstOccurrence && !names.add(passName)) {
+				errors.add("Visitor name conflict: " + passName + ", class: " + passClass.getName());
 			}
 			for (Class<? extends IDexTreeVisitor> cls : info.runBefore()) {
 				if (classList.indexOf(cls) < i) {

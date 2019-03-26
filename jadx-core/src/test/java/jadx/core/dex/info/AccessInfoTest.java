@@ -5,9 +5,9 @@ import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.info.AccessInfo.AFType;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class AccessInfoTest {
 

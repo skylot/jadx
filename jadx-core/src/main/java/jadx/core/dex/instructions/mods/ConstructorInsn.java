@@ -46,11 +46,10 @@ public class ConstructorInsn extends InsnNode implements CallMthInterface {
 			instanceArg.getSVar().setAssign(instanceArg);
 		}
 		instanceArg.getSVar().removeUse(instanceArg);
-		for (int i = 1; i < invoke.getArgsCount(); i++) {
+		int argsCount = invoke.getArgsCount();
+		for (int i = 1; i < argsCount; i++) {
 			addArg(invoke.getArg(i));
 		}
-		offset = invoke.getOffset();
-		setSourceLine(invoke.getSourceLine());
 	}
 
 	public ConstructorInsn(MethodInfo callMth, CallType callType, RegisterArg instanceArg) {

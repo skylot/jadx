@@ -1,34 +1,35 @@
 package jadx.tests.integration.arrays;
 
-import jadx.core.dex.nodes.ClassNode;
-import jadx.tests.api.SmaliTest;
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
 import org.junit.jupiter.api.Test;
 
-public class TestArrays4 extends SmaliTest {
+import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
-    public static class TestCls {
-        char[] payload;
+import static jadx.tests.api.utils.JadxMatchers.containsOne;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-        public TestCls(byte[] bytes) {
-            char[] a = toChars(bytes);
-            this.payload = new char[a.length];
-            System.arraycopy(a, 0, this.payload, 0, bytes.length);
-        }
+public class TestArrays4 extends IntegrationTest {
 
-        private static char[] toChars(byte[] bArr) {
-            return new char[bArr.length];
-        }
-    }
+	public static class TestCls {
+		char[] payload;
 
-    @Test
-    public void testArrayTypeInference() {
-        noDebugInfo();
-        ClassNode cls = getClassNode(TestCls.class);
-        String code = cls.getCode().toString();
+		public TestCls(byte[] bytes) {
+			char[] a = toChars(bytes);
+			this.payload = new char[a.length];
+			System.arraycopy(a, 0, this.payload, 0, bytes.length);
+		}
 
-        assertThat(code, containsOne("char[] toChars = toChars(bArr);"));
-    }
+		private static char[] toChars(byte[] bArr) {
+			return new char[bArr.length];
+		}
+	}
 
+	@Test
+	public void testArrayTypeInference() {
+		noDebugInfo();
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, containsOne("char[] chars = toChars(bArr);"));
+	}
 }

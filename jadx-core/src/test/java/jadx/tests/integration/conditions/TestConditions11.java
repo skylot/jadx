@@ -33,6 +33,5 @@ public class TestConditions11 extends IntegrationTest {
 		assertThat(code, containsOne("f();"));
 		assertThat(code, not(containsString("return")));
 		assertThat(code, not(containsString("else")));
-
 	}
 }

@@ -1,13 +1,13 @@
 package jadx.tests.integration.arrays;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import org.junit.jupiter.api.Test;
 
 import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestArrayFill2 extends IntegrationTest {
 
@@ -41,5 +41,4 @@ public class TestArrayFill2 extends IntegrationTest {
 
 		assertThat(code, containsString("return new int[]{1, a++, a * 2};"));
 	}
-
 }

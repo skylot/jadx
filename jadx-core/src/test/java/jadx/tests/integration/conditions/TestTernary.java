@@ -22,7 +22,7 @@ public class TestTernary extends IntegrationTest {
 		}
 
 		public int test3(int a) {
-			return a > 0 ? 1 : (a + 2) * 3;
+			return a > 0 ? a : (a + 2) * 3;
 		}
 	}
 
@@ -34,6 +34,6 @@ public class TestTernary extends IntegrationTest {
 		assertThat(code, not(containsString("else")));
 		assertThat(code, containsString("return a != 2;"));
 		assertThat(code, containsString("assertTrue(a == 3)"));
-		assertThat(code, containsString("return a > 0 ? 1 : (a + 2) * 3;"));
+		assertThat(code, containsString("return a > 0 ? a : (a + 2) * 3;"));
 	}
 }

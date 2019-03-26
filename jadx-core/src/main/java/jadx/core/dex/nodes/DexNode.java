@@ -98,6 +98,10 @@ public class DexNode implements IDexNode {
 
 	@Nullable
 	public ClassNode resolveClass(ClassInfo clsInfo) {
+		ClassNode classNode = resolveClassLocal(clsInfo);
+		if (classNode != null) {
+			return classNode;
+		}
 		return root.resolveClass(clsInfo);
 	}
 
@@ -109,7 +113,6 @@ public class DexNode implements IDexNode {
 		return resolveClass(ClassInfo.fromType(root, type));
 	}
 
-	@Deprecated
 	@Nullable
 	public MethodNode resolveMethod(@NotNull MethodInfo mth) {
 		ClassNode cls = resolveClass(mth.getDeclClass());
@@ -149,7 +152,6 @@ public class DexNode implements IDexNode {
 		return null;
 	}
 
-	@Deprecated
 	@Nullable
 	public FieldNode resolveField(FieldInfo field) {
 		ClassNode cls = resolveClass(field.getDeclClass());
@@ -194,10 +196,16 @@ public class DexNode implements IDexNode {
 	// DexBuffer wrappers
 
 	public String getString(int index) {
+		if (index == DexNode.NO_INDEX) {
+			return null;
+		}
 		return dexBuf.strings().get(index);
 	}
 
 	public ArgType getType(int index) {
+		if (index == DexNode.NO_INDEX) {
+			return null;
+		}
 		return ArgType.parse(getString(dexBuf.typeIds().get(index)));
 	}
 

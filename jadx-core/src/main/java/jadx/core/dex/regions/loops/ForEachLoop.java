@@ -10,6 +10,9 @@ public final class ForEachLoop extends LoopType {
 	public ForEachLoop(RegisterArg varArg, InsnArg iterableArg) {
 		this.varArg = varArg;
 		this.iterableArg = iterableArg;
+
+		// will be declared at codegen
+		varArg.getSVar().getCodeVar().setDeclared(true);
 	}
 
 	public RegisterArg getVarArg() {

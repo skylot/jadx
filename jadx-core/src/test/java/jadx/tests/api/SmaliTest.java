@@ -1,8 +1,5 @@
 package jadx.tests.api;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
@@ -15,6 +12,9 @@ import org.jf.smali.SmaliOptions;
 
 import jadx.api.JadxDecompiler;
 import jadx.core.dex.nodes.ClassNode;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
 
 public abstract class SmaliTest extends IntegrationTest {
 
@@ -44,7 +44,7 @@ public abstract class SmaliTest extends IntegrationTest {
 	protected ClassNode getClassNodeFromSmaliFiles(String pkg, String testName, String clsName) {
 		File outDex = createTempFile(".dex");
 		compileSmali(outDex, collectSmaliFiles(pkg, testName));
-		return getClassNodeFromFile(outDex, pkg + "." + clsName);
+		return getClassNodeFromFile(outDex, pkg + '.' + clsName);
 	}
 
 	protected JadxDecompiler loadSmaliFile(String pkg, String smaliFileName) {

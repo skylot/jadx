@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.jetbrains.annotations.TestOnly;
@@ -26,10 +27,13 @@ import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.DotGraphVisitor;
+import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.regions.DepthRegionTraversal;
 import jadx.core.dex.visitors.regions.TracedRegionVisitor;
 import jadx.core.utils.exceptions.CodegenException;
+import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 @Deprecated
@@ -42,6 +46,11 @@ public class DebugUtils {
 
 	public static void dump(MethodNode mth) {
 		dump(mth, "");
+	}
+
+	public static void dumpRaw(MethodNode mth, String desc) {
+		File out = new File("test-graph-" + desc + "-tmp");
+		DotGraphVisitor.dumpRaw().save(out, mth);
 	}
 
 	public static void dump(MethodNode mth, String desc) {
@@ -62,6 +71,15 @@ public class DebugUtils {
 			}
 		});
 		LOG.debug(" Found block: {} in regions: {}", block, regions);
+	}
+
+	public static IDexTreeVisitor printRegionsVisitor() {
+		return new AbstractVisitor() {
+			@Override
+			public void visit(MethodNode mth) throws JadxException {
+				printRegions(mth, true);
+			}
+		};
 	}
 
 	public static void printRegions(MethodNode mth) {
@@ -101,9 +119,9 @@ public class DebugUtils {
 				CodeWriter code = new CodeWriter();
 				ig.makeInsn(insn, code);
 				String insnStr = code.toString().substring(CodeWriter.NL.length());
-				LOG.debug("{}> {}\t{}", indent, insnStr, insn.getAttributesString());
+				LOG.debug("{}|> {}\t{}", indent, insnStr, insn.getAttributesString());
 			} catch (CodegenException e) {
-				LOG.debug("{}>!! {}", indent, insn);
+				LOG.debug("{}|>!! {}", indent, insn);
 			}
 		}
 	}
@@ -191,6 +209,13 @@ public class DebugUtils {
 					throw new JadxRuntimeException("Used in phi incorrect");
 				}
 			}
+		}
+	}
+
+	public static void printMap(String desc, Map<?, ?> map) {
+		LOG.debug("Map of {}, size: {}", desc, map.size());
+		for (Map.Entry<?, ?> entry : map.entrySet()) {
+			LOG.debug("  {} : {}", entry.getKey(), entry.getValue());
 		}
 	}
 }

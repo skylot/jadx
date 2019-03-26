@@ -19,8 +19,8 @@ import static jadx.core.dex.regions.conditions.IfCondition.Mode.OR;
 import static jadx.core.dex.regions.conditions.IfCondition.merge;
 import static jadx.core.dex.regions.conditions.IfCondition.not;
 import static jadx.core.dex.regions.conditions.IfCondition.simplify;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 public class TestIfCondition {
 

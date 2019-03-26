@@ -17,17 +17,17 @@ import java.util.jar.JarOutputStream;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
-import jadx.core.Jadx;
 import jadx.core.ProcessClass;
 import jadx.core.codegen.CodeGen;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.AttrList;
+import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
-import jadx.core.utils.exceptions.JadxException;
 import jadx.core.xmlgen.ResourceStorage;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.tests.api.compiler.DynamicCompiler;
@@ -35,13 +35,14 @@ import jadx.tests.api.compiler.StaticCompiler;
 import jadx.tests.api.utils.TestUtils;
 
 import static jadx.core.utils.files.FileUtils.addFileToJar;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -53,7 +54,7 @@ public abstract class IntegrationTest extends TestUtils {
 	/**
 	 * Run auto check method if defined:
 	 * <pre>
-	 *     public static void check()
+	 *     public void check() {}
 	 * </pre>
 	 */
 	public static final String CHECK_METHOD_NAME = "check";
@@ -148,32 +149,17 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	protected void decompile(JadxDecompiler jadx, ClassNode cls) {
-		List<IDexTreeVisitor> passes = getPassesList(jadx);
+		List<IDexTreeVisitor> passes = JadxInternalAccess.getPassList(jadx);
 		ProcessClass.process(cls, passes, true);
 	}
 
 	protected void decompileWithoutUnload(JadxDecompiler jadx, ClassNode cls) {
 		cls.load();
-		List<IDexTreeVisitor> passes = getPassesList(jadx);
-		for (IDexTreeVisitor visitor : passes) {
+		for (IDexTreeVisitor visitor : JadxInternalAccess.getPassList(jadx)) {
 			DepthTraversal.visit(visitor, cls);
 		}
 		generateClsCode(cls);
 		// don't unload class
-	}
-
-	private List<IDexTreeVisitor> getPassesList(JadxDecompiler jadx) {
-		RootNode root = JadxInternalAccess.getRoot(jadx);
-		List<IDexTreeVisitor> passesList = Jadx.getPassesList(jadx.getArgs());
-		passesList.forEach(pass -> {
-			try {
-				pass.init(root);
-			} catch (JadxException e) {
-				e.printStackTrace();
-				fail(e.getMessage());
-			}
-		});
-		return passesList;
 	}
 
 	protected void generateClsCode(ClassNode cls) {
@@ -186,15 +172,28 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	protected static void checkCode(ClassNode cls) {
-		assertTrue(
-				!cls.contains(AFlag.INCONSISTENT_CODE) && !cls.contains(AType.JADX_ERROR),
-				"Inconsistent cls: " + cls);
+		assertFalse(hasErrors(cls), "Inconsistent cls: " + cls);
 		for (MethodNode mthNode : cls.getMethods()) {
-			assertTrue(
-					!mthNode.contains(AFlag.INCONSISTENT_CODE) && !mthNode.contains(AType.JADX_ERROR),
-					"Inconsistent method: " + mthNode);
+			assertFalse(hasErrors(mthNode), "Method with problems: " + mthNode);
 		}
 		assertThat(cls.getCode().toString(), not(containsString("inconsistent")));
+	}
+
+	private static boolean hasErrors(IAttributeNode node) {
+		if (node.contains(AFlag.INCONSISTENT_CODE)
+				|| node.contains(AType.JADX_ERROR)
+				|| node.contains(AType.JADX_WARN)) {
+			return true;
+		}
+		AttrList<String> commentsAttr = node.get(AType.COMMENTS);
+		if (commentsAttr != null) {
+			for (String comment : commentsAttr.getList()) {
+				if (comment.contains("JADX WARN")) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private void runAutoCheck(String clsName) {
@@ -221,7 +220,7 @@ public abstract class IntegrationTest extends TestUtils {
 				return;
 			}
 			try {
-				checkMth.invoke(origCls.newInstance());
+				checkMth.invoke(origCls.getConstructor().newInstance());
 			} catch (InvocationTargetException ie) {
 				rethrow("Original check failed", ie);
 			}
@@ -318,7 +317,7 @@ public abstract class IntegrationTest extends TestUtils {
 		File temp = createTempFile(".jar");
 		try (JarOutputStream jo = new JarOutputStream(new FileOutputStream(temp))) {
 			for (File file : list) {
-				addFileToJar(jo, file, path + "/" + file.getName());
+				addFileToJar(jo, file, path + '/' + file.getName());
 			}
 		}
 		return temp;
@@ -341,7 +340,7 @@ public abstract class IntegrationTest extends TestUtils {
 
 	private static File createTempDir(String prefix) throws IOException {
 		File baseDir = new File(System.getProperty("java.io.tmpdir"));
-		String baseName = prefix + "-" + System.nanoTime();
+		String baseName = prefix + '-' + System.nanoTime();
 		for (int counter = 1; counter < 1000; counter++) {
 			File tempDir = new File(baseDir, baseName + counter);
 			if (tempDir.mkdir()) {
@@ -361,7 +360,7 @@ public abstract class IntegrationTest extends TestUtils {
 				File directory = new File(pkgResource.toURI());
 				String[] files = directory.list();
 				for (String file : files) {
-					String fullName = pkgName + "." + file;
+					String fullName = pkgName + '.' + file;
 					if (fullName.startsWith(clsName)) {
 						list.add(new File(directory, file));
 					}
@@ -437,6 +436,11 @@ public abstract class IntegrationTest extends TestUtils {
 	@Deprecated
 	protected void setOutputCFG() {
 		this.args.setCfgOutput(true);
+		this.args.setRawCFGOutput(true);
+	}    // Use only for debug purpose
+
+	@Deprecated
+	protected void setOutputRawCFG() {
 		this.args.setRawCFGOutput(true);
 	}
 

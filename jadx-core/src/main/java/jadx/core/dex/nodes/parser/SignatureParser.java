@@ -211,7 +211,7 @@ public class SignatureParser {
 				list.add(type);
 			}
 		} while (type != null && !lookAhead('>'));
-		return list.toArray(new ArgType[list.size()]);
+		return list.toArray(new ArgType[0]);
 	}
 
 	/**

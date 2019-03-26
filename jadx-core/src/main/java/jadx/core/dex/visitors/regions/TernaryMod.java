@@ -17,7 +17,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.conditions.IfRegion;
-import jadx.core.dex.visitors.CodeShrinker;
+import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.InsnList;
 
 public class TernaryMod {
@@ -40,18 +40,18 @@ public class TernaryMod {
 			return false;
 		}
 		BlockNode header = ifRegion.getHeader();
-		InsnNode t = tb.getInstructions().get(0);
-		InsnNode e = eb.getInstructions().get(0);
+		InsnNode thenInsn = tb.getInstructions().get(0);
+		InsnNode elseInsn = eb.getInstructions().get(0);
 
-		if (t.getSourceLine() != e.getSourceLine()) {
-			if (t.getSourceLine() != 0 && e.getSourceLine() != 0) {
+		if (thenInsn.getSourceLine() != elseInsn.getSourceLine()) {
+			if (thenInsn.getSourceLine() != 0 && elseInsn.getSourceLine() != 0) {
 				// sometimes source lines incorrect
-				if (!checkLineStats(t, e)) {
+				if (!checkLineStats(thenInsn, elseInsn)) {
 					return false;
 				}
 			} else {
 				// no debug info
-				if (containsTernary(t) || containsTernary(e)) {
+				if (containsTernary(thenInsn) || containsTernary(elseInsn)) {
 					// don't make nested ternary by default
 					// TODO: add addition checks
 					return false;
@@ -59,50 +59,60 @@ public class TernaryMod {
 			}
 		}
 
-		if (t.getResult() != null && e.getResult() != null) {
-			PhiInsn phi = t.getResult().getSVar().getUsedInPhi();
-			if (phi == null || !t.getResult().equalRegisterAndType(e.getResult())) {
+		RegisterArg thenResArg = thenInsn.getResult();
+		RegisterArg elseResArg = elseInsn.getResult();
+		if (thenResArg != null && elseResArg != null) {
+			PhiInsn thenPhi = thenResArg.getSVar().getUsedInPhi();
+			PhiInsn elsePhi = elseResArg.getSVar().getUsedInPhi();
+			if (thenPhi == null || thenPhi != elsePhi) {
 				return false;
 			}
 			if (!ifRegion.getParent().replaceSubBlock(ifRegion, header)) {
 				return false;
 			}
-			InsnList.remove(tb, t);
-			InsnList.remove(eb, e);
+			InsnList.remove(tb, thenInsn);
+			InsnList.remove(eb, elseInsn);
 
 			RegisterArg resArg;
-			if (phi.getArgsCount() == 2) {
-				resArg = phi.getResult();
+			if (thenPhi.getArgsCount() == 2) {
+				resArg = thenPhi.getResult();
 			} else {
-				resArg = t.getResult();
-				phi.removeArg(e.getResult());
+				resArg = thenResArg;
+				thenPhi.removeArg(elseResArg);
 			}
 			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(),
-					resArg, InsnArg.wrapArg(t), InsnArg.wrapArg(e));
-			ternInsn.setSourceLine(t.getSourceLine());
+					resArg, InsnArg.wrapArg(thenInsn), InsnArg.wrapArg(elseInsn));
+			ternInsn.setSourceLine(thenInsn.getSourceLine());
 
 			// remove 'if' instruction
 			header.getInstructions().clear();
 			header.getInstructions().add(ternInsn);
 
 			// shrink method again
-			CodeShrinker.shrinkMethod(mth);
+			CodeShrinkVisitor.shrinkMethod(mth);
 			return true;
 		}
 
 		if (!mth.getReturnType().equals(ArgType.VOID)
-				&& t.getType() == InsnType.RETURN && e.getType() == InsnType.RETURN) {
+				&& thenInsn.getType() == InsnType.RETURN
+				&& elseInsn.getType() == InsnType.RETURN) {
+			InsnArg thenArg = thenInsn.getArg(0);
+			InsnArg elseArg = elseInsn.getArg(0);
+			if (thenArg.isLiteral() != elseArg.isLiteral()) {
+				// one arg is literal
+				return false;
+			}
 
 			if (!ifRegion.getParent().replaceSubBlock(ifRegion, header)) {
 				return false;
 			}
-			InsnList.remove(tb, t);
-			InsnList.remove(eb, e);
+			InsnList.remove(tb, thenInsn);
+			InsnList.remove(eb, elseInsn);
 			tb.remove(AFlag.RETURN);
 			eb.remove(AFlag.RETURN);
 
-			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(), null, t.getArg(0), e.getArg(0));
-			ternInsn.setSourceLine(t.getSourceLine());
+			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(), null, thenArg, elseArg);
+			ternInsn.setSourceLine(thenInsn.getSourceLine());
 			InsnNode retInsn = new InsnNode(InsnType.RETURN, 1);
 			retInsn.addArg(InsnArg.wrapArg(ternInsn));
 
@@ -110,7 +120,7 @@ public class TernaryMod {
 			header.getInstructions().add(retInsn);
 			header.add(AFlag.RETURN);
 
-			CodeShrinker.shrinkMethod(mth);
+			CodeShrinkVisitor.shrinkMethod(mth);
 			return true;
 		}
 		return false;

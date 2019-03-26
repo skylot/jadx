@@ -151,12 +151,14 @@ public class ResXmlGen {
 		}
 		switch (typeName) {
 			case "attr":
-				if (nameStr != null)
+				if (nameStr != null) {
 					addSimpleValue(cw, typeName, itemTag, nameStr, valueStr, "");
+				}
 				break;
 			case "style":
-				if (nameStr != null)
+				if (nameStr != null) {
 					addSimpleValue(cw, typeName, itemTag, nameStr, "", valueStr);
+				}
 				break;
 			case "plurals":
 				final String quantity = PLURALS_MAP.get(value.getNameRef());

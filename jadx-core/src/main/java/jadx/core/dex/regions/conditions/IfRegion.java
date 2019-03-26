@@ -8,8 +8,9 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBranchRegion;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
+import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.regions.AbstractRegion;
-import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.utils.BlockUtils;
 
 public final class IfRegion extends AbstractRegion implements IBranchRegion {
 
@@ -21,9 +22,6 @@ public final class IfRegion extends AbstractRegion implements IBranchRegion {
 
 	public IfRegion(IRegion parent, BlockNode header) {
 		super(parent);
-		if (header.getInstructions().size() != 1) {
-			throw new JadxRuntimeException("Expected only one instruction in 'if' header");
-		}
 		this.header = header;
 		this.condition = IfCondition.fromIfBlock(header);
 	}
@@ -74,10 +72,8 @@ public final class IfRegion extends AbstractRegion implements IBranchRegion {
 	}
 
 	public int getSourceLine() {
-		if (header.getInstructions().isEmpty()) {
-			return 0;
-		}
-		return header.getInstructions().get(0).getSourceLine();
+		InsnNode lastInsn = BlockUtils.getLastInsn(header);
+		return lastInsn == null ? 0 : lastInsn.getSourceLine();
 	}
 
 	@Override
@@ -130,6 +126,6 @@ public final class IfRegion extends AbstractRegion implements IBranchRegion {
 
 	@Override
 	public String toString() {
-		return "IF " + header + " then (" + thenRegion + ") else (" + elseRegion + ')';
+		return "IF " + header + " THEN:" + thenRegion + " ELSE:" + elseRegion;
 	}
 }

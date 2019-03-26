@@ -29,7 +29,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 public class BlockSplitter extends AbstractVisitor {
 
 	// leave these instructions alone in block node
-	private static final Set<InsnType> SEPARATE_INSNS = EnumSet.of(
+	public static final Set<InsnType> SEPARATE_INSNS = EnumSet.of(
 			InsnType.RETURN,
 			InsnType.IF,
 			InsnType.SWITCH,
@@ -52,6 +52,9 @@ public class BlockSplitter extends AbstractVisitor {
 		removeEmptyDetachedBlocks(mth);
 		removeUnreachableBlocks(mth);
 		initBlocksInTargetNodes(mth);
+
+		removeJumpAttributes(mth.getInstructions());
+		mth.unloadInsnArr();
 	}
 
 	/**
@@ -327,6 +330,14 @@ public class BlockSplitter extends AbstractVisitor {
 						&& block.getPredecessors().isEmpty()
 						&& block.getSuccessors().isEmpty()
 		);
+	}
+
+	private void removeJumpAttributes(InsnNode[] insnArr) {
+		for (InsnNode insn : insnArr) {
+			if (insn != null && insn.contains(AType.JUMP)) {
+				insn.remove(AType.JUMP);
+			}
+		}
 	}
 
 	private void removeUnreachableBlocks(MethodNode mth) {

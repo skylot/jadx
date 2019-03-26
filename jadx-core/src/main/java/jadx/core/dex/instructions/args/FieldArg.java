@@ -3,6 +3,7 @@ package jadx.core.dex.instructions.args;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.core.dex.info.FieldInfo;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 // TODO: don't extend RegisterArg (now used as a result of instruction)
 public final class FieldArg extends RegisterArg {
@@ -13,7 +14,7 @@ public final class FieldArg extends RegisterArg {
 	private final InsnArg instArg;
 
 	public FieldArg(FieldInfo field, @Nullable InsnArg reg) {
-		super(-1);
+		super(-1, field.getType());
 		this.instArg = reg;
 		this.field = field;
 	}
@@ -41,8 +42,18 @@ public final class FieldArg extends RegisterArg {
 	}
 
 	@Override
-	public void setType(ArgType type) {
-		this.type = type;
+	public ArgType getType() {
+		return this.field.getType();
+	}
+
+	@Override
+	public ArgType getInitType() {
+		return this.field.getType();
+	}
+
+	@Override
+	public void setType(ArgType newType) {
+		throw new JadxRuntimeException("Can't set type for FieldArg");
 	}
 
 	@Override

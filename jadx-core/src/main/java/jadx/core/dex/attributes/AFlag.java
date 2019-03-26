@@ -8,26 +8,38 @@ public enum AFlag {
 	LOOP_END,
 
 	SYNTHETIC,
-	FINAL, // SSAVar attribute for make var final
 
 	RETURN, // block contains only return instruction
 	ORIG_RETURN,
 
-	DECLARE_VAR,
 	DONT_WRAP,
-
-	DONT_SHRINK,
 	DONT_INLINE,
-	DONT_GENERATE,
+	DONT_GENERATE, // process as usual, but don't output to generated code
 	DONT_RENAME, // do not rename during deobfuscation
-	SKIP,
-	REMOVE,
+	REMOVE, // can be completely removed
+	ADDED_TO_REGION,
+
+	FINALLY_INSNS,
 
 	SKIP_FIRST_ARG,
 	SKIP_ARG, // skip argument in invoke call
 	ANONYMOUS_CONSTRUCTOR,
 	ANONYMOUS_CLASS,
+
 	THIS,
+
+	/**
+	 * RegisterArg attribute for method arguments
+	 */
+	METHOD_ARGUMENT,
+
+	/**
+	 * Type of RegisterArg or SSAVar can't be changed
+	 */
+	IMMUTABLE_TYPE,
+
+	CUSTOM_DECLARE, // variable for this register don't need declaration
+	DECLARE_VAR,
 
 	ELSE_IF_CHAIN,
 

@@ -65,6 +65,5 @@ public class TestConditions12 extends IntegrationTest {
 		assertThat(code, containsOne("if (quality >= 30 && autoStop) {"));
 		assertThat(code, containsOne("if (!autoStop && lastValidRaw > -1 && quality < 10) {"));
 		assertThat(code, not(containsString("return")));
-
 	}
 }

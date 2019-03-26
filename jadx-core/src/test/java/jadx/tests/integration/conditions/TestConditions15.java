@@ -64,6 +64,5 @@ public class TestConditions15 extends IntegrationTest {
 
 		assertThat(code, containsOne("\"1\".equals(name)"));
 		assertThat(code, containsOne("\"30\".equals(name)"));
-
 	}
 }

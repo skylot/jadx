@@ -42,6 +42,12 @@ public abstract class AttrNode implements IAttributeNode {
 		return store;
 	}
 
+	private void unloadIfEmpty() {
+		if (storage.isEmpty() && storage != EMPTY_ATTR_STORAGE) {
+			storage = EMPTY_ATTR_STORAGE;
+		}
+	}
+
 	@Override
 	public boolean contains(AFlag flag) {
 		return storage.contains(flag);
@@ -70,21 +76,25 @@ public abstract class AttrNode implements IAttributeNode {
 	@Override
 	public void remove(AFlag flag) {
 		storage.remove(flag);
+		unloadIfEmpty();
 	}
 
 	@Override
 	public <T extends IAttribute> void remove(AType<T> type) {
 		storage.remove(type);
+		unloadIfEmpty();
 	}
 
 	@Override
 	public void removeAttr(IAttribute attr) {
 		storage.remove(attr);
+		unloadIfEmpty();
 	}
 
 	@Override
 	public void clearAttributes() {
 		storage.clear();
+		unloadIfEmpty();
 	}
 
 	@Override

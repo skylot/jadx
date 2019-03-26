@@ -18,6 +18,7 @@ import jadx.core.dex.info.ConstStorage;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.InfoStorage;
 import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.visitors.typeinference.TypeUpdate;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.android.AndroidResourcesUtils;
@@ -35,6 +36,7 @@ public class RootNode {
 	private final StringUtils stringUtils;
 	private final ConstStorage constValues;
 	private final InfoStorage infoStorage = new InfoStorage();
+	private final TypeUpdate typeUpdate;
 
 	private ClspGraph clsp;
 	private List<DexNode> dexNodes;
@@ -47,6 +49,7 @@ public class RootNode {
 		this.args = args;
 		this.stringUtils = new StringUtils(args);
 		this.constValues = new ConstStorage(args);
+		this.typeUpdate = new TypeUpdate(this);
 	}
 
 	public void load(List<InputFile> inputFiles) {
@@ -221,5 +224,9 @@ public class RootNode {
 
 	public JadxArgs getArgs() {
 		return args;
+	}
+
+	public TypeUpdate getTypeUpdate() {
+		return typeUpdate;
 	}
 }

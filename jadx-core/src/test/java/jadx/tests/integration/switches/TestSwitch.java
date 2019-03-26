@@ -6,8 +6,8 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestSwitch extends IntegrationTest {
 	public static class TestCls {

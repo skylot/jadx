@@ -9,21 +9,21 @@ import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestDuplicatedNames extends SmaliTest {
-/*
-	public static class TestCls {
+	/*
+		public static class TestCls {
 
-		public Object fieldName;
-		public String fieldName;
+			public Object fieldName;
+			public String fieldName;
 
-		public Object run() {
-			return this.fieldName;
+			public Object run() {
+				return this.fieldName;
+			}
+
+			public String run() {
+				return this.fieldName;
+			}
 		}
-
-		public String run() {
-			return this.fieldName;
-		}
-	}
-*/
+	*/
 	@Test
 	public void test() {
 		commonChecks();

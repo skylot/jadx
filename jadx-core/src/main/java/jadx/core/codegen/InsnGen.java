@@ -1,7 +1,6 @@
 package jadx.core.codegen;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
@@ -35,6 +34,7 @@ import jadx.core.dex.instructions.InvokeType;
 import jadx.core.dex.instructions.NewArrayNode;
 import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.FieldArg;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
@@ -123,12 +123,16 @@ public class InsnGen {
 	}
 
 	public void declareVar(CodeWriter code, RegisterArg arg) {
-		if (arg.getSVar().contains(AFlag.FINAL)) {
+		declareVar(code, arg.getSVar().getCodeVar());
+	}
+
+	public void declareVar(CodeWriter code, CodeVar codeVar) {
+		if (codeVar.isFinal()) {
 			code.add("final ");
 		}
-		useType(code, arg.getType());
+		useType(code, codeVar.getType());
 		code.add(' ');
-		code.add(mgen.getNameGen().assignArg(arg));
+		code.add(mgen.getNameGen().assignArg(codeVar));
 	}
 
 	private String lit(LiteralArg arg) {
@@ -201,11 +205,11 @@ public class InsnGen {
 		mgen.getClassGen().useType(code, type);
 	}
 
-	public boolean makeInsn(InsnNode insn, CodeWriter code) throws CodegenException {
-		return makeInsn(insn, code, null);
+	public void makeInsn(InsnNode insn, CodeWriter code) throws CodegenException {
+		makeInsn(insn, code, null);
 	}
 
-	protected boolean makeInsn(InsnNode insn, CodeWriter code, Flags flag) throws CodegenException {
+	protected void makeInsn(InsnNode insn, CodeWriter code, Flags flag) throws CodegenException {
 		try {
 			Set<Flags> state = EnumSet.noneOf(Flags.class);
 			if (flag == Flags.BODY_ONLY || flag == Flags.BODY_ONLY_NOWRAP) {
@@ -227,7 +231,6 @@ public class InsnGen {
 		} catch (Exception th) {
 			throw new CodegenException(mth, "Error generate insn: " + insn, th);
 		}
-		return true;
 	}
 
 	private void makeInsnBody(CodeWriter code, InsnNode insn, Set<Flags> state) throws CodegenException {
@@ -485,19 +488,7 @@ public class InsnGen {
 			case FILL_ARRAY:
 				fallbackOnlyInsn(insn);
 				FillArrayNode arrayNode = (FillArrayNode) insn;
-				Object data = arrayNode.getData();
-				String arrStr;
-				if (data instanceof int[]) {
-					arrStr = Arrays.toString((int[]) data);
-				} else if (data instanceof short[]) {
-					arrStr = Arrays.toString((short[]) data);
-				} else if (data instanceof byte[]) {
-					arrStr = Arrays.toString((byte[]) data);
-				} else if (data instanceof long[]) {
-					arrStr = Arrays.toString((long[]) data);
-				} else {
-					arrStr = "?";
-				}
+				String arrStr = arrayNode.dataToString();
 				code.add('{').add(arrStr.substring(1, arrStr.length() - 1)).add('}');
 				break;
 
@@ -508,7 +499,6 @@ public class InsnGen {
 				break;
 
 			case PHI:
-			case MERGE:
 				fallbackOnlyInsn(insn);
 				code.add(insn.getType().toString()).add('(');
 				for (InsnArg insnArg : insn.getArguments()) {
@@ -610,11 +600,8 @@ public class InsnGen {
 
 		// inline method
 		MethodNode callMthNode = mth.root().deepResolveMethod(callMth);
-		if (callMthNode != null) {
-			if (inlineMethod(callMthNode, insn, code)) {
-				return;
-			}
-			callMth = callMthNode.getMethodInfo();
+		if (callMthNode != null && inlineMethod(callMthNode, insn, code)) {
+			return;
 		}
 
 		int k = 0;
@@ -653,8 +640,10 @@ public class InsnGen {
 		}
 		if (callMthNode != null) {
 			code.attachAnnotation(callMthNode);
+			code.add(callMthNode.getAlias());
+		} else {
+			code.add(callMth.getAlias());
 		}
-		code.add(callMth.getAlias());
 		generateMethodArguments(code, insn, k, callMthNode);
 	}
 
@@ -675,7 +664,7 @@ public class InsnGen {
 		do {
 			ClassInfo nextClsInfo = nextParent.getClassInfo();
 			if (nextClsInfo.equals(declClass)
-					|| ArgType.isInstanceOf(mth.dex(), nextClsInfo.getType(), declClass.getType())) {
+					|| ArgType.isInstanceOf(mth.root(), nextClsInfo.getType(), declClass.getType())) {
 				if (nextParent == useCls) {
 					return null;
 				}
@@ -737,7 +726,14 @@ public class InsnGen {
 	 * Add additional cast for overloaded method argument.
 	 */
 	private boolean processOverloadedArg(CodeWriter code, MethodNode callMth, InsnArg arg, int origPos) {
-		ArgType origType = callMth.getMethodInfo().getArgumentsTypes().get(origPos);
+		ArgType origType;
+		List<RegisterArg> arguments = callMth.getArguments(false);
+		if (arguments == null || arguments.isEmpty()) {
+			mth.addComment("JADX INFO: used method not loaded: " + callMth + ", types can be incorrect");
+			origType = callMth.getMethodInfo().getArgumentsTypes().get(origPos);
+		} else {
+			origType = arguments.get(origPos).getInitType();
+		}
 		if (!arg.getType().equals(origType)) {
 			code.add('(');
 			useType(code, origType);

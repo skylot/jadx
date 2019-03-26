@@ -35,5 +35,4 @@ public class NotYetImplementedExtension implements AfterTestExecutionCallback, T
 		return context.getTestMethod().get().getAnnotation(NotYetImplemented.class) != null
 				|| context.getTestClass().get().getAnnotation(NotYetImplemented.class) != null;
 	}
-
 }

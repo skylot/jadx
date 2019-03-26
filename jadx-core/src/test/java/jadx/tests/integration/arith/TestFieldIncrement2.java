@@ -1,13 +1,13 @@
 package jadx.tests.integration.arith;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import org.junit.jupiter.api.Test;
 
 import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestFieldIncrement2 extends IntegrationTest {
 
@@ -33,7 +33,7 @@ public class TestFieldIncrement2 extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsString("this.a.f += n;"));
-		assertThat(code, containsString("a.f *= n;"));
+		assertThat(code, containsString("a2.f *= n;"));
 	}
 
 	@Test

@@ -8,6 +8,7 @@ import jadx.tests.api.IntegrationTest;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestFloatValue extends IntegrationTest {
 
@@ -16,6 +17,10 @@ public class TestFloatValue extends IntegrationTest {
 			float[] fa = {0.55f};
 			fa[0] /= 2;
 			return fa;
+		}
+
+		public void check() {
+			assertEquals(0.275f, method()[0], 0.0001f);
 		}
 	}
 

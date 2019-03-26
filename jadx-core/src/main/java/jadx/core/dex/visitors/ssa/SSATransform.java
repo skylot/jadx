@@ -42,6 +42,10 @@ public class SSATransform extends AbstractVisitor {
 	}
 
 	private static void process(MethodNode mth) {
+		if (!mth.getSVars().isEmpty()) {
+			return;
+		}
+
 		LiveVarAnalysis la = new LiveVarAnalysis(mth);
 		la.runAnalysis();
 		int regsCount = mth.getRegsCount();
@@ -62,6 +66,8 @@ public class SSATransform extends AbstractVisitor {
 				throw new JadxRuntimeException("Phi nodes fix limit reached!");
 			}
 		} while (repeatFix);
+
+		hidePhiInsns(mth);
 	}
 
 	private static void placePhi(MethodNode mth, int regNum, LiveVarAnalysis la) {
@@ -116,9 +122,6 @@ public class SSATransform extends AbstractVisitor {
 	}
 
 	private static void renameVariables(MethodNode mth) {
-		if (!mth.getSVars().isEmpty()) {
-			throw new JadxRuntimeException("SSA rename variables already executed");
-		}
 		RenameState initState = RenameState.init(mth);
 		initPhiInEnterBlock(initState);
 
@@ -210,7 +213,7 @@ public class SSATransform extends AbstractVisitor {
 			if (parentInsn != null
 					&& parentInsn.getResult() != null
 					&& parentInsn.contains(AFlag.TRY_LEAVE)
-					&& phi.removeArg(arg)) {
+					&& phi.removeArg(arg) /* TODO: fix registers removing*/) {
 				argsCount--;
 				continue;
 			}
@@ -409,7 +412,6 @@ public class SSATransform extends AbstractVisitor {
 			return;
 		}
 		arg.add(AFlag.THIS);
-		arg.setName(RegisterArg.THIS_ARG_NAME);
 		// mark all moved 'this'
 		InsnNode parentInsn = arg.getParentInsn();
 		if (parentInsn != null
@@ -419,8 +421,14 @@ public class SSATransform extends AbstractVisitor {
 			if (resArg.getRegNum() != arg.getRegNum()
 					&& !resArg.getSVar().isUsedInPhi()) {
 				markThisArgs(resArg);
-				parentInsn.add(AFlag.SKIP);
+				parentInsn.add(AFlag.DONT_GENERATE);
 			}
+		}
+	}
+
+	private static void hidePhiInsns(MethodNode mth) {
+		for (BlockNode block : mth.getBasicBlocks()) {
+			block.getInstructions().removeIf(insn -> insn.getType() == InsnType.PHI);
 		}
 	}
 }

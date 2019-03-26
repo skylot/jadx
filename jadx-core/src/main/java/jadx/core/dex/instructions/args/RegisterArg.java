@@ -3,27 +3,26 @@ package jadx.core.dex.instructions.args;
 import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import jadx.core.dex.instructions.InsnType;
-import jadx.core.dex.instructions.PhiInsn;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class RegisterArg extends InsnArg implements Named {
-
+	private static final Logger LOG = LoggerFactory.getLogger(RegisterArg.class);
 	public static final String THIS_ARG_NAME = "this";
 
 	protected final int regNum;
 	// not null after SSATransform pass
 	private SSAVar sVar;
 
-	public RegisterArg(int rn) {
-		this.regNum = rn;
-	}
-
 	public RegisterArg(int rn, ArgType type) {
-		this.type = type;
+		this.type = type; // initial type, not changing, can be unknown
 		this.regNum = rn;
 	}
 
@@ -36,12 +35,50 @@ public class RegisterArg extends InsnArg implements Named {
 		return true;
 	}
 
+	@Override
+	public void setType(ArgType newType) {
+		if (sVar == null) {
+			throw new JadxRuntimeException("Can't change type for register without SSA variable: " + this);
+		}
+		if (contains(AFlag.IMMUTABLE_TYPE)) {
+			if (!type.isTypeKnown()) {
+				throw new JadxRuntimeException("Unknown immutable type '" + type + "' in " + this);
+			}
+			if (!type.equals(newType)) {
+				LOG.warn("JADX WARNING: Can't change immutable type from '{}' to '{}' for {}", type, newType, this);
+				return;
+			}
+		}
+		sVar.setType(newType);
+	}
+
+	@Override
+	public ArgType getType() {
+		if (sVar != null) {
+			return sVar.getTypeInfo().getType();
+		}
+		LOG.warn("Register type unknown, SSA variable not initialized: r{}", regNum);
+		return type;
+	}
+
+	public ArgType getInitType() {
+		return type;
+	}
+
+	@Override
+	public boolean isTypeImmutable() {
+		return contains(AFlag.IMMUTABLE_TYPE) || (sVar != null && sVar.contains(AFlag.IMMUTABLE_TYPE));
+	}
+
 	public SSAVar getSVar() {
 		return sVar;
 	}
 
 	void setSVar(@NotNull SSAVar sVar) {
 		this.sVar = sVar;
+		if (contains(AFlag.IMMUTABLE_TYPE)) {
+			sVar.add(AFlag.IMMUTABLE_TYPE);
+		}
 	}
 
 	public String getName() {
@@ -68,39 +105,13 @@ public class RegisterArg extends InsnArg implements Named {
 		return n.equals(((Named) arg).getName());
 	}
 
-	public void mergeName(InsnArg arg) {
-		if (arg instanceof Named) {
-			Named otherArg = (Named) arg;
-			String otherName = otherArg.getName();
-			String name = getName();
-			if (!Objects.equals(name, otherName)) {
-				if (name == null) {
-					setName(otherName);
-				} else if (otherName == null) {
-					otherArg.setName(name);
-				}
-			}
-		}
-	}
-
 	@Override
-	public void setType(ArgType type) {
-		if (sVar != null) {
-			sVar.setType(type);
-		}
-	}
-
-	public void mergeDebugInfo(ArgType type, String name) {
-		setType(type);
-		setName(name);
-	}
-
 	public RegisterArg duplicate() {
 		return duplicate(getRegNum(), sVar);
 	}
 
-	public RegisterArg duplicate(int regNum, SSAVar sVar) {
-		RegisterArg dup = new RegisterArg(regNum, getType());
+	public RegisterArg duplicate(int regNum, @Nullable SSAVar sVar) {
+		RegisterArg dup = new RegisterArg(regNum, getInitType());
 		if (sVar != null) {
 			dup.setSVar(sVar);
 		}
@@ -110,8 +121,6 @@ public class RegisterArg extends InsnArg implements Named {
 
 	/**
 	 * Return constant value from register assign or null if not constant
-	 *
-	 * @return LiteralArg, String or ArgType
 	 */
 	public Object getConstValue(DexNode dex) {
 		InsnNode parInsn = getAssignInsn();
@@ -121,6 +130,7 @@ public class RegisterArg extends InsnArg implements Named {
 		return InsnUtils.getConstValueByInsn(dex, parInsn);
 	}
 
+	@Nullable
 	public InsnNode getAssignInsn() {
 		if (sVar == null) {
 			return null;
@@ -128,20 +138,21 @@ public class RegisterArg extends InsnArg implements Named {
 		return sVar.getAssign().getParentInsn();
 	}
 
-	public InsnNode getPhiAssignInsn() {
-		PhiInsn usePhi = sVar.getUsedInPhi();
-		if (usePhi != null) {
-			return usePhi;
-		}
-		InsnNode parent = sVar.getAssign().getParentInsn();
-		if (parent != null && parent.getType() == InsnType.PHI) {
-			return parent;
-		}
-		return null;
-	}
-
 	public boolean equalRegisterAndType(RegisterArg arg) {
 		return regNum == arg.regNum && type.equals(arg.type);
+	}
+
+	public boolean sameRegAndSVar(InsnArg arg) {
+		if (!arg.isRegister()) {
+			return false;
+		}
+		RegisterArg reg = (RegisterArg) arg;
+		return regNum == reg.getRegNum()
+				&& Objects.equals(sVar, reg.getSVar());
+	}
+
+	public boolean sameCodeVar(RegisterArg arg) {
+		return this.getSVar().getCodeVar() == arg.getSVar().getCodeVar();
 	}
 
 	@Override
@@ -159,7 +170,6 @@ public class RegisterArg extends InsnArg implements Named {
 		}
 		RegisterArg other = (RegisterArg) obj;
 		return regNum == other.regNum
-				&& type.equals(other.type)
 				&& Objects.equals(sVar, other.getSVar());
 	}
 
@@ -169,13 +179,19 @@ public class RegisterArg extends InsnArg implements Named {
 		sb.append("(r");
 		sb.append(regNum);
 		if (sVar != null) {
-			sb.append('_').append(sVar.getVersion());
+			sb.append('v').append(sVar.getVersion());
 		}
 		if (getName() != null) {
 			sb.append(" '").append(getName()).append('\'');
 		}
-		sb.append(' ');
-		sb.append(type);
+		ArgType type = sVar != null ? getType() : null;
+		if (type != null) {
+			sb.append(' ').append(type);
+		}
+		ArgType initType = getInitType();
+		if (type == null || (!type.equals(initType) && !type.isTypeKnown())) {
+			sb.append(" I:").append(initType);
+		}
 		if (!isAttrStorageEmpty()) {
 			sb.append(' ').append(getAttributesString());
 		}

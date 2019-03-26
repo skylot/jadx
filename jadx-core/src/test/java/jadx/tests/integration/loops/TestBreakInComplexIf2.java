@@ -9,8 +9,8 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.countString;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 public class TestBreakInComplexIf2 extends IntegrationTest {
 

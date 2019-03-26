@@ -10,9 +10,9 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestFieldInit extends IntegrationTest {
 
@@ -24,7 +24,7 @@ public class TestFieldInit extends IntegrationTest {
 		private static List<String> s = new ArrayList<>();
 
 		private A a = new A();
-		private int i =  1 + Random.class.getSimpleName().length();
+		private int i = 1 + Random.class.getSimpleName().length();
 		private int n = 0;
 
 		public TestCls(int z) {

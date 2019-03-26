@@ -126,13 +126,13 @@ public class CertificateManager {
 		StringBuilder builder = new StringBuilder();
 		if (x509cert != null) {
 			builder.append(generateHeader());
-			builder.append("\n");
+			builder.append('\n');
 
 			builder.append(generatePublicKey());
-			builder.append("\n");
+			builder.append('\n');
 
 			builder.append(generateSignature());
-			builder.append("\n");
+			builder.append('\n');
 			builder.append(generateFingerprint());
 		}
 		return builder.toString();
@@ -150,7 +150,7 @@ public class CertificateManager {
 	}
 
 	static void append(StringBuilder str, String name, String value) {
-		str.append(name).append(": ").append(value).append("\n");
+		str.append(name).append(": ").append(value).append('\n');
 	}
 
 	public static String getThumbPrint(X509Certificate cert, String type)

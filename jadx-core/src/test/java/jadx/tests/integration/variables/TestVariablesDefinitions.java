@@ -22,7 +22,7 @@ public class TestVariablesDefinitions extends IntegrationTest {
 		private ClassNode cls;
 		private List<IDexTreeVisitor> passes;
 
-		public void run() {
+		public void test() {
 			try {
 				cls.load();
 				for (IDexTreeVisitor pass : this.passes) {
@@ -41,5 +41,6 @@ public class TestVariablesDefinitions extends IntegrationTest {
 
 		assertThat(code, containsOne(indent(3) + "for (IDexTreeVisitor pass : this.passes) {"));
 		assertThat(code, not(containsString("iterator;")));
+		assertThat(code, not(containsString("Iterator")));
 	}
 }

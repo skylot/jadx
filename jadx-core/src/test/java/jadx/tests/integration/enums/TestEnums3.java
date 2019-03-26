@@ -7,7 +7,7 @@ import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestEnums3 extends IntegrationTest {
 
@@ -30,9 +30,9 @@ public class TestEnums3 extends IntegrationTest {
 		}
 
 		public void check() {
-			assertTrue(Numbers.ONE.getNum() == 1);
-			assertTrue(Numbers.THREE.getNum() == 3);
-			assertTrue(Numbers.FOUR.getNum() == 4);
+			assertEquals(1, Numbers.ONE.getNum());
+			assertEquals(3, Numbers.THREE.getNum());
+			assertEquals(4, Numbers.FOUR.getNum());
 		}
 	}
 

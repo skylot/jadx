@@ -7,8 +7,8 @@ import org.slf4j.LoggerFactory;
 import jadx.core.utils.files.FileUtils;
 
 import static jadx.core.utils.files.FileUtils.toFile;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 public class JadxArgsValidatorOutDirsTest {
 
@@ -44,8 +44,8 @@ public class JadxArgsValidatorOutDirsTest {
 		setOutDirs(null, null, null);
 		String inputFileBase = args.getInputFiles().get(0).getName().replace(".apk", "");
 		checkOutDirs(inputFileBase,
-				inputFileBase + "/" + JadxArgs.DEFAULT_SRC_DIR,
-				inputFileBase + "/" + JadxArgs.DEFAULT_RES_DIR);
+				inputFileBase + '/' + JadxArgs.DEFAULT_SRC_DIR,
+				inputFileBase + '/' + JadxArgs.DEFAULT_RES_DIR);
 	}
 
 	private void setOutDirs(String outDir, String srcDir, String resDir) {

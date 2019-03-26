@@ -96,8 +96,8 @@ public class DotGraphVisitor extends AbstractVisitor {
 			dot.startLine("MethodNode[shape=record,label=\"{");
 			dot.add(escape(mth.getAccessFlags().makeString()));
 			dot.add(escape(mth.getReturnType() + " "
-					+ mth.getParentClass() + "." + mth.getName()
-					+ "(" + Utils.listToString(mth.getArguments(true)) + ") "));
+					+ mth.getParentClass() + '.' + mth.getName()
+					+ '(' + Utils.listToString(mth.getArguments(true)) + ") "));
 
 			String attrs = attributesString(mth);
 			if (!attrs.isEmpty()) {
@@ -185,9 +185,9 @@ public class DotGraphVisitor extends AbstractVisitor {
 			dot.add("}\"];");
 
 			BlockNode falsePath = null;
-			List<InsnNode> list = block.getInstructions();
-			if (!list.isEmpty() && list.get(0).getType() == InsnType.IF) {
-				falsePath = ((IfNode) list.get(0)).getElseBlock();
+			InsnNode lastInsn = BlockUtils.getLastInsn(block);
+			if (lastInsn != null && lastInsn.getType() == InsnType.IF) {
+				falsePath = ((IfNode) lastInsn).getElseBlock();
 			}
 			for (BlockNode next : block.getSuccessors()) {
 				String style = next == falsePath ? "[style=dashed]" : "";

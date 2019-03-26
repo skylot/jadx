@@ -150,13 +150,15 @@ public class ParserStream {
 
 	public void readFully(byte[] b, int off, int len) throws IOException {
 		readPos += len;
-		if (len < 0)
+		if (len < 0) {
 			throw new IndexOutOfBoundsException();
+		}
 		int n = 0;
 		while (n < len) {
 			int count = input.read(b, off + n, len - n);
-			if (count < 0)
+			if (count < 0) {
 				throw new EOFException();
+			}
 			n += count;
 		}
 	}

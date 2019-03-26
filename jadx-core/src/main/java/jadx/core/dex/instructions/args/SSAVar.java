@@ -1,31 +1,36 @@
 package jadx.core.dex.instructions.args;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
+import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
 import jadx.core.dex.instructions.PhiInsn;
+import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.visitors.typeinference.TypeInfo;
+import jadx.core.utils.StringUtils;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class SSAVar extends AttrNode {
-
 	private final int regNum;
 	private final int version;
-	private VarName varName;
 
-	private int startUseAddr;
-	private int endUseAddr;
-
-	@NotNull
 	private RegisterArg assign;
 	private final List<RegisterArg> useList = new ArrayList<>(2);
 	@Nullable
 	private PhiInsn usedInPhi;
 
-	private ArgType type;
-	private boolean typeImmutable;
+	private TypeInfo typeInfo = new TypeInfo();
+
+	@Nullable("Set in InitCodeVariables pass")
+	private CodeVar codeVar;
 
 	public SSAVar(int regNum, int v, @NotNull RegisterArg assign) {
 		this.regNum = regNum;
@@ -33,48 +38,6 @@ public class SSAVar extends AttrNode {
 		this.assign = assign;
 
 		assign.setSVar(this);
-		startUseAddr = -1;
-		endUseAddr = -1;
-	}
-
-	public int getStartAddr() {
-		if (startUseAddr == -1) {
-			calcUsageAddrRange();
-		}
-		return startUseAddr;
-	}
-
-	public int getEndAddr() {
-		if (endUseAddr == -1) {
-			calcUsageAddrRange();
-		}
-		return endUseAddr;
-	}
-
-	private void calcUsageAddrRange() {
-		int start = Integer.MAX_VALUE;
-		int end = Integer.MIN_VALUE;
-
-		if (assign.getParentInsn() != null) {
-			int insnAddr = assign.getParentInsn().getOffset();
-			if (insnAddr >= 0) {
-				start = Math.min(insnAddr, start);
-				end = Math.max(insnAddr, end);
-			}
-		}
-		for (RegisterArg arg : useList) {
-			if (arg.getParentInsn() != null) {
-				int insnAddr = arg.getParentInsn().getOffset();
-				if (insnAddr >= 0) {
-					start = Math.min(insnAddr, start);
-					end = Math.max(insnAddr, end);
-				}
-			}
-		}
-		if (start != Integer.MAX_VALUE && end != Integer.MIN_VALUE) {
-			startUseAddr = start;
-			endUseAddr = end;
-		}
 	}
 
 	public int getRegNum() {
@@ -102,6 +65,14 @@ public class SSAVar extends AttrNode {
 		return useList.size();
 	}
 
+	// must be used only from RegisterArg#setType()
+	void setType(ArgType type) {
+		typeInfo.setType(type);
+		if (codeVar != null) {
+			codeVar.setType(type);
+		}
+	}
+
 	public void use(RegisterArg arg) {
 		if (arg.getSVar() != null) {
 			arg.getSVar().removeUse(arg);
@@ -111,12 +82,7 @@ public class SSAVar extends AttrNode {
 	}
 
 	public void removeUse(RegisterArg arg) {
-		for (int i = 0, useListSize = useList.size(); i < useListSize; i++) {
-			if (useList.get(i) == arg) {
-				useList.remove(i);
-				break;
-			}
-		}
+		useList.removeIf(registerArg -> registerArg == arg);
 	}
 
 	public void setUsedInPhi(@Nullable PhiInsn usedInPhi) {
@@ -139,52 +105,41 @@ public class SSAVar extends AttrNode {
 		return useList.size() + usedInPhi.getResult().getSVar().getUseCount();
 	}
 
-	public void setType(ArgType type) {
-		ArgType acceptedType;
-		if (typeImmutable) {
-			// don't change type, just update types in useList
-			acceptedType = this.type;
-		} else {
-			acceptedType = type;
-			this.type = acceptedType;
-		}
-		assign.type = acceptedType;
-		for (int i = 0, useListSize = useList.size(); i < useListSize; i++) {
-			useList.get(i).type = acceptedType;
-		}
-	}
-
-	public void setTypeImmutable(ArgType type) {
-		setType(type);
-		this.typeImmutable = true;
-	}
-
-	public boolean isTypeImmutable() {
-		return typeImmutable;
-	}
-
 	public void setName(String name) {
 		if (name != null) {
-			if (varName == null) {
-				varName = new VarName();
+			if (codeVar == null) {
+				throw new JadxRuntimeException("CodeVar not initialized for name set in SSAVar: " + this);
 			}
-			varName.setName(name);
+			codeVar.setName(name);
 		}
 	}
 
 	public String getName() {
-		if (varName == null) {
+		if (codeVar == null) {
 			return null;
 		}
-		return varName.getName();
+		return codeVar.getName();
 	}
 
-	public VarName getVarName() {
-		return varName;
+	public TypeInfo getTypeInfo() {
+		return typeInfo;
 	}
 
-	public void setVarName(VarName varName) {
-		this.varName = varName;
+	@NotNull
+	public CodeVar getCodeVar() {
+		if (codeVar == null) {
+			throw new JadxRuntimeException("Code variable not set in " + this);
+		}
+		return codeVar;
+	}
+
+	public void setCodeVar(@NotNull CodeVar codeVar) {
+		this.codeVar = codeVar;
+		codeVar.addSsaVar(this);
+	}
+
+	public boolean isCodeVarSet() {
+		return codeVar != null;
 	}
 
 	@Override
@@ -204,8 +159,54 @@ public class SSAVar extends AttrNode {
 		return 31 * regNum + version;
 	}
 
+	public String toShortString() {
+		return "r" + regNum + 'v' + version;
+	}
+
 	@Override
 	public String toString() {
-		return "r" + regNum + '_' + version;
+		return toShortString()
+				+ (StringUtils.notEmpty(getName()) ? " '" + getName() + "' " : "")
+				+ ' ' + typeInfo.getType();
+	}
+
+	public String getDetailedVarInfo(MethodNode mth) {
+		Set<ArgType> types = new HashSet<>();
+		Set<String> names = Collections.emptySet();
+
+		List<RegisterArg> useArgs = new ArrayList<>(1 + useList.size());
+		useArgs.add(assign);
+		useArgs.addAll(useList);
+
+		if (mth.contains(AType.LOCAL_VARS_DEBUG_INFO)) {
+			names = new HashSet<>();
+			for (RegisterArg arg : useArgs) {
+				RegDebugInfoAttr debugInfoAttr = arg.get(AType.REG_DEBUG_INFO);
+				if (debugInfoAttr != null) {
+					names.add(debugInfoAttr.getName());
+					types.add(debugInfoAttr.getRegType());
+				}
+			}
+		}
+
+		for (RegisterArg arg : useArgs) {
+			ArgType initType = arg.getInitType();
+			if (initType.isTypeKnown()) {
+				types.add(initType);
+			}
+			ArgType type = arg.getType();
+			if (type.isTypeKnown()) {
+				types.add(type);
+			}
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append('r').append(regNum).append('v').append(version);
+		if (!names.isEmpty()) {
+			sb.append(", names: ").append(names);
+		}
+		if (!types.isEmpty()) {
+			sb.append(", types: ").append(types);
+		}
+		return sb.toString();
 	}
 }

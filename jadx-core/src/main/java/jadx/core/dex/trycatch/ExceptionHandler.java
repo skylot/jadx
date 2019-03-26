@@ -39,6 +39,7 @@ public class ExceptionHandler {
 
 	/**
 	 * Add exception type to catch block
+	 *
 	 * @param type - null for 'all' or 'Throwable' handler
 	 */
 	public void addCatchType(@Nullable ClassInfo type) {

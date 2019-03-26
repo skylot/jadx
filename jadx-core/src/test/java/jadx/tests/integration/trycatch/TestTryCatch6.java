@@ -44,6 +44,14 @@ public class TestTryCatch6 extends IntegrationTest {
 
 	@Test
 	public void test() {
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, containsOne("try {"));
+	}
+
+	@Test
+	public void testNoDebug() {
 		noDebugInfo();
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();

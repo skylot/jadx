@@ -36,7 +36,10 @@ public class IfMakerHelper {
 	}
 
 	static IfInfo makeIfInfo(BlockNode ifBlock) {
-		IfNode ifNode = (IfNode) ifBlock.getInstructions().get(0);
+		IfNode ifNode = (IfNode) BlockUtils.getLastInsn(ifBlock);
+		if (ifNode == null) {
+			throw new JadxRuntimeException("Empty IF block: " + ifBlock);
+		}
 		IfCondition condition = IfCondition.fromIfNode(ifNode);
 		IfInfo info = new IfInfo(condition, ifNode.getThenBlock(), ifNode.getElseBlock());
 		info.setIfBlock(ifBlock);
@@ -302,13 +305,13 @@ public class IfMakerHelper {
 		if (info.getMergedBlocks().size() > 1) {
 			for (BlockNode block : info.getMergedBlocks()) {
 				if (block != info.getIfBlock()) {
-					block.add(AFlag.SKIP);
+					block.add(AFlag.ADDED_TO_REGION);
 				}
 			}
 		}
 		if (!info.getSkipBlocks().isEmpty()) {
 			for (BlockNode block : info.getSkipBlocks()) {
-				block.add(AFlag.SKIP);
+				block.add(AFlag.ADDED_TO_REGION);
 			}
 			info.getSkipBlocks().clear();
 		}
@@ -336,11 +339,11 @@ public class IfMakerHelper {
 	}
 
 	private static BlockNode getNextIfNode(BlockNode block) {
-		if (block == null || block.contains(AType.LOOP) || block.contains(AFlag.SKIP)) {
+		if (block == null || block.contains(AType.LOOP) || block.contains(AFlag.ADDED_TO_REGION)) {
 			return null;
 		}
-		List<InsnNode> insns = block.getInstructions();
-		if (insns.size() == 1 && insns.get(0).getType() == InsnType.IF) {
+		InsnNode lastInsn = BlockUtils.getLastInsn(block);
+		if (lastInsn != null && lastInsn.getType() == InsnType.IF) {
 			return block;
 		}
 		// skip this block and search in successors chain
@@ -353,6 +356,7 @@ public class IfMakerHelper {
 		if (next.getPredecessors().size() != 1) {
 			return null;
 		}
+		List<InsnNode> insns = block.getInstructions();
 		boolean pass = true;
 		if (!insns.isEmpty()) {
 			// check that all instructions can be inlined

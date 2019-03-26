@@ -22,7 +22,7 @@ public class ClassFileManager extends ForwardingJavaFileManager<StandardJavaFile
 
 	@Override
 	public JavaFileObject getJavaFileForOutput(Location location, String className,
-			Kind kind, FileObject sibling) throws IOException {
+	                                           Kind kind, FileObject sibling) throws IOException {
 		JavaClassObject clsObject = new JavaClassObject(className, kind);
 		classLoader.getClsMap().put(className, clsObject);
 		return clsObject;

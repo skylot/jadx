@@ -40,4 +40,10 @@ public class TestIterableForEach3 extends IntegrationTest {
 		assertThat(code, containsOne("if (str.length() == 0) {"));
 		// TODO move return outside 'if'
 	}
+
+	@Test
+	public void testNoDebug() {
+		noDebugInfo();
+		getClassNode(TestCls.class);
+	}
 }

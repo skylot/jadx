@@ -1,8 +1,5 @@
 package jadx.tests.integration.trycatch;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,6 +9,9 @@ import org.junit.jupiter.api.Test;
 import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+
+import static jadx.tests.api.utils.JadxMatchers.containsOne;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TryAfterDeclaration extends IntegrationTest {
 
@@ -30,7 +30,7 @@ public class TryAfterDeclaration extends IntegrationTest {
 
 class TestClass {
 	public static void consume() throws IOException {
-		InputStream	bis = null;
+		InputStream bis = null;
 		try {
 			bis = new FileInputStream("1.txt");
 			while (bis != null) {

@@ -26,6 +26,7 @@ import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.exceptions.JadxException;
@@ -33,7 +34,7 @@ import jadx.core.utils.exceptions.JadxException;
 @JadxVisitor(
 		name = "EnumVisitor",
 		desc = "Restore enum classes",
-		runAfter = {CodeShrinker.class, ModVisitor.class}
+		runAfter = {CodeShrinkVisitor.class, ModVisitor.class}
 )
 public class EnumVisitor extends AbstractVisitor {
 

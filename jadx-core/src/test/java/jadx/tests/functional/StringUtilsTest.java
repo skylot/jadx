@@ -32,7 +32,7 @@ class StringUtilsTest {
 	}
 
 	private void checkStringUnescape(String input, String result) {
-		assertThat(stringUtils.unescapeString(input), is("\"" + result + "\""));
+		assertThat(stringUtils.unescapeString(input), is('"' + result + '"'));
 	}
 
 	@Test
@@ -47,6 +47,6 @@ class StringUtilsTest {
 	}
 
 	private void checkCharUnescape(char input, String result) {
-		assertThat(stringUtils.unescapeChar(input), is("'" + result + "'"));
+		assertThat(stringUtils.unescapeChar(input), is('\'' + result + '\''));
 	}
 }

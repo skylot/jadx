@@ -4,13 +4,12 @@ import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.nodes.ClassNode;
 
@@ -54,10 +53,7 @@ public class DynamicCompiler {
 
 	private void makeInstance() throws Exception {
 		String fullName = clsNode.getFullName();
-		instance = getClassLoader().loadClass(fullName).newInstance();
-		if (instance == null) {
-			throw new NullPointerException("Instantiation failed");
-		}
+		instance = getClassLoader().loadClass(fullName).getConstructor().newInstance();
 	}
 
 	private Object getInstance() throws Exception {

@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test;
 import static jadx.core.deobf.NameMapper.isValidIdentifier;
 import static jadx.core.deobf.NameMapper.removeInvalidChars;
 import static jadx.core.deobf.NameMapper.removeInvalidCharsMiddle;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 public class NameMapperTest {
 

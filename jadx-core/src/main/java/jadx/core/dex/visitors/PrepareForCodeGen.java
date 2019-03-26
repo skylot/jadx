@@ -14,6 +14,8 @@ import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.visitors.regions.variables.ProcessVariables;
+import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.exceptions.JadxException;
 
 /**
@@ -24,7 +26,7 @@ import jadx.core.utils.exceptions.JadxException;
 @JadxVisitor(
 		name = "PrepareForCodeGen",
 		desc = "Prepare instructions for code generation pass",
-		runAfter = {CodeShrinker.class, ClassModifier.class}
+		runAfter = {CodeShrinkVisitor.class, ClassModifier.class, ProcessVariables.class}
 )
 public class PrepareForCodeGen extends AbstractVisitor {
 
@@ -35,6 +37,9 @@ public class PrepareForCodeGen extends AbstractVisitor {
 			return;
 		}
 		for (BlockNode block : blocks) {
+			if (block.contains(AFlag.DONT_GENERATE)) {
+				continue;
+			}
 			removeInstructions(block);
 			checkInline(block);
 //			removeParenthesis(block);
@@ -141,11 +146,11 @@ public class PrepareForCodeGen extends AbstractVisitor {
 					replace = true;
 				} else if (arg.isRegister()) {
 					RegisterArg regArg = (RegisterArg) arg;
-					replace = res.equalRegisterAndType(regArg);
+					replace = res.sameCodeVar(regArg);
 				}
 				if (replace) {
 					insn.add(AFlag.ARITH_ONEARG);
-					insn.getResult().mergeName(arg);
+//					insn.getResult().mergeName(arg);
 				}
 			}
 		}

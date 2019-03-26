@@ -5,9 +5,9 @@ import org.junit.jupiter.api.Test;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestOuterConstructorCall extends IntegrationTest {
 

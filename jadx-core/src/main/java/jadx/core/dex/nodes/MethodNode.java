@@ -33,7 +33,6 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
-import jadx.core.dex.instructions.args.TypeImmutableArg;
 import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
@@ -54,17 +53,18 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 	private AccessInfo accFlags;
 
 	private final Method methodData;
+	private final boolean methodIsVirtual;
+
+	private boolean noCode;
 	private int regsCount;
 	private InsnNode[] instructions;
 	private int codeSize;
 	private int debugInfoOffset;
-	private boolean noCode;
-	private boolean methodIsVirtual;
 
 	private ArgType retType;
 	private RegisterArg thisArg;
 	private List<RegisterArg> argsList;
-	private List<SSAVar> sVars = Collections.emptyList();
+	private List<SSAVar> sVars;
 	private Map<ArgType, List<ArgType>> genericMap;
 
 	private List<BlockNode> blocks;
@@ -72,8 +72,8 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 	private List<BlockNode> exitBlocks;
 
 	private Region region;
-	private List<ExceptionHandler> exceptionHandlers = Collections.emptyList();
-	private List<LoopInfo> loops = Collections.emptyList();
+	private List<ExceptionHandler> exceptionHandlers;
+	private List<LoopInfo> loops;
 
 	public MethodNode(ClassNode classNode, Method mthData, boolean isVirtual) {
 		this.mthInfo = MethodInfo.fromDex(classNode.dex(), mthData.getMethodIndex());
@@ -82,6 +82,26 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		this.noCode = mthData.getCodeOffset() == 0;
 		this.methodData = noCode ? null : mthData;
 		this.methodIsVirtual = isVirtual;
+		unload();
+	}
+
+	@Override
+	public void unload() {
+		if (noCode) {
+			return;
+		}
+		retType = null;
+		thisArg = null;
+		argsList = Collections.emptyList();
+		sVars = Collections.emptyList();
+		genericMap = null;
+		instructions = null;
+		blocks = null;
+		enterBlock = null;
+		exitBlocks = null;
+		region = null;
+		exceptionHandlers = Collections.emptyList();
+		loops = Collections.emptyList();
 	}
 
 	@Override
@@ -148,21 +168,6 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		}
 	}
 
-	@Override
-	public void unload() {
-		if (noCode) {
-			return;
-		}
-		instructions = null;
-		blocks = null;
-		enterBlock = null;
-		exitBlocks = null;
-		exceptionHandlers = Collections.emptyList();
-		sVars.clear();
-		region = null;
-		loops = Collections.emptyList();
-	}
-
 	private boolean parseSignature() {
 		SignatureParser sp = SignatureParser.fromNode(this);
 		if (sp == null) {
@@ -214,8 +219,9 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		if (accFlags.isStatic()) {
 			thisArg = null;
 		} else {
-			TypeImmutableArg arg = InsnArg.typeImmutableReg(pos - 1, parentClass.getClassInfo().getType());
+			RegisterArg arg = InsnArg.reg(pos - 1, parentClass.getClassInfo().getType());
 			arg.add(AFlag.THIS);
+			arg.add(AFlag.IMMUTABLE_TYPE);
 			thisArg = arg;
 		}
 		if (args.isEmpty()) {
@@ -224,7 +230,10 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		}
 		argsList = new ArrayList<>(args.size());
 		for (ArgType arg : args) {
-			argsList.add(InsnArg.typeImmutableReg(pos, arg));
+			RegisterArg regArg = InsnArg.reg(pos, arg);
+			regArg.add(AFlag.METHOD_ARGUMENT);
+			regArg.add(AFlag.IMMUTABLE_TYPE);
+			argsList.add(regArg);
 			pos += arg.getRegCount();
 		}
 	}
@@ -239,9 +248,8 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return argsList;
 	}
 
-	public RegisterArg removeFirstArgument() {
+	public void skipFirstArgument() {
 		this.add(AFlag.SKIP_FIRST_ARG);
-		return argsList.remove(0);
 	}
 
 	@Nullable
@@ -554,7 +562,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 					&& !parentClass.getAccessFlags().isStatic()) {
 				ClassNode outerCls = parentClass.getParentClass();
 				if (argsList != null && !argsList.isEmpty()
-						&& argsList.get(0).getType().equals(outerCls.getClassInfo().getType())) {
+						&& argsList.get(0).getInitType().equals(outerCls.getClassInfo().getType())) {
 					defaultArgCount = 1;
 				}
 			}
@@ -573,6 +581,10 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	public int getDebugInfoOffset() {
 		return debugInfoOffset;
+	}
+
+	public SSAVar makeNewSVar(int regNum, @NotNull RegisterArg assignArg) {
+		return makeNewSVar(regNum, getNextSVarVersion(regNum), assignArg);
 	}
 
 	public SSAVar makeNewSVar(int regNum, int version, @NotNull RegisterArg assignArg) {
@@ -636,8 +648,13 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return "method";
 	}
 
-	public void addWarn(String errStr) {
-		ErrorsCounter.methodWarn(this, errStr);
+	public void addWarn(String warnStr) {
+		ErrorsCounter.methodWarn(this, warnStr);
+	}
+
+	public void addComment(String commentStr) {
+		addAttr(AType.COMMENTS, commentStr);
+		LOG.info("{} in {}", commentStr, this);
 	}
 
 	public void addError(String errStr, Exception e) {

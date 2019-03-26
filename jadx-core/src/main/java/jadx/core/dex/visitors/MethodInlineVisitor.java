@@ -21,6 +21,7 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
@@ -77,7 +78,7 @@ public class MethodInlineVisitor extends AbstractVisitor {
 					&& get.getResult().equalRegisterAndType((RegisterArg) retArg)) {
 				RegisterArg retReg = (RegisterArg) retArg;
 				retReg.getSVar().removeUse(retReg);
-				CodeShrinker.shrinkMethod(mth);
+				CodeShrinkVisitor.shrinkMethod(mth);
 
 				insnList = firstBlock.getInstructions();
 				if (insnList.size() == 1) {

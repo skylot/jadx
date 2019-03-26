@@ -6,8 +6,8 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 public class TestEnums4 extends IntegrationTest {
 
@@ -24,8 +24,8 @@ public class TestEnums4 extends IntegrationTest {
 
 			private final String[] exts;
 
-			private ResType(String... exts) {
-				this.exts = exts;
+			private ResType(String... extensions) {
+				this.exts = extensions;
 			}
 
 			public String[] getExts() {
@@ -44,7 +44,7 @@ public class TestEnums4 extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsOne("CODE(\".dex\", \".class\"),"));
-		assertThat(code, containsOne("ResType(String... exts) {"));
+		assertThat(code, containsOne("ResType(String... extensions) {"));
 //		assertThat(code, not(containsString("private ResType")));
 	}
 }

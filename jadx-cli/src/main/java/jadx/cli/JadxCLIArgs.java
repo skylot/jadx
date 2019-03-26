@@ -110,7 +110,7 @@ public class JadxCLIArgs {
 		return process(jcw);
 	}
 
-	private boolean process(JCommanderWrapper<?> jcw) {
+	private boolean process(JCommanderWrapper<JadxCLIArgs> jcw) {
 		if (printHelp) {
 			jcw.printUsage();
 			return false;

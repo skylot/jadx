@@ -1,13 +1,13 @@
 package jadx.tests.integration.loops;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import org.junit.jupiter.api.Test;
 
 import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+
+import static jadx.tests.api.utils.JadxMatchers.containsOne;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestSynchronizedInEndlessLoop extends IntegrationTest {
 

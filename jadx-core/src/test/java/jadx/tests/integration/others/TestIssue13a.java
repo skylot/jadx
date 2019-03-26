@@ -1,10 +1,5 @@
 package jadx.tests.integration.others;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.lang.reflect.Field;
 import java.util.HashMap;
 
@@ -12,6 +7,11 @@ import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+
+import static jadx.tests.api.utils.JadxMatchers.containsOne;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestIssue13a extends IntegrationTest {
 
@@ -41,18 +41,18 @@ public class TestIssue13a extends IntegrationTest {
 						Field f = c.getField("CREATOR");
 						creator = (Parcelable.Creator) f.get(null);
 					} catch (IllegalAccessException e) {
-						Log.e(TAG, "1" + name + ", e: " + e);
-						throw new RuntimeException("2" + name);
+						Log.e(TAG, '1' + name + ", e: " + e);
+						throw new RuntimeException('2' + name);
 					} catch (ClassNotFoundException e) {
-						Log.e(TAG, "3" + name + ", e: " + e);
-						throw new RuntimeException("4" + name);
+						Log.e(TAG, '3' + name + ", e: " + e);
+						throw new RuntimeException('4' + name);
 					} catch (ClassCastException e) {
-						throw new RuntimeException("5" + name);
+						throw new RuntimeException('5' + name);
 					} catch (NoSuchFieldException e) {
-						throw new RuntimeException("6" + name);
+						throw new RuntimeException('6' + name);
 					}
 					if (creator == null) {
-						throw new RuntimeException("7" + name);
+						throw new RuntimeException('7' + name);
 					}
 					map.put(name, creator);
 				}
@@ -95,7 +95,7 @@ public class TestIssue13a extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		for (int i = 1; i <= 7; i++) {
-			assertThat(code, containsOne("\"" + i + "\""));
+			assertThat(code, containsOne("'" + i + '\''));
 		}
 
 		// TODO: add additional checks

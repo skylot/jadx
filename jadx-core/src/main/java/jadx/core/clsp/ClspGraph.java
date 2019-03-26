@@ -23,7 +23,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 public class ClspGraph {
 	private static final Logger LOG = LoggerFactory.getLogger(ClspGraph.class);
 
-	private final Map<String, Set<String>> ancestorCache = Collections.synchronizedMap(new WeakHashMap<String, Set<String>>());
+	private final Map<String, Set<String>> ancestorCache = Collections.synchronizedMap(new WeakHashMap<>());
 	private Map<String, NClass> nameMap;
 
 	private final Set<String> missingClasses = new HashSet<>();
@@ -58,6 +58,10 @@ public class ClspGraph {
 		}
 	}
 
+	public boolean isClsKnown(String fullName) {
+		return nameMap.containsKey(fullName);
+	}
+
 	private NClass addClass(ClassNode cls) {
 		String rawName = cls.getRawName();
 		NClass nClass = new NClass(rawName, -1);
@@ -65,9 +69,22 @@ public class ClspGraph {
 		return nClass;
 	}
 
+	/**
+	 * @return {@code clsName} instanceof {@code implClsName}
+	 */
 	public boolean isImplements(String clsName, String implClsName) {
 		Set<String> anc = getAncestors(clsName);
 		return anc.contains(implClsName);
+	}
+
+	public List<String> getImplementations(String clsName) {
+		List<String> list = new ArrayList<>();
+		for (String cls : nameMap.keySet()) {
+			if (isImplements(cls, clsName)) {
+				list.add(cls);
+			}
+		}
+		return list;
 	}
 
 	public String getCommonAncestor(String clsName, String implClsName) {
@@ -100,7 +117,7 @@ public class ClspGraph {
 		return null;
 	}
 
-	private Set<String> getAncestors(String clsName) {
+	public Set<String> getAncestors(String clsName) {
 		Set<String> result = ancestorCache.get(clsName);
 		if (result != null) {
 			return result;

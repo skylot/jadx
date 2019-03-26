@@ -1,12 +1,5 @@
 package jadx.tests.functional;
 
-import static jadx.core.dex.instructions.args.ArgType.STRING;
-import static jadx.core.dex.instructions.args.ArgType.object;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.io.IOException;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +10,13 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.DecodeException;
+
+import static jadx.core.dex.instructions.args.ArgType.STRING;
+import static jadx.core.dex.instructions.args.ArgType.object;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class JadxClasspathTest {
 

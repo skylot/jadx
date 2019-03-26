@@ -7,18 +7,18 @@ import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestSwitchReturnFromCase extends IntegrationTest {
 
 	public static class TestCls {
 		public void test(int a) {
-			String s = null;
 			if (a > 1000) {
 				return;
 			}
-			switch (a % 4) {
+			String s = null;
+			switch (a % 10) {
 				case 1:
 					s = "1";
 					break;
@@ -30,9 +30,14 @@ public class TestSwitchReturnFromCase extends IntegrationTest {
 					s = "4";
 					break;
 				case 5:
+					break;
+				case 6:
 					return;
 			}
-			s = "5";
+			if (s == null) {
+				s = "5";
+			}
+			System.out.println(s);
 		}
 	}
 
@@ -41,7 +46,7 @@ public class TestSwitchReturnFromCase extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsString("switch (a % 4) {"));
+		assertThat(code, containsString("switch (a % 10) {"));
 		assertEquals(5, count(code, "case "));
 		assertEquals(3, count(code, "break;"));
 

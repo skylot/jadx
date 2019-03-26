@@ -28,4 +28,13 @@ public class TestVariables2 extends IntegrationTest {
 
 		assertThat(code, containsString("Object store = s != null ? s : null;"));
 	}
+
+	@Test
+	public void testNoDebug() {
+		noDebugInfo();
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, containsString("Object obj2 = obj != null ? obj : null;"));
+	}
 }

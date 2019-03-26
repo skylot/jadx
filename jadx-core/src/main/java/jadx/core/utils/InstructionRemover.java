@@ -45,6 +45,11 @@ public class InstructionRemover {
 		toRemove.add(insn);
 	}
 
+	public void addAndUnbind(MethodNode mth, InsnNode insn) {
+		toRemove.add(insn);
+		unbindInsn(mth, insn);
+	}
+
 	public void perform() {
 		if (toRemove.isEmpty()) {
 			return;
@@ -53,14 +58,7 @@ public class InstructionRemover {
 		toRemove.clear();
 	}
 
-	public static void unbindInsnList(MethodNode mth, List<InsnNode> unbind) {
-		for (InsnNode rem : unbind) {
-			unbindInsn(mth, rem);
-		}
-	}
-
 	public static void unbindInsn(MethodNode mth, InsnNode insn) {
-		unbindResult(mth, insn);
 		for (InsnArg arg : insn.getArguments()) {
 			unbindArgUsage(mth, arg);
 		}
@@ -71,7 +69,8 @@ public class InstructionRemover {
 				}
 			}
 		}
-		insn.add(AFlag.INCONSISTENT_CODE);
+		unbindResult(mth, insn);
+		insn.add(AFlag.REMOVE);
 	}
 
 	public static void fixUsedInPhiFlag(RegisterArg useReg) {
@@ -89,8 +88,11 @@ public class InstructionRemover {
 
 	public static void unbindResult(MethodNode mth, InsnNode insn) {
 		RegisterArg r = insn.getResult();
-		if (r != null && r.getSVar() != null) {
-			mth.removeSVar(r.getSVar());
+		if (r != null && r.getSVar() != null && mth != null) {
+			SSAVar ssaVar = r.getSVar();
+			if (ssaVar.getUseCount() == 0) {
+				mth.removeSVar(ssaVar);
+			}
 		}
 	}
 
@@ -110,12 +112,15 @@ public class InstructionRemover {
 	// Don't use 'instrList.removeAll(toRemove)' because it will remove instructions by content
 	// and here can be several instructions with same content
 	private static void removeAll(MethodNode mth, List<InsnNode> insns, List<InsnNode> toRemove) {
+		if (toRemove == null || toRemove.isEmpty()) {
+			return;
+		}
 		for (InsnNode rem : toRemove) {
-			unbindInsn(mth, rem);
 			int insnsCount = insns.size();
 			for (int i = 0; i < insnsCount; i++) {
 				if (insns.get(i) == rem) {
 					insns.remove(i);
+					unbindInsn(mth, rem);
 					break;
 				}
 			}
@@ -143,9 +148,6 @@ public class InstructionRemover {
 	}
 
 	public static void removeAll(MethodNode mth, BlockNode block, List<InsnNode> insns) {
-		if (insns.isEmpty()) {
-			return;
-		}
 		removeAll(mth, block.getInstructions(), insns);
 	}
 

@@ -10,12 +10,13 @@ import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.attributes.nodes.ForceReturnAttr;
 import jadx.core.dex.attributes.nodes.IgnoreEdgeAttr;
 import jadx.core.dex.attributes.nodes.JadxError;
-import jadx.core.dex.attributes.nodes.JadxWarn;
 import jadx.core.dex.attributes.nodes.JumpInfo;
+import jadx.core.dex.attributes.nodes.LocalVarsDebugInfoAttr;
 import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.attributes.nodes.MethodInlineAttr;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
+import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
 import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.nodes.parser.FieldInitAttr;
 import jadx.core.dex.trycatch.CatchAttr;
@@ -34,9 +35,9 @@ public class AType<T extends IAttribute> {
 	public static final AType<AttrList<LoopInfo>> LOOP = new AType<>();
 	public static final AType<AttrList<EdgeInsnAttr>> EDGE_INSN = new AType<>();
 
-	public static final AType<AttrList<JadxError>> JADX_ERROR = new AType<>();
-	public static final AType<AttrList<JadxWarn>> JADX_WARN = new AType<>();
-	public static final AType<AttrList<String>> COMMENTS = new AType<>();
+	public static final AType<AttrList<JadxError>> JADX_ERROR = new AType<>(); // code failed to decompile completely
+	public static final AType<AttrList<String>> JADX_WARN = new AType<>(); // mark code as inconsistent (code can be viewed)
+	public static final AType<AttrList<String>> COMMENTS = new AType<>(); // any additional info about decompilation
 
 	public static final AType<ExcHandlerAttr> EXC_HANDLER = new AType<>();
 	public static final AType<CatchAttr> CATCH_BLOCK = new AType<>();
@@ -54,4 +55,10 @@ public class AType<T extends IAttribute> {
 	public static final AType<DeclareVariablesAttr> DECLARE_VARIABLES = new AType<>();
 	public static final AType<LoopLabelAttr> LOOP_LABEL = new AType<>();
 	public static final AType<IgnoreEdgeAttr> IGNORE_EDGE = new AType<>();
+
+	// method
+	public static final AType<LocalVarsDebugInfoAttr> LOCAL_VARS_DEBUG_INFO = new AType<>();
+
+	// registers
+	public static final AType<RegDebugInfoAttr> REG_DEBUG_INFO = new AType<>();
 }

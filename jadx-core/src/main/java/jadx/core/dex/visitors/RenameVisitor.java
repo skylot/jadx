@@ -76,6 +76,7 @@ public class RenameVisitor extends AbstractVisitor {
 		String newShortName = fixClsShortName(clsName);
 		if (!newShortName.equals(clsName)) {
 			classInfo.rename(cls.root(), alias.makeFullClsName(newShortName, true));
+			alias = classInfo.getAlias();
 		}
 		if (alias.getPackage().isEmpty()) {
 			String fullName = alias.makeFullClsName(alias.getShortName(), true);

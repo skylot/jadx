@@ -294,6 +294,10 @@ public final class JadxDecompiler {
 		return root;
 	}
 
+	List<IDexTreeVisitor> getPasses() {
+		return passes;
+	}
+
 	synchronized BinaryXMLParser getXmlParser() {
 		if (xmlParser == null) {
 			xmlParser = new BinaryXMLParser(root);

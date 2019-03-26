@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.Consts;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.ArithNode;
@@ -52,6 +53,9 @@ public class SimplifyVisitor extends AbstractVisitor {
 	}
 
 	private static InsnNode simplifyInsn(MethodNode mth, InsnNode insn) {
+		if (insn.contains(AFlag.DONT_GENERATE)) {
+			return null;
+		}
 		for (InsnArg arg : insn.getArguments()) {
 			if (arg.isInsnWrap()) {
 				InsnNode ni = simplifyInsn(mth, ((InsnWrapArg) arg).getWrapInsn());
@@ -187,7 +191,8 @@ public class SimplifyVisitor extends AbstractVisitor {
 				if (constrIndex != -1) {  // If we found a CONSTRUCTOR, is it a StringBuilder?
 					ConstructorInsn constr = (ConstructorInsn) chain.get(constrIndex);
 					if (constr.getClassType().getFullName().equals(Consts.CLASS_STRING_BUILDER)) {
-						int len = chain.size(), argInd = 1;
+						int len = chain.size();
+						int argInd = 1;
 						InsnNode concatInsn = new InsnNode(InsnType.STR_CONCAT, len - 1);
 						InsnNode argInsn;
 						if (constrIndex > 0) {  // There was an arg to the StringBuilder constr
@@ -302,20 +307,16 @@ public class SimplifyVisitor extends AbstractVisitor {
 				}
 			}
 			FieldArg fArg = new FieldArg(field, reg);
-			if (reg != null) {
-				fArg.setType(get.getArg(0).getType());
-			}
 			if (wrapType == InsnType.ARITH) {
 				ArithNode ar = (ArithNode) wrap;
 				return new ArithNode(ar.getOp(), fArg, ar.getArg(1));
-			} else {
-				int argsCount = wrap.getArgsCount();
-				InsnNode concat = new InsnNode(InsnType.STR_CONCAT, argsCount - 1);
-				for (int i = 1; i < argsCount; i++) {
-					concat.addArg(wrap.getArg(i));
-				}
-				return new ArithNode(ArithOp.ADD, fArg, InsnArg.wrapArg(concat));
 			}
+			int argsCount = wrap.getArgsCount();
+			InsnNode concat = new InsnNode(InsnType.STR_CONCAT, argsCount - 1);
+			for (int i = 1; i < argsCount; i++) {
+				concat.addArg(wrap.getArg(i));
+			}
+			return new ArithNode(ArithOp.ADD, fArg, InsnArg.wrapArg(concat));
 		} catch (Exception e) {
 			LOG.debug("Can't convert field arith insn: {}, mth: {}", insn, mth, e);
 		}

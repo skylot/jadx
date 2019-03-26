@@ -1,8 +1,9 @@
 package jadx.tests.external;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
-import java.util.regex.Pattern;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +15,6 @@ import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
 import jadx.api.JavaClass;
-import jadx.core.Jadx;
 import jadx.core.ProcessClass;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.nodes.ClassNode;
@@ -24,9 +24,9 @@ import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.tests.api.IntegrationTest;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public abstract class BaseExternalTest extends IntegrationTest {
 	private static final Logger LOG = LoggerFactory.getLogger(BaseExternalTest.class);
@@ -56,9 +56,7 @@ public abstract class BaseExternalTest extends IntegrationTest {
 			processAll(jadx);
 //			jadx.saveSources();
 		} else {
-			Pattern clsPtrn = Pattern.compile(clsPatternStr);
-			Pattern mthPtrn = mthPatternStr == null ? null : Pattern.compile(mthPatternStr);
-			processByPatterns(jadx, clsPtrn, mthPtrn);
+			processByPatterns(jadx, clsPatternStr, mthPatternStr);
 		}
 		printErrorReport(jadx);
 	}
@@ -69,14 +67,14 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		}
 	}
 
-	private void processByPatterns(JadxDecompiler jadx, Pattern clsPattern, @Nullable Pattern mthPattern) {
-		List<IDexTreeVisitor> passes = Jadx.getPassesList(jadx.getArgs());
+	private void processByPatterns(JadxDecompiler jadx, String clsPattern, @Nullable String mthPattern) {
+		List<IDexTreeVisitor> passes = JadxInternalAccess.getPassList(jadx);
 		RootNode root = JadxInternalAccess.getRoot(jadx);
 		int processed = 0;
 		for (ClassNode classNode : root.getClasses(true)) {
 			String clsFullName = classNode.getClassInfo().getFullName();
-			if (clsPattern.matcher(clsFullName).matches()) {
-				if (processCls(jadx, mthPattern, passes, classNode)) {
+			if (clsFullName.equals(clsPattern)) {
+				if (processCls(mthPattern, passes, classNode)) {
 					processed++;
 				}
 			}
@@ -84,14 +82,14 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		assertThat("No classes processed", processed, greaterThan(0));
 	}
 
-	private boolean processCls(JadxDecompiler jadx, @Nullable Pattern mthPattern, List<IDexTreeVisitor> passes, ClassNode classNode) {
+	private boolean processCls(@Nullable String mthPattern, List<IDexTreeVisitor> passes, ClassNode classNode) {
 		classNode.load();
 		boolean decompile = false;
 		if (mthPattern == null) {
 			decompile = true;
 		} else {
 			for (MethodNode mth : classNode.getMethods()) {
-				if (mthPattern.matcher(mth.getName()).matches()) {
+				if (isMthMatch(mth, mthPattern)) {
 					decompile = true;
 					break;
 				}
@@ -103,9 +101,10 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		try {
 			ProcessClass.process(classNode, passes, true);
 		} catch (Exception e) {
-			throw new JadxRuntimeException("Codegen failed", e);
+			throw new JadxRuntimeException("Class process failed", e);
 		}
-		LOG.warn("\n Print class: {}, {}", classNode.getFullName(), classNode.dex());
+		LOG.info("----------------------------------------------------------------");
+		LOG.info("Print class: {}, {}", classNode.getFullName(), classNode.dex());
 		if (mthPattern != null) {
 			printMethods(classNode, mthPattern);
 		} else {
@@ -115,21 +114,42 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		return true;
 	}
 
-	private void printMethods(ClassNode classNode, @NotNull Pattern mthPattern) {
+	private boolean isMthMatch(MethodNode mth, String mthPattern) {
+		String shortId = mth.getMethodInfo().getShortId();
+		return isMatch(shortId, mthPattern);
+	}
+
+	private boolean isMatch(String str, String pattern) {
+		if (str.equals(pattern)) {
+			return true;
+		}
+		return str.startsWith(pattern);
+	}
+
+	private void printMethods(ClassNode classNode, @NotNull String mthPattern) {
 		String code = classNode.getCode().getCodeStr();
 		if (code == null) {
 			return;
 		}
+
+		String dashLine = "======================================================================================";
+		Map<Integer, MethodNode> methodsMap = getMethodsMap(classNode);
 		String[] lines = code.split(CodeWriter.NL);
 		for (MethodNode mth : classNode.getMethods()) {
-			if (mthPattern.matcher(mth.getName()).matches()) {
+			if (isMthMatch(mth, mthPattern)) {
 				int decompiledLine = mth.getDecompiledLine() - 1;
 				StringBuilder mthCode = new StringBuilder();
 				int startLine = getCommentLinesCount(lines, decompiledLine);
 				int brackets = 0;
 				for (int i = startLine; i > 0 && i < lines.length; i++) {
+					// stop if next method started
+					MethodNode mthAtLine = methodsMap.get(i);
+					if (mthAtLine != null && !mthAtLine.equals(mth)) {
+						break;
+					}
 					String line = lines[i];
 					mthCode.append(line).append(CodeWriter.NL);
+					// also count brackets for detect method end
 					if (i >= decompiledLine) {
 						brackets += StringUtils.countMatches(line, '{');
 						brackets -= StringUtils.countMatches(line, '}');
@@ -138,9 +158,21 @@ public abstract class BaseExternalTest extends IntegrationTest {
 						}
 					}
 				}
-				LOG.info("Print method: {}\n{}", mth.getMethodInfo().getShortId(), mthCode);
+				LOG.info("Print method: {}\n{}\n{}\n{}", mth.getMethodInfo().getShortId(),
+						dashLine,
+						mthCode,
+						dashLine
+				);
 			}
 		}
+	}
+
+	public Map<Integer, MethodNode> getMethodsMap(ClassNode classNode) {
+		Map<Integer, MethodNode> linesMap = new HashMap<>();
+		for (MethodNode method : classNode.getMethods()) {
+			linesMap.put(method.getDecompiledLine() - 1, method);
+		}
+		return linesMap;
 	}
 
 	protected int getCommentLinesCount(String[] lines, int line) {

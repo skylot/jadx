@@ -7,9 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBranchRegion;
@@ -32,8 +29,6 @@ import jadx.core.utils.RegionUtils;
  * Extract blocks to separate try/catch region
  */
 public class ProcessTryCatchRegions extends AbstractRegionVisitor {
-
-	private static final Logger LOG = LoggerFactory.getLogger(ProcessTryCatchRegions.class);
 
 	public static void process(MethodNode mth) {
 		if (mth.isNoCode() || mth.isNoExceptionHandlers()) {

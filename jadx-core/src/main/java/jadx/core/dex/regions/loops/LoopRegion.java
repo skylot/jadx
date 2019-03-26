@@ -15,6 +15,7 @@ import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.regions.AbstractRegion;
 import jadx.core.dex.regions.conditions.IfCondition;
+import jadx.core.utils.BlockUtils;
 
 public final class LoopRegion extends AbstractRegion {
 
@@ -76,7 +77,7 @@ public final class LoopRegion extends AbstractRegion {
 	}
 
 	private IfNode getIfInsn() {
-		return (IfNode) conditionBlock.getInstructions().get(0);
+		return (IfNode) BlockUtils.getLastInsn(conditionBlock);
 	}
 
 	/**
@@ -132,13 +133,8 @@ public final class LoopRegion extends AbstractRegion {
 	}
 
 	public int getConditionSourceLine() {
-		if (conditionBlock != null) {
-			List<InsnNode> condInsns = conditionBlock.getInstructions();
-			if (!condInsns.isEmpty()) {
-				return condInsns.get(0).getSourceLine();
-			}
-		}
-		return 0;
+		InsnNode lastInsn = BlockUtils.getLastInsn(conditionBlock);
+		return lastInsn == null ? 0 : lastInsn.getSourceLine();
 	}
 
 	public LoopType getType() {

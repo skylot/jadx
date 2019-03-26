@@ -18,12 +18,16 @@ public class TestTryCatchFinally6 extends IntegrationTest {
 		public static void test() throws IOException {
 			InputStream is = null;
 			try {
+				call();
 				is = new FileInputStream("1.txt");
 			} finally {
 				if (is != null) {
 					is.close();
 				}
 			}
+		}
+
+		private static void call() {
 		}
 	}
 
@@ -35,11 +39,31 @@ public class TestTryCatchFinally6 extends IntegrationTest {
 		assertThat(code, containsLines(2,
 				"InputStream is = null;",
 				"try {",
+				indent(1) + "call();",
 				indent(1) + "is = new FileInputStream(\"1.txt\");",
 				"} finally {",
 				indent(1) + "if (is != null) {",
 				indent(2) + "is.close();",
-				indent(1) + "}",
+				indent(1) + '}',
+				"}"
+		));
+	}
+
+	@Test
+	public void testNoDebug() {
+		noDebugInfo();
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, containsLines(2,
+				"FileInputStream fileInputStream = null;",
+				"try {",
+				indent() + "call();",
+				indent() + "fileInputStream = new FileInputStream(\"1.txt\");",
+				"} finally {",
+				indent() + "if (fileInputStream != null) {",
+				indent() + indent() + "fileInputStream.close();",
+				indent() + '}',
 				"}"
 		));
 	}

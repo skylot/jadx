@@ -11,10 +11,13 @@ import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.annotations.MethodParameters;
+import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
+import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.InsnNode;
@@ -22,7 +25,6 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.FallbackModeVisitor;
-import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.CodegenException;
@@ -112,11 +114,10 @@ public class MethodGen {
 			} else if (args.size() > 2) {
 				args = args.subList(2, args.size());
 			} else {
-				LOG.warn(ErrorsCounter.formatMsg(mth,
-						"Incorrect number of args for enum constructor: " + args.size()
-								+ " (expected >= 2)"
-				));
+				mth.addComment("JADX WARN: Incorrect number of args for enum constructor: " + args.size() + " (expected >= 2)");
 			}
+		} else if (mth.contains(AFlag.SKIP_FIRST_ARG)) {
+			args = args.subList(1, args.size());
 		}
 		addMethodArguments(code, args);
 		code.add(')');
@@ -125,40 +126,48 @@ public class MethodGen {
 		return true;
 	}
 
-	private void addMethodArguments(CodeWriter argsCode, List<RegisterArg> args) {
+	private void addMethodArguments(CodeWriter code, List<RegisterArg> args) {
 		MethodParameters paramsAnnotation = mth.get(AType.ANNOTATION_MTH_PARAMETERS);
 		int i = 0;
-		for (Iterator<RegisterArg> it = args.iterator(); it.hasNext(); ) {
-			RegisterArg arg = it.next();
+		Iterator<RegisterArg> it = args.iterator();
+		while (it.hasNext()) {
+			RegisterArg mthArg = it.next();
+			SSAVar ssaVar = mthArg.getSVar();
+			CodeVar var;
+			if (ssaVar == null) {
+				// null for abstract or interface methods
+				var = CodeVar.fromMthArg(mthArg);
+			} else {
+				var = ssaVar.getCodeVar();
+			}
 
 			// add argument annotation
 			if (paramsAnnotation != null) {
-				annotationGen.addForParameter(argsCode, paramsAnnotation, i);
+				annotationGen.addForParameter(code, paramsAnnotation, i);
 			}
-			SSAVar argSVar = arg.getSVar();
-			if (argSVar != null && argSVar.contains(AFlag.FINAL)) {
-				argsCode.add("final ");
+			if (var.isFinal()) {
+				code.add("final ");
 			}
+			ArgType argType = var.getType();
 			if (!it.hasNext() && mth.getAccessFlags().isVarArgs()) {
 				// change last array argument to varargs
-				ArgType type = arg.getType();
-				if (type.isArray()) {
-					ArgType elType = type.getArrayElement();
-					classGen.useType(argsCode, elType);
-					argsCode.add("...");
+				if (argType.isArray()) {
+					ArgType elType = argType.getArrayElement();
+					classGen.useType(code, elType);
+					code.add("...");
 				} else {
-					LOG.warn(ErrorsCounter.formatMsg(mth, "Last argument in varargs method not array"));
-					classGen.useType(argsCode, arg.getType());
+					mth.addComment("JADX INFO: Last argument in varargs method is not array: " + var);
+					classGen.useType(code, argType);
 				}
 			} else {
-				classGen.useType(argsCode, arg.getType());
+				classGen.useType(code, argType);
 			}
-			argsCode.add(' ');
-			argsCode.add(nameGen.assignArg(arg));
+			code.add(' ');
+			code.add(nameGen.assignArg(var));
 
 			i++;
 			if (it.hasNext()) {
-				argsCode.add(", ");
+				code.add(", ");
 			}
 		}
 	}
@@ -192,6 +201,7 @@ public class MethodGen {
 		if (mth.getInstructions() == null) {
 			// load original instructions
 			try {
+				mth.unload();
 				mth.load();
 				DepthTraversal.visit(new FallbackModeVisitor(), mth);
 			} catch (DecodeException e) {
@@ -213,27 +223,57 @@ public class MethodGen {
 
 	public static void addFallbackInsns(CodeWriter code, MethodNode mth, InsnNode[] insnArr, boolean addLabels) {
 		InsnGen insnGen = new InsnGen(getFallbackMethodGen(mth), true);
+		InsnNode prevInsn = null;
 		for (InsnNode insn : insnArr) {
 			if (insn == null || insn.getType() == InsnType.NOP) {
 				continue;
 			}
-			if (addLabels && (insn.contains(AType.JUMP) || insn.contains(AType.EXC_HANDLER))) {
+			if (addLabels && needLabel(insn, prevInsn)) {
 				code.decIndent();
 				code.startLine(getLabelName(insn.getOffset()) + ':');
 				code.incIndent();
 			}
 			try {
-				if (insnGen.makeInsn(insn, code)) {
-					CatchAttr catchAttr = insn.get(AType.CATCH_BLOCK);
-					if (catchAttr != null) {
-						code.add("\t " + catchAttr);
+				code.startLine();
+				RegisterArg resArg = insn.getResult();
+				if (resArg != null) {
+					ArgType varType = resArg.getInitType();
+					if (varType.isTypeKnown()) {
+						code.add(varType.toString()).add(' ');
 					}
+				}
+				insnGen.makeInsn(insn, code, InsnGen.Flags.INLINE);
+				CatchAttr catchAttr = insn.get(AType.CATCH_BLOCK);
+				if (catchAttr != null) {
+					code.add("     // " + catchAttr);
 				}
 			} catch (CodegenException e) {
 				LOG.debug("Error generate fallback instruction: ", e.getCause());
 				code.startLine("// error: " + insn);
 			}
+			prevInsn = insn;
 		}
+	}
+
+	private static boolean needLabel(InsnNode insn, InsnNode prevInsn) {
+		if (insn.contains(AType.EXC_HANDLER)) {
+			return true;
+		}
+		if (insn.contains(AType.JUMP)) {
+			// don't add label for ifs else branch
+			if (prevInsn != null && prevInsn.getType() == InsnType.IF) {
+				List<JumpInfo> jumps = insn.getAll(AType.JUMP);
+				if (jumps.size() == 1) {
+					JumpInfo jump = jumps.get(0);
+					if (jump.getSrc() == prevInsn.getOffset() && jump.getDest() == insn.getOffset()) {
+						int target = ((IfNode) prevInsn).getTarget();
+						return insn.getOffset() == target;
+					}
+				}
+			}
+			return true;
+		}
+		return false;
 	}
 
 	/**

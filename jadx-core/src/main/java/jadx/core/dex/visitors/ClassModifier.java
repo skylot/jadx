@@ -47,10 +47,7 @@ public class ClassModifier extends AbstractVisitor {
 		for (ClassNode inner : cls.getInnerClasses()) {
 			visit(inner);
 		}
-		if (cls.getAccessFlags().isSynthetic()
-				&& cls.getFields().isEmpty()
-				&& cls.getMethods().isEmpty()
-				&& cls.getInnerClasses().isEmpty()) {
+		if (isEmptySyntheticClass(cls)) {
 			cls.add(AFlag.DONT_GENERATE);
 			return false;
 		}
@@ -59,6 +56,13 @@ public class ClassModifier extends AbstractVisitor {
 		cls.getMethods().forEach(ClassModifier::removeSyntheticMethods);
 		cls.getMethods().forEach(ClassModifier::removeEmptyMethods);
 		return false;
+	}
+
+	private static boolean isEmptySyntheticClass(ClassNode cls) {
+		return cls.getAccessFlags().isSynthetic()
+				&& cls.getFields().isEmpty()
+				&& cls.getMethods().isEmpty()
+				&& cls.getInnerClasses().isEmpty();
 	}
 
 	private void markAnonymousClass(ClassNode cls) {
@@ -126,7 +130,7 @@ public class ClassModifier extends AbstractVisitor {
 		if (!fieldInfo.equals(field.getFieldInfo()) || !putInsn.getArg(0).equals(arg)) {
 			return false;
 		}
-		mth.removeFirstArgument();
+		mth.skipFirstArgument();
 		InstructionRemover.remove(mth, block, insn);
 		// other arg usage -> wrap with IGET insn
 		if (arg.getSVar().getUseCount() != 0) {
@@ -180,7 +184,7 @@ public class ClassModifier extends AbstractVisitor {
 					return true;
 				}
 			} else {
-				if (argCls.contains(AFlag.DONT_GENERATE)) {
+				if (argCls.contains(AFlag.DONT_GENERATE) || isEmptySyntheticClass(argCls)) {
 					return true;
 				}
 			}
@@ -302,15 +306,34 @@ public class ClassModifier extends AbstractVisitor {
 
 	private static void removeEmptyMethods(MethodNode mth) {
 		AccessInfo af = mth.getAccessFlags();
-		// remove public empty constructors
+		// remove public empty constructors (static or default)
 		if (af.isConstructor()
 				&& (af.isPublic() || af.isStatic())
-				&& mth.getArguments(false).isEmpty()
-				&& !mth.contains(AType.JADX_ERROR)) {
+				&& mth.getArguments(false).isEmpty()) {
 			List<BlockNode> bb = mth.getBasicBlocks();
 			if (bb == null || bb.isEmpty() || BlockUtils.isAllBlocksEmpty(bb)) {
-				mth.add(AFlag.DONT_GENERATE);
+				if (af.isStatic() && mth.getMethodInfo().isClassInit()) {
+					mth.add(AFlag.DONT_GENERATE);
+				} else {
+					// don't remove default constructor if other constructors exists
+					if (mth.isDefaultConstructor() && !isNonDefaultConstructorExists(mth)) {
+						mth.add(AFlag.DONT_GENERATE);
+					}
+				}
 			}
 		}
+	}
+
+	private static boolean isNonDefaultConstructorExists(MethodNode defCtor) {
+		ClassNode parentClass = defCtor.getParentClass();
+		for (MethodNode mth : parentClass.getMethods()) {
+			if (mth != defCtor
+					&& mth.getAccessFlags().isConstructor()
+					&& mth.getMethodInfo().isConstructor()
+					&& !mth.isDefaultConstructor()) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

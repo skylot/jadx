@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.android.dx.rop.code.AccessFlags;
-import jadx.core.dex.attributes.AFlag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -15,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import jadx.core.codegen.ClassGen;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.deobf.NameMapper;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;

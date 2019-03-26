@@ -14,7 +14,7 @@ public class FieldNode extends LineAttrNode implements ICodeNode {
 	private final FieldInfo fieldInfo;
 	private AccessInfo accFlags;
 
-	private ArgType type; // store signature
+	private ArgType type;
 
 	public FieldNode(ClassNode cls, Field field) {
 		this(cls, FieldInfo.fromDex(cls.dex(), field.getFieldIndex()),

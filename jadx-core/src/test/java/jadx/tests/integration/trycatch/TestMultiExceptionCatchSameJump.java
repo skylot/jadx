@@ -11,17 +11,17 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestMultiExceptionCatchSameJump extends SmaliTest {
-/*
-	public static class TestCls {
-		public void test() {
-			try {
-				System.out.println("Test");
-			} catch (ProviderException | DateTimeException e) {
-				throw new RuntimeException(e);
+	/*
+		public static class TestCls {
+			public void test() {
+				try {
+					System.out.println("Test");
+				} catch (ProviderException | DateTimeException e) {
+					throw new RuntimeException(e);
+				}
 			}
 		}
-	}
-*/
+	*/
 	@Test
 	public void test() {
 		ClassNode cls = getClassNodeFromSmaliWithPkg("trycatch", "TestMultiExceptionCatchSameJump");
