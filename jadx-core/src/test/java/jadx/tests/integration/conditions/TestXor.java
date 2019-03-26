@@ -15,6 +15,10 @@ public class TestXor extends SmaliTest {
 			return test() ^ true;
 		}
 
+		public boolean test2(boolean v) {
+			return v ^ true;
+		}
+
 		public boolean test() {
 			return true;
 		}
@@ -26,6 +30,7 @@ public class TestXor extends SmaliTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsOne("return !test();"));
+		assertThat(code, containsOne("return !v;"));
 	}
 
 	@Test

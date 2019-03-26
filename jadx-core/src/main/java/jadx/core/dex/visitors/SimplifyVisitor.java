@@ -23,6 +23,7 @@ import jadx.core.dex.instructions.args.FieldArg;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
+import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
@@ -256,16 +257,12 @@ public class SimplifyVisitor extends AbstractVisitor {
 			}
 			InsnArg firstArg = arith.getArg(0);
 			if (arith.getOp() == ArithOp.XOR && firstArg.getType() == ArgType.BOOLEAN) {
-				if (lit == 1 && firstArg.isInsnWrap()) {
-					InsnNode wr = ((InsnWrapArg) firstArg).getWrapInsn();
-					InsnNode not = new InsnNode(InsnType.NOT, 1);
-					not.setResult(wr.getResult());
-					not.addArg(firstArg);
-					return not; 
-				}
-				if (lit == 0 && firstArg.isInsnWrap()) {
-					return ((InsnWrapArg) firstArg).getWrapInsn();
-				}
+				InsnNode node = new InsnNode(lit == 0 ? InsnType.MOVE : InsnType.NOT, 1);
+				RegisterArg result = arith.getResult();
+				result.setType(ArgType.BOOLEAN);
+				node.setResult(result);
+				node.addArg(firstArg);
+				return node; 
 			}
 		}
 		return null;
