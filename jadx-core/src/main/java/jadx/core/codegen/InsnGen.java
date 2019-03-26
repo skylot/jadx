@@ -277,7 +277,8 @@ public class InsnGen {
 				break;
 
 			case NOT:
-				oneArgInsn(code, insn, state, '~');
+				char op = insn.getResult().getType() == ArgType.BOOLEAN ? '!' : '~';
+				oneArgInsn(code, insn, state, op);
 				break;
 
 			case RETURN:
