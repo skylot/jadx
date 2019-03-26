@@ -125,7 +125,7 @@ public class JadxCLIArgs {
 			}
 			if (verbose) {
 				ch.qos.logback.classic.Logger rootLogger =
-						(ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+					(ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 				// remove INFO ThresholdFilter
 				Appender<ILoggingEvent> appender = rootLogger.getAppender("STDOUT");
 				if (appender != null) {

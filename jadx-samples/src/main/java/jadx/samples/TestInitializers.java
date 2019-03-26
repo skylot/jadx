@@ -5,14 +5,14 @@ public class TestInitializers extends AbstractTest {
 	private static String a;
 	private static int counter;
 	private A c_a;
-	
+
 	public static class A {
 		public static String a;
-		
+
 		static {
 			a = "a1";
 		}
-		
+
 		public boolean z() {
 			return true;
 		}
@@ -29,11 +29,11 @@ public class TestInitializers extends AbstractTest {
 				b = 1;
 			}
 		}
-		
+
 		public B(int _b) {
 			b = _b;
 		}
-		
+
 		public void setB(int _b) {
 			b = _b;
 		}
@@ -41,11 +41,11 @@ public class TestInitializers extends AbstractTest {
 		public int getB() {
 			return b;
 		}
-		
+
 		public int getBBB() {
 			return bbb;
 		}
-		
+
 		{
 			bbb = 123;
 		}
@@ -55,7 +55,7 @@ public class TestInitializers extends AbstractTest {
 		a = "a0";
 		counter = 0;
 	}
-	
+
 	{
 		c_a = new A();
 	}
@@ -90,15 +90,14 @@ public class TestInitializers extends AbstractTest {
 
 		assertTrue((new B()).getB() == -1);
 		assertTrue(counter == 1);
-		
+
 		B b3 = new B(3);
 		assertTrue((b3.getB() == 3) && (b3.getBBB() == 123));
-		
+
 		return true;
 	}
 
 	public static void main(String[] args) throws Exception {
 		new TestInitializers().testRun();
 	}
-
 }

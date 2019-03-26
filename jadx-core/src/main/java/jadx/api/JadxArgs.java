@@ -137,7 +137,7 @@ public class JadxArgs {
 	public boolean isDebugInfo() {
 		return debugInfo;
 	}
-	
+
 	public void setDebugInfo(boolean debugInfo) {
 		this.debugInfo = debugInfo;
 	}
@@ -257,5 +257,4 @@ public class JadxArgs {
 		sb.append('}');
 		return sb.toString();
 	}
-
 }
