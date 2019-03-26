@@ -12,7 +12,7 @@ public class TestConditions15 extends IntegrationTest {
 
 	public static class TestCls {
 
-		private static boolean test(final String name) {
+		public static boolean test(final String name) {
 			if (isEmpty(name)) {
 				return false;
 			}

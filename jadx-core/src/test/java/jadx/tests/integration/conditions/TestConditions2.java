@@ -2,7 +2,6 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 public class TestConditions2 extends IntegrationTest {
@@ -25,10 +24,6 @@ public class TestConditions2 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-//		assertThat(code, containsString("return;"));
-//		assertThat(code, not(containsString("else")));
+		getClassNode(TestCls.class);
 	}
 }

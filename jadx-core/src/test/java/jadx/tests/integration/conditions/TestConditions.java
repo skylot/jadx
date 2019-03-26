@@ -12,7 +12,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestConditions extends IntegrationTest {
 
 	public static class TestCls {
-		private boolean test(boolean a, boolean b, boolean c) {
+		public boolean test(boolean a, boolean b, boolean c) {
 			return (a && b) || c;
 		}
 	}
