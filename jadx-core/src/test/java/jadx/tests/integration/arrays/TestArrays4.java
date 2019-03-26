@@ -3,8 +3,8 @@ package jadx.tests.integration.arrays;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.junit.Assert.assertThat;
-import org.junit.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import org.junit.jupiter.api.Test;
 
 public class TestArrays4 extends SmaliTest {
 

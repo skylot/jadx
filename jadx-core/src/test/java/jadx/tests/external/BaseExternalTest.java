@@ -26,7 +26,7 @@ import jadx.tests.api.IntegrationTest;
 
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public abstract class BaseExternalTest extends IntegrationTest {
 	private static final Logger LOG = LoggerFactory.getLogger(BaseExternalTest.class);

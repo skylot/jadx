@@ -1,11 +1,11 @@
 package jadx.cli;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class JadxCLIArgsTest {
 
@@ -33,11 +33,14 @@ public class JadxCLIArgsTest {
 	@Test
 	public void testOptionsOverride() {
 		assertThat(override(new JadxCLIArgs(), "--no-imports").isUseImports(), is(false));
+		assertThat(override(new JadxCLIArgs(), "--no-debug-info").isDebugInfo(), is(false));
 		assertThat(override(new JadxCLIArgs(), "").isUseImports(), is(true));
 
 		JadxCLIArgs args = new JadxCLIArgs();
 		args.useImports = false;
 		assertThat(override(args, "--no-imports").isUseImports(), is(false));
+		args.debugInfo = false;
+		assertThat(override(args, "--no-debug-info").isDebugInfo(), is(false));
 
 		args = new JadxCLIArgs();
 		args.useImports = false;

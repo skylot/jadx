@@ -509,12 +509,12 @@ public class InsnGen {
 			case PHI:
 			case MERGE:
 				fallbackOnlyInsn(insn);
-				code.add(insn.getType().toString()).add("(");
+				code.add(insn.getType().toString()).add('(');
 				for (InsnArg insnArg : insn.getArguments()) {
 					addArg(code, insnArg);
 					code.add(' ');
 				}
-				code.add(")");
+				code.add(')');
 				break;
 
 			default:

@@ -70,6 +70,6 @@ public final class FieldArg extends RegisterArg {
 
 	@Override
 	public String toString() {
-		return "(" + field + ")";
+		return "(" + field + ')';
 	}
 }

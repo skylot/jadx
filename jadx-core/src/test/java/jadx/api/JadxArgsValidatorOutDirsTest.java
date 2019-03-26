@@ -1,6 +1,6 @@
 package jadx.api;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,7 +8,7 @@ import jadx.core.utils.files.FileUtils;
 
 import static jadx.core.utils.files.FileUtils.toFile;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class JadxArgsValidatorOutDirsTest {
 

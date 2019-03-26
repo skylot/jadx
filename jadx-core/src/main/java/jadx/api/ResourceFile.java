@@ -70,6 +70,6 @@ public class ResourceFile {
 
 	@Override
 	public String toString() {
-		return "ResourceFile{name='" + name + '\'' + ", type=" + type + "}";
+		return "ResourceFile{name='" + name + '\'' + ", type=" + type + '}';
 	}
 }

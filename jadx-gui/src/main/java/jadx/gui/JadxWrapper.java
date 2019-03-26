@@ -88,7 +88,8 @@ public class JadxWrapper {
 
 		return classList.stream().filter(cls -> {
 			for (String exclude : excludedPackages) {
-				if (cls.getFullName().startsWith(exclude)) {
+				if (cls.getFullName().equals(exclude)
+						|| cls.getFullName().startsWith(exclude + '.')) {
 					return false;
 				}
 			}
@@ -98,11 +99,15 @@ public class JadxWrapper {
 
 	public List<String> getExcludedPackages() {
 		String excludedPackages = settings.getExcludedPackages().trim();
+		if (excludedPackages.isEmpty()) {
+			return Collections.emptyList();
+		}
 		return Arrays.asList(excludedPackages.split("[ ]+"));
 	}
 
 	public void addExcludedPackage(String packageToExclude) {
-		settings.setExcludedPackages(settings.getExcludedPackages() + ' ' + packageToExclude);
+		String newExclusion = settings.getExcludedPackages() + ' ' + packageToExclude;
+		settings.setExcludedPackages(newExclusion.trim());
 		settings.sync();
 	}
 

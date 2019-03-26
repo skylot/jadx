@@ -229,7 +229,7 @@ public abstract class ArgType {
 			if (bounds == 0) {
 				return "?";
 			}
-			return "? " + (bounds == -1 ? "super" : "extends") + " " + type;
+			return "? " + (bounds == -1 ? "super" : "extends") + ' ' + type;
 		}
 	}
 
@@ -245,7 +245,7 @@ public abstract class ArgType {
 		}
 
 		public GenericObject(GenericObject outerType, String innerName, ArgType[] generics) {
-			super(outerType.getObject() + "$" + innerName);
+			super(outerType.getObject() + '$' + innerName);
 			this.outerType = outerType;
 			this.generics = generics;
 			this.hash = outerType.hashCode() + 31 * innerName.hashCode()
@@ -275,7 +275,7 @@ public abstract class ArgType {
 
 		@Override
 		public String toString() {
-			return super.toString() + "<" + Utils.arrayToString(generics) + ">";
+			return super.toString() + '<' + Utils.arrayToString(generics) + '>';
 		}
 	}
 
@@ -389,7 +389,7 @@ public abstract class ArgType {
 			if (possibleTypes.length == PrimitiveType.values().length) {
 				return "?";
 			} else {
-				return "?" + Arrays.toString(possibleTypes);
+				return '?' + Arrays.toString(possibleTypes);
 			}
 		}
 	}

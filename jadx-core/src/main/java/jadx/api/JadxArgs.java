@@ -27,6 +27,7 @@ public class JadxArgs {
 	private boolean showInconsistentCode = false;
 
 	private boolean useImports = true;
+	private boolean debugInfo = true;
 
 	private boolean isSkipResources = false;
 	private boolean isSkipSources = false;
@@ -131,6 +132,14 @@ public class JadxArgs {
 
 	public void setUseImports(boolean useImports) {
 		this.useImports = useImports;
+	}
+
+	public boolean isDebugInfo() {
+		return debugInfo;
+	}
+	
+	public void setDebugInfo(boolean debugInfo) {
+		this.debugInfo = debugInfo;
 	}
 
 	public boolean isSkipResources() {

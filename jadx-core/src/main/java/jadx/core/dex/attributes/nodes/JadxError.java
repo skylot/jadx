@@ -34,7 +34,7 @@ public class JadxError {
 		}
 		if (cause != null) {
 			str.append(cause.getClass());
-			str.append(":");
+			str.append(':');
 			str.append(cause.getMessage());
 			str.append("\n");
 			str.append(Utils.getStackTrace(cause));

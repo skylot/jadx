@@ -5,7 +5,7 @@ import java.io.EOFException;
 import com.android.dex.Code;
 import com.android.dx.io.instructions.DecodedInstruction;
 import com.android.dx.io.instructions.ShortArrayCodeInput;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.DexNode;
@@ -14,7 +14,7 @@ import jadx.core.utils.exceptions.DecodeException;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestLoopInTry2 extends IntegrationTest {
 

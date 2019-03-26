@@ -128,7 +128,7 @@ public class TypeGen {
 		}
 		String str = Long.toString(l);
 		if (Math.abs(l) >= Integer.MAX_VALUE) {
-			str += "L";
+			str += 'L';
 		}
 		return str;
 	}
@@ -152,7 +152,7 @@ public class TypeGen {
 		if (d == Double.MIN_NORMAL) {
 			return "Double.MIN_NORMAL";
 		}
-		return Double.toString(d) + "d";
+		return Double.toString(d) + 'd';
 	}
 
 	public static String formatFloat(float f) {
@@ -174,6 +174,6 @@ public class TypeGen {
 		if (f == Float.MIN_NORMAL) {
 			return "Float.MIN_NORMAL";
 		}
-		return Float.toString(f) + "f";
+		return Float.toString(f) + 'f';
 	}
 }

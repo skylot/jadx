@@ -63,12 +63,16 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 	}
 
 	public void rename(RootNode root, String fullName) {
-		ClassInfo newAlias = new ClassInfo(root, ArgType.object(fullName), isInner());
+		ArgType clsType = ArgType.object(fullName);
+		ClassInfo newAlias = root.getInfoStorage().getCls(clsType);
+		if (newAlias == null) {
+			newAlias = new ClassInfo(root, clsType, isInner());
+			root.getInfoStorage().putCls(newAlias);
+		}
 		if (!alias.getFullName().equals(newAlias.getFullName())) {
 			this.alias = newAlias;
 		}
 	}
-
 	public boolean isRenamed() {
 		return alias != this;
 	}
@@ -91,7 +95,7 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 
 		int sep = clsName.lastIndexOf('$');
 		if (canBeInner && sep > 0 && sep != clsName.length() - 1) {
-			String parClsName = pkg + "." + clsName.substring(0, sep);
+			String parClsName = pkg + '.' + clsName.substring(0, sep);
 			if (pkg.isEmpty()) {
 				parClsName = clsName.substring(0, sep);
 			}
@@ -110,7 +114,7 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 			String innerSep = raw ? "$" : ".";
 			return parentClass.makeFullClsName(parentClass.getShortName(), raw) + innerSep + shortName;
 		}
-		return pkg.isEmpty() ? shortName : pkg + "." + shortName;
+		return pkg.isEmpty() ? shortName : pkg + '.' + shortName;
 	}
 
 	public String makeRawFullName() {
@@ -148,7 +152,7 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 		if (parentClass == null) {
 			return name;
 		}
-		return parentClass.getNameWithoutPackage() + "." + name;
+		return parentClass.getNameWithoutPackage() + '.' + name;
 	}
 
 	public ClassInfo getParentClass() {
@@ -169,6 +173,10 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 
 	public void notInner(RootNode root) {
 		splitNames(root, false);
+	}
+
+	public void updateNames(RootNode root) {
+		splitNames(root, isInner());
 	}
 
 	public ArgType getType() {

@@ -162,8 +162,8 @@ public class CodeShrinker extends AbstractVisitor {
 		@Override
 		public String toString() {
 			return "ArgsInfo: |" + inlineBorder
-					+ " ->" + (inlinedInsn == null ? "-" : inlinedInsn.pos)
-					+ " " + args + " : " + insn;
+					+ " ->" + (inlinedInsn == null ? '-' : inlinedInsn.pos)
+					+ ' ' + args + " : " + insn;
 		}
 	}
 

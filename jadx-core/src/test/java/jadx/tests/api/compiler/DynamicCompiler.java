@@ -4,6 +4,10 @@ import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +17,8 @@ import jadx.core.dex.nodes.ClassNode;
 import static javax.tools.JavaCompiler.CompilationTask;
 
 public class DynamicCompiler {
+
+	private static final Logger LOG = LoggerFactory.getLogger(DynamicCompiler.class);
 
 	private final ClassNode clsNode;
 
@@ -29,6 +35,10 @@ public class DynamicCompiler {
 		String code = clsNode.getCode().toString();
 
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+		if (compiler == null) {
+			LOG.error("Can not find compiler, please use JDK instead");
+			return false;
+		}
 		fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
 
 		List<JavaFileObject> jFiles = new ArrayList<>(1);

@@ -35,6 +35,6 @@ public final class ConstClassNode extends InsnNode {
 
 	@Override
 	public String toString() {
-		return super.toString() + " " + clsType;
+		return super.toString() + ' ' + clsType;
 	}
 }

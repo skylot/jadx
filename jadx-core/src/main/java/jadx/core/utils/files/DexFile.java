@@ -27,6 +27,6 @@ public class DexFile {
 
 	@Override
 	public String toString() {
-		return inputFile + (name.isEmpty() ? "" : ":" + name);
+		return inputFile + (name.isEmpty() ? "" : ':' + name);
 	}
 }

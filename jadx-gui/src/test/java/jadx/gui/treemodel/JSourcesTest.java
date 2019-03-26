@@ -3,8 +3,8 @@ package jadx.gui.treemodel;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import jadx.api.Factory;
 import jadx.api.JadxArgs;
@@ -17,7 +17,7 @@ import jadx.gui.JadxWrapper;
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -26,7 +26,7 @@ public class JSourcesTest {
 	private JSources sources;
 	private JadxDecompiler decompiler;
 
-	@Before
+	@BeforeEach
 	public void init() {
 		JRoot root = mock(JRoot.class);
 		when(root.isFlatPackages()).thenReturn(false);

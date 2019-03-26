@@ -1,12 +1,13 @@
 package jadx.tests.integration.types;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestTypeResolver3 extends IntegrationTest {
 
@@ -26,8 +27,16 @@ public class TestTypeResolver3 extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		// TODO inline into return
 		assertThat(code, containsOne("s1.length() == s2.length() ? 0 : s1.length() < s2.length() ? -1 : 1;"));
+	}
+
+	@Test
+	@NotYetImplemented
+	public void test3() {
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, containsOne("return s1.length() == s2.length() ? 0 : s1.length() < s2.length() ? -1 : 1;"));
 	}
 
 	@Test

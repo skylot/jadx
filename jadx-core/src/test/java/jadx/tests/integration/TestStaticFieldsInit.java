@@ -1,13 +1,13 @@
 package jadx.tests.integration;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestStaticFieldsInit extends IntegrationTest {
 
@@ -34,7 +34,6 @@ public class TestStaticFieldsInit extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, not(containsString("public static final String s2 = null;")));
-		// TODO:
-		// assertThat(code, containsString("public static final String s3 = null;"));
+		assertThat(code, containsString("public static final String s3 = null;"));
 	}
 }

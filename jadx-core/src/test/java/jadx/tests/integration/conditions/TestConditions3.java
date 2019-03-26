@@ -3,14 +3,14 @@ package jadx.tests.integration.conditions;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestConditions3 extends IntegrationTest {
 
@@ -65,7 +65,6 @@ public class TestConditions3 extends IntegrationTest {
 		assertThat(code, containsString("return null;"));
 		assertThat(code, not(containsString("else")));
 
-		// TODO: fix constant inline
-//		assertThat(code, not(containsString("AnonymousClass_1")));
+		assertThat(code, not(containsString("AnonymousClass_1")));
 	}
 }

@@ -116,7 +116,7 @@ public final class BlocksRemoveInfo {
 				+ ", processed: " + processed
 				+ ", outs: " + outs
 				+ ", regMap: " + regMap
-				+ ", split: " + startSplitIndex + "-" + endSplitIndex
-				+ "}";
+				+ ", split: " + startSplitIndex + '-' + endSplitIndex
+				+ '}';
 	}
 }

@@ -73,7 +73,7 @@ public class InvokeNode extends InsnNode implements CallMthInterface {
 				+ InsnUtils.insnTypeToString(insnType)
 				+ (getResult() == null ? "" : getResult() + " = ")
 				+ Utils.listToString(getArguments())
-				+ " " + mth
+				+ ' ' + mth
 				+ " type: " + type;
 	}
 }

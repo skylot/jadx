@@ -1,17 +1,5 @@
 package jadx.tests.functional;
 
-import java.io.IOException;
-
-import org.junit.Before;
-import org.junit.Test;
-
-import jadx.core.clsp.ClspGraph;
-import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.instructions.args.PrimitiveType;
-import jadx.core.dex.nodes.DexNode;
-import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.exceptions.DecodeException;
-
 import static jadx.core.dex.instructions.args.ArgType.BOOLEAN;
 import static jadx.core.dex.instructions.args.ArgType.BYTE;
 import static jadx.core.dex.instructions.args.ArgType.CHAR;
@@ -26,17 +14,29 @@ import static jadx.core.dex.instructions.args.ArgType.array;
 import static jadx.core.dex.instructions.args.ArgType.genericType;
 import static jadx.core.dex.instructions.args.ArgType.object;
 import static jadx.core.dex.instructions.args.ArgType.unknown;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import jadx.core.clsp.ClspGraph;
+import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.PrimitiveType;
+import jadx.core.dex.nodes.DexNode;
+import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.exceptions.DecodeException;
 
 public class TypeMergeTest {
 
 	private DexNode dex;
 
-	@Before
+	@BeforeEach
 	public void initClsp() throws IOException, DecodeException {
 		ClspGraph clsp = new ClspGraph();
 		clsp.load();
@@ -115,10 +115,10 @@ public class TypeMergeTest {
 		ArgType res = ArgType.merge(dex, t1, t2);
 		String msg = format(t1, t2, exp, res);
 		if (exp == null) {
-			assertNull("Incorrect accept: " + msg, res);
+			assertNull(res, "Incorrect accept: " + msg);
 		} else {
-			assertNotNull("Incorrect reject: " + msg, res);
-			assertTrue("Incorrect result: " + msg, exp.equals(res));
+			assertNotNull(res, "Incorrect reject: " + msg);
+			assertTrue(exp.equals(res), "Incorrect result: " + msg);
 		}
 	}
 

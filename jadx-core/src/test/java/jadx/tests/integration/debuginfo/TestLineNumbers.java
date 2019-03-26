@@ -1,6 +1,6 @@
 package jadx.tests.integration.debuginfo;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
@@ -10,8 +10,8 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.tests.api.IntegrationTest;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestLineNumbers extends IntegrationTest {
 
@@ -46,11 +46,11 @@ public class TestLineNumbers extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		FieldNode field = cls.searchFieldByName("field");
-		MethodNode func = cls.searchMethodByName("func()V");
+		MethodNode func = cls.searchMethodByShortId("func()V");
 		ClassNode inner = cls.getInnerClasses().get(0);
-		MethodNode innerFunc = inner.searchMethodByName("innerFunc()V");
-		MethodNode innerFunc2 = inner.searchMethodByName("innerFunc2()V");
-		MethodNode innerFunc3 = inner.searchMethodByName("innerFunc3()V");
+		MethodNode innerFunc = inner.searchMethodByShortId("innerFunc()V");
+		MethodNode innerFunc2 = inner.searchMethodByShortId("innerFunc2()V");
+		MethodNode innerFunc3 = inner.searchMethodByShortId("innerFunc3()V");
 		FieldNode innerField = inner.searchFieldByName("innerField");
 
 		// check source lines (available only for instructions and methods)

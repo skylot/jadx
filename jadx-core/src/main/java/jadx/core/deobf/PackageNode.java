@@ -127,4 +127,9 @@ public class PackageNode {
 		}
 		return pp;
 	}
+
+	@Override
+	public String toString() {
+		return packageAlias;
+	}
 }

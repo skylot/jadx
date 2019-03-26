@@ -2,7 +2,7 @@ package jadx.tests.integration;
 
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnWrapArg;
@@ -14,9 +14,9 @@ import jadx.tests.api.IntegrationTest;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test duplicate 'check-cast' instruction produced because of bug in javac:

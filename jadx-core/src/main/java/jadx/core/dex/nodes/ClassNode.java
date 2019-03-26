@@ -344,7 +344,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return mthInfoMap.get(mth);
 	}
 
-	public MethodNode searchMethodByName(String shortId) {
+	public MethodNode searchMethodByShortId(String shortId) {
 		for (MethodNode m : methods) {
 			if (m.getMethodInfo().getShortId().equals(shortId)) {
 				return m;
@@ -353,8 +353,22 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return null;
 	}
 
+	/**
+	 * Return first method by original short name
+	 * Note: methods are not unique by name (class can have several methods with same name but different signature)
+	 */
+	@Nullable
+	public MethodNode searchMethodByShortName(String name) {
+		for (MethodNode m : methods) {
+			if (m.getMethodInfo().getName().equals(name)) {
+				return m;
+			}
+		}
+		return null;
+	}
+
 	public MethodNode searchMethodById(int id) {
-		return searchMethodByName(MethodInfo.fromDex(dex, id).getShortId());
+		return searchMethodByShortId(MethodInfo.fromDex(dex, id).getShortId());
 	}
 
 	public ClassNode getParentClass() {
@@ -420,7 +434,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	@Nullable
 	public MethodNode getClassInitMth() {
-		return searchMethodByName("<clinit>()V");
+		return searchMethodByShortId("<clinit>()V");
 	}
 
 	@Nullable

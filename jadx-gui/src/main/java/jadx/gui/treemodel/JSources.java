@@ -66,7 +66,7 @@ public class JSources extends JNode {
 					pkg.getInnerPackages().clear();
 					pkg.getInnerPackages().addAll(innerPkg.getInnerPackages());
 					pkg.getClasses().addAll(innerPkg.getClasses());
-					pkg.setName(pkg.getName() + "." + innerPkg.getName());
+					pkg.setName(pkg.getName() + '.' + innerPkg.getName());
 
 					innerPkg.getInnerPackages().clear();
 					innerPkg.getClasses().clear();

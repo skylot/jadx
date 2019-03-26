@@ -1,12 +1,12 @@
 package jadx.tests.integration.switches;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.countString;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestSwitch2 extends IntegrationTest {
 	public static class TestCls {

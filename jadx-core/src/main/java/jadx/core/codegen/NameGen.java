@@ -109,7 +109,7 @@ public class NameGen {
 		String name = arg.getName();
 		String varName = name != null ? name : guessName(arg);
 		if (NameMapper.isReserved(varName)) {
-			return varName + "R";
+			return varName + 'R';
 		}
 		return varName;
 	}
