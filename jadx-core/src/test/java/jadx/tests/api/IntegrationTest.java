@@ -81,6 +81,14 @@ public abstract class IntegrationTest extends TestUtils {
 		args.setFsCaseSensitive(false); // use same value on all systems
 	}
 
+	public String getTestName() {
+		return this.getClass().getSimpleName();
+	}
+
+	public String getTestPkg() {
+		return this.getClass().getPackage().getName().replace("jadx.tests.integration.", "");
+	}
+
 	public ClassNode getClassNode(Class<?> clazz) {
 		try {
 			File jar = getJarForClass(clazz);

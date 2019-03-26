@@ -11,7 +11,9 @@ import org.jf.smali.Smali;
 import org.jf.smali.SmaliOptions;
 
 import jadx.api.JadxDecompiler;
+import jadx.api.JadxInternalAccess;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.RootNode;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
@@ -47,16 +49,17 @@ public abstract class SmaliTest extends IntegrationTest {
 		return getClassNodeFromFile(outDex, pkg + '.' + clsName);
 	}
 
-	protected JadxDecompiler loadSmaliFile(String pkg, String smaliFileName) {
+	protected List<ClassNode> loadFromSmaliFiles() {
 		File outDex = createTempFile(".dex");
-		compileSmali(outDex, Collections.singletonList(getSmaliFile(pkg + File.separatorChar + smaliFileName)));
-		return loadFiles(Collections.singletonList(outDex));
-	}
+		compileSmali(outDex, collectSmaliFiles(getTestPkg(), getTestName()));
 
-	protected JadxDecompiler loadSmaliFiles(String pkg, String testNameDir) {
-		File outDex = createTempFile(".dex");
-		compileSmali(outDex, collectSmaliFiles(pkg, testNameDir));
-		return loadFiles(Collections.singletonList(outDex));
+		JadxDecompiler d = loadFiles(Collections.singletonList(outDex));
+		RootNode root = JadxInternalAccess.getRoot(d);
+		List<ClassNode> classes = root.getClasses(false);
+		for (ClassNode cls : classes) {
+			decompileAndCheckCls(d, cls);
+		}
+		return classes;
 	}
 
 	private List<File> collectSmaliFiles(String pkg, @Nullable String testDir) {
@@ -68,7 +71,7 @@ public abstract class SmaliTest extends IntegrationTest {
 		}
 		File smaliDir = new File(SMALI_TESTS_DIR, smaliFilesDir);
 		String[] smaliFileNames = smaliDir.list((dir, name) -> name.endsWith(".smali"));
-		assertThat("Smali files not found", smaliFileNames, notNullValue());
+		assertThat("Smali files not found in " + smaliDir, smaliFileNames, notNullValue());
 		return Arrays.stream(smaliFileNames)
 				.map(file -> new File(smaliDir, file))
 				.collect(Collectors.toList());
