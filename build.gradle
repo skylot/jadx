@@ -1,6 +1,7 @@
 plugins {
-    id 'org.sonarqube' version '2.7'
-    id 'com.github.ben-manes.versions' version '0.21.0'
+	id 'org.sonarqube' version '2.7'
+	id 'com.github.ben-manes.versions' version '0.21.0'
+	id 'org.ec4j.editorconfig' version '0.0.3'
 }
 
 ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
@@ -8,125 +9,137 @@ version = jadxVersion
 println("jadx version: ${jadxVersion}")
 
 allprojects {
-    apply plugin: 'java'
-    apply plugin: 'groovy'
-    apply plugin: 'jacoco'
+	apply plugin: 'java'
+	apply plugin: 'groovy'
+	apply plugin: 'jacoco'
 
-    version = jadxVersion
+	version = jadxVersion
 
-    tasks.withType(JavaCompile) {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+	tasks.withType(JavaCompile) {
+		sourceCompatibility = JavaVersion.VERSION_1_8
+		targetCompatibility = JavaVersion.VERSION_1_8
 
-        if (!"$it".contains(':jadx-samples:')) {
-            options.compilerArgs << '-Xlint' << '-Xlint:unchecked' << '-Xlint:deprecation'
-        }
-    }
+		if (!"$it".contains(':jadx-samples:')) {
+			options.compilerArgs << '-Xlint' << '-Xlint:unchecked' << '-Xlint:deprecation'
+		}
+	}
 
-    compileJava {
-        options.encoding = "UTF-8"
-    }
+	compileJava {
+		options.encoding = "UTF-8"
+	}
 
-    jar {
-        version = jadxVersion
-        manifest {
-            mainAttributes('jadx-version': jadxVersion)
-        }
-    }
+	jar {
+		version = jadxVersion
+		manifest {
+			mainAttributes('jadx-version': jadxVersion)
+		}
+	}
 
-    dependencies {
-        compile 'org.slf4j:slf4j-api:1.7.26'
+	dependencies {
+		compile 'org.slf4j:slf4j-api:1.7.26'
 
-        testCompile 'ch.qos.logback:logback-classic:1.2.3'
-        testCompile 'org.hamcrest:hamcrest-library:2.1'
-        testCompile 'org.mockito:mockito-core:2.25.1'
+		testCompile 'ch.qos.logback:logback-classic:1.2.3'
+		testCompile 'org.hamcrest:hamcrest-library:2.1'
+		testCompile 'org.mockito:mockito-core:2.25.1'
 
-        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.4.1'
-        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.4.1'
-    }
+		testImplementation 'org.junit.jupiter:junit-jupiter-api:5.4.1'
+		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.4.1'
+	}
 
-    test {
-        useJUnitPlatform()
-    }
+	test {
+		useJUnitPlatform()
+	}
 
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        jcenter()
-        google()
-    }
+	repositories {
+		mavenLocal()
+		mavenCentral()
+		jcenter()
+		google()
+	}
 
-    jacoco {
-        toolVersion = "0.8.2"
-    }
-    jacocoTestReport {
-        reports {
-            xml.enabled = true
-            html.enabled = true
-        }
-    }
+	jacoco {
+		toolVersion = "0.8.2"
+	}
+	jacocoTestReport {
+		reports {
+			xml.enabled = true
+			html.enabled = true
+		}
+	}
 }
 
 sonarqube {
-    properties {
-        property 'sonar.exclusions', '**/jadx/samples/**/*,**/test-app/**/*'
-        property 'sonar.coverage.exclusions', '**/jadx/gui/**/*'
-    }
+	properties {
+		property 'sonar.exclusions', '**/jadx/samples/**/*,**/test-app/**/*'
+		property 'sonar.coverage.exclusions', '**/jadx/gui/**/*'
+	}
+}
+
+editorconfig {
+	excludes = ['gradle/'
+				, 'jadx-test-app/test-app' // ignore issues in submodule
+				, '**/out/' // IntelliJ Idea build dirs
+				, '**/certificate-test/' // binary test files (.RSA)
+				, '**/*.svg'
+				, '**/*.arsc'
+	]
 }
 
 dependencyUpdates.resolutionStrategy = {
-    componentSelection { rules ->
-        rules.all { ComponentSelection selection ->
-            boolean rejected = ['alpha', 'beta', 'rc', 'cr', 'm', 'atlassian'].any { qualifier ->
-                selection.candidate.version ==~ /(?i).*[.-]${qualifier}[.\d-]*/
-            }
-            if (rejected) {
-                selection.reject('Release candidate')
-            }
-        }
-    }
+	componentSelection { rules ->
+		rules.all { ComponentSelection selection ->
+			boolean rejected = ['alpha', 'beta', 'rc', 'cr', 'm', 'atlassian'].any { qualifier ->
+				selection.candidate.version ==~ /(?i).*[.-]${qualifier}[.\d-]*/
+			}
+			if (rejected) {
+				selection.reject('Release candidate')
+			}
+		}
+	}
 }
 
 task copyArtifacts(type: Sync, dependsOn: ['jadx-cli:installDist', 'jadx-gui:installDist']) {
-    destinationDir file("$buildDir/jadx")
-    ['jadx-cli', 'jadx-gui'].each {
-        from tasks.getByPath(":${it}:installDist").destinationDir
-    }
+	destinationDir file("$buildDir/jadx")
+	['jadx-cli', 'jadx-gui'].each {
+		from tasks.getByPath(":${it}:installDist").destinationDir
+	}
 }
 
 task pack(type: Zip, dependsOn: copyArtifacts) {
-    destinationDir buildDir
-    archiveName "jadx-${jadxVersion}.zip"
-    from copyArtifacts.destinationDir
+	destinationDir buildDir
+	archiveName "jadx-${jadxVersion}.zip"
+	from copyArtifacts.destinationDir
 }
 
 task copyExe(type: Copy, dependsOn: 'jadx-gui:createExe') {
-    group 'jadx'
-    description = 'Copy exe to build dir'
-    destinationDir buildDir
-    from tasks.getByPath('jadx-gui:createExe').outputs
-    include '*.exe'
+	group 'jadx'
+	description = 'Copy exe to build dir'
+	destinationDir buildDir
+	from tasks.getByPath('jadx-gui:createExe').outputs
+	include '*.exe'
 }
 
 task dist(dependsOn: [pack, copyExe]) {
-    group 'jadx'
-    description = 'Build jadx distribution zip'
+	group 'jadx'
+	description = 'Build jadx distribution zip'
 }
 
 task samples(dependsOn: 'jadx-samples:samples') {
-    group 'jadx'
+	group 'jadx'
 }
 
 task testAppCheck(dependsOn: 'jadx-test-app:testAppCheck') {
-    group 'jadx'
+	group 'jadx'
 }
 
 task cleanBuildDir(type: Delete) {
-    group 'jadx'
-    delete buildDir
+	group 'jadx'
+	delete buildDir
 }
 
-build.dependsOn(dist, samples)
+check.dependsOn editorconfigCheck
+
+test.dependsOn(samples)
 
 clean.dependsOn(cleanBuildDir)
 
