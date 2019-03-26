@@ -57,7 +57,8 @@ public class RegisterArg extends InsnArg implements Named {
 		if (sVar != null) {
 			return sVar.getTypeInfo().getType();
 		}
-		throw new JadxRuntimeException("Register type unknown, SSA variable not initialized: r" + regNum);
+		LOG.warn("Register type unknown, SSA variable not initialized: r{}", regNum);
+		return type;
 	}
 
 	public ArgType getInitType() {
