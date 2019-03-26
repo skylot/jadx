@@ -262,7 +262,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 				result.setType(ArgType.BOOLEAN);
 				node.setResult(result);
 				node.addArg(firstArg);
-				return node; 
+				return node;
 			}
 		}
 		return null;
