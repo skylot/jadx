@@ -1,6 +1,9 @@
 package jadx.gui.settings;
 
-import java.awt.*;
+import java.awt.Font;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Window;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -142,12 +145,23 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public boolean loadWindowPos(Window window) {
 		WindowLocation pos = windowPos.get(window.getClass().getSimpleName());
-		if (pos == null) {
+		if (pos == null || !isContainedInAnyScreen(pos)) {
 			return false;
 		}
+
 		window.setLocation(pos.getX(), pos.getY());
 		window.setSize(pos.getWidth(), pos.getHeight());
 		return true;
+	}
+
+	private static boolean isContainedInAnyScreen(WindowLocation pos) {
+		for (GraphicsDevice gd : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
+			if (gd.getDefaultConfiguration().getBounds().contains(
+					pos.getX(), pos.getY(), pos.getWidth(), pos.getHeight())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public boolean isShowHeapUsageBar() {
