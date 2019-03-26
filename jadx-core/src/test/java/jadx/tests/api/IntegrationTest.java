@@ -78,6 +78,7 @@ public abstract class IntegrationTest extends TestUtils {
 		args.setShowInconsistentCode(true);
 		args.setThreadsCount(1);
 		args.setSkipResources(true);
+		args.setFsCaseSensitive(false); // use same value on all systems
 	}
 
 	public ClassNode getClassNode(Class<?> clazz) {

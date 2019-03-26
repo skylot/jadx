@@ -1,5 +1,6 @@
 package jadx.gui;
 
+import javax.swing.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,8 +8,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
-
-import javax.swing.ProgressMonitor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +17,7 @@ import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaPackage;
 import jadx.api.ResourceFile;
+import jadx.core.utils.files.FileUtils;
 import jadx.gui.settings.JadxSettings;
 
 public class JadxWrapper {
@@ -34,8 +34,12 @@ public class JadxWrapper {
 	public void openFile(File file) {
 		this.openFile = file;
 		try {
-			this.decompiler = new JadxDecompiler(settings.toJadxArgs());
-			this.decompiler.getArgs().setInputFiles(Collections.singletonList(file));
+			JadxArgs jadxArgs = settings.toJadxArgs();
+			jadxArgs.setInputFile(file);
+			// output folder not known yet => use input dir as a best choice
+			jadxArgs.setFsCaseSensitive(FileUtils.isCaseSensitiveFS(file.getParentFile()));
+
+			this.decompiler = new JadxDecompiler(jadxArgs);
 			this.decompiler.load();
 		} catch (Exception e) {
 			LOG.error("Jadx init error", e);
@@ -97,6 +101,7 @@ public class JadxWrapper {
 		}).collect(Collectors.toList());
 	}
 
+	// TODO: move to CLI and filter classes in JadxDecompiler
 	public List<String> getExcludedPackages() {
 		String excludedPackages = settings.getExcludedPackages().trim();
 		if (excludedPackages.isEmpty()) {

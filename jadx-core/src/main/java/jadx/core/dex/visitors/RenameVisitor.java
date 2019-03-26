@@ -20,7 +20,6 @@ import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.files.FileUtils;
 import jadx.core.utils.files.InputFile;
 
 public class RenameVisitor extends AbstractVisitor {
@@ -45,8 +44,7 @@ public class RenameVisitor extends AbstractVisitor {
 		if (deobfuscationOn) {
 			deobfuscator.execute();
 		}
-		boolean isCaseSensitive = FileUtils.isCaseSensitiveFS(new File(inputPath)); // args.getOutDir() - not set in gui
-		checkClasses(root, isCaseSensitive);
+		checkClasses(root, args.isFsCaseSensitive());
 	}
 
 	private void checkClasses(RootNode root, boolean caseSensitive) {

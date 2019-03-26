@@ -1,10 +1,16 @@
 package jadx.cli;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.core.utils.exceptions.JadxArgsValidateException;
+import jadx.core.utils.files.FileUtils;
 
 public class JadxCLI {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxCLI.class);
@@ -25,7 +31,9 @@ public class JadxCLI {
 	}
 
 	static int processAndSave(JadxCLIArgs inputArgs) {
-		JadxDecompiler jadx = new JadxDecompiler(inputArgs.toJadxArgs());
+		JadxArgs args = inputArgs.toJadxArgs();
+		args.setFsCaseSensitive(getFsCaseSensitivity(args));
+		JadxDecompiler jadx = new JadxDecompiler(args);
 		try {
 			jadx.load();
 		} catch (JadxArgsValidateException e) {
@@ -41,5 +49,15 @@ public class JadxCLI {
 			LOG.info("done");
 		}
 		return errorsCount;
+	}
+
+	private static boolean getFsCaseSensitivity(JadxArgs args) {
+		List<File> testDirList = new ArrayList<>(3);
+		testDirList.add(args.getOutDir());
+		testDirList.add(args.getOutDirSrc());
+		if (!args.getInputFiles().isEmpty()) {
+			testDirList.add(args.getInputFiles().get(0));
+		}
+		return FileUtils.isCaseSensitiveFS(testDirList);
 	}
 }

@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
@@ -198,8 +199,26 @@ public class FileUtils {
 		}
 	}
 
+	/**
+	 * Checks dirs in order, fist success result returned
+	 */
+	public static boolean isCaseSensitiveFS(List<File> testDirList) {
+		for (File dir : testDirList) {
+			Optional<Boolean> result = isCaseSensitiveFSInternal(dir);
+			if (result.isPresent()) {
+				return result.get();
+			}
+		}
+		return IOCase.SYSTEM.isCaseSensitive();
+	}
+
 	public static boolean isCaseSensitiveFS(File testDir) {
-		if (testDir != null) {
+		Optional<Boolean> result = isCaseSensitiveFSInternal(testDir);
+		return result.orElseGet(IOCase.SYSTEM::isCaseSensitive);
+	}
+
+	private static Optional<Boolean> isCaseSensitiveFSInternal(@Nullable File testDir) {
+		if (testDir != null && testDir.exists() && testDir.isDirectory()) {
 			File caseCheckUpper = new File(testDir, "CaseCheck");
 			File caseCheckLow = new File(testDir, "casecheck");
 			try {
@@ -208,7 +227,7 @@ public class FileUtils {
 					boolean caseSensitive = !caseCheckLow.exists();
 					LOG.debug("Filesystem at {} is {}case-sensitive", testDir.getAbsolutePath(),
 							(caseSensitive ? "" : "NOT "));
-					return caseSensitive;
+					return Optional.of(caseSensitive);
 				} else {
 					LOG.debug("Failed to create file: {}", caseCheckUpper.getAbsolutePath());
 				}
@@ -223,7 +242,7 @@ public class FileUtils {
 				}
 			}
 		}
-		return IOCase.SYSTEM.isCaseSensitive();
+		return Optional.empty();
 	}
 
 	public static File toFile(String path) {

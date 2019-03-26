@@ -2,6 +2,7 @@ package jadx.api;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class JadxArgs {
@@ -44,6 +45,8 @@ public class JadxArgs {
 	private boolean respectBytecodeAccModifiers = false;
 	private boolean exportAsGradleProject = false;
 
+	private boolean isFsCaseSensitive;
+
 	public JadxArgs() {
 		// use default options
 	}
@@ -56,6 +59,10 @@ public class JadxArgs {
 
 	public List<File> getInputFiles() {
 		return inputFiles;
+	}
+
+	public void setInputFile(File inputFile) {
+		this.inputFiles = Collections.singletonList(inputFile);
 	}
 
 	public void setInputFiles(List<File> inputFiles) {
@@ -228,6 +235,14 @@ public class JadxArgs {
 
 	public void setExportAsGradleProject(boolean exportAsGradleProject) {
 		this.exportAsGradleProject = exportAsGradleProject;
+	}
+
+	public boolean isFsCaseSensitive() {
+		return isFsCaseSensitive;
+	}
+
+	public void setFsCaseSensitive(boolean fsCaseSensitive) {
+		isFsCaseSensitive = fsCaseSensitive;
 	}
 
 	@Override
