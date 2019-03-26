@@ -4,18 +4,26 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import jadx.core.dex.instructions.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.Consts;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.instructions.ArithNode;
+import jadx.core.dex.instructions.ArithOp;
+import jadx.core.dex.instructions.CallMthInterface;
+import jadx.core.dex.instructions.ConstStringNode;
+import jadx.core.dex.instructions.IfNode;
+import jadx.core.dex.instructions.IndexInsnNode;
+import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.FieldArg;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
+import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
@@ -54,7 +62,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 		}
 		switch (insn.getType()) {
 			case ARITH:
-				return simplifyArith(insn);
+				return simplifyArith((ArithNode) insn);
 
 			case IF:
 				simplifyIf((IfNode) insn);
@@ -64,7 +72,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 				break;
 
 			case INVOKE:
-				return convertInvoke(mth, insn);
+				return convertInvoke(mth, (InvokeNode) insn);
 
 			case IPUT:
 			case SPUT:
@@ -151,8 +159,8 @@ public class SimplifyVisitor extends AbstractVisitor {
 	 * @param insn
 	 * @return
 	 */
-	private static InsnNode convertInvoke(MethodNode mth, InsnNode insn) {
-		MethodInfo callMth = ((InvokeNode) insn).getCallMth();
+	private static InsnNode convertInvoke(MethodNode mth, InvokeNode insn) {
+		MethodInfo callMth = insn.getCallMth();
 
 		// If this is a 'new StringBuilder(xxx).append(yyy).append(zzz).toString(),
 		// convert it to STRING_CONCAT pseudo instruction.
@@ -225,8 +233,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 		return null;
 	}
 
-	private static InsnNode simplifyArith(InsnNode insn) {
-		ArithNode arith = (ArithNode) insn;
+	private static InsnNode simplifyArith(ArithNode arith) {
 		if (arith.getArgsCount() != 2) {
 			return null;
 		}
@@ -245,8 +252,16 @@ public class SimplifyVisitor extends AbstractVisitor {
 			// fix 'c + (-1)' => 'c - (1)'
 			if (arith.getOp() == ArithOp.ADD && lit < 0) {
 				return new ArithNode(ArithOp.SUB,
-						arith.getResult(), insn.getArg(0),
+						arith.getResult(), arith.getArg(0),
 						InsnArg.lit(-lit, litArg.getType()));
+			}
+			InsnArg firstArg = arith.getArg(0);
+			if (arith.getOp() == ArithOp.XOR && firstArg.getType() == ArgType.BOOLEAN
+					&& (lit == 0 || lit == 1)) {
+				InsnNode node = new InsnNode(lit == 0 ? InsnType.MOVE : InsnType.NOT, 1);
+				node.setResult(arith.getResult());
+				node.addArg(firstArg);
+				return node;
 			}
 		}
 		return null;
