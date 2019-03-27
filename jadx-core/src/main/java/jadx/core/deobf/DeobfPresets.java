@@ -1,14 +1,17 @@
 package jadx.core.deobf;
 
-import java.io.File;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,16 +22,16 @@ import jadx.core.dex.info.MethodInfo;
 class DeobfPresets {
 	private static final Logger LOG = LoggerFactory.getLogger(DeobfPresets.class);
 
-	private static final String MAP_FILE_CHARSET = "UTF-8";
+	private static final Charset MAP_FILE_CHARSET = UTF_8;
 
 	private final Deobfuscator deobfuscator;
-	private final File deobfMapFile;
+	private final Path deobfMapFile;
 
 	private final Map<String, String> clsPresetMap = new HashMap<>();
 	private final Map<String, String> fldPresetMap = new HashMap<>();
 	private final Map<String, String> mthPresetMap = new HashMap<>();
 
-	public DeobfPresets(Deobfuscator deobfuscator, File deobfMapFile) {
+	public DeobfPresets(Deobfuscator deobfuscator, Path deobfMapFile) {
 		this.deobfuscator = deobfuscator;
 		this.deobfMapFile = deobfMapFile;
 	}
@@ -37,12 +40,12 @@ class DeobfPresets {
 	 * Loads deobfuscator presets
 	 */
 	public void load() {
-		if (!deobfMapFile.exists()) {
+		if (!Files.exists(deobfMapFile)) {
 			return;
 		}
-		LOG.info("Loading obfuscation map from: {}", deobfMapFile.getAbsoluteFile());
+		LOG.info("Loading obfuscation map from: {}", deobfMapFile.toAbsolutePath());
 		try {
-			List<String> lines = FileUtils.readLines(deobfMapFile, MAP_FILE_CHARSET);
+			List<String> lines = Files.readAllLines(deobfMapFile, MAP_FILE_CHARSET);
 			for (String l : lines) {
 				l = l.trim();
 				if (l.isEmpty() || l.startsWith("#")) {
@@ -65,7 +68,7 @@ class DeobfPresets {
 				}
 			}
 		} catch (IOException e) {
-			LOG.error("Failed to load deobfuscation map file '{}'", deobfMapFile.getAbsolutePath(), e);
+			LOG.error("Failed to load deobfuscation map file '{}'", deobfMapFile.toAbsolutePath(), e);
 		}
 	}
 
@@ -79,18 +82,18 @@ class DeobfPresets {
 
 	public void save(boolean forceSave) {
 		try {
-			if (deobfMapFile.exists()) {
+			if (Files.exists(deobfMapFile)) {
 				if (forceSave) {
 					dumpMapping();
 				} else {
 					LOG.warn("Deobfuscation map file '{}' exists. Use command line option '--deobf-rewrite-cfg' to rewrite it",
-							deobfMapFile.getAbsolutePath());
+							deobfMapFile.toAbsolutePath());
 				}
 			} else {
 				dumpMapping();
 			}
 		} catch (IOException e) {
-			LOG.error("Failed to load deobfuscation map file '{}'", deobfMapFile.getAbsolutePath(), e);
+			LOG.error("Failed to load deobfuscation map file '{}'", deobfMapFile.toAbsolutePath(), e);
 		}
 	}
 
@@ -122,7 +125,7 @@ class DeobfPresets {
 			list.add(String.format("m %s = %s", mth.getRawFullId(), mth.getAlias()));
 		}
 		Collections.sort(list);
-		FileUtils.writeLines(deobfMapFile, MAP_FILE_CHARSET, list);
+		Files.write(deobfMapFile, list, MAP_FILE_CHARSET);
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Deobfuscation map file saved as: {}", deobfMapFile);
 		}
