@@ -756,7 +756,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private class JPackagePopUp extends JPopupMenu {
-		JMenuItem excludeItem = new JCheckBoxMenuItem("Exclude");
+		JMenuItem excludeItem = new JCheckBoxMenuItem(NLS.str("popup.exclude"));
 
 		public JPackagePopUp(JPackage pkg) {
 			excludeItem.setSelected(!pkg.isEnabled());
