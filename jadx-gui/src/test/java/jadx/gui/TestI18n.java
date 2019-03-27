@@ -40,11 +40,11 @@ public class TestI18n {
 	private void compareToReference(Path path) throws IOException {
 		List<String> lines = Files.readAllLines(path);
 		for (int i = 0; i < reference.size(); i++) {
-			String line = reference.get(i);
+			String line = trimComment(reference.get(i));
 			int p0 = line.indexOf('=');
 			if (p0 != -1) {
 				String prefix = line.substring(0, p0 + 1);
-				if (i >= lines.size() || !lines.get(i).startsWith(prefix)) {
+				if (i >= lines.size() || !trimComment(lines.get(i)).startsWith(prefix)) {
 					fail(path, i + 1);
 				}
 			}
@@ -52,6 +52,10 @@ public class TestI18n {
 		if (lines.size() != reference.size()) {
 			fail(path, reference.size());
 		}
+	}
+
+	private static String trimComment(String string) {
+		return string.startsWith("#") ? string.substring(1) : string;
 	}
 
 	private void fail(Path path, int line) {
