@@ -154,7 +154,6 @@ public class Utils {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public static <T> List<T> lockList(List<T> list) {
 		if (list.isEmpty()) {
 			return Collections.emptyList();

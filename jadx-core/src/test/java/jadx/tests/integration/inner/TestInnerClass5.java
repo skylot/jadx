@@ -7,7 +7,7 @@ import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestInnerClass5 extends IntegrationTest {
 
@@ -83,8 +83,8 @@ public class TestInnerClass5 extends IntegrationTest {
 		}
 
 		public void check() throws Exception {
-			assertTrue(new I0().i().equals("i-i0i1i0i1i2i0i1i2i1i2i3i1i2i3a"));
-			assertTrue(i0.equals("i1"));
+			assertEquals("i-i0i1i0i1i2i0i1i2i1i2i3i1i2i3a", new I0().i());
+			assertEquals("i1", i0);
 		}
 	}
 

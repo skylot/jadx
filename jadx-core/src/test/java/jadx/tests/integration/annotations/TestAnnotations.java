@@ -13,7 +13,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestAnnotations extends IntegrationTest {
 
 	public static class TestCls {
-		private static @interface A {
+		private @interface A {
 			int a();
 		}
 
@@ -29,7 +29,7 @@ public class TestAnnotations extends IntegrationTest {
 		public void methodA3() {
 		}
 
-		private static @interface V {
+		private @interface V {
 			boolean value();
 		}
 
@@ -37,7 +37,7 @@ public class TestAnnotations extends IntegrationTest {
 		public void methodV() {
 		}
 
-		private static @interface D {
+		private @interface D {
 			float value() default 1.1f;
 		}
 

@@ -20,7 +20,7 @@ public class TestEnums3 extends IntegrationTest {
 
 			private final int num;
 
-			private Numbers(int n) {
+			Numbers(int n) {
 				this.num = n;
 			}
 

@@ -39,7 +39,7 @@ public class TestRedundantBrackets extends IntegrationTest {
 			}
 		}
 
-		public void method5(int a[], int n) {
+		public void method5(int[] a, int n) {
 			a[1] = n * 2;
 			a[n - 1] = 1;
 		}

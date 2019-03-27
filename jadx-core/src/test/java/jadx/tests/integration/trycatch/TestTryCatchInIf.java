@@ -8,6 +8,7 @@ import jadx.tests.api.IntegrationTest;
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class TestTryCatchInIf extends IntegrationTest {
 
@@ -33,7 +34,7 @@ public class TestTryCatchInIf extends IntegrationTest {
 		}
 
 		public void check() {
-			assertEquals(null, test("n", null));
+			assertNull(test("n", null));
 			assertEquals("n=7", test("n", "7"));
 			assertEquals("n=77", test("n", "0x" + Integer.toHexString(77)));
 			assertEquals("Failed to parse number", test("n", "abc"));

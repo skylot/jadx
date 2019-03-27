@@ -24,7 +24,7 @@ public class TestEnums4 extends IntegrationTest {
 
 			private final String[] exts;
 
-			private ResType(String... extensions) {
+			ResType(String... extensions) {
 				this.exts = extensions;
 			}
 

@@ -167,7 +167,7 @@ public class TernaryMod {
 		}
 		PhiInsn tPhi = t.getResult().getSVar().getUsedInPhi();
 		PhiInsn ePhi = e.getResult().getSVar().getUsedInPhi();
-		if (tPhi == null || ePhi == null || tPhi != ePhi) {
+		if (ePhi == null || tPhi != ePhi) {
 			return false;
 		}
 		Map<Integer, Integer> map = new HashMap<>(tPhi.getArgsCount());

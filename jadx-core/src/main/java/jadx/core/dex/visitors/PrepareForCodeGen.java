@@ -150,7 +150,6 @@ public class PrepareForCodeGen extends AbstractVisitor {
 				}
 				if (replace) {
 					insn.add(AFlag.ARITH_ONEARG);
-//					insn.getResult().mergeName(arg);
 				}
 			}
 		}

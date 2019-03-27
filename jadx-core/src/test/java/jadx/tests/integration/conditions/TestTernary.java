@@ -8,7 +8,6 @@ import jadx.tests.api.IntegrationTest;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestTernary extends IntegrationTest {
 
@@ -18,12 +17,14 @@ public class TestTernary extends IntegrationTest {
 		}
 
 		public void test2(int a) {
-			assertTrue(a == 3);
+			checkTrue(a == 3);
 		}
 
 		public int test3(int a) {
 			return a > 0 ? a : (a + 2) * 3;
 		}
+
+		private static void checkTrue(boolean v) {}
 	}
 
 	@Test
@@ -33,7 +34,7 @@ public class TestTernary extends IntegrationTest {
 
 		assertThat(code, not(containsString("else")));
 		assertThat(code, containsString("return a != 2;"));
-		assertThat(code, containsString("assertTrue(a == 3)"));
+		assertThat(code, containsString("checkTrue(a == 3)"));
 		assertThat(code, containsString("return a > 0 ? a : (a + 2) * 3;"));
 	}
 }

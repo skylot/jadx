@@ -41,7 +41,7 @@ public class TestAnnotationsMix extends IntegrationTest {
 			assertTrue(ma.getAnnotations().length > 0);
 			MyAnnotation a = (MyAnnotation) ma.getAnnotations()[0];
 			assertEquals(7, a.num());
-			assertSame(a.state(), Thread.State.TERMINATED);
+			assertSame(Thread.State.TERMINATED, a.state());
 			return true;
 		}
 

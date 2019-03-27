@@ -247,29 +247,27 @@ public class JadxArgs {
 
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder("JadxArgs{");
-		sb.append("inputFiles=").append(inputFiles);
-		sb.append(", outDir=").append(outDir);
-		sb.append(", outDirSrc=").append(outDirSrc);
-		sb.append(", outDirRes=").append(outDirRes);
-		sb.append(", threadsCount=").append(threadsCount);
-		sb.append(", cfgOutput=").append(cfgOutput);
-		sb.append(", rawCFGOutput=").append(rawCFGOutput);
-		sb.append(", fallbackMode=").append(fallbackMode);
-		sb.append(", showInconsistentCode=").append(showInconsistentCode);
-		sb.append(", useImports=").append(useImports);
-		sb.append(", isSkipResources=").append(isSkipResources);
-		sb.append(", isSkipSources=").append(isSkipSources);
-		sb.append(", isDeobfuscationOn=").append(isDeobfuscationOn);
-		sb.append(", isDeobfuscationForceSave=").append(isDeobfuscationForceSave);
-		sb.append(", useSourceNameAsClassAlias=").append(useSourceNameAsClassAlias);
-		sb.append(", deobfuscationMinLength=").append(deobfuscationMinLength);
-		sb.append(", deobfuscationMaxLength=").append(deobfuscationMaxLength);
-		sb.append(", escapeUnicode=").append(escapeUnicode);
-		sb.append(", replaceConsts=").append(replaceConsts);
-		sb.append(", respectBytecodeAccModifiers=").append(respectBytecodeAccModifiers);
-		sb.append(", exportAsGradleProject=").append(exportAsGradleProject);
-		sb.append('}');
-		return sb.toString();
+		return "JadxArgs{" + "inputFiles=" + inputFiles +
+			       ", outDir=" + outDir +
+			       ", outDirSrc=" + outDirSrc +
+			       ", outDirRes=" + outDirRes +
+			       ", threadsCount=" + threadsCount +
+			       ", cfgOutput=" + cfgOutput +
+			       ", rawCFGOutput=" + rawCFGOutput +
+			       ", fallbackMode=" + fallbackMode +
+			       ", showInconsistentCode=" + showInconsistentCode +
+			       ", useImports=" + useImports +
+			       ", isSkipResources=" + isSkipResources +
+			       ", isSkipSources=" + isSkipSources +
+			       ", isDeobfuscationOn=" + isDeobfuscationOn +
+			       ", isDeobfuscationForceSave=" + isDeobfuscationForceSave +
+			       ", useSourceNameAsClassAlias=" + useSourceNameAsClassAlias +
+			       ", deobfuscationMinLength=" + deobfuscationMinLength +
+			       ", deobfuscationMaxLength=" + deobfuscationMaxLength +
+			       ", escapeUnicode=" + escapeUnicode +
+			       ", replaceConsts=" + replaceConsts +
+			       ", respectBytecodeAccModifiers=" + respectBytecodeAccModifiers +
+			       ", exportAsGradleProject=" + exportAsGradleProject +
+			       '}';
 	}
 }

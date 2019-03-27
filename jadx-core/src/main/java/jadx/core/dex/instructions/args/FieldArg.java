@@ -1,5 +1,7 @@
 package jadx.core.dex.instructions.args;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.Nullable;
 
 import jadx.core.dex.info.FieldInfo;
@@ -68,7 +70,7 @@ public final class FieldArg extends RegisterArg {
 		if (!field.equals(fieldArg.field)) {
 			return false;
 		}
-		return instArg != null ? instArg.equals(fieldArg.instArg) : fieldArg.instArg == null;
+		return Objects.equals(instArg, fieldArg.instArg);
 	}
 
 	@Override

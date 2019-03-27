@@ -18,10 +18,7 @@ import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.core.xmlgen.entry.ValuesParser;
 
 public class ResTableParser extends CommonBinaryParser {
-
 	private static final Logger LOG = LoggerFactory.getLogger(ResTableParser.class);
-
-	private static final int KNOWN_CONFIG_BYTES = 56;
 
 	private static final class PackageChunk {
 		private final int id;
@@ -83,7 +80,7 @@ public class ResTableParser extends CommonBinaryParser {
 		for (ResourceEntry ri : resStorage.getResources()) {
 			if (addedValues.add(ri.getTypeName() + '.' + ri.getKeyName())) {
 				String format = String.format("<public type=\"%s\" name=\"%s\" id=\"%s\" />",
-						ri.getTypeName(), ri.getKeyName(), ri.getId());
+					ri.getTypeName(), ri.getKeyName(), ri.getId());
 				writer.startLine(format);
 			}
 		}
@@ -150,9 +147,7 @@ public class ResTableParser extends CommonBinaryParser {
 		}
 
 		PackageChunk pkg = new PackageChunk(id, name, typeStrings, keyStrings);
-		//if (id == 0x7F) {
 		resStorage.setAppPackage(name);
-		//}
 
 		while (is.getPos() < endPos) {
 			long chunkStart = is.getPos();
@@ -198,7 +193,7 @@ public class ResTableParser extends CommonBinaryParser {
 
 		if (config.isInvalid) {
 			String typeName = pkg.getTypeStrings()[id - 1];
-			LOG.warn("Invalid config flags detected: " + typeName + config.getQualifiers());
+			LOG.warn("Invalid config flags detected: {}{}", typeName, config.getQualifiers());
 		}
 
 		int[] entryIndexes = new int[entryCount];
@@ -260,8 +255,6 @@ public class ResTableParser extends CommonBinaryParser {
 			throw new IOException("Config size < 28");
 		}
 
-		boolean isInvalid = false;
-
 		short mcc = (short) is.readInt16();
 		short mnc = (short) is.readInt16();
 
@@ -317,11 +310,11 @@ public class ResTableParser extends CommonBinaryParser {
 		is.skipToPos(start + size, "Config skip trailing bytes");
 
 		return new EntryConfig(mcc, mnc, language, country,
-				orientation, touchscreen, density, keyboard, navigation,
-				inputFlags, screenWidth, screenHeight, sdkVersion,
-				screenLayout, uiMode, smallestScreenWidthDp, screenWidthDp,
-				screenHeightDp, localeScript, localeVariant, screenLayout2,
-				colorMode, isInvalid, size);
+			orientation, touchscreen, density, keyboard, navigation,
+			inputFlags, screenWidth, screenHeight, sdkVersion,
+			screenLayout, uiMode, smallestScreenWidthDp, screenWidthDp,
+			screenHeightDp, localeScript, localeVariant, screenLayout2,
+			colorMode, false, size);
 	}
 
 	private char[] unpackLocaleOrRegion(byte in0, byte in1, char base) {

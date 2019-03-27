@@ -63,34 +63,6 @@ public class EntryConfig {
 
 	private final int size;
 
-	public EntryConfig() {
-		mcc = 0;
-		mnc = 0;
-		language = new char[]{'\00', '\00'};
-		region = new char[]{'\00', '\00'};
-		orientation = ORIENTATION_ANY;
-		touchscreen = TOUCHSCREEN_ANY;
-		density = DENSITY_DEFAULT;
-		keyboard = KEYBOARD_ANY;
-		navigation = NAVIGATION_ANY;
-		inputFlags = KEYSHIDDEN_ANY | NAVHIDDEN_ANY;
-		screenWidth = 0;
-		screenHeight = 0;
-		sdkVersion = 0;
-		screenLayout = SCREENLONG_ANY | SCREENSIZE_ANY;
-		uiMode = UI_MODE_TYPE_ANY | UI_MODE_NIGHT_ANY;
-		smallestScreenWidthDp = 0;
-		screenWidthDp = 0;
-		screenHeightDp = 0;
-		localeScript = null;
-		localeVariant = null;
-		screenLayout2 = 0;
-		colorMode = COLOR_WIDE_UNDEFINED;
-		isInvalid = false;
-		mQualifiers = "";
-		size = 0;
-	}
-
 	public EntryConfig(short mcc, short mnc, char[] language,
 	                   char[] region, byte orientation,
 	                   byte touchscreen, int density, byte keyboard, byte navigation,
@@ -450,7 +422,7 @@ public class EntryConfig {
 		// allows values-xx-rXX, values-xx, values-xxx-rXX
 		// denies values-xxx, anything else
 		if (localeVariant == null && localeScript == null && (region[0] != '\00' || language[0] != '\00') &&
-				region.length != 3) {
+			    region.length != 3) {
 			sb.append('-').append(language);
 			if (region[0] != '\00') {
 				sb.append("-r").append(region);
@@ -512,138 +484,138 @@ public class EntryConfig {
 	// but it would be hard right now and this feature is very rarely used.
 	private static int sErrCounter = 0;
 
-	public final static byte SDK_BASE = 1;
-	public final static byte SDK_BASE_1_1 = 2;
-	public final static byte SDK_CUPCAKE = 3;
-	public final static byte SDK_DONUT = 4;
-	public final static byte SDK_ECLAIR = 5;
-	public final static byte SDK_ECLAIR_0_1 = 6;
-	public final static byte SDK_ECLAIR_MR1 = 7;
-	public final static byte SDK_FROYO = 8;
-	public final static byte SDK_GINGERBREAD = 9;
-	public final static byte SDK_GINGERBREAD_MR1 = 10;
-	public final static byte SDK_HONEYCOMB = 11;
-	public final static byte SDK_HONEYCOMB_MR1 = 12;
-	public final static byte SDK_HONEYCOMB_MR2 = 13;
-	public final static byte SDK_ICE_CREAM_SANDWICH = 14;
-	public final static byte SDK_ICE_CREAM_SANDWICH_MR1 = 15;
-	public final static byte SDK_JELLY_BEAN = 16;
-	public final static byte SDK_JELLY_BEAN_MR1 = 17;
-	public final static byte SDK_JELLY_BEAN_MR2 = 18;
-	public final static byte SDK_KITKAT = 19;
-	public final static byte SDK_LOLLIPOP = 21;
-	public final static byte SDK_LOLLIPOP_MR1 = 22;
-	public final static byte SDK_MNC = 23;
-	public final static byte SDK_NOUGAT = 24;
-	public final static byte SDK_NOUGAT_MR1 = 25;
-	public final static byte SDK_OREO = 26;
-	public final static byte SDK_OREO_MR1 = 27;
-	public final static byte SDK_P = 28;
+	public static final byte SDK_BASE = 1;
+	public static final byte SDK_BASE_1_1 = 2;
+	public static final byte SDK_CUPCAKE = 3;
+	public static final byte SDK_DONUT = 4;
+	public static final byte SDK_ECLAIR = 5;
+	public static final byte SDK_ECLAIR_0_1 = 6;
+	public static final byte SDK_ECLAIR_MR1 = 7;
+	public static final byte SDK_FROYO = 8;
+	public static final byte SDK_GINGERBREAD = 9;
+	public static final byte SDK_GINGERBREAD_MR1 = 10;
+	public static final byte SDK_HONEYCOMB = 11;
+	public static final byte SDK_HONEYCOMB_MR1 = 12;
+	public static final byte SDK_HONEYCOMB_MR2 = 13;
+	public static final byte SDK_ICE_CREAM_SANDWICH = 14;
+	public static final byte SDK_ICE_CREAM_SANDWICH_MR1 = 15;
+	public static final byte SDK_JELLY_BEAN = 16;
+	public static final byte SDK_JELLY_BEAN_MR1 = 17;
+	public static final byte SDK_JELLY_BEAN_MR2 = 18;
+	public static final byte SDK_KITKAT = 19;
+	public static final byte SDK_LOLLIPOP = 21;
+	public static final byte SDK_LOLLIPOP_MR1 = 22;
+	public static final byte SDK_MNC = 23;
+	public static final byte SDK_NOUGAT = 24;
+	public static final byte SDK_NOUGAT_MR1 = 25;
+	public static final byte SDK_OREO = 26;
+	public static final byte SDK_OREO_MR1 = 27;
+	public static final byte SDK_P = 28;
 
-	public final static byte ORIENTATION_ANY = 0;
-	public final static byte ORIENTATION_PORT = 1;
-	public final static byte ORIENTATION_LAND = 2;
-	public final static byte ORIENTATION_SQUARE = 3;
+	public static final byte ORIENTATION_ANY = 0;
+	public static final byte ORIENTATION_PORT = 1;
+	public static final byte ORIENTATION_LAND = 2;
+	public static final byte ORIENTATION_SQUARE = 3;
 
-	public final static byte TOUCHSCREEN_ANY = 0;
-	public final static byte TOUCHSCREEN_NOTOUCH = 1;
-	public final static byte TOUCHSCREEN_STYLUS = 2;
-	public final static byte TOUCHSCREEN_FINGER = 3;
+	public static final byte TOUCHSCREEN_ANY = 0;
+	public static final byte TOUCHSCREEN_NOTOUCH = 1;
+	public static final byte TOUCHSCREEN_STYLUS = 2;
+	public static final byte TOUCHSCREEN_FINGER = 3;
 
-	public final static int DENSITY_DEFAULT = 0;
-	public final static int DENSITY_LOW = 120;
-	public final static int DENSITY_MEDIUM = 160;
-	public final static int DENSITY_400 = 190;
-	public final static int DENSITY_TV = 213;
-	public final static int DENSITY_HIGH = 240;
-	public final static int DENSITY_XHIGH = 320;
-	public final static int DENSITY_XXHIGH = 480;
-	public final static int DENSITY_XXXHIGH = 640;
-	public final static int DENSITY_ANY = 0xFFFE;
-	public final static int DENSITY_NONE = 0xFFFF;
+	public static final int DENSITY_DEFAULT = 0;
+	public static final int DENSITY_LOW = 120;
+	public static final int DENSITY_MEDIUM = 160;
+	public static final int DENSITY_400 = 190;
+	public static final int DENSITY_TV = 213;
+	public static final int DENSITY_HIGH = 240;
+	public static final int DENSITY_XHIGH = 320;
+	public static final int DENSITY_XXHIGH = 480;
+	public static final int DENSITY_XXXHIGH = 640;
+	public static final int DENSITY_ANY = 0xFFFE;
+	public static final int DENSITY_NONE = 0xFFFF;
 
-	public final static int MNC_ZERO = -1;
+	public static final int MNC_ZERO = -1;
 
-	public final static short MASK_LAYOUTDIR = 0xc0;
-	public final static short SCREENLAYOUT_LAYOUTDIR_ANY = 0x00;
-	public final static short SCREENLAYOUT_LAYOUTDIR_LTR = 0x40;
-	public final static short SCREENLAYOUT_LAYOUTDIR_RTL = 0x80;
-	public final static short SCREENLAYOUT_LAYOUTDIR_SHIFT = 0x06;
+	public static final short MASK_LAYOUTDIR = 0xc0;
+	public static final short SCREENLAYOUT_LAYOUTDIR_ANY = 0x00;
+	public static final short SCREENLAYOUT_LAYOUTDIR_LTR = 0x40;
+	public static final short SCREENLAYOUT_LAYOUTDIR_RTL = 0x80;
+	public static final short SCREENLAYOUT_LAYOUTDIR_SHIFT = 0x06;
 
-	public final static short MASK_SCREENROUND = 0x03;
-	public final static short SCREENLAYOUT_ROUND_ANY = 0;
-	public final static short SCREENLAYOUT_ROUND_NO = 0x1;
-	public final static short SCREENLAYOUT_ROUND_YES = 0x2;
+	public static final short MASK_SCREENROUND = 0x03;
+	public static final short SCREENLAYOUT_ROUND_ANY = 0;
+	public static final short SCREENLAYOUT_ROUND_NO = 0x1;
+	public static final short SCREENLAYOUT_ROUND_YES = 0x2;
 
-	public final static byte KEYBOARD_ANY = 0;
-	public final static byte KEYBOARD_NOKEYS = 1;
-	public final static byte KEYBOARD_QWERTY = 2;
-	public final static byte KEYBOARD_12KEY = 3;
+	public static final byte KEYBOARD_ANY = 0;
+	public static final byte KEYBOARD_NOKEYS = 1;
+	public static final byte KEYBOARD_QWERTY = 2;
+	public static final byte KEYBOARD_12KEY = 3;
 
-	public final static byte NAVIGATION_ANY = 0;
-	public final static byte NAVIGATION_NONAV = 1;
-	public final static byte NAVIGATION_DPAD = 2;
-	public final static byte NAVIGATION_TRACKBALL = 3;
-	public final static byte NAVIGATION_WHEEL = 4;
+	public static final byte NAVIGATION_ANY = 0;
+	public static final byte NAVIGATION_NONAV = 1;
+	public static final byte NAVIGATION_DPAD = 2;
+	public static final byte NAVIGATION_TRACKBALL = 3;
+	public static final byte NAVIGATION_WHEEL = 4;
 
-	public final static byte MASK_KEYSHIDDEN = 0x3;
-	public final static byte KEYSHIDDEN_ANY = 0x0;
-	public final static byte KEYSHIDDEN_NO = 0x1;
-	public final static byte KEYSHIDDEN_YES = 0x2;
-	public final static byte KEYSHIDDEN_SOFT = 0x3;
+	public static final byte MASK_KEYSHIDDEN = 0x3;
+	public static final byte KEYSHIDDEN_ANY = 0x0;
+	public static final byte KEYSHIDDEN_NO = 0x1;
+	public static final byte KEYSHIDDEN_YES = 0x2;
+	public static final byte KEYSHIDDEN_SOFT = 0x3;
 
-	public final static byte MASK_NAVHIDDEN = 0xc;
-	public final static byte NAVHIDDEN_ANY = 0x0;
-	public final static byte NAVHIDDEN_NO = 0x4;
-	public final static byte NAVHIDDEN_YES = 0x8;
+	public static final byte MASK_NAVHIDDEN = 0xc;
+	public static final byte NAVHIDDEN_ANY = 0x0;
+	public static final byte NAVHIDDEN_NO = 0x4;
+	public static final byte NAVHIDDEN_YES = 0x8;
 
-	public final static byte MASK_SCREENSIZE = 0x0f;
-	public final static byte SCREENSIZE_ANY = 0x00;
-	public final static byte SCREENSIZE_SMALL = 0x01;
-	public final static byte SCREENSIZE_NORMAL = 0x02;
-	public final static byte SCREENSIZE_LARGE = 0x03;
-	public final static byte SCREENSIZE_XLARGE = 0x04;
+	public static final byte MASK_SCREENSIZE = 0x0f;
+	public static final byte SCREENSIZE_ANY = 0x00;
+	public static final byte SCREENSIZE_SMALL = 0x01;
+	public static final byte SCREENSIZE_NORMAL = 0x02;
+	public static final byte SCREENSIZE_LARGE = 0x03;
+	public static final byte SCREENSIZE_XLARGE = 0x04;
 
-	public final static byte MASK_SCREENLONG = 0x30;
-	public final static byte SCREENLONG_ANY = 0x00;
-	public final static byte SCREENLONG_NO = 0x10;
-	public final static byte SCREENLONG_YES = 0x20;
+	public static final byte MASK_SCREENLONG = 0x30;
+	public static final byte SCREENLONG_ANY = 0x00;
+	public static final byte SCREENLONG_NO = 0x10;
+	public static final byte SCREENLONG_YES = 0x20;
 
-	public final static byte MASK_UI_MODE_TYPE = 0x0f;
-	public final static byte UI_MODE_TYPE_ANY = 0x00;
-	public final static byte UI_MODE_TYPE_NORMAL = 0x01;
-	public final static byte UI_MODE_TYPE_DESK = 0x02;
-	public final static byte UI_MODE_TYPE_CAR = 0x03;
-	public final static byte UI_MODE_TYPE_TELEVISION = 0x04;
-	public final static byte UI_MODE_TYPE_APPLIANCE = 0x05;
-	public final static byte UI_MODE_TYPE_WATCH = 0x06;
-	public final static byte UI_MODE_TYPE_VR_HEADSET = 0x07;
+	public static final byte MASK_UI_MODE_TYPE = 0x0f;
+	public static final byte UI_MODE_TYPE_ANY = 0x00;
+	public static final byte UI_MODE_TYPE_NORMAL = 0x01;
+	public static final byte UI_MODE_TYPE_DESK = 0x02;
+	public static final byte UI_MODE_TYPE_CAR = 0x03;
+	public static final byte UI_MODE_TYPE_TELEVISION = 0x04;
+	public static final byte UI_MODE_TYPE_APPLIANCE = 0x05;
+	public static final byte UI_MODE_TYPE_WATCH = 0x06;
+	public static final byte UI_MODE_TYPE_VR_HEADSET = 0x07;
 
 	// start - miui
-	public final static byte UI_MODE_TYPE_GODZILLAUI = 0x0b;
-	public final static byte UI_MODE_TYPE_SMALLUI = 0x0c;
-	public final static byte UI_MODE_TYPE_MEDIUMUI = 0x0d;
-	public final static byte UI_MODE_TYPE_LARGEUI = 0x0e;
-	public final static byte UI_MODE_TYPE_HUGEUI = 0x0f;
+	public static final byte UI_MODE_TYPE_GODZILLAUI = 0x0b;
+	public static final byte UI_MODE_TYPE_SMALLUI = 0x0c;
+	public static final byte UI_MODE_TYPE_MEDIUMUI = 0x0d;
+	public static final byte UI_MODE_TYPE_LARGEUI = 0x0e;
+	public static final byte UI_MODE_TYPE_HUGEUI = 0x0f;
 	// end - miui
 
-	public final static byte MASK_UI_MODE_NIGHT = 0x30;
-	public final static byte UI_MODE_NIGHT_ANY = 0x00;
-	public final static byte UI_MODE_NIGHT_NO = 0x10;
-	public final static byte UI_MODE_NIGHT_YES = 0x20;
+	public static final byte MASK_UI_MODE_NIGHT = 0x30;
+	public static final byte UI_MODE_NIGHT_ANY = 0x00;
+	public static final byte UI_MODE_NIGHT_NO = 0x10;
+	public static final byte UI_MODE_NIGHT_YES = 0x20;
 
-	public final static byte COLOR_HDR_MASK = 0xC;
-	public final static byte COLOR_HDR_NO = 0x4;
-	public final static byte COLOR_HDR_SHIFT = 0x2;
-	public final static byte COLOR_HDR_UNDEFINED = 0x0;
-	public final static byte COLOR_HDR_YES = 0x8;
+	public static final byte COLOR_HDR_MASK = 0xC;
+	public static final byte COLOR_HDR_NO = 0x4;
+	public static final byte COLOR_HDR_SHIFT = 0x2;
+	public static final byte COLOR_HDR_UNDEFINED = 0x0;
+	public static final byte COLOR_HDR_YES = 0x8;
 
-	public final static byte COLOR_UNDEFINED = 0x0;
+	public static final byte COLOR_UNDEFINED = 0x0;
 
-	public final static byte COLOR_WIDE_UNDEFINED = 0x0;
-	public final static byte COLOR_WIDE_NO = 0x1;
-	public final static byte COLOR_WIDE_YES = 0x2;
-	public final static byte COLOR_WIDE_MASK = 0x3;
+	public static final byte COLOR_WIDE_UNDEFINED = 0x0;
+	public static final byte COLOR_WIDE_NO = 0x1;
+	public static final byte COLOR_WIDE_YES = 0x2;
+	public static final byte COLOR_WIDE_MASK = 0x3;
 
 	private static final Logger LOG = LoggerFactory.getLogger(EntryConfig.class);
 }
