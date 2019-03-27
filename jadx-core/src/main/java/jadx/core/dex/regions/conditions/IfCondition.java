@@ -217,13 +217,15 @@ public final class IfCondition {
 				break;
 
 			case ARITH:
-				if (((ArithNode) wrapInsn).getOp() == ArithOp.OR) {
+				ArithOp arithOp = ((ArithNode) wrapInsn).getOp();
+				if (arithOp == ArithOp.OR || arithOp == ArithOp.AND) {
 					IfOp ifOp = c.getInsn().getOp();
 					boolean isTrue = ifOp == IfOp.NE && lit == 0
 							|| ifOp == IfOp.EQ && lit == 1;
 
 					IfOp op = isTrue ? IfOp.NE : IfOp.EQ;
-					Mode mode = isTrue ? Mode.OR : Mode.AND;
+					Mode mode = isTrue && arithOp == ArithOp.OR ||
+							!isTrue && arithOp == ArithOp.AND ? Mode.OR : Mode.AND;
 
 					IfNode if1 = new IfNode(op, -1, wrapInsn.getArg(0), LiteralArg.FALSE);
 					IfNode if2 = new IfNode(op, -1, wrapInsn.getArg(1), LiteralArg.FALSE);
