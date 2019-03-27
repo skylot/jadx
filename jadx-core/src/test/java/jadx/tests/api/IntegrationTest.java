@@ -12,6 +12,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.jar.JarOutputStream;
 
 import jadx.api.JadxArgs;
@@ -229,16 +236,16 @@ public abstract class IntegrationTest extends TestUtils {
 				return;
 			}
 			try {
-				checkMth.invoke(origCls.getConstructor().newInstance());
-			} catch (InvocationTargetException ie) {
-				rethrow("Original check failed", ie);
+				limitExecTime(() -> checkMth.invoke(origCls.getConstructor().newInstance()));
+			} catch (Exception e) {
+				rethrow("Original check failed", e);
 			}
 			// run 'check' method from decompiled class
 			if (compile) {
 				try {
-					invoke("check");
-				} catch (InvocationTargetException ie) {
-					rethrow("Decompiled check failed", ie);
+					limitExecTime(() -> invoke("check"));
+				} catch (Exception e) {
+					rethrow("Decompiled check failed", e);
 				}
 				System.out.println("Auto check: PASSED");
 			}
@@ -248,14 +255,34 @@ public abstract class IntegrationTest extends TestUtils {
 		}
 	}
 
-	private void rethrow(String msg, InvocationTargetException ie) {
-		Throwable cause = ie.getCause();
-		if (cause instanceof AssertionError) {
-			System.err.println(msg);
-			throw (AssertionError) cause;
+	private <T> T limitExecTime(Callable<T> call) {
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<T> future = executor.submit(call);
+		try {
+			return future.get(5, TimeUnit.SECONDS);
+		} catch (TimeoutException ex) {
+			future.cancel(true);
+			rethrow("Execution timeout", ex);
+		} catch (Exception ex) {
+			rethrow(ex.getMessage(), ex);
+		} finally {
+			executor.shutdownNow();
+		}
+		return null;
+	}
+
+	private void rethrow(String msg, Throwable e) {
+		if (e instanceof InvocationTargetException) {
+			Throwable cause = e.getCause();
+			if (cause instanceof AssertionError) {
+				throw (AssertionError) cause;
+			} else {
+				fail(cause);
+			}
+		} else if (e instanceof ExecutionException) {
+			rethrow(e.getMessage(), e.getCause());
 		} else {
-			cause.printStackTrace();
-			fail(msg + cause.getMessage());
+			fail(msg, e);
 		}
 	}
 
@@ -279,8 +306,7 @@ public abstract class IntegrationTest extends TestUtils {
 			assertTrue(result, "Compilation failed");
 			System.out.println("Compilation: PASSED");
 		} catch (Exception e) {
-			e.printStackTrace();
-			fail(e.getMessage());
+			fail(e);
 		}
 	}
 
@@ -437,13 +463,14 @@ public abstract class IntegrationTest extends TestUtils {
 
 	// Use only for debug purpose
 	@Deprecated
-	protected void setOutputCFG() {
+	protected void outputCFG() {
 		this.args.setCfgOutput(true);
 		this.args.setRawCFGOutput(true);
-	}    // Use only for debug purpose
+	}
 
+	// Use only for debug purpose
 	@Deprecated
-	protected void setOutputRawCFG() {
+	protected void outputRawCFG() {
 		this.args.setRawCFGOutput(true);
 	}
 
