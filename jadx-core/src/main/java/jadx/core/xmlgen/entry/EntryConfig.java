@@ -72,27 +72,27 @@ public class EntryConfig {
 	                   short screenHeightDp, char[] localeScript, char[] localeVariant,
 	                   byte screenLayout2, byte colorMode, boolean isInvalid, int size) {
 		if (orientation < 0 || orientation > 3) {
-			LOG.warn("Invalid orientation value: " + orientation);
+			LOG.warn("Invalid orientation value: {}", orientation);
 			orientation = 0;
 			isInvalid = true;
 		}
 		if (touchscreen < 0 || touchscreen > 3) {
-			LOG.warn("Invalid touchscreen value: " + touchscreen);
+			LOG.warn("Invalid touchscreen value: {}", touchscreen);
 			touchscreen = 0;
 			isInvalid = true;
 		}
 		if (density < -1) {
-			LOG.warn("Invalid density value: " + density);
+			LOG.warn("Invalid density value: {}", density);
 			density = 0;
 			isInvalid = true;
 		}
 		if (keyboard < 0 || keyboard > 3) {
-			LOG.warn("Invalid keyboard value: " + keyboard);
+			LOG.warn("Invalid keyboard value: {}", keyboard);
 			keyboard = 0;
 			isInvalid = true;
 		}
 		if (navigation < 0 || navigation > 4) {
-			LOG.warn("Invalid navigation value: " + navigation);
+			LOG.warn("Invalid navigation value: {}", navigation);
 			navigation = 0;
 			isInvalid = true;
 		}
