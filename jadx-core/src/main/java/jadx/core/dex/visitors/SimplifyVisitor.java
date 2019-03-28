@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.ArithNode;
@@ -19,11 +20,13 @@ import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
+import jadx.core.dex.instructions.InvokeType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.FieldArg;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
+import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
@@ -92,6 +95,44 @@ public class SimplifyVisitor extends AbstractVisitor {
 					constInsn.addArg(firstArg);
 					constInsn.copyAttributesFrom(insn);
 					return constInsn;
+				}
+				break;
+
+			case CONSTRUCTOR:
+				ConstructorInsn constructor = (ConstructorInsn) insn;
+				if (constructor.getCallMth().getDeclClass().getType().equals(ArgType.STRING)) {
+					InsnArg arg = insn.getArg(0);
+					InsnNode node = arg.isInsnWrap()
+							? ((InsnWrapArg) arg).getWrapInsn()
+							: ((RegisterArg) arg).getParentInsn();
+					ArgType argType = node.getArg(0).getType();
+					if (argType == ArgType.BYTE
+							/*|| (argType.isArray() && argType.getArrayElement() == ArgType.BYTE)*/) {
+						int unreadable = 0;
+						byte[] arr = new byte[node.getArgsCount()];
+						for (int i = 0; i < arr.length; i++) {
+							arr[i] = (byte) ((LiteralArg) node.getArg(i)).getLiteral();
+							if (arr[i] < ' ' || arr[i] > '~') {
+								unreadable++;
+							}
+						}
+						if (unreadable <= arr.length - unreadable) {
+							InsnWrapArg wa = new InsnWrapArg(new ConstStringNode(new String(arr)));
+							if (insn.getArgsCount() == 1) {
+								insn.setArg(0, wa);
+							} else {
+								MethodInfo mi = MethodInfo.externalMth(
+										ClassInfo.fromType(mth.root(), ArgType.STRING),
+										"getBytes",
+										Collections.emptyList(),
+										ArgType.array(ArgType.BYTE));
+								InvokeNode in = new InvokeNode(mi,
+										InvokeType.VIRTUAL, 1);
+								in.addArg(wa);
+								insn.setArg(0, new InsnWrapArg(in));
+							}
+						}
+					}
 				}
 				break;
 
