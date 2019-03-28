@@ -95,6 +95,23 @@ public class SimplifyVisitor extends AbstractVisitor {
 				}
 				break;
 
+			case CONSTRUCTOR:
+				ConstructorInsn constructor = (ConstructorInsn) insn;
+				if (constructor.getCallMth().getDeclClass().getType().equals(ArgType.STRING)) {
+					InsnArg arg = insn.getArg(0);
+					if (insn.getArgsCount() == 1 && arg.isInsnWrap()) {
+						InsnNode node = ((InsnWrapArg) arg).getWrapInsn();
+						if (node.getArg(0).getType() == ArgType.BYTE) {
+							byte[] arr = new byte[node.getArgsCount()];
+							for (int i = 0; i < arr.length; i++) {
+								arr[i] = (byte) ((LiteralArg) node.getArg(i)).getLiteral();
+							}
+							insn.setArg(0, new InsnWrapArg(new ConstStringNode(new String(arr))));
+						}
+					}
+				}
+				break;
+
 			default:
 				break;
 		}
