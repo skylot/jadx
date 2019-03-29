@@ -45,11 +45,11 @@ public class TestStringConstructor extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls3.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("\\u0001\\u0002\\u0003"));
+		assertThat(code, containsOne("\\u0001\\u0002\\u0003abc"));
 	}
 
 	public static class TestCls4 {
-		public String tag = new String(new byte[] {0, 1, 2, 'a', 'b', 'c'});
+		public String tag = new String(new char[] {1, 2, 3, 'a', 'b', 'c'});
 	}
 
 	@Test
@@ -57,7 +57,18 @@ public class TestStringConstructor extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls4.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("\\u0000\\u0001\\u0002abc"));
+		assertThat(code, containsOne("\\u0001\\u0002\\u0003abc"));
 	}
 
+	public static class TestCls5 {
+		public String tag = new String(new char[] {1, 2, 3, 'a', 'b'});
+	}
+
+	@Test
+	public void test5() {
+		ClassNode cls = getClassNode(TestCls5.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, containsOne("{1, 2, 3, 'a', 'b'}"));
+	}
 }

@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.Consts;
+import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
@@ -26,12 +27,12 @@ import jadx.core.dex.instructions.args.FieldArg;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
-import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.regions.conditions.IfCondition;
 
 public class SimplifyVisitor extends AbstractVisitor {
@@ -99,47 +100,51 @@ public class SimplifyVisitor extends AbstractVisitor {
 				break;
 
 			case CONSTRUCTOR:
-				ConstructorInsn constructor = (ConstructorInsn) insn;
-				if (constructor.getCallMth().getDeclClass().getType().equals(ArgType.STRING)) {
-					InsnArg arg = insn.getArg(0);
-					InsnNode node = arg.isInsnWrap()
-							? ((InsnWrapArg) arg).getWrapInsn()
-							: ((RegisterArg) arg).getParentInsn();
-					ArgType argType = node.getArg(0).getType();
-					if (argType == ArgType.BYTE
-							/*|| (argType.isArray() && argType.getArrayElement() == ArgType.BYTE)*/) {
-						int unreadable = 0;
-						byte[] arr = new byte[node.getArgsCount()];
-						for (int i = 0; i < arr.length; i++) {
-							arr[i] = (byte) ((LiteralArg) node.getArg(i)).getLiteral();
-							if (arr[i] < ' ' || arr[i] > '~') {
-								unreadable++;
-							}
-						}
-						if (unreadable <= arr.length - unreadable) {
-							InsnWrapArg wa = new InsnWrapArg(new ConstStringNode(new String(arr)));
-							if (insn.getArgsCount() == 1) {
-								insn.setArg(0, wa);
-							} else {
-								MethodInfo mi = MethodInfo.externalMth(
-										ClassInfo.fromType(mth.root(), ArgType.STRING),
-										"getBytes",
-										Collections.emptyList(),
-										ArgType.array(ArgType.BYTE));
-								InvokeNode in = new InvokeNode(mi,
-										InvokeType.VIRTUAL, 1);
-								in.addArg(wa);
-								insn.setArg(0, new InsnWrapArg(in));
-							}
-						}
-					}
-				}
+				simplfyConstructor(mth.root(), (ConstructorInsn) insn);
 				break;
 
 			default:
 				break;
 		}
 		return null;
+	}
+
+	private static void simplfyConstructor(RootNode root, ConstructorInsn insn) {
+		if (insn.getCallMth().getDeclClass().getType().equals(ArgType.STRING)) {
+			InsnArg arg = insn.getArg(0);
+			InsnNode node = arg.isInsnWrap()
+					? ((InsnWrapArg) arg).getWrapInsn()
+					: insn;
+		    if (node.getArgsCount() != 0) {
+		    	ArgType argType = node.getArg(0).getType();
+		    	if (node.getType() == InsnType.FILLED_NEW_ARRAY
+		    			&& (argType == ArgType.BYTE || argType == ArgType.CHAR)) {
+		    		int printable = 0;
+		    		byte[] arr = new byte[node.getArgsCount()];
+		    		for (int i = 0; i < arr.length; i++) {
+		    			arr[i] = (byte) ((LiteralArg) node.getArg(i)).getLiteral();
+		    			if (NameMapper.isPrintableChar(arr[i])) {
+		    				printable++;
+		    			}
+		    		}
+		    		if (printable >= arr.length - printable) {
+		    			InsnWrapArg wa = new InsnWrapArg(new ConstStringNode(new String(arr)));
+		    			if (insn.getArgsCount() == 1) {
+		    				insn.setArg(0, wa);
+		    			} else {
+		    				MethodInfo mi = MethodInfo.externalMth(
+		    						ClassInfo.fromType(root, ArgType.STRING),
+		    						"getBytes",
+		    						Collections.emptyList(),
+		    						ArgType.array(ArgType.BYTE));
+		    				InvokeNode in = new InvokeNode(mi, InvokeType.VIRTUAL, 1);
+		    				in.addArg(wa);
+		    				insn.setArg(0, new InsnWrapArg(in));
+		    			}
+		    		}
+		    	}
+		    }
+		}
 	}
 
 	private static InsnNode processCast(MethodNode mth, InsnNode insn) {
