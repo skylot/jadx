@@ -16,11 +16,13 @@ public class StringUtils {
 			return "\"\"";
 		}
 		StringBuilder res = new StringBuilder();
+		res.append('"');
 		for (int i = 0; i < len; i++) {
 			int c = str.charAt(i) & 0xFFFF;
 			processChar(c, res);
 		}
-		return '"' + res.toString() + '"';
+		res.append('"');
+		return res.toString();
 	}
 
 	public String unescapeChar(char ch) {
@@ -28,8 +30,10 @@ public class StringUtils {
 			return "'\\\''";
 		}
 		StringBuilder res = new StringBuilder();
+		res.append('\'');
 		processChar(ch, res);
-		return '\'' + res.toString() + '\'';
+		res.append('\'');
+		return res.toString();
 	}
 
 	private void processChar(int c, StringBuilder res) {
