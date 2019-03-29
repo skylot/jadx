@@ -43,6 +43,8 @@ allprojects {
 
 		testImplementation 'org.junit.jupiter:junit-jupiter-api:5.4.1'
 		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.4.1'
+
+		testCompile 'org.eclipse.jdt.core.compiler:ecj:4.6.1'
 	}
 
 	test {

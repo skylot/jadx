@@ -1,13 +1,7 @@
 package jadx.tests.api.compiler;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import jadx.core.utils.files.FileUtils;
+import org.eclipse.jdt.internal.compiler.tool.EclipseCompiler;
 
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
@@ -17,18 +11,28 @@ import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
-
-import jadx.core.utils.files.FileUtils;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class StaticCompiler {
 
 	private static final List<String> COMMON_ARGS = Arrays.asList("-source 1.8 -target 1.8".split(" "));
 
-	public static List<File> compile(List<File> files, File outDir, boolean includeDebugInfo) throws IOException {
-
-		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-		if (compiler == null) {
-			throw new IllegalStateException("Can not find compiler, please use JDK instead");
+	public static List<File> compile(List<File> files, File outDir, boolean includeDebugInfo, boolean useEclipseCompiler) throws IOException {
+		JavaCompiler compiler;
+		if (useEclipseCompiler) {
+			compiler = new EclipseCompiler();
+		} else {
+			compiler = ToolProvider.getSystemJavaCompiler();
+			if (compiler == null) {
+				throw new IllegalStateException("Can not find compiler, please use JDK instead");
+			}
 		}
 		StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
 		Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(files);
@@ -48,8 +52,8 @@ public class StaticCompiler {
 	}
 
 	private static class StaticFileManager extends ForwardingJavaFileManager<StandardJavaFileManager> {
-		private List<File> files = new ArrayList<>();
-		private File outDir;
+		private final List<File> files = new ArrayList<>();
+		private final File outDir;
 
 		protected StaticFileManager(StandardJavaFileManager fileManager, File outDir) {
 			super(fileManager);
@@ -57,8 +61,7 @@ public class StaticCompiler {
 		}
 
 		@Override
-		public JavaFileObject getJavaFileForOutput(Location location, String className, JavaFileObject.Kind kind,
-		                                           FileObject sibling) throws IOException {
+		public JavaFileObject getJavaFileForOutput(Location location, String className, JavaFileObject.Kind kind, FileObject sibling) {
 			if (kind == JavaFileObject.Kind.CLASS) {
 				File file = new File(outDir, className.replace('.', '/') + ".class");
 				files.add(file);
@@ -73,7 +76,7 @@ public class StaticCompiler {
 	}
 
 	private static class ClassFileObject extends SimpleJavaFileObject {
-		private File file;
+		private final File file;
 
 		protected ClassFileObject(File file, Kind kind) {
 			super(file.toURI(), kind);

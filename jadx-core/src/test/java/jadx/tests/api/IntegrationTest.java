@@ -1,5 +1,26 @@
 package jadx.tests.api;
 
+import jadx.api.JadxArgs;
+import jadx.api.JadxDecompiler;
+import jadx.api.JadxInternalAccess;
+import jadx.core.ProcessClass;
+import jadx.core.codegen.CodeGen;
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.AttrList;
+import jadx.core.dex.attributes.IAttributeNode;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.nodes.RootNode;
+import jadx.core.dex.visitors.DepthTraversal;
+import jadx.core.dex.visitors.IDexTreeVisitor;
+import jadx.core.xmlgen.ResourceStorage;
+import jadx.core.xmlgen.entry.ResourceEntry;
+import jadx.tests.api.compiler.DynamicCompiler;
+import jadx.tests.api.compiler.StaticCompiler;
+import jadx.tests.api.utils.TestUtils;
+import org.junit.jupiter.api.BeforeEach;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -21,26 +42,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.jar.JarOutputStream;
 
-import jadx.api.JadxArgs;
-import jadx.api.JadxDecompiler;
-import jadx.api.JadxInternalAccess;
-import jadx.core.ProcessClass;
-import jadx.core.codegen.CodeGen;
-import jadx.core.dex.attributes.AFlag;
-import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.AttrList;
-import jadx.core.dex.attributes.IAttributeNode;
-import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.nodes.RootNode;
-import jadx.core.dex.visitors.DepthTraversal;
-import jadx.core.dex.visitors.IDexTreeVisitor;
-import jadx.core.xmlgen.ResourceStorage;
-import jadx.core.xmlgen.entry.ResourceEntry;
-import jadx.tests.api.compiler.DynamicCompiler;
-import jadx.tests.api.compiler.StaticCompiler;
-import jadx.tests.api.utils.TestUtils;
-
 import static jadx.core.utils.files.FileUtils.addFileToJar;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -58,30 +59,38 @@ public abstract class IntegrationTest extends TestUtils {
 	private static final String TEST_DIRECTORY = "src/test/java";
 	private static final String TEST_DIRECTORY2 = "jadx-core/" + TEST_DIRECTORY;
 
+	private static final String OUT_DIR = "test-out-tmp";
+
 	/**
 	 * Run auto check method if defined:
 	 * <pre>
 	 *     public void check() {}
 	 * </pre>
 	 */
-	public static final String CHECK_METHOD_NAME = "check";
+	private static final String CHECK_METHOD_NAME = "check";
 
 	protected JadxArgs args;
 
-	protected boolean deleteTmpFiles = true;
-	protected boolean withDebugInfo = true;
-	protected boolean unloadCls = true;
-
+	protected boolean deleteTmpFiles;
+	protected boolean withDebugInfo;
+	protected boolean unloadCls;
+	protected boolean compile;
+	protected boolean useEclipseCompiler;
 	protected Map<Integer, String> resMap = Collections.emptyMap();
 
-	protected String outDir = "test-out-tmp";
-
-	protected boolean compile = true;
 	private DynamicCompiler dynamicCompiler;
 
-	public IntegrationTest() {
+	@BeforeEach
+	public void init() {
+		this.deleteTmpFiles = true;
+		this.unloadCls = true;
+		this.withDebugInfo = true;
+		this.compile = true;
+		this.useEclipseCompiler = false;
+		this.resMap = Collections.emptyMap();
+
 		args = new JadxArgs();
-		args.setOutDir(new File(outDir));
+		args.setOutDir(new File(OUT_DIR));
 		args.setShowInconsistentCode(true);
 		args.setThreadsCount(1);
 		args.setSkipResources(true);
@@ -377,28 +386,6 @@ public abstract class IntegrationTest extends TestUtils {
 		throw new IOException("Failed to create temp directory");
 	}
 
-	private List<File> getClassFilesWithInners(Class<?> cls) {
-		List<File> list = new ArrayList<>();
-		String pkgName = cls.getPackage().getName();
-		URL pkgResource = ClassLoader.getSystemClassLoader().getResource(pkgName.replace('.', '/'));
-		if (pkgResource != null) {
-			try {
-				String clsName = cls.getName();
-				File directory = new File(pkgResource.toURI());
-				String[] files = directory.list();
-				for (String file : files) {
-					String fullName = pkgName + '.' + file;
-					if (fullName.startsWith(clsName)) {
-						list.add(new File(directory, file));
-					}
-				}
-			} catch (URISyntaxException e) {
-				fail(e.getMessage());
-			}
-		}
-		return list;
-	}
-
 	private List<File> compileClass(Class<?> cls) throws IOException {
 		String clsFullName = cls.getName();
 		String rootClsName;
@@ -418,7 +405,7 @@ public abstract class IntegrationTest extends TestUtils {
 
 		File outTmp = createTempDir("jadx-tmp-classes");
 		outTmp.deleteOnExit();
-		List<File> files = StaticCompiler.compile(compileFileList, outTmp, withDebugInfo);
+		List<File> files = StaticCompiler.compile(compileFileList, outTmp, withDebugInfo, useEclipseCompiler);
 		files.forEach(File::deleteOnExit);
 		// remove classes which are parents for test class
 		String clsName = clsFullName.substring(clsFullName.lastIndexOf('.') + 1);
@@ -440,6 +427,10 @@ public abstract class IntegrationTest extends TestUtils {
 
 	protected void noDebugInfo() {
 		this.withDebugInfo = false;
+	}
+
+	protected void useEclipseCompiler() {
+		this.useEclipseCompiler = true;
 	}
 
 	protected void setFallback() {
