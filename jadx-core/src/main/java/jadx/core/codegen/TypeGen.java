@@ -97,7 +97,7 @@ public class TypeGen {
 		if (s == Short.MIN_VALUE) {
 			return "Short.MIN_VALUE";
 		}
-		return "(short) " + s;
+		return Short.toString(s);
 	}
 
 	public static String formatByte(byte b) {
@@ -107,7 +107,7 @@ public class TypeGen {
 		if (b == Byte.MIN_VALUE) {
 			return "Byte.MIN_VALUE";
 		}
-		return "(byte) " + b;
+		return Byte.toString(b);
 	}
 
 	public static String formatInteger(int i) {

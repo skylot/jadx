@@ -41,7 +41,7 @@ public class TestTypeResolver4 extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("(strArray[end] != (byte) 0 || strArray[end + 1] != (byte) 0)"));
+		assertThat(code, containsOne("(strArray[end] != 0 || strArray[end + 1] != 0)"));
 	}
 
 	@Test
