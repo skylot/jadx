@@ -311,21 +311,13 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	public File getJarForClass(Class<?> cls) throws IOException {
-		String path = cls.getPackage().getName().replace('.', '/');
-		List<File> list;
-		if (!withDebugInfo) {
-			list = compileClass(cls);
-		} else {
-			list = getClassFilesWithInners(cls);
-			if (list.isEmpty()) {
-				list = compileClass(cls);
-			}
-		}
-		assertThat("File list is empty", list, not(empty()));
+		List<File> files = compileClass(cls);
+		assertThat("File list is empty", files, not(empty()));
 
+		String path = cls.getPackage().getName().replace('.', '/');
 		File temp = createTempFile(".jar");
 		try (JarOutputStream jo = new JarOutputStream(new FileOutputStream(temp))) {
-			for (File file : list) {
+			for (File file : files) {
 				addFileToJar(jo, file, path + '/' + file.getName());
 			}
 		}
@@ -382,27 +374,29 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	private List<File> compileClass(Class<?> cls) throws IOException {
-		String fileName = cls.getName();
-		int end = fileName.indexOf('$');
+		String clsFullName = cls.getName();
+		String rootClsName;
+		int end = clsFullName.indexOf('$');
 		if (end != -1) {
-			fileName = fileName.substring(0, end);
+			rootClsName = clsFullName.substring(0, end);
+		} else {
+			rootClsName = clsFullName;
 		}
-		fileName = fileName.replace('.', '/') + ".java";
-		File file = new File(TEST_DIRECTORY, fileName);
+		String javaFileName = rootClsName.replace('.', '/') + ".java";
+		File file = new File(TEST_DIRECTORY, javaFileName);
 		if (!file.exists()) {
-			file = new File(TEST_DIRECTORY2, fileName);
+			file = new File(TEST_DIRECTORY2, javaFileName);
 		}
-		assertThat("Test source file not found: " + fileName, file.exists(), is(true));
+		assertThat("Test source file not found: " + javaFileName, file.exists(), is(true));
 		List<File> compileFileList = Collections.singletonList(file);
 
 		File outTmp = createTempDir("jadx-tmp-classes");
 		outTmp.deleteOnExit();
 		List<File> files = StaticCompiler.compile(compileFileList, outTmp, withDebugInfo);
+		files.forEach(File::deleteOnExit);
 		// remove classes which are parents for test class
-		files.removeIf(next -> !next.getName().contains(cls.getSimpleName()));
-		for (File clsFile : files) {
-			clsFile.deleteOnExit();
-		}
+		String clsName = clsFullName.substring(clsFullName.lastIndexOf('.') + 1);
+		files.removeIf(next -> !next.getName().contains(clsName));
 		return files;
 	}
 

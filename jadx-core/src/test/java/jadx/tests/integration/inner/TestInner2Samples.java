@@ -13,7 +13,6 @@ import static org.hamcrest.Matchers.not;
 public class TestInner2Samples extends IntegrationTest {
 
 	public static class TestInner2 {
-
 		private String a;
 
 		public class A {
