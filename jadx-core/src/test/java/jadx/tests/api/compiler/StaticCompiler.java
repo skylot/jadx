@@ -1,16 +1,5 @@
 package jadx.tests.api.compiler;
 
-import javax.tools.FileObject;
-import javax.tools.ForwardingJavaFileManager;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
-import javax.tools.SimpleJavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.ToolProvider;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -20,13 +9,18 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import javax.tools.FileObject;
+import javax.tools.ForwardingJavaFileManager;
+import javax.tools.JavaCompiler;
+import javax.tools.JavaCompiler.CompilationTask;
+import javax.tools.JavaFileObject;
+import javax.tools.SimpleJavaFileObject;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.ToolProvider;
+
 import jadx.core.utils.files.FileUtils;
 
-import static javax.tools.JavaCompiler.CompilationTask;
-
 public class StaticCompiler {
-
-	private static final Logger LOG = LoggerFactory.getLogger(StaticCompiler.class);
 
 	private static final List<String> COMMON_ARGS = Arrays.asList("-source 1.8 -target 1.8".split(" "));
 
@@ -34,8 +28,7 @@ public class StaticCompiler {
 
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 		if (compiler == null) {
-			LOG.error("Can not find compiler, please use JDK instead");
-			return Collections.emptyList();
+			throw new IllegalStateException("Can not find compiler, please use JDK instead");
 		}
 		StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
 		Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(files);
