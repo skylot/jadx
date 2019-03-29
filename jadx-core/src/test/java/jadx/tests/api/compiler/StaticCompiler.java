@@ -1,12 +1,5 @@
 package jadx.tests.api.compiler;
 
-import javax.tools.FileObject;
-import javax.tools.ForwardingJavaFileManager;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
-import javax.tools.SimpleJavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -16,9 +9,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import jadx.core.utils.files.FileUtils;
+import javax.tools.FileObject;
+import javax.tools.ForwardingJavaFileManager;
+import javax.tools.JavaCompiler;
+import javax.tools.JavaCompiler.CompilationTask;
+import javax.tools.JavaFileObject;
+import javax.tools.SimpleJavaFileObject;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.ToolProvider;
 
-import static javax.tools.JavaCompiler.CompilationTask;
+import jadx.core.utils.files.FileUtils;
 
 public class StaticCompiler {
 
@@ -27,6 +27,9 @@ public class StaticCompiler {
 	public static List<File> compile(List<File> files, File outDir, boolean includeDebugInfo) throws IOException {
 
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+		if (compiler == null) {
+			throw new IllegalStateException("Can not find compiler, please use JDK instead");
+		}
 		StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
 		Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(files);
 
