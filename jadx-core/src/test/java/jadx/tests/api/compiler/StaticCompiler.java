@@ -7,6 +7,10 @@ import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -22,11 +26,17 @@ import static javax.tools.JavaCompiler.CompilationTask;
 
 public class StaticCompiler {
 
+	private static final Logger LOG = LoggerFactory.getLogger(StaticCompiler.class);
+
 	private static final List<String> COMMON_ARGS = Arrays.asList("-source 1.8 -target 1.8".split(" "));
 
 	public static List<File> compile(List<File> files, File outDir, boolean includeDebugInfo) throws IOException {
 
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+		if (compiler == null) {
+			LOG.error("Can not find compiler, please use JDK instead");
+			return Collections.emptyList();
+		}
 		StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
 		Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(files);
 
