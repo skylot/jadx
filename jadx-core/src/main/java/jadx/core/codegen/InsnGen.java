@@ -733,6 +733,10 @@ public class InsnGen {
 			origType = callMth.getMethodInfo().getArgumentsTypes().get(origPos);
 		} else {
 			origType = arguments.get(origPos).getInitType();
+			if (origType.isGenericType() && !callMth.getParentClass().equals(mth.getParentClass())) {
+				// cancel cast
+				return false;
+			}
 		}
 		if (!arg.getType().equals(origType)) {
 			code.add('(');
