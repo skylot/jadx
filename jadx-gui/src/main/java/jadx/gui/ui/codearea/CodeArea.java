@@ -1,13 +1,17 @@
 package jadx.gui.ui.codearea;
 
-import javax.swing.*;
-import javax.swing.event.PopupMenuListener;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import javax.swing.JPopupMenu;
+import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Caret;
 import javax.swing.text.DefaultCaret;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
@@ -91,12 +95,12 @@ public final class CodeArea extends RSyntaxTextArea {
 	}
 
 	private void addMenuItems(JClass jCls) {
-		Action findUsage = new FindUsageAction(contentPanel, this, jCls);
+		FindUsageAction findUsage = new FindUsageAction(contentPanel, this, jCls);
 
 		JPopupMenu popup = getPopupMenu();
 		popup.addSeparator();
 		popup.add(findUsage);
-		popup.addPopupMenuListener((PopupMenuListener) findUsage);
+		popup.addPopupMenuListener(findUsage);
 	}
 
 	public void loadSettings() {

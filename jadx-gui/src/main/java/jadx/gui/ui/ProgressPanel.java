@@ -2,8 +2,6 @@ package jadx.gui.ui;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -38,12 +36,7 @@ public class ProgressPanel extends JPanel implements PropertyChangeListener {
 			cancelButton.setBorderPainted(false);
 			cancelButton.setFocusPainted(false);
 			cancelButton.setContentAreaFilled(false);
-			cancelButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					mainWindow.cancelBackgroundJobs();
-				}
-			});
+			cancelButton.addActionListener(e -> mainWindow.cancelBackgroundJobs());
 			add(cancelButton);
 		}
 	}

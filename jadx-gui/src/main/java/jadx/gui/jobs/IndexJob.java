@@ -34,24 +34,21 @@ public class IndexJob extends BackgroundJob {
 		cache.setTextIndex(index);
 		cache.setUsageInfo(usageInfo);
 		for (final JavaClass cls : wrapper.getIncludedClasses()) {
-			addTask(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						index.indexNames(cls);
+			addTask(() -> {
+				try {
+					index.indexNames(cls);
 
-						CodeLinesInfo linesInfo = new CodeLinesInfo(cls);
-						List<StringRef> lines = splitLines(cls);
+					CodeLinesInfo linesInfo = new CodeLinesInfo(cls);
+					List<StringRef> lines = splitLines(cls);
 
-						usageInfo.processClass(cls, linesInfo, lines);
-						if (Utils.isFreeMemoryAvailable()) {
-							index.indexCode(cls, linesInfo, lines);
-						} else {
-							index.classCodeIndexSkipped(cls);
-						}
-					} catch (Exception e) {
-						LOG.error("Index error in class: {}", cls.getFullName(), e);
+					usageInfo.processClass(cls, linesInfo, lines);
+					if (Utils.isFreeMemoryAvailable()) {
+						index.indexCode(cls, linesInfo, lines);
+					} else {
+						index.classCodeIndexSkipped(cls);
 					}
+				} catch (Exception e) {
+					LOG.error("Index error in class: {}", cls.getFullName(), e);
 				}
 			});
 		}
