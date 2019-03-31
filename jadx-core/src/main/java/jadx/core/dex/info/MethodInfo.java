@@ -33,6 +33,21 @@ public final class MethodInfo {
 		shortId = makeSignature(true);
 	}
 
+	private MethodInfo(ClassInfo declClass, String name, List<ArgType> args, ArgType retType) {
+		this.name = name;
+		alias = name;
+		aliasFromPreset = false;
+		this.declClass = declClass;
+
+		this.args = args;
+		this.retType = retType;
+		shortId = makeSignature(true);
+	}
+
+	public static MethodInfo externalMth(ClassInfo declClass, String name, List<ArgType> args, ArgType retType) {
+		return new MethodInfo(declClass, name, args, retType);
+	}
+
 	public static MethodInfo fromDex(DexNode dex, int mthIndex) {
 		MethodInfo mth = dex.root().getInfoStorage().getMethod(dex, mthIndex);
 		if (mth != null) {

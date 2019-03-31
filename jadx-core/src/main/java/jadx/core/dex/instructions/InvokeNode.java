@@ -36,7 +36,7 @@ public class InvokeNode extends InsnNode implements CallMthInterface {
 		}
 	}
 
-	private InvokeNode(MethodInfo mth, InvokeType invokeType, int argsCount) {
+	public InvokeNode(MethodInfo mth, InvokeType invokeType, int argsCount) {
 		super(InsnType.INVOKE, argsCount);
 		this.mth = mth;
 		this.type = invokeType;
