@@ -231,10 +231,6 @@ public class JadxCLIArgs {
 		return deobfuscationUseSourceNameAsAlias;
 	}
 
-	public boolean escapeUnicode() {
-		return escapeUnicode;
-	}
-
 	public boolean isEscapeUnicode() {
 		return escapeUnicode;
 	}

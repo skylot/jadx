@@ -61,12 +61,14 @@ public class NLS {
 		i18nMessagesMap.put(locale, bundle);
 	}
 
-	public static String str(String key) {
+	public static String str(String key, Object... parameters) {
+		String value;
 		try {
-			return localizedMessagesMap.getString(key);
+			value = localizedMessagesMap.getString(key);
 		} catch (MissingResourceException e) {
-			return fallbackMessagesMap.getString(key); // definitely exists
+			value = fallbackMessagesMap.getString(key); // definitely exists
 		}
+		return String.format(value, parameters);
 	}
 
 	public static String str(String key, LangLocale locale) {
