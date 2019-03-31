@@ -112,7 +112,6 @@ public class JadxProject {
 			}
 		} catch (Exception e) {
 			LOG.error("Error loading project", e);
-			// can not load project, creating a new one
 		}
 		return null;
 	}

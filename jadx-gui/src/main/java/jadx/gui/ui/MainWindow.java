@@ -315,6 +315,15 @@ public class MainWindow extends JFrame {
 			return;
 		}
 		project = JadxProject.from(path, settings);
+		if (project == null) {
+			JOptionPane.showMessageDialog(
+					this,
+					NLS.str("msg.project_error_title"),
+					NLS.str("msg.project_error_title_title"),
+					JOptionPane.INFORMATION_MESSAGE
+			);
+			return;
+		}
 		update();
 		settings.addRecentProject(path);
 		Path filePath = project.getFilePath();
