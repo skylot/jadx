@@ -1,25 +1,44 @@
 package jadx.gui;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class TestI18n {
 
+	private static Path guiJavaPath;
+	private static Path i18nPath;
+
 	private List<String> reference;
 	private String referenceName;
 
+	@BeforeAll
+	public static void init() {
+		i18nPath = Paths.get("src/main/resources/i18n");
+		assertTrue(Files.exists(i18nPath));
+		guiJavaPath = Paths.get("src/main/java");
+		assertTrue(Files.exists(guiJavaPath));
+	}
+
 	@Test
 	public void filesExactlyMatch() throws IOException {
-		Path path = Paths.get("./src/main/resources/i18n");
-		assertTrue(Files.exists(path));
-		Files.list(path).forEach(p -> {
+		Files.list(i18nPath).forEach(p -> {
 			List<String> lines;
 			try {
 				lines = Files.readAllLines(p);
@@ -45,12 +64,12 @@ public class TestI18n {
 			if (p0 != -1) {
 				String prefix = line.substring(0, p0 + 1);
 				if (i >= lines.size() || !trimComment(lines.get(i)).startsWith(prefix)) {
-					fail(path, i + 1);
+					failLine(path, i + 1);
 				}
 			}
 		}
 		if (lines.size() != reference.size()) {
-			fail(path, reference.size());
+			failLine(path, reference.size());
 		}
 	}
 
@@ -58,7 +77,37 @@ public class TestI18n {
 		return string.startsWith("#") ? string.substring(1) : string;
 	}
 
-	private void fail(Path path, int line) {
-		Assertions.fail("I18n files " + path.getFileName() + " and " + referenceName + " differ in line " + line);
+	private void failLine(Path path, int line) {
+		fail("I18n files " + path.getFileName() + " and " + referenceName + " differ in line " + line);
+	}
+
+	@Test
+	public void keyIsUsed() throws IOException {
+		Properties properties = new Properties();
+		try (Reader reader = Files.newBufferedReader(i18nPath.resolve("Messages_en_US.properties"))) {
+			properties.load(reader);
+		}
+
+		Set<String> keys = new HashSet<>();
+		for (Object key : properties.keySet()) {
+			keys.add("\"" + key + '"');
+		}
+
+		Files.walk(guiJavaPath).filter(p -> Files.isRegularFile(p)).forEach(p -> {
+			try {
+				List<String> lines = Files.readAllLines(p);
+				for (String line : lines) {
+					for (Iterator<String> it = keys.iterator(); it.hasNext(); ) {
+						if (line.contains(it.next())) {
+							it.remove();
+						}
+					}
+				}
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		});
+
+		assertThat("keys not used", keys, empty());
 	}
 }

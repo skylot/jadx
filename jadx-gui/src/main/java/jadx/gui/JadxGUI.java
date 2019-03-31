@@ -26,7 +26,7 @@ public class JadxGUI {
 				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 			}
 			NLS.setLocale(settings.getLangLocale());
-			SwingUtilities.invokeLater(new MainWindow(settings)::open);
+			SwingUtilities.invokeLater(new MainWindow(settings)::init);
 		} catch (Exception e) {
 			LOG.error("Error: {}", e.getMessage(), e);
 			System.exit(1);

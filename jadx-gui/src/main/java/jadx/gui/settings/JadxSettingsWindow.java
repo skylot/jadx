@@ -52,6 +52,7 @@ public class JadxSettingsWindow extends JDialog {
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		panel.add(makeDeobfuscationGroup());
 		panel.add(makeDecompilationGroup());
+		panel.add(makeProjectGroup());
 		panel.add(makeEditorGroup());
 		panel.add(makeOtherGroup());
 
@@ -168,6 +169,18 @@ public class JadxSettingsWindow extends JDialog {
 		connectedComponents.forEach(comp -> comp.setEnabled(enabled));
 	}
 
+	private SettingsGroup makeProjectGroup() {
+		JCheckBox autoSave = new JCheckBox();
+		autoSave.setSelected(settings.isAutoSaveProject());
+		autoSave.addItemListener(e ->
+			settings.setAutoSaveProject(e.getStateChange() == ItemEvent.SELECTED));
+
+		SettingsGroup group = new SettingsGroup(NLS.str("preferences.project"));
+		group.addRow(NLS.str("preferences.autoSave"), autoSave);
+
+		return group;
+	}
+
 	private SettingsGroup makeEditorGroup() {
 		JButton fontBtn = new JButton(NLS.str("preferences.select_font"));
 
@@ -186,9 +199,9 @@ public class JadxSettingsWindow extends JDialog {
 			mainWindow.loadSettings();
 		});
 
-		SettingsGroup other = new SettingsGroup(NLS.str("preferences.editor"));
-		JLabel fontLabel = other.addRow(getFontLabelStr(), fontBtn);
-		other.addRow(NLS.str("preferences.theme"), themesCbx);
+		SettingsGroup group = new SettingsGroup(NLS.str("preferences.editor"));
+		JLabel fontLabel = group.addRow(getFontLabelStr(), fontBtn);
+		group.addRow(NLS.str("preferences.theme"), themesCbx);
 
 		fontBtn.addMouseListener(new MouseAdapter() {
 			@Override
@@ -205,7 +218,7 @@ public class JadxSettingsWindow extends JDialog {
 				}
 			}
 		});
-		return other;
+		return group;
 	}
 
 	private String getFontLabelStr() {
@@ -263,7 +276,7 @@ public class JadxSettingsWindow extends JDialog {
 		autoStartJobs.addItemListener(e -> settings.setAutoStartJobs(e.getStateChange() == ItemEvent.SELECTED));
 
 		JCheckBox escapeUnicode = new JCheckBox();
-		escapeUnicode.setSelected(settings.escapeUnicode());
+		escapeUnicode.setSelected(settings.isEscapeUnicode());
 		escapeUnicode.addItemListener(e -> {
 			settings.setEscapeUnicode(e.getStateChange() == ItemEvent.SELECTED);
 			needReload();
@@ -333,12 +346,12 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
-		SettingsGroup other = new SettingsGroup(NLS.str("preferences.other"));
-		other.addRow(NLS.str("preferences.language"), languageCbx);
-		other.addRow(NLS.str("preferences.check_for_updates"), update);
-		other.addRow(NLS.str("preferences.cfg"), cfg);
-		other.addRow(NLS.str("preferences.raw_cfg"), rawCfg);
-		return other;
+		SettingsGroup group = new SettingsGroup(NLS.str("preferences.other"));
+		group.addRow(NLS.str("preferences.language"), languageCbx);
+		group.addRow(NLS.str("preferences.check_for_updates"), update);
+		group.addRow(NLS.str("preferences.cfg"), cfg);
+		group.addRow(NLS.str("preferences.raw_cfg"), rawCfg);
+		return group;
 	}
 
 	private void needReload() {

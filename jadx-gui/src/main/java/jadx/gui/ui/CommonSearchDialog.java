@@ -232,11 +232,10 @@ public abstract class CommonSearchDialog extends JDialog {
 	}
 
 	protected void updateProgressLabel() {
-		String statusText = String.format(
-				NLS.str("search_dialog.info_label"),
-				resultsModel.getDisplayedResultsStart(),
-				resultsModel.getDisplayedResultsEnd(),
-				resultsModel.getResultCount()
+		String statusText = NLS.str("search_dialog.info_label",
+			resultsModel.getDisplayedResultsStart(),
+			resultsModel.getDisplayedResultsEnd(),
+			resultsModel.getResultCount()
 		);
 		resultsInfoLabel.setText(statusText);
 	}

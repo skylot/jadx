@@ -25,11 +25,9 @@ public class HeapUsageBar extends JProgressBar implements ActionListener {
 	private final transient Runtime runtime = Runtime.getRuntime();
 	private final transient Timer timer;
 
-	private final String textFormat;
 	private final double maxGB;
 
 	public HeapUsageBar() {
-		this.textFormat = NLS.str("heapUsage.text");
 		setBorderPainted(false);
 		setStringPainted(true);
 		setValue(10);
@@ -54,7 +52,7 @@ public class HeapUsageBar extends JProgressBar implements ActionListener {
 		long used = runtime.totalMemory() - runtime.freeMemory();
 		int usedKB = (int) (used / 1024);
 		setValue(usedKB);
-		setString(String.format(textFormat, (usedKB / TWO_TO_20), maxGB));
+		setString(NLS.str("heapUsage.text", (usedKB / TWO_TO_20), maxGB));
 
 		if ((used + Utils.MIN_FREE_MEMORY) > runtime.maxMemory()) {
 			setForeground(RED);

@@ -47,27 +47,24 @@ public class JadxWrapper {
 	}
 
 	public void saveAll(final File dir, final ProgressMonitor progressMonitor) {
-		Runnable save = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					decompiler.getArgs().setRootDir(dir);
-					ThreadPoolExecutor ex = (ThreadPoolExecutor) decompiler.getSaveExecutor();
-					ex.shutdown();
-					while (ex.isTerminating()) {
-						long total = ex.getTaskCount();
-						long done = ex.getCompletedTaskCount();
-						progressMonitor.setProgress((int) (done * 100.0 / total));
-						Thread.sleep(500);
-					}
-					progressMonitor.close();
-					LOG.info("decompilation complete, freeing memory ...");
-					decompiler.getClasses().forEach(JavaClass::unload);
-					LOG.info("done");
-				} catch (InterruptedException e) {
-					LOG.error("Save interrupted", e);
-					Thread.currentThread().interrupt();
+		Runnable save = () -> {
+			try {
+				decompiler.getArgs().setRootDir(dir);
+				ThreadPoolExecutor ex = (ThreadPoolExecutor) decompiler.getSaveExecutor();
+				ex.shutdown();
+				while (ex.isTerminating()) {
+					long total = ex.getTaskCount();
+					long done = ex.getCompletedTaskCount();
+					progressMonitor.setProgress((int) (done * 100.0 / total));
+					Thread.sleep(500);
 				}
+				progressMonitor.close();
+				LOG.info("decompilation complete, freeing memory ...");
+				decompiler.getClasses().forEach(JavaClass::unload);
+				LOG.info("done");
+			} catch (InterruptedException e) {
+				LOG.error("Save interrupted", e);
+				Thread.currentThread().interrupt();
 			}
 		};
 		new Thread(save).start();

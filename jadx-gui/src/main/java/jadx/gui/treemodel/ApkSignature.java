@@ -77,15 +77,15 @@ public class ApkSignature extends JNode {
 
 			final String err = NLS.str("apkSignature.errors");
 			final String warn = NLS.str("apkSignature.warnings");
-			final String sigSucc = NLS.str("apkSignature.signatureSuccess");
-			final String sigFail = NLS.str("apkSignature.signatureFailed");
+			final String sigSuccKey = "apkSignature.signatureSuccess";
+			final String sigFailKey = "apkSignature.signatureFailed";
 
 			writeIssues(builder, err, result.getErrors());
 			writeIssues(builder, warn, result.getWarnings());
 
 			if (!result.getV1SchemeSigners().isEmpty()) {
 				builder.append("<h2>");
-				builder.escape(String.format(result.isVerifiedUsingV1Scheme() ? sigSucc : sigFail, 1));
+				builder.escape(NLS.str(result.isVerifiedUsingV1Scheme() ? sigSuccKey : sigFailKey, 1));
 				builder.append("</h2>\n");
 
 				builder.append("<blockquote>");
@@ -106,7 +106,7 @@ public class ApkSignature extends JNode {
 			}
 			if (!result.getV2SchemeSigners().isEmpty()) {
 				builder.append("<h2>");
-				builder.escape(String.format(result.isVerifiedUsingV2Scheme() ? sigSucc : sigFail, 2));
+				builder.escape(NLS.str(result.isVerifiedUsingV2Scheme() ? sigSuccKey : sigFailKey, 2));
 				builder.append("</h2>\n");
 
 				builder.append("<blockquote>");

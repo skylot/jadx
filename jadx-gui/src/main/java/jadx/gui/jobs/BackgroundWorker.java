@@ -58,8 +58,7 @@ public class BackgroundWorker extends SwingWorker<Void, Void> {
 			if (searchIndex != null && searchIndex.getSkippedCount() > 0) {
 				LOG.warn("Indexing of some classes skipped, count: {}, low memory: {}",
 						searchIndex.getSkippedCount(), Utils.memoryInfo());
-				String msg = NLS.str("message.indexingClassesSkipped");
-				msg = String.format(msg, searchIndex.getSkippedCount());
+				String msg = NLS.str("message.indexingClassesSkipped", searchIndex.getSkippedCount());
 				JOptionPane.showMessageDialog(null, msg);
 			}
 		} catch (Exception e) {
