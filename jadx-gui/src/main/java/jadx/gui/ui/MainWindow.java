@@ -318,8 +318,8 @@ public class MainWindow extends JFrame {
 		if (project == null) {
 			JOptionPane.showMessageDialog(
 					this,
+					NLS.str("msg.project_error"),
 					NLS.str("msg.project_error_title"),
-					NLS.str("msg.project_error_title_title"),
 					JOptionPane.INFORMATION_MESSAGE
 			);
 			return;
