@@ -1,5 +1,6 @@
 package jadx.core;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -126,10 +127,12 @@ public class Jadx {
 			if (classLoader != null) {
 				Enumeration<URL> resources = classLoader.getResources("META-INF/MANIFEST.MF");
 				while (resources.hasMoreElements()) {
-					Manifest manifest = new Manifest(resources.nextElement().openStream());
-					String ver = manifest.getMainAttributes().getValue("jadx-version");
-					if (ver != null) {
-						return ver;
+					try (InputStream is = resources.nextElement().openStream()) {
+						Manifest manifest = new Manifest(is);
+						String ver = manifest.getMainAttributes().getValue("jadx-version");
+						if (ver != null) {
+							return ver;
+						}
 					}
 				}
 			}
