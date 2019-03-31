@@ -71,4 +71,16 @@ public class TestStringConstructor extends IntegrationTest {
 
 		assertThat(code, containsOne("{1, 2, 3, 'a', 'b'}"));
 	}
+
+	public static class TestClsNegative {
+		public String tag = new String();
+	}
+
+	@Test
+	public void testNegative() {
+		ClassNode cls = getClassNode(TestClsNegative.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, containsOne("tag = new String();"));
+	}
 }

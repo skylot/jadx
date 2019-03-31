@@ -110,7 +110,8 @@ public class SimplifyVisitor extends AbstractVisitor {
 	}
 
 	private static void simplfyConstructor(RootNode root, ConstructorInsn insn) {
-		if (insn.getCallMth().getDeclClass().getType().equals(ArgType.STRING)) {
+		if (insn.getArgsCount() != 0
+				&& insn.getCallMth().getDeclClass().getType().equals(ArgType.STRING)) {
 			InsnArg arg = insn.getArg(0);
 			InsnNode node = arg.isInsnWrap()
 					? ((InsnWrapArg) arg).getWrapInsn()
