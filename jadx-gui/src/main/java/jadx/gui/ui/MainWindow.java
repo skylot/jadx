@@ -185,12 +185,9 @@ public class MainWindow extends JFrame {
 		JadxUpdate.check(new IUpdateCallback() {
 			@Override
 			public void onUpdate(final Release r) {
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						updateLink.setText(NLS.str("menu.update_label", r.getName()));
-						updateLink.setVisible(true);
-					}
+				SwingUtilities.invokeLater(() -> {
+					updateLink.setText(NLS.str("menu.update_label", r.getName()));
+					updateLink.setVisible(true);
 				});
 			}
 		});

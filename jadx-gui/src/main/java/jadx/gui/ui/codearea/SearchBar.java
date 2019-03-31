@@ -3,7 +3,6 @@ package jadx.gui.ui.codearea;
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -40,6 +39,7 @@ class SearchBar extends JToolBar {
 
 	private final JCheckBox wholeWordCB;
 	private final JCheckBox matchCaseCB;
+	private ActionListener forwardListener = e -> search(0);
 
 	public SearchBar(RSyntaxTextArea textArea) {
 		rTextArea = textArea;
@@ -64,55 +64,41 @@ class SearchBar extends JToolBar {
 				}
 			}
 		});
-		searchField.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				search(1);
-			}
-		});
+		searchField.addActionListener(e -> search(1));
 		new TextStandardActions(searchField);
 		add(searchField);
 
 		JButton prevButton = new JButton(NLS.str("search.previous"));
 		prevButton.setIcon(ICON_UP);
-		prevButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				search(-1);
-			}
-		});
+		prevButton.addActionListener(e -> search(-1));
 		prevButton.setBorderPainted(false);
 		add(prevButton);
 
 		JButton nextButton = new JButton(NLS.str("search.next"));
 		nextButton.setIcon(ICON_DOWN);
-		nextButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				search(1);
-			}
-		});
+		nextButton.addActionListener(e -> search(1));
 		nextButton.setBorderPainted(false);
 		add(nextButton);
 
 		markAllCB = new JCheckBox(NLS.str("search.mark_all"));
-		markAllCB.addActionListener(new ForwardListener());
+		markAllCB.addActionListener(forwardListener);
 		add(markAllCB);
 
 		regexCB = new JCheckBox(NLS.str("search.regex"));
-		regexCB.addActionListener(new ForwardListener());
+		regexCB.addActionListener(forwardListener);
 		add(regexCB);
 
 		matchCaseCB = new JCheckBox(NLS.str("search.match_case"));
-		matchCaseCB.addActionListener(new ForwardListener());
+		matchCaseCB.addActionListener(forwardListener);
 		add(matchCaseCB);
 
 		wholeWordCB = new JCheckBox(NLS.str("search.whole_word"));
-		wholeWordCB.addActionListener(new ForwardListener());
+		wholeWordCB.addActionListener(forwardListener);
 		add(wholeWordCB);
 
 		JButton closeButton = new JButton();
 		closeButton.setIcon(ICON_CLOSE);
-		closeButton.addActionListener(l -> toggle());
+		closeButton.addActionListener(e -> toggle());
 		closeButton.setBorderPainted(false);
 		add(closeButton);
 
@@ -179,13 +165,6 @@ class SearchBar extends JToolBar {
 			searchField.setBackground(COLOR_BG_ERROR);
 		} else {
 			searchField.setBackground(COLOR_BG_NORMAL);
-		}
-	}
-
-	private class ForwardListener implements ActionListener {
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			search(0);
 		}
 	}
 }
