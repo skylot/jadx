@@ -13,9 +13,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestArith3 extends IntegrationTest {
 
 	public static class TestCls {
-		private int vp;
+		public int vp;
 
-		private void test(byte[] buffer) {
+		public void test(byte[] buffer) {
 			int n = ((buffer[3] & 255) + 4) + ((buffer[2] & 15) << 8);
 			while (n + 4 < buffer.length) {
 				int c = buffer[n] & 255;

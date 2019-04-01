@@ -15,7 +15,7 @@ public class TestDontInlineThis extends IntegrationTest {
 	public static class TestCls {
 		public int field = new Random().nextInt();
 
-		private TestCls test() {
+		public TestCls test() {
 			TestCls res;
 			if (field == 7) {
 				res = this;

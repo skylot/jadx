@@ -17,7 +17,7 @@ public class TestInlineThis2 extends IntegrationTest {
 	public static class TestCls {
 		public int field;
 
-		private void test() {
+		public void test() {
 			TestCls thisVar = this;
 			if (Objects.isNull(thisVar)) {
 				System.out.println("null");

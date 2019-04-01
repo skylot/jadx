@@ -11,7 +11,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestTryCatch7 extends IntegrationTest {
 
 	public static class TestCls {
-		private Exception test() {
+		public Exception test() {
 			Exception e = new Exception();
 			try {
 				Thread.sleep(50);

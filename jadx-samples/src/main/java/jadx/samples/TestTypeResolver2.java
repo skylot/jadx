@@ -21,11 +21,11 @@ public class TestTypeResolver2 extends AbstractTest {
 		}
 	}
 
-	private static void doPrint(String s1) {
+	public static void doPrint(String s1) {
 		fail();
 	}
 
-	private static void doPrint(Integer s1) {
+	public static void doPrint(Integer s1) {
 		fail();
 	}
 
@@ -43,6 +43,6 @@ public class TestTypeResolver2 extends AbstractTest {
 	}
 
 	public static void main(String[] args) throws Exception {
-		(new TestTypeResolver2()).testRun();
+		new TestTypeResolver2().testRun();
 	}
 }

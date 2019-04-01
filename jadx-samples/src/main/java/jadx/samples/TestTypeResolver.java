@@ -2,7 +2,7 @@ package jadx.samples;
 
 public class TestTypeResolver extends AbstractTest {
 
-	private final int f1;
+	public final int f1;
 
 	public TestTypeResolver() {
 		this.f1 = 2;

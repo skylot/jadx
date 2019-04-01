@@ -19,7 +19,7 @@ public class TestInnerClass4 extends IntegrationTest {
 			}
 		}
 
-		private String test() {
+		public String test() {
 			return new C().c;
 		}
 	}

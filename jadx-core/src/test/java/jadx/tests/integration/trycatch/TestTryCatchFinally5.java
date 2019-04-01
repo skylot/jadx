@@ -15,7 +15,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestTryCatchFinally5 extends IntegrationTest {
 
 	public static class TestCls {
-		private <E> List<E> test(A a, B<E> b) {
+		public <E> List<E> test(A a, B<E> b) {
 			C c = p(a);
 			if (c == null) {
 				return null;

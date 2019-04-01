@@ -14,7 +14,7 @@ public class TestNestedLoops extends IntegrationTest {
 
 	public static class TestCls {
 
-		private void test(List<String> l1, List<String> l2) {
+		public void test(List<String> l1, List<String> l2) {
 			for (String s1 : l1) {
 				for (String s2 : l2) {
 					if (s1.equals(s2)) {

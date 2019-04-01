@@ -13,7 +13,7 @@ import static org.hamcrest.Matchers.anyOf;
 public class TestLoopCondition5 extends SmaliTest {
 
 	public static class TestCls {
-		private static int lastIndexOf(int[] array, int target, int start, int end) {
+		public static int lastIndexOf(int[] array, int target, int start, int end) {
 			for (int i = end - 1; i >= start; i--) {
 				if (array[i] == target) {
 					return i;

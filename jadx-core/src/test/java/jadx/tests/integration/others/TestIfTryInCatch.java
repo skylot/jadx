@@ -12,7 +12,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestIfTryInCatch extends IntegrationTest {
 
 	public static class TestCls {
-		private Exception exception;
+		public Exception exception;
 		private java.lang.Object data;
 
 		public java.lang.Object test(final Object obj) {

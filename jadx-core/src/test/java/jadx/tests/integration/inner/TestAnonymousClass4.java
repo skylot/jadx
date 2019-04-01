@@ -12,6 +12,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestAnonymousClass4 extends IntegrationTest {
 
 	public static class TestCls {
+		@SuppressWarnings("unused")
 		public static class Inner {
 			private int f;
 			private double d;

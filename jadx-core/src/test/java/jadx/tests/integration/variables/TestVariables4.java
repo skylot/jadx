@@ -14,7 +14,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestVariables4 extends IntegrationTest {
 
 	public static class TestCls {
-		private static boolean runTest(String clsName) {
+		public static boolean runTest(String clsName) {
 			try {
 				boolean pass = false;
 				String msg = null;

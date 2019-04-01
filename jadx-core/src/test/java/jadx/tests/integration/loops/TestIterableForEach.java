@@ -11,7 +11,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestIterableForEach extends IntegrationTest {
 
 	public static class TestCls {
-		private String test(Iterable<String> a) {
+		public String test(Iterable<String> a) {
 			StringBuilder sb = new StringBuilder();
 			for (String s : a) {
 				sb.append(s);

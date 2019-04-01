@@ -13,7 +13,7 @@ public class TestTryCatch2 extends IntegrationTest {
 	public static class TestCls {
 		private final static Object obj = new Object();
 
-		private static boolean test() {
+		public static boolean test() {
 			try {
 				synchronized (obj) {
 					obj.wait(5);

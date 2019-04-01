@@ -16,8 +16,8 @@ public class TestAnonymousClass12 extends IntegrationTest {
 			public abstract void doSomething();
 		}
 
-		private BasicAbstract outer;
-		private BasicAbstract inner;
+		public BasicAbstract outer;
+		public BasicAbstract inner;
 
 		public void test() {
 			outer = new BasicAbstract() {

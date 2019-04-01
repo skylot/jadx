@@ -11,7 +11,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestTypeResolver6 extends IntegrationTest {
 
 	public static class TestCls {
-		private final Object obj;
+		public final Object obj;
 
 		public TestCls(boolean b) {
 			this.obj = b ? this : makeObj();

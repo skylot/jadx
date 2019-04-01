@@ -13,7 +13,7 @@ public class TestAnonymousClass2 extends IntegrationTest {
 
 	public static class TestCls {
 		public static class Inner {
-			private int f;
+			public int f;
 
 			public Runnable test() {
 				return new Runnable() {
@@ -27,6 +27,7 @@ public class TestAnonymousClass2 extends IntegrationTest {
 			public Runnable test2() {
 				return new Runnable() {
 					@Override
+					@SuppressWarnings("unused")
 					public void run() {
 						Object obj = Inner.this;
 					}

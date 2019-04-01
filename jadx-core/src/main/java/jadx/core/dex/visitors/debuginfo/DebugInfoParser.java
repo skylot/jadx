@@ -4,9 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.android.dex.Dex.Section;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.DexNode;
@@ -15,7 +12,6 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.DecodeException;
 
 public class DebugInfoParser {
-	private static final Logger LOG = LoggerFactory.getLogger(DebugInfoParser.class);
 	private static final int DBG_END_SEQUENCE = 0x00;
 	private static final int DBG_ADVANCE_PC = 0x01;
 	private static final int DBG_ADVANCE_LINE = 0x02;

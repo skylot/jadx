@@ -37,7 +37,6 @@ public class TestLineNumbers2 extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		CodeWriter codeWriter = cls.getCode();
-		String code = codeWriter.toString();
 
 		Map<Integer, Integer> lineMapping = codeWriter.getLineMapping();
 		assertEquals("{8=18, 11=22, 12=23, 13=24, 14=28, 16=25, 17=26, 18=28, 21=31, 22=32}",

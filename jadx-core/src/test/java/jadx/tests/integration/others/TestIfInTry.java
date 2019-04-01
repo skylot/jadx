@@ -15,7 +15,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestIfInTry extends IntegrationTest {
 
 	public static class TestCls {
-		private File dir;
+		public File dir;
 
 		public int test() {
 			try {

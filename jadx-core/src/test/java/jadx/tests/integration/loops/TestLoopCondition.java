@@ -16,7 +16,7 @@ public class TestLoopCondition extends IntegrationTest {
 		private void setEnabled(boolean r1z) {
 		}
 
-		private void testIfInLoop() {
+		public void testIfInLoop() {
 			int j = 0;
 			for (int i = 0; i < f.length(); i++) {
 				char ch = f.charAt(i);
@@ -31,7 +31,7 @@ public class TestLoopCondition extends IntegrationTest {
 			setEnabled(false);
 		}
 
-		private void testMoreComplexIfInLoop(java.util.ArrayList<String> list) throws Exception {
+		public void testMoreComplexIfInLoop(java.util.ArrayList<String> list) throws Exception {
 			for (int i = 0; i != 16 && i < 255; i++) {
 				list.set(i, "ABC");
 				if (i == 128) {

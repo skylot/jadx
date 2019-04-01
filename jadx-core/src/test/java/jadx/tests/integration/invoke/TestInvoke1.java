@@ -16,7 +16,7 @@ public class TestInvoke1 extends IntegrationTest {
 
 		private A is;
 
-		private C test(int start) throws IOException {
+		public C test(int start) throws IOException {
 			int id = is.readInt32();
 			String name = is.readString16Fixed(128);
 

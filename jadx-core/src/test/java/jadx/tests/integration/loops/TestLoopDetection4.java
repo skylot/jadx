@@ -16,7 +16,7 @@ public class TestLoopDetection4 extends IntegrationTest {
 		private Iterator<String> iterator;
 		private SomeCls filter;
 
-		private String test() {
+		public String test() {
 			while (iterator.hasNext()) {
 				String next = iterator.next();
 				String filtered = filter.filter(next);

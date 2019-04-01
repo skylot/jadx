@@ -13,7 +13,7 @@ import static org.hamcrest.Matchers.not;
 public class TestArrayForEach2 extends IntegrationTest {
 
 	public static class TestCls {
-		private void test(String str) {
+		public void test(String str) {
 			for (String s : str.split("\n")) {
 				String t = s.trim();
 				if (t.length() > 0) {
