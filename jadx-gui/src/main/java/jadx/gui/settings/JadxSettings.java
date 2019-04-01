@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.jetbrains.annotations.Nullable;
@@ -67,9 +68,9 @@ public class JadxSettings extends JadxCLIArgs {
 		JadxSettingsAdapter.store(this);
 	}
 
-	public void partialSync(ISettingsUpdater updater) {
+	private void partialSync(Consumer<JadxSettings> updater) {
 		JadxSettings settings = JadxSettingsAdapter.load();
-		updater.update(settings);
+		updater.accept(settings);
 		JadxSettingsAdapter.store(settings);
 	}
 
