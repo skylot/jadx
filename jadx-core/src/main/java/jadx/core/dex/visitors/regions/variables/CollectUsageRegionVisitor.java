@@ -54,13 +54,11 @@ class CollectUsageRegionVisitor extends TracedRegionVisitor {
 			return;
 		}
 		// result
-		if (!insn.contains(AFlag.ITERATOR_IN_FOR)) {
-			RegisterArg result = insn.getResult();
-			if (result != null && result.isRegister()) {
-				if (!result.contains(AFlag.DONT_GENERATE)) {
-					VarUsage usage = getUsage(result.getSVar());
-					usage.getAssigns().add(usePlace);
-				}
+		RegisterArg result = insn.getResult();
+		if (result != null && result.isRegister()) {
+			if (!result.contains(AFlag.DONT_GENERATE)) {
+				VarUsage usage = getUsage(result.getSVar());
+				usage.getAssigns().add(usePlace);
 			}
 		}
 		// args

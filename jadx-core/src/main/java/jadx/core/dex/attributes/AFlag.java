@@ -18,7 +18,6 @@ public enum AFlag {
 	DONT_RENAME, // do not rename during deobfuscation
 	REMOVE, // can be completely removed
 	ADDED_TO_REGION,
-	ITERATOR_IN_FOR, // the iterator in 'for each loops'
 
 	FINALLY_INSNS,
 
