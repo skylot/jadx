@@ -18,13 +18,8 @@ import jadx.core.dex.regions.loops.LoopType;
 import jadx.core.dex.visitors.regions.TracedRegionVisitor;
 
 class CollectUsageRegionVisitor extends TracedRegionVisitor {
-	private final List<RegisterArg> args;
-	private final Map<SSAVar, VarUsage> usageMap;
-
-	public CollectUsageRegionVisitor() {
-		this.usageMap = new LinkedHashMap<>();
-		this.args = new ArrayList<>();
-	}
+	private final List<RegisterArg> args = new ArrayList<>();
+	private final Map<SSAVar, VarUsage> usageMap = new LinkedHashMap<>();
 
 	public Map<SSAVar, VarUsage> getUsageMap() {
 		return usageMap;
@@ -37,9 +32,6 @@ class CollectUsageRegionVisitor extends TracedRegionVisitor {
 		int len = block.getInstructions().size();
 		for (int i = 0; i < len; i++) {
 			InsnNode insn = block.getInstructions().get(i);
-			if (insn.contains(AFlag.DONT_GENERATE)) {
-				continue;
-			}
 			processInsn(insn, usePlace);
 		}
 	}
@@ -62,22 +54,23 @@ class CollectUsageRegionVisitor extends TracedRegionVisitor {
 			return;
 		}
 		// result
-		RegisterArg result = insn.getResult();
-		if (result != null && result.isRegister()) {
-			if (!result.contains(AFlag.DONT_GENERATE)) {
-				VarUsage usage = getUsage(result.getSVar());
-				usage.getAssigns().add(usePlace);
+		if (!insn.contains(AFlag.ITERATOR_IN_FOR)) {
+			RegisterArg result = insn.getResult();
+			if (result != null && result.isRegister()) {
+				if (!result.contains(AFlag.DONT_GENERATE)) {
+					VarUsage usage = getUsage(result.getSVar());
+					usage.getAssigns().add(usePlace);
+				}
 			}
 		}
 		// args
 		args.clear();
 		insn.getRegisterArgs(args);
 		for (RegisterArg arg : args) {
-			if (arg.contains(AFlag.DONT_GENERATE)) {
-				continue;
+			if (!arg.contains(AFlag.DONT_GENERATE)) {
+				VarUsage usage = getUsage(arg.getSVar());
+				usage.getUses().add(usePlace);
 			}
-			VarUsage usage = getUsage(arg.getSVar());
-			usage.getUses().add(usePlace);
 		}
 	}
 

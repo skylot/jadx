@@ -281,6 +281,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		}
 
 		assignInsn.add(AFlag.DONT_GENERATE);
+		assignInsn.add(AFlag.ITERATOR_IN_FOR);
 		for (InsnNode insnNode : toSkip) {
 			insnNode.add(AFlag.DONT_GENERATE);
 		}
