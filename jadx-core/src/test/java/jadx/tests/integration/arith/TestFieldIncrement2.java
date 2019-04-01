@@ -2,7 +2,6 @@ package jadx.tests.integration.arith;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
@@ -33,15 +32,6 @@ public class TestFieldIncrement2 extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsString("this.a.f += n;"));
-		assertThat(code, containsString("a2.f *= n;"));
-	}
-
-	@Test
-	@NotYetImplemented
-	public void test2() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
 		assertThat(code, containsString("this.a.f *= n;"));
 	}
 }
