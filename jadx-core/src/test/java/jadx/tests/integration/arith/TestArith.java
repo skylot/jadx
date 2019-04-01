@@ -1,7 +1,11 @@
 package jadx.tests.integration.arith;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+
 import org.junit.jupiter.api.Test;
 
+import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
@@ -28,10 +32,16 @@ public class TestArith extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
+	}
 
-		// TODO: reduce code vars by name
-//		assertThat(code, containsString("a += 2;"));
-//		assertThat(code, containsString("a++;"));
+	@Test
+	@NotYetImplemented
+	public void test2() {
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, containsString("a += 2;"));
+		assertThat(code, containsString("a++;"));
 	}
 
 	@Test
@@ -39,9 +49,16 @@ public class TestArith extends IntegrationTest {
 		noDebugInfo();
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
+	}
 
-		// TODO: simplify for variables without debug names
-//		assertThat(code, containsString("i += 2;"));
-//		assertThat(code, containsString("i++;"));
+	@Test
+	@NotYetImplemented
+	public void testNoDebug2() {
+		noDebugInfo();
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, containsString("i += 2;"));
+		assertThat(code, containsString("i++;"));
 	}
 }
