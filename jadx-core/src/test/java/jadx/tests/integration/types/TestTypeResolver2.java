@@ -14,7 +14,7 @@ public class TestTypeResolver2 extends IntegrationTest {
 
 	public static class TestCls {
 
-		private static boolean test(Object obj) throws IOException {
+		public static boolean test(Object obj) throws IOException {
 			if (obj != null) {
 				return true;
 			}

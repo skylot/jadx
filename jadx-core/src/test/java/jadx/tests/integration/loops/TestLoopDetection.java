@@ -13,7 +13,7 @@ public class TestLoopDetection extends IntegrationTest {
 
 	public static class TestCls {
 
-		private void test(int[] a, int b) {
+		public void test(int[] a, int b) {
 			int i = 0;
 			while (i < a.length && i < b) {
 				a[i]++;

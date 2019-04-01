@@ -16,7 +16,7 @@ public class TestIterableForEach3 extends IntegrationTest {
 		private Set<T> a;
 		private Set<T> b;
 
-		private void test(T str) {
+		public void test(T str) {
 			Set<T> set = str.length() == 1 ? a : b;
 			for (T s : set) {
 				if (s.length() == str.length()) {

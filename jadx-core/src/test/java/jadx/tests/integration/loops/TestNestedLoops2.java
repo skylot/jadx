@@ -14,7 +14,7 @@ public class TestNestedLoops2 extends IntegrationTest {
 
 	public static class TestCls {
 
-		private boolean test(List<String> list) {
+		public boolean test(List<String> list) {
 			int j = 0;
 			for (int i = 0; i < list.size(); i++) {
 				String s = list.get(i);

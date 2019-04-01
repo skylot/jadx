@@ -13,7 +13,7 @@ public class TestArrayForEachNegative extends IntegrationTest {
 
 	public static class TestCls {
 
-		private int test(int[] a, int[] b) {
+		public int test(int[] a, int[] b) {
 			int sum = 0;
 			for (int i = 0; i < a.length; i += 2) {
 				sum += a[i];

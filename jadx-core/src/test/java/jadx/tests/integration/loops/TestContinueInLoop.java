@@ -11,9 +11,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestContinueInLoop extends IntegrationTest {
 
 	public static class TestCls {
-		private int f;
+		public int f;
 
-		private void test(int[] a, int b) {
+		public void test(int[] a, int b) {
 			for (int i = 0; i < a.length; i++) {
 				int v = a[i];
 				if (v < b) {

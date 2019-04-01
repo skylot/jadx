@@ -13,7 +13,7 @@ public class TestAnonymousClass3 extends IntegrationTest {
 	public static class TestCls {
 		public static class Inner {
 			private int f;
-			private double d;
+			public double d;
 
 			public void test() {
 				new Thread() {

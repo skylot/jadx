@@ -17,13 +17,13 @@ public class TestFieldInit2 extends IntegrationTest {
 			void doSomething();
 		}
 
-		private BasicAbstract x = new BasicAbstract() {
+		public BasicAbstract x = new BasicAbstract() {
 			@Override
 			public void doSomething() {
 				y = 1;
 			}
 		};
-		private int y = 0;
+		public int y = 0;
 
 		public TestCls() {
 		}

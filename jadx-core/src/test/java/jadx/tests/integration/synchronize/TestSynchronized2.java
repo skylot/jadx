@@ -13,6 +13,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestSynchronized2 extends IntegrationTest {
 
 	public static class TestCls {
+		@SuppressWarnings("unused")
 		private static synchronized boolean test(Object obj) {
 			return obj.toString() != null;
 		}

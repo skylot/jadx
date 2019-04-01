@@ -24,7 +24,7 @@ public class TestIssue86 extends IntegrationTest {
 		private static final String WEATHER_TAG = "weather-tag";
 		private static final String DESC_TAG = "desc-tag";
 
-		private List<Day> test(String response) {
+		public List<Day> test(String response) {
 			List<Day> reportList = new ArrayList<>();
 			try {
 				System.out.println(response);

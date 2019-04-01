@@ -14,12 +14,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestWrongCode extends IntegrationTest {
 
 	public static class TestCls {
-		private int test() {
+		@SuppressWarnings("null")
+		public int test() {
 			int[] a = null;
 			return a.length;
 		}
 
-		private int test2(int a) {
+		public int test2(int a) {
 			if (a == 0) {
 			}
 			return a;

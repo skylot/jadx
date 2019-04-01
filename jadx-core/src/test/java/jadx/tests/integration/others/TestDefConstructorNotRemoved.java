@@ -19,7 +19,7 @@ public class TestDefConstructorNotRemoved extends IntegrationTest {
 		}
 
 		public static class A {
-			private final String s;
+			public final String s;
 
 			public A() {
 				s = "a";

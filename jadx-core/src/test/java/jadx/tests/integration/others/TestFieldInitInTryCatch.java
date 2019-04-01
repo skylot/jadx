@@ -15,7 +15,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestFieldInitInTryCatch extends IntegrationTest {
 
 	public static class TestCls {
-		private static final URL a;
+		public static final URL a;
 
 		static {
 			try {
@@ -27,7 +27,7 @@ public class TestFieldInitInTryCatch extends IntegrationTest {
 	}
 
 	public static class TestCls2 {
-		private static final URL[] a;
+		public static final URL[] a;
 
 		static {
 			try {
@@ -39,7 +39,7 @@ public class TestFieldInitInTryCatch extends IntegrationTest {
 	}
 
 	public static class TestCls3 {
-		private static final String[] a;
+		public static final String[] a;
 
 		static {
 			try {
@@ -58,7 +58,7 @@ public class TestFieldInitInTryCatch extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("private static final URL a;"));
+		assertThat(code, containsOne("public static final URL a;"));
 		assertThat(code, containsOne("a = new URL(\"http://www.example.com/\");"));
 		assertThat(code, containsLines(2,
 				"try {",
@@ -82,6 +82,6 @@ public class TestFieldInitInTryCatch extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls3.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("private static final String[] a = new String[]{\"a\"};"));
+		assertThat(code, containsOne("public static final String[] a = new String[]{\"a\"};"));
 	}
 }

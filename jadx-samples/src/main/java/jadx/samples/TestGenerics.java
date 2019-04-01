@@ -13,7 +13,7 @@ public class TestGenerics extends AbstractTest {
 	public Class<?>[] classes;
 
 	public interface MyComparable<T> {
-		public int compareTo(T o);
+		int compareTo(T o);
 	}
 
 	public static class GenericClass implements MyComparable<String> {
@@ -38,9 +38,9 @@ public class TestGenerics extends AbstractTest {
 	public static Box<Integer> integerBox = new Box<>();
 
 	public interface Pair<K, LongGenericType> {
-		public K getKey();
+		K getKey();
 
-		public LongGenericType getValue();
+		LongGenericType getValue();
 	}
 
 	public static class OrderedPair<K, V> implements Pair<K, V> {
@@ -133,7 +133,7 @@ public class TestGenerics extends AbstractTest {
 
 	public class Node<T extends Comparable<T>> {
 		private final T data;
-		private final Node<T> next;
+		public final Node<T> next;
 
 		public Node(T data, Node<T> next) {
 			this.data = data;
@@ -145,8 +145,8 @@ public class TestGenerics extends AbstractTest {
 		}
 	}
 
-	private class TestConstructor implements Enumeration<String> {
-		private final TestGenerics a;
+	public class TestConstructor implements Enumeration<String> {
+		public final TestGenerics a;
 
 		TestConstructor(TestGenerics a) {
 			this.a = a;

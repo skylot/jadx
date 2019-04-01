@@ -21,7 +21,7 @@ public class TestNameAssign2 extends IntegrationTest {
 
 	public static class TestCls {
 
-		private static void test(MethodNode mth, int regNum, LiveVarAnalysis la) {
+		public static void test(MethodNode mth, int regNum, LiveVarAnalysis la) {
 			List<BlockNode> blocks = mth.getBasicBlocks();
 			int blocksCount = blocks.size();
 			BitSet hasPhi = new BitSet(blocksCount);

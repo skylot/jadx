@@ -11,7 +11,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestTypeResolver6a extends IntegrationTest {
 
 	public static class TestCls implements Runnable {
-		private final Runnable runnable;
+		public final Runnable runnable;
 
 		public TestCls(boolean b) {
 			this.runnable = b ? this : makeRunnable();

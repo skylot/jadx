@@ -164,6 +164,7 @@ public class ResTableParser extends CommonBinaryParser {
 		return pkg;
 	}
 
+	@SuppressWarnings("unused")
 	private void parseTypeSpecChunk() throws IOException {
 		is.checkInt16(0x0010, "Unexpected type spec header size");
 		/*int size = */

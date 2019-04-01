@@ -15,7 +15,7 @@ public class TestInlineThis extends IntegrationTest {
 	public static class TestCls {
 		public int field;
 
-		private void test() {
+		public void test() {
 			TestCls something = this;
 			something.method();
 			something.field = 123;

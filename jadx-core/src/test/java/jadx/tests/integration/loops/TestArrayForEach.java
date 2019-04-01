@@ -12,7 +12,7 @@ public class TestArrayForEach extends IntegrationTest {
 
 	public static class TestCls {
 
-		private int test(int[] a) {
+		public int test(int[] a) {
 			int sum = 0;
 			for (int n : a) {
 				sum += n;

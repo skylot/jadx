@@ -31,6 +31,7 @@ import jadx.core.xmlgen.entry.ValuesParser;
 	Check Element chunk size
 */
 
+@SuppressWarnings("unused")
 public class BinaryXMLParser extends CommonBinaryParser {
 
 	private static final Logger LOG = LoggerFactory.getLogger(BinaryXMLParser.class);

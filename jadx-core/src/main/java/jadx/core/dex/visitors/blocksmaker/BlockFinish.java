@@ -3,9 +3,6 @@ package jadx.core.dex.visitors.blocksmaker;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -15,8 +12,6 @@ import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.BlockUtils;
 
 public class BlockFinish extends AbstractVisitor {
-
-	private static final Logger LOG = LoggerFactory.getLogger(BlockFinish.class);
 
 	@Override
 	public void visit(MethodNode mth) {
@@ -33,7 +28,7 @@ public class BlockFinish extends AbstractVisitor {
 	}
 
 	/**
-	 * For evey exception handler must be only one splitter block,
+	 * For every exception handler must be only one splitter block,
 	 * select correct one and remove others if necessary.
 	 */
 	private static void fixSplitterBlock(MethodNode mth, BlockNode block) {

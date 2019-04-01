@@ -16,7 +16,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestTryCatch4 extends IntegrationTest {
 
 	public static class TestCls {
-		private Object test(Object obj) {
+		@SuppressWarnings({ "resource", "unused" })
+		public Object test(Object obj) {
 			FileOutputStream output = null;
 			try {
 				output = new FileOutputStream(new File("f"));

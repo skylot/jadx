@@ -22,9 +22,9 @@ public class TestIssue13b extends IntegrationTest {
 		private static final String PROPERTIES_FILE = "";
 		private static final String TAG = "";
 		private final CountDownLatch mInitializedLatch = new CountDownLatch(1);
-		private int mC2KServerPort = 0;
+		public int mC2KServerPort = 0;
 		private String mSuplServerHost = "";
-		private int mSuplServerPort = 0;
+		public int mSuplServerPort = 0;
 		private String mC2KServerHost = "";
 
 		public TestCls() {

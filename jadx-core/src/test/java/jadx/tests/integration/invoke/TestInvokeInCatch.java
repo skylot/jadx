@@ -17,7 +17,7 @@ public class TestInvokeInCatch extends IntegrationTest {
 	public static class TestCls {
 		private static final String TAG = "TAG";
 
-		private void test(int[] a, int b) {
+		public void test(int[] a, int b) {
 			try {
 				exc();
 			} catch (IOException e) {

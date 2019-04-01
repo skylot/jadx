@@ -8,7 +8,6 @@ import com.android.dx.io.instructions.ShortArrayCodeInput;
 import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.tests.api.IntegrationTest;
@@ -20,8 +19,7 @@ public class TestLoopInTry2 extends IntegrationTest {
 
 	public static class TestCls {
 		private MethodNode method;
-		private DexNode dex;
-		private DecodedInstruction[] insnArr;
+		public DecodedInstruction[] insnArr;
 
 		public void test(Code mthCode) throws DecodeException {
 			short[] encodedInstructions = mthCode.getInstructions();

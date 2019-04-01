@@ -25,7 +25,7 @@ public class TestTypeInheritance extends IntegrationTest {
 			public void b() {}
 		}
 
-		private static void test(boolean z) {
+		public static void test(boolean z) {
 			IBase impl;
 			if (z) {
 				impl = new A();

@@ -13,7 +13,7 @@ public class TestLoopDetection3 extends IntegrationTest {
 
 	public static class TestCls {
 
-		private void test(TestCls parent, int pos) {
+		public void test(TestCls parent, int pos) {
 			Object item;
 			while (--pos >= 0) {
 				item = parent.get(pos);

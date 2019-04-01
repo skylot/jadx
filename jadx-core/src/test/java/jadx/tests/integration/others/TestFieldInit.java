@@ -21,11 +21,11 @@ public class TestFieldInit extends IntegrationTest {
 		public class A {
 		}
 
-		private static List<String> s = new ArrayList<>();
+		public static List<String> s = new ArrayList<>();
 
-		private A a = new A();
-		private int i = 1 + Random.class.getSimpleName().length();
-		private int n = 0;
+		public A a = new A();
+		public int i = 1 + Random.class.getSimpleName().length();
+		public int n = 0;
 
 		public TestCls(int z) {
 			this.n = z;

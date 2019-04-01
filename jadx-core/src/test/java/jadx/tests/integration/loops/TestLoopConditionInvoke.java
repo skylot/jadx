@@ -14,7 +14,7 @@ public class TestLoopConditionInvoke extends IntegrationTest {
 		private static final char STOP_CHAR = 0;
 		private int pos;
 
-		private boolean test(char lastChar) {
+		public boolean test(char lastChar) {
 			int startPos = pos;
 			char ch;
 			while ((ch = next()) != STOP_CHAR) {

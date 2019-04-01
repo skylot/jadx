@@ -17,6 +17,7 @@ public class TestOuterConstructorCall extends IntegrationTest {
 		}
 
 		private class Inner {
+			@SuppressWarnings("unused")
 			private TestCls test() {
 				return new TestCls(this);
 			}

@@ -11,7 +11,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestGenerics extends IntegrationTest {
 
 	public static class TestCls<T> {
-		private T data;
+		public T data;
 
 		public TestCls<T> data(T t) {
 			this.data = t;

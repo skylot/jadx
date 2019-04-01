@@ -16,8 +16,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestGenerics2 extends IntegrationTest {
 
 	public static class TestCls {
-		private static class ItemReference<V> extends WeakReference<V> {
-			private Object id;
+		public static class ItemReference<V> extends WeakReference<V> {
+			public Object id;
 
 			public ItemReference(V item, Object objId, ReferenceQueue<? super V> queue) {
 				super(item, queue);
