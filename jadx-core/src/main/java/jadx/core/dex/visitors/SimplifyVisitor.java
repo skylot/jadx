@@ -68,6 +68,8 @@ public class SimplifyVisitor extends AbstractVisitor {
 
 	private static InsnNode simplifyOneArgConsecutive(InsnNode insn1, InsnNode insn2, ArithNode modInsn) {
 		if (insn1.getType() == InsnType.IGET
+				&& insn2.getType() == InsnType.IPUT
+				&& insn1.getResult().getSVar().getUseCount() == 2
 				&& insn2.getArg(1).equals(insn1.getResult())) {
 
 			FieldInfo field = (FieldInfo) ((IndexInsnNode) insn2).getIndex();
