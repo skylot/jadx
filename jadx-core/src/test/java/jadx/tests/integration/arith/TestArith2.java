@@ -1,11 +1,14 @@
 package jadx.tests.integration.arith;
 
-import jadx.core.dex.nodes.ClassNode;
-import jadx.tests.api.IntegrationTest;
-
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
+
+import org.junit.jupiter.api.Test;
+
+import jadx.NotYetImplemented;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 public class TestArith2 extends IntegrationTest {
 
@@ -20,13 +23,20 @@ public class TestArith2 extends IntegrationTest {
 		}
 	}
 
-	//	@Test
+	@Test
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsString("return (a + 2) * 3;"));
 		assertThat(code, not(containsString("a + 2 * 3")));
+	}
+
+	@Test
+	@NotYetImplemented
+	public void test2() {
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
 
 		assertThat(code, containsString("return a + b + c;"));
 		assertThat(code, not(containsString("return (a + b) + c;")));

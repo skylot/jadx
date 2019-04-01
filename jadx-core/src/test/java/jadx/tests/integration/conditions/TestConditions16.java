@@ -2,6 +2,7 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
+import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
@@ -26,11 +27,19 @@ public class TestConditions16 extends IntegrationTest {
 	}
 
 	@Test
+	@NotYetImplemented
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-//		assertThat(code, containsOne("return a < 0 || (b % 2 != 0 && a > 28) || b < 0;"));
+		assertThat(code, containsOne("return a < 0 || (b % 2 != 0 && a > 28) || b < 0;"));
+	}
+
+	@Test
+	public void test2() {
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
 		assertThat(code, containsOne("return a < 0 || ((b % 2 != 0 && a > 28) || b < 0);"));
 	}
 }

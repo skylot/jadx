@@ -31,7 +31,6 @@ public class TestConditions8 extends IntegrationTest {
 		}
 
 		private void showMore() {
-
 		}
 
 		private int size() {
