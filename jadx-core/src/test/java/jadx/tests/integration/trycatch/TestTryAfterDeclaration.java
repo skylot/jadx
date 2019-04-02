@@ -13,7 +13,20 @@ import jadx.tests.api.IntegrationTest;
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class TryAfterDeclaration extends IntegrationTest {
+public class TestTryAfterDeclaration extends IntegrationTest {
+
+	static class TestClass {
+		public static void consume() throws IOException {
+			InputStream bis = null;
+			try {
+				bis = new FileInputStream("1.txt");
+				while (bis != null) {
+					System.out.println("c");
+				}
+			} catch (final IOException e) {
+			}
+		}
+	}
 
 	/**
 	 * Issue #62.
@@ -28,16 +41,4 @@ public class TryAfterDeclaration extends IntegrationTest {
 	}
 }
 
-class TestClass {
-	public static void consume() throws IOException {
-		InputStream bis = null;
-		try {
-			bis = new FileInputStream("1.txt");
-			while (bis != null) {
-				System.out.println("c");
-			}
-		} catch (final IOException e) {
-		}
-	}
-}
 
