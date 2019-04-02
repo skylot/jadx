@@ -44,7 +44,7 @@ public class TestVariablesNames extends SmaliTest {
 
 		// TODO: don't use current variables naming in tests
 		assertThat(code, containsOne("f1(str);"));
-		assertThat(code, containsOne("f2(i2, \"i\" + i2);"));
+		assertThat(code, containsOne("f2(i, \"i\" + i);"));
 		assertThat(code, containsOne("f3(d, \"d\" + d);"));
 	}
 }

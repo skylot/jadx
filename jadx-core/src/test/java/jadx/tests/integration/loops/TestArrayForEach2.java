@@ -32,9 +32,9 @@ public class TestArrayForEach2 extends IntegrationTest {
 
 		assertThat(code, containsLines(2,
 				"for (String s : str.split(\"\\n\")) {",
-				indent(1) + "String t = s.trim();",
-				indent(1) + "if (t.length() > 0) {",
-				indent(2) + "System.out.println(t);",
+				indent(1) + "s = s.trim();",
+				indent(1) + "if (s.length() > 0) {",
+				indent(2) + "System.out.println(s);",
 				indent(1) + '}',
 				"}"
 		));

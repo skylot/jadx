@@ -124,7 +124,7 @@ public class InsnNode extends LineAttrNode {
 		int count = getArgsCount();
 		for (int i = 0; i < count; i++) {
 			InsnArg arg = arguments.get(i);
-			if (arg == from) {
+			if (arg.equals(from)) {
 				InsnRemover.unbindArgUsage(null, arg);
 				setArg(i, to);
 				return true;

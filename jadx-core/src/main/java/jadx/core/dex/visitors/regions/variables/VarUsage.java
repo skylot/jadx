@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jadx.core.dex.instructions.args.SSAVar;
+import jadx.core.dex.nodes.InsnNode;
 
 class VarUsage {
 	private final SSAVar var;
 	private final List<UsePlace> assigns = new ArrayList<>(3);
+	private final List<InsnNode> assignNodes = new ArrayList<>(3);
 	private final List<UsePlace> uses = new ArrayList<>(3);
+	private final List<InsnNode> useNodes = new ArrayList<>(3);
 
 	VarUsage(SSAVar var) {
 		this.var = var;
@@ -24,6 +27,14 @@ class VarUsage {
 
 	public List<UsePlace> getUses() {
 		return uses;
+	}
+
+	public List<InsnNode> getAssignNodes() {
+		return assignNodes;
+	}
+
+	public List<InsnNode> getUseNodes() {
+		return useNodes;
 	}
 
 	@Override

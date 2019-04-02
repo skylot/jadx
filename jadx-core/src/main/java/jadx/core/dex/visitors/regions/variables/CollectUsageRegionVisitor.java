@@ -59,6 +59,7 @@ class CollectUsageRegionVisitor extends TracedRegionVisitor {
 			if (!result.contains(AFlag.DONT_GENERATE)) {
 				VarUsage usage = getUsage(result.getSVar());
 				usage.getAssigns().add(usePlace);
+				usage.getAssignNodes().add(insn);
 			}
 		}
 		// args
@@ -68,6 +69,7 @@ class CollectUsageRegionVisitor extends TracedRegionVisitor {
 			if (!arg.contains(AFlag.DONT_GENERATE)) {
 				VarUsage usage = getUsage(arg.getSVar());
 				usage.getUses().add(usePlace);
+				usage.getUseNodes().add(insn);
 			}
 		}
 	}

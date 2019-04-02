@@ -5,7 +5,6 @@ import static org.hamcrest.Matchers.containsString;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
@@ -32,13 +31,6 @@ public class TestArith extends IntegrationTest {
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
-	}
-
-	@Test
-	@NotYetImplemented
-	public void test2() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
 
 		assertThat(code, containsString("a += 2;"));
 		assertThat(code, containsString("a++;"));
@@ -46,14 +38,6 @@ public class TestArith extends IntegrationTest {
 
 	@Test
 	public void testNoDebug() {
-		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-	}
-
-	@Test
-	@NotYetImplemented
-	public void testNoDebug2() {
 		noDebugInfo();
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
