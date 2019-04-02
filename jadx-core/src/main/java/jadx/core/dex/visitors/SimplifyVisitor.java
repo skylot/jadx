@@ -49,10 +49,34 @@ public class SimplifyVisitor extends AbstractVisitor {
 			for (int i = 0; i < list.size(); i++) {
 				InsnNode modInsn = simplifyInsn(mth, list.get(i));
 				if (modInsn != null) {
+					if (i != 0 && modInsn.contains(AFlag.ARITH_ONEARG)) {
+
+						InsnNode mergedNode = simplifyOneArgConsecutive(
+								list.get(i - 1), list.get(i), (ArithNode) modInsn);
+
+						if (mergedNode != null) {
+							list.remove(i - 1);
+							modInsn = mergedNode;
+							i--;
+						}
+					}
 					list.set(i, modInsn);
 				}
 			}
 		}
+	}
+
+	private static InsnNode simplifyOneArgConsecutive(InsnNode insn1, InsnNode insn2, ArithNode modInsn) {
+		if (insn1.getType() == InsnType.IGET
+				&& insn2.getType() == InsnType.IPUT
+				&& insn1.getResult().getSVar().getUseCount() == 2
+				&& insn2.getArg(1).equals(insn1.getResult())) {
+
+			FieldInfo field = (FieldInfo) ((IndexInsnNode) insn2).getIndex();
+			FieldArg fArg = new FieldArg(field, new InsnWrapArg(insn1));
+			return new ArithNode(modInsn.getOp(), fArg, modInsn.getArg(1));
+		}
+		return null;
 	}
 
 	private static InsnNode simplifyInsn(MethodNode mth, InsnNode insn) {
