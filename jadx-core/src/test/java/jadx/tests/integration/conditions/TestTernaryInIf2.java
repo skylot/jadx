@@ -14,12 +14,14 @@ public class TestTernaryInIf2 extends IntegrationTest {
 	public static class TestCls {
 	    private String a;
 	    private String b;
-	    private String c;
 
 	    public boolean equals(TestCls other) {
-	        return (this.a == null ? other.a == null : this.a.equals(other.a))
-	            && (this.b == null ? other.b == null : this.b.equals(other.b))
-	            && (this.c == null ? other.c == null : this.c.equals(other.c));
+	    	if (this.a == null ? other.a == null : this.a.equals(other.a)) {
+    			if (this.b == null ? other.b == null : this.b.equals(other.b)) {
+    				return true;
+    			}
+	    	}
+	    	return false;
 	    }
 	}
 
@@ -29,8 +31,7 @@ public class TestTernaryInIf2 extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("this.a != null ? !this.a.equals(other.a) : other.a != null"));
-		assertThat(code, containsOne("this.b != null ? !this.b.equals(other.b) : other.b != null"));
-		assertThat(code, containsOne("this.c != null ? !this.c.equals(other.c) : other.c != null"));
+		assertThat(code, containsOne("this.a != null ? this.a.equals(other.a) : other.a == null"));
+		assertThat(code, containsOne("this.b != null ? this.b.equals(other.b) : other.b == null"));
 	}
 }
