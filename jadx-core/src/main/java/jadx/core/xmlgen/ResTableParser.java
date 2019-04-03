@@ -214,6 +214,9 @@ public class ResTableParser extends CommonBinaryParser {
 		int size = is.readInt16();
 		int flags = is.readInt16();
 		int key = is.readInt32();
+		if (key == -1) {
+			return;
+		}
 
 		int resRef = pkg.getId() << 24 | typeId << 16 | entryId;
 		String typeName = pkg.getTypeStrings()[typeId - 1];
