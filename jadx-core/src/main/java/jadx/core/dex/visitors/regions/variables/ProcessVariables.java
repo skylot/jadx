@@ -44,6 +44,24 @@ public class ProcessVariables extends AbstractVisitor {
 		if (codeVars.isEmpty()) {
 			return;
 		}
+
+		for (RegisterArg arg : mth.getArguments(false)) {
+			SSAVar ssaVar = arg.getSVar();
+			List<RegisterArg> useList = ssaVar.getUseList();
+			if (useList.size() == 1) {
+				RegisterArg use = useList.get(0);
+				InsnNode insn = use.getParentInsn();
+				if (insn != null
+					    && insn.getResult() != null
+					    && insn.getResult().getType().equals(arg.getType())) {
+					// merge code vars
+					SSAVar replaceSsaVar = insn.getResult().getSVar();
+					codeVars.remove(replaceSsaVar.getCodeVar());
+					replaceSsaVar.setCodeVar(ssaVar.getCodeVar());
+				}
+			}
+		}
+
 		checkCodeVars(mth, codeVars);
 		// TODO: reduce code vars by name if debug info applied. Need checks for variable scopes before reduce
 
@@ -60,54 +78,8 @@ public class ProcessVariables extends AbstractVisitor {
 		for (Entry<CodeVar, List<VarUsage>> entry : codeVarUsage.entrySet()) {
 			declareVar(mth, entry.getKey(), entry.getValue());
 		}
-
-		List<SSAVar> svars = mth.getSVars();
-		for (int i1 = 0; i1 < svars.size(); i1++) {
-			for (int i2 = 0; i2 < svars.size(); i2++) {
-				if (i1 != i2) {
-					SSAVar var1 = svars.get(i1);
-					SSAVar var2 = svars.get(i2);
-					replaceIfPossible(codeVarUsage, var1, var2);
-				}
-			}
-		}
 	}
 
-	private static void replaceIfPossible(Map<CodeVar, List<VarUsage>> codeVarUsage,
-			SSAVar var1, SSAVar var2) {
-		if (var1.getTypeInfo().getType().equals(
-				var2.getTypeInfo().getType())) {
-			List<VarUsage> usage1 = codeVarUsage.get(var1.getCodeVar());
-			List<VarUsage> usage2 = codeVarUsage.get(var2.getCodeVar());
-			if (usage1 != null && usage1.size() == 1
-					&& usage2 != null && usage2.size() == 1) {
-				VarUsage varUsage1 = usage1.get(0);
-				VarUsage varUsage2 = usage2.get(0);
-				if (canReplace(var1, var2, varUsage1, varUsage2)) {
-					RegisterArg arg1 = var1.getAssign();
-					RegisterArg arg2 = var2.getAssign();
-					InsnNode node = varUsage2.getAssignNodes().get(0);
-					node.setResult(arg1);
-					node.remove(AFlag.DECLARE_VAR);
-					for (InsnNode n : varUsage2.getUseNodes()) {
-						n.replaceArg(arg2, arg1);
-					}
-				}
-			}
-		}
-	}
-
-	private static boolean canReplace(SSAVar var1, SSAVar var2,
-			VarUsage varUsage1, VarUsage varUsage2) {
-		if (varUsage2.getAssignNodes().size() != 1
-				|| varUsage1.getUseNodes().size() != 1
-				|| !varUsage1.getAssignNodes().isEmpty()) {
-			return false;
-		}
-		RegisterArg result1 = varUsage1.getUseNodes().get(0).getResult();
-		return result1 != null && result1.getSVar().equals(var2);
-
-	}
 	private void checkCodeVars(MethodNode mth, List<CodeVar> codeVars) {
 		int unknownTypesCount = 0;
 		for (CodeVar codeVar : codeVars) {
