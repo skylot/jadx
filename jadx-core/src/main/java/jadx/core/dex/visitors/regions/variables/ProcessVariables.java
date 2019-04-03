@@ -56,8 +56,10 @@ public class ProcessVariables extends AbstractVisitor {
 					    && insn.getResult().getType().equals(arg.getType())) {
 					// merge code vars
 					SSAVar replaceSsaVar = insn.getResult().getSVar();
-					codeVars.remove(replaceSsaVar.getCodeVar());
-					replaceSsaVar.setCodeVar(ssaVar.getCodeVar());
+					if (replaceSsaVar != null) {
+						codeVars.remove(replaceSsaVar.getCodeVar());
+						replaceSsaVar.setCodeVar(ssaVar.getCodeVar());
+					}
 				}
 			}
 		}
