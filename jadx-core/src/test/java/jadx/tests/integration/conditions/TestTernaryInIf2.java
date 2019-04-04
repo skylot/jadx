@@ -6,9 +6,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.ClassNode;
-import jadx.tests.api.IntegrationTest;
+import jadx.tests.api.SmaliTest;
 
-public class TestTernaryInIf2 extends IntegrationTest {
+public class TestTernaryInIf2 extends SmaliTest {
 
 	public static class TestCls {
 	    private String a;
@@ -33,5 +33,10 @@ public class TestTernaryInIf2 extends IntegrationTest {
 		assertThat(code, containsLines(3, "if (this.b != null ? this.b.equals(other.b) : other.b == null) {"));
 		assertThat(code, containsLines(4, "return true;"));
 		assertThat(code, containsLines(2, "return false;"));
+	}
+
+	@Test
+	public void test2() {
+		getClassNodeFromSmaliWithPath("conditions", "TestTernaryInIf2");
 	}
 }
