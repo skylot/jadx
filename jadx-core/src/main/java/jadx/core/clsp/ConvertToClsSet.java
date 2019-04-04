@@ -36,7 +36,7 @@ public class ConvertToClsSet {
 			if (f.isDirectory()) {
 				addFilesFromDirectory(f, inputFiles);
 			} else {
-				InputFile.addFilesFrom(f, inputFiles, false);
+				InputFile.addFilesFrom(f, inputFiles);
 			}
 		}
 		for (InputFile inputFile : inputFiles) {
