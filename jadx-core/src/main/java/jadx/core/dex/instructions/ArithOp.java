@@ -25,4 +25,10 @@ public enum ArithOp {
 		return this.symbol;
 	}
 
+	public boolean noWrapWith(ArithOp other) {
+		return (this == ADD && other == ADD)
+				|| (this == MUL && other == MUL)
+				|| (this == AND && other == AND)
+				|| (this == OR && other == OR);
+	}
 }
