@@ -211,8 +211,6 @@ public class IfMakerHelper {
 		nextElse = searchNestedIf(nextElse);
 		if (nextThen.getThenBlock() == nextElse.getThenBlock()
 				&& nextThen.getElseBlock() == nextElse.getElseBlock()) {
-			nextElse = IfInfo.invert(nextElse);
-			nextThen = IfInfo.invert(nextThen);
 			return mergeTernaryConditions(currentIf, nextThen, nextElse);
 		}
 		if (nextThen.getThenBlock() == nextElse.getElseBlock()

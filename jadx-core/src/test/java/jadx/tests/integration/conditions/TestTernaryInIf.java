@@ -18,7 +18,7 @@ public class TestTernaryInIf extends IntegrationTest {
 		}
 
 		public int test2(boolean a, boolean b, boolean c) {
-			return (a ? b : c) ? 1 : 2;
+			return (!a ? c : b) ? 1 : 2;
 		}
 	}
 

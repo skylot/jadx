@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
@@ -118,7 +119,7 @@ public final class IfCondition {
 			case COMPARE:
 				return new IfCondition(cond.getCompare().invert());
 			case TERNARY:
-				return ternary(not(cond.first()), cond.third(), cond.second());
+				return ternary(cond.first(), not(cond.second()), not(cond.third()));
 			case NOT:
 				return cond.first();
 			case AND:
@@ -136,6 +137,9 @@ public final class IfCondition {
 	public static IfCondition not(IfCondition cond) {
 		if (cond.getMode() == Mode.NOT) {
 			return cond.first();
+		}
+		if (cond.getCompare() != null) {
+			return new IfCondition(cond.compare.invert());
 		}
 		return new IfCondition(Mode.NOT, Collections.singletonList(cond));
 	}
@@ -281,4 +285,30 @@ public final class IfCondition {
 		}
 		return "??";
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof IfCondition)) {
+			return false;
+		}
+		IfCondition other = (IfCondition) obj;
+		if (mode != other.mode) {
+			return false;
+		}
+		return Objects.equals(other.args, other.args)
+			&& Objects.equals(compare, other.compare);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = super.hashCode();
+		result = 31 * result + mode.hashCode();
+		result = 31 * result + args.hashCode();
+		result = 31 * result + (compare != null ? compare.hashCode() : 0);
+		return result;
+	}
+
 }
