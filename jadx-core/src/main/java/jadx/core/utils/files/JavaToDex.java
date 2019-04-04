@@ -31,14 +31,16 @@ public class JavaToDex {
 
 	private String dxErrors;
 
-	public byte[] convert(String javaFile) throws JadxException {
+	public byte[] convert(String jarFile) throws JadxException {
 		try (ByteArrayOutputStream out = new ByteArrayOutputStream();
 		     ByteArrayOutputStream errOut = new ByteArrayOutputStream()) {
 			DxContext context = new DxContext(out, errOut);
-			DxArgs args = new DxArgs(context, "-", new String[]{javaFile});
+			DxArgs args = new DxArgs(context, "-", new String[]{jarFile});
 			int result = (new Main(context)).runDx(args);
 			dxErrors = errOut.toString(CHARSET_NAME);
 			if (result != 0) {
+				System.out.println(out);
+				System.err.println(errOut);
 				throw new JadxException("Java to dex conversion error, code: " + result);
 			}
 			return out.toByteArray();
