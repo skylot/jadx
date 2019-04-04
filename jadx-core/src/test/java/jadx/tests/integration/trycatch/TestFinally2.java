@@ -6,7 +6,6 @@ import java.io.InputStream;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
@@ -59,14 +58,7 @@ public class TestFinally2 extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsOne("decode(inputStream);"));
-	}
-
-	@Test
-	@NotYetImplemented
-	public void test2() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
+		assertThat(code, containsOne("return new Result(400);"));
 		assertThat(code, not(containsOne("result =")));
 	}
 }

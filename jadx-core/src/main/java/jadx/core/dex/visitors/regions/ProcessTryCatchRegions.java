@@ -7,11 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBranchRegion;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
+import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.AbstractRegion;
 import jadx.core.dex.regions.Region;
@@ -138,9 +140,13 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 				tryRegion.getSubBlocks().add(cont);
 			}
 		}
-		if (tryRegion.getSubBlocks().isEmpty()) {
+
+		List<IContainer> tryBlocks = tryRegion.getSubBlocks();
+		if (tryBlocks.isEmpty()) {
 			return false;
 		}
+
+		moveReturnIfPossible(tryBlocks);
 
 		TryCatchRegion tryCatchRegion = new TryCatchRegion(replaceRegion, tryRegion);
 		tryRegion.setParent(tryCatchRegion);
@@ -161,6 +167,27 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 			}
 		}
 		return true;
+	}
+
+	private static void moveReturnIfPossible(List<IContainer> blocks) {
+		IContainer last = blocks.get(blocks.size() - 1);
+		if (last instanceof BlockNode) {
+			BlockNode lastBlock = (BlockNode) last;
+			if (lastBlock.isReturnBlock()) {
+				List<InsnNode> instructions = lastBlock.getInstructions();
+				if (!instructions.isEmpty()) {
+					InsnNode node = instructions.get(0);
+					if (node.getArgsCount() != 0) {
+						instructions.remove(0);
+						BlockNode prevBlock = lastBlock;
+						do {
+							prevBlock = prevBlock.getPredecessors().get(0);
+						} while (prevBlock.contains(AFlag.DONT_GENERATE));
+						prevBlock.getInstructions().add(node);
+					}
+				}
+			}
+		}
 	}
 
 	private static boolean isHandlerPath(TryCatchBlock tb, IContainer cont) {
