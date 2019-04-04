@@ -3,10 +3,8 @@ package jadx.core.dex.nodes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.android.dex.ClassData;
 import com.android.dex.ClassData.Field;
@@ -60,7 +58,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	private ClassNode parentClass;
 
 	private ProcessState state = ProcessState.NOT_LOADED;
-	private final Set<ClassNode> dependencies = new HashSet<>();
+	private List<ClassNode> dependencies = Collections.emptyList();
 
 	// cache maps
 	private Map<MethodInfo, MethodNode> mthInfoMap = Collections.emptyMap();
@@ -527,8 +525,12 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		this.state = state;
 	}
 
-	public Set<ClassNode> getDependencies() {
+	public List<ClassNode> getDependencies() {
 		return dependencies;
+	}
+
+	public void setDependencies(List<ClassNode> dependencies) {
+		this.dependencies = dependencies;
 	}
 
 	@Override

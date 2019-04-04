@@ -332,7 +332,7 @@ public class ClassGen {
 	private void insertDecompilationProblems(CodeWriter code, AttrNode node) {
 		List<JadxError> errors = node.getAll(AType.JADX_ERROR);
 		if (!errors.isEmpty()) {
-			errors.forEach(err -> {
+			errors.stream().sorted().forEach(err -> {
 				code.startLine("/*  JADX ERROR: ").add(err.getError());
 				Throwable cause = err.getCause();
 				if (cause != null) {
@@ -345,8 +345,8 @@ public class ClassGen {
 		}
 		List<String> warns = node.getAll(AType.JADX_WARN);
 		if (!warns.isEmpty()) {
-			warns.stream().distinct()
-					.forEach(warn -> code.startLine("/* JADX WARNING: ").addMultiLine(warn).add(" */"));
+			warns.stream().distinct().sorted()
+				.forEach(warn -> code.startLine("/* JADX WARNING: ").addMultiLine(warn).add(" */"));
 		}
 	}
 

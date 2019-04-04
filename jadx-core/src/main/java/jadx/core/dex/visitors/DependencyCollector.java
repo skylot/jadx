@@ -1,5 +1,9 @@
 package jadx.core.dex.visitors;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import jadx.core.dex.attributes.AType;
@@ -26,12 +30,16 @@ public class DependencyCollector extends AbstractVisitor {
 	@Override
 	public boolean visit(ClassNode cls) throws JadxException {
 		DexNode dex = cls.dex();
-		Set<ClassNode> depList = cls.getDependencies();
-		processClass(cls, dex, depList);
+		Set<ClassNode> depSet = new HashSet<>();
+		processClass(cls, dex, depSet);
 		for (ClassNode inner : cls.getInnerClasses()) {
-			processClass(inner, dex, depList);
+			processClass(inner, dex, depSet);
 		}
-		depList.remove(cls);
+		depSet.remove(cls);
+
+		List<ClassNode> depList = new ArrayList<>(depSet);
+		depList.sort(Comparator.comparing(c -> c.getClassInfo().getFullName()));
+		cls.setDependencies(depList);
 		return false;
 	}
 

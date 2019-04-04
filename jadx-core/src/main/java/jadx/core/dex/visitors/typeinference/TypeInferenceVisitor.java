@@ -90,18 +90,15 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 	}
 
 	private void runMultiVariableSearch(MethodNode mth) {
-		long startTime = System.currentTimeMillis();
 		TypeSearch typeSearch = new TypeSearch(mth);
-		boolean success;
 		try {
-			success = typeSearch.run();
+			boolean success = typeSearch.run();
+			if (!success) {
+				mth.addWarn("Multi-variable type inference failed");
+			}
 		} catch (Exception e) {
-			success = false;
 			mth.addWarn("Multi-variable type inference failed. Error: " + Utils.getStackTrace(e));
 		}
-		long time = System.currentTimeMillis() - startTime;
-		mth.addComment("JADX DEBUG: Multi-variable type inference result: " + (success ? "success" : "failure")
-			               + ", time: " + time + " ms");
 	}
 
 	private boolean setImmutableType(SSAVar ssaVar) {
