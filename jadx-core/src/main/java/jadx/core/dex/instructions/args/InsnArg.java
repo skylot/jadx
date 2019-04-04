@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.instructions.ArithNode;
+import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
 
@@ -111,6 +113,12 @@ public abstract class InsnArg extends Typed {
 		insn.add(AFlag.WRAPPED);
 		InsnArg arg = wrapArg(insn);
 		parent.setArg(i, arg);
+
+		if (insn.getType() == InsnType.ARITH && parent.getType() == InsnType.ARITH
+				&& ((ArithNode) insn).getOp().noWrapWith(((ArithNode) parent).getOp())) {
+			insn.add(AFlag.DONT_WRAP);
+		}
+
 		return arg;
 	}
 
