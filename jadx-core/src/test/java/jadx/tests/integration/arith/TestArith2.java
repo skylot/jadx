@@ -21,12 +21,12 @@ public class TestArith2 extends IntegrationTest {
 			return a + b + c;
 		}
 
-		public boolean test3(boolean d, boolean e, boolean f) {
-			return d | e | f;
+		public boolean test3(boolean a, boolean b, boolean c) {
+			return a | b | c;
 		}
 
-		public boolean test4(boolean g, boolean h, boolean i) {
-			return g & h & i;
+		public boolean test4(boolean a, boolean b, boolean c) {
+			return a & b & c;
 		}
 
 		public int substract(int a, int b, int c) {
@@ -49,11 +49,11 @@ public class TestArith2 extends IntegrationTest {
 		assertThat(code, containsString("return a + b + c;"));
 		assertThat(code, not(containsString("return (a + b) + c;")));
 
-		assertThat(code, containsString("return d | e | f;"));
-		assertThat(code, not(containsString("return (d | e) | f;")));
+		assertThat(code, containsString("return a | b | c;"));
+		assertThat(code, not(containsString("return (a | b) | c;")));
 
-		assertThat(code, containsString("return g & h & i;"));
-		assertThat(code, not(containsString("return (g & h) & i;")));
+		assertThat(code, containsString("return a & b & c;"));
+		assertThat(code, not(containsString("return (a & b) & c;")));
 
 		assertThat(code, containsString("return a - (b - c);"));
 		assertThat(code, not(containsString("return a - b - c;")));
@@ -61,5 +61,4 @@ public class TestArith2 extends IntegrationTest {
 		assertThat(code, containsString("return a / (b / c);"));
 		assertThat(code, not(containsString("return a / b / c;")));
 	}
-
 }
