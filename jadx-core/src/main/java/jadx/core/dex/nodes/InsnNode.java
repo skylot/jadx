@@ -6,10 +6,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import com.android.dx.io.instructions.DecodedInstruction;
-import com.rits.cloning.Cloner;
 import org.jetbrains.annotations.Nullable;
 
+import com.android.dx.io.instructions.DecodedInstruction;
+import com.rits.cloning.Cloner;
+
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
@@ -195,6 +197,12 @@ public class InsnNode extends LineAttrNode {
 	}
 
 	public boolean canReorder() {
+		if (contains(AFlag.DONT_GENERATE)) {
+			if (getType() == InsnType.MONITOR_EXIT) {
+				return false;
+			}
+			return true;
+		}
 		switch (getType()) {
 			case CONST:
 			case CONST_STR:
