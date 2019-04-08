@@ -532,8 +532,10 @@ public class InsnGen {
 	}
 
 	private void filledNewArray(FilledNewArrayNode insn, CodeWriter code) throws CodegenException {
-		code.add("new ");
-		useType(code, insn.getArrayType());
+		if (!insn.contains(AFlag.DECLARE_VAR)) {
+			code.add("new ");
+			useType(code, insn.getArrayType());
+		}
 		code.add('{');
 		int c = insn.getArgsCount();
 		for (int i = 0; i < c; i++) {
