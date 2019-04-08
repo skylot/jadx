@@ -165,6 +165,10 @@ public class ExtractFieldInit extends AbstractVisitor {
 		// all checks passed
 		for (InitInfo info : infoList) {
 			for (InsnNode putInsn : info.getPutInsns()) {
+				InsnArg arg = putInsn.getArg(0);
+				if (arg instanceof InsnWrapArg) {
+					((InsnWrapArg) arg).getWrapInsn().add(AFlag.DECLARE_VAR);
+				}
 				InsnRemover.remove(info.getConstrMth(), putInsn);
 			}
 		}
