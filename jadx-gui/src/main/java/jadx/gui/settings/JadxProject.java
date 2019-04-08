@@ -91,11 +91,13 @@ public class JadxProject {
 	}
 
 	public void save() {
-		try (BufferedWriter writer = Files.newBufferedWriter(getProjectPath())) {
-			writer.write(GSON.toJson(this));
-			saved = true;
-		} catch (Exception e) {
-			LOG.error("Error saving project", e);
+		if (getProjectPath() != null) {
+			try (BufferedWriter writer = Files.newBufferedWriter(getProjectPath())) {
+				writer.write(GSON.toJson(this));
+				saved = true;
+			} catch (Exception e) {
+				LOG.error("Error saving project", e);
+			}
 		}
 	}
 
