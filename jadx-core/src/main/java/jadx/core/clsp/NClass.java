@@ -7,6 +7,7 @@ public class NClass {
 
 	private final String name;
 	private NClass[] parents;
+	private NMethod[] methods;
 	private final int id;
 
 	public NClass(String name, int id) {
@@ -50,5 +51,13 @@ public class NClass {
 	@Override
 	public String toString() {
 		return name;
+	}
+
+	public void setMethods(NMethod[] methods) {
+		this.methods = methods;
+	}
+
+	public NMethod[] getMethods() {
+		return methods;
 	}
 }
