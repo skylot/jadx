@@ -1,9 +1,14 @@
 package jadx.core.utils.files;
 
+import static jadx.core.utils.files.FileUtils.isApkFile;
+import static jadx.core.utils.files.FileUtils.isZipDexFile;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -11,19 +16,17 @@ import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import com.android.dex.Dex;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.android.dex.Dex;
+
 import jadx.core.utils.AsmUtils;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-
-import static jadx.core.utils.files.FileUtils.isApkFile;
-import static jadx.core.utils.files.FileUtils.isZipDexFile;
 
 public class InputFile {
 	private static final Logger LOG = LoggerFactory.getLogger(InputFile.class);
@@ -52,7 +55,9 @@ public class InputFile {
 			return;
 		}
 		if (fileName.endsWith(".class")) {
-			addDexFile(loadFromClassFile(file));
+			for (Dex dex : loadFromClassFile(file)) {
+				addDexFile(dex);
+			}
 			return;
 		}
 		if (isApkFile(file) || isZipDexFile(file)) {
@@ -65,7 +70,9 @@ public class InputFile {
 				return;
 			}
 			if (fileName.endsWith(".jar")) {
-				addDexFile(loadFromJar(file));
+				for (Dex dex : loadFromJar(file.toPath())) {
+					addDexFile(dex);
+				}
 				return;
 			}
 			if (fileName.endsWith(".aar")) {
@@ -116,11 +123,11 @@ public class InputFile {
 
 							case ".jar":
 								index++;
-								File jarFile = FileUtils.createTempFile(entryName);
-								try (FileOutputStream fos = new FileOutputStream(jarFile)) {
-									IOUtils.copy(inputStream, fos);
+								Path jarFile = Files.createTempFile(entryName, ".jar");
+								Files.copy(inputStream, jarFile);
+								for (Dex dex : loadFromJar(jarFile)) {
+									addDexFile(entryName, dex);
 								}
-								addDexFile(entryName, loadFromJar(jarFile));
 								break;
 
 							default:
@@ -155,15 +162,19 @@ public class InputFile {
 		}
 	}
 
-	private static Dex loadFromJar(File jarFile) throws DecodeException {
+	private static List<Dex> loadFromJar(Path jar) throws DecodeException {
 		JavaToDex j2d = new JavaToDex();
 		try {
-			LOG.info("converting to dex: {} ...", jarFile.getName());
-			byte[] ba = j2d.convert(jarFile.getAbsolutePath());
-			if (ba.length == 0) {
+			LOG.info("converting to dex: {} ...", jar.getFileName());
+			List<byte[]> byteList = j2d.convert(jar);
+			if (byteList.isEmpty()) {
 				throw new JadxException("Empty dx output");
 			}
-			return new Dex(ba);
+			List<Dex> dexList = new ArrayList<>(byteList.size());
+			for (byte[] b : byteList) {
+				dexList.add(new Dex(b));
+			}
+			return dexList;
 		} catch (Exception e) {
 			throw new DecodeException("java class to dex conversion error:\n " + e.getMessage(), e);
 		} finally {
@@ -173,9 +184,9 @@ public class InputFile {
 		}
 	}
 
-	private static Dex loadFromClassFile(File file) throws IOException, DecodeException {
-		File outFile = FileUtils.createTempFile("cls.jar");
-		try (JarOutputStream jo = new JarOutputStream(new FileOutputStream(outFile))) {
+	private static List<Dex> loadFromClassFile(File file) throws IOException, DecodeException {
+		Path outFile = Files.createTempFile("cls", ".jar");
+		try (JarOutputStream jo = new JarOutputStream(Files.newOutputStream(outFile))) {
 			String clsName = AsmUtils.getNameFromClassFile(file);
 			if (clsName == null || !ZipSecurity.isValidZipEntryName(clsName)) {
 				throw new IOException("Can't read class name from file: " + file);
