@@ -75,8 +75,8 @@ public abstract class ArgType {
 		return new WildcardType(OBJECT, 0);
 	}
 
-	public static ArgType wildcard(ArgType obj, int bound) {
-		return new WildcardType(obj, bound);
+	public static ArgType wildcard(ArgType obj, int bounds) {
+		return new WildcardType(obj, bounds);
 	}
 
 	public static ArgType generic(String sign) {
@@ -214,10 +214,10 @@ public abstract class ArgType {
 		private final ArgType type;
 		private final int bounds;
 
-		public WildcardType(ArgType obj, int bound) {
+		public WildcardType(ArgType obj, int bounds) {
 			super(OBJECT.getObject());
 			this.type = obj;
-			this.bounds = bound;
+			this.bounds = bounds;
 		}
 
 		@Override

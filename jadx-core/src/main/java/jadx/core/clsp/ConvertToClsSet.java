@@ -2,6 +2,8 @@ package jadx.core.clsp;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +30,7 @@ public class ConvertToClsSet {
 			usage();
 			System.exit(1);
 		}
-		File output = new File(args[0]);
+		Path output = Paths.get(args[0]);
 
 		List<InputFile> inputFiles = new ArrayList<>(args.length - 1);
 		for (int i = 1; i < args.length; i++) {

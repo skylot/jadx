@@ -36,7 +36,7 @@ public class InputFile {
 
 	public static void addFilesFrom(File file, List<InputFile> list, boolean... skipSources) throws IOException, DecodeException {
 		InputFile inputFile = new InputFile(file);
-		inputFile.searchDexFiles(skipSources[0]);
+		inputFile.searchDexFiles(skipSources.length == 0 ? false : skipSources[0]);
 		list.add(inputFile);
 	}
 
