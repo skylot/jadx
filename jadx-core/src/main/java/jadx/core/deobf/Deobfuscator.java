@@ -226,7 +226,7 @@ public class Deobfuscator {
 	}
 
 	private void processClass(ClassNode cls) {
-		if (isR(cls) || isR(cls.getParentClass())) {
+		if (isR(cls.getParentClass())) {
 			return;
 		}
 		ClassInfo clsInfo = cls.getClassInfo();
