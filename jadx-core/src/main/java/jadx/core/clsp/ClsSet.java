@@ -369,13 +369,13 @@ public class ClsSet {
 
 	private ArgType readArgType(DataInputStream in) throws IOException {
 		int ordinal = in.readByte();
-		switch(ordinal) {
-			case 0:
+		switch(ARG_TYPE.values()[ordinal]) {
+			case WILDCARD:
 				int bounds = in.readByte();
 				return bounds == 0
 						? ArgType.wildcard()
 						: ArgType.wildcard(readArgType(in), bounds);
-			case 1:
+			case GENERIC:
 				String obj = classes[in.readInt()].getName();
 				int typeLength = in.readByte();
 				ArgType[] generics;
@@ -388,13 +388,13 @@ public class ClsSet {
 					}
 				}
 				return ArgType.generic(obj, generics);
-			case 2:
+			case GENERIC_TYPE:
 				return ArgType.genericType(readString(in));
-			case 3:
+			case OBJECT:
 				return ArgType.object(classes[in.readInt()].getName());
-			case 4:
+			case ARRAY:
 				return ArgType.array(readArgType(in));
-			case 5:
+			case PRIMITIVE:
 				int shortName = in.readByte();
 				switch(shortName) {
 				case 'Z':
