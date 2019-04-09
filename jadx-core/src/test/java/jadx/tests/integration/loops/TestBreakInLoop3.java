@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.io.FileOutputStream;
+
 import org.junit.jupiter.api.Test;
 
 import jadx.NotYetImplemented;
@@ -57,10 +58,4 @@ public class TestBreakInLoop3 extends IntegrationTest {
 	public void test43() throws Exception {
 		getClassNode(TestCls.class);
 	}
-
-	@Test
-	public void success() {
-		new TestBreakInLoop3.TestCls().check();
-	}
-
 }
