@@ -226,6 +226,9 @@ public class Deobfuscator {
 	}
 
 	private void processClass(ClassNode cls) {
+		if (isR(cls.getParentClass())) {
+			return;
+		}
 		ClassInfo clsInfo = cls.getClassInfo();
 		String fullName = getClassFullName(clsInfo);
 		if (!fullName.equals(clsInfo.getFullName())) {
@@ -558,5 +561,28 @@ public class Deobfuscator {
 
 	public PackageNode getRootPackage() {
 		return rootPackage;
+	}
+
+	private static boolean isR(ClassNode cls) {
+		if (!cls.getClassInfo().getShortName().equals("R")) {
+			return false;
+		}
+		if (!cls.getMethods().isEmpty() || !cls.getFields().isEmpty()) {
+			return false;
+		}
+		for (ClassNode inner : cls.getInnerClasses()) {
+			for (MethodNode m : inner.getMethods()) {
+				if (!m.getMethodInfo().isConstructor() && !m.getMethodInfo().isClassInit()) {
+					return false;
+				}
+			}
+			for (FieldNode field : cls.getFields()) {
+				ArgType type = field.getType();
+				if (type != ArgType.INT && (!type.isArray() || type.getArrayElement() != ArgType.INT)) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 }
