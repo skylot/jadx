@@ -156,7 +156,7 @@ public class ConstStorage {
 		String typeName = parts[0];
 		String fieldName = parts[1];
 		for (ClassNode innerClass : appResClass.getInnerClasses()) {
-			if (innerClass.getShortName().equals(typeName)) {
+			if (innerClass.getClassInfo().getShortName().equals(typeName)) {
 				return innerClass.searchFieldByName(fieldName);
 			}
 		}
