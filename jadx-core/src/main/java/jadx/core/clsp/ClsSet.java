@@ -5,10 +5,12 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -158,46 +160,60 @@ public class ClsSet {
 		return cls;
 	}
 
-	void save(File output) throws IOException {
-		FileUtils.makeDirsForFile(output);
-		try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(output))) {
-			String outputName = output.getName();
-			if (outputName.endsWith(CLST_EXTENSION)) {
+	void save(Path path) throws IOException {
+		Files.createDirectories(path.getParent());
+		String outputName = path.getFileName().toString();
+		if (outputName.endsWith(CLST_EXTENSION)) {
+			try (BufferedOutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(path))) {
 				save(outputStream);
-			} else if (outputName.endsWith(".jar")) {
-				try (ZipOutputStream out = new ZipOutputStream(outputStream)) {
-					out.putNextEntry(new ZipEntry(CLST_PKG_PATH + '/' + CLST_FILENAME));
-					save(out);
-				}
-			} else {
-				throw new JadxRuntimeException("Unknown file format: " + outputName);
 			}
+		} else if (outputName.endsWith(".jar")) {
+			Path temp = Files.createTempFile("jadx", ".zip");
+			Files.copy(path, temp, StandardCopyOption.REPLACE_EXISTING);
+
+			try (ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(path));
+					ZipInputStream in = new ZipInputStream(Files.newInputStream(temp))) {
+				String clst = CLST_PKG_PATH + '/' + CLST_FILENAME;
+				out.putNextEntry(new ZipEntry(clst));
+				save(out);
+				ZipEntry entry = in.getNextEntry();
+				while (entry != null) {
+					if (!entry.getName().equals(clst)) {
+						out.putNextEntry(new ZipEntry(entry.getName()));
+						FileUtils.copyStream(in, out);
+					}
+					entry = in.getNextEntry();
+				}
+			}
+			Files.delete(temp);
+
+		} else {
+			throw new JadxRuntimeException("Unknown file format: " + outputName);
 		}
 	}
 
 	public void save(OutputStream output) throws IOException {
-		try (DataOutputStream out = new DataOutputStream(output)) {
-			out.writeBytes(JADX_CLS_SET_HEADER);
-			out.writeByte(VERSION);
+		DataOutputStream out = new DataOutputStream(output);
+		out.writeBytes(JADX_CLS_SET_HEADER);
+		out.writeByte(VERSION);
 
-			LOG.info("Classes count: {}", classes.length);
-			Map<String, NClass> names = new HashMap<>(classes.length);
-			out.writeInt(classes.length);
-			for (NClass cls : classes) {
-				writeString(out, cls.getName());
-				names.put(cls.getName(), cls);
+		LOG.info("Classes count: {}", classes.length);
+		Map<String, NClass> names = new HashMap<>(classes.length);
+		out.writeInt(classes.length);
+		for (NClass cls : classes) {
+			writeString(out, cls.getName());
+			names.put(cls.getName(), cls);
+		}
+		for (NClass cls : classes) {
+			NClass[] parents = cls.getParents();
+			out.writeByte(parents.length);
+			for (NClass parent : parents) {
+				out.writeInt(parent.getId());
 			}
-			for (NClass cls : classes) {
-				NClass[] parents = cls.getParents();
-				out.writeByte(parents.length);
-				for (NClass parent : parents) {
-					out.writeInt(parent.getId());
-				}
-				NMethod[] methods = cls.getMethods();
-				out.writeByte(methods.length);
-				for (NMethod method : methods) {
-					writeMethod(out, method, names);
-				}
+			NMethod[] methods = cls.getMethods();
+			out.writeByte(methods.length);
+			for (NMethod method : methods) {
+				writeMethod(out, method, names);
 			}
 		}
 	}
