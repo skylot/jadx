@@ -1,57 +1,66 @@
 package jadx.tests.integration.loops;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import org.junit.jupiter.api.Test;
 
 import jadx.NotYetImplemented;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 public class TestBreakInLoop3 extends IntegrationTest {
 
 	public static class TestCls {
 
-		public static void writeMore(String fid) {
+		private StringBuilder builder = new StringBuilder();
+
+		public void writeMore(String fid) {
 			boolean tryMkdir = true;
 			File ff = new File(fid);
 			while (true) {
-				prt("before try");
+				prt("1");
 				try {
 					new FileOutputStream(fid).close();
 				} catch (Exception ex) {
 					if (tryMkdir) {  // On first error, try creating the base dirs.
 						tryMkdir = false;
-						prt("  then block of if stmt in catch, before 'continue'");
+						prt("2");
 						continue;
 					}
-					prt("  after if stmt in catch block");
+					prt("3");
 					if (ff.exists()) {
-						prt("then more stuff");
+						prt("4");
 					} else {
-						prt("else more stuff");
+						prt("5");
 					}
-					prt("  end of after if stmt in catch block");
+					prt("6");
 				}
-				prt("after catch, before break");
+				prt("7");
 				break;
 			} // end of while true, loop to allow retry of fos.write after mkdir
-			prt("after while loop");
+			prt("8");
 		} // end of writeMore
 
-		private static void prt(String s) {
-			System.out.println(s);
+		private void prt(String s) {
+			builder.append(s);
+		}
+
+		public void check() {
+			writeMore("");
+			assertEquals("12135678", builder.toString());
 		}
 	}
 
 	@Test
 	@NotYetImplemented
 	public void test43() throws Exception {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("continue;"));
+		getClassNode(TestCls.class);
 	}
+
+	@Test
+	public void success() {
+		new TestBreakInLoop3.TestCls().check();
+	}
+
 }
