@@ -82,6 +82,6 @@ public class TestFieldInitInTryCatch extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls3.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("public static final String[] a = new String[]{\"a\"};"));
+		assertThat(code, containsOne("public static final String[] a = {\"a\"};"));
 	}
 }
