@@ -30,11 +30,11 @@ public class JadxArgs {
 	private boolean useImports = true;
 	private boolean debugInfo = true;
 
-	private boolean isSkipResources = false;
-	private boolean isSkipSources = false;
+	private boolean skipResources = false;
+	private boolean skipSources = false;
 
-	private boolean isDeobfuscationOn = false;
-	private boolean isDeobfuscationForceSave = false;
+	private boolean deobfuscationOn = false;
+	private boolean deobfuscationForceSave = false;
 	private boolean useSourceNameAsClassAlias = false;
 
 	private int deobfuscationMinLength = 0;
@@ -45,7 +45,11 @@ public class JadxArgs {
 	private boolean respectBytecodeAccModifiers = false;
 	private boolean exportAsGradleProject = false;
 
-	private boolean isFsCaseSensitive;
+	private boolean fsCaseSensitive;
+
+	private boolean renameCaseSensitive = true;
+	private boolean renameValid = true;
+	private boolean renamePrintable = true;
 
 	public JadxArgs() {
 		// use default options
@@ -150,35 +154,35 @@ public class JadxArgs {
 	}
 
 	public boolean isSkipResources() {
-		return isSkipResources;
+		return skipResources;
 	}
 
 	public void setSkipResources(boolean skipResources) {
-		isSkipResources = skipResources;
+		this.skipResources = skipResources;
 	}
 
 	public boolean isSkipSources() {
-		return isSkipSources;
+		return skipSources;
 	}
 
 	public void setSkipSources(boolean skipSources) {
-		isSkipSources = skipSources;
+		this.skipSources = skipSources;
 	}
 
 	public boolean isDeobfuscationOn() {
-		return isDeobfuscationOn;
+		return deobfuscationOn;
 	}
 
 	public void setDeobfuscationOn(boolean deobfuscationOn) {
-		isDeobfuscationOn = deobfuscationOn;
+		this.deobfuscationOn = deobfuscationOn;
 	}
 
 	public boolean isDeobfuscationForceSave() {
-		return isDeobfuscationForceSave;
+		return deobfuscationForceSave;
 	}
 
 	public void setDeobfuscationForceSave(boolean deobfuscationForceSave) {
-		isDeobfuscationForceSave = deobfuscationForceSave;
+		this.deobfuscationForceSave = deobfuscationForceSave;
 	}
 
 	public boolean isUseSourceNameAsClassAlias() {
@@ -238,11 +242,35 @@ public class JadxArgs {
 	}
 
 	public boolean isFsCaseSensitive() {
-		return isFsCaseSensitive;
+		return fsCaseSensitive;
 	}
 
 	public void setFsCaseSensitive(boolean fsCaseSensitive) {
-		isFsCaseSensitive = fsCaseSensitive;
+		this.fsCaseSensitive = fsCaseSensitive;
+	}
+
+	public boolean isRenameCaseSensitive() {
+		return renameCaseSensitive;
+	}
+
+	public void setRenameCaseSensitive(boolean renameCaseSensitive) {
+		this.renameCaseSensitive = renameCaseSensitive;
+	}
+
+	public boolean isRenameValid() {
+		return renameValid;
+	}
+
+	public void setRenameValid(boolean renameValid) {
+		this.renameValid = renameValid;
+	}
+
+	public boolean isRenamePrintable() {
+		return renamePrintable;
+	}
+
+	public void setRenamePrintable(boolean renamePrintable) {
+		this.renamePrintable = renamePrintable;
 	}
 
 	@Override
@@ -257,10 +285,10 @@ public class JadxArgs {
 			       ", fallbackMode=" + fallbackMode +
 			       ", showInconsistentCode=" + showInconsistentCode +
 			       ", useImports=" + useImports +
-			       ", isSkipResources=" + isSkipResources +
-			       ", isSkipSources=" + isSkipSources +
-			       ", isDeobfuscationOn=" + isDeobfuscationOn +
-			       ", isDeobfuscationForceSave=" + isDeobfuscationForceSave +
+			       ", skipResources=" + skipResources +
+			       ", skipSources=" + skipSources +
+			       ", deobfuscationOn=" + deobfuscationOn +
+			       ", deobfuscationForceSave=" + deobfuscationForceSave +
 			       ", useSourceNameAsClassAlias=" + useSourceNameAsClassAlias +
 			       ", deobfuscationMinLength=" + deobfuscationMinLength +
 			       ", deobfuscationMaxLength=" + deobfuscationMaxLength +
@@ -268,6 +296,10 @@ public class JadxArgs {
 			       ", replaceConsts=" + replaceConsts +
 			       ", respectBytecodeAccModifiers=" + respectBytecodeAccModifiers +
 			       ", exportAsGradleProject=" + exportAsGradleProject +
+			       ", fsCaseSensitive=" + fsCaseSensitive +
+			       ", renameCaseSensitive=" + renameCaseSensitive +
+			       ", renameValid=" + renameValid +
+			       ", renamePrintable=" + renamePrintable +
 			       '}';
 	}
 }

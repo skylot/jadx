@@ -51,6 +51,7 @@ public class JadxSettingsWindow extends JDialog {
 		panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		panel.add(makeDeobfuscationGroup());
+		panel.add(makeRenameGroup());
 		panel.add(makeDecompilationGroup());
 		panel.add(makeProjectGroup());
 		panel.add(makeEditorGroup());
@@ -163,6 +164,35 @@ public class JadxSettingsWindow extends JDialog {
 		deobfOn.addItemListener(e -> enableComponentList(connectedComponents, e.getStateChange() == ItemEvent.SELECTED));
 		enableComponentList(connectedComponents, settings.isDeobfuscationOn());
 		return deobfGroup;
+	}
+
+	private SettingsGroup makeRenameGroup() {
+		JCheckBox renameCaseSensitive = new JCheckBox();
+		renameCaseSensitive.setSelected(settings.isRenameCaseSensitive());
+		renameCaseSensitive.addItemListener(e -> {
+			settings.setRenameCaseSensitive(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
+		JCheckBox renameValid = new JCheckBox();
+		renameValid.setSelected(settings.isRenameValid());
+		renameValid.addItemListener(e -> {
+			settings.setRenameValid(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
+		JCheckBox renamePrintable = new JCheckBox();
+		renamePrintable.setSelected(settings.isRenamePrintable());
+		renamePrintable.addItemListener(e -> {
+			settings.setRenamePrintable(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
+		SettingsGroup group = new SettingsGroup(NLS.str("preferences.rename"));
+		group.addRow(NLS.str("preferences.rename_case"), renameCaseSensitive);
+		group.addRow(NLS.str("preferences.rename_valid"), renameValid);
+		group.addRow(NLS.str("preferences.rename_printable"), renamePrintable);
+		return group;
 	}
 
 	private void enableComponentList(Collection<JComponent> connectedComponents, boolean enabled) {

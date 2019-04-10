@@ -43,17 +43,17 @@ public class RenameVisitor extends AbstractVisitor {
 		if (deobfuscationOn) {
 			deobfuscator.execute();
 		}
-		checkClasses(root, args.isFsCaseSensitive());
+		checkClasses(root, args);
 	}
 
-	private void checkClasses(RootNode root, boolean caseSensitive) {
+	private void checkClasses(RootNode root, JadxArgs args) {
 		List<ClassNode> classes = root.getClasses(true);
 		for (ClassNode cls : classes) {
 			checkClassName(cls);
 			checkFields(cls);
 			checkMethods(cls);
 		}
-		if (!caseSensitive) {
+		if (!args.isFsCaseSensitive() && args.isRenameCaseSensitive()) {
 			Set<String> clsFullPaths = new HashSet<>(classes.size());
 			for (ClassNode cls : classes) {
 				ClassInfo clsInfo = cls.getClassInfo();
@@ -74,7 +74,7 @@ public class RenameVisitor extends AbstractVisitor {
 		ClassInfo alias = classInfo.getAlias();
 		String clsName = alias.getShortName();
 
-		String newShortName = fixClsShortName(clsName);
+		String newShortName = fixClsShortName(cls.root().getArgs(), clsName);
 		if (!newShortName.equals(clsName)) {
 			classInfo.rename(cls.root(), alias.makeFullClsName(newShortName, true));
 			alias = classInfo.getAlias();
@@ -86,16 +86,19 @@ public class RenameVisitor extends AbstractVisitor {
 		}
 	}
 
-	private String fixClsShortName(String clsName) {
+	private String fixClsShortName(JadxArgs args, String clsName) {
 		char firstChar = clsName.charAt(0);
-		if (Character.isDigit(firstChar)) {
+		boolean renameValid = args.isRenameValid();
+		if (Character.isDigit(firstChar) && renameValid) {
 			return Consts.ANONYMOUS_CLASS_PREFIX + NameMapper.removeInvalidCharsMiddle(clsName);
 		}
-		if (firstChar == '$') {
+		if (firstChar == '$' && renameValid) {
 			return 'C' + NameMapper.removeInvalidCharsMiddle(clsName);
 		}
-		String cleanClsName = NameMapper.removeInvalidChars(clsName, "C");
-		if (!NameMapper.isValidIdentifier(cleanClsName)) {
+		String cleanClsName = args.isRenamePrintable()
+				? NameMapper.removeInvalidChars(clsName, "C")
+				: clsName;
+		if (renameValid && !NameMapper.isValidIdentifier(cleanClsName)) {
 			return 'C' + cleanClsName;
 		}
 		return cleanClsName;

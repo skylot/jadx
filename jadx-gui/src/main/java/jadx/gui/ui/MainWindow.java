@@ -166,6 +166,7 @@ public class MainWindow extends JFrame {
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
+			@Override
 			public void windowClosing(WindowEvent e) {
 				closeWindow();
 			}
@@ -386,6 +387,16 @@ public class MainWindow extends JFrame {
 	}
 
 	private void saveAll(boolean export) {
+		JadxArgs decompilerArgs = wrapper.getArgs();
+		if ((!decompilerArgs.isFsCaseSensitive() && !decompilerArgs.isRenameCaseSensitive())
+				|| !decompilerArgs.isRenameValid() || !decompilerArgs.isRenamePrintable()) {
+			JOptionPane.showMessageDialog(
+					this,
+					NLS.str("msg.rename_disabled", settings.getLangLocale()),
+					NLS.str("msg.rename_disabled_title", settings.getLangLocale()),
+					JOptionPane.INFORMATION_MESSAGE
+			);
+		}
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		fileChooser.setToolTipText(NLS.str("file.save_all_msg"));
@@ -397,7 +408,6 @@ public class MainWindow extends JFrame {
 
 		int ret = fileChooser.showSaveDialog(mainPanel);
 		if (ret == JFileChooser.APPROVE_OPTION) {
-			JadxArgs decompilerArgs = wrapper.getArgs();
 			decompilerArgs.setExportAsGradleProject(export);
 			if (export) {
 				decompilerArgs.setSkipSources(false);
