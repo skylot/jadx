@@ -92,6 +92,10 @@ public class ExtractFieldInit extends AbstractVisitor {
 				if (initInsns.size() == 1) {
 					InsnNode insn = initInsns.get(0);
 					if (checkInsn(insn)) {
+						InsnArg arg = insn.getArg(0);
+						if (arg instanceof InsnWrapArg) {
+							((InsnWrapArg) arg).getWrapInsn().add(AFlag.DECLARE_VAR);
+						}
 						InsnRemover.remove(classInitMth, insn);
 						addFieldInitAttr(classInitMth, field, insn);
 					}

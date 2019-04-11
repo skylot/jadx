@@ -11,7 +11,8 @@ public class TestArrayInitField extends IntegrationTest {
 
 	public static class TestCls {
 
-		byte[] bytes = new byte[]{10, 20, 30};
+		static byte[] a = new byte[]{10, 20, 30};
+		byte[] b = new byte[]{40, 50, 60};
 	}
 
 	@Test
@@ -20,5 +21,6 @@ public class TestArrayInitField extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsString("= {10, 20, 30};"));
+		assertThat(code, containsString("= {40, 50, 60};"));
 	}
 }
