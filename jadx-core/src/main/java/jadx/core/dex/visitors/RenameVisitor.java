@@ -110,7 +110,8 @@ public class RenameVisitor extends AbstractVisitor {
 			FieldInfo fieldInfo = field.getFieldInfo();
 			String fieldName = fieldInfo.getAlias();
 			if (!names.add(fieldName)
-					|| (args.isRenameValid() && !NameMapper.isValidIdentifier(fieldName))) {
+					|| (args.isRenameValid() && !NameMapper.isValidIdentifier(fieldName))
+					|| (args.isRenamePrintable() && !NameMapper.isAllCharsPrintable(fieldName))) {
 				deobfuscator.forceRenameField(field);
 			}
 		}
@@ -118,7 +119,9 @@ public class RenameVisitor extends AbstractVisitor {
 
 	private void checkMethods(ClassNode cls, JadxArgs args) {
 		for (MethodNode mth : cls.getMethods()) {
-			if (args.isRenameValid() && !NameMapper.isValidIdentifier(mth.getAlias())) {
+			String alias = mth.getAlias();
+			if (args.isRenameValid() && !NameMapper.isValidIdentifier(alias)
+					|| (args.isRenamePrintable() && !NameMapper.isAllCharsPrintable(alias))) {
 				deobfuscator.forceRenameMethod(mth);
 			}
 		}
