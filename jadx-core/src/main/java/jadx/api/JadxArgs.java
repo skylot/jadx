@@ -256,7 +256,11 @@ public class JadxArgs {
 	}
 
 	public void setRenameCaseSensitive(boolean renameCaseSensitive) {
-		renameFlags.add(RENAME.CASE);
+		if (renameCaseSensitive && !isRenameCaseSensitive()) {
+			renameFlags.add(RENAME.CASE);
+		} else if (!renameCaseSensitive && isRenameCaseSensitive()) {
+			renameFlags.remove(RENAME.CASE);
+		}
 	}
 
 	public boolean isRenameValid() {
@@ -264,7 +268,11 @@ public class JadxArgs {
 	}
 
 	public void setRenameValid(boolean renameValid) {
-		renameFlags.add(RENAME.VALID);
+		if (renameValid && !isRenameValid()) {
+			renameFlags.add(RENAME.VALID);
+		} else if (!renameValid && isRenameValid()) {
+			renameFlags.remove(RENAME.VALID);
+		}
 	}
 
 	public boolean isRenamePrintable() {
@@ -272,7 +280,11 @@ public class JadxArgs {
 	}
 
 	public void setRenamePrintable(boolean renamePrintable) {
-		renameFlags.add(RENAME.PRINTABLE);
+		if (renamePrintable && !isRenamePrintable()) {
+			renameFlags.add(RENAME.PRINTABLE);
+		} else if (!renamePrintable && isRenamePrintable()) {
+			renameFlags.remove(RENAME.PRINTABLE);
+		}
 	}
 
 	@Override
