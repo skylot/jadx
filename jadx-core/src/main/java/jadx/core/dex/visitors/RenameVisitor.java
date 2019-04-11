@@ -49,9 +49,9 @@ public class RenameVisitor extends AbstractVisitor {
 	private void checkClasses(RootNode root, JadxArgs args) {
 		List<ClassNode> classes = root.getClasses(true);
 		for (ClassNode cls : classes) {
-			checkClassName(cls);
-			checkFields(cls);
-			checkMethods(cls);
+			checkClassName(cls, args);
+			checkFields(cls, args);
+			checkMethods(cls, args);
 		}
 		if (!args.isFsCaseSensitive() && args.isRenameCaseSensitive()) {
 			Set<String> clsFullPaths = new HashSet<>(classes.size());
@@ -69,12 +69,12 @@ public class RenameVisitor extends AbstractVisitor {
 		}
 	}
 
-	private void checkClassName(ClassNode cls) {
+	private void checkClassName(ClassNode cls, JadxArgs args) {
 		ClassInfo classInfo = cls.getClassInfo();
 		ClassInfo alias = classInfo.getAlias();
 		String clsName = alias.getShortName();
 
-		String newShortName = fixClsShortName(cls.root().getArgs(), clsName);
+		String newShortName = fixClsShortName(args, clsName);
 		if (!newShortName.equals(clsName)) {
 			classInfo.rename(cls.root(), alias.makeFullClsName(newShortName, true));
 			alias = classInfo.getAlias();
@@ -104,20 +104,21 @@ public class RenameVisitor extends AbstractVisitor {
 		return cleanClsName;
 	}
 
-	private void checkFields(ClassNode cls) {
+	private void checkFields(ClassNode cls, JadxArgs args) {
 		Set<String> names = new HashSet<>();
 		for (FieldNode field : cls.getFields()) {
 			FieldInfo fieldInfo = field.getFieldInfo();
 			String fieldName = fieldInfo.getAlias();
-			if (!names.add(fieldName) || !NameMapper.isValidIdentifier(fieldName)) {
+			if (!names.add(fieldName)
+					|| (args.isRenameValid() && !NameMapper.isValidIdentifier(fieldName))) {
 				deobfuscator.forceRenameField(field);
 			}
 		}
 	}
 
-	private void checkMethods(ClassNode cls) {
+	private void checkMethods(ClassNode cls, JadxArgs args) {
 		for (MethodNode mth : cls.getMethods()) {
-			if (!NameMapper.isValidIdentifier(mth.getAlias())) {
+			if (args.isRenameValid() && !NameMapper.isValidIdentifier(mth.getAlias())) {
 				deobfuscator.forceRenameMethod(mth);
 			}
 		}
