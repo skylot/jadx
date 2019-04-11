@@ -3,7 +3,9 @@ package jadx.api;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 public class JadxArgs {
 
@@ -47,9 +49,9 @@ public class JadxArgs {
 
 	private boolean fsCaseSensitive;
 
-	private boolean renameCaseSensitive = true;
-	private boolean renameValid = true;
-	private boolean renamePrintable = true;
+	public enum RENAME {CASE, VALID, PRINTABLE}
+
+	private Set<RENAME> renameFlags = EnumSet.allOf(RENAME.class);
 
 	public JadxArgs() {
 		// use default options
@@ -250,27 +252,27 @@ public class JadxArgs {
 	}
 
 	public boolean isRenameCaseSensitive() {
-		return renameCaseSensitive;
+		return renameFlags.contains(RENAME.CASE);
 	}
 
 	public void setRenameCaseSensitive(boolean renameCaseSensitive) {
-		this.renameCaseSensitive = renameCaseSensitive;
+		renameFlags.add(RENAME.CASE);
 	}
 
 	public boolean isRenameValid() {
-		return renameValid;
+		return renameFlags.contains(RENAME.VALID);
 	}
 
 	public void setRenameValid(boolean renameValid) {
-		this.renameValid = renameValid;
+		renameFlags.add(RENAME.VALID);
 	}
 
 	public boolean isRenamePrintable() {
-		return renamePrintable;
+		return renameFlags.contains(RENAME.PRINTABLE);
 	}
 
 	public void setRenamePrintable(boolean renamePrintable) {
-		this.renamePrintable = renamePrintable;
+		renameFlags.add(RENAME.PRINTABLE);
 	}
 
 	@Override
@@ -297,9 +299,9 @@ public class JadxArgs {
 			       ", respectBytecodeAccModifiers=" + respectBytecodeAccModifiers +
 			       ", exportAsGradleProject=" + exportAsGradleProject +
 			       ", fsCaseSensitive=" + fsCaseSensitive +
-			       ", renameCaseSensitive=" + renameCaseSensitive +
-			       ", renameValid=" + renameValid +
-			       ", renamePrintable=" + renamePrintable +
+			       ", renameCaseSensitive=" + isRenameCaseSensitive() +
+			       ", renameValid=" + isRenameValid() +
+			       ", renamePrintable=" + isRenamePrintable() +
 			       '}';
 	}
 }

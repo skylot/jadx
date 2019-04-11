@@ -1,7 +1,7 @@
 package jadx.cli;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -17,6 +17,7 @@ import com.beust.jcommander.Parameter;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import jadx.api.JadxArgs;
+import jadx.api.JadxArgs.RENAME;
 import jadx.api.JadxDecompiler;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.FileUtils;
@@ -89,11 +90,9 @@ public class JadxCLIArgs {
 	@Parameter(names = {"-f", "--fallback"}, description = "make simple dump (using goto instead of 'if', 'for', etc)")
 	protected boolean fallbackMode = false;
 
-	enum RENAME {CASE, VALID, PRINTABLE}
-
 	@Parameter(names = {"--rename-flags"}, description = "what to rename, comma-separated, 'case' for system case sensitivity, 'valid' for java identifiers, 'printable' characters, 'none' or 'all'",
 			converter = RenameConverter.class)
-	protected Set<RENAME> renameFlags = new HashSet<>(Arrays.asList(RENAME.CASE, RENAME.VALID, RENAME.PRINTABLE));
+	protected Set<RENAME> renameFlags = EnumSet.allOf(RENAME.class);
 
 	@Parameter(names = {"-v", "--verbose"}, description = "verbose output")
 	protected boolean verbose = false;
@@ -308,18 +307,33 @@ public class JadxCLIArgs {
 
 	static class RenameConverter implements IStringConverter<Set<RENAME>> {
 
+		private final String paramName;
+
+		RenameConverter(String paramName) {
+			this.paramName = paramName;
+		}
+
 		@Override
 		public Set<RENAME> convert(String value) {
-			value = value.toUpperCase(Locale.ROOT);
 			Set<RENAME> set = new HashSet<>();
-			if (value.equals("ALL")) {
+			if (value.equalsIgnoreCase("ALL")) {
 				set.add(RENAME.CASE);
 				set.add(RENAME.VALID);
 				set.add(RENAME.PRINTABLE);
 			} else if (!value.equals("NONE")) {
 				for (String s : value.split(",")) {
-					set.add(RENAME.valueOf(s));
+					try {
+						set.add(RENAME.valueOf(s.toUpperCase(Locale.ROOT)));
+					} catch (IllegalArgumentException e) {
+						String values = "'" + RENAME.CASE
+								+ "', '" + RENAME.VALID
+								+ "' and '" + RENAME.PRINTABLE + '\'';
+						throw new IllegalArgumentException(
+								s + " is unknown for parameter " + paramName
+								+ ", possible values are " + values.toLowerCase(Locale.ROOT));
+					}
 				}
+
 			}
 			return set;
 		}

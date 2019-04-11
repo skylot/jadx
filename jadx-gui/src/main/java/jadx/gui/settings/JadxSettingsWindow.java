@@ -10,9 +10,6 @@ import java.awt.Insets;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -37,7 +34,6 @@ import javax.swing.WindowConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.core.utils.files.FileUtils;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.LangLocale;
@@ -216,23 +212,9 @@ public class JadxSettingsWindow extends JDialog {
 		});
 
 		SettingsGroup group = new SettingsGroup(NLS.str("preferences.rename"));
-		JLabel renameCaseSensitiveLabel
-			= group.addRow(NLS.str("preferences.rename_case"), renameCaseSensitive);
+		group.addRow(NLS.str("preferences.rename_case"), renameCaseSensitive);
 		group.addRow(NLS.str("preferences.rename_valid"), renameValid);
 		group.addRow(NLS.str("preferences.rename_printable"), renamePrintable);
-
-		File dir = FileUtils.createTempDir("jadx");
-		if (FileUtils.isCaseSensitiveFS(dir)) {
-			renameCaseSensitive.setSelected(false);
-			renameCaseSensitive.setEnabled(false);
-			renameCaseSensitiveLabel.setEnabled(false);
-		}
-
-		try {
-			Files.delete(dir.toPath());
-		} catch (IOException e) {
-			// ignore
-		}
 		return group;
 	}
 
