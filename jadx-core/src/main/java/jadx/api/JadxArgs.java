@@ -311,9 +311,7 @@ public class JadxArgs {
 			       ", respectBytecodeAccModifiers=" + respectBytecodeAccModifiers +
 			       ", exportAsGradleProject=" + exportAsGradleProject +
 			       ", fsCaseSensitive=" + fsCaseSensitive +
-			       ", renameCaseSensitive=" + isRenameCaseSensitive() +
-			       ", renameValid=" + isRenameValid() +
-			       ", renamePrintable=" + isRenamePrintable() +
+			       ", renameFlags=" + renameFlags +
 			       '}';
 	}
 }
