@@ -320,7 +320,7 @@ public class JadxCLIArgs {
 				set.add(RENAME.CASE);
 				set.add(RENAME.VALID);
 				set.add(RENAME.PRINTABLE);
-			} else if (!value.equals("NONE")) {
+			} else if (!value.equalsIgnoreCase("NONE")) {
 				for (String s : value.split(",")) {
 					try {
 						set.add(RENAME.valueOf(s.toUpperCase(Locale.ROOT)));
@@ -333,7 +333,6 @@ public class JadxCLIArgs {
 								+ ", possible values are " + values.toLowerCase(Locale.ROOT));
 					}
 				}
-
 			}
 			return set;
 		}
