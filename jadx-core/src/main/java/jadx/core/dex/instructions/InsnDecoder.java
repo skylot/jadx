@@ -579,13 +579,7 @@ public class InsnDecoder {
 						InsnArg.reg(insn, 0, ArgType.UNKNOWN_OBJECT));
 
 			default:
-				try {
-					throw new DecodeException("Unknown instruction: '" + OpcodeInfo.getName(insn.getOpcode()) + '\'');
-				} catch (IllegalArgumentException e) {
-					String opcode = "0x" + Integer.toHexString(insn.getOpcode());
-					LOG.warn("Unknown instruction: '" + opcode + "', replaced with NOP");
-					return new InsnNode(InsnType.NOP, 0);
-				}
+				throw new DecodeException("Unknown instruction: '" + OpcodeInfo.getName(insn.getOpcode()) + '\'');
 		}
 	}
 

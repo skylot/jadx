@@ -218,7 +218,7 @@ public class ReSugarCode extends AbstractVisitor {
 
 	private static void initClsEnumMap(ClassNode enumCls) {
 		MethodNode clsInitMth = enumCls.getClassInitMth();
-		if (clsInitMth == null || clsInitMth.isNoCode()) {
+		if (clsInitMth == null || clsInitMth.isNoCode() || clsInitMth.getBasicBlocks() == null) {
 			return;
 		}
 		EnumMapAttr mapAttr = new EnumMapAttr();
