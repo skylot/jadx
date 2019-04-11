@@ -1,22 +1,49 @@
 package jadx.gui.settings;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collection;
 
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import say.swing.JFontChooser;
 
+import jadx.core.utils.files.FileUtils;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
+import say.swing.JFontChooser;
 
 public class JadxSettingsWindow extends JDialog {
 	private static final long serialVersionUID = -1804570470377354148L;
@@ -189,9 +216,23 @@ public class JadxSettingsWindow extends JDialog {
 		});
 
 		SettingsGroup group = new SettingsGroup(NLS.str("preferences.rename"));
-		group.addRow(NLS.str("preferences.rename_case"), renameCaseSensitive);
+		JLabel renameCaseSensitiveLabel
+			= group.addRow(NLS.str("preferences.rename_case"), renameCaseSensitive);
 		group.addRow(NLS.str("preferences.rename_valid"), renameValid);
 		group.addRow(NLS.str("preferences.rename_printable"), renamePrintable);
+
+		File dir = FileUtils.createTempDir("jadx");
+		if (FileUtils.isCaseSensitiveFS(dir)) {
+			renameCaseSensitive.setSelected(false);
+			renameCaseSensitive.setEnabled(false);
+			renameCaseSensitiveLabel.setEnabled(false);
+		}
+
+		try {
+			Files.delete(dir.toPath());
+		} catch (IOException e) {
+			// ignore
+		}
 		return group;
 	}
 
