@@ -33,7 +33,7 @@ public class TestAnonymousClass2 extends IntegrationTest {
 					}
 				};
 			}
-			/*
+
 			public Runnable test3() {
 				final int i = f + 2;
 				return new Runnable() {
@@ -43,7 +43,6 @@ public class TestAnonymousClass2 extends IntegrationTest {
 					}
 				};
 			}
-			*/
 		}
 	}
 
@@ -55,7 +54,7 @@ public class TestAnonymousClass2 extends IntegrationTest {
 		assertThat(code, not(containsString("synthetic")));
 		assertThat(code, not(containsString("AnonymousClass_")));
 		assertThat(code, containsString("f = 1;"));
-//		assertThat(code, containsString("f = i;"));
+		assertThat(code, containsString("f = i;"));
 		assertThat(code, not(containsString("Inner obj = ;")));
 		assertThat(code, containsString("Inner.this;"));
 	}
