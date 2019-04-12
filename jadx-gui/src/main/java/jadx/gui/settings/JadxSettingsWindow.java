@@ -83,18 +83,22 @@ public class JadxSettingsWindow extends JDialog {
 		JButton saveBtn = new JButton(NLS.str("preferences.save"));
 		saveBtn.addActionListener(event -> {
 			settings.sync();
-			if (needReload) {
-				mainWindow.reOpenFile();
-			}
-			if (!settings.getLangLocale().equals(prevLang)) {
-				JOptionPane.showMessageDialog(
-						this,
-						NLS.str("msg.language_changed", settings.getLangLocale()),
-						NLS.str("msg.language_changed_title", settings.getLangLocale()),
-						JOptionPane.INFORMATION_MESSAGE
-				);
-			}
-			dispose();
+			enableComponents(this, false);
+
+			SwingUtilities.invokeLater(() -> {
+				if (needReload) {
+					mainWindow.reOpenFile();
+				}
+				if (!settings.getLangLocale().equals(prevLang)) {
+					JOptionPane.showMessageDialog(
+							this,
+							NLS.str("msg.language_changed", settings.getLangLocale()),
+							NLS.str("msg.language_changed_title", settings.getLangLocale()),
+							JOptionPane.INFORMATION_MESSAGE
+							);
+				}
+				dispose();
+			});
 		});
 		JButton cancelButton = new JButton(NLS.str("preferences.cancel"));
 		cancelButton.addActionListener(event -> {
@@ -138,6 +142,15 @@ public class JadxSettingsWindow extends JDialog {
 		contentPane.add(buttonPane, BorderLayout.PAGE_END);
 		getRootPane().setDefaultButton(saveBtn);
 	}
+
+	private static void enableComponents(Container container, boolean enable) {
+        for (Component component : container.getComponents()) {
+            if (component instanceof Container) {
+                enableComponents((Container) component, enable);
+            }
+            component.setEnabled(enable);
+        }
+    }
 
 	private SettingsGroup makeDeobfuscationGroup() {
 		JCheckBox deobfOn = new JCheckBox();
