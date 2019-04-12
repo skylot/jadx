@@ -1,22 +1,45 @@
 package jadx.gui.settings;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Collection;
 
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import say.swing.JFontChooser;
 
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
+import say.swing.JFontChooser;
 
 public class JadxSettingsWindow extends JDialog {
 	private static final long serialVersionUID = -1804570470377354148L;
@@ -51,6 +74,7 @@ public class JadxSettingsWindow extends JDialog {
 		panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		panel.add(makeDeobfuscationGroup());
+		panel.add(makeRenameGroup());
 		panel.add(makeDecompilationGroup());
 		panel.add(makeProjectGroup());
 		panel.add(makeEditorGroup());
@@ -163,6 +187,35 @@ public class JadxSettingsWindow extends JDialog {
 		deobfOn.addItemListener(e -> enableComponentList(connectedComponents, e.getStateChange() == ItemEvent.SELECTED));
 		enableComponentList(connectedComponents, settings.isDeobfuscationOn());
 		return deobfGroup;
+	}
+
+	private SettingsGroup makeRenameGroup() {
+		JCheckBox renameCaseSensitive = new JCheckBox();
+		renameCaseSensitive.setSelected(settings.isRenameCaseSensitive());
+		renameCaseSensitive.addItemListener(e -> {
+			settings.setRenameCaseSensitive(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
+		JCheckBox renameValid = new JCheckBox();
+		renameValid.setSelected(settings.isRenameValid());
+		renameValid.addItemListener(e -> {
+			settings.setRenameValid(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
+		JCheckBox renamePrintable = new JCheckBox();
+		renamePrintable.setSelected(settings.isRenamePrintable());
+		renamePrintable.addItemListener(e -> {
+			settings.setRenamePrintable(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
+		SettingsGroup group = new SettingsGroup(NLS.str("preferences.rename"));
+		group.addRow(NLS.str("preferences.rename_case"), renameCaseSensitive);
+		group.addRow(NLS.str("preferences.rename_valid"), renameValid);
+		group.addRow(NLS.str("preferences.rename_printable"), renamePrintable);
+		return group;
 	}
 
 	private void enableComponentList(Collection<JComponent> connectedComponents, boolean enabled) {

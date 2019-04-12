@@ -43,17 +43,17 @@ public class RenameVisitor extends AbstractVisitor {
 		if (deobfuscationOn) {
 			deobfuscator.execute();
 		}
-		checkClasses(root, args.isFsCaseSensitive());
+		checkClasses(root, args);
 	}
 
-	private void checkClasses(RootNode root, boolean caseSensitive) {
+	private void checkClasses(RootNode root, JadxArgs args) {
 		List<ClassNode> classes = root.getClasses(true);
 		for (ClassNode cls : classes) {
-			checkClassName(cls);
-			checkFields(cls);
-			checkMethods(cls);
+			checkClassName(cls, args);
+			checkFields(cls, args);
+			checkMethods(cls, args);
 		}
-		if (!caseSensitive) {
+		if (!args.isFsCaseSensitive() && args.isRenameCaseSensitive()) {
 			Set<String> clsFullPaths = new HashSet<>(classes.size());
 			for (ClassNode cls : classes) {
 				ClassInfo clsInfo = cls.getClassInfo();
@@ -69,12 +69,12 @@ public class RenameVisitor extends AbstractVisitor {
 		}
 	}
 
-	private void checkClassName(ClassNode cls) {
+	private void checkClassName(ClassNode cls, JadxArgs args) {
 		ClassInfo classInfo = cls.getClassInfo();
 		ClassInfo alias = classInfo.getAlias();
 		String clsName = alias.getShortName();
 
-		String newShortName = fixClsShortName(clsName);
+		String newShortName = fixClsShortName(args, clsName);
 		if (!newShortName.equals(clsName)) {
 			classInfo.rename(cls.root(), alias.makeFullClsName(newShortName, true));
 			alias = classInfo.getAlias();
@@ -86,35 +86,42 @@ public class RenameVisitor extends AbstractVisitor {
 		}
 	}
 
-	private String fixClsShortName(String clsName) {
+	private String fixClsShortName(JadxArgs args, String clsName) {
 		char firstChar = clsName.charAt(0);
-		if (Character.isDigit(firstChar)) {
+		boolean renameValid = args.isRenameValid();
+		if (Character.isDigit(firstChar) && renameValid) {
 			return Consts.ANONYMOUS_CLASS_PREFIX + NameMapper.removeInvalidCharsMiddle(clsName);
 		}
-		if (firstChar == '$') {
+		if (firstChar == '$' && renameValid) {
 			return 'C' + NameMapper.removeInvalidCharsMiddle(clsName);
 		}
-		String cleanClsName = NameMapper.removeInvalidChars(clsName, "C");
-		if (!NameMapper.isValidIdentifier(cleanClsName)) {
+		String cleanClsName = args.isRenamePrintable()
+				? NameMapper.removeInvalidChars(clsName, "C")
+				: clsName;
+		if (renameValid && !NameMapper.isValidIdentifier(cleanClsName)) {
 			return 'C' + cleanClsName;
 		}
 		return cleanClsName;
 	}
 
-	private void checkFields(ClassNode cls) {
+	private void checkFields(ClassNode cls, JadxArgs args) {
 		Set<String> names = new HashSet<>();
 		for (FieldNode field : cls.getFields()) {
 			FieldInfo fieldInfo = field.getFieldInfo();
 			String fieldName = fieldInfo.getAlias();
-			if (!names.add(fieldName) || !NameMapper.isValidIdentifier(fieldName)) {
+			if (!names.add(fieldName)
+					|| (args.isRenameValid() && !NameMapper.isValidIdentifier(fieldName))
+					|| (args.isRenamePrintable() && !NameMapper.isAllCharsPrintable(fieldName))) {
 				deobfuscator.forceRenameField(field);
 			}
 		}
 	}
 
-	private void checkMethods(ClassNode cls) {
+	private void checkMethods(ClassNode cls, JadxArgs args) {
 		for (MethodNode mth : cls.getMethods()) {
-			if (!NameMapper.isValidIdentifier(mth.getAlias())) {
+			String alias = mth.getAlias();
+			if (args.isRenameValid() && !NameMapper.isValidIdentifier(alias)
+					|| (args.isRenamePrintable() && !NameMapper.isAllCharsPrintable(alias))) {
 				deobfuscator.forceRenameMethod(mth);
 			}
 		}

@@ -1,16 +1,23 @@
 package jadx.cli;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.Appender;
-import com.beust.jcommander.Parameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.beust.jcommander.IStringConverter;
+import com.beust.jcommander.Parameter;
+
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
 import jadx.api.JadxArgs;
+import jadx.api.JadxArgs.RENAME;
 import jadx.api.JadxDecompiler;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.FileUtils;
@@ -82,6 +89,10 @@ public class JadxCLIArgs {
 
 	@Parameter(names = {"-f", "--fallback"}, description = "make simple dump (using goto instead of 'if', 'for', etc)")
 	protected boolean fallbackMode = false;
+
+	@Parameter(names = {"--rename-flags"}, description = "what to rename, comma-separated, 'case' for system case sensitivity, 'valid' for java identifiers, 'printable' characters, 'none' or 'all'",
+			converter = RenameConverter.class)
+	protected Set<RENAME> renameFlags = EnumSet.allOf(RENAME.class);
 
 	@Parameter(names = {"-v", "--verbose"}, description = "verbose output")
 	protected boolean verbose = false;
@@ -164,6 +175,9 @@ public class JadxCLIArgs {
 		args.setExportAsGradleProject(exportAsGradleProject);
 		args.setUseImports(useImports);
 		args.setDebugInfo(debugInfo);
+		args.setRenameCaseSensitive(isRenameCaseSensitive());
+		args.setRenameValid(isRenameValid());
+		args.setRenamePrintable(isRenamePrintable());
 		return args;
 	}
 
@@ -253,5 +267,74 @@ public class JadxCLIArgs {
 
 	public boolean isExportAsGradleProject() {
 		return exportAsGradleProject;
+	}
+
+	public boolean isRenameCaseSensitive() {
+		return renameFlags.contains(RENAME.CASE);
+	}
+
+	public void setRenameCaseSensitive(boolean renameCase) {
+		if (renameCase && !isRenameCaseSensitive()) {
+			renameFlags.add(RENAME.CASE);
+		} else if (!renameCase && isRenameCaseSensitive()) {
+			renameFlags.remove(RENAME.CASE);
+		}
+	}
+
+	public boolean isRenameValid() {
+		return renameFlags.contains(RENAME.VALID);
+	}
+
+	public void setRenameValid(boolean renameValid) {
+		if (renameValid && !isRenameValid()) {
+			renameFlags.add(RENAME.VALID);
+		} else if (!renameValid && isRenameValid()) {
+			renameFlags.remove(RENAME.VALID);
+		}
+	}
+
+	public boolean isRenamePrintable() {
+		return renameFlags.contains(RENAME.PRINTABLE);
+	}
+
+	public void setRenamePrintable(boolean renamePrintable) {
+		if (renamePrintable && !isRenamePrintable()) {
+			renameFlags.add(RENAME.PRINTABLE);
+		} else if (!renamePrintable && isRenamePrintable()) {
+			renameFlags.remove(RENAME.PRINTABLE);
+		}
+	}
+
+	static class RenameConverter implements IStringConverter<Set<RENAME>> {
+
+		private final String paramName;
+
+		RenameConverter(String paramName) {
+			this.paramName = paramName;
+		}
+
+		@Override
+		public Set<RENAME> convert(String value) {
+			Set<RENAME> set = new HashSet<>();
+			if (value.equalsIgnoreCase("ALL")) {
+				set.add(RENAME.CASE);
+				set.add(RENAME.VALID);
+				set.add(RENAME.PRINTABLE);
+			} else if (!value.equalsIgnoreCase("NONE")) {
+				for (String s : value.split(",")) {
+					try {
+						set.add(RENAME.valueOf(s.toUpperCase(Locale.ROOT)));
+					} catch (IllegalArgumentException e) {
+						String values = "'" + RENAME.CASE
+								+ "', '" + RENAME.VALID
+								+ "' and '" + RENAME.PRINTABLE + '\'';
+						throw new IllegalArgumentException(
+								s + " is unknown for parameter " + paramName
+								+ ", possible values are " + values.toLowerCase(Locale.ROOT));
+					}
+				}
+			}
+			return set;
+		}
 	}
 }

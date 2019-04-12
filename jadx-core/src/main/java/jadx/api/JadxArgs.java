@@ -3,7 +3,9 @@ package jadx.api;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 public class JadxArgs {
 
@@ -30,11 +32,11 @@ public class JadxArgs {
 	private boolean useImports = true;
 	private boolean debugInfo = true;
 
-	private boolean isSkipResources = false;
-	private boolean isSkipSources = false;
+	private boolean skipResources = false;
+	private boolean skipSources = false;
 
-	private boolean isDeobfuscationOn = false;
-	private boolean isDeobfuscationForceSave = false;
+	private boolean deobfuscationOn = false;
+	private boolean deobfuscationForceSave = false;
 	private boolean useSourceNameAsClassAlias = false;
 
 	private int deobfuscationMinLength = 0;
@@ -45,7 +47,11 @@ public class JadxArgs {
 	private boolean respectBytecodeAccModifiers = false;
 	private boolean exportAsGradleProject = false;
 
-	private boolean isFsCaseSensitive;
+	private boolean fsCaseSensitive;
+
+	public enum RENAME {CASE, VALID, PRINTABLE}
+
+	private Set<RENAME> renameFlags = EnumSet.allOf(RENAME.class);
 
 	public JadxArgs() {
 		// use default options
@@ -150,35 +156,35 @@ public class JadxArgs {
 	}
 
 	public boolean isSkipResources() {
-		return isSkipResources;
+		return skipResources;
 	}
 
 	public void setSkipResources(boolean skipResources) {
-		isSkipResources = skipResources;
+		this.skipResources = skipResources;
 	}
 
 	public boolean isSkipSources() {
-		return isSkipSources;
+		return skipSources;
 	}
 
 	public void setSkipSources(boolean skipSources) {
-		isSkipSources = skipSources;
+		this.skipSources = skipSources;
 	}
 
 	public boolean isDeobfuscationOn() {
-		return isDeobfuscationOn;
+		return deobfuscationOn;
 	}
 
 	public void setDeobfuscationOn(boolean deobfuscationOn) {
-		isDeobfuscationOn = deobfuscationOn;
+		this.deobfuscationOn = deobfuscationOn;
 	}
 
 	public boolean isDeobfuscationForceSave() {
-		return isDeobfuscationForceSave;
+		return deobfuscationForceSave;
 	}
 
 	public void setDeobfuscationForceSave(boolean deobfuscationForceSave) {
-		isDeobfuscationForceSave = deobfuscationForceSave;
+		this.deobfuscationForceSave = deobfuscationForceSave;
 	}
 
 	public boolean isUseSourceNameAsClassAlias() {
@@ -238,11 +244,47 @@ public class JadxArgs {
 	}
 
 	public boolean isFsCaseSensitive() {
-		return isFsCaseSensitive;
+		return fsCaseSensitive;
 	}
 
 	public void setFsCaseSensitive(boolean fsCaseSensitive) {
-		isFsCaseSensitive = fsCaseSensitive;
+		this.fsCaseSensitive = fsCaseSensitive;
+	}
+
+	public boolean isRenameCaseSensitive() {
+		return renameFlags.contains(RENAME.CASE);
+	}
+
+	public void setRenameCaseSensitive(boolean renameCaseSensitive) {
+		if (renameCaseSensitive && !isRenameCaseSensitive()) {
+			renameFlags.add(RENAME.CASE);
+		} else if (!renameCaseSensitive && isRenameCaseSensitive()) {
+			renameFlags.remove(RENAME.CASE);
+		}
+	}
+
+	public boolean isRenameValid() {
+		return renameFlags.contains(RENAME.VALID);
+	}
+
+	public void setRenameValid(boolean renameValid) {
+		if (renameValid && !isRenameValid()) {
+			renameFlags.add(RENAME.VALID);
+		} else if (!renameValid && isRenameValid()) {
+			renameFlags.remove(RENAME.VALID);
+		}
+	}
+
+	public boolean isRenamePrintable() {
+		return renameFlags.contains(RENAME.PRINTABLE);
+	}
+
+	public void setRenamePrintable(boolean renamePrintable) {
+		if (renamePrintable && !isRenamePrintable()) {
+			renameFlags.add(RENAME.PRINTABLE);
+		} else if (!renamePrintable && isRenamePrintable()) {
+			renameFlags.remove(RENAME.PRINTABLE);
+		}
 	}
 
 	@Override
@@ -257,10 +299,10 @@ public class JadxArgs {
 			       ", fallbackMode=" + fallbackMode +
 			       ", showInconsistentCode=" + showInconsistentCode +
 			       ", useImports=" + useImports +
-			       ", isSkipResources=" + isSkipResources +
-			       ", isSkipSources=" + isSkipSources +
-			       ", isDeobfuscationOn=" + isDeobfuscationOn +
-			       ", isDeobfuscationForceSave=" + isDeobfuscationForceSave +
+			       ", skipResources=" + skipResources +
+			       ", skipSources=" + skipSources +
+			       ", deobfuscationOn=" + deobfuscationOn +
+			       ", deobfuscationForceSave=" + deobfuscationForceSave +
 			       ", useSourceNameAsClassAlias=" + useSourceNameAsClassAlias +
 			       ", deobfuscationMinLength=" + deobfuscationMinLength +
 			       ", deobfuscationMaxLength=" + deobfuscationMaxLength +
@@ -268,6 +310,8 @@ public class JadxArgs {
 			       ", replaceConsts=" + replaceConsts +
 			       ", respectBytecodeAccModifiers=" + respectBytecodeAccModifiers +
 			       ", exportAsGradleProject=" + exportAsGradleProject +
+			       ", fsCaseSensitive=" + fsCaseSensitive +
+			       ", renameFlags=" + renameFlags +
 			       '}';
 	}
 }
