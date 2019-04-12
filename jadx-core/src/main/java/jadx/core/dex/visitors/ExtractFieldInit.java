@@ -51,7 +51,8 @@ public class ExtractFieldInit extends AbstractVisitor {
 		MethodNode clinit = cls.getClassInitMth();
 		if (clinit == null
 				|| !clinit.getAccessFlags().isStatic()
-				|| clinit.isNoCode()) {
+				|| clinit.isNoCode()
+				|| clinit.getBasicBlocks() == null) {
 			return;
 		}
 
@@ -235,7 +236,7 @@ public class ExtractFieldInit extends AbstractVisitor {
 	}
 
 	private static List<InsnNode> getFieldAssigns(MethodNode mth, FieldNode field, InsnType putInsn) {
-		if (mth.isNoCode()) {
+		if (mth.isNoCode() || mth.getBasicBlocks() == null) {
 			return Collections.emptyList();
 		}
 		List<InsnNode> assignInsns = new ArrayList<>();
