@@ -15,6 +15,7 @@ public class TestVariablesUsageWithLoops extends IntegrationTest {
 
 	public static class TestEnhancedFor {
 
+		@SuppressWarnings("rawtypes")
 		public void test() {
 			List list;
 			synchronized (this) {

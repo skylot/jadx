@@ -1,45 +1,22 @@
 package jadx.gui.settings;
 
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Collection;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingConstants;
-import javax.swing.WindowConstants;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import say.swing.JFontChooser;
 
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
-import say.swing.JFontChooser;
 
 public class JadxSettingsWindow extends JDialog {
 	private static final long serialVersionUID = -1804570470377354148L;
@@ -91,11 +68,11 @@ public class JadxSettingsWindow extends JDialog {
 				}
 				if (!settings.getLangLocale().equals(prevLang)) {
 					JOptionPane.showMessageDialog(
-							this,
-							NLS.str("msg.language_changed", settings.getLangLocale()),
-							NLS.str("msg.language_changed_title", settings.getLangLocale()),
-							JOptionPane.INFORMATION_MESSAGE
-							);
+						this,
+						NLS.str("msg.language_changed", settings.getLangLocale()),
+						NLS.str("msg.language_changed_title", settings.getLangLocale()),
+						JOptionPane.INFORMATION_MESSAGE
+					);
 				}
 				dispose();
 			});
@@ -110,10 +87,11 @@ public class JadxSettingsWindow extends JDialog {
 		JButton resetBtn = new JButton(NLS.str("preferences.reset"));
 		resetBtn.addActionListener(event -> {
 			int res = JOptionPane.showConfirmDialog(
-					JadxSettingsWindow.this,
-					NLS.str("preferences.reset_message"),
-					NLS.str("preferences.reset_title"),
-					JOptionPane.YES_NO_OPTION);
+				JadxSettingsWindow.this,
+				NLS.str("preferences.reset_message"),
+				NLS.str("preferences.reset_title"),
+				JOptionPane.YES_NO_OPTION
+			);
 			if (res == JOptionPane.YES_OPTION) {
 				String defaults = JadxSettingsAdapter.makeString(JadxSettings.makeDefault());
 				JadxSettingsAdapter.fill(settings, defaults);
@@ -144,13 +122,13 @@ public class JadxSettingsWindow extends JDialog {
 	}
 
 	private static void enableComponents(Container container, boolean enable) {
-        for (Component component : container.getComponents()) {
-            if (component instanceof Container) {
-                enableComponents((Container) component, enable);
-            }
-            component.setEnabled(enable);
-        }
-    }
+		for (Component component : container.getComponents()) {
+			if (component instanceof Container) {
+				enableComponents((Container) component, enable);
+			}
+			component.setEnabled(enable);
+		}
+	}
 
 	private SettingsGroup makeDeobfuscationGroup() {
 		JCheckBox deobfOn = new JCheckBox();
@@ -239,7 +217,7 @@ public class JadxSettingsWindow extends JDialog {
 		JCheckBox autoSave = new JCheckBox();
 		autoSave.setSelected(settings.isAutoSaveProject());
 		autoSave.addItemListener(e ->
-			settings.setAutoSaveProject(e.getStateChange() == ItemEvent.SELECTED));
+			                         settings.setAutoSaveProject(e.getStateChange() == ItemEvent.SELECTED));
 
 		SettingsGroup group = new SettingsGroup(NLS.str("preferences.project"));
 		group.addRow(NLS.str("preferences.autoSave"), autoSave);
@@ -316,7 +294,7 @@ public class JadxSettingsWindow extends JDialog {
 		});
 
 		SpinnerNumberModel spinnerModel = new SpinnerNumberModel(
-				settings.getThreadsCount(), 1, Runtime.getRuntime().availableProcessors() * 2, 1);
+			settings.getThreadsCount(), 1, Runtime.getRuntime().availableProcessors() * 2, 1);
 		JSpinner threadsCount = new JSpinner(spinnerModel);
 		threadsCount.addChangeListener(e -> {
 			settings.setThreadsCount((Integer) threadsCount.getValue());
@@ -328,7 +306,7 @@ public class JadxSettingsWindow extends JDialog {
 
 			String oldExcludedPackages = settings.getExcludedPackages();
 			String result = JOptionPane.showInputDialog(this, NLS.str("preferences.excludedPackages.editDialog"),
-					settings.getExcludedPackages());
+				settings.getExcludedPackages());
 			if (result != null) {
 				settings.setExcludedPackages(result);
 				if (!oldExcludedPackages.equals(result)) {
@@ -372,7 +350,7 @@ public class JadxSettingsWindow extends JDialog {
 		SettingsGroup other = new SettingsGroup(NLS.str("preferences.decompile"));
 		other.addRow(NLS.str("preferences.threads"), threadsCount);
 		other.addRow(NLS.str("preferences.excludedPackages"), NLS.str("preferences.excludedPackages.tooltip"),
-				editExcludedPackages);
+			editExcludedPackages);
 		other.addRow(NLS.str("preferences.start_jobs"), autoStartJobs);
 		other.addRow(NLS.str("preferences.showInconsistentCode"), showInconsistentCode);
 		other.addRow(NLS.str("preferences.escapeUnicode"), escapeUnicode);
