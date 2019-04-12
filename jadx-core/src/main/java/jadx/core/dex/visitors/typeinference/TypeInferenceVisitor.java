@@ -27,6 +27,7 @@ import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
@@ -51,10 +52,12 @@ import jadx.core.utils.Utils;
 public final class TypeInferenceVisitor extends AbstractVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(TypeInferenceVisitor.class);
 
+	private RootNode root;
 	private TypeUpdate typeUpdate;
 
 	@Override
 	public void init(RootNode root) {
+		this.root = root;
 		typeUpdate = root.getTypeUpdate();
 	}
 
@@ -241,6 +244,13 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 
 			default:
 				ArgType type = insn.getResult().getInitType();
+				ClassNode classNode = root.resolveClass(ClassInfo.fromType(root, type));
+				if (classNode.isAnonymous()) {
+					InsnArg arg = insn.getArg(0);
+					if (arg.isRegister()) {
+						type = ((RegisterArg) arg).getInitType();
+					}
+				}
 				addBound(typeInfo, new TypeBoundConst(BoundEnum.ASSIGN, type));
 				break;
 		}
