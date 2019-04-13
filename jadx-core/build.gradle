@@ -11,6 +11,7 @@ dependencies {
     compile('org.smali:smali:2.2.6') {
         exclude group: 'com.google.guava'
     }
+    compile 'com.google.guava:guava:27.1-jre'
 
     testCompile 'org.smali:baksmali:2.2.6'
 
