@@ -27,7 +27,6 @@ import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
@@ -52,12 +51,10 @@ import jadx.core.utils.Utils;
 public final class TypeInferenceVisitor extends AbstractVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(TypeInferenceVisitor.class);
 
-	private RootNode root;
 	private TypeUpdate typeUpdate;
 
 	@Override
 	public void init(RootNode root) {
-		this.root = root;
 		typeUpdate = root.getTypeUpdate();
 	}
 
@@ -244,7 +241,6 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 
 			default:
 				ArgType type = insn.getResult().getInitType();
-				type = replaceAnonymousType(insn, type);
 				addBound(typeInfo, new TypeBoundConst(BoundEnum.ASSIGN, type));
 				break;
 		}
@@ -257,23 +253,6 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 			return null;
 		}
 		return new TypeBoundConst(BoundEnum.USE, regArg.getInitType());
-	}
-
-	private ArgType replaceAnonymousType(InsnNode insn, ArgType type) {
-		if (insn.getType() == InsnType.CONSTRUCTOR
-				&& type.isObject() && !type.isGeneric()) {
-			ClassNode classNode = root.resolveClass(ClassInfo.fromType(root, type));
-			if (classNode != null && classNode.isAnonymous()) {
-				List<RegisterArg> useList = insn.getResult().getSVar().getUseList();
-				if (useList.isEmpty()) {
-					InsnArg arg = insn.getArg(0);
-					if (arg.isRegister()) {
-						return ((RegisterArg) arg).getInitType();
-					}
-				}
-			}
-		}
-		return type;
 	}
 
 	private boolean tryPossibleTypes(SSAVar var, ArgType type) {
