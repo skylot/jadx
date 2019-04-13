@@ -244,13 +244,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 
 			default:
 				ArgType type = insn.getResult().getInitType();
-				ClassNode classNode = root.resolveClass(ClassInfo.fromType(root, type));
-				if (classNode.isAnonymous()) {
-					InsnArg arg = insn.getArg(0);
-					if (arg.isRegister()) {
-						type = ((RegisterArg) arg).getInitType();
-					}
-				}
+				type = replaceAnonymousType(insn, type);
 				addBound(typeInfo, new TypeBoundConst(BoundEnum.ASSIGN, type));
 				break;
 		}
@@ -263,6 +257,23 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 			return null;
 		}
 		return new TypeBoundConst(BoundEnum.USE, regArg.getInitType());
+	}
+
+	private ArgType replaceAnonymousType(InsnNode insn, ArgType type) {
+		if (insn.getType() == InsnType.CONSTRUCTOR
+				&& type.isObject() && !type.isGeneric()) {
+			ClassNode classNode = root.resolveClass(ClassInfo.fromType(root, type));
+			if (classNode != null && classNode.isAnonymous()) {
+				List<RegisterArg> useList = insn.getResult().getSVar().getUseList();
+				if (useList.isEmpty()) {
+					InsnArg arg = insn.getArg(0);
+					if (arg.isRegister()) {
+						return ((RegisterArg) arg).getInitType();
+					}
+				}
+			}
+		}
+		return type;
 	}
 
 	private boolean tryPossibleTypes(SSAVar var, ArgType type) {
