@@ -1,5 +1,7 @@
 package jadx.core.codegen;
 
+import static jadx.core.utils.android.AndroidResourcesUtils.handleAppResField;
+
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Iterator;
@@ -41,6 +43,7 @@ import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.Named;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.ClassNode;
@@ -51,8 +54,6 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-
-import static jadx.core.utils.android.AndroidResourcesUtils.handleAppResField;
 
 public class InsnGen {
 	private static final Logger LOG = LoggerFactory.getLogger(InsnGen.class);
@@ -219,9 +220,13 @@ public class InsnGen {
 				if (flag != Flags.INLINE) {
 					code.startLineWithNum(insn.getSourceLine());
 				}
-				if (insn.getResult() != null && !insn.contains(AFlag.ARITH_ONEARG)) {
-					assignVar(code, insn);
-					code.add(" = ");
+				if (insn.getResult() != null) {
+					SSAVar var = insn.getResult().getSVar();
+					if ((var == null || var.getUseCount() != 0 || insn.getType() != InsnType.CONSTRUCTOR)
+							&& !insn.contains(AFlag.ARITH_ONEARG)) {
+						assignVar(code, insn);
+						code.add(" = ");
+					}
 				}
 				makeInsnBody(code, insn, state);
 				if (flag != Flags.INLINE) {
