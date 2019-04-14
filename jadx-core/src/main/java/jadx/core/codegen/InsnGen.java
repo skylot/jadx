@@ -569,6 +569,21 @@ public class InsnGen {
 		} else {
 			code.add("new ");
 			useClass(code, insn.getClassType());
+			ArgType argType = insn.getResult().getSVar().getCodeVar().getType();
+			if (argType.isGeneric()) {
+				code.add('<');
+				if (insn.contains(AFlag.EXPLICIT_GENERICS)) {
+					boolean first = true;
+					for (ArgType type : argType.getGenericTypes()) {
+						if (!first) {
+							code.add(',');
+						}
+						mgen.getClassGen().useType(code, type);
+						first = false;
+					}
+				}
+				code.add('>');
+			}
 		}
 		MethodNode callMth = mth.dex().resolveMethod(insn.getCallMth());
 		generateMethodArguments(code, insn, 0, callMth);
@@ -749,9 +764,17 @@ public class InsnGen {
 		if (argType.equals(origType)) {
 			return false;
 		}
-		if (origType.isGeneric()
-				&& origType.getObject().equals(argType.getObject())) {
-			return false;
+		if (origType.isGeneric()) {
+			if (!argType.isGeneric() && arg.isInsnWrap()) {
+				((InsnWrapArg) arg).getWrapInsn().getResult().setType(
+						ArgType.generic(argType.getObject(), origType.getGenericTypes()));
+			}
+			if (origType.getObject().equals(argType.getObject())) {
+				return false;
+			}
+			if (arg.isInsnWrap()) {
+				((InsnWrapArg) arg).getWrapInsn().add(AFlag.EXPLICIT_GENERICS);
+			}
 		}
 		code.add('(');
 		useType(code, origType);

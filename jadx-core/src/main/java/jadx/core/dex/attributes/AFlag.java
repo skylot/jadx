@@ -48,5 +48,7 @@ public enum AFlag {
 
 	FALL_THROUGH,
 
+	EXPLICIT_GENERICS,
+
 	INCONSISTENT_CODE, // warning about incorrect decompilation
 }

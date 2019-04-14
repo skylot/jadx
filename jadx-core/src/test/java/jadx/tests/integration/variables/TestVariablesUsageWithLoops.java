@@ -15,11 +15,10 @@ public class TestVariablesUsageWithLoops extends IntegrationTest {
 
 	public static class TestEnhancedFor {
 
-		@SuppressWarnings("rawtypes")
 		public void test() {
-			List list;
+			List<Object> list;
 			synchronized (this) {
-				list = new ArrayList();
+				list = new ArrayList<>();
 			}
 			for (Object o : list) {
 				System.out.println(o);
@@ -32,15 +31,15 @@ public class TestVariablesUsageWithLoops extends IntegrationTest {
 		ClassNode cls = getClassNode(TestEnhancedFor.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsString("     list = new ArrayList"));
+		assertThat(code, containsString("     list = new ArrayList<>"));
 	}
 
 	public static class TestForLoop {
 
 		public void test() {
-			List list;
+			List<Object> list;
 			synchronized (this) {
-				list = new ArrayList();
+				list = new ArrayList<>();
 			}
 			for (int i = 0; i < list.size(); i++) {
 				System.out.println(i);
@@ -53,6 +52,6 @@ public class TestVariablesUsageWithLoops extends IntegrationTest {
 		ClassNode cls = getClassNode(TestForLoop.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsString("     list = new ArrayList"));
+		assertThat(code, containsString("     list = new ArrayList<>"));
 	}
 }
