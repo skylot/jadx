@@ -18,6 +18,8 @@ import java.util.zip.ZipFile;
 
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.Nullable;
+import org.jf.smali.Smali;
+import org.jf.smali.SmaliOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +54,14 @@ public class InputFile {
 
 		if (fileName.endsWith(".dex")) {
 			addDexFile(new Dex(file));
+			return;
+		}
+		if (fileName.endsWith(".smali")) {
+			Path output = Files.createTempFile("jadx", ".dex");
+			SmaliOptions options = new SmaliOptions();
+			options.outputDexFile = output.toAbsolutePath().toString();
+			Smali.assemble(options, file.getAbsolutePath());
+			addDexFile(new Dex(output.toFile()));
 			return;
 		}
 		if (fileName.endsWith(".class")) {

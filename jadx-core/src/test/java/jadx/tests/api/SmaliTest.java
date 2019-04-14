@@ -91,10 +91,10 @@ public abstract class SmaliTest extends IntegrationTest {
 
 	private static boolean compileSmali(File output, List<File> inputFiles) {
 		try {
-			SmaliOptions params = new SmaliOptions();
-			params.outputDexFile = output.getAbsolutePath();
+			SmaliOptions options = new SmaliOptions();
+			options.outputDexFile = output.getAbsolutePath();
 			List<String> inputFileNames = inputFiles.stream().map(File::getAbsolutePath).collect(Collectors.toList());
-			Smali.assemble(params, inputFileNames);
+			Smali.assemble(options, inputFileNames);
 		} catch (Exception e) {
 			throw new AssertionError("Smali assemble error", e);
 		}
