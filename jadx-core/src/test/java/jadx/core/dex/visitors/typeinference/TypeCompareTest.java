@@ -76,7 +76,7 @@ public class TypeCompareTest {
 
 		ArgType keyType = ArgType.genericType("K");
 		ArgType valueType = ArgType.genericType("V");
-		ArgType mapGeneric = ArgType.generic(mapCls.getObject(), new ArgType[]{keyType, valueType});
+		ArgType mapGeneric = ArgType.generic(mapCls.getObject(), keyType, valueType);
 
 		check(mapGeneric, mapCls, TypeCompareEnum.NARROW_BY_GENERIC);
 		check(mapCls, mapGeneric, TypeCompareEnum.WIDER_BY_GENERIC);

@@ -43,12 +43,12 @@ class SignatureParserTest {
 	@Test
 	public void testGenerics() {
 		checkType("TD;", genericType("D"));
-		checkType("La<TV;Lb;>;", generic("La;", new ArgType[]{genericType("V"), object("b")}));
-		checkType("La<Lb<Lc;>;>;", generic("La;", new ArgType[]{generic("Lb;", new ArgType[]{object("Lc;")})}));
-		checkType("La/b/C<Ld/E<Lf/G;>;>;", generic("La/b/C;", new ArgType[]{generic("Ld/E;", new ArgType[]{object("Lf/G;")})}));
-		checkType("La<TD;>.c;", genericInner(generic("La;", new ArgType[]{genericType("D")}), "c", null));
-		checkType("La<TD;>.c/d;", genericInner(generic("La;", new ArgType[]{genericType("D")}), "c.d", null));
-		checkType("La<Lb;>.c<TV;>;", genericInner(generic("La;", new ArgType[]{object("Lb;")}), "c", new ArgType[]{genericType("V")}));
+		checkType("La<TV;Lb;>;", generic("La;", genericType("V"), object("b")));
+		checkType("La<Lb<Lc;>;>;", generic("La;", generic("Lb;", object("Lc;"))));
+		checkType("La/b/C<Ld/E<Lf/G;>;>;", generic("La/b/C;", generic("Ld/E;", object("Lf/G;"))));
+		checkType("La<TD;>.c;", genericInner(generic("La;", genericType("D")), "c", null));
+		checkType("La<TD;>.c/d;", genericInner(generic("La;", genericType("D")), "c.d", null));
+		checkType("La<Lb;>.c<TV;>;", genericInner(generic("La;", object("Lb;")), "c", new ArgType[]{genericType("V")}));
 	}
 
 	@Test
@@ -107,7 +107,7 @@ class SignatureParserTest {
 		List<ArgType> argTypes = new SignatureParser("(Ljava/util/List<*>;)V").consumeMethodArgs();
 
 		assertThat(argTypes, hasSize(1));
-		assertThat(argTypes.get(0), is(generic("Ljava/util/List;", new ArgType[]{wildcard()})));
+		assertThat(argTypes.get(0), is(generic("Ljava/util/List;", wildcard())));
 	}
 
 	@Test
@@ -117,7 +117,7 @@ class SignatureParserTest {
 		assertThat(argTypes, hasSize(1));
 		ArgType argType = argTypes.get(0);
 		assertThat(argType.getObject().indexOf('/'), is(-1));
-		assertThat(argType, is(genericInner(generic("La/b/C;", new ArgType[]{genericType("T")}), "d.E", null)));
+		assertThat(argType, is(genericInner(generic("La/b/C;", genericType("T")), "d.E", (ArgType[]) null)));
 	}
 
 	@Test

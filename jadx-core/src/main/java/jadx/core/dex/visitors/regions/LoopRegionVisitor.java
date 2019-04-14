@@ -326,7 +326,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 			return true;
 		}
 		// TODO: add checks
-		iterableType = ArgType.generic(iterableType.getObject(), new ArgType[]{varType});
+		iterableType = ArgType.generic(iterableType.getObject(), varType);
 		iterableArg.setType(iterableType);
 		return true;
 	}
