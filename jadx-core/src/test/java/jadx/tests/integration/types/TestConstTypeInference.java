@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 public class TestConstTypeInference extends IntegrationTest {
 
-	@SuppressWarnings("overrides")
+	@SuppressWarnings({ "overrides", "EqualsHashCode" })
 	public static class TestCls {
 		private final int a;
 

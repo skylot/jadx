@@ -1,8 +1,5 @@
 package jadx.tests.integration.variables;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +7,9 @@ import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 
 public class TestVariablesUsageWithLoops extends IntegrationTest {
 
@@ -36,6 +36,7 @@ public class TestVariablesUsageWithLoops extends IntegrationTest {
 
 	public static class TestForLoop {
 
+		@SuppressWarnings("rawtypes")
 		public void test() {
 			List<Object> list;
 			synchronized (this) {

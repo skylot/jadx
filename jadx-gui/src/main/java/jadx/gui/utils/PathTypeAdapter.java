@@ -11,31 +11,27 @@ import com.google.gson.stream.JsonWriter;
 
 public class PathTypeAdapter {
 
-	private static TypeAdapter<Path> SINGLETON;
+	private static final TypeAdapter<Path> SINGLETON = new TypeAdapter<Path>() {
+		@Override
+		public void write(JsonWriter out, Path value) throws IOException {
+			if (value == null) {
+				out.nullValue();
+			} else {
+				out.value(value.toAbsolutePath().toString());
+			}
+		}
+
+		@Override
+		public Path read(JsonReader in) throws IOException {
+			if (in.peek() == JsonToken.NULL) {
+				in.nextNull();
+				return null;
+			}
+			return Paths.get(in.nextString());
+		}
+	};
 
 	public static TypeAdapter<Path> singleton() {
-		if (SINGLETON == null) {
-			SINGLETON = new TypeAdapter<Path>() {
-
-				@Override
-				public void write(JsonWriter out, Path value) throws IOException {
-					if (value == null) {
-						out.nullValue();
-					} else {
-						out.value(value.toAbsolutePath().toString());
-					}
-				}
-
-				@Override
-				public Path read(JsonReader in) throws IOException {
-					if (in.peek() == JsonToken.NULL) {
-				         in.nextNull();
-				         return null;
-					}
-					return Paths.get(in.nextString());
-				}
-			};
-		}
 		return SINGLETON;
 	}
 

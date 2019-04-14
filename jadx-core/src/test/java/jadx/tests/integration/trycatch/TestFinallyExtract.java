@@ -62,6 +62,7 @@ public class TestFinallyExtract extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		// java compiler optimization: 'success' variable completely removed and no code duplication:
+		// @formatter:off
 		/*
 		    public String test() {
 		        try {
@@ -74,6 +75,8 @@ public class TestFinallyExtract extends IntegrationTest {
 		        }
 		    }
 		*/
+		// @formatter:on
+
 		assertThat(code, containsOne("this.result++;"));
 		assertThat(code, containsOne("} catch (Throwable th) {"));
 		assertThat(code, containsOne("this.result -= 2;"));

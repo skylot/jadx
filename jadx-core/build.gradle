@@ -21,4 +21,3 @@ dependencies {
     testCompile 'com.google.guava:guava:27.1-jre'
     testCompile 'com.beust:jcommander:1.74'
 }
-

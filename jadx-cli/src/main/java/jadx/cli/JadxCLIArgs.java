@@ -16,45 +16,46 @@ import com.beust.jcommander.Parameter;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
+
 import jadx.api.JadxArgs;
-import jadx.api.JadxArgs.RENAME;
+import jadx.api.JadxArgs.RenameEnum;
 import jadx.api.JadxDecompiler;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.files.FileUtils;
 
 public class JadxCLIArgs {
 
-	@Parameter(description = "<input file> (.apk, .dex, .jar or .class)")
+	@Parameter(description = "<input file> (.apk, .dex, .jar, .class, .smali, .zip, .aar, .arsc)")
 	protected List<String> files = new ArrayList<>(1);
 
-	@Parameter(names = {"-d", "--output-dir"}, description = "output directory")
+	@Parameter(names = { "-d", "--output-dir" }, description = "output directory")
 	protected String outDir;
 
-	@Parameter(names = {"-ds", "--output-dir-src"}, description = "output directory for sources")
+	@Parameter(names = { "-ds", "--output-dir-src" }, description = "output directory for sources")
 	protected String outDirSrc;
 
-	@Parameter(names = {"-dr", "--output-dir-res"}, description = "output directory for resources")
+	@Parameter(names = { "-dr", "--output-dir-res" }, description = "output directory for resources")
 	protected String outDirRes;
 
-	@Parameter(names = {"-r", "--no-res"}, description = "do not decode resources")
+	@Parameter(names = { "-r", "--no-res" }, description = "do not decode resources")
 	protected boolean skipResources = false;
 
-	@Parameter(names = {"-s", "--no-src"}, description = "do not decompile source code")
+	@Parameter(names = { "-s", "--no-src" }, description = "do not decompile source code")
 	protected boolean skipSources = false;
 
-	@Parameter(names = {"-e", "--export-gradle"}, description = "save as android gradle project")
+	@Parameter(names = { "-e", "--export-gradle" }, description = "save as android gradle project")
 	protected boolean exportAsGradleProject = false;
 
-	@Parameter(names = {"-j", "--threads-count"}, description = "processing threads count")
+	@Parameter(names = { "-j", "--threads-count" }, description = "processing threads count")
 	protected int threadsCount = JadxArgs.DEFAULT_THREADS_COUNT;
 
-	@Parameter(names = {"--show-bad-code"}, description = "show inconsistent code (incorrectly decompiled)")
+	@Parameter(names = { "--show-bad-code" }, description = "show inconsistent code (incorrectly decompiled)")
 	protected boolean showInconsistentCode = false;
 
-	@Parameter(names = {"--no-imports"}, description = "disable use of imports, always write entire package name")
+	@Parameter(names = { "--no-imports" }, description = "disable use of imports, always write entire package name")
 	protected boolean useImports = true;
 
-	@Parameter(names = {"--no-debug-info"}, description = "disable debug info")
+	@Parameter(names = { "--no-debug-info" }, description = "disable debug info")
 	protected boolean debugInfo = true;
 
 	@Parameter(names = { "--no-inline-anonymous" }, description = "disable anonymous classes inline")
@@ -63,47 +64,54 @@ public class JadxCLIArgs {
 	@Parameter(names = "--no-replace-consts", description = "don't replace constant value with matching constant field")
 	protected boolean replaceConsts = true;
 
-	@Parameter(names = {"--escape-unicode"}, description = "escape non latin characters in strings (with \\u)")
+	@Parameter(names = { "--escape-unicode" }, description = "escape non latin characters in strings (with \\u)")
 	protected boolean escapeUnicode = false;
 
-	@Parameter(names = {"--respect-bytecode-access-modifiers"}, description = "don't change original access modifiers")
+	@Parameter(names = { "--respect-bytecode-access-modifiers" }, description = "don't change original access modifiers")
 	protected boolean respectBytecodeAccessModifiers = false;
 
-	@Parameter(names = {"--deobf"}, description = "activate deobfuscation")
+	@Parameter(names = { "--deobf" }, description = "activate deobfuscation")
 	protected boolean deobfuscationOn = false;
 
-	@Parameter(names = {"--deobf-min"}, description = "min length of name, renamed if shorter")
+	@Parameter(names = { "--deobf-min" }, description = "min length of name, renamed if shorter")
 	protected int deobfuscationMinLength = 3;
 
-	@Parameter(names = {"--deobf-max"}, description = "max length of name, renamed if longer")
+	@Parameter(names = { "--deobf-max" }, description = "max length of name, renamed if longer")
 	protected int deobfuscationMaxLength = 64;
 
-	@Parameter(names = {"--deobf-rewrite-cfg"}, description = "force to save deobfuscation map")
+	@Parameter(names = { "--deobf-rewrite-cfg" }, description = "force to save deobfuscation map")
 	protected boolean deobfuscationForceSave = false;
 
-	@Parameter(names = {"--deobf-use-sourcename"}, description = "use source file name as class name alias")
+	@Parameter(names = { "--deobf-use-sourcename" }, description = "use source file name as class name alias")
 	protected boolean deobfuscationUseSourceNameAsAlias = true;
 
-	@Parameter(names = {"--cfg"}, description = "save methods control flow graph to dot file")
+	@Parameter(names = { "--cfg" }, description = "save methods control flow graph to dot file")
 	protected boolean cfgOutput = false;
 
-	@Parameter(names = {"--raw-cfg"}, description = "save methods control flow graph (use raw instructions)")
+	@Parameter(names = { "--raw-cfg" }, description = "save methods control flow graph (use raw instructions)")
 	protected boolean rawCfgOutput = false;
 
-	@Parameter(names = {"-f", "--fallback"}, description = "make simple dump (using goto instead of 'if', 'for', etc)")
+	@Parameter(names = { "-f", "--fallback" }, description = "make simple dump (using goto instead of 'if', 'for', etc)")
 	protected boolean fallbackMode = false;
 
-	@Parameter(names = {"--rename-flags"}, description = "what to rename, comma-separated, 'case' for system case sensitivity, 'valid' for java identifiers, 'printable' characters, 'none' or 'all'",
-			converter = RenameConverter.class)
-	protected Set<RENAME> renameFlags = EnumSet.allOf(RENAME.class);
+	@Parameter(
+			names = { "--rename-flags" },
+			description = "what to rename, comma-separated,"
+					+ " 'case' for system case sensitivity,"
+					+ " 'valid' for java identifiers,"
+					+ " 'printable' characters,"
+					+ " 'none' or 'all'",
+			converter = RenameConverter.class
+	)
+	protected Set<RenameEnum> renameFlags = EnumSet.allOf(RenameEnum.class);
 
-	@Parameter(names = {"-v", "--verbose"}, description = "verbose output")
+	@Parameter(names = { "-v", "--verbose" }, description = "verbose output")
 	protected boolean verbose = false;
 
-	@Parameter(names = {"--version"}, description = "print jadx version")
+	@Parameter(names = { "--version" }, description = "print jadx version")
 	protected boolean printVersion = false;
 
-	@Parameter(names = {"-h", "--help"}, description = "print this help", help = true)
+	@Parameter(names = { "-h", "--help" }, description = "print this help", help = true)
 	protected boolean printHelp = false;
 
 	public boolean processArgs(String[] args) {
@@ -139,7 +147,7 @@ public class JadxCLIArgs {
 			}
 			if (verbose) {
 				ch.qos.logback.classic.Logger rootLogger =
-					(ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+						(ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 				// remove INFO ThresholdFilter
 				Appender<ILoggingEvent> appender = rootLogger.getAppender("STDOUT");
 				if (appender != null) {
@@ -278,42 +286,42 @@ public class JadxCLIArgs {
 	}
 
 	public boolean isRenameCaseSensitive() {
-		return renameFlags.contains(RENAME.CASE);
+		return renameFlags.contains(RenameEnum.CASE);
 	}
 
 	public void setRenameCaseSensitive(boolean renameCase) {
 		if (renameCase && !isRenameCaseSensitive()) {
-			renameFlags.add(RENAME.CASE);
+			renameFlags.add(RenameEnum.CASE);
 		} else if (!renameCase && isRenameCaseSensitive()) {
-			renameFlags.remove(RENAME.CASE);
+			renameFlags.remove(RenameEnum.CASE);
 		}
 	}
 
 	public boolean isRenameValid() {
-		return renameFlags.contains(RENAME.VALID);
+		return renameFlags.contains(RenameEnum.VALID);
 	}
 
 	public void setRenameValid(boolean renameValid) {
 		if (renameValid && !isRenameValid()) {
-			renameFlags.add(RENAME.VALID);
+			renameFlags.add(RenameEnum.VALID);
 		} else if (!renameValid && isRenameValid()) {
-			renameFlags.remove(RENAME.VALID);
+			renameFlags.remove(RenameEnum.VALID);
 		}
 	}
 
 	public boolean isRenamePrintable() {
-		return renameFlags.contains(RENAME.PRINTABLE);
+		return renameFlags.contains(RenameEnum.PRINTABLE);
 	}
 
 	public void setRenamePrintable(boolean renamePrintable) {
 		if (renamePrintable && !isRenamePrintable()) {
-			renameFlags.add(RENAME.PRINTABLE);
+			renameFlags.add(RenameEnum.PRINTABLE);
 		} else if (!renamePrintable && isRenamePrintable()) {
-			renameFlags.remove(RENAME.PRINTABLE);
+			renameFlags.remove(RenameEnum.PRINTABLE);
 		}
 	}
 
-	static class RenameConverter implements IStringConverter<Set<RENAME>> {
+	static class RenameConverter implements IStringConverter<Set<RenameEnum>> {
 
 		private final String paramName;
 
@@ -322,23 +330,23 @@ public class JadxCLIArgs {
 		}
 
 		@Override
-		public Set<RENAME> convert(String value) {
-			Set<RENAME> set = new HashSet<>();
+		public Set<RenameEnum> convert(String value) {
+			Set<RenameEnum> set = new HashSet<>();
 			if (value.equalsIgnoreCase("ALL")) {
-				set.add(RENAME.CASE);
-				set.add(RENAME.VALID);
-				set.add(RENAME.PRINTABLE);
+				set.add(RenameEnum.CASE);
+				set.add(RenameEnum.VALID);
+				set.add(RenameEnum.PRINTABLE);
 			} else if (!value.equalsIgnoreCase("NONE")) {
 				for (String s : value.split(",")) {
 					try {
-						set.add(RENAME.valueOf(s.toUpperCase(Locale.ROOT)));
+						set.add(RenameEnum.valueOf(s.toUpperCase(Locale.ROOT)));
 					} catch (IllegalArgumentException e) {
-						String values = "'" + RENAME.CASE
-								+ "', '" + RENAME.VALID
-								+ "' and '" + RENAME.PRINTABLE + '\'';
+						String values = "'" + RenameEnum.CASE
+								+ "', '" + RenameEnum.VALID
+								+ "' and '" + RenameEnum.PRINTABLE + '\'';
 						throw new IllegalArgumentException(
 								s + " is unknown for parameter " + paramName
-								+ ", possible values are " + values.toLowerCase(Locale.ROOT));
+										+ ", possible values are " + values.toLowerCase(Locale.ROOT));
 					}
 				}
 			}

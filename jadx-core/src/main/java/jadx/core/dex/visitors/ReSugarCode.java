@@ -32,8 +32,8 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.InsnList;
-import jadx.core.utils.InsnUtils;
 import jadx.core.utils.InsnRemover;
+import jadx.core.utils.InsnUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
 
@@ -92,7 +92,7 @@ public class ReSugarCode extends AbstractVisitor {
 	 * Replace new array and sequence of array-put to new filled-array instruction.
 	 */
 	private static void processNewArray(MethodNode mth, NewArrayNode newArrayInsn,
-	                                    List<InsnNode> instructions, InsnRemover remover) {
+			List<InsnNode> instructions, InsnRemover remover) {
 		InsnArg arrLenArg = newArrayInsn.getArg(0);
 		if (!arrLenArg.isLiteral()) {
 			return;

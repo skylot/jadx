@@ -1,10 +1,5 @@
 package jadx.gui.ui;
 
-import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -17,6 +12,12 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.swing.*;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -154,7 +155,7 @@ public abstract class CommonSearchDialog extends JDialog {
 		resultsTable.setShowHorizontalLines(false);
 		resultsTable.setDragEnabled(false);
 		resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-//		resultsTable.setBackground(CodeArea.CODE_BACKGROUND);
+		// resultsTable.setBackground(CodeArea.CODE_BACKGROUND);
 		resultsTable.setColumnSelectionAllowed(false);
 		resultsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		resultsTable.setAutoscrolls(false);
@@ -233,10 +234,9 @@ public abstract class CommonSearchDialog extends JDialog {
 
 	protected void updateProgressLabel() {
 		String statusText = NLS.str("search_dialog.info_label",
-			resultsModel.getDisplayedResultsStart(),
-			resultsModel.getDisplayedResultsEnd(),
-			resultsModel.getResultCount()
-		);
+				resultsModel.getDisplayedResultsStart(),
+				resultsModel.getDisplayedResultsEnd(),
+				resultsModel.getResultCount());
 		resultsInfoLabel.setText(statusText);
 	}
 
@@ -286,7 +286,8 @@ public abstract class CommonSearchDialog extends JDialog {
 				TableColumn column = columnModel.getColumn(col);
 				column.setPreferredWidth(colWidth);
 			}
-//				setRowHeight(Math.max(nodeComp.getPreferredSize().height, codeComp.getPreferredSize().height + 4));
+			// setRowHeight(Math.max(nodeComp.getPreferredSize().height, codeComp.getPreferredSize().height +
+			// 4));
 			updateUI();
 			setRowHeight(Math.max(getHeight(nodeComp), getHeight(codeComp) + 4));
 		}
@@ -410,7 +411,7 @@ public abstract class CommonSearchDialog extends JDialog {
 
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object obj, boolean isSelected,
-		                                               boolean hasFocus, int row, int column) {
+				boolean hasFocus, int row, int column) {
 			int id = row << 2 | column;
 			Component comp = componentCache.get(id);
 			if (comp == null) {

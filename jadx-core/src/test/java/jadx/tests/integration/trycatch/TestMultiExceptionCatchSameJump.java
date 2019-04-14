@@ -11,6 +11,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestMultiExceptionCatchSameJump extends SmaliTest {
+	// @formatter:off
 	/*
 		public static class TestCls {
 			public void test() {
@@ -22,6 +23,7 @@ public class TestMultiExceptionCatchSameJump extends SmaliTest {
 			}
 		}
 	*/
+	// @formatter:on
 	@Test
 	public void test() {
 		ClassNode cls = getClassNodeFromSmaliWithPkg("trycatch", "TestMultiExceptionCatchSameJump");

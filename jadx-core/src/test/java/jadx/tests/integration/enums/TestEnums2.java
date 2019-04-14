@@ -47,7 +47,6 @@ public class TestEnums2 extends IntegrationTest {
 				indent(1) + "};",
 				"",
 				indent(1) + "public abstract int apply(int i, int i2);",
-				"}"
-		));
+				"}"));
 	}
 }

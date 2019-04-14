@@ -42,9 +42,6 @@ public class UsePlace {
 
 	@Override
 	public String toString() {
-		return "UsePlace{" +
-				"region=" + region +
-				", block=" + block +
-				'}';
+		return "UsePlace{region=" + region + ", block=" + block + '}';
 	}
 }

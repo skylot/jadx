@@ -14,7 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Enables drop support from external applications for the {@link MainWindow} (load dropped APK file)
+ * Enables drop support from external applications for the {@link MainWindow} (load dropped APK
+ * file)
  */
 public class MainDropTarget implements DropTargetListener {
 

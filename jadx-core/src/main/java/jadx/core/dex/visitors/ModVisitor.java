@@ -1,7 +1,5 @@
 package jadx.core.dex.visitors;
 
-import static jadx.core.utils.BlockUtils.replaceInsn;
-
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -47,6 +45,8 @@ import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+
+import static jadx.core.utils.BlockUtils.replaceInsn;
 
 /**
  * Visitor for modify method instructions
@@ -168,8 +168,9 @@ public class ModVisitor extends AbstractVisitor {
 								IfCondition condition = IfCondition.fromIfNode(ifNode);
 								InsnArg zero = new LiteralArg(0, type);
 								InsnArg one = new LiteralArg(
-										type == ArgType.DOUBLE ? Double.doubleToLongBits(1) :
-											type == ArgType.FLOAT ? Float.floatToIntBits(1) : 1, type);
+										type == ArgType.DOUBLE ? Double.doubleToLongBits(1)
+												: type == ArgType.FLOAT ? Float.floatToIntBits(1) : 1,
+										type);
 								TernaryInsn ternary = new TernaryInsn(condition, insn.getResult(), one, zero);
 								replaceInsn(block, i, ternary);
 							}
@@ -325,8 +326,7 @@ public class ModVisitor extends AbstractVisitor {
 		if (!elType.equals(insnElementType) && !insnArrayType.equals(ArgType.OBJECT)) {
 			ErrorsCounter.methodWarn(mth,
 					"Incorrect type for fill-array insn " + InsnUtils.formatOffset(insn.getOffset())
-							+ ", element type: " + elType + ", insn element type: " + insnElementType
-			);
+							+ ", element type: " + elType + ", insn element type: " + insnElementType);
 		}
 		if (!elType.isTypeKnown()) {
 			LOG.warn("Unknown array element type: {} in mth: {}", elType, mth);

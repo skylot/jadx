@@ -43,6 +43,6 @@ public class TestMultiExceptionCatch2 extends IntegrationTest {
 		assertThat(code, containsOne("e.printStackTrace();"));
 
 		// TODO: store vararg attribute for methods from classpath
-//		assertThat(code, containsOne("constructor.newInstance();"));
+		// assertThat(code, containsOne("constructor.newInstance();"));
 	}
 }

@@ -4,7 +4,7 @@ public final class EditorTheme {
 	private static final String RSTA_THEME_PATH = "/org/fife/ui/rsyntaxtextarea/themes/";
 
 	private static final EditorTheme[] ALL_THEMES =
-			new EditorTheme[]{
+			new EditorTheme[] {
 					new EditorTheme("default"),
 					new EditorTheme("eclipse"),
 					new EditorTheme("idea"),

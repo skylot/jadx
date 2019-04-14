@@ -1,7 +1,5 @@
 package jadx.tests.integration.loops;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.io.File;
 import java.io.FileOutputStream;
 
@@ -9,6 +7,8 @@ import org.junit.jupiter.api.Test;
 
 import jadx.NotYetImplemented;
 import jadx.tests.api.IntegrationTest;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestBreakInLoop3 extends IntegrationTest {
 
@@ -24,7 +24,7 @@ public class TestBreakInLoop3 extends IntegrationTest {
 				try {
 					new FileOutputStream(fid).close();
 				} catch (Exception ex) {
-					if (tryMkdir) {  // On first error, try creating the base dirs.
+					if (tryMkdir) { // On first error, try creating the base dirs.
 						tryMkdir = false;
 						prt("2");
 						continue;

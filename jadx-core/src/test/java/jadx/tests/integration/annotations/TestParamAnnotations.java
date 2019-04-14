@@ -17,7 +17,7 @@ public class TestParamAnnotations extends IntegrationTest {
 
 	public static class TestCls {
 
-		@Target({ElementType.PARAMETER})
+		@Target(ElementType.PARAMETER)
 		@Retention(RetentionPolicy.RUNTIME)
 		public static @interface A {
 			int i() default 7;

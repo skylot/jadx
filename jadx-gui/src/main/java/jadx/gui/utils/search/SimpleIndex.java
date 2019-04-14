@@ -3,9 +3,10 @@ package jadx.gui.utils.search;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
-import org.apache.commons.lang3.StringUtils;
 
 public class SimpleIndex<T> implements SearchIndex<T> {
 

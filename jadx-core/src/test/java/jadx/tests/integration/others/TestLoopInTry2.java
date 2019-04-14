@@ -2,10 +2,11 @@ package jadx.tests.integration.others;
 
 import java.io.EOFException;
 
+import org.junit.jupiter.api.Test;
+
 import com.android.dex.Code;
 import com.android.dx.io.instructions.DecodedInstruction;
 import com.android.dx.io.instructions.ShortArrayCodeInput;
-import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;

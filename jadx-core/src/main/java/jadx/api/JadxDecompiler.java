@@ -1,11 +1,8 @@
 package jadx.api;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,20 +12,17 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.jf.baksmali.Adaptors.ClassDefinition;
-import org.jf.baksmali.Baksmali;
 import org.jf.baksmali.BaksmaliOptions;
 import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.DexBackedClassDef;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.iface.ClassDef;
 import org.jf.util.IndentingWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,15 +38,15 @@ import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.SaveCode;
 import jadx.core.export.ExportGradleProject;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.core.utils.files.DexFile;
-import jadx.core.utils.files.FileUtils;
 import jadx.core.utils.files.InputFile;
 import jadx.core.xmlgen.BinaryXMLParser;
 import jadx.core.xmlgen.ResourcesSaver;
 
 /**
  * Jadx API usage example:
- * <pre><code>
+ *
+ * <pre>
+ * <code>
  * JadxArgs args = new JadxArgs();
  * args.getInputFiles().add(new File("test.apk"));
  * args.setOutDir(new File("jadx-test-output"));
@@ -60,14 +54,18 @@ import jadx.core.xmlgen.ResourcesSaver;
  * JadxDecompiler jadx = new JadxDecompiler(args);
  * jadx.load();
  * jadx.save();
- * </code></pre>
+ * </code>
+ * </pre>
  * <p>
  * Instead of 'save()' you can iterate over decompiled classes:
- * <pre><code>
+ *
+ * <pre>
+ * <code>
  *  for(JavaClass cls : jadx.getClasses()) {
  *      System.out.println(cls.getCode());
  *  }
- * </code></pre>
+ * </code>
+ * </pre>
  */
 public final class JadxDecompiler {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxDecompiler.class);

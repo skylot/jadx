@@ -9,15 +9,18 @@ import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestTryCatchNoMoveExc extends SmaliTest {
-
-//	private static void test(AutoCloseable closeable) {
-//		if (closeable != null) {
-//			try {
-//				closeable.close();
-//			} catch (Exception ignored) {
-//			}
-//		}
-//	}
+	// @formatter:off
+	/*
+		private static void test(AutoCloseable closeable) {
+			if (closeable != null) {
+				try {
+					closeable.close();
+				} catch (Exception ignored) {
+				}
+			}
+		}
+	*/
+	// @formatter:on
 
 	@Test
 	public void test() {

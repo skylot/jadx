@@ -15,11 +15,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestFieldInitInTryCatch extends IntegrationTest {
 
 	public static class TestCls {
-		public static final URL a;
+		public static final URL A;
 
 		static {
 			try {
-				a = new URL("http://www.example.com/");
+				A = new URL("http://www.example.com/");
 			} catch (MalformedURLException e) {
 				throw new RuntimeException(e);
 			}
@@ -27,11 +27,11 @@ public class TestFieldInitInTryCatch extends IntegrationTest {
 	}
 
 	public static class TestCls2 {
-		public static final URL[] a;
+		public static final URL[] A;
 
 		static {
 			try {
-				a = new URL[]{new URL("http://www.example.com/")};
+				A = new URL[] { new URL("http://www.example.com/") };
 			} catch (MalformedURLException e) {
 				throw new RuntimeException(e);
 			}
@@ -39,11 +39,11 @@ public class TestFieldInitInTryCatch extends IntegrationTest {
 	}
 
 	public static class TestCls3 {
-		public static final String[] a;
+		public static final String[] A;
 
 		static {
 			try {
-				a = new String[]{"a"};
+				A = new String[] { "a" };
 				// Note: follow code will not be extracted:
 				// a = new String[]{new String("a")};
 				new URL("http://www.example.com/");
@@ -58,11 +58,11 @@ public class TestFieldInitInTryCatch extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("public static final URL a;"));
-		assertThat(code, containsOne("a = new URL(\"http://www.example.com/\");"));
+		assertThat(code, containsOne("public static final URL A;"));
+		assertThat(code, containsOne("A = new URL(\"http://www.example.com/\");"));
 		assertThat(code, containsLines(2,
 				"try {",
-				indent(1) + "a = new URL(\"http://www.example.com/\");",
+				indent(1) + "A = new URL(\"http://www.example.com/\");",
 				"} catch (MalformedURLException e) {"));
 	}
 
@@ -73,7 +73,7 @@ public class TestFieldInitInTryCatch extends IntegrationTest {
 
 		assertThat(code, containsLines(2,
 				"try {",
-				indent(1) + "a = new URL[]{new URL(\"http://www.example.com/\")};",
+				indent(1) + "A = new URL[]{new URL(\"http://www.example.com/\")};",
 				"} catch (MalformedURLException e) {"));
 	}
 
@@ -82,6 +82,6 @@ public class TestFieldInitInTryCatch extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls3.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("public static final String[] a = {\"a\"};"));
+		assertThat(code, containsOne("public static final String[] A = {\"a\"};"));
 	}
 }

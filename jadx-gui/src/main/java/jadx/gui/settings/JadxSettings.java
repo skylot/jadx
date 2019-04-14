@@ -37,8 +37,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
 	static final Set<String> SKIP_FIELDS = new HashSet<>(Arrays.asList(
-			"files", "input", "outDir", "outDirSrc", "outDirRes", "verbose", "printVersion", "printHelp"
-	));
+			"files", "input", "outDir", "outDirSrc", "outDirRes", "verbose", "printVersion", "printHelp"));
 	private Path lastSaveProjectPath = USER_HOME;
 	private Path lastOpenFilePath = USER_HOME;
 	private Path lastSaveFilePath = USER_HOME;

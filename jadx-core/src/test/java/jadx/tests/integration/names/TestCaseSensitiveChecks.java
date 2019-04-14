@@ -17,9 +17,9 @@ import static org.hamcrest.Matchers.not;
 
 public class TestCaseSensitiveChecks extends SmaliTest {
 	/*
-		public class A {}
-		public class a {}
-	*/
+	 * public class A {}
+	 * public class a {}
+	 */
 
 	@Test
 	public void test() {

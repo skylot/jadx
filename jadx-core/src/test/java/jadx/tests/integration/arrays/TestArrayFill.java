@@ -13,7 +13,7 @@ public class TestArrayFill extends IntegrationTest {
 	public static class TestCls {
 
 		public String[] method() {
-			return new String[]{"1", "2", "3"};
+			return new String[] { "1", "2", "3" };
 		}
 	}
 

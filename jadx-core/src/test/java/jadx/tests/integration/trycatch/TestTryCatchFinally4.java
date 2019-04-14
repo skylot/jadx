@@ -25,7 +25,7 @@ public class TestTryCatchFinally4 extends IntegrationTest {
 				try {
 					outputStream.close();
 					file.delete();
-				} catch (IOException e) {
+				} catch (IOException ignored) {
 				}
 			}
 		}

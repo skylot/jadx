@@ -1,7 +1,9 @@
+import com.diffplug.spotless.LineEnding
+
 plugins {
 	id 'org.sonarqube' version '2.7'
 	id 'com.github.ben-manes.versions' version '0.21.0'
-	id 'org.ec4j.editorconfig' version '0.0.3'
+	id "com.diffplug.gradle.spotless" version "3.21.1"
 }
 
 ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
@@ -11,6 +13,7 @@ println("jadx version: ${jadxVersion}")
 allprojects {
 	apply plugin: 'java'
 	apply plugin: 'jacoco'
+	apply plugin: 'checkstyle'
 
 	version = jadxVersion
 
@@ -67,6 +70,11 @@ allprojects {
 			html.enabled = true
 		}
 	}
+
+	checkstyleMain {
+		// exclude all sources in samples module
+		exclude '**/samples/**'
+	}
 }
 
 sonarqube {
@@ -76,14 +84,32 @@ sonarqube {
 	}
 }
 
-editorconfig {
-	excludes = ['gradle/'
-				, 'jadx-test-app/test-app' // ignore issues in submodule
-				, '**/out/' // IntelliJ Idea build dirs
-				, '**/certificate-test/' // binary test files (.RSA)
-				, '**/*.svg'
-				, '**/*.arsc'
-	]
+spotless {
+	java {
+		target fileTree(rootDir).matching {
+			include 'jadx-cli/src/**/java/**/*.java'
+			include 'jadx-core/src/**/java/**/*.java'
+			include 'jadx-gui/src/**/java/**/*.java'
+		}
+
+		importOrderFile 'config/code-formatter/eclipse.importorder'
+		eclipse().configFile 'config/code-formatter/eclipse.xml'
+		removeUnusedImports()
+
+		lineEndings(LineEnding.UNIX)
+		encoding("UTF-8")
+		trimTrailingWhitespace()
+		endWithNewline()
+	}
+	format 'misc', {
+		target '**/*.gradle', '**/*.md', '**/*.xml', '**/.gitignore', '**/.properties'
+		targetExclude "jadx-test-app/test-app/**", ".gradle/**", ".idea/**"
+
+		lineEndings(LineEnding.UNIX)
+		encoding("UTF-8")
+		trimTrailingWhitespace()
+		endWithNewline()
+	}
 }
 
 dependencyUpdates.resolutionStrategy = {
@@ -138,9 +164,6 @@ task cleanBuildDir(type: Delete) {
 	delete buildDir
 }
 
-check.dependsOn editorconfigCheck
-
 test.dependsOn(samples)
 
 clean.dependsOn(cleanBuildDir)
-

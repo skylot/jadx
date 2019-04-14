@@ -1,7 +1,8 @@
 package jadx.gui.ui;
 
-import javax.swing.*;
 import java.awt.*;
+
+import javax.swing.*;
 
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JNode;

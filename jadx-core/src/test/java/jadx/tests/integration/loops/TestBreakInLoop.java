@@ -31,7 +31,7 @@ public class TestBreakInLoop extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsOne("for (int i = 0; i < a.length; i++) {"));
-//		assertThat(code, containsOne("a[i]++;"));
+		// assertThat(code, containsOne("a[i]++;"));
 		assertThat(code, containsOne("if (i < b) {"));
 		assertThat(code, containsOne("break;"));
 		assertThat(code, containsOne("this.f++;"));

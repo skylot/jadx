@@ -8,4 +8,3 @@ public interface IDexNode {
 
 	RootNode root();
 }
-

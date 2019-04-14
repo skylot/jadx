@@ -14,19 +14,22 @@ import static org.hamcrest.Matchers.not;
  * Issue: https://github.com/skylot/jadx/issues/336
  */
 public class TestInnerClassSyntheticRename extends SmaliTest {
+	// @formatter:off
+	/*
+		private class MyAsync extends AsyncTask<Uri, Uri, List<Uri>> {
+			@Override
+			protected List<Uri> doInBackground(Uri... uris) {
+				Log.i("MyAsync", "doInBackground");
+				return null;
+			}
 
-//	private class MyAsync extends AsyncTask<Uri, Uri, List<Uri>> {
-//		@Override
-//		protected List<Uri> doInBackground(Uri... uris) {
-//			Log.i("MyAsync", "doInBackground");
-//			return null;
-//		}
-//
-//		@Override
-//		protected void onPostExecute(List<Uri> uris) {
-//			Log.i("MyAsync", "onPostExecute");
-//		}
-//	}
+			@Override
+			protected void onPostExecute(List<Uri> uris) {
+				Log.i("MyAsync", "onPostExecute");
+			}
+		}
+	*/
+	// @formatter:on
 
 	@Test
 	public void test() {

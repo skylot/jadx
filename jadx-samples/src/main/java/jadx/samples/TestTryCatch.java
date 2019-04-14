@@ -161,7 +161,7 @@ public class TestTryCatch extends AbstractTest {
 	}
 
 	// TODO: remove 'synchronized(TestTryCatch.class)' block in decompiled version
-	private synchronized static boolean testSynchronize2(Object obj) throws InterruptedException {
+	private static synchronized boolean testSynchronize2(Object obj) throws InterruptedException {
 		return obj.toString() != null;
 	}
 

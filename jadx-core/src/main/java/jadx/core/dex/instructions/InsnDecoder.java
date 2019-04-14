@@ -120,14 +120,13 @@ public class InsnDecoder {
 				constStrInsn.setResult(InsnArg.reg(insn, 0, ArgType.STRING));
 				return constStrInsn;
 
-			case Opcodes.CONST_CLASS:
-				{
+			case Opcodes.CONST_CLASS: {
 				ArgType clsType = dex.getType(insn.getIndex());
 				InsnNode constClsInsn = new ConstClassNode(clsType);
 				constClsInsn.setResult(
 						InsnArg.reg(insn, 0, ArgType.generic(Consts.CLASS_CLASS, clsType)));
 				return constClsInsn;
-				}
+			}
 
 			case Opcodes.MOVE:
 			case Opcodes.MOVE_16:

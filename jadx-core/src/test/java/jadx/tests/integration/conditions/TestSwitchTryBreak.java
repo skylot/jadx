@@ -10,7 +10,7 @@ public class TestSwitchTryBreak extends IntegrationTest {
 	public static class TestCls {
 
 		public void test(int x) {
-			switch(x) {
+			switch (x) {
 				case 0:
 					return;
 				case 1:

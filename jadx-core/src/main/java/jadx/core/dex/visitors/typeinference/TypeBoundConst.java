@@ -10,7 +10,6 @@ public final class TypeBoundConst implements ITypeBound {
 	private final ArgType type;
 	private final RegisterArg arg;
 
-
 	public TypeBoundConst(BoundEnum bound, ArgType type) {
 		this(bound, type, null);
 	}
@@ -45,8 +44,7 @@ public final class TypeBoundConst implements ITypeBound {
 			return false;
 		}
 		TypeBoundConst that = (TypeBoundConst) o;
-		return bound == that.bound &&
-				Objects.equals(type, that.type);
+		return bound == that.bound && Objects.equals(type, that.type);
 	}
 
 	@Override

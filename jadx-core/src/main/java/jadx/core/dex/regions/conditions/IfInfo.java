@@ -24,7 +24,7 @@ public final class IfInfo {
 	}
 
 	private IfInfo(IfCondition condition, BlockNode thenBlock, BlockNode elseBlock,
-	               Set<BlockNode> mergedBlocks, Set<BlockNode> skipBlocks) {
+			Set<BlockNode> mergedBlocks, Set<BlockNode> skipBlocks) {
 		this.condition = condition;
 		this.thenBlock = thenBlock;
 		this.elseBlock = elseBlock;

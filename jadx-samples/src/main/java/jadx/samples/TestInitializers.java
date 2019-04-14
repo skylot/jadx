@@ -4,7 +4,7 @@ public class TestInitializers extends AbstractTest {
 
 	private static String a;
 	private static int counter;
-	private A c_a;
+	private A cA;
 
 	public static class A {
 		public static String a;
@@ -23,19 +23,19 @@ public class TestInitializers extends AbstractTest {
 		private int bbb;
 
 		public B() {
-			if (c_a.z()) {
+			if (cA.z()) {
 				b = -1;
 			} else {
 				b = 1;
 			}
 		}
 
-		public B(int _b) {
-			b = _b;
+		public B(int pb) {
+			b = pb;
 		}
 
-		public void setB(int _b) {
-			b = _b;
+		public void setB(int pb) {
+			b = pb;
 		}
 
 		public int getB() {
@@ -57,7 +57,7 @@ public class TestInitializers extends AbstractTest {
 	}
 
 	{
-		c_a = new A();
+		cA = new A();
 	}
 
 	@Override

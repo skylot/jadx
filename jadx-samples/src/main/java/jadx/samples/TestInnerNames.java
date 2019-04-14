@@ -2,6 +2,7 @@ package jadx.samples;
 
 public class TestInnerNames extends AbstractTest {
 
+	@SuppressWarnings("MemberName")
 	public int D;
 
 	public class A extends TestInner.MyThread {

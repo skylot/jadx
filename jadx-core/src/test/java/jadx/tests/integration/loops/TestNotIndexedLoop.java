@@ -49,10 +49,10 @@ public class TestNotIndexedLoop extends IntegrationTest {
 
 		public void check() {
 			assertThat(test(null), nullValue());
-			assertThat(test(new File[]{}), nullValue());
+			assertThat(test(new File[] {}), nullValue());
 
 			File file = new File("f");
-			assertThat(test(new File[]{new File("a"), file}), is(file));
+			assertThat(test(new File[] { new File("a"), file }), is(file));
 		}
 	}
 

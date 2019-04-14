@@ -1,7 +1,5 @@
 package jadx.tests.integration.arrays;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.ClassNode;
@@ -9,13 +7,14 @@ import jadx.tests.api.IntegrationTest;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestRedundantType extends IntegrationTest {
 
 	public static class TestCls {
 
 		public byte[] method() {
-	        return new byte[]{10, 11, 12};
+			return new byte[] { 10, 11, 12 };
 		}
 	}
 
@@ -35,7 +34,7 @@ public class TestRedundantType extends IntegrationTest {
 			arr[20] = 127;
 			arr[30] = (byte) 128;
 			arr[40] = (byte) 129;
-	        return arr;
+			return arr;
 		}
 	}
 
@@ -59,7 +58,7 @@ public class TestRedundantType extends IntegrationTest {
 			arr[20] = 32767;
 			arr[30] = (short) 32768;
 			arr[40] = (short) 32769;
-	        return arr;
+			return arr;
 		}
 	}
 

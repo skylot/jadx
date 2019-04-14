@@ -1,7 +1,5 @@
 package jadx.core.dex.nodes;
 
-import static jadx.core.dex.nodes.ProcessState.UNLOADED;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,6 +35,8 @@ import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.nodes.parser.StaticValuesParser;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+
+import static jadx.core.dex.nodes.ProcessState.UNLOADED;
 
 public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
@@ -355,7 +355,8 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	/**
 	 * Return first method by original short name
-	 * Note: methods are not unique by name (class can have several methods with same name but different signature)
+	 * Note: methods are not unique by name (class can have several methods with same name but different
+	 * signature)
 	 */
 	@Nullable
 	public MethodNode searchMethodByShortName(String name) {

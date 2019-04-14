@@ -42,12 +42,12 @@ import jadx.core.utils.BlockUtils;
 import jadx.core.utils.Utils;
 
 @JadxVisitor(
-	name = "Type Inference",
-	desc = "Calculate best types for SSA variables",
-	runAfter = {
-		SSATransform.class,
-		ConstInlineVisitor.class
-	}
+		name = "Type Inference",
+		desc = "Calculate best types for SSA variables",
+		runAfter = {
+				SSATransform.class,
+				ConstInlineVisitor.class
+		}
 )
 public final class TypeInferenceVisitor extends AbstractVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(TypeInferenceVisitor.class);
@@ -77,8 +77,8 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		for (SSAVar var : mth.getSVars()) {
 			ArgType type = var.getTypeInfo().getType();
 			if (!type.isTypeKnown()
-				    && !var.getAssign().isTypeImmutable()
-				    && !tryDeduceType(mth, var, type)) {
+					&& !var.getAssign().isTypeImmutable()
+					&& !tryDeduceType(mth, var, type)) {
 				resolved = false;
 			}
 		}
@@ -180,9 +180,9 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 
 	private Optional<ArgType> selectBestTypeFromBounds(Set<ITypeBound> bounds) {
 		return bounds.stream()
-			       .map(ITypeBound::getType)
-			       .filter(Objects::nonNull)
-			       .max(typeUpdate.getArgTypeComparator());
+				.map(ITypeBound::getType)
+				.filter(Objects::nonNull)
+				.max(typeUpdate.getArgTypeComparator());
 	}
 
 	private void attachBounds(SSAVar var) {
@@ -383,36 +383,36 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 
 	private void processIncompatiblePrimitives(MethodNode mth, SSAVar var) {
 		if (var.getAssign().getType() == ArgType.BOOLEAN) {
-			 for (ITypeBound bound : var.getTypeInfo().getBounds()) {
-				 if (bound.getBound() == BoundEnum.USE
-						 && bound.getType().isPrimitive() && bound.getType() != ArgType.BOOLEAN) {
-					 InsnNode insn = bound.getArg().getParentInsn();
-					 if (insn.getType() == InsnType.CAST) {
-						 continue;
-					 };
+			for (ITypeBound bound : var.getTypeInfo().getBounds()) {
+				if (bound.getBound() == BoundEnum.USE
+						&& bound.getType().isPrimitive() && bound.getType() != ArgType.BOOLEAN) {
+					InsnNode insn = bound.getArg().getParentInsn();
+					if (insn.getType() == InsnType.CAST) {
+						continue;
+					}
 
-					 IndexInsnNode castNode = new IndexInsnNode(InsnType.CAST, bound.getType(), 1);
-					 castNode.addArg(bound.getArg());
-					 castNode.setResult(InsnArg.reg(bound.getArg().getRegNum(), bound.getType()));
+					IndexInsnNode castNode = new IndexInsnNode(InsnType.CAST, bound.getType(), 1);
+					castNode.addArg(bound.getArg());
+					castNode.setResult(InsnArg.reg(bound.getArg().getRegNum(), bound.getType()));
 
-					 SSAVar newVar = mth.makeNewSVar(castNode.getResult().getRegNum(), castNode.getResult());
-					 CodeVar codeVar = new CodeVar();
-					 codeVar.setType(bound.getType());
-					 newVar.setCodeVar(codeVar);
-					 newVar.getTypeInfo().setType(bound.getType());
+					SSAVar newVar = mth.makeNewSVar(castNode.getResult().getRegNum(), castNode.getResult());
+					CodeVar codeVar = new CodeVar();
+					codeVar.setType(bound.getType());
+					newVar.setCodeVar(codeVar);
+					newVar.getTypeInfo().setType(bound.getType());
 
-					 for (int i = insn.getArgsCount() - 1; i >= 0; i--) {
-						 if (insn.getArg(i) == bound.getArg()) {
-							 insn.setArg(i, castNode.getResult().duplicate());
-							 break;
-						 }
-					 }
+					for (int i = insn.getArgsCount() - 1; i >= 0; i--) {
+						if (insn.getArg(i) == bound.getArg()) {
+							insn.setArg(i, castNode.getResult().duplicate());
+							break;
+						}
+					}
 
-					 BlockNode blockNode = BlockUtils.getBlockByInsn(mth, insn);
-					 List<InsnNode> insnList = blockNode.getInstructions();
-					 insnList.add(insnList.indexOf(insn), castNode);
-				 }
-			 }
+					BlockNode blockNode = BlockUtils.getBlockByInsn(mth, insn);
+					List<InsnNode> insnList = blockNode.getInstructions();
+					insnList.add(insnList.indexOf(insn), castNode);
+				}
+			}
 		}
 	}
 }

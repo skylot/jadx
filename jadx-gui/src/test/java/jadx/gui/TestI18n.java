@@ -1,10 +1,5 @@
 package jadx.gui;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
@@ -19,6 +14,11 @@ import java.util.Set;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestI18n {
 
@@ -45,8 +45,7 @@ public class TestI18n {
 				if (reference == null) {
 					reference = lines;
 					referenceName = p.getFileName().toString();
-				}
-				else {
+				} else {
 					compareToReference(p);
 				}
 
@@ -97,7 +96,7 @@ public class TestI18n {
 			try {
 				List<String> lines = Files.readAllLines(p);
 				for (String line : lines) {
-					for (Iterator<String> it = keys.iterator(); it.hasNext(); ) {
+					for (Iterator<String> it = keys.iterator(); it.hasNext();) {
 						if (line.contains(it.next())) {
 							it.remove();
 						}

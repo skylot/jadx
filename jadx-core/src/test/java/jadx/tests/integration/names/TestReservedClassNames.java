@@ -13,9 +13,9 @@ import static org.hamcrest.Matchers.not;
 
 public class TestReservedClassNames extends SmaliTest {
 	/*
-		public class do {
-		}
-	*/
+	 * public class do {
+	 * }
+	 */
 
 	@Test
 	public void test() {

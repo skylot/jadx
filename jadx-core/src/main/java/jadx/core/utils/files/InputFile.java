@@ -1,8 +1,5 @@
 package jadx.core.utils.files;
 
-import static jadx.core.utils.files.FileUtils.isApkFile;
-import static jadx.core.utils.files.FileUtils.isZipDexFile;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +27,9 @@ import jadx.core.utils.AsmUtils;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+
+import static jadx.core.utils.files.FileUtils.isApkFile;
+import static jadx.core.utils.files.FileUtils.isZipDexFile;
 
 public class InputFile {
 	private static final Logger LOG = LoggerFactory.getLogger(InputFile.class);
@@ -117,7 +117,7 @@ public class InputFile {
 			// we should consider the input file could contain only one single dex, multi-dex,
 			// or instantRun support dex for Android .apk files
 			String instantRunDexSuffix = "classes" + ext;
-			for (Enumeration<? extends ZipEntry> e = zf.entries(); e.hasMoreElements(); ) {
+			for (Enumeration<? extends ZipEntry> e = zf.entries(); e.hasMoreElements();) {
 				ZipEntry entry = e.nextElement();
 				if (!ZipSecurity.isValidZipEntry(entry)) {
 					continue;

@@ -1,8 +1,5 @@
 package jadx.tests.integration.others;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
@@ -10,10 +7,13 @@ import org.junit.jupiter.api.Test;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
+import static jadx.tests.api.utils.JadxMatchers.containsOne;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 public class TestStringConstructor extends IntegrationTest {
 
 	public static class TestCls {
-		public String tag = new String(new byte[] {'a', 'b', 'c'});
+		public String tag = new String(new byte[] { 'a', 'b', 'c' });
 	}
 
 	@Test
@@ -25,7 +25,7 @@ public class TestStringConstructor extends IntegrationTest {
 	}
 
 	public static class TestCls2 {
-		public String tag = new String(new byte[] {'a', 'b', 'c'}, StandardCharsets.UTF_8);
+		public String tag = new String(new byte[] { 'a', 'b', 'c' }, StandardCharsets.UTF_8);
 	}
 
 	@Test
@@ -37,7 +37,7 @@ public class TestStringConstructor extends IntegrationTest {
 	}
 
 	public static class TestCls3 {
-		public String tag = new String(new byte[] {1, 2, 3, 'a', 'b', 'c'});
+		public String tag = new String(new byte[] { 1, 2, 3, 'a', 'b', 'c' });
 	}
 
 	@Test
@@ -49,7 +49,7 @@ public class TestStringConstructor extends IntegrationTest {
 	}
 
 	public static class TestCls4 {
-		public String tag = new String(new char[] {1, 2, 3, 'a', 'b', 'c'});
+		public String tag = new String(new char[] { 1, 2, 3, 'a', 'b', 'c' });
 	}
 
 	@Test
@@ -61,7 +61,7 @@ public class TestStringConstructor extends IntegrationTest {
 	}
 
 	public static class TestCls5 {
-		public String tag = new String(new char[] {1, 2, 3, 'a', 'b'});
+		public String tag = new String(new char[] { 1, 2, 3, 'a', 'b' });
 	}
 
 	@Test

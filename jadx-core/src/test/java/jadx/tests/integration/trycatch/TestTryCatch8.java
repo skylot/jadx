@@ -33,8 +33,8 @@ public class TestTryCatch8 extends IntegrationTest {
 					throw new MyException();
 				} catch (MyException myExc) {
 					this.e = myExc;
-				} catch (Exception x) {
-					this.e = new MyException("MyExc", x);
+				} catch (Exception ex) {
+					this.e = new MyException("MyExc", ex);
 				}
 			}
 		}
@@ -56,8 +56,8 @@ public class TestTryCatch8 extends IntegrationTest {
 		assertThat(code, containsOne("throw new MyException();"));
 		assertThat(code, containsOne("} catch (MyException myExc) {"));
 		assertThat(code, containsOne("this.e = myExc;"));
-		assertThat(code, containsOne("} catch (Exception x) {"));
-		assertThat(code, containsOne("this.e = new MyException(\"MyExc\", x);"));
+		assertThat(code, containsOne("} catch (Exception ex) {"));
+		assertThat(code, containsOne("this.e = new MyException(\"MyExc\", ex);"));
 	}
 
 	@Test
