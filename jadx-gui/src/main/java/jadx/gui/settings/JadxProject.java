@@ -29,6 +29,8 @@ public class JadxProject {
 	private transient String name = "New Project";
 	private transient Path projectPath;
 	private List<Path> filesPath;
+	private int dividerLocation;
+
 	private transient boolean saved;
 	private transient boolean initial = true;
 
@@ -59,6 +61,17 @@ public class JadxProject {
 	public void setFilePath(Path filePath) {
 		if (!filePath.equals(getFilePath())) {
 			this.filesPath = Arrays.asList(filePath);
+			changed();
+		}
+	}
+
+	public int getDividerLocation() {
+		return dividerLocation;
+	}
+
+	public void setDividerLocation(int dividerLocation) {
+		if (this.dividerLocation != dividerLocation) {
+			this.dividerLocation = dividerLocation;
 			changed();
 		}
 	}
