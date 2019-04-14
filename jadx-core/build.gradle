@@ -8,12 +8,12 @@ dependencies {
     compile 'org.ow2.asm:asm:7.1'
     compile 'org.jetbrains:annotations:17.0.0'
     compile 'uk.com.robust-it:cloning:1.9.12'
-    compile('org.smali:smali:2.2.6') {
+    compile('org.smali:smali:2.2.7') {
         exclude group: 'com.google.guava'
     }
     compile 'com.google.guava:guava:27.1-jre'
 
-    testCompile 'org.smali:baksmali:2.2.6'
+    testCompile 'org.smali:baksmali:2.2.7'
 
     testCompile 'org.apache.commons:commons-lang3:3.8.1'
 
