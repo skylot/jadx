@@ -2,6 +2,10 @@ package jadx.core.dex.instructions;
 
 import java.io.EOFException;
 
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.android.dex.Code;
 import com.android.dx.io.OpcodeInfo;
 import com.android.dx.io.Opcodes;
@@ -10,10 +14,8 @@ import com.android.dx.io.instructions.FillArrayDataPayloadDecodedInstruction;
 import com.android.dx.io.instructions.PackedSwitchPayloadDecodedInstruction;
 import com.android.dx.io.instructions.ShortArrayCodeInput;
 import com.android.dx.io.instructions.SparseSwitchPayloadDecodedInstruction;
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import jadx.core.Consts;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
@@ -119,9 +121,13 @@ public class InsnDecoder {
 				return constStrInsn;
 
 			case Opcodes.CONST_CLASS:
-				InsnNode constClsInsn = new ConstClassNode(dex.getType(insn.getIndex()));
-				constClsInsn.setResult(InsnArg.reg(insn, 0, ArgType.CLASS));
+				{
+				ArgType clsType = dex.getType(insn.getIndex());
+				InsnNode constClsInsn = new ConstClassNode(clsType);
+				constClsInsn.setResult(
+						InsnArg.reg(insn, 0, ArgType.generic(Consts.CLASS_CLASS, clsType)));
 				return constClsInsn;
+				}
 
 			case Opcodes.MOVE:
 			case Opcodes.MOVE_16:

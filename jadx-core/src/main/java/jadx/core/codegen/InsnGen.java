@@ -740,13 +740,18 @@ public class InsnGen {
 				return false;
 			}
 		}
-		if (!arg.getType().equals(origType)) {
-			code.add('(');
-			useType(code, origType);
-			code.add(") ");
-			return true;
+		ArgType argType = arg.getType();
+		if (argType.equals(origType)) {
+			return false;
 		}
-		return false;
+		if (origType.isGeneric()
+				&& origType.getObject().equals(argType.getObject())) {
+			return false;
+		}
+		code.add('(');
+		useType(code, origType);
+		code.add(") ");
+		return true;
 	}
 
 	/**

@@ -1,8 +1,11 @@
 package jadx.tests.integration.generics;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+
 import org.junit.jupiter.api.Test;
 
-import jadx.NotYetImplemented;
+import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 public class TestGenerics7 extends IntegrationTest {
@@ -22,8 +25,10 @@ public class TestGenerics7 extends IntegrationTest {
 	}
 
 	@Test
-	@NotYetImplemented
 	public void test() {
-		getClassNode(TestCls.class);
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, containsString("declare(String.class);"));
 	}
 }

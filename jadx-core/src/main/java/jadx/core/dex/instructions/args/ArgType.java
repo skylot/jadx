@@ -83,7 +83,7 @@ public abstract class ArgType {
 		return new SignatureParser(sign).consumeType();
 	}
 
-	public static ArgType generic(String obj, ArgType[] generics) {
+	public static ArgType generic(String obj, ArgType... generics) {
 		return new GenericObject(obj, generics);
 	}
 
