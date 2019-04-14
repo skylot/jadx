@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrList;
 import jadx.core.dex.attributes.nodes.LoopInfo;
@@ -195,7 +196,13 @@ public class RegionUtils {
 			return false;
 		}
 		if (container instanceof IBlock) {
-			return !((IBlock) container).getInstructions().isEmpty();
+			List<InsnNode> insnList = ((IBlock) container).getInstructions();
+			for (InsnNode insnNode : insnList) {
+				if (!insnNode.contains(AFlag.DONT_GENERATE)) {
+					return true;
+				}
+			}
+			return false;
 		} else if (container instanceof IRegion) {
 			IRegion region = (IRegion) container;
 			for (IContainer block : region.getSubBlocks()) {

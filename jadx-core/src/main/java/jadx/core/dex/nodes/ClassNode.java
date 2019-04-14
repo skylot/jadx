@@ -34,6 +34,7 @@ import jadx.core.dex.nodes.parser.AnnotationsParser;
 import jadx.core.dex.nodes.parser.FieldInitAttr;
 import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.nodes.parser.StaticValuesParser;
+import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -124,7 +125,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 				accFlagsValue = cls.getAccessFlags();
 			}
 			this.accessFlags = new AccessInfo(accFlagsValue, AFType.CLASS);
-			markAnonymousClass(this);
+			markAnonymousClass();
 			buildCache();
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Error decode class: " + clsInfo, e);
@@ -403,10 +404,25 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 				&& getSuperClass().getObject().equals(ArgType.ENUM.getObject());
 	}
 
+	public boolean markAnonymousClass() {
+		if (isAnonymous() || isLambdaCls()) {
+			add(AFlag.ANONYMOUS_CLASS);
+			add(AFlag.DONT_GENERATE);
+
+			for (MethodNode mth : getMethods()) {
+				if (mth.isConstructor()) {
+					mth.add(AFlag.ANONYMOUS_CONSTRUCTOR);
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+
 	public boolean isAnonymous() {
 		return clsInfo.isInner()
-				&& clsInfo.getAlias().getShortName().startsWith(Consts.ANONYMOUS_CLASS_PREFIX)
-				&& getDefaultConstructor() != null;
+				&& Character.isDigit(clsInfo.getShortName().charAt(0))
+				&& methods.stream().filter(MethodNode::isConstructor).count() == 1;
 	}
 
 	public boolean isLambdaCls() {
@@ -423,13 +439,6 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 			}
 		}
 		return c;
-	}
-
-	private static void markAnonymousClass(ClassNode cls) {
-		if (cls.isAnonymous() || cls.isLambdaCls()) {
-			cls.add(AFlag.ANONYMOUS_CLASS);
-			cls.add(AFlag.DONT_GENERATE);
-		}
 	}
 
 	@Nullable

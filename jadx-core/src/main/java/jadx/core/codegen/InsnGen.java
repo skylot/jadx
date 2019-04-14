@@ -582,14 +582,14 @@ public class InsnGen {
 		} else {
 			parent = cls.getSuperClass();
 		}
-		MethodNode defCtr = cls.getDefaultConstructor();
-		if (defCtr != null) {
-			if (RegionUtils.notEmpty(defCtr.getRegion())) {
-				defCtr.add(AFlag.ANONYMOUS_CONSTRUCTOR);
-			} else {
-				defCtr.add(AFlag.DONT_GENERATE);
+		// hide empty anonymous constructors
+		for (MethodNode ctor : cls.getMethods()) {
+			if (ctor.contains(AFlag.ANONYMOUS_CONSTRUCTOR)
+					&& RegionUtils.isEmpty(ctor.getRegion())) {
+				ctor.add(AFlag.DONT_GENERATE);
 			}
 		}
+
 		code.add("new ");
 		if (parent == null) {
 			code.add("Object");

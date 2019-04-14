@@ -51,10 +51,11 @@ public class ClassModifier extends AbstractVisitor {
 			cls.add(AFlag.DONT_GENERATE);
 			return false;
 		}
-		markAnonymousClass(cls);
+		cls.markAnonymousClass();
 		removeSyntheticFields(cls);
 		cls.getMethods().forEach(ClassModifier::removeSyntheticMethods);
 		cls.getMethods().forEach(ClassModifier::removeEmptyMethods);
+		cls.getMethods().forEach(ClassModifier::cleanInsnsInAnonymousConstructor);
 		return false;
 	}
 
@@ -63,13 +64,6 @@ public class ClassModifier extends AbstractVisitor {
 				&& cls.getFields().isEmpty()
 				&& cls.getMethods().isEmpty()
 				&& cls.getInnerClasses().isEmpty();
-	}
-
-	private void markAnonymousClass(ClassNode cls) {
-		if (cls.isAnonymous()) {
-			cls.add(AFlag.ANONYMOUS_CLASS);
-			cls.add(AFlag.DONT_GENERATE);
-		}
 	}
 
 	/**
@@ -324,12 +318,37 @@ public class ClassModifier extends AbstractVisitor {
 		}
 	}
 
+	/**
+	 * Remove super call and put into removed fields from anonymous constructor
+	 */
+	private static void cleanInsnsInAnonymousConstructor(MethodNode mth) {
+		if (!mth.contains(AFlag.ANONYMOUS_CONSTRUCTOR)) {
+			return;
+		}
+		for (BlockNode block : mth.getBasicBlocks()) {
+			for (InsnNode insn : block.getInstructions()) {
+				InsnType type = insn.getType();
+				if (type == InsnType.CONSTRUCTOR) {
+					ConstructorInsn ctorInsn = (ConstructorInsn) insn;
+					if (ctorInsn.isSuper()) {
+						ctorInsn.add(AFlag.DONT_GENERATE);
+					}
+				} else if (type == InsnType.IPUT) {
+					FieldInfo fldInfo = (FieldInfo) ((IndexInsnNode) insn).getIndex();
+					FieldNode fieldNode = mth.dex().resolveField(fldInfo);
+					if (fieldNode != null && fieldNode.contains(AFlag.DONT_GENERATE)) {
+						insn.add(AFlag.DONT_GENERATE);
+					}
+				}
+			}
+		}
+	}
+
 	private static boolean isNonDefaultConstructorExists(MethodNode defCtor) {
 		ClassNode parentClass = defCtor.getParentClass();
 		for (MethodNode mth : parentClass.getMethods()) {
 			if (mth != defCtor
-					&& mth.getAccessFlags().isConstructor()
-					&& mth.getMethodInfo().isConstructor()
+					&& mth.isConstructor()
 					&& !mth.isDefaultConstructor()) {
 				return true;
 			}

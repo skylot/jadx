@@ -552,9 +552,12 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return false;
 	}
 
+	public boolean isConstructor() {
+		return accFlags.isConstructor() && mthInfo.isConstructor();
+	}
+
 	public boolean isDefaultConstructor() {
-		boolean result = false;
-		if (accFlags.isConstructor() && mthInfo.isConstructor()) {
+		if (isConstructor()) {
 			int defaultArgCount = 0;
 			// workaround for non-static inner class constructor, that has synthetic argument
 			if (parentClass.getClassInfo().isInner()
@@ -565,9 +568,9 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 					defaultArgCount = 1;
 				}
 			}
-			result = argsList == null || argsList.size() == defaultArgCount;
+			return argsList == null || argsList.size() == defaultArgCount;
 		}
-		return result;
+		return false;
 	}
 
 	public boolean isVirtual() {

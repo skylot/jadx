@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
-import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.ArithNode;
@@ -39,8 +38,8 @@ import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.ErrorsCounter;
-import jadx.core.utils.InsnUtils;
 import jadx.core.utils.InsnRemover;
+import jadx.core.utils.InsnUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.utils.BlockUtils.replaceInsn;
@@ -207,23 +206,22 @@ public class ModVisitor extends AbstractVisitor {
 		if (callMthNode == null) {
 			return;
 		}
-		ClassNode classNode = callMthNode.getParentClass();
-		ClassInfo classInfo = classNode.getClassInfo();
-		ClassNode parentClass = mth.getParentClass();
-		if (!classInfo.isInner()
-				|| !Character.isDigit(classInfo.getShortName().charAt(0))
-				|| !parentClass.getInnerClasses().contains(classNode)) {
-			return;
-		}
-		// TODO: calculate this constructor and other constructor usage
 		Map<InsnArg, FieldNode> argsMap = getArgsToFieldsMapping(callMthNode, co);
 		if (argsMap.isEmpty() && !callMthNode.getArguments(true).isEmpty()) {
 			return;
 		}
 
-		// all checks passed
-		classNode.add(AFlag.ANONYMOUS_CLASS);
-		callMthNode.add(AFlag.DONT_GENERATE);
+		ClassNode classNode = callMthNode.getParentClass();
+		if (!classNode.contains(AFlag.ANONYMOUS_CLASS)) {
+			// check if class can be anonymous but not yet marked due to dependency issues
+			if (!classNode.markAnonymousClass()) {
+				return;
+			}
+		}
+		if (!mth.getParentClass().getInnerClasses().contains(classNode)) {
+			return;
+		}
+
 		for (Map.Entry<InsnArg, FieldNode> entry : argsMap.entrySet()) {
 			FieldNode field = entry.getValue();
 			if (field == null) {
