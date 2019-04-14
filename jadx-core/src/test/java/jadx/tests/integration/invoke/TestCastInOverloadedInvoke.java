@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
@@ -52,18 +51,6 @@ public class TestCastInOverloadedInvoke extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("call(new ArrayList());"));
-		assertThat(code, containsOne("call((List<String>) new ArrayList());"));
-
-		assertThat(code, containsOne("call((String) obj);"));
-	}
-
-	@Test
-	@NotYetImplemented
-	public void testNYI() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
