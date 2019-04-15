@@ -862,12 +862,33 @@ public class InsnGen {
 		} else {
 			condGen.wrap(code, insn.getCondition());
 			code.add(" ? ");
+			addCastIfNeeded(code, first, second);
 			addArg(code, first, false);
 			code.add(" : ");
 			addArg(code, second, false);
 		}
 		if (wrap) {
 			code.add(')');
+		}
+	}
+
+	private void addCastIfNeeded(CodeWriter code, InsnArg first, InsnArg second) {
+		if (first.isLiteral() && second.isLiteral()) {
+			if (first.getType() == ArgType.BYTE) {
+				long lit1 = ((LiteralArg) first).getLiteral();
+				long lit2 = ((LiteralArg) second).getLiteral();
+				if (lit1 != Byte.MAX_VALUE && lit1 != Byte.MIN_VALUE
+						&& lit2 != Byte.MAX_VALUE && lit2 != Byte.MIN_VALUE) {
+					code.add("(byte) ");
+				}
+			} else if (first.getType() == ArgType.SHORT) {
+				long lit1 = ((LiteralArg) first).getLiteral();
+				long lit2 = ((LiteralArg) second).getLiteral();
+				if (lit1 != Short.MAX_VALUE && lit1 != Short.MIN_VALUE
+						&& lit2 != Short.MAX_VALUE && lit2 != Short.MIN_VALUE) {
+					code.add("(short) ");
+				}
+			}
 		}
 	}
 
