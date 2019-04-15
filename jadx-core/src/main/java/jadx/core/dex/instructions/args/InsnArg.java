@@ -10,8 +10,12 @@ import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.ArithNode;
+import jadx.core.dex.instructions.IfNode;
+import jadx.core.dex.instructions.IfOp;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.InsnNode;
+import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.utils.InsnUtils;
 
 /**
@@ -110,8 +114,14 @@ public abstract class InsnArg extends Typed {
 		if (i == -1) {
 			return null;
 		}
+
+		InsnArg arg = processCast(insn, i);
+		if (arg != null) {
+			return arg;
+		}
+
 		insn.add(AFlag.WRAPPED);
-		InsnArg arg = wrapArg(insn);
+		arg = wrapArg(insn);
 		parent.setArg(i, arg);
 
 		if (insn.getType() == InsnType.ARITH && parent.getType() == InsnType.ARITH
@@ -120,6 +130,32 @@ public abstract class InsnArg extends Typed {
 		}
 
 		return arg;
+	}
+
+	private InsnArg processCast(InsnNode insn, int i) {
+		InsnNode parent = parentInsn;
+
+		if (parent.getType() == InsnType.CAST
+				&& insn.getResult().getType() == ArgType.BOOLEAN
+				&& parent.getResult().getType() == ArgType.BYTE) {
+
+			InsnArg th = new LiteralArg(0, ArgType.BYTE);
+			InsnArg one = new LiteralArg(1, ArgType.BYTE);
+			IfNode ifNode = new IfNode(IfOp.NE, -1, wrapArg(insn), LiteralArg.FALSE);
+			IfCondition condition = IfCondition.fromIfNode(ifNode);
+			TernaryInsn ternary = new TernaryInsn(condition, parent.getResult(), one, th);
+			InsnArg arg = wrapArg(ternary);
+			parent.setArg(i, arg);
+			return arg;
+		}
+
+		if (insn.getType() == InsnType.CAST
+				&& insn.getResult().getType() == insn.getArg(0).getType()) {
+			InsnArg arg = insn.getArg(0);
+			parent.setArg(i, arg);
+			return arg;
+		}
+		return null;
 	}
 
 	public static void updateParentInsn(InsnNode fromInsn, InsnNode toInsn) {
