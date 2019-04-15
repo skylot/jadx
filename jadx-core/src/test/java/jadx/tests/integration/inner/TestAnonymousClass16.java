@@ -1,6 +1,5 @@
 package jadx.tests.integration.inner;
 
-import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 
 import jadx.NotYetImplemented;
@@ -10,15 +9,19 @@ public class TestAnonymousClass16 extends IntegrationTest {
 
 	public static class TestCls {
 
-		@SuppressWarnings("serial")
-		public HashMap<String, String> test() {
-			HashMap<String, String> map = new HashMap<String, String>() {
+		public Something test() {
+			Something a = new Something() {
 				{
 					put("a", "b");
 				}
 			};
-			map.put("c", "d");
-			return map;
+			a.put("c", "d");
+			return a;
+		}
+
+		public class Something {
+			public void put(Object o, Object o2) {
+			}
 		}
 	}
 
