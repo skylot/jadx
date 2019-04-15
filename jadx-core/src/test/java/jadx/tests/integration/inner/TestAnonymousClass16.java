@@ -3,6 +3,7 @@ package jadx.tests.integration.inner;
 import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 
+import jadx.NotYetImplemented;
 import jadx.tests.api.IntegrationTest;
 
 public class TestAnonymousClass16 extends IntegrationTest {
@@ -23,6 +24,7 @@ public class TestAnonymousClass16 extends IntegrationTest {
 
 
 	@Test
+	@NotYetImplemented
 	public void test() {
 		noDebugInfo();
 		getClassNode(TestCls.class);
