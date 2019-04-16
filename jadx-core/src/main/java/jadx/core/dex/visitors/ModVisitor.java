@@ -160,16 +160,18 @@ public class ModVisitor extends AbstractVisitor {
 						break;
 
 					case CAST:
-						InsnNode pi = block.getInstructions().get(i - 1);
-						if (insn.getResult().getType() == ArgType.BYTE
-								&& pi.getResult().getType() == ArgType.BOOLEAN) {
-							InsnArg zero = new LiteralArg(0, ArgType.BYTE);
-							InsnArg one = new LiteralArg(1, ArgType.BYTE);
-							IfNode ifNode = new IfNode(IfOp.NE, -1, InsnArg.wrapArg(pi), LiteralArg.FALSE);
-							IfCondition condition = IfCondition.fromIfNode(ifNode);
-							TernaryInsn ternary = new TernaryInsn(condition, insn.getResult(), one, zero);
-							replaceInsn(block, i, ternary);
-							remover.addAndUnbind(pi);
+						if (i != 0) {
+							InsnNode pi = block.getInstructions().get(i - 1);
+							if (insn.getResult().getType() == ArgType.BYTE
+									&& pi.getResult().getType() == ArgType.BOOLEAN) {
+								InsnArg zero = new LiteralArg(0, ArgType.BYTE);
+								InsnArg one = new LiteralArg(1, ArgType.BYTE);
+								IfNode ifNode = new IfNode(IfOp.NE, -1, InsnArg.wrapArg(pi), LiteralArg.FALSE);
+								IfCondition condition = IfCondition.fromIfNode(ifNode);
+								TernaryInsn ternary = new TernaryInsn(condition, insn.getResult(), one, zero);
+								replaceInsn(block, i, ternary);
+								remover.addAndUnbind(pi);
+							}
 						}
 						break;
 
