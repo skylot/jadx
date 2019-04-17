@@ -916,7 +916,7 @@ public class MainWindow extends JFrame {
 
 	private static String[] getPathExpansion(TreePath path) {
 		List<String> pathList = new ArrayList<>();
-		while(path != null) {
+		while (path != null) {
 			pathList.add(path.getLastPathComponent().toString());
 			path = path.getParentPath();
 		}
