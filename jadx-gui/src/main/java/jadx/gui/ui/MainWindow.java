@@ -4,6 +4,7 @@ import static javax.swing.KeyStroke.getKeyStroke;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.DisplayMode;
 import java.awt.Font;
 import java.awt.GraphicsDevice;
@@ -126,6 +127,7 @@ public class MainWindow extends JFrame {
 	private JPanel mainPanel;
 
 	private JTree tree;
+	private JScrollPane treeScrollPane;
 	private DefaultTreeModel treeModel;
 	private JRoot treeRoot;
 	private TabbedPane tabbedPane;
@@ -161,6 +163,7 @@ public class MainWindow extends JFrame {
 	public void init() {
 		pack();
 		setLocationAndPosition();
+		treeScrollPane.setPreferredSize(new Dimension(settings.getTreeWidth(), 0));
 		heapUsageBar.setVisible(settings.isShowHeapUsageBar());
 		setVisible(true);
 		setLocationRelativeTo(null);
@@ -835,7 +838,8 @@ public class MainWindow extends JFrame {
 		progressPane = new ProgressPanel(this, true);
 
 		JPanel leftPane = new JPanel(new BorderLayout());
-		leftPane.add(new JScrollPane(tree), BorderLayout.CENTER);
+		treeScrollPane = new JScrollPane(tree);
+		leftPane.add(treeScrollPane, BorderLayout.CENTER);
 		leftPane.add(progressPane, BorderLayout.PAGE_END);
 		splitPane.setLeftComponent(leftPane);
 
@@ -903,6 +907,7 @@ public class MainWindow extends JFrame {
 		if (!ensureProjectIsSaved()) {
 			return;
 		}
+		settings.setTreeWidth(treeScrollPane.getWidth());
 		settings.saveWindowPos(this);
 		cancelBackgroundJobs();
 		dispose();

@@ -56,6 +56,11 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private int settingsVersion = 0;
 
+	/**
+	 * UI setting: the width of the tree showing the classes, resources, ...
+	 */
+	private int treeWidth = 130;
+
 	private Map<String, WindowLocation> windowPos = new HashMap<>();
 
 	public static JadxSettings makeDefault() {
@@ -289,6 +294,15 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setExportAsGradleProject(boolean exportAsGradleProject) {
 		this.exportAsGradleProject = exportAsGradleProject;
+	}
+
+	public int getTreeWidth() {
+		return treeWidth;
+	}
+
+	public void setTreeWidth(int treeWidth) {
+		this.treeWidth = treeWidth;
+		partialSync(settings -> settings.treeWidth = JadxSettings.this.treeWidth);
 	}
 
 	public Font getFont() {
