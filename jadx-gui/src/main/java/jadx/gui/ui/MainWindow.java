@@ -23,7 +23,9 @@ import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -52,6 +54,7 @@ import javax.swing.WindowConstants;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -130,6 +133,7 @@ public class MainWindow extends JFrame {
 	private JRoot treeRoot;
 	private TabbedPane tabbedPane;
 	private HeapUsageBar heapUsageBar;
+	private transient boolean treeReloading;
 
 	private boolean isFlattenPackage;
 	private JToggleButton flatPkgButton;
@@ -348,9 +352,9 @@ public class MainWindow extends JFrame {
 		setTitle((project.isSaved() ? "" : '*')
 				+ project.getName() + pathString + " - " + DEFAULT_TITLE);
 
-		int divideLocation = project.getDividerLocation();
-		if (divideLocation != 0) {
-			((JSplitPane) mainPanel.getComponent(0)).setDividerLocation(divideLocation);
+		int dividerLocation = project.getDividerLocation();
+		if (dividerLocation != 0) {
+			((JSplitPane) mainPanel.getComponent(0)).setDividerLocation(dividerLocation);
 		}
 	}
 
@@ -435,8 +439,34 @@ public class MainWindow extends JFrame {
 	}
 
 	private void reloadTree() {
+		treeReloading = true;
+
 		treeModel.reload();
-		tree.expandRow(1);
+		String[][] treeExpansions = project.getTreeExpansions();
+		if (treeExpansions != null) {
+			expand(treeRoot, Arrays.asList(treeExpansions));
+		} else {
+			tree.expandRow(1);
+		}
+
+		treeReloading = false;
+	}
+
+	private void expand(TreeNode node, List<String[]> treeExpansions) {
+		TreeNode[] pathNodes = treeModel.getPathToRoot(node);
+		if (pathNodes == null) {
+			return;
+		}
+		TreePath path = new TreePath(pathNodes);
+		for (String[] expansion : treeExpansions) {
+			if (Arrays.equals(expansion, getPathExpansion(path))) {
+				tree.expandPath(path);
+				break;
+			}
+		}
+		for (int i = node.getChildCount() - 1; i >= 0; i--) {
+			expand(node.getChildAt(i), treeExpansions);
+		}
 	}
 
 	private void toggleFlattenPackage() {
@@ -820,6 +850,28 @@ public class MainWindow extends JFrame {
 				return c;
 			}
 		});
+		tree.addTreeExpansionListener(new TreeExpansionListener() {
+
+			@Override
+			public void treeExpanded(TreeExpansionEvent event) {
+				if (!treeReloading) {
+					List<TreePath> list = new ArrayList<>();
+					getExpandedPaths(tree, new TreePath(treeRoot), list);
+
+					String[][] treeExpansions = new String[list.size()][];
+					for (int i = treeExpansions.length -1; i >= 0; i--) {
+						treeExpansions[i] = getPathExpansion(list.get(i));
+					}
+					project.setTreeExpansions(treeExpansions);
+					update();
+				}
+			}
+
+			@Override
+			public void treeCollapsed(TreeExpansionEvent event) {
+				treeExpanded(event);
+			}
+		});
 		tree.addTreeWillExpandListener(new TreeWillExpandListener() {
 			@Override
 			public void treeWillExpand(TreeExpansionEvent event) {
@@ -860,6 +912,28 @@ public class MainWindow extends JFrame {
 
 		setContentPane(mainPanel);
 		setTitle(DEFAULT_TITLE);
+	}
+
+	private static String[] getPathExpansion(TreePath path) {
+		List<String> pathList = new ArrayList<>();
+		while(path != null) {
+			pathList.add(path.getLastPathComponent().toString());
+			path = path.getParentPath();
+		}
+		return pathList.toArray(new String[pathList.size()]);
+	}
+
+	public static void getExpandedPaths(JTree tree, TreePath path, List<TreePath> list) {
+		if (tree.isExpanded(path)) {
+			list.add(path);
+
+			TreeNode node = (TreeNode) path.getLastPathComponent();
+			for (int i = node.getChildCount() - 1; i >= 0; i--) {
+				TreeNode n = node.getChildAt(i);
+				TreePath child = path.pathByAddingChild(n);
+				getExpandedPaths(tree, child, list);
+			}
+		}
 	}
 
 	public void setLocationAndPosition() {
