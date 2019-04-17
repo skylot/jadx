@@ -3,14 +3,14 @@
 
 .field private showConsent:Z
 
-.method public writeToParcel(LTestBooleanToLong;I)V
+.method public writeToParcel(LTestBooleanToLong;)V
     .locals 0
 
-    iget-boolean p2, p0, LTestBooleanToLong;->showConsent:Z
+    iget-boolean p1, p0, LTestBooleanToLong;->showConsent:Z
 
-    int-to-long p2, p2
+    int-to-long p1, p1
 
-    invoke-virtual {p1, p2}, LTestBooleanToLong;->write(J)V
+    invoke-virtual {p0, p1}, LTestBooleanToLong;->write(J)V
 
     return-void
 .end method

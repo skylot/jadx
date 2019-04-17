@@ -16,7 +16,7 @@ public class TestBooleanToShort extends SmaliTest {
     	public void write(short b) {
     	}
 
-    	public void writeToParcel(TestBooleanToShort testBooleanToShort, int i) {
+    	public void writeToParcel(TestBooleanToShort testBooleanToShort) {
         	testBooleanToShort.write(this.showConsent ? (short) 1 : 0);
     	}
 	 */

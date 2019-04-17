@@ -16,7 +16,7 @@ public class TestBooleanToDouble extends SmaliTest {
     	public void write(double d) {
     	}
 
-    	public void writeToParcel(TestBooleanToDouble testBooleanToDouble, int i) {
+    	public void writeToParcel(TestBooleanToDouble testBooleanToDouble) {
         	testBooleanToDouble.write(this.showConsent ? 1 : 0);
     	}
 	 */

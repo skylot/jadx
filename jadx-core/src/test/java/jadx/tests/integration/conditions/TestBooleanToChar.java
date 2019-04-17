@@ -16,7 +16,7 @@ public class TestBooleanToChar extends SmaliTest {
     	public void write(char b) {
     	}
 
-    	public void writeToParcel(TestBooleanToChar testBooleanToChar, int i) {
+    	public void writeToParcel(TestBooleanToChar testBooleanToChar) {
         	testBooleanToChar.write(this.showConsent ? (char) 1 : 0);
     	}
 	 */

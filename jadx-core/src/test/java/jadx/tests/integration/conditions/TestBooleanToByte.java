@@ -16,7 +16,7 @@ public class TestBooleanToByte extends SmaliTest {
     	public void write(byte b) {
     	}
 
-    	public void writeToParcel(TestBooleanToByte testBooleanToByte, int i) {
+    	public void writeToParcel(TestBooleanToByte testBooleanToByte) {
         	testBooleanToByte.write(this.showConsent ? (byte) 1 : 0);
     	}
 	 */

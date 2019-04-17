@@ -16,7 +16,7 @@ public class TestBooleanToFloat extends SmaliTest {
     	public void write(float f) {
     	}
 
-    	public void writeToParcel(TestBooleanToFloat testBooleanToFloat, int i) {
+    	public void writeToParcel(TestBooleanToFloat testBooleanToFloat) {
         	testBooleanToFloat.write(this.showConsent ? 1 : 0);
     	}
 	 */

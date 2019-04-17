@@ -3,14 +3,14 @@
 
 .field private showConsent:Z
 
-.method public writeToParcel(LTestBooleanToDouble;I)V
+.method public writeToParcel(LTestBooleanToDouble;)V
     .locals 0
 
-    iget-boolean p2, p0, LTestBooleanToDouble;->showConsent:Z
+    iget-boolean p1, p0, LTestBooleanToDouble;->showConsent:Z
 
-    int-to-double p2, p2
+    int-to-double p1, p1
 
-    invoke-virtual {p1, p2}, LTestBooleanToDouble;->write(D)V
+    invoke-virtual {p0, p1}, LTestBooleanToDouble;->write(D)V
 
     return-void
 .end method
