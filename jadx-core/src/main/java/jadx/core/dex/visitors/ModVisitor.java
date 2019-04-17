@@ -160,6 +160,7 @@ public class ModVisitor extends AbstractVisitor {
 						break;
 
 					case CAST:
+						// replace boolean to byte cast with ternary
 						if (insn.getResult().getType() == ArgType.BYTE
 								&& insn.getArg(0).getType() == ArgType.BOOLEAN) {
 							IfNode ifNode = new IfNode(IfOp.EQ, -1, insn.getArg(0), LiteralArg.TRUE);
