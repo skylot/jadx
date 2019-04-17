@@ -8,23 +8,23 @@ import org.junit.jupiter.api.Test;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
-public class TestBooleanToByte extends SmaliTest {
+public class TestBooleanToChar extends SmaliTest {
 
 	/**
     	private boolean showConsent;
 
-    	public void write(byte b) {
+    	public void write(char b) {
     	}
 
-    	public void writeToParcel(TestBooleanToByte testBooleanToByte, int i) {
-        	testBooleanToByte.write(this.showConsent ? (byte) 1 : 0);
+    	public void writeToParcel(TestBooleanToChar testBooleanToChar, int i) {
+        	testBooleanToChar.write(this.showConsent ? (char) 1 : 0);
     	}
 	 */
 	@Test
 	public void test() {
-		ClassNode cls = getClassNodeFromSmaliWithPath("conditions", "TestBooleanToByte");
+		ClassNode cls = getClassNodeFromSmaliWithPath("conditions", "TestBooleanToChar");
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsString("write(this.showConsent ? (byte) 1 : 0);"));
+		assertThat(code, containsString("write(this.showConsent ? (char) 1 : 0);"));
 	}
 }
