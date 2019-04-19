@@ -890,7 +890,15 @@ public class MainWindow extends JFrame {
 	private static String[] getPathExpansion(TreePath path) {
 		List<String> pathList = new ArrayList<>();
 		while (path != null) {
-			pathList.add(path.getLastPathComponent().toString());
+			Object node = path.getLastPathComponent();
+			String name;
+			if (node instanceof JClass) {
+				name = ((JClass) node).getCls().getClassNode().getClassInfo().getFullName();
+			}
+			else {
+				name = node.toString();
+			}
+			pathList.add(name);
 			path = path.getParentPath();
 		}
 		return pathList.toArray(new String[pathList.size()]);
