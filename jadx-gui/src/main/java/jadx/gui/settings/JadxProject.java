@@ -30,7 +30,6 @@ public class JadxProject {
 	private transient Path projectPath;
 	private List<Path> filesPath;
 	private String[][] treeExpansions;
-	private int dividerLocation;
 
 	private transient boolean saved;
 	private transient boolean initial = true;
@@ -66,16 +65,6 @@ public class JadxProject {
 		}
 	}
 
-	public int getDividerLocation() {
-		return dividerLocation;
-	}
-
-	public void setDividerLocation(int dividerLocation) {
-		if (this.dividerLocation != dividerLocation) {
-			this.dividerLocation = dividerLocation;
-			changed();
-		}
-	}
 
 	public String[][] getTreeExpansions() {
 		return treeExpansions;

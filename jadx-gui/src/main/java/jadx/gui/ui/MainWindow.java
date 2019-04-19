@@ -352,10 +352,6 @@ public class MainWindow extends JFrame {
 		setTitle((project.isSaved() ? "" : '*')
 				+ project.getName() + pathString + " - " + DEFAULT_TITLE);
 
-		int dividerLocation = project.getDividerLocation();
-		if (dividerLocation != 0) {
-			((JSplitPane) mainPanel.getComponent(0)).setDividerLocation(dividerLocation);
-		}
 	}
 
 	protected void resetCache() {
@@ -897,13 +893,6 @@ public class MainWindow extends JFrame {
 
 		tabbedPane = new TabbedPane(this);
 		splitPane.setRightComponent(tabbedPane);
-		splitPane.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY,
-				e -> {
-					if ((int) e.getOldValue() != -1) {
-						project.setDividerLocation((int) e.getNewValue());
-						update();
-					}
-				});
 
 		new DropTarget(this, DnDConstants.ACTION_COPY, new MainDropTarget(this));
 
