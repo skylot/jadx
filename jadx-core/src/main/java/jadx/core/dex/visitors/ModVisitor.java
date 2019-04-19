@@ -163,8 +163,7 @@ public class ModVisitor extends AbstractVisitor {
 						// replace boolean to (byte/char/short/long/double/float) cast with ternary
 						if (insn.getArg(0).getType() == ArgType.BOOLEAN) {
 							ArgType type = insn.getResult().getType();
-							if (type == ArgType.BYTE || type == ArgType.CHAR || type == ArgType.SHORT
-									 || type == ArgType.LONG || type == ArgType.DOUBLE || type == ArgType.FLOAT) {
+							if (type.isPrimitive()) {
 								IfNode ifNode = new IfNode(IfOp.EQ, -1, insn.getArg(0), LiteralArg.TRUE);
 								IfCondition condition = IfCondition.fromIfNode(ifNode);
 								InsnArg zero = new LiteralArg(0, type);
