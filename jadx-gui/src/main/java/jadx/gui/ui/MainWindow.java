@@ -54,7 +54,6 @@ import javax.swing.WindowConstants;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeExpansionListener;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -438,9 +437,9 @@ public class MainWindow extends JFrame {
 		treeReloading = true;
 
 		treeModel.reload();
-		String[][] treeExpansions = project.getTreeExpansions();
-		if (treeExpansions != null) {
-			expand(treeRoot, Arrays.asList(treeExpansions));
+		List<String[]> treeExpansions = project.getTreeExpansions();
+		if (!treeExpansions.isEmpty()) {
+			expand(treeRoot, treeExpansions);
 		} else {
 			tree.expandRow(1);
 		}
@@ -846,28 +845,6 @@ public class MainWindow extends JFrame {
 				return c;
 			}
 		});
-		tree.addTreeExpansionListener(new TreeExpansionListener() {
-
-			@Override
-			public void treeExpanded(TreeExpansionEvent event) {
-				if (!treeReloading) {
-					List<TreePath> list = new ArrayList<>();
-					getExpandedPaths(tree, new TreePath(treeRoot), list);
-
-					String[][] treeExpansions = new String[list.size()][];
-					for (int i = treeExpansions.length -1; i >= 0; i--) {
-						treeExpansions[i] = getPathExpansion(list.get(i));
-					}
-					project.setTreeExpansions(treeExpansions);
-					update();
-				}
-			}
-
-			@Override
-			public void treeCollapsed(TreeExpansionEvent event) {
-				treeExpanded(event);
-			}
-		});
 		tree.addTreeWillExpandListener(new TreeWillExpandListener() {
 			@Override
 			public void treeWillExpand(TreeExpansionEvent event) {
@@ -876,11 +853,18 @@ public class MainWindow extends JFrame {
 				if (node instanceof JLoadableNode) {
 					((JLoadableNode) node).loadNode();
 				}
+				if (!treeReloading) {
+					project.addTreeExpansion(getPathExpansion(event.getPath()));
+					update();
+				}
 			}
 
 			@Override
 			public void treeWillCollapse(TreeExpansionEvent event) {
-				// ignore
+				if (!treeReloading) {
+					project.removeTreeExpansion(getPathExpansion(event.getPath()));
+					update();
+				}
 			}
 		});
 

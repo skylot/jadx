@@ -3,7 +3,9 @@ package jadx.gui.settings;
 import java.io.BufferedWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -29,7 +31,7 @@ public class JadxProject {
 	private transient String name = "New Project";
 	private transient Path projectPath;
 	private List<Path> filesPath;
-	private String[][] treeExpansions;
+	private List<String[]> treeExpansions = new ArrayList<>();
 
 	private transient boolean saved;
 	private transient boolean initial = true;
@@ -65,13 +67,21 @@ public class JadxProject {
 		}
 	}
 
-
-	public String[][] getTreeExpansions() {
+	public List<String[]> getTreeExpansions() {
 		return treeExpansions;
 	}
 
-	public void setTreeExpansions(String[][] treeExpansions) {
-		this.treeExpansions = treeExpansions;
+	public void addTreeExpansion(String[] expansion) {
+		treeExpansions.add(expansion);
+		changed();
+	}
+
+	public void removeTreeExpansion(String[] expansion) {
+		for (Iterator<String[]> it = treeExpansions.iterator(); it.hasNext(); ) {
+			if (Arrays.equals(it.next(), expansion)) {
+				it.remove();
+			}
+		}
 		changed();
 	}
 
