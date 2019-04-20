@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.not;
 
 import org.junit.jupiter.api.Test;
 
+import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
@@ -18,7 +19,7 @@ public class TestNestedLoops5 extends IntegrationTest {
 			for (int i = 10; i > -1; i--) {
 				if (i > tmp) {
 					for (int j = 0; j < 54; j++) {
-						if (tmp> j) {
+						if (tmp > j) {
 							return 0;
 						}
 					}
@@ -30,6 +31,7 @@ public class TestNestedLoops5 extends IntegrationTest {
 	}
 
 	@Test
+	@NotYetImplemented
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
