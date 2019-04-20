@@ -3,6 +3,7 @@ package jadx.tests.integration.loops;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
@@ -16,10 +17,10 @@ public class TestNestedLoops5 extends IntegrationTest {
 
 		public int testFor() {
 			int tmp = 1;
-			for (int i = 10; i > -1; i--) {
+			for (int i = 5; i > -1; i--) {
 				if (i > tmp) {
-					for (int j = 0; j < 54; j++) {
-						if (tmp > j) {
+					for (int j = 1; j < 5; j++) {
+						if (tmp > j * 100) {
 							return 0;
 						}
 					}
@@ -27,6 +28,10 @@ public class TestNestedLoops5 extends IntegrationTest {
 				tmp++;
 			}
 			return tmp;
+		}
+
+		public void check() {
+			assertEquals(7, testFor());
 		}
 	}
 
