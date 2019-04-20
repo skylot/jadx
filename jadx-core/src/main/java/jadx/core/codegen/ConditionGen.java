@@ -144,12 +144,18 @@ public class ConditionGen extends InsnGen {
 	}
 
 	private void addAndOr(CodeWriter code, CondStack stack, IfCondition condition) throws CodegenException {
-		String mode = condition.getMode() == Mode.AND ? " && " : " || ";
+		Mode mode = condition.getMode();
+		String modeStr = mode == Mode.AND ? " && " : " || ";
 		Iterator<IfCondition> it = condition.getArgs().iterator();
 		while (it.hasNext()) {
-			wrap(code, stack, it.next());
+			IfCondition next = it.next();
+			if (next.getMode() == mode) {
+				add(code, stack, next);
+			} else {
+				wrap(code, stack, next);
+			}
 			if (it.hasNext()) {
-				code.add(mode);
+				code.add(modeStr);
 			}
 		}
 	}
