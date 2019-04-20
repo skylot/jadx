@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.Consts;
+import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
@@ -887,6 +888,13 @@ public class InsnGen {
 				if (lit1 != Short.MAX_VALUE && lit1 != Short.MIN_VALUE
 						&& lit2 != Short.MAX_VALUE && lit2 != Short.MIN_VALUE) {
 					code.add("(short) ");
+				}
+			} else if (first.getType() == ArgType.CHAR) {
+				long lit1 = ((LiteralArg) first).getLiteral();
+				long lit2 = ((LiteralArg) second).getLiteral();
+				if (!NameMapper.isPrintableChar((char) (lit1))
+						&& !NameMapper.isPrintableChar((char) (lit2))) {
+					code.add("(char) ");
 				}
 			}
 		}

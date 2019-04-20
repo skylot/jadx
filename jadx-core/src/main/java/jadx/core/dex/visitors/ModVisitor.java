@@ -1,5 +1,7 @@
 package jadx.core.dex.visitors;
 
+import static jadx.core.utils.BlockUtils.replaceInsn;
+
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,6 +20,8 @@ import jadx.core.dex.instructions.ConstClassNode;
 import jadx.core.dex.instructions.ConstStringNode;
 import jadx.core.dex.instructions.FillArrayNode;
 import jadx.core.dex.instructions.FilledNewArrayNode;
+import jadx.core.dex.instructions.IfNode;
+import jadx.core.dex.instructions.IfOp;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.NewArrayNode;
@@ -29,11 +33,13 @@ import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
+import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
@@ -41,8 +47,6 @@ import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-
-import static jadx.core.utils.BlockUtils.replaceInsn;
 
 /**
  * Visitor for modify method instructions
@@ -152,6 +156,23 @@ public class ModVisitor extends AbstractVisitor {
 							insnNode.setResult(insn.getResult());
 							insnNode.addArg(castArg);
 							replaceInsn(block, i, insnNode);
+						}
+						break;
+
+					case CAST:
+						// replace boolean to (byte/char/short/long/double/float) cast with ternary
+						if (insn.getArg(0).getType() == ArgType.BOOLEAN) {
+							ArgType type = insn.getResult().getType();
+							if (type.isPrimitive()) {
+								IfNode ifNode = new IfNode(IfOp.EQ, -1, insn.getArg(0), LiteralArg.TRUE);
+								IfCondition condition = IfCondition.fromIfNode(ifNode);
+								InsnArg zero = new LiteralArg(0, type);
+								InsnArg one = new LiteralArg(
+										type == ArgType.DOUBLE ? Double.doubleToLongBits(1) :
+											type == ArgType.FLOAT ? Float.floatToIntBits(1) : 1, type);
+								TernaryInsn ternary = new TernaryInsn(condition, insn.getResult(), one, zero);
+								replaceInsn(block, i, ternary);
+							}
 						}
 						break;
 
