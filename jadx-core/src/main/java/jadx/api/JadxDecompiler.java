@@ -249,7 +249,7 @@ public final class JadxDecompiler {
 		}
 		Collections.sort(packages);
 		for (JavaPackage pkg : packages) {
-			pkg.getClasses().sort(Comparator.comparing(JavaClass::getName));
+			pkg.getClasses().sort(Comparator.comparing(JavaClass::getName, String.CASE_INSENSITIVE_ORDER));
 		}
 		return Collections.unmodifiableList(packages);
 	}
