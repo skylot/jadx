@@ -203,13 +203,18 @@ public class Utils {
 		icons.add(Utils.openImage("/logos/jadx-logo.png"));
 		window.setIconImages(icons);
 	}
-	
-	public static int ctrlButton() {
+
+	public static final int CTRL_BNT_KEY = getCtrlButton();
+
+	private static int getCtrlButton() {
 		if (System.getProperty("os.name").toLowerCase().contains("mac")) {
- 			return Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
- 		}
- 		else {
- 			return InputEvent.CTRL_DOWN_MASK;
- 		}
+			return Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+		} else {
+			return InputEvent.CTRL_DOWN_MASK;
+		}
+	}
+
+	public static int ctrlButton() {
+		return CTRL_BNT_KEY;
 	}
 }
