@@ -227,10 +227,6 @@ public class ModVisitor extends AbstractVisitor {
 		if (callMthNode == null) {
 			return;
 		}
-		Map<InsnArg, FieldNode> argsMap = getArgsToFieldsMapping(callMthNode, co);
-		if (argsMap.isEmpty() && !callMthNode.getArguments(true).isEmpty()) {
-			return;
-		}
 
 		ClassNode classNode = callMthNode.getParentClass();
 		if (!classNode.contains(AFlag.ANONYMOUS_CLASS)) {
@@ -240,6 +236,10 @@ public class ModVisitor extends AbstractVisitor {
 			}
 		}
 		if (!mth.getParentClass().getInnerClasses().contains(classNode)) {
+			return;
+		}
+		Map<InsnArg, FieldNode> argsMap = getArgsToFieldsMapping(callMthNode, co);
+		if (argsMap.isEmpty() && !callMthNode.getArguments(true).isEmpty()) {
 			return;
 		}
 
