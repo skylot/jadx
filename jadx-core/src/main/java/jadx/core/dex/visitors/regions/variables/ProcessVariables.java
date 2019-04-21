@@ -103,10 +103,8 @@ public class ProcessVariables extends AbstractVisitor {
 		if (checkDeclareAtAssign(usageList, mergedUsage)) {
 			return;
 		}
-		// search closest region for declare
-		if (searchDeclareRegion(mergedUsage, codeVar)) {
-			return;
-		}
+		// TODO: search closest region for declare
+
 		// region not found, declare at method start
 		declareVarInRegion(mth.getRegion(), codeVar);
 	}
@@ -233,38 +231,6 @@ public class ProcessVariables extends AbstractVisitor {
 		return true;
 	}
 
-	private boolean searchDeclareRegion(VarUsage u, CodeVar codeVar) {
-		/*
-		Set<IRegion> set = u.getUseRegions();
-		for (Iterator<IRegion> it = set.iterator(); it.hasNext(); ) {
-			IRegion r = it.next();
-			IRegion parent = r.getParent();
-			if (parent != null && set.contains(parent)) {
-				it.remove();
-			}
-		}
-		IRegion region = null;
-		if (!set.isEmpty()) {
-			region = set.iterator().next();
-		} else if (!u.getAssigns().isEmpty()) {
-			region = u.getAssigns().iterator().next();
-		}
-		if (region == null) {
-			return false;
-		}
-		IRegion parent = region;
-		while (parent != null) {
-			if (canDeclareAt(u, region)) {
-				declareVarInRegion(region, codeVar);
-				return true;
-			}
-			region = parent;
-			parent = region.getParent();
-		}
-		*/
-		return false;
-	}
-
 	private static void declareVarInRegion(IContainer region, CodeVar var) {
 		if (var.isDeclared()) {
 			LOG.warn("Try to declare already declared variable: {}", var);
@@ -277,31 +243,5 @@ public class ProcessVariables extends AbstractVisitor {
 		}
 		dv.addVar(var);
 		var.setDeclared(true);
-	}
-
-	private static boolean isAllRegionsAfter(IRegion region, Set<IRegion> others) {
-		IRegion parent = region.getParent();
-		if (parent == null) {
-			return true;
-		}
-		// lazy init for
-		int regionIndex = -2;
-		List<IContainer> subBlocks = Collections.emptyList();
-		for (IRegion r : others) {
-			if (parent == r.getParent()) {
-				// on same level, check order by index
-				if (regionIndex == -2) {
-					subBlocks = parent.getSubBlocks();
-					regionIndex = subBlocks.indexOf(region);
-				}
-				int rIndex = subBlocks.indexOf(r);
-				if (regionIndex > rIndex) {
-					return false;
-				}
-			} else if (!RegionUtils.isRegionContainsRegion(region, r)) {
-				return false;
-			}
-		}
-		return true;
 	}
 }

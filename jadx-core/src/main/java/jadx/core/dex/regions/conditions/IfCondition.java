@@ -298,7 +298,7 @@ public final class IfCondition {
 		if (mode != other.mode) {
 			return false;
 		}
-		return Objects.equals(other.args, other.args)
+		return Objects.equals(args, other.args)
 			&& Objects.equals(compare, other.compare);
 	}
 
