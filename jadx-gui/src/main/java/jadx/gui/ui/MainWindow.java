@@ -8,10 +8,12 @@ import java.awt.DisplayMode;
 import java.awt.Font;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.Toolkit;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -560,7 +562,7 @@ public class MainWindow extends JFrame {
 			}
 		};
 		openAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.open_action"));
-		openAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK));
+		openAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_O, Utils.ctrlButton()));
 
 		newProjectAction = new AbstractAction(NLS.str("file.new_project")) {
 			@Override
@@ -593,7 +595,7 @@ public class MainWindow extends JFrame {
 			}
 		};
 		saveAllAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.save_all"));
-		saveAllAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
+		saveAllAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_S, Utils.ctrlButton()));
 
 		Action exportAction = new AbstractAction(NLS.str("file.export_gradle"), ICON_EXPORT) {
 			@Override
@@ -602,7 +604,7 @@ public class MainWindow extends JFrame {
 			}
 		};
 		exportAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.export_gradle"));
-		exportAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_E, KeyEvent.CTRL_DOWN_MASK));
+		exportAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_E, Utils.ctrlButton()));
 
 		JMenu recentProjects = new JMenu(NLS.str("menu.recent_projects"));
 		recentProjects.addMenuListener(new RecentProjectsMenuListener(recentProjects));
@@ -615,7 +617,7 @@ public class MainWindow extends JFrame {
 		};
 		prefsAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.preferences"));
 		prefsAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_P,
-				KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK));
+				Utils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
 
 		Action exitAction = new AbstractAction(NLS.str("file.exit"), ICON_CLOSE) {
 			@Override
@@ -642,7 +644,7 @@ public class MainWindow extends JFrame {
 			}
 		};
 		syncAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.sync"));
-		syncAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK));
+		syncAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_T, Utils.ctrlButton()));
 
 		Action textSearchAction = new AbstractAction(NLS.str("menu.text_search"), ICON_SEARCH) {
 			@Override
@@ -652,7 +654,7 @@ public class MainWindow extends JFrame {
 		};
 		textSearchAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.text_search"));
 		textSearchAction.putValue(Action.ACCELERATOR_KEY,
-				getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK));
+				getKeyStroke(KeyEvent.VK_F, Utils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
 
 		Action clsSearchAction = new AbstractAction(NLS.str("menu.class_search"), ICON_FIND) {
 			@Override
@@ -661,7 +663,7 @@ public class MainWindow extends JFrame {
 			}
 		};
 		clsSearchAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.class_search"));
-		clsSearchAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
+		clsSearchAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_N, Utils.ctrlButton()));
 
 		Action deobfAction = new AbstractAction(NLS.str("menu.deobfuscation"), ICON_DEOBF) {
 			@Override
@@ -671,7 +673,7 @@ public class MainWindow extends JFrame {
 		};
 		deobfAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("preferences.deobfuscation"));
 		deobfAction.putValue(Action.ACCELERATOR_KEY,
-				getKeyStroke(KeyEvent.VK_D, KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
+				getKeyStroke(KeyEvent.VK_D, Utils.ctrlButton() | KeyEvent.ALT_DOWN_MASK));
 
 		deobfToggleBtn = new JToggleButton(deobfAction);
 		deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
@@ -688,7 +690,7 @@ public class MainWindow extends JFrame {
 		};
 		logAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.log"));
 		logAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_L,
-				KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK));
+				Utils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
 
 		Action aboutAction = new AbstractAction(NLS.str("menu.about"), ICON_JADX) {
 			@Override
@@ -705,7 +707,7 @@ public class MainWindow extends JFrame {
 		};
 		backAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("nav.back"));
 		backAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_LEFT,
-				KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
+				Utils.ctrlButton() | KeyEvent.ALT_DOWN_MASK));
 
 		Action forwardAction = new AbstractAction(NLS.str("nav.forward"), ICON_FORWARD) {
 			@Override
@@ -715,7 +717,7 @@ public class MainWindow extends JFrame {
 		};
 		forwardAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("nav.forward"));
 		forwardAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_RIGHT,
-				KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
+				Utils.ctrlButton() | KeyEvent.ALT_DOWN_MASK));
 
 		JMenu file = new JMenu(NLS.str("menu.file"));
 		file.setMnemonic(KeyEvent.VK_F);
