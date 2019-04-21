@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.InputEvent;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
@@ -201,5 +202,14 @@ public class Utils {
 		icons.add(Utils.openImage("/logos/jadx-logo-48px.png"));
 		icons.add(Utils.openImage("/logos/jadx-logo.png"));
 		window.setIconImages(icons);
+	}
+	
+	public static int ctrlButton() {
+		if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+ 			return Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+ 		}
+ 		else {
+ 			return InputEvent.CTRL_DOWN_MASK;
+ 		}
 	}
 }
