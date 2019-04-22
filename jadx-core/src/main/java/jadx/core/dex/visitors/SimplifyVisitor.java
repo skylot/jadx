@@ -17,6 +17,7 @@ import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
 import jadx.core.dex.instructions.CallMthInterface;
 import jadx.core.dex.instructions.ConstStringNode;
+import jadx.core.dex.instructions.FilledNewArrayNode;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
@@ -124,7 +125,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 				break;
 
 			case CONSTRUCTOR:
-				simplfyConstructor(mth.root(), (ConstructorInsn) insn);
+				simplifyStringConstructor(mth.root(), (ConstructorInsn) insn);
 				break;
 
 			default:
@@ -133,42 +134,44 @@ public class SimplifyVisitor extends AbstractVisitor {
 		return null;
 	}
 
-	private static void simplfyConstructor(RootNode root, ConstructorInsn insn) {
-		if (insn.getArgsCount() != 0
-				&& insn.getCallMth().getDeclClass().getType().equals(ArgType.STRING)) {
-			InsnArg arg = insn.getArg(0);
-			InsnNode node = arg.isInsnWrap()
-					? ((InsnWrapArg) arg).getWrapInsn()
-					: insn;
-		    if (node.getArgsCount() != 0) {
-		    	ArgType argType = node.getArg(0).getType();
-		    	if (node.getType() == InsnType.FILLED_NEW_ARRAY
-		    			&& (argType == ArgType.BYTE || argType == ArgType.CHAR)) {
-		    		int printable = 0;
-		    		byte[] arr = new byte[node.getArgsCount()];
-		    		for (int i = 0; i < arr.length; i++) {
-		    			arr[i] = (byte) ((LiteralArg) node.getArg(i)).getLiteral();
-		    			if (NameMapper.isPrintableChar(arr[i])) {
-		    				printable++;
-		    			}
-		    		}
-		    		if (printable >= arr.length - printable) {
-		    			InsnWrapArg wa = new InsnWrapArg(new ConstStringNode(new String(arr)));
-		    			if (insn.getArgsCount() == 1) {
-		    				insn.setArg(0, wa);
-		    			} else {
-		    				MethodInfo mi = MethodInfo.externalMth(
-		    						ClassInfo.fromType(root, ArgType.STRING),
-		    						"getBytes",
-		    						Collections.emptyList(),
-		    						ArgType.array(ArgType.BYTE));
-		    				InvokeNode in = new InvokeNode(mi, InvokeType.VIRTUAL, 1);
-		    				in.addArg(wa);
-		    				insn.setArg(0, new InsnWrapArg(in));
-		    			}
-		    		}
-		    	}
-		    }
+	private static void simplifyStringConstructor(RootNode root, ConstructorInsn insn) {
+		if (insn.getCallMth().getDeclClass().getType().equals(ArgType.STRING)
+				&& insn.getArgsCount() != 0
+				&& insn.getArg(0).isInsnWrap()) {
+			InsnNode arrInsn = ((InsnWrapArg) insn.getArg(0)).getWrapInsn();
+			if (arrInsn.getType() == InsnType.FILLED_NEW_ARRAY
+					&& arrInsn.getArgsCount() != 0) {
+				ArgType elemType = ((FilledNewArrayNode) arrInsn).getElemType();
+				if (elemType == ArgType.BYTE || elemType == ArgType.CHAR) {
+					int printable = 0;
+					byte[] arr = new byte[arrInsn.getArgsCount()];
+					for (int i = 0; i < arr.length; i++) {
+						InsnArg arrArg = arrInsn.getArg(i);
+						if (!arrArg.isLiteral()) {
+							return;
+						}
+						arr[i] = (byte) ((LiteralArg) arrArg).getLiteral();
+						if (NameMapper.isPrintableChar(arr[i])) {
+							printable++;
+						}
+					}
+					if (printable >= arr.length - printable) {
+						InsnWrapArg wa = new InsnWrapArg(new ConstStringNode(new String(arr)));
+						if (insn.getArgsCount() == 1) {
+							insn.setArg(0, wa);
+						} else {
+							MethodInfo mi = MethodInfo.externalMth(
+									ClassInfo.fromType(root, ArgType.STRING),
+									"getBytes",
+									Collections.emptyList(),
+									ArgType.array(ArgType.BYTE));
+							InvokeNode in = new InvokeNode(mi, InvokeType.VIRTUAL, 1);
+							in.addArg(wa);
+							insn.setArg(0, new InsnWrapArg(in));
+						}
+					}
+				}
+			}
 		}
 	}
 
