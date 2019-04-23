@@ -28,8 +28,6 @@ public class Utils {
 	private static final ImageIcon ICON_ABSTRACT = openIcon("abstract_co");
 	private static final ImageIcon ICON_NATIVE = openIcon("native_co");
 
-	public static final Font FONT_HACK = openFontTTF("Hack-Regular");
-
 	/**
 	 * The minimum about of memory in bytes we are trying to keep free, otherwise the application may run out of heap
 	 * which ends up in a Java garbage collector running "amok" (CPU utilization 100% for each core and the UI is
@@ -58,18 +56,6 @@ public class Utils {
 			throw new JadxRuntimeException("Image not found: " + path);
 		}
 		return Toolkit.getDefaultToolkit().createImage(resource);
-	}
-
-	@Nullable
-	public static Font openFontTTF(String name) {
-		String fontPath = "/fonts/" + name + ".ttf";
-		try (InputStream is = Utils.class.getResourceAsStream(fontPath)) {
-			Font font = Font.createFont(Font.TRUETYPE_FONT, is);
-			return font.deriveFont(12f);
-		} catch (Exception e) {
-			LOG.error("Failed load font by path: {}", fontPath, e);
-			return null;
-		}
 	}
 
 	public static void addKeyBinding(JComponent comp, KeyStroke key, String id, Action action) {
@@ -178,21 +164,6 @@ public class Utils {
 		} catch (Exception e) {
 			LOG.error("Failed copy string '{}' to clipboard", text, e);
 		}
-	}
-
-	@NotNull
-	public static String getFontStyleName(int style) {
-		if (style == 0) {
-			return "plain";
-		}
-		StringBuilder sb = new StringBuilder();
-		if ((style & Font.BOLD) != 0) {
-			sb.append("bold");
-		}
-		if ((style & Font.ITALIC) != 0) {
-			sb.append(" italic");
-		}
-		return sb.toString().trim();
 	}
 
 	public static void setWindowIcons(Window window) {

@@ -1,9 +1,6 @@
 package jadx.gui.settings;
 
-import java.awt.Font;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.Window;
+import java.awt.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -23,9 +20,9 @@ import org.slf4j.LoggerFactory;
 import jadx.api.JadxArgs;
 import jadx.cli.JadxCLIArgs;
 import jadx.gui.ui.codearea.EditorTheme;
+import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.Utils;
 
 public class JadxSettings extends JadxCLIArgs {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxSettings.class);
@@ -295,22 +292,21 @@ public class JadxSettings extends JadxCLIArgs {
 		if (fontStr.isEmpty()) {
 			return DEFAULT_FONT;
 		}
-		return Font.decode(fontStr);
+		try {
+			return FontUtils.loadByStr(fontStr);
+		} catch (Exception e) {
+			LOG.warn("Failed to load font: {}, reset to default", fontStr, e);
+			setFont(DEFAULT_FONT);
+			return DEFAULT_FONT;
+		}
 	}
 
 	public void setFont(@Nullable Font font) {
 		if (font == null) {
 			this.fontStr = "";
-			return;
+		} else {
+			this.fontStr = FontUtils.convertToStr(font);
 		}
-		StringBuilder sb = new StringBuilder();
-		sb.append(font.getFontName());
-		String fontStyleName = Utils.getFontStyleName(font.getStyle()).replaceAll(" ", "");
-		if (!fontStyleName.isEmpty()) {
-			sb.append('-').append(fontStyleName.toUpperCase());
-		}
-		sb.append('-').append(font.getSize());
-		this.fontStr = sb.toString();
 	}
 
 	public String getEditorThemePath() {

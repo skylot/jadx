@@ -14,6 +14,7 @@ import say.swing.JFontChooser;
 
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
+import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
@@ -267,7 +268,7 @@ public class JadxSettingsWindow extends JDialog {
 
 	private String getFontLabelStr() {
 		Font font = settings.getFont();
-		String fontStyleName = Utils.getFontStyleName(font.getStyle());
+		String fontStyleName = FontUtils.convertFontStyleToString(font.getStyle());
 		return NLS.str("preferences.font") + ": " + font.getFontName() + ' ' + fontStyleName + ' ' + font.getSize();
 	}
 

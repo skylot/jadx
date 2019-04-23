@@ -90,6 +90,7 @@ import jadx.gui.update.JadxUpdate;
 import jadx.gui.update.JadxUpdate.IUpdateCallback;
 import jadx.gui.update.data.Release;
 import jadx.gui.utils.CacheObject;
+import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
@@ -154,7 +155,7 @@ public class MainWindow extends JFrame {
 		this.cacheObject = new CacheObject();
 
 		resetCache();
-		registerBundledFonts();
+		FontUtils.registerBundledFonts();
 		initUI();
 		initMenuAndToolbar();
 		Utils.setWindowIcons(this);
@@ -929,13 +930,6 @@ public class MainWindow extends JFrame {
 		int h = mode.getHeight();
 		setLocation((int) (w * BORDER_RATIO), (int) (h * BORDER_RATIO));
 		setSize((int) (w * WINDOW_RATIO), (int) (h * WINDOW_RATIO));
-	}
-
-	public static void registerBundledFonts() {
-		GraphicsEnvironment grEnv = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		if (Utils.FONT_HACK != null) {
-			grEnv.registerFont(Utils.FONT_HACK);
-		}
 	}
 
 	private void setEditorTheme(String editorThemePath) {
