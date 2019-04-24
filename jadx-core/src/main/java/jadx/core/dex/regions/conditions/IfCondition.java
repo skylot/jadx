@@ -12,6 +12,7 @@ import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IfOp;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -222,7 +223,8 @@ public final class IfCondition {
 
 			case ARITH:
 				ArithOp arithOp = ((ArithNode) wrapInsn).getOp();
-				if (arithOp == ArithOp.OR || arithOp == ArithOp.AND) {
+				if (c.getB().getType() == ArgType.BOOLEAN &&
+						(arithOp == ArithOp.OR || arithOp == ArithOp.AND)) {
 					IfOp ifOp = c.getInsn().getOp();
 					boolean isTrue = ifOp == IfOp.NE && lit == 0
 							|| ifOp == IfOp.EQ && lit == 1;

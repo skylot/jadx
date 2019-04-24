@@ -1,15 +1,12 @@
 package jadx.tests.integration.conditions;
 
-import org.junit.jupiter.api.Test;
-
-import jadx.NotYetImplemented;
-import jadx.core.dex.nodes.ClassNode;
-import jadx.tests.api.IntegrationTest;
-
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
+
+import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 public class TestConditions17 extends IntegrationTest {
 
@@ -29,7 +26,6 @@ public class TestConditions17 extends IntegrationTest {
 	}
 
 	@Test
-	@NotYetImplemented
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
