@@ -11,9 +11,12 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
+import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.regions.conditions.IfCondition;
+import jadx.core.dex.regions.conditions.IfCondition.Mode;
 import jadx.core.dex.visitors.regions.variables.ProcessVariables;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.exceptions.JadxException;
@@ -104,7 +107,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 	}
 
 	/**
-	 * Remove parenthesis for wrapped insn  in arith '+' or '-'
+	 * Remove parenthesis for wrapped insn in arith '+' or '-'
 	 * ('(a + b) +c' => 'a + b + c')
 	 */
 	private static void removeParenthesis(InsnNode insn) {
@@ -124,11 +127,23 @@ public class PrepareForCodeGen extends AbstractVisitor {
 				}
 			}
 		} else {
+			if (insn.getType() == InsnType.TERNARY) {
+				removeParenthesis(((TernaryInsn) insn).getCondition());
+			}
 			for (InsnArg arg : insn.getArguments()) {
 				if (arg.isInsnWrap()) {
 					InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
 					removeParenthesis(wrapInsn);
 				}
+			}
+		}
+	}
+
+	private static void removeParenthesis(IfCondition cond) {
+		Mode mode = cond.getMode();
+		for (IfCondition c : cond.getArgs()) {
+			if (c.getMode() == mode) {
+				c.add(AFlag.DONT_WRAP);
 			}
 		}
 	}

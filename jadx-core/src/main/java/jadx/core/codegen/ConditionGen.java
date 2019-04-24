@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.IfOp;
 import jadx.core.dex.instructions.InsnType;
@@ -144,24 +145,18 @@ public class ConditionGen extends InsnGen {
 	}
 
 	private void addAndOr(CodeWriter code, CondStack stack, IfCondition condition) throws CodegenException {
-		Mode mode = condition.getMode();
-		String modeStr = mode == Mode.AND ? " && " : " || ";
+		String mode = condition.getMode() == Mode.AND ? " && " : " || ";
 		Iterator<IfCondition> it = condition.getArgs().iterator();
 		while (it.hasNext()) {
-			IfCondition next = it.next();
-			if (next.getMode() == mode) {
-				add(code, stack, next);
-			} else {
-				wrap(code, stack, next);
-			}
+			wrap(code, stack, it.next());
 			if (it.hasNext()) {
-				code.add(modeStr);
+				code.add(mode);
 			}
 		}
 	}
 
 	private boolean isWrapNeeded(IfCondition condition) {
-		if (condition.isCompare()) {
+		if (condition.isCompare() || condition.contains(AFlag.DONT_WRAP)) {
 			return false;
 		}
 		return condition.getMode() != Mode.NOT;
