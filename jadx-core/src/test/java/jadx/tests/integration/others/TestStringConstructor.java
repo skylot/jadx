@@ -83,4 +83,17 @@ public class TestStringConstructor extends IntegrationTest {
 
 		assertThat(code, containsOne("tag = new String();"));
 	}
+
+	public static class TestClsNegative2 {
+		public byte b = 32;
+		public String tag = new String(new byte[] { 31, b });
+	}
+
+	@Test
+	public void testNegative2() {
+		ClassNode cls = getClassNode(TestClsNegative2.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, containsOne("tag = new String(new byte[]{31, this.b});"));
+	}
 }

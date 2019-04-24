@@ -13,7 +13,6 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.annotations.MethodParameters;
 import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.info.AccessInfo;
-import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
@@ -180,10 +179,8 @@ public class MethodGen {
 			addFallbackMethodCode(code);
 			code.startLine("*/");
 
-			ClassInfo clsAlias = mth.getParentClass().getAlias();
-
 			code.startLine("throw new UnsupportedOperationException(\"Method not decompiled: ")
-					.add(clsAlias.makeFullClsName(clsAlias.getShortName(), true))
+					.add(mth.getParentClass().getAlias().makeFullName())
 					.add('.')
 					.add(mth.getAlias())
 					.add('(')

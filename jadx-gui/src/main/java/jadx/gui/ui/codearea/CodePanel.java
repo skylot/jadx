@@ -32,7 +32,7 @@ public final class CodePanel extends ContentPanel {
 		add(searchBar, BorderLayout.NORTH);
 		add(scrollPane);
 
-		KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK);
+		KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_F, Utils.ctrlButton());
 		Utils.addKeyBinding(codeArea, key, "SearchAction", new SearchAction());
 	}
 

@@ -68,7 +68,7 @@ public final class JavaClass implements JavaNode {
 		cls.unload();
 	}
 
-	ClassNode getClassNode() {
+	public ClassNode getClassNode() {
 		return cls;
 	}
 

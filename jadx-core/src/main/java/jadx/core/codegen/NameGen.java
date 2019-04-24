@@ -177,12 +177,15 @@ public class NameGen {
 	}
 
 	private String makeNameForObject(ArgType type) {
+		if (type.isGenericType()) {
+			return StringUtils.escape(type.getObject().toLowerCase());
+		}
 		if (type.isObject()) {
 			String alias = getAliasForObject(type.getObject());
 			if (alias != null) {
 				return alias;
 			}
-			ClassInfo extClsInfo = ClassInfo.extCls(mth.root(), type);
+			ClassInfo extClsInfo = ClassInfo.fromType(mth.root(), type);
 			String shortName = extClsInfo.getShortName();
 			String vName = fromName(shortName);
 			if (vName != null) {

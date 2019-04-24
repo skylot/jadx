@@ -60,9 +60,7 @@ public class RenameVisitor extends AbstractVisitor {
 				ClassInfo aliasClsInfo = clsInfo.getAlias();
 				if (!clsFullPaths.add(aliasClsInfo.getFullPath().toLowerCase())) {
 					String newShortName = deobfuscator.getClsAlias(cls);
-					String newFullName = aliasClsInfo.makeFullClsName(newShortName, true);
-
-					clsInfo.rename(root, newFullName);
+					clsInfo.renameShortName(newShortName);
 					clsFullPaths.add(clsInfo.getAlias().getFullPath().toLowerCase());
 				}
 			}
@@ -71,18 +69,14 @@ public class RenameVisitor extends AbstractVisitor {
 
 	private void checkClassName(ClassNode cls, JadxArgs args) {
 		ClassInfo classInfo = cls.getClassInfo();
-		ClassInfo alias = classInfo.getAlias();
-		String clsName = alias.getShortName();
+		String clsName = classInfo.getAlias().getShortName();
 
 		String newShortName = fixClsShortName(args, clsName);
 		if (!newShortName.equals(clsName)) {
-			classInfo.rename(cls.root(), alias.makeFullClsName(newShortName, true));
-			alias = classInfo.getAlias();
+			classInfo.renameShortName(newShortName);
 		}
-		if (alias.getPackage().isEmpty()) {
-			String fullName = alias.makeFullClsName(alias.getShortName(), true);
-			String newFullName = Consts.DEFAULT_PACKAGE_NAME + '.' + fullName;
-			classInfo.rename(cls.root(), newFullName);
+		if (classInfo.getAlias().getPackage().isEmpty()) {
+			classInfo.renamePkg(Consts.DEFAULT_PACKAGE_NAME);
 		}
 	}
 

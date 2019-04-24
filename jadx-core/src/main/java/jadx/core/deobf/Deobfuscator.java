@@ -232,7 +232,7 @@ public class Deobfuscator {
 		ClassInfo clsInfo = cls.getClassInfo();
 		String fullName = getClassFullName(clsInfo);
 		if (!fullName.equals(clsInfo.getFullName())) {
-			clsInfo.rename(cls.dex().root(), fullName);
+			clsInfo.rename(cls.root(), fullName);
 		}
 		for (FieldNode field : cls.getFields()) {
 			if (field.contains(AFlag.DONT_RENAME)) {

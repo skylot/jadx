@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.InputEvent;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
@@ -26,8 +27,6 @@ public class Utils {
 	private static final ImageIcon ICON_FINAL = openIcon("final_co");
 	private static final ImageIcon ICON_ABSTRACT = openIcon("abstract_co");
 	private static final ImageIcon ICON_NATIVE = openIcon("native_co");
-
-	public static final Font FONT_HACK = openFontTTF("Hack-Regular");
 
 	/**
 	 * The minimum about of memory in bytes we are trying to keep free, otherwise the application may run out of heap
@@ -57,18 +56,6 @@ public class Utils {
 			throw new JadxRuntimeException("Image not found: " + path);
 		}
 		return Toolkit.getDefaultToolkit().createImage(resource);
-	}
-
-	@Nullable
-	public static Font openFontTTF(String name) {
-		String fontPath = "/fonts/" + name + ".ttf";
-		try (InputStream is = Utils.class.getResourceAsStream(fontPath)) {
-			Font font = Font.createFont(Font.TRUETYPE_FONT, is);
-			return font.deriveFont(12f);
-		} catch (Exception e) {
-			LOG.error("Failed load font by path: {}", fontPath, e);
-			return null;
-		}
 	}
 
 	public static void addKeyBinding(JComponent comp, KeyStroke key, String id, Action action) {
@@ -179,21 +166,6 @@ public class Utils {
 		}
 	}
 
-	@NotNull
-	public static String getFontStyleName(int style) {
-		if (style == 0) {
-			return "plain";
-		}
-		StringBuilder sb = new StringBuilder();
-		if ((style & Font.BOLD) != 0) {
-			sb.append("bold");
-		}
-		if ((style & Font.ITALIC) != 0) {
-			sb.append(" italic");
-		}
-		return sb.toString().trim();
-	}
-
 	public static void setWindowIcons(Window window) {
 		List<Image> icons = new ArrayList<>();
 		icons.add(Utils.openImage("/logos/jadx-logo-16px.png"));
@@ -201,5 +173,19 @@ public class Utils {
 		icons.add(Utils.openImage("/logos/jadx-logo-48px.png"));
 		icons.add(Utils.openImage("/logos/jadx-logo.png"));
 		window.setIconImages(icons);
+	}
+
+	public static final int CTRL_BNT_KEY = getCtrlButton();
+
+	private static int getCtrlButton() {
+		if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+			return Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+		} else {
+			return InputEvent.CTRL_DOWN_MASK;
+		}
+	}
+
+	public static int ctrlButton() {
+		return CTRL_BNT_KEY;
 	}
 }

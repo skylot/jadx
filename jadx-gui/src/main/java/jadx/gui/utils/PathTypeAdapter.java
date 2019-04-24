@@ -9,7 +9,7 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 
-public class PathTypeAdapter  {
+public class PathTypeAdapter {
 
 	private static TypeAdapter<Path> SINGLETON;
 

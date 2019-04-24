@@ -16,7 +16,7 @@ public class TestNestedLoops4 extends IntegrationTest {
                     for (int j = 0; j < 54; j += 4) {
                         if (i < j) {
                             for (int k = j; k < j + 4; k++) {
-                                if (tmp> k) {
+                                if (tmp > k) {
                                     return 0;
                                 }
                             }

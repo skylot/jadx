@@ -221,6 +221,9 @@ public class ResTableParser extends CommonBinaryParser {
 		int resRef = pkg.getId() << 24 | typeId << 16 | entryId;
 		String typeName = pkg.getTypeStrings()[typeId - 1];
 		String keyName = pkg.getKeyStrings()[key];
+		if(keyName.isEmpty()) {
+			keyName = "RES_" + resRef; // autogenerate key name
+		}
 		ResourceEntry ri = new ResourceEntry(resRef, pkg.getName(), typeName, keyName);
 		ri.setConfig(config);
 
