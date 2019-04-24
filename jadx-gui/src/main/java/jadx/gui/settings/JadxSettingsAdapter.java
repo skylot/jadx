@@ -1,5 +1,6 @@
 package jadx.gui.settings;
 
+import java.awt.Rectangle;
 import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.prefs.Preferences;
@@ -15,6 +16,7 @@ import com.google.gson.InstanceCreator;
 
 import jadx.gui.JadxGUI;
 import jadx.gui.utils.PathTypeAdapter;
+import jadx.gui.utils.RectangleTypeAdapter;
 
 public class JadxSettingsAdapter {
 
@@ -40,6 +42,7 @@ public class JadxSettingsAdapter {
 	private static final GsonBuilder GSON_BUILDER = new GsonBuilder()
 			.setExclusionStrategies(EXCLUDE_FIELDS)
 			.registerTypeHierarchyAdapter(Path.class, PathTypeAdapter.singleton())
+			.registerTypeHierarchyAdapter(Rectangle.class, RectangleTypeAdapter.singleton())
 			;
 	private static final Gson GSON = GSON_BUILDER.create();
 
