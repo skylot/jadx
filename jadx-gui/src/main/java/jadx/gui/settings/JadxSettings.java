@@ -171,7 +171,7 @@ public class JadxSettings extends JadxCLIArgs {
 			}
 		}
 
-		if(!isContainedInAnyScreen(pos)) {
+		if (!isContainedInAnyScreen(pos)) {
 			return false;
 		}
 
