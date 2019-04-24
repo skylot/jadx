@@ -17,7 +17,6 @@ import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.Utils;
 
 public class JadxSettingsWindow extends JDialog {
 	private static final long serialVersionUID = -1804570470377354148L;

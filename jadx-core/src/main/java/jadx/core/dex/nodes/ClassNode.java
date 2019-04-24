@@ -32,7 +32,6 @@ import jadx.core.dex.nodes.parser.AnnotationsParser;
 import jadx.core.dex.nodes.parser.FieldInitAttr;
 import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.nodes.parser.StaticValuesParser;
-import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
