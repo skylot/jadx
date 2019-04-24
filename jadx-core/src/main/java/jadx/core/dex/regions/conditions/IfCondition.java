@@ -12,6 +12,7 @@ import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IfOp;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -221,21 +222,23 @@ public final class IfCondition {
 				break;
 
 			case ARITH:
-				ArithOp arithOp = ((ArithNode) wrapInsn).getOp();
-				if (arithOp == ArithOp.OR || arithOp == ArithOp.AND) {
-					IfOp ifOp = c.getInsn().getOp();
-					boolean isTrue = ifOp == IfOp.NE && lit == 0
+				if (c.getB().getType() == ArgType.BOOLEAN) {
+					ArithOp arithOp = ((ArithNode) wrapInsn).getOp();
+					if (arithOp == ArithOp.OR || arithOp == ArithOp.AND) {
+						IfOp ifOp = c.getInsn().getOp();
+						boolean isTrue = ifOp == IfOp.NE && lit == 0
 							|| ifOp == IfOp.EQ && lit == 1;
 
-					IfOp op = isTrue ? IfOp.NE : IfOp.EQ;
-					Mode mode = isTrue && arithOp == ArithOp.OR ||
+						IfOp op = isTrue ? IfOp.NE : IfOp.EQ;
+						Mode mode = isTrue && arithOp == ArithOp.OR ||
 							!isTrue && arithOp == ArithOp.AND ? Mode.OR : Mode.AND;
 
-					IfNode if1 = new IfNode(op, -1, wrapInsn.getArg(0), LiteralArg.FALSE);
-					IfNode if2 = new IfNode(op, -1, wrapInsn.getArg(1), LiteralArg.FALSE);
-					return new IfCondition(mode,
+						IfNode if1 = new IfNode(op, -1, wrapInsn.getArg(0), LiteralArg.FALSE);
+						IfNode if2 = new IfNode(op, -1, wrapInsn.getArg(1), LiteralArg.FALSE);
+						return new IfCondition(mode,
 							Arrays.asList(new IfCondition(new Compare(if1)),
 									new IfCondition(new Compare(if2))));
+					}
 				}
 			break;
 
