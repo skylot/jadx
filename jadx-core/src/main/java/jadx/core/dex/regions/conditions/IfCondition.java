@@ -223,8 +223,8 @@ public final class IfCondition {
 
 			case ARITH:
 				ArithOp arithOp = ((ArithNode) wrapInsn).getOp();
-				if (c.getB().getType() == ArgType.BOOLEAN &&
-						(arithOp == ArithOp.OR || arithOp == ArithOp.AND)) {
+				if (c.getB().getType() == ArgType.BOOLEAN
+						&& (arithOp == ArithOp.OR || arithOp == ArithOp.AND)) {
 					IfOp ifOp = c.getInsn().getOp();
 					boolean isTrue = ifOp == IfOp.NE && lit == 0
 							|| ifOp == IfOp.EQ && lit == 1;
