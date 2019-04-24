@@ -8,12 +8,10 @@ import java.awt.DisplayMode;
 import java.awt.Font;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import java.awt.Toolkit;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -169,7 +167,6 @@ public class MainWindow extends JFrame {
 		setLocationAndPosition();
 		heapUsageBar.setVisible(settings.isShowHeapUsageBar());
 		setVisible(true);
-		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
 			@Override
@@ -921,15 +918,16 @@ public class MainWindow extends JFrame {
 	}
 
 	public void setLocationAndPosition() {
-		if (this.settings.loadWindowPos(this)) {
+		if (settings.loadWindowPos(this)) {
 			return;
 		}
 		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 		DisplayMode mode = gd.getDisplayMode();
 		int w = mode.getWidth();
 		int h = mode.getHeight();
-		setLocation((int) (w * BORDER_RATIO), (int) (h * BORDER_RATIO));
-		setSize((int) (w * WINDOW_RATIO), (int) (h * WINDOW_RATIO));
+		setBounds((int) (w * BORDER_RATIO), (int) (h * BORDER_RATIO),
+				(int) (w * WINDOW_RATIO), (int) (h * WINDOW_RATIO));
+		setLocationRelativeTo(null);
 	}
 
 	private void setEditorTheme(String editorThemePath) {
@@ -966,6 +964,7 @@ public class MainWindow extends JFrame {
 			return;
 		}
 		settings.saveWindowPos(this);
+		settings.setMainWindowExtendedState(getExtendedState());
 		cancelBackgroundJobs();
 		dispose();
 	}

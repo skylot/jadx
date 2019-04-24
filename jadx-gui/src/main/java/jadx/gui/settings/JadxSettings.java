@@ -1,6 +1,9 @@
 package jadx.gui.settings;
 
-import java.awt.*;
+import java.awt.Font;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Window;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -12,6 +15,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import javax.swing.JFrame;
+
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -19,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
 import jadx.cli.JadxCLIArgs;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.LangLocale;
@@ -51,9 +57,10 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private boolean showHeapUsageBar = true;
 
-	private int settingsVersion = 0;
-
 	private Map<String, WindowLocation> windowPos = new HashMap<>();
+	private int mainWindowExtendedState = JFrame.NORMAL;
+
+	private int settingsVersion = 0;
 
 	public static JadxSettings makeDefault() {
 		JadxSettings jadxSettings = new JadxSettings();
@@ -92,7 +99,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setLastOpenFilePath(Path lastOpenFilePath) {
 		this.lastOpenFilePath = lastOpenFilePath;
-		partialSync(settings -> settings.lastOpenFilePath = JadxSettings.this.lastOpenFilePath);
+		partialSync(settings -> settings.lastOpenFilePath = lastOpenFilePath);
 	}
 
 	public Path getLastSaveProjectPath() {
@@ -105,12 +112,12 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setLastSaveProjectPath(Path lastSaveProjectPath) {
 		this.lastSaveProjectPath = lastSaveProjectPath;
-		partialSync(settings -> settings.lastSaveProjectPath = JadxSettings.this.lastSaveProjectPath);
+		partialSync(settings -> settings.lastSaveProjectPath = lastSaveProjectPath);
 	}
 
 	public void setLastSaveFilePath(Path lastSaveFilePath) {
 		this.lastSaveFilePath = lastSaveFilePath;
-		partialSync(settings -> settings.lastSaveFilePath = JadxSettings.this.lastSaveFilePath);
+		partialSync(settings -> settings.lastSaveFilePath = lastSaveFilePath);
 	}
 
 	public boolean isFlattenPackage() {
@@ -119,7 +126,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setFlattenPackage(boolean flattenPackage) {
 		this.flattenPackage = flattenPackage;
-		partialSync(settings -> settings.flattenPackage = JadxSettings.this.flattenPackage);
+		partialSync(settings -> settings.flattenPackage = flattenPackage);
 	}
 
 	public boolean isCheckForUpdates() {
@@ -146,29 +153,35 @@ public class JadxSettings extends JadxCLIArgs {
 	}
 
 	public void saveWindowPos(Window window) {
-		WindowLocation pos = new WindowLocation(window.getClass().getSimpleName(),
-				window.getX(), window.getY(),
-				window.getWidth(), window.getHeight()
-		);
+		WindowLocation pos = new WindowLocation(window.getClass().getSimpleName(), window.getBounds());
 		windowPos.put(pos.getWindowId(), pos);
 		partialSync(settings -> settings.windowPos = windowPos);
 	}
 
 	public boolean loadWindowPos(Window window) {
 		WindowLocation pos = windowPos.get(window.getClass().getSimpleName());
-		if (pos == null || !isContainedInAnyScreen(pos)) {
+		if (pos == null || pos.getBounds() == null) {
+			return false;
+		}
+		if (window instanceof MainWindow) {
+			int extendedState = getMainWindowExtendedState();
+			if (extendedState != JFrame.NORMAL) {
+				((JFrame) window).setExtendedState(extendedState);
+				return true;
+			}
+		}
+
+		if (!isContainedInAnyScreen(pos)) {
 			return false;
 		}
 
-		window.setLocation(pos.getX(), pos.getY());
-		window.setSize(pos.getWidth(), pos.getHeight());
+		window.setBounds(pos.getBounds());
 		return true;
 	}
 
 	private static boolean isContainedInAnyScreen(WindowLocation pos) {
 		for (GraphicsDevice gd : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
-			if (gd.getDefaultConfiguration().getBounds().contains(
-					pos.getX(), pos.getY(), pos.getWidth(), pos.getHeight())) {
+			if (gd.getDefaultConfiguration().getBounds().contains(pos.getBounds())) {
 				return true;
 			}
 		}
@@ -315,6 +328,15 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setEditorThemePath(String editorThemePath) {
 		this.editorThemePath = editorThemePath;
+	}
+
+	public int getMainWindowExtendedState() {
+		return mainWindowExtendedState;
+	}
+
+	public void setMainWindowExtendedState(int mainWindowExtendedState) {
+		this.mainWindowExtendedState = mainWindowExtendedState;
+		partialSync(settings -> settings.mainWindowExtendedState = mainWindowExtendedState);
 	}
 
 	private void upgradeSettings(int fromVersion) {
