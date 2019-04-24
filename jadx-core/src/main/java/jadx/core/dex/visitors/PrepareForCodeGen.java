@@ -42,7 +42,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 			}
 			removeInstructions(block);
 			checkInline(block);
-//			removeParenthesis(block);
+			removeParenthesis(block);
 			modifyArith(block);
 		}
 	}
@@ -99,7 +99,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 
 	private static void removeParenthesis(BlockNode block) {
 		for (InsnNode insn : block.getInstructions()) {
-			checkInsn(insn);
+			removeParenthesis(insn);
 		}
 	}
 
@@ -107,17 +107,19 @@ public class PrepareForCodeGen extends AbstractVisitor {
 	 * Remove parenthesis for wrapped insn  in arith '+' or '-'
 	 * ('(a + b) +c' => 'a + b + c')
 	 */
-	private static void checkInsn(InsnNode insn) {
+	private static void removeParenthesis(InsnNode insn) {
 		if (insn.getType() == InsnType.ARITH) {
 			ArithNode arith = (ArithNode) insn;
 			ArithOp op = arith.getOp();
-			if (op == ArithOp.ADD || op == ArithOp.SUB) {
+			if (op == ArithOp.ADD || op == ArithOp.MUL || op == ArithOp.AND || op == ArithOp.OR) {
 				for (int i = 0; i < 2; i++) {
 					InsnArg arg = arith.getArg(i);
 					if (arg.isInsnWrap()) {
 						InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
-						wrapInsn.add(AFlag.DONT_WRAP);
-						checkInsn(wrapInsn);
+						if (wrapInsn.getType() == InsnType.ARITH && ((ArithNode) wrapInsn).getOp() == op) {
+							wrapInsn.add(AFlag.DONT_WRAP);
+						}
+						removeParenthesis(wrapInsn);
 					}
 				}
 			}
@@ -125,7 +127,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 			for (InsnArg arg : insn.getArguments()) {
 				if (arg.isInsnWrap()) {
 					InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
-					checkInsn(wrapInsn);
+					removeParenthesis(wrapInsn);
 				}
 			}
 		}
