@@ -78,11 +78,24 @@ public class JadxProject {
 
 	public void removeTreeExpansion(String[] expansion) {
 		for (Iterator<String[]> it = treeExpansions.iterator(); it.hasNext(); ) {
-			if (Arrays.equals(it.next(), expansion)) {
+			if (isParentOfExpansion(expansion, it.next())) {
 				it.remove();
 			}
 		}
 		changed();
+	}
+
+	private boolean isParentOfExpansion(String[] parent, String[] child) {
+		if (Arrays.equals(parent, child)) {
+			return true;
+		}
+		for (int i = child.length - parent.length; i > 0; i--) {
+			String[] arr = Arrays.copyOfRange(child, i, child.length);
+			if (Arrays.equals(parent, arr)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private void changed() {
