@@ -19,6 +19,6 @@ public final class SmaliArea extends RSyntaxTextArea {
 		this.node = panel.getNode();
 
 		setEditable(false);
-		setText("Something interesting...");
+		setText(node.getSmali());
 	}
 }

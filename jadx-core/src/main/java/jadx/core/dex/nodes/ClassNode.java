@@ -53,6 +53,8 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	// store decompiled code
 	private CodeWriter code;
+	// store smali
+	private String smali;
 	// store parent for inner classes or 'this' otherwise
 	private ClassNode parentClass;
 
@@ -482,6 +484,14 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return code;
 	}
 
+	public void setSmali(String smali) {
+		this.smali = smali;
+	}
+	
+	public String getSmali() {
+		return smali;
+	}
+	
 	public ProcessState getState() {
 		return state;
 	}

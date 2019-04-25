@@ -1,6 +1,10 @@
 package jadx.api;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -12,6 +16,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.jf.baksmali.Baksmali;
+import org.jf.baksmali.BaksmaliOptions;
+import org.jf.dexlib2.DexFileFactory;
+import org.jf.dexlib2.Opcodes;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +35,8 @@ import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.SaveCode;
 import jadx.core.export.ExportGradleProject;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.utils.files.DexFile;
+import jadx.core.utils.files.FileUtils;
 import jadx.core.utils.files.InputFile;
 import jadx.core.xmlgen.BinaryXMLParser;
 import jadx.core.xmlgen.ResourcesSaver;
@@ -288,6 +299,30 @@ public final class JadxDecompiler {
 
 	void processClass(ClassNode cls) {
 		ProcessClass.process(cls, passes, true);
+	}
+
+	void generateSmali(ClassNode cls) {
+		Path temp = FileUtils.createTempDir("").toPath();
+		for (InputFile file : inputFiles) {
+			for (DexFile dexFile : file.getDexFiles()) {
+				Path path = dexFile.getPath();
+				try (InputStream in = Files.newInputStream(path)) {
+					DexBackedDexFile d = DexFileFactory.loadDexFile(path.toFile(), Opcodes.getDefault());
+					Baksmali.disassembleDexFile(d, temp.toFile(), 1, new BaksmaliOptions());
+				} catch (IOException e) {
+					LOG.error("Error generating smali", e);
+				}
+			}
+		}
+		Path smali = temp.resolve(cls.getFullName().replace('.', File.separatorChar) + ".smali");
+		if (Files.exists(smali)) {
+			try {
+				List<String> lines = Files.readAllLines(smali);
+				cls.setSmali(String.join(System.lineSeparator(), lines));
+			} catch (IOException e) {
+				LOG.error("Error reading smali " + smali, e);
+			}
+		}
 	}
 
 	RootNode getRoot() {
