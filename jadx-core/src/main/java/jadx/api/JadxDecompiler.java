@@ -1,8 +1,12 @@
 package jadx.api;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -11,16 +15,21 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.baksmali.Baksmali;
 import org.jf.baksmali.BaksmaliOptions;
 import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.Opcodes;
+import org.jf.dexlib2.dexbacked.DexBackedClassDef;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.iface.ClassDef;
+import org.jf.util.IndentingWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -302,27 +311,32 @@ public final class JadxDecompiler {
 	}
 
 	void generateSmali(ClassNode cls) {
-		Path temp = FileUtils.createTempDir();
-		for (InputFile file : inputFiles) {
-			for (DexFile dexFile : file.getDexFiles()) {
-				Path path = dexFile.getPath();
-				try (InputStream in = Files.newInputStream(path)) {
-					DexBackedDexFile d = DexFileFactory.loadDexFile(path.toFile(), Opcodes.getDefault());
-					Baksmali.disassembleDexFile(d, temp.toFile(), 1, new BaksmaliOptions());
-				} catch (IOException e) {
-					LOG.error("Error generating smali", e);
-				}
+		Path path = cls.dex().getDexFile().getPath();
+		String className = cls.getAlias().makeRawFullName();
+		className = className.replace('.', '/');
+		className = 'L' + className + ';';
+		try (InputStream in = Files.newInputStream(path)) {
+			DexBackedDexFile dexFile = DexFileFactory.loadDexFile(path.toFile(), Opcodes.getDefault());
+			boolean decompiled = false;
+			for (DexBackedClassDef classDef : dexFile.getClasses()) {
+				System.out.println(classDef.getType());
+				if (!classDef.getType().equals(className))
+					continue;
+				ClassDefinition classDefinition = new ClassDefinition(new BaksmaliOptions(), classDef);
+				StringWriter sw = new StringWriter();
+				classDefinition.writeTo(new IndentingWriter(sw));
+				cls.setSmali(sw.toString());
+				decompiled = true;
+				break;
 			}
-		}
-		Path smali = temp.resolve(cls.getFullName().replace('.', File.separatorChar) + ".smali");
-		if (Files.exists(smali)) {
-			try {
-				List<String> lines = Files.readAllLines(smali);
-				cls.setSmali(String.join(System.lineSeparator(), lines));
-			} catch (IOException e) {
-				LOG.error("Error reading smali " + smali, e);
+			if (!decompiled) {
+				LOG.error("Failed to find smali class {}", className);
 			}
+
+		} catch (IOException e) {
+			LOG.error("Error generating smali", e);
 		}
+
 	}
 
 	RootNode getRoot() {
