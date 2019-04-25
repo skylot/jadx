@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -134,7 +135,7 @@ public class InputFile {
 							case ".jar":
 								index++;
 								Path jarFile = Files.createTempFile(entryName, ".jar");
-								Files.copy(inputStream, jarFile);
+								Files.copy(inputStream, jarFile, StandardCopyOption.REPLACE_EXISTING);
 								for (Dex dex : loadFromJar(jarFile)) {
 									addDexFile(entryName, dex);
 								}
