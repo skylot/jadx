@@ -4,9 +4,9 @@ import static jadx.core.utils.files.FileUtils.isApkFile;
 import static jadx.core.utils.files.FileUtils.isZipDexFile;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -58,7 +58,7 @@ public class InputFile {
 			return;
 		}
 		if (fileName.endsWith(".smali")) {
-			Path output = Files.createTempFile("jadx", ".dex");
+			Path output = FileUtils.createTempFile(".dex");
 			SmaliOptions options = new SmaliOptions();
 			options.outputDexFile = output.toAbsolutePath().toString();
 			Smali.assemble(options, file.getAbsolutePath());
@@ -138,7 +138,7 @@ public class InputFile {
 
 							case ".jar":
 								index++;
-								Path jarFile = Files.createTempFile(entryName, ".jar");
+								Path jarFile = FileUtils.createTempFile(entryName);
 								Files.copy(inputStream, jarFile, StandardCopyOption.REPLACE_EXISTING);
 								for (Path dex : loadFromJar(jarFile)) {
 									addDexFile(entryName, dex);
@@ -149,11 +149,11 @@ public class InputFile {
 								throw new JadxRuntimeException("Unexpected extension in zip: " + ext);
 						}
 					} else if (entryName.equals("instant-run.zip") && ext.equals(".dex")) {
-						File jarFile = FileUtils.createTempFile("instant-run.zip");
-						try (FileOutputStream fos = new FileOutputStream(jarFile)) {
+						Path jarFile = FileUtils.createTempFile("instant-run.zip");
+						try (OutputStream fos = Files.newOutputStream(jarFile)) {
 							IOUtils.copy(inputStream, fos);
 						}
-						InputFile tempFile = new InputFile(jarFile);
+						InputFile tempFile = new InputFile(jarFile.toFile());
 						tempFile.loadFromZip(ext);
 						List<DexFile> dexFiles = tempFile.getDexFiles();
 						if (!dexFiles.isEmpty()) {
@@ -170,7 +170,7 @@ public class InputFile {
 	@Nullable
 	private Path makeDexBuf(String entryName, InputStream inputStream) {
 		try {
-			Path path = FileUtils.createTempFile(".dex").toPath();
+			Path path = FileUtils.createTempFile(".dex");
 			Files.copy(inputStream, path, StandardCopyOption.REPLACE_EXISTING);
 			return path;
 		} catch (Exception e) {
@@ -198,7 +198,7 @@ public class InputFile {
 	}
 
 	private static List<Path> loadFromClassFile(File file) throws IOException, DecodeException {
-		Path outFile = Files.createTempFile("cls", ".jar");
+		Path outFile = FileUtils.createTempFile(".jar");
 		try (JarOutputStream jo = new JarOutputStream(Files.newOutputStream(outFile))) {
 			String clsName = AsmUtils.getNameFromClassFile(file);
 			if (clsName == null || !ZipSecurity.isValidZipEntryName(clsName)) {

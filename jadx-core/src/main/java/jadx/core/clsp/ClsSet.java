@@ -168,7 +168,7 @@ public class ClsSet {
 				save(outputStream);
 			}
 		} else if (outputName.endsWith(".jar")) {
-			Path temp = Files.createTempFile("jadx", ".zip");
+			Path temp = FileUtils.createTempFile(".zip");
 			Files.copy(path, temp, StandardCopyOption.REPLACE_EXISTING);
 
 			try (ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(path));
@@ -185,8 +185,6 @@ public class ClsSet {
 					entry = in.getNextEntry();
 				}
 			}
-			Files.delete(temp);
-
 		} else {
 			throw new JadxRuntimeException("Unknown file format: " + outputName);
 		}
