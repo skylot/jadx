@@ -762,7 +762,10 @@ public class InsnGen {
 			}
 		}
 		ArgType argType = arg.getType();
-		if (argType.equals(origType)) {
+		if (argType.equals(origType)
+				// null cast to object
+				&& (!arg.isLiteral() || ((LiteralArg) arg).getLiteral() != 0
+						|| (!argType.isArray() && !argType.isObject()))) {
 			return false;
 		}
 		if (origType.isGeneric()) {
