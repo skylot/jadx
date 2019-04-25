@@ -302,7 +302,7 @@ public final class JadxDecompiler {
 	}
 
 	void generateSmali(ClassNode cls) {
-		Path temp = FileUtils.createTempDir("").toPath();
+		Path temp = FileUtils.createTempDir();
 		for (InputFile file : inputFiles) {
 			for (DexFile dexFile : file.getDexFiles()) {
 				Path path = dexFile.getPath();

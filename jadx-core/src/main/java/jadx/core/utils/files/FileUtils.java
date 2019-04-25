@@ -75,6 +75,16 @@ public class FileUtils {
 		}
 	}
 
+	public static Path createTempDir() {
+		try {
+			Path path = Files.createTempDirectory("jadx-tmp-");
+			path.toFile().deleteOnExit();
+			return path;
+		} catch (IOException e) {
+			throw new JadxRuntimeException("Failed to create temp directory");
+		}
+	}
+
 	public static void copyStream(InputStream input, OutputStream output) throws IOException {
 		byte[] buffer = new byte[READ_BUFFER_SIZE];
 		while (true) {
