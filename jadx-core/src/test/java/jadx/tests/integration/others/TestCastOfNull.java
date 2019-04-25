@@ -25,7 +25,6 @@ public class TestCastOfNull extends IntegrationTest {
 	}
 
 	@Test
-	@NotYetImplemented
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
