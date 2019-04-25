@@ -229,11 +229,8 @@ public class ModVisitor extends AbstractVisitor {
 		}
 
 		ClassNode classNode = callMthNode.getParentClass();
-		if (!classNode.contains(AFlag.ANONYMOUS_CLASS)) {
-			// check if class can be anonymous but not yet marked due to dependency issues
-			if (!classNode.markAnonymousClass()) {
-				return;
-			}
+		if (!classNode.isAnonymous()) {
+			return;
 		}
 		if (!mth.getParentClass().getInnerClasses().contains(classNode)) {
 			return;

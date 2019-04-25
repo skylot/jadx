@@ -57,6 +57,9 @@ public class JadxCLIArgs {
 	@Parameter(names = {"--no-debug-info"}, description = "disable debug info")
 	protected boolean debugInfo = true;
 
+	@Parameter(names = { "--no-inline-anonymous" }, description = "disable anonymous classes inline")
+	protected boolean inlineAnonymousClasses = true;
+
 	@Parameter(names = "--no-replace-consts", description = "don't replace constant value with matching constant field")
 	protected boolean replaceConsts = true;
 
@@ -175,6 +178,7 @@ public class JadxCLIArgs {
 		args.setExportAsGradleProject(exportAsGradleProject);
 		args.setUseImports(useImports);
 		args.setDebugInfo(debugInfo);
+		args.setInlineAnonymousClasses(inlineAnonymousClasses);
 		args.setRenameCaseSensitive(isRenameCaseSensitive());
 		args.setRenameValid(isRenameValid());
 		args.setRenamePrintable(isRenamePrintable());
@@ -223,6 +227,10 @@ public class JadxCLIArgs {
 
 	public boolean isDebugInfo() {
 		return debugInfo;
+	}
+
+	public boolean isInlineAnonymousClasses() {
+		return inlineAnonymousClasses;
 	}
 
 	public boolean isDeobfuscationOn() {

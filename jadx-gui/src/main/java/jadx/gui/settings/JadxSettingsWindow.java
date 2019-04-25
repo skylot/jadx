@@ -347,6 +347,13 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JCheckBox inlineAnonymous = new JCheckBox();
+		inlineAnonymous.setSelected(settings.isInlineAnonymousClasses());
+		inlineAnonymous.addItemListener(e -> {
+			settings.setInlineAnonymousClasses(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
 		SettingsGroup other = new SettingsGroup(NLS.str("preferences.decompile"));
 		other.addRow(NLS.str("preferences.threads"), threadsCount);
 		other.addRow(NLS.str("preferences.excludedPackages"), NLS.str("preferences.excludedPackages.tooltip"),
@@ -357,6 +364,7 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.replaceConsts"), replaceConsts);
 		other.addRow(NLS.str("preferences.respectBytecodeAccessModifiers"), respectBytecodeAccessModifiers);
 		other.addRow(NLS.str("preferences.useImports"), useImports);
+		other.addRow(NLS.str("preferences.inlineAnonymous"), inlineAnonymous);
 		other.addRow(NLS.str("preferences.fallback"), fallback);
 		other.addRow(NLS.str("preferences.skipResourcesDecode"), resourceDecode);
 		return other;

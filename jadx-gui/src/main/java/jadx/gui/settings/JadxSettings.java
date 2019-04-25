@@ -1,9 +1,6 @@
 package jadx.gui.settings;
 
-import java.awt.Font;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.Window;
+import java.awt.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -15,7 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import javax.swing.JFrame;
+import javax.swing.*;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.jetbrains.annotations.Nullable;
@@ -279,6 +276,10 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setUseImports(boolean useImports) {
 		this.useImports = useImports;
+	}
+
+	public void setInlineAnonymousClasses(boolean inlineAnonymousClasses) {
+		this.inlineAnonymousClasses = inlineAnonymousClasses;
 	}
 
 	public boolean isAutoStartJobs() {

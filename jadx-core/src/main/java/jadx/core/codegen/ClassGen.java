@@ -228,8 +228,7 @@ public class ClassGen {
 
 	private void addInnerClasses(CodeWriter code, ClassNode cls) throws CodegenException {
 		for (ClassNode innerCls : cls.getInnerClasses()) {
-			if (innerCls.contains(AFlag.DONT_GENERATE)
-					|| innerCls.contains(AFlag.ANONYMOUS_CLASS)) {
+			if (innerCls.contains(AFlag.DONT_GENERATE)) {
 				continue;
 			}
 			ClassGen inClGen = new ClassGen(innerCls, getParentGen());

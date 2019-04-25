@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
+import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -37,5 +38,17 @@ public class TestAnonymousClass extends IntegrationTest {
 		assertThat(code, not(containsString("this")));
 		assertThat(code, not(containsString("null")));
 		assertThat(code, not(containsString("AnonymousClass_")));
+		assertThat(code, not(containsString("class AnonymousClass")));
+	}
+
+	@Test
+	public void testNoInline() {
+		getArgs().setInlineAnonymousClasses(false);
+
+		ClassNode cls = getClassNode(TestCls.class);
+		String code = cls.getCode().toString();
+
+		assertThat(code, containsString("class AnonymousClass1 implements FilenameFilter {"));
+		assertThat(code, containsOne("new AnonymousClass1()"));
 	}
 }

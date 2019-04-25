@@ -26,6 +26,7 @@ import jadx.core.dex.visitors.MarkFinallyVisitor;
 import jadx.core.dex.visitors.MethodInlineVisitor;
 import jadx.core.dex.visitors.ModVisitor;
 import jadx.core.dex.visitors.PrepareForCodeGen;
+import jadx.core.dex.visitors.ProcessAnonymous;
 import jadx.core.dex.visitors.ReSugarCode;
 import jadx.core.dex.visitors.RenameVisitor;
 import jadx.core.dex.visitors.SimplifyVisitor;
@@ -104,6 +105,7 @@ public class Jadx {
 
 			passes.add(new ExtractFieldInit());
 			passes.add(new FixAccessModifiers());
+			passes.add(new ProcessAnonymous());
 			passes.add(new ClassModifier());
 			passes.add(new MethodInlineVisitor());
 			passes.add(new EnumVisitor());
