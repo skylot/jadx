@@ -313,30 +313,26 @@ public final class JadxDecompiler {
 	void generateSmali(ClassNode cls) {
 		Path path = cls.dex().getDexFile().getPath();
 		String className = cls.getAlias().makeRawFullName();
-		className = className.replace('.', '/');
-		className = 'L' + className + ';';
+		className = 'L' + className.replace('.', '/') + ';';
 		try (InputStream in = Files.newInputStream(path)) {
 			DexBackedDexFile dexFile = DexFileFactory.loadDexFile(path.toFile(), Opcodes.getDefault());
 			boolean decompiled = false;
 			for (DexBackedClassDef classDef : dexFile.getClasses()) {
-				System.out.println(classDef.getType());
-				if (!classDef.getType().equals(className))
-					continue;
-				ClassDefinition classDefinition = new ClassDefinition(new BaksmaliOptions(), classDef);
-				StringWriter sw = new StringWriter();
-				classDefinition.writeTo(new IndentingWriter(sw));
-				cls.setSmali(sw.toString());
-				decompiled = true;
-				break;
+				if (classDef.getType().equals(className)) {
+					ClassDefinition classDefinition = new ClassDefinition(new BaksmaliOptions(), classDef);
+					StringWriter sw = new StringWriter();
+					classDefinition.writeTo(new IndentingWriter(sw));
+					cls.setSmali(sw.toString());
+					decompiled = true;
+					break;
+				}
 			}
 			if (!decompiled) {
 				LOG.error("Failed to find smali class {}", className);
 			}
-
 		} catch (IOException e) {
 			LOG.error("Error generating smali", e);
 		}
-
 	}
 
 	RootNode getRoot() {
