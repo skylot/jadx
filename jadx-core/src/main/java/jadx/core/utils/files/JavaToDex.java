@@ -55,8 +55,10 @@ public class JavaToDex {
 	        try (DirectoryStream<Path> ds = Files.newDirectoryStream(dir)) {
 	            for (Path child : ds) {
 	            	list.add(child);
+	            	child.toFile().deleteOnExit();
 	            }
 	        }
+	        dir.toFile().deleteOnExit();
 	        return list;
 		} catch (Exception e) {
 			throw new JadxException("dx exception: " + e.getMessage(), e);

@@ -66,8 +66,8 @@ public class InputFile {
 			return;
 		}
 		if (fileName.endsWith(".class")) {
-			for (Path dex : loadFromClassFile(file)) {
-				addDexFile(dex);
+			for (Path path : loadFromClassFile(file)) {
+				addDexFile(path);
 			}
 			return;
 		}
@@ -81,8 +81,8 @@ public class InputFile {
 				return;
 			}
 			if (fileName.endsWith(".jar")) {
-				for (Path dex : loadFromJar(file.toPath())) {
-					addDexFile(dex);
+				for (Path path : loadFromJar(file.toPath())) {
+					addDexFile(path);
 				}
 				return;
 			}
@@ -129,9 +129,9 @@ public class InputFile {
 							|| entryName.endsWith(instantRunDexSuffix)) {
 						switch (ext) {
 							case ".dex":
-								Path dexBuf = makeDexBuf(entryName, inputStream);
-								if (dexBuf != null) {
-									addDexFile(entryName, dexBuf);
+								Path path = makeDexBuf(entryName, inputStream);
+								if (path != null) {
+									addDexFile(entryName, path);
 									index++;
 								}
 								break;
@@ -140,8 +140,8 @@ public class InputFile {
 								index++;
 								Path jarFile = FileUtils.createTempFile(entryName);
 								Files.copy(inputStream, jarFile, StandardCopyOption.REPLACE_EXISTING);
-								for (Path dex : loadFromJar(jarFile)) {
-									addDexFile(entryName, dex);
+								for (Path p : loadFromJar(jarFile)) {
+									addDexFile(entryName, p);
 								}
 								break;
 
@@ -183,11 +183,11 @@ public class InputFile {
 		JavaToDex j2d = new JavaToDex();
 		try {
 			LOG.info("converting to dex: {} ...", jar.getFileName());
-			List<Path> byteList = j2d.convert(jar);
-			if (byteList.isEmpty()) {
+			List<Path> pathList = j2d.convert(jar);
+			if (pathList.isEmpty()) {
 				throw new JadxException("Empty dx output");
 			}
-			return byteList;
+			return pathList;
 		} catch (Exception e) {
 			throw new DecodeException("java class to dex conversion error:\n " + e.getMessage(), e);
 		} finally {
