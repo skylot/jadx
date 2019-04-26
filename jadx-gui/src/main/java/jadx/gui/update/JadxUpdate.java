@@ -9,11 +9,13 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxDecompiler;
 import jadx.gui.update.data.Release;
@@ -34,19 +36,15 @@ public class JadxUpdate {
 	private static final Comparator<Release> RELEASE_COMPARATOR = (o1, o2) ->
 			VersionComparator.checkAndCompare(o1.getName(), o2.getName());
 
-	public interface IUpdateCallback {
-		void onUpdate(Release r);
-	}
-
 	private JadxUpdate() {
 	}
 
-	public static void check(final IUpdateCallback callback) {
+	public static void check(final Consumer<Release> callback) {
 		Runnable run = () -> {
 			try {
 				Release release = checkForNewRelease();
 				if (release != null) {
-					callback.onUpdate(release);
+					callback.accept(release);
 				}
 			} catch (Exception e) {
 				LOG.debug("Jadx update error", e);

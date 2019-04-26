@@ -85,8 +85,6 @@ import jadx.gui.treemodel.JPackage;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.update.JadxUpdate;
-import jadx.gui.update.JadxUpdate.IUpdateCallback;
-import jadx.gui.update.data.Release;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.JumpPosition;
@@ -186,14 +184,11 @@ public class MainWindow extends JFrame {
 		if (!settings.isCheckForUpdates()) {
 			return;
 		}
-		JadxUpdate.check(new IUpdateCallback() {
-			@Override
-			public void onUpdate(final Release r) {
-				SwingUtilities.invokeLater(() -> {
-					updateLink.setText(NLS.str("menu.update_label", r.getName()));
-					updateLink.setVisible(true);
-				});
-			}
+		JadxUpdate.check(release -> {
+			SwingUtilities.invokeLater(() -> {
+				updateLink.setText(NLS.str("menu.update_label", release.getName()));
+				updateLink.setVisible(true);
+			});
 		});
 	}
 
