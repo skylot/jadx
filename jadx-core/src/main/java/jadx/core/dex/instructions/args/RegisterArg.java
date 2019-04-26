@@ -81,6 +81,7 @@ public class RegisterArg extends InsnArg implements Named {
 		}
 	}
 
+	@Override
 	public String getName() {
 		if (isThis()) {
 			return THIS_ARG_NAME;
@@ -91,6 +92,7 @@ public class RegisterArg extends InsnArg implements Named {
 		return sVar.getName();
 	}
 
+	@Override
 	public void setName(String name) {
 		if (sVar != null && name != null) {
 			sVar.setName(name);

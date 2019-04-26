@@ -3,14 +3,22 @@ package jadx.core.dex.visitors.typeinference;
 import java.util.Objects;
 
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.RegisterArg;
 
 public final class TypeBoundConst implements ITypeBound {
 	private final BoundEnum bound;
 	private final ArgType type;
+	private final RegisterArg arg;
+
 
 	public TypeBoundConst(BoundEnum bound, ArgType type) {
+		this(bound, type, null);
+	}
+
+	public TypeBoundConst(BoundEnum bound, ArgType type, RegisterArg arg) {
 		this.bound = bound;
 		this.type = type;
+		this.arg = arg;
 	}
 
 	@Override
@@ -21,6 +29,11 @@ public final class TypeBoundConst implements ITypeBound {
 	@Override
 	public ArgType getType() {
 		return type;
+	}
+
+	@Override
+	public RegisterArg getArg() {
+		return arg;
 	}
 
 	@Override
