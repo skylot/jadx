@@ -1,6 +1,5 @@
 package jadx.core.deobf;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,11 +61,6 @@ public class Deobfuscator {
 	private int clsIndex = 0;
 	private int fldIndex = 0;
 	private int mthIndex = 0;
-
-	@Deprecated
-	public Deobfuscator(JadxArgs args, @NotNull List<DexNode> dexNodes, File deobfMapFile) {
-		this(args, dexNodes, deobfMapFile.toPath());
-	}
 
 	public Deobfuscator(JadxArgs args, @NotNull List<DexNode> dexNodes, Path deobfMapFile) {
 		this.args = args;

@@ -43,10 +43,6 @@ public class DotGraphVisitor extends AbstractVisitor {
 		return new DotGraphVisitor(true, false);
 	}
 
-	public static DotGraphVisitor dumpRawRegions() {
-		return new DotGraphVisitor(true, true);
-	}
-
 	private DotGraphVisitor(boolean useRegions, boolean rawInsn) {
 		this.useRegions = useRegions;
 		this.rawInsn = rawInsn;

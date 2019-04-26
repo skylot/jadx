@@ -51,7 +51,6 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -61,7 +60,6 @@ public class InsnGen {
 
 	protected final MethodGen mgen;
 	protected final MethodNode mth;
-	protected final RootNode root;
 	protected final boolean fallback;
 
 	protected enum Flags {
@@ -73,7 +71,6 @@ public class InsnGen {
 	public InsnGen(MethodGen mgen, boolean fallback) {
 		this.mgen = mgen;
 		this.mth = mgen.getMethodNode();
-		this.root = mth.dex().root();
 		this.fallback = fallback;
 	}
 

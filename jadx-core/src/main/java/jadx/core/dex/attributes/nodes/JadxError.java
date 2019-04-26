@@ -7,10 +7,6 @@ public class JadxError {
 	private final String error;
 	private final Throwable cause;
 
-	public JadxError(Throwable cause) {
-		this(null, cause);
-	}
-
 	public JadxError(String error, Throwable cause) {
 		this.error = error;
 		this.cause = cause;

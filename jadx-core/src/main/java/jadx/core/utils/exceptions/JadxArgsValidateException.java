@@ -7,8 +7,4 @@ public class JadxArgsValidateException extends RuntimeException {
 	public JadxArgsValidateException(String message) {
 		super(message);
 	}
-
-	public JadxArgsValidateException(String message, Throwable cause) {
-		super(message, cause);
-	}
 }

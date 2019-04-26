@@ -31,13 +31,6 @@ public class AccessInfo {
 		return this;
 	}
 
-	public AccessInfo add(int flag) {
-		if (!containsFlag(flag)) {
-			return new AccessInfo(accFlags | flag, type);
-		}
-		return this;
-	}
-
 	public AccessInfo changeVisibility(int flag) {
 		int currentVisFlags = accFlags & VISIBILITY_FLAGS;
 		if (currentVisFlags == flag) {

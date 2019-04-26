@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
-import jadx.core.dex.attributes.nodes.ForceReturnAttr;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.SwitchNode;
@@ -108,10 +107,6 @@ public class RegionGen extends InsnGen {
 			if (!insn.contains(AFlag.DONT_GENERATE)) {
 				makeInsn(insn, code);
 			}
-		}
-		ForceReturnAttr retAttr = block.get(AType.FORCE_RETURN);
-		if (retAttr != null) {
-			makeInsn(retAttr.getReturnInsn(), code);
 		}
 	}
 

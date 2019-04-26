@@ -7,7 +7,6 @@ import jadx.core.dex.attributes.nodes.EdgeInsnAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr;
 import jadx.core.dex.attributes.nodes.EnumMapAttr;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
-import jadx.core.dex.attributes.nodes.ForceReturnAttr;
 import jadx.core.dex.attributes.nodes.IgnoreEdgeAttr;
 import jadx.core.dex.attributes.nodes.JadxError;
 import jadx.core.dex.attributes.nodes.JumpInfo;
@@ -42,7 +41,6 @@ public class AType<T extends IAttribute> {
 	public static final AType<ExcHandlerAttr> EXC_HANDLER = new AType<>();
 	public static final AType<CatchAttr> CATCH_BLOCK = new AType<>();
 	public static final AType<SplitterBlockAttr> SPLITTER_BLOCK = new AType<>();
-	public static final AType<ForceReturnAttr> FORCE_RETURN = new AType<>();
 	public static final AType<FieldInitAttr> FIELD_INIT = new AType<>();
 	public static final AType<FieldReplaceAttr> FIELD_REPLACE = new AType<>();
 	public static final AType<MethodInlineAttr> METHOD_INLINE = new AType<>();

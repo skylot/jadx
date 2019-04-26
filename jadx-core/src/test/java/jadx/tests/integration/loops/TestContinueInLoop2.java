@@ -24,7 +24,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestContinueInLoop2 extends IntegrationTest {
 
 	public static class TestCls {
-		private static void test(MethodNode mth, BlockNode block) {
+		public static void test(MethodNode mth, BlockNode block) {
 			ExcHandlerAttr handlerAttr = block.get(AType.EXC_HANDLER);
 			if (handlerAttr != null) {
 				ExceptionHandler excHandler = handlerAttr.getHandler();

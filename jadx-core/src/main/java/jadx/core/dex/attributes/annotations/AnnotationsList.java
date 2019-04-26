@@ -31,10 +31,6 @@ public class AnnotationsList implements IAttribute {
 		return map.values();
 	}
 
-	public int size() {
-		return map.size();
-	}
-
 	public boolean isEmpty() {
 		return map.isEmpty();
 	}

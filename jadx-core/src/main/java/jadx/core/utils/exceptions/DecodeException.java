@@ -14,10 +14,6 @@ public class DecodeException extends JadxException {
 		super(message, cause);
 	}
 
-	public DecodeException(MethodNode mth, String msg) {
-		super(mth, msg, null);
-	}
-
 	public DecodeException(MethodNode mth, String msg, Throwable th) {
 		super(mth, msg, th);
 	}
