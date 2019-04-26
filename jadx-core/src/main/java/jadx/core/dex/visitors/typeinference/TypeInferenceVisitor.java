@@ -84,7 +84,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		}
 		if (resolved) {
 			for (SSAVar var : new ArrayList<>(mth.getSVars())) {
-				booleanToNumber(mth, var);
+				processIncompatiblePrimitives(mth, var);
 			}
 		} else {
 			for (SSAVar var : new ArrayList<>(mth.getSVars())) {
@@ -381,15 +381,15 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		return false;
 	}
 
-	private void booleanToNumber(MethodNode mth, SSAVar var) {
+	private void processIncompatiblePrimitives(MethodNode mth, SSAVar var) {
 		if (var.getAssign().getType() == ArgType.BOOLEAN) {
 			 for (ITypeBound bound : var.getTypeInfo().getBounds()) {
-				 if (bound.getBound() == BoundEnum.USE && bound.getType() != ArgType.BOOLEAN) {
+				 if (bound.getBound() == BoundEnum.USE
+						 && bound.getType().isPrimitive() && bound.getType() != ArgType.BOOLEAN) {
 					 InsnNode insn = bound.getArg().getParentInsn();
 					 if (insn.getType() == InsnType.CAST) {
 						 continue;
 					 };
-					 BlockNode blockNode = BlockUtils.getBlockByInsn(mth, insn);
 
 					 IndexInsnNode castNode = new IndexInsnNode(InsnType.CAST, bound.getType(), 1);
 					 castNode.addArg(bound.getArg());
@@ -403,10 +403,12 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 
 					 for (int i = insn.getArgsCount() - 1; i >= 0; i--) {
 						 if (insn.getArg(i) == bound.getArg()) {
-							 insn.setArg(i, castNode.getResult());
+							 insn.setArg(i, castNode.getResult().duplicate());
 							 break;
 						 }
 					 }
+
+					 BlockNode blockNode = BlockUtils.getBlockByInsn(mth, insn);
 					 List<InsnNode> insnList = blockNode.getInstructions();
 					 insnList.add(insnList.indexOf(insn), castNode);
 				 }

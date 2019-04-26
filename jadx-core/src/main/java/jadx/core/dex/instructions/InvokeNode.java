@@ -46,6 +46,7 @@ public class InvokeNode extends InsnNode implements CallMthInterface {
 		return type;
 	}
 
+	@Override
 	public MethodInfo getCallMth() {
 		return mth;
 	}

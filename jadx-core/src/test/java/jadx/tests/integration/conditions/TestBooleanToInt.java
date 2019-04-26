@@ -5,11 +5,10 @@ import static org.hamcrest.Matchers.containsString;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
-public class TestBooleanToInt2 extends SmaliTest {
+public class TestBooleanToInt extends SmaliTest {
 
 	/**
     	private boolean showConsent;
@@ -17,14 +16,13 @@ public class TestBooleanToInt2 extends SmaliTest {
     	public void write(int b) {
     	}
 
-    	public void writeToParcel(TestBooleanToInt2 testBooleanToInt2) {
-        	testBooleanToInt2.write(this.showConsent ? 1 : 0);
+    	public void writeToParcel(TestBooleanToInt testBooleanToInt) {
+        	testBooleanToInt.write(this.showConsent ? 1 : 0);
     	}
 	 */
 	@Test
-	@NotYetImplemented
 	public void test() {
-		ClassNode cls = getClassNodeFromSmaliWithPath("conditions", "TestBooleanToInt2");
+		ClassNode cls = getClassNodeFromSmaliWithPath("conditions", "TestBooleanToInt");
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsString("write(this.showConsent ? 1 : 0);"));
