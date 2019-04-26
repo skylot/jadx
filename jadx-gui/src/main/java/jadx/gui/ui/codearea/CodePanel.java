@@ -1,9 +1,13 @@
 package jadx.gui.ui.codearea;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+
+import javax.swing.AbstractAction;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.KeyStroke;
 
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
@@ -35,14 +39,14 @@ public final class CodePanel extends ContentPanel {
 
 		setLayout(new BorderLayout());
 		add(searchBar, BorderLayout.NORTH);
-		
+
 		areaTabbedPane.add(codeScrollPane, NLS.str("tabs.code"));
 		areaTabbedPane.add(smaliScrollPane, NLS.str("tabs.smali"));
 		add(areaTabbedPane);
 
 		KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_F, Utils.ctrlButton());
 		Utils.addKeyBinding(codeArea, key, "SearchAction", new SearchAction());
-		
+
 		areaTabbedPane.addChangeListener(e -> {
 			if (areaTabbedPane.getSelectedComponent() == smaliScrollPane) {
 				smaliArea.load();
