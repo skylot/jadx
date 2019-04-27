@@ -264,36 +264,16 @@ public class JadxArgs {
 		return renameFlags.contains(RENAME.CASE);
 	}
 
-	public void setRenameCaseSensitive(boolean renameCaseSensitive) {
-		if (renameCaseSensitive && !isRenameCaseSensitive()) {
-			renameFlags.add(RENAME.CASE);
-		} else if (!renameCaseSensitive && isRenameCaseSensitive()) {
-			renameFlags.remove(RENAME.CASE);
-		}
-	}
-
 	public boolean isRenameValid() {
 		return renameFlags.contains(RENAME.VALID);
-	}
-
-	public void setRenameValid(boolean renameValid) {
-		if (renameValid && !isRenameValid()) {
-			renameFlags.add(RENAME.VALID);
-		} else if (!renameValid && isRenameValid()) {
-			renameFlags.remove(RENAME.VALID);
-		}
 	}
 
 	public boolean isRenamePrintable() {
 		return renameFlags.contains(RENAME.PRINTABLE);
 	}
 
-	public void setRenamePrintable(boolean renamePrintable) {
-		if (renamePrintable && !isRenamePrintable()) {
-			renameFlags.add(RENAME.PRINTABLE);
-		} else if (!renamePrintable && isRenamePrintable()) {
-			renameFlags.remove(RENAME.PRINTABLE);
-		}
+	public void setRenameFlags(Set<RENAME> renameFlags) {
+		this.renameFlags = renameFlags;
 	}
 
 	@Override

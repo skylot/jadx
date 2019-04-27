@@ -67,7 +67,7 @@ public class DependencyCollector extends AbstractVisitor {
 	}
 
 	private static void processMethod(DexNode dex, Set<ClassNode> depList, MethodNode methodNode) {
-		addDep(dex, depList, methodNode.getParentClass());
+		addDep(depList, methodNode.getParentClass());
 		addDep(dex, depList, methodNode.getReturnType());
 		for (ArgType arg : methodNode.getMethodInfo().getArgumentsTypes()) {
 			addDep(dex, depList, arg);
@@ -131,11 +131,11 @@ public class DependencyCollector extends AbstractVisitor {
 	private static void addDep(DexNode dex, Set<ClassNode> depList, ClassInfo clsInfo) {
 		if (clsInfo != null) {
 			ClassNode node = dex.resolveClass(clsInfo);
-			addDep(dex, depList, node);
+			addDep(depList, node);
 		}
 	}
 
-	private static void addDep(DexNode dex, Set<ClassNode> depList, ClassNode clsNode) {
+	private static void addDep(Set<ClassNode> depList, ClassNode clsNode) {
 		if (clsNode != null) {
 			// add only top classes
 			depList.add(clsNode.getTopParentClass());

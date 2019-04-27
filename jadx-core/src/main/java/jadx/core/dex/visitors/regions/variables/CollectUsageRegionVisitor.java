@@ -55,11 +55,9 @@ class CollectUsageRegionVisitor extends TracedRegionVisitor {
 		}
 		// result
 		RegisterArg result = insn.getResult();
-		if (result != null && result.isRegister()) {
-			if (!result.contains(AFlag.DONT_GENERATE)) {
-				VarUsage usage = getUsage(result.getSVar());
-				usage.getAssigns().add(usePlace);
-			}
+		if (result != null && result.isRegister() && !result.contains(AFlag.DONT_GENERATE)) {
+			VarUsage usage = getUsage(result.getSVar());
+			usage.getAssigns().add(usePlace);
 		}
 		// args
 		args.clear();

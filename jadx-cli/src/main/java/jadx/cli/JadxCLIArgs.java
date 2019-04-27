@@ -179,9 +179,7 @@ public class JadxCLIArgs {
 		args.setUseImports(useImports);
 		args.setDebugInfo(debugInfo);
 		args.setInlineAnonymousClasses(inlineAnonymousClasses);
-		args.setRenameCaseSensitive(isRenameCaseSensitive());
-		args.setRenameValid(isRenameValid());
-		args.setRenamePrintable(isRenamePrintable());
+		args.setRenameFlags(renameFlags);
 		return args;
 	}
 

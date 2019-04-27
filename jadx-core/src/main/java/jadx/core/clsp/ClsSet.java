@@ -66,7 +66,7 @@ public class ClsSet {
 					throw new JadxRuntimeException("Duplicate class: " + clsRawName);
 				}
 				k++;
-				nClass.setMethods(loadMethods(cls, nClass));
+				nClass.setMethods(loadMethods(cls));
 			} else {
 				names.put(clsRawName, null);
 			}
@@ -86,7 +86,7 @@ public class ClsSet {
 		}
 	}
 
-	private NMethod[] loadMethods(ClassNode cls, NClass nClass) {
+	private NMethod[] loadMethods(ClassNode cls) {
 		List<NMethod> methods = new ArrayList<>();
 		for (MethodNode m : cls.getMethods()) {
 			if (!m.getAccessFlags().isPublic()
@@ -99,10 +99,7 @@ public class ClsSet {
 			boolean genericArg = false;
 			for (RegisterArg r: m.getArguments(false)) {
 				ArgType argType = r.getType();
-				if (argType.isGeneric()) {
-					args.add(argType);
-					genericArg = true;
-				} else if (argType.isGenericType()) {
+				if (argType.isGeneric() || argType.isGenericType()) {
 					args.add(argType);
 					genericArg = true;
 				} else {

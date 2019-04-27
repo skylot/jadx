@@ -198,10 +198,7 @@ public class InsnNode extends LineAttrNode {
 
 	public boolean canReorder() {
 		if (contains(AFlag.DONT_GENERATE)) {
-			if (getType() == InsnType.MONITOR_EXIT) {
-				return false;
-			}
-			return true;
+			return getType() != InsnType.MONITOR_EXIT;
 		}
 		switch (getType()) {
 			case CONST:

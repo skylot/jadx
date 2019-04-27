@@ -231,8 +231,8 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 					&& fileName.endsWith('$' + name)) {
 				return;
 			}
-			ClassInfo parentClass = clsInfo.getTopParentClass();
-			if (parentClass != null && fileName.equals(parentClass.getShortName())) {
+			ClassInfo topParentClass = clsInfo.getTopParentClass();
+			if (topParentClass != null && fileName.equals(topParentClass.getShortName())) {
 				return;
 			}
 		}

@@ -122,10 +122,8 @@ public class ConstInlineVisitor extends AbstractVisitor {
 						&& inv.getArg(0) == useArg) {
 					return true;
 				}
-			} else if (insnType == InsnType.ARRAY_LENGTH) {
-				if (insn.getArg(0) == useArg) {
-					return true;
-				}
+			} else if (insnType == InsnType.ARRAY_LENGTH && insn.getArg(0) == useArg) {
+				return true;
 			}
 		}
 		return false;

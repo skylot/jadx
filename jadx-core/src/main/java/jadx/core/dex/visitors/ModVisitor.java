@@ -167,9 +167,10 @@ public class ModVisitor extends AbstractVisitor {
 								IfNode ifNode = new IfNode(IfOp.EQ, -1, insn.getArg(0), LiteralArg.TRUE);
 								IfCondition condition = IfCondition.fromIfNode(ifNode);
 								InsnArg zero = new LiteralArg(0, type);
-								InsnArg one = new LiteralArg(
-										type == ArgType.DOUBLE ? Double.doubleToLongBits(1) :
-											type == ArgType.FLOAT ? Float.floatToIntBits(1) : 1, type);
+								long lit = type == ArgType.DOUBLE
+										? Double.doubleToLongBits(1) : type == ArgType.FLOAT
+										? Float.floatToIntBits(1) : 1;
+								InsnArg one = new LiteralArg(lit, type);
 								TernaryInsn ternary = new TernaryInsn(condition, insn.getResult(), one, zero);
 								replaceInsn(block, i, ternary);
 							}
