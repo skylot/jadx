@@ -477,8 +477,7 @@ public class MainWindow extends JFrame {
 
 		Object root = treeModel.getRoot();
 		if (root instanceof JRoot) {
-			JRoot treeRoot = (JRoot) root;
-			treeRoot.setFlatPackages(isFlattenPackage);
+			((JRoot) root).setFlatPackages(isFlattenPackage);
 			reloadTree();
 		}
 	}

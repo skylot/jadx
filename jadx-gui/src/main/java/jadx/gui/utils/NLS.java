@@ -104,7 +104,7 @@ public class NLS {
 		if (i18nMessagesMap.containsKey(localLocale)) {
 			return localLocale;
 		}
-		// fallback to english if unsupported
+		// fallback to English if unsupported
 		return i18nLocales.get(0);
 	}
 }

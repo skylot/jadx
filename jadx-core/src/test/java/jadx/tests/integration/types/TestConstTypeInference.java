@@ -25,6 +25,7 @@ public class TestConstTypeInference extends IntegrationTest {
 			this.a = a;
 		}
 
+		@Override
 		public boolean equals(Object obj) {
 			if (obj == this) {
 				return true;
@@ -41,7 +42,7 @@ public class TestConstTypeInference extends IntegrationTest {
 		public void check() {
 			TestCls seven = new TestCls(7);
 			assertEquals(seven, seven);
-			assertNotEquals(seven, null);
+			assertNotEquals(null, seven);
 
 			TestCls six = new TestCls(6);
 			assertNotEquals(seven, six);

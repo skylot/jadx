@@ -16,7 +16,7 @@ class LogViewer extends JDialog {
 	private static final long serialVersionUID = -2188700277429054641L;
 	private static final Level[] LEVEL_ITEMS = {Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR};
 
-	private static Level level = Level.WARN;
+	private Level level = Level.WARN;
 
 	private final transient JadxSettings settings;
 	private transient RSyntaxTextArea textPane;

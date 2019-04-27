@@ -40,14 +40,13 @@ public class ResXmlGen {
 				continue;
 			}
 			String fn = getFileName(ri);
-			CodeWriter cw = contMap.get(fn);
-			if (cw == null) {
-				cw = new CodeWriter();
-				cw.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-				cw.startLine("<resources>");
-				cw.incIndent();
-				contMap.put(fn, cw);
-			}
+			CodeWriter cw = contMap.computeIfAbsent(fn, k -> {
+				CodeWriter c = new CodeWriter();
+				c.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+				c.startLine("<resources>");
+				c.incIndent();
+				return c;
+			});
 			addValue(cw, ri);
 		}
 

@@ -140,6 +140,7 @@ public class StringRef implements CharSequence {
 		return list;
 	}
 
+	@Override
 	public int hashCode() {
 		int h = hash;
 		int len = length;
@@ -154,6 +155,7 @@ public class StringRef implements CharSequence {
 		return h;
 	}
 
+	@Override
 	public boolean equals(Object other) {
 		if (this == other) {
 			return true;
@@ -168,10 +170,10 @@ public class StringRef implements CharSequence {
 		}
 		int i = offset;
 		int j = otherSlice.offset;
-		String refStr = this.refStr;
-		String otherRefStr = otherSlice.refStr;
+		String str = this.refStr;
+		String otherStr = otherSlice.refStr;
 		while (len-- != 0) {
-			if (refStr.charAt(i++) != otherRefStr.charAt(j++)) {
+			if (str.charAt(i++) != otherStr.charAt(j++)) {
 				return false;
 			}
 		}
@@ -185,7 +187,7 @@ public class StringRef implements CharSequence {
 		if (len == 0) {
 			return "";
 		}
-		int offset = this.offset;
-		return refStr.substring(offset, offset + len);
+		int o = this.offset;
+		return refStr.substring(o, o + len);
 	}
 }

@@ -15,4 +15,7 @@ public class CodegenUtils {
 					.forEach(comment -> code.startLine("/* ").addMultiLine(comment).add(" */"));
 		}
 	}
+
+	private CodegenUtils() {
+	}
 }
