@@ -13,15 +13,13 @@ public final class SwitchRegion extends AbstractRegion implements IBranchRegion 
 
 	private final BlockNode header;
 
-	private final List<List<Object>> keys;
-	private final List<IContainer> cases;
+	private final List<List<Object>> keys = new ArrayList<>();
+	private final List<IContainer> cases = new ArrayList<>();
 	private IContainer defCase;
 
 	public SwitchRegion(IRegion parent, BlockNode header) {
 		super(parent);
 		this.header = header;
-		this.keys = new ArrayList<>();
-		this.cases = new ArrayList<>();
 	}
 
 	public BlockNode getHeader() {

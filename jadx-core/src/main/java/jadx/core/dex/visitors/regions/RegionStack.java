@@ -48,15 +48,13 @@ final class RegionStack {
 		}
 	}
 
-	private final Deque<State> stack;
-	private State curState;
+	private final Deque<State> stack = new ArrayDeque<>();
+	private State curState = new State();
 
 	public RegionStack(MethodNode mth) {
 		if (DEBUG) {
 			LOG.debug("New RegionStack: {}", mth);
 		}
-		this.stack = new ArrayDeque<>();
-		this.curState = new State();
 	}
 
 	public void push(IRegion region) {

@@ -22,7 +22,7 @@ import jadx.core.dex.nodes.MethodNode;
 public class InsnRemover {
 
 	private final MethodNode mth;
-	private final List<InsnNode> toRemove;
+	private final List<InsnNode> toRemove = new ArrayList<>();
 	private List<InsnNode> instrList;
 
 	public InsnRemover(MethodNode mth) {
@@ -31,7 +31,6 @@ public class InsnRemover {
 
 	public InsnRemover(MethodNode mth, BlockNode block) {
 		this.mth = mth;
-		this.toRemove = new ArrayList<>();
 		if (block != null) {
 			this.instrList = block.getInstructions();
 		}

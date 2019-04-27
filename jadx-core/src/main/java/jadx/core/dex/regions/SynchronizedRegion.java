@@ -11,12 +11,11 @@ public final class SynchronizedRegion extends AbstractRegion {
 
 	private final InsnNode enterInsn;
 	private final List<InsnNode> exitInsns = new LinkedList<>();
-	private final Region region;
+	private final Region region = new Region(this);
 
 	public SynchronizedRegion(IRegion parent, InsnNode insn) {
 		super(parent);
 		this.enterInsn = insn;
-		this.region = new Region(this);
 	}
 
 	public InsnNode getEnterInsn() {

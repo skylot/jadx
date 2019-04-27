@@ -121,7 +121,7 @@ public class MainWindow extends JFrame {
 
 	private final transient JadxWrapper wrapper;
 	private final transient JadxSettings settings;
-	private final transient CacheObject cacheObject;
+	private final transient CacheObject cacheObject = new CacheObject();
 	private transient JadxProject project;
 	private transient Action newProjectAction;
 	private transient Action saveProjectAction;
@@ -150,7 +150,6 @@ public class MainWindow extends JFrame {
 	public MainWindow(JadxSettings settings) {
 		this.wrapper = new JadxWrapper(settings);
 		this.settings = settings;
-		this.cacheObject = new CacheObject();
 
 		resetCache();
 		FontUtils.registerBundledFonts();

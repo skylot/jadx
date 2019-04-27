@@ -36,7 +36,7 @@ public class RootNode {
 	private final StringUtils stringUtils;
 	private final ConstStorage constValues;
 	private final InfoStorage infoStorage = new InfoStorage();
-	private final TypeUpdate typeUpdate;
+	private final TypeUpdate typeUpdate = new TypeUpdate(this);
 
 	private ClspGraph clsp;
 	private List<DexNode> dexNodes;
@@ -49,7 +49,6 @@ public class RootNode {
 		this.args = args;
 		this.stringUtils = new StringUtils(args);
 		this.constValues = new ConstStorage(args);
-		this.typeUpdate = new TypeUpdate(this);
 	}
 
 	public void load(List<InputFile> inputFiles) {

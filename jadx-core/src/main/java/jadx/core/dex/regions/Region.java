@@ -9,11 +9,10 @@ import jadx.core.utils.Utils;
 
 public final class Region extends AbstractRegion {
 
-	private final List<IContainer> blocks;
+	private final List<IContainer> blocks = new ArrayList<>(1);
 
 	public Region(IRegion parent) {
 		super(parent);
-		this.blocks = new ArrayList<>(1);
 	}
 
 	@Override

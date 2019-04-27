@@ -23,11 +23,10 @@ public class TypeCompare {
 	private static final Logger LOG = LoggerFactory.getLogger(TypeCompare.class);
 
 	private final RootNode root;
-	private final ArgTypeComparator comparator;
+	private final ArgTypeComparator comparator = new ArgTypeComparator();
 
 	public TypeCompare(RootNode root) {
 		this.root = root;
-		this.comparator = new ArgTypeComparator();
 	}
 
 	/**

@@ -35,19 +35,15 @@ public class TextSearchIndex {
 
 	private final JNodeCache nodeCache;
 
-	private SearchIndex<JNode> clsNamesIndex;
-	private SearchIndex<JNode> mthNamesIndex;
-	private SearchIndex<JNode> fldNamesIndex;
-	private SearchIndex<CodeNode> codeIndex;
+	private SearchIndex<JNode> clsNamesIndex = new SimpleIndex<>();
+	private SearchIndex<JNode> mthNamesIndex = new SimpleIndex<>();
+	private SearchIndex<JNode> fldNamesIndex = new SimpleIndex<>();
+	private SearchIndex<CodeNode> codeIndex = new CodeIndex<>();
 
 	private List<JavaClass> skippedClasses = new ArrayList<>();
 
 	public TextSearchIndex(JNodeCache nodeCache) {
 		this.nodeCache = nodeCache;
-		this.clsNamesIndex = new SimpleIndex<>();
-		this.mthNamesIndex = new SimpleIndex<>();
-		this.fldNamesIndex = new SimpleIndex<>();
-		this.codeIndex = new CodeIndex<>();
 	}
 
 	public void indexNames(JavaClass cls) {

@@ -18,17 +18,11 @@ import jadx.core.utils.Utils;
 
 public class TryCatchBlock {
 
-	private final List<ExceptionHandler> handlers;
+	private final List<ExceptionHandler> handlers = new LinkedList<>();
 
 	// references for fast remove/modify
-	private final List<InsnNode> insns;
-	private final CatchAttr attr;
-
-	public TryCatchBlock() {
-		handlers = new LinkedList<>();
-		insns = new ArrayList<>();
-		attr = new CatchAttr(this);
-	}
+	private final List<InsnNode> insns = new ArrayList<>();
+	private final CatchAttr attr = new CatchAttr(this);
 
 	public Iterable<ExceptionHandler> getHandlers() {
 		return handlers;

@@ -16,7 +16,7 @@ public class TextStandardActions {
 	private final JTextComponent textComponent;
 
 	private final JPopupMenu popup = new JPopupMenu();
-	private final UndoManager undoManager;
+	private final UndoManager undoManager = new UndoManager();
 
 	private Action undoAction;
 	private Action redoAction;
@@ -28,7 +28,6 @@ public class TextStandardActions {
 
 	public TextStandardActions(JTextComponent textComponent) {
 		this.textComponent = textComponent;
-		this.undoManager = new UndoManager();
 
 		initActions();
 		addPopupItems();
