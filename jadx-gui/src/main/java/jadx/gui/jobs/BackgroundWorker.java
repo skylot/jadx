@@ -44,20 +44,31 @@ public class BackgroundWorker extends SwingWorker<Void, Void> {
 	protected Void doInBackground() {
 		try {
 			System.gc();
-			LOG.debug("Memory usage: Before decompile: {}", Utils.memoryInfo());
+			boolean debug = LOG.isDebugEnabled();
+			if (debug) {
+				LOG.debug("Memory usage: Before decompile: {}", Utils.memoryInfo());
+			}
 			runJob(cache.getDecompileJob());
 
-			LOG.debug("Memory usage: Before index: {}", Utils.memoryInfo());
+			if (debug) {
+				LOG.debug("Memory usage: Before index: {}", Utils.memoryInfo());
+			}
 			runJob(cache.getIndexJob());
-			LOG.debug("Memory usage: After index: {}", Utils.memoryInfo());
+			if (debug) {
+				LOG.debug("Memory usage: After index: {}", Utils.memoryInfo());
+			}
 
 			System.gc();
-			LOG.debug("Memory usage: After gc: {}", Utils.memoryInfo());
+			if (debug) {
+				LOG.debug("Memory usage: After gc: {}", Utils.memoryInfo());
+			}
 
 			TextSearchIndex searchIndex = cache.getTextIndex();
 			if (searchIndex != null && searchIndex.getSkippedCount() > 0) {
-				LOG.warn("Indexing of some classes skipped, count: {}, low memory: {}",
+				if (LOG.isWarnEnabled()) {
+					LOG.warn("Indexing of some classes skipped, count: {}, low memory: {}",
 						searchIndex.getSkippedCount(), Utils.memoryInfo());
+				}
 				String msg = NLS.str("message.indexingClassesSkipped", searchIndex.getSkippedCount());
 				JOptionPane.showMessageDialog(null, msg);
 			}
