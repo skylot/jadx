@@ -1,10 +1,10 @@
 package jadx.samples;
 
 public class TestCF2 extends AbstractTest {
-	private final Object ready_mutex = new Object();
+	private final Object readyMutex = new Object();
 	private boolean ready = false;
 
-	public int simple_loops() throws InterruptedException {
+	public int simpleLoops() throws InterruptedException {
 		int[] a = new int[]{1, 2, 4, 6, 8};
 		int b = 0;
 		for (int i = 0; i < a.length; i++) {
@@ -22,7 +22,7 @@ public class TestCF2 extends AbstractTest {
 	public void run() throws InterruptedException {
 		while (true) {
 			if (!ready) {
-				ready_mutex.wait();
+				readyMutex.wait();
 			}
 			ready = false;
 			func();
@@ -33,7 +33,7 @@ public class TestCF2 extends AbstractTest {
 		ready = true;
 	}
 
-	public void do_while() throws InterruptedException {
+	public void doWhile() throws InterruptedException {
 		int i = 3;
 		do {
 			func();
@@ -41,7 +41,7 @@ public class TestCF2 extends AbstractTest {
 		} while (i < 5);
 	}
 
-	public void do_while_2(long k) throws InterruptedException {
+	public void doWhile2(long k) throws InterruptedException {
 		if (k > 5) {
 			long i = 3;
 			do {
@@ -51,7 +51,7 @@ public class TestCF2 extends AbstractTest {
 		}
 	}
 
-	public void do_while_3(int k) throws InterruptedException {
+	public void doWhile3(int k) throws InterruptedException {
 		int i = 3;
 		do {
 			if (k > 9) {
@@ -61,7 +61,7 @@ public class TestCF2 extends AbstractTest {
 		} while (i < 5);
 	}
 
-	public int do_while_break(int k) throws InterruptedException {
+	public int doWhileBreak(int k) throws InterruptedException {
 		int i = 3;
 		do {
 			if (k > 9) {
@@ -74,7 +74,7 @@ public class TestCF2 extends AbstractTest {
 		return i;
 	}
 
-	public int do_while_continue(int k) throws InterruptedException {
+	public int doWhileContinue(int k) throws InterruptedException {
 		int i = 0;
 		do {
 			if (k > 9) {
@@ -86,7 +86,7 @@ public class TestCF2 extends AbstractTest {
 		return i;
 	}
 
-	public void do_while_return2(boolean k) throws InterruptedException {
+	public void doWhileReturn2(boolean k) throws InterruptedException {
 		int i = 3;
 		do {
 			if (k) {
@@ -96,7 +96,7 @@ public class TestCF2 extends AbstractTest {
 		} while (i < 5);
 	}
 
-	public void while_iterator(String[] args, int k) throws InterruptedException {
+	public void whileIterator(String[] args, int k) throws InterruptedException {
 		for (String arg : args) {
 			if (arg.length() > 9) {
 				func();
@@ -106,7 +106,7 @@ public class TestCF2 extends AbstractTest {
 
 	@Override
 	public boolean testRun() throws Exception {
-		assertEquals(simple_loops(), 252);
+		assertEquals(simpleLoops(), 252);
 		// TODO add checks
 		return true;
 	}

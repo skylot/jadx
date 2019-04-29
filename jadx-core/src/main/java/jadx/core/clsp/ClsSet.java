@@ -49,7 +49,9 @@ public class ClsSet {
 
 	private static final NClass[] EMPTY_NCLASS_ARRAY = new NClass[0];
 
-	private enum ARG_TYPE {WILDCARD, GENERIC, GENERIC_TYPE, OBJECT, ARRAY, PRIMITIVE}
+	private enum TypeEnum {
+		WILDCARD, GENERIC, GENERIC_TYPE, OBJECT, ARRAY, PRIMITIVE
+	}
 
 	private NClass[] classes;
 
@@ -97,12 +99,9 @@ public class ClsSet {
 			List<ArgType> args = new ArrayList<>();
 
 			boolean genericArg = false;
-			for (RegisterArg r: m.getArguments(false)) {
+			for (RegisterArg r : m.getArguments(false)) {
 				ArgType argType = r.getType();
-				if (argType.isGeneric()) {
-					args.add(argType);
-					genericArg = true;
-				} else if (argType.isGenericType()) {
+				if (argType.isGeneric() || argType.isGenericType()) {
 					args.add(argType);
 					genericArg = true;
 				} else {
@@ -121,8 +120,8 @@ public class ClsSet {
 				methods.add(new NMethod(
 						m.getMethodInfo().getShortId(),
 						args.isEmpty()
-							? new ArgType[0]
-							: args.toArray(new ArgType[args.size()]),
+								? new ArgType[0]
+								: args.toArray(new ArgType[args.size()]),
 						retType,
 						varArgs));
 			}
@@ -229,7 +228,7 @@ public class ClsSet {
 		out.writeByte(argCount);
 
 		// last argument first
-		for (int i = argTypes.length - 1; i >=0 ; i--) {
+		for (int i = argTypes.length - 1; i >= 0; i--) {
 			ArgType argType = argTypes[i];
 			if (argType != null) {
 				out.writeByte(i);
@@ -249,14 +248,14 @@ public class ClsSet {
 
 	private static void writeArgType(DataOutputStream out, ArgType argType, Map<String, NClass> names) throws IOException {
 		if (argType.getWildcardType() != null) {
-			out.writeByte(ARG_TYPE.WILDCARD.ordinal());
+			out.writeByte(TypeEnum.WILDCARD.ordinal());
 			int bounds = argType.getWildcardBounds();
 			out.writeByte(bounds);
 			if (bounds != 0) {
 				writeArgType(out, argType.getWildcardType(), names);
 			}
 		} else if (argType.isGeneric()) {
-			out.writeByte(ARG_TYPE.GENERIC.ordinal());
+			out.writeByte(TypeEnum.GENERIC.ordinal());
 			out.writeInt(names.get(argType.getObject()).getId());
 			ArgType[] types = argType.getGenericTypes();
 			if (types == null) {
@@ -268,16 +267,16 @@ public class ClsSet {
 				}
 			}
 		} else if (argType.isGenericType()) {
-			out.writeByte(ARG_TYPE.GENERIC_TYPE.ordinal());
+			out.writeByte(TypeEnum.GENERIC_TYPE.ordinal());
 			writeString(out, argType.getObject());
 		} else if (argType.isObject()) {
-			out.writeByte(ARG_TYPE.OBJECT.ordinal());
+			out.writeByte(TypeEnum.OBJECT.ordinal());
 			out.writeInt(names.get(argType.getObject()).getId());
 		} else if (argType.isArray()) {
-			out.writeByte(ARG_TYPE.ARRAY.ordinal());
+			out.writeByte(TypeEnum.ARRAY.ordinal());
 			writeArgType(out, argType.getArrayElement(), names);
 		} else if (argType.isPrimitive()) {
-			out.writeByte(ARG_TYPE.PRIMITIVE.ordinal());
+			out.writeByte(TypeEnum.PRIMITIVE.ordinal());
 			out.writeByte(argType.getPrimitiveType().getShortName().charAt(0));
 		} else {
 			throw new JadxRuntimeException("Cannot save type: " + argType);
@@ -367,7 +366,7 @@ public class ClsSet {
 
 	private ArgType readArgType(DataInputStream in) throws IOException {
 		int ordinal = in.readByte();
-		switch(ARG_TYPE.values()[ordinal]) {
+		switch (TypeEnum.values()[ordinal]) {
 			case WILDCARD:
 				int bounds = in.readByte();
 				return bounds == 0
@@ -394,25 +393,25 @@ public class ClsSet {
 				return ArgType.array(readArgType(in));
 			case PRIMITIVE:
 				int shortName = in.readByte();
-				switch(shortName) {
-				case 'Z':
-					return ArgType.BOOLEAN;
-				case 'C':
-					return ArgType.CHAR;
-				case 'B':
-					return ArgType.BYTE;
-				case 'S':
-					return ArgType.SHORT;
-				case 'I':
-					return ArgType.INT;
-				case 'F':
-					return ArgType.FLOAT;
-				case 'J':
-					return ArgType.LONG;
-				case 'D':
-					return ArgType.DOUBLE;
-				default:
-					return ArgType.VOID;
+				switch (shortName) {
+					case 'Z':
+						return ArgType.BOOLEAN;
+					case 'C':
+						return ArgType.CHAR;
+					case 'B':
+						return ArgType.BYTE;
+					case 'S':
+						return ArgType.SHORT;
+					case 'I':
+						return ArgType.INT;
+					case 'F':
+						return ArgType.FLOAT;
+					case 'J':
+						return ArgType.LONG;
+					case 'D':
+						return ArgType.DOUBLE;
+					default:
+						return ArgType.VOID;
 				}
 			default:
 				throw new JadxRuntimeException("Unsupported Arg Type: " + ordinal);

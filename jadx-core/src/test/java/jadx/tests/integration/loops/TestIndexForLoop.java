@@ -22,7 +22,7 @@ public class TestIndexForLoop extends IntegrationTest {
 		}
 
 		public void check() {
-			int[] array = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+			int[] array = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 			assertEquals(0, test(array, 0));
 			assertEquals(6, test(array, 3));
 			assertEquals(36, test(array, 8));
@@ -39,7 +39,6 @@ public class TestIndexForLoop extends IntegrationTest {
 				"for (int i = 0; i < b; i++) {",
 				indent(1) + "sum += a[i];",
 				"}",
-				"return sum;"
-		));
+				"return sum;"));
 	}
 }

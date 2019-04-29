@@ -1,11 +1,12 @@
 package jadx.gui.treemodel;
 
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+
+import javax.swing.*;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.jetbrains.annotations.NotNull;
@@ -70,10 +71,8 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 		} else {
 			removeAllChildren();
 
-			Comparator<JResource> typeComparator
-				= (r1, r2) -> r1.type.ordinal() - r2.type.ordinal();
-			Comparator<JResource> nameComparator
-				= Comparator.comparing(JResource::getName, String.CASE_INSENSITIVE_ORDER);
+			Comparator<JResource> typeComparator = (r1, r2) -> r1.type.ordinal() - r2.type.ordinal();
+			Comparator<JResource> nameComparator = Comparator.comparing(JResource::getName, String.CASE_INSENSITIVE_ORDER);
 
 			files.sort(typeComparator.thenComparing(nameComparator));
 
@@ -236,8 +235,7 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 			"properties", SyntaxConstants.SYNTAX_STYLE_PROPERTIES_FILE,
 			"ini", SyntaxConstants.SYNTAX_STYLE_INI,
 			"sql", SyntaxConstants.SYNTAX_STYLE_SQL,
-			"arsc", SyntaxConstants.SYNTAX_STYLE_XML
-	);
+			"arsc", SyntaxConstants.SYNTAX_STYLE_XML);
 
 	private String getSyntaxByExtension(String name) {
 		int dot = name.lastIndexOf('.');

@@ -45,7 +45,7 @@ public class CodeUsageInfo {
 	}
 
 	private void addUsage(JNode jNode, JavaClass javaClass,
-	                      CodeLinesInfo linesInfo, CodePosition codePosition, List<StringRef> lines) {
+			CodeLinesInfo linesInfo, CodePosition codePosition, List<StringRef> lines) {
 		UsageInfo usageInfo = usageMap.computeIfAbsent(jNode, key -> new UsageInfo());
 		int line = codePosition.getLine();
 		JavaNode javaNodeByLine = linesInfo.getJavaNodeByLine(line);

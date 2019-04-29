@@ -1,10 +1,11 @@
 package jadx.gui.utils;
 
-import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import javax.swing.*;
 
 public class OverlayIcon implements Icon {
 
@@ -13,7 +14,7 @@ public class OverlayIcon implements Icon {
 
 	private static final double A = 0.8;
 	private static final double B = 0.2;
-	private static final double[] OVERLAY_POS = new double[]{A, B, B, B, A, A, B, A};
+	private static final double[] OVERLAY_POS = new double[] { A, B, B, B, A, A, B, A };
 
 	public OverlayIcon(Icon icon) {
 		this.icon = icon;

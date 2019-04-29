@@ -10,42 +10,35 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 
 public class TestAnonymousClass14 extends SmaliTest {
-
+	// @formatter:off
 	/*
 		public class OuterCls implements Runnable {
-			class AnonymousClass1 {
-				AnonymousClass1(Runnable runnable) {
-				}
-
-				public void someMethod() {
-				}
-			}
 
 			class TestCls {
 				private TestCls() {
-					ArrayList arrayList = new ArrayList();
-				}
-
-				synthetic TestCls(OuterCls outerCls, AnonymousClass1 anonymousClass1) {
-					this();
+					new ArrayList();
 				}
 			}
 
 			public void makeAnonymousCls() {
-				AnonymousClass1 anonymousClass1 = new AnonymousClass1(this);
+				use(new Thread(this) {
+					public void someMethod() {
+					}
+				});
 			}
 
 			public void makeTestCls() {
-				TestCls testCls = new TestCls(this, null);
+				new TestCls();
 			}
 
 			public void run() {
 			}
 
-			public void use(AnonymousClass1 anonymousClass1) {
+			public void use(Thread thread) {
 			}
 		}
 	 */
+	// @formatter:on
 
 	@Test
 	public void test() {

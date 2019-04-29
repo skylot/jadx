@@ -147,14 +147,14 @@ public class ExceptionHandler {
 			return false;
 		}
 		ExceptionHandler that = (ExceptionHandler) o;
-		return handleOffset == that.handleOffset &&
-				catchTypes.equals(that.catchTypes) &&
-				Objects.equals(tryBlock, that.tryBlock);
+		return handleOffset == that.handleOffset
+				&& catchTypes.equals(that.catchTypes)
+				&& Objects.equals(tryBlock, that.tryBlock);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(catchTypes, handleOffset /*, tryBlock*/);
+		return Objects.hash(catchTypes, handleOffset /* , tryBlock */);
 	}
 
 	public String catchTypeStr() {

@@ -1,5 +1,25 @@
 package jadx.tests.api;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.jar.JarOutputStream;
+
+import org.junit.jupiter.api.BeforeEach;
+
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
@@ -19,28 +39,6 @@ import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.tests.api.compiler.DynamicCompiler;
 import jadx.tests.api.compiler.StaticCompiler;
 import jadx.tests.api.utils.TestUtils;
-import org.junit.jupiter.api.BeforeEach;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.jar.JarOutputStream;
 
 import static jadx.core.utils.files.FileUtils.addFileToJar;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -63,8 +61,10 @@ public abstract class IntegrationTest extends TestUtils {
 
 	/**
 	 * Run auto check method if defined:
+	 *
 	 * <pre>
-	 *     public void check() {}
+	 * public void check() {
+	 * }
 	 * </pre>
 	 */
 	private static final String CHECK_METHOD_NAME = "check";
@@ -106,12 +106,8 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	protected ClassNode getClassNode(Class<?> clazz) {
-		return getClassNode(clazz, false);
-	}
-
-	protected ClassNode getClassNode(Class<?> clazz, boolean fromClassPath) {
 		try {
-			File jar = getJarForClass(clazz, fromClassPath);
+			File jar = getJarForClass(clazz);
 			return getClassNodeFromFile(jar, clazz.getName());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -349,8 +345,8 @@ public abstract class IntegrationTest extends TestUtils {
 		return dynamicCompiler.invoke(mth, args);
 	}
 
-	public File getJarForClass(Class<?> cls, boolean fromClassPath) throws IOException {
-		List<File> files = compileClass(cls, fromClassPath);
+	public File getJarForClass(Class<?> cls) throws IOException {
+		List<File> files = compileClass(cls);
 		assertThat("File list is empty", files, not(empty()));
 
 		String path = cls.getPackage().getName().replace('.', '/');
@@ -390,16 +386,7 @@ public abstract class IntegrationTest extends TestUtils {
 		throw new IOException("Failed to create temp directory");
 	}
 
-	private List<File> compileClass(Class<?> cls, boolean fromClassPath) throws IOException {
-		if (fromClassPath) {
-			try {
-				File file = new File(new URI(cls.getProtectionDomain().getCodeSource().getLocation().toURI().toString()
-						+ '/' + cls.getName().replace('.', '/') + ".class"));
-				return Arrays.asList(file);
-			} catch (URISyntaxException e) {
-				fail(e);
-			}
-		}
+	private List<File> compileClass(Class<?> cls) throws IOException {
 		String clsFullName = cls.getName();
 		String rootClsName;
 		int end = clsFullName.indexOf('$');

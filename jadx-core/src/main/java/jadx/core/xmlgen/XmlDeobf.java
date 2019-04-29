@@ -11,12 +11,13 @@ import jadx.core.dex.nodes.RootNode;
  * but were changed during deobfuscation
  */
 public class XmlDeobf {
-	private static final Map<String, String> deobfMap = new HashMap<>();
+	private static final Map<String, String> DEOBF_MAP = new HashMap<>();
 
-	private XmlDeobf() {}
+	private XmlDeobf() {
+	}
 
 	public static String deobfClassName(RootNode rootNode, String potencialClassName,
-	                                    String packageName) {
+			String packageName) {
 
 		if (packageName != null && potencialClassName.startsWith(".")) {
 			potencialClassName = packageName + potencialClassName;
@@ -25,17 +26,17 @@ public class XmlDeobf {
 	}
 
 	private static String getNewClassName(RootNode rootNode, String old) {
-		if (deobfMap.isEmpty()) {
+		if (DEOBF_MAP.isEmpty()) {
 			for (ClassNode classNode : rootNode.getClasses(true)) {
 				if (classNode.getAlias() != null) {
 					String oldName = classNode.getClassInfo().getFullName();
 					String newName = classNode.getAlias().getFullName();
 					if (!oldName.equals(newName)) {
-						deobfMap.put(oldName, newName);
+						DEOBF_MAP.put(oldName, newName);
 					}
 				}
 			}
 		}
-		return deobfMap.get(old);
+		return DEOBF_MAP.get(old);
 	}
 }

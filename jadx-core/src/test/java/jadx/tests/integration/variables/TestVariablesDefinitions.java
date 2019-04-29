@@ -18,7 +18,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestVariablesDefinitions extends IntegrationTest {
 
 	public static class TestCls {
-		private static Logger LOG;
+		private static Logger log;
 		private ClassNode cls;
 		private List<IDexTreeVisitor> passes;
 
@@ -29,7 +29,7 @@ public class TestVariablesDefinitions extends IntegrationTest {
 					DepthTraversal.visit(pass, cls);
 				}
 			} catch (Exception e) {
-				LOG.error("Decode exception: {}", cls, e);
+				log.error("Decode exception: {}", cls, e);
 			}
 		}
 	}

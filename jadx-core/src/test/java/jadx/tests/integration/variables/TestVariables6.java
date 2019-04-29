@@ -20,7 +20,7 @@ public class TestVariables6 extends SmaliTest {
 		assertThat(code, not(containsString("r4")));
 		assertThat(code, not(containsString("r1v1")));
 		assertThat(code, containsString("DateStringParser dateStringParser"));
-		assertThat(code, containsString("FinancialInstrumentMetadataAttribute startYear = this.mFinancialInstrumentMetadataDefinition" +
-				".getStartYear();"));
+		assertThat(code, containsString("FinancialInstrumentMetadataAttribute startYear ="
+				+ " this.mFinancialInstrumentMetadataDefinition.getStartYear();"));
 	}
 }

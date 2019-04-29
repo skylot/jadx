@@ -15,10 +15,11 @@ public class TestArrayTypes extends IntegrationTest {
 		public void test() {
 			Exception e = new Exception();
 			System.out.println(e);
-			use(new Object[]{e});
+			use(new Object[] { e });
 		}
 
-		public void use(Object[] arr) {}
+		public void use(Object[] arr) {
+		}
 
 		public void check() {
 			test();

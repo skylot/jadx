@@ -20,8 +20,7 @@ final class RenameState {
 				mth,
 				mth.getEnterBlock(),
 				new SSAVar[regsCount],
-				new int[regsCount]
-		);
+				new int[regsCount]);
 		for (RegisterArg arg : mth.getArguments(true)) {
 			SSAVar ssaVar = state.startVar(arg);
 			ssaVar.add(AFlag.METHOD_ARGUMENT);
@@ -34,8 +33,7 @@ final class RenameState {
 				state.mth,
 				block,
 				Arrays.copyOf(state.vars, state.vars.length),
-				state.versions
-		);
+				state.versions);
 	}
 
 	private RenameState(MethodNode mth, BlockNode block, SSAVar[] vars, int[] versions) {

@@ -13,7 +13,7 @@ dependencies {
     }
     compile 'com.google.guava:guava:27.1-jre'
 
-    testCompile 'org.smali:baksmali:2.2.7'
+    compile 'org.smali:baksmali:2.2.7'
 
     testCompile 'org.apache.commons:commons-lang3:3.8.1'
 
@@ -21,4 +21,3 @@ dependencies {
     testCompile 'com.google.guava:guava:27.1-jre'
     testCompile 'com.beust:jcommander:1.74'
 }
-

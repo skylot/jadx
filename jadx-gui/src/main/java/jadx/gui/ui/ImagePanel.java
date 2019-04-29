@@ -1,12 +1,14 @@
 package jadx.gui.ui;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 
-import hu.kazocsaba.imageviewer.ImageViewer;
+import javax.imageio.ImageIO;
+
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+
+import hu.kazocsaba.imageviewer.ImageViewer;
 
 import jadx.api.ResourceFile;
 import jadx.api.ResourcesLoader;

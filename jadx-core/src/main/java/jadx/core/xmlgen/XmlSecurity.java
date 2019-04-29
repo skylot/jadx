@@ -7,7 +7,8 @@ public class XmlSecurity {
 
 	private static DocumentBuilderFactory secureDbf = null;
 
-	private XmlSecurity() {}
+	private XmlSecurity() {
+	}
 
 	public static DocumentBuilderFactory getSecureDbf() throws ParserConfigurationException {
 		synchronized (XmlSecurity.class) {

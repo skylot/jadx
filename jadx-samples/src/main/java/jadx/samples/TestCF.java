@@ -169,11 +169,11 @@ public class TestCF extends AbstractTest {
 		}
 	}
 
-	public static void test_hello(String[] args) {
+	public static void testHello(String[] args) {
 		System.out.println("Hello world!");
 	}
 
-	public static void test_print(String[] args) {
+	public static void testPrint(String[] args) {
 		for (String arg : args) {
 			System.out.println(arg);
 		}

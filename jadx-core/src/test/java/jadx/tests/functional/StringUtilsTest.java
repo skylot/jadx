@@ -13,6 +13,7 @@ class StringUtilsTest {
 	private StringUtils stringUtils;
 
 	@Test
+	@SuppressWarnings("AvoidEscapedUnicodeCharacters")
 	public void testStringUnescape() {
 		JadxArgs args = new JadxArgs();
 		args.setEscapeUnicode(true);

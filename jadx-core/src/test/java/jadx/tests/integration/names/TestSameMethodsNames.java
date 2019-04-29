@@ -21,7 +21,7 @@ public class TestSameMethodsNames extends IntegrationTest {
 				System.out.println("constructor");
 			}
 
-			@SuppressWarnings("MethodNameSameAsClassName")
+			@SuppressWarnings({ "MethodName", "MethodNameSameAsClassName" })
 			void Bug() {
 				System.out.println("Bug");
 			}

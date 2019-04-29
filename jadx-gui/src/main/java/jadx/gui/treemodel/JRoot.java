@@ -1,11 +1,12 @@
 package jadx.gui.treemodel;
 
-import javax.swing.*;
 import java.io.File;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.regex.Pattern;
+
+import javax.swing.*;
 
 import jadx.api.ResourceFile;
 import jadx.gui.JadxWrapper;

@@ -56,12 +56,14 @@ public class TestAnnotationsMix extends IntegrationTest {
 			return Arrays.asList(a);
 		}
 
-		@MyAnnotation(name = "b",
+		@MyAnnotation(
+				name = "b",
 				num = 7,
 				cls = Exception.class,
-				doubles = {0.0, 1.1},
+				doubles = { 0.0, 1.1 },
 				value = 9.87f,
-				simple = @SimpleAnnotation(false))
+				simple = @SimpleAnnotation(false)
+		)
 		public static Object test(String[] a) {
 			return Arrays.asList(a);
 		}

@@ -23,8 +23,8 @@ public class TestIfTryInCatch extends IntegrationTest {
 				if (a(e) && b(obj)) {
 					try {
 						return f();
-					} catch (Exception e2) {
-						e = e2;
+					} catch (Exception exc) {
+						e = exc;
 					}
 				}
 				System.out.println("Exception" + e);

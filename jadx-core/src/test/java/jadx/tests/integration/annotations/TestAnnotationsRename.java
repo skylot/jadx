@@ -20,7 +20,7 @@ public class TestAnnotationsRename extends IntegrationTest {
 
 	public static class TestCls {
 
-		@Target({ElementType.METHOD})
+		@Target(ElementType.METHOD)
 		@Retention(RetentionPolicy.RUNTIME)
 		public @interface A {
 			int x();

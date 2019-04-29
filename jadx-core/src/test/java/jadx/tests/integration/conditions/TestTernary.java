@@ -24,7 +24,8 @@ public class TestTernary extends IntegrationTest {
 			return a > 0 ? a : (a + 2) * 3;
 		}
 
-		private static void checkTrue(boolean v) {}
+		private static void checkTrue(boolean v) {
+		}
 	}
 
 	@Test

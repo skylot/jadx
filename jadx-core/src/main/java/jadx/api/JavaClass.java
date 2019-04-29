@@ -64,6 +64,16 @@ public final class JavaClass implements JavaNode {
 		}
 	}
 
+	public synchronized String getSmali() {
+		if (decompiler == null) {
+			return null;
+		}
+		if (cls.getSmali() == null) {
+			decompiler.generateSmali(cls);
+		}
+		return cls.getSmali();
+	}
+
 	public synchronized void unload() {
 		cls.unload();
 	}

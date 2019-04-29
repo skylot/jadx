@@ -1,10 +1,11 @@
 package jadx.gui.ui.codearea;
 
+import java.awt.*;
+import java.awt.event.ActionEvent;
+
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
-import java.awt.*;
-import java.awt.event.ActionEvent;
 
 import org.fife.ui.rsyntaxtextarea.Token;
 

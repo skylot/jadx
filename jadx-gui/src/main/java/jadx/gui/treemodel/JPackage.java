@@ -1,8 +1,9 @@
 package jadx.gui.treemodel;
 
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +46,7 @@ public class JPackage extends JNode implements Comparable<JPackage> {
 		List<String> excludedPackages = wrapper.getExcludedPackages();
 		this.enabled = excludedPackages.isEmpty()
 				|| excludedPackages.stream().filter(p -> !p.isEmpty())
-				.noneMatch(p -> name.equals(p) || name.startsWith(p + '.'));
+						.noneMatch(p -> name.equals(p) || name.startsWith(p + '.'));
 	}
 
 	public final void update() {

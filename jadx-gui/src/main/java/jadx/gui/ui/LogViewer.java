@@ -1,10 +1,12 @@
 package jadx.gui.ui;
 
-import javax.swing.*;
 import java.awt.*;
 
-import ch.qos.logback.classic.Level;
+import javax.swing.*;
+
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+
+import ch.qos.logback.classic.Level;
 
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.ui.codearea.CodeArea;
@@ -14,7 +16,7 @@ import jadx.gui.utils.logs.LogCollector;
 
 class LogViewer extends JDialog {
 	private static final long serialVersionUID = -2188700277429054641L;
-	private static final Level[] LEVEL_ITEMS = {Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR};
+	private static final Level[] LEVEL_ITEMS = { Level.DEBUG, Level.INFO, Level.WARN, Level.ERROR };
 
 	private static Level level = Level.WARN;
 

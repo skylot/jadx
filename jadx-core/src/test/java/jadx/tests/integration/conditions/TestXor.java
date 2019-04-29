@@ -1,12 +1,12 @@
 package jadx.tests.integration.conditions;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
+
+import static jadx.tests.api.utils.JadxMatchers.containsOne;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestXor extends SmaliTest {
 
@@ -35,6 +35,7 @@ public class TestXor extends SmaliTest {
 
 	@Test
 	public void smali() {
+		// @formatter:off
 		/*
     		public boolean test1() {
 				return test() ^ true;
@@ -48,6 +49,8 @@ public class TestXor extends SmaliTest {
 				return true;
 			}
 		 */
+		// @formatter:on
+
 		ClassNode cls = getClassNodeFromSmaliWithPath("conditions", "TestXor");
 		String code = cls.getCode().toString();
 

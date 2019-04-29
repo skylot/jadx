@@ -1,13 +1,11 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,7 +35,7 @@ import java.util.Arrays;
  * @author Glenn Marcy, IBM
  * @author Andy Clark, IBM
  * @author Eric Ye, IBM
- * @author Arnaud  Le Hors, IBM
+ * @author Arnaud Le Hors, IBM
  * @author Michael Glavassevich, IBM
  * @author Rahul Srivastava, Sun Microsystems Inc.
  * @version $Id: XMLChar.java 674378 2008-07-07 00:52:45Z mrglavas $
@@ -799,8 +797,8 @@ public class XMLChar {
 	 * @param c The character to check.
 	 */
 	public static boolean isValid(int c) {
-		return (c < 0x10000 && (CHARS[c] & MASK_VALID) != 0) ||
-				(0x10000 <= c && c <= 0x10FFFF);
+		return (c < 0x10000 && (CHARS[c] & MASK_VALID) != 0)
+				|| (0x10000 <= c && c <= 0x10FFFF);
 	} // isValid(int):boolean
 
 	/**
@@ -818,8 +816,8 @@ public class XMLChar {
 	 * @param c The character to check.
 	 */
 	public static boolean isContent(int c) {
-		return (c < 0x10000 && (CHARS[c] & MASK_CONTENT) != 0) ||
-				(0x10000 <= c && c <= 0x10FFFF);
+		return (c < 0x10000 && (CHARS[c] & MASK_CONTENT) != 0)
+				|| (0x10000 <= c && c <= 0x10FFFF);
 	} // isContent(int):boolean
 
 	/**
@@ -999,9 +997,9 @@ public class XMLChar {
 				if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
 					for (int i = 1; i < length; i++) {
 						c = ianaEncoding.charAt(i);
-						if ((c < 'A' || c > 'Z') && (c < 'a' || c > 'z') &&
-								(c < '0' || c > '9') && c != '.' && c != '_' &&
-								c != '-') {
+						if ((c < 'A' || c > 'Z') && (c < 'a' || c > 'z')
+								&& (c < '0' || c > '9') && c != '.' && c != '_'
+								&& c != '-') {
 							return false;
 						}
 					}
@@ -1026,9 +1024,9 @@ public class XMLChar {
 			if (length > 0) {
 				for (int i = 1; i < length; i++) {
 					char c = javaEncoding.charAt(i);
-					if ((c < 'A' || c > 'Z') && (c < 'a' || c > 'z') &&
-							(c < '0' || c > '9') && c != '.' && c != '_' &&
-							c != '-') {
+					if ((c < 'A' || c > 'Z') && (c < 'a' || c > 'z')
+							&& (c < '0' || c > '9') && c != '.' && c != '_'
+							&& c != '-') {
 						return false;
 					}
 				}
@@ -1046,7 +1044,7 @@ public class XMLChar {
 	 *
 	 * @param value the string to be trimmed
 	 * @return the given string with the space characters trimmed
-	 * from both ends
+	 *         from both ends
 	 */
 	public static String trim(String value) {
 		int start;

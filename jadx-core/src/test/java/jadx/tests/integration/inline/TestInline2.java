@@ -12,7 +12,7 @@ public class TestInline2 extends IntegrationTest {
 
 	public static class TestCls {
 		public int test() throws InterruptedException {
-			int[] a = new int[]{1, 2, 4, 6, 8};
+			int[] a = new int[] { 1, 2, 4, 6, 8 };
 			int b = 0;
 			for (int i = 0; i < a.length; i += 2) {
 				b += a[i];

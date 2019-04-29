@@ -43,7 +43,7 @@ import jadx.core.utils.exceptions.JadxOverflowException;
 @JadxVisitor(
 		name = "LoopRegionVisitor",
 		desc = "Convert 'while' loops to 'for' loops (indexed or for-each)",
-		runBefore = {ProcessVariables.class}
+		runBefore = ProcessVariables.class
 )
 public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(LoopRegionVisitor.class);
@@ -136,7 +136,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 	}
 
 	private static LoopType checkArrayForEach(MethodNode mth, LoopRegion loopRegion, InsnNode initInsn, InsnNode incrInsn,
-	                                          IfCondition condition) {
+			IfCondition condition) {
 		if (!(incrInsn instanceof ArithNode)) {
 			return null;
 		}

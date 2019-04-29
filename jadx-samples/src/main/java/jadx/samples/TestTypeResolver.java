@@ -20,7 +20,7 @@ public class TestTypeResolver extends AbstractTest {
 	public static class TestTernaryInSuper extends TestTypeResolver {
 
 		public TestTernaryInSuper(int c) {
-//			super(c > 0 ? c : -c, 1);
+			// super(c > 0 ? c : -c, 1);
 		}
 	}
 

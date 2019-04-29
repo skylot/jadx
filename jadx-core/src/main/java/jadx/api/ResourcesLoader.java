@@ -90,7 +90,7 @@ public final class ResourcesLoader {
 	}
 
 	private static ResContainer loadContent(JadxDecompiler jadxRef, ResourceFile rf,
-	                                        InputStream inputStream) throws IOException {
+			InputStream inputStream) throws IOException {
 		switch (rf.getType()) {
 			case MANIFEST:
 			case XML:

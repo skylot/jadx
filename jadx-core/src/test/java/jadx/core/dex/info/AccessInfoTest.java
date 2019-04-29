@@ -1,7 +1,8 @@
 package jadx.core.dex.info;
 
-import com.android.dx.rop.code.AccessFlags;
 import org.junit.jupiter.api.Test;
+
+import com.android.dx.rop.code.AccessFlags;
 
 import jadx.core.dex.info.AccessInfo.AFType;
 

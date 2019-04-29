@@ -50,9 +50,11 @@ public class JadxArgs {
 
 	private boolean fsCaseSensitive;
 
-	public enum RENAME {CASE, VALID, PRINTABLE}
+	public enum RenameEnum {
+		CASE, VALID, PRINTABLE
+	}
 
-	private Set<RENAME> renameFlags = EnumSet.allOf(RENAME.class);
+	private Set<RenameEnum> renameFlags = EnumSet.allOf(RenameEnum.class);
 
 	public JadxArgs() {
 		// use default options
@@ -261,66 +263,62 @@ public class JadxArgs {
 	}
 
 	public boolean isRenameCaseSensitive() {
-		return renameFlags.contains(RENAME.CASE);
+		return renameFlags.contains(RenameEnum.CASE);
 	}
 
 	public void setRenameCaseSensitive(boolean renameCaseSensitive) {
-		if (renameCaseSensitive && !isRenameCaseSensitive()) {
-			renameFlags.add(RENAME.CASE);
-		} else if (!renameCaseSensitive && isRenameCaseSensitive()) {
-			renameFlags.remove(RENAME.CASE);
-		}
+		updateRenameFlag(renameCaseSensitive, RenameEnum.CASE);
 	}
 
 	public boolean isRenameValid() {
-		return renameFlags.contains(RENAME.VALID);
+		return renameFlags.contains(RenameEnum.VALID);
 	}
 
 	public void setRenameValid(boolean renameValid) {
-		if (renameValid && !isRenameValid()) {
-			renameFlags.add(RENAME.VALID);
-		} else if (!renameValid && isRenameValid()) {
-			renameFlags.remove(RENAME.VALID);
-		}
+		updateRenameFlag(renameValid, RenameEnum.VALID);
 	}
 
 	public boolean isRenamePrintable() {
-		return renameFlags.contains(RENAME.PRINTABLE);
+		return renameFlags.contains(RenameEnum.PRINTABLE);
 	}
 
 	public void setRenamePrintable(boolean renamePrintable) {
-		if (renamePrintable && !isRenamePrintable()) {
-			renameFlags.add(RENAME.PRINTABLE);
-		} else if (!renamePrintable && isRenamePrintable()) {
-			renameFlags.remove(RENAME.PRINTABLE);
+		updateRenameFlag(renamePrintable, RenameEnum.PRINTABLE);
+	}
+
+	private void updateRenameFlag(boolean enabled, RenameEnum flag) {
+		if (enabled) {
+			renameFlags.add(flag);
+		} else {
+			renameFlags.remove(flag);
 		}
 	}
 
 	@Override
 	public String toString() {
-		return "JadxArgs{" + "inputFiles=" + inputFiles +
-			       ", outDir=" + outDir +
-			       ", outDirSrc=" + outDirSrc +
-			       ", outDirRes=" + outDirRes +
-			       ", threadsCount=" + threadsCount +
-			       ", cfgOutput=" + cfgOutput +
-			       ", rawCFGOutput=" + rawCFGOutput +
-			       ", fallbackMode=" + fallbackMode +
-			       ", showInconsistentCode=" + showInconsistentCode +
-			       ", useImports=" + useImports +
-			       ", skipResources=" + skipResources +
-			       ", skipSources=" + skipSources +
-			       ", deobfuscationOn=" + deobfuscationOn +
-			       ", deobfuscationForceSave=" + deobfuscationForceSave +
-			       ", useSourceNameAsClassAlias=" + useSourceNameAsClassAlias +
-			       ", deobfuscationMinLength=" + deobfuscationMinLength +
-			       ", deobfuscationMaxLength=" + deobfuscationMaxLength +
-			       ", escapeUnicode=" + escapeUnicode +
-			       ", replaceConsts=" + replaceConsts +
-			       ", respectBytecodeAccModifiers=" + respectBytecodeAccModifiers +
-			       ", exportAsGradleProject=" + exportAsGradleProject +
-			       ", fsCaseSensitive=" + fsCaseSensitive +
-			       ", renameFlags=" + renameFlags +
-			       '}';
+		return "JadxArgs{" + "inputFiles=" + inputFiles
+				+ ", outDir=" + outDir
+				+ ", outDirSrc=" + outDirSrc
+				+ ", outDirRes=" + outDirRes
+				+ ", threadsCount=" + threadsCount
+				+ ", cfgOutput=" + cfgOutput
+				+ ", rawCFGOutput=" + rawCFGOutput
+				+ ", fallbackMode=" + fallbackMode
+				+ ", showInconsistentCode=" + showInconsistentCode
+				+ ", useImports=" + useImports
+				+ ", skipResources=" + skipResources
+				+ ", skipSources=" + skipSources
+				+ ", deobfuscationOn=" + deobfuscationOn
+				+ ", deobfuscationForceSave=" + deobfuscationForceSave
+				+ ", useSourceNameAsClassAlias=" + useSourceNameAsClassAlias
+				+ ", deobfuscationMinLength=" + deobfuscationMinLength
+				+ ", deobfuscationMaxLength=" + deobfuscationMaxLength
+				+ ", escapeUnicode=" + escapeUnicode
+				+ ", replaceConsts=" + replaceConsts
+				+ ", respectBytecodeAccModifiers=" + respectBytecodeAccModifiers
+				+ ", exportAsGradleProject=" + exportAsGradleProject
+				+ ", fsCaseSensitive=" + fsCaseSensitive
+				+ ", renameFlags=" + renameFlags
+				+ '}';
 	}
 }

@@ -7,6 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.android.dex.ClassData;
 import com.android.dex.ClassData.Method;
 import com.android.dex.ClassDef;
@@ -17,8 +20,6 @@ import com.android.dex.FieldId;
 import com.android.dex.MethodId;
 import com.android.dex.ProtoId;
 import com.android.dex.TypeList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;

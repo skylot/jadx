@@ -17,9 +17,9 @@ public class TestNestedTryCatch extends IntegrationTest {
 				Thread.sleep(1);
 				try {
 					Thread.sleep(2);
-				} catch (InterruptedException e) {
+				} catch (InterruptedException ignored) {
 				}
-			} catch (Exception e) {
+			} catch (Exception ignored) {
 			}
 
 			return;

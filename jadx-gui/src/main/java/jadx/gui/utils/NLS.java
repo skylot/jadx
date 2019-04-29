@@ -17,29 +17,29 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class NLS {
 
-	private static final Vector<LangLocale> i18nLocales = new Vector<>();
+	private static final Vector<LangLocale> LANG_LOCALES = new Vector<>();
 
-	private static final Map<LangLocale, ResourceBundle> i18nMessagesMap = new HashMap<>();
+	private static final Map<LangLocale, ResourceBundle> LANG_LOCALES_MAP = new HashMap<>();
 
-	private static final ResourceBundle fallbackMessagesMap;
-	private static final LangLocale localLocale;
+	private static final ResourceBundle FALLBACK_MESSAGES_MAP;
+	private static final LangLocale LOCAL_LOCALE;
 
 	// Use these two fields to avoid invoking Map.get() method twice.
 	private static ResourceBundle localizedMessagesMap;
 	private static LangLocale currentLocale;
 
 	static {
-		localLocale = new LangLocale(Locale.getDefault());
+		LOCAL_LOCALE = new LangLocale(Locale.getDefault());
 
-		i18nLocales.add(new LangLocale("en", "US")); // As default language
-		i18nLocales.add(new LangLocale("zh", "CN"));
-		i18nLocales.add(new LangLocale("es", "ES"));
+		LANG_LOCALES.add(new LangLocale("en", "US")); // As default language
+		LANG_LOCALES.add(new LangLocale("zh", "CN"));
+		LANG_LOCALES.add(new LangLocale("es", "ES"));
 
-		i18nLocales.forEach(NLS::load);
+		LANG_LOCALES.forEach(NLS::load);
 
-		LangLocale defLang = i18nLocales.get(0);
-		fallbackMessagesMap = i18nMessagesMap.get(defLang);
-		localizedMessagesMap = i18nMessagesMap.get(defLang);
+		LangLocale defLang = LANG_LOCALES.get(0);
+		FALLBACK_MESSAGES_MAP = LANG_LOCALES_MAP.get(defLang);
+		localizedMessagesMap = LANG_LOCALES_MAP.get(defLang);
 	}
 
 	private NLS() {
@@ -58,7 +58,7 @@ public class NLS {
 		} catch (IOException e) {
 			throw new JadxRuntimeException("Failed to load " + resName, e);
 		}
-		i18nMessagesMap.put(locale, bundle);
+		LANG_LOCALES_MAP.put(locale, bundle);
 	}
 
 	public static String str(String key, Object... parameters) {
@@ -66,13 +66,13 @@ public class NLS {
 		try {
 			value = localizedMessagesMap.getString(key);
 		} catch (MissingResourceException e) {
-			value = fallbackMessagesMap.getString(key); // definitely exists
+			value = FALLBACK_MESSAGES_MAP.getString(key); // definitely exists
 		}
 		return String.format(value, parameters);
 	}
 
 	public static String str(String key, LangLocale locale) {
-		ResourceBundle bundle = i18nMessagesMap.get(locale);
+		ResourceBundle bundle = LANG_LOCALES_MAP.get(locale);
 		if (bundle != null) {
 			try {
 				return bundle.getString(key);
@@ -80,20 +80,20 @@ public class NLS {
 				// use fallback string
 			}
 		}
-		return fallbackMessagesMap.getString(key); // definitely exists
+		return FALLBACK_MESSAGES_MAP.getString(key); // definitely exists
 	}
 
 	public static void setLocale(LangLocale locale) {
-		if (i18nMessagesMap.containsKey(locale)) {
+		if (LANG_LOCALES_MAP.containsKey(locale)) {
 			currentLocale = locale;
 		} else {
-			currentLocale = i18nLocales.get(0);
+			currentLocale = LANG_LOCALES.get(0);
 		}
-		localizedMessagesMap = i18nMessagesMap.get(currentLocale);
+		localizedMessagesMap = LANG_LOCALES_MAP.get(currentLocale);
 	}
 
-	public static Vector<LangLocale> getI18nLocales() {
-		return i18nLocales;
+	public static Vector<LangLocale> getLangLocales() {
+		return LANG_LOCALES;
 	}
 
 	public static LangLocale currentLocale() {
@@ -101,10 +101,10 @@ public class NLS {
 	}
 
 	public static LangLocale defaultLocale() {
-		if (i18nMessagesMap.containsKey(localLocale)) {
-			return localLocale;
+		if (LANG_LOCALES_MAP.containsKey(LOCAL_LOCALE)) {
+			return LOCAL_LOCALE;
 		}
 		// fallback to english if unsupported
-		return i18nLocales.get(0);
+		return LANG_LOCALES.get(0);
 	}
 }

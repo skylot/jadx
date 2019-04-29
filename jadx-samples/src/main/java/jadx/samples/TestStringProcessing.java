@@ -2,6 +2,7 @@ package jadx.samples;
 
 public class TestStringProcessing extends AbstractTest {
 
+	@SuppressWarnings("AvoidEscapedUnicodeCharacters")
 	public void testStringEscape() {
 		String str = "test\tstr\n";
 		assertTrue(str.length() == 9);

@@ -1,7 +1,5 @@
 package jadx.core.codegen;
 
-import static jadx.core.utils.android.AndroidResourcesUtils.handleAppResField;
-
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Iterator;
@@ -55,6 +53,8 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+
+import static jadx.core.utils.android.AndroidResourcesUtils.handleAppResField;
 
 public class InsnGen {
 	private static final Logger LOG = LoggerFactory.getLogger(InsnGen.class);
@@ -234,8 +234,8 @@ public class InsnGen {
 					code.add(';');
 				}
 			}
-		} catch (Exception th) {
-			throw new CodegenException(mth, "Error generate insn: " + insn, th);
+		} catch (Exception e) {
+			throw new CodegenException(mth, "Error generate insn: " + insn, e);
 		}
 	}
 
@@ -416,7 +416,7 @@ public class InsnGen {
 				if (wrap) {
 					code.add('(');
 				}
-				for (Iterator<InsnArg> it = insn.getArguments().iterator(); it.hasNext(); ) {
+				for (Iterator<InsnArg> it = insn.getArguments().iterator(); it.hasNext();) {
 					addArg(code, it.next());
 					if (it.hasNext()) {
 						code.add(" + ");
@@ -701,7 +701,7 @@ public class InsnGen {
 	}
 
 	void generateMethodArguments(CodeWriter code, InsnNode insn, int startArgNum,
-	                             @Nullable MethodNode callMth) throws CodegenException {
+			@Nullable MethodNode callMth) throws CodegenException {
 		int k = startArgNum;
 		if (callMth != null && callMth.contains(AFlag.SKIP_FIRST_ARG)) {
 			k++;

@@ -5,7 +5,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxException;
 
-public class AbstractVisitor implements IDexTreeVisitor {
+public abstract class AbstractVisitor implements IDexTreeVisitor {
 
 	@Override
 	public void init(RootNode root) throws JadxException {

@@ -9,17 +9,19 @@ import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestTryCatchStartOnMove extends SmaliTest {
+	// @formatter:off
+	/*
+		private static void test(String s) {
+			try {
+				call(s);
+			} catch (Exception unused) {
+				System.out.println("Failed call for " + s);
+			}
+		}
 
-//	private static void test(String s) {
-//		try {
-//			call(s);
-//		} catch (Exception unused) {
-//			System.out.println("Failed call for " + s);
-//		}
-//	}
-//
-//	private static void call(String s) {
-//	}
+		private static void call(String s) {}
+	*/
+	// @formatter:on
 
 	@Test
 	public void test() {

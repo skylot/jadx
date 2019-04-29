@@ -28,6 +28,10 @@ public abstract class JNode extends DefaultMutableTreeNode {
 		return null;
 	}
 
+	public String getSmali() {
+		return null;
+	}
+
 	public String getSyntaxName() {
 		return SyntaxConstants.SYNTAX_STYLE_NONE;
 	}

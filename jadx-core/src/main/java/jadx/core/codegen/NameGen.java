@@ -50,8 +50,7 @@ public class NameGen {
 				"java.lang.Long", "l",
 				"java.lang.Double", "d",
 				"java.lang.StringBuilder", "sb",
-				"java.lang.Exception", "exc"
-		);
+				"java.lang.Exception", "exc");
 	}
 
 	public NameGen(MethodNode mth, boolean fallback) {
