@@ -508,7 +508,7 @@ public class ClassGen {
 
 	private String useClassInternal(ClassInfo useCls, ClassInfo extClsInfo) {
 		String fullName = extClsInfo.getAlias().makeFullName();
-		if (fallback || !useImports) {
+		if (fallback || (!useImports && !useCls.getPackage().equals(extClsInfo.getPackage()))) {
 			return fullName;
 		}
 		String shortName = extClsInfo.getAlias().getShortName();
