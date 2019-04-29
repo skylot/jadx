@@ -21,6 +21,7 @@ import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
@@ -81,7 +82,11 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 				resolved = false;
 			}
 		}
-		if (!resolved) {
+		if (resolved) {
+			for (SSAVar var : new ArrayList<>(mth.getSVars())) {
+				processIncompatiblePrimitives(mth, var);
+			}
+		} else {
 			for (SSAVar var : new ArrayList<>(mth.getSVars())) {
 				tryInsertAdditionalInsn(mth, var);
 			}
@@ -249,7 +254,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		if (insn == null) {
 			return null;
 		}
-		return new TypeBoundConst(BoundEnum.USE, regArg.getInitType());
+		return new TypeBoundConst(BoundEnum.USE, regArg.getInitType(), regArg);
 	}
 
 	private boolean tryPossibleTypes(SSAVar var, ArgType type) {
@@ -374,5 +379,40 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 			}
 		}
 		return false;
+	}
+
+	private void processIncompatiblePrimitives(MethodNode mth, SSAVar var) {
+		if (var.getAssign().getType() == ArgType.BOOLEAN) {
+			 for (ITypeBound bound : var.getTypeInfo().getBounds()) {
+				 if (bound.getBound() == BoundEnum.USE
+						 && bound.getType().isPrimitive() && bound.getType() != ArgType.BOOLEAN) {
+					 InsnNode insn = bound.getArg().getParentInsn();
+					 if (insn.getType() == InsnType.CAST) {
+						 continue;
+					 };
+
+					 IndexInsnNode castNode = new IndexInsnNode(InsnType.CAST, bound.getType(), 1);
+					 castNode.addArg(bound.getArg());
+					 castNode.setResult(InsnArg.reg(bound.getArg().getRegNum(), bound.getType()));
+
+					 SSAVar newVar = mth.makeNewSVar(castNode.getResult().getRegNum(), castNode.getResult());
+					 CodeVar codeVar = new CodeVar();
+					 codeVar.setType(bound.getType());
+					 newVar.setCodeVar(codeVar);
+					 newVar.getTypeInfo().setType(bound.getType());
+
+					 for (int i = insn.getArgsCount() - 1; i >= 0; i--) {
+						 if (insn.getArg(i) == bound.getArg()) {
+							 insn.setArg(i, castNode.getResult().duplicate());
+							 break;
+						 }
+					 }
+
+					 BlockNode blockNode = BlockUtils.getBlockByInsn(mth, insn);
+					 List<InsnNode> insnList = blockNode.getInstructions();
+					 insnList.add(insnList.indexOf(insn), castNode);
+				 }
+			 }
+		}
 	}
 }
