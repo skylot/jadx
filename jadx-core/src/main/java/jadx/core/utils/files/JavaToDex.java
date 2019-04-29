@@ -37,7 +37,7 @@ public class JavaToDex {
 
 	private String dxErrors;
 
-	public List<byte[]> convert(Path jar) throws JadxException {
+	public List<Path> convert(Path jar) throws JadxException {
 		try (ByteArrayOutputStream out = new ByteArrayOutputStream();
 		     ByteArrayOutputStream errOut = new ByteArrayOutputStream()) {
 			DxContext context = new DxContext(out, errOut);
@@ -51,14 +51,14 @@ public class JavaToDex {
 			if (result != 0) {
 				throw new JadxException("Java to dex conversion error, code: " + result);
 			}
-			List<byte[]> list = new ArrayList<>();
+			List<Path> list = new ArrayList<>();
 	        try (DirectoryStream<Path> ds = Files.newDirectoryStream(dir)) {
 	            for (Path child : ds) {
-	            	list.add(Files.readAllBytes(child));
-	            	Files.delete(child);
+	            	list.add(child);
+	            	child.toFile().deleteOnExit();
 	            }
 	        }
-	        Files.delete(dir);
+	        dir.toFile().deleteOnExit();
 	        return list;
 		} catch (Exception e) {
 			throw new JadxException("dx exception: " + e.getMessage(), e);

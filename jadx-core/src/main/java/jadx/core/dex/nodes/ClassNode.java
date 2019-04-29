@@ -1,19 +1,22 @@
 package jadx.core.dex.nodes;
 
+import static jadx.core.dex.nodes.ProcessState.UNLOADED;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.android.dex.ClassData;
 import com.android.dex.ClassData.Field;
 import com.android.dex.ClassData.Method;
 import com.android.dex.ClassDef;
 import com.android.dex.Dex;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jadx.core.Consts;
 import jadx.core.codegen.CodeWriter;
@@ -35,8 +38,6 @@ import jadx.core.dex.nodes.parser.StaticValuesParser;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
-import static jadx.core.dex.nodes.ProcessState.UNLOADED;
-
 public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
 
@@ -53,6 +54,8 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	// store decompiled code
 	private CodeWriter code;
+	// store smali
+	private String smali;
 	// store parent for inner classes or 'this' otherwise
 	private ClassNode parentClass;
 
@@ -480,6 +483,14 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	public CodeWriter getCode() {
 		return code;
+	}
+
+	public void setSmali(String smali) {
+		this.smali = smali;
+	}
+
+	public String getSmali() {
+		return smali;
 	}
 
 	public ProcessState getState() {
