@@ -508,7 +508,9 @@ public class ClassGen {
 
 	private String useClassInternal(ClassInfo useCls, ClassInfo extClsInfo) {
 		String fullName = extClsInfo.getAlias().makeFullName();
-		if (fallback || (!useImports && !useCls.getPackage().equals(extClsInfo.getPackage()))) {
+		boolean samePackage = extClsInfo.getPackage().equals(useCls.getPackage()) && !extClsInfo.isInner();
+
+		if (fallback || (!useImports && !samePackage)) {
 			return fullName;
 		}
 		String shortName = extClsInfo.getAlias().getShortName();
@@ -522,7 +524,7 @@ public class ClassGen {
 			return shortName;
 		}
 		// don't add import if this class from same package
-		if (extClsInfo.getPackage().equals(useCls.getPackage()) && !extClsInfo.isInner()) {
+		if (samePackage) {
 			return shortName;
 		}
 		// don't add import if class not public (must be accessed using inheritance)
