@@ -105,7 +105,7 @@ public abstract class IntegrationTest extends TestUtils {
 		return this.getClass().getPackage().getName().replace("jadx.tests.integration.", "");
 	}
 
-	protected ClassNode getClassNode(Class<?> clazz) {
+	public ClassNode getClassNode(Class<?> clazz) {
 		try {
 			File jar = getJarForClass(clazz);
 			return getClassNodeFromFile(jar, clazz.getName());
