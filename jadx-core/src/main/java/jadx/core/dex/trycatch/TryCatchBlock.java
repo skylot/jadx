@@ -53,7 +53,7 @@ public class TryCatchBlock {
 	}
 
 	public void removeHandler(MethodNode mth, ExceptionHandler handler) {
-		for (Iterator<ExceptionHandler> it = handlers.iterator(); it.hasNext(); ) {
+		for (Iterator<ExceptionHandler> it = handlers.iterator(); it.hasNext();) {
 			ExceptionHandler h = it.next();
 			if (h == handler) {
 				unbindHandler(h);
@@ -85,7 +85,7 @@ public class TryCatchBlock {
 
 	private void removeWholeBlock(MethodNode mth) {
 		// self destruction
-		for (Iterator<ExceptionHandler> it = handlers.iterator(); it.hasNext(); ) {
+		for (Iterator<ExceptionHandler> it = handlers.iterator(); it.hasNext();) {
 			ExceptionHandler h = it.next();
 			unbindHandler(h);
 			it.remove();

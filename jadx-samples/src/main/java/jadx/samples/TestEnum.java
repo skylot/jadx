@@ -97,6 +97,7 @@ public class TestEnum extends AbstractTest {
 		}
 	}
 
+	@SuppressWarnings("NoWhitespaceBefore")
 	public enum EmptyEnum {
 		;
 

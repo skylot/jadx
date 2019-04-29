@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Flowable;
-import io.reactivex.FlowableEmitter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
+import io.reactivex.FlowableEmitter;
 
 import jadx.api.JavaClass;
 import jadx.api.JavaField;
@@ -137,7 +138,7 @@ public class TextSearchIndex {
 	}
 
 	private int searchNext(FlowableEmitter<CodeNode> emitter, String text, JavaNode javaClass, String code,
-	                       int startPos, boolean ignoreCase) {
+			int startPos, boolean ignoreCase) {
 		int pos;
 		if (ignoreCase) {
 			pos = StringUtils.indexOfIgnoreCase(code, text, startPos);

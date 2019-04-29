@@ -13,7 +13,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestSequentialLoops2 extends IntegrationTest {
 
 	public static class TestCls {
-		private static char[] lowercases = new char[]{'a'};
+		private static char[] lowercases = new char[] { 'a' };
 
 		public static String asciiToLowerCase(String s) {
 			char[] c = null;

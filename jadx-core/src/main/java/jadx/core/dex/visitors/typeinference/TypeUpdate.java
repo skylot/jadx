@@ -48,7 +48,7 @@ public final class TypeUpdate {
 		if (candidateType == null) {
 			return REJECT;
 		}
-		if (!candidateType.isTypeKnown()/* && ssaVar.getTypeInfo().getType().isTypeKnown()*/) {
+		if (!candidateType.isTypeKnown()/* && ssaVar.getTypeInfo().getType().isTypeKnown() */) {
 			return REJECT;
 		}
 

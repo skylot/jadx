@@ -1,6 +1,5 @@
 package jadx.gui.utils;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -10,6 +9,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.*;
+
+import org.intellij.lang.annotations.MagicConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,8 +28,10 @@ public class Utils {
 	private static final ImageIcon ICON_NATIVE = openIcon("native_co");
 
 	/**
-	 * The minimum about of memory in bytes we are trying to keep free, otherwise the application may run out of heap
-	 * which ends up in a Java garbage collector running "amok" (CPU utilization 100% for each core and the UI is
+	 * The minimum about of memory in bytes we are trying to keep free, otherwise the application may
+	 * run out of heap
+	 * which ends up in a Java garbage collector running "amok" (CPU utilization 100% for each core and
+	 * the UI is
 	 * not responsive).
 	 * <p>
 	 * We can calculate and store this value here as the maximum heap is fixed for each JVM instance
@@ -134,11 +138,11 @@ public class Utils {
 		long allocatedMemory = runtime.totalMemory();
 		long freeMemory = runtime.freeMemory();
 
-		return "heap: " + format(allocatedMemory - freeMemory) +
-				", allocated: " + format(allocatedMemory) +
-				", free: " + format(freeMemory) +
-				", total free: " + format(freeMemory + maxMemory - allocatedMemory) +
-				", max: " + format(maxMemory);
+		return "heap: " + format(allocatedMemory - freeMemory)
+				+ ", allocated: " + format(allocatedMemory)
+				+ ", free: " + format(freeMemory)
+				+ ", total free: " + format(freeMemory + maxMemory - allocatedMemory)
+				+ ", max: " + format(maxMemory);
 	}
 
 	private static String format(long mem) {
@@ -174,6 +178,7 @@ public class Utils {
 
 	public static final int CTRL_BNT_KEY = getCtrlButton();
 
+	@MagicConstant(flagsFromClass = InputEvent.class)
 	private static int getCtrlButton() {
 		if (System.getProperty("os.name").toLowerCase().contains("mac")) {
 			return Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
@@ -182,6 +187,7 @@ public class Utils {
 		}
 	}
 
+	@MagicConstant(flagsFromClass = InputEvent.class)
 	public static int ctrlButton() {
 		return CTRL_BNT_KEY;
 	}

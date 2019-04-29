@@ -48,7 +48,7 @@ class SignatureParserTest {
 		checkType("La/b/C<Ld/E<Lf/G;>;>;", generic("La/b/C;", generic("Ld/E;", object("Lf/G;"))));
 		checkType("La<TD;>.c;", genericInner(generic("La;", genericType("D")), "c", null));
 		checkType("La<TD;>.c/d;", genericInner(generic("La;", genericType("D")), "c.d", null));
-		checkType("La<Lb;>.c<TV;>;", genericInner(generic("La;", object("Lb;")), "c", new ArgType[]{genericType("V")}));
+		checkType("La<Lb;>.c<TV;>;", genericInner(generic("La;", object("Lb;")), "c", new ArgType[] { genericType("V") }));
 	}
 
 	@Test

@@ -45,8 +45,7 @@ public class TestTryCatchFinally6 extends IntegrationTest {
 				indent(1) + "if (is != null) {",
 				indent(2) + "is.close();",
 				indent(1) + '}',
-				"}"
-		));
+				"}"));
 	}
 
 	@Test
@@ -64,7 +63,6 @@ public class TestTryCatchFinally6 extends IntegrationTest {
 				indent() + "if (fileInputStream != null) {",
 				indent() + indent() + "fileInputStream.close();",
 				indent() + '}',
-				"}"
-		));
+				"}"));
 	}
 }

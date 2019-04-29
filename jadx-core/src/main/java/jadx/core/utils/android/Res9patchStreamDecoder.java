@@ -16,13 +16,14 @@
 
 package jadx.core.utils.android;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.DataInput;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import javax.imageio.ImageIO;
 
 import org.apache.commons.io.IOUtils;
 
@@ -110,7 +111,7 @@ public class Res9patchStreamDecoder {
 		public final int[] yDivs;
 
 		public NinePatch(int padLeft, int padRight, int padTop, int padBottom,
-		                 int[] xDivs, int[] yDivs) {
+				int[] xDivs, int[] yDivs) {
 			this.padLeft = padLeft;
 			this.padRight = padRight;
 			this.padTop = padTop;

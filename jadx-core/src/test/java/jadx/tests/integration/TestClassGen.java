@@ -18,7 +18,7 @@ public class TestClassGen extends IntegrationTest {
 			public int test3();
 		}
 
-		public static abstract class A {
+		public abstract static class A {
 			public abstract int test2();
 		}
 	}

@@ -54,7 +54,7 @@ public abstract class BaseExternalTest extends IntegrationTest {
 
 		if (clsPatternStr == null) {
 			processAll(jadx);
-//			jadx.saveSources();
+			// jadx.saveSources();
 		} else {
 			processByPatterns(jadx, clsPatternStr, mthPatternStr);
 		}
@@ -161,8 +161,7 @@ public abstract class BaseExternalTest extends IntegrationTest {
 				LOG.info("Print method: {}\n{}\n{}\n{}", mth.getMethodInfo().getShortId(),
 						dashLine,
 						mthCode,
-						dashLine
-				);
+						dashLine);
 			}
 		}
 	}

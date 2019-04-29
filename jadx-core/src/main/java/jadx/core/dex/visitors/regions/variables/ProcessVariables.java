@@ -44,7 +44,7 @@ public class ProcessVariables extends AbstractVisitor {
 			return;
 		}
 		checkCodeVars(mth, codeVars);
-		// TODO: reduce code vars by name if debug info applied. Need checks for variable scopes before reduce
+		// TODO: reduce code vars by name if debug info applied (need checks for variable scopes)
 
 		// collect all variables usage
 		CollectUsageRegionVisitor usageCollector = new CollectUsageRegionVisitor();

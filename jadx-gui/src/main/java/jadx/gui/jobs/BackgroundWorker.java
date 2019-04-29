@@ -1,7 +1,8 @@
 package jadx.gui.jobs;
 
-import javax.swing.*;
 import java.util.concurrent.Future;
+
+import javax.swing.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -287,7 +287,8 @@ public class Deobfuscator {
 	 *
 	 * @param fullPkgName full package name
 	 * @param create      if {@code true} then will create all absent objects
-	 * @return package node object or {@code null} if no package found and <b>create</b> set to {@code false}
+	 * @return package node object or {@code null} if no package found and <b>create</b> set to
+	 *         {@code false}
 	 */
 	private PackageNode getPackageNode(String fullPkgName, boolean create) {
 		if (fullPkgName.isEmpty() || fullPkgName.equals(CLASS_NAME_SEPARATOR)) {

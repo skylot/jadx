@@ -233,9 +233,9 @@ public abstract class ArgType {
 		/**
 		 * Return wildcard bounds:
 		 * <ul>
-		 * <li> 1 for upper bound (? extends A) </li>
-		 * <li> 0  no bounds (?) </li>
-		 * <li>-1  for lower bound (? super A) </li>
+		 * <li>1 for upper bound (? extends A)</li>
+		 * <li>0 no bounds (?)</li>
+		 * <li>-1 for lower bound (? super A)</li>
 		 * </ul>
 		 */
 		@Override
@@ -306,7 +306,7 @@ public abstract class ArgType {
 	}
 
 	private static final class ArrayArg extends KnownType {
-		private static final PrimitiveType[] ARRAY_POSSIBLES = new PrimitiveType[]{PrimitiveType.ARRAY};
+		private static final PrimitiveType[] ARRAY_POSSIBLES = new PrimitiveType[] { PrimitiveType.ARRAY };
 		private final ArgType arrayElement;
 
 		public ArrayArg(ArgType arrayElement) {

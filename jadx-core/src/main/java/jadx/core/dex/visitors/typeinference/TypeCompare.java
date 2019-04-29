@@ -59,7 +59,7 @@ public class TypeCompare {
 			// both arrays
 			return compareTypes(first.getArrayElement(), second.getArrayElement());
 		}
-		if (!firstKnown /*&& !secondKnown*/) {
+		if (!firstKnown /* && !secondKnown */) {
 			int variantLen = Integer.compare(first.getPossibleTypes().length, second.getPossibleTypes().length);
 			return variantLen > 0 ? WIDER : NARROW;
 		}
@@ -188,7 +188,7 @@ public class TypeCompare {
 			return NARROW_BY_GENERIC;
 		}
 		// TODO: fill extendTypes
-//		return CONFLICT;
+		// return CONFLICT;
 		return NARROW_BY_GENERIC;
 	}
 

@@ -80,7 +80,7 @@ public class ResTableParser extends CommonBinaryParser {
 		for (ResourceEntry ri : resStorage.getResources()) {
 			if (addedValues.add(ri.getTypeName() + '.' + ri.getKeyName())) {
 				String format = String.format("<public type=\"%s\" name=\"%s\" id=\"%s\" />",
-					ri.getTypeName(), ri.getKeyName(), ri.getId());
+						ri.getTypeName(), ri.getKeyName(), ri.getId());
 				writer.startLine(format);
 			}
 		}
@@ -101,7 +101,7 @@ public class ResTableParser extends CommonBinaryParser {
 	void decodeTableChunk() throws IOException {
 		is.checkInt16(RES_TABLE_TYPE, "Not a table chunk");
 		is.checkInt16(0x000c, "Unexpected table header size");
-		/*int size = */
+		/* int size = */
 		is.readInt32();
 		int pkgCount = is.readInt32();
 
@@ -167,7 +167,7 @@ public class ResTableParser extends CommonBinaryParser {
 	@SuppressWarnings("unused")
 	private void parseTypeSpecChunk() throws IOException {
 		is.checkInt16(0x0010, "Unexpected type spec header size");
-		/*int size = */
+		/* int size = */
 		is.readInt32();
 
 		int id = is.readInt8();
@@ -179,9 +179,9 @@ public class ResTableParser extends CommonBinaryParser {
 	}
 
 	private void parseTypeChunk(long start, PackageChunk pkg) throws IOException {
-		/*int headerSize = */
+		/* int headerSize = */
 		is.readInt16();
-		/*int size = */
+		/* int size = */
 		is.readInt32();
 
 		int id = is.readInt8();
@@ -221,7 +221,7 @@ public class ResTableParser extends CommonBinaryParser {
 		int resRef = pkg.getId() << 24 | typeId << 16 | entryId;
 		String typeName = pkg.getTypeStrings()[typeId - 1];
 		String keyName = pkg.getKeyStrings()[key];
-		if(keyName.isEmpty()) {
+		if (keyName.isEmpty()) {
 			keyName = "RES_" + resRef; // autogenerate key name
 		}
 		ResourceEntry ri = new ResourceEntry(resRef, pkg.getName(), typeName, keyName);
@@ -317,11 +317,11 @@ public class ResTableParser extends CommonBinaryParser {
 		is.skipToPos(start + size, "Config skip trailing bytes");
 
 		return new EntryConfig(mcc, mnc, language, country,
-			orientation, touchscreen, density, keyboard, navigation,
-			inputFlags, screenWidth, screenHeight, sdkVersion,
-			screenLayout, uiMode, smallestScreenWidthDp, screenWidthDp,
-			screenHeightDp, localeScript, localeVariant, screenLayout2,
-			colorMode, false, size);
+				orientation, touchscreen, density, keyboard, navigation,
+				inputFlags, screenWidth, screenHeight, sdkVersion,
+				screenLayout, uiMode, smallestScreenWidthDp, screenWidthDp,
+				screenHeightDp, localeScript, localeVariant, screenLayout2,
+				colorMode, false, size);
 	}
 
 	private char[] unpackLocaleOrRegion(byte in0, byte in1, char base) {
@@ -333,9 +333,9 @@ public class ResTableParser extends CommonBinaryParser {
 
 			// since this function handles languages & regions, we add the value(s) to the base char
 			// which is usually 'a' or '0' depending on language or region.
-			return new char[]{(char) (first + base), (char) (second + base), (char) (third + base)};
+			return new char[] { (char) (first + base), (char) (second + base), (char) (third + base) };
 		}
-		return new char[]{(char) in0, (char) in1};
+		return new char[] { (char) in0, (char) in1 };
 	}
 
 	private String readScriptOrVariantChar(int length) throws IOException {

@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 public class TestAnnotationsParser extends AbstractTest {
 
-	@Target({ElementType.TYPE})
+	@Target(ElementType.TYPE)
 	@Retention(RetentionPolicy.RUNTIME)
 	public static @interface A {
 		int i();

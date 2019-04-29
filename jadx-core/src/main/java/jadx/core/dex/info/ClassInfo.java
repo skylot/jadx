@@ -106,6 +106,7 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 			this.alias = newAlias;
 		}
 	}
+
 	public boolean isRenamed() {
 		return alias != this;
 	}

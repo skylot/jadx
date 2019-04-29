@@ -22,7 +22,8 @@ public class TestTypeInheritance extends IntegrationTest {
 		}
 
 		public static class B implements IBase {
-			public void b() {}
+			public void b() {
+			}
 		}
 
 		public static void test(boolean z) {
@@ -38,9 +39,11 @@ public class TestTypeInheritance extends IntegrationTest {
 			useRoot(impl);
 		}
 
-		private static void useRoot(IRoot root) {}
+		private static void useRoot(IRoot root) {
+		}
 
-		private static void useBase(IBase base) {}
+		private static void useBase(IBase base) {
+		}
 	}
 
 	@Test

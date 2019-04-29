@@ -1,8 +1,9 @@
 package jadx.tests.integration.arrays;
 
+import org.junit.jupiter.api.Test;
+
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -15,11 +16,11 @@ public class TestArrayInit extends IntegrationTest {
 
 		@SuppressWarnings("unused")
 		public void test() {
-			byte[] arr = new byte[]{10, 20, 30};
+			byte[] arr = new byte[] { 10, 20, 30 };
 		}
 
 		public void test2() {
-			bytes = new byte[]{10, 20, 30};
+			bytes = new byte[] { 10, 20, 30 };
 		}
 	}
 

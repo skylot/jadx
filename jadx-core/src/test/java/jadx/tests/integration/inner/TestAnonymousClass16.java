@@ -25,7 +25,6 @@ public class TestAnonymousClass16 extends IntegrationTest {
 		}
 	}
 
-
 	@Test
 	@NotYetImplemented
 	public void test() {
@@ -33,4 +32,3 @@ public class TestAnonymousClass16 extends IntegrationTest {
 		getClassNode(TestCls.class);
 	}
 }
-

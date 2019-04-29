@@ -1,13 +1,12 @@
 package jadx.tests.integration.others;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import org.junit.jupiter.api.Test;
 
-import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+
+import static jadx.tests.api.utils.JadxMatchers.containsOne;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestCastOfNull extends IntegrationTest {
 
@@ -20,6 +19,7 @@ public class TestCastOfNull extends IntegrationTest {
 
 		public void m(long[] a) {
 		}
+
 		public void m(String s) {
 		}
 	}

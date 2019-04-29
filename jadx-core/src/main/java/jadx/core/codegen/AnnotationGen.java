@@ -84,7 +84,7 @@ public class AnnotationGen {
 		Map<String, Object> vl = a.getValues();
 		if (!vl.isEmpty()) {
 			code.add('(');
-			for (Iterator<Entry<String, Object>> it = vl.entrySet().iterator(); it.hasNext(); ) {
+			for (Iterator<Entry<String, Object>> it = vl.entrySet().iterator(); it.hasNext();) {
 				Entry<String, Object> e = it.next();
 				String paramName = getParamName(annCls, e.getKey());
 				if (paramName.equals("value") && vl.size() == 1) {
@@ -119,7 +119,7 @@ public class AnnotationGen {
 		if (an != null) {
 			Object exs = an.getDefaultValue();
 			code.add(" throws ");
-			for (Iterator<ArgType> it = ((List<ArgType>) exs).iterator(); it.hasNext(); ) {
+			for (Iterator<ArgType> it = ((List<ArgType>) exs).iterator(); it.hasNext();) {
 				ArgType ex = it.next();
 				classGen.useType(code, ex);
 				if (it.hasNext()) {

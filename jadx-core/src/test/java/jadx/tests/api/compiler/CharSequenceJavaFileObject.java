@@ -1,7 +1,8 @@
 package jadx.tests.api.compiler;
 
-import javax.tools.SimpleJavaFileObject;
 import java.net.URI;
+
+import javax.tools.SimpleJavaFileObject;
 
 public class CharSequenceJavaFileObject extends SimpleJavaFileObject {
 

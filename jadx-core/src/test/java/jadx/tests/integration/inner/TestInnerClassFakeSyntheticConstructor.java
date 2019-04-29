@@ -10,18 +10,22 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestInnerClassFakeSyntheticConstructor extends SmaliTest {
 
-//	public class TestCls {
-//		public /* synthetic */ TestCls(String a) {
-//			this(a, true);
-//		}
-//
-//		public TestCls(String a, boolean b) {
-//		}
-//
-//		public static TestCls build(String str) {
-//			return new TestCls(str);
-//		}
-//	}
+	// @formatter:off
+	/*
+		public class TestCls {
+			public synthetic TestCls(String a) {
+				this(a, true);
+			}
+
+			public TestCls(String a, boolean b) {
+			}
+
+			public static TestCls build(String str) {
+				return new TestCls(str);
+			}
+		}
+	*/
+	// @formatter:on
 
 	@Test
 	public void test() {

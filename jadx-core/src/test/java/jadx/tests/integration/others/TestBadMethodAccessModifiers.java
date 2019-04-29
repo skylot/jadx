@@ -11,6 +11,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 
 public class TestBadMethodAccessModifiers extends SmaliTest {
+	// @formatter:off
 	/*
 		public static class TestCls {
 
@@ -24,6 +25,7 @@ public class TestBadMethodAccessModifiers extends SmaliTest {
 			}
 		}
 	*/
+	// @formatter:on
 
 	@Test
 	public void test() {

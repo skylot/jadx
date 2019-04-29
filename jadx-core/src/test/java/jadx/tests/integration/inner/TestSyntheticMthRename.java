@@ -15,21 +15,25 @@ import static org.hamcrest.Matchers.not;
  */
 public class TestSyntheticMthRename extends SmaliTest {
 
-//	public class TestCls {
-//		public interface I<R, P> {
-//			R call(P... p);
-//		}
-//
-//		public static final class A implements I<String, Runnable> {
-//			public /* synthetic */ /* virtual */ Object call(Object[] objArr) {
-//				return renamedCall((Runnable[]) objArr);
-//			}
-//
-//			private /* varargs */ /* direct */ String renamedCall(Runnable... p) {
-//				return "str";
-//			}
-//		}
-//	}
+	// @formatter:off
+	/*
+		public class TestCls {
+			public interface I<R, P> {
+				R call(P... p);
+			}
+
+			public static final class A implements I<String, Runnable> {
+				public synthetic virtual Object call(Object[] objArr) {
+					return renamedCall((Runnable[]) objArr);
+				}
+
+				private varargs direct String renamedCall(Runnable... p) {
+					return "str";
+				}
+			}
+		}
+	*/
+	// @formatter:on
 
 	@Test
 	public void test() {

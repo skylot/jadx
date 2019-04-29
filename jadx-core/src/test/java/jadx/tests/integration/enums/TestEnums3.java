@@ -42,8 +42,8 @@ public class TestEnums3 extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsOne("ONE(1)"));
-//		assertThat(code, containsOne("THREE(three)"));
-//		assertThat(code, containsOne("assertTrue(Numbers.ONE.getNum() == 1);"));
+		// assertThat(code, containsOne("THREE(three)"));
+		// assertThat(code, containsOne("assertTrue(Numbers.ONE.getNum() == 1);"));
 		assertThat(code, containsOne("private Numbers(int n) {"));
 	}
 }

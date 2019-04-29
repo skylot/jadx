@@ -62,7 +62,7 @@ public class TestSwitchWithTryCatch extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-//		assertThat(code, countString(3, "break;"));
+		// assertThat(code, countString(3, "break;"));
 		assertThat(code, countString(4, "return;"));
 
 		// TODO: remove redundant break

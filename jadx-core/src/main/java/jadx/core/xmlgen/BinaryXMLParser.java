@@ -20,16 +20,17 @@ import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.entry.ValuesParser;
 
-/* TODO:
-	Don't die when error occurs
-	Check error cases, maybe checked const values are not always the same
-	Better error messages
-	What to do, when Binary XML Manifest is > size(int)?
-	Check for missing chunk size types
-	Implement missing data types
-	Use line numbers to recreate EXACT AndroidManifest
-	Check Element chunk size
-*/
+/*
+ * TODO:
+ * Don't die when error occurs
+ * Check error cases, maybe checked const values are not always the same
+ * Better error messages
+ * What to do, when Binary XML Manifest is > size(int)?
+ * Check for missing chunk size types
+ * Implement missing data types
+ * Use line numbers to recreate EXACT AndroidManifest
+ * Check Element chunk size
+ */
 
 @SuppressWarnings("unused")
 public class BinaryXMLParser extends CommonBinaryParser {
@@ -74,8 +75,8 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			for (Field f : rStyleCls.getFields()) {
 				styleMap.put(f.getInt(f.getType()), f.getName());
 			}
-		} catch (Exception th) {
-			LOG.error("Android R class loading failed", th);
+		} catch (Exception e) {
+			LOG.error("Android R class loading failed", e);
 		}
 	}
 
@@ -330,7 +331,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	}
 
 	private String generateNameForNS(String attrUrl) {
-		for (int i = 1; ; i++) {
+		for (int i = 1;; i++) {
 			String attrName = "ns" + i;
 			if (!nsMap.containsValue(attrName) && !nsMapGenerated.contains(attrName)) {
 				nsMapGenerated.add(attrName);
@@ -369,7 +370,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	}
 
 	private void decodeAttribute(int attributeNS, int attrValDataType, int attrValData,
-	                             String shortNsName, String attrName) {
+			String shortNsName, String attrName) {
 		if (attrValDataType == TYPE_REFERENCE) {
 			// reference custom processing
 			String name = styleMap.get(attrValData);
@@ -422,9 +423,9 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		} else {
 			writer.startLine("</");
 			writer.attachSourceLine(endLineNumber);
-//			if (elementNS != -1) {
-//				writer.add(getString(elementNS)).add(':');
-//			}
+			// if (elementNS != -1) {
+			// writer.add(getString(elementNS)).add(':');
+			// }
 			writer.add(elemName).add('>');
 		}
 		isLastEnd = true;
@@ -443,8 +444,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		String generated;
 		do {
 			generated = generateTagAttrName();
-		}
-		while (tagAttrDeobfNames.containsValue(generated));
+		} while (tagAttrDeobfNames.containsValue(generated));
 		tagAttrDeobfNames.put(originalName, generated);
 		return generated;
 	}

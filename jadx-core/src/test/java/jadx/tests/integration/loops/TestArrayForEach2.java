@@ -36,7 +36,6 @@ public class TestArrayForEach2 extends IntegrationTest {
 				indent(1) + "if (t.length() > 0) {",
 				indent(2) + "System.out.println(t);",
 				indent(1) + '}',
-				"}"
-		));
+				"}"));
 	}
 }

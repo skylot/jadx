@@ -30,7 +30,6 @@ public class TestIterableForEach extends IntegrationTest {
 				"for (String s : a) {",
 				indent(1) + "sb.append(s);",
 				"}",
-				"return sb.toString();"
-		));
+				"return sb.toString();"));
 	}
 }

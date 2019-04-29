@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 public final class ImmutableList<E> implements List<E>, RandomAccess {
 	private final E[] arr;
 
-	@SuppressWarnings({"unchecked", "SuspiciousArrayCast"})
+	@SuppressWarnings({ "unchecked", "SuspiciousArrayCast" })
 	public ImmutableList(Collection<E> col) {
 		this((E[]) Objects.requireNonNull(col).toArray());
 	}

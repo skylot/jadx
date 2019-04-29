@@ -9,6 +9,8 @@ import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestDuplicatedNames extends SmaliTest {
+
+	// @formatter:off
 	/*
 		public static class TestCls {
 
@@ -24,6 +26,8 @@ public class TestDuplicatedNames extends SmaliTest {
 			}
 		}
 	*/
+	// @formatter:on
+
 	@Test
 	public void test() {
 		commonChecks();

@@ -77,7 +77,7 @@ public class JadxProject {
 	}
 
 	public void removeTreeExpansion(String[] expansion) {
-		for (Iterator<String[]> it = treeExpansions.iterator(); it.hasNext(); ) {
+		for (Iterator<String[]> it = treeExpansions.iterator(); it.hasNext();) {
 			if (isParentOfExpansion(expansion, it.next())) {
 				it.remove();
 			}
@@ -101,8 +101,7 @@ public class JadxProject {
 	private void changed() {
 		if (settings.isAutoSaveProject()) {
 			save();
-		}
-		else {
+		} else {
 			saved = false;
 		}
 		initial = false;

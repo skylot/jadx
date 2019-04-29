@@ -3,10 +3,11 @@ package jadx.gui.utils.search;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Flowable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
 
 import jadx.gui.utils.Utils;
 

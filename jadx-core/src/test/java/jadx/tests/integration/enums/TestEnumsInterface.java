@@ -47,7 +47,6 @@ public class TestEnumsInterface extends IntegrationTest {
 				indent(3) + "return x - y;",
 				indent(2) + '}',
 				indent(1) + '}',
-				"}"
-		));
+				"}"));
 	}
 }

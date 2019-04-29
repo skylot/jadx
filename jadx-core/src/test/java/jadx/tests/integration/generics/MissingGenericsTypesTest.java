@@ -10,7 +10,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
 public class MissingGenericsTypesTest extends SmaliTest {
-
+	// @formatter:off
 	/*
 		private int x;
 
@@ -22,6 +22,7 @@ public class MissingGenericsTypesTest extends SmaliTest {
 			}
 		}
 	*/
+	// @formatter:on
 
 	@Test
 	@NotYetImplemented

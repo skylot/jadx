@@ -1,5 +1,25 @@
 package jadx.tests.api;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.jar.JarOutputStream;
+
+import org.junit.jupiter.api.BeforeEach;
+
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
@@ -19,25 +39,6 @@ import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.tests.api.compiler.DynamicCompiler;
 import jadx.tests.api.compiler.StaticCompiler;
 import jadx.tests.api.utils.TestUtils;
-import org.junit.jupiter.api.BeforeEach;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.jar.JarOutputStream;
 
 import static jadx.core.utils.files.FileUtils.addFileToJar;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -60,8 +61,10 @@ public abstract class IntegrationTest extends TestUtils {
 
 	/**
 	 * Run auto check method if defined:
+	 *
 	 * <pre>
-	 *     public void check() {}
+	 * public void check() {
+	 * }
 	 * </pre>
 	 */
 	private static final String CHECK_METHOD_NAME = "check";

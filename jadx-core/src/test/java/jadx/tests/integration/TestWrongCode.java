@@ -39,8 +39,7 @@ public class TestWrongCode extends IntegrationTest {
 		assertThat(code, containsLines(2,
 				"if (a == 0) {",
 				"}",
-				"return a;"
-		));
+				"return a;"));
 	}
 
 	@Test

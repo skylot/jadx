@@ -2,6 +2,7 @@ package jadx.samples;
 
 import java.util.Arrays;
 
+@SuppressWarnings("ConstantName")
 public class TestFields extends AbstractTest {
 
 	public static class ConstFields {
@@ -20,7 +21,7 @@ public class TestFields extends AbstractTest {
 	private static final String fstr = "final string";
 
 	private static final double fd = 3.14;
-	private static final double[] fda = new double[]{3.14, 2.7};
+	private static final double[] fda = new double[] { 3.14, 2.7 };
 
 	private static int si = 5;
 

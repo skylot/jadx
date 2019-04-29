@@ -34,7 +34,7 @@ public class TestEnums4 extends IntegrationTest {
 		}
 
 		public void check() {
-			assertThat(ResType.CODE.getExts(), is(new String[]{".dex", ".class"}));
+			assertThat(ResType.CODE.getExts(), is(new String[] { ".dex", ".class" }));
 		}
 	}
 
@@ -45,6 +45,6 @@ public class TestEnums4 extends IntegrationTest {
 
 		assertThat(code, containsOne("CODE(\".dex\", \".class\"),"));
 		assertThat(code, containsOne("ResType(String... extensions) {"));
-//		assertThat(code, not(containsString("private ResType")));
+		// assertThat(code, not(containsString("private ResType")));
 	}
 }

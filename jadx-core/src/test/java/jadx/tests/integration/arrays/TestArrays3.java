@@ -14,11 +14,11 @@ public class TestArrays3 extends IntegrationTest {
 	public static class TestCls {
 
 		private Object test(byte[] bArr) {
-			return new Object[]{bArr};
+			return new Object[] { bArr };
 		}
 
 		public void check() {
-			byte[] inputArr = {1, 2};
+			byte[] inputArr = { 1, 2 };
 			Object result = test(inputArr);
 			assertThat(result, instanceOf(Object[].class));
 			assertThat(((Object[]) result)[0], is(inputArr));

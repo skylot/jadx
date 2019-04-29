@@ -46,4 +46,3 @@ public class JadxGUI {
 		return false;
 	}
 }
-

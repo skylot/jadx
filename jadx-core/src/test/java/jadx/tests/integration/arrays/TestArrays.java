@@ -12,7 +12,7 @@ public class TestArrays extends IntegrationTest {
 	public static class TestCls {
 
 		public int test1(int i) {
-			int[] a = new int[]{1, 2, 3, 5};
+			int[] a = new int[] { 1, 2, 3, 5 };
 			return a[i];
 		}
 

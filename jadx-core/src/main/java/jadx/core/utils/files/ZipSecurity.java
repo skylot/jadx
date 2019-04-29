@@ -13,7 +13,8 @@ public class ZipSecurity {
 	// size of uncompressed zip entry shouldn't be bigger of compressed in MAX_SIZE_DIFF times
 	private static final int MAX_SIZE_DIFF = 100;
 
-	private ZipSecurity() {}
+	private ZipSecurity() {
+	}
 
 	private static boolean isInSubDirectoryInternal(File baseDir, File canonFile) {
 		if (canonFile == null) {

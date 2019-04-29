@@ -17,8 +17,7 @@ public class TestSwitchBreak extends IntegrationTest {
 	public static class TestCls {
 		public String test(int a) {
 			String s = "";
-			loop:
-			while (a > 0) {
+			loop: while (a > 0) {
 				switch (a % 4) {
 					case 1:
 						s += "1";

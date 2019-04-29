@@ -1,8 +1,9 @@
 package jadx.gui.ui.codearea;
 
+import java.util.Objects;
+
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
-import java.util.Objects;
 
 import org.fife.ui.rsyntaxtextarea.LinkGenerator;
 import org.fife.ui.rsyntaxtextarea.LinkGeneratorResult;

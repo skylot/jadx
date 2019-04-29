@@ -1,6 +1,6 @@
 package jadx.gui.settings;
 
-import java.awt.Rectangle;
+import java.awt.*;
 
 public class WindowLocation {
 
@@ -23,12 +23,12 @@ public class WindowLocation {
 
 	@Override
 	public String toString() {
-		return "WindowLocation{" +
-				"id='" + windowId + '\'' +
-				", x=" + bounds.getX() +
-				", y=" + bounds.getY() +
-				", width=" + bounds.getWidth() +
-				", height=" + bounds.getHeight() +
-				'}';
+		return "WindowLocation{"
+				+ "id='" + windowId + '\''
+				+ ", x=" + bounds.getX()
+				+ ", y=" + bounds.getY()
+				+ ", width=" + bounds.getWidth()
+				+ ", height=" + bounds.getHeight()
+				+ '}';
 	}
 }

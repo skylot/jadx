@@ -59,8 +59,8 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 					visitor.init(mth.root());
 					DepthTraversal.visit(visitor, mth);
 				}
-			} catch (Exception ee) {
-				LOG.error("Undo finally extract failed, mth: {}", mth, e);
+			} catch (Exception excInner) {
+				LOG.error("Undo finally extract failed, mth: {}", mth, excInner);
 			}
 		}
 	}
@@ -343,7 +343,7 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 				return null;
 			}
 			// TODO: add additional slices checks
-			//  and try to extract common part if found difference
+			// and try to extract common part if found difference
 		} else {
 			for (InsnNode finallyInsn : finallyInsns) {
 				finallySlice.addInsn(finallyInsn, finallyBlock);
@@ -369,7 +369,7 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 	}
 
 	private static boolean checkBlocksTree(BlockNode dupBlock, BlockNode finallyBlock,
-	                                       InsnsSlice dupSlice, FinallyExtractInfo extractInfo) {
+			InsnsSlice dupSlice, FinallyExtractInfo extractInfo) {
 		InsnsSlice finallySlice = extractInfo.getFinallyInsnsSlice();
 
 		List<BlockNode> finallyCS = finallyBlock.getCleanSuccessors();

@@ -10,6 +10,8 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 
 public class TestReservedNames extends SmaliTest {
+
+	// @formatter:off
 	/*
 		public static class TestCls {
 
@@ -21,6 +23,7 @@ public class TestReservedNames extends SmaliTest {
 			}
 		}
 	*/
+	// @formatter:on
 
 	@Test
 	public void test() {

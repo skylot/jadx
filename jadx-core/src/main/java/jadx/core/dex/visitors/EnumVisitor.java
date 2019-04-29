@@ -34,7 +34,7 @@ import jadx.core.utils.exceptions.JadxException;
 @JadxVisitor(
 		name = "EnumVisitor",
 		desc = "Restore enum classes",
-		runAfter = {CodeShrinkVisitor.class, ModVisitor.class}
+		runAfter = { CodeShrinkVisitor.class, ModVisitor.class }
 )
 public class EnumVisitor extends AbstractVisitor {
 
