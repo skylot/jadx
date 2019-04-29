@@ -967,6 +967,7 @@ public class MainWindow extends JFrame {
 		settings.setMainWindowExtendedState(getExtendedState());
 		cancelBackgroundJobs();
 		dispose();
+		System.exit(0);
 	}
 
 	public JadxWrapper getWrapper() {
