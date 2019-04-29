@@ -27,6 +27,9 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -102,9 +105,13 @@ public abstract class IntegrationTest extends TestUtils {
 		return this.getClass().getPackage().getName().replace("jadx.tests.integration.", "");
 	}
 
-	public ClassNode getClassNode(Class<?> clazz) {
+	protected ClassNode getClassNode(Class<?> clazz) {
+		return getClassNode(clazz, false);
+	}
+
+	protected ClassNode getClassNode(Class<?> clazz, boolean fromClassPath) {
 		try {
-			File jar = getJarForClass(clazz);
+			File jar = getJarForClass(clazz, fromClassPath);
 			return getClassNodeFromFile(jar, clazz.getName());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -342,8 +349,8 @@ public abstract class IntegrationTest extends TestUtils {
 		return dynamicCompiler.invoke(mth, args);
 	}
 
-	public File getJarForClass(Class<?> cls) throws IOException {
-		List<File> files = compileClass(cls);
+	public File getJarForClass(Class<?> cls, boolean fromClassPath) throws IOException {
+		List<File> files = compileClass(cls, fromClassPath);
 		assertThat("File list is empty", files, not(empty()));
 
 		String path = cls.getPackage().getName().replace('.', '/');
@@ -383,7 +390,16 @@ public abstract class IntegrationTest extends TestUtils {
 		throw new IOException("Failed to create temp directory");
 	}
 
-	private List<File> compileClass(Class<?> cls) throws IOException {
+	private List<File> compileClass(Class<?> cls, boolean fromClassPath) throws IOException {
+		if (fromClassPath) {
+			try {
+				File file = new File(new URI(cls.getProtectionDomain().getCodeSource().getLocation().toURI().toString()
+						+ '/' + cls.getName().replace('.', '/') + ".class"));
+				return Arrays.asList(file);
+			} catch (URISyntaxException e) {
+				fail(e);
+			}
+		}
 		String clsFullName = cls.getName();
 		String rootClsName;
 		int end = clsFullName.indexOf('$');
