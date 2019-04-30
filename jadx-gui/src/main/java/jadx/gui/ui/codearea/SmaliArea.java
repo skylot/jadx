@@ -18,6 +18,7 @@ public final class SmaliArea extends RSyntaxTextArea {
 	void load() {
 		if (getText().isEmpty()) {
 			setText(node.getSmali());
+			setCaretPosition(0);
 		}
 	}
 }
