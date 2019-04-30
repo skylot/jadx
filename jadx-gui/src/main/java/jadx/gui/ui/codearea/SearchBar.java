@@ -32,7 +32,7 @@ class SearchBar extends JToolBar {
 	private static final Icon ICON_DOWN = Utils.openIcon("arrow_down");
 	private static final Icon ICON_CLOSE = Utils.openIcon("cross");
 
-	private final RSyntaxTextArea rTextArea;
+	private RSyntaxTextArea rTextArea;
 
 	private final JTextField searchField;
 	private final JCheckBox markAllCB;
@@ -166,6 +166,13 @@ class SearchBar extends JToolBar {
 			searchField.setBackground(COLOR_BG_ERROR);
 		} else {
 			searchField.setBackground(COLOR_BG_NORMAL);
+		}
+	}
+
+	public void setRTextArea(RSyntaxTextArea rTextArea) {
+		this.rTextArea = rTextArea;
+		if (isVisible()) {
+			this.search(0);
 		}
 	}
 }

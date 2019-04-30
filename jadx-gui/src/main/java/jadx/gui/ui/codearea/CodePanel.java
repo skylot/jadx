@@ -45,11 +45,16 @@ public final class CodePanel extends ContentPanel {
 		add(areaTabbedPane);
 
 		KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_F, Utils.ctrlButton());
-		Utils.addKeyBinding(codeArea, key, "SearchAction", new SearchAction());
+		SearchAction searchAction = new SearchAction();
+		Utils.addKeyBinding(codeArea, key, "SearchAction", searchAction);
+		Utils.addKeyBinding(smaliArea, key, "SearchAction", searchAction);
 
 		areaTabbedPane.addChangeListener(e -> {
 			if (areaTabbedPane.getSelectedComponent() == smaliScrollPane) {
 				smaliArea.load();
+				searchBar.setRTextArea(smaliArea);
+			} else if (areaTabbedPane.getSelectedComponent() == codeScrollPane) {
+				searchBar.setRTextArea(codeArea);
 			}
 		});
 	}

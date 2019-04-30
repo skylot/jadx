@@ -2,9 +2,7 @@ package jadx.api;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringWriter;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -312,7 +310,7 @@ public final class JadxDecompiler {
 		Path path = cls.dex().getDexFile().getPath();
 		String className = cls.getAlias().makeRawFullName();
 		className = 'L' + className.replace('.', '/') + ';';
-		try (InputStream in = Files.newInputStream(path)) {
+		try {
 			DexBackedDexFile dexFile = DexFileFactory.loadDexFile(path.toFile(), Opcodes.getDefault());
 			boolean decompiled = false;
 			for (DexBackedClassDef classDef : dexFile.getClasses()) {
