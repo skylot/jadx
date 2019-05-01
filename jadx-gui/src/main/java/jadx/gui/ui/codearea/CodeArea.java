@@ -13,6 +13,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Caret;
 import javax.swing.text.DefaultCaret;
 
+import jadx.gui.ui.ContentPanel;
 import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rtextarea.SearchContext;
@@ -34,10 +35,10 @@ public final class CodeArea extends RSyntaxTextArea {
 
 	private static final long serialVersionUID = 6312736869579635796L;
 
-	private final CodePanel contentPanel;
+	private final ContentPanel contentPanel;
 	private final JNode node;
 
-	CodeArea(CodePanel panel) {
+	CodeArea(ContentPanel panel) {
 		this.contentPanel = panel;
 		this.node = panel.getNode();
 
@@ -64,6 +65,7 @@ public final class CodeArea extends RSyntaxTextArea {
 		}
 		registerWordHighlighter();
 		setText(node.getContent());
+		setCaretPosition(0);
 	}
 
 	private void registerWordHighlighter() {

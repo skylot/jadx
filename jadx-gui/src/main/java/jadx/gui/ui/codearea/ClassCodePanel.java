@@ -1,15 +1,5 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-
-import javax.swing.AbstractAction;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.KeyStroke;
-import javax.swing.tree.TreeNode;
-
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
@@ -18,28 +8,54 @@ import jadx.gui.ui.TabbedPane;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
 
-public final class CodePanel extends AbstractCodePanel {
-	private static final long serialVersionUID = 5310536092010045565L;
+import javax.swing.AbstractAction;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.KeyStroke;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+
+public final class ClassCodePanel extends AbstractCodePanel {
+	private static final long serialVersionUID = -7229931102504634591L;
 
 	private final SearchBar searchBar;
 	private final CodeArea codeArea;
+	private final SmaliArea smaliArea;
 	private final JScrollPane codeScrollPane;
+	private final JScrollPane smaliScrollPane;
+	private JTabbedPane areaTabbedPane = new JTabbedPane(JTabbedPane.BOTTOM);
 
-	public CodePanel(TabbedPane panel, JNode jnode) {
+	public ClassCodePanel(TabbedPane panel, JNode jnode) {
 		super(panel, jnode);
 
 		codeArea = new CodeArea(this);
+		smaliArea = new SmaliArea(this);
 		searchBar = new SearchBar(codeArea);
 		codeScrollPane = new JScrollPane(codeArea);
+		smaliScrollPane = new JScrollPane(smaliArea);
 		initLineNumbers();
 
 		setLayout(new BorderLayout());
 		add(searchBar, BorderLayout.NORTH);
-		add(codeScrollPane);
+
+		areaTabbedPane.add(codeScrollPane, NLS.str("tabs.code"));
+		areaTabbedPane.add(smaliScrollPane, NLS.str("tabs.smali"));
+		add(areaTabbedPane);
 
 		KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_F, Utils.ctrlButton());
 		SearchAction searchAction = new SearchAction(searchBar);
 		Utils.addKeyBinding(codeArea, key, "SearchAction", searchAction);
+		Utils.addKeyBinding(smaliArea, key, "SearchAction", searchAction);
+
+		areaTabbedPane.addChangeListener(e -> {
+			if (areaTabbedPane.getSelectedComponent() == smaliScrollPane) {
+				smaliArea.load();
+				searchBar.setRTextArea(smaliArea);
+			} else if (areaTabbedPane.getSelectedComponent() == codeScrollPane) {
+				searchBar.setRTextArea(codeArea);
+			}
+		});
 	}
 
 	private void initLineNumbers() {
@@ -52,6 +68,9 @@ public final class CodePanel extends AbstractCodePanel {
 	}
 
 	private boolean isUseSourceLines() {
+		if (node instanceof JClass) {
+			return true;
+		}
 		if (node instanceof JResource) {
 			JResource resNode = (JResource) node;
 			return !resNode.getLineMapping().isEmpty();
@@ -85,18 +104,4 @@ public final class CodePanel extends AbstractCodePanel {
 		return codeArea;
 	}
 
-	@Override
-	public String getTabTooltip() {
-		String s = node.getName();
-		JNode n = (JNode) node.getParent();
-		while (n != null) {
-			String name = n.getName();
-			if (name == null) {
-				break;
-			}
-			s = name + '/' + s;
-			n = (JNode) n.getParent();
-		}
-		return '/' + s;
-	}
 }

@@ -12,6 +12,8 @@ import javax.swing.*;
 import javax.swing.plaf.basic.BasicButtonUI;
 import javax.swing.text.BadLocationException;
 
+import jadx.gui.ui.codearea.AbstractCodePanel;
+import jadx.gui.ui.codearea.ClassCodePanel;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +68,7 @@ public class TabbedPane extends JTabbedPane {
 	}
 
 	private void showCode(final JumpPosition pos) {
-		final CodePanel contentPanel = (CodePanel) getContentPanel(pos.getNode());
+		final AbstractCodePanel contentPanel = (AbstractCodePanel) getContentPanel(pos.getNode());
 		if (contentPanel == null) {
 			return;
 		}
@@ -168,6 +170,7 @@ public class TabbedPane extends JTabbedPane {
 				if (resFile.getType() == ResourceType.IMG) {
 					return new ImagePanel(this, res);
 				}
+				return new CodePanel(this, node);
 			} else {
 				return null;
 			}
@@ -178,7 +181,7 @@ public class TabbedPane extends JTabbedPane {
 		if (node instanceof JCertificate) {
 			return new CertificatePanel(this, node);
 		}
-		return new CodePanel(this, node);
+		return new ClassCodePanel(this, node);
 	}
 
 	@Nullable
@@ -194,6 +197,10 @@ public class TabbedPane extends JTabbedPane {
 		panel.setOpaque(false);
 
 		final JLabel label = new JLabel(name);
+		String toolTip = contentPanel.getTabTooltip();
+		if (toolTip != null) {
+			label.setToolTipText(toolTip);
+		}
 		label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
 		label.setIcon(node.getIcon());
 

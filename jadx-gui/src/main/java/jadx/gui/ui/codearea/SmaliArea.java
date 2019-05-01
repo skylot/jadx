@@ -1,5 +1,6 @@
 package jadx.gui.ui.codearea;
 
+import jadx.gui.ui.ContentPanel;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 import jadx.gui.treemodel.JNode;
@@ -9,7 +10,7 @@ public final class SmaliArea extends RSyntaxTextArea {
 
 	private final JNode node;
 
-	SmaliArea(CodePanel panel) {
+	SmaliArea(ContentPanel panel) {
 		node = panel.getNode();
 
 		setEditable(false);
