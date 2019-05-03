@@ -12,8 +12,9 @@ import javax.swing.*;
 import javax.swing.plaf.basic.BasicButtonUI;
 import javax.swing.text.BadLocationException;
 
-import jadx.gui.ui.codearea.AbstractCodePanel;
-import jadx.gui.ui.codearea.ClassCodePanel;
+import jadx.gui.ui.codearea.AbstractCodeContentPanel;
+import jadx.gui.ui.codearea.AbstractCodeArea;
+import jadx.gui.ui.codearea.ClassCodeContentPanel;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,8 +26,7 @@ import jadx.gui.treemodel.JCertificate;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
-import jadx.gui.ui.codearea.CodeArea;
-import jadx.gui.ui.codearea.CodePanel;
+import jadx.gui.ui.codearea.CodeContentPanel;
 import jadx.gui.utils.JumpManager;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
@@ -68,13 +68,13 @@ public class TabbedPane extends JTabbedPane {
 	}
 
 	private void showCode(final JumpPosition pos) {
-		final AbstractCodePanel contentPanel = (AbstractCodePanel) getContentPanel(pos.getNode());
+		final AbstractCodeContentPanel contentPanel = (AbstractCodeContentPanel) getContentPanel(pos.getNode());
 		if (contentPanel == null) {
 			return;
 		}
 		SwingUtilities.invokeLater(() -> {
 			setSelectedComponent(contentPanel);
-			CodeArea codeArea = contentPanel.getCodeArea();
+			AbstractCodeArea codeArea = contentPanel.getCodeArea();
 			int line = pos.getLine();
 			if (line < 0) {
 				try {
@@ -117,8 +117,8 @@ public class TabbedPane extends JTabbedPane {
 	@Nullable
 	private JumpPosition getCurrentPosition() {
 		ContentPanel selectedCodePanel = getSelectedCodePanel();
-		if (selectedCodePanel instanceof CodePanel) {
-			return ((CodePanel) selectedCodePanel).getCodeArea().getCurrentPosition();
+		if (selectedCodePanel instanceof CodeContentPanel) {
+			return ((CodeContentPanel) selectedCodePanel).getCodeArea().getCurrentPosition();
 		}
 		return null;
 	}
@@ -170,7 +170,7 @@ public class TabbedPane extends JTabbedPane {
 				if (resFile.getType() == ResourceType.IMG) {
 					return new ImagePanel(this, res);
 				}
-				return new CodePanel(this, node);
+				return new CodeContentPanel(this, node);
 			} else {
 				return null;
 			}
@@ -181,7 +181,7 @@ public class TabbedPane extends JTabbedPane {
 		if (node instanceof JCertificate) {
 			return new CertificatePanel(this, node);
 		}
-		return new ClassCodePanel(this, node);
+		return new ClassCodeContentPanel(this, node);
 	}
 
 	@Nullable

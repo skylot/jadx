@@ -33,7 +33,7 @@ public class LineNumbers extends JPanel implements CaretListener {
 	private static final int NUM_HEIGHT = Integer.MAX_VALUE - 1000000;
 	private static final Map<?, ?> DESKTOP_HINTS = (Map<?, ?>) Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints");
 
-	private final CodeArea codeArea;
+	private final AbstractCodeArea codeArea;
 	private boolean useSourceLines = true;
 
 	private int lastDigits;
@@ -44,9 +44,9 @@ public class LineNumbers extends JPanel implements CaretListener {
 	private final transient Color currentColor;
 	private final transient Border border;
 
-	public LineNumbers(CodeArea component) {
-		this.codeArea = component;
-		setFont(component.getFont());
+	public LineNumbers(AbstractCodeArea codeArea) {
+		this.codeArea = codeArea;
+		setFont(codeArea.getFont());
 		SyntaxScheme syntaxScheme = codeArea.getSyntaxScheme();
 		numberColor = syntaxScheme.getStyle(Token.LITERAL_NUMBER_DECIMAL_INT).foreground;
 		currentColor = syntaxScheme.getStyle(Token.LITERAL_STRING_DOUBLE_QUOTE).foreground;
@@ -57,7 +57,7 @@ public class LineNumbers extends JPanel implements CaretListener {
 		setBorderGap(5);
 		setPreferredWidth();
 
-		component.addCaretListener(this);
+		codeArea.addCaretListener(this);
 		addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {

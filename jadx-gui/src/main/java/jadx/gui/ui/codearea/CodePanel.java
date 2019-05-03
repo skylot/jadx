@@ -1,45 +1,58 @@
 package jadx.gui.ui.codearea;
 
+import jadx.gui.treemodel.JResource;
+import jadx.gui.ui.ContentPanel;
+import jadx.gui.utils.Utils;
+
+import javax.swing.AbstractAction;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
-import javax.swing.AbstractAction;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.KeyStroke;
-import javax.swing.tree.TreeNode;
-
-import jadx.gui.treemodel.JClass;
-import jadx.gui.treemodel.JNode;
-import jadx.gui.treemodel.JResource;
-import jadx.gui.ui.ContentPanel;
-import jadx.gui.ui.TabbedPane;
-import jadx.gui.utils.NLS;
-import jadx.gui.utils.Utils;
-
-public final class CodePanel extends AbstractCodePanel {
-	private static final long serialVersionUID = 5310536092010045565L;
+/**
+ * A panel combining a {@link SearchBar and a scollable {@link CodeArea}
+ */
+public class CodePanel extends JPanel {
 
 	private final SearchBar searchBar;
-	private final CodeArea codeArea;
+	private final AbstractCodeArea codeArea;
 	private final JScrollPane codeScrollPane;
 
-	public CodePanel(TabbedPane panel, JNode jnode) {
-		super(panel, jnode);
+	public CodePanel(ContentPanel contentPanel) {
+		super();
 
-		codeArea = new CodeArea(this);
+		codeArea = createCodeArea(contentPanel);
 		searchBar = new SearchBar(codeArea);
 		codeScrollPane = new JScrollPane(codeArea);
-		initLineNumbers();
 
 		setLayout(new BorderLayout());
 		add(searchBar, BorderLayout.NORTH);
-		add(codeScrollPane);
+		add(codeScrollPane, BorderLayout.CENTER);
+		initLineNumbers();
 
 		KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_F, Utils.ctrlButton());
-		SearchAction searchAction = new SearchAction(searchBar);
-		Utils.addKeyBinding(codeArea, key, "SearchAction", searchAction);
+		Utils.addKeyBinding(codeArea, key, "SearchAction", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				searchBar.toggle();
+			}
+		});
+	}
+
+	protected AbstractCodeArea createCodeArea(ContentPanel contentPanel) {
+		return new CodeArea(contentPanel);
+	}
+
+	public void loadSettings() {
+		codeArea.loadSettings();
+		initLineNumbers();
+	}
+
+	public void load() {
+		codeArea.load();
 	}
 
 	private void initLineNumbers() {
@@ -52,51 +65,22 @@ public final class CodePanel extends AbstractCodePanel {
 	}
 
 	private boolean isUseSourceLines() {
-		if (node instanceof JResource) {
-			JResource resNode = (JResource) node;
+		if (codeArea.getNode() instanceof JResource) {
+			JResource resNode = (JResource) codeArea.getNode();
 			return !resNode.getLineMapping().isEmpty();
 		}
 		return false;
 	}
 
-	@Override
-	public void loadSettings() {
-		codeArea.loadSettings();
-		initLineNumbers();
-		updateUI();
-	}
-
-	@Override
-	public TabbedPane getTabbedPane() {
-		return tabbedPane;
-	}
-
-	@Override
-	public JNode getNode() {
-		return node;
-	}
-
-	SearchBar getSearchBar() {
+	public SearchBar getSearchBar() {
 		return searchBar;
 	}
 
-	@Override
-	public CodeArea getCodeArea() {
+	public AbstractCodeArea getCodeArea() {
 		return codeArea;
 	}
 
-	@Override
-	public String getTabTooltip() {
-		String s = node.getName();
-		JNode n = (JNode) node.getParent();
-		while (n != null) {
-			String name = n.getName();
-			if (name == null) {
-				break;
-			}
-			s = name + '/' + s;
-			n = (JNode) n.getParent();
-		}
-		return '/' + s;
+	public JScrollPane getCodeScrollPane() {
+		return codeScrollPane;
 	}
 }
