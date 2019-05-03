@@ -5,7 +5,6 @@ import java.util.Objects;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
-import jadx.gui.ui.ContentPanel;
 import org.fife.ui.rsyntaxtextarea.LinkGenerator;
 import org.fife.ui.rsyntaxtextarea.LinkGeneratorResult;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
@@ -15,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.gui.treemodel.JClass;
+import jadx.gui.ui.ContentPanel;
 import jadx.gui.utils.JumpPosition;
 
 public class CodeLinkGenerator implements LinkGenerator, HyperlinkListener {

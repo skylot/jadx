@@ -1,21 +1,23 @@
 package jadx.gui.ui.codearea;
 
-import jadx.gui.settings.JadxSettings;
-import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.ContentPanel;
-import jadx.gui.ui.MainWindow;
-import jadx.gui.utils.JumpPosition;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
+
+import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
+import javax.swing.text.BadLocationException;
+
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.JViewport;
-import javax.swing.SwingUtilities;
-import javax.swing.text.BadLocationException;
-import java.awt.Dimension;
-import java.awt.Point;
-import java.awt.Rectangle;
+import jadx.gui.settings.JadxSettings;
+import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.ContentPanel;
+import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.JumpPosition;
 
 public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractCodeArea.class);

@@ -1,16 +1,17 @@
 package jadx.gui.ui.codearea;
 
-import jadx.gui.treemodel.JResource;
-import jadx.gui.ui.ContentPanel;
-import jadx.gui.utils.Utils;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
-import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
+
+import jadx.gui.treemodel.JResource;
+import jadx.gui.ui.ContentPanel;
+import jadx.gui.utils.Utils;
 
 /**
  * A panel combining a {@link SearchBar and a scollable {@link CodeArea}

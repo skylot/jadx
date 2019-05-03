@@ -1,12 +1,13 @@
 package jadx.gui.ui.codearea;
 
+import java.awt.BorderLayout;
+
+import javax.swing.JTabbedPane;
+
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.ContentPanel;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.utils.NLS;
-
-import javax.swing.JTabbedPane;
-import java.awt.BorderLayout;
 
 /**
  * Displays one class with two different view:

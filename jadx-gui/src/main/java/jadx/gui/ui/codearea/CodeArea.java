@@ -7,7 +7,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.text.Caret;
 import javax.swing.text.DefaultCaret;
 
-import jadx.gui.ui.ContentPanel;
 import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rtextarea.SearchContext;
@@ -20,11 +19,13 @@ import jadx.api.CodePosition;
 import jadx.api.JavaNode;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.ContentPanel;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.JumpPosition;
 
 /**
- * The {@link AbstractCodeArea} implementation used for displaying Java code and text based resources (e.g. AndroidManifest.xml)
+ * The {@link AbstractCodeArea} implementation used for displaying Java code and text based
+ * resources (e.g. AndroidManifest.xml)
  */
 public final class CodeArea extends AbstractCodeArea {
 	private static final Logger LOG = LoggerFactory.getLogger(CodeArea.class);
@@ -105,7 +106,6 @@ public final class CodeArea extends AbstractCodeArea {
 		popup.addPopupMenuListener(findUsage);
 		popup.addPopupMenuListener(goToDeclaration);
 	}
-
 
 	public static RSyntaxTextArea getDefaultArea(MainWindow mainWindow) {
 		RSyntaxTextArea area = new RSyntaxTextArea();

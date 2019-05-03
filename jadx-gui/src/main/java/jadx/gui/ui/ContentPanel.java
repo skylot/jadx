@@ -2,8 +2,9 @@ package jadx.gui.ui;
 
 import javax.swing.*;
 
-import jadx.gui.treemodel.JNode;
 import org.jetbrains.annotations.Nullable;
+
+import jadx.gui.treemodel.JNode;
 
 public abstract class ContentPanel extends JPanel {
 

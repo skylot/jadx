@@ -7,12 +7,12 @@ import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
-import jadx.gui.ui.ContentPanel;
 import org.fife.ui.rsyntaxtextarea.Token;
 
 import jadx.api.JavaNode;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.ContentPanel;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.UsageDialog;
 import jadx.gui.utils.NLS;
