@@ -2,7 +2,9 @@ package jadx.api;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,6 +37,7 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.SaveCode;
 import jadx.core.export.ExportGradleProject;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.InputFile;
 import jadx.core.xmlgen.BinaryXMLParser;
@@ -308,8 +311,7 @@ public final class JadxDecompiler {
 
 	void generateSmali(ClassNode cls) {
 		Path path = cls.dex().getDexFile().getPath();
-		String className = cls.getAlias().makeRawFullName();
-		className = 'L' + className.replace('.', '/') + ';';
+		String className = Utils.makeQualifiedObjectName(cls.getClassInfo().getType().getObject());
 		try {
 			DexBackedDexFile dexFile = DexFileFactory.loadDexFile(path.toFile(), Opcodes.getDefault());
 			boolean decompiled = false;
