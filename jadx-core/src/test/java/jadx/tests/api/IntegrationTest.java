@@ -124,8 +124,18 @@ public abstract class IntegrationTest extends TestUtils {
 		assertThat("Class not found: " + clsName, cls, notNullValue());
 		assertThat(clsName, is(cls.getClassInfo().getFullName()));
 
-		decompileAndCheckCls(d, cls);
+		decompileAndCheck(d, Collections.singletonList(cls));
 		return cls;
+	}
+
+	public ClassNode searchCls(List<ClassNode> list, String fullClsName) {
+		for (ClassNode cls : list) {
+			if (cls.getClassInfo().getFullName().equals(fullClsName)) {
+				return cls;
+			}
+		}
+		fail("Class not found by name " + fullClsName + " in list: " + list);
+		return null;
 	}
 
 	protected JadxDecompiler loadFiles(List<File> inputFiles) {
@@ -137,26 +147,29 @@ public abstract class IntegrationTest extends TestUtils {
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail(e.getMessage());
+			return null;
 		}
 		RootNode root = JadxInternalAccess.getRoot(d);
 		insertResources(root);
 		return d;
 	}
 
-	protected void decompileAndCheckCls(JadxDecompiler d, ClassNode cls) {
+	protected void decompileAndCheck(JadxDecompiler d, List<ClassNode> clsList) {
 		if (unloadCls) {
-			decompile(d, cls);
+			clsList.forEach(cls -> decompile(d, cls));
 		} else {
-			decompileWithoutUnload(d, cls);
+			clsList.forEach(cls -> decompileWithoutUnload(d, cls));
 		}
 
-		System.out.println("-----------------------------------------------------------");
-		System.out.println(cls.getCode());
+		for (ClassNode cls : clsList) {
+			System.out.println("-----------------------------------------------------------");
+			System.out.println(cls.getCode());
+		}
 		System.out.println("-----------------------------------------------------------");
 
-		checkCode(cls);
-		compile(cls);
-		runAutoCheck(cls.getClassInfo().getFullName());
+		clsList.forEach(IntegrationTest::checkCode);
+		compile(clsList);
+		clsList.forEach(this::runAutoCheck);
 	}
 
 	private void insertResources(RootNode root) {
@@ -221,7 +234,8 @@ public abstract class IntegrationTest extends TestUtils {
 		return false;
 	}
 
-	private void runAutoCheck(String clsName) {
+	private void runAutoCheck(ClassNode cls) {
+		String clsName = cls.getClassInfo().getFullName();
 		try {
 			// run 'check' method from original class
 			Class<?> origCls;
@@ -252,7 +266,7 @@ public abstract class IntegrationTest extends TestUtils {
 			// run 'check' method from decompiled class
 			if (compile) {
 				try {
-					limitExecTime(() -> invoke("check"));
+					limitExecTime(() -> invoke(cls, "check"));
 				} catch (Exception e) {
 					rethrow("Decompiled check failed", e);
 				}
@@ -306,11 +320,15 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	void compile(ClassNode cls) {
+		compile(Collections.singletonList(cls));
+	}
+
+	void compile(List<ClassNode> clsList) {
 		if (!compile) {
 			return;
 		}
 		try {
-			dynamicCompiler = new DynamicCompiler(cls);
+			dynamicCompiler = new DynamicCompiler(clsList);
 			boolean result = dynamicCompiler.compile();
 			assertTrue(result, "Compilation failed");
 			System.out.println("Compilation: PASSED");
@@ -319,30 +337,13 @@ public abstract class IntegrationTest extends TestUtils {
 		}
 	}
 
-	public Object invoke(String method) throws Exception {
-		return invoke(method, new Class<?>[0]);
+	public Object invoke(ClassNode cls, String method) throws Exception {
+		return invoke(cls, method, new Class<?>[0]);
 	}
 
-	public Object invoke(String method, Class<?>[] types, Object... args) throws Exception {
-		Method mth = getReflectMethod(method, types);
-		return invoke(mth, args);
-	}
-
-	public Method getReflectMethod(String method, Class<?>... types) {
+	public Object invoke(ClassNode cls, String methodName, Class<?>[] types, Object... args) throws Exception {
 		assertNotNull(dynamicCompiler, "dynamicCompiler not ready");
-		try {
-			return dynamicCompiler.getMethod(method, types);
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-		return null;
-	}
-
-	public Object invoke(Method mth, Object... args) throws Exception {
-		assertNotNull(dynamicCompiler, "dynamicCompiler not ready");
-		assertNotNull(mth, "unknown method");
-		return dynamicCompiler.invoke(mth, args);
+		return dynamicCompiler.invoke(cls, methodName, types, args);
 	}
 
 	public File getJarForClass(Class<?> cls) throws IOException {

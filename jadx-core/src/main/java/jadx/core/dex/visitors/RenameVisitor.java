@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.api.JadxArgs;
 import jadx.core.Consts;
 import jadx.core.deobf.Deobfuscator;
@@ -64,6 +66,9 @@ public class RenameVisitor extends AbstractVisitor {
 					clsFullPaths.add(clsInfo.getAlias().getFullPath().toLowerCase());
 				}
 			}
+		}
+		if (args.isRenameValid()) {
+			checkFieldsCollisionWithRootPackage(classes);
 		}
 	}
 
@@ -133,5 +138,43 @@ public class RenameVisitor extends AbstractVisitor {
 				deobfuscator.forceRenameMethod(mth);
 			}
 		}
+	}
+
+	private void checkFieldsCollisionWithRootPackage(List<ClassNode> classes) {
+		Set<String> rootPkgs = collectRootPkgs(classes);
+		for (ClassNode cls : classes) {
+			for (FieldNode field : cls.getFields()) {
+				if (rootPkgs.contains(field.getAlias())) {
+					deobfuscator.forceRenameField(field);
+				}
+			}
+		}
+	}
+
+	private static Set<String> collectRootPkgs(List<ClassNode> classes) {
+		Set<String> fullPkgs = new HashSet<>();
+		for (ClassNode cls : classes) {
+			fullPkgs.add(cls.getAlias().getPackage());
+		}
+		Set<String> rootPkgs = new HashSet<>();
+		for (String pkg : fullPkgs) {
+			String rootPkg = getRootPkg(pkg);
+			if (rootPkg != null) {
+				rootPkgs.add(rootPkg);
+			}
+		}
+		return rootPkgs;
+	}
+
+	@Nullable
+	private static String getRootPkg(String pkg) {
+		if (pkg.isEmpty()) {
+			return null;
+		}
+		int dotPos = pkg.indexOf('.');
+		if (dotPos < 0) {
+			return pkg;
+		}
+		return pkg.substring(0, dotPos);
 	}
 }

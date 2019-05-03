@@ -2,6 +2,7 @@ package jadx.tests.api.compiler;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.tools.JavaCompiler;
@@ -9,31 +10,28 @@ import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.nodes.ClassNode;
 
 import static javax.tools.JavaCompiler.CompilationTask;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class DynamicCompiler {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DynamicCompiler.class);
 
-	private final ClassNode clsNode;
-
+	private final List<ClassNode> clsNodeList;
 	private JavaFileManager fileManager;
 
-	private Object instance;
-
-	public DynamicCompiler(ClassNode clsNode) {
-		this.clsNode = clsNode;
+	public DynamicCompiler(List<ClassNode> clsNodeList) {
+		this.clsNodeList = clsNodeList;
 	}
 
-	public boolean compile() throws Exception {
-		String fullName = clsNode.getFullName();
-		String code = clsNode.getCode().toString();
-
+	public boolean compile() {
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 		if (compiler == null) {
 			LOG.error("Can not find compiler, please use JDK instead");
@@ -41,8 +39,10 @@ public class DynamicCompiler {
 		}
 		fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
 
-		List<JavaFileObject> jFiles = new ArrayList<>(1);
-		jFiles.add(new CharSequenceJavaFileObject(fullName, code));
+		List<JavaFileObject> jFiles = new ArrayList<>(clsNodeList.size());
+		for (ClassNode clsNode : clsNodeList) {
+			jFiles.add(new CharSequenceJavaFileObject(clsNode.getFullName(), clsNode.getCode().toString()));
+		}
 
 		CompilationTask compilerTask = compiler.getTask(null, fileManager, null, null, null, jFiles);
 		return Boolean.TRUE.equals(compilerTask.call());
@@ -52,27 +52,29 @@ public class DynamicCompiler {
 		return fileManager.getClassLoader(null);
 	}
 
-	private void makeInstance() throws Exception {
-		String fullName = clsNode.getFullName();
-		instance = getClassLoader().loadClass(fullName).getConstructor().newInstance();
+	public Object makeInstance(ClassNode cls) throws Exception {
+		String fullName = cls.getFullName();
+		return getClassLoader().loadClass(fullName).getConstructor().newInstance();
 	}
 
-	private Object getInstance() throws Exception {
-		if (instance == null) {
-			makeInstance();
-		}
-		return instance;
-	}
-
-	public Method getMethod(String method, Class<?>[] types) throws Exception {
+	@NotNull
+	public Method getMethod(Object inst, String methodName, Class<?>[] types) throws Exception {
 		for (Class<?> type : types) {
 			checkType(type);
 		}
-		return getInstance().getClass().getMethod(method, types);
+		return inst.getClass().getMethod(methodName, types);
 	}
 
-	public Object invoke(Method mth, Object... args) throws Exception {
-		return mth.invoke(getInstance(), args);
+	public Object invoke(ClassNode cls, String methodName, Class<?>[] types, Object[] args) {
+		try {
+			Object inst = makeInstance(cls);
+			Method reflMth = getMethod(inst, methodName, types);
+			assertNotNull(reflMth, "Failed to get method " + methodName + '(' + Arrays.toString(types) + ')');
+			return reflMth.invoke(inst, args);
+		} catch (Exception e) {
+			fail(e.getMessage(), e);
+			return null;
+		}
 	}
 
 	private Class<?> checkType(Class<?> type) throws ClassNotFoundException {
