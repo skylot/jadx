@@ -67,9 +67,7 @@ public class RenameVisitor extends AbstractVisitor {
 				}
 			}
 		}
-		if (args.isRenameValid()) {
-			checkFieldsCollisionWithRootPackage(classes);
-		}
+		processRootPackages(root, classes);
 	}
 
 	private void checkClassName(ClassNode cls, JadxArgs args) {
@@ -140,12 +138,17 @@ public class RenameVisitor extends AbstractVisitor {
 		}
 	}
 
-	private void checkFieldsCollisionWithRootPackage(List<ClassNode> classes) {
+	private void processRootPackages(RootNode root, List<ClassNode> classes) {
 		Set<String> rootPkgs = collectRootPkgs(classes);
-		for (ClassNode cls : classes) {
-			for (FieldNode field : cls.getFields()) {
-				if (rootPkgs.contains(field.getAlias())) {
-					deobfuscator.forceRenameField(field);
+		root.getCacheStorage().setRootPkgs(rootPkgs);
+
+		if (root.getArgs().isRenameValid()) {
+			// rename field if collide with any root package
+			for (ClassNode cls : classes) {
+				for (FieldNode field : cls.getFields()) {
+					if (rootPkgs.contains(field.getAlias())) {
+						deobfuscator.forceRenameField(field);
+					}
 				}
 			}
 		}

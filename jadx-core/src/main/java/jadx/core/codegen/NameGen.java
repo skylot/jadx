@@ -1,6 +1,6 @@
 package jadx.core.codegen;
 
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +30,7 @@ public class NameGen {
 
 	private static final Map<String, String> OBJ_ALIAS;
 
-	private final Set<String> varNames = new LinkedHashSet<>();
+	private final Set<String> varNames = new HashSet<>();
 	private final MethodNode mth;
 	private final boolean fallback;
 
@@ -67,6 +67,8 @@ public class NameGen {
 		for (ClassNode innerClass : parentClass.getInnerClasses()) {
 			varNames.add(innerClass.getAlias().getShortName());
 		}
+		// add all root package names to avoid collisions with full class names
+		varNames.addAll(mth.root().getCacheStorage().getRootPkgs());
 	}
 
 	public String assignArg(CodeVar var) {

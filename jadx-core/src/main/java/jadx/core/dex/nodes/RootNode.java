@@ -19,6 +19,7 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.InfoStorage;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.visitors.typeinference.TypeUpdate;
+import jadx.core.utils.CacheStorage;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.android.AndroidResourcesUtils;
@@ -36,6 +37,7 @@ public class RootNode {
 	private final StringUtils stringUtils;
 	private final ConstStorage constValues;
 	private final InfoStorage infoStorage = new InfoStorage();
+	private final CacheStorage cacheStorage = new CacheStorage();
 	private final TypeUpdate typeUpdate;
 
 	private ClspGraph clsp;
@@ -220,6 +222,10 @@ public class RootNode {
 
 	public InfoStorage getInfoStorage() {
 		return infoStorage;
+	}
+
+	public CacheStorage getCacheStorage() {
+		return cacheStorage;
 	}
 
 	public JadxArgs getArgs() {
