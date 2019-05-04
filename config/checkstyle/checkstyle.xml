@@ -101,6 +101,14 @@
 		<module name="PackageDeclaration"/>
 		<module name="StringLiteralEquality"/>
 
+		<!-- design -->
+		<module name="OneTopLevelClass"/>
+		<module name="MutableException"/>
+		<module name="InterfaceIsType"/>
+		<module name="ThrowsCount">
+			<property name="max" value="2"/>
+		</module>
+
 		<!-- misc -->
 		<module name="ArrayTypeStyle"/>
 		<module name="OuterTypeFilename"/>
