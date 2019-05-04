@@ -1,7 +1,6 @@
 package jadx.api;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -326,7 +325,7 @@ public final class JadxDecompiler {
 			if (!decompiled) {
 				LOG.error("Failed to find smali class {}", className);
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			LOG.error("Error generating smali", e);
 		}
 	}

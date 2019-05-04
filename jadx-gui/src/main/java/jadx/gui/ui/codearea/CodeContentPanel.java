@@ -13,7 +13,7 @@ public final class CodeContentPanel extends AbstractCodeContentPanel {
 	public CodeContentPanel(TabbedPane panel, JNode jnode) {
 		super(panel, jnode);
 		setLayout(new BorderLayout());
-		codePanel = new CodePanel(this);
+		codePanel = new CodePanel(this, new CodeArea(this));
 		add(codePanel, BorderLayout.CENTER);
 		codePanel.load();
 	}

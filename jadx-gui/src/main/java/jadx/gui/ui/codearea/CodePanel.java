@@ -22,10 +22,8 @@ public class CodePanel extends JPanel {
 	private final AbstractCodeArea codeArea;
 	private final JScrollPane codeScrollPane;
 
-	public CodePanel(ContentPanel contentPanel) {
-		super();
-
-		codeArea = createCodeArea(contentPanel);
+	public CodePanel(ContentPanel contentPanel, AbstractCodeArea codeArea) {
+		this.codeArea = codeArea;
 		searchBar = new SearchBar(codeArea);
 		codeScrollPane = new JScrollPane(codeArea);
 
@@ -41,10 +39,6 @@ public class CodePanel extends JPanel {
 				searchBar.toggle();
 			}
 		});
-	}
-
-	protected AbstractCodeArea createCodeArea(ContentPanel contentPanel) {
-		return new CodeArea(contentPanel);
 	}
 
 	public void loadSettings() {

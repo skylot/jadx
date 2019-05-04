@@ -5,7 +5,6 @@ import java.awt.BorderLayout;
 import javax.swing.JTabbedPane;
 
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.ContentPanel;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.utils.NLS;
 
@@ -27,13 +26,8 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel {
 	public ClassCodeContentPanel(TabbedPane panel, JNode jnode) {
 		super(panel, jnode);
 
-		javaCodePanel = new CodePanel(this);
-		smaliCodePanel = new CodePanel(this) {
-			@Override
-			protected AbstractCodeArea createCodeArea(ContentPanel contentPanel) {
-				return new SmaliArea(contentPanel);
-			}
-		};
+		javaCodePanel = new CodePanel(this, new CodeArea(this));
+		smaliCodePanel = new CodePanel(this, new SmaliArea(this));
 
 		setLayout(new BorderLayout());
 
