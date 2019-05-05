@@ -59,11 +59,10 @@ public class RenameVisitor extends AbstractVisitor {
 			Set<String> clsFullPaths = new HashSet<>(classes.size());
 			for (ClassNode cls : classes) {
 				ClassInfo clsInfo = cls.getClassInfo();
-				ClassInfo aliasClsInfo = clsInfo.getAlias();
-				if (!clsFullPaths.add(aliasClsInfo.getFullPath().toLowerCase())) {
+				if (!clsFullPaths.add(clsInfo.getAliasFullPath().toLowerCase())) {
 					String newShortName = deobfuscator.getClsAlias(cls);
-					clsInfo.renameShortName(newShortName);
-					clsFullPaths.add(clsInfo.getAlias().getFullPath().toLowerCase());
+					clsInfo.changeShortName(newShortName);
+					clsFullPaths.add(clsInfo.getAliasFullPath().toLowerCase());
 				}
 			}
 		}
@@ -72,14 +71,28 @@ public class RenameVisitor extends AbstractVisitor {
 
 	private void checkClassName(ClassNode cls, JadxArgs args) {
 		ClassInfo classInfo = cls.getClassInfo();
-		String clsName = classInfo.getAlias().getShortName();
+		String clsName = classInfo.getAliasShortName();
 
 		String newShortName = fixClsShortName(args, clsName);
 		if (!newShortName.equals(clsName)) {
-			classInfo.renameShortName(newShortName);
+			classInfo.changeShortName(newShortName);
 		}
-		if (classInfo.getAlias().getPackage().isEmpty()) {
-			classInfo.renamePkg(Consts.DEFAULT_PACKAGE_NAME);
+		if (args.isRenameValid()) {
+			if (classInfo.isInner()) {
+				ClassInfo parentClass = classInfo.getParentClass();
+				while (parentClass != null) {
+					if (parentClass.getAliasShortName().equals(clsName)) {
+						String clsAlias = deobfuscator.getClsAlias(cls);
+						classInfo.changeShortName(clsAlias);
+						break;
+					}
+					parentClass = parentClass.getParentClass();
+				}
+			} else {
+				if (classInfo.getAliasPkg().isEmpty()) {
+					classInfo.changePkg(Consts.DEFAULT_PACKAGE_NAME);
+				}
+			}
 		}
 	}
 
@@ -157,7 +170,7 @@ public class RenameVisitor extends AbstractVisitor {
 	private static Set<String> collectRootPkgs(List<ClassNode> classes) {
 		Set<String> fullPkgs = new HashSet<>();
 		for (ClassNode cls : classes) {
-			fullPkgs.add(cls.getAlias().getPackage());
+			fullPkgs.add(cls.getClassInfo().getAliasPkg());
 		}
 		Set<String> rootPkgs = new HashSet<>();
 		for (String pkg : fullPkgs) {

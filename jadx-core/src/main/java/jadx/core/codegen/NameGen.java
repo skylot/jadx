@@ -65,7 +65,7 @@ public class NameGen {
 			varNames.add(field.getAlias());
 		}
 		for (ClassNode innerClass : parentClass.getInnerClasses()) {
-			varNames.add(innerClass.getAlias().getShortName());
+			varNames.add(innerClass.getClassInfo().getAliasShortName());
 		}
 		// add all root package names to avoid collisions with full class names
 		varNames.addAll(mth.root().getCacheStorage().getRootPkgs());
@@ -259,10 +259,10 @@ public class NameGen {
 		if (name.startsWith("get") || name.startsWith("set")) {
 			return fromName(name.substring(3));
 		}
-		ArgType declType = callMth.getDeclClass().getAlias().getType();
 		if ("iterator".equals(name)) {
 			return "it";
 		}
+		ArgType declType = callMth.getDeclClass().getType();
 		if ("toString".equals(name)) {
 			return makeNameForType(declType);
 		}

@@ -21,7 +21,7 @@ public class SaveCode {
 		if (clsCode == null) {
 			throw new JadxRuntimeException("Code not generated for class " + cls.getFullName());
 		}
-		String fileName = cls.getClassInfo().getFullPath() + ".java";
+		String fileName = cls.getClassInfo().getAliasFullPath() + ".java";
 		if (args.isFallbackMode()) {
 			fileName += ".jadx";
 		}

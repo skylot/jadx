@@ -3,6 +3,7 @@ package jadx.core.xmlgen;
 import java.util.HashMap;
 import java.util.Map;
 
+import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
 
@@ -28,9 +29,10 @@ public class XmlDeobf {
 	private static String getNewClassName(RootNode rootNode, String old) {
 		if (DEOBF_MAP.isEmpty()) {
 			for (ClassNode classNode : rootNode.getClasses(true)) {
-				if (classNode.getAlias() != null) {
-					String oldName = classNode.getClassInfo().getFullName();
-					String newName = classNode.getAlias().getFullName();
+				ClassInfo classInfo = classNode.getClassInfo();
+				if (classInfo.hasAlias()) {
+					String oldName = classInfo.getFullName();
+					String newName = classInfo.getAliasFullName();
 					if (!oldName.equals(newName)) {
 						DEOBF_MAP.put(oldName, newName);
 					}

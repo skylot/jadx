@@ -74,7 +74,7 @@ public class AndroidResourcesUtils {
 		if (parentClass != null && parentClass.getShortName().equals("R")) {
 			clsGen.useClass(code, parentClass);
 			code.add('.');
-			code.add(declClass.getAlias().getShortName());
+			code.add(declClass.getAliasShortName());
 			return true;
 		}
 		return false;

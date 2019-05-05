@@ -459,23 +459,16 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return clsInfo;
 	}
 
-	/**
-	 * Class info for external usage (code generation and external api).
-	 */
-	public ClassInfo getAlias() {
-		return clsInfo.getAlias();
-	}
-
 	public String getShortName() {
-		return clsInfo.getAlias().getShortName();
+		return clsInfo.getAliasShortName();
 	}
 
 	public String getFullName() {
-		return clsInfo.getAlias().getFullName();
+		return clsInfo.getAliasFullName();
 	}
 
 	public String getPackage() {
-		return clsInfo.getAlias().getPackage();
+		return clsInfo.getAliasPkg();
 	}
 
 	public void setCode(CodeWriter code) {

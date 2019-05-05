@@ -36,7 +36,6 @@ import jadx.core.utils.CodegenUtils;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.CodegenException;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class ClassGen {
 
@@ -84,14 +83,14 @@ public class ClassGen {
 		int importsCount = imports.size();
 		if (importsCount != 0) {
 			List<ClassInfo> sortedImports = new ArrayList<>(imports);
-			sortedImports.sort(Comparator.comparing(classInfo -> classInfo.getAlias().getFullName()));
+			sortedImports.sort(Comparator.comparing(ClassInfo::getAliasFullName));
 			sortedImports.forEach(classInfo -> {
 				clsCode.startLine("import ");
 				ClassNode classNode = cls.root().resolveClass(classInfo);
 				if (classNode != null) {
 					clsCode.attachAnnotation(classNode);
 				}
-				clsCode.add(classInfo.getAlias().getFullName());
+				clsCode.add(classInfo.getAliasFullName());
 				clsCode.add(';');
 			});
 			clsCode.newLine();
@@ -123,7 +122,7 @@ public class ClassGen {
 		}
 
 		// 'static' and 'private' modifier not allowed for top classes (not inner)
-		if (!cls.getAlias().isInner()) {
+		if (!cls.getClassInfo().isInner()) {
 			af = af.remove(AccessFlags.ACC_STATIC).remove(AccessFlags.ACC_PRIVATE);
 		}
 
@@ -142,7 +141,7 @@ public class ClassGen {
 			clsCode.add("class ");
 		}
 		clsCode.attachDefinition(cls);
-		clsCode.add(cls.getAlias().getShortName());
+		clsCode.add(cls.getClassInfo().getAliasShortName());
 
 		addGenericMap(clsCode, cls.getGenericMap(), true);
 		clsCode.add(' ');
@@ -200,7 +199,9 @@ public class ClassGen {
 						code.add(g.getObject());
 					} else {
 						useClass(code, g);
-						if (classDeclaration && !cls.getAlias().isInner()) {
+						if (classDeclaration
+								&& !cls.getClassInfo().isInner()
+								&& cls.root().getArgs().isUseImports()) {
 							addImport(ClassInfo.fromType(cls.root(), g));
 						}
 					}
@@ -507,11 +508,11 @@ public class ClassGen {
 	}
 
 	private String useClassInternal(ClassInfo useCls, ClassInfo extClsInfo) {
-		String fullName = extClsInfo.getAlias().makeFullName();
+		String fullName = extClsInfo.getAliasFullName();
 		if (fallback || !useImports) {
 			return fullName;
 		}
-		String shortName = extClsInfo.getAlias().getShortName();
+		String shortName = extClsInfo.getAliasShortName();
 		if (extClsInfo.getPackage().equals("java.lang") && extClsInfo.getParentClass() == null) {
 			return shortName;
 		}
@@ -537,12 +538,12 @@ public class ClassGen {
 		if (extClsInfo.isDefaultPackage()) {
 			return shortName;
 		}
-		if (extClsInfo.getAlias().getPackage().equals(useCls.getAlias().getPackage())) {
-			fullName = extClsInfo.getAlias().getNameWithoutPackage();
+		if (extClsInfo.getAliasPkg().equals(useCls.getAliasPkg())) {
+			fullName = extClsInfo.getAliasNameWithoutPackage();
 		}
 		for (ClassInfo importCls : getImports()) {
 			if (!importCls.equals(extClsInfo)
-					&& importCls.getAlias().getShortName().equals(shortName)) {
+					&& importCls.getAliasShortName().equals(shortName)) {
 				if (extClsInfo.isInner()) {
 					String parent = useClassInternal(useCls, extClsInfo.getParentClass());
 					return parent + '.' + shortName;
@@ -559,9 +560,6 @@ public class ClassGen {
 		if (parentGen != null) {
 			parentGen.addImport(classInfo);
 		} else {
-			if (classInfo.isAlias()) {
-				throw new JadxRuntimeException("Don't add aliases class info to import list: " + classInfo);
-			}
 			imports.add(classInfo);
 		}
 	}
@@ -596,15 +594,15 @@ public class ClassGen {
 		if (useCls == null) {
 			return false;
 		}
-		String shortName = searchCls.getAlias().getShortName();
-		if (useCls.getAlias().getShortName().equals(shortName)) {
+		String shortName = searchCls.getAliasShortName();
+		if (useCls.getAliasShortName().equals(shortName)) {
 			return true;
 		}
 		ClassNode classNode = dex.resolveClass(useCls);
 		if (classNode != null) {
 			for (ClassNode inner : classNode.getInnerClasses()) {
-				if (inner.getAlias().getShortName().equals(shortName)
-						&& !inner.getAlias().equals(searchCls.getAlias())) {
+				if (inner.getShortName().equals(shortName)
+						&& !inner.getFullName().equals(searchCls.getAliasFullName())) {
 					return true;
 				}
 			}
@@ -621,7 +619,7 @@ public class ClassGen {
 
 	private void insertRenameInfo(CodeWriter code, ClassNode cls) {
 		ClassInfo classInfo = cls.getClassInfo();
-		if (classInfo.isRenamed()) {
+		if (classInfo.hasAlias()) {
 			code.startLine("/* renamed from: ").add(classInfo.getType().getObject()).add(" */");
 		}
 	}

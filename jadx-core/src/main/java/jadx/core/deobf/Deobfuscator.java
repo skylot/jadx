@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,7 @@ public class Deobfuscator {
 	private final List<DexNode> dexNodes;
 	private final DeobfPresets deobfPresets;
 
-	private final Map<ClassInfo, DeobfClsInfo> clsMap = new HashMap<>();
+	private final Map<ClassInfo, DeobfClsInfo> clsMap = new LinkedHashMap<>();
 	private final Map<FieldInfo, String> fldMap = new HashMap<>();
 	private final Map<MethodInfo, String> mthMap = new HashMap<>();
 
@@ -230,9 +231,19 @@ public class Deobfuscator {
 			return;
 		}
 		ClassInfo clsInfo = cls.getClassInfo();
-		String fullName = getClassFullName(clsInfo);
-		if (!fullName.equals(clsInfo.getFullName())) {
-			clsInfo.rename(cls.root(), fullName);
+		DeobfClsInfo deobfClsInfo = clsMap.get(clsInfo);
+		if (deobfClsInfo != null) {
+			clsInfo.changeShortName(deobfClsInfo.getAlias());
+			PackageNode pkgNode = deobfClsInfo.getPkg();
+			if (!clsInfo.isInner() && pkgNode.hasAnyAlias()) {
+				clsInfo.changePkg(pkgNode.getFullAlias());
+			}
+		} else if (!clsInfo.isInner()) {
+			// check if package renamed
+			PackageNode pkgNode = getPackageNode(clsInfo.getPackage(), false);
+			if (pkgNode.hasAnyAlias()) {
+				clsInfo.changePkg(pkgNode.getFullAlias());
+			}
 		}
 		for (FieldNode field : cls.getFields()) {
 			if (field.contains(AFlag.DONT_RENAME)) {
@@ -397,7 +408,7 @@ public class Deobfuscator {
 		} else if (name.endsWith(".kt")) {
 			name = name.substring(0, name.length() - ".kt".length());
 		}
-		if (!NameMapper.isValidIdentifier(name) || NameMapper.isReserved(name)) {
+		if (!NameMapper.isValidIdentifier(name) || !NameMapper.isAllCharsPrintable(name)) {
 			return null;
 		}
 		for (DeobfClsInfo deobfClsInfo : clsMap.values()) {
@@ -405,7 +416,7 @@ public class Deobfuscator {
 				return null;
 			}
 		}
-		ClassNode otherCls = cls.dex().root().searchClassByName(cls.getPackage() + '.' + name);
+		ClassNode otherCls = cls.root().searchClassByName(cls.getPackage() + '.' + name);
 		if (otherCls != null) {
 			return null;
 		}
@@ -537,10 +548,7 @@ public class Deobfuscator {
 	}
 
 	private String getClassFullName(ClassNode cls) {
-		return getClassFullName(cls.getClassInfo());
-	}
-
-	private String getClassFullName(ClassInfo clsInfo) {
+		ClassInfo clsInfo = cls.getClassInfo();
 		DeobfClsInfo deobfClsInfo = clsMap.get(clsInfo);
 		if (deobfClsInfo != null) {
 			return deobfClsInfo.getFullName();

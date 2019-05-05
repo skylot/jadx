@@ -154,7 +154,8 @@ public class PrepareForCodeGen extends AbstractVisitor {
 	private static void modifyArith(BlockNode block) {
 		List<InsnNode> list = block.getInstructions();
 		for (InsnNode insn : list) {
-			if (insn.getType() == InsnType.ARITH) {
+			if (insn.getType() == InsnType.ARITH
+					&& !insn.contains(AFlag.DECLARE_VAR)) { // TODO: move this modify before ProcessVariable
 				RegisterArg res = insn.getResult();
 				InsnArg arg = insn.getArg(0);
 				boolean replace = false;

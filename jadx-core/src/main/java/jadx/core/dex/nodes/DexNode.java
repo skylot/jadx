@@ -25,7 +25,6 @@ import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.DexFile;
 
 public class DexNode implements IDexNode {
@@ -95,9 +94,6 @@ public class DexNode implements IDexNode {
 
 	@Nullable
 	ClassNode resolveClassLocal(ClassInfo clsInfo) {
-		if (clsInfo.isAlias()) {
-			throw new JadxRuntimeException("Don't resolve class by alias: " + clsInfo);
-		}
 		return clsMap.get(clsInfo);
 	}
 

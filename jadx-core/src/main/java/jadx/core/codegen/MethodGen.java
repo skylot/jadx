@@ -187,7 +187,7 @@ public class MethodGen {
 			code.startLine("*/");
 
 			code.startLine("throw new UnsupportedOperationException(\"Method not decompiled: ")
-					.add(mth.getParentClass().getAlias().makeFullName())
+					.add(mth.getParentClass().getClassInfo().getAliasFullName())
 					.add('.')
 					.add(mth.getAlias())
 					.add('(')

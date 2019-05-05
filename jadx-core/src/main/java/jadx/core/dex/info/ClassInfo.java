@@ -12,36 +12,19 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public final class ClassInfo implements Comparable<ClassInfo> {
-
 	private final ArgType type;
-	private String pkg;
 	private String name;
+	@Nullable("for inner classes")
+	private String pkg;
 	private String fullName;
-	// for inner class not equals null
+	@Nullable
 	private ClassInfo parentClass;
-	// class info after rename (deobfuscation)
-	private ClassInfo alias;
-
-	private ClassInfo(ArgType type) {
-		this.type = checkClassType(type);
-		this.alias = this;
-	}
-
-	private ClassInfo(RootNode root, ArgType type) {
-		this(root, type, true);
-	}
+	@Nullable
+	private ClassAliasInfo alias;
 
 	private ClassInfo(RootNode root, ArgType type, boolean inner) {
-		this(type);
+		this.type = type;
 		splitAndApplyNames(root, type, inner);
-	}
-
-	private ClassInfo(ArgType type, String pkg, String name, @Nullable ClassInfo parentClass) {
-		this(type);
-		this.pkg = pkg;
-		this.name = name;
-		this.parentClass = parentClass;
-		this.fullName = makeFullClsName(name, false);
 	}
 
 	public static ClassInfo fromType(RootNode root, ArgType type) {
@@ -50,8 +33,19 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 		if (cls != null) {
 			return cls;
 		}
-		ClassInfo newClsInfo = new ClassInfo(root, clsType);
+		ClassInfo newClsInfo = new ClassInfo(root, clsType, true);
 		return root.getInfoStorage().putCls(newClsInfo);
+	}
+
+	public static ClassInfo fromDex(DexNode dex, int clsIndex) {
+		if (clsIndex == DexNode.NO_INDEX) {
+			return null;
+		}
+		return fromType(dex.root(), dex.getType(clsIndex));
+	}
+
+	public static ClassInfo fromName(RootNode root, String clsName) {
+		return fromType(root, ArgType.object(clsName));
 	}
 
 	private static ArgType checkClassType(ArgType type) {
@@ -71,135 +65,164 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 		return type;
 	}
 
-	public static ClassInfo fromDex(DexNode dex, int clsIndex) {
-		if (clsIndex == DexNode.NO_INDEX) {
-			return null;
-		}
-		return fromType(dex.root(), dex.getType(clsIndex));
-	}
-
-	public static ClassInfo fromName(RootNode root, String clsName) {
-		return fromType(root, ArgType.object(clsName));
-	}
-
-	public void rename(RootNode root, String fullName) {
-		if (!alias.makeFullName().equals(fullName)) {
-			ClassInfo newAlias = new ClassInfo(type);
-			newAlias.splitAndApplyNames(root, fullName, isInner());
-			newAlias.alias = null;
-			this.alias = newAlias;
-		}
-	}
-
-	public void renameShortName(String aliasName) {
+	public void changeShortName(String aliasName) {
 		if (!Objects.equals(name, aliasName)) {
-			ClassInfo newAlias = new ClassInfo(type, alias.pkg, aliasName, parentClass);
-			newAlias.alias = null;
+			ClassAliasInfo newAlias = new ClassAliasInfo(getAliasPkg(), aliasName);
+			fillAliasFullName(newAlias);
 			this.alias = newAlias;
 		}
 	}
 
-	public void renamePkg(String aliasPkg) {
-		if (!Objects.equals(pkg, aliasPkg)) {
-			ClassInfo newAlias = new ClassInfo(type, aliasPkg, alias.name, parentClass);
-			newAlias.alias = null;
+	public void changePkg(String aliasPkg) {
+		if (isInner()) {
+			throw new JadxRuntimeException("Can't change package for inner class");
+		}
+		if (!Objects.equals(getAliasPkg(), aliasPkg)) {
+			ClassAliasInfo newAlias = new ClassAliasInfo(aliasPkg, getAliasShortName());
+			fillAliasFullName(newAlias);
 			this.alias = newAlias;
 		}
 	}
 
-	public boolean isRenamed() {
-		return alias != this;
+	private void fillAliasFullName(ClassAliasInfo alias) {
+		if (parentClass == null) {
+			alias.setFullName(makeFullClsName(alias.getPkg(), alias.getShortName(), null, true, false));
+		}
 	}
 
-	public ClassInfo getAlias() {
-		return alias == null ? this : alias;
+	public String getAliasPkg() {
+		if (isInner()) {
+			return parentClass.getAliasPkg();
+		}
+		return alias == null ? getPackage() : alias.getPkg();
 	}
 
-	public boolean isAlias() {
-		return alias == null;
+	public String getAliasShortName() {
+		return alias == null ? getShortName() : alias.getShortName();
+	}
+
+	public String getAliasFullName() {
+		if (alias != null) {
+			String aliasFullName = alias.getFullName();
+			if (aliasFullName == null) {
+				return makeAliasFullName();
+			}
+			return aliasFullName;
+		}
+		if (parentClass != null && parentClass.hasAlias()) {
+			return makeAliasFullName();
+		}
+		return getFullName();
+	}
+
+	public boolean hasAlias() {
+		if (alias != null) {
+			return true;
+		}
+		return parentClass != null && parentClass.hasAlias();
 	}
 
 	private void splitAndApplyNames(RootNode root, ArgType type, boolean canBeInner) {
-		splitAndApplyNames(root, type.getObject(), canBeInner);
-	}
-
-	private void splitAndApplyNames(RootNode root, String fullObjectName, boolean canBeInner) {
+		String fullObjectName = type.getObject();
+		String clsPkg;
 		String clsName;
 		int dot = fullObjectName.lastIndexOf('.');
 		if (dot == -1) {
-			pkg = "";
+			clsPkg = "";
 			clsName = fullObjectName;
 		} else {
-			pkg = fullObjectName.substring(0, dot);
+			clsPkg = fullObjectName.substring(0, dot);
 			clsName = fullObjectName.substring(dot + 1);
 		}
 
 		int sep = clsName.lastIndexOf('$');
 		if (canBeInner && sep > 0 && sep != clsName.length() - 1) {
-			String parClsName = pkg + '.' + clsName.substring(0, sep);
-			if (pkg.isEmpty()) {
+			String parClsName = clsPkg + '.' + clsName.substring(0, sep);
+			if (clsPkg.isEmpty()) {
 				parClsName = clsName.substring(0, sep);
 			}
-
+			pkg = null;
 			parentClass = fromName(root, parClsName);
 			clsName = clsName.substring(sep + 1);
 		} else {
+			pkg = clsPkg;
 			parentClass = null;
 		}
 		this.name = clsName;
-		this.fullName = makeFullClsName(clsName, false);
+		this.fullName = makeFullName();
 	}
 
-	private String makeFullClsName(String shortName, boolean raw) {
+	private static String makeFullClsName(String pkg, String shortName, ClassInfo parentClass, boolean alias, boolean raw) {
 		if (parentClass != null) {
 			String innerSep = raw ? "$" : ".";
-			return parentClass.makeFullClsName(parentClass.getShortName(), raw) + innerSep + shortName;
+			String parentFullName;
+			if (alias) {
+				parentFullName = raw ? parentClass.makeAliasRawFullName() : parentClass.getAliasFullName();
+			} else {
+				parentFullName = raw ? parentClass.makeRawFullName() : parentClass.getFullName();
+			}
+			return parentFullName + innerSep + shortName;
 		}
 		return pkg.isEmpty() ? shortName : pkg + '.' + shortName;
 	}
 
-	public String makeFullName() {
-		return makeFullClsName(this.name, false);
+	private String makeFullName() {
+		return makeFullClsName(pkg, name, parentClass, false, false);
 	}
 
 	public String makeRawFullName() {
-		return makeFullClsName(this.name, true);
+		return makeFullClsName(pkg, name, parentClass, false, true);
 	}
 
-	public String getFullPath() {
-		ClassInfo usedAlias = getAlias();
-		return usedAlias.getPackage().replace('.', File.separatorChar)
+	private String makeAliasFullName() {
+		return makeFullClsName(getAliasPkg(), getAliasShortName(), parentClass, true, false);
+	}
+
+	private String makeAliasRawFullName() {
+		return makeFullClsName(pkg, name, parentClass, true, true);
+	}
+
+	public String getAliasFullPath() {
+		return getAliasPkg().replace('.', File.separatorChar)
 				+ File.separatorChar
-				+ usedAlias.getNameWithoutPackage().replace('.', '_');
+				+ getAliasNameWithoutPackage().replace('.', '_');
 	}
 
 	public String getFullName() {
-		return makeFullName();
+		return fullName;
 	}
 
 	public String getShortName() {
 		return name;
 	}
 
+	@NotNull
 	public String getPackage() {
+		if (parentClass != null) {
+			return parentClass.getPackage();
+		}
+		if (pkg == null) {
+			throw new JadxRuntimeException("Package is null for not inner class");
+		}
 		return pkg;
 	}
 
 	public boolean isDefaultPackage() {
-		return pkg.isEmpty();
+		return getPackage().isEmpty();
 	}
 
 	public String getRawName() {
 		return type.getObject();
 	}
 
-	public String getNameWithoutPackage() {
+	public String getAliasNameWithoutPackage() {
 		if (parentClass == null) {
-			return name;
+			return getAliasShortName();
 		}
-		return parentClass.getNameWithoutPackage() + '.' + name;
+		return parentClass.getAliasNameWithoutPackage() + '.' + getAliasShortName();
 	}
 
+	@Nullable
 	public ClassInfo getParentClass() {
 		return parentClass;
 	}
@@ -231,7 +254,7 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 
 	@Override
 	public String toString() {
-		return makeFullName();
+		return getFullName();
 	}
 
 	@Override
@@ -253,6 +276,6 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 
 	@Override
 	public int compareTo(@NotNull ClassInfo o) {
-		return fullName.compareTo(o.fullName);
+		return getFullName().compareTo(o.getFullName());
 	}
 }

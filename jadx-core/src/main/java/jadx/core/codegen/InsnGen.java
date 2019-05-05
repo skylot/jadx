@@ -653,7 +653,7 @@ public class InsnGen {
 				break;
 
 			case STATIC:
-				ClassInfo insnCls = mth.getParentClass().getAlias();
+				ClassInfo insnCls = mth.getParentClass().getClassInfo();
 				ClassInfo declClass = callMth.getDeclClass();
 				if (!insnCls.equals(declClass)) {
 					useClass(code, declClass);
@@ -673,7 +673,7 @@ public class InsnGen {
 	@Nullable
 	private ClassInfo getClassForSuperCall(CodeWriter code, MethodInfo callMth) {
 		ClassNode useCls = mth.getParentClass();
-		ClassInfo insnCls = useCls.getAlias();
+		ClassInfo insnCls = useCls.getClassInfo();
 		ClassInfo declClass = callMth.getDeclClass();
 		if (insnCls.equals(declClass)) {
 			return null;
