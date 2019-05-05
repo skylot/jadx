@@ -103,7 +103,9 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		}
 		RegisterArg initArg = phiInsn.getArg(0);
 		InsnNode initInsn = initArg.getAssignInsn();
-		if (initInsn == null || initArg.getSVar().getUseCount() != 1) {
+		if (initInsn == null
+				|| initInsn.contains(AFlag.DONT_GENERATE)
+				|| initArg.getSVar().getUseCount() != 1) {
 			return false;
 		}
 		if (!usedOnlyInLoop(mth, loopRegion, arg)) {

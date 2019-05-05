@@ -5,11 +5,15 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
+import com.android.dx.rop.code.AccessFlags;
+
 import jadx.core.codegen.TypeGen;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.EnumClassAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr.EnumField;
+import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
@@ -41,6 +45,11 @@ public class EnumVisitor extends AbstractVisitor {
 	@Override
 	public boolean visit(ClassNode cls) throws JadxException {
 		if (!cls.isEnum()) {
+			AccessInfo accessFlags = cls.getAccessFlags();
+			if (accessFlags.isEnum()) {
+				cls.setAccessFlags(accessFlags.remove(AccessFlags.ACC_ENUM));
+				cls.addAttr(AType.COMMENTS, "'enum' access flag removed");
+			}
 			return true;
 		}
 		// search class init method

@@ -33,14 +33,14 @@ public class TypeGen {
 	 *
 	 * @throws JadxRuntimeException for incorrect type or literal value
 	 */
-	public static String literalToString(long lit, ArgType type, IDexNode dexNode) {
-		return literalToString(lit, type, dexNode.root().getStringUtils());
+	public static String literalToString(long lit, ArgType type, IDexNode dexNode, boolean fallback) {
+		return literalToString(lit, type, dexNode.root().getStringUtils(), fallback);
 	}
 
-	public static String literalToString(long lit, ArgType type, StringUtils stringUtils) {
+	public static String literalToString(long lit, ArgType type, StringUtils stringUtils, boolean fallback) {
 		if (type == null || !type.isTypeKnown()) {
 			String n = Long.toString(lit);
-			if (Math.abs(lit) > 100) {
+			if (fallback && Math.abs(lit) > 100) {
 				StringBuilder sb = new StringBuilder();
 				sb.append(n).append("(0x").append(Long.toHexString(lit));
 				if (type == null || type.contains(PrimitiveType.FLOAT)) {

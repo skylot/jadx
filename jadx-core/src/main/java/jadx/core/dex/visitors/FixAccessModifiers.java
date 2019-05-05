@@ -28,7 +28,7 @@ public class FixAccessModifiers extends AbstractVisitor {
 			return;
 		}
 		int newVisFlag = fixVisibility(mth);
-		if (newVisFlag != 0) {
+		if (newVisFlag != -1) {
 			changeVisibility(mth, newVisFlag);
 		}
 	}
@@ -38,7 +38,7 @@ public class FixAccessModifiers extends AbstractVisitor {
 		AccessInfo newAccFlags = accessFlags.changeVisibility(newVisFlag);
 		if (newAccFlags != accessFlags) {
 			node.setAccessFlags(newAccFlags);
-			node.addAttr(AType.COMMENTS, "access modifiers changed from: " + accessFlags.rawString());
+			node.addAttr(AType.COMMENTS, "access modifiers changed from: " + accessFlags.getVisibility().rawString());
 		}
 	}
 
@@ -52,9 +52,15 @@ public class FixAccessModifiers extends AbstractVisitor {
 				// make abstract methods public
 				return AccessFlags.ACC_PUBLIC;
 			}
+			// enum constructor can't be public
+			if (accessFlags.isConstructor()
+					&& accessFlags.isPublic()
+					&& mth.getParentClass().isEnum()) {
+				return 0;
+			}
 			if (accessFlags.isConstructor() || accessFlags.isStatic()) {
 				// TODO: make public if used outside
-				return 0;
+				return -1;
 			}
 			// make other direct methods private
 			return AccessFlags.ACC_PRIVATE;
