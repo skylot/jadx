@@ -18,7 +18,6 @@ import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaPackage;
 import jadx.api.ResourceFile;
-import jadx.core.utils.files.FileUtils;
 import jadx.gui.settings.JadxSettings;
 
 public class JadxWrapper {
@@ -37,8 +36,6 @@ public class JadxWrapper {
 		try {
 			JadxArgs jadxArgs = settings.toJadxArgs();
 			jadxArgs.setInputFile(file);
-			// output folder not known yet => use input dir as a best choice
-			jadxArgs.setFsCaseSensitive(FileUtils.isCaseSensitiveFS(file.getParentFile()));
 
 			this.decompiler = new JadxDecompiler(jadxArgs);
 			this.decompiler.load();

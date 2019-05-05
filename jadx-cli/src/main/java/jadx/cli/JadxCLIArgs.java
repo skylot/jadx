@@ -85,6 +85,9 @@ public class JadxCLIArgs {
 	@Parameter(names = { "--deobf-use-sourcename" }, description = "use source file name as class name alias")
 	protected boolean deobfuscationUseSourceNameAsAlias = true;
 
+	@Parameter(names = { "--fs-case-sensitive" }, description = "treat filesystem as case sensitive, false by default")
+	protected boolean fsCaseSensitive = false;
+
 	@Parameter(names = { "--cfg" }, description = "save methods control flow graph to dot file")
 	protected boolean cfgOutput = false;
 
@@ -190,6 +193,7 @@ public class JadxCLIArgs {
 		args.setRenameCaseSensitive(isRenameCaseSensitive());
 		args.setRenameValid(isRenameValid());
 		args.setRenamePrintable(isRenamePrintable());
+		args.setFsCaseSensitive(fsCaseSensitive);
 		return args;
 	}
 
@@ -321,8 +325,11 @@ public class JadxCLIArgs {
 		}
 	}
 
-	static class RenameConverter implements IStringConverter<Set<RenameEnum>> {
+	public boolean isFsCaseSensitive() {
+		return fsCaseSensitive;
+	}
 
+	static class RenameConverter implements IStringConverter<Set<RenameEnum>> {
 		private final String paramName;
 
 		RenameConverter(String paramName) {

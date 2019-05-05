@@ -281,6 +281,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.inlineAnonymousClasses = inlineAnonymousClasses;
 	}
 
+	public void setFsCaseSensitive(boolean fsCaseSensitive) {
+		this.fsCaseSensitive = fsCaseSensitive;
+	}
+
 	public boolean isAutoStartJobs() {
 		return autoStartJobs;
 	}

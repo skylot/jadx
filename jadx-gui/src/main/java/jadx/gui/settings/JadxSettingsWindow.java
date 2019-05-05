@@ -353,6 +353,13 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JCheckBox fsCaseSensitive = new JCheckBox();
+		fsCaseSensitive.setSelected(settings.isFsCaseSensitive());
+		fsCaseSensitive.addItemListener(e -> {
+			settings.setFsCaseSensitive(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
 		SettingsGroup other = new SettingsGroup(NLS.str("preferences.decompile"));
 		other.addRow(NLS.str("preferences.threads"), threadsCount);
 		other.addRow(NLS.str("preferences.excludedPackages"), NLS.str("preferences.excludedPackages.tooltip"),
@@ -364,6 +371,7 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.respectBytecodeAccessModifiers"), respectBytecodeAccessModifiers);
 		other.addRow(NLS.str("preferences.useImports"), useImports);
 		other.addRow(NLS.str("preferences.inlineAnonymous"), inlineAnonymous);
+		other.addRow(NLS.str("preferences.fsCaseSensitive"), fsCaseSensitive);
 		other.addRow(NLS.str("preferences.fallback"), fallback);
 		other.addRow(NLS.str("preferences.skipResourcesDecode"), resourceDecode);
 		return other;

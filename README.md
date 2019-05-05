@@ -76,6 +76,7 @@ options:
   --deobf-rewrite-cfg                 - force to save deobfuscation map
   --deobf-use-sourcename              - use source file name as class name alias
   --rename-flags                      - what to rename, comma-separated, 'case' for system case sensitivity, 'valid' for java identifiers, 'printable' characters, 'none' or 'all'
+  --fs-case-sensitive                 - treat filesystem as case sensitive, false by default
   --cfg                               - save methods control flow graph to dot file
   --raw-cfg                           - save methods control flow graph (use raw instructions)
   -f, --fallback                      - make simple dump (using goto instead of 'if', 'for', etc)
