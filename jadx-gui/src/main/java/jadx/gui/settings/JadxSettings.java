@@ -1,6 +1,9 @@
 package jadx.gui.settings;
 
-import java.awt.*;
+import java.awt.Font;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Window;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -55,6 +58,10 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private Map<String, WindowLocation> windowPos = new HashMap<>();
 	private int mainWindowExtendedState = JFrame.NORMAL;
+	/**
+	 * UI setting: the width of the tree showing the classes, resources, ...
+	 */
+	private int treeWidth = 130;
 
 	private int settingsVersion = 0;
 
@@ -303,6 +310,15 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setExportAsGradleProject(boolean exportAsGradleProject) {
 		this.exportAsGradleProject = exportAsGradleProject;
+	}
+
+	public int getTreeWidth() {
+		return treeWidth;
+	}
+
+	public void setTreeWidth(int treeWidth) {
+		this.treeWidth = treeWidth;
+		partialSync(settings -> settings.treeWidth = JadxSettings.this.treeWidth);
 	}
 
 	public Font getFont() {

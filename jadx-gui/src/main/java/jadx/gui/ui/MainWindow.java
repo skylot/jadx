@@ -1,6 +1,12 @@
 package jadx.gui.ui;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.DisplayMode;
+import java.awt.Font;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
@@ -23,7 +29,27 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.ImageIcon;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
+import javax.swing.JTree;
+import javax.swing.ProgressMonitor;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.event.TreeExpansionEvent;
@@ -102,6 +128,7 @@ public class MainWindow extends JFrame {
 	private transient Action saveProjectAction;
 
 	private JPanel mainPanel;
+	private JSplitPane splitPane;
 
 	private JTree tree;
 	private DefaultTreeModel treeModel;
@@ -140,6 +167,7 @@ public class MainWindow extends JFrame {
 	public void init() {
 		pack();
 		setLocationAndPosition();
+		splitPane.setDividerLocation(settings.getTreeWidth());
 		heapUsageBar.setVisible(settings.isShowHeapUsageBar());
 		setVisible(true);
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -772,8 +800,9 @@ public class MainWindow extends JFrame {
 	}
 
 	private void initUI() {
+		setMinimumSize(new Dimension(200, 150));
 		mainPanel = new JPanel(new BorderLayout());
-		JSplitPane splitPane = new JSplitPane();
+		splitPane = new JSplitPane();
 		splitPane.setResizeWeight(SPLIT_PANE_RESIZE_WEIGHT);
 		mainPanel.add(splitPane);
 
@@ -840,11 +869,15 @@ public class MainWindow extends JFrame {
 		progressPane = new ProgressPanel(this, true);
 
 		JPanel leftPane = new JPanel(new BorderLayout());
-		leftPane.add(new JScrollPane(tree), BorderLayout.CENTER);
+		JScrollPane treeScrollPane = new JScrollPane(tree);
+		treeScrollPane.setMinimumSize(new Dimension(100, 150));
+
+		leftPane.add(treeScrollPane, BorderLayout.CENTER);
 		leftPane.add(progressPane, BorderLayout.PAGE_END);
 		splitPane.setLeftComponent(leftPane);
 
 		tabbedPane = new TabbedPane(this);
+		tabbedPane.setMinimumSize(new Dimension(150, 150));
 		splitPane.setRightComponent(tabbedPane);
 
 		new DropTarget(this, DnDConstants.ACTION_COPY, new MainDropTarget(this));
@@ -931,6 +964,7 @@ public class MainWindow extends JFrame {
 		if (!ensureProjectIsSaved()) {
 			return;
 		}
+		settings.setTreeWidth(splitPane.getDividerLocation());
 		settings.saveWindowPos(this);
 		settings.setMainWindowExtendedState(getExtendedState());
 		cancelBackgroundJobs();
