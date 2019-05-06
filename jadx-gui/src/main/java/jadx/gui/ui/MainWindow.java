@@ -125,9 +125,9 @@ public class MainWindow extends JFrame {
 	private transient Action saveProjectAction;
 
 	private JPanel mainPanel;
+	private JSplitPane splitPane;
 
 	private JTree tree;
-	private JScrollPane treeScrollPane;
 	private DefaultTreeModel treeModel;
 	private JRoot treeRoot;
 	private TabbedPane tabbedPane;
@@ -163,7 +163,7 @@ public class MainWindow extends JFrame {
 	public void init() {
 		pack();
 		setLocationAndPosition();
-		treeScrollPane.setPreferredSize(new Dimension(settings.getTreeWidth(), 0));
+		splitPane.setDividerLocation(settings.getTreeWidth());
 		heapUsageBar.setVisible(settings.isShowHeapUsageBar());
 		setVisible(true);
 		setLocationRelativeTo(null);
@@ -777,8 +777,9 @@ public class MainWindow extends JFrame {
 	}
 
 	private void initUI() {
+		setMinimumSize(new Dimension(200, 150));
 		mainPanel = new JPanel(new BorderLayout());
-		JSplitPane splitPane = new JSplitPane();
+		splitPane = new JSplitPane();
 		splitPane.setResizeWeight(SPLIT_PANE_RESIZE_WEIGHT);
 		mainPanel.add(splitPane);
 
@@ -838,12 +839,15 @@ public class MainWindow extends JFrame {
 		progressPane = new ProgressPanel(this, true);
 
 		JPanel leftPane = new JPanel(new BorderLayout());
-		treeScrollPane = new JScrollPane(tree);
+		JScrollPane treeScrollPane = new JScrollPane(tree);
+		treeScrollPane.setMinimumSize(new Dimension(100, 150));
+
 		leftPane.add(treeScrollPane, BorderLayout.CENTER);
 		leftPane.add(progressPane, BorderLayout.PAGE_END);
 		splitPane.setLeftComponent(leftPane);
 
 		tabbedPane = new TabbedPane(this);
+		tabbedPane.setMinimumSize(new Dimension(150, 150));
 		splitPane.setRightComponent(tabbedPane);
 
 		new DropTarget(this, DnDConstants.ACTION_COPY, new MainDropTarget(this));
@@ -907,7 +911,7 @@ public class MainWindow extends JFrame {
 		if (!ensureProjectIsSaved()) {
 			return;
 		}
-		settings.setTreeWidth(treeScrollPane.getWidth());
+		settings.setTreeWidth(splitPane.getDividerLocation());
 		settings.saveWindowPos(this);
 		cancelBackgroundJobs();
 		dispose();
