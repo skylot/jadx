@@ -14,16 +14,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.gui.treemodel.JClass;
+import jadx.gui.ui.ContentPanel;
 import jadx.gui.utils.JumpPosition;
 
 public class CodeLinkGenerator implements LinkGenerator, HyperlinkListener {
 	private static final Logger LOG = LoggerFactory.getLogger(CodeLinkGenerator.class);
 
-	private final CodePanel contentPanel;
+	private final ContentPanel contentPanel;
 	private final CodeArea codeArea;
 	private final JClass jCls;
 
-	public CodeLinkGenerator(CodePanel contentPanel, CodeArea codeArea, JClass cls) {
+	public CodeLinkGenerator(ContentPanel contentPanel, CodeArea codeArea, JClass cls) {
 		this.contentPanel = contentPanel;
 		this.codeArea = codeArea;
 		this.jCls = cls;

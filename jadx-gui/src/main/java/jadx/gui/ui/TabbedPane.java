@@ -23,8 +23,10 @@ import jadx.gui.treemodel.JCertificate;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
-import jadx.gui.ui.codearea.CodeArea;
-import jadx.gui.ui.codearea.CodePanel;
+import jadx.gui.ui.codearea.AbstractCodeArea;
+import jadx.gui.ui.codearea.AbstractCodeContentPanel;
+import jadx.gui.ui.codearea.ClassCodeContentPanel;
+import jadx.gui.ui.codearea.CodeContentPanel;
 import jadx.gui.utils.JumpManager;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
@@ -66,13 +68,13 @@ public class TabbedPane extends JTabbedPane {
 	}
 
 	private void showCode(final JumpPosition pos) {
-		final CodePanel contentPanel = (CodePanel) getContentPanel(pos.getNode());
+		final AbstractCodeContentPanel contentPanel = (AbstractCodeContentPanel) getContentPanel(pos.getNode());
 		if (contentPanel == null) {
 			return;
 		}
 		SwingUtilities.invokeLater(() -> {
 			setSelectedComponent(contentPanel);
-			CodeArea codeArea = contentPanel.getCodeArea();
+			AbstractCodeArea codeArea = contentPanel.getCodeArea();
 			int line = pos.getLine();
 			if (line < 0) {
 				try {
@@ -115,8 +117,8 @@ public class TabbedPane extends JTabbedPane {
 	@Nullable
 	private JumpPosition getCurrentPosition() {
 		ContentPanel selectedCodePanel = getSelectedCodePanel();
-		if (selectedCodePanel instanceof CodePanel) {
-			return ((CodePanel) selectedCodePanel).getCodeArea().getCurrentPosition();
+		if (selectedCodePanel instanceof CodeContentPanel) {
+			return ((CodeContentPanel) selectedCodePanel).getCodeArea().getCurrentPosition();
 		}
 		return null;
 	}
@@ -168,6 +170,7 @@ public class TabbedPane extends JTabbedPane {
 				if (resFile.getType() == ResourceType.IMG) {
 					return new ImagePanel(this, res);
 				}
+				return new CodeContentPanel(this, node);
 			} else {
 				return null;
 			}
@@ -178,7 +181,7 @@ public class TabbedPane extends JTabbedPane {
 		if (node instanceof JCertificate) {
 			return new CertificatePanel(this, node);
 		}
-		return new CodePanel(this, node);
+		return new ClassCodeContentPanel(this, node);
 	}
 
 	@Nullable
@@ -194,6 +197,10 @@ public class TabbedPane extends JTabbedPane {
 		panel.setOpaque(false);
 
 		final JLabel label = new JLabel(name);
+		String toolTip = contentPanel.getTabTooltip();
+		if (toolTip != null) {
+			label.setToolTipText(toolTip);
+		}
 		label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
 		label.setIcon(node.getIcon());
 

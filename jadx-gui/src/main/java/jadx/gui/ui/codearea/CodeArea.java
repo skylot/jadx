@@ -1,15 +1,9 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.Dimension;
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.JPopupMenu;
-import javax.swing.JViewport;
-import javax.swing.SwingUtilities;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.Caret;
 import javax.swing.text.DefaultCaret;
 
@@ -23,23 +17,23 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.CodePosition;
 import jadx.api.JavaNode;
-import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.ContentPanel;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.JumpPosition;
 
-public final class CodeArea extends RSyntaxTextArea {
+/**
+ * The {@link AbstractCodeArea} implementation used for displaying Java code and text based
+ * resources (e.g. AndroidManifest.xml)
+ */
+public final class CodeArea extends AbstractCodeArea {
 	private static final Logger LOG = LoggerFactory.getLogger(CodeArea.class);
 
 	private static final long serialVersionUID = 6312736869579635796L;
 
-	private final CodePanel contentPanel;
-	private final JNode node;
-
-	CodeArea(CodePanel panel) {
-		this.contentPanel = panel;
-		this.node = panel.getNode();
+	CodeArea(ContentPanel contentPanel) {
+		super(contentPanel);
 
 		setMarkOccurrences(true);
 		setEditable(false);
@@ -63,7 +57,14 @@ public final class CodeArea extends RSyntaxTextArea {
 			addMenuItems(jClsNode);
 		}
 		registerWordHighlighter();
-		setText(node.getContent());
+	}
+
+	@Override
+	public void load() {
+		if (getText().isEmpty()) {
+			setText(node.getContent());
+			setCaretPosition(0);
+		}
 	}
 
 	private void registerWordHighlighter() {
@@ -106,18 +107,6 @@ public final class CodeArea extends RSyntaxTextArea {
 		popup.addPopupMenuListener(goToDeclaration);
 	}
 
-	public void loadSettings() {
-		loadCommonSettings(contentPanel.getTabbedPane().getMainWindow(), this);
-	}
-
-	public static void loadCommonSettings(MainWindow mainWindow, RSyntaxTextArea area) {
-		area.setAntiAliasingEnabled(true);
-		mainWindow.getEditorTheme().apply(area);
-
-		JadxSettings settings = mainWindow.getSettings();
-		area.setFont(settings.getFont());
-	}
-
 	public static RSyntaxTextArea getDefaultArea(MainWindow mainWindow) {
 		RSyntaxTextArea area = new RSyntaxTextArea();
 		loadCommonSettings(mainWindow, area);
@@ -156,56 +145,4 @@ public final class CodeArea extends RSyntaxTextArea {
 		return null;
 	}
 
-	public JumpPosition getCurrentPosition() {
-		return new JumpPosition(node, getCaretLineNumber() + 1);
-	}
-
-	@Nullable
-	Integer getSourceLine(int line) {
-		return node.getSourceLine(line);
-	}
-
-	public void scrollToLine(int line) {
-		int lineNum = line - 1;
-		if (lineNum < 0) {
-			lineNum = 0;
-		}
-		setCaretAtLine(lineNum);
-		centerCurrentLine();
-		forceCurrentLineHighlightRepaint();
-	}
-
-	public void centerCurrentLine() {
-		JViewport viewport = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, this);
-		if (viewport == null) {
-			return;
-		}
-		try {
-			Rectangle r = modelToView(getCaretPosition());
-			if (r == null) {
-				return;
-			}
-			int extentHeight = viewport.getExtentSize().height;
-			Dimension viewSize = viewport.getViewSize();
-			if (viewSize == null) {
-				return;
-			}
-			int viewHeight = viewSize.height;
-
-			int y = Math.max(0, r.y - extentHeight / 2);
-			y = Math.min(y, viewHeight - extentHeight);
-
-			viewport.setViewPosition(new Point(0, y));
-		} catch (BadLocationException e) {
-			LOG.debug("Can't center current line", e);
-		}
-	}
-
-	private void setCaretAtLine(int line) {
-		try {
-			setCaretPosition(getLineStartOffset(line));
-		} catch (BadLocationException e) {
-			LOG.debug("Can't scroll to {}", line, e);
-		}
-	}
 }
