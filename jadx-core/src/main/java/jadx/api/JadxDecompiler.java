@@ -1,6 +1,8 @@
 package jadx.api;
 
 import java.io.File;
+import java.io.StringWriter;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -12,6 +14,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.jf.baksmali.Adaptors.ClassDefinition;
+import org.jf.baksmali.BaksmaliOptions;
+import org.jf.dexlib2.DexFileFactory;
+import org.jf.dexlib2.Opcodes;
+import org.jf.dexlib2.dexbacked.DexBackedClassDef;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.util.IndentingWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +34,7 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.SaveCode;
 import jadx.core.export.ExportGradleProject;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.InputFile;
 import jadx.core.xmlgen.BinaryXMLParser;
@@ -32,7 +42,9 @@ import jadx.core.xmlgen.ResourcesSaver;
 
 /**
  * Jadx API usage example:
- * <pre><code>
+ *
+ * <pre>
+ * <code>
  * JadxArgs args = new JadxArgs();
  * args.getInputFiles().add(new File("test.apk"));
  * args.setOutDir(new File("jadx-test-output"));
@@ -40,14 +52,18 @@ import jadx.core.xmlgen.ResourcesSaver;
  * JadxDecompiler jadx = new JadxDecompiler(args);
  * jadx.load();
  * jadx.save();
- * </code></pre>
+ * </code>
+ * </pre>
  * <p>
  * Instead of 'save()' you can iterate over decompiled classes:
- * <pre><code>
+ *
+ * <pre>
+ * <code>
  *  for(JavaClass cls : jadx.getClasses()) {
  *      System.out.println(cls.getCode());
  *  }
- * </code></pre>
+ * </code>
+ * </pre>
  */
 public final class JadxDecompiler {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxDecompiler.class);
@@ -249,7 +265,7 @@ public final class JadxDecompiler {
 		}
 		Collections.sort(packages);
 		for (JavaPackage pkg : packages) {
-			pkg.getClasses().sort(Comparator.comparing(JavaClass::getName));
+			pkg.getClasses().sort(Comparator.comparing(JavaClass::getName, String.CASE_INSENSITIVE_ORDER));
 		}
 		return Collections.unmodifiableList(packages);
 	}
@@ -288,6 +304,30 @@ public final class JadxDecompiler {
 
 	void processClass(ClassNode cls) {
 		ProcessClass.process(cls, passes, true);
+	}
+
+	void generateSmali(ClassNode cls) {
+		Path path = cls.dex().getDexFile().getPath();
+		String className = Utils.makeQualifiedObjectName(cls.getClassInfo().getType().getObject());
+		try {
+			DexBackedDexFile dexFile = DexFileFactory.loadDexFile(path.toFile(), Opcodes.getDefault());
+			boolean decompiled = false;
+			for (DexBackedClassDef classDef : dexFile.getClasses()) {
+				if (classDef.getType().equals(className)) {
+					ClassDefinition classDefinition = new ClassDefinition(new BaksmaliOptions(), classDef);
+					StringWriter sw = new StringWriter();
+					classDefinition.writeTo(new IndentingWriter(sw));
+					cls.setSmali(sw.toString());
+					decompiled = true;
+					break;
+				}
+			}
+			if (!decompiled) {
+				LOG.error("Failed to find smali class {}", className);
+			}
+		} catch (Exception e) {
+			LOG.error("Error generating smali", e);
+		}
 	}
 
 	RootNode getRoot() {

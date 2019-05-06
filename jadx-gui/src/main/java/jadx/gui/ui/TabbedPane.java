@@ -1,8 +1,5 @@
 package jadx.gui.ui;
 
-import javax.swing.*;
-import javax.swing.plaf.basic.BasicButtonUI;
-import javax.swing.text.BadLocationException;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -10,6 +7,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.swing.*;
+import javax.swing.plaf.basic.BasicButtonUI;
+import javax.swing.text.BadLocationException;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;

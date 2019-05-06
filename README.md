@@ -54,31 +54,38 @@ Run **jadx** on itself:
 
 ### Usage
 ```
-jadx[-gui] [options] <input file> (.dex, .apk, .jar or .class)
+jadx[-gui] [options] <input file> (.apk, .dex, .jar, .class, .smali, .zip, .aar, .arsc)
 options:
- -d,  --output-dir           - output directory
- -ds, --output-dir-src       - output directory for sources
- -dr, --output-dir-res       - output directory for resources
- -j,  --threads-count        - processing threads count
- -r,  --no-res               - do not decode resources
- -s,  --no-src               - do not decompile source code
- -e,  --export-gradle        - save as android gradle project
-      --show-bad-code        - show inconsistent code (incorrectly decompiled)
-      --no-imports           - disable use of imports, always write entire package name
-      --no-replace-consts    - don't replace constant value with matching constant field
-      --escape-unicode       - escape non latin characters in strings (with \u)
-      --deobf                - activate deobfuscation
-      --deobf-min            - min length of name
-      --deobf-max            - max length of name
-      --deobf-rewrite-cfg    - force to save deobfuscation map
-      --deobf-use-sourcename - use source file name as class name alias
-      --cfg                  - save methods control flow graph to dot file
-      --raw-cfg              - save methods control flow graph (use raw instructions)
- -f,  --fallback             - make simple dump (using goto instead of 'if', 'for', etc)
- -v,  --verbose              - verbose output
- -h,  --help                 - print this help
+  -d, --output-dir                    - output directory
+  -ds, --output-dir-src               - output directory for sources
+  -dr, --output-dir-res               - output directory for resources
+  -j, --threads-count                 - processing threads count
+  -r, --no-res                        - do not decode resources
+  -s, --no-src                        - do not decompile source code
+  -e, --export-gradle                 - save as android gradle project
+  --show-bad-code                     - show inconsistent code (incorrectly decompiled)
+  --no-imports                        - disable use of imports, always write entire package name
+  --no-debug-info                     - disable debug info
+  --no-inline-anonymous               - disable anonymous classes inline
+  --no-replace-consts                 - don't replace constant value with matching constant field
+  --escape-unicode                    - escape non latin characters in strings (with \u)
+  --respect-bytecode-access-modifiers - don't change original access modifiers
+  --deobf                             - activate deobfuscation
+  --deobf-min                         - min length of name, renamed if shorter (default: 3)
+  --deobf-max                         - max length of name, renamed if longer (default: 64)
+  --deobf-rewrite-cfg                 - force to save deobfuscation map
+  --deobf-use-sourcename              - use source file name as class name alias
+  --rename-flags                      - what to rename, comma-separated, 'case' for system case sensitivity, 'valid' for java identifiers, 'printable' characters, 'none' or 'all'
+  --cfg                               - save methods control flow graph to dot file
+  --raw-cfg                           - save methods control flow graph (use raw instructions)
+  -f, --fallback                      - make simple dump (using goto instead of 'if', 'for', etc)
+  -v, --verbose                       - verbose output
+  --version                           - print jadx version
+  -h, --help                          - print this help
 Example:
  jadx -d out classes.dex
+ jadx --rename-flags "none" classes.dex
+ jadx --rename-flags "valid,printable" classes.dex
 ```
 These options also worked on jadx-gui running from command line and override options from preferences dialog
 

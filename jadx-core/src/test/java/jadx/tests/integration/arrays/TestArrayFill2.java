@@ -14,7 +14,7 @@ public class TestArrayFill2 extends IntegrationTest {
 	public static class TestCls {
 
 		public int[] test(int a) {
-			return new int[]{1, a + 1, 2};
+			return new int[] { 1, a + 1, 2 };
 		}
 	}
 
@@ -29,7 +29,7 @@ public class TestArrayFill2 extends IntegrationTest {
 	public static class TestCls2 {
 
 		public int[] test2(int a) {
-			return new int[]{1, a++, a * 2};
+			return new int[] { 1, a++, a * 2 };
 		}
 	}
 

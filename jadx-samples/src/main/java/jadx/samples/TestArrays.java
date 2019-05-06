@@ -4,7 +4,7 @@ public class TestArrays extends AbstractTest {
 
 	public int test1(int i) {
 		// fill-array-data
-		int[] a = new int[]{1, 2, 3, 5};
+		int[] a = new int[] { 1, 2, 3, 5 };
 		return a[i];
 	}
 
@@ -22,13 +22,13 @@ public class TestArrays extends AbstractTest {
 
 	private static Object test4(int type) {
 		if (type == 1) {
-			return new int[]{1, 2};
+			return new int[] { 1, 2 };
 		} else if (type == 2) {
-			return new float[]{1, 2};
+			return new float[] { 1, 2 };
 		} else if (type == 3) {
-			return new short[]{1, 2};
+			return new short[] { 1, 2 };
 		} else if (type == 4) {
-			return new byte[]{1, 2};
+			return new byte[] { 1, 2 };
 		} else {
 			return null;
 		}

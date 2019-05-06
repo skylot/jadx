@@ -10,6 +10,7 @@ out/
 *.ipr
 *.iws
 .attach_pid*
+*.hprof
 
 **/.DS_Store
 

@@ -7,6 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.android.dex.ClassData;
 import com.android.dex.ClassData.Method;
 import com.android.dex.ClassDef;
@@ -17,13 +20,12 @@ import com.android.dex.FieldId;
 import com.android.dex.MethodId;
 import com.android.dex.ProtoId;
 import com.android.dex.TypeList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.DexFile;
 
 public class DexNode implements IDexNode {
@@ -93,6 +95,9 @@ public class DexNode implements IDexNode {
 
 	@Nullable
 	ClassNode resolveClassLocal(ClassInfo clsInfo) {
+		if (clsInfo.isAlias()) {
+			throw new JadxRuntimeException("Don't resolve class by alias: " + clsInfo);
+		}
 		return clsMap.get(clsInfo);
 	}
 

@@ -17,7 +17,7 @@ public class TestAnnotations2 extends IntegrationTest {
 
 	public static class TestCls {
 
-		@Target({ElementType.TYPE})
+		@Target(ElementType.TYPE)
 		@Retention(RetentionPolicy.RUNTIME)
 		public @interface A {
 			int i();

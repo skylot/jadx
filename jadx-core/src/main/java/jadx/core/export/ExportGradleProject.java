@@ -23,8 +23,7 @@ public class ExportGradleProject {
 
 	private static final Set<String> IGNORE_CLS_NAMES = new HashSet<>(Arrays.asList(
 			"R",
-			"BuildConfig"
-	));
+			"BuildConfig"));
 
 	private final RootNode root;
 	private final File outDir;

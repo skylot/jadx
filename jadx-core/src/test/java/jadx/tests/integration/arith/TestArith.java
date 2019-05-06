@@ -1,13 +1,13 @@
 package jadx.tests.integration.arith;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-
 import org.junit.jupiter.api.Test;
 
 import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 
 public class TestArith extends IntegrationTest {
 
@@ -25,7 +25,8 @@ public class TestArith extends IntegrationTest {
 			return a;
 		}
 
-		private static void use(int i) {}
+		private static void use(int i) {
+		}
 	}
 
 	@Test

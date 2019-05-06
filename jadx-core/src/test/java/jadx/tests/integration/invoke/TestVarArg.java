@@ -24,7 +24,7 @@ public class TestVarArg extends IntegrationTest {
 		void call() {
 			test1(1, 2);
 			test2(3, "1", 7);
-			test3(new int[]{5, 8});
+			test3(new int[] { 5, 8 });
 		}
 	}
 

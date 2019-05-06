@@ -25,7 +25,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 @JadxVisitor(
 		name = "CodeShrinkVisitor",
 		desc = "Inline variables for make code smaller",
-		runAfter = {ModVisitor.class}
+		runAfter = { ModVisitor.class }
 )
 public class CodeShrinkVisitor extends AbstractVisitor {
 
@@ -63,9 +63,9 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 			ListIterator<RegisterArg> it = args.listIterator(args.size());
 			while (it.hasPrevious()) {
 				RegisterArg arg = it.previous();
-//				if (arg.getName() != null) {
-//					continue;
-//				}
+				// if (arg.getName() != null) {
+				// continue;
+				// }
 				SSAVar sVar = arg.getSVar();
 				// allow inline only one use arg
 				if (sVar == null
@@ -122,7 +122,7 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 	}
 
 	private static boolean canMoveBetweenBlocks(InsnNode assignInsn, BlockNode assignBlock,
-	                                            BlockNode useBlock, InsnNode useInsn) {
+			BlockNode useBlock, InsnNode useInsn) {
 		if (!BlockUtils.isPathExists(assignBlock, useBlock)) {
 			return false;
 		}

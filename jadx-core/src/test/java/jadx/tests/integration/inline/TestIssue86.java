@@ -30,7 +30,7 @@ public class TestIssue86 extends IntegrationTest {
 				System.out.println(response);
 				if (response != null
 						&& (response.startsWith(SERVER_ERR)
-						|| response.startsWith(NOT_FOUND))) {
+								|| response.startsWith(NOT_FOUND))) {
 					return reportList;
 				}
 				JSONObject jsonObj = new JSONObject(response);

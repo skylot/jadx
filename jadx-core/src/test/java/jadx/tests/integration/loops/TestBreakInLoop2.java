@@ -15,7 +15,7 @@ public class TestBreakInLoop2 extends IntegrationTest {
 
 	public static class TestCls {
 		public void test(List<Integer> data) throws Exception {
-			for (; ; ) {
+			for (;;) {
 				try {
 					funcB(data);
 					break;

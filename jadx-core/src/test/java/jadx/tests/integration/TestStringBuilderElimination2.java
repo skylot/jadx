@@ -18,8 +18,8 @@ public class TestStringBuilderElimination2 extends IntegrationTest {
 
 	public static class TestCls1 {
 		public String test() {
-			return new StringBuilder("[init]").append("a1").append('c').append(2).append(0L).append(1.0f).
-					append(2.0d).append(true).toString();
+			return new StringBuilder("[init]").append("a1").append('c').append(2).append(0L).append(1.0f).append(2.0d).append(true)
+					.toString();
 		}
 	}
 
@@ -41,8 +41,7 @@ public class TestStringBuilderElimination2 extends IntegrationTest {
 			float f = 1.0f;
 			double d = 2.0d;
 			boolean b = true;
-			return new StringBuilder(sInit).append(s).append(c).append(i).append(l).append(f).
-					append(d).append(b).toString();
+			return new StringBuilder(sInit).append(s).append(c).append(i).append(l).append(f).append(d).append(b).toString();
 		}
 	}
 

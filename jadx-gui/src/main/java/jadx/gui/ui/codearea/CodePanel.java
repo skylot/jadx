@@ -1,16 +1,20 @@
 package jadx.gui.ui.codearea;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+
+import javax.swing.AbstractAction;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.KeyStroke;
 
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.ContentPanel;
 import jadx.gui.ui.TabbedPane;
+import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
 
 public final class CodePanel extends ContentPanel {
@@ -18,22 +22,41 @@ public final class CodePanel extends ContentPanel {
 
 	private final SearchBar searchBar;
 	private final CodeArea codeArea;
-	private final JScrollPane scrollPane;
+	private final SmaliArea smaliArea;
+	private final JScrollPane codeScrollPane;
+	private final JScrollPane smaliScrollPane;
+	private JTabbedPane areaTabbedPane = new JTabbedPane(JTabbedPane.BOTTOM);
 
 	public CodePanel(TabbedPane panel, JNode jnode) {
 		super(panel, jnode);
 
 		codeArea = new CodeArea(this);
+		smaliArea = new SmaliArea(this);
 		searchBar = new SearchBar(codeArea);
-		scrollPane = new JScrollPane(codeArea);
+		codeScrollPane = new JScrollPane(codeArea);
+		smaliScrollPane = new JScrollPane(smaliArea);
 		initLineNumbers();
 
 		setLayout(new BorderLayout());
 		add(searchBar, BorderLayout.NORTH);
-		add(scrollPane);
 
-		KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK);
-		Utils.addKeyBinding(codeArea, key, "SearchAction", new SearchAction());
+		areaTabbedPane.add(codeScrollPane, NLS.str("tabs.code"));
+		areaTabbedPane.add(smaliScrollPane, NLS.str("tabs.smali"));
+		add(areaTabbedPane);
+
+		KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_F, Utils.ctrlButton());
+		SearchAction searchAction = new SearchAction();
+		Utils.addKeyBinding(codeArea, key, "SearchAction", searchAction);
+		Utils.addKeyBinding(smaliArea, key, "SearchAction", searchAction);
+
+		areaTabbedPane.addChangeListener(e -> {
+			if (areaTabbedPane.getSelectedComponent() == smaliScrollPane) {
+				smaliArea.load();
+				searchBar.setRTextArea(smaliArea);
+			} else if (areaTabbedPane.getSelectedComponent() == codeScrollPane) {
+				searchBar.setRTextArea(codeArea);
+			}
+		});
 	}
 
 	private void initLineNumbers() {
@@ -41,7 +64,7 @@ public final class CodePanel extends ContentPanel {
 		if (codeArea.getDocument().getLength() <= 100_000) {
 			LineNumbers numbers = new LineNumbers(codeArea);
 			numbers.setUseSourceLines(isUseSourceLines());
-			scrollPane.setRowHeaderView(numbers);
+			codeScrollPane.setRowHeaderView(numbers);
 		}
 	}
 
@@ -90,7 +113,4 @@ public final class CodePanel extends ContentPanel {
 		return codeArea;
 	}
 
-	JScrollPane getScrollPane() {
-		return scrollPane;
-	}
 }

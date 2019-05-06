@@ -71,7 +71,7 @@ public class ParserConstants {
 	// ...end of integer flavors.
 	protected static final int TYPE_LAST_INT = 0x1f;
 
-	// Where the unit type information is.  This gives us 16 possible
+	// Where the unit type information is. This gives us 16 possible
 	// types, as defined below.
 	protected static final int COMPLEX_UNIT_SHIFT = 0;
 	protected static final int COMPLEX_UNIT_MASK = 0xf;
@@ -95,7 +95,7 @@ public class ParserConstants {
 	protected static final int COMPLEX_UNIT_FRACTION_PARENT = 1;
 
 	// Where the radix information is, telling where the decimal place
-	// appears in the mantissa.  This give us 4 possible fixed point
+	// appears in the mantissa. This give us 4 possible fixed point
 	// representations as defined below.
 	protected static final int COMPLEX_RADIX_SHIFT = 4;
 	protected static final int COMPLEX_RADIX_MASK = 0x3;
@@ -109,13 +109,13 @@ public class ParserConstants {
 	// The mantissa magnitude is 0 bits -- i.e, 0x0.nnnnnn
 	protected static final int COMPLEX_RADIX_0P23 = 3;
 
-	// Where the actual value is.  This gives us 23 bits of
-	// precision.  The top bit is the sign.
+	// Where the actual value is. This gives us 23 bits of
+	// precision. The top bit is the sign.
 	protected static final int COMPLEX_MANTISSA_SHIFT = 8;
 	protected static final int COMPLEX_MANTISSA_MASK = 0xffffff;
 
 	protected static final double MANTISSA_MULT = 1.0f / (1 << COMPLEX_MANTISSA_SHIFT);
-	protected static final double[] RADIX_MULTS = new double[]{
+	protected static final double[] RADIX_MULTS = new double[] {
 			1.0f * MANTISSA_MULT,
 			1.0f / (1 << 7) * MANTISSA_MULT,
 			1.0f / (1 << 15) * MANTISSA_MULT,
@@ -187,7 +187,7 @@ public class ParserConstants {
 	protected static final int ATTR_TYPE_REFERENCE = 1;
 	// Attribute holds a generic string.
 	protected static final int ATTR_TYPE_STRING = 1 << 1;
-	// Attribute holds an integer value.  ATTR_MIN and ATTR_MIN can
+	// Attribute holds an integer value. ATTR_MIN and ATTR_MIN can
 	// optionally specify a constrained range of possible integer values.
 	protected static final int ATTR_TYPE_INTEGER = 1 << 2;
 	// Attribute holds a boolean integer.
@@ -200,10 +200,10 @@ public class ParserConstants {
 	protected static final int ATTR_TYPE_DIMENSION = 1 << 6;
 	// Attribute holds a fraction value, such as "20%".
 	protected static final int ATTR_TYPE_FRACTION = 1 << 7;
-	// Attribute holds an enumeration.  The enumeration values are
+	// Attribute holds an enumeration. The enumeration values are
 	// supplied as additional entries in the map.
 	protected static final int ATTR_TYPE_ENUM = 1 << 16;
-	// Attribute holds a bitmaks of flags.  The flag bit values are
+	// Attribute holds a bitmaks of flags. The flag bit values are
 	// supplied as additional entries in the map.
 	protected static final int ATTR_TYPE_FLAGS = 1 << 17;
 

@@ -17,7 +17,7 @@ public class TestFinally extends IntegrationTest {
 		String test(Context context, Object uri) {
 			Cursor cursor = null;
 			try {
-				String[] projection = {DISPLAY_NAME};
+				String[] projection = { DISPLAY_NAME };
 				cursor = context.query(uri, projection);
 				int columnIndex = cursor.getColumnIndexOrThrow(DISPLAY_NAME);
 				cursor.moveToFirst();

@@ -37,7 +37,8 @@ import jadx.core.utils.exceptions.JadxException;
 		desc = "Remove synthetic classes, methods and fields",
 		runAfter = {
 				ModVisitor.class,
-				FixAccessModifiers.class
+				FixAccessModifiers.class,
+				ProcessAnonymous.class
 		}
 )
 public class ClassModifier extends AbstractVisitor {
@@ -51,7 +52,6 @@ public class ClassModifier extends AbstractVisitor {
 			cls.add(AFlag.DONT_GENERATE);
 			return false;
 		}
-		cls.markAnonymousClass();
 		removeSyntheticFields(cls);
 		cls.getMethods().forEach(ClassModifier::removeSyntheticMethods);
 		cls.getMethods().forEach(ClassModifier::removeEmptyMethods);
@@ -73,7 +73,7 @@ public class ClassModifier extends AbstractVisitor {
 		if (cls.getAccessFlags().isStatic()) {
 			return;
 		}
-		boolean inline = cls.contains(AFlag.ANONYMOUS_CLASS);
+		boolean inline = cls.isAnonymous();
 		if (inline || cls.getClassInfo().isInner()) {
 			for (FieldNode field : cls.getFields()) {
 				if (field.getAccessFlags().isSynthetic() && field.getType().isObject()) {

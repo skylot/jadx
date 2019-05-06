@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.IfOp;
 import jadx.core.dex.instructions.InsnType;
@@ -155,7 +156,7 @@ public class ConditionGen extends InsnGen {
 	}
 
 	private boolean isWrapNeeded(IfCondition condition) {
-		if (condition.isCompare()) {
+		if (condition.isCompare() || condition.contains(AFlag.DONT_WRAP)) {
 			return false;
 		}
 		return condition.getMode() != Mode.NOT;

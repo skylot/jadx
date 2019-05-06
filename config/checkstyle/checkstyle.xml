@@ -1,0 +1,116 @@
+<?xml version="1.0" ?>
+
+<!DOCTYPE module PUBLIC
+		"-//Puppy Crawl//DTD Check Configuration 1.2//EN"
+		"http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
+
+<module name="Checker">
+	<property name="fileExtensions" value="java, properties, xml"/>
+	<property name="charset" value="UTF-8"/>
+
+	<module name="TreeWalker">
+		<property name="tabWidth" value="4"/>
+		<module name="RegexpSinglelineJava">
+			<property name="format" value="^\t* "/>
+			<property name="message" value="Indent must use tab characters"/>
+			<property name="ignoreComments" value="true"/>
+		</module>
+		<module name="RegexpSinglelineJava">
+			<property name="format" value="^(?!\s+\* $).*?\s+$"/>
+			<property name="message" value="Line has trailing spaces."/>
+		</module>
+		<module name="AvoidEscapedUnicodeCharacters">
+			<property name="allowEscapesForControlCharacters" value="true"/>
+			<property name="allowByTailComment" value="true"/>
+			<property name="allowNonPrintableEscapes" value="true"/>
+		</module>
+
+		<module name="EmptyLineSeparator">
+			<property name="allowNoEmptyLineBetweenFields" value="true"/>
+			<property name="allowMultipleEmptyLines" value="false"/>
+		</module>
+
+		<!-- whitespaces -->
+		<module name="SingleSpaceSeparator"/>
+		<module name="GenericWhitespace"/>
+		<module name="MethodParamPad"/>
+		<module name="NoWhitespaceBefore"/>
+		<module name="OperatorWrap"/>
+		<module name="ParenPad"/>
+		<module name="TypecastParenPad"/>
+		<module name="WhitespaceAfter"/>
+		<module name="WhitespaceAround">
+			<property name="allowEmptyMethods" value="true"/>
+		</module>
+		<!-- <module name="EmptyForIteratorPad"/> -->
+		<!-- <module name="NoWhitespaceAfter"/>-->
+
+		<module name="NoLineWrap"/>
+
+		<module name="IllegalImport"/> <!-- defaults to sun.* packages -->
+		<module name="RedundantImport"/>
+		<module name="UnusedImports"/>
+		<!-- <module name="AvoidStarImport"/> -->
+
+		<module name="NeedBraces"/>
+		<module name="LeftCurly"/>
+		<module name="RightCurly"/>
+		<module name="EmptyCatchBlock">
+			<property name="exceptionVariableName" value="expected|ignore"/>
+		</module>
+
+		<!-- naming -->
+		<module name="PackageName"/>
+		<module name="TypeName"/>
+		<module name="InterfaceTypeParameterName"/>
+		<module name="ClassTypeParameterName"/>
+		<module name="StaticVariableName"/>
+		<module name="ConstantName"/>
+		<module name="MemberName"/>
+		<module name="MethodName"/>
+		<module name="MethodTypeParameterName"/>
+		<module name="ParameterName"/>
+		<module name="LambdaParameterName"/>
+		<module name="LocalVariableName"/>
+		<module name="LocalFinalVariableName"/>
+		<module name="CatchParameterName"/>
+		<!-- <module name="HiddenField"/> -->
+
+		<!-- annotations -->
+		<module name="AnnotationLocation"/>
+		<module name="AnnotationUseStyle"/>
+		<module name="MissingOverride"/>
+		<!-- <module name="MissingDeprecated"/> -->
+
+		<module name="ModifierOrder"/>
+		<!-- <module name="RedundantModifier"/> -->
+		<!-- <module name="ParameterNumber"/> -->
+
+		<module name="EmptyStatement"/>
+		<module name="DefaultComesLast"/>
+		<module name="EqualsHashCode"/>
+		<module name="FallThrough"/>
+		<!-- <module name="IllegalCatch"/> -->
+		<module name="IllegalThrows"/>
+		<module name="IllegalType"/>
+		<module name="InnerAssignment"/>
+		<module name="MultipleVariableDeclarations"/>
+		<module name="NoClone"/>
+		<module name="NoFinalizer"/>
+		<module name="OneStatementPerLine"/>
+		<module name="PackageDeclaration"/>
+		<module name="StringLiteralEquality"/>
+
+		<!-- misc -->
+		<module name="ArrayTypeStyle"/>
+		<module name="OuterTypeFilename"/>
+
+		<!-- sizes -->
+		<module name="OuterTypeNumber"/>
+
+		<module name="SuppressWarningsHolder"/>
+	</module>
+
+	<module name="NewlineAtEndOfFile"/>
+	<module name="SuppressWarningsFilter"/>
+</module>

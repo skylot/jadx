@@ -31,7 +31,6 @@ public class TestArrayForEach extends IntegrationTest {
 				"for (int n : a) {",
 				indent(1) + "sum += n;",
 				"}",
-				"return sum;"
-		));
+				"return sum;"));
 	}
 }

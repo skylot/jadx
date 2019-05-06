@@ -28,9 +28,11 @@ public class TestTypeResolver7 extends IntegrationTest {
 			return null;
 		}
 
-		private void use(Exception e) {}
+		private void use(Exception e) {
+		}
 
-		private void use(Runnable r) {}
+		private void use(Runnable r) {
+		}
 	}
 
 	@Test

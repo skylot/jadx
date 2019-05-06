@@ -121,6 +121,7 @@ public class AttributeStorage {
 		if (list.isEmpty()) {
 			return "";
 		}
+		list.sort(String::compareTo);
 		return "A[" + Utils.listToString(list) + ']';
 	}
 }

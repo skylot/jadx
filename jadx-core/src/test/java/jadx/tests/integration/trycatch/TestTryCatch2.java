@@ -11,12 +11,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestTryCatch2 extends IntegrationTest {
 
 	public static class TestCls {
-		private final static Object obj = new Object();
+		private static final Object OBJ = new Object();
 
 		public static boolean test() {
 			try {
-				synchronized (obj) {
-					obj.wait(5);
+				synchronized (OBJ) {
+					OBJ.wait(5);
 				}
 				return true;
 			} catch (InterruptedException e) {
@@ -31,8 +31,8 @@ public class TestTryCatch2 extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsString("try {"));
-		assertThat(code, containsString("synchronized (obj) {"));
-		assertThat(code, containsString("obj.wait(5);"));
+		assertThat(code, containsString("synchronized (OBJ) {"));
+		assertThat(code, containsString("OBJ.wait(5);"));
 		assertThat(code, containsString("return true;"));
 		assertThat(code, containsString("} catch (InterruptedException e) {"));
 		assertThat(code, containsString("return false;"));

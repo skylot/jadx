@@ -10,22 +10,24 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestComplexIf2 extends SmaliTest {
 
-/*
-    public void test() {
-        if (this.isSaved) {
-            throw new RuntimeException("Error");
-        }
-        if (LoaderUtils.isContextLoaderAvailable()) {
-            this.savedContextLoader = LoaderUtils.getContextClassLoader();
-            ClassLoader loader = this;
-            if (this.project != null && "simple".equals(this.project)) {
-                loader = getClass().getClassLoader();
-            }
-            LoaderUtils.setContextClassLoader(loader);
-            this.isSaved = true;
-        }
-    }
-*/
+	// @formatter:off
+	/*
+		public void test() {
+			if (this.isSaved) {
+				throw new RuntimeException("Error");
+			}
+			if (LoaderUtils.isContextLoaderAvailable()) {
+				this.savedContextLoader = LoaderUtils.getContextClassLoader();
+				ClassLoader loader = this;
+				if (this.project != null && "simple".equals(this.project)) {
+					loader = getClass().getClassLoader();
+				}
+				LoaderUtils.setContextClassLoader(loader);
+				this.isSaved = true;
+			}
+		}
+	*/
+	// @formatter:on
 
 	@Test
 	public void test() {

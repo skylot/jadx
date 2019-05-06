@@ -1,12 +1,12 @@
 package jadx.tests.integration.conditions;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-
 import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 
 public class TestCast extends IntegrationTest {
 
@@ -41,6 +41,7 @@ public class TestCast extends IntegrationTest {
 
 		public void write(byte b) {
 		}
+
 		public void write(short b) {
 		}
 	}

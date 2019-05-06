@@ -56,7 +56,8 @@ public class TestReturnWrapping extends IntegrationTest {
 		assertThat(code, containsString("return arg0 + 1;"));
 
 		// TODO: reduce code vars by name
-//		assertThat(code, containsString("return i > 128 ? arg0.toString() + ret.toString() : Integer.valueOf(i);"));
+		// assertThat(code, containsString("return i > 128 ? arg0.toString() + ret.toString() :
+		// Integer.valueOf(i);"));
 		assertThat(code, containsString("return i2 > 128 ? arg0.toString() + ret.toString() : Integer.valueOf(i2);"));
 
 		assertThat(code, containsString("return arg0 + 2;"));

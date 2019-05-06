@@ -105,7 +105,7 @@ public class IfRegionVisitor extends AbstractVisitor {
 	private static void moveReturnToThenBlock(MethodNode mth, IfRegion ifRegion) {
 		if (!mth.getReturnType().equals(ArgType.VOID)
 				&& hasSimpleReturnBlock(ifRegion.getElseRegion())
-			/*&& insnsCount(ifRegion.getThenRegion()) < 2*/) {
+		/* && insnsCount(ifRegion.getThenRegion()) < 2 */) {
 			invertIfRegion(ifRegion);
 		}
 	}

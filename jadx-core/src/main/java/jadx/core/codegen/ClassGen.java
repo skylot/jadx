@@ -36,6 +36,7 @@ import jadx.core.utils.CodegenUtils;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.CodegenException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class ClassGen {
 
@@ -141,7 +142,7 @@ public class ClassGen {
 			clsCode.add("class ");
 		}
 		clsCode.attachDefinition(cls);
-		clsCode.add(cls.getShortName());
+		clsCode.add(cls.getAlias().getShortName());
 
 		addGenericMap(clsCode, cls.getGenericMap(), true);
 		clsCode.add(' ');
@@ -161,7 +162,7 @@ public class ClassGen {
 			} else {
 				clsCode.add("implements ");
 			}
-			for (Iterator<ArgType> it = cls.getInterfaces().iterator(); it.hasNext(); ) {
+			for (Iterator<ArgType> it = cls.getInterfaces().iterator(); it.hasNext();) {
 				ArgType interf = it.next();
 				useClass(clsCode, interf);
 				if (it.hasNext()) {
@@ -193,15 +194,14 @@ public class ClassGen {
 			}
 			if (list != null && !list.isEmpty()) {
 				code.add(" extends ");
-				for (Iterator<ArgType> it = list.iterator(); it.hasNext(); ) {
+				for (Iterator<ArgType> it = list.iterator(); it.hasNext();) {
 					ArgType g = it.next();
 					if (g.isGenericType()) {
 						code.add(g.getObject());
 					} else {
 						useClass(code, g);
-
 						if (classDeclaration && !cls.getAlias().isInner()) {
-							addImport(ClassInfo.extCls(cls.root(), g));
+							addImport(ClassInfo.fromType(cls.root(), g));
 						}
 					}
 					if (it.hasNext()) {
@@ -228,8 +228,7 @@ public class ClassGen {
 
 	private void addInnerClasses(CodeWriter code, ClassNode cls) throws CodegenException {
 		for (ClassNode innerCls : cls.getInnerClasses()) {
-			if (innerCls.contains(AFlag.DONT_GENERATE)
-					|| innerCls.contains(AFlag.ANONYMOUS_CLASS)) {
+			if (innerCls.contains(AFlag.DONT_GENERATE)) {
 				continue;
 			}
 			ClassGen inClGen = new ClassGen(innerCls, getParentGen());
@@ -332,7 +331,7 @@ public class ClassGen {
 	private void insertDecompilationProblems(CodeWriter code, AttrNode node) {
 		List<JadxError> errors = node.getAll(AType.JADX_ERROR);
 		if (!errors.isEmpty()) {
-			errors.forEach(err -> {
+			errors.stream().sorted().forEach(err -> {
 				code.startLine("/*  JADX ERROR: ").add(err.getError());
 				Throwable cause = err.getCause();
 				if (cause != null) {
@@ -345,7 +344,7 @@ public class ClassGen {
 		}
 		List<String> warns = node.getAll(AType.JADX_WARN);
 		if (!warns.isEmpty()) {
-			warns.stream().distinct()
+			warns.stream().distinct().sorted()
 					.forEach(warn -> code.startLine("/* JADX WARNING: ").addMultiLine(warn).add(" */"));
 		}
 	}
@@ -400,7 +399,7 @@ public class ClassGen {
 			return;
 		}
 		InsnGen igen = null;
-		for (Iterator<EnumField> it = enumFields.getFields().iterator(); it.hasNext(); ) {
+		for (Iterator<EnumField> it = enumFields.getFields().iterator(); it.hasNext();) {
 			EnumField f = it.next();
 			code.startLine(f.getField().getAlias());
 			ConstructorInsn constrInsn = f.getConstrInsn();
@@ -462,7 +461,7 @@ public class ClassGen {
 	}
 
 	public void useClass(CodeWriter code, ArgType type) {
-		useClass(code, ClassInfo.extCls(cls.root(), type));
+		useClass(code, ClassInfo.fromType(cls.root(), type));
 		ArgType[] generics = type.getGenericTypes();
 		if (generics != null) {
 			code.add('<');
@@ -503,16 +502,16 @@ public class ClassGen {
 	}
 
 	private void addClsName(CodeWriter code, ClassInfo classInfo) {
-		String clsName = useClassInternal(cls.getAlias(), classInfo.getAlias());
+		String clsName = useClassInternal(cls.getClassInfo(), classInfo);
 		code.add(clsName);
 	}
 
 	private String useClassInternal(ClassInfo useCls, ClassInfo extClsInfo) {
-		String fullName = extClsInfo.getFullName();
+		String fullName = extClsInfo.getAlias().makeFullName();
 		if (fallback || !useImports) {
 			return fullName;
 		}
-		String shortName = extClsInfo.getShortName();
+		String shortName = extClsInfo.getAlias().getShortName();
 		if (extClsInfo.getPackage().equals("java.lang") && extClsInfo.getParentClass() == null) {
 			return shortName;
 		}
@@ -538,14 +537,14 @@ public class ClassGen {
 		if (extClsInfo.isDefaultPackage()) {
 			return shortName;
 		}
-		if (extClsInfo.getPackage().equals(useCls.getPackage())) {
-			fullName = extClsInfo.getNameWithoutPackage();
+		if (extClsInfo.getAlias().getPackage().equals(useCls.getAlias().getPackage())) {
+			fullName = extClsInfo.getAlias().getNameWithoutPackage();
 		}
 		for (ClassInfo importCls : getImports()) {
 			if (!importCls.equals(extClsInfo)
-					&& importCls.getShortName().equals(shortName)) {
+					&& importCls.getAlias().getShortName().equals(shortName)) {
 				if (extClsInfo.isInner()) {
-					String parent = useClassInternal(useCls, extClsInfo.getParentClass().getAlias());
+					String parent = useClassInternal(useCls, extClsInfo.getParentClass());
 					return parent + '.' + shortName;
 				} else {
 					return fullName;
@@ -558,8 +557,11 @@ public class ClassGen {
 
 	private void addImport(ClassInfo classInfo) {
 		if (parentGen != null) {
-			parentGen.addImport(classInfo.getAlias());
+			parentGen.addImport(classInfo);
 		} else {
+			if (classInfo.isAlias()) {
+				throw new JadxRuntimeException("Don't add aliases class info to import list: " + classInfo);
+			}
 			imports.add(classInfo);
 		}
 	}
@@ -594,15 +596,15 @@ public class ClassGen {
 		if (useCls == null) {
 			return false;
 		}
-		String shortName = searchCls.getShortName();
-		if (useCls.getShortName().equals(shortName)) {
+		String shortName = searchCls.getAlias().getShortName();
+		if (useCls.getAlias().getShortName().equals(shortName)) {
 			return true;
 		}
 		ClassNode classNode = dex.resolveClass(useCls);
 		if (classNode != null) {
 			for (ClassNode inner : classNode.getInnerClasses()) {
-				if (inner.getShortName().equals(shortName)
-						&& !inner.getAlias().equals(searchCls)) {
+				if (inner.getAlias().getShortName().equals(shortName)
+						&& !inner.getAlias().equals(searchCls.getAlias())) {
 					return true;
 				}
 			}

@@ -11,9 +11,12 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
+import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.regions.conditions.IfCondition;
+import jadx.core.dex.regions.conditions.IfCondition.Mode;
 import jadx.core.dex.visitors.regions.variables.ProcessVariables;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.exceptions.JadxException;
@@ -26,7 +29,7 @@ import jadx.core.utils.exceptions.JadxException;
 @JadxVisitor(
 		name = "PrepareForCodeGen",
 		desc = "Prepare instructions for code generation pass",
-		runAfter = {CodeShrinkVisitor.class, ClassModifier.class, ProcessVariables.class}
+		runAfter = { CodeShrinkVisitor.class, ClassModifier.class, ProcessVariables.class }
 )
 public class PrepareForCodeGen extends AbstractVisitor {
 
@@ -42,7 +45,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 			}
 			removeInstructions(block);
 			checkInline(block);
-//			removeParenthesis(block);
+			removeParenthesis(block);
 			modifyArith(block);
 		}
 	}
@@ -67,8 +70,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 					break;
 
 				case MOVE:
-					// remove redundant moves:
-					//   unused result and same args names (a = a;)
+					// remove redundant moves: unused result and same args names (a = a;)
 					RegisterArg result = insn.getResult();
 					if (result.getSVar().getUseCount() == 0
 							&& result.isNameEquals(insn.getArg(0))) {
@@ -99,34 +101,48 @@ public class PrepareForCodeGen extends AbstractVisitor {
 
 	private static void removeParenthesis(BlockNode block) {
 		for (InsnNode insn : block.getInstructions()) {
-			checkInsn(insn);
+			removeParenthesis(insn);
 		}
 	}
 
 	/**
-	 * Remove parenthesis for wrapped insn  in arith '+' or '-'
+	 * Remove parenthesis for wrapped insn in arith '+' or '-'
 	 * ('(a + b) +c' => 'a + b + c')
 	 */
-	private static void checkInsn(InsnNode insn) {
+	private static void removeParenthesis(InsnNode insn) {
 		if (insn.getType() == InsnType.ARITH) {
 			ArithNode arith = (ArithNode) insn;
 			ArithOp op = arith.getOp();
-			if (op == ArithOp.ADD || op == ArithOp.SUB) {
+			if (op == ArithOp.ADD || op == ArithOp.MUL || op == ArithOp.AND || op == ArithOp.OR) {
 				for (int i = 0; i < 2; i++) {
 					InsnArg arg = arith.getArg(i);
 					if (arg.isInsnWrap()) {
 						InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
-						wrapInsn.add(AFlag.DONT_WRAP);
-						checkInsn(wrapInsn);
+						if (wrapInsn.getType() == InsnType.ARITH && ((ArithNode) wrapInsn).getOp() == op) {
+							wrapInsn.add(AFlag.DONT_WRAP);
+						}
+						removeParenthesis(wrapInsn);
 					}
 				}
 			}
 		} else {
+			if (insn.getType() == InsnType.TERNARY) {
+				removeParenthesis(((TernaryInsn) insn).getCondition());
+			}
 			for (InsnArg arg : insn.getArguments()) {
 				if (arg.isInsnWrap()) {
 					InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
-					checkInsn(wrapInsn);
+					removeParenthesis(wrapInsn);
 				}
+			}
+		}
+	}
+
+	private static void removeParenthesis(IfCondition cond) {
+		Mode mode = cond.getMode();
+		for (IfCondition c : cond.getArgs()) {
+			if (c.getMode() == mode) {
+				c.add(AFlag.DONT_WRAP);
 			}
 		}
 	}

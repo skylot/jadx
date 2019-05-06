@@ -27,9 +27,6 @@ public class TypeInfo {
 
 	@Override
 	public String toString() {
-		return "TypeInfo{" +
-				"type=" + type +
-				", bounds=" + bounds +
-				'}';
+		return "TypeInfo{type=" + type + ", bounds=" + bounds + '}';
 	}
 }

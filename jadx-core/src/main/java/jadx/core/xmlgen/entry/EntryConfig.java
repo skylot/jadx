@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package jadx.core.xmlgen.entry;
 
 import org.slf4j.Logger;
@@ -21,7 +22,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Original source code can be found
- * <a href="https://raw.githubusercontent.com/iBotPeaches/Apktool/master/brut.apktool/apktool-lib/src/main/java/brut/androlib/res/data/ResConfigFlags.java">here</a>
+ * <a href=
+ * "https://raw.githubusercontent.com/iBotPeaches/Apktool/master/brut.apktool/apktool-lib/src/main/java/brut/androlib/res/data/ResConfigFlags.java">here</a>
  */
 
 public class EntryConfig {
@@ -64,13 +66,13 @@ public class EntryConfig {
 	private final int size;
 
 	public EntryConfig(short mcc, short mnc, char[] language,
-	                   char[] region, byte orientation,
-	                   byte touchscreen, int density, byte keyboard, byte navigation,
-	                   byte inputFlags, short screenWidth, short screenHeight,
-	                   short sdkVersion, byte screenLayout, byte uiMode,
-	                   short smallestScreenWidthDp, short screenWidthDp,
-	                   short screenHeightDp, char[] localeScript, char[] localeVariant,
-	                   byte screenLayout2, byte colorMode, boolean isInvalid, int size) {
+			char[] region, byte orientation,
+			byte touchscreen, int density, byte keyboard, byte navigation,
+			byte inputFlags, short screenWidth, short screenHeight,
+			short sdkVersion, byte screenLayout, byte uiMode,
+			short smallestScreenWidthDp, short screenWidthDp,
+			short screenHeightDp, char[] localeScript, char[] localeVariant,
+			byte screenLayout2, byte colorMode, boolean isInvalid, int size) {
 		if (orientation < 0 || orientation > 3) {
 			LOG.warn("Invalid orientation value: {}", orientation);
 			orientation = 0;
@@ -394,7 +396,8 @@ public class EntryConfig {
 	}
 
 	private short getNaturalSdkVersionRequirement() {
-		if ((uiMode & MASK_UI_MODE_TYPE) == UI_MODE_TYPE_VR_HEADSET || (colorMode & COLOR_WIDE_MASK) != 0 || ((colorMode & COLOR_HDR_MASK) != 0)) {
+		if ((uiMode & MASK_UI_MODE_TYPE) == UI_MODE_TYPE_VR_HEADSET || (colorMode & COLOR_WIDE_MASK) != 0
+				|| ((colorMode & COLOR_HDR_MASK) != 0)) {
 			return SDK_OREO;
 		}
 		if ((screenLayout2 & MASK_SCREENROUND) != 0) {
@@ -421,8 +424,8 @@ public class EntryConfig {
 		// check for old style non BCP47 tags
 		// allows values-xx-rXX, values-xx, values-xxx-rXX
 		// denies values-xxx, anything else
-		if (localeVariant == null && localeScript == null && (region[0] != '\00' || language[0] != '\00') &&
-			    region.length != 3) {
+		if (localeVariant == null && localeScript == null && (region[0] != '\00' || language[0] != '\00')
+				&& region.length != 3) {
 			sb.append('-').append(language);
 			if (region[0] != '\00') {
 				sb.append("-r").append(region);

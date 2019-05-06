@@ -5,11 +5,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.android.dx.rop.code.AccessFlags;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.android.dx.rop.code.AccessFlags;
 
 import jadx.core.codegen.ClassGen;
 import jadx.core.codegen.CodeWriter;
@@ -103,8 +104,7 @@ public class AndroidResourcesUtils {
 			final String resTypeName = resource.getTypeName();
 			ClassNode typeCls = innerClsMap.computeIfAbsent(
 					resTypeName,
-					name -> addClassForResType(resCls, rClsExists, name)
-			);
+					name -> addClassForResType(resCls, rClsExists, name));
 			final String resName;
 			if ("style".equals(resTypeName)) {
 				resName = resource.getKeyName().replace('.', '_');

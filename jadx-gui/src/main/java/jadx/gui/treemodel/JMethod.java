@@ -1,7 +1,8 @@
 package jadx.gui.treemodel;
 
-import javax.swing.*;
 import java.util.Iterator;
+
+import javax.swing.*;
 
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
@@ -77,7 +78,7 @@ public class JMethod extends JNode {
 			base.append(mth.getName());
 		}
 		base.append('(');
-		for (Iterator<ArgType> it = mth.getArguments().iterator(); it.hasNext(); ) {
+		for (Iterator<ArgType> it = mth.getArguments().iterator(); it.hasNext();) {
 			base.append(Utils.typeStr(it.next()));
 			if (it.hasNext()) {
 				base.append(", ");

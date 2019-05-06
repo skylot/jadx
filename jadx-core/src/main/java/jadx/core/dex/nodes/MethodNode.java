@@ -7,14 +7,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.android.dex.ClassData.Method;
-import com.android.dex.Code;
-import com.android.dex.Code.CatchHandler;
-import com.android.dex.Code.Try;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.android.dex.ClassData.Method;
+import com.android.dex.Code;
+import com.android.dex.Code.CatchHandler;
+import com.android.dex.Code.Try;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -154,7 +155,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 			for (RegisterArg arg : list) {
 				if (arg.getRegNum() >= regsCount) {
 					throw new JadxRuntimeException("Incorrect register number in instruction: " + insnNode
-						                               + ", expected to be less than " + regsCount);
+							+ ", expected to be less than " + regsCount);
 				}
 			}
 		}

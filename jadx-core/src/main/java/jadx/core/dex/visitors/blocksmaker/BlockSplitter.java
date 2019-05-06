@@ -30,13 +30,12 @@ public class BlockSplitter extends AbstractVisitor {
 
 	// leave these instructions alone in block node
 	private static final Set<InsnType> SEPARATE_INSNS = EnumSet.of(
-		InsnType.RETURN,
-		InsnType.IF,
-		InsnType.SWITCH,
-		InsnType.MONITOR_ENTER,
-		InsnType.MONITOR_EXIT,
-		InsnType.THROW
-	);
+			InsnType.RETURN,
+			InsnType.IF,
+			InsnType.SWITCH,
+			InsnType.MONITOR_ENTER,
+			InsnType.MONITOR_EXIT,
+			InsnType.THROW);
 
 	public static boolean makeSeparate(InsnType insnType) {
 		return SEPARATE_INSNS.contains(insnType);
@@ -88,8 +87,8 @@ public class BlockSplitter extends AbstractVisitor {
 			if (prevInsn != null) {
 				InsnType type = prevInsn.getType();
 				if (type == InsnType.GOTO
-					    || type == InsnType.THROW
-					    || makeSeparate(type)) {
+						|| type == InsnType.THROW
+						|| makeSeparate(type)) {
 
 					if (type == InsnType.RETURN || type == InsnType.THROW) {
 						mth.addExitBlock(curBlock);
@@ -102,11 +101,11 @@ public class BlockSplitter extends AbstractVisitor {
 					startNew = true;
 				} else {
 					startNew = isSplitByJump(prevInsn, insn)
-						           || makeSeparate(insn.getType())
-						           || isDoWhile(blocksMap, curBlock, insn)
-						           || insn.contains(AType.EXC_HANDLER)
-						           || prevInsn.contains(AFlag.TRY_LEAVE)
-						           || prevInsn.getType() == InsnType.MOVE_EXCEPTION;
+							|| makeSeparate(insn.getType())
+							|| isDoWhile(blocksMap, curBlock, insn)
+							|| insn.contains(AType.EXC_HANDLER)
+							|| prevInsn.contains(AFlag.TRY_LEAVE)
+							|| prevInsn.getType() == InsnType.MOVE_EXCEPTION;
 					if (startNew) {
 						curBlock = connectNewBlock(mth, curBlock, insn.getOffset());
 					}
@@ -154,7 +153,7 @@ public class BlockSplitter extends AbstractVisitor {
 	 * For try/catch make empty (splitter) block for connect handlers
 	 */
 	private static BlockNode insertSplitterBlock(MethodNode mth, Map<Integer, BlockNode> blocksMap,
-	                                             BlockNode curBlock, InsnNode insn, boolean startNew) {
+			BlockNode curBlock, InsnNode insn, boolean startNew) {
 		BlockNode splitterBlock;
 		if (insn.getOffset() == 0 || startNew) {
 			splitterBlock = curBlock;
@@ -241,7 +240,7 @@ public class BlockSplitter extends AbstractVisitor {
 	}
 
 	private static void connectExceptionHandlers(BlockNode block, InsnNode insn,
-	                                             Map<Integer, BlockNode> blocksMap) {
+			Map<Integer, BlockNode> blocksMap) {
 		CatchAttr catches = insn.get(AType.CATCH_BLOCK);
 		SplitterBlockAttr spl = block.get(AType.SPLITTER_BLOCK);
 		if (catches == null || spl == null) {
@@ -329,11 +328,9 @@ public class BlockSplitter extends AbstractVisitor {
 	}
 
 	static boolean removeEmptyDetachedBlocks(MethodNode mth) {
-		return mth.getBasicBlocks().removeIf(block ->
-			                                     block.getInstructions().isEmpty()
-				                                     && block.getPredecessors().isEmpty()
-				                                     && block.getSuccessors().isEmpty()
-		);
+		return mth.getBasicBlocks().removeIf(block -> block.getInstructions().isEmpty()
+				&& block.getPredecessors().isEmpty()
+				&& block.getSuccessors().isEmpty());
 	}
 
 	private void removeJumpAttributes(InsnNode[] insnArr) {
@@ -357,7 +354,7 @@ public class BlockSplitter extends AbstractVisitor {
 
 			int insnsCount = toRemove.stream().mapToInt(block -> block.getInstructions().size()).sum();
 			mth.addAttr(AType.COMMENTS, "JADX INFO: unreachable blocks removed: " + toRemove.size()
-				                            + ", instructions: " + insnsCount);
+					+ ", instructions: " + insnsCount);
 		}
 	}
 

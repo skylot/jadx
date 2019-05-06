@@ -15,7 +15,7 @@ public final class InsnList implements Iterable<InsnNode> {
 	}
 
 	public static void remove(List<InsnNode> list, InsnNode insn) {
-		for (Iterator<InsnNode> iterator = list.iterator(); iterator.hasNext(); ) {
+		for (Iterator<InsnNode> iterator = list.iterator(); iterator.hasNext();) {
 			InsnNode next = iterator.next();
 			if (next == insn) {
 				iterator.remove();

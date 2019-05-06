@@ -65,24 +65,13 @@ public class FileUtils {
 		}
 	}
 
-	public static File createTempFile(String suffix) {
-		File temp;
+	public static Path createTempFile(String suffix) {
 		try {
-			temp = File.createTempFile("jadx-tmp-", System.nanoTime() + '-' + suffix);
-			temp.deleteOnExit();
+			Path path = Files.createTempFile("jadx-tmp-", suffix);
+			path.toFile().deleteOnExit();
+			return path;
 		} catch (IOException e) {
 			throw new JadxRuntimeException("Failed to create temp file with suffix: " + suffix);
-		}
-		return temp;
-	}
-
-	public static File createTempDir(String suffix) {
-		try {
-			Path path = Files.createTempDirectory("jadx-tmp-" + System.nanoTime() + '-' + suffix);
-			path.toFile().deleteOnExit();
-			return path.toFile();
-		} catch (IOException e) {
-			throw new JadxRuntimeException("Failed to create temp directory with suffix: " + suffix);
 		}
 	}
 

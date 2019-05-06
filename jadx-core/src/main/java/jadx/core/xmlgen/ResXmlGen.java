@@ -22,8 +22,7 @@ public class ResXmlGen {
 	private static final Set<String> SKIP_RES_TYPES = new HashSet<>(Arrays.asList(
 			"layout",
 			"mipmap",
-			"id"
-	));
+			"id"));
 
 	private final ResourceStorage resStorage;
 	private final ValuesParser vp;

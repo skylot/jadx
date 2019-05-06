@@ -15,6 +15,7 @@ public class TestEnums extends IntegrationTest {
 		public enum EmptyEnum {
 		}
 
+		@SuppressWarnings("NoWhitespaceBefore")
 		public enum EmptyEnum2 {
 			;
 

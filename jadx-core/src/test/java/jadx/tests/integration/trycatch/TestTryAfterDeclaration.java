@@ -23,7 +23,7 @@ public class TestTryAfterDeclaration extends IntegrationTest {
 				while (bis != null) {
 					System.out.println("c");
 				}
-			} catch (final IOException e) {
+			} catch (final IOException ignore) {
 			}
 		}
 	}
@@ -40,5 +40,3 @@ public class TestTryAfterDeclaration extends IntegrationTest {
 		assertThat(code, containsOne("try {"));
 	}
 }
-
-

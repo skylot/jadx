@@ -3,19 +3,18 @@ package jadx.core.dex.nodes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.android.dex.ClassData;
 import com.android.dex.ClassData.Field;
 import com.android.dex.ClassData.Method;
 import com.android.dex.ClassDef;
 import com.android.dex.Dex;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jadx.core.Consts;
 import jadx.core.codegen.CodeWriter;
@@ -34,7 +33,6 @@ import jadx.core.dex.nodes.parser.AnnotationsParser;
 import jadx.core.dex.nodes.parser.FieldInitAttr;
 import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.nodes.parser.StaticValuesParser;
-import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -56,11 +54,13 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	// store decompiled code
 	private CodeWriter code;
+	// store smali
+	private String smali;
 	// store parent for inner classes or 'this' otherwise
 	private ClassNode parentClass;
 
 	private ProcessState state = ProcessState.NOT_LOADED;
-	private final Set<ClassNode> dependencies = new HashSet<>();
+	private List<ClassNode> dependencies = Collections.emptyList();
 
 	// cache maps
 	private Map<MethodInfo, MethodNode> mthInfoMap = Collections.emptyMap();
@@ -125,7 +125,6 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 				accFlagsValue = cls.getAccessFlags();
 			}
 			this.accessFlags = new AccessInfo(accFlagsValue, AFType.CLASS);
-			markAnonymousClass();
 			buildCache();
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Error decode class: " + clsInfo, e);
@@ -356,7 +355,8 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	/**
 	 * Return first method by original short name
-	 * Note: methods are not unique by name (class can have several methods with same name but different signature)
+	 * Note: methods are not unique by name (class can have several methods with same name but different
+	 * signature)
 	 */
 	@Nullable
 	public MethodNode searchMethodByShortName(String name) {
@@ -404,41 +404,8 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 				&& getSuperClass().getObject().equals(ArgType.ENUM.getObject());
 	}
 
-	public boolean markAnonymousClass() {
-		if (isAnonymous() || isLambdaCls()) {
-			add(AFlag.ANONYMOUS_CLASS);
-			add(AFlag.DONT_GENERATE);
-
-			for (MethodNode mth : getMethods()) {
-				if (mth.isConstructor()) {
-					mth.add(AFlag.ANONYMOUS_CONSTRUCTOR);
-				}
-			}
-			return true;
-		}
-		return false;
-	}
-
 	public boolean isAnonymous() {
-		return clsInfo.isInner()
-				&& Character.isDigit(clsInfo.getShortName().charAt(0))
-				&& methods.stream().filter(MethodNode::isConstructor).count() == 1;
-	}
-
-	public boolean isLambdaCls() {
-		return accessFlags.isSynthetic() && accessFlags.isFinal()
-				&& clsInfo.getType().getObject().contains(".-$$Lambda$")
-				&& countStaticFields() == 0;
-	}
-
-	private int countStaticFields() {
-		int c = 0;
-		for (FieldNode field : fields) {
-			if (field.getAccessFlags().isStatic()) {
-				c++;
-			}
-		}
-		return c;
+		return contains(AFlag.ANONYMOUS_CLASS);
 	}
 
 	@Nullable
@@ -519,6 +486,14 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return code;
 	}
 
+	public void setSmali(String smali) {
+		this.smali = smali;
+	}
+
+	public String getSmali() {
+		return smali;
+	}
+
 	public ProcessState getState() {
 		return state;
 	}
@@ -527,8 +502,12 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		this.state = state;
 	}
 
-	public Set<ClassNode> getDependencies() {
+	public List<ClassNode> getDependencies() {
 		return dependencies;
+	}
+
+	public void setDependencies(List<ClassNode> dependencies) {
+		this.dependencies = dependencies;
 	}
 
 	@Override

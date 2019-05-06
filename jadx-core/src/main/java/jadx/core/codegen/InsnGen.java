@@ -1,7 +1,5 @@
 package jadx.core.codegen;
 
-import static jadx.core.utils.android.AndroidResourcesUtils.handleAppResField;
-
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Iterator;
@@ -13,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.Consts;
+import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
@@ -54,6 +53,8 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+
+import static jadx.core.utils.android.AndroidResourcesUtils.handleAppResField;
 
 public class InsnGen {
 	private static final Logger LOG = LoggerFactory.getLogger(InsnGen.class);
@@ -233,8 +234,8 @@ public class InsnGen {
 					code.add(';');
 				}
 			}
-		} catch (Exception th) {
-			throw new CodegenException(mth, "Error generate insn: " + insn, th);
+		} catch (Exception e) {
+			throw new CodegenException(mth, "Error generate insn: " + insn, e);
 		}
 	}
 
@@ -415,7 +416,7 @@ public class InsnGen {
 				if (wrap) {
 					code.add('(');
 				}
-				for (Iterator<InsnArg> it = insn.getArguments().iterator(); it.hasNext(); ) {
+				for (Iterator<InsnArg> it = insn.getArguments().iterator(); it.hasNext();) {
 					addArg(code, it.next());
 					if (it.hasNext()) {
 						code.add(" + ");
@@ -555,7 +556,7 @@ public class InsnGen {
 	private void makeConstructor(ConstructorInsn insn, CodeWriter code)
 			throws CodegenException {
 		ClassNode cls = mth.dex().resolveClass(insn.getClassType());
-		if (cls != null && cls.contains(AFlag.ANONYMOUS_CLASS) && !fallback) {
+		if (cls != null && cls.isAnonymous() && !fallback) {
 			inlineAnonymousConstructor(code, cls, insn);
 			return;
 		}
@@ -700,7 +701,7 @@ public class InsnGen {
 	}
 
 	void generateMethodArguments(CodeWriter code, InsnNode insn, int startArgNum,
-	                             @Nullable MethodNode callMth) throws CodegenException {
+			@Nullable MethodNode callMth) throws CodegenException {
 		int k = startArgNum;
 		if (callMth != null && callMth.contains(AFlag.SKIP_FIRST_ARG)) {
 			k++;
@@ -761,7 +762,10 @@ public class InsnGen {
 			}
 		}
 		ArgType argType = arg.getType();
-		if (argType.equals(origType)) {
+		if (argType.equals(origType)
+				// null cast to object
+				&& (!arg.isLiteral() || ((LiteralArg) arg).getLiteral() != 0
+						|| (!argType.isArray() && !argType.isObject()))) {
 			return false;
 		}
 		if (origType.isGeneric()) {
@@ -887,6 +891,13 @@ public class InsnGen {
 				if (lit1 != Short.MAX_VALUE && lit1 != Short.MIN_VALUE
 						&& lit2 != Short.MAX_VALUE && lit2 != Short.MIN_VALUE) {
 					code.add("(short) ");
+				}
+			} else if (first.getType() == ArgType.CHAR) {
+				long lit1 = ((LiteralArg) first).getLiteral();
+				long lit2 = ((LiteralArg) second).getLiteral();
+				if (!NameMapper.isPrintableChar((char) (lit1))
+						&& !NameMapper.isPrintableChar((char) (lit2))) {
+					code.add("(char) ");
 				}
 			}
 		}

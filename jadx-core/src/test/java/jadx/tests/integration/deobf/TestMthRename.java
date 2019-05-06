@@ -13,7 +13,7 @@ public class TestMthRename extends IntegrationTest {
 
 	public static class TestCls {
 
-		public static abstract class TestAbstractCls {
+		public abstract static class TestAbstractCls {
 			public abstract void a();
 		}
 

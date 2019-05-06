@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import javax.swing.*;
+
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -22,10 +24,11 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
 import jadx.cli.JadxCLIArgs;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
+import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.Utils;
 
 public class JadxSettings extends JadxCLIArgs {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxSettings.class);
@@ -37,8 +40,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
 	static final Set<String> SKIP_FIELDS = new HashSet<>(Arrays.asList(
-			"files", "input", "outDir", "outDirSrc", "outDirRes", "verbose", "printVersion", "printHelp"
-	));
+			"files", "input", "outDir", "outDirSrc", "outDirRes", "verbose", "printVersion", "printHelp"));
 	private Path lastSaveProjectPath = USER_HOME;
 	private Path lastOpenFilePath = USER_HOME;
 	private Path lastSaveFilePath = USER_HOME;
@@ -54,14 +56,14 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private boolean showHeapUsageBar = true;
 
-	private int settingsVersion = 0;
-
+	private Map<String, WindowLocation> windowPos = new HashMap<>();
+	private int mainWindowExtendedState = JFrame.NORMAL;
 	/**
 	 * UI setting: the width of the tree showing the classes, resources, ...
 	 */
 	private int treeWidth = 130;
 
-	private Map<String, WindowLocation> windowPos = new HashMap<>();
+	private int settingsVersion = 0;
 
 	public static JadxSettings makeDefault() {
 		JadxSettings jadxSettings = new JadxSettings();
@@ -100,7 +102,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setLastOpenFilePath(Path lastOpenFilePath) {
 		this.lastOpenFilePath = lastOpenFilePath;
-		partialSync(settings -> settings.lastOpenFilePath = JadxSettings.this.lastOpenFilePath);
+		partialSync(settings -> settings.lastOpenFilePath = lastOpenFilePath);
 	}
 
 	public Path getLastSaveProjectPath() {
@@ -113,12 +115,12 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setLastSaveProjectPath(Path lastSaveProjectPath) {
 		this.lastSaveProjectPath = lastSaveProjectPath;
-		partialSync(settings -> settings.lastSaveProjectPath = JadxSettings.this.lastSaveProjectPath);
+		partialSync(settings -> settings.lastSaveProjectPath = lastSaveProjectPath);
 	}
 
 	public void setLastSaveFilePath(Path lastSaveFilePath) {
 		this.lastSaveFilePath = lastSaveFilePath;
-		partialSync(settings -> settings.lastSaveFilePath = JadxSettings.this.lastSaveFilePath);
+		partialSync(settings -> settings.lastSaveFilePath = lastSaveFilePath);
 	}
 
 	public boolean isFlattenPackage() {
@@ -127,7 +129,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setFlattenPackage(boolean flattenPackage) {
 		this.flattenPackage = flattenPackage;
-		partialSync(settings -> settings.flattenPackage = JadxSettings.this.flattenPackage);
+		partialSync(settings -> settings.flattenPackage = flattenPackage);
 	}
 
 	public boolean isCheckForUpdates() {
@@ -154,29 +156,35 @@ public class JadxSettings extends JadxCLIArgs {
 	}
 
 	public void saveWindowPos(Window window) {
-		WindowLocation pos = new WindowLocation(window.getClass().getSimpleName(),
-				window.getX(), window.getY(),
-				window.getWidth(), window.getHeight()
-		);
+		WindowLocation pos = new WindowLocation(window.getClass().getSimpleName(), window.getBounds());
 		windowPos.put(pos.getWindowId(), pos);
 		partialSync(settings -> settings.windowPos = windowPos);
 	}
 
 	public boolean loadWindowPos(Window window) {
 		WindowLocation pos = windowPos.get(window.getClass().getSimpleName());
-		if (pos == null || !isContainedInAnyScreen(pos)) {
+		if (pos == null || pos.getBounds() == null) {
+			return false;
+		}
+		if (window instanceof MainWindow) {
+			int extendedState = getMainWindowExtendedState();
+			if (extendedState != JFrame.NORMAL) {
+				((JFrame) window).setExtendedState(extendedState);
+				return true;
+			}
+		}
+
+		if (!isContainedInAnyScreen(pos)) {
 			return false;
 		}
 
-		window.setLocation(pos.getX(), pos.getY());
-		window.setSize(pos.getWidth(), pos.getHeight());
+		window.setBounds(pos.getBounds());
 		return true;
 	}
 
 	private static boolean isContainedInAnyScreen(WindowLocation pos) {
 		for (GraphicsDevice gd : GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
-			if (gd.getDefaultConfiguration().getBounds().contains(
-					pos.getX(), pos.getY(), pos.getWidth(), pos.getHeight())) {
+			if (gd.getDefaultConfiguration().getBounds().contains(pos.getBounds())) {
 				return true;
 			}
 		}
@@ -276,6 +284,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.useImports = useImports;
 	}
 
+	public void setInlineAnonymousClasses(boolean inlineAnonymousClasses) {
+		this.inlineAnonymousClasses = inlineAnonymousClasses;
+	}
+
 	public boolean isAutoStartJobs() {
 		return autoStartJobs;
 	}
@@ -309,22 +321,21 @@ public class JadxSettings extends JadxCLIArgs {
 		if (fontStr.isEmpty()) {
 			return DEFAULT_FONT;
 		}
-		return Font.decode(fontStr);
+		try {
+			return FontUtils.loadByStr(fontStr);
+		} catch (Exception e) {
+			LOG.warn("Failed to load font: {}, reset to default", fontStr, e);
+			setFont(DEFAULT_FONT);
+			return DEFAULT_FONT;
+		}
 	}
 
 	public void setFont(@Nullable Font font) {
 		if (font == null) {
 			this.fontStr = "";
-			return;
+		} else {
+			this.fontStr = FontUtils.convertToStr(font);
 		}
-		StringBuilder sb = new StringBuilder();
-		sb.append(font.getFontName());
-		String fontStyleName = Utils.getFontStyleName(font.getStyle()).replaceAll(" ", "");
-		if (!fontStyleName.isEmpty()) {
-			sb.append('-').append(fontStyleName.toUpperCase());
-		}
-		sb.append('-').append(font.getSize());
-		this.fontStr = sb.toString();
 	}
 
 	public String getEditorThemePath() {
@@ -333,6 +344,15 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setEditorThemePath(String editorThemePath) {
 		this.editorThemePath = editorThemePath;
+	}
+
+	public int getMainWindowExtendedState() {
+		return mainWindowExtendedState;
+	}
+
+	public void setMainWindowExtendedState(int mainWindowExtendedState) {
+		this.mainWindowExtendedState = mainWindowExtendedState;
+		partialSync(settings -> settings.mainWindowExtendedState = mainWindowExtendedState);
 	}
 
 	private void upgradeSettings(int fromVersion) {

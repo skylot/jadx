@@ -1,14 +1,6 @@
 package jadx.gui.ui;
 
-import static javax.swing.KeyStroke.getKeyStroke;
-
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.DisplayMode;
-import java.awt.Font;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
+import java.awt.*;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
@@ -24,32 +16,14 @@ import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.Box;
-import javax.swing.ImageIcon;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JToggleButton;
-import javax.swing.JToolBar;
-import javax.swing.JTree;
-import javax.swing.ProgressMonitor;
-import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.event.TreeExpansionEvent;
@@ -87,10 +61,13 @@ import jadx.gui.update.JadxUpdate;
 import jadx.gui.update.JadxUpdate.IUpdateCallback;
 import jadx.gui.update.data.Release;
 import jadx.gui.utils.CacheObject;
+import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.Utils;
+
+import static javax.swing.KeyStroke.getKeyStroke;
 
 @SuppressWarnings("serial")
 public class MainWindow extends JFrame {
@@ -132,6 +109,7 @@ public class MainWindow extends JFrame {
 	private JRoot treeRoot;
 	private TabbedPane tabbedPane;
 	private HeapUsageBar heapUsageBar;
+	private transient boolean treeReloading;
 
 	private boolean isFlattenPackage;
 	private JToggleButton flatPkgButton;
@@ -151,7 +129,7 @@ public class MainWindow extends JFrame {
 		this.cacheObject = new CacheObject();
 
 		resetCache();
-		registerBundledFonts();
+		FontUtils.registerBundledFonts();
 		initUI();
 		initMenuAndToolbar();
 		Utils.setWindowIcons(this);
@@ -166,7 +144,6 @@ public class MainWindow extends JFrame {
 		splitPane.setDividerLocation(settings.getTreeWidth());
 		heapUsageBar.setVisible(settings.isShowHeapUsageBar());
 		setVisible(true);
-		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
 			@Override
@@ -200,7 +177,7 @@ public class MainWindow extends JFrame {
 	public void openFileOrProject() {
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setAcceptAllFileFilterUsed(true);
-		String[] exts = {JadxProject.PROJECT_EXTENSION, "apk", "dex", "jar", "class", "zip", "aar", "arsc", "smali"};
+		String[] exts = { JadxProject.PROJECT_EXTENSION, "apk", "dex", "jar", "class", "smali", "zip", "aar", "arsc" };
 		String description = "supported files: " + Arrays.toString(exts).replace('[', '(').replace(']', ')');
 		fileChooser.setFileFilter(new FileNameExtensionFilter(description, exts));
 		fileChooser.setToolTipText(NLS.str("file.open_action"));
@@ -235,8 +212,7 @@ public class MainWindow extends JFrame {
 	private void saveProject() {
 		if (project.getProjectPath() == null) {
 			saveProjectAs();
-		}
-		else {
+		} else {
 			project.save();
 			update();
 		}
@@ -245,7 +221,7 @@ public class MainWindow extends JFrame {
 	private void saveProjectAs() {
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setAcceptAllFileFilterUsed(true);
-		String[] exts = {JadxProject.PROJECT_EXTENSION};
+		String[] exts = { JadxProject.PROJECT_EXTENSION };
 		String description = "supported files: " + Arrays.toString(exts).replace('[', '(').replace(']', ')');
 		fileChooser.setFileFilter(new FileNameExtensionFilter(description, exts));
 		fileChooser.setToolTipText(NLS.str("file.save_project"));
@@ -281,8 +257,7 @@ public class MainWindow extends JFrame {
 		if (path.getFileName().toString().toLowerCase(Locale.ROOT)
 				.endsWith(JadxProject.PROJECT_EXTENSION)) {
 			openProject(path);
-		}
-		else {
+		} else {
 			project.setFilePath(path);
 			tabbedPane.closeAllTabs();
 			resetCache();
@@ -321,8 +296,7 @@ public class MainWindow extends JFrame {
 					this,
 					NLS.str("msg.project_error"),
 					NLS.str("msg.project_error_title"),
-					JOptionPane.INFORMATION_MESSAGE
-			);
+					JOptionPane.INFORMATION_MESSAGE);
 			return;
 		}
 		update();
@@ -330,8 +304,7 @@ public class MainWindow extends JFrame {
 		Path filePath = project.getFilePath();
 		if (filePath == null) {
 			clearTree();
-		}
-		else {
+		} else {
 			open(filePath);
 		}
 	}
@@ -344,8 +317,7 @@ public class MainWindow extends JFrame {
 		String pathString;
 		if (projectPath == null) {
 			pathString = "";
-		}
-		else {
+		} else {
 			pathString = " [" + projectPath.getParent().toAbsolutePath() + ']';
 		}
 		setTitle((project.isSaved() ? "" : '*')
@@ -397,8 +369,7 @@ public class MainWindow extends JFrame {
 					this,
 					NLS.str("msg.rename_disabled", settings.getLangLocale()),
 					NLS.str("msg.rename_disabled_title", settings.getLangLocale()),
-					JOptionPane.INFORMATION_MESSAGE
-			);
+					JOptionPane.INFORMATION_MESSAGE);
 		}
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -434,8 +405,34 @@ public class MainWindow extends JFrame {
 	}
 
 	private void reloadTree() {
+		treeReloading = true;
+
 		treeModel.reload();
-		tree.expandRow(1);
+		List<String[]> treeExpansions = project.getTreeExpansions();
+		if (!treeExpansions.isEmpty()) {
+			expand(treeRoot, treeExpansions);
+		} else {
+			tree.expandRow(1);
+		}
+
+		treeReloading = false;
+	}
+
+	private void expand(TreeNode node, List<String[]> treeExpansions) {
+		TreeNode[] pathNodes = treeModel.getPathToRoot(node);
+		if (pathNodes == null) {
+			return;
+		}
+		TreePath path = new TreePath(pathNodes);
+		for (String[] expansion : treeExpansions) {
+			if (Arrays.equals(expansion, getPathExpansion(path))) {
+				tree.expandPath(path);
+				break;
+			}
+		}
+		for (int i = node.getChildCount() - 1; i >= 0; i--) {
+			expand(node.getChildAt(i), treeExpansions);
+		}
 	}
 
 	private void toggleFlattenPackage() {
@@ -534,7 +531,7 @@ public class MainWindow extends JFrame {
 			}
 		};
 		openAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.open_action"));
-		openAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK));
+		openAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_O, Utils.ctrlButton()));
 
 		newProjectAction = new AbstractAction(NLS.str("file.new_project")) {
 			@Override
@@ -567,7 +564,7 @@ public class MainWindow extends JFrame {
 			}
 		};
 		saveAllAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.save_all"));
-		saveAllAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
+		saveAllAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_S, Utils.ctrlButton()));
 
 		Action exportAction = new AbstractAction(NLS.str("file.export_gradle"), ICON_EXPORT) {
 			@Override
@@ -576,7 +573,7 @@ public class MainWindow extends JFrame {
 			}
 		};
 		exportAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.export_gradle"));
-		exportAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_E, KeyEvent.CTRL_DOWN_MASK));
+		exportAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_E, Utils.ctrlButton()));
 
 		JMenu recentProjects = new JMenu(NLS.str("menu.recent_projects"));
 		recentProjects.addMenuListener(new RecentProjectsMenuListener(recentProjects));
@@ -589,7 +586,7 @@ public class MainWindow extends JFrame {
 		};
 		prefsAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.preferences"));
 		prefsAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_P,
-				KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK));
+				Utils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
 
 		Action exitAction = new AbstractAction(NLS.str("file.exit"), ICON_CLOSE) {
 			@Override
@@ -616,7 +613,7 @@ public class MainWindow extends JFrame {
 			}
 		};
 		syncAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.sync"));
-		syncAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK));
+		syncAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_T, Utils.ctrlButton()));
 
 		Action textSearchAction = new AbstractAction(NLS.str("menu.text_search"), ICON_SEARCH) {
 			@Override
@@ -626,7 +623,7 @@ public class MainWindow extends JFrame {
 		};
 		textSearchAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.text_search"));
 		textSearchAction.putValue(Action.ACCELERATOR_KEY,
-				getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK));
+				getKeyStroke(KeyEvent.VK_F, Utils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
 
 		Action clsSearchAction = new AbstractAction(NLS.str("menu.class_search"), ICON_FIND) {
 			@Override
@@ -635,7 +632,7 @@ public class MainWindow extends JFrame {
 			}
 		};
 		clsSearchAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.class_search"));
-		clsSearchAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
+		clsSearchAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_N, Utils.ctrlButton()));
 
 		Action deobfAction = new AbstractAction(NLS.str("menu.deobfuscation"), ICON_DEOBF) {
 			@Override
@@ -645,7 +642,7 @@ public class MainWindow extends JFrame {
 		};
 		deobfAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("preferences.deobfuscation"));
 		deobfAction.putValue(Action.ACCELERATOR_KEY,
-				getKeyStroke(KeyEvent.VK_D, KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
+				getKeyStroke(KeyEvent.VK_D, Utils.ctrlButton() | KeyEvent.ALT_DOWN_MASK));
 
 		deobfToggleBtn = new JToggleButton(deobfAction);
 		deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
@@ -662,7 +659,7 @@ public class MainWindow extends JFrame {
 		};
 		logAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.log"));
 		logAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_L,
-				KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK));
+				Utils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
 
 		Action aboutAction = new AbstractAction(NLS.str("menu.about"), ICON_JADX) {
 			@Override
@@ -679,7 +676,7 @@ public class MainWindow extends JFrame {
 		};
 		backAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("nav.back"));
 		backAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_LEFT,
-				KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
+				Utils.ctrlButton() | KeyEvent.ALT_DOWN_MASK));
 
 		Action forwardAction = new AbstractAction(NLS.str("nav.forward"), ICON_FORWARD) {
 			@Override
@@ -689,7 +686,7 @@ public class MainWindow extends JFrame {
 		};
 		forwardAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("nav.forward"));
 		forwardAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_RIGHT,
-				KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
+				Utils.ctrlButton() | KeyEvent.ALT_DOWN_MASK));
 
 		JMenu file = new JMenu(NLS.str("menu.file"));
 		file.setMnemonic(KeyEvent.VK_F);
@@ -808,8 +805,8 @@ public class MainWindow extends JFrame {
 		tree.setCellRenderer(new DefaultTreeCellRenderer() {
 			@Override
 			public Component getTreeCellRendererComponent(JTree tree,
-			                                              Object value, boolean selected, boolean expanded,
-			                                              boolean isLeaf, int row, boolean focused) {
+					Object value, boolean selected, boolean expanded,
+					boolean isLeaf, int row, boolean focused) {
 				Component c = super.getTreeCellRendererComponent(tree, value, selected, expanded, isLeaf, row, focused);
 				if (value instanceof JNode) {
 					setIcon(((JNode) value).getIcon());
@@ -828,11 +825,18 @@ public class MainWindow extends JFrame {
 				if (node instanceof JLoadableNode) {
 					((JLoadableNode) node).loadNode();
 				}
+				if (!treeReloading) {
+					project.addTreeExpansion(getPathExpansion(event.getPath()));
+					update();
+				}
 			}
 
 			@Override
 			public void treeWillCollapse(TreeExpansionEvent event) {
-				// ignore
+				if (!treeReloading) {
+					project.removeTreeExpansion(getPathExpansion(event.getPath()));
+					update();
+				}
 			}
 		});
 
@@ -859,23 +863,46 @@ public class MainWindow extends JFrame {
 		setTitle(DEFAULT_TITLE);
 	}
 
+	private static String[] getPathExpansion(TreePath path) {
+		List<String> pathList = new ArrayList<>();
+		while (path != null) {
+			Object node = path.getLastPathComponent();
+			String name;
+			if (node instanceof JClass) {
+				name = ((JClass) node).getCls().getClassNode().getClassInfo().getFullName();
+			} else {
+				name = node.toString();
+			}
+			pathList.add(name);
+			path = path.getParentPath();
+		}
+		return pathList.toArray(new String[pathList.size()]);
+	}
+
+	public static void getExpandedPaths(JTree tree, TreePath path, List<TreePath> list) {
+		if (tree.isExpanded(path)) {
+			list.add(path);
+
+			TreeNode node = (TreeNode) path.getLastPathComponent();
+			for (int i = node.getChildCount() - 1; i >= 0; i--) {
+				TreeNode n = node.getChildAt(i);
+				TreePath child = path.pathByAddingChild(n);
+				getExpandedPaths(tree, child, list);
+			}
+		}
+	}
+
 	public void setLocationAndPosition() {
-		if (this.settings.loadWindowPos(this)) {
+		if (settings.loadWindowPos(this)) {
 			return;
 		}
 		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 		DisplayMode mode = gd.getDisplayMode();
 		int w = mode.getWidth();
 		int h = mode.getHeight();
-		setLocation((int) (w * BORDER_RATIO), (int) (h * BORDER_RATIO));
-		setSize((int) (w * WINDOW_RATIO), (int) (h * WINDOW_RATIO));
-	}
-
-	public static void registerBundledFonts() {
-		GraphicsEnvironment grEnv = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		if (Utils.FONT_HACK != null) {
-			grEnv.registerFont(Utils.FONT_HACK);
-		}
+		setBounds((int) (w * BORDER_RATIO), (int) (h * BORDER_RATIO),
+				(int) (w * WINDOW_RATIO), (int) (h * WINDOW_RATIO));
+		setLocationRelativeTo(null);
 	}
 
 	private void setEditorTheme(String editorThemePath) {
@@ -885,7 +912,7 @@ public class MainWindow extends JFrame {
 			LOG.error("Can't load editor theme from classpath: {}", editorThemePath);
 			try {
 				editorTheme = Theme.load(new FileInputStream(editorThemePath));
-			} catch (Exception e2) {
+			} catch (Exception ex) {
 				LOG.error("Can't load editor theme from file: {}", editorThemePath);
 			}
 		}
@@ -913,8 +940,10 @@ public class MainWindow extends JFrame {
 		}
 		settings.setTreeWidth(splitPane.getDividerLocation());
 		settings.saveWindowPos(this);
+		settings.setMainWindowExtendedState(getExtendedState());
 		cancelBackgroundJobs();
 		dispose();
+		System.exit(0);
 	}
 
 	public JadxWrapper getWrapper() {

@@ -18,6 +18,8 @@ import jadx.core.dex.instructions.ConstClassNode;
 import jadx.core.dex.instructions.ConstStringNode;
 import jadx.core.dex.instructions.FillArrayNode;
 import jadx.core.dex.instructions.FilledNewArrayNode;
+import jadx.core.dex.instructions.IfNode;
+import jadx.core.dex.instructions.IfOp;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.NewArrayNode;
@@ -29,11 +31,13 @@ import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
+import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
@@ -155,6 +159,24 @@ public class ModVisitor extends AbstractVisitor {
 						}
 						break;
 
+					case CAST:
+						// replace boolean to (byte/char/short/long/double/float) cast with ternary
+						if (insn.getArg(0).getType() == ArgType.BOOLEAN) {
+							ArgType type = insn.getResult().getType();
+							if (type.isPrimitive()) {
+								IfNode ifNode = new IfNode(IfOp.EQ, -1, insn.getArg(0), LiteralArg.TRUE);
+								IfCondition condition = IfCondition.fromIfNode(ifNode);
+								InsnArg zero = new LiteralArg(0, type);
+								InsnArg one = new LiteralArg(
+										type == ArgType.DOUBLE ? Double.doubleToLongBits(1)
+												: type == ArgType.FLOAT ? Float.floatToIntBits(1) : 1,
+										type);
+								TernaryInsn ternary = new TernaryInsn(condition, insn.getResult(), one, zero);
+								replaceInsn(block, i, ternary);
+							}
+						}
+						break;
+
 					default:
 						break;
 				}
@@ -206,19 +228,16 @@ public class ModVisitor extends AbstractVisitor {
 		if (callMthNode == null) {
 			return;
 		}
-		Map<InsnArg, FieldNode> argsMap = getArgsToFieldsMapping(callMthNode, co);
-		if (argsMap.isEmpty() && !callMthNode.getArguments(true).isEmpty()) {
-			return;
-		}
 
 		ClassNode classNode = callMthNode.getParentClass();
-		if (!classNode.contains(AFlag.ANONYMOUS_CLASS)) {
-			// check if class can be anonymous but not yet marked due to dependency issues
-			if (!classNode.markAnonymousClass()) {
-				return;
-			}
+		if (!classNode.isAnonymous()) {
+			return;
 		}
 		if (!mth.getParentClass().getInnerClasses().contains(classNode)) {
+			return;
+		}
+		Map<InsnArg, FieldNode> argsMap = getArgsToFieldsMapping(callMthNode, co);
+		if (argsMap.isEmpty() && !callMthNode.getArguments(true).isEmpty()) {
 			return;
 		}
 
@@ -307,8 +326,7 @@ public class ModVisitor extends AbstractVisitor {
 		if (!elType.equals(insnElementType) && !insnArrayType.equals(ArgType.OBJECT)) {
 			ErrorsCounter.methodWarn(mth,
 					"Incorrect type for fill-array insn " + InsnUtils.formatOffset(insn.getOffset())
-							+ ", element type: " + elType + ", insn element type: " + insnElementType
-			);
+							+ ", element type: " + elType + ", insn element type: " + insnElementType);
 		}
 		if (!elType.isTypeKnown()) {
 			LOG.warn("Unknown array element type: {} in mth: {}", elType, mth);

@@ -10,7 +10,8 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class SaveCode {
 
-	private SaveCode() {}
+	private SaveCode() {
+	}
 
 	public static void save(File dir, JadxArgs args, ClassNode cls) {
 		if (cls.contains(AFlag.DONT_GENERATE)) {

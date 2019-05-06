@@ -1,13 +1,13 @@
 package jadx.tests.api.compiler;
 
+import java.security.SecureClassLoader;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
-import java.io.IOException;
-import java.security.SecureClassLoader;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static javax.tools.JavaFileObject.Kind;
 
@@ -21,8 +21,7 @@ public class ClassFileManager extends ForwardingJavaFileManager<StandardJavaFile
 	}
 
 	@Override
-	public JavaFileObject getJavaFileForOutput(Location location, String className,
-	                                           Kind kind, FileObject sibling) throws IOException {
+	public JavaFileObject getJavaFileForOutput(Location location, String className, Kind kind, FileObject sibling) {
 		JavaClassObject clsObject = new JavaClassObject(className, kind);
 		classLoader.getClsMap().put(className, clsObject);
 		return clsObject;

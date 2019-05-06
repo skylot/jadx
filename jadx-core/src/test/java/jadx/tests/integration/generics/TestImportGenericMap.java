@@ -32,8 +32,8 @@ public class TestImportGenericMap extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsString(
-			"import " + SuperClass.ToImport.class.getName().replace("$ToImport", ".ToImport") + ';'));
+				"import " + SuperClass.ToImport.class.getName().replace("$ToImport", ".ToImport") + ';'));
 		assertThat(code, not(containsString(
-			"import " + SuperClass.NotToImport.class.getName().replace("NotToImport", ".NotToImport") + ';')));
+				"import " + SuperClass.NotToImport.class.getName().replace("NotToImport", ".NotToImport") + ';')));
 	}
 }

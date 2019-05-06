@@ -96,11 +96,14 @@ public final class CodeArea extends RSyntaxTextArea {
 
 	private void addMenuItems(JClass jCls) {
 		FindUsageAction findUsage = new FindUsageAction(contentPanel, this, jCls);
+		GoToDeclarationAction goToDeclaration = new GoToDeclarationAction(contentPanel, this, jCls);
 
 		JPopupMenu popup = getPopupMenu();
 		popup.addSeparator();
 		popup.add(findUsage);
+		popup.add(goToDeclaration);
 		popup.addPopupMenuListener(findUsage);
+		popup.addPopupMenuListener(goToDeclaration);
 	}
 
 	public void loadSettings() {

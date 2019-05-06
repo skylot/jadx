@@ -47,12 +47,14 @@ public class TestAnnotations extends AbstractTest {
 		Thread.State state() default Thread.State.TERMINATED;
 	}
 
-	@MyAnnotation(name = "b",
+	@MyAnnotation(
+			name = "b",
 			num = 7,
 			cls = Exception.class,
-			doubles = {0.0, 1.1},
+			doubles = { 0.0, 1.1 },
 			value = 9.87f,
-			simple = @SimpleAnnotation(false))
+			simple = @SimpleAnnotation(false)
+	)
 	public static Object test(String[] a) {
 		return Arrays.asList(a);
 	}
@@ -67,10 +69,12 @@ public class TestAnnotations extends AbstractTest {
 		Class<?>[] value();
 	}
 
-	@ClassesAnnotation({
-			int.class, int[].class, int[][][].class,
-			String.class, String[].class, String[][].class
-	})
+	@ClassesAnnotation(
+		{
+				int.class, int[].class, int[][][].class,
+				String.class, String[].class, String[][].class
+		}
+	)
 	public static Object test3(Object b) {
 		return b.toString();
 	}

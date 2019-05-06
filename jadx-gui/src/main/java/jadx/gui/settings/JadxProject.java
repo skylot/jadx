@@ -3,7 +3,9 @@ package jadx.gui.settings;
 import java.io.BufferedWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -29,6 +31,8 @@ public class JadxProject {
 	private transient String name = "New Project";
 	private transient Path projectPath;
 	private List<Path> filesPath;
+	private List<String[]> treeExpansions = new ArrayList<>();
+
 	private transient boolean saved;
 	private transient boolean initial = true;
 
@@ -63,11 +67,41 @@ public class JadxProject {
 		}
 	}
 
+	public List<String[]> getTreeExpansions() {
+		return treeExpansions;
+	}
+
+	public void addTreeExpansion(String[] expansion) {
+		treeExpansions.add(expansion);
+		changed();
+	}
+
+	public void removeTreeExpansion(String[] expansion) {
+		for (Iterator<String[]> it = treeExpansions.iterator(); it.hasNext();) {
+			if (isParentOfExpansion(expansion, it.next())) {
+				it.remove();
+			}
+		}
+		changed();
+	}
+
+	private boolean isParentOfExpansion(String[] parent, String[] child) {
+		if (Arrays.equals(parent, child)) {
+			return true;
+		}
+		for (int i = child.length - parent.length; i > 0; i--) {
+			String[] arr = Arrays.copyOfRange(child, i, child.length);
+			if (Arrays.equals(parent, arr)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private void changed() {
 		if (settings.isAutoSaveProject()) {
 			save();
-		}
-		else {
+		} else {
 			saved = false;
 		}
 		initial = false;

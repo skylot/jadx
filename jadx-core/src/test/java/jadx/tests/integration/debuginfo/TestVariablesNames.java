@@ -9,29 +9,31 @@ import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestVariablesNames extends SmaliTest {
-/*
-	public static class TestCls {
+	// @formatter:off
+	/*
+		public static class TestCls {
 
-		public void test(String s, int k) {
-			f1(s);
-			int i = k + 3;
-			String s2 = "i" + i;
-			f2(i, s2);
-			double d = i * 5;
-			String s3 = "d" + d;
-			f3(d, s3);
-		}
+			public void test(String s, int k) {
+				f1(s);
+				int i = k + 3;
+				String s2 = "i" + i;
+				f2(i, s2);
+				double d = i * 5;
+				String s3 = "d" + d;
+				f3(d, s3);
+			}
 
-		private void f1(String s) {
-		}
+			private void f1(String s) {
+			}
 
-		private void f2(int i, String i2) {
-		}
+			private void f2(int i, String i2) {
+			}
 
-		private void f3(double d, String d2) {
+			private void f3(double d, String d2) {
+			}
 		}
-	}
-*/
+	*/
+	// @formatter:on
 
 	/**
 	 * Parameter register reused in variables assign with different types and names

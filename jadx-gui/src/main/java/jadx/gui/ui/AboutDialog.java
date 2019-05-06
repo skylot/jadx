@@ -1,8 +1,9 @@
 package jadx.gui.ui;
 
-import javax.swing.*;
 import java.awt.*;
 import java.net.URL;
+
+import javax.swing.*;
 
 import jadx.api.JadxDecompiler;
 import jadx.gui.utils.NLS;

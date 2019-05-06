@@ -15,9 +15,9 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.gui.JadxWrapper;
 
 import static java.util.Arrays.asList;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -53,8 +53,7 @@ public class JSourcesTest {
 		List<JavaPackage> packages = asList(
 				newPkg("a.b"),
 				newPkg("a.c"),
-				newPkg("a.d")
-		);
+				newPkg("a.d"));
 		List<JPackage> out = sources.getHierarchyPackages(packages);
 
 		assertThat(out, hasSize(1));
@@ -69,8 +68,7 @@ public class JSourcesTest {
 		List<JavaPackage> packages = asList(
 				newPkg("a.b.p1"),
 				newPkg("a.b.p2"),
-				newPkg("a.b.p3")
-		);
+				newPkg("a.b.p3"));
 		List<JPackage> out = sources.getHierarchyPackages(packages);
 
 		assertThat(out, hasSize(1));
@@ -87,8 +85,7 @@ public class JSourcesTest {
 				newPkg("a.b.c.p2"),
 				newPkg("a.b.c.p3"),
 				newPkg("d.e"),
-				newPkg("d.f.a")
-		);
+				newPkg("d.f.a"));
 		List<JPackage> out = sources.getHierarchyPackages(packages);
 
 		assertThat(out, hasSize(2));

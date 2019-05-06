@@ -1,6 +1,5 @@
 package jadx.gui.treemodel;
 
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -9,6 +8,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.swing.*;
 
 import jadx.api.JavaPackage;
 import jadx.gui.JadxWrapper;
@@ -78,7 +79,7 @@ public class JSources extends JNode {
 		} while (repeat);
 
 		// remove empty packages
-		for (Iterator<Map.Entry<String, JPackage>> it = pkgMap.entrySet().iterator(); it.hasNext(); ) {
+		for (Iterator<Map.Entry<String, JPackage>> it = pkgMap.entrySet().iterator(); it.hasNext();) {
 			JPackage pkg = it.next().getValue();
 			if (pkg.getInnerPackages().isEmpty() && pkg.getClasses().isEmpty()) {
 				it.remove();

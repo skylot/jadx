@@ -1,10 +1,11 @@
 package jadx.gui.utils;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Map;
+
+import javax.swing.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,20 +68,20 @@ public class Link extends JLabel implements MouseListener {
 			String os = System.getProperty("os.name").toLowerCase();
 			if (os.contains("win")) {
 				new ProcessBuilder()
-						.command(new String[]{"rundll32", "url.dll,FileProtocolHandler", url})
+						.command(new String[] { "rundll32", "url.dll,FileProtocolHandler", url })
 						.start();
 				return;
 			}
 			if (os.contains("mac")) {
 				new ProcessBuilder()
-						.command(new String[]{"open", url})
+						.command(new String[] { "open", url })
 						.start();
 				return;
 			}
 			Map<String, String> env = System.getenv();
 			if (env.get("BROWSER") != null) {
 				new ProcessBuilder()
-						.command(new String[]{env.get("BROWSER"), url})
+						.command(new String[] { env.get("BROWSER"), url })
 						.start();
 				return;
 			}

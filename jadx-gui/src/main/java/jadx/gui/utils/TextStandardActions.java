@@ -1,15 +1,15 @@
 package jadx.gui.utils;
 
-import javax.swing.*;
-import javax.swing.text.JTextComponent;
-import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+
+import javax.swing.*;
+import javax.swing.text.JTextComponent;
+import javax.swing.undo.UndoManager;
 
 @SuppressWarnings("serial")
 public class TextStandardActions {
@@ -100,9 +100,9 @@ public class TextStandardActions {
 	}
 
 	private void addKeyActions() {
-		KeyStroke undoKey = KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK);
+		KeyStroke undoKey = KeyStroke.getKeyStroke(KeyEvent.VK_Z, Utils.ctrlButton());
 		textComponent.getInputMap().put(undoKey, undoAction);
-		KeyStroke redoKey = KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_DOWN_MASK);
+		KeyStroke redoKey = KeyStroke.getKeyStroke(KeyEvent.VK_R, Utils.ctrlButton());
 		textComponent.getInputMap().put(redoKey, redoAction);
 	}
 

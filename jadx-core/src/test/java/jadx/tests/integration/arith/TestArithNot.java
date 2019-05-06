@@ -10,6 +10,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
 
 public class TestArithNot extends SmaliTest {
+	// @formatter:off
 	/*
 	  Smali Code equivalent:
 		public static class TestCls {
@@ -22,6 +23,7 @@ public class TestArithNot extends SmaliTest {
 			}
 		}
 	*/
+	// @formatter:on
 
 	@Test
 	public void test() {

@@ -512,7 +512,7 @@ public class RegionMaker {
 	}
 
 	private static boolean canInsertContinue(BlockNode pred, List<BlockNode> predecessors, BlockNode loopEnd,
-	                                         Set<BlockNode> loopExitNodes) {
+			Set<BlockNode> loopExitNodes) {
 		if (!pred.contains(AFlag.SYNTHETIC)
 				|| BlockUtils.checkLastInsnType(pred, InsnType.CONTINUE)) {
 			return false;
@@ -604,7 +604,7 @@ public class RegionMaker {
 	 * Traverse from monitor-enter thru successors and collect blocks contains monitor-exit
 	 */
 	private static void traverseMonitorExits(SynchronizedRegion region, InsnArg arg, BlockNode block, Set<BlockNode> exits,
-	                                         Set<BlockNode> visited) {
+			Set<BlockNode> visited) {
 		visited.add(block);
 		for (InsnNode insn : block.getInstructions()) {
 			if (insn.getType() == InsnType.MONITOR_EXIT
@@ -881,7 +881,7 @@ public class RegionMaker {
 	}
 
 	private boolean isBadCasesOrder(Map<BlockNode, List<Object>> blocksMap,
-	                                Map<BlockNode, BlockNode> fallThroughCases) {
+			Map<BlockNode, BlockNode> fallThroughCases) {
 		BlockNode nextCaseBlock = null;
 		for (BlockNode caseBlock : blocksMap.keySet()) {
 			if (nextCaseBlock != null && !caseBlock.equals(nextCaseBlock)) {
@@ -893,7 +893,7 @@ public class RegionMaker {
 	}
 
 	private Map<BlockNode, List<Object>> reOrderSwitchCases(Map<BlockNode, List<Object>> blocksMap,
-	                                                        Map<BlockNode, BlockNode> fallThroughCases) {
+			Map<BlockNode, BlockNode> fallThroughCases) {
 		List<BlockNode> list = new ArrayList<>(blocksMap.size());
 		list.addAll(blocksMap.keySet());
 		list.sort((a, b) -> {

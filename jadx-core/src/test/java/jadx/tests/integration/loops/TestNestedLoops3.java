@@ -16,8 +16,7 @@ public class TestNestedLoops3 extends IntegrationTest {
 
 		public int test(int b) {
 			int i;
-			loop0:
-			while (true) {
+			loop0: while (true) {
 				f1();
 				i = 0;
 				while (true) {

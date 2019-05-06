@@ -14,7 +14,7 @@ public class TestFloatValue extends IntegrationTest {
 
 	public static class TestCls {
 		public float[] method() {
-			float[] fa = {0.55f};
+			float[] fa = { 0.55f };
 			fa[0] /= 2;
 			return fa;
 		}

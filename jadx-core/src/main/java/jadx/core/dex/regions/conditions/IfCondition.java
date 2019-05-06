@@ -8,10 +8,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AttributeStorage;
+import jadx.core.dex.attributes.EmptyAttrStorage;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IfOp;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -29,6 +33,10 @@ public final class IfCondition {
 		AND,
 		OR
 	}
+
+	private static final AttributeStorage EMPTY_ATTR_STORAGE = new EmptyAttrStorage();
+
+	private AttributeStorage storage = EMPTY_ATTR_STORAGE;
 
 	private final Mode mode;
 	private final List<IfCondition> args;
@@ -221,28 +229,29 @@ public final class IfCondition {
 				break;
 
 			case ARITH:
-				ArithOp arithOp = ((ArithNode) wrapInsn).getOp();
-				if (arithOp == ArithOp.OR || arithOp == ArithOp.AND) {
-					IfOp ifOp = c.getInsn().getOp();
-					boolean isTrue = ifOp == IfOp.NE && lit == 0
-							|| ifOp == IfOp.EQ && lit == 1;
+				if (c.getB().getType() == ArgType.BOOLEAN) {
+					ArithOp arithOp = ((ArithNode) wrapInsn).getOp();
+					if (arithOp == ArithOp.OR || arithOp == ArithOp.AND) {
+						IfOp ifOp = c.getInsn().getOp();
+						boolean isTrue = ifOp == IfOp.NE && lit == 0
+								|| ifOp == IfOp.EQ && lit == 1;
 
-					IfOp op = isTrue ? IfOp.NE : IfOp.EQ;
-					Mode mode = isTrue && arithOp == ArithOp.OR ||
-							!isTrue && arithOp == ArithOp.AND ? Mode.OR : Mode.AND;
+						IfOp op = isTrue ? IfOp.NE : IfOp.EQ;
+						Mode mode = isTrue && arithOp == ArithOp.OR
+								|| !isTrue && arithOp == ArithOp.AND ? Mode.OR : Mode.AND;
 
-					IfNode if1 = new IfNode(op, -1, wrapInsn.getArg(0), LiteralArg.FALSE);
-					IfNode if2 = new IfNode(op, -1, wrapInsn.getArg(1), LiteralArg.FALSE);
-					return new IfCondition(mode,
-							Arrays.asList(new IfCondition(new Compare(if1)),
-									new IfCondition(new Compare(if2))));
+						IfNode if1 = new IfNode(op, -1, wrapInsn.getArg(0), LiteralArg.FALSE);
+						IfNode if2 = new IfNode(op, -1, wrapInsn.getArg(1), LiteralArg.FALSE);
+						return new IfCondition(mode,
+								Arrays.asList(new IfCondition(new Compare(if1)),
+										new IfCondition(new Compare(if2))));
+					}
 				}
-			break;
+				break;
 
-		default:
-			break;
+			default:
+				break;
 		}
-
 
 		return null;
 	}
@@ -259,6 +268,23 @@ public final class IfCondition {
 		return list;
 	}
 
+	public void add(AFlag flag) {
+		initStorage().add(flag);
+	}
+
+	public boolean contains(AFlag flag) {
+		return storage.contains(flag);
+	}
+
+	private AttributeStorage initStorage() {
+		AttributeStorage store = storage;
+		if (store == EMPTY_ATTR_STORAGE) {
+			store = new AttributeStorage();
+			storage = store;
+		}
+		return store;
+	}
+
 	@Override
 	public String toString() {
 		switch (mode) {
@@ -273,7 +299,7 @@ public final class IfCondition {
 				String op = mode == Mode.OR ? " || " : " && ";
 				StringBuilder sb = new StringBuilder();
 				sb.append('(');
-				for (Iterator<IfCondition> it = args.iterator(); it.hasNext(); ) {
+				for (Iterator<IfCondition> it = args.iterator(); it.hasNext();) {
 					IfCondition arg = it.next();
 					sb.append(arg);
 					if (it.hasNext()) {
@@ -298,8 +324,8 @@ public final class IfCondition {
 		if (mode != other.mode) {
 			return false;
 		}
-		return Objects.equals(other.args, other.args)
-			&& Objects.equals(compare, other.compare);
+		return Objects.equals(args, other.args)
+				&& Objects.equals(compare, other.compare);
 	}
 
 	@Override
