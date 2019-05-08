@@ -43,6 +43,9 @@ public class JadxCLIArgs {
 	@Parameter(names = { "-s", "--no-src" }, description = "do not decompile source code")
 	protected boolean skipSources = false;
 
+	@Parameter(names = { "--single-class" }, description = "decompile a single class")
+	protected String singleClass = null;
+
 	@Parameter(names = { "-e", "--export-gradle" }, description = "save as android gradle project")
 	protected boolean exportAsGradleProject = false;
 
@@ -173,6 +176,9 @@ public class JadxCLIArgs {
 		args.setOutDirRes(FileUtils.toFile(outDirRes));
 		args.setThreadsCount(threadsCount);
 		args.setSkipSources(skipSources);
+		if (singleClass != null) {
+			args.setClassFilter((className) -> singleClass.equals(className));
+		}
 		args.setSkipResources(skipResources);
 		args.setFallbackMode(fallbackMode);
 		args.setShowInconsistentCode(showInconsistentCode);

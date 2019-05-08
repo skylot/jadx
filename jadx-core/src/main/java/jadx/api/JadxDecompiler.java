@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.baksmali.BaksmaliOptions;
@@ -203,8 +204,12 @@ public final class JadxDecompiler {
 	}
 
 	private void appendSourcesSave(ExecutorService executor, File outDir) {
+		final Predicate<String> classFilter = args.getClassFilter();
 		for (JavaClass cls : getClasses()) {
 			if (cls.getClassNode().contains(AFlag.DONT_GENERATE)) {
+				continue;
+			}
+			if (classFilter != null && !classFilter.test(cls.getFullName())) {
 				continue;
 			}
 			executor.execute(() -> {
