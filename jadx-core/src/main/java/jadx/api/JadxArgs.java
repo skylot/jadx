@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 public class JadxArgs {
 
@@ -35,6 +36,11 @@ public class JadxArgs {
 
 	private boolean skipResources = false;
 	private boolean skipSources = false;
+
+	/**
+	 * Predicate that allows to filter the classes to be process based on their full name
+	 */
+	private Predicate<String> classFilter = null;
 
 	private boolean deobfuscationOn = false;
 	private boolean deobfuscationForceSave = false;
@@ -180,6 +186,14 @@ public class JadxArgs {
 
 	public void setSkipSources(boolean skipSources) {
 		this.skipSources = skipSources;
+	}
+
+	public Predicate<String> getClassFilter() {
+		return classFilter;
+	}
+
+	public void setClassFilter(Predicate<String> classFilter) {
+		this.classFilter = classFilter;
 	}
 
 	public boolean isDeobfuscationOn() {
