@@ -130,12 +130,16 @@ public class JadxCLIArgs {
 	 * Used to merge saved options and options passed in command line.
 	 */
 	public boolean overrideProvided(String[] args) {
-		JCommanderWrapper<JadxCLIArgs> jcw = new JCommanderWrapper<>(new JadxCLIArgs());
+		JCommanderWrapper<JadxCLIArgs> jcw = new JCommanderWrapper<>(newInstance());
 		if (!jcw.parse(args)) {
 			return false;
 		}
 		jcw.overrideProvided(this);
 		return process(jcw);
+	}
+
+	protected JadxCLIArgs newInstance() {
+		return new JadxCLIArgs();
 	}
 
 	private boolean process(JCommanderWrapper<JadxCLIArgs> jcw) {

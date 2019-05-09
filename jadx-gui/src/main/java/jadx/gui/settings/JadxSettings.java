@@ -15,12 +15,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import javax.swing.*;
+import javax.swing.JFrame;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.beust.jcommander.Parameter;
 
 import jadx.api.JadxArgs;
 import jadx.cli.JadxCLIArgs;
@@ -65,6 +67,10 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private int settingsVersion = 0;
 
+	@JadxSettingsAdapter.GsonExclude
+	@Parameter(names = { "-sc", "--select-class" }, description = "GUI: Open the selected class and show the decompiled code")
+	private String cmdSelectClass = null;
+
 	public static JadxSettings makeDefault() {
 		JadxSettings jadxSettings = new JadxSettings();
 		jadxSettings.fixOnLoad();
@@ -94,6 +100,10 @@ public class JadxSettings extends JadxCLIArgs {
 		if (settingsVersion != CURRENT_SETTINGS_VERSION) {
 			upgradeSettings(settingsVersion);
 		}
+	}
+
+	public String getCmdSelectClass() {
+		return cmdSelectClass;
 	}
 
 	public Path getLastOpenFilePath() {
@@ -412,4 +422,8 @@ public class JadxSettings extends JadxCLIArgs {
 		sync();
 	}
 
+	@Override
+	protected JadxCLIArgs newInstance() {
+		return new JadxSettings();
+	}
 }
