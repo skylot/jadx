@@ -1,6 +1,5 @@
 package jadx.core.deobf;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,11 +63,6 @@ public class Deobfuscator {
 	private int fldIndex = 0;
 	private int mthIndex = 0;
 
-	@Deprecated
-	public Deobfuscator(JadxArgs args, @NotNull List<DexNode> dexNodes, File deobfMapFile) {
-		this(args, dexNodes, deobfMapFile.toPath());
-	}
-
 	public Deobfuscator(JadxArgs args, @NotNull List<DexNode> dexNodes, Path deobfMapFile) {
 		this.args = args;
 		this.dexNodes = dexNodes;
@@ -86,8 +80,20 @@ public class Deobfuscator {
 			initIndexes();
 		}
 		process();
+	}
+
+	public void savePresets() {
 		deobfPresets.save(args.isDeobfuscationForceSave());
-		clear();
+	}
+
+	public void clear() {
+		deobfPresets.clear();
+		clsMap.clear();
+		fldMap.clear();
+		mthMap.clear();
+
+		ovrd.clear();
+		ovrdMap.clear();
 	}
 
 	private void initIndexes() {
@@ -146,16 +152,6 @@ public class Deobfuscator {
 			}
 			id++;
 		}
-	}
-
-	void clear() {
-		deobfPresets.clear();
-		clsMap.clear();
-		fldMap.clear();
-		mthMap.clear();
-
-		ovrd.clear();
-		ovrdMap.clear();
 	}
 
 	private void resolveOverriding(MethodNode mth) {
@@ -241,7 +237,7 @@ public class Deobfuscator {
 		} else if (!clsInfo.isInner()) {
 			// check if package renamed
 			PackageNode pkgNode = getPackageNode(clsInfo.getPackage(), false);
-			if (pkgNode.hasAnyAlias()) {
+			if (pkgNode != null && pkgNode.hasAnyAlias()) {
 				clsInfo.changePkg(pkgNode.getFullAlias());
 			}
 		}
@@ -259,7 +255,7 @@ public class Deobfuscator {
 		}
 	}
 
-	public void renameField(FieldNode field) {
+	private void renameField(FieldNode field) {
 		FieldInfo fieldInfo = field.getFieldInfo();
 		String alias = getFieldAlias(field);
 		if (alias != null) {
@@ -271,7 +267,7 @@ public class Deobfuscator {
 		field.getFieldInfo().setAlias(makeFieldAlias(field));
 	}
 
-	public void renameMethod(MethodNode mth) {
+	private void renameMethod(MethodNode mth) {
 		String alias = getMethodAlias(mth);
 		if (alias != null) {
 			mth.getMethodInfo().setAlias(alias);
@@ -408,7 +404,7 @@ public class Deobfuscator {
 		} else if (name.endsWith(".kt")) {
 			name = name.substring(0, name.length() - ".kt".length());
 		}
-		if (!NameMapper.isValidIdentifier(name) || !NameMapper.isAllCharsPrintable(name)) {
+		if (!NameMapper.isValidAndPrintable(name)) {
 			return null;
 		}
 		for (DeobfClsInfo deobfClsInfo : clsMap.values()) {
@@ -500,8 +496,7 @@ public class Deobfuscator {
 
 	private boolean shouldRename(String s) {
 		int len = s.length();
-		return len < minLength || len > maxLength
-				|| !NameMapper.isValidIdentifier(s);
+		return len < minLength || len > maxLength;
 	}
 
 	private String prepareNamePart(String name) {

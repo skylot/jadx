@@ -98,7 +98,7 @@ public final class ResourcesLoader {
 				return ResContainer.textResource(rf.getName(), content);
 
 			case ARSC:
-				return new ResTableParser().decodeFiles(inputStream);
+				return new ResTableParser(jadxRef.getRoot()).decodeFiles(inputStream);
 
 			case IMG:
 				return decodeImage(rf, inputStream);

@@ -87,6 +87,10 @@ public class NameMapper {
 				&& VALID_JAVA_FULL_IDENTIFIER.matcher(str).matches();
 	}
 
+	public static boolean isValidAndPrintable(String str) {
+		return isValidIdentifier(str) && isAllCharsPrintable(str);
+	}
+
 	public static boolean isValidIdentifierStart(int codePoint) {
 		return Character.isJavaIdentifierStart(codePoint);
 	}

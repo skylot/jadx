@@ -42,8 +42,8 @@ public class RenameConverterTest {
 				() -> converter.convert("wrong"),
 				"Expected convert() to throw, but it didn't");
 
-		assertEquals("wrong is unknown for parameter someParam, "
-				+ "possible values are 'case', 'valid' and 'printable'",
+		assertEquals("'wrong' is unknown for parameter someParam, "
+				+ "possible values are 'case', 'valid', 'printable'",
 				thrown.getMessage());
 	}
 }

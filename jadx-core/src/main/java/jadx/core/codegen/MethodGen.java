@@ -25,6 +25,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.FallbackModeVisitor;
+import jadx.core.utils.CodeGenUtils;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.CodegenException;
@@ -84,7 +85,7 @@ public class MethodGen {
 		}
 
 		if (mth.getMethodInfo().isRenamed() && !ai.isConstructor()) {
-			code.startLine("/* renamed from: ").add(mth.getName()).add(" */");
+			CodeGenUtils.addRenamedComment(code, mth, mth.getName());
 		}
 		code.startLineWithNum(mth.getSourceLine());
 		code.add(ai.makeString());

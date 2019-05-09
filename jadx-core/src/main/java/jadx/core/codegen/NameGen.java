@@ -129,7 +129,7 @@ public class NameGen {
 		if (NameMapper.isReserved(varName)) {
 			varName = varName + 'R';
 		}
-		if (!NameMapper.isValidIdentifier(varName)) {
+		if (!NameMapper.isValidAndPrintable(varName)) {
 			varName = getFallbackName(var);
 		}
 		return varName;

@@ -12,6 +12,7 @@ import jadx.core.Consts;
 import jadx.core.deobf.Deobfuscator;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.nodes.RenameReasonAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
@@ -24,8 +25,6 @@ import jadx.core.utils.files.InputFile;
 
 public class RenameVisitor extends AbstractVisitor {
 
-	private Deobfuscator deobfuscator;
-
 	@Override
 	public void init(RootNode root) {
 		List<DexNode> dexNodes = root.getDexNodes();
@@ -36,24 +35,29 @@ public class RenameVisitor extends AbstractVisitor {
 		Path inputFilePath = firstInputFile.getFile().toPath();
 
 		String inputName = inputFilePath.getFileName().toString();
-		inputName = inputName.substring(0, inputName.lastIndexOf('.'));
+		String baseName = inputName.substring(0, inputName.lastIndexOf('.'));
+		Path deobfMapPath = inputFilePath.getParent().resolve(baseName + ".jobf");
 
-		Path deobfMapPath = inputFilePath.getParent().resolve(inputName + ".jobf");
 		JadxArgs args = root.getArgs();
-		deobfuscator = new Deobfuscator(args, dexNodes, deobfMapPath);
-		boolean deobfuscationOn = args.isDeobfuscationOn();
-		if (deobfuscationOn) {
+		Deobfuscator deobfuscator = new Deobfuscator(args, dexNodes, deobfMapPath);
+		if (args.isDeobfuscationOn()) {
 			deobfuscator.execute();
 		}
-		checkClasses(root, args);
+
+		checkClasses(deobfuscator, root, args);
+
+		if (args.isDeobfuscationOn()) {
+			deobfuscator.savePresets();
+			deobfuscator.clear();
+		}
 	}
 
-	private void checkClasses(RootNode root, JadxArgs args) {
+	private static void checkClasses(Deobfuscator deobfuscator, RootNode root, JadxArgs args) {
 		List<ClassNode> classes = root.getClasses(true);
 		for (ClassNode cls : classes) {
-			checkClassName(cls, args);
-			checkFields(cls, args);
-			checkMethods(cls, args);
+			checkClassName(deobfuscator, cls, args);
+			checkFields(deobfuscator, cls, args);
+			checkMethods(deobfuscator, cls, args);
 		}
 		if (!args.isFsCaseSensitive() && args.isRenameCaseSensitive()) {
 			Set<String> clsFullPaths = new HashSet<>(classes.size());
@@ -62,20 +66,22 @@ public class RenameVisitor extends AbstractVisitor {
 				if (!clsFullPaths.add(clsInfo.getAliasFullPath().toLowerCase())) {
 					String newShortName = deobfuscator.getClsAlias(cls);
 					clsInfo.changeShortName(newShortName);
+					cls.addAttr(new RenameReasonAttr(cls).append("case insensitive filesystem"));
 					clsFullPaths.add(clsInfo.getAliasFullPath().toLowerCase());
 				}
 			}
 		}
-		processRootPackages(root, classes);
+		processRootPackages(deobfuscator, root, classes);
 	}
 
-	private void checkClassName(ClassNode cls, JadxArgs args) {
+	private static void checkClassName(Deobfuscator deobfuscator, ClassNode cls, JadxArgs args) {
 		ClassInfo classInfo = cls.getClassInfo();
 		String clsName = classInfo.getAliasShortName();
 
 		String newShortName = fixClsShortName(args, clsName);
 		if (!newShortName.equals(clsName)) {
 			classInfo.changeShortName(newShortName);
+			cls.addAttr(new RenameReasonAttr(cls).append("invalid class name"));
 		}
 		if (args.isRenameValid()) {
 			if (classInfo.isInner()) {
@@ -84,6 +90,7 @@ public class RenameVisitor extends AbstractVisitor {
 					if (parentClass.getAliasShortName().equals(clsName)) {
 						String clsAlias = deobfuscator.getClsAlias(cls);
 						classInfo.changeShortName(clsAlias);
+						cls.addAttr(new RenameReasonAttr(cls).append("collision with other inner class name"));
 						break;
 					}
 					parentClass = parentClass.getParentClass();
@@ -91,12 +98,13 @@ public class RenameVisitor extends AbstractVisitor {
 			} else {
 				if (classInfo.getAliasPkg().isEmpty()) {
 					classInfo.changePkg(Consts.DEFAULT_PACKAGE_NAME);
+					cls.addAttr(new RenameReasonAttr(cls).append("default package"));
 				}
 			}
 		}
 	}
 
-	private String fixClsShortName(JadxArgs args, String clsName) {
+	private static String fixClsShortName(JadxArgs args, String clsName) {
 		char firstChar = clsName.charAt(0);
 		boolean renameValid = args.isRenameValid();
 		if (Character.isDigit(firstChar) && renameValid) {
@@ -114,25 +122,33 @@ public class RenameVisitor extends AbstractVisitor {
 		return cleanClsName;
 	}
 
-	private void checkFields(ClassNode cls, JadxArgs args) {
+	private static void checkFields(Deobfuscator deobfuscator, ClassNode cls, JadxArgs args) {
 		Set<String> names = new HashSet<>();
 		for (FieldNode field : cls.getFields()) {
 			FieldInfo fieldInfo = field.getFieldInfo();
 			String fieldName = fieldInfo.getAlias();
-			if (!names.add(fieldName)
-					|| (args.isRenameValid() && !NameMapper.isValidIdentifier(fieldName))
-					|| (args.isRenamePrintable() && !NameMapper.isAllCharsPrintable(fieldName))) {
+			boolean notUnique = !names.add(fieldName);
+			boolean notValid = args.isRenameValid() && !NameMapper.isValidIdentifier(fieldName);
+			boolean notPrintable = args.isRenamePrintable() && !NameMapper.isAllCharsPrintable(fieldName);
+			if (notUnique || notValid || notPrintable) {
 				deobfuscator.forceRenameField(field);
+				field.addAttr(new RenameReasonAttr(field, notValid, notPrintable));
+				if (notUnique) {
+					field.addAttr(new RenameReasonAttr(field).append("collision with other field name"));
+				}
 			}
 		}
 	}
 
-	private void checkMethods(ClassNode cls, JadxArgs args) {
+	private static void checkMethods(Deobfuscator deobfuscator, ClassNode cls, JadxArgs args) {
 		for (MethodNode mth : cls.getMethods()) {
 			String alias = mth.getAlias();
-			if (args.isRenameValid() && !NameMapper.isValidIdentifier(alias)
-					|| (args.isRenamePrintable() && !NameMapper.isAllCharsPrintable(alias))) {
+
+			boolean notValid = args.isRenameValid() && !NameMapper.isValidIdentifier(alias);
+			boolean notPrintable = args.isRenamePrintable() && !NameMapper.isAllCharsPrintable(alias);
+			if (notValid || notPrintable) {
 				deobfuscator.forceRenameMethod(mth);
+				mth.addAttr(new RenameReasonAttr(mth, notValid, notPrintable));
 			}
 		}
 		Set<String> names = new HashSet<>();
@@ -147,11 +163,12 @@ public class RenameVisitor extends AbstractVisitor {
 			String signature = mth.getMethodInfo().makeSignature(true, false);
 			if (!names.add(signature)) {
 				deobfuscator.forceRenameMethod(mth);
+				mth.addAttr(new RenameReasonAttr("collision with other method in class"));
 			}
 		}
 	}
 
-	private void processRootPackages(RootNode root, List<ClassNode> classes) {
+	private static void processRootPackages(Deobfuscator deobfuscator, RootNode root, List<ClassNode> classes) {
 		Set<String> rootPkgs = collectRootPkgs(classes);
 		root.getCacheStorage().setRootPkgs(rootPkgs);
 
@@ -161,6 +178,7 @@ public class RenameVisitor extends AbstractVisitor {
 				for (FieldNode field : cls.getFields()) {
 					if (rootPkgs.contains(field.getAlias())) {
 						deobfuscator.forceRenameField(field);
+						field.addAttr(new RenameReasonAttr("collision with root package name"));
 					}
 				}
 			}

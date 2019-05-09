@@ -17,6 +17,7 @@ import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.attributes.nodes.MethodInlineAttr;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
+import jadx.core.dex.attributes.nodes.RenameReasonAttr;
 import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.nodes.parser.FieldInitAttr;
 import jadx.core.dex.trycatch.CatchAttr;
@@ -55,6 +56,7 @@ public class AType<T extends IAttribute> {
 	public static final AType<DeclareVariablesAttr> DECLARE_VARIABLES = new AType<>();
 	public static final AType<LoopLabelAttr> LOOP_LABEL = new AType<>();
 	public static final AType<IgnoreEdgeAttr> IGNORE_EDGE = new AType<>();
+	public static final AType<RenameReasonAttr> RENAME_REASON = new AType<>();
 
 	// method
 	public static final AType<LocalVarsDebugInfoAttr> LOCAL_VARS_DEBUG_INFO = new AType<>();

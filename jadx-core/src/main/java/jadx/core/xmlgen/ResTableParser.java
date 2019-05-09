@@ -11,6 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.codegen.CodeWriter;
+import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.RootNode;
 import jadx.core.xmlgen.entry.EntryConfig;
 import jadx.core.xmlgen.entry.RawNamedValue;
 import jadx.core.xmlgen.entry.RawValue;
@@ -50,8 +53,13 @@ public class ResTableParser extends CommonBinaryParser {
 		}
 	}
 
-	private String[] strings;
+	private final RootNode root;
 	private final ResourceStorage resStorage = new ResourceStorage();
+	private String[] strings;
+
+	public ResTableParser(RootNode root) {
+		this.root = root;
+	}
 
 	public void decode(InputStream inputStream) throws IOException {
 		is = new ParserStream(inputStream);
@@ -62,7 +70,7 @@ public class ResTableParser extends CommonBinaryParser {
 	public ResContainer decodeFiles(InputStream inputStream) throws IOException {
 		decode(inputStream);
 
-		ValuesParser vp = new ValuesParser(strings, resStorage.getResourcesNames());
+		ValuesParser vp = new ValuesParser(root, strings, resStorage.getResourcesNames());
 		ResXmlGen resGen = new ResXmlGen(resStorage, vp);
 
 		CodeWriter content = makeXmlDump();
@@ -222,7 +230,13 @@ public class ResTableParser extends CommonBinaryParser {
 		String typeName = pkg.getTypeStrings()[typeId - 1];
 		String keyName = pkg.getKeyStrings()[key];
 		if (keyName.isEmpty()) {
-			keyName = "RES_" + resRef; // autogenerate key name
+			FieldNode constField = root.getConstValues().getGlobalConstFields().get(resRef);
+			if (constField != null) {
+				keyName = constField.getName();
+				constField.add(AFlag.DONT_RENAME);
+			} else {
+				keyName = "RES_" + resRef; // autogenerate key name
+			}
 		}
 		ResourceEntry ri = new ResourceEntry(resRef, pkg.getName(), typeName, keyName);
 		ri.setConfig(config);

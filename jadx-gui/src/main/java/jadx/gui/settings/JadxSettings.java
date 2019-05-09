@@ -278,6 +278,14 @@ public class JadxSettings extends JadxCLIArgs {
 		this.deobfuscationUseSourceNameAsAlias = deobfuscationUseSourceNameAsAlias;
 	}
 
+	public void updateRenameFlag(JadxArgs.RenameEnum flag, boolean enabled) {
+		if (enabled) {
+			renameFlags.add(flag);
+		} else {
+			renameFlags.remove(flag);
+		}
+	}
+
 	public void setEscapeUnicode(boolean escapeUnicode) {
 		this.escapeUnicode = escapeUnicode;
 	}

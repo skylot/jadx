@@ -212,17 +212,19 @@ public class ClassModifier extends AbstractVisitor {
 	}
 
 	private static boolean removeBridgeMethod(ClassNode cls, MethodNode mth) {
-		List<InsnNode> allInsns = BlockUtils.collectAllInsns(mth.getBasicBlocks());
-		if (allInsns.size() == 1) {
-			InsnNode wrappedInsn = allInsns.get(0);
-			if (wrappedInsn.getType() == InsnType.RETURN) {
-				InsnArg arg = wrappedInsn.getArg(0);
-				if (arg.isInsnWrap()) {
-					wrappedInsn = ((InsnWrapArg) arg).getWrapInsn();
+		if (cls.root().getArgs().isRenameValid()) {
+			List<InsnNode> allInsns = BlockUtils.collectAllInsns(mth.getBasicBlocks());
+			if (allInsns.size() == 1) {
+				InsnNode wrappedInsn = allInsns.get(0);
+				if (wrappedInsn.getType() == InsnType.RETURN) {
+					InsnArg arg = wrappedInsn.getArg(0);
+					if (arg.isInsnWrap()) {
+						wrappedInsn = ((InsnWrapArg) arg).getWrapInsn();
+					}
 				}
-			}
-			if (checkSyntheticWrapper(mth, wrappedInsn)) {
-				return true;
+				if (checkSyntheticWrapper(mth, wrappedInsn)) {
+					return true;
+				}
 			}
 		}
 		return !isMethodUnique(cls, mth);

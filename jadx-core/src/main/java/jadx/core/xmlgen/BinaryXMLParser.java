@@ -115,7 +115,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 					break;
 				case RES_STRING_POOL_TYPE:
 					strings = parseStringPoolNoType();
-					valuesParser = new ValuesParser(strings, resNames);
+					valuesParser = new ValuesParser(rootNode, strings, resNames);
 					break;
 				case RES_XML_RESOURCE_MAP_TYPE:
 					parseResourceMap();

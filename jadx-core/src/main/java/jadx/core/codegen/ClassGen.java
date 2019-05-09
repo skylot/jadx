@@ -32,7 +32,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.parser.FieldInitAttr;
 import jadx.core.dex.nodes.parser.FieldInitAttr.InitType;
-import jadx.core.utils.CodegenUtils;
+import jadx.core.utils.CodeGenUtils;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.CodegenException;
@@ -104,7 +104,7 @@ public class ClassGen {
 		if (cls.contains(AFlag.DONT_GENERATE)) {
 			return;
 		}
-		CodegenUtils.addComments(code, cls);
+		CodeGenUtils.addComments(code, cls);
 		insertDecompilationProblems(code, cls);
 		addClassDeclaration(code);
 		addClassBody(code);
@@ -299,7 +299,7 @@ public class ClassGen {
 			}
 			code.add(';');
 		} else {
-			CodegenUtils.addComments(code, mth);
+			CodeGenUtils.addComments(code, mth);
 			insertDecompilationProblems(code, mth);
 			boolean badCode = mth.contains(AFlag.INCONSISTENT_CODE);
 			if (badCode && showInconsistentCode) {
@@ -356,11 +356,12 @@ public class ClassGen {
 			if (f.contains(AFlag.DONT_GENERATE)) {
 				continue;
 			}
-			CodegenUtils.addComments(code, f);
+			CodeGenUtils.addComments(code, f);
 			annotationGen.addForField(code, f);
 
 			if (f.getFieldInfo().isRenamed()) {
-				code.startLine("/* renamed from: ").add(f.getName()).add(" */");
+				code.newLine();
+				CodeGenUtils.addRenamedComment(code, f, f.getName());
 			}
 			code.startLine(f.getAccessFlags().makeString());
 			useType(code, f.getType());
@@ -620,7 +621,7 @@ public class ClassGen {
 	private void insertRenameInfo(CodeWriter code, ClassNode cls) {
 		ClassInfo classInfo = cls.getClassInfo();
 		if (classInfo.hasAlias()) {
-			code.startLine("/* renamed from: ").add(classInfo.getType().getObject()).add(" */");
+			CodeGenUtils.addRenamedComment(code, cls, classInfo.getType().getObject());
 		}
 	}
 

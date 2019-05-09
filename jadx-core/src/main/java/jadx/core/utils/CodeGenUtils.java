@@ -1,0 +1,32 @@
+package jadx.core.utils;
+
+import java.util.List;
+
+import jadx.core.codegen.CodeWriter;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.AttrNode;
+import jadx.core.dex.attributes.nodes.RenameReasonAttr;
+
+public class CodeGenUtils {
+
+	public static void addComments(CodeWriter code, AttrNode node) {
+		List<String> comments = node.getAll(AType.COMMENTS);
+		if (!comments.isEmpty()) {
+			comments.stream().distinct()
+					.forEach(comment -> code.startLine("/* ").addMultiLine(comment).add(" */"));
+		}
+	}
+
+	public static void addRenamedComment(CodeWriter code, AttrNode node, String origName) {
+		code.startLine("/* renamed from: ").add(origName);
+		RenameReasonAttr renameReasonAttr = node.get(AType.RENAME_REASON);
+		if (renameReasonAttr != null) {
+			code.add(" reason: ");
+			code.add(renameReasonAttr.getDescription());
+		}
+		code.add(" */");
+	}
+
+	private CodeGenUtils() {
+	}
+}

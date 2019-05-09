@@ -147,7 +147,7 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 				LOG.debug("Reject debug info of type: {} and name: '{}' for {}, mth: {}", type, varName, ssaVar, mth);
 			}
 		} else {
-			if (NameMapper.isValidIdentifier(varName)) {
+			if (NameMapper.isValidAndPrintable(varName)) {
 				ssaVar.setName(varName);
 			}
 			detachDebugInfo(ssaVar.getAssign());

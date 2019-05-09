@@ -1,8 +1,8 @@
 package jadx.cli;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -106,7 +106,7 @@ public class JadxCLIArgs {
 					+ " 'case' for system case sensitivity,"
 					+ " 'valid' for java identifiers,"
 					+ " 'printable' characters,"
-					+ " 'none' or 'all'",
+					+ " 'none' or 'all' (default)",
 			converter = RenameConverter.class
 	)
 	protected Set<RenameEnum> renameFlags = EnumSet.allOf(RenameEnum.class);
@@ -181,7 +181,7 @@ public class JadxCLIArgs {
 		args.setThreadsCount(threadsCount);
 		args.setSkipSources(skipSources);
 		if (singleClass != null) {
-			args.setClassFilter((className) -> singleClass.equals(className));
+			args.setClassFilter(className -> singleClass.equals(className));
 		}
 		args.setSkipResources(skipResources);
 		args.setFallbackMode(fallbackMode);
@@ -303,36 +303,12 @@ public class JadxCLIArgs {
 		return renameFlags.contains(RenameEnum.CASE);
 	}
 
-	public void setRenameCaseSensitive(boolean renameCase) {
-		if (renameCase && !isRenameCaseSensitive()) {
-			renameFlags.add(RenameEnum.CASE);
-		} else if (!renameCase && isRenameCaseSensitive()) {
-			renameFlags.remove(RenameEnum.CASE);
-		}
-	}
-
 	public boolean isRenameValid() {
 		return renameFlags.contains(RenameEnum.VALID);
 	}
 
-	public void setRenameValid(boolean renameValid) {
-		if (renameValid && !isRenameValid()) {
-			renameFlags.add(RenameEnum.VALID);
-		} else if (!renameValid && isRenameValid()) {
-			renameFlags.remove(RenameEnum.VALID);
-		}
-	}
-
 	public boolean isRenamePrintable() {
 		return renameFlags.contains(RenameEnum.PRINTABLE);
-	}
-
-	public void setRenamePrintable(boolean renamePrintable) {
-		if (renamePrintable && !isRenamePrintable()) {
-			renameFlags.add(RenameEnum.PRINTABLE);
-		} else if (!renamePrintable && isRenamePrintable()) {
-			renameFlags.remove(RenameEnum.PRINTABLE);
-		}
 	}
 
 	public boolean isFsCaseSensitive() {
@@ -348,23 +324,23 @@ public class JadxCLIArgs {
 
 		@Override
 		public Set<RenameEnum> convert(String value) {
-			Set<RenameEnum> set = new HashSet<>();
+			if (value.equalsIgnoreCase("NONE")) {
+				return EnumSet.noneOf(RenameEnum.class);
+			}
 			if (value.equalsIgnoreCase("ALL")) {
-				set.add(RenameEnum.CASE);
-				set.add(RenameEnum.VALID);
-				set.add(RenameEnum.PRINTABLE);
-			} else if (!value.equalsIgnoreCase("NONE")) {
-				for (String s : value.split(",")) {
-					try {
-						set.add(RenameEnum.valueOf(s.toUpperCase(Locale.ROOT)));
-					} catch (IllegalArgumentException e) {
-						String values = "'" + RenameEnum.CASE
-								+ "', '" + RenameEnum.VALID
-								+ "' and '" + RenameEnum.PRINTABLE + '\'';
-						throw new IllegalArgumentException(
-								s + " is unknown for parameter " + paramName
-										+ ", possible values are " + values.toLowerCase(Locale.ROOT));
-					}
+				return EnumSet.allOf(RenameEnum.class);
+			}
+			Set<RenameEnum> set = EnumSet.noneOf(RenameEnum.class);
+			for (String s : value.split(",")) {
+				try {
+					set.add(RenameEnum.valueOf(s.toUpperCase(Locale.ROOT)));
+				} catch (IllegalArgumentException e) {
+					String values = Arrays.stream(RenameEnum.values())
+							.map(v -> '\'' + v.name().toLowerCase(Locale.ROOT) + '\'')
+							.collect(Collectors.joining(", "));
+					throw new IllegalArgumentException(
+							'\'' + s + "' is unknown for parameter " + paramName
+									+ ", possible values are " + values);
 				}
 			}
 			return set;

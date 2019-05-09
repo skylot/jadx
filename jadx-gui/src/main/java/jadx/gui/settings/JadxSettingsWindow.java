@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import say.swing.JFontChooser;
 
+import jadx.api.JadxArgs;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.FontUtils;
@@ -184,21 +185,21 @@ public class JadxSettingsWindow extends JDialog {
 		JCheckBox renameCaseSensitive = new JCheckBox();
 		renameCaseSensitive.setSelected(settings.isRenameCaseSensitive());
 		renameCaseSensitive.addItemListener(e -> {
-			settings.setRenameCaseSensitive(e.getStateChange() == ItemEvent.SELECTED);
+			settings.updateRenameFlag(JadxArgs.RenameEnum.CASE, e.getStateChange() == ItemEvent.SELECTED);
 			needReload();
 		});
 
 		JCheckBox renameValid = new JCheckBox();
 		renameValid.setSelected(settings.isRenameValid());
 		renameValid.addItemListener(e -> {
-			settings.setRenameValid(e.getStateChange() == ItemEvent.SELECTED);
+			settings.updateRenameFlag(JadxArgs.RenameEnum.VALID, e.getStateChange() == ItemEvent.SELECTED);
 			needReload();
 		});
 
 		JCheckBox renamePrintable = new JCheckBox();
 		renamePrintable.setSelected(settings.isRenamePrintable());
 		renamePrintable.addItemListener(e -> {
-			settings.setRenamePrintable(e.getStateChange() == ItemEvent.SELECTED);
+			settings.updateRenameFlag(JadxArgs.RenameEnum.PRINTABLE, e.getStateChange() == ItemEvent.SELECTED);
 			needReload();
 		});
 

@@ -87,7 +87,7 @@ public class RootNode {
 		}
 		try {
 			ResourceStorage resStorage = ResourcesLoader.decodeStream(arsc, (size, is) -> {
-				ResTableParser parser = new ResTableParser();
+				ResTableParser parser = new ResTableParser(this);
 				parser.decode(is);
 				return parser.getResStorage();
 			});

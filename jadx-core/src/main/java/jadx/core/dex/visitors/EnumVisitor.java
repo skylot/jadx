@@ -152,8 +152,8 @@ public class EnumVisitor extends AbstractVisitor {
 			String name = getConstString(cls.dex(), co.getArg(0));
 			if (name != null
 					&& !fieldInfo.getAlias().equals(name)
-					&& NameMapper.isValidIdentifier(name)) {
-				// LOG.debug("Rename enum field: '{}' to '{}' in {}", fieldInfo.getName(), name, cls);
+					&& NameMapper.isValidAndPrintable(name)
+					&& cls.root().getArgs().isRenameValid()) {
 				fieldInfo.setAlias(name);
 			}
 
