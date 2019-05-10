@@ -35,11 +35,11 @@ public class RenameReasonAttr implements IAttribute {
 		}
 	}
 
-	private RenameReasonAttr notValid() {
+	public RenameReasonAttr notValid() {
 		return append("not valid java name");
 	}
 
-	private RenameReasonAttr notPrintable() {
+	public RenameReasonAttr notPrintable() {
 		return append("contains not printable characters");
 	}
 

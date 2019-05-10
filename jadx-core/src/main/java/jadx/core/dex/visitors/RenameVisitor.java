@@ -79,6 +79,13 @@ public class RenameVisitor extends AbstractVisitor {
 		String clsName = classInfo.getAliasShortName();
 
 		String newShortName = fixClsShortName(args, clsName);
+		if (newShortName == null) {
+			// rename failed, use deobfuscator
+			String deobfName = deobfuscator.getClsAlias(cls);
+			classInfo.changeShortName(deobfName);
+			cls.addAttr(new RenameReasonAttr(cls).notPrintable());
+			return;
+		}
 		if (!newShortName.equals(clsName)) {
 			classInfo.changeShortName(newShortName);
 			cls.addAttr(new RenameReasonAttr(cls).append("invalid class name"));
@@ -104,6 +111,7 @@ public class RenameVisitor extends AbstractVisitor {
 		}
 	}
 
+	@Nullable
 	private static String fixClsShortName(JadxArgs args, String clsName) {
 		char firstChar = clsName.charAt(0);
 		boolean renameValid = args.isRenameValid();
@@ -116,6 +124,9 @@ public class RenameVisitor extends AbstractVisitor {
 		String cleanClsName = args.isRenamePrintable()
 				? NameMapper.removeInvalidChars(clsName, "C")
 				: clsName;
+		if (cleanClsName.isEmpty()) {
+			return null;
+		}
 		if (renameValid && !NameMapper.isValidIdentifier(cleanClsName)) {
 			return 'C' + cleanClsName;
 		}
