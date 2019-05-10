@@ -45,6 +45,12 @@ public class FileUtils {
 		}
 	}
 
+	public static void makeDirsForFile(Path path) {
+		if (path != null) {
+			makeDirs(path.getParent().toFile());
+		}
+	}
+
 	public static void makeDirsForFile(File file) {
 		if (file != null) {
 			makeDirs(file.getParentFile());
@@ -63,13 +69,35 @@ public class FileUtils {
 		}
 	}
 
+	private static final Path TEMP_ROOT_DIR = createTempRootDir();
+
+	private static Path createTempRootDir() {
+		try {
+			Path dir = Files.createTempDirectory("jadx-instance-");
+			dir.toFile().deleteOnExit();
+			return dir;
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Failed to create temp root directory", e);
+		}
+	}
+
+	public static Path createTempDir(String prefix) {
+		try {
+			Path dir = Files.createTempDirectory(TEMP_ROOT_DIR, prefix);
+			dir.toFile().deleteOnExit();
+			return dir;
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Failed to create temp directory with suffix: " + prefix, e);
+		}
+	}
+
 	public static Path createTempFile(String suffix) {
 		try {
-			Path path = Files.createTempFile("jadx-tmp-", suffix);
+			Path path = Files.createTempFile(TEMP_ROOT_DIR, "jadx-tmp-", suffix);
 			path.toFile().deleteOnExit();
 			return path;
-		} catch (IOException e) {
-			throw new JadxRuntimeException("Failed to create temp file with suffix: " + suffix);
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Failed to create temp file with suffix: " + suffix, e);
 		}
 	}
 

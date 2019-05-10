@@ -3,7 +3,6 @@ package jadx.core.utils.files;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -14,7 +13,6 @@ import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.Nullable;
 import org.jf.smali.Smali;
 import org.jf.smali.SmaliOptions;
@@ -150,9 +148,7 @@ public class InputFile {
 						}
 					} else if (entryName.equals("instant-run.zip") && ext.equals(".dex")) {
 						Path jarFile = FileUtils.createTempFile("instant-run.zip");
-						try (OutputStream fos = Files.newOutputStream(jarFile)) {
-							IOUtils.copy(inputStream, fos);
-						}
+						Files.copy(inputStream, jarFile, StandardCopyOption.REPLACE_EXISTING);
 						InputFile tempFile = new InputFile(jarFile.toFile());
 						tempFile.loadFromZip(ext);
 						List<DexFile> dexFiles = tempFile.getDexFiles();

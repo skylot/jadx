@@ -4,20 +4,16 @@ dependencies {
     runtime files(jadxClasspath)
 
     compile files('lib/dx-1.16.jar')
-    compile 'commons-io:commons-io:2.6'
+
     compile 'org.ow2.asm:asm:7.1'
     compile 'org.jetbrains:annotations:17.0.0'
     compile 'uk.com.robust-it:cloning:1.9.12'
+
+    compile 'org.smali:baksmali:2.2.7'
     compile('org.smali:smali:2.2.7') {
         exclude group: 'com.google.guava'
     }
     compile 'com.google.guava:guava:27.1-jre'
 
-    compile 'org.smali:baksmali:2.2.7'
-
     testCompile 'org.apache.commons:commons-lang3:3.8.1'
-
-    // update dependency in smali
-    testCompile 'com.google.guava:guava:27.1-jre'
-    testCompile 'com.beust:jcommander:1.74'
 }

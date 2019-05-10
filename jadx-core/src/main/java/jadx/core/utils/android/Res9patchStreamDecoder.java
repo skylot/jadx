@@ -25,7 +25,7 @@ import java.io.OutputStream;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.io.IOUtils;
+import com.google.common.io.ByteStreams;
 
 import jadx.core.utils.exceptions.JadxException;
 
@@ -36,7 +36,7 @@ public class Res9patchStreamDecoder {
 
 	public void decode(InputStream in, OutputStream out) throws JadxException {
 		try {
-			byte[] data = IOUtils.toByteArray(in);
+			byte[] data = ByteStreams.toByteArray(in);
 
 			BufferedImage im = ImageIO.read(new ByteArrayInputStream(data));
 			int w = im.getWidth();

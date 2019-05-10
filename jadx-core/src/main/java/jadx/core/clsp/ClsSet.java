@@ -160,7 +160,7 @@ public class ClsSet {
 	}
 
 	void save(Path path) throws IOException {
-		Files.createDirectories(path.getParent());
+		FileUtils.makeDirsForFile(path);
 		String outputName = path.getFileName().toString();
 		if (outputName.endsWith(CLST_EXTENSION)) {
 			try (BufferedOutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(path))) {

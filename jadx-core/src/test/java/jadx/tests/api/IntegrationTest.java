@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +36,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
+import jadx.core.utils.files.FileUtils;
 import jadx.core.xmlgen.ResourceStorage;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.tests.api.compiler.DynamicCompiler;
@@ -361,30 +364,19 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	protected File createTempFile(String suffix) {
-		File temp = null;
 		try {
-			temp = File.createTempFile("jadx-tmp-", System.nanoTime() + suffix);
+			Path temp;
 			if (deleteTmpFiles) {
-				temp.deleteOnExit();
+				temp = FileUtils.createTempFile(suffix);
 			} else {
-				System.out.println("Temporary file path: " + temp.getAbsolutePath());
+				// don't delete on exit
+				temp = Files.createTempFile("jadx", suffix);
+				System.out.println("Temporary file saved: " + temp.toAbsolutePath());
 			}
-		} catch (IOException e) {
-			fail(e.getMessage());
+			return temp.toFile();
+		} catch (Exception e) {
+			throw new AssertionError(e.getMessage());
 		}
-		return temp;
-	}
-
-	private static File createTempDir(String prefix) throws IOException {
-		File baseDir = new File(System.getProperty("java.io.tmpdir"));
-		String baseName = prefix + '-' + System.nanoTime();
-		for (int counter = 1; counter < 1000; counter++) {
-			File tempDir = new File(baseDir, baseName + counter);
-			if (tempDir.mkdir()) {
-				return tempDir;
-			}
-		}
-		throw new IOException("Failed to create temp directory");
 	}
 
 	private List<File> compileClass(Class<?> cls) throws IOException {
@@ -404,9 +396,8 @@ public abstract class IntegrationTest extends TestUtils {
 		assertThat("Test source file not found: " + javaFileName, file.exists(), is(true));
 		List<File> compileFileList = Collections.singletonList(file);
 
-		File outTmp = createTempDir("jadx-tmp-classes");
-		outTmp.deleteOnExit();
-		List<File> files = StaticCompiler.compile(compileFileList, outTmp, withDebugInfo, useEclipseCompiler);
+		Path outTmp = FileUtils.createTempDir("jadx-tmp-classes");
+		List<File> files = StaticCompiler.compile(compileFileList, outTmp.toFile(), withDebugInfo, useEclipseCompiler);
 		files.forEach(File::deleteOnExit);
 		// remove classes which are parents for test class
 		String clsName = clsFullName.substring(clsFullName.lastIndexOf('.') + 1);

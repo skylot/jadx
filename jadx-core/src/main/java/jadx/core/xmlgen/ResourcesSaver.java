@@ -1,10 +1,9 @@
 package jadx.core.xmlgen;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,8 +90,8 @@ public class ResourcesSaver implements Runnable {
 
 	private void saveResourceFile(ResourceFile resFile, File outFile) throws JadxException {
 		ResourcesLoader.decodeStream(resFile, (size, is) -> {
-			try (FileOutputStream fileStream = new FileOutputStream(outFile)) {
-				IOUtils.copy(is, fileStream);
+			try {
+				Files.copy(is, outFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 			} catch (Exception e) {
 				throw new JadxRuntimeException("Resource file save error", e);
 			}

@@ -41,7 +41,7 @@ public class JavaToDex {
 		try (ByteArrayOutputStream out = new ByteArrayOutputStream();
 				ByteArrayOutputStream errOut = new ByteArrayOutputStream()) {
 			DxContext context = new DxContext(out, errOut);
-			Path dir = Files.createTempDirectory("jadx");
+			Path dir = FileUtils.createTempDir(jar.getFileName().toString());
 			DxArgs args = new DxArgs(
 					context,
 					dir.toAbsolutePath().toString(),
