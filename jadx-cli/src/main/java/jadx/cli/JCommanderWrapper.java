@@ -3,7 +3,9 @@ package jadx.cli;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -66,9 +68,9 @@ public class JCommanderWrapper<T> {
 				maxNamesLen = len;
 			}
 		}
-		JadxCLIArgs args = new JadxCLIArgs();
-		Field[] fields = args.getClass().getDeclaredFields();
-		for (Field f : fields) {
+
+		JadxCLIArgs args = (JadxCLIArgs) jc.getObjects().get(0);
+		for (Field f : getFields(args.getClass())) {
 			String name = f.getName();
 			ParameterDescription p = paramsMap.get(name);
 			if (p == null) {
@@ -83,6 +85,21 @@ public class JCommanderWrapper<T> {
 		}
 		out.println("Example:");
 		out.println("  jadx -d out classes.dex");
+	}
+
+	/**
+	 * Get all declared fields of the specified class and all super classes
+	 *
+	 * @param clazz
+	 * @return
+	 */
+	private List<Field> getFields(Class<?> clazz) {
+		List<Field> fieldList = new LinkedList<>();
+		while (clazz != null) {
+			fieldList.addAll(Arrays.asList(clazz.getDeclaredFields()));
+			clazz = clazz.getSuperclass();
+		}
+		return fieldList;
 	}
 
 	private void addDefaultValue(JadxCLIArgs args, Field f, StringBuilder opt) {
