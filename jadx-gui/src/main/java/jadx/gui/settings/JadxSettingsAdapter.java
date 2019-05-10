@@ -1,6 +1,10 @@
 package jadx.gui.settings;
 
 import java.awt.Rectangle;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.prefs.Preferences;
@@ -31,7 +35,8 @@ public class JadxSettingsAdapter {
 		public boolean shouldSkipField(FieldAttributes f) {
 			return JadxSettings.SKIP_FIELDS.contains(f.getName())
 					|| f.hasModifier(Modifier.PUBLIC)
-					|| f.hasModifier(Modifier.TRANSIENT);
+					|| f.hasModifier(Modifier.TRANSIENT)
+					|| (f.getAnnotation(GsonExclude.class) != null);
 		}
 
 		@Override
@@ -95,5 +100,13 @@ public class JadxSettingsAdapter {
 		builder.registerTypeAdapter(type, (InstanceCreator<T>) t -> into)
 				.create()
 				.fromJson(json, type);
+	}
+
+	/**
+	 * Annotation for specifying fields that should not be be saved/loaded
+	 */
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.FIELD)
+	public @interface GsonExclude {
 	}
 }

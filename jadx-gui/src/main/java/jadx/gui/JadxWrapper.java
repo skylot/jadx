@@ -8,8 +8,9 @@ import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
-import javax.swing.*;
+import javax.swing.ProgressMonitor;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,5 +133,14 @@ public class JadxWrapper {
 
 	public JadxArgs getArgs() {
 		return decompiler.getArgs();
+	}
+
+	/**
+	 * @param fullName Full name of an outer class. Inner classes are not supported.
+	 * @return
+	 */
+	public @Nullable JavaClass searchJavaClassByClassName(String fullName) {
+		return decompiler.getClasses().stream().filter(cls -> cls.getFullName().equals(fullName))
+				.findFirst().orElse(null);
 	}
 }

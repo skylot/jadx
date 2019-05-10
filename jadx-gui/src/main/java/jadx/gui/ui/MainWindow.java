@@ -67,6 +67,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
+import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
 import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.BackgroundWorker;
@@ -178,10 +179,25 @@ public class MainWindow extends JFrame {
 			}
 		});
 
+		processCommandLineArgs();
+	}
+
+	private void processCommandLineArgs() {
 		if (settings.getFiles().isEmpty()) {
 			openFileOrProject();
 		} else {
 			open(Paths.get(settings.getFiles().get(0)));
+			if (settings.getCmdSelectClass() != null) {
+				JavaNode javaNode = wrapper.searchJavaClassByClassName(settings.getCmdSelectClass());
+				if (javaNode == null) {
+					JOptionPane.showMessageDialog(this,
+							NLS.str("msg.cmd_select_class_error", settings.getCmdSelectClass()),
+							NLS.str("error_dialog.title"), JOptionPane.ERROR_MESSAGE);
+				} else {
+					JNode node = cacheObject.getNodeCache().makeFrom(javaNode);
+					tabbedPane.codeJump(new JumpPosition(node.getRootClass(), node.getLine()));
+				}
+			}
 		}
 	}
 
