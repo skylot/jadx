@@ -31,10 +31,11 @@ import static jadx.core.dex.visitors.typeinference.TypeUpdateResult.SAME;
 public final class TypeUpdate {
 	private static final Logger LOG = LoggerFactory.getLogger(TypeUpdate.class);
 
+	private static final TypeUpdateFlags FLAGS_EMPTY = new TypeUpdateFlags();
+	private static final TypeUpdateFlags FLAGS_WIDER = new TypeUpdateFlags().allowWider();
+
 	private final Map<InsnType, ITypeListener> listenerRegistry;
 	private final TypeCompare comparator;
-
-	private ThreadLocal<Boolean> allowWider = new ThreadLocal<>();
 
 	public TypeUpdate(RootNode root) {
 		this.listenerRegistry = initListenerRegistry();
@@ -45,14 +46,22 @@ public final class TypeUpdate {
 	 * Perform recursive type checking and type propagation for all related variables
 	 */
 	public TypeUpdateResult apply(SSAVar ssaVar, ArgType candidateType) {
-		if (candidateType == null) {
-			return REJECT;
-		}
-		if (!candidateType.isTypeKnown()/* && ssaVar.getTypeInfo().getType().isTypeKnown() */) {
+		return apply(ssaVar, candidateType, FLAGS_EMPTY);
+	}
+
+	/**
+	 * Allow wider types for apply from debug info and some special cases
+	 */
+	public TypeUpdateResult applyWithWiderAllow(SSAVar ssaVar, ArgType candidateType) {
+		return apply(ssaVar, candidateType, FLAGS_WIDER);
+	}
+
+	private TypeUpdateResult apply(SSAVar ssaVar, ArgType candidateType, TypeUpdateFlags flags) {
+		if (candidateType == null || !candidateType.isTypeKnown()) {
 			return REJECT;
 		}
 
-		TypeUpdateInfo updateInfo = new TypeUpdateInfo();
+		TypeUpdateInfo updateInfo = new TypeUpdateInfo(flags);
 		TypeUpdateResult result = updateTypeChecked(updateInfo, ssaVar.getAssign(), candidateType);
 		if (result == REJECT) {
 			return result;
@@ -61,24 +70,12 @@ public final class TypeUpdate {
 		if (updates.isEmpty()) {
 			return SAME;
 		}
-		if (Consts.DEBUG && LOG.isDebugEnabled()) {
+		if (Consts.DEBUG) {
 			LOG.debug("Applying types, init for {} -> {}", ssaVar, candidateType);
 			updates.forEach(updateEntry -> LOG.debug("  {} -> {}", updateEntry.getType(), updateEntry.getArg()));
 		}
 		updates.forEach(TypeUpdateEntry::apply);
 		return CHANGED;
-	}
-
-	/**
-	 * Allow wider types for apply from debug info and some special cases
-	 */
-	public TypeUpdateResult applyWithWiderAllow(SSAVar ssaVar, ArgType candidateType) {
-		try {
-			allowWider.set(true);
-			return apply(ssaVar, candidateType);
-		} finally {
-			allowWider.set(false);
-		}
 	}
 
 	private TypeUpdateResult updateTypeChecked(TypeUpdateInfo updateInfo, InsnArg arg, ArgType candidateType) {
@@ -100,13 +97,11 @@ public final class TypeUpdate {
 			}
 			return SAME;
 		}
-		if (compareResult.isWider()) {
-			if (allowWider.get() != Boolean.TRUE) {
-				if (Consts.DEBUG) {
-					LOG.debug("Type rejected for {}: candidate={} is wider than current={}", arg, candidateType, currentType);
-				}
-				return REJECT;
+		if (compareResult.isWider() && !updateInfo.getFlags().isAllowWider()) {
+			if (Consts.DEBUG) {
+				LOG.debug("Type rejected for {}: candidate={} is wider than current={}", arg, candidateType, currentType);
 			}
+			return REJECT;
 		}
 		if (arg instanceof RegisterArg) {
 			RegisterArg reg = (RegisterArg) arg;
@@ -278,7 +273,8 @@ public final class TypeUpdate {
 		if (changeArg.getType().isTypeKnown()) {
 			// allow result to be wider
 			TypeCompareEnum compareTypes = comparator.compareTypes(candidateType, changeArg.getType());
-			boolean correctType = assignChanged ? compareTypes.isWider() : compareTypes.isNarrow();
+			boolean correctType = compareTypes == TypeCompareEnum.EQUAL
+					|| (assignChanged ? compareTypes.isWider() : compareTypes.isNarrow());
 			if (correctType && inBounds(changeArg, candidateType)) {
 				allowReject = true;
 			} else {

@@ -89,6 +89,9 @@ public class TypeSearch {
 				applySuccess = false;
 			}
 		}
+		if (!applySuccess) {
+			LOG.warn("Multi-variable search result apply rejected in {}", mth);
+		}
 		return applySuccess;
 	}
 

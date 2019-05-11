@@ -7,7 +7,12 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 
 public class TypeUpdateInfo {
+	private final TypeUpdateFlags flags;
 	private final List<TypeUpdateEntry> updates = new ArrayList<>();
+
+	public TypeUpdateInfo(TypeUpdateFlags flags) {
+		this.flags = flags;
+	}
 
 	public void requestUpdate(InsnArg arg, ArgType changeType) {
 		updates.add(new TypeUpdateEntry(arg, changeType));
@@ -31,5 +36,9 @@ public class TypeUpdateInfo {
 
 	public List<TypeUpdateEntry> getUpdates() {
 		return updates;
+	}
+
+	public TypeUpdateFlags getFlags() {
+		return flags;
 	}
 }
