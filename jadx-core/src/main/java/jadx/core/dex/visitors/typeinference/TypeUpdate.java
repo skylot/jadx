@@ -151,6 +151,12 @@ public final class TypeUpdate {
 			return CHANGED;
 		}
 		updateInfo.requestUpdate(arg, candidateType);
+		if (updateInfo.getUpdates().size() > 500) {
+			if (Consts.DEBUG) {
+				LOG.error("Type update error: too deep update tree");
+			}
+			return REJECT;
+		}
 		try {
 			TypeUpdateResult result = runListeners(updateInfo, arg, candidateType);
 			if (result == REJECT) {
