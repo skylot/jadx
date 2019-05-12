@@ -32,7 +32,7 @@ public class RenameVisitor extends AbstractVisitor {
 			return;
 		}
 		InputFile firstInputFile = dexNodes.get(0).getDexFile().getInputFile();
-		Path inputFilePath = firstInputFile.getFile().toPath();
+		Path inputFilePath = firstInputFile.getFile().getAbsoluteFile().toPath();
 
 		String inputName = inputFilePath.getFileName().toString();
 		String baseName = inputName.substring(0, inputName.lastIndexOf('.'));
