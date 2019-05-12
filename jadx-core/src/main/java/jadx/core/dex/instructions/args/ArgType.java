@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 
 import jadx.core.Consts;
+import jadx.core.dex.info.ClassInfo;
+import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.nodes.parser.SignatureParser;
@@ -618,6 +620,31 @@ public abstract class ArgType {
 			return 0;
 		}
 		return 1;
+	}
+
+	public static ArgType tryToResolveClassAlias(DexNode dex, ArgType type) {
+		if (!type.isObject() || type.isGenericType()) {
+			return type;
+		}
+
+		ClassNode cls = dex.resolveClass(type);
+		if (cls == null) {
+			return type;
+		}
+		ClassInfo clsInfo = cls.getClassInfo();
+		if (!clsInfo.hasAlias()) {
+			return type;
+		}
+		String aliasFullName = clsInfo.getAliasFullName();
+		if (type.isGeneric()) {
+			if (type instanceof GenericObject) {
+				return new GenericObject(aliasFullName, type.getGenericTypes());
+			}
+			if (type instanceof WildcardType) {
+				return new WildcardType(ArgType.object(aliasFullName), type.getWildcardBounds());
+			}
+		}
+		return ArgType.object(aliasFullName);
 	}
 
 	@Override

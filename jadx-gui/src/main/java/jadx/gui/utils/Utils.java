@@ -65,9 +65,13 @@ public class Utils {
 	}
 
 	public static String typeFormat(String name, ArgType type) {
-		return "<html><body><nobr>" + name
-				+ "<span style='color:#888888;'> : " + typeStr(type) + "</span>"
+		return "<html><body><nobr>" + escapeHtml(name)
+				+ "<span style='color:#888888;'> " + escapeHtml(typeStr(type)) + "</span>"
 				+ "</nobr></body></html>";
+	}
+
+	public static String escapeHtml(String str) {
+		return str.replace("<", "&lt;");
 	}
 
 	public static String typeStr(ArgType type) {
@@ -75,7 +79,7 @@ public class Utils {
 			return "null";
 		}
 		if (type.isObject()) {
-			String cls = type.getObject();
+			String cls = type.toString();
 			int dot = cls.lastIndexOf('.');
 			if (dot != -1) {
 				return cls.substring(dot + 1);

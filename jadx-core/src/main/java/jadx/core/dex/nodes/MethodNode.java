@@ -91,9 +91,8 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		if (noCode) {
 			return;
 		}
-		retType = null;
+		// don't unload retType and argsList, will be used in jadx-gui after class unload
 		thisArg = null;
-		argsList = Collections.emptyList();
 		sVars = Collections.emptyList();
 		genericMap = null;
 		instructions = null;
