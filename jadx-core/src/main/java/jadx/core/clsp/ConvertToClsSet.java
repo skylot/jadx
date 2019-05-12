@@ -38,7 +38,7 @@ public class ConvertToClsSet {
 			if (f.isDirectory()) {
 				addFilesFromDirectory(f, inputFiles);
 			} else {
-				InputFile.addFilesFrom(f, inputFiles);
+				InputFile.addFilesFrom(f, inputFiles, false);
 			}
 		}
 		for (InputFile inputFile : inputFiles) {
@@ -65,7 +65,7 @@ public class ConvertToClsSet {
 				addFilesFromDirectory(file, inputFiles);
 			} else {
 				try {
-					InputFile.addFilesFrom(file, inputFiles);
+					InputFile.addFilesFrom(file, inputFiles, false);
 				} catch (Exception e) {
 					LOG.warn("Skip file: {}, load error: {}", file, e.getMessage());
 				}

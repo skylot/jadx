@@ -35,9 +35,9 @@ public class InputFile {
 	private final File file;
 	private final List<DexFile> dexFiles = new ArrayList<>();
 
-	public static void addFilesFrom(File file, List<InputFile> list, boolean... skipSources) throws IOException, DecodeException {
+	public static void addFilesFrom(File file, List<InputFile> list, boolean skipSources) throws IOException, DecodeException {
 		InputFile inputFile = new InputFile(file);
-		inputFile.searchDexFiles(skipSources.length == 0 ? false : skipSources[0]);
+		inputFile.searchDexFiles(skipSources);
 		list.add(inputFile);
 	}
 
