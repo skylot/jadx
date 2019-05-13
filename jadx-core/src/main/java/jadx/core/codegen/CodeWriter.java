@@ -97,10 +97,12 @@ public class CodeWriter {
 	}
 
 	public CodeWriter addMultiLine(String str) {
-		buf.append(str);
 		if (str.contains(NL)) {
+			buf.append(str.replace(NL, NL + indentStr));
 			line += StringUtils.countMatches(str, NL);
 			offset = 0;
+		} else {
+			buf.append(str);
 		}
 		return this;
 	}

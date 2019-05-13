@@ -84,7 +84,7 @@ public final class ResourcesLoader {
 			LOG.error("Decode error", e);
 			CodeWriter cw = new CodeWriter();
 			cw.add("Error decode ").add(rf.getType().toString().toLowerCase());
-			cw.startLine(Utils.getStackTrace(e.getCause()));
+			Utils.appendStackTrace(cw, e.getCause());
 			return ResContainer.textResource(rf.getName(), cw);
 		}
 	}
