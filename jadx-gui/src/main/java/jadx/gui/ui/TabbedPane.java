@@ -30,15 +30,15 @@ import jadx.gui.ui.codearea.CodeContentPanel;
 import jadx.gui.utils.JumpManager;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.Utils;
+import jadx.gui.utils.UiUtils;
 
 public class TabbedPane extends JTabbedPane {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TabbedPane.class);
 	private static final long serialVersionUID = -8833600618794570904L;
 
-	private static final ImageIcon ICON_CLOSE = Utils.openIcon("cross");
-	private static final ImageIcon ICON_CLOSE_INACTIVE = Utils.openIcon("cross_grayed");
+	private static final ImageIcon ICON_CLOSE = UiUtils.openIcon("cross");
+	private static final ImageIcon ICON_CLOSE_INACTIVE = UiUtils.openIcon("cross_grayed");
 
 	private final transient MainWindow mainWindow;
 	private final transient Map<JNode, ContentPanel> openTabs = new LinkedHashMap<>();
@@ -294,7 +294,7 @@ public class TabbedPane extends JTabbedPane {
 	public void copyRootClassName() {
 		String name = getNodeFullName();
 		if (name != null) {
-			Utils.setClipboardString(name);
+			UiUtils.setClipboardString(name);
 		}
 	}
 

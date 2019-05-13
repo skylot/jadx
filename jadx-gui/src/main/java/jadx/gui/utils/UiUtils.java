@@ -19,8 +19,8 @@ import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
-public class Utils {
-	private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
+public class UiUtils {
+	private static final Logger LOG = LoggerFactory.getLogger(UiUtils.class);
 
 	private static final ImageIcon ICON_STATIC = openIcon("static_co");
 	private static final ImageIcon ICON_FINAL = openIcon("final_co");
@@ -39,12 +39,12 @@ public class Utils {
 	 */
 	public static final long MIN_FREE_MEMORY = calculateMinFreeMemory();
 
-	private Utils() {
+	private UiUtils() {
 	}
 
 	public static ImageIcon openIcon(String name) {
 		String iconPath = "/icons-16/" + name + ".png";
-		URL resource = Utils.class.getResource(iconPath);
+		URL resource = UiUtils.class.getResource(iconPath);
 		if (resource == null) {
 			throw new JadxRuntimeException("Icon not found: " + iconPath);
 		}
@@ -52,7 +52,7 @@ public class Utils {
 	}
 
 	public static Image openImage(String path) {
-		URL resource = Utils.class.getResource(path);
+		URL resource = UiUtils.class.getResource(path);
 		if (resource == null) {
 			throw new JadxRuntimeException("Image not found: " + path);
 		}
@@ -173,10 +173,10 @@ public class Utils {
 
 	public static void setWindowIcons(Window window) {
 		List<Image> icons = new ArrayList<>();
-		icons.add(Utils.openImage("/logos/jadx-logo-16px.png"));
-		icons.add(Utils.openImage("/logos/jadx-logo-32px.png"));
-		icons.add(Utils.openImage("/logos/jadx-logo-48px.png"));
-		icons.add(Utils.openImage("/logos/jadx-logo.png"));
+		icons.add(UiUtils.openImage("/logos/jadx-logo-16px.png"));
+		icons.add(UiUtils.openImage("/logos/jadx-logo-32px.png"));
+		icons.add(UiUtils.openImage("/logos/jadx-logo-48px.png"));
+		icons.add(UiUtils.openImage("/logos/jadx-logo.png"));
 		window.setIconImages(icons);
 	}
 

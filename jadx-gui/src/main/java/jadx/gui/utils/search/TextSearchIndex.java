@@ -22,7 +22,7 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.SearchDialog;
 import jadx.gui.utils.CodeLinesInfo;
 import jadx.gui.utils.JNodeCache;
-import jadx.gui.utils.Utils;
+import jadx.gui.utils.UiUtils;
 
 import static jadx.gui.ui.SearchDialog.SearchOptions.CLASS;
 import static jadx.gui.ui.SearchDialog.SearchOptions.CODE;
@@ -126,13 +126,13 @@ public class TextSearchIndex {
 						return;
 					}
 				}
-				if (!Utils.isFreeMemoryAvailable()) {
-					LOG.warn("Skipped code search stopped due to memory limit: {}", Utils.memoryInfo());
+				if (!UiUtils.isFreeMemoryAvailable()) {
+					LOG.warn("Skipped code search stopped due to memory limit: {}", UiUtils.memoryInfo());
 					emitter.onComplete();
 					return;
 				}
 			}
-			LOG.debug("Skipped code search complete: {}, memory usage: {}", searchStr, Utils.memoryInfo());
+			LOG.debug("Skipped code search complete: {}, memory usage: {}", searchStr, UiUtils.memoryInfo());
 			emitter.onComplete();
 		}, BackpressureStrategy.LATEST);
 	}

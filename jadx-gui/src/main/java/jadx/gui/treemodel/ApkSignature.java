@@ -17,14 +17,14 @@ import com.android.apksig.ApkVerifier;
 import jadx.gui.JadxWrapper;
 import jadx.gui.utils.CertificateManager;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.Utils;
+import jadx.gui.utils.UiUtils;
 
 public class ApkSignature extends JNode {
 	private static final long serialVersionUID = -9121321926113143407L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(ApkSignature.class);
 
-	private static final ImageIcon CERTIFICATE_ICON = Utils.openIcon("certificate_obj");
+	private static final ImageIcon CERTIFICATE_ICON = UiUtils.openIcon("certificate_obj");
 
 	private final transient File openFile;
 	private String content;

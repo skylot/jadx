@@ -13,7 +13,7 @@ import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.CodeLinesInfo;
 import jadx.gui.utils.CodeUsageInfo;
 import jadx.gui.utils.JNodeCache;
-import jadx.gui.utils.Utils;
+import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.search.StringRef;
 import jadx.gui.utils.search.TextSearchIndex;
 
@@ -42,7 +42,7 @@ public class IndexJob extends BackgroundJob {
 					List<StringRef> lines = splitLines(cls);
 
 					usageInfo.processClass(cls, linesInfo, lines);
-					if (Utils.isFreeMemoryAvailable()) {
+					if (UiUtils.isFreeMemoryAvailable()) {
 						index.indexCode(cls, linesInfo, lines);
 					} else {
 						index.classCodeIndexSkipped(cls);

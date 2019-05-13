@@ -6,13 +6,13 @@ import java.beans.PropertyChangeListener;
 
 import javax.swing.*;
 
-import jadx.gui.utils.Utils;
+import jadx.gui.utils.UiUtils;
 
 public class ProgressPanel extends JPanel implements PropertyChangeListener {
 
 	private static final long serialVersionUID = -3238438119672015733L;
 
-	private static final Icon ICON_CANCEL = Utils.openIcon("cross");
+	private static final Icon ICON_CANCEL = UiUtils.openIcon("cross");
 
 	private final JProgressBar progressBar;
 	private final JLabel progressLabel;

@@ -17,13 +17,13 @@ import jadx.api.ResourceFile;
 import jadx.core.utils.files.ZipSecurity;
 import jadx.gui.utils.CertificateManager;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.Utils;
+import jadx.gui.utils.UiUtils;
 
 public class JCertificate extends JNode {
 	private static final long serialVersionUID = 4308696770188518731L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(JCertificate.class);
-	private static final ImageIcon CERTIFICATE_ICON = Utils.openIcon("certificate_obj");
+	private static final ImageIcon CERTIFICATE_ICON = UiUtils.openIcon("certificate_obj");
 
 	private final transient ResourceFile rf;
 

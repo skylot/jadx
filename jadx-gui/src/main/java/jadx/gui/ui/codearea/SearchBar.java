@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
-import jadx.gui.utils.Utils;
+import jadx.gui.utils.UiUtils;
 
 class SearchBar extends JToolBar {
 	private static final long serialVersionUID = 1836871286618633003L;
@@ -28,9 +28,9 @@ class SearchBar extends JToolBar {
 	private static final Color COLOR_BG_WARN = new Color(0xFFFDD9);
 	private static final Color COLOR_BG_NORMAL = new Color(0xFFFFFF);
 
-	private static final Icon ICON_UP = Utils.openIcon("arrow_up");
-	private static final Icon ICON_DOWN = Utils.openIcon("arrow_down");
-	private static final Icon ICON_CLOSE = Utils.openIcon("cross");
+	private static final Icon ICON_UP = UiUtils.openIcon("arrow_up");
+	private static final Icon ICON_DOWN = UiUtils.openIcon("arrow_down");
+	private static final Icon ICON_CLOSE = UiUtils.openIcon("cross");
 
 	private RSyntaxTextArea rTextArea;
 

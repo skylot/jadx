@@ -100,9 +100,9 @@ public class TextStandardActions {
 	}
 
 	private void addKeyActions() {
-		KeyStroke undoKey = KeyStroke.getKeyStroke(KeyEvent.VK_Z, Utils.ctrlButton());
+		KeyStroke undoKey = KeyStroke.getKeyStroke(KeyEvent.VK_Z, UiUtils.ctrlButton());
 		textComponent.getInputMap().put(undoKey, undoAction);
-		KeyStroke redoKey = KeyStroke.getKeyStroke(KeyEvent.VK_R, Utils.ctrlButton());
+		KeyStroke redoKey = KeyStroke.getKeyStroke(KeyEvent.VK_R, UiUtils.ctrlButton());
 		textComponent.getInputMap().put(redoKey, redoAction);
 	}
 

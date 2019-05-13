@@ -19,17 +19,17 @@ import jadx.core.codegen.CodeWriter;
 import jadx.core.xmlgen.ResContainer;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.OverlayIcon;
-import jadx.gui.utils.Utils;
+import jadx.gui.utils.UiUtils;
 
 public class JResource extends JLoadableNode implements Comparable<JResource> {
 	private static final long serialVersionUID = -201018424302612434L;
 
-	private static final ImageIcon ROOT_ICON = Utils.openIcon("cf_obj");
-	private static final ImageIcon FOLDER_ICON = Utils.openIcon("folder");
-	private static final ImageIcon FILE_ICON = Utils.openIcon("file_obj");
-	private static final ImageIcon MANIFEST_ICON = Utils.openIcon("template_obj");
-	private static final ImageIcon JAVA_ICON = Utils.openIcon("java_ovr");
-	private static final ImageIcon ERROR_ICON = Utils.openIcon("error_co");
+	private static final ImageIcon ROOT_ICON = UiUtils.openIcon("cf_obj");
+	private static final ImageIcon FOLDER_ICON = UiUtils.openIcon("folder");
+	private static final ImageIcon FILE_ICON = UiUtils.openIcon("file_obj");
+	private static final ImageIcon MANIFEST_ICON = UiUtils.openIcon("template_obj");
+	private static final ImageIcon JAVA_ICON = UiUtils.openIcon("java_ovr");
+	private static final ImageIcon ERROR_ICON = UiUtils.openIcon("error_co");
 
 	public enum JResType {
 		ROOT,

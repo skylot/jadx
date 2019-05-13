@@ -12,12 +12,12 @@ import jadx.api.ResourceFile;
 import jadx.gui.JadxWrapper;
 import jadx.gui.treemodel.JResource.JResType;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.Utils;
+import jadx.gui.utils.UiUtils;
 
 public class JRoot extends JNode {
 	private static final long serialVersionUID = 8888495789773527342L;
 
-	private static final ImageIcon ROOT_ICON = Utils.openIcon("java_model_obj");
+	private static final ImageIcon ROOT_ICON = UiUtils.openIcon("java_model_obj");
 
 	private final transient JadxWrapper wrapper;
 

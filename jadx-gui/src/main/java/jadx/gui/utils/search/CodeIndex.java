@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 
-import jadx.gui.utils.Utils;
+import jadx.gui.utils.UiUtils;
 
 public class CodeIndex<T> implements SearchIndex<T> {
 
@@ -55,7 +55,7 @@ public class CodeIndex<T> implements SearchIndex<T> {
 					return;
 				}
 			}
-			LOG.debug("Code search complete: {}, memory usage: {}", searchStr, Utils.memoryInfo());
+			LOG.debug("Code search complete: {}, memory usage: {}", searchStr, UiUtils.memoryInfo());
 			emitter.onComplete();
 		}, BackpressureStrategy.LATEST);
 	}

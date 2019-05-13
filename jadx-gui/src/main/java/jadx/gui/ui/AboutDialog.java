@@ -7,7 +7,7 @@ import javax.swing.*;
 
 import jadx.api.JadxDecompiler;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.Utils;
+import jadx.gui.utils.UiUtils;
 
 class AboutDialog extends JDialog {
 	private static final long serialVersionUID = 5763493590584039096L;
@@ -70,7 +70,7 @@ class AboutDialog extends JDialog {
 		contentPane.add(textPane, BorderLayout.CENTER);
 		contentPane.add(close, BorderLayout.PAGE_END);
 
-		Utils.setWindowIcons(this);
+		UiUtils.setWindowIcons(this);
 
 		setModalityType(ModalityType.APPLICATION_MODAL);
 

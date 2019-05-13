@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
-import static jadx.gui.utils.Utils.caseChar;
+import static jadx.gui.utils.UiUtils.caseChar;
 
 public class StringRef implements CharSequence {
 

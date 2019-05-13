@@ -74,7 +74,7 @@ public class FontUtils {
 	@Nullable
 	public static Font openFontTTF(String name) {
 		String fontPath = "/fonts/" + name + ".ttf";
-		try (InputStream is = Utils.class.getResourceAsStream(fontPath)) {
+		try (InputStream is = UiUtils.class.getResourceAsStream(fontPath)) {
 			Font font = Font.createFont(Font.TRUETYPE_FONT, is);
 			return font.deriveFont(12f);
 		} catch (Exception e) {

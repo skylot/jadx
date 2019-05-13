@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.Utils;
+import jadx.gui.utils.UiUtils;
 
 public class HeapUsageBar extends JProgressBar implements ActionListener {
 	private static final Logger LOG = LoggerFactory.getLogger(HeapUsageBar.class);
@@ -43,7 +43,7 @@ public class HeapUsageBar extends JProgressBar implements ActionListener {
 				Runtime.getRuntime().gc();
 				update();
 				if (LOG.isDebugEnabled()) {
-					LOG.debug("Memory used: {}", Utils.memoryInfo());
+					LOG.debug("Memory used: {}", UiUtils.memoryInfo());
 				}
 			}
 		});
@@ -55,7 +55,7 @@ public class HeapUsageBar extends JProgressBar implements ActionListener {
 		setValue(usedKB);
 		setString(NLS.str("heapUsage.text", (usedKB / TWO_TO_20), maxGB));
 
-		if ((used + Utils.MIN_FREE_MEMORY) > runtime.maxMemory()) {
+		if ((used + UiUtils.MIN_FREE_MEMORY) > runtime.maxMemory()) {
 			setForeground(RED);
 		} else {
 			setForeground(GREEN);

@@ -11,7 +11,7 @@ import javax.swing.KeyStroke;
 
 import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.ContentPanel;
-import jadx.gui.utils.Utils;
+import jadx.gui.utils.UiUtils;
 
 /**
  * A panel combining a {@link SearchBar and a scollable {@link CodeArea}
@@ -32,8 +32,8 @@ public class CodePanel extends JPanel {
 		add(codeScrollPane, BorderLayout.CENTER);
 		initLineNumbers();
 
-		KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_F, Utils.ctrlButton());
-		Utils.addKeyBinding(codeArea, key, "SearchAction", new AbstractAction() {
+		KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_F, UiUtils.ctrlButton());
+		UiUtils.addKeyBinding(codeArea, key, "SearchAction", new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				searchBar.toggle();

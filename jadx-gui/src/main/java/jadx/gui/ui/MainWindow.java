@@ -92,7 +92,7 @@ import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.Utils;
+import jadx.gui.utils.UiUtils;
 
 import static javax.swing.KeyStroke.getKeyStroke;
 
@@ -106,20 +106,20 @@ public class MainWindow extends JFrame {
 	private static final double WINDOW_RATIO = 1 - BORDER_RATIO * 2;
 	private static final double SPLIT_PANE_RESIZE_WEIGHT = 0.15;
 
-	private static final ImageIcon ICON_OPEN = Utils.openIcon("folder");
-	private static final ImageIcon ICON_SAVE_ALL = Utils.openIcon("disk_multiple");
-	private static final ImageIcon ICON_EXPORT = Utils.openIcon("database_save");
-	private static final ImageIcon ICON_CLOSE = Utils.openIcon("cross");
-	private static final ImageIcon ICON_SYNC = Utils.openIcon("sync");
-	private static final ImageIcon ICON_FLAT_PKG = Utils.openIcon("empty_logical_package_obj");
-	private static final ImageIcon ICON_SEARCH = Utils.openIcon("wand");
-	private static final ImageIcon ICON_FIND = Utils.openIcon("magnifier");
-	private static final ImageIcon ICON_BACK = Utils.openIcon("icon_back");
-	private static final ImageIcon ICON_FORWARD = Utils.openIcon("icon_forward");
-	private static final ImageIcon ICON_PREF = Utils.openIcon("wrench");
-	private static final ImageIcon ICON_DEOBF = Utils.openIcon("lock_edit");
-	private static final ImageIcon ICON_LOG = Utils.openIcon("report");
-	private static final ImageIcon ICON_JADX = Utils.openIcon("jadx-logo");
+	private static final ImageIcon ICON_OPEN = UiUtils.openIcon("folder");
+	private static final ImageIcon ICON_SAVE_ALL = UiUtils.openIcon("disk_multiple");
+	private static final ImageIcon ICON_EXPORT = UiUtils.openIcon("database_save");
+	private static final ImageIcon ICON_CLOSE = UiUtils.openIcon("cross");
+	private static final ImageIcon ICON_SYNC = UiUtils.openIcon("sync");
+	private static final ImageIcon ICON_FLAT_PKG = UiUtils.openIcon("empty_logical_package_obj");
+	private static final ImageIcon ICON_SEARCH = UiUtils.openIcon("wand");
+	private static final ImageIcon ICON_FIND = UiUtils.openIcon("magnifier");
+	private static final ImageIcon ICON_BACK = UiUtils.openIcon("icon_back");
+	private static final ImageIcon ICON_FORWARD = UiUtils.openIcon("icon_forward");
+	private static final ImageIcon ICON_PREF = UiUtils.openIcon("wrench");
+	private static final ImageIcon ICON_DEOBF = UiUtils.openIcon("lock_edit");
+	private static final ImageIcon ICON_LOG = UiUtils.openIcon("report");
+	private static final ImageIcon ICON_JADX = UiUtils.openIcon("jadx-logo");
 
 	private final transient JadxWrapper wrapper;
 	private final transient JadxSettings settings;
@@ -159,7 +159,7 @@ public class MainWindow extends JFrame {
 		FontUtils.registerBundledFonts();
 		initUI();
 		initMenuAndToolbar();
-		Utils.setWindowIcons(this);
+		UiUtils.setWindowIcons(this);
 		loadSettings();
 		checkForUpdate();
 		newProject();
@@ -573,7 +573,7 @@ public class MainWindow extends JFrame {
 			}
 		};
 		openAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.open_action"));
-		openAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_O, Utils.ctrlButton()));
+		openAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_O, UiUtils.ctrlButton()));
 
 		newProjectAction = new AbstractAction(NLS.str("file.new_project")) {
 			@Override
@@ -606,7 +606,7 @@ public class MainWindow extends JFrame {
 			}
 		};
 		saveAllAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.save_all"));
-		saveAllAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_S, Utils.ctrlButton()));
+		saveAllAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_S, UiUtils.ctrlButton()));
 
 		Action exportAction = new AbstractAction(NLS.str("file.export_gradle"), ICON_EXPORT) {
 			@Override
@@ -615,7 +615,7 @@ public class MainWindow extends JFrame {
 			}
 		};
 		exportAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.export_gradle"));
-		exportAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_E, Utils.ctrlButton()));
+		exportAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_E, UiUtils.ctrlButton()));
 
 		JMenu recentProjects = new JMenu(NLS.str("menu.recent_projects"));
 		recentProjects.addMenuListener(new RecentProjectsMenuListener(recentProjects));
@@ -628,7 +628,7 @@ public class MainWindow extends JFrame {
 		};
 		prefsAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.preferences"));
 		prefsAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_P,
-				Utils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
+				UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
 
 		Action exitAction = new AbstractAction(NLS.str("file.exit"), ICON_CLOSE) {
 			@Override
@@ -655,7 +655,7 @@ public class MainWindow extends JFrame {
 			}
 		};
 		syncAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.sync"));
-		syncAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_T, Utils.ctrlButton()));
+		syncAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_T, UiUtils.ctrlButton()));
 
 		Action textSearchAction = new AbstractAction(NLS.str("menu.text_search"), ICON_SEARCH) {
 			@Override
@@ -665,7 +665,7 @@ public class MainWindow extends JFrame {
 		};
 		textSearchAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.text_search"));
 		textSearchAction.putValue(Action.ACCELERATOR_KEY,
-				getKeyStroke(KeyEvent.VK_F, Utils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
+				getKeyStroke(KeyEvent.VK_F, UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
 
 		Action clsSearchAction = new AbstractAction(NLS.str("menu.class_search"), ICON_FIND) {
 			@Override
@@ -674,7 +674,7 @@ public class MainWindow extends JFrame {
 			}
 		};
 		clsSearchAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.class_search"));
-		clsSearchAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_N, Utils.ctrlButton()));
+		clsSearchAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_N, UiUtils.ctrlButton()));
 
 		Action deobfAction = new AbstractAction(NLS.str("menu.deobfuscation"), ICON_DEOBF) {
 			@Override
@@ -684,7 +684,7 @@ public class MainWindow extends JFrame {
 		};
 		deobfAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("preferences.deobfuscation"));
 		deobfAction.putValue(Action.ACCELERATOR_KEY,
-				getKeyStroke(KeyEvent.VK_D, Utils.ctrlButton() | KeyEvent.ALT_DOWN_MASK));
+				getKeyStroke(KeyEvent.VK_D, UiUtils.ctrlButton() | KeyEvent.ALT_DOWN_MASK));
 
 		deobfToggleBtn = new JToggleButton(deobfAction);
 		deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
@@ -701,7 +701,7 @@ public class MainWindow extends JFrame {
 		};
 		logAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.log"));
 		logAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_L,
-				Utils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
+				UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
 
 		Action aboutAction = new AbstractAction(NLS.str("menu.about"), ICON_JADX) {
 			@Override
@@ -718,7 +718,7 @@ public class MainWindow extends JFrame {
 		};
 		backAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("nav.back"));
 		backAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_LEFT,
-				Utils.ctrlButton() | KeyEvent.ALT_DOWN_MASK));
+				UiUtils.ctrlButton() | KeyEvent.ALT_DOWN_MASK));
 
 		Action forwardAction = new AbstractAction(NLS.str("nav.forward"), ICON_FORWARD) {
 			@Override
@@ -728,7 +728,7 @@ public class MainWindow extends JFrame {
 		};
 		forwardAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("nav.forward"));
 		forwardAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_RIGHT,
-				Utils.ctrlButton() | KeyEvent.ALT_DOWN_MASK));
+				UiUtils.ctrlButton() | KeyEvent.ALT_DOWN_MASK));
 
 		JMenu file = new JMenu(NLS.str("menu.file"));
 		file.setMnemonic(KeyEvent.VK_F);
