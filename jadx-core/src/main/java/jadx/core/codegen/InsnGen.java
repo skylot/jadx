@@ -769,12 +769,14 @@ public class InsnGen {
 			return false;
 		}
 		if (origType.isGeneric()) {
-			if (!argType.isGeneric() && arg.isInsnWrap()) {
-				((InsnWrapArg) arg).getWrapInsn().getResult().setType(
-						ArgType.generic(argType.getObject(), origType.getGenericTypes()));
-			}
-			if (origType.getObject().equals(argType.getObject())) {
-				return false;
+			if (argType.isObject()) {
+				if (!argType.isGeneric() && arg.isInsnWrap()) {
+					((InsnWrapArg) arg).getWrapInsn().getResult().setType(
+							ArgType.generic(argType.getObject(), origType.getGenericTypes()));
+				}
+				if (origType.getObject().equals(argType.getObject())) {
+					return false;
+				}
 			}
 			if (arg.isInsnWrap()) {
 				((InsnWrapArg) arg).getWrapInsn().add(AFlag.EXPLICIT_GENERICS);
