@@ -139,15 +139,29 @@ public class InsnNode extends LineAttrNode {
 	}
 
 	protected boolean removeArg(InsnArg arg) {
+		int index = getArgIndex(arg);
+		if (index == -1) {
+			return false;
+		}
+		removeArg(index);
+		return true;
+	}
+
+	protected InsnArg removeArg(int index) {
+		InsnArg arg = arguments.get(index);
+		arguments.remove(index);
+		InsnRemover.unbindArgUsage(null, arg);
+		return arg;
+	}
+
+	protected int getArgIndex(InsnArg arg) {
 		int count = getArgsCount();
 		for (int i = 0; i < count; i++) {
 			if (arg == arguments.get(i)) {
-				arguments.remove(i);
-				InsnRemover.unbindArgUsage(null, arg);
-				return true;
+				return i;
 			}
 		}
-		return false;
+		return -1;
 	}
 
 	protected void addReg(DecodedInstruction insn, int i, ArgType type) {

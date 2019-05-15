@@ -162,9 +162,6 @@ public class DebugUtils {
 				if (insn.getType() == InsnType.PHI) {
 					PhiInsn phi = (PhiInsn) insn;
 					phis.add(phi);
-					if (phi.getArgsCount() != phi.getBlockBinds().size()) {
-						throw new JadxRuntimeException("Incorrect args and binds in PHI");
-					}
 					if (phi.getArgsCount() == 0) {
 						throw new JadxRuntimeException("No args and binds in PHI");
 					}

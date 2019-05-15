@@ -3,7 +3,6 @@ package jadx.core.dex.visitors.typeinference;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -318,10 +317,12 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 				return false;
 			}
 		}
-		for (Map.Entry<RegisterArg, BlockNode> entry : phiInsn.getBlockBinds().entrySet()) {
-			RegisterArg reg = entry.getKey();
+
+		int argsCount = phiInsn.getArgsCount();
+		for (int argIndex = 0; argIndex < argsCount; argIndex++) {
+			RegisterArg reg = phiInsn.getArg(argIndex);
 			if (reg.getSVar() == var) {
-				BlockNode blockNode = entry.getValue();
+				BlockNode blockNode = phiInsn.getBlockByArgIndex(argIndex);
 				InsnNode lastInsn = BlockUtils.getLastInsn(blockNode);
 				if (lastInsn != null && BlockSplitter.makeSeparate(lastInsn.getType())) {
 					if (Consts.DEBUG) {
