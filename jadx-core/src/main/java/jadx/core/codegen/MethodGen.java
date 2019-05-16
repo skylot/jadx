@@ -30,6 +30,7 @@ import jadx.core.utils.InsnUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.DecodeException;
+import jadx.core.utils.exceptions.JadxOverflowException;
 
 public class MethodGen {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodGen.class);
@@ -197,8 +198,18 @@ public class MethodGen {
 					.add(mth.getMethodInfo().getReturnType().toString())
 					.add("\");");
 		} else {
-			RegionGen regionGen = new RegionGen(this);
-			regionGen.makeRegion(code, mth.getRegion());
+			try {
+				RegionGen regionGen = new RegionGen(this);
+				regionGen.makeRegion(code, mth.getRegion());
+			} catch (StackOverflowError | BootstrapMethodError e) {
+				mth.addError("Method code generation error", new JadxOverflowException("StackOverflow"));
+				classGen.insertDecompilationProblems(code, mth);
+				addInstructions(code);
+			} catch (Exception e) {
+				mth.addError("Method code generation error", e);
+				classGen.insertDecompilationProblems(code, mth);
+				addInstructions(code);
+			}
 		}
 	}
 

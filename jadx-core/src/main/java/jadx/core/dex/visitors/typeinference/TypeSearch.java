@@ -232,7 +232,9 @@ public class TypeSearch {
 		int size = candidateTypes.size();
 		if (size == 0) {
 			throw new JadxRuntimeException("No candidate types for var: " + ssaVar.getDetailedVarInfo(mth)
-					+ "\n  assigns: " + assigns + "\n  uses: " + uses);
+					+ "\n  assigns: " + assigns
+					+ "\n  uses: " + uses
+					+ "\n  mth insns count: " + mth.countInsns());
 		}
 		if (size == 1) {
 			varInfo.setTypeResolved(true);

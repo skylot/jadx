@@ -143,7 +143,7 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 	public static void applyDebugInfo(MethodNode mth, SSAVar ssaVar, ArgType type, String varName) {
 		TypeUpdateResult result = mth.root().getTypeUpdate().applyWithWiderAllow(ssaVar, type);
 		if (result == TypeUpdateResult.REJECT) {
-			if (LOG.isDebugEnabled()) {
+			if (Consts.DEBUG) {
 				LOG.debug("Reject debug info of type: {} and name: '{}' for {}, mth: {}", type, varName, ssaVar, mth);
 			}
 		} else {

@@ -659,12 +659,26 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		LOG.info("{} in {}", commentStr, this);
 	}
 
-	public void addError(String errStr, Exception e) {
+	public void addError(String errStr, Throwable e) {
 		ErrorsCounter.methodError(this, errStr, e);
 	}
 
 	public MethodInfo getMethodInfo() {
 		return mthInfo;
+	}
+
+	/**
+	 * Stat method.
+	 * Calculate instructions count as a measure of method size
+	 */
+	public long countInsns() {
+		if (instructions != null) {
+			return instructions.length;
+		}
+		if (blocks != null) {
+			return blocks.stream().mapToLong(block -> block.getInstructions().size()).sum();
+		}
+		return -1;
 	}
 
 	@Override

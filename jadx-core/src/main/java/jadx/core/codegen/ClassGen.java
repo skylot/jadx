@@ -329,10 +329,10 @@ public class ClassGen {
 		}
 	}
 
-	private void insertDecompilationProblems(CodeWriter code, AttrNode node) {
+	public void insertDecompilationProblems(CodeWriter code, AttrNode node) {
 		List<JadxError> errors = node.getAll(AType.JADX_ERROR);
 		if (!errors.isEmpty()) {
-			errors.stream().sorted().forEach(err -> {
+			errors.stream().distinct().sorted().forEach(err -> {
 				code.startLine("/*  JADX ERROR: ").add(err.getError());
 				Throwable cause = err.getCause();
 				if (cause != null) {

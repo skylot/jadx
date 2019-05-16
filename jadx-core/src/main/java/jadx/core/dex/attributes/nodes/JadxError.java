@@ -1,18 +1,18 @@
 package jadx.core.dex.attributes.nodes;
 
+import java.util.Objects;
+
+import org.jetbrains.annotations.NotNull;
+
 import jadx.core.utils.Utils;
 
-public class JadxError {
+public class JadxError implements Comparable<JadxError> {
 
 	private final String error;
 	private final Throwable cause;
 
-	public JadxError(Throwable cause) {
-		this(null, cause);
-	}
-
 	public JadxError(String error, Throwable cause) {
-		this.error = error;
+		this.error = Objects.requireNonNull(error);
 		this.cause = cause;
 	}
 
@@ -22,6 +22,28 @@ public class JadxError {
 
 	public Throwable getCause() {
 		return cause;
+	}
+
+	@Override
+	public int compareTo(@NotNull JadxError o) {
+		return this.error.compareTo(o.getError());
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		JadxError other = (JadxError) o;
+		return error.equals(other.error);
+	}
+
+	@Override
+	public int hashCode() {
+		return error.hashCode();
 	}
 
 	@Override
