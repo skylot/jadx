@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,15 +117,14 @@ public class ModVisitor extends AbstractVisitor {
 
 					case NEW_ARRAY:
 						// replace with filled array if 'fill-array' is next instruction
-						int next = i + 1;
-						if (next < size) {
-							InsnNode ni = block.getInstructions().get(next);
-							if (ni.getType() == InsnType.FILL_ARRAY) {
-								InsnNode filledArr = makeFilledArrayInsn(mth, (NewArrayNode) insn, (FillArrayNode) ni);
-								if (filledArr != null) {
-									replaceInsn(block, i, filledArr);
-									remover.addAndUnbind(ni);
-								}
+						NewArrayNode newArrInsn = (NewArrayNode) insn;
+						InsnNode nextInsn = getFirstUseSkipMove(insn.getResult());
+						if (nextInsn != null && nextInsn.getType() == InsnType.FILL_ARRAY) {
+							FillArrayNode fillArrInsn = (FillArrayNode) nextInsn;
+							if (checkArrSizes(mth, newArrInsn, fillArrInsn)) {
+								InsnNode filledArr = makeFilledArrayInsn(mth, newArrInsn, fillArrInsn);
+								replaceInsn(block, i, filledArr);
+								remover.addAndUnbind(nextInsn);
 							}
 						}
 						break;
@@ -168,7 +168,8 @@ public class ModVisitor extends AbstractVisitor {
 								IfCondition condition = IfCondition.fromIfNode(ifNode);
 								InsnArg zero = new LiteralArg(0, type);
 								InsnArg one = new LiteralArg(
-										type == ArgType.DOUBLE ? Double.doubleToLongBits(1)
+										type == ArgType.DOUBLE
+												? Double.doubleToLongBits(1)
 												: type == ArgType.FLOAT ? Float.floatToIntBits(1) : 1,
 										type);
 								TernaryInsn ternary = new TernaryInsn(condition, insn.getResult(), one, zero);
@@ -183,6 +184,17 @@ public class ModVisitor extends AbstractVisitor {
 			}
 			remover.perform();
 		}
+	}
+
+	private static boolean checkArrSizes(MethodNode mth, NewArrayNode newArrInsn, FillArrayNode fillArrInsn) {
+		int dataSize = fillArrInsn.getSize();
+		InsnArg arrSizeArg = newArrInsn.getArg(0);
+		Object value = InsnUtils.getConstValueByArg(mth.dex(), arrSizeArg);
+		if (value instanceof LiteralArg) {
+			long literal = ((LiteralArg) value).getLiteral();
+			return dataSize == (int) literal;
+		}
+		return false;
 	}
 
 	private static boolean isCastDuplicate(IndexInsnNode castInsn) {
@@ -310,6 +322,28 @@ public class ModVisitor extends AbstractVisitor {
 		}
 		if (parentInsn.getType() == InsnType.MOVE) {
 			return getParentInsnSkipMove(parentInsn.getResult());
+		}
+		return parentInsn;
+	}
+
+	/**
+	 * Return first usage instruction for arg.
+	 * If used only once try to follow move chain
+	 */
+	@Nullable
+	private static InsnNode getFirstUseSkipMove(RegisterArg arg) {
+		SSAVar sVar = arg.getSVar();
+		int useCount = sVar.getUseCount();
+		if (useCount == 0) {
+			return null;
+		}
+		RegisterArg useArg = sVar.getUseList().get(0);
+		InsnNode parentInsn = useArg.getParentInsn();
+		if (parentInsn == null) {
+			return null;
+		}
+		if (useCount == 1 && parentInsn.getType() == InsnType.MOVE) {
+			return getFirstUseSkipMove(parentInsn.getResult());
 		}
 		return parentInsn;
 	}

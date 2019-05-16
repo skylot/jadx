@@ -8,9 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.attributes.AFlag;
-import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.InsnNode;
-import jadx.core.utils.InsnUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class RegisterArg extends InsnArg implements Named {
@@ -119,17 +117,6 @@ public class RegisterArg extends InsnArg implements Named {
 		}
 		dup.copyAttributesFrom(this);
 		return dup;
-	}
-
-	/**
-	 * Return constant value from register assign or null if not constant
-	 */
-	public Object getConstValue(DexNode dex) {
-		InsnNode parInsn = getAssignInsn();
-		if (parInsn == null) {
-			return null;
-		}
-		return InsnUtils.getConstValueByInsn(dex, parInsn);
 	}
 
 	@Nullable

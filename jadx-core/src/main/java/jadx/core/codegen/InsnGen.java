@@ -50,6 +50,7 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.DebugUtils;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -211,12 +212,14 @@ public class InsnGen {
 		makeInsn(insn, code, null);
 	}
 
+	private static final Set<Flags> EMPTY_FLAGS = EnumSet.noneOf(Flags.class);
+	private static final Set<Flags> BODY_ONLY_FLAG = EnumSet.of(Flags.BODY_ONLY);
+	private static final Set<Flags> BODY_ONLY_NOWRAP_FLAGS = EnumSet.of(Flags.BODY_ONLY_NOWRAP);
+
 	protected void makeInsn(InsnNode insn, CodeWriter code, Flags flag) throws CodegenException {
 		try {
-			Set<Flags> state = EnumSet.noneOf(Flags.class);
 			if (flag == Flags.BODY_ONLY || flag == Flags.BODY_ONLY_NOWRAP) {
-				state.add(flag);
-				makeInsnBody(code, insn, state);
+				makeInsnBody(code, insn, flag == Flags.BODY_ONLY ? BODY_ONLY_FLAG : BODY_ONLY_NOWRAP_FLAGS);
 			} else {
 				if (flag != Flags.INLINE) {
 					code.startLineWithNum(insn.getSourceLine());
@@ -229,7 +232,7 @@ public class InsnGen {
 						code.add(" = ");
 					}
 				}
-				makeInsnBody(code, insn, state);
+				makeInsnBody(code, insn, EMPTY_FLAGS);
 				if (flag != Flags.INLINE) {
 					code.add(';');
 				}
@@ -373,6 +376,17 @@ public class InsnGen {
 				filledNewArray((FilledNewArrayNode) insn, code);
 				break;
 
+			case FILL_ARRAY:
+				FillArrayNode arrayNode = (FillArrayNode) insn;
+				if (fallback) {
+					String arrStr = arrayNode.dataToString();
+					addArg(code, insn.getArg(0));
+					code.add(" = {").add(arrStr.substring(1, arrStr.length() - 1)).add("} // fill-array");
+				} else {
+					fillArray(code, arrayNode);
+				}
+				break;
+
 			case AGET:
 				addArg(code, insn.getArg(0));
 				code.add('[');
@@ -491,13 +505,6 @@ public class InsnGen {
 				code.startLine('}');
 				break;
 
-			case FILL_ARRAY:
-				fallbackOnlyInsn(insn);
-				FillArrayNode arrayNode = (FillArrayNode) insn;
-				String arrStr = arrayNode.dataToString();
-				code.add('{').add(arrStr.substring(1, arrStr.length() - 1)).add('}');
-				break;
-
 			case NEW_INSTANCE:
 				// only fallback - make new instance in constructor invoke
 				fallbackOnlyInsn(insn);
@@ -519,6 +526,26 @@ public class InsnGen {
 		}
 	}
 
+	/**
+	 * In most cases must be combined with new array instructions.
+	 * Use one by one array fill (can be replaced with System.arrayCopy)
+	 */
+	private void fillArray(CodeWriter code, FillArrayNode arrayNode) throws CodegenException {
+		code.add("// fill-array-data instruction");
+		code.startLine();
+		List<LiteralArg> args = arrayNode.getLiteralArgs(arrayNode.getElementType());
+		InsnArg arrArg = arrayNode.getArg(0);
+		int len = args.size();
+		for (int i = 0; i < len; i++) {
+			if (i != 0) {
+				code.add(';');
+				code.startLine();
+			}
+			addArg(code, arrArg);
+			code.add('[').add(Integer.toString(i)).add("] = ").add(lit(args.get(i)));
+		}
+	}
+
 	private void oneArgInsn(CodeWriter code, InsnNode insn, Set<Flags> state, char op) throws CodegenException {
 		boolean wrap = state.contains(Flags.BODY_ONLY);
 		if (wrap) {
@@ -533,6 +560,7 @@ public class InsnGen {
 
 	private void fallbackOnlyInsn(InsnNode insn) throws CodegenException {
 		if (!fallback) {
+			DebugUtils.dump(mth, "fallback");
 			throw new CodegenException(insn.getType() + " can be used only in fallback mode");
 		}
 	}

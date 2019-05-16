@@ -155,27 +155,12 @@ public class ReSugarCode extends AbstractVisitor {
 			return false;
 		}
 		InsnArg indexArg = insn.getArg(1);
-		int index = -1;
-		if (indexArg.isLiteral()) {
-			index = (int) ((LiteralArg) indexArg).getLiteral();
-		} else if (indexArg.isRegister()) {
-			RegisterArg reg = (RegisterArg) indexArg;
-			index = getIntConst(reg.getConstValue(mth.dex()));
-		} else if (indexArg.isInsnWrap()) {
-			InsnNode constInsn = ((InsnWrapArg) indexArg).getWrapInsn();
-			index = getIntConst(InsnUtils.getConstValueByInsn(mth.dex(), constInsn));
+		Object value = InsnUtils.getConstValueByArg(mth.dex(), indexArg);
+		if (value instanceof LiteralArg) {
+			int index = (int) ((LiteralArg) value).getLiteral();
+			return index == putIndex;
 		}
-		return index == putIndex;
-	}
-
-	private static int getIntConst(Object value) {
-		if (value instanceof Integer) {
-			return (Integer) value;
-		}
-		if (value instanceof Long) {
-			return ((Long) value).intValue();
-		}
-		return -1;
+		return false;
 	}
 
 	private static void processEnumSwitch(MethodNode mth, SwitchNode insn) {
