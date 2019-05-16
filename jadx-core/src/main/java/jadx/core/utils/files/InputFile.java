@@ -183,6 +183,9 @@ public class InputFile {
 			if (pathList.isEmpty()) {
 				throw new JadxException("Empty dx output");
 			}
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("result dex files: {}", pathList);
+			}
 			return pathList;
 		} catch (Exception e) {
 			throw new DecodeException("java class to dex conversion error:\n " + e.getMessage(), e);

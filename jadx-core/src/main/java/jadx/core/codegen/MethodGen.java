@@ -206,6 +206,9 @@ public class MethodGen {
 				classGen.insertDecompilationProblems(code, mth);
 				addInstructions(code);
 			} catch (Exception e) {
+				if (mth.getParentClass().getTopParentClass().contains(AFlag.RESTART_CODEGEN)) {
+					throw e;
+				}
 				mth.addError("Method code generation error", e);
 				classGen.insertDecompilationProblems(code, mth);
 				addInstructions(code);

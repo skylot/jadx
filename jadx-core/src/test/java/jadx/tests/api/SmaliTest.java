@@ -49,6 +49,10 @@ public abstract class SmaliTest extends IntegrationTest {
 		return getClassNodeFromFile(outDex, pkg + '.' + clsName);
 	}
 
+	protected ClassNode getClassNodeFromSmaliFiles(String clsName) {
+		return searchCls(loadFromSmaliFiles(), getTestPkg() + '.' + clsName);
+	}
+
 	protected List<ClassNode> loadFromSmaliFiles() {
 		File outDex = createTempFile(".dex");
 		compileSmali(outDex, collectSmaliFiles(getTestPkg(), getTestName()));

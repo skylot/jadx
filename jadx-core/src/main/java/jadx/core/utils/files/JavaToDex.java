@@ -41,7 +41,7 @@ public class JavaToDex {
 		try (ByteArrayOutputStream out = new ByteArrayOutputStream();
 				ByteArrayOutputStream errOut = new ByteArrayOutputStream()) {
 			DxContext context = new DxContext(out, errOut);
-			Path dir = FileUtils.createTempDir(jar.getFileName().toString());
+			Path dir = FileUtils.createTempDir("jar-to-dex-");
 			DxArgs args = new DxArgs(
 					context,
 					dir.toAbsolutePath().toString(),
@@ -58,7 +58,6 @@ public class JavaToDex {
 					child.toFile().deleteOnExit();
 				}
 			}
-			dir.toFile().deleteOnExit();
 			return list;
 		} catch (Exception e) {
 			throw new JadxException("dx exception: " + e.getMessage(), e);

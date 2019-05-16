@@ -36,6 +36,7 @@ import jadx.core.utils.CodeGenUtils;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.CodegenException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class ClassGen {
 
@@ -261,6 +262,9 @@ public class ClassGen {
 			try {
 				addMethod(code, mth);
 			} catch (Exception e) {
+				if (mth.getParentClass().getTopParentClass().contains(AFlag.RESTART_CODEGEN)) {
+					throw new JadxRuntimeException("Method generation error", e);
+				}
 				code.newLine().add("/*");
 				code.newLine().addMultiLine(ErrorsCounter.methodError(mth, "Method generation error", e));
 				Utils.appendStackTrace(code, e);
