@@ -50,7 +50,6 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.DebugUtils;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -560,7 +559,6 @@ public class InsnGen {
 
 	private void fallbackOnlyInsn(InsnNode insn) throws CodegenException {
 		if (!fallback) {
-			DebugUtils.dump(mth, "fallback");
 			throw new CodegenException(insn.getType() + " can be used only in fallback mode");
 		}
 	}
