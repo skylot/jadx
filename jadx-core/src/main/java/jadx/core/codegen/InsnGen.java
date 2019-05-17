@@ -559,7 +559,11 @@ public class InsnGen {
 
 	private void fallbackOnlyInsn(InsnNode insn) throws CodegenException {
 		if (!fallback) {
-			throw new CodegenException(insn.getType() + " can be used only in fallback mode");
+			String msg = insn.getType() + " instruction can be used only in fallback mode";
+			CodegenException e = new CodegenException(msg);
+			mth.addError(msg, e);
+			mth.getParentClass().getTopParentClass().add(AFlag.RESTART_CODEGEN);
+			throw e;
 		}
 	}
 
