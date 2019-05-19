@@ -241,16 +241,20 @@ public class MethodGen {
 	}
 
 	public static void addFallbackInsns(CodeWriter code, MethodNode mth, InsnNode[] insnArr, boolean addLabels) {
+		code.incIndent();
 		InsnGen insnGen = new InsnGen(getFallbackMethodGen(mth), true);
 		InsnNode prevInsn = null;
 		for (InsnNode insn : insnArr) {
-			if (insn == null || insn.getType() == InsnType.NOP) {
+			if (insn == null) {
 				continue;
 			}
 			if (addLabels && needLabel(insn, prevInsn)) {
 				code.decIndent();
 				code.startLine(getLabelName(insn.getOffset()) + ':');
 				code.incIndent();
+			}
+			if (insn.getType() == InsnType.NOP) {
+				continue;
 			}
 			try {
 				code.startLine();
@@ -272,6 +276,7 @@ public class MethodGen {
 			}
 			prevInsn = insn;
 		}
+		code.decIndent();
 	}
 
 	private static boolean needLabel(InsnNode insn, InsnNode prevInsn) {
