@@ -87,38 +87,6 @@ public class BlockProcessor extends AbstractVisitor {
 		});
 	}
 
-	private static boolean canRemoveBlock(BlockNode block) {
-		return block.getInstructions().isEmpty()
-				&& block.isAttrStorageEmpty()
-				&& block.getSuccessors().size() <= 1
-				&& !block.getPredecessors().isEmpty();
-	}
-
-	private static boolean removeEmptyBlock(BlockNode block) {
-		if (canRemoveBlock(block)) {
-			if (block.getSuccessors().size() == 1) {
-				BlockNode successor = block.getSuccessors().get(0);
-				block.getPredecessors().forEach(pred -> {
-					pred.getSuccessors().remove(block);
-					BlockSplitter.connect(pred, successor);
-					BlockSplitter.replaceTarget(pred, block, successor);
-					pred.updateCleanSuccessors();
-				});
-				BlockSplitter.removeConnection(block, successor);
-			} else {
-				block.getPredecessors().forEach(pred -> {
-					pred.getSuccessors().remove(block);
-					pred.updateCleanSuccessors();
-				});
-			}
-			block.add(AFlag.REMOVE);
-			block.getSuccessors().clear();
-			block.getPredecessors().clear();
-			return true;
-		}
-		return false;
-	}
-
 	private static boolean deduplicateBlockInsns(BlockNode block) {
 		if (block.contains(AFlag.LOOP_START) || block.contains(AFlag.LOOP_END)) {
 			// search for same instruction at end of all predecessors blocks
@@ -457,7 +425,7 @@ public class BlockProcessor extends AbstractVisitor {
 			}
 		}
 		for (BlockNode basicBlock : basicBlocks) {
-			if (removeEmptyBlock(basicBlock)) {
+			if (BlockSplitter.removeEmptyBlock(basicBlock)) {
 				changed = true;
 			}
 		}
@@ -631,7 +599,7 @@ public class BlockProcessor extends AbstractVisitor {
 			ExceptionHandler excHandler = otherExcHandlerAttr.getHandler();
 			excHandlerAttr.getHandler().addCatchTypes(excHandler.getCatchTypes());
 			tryBlock.removeHandler(mth, excHandler);
-			detachBlock(block);
+			BlockSplitter.detachBlock(block);
 		}
 		return true;
 	}
@@ -732,20 +700,6 @@ public class BlockProcessor extends AbstractVisitor {
 			}
 			return false;
 		});
-	}
-
-	private static void detachBlock(BlockNode block) {
-		for (BlockNode pred : block.getPredecessors()) {
-			pred.getSuccessors().remove(block);
-			pred.updateCleanSuccessors();
-		}
-		for (BlockNode successor : block.getSuccessors()) {
-			successor.getPredecessors().remove(block);
-		}
-		block.add(AFlag.REMOVE);
-		block.getInstructions().clear();
-		block.getPredecessors().clear();
-		block.getSuccessors().clear();
 	}
 
 	private static void clearBlocksState(MethodNode mth) {

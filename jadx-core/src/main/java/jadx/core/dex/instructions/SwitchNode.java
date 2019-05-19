@@ -64,6 +64,9 @@ public class SwitchNode extends TargetInsnNode {
 
 	@Override
 	public boolean replaceTargetBlock(BlockNode origin, BlockNode replace) {
+		if (targetBlocks == null) {
+			return false;
+		}
 		int count = 0;
 		int len = targetBlocks.length;
 		for (int i = 0; i < len; i++) {

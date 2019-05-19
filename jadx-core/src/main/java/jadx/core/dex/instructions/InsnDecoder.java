@@ -1,6 +1,7 @@
 package jadx.core.dex.instructions;
 
 import java.io.EOFException;
+import java.util.function.Predicate;
 
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -598,7 +599,7 @@ public class InsnDecoder {
 
 	private InsnNode decodeSwitch(DecodedInstruction insn, int offset, boolean packed) {
 		int payloadOffset = insn.getTarget();
-		DecodedInstruction payload = insnArr[payloadOffset];
+		DecodedInstruction payload = getInsnByOffsetSkipNop(insnArr, payloadOffset);
 		Object[] keys;
 		int[] targets;
 		if (packed) {
@@ -626,7 +627,7 @@ public class InsnDecoder {
 	}
 
 	private InsnNode fillArray(DecodedInstruction insn) {
-		DecodedInstruction payload = insnArr[insn.getTarget()];
+		DecodedInstruction payload = getInsnByOffsetSkipNop(insnArr, insn.getTarget());
 		return new FillArrayNode(insn.getA(), (FillArrayDataPayloadDecodedInstruction) payload);
 	}
 
@@ -738,7 +739,7 @@ public class InsnDecoder {
 	}
 
 	private int getMoveResultRegister(DecodedInstruction[] insnArr, int offset) {
-		int nextOffset = getNextInsnOffset(insnArr, offset);
+		int nextOffset = getNextInsnOffsetSkipNop(insnArr, offset);
 		if (nextOffset >= 0) {
 			DecodedInstruction next = insnArr[nextOffset];
 			int opc = next.getOpcode();
@@ -751,21 +752,35 @@ public class InsnDecoder {
 		return -1;
 	}
 
-	public static int getPrevInsnOffset(Object[] insnArr, int offset) {
-		int i = offset - 1;
-		while (i >= 0 && insnArr[i] == null) {
-			i--;
+	private static DecodedInstruction getInsnByOffsetSkipNop(DecodedInstruction[] insnArr, int offset) {
+		DecodedInstruction payload = insnArr[offset];
+		if (payload.getOpcode() == Opcodes.NOP) {
+			return insnArr[getNextInsnOffsetSkipNop(insnArr, offset)];
 		}
-		if (i < 0) {
-			return -1;
-		}
-		return i;
+		return payload;
 	}
 
-	public static int getNextInsnOffset(Object[] insnArr, int offset) {
+	public static int getNextInsnOffset(DecodedInstruction[] insnArr, int offset) {
+		return getNextInsnOffset(insnArr, offset, null);
+	}
+
+	public static int getNextInsnOffsetSkipNop(DecodedInstruction[] insnArr, int offset) {
+		return getNextInsnOffset(insnArr, offset, i -> i.getOpcode() == Opcodes.NOP);
+	}
+
+	public static int getNextInsnOffset(InsnNode[] insnArr, int offset) {
+		return getNextInsnOffset(insnArr, offset, null);
+	}
+
+	public static <T> int getNextInsnOffset(T[] insnArr, int offset, Predicate<T> skip) {
 		int i = offset + 1;
-		while (i < insnArr.length && insnArr[i] == null) {
-			i++;
+		while (i < insnArr.length) {
+			T insn = insnArr[i];
+			if (insn == null || (skip != null && skip.test(insn))) {
+				i++;
+			} else {
+				break;
+			}
 		}
 		if (i >= insnArr.length) {
 			return -1;

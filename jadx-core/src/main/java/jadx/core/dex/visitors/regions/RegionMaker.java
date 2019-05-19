@@ -1022,6 +1022,9 @@ public class RegionMaker {
 			dom = start;
 			stack.addExits(exits);
 		}
+		if (dom.contains(AFlag.REMOVE)) {
+			return;
+		}
 		BitSet domFrontier = dom.getDomFrontier();
 		List<BlockNode> handlerExits = BlockUtils.bitSetToBlocks(this.mth, domFrontier);
 		boolean inLoop = this.mth.getLoopForBlock(start) != null;

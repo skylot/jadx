@@ -270,6 +270,9 @@ public class BlockUtils {
 	}
 
 	public static List<BlockNode> bitSetToBlocks(MethodNode mth, BitSet bs) {
+		if (bs == null) {
+			return Collections.emptyList();
+		}
 		int size = bs.cardinality();
 		if (size == 0) {
 			return Collections.emptyList();

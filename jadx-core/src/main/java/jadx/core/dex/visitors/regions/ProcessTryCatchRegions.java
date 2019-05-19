@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBranchRegion;
@@ -167,6 +168,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 		for (ExceptionHandler h : tb.getHandlers()) {
 			BlockNode handlerBlock = h.getHandlerBlock();
 			if (handlerBlock != null
+					&& !handlerBlock.contains(AFlag.REMOVE)
 					&& RegionUtils.hasPathThroughBlock(handlerBlock, cont)) {
 				return true;
 			}
