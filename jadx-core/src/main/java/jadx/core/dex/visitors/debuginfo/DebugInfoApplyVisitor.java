@@ -203,8 +203,7 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 
 	private static void fixNamesForPhiInsns(MethodNode mth) {
 		mth.getSVars().forEach(ssaVar -> {
-			PhiInsn phiInsn = ssaVar.getUsedInPhi();
-			if (phiInsn != null) {
+			for (PhiInsn phiInsn : ssaVar.getUsedInPhi()) {
 				Set<String> names = new HashSet<>(1 + phiInsn.getArgsCount());
 				addArgName(phiInsn.getResult(), names);
 				phiInsn.getArguments().forEach(arg -> addArgName(arg, names));

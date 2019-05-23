@@ -187,7 +187,7 @@ public class SSATransform extends AbstractVisitor {
 		}
 		RegisterArg arg = phiInsn.bindArg(state.getBlock());
 		var.use(arg);
-		var.setUsedInPhi(phiInsn);
+		var.addUsedInPhi(phiInsn);
 	}
 
 	/**
@@ -323,7 +323,7 @@ public class SSATransform extends AbstractVisitor {
 						}
 						SSAVar sVar = ((RegisterArg) arg).getSVar();
 						if (sVar != null) {
-							sVar.setUsedInPhi(null);
+							sVar.removeUsedInPhi(phiInsn);
 						}
 					}
 					InsnRemover.remove(mth, block, phiInsn);
@@ -347,13 +347,13 @@ public class SSATransform extends AbstractVisitor {
 		SSAVar argVar = arg.getSVar();
 		if (argVar != null) {
 			argVar.removeUse(arg);
-			argVar.setUsedInPhi(null);
+			argVar.removeUsedInPhi(phi);
 		}
 		// try inline
 		if (inlinePhiInsn(mth, block, phi)) {
 			insns.remove(phiIndex);
 		} else {
-			assign.setUsedInPhi(null);
+			assign.removeUsedInPhi(phi);
 
 			InsnNode m = new InsnNode(InsnType.MOVE, 1);
 			m.add(AFlag.SYNTHETIC);

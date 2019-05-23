@@ -196,8 +196,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 	}
 
 	private void mergePhiBounds(SSAVar ssaVar) {
-		PhiInsn usedInPhi = ssaVar.getUsedInPhi();
-		if (usedInPhi != null) {
+		for (PhiInsn usedInPhi : ssaVar.getUsedInPhi()) {
 			Set<ITypeBound> bounds = ssaVar.getTypeInfo().getBounds();
 			bounds.addAll(usedInPhi.getResult().getSVar().getTypeInfo().getBounds());
 			for (InsnArg arg : usedInPhi.getArguments()) {
@@ -307,8 +306,8 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		if (var.getTypeInfo().getType().isTypeKnown()) {
 			return false;
 		}
-		PhiInsn phiInsn = var.getUsedInPhi();
-		if (phiInsn == null) {
+		List<PhiInsn> usedInPhiList = var.getUsedInPhi();
+		if (usedInPhiList.isEmpty()) {
 			return false;
 		}
 		if (var.getUseCount() == 1) {
@@ -317,7 +316,15 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 				return false;
 			}
 		}
+		for (PhiInsn phiInsn : usedInPhiList) {
+			if (!insertMoveForPhi(mth, phiInsn, var)) {
+				return false;
+			}
+		}
+		return true;
+	}
 
+	private boolean insertMoveForPhi(MethodNode mth, PhiInsn phiInsn, SSAVar var) {
 		int argsCount = phiInsn.getArgsCount();
 		for (int argIndex = 0; argIndex < argsCount; argIndex++) {
 			RegisterArg reg = phiInsn.getArg(argIndex);

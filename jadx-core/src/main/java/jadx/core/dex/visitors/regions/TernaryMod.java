@@ -62,8 +62,8 @@ public class TernaryMod {
 		RegisterArg thenResArg = thenInsn.getResult();
 		RegisterArg elseResArg = elseInsn.getResult();
 		if (thenResArg != null && elseResArg != null) {
-			PhiInsn thenPhi = thenResArg.getSVar().getUsedInPhi();
-			PhiInsn elsePhi = elseResArg.getSVar().getUsedInPhi();
+			PhiInsn thenPhi = thenResArg.getSVar().getOnlyOneUseInPhi();
+			PhiInsn elsePhi = elseResArg.getSVar().getOnlyOneUseInPhi();
 			if (thenPhi == null || thenPhi != elsePhi) {
 				return false;
 			}
@@ -165,8 +165,8 @@ public class TernaryMod {
 		if (t.getResult() == null || e.getResult() == null) {
 			return false;
 		}
-		PhiInsn tPhi = t.getResult().getSVar().getUsedInPhi();
-		PhiInsn ePhi = e.getResult().getSVar().getUsedInPhi();
+		PhiInsn tPhi = t.getResult().getSVar().getOnlyOneUseInPhi();
+		PhiInsn ePhi = e.getResult().getSVar().getOnlyOneUseInPhi();
 		if (ePhi == null || tPhi != ePhi) {
 			return false;
 		}

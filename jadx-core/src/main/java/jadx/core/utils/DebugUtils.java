@@ -193,8 +193,7 @@ public class DebugUtils {
 			}
 		}
 		for (SSAVar ssaVar : mth.getSVars()) {
-			PhiInsn usedInPhi = ssaVar.getUsedInPhi();
-			if (usedInPhi != null) {
+			for (PhiInsn usedInPhi : ssaVar.getUsedInPhi()) {
 				boolean found = false;
 				for (RegisterArg useArg : ssaVar.getUseList()) {
 					InsnNode parentInsn = useArg.getParentInsn();

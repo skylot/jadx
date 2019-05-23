@@ -12,7 +12,9 @@ import org.jetbrains.annotations.Nullable;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
+import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.PhiInsn;
+import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.typeinference.TypeInfo;
 import jadx.core.utils.StringUtils;
@@ -24,8 +26,7 @@ public class SSAVar extends AttrNode {
 
 	private RegisterArg assign;
 	private final List<RegisterArg> useList = new ArrayList<>(2);
-	@Nullable
-	private PhiInsn usedInPhi;
+	private List<PhiInsn> usedInPhi = null;
 
 	private TypeInfo typeInfo = new TypeInfo();
 
@@ -85,24 +86,60 @@ public class SSAVar extends AttrNode {
 		useList.removeIf(registerArg -> registerArg == arg);
 	}
 
-	public void setUsedInPhi(@Nullable PhiInsn usedInPhi) {
-		this.usedInPhi = usedInPhi;
+	public void addUsedInPhi(PhiInsn phiInsn) {
+		if (usedInPhi == null) {
+			usedInPhi = new ArrayList<>(1);
+		}
+		usedInPhi.add(phiInsn);
+	}
+
+	public void removeUsedInPhi(PhiInsn phiInsn) {
+		if (usedInPhi != null) {
+			usedInPhi.removeIf(insn -> insn == phiInsn);
+			if (usedInPhi.isEmpty()) {
+				usedInPhi = null;
+			}
+		}
+	}
+
+	public void updateUsedInPhiList() {
+		this.usedInPhi = null;
+		for (RegisterArg reg : useList) {
+			InsnNode parentInsn = reg.getParentInsn();
+			if (parentInsn != null && parentInsn.getType() == InsnType.PHI) {
+				addUsedInPhi((PhiInsn) parentInsn);
+			}
+		}
 	}
 
 	@Nullable
-	public PhiInsn getUsedInPhi() {
+	public PhiInsn getOnlyOneUseInPhi() {
+		if (usedInPhi != null && usedInPhi.size() == 1) {
+			return usedInPhi.get(0);
+		}
+		return null;
+	}
+
+	public List<PhiInsn> getUsedInPhi() {
+		if (usedInPhi == null) {
+			return Collections.emptyList();
+		}
 		return usedInPhi;
 	}
 
 	public boolean isUsedInPhi() {
-		return usedInPhi != null;
+		return usedInPhi != null && !usedInPhi.isEmpty();
 	}
 
 	public int getVariableUseCount() {
+		int count = useList.size();
 		if (usedInPhi == null) {
-			return useList.size();
+			return count;
 		}
-		return useList.size() + usedInPhi.getResult().getSVar().getUseCount();
+		for (PhiInsn phiInsn : usedInPhi) {
+			count += phiInsn.getResult().getSVar().getUseCount();
+		}
+		return count;
 	}
 
 	public void setName(String name) {

@@ -12,7 +12,6 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
-import jadx.core.utils.InsnRemover;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -76,7 +75,7 @@ public final class PhiInsn extends InsnNode {
 	protected RegisterArg removeArg(int index) {
 		RegisterArg reg = (RegisterArg) super.removeArg(index);
 		blockBinds.remove(index);
-		InsnRemover.fixUsedInPhiFlag(reg);
+		reg.getSVar().updateUsedInPhiList();
 		return reg;
 	}
 
@@ -98,7 +97,7 @@ public final class PhiInsn extends InsnNode {
 
 		RegisterArg reg = (RegisterArg) to;
 		bindArg(reg, pred);
-		reg.getSVar().setUsedInPhi(this);
+		reg.getSVar().addUsedInPhi(this);
 		return true;
 	}
 

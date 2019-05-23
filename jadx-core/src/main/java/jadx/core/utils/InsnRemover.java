@@ -6,7 +6,6 @@ import java.util.List;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.InsnType;
-import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -65,25 +64,12 @@ public class InsnRemover {
 		if (insn.getType() == InsnType.PHI) {
 			for (InsnArg arg : insn.getArguments()) {
 				if (arg instanceof RegisterArg) {
-					fixUsedInPhiFlag((RegisterArg) arg);
+					((RegisterArg) arg).getSVar().updateUsedInPhiList();
 				}
 			}
 		}
 		unbindResult(mth, insn);
 		insn.add(AFlag.REMOVE);
-	}
-
-	public static void fixUsedInPhiFlag(RegisterArg useReg) {
-		PhiInsn usedIn = null;
-		for (RegisterArg reg : useReg.getSVar().getUseList()) {
-			InsnNode parentInsn = reg.getParentInsn();
-			if (parentInsn != null
-					&& parentInsn.getType() == InsnType.PHI
-					&& parentInsn.containsArg(useReg)) {
-				usedIn = (PhiInsn) parentInsn;
-			}
-		}
-		useReg.getSVar().setUsedInPhi(usedIn);
 	}
 
 	public static void unbindResult(MethodNode mth, InsnNode insn) {

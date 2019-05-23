@@ -89,9 +89,12 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 				|| !incrArg.getSVar().isUsedInPhi()) {
 			return false;
 		}
-		PhiInsn phiInsn = incrArg.getSVar().getUsedInPhi();
-		if (phiInsn == null
-				|| phiInsn.getArgsCount() != 2
+		List<PhiInsn> phiInsnList = incrArg.getSVar().getUsedInPhi();
+		if (phiInsnList.size() != 1) {
+			return false;
+		}
+		PhiInsn phiInsn = phiInsnList.get(0);
+		if (phiInsn.getArgsCount() != 2
 				|| !phiInsn.containsArg(incrArg)
 				|| incrArg.getSVar().getUseCount() != 1) {
 			return false;
