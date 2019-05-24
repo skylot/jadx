@@ -42,6 +42,6 @@ public class TestInlineInLoop extends IntegrationTest {
 		assertThat(code, containsOne("int c3 = b;"));
 		assertThat(code, containsOne("int b2 = b + 1;"));
 		assertThat(code, containsOne("b = c3"));
-		assertThat(code, containsOne("a++;"));
+		assertThat(code, containsOne("a++"));
 	}
 }

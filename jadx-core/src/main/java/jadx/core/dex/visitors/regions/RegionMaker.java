@@ -678,8 +678,9 @@ public class RegionMaker {
 		}
 		confirmMerge(currentIf);
 
-		IfRegion ifRegion = new IfRegion(currentRegion, block);
+		IfRegion ifRegion = new IfRegion(currentRegion);
 		ifRegion.setCondition(currentIf.getCondition());
+		ifRegion.setConditionBlocks(currentIf.getMergedBlocks());
 		currentRegion.getSubBlocks().add(ifRegion);
 
 		BlockNode outBlock = currentIf.getOutBlock();

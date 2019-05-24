@@ -24,7 +24,7 @@ public class TestConditions4 extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsString("num >= 59 && num <= 66"));
-		assertThat(code, containsString("return inRange ? num + 1 : num;"));
+		assertThat(code, containsString("? num + 1 : num;"));
 		assertThat(code, not(containsString("else")));
 	}
 }

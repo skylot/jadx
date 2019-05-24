@@ -1,6 +1,7 @@
 package jadx.core.dex.visitors.regions;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import jadx.core.dex.attributes.AFlag;
@@ -13,6 +14,7 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IContainer;
+import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.Region;
@@ -20,12 +22,20 @@ import jadx.core.dex.regions.conditions.IfRegion;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.InsnList;
 
-public class TernaryMod {
+/**
+ * Convert 'if' to ternary operation
+ */
+public class TernaryMod implements IRegionIterativeVisitor {
 
-	private TernaryMod() {
+	@Override
+	public boolean visitRegion(MethodNode mth, IRegion region) {
+		if (region instanceof IfRegion) {
+			return makeTernaryInsn(mth, (IfRegion) region);
+		}
+		return false;
 	}
 
-	static boolean makeTernaryInsn(MethodNode mth, IfRegion ifRegion) {
+	private static boolean makeTernaryInsn(MethodNode mth, IfRegion ifRegion) {
 		if (ifRegion.contains(AFlag.ELSE_IF_CHAIN)) {
 			return false;
 		}
@@ -39,7 +49,12 @@ public class TernaryMod {
 		if (tb == null || eb == null) {
 			return false;
 		}
-		BlockNode header = ifRegion.getHeader();
+		List<BlockNode> conditionBlocks = ifRegion.getConditionBlocks();
+		if (conditionBlocks.isEmpty()) {
+			return false;
+		}
+
+		BlockNode header = conditionBlocks.get(0);
 		InsnNode thenInsn = tb.getInstructions().get(0);
 		InsnNode elseInsn = eb.getInstructions().get(0);
 
@@ -88,6 +103,8 @@ public class TernaryMod {
 			header.getInstructions().clear();
 			header.getInstructions().add(ternInsn);
 
+			clearConditionBlocks(conditionBlocks, header);
+
 			// shrink method again
 			CodeShrinkVisitor.shrinkMethod(mth);
 			return true;
@@ -120,10 +137,21 @@ public class TernaryMod {
 			header.getInstructions().add(retInsn);
 			header.add(AFlag.RETURN);
 
+			clearConditionBlocks(conditionBlocks, header);
+
 			CodeShrinkVisitor.shrinkMethod(mth);
 			return true;
 		}
 		return false;
+	}
+
+	private static void clearConditionBlocks(List<BlockNode> conditionBlocks, BlockNode header) {
+		for (BlockNode block : conditionBlocks) {
+			if (block != header) {
+				block.getInstructions().clear();
+				block.add(AFlag.REMOVE);
+			}
+		}
 	}
 
 	private static BlockNode getTernaryInsnBlock(IContainer thenRegion) {
@@ -181,12 +209,7 @@ public class TernaryMod {
 			}
 			int sourceLine = assignInsn.getSourceLine();
 			if (sourceLine != 0) {
-				Integer count = map.get(sourceLine);
-				if (count != null) {
-					map.put(sourceLine, count + 1);
-				} else {
-					map.put(sourceLine, 1);
-				}
+				map.merge(sourceLine, 1, Integer::sum);
 			}
 		}
 		for (Map.Entry<Integer, Integer> entry : map.entrySet()) {

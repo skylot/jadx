@@ -8,9 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
-import jadx.core.dex.attributes.AFlag;
-import jadx.core.dex.attributes.AttributeStorage;
-import jadx.core.dex.attributes.EmptyAttrStorage;
+import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
 import jadx.core.dex.instructions.IfNode;
@@ -24,7 +22,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
-public final class IfCondition {
+public final class IfCondition extends AttrNode {
 
 	public enum Mode {
 		COMPARE,
@@ -33,10 +31,6 @@ public final class IfCondition {
 		AND,
 		OR
 	}
-
-	private static final AttributeStorage EMPTY_ATTR_STORAGE = new EmptyAttrStorage();
-
-	private AttributeStorage storage = EMPTY_ATTR_STORAGE;
 
 	private final Mode mode;
 	private final List<IfCondition> args;
@@ -266,23 +260,6 @@ public final class IfCondition {
 			}
 		}
 		return list;
-	}
-
-	public void add(AFlag flag) {
-		initStorage().add(flag);
-	}
-
-	public boolean contains(AFlag flag) {
-		return storage.contains(flag);
-	}
-
-	private AttributeStorage initStorage() {
-		AttributeStorage store = storage;
-		if (store == EMPTY_ATTR_STORAGE) {
-			store = new AttributeStorage();
-			storage = store;
-		}
-		return store;
 	}
 
 	@Override
