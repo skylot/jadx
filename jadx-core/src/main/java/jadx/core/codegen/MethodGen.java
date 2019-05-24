@@ -234,14 +234,15 @@ public class MethodGen {
 			code.startLine("// Can't load method instructions.");
 			return;
 		}
+		code.incIndent();
 		if (mth.getThisArg() != null) {
 			code.startLine(nameGen.useArg(mth.getThisArg())).add(" = this;");
 		}
 		addFallbackInsns(code, mth, insnArr, true);
+		code.decIndent();
 	}
 
 	public static void addFallbackInsns(CodeWriter code, MethodNode mth, InsnNode[] insnArr, boolean addLabels) {
-		code.incIndent();
 		InsnGen insnGen = new InsnGen(getFallbackMethodGen(mth), true);
 		InsnNode prevInsn = null;
 		for (InsnNode insn : insnArr) {
@@ -276,7 +277,6 @@ public class MethodGen {
 			}
 			prevInsn = insn;
 		}
-		code.decIndent();
 	}
 
 	private static boolean needLabel(InsnNode insn, InsnNode prevInsn) {
