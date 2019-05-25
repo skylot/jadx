@@ -65,11 +65,11 @@ public class TypeGen {
 				}
 				return stringUtils.unescapeChar(ch);
 			case BYTE:
-				return formatByte((byte) lit);
+				return formatByte(lit);
 			case SHORT:
-				return formatShort((short) lit);
+				return formatShort(lit);
 			case INT:
-				return formatInteger((int) lit);
+				return formatInteger(lit);
 			case LONG:
 				return formatLong(lit);
 			case FLOAT:
@@ -90,34 +90,34 @@ public class TypeGen {
 		}
 	}
 
-	public static String formatShort(short s) {
-		if (s == Short.MAX_VALUE) {
+	public static String formatShort(long l) {
+		if (l == Short.MAX_VALUE) {
 			return "Short.MAX_VALUE";
 		}
-		if (s == Short.MIN_VALUE) {
+		if (l == Short.MIN_VALUE) {
 			return "Short.MIN_VALUE";
 		}
-		return Short.toString(s);
+		return Long.toString(l);
 	}
 
-	public static String formatByte(byte b) {
-		if (b == Byte.MAX_VALUE) {
+	public static String formatByte(long l) {
+		if (l == Byte.MAX_VALUE) {
 			return "Byte.MAX_VALUE";
 		}
-		if (b == Byte.MIN_VALUE) {
+		if (l == Byte.MIN_VALUE) {
 			return "Byte.MIN_VALUE";
 		}
-		return Byte.toString(b);
+		return Long.toString(l);
 	}
 
-	public static String formatInteger(int i) {
-		if (i == Integer.MAX_VALUE) {
+	public static String formatInteger(long l) {
+		if (l == Integer.MAX_VALUE) {
 			return "Integer.MAX_VALUE";
 		}
-		if (i == Integer.MIN_VALUE) {
+		if (l == Integer.MIN_VALUE) {
 			return "Integer.MIN_VALUE";
 		}
-		return Integer.toString(i);
+		return Long.toString(l);
 	}
 
 	public static String formatLong(long l) {
