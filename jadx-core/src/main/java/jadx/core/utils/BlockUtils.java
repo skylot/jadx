@@ -432,6 +432,9 @@ public class BlockUtils {
 		if (b1 == null || b2 == null) {
 			return null;
 		}
+		if (b1.getDomFrontier() == null || b2.getDomFrontier() == null) {
+			return null;
+		}
 		BitSet b = new BitSet();
 		b.or(b1.getDomFrontier());
 		b.and(b2.getDomFrontier());

@@ -954,6 +954,9 @@ public class RegionMaker {
 			Set<BlockNode> exits = new HashSet<>();
 			for (BlockNode splitter : splitters) {
 				for (BlockNode handler : blocks) {
+					if (handler.contains(AFlag.REMOVE)) {
+						continue;
+					}
 					List<BlockNode> s = splitter.getSuccessors();
 					if (s.isEmpty()) {
 						LOG.debug(ErrorsCounter.formatMsg(mth, "No successors for splitter: " + splitter));
