@@ -42,6 +42,10 @@ JDK 8 or higher must be installed:
 Scripts for run jadx will be placed in `build/jadx/bin`
 and also packed to `build/jadx-<version>.zip`
 
+### macOS
+You can install using brew:
+
+	brew install jadx
 
 ### Run
 Run **jadx** on itself:
