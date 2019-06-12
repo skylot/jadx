@@ -38,12 +38,14 @@ public class DexNode implements IDexNode {
 
 	private final List<ClassNode> classes = new ArrayList<>();
 	private final Map<ClassInfo, ClassNode> clsMap = new HashMap<>();
+	private final ArgType[] typesCache;
 
 	public DexNode(RootNode root, DexFile input, int dexId) {
 		this.root = root;
 		this.file = input;
 		this.dexBuf = input.getDexBuf();
 		this.dexId = dexId;
+		this.typesCache = new ArgType[dexBuf.typeIds().size()];
 	}
 
 	public void loadClasses() {
@@ -207,7 +209,15 @@ public class DexNode implements IDexNode {
 		if (index == DexNode.NO_INDEX) {
 			return null;
 		}
-		return ArgType.parse(getString(dexBuf.typeIds().get(index)));
+		ArgType type = typesCache[index];
+		if (type != null) {
+			return type;
+		}
+		// no synchronization because exactly one ArgType instance not needed, just reduce instances count
+		// note: same types but different instances will exist in other dex nodes
+		ArgType parsedType = ArgType.parse(getString(dexBuf.typeIds().get(index)));
+		typesCache[index] = parsedType;
+		return parsedType;
 	}
 
 	public MethodId getMethodId(int mthIndex) {
