@@ -181,7 +181,7 @@ public class JsonCodeGen {
 		String[] lines = codeStr.split(CodeWriter.NL);
 		Map<Integer, Integer> lineMapping = code.getLineMapping();
 		Map<CodePosition, Object> annotations = code.getAnnotations();
-		long mthCodeOffset = mth.getMethodCodeOffset();
+		long mthCodeOffset = mth.getMethodCodeOffset() + 16;
 
 		int linesCount = lines.length;
 		List<JsonCodeLine> codeLines = new ArrayList<>(linesCount);
@@ -194,7 +194,7 @@ public class JsonCodeGen {
 			Object obj = annotations.get(new CodePosition(line, 0));
 			if (obj instanceof InsnNode) {
 				int offset = ((InsnNode) obj).getOffset();
-				jsonCodeLine.setOffset("0x" + Long.toHexString(mthCodeOffset + offset));
+				jsonCodeLine.setOffset("0x" + Long.toHexString(mthCodeOffset + offset * 2));
 			}
 			codeLines.add(jsonCodeLine);
 		}
