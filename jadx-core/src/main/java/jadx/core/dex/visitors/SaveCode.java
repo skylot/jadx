@@ -13,7 +13,7 @@ public class SaveCode {
 	private SaveCode() {
 	}
 
-	public static void save(File dir, JadxArgs args, ClassNode cls) {
+	public static void save(File dir, ClassNode cls) {
 		if (cls.contains(AFlag.DONT_GENERATE)) {
 			return;
 		}
@@ -21,10 +21,24 @@ public class SaveCode {
 		if (clsCode == null) {
 			throw new JadxRuntimeException("Code not generated for class " + cls.getFullName());
 		}
-		String fileName = cls.getClassInfo().getAliasFullPath() + ".java";
-		if (args.isFallbackMode()) {
-			fileName += ".jadx";
+		if (clsCode == CodeWriter.EMPTY) {
+			return;
 		}
+		String fileName = cls.getClassInfo().getAliasFullPath() + getFileExtension(cls);
 		clsCode.save(dir, fileName);
+	}
+
+	private static String getFileExtension(ClassNode cls) {
+		JadxArgs.OutputFormatEnum outputFormat = cls.root().getArgs().getOutputFormat();
+		switch (outputFormat) {
+			case JAVA:
+				return ".java";
+
+			case JSON:
+				return ".json";
+
+			default:
+				throw new JadxRuntimeException("Unknown output format: " + outputFormat);
+		}
 	}
 }

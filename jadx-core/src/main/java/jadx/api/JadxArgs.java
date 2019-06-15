@@ -62,6 +62,12 @@ public class JadxArgs {
 
 	private Set<RenameEnum> renameFlags = EnumSet.allOf(RenameEnum.class);
 
+	public enum OutputFormatEnum {
+		JAVA, JSON
+	}
+
+	private OutputFormatEnum outputFormat = OutputFormatEnum.JAVA;
+
 	public JadxArgs() {
 		// use default options
 	}
@@ -308,6 +314,18 @@ public class JadxArgs {
 		}
 	}
 
+	public OutputFormatEnum getOutputFormat() {
+		return outputFormat;
+	}
+
+	public boolean isJsonOutput() {
+		return outputFormat == OutputFormatEnum.JSON;
+	}
+
+	public void setOutputFormat(OutputFormatEnum outputFormat) {
+		this.outputFormat = outputFormat;
+	}
+
 	@Override
 	public String toString() {
 		return "JadxArgs{" + "inputFiles=" + inputFiles
@@ -333,6 +351,7 @@ public class JadxArgs {
 				+ ", exportAsGradleProject=" + exportAsGradleProject
 				+ ", fsCaseSensitive=" + fsCaseSensitive
 				+ ", renameFlags=" + renameFlags
+				+ ", outputFormat=" + outputFormat
 				+ '}';
 	}
 }

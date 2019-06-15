@@ -667,6 +667,10 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return mthInfo;
 	}
 
+	public long getMethodCodeOffset() {
+		return noCode ? 0 : methodData.getCodeOffset();
+	}
+
 	/**
 	 * Stat method.
 	 * Calculate instructions count as a measure of method size

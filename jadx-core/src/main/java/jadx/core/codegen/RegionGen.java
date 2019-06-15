@@ -121,6 +121,17 @@ public class RegionGen extends InsnGen {
 		} else {
 			code.attachSourceLine(region.getSourceLine());
 		}
+		if (attachInsns) {
+			List<BlockNode> conditionBlocks = region.getConditionBlocks();
+			if (!conditionBlocks.isEmpty()) {
+				BlockNode blockNode = conditionBlocks.get(0);
+				InsnNode lastInsn = BlockUtils.getLastInsn(blockNode);
+				if (lastInsn != null) {
+					code.attachLineAnnotation(lastInsn);
+				}
+			}
+		}
+
 		code.add("if (");
 		new ConditionGen(this).add(code, region.getCondition());
 		code.add(") {");
@@ -128,7 +139,7 @@ public class RegionGen extends InsnGen {
 		code.startLine('}');
 
 		IContainer els = region.getElseRegion();
-		if (els != null && RegionUtils.notEmpty(els)) {
+		if (RegionUtils.notEmpty(els)) {
 			code.add(" else ");
 			if (connectElseIf(code, els)) {
 				return;

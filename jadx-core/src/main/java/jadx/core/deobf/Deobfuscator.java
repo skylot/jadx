@@ -142,7 +142,7 @@ public class Deobfuscator {
 			}
 			for (MethodInfo mth : o.getMethods()) {
 				if (aliasToUse == null) {
-					if (mth.isRenamed() && !mth.isAliasFromPreset()) {
+					if (mth.hasAlias() && !mth.isAliasFromPreset()) {
 						mth.setAlias(String.format("mo%d%s", id, prepareNamePart(mth.getName())));
 					}
 					aliasToUse = mth.getAlias();

@@ -215,7 +215,7 @@ public final class JadxDecompiler {
 			executor.execute(() -> {
 				try {
 					cls.decompile();
-					SaveCode.save(outDir, args, cls.getClassNode());
+					SaveCode.save(outDir, cls.getClassNode());
 				} catch (Exception e) {
 					LOG.error("Error saving class: {}", cls.getFullName(), e);
 				}

@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -37,7 +36,7 @@ public class CodeWriter {
 			INDENT_STR + INDENT_STR + INDENT_STR + INDENT_STR + INDENT_STR,
 	};
 
-	private StringBuilder buf = new StringBuilder();
+	private StringBuilder buf;
 	@Nullable
 	private String code;
 	private String indentStr;
@@ -49,11 +48,18 @@ public class CodeWriter {
 	private Map<Integer, Integer> lineMap = Collections.emptyMap();
 
 	public CodeWriter() {
+		this.buf = new StringBuilder();
 		this.indent = 0;
 		this.indentStr = "";
 		if (ADD_LINE_NUMBERS) {
 			incIndent(2);
 		}
+	}
+
+	// create filled instance (just string wrapper)
+	public CodeWriter(String code) {
+		this.buf = null;
+		this.code = code;
 	}
 
 	public CodeWriter startLine() {
@@ -225,6 +231,10 @@ public class CodeWriter {
 		attachAnnotation(obj, new CodePosition(line, offset + 1));
 	}
 
+	public void attachLineAnnotation(Object obj) {
+		attachAnnotation(obj, new CodePosition(line, 0));
+	}
+
 	private Object attachAnnotation(Object obj, CodePosition pos) {
 		if (annotations.isEmpty()) {
 			annotations = new HashMap<>();
@@ -260,16 +270,15 @@ public class CodeWriter {
 		code = buf.toString();
 		buf = null;
 
-		Iterator<Map.Entry<CodePosition, Object>> it = annotations.entrySet().iterator();
-		while (it.hasNext()) {
-			Map.Entry<CodePosition, Object> entry = it.next();
+		annotations.entrySet().removeIf(entry -> {
 			Object v = entry.getValue();
 			if (v instanceof DefinitionWrapper) {
 				LineAttrNode l = ((DefinitionWrapper) v).getNode();
 				l.setDecompiledLine(entry.getKey().getLine());
-				it.remove();
+				return true;
 			}
-		}
+			return false;
+		});
 		return this;
 	}
 

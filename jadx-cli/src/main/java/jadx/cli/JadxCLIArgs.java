@@ -46,6 +46,9 @@ public class JadxCLIArgs {
 	@Parameter(names = { "--single-class" }, description = "decompile a single class")
 	protected String singleClass = null;
 
+	@Parameter(names = { "--output-format" }, description = "can be 'java' or 'json'")
+	protected String outputFormat = "java";
+
 	@Parameter(names = { "-e", "--export-gradle" }, description = "save as android gradle project")
 	protected boolean exportAsGradleProject = false;
 
@@ -86,7 +89,18 @@ public class JadxCLIArgs {
 	protected boolean deobfuscationForceSave = false;
 
 	@Parameter(names = { "--deobf-use-sourcename" }, description = "use source file name as class name alias")
-	protected boolean deobfuscationUseSourceNameAsAlias = true;
+	protected boolean deobfuscationUseSourceNameAsAlias = false;
+
+	@Parameter(
+			names = { "--rename-flags" },
+			description = "what to rename, comma-separated,"
+					+ " 'case' for system case sensitivity,"
+					+ " 'valid' for java identifiers,"
+					+ " 'printable' characters,"
+					+ " 'none' or 'all' (default)",
+			converter = RenameConverter.class
+	)
+	protected Set<RenameEnum> renameFlags = EnumSet.allOf(RenameEnum.class);
 
 	@Parameter(names = { "--fs-case-sensitive" }, description = "treat filesystem as case sensitive, false by default")
 	protected boolean fsCaseSensitive = false;
@@ -99,17 +113,6 @@ public class JadxCLIArgs {
 
 	@Parameter(names = { "-f", "--fallback" }, description = "make simple dump (using goto instead of 'if', 'for', etc)")
 	protected boolean fallbackMode = false;
-
-	@Parameter(
-			names = { "--rename-flags" },
-			description = "what to rename, comma-separated,"
-					+ " 'case' for system case sensitivity,"
-					+ " 'valid' for java identifiers,"
-					+ " 'printable' characters,"
-					+ " 'none' or 'all' (default)",
-			converter = RenameConverter.class
-	)
-	protected Set<RenameEnum> renameFlags = EnumSet.allOf(RenameEnum.class);
 
 	@Parameter(names = { "-v", "--verbose" }, description = "verbose output")
 	protected boolean verbose = false;
@@ -178,6 +181,7 @@ public class JadxCLIArgs {
 		args.setOutDir(FileUtils.toFile(outDir));
 		args.setOutDirSrc(FileUtils.toFile(outDirSrc));
 		args.setOutDirRes(FileUtils.toFile(outDirRes));
+		args.setOutputFormat(JadxArgs.OutputFormatEnum.valueOf(outputFormat.toUpperCase()));
 		args.setThreadsCount(threadsCount);
 		args.setSkipSources(skipSources);
 		if (singleClass != null) {

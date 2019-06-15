@@ -6,6 +6,7 @@ import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.attributes.nodes.RenameReasonAttr;
+import jadx.core.dex.attributes.nodes.SourceFileAttr;
 
 public class CodeGenUtils {
 
@@ -25,6 +26,13 @@ public class CodeGenUtils {
 			code.add(renameReasonAttr.getDescription());
 		}
 		code.add(" */");
+	}
+
+	public static void addSourceFileInfo(CodeWriter code, AttrNode node) {
+		SourceFileAttr sourceFileAttr = node.get(AType.SOURCE_FILE);
+		if (sourceFileAttr != null) {
+			code.startLine("/* compiled from: ").add(sourceFileAttr.getFileName()).add(" */");
+		}
 	}
 
 	private CodeGenUtils() {

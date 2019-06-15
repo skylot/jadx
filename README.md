@@ -66,6 +66,8 @@ options:
   -j, --threads-count                 - processing threads count
   -r, --no-res                        - do not decode resources
   -s, --no-src                        - do not decompile source code
+  --single-class                      - decompile a single class
+  --output-format                     - can be 'java' or 'json' (default: java)
   -e, --export-gradle                 - save as android gradle project
   --show-bad-code                     - show inconsistent code (incorrectly decompiled)
   --no-imports                        - disable use of imports, always write entire package name

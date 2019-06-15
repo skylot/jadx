@@ -19,7 +19,6 @@ import jadx.core.dex.attributes.nodes.EnumClassAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr.EnumField;
 import jadx.core.dex.attributes.nodes.JadxError;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
-import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.args.ArgType;
@@ -128,8 +127,8 @@ public class ClassGen {
 		}
 
 		annotationGen.addForClass(clsCode);
-		insertSourceFileInfo(clsCode, cls);
 		insertRenameInfo(clsCode, cls);
+		CodeGenUtils.addSourceFileInfo(clsCode, cls);
 		clsCode.startLine(af.makeString());
 		if (af.isInterface()) {
 			if (af.isAnnotation()) {
@@ -290,29 +289,21 @@ public class ClassGen {
 		return false;
 	}
 
-	private void addMethod(CodeWriter code, MethodNode mth) throws CodegenException {
+	public void addMethod(CodeWriter code, MethodNode mth) throws CodegenException {
+		CodeGenUtils.addComments(code, mth);
 		if (mth.getAccessFlags().isAbstract() || mth.getAccessFlags().isNative()) {
 			MethodGen mthGen = new MethodGen(this, mth);
 			mthGen.addDefinition(code);
-			if (cls.getAccessFlags().isAnnotation()) {
-				Object def = annotationGen.getAnnotationDefaultValue(mth.getName());
-				if (def != null) {
-					code.add(" default ");
-					annotationGen.encodeValue(code, def);
-				}
-			}
 			code.add(';');
 		} else {
-			CodeGenUtils.addComments(code, mth);
 			insertDecompilationProblems(code, mth);
 			boolean badCode = mth.contains(AFlag.INCONSISTENT_CODE);
 			if (badCode && showInconsistentCode) {
-				code.startLine("/* Code decompiled incorrectly, please refer to instructions dump. */");
 				mth.remove(AFlag.INCONSISTENT_CODE);
 				badCode = false;
 			}
 			MethodGen mthGen;
-			if (badCode || mth.contains(AType.JADX_ERROR) || fallback) {
+			if (badCode || fallback || mth.contains(AType.JADX_ERROR) || mth.getRegion() == null) {
 				mthGen = MethodGen.getFallbackMethodGen(mth);
 			} else {
 				mthGen = new MethodGen(this, mth);
@@ -322,12 +313,7 @@ public class ClassGen {
 			}
 			code.add('{');
 			code.incIndent();
-			insertSourceFileInfo(code, mth);
-			if (fallback) {
-				mthGen.addFallbackMethodCode(code);
-			} else {
-				mthGen.addInstructions(code);
-			}
+			mthGen.addInstructions(code);
 			code.decIndent();
 			code.startLine('}');
 		}
@@ -357,37 +343,41 @@ public class ClassGen {
 	private void addFields(CodeWriter code) throws CodegenException {
 		addEnumFields(code);
 		for (FieldNode f : cls.getFields()) {
-			if (f.contains(AFlag.DONT_GENERATE)) {
-				continue;
-			}
-			CodeGenUtils.addComments(code, f);
-			annotationGen.addForField(code, f);
+			addField(code, f);
+		}
+	}
 
-			if (f.getFieldInfo().isRenamed()) {
-				code.newLine();
-				CodeGenUtils.addRenamedComment(code, f, f.getName());
-			}
-			code.startLine(f.getAccessFlags().makeString());
-			useType(code, f.getType());
-			code.add(' ');
-			code.attachDefinition(f);
-			code.add(f.getAlias());
-			FieldInitAttr fv = f.get(AType.FIELD_INIT);
-			if (fv != null) {
-				code.add(" = ");
-				if (fv.getValue() == null) {
-					code.add(TypeGen.literalToString(0, f.getType(), cls, fallback));
-				} else {
-					if (fv.getValueType() == InitType.CONST) {
-						annotationGen.encodeValue(code, fv.getValue());
-					} else if (fv.getValueType() == InitType.INSN) {
-						InsnGen insnGen = makeInsnGen(fv.getInsnMth());
-						addInsnBody(insnGen, code, fv.getInsn());
-					}
+	public void addField(CodeWriter code, FieldNode f) {
+		if (f.contains(AFlag.DONT_GENERATE)) {
+			return;
+		}
+		CodeGenUtils.addComments(code, f);
+		annotationGen.addForField(code, f);
+
+		if (f.getFieldInfo().isRenamed()) {
+			code.newLine();
+			CodeGenUtils.addRenamedComment(code, f, f.getName());
+		}
+		code.startLine(f.getAccessFlags().makeString());
+		useType(code, f.getType());
+		code.add(' ');
+		code.attachDefinition(f);
+		code.add(f.getAlias());
+		FieldInitAttr fv = f.get(AType.FIELD_INIT);
+		if (fv != null) {
+			code.add(" = ");
+			if (fv.getValue() == null) {
+				code.add(TypeGen.literalToString(0, f.getType(), cls, fallback));
+			} else {
+				if (fv.getValueType() == InitType.CONST) {
+					annotationGen.encodeValue(code, fv.getValue());
+				} else if (fv.getValueType() == InitType.INSN) {
+					InsnGen insnGen = makeInsnGen(fv.getInsnMth());
+					addInsnBody(insnGen, code, fv.getInsn());
 				}
 			}
-			code.add(';');
 		}
+		code.add(';');
 	}
 
 	private boolean isFieldsPresents() {
@@ -569,7 +559,7 @@ public class ClassGen {
 		}
 	}
 
-	private Set<ClassInfo> getImports() {
+	public Set<ClassInfo> getImports() {
 		if (parentGen != null) {
 			return parentGen.getImports();
 		} else {
@@ -613,13 +603,6 @@ public class ClassGen {
 			}
 		}
 		return searchCollision(dex, useCls.getParentClass(), searchCls);
-	}
-
-	private void insertSourceFileInfo(CodeWriter code, AttrNode node) {
-		SourceFileAttr sourceFileAttr = node.get(AType.SOURCE_FILE);
-		if (sourceFileAttr != null) {
-			code.startLine("/* compiled from: ").add(sourceFileAttr.getFileName()).add(" */");
-		}
 	}
 
 	private void insertRenameInfo(CodeWriter code, ClassNode cls) {

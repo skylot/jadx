@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.api.JadxArgs;
 import jadx.core.Consts;
+import jadx.core.codegen.json.JsonMappingGen;
 import jadx.core.deobf.Deobfuscator;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
@@ -50,6 +51,9 @@ public class RenameVisitor extends AbstractVisitor {
 		if (args.isDeobfuscationOn()) {
 			deobfuscator.savePresets();
 			deobfuscator.clear();
+		}
+		if (args.isJsonOutput()) {
+			JsonMappingGen.dump(root);
 		}
 	}
 

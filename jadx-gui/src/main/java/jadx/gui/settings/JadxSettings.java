@@ -1,9 +1,6 @@
 package jadx.gui.settings;
 
-import java.awt.Font;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.Window;
+import java.awt.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -15,7 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import javax.swing.JFrame;
+import javax.swing.*;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +39,9 @@ public class JadxSettings extends JadxCLIArgs {
 	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
 	static final Set<String> SKIP_FIELDS = new HashSet<>(Arrays.asList(
-			"files", "input", "outDir", "outDirSrc", "outDirRes", "verbose", "printVersion", "printHelp"));
+			"files", "input", "outDir", "outDirSrc", "outDirRes", "outputFormat",
+			"verbose", "printVersion", "printHelp"));
+
 	private Path lastSaveProjectPath = USER_HOME;
 	private Path lastOpenFilePath = USER_HOME;
 	private Path lastSaveFilePath = USER_HOME;
