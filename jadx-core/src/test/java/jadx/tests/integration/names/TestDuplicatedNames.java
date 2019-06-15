@@ -50,6 +50,6 @@ public class TestDuplicatedNames extends SmaliTest {
 		assertThat(code, containsOne("this.f0fieldName"));
 
 		assertThat(code, containsOne("public Object run() {"));
-		assertThat(code, containsOne("public String m1run() {"));
+		assertThat(code, containsOne("public String m0run() {"));
 	}
 }

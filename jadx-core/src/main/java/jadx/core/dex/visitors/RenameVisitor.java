@@ -1,6 +1,7 @@
 package jadx.core.dex.visitors;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -152,7 +153,14 @@ public class RenameVisitor extends AbstractVisitor {
 	}
 
 	private static void checkMethods(Deobfuscator deobfuscator, ClassNode cls, JadxArgs args) {
-		for (MethodNode mth : cls.getMethods()) {
+		List<MethodNode> methods = new ArrayList<>(cls.getMethods().size());
+		for (MethodNode method : cls.getMethods()) {
+			if (!method.getAccessFlags().isConstructor()) {
+				methods.add(method);
+			}
+		}
+
+		for (MethodNode mth : methods) {
 			String alias = mth.getAlias();
 
 			boolean notValid = args.isRenameValid() && !NameMapper.isValidIdentifier(alias);
@@ -162,12 +170,10 @@ public class RenameVisitor extends AbstractVisitor {
 				mth.addAttr(new RenameReasonAttr(mth, notValid, notPrintable));
 			}
 		}
-		Set<String> names = new HashSet<>();
-		for (MethodNode mth : cls.getMethods()) {
+		Set<String> names = new HashSet<>(methods.size());
+		for (MethodNode mth : methods) {
 			AccessInfo accessFlags = mth.getAccessFlags();
-			if (accessFlags.isConstructor()
-					|| accessFlags.isBridge()
-					|| accessFlags.isSynthetic()
+			if (accessFlags.isBridge() || accessFlags.isSynthetic()
 					|| mth.contains(AFlag.DONT_GENERATE) /* this flag not set yet */) {
 				continue;
 			}
