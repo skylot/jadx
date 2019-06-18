@@ -15,7 +15,6 @@ dependencies {
     compile(project(":jadx-cli"))
 
     compile 'com.fifesoft:rsyntaxtextarea:3.0.2'
-    compile 'com.google.code.gson:gson:2.8.5'
     compile files('libs/jfontchooser-1.0.5.jar')
     compile 'hu.kazocsaba:image-viewer:1.2.3'
 

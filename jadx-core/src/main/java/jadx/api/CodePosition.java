@@ -57,6 +57,14 @@ public final class CodePosition {
 
 	@Override
 	public String toString() {
-		return line + ':' + offset + (node != null ? " " + node : "");
+		StringBuilder sb = new StringBuilder();
+		sb.append(line);
+		if (offset != 0) {
+			sb.append(':').append(offset);
+		}
+		if (node != null) {
+			sb.append(' ').append(node);
+		}
+		return sb.toString();
 	}
 }

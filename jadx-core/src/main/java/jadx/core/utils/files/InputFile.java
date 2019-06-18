@@ -97,7 +97,7 @@ public class InputFile {
 	}
 
 	private void addDexFile(Path path) throws IOException {
-		addDexFile("", path);
+		addDexFile(path.getFileName().toString(), path);
 	}
 
 	private void addDexFile(String fileName, Path path) throws IOException {

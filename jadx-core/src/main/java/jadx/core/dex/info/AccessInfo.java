@@ -201,6 +201,10 @@ public class AccessInfo {
 		}
 	}
 
+	public int rawValue() {
+		return accFlags;
+	}
+
 	@Override
 	public String toString() {
 		return "AccessInfo: " + type + " 0x" + Integer.toHexString(accFlags) + " (" + rawString() + ')';

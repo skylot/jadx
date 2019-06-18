@@ -112,6 +112,16 @@ public class JCommanderWrapper<T> {
 				// ignore
 			}
 		}
+		if (fieldType == String.class) {
+			try {
+				String val = (String) f.get(args);
+				if (val != null) {
+					opt.append(" (default: ").append(val).append(')');
+				}
+			} catch (Exception e) {
+				// ignore
+			}
+		}
 	}
 
 	private static void addSpaces(StringBuilder str, int count) {

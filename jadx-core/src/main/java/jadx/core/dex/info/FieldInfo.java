@@ -1,5 +1,7 @@
 package jadx.core.dex.info;
 
+import java.util.Objects;
+
 import com.android.dex.FieldId;
 
 import jadx.core.codegen.TypeGen;
@@ -51,6 +53,10 @@ public final class FieldInfo {
 
 	public void setAlias(String alias) {
 		this.alias = alias;
+	}
+
+	public boolean hasAlias() {
+		return !Objects.equals(name, alias);
 	}
 
 	public String getFullId() {

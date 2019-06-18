@@ -85,9 +85,14 @@ public class MethodGen {
 			ai = ai.remove(AccessFlags.ACC_PUBLIC);
 		}
 
-		if (mth.getMethodInfo().isRenamed() && !ai.isConstructor()) {
+		if (mth.getMethodInfo().hasAlias() && !ai.isConstructor()) {
 			CodeGenUtils.addRenamedComment(code, mth, mth.getName());
 		}
+		CodeGenUtils.addSourceFileInfo(code, mth);
+		if (mth.contains(AFlag.INCONSISTENT_CODE)) {
+			code.startLine("/* Code decompiled incorrectly, please refer to instructions dump. */");
+		}
+
 		code.startLineWithNum(mth.getSourceLine());
 		code.add(ai.makeString());
 		if (Consts.DEBUG) {
@@ -125,6 +130,15 @@ public class MethodGen {
 		code.add(')');
 
 		annotationGen.addThrows(mth, code);
+
+		// add default value if in annotation class
+		if (mth.getParentClass().getAccessFlags().isAnnotation()) {
+			Object def = annotationGen.getAnnotationDefaultValue(mth.getName());
+			if (def != null) {
+				code.add(" default ");
+				annotationGen.encodeValue(code, def);
+			}
+		}
 		return true;
 	}
 
@@ -181,39 +195,47 @@ public class MethodGen {
 	}
 
 	public void addInstructions(CodeWriter code) throws CodegenException {
-		if (mth.contains(AType.JADX_ERROR)
-				|| mth.contains(AFlag.INCONSISTENT_CODE)
-				|| mth.getRegion() == null) {
-			code.startLine("/*");
+		if (mth.root().getArgs().isFallbackMode()) {
 			addFallbackMethodCode(code);
-			code.startLine("*/");
-
-			code.startLine("throw new UnsupportedOperationException(\"Method not decompiled: ")
-					.add(mth.getParentClass().getClassInfo().getAliasFullName())
-					.add('.')
-					.add(mth.getAlias())
-					.add('(')
-					.add(Utils.listToString(mth.getMethodInfo().getArgumentsTypes()))
-					.add("):")
-					.add(mth.getMethodInfo().getReturnType().toString())
-					.add("\");");
+		} else if (classGen.isFallbackMode()) {
+			dumpInstructions(code);
 		} else {
-			try {
-				RegionGen regionGen = new RegionGen(this);
-				regionGen.makeRegion(code, mth.getRegion());
-			} catch (StackOverflowError | BootstrapMethodError e) {
-				mth.addError("Method code generation error", new JadxOverflowException("StackOverflow"));
-				classGen.insertDecompilationProblems(code, mth);
-				addInstructions(code);
-			} catch (Exception e) {
-				if (mth.getParentClass().getTopParentClass().contains(AFlag.RESTART_CODEGEN)) {
-					throw e;
-				}
-				mth.addError("Method code generation error", e);
-				classGen.insertDecompilationProblems(code, mth);
-				addInstructions(code);
-			}
+			addRegionInsns(code);
 		}
+	}
+
+	public void addRegionInsns(CodeWriter code) throws CodegenException {
+		try {
+			RegionGen regionGen = new RegionGen(this);
+			regionGen.makeRegion(code, mth.getRegion());
+		} catch (StackOverflowError | BootstrapMethodError e) {
+			mth.addError("Method code generation error", new JadxOverflowException("StackOverflow"));
+			classGen.insertDecompilationProblems(code, mth);
+			dumpInstructions(code);
+		} catch (Exception e) {
+			if (mth.getParentClass().getTopParentClass().contains(AFlag.RESTART_CODEGEN)) {
+				throw e;
+			}
+			mth.addError("Method code generation error", e);
+			classGen.insertDecompilationProblems(code, mth);
+			dumpInstructions(code);
+		}
+	}
+
+	public void dumpInstructions(CodeWriter code) {
+		code.startLine("/*");
+		addFallbackMethodCode(code);
+		code.startLine("*/");
+
+		code.startLine("throw new UnsupportedOperationException(\"Method not decompiled: ")
+				.add(mth.getParentClass().getClassInfo().getAliasFullName())
+				.add('.')
+				.add(mth.getAlias())
+				.add('(')
+				.add(Utils.listToString(mth.getMethodInfo().getArgumentsTypes()))
+				.add("):")
+				.add(mth.getMethodInfo().getReturnType().toString())
+				.add("\");");
 	}
 
 	public void addFallbackMethodCode(CodeWriter code) {
@@ -244,6 +266,7 @@ public class MethodGen {
 
 	public static void addFallbackInsns(CodeWriter code, MethodNode mth, InsnNode[] insnArr, boolean addLabels) {
 		InsnGen insnGen = new InsnGen(getFallbackMethodGen(mth), true);
+		boolean attachInsns = mth.root().getArgs().isJsonOutput();
 		InsnNode prevInsn = null;
 		for (InsnNode insn : insnArr) {
 			if (insn == null) {
@@ -259,6 +282,9 @@ public class MethodGen {
 			}
 			try {
 				code.startLine();
+				if (attachInsns) {
+					code.attachLineAnnotation(insn);
+				}
 				RegisterArg resArg = insn.getResult();
 				if (resArg != null) {
 					ArgType varType = resArg.getInitType();
@@ -304,7 +330,7 @@ public class MethodGen {
 	 * Return fallback variant of method codegen
 	 */
 	public static MethodGen getFallbackMethodGen(MethodNode mth) {
-		ClassGen clsGen = new ClassGen(mth.getParentClass(), null, true, true, true);
+		ClassGen clsGen = new ClassGen(mth.getParentClass(), null, false, true, true);
 		return new MethodGen(clsGen, mth);
 	}
 

@@ -1,12 +1,21 @@
 package jadx.core.dex.visitors;
 
+import jadx.core.codegen.json.JsonMappingGen;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.utils.exceptions.JadxException;
 
 public class FallbackModeVisitor extends AbstractVisitor {
+
+	@Override
+	public void init(RootNode root) {
+		if (root.getArgs().isJsonOutput()) {
+			JsonMappingGen.dump(root);
+		}
+	}
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {

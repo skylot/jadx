@@ -130,7 +130,7 @@ public final class MethodInfo {
 		this.alias = alias;
 	}
 
-	public boolean isRenamed() {
+	public boolean hasAlias() {
 		return !name.equals(alias);
 	}
 

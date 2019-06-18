@@ -63,6 +63,7 @@ public class InsnGen {
 	protected final MethodNode mth;
 	protected final RootNode root;
 	protected final boolean fallback;
+	protected final boolean attachInsns;
 
 	protected enum Flags {
 		BODY_ONLY,
@@ -73,8 +74,9 @@ public class InsnGen {
 	public InsnGen(MethodGen mgen, boolean fallback) {
 		this.mgen = mgen;
 		this.mth = mgen.getMethodNode();
-		this.root = mth.dex().root();
+		this.root = mth.root();
 		this.fallback = fallback;
+		this.attachInsns = root.getArgs().isJsonOutput();
 	}
 
 	private boolean isFallback() {
@@ -222,6 +224,9 @@ public class InsnGen {
 			} else {
 				if (flag != Flags.INLINE) {
 					code.startLineWithNum(insn.getSourceLine());
+					if (attachInsns) {
+						code.attachLineAnnotation(insn);
+					}
 				}
 				if (insn.getResult() != null) {
 					SSAVar var = insn.getResult().getSVar();

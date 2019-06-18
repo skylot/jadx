@@ -3,7 +3,9 @@ package jadx.core.utils;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -152,6 +154,17 @@ public class Utils {
 		if (cutIndex > 0 && cutIndex < length) {
 			th.setStackTrace(Arrays.copyOfRange(stackTrace, 0, cutIndex));
 		}
+	}
+
+	public static <T, R> List<R> collectionMap(Collection<T> list, Function<T, R> mapFunc) {
+		if (list == null || list.isEmpty()) {
+			return Collections.emptyList();
+		}
+		List<R> result = new ArrayList<>(list.size());
+		for (T t : list) {
+			result.add(mapFunc.apply(t));
+		}
+		return result;
 	}
 
 	public static <T> List<T> lockList(List<T> list) {
