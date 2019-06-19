@@ -29,6 +29,7 @@ import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.GotoNode;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnDecoder;
+import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -332,7 +333,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 			InsnNode insn = null;
 			while (offset <= end && offset >= 0) {
 				insn = insnByOffset[offset];
-				if (insn != null) {
+				if (insn != null && insn.getType() != InsnType.NOP) {
 					if (tryBlockStarted) {
 						catchBlock.addInsn(insn);
 					} else if (insn.canThrowException()) {
@@ -343,9 +344,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 				}
 				offset = InsnDecoder.getNextInsnOffset(insnByOffset, offset);
 			}
-			if (insnByOffset[end] != null) {
-				insnByOffset[end].add(AFlag.TRY_LEAVE);
-			} else if (insn != null) {
+			if (tryBlockStarted && insn != null) {
 				insn.add(AFlag.TRY_LEAVE);
 			}
 		}

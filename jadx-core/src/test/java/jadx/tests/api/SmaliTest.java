@@ -31,6 +31,13 @@ public abstract class SmaliTest extends IntegrationTest {
 		return getClassNodeFromFile(outDex, clsName);
 	}
 
+	/**
+	 * Preferred method for one file smali test
+	 */
+	protected ClassNode getClassNodeFromSmali() {
+		return getClassNodeFromSmaliWithPkg(getTestPkg(), getTestName());
+	}
+
 	protected ClassNode getClassNodeFromSmali(String clsName) {
 		return getClassNodeFromSmali(clsName, clsName);
 	}
