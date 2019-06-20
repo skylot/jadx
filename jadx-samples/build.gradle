@@ -11,6 +11,9 @@ dependencies {
 
 compileJava {
 	options.compilerArgs << '-g:none'
+	if (JavaVersion.current() > JavaVersion.VERSION_1_8) {
+		options.compilerArgs.addAll('--release 8'.split(' '))
+	}
 }
 
 task samplesRun(type: JavaExec, dependsOn: compileJava) {

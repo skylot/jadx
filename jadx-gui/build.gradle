@@ -1,29 +1,28 @@
 plugins {
-    id 'edu.sc.seis.launch4j' version '2.4.5'
+    id 'application'
+    id 'edu.sc.seis.launch4j' version '2.4.6'
     id 'com.github.johnrengelman.shadow' version '5.0.0'
 }
-
-apply plugin: 'application'
-
-mainClassName = 'jadx.gui.JadxGUI'
-
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
     compile(project(":jadx-core"))
     compile(project(":jadx-cli"))
 
-    compile 'com.fifesoft:rsyntaxtextarea:3.0.2'
+    compile 'com.fifesoft:rsyntaxtextarea:3.0.3'
     compile files('libs/jfontchooser-1.0.5.jar')
     compile 'hu.kazocsaba:image-viewer:1.2.3'
 
-    compile 'org.apache.commons:commons-lang3:3.8.1'
+    compile 'org.apache.commons:commons-lang3:3.9'
     compile 'org.apache.commons:commons-text:1.6'
 
-    compile 'io.reactivex.rxjava2:rxjava:2.2.7'
-    compile "com.github.akarnokd:rxjava2-swing:0.3.4"
-    compile 'com.android.tools.build:apksig:3.3.2'
+    compile 'io.reactivex.rxjava2:rxjava:2.2.10'
+    compile "com.github.akarnokd:rxjava2-swing:0.3.7"
+    compile 'com.android.tools.build:apksig:3.4.1'
+}
+
+application {
+    applicationName = 'jadx-gui'
+    mainClassName = 'jadx.gui.JadxGUI'
 }
 
 applicationDistribution.with {
@@ -70,6 +69,7 @@ launch4j {
     initialHeapPercent = 5
     maxHeapSize = 4096
     maxHeapPercent = 70
+    downloadUrl = 'https://adoptopenjdk.net/releases.html?variant=openjdk11&jvmVariant=hotspot#x64_win'
 }
 
 test {
