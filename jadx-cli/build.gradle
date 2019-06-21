@@ -22,7 +22,6 @@ startScripts {
     defaultJvmOpts = ['-Xms128M', '-Xmx4g', '-XX:+UseG1GC']
     doLast {
         def str = windowsScript.text
-        str = str.replaceAll('set JAVA_EXE=%JAVA_HOME%/bin/java.exe', 'set JAVA_EXE="%JAVA_HOME%/bin/java.exe"')
         windowsScript.text = str
     }
 }
