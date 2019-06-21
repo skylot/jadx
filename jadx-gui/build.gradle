@@ -51,7 +51,6 @@ startScripts {
         def str = windowsScript.text
         str = str.replaceAll('java.exe', 'javaw.exe')
         str = str.replaceAll('"%JAVA_EXE%" %DEFAULT_JVM_OPTS%', 'start "jadx-gui" /B "%JAVA_EXE%" %DEFAULT_JVM_OPTS%')
-        str = str.replaceAll('set JAVA_EXE=%JAVA_HOME%/bin/javaw.exe', 'set JAVA_EXE="%JAVA_HOME%/bin/javaw.exe"')
         windowsScript.text = str
     }
 }
