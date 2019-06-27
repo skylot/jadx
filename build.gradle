@@ -100,7 +100,7 @@ spotless {
 	}
 	format 'misc', {
 		target '**/*.gradle', '**/*.md', '**/*.xml', '**/.gitignore', '**/.properties'
-		targetExclude "jadx-test-app/test-app/**", ".gradle/**", ".idea/**"
+		targetExclude ".gradle/**", ".idea/**"
 
 		lineEndings(LineEnding.UNIX)
 		encoding("UTF-8")
@@ -149,10 +149,6 @@ task dist(dependsOn: [pack, copyExe]) {
 }
 
 task samples(dependsOn: 'jadx-samples:samples') {
-	group 'jadx'
-}
-
-task testAppCheck(dependsOn: 'jadx-test-app:testAppCheck') {
 	group 'jadx'
 }
 
