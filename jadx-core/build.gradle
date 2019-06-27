@@ -1,20 +1,20 @@
 ext.jadxClasspath = 'clsp-data/android-5.1.jar'
 
 dependencies {
-    runtime files(jadxClasspath)
+	runtime files(jadxClasspath)
 
-    compile files('lib/dx-1.16.jar') // TODO: dx don't support java version > 9 (53)
+	compile files('lib/dx-1.16.jar') // TODO: dx don't support java version > 9 (53)
 
-    compile 'org.ow2.asm:asm:7.1'
-    compile 'org.jetbrains:annotations:17.0.0'
-    compile 'uk.com.robust-it:cloning:1.9.12'
-    compile 'com.google.code.gson:gson:2.8.5'
+	compile 'org.ow2.asm:asm:7.1'
+	compile 'org.jetbrains:annotations:17.0.0'
+	compile 'uk.com.robust-it:cloning:1.9.12'
+	compile 'com.google.code.gson:gson:2.8.5'
 
-    compile 'org.smali:baksmali:2.2.7'
-    compile('org.smali:smali:2.2.7') {
-        exclude group: 'com.google.guava'
-    }
-    compile 'com.google.guava:guava:28.0-jre'
+	compile 'org.smali:baksmali:2.2.7'
+	compile('org.smali:smali:2.2.7') {
+		exclude group: 'com.google.guava'
+	}
+	compile 'com.google.guava:guava:28.0-jre'
 
-    testCompile 'org.apache.commons:commons-lang3:3.9'
+	testCompile 'org.apache.commons:commons-lang3:3.9'
 }
