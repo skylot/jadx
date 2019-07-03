@@ -2,21 +2,26 @@ package jadx.core.dex.visitors;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.dex.regions.conditions.IfCondition.Mode;
+import jadx.core.dex.visitors.regions.AbstractRegionVisitor;
+import jadx.core.dex.visitors.regions.DepthRegionTraversal;
 import jadx.core.dex.visitors.regions.variables.ProcessVariables;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.exceptions.JadxException;
@@ -33,6 +38,8 @@ import jadx.core.utils.exceptions.JadxException;
 )
 public class PrepareForCodeGen extends AbstractVisitor {
 
+	public static final SuperCallRegionVisitor SUPER_CALL_REGION_VISITOR = new SuperCallRegionVisitor();
+
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
 		List<BlockNode> blocks = mth.getBasicBlocks();
@@ -48,6 +55,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 			removeParenthesis(block);
 			modifyArith(block);
 		}
+		commentOutInsnsBeforeSuper(mth);
 	}
 
 	private static void removeInstructions(BlockNode block) {
@@ -168,6 +176,35 @@ public class PrepareForCodeGen extends AbstractVisitor {
 				if (replace) {
 					insn.add(AFlag.ARITH_ONEARG);
 				}
+			}
+		}
+	}
+
+	private void commentOutInsnsBeforeSuper(MethodNode mth) {
+		if (mth.isConstructor() && !Objects.equals(mth.getParentClass().getSuperClass(), ArgType.OBJECT)) {
+			DepthRegionTraversal.traverse(mth, SUPER_CALL_REGION_VISITOR);
+		}
+	}
+
+	private static final class SuperCallRegionVisitor extends AbstractRegionVisitor {
+		@Override
+		public void processBlock(MethodNode mth, IBlock container) {
+			for (InsnNode insn : container.getInstructions()) {
+				InsnType insnType = insn.getType();
+				if ((insnType == InsnType.CONSTRUCTOR) && ((ConstructorInsn) insn).isSuper()) {
+					// found super call
+					commentOutInsns(container, insn);
+					// TODO: process all previous regions (in case of branching before super call)
+				}
+			}
+		}
+
+		private static void commentOutInsns(IBlock container, InsnNode superInsn) {
+			for (InsnNode insn : container.getInstructions()) {
+				if (insn == superInsn) {
+					break;
+				}
+				insn.add(AFlag.COMMENT_OUT);
 			}
 		}
 	}

@@ -227,6 +227,9 @@ public class InsnGen {
 					if (attachInsns) {
 						code.attachLineAnnotation(insn);
 					}
+					if (insn.contains(AFlag.COMMENT_OUT)) {
+						code.add("// ");
+					}
 				}
 				if (insn.getResult() != null) {
 					SSAVar var = insn.getResult().getSVar();

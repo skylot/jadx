@@ -15,9 +15,11 @@ public enum AFlag {
 	DONT_WRAP,
 	DONT_INLINE,
 	DONT_GENERATE, // process as usual, but don't output to generated code
+	COMMENT_OUT, // process as usual, but comment insn in generated code
+	REMOVE, // can be completely removed
+
 	RESTART_CODEGEN,
 	DONT_RENAME, // do not rename during deobfuscation
-	REMOVE, // can be completely removed
 	ADDED_TO_REGION,
 
 	FINALLY_INSNS,
