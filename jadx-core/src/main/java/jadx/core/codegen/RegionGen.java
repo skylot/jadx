@@ -131,12 +131,20 @@ public class RegionGen extends InsnGen {
 				}
 			}
 		}
+		boolean comment = region.contains(AFlag.COMMENT_OUT);
+		if (comment) {
+			code.add("// ");
+		}
 
 		code.add("if (");
 		new ConditionGen(this).add(code, region.getCondition());
 		code.add(") {");
 		makeRegionIndent(code, region.getThenRegion());
-		code.startLine('}');
+		if (comment) {
+			code.startLine("// }");
+		} else {
+			code.startLine('}');
+		}
 
 		IContainer els = region.getElseRegion();
 		if (RegionUtils.notEmpty(els)) {
@@ -146,7 +154,11 @@ public class RegionGen extends InsnGen {
 			}
 			code.add('{');
 			makeRegionIndent(code, els);
-			code.startLine('}');
+			if (comment) {
+				code.startLine("// }");
+			} else {
+				code.startLine('}');
+			}
 		}
 	}
 

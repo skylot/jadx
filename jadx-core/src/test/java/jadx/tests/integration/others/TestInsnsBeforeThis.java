@@ -8,18 +8,16 @@ import jadx.tests.api.SmaliTest;
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class TestInsnsBeforeSuper extends SmaliTest {
+public class TestInsnsBeforeThis extends SmaliTest {
 	// @formatter:off
 	/*
 		public class A {
-			public A(String s) {
-			}
-		}
-
-		public class B extends A {
-			public B(String str) {
+			public A(String str) {
 				checkNull(str);
-				super(str);
+				this(str.length());
+			}
+
+			public A(int i) {
 			}
 
 			public void checkNull(Object o) {
@@ -34,7 +32,7 @@ public class TestInsnsBeforeSuper extends SmaliTest {
 	@Test
 	public void test() {
 		allowWarnInCode();
-		ClassNode cls = getClassNodeFromSmaliFiles("B");
+		ClassNode cls = getClassNodeFromSmali();
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsOne("// checkNull(str);"));

@@ -2,13 +2,11 @@ package jadx.core.dex.visitors;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
 import jadx.core.dex.instructions.InsnType;
-import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -16,6 +14,7 @@ import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBlock;
+import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.conditions.IfCondition;
@@ -38,8 +37,6 @@ import jadx.core.utils.exceptions.JadxException;
 )
 public class PrepareForCodeGen extends AbstractVisitor {
 
-	public static final SuperCallRegionVisitor SUPER_CALL_REGION_VISITOR = new SuperCallRegionVisitor();
-
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
 		List<BlockNode> blocks = mth.getBasicBlocks();
@@ -55,7 +52,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 			removeParenthesis(block);
 			modifyArith(block);
 		}
-		commentOutInsnsBeforeSuper(mth);
+		commentOutInsnsInConstructor(mth);
 	}
 
 	private static void removeInstructions(BlockNode block) {
@@ -180,31 +177,94 @@ public class PrepareForCodeGen extends AbstractVisitor {
 		}
 	}
 
-	private void commentOutInsnsBeforeSuper(MethodNode mth) {
-		if (mth.isConstructor() && !Objects.equals(mth.getParentClass().getSuperClass(), ArgType.OBJECT)) {
-			DepthRegionTraversal.traverse(mth, SUPER_CALL_REGION_VISITOR);
+	private void commentOutInsnsInConstructor(MethodNode mth) {
+		if (mth.isConstructor()) {
+			ConstructorInsn constrInsn = searchConstructorCall(mth);
+			if (constrInsn != null && !constrInsn.contains(AFlag.DONT_GENERATE)) {
+				DepthRegionTraversal.traverse(mth, new ConstructorRegionVisitor(constrInsn));
+			}
 		}
 	}
 
-	private static final class SuperCallRegionVisitor extends AbstractRegionVisitor {
+	private ConstructorInsn searchConstructorCall(MethodNode mth) {
+		for (BlockNode block : mth.getBasicBlocks()) {
+			for (InsnNode insn : block.getInstructions()) {
+				InsnType insnType = insn.getType();
+				if (insnType == InsnType.CONSTRUCTOR) {
+					ConstructorInsn constrInsn = (ConstructorInsn) insn;
+					if (constrInsn.isSuper() || constrInsn.isThis()) {
+						return constrInsn;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	private static final class ConstructorRegionVisitor extends AbstractRegionVisitor {
+		private final ConstructorInsn constrInsn;
+		private int regionDepth;
+		private boolean found;
+		private boolean brokenCode;
+		private int commentedCount;
+
+		public ConstructorRegionVisitor(ConstructorInsn constrInsn) {
+			this.constrInsn = constrInsn;
+		}
+
+		@Override
+		public boolean enterRegion(MethodNode mth, IRegion region) {
+			if (found) {
+				return false;
+			}
+			regionDepth++;
+			return true;
+		}
+
+		@Override
+		public void leaveRegion(MethodNode mth, IRegion region) {
+			if (!found) {
+				regionDepth--;
+				region.add(AFlag.COMMENT_OUT);
+				commentedCount++;
+			}
+		}
+
 		@Override
 		public void processBlock(MethodNode mth, IBlock container) {
+			if (found) {
+				return;
+			}
 			for (InsnNode insn : container.getInstructions()) {
-				InsnType insnType = insn.getType();
-				if ((insnType == InsnType.CONSTRUCTOR) && ((ConstructorInsn) insn).isSuper()) {
-					// found super call
-					commentOutInsns(container, insn);
-					// TODO: process all previous regions (in case of branching before super call)
+				if (insn == constrInsn) {
+					found = true;
+					addMethodMsg(mth);
+					break;
+				}
+				insn.add(AFlag.COMMENT_OUT);
+				commentedCount++;
+				if (!brokenCode) {
+					RegisterArg resArg = insn.getResult();
+					if (resArg != null) {
+						for (RegisterArg arg : resArg.getSVar().getUseList()) {
+							if (arg.getParentInsn() == constrInsn) {
+								brokenCode = true;
+								break;
+							}
+						}
+					}
 				}
 			}
 		}
 
-		private static void commentOutInsns(IBlock container, InsnNode superInsn) {
-			for (InsnNode insn : container.getInstructions()) {
-				if (insn == superInsn) {
-					break;
+		private void addMethodMsg(MethodNode mth) {
+			if (commentedCount > 0) {
+				String msg = "JADX WARN: Illegal instructions before constructor call commented (this can break semantics)";
+				if (brokenCode || regionDepth > 1) {
+					mth.addWarn(msg);
+				} else {
+					mth.addComment(msg);
 				}
-				insn.add(AFlag.COMMENT_OUT);
 			}
 		}
 	}

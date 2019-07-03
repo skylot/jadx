@@ -81,6 +81,8 @@ public abstract class IntegrationTest extends TestUtils {
 	protected boolean useEclipseCompiler;
 	protected Map<Integer, String> resMap = Collections.emptyMap();
 
+	private boolean allowWarnInCode;
+
 	private DynamicCompiler dynamicCompiler;
 
 	@BeforeEach
@@ -170,7 +172,7 @@ public abstract class IntegrationTest extends TestUtils {
 		}
 		System.out.println("-----------------------------------------------------------");
 
-		clsList.forEach(IntegrationTest::checkCode);
+		clsList.forEach(this::checkCode);
 		compile(clsList);
 		clsList.forEach(this::runAutoCheck);
 	}
@@ -212,7 +214,7 @@ public abstract class IntegrationTest extends TestUtils {
 		}
 	}
 
-	protected static void checkCode(ClassNode cls) {
+	protected void checkCode(ClassNode cls) {
 		assertFalse(hasErrors(cls), "Inconsistent cls: " + cls);
 		for (MethodNode mthNode : cls.getMethods()) {
 			assertFalse(hasErrors(mthNode), "Method with problems: " + mthNode);
@@ -220,17 +222,19 @@ public abstract class IntegrationTest extends TestUtils {
 		assertThat(cls.getCode().toString(), not(containsString("inconsistent")));
 	}
 
-	private static boolean hasErrors(IAttributeNode node) {
+	private boolean hasErrors(IAttributeNode node) {
 		if (node.contains(AFlag.INCONSISTENT_CODE)
 				|| node.contains(AType.JADX_ERROR)
-				|| node.contains(AType.JADX_WARN)) {
+				|| (node.contains(AType.JADX_WARN) && !allowWarnInCode)) {
 			return true;
 		}
-		AttrList<String> commentsAttr = node.get(AType.COMMENTS);
-		if (commentsAttr != null) {
-			for (String comment : commentsAttr.getList()) {
-				if (comment.contains("JADX WARN")) {
-					return true;
+		if (!allowWarnInCode) {
+			AttrList<String> commentsAttr = node.get(AType.COMMENTS);
+			if (commentsAttr != null) {
+				for (String comment : commentsAttr.getList()) {
+					if (comment.contains("JADX WARN")) {
+						return true;
+					}
 				}
 			}
 		}
@@ -442,6 +446,10 @@ public abstract class IntegrationTest extends TestUtils {
 		args.setDeobfuscationForceSave(true);
 		args.setDeobfuscationMinLength(2);
 		args.setDeobfuscationMaxLength(64);
+	}
+
+	protected void allowWarnInCode() {
+		allowWarnInCode = true;
 	}
 
 	// Use only for debug purpose
