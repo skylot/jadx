@@ -59,6 +59,11 @@ public final class FieldArg extends RegisterArg {
 	}
 
 	@Override
+	public RegisterArg duplicate() {
+		return copyCommonParams(new FieldArg(field, instArg));
+	}
+
+	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
 			return true;

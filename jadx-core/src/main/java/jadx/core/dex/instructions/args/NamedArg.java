@@ -27,6 +27,16 @@ public final class NamedArg extends InsnArg implements Named {
 	}
 
 	@Override
+	public InsnArg duplicate() {
+		return copyCommonParams(new NamedArg(name, type));
+	}
+
+	@Override
+	public int hashCode() {
+		return name.hashCode();
+	}
+
+	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
@@ -35,11 +45,6 @@ public final class NamedArg extends InsnArg implements Named {
 			return false;
 		}
 		return name.equals(((NamedArg) o).name);
-	}
-
-	@Override
-	public int hashCode() {
-		return name.hashCode();
 	}
 
 	@Override

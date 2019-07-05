@@ -115,8 +115,7 @@ public class RegisterArg extends InsnArg implements Named {
 		if (sVar != null) {
 			dup.setSVar(sVar);
 		}
-		dup.copyAttributesFrom(this);
-		return dup;
+		return copyCommonParams(dup);
 	}
 
 	@Nullable

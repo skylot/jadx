@@ -49,6 +49,13 @@ public final class LiteralArg extends InsnArg {
 	}
 
 	@Override
+	public InsnArg duplicate() {
+		LiteralArg copy = new LiteralArg(literal, getType());
+		copy.type = type;
+		return copyCommonParams(copy);
+	}
+
+	@Override
 	public int hashCode() {
 		return (int) (literal ^ literal >>> 32) + 31 * getType().hashCode();
 	}
