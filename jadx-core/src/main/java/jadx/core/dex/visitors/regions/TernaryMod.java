@@ -21,6 +21,7 @@ import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.conditions.IfRegion;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.InsnList;
+import jadx.core.utils.InsnRemover;
 
 /**
  * Convert 'if' to ternary operation
@@ -41,7 +42,14 @@ public class TernaryMod implements IRegionIterativeVisitor {
 		}
 		IContainer thenRegion = ifRegion.getThenRegion();
 		IContainer elseRegion = ifRegion.getElseRegion();
-		if (thenRegion == null || elseRegion == null) {
+		if (thenRegion == null) {
+			return false;
+		}
+		if (elseRegion == null) {
+			if (mth.isConstructor()) {
+				// force ternary conversion to inline all code in 'super' or 'this' calls
+				return processOneBranchTernary(mth, ifRegion);
+			}
 			return false;
 		}
 		BlockNode tb = getTernaryInsnBlock(thenRegion);
@@ -218,5 +226,63 @@ public class TernaryMod implements IRegionIterativeVisitor {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Convert one variable change with only 'then' branch:
+	 * 'if (c) {r = a;}' to 'r = c ? a : r'
+	 * Also convert only if 'r' used only once
+	 */
+	private static boolean processOneBranchTernary(MethodNode mth, IfRegion ifRegion) {
+		IContainer thenRegion = ifRegion.getThenRegion();
+		BlockNode block = getTernaryInsnBlock(thenRegion);
+		if (block != null) {
+			InsnNode insn = block.getInstructions().get(0);
+			RegisterArg result = insn.getResult();
+			if (result != null) {
+				replaceWithTernary(mth, ifRegion, block, insn);
+			}
+		}
+		return false;
+	}
+
+	private static void replaceWithTernary(MethodNode mth, IfRegion ifRegion, BlockNode block, InsnNode insn) {
+		BlockNode header = ifRegion.getConditionBlocks().get(0);
+		if (!ifRegion.getParent().replaceSubBlock(ifRegion, header)) {
+			return;
+		}
+		RegisterArg resArg = insn.getResult();
+		if (resArg.getSVar().getUseList().size() != 1) {
+			return;
+		}
+		PhiInsn phiInsn = resArg.getSVar().getOnlyOneUseInPhi();
+		if (phiInsn == null || phiInsn.getArgsCount() != 2) {
+			return;
+		}
+		RegisterArg otherArg = null;
+		for (InsnArg arg : phiInsn.getArguments()) {
+			if (arg != resArg && arg instanceof RegisterArg) {
+				otherArg = (RegisterArg) arg;
+				break;
+			}
+		}
+		if (otherArg == null) {
+			return;
+		}
+
+		// all checks passed
+		InsnList.remove(block, insn);
+		TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(),
+				phiInsn.getResult(), InsnArg.wrapArg(insn), otherArg);
+		ternInsn.setSourceLine(insn.getSourceLine());
+
+		InsnRemover.unbindInsn(mth, phiInsn);
+		header.getInstructions().clear();
+		header.getInstructions().add(ternInsn);
+
+		clearConditionBlocks(ifRegion.getConditionBlocks(), header);
+
+		// shrink method again
+		CodeShrinkVisitor.shrinkMethod(mth);
 	}
 }
