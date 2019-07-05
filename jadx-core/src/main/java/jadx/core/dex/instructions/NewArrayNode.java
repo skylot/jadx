@@ -12,10 +12,14 @@ public class NewArrayNode extends InsnNode {
 	private final ArgType arrType;
 
 	public NewArrayNode(@NotNull ArgType arrType, RegisterArg res, InsnArg size) {
-		super(InsnType.NEW_ARRAY, 1);
-		this.arrType = arrType;
+		this(arrType);
 		setResult(res);
 		addArg(size);
+	}
+
+	private NewArrayNode(ArgType arrType) {
+		super(InsnType.NEW_ARRAY, 1);
+		this.arrType = arrType;
 	}
 
 	public ArgType getArrayType() {
@@ -32,6 +36,11 @@ public class NewArrayNode extends InsnNode {
 		}
 		NewArrayNode other = (NewArrayNode) obj;
 		return arrType == other.arrType;
+	}
+
+	@Override
+	public InsnNode copy() {
+		return copyCommonParams(new NewArrayNode(arrType));
 	}
 
 	@Override

@@ -9,7 +9,6 @@ import java.util.Objects;
 import org.jetbrains.annotations.Nullable;
 
 import com.android.dx.io.instructions.DecodedInstruction;
-import com.rits.cloning.Cloner;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
@@ -17,23 +16,14 @@ import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
-import jadx.core.dex.instructions.args.LiteralArg;
-import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.Utils;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class InsnNode extends LineAttrNode {
-
-	private static final Cloner INSN_CLONER = new Cloner();
-
-	static {
-		INSN_CLONER.dontClone(ArgType.class, SSAVar.class, LiteralArg.class, NamedArg.class);
-		INSN_CLONER.dontCloneInstanceOf(RegisterArg.class);
-	}
-
 	protected final InsnType insnType;
 
 	private RegisterArg result;
@@ -324,7 +314,7 @@ public class InsnNode extends LineAttrNode {
 				&& Objects.equals(arguments, other.arguments);
 	}
 
-	protected <T extends InsnNode> T copyCommonParams(T copy) {
+	protected final <T extends InsnNode> T copyCommonParams(T copy) {
 		copy.setResult(result);
 		if (copy.getArgsCount() == 0) {
 			for (InsnArg arg : this.getArguments()) {
@@ -346,10 +336,10 @@ public class InsnNode extends LineAttrNode {
 	 * Make copy of InsnNode object.
 	 */
 	public InsnNode copy() {
-		if (this.getClass() == InsnNode.class) {
-			return copyCommonParams(new InsnNode(insnType, getArgsCount()));
+		if (this.getClass() != InsnNode.class) {
+			throw new JadxRuntimeException("Copy method not implemented in insn class " + this.getClass().getSimpleName());
 		}
-		return INSN_CLONER.deepClone(this);
+		return copyCommonParams(new InsnNode(insnType, getArgsCount()));
 	}
 
 	public boolean canThrowException() {

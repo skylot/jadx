@@ -105,6 +105,11 @@ public class ConstructorInsn extends InsnNode implements CallMthInterface {
 	}
 
 	@Override
+	public InsnNode copy() {
+		return copyCommonParams(new ConstructorInsn(callMth, callType, instanceArg));
+	}
+
+	@Override
 	public String toString() {
 		return super.toString() + ' ' + callMth + ' ' + callType;
 	}

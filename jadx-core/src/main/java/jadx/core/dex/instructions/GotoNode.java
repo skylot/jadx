@@ -1,5 +1,6 @@
 package jadx.core.dex.instructions;
 
+import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
 
 public class GotoNode extends TargetInsnNode {
@@ -17,6 +18,11 @@ public class GotoNode extends TargetInsnNode {
 
 	public int getTarget() {
 		return target;
+	}
+
+	@Override
+	public InsnNode copy() {
+		return copyCommonParams(new GotoNode(target));
 	}
 
 	@Override

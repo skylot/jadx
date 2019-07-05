@@ -25,13 +25,15 @@ public final class FillArrayNode extends InsnNode {
 	private ArgType elemType;
 
 	public FillArrayNode(int resReg, FillArrayDataPayloadDecodedInstruction payload) {
-		super(InsnType.FILL_ARRAY, 1);
-		ArgType elType = getElementType(payload.getElementWidthUnit());
-		addArg(InsnArg.reg(resReg, ArgType.array(elType)));
+		this(payload.getData(), payload.getSize(), getElementType(payload.getElementWidthUnit()));
+		addArg(InsnArg.reg(resReg, ArgType.array(elemType)));
+	}
 
-		this.data = payload.getData();
-		this.size = payload.getSize();
-		this.elemType = elType;
+	private FillArrayNode(Object data, int size, ArgType elemType) {
+		super(InsnType.FILL_ARRAY, 1);
+		this.data = data;
+		this.size = size;
+		this.elemType = elemType;
 	}
 
 	private static ArgType getElementType(short elementWidthUnit) {
@@ -96,6 +98,11 @@ public final class FillArrayNode extends InsnNode {
 		}
 		FillArrayNode other = (FillArrayNode) obj;
 		return elemType.equals(other.elemType) && data == other.data;
+	}
+
+	@Override
+	public InsnNode copy() {
+		return copyCommonParams(new FillArrayNode(data, size, elemType));
 	}
 
 	public String dataToString() {

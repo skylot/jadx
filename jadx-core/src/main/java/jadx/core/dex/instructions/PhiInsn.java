@@ -21,11 +21,15 @@ public final class PhiInsn extends InsnNode {
 	private final List<BlockNode> blockBinds;
 
 	public PhiInsn(int regNum, int predecessors) {
-		super(InsnType.PHI, predecessors);
-		this.blockBinds = new ArrayList<>(predecessors);
+		this(predecessors);
 		setResult(InsnArg.reg(regNum, ArgType.UNKNOWN));
 		add(AFlag.DONT_INLINE);
 		add(AFlag.DONT_GENERATE);
+	}
+
+	private PhiInsn(int argsCount) {
+		super(InsnType.PHI, argsCount);
+		this.blockBinds = new ArrayList<>(argsCount);
 	}
 
 	public RegisterArg bindArg(BlockNode pred) {
@@ -109,6 +113,11 @@ public final class PhiInsn extends InsnNode {
 	@Override
 	public void setArg(int n, InsnArg arg) {
 		throw new JadxRuntimeException("Direct setArg is forbidden for PHI insn, bindArg must be used");
+	}
+
+	@Override
+	public InsnNode copy() {
+		return copyCommonParams(new PhiInsn(getArgsCount()));
 	}
 
 	@Override

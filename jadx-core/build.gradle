@@ -7,7 +7,6 @@ dependencies {
 
 	compile 'org.ow2.asm:asm:7.1'
 	compile 'org.jetbrains:annotations:17.0.0'
-	compile 'uk.com.robust-it:cloning:1.9.12'
 	compile 'com.google.code.gson:gson:2.8.5'
 
 	compile 'org.smali:baksmali:2.2.7'

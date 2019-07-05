@@ -34,10 +34,14 @@ public class IfNode extends GotoNode {
 	}
 
 	public IfNode(IfOp op, int targetOffset, InsnArg arg1, InsnArg arg2) {
-		super(InsnType.IF, targetOffset, 2);
-		this.op = op;
+		this(op, targetOffset);
 		addArg(arg1);
 		addArg(arg2);
+	}
+
+	private IfNode(IfOp op, int targetOffset) {
+		super(InsnType.IF, targetOffset, 2);
+		this.op = op;
 	}
 
 	// change default types priority
@@ -121,6 +125,14 @@ public class IfNode extends GotoNode {
 		}
 		IfNode other = (IfNode) obj;
 		return op == other.op;
+	}
+
+	@Override
+	public InsnNode copy() {
+		IfNode copy = new IfNode(op, target);
+		copy.thenBlock = thenBlock;
+		copy.elseBlock = elseBlock;
+		return copyCommonParams(copy);
 	}
 
 	@Override

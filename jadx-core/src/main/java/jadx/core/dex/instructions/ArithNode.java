@@ -72,6 +72,11 @@ public class ArithNode extends InsnNode {
 	}
 
 	@Override
+	public InsnNode copy() {
+		return copyCommonParams(new ArithNode(op, getResult(), getArg(0), getArg(1)));
+	}
+
+	@Override
 	public String toString() {
 		return InsnUtils.formatOffset(offset) + ": "
 				+ InsnUtils.insnTypeToString(insnType)

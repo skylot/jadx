@@ -35,6 +35,11 @@ public class FilledNewArrayNode extends InsnNode {
 	}
 
 	@Override
+	public InsnNode copy() {
+		return copyCommonParams(new FilledNewArrayNode(elemType, getArgsCount()));
+	}
+
+	@Override
 	public String toString() {
 		return super.toString() + " elemType: " + elemType;
 	}
