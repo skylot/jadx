@@ -57,54 +57,56 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 		List<WrapInfo> wrapList = new ArrayList<>();
 		for (ArgsInfo argsInfo : argsList) {
 			List<RegisterArg> args = argsInfo.getArgs();
-			if (args.isEmpty()) {
-				continue;
-			}
-			ListIterator<RegisterArg> it = args.listIterator(args.size());
-			while (it.hasPrevious()) {
-				RegisterArg arg = it.previous();
-				// if (arg.getName() != null) {
-				// continue;
-				// }
-				SSAVar sVar = arg.getSVar();
-				// allow inline only one use arg
-				if (sVar == null
-						|| sVar.getVariableUseCount() != 1
-						|| sVar.contains(AFlag.DONT_INLINE)) {
-					continue;
-				}
-				InsnNode assignInsn = sVar.getAssign().getParentInsn();
-				if (assignInsn == null || assignInsn.contains(AFlag.DONT_INLINE)) {
-					continue;
-				}
-				List<RegisterArg> useList = sVar.getUseList();
-				if (!useList.isEmpty()) {
-					InsnNode parentInsn = useList.get(0).getParentInsn();
-					if (parentInsn != null && parentInsn.contains(AFlag.DONT_GENERATE)) {
-						continue;
-					}
-				}
-
-				int assignPos = insnList.getIndex(assignInsn);
-				if (assignPos != -1) {
-					WrapInfo wrapInfo = argsInfo.checkInline(assignPos, arg);
-					if (wrapInfo != null) {
-						wrapList.add(wrapInfo);
-					}
-				} else {
-					// another block
-					BlockNode assignBlock = BlockUtils.getBlockByInsn(mth, assignInsn);
-					if (assignBlock != null
-							&& assignInsn != arg.getParentInsn()
-							&& canMoveBetweenBlocks(assignInsn, assignBlock, block, argsInfo.getInsn())) {
-						inline(arg, assignInsn, assignBlock);
-					}
+			if (!args.isEmpty()) {
+				ListIterator<RegisterArg> it = args.listIterator(args.size());
+				while (it.hasPrevious()) {
+					RegisterArg arg = it.previous();
+					checkInline(mth, block, insnList, wrapList, argsInfo, arg);
 				}
 			}
 		}
 		if (!wrapList.isEmpty()) {
 			for (WrapInfo wrapInfo : wrapList) {
 				inline(wrapInfo.getArg(), wrapInfo.getInsn(), block);
+			}
+		}
+	}
+
+	private static void checkInline(MethodNode mth, BlockNode block, InsnList insnList,
+			List<WrapInfo> wrapList, ArgsInfo argsInfo, RegisterArg arg) {
+		SSAVar sVar = arg.getSVar();
+		if (sVar == null || sVar.contains(AFlag.DONT_INLINE)) {
+			return;
+		}
+		// allow inline only one use arg
+		if (sVar.getVariableUseCount() != 1) {
+			return;
+		}
+		InsnNode assignInsn = sVar.getAssign().getParentInsn();
+		if (assignInsn == null || assignInsn.contains(AFlag.DONT_INLINE)) {
+			return;
+		}
+		List<RegisterArg> useList = sVar.getUseList();
+		if (!useList.isEmpty()) {
+			InsnNode parentInsn = useList.get(0).getParentInsn();
+			if (parentInsn != null && parentInsn.contains(AFlag.DONT_GENERATE)) {
+				return;
+			}
+		}
+
+		int assignPos = insnList.getIndex(assignInsn);
+		if (assignPos != -1) {
+			WrapInfo wrapInfo = argsInfo.checkInline(assignPos, arg);
+			if (wrapInfo != null) {
+				wrapList.add(wrapInfo);
+			}
+		} else {
+			// another block
+			BlockNode assignBlock = BlockUtils.getBlockByInsn(mth, assignInsn);
+			if (assignBlock != null
+					&& assignInsn != arg.getParentInsn()
+					&& canMoveBetweenBlocks(assignInsn, assignBlock, block, argsInfo.getInsn())) {
+				inline(arg, assignInsn, assignBlock);
 			}
 		}
 	}

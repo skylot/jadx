@@ -28,6 +28,11 @@ public final class InsnWrapArg extends InsnArg {
 	}
 
 	@Override
+	public InsnArg duplicate() {
+		return copyCommonParams(new InsnWrapArg(wrappedInsn.copy()));
+	}
+
+	@Override
 	public boolean isInsnWrap() {
 		return true;
 	}

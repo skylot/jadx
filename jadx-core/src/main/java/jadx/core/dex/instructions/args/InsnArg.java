@@ -159,6 +159,12 @@ public abstract class InsnArg extends Typed {
 		return contains(AFlag.THIS);
 	}
 
+	protected InsnArg copyCommonParams(InsnArg copy) {
+		copy.copyAttributesFrom(this);
+		copy.setParentInsn(parentInsn);
+		return copy;
+	}
+
 	public InsnArg duplicate() {
 		return this;
 	}
