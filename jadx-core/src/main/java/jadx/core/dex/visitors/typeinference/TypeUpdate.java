@@ -2,23 +2,29 @@ package jadx.core.dex.visitors.typeinference;
 
 import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.Consts;
+import jadx.core.clsp.NClass;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
+import jadx.core.dex.nodes.GenericInfo;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxOverflowException;
@@ -34,10 +40,12 @@ public final class TypeUpdate {
 	private static final TypeUpdateFlags FLAGS_EMPTY = new TypeUpdateFlags();
 	private static final TypeUpdateFlags FLAGS_WIDER = new TypeUpdateFlags().allowWider();
 
+	private final RootNode root;
 	private final Map<InsnType, ITypeListener> listenerRegistry;
 	private final TypeCompare comparator;
 
 	public TypeUpdate(RootNode root) {
+		this.root = root;
 		this.listenerRegistry = initListenerRegistry();
 		this.comparator = new TypeCompare(root);
 	}
@@ -74,7 +82,7 @@ public final class TypeUpdate {
 			LOG.debug("Applying types, init for {} -> {}", ssaVar, candidateType);
 			updates.forEach(updateEntry -> LOG.debug("  {} -> {}", updateEntry.getType(), updateEntry.getArg()));
 		}
-		updates.forEach(TypeUpdateEntry::apply);
+		updateInfo.applyUpdates();
 		return CHANGED;
 	}
 
@@ -112,7 +120,7 @@ public final class TypeUpdate {
 
 	private TypeUpdateResult updateTypeForSsaVar(TypeUpdateInfo updateInfo, SSAVar ssaVar, ArgType candidateType) {
 		TypeInfo typeInfo = ssaVar.getTypeInfo();
-		if (!inBounds(typeInfo.getBounds(), candidateType)) {
+		if (!inBounds(updateInfo, typeInfo.getBounds(), candidateType)) {
 			if (Consts.DEBUG) {
 				LOG.debug("Reject type '{}' for {} by bounds: {}", candidateType, ssaVar, typeInfo.getBounds());
 			}
@@ -176,8 +184,17 @@ public final class TypeUpdate {
 	}
 
 	boolean inBounds(Set<ITypeBound> bounds, ArgType candidateType) {
+		return inBounds(null, bounds, candidateType);
+	}
+
+	private boolean inBounds(@Nullable TypeUpdateInfo updateInfo, Set<ITypeBound> bounds, ArgType candidateType) {
 		for (ITypeBound bound : bounds) {
-			ArgType boundType = bound.getType();
+			ArgType boundType;
+			if (updateInfo != null && bound instanceof ITypeBoundDynamic) {
+				boundType = ((ITypeBoundDynamic) bound).getType(updateInfo);
+			} else {
+				boundType = bound.getType();
+			}
 			if (boundType != null && !checkBound(candidateType, bound, boundType)) {
 				return false;
 			}
@@ -185,10 +202,10 @@ public final class TypeUpdate {
 		return true;
 	}
 
-	private boolean inBounds(InsnArg arg, ArgType candidateType) {
+	private boolean inBounds(TypeUpdateInfo updateInfo, InsnArg arg, ArgType candidateType) {
 		if (arg.isRegister()) {
 			TypeInfo typeInfo = ((RegisterArg) arg).getSVar().getTypeInfo();
-			return inBounds(typeInfo.getBounds(), candidateType);
+			return inBounds(updateInfo, typeInfo.getBounds(), candidateType);
 		}
 		return arg.getType().equals(candidateType);
 	}
@@ -258,7 +275,81 @@ public final class TypeUpdate {
 		registry.put(InsnType.NEG, this::suggestAllSameListener);
 		registry.put(InsnType.NOT, this::suggestAllSameListener);
 		registry.put(InsnType.CHECK_CAST, this::checkCastListener);
+		registry.put(InsnType.INVOKE, this::invokeListener);
 		return registry;
+	}
+
+	private TypeUpdateResult invokeListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
+		if (insn.getResult() == null) {
+			return SAME;
+		}
+		if (candidateType.isGeneric() || candidateType.isGenericType()) {
+			InvokeNode invokeNode = (InvokeNode) insn;
+			MethodInfo callMth = invokeNode.getCallMth();
+			if (isAssign(insn, arg)) {
+				// TODO: implement backward type propagation (from result to instance)
+				return SAME;
+			} else {
+				ArgType returnType = root.getMethodGenericReturnType(callMth);
+				if (returnType == null) {
+					return SAME;
+				}
+				ArgType resultGeneric = getResultGeneric(root, candidateType, returnType);
+				if (resultGeneric == null) {
+					return SAME;
+				}
+				return updateTypeChecked(updateInfo, insn.getResult(), resultGeneric);
+			}
+		}
+		return SAME;
+	}
+
+	@Nullable
+	public static ArgType getResultGeneric(RootNode root, ArgType instanceType, ArgType genericRetType) {
+		if (genericRetType == null) {
+			return null;
+		}
+		if (instanceType.isGeneric()) {
+			NClass clsDetails = root.getClsp().getClsDetails(instanceType);
+			if (clsDetails == null || clsDetails.getGenerics().isEmpty()) {
+				return null;
+			}
+			List<GenericInfo> generics = clsDetails.getGenerics();
+			ArgType[] actualTypes = instanceType.getGenericTypes();
+			if (generics.size() != actualTypes.length) {
+				return null;
+			}
+			Map<ArgType, ArgType> replaceMap = new LinkedHashMap<>();
+			for (int i = 0; i < actualTypes.length; i++) {
+				ArgType actualType = actualTypes[i];
+				ArgType genericType = generics.get(i).getGenericType();
+				replaceMap.put(genericType, actualType);
+			}
+			return replaceGenericTypes(genericRetType, replaceMap);
+		}
+		return null;
+	}
+
+	private static ArgType replaceGenericTypes(ArgType replaceType, Map<ArgType, ArgType> replaceMap) {
+		if (replaceType.isGenericType()) {
+			return replaceMap.get(replaceType);
+		}
+
+		ArgType[] genericTypes = replaceType.getGenericTypes();
+		if (replaceType.isGeneric() && genericTypes != null && genericTypes.length != 0) {
+			int size = genericTypes.length;
+			ArgType[] newTypes = new ArgType[size];
+			for (int i = 0; i < size; i++) {
+				ArgType genericType = genericTypes[i];
+				ArgType type = replaceGenericTypes(genericType, replaceMap);
+				if (type == null) {
+					type = genericType;
+				}
+				newTypes[i] = type;
+			}
+			return ArgType.generic(replaceType.getObject(), newTypes);
+		}
+		return null;
 	}
 
 	private TypeUpdateResult sameFirstArgListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
@@ -275,7 +366,7 @@ public final class TypeUpdate {
 			TypeCompareEnum compareTypes = comparator.compareTypes(candidateType, changeArg.getType());
 			boolean correctType = compareTypes == TypeCompareEnum.EQUAL
 					|| (assignChanged ? compareTypes.isWider() : compareTypes.isNarrow());
-			if (correctType && inBounds(changeArg, candidateType)) {
+			if (correctType && inBounds(updateInfo, changeArg, candidateType)) {
 				allowReject = true;
 			} else {
 				return REJECT;

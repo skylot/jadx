@@ -1,7 +1,6 @@
-ext.jadxClasspath = 'clsp-data/android-5.1.jar'
-
 dependencies {
-	runtime files(jadxClasspath)
+	runtime files('clsp-data/android-29-clst.jar')
+	runtime files('clsp-data/android-29-res.jar')
 
 	compile files('lib/dx-1.16.jar') // TODO: dx don't support java version > 9 (53)
 

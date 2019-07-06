@@ -5,8 +5,6 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import com.android.dx.rop.code.AccessFlags;
@@ -27,6 +25,7 @@ import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.GenericInfo;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.parser.FieldInitAttr;
@@ -143,7 +142,7 @@ public class ClassGen {
 		clsCode.attachDefinition(cls);
 		clsCode.add(cls.getClassInfo().getAliasShortName());
 
-		addGenericMap(clsCode, cls.getGenericMap(), true);
+		addGenericMap(clsCode, cls.getGenerics(), true);
 		clsCode.add(' ');
 
 		ArgType sup = cls.getSuperClass();
@@ -174,23 +173,23 @@ public class ClassGen {
 		}
 	}
 
-	public boolean addGenericMap(CodeWriter code, Map<ArgType, List<ArgType>> gmap, boolean classDeclaration) {
-		if (gmap == null || gmap.isEmpty()) {
+	public boolean addGenericMap(CodeWriter code, List<GenericInfo> generics, boolean classDeclaration) {
+		if (generics == null || generics.isEmpty()) {
 			return false;
 		}
 		code.add('<');
 		int i = 0;
-		for (Entry<ArgType, List<ArgType>> e : gmap.entrySet()) {
-			ArgType type = e.getKey();
-			List<ArgType> list = e.getValue();
+		for (GenericInfo genericInfo : generics) {
 			if (i != 0) {
 				code.add(", ");
 			}
+			ArgType type = genericInfo.getGenericType();
 			if (type.isGenericType()) {
 				code.add(type.getObject());
 			} else {
 				useClass(code, type);
 			}
+			List<ArgType> list = genericInfo.getExtendsList();
 			if (list != null && !list.isEmpty()) {
 				code.add(" extends ");
 				for (Iterator<ArgType> it = list.iterator(); it.hasNext();) {

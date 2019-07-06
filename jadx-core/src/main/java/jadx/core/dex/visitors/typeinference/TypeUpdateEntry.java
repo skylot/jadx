@@ -12,10 +12,6 @@ public final class TypeUpdateEntry {
 		this.type = type;
 	}
 
-	public void apply() {
-		arg.setType(type);
-	}
-
 	public InsnArg getArg() {
 		return arg;
 	}

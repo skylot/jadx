@@ -46,7 +46,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	private AccessInfo accessFlags;
 	private ArgType superClass;
 	private List<ArgType> interfaces;
-	private Map<ArgType, List<ArgType>> genericMap;
+	private List<GenericInfo> generics = Collections.emptyList();
 
 	private final List<MethodNode> methods;
 	private final List<FieldNode> fields;
@@ -180,7 +180,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		}
 		try {
 			// parse class generic map
-			genericMap = sp.consumeGenericMap();
+			generics = sp.consumeGenericMap();
 			// parse super class signature
 			superClass = sp.consumeType();
 			// parse interfaces signatures
@@ -283,8 +283,8 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return interfaces;
 	}
 
-	public Map<ArgType, List<ArgType>> getGenericMap() {
-		return genericMap;
+	public List<GenericInfo> getGenerics() {
+		return generics;
 	}
 
 	public List<MethodNode> getMethods() {

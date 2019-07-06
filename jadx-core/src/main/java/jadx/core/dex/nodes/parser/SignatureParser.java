@@ -1,10 +1,9 @@
 package jadx.core.dex.nodes.parser;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +12,7 @@ import jadx.core.Consts;
 import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.attributes.annotations.Annotation;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.nodes.GenericInfo;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class SignatureParser {
@@ -219,11 +219,11 @@ public class SignatureParser {
 	 * <p/>
 	 * Example: "<T:Ljava/lang/Exception;:Ljava/lang/Object;>"
 	 */
-	public Map<ArgType, List<ArgType>> consumeGenericMap() {
+	public List<GenericInfo> consumeGenericMap() {
 		if (!lookAhead('<')) {
-			return Collections.emptyMap();
+			return Collections.emptyList();
 		}
-		Map<ArgType, List<ArgType>> map = new LinkedHashMap<>(2);
+		List<GenericInfo> list = new ArrayList<>();
 		consume('<');
 		while (true) {
 			if (lookAhead('>') || next() == STOP_CHAR) {
@@ -231,15 +231,15 @@ public class SignatureParser {
 			}
 			String id = consumeUntil(':');
 			if (id == null) {
-				LOG.error("Can't parse generic map: {}", sign);
-				return Collections.emptyMap();
+				LOG.error("Failed to parse generic map: {}", sign);
+				return Collections.emptyList();
 			}
 			tryConsume(':');
 			List<ArgType> types = consumeExtendsTypesList();
-			map.put(ArgType.genericType(id), types);
+			list.add(new GenericInfo(ArgType.genericType(id), types));
 		}
 		consume('>');
-		return map;
+		return list;
 	}
 
 	/**

@@ -259,11 +259,11 @@ public class PrepareForCodeGen extends AbstractVisitor {
 
 		private void addMethodMsg(MethodNode mth) {
 			if (commentedCount > 0) {
-				String msg = "JADX WARN: Illegal instructions before constructor call commented (this can break semantics)";
+				String msg = "Illegal instructions before constructor call commented (this can break semantics)";
 				if (brokenCode || regionDepth > 1) {
 					mth.addWarn(msg);
 				} else {
-					mth.addComment(msg);
+					mth.addComment("JADX WARN: " + msg);
 				}
 			}
 		}

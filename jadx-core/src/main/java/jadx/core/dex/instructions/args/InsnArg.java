@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.android.dx.io.instructions.DecodedInstruction;
 
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
 
@@ -108,6 +109,18 @@ public abstract class InsnArg extends Typed {
 		int i = getArgIndex(parent, this);
 		if (i == -1) {
 			return null;
+		}
+		if (insn.getType() == InsnType.MOVE && this.isRegister()) {
+			// preserve variable name for move insn (needed in `for-each` loop for iteration variable)
+			String name = ((RegisterArg) this).getName();
+			if (name != null) {
+				InsnArg arg = insn.getArg(0);
+				if (arg.isRegister()) {
+					((RegisterArg) arg).setNameIfUnknown(name);
+				} else if (arg.isInsnWrap()) {
+					((InsnWrapArg) arg).getWrapInsn().getResult().setNameIfUnknown(name);
+				}
+			}
 		}
 		insn.add(AFlag.WRAPPED);
 		InsnArg arg = wrapArg(insn);

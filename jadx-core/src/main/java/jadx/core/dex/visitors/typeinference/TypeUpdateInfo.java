@@ -18,6 +18,13 @@ public class TypeUpdateInfo {
 		updates.add(new TypeUpdateEntry(arg, changeType));
 	}
 
+	public void applyUpdates() {
+		for (TypeUpdateEntry updateEntry : updates) {
+			InsnArg arg = updateEntry.getArg();
+			arg.setType(updateEntry.getType());
+		}
+	}
+
 	public boolean isProcessed(InsnArg arg) {
 		if (updates.isEmpty()) {
 			return false;
@@ -28,6 +35,15 @@ public class TypeUpdateInfo {
 			}
 		}
 		return false;
+	}
+
+	public ArgType getType(InsnArg arg) {
+		for (TypeUpdateEntry update : updates) {
+			if (update.getArg() == arg) {
+				return update.getType();
+			}
+		}
+		return arg.getType();
 	}
 
 	public void rollbackUpdate(InsnArg arg) {

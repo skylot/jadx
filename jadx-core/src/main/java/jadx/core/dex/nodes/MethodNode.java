@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
@@ -67,7 +66,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 	private RegisterArg thisArg;
 	private List<RegisterArg> argsList;
 	private List<SSAVar> sVars;
-	private Map<ArgType, List<ArgType>> genericMap;
+	private List<GenericInfo> generics;
 
 	private List<BlockNode> blocks;
 	private BlockNode enterBlock;
@@ -95,7 +94,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		// don't unload retType and argsList, will be used in jadx-gui after class unload
 		thisArg = null;
 		sVars = Collections.emptyList();
-		genericMap = null;
+		generics = Collections.emptyList();
 		instructions = null;
 		blocks = null;
 		enterBlock = null;
@@ -174,7 +173,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 			return false;
 		}
 		try {
-			genericMap = sp.consumeGenericMap();
+			generics = sp.consumeGenericMap();
 			List<ArgType> argsTypes = sp.consumeMethodArgs();
 			retType = sp.consumeType();
 
@@ -261,8 +260,8 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return retType;
 	}
 
-	public Map<ArgType, List<ArgType>> getGenericMap() {
-		return genericMap;
+	public List<GenericInfo> getGenerics() {
+		return generics;
 	}
 
 	private static void initTryCatches(MethodNode mth, Code mthCode, InsnNode[] insnByOffset) {

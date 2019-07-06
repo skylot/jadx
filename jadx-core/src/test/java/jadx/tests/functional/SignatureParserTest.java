@@ -1,12 +1,12 @@
 package jadx.tests.functional;
 
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.nodes.GenericInfo;
 import jadx.core.dex.nodes.parser.SignatureParser;
 
 import static jadx.core.dex.instructions.args.ArgType.INT;
@@ -20,7 +20,6 @@ import static jadx.core.dex.instructions.args.ArgType.wildcard;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.anEmptyMap;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
@@ -92,14 +91,14 @@ class SignatureParserTest {
 
 	@SuppressWarnings("unchecked")
 	private static void checkGenerics(String g, Object... objs) {
-		Map<ArgType, List<ArgType>> map = new SignatureParser(g).consumeGenericMap();
-		Map<ArgType, List<ArgType>> expectedMap = new LinkedHashMap<>();
+		List<GenericInfo> genericsList = new SignatureParser(g).consumeGenericMap();
+		List<GenericInfo> expectedList = new ArrayList<>();
 		for (int i = 0; i < objs.length; i += 2) {
 			ArgType generic = genericType((String) objs[i]);
 			List<ArgType> list = (List<ArgType>) objs[i + 1];
-			expectedMap.put(generic, list);
+			expectedList.add(new GenericInfo(generic, list));
 		}
-		assertThat(map, is(expectedMap));
+		assertThat(genericsList, is(expectedList));
 	}
 
 	@Test
@@ -122,7 +121,7 @@ class SignatureParserTest {
 
 	@Test
 	public void testBadGenericMap() {
-		Map<ArgType, List<ArgType>> map = new SignatureParser("<A:Ljava/lang/Object;B").consumeGenericMap();
-		assertThat(map, anEmptyMap());
+		List<GenericInfo> list = new SignatureParser("<A:Ljava/lang/Object;B").consumeGenericMap();
+		assertThat(list, hasSize(0));
 	}
 }

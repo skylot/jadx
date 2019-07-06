@@ -327,7 +327,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 			LOG.warn("Generic type differs: '{}' and '{}' in {}", gType, varType, mth);
 			return false;
 		}
-		if (!iterableArg.isRegister()) {
+		if (!iterableArg.isRegister() || !iterableType.isObject()) {
 			return true;
 		}
 		// TODO: add checks

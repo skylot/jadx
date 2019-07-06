@@ -16,8 +16,11 @@ import jadx.core.clsp.ClspGraph;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.ClassInfo;
+import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.InvokeNode;
+import jadx.core.dex.instructions.InvokeType;
 import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.CodeVar;
@@ -51,11 +54,13 @@ import jadx.core.utils.Utils;
 public final class TypeInferenceVisitor extends AbstractVisitor {
 	private static final Logger LOG = LoggerFactory.getLogger(TypeInferenceVisitor.class);
 
+	private RootNode root;
 	private TypeUpdate typeUpdate;
 
 	@Override
 	public void init(RootNode root) {
-		typeUpdate = root.getTypeUpdate();
+		this.root = root;
+		this.typeUpdate = root.getTypeUpdate();
 	}
 
 	@Override
@@ -239,11 +244,33 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 				}
 				break;
 
+			case INVOKE:
+				addBound(typeInfo, makeAssignInvokeBound((InvokeNode) insn));
+				break;
+
 			default:
 				ArgType type = insn.getResult().getInitType();
 				addBound(typeInfo, new TypeBoundConst(BoundEnum.ASSIGN, type));
 				break;
 		}
+	}
+
+	private ITypeBound makeAssignInvokeBound(InvokeNode invokeNode) {
+		MethodInfo callMth = invokeNode.getCallMth();
+		ArgType boundType = callMth.getReturnType();
+		ArgType genericReturnType = root.getMethodGenericReturnType(callMth);
+		if (genericReturnType != null) {
+			if (genericReturnType.containsGenericType()) {
+				InvokeType invokeType = invokeNode.getInvokeType();
+				if (invokeNode.getArgsCount() != 0
+						&& invokeType != InvokeType.STATIC && invokeType != InvokeType.SUPER) {
+					return new TypeBoundInvokeAssign(root, invokeNode, genericReturnType);
+				}
+			} else {
+				boundType = genericReturnType;
+			}
+		}
+		return new TypeBoundConst(BoundEnum.ASSIGN, boundType);
 	}
 
 	@Nullable

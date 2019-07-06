@@ -49,7 +49,7 @@ public class ConvertToClsSet {
 		root.load(inputFiles);
 
 		ClsSet set = new ClsSet();
-		set.load(root);
+		set.loadFrom(root);
 		set.save(output);
 		LOG.info("Output: {}", output);
 		LOG.info("done");

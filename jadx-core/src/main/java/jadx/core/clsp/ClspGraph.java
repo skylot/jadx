@@ -10,15 +10,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 /**
- * Classes hierarchy graph
+ * Classes hierarchy graph with methods additional info
  */
 public class ClspGraph {
 	private static final Logger LOG = LoggerFactory.getLogger(ClspGraph.class);
@@ -30,7 +33,7 @@ public class ClspGraph {
 
 	public void load() throws IOException, DecodeException {
 		ClsSet set = new ClsSet();
-		set.load();
+		set.loadFromClstFile();
 		addClasspath(set);
 	}
 
@@ -60,6 +63,19 @@ public class ClspGraph {
 
 	public boolean isClsKnown(String fullName) {
 		return nameMap.containsKey(fullName);
+	}
+
+	public NClass getClsDetails(ArgType type) {
+		return nameMap.get(type.getObject());
+	}
+
+	@Nullable
+	public NMethod getMethodDetails(MethodInfo methodInfo) {
+		NClass cls = nameMap.get(methodInfo.getDeclClass().getRawName());
+		if (cls == null) {
+			return null;
+		}
+		return cls.getMethodsMap().get(methodInfo.getShortId());
 	}
 
 	private NClass addClass(ClassNode cls) {

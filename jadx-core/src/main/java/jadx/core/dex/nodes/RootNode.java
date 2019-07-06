@@ -13,16 +13,19 @@ import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.api.ResourcesLoader;
 import jadx.core.clsp.ClspGraph;
+import jadx.core.clsp.NMethod;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.ConstStorage;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.InfoStorage;
 import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.visitors.typeinference.TypeUpdate;
 import jadx.core.utils.CacheStorage;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.android.AndroidResourcesUtils;
+import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.DexFile;
 import jadx.core.utils.files.InputFile;
@@ -189,6 +192,31 @@ public class RootNode {
 			return null;
 		}
 		return cls.dex().deepResolveField(cls, field);
+	}
+
+	@Nullable
+	public ArgType getMethodGenericReturnType(MethodInfo callMth) {
+		MethodNode methodNode = deepResolveMethod(callMth);
+		if (methodNode != null) {
+			ArgType returnType = methodNode.getReturnType();
+			if (returnType == null) {
+				try {
+					methodNode.load();
+					returnType = methodNode.getReturnType();
+				} catch (DecodeException e) {
+					LOG.error("Method load error", e);
+				}
+			}
+			if (returnType != null && (returnType.isGeneric() || returnType.isGenericType())) {
+				return returnType;
+			}
+			return null;
+		}
+		NMethod methodDetails = clsp.getMethodDetails(callMth);
+		if (methodDetails != null) {
+			return methodDetails.getReturnType();
+		}
+		return null;
 	}
 
 	public List<DexNode> getDexNodes() {

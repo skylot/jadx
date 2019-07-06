@@ -26,6 +26,8 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.regions.DepthRegionTraversal;
+import jadx.core.dex.visitors.typeinference.TypeCompare;
+import jadx.core.dex.visitors.typeinference.TypeCompareEnum;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
@@ -64,19 +66,25 @@ public class ProcessVariables extends AbstractVisitor {
 	private void checkCodeVars(MethodNode mth, List<CodeVar> codeVars) {
 		int unknownTypesCount = 0;
 		for (CodeVar codeVar : codeVars) {
-			codeVar.getSsaVars().stream()
-					.filter(ssaVar -> ssaVar.contains(AFlag.IMMUTABLE_TYPE))
-					.forEach(ssaVar -> {
-						ArgType ssaType = ssaVar.getAssign().getInitType();
-						if (ssaType.isTypeKnown() && !ssaType.equals(codeVar.getType())) {
-							mth.addWarn("Incorrect type for immutable var: ssa=" + ssaType
-									+ ", code=" + codeVar.getType()
-									+ ", for " + ssaVar.getDetailedVarInfo(mth));
-						}
-					});
-			if (codeVar.getType() == null) {
+			ArgType codeVarType = codeVar.getType();
+			if (codeVarType == null) {
 				codeVar.setType(ArgType.UNKNOWN);
 				unknownTypesCount++;
+			} else {
+				codeVar.getSsaVars().stream()
+						.filter(ssaVar -> ssaVar.contains(AFlag.IMMUTABLE_TYPE))
+						.forEach(ssaVar -> {
+							ArgType ssaType = ssaVar.getAssign().getInitType();
+							if (ssaType.isTypeKnown()) {
+								TypeCompare comparator = mth.root().getTypeUpdate().getComparator();
+								TypeCompareEnum result = comparator.compareTypes(ssaType, codeVarType);
+								if (result == TypeCompareEnum.CONFLICT || result.isNarrow()) {
+									mth.addWarn("Incorrect type for immutable var: ssa=" + ssaType
+											+ ", code=" + codeVarType
+											+ ", for " + ssaVar.getDetailedVarInfo(mth));
+								}
+							}
+						});
 			}
 		}
 		if (unknownTypesCount != 0) {

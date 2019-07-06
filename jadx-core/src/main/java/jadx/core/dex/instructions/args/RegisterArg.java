@@ -97,6 +97,12 @@ public class RegisterArg extends InsnArg implements Named {
 		}
 	}
 
+	public void setNameIfUnknown(String name) {
+		if (getName() == null) {
+			setName(name);
+		}
+	}
+
 	public boolean isNameEquals(InsnArg arg) {
 		String n = getName();
 		if (n == null || !(arg instanceof Named)) {

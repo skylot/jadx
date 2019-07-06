@@ -353,7 +353,7 @@ public abstract class IntegrationTest extends TestUtils {
 		return dynamicCompiler.invoke(cls, methodName, types, args);
 	}
 
-	public File getJarForClass(Class<?> cls) throws IOException {
+	private File getJarForClass(Class<?> cls) throws IOException {
 		List<File> files = compileClass(cls);
 		assertThat("File list is empty", files, not(empty()));
 

@@ -622,6 +622,24 @@ public abstract class ArgType {
 		return 1;
 	}
 
+	public boolean containsGenericType() {
+		if (isGenericType()) {
+			return true;
+		}
+		if (isGeneric()) {
+			ArgType[] genericTypes = getGenericTypes();
+			if (genericTypes != null) {
+				for (ArgType genericType : genericTypes) {
+					if (genericType.containsGenericType()) {
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+		return false;
+	}
+
 	public static ArgType tryToResolveClassAlias(DexNode dex, ArgType type) {
 		if (!type.isObject() || type.isGenericType()) {
 			return type;

@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,9 +23,11 @@ import java.util.zip.ZipOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.GenericInfo;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.DecodeException;
@@ -55,7 +58,16 @@ public class ClsSet {
 
 	private NClass[] classes;
 
-	public void load(RootNode root) {
+	public void loadFromClstFile() throws IOException, DecodeException {
+		try (InputStream input = getClass().getResourceAsStream(CLST_FILENAME)) {
+			if (input == null) {
+				throw new JadxRuntimeException("Can't load classpath file: " + CLST_FILENAME);
+			}
+			load(input);
+		}
+	}
+
+	public void loadFrom(RootNode root) {
 		List<ClassNode> list = root.getClasses(true);
 		Map<String, NClass> names = new HashMap<>(list.size());
 		int k = 0;
@@ -68,7 +80,8 @@ public class ClsSet {
 					throw new JadxRuntimeException("Duplicate class: " + clsRawName);
 				}
 				k++;
-				nClass.setMethods(loadMethods(cls, nClass));
+				nClass.setGenerics(cls.getGenerics());
+				nClass.setMethods(getMethodsDetails(cls));
 			} else {
 				names.put(clsRawName, null);
 			}
@@ -88,45 +101,43 @@ public class ClsSet {
 		}
 	}
 
-	private NMethod[] loadMethods(ClassNode cls, NClass nClass) {
+	private List<NMethod> getMethodsDetails(ClassNode cls) {
 		List<NMethod> methods = new ArrayList<>();
 		for (MethodNode m : cls.getMethods()) {
-			if (!m.getAccessFlags().isPublic()
-					&& !m.getAccessFlags().isProtected()) {
-				continue;
-			}
-
-			List<ArgType> args = new ArrayList<>();
-
-			boolean genericArg = false;
-			for (RegisterArg r : m.getArguments(false)) {
-				ArgType argType = r.getType();
-				if (argType.isGeneric() || argType.isGenericType()) {
-					args.add(argType);
-					genericArg = true;
-				} else {
-					args.add(null);
-				}
-			}
-
-			ArgType retType = m.getReturnType();
-			if (!retType.isGeneric() && !retType.isGenericType()) {
-				retType = null;
-			}
-
-			boolean varArgs = m.getAccessFlags().isVarArgs();
-
-			if (genericArg || retType != null || varArgs) {
-				methods.add(new NMethod(
-						m.getMethodInfo().getShortId(),
-						args.isEmpty()
-								? new ArgType[0]
-								: args.toArray(new ArgType[args.size()]),
-						retType,
-						varArgs));
+			AccessInfo accessFlags = m.getAccessFlags();
+			if (accessFlags.isPublic() || accessFlags.isProtected()) {
+				processMethodDetails(methods, m, accessFlags);
 			}
 		}
-		return methods.toArray(new NMethod[methods.size()]);
+		return methods;
+	}
+
+	private void processMethodDetails(List<NMethod> methods, MethodNode mth, AccessInfo accessFlags) {
+		List<RegisterArg> args = mth.getArguments(false);
+		boolean genericArg = false;
+		ArgType[] genericArgs;
+		if (args.isEmpty()) {
+			genericArgs = null;
+		} else {
+			int argsCount = args.size();
+			genericArgs = new ArgType[argsCount];
+			for (int i = 0; i < argsCount; i++) {
+				RegisterArg arg = args.get(i);
+				ArgType argType = arg.getType();
+				if (argType.isGeneric() || argType.isGenericType()) {
+					genericArgs[i] = argType;
+					genericArg = true;
+				}
+			}
+		}
+		ArgType retType = mth.getReturnType();
+		if (!retType.isGeneric() && !retType.isGenericType()) {
+			retType = null;
+		}
+		boolean varArgs = accessFlags.isVarArgs();
+		if (genericArg || retType != null || varArgs) {
+			methods.add(new NMethod(mth.getMethodInfo().getShortId(), genericArgs, retType, varArgs));
+		}
 	}
 
 	public static NClass[] makeParentsArray(ClassNode cls, Map<String, NClass> names) {
@@ -207,42 +218,58 @@ public class ClsSet {
 			for (NClass parent : parents) {
 				out.writeInt(parent.getId());
 			}
-			NMethod[] methods = cls.getMethods();
-			out.writeByte(methods.length);
+			writeGenerics(out, cls, names);
+			List<NMethod> methods = cls.getMethodsList();
+			out.writeByte(methods.size());
 			for (NMethod method : methods) {
 				writeMethod(out, method, names);
 			}
 		}
 	}
 
+	private static void writeGenerics(DataOutputStream out, NClass cls, Map<String, NClass> names) throws IOException {
+		List<GenericInfo> genericsList = cls.getGenerics();
+		out.writeByte(genericsList.size());
+		for (GenericInfo genericInfo : genericsList) {
+			writeArgType(out, genericInfo.getGenericType(), names);
+			List<ArgType> extendsList = genericInfo.getExtendsList();
+			out.writeByte(extendsList.size());
+			for (ArgType type : extendsList) {
+				writeArgType(out, type, names);
+			}
+
+		}
+	}
+
 	private static void writeMethod(DataOutputStream out, NMethod method, Map<String, NClass> names) throws IOException {
-		int argCount = 0;
-		ArgType[] argTypes = method.getArgType();
-		for (ArgType arg : argTypes) {
-			if (arg != null) {
-				argCount++;
-			}
-		}
-
 		writeLongString(out, method.getShortId());
-		out.writeByte(argCount);
 
-		// last argument first
-		for (int i = argTypes.length - 1; i >= 0; i--) {
-			ArgType argType = argTypes[i];
-			if (argType != null) {
-				out.writeByte(i);
-				writeArgType(out, argType, names);
+		ArgType[] argTypes = method.getGenericArgs();
+		if (argTypes == null) {
+			out.writeByte(0);
+		} else {
+			int argCount = 0;
+			for (ArgType arg : argTypes) {
+				if (arg != null) {
+					argCount++;
+				}
+			}
+			out.writeByte(argCount);
+			// last argument first
+			for (int i = argTypes.length - 1; i >= 0; i--) {
+				ArgType argType = argTypes[i];
+				if (argType != null) {
+					out.writeByte(i);
+					writeArgType(out, argType, names);
+				}
 			}
 		}
-
-		if (method.getReturnType() != null) {
+		if (method.getReturnType() == null) {
+			out.writeBoolean(false);
+		} else {
 			out.writeBoolean(true);
 			writeArgType(out, method.getReturnType(), names);
-		} else {
-			out.writeBoolean(false);
 		}
-
 		out.writeBoolean(method.isVarArgs());
 	}
 
@@ -283,16 +310,7 @@ public class ClsSet {
 		}
 	}
 
-	public void load() throws IOException, DecodeException {
-		try (InputStream input = getClass().getResourceAsStream(CLST_FILENAME)) {
-			if (input == null) {
-				throw new JadxRuntimeException("Can't load classpath file: " + CLST_FILENAME);
-			}
-			load(input);
-		}
-	}
-
-	public void load(File input) throws IOException, DecodeException {
+	private void load(File input) throws IOException, DecodeException {
 		String name = input.getName();
 		try (InputStream inputStream = new FileInputStream(input)) {
 			if (name.endsWith(CLST_EXTENSION)) {
@@ -313,7 +331,7 @@ public class ClsSet {
 		}
 	}
 
-	public void load(InputStream input) throws IOException, DecodeException {
+	private void load(InputStream input) throws IOException, DecodeException {
 		try (DataInputStream in = new DataInputStream(input)) {
 			byte[] header = new byte[JADX_CLS_SET_HEADER.length()];
 			int readHeaderLength = in.read(header);
@@ -335,16 +353,44 @@ public class ClsSet {
 				for (int j = 0; j < pCount; j++) {
 					parents[j] = classes[in.readInt()];
 				}
-				classes[i].setParents(parents);
-
-				int mCount = in.readByte();
-				NMethod[] methods = new NMethod[mCount];
-				for (int j = 0; j < mCount; j++) {
-					methods[j] = readMethod(in);
-				}
-				classes[i].setMethods(methods);
+				NClass nClass = classes[i];
+				nClass.setParents(parents);
+				nClass.setGenerics(readGenerics(in));
+				nClass.setMethods(readClsMethods(in));
 			}
 		}
+	}
+
+	private List<GenericInfo> readGenerics(DataInputStream in) throws IOException {
+		int count = in.readByte();
+		if (count == 0) {
+			return Collections.emptyList();
+		}
+		List<GenericInfo> list = new ArrayList<>(count);
+		for (int i = 0; i < count; i++) {
+			ArgType genericType = readArgType(in);
+			List<ArgType> extendsList;
+			byte extCount = in.readByte();
+			if (extCount == 0) {
+				extendsList = Collections.emptyList();
+			} else {
+				extendsList = new ArrayList<>(extCount);
+				for (int j = 0; j < extCount; j++) {
+					extendsList.add(readArgType(in));
+				}
+			}
+			list.add(new GenericInfo(genericType, extendsList));
+		}
+		return list;
+	}
+
+	private List<NMethod> readClsMethods(DataInputStream in) throws IOException {
+		int mCount = in.readByte();
+		List<NMethod> methods = new ArrayList<>(mCount);
+		for (int j = 0; j < mCount; j++) {
+			methods.add(readMethod(in));
+		}
+		return methods;
 	}
 
 	private NMethod readMethod(DataInputStream in) throws IOException {
@@ -372,6 +418,7 @@ public class ClsSet {
 				return bounds == 0
 						? ArgType.wildcard()
 						: ArgType.wildcard(readArgType(in), bounds);
+
 			case GENERIC:
 				String obj = classes[in.readInt()].getName();
 				int typeLength = in.readByte();
@@ -385,34 +432,20 @@ public class ClsSet {
 					}
 				}
 				return ArgType.generic(obj, generics);
+
 			case GENERIC_TYPE:
 				return ArgType.genericType(readString(in));
+
 			case OBJECT:
 				return ArgType.object(classes[in.readInt()].getName());
+
 			case ARRAY:
 				return ArgType.array(readArgType(in));
+
 			case PRIMITIVE:
-				int shortName = in.readByte();
-				switch (shortName) {
-					case 'Z':
-						return ArgType.BOOLEAN;
-					case 'C':
-						return ArgType.CHAR;
-					case 'B':
-						return ArgType.BYTE;
-					case 'S':
-						return ArgType.SHORT;
-					case 'I':
-						return ArgType.INT;
-					case 'F':
-						return ArgType.FLOAT;
-					case 'J':
-						return ArgType.LONG;
-					case 'D':
-						return ArgType.DOUBLE;
-					default:
-						return ArgType.VOID;
-				}
+				char shortName = (char) in.readByte();
+				return ArgType.parse(shortName);
+
 			default:
 				throw new JadxRuntimeException("Unsupported Arg Type: " + ordinal);
 		}
