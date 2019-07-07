@@ -93,14 +93,21 @@ final class ArgsInfo {
 				movedSet.set(arg.getRegNum());
 			}
 		}
+		boolean canReorder = startInfo.insn.canReorder();
 		for (int i = start; i < to; i++) {
 			ArgsInfo argsInfo = argsList.get(i);
 			if (argsInfo.getInlinedInsn() == this) {
 				continue;
 			}
 			InsnNode curInsn = argsInfo.insn;
-			if (!curInsn.canReorder() || usedArgAssign(curInsn, movedSet)) {
-				return false;
+			if (canReorder) {
+				if (usedArgAssign(curInsn, movedSet)) {
+					return false;
+				}
+			} else {
+				if (!curInsn.canReorder() || usedArgAssign(curInsn, movedSet)) {
+					return false;
+				}
 			}
 		}
 		return true;
