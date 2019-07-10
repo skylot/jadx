@@ -1,5 +1,7 @@
 package jadx.tests.integration.others;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.nodes.ClassNode;
@@ -15,12 +17,16 @@ public class TestCastOfNull extends IntegrationTest {
 		public void test() {
 			m((long[]) null);
 			m((String) null);
+			m((List<String>) null);
 		}
 
 		public void m(long[] a) {
 		}
 
 		public void m(String s) {
+		}
+
+		public void m(List<String> list) {
 		}
 	}
 
@@ -31,5 +37,6 @@ public class TestCastOfNull extends IntegrationTest {
 
 		assertThat(code, containsOne("m((long[]) null);"));
 		assertThat(code, containsOne("m((String) null);"));
+		assertThat(code, containsOne("m((List<String>) null);"));
 	}
 }

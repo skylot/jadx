@@ -807,11 +807,22 @@ public class InsnGen {
 				return false;
 			}
 		}
+		if (isCastNeeded(arg, origType)) {
+			code.add('(');
+			useType(code, origType);
+			code.add(") ");
+			return true;
+		}
+		return false;
+	}
+
+	private boolean isCastNeeded(InsnArg arg, ArgType origType) {
 		ArgType argType = arg.getType();
-		if (argType.equals(origType)
-				// null cast to object
-				&& (!arg.isLiteral() || ((LiteralArg) arg).getLiteral() != 0
-						|| (!argType.isArray() && !argType.isObject()))) {
+		if (arg.isLiteral() && ((LiteralArg) arg).getLiteral() == 0
+				&& (argType.isObject() || argType.isArray())) {
+			return true;
+		}
+		if (argType.equals(origType)) {
 			return false;
 		}
 		if (origType.isGeneric()) {
@@ -828,9 +839,6 @@ public class InsnGen {
 				((InsnWrapArg) arg).getWrapInsn().add(AFlag.EXPLICIT_GENERICS);
 			}
 		}
-		code.add('(');
-		useType(code, origType);
-		code.add(") ");
 		return true;
 	}
 
