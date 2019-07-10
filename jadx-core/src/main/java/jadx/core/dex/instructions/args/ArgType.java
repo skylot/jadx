@@ -156,7 +156,7 @@ public abstract class ArgType {
 	}
 
 	private static class ObjectType extends KnownType {
-		private final String objName;
+		protected final String objName;
 
 		public ObjectType(String obj) {
 			this.objName = Utils.cleanObjectName(obj);
@@ -269,15 +269,18 @@ public abstract class ArgType {
 			super(obj);
 			this.outerType = null;
 			this.generics = generics;
-			this.hash = obj.hashCode() + 31 * Arrays.hashCode(generics);
+			this.hash = calcHash();
 		}
 
 		public GenericObject(GenericObject outerType, String innerName, ArgType[] generics) {
 			super(outerType.getObject() + '$' + innerName);
 			this.outerType = outerType;
 			this.generics = generics;
-			this.hash = outerType.hashCode() + 31 * innerName.hashCode()
-					+ 31 * 31 * Arrays.hashCode(generics);
+			this.hash = calcHash();
+		}
+
+		private int calcHash() {
+			return objName.hashCode() + 31 * Arrays.hashCode(generics);
 		}
 
 		@Override
