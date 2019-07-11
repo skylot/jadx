@@ -165,6 +165,7 @@ public class BlockUtils {
 		return insns.get(insns.size() - 1);
 	}
 
+	@Nullable
 	public static BlockNode getBlockByInsn(MethodNode mth, InsnNode insn) {
 		if (insn instanceof PhiInsn) {
 			return searchBlockWithPhi(mth, (PhiInsn) insn);

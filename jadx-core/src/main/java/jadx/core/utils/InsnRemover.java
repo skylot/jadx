@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -22,6 +24,7 @@ public class InsnRemover {
 
 	private final MethodNode mth;
 	private final List<InsnNode> toRemove;
+	@Nullable
 	private List<InsnNode> instrList;
 
 	public InsnRemover(MethodNode mth) {
@@ -53,7 +56,13 @@ public class InsnRemover {
 		if (toRemove.isEmpty()) {
 			return;
 		}
-		removeAll(instrList, toRemove);
+		if (instrList == null) {
+			for (InsnNode remInsn : toRemove) {
+				remove(mth, remInsn);
+			}
+		} else {
+			removeAll(instrList, toRemove);
+		}
 		toRemove.clear();
 	}
 

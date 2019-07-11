@@ -31,14 +31,13 @@ public class InsnNode extends LineAttrNode {
 	protected int offset;
 
 	public InsnNode(InsnType type, int argsCount) {
-		this.insnType = type;
-		this.offset = -1;
+		this(type, argsCount == 0 ? Collections.emptyList() : new ArrayList<>(argsCount));
+	}
 
-		if (argsCount == 0) {
-			this.arguments = Collections.emptyList();
-		} else {
-			this.arguments = new ArrayList<>(argsCount);
-		}
+	public InsnNode(InsnType type, List<InsnArg> args) {
+		this.insnType = type;
+		this.arguments = args;
+		this.offset = -1;
 	}
 
 	public static InsnNode wrapArg(InsnArg arg) {
