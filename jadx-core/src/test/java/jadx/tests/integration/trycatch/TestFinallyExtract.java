@@ -36,7 +36,7 @@ public class TestFinallyExtract extends IntegrationTest {
 
 		public void check() {
 			test();
-			assertEquals(result, 1);
+			assertEquals(1, result);
 		}
 	}
 

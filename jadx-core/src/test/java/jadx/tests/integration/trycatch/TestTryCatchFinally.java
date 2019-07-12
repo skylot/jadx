@@ -14,16 +14,17 @@ public class TestTryCatchFinally extends IntegrationTest {
 	public static class TestCls {
 		public boolean f;
 
+		@SuppressWarnings("ConstantConditions")
 		private boolean test(Object obj) {
 			this.f = false;
 			try {
 				exc(obj);
 			} catch (Exception e) {
-				e.getMessage();
+				e.printStackTrace();
 			} finally {
-				f = true;
+				this.f = true;
 			}
-			return f;
+			return this.f;
 		}
 
 		private static boolean exc(Object obj) throws Exception {
@@ -46,9 +47,9 @@ public class TestTryCatchFinally extends IntegrationTest {
 
 		assertThat(code, containsOne("exc(obj);"));
 		assertThat(code, containsOne("} catch (Exception e) {"));
-		assertThat(code, containsOne("e.getMessage();"));
+		assertThat(code, containsOne("e.printStackTrace();"));
 		assertThat(code, containsOne("} finally {"));
-		assertThat(code, containsOne("f = true;"));
+		assertThat(code, containsOne("this.f = true;"));
 		assertThat(code, containsOne("return this.f;"));
 	}
 }

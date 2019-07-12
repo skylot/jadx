@@ -2,6 +2,7 @@ package jadx.core.dex.visitors;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -98,16 +99,16 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 	 */
 	private static boolean extractFinally(MethodNode mth, ExceptionHandler allHandler) {
 		List<BlockNode> handlerBlocks = new ArrayList<>();
-		for (BlockNode block : allHandler.getBlocks()) {
+		BlockNode handlerBlock = allHandler.getHandlerBlock();
+
+		for (BlockNode block : BlockUtils.collectBlocksDominatedByWithExcHandlers(handlerBlock, handlerBlock)) {
 			InsnNode lastInsn = BlockUtils.getLastInsn(block);
-			if (lastInsn != null) {
-				InsnType insnType = lastInsn.getType();
-				if (insnType != InsnType.MOVE_EXCEPTION && insnType != InsnType.THROW) {
-					handlerBlocks.add(block);
-				}
+			if (lastInsn != null && lastInsn.getType() == InsnType.THROW) {
+				break;
 			}
+			handlerBlocks.add(block);
 		}
-		if (handlerBlocks.isEmpty()) {
+		if (handlerBlocks.isEmpty() || BlockUtils.isAllBlocksEmpty(handlerBlocks)) {
 			// remove empty catch
 			allHandler.getTryBlock().removeHandler(mth, allHandler);
 			return true;
@@ -126,6 +127,8 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 				for (BlockNode checkBlock : otherHandler.getBlocks()) {
 					if (searchDuplicateInsns(checkBlock, extractInfo)) {
 						break;
+					} else {
+						extractInfo.getFinallyInsnsSlice().resetIncomplete();
 					}
 				}
 			}
@@ -149,11 +152,16 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 		boolean found = false;
 		for (BlockNode splitter : splitters) {
 			BlockNode start = splitter.getCleanSuccessors().get(0);
-			List<BlockNode> list = BlockUtils.collectBlocksDominatedBy(splitter, start);
-			for (BlockNode block : list) {
+			List<BlockNode> list = new ArrayList<>();
+			list.add(start);
+			list.addAll(BlockUtils.collectBlocksDominatedByWithExcHandlers(start, start));
+			Set<BlockNode> checkSet = new LinkedHashSet<>(list);
+			for (BlockNode block : checkSet) {
 				if (searchDuplicateInsns(block, extractInfo)) {
 					found = true;
 					break;
+				} else {
+					extractInfo.getFinallyInsnsSlice().resetIncomplete();
 				}
 			}
 		}
@@ -276,12 +284,15 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 				&& !checkBlocksTree(dupBlock, startBlock, dupSlice, extractInfo)) {
 			return null;
 		}
-		return checkSlice(dupSlice);
+		return checkTempSlice(dupSlice);
 	}
 
 	@Nullable
-	private static InsnsSlice checkSlice(InsnsSlice slice) {
+	private static InsnsSlice checkTempSlice(InsnsSlice slice) {
 		List<InsnNode> insnsList = slice.getInsnsList();
+		if (insnsList.isEmpty()) {
+			return null;
+		}
 		// ignore slice with only one 'if' insn
 		if (insnsList.size() == 1) {
 			InsnNode insnNode = insnsList.get(0);
@@ -384,8 +395,8 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 			InsnsSlice dupSlice, FinallyExtractInfo extractInfo) {
 		InsnsSlice finallySlice = extractInfo.getFinallyInsnsSlice();
 
-		List<BlockNode> finallyCS = finallyBlock.getCleanSuccessors();
-		List<BlockNode> dupCS = dupBlock.getCleanSuccessors();
+		List<BlockNode> finallyCS = finallyBlock.getSuccessors();
+		List<BlockNode> dupCS = dupBlock.getSuccessors();
 		if (finallyCS.size() == dupCS.size()) {
 			for (int i = 0; i < finallyCS.size(); i++) {
 				BlockNode finSBlock = finallyCS.get(i);
@@ -410,17 +421,21 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 	private static boolean compareBlocks(BlockNode dupBlock, BlockNode finallyBlock, InsnsSlice dupSlice, FinallyExtractInfo extractInfo) {
 		List<InsnNode> dupInsns = dupBlock.getInstructions();
 		List<InsnNode> finallyInsns = finallyBlock.getInstructions();
-		if (dupInsns.size() < finallyInsns.size()) {
+		int dupInsnCount = dupInsns.size();
+		int finallyInsnCount = finallyInsns.size();
+		if (finallyInsnCount == 0) {
+			return dupInsnCount == 0;
+		}
+		if (dupInsnCount < finallyInsnCount) {
 			return false;
 		}
-		int size = finallyInsns.size();
-		for (int i = 0; i < size; i++) {
+		for (int i = 0; i < finallyInsnCount; i++) {
 			if (!sameInsns(dupInsns.get(i), finallyInsns.get(i))) {
 				return false;
 			}
 		}
-		if (dupInsns.size() > finallyInsns.size()) {
-			dupSlice.addInsns(dupBlock, 0, finallyInsns.size());
+		if (dupInsnCount > finallyInsnCount) {
+			dupSlice.addInsns(dupBlock, 0, finallyInsnCount);
 			dupSlice.setComplete(true);
 			InsnsSlice finallyInsnsSlice = extractInfo.getFinallyInsnsSlice();
 			finallyInsnsSlice.addBlock(finallyBlock);

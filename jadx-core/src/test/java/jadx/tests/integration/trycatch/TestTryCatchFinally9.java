@@ -6,7 +6,6 @@ import java.util.Scanner;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
@@ -33,14 +32,14 @@ public class TestTryCatchFinally9 extends IntegrationTest {
 	}
 
 	@Test
-	@NotYetImplemented("finally extraction")
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
 		assertThat(code, not(containsString("JADX INFO: finally extract failed")));
-		assertThat(code, not(containsString("throw")));
+		assertThat(code, not(containsString(indent() + "throw ")));
 		assertThat(code, containsOne("} finally {"));
 		assertThat(code, containsOne("if (input != null) {"));
+		assertThat(code, containsOne("input.close();"));
 	}
 }

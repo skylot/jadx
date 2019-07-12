@@ -461,20 +461,30 @@ public class BlockUtils {
 	 */
 	public static List<BlockNode> collectBlocksDominatedBy(BlockNode dominator, BlockNode start) {
 		List<BlockNode> result = new ArrayList<>();
-		Set<BlockNode> visited = new HashSet<>();
-		collectWhileDominates(dominator, start, result, visited);
+		collectWhileDominates(dominator, start, result, new HashSet<>(), false);
 		return result;
 	}
 
-	private static void collectWhileDominates(BlockNode dominator, BlockNode child, List<BlockNode> result, Set<BlockNode> visited) {
+	/**
+	 * Collect all block dominated by 'dominator', starting from 'start', include exception handlers
+	 */
+	public static List<BlockNode> collectBlocksDominatedByWithExcHandlers(BlockNode dominator, BlockNode start) {
+		List<BlockNode> result = new ArrayList<>();
+		collectWhileDominates(dominator, start, result, new HashSet<>(), true);
+		return result;
+	}
+
+	private static void collectWhileDominates(BlockNode dominator, BlockNode child, List<BlockNode> result,
+			Set<BlockNode> visited, boolean includeExcHandlers) {
 		if (visited.contains(child)) {
 			return;
 		}
 		visited.add(child);
-		for (BlockNode node : child.getCleanSuccessors()) {
+		List<BlockNode> successors = includeExcHandlers ? child.getSuccessors() : child.getCleanSuccessors();
+		for (BlockNode node : successors) {
 			if (node.isDominator(dominator)) {
 				result.add(node);
-				collectWhileDominates(dominator, node, result, visited);
+				collectWhileDominates(dominator, node, result, visited, includeExcHandlers);
 			}
 		}
 	}

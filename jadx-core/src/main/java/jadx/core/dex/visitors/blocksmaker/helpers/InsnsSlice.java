@@ -53,6 +53,13 @@ public class InsnsSlice {
 		return set;
 	}
 
+	public void resetIncomplete() {
+		if (!complete) {
+			insnsList.clear();
+			insnMap.clear();
+		}
+	}
+
 	public boolean isComplete() {
 		return complete;
 	}

@@ -5,6 +5,7 @@ import com.android.dx.io.instructions.DecodedInstruction;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
@@ -68,7 +69,23 @@ public class ArithNode extends InsnNode {
 			return false;
 		}
 		ArithNode other = (ArithNode) obj;
-		return op == other.op;
+		return op == other.op && isSameLiteral(other);
+	}
+
+	private boolean isSameLiteral(ArithNode other) {
+		InsnArg thisSecond = getArg(1);
+		InsnArg otherSecond = other.getArg(1);
+		if (thisSecond.isLiteral() != otherSecond.isLiteral()) {
+			return false;
+		}
+		if (!thisSecond.isLiteral()) {
+			// both not literals
+			return true;
+		}
+		// both literals
+		long thisLit = ((LiteralArg) thisSecond).getLiteral();
+		long otherLit = ((LiteralArg) otherSecond).getLiteral();
+		return thisLit == otherLit;
 	}
 
 	@Override
