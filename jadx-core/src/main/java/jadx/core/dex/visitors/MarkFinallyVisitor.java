@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -271,13 +272,24 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 		if (dupSlice == null) {
 			return null;
 		}
-		if (dupSlice.isComplete()) {
-			return dupSlice;
-		}
-		if (!checkBlocksTree(dupBlock, startBlock, dupSlice, extractInfo)) {
+		if (!dupSlice.isComplete()
+				&& !checkBlocksTree(dupBlock, startBlock, dupSlice, extractInfo)) {
 			return null;
 		}
-		return dupSlice;
+		return checkSlice(dupSlice);
+	}
+
+	@Nullable
+	private static InsnsSlice checkSlice(InsnsSlice slice) {
+		List<InsnNode> insnsList = slice.getInsnsList();
+		// ignore slice with only one 'if' insn
+		if (insnsList.size() == 1) {
+			InsnNode insnNode = insnsList.get(0);
+			if (insnNode.getType() == InsnType.IF) {
+				return null;
+			}
+		}
+		return slice;
 	}
 
 	/**
