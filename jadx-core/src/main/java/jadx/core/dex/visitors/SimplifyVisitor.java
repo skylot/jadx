@@ -50,23 +50,35 @@ public class SimplifyVisitor extends AbstractVisitor {
 			return;
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {
-			List<InsnNode> list = block.getInstructions();
-			for (int i = 0; i < list.size(); i++) {
-				InsnNode modInsn = simplifyInsn(mth, list.get(i));
-				if (modInsn != null) {
-					if (i != 0 && modInsn.contains(AFlag.ARITH_ONEARG)) {
+			simplifyBlock(mth, block);
+		}
+	}
 
-						InsnNode mergedNode = simplifyOneArgConsecutive(
-								list.get(i - 1), list.get(i), (ArithNode) modInsn);
+	private static void simplifyBlock(MethodNode mth, BlockNode block) {
+		List<InsnNode> list = block.getInstructions();
+		for (int i = 0; i < list.size(); i++) {
+			InsnNode insn = list.get(i);
+			int insnCount = list.size();
+			InsnNode modInsn = simplifyInsn(mth, insn);
+			if (modInsn != null) {
+				if (i != 0 && modInsn.contains(AFlag.ARITH_ONEARG)) {
+					InsnNode mergedNode = simplifyOneArgConsecutive(
+							list.get(i - 1), list.get(i), (ArithNode) modInsn);
 
-						if (mergedNode != null) {
-							list.remove(i - 1);
-							modInsn = mergedNode;
-							i--;
-						}
+					if (mergedNode != null) {
+						list.remove(i - 1);
+						modInsn = mergedNode;
+						i--;
 					}
+				}
+				if (i < list.size() && list.get(i) == insn) {
 					list.set(i, modInsn);
 				}
+			}
+			if (list.size() < insnCount) {
+				// some insns removed => restart block processing
+				simplifyBlock(mth, block);
+				return;
 			}
 		}
 	}
