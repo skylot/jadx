@@ -17,10 +17,12 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.api.JadxDecompiler;
 import jadx.core.codegen.CodeWriter;
+import jadx.core.dex.visitors.DepthTraversal;
 
 public class Utils {
 
-	public static final String JADX_API_PACKAGE = JadxDecompiler.class.getPackage().getName();
+	private static final String JADX_API_PACKAGE = JadxDecompiler.class.getPackage().getName();
+	private static final String STACKTRACE_STOP_CLS_NAME = DepthTraversal.class.getName();
 
 	private Utils() {
 	}
@@ -140,19 +142,15 @@ public class Utils {
 
 	private static void filter(Throwable th) {
 		StackTraceElement[] stackTrace = th.getStackTrace();
-		int cutIndex = -1;
 		int length = stackTrace.length;
 		for (int i = 0; i < length; i++) {
 			StackTraceElement stackTraceElement = stackTrace[i];
-			if (stackTraceElement.getClassName().startsWith(JADX_API_PACKAGE)) {
-				cutIndex = i;
-			} else if (cutIndex > 0) {
-				cutIndex = i;
-				break;
+			String clsName = stackTraceElement.getClassName();
+			if (clsName.equals(STACKTRACE_STOP_CLS_NAME)
+					|| clsName.startsWith(JADX_API_PACKAGE)) {
+				th.setStackTrace(Arrays.copyOfRange(stackTrace, 0, i));
+				return;
 			}
-		}
-		if (cutIndex > 0 && cutIndex < length) {
-			th.setStackTrace(Arrays.copyOfRange(stackTrace, 0, cutIndex));
 		}
 	}
 
