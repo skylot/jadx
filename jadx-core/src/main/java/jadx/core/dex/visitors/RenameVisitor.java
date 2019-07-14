@@ -95,24 +95,36 @@ public class RenameVisitor extends AbstractVisitor {
 			classInfo.changeShortName(newShortName);
 			cls.addAttr(new RenameReasonAttr(cls).append("invalid class name"));
 		}
-		if (args.isRenameValid()) {
-			if (classInfo.isInner()) {
-				ClassInfo parentClass = classInfo.getParentClass();
-				while (parentClass != null) {
-					if (parentClass.getAliasShortName().equals(clsName)) {
-						String clsAlias = deobfuscator.getClsAlias(cls);
-						classInfo.changeShortName(clsAlias);
-						cls.addAttr(new RenameReasonAttr(cls).append("collision with other inner class name"));
-						break;
-					}
-					parentClass = parentClass.getParentClass();
+		if (classInfo.isInner() && args.isRenameValid()) {
+			// check inner classes names
+			ClassInfo parentClass = classInfo.getParentClass();
+			while (parentClass != null) {
+				if (parentClass.getAliasShortName().equals(clsName)) {
+					String clsAlias = deobfuscator.getClsAlias(cls);
+					classInfo.changeShortName(clsAlias);
+					cls.addAttr(new RenameReasonAttr(cls).append("collision with other inner class name"));
+					break;
 				}
-			} else {
-				if (classInfo.getAliasPkg().isEmpty()) {
-					classInfo.changePkg(Consts.DEFAULT_PACKAGE_NAME);
-					cls.addAttr(new RenameReasonAttr(cls).append("default package"));
-				}
+				parentClass = parentClass.getParentClass();
 			}
+		}
+		checkPackage(deobfuscator, cls, classInfo, args);
+	}
+
+	private static void checkPackage(Deobfuscator deobfuscator, ClassNode cls, ClassInfo classInfo, JadxArgs args) {
+		if (classInfo.isInner()) {
+			return;
+		}
+		String aliasPkg = classInfo.getAliasPkg();
+		if (args.isRenameValid() && aliasPkg.isEmpty()) {
+			classInfo.changePkg(Consts.DEFAULT_PACKAGE_NAME);
+			cls.addAttr(new RenameReasonAttr(cls).append("default package"));
+			return;
+		}
+		String fullPkgAlias = deobfuscator.getPkgAlias(cls);
+		if (!fullPkgAlias.equals(aliasPkg)) {
+			classInfo.changePkg(fullPkgAlias);
+			cls.addAttr(new RenameReasonAttr(cls).append("invalid package"));
 		}
 	}
 
