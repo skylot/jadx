@@ -11,7 +11,6 @@ public class CommonBinaryParser extends ParserConstants {
 		return parseStringPoolNoType();
 	}
 
-	@SuppressWarnings("unused")
 	protected String[] parseStringPoolNoType() throws IOException {
 		long start = is.getPos() - 2;
 		is.checkInt16(0x001c, "String pool header size not 0x001c");
@@ -56,6 +55,9 @@ public class CommonBinaryParser extends ParserConstants {
 	}
 
 	private static String extractString8(byte[] strArray, int offset) {
+		if (offset >= strArray.length) {
+			return "STRING_DECODE_ERROR";
+		}
 		int start = offset + skipStrLen8(strArray, offset);
 		int len = strArray[start++];
 		if (len == 0) {
