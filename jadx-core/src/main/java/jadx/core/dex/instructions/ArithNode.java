@@ -51,6 +51,7 @@ public class ArithNode extends InsnNode {
 		addArg(b);
 	}
 
+	// TODO: remove result for one arg insn, this will simplify processing and allow to remove FieldArg
 	public ArithNode(ArithOp op, RegisterArg res, InsnArg a) {
 		this(op, res, res, a);
 		add(AFlag.ARITH_ONEARG);
