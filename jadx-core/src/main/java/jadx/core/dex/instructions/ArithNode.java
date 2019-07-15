@@ -51,10 +51,16 @@ public class ArithNode extends InsnNode {
 		addArg(b);
 	}
 
-	// TODO: remove result for one arg insn, this will simplify processing and allow to remove FieldArg
-	public ArithNode(ArithOp op, RegisterArg res, InsnArg a) {
-		this(op, res, res, a);
-		add(AFlag.ARITH_ONEARG);
+	/**
+	 * Create one argument arithmetic instructions (a+=2).
+	 * Result is not set (null).
+	 *
+	 * @param res argument to change
+	 */
+	public static ArithNode oneArgOp(ArithOp op, InsnArg res, InsnArg a) {
+		ArithNode insn = new ArithNode(op, null, res, a);
+		insn.add(AFlag.ARITH_ONEARG);
+		return insn;
 	}
 
 	public ArithOp getOp() {

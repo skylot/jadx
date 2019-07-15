@@ -160,7 +160,8 @@ public class PrepareForCodeGen extends AbstractVisitor {
 		List<InsnNode> list = block.getInstructions();
 		for (InsnNode insn : list) {
 			if (insn.getType() == InsnType.ARITH
-					&& !insn.contains(AFlag.DECLARE_VAR)) { // TODO: move this modify before ProcessVariable
+					&& !insn.contains(AFlag.ARITH_ONEARG)
+					&& !insn.contains(AFlag.DECLARE_VAR)) {
 				RegisterArg res = insn.getResult();
 				InsnArg arg = insn.getArg(0);
 				boolean replace = false;
@@ -171,6 +172,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 					replace = res.sameCodeVar(regArg);
 				}
 				if (replace) {
+					insn.setResult(null);
 					insn.add(AFlag.ARITH_ONEARG);
 				}
 			}

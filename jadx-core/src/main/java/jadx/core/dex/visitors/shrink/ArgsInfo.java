@@ -118,7 +118,7 @@ final class ArgsInfo {
 			return false;
 		}
 		RegisterArg result = insn.getResult();
-		if (result == null || result.isField()) {
+		if (result == null) {
 			return false;
 		}
 		return args.get(result.getRegNum());

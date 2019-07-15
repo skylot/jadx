@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +23,6 @@ import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.InvokeType;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.instructions.args.FieldArg;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
@@ -37,6 +35,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.regions.conditions.IfCondition;
+import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnList;
 import jadx.core.utils.InsnRemover;
@@ -51,12 +50,19 @@ public class SimplifyVisitor extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
+		boolean changed = false;
 		for (BlockNode block : mth.getBasicBlocks()) {
-			simplifyBlock(mth, block);
+			if (simplifyBlock(mth, block)) {
+				changed = true;
+			}
+		}
+		if (changed) {
+			CodeShrinkVisitor.shrinkMethod(mth);
 		}
 	}
 
-	private static void simplifyBlock(MethodNode mth, BlockNode block) {
+	private static boolean simplifyBlock(MethodNode mth, BlockNode block) {
+		boolean changed = false;
 		List<InsnNode> list = block.getInstructions();
 		for (int i = 0; i < list.size(); i++) {
 			InsnNode insn = list.get(i);
@@ -75,10 +81,12 @@ public class SimplifyVisitor extends AbstractVisitor {
 				if (list.size() < insnCount) {
 					// some insns removed => restart block processing
 					simplifyBlock(mth, block);
-					return;
+					return true;
 				}
+				changed = true;
 			}
 		}
+		return changed;
 	}
 
 	private static InsnNode simplifyInsn(MethodNode mth, BlockNode block, InsnNode insn) {
@@ -109,7 +117,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 
 			case IPUT:
 			case SPUT:
-				return convertFieldArith(mth, block, insn);
+				return convertFieldArith(mth, insn);
 
 			case CHECK_CAST:
 				return processCast(mth, insn);
@@ -404,9 +412,9 @@ public class SimplifyVisitor extends AbstractVisitor {
 
 	/**
 	 * Convert field arith operation to arith instruction
-	 * (IPUT = ARITH (IGET, lit) -> ARITH (fieldArg <op>= lit))
+	 * (IPUT (ARITH (IGET, lit)) -> ARITH ((IGET)) <op>= lit))
 	 */
-	private static ArithNode convertFieldArith(MethodNode mth, BlockNode block, InsnNode insn) {
+	private static ArithNode convertFieldArith(MethodNode mth, InsnNode insn) {
 		InsnArg arg = insn.getArg(0);
 		if (!arg.isInsnWrap()) {
 			return null;
@@ -428,49 +436,30 @@ public class SimplifyVisitor extends AbstractVisitor {
 			return null;
 		}
 		try {
-			InsnArg reg = null;
-			if (getType == InsnType.IGET) {
-				reg = get.getArg(0);
+			if (getType == InsnType.IGET && insn.getType() == InsnType.IPUT) {
+				InsnArg reg = get.getArg(0);
 				InsnArg putReg = insn.getArg(1);
 				if (!reg.equals(putReg)) {
 					return null;
 				}
 			}
-			reg = inlineFieldGet(reg, block, get, insn);
-			FieldArg fArg = new FieldArg(field, reg);
+			InsnArg fArg = InsnArg.wrapArg(get);
+			if (insn.getType() == InsnType.IPUT) {
+				InsnRemover.unbindArgUsage(mth, insn.getArg(1));
+			}
 			if (wrapType == InsnType.ARITH) {
 				ArithNode ar = (ArithNode) wrap;
-				return new ArithNode(ar.getOp(), fArg, ar.getArg(1));
+				return ArithNode.oneArgOp(ar.getOp(), fArg, ar.getArg(1));
 			}
 			int argsCount = wrap.getArgsCount();
 			InsnNode concat = new InsnNode(InsnType.STR_CONCAT, argsCount - 1);
 			for (int i = 1; i < argsCount; i++) {
 				concat.addArg(wrap.getArg(i));
 			}
-			return new ArithNode(ArithOp.ADD, fArg, InsnArg.wrapArg(concat));
+			return ArithNode.oneArgOp(ArithOp.ADD, fArg, InsnArg.wrapArg(concat));
 		} catch (Exception e) {
 			LOG.debug("Can't convert field arith insn: {}, mth: {}", insn, mth, e);
 		}
 		return null;
-	}
-
-	private static InsnArg inlineFieldGet(@Nullable InsnArg arg, BlockNode block, InsnNode get, InsnNode insn) {
-		if (arg == null || !arg.isRegister()) {
-			return arg;
-		}
-		RegisterArg reg = (RegisterArg) arg;
-		InsnNode assignInsn = reg.getAssignInsn();
-		SSAVar ssaVar = reg.getSVar();
-		if (ssaVar.getUseCount() == 2 && !ssaVar.isUsedInPhi() && assignInsn != null) {
-			List<RegisterArg> useList = ssaVar.getUseList();
-			if (useList.get(0).getParentInsn() == get && useList.get(1).getParentInsn() == insn) {
-				InsnType assignInsnType = assignInsn.getType();
-				if (assignInsnType == InsnType.IGET || assignInsnType == InsnType.SGET) {
-					InsnList.remove(block, assignInsn);
-					return InsnArg.wrapArg(assignInsn);
-				}
-			}
-		}
-		return arg;
 	}
 }

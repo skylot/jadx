@@ -206,6 +206,15 @@ public class InsnNode extends LineAttrNode {
 			}
 			return true;
 		}
+		for (InsnArg arg : getArguments()) {
+			if (arg.isInsnWrap()) {
+				InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
+				if (!wrapInsn.canReorder()) {
+					return false;
+				}
+			}
+		}
+
 		switch (getType()) {
 			case CONST:
 			case CONST_STR:

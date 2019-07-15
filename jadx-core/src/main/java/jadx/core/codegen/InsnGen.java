@@ -36,7 +36,6 @@ import jadx.core.dex.instructions.NewArrayNode;
 import jadx.core.dex.instructions.SwitchNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.CodeVar;
-import jadx.core.dex.instructions.args.FieldArg;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
@@ -105,13 +104,6 @@ public class InsnGen {
 			makeInsn(((InsnWrapArg) arg).getWrapInsn(), code, flag);
 		} else if (arg.isNamed()) {
 			code.add(((Named) arg).getName());
-		} else if (arg.isField()) {
-			FieldArg f = (FieldArg) arg;
-			if (f.isStatic()) {
-				staticField(code, f.getField());
-			} else {
-				instanceField(code, f.getField(), f.getInstanceArg());
-			}
 		} else {
 			throw new CodegenException("Unknown arg type " + arg);
 		}
@@ -174,6 +166,7 @@ public class InsnGen {
 
 	public static void makeStaticFieldAccess(CodeWriter code, FieldInfo field, ClassGen clsGen) {
 		ClassInfo declClass = field.getDeclClass();
+		// TODO
 		boolean fieldFromThisClass = clsGen.getClassNode().getClassInfo().equals(declClass);
 		if (!fieldFromThisClass) {
 			// Android specific resources class handler
@@ -231,10 +224,10 @@ public class InsnGen {
 						code.add("// ");
 					}
 				}
-				if (insn.getResult() != null) {
-					SSAVar var = insn.getResult().getSVar();
-					if ((var == null || var.getUseCount() != 0 || insn.getType() != InsnType.CONSTRUCTOR)
-							&& !insn.contains(AFlag.ARITH_ONEARG)) {
+				RegisterArg resArg = insn.getResult();
+				if (resArg != null) {
+					SSAVar var = resArg.getSVar();
+					if (var == null || var.getUseCount() != 0 || insn.getType() != InsnType.CONSTRUCTOR) {
 						assignVar(code, insn);
 						code.add(" = ");
 					}
@@ -981,19 +974,22 @@ public class InsnGen {
 
 	private void makeArithOneArg(ArithNode insn, CodeWriter code) throws CodegenException {
 		ArithOp op = insn.getOp();
+		InsnArg resArg = insn.getArg(0);
 		InsnArg arg = insn.getArg(1);
+
 		// "++" or "--"
 		if (arg.isLiteral() && (op == ArithOp.ADD || op == ArithOp.SUB)) {
 			LiteralArg lit = (LiteralArg) arg;
-			if (lit.isInteger() && lit.getLiteral() == 1) {
-				assignVar(code, insn);
+			if (lit.getLiteral() == 1 && lit.isInteger()) {
+				addArg(code, resArg, false);
 				String opSymbol = op.getSymbol();
 				code.add(opSymbol).add(opSymbol);
 				return;
 			}
 		}
-		// +=, -= ...
-		assignVar(code, insn);
+
+		// +=, -=, ...
+		addArg(code, resArg, false);
 		code.add(' ').add(op.getSymbol()).add("= ");
 		addArg(code, arg, false);
 	}

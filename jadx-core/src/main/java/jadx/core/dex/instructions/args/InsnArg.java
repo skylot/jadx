@@ -84,10 +84,6 @@ public abstract class InsnArg extends Typed {
 		return false;
 	}
 
-	public boolean isField() {
-		return false;
-	}
-
 	@Nullable
 	public InsnNode getParentInsn() {
 		return parentInsn;
