@@ -27,30 +27,22 @@ public class CommonBinaryParser extends ParserConstants {
 		int[] stylesOffset = is.readInt32Array(styleCount);
 
 		is.checkPos(start + stringsStart, "Expected strings start");
-		long stringsEnd = stylesStart == 0 ? chunkEnd : start + stylesStart;
 		String[] strings = new String[stringCount];
-		byte[] strArray = is.readInt8Array((int) (stringsEnd - is.getPos()));
+		byte[] strData = is.readInt8Array((int) (chunkEnd - is.getPos()));
 		if ((flags & UTF8_FLAG) != 0) {
 			// UTF-8
 			for (int i = 0; i < stringCount; i++) {
-				strings[i] = extractString8(strArray, stringsOffset[i]);
+				strings[i] = extractString8(strData, stringsOffset[i]);
 			}
 		} else {
 			// UTF-16
 			for (int i = 0; i < stringCount; i++) {
 				// don't trust specified string length, read until \0
 				// stringsOffset can be same for different indexes
-				strings[i] = extractString16(strArray, stringsOffset[i]);
+				strings[i] = extractString16(strData, stringsOffset[i]);
 			}
 		}
-		if (stylesStart != 0) {
-			is.checkPos(start + stylesStart, "Expected styles start");
-			if (styleCount != 0) {
-				// TODO: implement styles parsing
-			}
-		}
-		// skip padding zeroes
-		is.skipToPos(chunkEnd, "Skip string pool padding");
+		is.checkPos(chunkEnd, "Expected strings pool end");
 		return strings;
 	}
 
