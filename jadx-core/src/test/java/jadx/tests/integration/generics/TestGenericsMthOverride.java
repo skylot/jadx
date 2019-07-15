@@ -36,6 +36,7 @@ public class TestGenericsMthOverride extends IntegrationTest {
 			}
 		}
 
+		@SuppressWarnings("unchecked")
 		public static class D<X, Y> implements I<X, Y> {
 			@Override
 			public Object method(Object x) {

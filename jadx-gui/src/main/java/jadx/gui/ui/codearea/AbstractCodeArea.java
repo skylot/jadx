@@ -20,6 +20,8 @@ import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.JumpPosition;
 
 public abstract class AbstractCodeArea extends RSyntaxTextArea {
+	private static final long serialVersionUID = -3980354865216031972L;
+
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractCodeArea.class);
 
 	protected final ContentPanel contentPanel;

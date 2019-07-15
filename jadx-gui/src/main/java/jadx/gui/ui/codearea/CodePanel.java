@@ -17,11 +17,13 @@ import jadx.gui.utils.UiUtils;
  * A panel combining a {@link SearchBar and a scollable {@link CodeArea}
  */
 public class CodePanel extends JPanel {
+	private static final long serialVersionUID = 1117721869391885865L;
 
 	private final SearchBar searchBar;
 	private final AbstractCodeArea codeArea;
 	private final JScrollPane codeScrollPane;
 
+	@SuppressWarnings("serial")
 	public CodePanel(ContentPanel contentPanel, AbstractCodeArea codeArea) {
 		this.codeArea = codeArea;
 		searchBar = new SearchBar(codeArea);
