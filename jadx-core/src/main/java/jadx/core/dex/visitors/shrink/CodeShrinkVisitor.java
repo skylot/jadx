@@ -20,6 +20,7 @@ import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.ModVisitor;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnList;
+import jadx.core.utils.InsnRemover;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 @JadxVisitor(
@@ -67,7 +68,7 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 		}
 		if (!wrapList.isEmpty()) {
 			for (WrapInfo wrapInfo : wrapList) {
-				inline(wrapInfo.getArg(), wrapInfo.getInsn(), block);
+				inline(mth, wrapInfo.getArg(), wrapInfo.getInsn(), block);
 			}
 		}
 	}
@@ -106,12 +107,12 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 			if (assignBlock != null
 					&& assignInsn != arg.getParentInsn()
 					&& canMoveBetweenBlocks(assignInsn, assignBlock, block, argsInfo.getInsn())) {
-				inline(arg, assignInsn, assignBlock);
+				inline(mth, arg, assignInsn, assignBlock);
 			}
 		}
 	}
 
-	private static boolean inline(RegisterArg arg, InsnNode insn, BlockNode block) {
+	private static boolean inline(MethodNode mth, RegisterArg arg, InsnNode insn, BlockNode block) {
 		InsnNode parentInsn = arg.getParentInsn();
 		if (parentInsn != null && parentInsn.getType() == InsnType.RETURN) {
 			parentInsn.setSourceLine(insn.getSourceLine());
@@ -119,6 +120,7 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 		boolean replaced = arg.wrapInstruction(insn) != null;
 		if (replaced) {
 			InsnList.remove(block, insn);
+			InsnRemover.unbindResult(mth, insn);
 		}
 		return replaced;
 	}

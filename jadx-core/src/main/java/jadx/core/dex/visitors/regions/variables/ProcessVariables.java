@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
+import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -228,7 +229,9 @@ public class ProcessVariables extends AbstractVisitor {
 	private static boolean checkDeclareAtAssign(SSAVar var) {
 		RegisterArg arg = var.getAssign();
 		InsnNode parentInsn = arg.getParentInsn();
-		if (parentInsn == null) {
+		if (parentInsn == null
+				|| parentInsn.contains(AFlag.WRAPPED)
+				|| parentInsn.getType() == InsnType.PHI) {
 			return false;
 		}
 		if (!arg.equals(parentInsn.getResult())) {

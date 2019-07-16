@@ -99,6 +99,7 @@ public class TernaryMod implements IRegionIterativeVisitor {
 			RegisterArg resArg;
 			if (thenPhi.getArgsCount() == 2) {
 				resArg = thenPhi.getResult();
+				InsnRemover.unbindResult(mth, thenInsn);
 			} else {
 				resArg = thenResArg;
 				thenPhi.removeArg(elseResArg);
@@ -106,6 +107,8 @@ public class TernaryMod implements IRegionIterativeVisitor {
 			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(),
 					resArg, InsnArg.wrapArg(thenInsn), InsnArg.wrapArg(elseInsn));
 			ternInsn.setSourceLine(thenInsn.getSourceLine());
+
+			InsnRemover.unbindResult(mth, elseInsn);
 
 			// remove 'if' instruction
 			header.getInstructions().clear();

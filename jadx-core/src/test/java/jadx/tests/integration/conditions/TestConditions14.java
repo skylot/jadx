@@ -17,7 +17,7 @@ public class TestConditions14 extends IntegrationTest {
 			if (r) {
 				return false;
 			}
-			System.out.println("1");
+			System.out.println("r=" + r);
 			return true;
 		}
 	}
@@ -29,6 +29,6 @@ public class TestConditions14 extends IntegrationTest {
 
 		assertThat(code, containsOne("boolean r = a == null ? b != null : !a.equals(b);"));
 		assertThat(code, containsOne("if (r) {"));
-		assertThat(code, containsOne("System.out.println(\"1\");"));
+		assertThat(code, containsOne("System.out.println(\"r=\" + r);"));
 	}
 }
