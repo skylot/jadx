@@ -120,7 +120,7 @@ public class ModVisitor extends AbstractVisitor {
 						break;
 
 					case ARITH:
-						processArith(parentClass, (ArithNode) insn);
+						processArith(mth, parentClass, (ArithNode) insn);
 						break;
 
 					case CHECK_CAST:
@@ -187,7 +187,7 @@ public class ModVisitor extends AbstractVisitor {
 		}
 	}
 
-	private static void processArith(ClassNode parentClass, ArithNode arithNode) {
+	private static void processArith(MethodNode mth, ClassNode parentClass, ArithNode arithNode) {
 		if (arithNode.getArgsCount() != 2) {
 			throw new JadxRuntimeException("Invalid args count in insn: " + arithNode);
 		}

@@ -97,7 +97,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 			if (arg.isInsnWrap()) {
 				InsnNode ni = simplifyInsn(mth, block, ((InsnWrapArg) arg).getWrapInsn());
 				if (ni != null) {
-					arg.wrapInstruction(ni);
+					arg.wrapInstruction(mth, ni);
 				}
 			}
 		}
@@ -332,21 +332,33 @@ public class SimplifyVisitor extends AbstractVisitor {
 				}
 				args.add(arg);
 			}
+			removeStringBuilderInsns(mth, toStrInsn, chain);
+
 			InsnNode concatInsn = new InsnNode(InsnType.STR_CONCAT, args);
 			concatInsn.setResult(toStrInsn.getResult());
 			concatInsn.copyAttributesFrom(toStrInsn);
-
-			InsnRemover insnRemover = new InsnRemover(mth);
-			for (InsnNode insnNode : chain) {
-				insnRemover.addAndUnbind(insnNode);
-			}
-			insnRemover.perform();
-
 			return concatInsn;
 		} catch (Exception e) {
 			LOG.warn("Can't convert string concatenation: {} insn: {}", mth, toStrInsn, e);
 		}
 		return null;
+	}
+
+	/**
+	 * Remove and unbind all instructions with StringBuilder
+	 */
+	private static void removeStringBuilderInsns(MethodNode mth, InvokeNode toStrInsn, List<InsnNode> chain) {
+		InsnRemover.unbindAllArgs(mth, toStrInsn);
+		for (InsnNode insnNode : chain) {
+			InsnRemover.unbindAllArgs(mth, insnNode);
+		}
+		InsnRemover insnRemover = new InsnRemover(mth);
+		for (InsnNode insnNode : chain) {
+			if (insnNode != toStrInsn) {
+				insnRemover.addAndUnbind(insnNode);
+			}
+		}
+		insnRemover.perform();
 	}
 
 	private static List<InsnNode> flattenInsnChainUntil(InsnNode insn, InsnType insnType) {

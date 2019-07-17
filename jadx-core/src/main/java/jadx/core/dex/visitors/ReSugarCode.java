@@ -136,14 +136,18 @@ public class ReSugarCode extends AbstractVisitor {
 		ArgType arrType = newArrayInsn.getArrayType();
 		InsnNode filledArr = new FilledNewArrayNode(arrType.getArrayElement(), len);
 		filledArr.setResult(arrArg);
+
+		InsnNode lastPut = Utils.last(arrPuts);
 		for (InsnNode put : arrPuts) {
 			filledArr.addArg(put.getArg(2));
-			remover.addWithoutUnbind(put);
+			if (put != lastPut) {
+				remover.addWithoutUnbind(put);
+			}
 			InsnRemover.unbindArgUsage(mth, put.getArg(0));
 		}
 		remover.addWithoutUnbind(newArrayInsn);
 
-		int replaceIndex = InsnList.getIndex(instructions, Utils.last(arrPuts));
+		int replaceIndex = InsnList.getIndex(instructions, lastPut);
 		instructions.set(replaceIndex, filledArr);
 	}
 

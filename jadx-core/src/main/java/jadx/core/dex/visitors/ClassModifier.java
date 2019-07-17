@@ -1,5 +1,6 @@
 package jadx.core.dex.visitors;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -130,8 +131,8 @@ public class ClassModifier extends AbstractVisitor {
 		if (arg.getSVar().getUseCount() != 0) {
 			InsnNode iget = new IndexInsnNode(InsnType.IGET, fieldInfo, 1);
 			iget.addArg(insn.getArg(1));
-			for (InsnArg insnArg : arg.getSVar().getUseList()) {
-				insnArg.wrapInstruction(iget);
+			for (InsnArg insnArg : new ArrayList<>(arg.getSVar().getUseList())) {
+				insnArg.wrapInstruction(mth, iget);
 			}
 		}
 		return true;

@@ -104,8 +104,9 @@ public class TernaryMod implements IRegionIterativeVisitor {
 				resArg = thenResArg;
 				thenPhi.removeArg(elseResArg);
 			}
-			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(),
-					resArg, InsnArg.wrapArg(thenInsn), InsnArg.wrapArg(elseInsn));
+			InsnArg thenArg = InsnArg.wrapInsnIntoArg(thenInsn);
+			InsnArg elseArg = InsnArg.wrapInsnIntoArg(elseInsn);
+			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(), resArg, thenArg, elseArg);
 			ternInsn.setSourceLine(thenInsn.getSourceLine());
 
 			InsnRemover.unbindResult(mth, elseInsn);
@@ -142,7 +143,9 @@ public class TernaryMod implements IRegionIterativeVisitor {
 			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(), null, thenArg, elseArg);
 			ternInsn.setSourceLine(thenInsn.getSourceLine());
 			InsnNode retInsn = new InsnNode(InsnType.RETURN, 1);
-			retInsn.addArg(InsnArg.wrapArg(ternInsn));
+			InsnArg arg = InsnArg.wrapInsnIntoArg(ternInsn);
+			arg.setType(thenArg.getType());
+			retInsn.addArg(arg);
 
 			header.getInstructions().clear();
 			header.getInstructions().add(retInsn);
@@ -234,7 +237,7 @@ public class TernaryMod implements IRegionIterativeVisitor {
 	/**
 	 * Convert one variable change with only 'then' branch:
 	 * 'if (c) {r = a;}' to 'r = c ? a : r'
-	 * Also convert only if 'r' used only once
+	 * Convert if 'r' used only once
 	 */
 	private static boolean processOneBranchTernary(MethodNode mth, IfRegion ifRegion) {
 		IContainer thenRegion = ifRegion.getThenRegion();
@@ -276,10 +279,10 @@ public class TernaryMod implements IRegionIterativeVisitor {
 		// all checks passed
 		InsnList.remove(block, insn);
 		TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(),
-				phiInsn.getResult(), InsnArg.wrapArg(insn), otherArg);
+				phiInsn.getResult(), InsnArg.wrapInsnIntoArg(insn), otherArg);
 		ternInsn.setSourceLine(insn.getSourceLine());
 
-		InsnRemover.unbindInsn(mth, phiInsn);
+		InsnRemover.unbindAllArgs(mth, phiInsn);
 		header.getInstructions().clear();
 		header.getInstructions().add(ternInsn);
 

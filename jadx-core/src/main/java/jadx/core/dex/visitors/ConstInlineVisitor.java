@@ -23,7 +23,6 @@ import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.exceptions.JadxException;
-import jadx.core.utils.exceptions.JadxOverflowException;
 
 @JadxVisitor(
 		name = "Constants Inline",
@@ -195,7 +194,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 				fieldNode = mth.getParentClass().getConstField((int) literal, false);
 			}
 			if (fieldNode != null) {
-				litArg.wrapInstruction(new IndexInsnNode(InsnType.SGET, fieldNode.getFieldInfo(), 0));
+				litArg.wrapInstruction(mth, new IndexInsnNode(InsnType.SGET, fieldNode.getFieldInfo(), 0));
 			}
 		} else {
 			if (!useInsn.replaceArg(arg, constArg.duplicate())) {
@@ -204,12 +203,6 @@ public class ConstInlineVisitor extends AbstractVisitor {
 		}
 		if (insnType == InsnType.RETURN) {
 			useInsn.setSourceLine(constInsn.getSourceLine());
-		} else if (insnType == InsnType.MOVE) {
-			try {
-				replaceConst(mth, useInsn, constArg, toRemove);
-			} catch (StackOverflowError e) {
-				throw new JadxOverflowException("Stack overflow at const inline visitor");
-			}
 		}
 		return true;
 	}

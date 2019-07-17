@@ -1,8 +1,5 @@
 package jadx.core.dex.instructions.args;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +9,10 @@ import com.android.dx.io.instructions.DecodedInstruction;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.InsnNode;
+import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.InsnRemover;
 import jadx.core.utils.InsnUtils;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 /**
  * Instruction argument,
@@ -93,7 +93,7 @@ public abstract class InsnArg extends Typed {
 		this.parentInsn = parentInsn;
 	}
 
-	public InsnArg wrapInstruction(InsnNode insn) {
+	public InsnArg wrapInstruction(MethodNode mth, InsnNode insn) {
 		InsnNode parent = parentInsn;
 		if (parent == null) {
 			return null;
@@ -118,18 +118,11 @@ public abstract class InsnArg extends Typed {
 				}
 			}
 		}
-		insn.add(AFlag.WRAPPED);
-		InsnArg arg = wrapArg(insn);
+		InsnArg arg = wrapInsnIntoArg(insn);
 		parent.setArg(i, arg);
+		InsnRemover.unbindArgUsage(mth, this);
+		InsnRemover.unbindResult(mth, insn);
 		return arg;
-	}
-
-	public static void updateParentInsn(InsnNode fromInsn, InsnNode toInsn) {
-		List<RegisterArg> args = new ArrayList<>();
-		fromInsn.getRegisterArgs(args);
-		for (RegisterArg reg : args) {
-			reg.setParentInsn(toInsn);
-		}
 	}
 
 	private static int getArgIndex(InsnNode parent, InsnArg arg) {
@@ -142,23 +135,43 @@ public abstract class InsnArg extends Typed {
 		return -1;
 	}
 
-	public static InsnArg wrapArg(InsnNode insn) {
+	public static InsnArg wrapInsnIntoArg(InsnNode insn) {
 		InsnArg arg;
+		InsnType type = insn.getType();
+		if (type == InsnType.CONST || type == InsnType.MOVE) {
+			arg = insn.getArg(0);
+			insn.add(AFlag.REMOVE);
+			insn.add(AFlag.DONT_GENERATE);
+		} else {
+			arg = wrapArg(insn);
+		}
+		return arg;
+	}
+
+	/**
+	 * Prefer {@link InsnArg#wrapInsnIntoArg}.
+	 * This method don't support MOVE and CONST insns!
+	 */
+	public static InsnArg wrapArg(InsnNode insn) {
+		InsnArg arg = wrap(insn);
+		insn.add(AFlag.WRAPPED);
 		switch (insn.getType()) {
-			case MOVE:
 			case CONST:
-				arg = insn.getArg(0);
-				break;
+			case MOVE:
+				throw new JadxRuntimeException("Don't wrap MOVE or CONST insns: " + insn);
+
 			case CONST_STR:
-				arg = wrap(insn);
 				arg.setType(ArgType.STRING);
 				break;
 			case CONST_CLASS:
-				arg = wrap(insn);
 				arg.setType(ArgType.CLASS);
 				break;
+
 			default:
-				arg = wrap(insn);
+				RegisterArg resArg = insn.getResult();
+				if (resArg != null) {
+					arg.setType(resArg.getType());
+				}
 				break;
 		}
 		return arg;

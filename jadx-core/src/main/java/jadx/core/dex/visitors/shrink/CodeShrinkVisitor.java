@@ -20,7 +20,6 @@ import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.ModVisitor;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnList;
-import jadx.core.utils.InsnRemover;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 @JadxVisitor(
@@ -117,10 +116,9 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 		if (parentInsn != null && parentInsn.getType() == InsnType.RETURN) {
 			parentInsn.setSourceLine(insn.getSourceLine());
 		}
-		boolean replaced = arg.wrapInstruction(insn) != null;
+		boolean replaced = arg.wrapInstruction(mth, insn) != null;
 		if (replaced) {
 			InsnList.remove(block, insn);
-			InsnRemover.unbindResult(mth, insn);
 		}
 		return replaced;
 	}

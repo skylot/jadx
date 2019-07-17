@@ -3,9 +3,11 @@ package jadx.core.utils;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.PhiInsn;
@@ -16,6 +18,7 @@ import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 /**
  * Helper class for correct instructions removing,
@@ -80,6 +83,7 @@ public class InsnRemover {
 		}
 		unbindResult(mth, insn);
 		insn.add(AFlag.REMOVE);
+		insn.add(AFlag.DONT_GENERATE);
 	}
 
 	public static void unbindResult(@Nullable MethodNode mth, InsnNode insn) {
@@ -113,6 +117,19 @@ public class InsnRemover {
 				}
 			}
 			mth.removeSVar(ssaVar);
+			return;
+		}
+		if (Consts.DEBUG) { // TODO: enable this
+			throw new JadxRuntimeException("Can't remove SSA var, still in use, count: " + useCount
+					+ ", list:\n  " + ssaVar.getUseList().stream()
+							.map(arg -> arg + " from " + arg.getParentInsn())
+							.collect(Collectors.joining("\n  ")));
+		}
+	}
+
+	public static void unbindAllArgs(@Nullable MethodNode mth, InsnNode insn) {
+		for (InsnArg arg : insn.getArguments()) {
+			unbindArgUsage(mth, arg);
 		}
 	}
 
@@ -137,11 +154,17 @@ public class InsnRemover {
 		}
 		for (InsnNode rem : toRemove) {
 			int insnsCount = insns.size();
+			boolean found = false;
 			for (int i = 0; i < insnsCount; i++) {
 				if (insns.get(i) == rem) {
 					insns.remove(i);
+					found = true;
 					break;
 				}
+			}
+			if (!found && Consts.DEBUG) { // TODO: enable this
+				throw new JadxRuntimeException("Can't remove insn:\n " + rem
+						+ "\nnot found in list:\n " + Utils.listToString(insns, "\n "));
 			}
 		}
 	}
