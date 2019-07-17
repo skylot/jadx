@@ -256,6 +256,13 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		if (iterVar == null) {
 			return false;
 		}
+		if (!usedOnlyInLoop(mth, loopRegion, iterVar)) {
+			return false;
+		}
+		if (!assignOnlyInLoop(mth, loopRegion, iterVar)) {
+			return false;
+		}
+
 		if (nextCall.contains(AFlag.WRAPPED)) {
 			InsnArg wrapArg = BlockUtils.searchWrappedInsnParent(mth, nextCall);
 			if (wrapArg != null && wrapArg.getParentInsn() != null) {
