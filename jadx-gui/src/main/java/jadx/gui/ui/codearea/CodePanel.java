@@ -1,14 +1,14 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
-import javax.swing.AbstractAction;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 
+import org.fife.ui.rtextarea.RTextScrollPane;
+
+import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.ui.ContentPanel;
 import jadx.gui.utils.UiUtils;
@@ -21,21 +21,21 @@ public class CodePanel extends JPanel {
 
 	private final SearchBar searchBar;
 	private final AbstractCodeArea codeArea;
-	private final JScrollPane codeScrollPane;
+	private final RTextScrollPane codeScrollPane;
 
-	@SuppressWarnings("serial")
 	public CodePanel(ContentPanel contentPanel, AbstractCodeArea codeArea) {
 		this.codeArea = codeArea;
 		searchBar = new SearchBar(codeArea);
-		codeScrollPane = new JScrollPane(codeArea);
+		codeScrollPane = new RTextScrollPane(codeArea, false);
 
 		setLayout(new BorderLayout());
 		add(searchBar, BorderLayout.NORTH);
 		add(codeScrollPane, BorderLayout.CENTER);
-		initLineNumbers();
 
 		KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_F, UiUtils.ctrlButton());
 		UiUtils.addKeyBinding(codeArea, key, "SearchAction", new AbstractAction() {
+			private static final long serialVersionUID = 71338030532869694L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				searchBar.toggle();
@@ -50,20 +50,19 @@ public class CodePanel extends JPanel {
 
 	public void load() {
 		codeArea.load();
+		initLineNumbers();
 	}
 
 	private void initLineNumbers() {
-		// TODO: fix slow line rendering on big files
-		if (codeArea.getDocument().getLength() <= 100_000) {
-			LineNumbers numbers = new LineNumbers(codeArea);
-			numbers.setUseSourceLines(isUseSourceLines());
-			codeScrollPane.setRowHeaderView(numbers);
-		}
+		LineNumbers numbers = new LineNumbers(codeArea);
+		numbers.setUseSourceLines(isUseSourceLines());
+		codeScrollPane.setRowHeaderView(numbers);
 	}
 
 	private boolean isUseSourceLines() {
-		if (codeArea.getNode() instanceof JResource) {
-			JResource resNode = (JResource) codeArea.getNode();
+		JNode node = codeArea.getNode();
+		if (node instanceof JResource) {
+			JResource resNode = (JResource) node;
 			return !resNode.getLineMapping().isEmpty();
 		}
 		return false;

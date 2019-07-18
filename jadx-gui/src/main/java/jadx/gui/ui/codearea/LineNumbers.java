@@ -3,7 +3,6 @@ package jadx.gui.ui.codearea;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.*;
@@ -13,11 +12,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.Utilities;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
 import org.fife.ui.rsyntaxtextarea.Token;
@@ -36,19 +31,23 @@ public class LineNumbers extends JPanel implements CaretListener {
 	private final AbstractCodeArea codeArea;
 	private boolean useSourceLines = true;
 
-	private int lastDigits;
-	private int lastLine;
-	private Map<String, FontMetrics> fonts;
+	private transient int lastDigits;
+	private transient int lastLine;
 
 	private final transient Color numberColor;
+	private final transient Color normalNumColor;
 	private final transient Color currentColor;
 	private final transient Border border;
+
+	private transient Insets textAreaInsets;
+	private transient Rectangle visibleRect = new Rectangle();
 
 	public LineNumbers(AbstractCodeArea codeArea) {
 		this.codeArea = codeArea;
 		setFont(codeArea.getFont());
 		SyntaxScheme syntaxScheme = codeArea.getSyntaxScheme();
 		numberColor = syntaxScheme.getStyle(Token.LITERAL_NUMBER_DECIMAL_INT).foreground;
+		normalNumColor = syntaxScheme.getStyle(Token.ANNOTATION).foreground;
 		currentColor = syntaxScheme.getStyle(Token.LITERAL_STRING_DOUBLE_QUOTE).foreground;
 		border = new MatteBorder(0, 0, 0, 1, syntaxScheme.getStyle(Token.COMMENT_MULTILINE).foreground);
 		setBackground(codeArea.getBackground());
@@ -78,7 +77,7 @@ public class LineNumbers extends JPanel implements CaretListener {
 	private void setPreferredWidth() {
 		Element root = codeArea.getDocument().getDefaultRootElement();
 		int lines = root.getElementCount();
-		int digits = Math.max(String.valueOf(lines).length(), 3);
+		int digits = Math.max(String.valueOf(lines).length(), 4);
 		if (lastDigits != digits) {
 			lastDigits = digits;
 			FontMetrics fontMetrics = getFontMetrics(getFont());
@@ -97,7 +96,13 @@ public class LineNumbers extends JPanel implements CaretListener {
 
 	@Override
 	public void paintComponent(Graphics g) {
-		super.paintComponent(g);
+		visibleRect = g.getClipBounds(visibleRect);
+		if (visibleRect == null) {
+			visibleRect = getVisibleRect();
+		}
+		if (visibleRect == null) {
+			return;
+		}
 		applyRenderHints(g);
 
 		Font font = codeArea.getFont();
@@ -110,26 +115,39 @@ public class LineNumbers extends JPanel implements CaretListener {
 
 		FontMetrics fontMetrics = codeArea.getFontMetrics(font);
 		Insets insets = getInsets();
-		int availableWidth = size.width - insets.left - insets.right;
-		Rectangle clip = g.getClipBounds();
-		int rowStartOffset = codeArea.viewToModel(new Point(0, clip.y));
-		int endOffset = codeArea.viewToModel(new Point(0, clip.y + clip.height));
+		int availableWidth = size.width - insets.right;
 
-		while (rowStartOffset <= endOffset) {
+		int cellHeight = codeArea.getLineHeight();
+		int ascent = codeArea.getMaxAscent();
+
+		textAreaInsets = codeArea.getInsets(textAreaInsets);
+		if (visibleRect.y < textAreaInsets.top) {
+			visibleRect.height -= (textAreaInsets.top - visibleRect.y);
+			visibleRect.y = textAreaInsets.top;
+		}
+
+		int topLine = (visibleRect.y - textAreaInsets.top) / cellHeight;
+		int actualTopY = topLine * cellHeight + textAreaInsets.top;
+		int y = actualTopY + ascent;
+		int endY = visibleRect.y + visibleRect.height + ascent;
+
+		Element rootElement = codeArea.getDocument().getDefaultRootElement();
+		int currentLine = 1 + rootElement.getElementIndex(codeArea.getCaretPosition());
+		int lineNum = topLine + 1;
+		int linesCount = codeArea.getLineCount();
+		boolean isCurLine = updateColor(g, false, true);
+		while (y < endY && lineNum <= linesCount) {
 			try {
-				String lineNumber = getTextLineNumber(rowStartOffset);
-				if (lineNumber != null) {
-					if (isCurrentLine(rowStartOffset)) {
-						g.setColor(currentColor);
-					} else {
-						g.setColor(numberColor);
-					}
-					int stringWidth = fontMetrics.stringWidth(lineNumber);
-					int x = availableWidth - stringWidth + insets.left;
-					int y = getOffsetY(rowStartOffset, fontMetrics);
-					g.drawString(lineNumber, x, y);
+				String lineStr = getTextLineNumber(lineNum);
+				if (lineStr != null) {
+					isCurLine = updateColor(g, lineNum == currentLine, isCurLine);
+					int x = availableWidth - fontMetrics.stringWidth(lineStr);
+					g.drawString(lineStr, x, y);
+				} else if (!useSourceLines) {
+					break;
 				}
-				rowStartOffset = Utilities.getRowEnd(codeArea, rowStartOffset) + 1;
+				lineNum++;
+				y += cellHeight;
 			} catch (Exception e) {
 				if (LOG.isDebugEnabled()) {
 					LOG.debug("Line numbers draw error", e);
@@ -137,6 +155,17 @@ public class LineNumbers extends JPanel implements CaretListener {
 				break;
 			}
 		}
+	}
+
+	private boolean updateColor(Graphics g, boolean newCurLine, boolean oldCurLine) {
+		if (oldCurLine != newCurLine) {
+			if (newCurLine) {
+				g.setColor(currentColor);
+			} else {
+				g.setColor(useSourceLines ? numberColor : normalNumColor);
+			}
+		}
+		return newCurLine;
 	}
 
 	private void applyRenderHints(Graphics g) {
@@ -152,62 +181,16 @@ public class LineNumbers extends JPanel implements CaretListener {
 		}
 	}
 
-	private boolean isCurrentLine(int rowStartOffset) {
-		int caretPosition = codeArea.getCaretPosition();
-		Element root = codeArea.getDocument().getDefaultRootElement();
-		return root.getElementIndex(rowStartOffset) == root.getElementIndex(caretPosition);
-	}
-
 	@Nullable
-	protected String getTextLineNumber(int rowStartOffset) {
-		Element root = codeArea.getDocument().getDefaultRootElement();
-		int index = root.getElementIndex(rowStartOffset);
-		Element line = root.getElement(index);
-		if (line.getStartOffset() != rowStartOffset) {
+	protected String getTextLineNumber(int lineNumber) {
+		if (!useSourceLines) {
+			return String.valueOf(lineNumber);
+		}
+		Integer sourceLine = codeArea.getSourceLine(lineNumber);
+		if (sourceLine == null) {
 			return null;
 		}
-		int lineNumber = index + 1;
-		if (useSourceLines) {
-			Integer sourceLine = codeArea.getSourceLine(lineNumber);
-			if (sourceLine == null) {
-				return null;
-			}
-			return String.valueOf(sourceLine);
-		}
-		return String.valueOf(lineNumber);
-	}
-
-	private int getOffsetY(int rowStartOffset, FontMetrics fontMetrics) throws BadLocationException {
-		Rectangle r = codeArea.modelToView(rowStartOffset);
-		if (r == null) {
-			throw new BadLocationException("Can't get Y offset", rowStartOffset);
-		}
-		int lineHeight = fontMetrics.getHeight();
-		int y = r.y + r.height;
-		int descent = 0;
-		if (r.height == lineHeight) {
-			descent = fontMetrics.getDescent();
-		} else {
-			if (fonts == null) {
-				fonts = new HashMap<>();
-			}
-			Element root = codeArea.getDocument().getDefaultRootElement();
-			int index = root.getElementIndex(rowStartOffset);
-			Element line = root.getElement(index);
-			for (int i = 0; i < line.getElementCount(); i++) {
-				Element child = line.getElement(i);
-				AttributeSet as = child.getAttributes();
-				String fontFamily = (String) as.getAttribute(StyleConstants.FontFamily);
-				Integer fontSize = (Integer) as.getAttribute(StyleConstants.FontSize);
-				String key = fontFamily + fontSize;
-				FontMetrics fm = fonts.computeIfAbsent(key, k -> {
-					Font font = new Font(fontFamily, Font.PLAIN, fontSize);
-					return codeArea.getFontMetrics(font);
-				});
-				descent = Math.max(descent, fm.getDescent());
-			}
-		}
-		return y - descent;
+		return String.valueOf(sourceLine);
 	}
 
 	@Override
