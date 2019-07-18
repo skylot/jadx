@@ -10,7 +10,6 @@ import javax.swing.event.PopupMenuListener;
 import org.fife.ui.rsyntaxtextarea.Token;
 
 import jadx.api.JavaNode;
-import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.ContentPanel;
 import jadx.gui.ui.MainWindow;
@@ -22,15 +21,13 @@ public final class FindUsageAction extends AbstractAction implements PopupMenuLi
 
 	private final transient ContentPanel contentPanel;
 	private final transient CodeArea codeArea;
-	private final transient JClass jCls;
 
 	private transient JavaNode node;
 
-	public FindUsageAction(ContentPanel contentPanel, CodeArea codeArea, JClass jCls) {
+	public FindUsageAction(ContentPanel contentPanel, CodeArea codeArea) {
 		super(NLS.str("popup.find_usage"));
 		this.contentPanel = contentPanel;
 		this.codeArea = codeArea;
-		this.jCls = jCls;
 	}
 
 	@Override
@@ -51,7 +48,7 @@ public final class FindUsageAction extends AbstractAction implements PopupMenuLi
 		if (pos != null) {
 			Token token = codeArea.viewToToken(pos);
 			if (token != null) {
-				node = codeArea.getJavaNodeAtOffset(jCls, token.getOffset());
+				node = codeArea.getJavaNodeAtOffset(token.getOffset());
 			}
 		}
 		setEnabled(node != null);

@@ -1,7 +1,6 @@
 package jadx.gui.treemodel;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +9,9 @@ import javax.swing.*;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import jadx.api.ICodeInfo;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceFileContent;
 import jadx.api.ResourceType;
@@ -44,8 +45,7 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 	private final transient ResourceFile resFile;
 
 	private transient boolean loaded;
-	private transient String content;
-	private transient Map<Integer, Integer> lineMapping = Collections.emptyMap();
+	private transient ICodeInfo content;
 
 	public JResource(ResourceFile resFile, String name, JResType type) {
 		this(resFile, name, name, type);
@@ -99,9 +99,18 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 	}
 
 	@Override
+	public @Nullable ICodeInfo getCodeInfo() {
+		getContent();
+		return content;
+	}
+
+	@Override
 	public synchronized String getContent() {
 		if (loaded) {
-			return content;
+			if (content == null) {
+				return null;
+			}
+			return content.getCodeStr();
 		}
 		if (resFile == null || type != JResType.FILE) {
 			return null;
@@ -111,6 +120,7 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 		}
 		ResContainer rc = resFile.loadContent();
 		if (rc == null) {
+			loaded = true;
 			return null;
 		}
 		if (rc.getDataType() == ResContainer.DataType.RES_TABLE) {
@@ -118,36 +128,35 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 			for (ResContainer subFile : rc.getSubFiles()) {
 				loadSubNodes(this, subFile, 1);
 			}
-			loaded = true;
-			return content;
+		} else {
+			// single node
+			content = loadCurrentSingleRes(rc);
 		}
-		// single node
-		return loadCurrentSingleRes(rc);
+		loaded = true;
+		return content.getCodeStr();
 	}
 
-	private String loadCurrentSingleRes(ResContainer rc) {
+	private ICodeInfo loadCurrentSingleRes(ResContainer rc) {
 		switch (rc.getDataType()) {
 			case TEXT:
 			case RES_TABLE:
-				CodeWriter cw = rc.getText();
-				lineMapping = cw.getLineMapping();
-				return cw.toString();
+				return rc.getText();
 
 			case RES_LINK:
 				try {
 					return ResourcesLoader.decodeStream(rc.getResLink(), (size, is) -> {
 						if (size > 10 * 1024 * 1024L) {
-							return "File too large for view";
+							return new CodeWriter("File too large for view");
 						}
-						return ResourcesLoader.loadToCodeWriter(is).toString();
+						return ResourcesLoader.loadToCodeWriter(is);
 					});
 				} catch (Exception e) {
-					return "Failed to load resource file: \n" + jadx.core.utils.Utils.getStackTrace(e);
+					return new CodeWriter("Failed to load resource file: \n" + jadx.core.utils.Utils.getStackTrace(e));
 				}
 
 			case DECODED_DATA:
 			default:
-				return "Unexpected resource type: " + rc;
+				return new CodeWriter("Unexpected resource type: " + rc);
 		}
 	}
 
@@ -190,14 +199,6 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 		JResource resDir = new JResource(null, dirName, JResType.DIR);
 		root.getFiles().add(resDir);
 		return resDir;
-	}
-
-	@Override
-	public Integer getSourceLine(int line) {
-		if (lineMapping == null) {
-			return null;
-		}
-		return lineMapping.get(line);
 	}
 
 	@Override
@@ -289,10 +290,6 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 
 	public ResourceFile getResFile() {
 		return resFile;
-	}
-
-	public Map<Integer, Integer> getLineMapping() {
-		return lineMapping;
 	}
 
 	@Override

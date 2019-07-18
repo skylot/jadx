@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
+import org.jetbrains.annotations.Nullable;
 import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.baksmali.BaksmaliOptions;
 import org.jf.dexlib2.DexFileFactory;
@@ -28,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import jadx.core.Jadx;
 import jadx.core.ProcessClass;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -388,6 +390,47 @@ public final class JadxDecompiler {
 			return fieldsMap.get(fld);
 		}
 		return null;
+	}
+
+	@Nullable
+	JavaNode convertNode(Object obj) {
+		if (!(obj instanceof LineAttrNode)) {
+			return null;
+		}
+		if (obj instanceof ClassNode) {
+			return getClassesMap().get(obj);
+		}
+		if (obj instanceof MethodNode) {
+			return getJavaMethodByNode(((MethodNode) obj));
+		}
+		if (obj instanceof FieldNode) {
+			return getJavaFieldByNode((FieldNode) obj);
+		}
+		return null;
+	}
+
+	@Nullable
+	public JavaNode getJavaNodeAtPosition(ICodeInfo codeInfo, int line, int offset) {
+		Map<CodePosition, Object> map = codeInfo.getAnnotations();
+		if (map.isEmpty()) {
+			return null;
+		}
+		Object obj = map.get(new CodePosition(line, offset));
+		if (obj == null) {
+			return null;
+		}
+		return convertNode(obj);
+	}
+
+	@Nullable
+	public CodePosition getDefinitionPosition(JavaNode javaNode) {
+		JavaClass jCls = javaNode.getTopParentClass();
+		jCls.decompile();
+		int defLine = javaNode.getDecompiledLine();
+		if (defLine == 0) {
+			return null;
+		}
+		return new CodePosition(jCls, defLine, 0);
 	}
 
 	public JadxArgs getArgs() {

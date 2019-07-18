@@ -20,6 +20,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.ICodeInfo;
+
 public class LineNumbers extends JPanel implements CaretListener {
 	private static final Logger LOG = LoggerFactory.getLogger(LineNumbers.class);
 
@@ -41,6 +43,7 @@ public class LineNumbers extends JPanel implements CaretListener {
 
 	private transient Insets textAreaInsets;
 	private transient Rectangle visibleRect = new Rectangle();
+	private transient ICodeInfo codeInfo;
 
 	public LineNumbers(AbstractCodeArea codeArea) {
 		this.codeArea = codeArea;
@@ -60,10 +63,8 @@ public class LineNumbers extends JPanel implements CaretListener {
 		addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if (e.getClickCount() == 2) {
-					useSourceLines = !useSourceLines;
-					repaint();
-				}
+				useSourceLines = !useSourceLines;
+				repaint();
 			}
 		});
 	}
@@ -96,6 +97,8 @@ public class LineNumbers extends JPanel implements CaretListener {
 
 	@Override
 	public void paintComponent(Graphics g) {
+		codeInfo = codeArea.getNode().getCodeInfo();
+
 		visibleRect = g.getClipBounds(visibleRect);
 		if (visibleRect == null) {
 			visibleRect = getVisibleRect();
@@ -131,8 +134,7 @@ public class LineNumbers extends JPanel implements CaretListener {
 		int y = actualTopY + ascent;
 		int endY = visibleRect.y + visibleRect.height + ascent;
 
-		Element rootElement = codeArea.getDocument().getDefaultRootElement();
-		int currentLine = 1 + rootElement.getElementIndex(codeArea.getCaretPosition());
+		int currentLine = 1 + codeArea.getCaretLineNumber();
 		int lineNum = topLine + 1;
 		int linesCount = codeArea.getLineCount();
 		boolean isCurLine = updateColor(g, false, true);
@@ -186,7 +188,7 @@ public class LineNumbers extends JPanel implements CaretListener {
 		if (!useSourceLines) {
 			return String.valueOf(lineNumber);
 		}
-		Integer sourceLine = codeArea.getSourceLine(lineNumber);
+		Integer sourceLine = codeInfo.getLineMapping().get(lineNumber);
 		if (sourceLine == null) {
 			return null;
 		}

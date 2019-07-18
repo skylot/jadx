@@ -152,7 +152,7 @@ public final class JavaClass implements JavaNode {
 			CodePosition codePosition = entry.getKey();
 			Object obj = entry.getValue();
 			if (obj instanceof LineAttrNode) {
-				JavaNode node = convertNode(obj);
+				JavaNode node = getRootDecompiler().convertNode(obj);
 				if (node != null) {
 					resultMap.put(codePosition, node);
 				}
@@ -162,44 +162,14 @@ public final class JavaClass implements JavaNode {
 	}
 
 	@Nullable
-	private JavaNode convertNode(Object obj) {
-		if (!(obj instanceof LineAttrNode)) {
-			return null;
-		}
-		if (obj instanceof ClassNode) {
-			return getRootDecompiler().getClassesMap().get(obj);
-		}
-		if (obj instanceof MethodNode) {
-			return getRootDecompiler().getJavaMethodByNode(((MethodNode) obj));
-		}
-		if (obj instanceof FieldNode) {
-			return getRootDecompiler().getJavaFieldByNode((FieldNode) obj);
-		}
-		return null;
-	}
-
-	@Nullable
 	public JavaNode getJavaNodeAtPosition(int line, int offset) {
-		Map<CodePosition, Object> map = getCodeAnnotations();
-		if (map.isEmpty()) {
-			return null;
-		}
-		Object obj = map.get(new CodePosition(line, offset));
-		if (obj == null) {
-			return null;
-		}
-		return convertNode(obj);
+		decompile();
+		return getRootDecompiler().getJavaNodeAtPosition(cls.getCode(), line, offset);
 	}
 
 	@Nullable
-	public CodePosition getDefinitionPosition(JavaNode javaNode) {
-		JavaClass jCls = javaNode.getTopParentClass();
-		jCls.decompile();
-		int defLine = javaNode.getDecompiledLine();
-		if (defLine == 0) {
-			return null;
-		}
-		return new CodePosition(jCls, defLine, 0);
+	public CodePosition getDefinitionPosition() {
+		return getRootDecompiler().getDefinitionPosition(this);
 	}
 
 	public Integer getSourceLine(int decompiledLine) {
@@ -250,6 +220,7 @@ public final class JavaClass implements JavaNode {
 		return methods;
 	}
 
+	@Override
 	public int getDecompiledLine() {
 		return cls.getDecompiledLine();
 	}

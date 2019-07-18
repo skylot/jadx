@@ -164,6 +164,20 @@ public class RootNode {
 		return resolveClass(clsInfo);
 	}
 
+	@Nullable
+	public ClassNode searchClassByFullAlias(String fullName) {
+		for (DexNode dexNode : dexNodes) {
+			for (ClassNode cls : dexNode.getClasses()) {
+				ClassInfo classInfo = cls.getClassInfo();
+				if (classInfo.getFullName().equals(fullName)
+						|| classInfo.getAliasFullName().equals(fullName)) {
+					return cls;
+				}
+			}
+		}
+		return null;
+	}
+
 	public List<ClassNode> searchClassByShortName(String shortName) {
 		List<ClassNode> list = new ArrayList<>();
 		for (DexNode dexNode : dexNodes) {

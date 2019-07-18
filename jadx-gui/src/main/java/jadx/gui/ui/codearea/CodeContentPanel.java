@@ -1,6 +1,6 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.BorderLayout;
+import java.awt.*;
 
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.TabbedPane;
@@ -13,7 +13,7 @@ public final class CodeContentPanel extends AbstractCodeContentPanel {
 	public CodeContentPanel(TabbedPane panel, JNode jnode) {
 		super(panel, jnode);
 		setLayout(new BorderLayout());
-		codePanel = new CodePanel(this, new CodeArea(this));
+		codePanel = new CodePanel(new CodeArea(this));
 		add(codePanel, BorderLayout.CENTER);
 		codePanel.load();
 	}

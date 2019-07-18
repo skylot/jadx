@@ -1,14 +1,17 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.Dimension;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
-import javax.swing.JViewport;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Caret;
+import javax.swing.text.DefaultCaret;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rtextarea.SearchContext;
+import org.fife.ui.rtextarea.SearchEngine;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,12 +33,41 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	public AbstractCodeArea(ContentPanel contentPanel) {
 		this.contentPanel = contentPanel;
 		this.node = contentPanel.getNode();
+
+		setMarkOccurrences(true);
+		setEditable(false);
+		setCodeFoldingEnabled(false);
+		loadSettings();
+
+		Caret caret = getCaret();
+		if (caret instanceof DefaultCaret) {
+			((DefaultCaret) caret).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+		}
+		caret.setVisible(true);
+
+		registerWordHighlighter();
 	}
 
 	/**
 	 * Implement in this method the code that loads and sets the content to be displayed
 	 */
 	public abstract void load();
+
+	public static RSyntaxTextArea getDefaultArea(MainWindow mainWindow) {
+		RSyntaxTextArea area = new RSyntaxTextArea();
+		area.setEditable(false);
+		area.setCodeFoldingEnabled(false);
+		loadCommonSettings(mainWindow, area);
+		return area;
+	}
+
+	public static void loadCommonSettings(MainWindow mainWindow, RSyntaxTextArea area) {
+		area.setAntiAliasingEnabled(true);
+		mainWindow.getEditorTheme().apply(area);
+
+		JadxSettings settings = mainWindow.getSettings();
+		area.setFont(settings.getFont());
+	}
 
 	public void loadSettings() {
 		loadCommonSettings(contentPanel.getTabbedPane().getMainWindow(), this);
@@ -85,6 +117,34 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		}
 	}
 
+	private void registerWordHighlighter() {
+		addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent evt) {
+				if (evt.getClickCount() % 2 == 0 && !evt.isConsumed()) {
+					evt.consume();
+					String str = getSelectedText();
+					if (str != null) {
+						highlightAllMatches(str);
+					}
+				} else {
+					highlightAllMatches(null);
+				}
+			}
+		});
+	}
+
+	/**
+	 * @param str - if null -> reset current highlights
+	 */
+	private void highlightAllMatches(@Nullable String str) {
+		SearchContext context = new SearchContext(str);
+		context.setMarkAll(true);
+		context.setMatchCase(true);
+		context.setWholeWord(true);
+		SearchEngine.markAll(this, context);
+	}
+
 	public JumpPosition getCurrentPosition() {
 		return new JumpPosition(node, getCaretLineNumber() + 1);
 	}
@@ -100,13 +160,5 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 
 	public JNode getNode() {
 		return node;
-	}
-
-	public static void loadCommonSettings(MainWindow mainWindow, RSyntaxTextArea area) {
-		area.setAntiAliasingEnabled(true);
-		mainWindow.getEditorTheme().apply(area);
-
-		JadxSettings settings = mainWindow.getSettings();
-		area.setFont(settings.getFont());
 	}
 }

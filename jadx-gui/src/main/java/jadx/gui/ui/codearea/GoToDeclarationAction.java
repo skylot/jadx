@@ -49,7 +49,7 @@ public final class GoToDeclarationAction extends AbstractAction implements Popup
 		if (pos != null) {
 			Token token = codeArea.viewToToken(pos);
 			if (token != null) {
-				node = codeArea.getJavaNodeAtOffset(jCls, token.getOffset());
+				node = codeArea.getJavaNodeAtOffset(token.getOffset());
 			}
 		}
 		setEnabled(node != null);

@@ -1,12 +1,6 @@
 package jadx.gui.ui;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.DisplayMode;
-import java.awt.Font;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
+import java.awt.*;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
@@ -29,27 +23,7 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.Box;
-import javax.swing.ImageIcon;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JToggleButton;
-import javax.swing.JToolBar;
-import javax.swing.JTree;
-import javax.swing.ProgressMonitor;
-import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.event.TreeExpansionEvent;
@@ -518,7 +492,7 @@ public class MainWindow extends JFrame {
 				if (resFile != null && JResource.isSupportedForView(resFile.getType())) {
 					tabbedPane.showResource(res);
 				}
-			} else if ((obj instanceof JCertificate) || (obj instanceof ApkSignature)) {
+			} else if (obj instanceof JCertificate || obj instanceof ApkSignature) {
 				tabbedPane.showSimpleNode((JNode) obj);
 			} else if (obj instanceof JNode) {
 				JNode node = (JNode) obj;
@@ -533,10 +507,13 @@ public class MainWindow extends JFrame {
 	}
 
 	private void treeRightClickAction(MouseEvent e) {
-		Object obj = tree.getLastSelectedPathComponent();
-		if (obj instanceof JPackage) {
-			JPackagePopUp menu = new JPackagePopUp((JPackage) obj);
-			menu.show(e.getComponent(), e.getX(), e.getY());
+		TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+		if (path != null) {
+			Object obj = path.getLastPathComponent();
+			if (obj instanceof JPackage) {
+				JPackagePopUp menu = new JPackagePopUp((JPackage) obj);
+				menu.show(e.getComponent(), e.getX(), e.getY());
+			}
 		}
 	}
 

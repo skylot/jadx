@@ -3,7 +3,9 @@ package jadx.gui.treemodel;
 import javax.swing.*;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.jetbrains.annotations.Nullable;
 
+import jadx.api.ICodeInfo;
 import jadx.api.JavaClass;
 import jadx.api.JavaField;
 import jadx.api.JavaMethod;
@@ -77,6 +79,12 @@ public class JClass extends JLoadableNode {
 	}
 
 	@Override
+	public @Nullable ICodeInfo getCodeInfo() {
+		load();
+		return cls.getClassNode().getCode();
+	}
+
+	@Override
 	public String getContent() {
 		return cls.getCode();
 	}
@@ -145,11 +153,6 @@ public class JClass extends JLoadableNode {
 	@Override
 	public int getLine() {
 		return cls.getDecompiledLine();
-	}
-
-	@Override
-	public Integer getSourceLine(int line) {
-		return cls.getSourceLine(line);
 	}
 
 	@Override

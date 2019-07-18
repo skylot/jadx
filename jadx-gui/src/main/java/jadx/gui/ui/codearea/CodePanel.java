@@ -3,14 +3,14 @@ package jadx.gui.ui.codearea;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 
-import org.fife.ui.rtextarea.RTextScrollPane;
-
-import jadx.gui.treemodel.JNode;
-import jadx.gui.treemodel.JResource;
-import jadx.gui.ui.ContentPanel;
+import jadx.api.ICodeInfo;
 import jadx.gui.utils.UiUtils;
 
 /**
@@ -21,14 +21,15 @@ public class CodePanel extends JPanel {
 
 	private final SearchBar searchBar;
 	private final AbstractCodeArea codeArea;
-	private final RTextScrollPane codeScrollPane;
+	private final JScrollPane codeScrollPane;
 
-	public CodePanel(ContentPanel contentPanel, AbstractCodeArea codeArea) {
+	public CodePanel(AbstractCodeArea codeArea) {
 		this.codeArea = codeArea;
 		searchBar = new SearchBar(codeArea);
-		codeScrollPane = new RTextScrollPane(codeArea, false);
+		codeScrollPane = new JScrollPane(codeArea);
 
 		setLayout(new BorderLayout());
+		setBorder(new EmptyBorder(0, 0, 0, 0));
 		add(searchBar, BorderLayout.NORTH);
 		add(codeScrollPane, BorderLayout.CENTER);
 
@@ -60,12 +61,19 @@ public class CodePanel extends JPanel {
 	}
 
 	private boolean isUseSourceLines() {
-		JNode node = codeArea.getNode();
-		if (node instanceof JResource) {
-			JResource resNode = (JResource) node;
-			return !resNode.getLineMapping().isEmpty();
+		if (codeArea instanceof SmaliArea) {
+			return false;
 		}
-		return false;
+		ICodeInfo codeInfo = codeArea.getNode().getCodeInfo();
+		if (codeInfo == null) {
+			return false;
+		}
+		Map<Integer, Integer> lineMapping = codeInfo.getLineMapping();
+		if (lineMapping.isEmpty()) {
+			return false;
+		}
+		Set<Integer> uniqueSourceLines = new HashSet<>(lineMapping.values());
+		return uniqueSourceLines.size() > 3;
 	}
 
 	public SearchBar getSearchBar() {

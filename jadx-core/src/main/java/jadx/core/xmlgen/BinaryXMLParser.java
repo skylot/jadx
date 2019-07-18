@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ResourcesLoader;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.info.ConstStorage;
+import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -32,7 +33,6 @@ import jadx.core.xmlgen.entry.ValuesParser;
  * Check Element chunk size
  */
 
-@SuppressWarnings("unused")
 public class BinaryXMLParser extends CommonBinaryParser {
 
 	private static final Logger LOG = LoggerFactory.getLogger(BinaryXMLParser.class);
@@ -306,6 +306,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			if (isDeobfCandidateAttr(shortNsName, attrName)) {
 				decodedAttr = deobfClassName(decodedAttr);
 			}
+			attachClassNode(writer, attrName, decodedAttr);
 			writer.add(StringUtils.escapeXML(decodedAttr));
 		} else {
 			decodeAttribute(attributeNS, attrValDataType, attrValData,
@@ -401,6 +402,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			if (isDeobfCandidateAttr(shortNsName, attrName)) {
 				str = deobfClassName(str);
 			}
+			attachClassNode(writer, attrName, str);
 			writer.add(str != null ? StringUtils.escapeXML(str) : "null");
 		}
 	}
@@ -459,9 +461,24 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		return sb.toString();
 	}
 
+	private void attachClassNode(CodeWriter writer, String attrName, String clsName) {
+		if (clsName == null || !attrName.equals("name")) {
+			return;
+		}
+		String clsFullName;
+		if (clsName.startsWith(".")) {
+			clsFullName = appPackageName + clsName;
+		} else {
+			clsFullName = clsName;
+		}
+		ClassNode classNode = rootNode.searchClassByFullAlias(clsFullName);
+		if (classNode != null) {
+			writer.attachAnnotation(classNode);
+		}
+	}
+
 	private String deobfClassName(String className) {
-		String newName = XmlDeobf.deobfClassName(rootNode, className,
-				appPackageName);
+		String newName = XmlDeobf.deobfClassName(rootNode, className, appPackageName);
 		if (newName != null) {
 			return newName;
 		}

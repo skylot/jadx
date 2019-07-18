@@ -3,6 +3,8 @@ package jadx.core.xmlgen;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
@@ -17,9 +19,8 @@ public class XmlDeobf {
 	private XmlDeobf() {
 	}
 
-	public static String deobfClassName(RootNode rootNode, String potencialClassName,
-			String packageName) {
-
+	@Nullable
+	public static String deobfClassName(RootNode rootNode, String potencialClassName, String packageName) {
 		if (packageName != null && potencialClassName.startsWith(".")) {
 			potencialClassName = packageName + potencialClassName;
 		}

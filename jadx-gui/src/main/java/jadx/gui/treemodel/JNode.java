@@ -4,7 +4,10 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.jetbrains.annotations.Nullable;
 
+import jadx.api.ICodeInfo;
+import jadx.api.JadxDecompiler;
 import jadx.api.JavaNode;
 
 public abstract class JNode extends DefaultMutableTreeNode {
@@ -40,8 +43,26 @@ public abstract class JNode extends DefaultMutableTreeNode {
 		return 0;
 	}
 
-	public Integer getSourceLine(int line) {
+	@Nullable
+	public ICodeInfo getCodeInfo() {
 		return null;
+	}
+
+	public final Integer getSourceLine(int line) {
+		ICodeInfo codeInfo = getCodeInfo();
+		if (codeInfo == null) {
+			return null;
+		}
+		return codeInfo.getLineMapping().get(line);
+	}
+
+	@Nullable
+	public JavaNode getJavaNodeAtPosition(JadxDecompiler decompiler, int line, int offset) {
+		ICodeInfo codeInfo = getCodeInfo();
+		if (codeInfo == null) {
+			return null;
+		}
+		return decompiler.getJavaNodeAtPosition(codeInfo, line, offset);
 	}
 
 	public abstract Icon getIcon();

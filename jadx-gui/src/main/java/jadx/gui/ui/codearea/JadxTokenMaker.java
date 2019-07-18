@@ -13,17 +13,14 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
-import jadx.gui.treemodel.JClass;
 
 public final class JadxTokenMaker extends JavaTokenMaker {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxTokenMaker.class);
 
 	private final CodeArea codeArea;
-	private final JClass jCls;
 
-	public JadxTokenMaker(CodeArea codeArea, JClass jCls) {
+	public JadxTokenMaker(CodeArea codeArea) {
 		this.codeArea = codeArea;
-		this.jCls = jCls;
 	}
 
 	@Override
@@ -62,7 +59,7 @@ public final class JadxTokenMaker extends JavaTokenMaker {
 		if (annotation) {
 			offset++;
 		}
-		JavaNode javaNode = codeArea.getJavaNodeAtOffset(jCls, offset);
+		JavaNode javaNode = codeArea.getJavaNodeAtOffset(offset);
 		if (javaNode instanceof JavaClass) {
 			String name = javaNode.getName();
 			String lexeme = current.getLexeme();

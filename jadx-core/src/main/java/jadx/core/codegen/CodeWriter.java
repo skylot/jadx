@@ -12,12 +12,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.CodePosition;
+import jadx.api.ICodeInfo;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.files.FileUtils;
 import jadx.core.utils.files.ZipSecurity;
 
-public class CodeWriter {
+public class CodeWriter implements ICodeInfo {
 	private static final Logger LOG = LoggerFactory.getLogger(CodeWriter.class);
 
 	public static final String NL = System.getProperty("line.separator");
@@ -242,6 +243,7 @@ public class CodeWriter {
 		return annotations.put(pos, obj);
 	}
 
+	@Override
 	public Map<CodePosition, Object> getAnnotations() {
 		return annotations;
 	}
@@ -260,6 +262,7 @@ public class CodeWriter {
 		lineMap.put(decompiledLine, sourceLine);
 	}
 
+	@Override
 	public Map<Integer, Integer> getLineMapping() {
 		return lineMap;
 	}
@@ -293,7 +296,11 @@ public class CodeWriter {
 		return buf.length();
 	}
 
+	@Override
 	public String getCodeStr() {
+		if (code == null) {
+			throw new NullPointerException("Code not set");
+		}
 		return code;
 	}
 

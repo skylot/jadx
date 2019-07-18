@@ -1,8 +1,9 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.BorderLayout;
+import java.awt.*;
 
-import javax.swing.JTabbedPane;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.TabbedPane;
@@ -19,18 +20,22 @@ import jadx.gui.utils.NLS;
 public final class ClassCodeContentPanel extends AbstractCodeContentPanel {
 	private static final long serialVersionUID = -7229931102504634591L;
 
-	private final CodePanel javaCodePanel;
-	private final CodePanel smaliCodePanel;
-	private JTabbedPane areaTabbedPane = new JTabbedPane(JTabbedPane.BOTTOM);
+	private final transient CodePanel javaCodePanel;
+	private final transient CodePanel smaliCodePanel;
+	// private final transient JTabbedPane areaTabbedPane;
 
 	public ClassCodeContentPanel(TabbedPane panel, JNode jnode) {
 		super(panel, jnode);
 
-		javaCodePanel = new CodePanel(this, new CodeArea(this));
-		smaliCodePanel = new CodePanel(this, new SmaliArea(this));
+		javaCodePanel = new CodePanel(new CodeArea(this));
+		smaliCodePanel = new CodePanel(new SmaliArea(this));
 
 		setLayout(new BorderLayout());
+		setBorder(new EmptyBorder(0, 0, 0, 0));
 
+		JTabbedPane areaTabbedPane = new JTabbedPane(JTabbedPane.BOTTOM);
+		areaTabbedPane.setBorder(new EmptyBorder(0, 0, 0, 0));
+		areaTabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 		areaTabbedPane.add(javaCodePanel, NLS.str("tabs.code"));
 		areaTabbedPane.add(smaliCodePanel, NLS.str("tabs.smali"));
 		add(areaTabbedPane);

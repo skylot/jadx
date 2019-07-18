@@ -16,7 +16,7 @@ import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.ResContainer;
 import jadx.gui.treemodel.JResource;
-import jadx.gui.ui.codearea.CodeArea;
+import jadx.gui.ui.codearea.AbstractCodeArea;
 
 public class ImagePanel extends ContentPanel {
 	private static final long serialVersionUID = 4071356367073142688L;
@@ -29,7 +29,7 @@ public class ImagePanel extends ContentPanel {
 			ImageViewer imageViewer = new ImageViewer(img);
 			add(imageViewer.getComponent());
 		} catch (Exception e) {
-			RSyntaxTextArea textArea = CodeArea.getDefaultArea(panel.getMainWindow());
+			RSyntaxTextArea textArea = AbstractCodeArea.getDefaultArea(panel.getMainWindow());
 			textArea.setText("Image load error: \n" + Utils.getStackTrace(e));
 			add(textArea);
 		}

@@ -164,10 +164,8 @@ public final class ResourcesLoader {
 	}
 
 	public static CodeWriter loadToCodeWriter(InputStream is) throws IOException {
-		CodeWriter cw = new CodeWriter();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream(READ_BUFFER_SIZE);
 		copyStream(is, baos);
-		cw.add(baos.toString("UTF-8"));
-		return cw;
+		return new CodeWriter(baos.toString("UTF-8"));
 	}
 }

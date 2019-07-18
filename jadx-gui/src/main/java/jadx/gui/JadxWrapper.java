@@ -131,6 +131,10 @@ public class JadxWrapper {
 		return openFile;
 	}
 
+	public JadxDecompiler getDecompiler() {
+		return decompiler;
+	}
+
 	public JadxArgs getArgs() {
 		return decompiler.getArgs();
 	}

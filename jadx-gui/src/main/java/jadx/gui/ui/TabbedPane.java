@@ -42,7 +42,7 @@ public class TabbedPane extends JTabbedPane {
 
 	private final transient MainWindow mainWindow;
 	private final transient Map<JNode, ContentPanel> openTabs = new LinkedHashMap<>();
-	private transient JumpManager jumps = new JumpManager();
+	private final transient JumpManager jumps = new JumpManager();
 
 	TabbedPane(MainWindow window) {
 		this.mainWindow = window;
@@ -216,7 +216,7 @@ public class TabbedPane extends JTabbedPane {
 		button.setBorderPainted(false);
 		button.addActionListener(e -> closeCodePanel(contentPanel));
 
-		panel.addMouseListener(new MouseAdapter() {
+		MouseAdapter clickAdapter = new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (SwingUtilities.isMiddleMouseButton(e)) {
@@ -228,7 +228,9 @@ public class TabbedPane extends JTabbedPane {
 					setSelectedComponent(contentPanel);
 				}
 			}
-		});
+		};
+		panel.addMouseListener(clickAdapter);
+		label.addMouseListener(clickAdapter);
 
 		panel.add(label);
 		panel.add(button);
