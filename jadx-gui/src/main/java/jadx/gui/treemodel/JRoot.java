@@ -42,11 +42,6 @@ public class JRoot extends JNode {
 		if (signature != null) {
 			add(signature);
 		}
-
-		JCertificate certificate = getCertificate(wrapper.getResources());
-		if (certificate != null) {
-			add(certificate);
-		}
 	}
 
 	private List<JResource> getHierarchyResources(List<ResourceFile> resources) {
@@ -80,22 +75,6 @@ public class JRoot extends JNode {
 			}
 		}
 		return Collections.singletonList(root);
-	}
-
-	private JCertificate getCertificate(List<ResourceFile> resources) {
-		if (resources.isEmpty()) {
-			return null;
-		}
-		for (ResourceFile rf : resources) {
-
-			if (rf.getZipRef() != null) {
-				String rfName = rf.getName().toUpperCase();
-				if (rfName.endsWith(".DSA") || rfName.endsWith(".RSA")) {
-					return new JCertificate(rf);
-				}
-			}
-		}
-		return null;
 	}
 
 	private JResource getResourceByName(JResource rf, String name) {

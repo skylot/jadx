@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.gui.treemodel.ApkSignature;
-import jadx.gui.treemodel.JCertificate;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
@@ -177,9 +176,6 @@ public class TabbedPane extends JTabbedPane {
 		}
 		if (node instanceof ApkSignature) {
 			return new HtmlPanel(this, node);
-		}
-		if (node instanceof JCertificate) {
-			return new CertificatePanel(this, node);
 		}
 		return new ClassCodeContentPanel(this, node);
 	}
