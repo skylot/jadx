@@ -253,10 +253,6 @@ public class TernaryMod implements IRegionIterativeVisitor {
 	}
 
 	private static void replaceWithTernary(MethodNode mth, IfRegion ifRegion, BlockNode block, InsnNode insn) {
-		BlockNode header = ifRegion.getConditionBlocks().get(0);
-		if (!ifRegion.getParent().replaceSubBlock(ifRegion, header)) {
-			return;
-		}
 		RegisterArg resArg = insn.getResult();
 		if (resArg.getSVar().getUseList().size() != 1) {
 			return;
@@ -277,6 +273,10 @@ public class TernaryMod implements IRegionIterativeVisitor {
 		}
 
 		// all checks passed
+		BlockNode header = ifRegion.getConditionBlocks().get(0);
+		if (!ifRegion.getParent().replaceSubBlock(ifRegion, header)) {
+			return;
+		}
 		InsnList.remove(block, insn);
 		TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(),
 				phiInsn.getResult(), InsnArg.wrapInsnIntoArg(insn), otherArg);
