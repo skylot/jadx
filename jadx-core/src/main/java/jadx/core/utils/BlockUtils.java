@@ -574,6 +574,14 @@ public class BlockUtils {
 		return insns;
 	}
 
+	public static boolean isFirstInsn(MethodNode mth, InsnNode insn) {
+		BlockNode enterBlock = mth.getEnterBlock();
+		if (enterBlock == null || enterBlock.getInstructions().isEmpty()) {
+			return false;
+		}
+		return enterBlock.getInstructions().get(0) == insn;
+	}
+
 	/**
 	 * Replace insn by index i in block,
 	 * for proper copy attributes, assume attributes are not overlap

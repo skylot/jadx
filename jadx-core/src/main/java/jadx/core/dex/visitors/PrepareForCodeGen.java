@@ -1,9 +1,16 @@
 package jadx.core.dex.visitors;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+
+import org.jetbrains.annotations.Nullable;
 
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
 import jadx.core.dex.instructions.InsnType;
@@ -13,16 +20,16 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
-import jadx.core.dex.nodes.IBlock;
-import jadx.core.dex.nodes.IRegion;
+import jadx.core.dex.nodes.InsnContainer;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.dex.regions.conditions.IfCondition.Mode;
-import jadx.core.dex.visitors.regions.AbstractRegionVisitor;
-import jadx.core.dex.visitors.regions.DepthRegionTraversal;
 import jadx.core.dex.visitors.regions.variables.ProcessVariables;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
+import jadx.core.utils.BlockUtils;
+import jadx.core.utils.InsnList;
 import jadx.core.utils.exceptions.JadxException;
 
 /**
@@ -52,7 +59,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 			removeParenthesis(block);
 			modifyArith(block);
 		}
-		commentOutInsnsInConstructor(mth);
+		moveConstructorInConstructor(mth);
 	}
 
 	private static void removeInstructions(BlockNode block) {
@@ -179,15 +186,52 @@ public class PrepareForCodeGen extends AbstractVisitor {
 		}
 	}
 
-	private void commentOutInsnsInConstructor(MethodNode mth) {
+	/**
+	 * Check that 'super' or 'this' call in constructor is a first instruction.
+	 * Otherwise move to top and add a warning if code breaks.
+	 */
+	private void moveConstructorInConstructor(MethodNode mth) {
 		if (mth.isConstructor()) {
 			ConstructorInsn constrInsn = searchConstructorCall(mth);
 			if (constrInsn != null && !constrInsn.contains(AFlag.DONT_GENERATE)) {
-				DepthRegionTraversal.traverse(mth, new ConstructorRegionVisitor(constrInsn));
+				Region oldRootRegion = mth.getRegion();
+				boolean firstInsn = BlockUtils.isFirstInsn(mth, constrInsn);
+				DeclareVariablesAttr declVarsAttr = oldRootRegion.get(AType.DECLARE_VARIABLES);
+				if (firstInsn && declVarsAttr == null) {
+					// move not needed
+					return;
+				}
+
+				// move constructor instruction to new root region
+				String callType = constrInsn.getCallType().toString().toLowerCase();
+				BlockNode blockByInsn = BlockUtils.getBlockByInsn(mth, constrInsn);
+				if (blockByInsn == null) {
+					mth.addWarn("Failed to move " + callType + " instruction to top");
+					return;
+				}
+				InsnList.remove(blockByInsn, constrInsn);
+
+				Region region = new Region(null);
+				region.add(new InsnContainer(Collections.singletonList(constrInsn)));
+				region.add(oldRootRegion);
+				mth.setRegion(region);
+
+				if (!firstInsn) {
+					Set<RegisterArg> regArgs = new HashSet<>();
+					constrInsn.getRegisterArgs(regArgs);
+					regArgs.remove(mth.getThisArg());
+					regArgs.removeAll(mth.getArguments(false));
+					if (!regArgs.isEmpty()) {
+						mth.addWarn("Illegal instructions before constructor call");
+					} else {
+						mth.addComment("JADX INFO: " + callType + " call moved to the top of the method (can break code semantics)");
+					}
+				}
 			}
 		}
 	}
 
+	@Nullable
 	private ConstructorInsn searchConstructorCall(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			for (InsnNode insn : block.getInstructions()) {
@@ -201,73 +245,5 @@ public class PrepareForCodeGen extends AbstractVisitor {
 			}
 		}
 		return null;
-	}
-
-	private static final class ConstructorRegionVisitor extends AbstractRegionVisitor {
-		private final ConstructorInsn constrInsn;
-		private int regionDepth;
-		private boolean found;
-		private boolean brokenCode;
-		private int commentedCount;
-
-		public ConstructorRegionVisitor(ConstructorInsn constrInsn) {
-			this.constrInsn = constrInsn;
-		}
-
-		@Override
-		public boolean enterRegion(MethodNode mth, IRegion region) {
-			if (found) {
-				return false;
-			}
-			regionDepth++;
-			return true;
-		}
-
-		@Override
-		public void leaveRegion(MethodNode mth, IRegion region) {
-			if (!found) {
-				regionDepth--;
-				region.add(AFlag.COMMENT_OUT);
-				commentedCount++;
-			}
-		}
-
-		@Override
-		public void processBlock(MethodNode mth, IBlock container) {
-			if (found) {
-				return;
-			}
-			for (InsnNode insn : container.getInstructions()) {
-				if (insn == constrInsn) {
-					found = true;
-					addMethodMsg(mth);
-					break;
-				}
-				insn.add(AFlag.COMMENT_OUT);
-				commentedCount++;
-				if (!brokenCode) {
-					RegisterArg resArg = insn.getResult();
-					if (resArg != null) {
-						for (RegisterArg arg : resArg.getSVar().getUseList()) {
-							if (arg.getParentInsn() == constrInsn) {
-								brokenCode = true;
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
-
-		private void addMethodMsg(MethodNode mth) {
-			if (commentedCount > 0) {
-				String msg = "Illegal instructions before constructor call commented (this can break semantics)";
-				if (brokenCode || regionDepth > 1) {
-					mth.addWarn(msg);
-				} else {
-					mth.addComment("JADX WARN: " + msg);
-				}
-			}
-		}
 	}
 }

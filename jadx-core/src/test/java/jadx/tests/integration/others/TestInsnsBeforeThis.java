@@ -35,6 +35,6 @@ public class TestInsnsBeforeThis extends SmaliTest {
 		ClassNode cls = getClassNodeFromSmali();
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("// checkNull(str);"));
+		assertThat(code, containsOne("checkNull(str);"));
 	}
 }

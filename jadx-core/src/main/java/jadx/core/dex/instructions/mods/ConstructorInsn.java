@@ -15,7 +15,7 @@ public class ConstructorInsn extends InsnNode implements CallMthInterface {
 	private final CallType callType;
 	private final RegisterArg instanceArg;
 
-	private enum CallType {
+	public enum CallType {
 		CONSTRUCTOR, // just new instance
 		SUPER, // super call
 		THIS, // call constructor from other constructor

@@ -37,6 +37,6 @@ public class TestInsnsBeforeSuper extends SmaliTest {
 		ClassNode cls = getClassNodeFromSmaliFiles("B");
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("// checkNull(str);"));
+		assertThat(code, containsOne("checkNull(str);"));
 	}
 }
