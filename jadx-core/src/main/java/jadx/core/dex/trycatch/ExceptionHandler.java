@@ -32,6 +32,8 @@ public class ExceptionHandler {
 	private TryCatchBlock tryBlock;
 	private boolean isFinally;
 
+	private boolean removed = false;
+
 	public ExceptionHandler(int addr, @Nullable ClassInfo type) {
 		this.handleOffset = addr;
 		addCatchType(type);
@@ -136,6 +138,14 @@ public class ExceptionHandler {
 
 	public void setFinally(boolean isFinally) {
 		this.isFinally = isFinally;
+	}
+
+	public boolean isRemoved() {
+		return removed;
+	}
+
+	public void markForRemove() {
+		this.removed = true;
 	}
 
 	@Override

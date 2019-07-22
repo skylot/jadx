@@ -43,9 +43,12 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 			return;
 		}
 		try {
+			mth.clearExceptionHandlers();
+
 			for (ExceptionHandler excHandler : mth.getExceptionHandlers()) {
 				processExceptionHandler(mth, excHandler);
 			}
+			mth.clearExceptionHandlers();
 		} catch (Exception e) {
 			LOG.warn("Undo finally extract visitor, mth: {}", mth, e);
 			try {

@@ -52,6 +52,17 @@ public class TryCatchBlock {
 		return addedHandler;
 	}
 
+	/**
+	 * Use only before BlockSplitter
+	 */
+	public void removeSameHandlers(TryCatchBlock outerTry) {
+		for (ExceptionHandler handler : outerTry.getHandlers()) {
+			if (handlers.remove(handler)) {
+				handler.setTryBlock(outerTry);
+			}
+		}
+	}
+
 	public void removeHandler(MethodNode mth, ExceptionHandler handler) {
 		for (Iterator<ExceptionHandler> it = handlers.iterator(); it.hasNext();) {
 			ExceptionHandler h = it.next();
@@ -78,9 +89,14 @@ public class TryCatchBlock {
 			}
 			SplitterBlockAttr splitter = handler.getHandlerBlock().get(AType.SPLITTER_BLOCK);
 			if (splitter != null) {
-				splitter.getBlock().remove(AType.SPLITTER_BLOCK);
+				BlockNode splitterBlock = splitter.getBlock();
+				splitterBlock.remove(AType.SPLITTER_BLOCK);
+				for (BlockNode successor : splitterBlock.getSuccessors()) {
+					successor.remove(AType.SPLITTER_BLOCK);
+				}
 			}
 		}
+		handler.markForRemove();
 	}
 
 	private void removeWholeBlock(MethodNode mth) {

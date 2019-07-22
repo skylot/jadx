@@ -69,6 +69,16 @@ public class FileUtils {
 		}
 	}
 
+	public static boolean deleteDir(File dir) {
+		File[] content = dir.listFiles();
+		if (content != null) {
+			for (File file : content) {
+				deleteDir(file);
+			}
+		}
+		return dir.delete();
+	}
+
 	private static final Path TEMP_ROOT_DIR = createTempRootDir();
 
 	private static Path createTempRootDir() {

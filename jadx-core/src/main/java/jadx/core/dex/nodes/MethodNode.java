@@ -303,13 +303,11 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 			// resolve nested try blocks:
 			// inner block contains all handlers from outer block => remove these handlers from inner block
 			// each handler must be only in one try/catch block
-			for (TryCatchBlock ct1 : catches) {
-				for (TryCatchBlock ct2 : catches) {
-					if (ct1 != ct2 && ct2.containsAllHandlers(ct1)) {
-						for (ExceptionHandler h : ct1.getHandlers()) {
-							ct2.removeHandler(mth, h);
-							h.setTryBlock(ct1);
-						}
+			for (TryCatchBlock outerTry : catches) {
+				for (TryCatchBlock innerTry : catches) {
+					if (outerTry != innerTry
+							&& innerTry.containsAllHandlers(outerTry)) {
+						innerTry.removeSameHandlers(outerTry);
 					}
 				}
 			}
@@ -520,6 +518,10 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		}
 		exceptionHandlers.add(handler);
 		return handler;
+	}
+
+	public boolean clearExceptionHandlers() {
+		return exceptionHandlers.removeIf(ExceptionHandler::isRemoved);
 	}
 
 	public Iterable<ExceptionHandler> getExceptionHandlers() {
