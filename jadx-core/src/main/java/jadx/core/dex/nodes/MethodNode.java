@@ -88,6 +88,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	@Override
 	public void unload() {
+		regsCount = -1;
 		if (noCode) {
 			return;
 		}
@@ -106,6 +107,10 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	@Override
 	public void load() throws DecodeException {
+		if (regsCount != -1) {
+			// method already loaded
+			return;
+		}
 		try {
 			if (noCode) {
 				regsCount = 0;
