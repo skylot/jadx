@@ -5,8 +5,9 @@ public enum ResourceType {
 	MANIFEST("AndroidManifest.xml"),
 	XML(".xml"),
 	ARSC(".arsc"),
-	FONT(".ttf"),
+	FONT(".ttf", ".otf"),
 	IMG(".png", ".gif", ".jpg"),
+	MEDIA(".mp3", ".wav"),
 	LIB(".so"),
 	UNKNOWN;
 
@@ -23,7 +24,7 @@ public enum ResourceType {
 	public static ResourceType getFileType(String fileName) {
 		for (ResourceType type : ResourceType.values()) {
 			for (String ext : type.getExts()) {
-				if (fileName.endsWith(ext)) {
+				if (fileName.toLowerCase().endsWith(ext)) {
 					return type;
 				}
 			}
