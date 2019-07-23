@@ -55,8 +55,7 @@ public class RegisterArg extends InsnArg implements Named {
 		if (sVar != null) {
 			return sVar.getTypeInfo().getType();
 		}
-		LOG.warn("Register type unknown, SSA variable not initialized: r{}", regNum);
-		return type;
+		return ArgType.UNKNOWN;
 	}
 
 	public ArgType getInitType() {

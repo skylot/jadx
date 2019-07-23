@@ -40,6 +40,10 @@ public class ConstInlineVisitor extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
+		process(mth);
+	}
+
+	public static void process(MethodNode mth) {
 		List<InsnNode> toRemove = new ArrayList<>();
 		for (BlockNode block : mth.getBasicBlocks()) {
 			toRemove.clear();
@@ -175,17 +179,19 @@ public class ConstInlineVisitor extends AbstractVisitor {
 
 		if (constArg.isLiteral()) {
 			long literal = ((LiteralArg) constArg).getLiteral();
-			ArgType argType = arg.getInitType();
+			ArgType argType = arg.getType();
+			if (argType == ArgType.UNKNOWN) {
+				argType = arg.getInitType();
+			}
 			if (argType.isObject() && literal != 0) {
 				argType = ArgType.NARROW_NUMBERS;
 			}
 			LiteralArg litArg = InsnArg.lit(literal, argType);
+			litArg.copyAttributesFrom(constArg);
 			if (!useInsn.replaceArg(arg, litArg)) {
 				return false;
 			}
 			// arg replaced, made some optimizations
-			litArg.setType(arg.getInitType());
-
 			FieldNode fieldNode = null;
 			ArgType litArgType = litArg.getType();
 			if (litArgType.isTypeKnown()) {

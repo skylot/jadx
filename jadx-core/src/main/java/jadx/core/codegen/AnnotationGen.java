@@ -147,7 +147,7 @@ public class AnnotationGen {
 		if (val instanceof String) {
 			code.add(getStringUtils().unescapeString((String) val));
 		} else if (val instanceof Integer) {
-			code.add(TypeGen.formatInteger((Integer) val));
+			code.add(TypeGen.formatInteger((Integer) val, false));
 		} else if (val instanceof Character) {
 			code.add(getStringUtils().unescapeChar((Character) val));
 		} else if (val instanceof Boolean) {
@@ -157,11 +157,11 @@ public class AnnotationGen {
 		} else if (val instanceof Double) {
 			code.add(TypeGen.formatDouble((Double) val));
 		} else if (val instanceof Long) {
-			code.add(TypeGen.formatLong((Long) val));
+			code.add(TypeGen.formatLong((Long) val, false));
 		} else if (val instanceof Short) {
-			code.add(TypeGen.formatShort((Short) val));
+			code.add(TypeGen.formatShort((Short) val, false));
 		} else if (val instanceof Byte) {
-			code.add(TypeGen.formatByte((Byte) val));
+			code.add(TypeGen.formatByte((Byte) val, false));
 		} else if (val instanceof ArgType) {
 			classGen.useType(code, (ArgType) val);
 			code.add(".class");

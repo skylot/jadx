@@ -14,6 +14,7 @@ import jadx.api.JadxArgs;
 import jadx.core.dex.visitors.ClassModifier;
 import jadx.core.dex.visitors.ConstInlineVisitor;
 import jadx.core.dex.visitors.ConstructorVisitor;
+import jadx.core.dex.visitors.DeboxingVisitor;
 import jadx.core.dex.visitors.DependencyCollector;
 import jadx.core.dex.visitors.DotGraphVisitor;
 import jadx.core.dex.visitors.EnumVisitor;
@@ -87,6 +88,7 @@ public class Jadx {
 				passes.add(new DebugInfoApplyVisitor());
 			}
 
+			passes.add(new DeboxingVisitor());
 			passes.add(new ModVisitor());
 			passes.add(new CodeShrinkVisitor());
 			passes.add(new ReSugarCode());

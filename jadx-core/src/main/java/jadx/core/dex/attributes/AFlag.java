@@ -53,5 +53,10 @@ public enum AFlag {
 
 	EXPLICIT_GENERICS,
 
+	/**
+	 * Use constants with explicit type: cast '(byte) 1' or type letter '7L'
+	 */
+	EXPLICIT_PRIMITIVE_TYPE,
+
 	INCONSISTENT_CODE, // warning about incorrect decompilation
 }

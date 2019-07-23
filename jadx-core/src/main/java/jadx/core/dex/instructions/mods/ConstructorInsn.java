@@ -63,6 +63,7 @@ public class ConstructorInsn extends InsnNode implements CallMthInterface {
 		return callMth;
 	}
 
+	@Override
 	public RegisterArg getInstanceArg() {
 		return instanceArg;
 	}

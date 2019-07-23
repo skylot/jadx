@@ -1,10 +1,13 @@
 package jadx.core.dex.instructions;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.android.dx.io.instructions.DecodedInstruction;
 
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.Utils;
@@ -49,6 +52,18 @@ public class InvokeNode extends InsnNode implements CallMthInterface {
 	@Override
 	public MethodInfo getCallMth() {
 		return mth;
+	}
+
+	@Override
+	@Nullable
+	public RegisterArg getInstanceArg() {
+		if (type != InvokeType.STATIC && getArgsCount() > 0) {
+			InsnArg firstArg = getArg(0);
+			if (firstArg.isRegister()) {
+				return ((RegisterArg) firstArg);
+			}
+		}
+		return null;
 	}
 
 	@Override

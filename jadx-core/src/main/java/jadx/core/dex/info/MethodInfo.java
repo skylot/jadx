@@ -35,13 +35,12 @@ public final class MethodInfo {
 
 	private MethodInfo(ClassInfo declClass, String name, List<ArgType> args, ArgType retType) {
 		this.name = name;
-		alias = name;
-		aliasFromPreset = false;
+		this.alias = name;
+		this.aliasFromPreset = false;
 		this.declClass = declClass;
-
 		this.args = args;
 		this.retType = retType;
-		shortId = makeSignature(true);
+		this.shortId = makeSignature(true);
 	}
 
 	public static MethodInfo externalMth(ClassInfo declClass, String name, List<ArgType> args, ArgType retType) {

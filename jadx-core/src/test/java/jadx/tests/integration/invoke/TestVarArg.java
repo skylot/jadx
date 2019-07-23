@@ -37,7 +37,7 @@ public class TestVarArg extends IntegrationTest {
 		assertThat(code, containsString("void test2(int i, Object... a) {"));
 
 		assertThat(code, containsString("test1(1, 2);"));
-		assertThat(code, containsString("test2(3, \"1\", Integer.valueOf(7));"));
+		assertThat(code, containsString("test2(3, \"1\", 7);"));
 
 		// negative case
 		assertThat(code, containsString("void test3(int[] a) {"));

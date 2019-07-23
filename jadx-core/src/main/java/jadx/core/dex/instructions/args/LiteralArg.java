@@ -77,7 +77,7 @@ public final class LiteralArg extends InsnArg {
 	@Override
 	public String toString() {
 		try {
-			String value = TypeGen.literalToString(literal, getType(), DEF_STRING_UTILS, true);
+			String value = TypeGen.literalToString(literal, getType(), DEF_STRING_UTILS, true, false);
 			if (getType().equals(ArgType.BOOLEAN) && (value.equals("true") || value.equals("false"))) {
 				return value;
 			}

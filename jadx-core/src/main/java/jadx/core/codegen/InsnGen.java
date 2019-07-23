@@ -132,7 +132,7 @@ public class InsnGen {
 	}
 
 	private String lit(LiteralArg arg) {
-		return TypeGen.literalToString(arg.getLiteral(), arg.getType(), mth, fallback);
+		return TypeGen.literalToString(arg, mth, fallback);
 	}
 
 	private void instanceField(CodeWriter code, FieldInfo field, InsnArg arg) throws CodegenException {

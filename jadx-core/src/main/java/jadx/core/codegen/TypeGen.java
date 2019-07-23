@@ -4,7 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.deobf.NameMapper;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.nodes.IDexNode;
 import jadx.core.utils.StringUtils;
@@ -29,15 +31,25 @@ public class TypeGen {
 	}
 
 	/**
+	 * Convert literal arg to string (preferred method)
+	 */
+	public static String literalToString(LiteralArg arg, IDexNode dexNode, boolean fallback) {
+		return literalToString(arg.getLiteral(), arg.getType(),
+				dexNode.root().getStringUtils(),
+				fallback,
+				arg.contains(AFlag.EXPLICIT_PRIMITIVE_TYPE));
+	}
+
+	/**
 	 * Convert literal value to string according to value type
 	 *
 	 * @throws JadxRuntimeException for incorrect type or literal value
 	 */
 	public static String literalToString(long lit, ArgType type, IDexNode dexNode, boolean fallback) {
-		return literalToString(lit, type, dexNode.root().getStringUtils(), fallback);
+		return literalToString(lit, type, dexNode.root().getStringUtils(), fallback, false);
 	}
 
-	public static String literalToString(long lit, ArgType type, StringUtils stringUtils, boolean fallback) {
+	public static String literalToString(long lit, ArgType type, StringUtils stringUtils, boolean fallback, boolean cast) {
 		if (type == null || !type.isTypeKnown()) {
 			String n = Long.toString(lit);
 			if (fallback && Math.abs(lit) > 100) {
@@ -65,13 +77,13 @@ public class TypeGen {
 				}
 				return stringUtils.unescapeChar(ch);
 			case BYTE:
-				return formatByte(lit);
+				return formatByte(lit, cast);
 			case SHORT:
-				return formatShort(lit);
+				return formatShort(lit, cast);
 			case INT:
-				return formatInteger(lit);
+				return formatInteger(lit, cast);
 			case LONG:
-				return formatLong(lit);
+				return formatLong(lit, cast);
 			case FLOAT:
 				return formatFloat(Float.intBitsToFloat((int) lit));
 			case DOUBLE:
@@ -90,37 +102,40 @@ public class TypeGen {
 		}
 	}
 
-	public static String formatShort(long l) {
+	public static String formatShort(long l, boolean cast) {
 		if (l == Short.MAX_VALUE) {
 			return "Short.MAX_VALUE";
 		}
 		if (l == Short.MIN_VALUE) {
 			return "Short.MIN_VALUE";
 		}
-		return Long.toString(l);
+		String str = Long.toString(l);
+		return cast ? "(short) " + str : str;
 	}
 
-	public static String formatByte(long l) {
+	public static String formatByte(long l, boolean cast) {
 		if (l == Byte.MAX_VALUE) {
 			return "Byte.MAX_VALUE";
 		}
 		if (l == Byte.MIN_VALUE) {
 			return "Byte.MIN_VALUE";
 		}
-		return Long.toString(l);
+		String str = Long.toString(l);
+		return cast ? "(byte) " + str : str;
 	}
 
-	public static String formatInteger(long l) {
+	public static String formatInteger(long l, boolean cast) {
 		if (l == Integer.MAX_VALUE) {
 			return "Integer.MAX_VALUE";
 		}
 		if (l == Integer.MIN_VALUE) {
 			return "Integer.MIN_VALUE";
 		}
-		return Long.toString(l);
+		String str = Long.toString(l);
+		return cast ? "(int) " + str : str;
 	}
 
-	public static String formatLong(long l) {
+	public static String formatLong(long l, boolean cast) {
 		if (l == Long.MAX_VALUE) {
 			return "Long.MAX_VALUE";
 		}
@@ -128,8 +143,8 @@ public class TypeGen {
 			return "Long.MIN_VALUE";
 		}
 		String str = Long.toString(l);
-		if (Math.abs(l) >= Integer.MAX_VALUE) {
-			str += 'L';
+		if (cast || Math.abs(l) >= Integer.MAX_VALUE) {
+			return str + 'L';
 		}
 		return str;
 	}
