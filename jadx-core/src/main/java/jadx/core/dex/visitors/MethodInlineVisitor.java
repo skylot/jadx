@@ -1,5 +1,6 @@
 package jadx.core.dex.visitors;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.android.dx.rop.code.AccessFlags;
@@ -93,7 +94,14 @@ public class MethodInlineVisitor extends AbstractVisitor {
 			if (Consts.DEBUG) {
 				mth.addAttr(AType.COMMENTS, "Removed for inline");
 			} else {
-				mth.addAttr(new MethodInlineAttr(insn));
+				InsnNode copy = insn.copy();
+				// unbind SSA variables from copy instruction
+				List<RegisterArg> regArgs = new ArrayList<>();
+				copy.getRegisterArgs(regArgs);
+				for (RegisterArg regArg : regArgs) {
+					copy.replaceArg(regArg, regArg.duplicate(regArg.getRegNum(), null));
+				}
+				mth.addAttr(new MethodInlineAttr(copy));
 				mth.add(AFlag.DONT_GENERATE);
 			}
 		}

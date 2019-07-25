@@ -330,7 +330,7 @@ public class InsnNode extends LineAttrNode {
 					InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
 					copy.addArg(InsnArg.wrapArg(wrapInsn.copy()));
 				} else {
-					copy.addArg(arg);
+					copy.addArg(arg.duplicate());
 				}
 			}
 		}

@@ -165,11 +165,12 @@ public class MethodGen {
 				code.add("final ");
 			}
 			ArgType argType;
-			if (var.getType() == ArgType.UNKNOWN) {
+			ArgType varType = var.getType();
+			if (varType == null || varType == ArgType.UNKNOWN) {
 				// occur on decompilation errors
 				argType = mthArg.getInitType();
 			} else {
-				argType = var.getType();
+				argType = varType;
 			}
 			if (!it.hasNext() && mth.getAccessFlags().isVarArgs()) {
 				// change last array argument to varargs

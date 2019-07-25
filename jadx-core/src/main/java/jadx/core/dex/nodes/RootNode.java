@@ -27,7 +27,6 @@ import jadx.core.utils.CacheStorage;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.android.AndroidResourcesUtils;
-import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.DexFile;
 import jadx.core.utils.files.InputFile;
@@ -232,14 +231,6 @@ public class RootNode {
 		MethodNode methodNode = deepResolveMethod(callMth);
 		if (methodNode != null) {
 			ArgType returnType = methodNode.getReturnType();
-			if (returnType == null) {
-				try {
-					methodNode.load();
-					returnType = methodNode.getReturnType();
-				} catch (DecodeException e) {
-					LOG.error("Method load error", e);
-				}
-			}
 			if (returnType != null && (returnType.isGeneric() || returnType.isGenericType())) {
 				return returnType;
 			}

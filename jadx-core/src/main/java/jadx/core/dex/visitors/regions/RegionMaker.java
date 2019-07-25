@@ -43,6 +43,7 @@ import jadx.core.utils.BlockUtils;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.RegionUtils;
+import jadx.core.utils.exceptions.JadxOverflowException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.visitors.regions.IfMakerHelper.confirmMerge;
@@ -86,7 +87,7 @@ public class RegionMaker {
 			next = traverse(r, next, stack);
 			regionsCount++;
 			if (regionsCount > regionsLimit) {
-				throw new JadxRuntimeException("Regions count limit reached");
+				throw new JadxOverflowException("Regions count limit reached");
 			}
 		}
 		return r;

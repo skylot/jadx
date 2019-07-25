@@ -602,7 +602,7 @@ public class InsnGen {
 			code.add("new ");
 			useClass(code, insn.getClassType());
 			ArgType argType = insn.getResult().getSVar().getCodeVar().getType();
-			if (argType.isGeneric()) {
+			if (argType != null && argType.isGeneric()) {
 				code.add('<');
 				if (insn.contains(AFlag.EXPLICIT_GENERICS)) {
 					boolean first = true;
