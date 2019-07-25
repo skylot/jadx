@@ -16,8 +16,9 @@ import com.android.dex.ClassData.Method;
 import com.android.dex.ClassDef;
 import com.android.dex.Dex;
 
+import jadx.api.ICodeInfo;
 import jadx.core.Consts;
-import jadx.core.codegen.CodeWriter;
+import jadx.core.ProcessClass;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.annotations.Annotation;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
@@ -36,6 +37,7 @@ import jadx.core.dex.nodes.parser.StaticValuesParser;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
+import static jadx.core.dex.nodes.ProcessState.LOADED;
 import static jadx.core.dex.nodes.ProcessState.UNLOADED;
 
 public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
@@ -53,13 +55,13 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	private List<ClassNode> innerClasses = new ArrayList<>();
 
 	// store decompiled code
-	private CodeWriter code;
+	private ICodeInfo code;
 	// store smali
 	private String smali;
 	// store parent for inner classes or 'this' otherwise
 	private ClassNode parentClass;
 
-	private ProcessState state = ProcessState.NOT_LOADED;
+	private volatile ProcessState state = ProcessState.NOT_LOADED;
 	private List<ClassNode> dependencies = Collections.emptyList();
 
 	// cache maps
@@ -234,12 +236,26 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 					&& fileName.endsWith('$' + name)) {
 				return;
 			}
-			ClassInfo parentClass = clsInfo.getTopParentClass();
-			if (parentClass != null && fileName.equals(parentClass.getShortName())) {
+			ClassInfo parentCls = clsInfo.getTopParentClass();
+			if (parentCls != null && fileName.equals(parentCls.getShortName())) {
 				return;
 			}
 		}
 		this.addAttr(new SourceFileAttr(fileName));
+	}
+
+	public void loadAndProcess() {
+		ProcessClass.process(this);
+	}
+
+	public ICodeInfo decompile() {
+		if (code != null) {
+			return code;
+		}
+		ICodeInfo codeInfo = ProcessClass.generateCode(this);
+		// TODO: don't store code in class node
+		setCode(codeInfo);
+		return codeInfo;
 	}
 
 	@Override
@@ -254,6 +270,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		for (ClassNode innerCls : getInnerClasses()) {
 			innerCls.load();
 		}
+		setState(LOADED);
 	}
 
 	@Override
@@ -471,11 +488,11 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return clsInfo.getAliasPkg();
 	}
 
-	public void setCode(CodeWriter code) {
+	public void setCode(ICodeInfo code) {
 		this.code = code;
 	}
 
-	public CodeWriter getCode() {
+	public ICodeInfo getCode() {
 		return code;
 	}
 

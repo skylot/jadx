@@ -12,6 +12,7 @@ import jadx.api.JadxArgs;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.api.ResourcesLoader;
+import jadx.core.Jadx;
 import jadx.core.clsp.ClspGraph;
 import jadx.core.clsp.NMethod;
 import jadx.core.dex.info.ClassInfo;
@@ -20,6 +21,7 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.InfoStorage;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.typeinference.TypeUpdate;
 import jadx.core.utils.CacheStorage;
 import jadx.core.utils.ErrorsCounter;
@@ -35,8 +37,10 @@ import jadx.core.xmlgen.ResourceStorage;
 public class RootNode {
 	private static final Logger LOG = LoggerFactory.getLogger(RootNode.class);
 
-	private final ErrorsCounter errorsCounter = new ErrorsCounter();
 	private final JadxArgs args;
+	private final List<IDexTreeVisitor> passes;
+
+	private final ErrorsCounter errorsCounter = new ErrorsCounter();
 	private final StringUtils stringUtils;
 	private final ConstStorage constValues;
 	private final InfoStorage infoStorage = new InfoStorage();
@@ -52,6 +56,7 @@ public class RootNode {
 
 	public RootNode(JadxArgs args) {
 		this.args = args;
+		this.passes = Jadx.getPassesList(args);
 		this.stringUtils = new StringUtils(args);
 		this.constValues = new ConstStorage(args);
 		this.typeUpdate = new TypeUpdate(this);
@@ -206,6 +211,20 @@ public class RootNode {
 			return null;
 		}
 		return cls.dex().deepResolveField(cls, field);
+	}
+
+	public List<IDexTreeVisitor> getPasses() {
+		return passes;
+	}
+
+	public void initPasses() {
+		for (IDexTreeVisitor pass : passes) {
+			try {
+				pass.init(this);
+			} catch (Exception e) {
+				LOG.error("Visitor init failed: {}", pass.getClass().getSimpleName(), e);
+			}
+		}
 	}
 
 	@Nullable

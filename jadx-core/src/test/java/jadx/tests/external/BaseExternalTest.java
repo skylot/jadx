@@ -2,7 +2,6 @@ package jadx.tests.external;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -15,12 +14,10 @@ import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
 import jadx.api.JavaClass;
-import jadx.core.ProcessClass;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.tests.api.IntegrationTest;
 
@@ -68,13 +65,12 @@ public abstract class BaseExternalTest extends IntegrationTest {
 	}
 
 	private void processByPatterns(JadxDecompiler jadx, String clsPattern, @Nullable String mthPattern) {
-		List<IDexTreeVisitor> passes = JadxInternalAccess.getPassList(jadx);
 		RootNode root = JadxInternalAccess.getRoot(jadx);
 		int processed = 0;
 		for (ClassNode classNode : root.getClasses(true)) {
 			String clsFullName = classNode.getClassInfo().getFullName();
 			if (clsFullName.equals(clsPattern)) {
-				if (processCls(mthPattern, passes, classNode)) {
+				if (processCls(mthPattern, classNode)) {
 					processed++;
 				}
 			}
@@ -82,7 +78,7 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		assertThat("No classes processed", processed, greaterThan(0));
 	}
 
-	private boolean processCls(@Nullable String mthPattern, List<IDexTreeVisitor> passes, ClassNode classNode) {
+	private boolean processCls(@Nullable String mthPattern, ClassNode classNode) {
 		classNode.load();
 		boolean decompile = false;
 		if (mthPattern == null) {
@@ -99,7 +95,7 @@ public abstract class BaseExternalTest extends IntegrationTest {
 			return false;
 		}
 		try {
-			ProcessClass.process(classNode, passes, true);
+			classNode.decompile();
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Class process failed", e);
 		}

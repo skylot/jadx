@@ -2,6 +2,7 @@ package jadx.core.dex.visitors;
 
 import java.io.File;
 
+import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.AFlag;
@@ -17,12 +18,19 @@ public class SaveCode {
 		if (cls.contains(AFlag.DONT_GENERATE)) {
 			return;
 		}
-		CodeWriter clsCode = cls.getCode();
-		if (clsCode == null) {
+		ICodeInfo code = cls.getCode();
+		if (code == null) {
 			throw new JadxRuntimeException("Code not generated for class " + cls.getFullName());
 		}
-		if (clsCode == CodeWriter.EMPTY) {
+		if (code == CodeWriter.EMPTY) {
 			return;
+		}
+		CodeWriter clsCode;
+		if (code instanceof CodeWriter) {
+			clsCode = (CodeWriter) code;
+		} else {
+			// TODO: move 'save' method from CodeWriter
+			clsCode = new CodeWriter(code.getCodeStr());
 		}
 		String fileName = cls.getClassInfo().getAliasFullPath() + getFileExtension(cls);
 		clsCode.save(dir, fileName);

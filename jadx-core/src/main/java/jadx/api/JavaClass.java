@@ -9,7 +9,6 @@ import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.info.AccessInfo;
@@ -43,7 +42,7 @@ public final class JavaClass implements JavaNode {
 	}
 
 	public String getCode() {
-		CodeWriter code = cls.getCode();
+		ICodeInfo code = cls.getCode();
 		if (code == null) {
 			decompile();
 			code = cls.getCode();
@@ -59,7 +58,7 @@ public final class JavaClass implements JavaNode {
 			return;
 		}
 		if (cls.getCode() == null) {
-			decompiler.processClass(cls);
+			cls.decompile();
 			load();
 		}
 	}
@@ -135,7 +134,7 @@ public final class JavaClass implements JavaNode {
 
 	private Map<CodePosition, Object> getCodeAnnotations() {
 		decompile();
-		CodeWriter code = cls.getCode();
+		ICodeInfo code = cls.getCode();
 		if (code == null) {
 			return Collections.emptyMap();
 		}

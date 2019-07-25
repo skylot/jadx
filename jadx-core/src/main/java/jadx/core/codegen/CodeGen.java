@@ -2,6 +2,7 @@ package jadx.core.codegen;
 
 import java.util.concurrent.Callable;
 
+import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
 import jadx.core.codegen.json.JsonCodeGen;
 import jadx.core.dex.attributes.AFlag;
@@ -10,33 +11,32 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class CodeGen {
 
-	public static void generate(ClassNode cls) {
+	public static ICodeInfo generate(ClassNode cls) {
 		if (cls.contains(AFlag.DONT_GENERATE)) {
-			cls.setCode(CodeWriter.EMPTY);
-		} else {
-			JadxArgs args = cls.root().getArgs();
-			switch (args.getOutputFormat()) {
-				case JAVA:
-					generateJavaCode(cls, args);
-					break;
+			return CodeWriter.EMPTY;
+		}
+		JadxArgs args = cls.root().getArgs();
+		switch (args.getOutputFormat()) {
+			case JAVA:
+				return generateJavaCode(cls, args);
 
-				case JSON:
-					generateJson(cls);
-					break;
-			}
+			case JSON:
+				return generateJson(cls);
+
+			default:
+				throw new JadxRuntimeException("Unknown output format");
 		}
 	}
 
-	private static void generateJavaCode(ClassNode cls, JadxArgs args) {
+	private static ICodeInfo generateJavaCode(ClassNode cls, JadxArgs args) {
 		ClassGen clsGen = new ClassGen(cls, args);
-		CodeWriter code = wrapCodeGen(cls, clsGen::makeClass);
-		cls.setCode(code);
+		return wrapCodeGen(cls, clsGen::makeClass);
 	}
 
-	private static void generateJson(ClassNode cls) {
+	private static ICodeInfo generateJson(ClassNode cls) {
 		JsonCodeGen codeGen = new JsonCodeGen(cls);
 		String clsJson = wrapCodeGen(cls, codeGen::process);
-		cls.setCode(new CodeWriter(clsJson));
+		return new CodeWriter(clsJson);
 	}
 
 	private static <R> R wrapCodeGen(ClassNode cls, Callable<R> codeGenFunc) {

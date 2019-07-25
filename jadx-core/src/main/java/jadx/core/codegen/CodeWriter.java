@@ -24,8 +24,6 @@ public class CodeWriter implements ICodeInfo {
 	public static final String NL = System.getProperty("line.separator");
 	public static final String INDENT_STR = "    ";
 
-	public static final CodeWriter EMPTY = new CodeWriter().finish();
-
 	private static final boolean ADD_LINE_NUMBERS = false;
 
 	private static final String[] INDENT_CACHE = {
@@ -36,6 +34,8 @@ public class CodeWriter implements ICodeInfo {
 			INDENT_STR + INDENT_STR + INDENT_STR + INDENT_STR,
 			INDENT_STR + INDENT_STR + INDENT_STR + INDENT_STR + INDENT_STR,
 	};
+
+	public static final CodeWriter EMPTY = new CodeWriter().finish();
 
 	private StringBuilder buf;
 	@Nullable
@@ -53,7 +53,8 @@ public class CodeWriter implements ICodeInfo {
 		this.indent = 0;
 		this.indentStr = "";
 		if (ADD_LINE_NUMBERS) {
-			incIndent(2);
+			incIndent(3);
+			add(indentStr);
 		}
 	}
 

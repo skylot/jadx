@@ -140,7 +140,7 @@ public class DebugUtils {
 				}
 			}
 		}
-		checkPHI(mth);
+		// checkPHI(mth);
 	}
 
 	private static void checkSSAVar(MethodNode mth, InsnNode insn, RegisterArg reg) {

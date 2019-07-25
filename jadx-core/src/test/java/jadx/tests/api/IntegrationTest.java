@@ -22,11 +22,12 @@ import java.util.jar.JarOutputStream;
 
 import org.junit.jupiter.api.BeforeEach;
 
+import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
-import jadx.core.ProcessClass;
 import jadx.core.codegen.CodeGen;
+import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrList;
@@ -34,8 +35,6 @@ import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.dex.visitors.DepthTraversal;
-import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.files.FileUtils;
 import jadx.core.xmlgen.ResourceStorage;
 import jadx.core.xmlgen.entry.ResourceEntry;
@@ -44,6 +43,8 @@ import jadx.tests.api.compiler.StaticCompiler;
 import jadx.tests.api.utils.TestUtils;
 
 import static jadx.core.utils.files.FileUtils.addFileToJar;
+import static org.apache.commons.lang3.StringUtils.leftPad;
+import static org.apache.commons.lang3.StringUtils.rightPad;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
@@ -82,6 +83,7 @@ public abstract class IntegrationTest extends TestUtils {
 	protected Map<Integer, String> resMap = Collections.emptyMap();
 
 	private boolean allowWarnInCode;
+	private boolean printLineNumbers;
 
 	private DynamicCompiler dynamicCompiler;
 
@@ -161,20 +163,40 @@ public abstract class IntegrationTest extends TestUtils {
 
 	protected void decompileAndCheck(JadxDecompiler d, List<ClassNode> clsList) {
 		if (unloadCls) {
-			clsList.forEach(cls -> decompile(d, cls));
+			clsList.forEach(cls -> cls.decompile());
 		} else {
 			clsList.forEach(cls -> decompileWithoutUnload(d, cls));
 		}
 
 		for (ClassNode cls : clsList) {
 			System.out.println("-----------------------------------------------------------");
-			System.out.println(cls.getCode());
+			if (printLineNumbers) {
+				printCodeWithLineNumbers(cls.getCode());
+			} else {
+				System.out.println(cls.getCode());
+			}
 		}
 		System.out.println("-----------------------------------------------------------");
 
 		clsList.forEach(this::checkCode);
 		compile(clsList);
 		clsList.forEach(this::runAutoCheck);
+	}
+
+	private void printCodeWithLineNumbers(ICodeInfo code) {
+		String codeStr = code.getCodeStr();
+		Map<Integer, Integer> lineMapping = code.getLineMapping();
+		String[] lines = codeStr.split(CodeWriter.NL);
+		for (int i = 0; i < lines.length; i++) {
+			String line = lines[i];
+			int curLine = i + 1;
+			String lineNumStr = "/* " + leftPad(String.valueOf(curLine), 3) + " */";
+			Integer sourceLine = lineMapping.get(curLine);
+			if (sourceLine != null) {
+				lineNumStr += " /* " + sourceLine + " */";
+			}
+			System.out.println(rightPad(lineNumStr, 20) + line);
+		}
 	}
 
 	private void insertResources(RootNode root) {
@@ -191,23 +213,15 @@ public abstract class IntegrationTest extends TestUtils {
 		root.processResources(resStorage);
 	}
 
-	protected void decompile(JadxDecompiler jadx, ClassNode cls) {
-		List<IDexTreeVisitor> passes = JadxInternalAccess.getPassList(jadx);
-		ProcessClass.process(cls, passes, true);
-	}
-
 	protected void decompileWithoutUnload(JadxDecompiler jadx, ClassNode cls) {
-		cls.load();
-		for (IDexTreeVisitor visitor : JadxInternalAccess.getPassList(jadx)) {
-			DepthTraversal.visit(visitor, cls);
-		}
+		cls.loadAndProcess();
 		generateClsCode(cls);
 		// don't unload class
 	}
 
 	protected void generateClsCode(ClassNode cls) {
 		try {
-			CodeGen.generate(cls);
+			cls.setCode(CodeGen.generate(cls));
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -450,6 +464,10 @@ public abstract class IntegrationTest extends TestUtils {
 
 	protected void allowWarnInCode() {
 		allowWarnInCode = true;
+	}
+
+	protected void printLineNumbers() {
+		printLineNumbers = true;
 	}
 
 	// Use only for debug purpose

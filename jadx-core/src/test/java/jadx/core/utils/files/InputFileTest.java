@@ -14,7 +14,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 
-class InputFileTest {
+public class InputFileTest {
 	private static final String TEST_SAMPLES_DIR = "test-samples/";
 
 	@Test
@@ -28,7 +28,7 @@ class InputFileTest {
 		assertThat(inputFile.getDexFiles(), hasSize(1));
 	}
 
-	private static File getFileFromSampleDir(String fileName) {
+	public static File getFileFromSampleDir(String fileName) {
 		URL resource = InputFileTest.class.getClassLoader().getResource(TEST_SAMPLES_DIR + fileName);
 		assertThat(resource, notNullValue());
 		String pathStr = resource.getFile();

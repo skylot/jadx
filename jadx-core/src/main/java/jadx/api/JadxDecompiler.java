@@ -27,14 +27,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.Jadx;
-import jadx.core.ProcessClass;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.SaveCode;
 import jadx.core.export.ExportGradleProject;
 import jadx.core.utils.Utils;
@@ -72,12 +70,9 @@ public final class JadxDecompiler {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxDecompiler.class);
 
 	private JadxArgs args;
-
-	private final List<InputFile> inputFiles = new ArrayList<>();
+	private List<InputFile> inputFiles;
 
 	private RootNode root;
-	private List<IDexTreeVisitor> passes;
-
 	private List<JavaClass> classes;
 	private List<ResourceFile> resources;
 
@@ -98,48 +93,45 @@ public final class JadxDecompiler {
 	public void load() {
 		reset();
 		JadxArgsValidator.validate(args);
-		init();
 		LOG.info("loading ...");
 
-		loadFiles(args.getInputFiles());
+		inputFiles = loadFiles(args.getInputFiles());
 
 		root = new RootNode(args);
 		root.load(inputFiles);
-
 		root.initClassPath();
 		root.loadResources(getResources());
-
-		initVisitors();
+		root.initPasses();
 	}
 
-	void init() {
-		this.passes = Jadx.getPassesList(args);
-	}
-
-	void reset() {
+	private void reset() {
+		root = null;
 		classes = null;
 		resources = null;
 		xmlParser = null;
-		root = null;
-		passes = null;
+
+		classesMap.clear();
+		methodsMap.clear();
+		fieldsMap.clear();
 	}
 
 	public static String getVersion() {
 		return Jadx.getVersion();
 	}
 
-	private void loadFiles(List<File> files) {
+	private List<InputFile> loadFiles(List<File> files) {
 		if (files.isEmpty()) {
 			throw new JadxRuntimeException("Empty file list");
 		}
-		inputFiles.clear();
+		List<InputFile> filesList = new ArrayList<>();
 		for (File file : files) {
 			try {
-				InputFile.addFilesFrom(file, inputFiles, args.isSkipSources());
+				InputFile.addFilesFrom(file, filesList, args.isSkipSources());
 			} catch (Exception e) {
 				throw new JadxRuntimeException("Error load file: " + file, e);
 			}
 		}
+		return filesList;
 	}
 
 	public void save() {
@@ -299,20 +291,6 @@ public final class JadxDecompiler {
 		root.getErrorsCounter().printReport();
 	}
 
-	private void initVisitors() {
-		for (IDexTreeVisitor pass : passes) {
-			try {
-				pass.init(root);
-			} catch (Exception e) {
-				LOG.error("Visitor init failed: {}", pass.getClass().getSimpleName(), e);
-			}
-		}
-	}
-
-	void processClass(ClassNode cls) {
-		ProcessClass.process(cls, passes, true);
-	}
-
 	void generateSmali(ClassNode cls) {
 		Path path = cls.dex().getDexFile().getPath();
 		String className = Utils.makeQualifiedObjectName(cls.getClassInfo().getType().getObject());
@@ -339,10 +317,6 @@ public final class JadxDecompiler {
 
 	RootNode getRoot() {
 		return root;
-	}
-
-	List<IDexTreeVisitor> getPasses() {
-		return passes;
 	}
 
 	synchronized BinaryXMLParser getXmlParser() {

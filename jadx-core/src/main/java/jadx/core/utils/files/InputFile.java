@@ -139,10 +139,10 @@ public class InputFile {
 						Files.copy(inputStream, jarFile, StandardCopyOption.REPLACE_EXISTING);
 						InputFile tempFile = new InputFile(jarFile.toFile());
 						tempFile.loadFromZip(ext);
-						List<DexFile> dexFiles = tempFile.getDexFiles();
-						if (!dexFiles.isEmpty()) {
-							index += dexFiles.size();
-							this.dexFiles.addAll(dexFiles);
+						List<DexFile> files = tempFile.getDexFiles();
+						if (!files.isEmpty()) {
+							index += files.size();
+							this.dexFiles.addAll(files);
 						}
 					}
 				}

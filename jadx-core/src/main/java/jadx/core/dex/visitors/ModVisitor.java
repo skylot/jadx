@@ -275,6 +275,7 @@ public class ModVisitor extends AbstractVisitor {
 		if (!mth.getParentClass().getInnerClasses().contains(classNode)) {
 			return;
 		}
+		classNode.loadAndProcess();
 		Map<InsnArg, FieldNode> argsMap = getArgsToFieldsMapping(callMthNode, co);
 		if (argsMap.isEmpty() && !callMthNode.getArguments(true).isEmpty()) {
 			return;
