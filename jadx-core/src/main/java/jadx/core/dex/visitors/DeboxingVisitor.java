@@ -14,6 +14,7 @@ import jadx.core.dex.instructions.InvokeType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -90,14 +91,16 @@ public class DeboxingVisitor extends AbstractVisitor {
 		if (valueOfMths.contains(callMth)) {
 			RegisterArg resArg = insnNode.getResult();
 			InsnArg arg = insnNode.getArg(0);
-			if (arg.isLiteral() && checkArgUsage(resArg)) {
+			if (arg.isLiteral()) {
 				ArgType primitiveType = callMth.getArgumentsTypes().get(0);
 				ArgType boxType = callMth.getReturnType();
 				if (isNeedExplicitCast(resArg, primitiveType, boxType)) {
 					arg.add(AFlag.EXPLICIT_PRIMITIVE_TYPE);
 				}
-				resArg.setType(primitiveType);
 				arg.setType(primitiveType);
+				if (canChangeTypeToPrimitive(resArg)) {
+					resArg.setType(primitiveType);
+				}
 
 				InsnNode constInsn = new InsnNode(InsnType.CONST, 1);
 				constInsn.addArg(arg);
@@ -122,16 +125,22 @@ public class DeboxingVisitor extends AbstractVisitor {
 		return false;
 	}
 
-	private boolean checkArgUsage(RegisterArg arg) {
-		for (RegisterArg useArg : arg.getSVar().getUseList()) {
-			InsnNode parentInsn = useArg.getParentInsn();
-			if (parentInsn == null) {
+	private boolean canChangeTypeToPrimitive(RegisterArg arg) {
+		for (SSAVar ssaVar : arg.getSVar().getCodeVar().getSsaVars()) {
+			RegisterArg assignArg = ssaVar.getAssign();
+			if (assignArg.contains(AFlag.IMMUTABLE_TYPE)) {
 				return false;
 			}
-			if (parentInsn.getType() == InsnType.INVOKE) {
-				InvokeNode invokeNode = (InvokeNode) parentInsn;
-				if (useArg.equals(invokeNode.getInstanceArg())) {
+			for (RegisterArg useArg : ssaVar.getUseList()) {
+				InsnNode parentInsn = useArg.getParentInsn();
+				if (parentInsn == null) {
 					return false;
+				}
+				if (parentInsn.getType() == InsnType.INVOKE) {
+					InvokeNode invokeNode = (InvokeNode) parentInsn;
+					if (useArg.equals(invokeNode.getInstanceArg())) {
+						return false;
+					}
 				}
 			}
 		}
