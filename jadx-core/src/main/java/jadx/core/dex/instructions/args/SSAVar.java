@@ -175,6 +175,11 @@ public class SSAVar extends AttrNode {
 		codeVar.addSsaVar(this);
 	}
 
+	public void resetTypeAndCodeVar() {
+		this.typeInfo.reset();
+		this.codeVar = null;
+	}
+
 	public boolean isCodeVarSet() {
 		return codeVar != null;
 	}

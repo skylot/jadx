@@ -132,6 +132,9 @@ public class NameGen {
 		if (!NameMapper.isValidAndPrintable(varName)) {
 			varName = getFallbackName(var);
 		}
+		if (Consts.DEBUG) {
+			varName += '_' + getFallbackName(var);
+		}
 		return varName;
 	}
 

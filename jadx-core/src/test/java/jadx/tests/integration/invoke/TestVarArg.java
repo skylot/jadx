@@ -12,16 +12,16 @@ public class TestVarArg extends IntegrationTest {
 
 	public static class TestCls {
 
-		void test1(int... a) {
+		public void test1(int... a) {
 		}
 
-		void test2(int i, Object... a) {
+		public void test2(int i, Object... a) {
 		}
 
-		void test3(int[] a) {
+		public void test3(int[] a) {
 		}
 
-		void call() {
+		public void call() {
 			test1(1, 2);
 			test2(3, "1", 7);
 			test3(new int[] { 5, 8 });

@@ -1,7 +1,11 @@
 package jadx.core.dex.instructions.args;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 
+import jadx.core.dex.instructions.ConstStringNode;
+import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -9,9 +13,12 @@ public final class InsnWrapArg extends InsnArg {
 
 	private final InsnNode wrappedInsn;
 
-	public InsnWrapArg(@NotNull InsnNode insn) {
+	/**
+	 * Use {@link InsnArg#wrapInsnIntoArg(InsnNode)} instead this constructor
+	 */
+	InsnWrapArg(@NotNull InsnNode insn) {
 		RegisterArg result = insn.getResult();
-		this.type = result != null ? result.getType() : ArgType.VOID;
+		this.type = result != null ? result.getType() : ArgType.UNKNOWN;
 		this.wrappedInsn = insn;
 	}
 
@@ -29,7 +36,9 @@ public final class InsnWrapArg extends InsnArg {
 
 	@Override
 	public InsnArg duplicate() {
-		return copyCommonParams(new InsnWrapArg(wrappedInsn.copy()));
+		InsnWrapArg copy = new InsnWrapArg(wrappedInsn.copy());
+		copy.setType(type);
+		return copyCommonParams(copy);
 	}
 
 	@Override
@@ -67,6 +76,10 @@ public final class InsnWrapArg extends InsnArg {
 
 	@Override
 	public String toString() {
+		if (wrappedInsn.getType() == InsnType.CONST_STR
+				&& Objects.equals(type, ArgType.STRING)) {
+			return "(\"" + ((ConstStringNode) wrappedInsn).getString() + "\")";
+		}
 		return "(wrap: " + type + "\n  " + wrappedInsn + ')';
 	}
 }

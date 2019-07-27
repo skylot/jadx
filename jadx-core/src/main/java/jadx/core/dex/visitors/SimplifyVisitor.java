@@ -165,7 +165,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 						}
 					}
 					if (printable >= arr.length - printable) {
-						InsnWrapArg wa = new InsnWrapArg(new ConstStringNode(new String(arr)));
+						InsnArg wa = InsnArg.wrapArg(new ConstStringNode(new String(arr)));
 						if (insn.getArgsCount() == 1) {
 							insn.setArg(0, wa);
 						} else {
@@ -176,7 +176,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 									ArgType.array(ArgType.BYTE));
 							InvokeNode in = new InvokeNode(mi, InvokeType.VIRTUAL, 1);
 							in.addArg(wa);
-							insn.setArg(0, new InsnWrapArg(in));
+							insn.setArg(0, InsnArg.wrapArg(in));
 						}
 					}
 				}

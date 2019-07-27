@@ -37,7 +37,7 @@ public class BlockSplitter extends AbstractVisitor {
 			InsnType.MONITOR_EXIT,
 			InsnType.THROW);
 
-	public static boolean makeSeparate(InsnType insnType) {
+	public static boolean isSeparate(InsnType insnType) {
 		return SEPARATE_INSNS.contains(insnType);
 	}
 
@@ -89,7 +89,7 @@ public class BlockSplitter extends AbstractVisitor {
 				InsnType type = prevInsn.getType();
 				if (type == InsnType.GOTO
 						|| type == InsnType.THROW
-						|| makeSeparate(type)) {
+						|| isSeparate(type)) {
 
 					if (type == InsnType.RETURN || type == InsnType.THROW) {
 						mth.addExitBlock(curBlock);
@@ -102,7 +102,7 @@ public class BlockSplitter extends AbstractVisitor {
 					startNew = true;
 				} else {
 					startNew = isSplitByJump(prevInsn, insn)
-							|| makeSeparate(insn.getType())
+							|| isSeparate(insn.getType())
 							|| isDoWhile(blocksMap, curBlock, insn)
 							|| insn.contains(AType.EXC_HANDLER)
 							|| prevInsn.contains(AFlag.TRY_LEAVE)

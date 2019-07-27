@@ -68,7 +68,33 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
-		// collect initial type bounds from assign and usages
+		boolean resolved = runTypePropagation(mth);
+		if (!resolved) {
+			boolean moveAdded = false;
+			for (SSAVar var : new ArrayList<>(mth.getSVars())) {
+				moveAdded |= tryInsertAdditionalInsn(mth, var);
+			}
+			if (moveAdded) {
+				InitCodeVariables.rerun(mth);
+				resolved = runTypePropagation(mth);
+			}
+			if (!resolved) {
+				resolved = runMultiVariableSearch(mth);
+			}
+		}
+		if (resolved) {
+			for (SSAVar var : new ArrayList<>(mth.getSVars())) {
+				processIncompatiblePrimitives(mth, var);
+			}
+		}
+	}
+
+	/**
+	 * Guess type from usage and try to set it to current variable
+	 * and all connected instructions with {@link TypeUpdate#apply(SSAVar, ArgType)}
+	 */
+	private boolean runTypePropagation(MethodNode mth) {
+		// collect initial type bounds from assign and usages`
 		mth.getSVars().forEach(this::attachBounds);
 		mth.getSVars().forEach(this::mergePhiBounds);
 
@@ -86,27 +112,20 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 				resolved = false;
 			}
 		}
-		if (resolved) {
-			for (SSAVar var : new ArrayList<>(mth.getSVars())) {
-				processIncompatiblePrimitives(mth, var);
-			}
-		} else {
-			for (SSAVar var : new ArrayList<>(mth.getSVars())) {
-				tryInsertAdditionalInsn(mth, var);
-			}
-			runMultiVariableSearch(mth);
-		}
+		return resolved;
 	}
 
-	private void runMultiVariableSearch(MethodNode mth) {
+	private boolean runMultiVariableSearch(MethodNode mth) {
 		TypeSearch typeSearch = new TypeSearch(mth);
 		try {
 			boolean success = typeSearch.run();
 			if (!success) {
 				mth.addWarn("Multi-variable type inference failed");
 			}
+			return success;
 		} catch (Exception e) {
 			mth.addWarn("Multi-variable type inference failed. Error: " + Utils.getStackTrace(e));
+			return false;
 		}
 	}
 
@@ -186,7 +205,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		return bounds.stream()
 				.map(ITypeBound::getType)
 				.filter(Objects::nonNull)
-				.max(typeUpdate.getArgTypeComparator());
+				.max(typeUpdate.getTypeCompare().getComparator());
 	}
 
 	private void attachBounds(SSAVar var) {
@@ -337,9 +356,13 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		if (usedInPhiList.isEmpty()) {
 			return false;
 		}
-		if (var.getUseCount() == 1) {
-			InsnNode assignInsn = var.getAssign().getAssignInsn();
-			if (assignInsn != null && assignInsn.getType() == InsnType.MOVE) {
+		InsnNode assignInsn = var.getAssign().getAssignInsn();
+		if (assignInsn != null) {
+			InsnType assignType = assignInsn.getType();
+			if (assignType == InsnType.CONST) {
+				return false;
+			}
+			if (assignType == InsnType.MOVE && var.getUseCount() == 1) {
 				return false;
 			}
 		}
@@ -358,11 +381,16 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 			if (reg.getSVar() == var) {
 				BlockNode blockNode = phiInsn.getBlockByArgIndex(argIndex);
 				InsnNode lastInsn = BlockUtils.getLastInsn(blockNode);
-				if (lastInsn != null && BlockSplitter.makeSeparate(lastInsn.getType())) {
-					if (Consts.DEBUG) {
-						LOG.warn("Can't insert move for PHI in block with separate insn: {}", lastInsn);
+				if (lastInsn != null && BlockSplitter.isSeparate(lastInsn.getType())) {
+					// can't insert move in block with separate instruction
+					// trying previous block
+					List<BlockNode> preds = blockNode.getPredecessors();
+					if (preds.size() == 1) {
+						blockNode = preds.get(0);
+					} else {
+						mth.addWarn("Failed to insert additional move for type inference");
+						return false;
 					}
-					return false;
 				}
 
 				int regNum = reg.getRegNum();
@@ -377,15 +405,6 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 				blockNode.getInstructions().add(moveInsn);
 
 				phiInsn.replaceArg(reg, reg.duplicate(regNum, newSsaVar));
-
-				attachBounds(var);
-				for (InsnArg phiArg : phiInsn.getArguments()) {
-					attachBounds(((RegisterArg) phiArg).getSVar());
-				}
-				for (InsnArg phiArg : phiInsn.getArguments()) {
-					mergePhiBounds(((RegisterArg) phiArg).getSVar());
-				}
-				InitCodeVariables.initCodeVar(newSsaVar);
 				return true;
 			}
 		}

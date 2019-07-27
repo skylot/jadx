@@ -1,6 +1,5 @@
 package jadx.core.dex.visitors.typeinference;
 
-import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import jadx.core.Consts;
 import jadx.core.clsp.NClass;
-import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
@@ -37,9 +35,6 @@ import static jadx.core.dex.visitors.typeinference.TypeUpdateResult.SAME;
 public final class TypeUpdate {
 	private static final Logger LOG = LoggerFactory.getLogger(TypeUpdate.class);
 
-	private static final TypeUpdateFlags FLAGS_EMPTY = new TypeUpdateFlags();
-	private static final TypeUpdateFlags FLAGS_WIDER = new TypeUpdateFlags().allowWider();
-
 	private final RootNode root;
 	private final Map<InsnType, ITypeListener> listenerRegistry;
 	private final TypeCompare comparator;
@@ -54,14 +49,21 @@ public final class TypeUpdate {
 	 * Perform recursive type checking and type propagation for all related variables
 	 */
 	public TypeUpdateResult apply(SSAVar ssaVar, ArgType candidateType) {
-		return apply(ssaVar, candidateType, FLAGS_EMPTY);
+		return apply(ssaVar, candidateType, TypeUpdateFlags.FLAGS_EMPTY);
 	}
 
 	/**
 	 * Allow wider types for apply from debug info and some special cases
 	 */
 	public TypeUpdateResult applyWithWiderAllow(SSAVar ssaVar, ArgType candidateType) {
-		return apply(ssaVar, candidateType, FLAGS_WIDER);
+		return apply(ssaVar, candidateType, TypeUpdateFlags.FLAGS_WIDER);
+	}
+
+	/**
+	 * Force type setting
+	 */
+	public TypeUpdateResult applyWithWiderIgnSame(SSAVar ssaVar, ArgType candidateType) {
+		return apply(ssaVar, candidateType, TypeUpdateFlags.FLAGS_WIDER_IGNSAME);
 	}
 
 	private TypeUpdateResult apply(SSAVar ssaVar, ArgType candidateType, TypeUpdateFlags flags) {
@@ -91,7 +93,7 @@ public final class TypeUpdate {
 			throw new JadxRuntimeException("Null type update for arg: " + arg);
 		}
 		ArgType currentType = arg.getType();
-		if (Objects.equals(currentType, candidateType)) {
+		if (Objects.equals(currentType, candidateType) && !updateInfo.getFlags().isIgnoreSame()) {
 			return SAME;
 		}
 		TypeCompareEnum compareResult = comparator.compareTypes(candidateType, currentType);
@@ -360,23 +362,20 @@ public final class TypeUpdate {
 	private TypeUpdateResult moveListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
 		boolean assignChanged = isAssign(insn, arg);
 		InsnArg changeArg = assignChanged ? insn.getArg(0) : insn.getResult();
-		boolean allowReject;
-		if (changeArg.getType().isTypeKnown()) {
-			// allow result to be wider
-			TypeCompareEnum compareTypes = comparator.compareTypes(candidateType, changeArg.getType());
-			boolean correctType = compareTypes == TypeCompareEnum.EQUAL
-					|| (assignChanged ? compareTypes.isWider() : compareTypes.isNarrow());
-			if (correctType && inBounds(updateInfo, changeArg, candidateType)) {
-				allowReject = true;
-			} else {
-				return REJECT;
-			}
-		} else {
-			allowReject = arg.isThis() || arg.contains(AFlag.IMMUTABLE_TYPE);
-		}
+
+		// allow result to be wider
+		TypeCompareEnum cmp = comparator.compareTypes(candidateType, changeArg.getType());
+		boolean correctType = cmp.isEqual() || (assignChanged ? cmp.isWider() : cmp.isNarrow());
 
 		TypeUpdateResult result = updateTypeChecked(updateInfo, changeArg, candidateType);
-		if (result == REJECT && allowReject) {
+		if (result == SAME && !correctType) {
+			if (Consts.DEBUG) {
+				LOG.debug("Move insn types mismatch: {} -> {}, insn: {}",
+						candidateType, changeArg.getType(), insn);
+			}
+			return REJECT;
+		}
+		if (result == REJECT && correctType) {
 			return CHANGED;
 		}
 		return result;
@@ -508,11 +507,7 @@ public final class TypeUpdate {
 		return insn.getResult() == arg;
 	}
 
-	public TypeCompare getComparator() {
+	public TypeCompare getTypeCompare() {
 		return comparator;
-	}
-
-	public Comparator<ArgType> getArgTypeComparator() {
-		return comparator.getComparator();
 	}
 }

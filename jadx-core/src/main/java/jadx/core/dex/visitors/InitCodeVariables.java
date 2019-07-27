@@ -31,6 +31,13 @@ public class InitCodeVariables extends AbstractVisitor {
 		initCodeVars(mth);
 	}
 
+	public static void rerun(MethodNode mth) {
+		for (SSAVar sVar : mth.getSVars()) {
+			sVar.resetTypeAndCodeVar();
+		}
+		initCodeVars(mth);
+	}
+
 	private static void initCodeVars(MethodNode mth) {
 		for (RegisterArg mthArg : mth.getArguments(true)) {
 			initCodeVar(mthArg.getSVar());
@@ -40,7 +47,7 @@ public class InitCodeVariables extends AbstractVisitor {
 		}
 	}
 
-	public static void initCodeVar(SSAVar ssaVar) {
+	private static void initCodeVar(SSAVar ssaVar) {
 		if (ssaVar.isCodeVarSet()) {
 			return;
 		}

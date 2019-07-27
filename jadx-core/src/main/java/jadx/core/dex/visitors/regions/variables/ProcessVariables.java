@@ -77,7 +77,7 @@ public class ProcessVariables extends AbstractVisitor {
 						.forEach(ssaVar -> {
 							ArgType ssaType = ssaVar.getAssign().getInitType();
 							if (ssaType.isTypeKnown()) {
-								TypeCompare comparator = mth.root().getTypeUpdate().getComparator();
+								TypeCompare comparator = mth.root().getTypeUpdate().getTypeCompare();
 								TypeCompareEnum result = comparator.compareTypes(ssaType, codeVarType);
 								if (result == TypeCompareEnum.CONFLICT || result.isNarrow()) {
 									mth.addWarn("Incorrect type for immutable var: ssa=" + ssaType

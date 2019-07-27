@@ -8,6 +8,9 @@ import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 
+import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -31,6 +34,14 @@ public class TypeSearchState {
 			throw new JadxRuntimeException("TypeSearchVarInfo not found in map for var: " + var);
 		}
 		return varInfo;
+	}
+
+	public ArgType getArgType(InsnArg arg) {
+		if (arg.isRegister()) {
+			RegisterArg reg = (RegisterArg) arg;
+			return getVarInfo(reg.getSVar()).getCurrentType();
+		}
+		return arg.getType();
 	}
 
 	public List<TypeSearchVarInfo> getAllVars() {

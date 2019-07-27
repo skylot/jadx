@@ -23,11 +23,13 @@ public class TypeCompare {
 	private static final Logger LOG = LoggerFactory.getLogger(TypeCompare.class);
 
 	private final RootNode root;
-	private final ArgTypeComparator comparator;
+	private final Comparator<ArgType> comparator;
+	private final Comparator<ArgType> reversedComparator;
 
 	public TypeCompare(RootNode root) {
 		this.root = root;
 		this.comparator = new ArgTypeComparator();
+		this.reversedComparator = comparator.reversed();
 	}
 
 	/**
@@ -192,8 +194,12 @@ public class TypeCompare {
 		return NARROW_BY_GENERIC;
 	}
 
-	public ArgTypeComparator getComparator() {
+	public Comparator<ArgType> getComparator() {
 		return comparator;
+	}
+
+	public Comparator<ArgType> getReversedComparator() {
+		return reversedComparator;
 	}
 
 	private final class ArgTypeComparator implements Comparator<ArgType> {

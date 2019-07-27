@@ -11,7 +11,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestVariables2 extends IntegrationTest {
 
 	public static class TestCls {
-		Object test(Object s) {
+		public Object test(Object s) {
 			Object store = s != null ? s : null;
 			if (store == null) {
 				store = new Object();
