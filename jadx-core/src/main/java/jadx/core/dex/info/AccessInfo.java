@@ -3,6 +3,7 @@ package jadx.core.dex.info;
 import com.android.dx.rop.code.AccessFlags;
 
 import jadx.core.Consts;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class AccessInfo {
 
@@ -61,6 +62,10 @@ public class AccessInfo {
 
 	public boolean isPrivate() {
 		return (accFlags & AccessFlags.ACC_PRIVATE) != 0;
+	}
+
+	public boolean isPackagePrivate() {
+		return (accFlags & VISIBILITY_FLAGS) == 0;
 	}
 
 	public boolean isAbstract() {
@@ -186,6 +191,22 @@ public class AccessInfo {
 			code.append("/* synthetic */ ");
 		}
 		return code.toString();
+	}
+
+	public String visibilityName() {
+		if (isPackagePrivate()) {
+			return "package-private";
+		}
+		if (isPublic()) {
+			return "public";
+		}
+		if (isPrivate()) {
+			return "private";
+		}
+		if (isProtected()) {
+			return "protected";
+		}
+		throw new JadxRuntimeException("Unknown visibility flags: " + getVisibility());
 	}
 
 	public String rawString() {

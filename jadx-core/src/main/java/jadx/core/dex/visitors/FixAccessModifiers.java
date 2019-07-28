@@ -38,7 +38,7 @@ public class FixAccessModifiers extends AbstractVisitor {
 		AccessInfo newAccFlags = accessFlags.changeVisibility(newVisFlag);
 		if (newAccFlags != accessFlags) {
 			node.setAccessFlags(newAccFlags);
-			node.addAttr(AType.COMMENTS, "access modifiers changed from: " + accessFlags.getVisibility().rawString());
+			node.addAttr(AType.COMMENTS, "access modifiers changed from: " + accessFlags.visibilityName());
 		}
 	}
 
