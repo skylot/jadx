@@ -55,6 +55,5 @@ public class TestDeboxing3 extends IntegrationTest {
 
 		assertThat(code, containsOne("Pair<Long, String> pair = this.cache.get(id);"));
 		assertThat(code, containsOne("return pair.first + l > System.currentTimeMillis();"));
-
 	}
 }

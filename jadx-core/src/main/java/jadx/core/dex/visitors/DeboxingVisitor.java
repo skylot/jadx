@@ -98,13 +98,20 @@ public class DeboxingVisitor extends AbstractVisitor {
 					arg.add(AFlag.EXPLICIT_PRIMITIVE_TYPE);
 				}
 				arg.setType(primitiveType);
+				boolean forbidInline;
 				if (canChangeTypeToPrimitive(resArg)) {
 					resArg.setType(primitiveType);
+					forbidInline = false;
+				} else {
+					forbidInline = true;
 				}
 
 				InsnNode constInsn = new InsnNode(InsnType.CONST, 1);
 				constInsn.addArg(arg);
 				constInsn.setResult(resArg);
+				if (forbidInline) {
+					constInsn.add(AFlag.DONT_INLINE);
+				}
 				return constInsn;
 			}
 		}
