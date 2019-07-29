@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import jadx.api.ICodeInfo;
 import jadx.core.codegen.CodeGen;
 import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.ProcessState;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.ErrorsCounter;
@@ -22,28 +21,16 @@ public final class ProcessClass {
 	}
 
 	public static void process(ClassNode cls) {
-		process(cls, false);
-	}
-
-	@NotNull
-	public static ICodeInfo generateCode(ClassNode cls) {
-		ICodeInfo codeInfo = process(cls, true);
-		if (codeInfo == null) {
-			throw new JadxRuntimeException("Failed to generate code for class: " + cls.getFullName());
-		}
-		return codeInfo;
-	}
-
-	private static ICodeInfo process(ClassNode cls, boolean generateCode) {
 		ClassNode topParentClass = cls.getTopParentClass();
 		if (topParentClass != cls) {
-			return process(topParentClass, generateCode);
+			process(topParentClass);
+			return;
 		}
-		if (!generateCode && cls.getState() == PROCESS_COMPLETE) {
+		if (cls.getState() == PROCESS_COMPLETE) {
 			// nothing to do
-			return null;
+			return;
 		}
-		synchronized (getSyncObj(cls)) {
+		synchronized (cls.getClassInfo()) {
 			try {
 				if (cls.getState() == NOT_LOADED) {
 					cls.load();
@@ -55,27 +42,26 @@ public final class ProcessClass {
 					}
 					cls.setState(PROCESS_COMPLETE);
 				}
-				if (generateCode && cls.getState() == PROCESS_COMPLETE) {
-					processDependencies(cls);
-					ICodeInfo code = CodeGen.generate(cls);
-					cls.setState(ProcessState.GENERATED);
-					// TODO: unload class (need to build dependency tree or allow to load class several times)
-					return code;
-				}
 			} catch (Throwable e) {
 				ErrorsCounter.classError(cls, e.getClass().getSimpleName(), e);
 			}
 		}
-		return null;
 	}
 
-	private static Object getSyncObj(ClassNode cls) {
-		return cls.getClassInfo();
-	}
+	@NotNull
+	public static ICodeInfo generateCode(ClassNode cls) {
+		ClassNode topParentClass = cls.getTopParentClass();
+		if (topParentClass != cls) {
+			return generateCode(topParentClass);
+		}
+		try {
+			process(cls);
+			cls.getDependencies().forEach(ProcessClass::process);
 
-	private static void processDependencies(ClassNode cls) {
-		for (ClassNode depCls : cls.getDependencies()) {
-			process(depCls, false);
+			// TODO: unload class (need to build dependency tree or allow to load class several times)
+			return CodeGen.generate(cls);
+		} catch (Throwable e) {
+			throw new JadxRuntimeException("Failed to generate code for class: " + cls.getFullName(), e);
 		}
 	}
 }

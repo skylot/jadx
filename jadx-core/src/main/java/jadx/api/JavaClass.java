@@ -25,6 +25,7 @@ public final class JavaClass implements JavaNode {
 	private List<JavaClass> innerClasses = Collections.emptyList();
 	private List<JavaField> fields = Collections.emptyList();
 	private List<JavaMethod> methods = Collections.emptyList();
+	private boolean listsLoaded;
 
 	JavaClass(ClassNode classNode, JadxDecompiler decompiler) {
 		this.decompiler = decompiler;
@@ -59,7 +60,6 @@ public final class JavaClass implements JavaNode {
 		}
 		if (cls.getCode() == null) {
 			cls.decompile();
-			load();
 		}
 	}
 
@@ -75,13 +75,20 @@ public final class JavaClass implements JavaNode {
 
 	public synchronized void unload() {
 		cls.unload();
+		listsLoaded = false;
 	}
 
 	public ClassNode getClassNode() {
 		return cls;
 	}
 
-	private void load() {
+	private void loadLists() {
+		if (listsLoaded) {
+			return;
+		}
+		listsLoaded = true;
+		decompile();
+
 		JadxDecompiler rootDecompiler = getRootDecompiler();
 		int inClsCount = cls.getInnerClasses().size();
 		if (inClsCount != 0) {
@@ -89,7 +96,7 @@ public final class JavaClass implements JavaNode {
 			for (ClassNode inner : cls.getInnerClasses()) {
 				if (!inner.contains(AFlag.DONT_GENERATE)) {
 					JavaClass javaClass = new JavaClass(inner, this);
-					javaClass.load();
+					javaClass.loadLists();
 					list.add(javaClass);
 					rootDecompiler.getClassesMap().put(inner, javaClass);
 				}
@@ -205,17 +212,17 @@ public final class JavaClass implements JavaNode {
 	}
 
 	public List<JavaClass> getInnerClasses() {
-		decompile();
+		loadLists();
 		return innerClasses;
 	}
 
 	public List<JavaField> getFields() {
-		decompile();
+		loadLists();
 		return fields;
 	}
 
 	public List<JavaMethod> getMethods() {
-		decompile();
+		loadLists();
 		return methods;
 	}
 
