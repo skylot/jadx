@@ -40,6 +40,7 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.Named;
+import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
@@ -874,6 +875,13 @@ public class InsnGen {
 		if (Consts.DEBUG) {
 			code.add("/* inline method: ").add(callMthNode.toString()).add("*/").startLine();
 		}
+		if (forceAssign(inl, insn, callMthNode)) {
+			ArgType varType = callMthNode.getReturnType();
+			useType(code, varType);
+			code.add(' ');
+			code.add(mgen.getNameGen().assignNamedArg(new NamedArg("unused", varType)));
+			code.add(" = ");
+		}
 		if (callMthNode.getMethodInfo().getArgumentsTypes().isEmpty()) {
 			makeInsn(inl, code, Flags.BODY_ONLY);
 		} else {
@@ -903,6 +911,19 @@ public class InsnGen {
 				}
 			}
 			makeInsn(inlCopy, code, Flags.BODY_ONLY);
+		}
+		return true;
+	}
+
+	private boolean forceAssign(InsnNode inlineInsn, InvokeNode parentInsn, MethodNode callMthNode) {
+		if (parentInsn.getResult() != null) {
+			return false;
+		}
+		if (parentInsn.contains(AFlag.WRAPPED)) {
+			return false;
+		}
+		if (callMthNode.getReturnType().equals(ArgType.VOID)) {
+			return false;
 		}
 		return true;
 	}
