@@ -93,6 +93,11 @@ public class ConstructorInsn extends InsnNode implements CallMthInterface {
 	}
 
 	@Override
+	public int getFirstArgOffset() {
+		return 0;
+	}
+
+	@Override
 	public boolean isSame(InsnNode obj) {
 		if (this == obj) {
 			return true;

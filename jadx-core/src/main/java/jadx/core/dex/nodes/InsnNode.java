@@ -143,7 +143,7 @@ public class InsnNode extends LineAttrNode {
 		return arg;
 	}
 
-	protected int getArgIndex(InsnArg arg) {
+	public int getArgIndex(InsnArg arg) {
 		int count = getArgsCount();
 		for (int i = 0; i < count; i++) {
 			if (arg == arguments.get(i)) {

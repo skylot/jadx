@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.instructions.CallMthInterface;
 import jadx.core.dex.instructions.ConstStringNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
@@ -203,6 +205,10 @@ public class ConstInlineVisitor extends AbstractVisitor {
 			}
 			if (fieldNode != null) {
 				litArg.wrapInstruction(mth, new IndexInsnNode(InsnType.SGET, fieldNode.getFieldInfo(), 0));
+			} else {
+				if (needExplicitCast(useInsn, litArg)) {
+					litArg.add(AFlag.EXPLICIT_PRIMITIVE_TYPE);
+				}
 			}
 		} else {
 			if (!useInsn.replaceArg(arg, constArg.duplicate())) {
@@ -213,5 +219,20 @@ public class ConstInlineVisitor extends AbstractVisitor {
 			useInsn.setSourceLine(constInsn.getSourceLine());
 		}
 		return true;
+	}
+
+	private static boolean needExplicitCast(InsnNode insn, LiteralArg arg) {
+		if (insn instanceof CallMthInterface) {
+			CallMthInterface callInsn = (CallMthInterface) insn;
+			MethodInfo callMth = callInsn.getCallMth();
+			int offset = callInsn.getFirstArgOffset();
+			int argIndex = insn.getArgIndex(arg);
+			ArgType argType = callMth.getArgumentsTypes().get(argIndex - offset);
+			if (argType.isPrimitive()) {
+				arg.setType(argType);
+				return argType.equals(ArgType.BYTE);
+			}
+		}
+		return false;
 	}
 }

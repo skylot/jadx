@@ -14,9 +14,9 @@ public class TestInnerEnums extends IntegrationTest {
 	public static class TestCls {
 
 		public enum Numbers {
-			ONE(1, NumString.ONE), TWO(2, NumString.TWO);
+			ONE((byte) 1, NumString.ONE), TWO((byte) 2, NumString.TWO);
 
-			private final int num;
+			private final byte num;
 			private final NumString str;
 
 			public enum NumString {
@@ -33,7 +33,7 @@ public class TestInnerEnums extends IntegrationTest {
 				}
 			}
 
-			Numbers(int n, NumString str) {
+			Numbers(byte n, NumString str) {
 				this.num = n;
 				this.str = str;
 			}
@@ -63,7 +63,7 @@ public class TestInnerEnums extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("ONE(1, NumString.ONE)"));
+		assertThat(code, containsOne("ONE((byte) 1, NumString.ONE)"));
 		assertThat(code, containsOne("ONE(\"one\")"));
 	}
 }

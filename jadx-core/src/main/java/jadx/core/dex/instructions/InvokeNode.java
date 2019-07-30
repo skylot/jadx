@@ -18,7 +18,7 @@ public class InvokeNode extends InsnNode implements CallMthInterface {
 	private final MethodInfo mth;
 
 	public InvokeNode(MethodInfo mth, DecodedInstruction insn, InvokeType type, boolean isRange, int resReg) {
-		super(InsnType.INVOKE, mth.getArgsCount() + (type != InvokeType.STATIC ? 1 : 0));
+		super(InsnType.INVOKE, mth.getArgsCount() + (type == InvokeType.STATIC ? 0 : 1));
 		this.mth = mth;
 		this.type = type;
 
@@ -64,6 +64,11 @@ public class InvokeNode extends InsnNode implements CallMthInterface {
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public int getFirstArgOffset() {
+		return type == InvokeType.STATIC ? 0 : 1;
 	}
 
 	@Override

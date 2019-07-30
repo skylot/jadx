@@ -8,4 +8,9 @@ public interface CallMthInterface {
 	MethodInfo getCallMth();
 
 	RegisterArg getInstanceArg();
+
+	/**
+	 * Return offset to match method args from {@link #getCallMth()}
+	 */
+	int getFirstArgOffset();
 }
