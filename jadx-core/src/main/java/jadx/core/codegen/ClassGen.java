@@ -1,10 +1,12 @@
 package jadx.core.codegen;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import com.android.dx.rop.code.AccessFlags;
@@ -148,7 +150,7 @@ public class ClassGen {
 		ArgType sup = cls.getSuperClass();
 		if (sup != null
 				&& !sup.equals(ArgType.OBJECT)
-				&& !sup.getObject().equals(ArgType.ENUM.getObject())) {
+				&& !cls.isEnum()) {
 			clsCode.add("extends ");
 			useClass(clsCode, sup);
 			clsCode.add(' ');
@@ -513,6 +515,9 @@ public class ClassGen {
 		if (isClassInnerFor(useCls, extClsInfo)) {
 			return shortName;
 		}
+		if (extClsInfo.isInner()) {
+			return expandInnerClassName(useCls, extClsInfo);
+		}
 		if (isBothClassesInOneTopClass(useCls, extClsInfo)) {
 			return shortName;
 		}
@@ -550,6 +555,26 @@ public class ClassGen {
 		return shortName;
 	}
 
+	private String expandInnerClassName(ClassInfo useCls, ClassInfo extClsInfo) {
+		List<ClassInfo> clsList = new ArrayList<>();
+		clsList.add(extClsInfo);
+		ClassInfo parentCls = extClsInfo.getParentClass();
+		boolean addImport = true;
+		while (parentCls != null) {
+			if (parentCls == useCls || isClassInnerFor(useCls, parentCls)) {
+				addImport = false;
+				break;
+			}
+			clsList.add(parentCls);
+			parentCls = parentCls.getParentClass();
+		}
+		Collections.reverse(clsList);
+		if (addImport) {
+			addImport(clsList.get(0));
+		}
+		return Utils.listToString(clsList, ".", ClassInfo::getAliasShortName);
+	}
+
 	private void addImport(ClassInfo classInfo) {
 		if (parentGen != null) {
 			parentGen.addImport(classInfo);
@@ -579,7 +604,7 @@ public class ClassGen {
 	private static boolean isClassInnerFor(ClassInfo inner, ClassInfo parent) {
 		if (inner.isInner()) {
 			ClassInfo p = inner.getParentClass();
-			return p.equals(parent) || isClassInnerFor(p, parent);
+			return Objects.equals(p, parent) || isClassInnerFor(p, parent);
 		}
 		return false;
 	}

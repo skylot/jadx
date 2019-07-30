@@ -44,13 +44,19 @@ public class EnumVisitor extends AbstractVisitor {
 
 	@Override
 	public boolean visit(ClassNode cls) throws JadxException {
-		if (!cls.isEnum()) {
+		if (!convertToEnum(cls)) {
 			AccessInfo accessFlags = cls.getAccessFlags();
 			if (accessFlags.isEnum()) {
 				cls.setAccessFlags(accessFlags.remove(AccessFlags.ACC_ENUM));
-				cls.addAttr(AType.COMMENTS, "'enum' access flag removed");
+				cls.addAttr(AType.COMMENTS, "'enum' modifier removed");
 			}
-			return true;
+		}
+		return true;
+	}
+
+	private boolean convertToEnum(ClassNode cls) {
+		if (!cls.isEnum()) {
+			return false;
 		}
 		// search class init method
 		MethodNode staticMethod = null;
@@ -63,7 +69,7 @@ public class EnumVisitor extends AbstractVisitor {
 		}
 		if (staticMethod == null) {
 			ErrorsCounter.classWarn(cls, "Enum class init method not found");
-			return true;
+			return false;
 		}
 
 		ArgType clsType = cls.getClassInfo().getType();
@@ -167,7 +173,7 @@ public class EnumVisitor extends AbstractVisitor {
 				}
 			}
 		}
-		return false;
+		return true;
 	}
 
 	private static void processEnumInnerCls(ConstructorInsn co, EnumField field, ClassNode innerCls) {
