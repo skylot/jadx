@@ -8,10 +8,9 @@ assignees: ''
 ---
 
 **Checks before report**
-- [ ] check [latest unstable build](https://bintray.com/skylot/jadx/unstable/_latestVersion#files) (maybe issue already fixed)
-- [ ] search existing issues by exception message
- (for example `JadxRuntimeException: Can't find immediate dominator for block`)
-- [ ] check [Troubleshooting Q&A](https://github.com/skylot/jadx/wiki/Troubleshooting-Q&A) section on wiki
+- check [latest unstable build](https://bintray.com/skylot/jadx/unstable/_latestVersion#files) (maybe issue already fixed)
+- check [Troubleshooting Q&A](https://github.com/skylot/jadx/wiki/Troubleshooting-Q&A) section on wiki
+- search existing issues by exception message
 
 **Describe error**
 - provide full name of method or class with error

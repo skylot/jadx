@@ -10,51 +10,58 @@
 
 Command line and GUI tools for produce Java source code from Android Dex and Apk files
 
+**Main features:**
+- decompile Dalvik bytecode to java classes from APK, dex, aar and zip files
+- decode `AndroidManifest.xml` and other resources from `resources.arsc`
+- deobfuscator included
+
+**jadx-gui features:**
+- view decompiled code with highlighted syntax
+- jump to declaration
+- find usage
+- full text search
+
+See these features in action here: [jadx-gui features overview](https://github.com/skylot/jadx/wiki/jadx-gui-features-overview)
+
+
 ![jadx-gui screenshot](https://i.imgur.com/h917IBZ.png)
 
 
-### Downloads
+### Download
 - latest [unstable build: ![Download](https://api.bintray.com/packages/skylot/jadx/unstable/images/download.svg) ](https://bintray.com/skylot/jadx/unstable/_latestVersion#files)
 - release from [github: ![Latest release](https://img.shields.io/github/release/skylot/jadx.svg)](https://github.com/skylot/jadx/releases/latest)
 - release from [bintray: ![Download](https://api.bintray.com/packages/skylot/jadx/releases/images/download.svg) ](https://bintray.com/skylot/jadx/releases/_latestVersion#files)
 
 After download unpack zip file go to `bin` directory and run:
 - `jadx` - command line version
-- `jadx-gui` - graphical version
+- `jadx-gui` - UI version
 
 On Windows run `.bat` files with double-click\
-**Note:** ensure you have installed Java 8 64-bit version
+**Note:** ensure you have installed Java 8 or later 64-bit version.
+For windows you can download it from [adoptopenjdk.net](https://adoptopenjdk.net/releases.html?variant=openjdk11&jvmVariant=hotspot#x64_win) (select "Install JRE").
 
+### Install
+1. Arch linux
+    ```bash
+        sudo pacman -S jadx
+    ```
+2. macOS
+    ```bash
+        brew install jadx
+    ```
 
-### Related projects:
-- [PyJadx](https://github.com/romainthomas/pyjadx) - python binding for jadx by [@romainthomas](https://github.com/romainthomas)
-
-
-### Building jadx from source
+### Build from source
 JDK 8 or higher must be installed:
-
-    git clone https://github.com/skylot/jadx.git
-    cd jadx
-    ./gradlew dist
+```
+git clone https://github.com/skylot/jadx.git
+cd jadx
+./gradlew dist
+```
 
 (on Windows, use `gradlew.bat` instead of `./gradlew`)
 
 Scripts for run jadx will be placed in `build/jadx/bin`
 and also packed to `build/jadx-<version>.zip`
-
-### macOS
-You can install using brew:
-
-	brew install jadx
-
-### Run
-Run **jadx** on itself:
-
-    cd build/jadx/
-    bin/jadx -d out lib/jadx-core-*.jar
-    # or
-    bin/jadx-gui lib/jadx-core-*.jar
-
 
 ### Usage
 ```
@@ -97,15 +104,18 @@ Example:
 These options also worked on jadx-gui running from command line and override options from preferences dialog
 
 ### Troubleshooting
-##### Out of memory error:
-  - Reduce processing threads count (`-j` option)
-  - Increase maximum java heap size:
-    * command line (example for linux):
-      `JAVA_OPTS="-Xmx4G" jadx -j 1 some.apk`
-    * edit 'jadx' script (jadx.bat on Windows) and setup bigger heap size:
-      `DEFAULT_JVM_OPTS="-Xmx2500M"`
+Please check wiki page [Troubleshooting Q&A](https://github.com/skylot/jadx/wiki/Troubleshooting-Q&A)
+
+### Contributing
+To support this project you can:
+  - Post thoughts about new features/optimizations that important to you
+  - Submit decompilation issues, please read before proceed: [Open issue](CONTRIBUTING.md#Open-Issue)
+  - Open pull request, please follow these rules: [Pull Request Process](CONTRIBUTING.md#Pull-Request-Process)
+
+### Related projects:
+- [PyJadx](https://github.com/romainthomas/pyjadx) - python binding for jadx by [@romainthomas](https://github.com/romainthomas)
 
 ---------------------------------------
 *Licensed under the Apache 2.0 License*
 
-*Copyright 2018 by Skylot*
+*Copyright 2019 by Skylot*
