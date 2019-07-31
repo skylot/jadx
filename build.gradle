@@ -41,6 +41,9 @@ allprojects {
 		testCompile 'org.hamcrest:hamcrest-library:2.1'
 		testCompile 'org.mockito:mockito-core:2.28.2'
 
+		testCompile group: 'junit', name: 'junit', version: '4.8.2'
+		testCompile group: 'com.diffblue', name: 'deeptestutils', version: '1.9.0'
+
 		testImplementation 'org.junit.jupiter:junit-jupiter-api:5.4.2'
 		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.4.2'
 
