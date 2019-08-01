@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.GenericInfo;
 import jadx.core.dex.nodes.MethodNode;
@@ -113,7 +112,7 @@ public class ClsSet {
 	}
 
 	private void processMethodDetails(List<NMethod> methods, MethodNode mth, AccessInfo accessFlags) {
-		List<RegisterArg> args = mth.getArguments(false);
+		List<ArgType> args = mth.getArgTypes();
 		boolean genericArg = false;
 		ArgType[] genericArgs;
 		if (args.isEmpty()) {
@@ -122,8 +121,7 @@ public class ClsSet {
 			int argsCount = args.size();
 			genericArgs = new ArgType[argsCount];
 			for (int i = 0; i < argsCount; i++) {
-				RegisterArg arg = args.get(i);
-				ArgType argType = arg.getType();
+				ArgType argType = args.get(i);
 				if (argType.isGeneric() || argType.isGenericType()) {
 					genericArgs[i] = argType;
 					genericArg = true;

@@ -16,6 +16,7 @@ import com.android.dex.ClassData.Method;
 import com.android.dex.ClassDef;
 import com.android.dex.Dex;
 
+import jadx.api.ICodeCache;
 import jadx.api.ICodeInfo;
 import jadx.core.Consts;
 import jadx.core.ProcessClass;
@@ -52,10 +53,8 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	private final List<MethodNode> methods;
 	private final List<FieldNode> fields;
-	private List<ClassNode> innerClasses = new ArrayList<>();
+	private List<ClassNode> innerClasses = Collections.emptyList();
 
-	// store decompiled code
-	private ICodeInfo code;
 	// store smali
 	private String smali;
 	// store parent for inner classes or 'this' otherwise
@@ -248,14 +247,21 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		ProcessClass.process(this);
 	}
 
-	public ICodeInfo decompile() {
+	public synchronized ICodeInfo decompile() {
+		ICodeCache codeCache = root().getCodeCache();
+		ClassNode topParentClass = getTopParentClass();
+		String clsRawName = topParentClass.getRawName();
+		ICodeInfo code = codeCache.get(clsRawName);
 		if (code != null) {
 			return code;
 		}
-		ICodeInfo codeInfo = ProcessClass.generateCode(this);
-		// TODO: don't store code in class node
-		setCode(codeInfo);
+		ICodeInfo codeInfo = ProcessClass.generateCode(topParentClass);
+		codeCache.add(clsRawName, codeInfo);
 		return codeInfo;
+	}
+
+	public ICodeInfo getCode() {
+		return decompile();
 	}
 
 	@Override
@@ -275,12 +281,10 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	@Override
 	public void unload() {
-		for (MethodNode mth : getMethods()) {
-			mth.unload();
-		}
-		for (ClassNode innerCls : getInnerClasses()) {
-			innerCls.unload();
-		}
+		methods.forEach(MethodNode::unload);
+		innerClasses.forEach(ClassNode::unload);
+		fields.forEach(FieldNode::unloadAttributes);
+		unloadAttributes();
 		setState(UNLOADED);
 	}
 
@@ -411,6 +415,9 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	}
 
 	public void addInnerClass(ClassNode cls) {
+		if (innerClasses.isEmpty()) {
+			innerClasses = new ArrayList<>(5);
+		}
 		innerClasses.add(cls);
 		cls.parentClass = this;
 	}
@@ -486,14 +493,6 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	public String getPackage() {
 		return clsInfo.getAliasPkg();
-	}
-
-	public void setCode(ICodeInfo code) {
-		this.code = code;
-	}
-
-	public ICodeInfo getCode() {
-		return code;
 	}
 
 	public void setSmali(String smali) {

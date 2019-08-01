@@ -14,11 +14,10 @@ public class SaveCode {
 	private SaveCode() {
 	}
 
-	public static void save(File dir, ClassNode cls) {
+	public static void save(File dir, ClassNode cls, ICodeInfo code) {
 		if (cls.contains(AFlag.DONT_GENERATE)) {
 			return;
 		}
-		ICodeInfo code = cls.getCode();
 		if (code == null) {
 			throw new JadxRuntimeException("Code not generated for class " + cls.getFullName());
 		}

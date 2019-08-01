@@ -66,7 +66,11 @@ public class DebugInfoParseVisitor extends AbstractVisitor {
 			RegDebugInfoAttr debugInfoAttr = new RegDebugInfoAttr(var);
 			if (start < 0) {
 				// attach to method arguments
-				for (RegisterArg arg : mth.getArguments(true)) {
+				RegisterArg thisArg = mth.getThisArg();
+				if (thisArg != null) {
+					attachDebugInfo(thisArg, var, debugInfoAttr);
+				}
+				for (RegisterArg arg : mth.getArgRegs()) {
 					attachDebugInfo(arg, var, debugInfoAttr);
 				}
 				start = 0;

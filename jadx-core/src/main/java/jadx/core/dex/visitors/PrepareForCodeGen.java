@@ -220,7 +220,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 					Set<RegisterArg> regArgs = new HashSet<>();
 					constrInsn.getRegisterArgs(regArgs);
 					regArgs.remove(mth.getThisArg());
-					regArgs.removeAll(mth.getArguments(false));
+					regArgs.removeAll(mth.getArgRegs());
 					if (!regArgs.isEmpty()) {
 						mth.addWarn("Illegal instructions before constructor call");
 					} else {

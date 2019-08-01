@@ -58,7 +58,7 @@ public class DebugInfoParser {
 		int line = section.readUleb128();
 
 		int paramsCount = section.readUleb128();
-		List<RegisterArg> mthArgs = mth.getArguments(false);
+		List<RegisterArg> mthArgs = mth.getArgRegs();
 
 		for (int i = 0; i < paramsCount; i++) {
 			int nameId = section.readUleb128() - 1;

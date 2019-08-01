@@ -39,7 +39,11 @@ public class InitCodeVariables extends AbstractVisitor {
 	}
 
 	private static void initCodeVars(MethodNode mth) {
-		for (RegisterArg mthArg : mth.getArguments(true)) {
+		RegisterArg thisArg = mth.getThisArg();
+		if (thisArg != null) {
+			initCodeVar(thisArg.getSVar());
+		}
+		for (RegisterArg mthArg : mth.getArgRegs()) {
 			initCodeVar(mthArg.getSVar());
 		}
 		for (SSAVar ssaVar : mth.getSVars()) {

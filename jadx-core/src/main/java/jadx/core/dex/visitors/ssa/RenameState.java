@@ -21,7 +21,13 @@ final class RenameState {
 				mth.getEnterBlock(),
 				new SSAVar[regsCount],
 				new int[regsCount]);
-		for (RegisterArg arg : mth.getArguments(true)) {
+		RegisterArg thisArg = mth.getThisArg();
+		if (thisArg != null) {
+			SSAVar ssaVar = state.startVar(thisArg);
+			ssaVar.add(AFlag.THIS);
+			ssaVar.add(AFlag.METHOD_ARGUMENT);
+		}
+		for (RegisterArg arg : mth.getArgRegs()) {
 			SSAVar ssaVar = state.startVar(arg);
 			ssaVar.add(AFlag.METHOD_ARGUMENT);
 		}

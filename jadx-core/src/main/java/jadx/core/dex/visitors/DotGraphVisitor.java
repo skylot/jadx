@@ -97,7 +97,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 			dot.add(escape(mth.getAccessFlags().makeString()));
 			dot.add(escape(mth.getReturnType() + " "
 					+ mth.getParentClass() + '.' + mth.getName()
-					+ '(' + Utils.listToString(mth.getArguments(true)) + ") "));
+					+ '(' + Utils.listToString(mth.getAllArgRegs()) + ") "));
 
 			String attrs = attributesString(mth);
 			if (!attrs.isEmpty()) {

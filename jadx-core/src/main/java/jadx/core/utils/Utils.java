@@ -165,6 +165,20 @@ public class Utils {
 		return result;
 	}
 
+	public static <T> int indexInList(List<T> list, T element) {
+		if (list == null || list.isEmpty()) {
+			return -1;
+		}
+		int size = list.size();
+		for (int i = 0; i < size; i++) {
+			T t = list.get(i);
+			if (t == element) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
 	public static <T> List<T> lockList(List<T> list) {
 		if (list.isEmpty()) {
 			return Collections.emptyList();

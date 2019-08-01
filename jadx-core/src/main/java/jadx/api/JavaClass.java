@@ -43,24 +43,19 @@ public final class JavaClass implements JavaNode {
 	}
 
 	public String getCode() {
-		ICodeInfo code = cls.getCode();
+		ICodeInfo code = getCodeInfo();
 		if (code == null) {
-			decompile();
-			code = cls.getCode();
-			if (code == null) {
-				return "";
-			}
+			return "";
 		}
 		return code.getCodeStr();
 	}
 
-	public synchronized void decompile() {
-		if (decompiler == null) {
-			return;
-		}
-		if (cls.getCode() == null) {
-			cls.decompile();
-		}
+	public ICodeInfo getCodeInfo() {
+		return cls.decompile();
+	}
+
+	public void decompile() {
+		cls.decompile();
 	}
 
 	public synchronized String getSmali() {
@@ -140,8 +135,7 @@ public final class JavaClass implements JavaNode {
 	}
 
 	private Map<CodePosition, Object> getCodeAnnotations() {
-		decompile();
-		ICodeInfo code = cls.getCode();
+		ICodeInfo code = getCodeInfo();
 		if (code == null) {
 			return Collections.emptyMap();
 		}
@@ -168,19 +162,19 @@ public final class JavaClass implements JavaNode {
 	}
 
 	@Nullable
+	@Deprecated
 	public JavaNode getJavaNodeAtPosition(int line, int offset) {
-		decompile();
-		return getRootDecompiler().getJavaNodeAtPosition(cls.getCode(), line, offset);
+		return getRootDecompiler().getJavaNodeAtPosition(getCodeInfo(), line, offset);
 	}
 
 	@Nullable
+	@Deprecated
 	public CodePosition getDefinitionPosition() {
 		return getRootDecompiler().getDefinitionPosition(this);
 	}
 
 	public Integer getSourceLine(int decompiledLine) {
-		decompile();
-		return cls.getCode().getLineMapping().get(decompiledLine);
+		return getCodeInfo().getLineMapping().get(decompiledLine);
 	}
 
 	@Override

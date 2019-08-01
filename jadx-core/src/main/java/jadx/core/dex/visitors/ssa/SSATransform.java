@@ -107,10 +107,15 @@ public class SSATransform extends AbstractVisitor {
 		}
 		int size = block.getPredecessors().size();
 		if (mth.getEnterBlock() == block) {
-			for (RegisterArg arg : mth.getArguments(true)) {
-				if (arg.getRegNum() == regNum) {
-					size++;
-					break;
+			RegisterArg thisArg = mth.getThisArg();
+			if (thisArg != null && thisArg.getRegNum() == regNum) {
+				size++;
+			} else {
+				for (RegisterArg arg : mth.getArgRegs()) {
+					if (arg.getRegNum() == regNum) {
+						size++;
+						break;
+					}
 				}
 			}
 		}

@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
+import jadx.api.impl.NoOpCodeCache;
 import jadx.core.utils.exceptions.JadxArgsValidateException;
 
 public class JadxCLI {
@@ -27,6 +28,7 @@ public class JadxCLI {
 
 	static int processAndSave(JadxCLIArgs inputArgs) {
 		JadxArgs args = inputArgs.toJadxArgs();
+		args.setCodeCache(new NoOpCodeCache());
 		JadxDecompiler jadx = new JadxDecompiler(args);
 		try {
 			jadx.load();

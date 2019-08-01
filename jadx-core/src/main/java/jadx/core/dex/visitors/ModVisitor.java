@@ -277,7 +277,7 @@ public class ModVisitor extends AbstractVisitor {
 		}
 		classNode.loadAndProcess();
 		Map<InsnArg, FieldNode> argsMap = getArgsToFieldsMapping(callMthNode, co);
-		if (argsMap.isEmpty() && !callMthNode.getArguments(true).isEmpty()) {
+		if (argsMap.isEmpty() && !callMthNode.getArgRegs().isEmpty()) {
 			return;
 		}
 
@@ -306,7 +306,7 @@ public class ModVisitor extends AbstractVisitor {
 		MethodInfo callMth = callMthNode.getMethodInfo();
 		ClassNode cls = callMthNode.getParentClass();
 		ClassNode parentClass = cls.getParentClass();
-		List<RegisterArg> argList = callMthNode.getArguments(false);
+		List<RegisterArg> argList = callMthNode.getArgRegs();
 		int startArg = 0;
 		if (callMth.getArgsCount() != 0 && callMth.getArgumentsTypes().get(0).equals(parentClass.getClassInfo().getType())) {
 			startArg = 1;

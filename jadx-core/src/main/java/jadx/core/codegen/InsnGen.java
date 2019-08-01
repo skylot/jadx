@@ -17,6 +17,7 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.attributes.nodes.MethodInlineAttr;
+import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
@@ -756,8 +757,7 @@ public class InsnGen {
 				if (arg.contains(AFlag.SKIP_ARG)) {
 					continue;
 				}
-				RegisterArg callArg = getCallMthArg(callMth, i - startArgNum);
-				if (callArg != null && callArg.contains(AFlag.SKIP_ARG)) {
+				if (SkipMethodArgsAttr.isSkip(callMth, i - startArgNum)) {
 					continue;
 				}
 				if (!firstArg) {
@@ -778,7 +778,7 @@ public class InsnGen {
 		if (callMth == null) {
 			return null;
 		}
-		List<RegisterArg> args = callMth.getArguments(false);
+		List<RegisterArg> args = callMth.getArgRegs();
 		if (args != null && num < args.size()) {
 			return args.get(num);
 		}
@@ -789,18 +789,18 @@ public class InsnGen {
 	 * Add additional cast for overloaded method argument.
 	 */
 	private boolean processOverloadedArg(CodeWriter code, MethodNode callMth, InsnArg arg, int origPos) {
-		List<RegisterArg> arguments = callMth.getArguments(false);
-		if (arguments == null || arguments.isEmpty()) {
+		List<ArgType> argTypes = callMth.getArgTypes();
+		if (argTypes == null) {
 			// try to load class
 			callMth.getParentClass().loadAndProcess();
-			arguments = callMth.getArguments(false);
+			argTypes = callMth.getArgTypes();
 		}
 		ArgType origType;
-		if (arguments == null || arguments.isEmpty()) {
+		if (argTypes == null) {
 			mth.addComment("JADX INFO: used method not loaded: " + callMth + ", types can be incorrect");
 			origType = callMth.getMethodInfo().getArgumentsTypes().get(origPos);
 		} else {
-			origType = arguments.get(origPos).getInitType();
+			origType = argTypes.get(origPos);
 			if (origType.isGenericType() && !callMth.getParentClass().equals(mth.getParentClass())) {
 				// cancel cast
 				return false;
@@ -887,11 +887,10 @@ public class InsnGen {
 		} else {
 			// remap args
 			InsnArg[] regs = new InsnArg[callMthNode.getRegsCount()];
-			List<RegisterArg> callArgs = callMthNode.getArguments(true);
-			for (int i = 0; i < callArgs.size(); i++) {
+			int[] regNums = mia.getArgsRegNums();
+			for (int i = 0; i < regNums.length; i++) {
 				InsnArg arg = insn.getArg(i);
-				RegisterArg callArg = callArgs.get(i);
-				regs[callArg.getRegNum()] = arg;
+				regs[regNums[i]] = arg;
 			}
 			// replace args
 			InsnNode inlCopy = inl.copy();

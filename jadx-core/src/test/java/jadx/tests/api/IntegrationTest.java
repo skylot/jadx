@@ -163,7 +163,7 @@ public abstract class IntegrationTest extends TestUtils {
 
 	protected void decompileAndCheck(JadxDecompiler d, List<ClassNode> clsList) {
 		if (unloadCls) {
-			clsList.forEach(cls -> cls.decompile());
+			clsList.forEach(ClassNode::decompile);
 		} else {
 			clsList.forEach(cls -> decompileWithoutUnload(d, cls));
 		}
@@ -221,7 +221,8 @@ public abstract class IntegrationTest extends TestUtils {
 
 	protected void generateClsCode(ClassNode cls) {
 		try {
-			cls.setCode(CodeGen.generate(cls));
+			ICodeInfo code = CodeGen.generate(cls);
+			cls.root().getCodeCache().add(cls.getTopParentClass().getRawName(), code);
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail(e.getMessage());

@@ -208,8 +208,8 @@ public final class JadxDecompiler {
 			}
 			executor.execute(() -> {
 				try {
-					cls.decompile();
-					SaveCode.save(outDir, cls.getClassNode());
+					ICodeInfo code = cls.getCodeInfo();
+					SaveCode.save(outDir, cls.getClassNode(), code);
 				} catch (Exception e) {
 					LOG.error("Error saving class: {}", cls.getFullName(), e);
 				}

@@ -97,6 +97,17 @@ public abstract class AttrNode implements IAttributeNode {
 		unloadIfEmpty();
 	}
 
+	/**
+	 * Remove all attribute with exceptions from {@link AType#SKIP_ON_UNLOAD}
+	 */
+	public void unloadAttributes() {
+		if (storage == EMPTY_ATTR_STORAGE) {
+			return;
+		}
+		storage.unloadAttributes();
+		unloadIfEmpty();
+	}
+
 	@Override
 	public List<String> getAttributesStringsList() {
 		return storage.getAttributeStrings();

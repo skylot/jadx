@@ -1,5 +1,6 @@
 package jadx.core.codegen;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -88,7 +89,6 @@ public class MethodGen {
 		if (mth.getMethodInfo().hasAlias() && !ai.isConstructor()) {
 			CodeGenUtils.addRenamedComment(code, mth, mth.getName());
 		}
-		CodeGenUtils.addSourceFileInfo(code, mth);
 		if (mth.contains(AFlag.INCONSISTENT_CODE)) {
 			code.startLine("/* Code decompiled incorrectly, please refer to instructions dump. */");
 		}
@@ -113,11 +113,11 @@ public class MethodGen {
 		}
 		code.add('(');
 
-		List<RegisterArg> args = mth.getArguments(false);
+		List<RegisterArg> args = mth.getArgRegs();
 		if (mth.getMethodInfo().isConstructor()
 				&& mth.getParentClass().contains(AType.ENUM_CLASS)) {
 			if (args.size() == 2) {
-				args.clear();
+				args = Collections.emptyList();
 			} else if (args.size() > 2) {
 				args = args.subList(2, args.size());
 			} else {

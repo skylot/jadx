@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.ICodeCache;
 import jadx.api.JadxArgs;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
@@ -46,6 +47,8 @@ public class RootNode {
 	private final CacheStorage cacheStorage = new CacheStorage();
 	private final TypeUpdate typeUpdate;
 
+	private final ICodeCache codeCache;
+
 	private ClspGraph clsp;
 	private List<DexNode> dexNodes;
 	@Nullable
@@ -59,6 +62,7 @@ public class RootNode {
 		this.stringUtils = new StringUtils(args);
 		this.constValues = new ConstStorage(args);
 		this.typeUpdate = new TypeUpdate(this);
+		this.codeCache = args.getCodeCache();
 	}
 
 	public void load(List<InputFile> inputFiles) {
@@ -286,5 +290,9 @@ public class RootNode {
 
 	public TypeUpdate getTypeUpdate() {
 		return typeUpdate;
+	}
+
+	public ICodeCache getCodeCache() {
+		return codeCache;
 	}
 }

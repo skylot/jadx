@@ -58,23 +58,27 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	private boolean noCode;
 	private int regsCount;
-	private InsnNode[] instructions;
 	private int codeSize;
 	private int debugInfoOffset;
 
+	private boolean loaded;
+
+	// additional info available after load, keep on unload
 	private ArgType retType;
-	private RegisterArg thisArg;
-	private List<RegisterArg> argsList;
-	private List<SSAVar> sVars;
+	private List<ArgType> argTypes;
 	private List<GenericInfo> generics;
 
+	// decompilation data, reset on unload
+	private RegisterArg thisArg;
+	private List<RegisterArg> argsList;
+	private InsnNode[] instructions;
 	private List<BlockNode> blocks;
 	private BlockNode enterBlock;
 	private List<BlockNode> exitBlocks;
-
-	private Region region;
+	private List<SSAVar> sVars;
 	private List<ExceptionHandler> exceptionHandlers;
 	private List<LoopInfo> loops;
+	private Region region;
 
 	public MethodNode(ClassNode classNode, Method mthData, boolean isVirtual) {
 		this.mthInfo = MethodInfo.fromDex(classNode.dex(), mthData.getMethodIndex());
@@ -88,14 +92,14 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	@Override
 	public void unload() {
-		regsCount = -1;
+		loaded = false;
 		if (noCode) {
 			return;
 		}
-		// don't unload retType and argsList, will be used in jadx-gui after class unload
+		// don't unload retType, argTypes, generics
 		thisArg = null;
+		argsList = null;
 		sVars = Collections.emptyList();
-		generics = Collections.emptyList();
 		instructions = null;
 		blocks = null;
 		enterBlock = null;
@@ -103,15 +107,17 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		region = null;
 		exceptionHandlers = Collections.emptyList();
 		loops = Collections.emptyList();
+		unloadAttributes();
 	}
 
 	@Override
 	public void load() throws DecodeException {
-		if (regsCount != -1) {
+		if (loaded) {
 			// method already loaded
 			return;
 		}
 		try {
+			loaded = true;
 			if (noCode) {
 				regsCount = 0;
 				codeSize = 0;
@@ -135,6 +141,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 			this.debugInfoOffset = mthCode.getDebugInfoOffset();
 		} catch (Exception e) {
 			if (!noCode) {
+				unload();
 				noCode = true;
 				// load without code
 				load();
@@ -166,30 +173,35 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 	}
 
 	private void initMethodTypes() {
-		if (!parseSignature()) {
-			retType = mthInfo.getReturnType();
-			initArguments(mthInfo.getArgumentsTypes());
+		List<ArgType> types = parseSignature();
+		if (types == null) {
+			this.retType = mthInfo.getReturnType();
+			this.argTypes = mthInfo.getArgumentsTypes();
+		} else {
+			this.argTypes = types;
 		}
+		initArguments(this.argTypes);
 	}
 
-	private boolean parseSignature() {
+	@Nullable
+	private List<ArgType> parseSignature() {
 		SignatureParser sp = SignatureParser.fromNode(this);
 		if (sp == null) {
-			return false;
+			return null;
 		}
 		try {
-			generics = sp.consumeGenericMap();
+			this.generics = sp.consumeGenericMap();
 			List<ArgType> argsTypes = sp.consumeMethodArgs();
-			retType = sp.consumeType();
+			this.retType = sp.consumeType();
 
 			List<ArgType> mthArgs = mthInfo.getArgumentsTypes();
 			if (argsTypes.size() != mthArgs.size()) {
 				if (argsTypes.isEmpty()) {
-					return false;
+					return null;
 				}
 				if (!mthInfo.isConstructor()) {
 					LOG.warn("Wrong signature parse result: {} -> {}, not generic version: {}", sp, argsTypes, mthArgs);
-					return false;
+					return null;
 				} else if (getParentClass().getAccessFlags().isEnum()) {
 					// TODO:
 					argsTypes.add(0, mthArgs.get(0));
@@ -199,14 +211,13 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 					argsTypes.add(0, mthArgs.get(0));
 				}
 				if (argsTypes.size() != mthArgs.size()) {
-					return false;
+					return null;
 				}
 			}
-			initArguments(argsTypes);
-			return true;
+			return argsTypes;
 		} catch (JadxRuntimeException e) {
 			LOG.error("Method signature parse error: {}", this, e);
-			return false;
+			return null;
 		}
 	}
 
@@ -242,23 +253,40 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		}
 	}
 
-	public List<RegisterArg> getArguments(boolean includeThis) {
-		if (includeThis && thisArg != null) {
-			List<RegisterArg> list = new ArrayList<>(argsList.size() + 1);
-			list.add(thisArg);
-			list.addAll(argsList);
-			return list;
+	/**
+	 * Return null only if method not yet loaded
+	 */
+	@Nullable
+	public List<ArgType> getArgTypes() {
+		return argTypes;
+	}
+
+	public List<RegisterArg> getArgRegs() {
+		if (argsList == null) {
+			throw new JadxRuntimeException("Method args not loaded: " + this
+					+ ", class status: " + parentClass.getTopParentClass().getState());
 		}
 		return argsList;
 	}
 
-	public void skipFirstArgument() {
-		this.add(AFlag.SKIP_FIRST_ARG);
+	public List<RegisterArg> getAllArgRegs() {
+		List<RegisterArg> argRegs = getArgRegs();
+		if (thisArg != null) {
+			List<RegisterArg> list = new ArrayList<>(argRegs.size() + 1);
+			list.add(thisArg);
+			list.addAll(argRegs);
+			return list;
+		}
+		return argRegs;
 	}
 
 	@Nullable
 	public RegisterArg getThisArg() {
 		return thisArg;
+	}
+
+	public void skipFirstArgument() {
+		this.add(AFlag.SKIP_FIRST_ARG);
 	}
 
 	public ArgType getReturnType() {
@@ -688,6 +716,10 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 			return blocks.stream().mapToLong(block -> block.getInstructions().size()).sum();
 		}
 		return -1;
+	}
+
+	public boolean isLoaded() {
+		return loaded;
 	}
 
 	@Override

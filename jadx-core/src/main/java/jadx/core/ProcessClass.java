@@ -14,6 +14,7 @@ import static jadx.core.dex.nodes.ProcessState.LOADED;
 import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
 import static jadx.core.dex.nodes.ProcessState.PROCESS_COMPLETE;
 import static jadx.core.dex.nodes.ProcessState.PROCESS_STARTED;
+import static jadx.core.dex.nodes.ProcessState.UNLOADED;
 
 public final class ProcessClass {
 
@@ -26,7 +27,8 @@ public final class ProcessClass {
 			process(topParentClass);
 			return;
 		}
-		if (cls.getState() == PROCESS_COMPLETE) {
+		if (cls.getState() == PROCESS_COMPLETE
+				|| cls.getState() == UNLOADED) {
 			// nothing to do
 			return;
 		}
@@ -58,8 +60,9 @@ public final class ProcessClass {
 			process(cls);
 			cls.getDependencies().forEach(ProcessClass::process);
 
-			// TODO: unload class (need to build dependency tree or allow to load class several times)
-			return CodeGen.generate(cls);
+			ICodeInfo code = CodeGen.generate(cls);
+			cls.unload();
+			return code;
 		} catch (Throwable e) {
 			throw new JadxRuntimeException("Failed to generate code for class: " + cls.getFullName(), e);
 		}

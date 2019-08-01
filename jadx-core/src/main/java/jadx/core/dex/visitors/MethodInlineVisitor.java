@@ -101,7 +101,7 @@ public class MethodInlineVisitor extends AbstractVisitor {
 				for (RegisterArg regArg : regArgs) {
 					copy.replaceArg(regArg, regArg.duplicate(regArg.getRegNum(), null));
 				}
-				mth.addAttr(new MethodInlineAttr(copy));
+				MethodInlineAttr.markForInline(mth, copy);
 				mth.add(AFlag.DONT_GENERATE);
 			}
 		}

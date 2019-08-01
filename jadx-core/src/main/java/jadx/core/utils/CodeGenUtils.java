@@ -7,6 +7,7 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.attributes.nodes.RenameReasonAttr;
 import jadx.core.dex.attributes.nodes.SourceFileAttr;
+import jadx.core.dex.nodes.ClassNode;
 
 public class CodeGenUtils {
 
@@ -28,7 +29,7 @@ public class CodeGenUtils {
 		code.add(" */");
 	}
 
-	public static void addSourceFileInfo(CodeWriter code, AttrNode node) {
+	public static void addSourceFileInfo(CodeWriter code, ClassNode node) {
 		SourceFileAttr sourceFileAttr = node.get(AType.SOURCE_FILE);
 		if (sourceFileAttr != null) {
 			code.startLine("/* compiled from: ").add(sourceFileAttr.getFileName()).add(" */");
