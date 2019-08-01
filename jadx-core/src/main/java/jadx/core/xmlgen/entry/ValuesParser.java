@@ -40,11 +40,12 @@ public class ValuesParser extends ParserConstants {
 	}
 
 	private static void decodeAndroid(RootNode root) throws IOException {
-		InputStream inputStream = new BufferedInputStream(ValuesParser.class.getResourceAsStream("/resources.arsc"));
-		ResTableParser androidParser = new ResTableParser(root);
-		androidParser.decode(inputStream);
-		androidStrings = androidParser.getStrings();
-		androidResMap = androidParser.getResStorage().getResourcesNames();
+		try (InputStream inputStream = new BufferedInputStream(ValuesParser.class.getResourceAsStream("/resources.arsc"))) {
+			ResTableParser androidParser = new ResTableParser(root);
+			androidParser.decode(inputStream);
+			androidStrings = androidParser.getStrings();
+			androidResMap = androidParser.getResStorage().getResourcesNames();
+		}
 	}
 
 	@Nullable

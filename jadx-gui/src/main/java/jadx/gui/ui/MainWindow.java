@@ -13,6 +13,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -924,12 +925,12 @@ public class MainWindow extends JFrame {
 	}
 
 	private void setEditorTheme(String editorThemePath) {
-		try {
-			editorTheme = Theme.load(getClass().getResourceAsStream(editorThemePath));
+		try (InputStream is = getClass().getResourceAsStream(editorThemePath)) {
+			editorTheme = Theme.load(is);
 		} catch (Exception e) {
 			LOG.error("Can't load editor theme from classpath: {}", editorThemePath);
-			try {
-				editorTheme = Theme.load(new FileInputStream(editorThemePath));
+			try (InputStream is = new FileInputStream(editorThemePath)) {
+				editorTheme = Theme.load(is);
 			} catch (Exception ex) {
 				LOG.error("Can't load editor theme from file: {}", editorThemePath);
 			}

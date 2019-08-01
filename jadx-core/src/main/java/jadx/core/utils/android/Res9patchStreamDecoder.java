@@ -50,12 +50,12 @@ public class Res9patchStreamDecoder {
 			drawVLine(im2, w + 1, np.padTop + 1, h - np.padBottom);
 
 			int[] xDivs = np.xDivs;
-			for (int i = 0; i < xDivs.length; i += 2) {
+			for (int i = 0; i < xDivs.length - 1; i += 2) {
 				drawHLine(im2, 0, xDivs[i] + 1, xDivs[i + 1]);
 			}
 
 			int[] yDivs = np.yDivs;
-			for (int i = 0; i < yDivs.length; i += 2) {
+			for (int i = 0; i < yDivs.length - 1; i += 2) {
 				drawVLine(im2, 0, yDivs[i] + 1, yDivs[i + 1]);
 			}
 

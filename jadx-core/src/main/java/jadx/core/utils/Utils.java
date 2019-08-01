@@ -180,8 +180,11 @@ public class Utils {
 		if (len == 0) {
 			return Collections.emptyMap();
 		}
+		if (len % 2 != 0) {
+			throw new IllegalArgumentException("Incorrect arguments count: " + len);
+		}
 		Map<String, String> result = new HashMap<>(len / 2);
-		for (int i = 0; i < len; i += 2) {
+		for (int i = 0; i < len - 1; i += 2) {
 			result.put(parameters[i], parameters[i + 1]);
 		}
 		return Collections.unmodifiableMap(result);

@@ -1,5 +1,7 @@
 package jadx.core.clsp;
 
+import java.util.Arrays;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,7 +84,7 @@ public class NMethod implements Comparable<NMethod> {
 	@Override
 	public String toString() {
 		return "NMethod{'" + shortId + '\''
-				+ ", argTypes=" + genericArgs
+				+ ", argTypes=" + Arrays.toString(genericArgs)
 				+ ", retType=" + retType
 				+ ", varArgs=" + varArgs
 				+ '}';
