@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -86,6 +87,14 @@ public abstract class IntegrationTest extends TestUtils {
 	private boolean printLineNumbers;
 
 	private DynamicCompiler dynamicCompiler;
+
+	static {
+		// needed for post decompile check
+		AType.SKIP_ON_UNLOAD.addAll(Arrays.asList(
+				AType.JADX_ERROR,
+				AType.JADX_WARN,
+				AType.COMMENTS));
+	}
 
 	@BeforeEach
 	public void init() {
