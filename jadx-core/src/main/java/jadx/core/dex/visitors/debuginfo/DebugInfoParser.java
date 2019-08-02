@@ -10,7 +10,6 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.utils.exceptions.DecodeException;
 
 public class DebugInfoParser {
 	private static final int DBG_END_SEQUENCE = 0x00;
@@ -50,7 +49,7 @@ public class DebugInfoParser {
 		this.insnByOffset = insnByOffset;
 	}
 
-	public List<LocalVar> process() throws DecodeException {
+	public List<LocalVar> process() {
 		boolean varsInfoFound = false;
 		resultList = new ArrayList<>();
 
@@ -142,15 +141,11 @@ public class DebugInfoParser {
 				}
 
 				default: {
-					if (c >= DBG_FIRST_SPECIAL) {
-						int adjustedOpCode = c - DBG_FIRST_SPECIAL;
-						int addrInc = adjustedOpCode / DBG_LINE_RANGE;
-						addr = addrChange(addr, addrInc, line);
-						line += DBG_LINE_BASE + adjustedOpCode % DBG_LINE_RANGE;
-						setLine(addr, line);
-					} else {
-						throw new DecodeException("Unknown debug insn code: " + c);
-					}
+					int adjustedOpCode = c - DBG_FIRST_SPECIAL;
+					int addrInc = adjustedOpCode / DBG_LINE_RANGE;
+					addr = addrChange(addr, addrInc, line);
+					line += DBG_LINE_BASE + adjustedOpCode % DBG_LINE_RANGE;
+					setLine(addr, line);
 					break;
 				}
 			}

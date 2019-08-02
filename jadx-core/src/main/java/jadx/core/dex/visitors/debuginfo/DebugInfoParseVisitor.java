@@ -17,7 +17,7 @@ import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.blocksmaker.BlockSplitter;
 import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.utils.ErrorsCounter;
-import jadx.core.utils.exceptions.DecodeException;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
@@ -40,11 +40,13 @@ public class DebugInfoParseVisitor extends AbstractVisitor {
 				processDebugInfo(mth, debugOffset);
 			}
 		} catch (Exception e) {
-			LOG.error("Error to parse debug info: {}", ErrorsCounter.formatMsg(mth, e.getMessage()), e);
+			mth.addComment("JADX WARNING: Error to parse debug info: "
+					+ ErrorsCounter.formatMsg(mth, e.getMessage())
+					+ '\n' + Utils.getStackTrace(e));
 		}
 	}
 
-	private void processDebugInfo(MethodNode mth, int debugOffset) throws DecodeException {
+	private void processDebugInfo(MethodNode mth, int debugOffset) {
 		InsnNode[] insnArr = mth.getInstructions();
 		DebugInfoParser debugInfoParser = new DebugInfoParser(mth, debugOffset, insnArr);
 		List<LocalVar> localVars = debugInfoParser.process();
@@ -107,8 +109,8 @@ public class DebugInfoParseVisitor extends AbstractVisitor {
 				int line = insn.getSourceLine();
 				if (line != 0) {
 					mth.setSourceLine(line - 1);
+					return;
 				}
-				return;
 			}
 		}
 	}
