@@ -122,6 +122,13 @@ public final class TypeUpdate {
 
 	private TypeUpdateResult updateTypeForSsaVar(TypeUpdateInfo updateInfo, SSAVar ssaVar, ArgType candidateType) {
 		TypeInfo typeInfo = ssaVar.getTypeInfo();
+		ArgType immutableType = ssaVar.getImmutableType();
+		if (immutableType != null && !Objects.equals(immutableType, candidateType)) {
+			if (Consts.DEBUG) {
+				LOG.info("Reject change immutable type {} to {} for {}", immutableType, candidateType, ssaVar);
+			}
+			return REJECT;
+		}
 		if (!inBounds(updateInfo, typeInfo.getBounds(), candidateType)) {
 			if (Consts.DEBUG) {
 				LOG.debug("Reject type '{}' for {} by bounds: {}", candidateType, ssaVar, typeInfo.getBounds());
@@ -363,15 +370,20 @@ public final class TypeUpdate {
 		boolean assignChanged = isAssign(insn, arg);
 		InsnArg changeArg = assignChanged ? insn.getArg(0) : insn.getResult();
 
-		// allow result to be wider
-		TypeCompareEnum cmp = comparator.compareTypes(candidateType, changeArg.getType());
-		boolean correctType = cmp.isEqual() || (assignChanged ? cmp.isWider() : cmp.isNarrow());
+		boolean correctType;
+		if (changeArg.getType().isTypeKnown()) {
+			// allow result to be wider
+			TypeCompareEnum cmp = comparator.compareTypes(candidateType, changeArg.getType());
+			correctType = cmp.isEqual() || (assignChanged ? cmp.isWider() : cmp.isNarrow());
+		} else {
+			correctType = true;
+		}
 
 		TypeUpdateResult result = updateTypeChecked(updateInfo, changeArg, candidateType);
 		if (result == SAME && !correctType) {
 			if (Consts.DEBUG) {
-				LOG.debug("Move insn types mismatch: {} -> {}, insn: {}",
-						candidateType, changeArg.getType(), insn);
+				LOG.debug("Move insn types mismatch: {} -> {}, change arg: {}, insn: {}",
+						candidateType, changeArg.getType(), changeArg, insn);
 			}
 			return REJECT;
 		}

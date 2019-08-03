@@ -134,8 +134,7 @@ public class DeboxingVisitor extends AbstractVisitor {
 
 	private boolean canChangeTypeToPrimitive(RegisterArg arg) {
 		for (SSAVar ssaVar : arg.getSVar().getCodeVar().getSsaVars()) {
-			RegisterArg assignArg = ssaVar.getAssign();
-			if (assignArg.contains(AFlag.IMMUTABLE_TYPE)) {
+			if (ssaVar.isTypeImmutable()) {
 				return false;
 			}
 			for (RegisterArg useArg : ssaVar.getUseList()) {

@@ -793,8 +793,7 @@ public class RegionMaker {
 			LOG.debug("Fixing incorrect switch cases order, method: {}", mth);
 			blocksMap = reOrderSwitchCases(blocksMap, fallThroughCases);
 			if (isBadCasesOrder(blocksMap, fallThroughCases)) {
-				LOG.error("Can't fix incorrect switch cases order, method: {}", mth);
-				mth.add(AFlag.INCONSISTENT_CODE);
+				mth.addWarn("Can't fix incorrect switch cases order");
 			}
 		}
 

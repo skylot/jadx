@@ -244,12 +244,12 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 			return;
 		}
 		argsList = new ArrayList<>(args.size());
-		for (ArgType arg : args) {
-			RegisterArg regArg = InsnArg.reg(pos, arg);
+		for (ArgType argType : args) {
+			RegisterArg regArg = InsnArg.reg(pos, argType);
 			regArg.add(AFlag.METHOD_ARGUMENT);
 			regArg.add(AFlag.IMMUTABLE_TYPE);
 			argsList.add(regArg);
-			pos += arg.getRegCount();
+			pos += argType.getRegCount();
 		}
 	}
 

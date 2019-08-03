@@ -77,10 +77,7 @@ public class TypeSearch {
 		for (TypeSearchVarInfo var : resolvedVars) {
 			SSAVar ssaVar = var.getVar();
 			ArgType resolvedType = var.getCurrentType();
-			ssaVar.getAssign().setType(resolvedType);
-			for (RegisterArg arg : ssaVar.getUseList()) {
-				arg.setType(resolvedType);
-			}
+			ssaVar.setType(resolvedType);
 		}
 		boolean applySuccess = true;
 		for (TypeSearchVarInfo var : resolvedVars) {
@@ -194,18 +191,14 @@ public class TypeSearch {
 
 	private void fillTypeCandidates(SSAVar ssaVar) {
 		TypeSearchVarInfo varInfo = state.getVarInfo(ssaVar);
-		ArgType currentType = ssaVar.getTypeInfo().getType();
-		if (currentType.isTypeKnown()) {
-			varInfo.setTypeResolved(true);
-			varInfo.setCurrentType(currentType);
-			varInfo.setCandidateTypes(Collections.emptyList());
+		ArgType immutableType = ssaVar.getImmutableType();
+		if (immutableType != null) {
+			varInfo.markResolved(immutableType);
 			return;
 		}
-		if (ssaVar.getAssign().isTypeImmutable()) {
-			ArgType initType = ssaVar.getAssign().getInitType();
-			varInfo.setTypeResolved(true);
-			varInfo.setCurrentType(initType);
-			varInfo.setCandidateTypes(Collections.emptyList());
+		ArgType currentType = ssaVar.getTypeInfo().getType();
+		if (currentType.isTypeKnown()) {
+			varInfo.markResolved(currentType);
 			return;
 		}
 

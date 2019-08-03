@@ -107,7 +107,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		for (SSAVar var : mth.getSVars()) {
 			ArgType type = var.getTypeInfo().getType();
 			if (!type.isTypeKnown()
-					&& !var.getAssign().isTypeImmutable()
+					&& !var.isTypeImmutable()
 					&& !tryDeduceType(mth, var, type)) {
 				resolved = false;
 			}
@@ -131,20 +131,9 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 
 	private boolean setImmutableType(SSAVar ssaVar) {
 		try {
-			ArgType codeVarType = ssaVar.getCodeVar().getType();
-			if (codeVarType != null) {
-				return applyImmutableType(ssaVar, codeVarType);
-			}
-			RegisterArg assignArg = ssaVar.getAssign();
-			if (assignArg.isTypeImmutable()) {
-				return applyImmutableType(ssaVar, assignArg.getInitType());
-			}
-			if (ssaVar.contains(AFlag.IMMUTABLE_TYPE)) {
-				for (RegisterArg arg : ssaVar.getUseList()) {
-					if (arg.isTypeImmutable()) {
-						return applyImmutableType(ssaVar, arg.getInitType());
-					}
-				}
+			ArgType immutableType = ssaVar.getImmutableType();
+			if (immutableType != null) {
+				return applyImmutableType(ssaVar, immutableType);
 			}
 			return false;
 		} catch (Exception e) {
@@ -166,7 +155,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		TypeUpdateResult result = typeUpdate.apply(ssaVar, initType);
 		if (result == TypeUpdateResult.REJECT) {
 			if (Consts.DEBUG) {
-				LOG.warn("Initial immutable type set rejected: {} -> {}", ssaVar, initType);
+				LOG.info("Reject initial immutable type {} for {}", initType, ssaVar);
 			}
 			return false;
 		}
@@ -236,8 +225,13 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 	}
 
 	private void addAssignBound(TypeInfo typeInfo, RegisterArg assign) {
+		ArgType immutableType = assign.getImmutableType();
+		if (immutableType != null) {
+			addBound(typeInfo, new TypeBoundConst(BoundEnum.ASSIGN, immutableType));
+			return;
+		}
 		InsnNode insn = assign.getParentInsn();
-		if (insn == null || assign.isTypeImmutable()) {
+		if (insn == null || insn.getResult() == null) {
 			addBound(typeInfo, new TypeBoundConst(BoundEnum.ASSIGN, assign.getInitType()));
 			return;
 		}
@@ -436,12 +430,12 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 	}
 
 	private void processIncompatiblePrimitives(MethodNode mth, SSAVar var) {
-		if (var.getAssign().getType() == ArgType.BOOLEAN) {
+		if (var.getTypeInfo().getType() == ArgType.BOOLEAN) {
 			for (ITypeBound bound : var.getTypeInfo().getBounds()) {
 				if (bound.getBound() == BoundEnum.USE
 						&& bound.getType().isPrimitive() && bound.getType() != ArgType.BOOLEAN) {
 					InsnNode insn = bound.getArg().getParentInsn();
-					if (insn.getType() == InsnType.CAST) {
+					if (insn == null || insn.getType() == InsnType.CAST) {
 						continue;
 					}
 

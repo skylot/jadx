@@ -337,9 +337,16 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		if (!iterableArg.isRegister() || !iterableType.isObject()) {
 			return true;
 		}
-		// TODO: add checks
-		iterableType = ArgType.generic(iterableType.getObject(), varType);
-		iterableArg.setType(iterableType);
+		ArgType genericType = ArgType.generic(iterableType.getObject(), varType);
+		if (iterableArg.isRegister()) {
+			ArgType immutableType = ((RegisterArg) iterableArg).getImmutableType();
+			if (immutableType != null && !immutableType.equals(genericType)) {
+				// can't change type
+				// allow to iterate over not generified collection only for Object vars
+				return varType.equals(ArgType.OBJECT);
+			}
+		}
+		iterableArg.setType(genericType);
 		return true;
 	}
 

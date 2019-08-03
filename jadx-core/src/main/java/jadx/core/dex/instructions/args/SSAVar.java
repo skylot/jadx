@@ -9,8 +9,8 @@ import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.PhiInsn;
@@ -20,7 +20,7 @@ import jadx.core.dex.visitors.typeinference.TypeInfo;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
-public class SSAVar extends AttrNode {
+public class SSAVar {
 	private final int regNum;
 	private final int version;
 
@@ -66,8 +66,29 @@ public class SSAVar extends AttrNode {
 		return useList.size();
 	}
 
-	// must be used only from RegisterArg#setType()
-	void setType(ArgType type) {
+	@Nullable
+	public ArgType getImmutableType() {
+		if (assign.contains(AFlag.IMMUTABLE_TYPE)) {
+			return assign.getInitType();
+		}
+		for (RegisterArg useArg : useList) {
+			if (useArg.contains(AFlag.IMMUTABLE_TYPE)) {
+				return useArg.getInitType();
+			}
+		}
+		return null;
+	}
+
+	public boolean isTypeImmutable() {
+		return getImmutableType() != null;
+	}
+
+	public void setType(ArgType type) {
+		ArgType imType = getImmutableType();
+		if (imType != null && !imType.equals(type)) {
+			throw new JadxRuntimeException("Can't change immutable type " + imType + " to " + type + " for " + this);
+		}
+
 		typeInfo.setType(type);
 		if (codeVar != null) {
 			codeVar.setType(type);

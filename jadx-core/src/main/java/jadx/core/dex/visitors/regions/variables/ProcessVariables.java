@@ -72,11 +72,10 @@ public class ProcessVariables extends AbstractVisitor {
 				codeVar.setType(ArgType.UNKNOWN);
 				unknownTypesCount++;
 			} else {
-				codeVar.getSsaVars().stream()
-						.filter(ssaVar -> ssaVar.contains(AFlag.IMMUTABLE_TYPE))
+				codeVar.getSsaVars()
 						.forEach(ssaVar -> {
-							ArgType ssaType = ssaVar.getAssign().getInitType();
-							if (ssaType.isTypeKnown()) {
+							ArgType ssaType = ssaVar.getImmutableType();
+							if (ssaType != null && ssaType.isTypeKnown()) {
 								TypeCompare comparator = mth.root().getTypeUpdate().getTypeCompare();
 								TypeCompareEnum result = comparator.compareTypes(ssaType, codeVarType);
 								if (result == TypeCompareEnum.CONFLICT || result.isNarrow()) {

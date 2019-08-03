@@ -75,7 +75,7 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 	private static void checkInline(MethodNode mth, BlockNode block, InsnList insnList,
 			List<WrapInfo> wrapList, ArgsInfo argsInfo, RegisterArg arg) {
 		SSAVar sVar = arg.getSVar();
-		if (sVar == null || sVar.contains(AFlag.DONT_INLINE)) {
+		if (sVar == null || sVar.getAssign().contains(AFlag.DONT_INLINE)) {
 			return;
 		}
 		// allow inline only one use arg

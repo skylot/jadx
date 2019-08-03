@@ -1,5 +1,6 @@
 package jadx.core.dex.visitors.typeinference;
 
+import java.util.Collections;
 import java.util.List;
 
 import jadx.core.dex.instructions.args.ArgType;
@@ -15,6 +16,12 @@ public class TypeSearchVarInfo {
 
 	public TypeSearchVarInfo(SSAVar var) {
 		this.var = var;
+	}
+
+	public void markResolved(ArgType type) {
+		this.currentType = type;
+		this.typeResolved = true;
+		this.candidateTypes = Collections.emptyList();
 	}
 
 	public void reset() {

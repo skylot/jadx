@@ -4,15 +4,12 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class RegisterArg extends InsnArg implements Named {
-	private static final Logger LOG = LoggerFactory.getLogger(RegisterArg.class);
 	public static final String THIS_ARG_NAME = "this";
 
 	protected final int regNum;
@@ -38,15 +35,6 @@ public class RegisterArg extends InsnArg implements Named {
 		if (sVar == null) {
 			throw new JadxRuntimeException("Can't change type for register without SSA variable: " + this);
 		}
-		if (contains(AFlag.IMMUTABLE_TYPE)) {
-			if (!type.isTypeKnown()) {
-				throw new JadxRuntimeException("Unknown immutable type '" + type + "' in " + this);
-			}
-			if (!type.equals(newType)) {
-				LOG.warn("JADX WARNING: Can't change immutable type from '{}' to '{}' for {}", type, newType, this);
-				return;
-			}
-		}
 		sVar.setType(newType);
 	}
 
@@ -62,9 +50,23 @@ public class RegisterArg extends InsnArg implements Named {
 		return type;
 	}
 
+	@Nullable
+	public ArgType getImmutableType() {
+		if (contains(AFlag.IMMUTABLE_TYPE)) {
+			return type;
+		}
+		if (sVar != null) {
+			return sVar.getImmutableType();
+		}
+		return null;
+	}
+
 	@Override
 	public boolean isTypeImmutable() {
-		return contains(AFlag.IMMUTABLE_TYPE) || (sVar != null && sVar.contains(AFlag.IMMUTABLE_TYPE));
+		if (contains(AFlag.IMMUTABLE_TYPE)) {
+			return true;
+		}
+		return sVar != null && sVar.isTypeImmutable();
 	}
 
 	public SSAVar getSVar() {
@@ -73,9 +75,14 @@ public class RegisterArg extends InsnArg implements Named {
 
 	void setSVar(@NotNull SSAVar sVar) {
 		this.sVar = sVar;
-		if (contains(AFlag.IMMUTABLE_TYPE)) {
-			sVar.add(AFlag.IMMUTABLE_TYPE);
+	}
+
+	@Override
+	public void add(AFlag flag) {
+		if (flag == AFlag.IMMUTABLE_TYPE && !type.isTypeKnown()) {
+			throw new JadxRuntimeException("Can't mark unknown type as immutable, type: " + type + ", reg: " + this);
 		}
+		super.add(flag);
 	}
 
 	@Override
@@ -169,8 +176,7 @@ public class RegisterArg extends InsnArg implements Named {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("(r");
-		sb.append(regNum);
+		sb.append("(r").append(regNum);
 		if (sVar != null) {
 			sb.append('v').append(sVar.getVersion());
 		}
