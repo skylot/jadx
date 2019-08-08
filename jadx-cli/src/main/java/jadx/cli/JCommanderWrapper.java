@@ -9,6 +9,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterDescription;
 import com.beust.jcommander.ParameterException;
@@ -80,7 +82,10 @@ public class JCommanderWrapper<T> {
 			opt.append("  ").append(p.getNames());
 			addSpaces(opt, maxNamesLen - opt.length() + 3);
 			opt.append("- ").append(p.getDescription());
-			addDefaultValue(args, f, opt);
+			String defaultValue = getDefaultValue(args, f, opt);
+			if (defaultValue != null) {
+				opt.append(", default: ").append(defaultValue);
+			}
 			out.println(opt);
 		}
 		out.println("Example:");
@@ -102,26 +107,26 @@ public class JCommanderWrapper<T> {
 		return fieldList;
 	}
 
-	private void addDefaultValue(JadxCLIArgs args, Field f, StringBuilder opt) {
-		Class<?> fieldType = f.getType();
-		if (fieldType == int.class) {
-			try {
-				int val = f.getInt(args);
-				opt.append(" (default: ").append(val).append(')');
-			} catch (Exception e) {
-				// ignore
+	@Nullable
+	private String getDefaultValue(JadxCLIArgs args, Field f, StringBuilder opt) {
+		try {
+			Class<?> fieldType = f.getType();
+			if (fieldType == int.class) {
+				return Integer.toString(f.getInt(args));
 			}
-		}
-		if (fieldType == String.class) {
-			try {
-				String val = (String) f.get(args);
+			if (fieldType == String.class) {
+				return (String) f.get(args);
+			}
+			if (Enum.class.isAssignableFrom(fieldType)) {
+				Enum<?> val = (Enum<?>) f.get(args);
 				if (val != null) {
-					opt.append(" (default: ").append(val).append(')');
+					return val.name();
 				}
-			} catch (Exception e) {
-				// ignore
 			}
+		} catch (Exception e) {
+			// ignore
 		}
+		return null;
 	}
 
 	private static void addSpaces(StringBuilder str, int count) {

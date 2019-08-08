@@ -40,10 +40,10 @@ public class JadxCLI {
 		int errorsCount = jadx.getErrorsCount();
 		if (errorsCount != 0) {
 			jadx.printErrorsReport();
-			LOG.error("finished with errors");
+			LOG.error("finished with errors, count: {}", errorsCount);
 		} else {
 			LOG.info("done");
 		}
-		return errorsCount;
+		return 0;
 	}
 }

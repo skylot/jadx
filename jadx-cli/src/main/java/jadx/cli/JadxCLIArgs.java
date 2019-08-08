@@ -8,14 +8,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
-
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.Appender;
 
 import jadx.api.JadxArgs;
 import jadx.api.JadxArgs.RenameEnum;
@@ -114,8 +108,18 @@ public class JadxCLIArgs {
 	@Parameter(names = { "-f", "--fallback" }, description = "make simple dump (using goto instead of 'if', 'for', etc)")
 	protected boolean fallbackMode = false;
 
-	@Parameter(names = { "-v", "--verbose" }, description = "verbose output")
+	@Parameter(names = { "-v", "--verbose" }, description = "verbose output (set --log-level to DEBUG)")
 	protected boolean verbose = false;
+
+	@Parameter(names = { "-q", "--quiet" }, description = "turn off output (set --log-level to QUIET)")
+	protected boolean quiet = false;
+
+	@Parameter(
+			names = { "--log-level" },
+			description = "set log level, values: QUIET, PROGRESS, ERROR, WARN, INFO, DEBUG",
+			converter = LogHelper.LogLevelConverter.class
+	)
+	protected LogHelper.LogLevelEnum logLevel = LogHelper.LogLevelEnum.PROGRESS;
 
 	@Parameter(names = { "--version" }, description = "print jadx version")
 	protected boolean printVersion = false;
@@ -158,15 +162,7 @@ public class JadxCLIArgs {
 			if (threadsCount <= 0) {
 				throw new JadxException("Threads count must be positive, got: " + threadsCount);
 			}
-			if (verbose) {
-				ch.qos.logback.classic.Logger rootLogger =
-						(ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-				// remove INFO ThresholdFilter
-				Appender<ILoggingEvent> appender = rootLogger.getAppender("STDOUT");
-				if (appender != null) {
-					appender.clearAllFilters();
-				}
-			}
+			LogHelper.setLogLevelFromArgs(this);
 		} catch (JadxException e) {
 			System.err.println("ERROR: " + e.getMessage());
 			jcw.printUsage();
@@ -339,15 +335,18 @@ public class JadxCLIArgs {
 				try {
 					set.add(RenameEnum.valueOf(s.toUpperCase(Locale.ROOT)));
 				} catch (IllegalArgumentException e) {
-					String values = Arrays.stream(RenameEnum.values())
-							.map(v -> '\'' + v.name().toLowerCase(Locale.ROOT) + '\'')
-							.collect(Collectors.joining(", "));
 					throw new IllegalArgumentException(
 							'\'' + s + "' is unknown for parameter " + paramName
-									+ ", possible values are " + values);
+									+ ", possible values are " + enumValuesString(RenameEnum.values()));
 				}
 			}
 			return set;
 		}
+	}
+
+	public static String enumValuesString(Enum<?>[] values) {
+		return Arrays.stream(values)
+				.map(v -> '\'' + v.name().toLowerCase(Locale.ROOT) + '\'')
+				.collect(Collectors.joining(", "));
 	}
 }
