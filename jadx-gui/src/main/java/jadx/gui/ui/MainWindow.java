@@ -38,6 +38,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.fife.ui.rsyntaxtextarea.Theme;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -480,9 +481,8 @@ public class MainWindow extends JFrame {
 		reOpenFile();
 	}
 
-	private void treeClickAction() {
+	private void nodeClickAction(@Nullable Object obj) {
 		try {
-			Object obj = tree.getLastSelectedPathComponent();
 			if (obj == null) {
 				return;
 			}
@@ -507,14 +507,23 @@ public class MainWindow extends JFrame {
 	}
 
 	private void treeRightClickAction(MouseEvent e) {
-		TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+		Object obj = getJNodeUnderMouse(e);
+		if (obj instanceof JPackage) {
+			JPackagePopUp menu = new JPackagePopUp((JPackage) obj);
+			menu.show(e.getComponent(), e.getX(), e.getY());
+		}
+	}
+
+	@Nullable
+	private JNode getJNodeUnderMouse(MouseEvent mouseEvent) {
+		TreePath path = tree.getPathForLocation(mouseEvent.getX(), mouseEvent.getY());
 		if (path != null) {
 			Object obj = path.getLastPathComponent();
-			if (obj instanceof JPackage) {
-				JPackagePopUp menu = new JPackagePopUp((JPackage) obj);
-				menu.show(e.getComponent(), e.getX(), e.getY());
+			if (obj instanceof JNode) {
+				return (JNode) obj;
 			}
 		}
+		return null;
 	}
 
 	private void syncWithEditor() {
@@ -806,10 +815,10 @@ public class MainWindow extends JFrame {
 		tree.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if (SwingUtilities.isRightMouseButton(e)) {
+				if (SwingUtilities.isLeftMouseButton(e)) {
+					nodeClickAction(getJNodeUnderMouse(e));
+				} else if (SwingUtilities.isRightMouseButton(e)) {
 					treeRightClickAction(e);
-				} else {
-					treeClickAction();
 				}
 			}
 		});
@@ -817,7 +826,7 @@ public class MainWindow extends JFrame {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					treeClickAction();
+					nodeClickAction(tree.getLastSelectedPathComponent());
 				}
 			}
 		});
