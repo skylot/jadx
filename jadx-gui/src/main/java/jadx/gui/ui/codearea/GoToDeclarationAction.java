@@ -1,67 +1,30 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 
-import javax.swing.AbstractAction;
+import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
 
-import org.fife.ui.rsyntaxtextarea.Token;
-
-import jadx.api.JavaNode;
-import jadx.gui.treemodel.JClass;
-import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.ContentPanel;
-import jadx.gui.ui.MainWindow;
-import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
 
-public final class GoToDeclarationAction extends AbstractAction implements PopupMenuListener {
+public final class GoToDeclarationAction extends JNodeMenuAction {
 	private static final long serialVersionUID = -1186470538894941301L;
-	private final transient ContentPanel contentPanel;
-	private final transient CodeArea codeArea;
-	private final transient JClass jCls;
 
-	private transient JavaNode node;
-
-	public GoToDeclarationAction(ContentPanel contentPanel, CodeArea codeArea, JClass jCls) {
-		super(NLS.str("popup.go_to_declaration"));
-		this.contentPanel = contentPanel;
-		this.codeArea = codeArea;
-		this.jCls = jCls;
+	public GoToDeclarationAction(CodeArea codeArea) {
+		super(NLS.str("popup.go_to_declaration"), codeArea);
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (node == null) {
-			return;
+		if (jumpPos != null) {
+			codeArea.getContentPanel().getTabbedPane().codeJump(jumpPos);
 		}
-		MainWindow mainWindow = contentPanel.getTabbedPane().getMainWindow();
-		JNode jNode = mainWindow.getCacheObject().getNodeCache().makeFrom(node);
-		mainWindow.getTabbedPane().codeJump(new JumpPosition(jNode, jNode.getLine()));
 	}
 
 	@Override
 	public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-		node = null;
-		Point pos = codeArea.getMousePosition();
-		if (pos != null) {
-			Token token = codeArea.viewToToken(pos);
-			if (token != null) {
-				node = codeArea.getJavaNodeAtOffset(token.getOffset());
-			}
-		}
-		setEnabled(node != null);
-	}
+		super.popupMenuWillBecomeVisible(e);
 
-	@Override
-	public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-		// do nothing
-	}
-
-	@Override
-	public void popupMenuCanceled(PopupMenuEvent e) {
-		// do nothing
+		putValue(Action.SMALL_ICON, jumpPos == null ? null : jumpPos.getNode().getIcon());
 	}
 }

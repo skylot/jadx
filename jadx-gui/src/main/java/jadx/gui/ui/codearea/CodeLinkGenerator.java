@@ -9,11 +9,9 @@ import org.fife.ui.rsyntaxtextarea.LinkGenerator;
 import org.fife.ui.rsyntaxtextarea.LinkGeneratorResult;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.Token;
-import org.fife.ui.rsyntaxtextarea.TokenTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.ContentPanel;
 import jadx.gui.utils.JumpPosition;
@@ -38,32 +36,9 @@ public class CodeLinkGenerator implements LinkGenerator, HyperlinkListener {
 				return null;
 			}
 			Token token = textArea.modelToToken(offset);
-			if (token == null) {
+			int sourceOffset = codeArea.adjustOffsetForToken(token);
+			if (sourceOffset == -1) {
 				return null;
-			}
-			int type = token.getType();
-			final int sourceOffset;
-			if (jNode instanceof JClass) {
-				if (type == TokenTypes.IDENTIFIER) {
-					sourceOffset = token.getOffset();
-				} else if (type == TokenTypes.ANNOTATION && token.length() > 1) {
-					sourceOffset = token.getOffset() + 1;
-				} else {
-					return null;
-				}
-			} else {
-				if (type == TokenTypes.MARKUP_TAG_ATTRIBUTE_VALUE) {
-					sourceOffset = token.getOffset() + 1; // skip quote at start (")
-				} else {
-					return null;
-				}
-			}
-			// fast skip
-			if (token.length() == 1) {
-				char ch = token.getTextArray()[token.getTextOffset()];
-				if (ch == '.' || ch == ',' || ch == ';') {
-					return null;
-				}
 			}
 			final JumpPosition defPos = codeArea.getDefPosForNodeAtOffset(sourceOffset);
 			if (defPos == null) {
