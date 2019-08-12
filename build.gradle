@@ -2,8 +2,8 @@ import com.diffplug.spotless.LineEnding
 
 plugins {
 	id 'org.sonarqube' version '2.7.1'
-	id 'com.github.ben-manes.versions' version '0.21.0'
-	id "com.diffplug.gradle.spotless" version "3.23.1"
+	id 'com.github.ben-manes.versions' version '0.22.0'
+	id "com.diffplug.gradle.spotless" version "3.24.0"
 }
 
 ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
@@ -35,14 +35,14 @@ allprojects {
 	}
 
 	dependencies {
-		compile 'org.slf4j:slf4j-api:1.7.26'
+		compile 'org.slf4j:slf4j-api:1.7.28'
 
 		testCompile 'ch.qos.logback:logback-classic:1.2.3'
 		testCompile 'org.hamcrest:hamcrest-library:2.1'
-		testCompile 'org.mockito:mockito-core:2.28.2'
+		testCompile 'org.mockito:mockito-core:3.0.0'
 
-		testImplementation 'org.junit.jupiter:junit-jupiter-api:5.4.2'
-		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.4.2'
+		testImplementation 'org.junit.jupiter:junit-jupiter-api:5.5.1'
+		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.5.1'
 
 		testCompile 'org.eclipse.jdt.core.compiler:ecj:4.6.1'
 	}

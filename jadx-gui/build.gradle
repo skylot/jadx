@@ -1,7 +1,7 @@
 plugins {
 	id 'application'
 	id 'edu.sc.seis.launch4j' version '2.4.6'
-	id 'com.github.johnrengelman.shadow' version '5.0.0'
+	id 'com.github.johnrengelman.shadow' version '5.1.0'
 }
 
 dependencies {
@@ -13,11 +13,11 @@ dependencies {
 	compile 'hu.kazocsaba:image-viewer:1.2.3'
 
 	compile 'org.apache.commons:commons-lang3:3.9'
-	compile 'org.apache.commons:commons-text:1.6'
+	compile 'org.apache.commons:commons-text:1.7'
 
-	compile 'io.reactivex.rxjava2:rxjava:2.2.10'
+	compile 'io.reactivex.rxjava2:rxjava:2.2.11'
 	compile "com.github.akarnokd:rxjava2-swing:0.3.7"
-	compile 'com.android.tools.build:apksig:3.4.1'
+	compile 'com.android.tools.build:apksig:3.4.2'
 }
 
 application {
