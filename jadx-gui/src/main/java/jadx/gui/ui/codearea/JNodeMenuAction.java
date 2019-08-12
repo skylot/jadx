@@ -10,13 +10,11 @@ import javax.swing.event.PopupMenuListener;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.jetbrains.annotations.Nullable;
 
-import jadx.gui.utils.JumpPosition;
-
-public abstract class JNodeMenuAction extends AbstractAction implements PopupMenuListener {
+public abstract class JNodeMenuAction<T> extends AbstractAction implements PopupMenuListener {
 
 	protected final transient CodeArea codeArea;
 	@Nullable
-	protected transient JumpPosition jumpPos;
+	protected transient T node;
 
 	public JNodeMenuAction(String name, CodeArea codeArea) {
 		super(name);
@@ -26,19 +24,22 @@ public abstract class JNodeMenuAction extends AbstractAction implements PopupMen
 	@Override
 	public abstract void actionPerformed(ActionEvent e);
 
+	@Nullable
+	public abstract T getNodeByOffset(int offset);
+
 	@Override
 	public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-		jumpPos = getJumpPos();
-		setEnabled(jumpPos != null);
+		node = getNode();
+		setEnabled(node != null);
 	}
 
 	@Nullable
-	private JumpPosition getJumpPos() {
+	private T getNode() {
 		Point pos = codeArea.getMousePosition();
 		if (pos != null) {
 			Token token = codeArea.viewToToken(pos);
 			int offset = codeArea.adjustOffsetForToken(token);
-			return codeArea.getDefPosForNodeAtOffset(offset);
+			return getNodeByOffset(offset);
 		}
 		return null;
 	}

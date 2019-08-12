@@ -15,6 +15,8 @@ import jadx.api.JavaNode;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.ContentPanel;
+import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.JumpPosition;
 
 /**
@@ -109,14 +111,31 @@ public final class CodeArea extends AbstractCodeArea {
 		if (pos == null) {
 			return null;
 		}
-		JNode jNode = contentPanel.getTabbedPane().getMainWindow().getCacheObject().getNodeCache().makeFrom(foundNode);
+		JNode jNode = convertJavaNode(foundNode);
 		return new JumpPosition(jNode.getRootClass(), pos.getLine());
+	}
+
+	private JNode convertJavaNode(JavaNode javaNode) {
+		JNodeCache nodeCache = getMainWindow().getCacheObject().getNodeCache();
+		return nodeCache.makeFrom(javaNode);
+	}
+
+	@Nullable
+	public JNode getJNodeAtOffset(int offset) {
+		JavaNode javaNode = getJavaNodeAtOffset(offset);
+		if (javaNode != null) {
+			return convertJavaNode(javaNode);
+		}
+		return null;
 	}
 
 	/**
 	 * Search referenced java node by offset in {@code jCls} code
 	 */
 	public JavaNode getJavaNodeAtOffset(int offset) {
+		if (offset == -1) {
+			return null;
+		}
 		try {
 			// TODO: add direct mapping for code offset to CodeWriter (instead of line and line offset pair)
 			int line = this.getLineOfOffset(offset);
@@ -128,7 +147,11 @@ public final class CodeArea extends AbstractCodeArea {
 		return null;
 	}
 
+	public MainWindow getMainWindow() {
+		return contentPanel.getTabbedPane().getMainWindow();
+	}
+
 	private JadxDecompiler getDecompiler() {
-		return contentPanel.getTabbedPane().getMainWindow().getWrapper().getDecompiler();
+		return getMainWindow().getWrapper().getDecompiler();
 	}
 }

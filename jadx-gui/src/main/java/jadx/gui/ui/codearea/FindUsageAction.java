@@ -2,11 +2,13 @@ package jadx.gui.ui.codearea;
 
 import java.awt.event.ActionEvent;
 
-import jadx.gui.ui.MainWindow;
+import org.jetbrains.annotations.Nullable;
+
+import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.UsageDialog;
 import jadx.gui.utils.NLS;
 
-public final class FindUsageAction extends JNodeMenuAction {
+public final class FindUsageAction extends JNodeMenuAction<JNode> {
 	private static final long serialVersionUID = 4692546569977976384L;
 
 	public FindUsageAction(CodeArea codeArea) {
@@ -15,11 +17,16 @@ public final class FindUsageAction extends JNodeMenuAction {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (jumpPos == null) {
+		if (node == null) {
 			return;
 		}
-		MainWindow mainWindow = codeArea.getContentPanel().getTabbedPane().getMainWindow();
-		UsageDialog usageDialog = new UsageDialog(mainWindow, jumpPos.getNode());
+		UsageDialog usageDialog = new UsageDialog(codeArea.getMainWindow(), node);
 		usageDialog.setVisible(true);
+	}
+
+	@Nullable
+	@Override
+	public JNode getNodeByOffset(int offset) {
+		return codeArea.getJNodeAtOffset(offset);
 	}
 }
