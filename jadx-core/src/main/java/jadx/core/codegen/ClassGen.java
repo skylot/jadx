@@ -470,10 +470,9 @@ public class ClassGen {
 				ArgType gt = generics[i];
 				ArgType wt = gt.getWildcardType();
 				if (wt != null) {
-					code.add('?');
-					int bounds = gt.getWildcardBounds();
-					if (bounds != 0) {
-						code.add(bounds == -1 ? " super " : " extends ");
+					ArgType.WildcardBound bound = gt.getWildcardBound();
+					code.add(bound.getStr());
+					if (bound != ArgType.WildcardBound.UNBOUND) {
 						useType(code, wt);
 					}
 				} else {

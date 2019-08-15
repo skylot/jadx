@@ -327,7 +327,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 			}
 			ArgType wildcardType = gType.getWildcardType();
 			if (wildcardType != null
-					&& gType.getWildcardBounds() == 1
+					&& gType.getWildcardBound() == ArgType.WildcardBound.EXTENDS
 					&& ArgType.isInstanceOf(mth.root(), wildcardType, varType)) {
 				return true;
 			}

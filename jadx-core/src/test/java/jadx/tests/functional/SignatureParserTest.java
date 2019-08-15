@@ -6,6 +6,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.ArgType.WildcardBound;
 import jadx.core.dex.nodes.GenericInfo;
 import jadx.core.dex.nodes.parser.SignatureParser;
 
@@ -60,10 +61,10 @@ class SignatureParserTest {
 	@Test
 	public void testWildcards() {
 		checkWildcards("*", wildcard());
-		checkWildcards("+Lb;", wildcard(object("b"), 1));
-		checkWildcards("-Lb;", wildcard(object("b"), -1));
-		checkWildcards("+TV;", wildcard(genericType("V"), 1));
-		checkWildcards("-TV;", wildcard(genericType("V"), -1));
+		checkWildcards("+Lb;", wildcard(object("b"), WildcardBound.EXTENDS));
+		checkWildcards("-Lb;", wildcard(object("b"), WildcardBound.SUPER));
+		checkWildcards("+TV;", wildcard(genericType("V"), WildcardBound.EXTENDS));
+		checkWildcards("-TV;", wildcard(genericType("V"), WildcardBound.SUPER));
 
 		checkWildcards("**", wildcard(), wildcard());
 		checkWildcards("*Lb;", wildcard(), object("b"));
@@ -116,7 +117,7 @@ class SignatureParserTest {
 		assertThat(argTypes, hasSize(1));
 		ArgType argType = argTypes.get(0);
 		assertThat(argType.getObject().indexOf('/'), is(-1));
-		assertThat(argType, is(genericInner(generic("La/b/C;", genericType("T")), "d.E", (ArgType[]) null)));
+		assertThat(argType, is(genericInner(generic("La/b/C;", genericType("T")), "d.E", null)));
 	}
 
 	@Test

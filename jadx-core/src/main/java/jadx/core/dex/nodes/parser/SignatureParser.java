@@ -38,7 +38,8 @@ public class SignatureParser {
 		if (a == null) {
 			return null;
 		}
-		return new SignatureParser(mergeSignature((List<String>) a.getDefaultValue()));
+		String signature = mergeSignature((List<String>) a.getDefaultValue());
+		return new SignatureParser(signature);
 	}
 
 	private char next() {
@@ -200,10 +201,10 @@ public class SignatureParser {
 				type = ArgType.wildcard();
 			} else if (lookAhead('+')) {
 				next();
-				type = ArgType.wildcard(consumeType(), 1);
+				type = ArgType.wildcard(consumeType(), ArgType.WildcardBound.EXTENDS);
 			} else if (lookAhead('-')) {
 				next();
-				type = ArgType.wildcard(consumeType(), -1);
+				type = ArgType.wildcard(consumeType(), ArgType.WildcardBound.SUPER);
 			} else {
 				type = consumeType();
 			}

@@ -74,14 +74,14 @@ public abstract class ArgType {
 	}
 
 	public static ArgType wildcard() {
-		return new WildcardType(OBJECT, 0);
+		return new WildcardType(OBJECT, WildcardBound.UNBOUND);
 	}
 
-	public static ArgType wildcard(ArgType obj, int bounds) {
-		return new WildcardType(obj, bounds);
+	public static ArgType wildcard(ArgType obj, WildcardBound bound) {
+		return new WildcardType(obj, bound);
 	}
 
-	public static ArgType generic(String sign) {
+	public static ArgType parseGenericSignature(String sign) {
 		return new SignatureParser(sign).consumeType();
 	}
 
@@ -212,14 +212,40 @@ public abstract class ArgType {
 		}
 	}
 
+	public enum WildcardBound {
+		EXTENDS(1, "? extends "), // upper bound (? extends A)
+		UNBOUND(0, "?"), // no bounds (?)
+		SUPER(-1, "? super "); // lower bound (? super A)
+
+		private final int num;
+		private final String str;
+
+		WildcardBound(int val, String str) {
+			this.num = val;
+			this.str = str;
+		}
+
+		public int getNum() {
+			return num;
+		}
+
+		public String getStr() {
+			return str;
+		}
+
+		public static WildcardBound getByNum(int num) {
+			return num == 0 ? UNBOUND : (num == 1 ? EXTENDS : SUPER);
+		}
+	}
+
 	private static final class WildcardType extends ObjectType {
 		private final ArgType type;
-		private final int bounds;
+		private final WildcardBound bound;
 
-		public WildcardType(ArgType obj, int bounds) {
+		public WildcardType(ArgType obj, WildcardBound bound) {
 			super(OBJECT.getObject());
 			this.type = obj;
-			this.bounds = bounds;
+			this.bound = bound;
 		}
 
 		@Override
@@ -232,32 +258,24 @@ public abstract class ArgType {
 			return type;
 		}
 
-		/**
-		 * Return wildcard bounds:
-		 * <ul>
-		 * <li>1 for upper bound (? extends A)</li>
-		 * <li>0 no bounds (?)</li>
-		 * <li>-1 for lower bound (? super A)</li>
-		 * </ul>
-		 */
 		@Override
-		public int getWildcardBounds() {
-			return bounds;
+		public WildcardBound getWildcardBound() {
+			return bound;
 		}
 
 		@Override
 		boolean internalEquals(Object obj) {
 			return super.internalEquals(obj)
-					&& bounds == ((WildcardType) obj).bounds
+					&& bound == ((WildcardType) obj).bound
 					&& type.equals(((WildcardType) obj).type);
 		}
 
 		@Override
 		public String toString() {
-			if (bounds == 0) {
-				return "?";
+			if (bound == WildcardBound.UNBOUND) {
+				return bound.getStr();
 			}
-			return "? " + (bounds == -1 ? "super" : "extends") + ' ' + type;
+			return bound.getStr() + type;
 		}
 	}
 
@@ -468,11 +486,8 @@ public abstract class ArgType {
 		return null;
 	}
 
-	/**
-	 * @see WildcardType#getWildcardBounds()
-	 */
-	public int getWildcardBounds() {
-		return 0;
+	public WildcardBound getWildcardBound() {
+		return null;
 	}
 
 	public ArgType getOuterType() {
@@ -629,6 +644,10 @@ public abstract class ArgType {
 		if (isGenericType()) {
 			return true;
 		}
+		ArgType wildcardType = getWildcardType();
+		if (wildcardType != null) {
+			return wildcardType.containsGenericType();
+		}
 		if (isGeneric()) {
 			ArgType[] genericTypes = getGenericTypes();
 			if (genericTypes != null) {
@@ -662,7 +681,7 @@ public abstract class ArgType {
 				return new GenericObject(aliasFullName, type.getGenericTypes());
 			}
 			if (type instanceof WildcardType) {
-				return new WildcardType(ArgType.object(aliasFullName), type.getWildcardBounds());
+				return new WildcardType(ArgType.object(aliasFullName), type.getWildcardBound());
 			}
 		}
 		return ArgType.object(aliasFullName);

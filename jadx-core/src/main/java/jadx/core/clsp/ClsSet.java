@@ -274,9 +274,9 @@ public class ClsSet {
 	private static void writeArgType(DataOutputStream out, ArgType argType, Map<String, NClass> names) throws IOException {
 		if (argType.getWildcardType() != null) {
 			out.writeByte(TypeEnum.WILDCARD.ordinal());
-			int bounds = argType.getWildcardBounds();
-			out.writeByte(bounds);
-			if (bounds != 0) {
+			ArgType.WildcardBound bound = argType.getWildcardBound();
+			out.writeByte(bound.getNum());
+			if (bound != ArgType.WildcardBound.UNBOUND) {
 				writeArgType(out, argType.getWildcardType(), names);
 			}
 		} else if (argType.isGeneric()) {
@@ -415,7 +415,7 @@ public class ClsSet {
 				int bounds = in.readByte();
 				return bounds == 0
 						? ArgType.wildcard()
-						: ArgType.wildcard(readArgType(in), bounds);
+						: ArgType.wildcard(readArgType(in), ArgType.WildcardBound.getByNum(bounds));
 
 			case GENERIC:
 				String obj = classes[in.readInt()].getName();

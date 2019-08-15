@@ -31,7 +31,7 @@ public final class LocalVar {
 		this.name = name;
 		if (sign != null) {
 			try {
-				ArgType gType = ArgType.generic(sign);
+				ArgType gType = ArgType.parseGenericSignature(sign);
 				if (checkSignature(type, gType)) {
 					type = gType;
 				}
