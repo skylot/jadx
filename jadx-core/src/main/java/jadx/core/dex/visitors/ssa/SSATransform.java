@@ -12,6 +12,7 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.PhiInsn;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
@@ -392,7 +393,10 @@ public class SSATransform extends AbstractVisitor {
 			}
 			inlArg.getSVar().use(inlArg);
 			inlArg.setName(useArg.getName());
-			inlArg.setType(useArg.getType());
+			ArgType type = useArg.getImmutableType();
+			if (type != null) {
+				inlArg.setType(type);
+			}
 		}
 		if (block.contains(AType.EXC_HANDLER)) {
 			// don't inline into exception handler

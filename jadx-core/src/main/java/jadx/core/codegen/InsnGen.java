@@ -23,6 +23,7 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
+import jadx.core.dex.instructions.CallMthInterface;
 import jadx.core.dex.instructions.ConstClassNode;
 import jadx.core.dex.instructions.ConstStringNode;
 import jadx.core.dex.instructions.FillArrayNode;
@@ -52,6 +53,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.RegionUtils;
+import jadx.core.utils.TypeUtils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -589,6 +591,9 @@ public class InsnGen {
 	private void makeConstructor(ConstructorInsn insn, CodeWriter code)
 			throws CodegenException {
 		ClassNode cls = mth.dex().resolveClass(insn.getClassType());
+		if (cls != null) {
+			cls.loadAndProcess();
+		}
 		if (cls != null && cls.isAnonymous() && !fallback) {
 			inlineAnonymousConstructor(code, cls, insn);
 			return;
@@ -604,7 +609,10 @@ public class InsnGen {
 			code.add("new ");
 			useClass(code, insn.getClassType());
 			ArgType argType = insn.getResult().getSVar().getCodeVar().getType();
-			if (argType != null && argType.isGeneric()) {
+			boolean genericCls = cls == null || !cls.getGenerics().isEmpty();
+			if (argType != null
+					&& argType.getGenericTypes() != null
+					&& genericCls) {
 				code.add('<');
 				if (insn.contains(AFlag.EXPLICIT_GENERICS)) {
 					boolean first = true;
@@ -763,7 +771,7 @@ public class InsnGen {
 				if (!firstArg) {
 					code.add(", ");
 				}
-				boolean cast = overloaded && processOverloadedArg(code, callMth, arg, i - startArgNum);
+				boolean cast = overloaded && processOverloadedArg(code, insn, callMth, arg, i - startArgNum);
 				if (!cast && i == argsCount - 1 && processVarArg(code, callMth, arg)) {
 					continue;
 				}
@@ -774,21 +782,10 @@ public class InsnGen {
 		code.add(')');
 	}
 
-	private static RegisterArg getCallMthArg(@Nullable MethodNode callMth, int num) {
-		if (callMth == null) {
-			return null;
-		}
-		List<RegisterArg> args = callMth.getArgRegs();
-		if (args != null && num < args.size()) {
-			return args.get(num);
-		}
-		return null;
-	}
-
 	/**
 	 * Add additional cast for overloaded method argument.
 	 */
-	private boolean processOverloadedArg(CodeWriter code, MethodNode callMth, InsnArg arg, int origPos) {
+	private boolean processOverloadedArg(CodeWriter code, InsnNode insn, MethodNode callMth, InsnArg arg, int origPos) {
 		List<ArgType> argTypes = callMth.getArgTypes();
 		if (argTypes == null) {
 			// try to load class
@@ -806,9 +803,35 @@ public class InsnGen {
 				return false;
 			}
 		}
-		if (isCastNeeded(arg, origType)) {
+		ArgType castType = null;
+		if (insn instanceof CallMthInterface && origType.containsGenericType()) {
+			ArgType clsType;
+			CallMthInterface mthCall = (CallMthInterface) insn;
+			RegisterArg instanceArg = mthCall.getInstanceArg();
+			if (instanceArg != null) {
+				clsType = instanceArg.getType();
+			} else {
+				clsType = mthCall.getCallMth().getDeclClass().getType();
+			}
+			ArgType replacedType = TypeUtils.replaceClassGenerics(root, clsType, origType);
+			if (replacedType != null) {
+				castType = replacedType;
+			}
+			if (castType == null) {
+				ArgType invReplType = TypeUtils.replaceMethodGenerics(root, insn, origType);
+				if (invReplType != null) {
+					castType = invReplType;
+				}
+			}
+		}
+		if (castType == null) {
+			castType = origType;
+		}
+		// TODO: check castType for left type variables
+
+		if (isCastNeeded(arg, castType)) {
 			code.add('(');
-			useType(code, origType);
+			useType(code, castType);
 			code.add(") ");
 			return true;
 		}
@@ -823,20 +846,6 @@ public class InsnGen {
 		}
 		if (argType.equals(origType)) {
 			return false;
-		}
-		if (origType.isGeneric()) {
-			if (argType.isObject()) {
-				if (!argType.isGeneric() && arg.isInsnWrap()) {
-					((InsnWrapArg) arg).getWrapInsn().getResult().setType(
-							ArgType.generic(argType.getObject(), origType.getGenericTypes()));
-				}
-				if (origType.getObject().equals(argType.getObject())) {
-					return false;
-				}
-			}
-			if (arg.isInsnWrap()) {
-				((InsnWrapArg) arg).getWrapInsn().add(AFlag.EXPLICIT_GENERICS);
-			}
 		}
 		return true;
 	}

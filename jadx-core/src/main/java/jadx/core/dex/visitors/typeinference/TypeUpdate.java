@@ -1,7 +1,6 @@
 package jadx.core.dex.visitors.typeinference;
 
 import java.util.EnumMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -13,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.Consts;
-import jadx.core.clsp.NClass;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
@@ -22,9 +20,9 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
-import jadx.core.dex.nodes.GenericInfo;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.TypeUtils;
 import jadx.core.utils.exceptions.JadxOverflowException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -211,14 +209,6 @@ public final class TypeUpdate {
 		return true;
 	}
 
-	private boolean inBounds(TypeUpdateInfo updateInfo, InsnArg arg, ArgType candidateType) {
-		if (arg.isRegister()) {
-			TypeInfo typeInfo = ((RegisterArg) arg).getSVar().getTypeInfo();
-			return inBounds(updateInfo, typeInfo.getBounds(), candidateType);
-		}
-		return arg.getType().equals(candidateType);
-	}
-
 	private boolean checkBound(ArgType candidateType, ITypeBound bound, ArgType boundType) {
 		TypeCompareEnum compareResult = comparator.compareTypes(candidateType, boundType);
 		switch (compareResult) {
@@ -303,7 +293,7 @@ public final class TypeUpdate {
 				if (returnType == null) {
 					return SAME;
 				}
-				ArgType resultGeneric = getResultGeneric(root, candidateType, returnType);
+				ArgType resultGeneric = TypeUtils.replaceClassGenerics(root, candidateType, returnType);
 				if (resultGeneric == null) {
 					return SAME;
 				}
@@ -311,54 +301,6 @@ public final class TypeUpdate {
 			}
 		}
 		return SAME;
-	}
-
-	@Nullable
-	public static ArgType getResultGeneric(RootNode root, ArgType instanceType, ArgType genericRetType) {
-		if (genericRetType == null) {
-			return null;
-		}
-		if (instanceType.isGeneric()) {
-			NClass clsDetails = root.getClsp().getClsDetails(instanceType);
-			if (clsDetails == null || clsDetails.getGenerics().isEmpty()) {
-				return null;
-			}
-			List<GenericInfo> generics = clsDetails.getGenerics();
-			ArgType[] actualTypes = instanceType.getGenericTypes();
-			if (generics.size() != actualTypes.length) {
-				return null;
-			}
-			Map<ArgType, ArgType> replaceMap = new LinkedHashMap<>();
-			for (int i = 0; i < actualTypes.length; i++) {
-				ArgType actualType = actualTypes[i];
-				ArgType genericType = generics.get(i).getGenericType();
-				replaceMap.put(genericType, actualType);
-			}
-			return replaceGenericTypes(genericRetType, replaceMap);
-		}
-		return null;
-	}
-
-	private static ArgType replaceGenericTypes(ArgType replaceType, Map<ArgType, ArgType> replaceMap) {
-		if (replaceType.isGenericType()) {
-			return replaceMap.get(replaceType);
-		}
-
-		ArgType[] genericTypes = replaceType.getGenericTypes();
-		if (replaceType.isGeneric() && genericTypes != null && genericTypes.length != 0) {
-			int size = genericTypes.length;
-			ArgType[] newTypes = new ArgType[size];
-			for (int i = 0; i < size; i++) {
-				ArgType genericType = genericTypes[i];
-				ArgType type = replaceGenericTypes(genericType, replaceMap);
-				if (type == null) {
-					type = genericType;
-				}
-				newTypes[i] = type;
-			}
-			return ArgType.generic(replaceType.getObject(), newTypes);
-		}
-		return null;
 	}
 
 	private TypeUpdateResult sameFirstArgListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {

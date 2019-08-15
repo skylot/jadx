@@ -1,6 +1,7 @@
 package jadx.core.dex.nodes;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
@@ -15,6 +16,7 @@ import jadx.api.ResourceType;
 import jadx.api.ResourcesLoader;
 import jadx.core.Jadx;
 import jadx.core.clsp.ClspGraph;
+import jadx.core.clsp.NClass;
 import jadx.core.clsp.NMethod;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.ConstStorage;
@@ -247,6 +249,44 @@ public class RootNode {
 		return null;
 	}
 
+	public List<ArgType> getMethodArgTypes(MethodInfo callMth) {
+		MethodNode methodNode = deepResolveMethod(callMth);
+		if (methodNode != null) {
+			return methodNode.getArgTypes();
+		}
+		NMethod methodDetails = clsp.getMethodDetails(callMth);
+		if (methodDetails != null && methodDetails.getGenericArgs() != null) {
+			List<ArgType> argTypes = callMth.getArgumentsTypes();
+			int argsCount = argTypes.size();
+			List<ArgType> list = new ArrayList<>(argsCount);
+			for (int i = 0; i < argsCount; i++) {
+				ArgType genericArgType = methodDetails.getGenericArg(i);
+				if (genericArgType != null) {
+					list.add(genericArgType);
+				} else {
+					list.add(argTypes.get(i));
+				}
+			}
+			return list;
+		}
+		return Collections.emptyList();
+	}
+
+	@NotNull
+	public List<GenericInfo> getClassGenerics(ArgType type) {
+		ClassNode classNode = resolveClass(ClassInfo.fromType(this, type));
+		if (classNode != null) {
+			classNode.loadAndProcess();
+			return classNode.getGenerics();
+		}
+		NClass clsDetails = getClsp().getClsDetails(type);
+		if (clsDetails == null || clsDetails.getGenerics().isEmpty()) {
+			return Collections.emptyList();
+		}
+		List<GenericInfo> generics = clsDetails.getGenerics();
+		return generics == null ? Collections.emptyList() : generics;
+	}
+
 	public List<DexNode> getDexNodes() {
 		return dexNodes;
 	}
@@ -295,4 +335,5 @@ public class RootNode {
 	public ICodeCache getCodeCache() {
 		return codeCache;
 	}
+
 }

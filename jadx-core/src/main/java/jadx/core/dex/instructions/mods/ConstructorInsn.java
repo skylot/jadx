@@ -9,7 +9,7 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 
-public class ConstructorInsn extends InsnNode implements CallMthInterface {
+public final class ConstructorInsn extends InsnNode implements CallMthInterface {
 
 	private final MethodInfo callMth;
 	private final CallType callType;
