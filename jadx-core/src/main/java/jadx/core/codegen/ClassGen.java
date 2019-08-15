@@ -458,6 +458,14 @@ public class ClassGen {
 	}
 
 	public void useClass(CodeWriter code, ArgType type) {
+		ArgType outerType = type.getOuterType();
+		if (outerType != null) {
+			useClass(code, outerType);
+			code.add('.');
+			useClass(code, type.getInnerType());
+			return;
+		}
+
 		useClass(code, ClassInfo.fromType(cls.root(), type));
 		ArgType[] generics = type.getGenericTypes();
 		if (generics != null) {

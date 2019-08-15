@@ -14,9 +14,9 @@ import static jadx.core.dex.instructions.args.ArgType.INT;
 import static jadx.core.dex.instructions.args.ArgType.OBJECT;
 import static jadx.core.dex.instructions.args.ArgType.array;
 import static jadx.core.dex.instructions.args.ArgType.generic;
-import static jadx.core.dex.instructions.args.ArgType.genericInner;
 import static jadx.core.dex.instructions.args.ArgType.genericType;
 import static jadx.core.dex.instructions.args.ArgType.object;
+import static jadx.core.dex.instructions.args.ArgType.outerGeneric;
 import static jadx.core.dex.instructions.args.ArgType.wildcard;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -46,9 +46,9 @@ class SignatureParserTest {
 		checkType("La<TV;Lb;>;", generic("La;", genericType("V"), object("b")));
 		checkType("La<Lb<Lc;>;>;", generic("La;", generic("Lb;", object("Lc;"))));
 		checkType("La/b/C<Ld/E<Lf/G;>;>;", generic("La/b/C;", generic("Ld/E;", object("Lf/G;"))));
-		checkType("La<TD;>.c;", genericInner(generic("La;", genericType("D")), "c", null));
-		checkType("La<TD;>.c/d;", genericInner(generic("La;", genericType("D")), "c.d", null));
-		checkType("La<Lb;>.c<TV;>;", genericInner(generic("La;", object("Lb;")), "c", new ArgType[] { genericType("V") }));
+		checkType("La<TD;>.c;", outerGeneric(generic("La;", genericType("D")), ArgType.object("c")));
+		checkType("La<TD;>.c/d;", outerGeneric(generic("La;", genericType("D")), ArgType.object("c.d")));
+		checkType("La<Lb;>.c<TV;>;", outerGeneric(generic("La;", object("Lb;")), ArgType.generic("c", genericType("V"))));
 	}
 
 	@Test
@@ -117,7 +117,7 @@ class SignatureParserTest {
 		assertThat(argTypes, hasSize(1));
 		ArgType argType = argTypes.get(0);
 		assertThat(argType.getObject().indexOf('/'), is(-1));
-		assertThat(argType, is(genericInner(generic("La/b/C;", genericType("T")), "d.E", null)));
+		assertThat(argType, is(outerGeneric(generic("La/b/C;", genericType("T")), object("d.E"))));
 	}
 
 	@Test

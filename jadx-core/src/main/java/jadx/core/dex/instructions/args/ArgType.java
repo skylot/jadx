@@ -3,6 +3,7 @@ package jadx.core.dex.instructions.args;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import jadx.core.Consts;
 import jadx.core.dex.info.ClassInfo;
@@ -89,8 +90,8 @@ public abstract class ArgType {
 		return new GenericObject(obj, generics);
 	}
 
-	public static ArgType genericInner(ArgType genericType, String innerName, ArgType[] generics) {
-		return new GenericObject((GenericObject) genericType, innerName, generics);
+	public static ArgType outerGeneric(ArgType genericOuterType, ArgType innerType) {
+		return new OuterGenericObject((GenericObject) genericOuterType, (ObjectType) innerType);
 	}
 
 	public static ArgType array(ArgType vtype) {
@@ -244,8 +245,8 @@ public abstract class ArgType {
 
 		public WildcardType(ArgType obj, WildcardBound bound) {
 			super(OBJECT.getObject());
-			this.type = obj;
-			this.bound = bound;
+			this.type = Objects.requireNonNull(obj);
+			this.bound = Objects.requireNonNull(bound);
 		}
 
 		@Override
@@ -281,19 +282,10 @@ public abstract class ArgType {
 
 	private static class GenericObject extends ObjectType {
 		private final ArgType[] generics;
-		private final GenericObject outerType;
 
 		public GenericObject(String obj, ArgType[] generics) {
 			super(obj);
-			this.outerType = null;
-			this.generics = generics;
-			this.hash = calcHash();
-		}
-
-		public GenericObject(GenericObject outerType, String innerName, ArgType[] generics) {
-			super(outerType.getObject() + '$' + innerName);
-			this.outerType = outerType;
-			this.generics = generics;
+			this.generics = Objects.requireNonNull(generics);
 			this.hash = calcHash();
 		}
 
@@ -312,11 +304,6 @@ public abstract class ArgType {
 		}
 
 		@Override
-		public ArgType getOuterType() {
-			return outerType;
-		}
-
-		@Override
 		boolean internalEquals(Object obj) {
 			return super.internalEquals(obj)
 					&& Arrays.equals(generics, ((GenericObject) obj).generics);
@@ -325,6 +312,54 @@ public abstract class ArgType {
 		@Override
 		public String toString() {
 			return super.toString() + '<' + Utils.arrayToStr(generics) + '>';
+		}
+	}
+
+	private static class OuterGenericObject extends ObjectType {
+		private final GenericObject outerType;
+		private final ObjectType innerType;
+
+		public OuterGenericObject(GenericObject outerType, ObjectType innerType) {
+			super(outerType.getObject() + '$' + innerType.getObject());
+			this.outerType = outerType;
+			this.innerType = innerType;
+			this.hash = calcHash();
+		}
+
+		private int calcHash() {
+			return objName.hashCode() + 31 * (outerType.hashCode() + 31 * innerType.hashCode());
+		}
+
+		@Override
+		public boolean isGeneric() {
+			return true;
+		}
+
+		@Override
+		public ArgType[] getGenericTypes() {
+			return innerType.getGenericTypes();
+		}
+
+		@Override
+		public ArgType getOuterType() {
+			return outerType;
+		}
+
+		@Override
+		public ArgType getInnerType() {
+			return innerType;
+		}
+
+		@Override
+		boolean internalEquals(Object obj) {
+			return super.internalEquals(obj)
+					&& Objects.equals(outerType, ((OuterGenericObject) obj).outerType)
+					&& Objects.equals(innerType, ((OuterGenericObject) obj).innerType);
+		}
+
+		@Override
+		public String toString() {
+			return outerType.toString() + '$' + innerType.toString();
 		}
 	}
 
@@ -491,6 +526,10 @@ public abstract class ArgType {
 	}
 
 	public ArgType getOuterType() {
+		return null;
+	}
+
+	public ArgType getInnerType() {
 		return null;
 	}
 

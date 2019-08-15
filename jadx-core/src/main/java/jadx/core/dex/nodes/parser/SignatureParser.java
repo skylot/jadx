@@ -184,7 +184,7 @@ public class SignatureParser {
 				if (inner == null) {
 					throw new JadxRuntimeException("No inner type found: " + debugString());
 				}
-				return ArgType.genericInner(genericType, inner.getObject(), inner.getGenericTypes());
+				return ArgType.outerGeneric(genericType, inner);
 			} else {
 				consume(';');
 				return genericType;
