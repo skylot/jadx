@@ -35,6 +35,7 @@ import jadx.core.dex.nodes.parser.AnnotationsParser;
 import jadx.core.dex.nodes.parser.FieldInitAttr;
 import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.nodes.parser.StaticValuesParser;
+import jadx.core.utils.SmaliUtils;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -45,6 +46,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
 
 	private final DexNode dex;
+	private final int clsDefOffset;
 	private final ClassInfo clsInfo;
 	private AccessInfo accessFlags;
 	private ArgType superClass;
@@ -68,6 +70,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	public ClassNode(DexNode dex, ClassDef cls) {
 		this.dex = dex;
+		this.clsDefOffset = cls.getOffset();
 		this.clsInfo = ClassInfo.fromDex(dex, cls.getTypeIndex());
 		try {
 			if (cls.getSupertypeIndex() == DexNode.NO_INDEX) {
@@ -135,6 +138,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	// empty synthetic class
 	public ClassNode(DexNode dex, String name, int accessFlags) {
 		this.dex = dex;
+		this.clsDefOffset = 0;
 		this.clsInfo = ClassInfo.fromName(dex.root(), name);
 		this.interfaces = new ArrayList<>();
 		this.methods = new ArrayList<>();
@@ -495,11 +499,10 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return clsInfo.getAliasPkg();
 	}
 
-	public void setSmali(String smali) {
-		this.smali = smali;
-	}
-
 	public String getSmali() {
+		if (smali == null) {
+			smali = SmaliUtils.getSmaliCode(dex, clsDefOffset);
+		}
 		return smali;
 	}
 

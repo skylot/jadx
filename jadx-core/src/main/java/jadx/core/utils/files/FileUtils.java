@@ -1,6 +1,7 @@
 package jadx.core.utils.files;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
@@ -119,6 +120,13 @@ public class FileUtils {
 				break;
 			}
 			output.write(buffer, 0, count);
+		}
+	}
+
+	public static byte[] streamToByteArray(InputStream input) throws IOException {
+		try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+			copyStream(input, out);
+			return out.toByteArray();
 		}
 	}
 

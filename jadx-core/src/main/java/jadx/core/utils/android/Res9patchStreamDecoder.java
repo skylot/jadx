@@ -17,7 +17,6 @@
 package jadx.core.utils.android;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.DataInput;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,27 +24,23 @@ import java.io.OutputStream;
 
 import javax.imageio.ImageIO;
 
-import com.google.common.io.ByteStreams;
-
-import jadx.core.utils.exceptions.JadxException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 /**
  * @author Ryszard Wiśniewski <brut.alll@gmail.com>
  */
 public class Res9patchStreamDecoder {
 
-	public void decode(InputStream in, OutputStream out) throws JadxException {
+	public void decode(InputStream in, OutputStream out) {
 		try {
-			byte[] data = ByteStreams.toByteArray(in);
-
-			BufferedImage im = ImageIO.read(new ByteArrayInputStream(data));
+			BufferedImage im = ImageIO.read(in);
 			int w = im.getWidth();
 			int h = im.getHeight();
 
 			BufferedImage im2 = new BufferedImage(w + 2, h + 2, BufferedImage.TYPE_INT_ARGB);
 			im2.createGraphics().drawImage(im, 1, 1, w, h, null);
 
-			NinePatch np = getNinePatch(data);
+			NinePatch np = getNinePatch(in);
 			drawHLine(im2, h + 1, np.padLeft + 1, w - np.padRight);
 			drawVLine(im2, w + 1, np.padTop + 1, h - np.padBottom);
 
@@ -60,25 +55,25 @@ public class Res9patchStreamDecoder {
 			}
 
 			ImageIO.write(im2, "png", out);
-		} catch (IOException | NullPointerException ex) {
-			throw new JadxException(ex.toString());
+		} catch (Exception e) {
+			throw new JadxRuntimeException("9patch image decode error", e);
 		}
 	}
 
-	private NinePatch getNinePatch(byte[] data) throws JadxException, IOException {
-		ExtDataInput di = new ExtDataInput(new ByteArrayInputStream(data));
+	private NinePatch getNinePatch(InputStream in) throws IOException {
+		ExtDataInput di = new ExtDataInput(in);
 		find9patchChunk(di);
 		return NinePatch.decode(di);
 	}
 
-	private void find9patchChunk(DataInput di) throws JadxException, IOException {
+	private void find9patchChunk(DataInput di) throws IOException {
 		di.skipBytes(8);
 		while (true) {
 			int size;
 			try {
 				size = di.readInt();
 			} catch (IOException ex) {
-				throw new JadxException("Cant find nine patch chunk", ex);
+				throw new JadxRuntimeException("Cant find nine patch chunk", ex);
 			}
 			if (di.readInt() == NP_CHUNK_TYPE) {
 				return;

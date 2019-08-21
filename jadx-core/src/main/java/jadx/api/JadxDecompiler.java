@@ -1,8 +1,6 @@
 package jadx.api;
 
 import java.io.File;
-import java.io.StringWriter;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,13 +14,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
-import org.jf.baksmali.Adaptors.ClassDefinition;
-import org.jf.baksmali.BaksmaliOptions;
-import org.jf.dexlib2.DexFileFactory;
-import org.jf.dexlib2.Opcodes;
-import org.jf.dexlib2.dexbacked.DexBackedClassDef;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.util.IndentingWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +26,6 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.SaveCode;
 import jadx.core.export.ExportGradleProject;
-import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.InputFile;
 import jadx.core.xmlgen.BinaryXMLParser;
@@ -289,30 +279,6 @@ public final class JadxDecompiler {
 		}
 		root.getClsp().printMissingClasses();
 		root.getErrorsCounter().printReport();
-	}
-
-	void generateSmali(ClassNode cls) {
-		Path path = cls.dex().getDexFile().getPath();
-		String className = Utils.makeQualifiedObjectName(cls.getClassInfo().getType().getObject());
-		try {
-			DexBackedDexFile dexFile = DexFileFactory.loadDexFile(path.toFile(), Opcodes.getDefault());
-			boolean decompiled = false;
-			for (DexBackedClassDef classDef : dexFile.getClasses()) {
-				if (classDef.getType().equals(className)) {
-					ClassDefinition classDefinition = new ClassDefinition(new BaksmaliOptions(), classDef);
-					StringWriter sw = new StringWriter();
-					classDefinition.writeTo(new IndentingWriter(sw));
-					cls.setSmali(sw.toString());
-					decompiled = true;
-					break;
-				}
-			}
-			if (!decompiled) {
-				LOG.error("Failed to find smali class {}", className);
-			}
-		} catch (Exception e) {
-			LOG.error("Error generating smali", e);
-		}
 	}
 
 	RootNode getRoot() {

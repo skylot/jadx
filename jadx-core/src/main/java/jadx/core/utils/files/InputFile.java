@@ -14,8 +14,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.jetbrains.annotations.Nullable;
-import org.jf.smali.Smali;
-import org.jf.smali.SmaliOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +21,7 @@ import com.android.dex.Dex;
 import com.android.dex.DexException;
 
 import jadx.core.utils.AsmUtils;
+import jadx.core.utils.SmaliUtils;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -58,9 +57,7 @@ public class InputFile {
 		}
 		if (fileName.endsWith(".smali")) {
 			Path output = FileUtils.createTempFile(".dex");
-			SmaliOptions options = new SmaliOptions();
-			options.outputDexFile = output.toAbsolutePath().toString();
-			Smali.assemble(options, file.getAbsolutePath());
+			SmaliUtils.assembleDex(output.toAbsolutePath().toString(), file.getAbsolutePath());
 			addDexFile(fileName, output);
 			return;
 		}

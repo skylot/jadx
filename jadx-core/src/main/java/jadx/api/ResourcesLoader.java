@@ -111,9 +111,8 @@ public final class ResourcesLoader {
 	private static ResContainer decodeImage(ResourceFile rf, InputStream inputStream) {
 		String name = rf.getName();
 		if (name.endsWith(".9.png")) {
-			Res9patchStreamDecoder decoder = new Res9patchStreamDecoder();
-			ByteArrayOutputStream os = new ByteArrayOutputStream();
-			try {
+			try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+				Res9patchStreamDecoder decoder = new Res9patchStreamDecoder();
 				decoder.decode(inputStream, os);
 				return ResContainer.decodedData(rf.getName(), os.toByteArray());
 			} catch (Exception e) {
