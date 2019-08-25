@@ -46,6 +46,10 @@ public final class JavaField implements JavaNode {
 		return field.getDecompiledLine();
 	}
 
+	FieldNode getFieldNode() {
+		return field;
+	}
+
 	@Override
 	public int hashCode() {
 		return field.hashCode();

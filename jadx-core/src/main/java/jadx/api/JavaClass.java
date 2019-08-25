@@ -10,7 +10,6 @@ import java.util.Map;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.core.dex.attributes.AFlag;
-import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -78,7 +77,6 @@ public final class JavaClass implements JavaNode {
 		listsLoaded = true;
 		decompile();
 
-		JadxDecompiler rootDecompiler = getRootDecompiler();
 		int inClsCount = cls.getInnerClasses().size();
 		if (inClsCount != 0) {
 			List<JavaClass> list = new ArrayList<>(inClsCount);
@@ -87,7 +85,6 @@ public final class JavaClass implements JavaNode {
 					JavaClass javaClass = new JavaClass(inner, this);
 					javaClass.loadLists();
 					list.add(javaClass);
-					rootDecompiler.getClassesMap().put(inner, javaClass);
 				}
 			}
 			this.innerClasses = Collections.unmodifiableList(list);
@@ -100,7 +97,6 @@ public final class JavaClass implements JavaNode {
 				if (!f.contains(AFlag.DONT_GENERATE)) {
 					JavaField javaField = new JavaField(f, this);
 					flds.add(javaField);
-					rootDecompiler.getFieldsMap().put(f, javaField);
 				}
 			}
 			this.fields = Collections.unmodifiableList(flds);
@@ -113,7 +109,6 @@ public final class JavaClass implements JavaNode {
 				if (!m.contains(AFlag.DONT_GENERATE)) {
 					JavaMethod javaMethod = new JavaMethod(this, m);
 					mths.add(javaMethod);
-					rootDecompiler.getMethodsMap().put(m, javaMethod);
 				}
 			}
 			mths.sort(Comparator.comparing(JavaMethod::getName));
@@ -145,11 +140,9 @@ public final class JavaClass implements JavaNode {
 		for (Map.Entry<CodePosition, Object> entry : map.entrySet()) {
 			CodePosition codePosition = entry.getKey();
 			Object obj = entry.getValue();
-			if (obj instanceof LineAttrNode) {
-				JavaNode node = getRootDecompiler().convertNode(obj);
-				if (node != null) {
-					resultMap.put(codePosition, node);
-				}
+			JavaNode node = getRootDecompiler().convertNode(obj);
+			if (node != null) {
+				resultMap.put(codePosition, node);
 			}
 		}
 		return resultMap;

@@ -74,6 +74,10 @@ public final class JavaMethod implements JavaNode {
 		return mth.getDecompiledLine();
 	}
 
+	MethodNode getMethodNode() {
+		return mth;
+	}
+
 	@Override
 	public int hashCode() {
 		return mth.hashCode();

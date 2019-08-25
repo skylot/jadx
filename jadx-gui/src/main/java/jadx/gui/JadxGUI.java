@@ -5,6 +5,7 @@ import javax.swing.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.cli.LogHelper;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsAdapter;
 import jadx.gui.ui.MainWindow;
@@ -18,6 +19,7 @@ public class JadxGUI {
 		try {
 			LogCollector.register();
 			final JadxSettings settings = JadxSettingsAdapter.load();
+			settings.setLogLevel(LogHelper.LogLevelEnum.INFO);
 			// overwrite loaded settings by command line arguments
 			if (!settings.overrideProvided(args)) {
 				return;

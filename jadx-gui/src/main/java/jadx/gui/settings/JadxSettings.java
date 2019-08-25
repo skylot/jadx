@@ -23,6 +23,7 @@ import com.beust.jcommander.Parameter;
 
 import jadx.api.JadxArgs;
 import jadx.cli.JadxCLIArgs;
+import jadx.cli.LogHelper;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.FontUtils;
@@ -40,7 +41,8 @@ public class JadxSettings extends JadxCLIArgs {
 
 	static final Set<String> SKIP_FIELDS = new HashSet<>(Arrays.asList(
 			"files", "input", "outDir", "outDirSrc", "outDirRes", "outputFormat",
-			"verbose", "printVersion", "printHelp"));
+			"verbose", "quiet", "logLevel",
+			"printVersion", "printHelp"));
 
 	private Path lastSaveProjectPath = USER_HOME;
 	private Path lastOpenFilePath = USER_HOME;
@@ -357,6 +359,10 @@ public class JadxSettings extends JadxCLIArgs {
 		} else {
 			this.fontStr = FontUtils.convertToStr(font);
 		}
+	}
+
+	public void setLogLevel(LogHelper.LogLevelEnum level) {
+		this.logLevel = level;
 	}
 
 	public String getEditorThemePath() {

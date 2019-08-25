@@ -414,6 +414,17 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return parent == this ? this : parent.getTopParentClass();
 	}
 
+	public boolean hasNotGeneratedParent() {
+		if (contains(AFlag.DONT_GENERATE)) {
+			return true;
+		}
+		ClassNode parent = getParentClass();
+		if (parent == this) {
+			return false;
+		}
+		return parent.hasNotGeneratedParent();
+	}
+
 	public List<ClassNode> getInnerClasses() {
 		return innerClasses;
 	}
@@ -543,4 +554,5 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	public String toString() {
 		return clsInfo.getFullName();
 	}
+
 }

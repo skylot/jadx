@@ -292,44 +292,84 @@ public final class JadxDecompiler {
 		return xmlParser;
 	}
 
-	Map<ClassNode, JavaClass> getClassesMap() {
-		return classesMap;
+	private void loadJavaClass(JavaClass javaClass) {
+		javaClass.getMethods().forEach(mth -> methodsMap.put(mth.getMethodNode(), mth));
+		javaClass.getFields().forEach(fld -> fieldsMap.put(fld.getFieldNode(), fld));
+
+		for (JavaClass innerCls : javaClass.getInnerClasses()) {
+			classesMap.put(innerCls.getClassNode(), innerCls);
+			loadJavaClass(innerCls);
+		}
 	}
 
-	Map<MethodNode, JavaMethod> getMethodsMap() {
-		return methodsMap;
+	@Nullable("For not generated classes")
+	private JavaClass getJavaClassByNode(ClassNode cls) {
+		JavaClass javaClass = classesMap.get(cls);
+		if (javaClass != null) {
+			return javaClass;
+		}
+		// load parent class if inner
+		ClassNode parentClass = cls.getTopParentClass();
+		if (parentClass.contains(AFlag.DONT_GENERATE)) {
+			return null;
+		}
+		if (parentClass != cls) {
+			JavaClass parentJavaClass = classesMap.get(parentClass);
+			if (parentJavaClass == null) {
+				getClasses();
+				parentJavaClass = classesMap.get(parentClass);
+			}
+			loadJavaClass(parentJavaClass);
+			javaClass = classesMap.get(cls);
+			if (javaClass != null) {
+				return javaClass;
+			}
+		}
+		throw new JadxRuntimeException("JavaClass not found by ClassNode: " + cls);
 	}
 
-	JavaMethod getJavaMethodByNode(MethodNode mth) {
+	@Nullable
+	private JavaMethod getJavaMethodByNode(MethodNode mth) {
 		JavaMethod javaMethod = methodsMap.get(mth);
 		if (javaMethod != null) {
 			return javaMethod;
 		}
 		// parent class not loaded yet
-		JavaClass javaClass = classesMap.get(mth.getParentClass());
-		if (javaClass != null) {
-			javaClass.decompile();
-			return methodsMap.get(mth);
+		JavaClass javaClass = getJavaClassByNode(mth.getParentClass().getTopParentClass());
+		if (javaClass == null) {
+			return null;
 		}
-		return null;
+		loadJavaClass(javaClass);
+		javaMethod = methodsMap.get(mth);
+		if (javaMethod != null) {
+			return javaMethod;
+		}
+		if (mth.getParentClass().hasNotGeneratedParent()) {
+			return null;
+		}
+		throw new JadxRuntimeException("JavaMethod not found by MethodNode: " + mth);
 	}
 
-	Map<FieldNode, JavaField> getFieldsMap() {
-		return fieldsMap;
-	}
-
-	JavaField getJavaFieldByNode(FieldNode fld) {
+	@Nullable
+	private JavaField getJavaFieldByNode(FieldNode fld) {
 		JavaField javaField = fieldsMap.get(fld);
 		if (javaField != null) {
 			return javaField;
 		}
 		// parent class not loaded yet
-		JavaClass javaClass = classesMap.get(fld.getParentClass());
-		if (javaClass != null) {
-			javaClass.decompile();
-			return fieldsMap.get(fld);
+		JavaClass javaClass = getJavaClassByNode(fld.getParentClass().getTopParentClass());
+		if (javaClass == null) {
+			return null;
 		}
-		return null;
+		loadJavaClass(javaClass);
+		javaField = fieldsMap.get(fld);
+		if (javaField != null) {
+			return javaField;
+		}
+		if (fld.getParentClass().hasNotGeneratedParent()) {
+			return null;
+		}
+		throw new JadxRuntimeException("JavaField not found by FieldNode: " + fld);
 	}
 
 	@Nullable
@@ -337,8 +377,12 @@ public final class JadxDecompiler {
 		if (!(obj instanceof LineAttrNode)) {
 			return null;
 		}
+		LineAttrNode node = (LineAttrNode) obj;
+		if (node.contains(AFlag.DONT_GENERATE)) {
+			return null;
+		}
 		if (obj instanceof ClassNode) {
-			return getClassesMap().get(obj);
+			return getJavaClassByNode((ClassNode) obj);
 		}
 		if (obj instanceof MethodNode) {
 			return getJavaMethodByNode(((MethodNode) obj));
@@ -346,7 +390,7 @@ public final class JadxDecompiler {
 		if (obj instanceof FieldNode) {
 			return getJavaFieldByNode((FieldNode) obj);
 		}
-		return null;
+		throw new JadxRuntimeException("Unexpected node type: " + obj);
 	}
 
 	@Nullable
