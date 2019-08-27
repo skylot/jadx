@@ -121,14 +121,15 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 			if (noCode) {
 				regsCount = 0;
 				codeSize = 0;
-				initMethodTypes();
+				// TODO: registers not needed without code
+				initArguments(this.argTypes);
 				return;
 			}
 
 			DexNode dex = parentClass.dex();
 			Code mthCode = dex.readCode(methodData);
 			this.regsCount = mthCode.getRegistersSize();
-			initMethodTypes();
+			initArguments(this.argTypes);
 
 			InsnDecoder decoder = new InsnDecoder(this);
 			decoder.decodeInsns(mthCode);
@@ -172,7 +173,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		}
 	}
 
-	private void initMethodTypes() {
+	public void initMethodTypes() {
 		List<ArgType> types = parseSignature();
 		if (types == null) {
 			this.retType = mthInfo.getReturnType();
@@ -180,7 +181,6 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		} else {
 			this.argTypes = types;
 		}
-		initArguments(this.argTypes);
 	}
 
 	@Nullable
@@ -253,11 +253,11 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		}
 	}
 
-	/**
-	 * Return null only if method not yet loaded
-	 */
-	@Nullable
+	@NotNull
 	public List<ArgType> getArgTypes() {
+		if (argTypes == null) {
+			throw new JadxRuntimeException("Method types not initialized: " + this);
+		}
 		return argTypes;
 	}
 

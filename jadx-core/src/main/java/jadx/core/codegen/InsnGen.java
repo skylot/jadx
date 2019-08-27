@@ -591,10 +591,8 @@ public class InsnGen {
 	private void makeConstructor(ConstructorInsn insn, CodeWriter code)
 			throws CodegenException {
 		ClassNode cls = mth.dex().resolveClass(insn.getClassType());
-		if (cls != null) {
-			cls.loadAndProcess();
-		}
 		if (cls != null && cls.isAnonymous() && !fallback) {
+			cls.ensureProcessed();
 			inlineAnonymousConstructor(code, cls, insn);
 			return;
 		}
@@ -787,21 +785,10 @@ public class InsnGen {
 	 */
 	private boolean processOverloadedArg(CodeWriter code, InsnNode insn, MethodNode callMth, InsnArg arg, int origPos) {
 		List<ArgType> argTypes = callMth.getArgTypes();
-		if (argTypes == null) {
-			// try to load class
-			callMth.getParentClass().loadAndProcess();
-			argTypes = callMth.getArgTypes();
-		}
-		ArgType origType;
-		if (argTypes == null) {
-			mth.addComment("JADX INFO: used method not loaded: " + callMth + ", types can be incorrect");
-			origType = callMth.getMethodInfo().getArgumentsTypes().get(origPos);
-		} else {
-			origType = argTypes.get(origPos);
-			if (origType.isGenericType() && !callMth.getParentClass().equals(mth.getParentClass())) {
-				// cancel cast
-				return false;
-			}
+		ArgType origType = argTypes.get(origPos);
+		if (origType.isGenericType() && !callMth.getParentClass().equals(mth.getParentClass())) {
+			// cancel cast
+			return false;
 		}
 		ArgType castType = null;
 		if (insn instanceof CallMthInterface && origType.containsGenericType()) {

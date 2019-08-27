@@ -276,7 +276,6 @@ public class RootNode {
 	public List<GenericInfo> getClassGenerics(ArgType type) {
 		ClassNode classNode = resolveClass(ClassInfo.fromType(this, type));
 		if (classNode != null) {
-			classNode.loadAndProcess();
 			return classNode.getGenerics();
 		}
 		NClass clsDetails = getClsp().getClsDetails(type);

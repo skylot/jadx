@@ -110,9 +110,10 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 			}
 
 			loadAnnotations(cls);
-
+			initAccessFlags(cls);
 			parseClassSignature();
 			setFieldsTypesFromSignature();
+			methods.forEach(MethodNode::initMethodTypes);
 
 			int sfIdx = cls.getSourceFileIndex();
 			if (sfIdx != DexNode.NO_INDEX) {
@@ -120,19 +121,24 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 				addSourceFilenameAttr(fileName);
 			}
 
-			// restore original access flags from dalvik annotation if present
-			int accFlagsValue;
-			Annotation a = getAnnotation(Consts.DALVIK_INNER_CLASS);
-			if (a != null) {
-				accFlagsValue = (Integer) a.getValues().get("accessFlags");
-			} else {
-				accFlagsValue = cls.getAccessFlags();
-			}
-			this.accessFlags = new AccessInfo(accFlagsValue, AFType.CLASS);
 			buildCache();
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Error decode class: " + clsInfo, e);
 		}
+	}
+
+	/**
+	 * Restore original access flags from Dalvik annotation if present
+	 */
+	private void initAccessFlags(ClassDef cls) {
+		int accFlagsValue;
+		Annotation a = getAnnotation(Consts.DALVIK_INNER_CLASS);
+		if (a != null) {
+			accFlagsValue = (Integer) a.getValues().get("accessFlags");
+		} else {
+			accFlagsValue = cls.getAccessFlags();
+		}
+		this.accessFlags = new AccessInfo(accFlagsValue, AFType.CLASS);
 	}
 
 	// empty synthetic class
@@ -247,8 +253,13 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		this.addAttr(new SourceFileAttr(fileName));
 	}
 
-	public void loadAndProcess() {
-		ProcessClass.process(this);
+	public void ensureProcessed() {
+		ClassNode topClass = getTopParentClass();
+		ProcessState topState = topClass.getState();
+		if (!topState.isProcessed()) {
+			throw new JadxRuntimeException("Expected class to be processed at this point,"
+					+ " class: " + topClass + ", state: " + topState);
+		}
 	}
 
 	public synchronized ICodeInfo decompile() {

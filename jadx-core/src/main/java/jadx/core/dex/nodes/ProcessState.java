@@ -6,5 +6,13 @@ public enum ProcessState {
 	PROCESS_STARTED,
 	PROCESS_COMPLETE,
 	GENERATED,
-	UNLOADED
+	UNLOADED;
+
+	public boolean isLoaded() {
+		return this != NOT_LOADED;
+	}
+
+	public boolean isProcessed() {
+		return this == PROCESS_COMPLETE || this == GENERATED || this == UNLOADED;
+	}
 }

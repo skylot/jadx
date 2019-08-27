@@ -27,6 +27,7 @@ import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
+import jadx.core.ProcessClass;
 import jadx.core.codegen.CodeGen;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.AFlag;
@@ -223,7 +224,7 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	protected void decompileWithoutUnload(JadxDecompiler jadx, ClassNode cls) {
-		cls.loadAndProcess();
+		ProcessClass.process(cls);
 		generateClsCode(cls);
 		// don't unload class
 	}

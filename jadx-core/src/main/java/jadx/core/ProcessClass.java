@@ -14,7 +14,6 @@ import static jadx.core.dex.nodes.ProcessState.LOADED;
 import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
 import static jadx.core.dex.nodes.ProcessState.PROCESS_COMPLETE;
 import static jadx.core.dex.nodes.ProcessState.PROCESS_STARTED;
-import static jadx.core.dex.nodes.ProcessState.UNLOADED;
 
 public final class ProcessClass {
 
@@ -27,8 +26,7 @@ public final class ProcessClass {
 			process(topParentClass);
 			return;
 		}
-		if (cls.getState() == PROCESS_COMPLETE
-				|| cls.getState() == UNLOADED) {
+		if (cls.getState().isProcessed()) {
 			// nothing to do
 			return;
 		}
