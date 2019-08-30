@@ -39,7 +39,7 @@ public class RegionMakerVisitor extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
-		if (mth.isNoCode()) {
+		if (mth.isNoCode() || mth.getBasicBlocks().isEmpty()) {
 			return;
 		}
 		RegionMaker rm = new RegionMaker(mth);

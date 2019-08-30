@@ -77,6 +77,7 @@ public class BlockSplitter extends AbstractVisitor {
 		InsnNode prevInsn = null;
 		Map<Integer, BlockNode> blocksMap = new HashMap<>();
 		BlockNode curBlock = startNewBlock(mth, 0);
+		curBlock.add(AFlag.MTH_ENTER_BLOCK);
 		mth.setEnterBlock(curBlock);
 
 		// split into blocks
@@ -331,7 +332,8 @@ public class BlockSplitter extends AbstractVisitor {
 	static boolean removeEmptyDetachedBlocks(MethodNode mth) {
 		return mth.getBasicBlocks().removeIf(block -> block.getInstructions().isEmpty()
 				&& block.getPredecessors().isEmpty()
-				&& block.getSuccessors().isEmpty());
+				&& block.getSuccessors().isEmpty()
+				&& !block.contains(AFlag.MTH_ENTER_BLOCK));
 	}
 
 	private static boolean removeUnreachableBlocks(MethodNode mth) {
@@ -385,7 +387,8 @@ public class BlockSplitter extends AbstractVisitor {
 		return block.getInstructions().isEmpty()
 				&& block.isAttrStorageEmpty()
 				&& block.getSuccessors().size() <= 1
-				&& !block.getPredecessors().isEmpty();
+				&& !block.getPredecessors().isEmpty()
+				&& !block.contains(AFlag.MTH_ENTER_BLOCK);
 	}
 
 	private static void collectSuccessors(BlockNode startBlock, Set<BlockNode> toRemove) {

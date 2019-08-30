@@ -1,6 +1,7 @@
 package jadx.core.dex.attributes;
 
 public enum AFlag {
+	MTH_ENTER_BLOCK,
 	TRY_ENTER,
 	TRY_LEAVE,
 

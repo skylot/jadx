@@ -39,7 +39,7 @@ public class BlockProcessor extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) {
-		if (mth.isNoCode()) {
+		if (mth.isNoCode() || mth.getBasicBlocks().isEmpty()) {
 			return;
 		}
 		processBlocksTree(mth);
