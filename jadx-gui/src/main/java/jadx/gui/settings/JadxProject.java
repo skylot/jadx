@@ -38,7 +38,15 @@ public class JadxProject {
 
 	private int projectVersion = 0;
 
+	// Don't remove. Used in json serialization
+	public JadxProject() {
+	}
+
 	public JadxProject(JadxSettings settings) {
+		this.settings = settings;
+	}
+
+	public void setSettings(JadxSettings settings) {
 		this.settings = settings;
 	}
 

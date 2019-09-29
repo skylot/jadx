@@ -54,8 +54,8 @@ public class JadxSettingsAdapter {
 	}
 
 	public static JadxSettings load() {
+		String jsonSettings = PREFS.get(JADX_GUI_KEY, "");
 		try {
-			String jsonSettings = PREFS.get(JADX_GUI_KEY, "");
 			JadxSettings settings = fromString(jsonSettings);
 			if (settings == null) {
 				LOG.debug("Created new settings.");
@@ -68,7 +68,7 @@ public class JadxSettingsAdapter {
 			}
 			return settings;
 		} catch (Exception e) {
-			LOG.error("Error load settings", e);
+			LOG.error("Error load settings. Settings will reset.\n Loaded json string: {}", jsonSettings, e);
 			return new JadxSettings();
 		}
 	}

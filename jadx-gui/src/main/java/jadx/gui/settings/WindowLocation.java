@@ -3,10 +3,12 @@ package jadx.gui.settings;
 import java.awt.*;
 
 public class WindowLocation {
+	private String windowId;
+	private Rectangle bounds;
 
-	private final String windowId;
-
-	private final Rectangle bounds;
+	// Don't remove. Used in json serialization
+	public WindowLocation() {
+	}
 
 	public WindowLocation(String windowId, Rectangle bounds) {
 		this.windowId = windowId;
@@ -17,8 +19,16 @@ public class WindowLocation {
 		return windowId;
 	}
 
+	public void setWindowId(String windowId) {
+		this.windowId = windowId;
+	}
+
 	public Rectangle getBounds() {
 		return bounds;
+	}
+
+	public void setBounds(Rectangle bounds) {
+		this.bounds = bounds;
 	}
 
 	@Override

@@ -3,7 +3,11 @@ package jadx.gui.utils;
 import java.util.Locale;
 
 public class LangLocale {
-	private final Locale locale;
+	private Locale locale;
+
+	// Don't remove. Used in json serialization
+	public LangLocale() {
+	}
 
 	public LangLocale(Locale locale) {
 		this.locale = locale;
@@ -15,6 +19,14 @@ public class LangLocale {
 
 	public Locale get() {
 		return locale;
+	}
+
+	public Locale getLocale() {
+		return locale;
+	}
+
+	public void setLocale(Locale locale) {
+		this.locale = locale;
 	}
 
 	@Override
