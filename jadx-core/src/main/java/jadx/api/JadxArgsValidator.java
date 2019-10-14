@@ -36,9 +36,7 @@ public class JadxArgsValidator {
 			}
 			throw new JadxArgsValidateException("Only one input file supported");
 		}
-		for (File file : inputFiles) {
-			checkFile(file);
-		}
+		checkFile(inputFiles.get(0));
 	}
 
 	private static void validateOutDirs(JadxArgs args) {
