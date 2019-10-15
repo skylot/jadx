@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,8 +27,11 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.files.DexFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DexNode implements IDexNode {
+	private static final Logger LOG = LoggerFactory.getLogger(DexNode.class);
 
 	public static final int NO_INDEX = -1;
 
@@ -50,7 +54,12 @@ public class DexNode implements IDexNode {
 
 	public void loadClasses() {
 		for (ClassDef cls : dexBuf.classDefs()) {
-			addClassNode(new ClassNode(this, cls));
+			try {
+				addClassNode(new ClassNode(this, cls));
+			} catch (JadxRuntimeException e) {
+				// TODO: Add dummy class node displaying the error message
+				LOG.error("Class loading failed - {}", e.getMessage(), e);
+			}
 		}
 		// sort classes by name, expect top classes before inner
 		classes.sort(Comparator.comparing(ClassNode::getFullName));
