@@ -7,9 +7,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jadx.core.utils.exceptions.JadxRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.android.dex.ClassData;
 import com.android.dex.ClassData.Method;
@@ -26,9 +27,8 @@ import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.DexFile;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DexNode implements IDexNode {
 	private static final Logger LOG = LoggerFactory.getLogger(DexNode.class);
