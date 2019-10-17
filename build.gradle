@@ -1,5 +1,3 @@
-import com.diffplug.spotless.LineEnding
-
 plugins {
 	id 'org.sonarqube' version '2.7.1'
 	id 'com.github.ben-manes.versions' version '0.22.0'
@@ -93,7 +91,7 @@ spotless {
 		eclipse().configFile 'config/code-formatter/eclipse.xml'
 		removeUnusedImports()
 
-		lineEndings(LineEnding.UNIX)
+		lineEndings(com.diffplug.spotless.LineEnding.UNIX)
 		encoding("UTF-8")
 		trimTrailingWhitespace()
 		endWithNewline()
@@ -102,7 +100,7 @@ spotless {
 		target '**/*.gradle', '**/*.md', '**/*.xml', '**/.gitignore', '**/.properties'
 		targetExclude ".gradle/**", ".idea/**"
 
-		lineEndings(LineEnding.UNIX)
+		lineEndings(com.diffplug.spotless.LineEnding.UNIX)
 		encoding("UTF-8")
 		trimTrailingWhitespace()
 		endWithNewline()
