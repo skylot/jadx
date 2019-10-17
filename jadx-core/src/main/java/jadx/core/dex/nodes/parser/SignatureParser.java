@@ -292,6 +292,10 @@ public class SignatureParser {
 		return sb.toString();
 	}
 
+	public String getSignature() {
+		return sign;
+	}
+
 	private String debugString() {
 		if (pos >= sign.length()) {
 			return sign;

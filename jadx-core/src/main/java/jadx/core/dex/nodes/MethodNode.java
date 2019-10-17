@@ -199,26 +199,37 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 				if (argsTypes.isEmpty()) {
 					return null;
 				}
-				if (!mthInfo.isConstructor()) {
-					LOG.warn("Wrong signature parse result: {} -> {}, not generic version: {}", sp, argsTypes, mthArgs);
-					return null;
-				} else if (getParentClass().getAccessFlags().isEnum()) {
-					// TODO:
-					argsTypes.add(0, mthArgs.get(0));
-					argsTypes.add(1, mthArgs.get(1));
-				} else {
-					// add synthetic arg for outer class
-					argsTypes.add(0, mthArgs.get(0));
-				}
-				if (argsTypes.size() != mthArgs.size()) {
+				if (!tryFixArgsCounts(argsTypes, mthArgs)) {
+					if (LOG.isDebugEnabled()) {
+						LOG.debug("Incorrect method signature, types: ({}), method: {}", Utils.listToString(argsTypes), this);
+					}
 					return null;
 				}
 			}
 			return argsTypes;
-		} catch (JadxRuntimeException e) {
-			LOG.error("Method signature parse error: {}", this, e);
+		} catch (Exception e) {
+			addWarningComment("Failed to parse method signature: " + sp.getSignature(), e);
 			return null;
 		}
+	}
+
+	private boolean tryFixArgsCounts(List<ArgType> argsTypes, List<ArgType> mthArgs) {
+		if (!mthInfo.isConstructor()) {
+			return false;
+		}
+		if (getParentClass().getAccessFlags().isEnum()) {
+			if (mthArgs.size() >= 2) {
+				// TODO:
+				argsTypes.add(0, mthArgs.get(0));
+				argsTypes.add(1, mthArgs.get(1));
+			}
+		} else {
+			if (!mthArgs.isEmpty()) {
+				// add synthetic arg for outer class
+				argsTypes.add(0, mthArgs.get(0));
+			}
+		}
+		return argsTypes.size() == mthArgs.size();
 	}
 
 	private void initArguments(List<ArgType> args) {
@@ -685,6 +696,20 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	public void addWarn(String warnStr) {
 		ErrorsCounter.methodWarn(this, warnStr);
+	}
+
+	public void addWarningComment(String warn) {
+		addWarningComment(warn, null);
+	}
+
+	public void addWarningComment(String warn, @Nullable Throwable exc) {
+		String commentStr = "JADX WARN: " + warn;
+		addAttr(AType.COMMENTS, commentStr);
+		if (exc != null) {
+			LOG.warn("{} in {}", warn, this, exc);
+		} else {
+			LOG.warn("{} in {}", warn, this);
+		}
 	}
 
 	public void addComment(String commentStr) {
