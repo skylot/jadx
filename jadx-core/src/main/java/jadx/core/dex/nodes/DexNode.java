@@ -27,7 +27,7 @@ import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.files.DexFile;
 
 public class DexNode implements IDexNode {
@@ -56,13 +56,31 @@ public class DexNode implements IDexNode {
 		for (ClassDef cls : dexBuf.classDefs()) {
 			try {
 				addClassNode(new ClassNode(this, cls));
-			} catch (JadxRuntimeException e) {
-				// TODO: Add dummy class node displaying the error message
-				LOG.error("Class loading failed - {}", e.getMessage(), e);
+			} catch (Exception e) {
+				addDummyClass(cls, e);
 			}
 		}
 		// sort classes by name, expect top classes before inner
 		classes.sort(Comparator.comparing(ClassNode::getFullName));
+	}
+
+	private void addDummyClass(ClassDef classDef, Exception exc) {
+		int typeIndex = classDef.getTypeIndex();
+		String name = null;
+		try {
+			ClassInfo clsInfo = ClassInfo.fromDex(this, typeIndex);
+			if (clsInfo != null) {
+				name = clsInfo.getShortName();
+			}
+		} catch (Exception e) {
+			LOG.error("Failed to get name for class with type {}", typeIndex, e);
+		}
+		if (name == null || name.isEmpty()) {
+			name = "CLASS_" + typeIndex;
+		}
+		ClassNode clsNode = new ClassNode(this, name, classDef.getAccessFlags());
+		ErrorsCounter.classError(clsNode, "Load error", exc);
+		addClassNode(clsNode);
 	}
 
 	public void addClassNode(ClassNode clsNode) {
