@@ -325,6 +325,10 @@ public final class JadxDecompiler {
 				return javaClass;
 			}
 		}
+		// class or parent classes can be excluded from generation
+		if (cls.hasNotGeneratedParent()) {
+			return null;
+		}
 		throw new JadxRuntimeException("JavaClass not found by ClassNode: " + cls);
 	}
 
