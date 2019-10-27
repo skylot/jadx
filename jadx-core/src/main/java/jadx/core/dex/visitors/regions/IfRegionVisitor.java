@@ -24,6 +24,10 @@ public class IfRegionVisitor extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) {
+		if (mth.isNoCode()) {
+			return;
+		}
+
 		DepthRegionTraversal.traverseIterative(mth, TERNARY_VISITOR);
 		DepthRegionTraversal.traverse(mth, PROCESS_IF_REGION_VISITOR);
 		DepthRegionTraversal.traverseIterative(mth, REMOVE_REDUNDANT_ELSE_VISITOR);
