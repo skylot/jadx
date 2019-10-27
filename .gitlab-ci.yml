@@ -19,13 +19,18 @@ java-11:
   image: openjdk:11
   script: ./gradlew clean build
 
+java-12:
+  stage: test
+  image: gradle:jdk12 # latest gradle and jdk12
+  script: gradle clean build
+
 check:
   stage: check
   image: openjdk:8
   script:
     - export JADX_LAST_TAG="$(git describe --abbrev=0 --tags)"
     - export JADX_VERSION="${JADX_LAST_TAG:1}-dev-$(git rev-parse --short HEAD)"
-    - ./gradlew clean sonarqube -Dsonar.host.url=$SONAR_HOST -Dsonar.organization=$SONAR_ORG -Dsonar.login=$SONAR_TOKEN -Dsonar.branch.name=dev
+    - ./gradlew clean sonarqube -Dsonar.host.url="${SONAR_HOST}" -Dsonar.projectKey=jadx -Dsonar.organization="${SONAR_ORG}" -Dsonar.login="${SONAR_TOKEN}" -Dsonar.branch.name=dev || echo "Skip sonar build and upload"
     - ./gradlew clean dist
   artifacts:
     paths:
