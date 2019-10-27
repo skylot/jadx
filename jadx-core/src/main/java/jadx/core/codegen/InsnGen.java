@@ -769,7 +769,7 @@ public class InsnGen {
 				if (!firstArg) {
 					code.add(", ");
 				}
-				boolean cast = overloaded && processOverloadedArg(code, insn, callMth, arg, i - startArgNum);
+				boolean cast = addArgCast(code, insn, callMth, arg, i - startArgNum, overloaded);
 				if (!cast && i == argsCount - 1 && processVarArg(code, callMth, arg)) {
 					continue;
 				}
@@ -781,42 +781,47 @@ public class InsnGen {
 	}
 
 	/**
-	 * Add additional cast for overloaded method argument.
+	 * Add additional cast for method argument.
 	 */
-	private boolean processOverloadedArg(CodeWriter code, InsnNode insn, MethodNode callMth, InsnArg arg, int origPos) {
-		List<ArgType> argTypes = callMth.getArgTypes();
-		ArgType origType = argTypes.get(origPos);
-		if (origType.isGenericType() && !callMth.getParentClass().equals(mth.getParentClass())) {
-			// cancel cast
-			return false;
-		}
+	private boolean addArgCast(CodeWriter code, InsnNode insn, @Nullable MethodNode callMth,
+			InsnArg arg, int origPos, boolean overloaded) {
 		ArgType castType = null;
-		if (insn instanceof CallMthInterface && origType.containsGenericType()) {
-			ArgType clsType;
-			CallMthInterface mthCall = (CallMthInterface) insn;
-			RegisterArg instanceArg = mthCall.getInstanceArg();
-			if (instanceArg != null) {
-				clsType = instanceArg.getType();
-			} else {
-				clsType = mthCall.getCallMth().getDeclClass().getType();
+		if (callMth != null) {
+			List<ArgType> argTypes = callMth.getArgTypes();
+			ArgType origType = argTypes.get(origPos);
+			if (origType.isGenericType() && !callMth.getParentClass().equals(mth.getParentClass())) {
+				// cancel cast
+				return false;
 			}
-			ArgType replacedType = TypeUtils.replaceClassGenerics(root, clsType, origType);
-			if (replacedType != null) {
-				castType = replacedType;
-			}
-			if (castType == null) {
-				ArgType invReplType = TypeUtils.replaceMethodGenerics(root, insn, origType);
-				if (invReplType != null) {
-					castType = invReplType;
+			if (insn instanceof CallMthInterface && origType.containsGenericType()) {
+				ArgType clsType;
+				CallMthInterface mthCall = (CallMthInterface) insn;
+				RegisterArg instanceArg = mthCall.getInstanceArg();
+				if (instanceArg != null) {
+					clsType = instanceArg.getType();
+				} else {
+					clsType = mthCall.getCallMth().getDeclClass().getType();
+				}
+				ArgType replacedType = TypeUtils.replaceClassGenerics(root, clsType, origType);
+				if (replacedType != null) {
+					castType = replacedType;
+				}
+				if (castType == null) {
+					ArgType invReplType = TypeUtils.replaceMethodGenerics(root, insn, origType);
+					if (invReplType != null) {
+						castType = invReplType;
+					}
 				}
 			}
-		}
-		if (castType == null) {
-			castType = origType;
+			if (castType == null) {
+				castType = origType;
+			}
+		} else {
+			castType = arg.getType();
 		}
 		// TODO: check castType for left type variables
 
-		if (isCastNeeded(arg, castType)) {
+		if (isCastNeeded(arg, castType, overloaded)) {
 			code.add('(');
 			useType(code, castType);
 			code.add(") ");
@@ -825,7 +830,7 @@ public class InsnGen {
 		return false;
 	}
 
-	private boolean isCastNeeded(InsnArg arg, ArgType origType) {
+	private boolean isCastNeeded(InsnArg arg, ArgType origType, boolean overloaded) {
 		ArgType argType = arg.getType();
 		if (arg.isLiteral() && ((LiteralArg) arg).getLiteral() == 0
 				&& (argType.isObject() || argType.isArray())) {
@@ -834,7 +839,7 @@ public class InsnGen {
 		if (argType.equals(origType)) {
 			return false;
 		}
-		return true;
+		return overloaded;
 	}
 
 	/**

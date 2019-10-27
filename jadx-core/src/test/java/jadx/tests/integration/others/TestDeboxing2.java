@@ -39,11 +39,10 @@ public class TestDeboxing2 extends IntegrationTest {
 		assertThat(code, containsOne("l = 0L;"));
 
 		// checks for 'check' method
-		assertThat(code, containsOne("test(null)"));
+		assertThat(code, containsOne("test((Long) null)")); // TODO: cast not needed
 		assertThat(code, containsOne("test(0L)"));
 		assertThat(code, countString(2, "is(0L)"));
 		assertThat(code, containsOne("test(7L)"));
 		assertThat(code, containsOne("is(7L)"));
-
 	}
 }
