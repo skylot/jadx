@@ -677,7 +677,7 @@ public class BlockProcessor extends AbstractVisitor {
 		InsnNode insn = new InsnNode(returnInsn.getType(), returnInsn.getArgsCount());
 		if (returnInsn.getArgsCount() == 1) {
 			RegisterArg arg = (RegisterArg) returnInsn.getArg(0);
-			insn.addArg(InsnArg.reg(arg.getRegNum(), arg.getInitType()));
+			insn.addArg(arg.duplicate());
 		}
 		insn.copyAttributesFrom(returnInsn);
 		insn.setOffset(returnInsn.getOffset());

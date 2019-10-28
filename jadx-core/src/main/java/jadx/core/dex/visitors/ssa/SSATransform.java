@@ -12,7 +12,6 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.PhiInsn;
-import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
@@ -383,25 +382,18 @@ public class SSATransform extends AbstractVisitor {
 		List<RegisterArg> useList = resVar.getUseList();
 		for (RegisterArg useArg : new ArrayList<>(useList)) {
 			InsnNode useInsn = useArg.getParentInsn();
-			if (useInsn == null || useInsn == phi) {
+			if (useInsn == null || useInsn == phi || useArg.getRegNum() != arg.getRegNum()) {
 				return false;
 			}
+			// replace SSAVar in 'useArg' to SSAVar from 'arg'
+			// no need to replace whole RegisterArg
 			useArg.getSVar().removeUse(useArg);
-			RegisterArg inlArg = arg.duplicate();
-			if (!useInsn.replaceArg(useArg, inlArg)) {
-				return false;
-			}
-			inlArg.getSVar().use(inlArg);
-			inlArg.setName(useArg.getName());
-			ArgType type = useArg.getImmutableType();
-			if (type != null) {
-				inlArg.setType(type);
-			}
+			arg.getSVar().use(useArg);
 		}
 		if (block.contains(AType.EXC_HANDLER)) {
 			// don't inline into exception handler
 			InsnNode assignInsn = arg.getAssignInsn();
-			if (assignInsn != null) {
+			if (assignInsn != null && !assignInsn.isConstInsn()) {
 				assignInsn.add(AFlag.DONT_INLINE);
 			}
 		}
