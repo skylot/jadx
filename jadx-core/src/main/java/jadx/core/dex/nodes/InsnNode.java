@@ -323,7 +323,9 @@ public class InsnNode extends LineAttrNode {
 	}
 
 	protected final <T extends InsnNode> T copyCommonParams(T copy) {
-		copy.setResult(result);
+		if (result != null) {
+			copy.setResult(result.duplicate());
+		}
 		if (copy.getArgsCount() == 0) {
 			for (InsnArg arg : this.getArguments()) {
 				if (arg.isInsnWrap()) {
