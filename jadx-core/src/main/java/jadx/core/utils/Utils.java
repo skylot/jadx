@@ -205,6 +205,14 @@ public class Utils {
 	}
 
 	@Nullable
+	public static <T> T getOne(@Nullable List<T> list) {
+		if (list == null || list.size() != 1) {
+			return null;
+		}
+		return list.get(0);
+	}
+
+	@Nullable
 	public static <T> T last(List<T> list) {
 		if (list.isEmpty()) {
 			return null;
