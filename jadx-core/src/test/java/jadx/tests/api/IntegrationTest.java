@@ -86,6 +86,7 @@ public abstract class IntegrationTest extends TestUtils {
 
 	private boolean allowWarnInCode;
 	private boolean printLineNumbers;
+	private boolean printSmali;
 
 	private DynamicCompiler dynamicCompiler;
 
@@ -156,7 +157,7 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	protected JadxDecompiler loadFiles(List<File> inputFiles) {
-		JadxDecompiler d = null;
+		JadxDecompiler d;
 		try {
 			args.setInputFiles(inputFiles);
 			d = new JadxDecompiler(args);
@@ -188,9 +189,19 @@ public abstract class IntegrationTest extends TestUtils {
 		}
 		System.out.println("-----------------------------------------------------------");
 
+		if (printSmali) {
+			clsList.forEach(this::printSmali);
+		}
+
 		clsList.forEach(this::checkCode);
 		compile(clsList);
 		clsList.forEach(this::runAutoCheck);
+	}
+
+	private void printSmali(ClassNode cls) {
+		System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+		System.out.println(cls.getSmali());
+		System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 	}
 
 	private void printCodeWithLineNumbers(ICodeInfo code) {
@@ -486,6 +497,12 @@ public abstract class IntegrationTest extends TestUtils {
 	protected void outputCFG() {
 		this.args.setCfgOutput(true);
 		this.args.setRawCFGOutput(true);
+	}
+
+	// Use only for debug purpose
+	@Deprecated
+	protected void printSmali() {
+		this.printSmali = true;
 	}
 
 	// Use only for debug purpose
