@@ -5,7 +5,8 @@ import java.security.cert.Certificate;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.swing.*;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -83,7 +84,6 @@ public class ApkSignature extends JNode {
 			final String sigFailKey = "apkSignature.signatureFailed";
 
 			writeIssues(builder, err, result.getErrors());
-			writeIssues(builder, warn, result.getWarnings());
 
 			if (!result.getV1SchemeSigners().isEmpty()) {
 				builder.append("<h2>");
@@ -124,6 +124,26 @@ public class ApkSignature extends JNode {
 				}
 				builder.append("</blockquote>");
 			}
+			if (!result.getV3SchemeSigners().isEmpty()) {
+				builder.append("<h2>");
+				builder.escape(NLS.str(result.isVerifiedUsingV3Scheme() ? sigSuccKey : sigFailKey, 3));
+				builder.append("</h2>\n");
+
+				builder.append("<blockquote>");
+				for (ApkVerifier.Result.V3SchemeSignerInfo signer : result.getV3SchemeSigners()) {
+					builder.append("<h3>");
+					builder.escape(NLS.str("apkSignature.signer"));
+					builder.append(" ");
+					builder.append(Integer.toString(signer.getIndex() + 1));
+					builder.append("</h3>");
+					writeCertificate(builder, signer.getCertificate());
+					writeIssues(builder, err, signer.getErrors());
+					writeIssues(builder, warn, signer.getWarnings());
+				}
+				builder.append("</blockquote>");
+			}
+			writeIssues(builder, warn, result.getWarnings());
+
 			this.content = builder.toString();
 		} catch (Exception e) {
 			LOG.error(e.getMessage(), e);

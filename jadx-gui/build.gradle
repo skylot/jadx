@@ -17,7 +17,7 @@ dependencies {
 
 	compile 'io.reactivex.rxjava2:rxjava:2.2.11'
 	compile "com.github.akarnokd:rxjava2-swing:0.3.7"
-	compile 'com.android.tools.build:apksig:3.4.2'
+	compile 'com.android.tools.build:apksig:3.5.1'
 }
 
 application {
