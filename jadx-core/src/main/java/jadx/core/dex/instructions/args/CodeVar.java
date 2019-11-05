@@ -19,7 +19,9 @@ public class CodeVar {
 		var.setName(mthArg.getName());
 		var.setDeclared(true);
 		var.setThis(mthArg.isThis());
-		var.setSsaVars(Collections.singletonList(new SSAVar(mthArg.getRegNum(), 0, mthArg)));
+		SSAVar ssaVar = new SSAVar(mthArg.getRegNum(), 0, mthArg);
+		ssaVar.setCodeVar(var);
+		var.setSsaVars(Collections.singletonList(ssaVar));
 		return var;
 	}
 
