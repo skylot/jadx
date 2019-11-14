@@ -64,7 +64,7 @@ public class StringUtils {
 				break;
 
 			default:
-				if (c < 32 || c >= 127 && escapeUnicode) {
+				if ((c < 32 || c >= 127) && escapeUnicode) {
 					res.append("\\u").append(String.format("%04x", c));
 				} else {
 					res.append((char) c);
