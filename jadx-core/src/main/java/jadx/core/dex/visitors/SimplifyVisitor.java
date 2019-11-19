@@ -332,6 +332,20 @@ public class SimplifyVisitor extends AbstractVisitor {
 				}
 				args.add(arg);
 			}
+
+			boolean stringArgFound = false;
+			for (InsnArg arg : args) {
+				if (arg.getType().equals(ArgType.STRING)) {
+					stringArgFound = true;
+					break;
+				}
+			}
+			if (!stringArgFound) {
+				// TODO: convert one arg to string using `String.valueOf()`
+				return null;
+			}
+
+			// all check passed
 			removeStringBuilderInsns(mth, toStrInsn, chain);
 
 			InsnNode concatInsn = new InsnNode(InsnType.STR_CONCAT, args);
