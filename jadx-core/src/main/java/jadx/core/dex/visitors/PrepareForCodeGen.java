@@ -8,9 +8,12 @@ import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
+import com.google.common.collect.Streams;
+
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
+import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
 import jadx.core.dex.instructions.InsnType;
@@ -20,6 +23,7 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.InsnContainer;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -43,6 +47,14 @@ import jadx.core.utils.exceptions.JadxException;
 		runAfter = { CodeShrinkVisitor.class, ClassModifier.class, ProcessVariables.class }
 )
 public class PrepareForCodeGen extends AbstractVisitor {
+
+	@Override
+	public boolean visit(ClassNode cls) throws JadxException {
+		if (cls.root().getArgs().isDebugInfo()) {
+			setClassSourceLine(cls);
+		}
+		return true;
+	}
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
@@ -245,5 +257,27 @@ public class PrepareForCodeGen extends AbstractVisitor {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Use source line from top method
+	 */
+	private void setClassSourceLine(ClassNode cls) {
+		for (ClassNode innerClass : cls.getInnerClasses()) {
+			setClassSourceLine(innerClass);
+		}
+
+		int minLine = Streams.concat(
+				cls.getMethods().stream(),
+				cls.getInnerClasses().stream(),
+				cls.getFields().stream())
+				.filter(mth -> !mth.contains(AFlag.DONT_GENERATE))
+				.filter(mth -> mth.getSourceLine() != 0)
+				.mapToInt(LineAttrNode::getSourceLine)
+				.min()
+				.orElse(0);
+		if (minLine != 0) {
+			cls.setSourceLine(minLine - 1);
+		}
 	}
 }

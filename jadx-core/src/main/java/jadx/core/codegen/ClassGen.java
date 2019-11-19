@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.android.dx.rop.code.AccessFlags;
+import com.google.common.collect.Streams;
 
 import jadx.api.JadxArgs;
 import jadx.core.dex.attributes.AFlag;
@@ -130,7 +131,8 @@ public class ClassGen {
 		annotationGen.addForClass(clsCode);
 		insertRenameInfo(clsCode, cls);
 		CodeGenUtils.addSourceFileInfo(clsCode, cls);
-		clsCode.startLine(af.makeString());
+		clsCode.startLineWithNum(cls.getSourceLine());
+		clsCode.add(af.makeString());
 		if (af.isInterface()) {
 			if (af.isAnnotation()) {
 				clsCode.add('@');
@@ -222,21 +224,32 @@ public class ClassGen {
 		clsDeclLine = clsCode.getLine();
 		clsCode.incIndent();
 		addFields(clsCode);
-		addInnerClasses(clsCode, cls);
-		addMethods(clsCode);
+		addInnerClsAndMethods(clsCode);
 		clsCode.decIndent();
 		clsCode.startLine('}');
 	}
 
-	private void addInnerClasses(CodeWriter code, ClassNode cls) throws CodegenException {
-		for (ClassNode innerCls : cls.getInnerClasses()) {
-			if (innerCls.contains(AFlag.DONT_GENERATE)) {
-				continue;
-			}
+	private void addInnerClsAndMethods(CodeWriter clsCode) {
+		Streams.concat(cls.getInnerClasses().stream(), cls.getMethods().stream())
+				.filter(node -> !node.contains(AFlag.DONT_GENERATE))
+				.sorted(Comparator.comparingInt(LineAttrNode::getSourceLine))
+				.forEach(node -> {
+					if (node instanceof ClassNode) {
+						addInnerClass(clsCode, (ClassNode) node);
+					} else {
+						addMethod(clsCode, (MethodNode) node);
+					}
+				});
+	}
+
+	private void addInnerClass(CodeWriter code, ClassNode innerCls) {
+		try {
 			ClassGen inClGen = new ClassGen(innerCls, getParentGen());
 			code.newLine();
 			inClGen.addClassCode(code);
 			imports.addAll(inClGen.getImports());
+		} catch (Exception e) {
+			ErrorsCounter.classError(innerCls, "Inner class code generation error", e);
 		}
 	}
 
@@ -249,36 +262,24 @@ public class ClassGen {
 		return false;
 	}
 
-	private void addMethods(CodeWriter code) {
-		List<MethodNode> methods = sortMethodsByLine(cls.getMethods());
-		for (MethodNode mth : methods) {
-			if (mth.contains(AFlag.DONT_GENERATE)) {
-				continue;
-			}
-			if (code.getLine() != clsDeclLine) {
-				code.newLine();
-			}
-			int savedIndent = code.getIndent();
-			try {
-				addMethod(code, mth);
-			} catch (Exception e) {
-				if (mth.getParentClass().getTopParentClass().contains(AFlag.RESTART_CODEGEN)) {
-					throw new JadxRuntimeException("Method generation error", e);
-				}
-				code.newLine().add("/*");
-				code.newLine().addMultiLine(ErrorsCounter.methodError(mth, "Method generation error", e));
-				Utils.appendStackTrace(code, e);
-				code.newLine().add("*/");
-				code.setIndent(savedIndent);
-				mth.addError("Method generation error: " + e.getMessage(), e);
-			}
+	private void addMethod(CodeWriter code, MethodNode mth) {
+		if (code.getLine() != clsDeclLine) {
+			code.newLine();
 		}
-	}
-
-	private static List<MethodNode> sortMethodsByLine(List<MethodNode> methods) {
-		List<MethodNode> out = new ArrayList<>(methods);
-		out.sort(Comparator.comparingInt(LineAttrNode::getSourceLine));
-		return out;
+		int savedIndent = code.getIndent();
+		try {
+			addMethodCode(code, mth);
+		} catch (Exception e) {
+			if (mth.getParentClass().getTopParentClass().contains(AFlag.RESTART_CODEGEN)) {
+				throw new JadxRuntimeException("Method generation error", e);
+			}
+			code.newLine().add("/*");
+			code.newLine().addMultiLine(ErrorsCounter.methodError(mth, "Method generation error", e));
+			Utils.appendStackTrace(code, e);
+			code.newLine().add("*/");
+			code.setIndent(savedIndent);
+			mth.addError("Method generation error: " + e.getMessage(), e);
+		}
 	}
 
 	private boolean isMethodsPresents() {
@@ -290,7 +291,7 @@ public class ClassGen {
 		return false;
 	}
 
-	public void addMethod(CodeWriter code, MethodNode mth) throws CodegenException {
+	public void addMethodCode(CodeWriter code, MethodNode mth) throws CodegenException {
 		CodeGenUtils.addComments(code, mth);
 		if (mth.getAccessFlags().isAbstract() || mth.getAccessFlags().isNative()) {
 			MethodGen mthGen = new MethodGen(this, mth);

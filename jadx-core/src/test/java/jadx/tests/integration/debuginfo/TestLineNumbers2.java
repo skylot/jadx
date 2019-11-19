@@ -39,7 +39,7 @@ public class TestLineNumbers2 extends IntegrationTest {
 
 		ClassNode cls = getClassNode(TestCls.class);
 		Map<Integer, Integer> lineMapping = cls.getCode().getLineMapping();
-		assertEquals("{8=18, 11=22, 12=23, 13=24, 14=28, 16=25, 17=26, 18=28, 21=31, 22=32}",
+		assertEquals("{5=17, 8=18, 11=22, 12=23, 13=24, 14=28, 16=25, 17=26, 18=28, 21=31, 22=32}",
 				lineMapping.toString());
 	}
 }
