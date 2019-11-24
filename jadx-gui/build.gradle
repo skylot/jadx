@@ -1,23 +1,23 @@
 plugins {
 	id 'application'
 	id 'edu.sc.seis.launch4j' version '2.4.6'
-	id 'com.github.johnrengelman.shadow' version '5.1.0'
+	id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
 dependencies {
 	compile(project(":jadx-core"))
 	compile(project(":jadx-cli"))
 
-	compile 'com.fifesoft:rsyntaxtextarea:3.0.3'
+	compile 'com.fifesoft:rsyntaxtextarea:3.0.4'
 	compile files('libs/jfontchooser-1.0.5.jar')
 	compile 'hu.kazocsaba:image-viewer:1.2.3'
 
 	compile 'org.apache.commons:commons-lang3:3.9'
-	compile 'org.apache.commons:commons-text:1.7'
+	compile 'org.apache.commons:commons-text:1.8'
 
-	compile 'io.reactivex.rxjava2:rxjava:2.2.11'
+	compile 'io.reactivex.rxjava2:rxjava:2.2.15'
 	compile "com.github.akarnokd:rxjava2-swing:0.3.7"
-	compile 'com.android.tools.build:apksig:3.5.1'
+	compile 'com.android.tools.build:apksig:3.5.2'
 }
 
 application {

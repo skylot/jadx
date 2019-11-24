@@ -78,7 +78,9 @@
 
 		<!-- annotations -->
 		<module name="AnnotationLocation"/>
-		<module name="AnnotationUseStyle"/>
+		<module name="AnnotationUseStyle">
+			<property name="elementStyle" value="compact"/>
+		</module>
 		<module name="MissingOverride"/>
 		<!-- <module name="MissingDeprecated"/> -->
 

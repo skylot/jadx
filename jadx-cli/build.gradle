@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
 	compile(project(':jadx-core'))
-	compile 'com.beust:jcommander:1.74'
+	compile 'com.beust:jcommander:1.78'
 	compile 'ch.qos.logback:logback-classic:1.2.3'
 }
 
