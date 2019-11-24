@@ -41,7 +41,6 @@ import jadx.core.dex.trycatch.SplitterBlockAttr;
 import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.ErrorsCounter;
-import jadx.core.utils.InsnRemover;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.JadxOverflowException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -566,9 +565,9 @@ public class RegionMaker {
 			if (insnBlock != null) {
 				insnBlock.add(AFlag.DONT_GENERATE);
 			}
+			// remove arg from MONITOR_EXIT to allow inline in MONITOR_ENTER
+			exitInsn.removeArg(0);
 			exitInsn.add(AFlag.DONT_GENERATE);
-			exitInsn.add(AFlag.REMOVE);
-			InsnRemover.unbindInsn(mth, exitInsn);
 		}
 
 		BlockNode body = getNextBlock(block);

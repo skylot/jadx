@@ -113,6 +113,7 @@ public class TernaryMod implements IRegionIterativeVisitor {
 
 			// remove 'if' instruction
 			header.getInstructions().clear();
+			ternInsn.rebindArgs();
 			header.getInstructions().add(ternInsn);
 
 			clearConditionBlocks(conditionBlocks, header);
@@ -148,6 +149,7 @@ public class TernaryMod implements IRegionIterativeVisitor {
 			retInsn.addArg(arg);
 
 			header.getInstructions().clear();
+			retInsn.rebindArgs();
 			header.getInstructions().add(retInsn);
 			header.add(AFlag.RETURN);
 
@@ -284,6 +286,7 @@ public class TernaryMod implements IRegionIterativeVisitor {
 
 		InsnRemover.unbindAllArgs(mth, phiInsn);
 		header.getInstructions().clear();
+		ternInsn.rebindArgs();
 		header.getInstructions().add(ternInsn);
 
 		clearConditionBlocks(ifRegion.getConditionBlocks(), header);

@@ -147,6 +147,14 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 		pathsBlocks.remove(assignBlock);
 		pathsBlocks.remove(useBlock);
 		for (BlockNode block : pathsBlocks) {
+			if (block.contains(AFlag.DONT_GENERATE)) {
+				if (BlockUtils.checkLastInsnType(block, InsnType.MONITOR_EXIT)) {
+					// don't move from synchronized block
+					return false;
+				}
+				// skip checks for not generated blocks
+				continue;
+			}
 			for (InsnNode insn : block.getInstructions()) {
 				if (!insn.canReorder() || ArgsInfo.usedArgAssign(insn, args)) {
 					return false;

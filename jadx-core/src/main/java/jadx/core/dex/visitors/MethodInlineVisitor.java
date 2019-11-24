@@ -14,7 +14,6 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
-import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -22,7 +21,6 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
@@ -66,27 +64,8 @@ public class MethodInlineVisitor extends AbstractVisitor {
 			addInlineAttr(mth, insnList.get(0));
 			return;
 		}
-		// other field operations
-		if (insnList.size() == 2
-				&& returnBlock.getInstructions().size() == 1
-				&& !mth.getReturnType().equals(ArgType.VOID)) {
-			InsnNode get = insnList.get(0);
-			InsnNode put = insnList.get(1);
-			InsnArg retArg = returnBlock.getInstructions().get(0).getArg(0);
-			if (get.getType() == InsnType.IGET
-					&& put.getType() == InsnType.IPUT
-					&& retArg.isRegister()
-					&& get.getResult().equalRegisterAndType((RegisterArg) retArg)) {
-				RegisterArg retReg = (RegisterArg) retArg;
-				retReg.getSVar().removeUse(retReg);
-				CodeShrinkVisitor.shrinkMethod(mth);
 
-				insnList = firstBlock.getInstructions();
-				if (insnList.size() == 1) {
-					addInlineAttr(mth, insnList.get(0));
-				}
-			}
-		}
+		// TODO: inline field arithmetics. Disabled tests: TestAnonymousClass3a and TestAnonymousClass5
 	}
 
 	private static void addInlineAttr(MethodNode mth, InsnNode insn) {

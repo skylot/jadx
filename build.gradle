@@ -38,6 +38,7 @@ allprojects {
 		testCompile 'ch.qos.logback:logback-classic:1.2.3'
 		testCompile 'org.hamcrest:hamcrest-library:2.1'
 		testCompile 'org.mockito:mockito-core:3.0.0'
+		testCompile 'org.assertj:assertj-core:3.14.0'
 
 		testImplementation 'org.junit.jupiter:junit-jupiter-api:5.5.1'
 		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.5.1'

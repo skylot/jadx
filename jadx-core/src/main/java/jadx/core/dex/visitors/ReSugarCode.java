@@ -89,7 +89,7 @@ public class ReSugarCode extends AbstractVisitor {
 	}
 
 	/**
-	 * Replace new array and sequence of array-put to new filled-array instruction.
+	 * Replace new-array and sequence of array-put to new filled-array instruction.
 	 */
 	private static void processNewArray(MethodNode mth, NewArrayNode newArrayInsn,
 			List<InsnNode> instructions, InsnRemover remover) {
@@ -135,18 +135,15 @@ public class ReSugarCode extends AbstractVisitor {
 		// checks complete, apply
 		ArgType arrType = newArrayInsn.getArrayType();
 		InsnNode filledArr = new FilledNewArrayNode(arrType.getArrayElement(), len);
-		filledArr.setResult(arrArg);
+		filledArr.setResult(arrArg.duplicate());
+
+		for (InsnNode put : arrPuts) {
+			filledArr.addArg(put.getArg(2).duplicate());
+			remover.addAndUnbind(put);
+		}
+		remover.addAndUnbind(newArrayInsn);
 
 		InsnNode lastPut = Utils.last(arrPuts);
-		for (InsnNode put : arrPuts) {
-			filledArr.addArg(put.getArg(2));
-			if (put != lastPut) {
-				remover.addWithoutUnbind(put);
-			}
-			InsnRemover.unbindArgUsage(mth, put.getArg(0));
-		}
-		remover.addWithoutUnbind(newArrayInsn);
-
 		int replaceIndex = InsnList.getIndex(instructions, lastPut);
 		instructions.set(replaceIndex, filledArr);
 	}

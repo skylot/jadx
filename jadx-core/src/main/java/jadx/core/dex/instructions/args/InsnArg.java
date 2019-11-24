@@ -93,6 +93,7 @@ public abstract class InsnArg extends Typed {
 		this.parentInsn = parentInsn;
 	}
 
+	@Nullable("if wrap failed")
 	public InsnArg wrapInstruction(MethodNode mth, InsnNode insn) {
 		InsnNode parent = parentInsn;
 		if (parent == null) {
@@ -153,8 +154,10 @@ public abstract class InsnArg extends Typed {
 	 * This method don't support MOVE and CONST insns!
 	 */
 	public static InsnArg wrapArg(InsnNode insn) {
+		RegisterArg resArg = insn.getResult();
 		InsnArg arg = wrap(insn);
 		insn.add(AFlag.WRAPPED);
+
 		switch (insn.getType()) {
 			case CONST:
 			case MOVE:
@@ -162,13 +165,18 @@ public abstract class InsnArg extends Typed {
 
 			case CONST_STR:
 				arg.setType(ArgType.STRING);
+				if (resArg != null) {
+					resArg.setType(ArgType.STRING);
+				}
 				break;
 			case CONST_CLASS:
 				arg.setType(ArgType.CLASS);
+				if (resArg != null) {
+					resArg.setType(ArgType.CLASS);
+				}
 				break;
 
 			default:
-				RegisterArg resArg = insn.getResult();
 				if (resArg != null) {
 					arg.setType(resArg.getType());
 				}

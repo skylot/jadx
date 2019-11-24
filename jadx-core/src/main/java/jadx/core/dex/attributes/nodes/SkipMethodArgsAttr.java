@@ -14,7 +14,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 public class SkipMethodArgsAttr implements IAttribute {
 
 	public static void skipArg(MethodNode mth, RegisterArg arg) {
-		int argNum = Utils.indexInList(mth.getArgRegs(), arg);
+		int argNum = Utils.indexInListByRef(mth.getArgRegs(), arg);
 		if (argNum == -1) {
 			throw new JadxRuntimeException("Arg not found: " + arg);
 		}

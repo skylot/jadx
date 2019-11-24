@@ -97,7 +97,11 @@ public class ArithNode extends InsnNode {
 
 	@Override
 	public InsnNode copy() {
-		return copyCommonParams(new ArithNode(op, getResult(), getArg(0), getArg(1)));
+		ArithNode copy = new ArithNode(op,
+				getResult().duplicate(),
+				getArg(0).duplicate(),
+				getArg(1).duplicate());
+		return copyCommonParams(copy);
 	}
 
 	@Override

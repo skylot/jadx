@@ -50,6 +50,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 
 	@Override
 	public void visit(MethodNode mth) {
+		// DebugUtils.checkMethod(mth);
 		DepthRegionTraversal.traverse(mth, this);
 	}
 
@@ -95,7 +96,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		}
 		PhiInsn phiInsn = phiInsnList.get(0);
 		if (phiInsn.getArgsCount() != 2
-				|| !phiInsn.containsArg(incrArg)
+				|| !phiInsn.containsVar(incrArg)
 				|| incrArg.getSVar().getUseCount() != 1) {
 			return false;
 		}
@@ -241,14 +242,17 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		}
 		List<RegisterArg> itUseList = sVar.getUseList();
 		InsnNode assignInsn = iteratorArg.getAssignInsn();
-		if (itUseList.size() != 2 || !checkInvoke(assignInsn, null, "iterator()Ljava/util/Iterator;", 0)) {
+		if (itUseList.size() != 2) {
+			return false;
+		}
+		if (!checkInvoke(assignInsn, null, "iterator()Ljava/util/Iterator;")) {
 			return false;
 		}
 		InsnArg iterableArg = assignInsn.getArg(0);
 		InsnNode hasNextCall = itUseList.get(0).getParentInsn();
 		InsnNode nextCall = itUseList.get(1).getParentInsn();
-		if (!checkInvoke(hasNextCall, "java.util.Iterator", "hasNext()Z", 0)
-				|| !checkInvoke(nextCall, "java.util.Iterator", "next()Ljava/lang/Object;", 0)) {
+		if (!checkInvoke(hasNextCall, "java.util.Iterator", "hasNext()Z")
+				|| !checkInvoke(nextCall, "java.util.Iterator", "next()Ljava/lang/Object;")) {
 			return false;
 		}
 		List<InsnNode> toSkip = new LinkedList<>();
@@ -353,17 +357,19 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 	/**
 	 * Check if instruction is a interface invoke with corresponding parameters.
 	 */
-	private static boolean checkInvoke(InsnNode insn, String declClsFullName, String mthId, int argsCount) {
+	private static boolean checkInvoke(InsnNode insn, String declClsFullName, String mthId) {
 		if (insn == null) {
 			return false;
 		}
 		if (insn.getType() == InsnType.INVOKE) {
 			InvokeNode inv = (InvokeNode) insn;
 			MethodInfo callMth = inv.getCallMth();
-			if (callMth.getArgsCount() == argsCount
-					&& callMth.getShortId().equals(mthId)
-					&& inv.getInvokeType() == InvokeType.INTERFACE) {
-				return declClsFullName == null || callMth.getDeclClass().getFullName().equals(declClsFullName);
+			if (inv.getInvokeType() == InvokeType.INTERFACE
+					&& callMth.getShortId().equals(mthId)) {
+				if (declClsFullName == null) {
+					return true;
+				}
+				return callMth.getDeclClass().getFullName().equals(declClsFullName);
 			}
 		}
 		return false;

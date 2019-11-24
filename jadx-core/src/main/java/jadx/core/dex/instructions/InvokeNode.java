@@ -10,7 +10,6 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
-import jadx.core.utils.Utils;
 
 public class InvokeNode extends InsnNode implements CallMthInterface {
 
@@ -90,11 +89,6 @@ public class InvokeNode extends InsnNode implements CallMthInterface {
 
 	@Override
 	public String toString() {
-		return InsnUtils.formatOffset(offset) + ": "
-				+ InsnUtils.insnTypeToString(insnType)
-				+ (getResult() == null ? "" : getResult() + " = ")
-				+ Utils.listToString(getArguments())
-				+ ' ' + mth
-				+ " type: " + type;
+		return super.toString() + ' ' + mth + " type: " + type;
 	}
 }

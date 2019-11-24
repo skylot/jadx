@@ -60,6 +60,7 @@ public class ConstructorVisitor extends AbstractVisitor {
 		}
 		InsnNode instArgAssignInsn = ((RegisterArg) inv.getArg(0)).getAssignInsn();
 		ConstructorInsn co = new ConstructorInsn(mth, inv);
+		co.rebindArgs();
 		boolean remove = false;
 		if (co.isSuper() && (co.getArgsCount() == 0 || parentClass.isEnum())) {
 			remove = true;
@@ -97,9 +98,10 @@ public class ConstructorVisitor extends AbstractVisitor {
 		}
 		ConstructorInsn replace = processConstructor(mth, co);
 		if (replace != null) {
+			remover.addAndUnbind(co);
 			co = replace;
 		}
-		BlockUtils.replaceInsn(block, indexInBlock, co);
+		BlockUtils.replaceInsn(mth, block, indexInBlock, co);
 	}
 
 	/**
@@ -116,14 +118,17 @@ public class ConstructorVisitor extends AbstractVisitor {
 		if (classNode == null) {
 			return null;
 		}
-		RegisterArg instanceArg = co.getInstanceArg();
+		RegisterArg instanceArg = co.getResult();
+		if (instanceArg == null) {
+			return null;
+		}
 		boolean passThis = instanceArg.isThis();
 		String ctrId = "<init>(" + (passThis ? TypeGen.signature(instanceArg.getInitType()) : "") + ")V";
 		MethodNode defCtr = classNode.searchMethodByShortId(ctrId);
 		if (defCtr == null) {
 			return null;
 		}
-		ConstructorInsn newInsn = new ConstructorInsn(defCtr.getMethodInfo(), co.getCallType(), instanceArg);
+		ConstructorInsn newInsn = new ConstructorInsn(defCtr.getMethodInfo(), co.getCallType());
 		newInsn.setResult(co.getResult());
 		return newInsn;
 	}

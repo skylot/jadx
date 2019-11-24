@@ -45,6 +45,17 @@ public class SimplifyVisitor extends AbstractVisitor {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SimplifyVisitor.class);
 
+	private MethodInfo stringGetBytesMth;
+
+	@Override
+	public void init(RootNode root) {
+		stringGetBytesMth = MethodInfo.externalMth(
+				ClassInfo.fromType(root, ArgType.STRING),
+				"getBytes",
+				Collections.emptyList(),
+				ArgType.array(ArgType.BYTE));
+	}
+
 	@Override
 	public void visit(MethodNode mth) {
 		if (mth.isNoCode()) {
@@ -61,14 +72,15 @@ public class SimplifyVisitor extends AbstractVisitor {
 		}
 	}
 
-	private static boolean simplifyBlock(MethodNode mth, BlockNode block) {
+	private boolean simplifyBlock(MethodNode mth, BlockNode block) {
 		boolean changed = false;
 		List<InsnNode> list = block.getInstructions();
 		for (int i = 0; i < list.size(); i++) {
 			InsnNode insn = list.get(i);
 			int insnCount = list.size();
-			InsnNode modInsn = simplifyInsn(mth, block, insn);
+			InsnNode modInsn = simplifyInsn(mth, insn);
 			if (modInsn != null) {
+				modInsn.rebindArgs();
 				if (i < list.size() && list.get(i) == insn) {
 					list.set(i, modInsn);
 				} else {
@@ -89,18 +101,29 @@ public class SimplifyVisitor extends AbstractVisitor {
 		return changed;
 	}
 
-	private static InsnNode simplifyInsn(MethodNode mth, BlockNode block, InsnNode insn) {
-		if (insn.contains(AFlag.DONT_GENERATE)) {
-			return null;
-		}
+	private void simplifyArgs(MethodNode mth, InsnNode insn) {
+		boolean changed = false;
 		for (InsnArg arg : insn.getArguments()) {
 			if (arg.isInsnWrap()) {
-				InsnNode ni = simplifyInsn(mth, block, ((InsnWrapArg) arg).getWrapInsn());
-				if (ni != null) {
-					arg.wrapInstruction(mth, ni);
+				InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
+				InsnNode replaceInsn = simplifyInsn(mth, wrapInsn);
+				if (replaceInsn != null) {
+					arg.wrapInstruction(mth, replaceInsn);
+					InsnRemover.unbindInsn(mth, wrapInsn);
+					changed = true;
 				}
 			}
 		}
+		if (changed) {
+			insn.rebindArgs();
+		}
+	}
+
+	private InsnNode simplifyInsn(MethodNode mth, InsnNode insn) {
+		if (insn.contains(AFlag.DONT_GENERATE)) {
+			return null;
+		}
+		simplifyArgs(mth, insn);
 		switch (insn.getType()) {
 			case ARITH:
 				return simplifyArith((ArithNode) insn);
@@ -120,7 +143,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 				return convertFieldArith(mth, insn);
 
 			case CHECK_CAST:
-				return processCast(mth, insn);
+				return processCast(mth, (IndexInsnNode) insn);
 
 			case MOVE:
 				InsnArg firstArg = insn.getArg(0);
@@ -134,8 +157,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 				break;
 
 			case CONSTRUCTOR:
-				simplifyStringConstructor(mth.root(), (ConstructorInsn) insn);
-				break;
+				return simplifyStringConstructor(mth, (ConstructorInsn) insn);
 
 			default:
 				break;
@@ -143,7 +165,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 		return null;
 	}
 
-	private static void simplifyStringConstructor(RootNode root, ConstructorInsn insn) {
+	private InsnNode simplifyStringConstructor(MethodNode mth, ConstructorInsn insn) {
 		if (insn.getCallMth().getDeclClass().getType().equals(ArgType.STRING)
 				&& insn.getArgsCount() != 0
 				&& insn.getArg(0).isInsnWrap()) {
@@ -157,7 +179,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 					for (int i = 0; i < arr.length; i++) {
 						InsnArg arrArg = arrInsn.getArg(i);
 						if (!arrArg.isLiteral()) {
-							return;
+							return null;
 						}
 						arr[i] = (byte) ((LiteralArg) arrArg).getLiteral();
 						if (NameMapper.isPrintableChar(arr[i])) {
@@ -165,27 +187,32 @@ public class SimplifyVisitor extends AbstractVisitor {
 						}
 					}
 					if (printable >= arr.length - printable) {
-						InsnArg wa = InsnArg.wrapArg(new ConstStringNode(new String(arr)));
+						InsnNode constStr = new ConstStringNode(new String(arr));
 						if (insn.getArgsCount() == 1) {
-							insn.setArg(0, wa);
+							constStr.setResult(insn.getResult());
+							constStr.copyAttributesFrom(insn);
+							InsnRemover.unbindArgUsage(mth, insn.getArg(0));
+							return constStr;
 						} else {
-							MethodInfo mi = MethodInfo.externalMth(
-									ClassInfo.fromType(root, ArgType.STRING),
-									"getBytes",
-									Collections.emptyList(),
-									ArgType.array(ArgType.BYTE));
-							InvokeNode in = new InvokeNode(mi, InvokeType.VIRTUAL, 1);
-							in.addArg(wa);
-							insn.setArg(0, InsnArg.wrapArg(in));
+							InvokeNode in = new InvokeNode(stringGetBytesMth, InvokeType.VIRTUAL, 1);
+							in.addArg(InsnArg.wrapArg(constStr));
+							InsnArg bytesArg = InsnArg.wrapArg(in);
+							bytesArg.setType(stringGetBytesMth.getReturnType());
+							insn.setArg(0, bytesArg);
+							return null;
 						}
 					}
 				}
 			}
 		}
+		return null;
 	}
 
-	private static InsnNode processCast(MethodNode mth, InsnNode insn) {
-		InsnArg castArg = insn.getArg(0);
+	private static InsnNode processCast(MethodNode mth, IndexInsnNode castInsn) {
+		if (castInsn.contains(AFlag.EXPLICIT_CAST)) {
+			return null;
+		}
+		InsnArg castArg = castInsn.getArg(0);
 		ArgType argType = castArg.getType();
 
 		// Don't removes CHECK_CAST for wrapped INVOKE if invoked method returns different type
@@ -195,15 +222,32 @@ public class SimplifyVisitor extends AbstractVisitor {
 				argType = ((InvokeNode) wrapInsn).getCallMth().getReturnType();
 			}
 		}
-		ArgType castToType = (ArgType) ((IndexInsnNode) insn).getIndex();
-		if (ArgType.isCastNeeded(mth.dex(), argType, castToType)) {
-			return null;
+
+		ArgType castToType = (ArgType) castInsn.getIndex();
+		if (!ArgType.isCastNeeded(mth.dex(), argType, castToType)
+				|| isCastDuplicate(castInsn)) {
+			InsnNode insnNode = new InsnNode(InsnType.MOVE, 1);
+			insnNode.setOffset(castInsn.getOffset());
+			insnNode.setResult(castInsn.getResult());
+			insnNode.addArg(castArg);
+			return insnNode;
 		}
-		InsnNode insnNode = new InsnNode(InsnType.MOVE, 1);
-		insnNode.setOffset(insn.getOffset());
-		insnNode.setResult(insn.getResult());
-		insnNode.addArg(castArg);
-		return insnNode;
+		return null;
+	}
+
+	private static boolean isCastDuplicate(IndexInsnNode castInsn) {
+		InsnArg arg = castInsn.getArg(0);
+		if (arg.isRegister()) {
+			SSAVar sVar = ((RegisterArg) arg).getSVar();
+			if (sVar != null && sVar.getUseCount() == 1 && !sVar.isUsedInPhi()) {
+				InsnNode assignInsn = sVar.getAssign().getParentInsn();
+				if (assignInsn != null && assignInsn.getType() == InsnType.CHECK_CAST) {
+					ArgType assignCastType = (ArgType) ((IndexInsnNode) assignInsn).getIndex();
+					return assignCastType.equals(castInsn.getIndex());
+				}
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -350,7 +394,10 @@ public class SimplifyVisitor extends AbstractVisitor {
 
 			InsnNode concatInsn = new InsnNode(InsnType.STR_CONCAT, args);
 			concatInsn.setResult(toStrInsn.getResult());
+			concatInsn.add(AFlag.SYNTHETIC);
 			concatInsn.copyAttributesFrom(toStrInsn);
+			concatInsn.remove(AFlag.DONT_GENERATE);
+			concatInsn.remove(AFlag.REMOVE);
 			return concatInsn;
 		} catch (Exception e) {
 			LOG.warn("Can't convert string concatenation: {} insn: {}", mth, toStrInsn, e);

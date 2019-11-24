@@ -71,7 +71,7 @@ public class DeboxingVisitor extends AbstractVisitor {
 				if (insnNode.getType() == InsnType.INVOKE) {
 					InsnNode replaceInsn = checkForReplace(((InvokeNode) insnNode));
 					if (replaceInsn != null) {
-						BlockUtils.replaceInsn(blockNode, i, replaceInsn);
+						BlockUtils.replaceInsn(mth, blockNode, i, replaceInsn);
 						replaced = true;
 					}
 				}

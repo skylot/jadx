@@ -54,6 +54,8 @@ public class InsnRemover {
 
 	public void addWithoutUnbind(InsnNode insn) {
 		toRemove.add(insn);
+		insn.add(AFlag.REMOVE);
+		insn.add(AFlag.DONT_GENERATE);
 	}
 
 	public void perform() {
@@ -65,12 +67,19 @@ public class InsnRemover {
 				remove(mth, remInsn);
 			}
 		} else {
-			removeAll(instrList, toRemove);
+			removeAll(mth, instrList, toRemove);
 		}
 		toRemove.clear();
 	}
 
 	public static void unbindInsn(@Nullable MethodNode mth, InsnNode insn) {
+		unbindAllArgs(mth, insn);
+		unbindResult(mth, insn);
+		insn.add(AFlag.REMOVE);
+		insn.add(AFlag.DONT_GENERATE);
+	}
+
+	public static void unbindAllArgs(@Nullable MethodNode mth, InsnNode insn) {
 		for (InsnArg arg : insn.getArguments()) {
 			unbindArgUsage(mth, arg);
 		}
@@ -81,16 +90,17 @@ public class InsnRemover {
 				}
 			}
 		}
-		unbindResult(mth, insn);
 		insn.add(AFlag.REMOVE);
 		insn.add(AFlag.DONT_GENERATE);
 	}
 
 	public static void unbindResult(@Nullable MethodNode mth, InsnNode insn) {
 		RegisterArg r = insn.getResult();
-		if (r != null && r.getSVar() != null && mth != null) {
+		if (r != null && mth != null) {
 			SSAVar ssaVar = r.getSVar();
-			removeSsaVar(mth, ssaVar);
+			if (ssaVar != null && ssaVar.getAssign() == insn.getResult()) {
+				removeSsaVar(mth, ssaVar);
+			}
 		}
 	}
 
@@ -127,12 +137,6 @@ public class InsnRemover {
 		}
 	}
 
-	public static void unbindAllArgs(@Nullable MethodNode mth, InsnNode insn) {
-		for (InsnArg arg : insn.getArguments()) {
-			unbindArgUsage(mth, arg);
-		}
-	}
-
 	public static void unbindArgUsage(@Nullable MethodNode mth, InsnArg arg) {
 		if (arg instanceof RegisterArg) {
 			RegisterArg reg = (RegisterArg) arg;
@@ -148,7 +152,7 @@ public class InsnRemover {
 
 	// Don't use 'instrList.removeAll(toRemove)' because it will remove instructions by content
 	// and here can be several instructions with same content
-	private static void removeAll(List<InsnNode> insns, List<InsnNode> toRemove) {
+	private static void removeAll(MethodNode mth, List<InsnNode> insns, List<InsnNode> toRemove) {
 		if (toRemove == null || toRemove.isEmpty()) {
 			return;
 		}
@@ -158,6 +162,7 @@ public class InsnRemover {
 			for (int i = 0; i < insnsCount; i++) {
 				if (insns.get(i) == rem) {
 					insns.remove(i);
+					unbindInsn(mth, rem);
 					found = true;
 					break;
 				}
@@ -193,7 +198,7 @@ public class InsnRemover {
 		for (InsnNode insn : insns) {
 			unbindInsn(mth, insn);
 		}
-		removeAll(block.getInstructions(), insns);
+		removeAll(mth, block.getInstructions(), insns);
 	}
 
 	public static void remove(MethodNode mth, BlockNode block, int index) {

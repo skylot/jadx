@@ -37,6 +37,7 @@ import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.DebugChecks;
 import jadx.core.utils.files.FileUtils;
 import jadx.core.xmlgen.ResourceStorage;
 import jadx.core.xmlgen.entry.ResourceEntry;
@@ -96,6 +97,9 @@ public abstract class IntegrationTest extends TestUtils {
 				AType.JADX_ERROR,
 				AType.JADX_WARN,
 				AType.COMMENTS));
+
+		// enable debug checks
+		DebugChecks.checksEnabled = true;
 	}
 
 	@BeforeEach

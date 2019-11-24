@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 import org.jetbrains.annotations.Nullable;
@@ -28,15 +29,25 @@ public class Utils {
 	}
 
 	public static String cleanObjectName(String obj) {
-		int last = obj.length() - 1;
-		if (obj.charAt(0) == 'L' && obj.charAt(last) == ';') {
-			return obj.substring(1, last).replace('/', '.');
+		if (obj.charAt(0) == 'L') {
+			int last = obj.length() - 1;
+			if (obj.charAt(last) == ';') {
+				return obj.substring(1, last).replace('/', '.');
+			}
 		}
 		return obj;
 	}
 
 	public static String makeQualifiedObjectName(String obj) {
 		return 'L' + obj.replace('.', '/') + ';';
+	}
+
+	public static String strRepeat(String str, int count) {
+		StringBuilder sb = new StringBuilder(str.length() * count);
+		for (int i = 0; i < count; i++) {
+			sb.append(str);
+		}
+		return sb.toString();
 	}
 
 	public static String listToString(Iterable<?> objects) {
@@ -58,6 +69,10 @@ public class Utils {
 		StringBuilder sb = new StringBuilder();
 		listToString(sb, objects, joiner, toStr);
 		return sb.toString();
+	}
+
+	public static <T> void listToString(StringBuilder sb, Iterable<T> objects, String joiner) {
+		listToString(sb, objects, joiner, Objects::toString);
 	}
 
 	public static <T> void listToString(StringBuilder sb, Iterable<T> objects, String joiner, Function<T, String> toStr) {
@@ -165,7 +180,19 @@ public class Utils {
 		return result;
 	}
 
-	public static <T> int indexInList(List<T> list, T element) {
+	public static <T> boolean containsInListByRef(List<T> list, T element) {
+		if (isEmpty(list)) {
+			return false;
+		}
+		for (T t : list) {
+			if (t == element) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static <T> int indexInListByRef(List<T> list, T element) {
 		if (list == null || list.isEmpty()) {
 			return -1;
 		}
@@ -218,5 +245,21 @@ public class Utils {
 			return null;
 		}
 		return list.get(list.size() - 1);
+	}
+
+	public static <T> boolean isEmpty(Collection<T> col) {
+		return col == null || col.isEmpty();
+	}
+
+	public static <T> boolean notEmpty(Collection<T> col) {
+		return col != null && !col.isEmpty();
+	}
+
+	public static <T> boolean isEmpty(T[] arr) {
+		return arr == null || arr.length == 0;
+	}
+
+	public static <T> boolean notEmpty(T[] arr) {
+		return arr != null && arr.length != 0;
 	}
 }

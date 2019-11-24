@@ -20,6 +20,7 @@ import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.PhiInsn;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
+import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBlock;
@@ -586,21 +587,32 @@ public class BlockUtils {
 	 * Replace insn by index i in block,
 	 * for proper copy attributes, assume attributes are not overlap
 	 */
-	public static void replaceInsn(BlockNode block, int i, InsnNode insn) {
+	public static void replaceInsn(MethodNode mth, BlockNode block, int i, InsnNode insn) {
 		InsnNode prevInsn = block.getInstructions().get(i);
 		insn.copyAttributesFrom(prevInsn);
 		insn.setSourceLine(prevInsn.getSourceLine());
 		insn.setOffset(prevInsn.getOffset());
 		block.getInstructions().set(i, insn);
+
+		RegisterArg result = insn.getResult();
+		RegisterArg prevResult = prevInsn.getResult();
+		if (result != null && prevResult != null && result.sameRegAndSVar(prevResult)) {
+			// Don't unbind result for same register.
+			// Unbind will remove arg from PHI and not add it back on rebind.
+			InsnRemover.unbindAllArgs(mth, prevInsn);
+		} else {
+			InsnRemover.unbindInsn(mth, prevInsn);
+		}
+		insn.rebindArgs();
 	}
 
-	public static boolean replaceInsn(BlockNode block, InsnNode oldInsn, InsnNode newInsn) {
+	public static boolean replaceInsn(MethodNode mth, BlockNode block, InsnNode oldInsn, InsnNode newInsn) {
 		List<InsnNode> instructions = block.getInstructions();
 		int size = instructions.size();
 		for (int i = 0; i < size; i++) {
 			InsnNode instruction = instructions.get(i);
 			if (instruction == oldInsn) {
-				replaceInsn(block, i, newInsn);
+				replaceInsn(mth, block, i, newInsn);
 				return true;
 			}
 		}
@@ -609,7 +621,7 @@ public class BlockUtils {
 
 	public static boolean replaceInsn(MethodNode mth, InsnNode oldInsn, InsnNode newInsn) {
 		for (BlockNode block : mth.getBasicBlocks()) {
-			if (replaceInsn(block, oldInsn, newInsn)) {
+			if (replaceInsn(mth, block, oldInsn, newInsn)) {
 				return true;
 			}
 		}

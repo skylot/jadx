@@ -1,5 +1,7 @@
 package jadx.core.dex.instructions.mods;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.CallMthInterface;
@@ -13,7 +15,6 @@ public final class ConstructorInsn extends InsnNode implements CallMthInterface 
 
 	private final MethodInfo callMth;
 	private final CallType callType;
-	private final RegisterArg instanceArg;
 
 	public enum CallType {
 		CONSTRUCTOR, // just new instance
@@ -26,7 +27,7 @@ public final class ConstructorInsn extends InsnNode implements CallMthInterface 
 		super(InsnType.CONSTRUCTOR, invoke.getArgsCount() - 1);
 		this.callMth = invoke.getCallMth();
 		ClassInfo classType = callMth.getDeclClass();
-		instanceArg = (RegisterArg) invoke.getArg(0);
+		RegisterArg instanceArg = (RegisterArg) invoke.getArg(0);
 
 		if (instanceArg.isThis()) {
 			if (classType.equals(mth.getParentClass().getClassInfo())) {
@@ -52,11 +53,10 @@ public final class ConstructorInsn extends InsnNode implements CallMthInterface 
 		}
 	}
 
-	public ConstructorInsn(MethodInfo callMth, CallType callType, RegisterArg instanceArg) {
+	public ConstructorInsn(MethodInfo callMth, CallType callType) {
 		super(InsnType.CONSTRUCTOR, callMth.getArgsCount());
 		this.callMth = callMth;
 		this.callType = callType;
-		this.instanceArg = instanceArg;
 	}
 
 	public MethodInfo getCallMth() {
@@ -64,8 +64,9 @@ public final class ConstructorInsn extends InsnNode implements CallMthInterface 
 	}
 
 	@Override
+	@Nullable
 	public RegisterArg getInstanceArg() {
-		return instanceArg;
+		return null;
 	}
 
 	public ClassInfo getClassType() {
@@ -112,11 +113,11 @@ public final class ConstructorInsn extends InsnNode implements CallMthInterface 
 
 	@Override
 	public InsnNode copy() {
-		return copyCommonParams(new ConstructorInsn(callMth, callType, instanceArg));
+		return copyCommonParams(new ConstructorInsn(callMth, callType));
 	}
 
 	@Override
 	public String toString() {
-		return super.toString() + ' ' + callMth + ' ' + callType;
+		return super.toString() + " call: " + callMth + " type: " + callType;
 	}
 }

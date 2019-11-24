@@ -76,7 +76,7 @@ public final class PhiInsn extends InsnNode {
 	}
 
 	@Override
-	protected RegisterArg removeArg(int index) {
+	public RegisterArg removeArg(int index) {
 		RegisterArg reg = (RegisterArg) super.removeArg(index);
 		blockBinds.remove(index);
 		reg.getSVar().updateUsedInPhiList();

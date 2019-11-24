@@ -1,5 +1,6 @@
 package jadx.core.dex.regions.conditions;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IfOp;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -9,6 +10,7 @@ public final class Compare {
 	private final IfNode insn;
 
 	public Compare(IfNode insn) {
+		insn.add(AFlag.HIDDEN);
 		this.insn = insn;
 	}
 

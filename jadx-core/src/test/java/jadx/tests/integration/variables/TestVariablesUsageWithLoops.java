@@ -5,16 +5,13 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestVariablesUsageWithLoops extends IntegrationTest {
 
 	public static class TestEnhancedFor {
-
 		public void test() {
 			List<Object> list;
 			synchronized (this) {
@@ -28,14 +25,13 @@ public class TestVariablesUsageWithLoops extends IntegrationTest {
 
 	@Test
 	public void testEnhancedFor() {
-		ClassNode cls = getClassNode(TestEnhancedFor.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("     list = new ArrayList<>"));
+		assertThat(getClassNode(TestEnhancedFor.class))
+				.code()
+				.containsLine(2, "synchronized (this) {")
+				.containsLine(3, "list = new ArrayList<>");
 	}
 
 	public static class TestForLoop {
-
 		@SuppressWarnings("rawtypes")
 		public void test() {
 			List<Object> list;
@@ -50,9 +46,9 @@ public class TestVariablesUsageWithLoops extends IntegrationTest {
 
 	@Test
 	public void testForLoop() {
-		ClassNode cls = getClassNode(TestForLoop.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("     list = new ArrayList<>"));
+		assertThat(getClassNode(TestEnhancedFor.class))
+				.code()
+				.containsLine(2, "synchronized (this) {")
+				.containsLine(3, "list = new ArrayList<>");
 	}
 }

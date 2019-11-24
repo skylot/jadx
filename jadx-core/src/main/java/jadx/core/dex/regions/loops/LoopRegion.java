@@ -102,12 +102,12 @@ public final class LoopRegion extends AbstractRegion {
 			boolean found = false;
 			// search result arg in other insns
 			for (int j = i + 1; j < size; j++) {
-				if (insns.get(i).containsArg(res)) {
+				if (insns.get(i).containsVar(res)) {
 					found = true;
 				}
 			}
 			// or in if insn
-			if (!found && ifInsn.containsArg(res)) {
+			if (!found && ifInsn.containsVar(res)) {
 				found = true;
 			}
 			if (!found) {

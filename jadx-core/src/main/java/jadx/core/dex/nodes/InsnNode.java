@@ -38,6 +38,9 @@ public class InsnNode extends LineAttrNode {
 		this.insnType = type;
 		this.arguments = args;
 		this.offset = -1;
+		for (InsnArg arg : args) {
+			attachArg(arg);
+		}
 	}
 
 	public static InsnNode wrapArg(InsnArg arg) {
@@ -67,7 +70,7 @@ public class InsnNode extends LineAttrNode {
 		attachArg(arg);
 	}
 
-	private void attachArg(InsnArg arg) {
+	protected void attachArg(InsnArg arg) {
 		arg.setParentInsn(this);
 		if (arg.isRegister()) {
 			RegisterArg reg = (RegisterArg) arg;
@@ -98,10 +101,24 @@ public class InsnNode extends LineAttrNode {
 		return arguments.get(n);
 	}
 
-	public boolean containsArg(RegisterArg arg) {
+	public boolean containsArg(InsnArg arg) {
+		if (getArgsCount() == 0) {
+			return false;
+		}
 		for (InsnArg a : arguments) {
-			if (a == arg
-					|| a.isRegister() && ((RegisterArg) a).getRegNum() == arg.getRegNum()) {
+			if (a == arg) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean containsVar(RegisterArg arg) {
+		if (getArgsCount() == 0) {
+			return false;
+		}
+		for (InsnArg insnArg : arguments) {
+			if (insnArg == arg || arg.sameRegAndSVar(insnArg)) {
 				return true;
 			}
 		}
@@ -136,7 +153,7 @@ public class InsnNode extends LineAttrNode {
 		return true;
 	}
 
-	protected InsnArg removeArg(int index) {
+	public InsnArg removeArg(int index) {
 		InsnArg arg = arguments.get(index);
 		arguments.remove(index);
 		InsnRemover.unbindArgUsage(null, arg);
@@ -254,30 +271,6 @@ public class InsnNode extends LineAttrNode {
 		return true;
 	}
 
-	@Override
-	public String toString() {
-		return InsnUtils.formatOffset(offset) + ": "
-				+ InsnUtils.insnTypeToString(insnType)
-				+ (result == null ? "" : result + " = ")
-				+ Utils.listToString(arguments);
-	}
-
-	/**
-	 * Compare instruction only by identity.
-	 */
-	@Override
-	public final int hashCode() {
-		return super.hashCode();
-	}
-
-	/**
-	 * Compare instruction only by identity.
-	 */
-	@Override
-	public final boolean equals(Object obj) {
-		return super.equals(obj);
-	}
-
 	/**
 	 * 'Soft' equals, don't compare arguments, only instruction specific parameters.
 	 */
@@ -323,14 +316,14 @@ public class InsnNode extends LineAttrNode {
 	}
 
 	protected final <T extends InsnNode> T copyCommonParams(T copy) {
-		if (result != null) {
+		if (copy.getResult() == null && result != null) {
 			copy.setResult(result.duplicate());
 		}
 		if (copy.getArgsCount() == 0) {
 			for (InsnArg arg : this.getArguments()) {
 				if (arg.isInsnWrap()) {
 					InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
-					copy.addArg(InsnArg.wrapArg(wrapInsn.copy()));
+					copy.addArg(InsnArg.wrapInsnIntoArg(wrapInsn.copy()));
 				} else {
 					copy.addArg(arg.duplicate());
 				}
@@ -352,6 +345,27 @@ public class InsnNode extends LineAttrNode {
 		return copyCommonParams(new InsnNode(insnType, getArgsCount()));
 	}
 
+	/**
+	 * Fix SSAVar info in register arguments.
+	 * Must be used after altering instructions.
+	 */
+	public void rebindArgs() {
+		RegisterArg resArg = getResult();
+		if (resArg != null) {
+			resArg.getSVar().setAssign(resArg);
+		}
+		for (InsnArg arg : getArguments()) {
+			if (arg instanceof RegisterArg) {
+				RegisterArg reg = (RegisterArg) arg;
+				SSAVar ssaVar = reg.getSVar();
+				ssaVar.use(reg);
+				ssaVar.updateUsedInPhiList();
+			} else if (arg instanceof InsnWrapArg) {
+				((InsnWrapArg) arg).getWrapInsn().rebindArgs();
+			}
+		}
+	}
+
 	public boolean canThrowException() {
 		switch (getType()) {
 			case RETURN:
@@ -370,5 +384,46 @@ public class InsnNode extends LineAttrNode {
 			default:
 				return true;
 		}
+	}
+
+	/**
+	 * Compare instruction only by identity.
+	 */
+	@Override
+	public final int hashCode() {
+		return super.hashCode();
+	}
+
+	/**
+	 * Compare instruction only by identity.
+	 */
+	@Override
+	public final boolean equals(Object obj) {
+		return super.equals(obj);
+	}
+
+	protected void appendArgs(StringBuilder sb) {
+		String argsStr = Utils.listToString(arguments);
+		if (argsStr.length() < 60) {
+			sb.append(argsStr);
+		} else {
+			// wrap args
+			String separator = "\n  ";
+			sb.append(separator).append(Utils.listToString(arguments, separator));
+			sb.append('\n');
+		}
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(InsnUtils.formatOffset(offset));
+		sb.append(": ");
+		sb.append(InsnUtils.insnTypeToString(insnType));
+		if (result != null) {
+			sb.append(result).append(" = ");
+		}
+		appendArgs(sb);
+		return sb.toString();
 	}
 }

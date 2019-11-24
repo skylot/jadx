@@ -8,7 +8,6 @@ import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
-import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.EmptyBitSet;
@@ -37,9 +36,7 @@ final class ArgsInfo {
 	}
 
 	private static void addArgs(InsnNode insn, List<RegisterArg> args) {
-		if (insn.getType() == InsnType.CONSTRUCTOR) {
-			args.add(((ConstructorInsn) insn).getInstanceArg());
-		} else if (insn.getType() == InsnType.TERNARY) {
+		if (insn.getType() == InsnType.TERNARY) {
 			args.addAll(((TernaryInsn) insn).getCondition().getRegisterArgs());
 		}
 		for (InsnArg arg : insn.getArguments()) {
