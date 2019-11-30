@@ -104,12 +104,23 @@ public class InsnGen {
 		} else if (arg.isLiteral()) {
 			code.add(lit((LiteralArg) arg));
 		} else if (arg.isInsnWrap()) {
-			Flags flag = wrap ? Flags.BODY_ONLY : Flags.BODY_ONLY_NOWRAP;
-			makeInsn(((InsnWrapArg) arg).getWrapInsn(), code, flag);
+			addWrappedArg(code, (InsnWrapArg) arg, wrap);
 		} else if (arg.isNamed()) {
 			code.add(((Named) arg).getName());
 		} else {
 			throw new CodegenException("Unknown arg type " + arg);
+		}
+	}
+
+	private void addWrappedArg(CodeWriter code, InsnWrapArg arg, boolean wrap) throws CodegenException {
+		InsnNode wrapInsn = arg.getWrapInsn();
+		if (wrapInsn.contains(AFlag.FORCE_ASSIGN_INLINE)) {
+			code.add('(');
+			makeInsn(wrapInsn, code, Flags.INLINE);
+			code.add(')');
+		} else {
+			Flags flags = wrap ? Flags.BODY_ONLY : Flags.BODY_ONLY_NOWRAP;
+			makeInsn(wrapInsn, code, flags);
 		}
 	}
 
@@ -922,10 +933,7 @@ public class InsnGen {
 		if (parentInsn.contains(AFlag.WRAPPED)) {
 			return false;
 		}
-		if (callMthNode.getReturnType().equals(ArgType.VOID)) {
-			return false;
-		}
-		return true;
+		return !callMthNode.getReturnType().equals(ArgType.VOID);
 	}
 
 	private void makeTernary(TernaryInsn insn, CodeWriter code, Set<Flags> state) throws CodegenException {

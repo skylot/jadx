@@ -18,12 +18,12 @@ public class TestVariables5 extends IntegrationTest {
 		private boolean enabled;
 
 		private void testIfInLoop() {
-			int j = 0;
-			for (int i = 0; i < f.length(); i++) {
-				char ch = f.charAt(i);
+			int i = 0;
+			for (int i2 = 0; i2 < f.length(); i2++) {
+				char ch = f.charAt(i2);
 				if (ch == '/') {
-					j++;
-					if (j == 2) {
+					i++;
+					if (i == 2) {
 						setEnabled(true);
 						return;
 					}
@@ -51,6 +51,8 @@ public class TestVariables5 extends IntegrationTest {
 
 		assertThat(code, not(containsString("int i2++;")));
 		assertThat(code, containsOne("int i = 0;"));
-		assertThat(code, containsOne("i++;"));
+		assertThat(code, containsOne("&& (i = i + 1) == 2"));
+		// assertThat(code, containsOne("i++;"));
+		// assertThat(code, containsOne("if (i == 2) {"));
 	}
 }

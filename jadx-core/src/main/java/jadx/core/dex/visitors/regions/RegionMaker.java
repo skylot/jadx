@@ -655,6 +655,9 @@ public class RegionMaker {
 		}
 
 		IfInfo currentIf = makeIfInfo(block);
+		if (currentIf == null) {
+			return null;
+		}
 		IfInfo mergedIf = mergeNestedIfNodes(currentIf);
 		if (mergedIf != null) {
 			currentIf = mergedIf;

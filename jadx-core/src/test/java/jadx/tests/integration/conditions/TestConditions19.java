@@ -2,7 +2,6 @@ package jadx.tests.integration.conditions;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
@@ -41,13 +40,13 @@ public class TestConditions19 extends IntegrationTest {
 	}
 
 	@Test
-	@NotYetImplemented("Inner assignment or labeled block with break")
 	public void test() {
 		noDebugInfo();
 
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
+		assertThat(code, containsOne("str.length()"));
 		assertThat(code, containsOne("System.out.println(\"done\");"));
 	}
 }

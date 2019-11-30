@@ -44,6 +44,11 @@ public enum AFlag {
 	 */
 	IMMUTABLE_TYPE,
 
+	/**
+	 * Force inline instruction with inline assign
+	 */
+	FORCE_ASSIGN_INLINE,
+
 	CUSTOM_DECLARE, // variable for this register don't need declaration
 	DECLARE_VAR,
 

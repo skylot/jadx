@@ -1,10 +1,12 @@
 package jadx.core.dex.visitors.regions;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,11 +37,13 @@ public class IfMakerHelper {
 	private IfMakerHelper() {
 	}
 
+	@Nullable
 	static IfInfo makeIfInfo(BlockNode ifBlock) {
-		IfNode ifNode = (IfNode) BlockUtils.getLastInsn(ifBlock);
-		if (ifNode == null) {
-			throw new JadxRuntimeException("Empty IF block: " + ifBlock);
+		InsnNode lastInsn = BlockUtils.getLastInsn(ifBlock);
+		if (lastInsn == null || lastInsn.getType() != InsnType.IF) {
+			return null;
 		}
+		IfNode ifNode = (IfNode) lastInsn;
 		IfCondition condition = IfCondition.fromIfNode(ifNode);
 		IfInfo info = new IfInfo(condition, ifNode.getThenBlock(), ifNode.getElseBlock());
 		info.setIfBlock(ifBlock);
@@ -48,8 +52,11 @@ public class IfMakerHelper {
 	}
 
 	static IfInfo searchNestedIf(IfInfo info) {
-		IfInfo tmp = mergeNestedIfNodes(info);
-		return tmp != null ? tmp : info;
+		IfInfo next = mergeNestedIfNodes(info);
+		if (next != null) {
+			return next;
+		}
+		return info;
 	}
 
 	static IfInfo restructureIf(MethodNode mth, BlockNode block, IfInfo info) {
@@ -160,12 +167,24 @@ public class IfMakerHelper {
 				return null;
 			}
 		}
+
+		boolean assignInlineNeeded = !nextIf.getForceInlineInsns().isEmpty();
+		if (assignInlineNeeded) {
+			for (BlockNode mergedBlock : currentIf.getMergedBlocks()) {
+				if (mergedBlock.contains(AFlag.LOOP_START)) {
+					// don't inline assigns into loop condition
+					return currentIf;
+				}
+			}
+		}
+
 		if (isInversionNeeded(currentIf, nextIf)) {
 			// invert current node for match pattern
 			nextIf = IfInfo.invert(nextIf);
 		}
-		if (!isEqualPaths(curThen, nextIf.getThenBlock())
-				&& !isEqualPaths(curElse, nextIf.getElseBlock())) {
+		boolean thenPathSame = isEqualPaths(curThen, nextIf.getThenBlock());
+		boolean elsePathSame = isEqualPaths(curElse, nextIf.getElseBlock());
+		if (!thenPathSame && !elsePathSame) {
 			// complex condition, run additional checks
 			if (checkConditionBranches(curThen, curElse)
 					|| checkConditionBranches(curElse, curThen)) {
@@ -190,6 +209,15 @@ public class IfMakerHelper {
 				}
 			} else {
 				return currentIf;
+			}
+		} else {
+			if (assignInlineNeeded) {
+				boolean sameOuts = (thenPathSame && !followThenBranch) || (elsePathSame && followThenBranch);
+				if (!sameOuts) {
+					// don't inline assigns inside simple condition
+					currentIf.resetForceInlineInsns();
+					return currentIf;
+				}
 			}
 		}
 
@@ -315,36 +343,32 @@ public class IfMakerHelper {
 			}
 			info.getSkipBlocks().clear();
 		}
+		for (InsnNode forceInlineInsn : info.getForceInlineInsns()) {
+			forceInlineInsn.add(AFlag.FORCE_ASSIGN_INLINE);
+		}
 	}
 
 	private static IfInfo getNextIf(IfInfo info, BlockNode block) {
 		if (!canSelectNext(info, block)) {
 			return null;
 		}
-		BlockNode nestedIfBlock = getNextIfNode(block);
-		if (nestedIfBlock != null) {
-			return makeIfInfo(nestedIfBlock);
-		}
-		return null;
+		return getNextIfNodeInfo(info, block);
 	}
 
 	private static boolean canSelectNext(IfInfo info, BlockNode block) {
 		if (block.getPredecessors().size() == 1) {
 			return true;
 		}
-		if (info.getMergedBlocks().containsAll(block.getPredecessors())) {
-			return true;
-		}
-		return false;
+		return info.getMergedBlocks().containsAll(block.getPredecessors());
 	}
 
-	private static BlockNode getNextIfNode(BlockNode block) {
+	private static IfInfo getNextIfNodeInfo(IfInfo info, BlockNode block) {
 		if (block == null || block.contains(AType.LOOP) || block.contains(AFlag.ADDED_TO_REGION)) {
 			return null;
 		}
 		InsnNode lastInsn = BlockUtils.getLastInsn(block);
 		if (lastInsn != null && lastInsn.getType() == InsnType.IF) {
-			return block;
+			return makeIfInfo(block);
 		}
 		// skip this block and search in successors chain
 		List<BlockNode> successors = block.getSuccessors();
@@ -358,6 +382,7 @@ public class IfMakerHelper {
 		}
 		List<InsnNode> insns = block.getInstructions();
 		boolean pass = true;
+		List<InsnNode> forceInlineInsns = new ArrayList<>();
 		if (!insns.isEmpty()) {
 			// check that all instructions can be inlined
 			for (InsnNode insn : insns) {
@@ -367,7 +392,9 @@ public class IfMakerHelper {
 					break;
 				}
 				List<RegisterArg> useList = res.getSVar().getUseList();
-				if (useList.size() != 1) {
+				int useCount = useList.size();
+				if (useCount == 0) {
+					// TODO?
 					pass = false;
 					break;
 				}
@@ -378,12 +405,20 @@ public class IfMakerHelper {
 					pass = false;
 					break;
 				}
+				if (useCount > 1) {
+					forceInlineInsns.add(insn);
+				}
 			}
 		}
-		if (pass) {
-			return getNextIfNode(next);
+		if (!pass) {
+			return null;
 		}
-		return null;
+		IfInfo nextInfo = makeIfInfo(next);
+		if (nextInfo == null) {
+			return getNextIfNodeInfo(info, next);
+		}
+		nextInfo.addInsnsForForcedInline(forceInlineInsns);
+		return nextInfo;
 	}
 
 	private static void skipSimplePath(BlockNode block, Set<BlockNode> skipped) {

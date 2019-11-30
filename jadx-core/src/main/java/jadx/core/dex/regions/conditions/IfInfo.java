@@ -1,9 +1,12 @@
 package jadx.core.dex.regions.conditions;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.InsnNode;
 
 public final class IfInfo {
 	private final IfCondition condition;
@@ -11,32 +14,35 @@ public final class IfInfo {
 	private final BlockNode thenBlock;
 	private final BlockNode elseBlock;
 	private final Set<BlockNode> skipBlocks;
+	private final List<InsnNode> forceInlineInsns;
 	private BlockNode outBlock;
 	@Deprecated
 	private BlockNode ifBlock;
 
 	public IfInfo(IfCondition condition, BlockNode thenBlock, BlockNode elseBlock) {
-		this(condition, thenBlock, elseBlock, new HashSet<>(), new HashSet<>());
+		this(condition, thenBlock, elseBlock, new HashSet<>(), new HashSet<>(), new ArrayList<>());
 	}
 
 	public IfInfo(IfInfo info, BlockNode thenBlock, BlockNode elseBlock) {
-		this(info.getCondition(), thenBlock, elseBlock, info.getMergedBlocks(), info.getSkipBlocks());
+		this(info.getCondition(), thenBlock, elseBlock,
+				info.getMergedBlocks(), info.getSkipBlocks(), info.getForceInlineInsns());
 	}
 
 	private IfInfo(IfCondition condition, BlockNode thenBlock, BlockNode elseBlock,
-			Set<BlockNode> mergedBlocks, Set<BlockNode> skipBlocks) {
+			Set<BlockNode> mergedBlocks, Set<BlockNode> skipBlocks, List<InsnNode> forceInlineInsns) {
 		this.condition = condition;
 		this.thenBlock = thenBlock;
 		this.elseBlock = elseBlock;
 		this.mergedBlocks = mergedBlocks;
 		this.skipBlocks = skipBlocks;
+		this.forceInlineInsns = forceInlineInsns;
 	}
 
 	public static IfInfo invert(IfInfo info) {
 		IfCondition invertedCondition = IfCondition.invert(info.getCondition());
 		IfInfo tmpIf = new IfInfo(invertedCondition,
 				info.getElseBlock(), info.getThenBlock(),
-				info.getMergedBlocks(), info.getSkipBlocks());
+				info.getMergedBlocks(), info.getSkipBlocks(), info.getForceInlineInsns());
 		tmpIf.setIfBlock(info.getIfBlock());
 		return tmpIf;
 	}
@@ -45,6 +51,7 @@ public final class IfInfo {
 		for (IfInfo info : arr) {
 			mergedBlocks.addAll(info.getMergedBlocks());
 			skipBlocks.addAll(info.getSkipBlocks());
+			addInsnsForForcedInline(info.getForceInlineInsns());
 		}
 	}
 
@@ -82,6 +89,18 @@ public final class IfInfo {
 
 	public void setIfBlock(BlockNode ifBlock) {
 		this.ifBlock = ifBlock;
+	}
+
+	public List<InsnNode> getForceInlineInsns() {
+		return forceInlineInsns;
+	}
+
+	public void resetForceInlineInsns() {
+		forceInlineInsns.clear();
+	}
+
+	public void addInsnsForForcedInline(List<InsnNode> insns) {
+		forceInlineInsns.addAll(insns);
 	}
 
 	@Override

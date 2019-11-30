@@ -20,6 +20,7 @@ import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.ModVisitor;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnList;
+import jadx.core.utils.InsnRemover;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 @JadxVisitor(
@@ -78,12 +79,15 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 		if (sVar == null || sVar.getAssign().contains(AFlag.DONT_INLINE)) {
 			return;
 		}
-		// allow inline only one use arg
-		if (sVar.getVariableUseCount() != 1) {
+		InsnNode assignInsn = sVar.getAssign().getParentInsn();
+		if (assignInsn == null
+				|| assignInsn.contains(AFlag.DONT_INLINE)
+				|| assignInsn.contains(AFlag.WRAPPED)) {
 			return;
 		}
-		InsnNode assignInsn = sVar.getAssign().getParentInsn();
-		if (assignInsn == null || assignInsn.contains(AFlag.DONT_INLINE)) {
+		// allow inline only one use arg
+		boolean assignInline = assignInsn.contains(AFlag.FORCE_ASSIGN_INLINE);
+		if (!assignInline && sVar.getVariableUseCount() != 1) {
 			return;
 		}
 		List<RegisterArg> useList = sVar.getUseList();
@@ -96,6 +100,10 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 
 		int assignPos = insnList.getIndex(assignInsn);
 		if (assignPos != -1) {
+			if (assignInline) {
+				// TODO?
+				return;
+			}
 			WrapInfo wrapInfo = argsInfo.checkInline(assignPos, arg);
 			if (wrapInfo != null) {
 				wrapList.add(wrapInfo);
@@ -106,9 +114,28 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 			if (assignBlock != null
 					&& assignInsn != arg.getParentInsn()
 					&& canMoveBetweenBlocks(assignInsn, assignBlock, block, argsInfo.getInsn())) {
-				inline(mth, arg, assignInsn, assignBlock);
+				if (assignInline) {
+					assignInline(mth, arg, assignInsn, assignBlock);
+				} else {
+					inline(mth, arg, assignInsn, assignBlock);
+				}
 			}
 		}
+	}
+
+	private static void assignInline(MethodNode mth, RegisterArg arg, InsnNode assignInsn, BlockNode assignBlock) {
+		RegisterArg useArg = arg.getSVar().getUseList().get(0);
+		InsnNode useInsn = useArg.getParentInsn();
+		if (useInsn == null || useInsn.contains(AFlag.DONT_GENERATE)) {
+			return;
+		}
+
+		InsnArg replaceArg = InsnArg.wrapArg(assignInsn.copy());
+		useInsn.replaceArg(useArg, replaceArg);
+
+		assignInsn.add(AFlag.REMOVE);
+		assignInsn.add(AFlag.DONT_GENERATE);
+		InsnRemover.remove(mth, assignBlock, assignInsn);
 	}
 
 	private static boolean inline(MethodNode mth, RegisterArg arg, InsnNode insn, BlockNode block) {

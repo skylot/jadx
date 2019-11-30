@@ -11,27 +11,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestLoopCondition extends IntegrationTest {
 
 	public static class TestCls {
-		public String f;
-
-		private void setEnabled(boolean r1z) {
-		}
-
-		public void testIfInLoop() {
-			int j = 0;
-			for (int i = 0; i < f.length(); i++) {
-				char ch = f.charAt(i);
-				if (ch == '/') {
-					j++;
-					if (j == 2) {
-						setEnabled(true);
-						return;
-					}
-				}
-			}
-			setEnabled(false);
-		}
-
-		public void testMoreComplexIfInLoop(java.util.ArrayList<String> list) throws Exception {
+		public void test(java.util.ArrayList<String> list) {
 			for (int i = 0; i != 16 && i < 255; i++) {
 				list.set(i, "ABC");
 				if (i == 128) {
@@ -47,12 +27,7 @@ public class TestLoopCondition extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("i < this.f.length()"));
 		assertThat(code, containsOne("list.set(i, \"ABC\")"));
 		assertThat(code, containsOne("list.set(i, \"DEF\")"));
-
-		assertThat(code, containsOne("if (j == 2) {"));
-		assertThat(code, containsOne("setEnabled(true);"));
-		assertThat(code, containsOne("setEnabled(false);"));
 	}
 }
