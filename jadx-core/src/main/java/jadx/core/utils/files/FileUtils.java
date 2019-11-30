@@ -232,6 +232,15 @@ public class FileUtils {
 		}
 	}
 
+	public static String getPathBaseName(Path file) {
+		String fileName = file.getFileName().toString();
+		int extEndIndex = fileName.lastIndexOf('.');
+		if (extEndIndex == -1) {
+			return fileName;
+		}
+		return fileName.substring(0, extEndIndex);
+	}
+
 	public static File toFile(String path) {
 		if (path == null) {
 			return null;

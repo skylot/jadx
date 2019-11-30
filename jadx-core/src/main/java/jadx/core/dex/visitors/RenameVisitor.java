@@ -23,6 +23,7 @@ import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.files.FileUtils;
 import jadx.core.utils.files.InputFile;
 
 public class RenameVisitor extends AbstractVisitor {
@@ -35,9 +36,7 @@ public class RenameVisitor extends AbstractVisitor {
 		}
 		InputFile firstInputFile = dexNodes.get(0).getDexFile().getInputFile();
 		Path inputFilePath = firstInputFile.getFile().getAbsoluteFile().toPath();
-
-		String inputName = inputFilePath.getFileName().toString();
-		String baseName = inputName.substring(0, inputName.lastIndexOf('.'));
+		String baseName = FileUtils.getPathBaseName(inputFilePath);
 		Path deobfMapPath = inputFilePath.getParent().resolve(baseName + ".jobf");
 
 		JadxArgs args = root.getArgs();
