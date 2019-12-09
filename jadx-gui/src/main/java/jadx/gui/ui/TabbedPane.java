@@ -105,7 +105,7 @@ public class TabbedPane extends JTabbedPane {
 	}
 
 	@Nullable
-	private JumpPosition getCurrentPosition() {
+	JumpPosition getCurrentPosition() {
 		ContentPanel selectedCodePanel = getSelectedCodePanel();
 		if (selectedCodePanel instanceof AbstractCodeContentPanel) {
 			return ((AbstractCodeContentPanel) selectedCodePanel).getCodeArea().getCurrentPosition();

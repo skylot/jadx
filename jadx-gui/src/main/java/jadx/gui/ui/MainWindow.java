@@ -19,8 +19,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -38,11 +40,13 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.fife.ui.rsyntaxtextarea.Theme;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
+import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
 import jadx.gui.JadxWrapper;
@@ -373,8 +377,45 @@ public class MainWindow extends JFrame {
 
 	public void reOpenFile() {
 		File openedFile = wrapper.getOpenFile();
+		Map<String, Integer> openTabs = storeOpenTabs();
 		if (openedFile != null) {
 			open(openedFile.toPath());
+		}
+		restoreOpenTabs(openTabs);
+	}
+
+	@NotNull
+	private Map<String, Integer> storeOpenTabs() {
+		Map<String, Integer> openTabs = new LinkedHashMap<>();
+		for (Map.Entry<JNode, ContentPanel> entry : tabbedPane.getOpenTabs().entrySet()) {
+			JavaNode javaNode = entry.getKey().getJavaNode();
+			String classRealName = "";
+			if (javaNode instanceof JavaClass) {
+				JavaClass javaClass = (JavaClass) javaNode;
+				classRealName = javaClass.getRealFullName();
+			}
+			@Nullable
+			JumpPosition position = entry.getValue().getTabbedPane().getCurrentPosition();
+			int line = 0;
+			if (position != null) {
+				line = position.getLine();
+			}
+			openTabs.put(classRealName, line);
+		}
+		return openTabs;
+	}
+
+	private void restoreOpenTabs(Map<String, Integer> openTabs) {
+		for (Map.Entry<String, Integer> entry : openTabs.entrySet()) {
+			String classRealName = entry.getKey();
+			int position = entry.getValue();
+			@Nullable
+			JavaClass newClass = wrapper.searchJavaClassByRealName(classRealName);
+			if (newClass == null) {
+				continue;
+			}
+			JNode newNode = cacheObject.getNodeCache().makeFrom(newClass);
+			tabbedPane.codeJump(new JumpPosition(newNode, position));
 		}
 	}
 
