@@ -147,4 +147,13 @@ public class JadxWrapper {
 		return decompiler.getClasses().stream().filter(cls -> cls.getFullName().equals(fullName))
 				.findFirst().orElse(null);
 	}
+
+	/**
+	 * @param realName Real name of an outer class. Inner classes are not supported.
+	 * @return
+	 */
+	public @Nullable JavaClass searchJavaClassByRealName(String realName) {
+		return decompiler.getClasses().stream().filter(cls -> cls.getRealFullName().equals(realName))
+				.findFirst().orElse(null);
+	}
 }
