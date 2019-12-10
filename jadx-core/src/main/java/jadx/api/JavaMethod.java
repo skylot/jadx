@@ -74,7 +74,7 @@ public final class JavaMethod implements JavaNode {
 		return mth.getDecompiledLine();
 	}
 
-	MethodNode getMethodNode() {
+	public MethodNode getMethodNode() {
 		return mth;
 	}
 
