@@ -174,6 +174,10 @@ public final class JavaClass implements JavaNode {
 		return cls.getFullName();
 	}
 
+	public String getRealFullName() {
+		return cls.getRealFullName();
+	}
+
 	public String getPackage() {
 		return cls.getPackage();
 	}
