@@ -54,13 +54,16 @@ public final class CodeArea extends AbstractCodeArea {
 	private void addMenuItems() {
 		FindUsageAction findUsage = new FindUsageAction(this);
 		GoToDeclarationAction goToDeclaration = new GoToDeclarationAction(this);
+		RenameAction rename = new RenameAction(this);
 
 		JPopupMenu popup = getPopupMenu();
 		popup.addSeparator();
 		popup.add(findUsage);
 		popup.add(goToDeclaration);
+		popup.add(rename);
 		popup.addPopupMenuListener(findUsage);
 		popup.addPopupMenuListener(goToDeclaration);
+		popup.addPopupMenuListener(rename);
 	}
 
 	public int adjustOffsetForToken(@Nullable Token token) {
