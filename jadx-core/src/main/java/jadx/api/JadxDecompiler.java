@@ -281,7 +281,7 @@ public final class JadxDecompiler {
 		root.getErrorsCounter().printReport();
 	}
 
-	RootNode getRoot() {
+	public RootNode getRoot() {
 		return root;
 	}
 

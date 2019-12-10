@@ -46,7 +46,7 @@ public final class JavaField implements JavaNode {
 		return field.getDecompiledLine();
 	}
 
-	FieldNode getFieldNode() {
+	public FieldNode getFieldNode() {
 		return field;
 	}
 
