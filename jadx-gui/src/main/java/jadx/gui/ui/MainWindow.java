@@ -396,12 +396,12 @@ public class MainWindow extends JFrame {
 		cacheObject.setIndexJob(new IndexJob(wrapper, cacheObject, threadsCount));
 	}
 
-	void resetIndex() {
+	public void resetIndex() {
 		int threadsCount = settings.getThreadsCount();
 		cacheObject.setIndexJob(new IndexJob(wrapper, cacheObject, threadsCount));
 	}
 
-	private synchronized void runBackgroundJobs() {
+	synchronized void runBackgroundJobs() {
 		cancelBackgroundJobs();
 		backgroundWorker = new BackgroundWorker(cacheObject, progressPane);
 		if (settings.isAutoStartJobs()) {
@@ -412,6 +412,12 @@ public class MainWindow extends JFrame {
 				}
 			}, 1000);
 		}
+	}
+
+	synchronized void runBackgroundRefreshAndIndexJobs() {
+		cancelBackgroundJobs();
+		backgroundWorker = new BackgroundWorker(cacheObject, progressPane);
+		backgroundWorker.exec();
 	}
 
 	public synchronized void cancelBackgroundJobs() {
@@ -517,7 +523,7 @@ public class MainWindow extends JFrame {
 		treeModel.reload();
 	}
 
-	void reloadTree() {
+	public void reloadTree() {
 		treeReloading = true;
 
 		treeModel.reload();

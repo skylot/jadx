@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.gui.jobs.DecompileJob;
 import jadx.gui.jobs.IndexJob;
+import jadx.gui.jobs.RefreshJob;
 import jadx.gui.ui.SearchDialog;
 import jadx.gui.utils.search.TextSearchIndex;
 
@@ -14,6 +15,7 @@ public class CacheObject {
 
 	private DecompileJob decompileJob;
 	private IndexJob indexJob;
+	private RefreshJob refreshJob;
 
 	private TextSearchIndex textIndex;
 	private CodeUsageInfo usageInfo;
@@ -88,5 +90,13 @@ public class CacheObject {
 
 	public Set<SearchDialog.SearchOptions> getLastSearchOptions() {
 		return lastSearchOptions;
+	}
+
+	public RefreshJob getRefreshJob() {
+		return refreshJob;
+	}
+
+	public void setRefreshJob(RefreshJob refreshJob) {
+		this.refreshJob = refreshJob;
 	}
 }
