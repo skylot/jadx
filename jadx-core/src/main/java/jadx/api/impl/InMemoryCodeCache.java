@@ -21,4 +21,9 @@ public class InMemoryCodeCache implements ICodeCache {
 	public @Nullable ICodeInfo get(String clsFullName) {
 		return storage.get(clsFullName);
 	}
+
+	@Override
+	public void remove(String clsFullName) {
+		storage.remove(clsFullName);
+	}
 }

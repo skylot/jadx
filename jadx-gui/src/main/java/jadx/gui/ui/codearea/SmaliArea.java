@@ -26,6 +26,11 @@ public final class SmaliArea extends AbstractCodeArea {
 	}
 
 	@Override
+	public void refresh() {
+		load();
+	}
+
+	@Override
 	public JNode getNode() {
 		// this area contains only smali without other node attributes
 		return textNode;

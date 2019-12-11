@@ -53,6 +53,12 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	 */
 	public abstract void load();
 
+	/**
+	 * Implement in this method the code that reloads node from cache and sets the new content to be
+	 * displayed
+	 */
+	public abstract void refresh();
+
 	public static RSyntaxTextArea getDefaultArea(MainWindow mainWindow) {
 		RSyntaxTextArea area = new RSyntaxTextArea();
 		area.setEditable(false);

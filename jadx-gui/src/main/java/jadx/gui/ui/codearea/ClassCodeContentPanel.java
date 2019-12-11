@@ -70,4 +70,8 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel {
 		return javaCodePanel.getCodeArea();
 	}
 
+	public CodePanel getJavaCodePanel() {
+		return javaCodePanel;
+	}
+
 }

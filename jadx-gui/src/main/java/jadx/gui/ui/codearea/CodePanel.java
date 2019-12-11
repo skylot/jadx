@@ -87,4 +87,14 @@ public class CodePanel extends JPanel {
 	public JScrollPane getCodeScrollPane() {
 		return codeScrollPane;
 	}
+
+	public void refresh() {
+		JViewport viewport = getCodeScrollPane().getViewport();
+		Point viewPosition = viewport.getViewPosition();
+		codeArea.refresh();
+		initLineNumbers();
+		SwingUtilities.invokeLater(() -> {
+			viewport.setViewPosition(viewPosition);
+		});
+	}
 }
