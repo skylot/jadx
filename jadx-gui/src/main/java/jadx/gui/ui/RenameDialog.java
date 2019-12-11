@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +27,6 @@ import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.RenameVisitor;
 import jadx.core.utils.files.InputFile;
-import jadx.gui.treemodel.CodeNode;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
@@ -230,9 +230,10 @@ public class RenameDialog extends JDialog {
 		if (usageInfo == null) {
 			return;
 		}
-		for (CodeNode node : usageInfo.getUsageList(node)) {
-			node.getRootClass().refresh(); // Update code cache
-		}
+
+		HashSet<JavaClass> usageClasses = new HashSet<>();
+		usageInfo.getUsageList(node).forEach((node) -> usageClasses.add(node.getRootClass().getCls()));
+		usageClasses.forEach(JavaClass::refresh);
 	}
 
 	private void initCommon() {
