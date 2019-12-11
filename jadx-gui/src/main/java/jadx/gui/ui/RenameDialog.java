@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.*;
 
@@ -23,13 +24,18 @@ import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.dex.visitors.RenameVisitor;
 import jadx.core.utils.files.InputFile;
+import jadx.gui.treemodel.CodeNode;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JPackage;
+import jadx.gui.ui.codearea.ClassCodeContentPanel;
 import jadx.gui.ui.codearea.CodeArea;
+import jadx.gui.ui.codearea.CodePanel;
+import jadx.gui.utils.CodeUsageInfo;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
 
@@ -105,42 +111,37 @@ public class RenameDialog extends JDialog {
 		return String.format("%s %s = %s", type, id, renameText);
 	}
 
-	private boolean updateDeobfMap(String renameText, RootNode root) {
-		Path deobfMapPath = getDeobfMapPath(root);
+	private boolean writeDeobfMapFile(Path deobfMapPath, List<String> deobfMap) throws IOException {
 		if (deobfMapPath == null) {
-			LOG.error("rename(): Failed deofbMapFile is null");
+			LOG.error("updateDeobfMapFile(): deobfMapPath is null!");
 			return false;
 		}
-		String alias = getNodeAlias(renameText);
-		LOG.info("rename(): {}", alias);
-		try {
-			List<String> deobfMap = readAndUpdateDeobfMap(deobfMapPath, alias);
-			File tmpFile = File.createTempFile("deobf_tmp_", ".txt");
-			try (FileOutputStream fileOut = new FileOutputStream(tmpFile)) {
-				for (String entry : deobfMap) {
-					fileOut.write(entry.getBytes());
-					fileOut.write(System.lineSeparator().getBytes());
-				}
-			}
-			File oldMap = File.createTempFile("deobf_bak_", ".txt");
-			Files.copy(deobfMapPath, oldMap.toPath(), StandardCopyOption.REPLACE_EXISTING);
-			Files.copy(tmpFile.toPath(), deobfMapPath, StandardCopyOption.REPLACE_EXISTING);
-			Files.delete(oldMap.toPath());
-		} catch (Exception e) {
-			LOG.error("rename(): Failed to write deofbMapFile {}", deobfMapPath, e);
-			return false;
+
+		File tmpFile = File.createTempFile("deobf_tmp_", ".txt");
+		FileOutputStream fileOut = new FileOutputStream(tmpFile);
+		for (String entry : deobfMap) {
+			fileOut.write(entry.getBytes());
+			fileOut.write(System.lineSeparator().getBytes());
 		}
+		fileOut.close();
+		File oldMap = File.createTempFile("deobf_bak_", ".txt");
+		Files.copy(deobfMapPath, oldMap.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		Files.copy(tmpFile.toPath(), deobfMapPath, StandardCopyOption.REPLACE_EXISTING);
+		Files.delete(oldMap.toPath());
 		return true;
 	}
 
-	private List<String> readAndUpdateDeobfMap(Path deobfMapPath, String alias) throws IOException {
-		List<String> deobfMap = Files.readAllLines(deobfMapPath, StandardCharsets.UTF_8);
+	@NotNull
+	private List<String> readDeobfMap(Path deobfMapPath) throws IOException {
+		return Files.readAllLines(deobfMapPath, StandardCharsets.UTF_8);
+	}
+
+	private List<String> updateDeobfMap(List<String> deobfMap, String alias) {
 		String id = alias.split("=")[0];
-		LOG.info("Id = {}", id);
 		int i = 0;
 		while (i < deobfMap.size()) {
 			if (deobfMap.get(i).startsWith(id)) {
-				LOG.info("Removing entry {}", deobfMap.get(i));
+				LOG.info("updateDeobfMap(): Removing entry " + deobfMap.get(i));
 				deobfMap.remove(i);
 			} else {
 				i++;
@@ -161,13 +162,77 @@ public class RenameDialog extends JDialog {
 			dispose();
 			return;
 		}
-		if (!updateDeobfMap(renameText, root)) {
-			LOG.error("rename(): updateDeobfMap() failed");
+		if (!refreshDeobfMapFile(renameText, root)) {
 			dispose();
 			return;
 		}
-		mainWindow.reOpenFile();
+		refreshState(root);
 		dispose();
+	}
+
+	private boolean refreshDeobfMapFile(String renameText, RootNode root) {
+		List<String> deobfMap;
+		Path deobfMapPath = getDeobfMapPath(root);
+		try {
+			deobfMap = readDeobfMap(deobfMapPath);
+		} catch (IOException e) {
+			LOG.error("rename(): readDeobfMap() failed");
+			dispose();
+			return false;
+		}
+		updateDeobfMap(deobfMap, getNodeAlias(renameText));
+		try {
+			writeDeobfMapFile(deobfMapPath, deobfMap);
+		} catch (IOException e) {
+			LOG.error("rename(): writeDeobfMap() failed");
+			dispose();
+			return false;
+		}
+		try {
+			writeDeobfMapFile(deobfMapPath, deobfMap);
+		} catch (IOException e) {
+			LOG.error("rename(): updateDeobfMap() failed");
+			dispose();
+			return false;
+		}
+		return true;
+	}
+
+	private void refreshState(RootNode rootNode) {
+		RenameVisitor renameVisitor = new RenameVisitor();
+		renameVisitor.init(rootNode);
+
+		mainWindow.getCacheObject().getNodeCache().refresh(node);
+
+		TabbedPane tabbedPane = mainWindow.getTabbedPane();
+		refreshTabs(tabbedPane);
+		refreshUsages();
+		mainWindow.resetIndex();
+		mainWindow.reloadTree();
+	}
+
+	private void refreshTabs(TabbedPane tabbedPane) {
+		for (Map.Entry<JNode, ContentPanel> panel : tabbedPane.getOpenTabs().entrySet()) {
+			ContentPanel contentPanel = panel.getValue();
+			if (contentPanel instanceof ClassCodeContentPanel) {
+				JNode node = panel.getKey();
+				node.getRootClass().refresh(); // Update code cache
+				ClassCodeContentPanel codePanel = (ClassCodeContentPanel) contentPanel;
+				CodePanel javaPanel = codePanel.getJavaCodePanel();
+				javaPanel.refresh();
+				tabbedPane.refresh(node);
+			}
+		}
+	}
+
+	private void refreshUsages() {
+		CodeUsageInfo usageInfo = mainWindow.getCacheObject().getUsageInfo();
+		if (usageInfo == null) {
+			return;
+		}
+		for (CodeNode node : usageInfo.getUsageList(node)) {
+			node.getRootClass().refresh(); // Update code cache
+		}
 	}
 
 	private void initCommon() {

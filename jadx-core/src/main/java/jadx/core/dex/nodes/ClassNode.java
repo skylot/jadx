@@ -289,6 +289,11 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return codeInfo;
 	}
 
+	public synchronized ICodeInfo refresh() {
+		load();
+		return decompile(false);
+	}
+
 	@Override
 	public void load() {
 		for (MethodNode mth : getMethods()) {

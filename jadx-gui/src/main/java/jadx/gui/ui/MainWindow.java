@@ -396,6 +396,11 @@ public class MainWindow extends JFrame {
 		cacheObject.setIndexJob(new IndexJob(wrapper, cacheObject, threadsCount));
 	}
 
+	void resetIndex() {
+		int threadsCount = settings.getThreadsCount();
+		cacheObject.setIndexJob(new IndexJob(wrapper, cacheObject, threadsCount));
+	}
+
 	private synchronized void runBackgroundJobs() {
 		cancelBackgroundJobs();
 		backgroundWorker = new BackgroundWorker(cacheObject, progressPane);
@@ -512,7 +517,7 @@ public class MainWindow extends JFrame {
 		treeModel.reload();
 	}
 
-	private void reloadTree() {
+	void reloadTree() {
 		treeReloading = true;
 
 		treeModel.reload();

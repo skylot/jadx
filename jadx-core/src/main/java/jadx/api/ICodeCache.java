@@ -8,4 +8,6 @@ public interface ICodeCache {
 
 	@Nullable
 	ICodeInfo get(String clsFullName);
+
+	void remove(String clsFullName);
 }

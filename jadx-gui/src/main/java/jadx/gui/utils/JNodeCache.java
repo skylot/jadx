@@ -29,6 +29,12 @@ public class JNodeCache {
 		return jNode;
 	}
 
+	public void refresh(JNode node) {
+		JavaNode javaNode = node.getJavaNode();
+		cache.remove(javaNode);
+		makeFrom(javaNode);
+	}
+
 	private JNode convert(JavaNode node) {
 		if (node == null) {
 			return null;

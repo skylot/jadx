@@ -51,6 +51,11 @@ public final class CodeArea extends AbstractCodeArea {
 		}
 	}
 
+	@Override
+	public void refresh() {
+		setText(node.getContent());
+	}
+
 	private void addMenuItems() {
 		FindUsageAction findUsage = new FindUsageAction(this);
 		GoToDeclarationAction goToDeclaration = new GoToDeclarationAction(this);
