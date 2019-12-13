@@ -40,7 +40,7 @@ import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.nodes.ProcessState.LOADED;
-import static jadx.core.dex.nodes.ProcessState.UNLOADED;
+import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
 
 public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
@@ -262,21 +262,31 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		}
 	}
 
-	public synchronized ICodeInfo decompile() {
+	public ICodeInfo decompile() {
+		return decompile(true);
+	}
+
+	public ICodeInfo getCode() {
+		return decompile(true);
+	}
+
+	public ICodeInfo reloadCode() {
+		return decompile(false);
+	}
+
+	private synchronized ICodeInfo decompile(boolean searchInCache) {
 		ICodeCache codeCache = root().getCodeCache();
 		ClassNode topParentClass = getTopParentClass();
 		String clsRawName = topParentClass.getRawName();
-		ICodeInfo code = codeCache.get(clsRawName);
-		if (code != null) {
-			return code;
+		if (searchInCache) {
+			ICodeInfo code = codeCache.get(clsRawName);
+			if (code != null) {
+				return code;
+			}
 		}
 		ICodeInfo codeInfo = ProcessClass.generateCode(topParentClass);
 		codeCache.add(clsRawName, codeInfo);
 		return codeInfo;
-	}
-
-	public ICodeInfo getCode() {
-		return decompile();
 	}
 
 	@Override
@@ -300,7 +310,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		innerClasses.forEach(ClassNode::unload);
 		fields.forEach(FieldNode::unloadAttributes);
 		unloadAttributes();
-		setState(UNLOADED);
+		setState(NOT_LOADED);
 	}
 
 	private void buildCache() {

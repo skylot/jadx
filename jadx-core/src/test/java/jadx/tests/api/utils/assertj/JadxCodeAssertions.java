@@ -51,4 +51,11 @@ public class JadxCodeAssertions extends AbstractStringAssert<JadxCodeAssertions>
 		}
 		return countString(1, sb.toString());
 	}
+
+	public JadxCodeAssertions print() {
+		System.out.println("-----------------------------------------------------------");
+		System.out.println(actual);
+		System.out.println("-----------------------------------------------------------");
+		return this;
+	}
 }
