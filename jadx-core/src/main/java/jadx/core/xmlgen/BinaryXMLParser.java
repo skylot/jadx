@@ -41,7 +41,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 
 	private final Map<Integer, String> styleMap = new HashMap<>();
 	private final Map<Integer, String> resNames;
-	private final Map<String, String> nsMap = new HashMap<>();
+	private Map<String, String> nsMap;
 	private Set<String> nsMapGenerated;
 	private final Map<String, String> tagAttrDeobfNames = new HashMap<>();
 
@@ -86,11 +86,13 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			return ResourcesLoader.loadToCodeWriter(inputStream);
 		}
 		nsMapGenerated = new HashSet<>();
+		nsMap = new HashMap<>();
 		writer = new CodeWriter();
 		writer.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
 		firstElement = true;
 		decode();
 		writer.finish();
+		nsMap = null;
 		return writer;
 	}
 
