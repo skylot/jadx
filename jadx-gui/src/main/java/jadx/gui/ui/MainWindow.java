@@ -660,7 +660,7 @@ public class MainWindow extends JFrame {
 		Action exitAction = new AbstractAction(NLS.str("file.exit"), ICON_CLOSE) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				dispose();
+				closeWindow();
 			}
 		};
 
