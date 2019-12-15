@@ -82,6 +82,10 @@ public class ConstInlineVisitor extends AbstractVisitor {
 				}
 				return;
 			}
+			// don't inline const values in synchronized statement
+			if (checkForSynchronizeBlock(insn, sVar)) {
+				return;
+			}
 		} else if (insnType == InsnType.CONST_STR) {
 			if (sVar.isUsedInPhi()) {
 				return;
@@ -106,6 +110,20 @@ public class ConstInlineVisitor extends AbstractVisitor {
 
 		// all check passed, run replace
 		replaceConst(mth, insn, constArg, toRemove);
+	}
+
+	private static boolean checkForSynchronizeBlock(InsnNode insn, SSAVar ssaVar) {
+		for (RegisterArg reg : ssaVar.getUseList()) {
+			InsnNode parentInsn = reg.getParentInsn();
+			if (parentInsn != null) {
+				InsnType insnType = parentInsn.getType();
+				if (insnType == InsnType.MONITOR_ENTER || insnType == InsnType.MONITOR_EXIT) {
+					insn.add(AFlag.DONT_INLINE);
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private static boolean checkForFinallyBlock(SSAVar sVar) {

@@ -608,6 +608,7 @@ public class RegionMaker {
 		visited.add(block);
 		for (InsnNode insn : block.getInstructions()) {
 			if (insn.getType() == InsnType.MONITOR_EXIT
+					&& insn.getArgsCount() > 0
 					&& insn.getArg(0).equals(arg)) {
 				exits.add(block);
 				region.getExitInsns().add(insn);

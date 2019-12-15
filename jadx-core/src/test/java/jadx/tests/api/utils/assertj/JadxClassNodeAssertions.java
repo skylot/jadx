@@ -16,6 +16,8 @@ public class JadxClassNodeAssertions extends AbstractAssert<JadxClassNodeAsserti
 		isNotNull();
 		ICodeInfo code = actual.getCode();
 		assertThat(code).isNotNull();
-		return new JadxCodeAssertions(code.getCodeStr());
+		String codeStr = code.getCodeStr();
+		assertThat(codeStr).isNotBlank();
+		return new JadxCodeAssertions(codeStr);
 	}
 }
