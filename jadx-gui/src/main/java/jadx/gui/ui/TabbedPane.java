@@ -1,12 +1,13 @@
 package jadx.gui.ui;
 
-import java.awt.*;
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.*;
+import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 
 import org.jetbrains.annotations.Nullable;
@@ -40,6 +41,9 @@ public class TabbedPane extends JTabbedPane {
 		setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 
 		addMouseWheelListener(e -> {
+			if (openTabs.isEmpty()) {
+				return;
+			}
 			int direction = e.getWheelRotation();
 			int index = getSelectedIndex();
 			int maxIndex = getTabCount() - 1;

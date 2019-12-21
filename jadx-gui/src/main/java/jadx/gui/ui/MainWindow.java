@@ -1,5 +1,6 @@
 package jadx.gui.ui;
 
+import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -7,6 +8,7 @@ import java.awt.DisplayMode;
 import java.awt.Font;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.Toolkit;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
@@ -97,6 +99,7 @@ import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.SystemInfo;
 import jadx.gui.utils.UiUtils;
 
 import static javax.swing.KeyStroke.getKeyStroke;
@@ -164,6 +167,7 @@ public class MainWindow extends JFrame {
 		FontUtils.registerBundledFonts();
 		initUI();
 		initMenuAndToolbar();
+		registerMouseNavigationButtons();
 		UiUtils.setWindowIcons(this);
 		loadSettings();
 		checkForUpdate();
@@ -956,6 +960,42 @@ public class MainWindow extends JFrame {
 
 		setContentPane(mainPanel);
 		setTitle(DEFAULT_TITLE);
+	}
+
+	private void registerMouseNavigationButtons() {
+		Toolkit toolkit = Toolkit.getDefaultToolkit();
+		toolkit.addAWTEventListener(event -> {
+			if (event instanceof MouseEvent) {
+				MouseEvent mouseEvent = (MouseEvent) event;
+				if (mouseEvent.getID() == MouseEvent.MOUSE_PRESSED) {
+					int rawButton = mouseEvent.getButton();
+					if (rawButton <= 3) {
+						return;
+					}
+					int button = remapMouseButton(rawButton);
+					switch (button) {
+						case 4:
+							tabbedPane.navBack();
+							break;
+						case 5:
+							tabbedPane.navForward();
+							break;
+					}
+				}
+			}
+		}, AWTEvent.MOUSE_EVENT_MASK);
+	}
+
+	private static int remapMouseButton(int rawButton) {
+		if (SystemInfo.IS_LINUX) {
+			if (rawButton == 6) {
+				return 4;
+			}
+			if (rawButton == 7) {
+				return 5;
+			}
+		}
+		return rawButton;
 	}
 
 	private static String[] getPathExpansion(TreePath path) {
