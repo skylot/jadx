@@ -13,6 +13,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import jadx.api.CodePosition;
+import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
 import jadx.core.codegen.ClassGen;
 import jadx.core.codegen.CodeWriter;
@@ -85,7 +86,7 @@ public class JsonCodeGen {
 		CodeGenUtils.addComments(cw, cls);
 		classGen.insertDecompilationProblems(cw, cls);
 		classGen.addClassDeclaration(cw);
-		jsonCls.setDeclaration(cw.finish().toString());
+		jsonCls.setDeclaration(cw.getCodeStr());
 
 		addFields(cls, jsonCls, classGen);
 		addMethods(cls, jsonCls, classGen);
@@ -128,7 +129,7 @@ public class JsonCodeGen {
 
 			CodeWriter cw = new CodeWriter();
 			classGen.addField(cw, field);
-			jsonField.setDeclaration(cw.finish().toString());
+			jsonField.setDeclaration(cw.getCodeStr());
 			jsonField.setAccessFlags(field.getAccessFlags().rawValue());
 
 			jsonCls.getFields().add(jsonField);
@@ -153,7 +154,7 @@ public class JsonCodeGen {
 			MethodGen mthGen = new MethodGen(classGen, mth);
 			CodeWriter cw = new CodeWriter();
 			mthGen.addDefinition(cw);
-			jsonMth.setDeclaration(cw.finish().toString());
+			jsonMth.setDeclaration(cw.getCodeStr());
 			jsonMth.setAccessFlags(mth.getAccessFlags().rawValue());
 			jsonMth.setLines(fillMthCode(mth, mthGen));
 			jsonMth.setOffset("0x" + Long.toHexString(mth.getMethodCodeOffset()));
@@ -166,14 +167,14 @@ public class JsonCodeGen {
 			return Collections.emptyList();
 		}
 
-		CodeWriter code = new CodeWriter();
+		CodeWriter cw = new CodeWriter();
 		try {
-			mthGen.addInstructions(code);
+			mthGen.addInstructions(cw);
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Method generation error", e);
 		}
-		code.finish();
-		String codeStr = code.toString();
+		ICodeInfo code = cw.finish();
+		String codeStr = code.getCodeStr();
 		if (codeStr.isEmpty()) {
 			return Collections.emptyList();
 		}

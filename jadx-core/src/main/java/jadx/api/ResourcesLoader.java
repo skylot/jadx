@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ResourceFile.ZipRef;
+import jadx.api.impl.SimpleCodeInfo;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.utils.Utils;
 import jadx.core.utils.android.Res9patchStreamDecoder;
@@ -85,7 +86,7 @@ public final class ResourcesLoader {
 			CodeWriter cw = new CodeWriter();
 			cw.add("Error decode ").add(rf.getType().toString().toLowerCase());
 			Utils.appendStackTrace(cw, e.getCause());
-			return ResContainer.textResource(rf.getName(), cw);
+			return ResContainer.textResource(rf.getName(), cw.finish());
 		}
 	}
 
@@ -94,7 +95,7 @@ public final class ResourcesLoader {
 		switch (rf.getType()) {
 			case MANIFEST:
 			case XML:
-				CodeWriter content = jadxRef.getXmlParser().parse(inputStream);
+				ICodeInfo content = jadxRef.getXmlParser().parse(inputStream);
 				return ResContainer.textResource(rf.getName(), content);
 
 			case ARSC:
@@ -162,9 +163,9 @@ public final class ResourcesLoader {
 		}
 	}
 
-	public static CodeWriter loadToCodeWriter(InputStream is) throws IOException {
+	public static ICodeInfo loadToCodeWriter(InputStream is) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream(READ_BUFFER_SIZE);
 		copyStream(is, baos);
-		return new CodeWriter(baos.toString("UTF-8"));
+		return new SimpleCodeInfo(baos.toString("UTF-8"));
 	}
 }

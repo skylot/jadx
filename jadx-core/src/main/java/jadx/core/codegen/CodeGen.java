@@ -4,6 +4,7 @@ import java.util.concurrent.Callable;
 
 import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
+import jadx.api.impl.SimpleCodeInfo;
 import jadx.core.codegen.json.JsonCodeGen;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
@@ -13,7 +14,7 @@ public class CodeGen {
 
 	public static ICodeInfo generate(ClassNode cls) {
 		if (cls.contains(AFlag.DONT_GENERATE)) {
-			return CodeWriter.EMPTY;
+			return ICodeInfo.EMPTY;
 		}
 		JadxArgs args = cls.root().getArgs();
 		switch (args.getOutputFormat()) {
@@ -36,7 +37,7 @@ public class CodeGen {
 	private static ICodeInfo generateJson(ClassNode cls) {
 		JsonCodeGen codeGen = new JsonCodeGen(cls);
 		String clsJson = wrapCodeGen(cls, codeGen::process);
-		return new CodeWriter(clsJson);
+		return new SimpleCodeInfo(clsJson);
 	}
 
 	private static <R> R wrapCodeGen(ClassNode cls, Callable<R> codeGenFunc) {

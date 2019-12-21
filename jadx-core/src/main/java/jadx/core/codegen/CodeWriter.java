@@ -1,7 +1,5 @@
 package jadx.core.codegen;
 
-import java.io.File;
-import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,12 +11,11 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.CodePosition;
 import jadx.api.ICodeInfo;
+import jadx.api.impl.SimpleCodeInfo;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.utils.StringUtils;
-import jadx.core.utils.files.FileUtils;
-import jadx.core.utils.files.ZipSecurity;
 
-public class CodeWriter implements ICodeInfo {
+public class CodeWriter {
 	private static final Logger LOG = LoggerFactory.getLogger(CodeWriter.class);
 
 	public static final String NL = System.getProperty("line.separator");
@@ -34,8 +31,6 @@ public class CodeWriter implements ICodeInfo {
 			INDENT_STR + INDENT_STR + INDENT_STR + INDENT_STR,
 			INDENT_STR + INDENT_STR + INDENT_STR + INDENT_STR + INDENT_STR,
 	};
-
-	public static final CodeWriter EMPTY = new CodeWriter().finish();
 
 	private StringBuilder buf;
 	@Nullable
@@ -56,12 +51,6 @@ public class CodeWriter implements ICodeInfo {
 			incIndent(3);
 			add(indentStr);
 		}
-	}
-
-	// create filled instance (just string wrapper)
-	public CodeWriter(String code) {
-		this.buf = null;
-		this.code = code;
 	}
 
 	public CodeWriter startLine() {
@@ -244,11 +233,6 @@ public class CodeWriter implements ICodeInfo {
 		return annotations.put(pos, obj);
 	}
 
-	@Override
-	public Map<CodePosition, Object> getAnnotations() {
-		return annotations;
-	}
-
 	public void attachSourceLine(int sourceLine) {
 		if (sourceLine == 0) {
 			return;
@@ -263,27 +247,12 @@ public class CodeWriter implements ICodeInfo {
 		lineMap.put(decompiledLine, sourceLine);
 	}
 
-	@Override
-	public Map<Integer, Integer> getLineMapping() {
-		return lineMap;
-	}
-
-	public CodeWriter finish() {
+	public ICodeInfo finish() {
 		removeFirstEmptyLine();
-		buf.trimToSize();
+		processDefinitionAnnotations();
 		code = buf.toString();
 		buf = null;
-
-		annotations.entrySet().removeIf(entry -> {
-			Object v = entry.getValue();
-			if (v instanceof DefinitionWrapper) {
-				LineAttrNode l = ((DefinitionWrapper) v).getNode();
-				l.setDecompiledLine(entry.getKey().getLine());
-				return true;
-			}
-			return false;
-		});
-		return this;
+		return new SimpleCodeInfo(code, lineMap, annotations);
 	}
 
 	private void removeFirstEmptyLine() {
@@ -293,46 +262,33 @@ public class CodeWriter implements ICodeInfo {
 		}
 	}
 
+	private void processDefinitionAnnotations() {
+		if (!annotations.isEmpty()) {
+			annotations.entrySet().removeIf(entry -> {
+				Object v = entry.getValue();
+				if (v instanceof DefinitionWrapper) {
+					LineAttrNode l = ((DefinitionWrapper) v).getNode();
+					l.setDecompiledLine(entry.getKey().getLine());
+					return true;
+				}
+				return false;
+			});
+		}
+	}
+
 	public int bufLength() {
 		return buf.length();
 	}
 
-	@Override
 	public String getCodeStr() {
 		if (code == null) {
-			throw new NullPointerException("Code not set");
+			finish();
 		}
 		return code;
 	}
 
 	@Override
 	public String toString() {
-		return buf == null ? code : buf.toString();
-	}
-
-	public void save(File dir, String subDir, String fileName) {
-		if (!ZipSecurity.isValidZipEntryName(subDir) || !ZipSecurity.isValidZipEntryName(fileName)) {
-			return;
-		}
-		save(dir, new File(subDir, fileName).getPath());
-	}
-
-	public void save(File dir, String fileName) {
-		if (!ZipSecurity.isValidZipEntryName(fileName)) {
-			return;
-		}
-		save(new File(dir, fileName));
-	}
-
-	public void save(File file) {
-		if (code == null) {
-			finish();
-		}
-		File outFile = FileUtils.prepareFile(file);
-		try (PrintWriter out = new PrintWriter(outFile, "UTF-8")) {
-			out.println(code);
-		} catch (Exception e) {
-			LOG.error("Save file error", e);
-		}
+		return code != null ? code : buf.toString();
 	}
 }

@@ -12,6 +12,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.ICodeInfo;
 import jadx.api.ResourcesLoader;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.info.ConstStorage;
@@ -80,7 +81,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		}
 	}
 
-	public synchronized CodeWriter parse(InputStream inputStream) throws IOException {
+	public synchronized ICodeInfo parse(InputStream inputStream) throws IOException {
 		is = new ParserStream(inputStream);
 		if (!isBinaryXml()) {
 			return ResourcesLoader.loadToCodeWriter(inputStream);
@@ -91,9 +92,8 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		writer.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
 		firstElement = true;
 		decode();
-		writer.finish();
 		nsMap = null;
-		return writer;
+		return writer.finish();
 	}
 
 	private boolean isBinaryXml() throws IOException {

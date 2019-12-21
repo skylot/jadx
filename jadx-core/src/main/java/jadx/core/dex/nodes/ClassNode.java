@@ -280,7 +280,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		String clsRawName = topParentClass.getRawName();
 		if (searchInCache) {
 			ICodeInfo code = codeCache.get(clsRawName);
-			if (code != null) {
+			if (code != null && code != ICodeInfo.EMPTY) {
 				return code;
 			}
 		}

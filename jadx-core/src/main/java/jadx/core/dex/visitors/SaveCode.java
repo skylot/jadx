@@ -1,15 +1,21 @@
 package jadx.core.dex.visitors;
 
 import java.io.File;
+import java.io.PrintWriter;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
-import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.utils.files.FileUtils;
+import jadx.core.utils.files.ZipSecurity;
 
 public class SaveCode {
+	private static final Logger LOG = LoggerFactory.getLogger(SaveCode.class);
 
 	private SaveCode() {
 	}
@@ -21,18 +27,35 @@ public class SaveCode {
 		if (code == null) {
 			throw new JadxRuntimeException("Code not generated for class " + cls.getFullName());
 		}
-		if (code == CodeWriter.EMPTY) {
+		if (code == ICodeInfo.EMPTY) {
 			return;
 		}
-		CodeWriter clsCode;
-		if (code instanceof CodeWriter) {
-			clsCode = (CodeWriter) code;
-		} else {
-			// TODO: move 'save' method from CodeWriter
-			clsCode = new CodeWriter(code.getCodeStr());
+		String codeStr = code.getCodeStr();
+		if (codeStr.isEmpty()) {
+			return;
 		}
 		String fileName = cls.getClassInfo().getAliasFullPath() + getFileExtension(cls);
-		clsCode.save(dir, fileName);
+		save(codeStr, dir, fileName);
+	}
+
+	public static void save(String code, File dir, String fileName) {
+		if (!ZipSecurity.isValidZipEntryName(fileName)) {
+			return;
+		}
+		save(code, new File(dir, fileName));
+	}
+
+	public static void save(ICodeInfo codeInfo, File file) {
+		save(codeInfo.getCodeStr(), file);
+	}
+
+	public static void save(String code, File file) {
+		File outFile = FileUtils.prepareFile(file);
+		try (PrintWriter out = new PrintWriter(outFile, "UTF-8")) {
+			out.println(code);
+		} catch (Exception e) {
+			LOG.error("Save file error", e);
+		}
 	}
 
 	private static String getFileExtension(ClassNode cls) {

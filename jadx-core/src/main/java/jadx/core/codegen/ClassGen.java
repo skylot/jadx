@@ -12,6 +12,7 @@ import java.util.Set;
 import com.android.dx.rop.code.AccessFlags;
 import com.google.common.collect.Streams;
 
+import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -73,7 +74,7 @@ public class ClassGen {
 		return cls;
 	}
 
-	public CodeWriter makeClass() throws CodegenException {
+	public ICodeInfo makeClass() throws CodegenException {
 		CodeWriter clsBody = new CodeWriter();
 		addClassCode(clsBody);
 

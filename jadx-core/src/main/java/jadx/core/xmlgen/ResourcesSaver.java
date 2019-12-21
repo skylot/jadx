@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.ResourceFile;
 import jadx.api.ResourcesLoader;
-import jadx.core.codegen.CodeWriter;
+import jadx.core.dex.visitors.SaveCode;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
@@ -58,8 +58,7 @@ public class ResourcesSaver implements Runnable {
 		switch (rc.getDataType()) {
 			case TEXT:
 			case RES_TABLE:
-				CodeWriter cw = rc.getText();
-				cw.save(outFile);
+				SaveCode.save(rc.getText(), outFile);
 				return;
 
 			case DECODED_DATA:

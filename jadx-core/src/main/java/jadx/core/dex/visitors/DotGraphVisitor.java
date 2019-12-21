@@ -116,7 +116,11 @@ public class DotGraphVisitor extends AbstractVisitor {
 					+ (useRegions ? ".regions" : "")
 					+ (rawInsn ? ".raw" : "")
 					+ ".dot";
-			dot.save(dir, mth.getParentClass().getClassInfo().getAliasFullPath() + "_graphs", fileName);
+			File file = dir.toPath()
+					.resolve(mth.getParentClass().getClassInfo().getAliasFullPath() + "_graphs")
+					.resolve(fileName)
+					.toFile();
+			SaveCode.save(dot.finish(), file);
 		}
 
 		private void processMethodRegion(MethodNode mth) {

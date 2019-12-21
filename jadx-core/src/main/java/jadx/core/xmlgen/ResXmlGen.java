@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import jadx.api.ICodeInfo;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.utils.StringUtils;
 import jadx.core.xmlgen.entry.RawNamedValue;
@@ -57,8 +58,8 @@ public class ResXmlGen {
 
 			content.decIndent();
 			content.startLine("</resources>");
-			content.finish();
-			files.add(ResContainer.textResource(fileName, content));
+			ICodeInfo codeInfo = content.finish();
+			files.add(ResContainer.textResource(fileName, codeInfo));
 		}
 		Collections.sort(files);
 		return files;
