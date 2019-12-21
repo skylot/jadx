@@ -71,7 +71,7 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 		} else {
 			removeAllChildren();
 
-			Comparator<JResource> typeComparator = (r1, r2) -> r1.type.ordinal() - r2.type.ordinal();
+			Comparator<JResource> typeComparator = Comparator.comparingInt(r -> r.type.ordinal());
 			Comparator<JResource> nameComparator = Comparator.comparing(JResource::getName, String.CASE_INSENSITIVE_ORDER);
 
 			files.sort(typeComparator.thenComparing(nameComparator));

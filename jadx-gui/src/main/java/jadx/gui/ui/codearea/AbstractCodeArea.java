@@ -91,6 +91,7 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public void centerCurrentLine() {
 		JViewport viewport = (JViewport) SwingUtilities.getAncestorOfClass(JViewport.class, this);
 		if (viewport == null) {

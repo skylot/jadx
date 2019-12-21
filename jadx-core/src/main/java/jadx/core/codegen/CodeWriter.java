@@ -153,6 +153,7 @@ public class CodeWriter {
 		return this;
 	}
 
+	@SuppressWarnings("StringRepeatCanBeUsed")
 	private void updateIndent() {
 		int curIndent = indent;
 		if (curIndent < INDENT_CACHE.length) {

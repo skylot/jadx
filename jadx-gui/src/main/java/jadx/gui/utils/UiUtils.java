@@ -182,6 +182,7 @@ public class UiUtils {
 
 	public static final int CTRL_BNT_KEY = getCtrlButton();
 
+	@SuppressWarnings("deprecation")
 	@MagicConstant(flagsFromClass = InputEvent.class)
 	private static int getCtrlButton() {
 		if (System.getProperty("os.name").toLowerCase().contains("mac")) {

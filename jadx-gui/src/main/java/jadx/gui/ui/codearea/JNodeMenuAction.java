@@ -11,6 +11,7 @@ import org.fife.ui.rsyntaxtextarea.Token;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class JNodeMenuAction<T> extends AbstractAction implements PopupMenuListener {
+	private static final long serialVersionUID = -2600154727884853550L;
 
 	protected final transient CodeArea codeArea;
 	@Nullable

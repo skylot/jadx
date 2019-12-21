@@ -24,7 +24,11 @@ import jadx.api.JavaNode;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.files.InputFile;
-import jadx.gui.treemodel.*;
+import jadx.gui.treemodel.JClass;
+import jadx.gui.treemodel.JField;
+import jadx.gui.treemodel.JMethod;
+import jadx.gui.treemodel.JNode;
+import jadx.gui.treemodel.JPackage;
 import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
@@ -91,7 +95,7 @@ public class RenameDialog extends JDialog {
 			id = javaNode.getFullName();
 			if (javaNode instanceof JavaClass) {
 				JavaClass javaClass = (JavaClass) javaNode;
-				id = javaClass.getRealFullName();
+				id = javaClass.getRawName();
 			}
 
 		} else if (node instanceof JPackage) {
@@ -104,29 +108,26 @@ public class RenameDialog extends JDialog {
 	private boolean updateDeobfMap(String renameText, RootNode root) {
 		Path deobfMapPath = getDeobfMapPath(root);
 		if (deobfMapPath == null) {
-			LOG.error("rename(): Failed deofbMapFile  is null");
+			LOG.error("rename(): Failed deofbMapFile is null");
 			return false;
 		}
 		String alias = getNodeAlias(renameText);
-		LOG.info("rename(): " + alias);
-
+		LOG.info("rename(): {}", alias);
 		try {
 			List<String> deobfMap = readAndUpdateDeobfMap(deobfMapPath, alias);
 			File tmpFile = File.createTempFile("deobf_tmp_", ".txt");
-			FileOutputStream fileOut = new FileOutputStream(tmpFile);
-			for (String entry : deobfMap) {
-				fileOut.write(entry.getBytes());
-				fileOut.write(System.lineSeparator().getBytes());
+			try (FileOutputStream fileOut = new FileOutputStream(tmpFile)) {
+				for (String entry : deobfMap) {
+					fileOut.write(entry.getBytes());
+					fileOut.write(System.lineSeparator().getBytes());
+				}
 			}
-			fileOut.close();
 			File oldMap = File.createTempFile("deobf_bak_", ".txt");
 			Files.copy(deobfMapPath, oldMap.toPath(), StandardCopyOption.REPLACE_EXISTING);
 			Files.copy(tmpFile.toPath(), deobfMapPath, StandardCopyOption.REPLACE_EXISTING);
 			Files.delete(oldMap.toPath());
-
-		} catch (IOException e) {
-			LOG.error("rename(): Failed to write deofbMapFile {}", deobfMapPath);
-			e.printStackTrace();
+		} catch (Exception e) {
+			LOG.error("rename(): Failed to write deofbMapFile {}", deobfMapPath, e);
 			return false;
 		}
 		return true;
@@ -135,11 +136,11 @@ public class RenameDialog extends JDialog {
 	private List<String> readAndUpdateDeobfMap(Path deobfMapPath, String alias) throws IOException {
 		List<String> deobfMap = Files.readAllLines(deobfMapPath, StandardCharsets.UTF_8);
 		String id = alias.split("=")[0];
-		LOG.info("Id = " + id);
+		LOG.info("Id = {}", id);
 		int i = 0;
 		while (i < deobfMap.size()) {
 			if (deobfMap.get(i).startsWith(id)) {
-				LOG.info("Removing entry " + deobfMap.get(i));
+				LOG.info("Removing entry {}", deobfMap.get(i));
 				deobfMap.remove(i);
 			} else {
 				i++;

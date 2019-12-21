@@ -163,6 +163,7 @@ public final class ResourcesLoader {
 		}
 	}
 
+	@SuppressWarnings("CharsetObjectCanBeUsed")
 	public static ICodeInfo loadToCodeWriter(InputStream is) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream(READ_BUFFER_SIZE);
 		copyStream(is, baos);

@@ -1,6 +1,12 @@
 package jadx.gui.ui;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.DisplayMode;
+import java.awt.Font;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
@@ -26,7 +32,27 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.ImageIcon;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
+import javax.swing.JTree;
+import javax.swing.ProgressMonitor;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.event.TreeExpansionEvent;
@@ -186,7 +212,7 @@ public class MainWindow extends JFrame {
 		}
 		JadxUpdate.check(new IUpdateCallback() {
 			@Override
-			public void onUpdate(final Release r) {
+			public void onUpdate(Release r) {
 				SwingUtilities.invokeLater(() -> {
 					updateLink.setText(NLS.str("menu.update_label", r.getName()));
 					updateLink.setVisible(true);
@@ -392,7 +418,7 @@ public class MainWindow extends JFrame {
 			String classRealName = "";
 			if (javaNode instanceof JavaClass) {
 				JavaClass javaClass = (JavaClass) javaNode;
-				classRealName = javaClass.getRealFullName();
+				classRealName = javaClass.getRawName();
 			}
 			@Nullable
 			JumpPosition position = entry.getValue().getTabbedPane().getCurrentPosition();
@@ -410,7 +436,7 @@ public class MainWindow extends JFrame {
 			String classRealName = entry.getKey();
 			int position = entry.getValue();
 			@Nullable
-			JavaClass newClass = wrapper.searchJavaClassByRealName(classRealName);
+			JavaClass newClass = wrapper.searchJavaClassByRawName(classRealName);
 			if (newClass == null) {
 				continue;
 			}
@@ -1047,7 +1073,7 @@ public class MainWindow extends JFrame {
 			recentProjects.removeAll();
 			File openFile = wrapper.getOpenFile();
 			Path currentPath = openFile == null ? null : openFile.toPath();
-			for (final Path path : settings.getRecentProjects()) {
+			for (Path path : settings.getRecentProjects()) {
 				if (!path.equals(currentPath)) {
 					JMenuItem menuItem = new JMenuItem(path.toAbsolutePath().toString());
 					recentProjects.add(menuItem);

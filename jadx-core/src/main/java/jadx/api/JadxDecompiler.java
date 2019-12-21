@@ -188,7 +188,7 @@ public final class JadxDecompiler {
 	}
 
 	private void appendSourcesSave(ExecutorService executor, File outDir) {
-		final Predicate<String> classFilter = args.getClassFilter();
+		Predicate<String> classFilter = args.getClassFilter();
 		for (JavaClass cls : getClasses()) {
 			if (cls.getClassNode().contains(AFlag.DONT_GENERATE)) {
 				continue;
@@ -281,6 +281,9 @@ public final class JadxDecompiler {
 		root.getErrorsCounter().printReport();
 	}
 
+	/**
+	 * Internal API. Not Stable!
+	 */
 	public RootNode getRoot() {
 		return root;
 	}

@@ -9,6 +9,7 @@ public class TestTypeResolver2 extends AbstractTest {
 
 	private static String result = "";
 
+	@SuppressWarnings({ "UnnecessaryBoxing", "CachedNumberConstructorCall", "deprecation" })
 	public void testOverloadedMethods() {
 		Object s1 = "The";
 		Object s2 = "answer";
