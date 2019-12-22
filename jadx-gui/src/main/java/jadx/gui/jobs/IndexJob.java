@@ -13,6 +13,7 @@ import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.CodeLinesInfo;
 import jadx.gui.utils.CodeUsageInfo;
 import jadx.gui.utils.JNodeCache;
+import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.search.StringRef;
 import jadx.gui.utils.search.TextSearchIndex;
@@ -27,6 +28,7 @@ public class IndexJob extends BackgroundJob {
 		this.cache = cache;
 	}
 
+	@Override
 	protected void runJob() {
 		JNodeCache nodeCache = cache.getNodeCache();
 		final TextSearchIndex index = new TextSearchIndex(nodeCache);
@@ -66,6 +68,6 @@ public class IndexJob extends BackgroundJob {
 
 	@Override
 	public String getInfoString() {
-		return "Indexing: ";
+		return NLS.str("progress.index");
 	}
 }

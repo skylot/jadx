@@ -78,6 +78,7 @@ import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
 import jadx.gui.JadxWrapper;
+import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.jobs.BackgroundWorker;
 import jadx.gui.jobs.DecompileJob;
 import jadx.gui.jobs.IndexJob;
@@ -156,6 +157,7 @@ public class MainWindow extends JFrame {
 	private transient Link updateLink;
 	private transient ProgressPanel progressPane;
 	private transient BackgroundWorker backgroundWorker;
+	private transient BackgroundExecutor backgroundExecutor;
 	private transient Theme editorTheme;
 
 	public MainWindow(JadxSettings settings) {
@@ -172,6 +174,8 @@ public class MainWindow extends JFrame {
 		loadSettings();
 		checkForUpdate();
 		newProject();
+
+		this.backgroundExecutor = new BackgroundExecutor(this);
 	}
 
 	public void init() {
@@ -252,14 +256,6 @@ public class MainWindow extends JFrame {
 		clearTree();
 	}
 
-	private void clearTree() {
-		tabbedPane.closeAllTabs();
-		resetCache();
-		treeRoot = null;
-		treeModel.setRoot(treeRoot);
-		treeModel.reload();
-	}
-
 	private void saveProject() {
 		if (project.getProjectPath() == null) {
 			saveProjectAs();
@@ -310,13 +306,15 @@ public class MainWindow extends JFrame {
 			openProject(path);
 		} else {
 			project.setFilePath(path);
-			tabbedPane.closeAllTabs();
-			resetCache();
-			wrapper.openFile(path.toFile());
-			deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
-			initTree();
-			update();
-			runBackgroundJobs();
+			clearTree();
+			backgroundExecutor.execute(NLS.str("progress.load"),
+					() -> wrapper.openFile(path.toFile()),
+					() -> {
+						deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
+						initTree();
+						update();
+						runBackgroundJobs();
+					});
 		}
 	}
 
@@ -398,6 +396,7 @@ public class MainWindow extends JFrame {
 	}
 
 	public synchronized void cancelBackgroundJobs() {
+		backgroundExecutor.cancelAll();
 		if (backgroundWorker != null) {
 			backgroundWorker.stop();
 			backgroundWorker = new BackgroundWorker(cacheObject, progressPane);
@@ -490,6 +489,14 @@ public class MainWindow extends JFrame {
 		treeRoot.setFlatPackages(isFlattenPackage);
 		treeModel.setRoot(treeRoot);
 		reloadTree();
+	}
+
+	private void clearTree() {
+		tabbedPane.closeAllTabs();
+		resetCache();
+		treeRoot = null;
+		treeModel.setRoot(treeRoot);
+		treeModel.reload();
 	}
 
 	private void reloadTree() {
@@ -1099,6 +1106,10 @@ public class MainWindow extends JFrame {
 
 	public BackgroundWorker getBackgroundWorker() {
 		return backgroundWorker;
+	}
+
+	public ProgressPanel getProgressPane() {
+		return progressPane;
 	}
 
 	private class RecentProjectsMenuListener implements MenuListener {

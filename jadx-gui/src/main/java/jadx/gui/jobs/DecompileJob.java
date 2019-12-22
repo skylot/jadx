@@ -2,6 +2,7 @@ package jadx.gui.jobs;
 
 import jadx.api.JavaClass;
 import jadx.gui.JadxWrapper;
+import jadx.gui.utils.NLS;
 
 public class DecompileJob extends BackgroundJob {
 
@@ -9,6 +10,7 @@ public class DecompileJob extends BackgroundJob {
 		super(wrapper, threadsCount);
 	}
 
+	@Override
 	protected void runJob() {
 		for (final JavaClass cls : wrapper.getIncludedClasses()) {
 			addTask(cls::decompile);
@@ -17,6 +19,6 @@ public class DecompileJob extends BackgroundJob {
 
 	@Override
 	public String getInfoString() {
-		return "Decompiling: ";
+		return NLS.str("progress.decompile");
 	}
 }

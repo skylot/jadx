@@ -62,6 +62,14 @@ public class NLS {
 		LANG_LOCALES_MAP.put(locale, bundle);
 	}
 
+	public static String str(String key) {
+		try {
+			return localizedMessagesMap.getString(key);
+		} catch (Exception e) {
+			return FALLBACK_MESSAGES_MAP.getString(key);
+		}
+	}
+
 	public static String str(String key, Object... parameters) {
 		String value;
 		try {
