@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 
 import jadx.api.ICodeInfo;
 import jadx.api.ResourceFile;
-import jadx.core.codegen.CodeWriter;
 
 public class ResContainer implements Comparable<ResContainer> {
 
@@ -34,7 +33,7 @@ public class ResContainer implements Comparable<ResContainer> {
 		return new ResContainer(resFile.getName(), Collections.emptyList(), resFile, DataType.RES_LINK);
 	}
 
-	public static ResContainer resourceTable(String name, List<ResContainer> subFiles, CodeWriter rootContent) {
+	public static ResContainer resourceTable(String name, List<ResContainer> subFiles, ICodeInfo rootContent) {
 		return new ResContainer(name, subFiles, rootContent, DataType.RES_TABLE);
 	}
 

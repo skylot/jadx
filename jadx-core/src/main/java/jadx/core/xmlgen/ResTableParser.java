@@ -10,6 +10,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.ICodeInfo;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.FieldNode;
@@ -73,12 +74,12 @@ public class ResTableParser extends CommonBinaryParser {
 		ValuesParser vp = new ValuesParser(root, strings, resStorage.getResourcesNames());
 		ResXmlGen resGen = new ResXmlGen(resStorage, vp);
 
-		CodeWriter content = makeXmlDump();
+		ICodeInfo content = makeXmlDump();
 		List<ResContainer> xmlFiles = resGen.makeResourcesXml();
 		return ResContainer.resourceTable("res", xmlFiles, content);
 	}
 
-	public CodeWriter makeXmlDump() {
+	public ICodeInfo makeXmlDump() {
 		CodeWriter writer = new CodeWriter();
 		writer.startLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
 		writer.startLine("<resources>");
@@ -94,8 +95,7 @@ public class ResTableParser extends CommonBinaryParser {
 		}
 		writer.decIndent();
 		writer.startLine("</resources>");
-		writer.finish();
-		return writer;
+		return writer.finish();
 	}
 
 	public ResourceStorage getResStorage() {
