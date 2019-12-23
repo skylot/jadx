@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jadx.api.CodePosition;
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
@@ -14,6 +17,7 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.utils.search.StringRef;
 
 public class CodeUsageInfo {
+	private static final Logger LOG = LoggerFactory.getLogger(CodeUsageInfo.class);
 
 	public static class UsageInfo {
 		private final List<CodeNode> usageList = new ArrayList<>();
@@ -36,11 +40,15 @@ public class CodeUsageInfo {
 	private final Map<JNode, UsageInfo> usageMap = new ConcurrentHashMap<>();
 
 	public void processClass(JavaClass javaClass, CodeLinesInfo linesInfo, List<StringRef> lines) {
-		Map<CodePosition, JavaNode> usage = javaClass.getUsageMap();
-		for (Map.Entry<CodePosition, JavaNode> entry : usage.entrySet()) {
-			CodePosition codePosition = entry.getKey();
-			JavaNode javaNode = entry.getValue();
-			addUsage(nodeCache.makeFrom(javaNode), javaClass, linesInfo, codePosition, lines);
+		try {
+			Map<CodePosition, JavaNode> usage = javaClass.getUsageMap();
+			for (Map.Entry<CodePosition, JavaNode> entry : usage.entrySet()) {
+				CodePosition codePosition = entry.getKey();
+				JavaNode javaNode = entry.getValue();
+				addUsage(nodeCache.makeFrom(javaNode), javaClass, linesInfo, codePosition, lines);
+			}
+		} catch (Exception e) {
+			LOG.error("Code usage process failed for class: {}", javaClass, e);
 		}
 	}
 

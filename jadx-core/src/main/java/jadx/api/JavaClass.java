@@ -73,7 +73,7 @@ public final class JavaClass implements JavaNode {
 		return cls;
 	}
 
-	private void loadLists() {
+	private synchronized void loadLists() {
 		if (listsLoaded) {
 			return;
 		}
