@@ -171,7 +171,9 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	private void loadStaticValues(ClassDef cls, List<FieldNode> staticFields) throws DecodeException {
 		for (FieldNode f : staticFields) {
-			if (f.getAccessFlags().isFinal()) {
+			AccessInfo flags = f.getAccessFlags();
+			if (flags.isStatic() && flags.isFinal()) {
+				LOG.debug("loadStaticValues(): Adding NULL initializer to static final field {}", f.getAlias());
 				f.addAttr(FieldInitAttr.NULL_VALUE);
 			}
 		}
