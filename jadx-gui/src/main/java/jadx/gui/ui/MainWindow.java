@@ -200,16 +200,19 @@ public class MainWindow extends JFrame {
 			openFileOrProject();
 		} else {
 			open(Paths.get(settings.getFiles().get(0)));
-			if (settings.getCmdSelectClass() != null) {
-				JavaNode javaNode = wrapper.searchJavaClassByClassName(settings.getCmdSelectClass());
-				if (javaNode == null) {
-					JOptionPane.showMessageDialog(this,
-							NLS.str("msg.cmd_select_class_error", settings.getCmdSelectClass()),
-							NLS.str("error_dialog.title"), JOptionPane.ERROR_MESSAGE);
-				} else {
-					JNode node = cacheObject.getNodeCache().makeFrom(javaNode);
-					tabbedPane.codeJump(new JumpPosition(node.getRootClass(), node.getLine()));
-				}
+		}
+	}
+
+	private void handleSelectClassOption() {
+		if (settings.getCmdSelectClass() != null) {
+			JavaNode javaNode = wrapper.searchJavaClassByClassName(settings.getCmdSelectClass());
+			if (javaNode == null) {
+				JOptionPane.showMessageDialog(this,
+						NLS.str("msg.cmd_select_class_error", settings.getCmdSelectClass()),
+						NLS.str("error_dialog.title"), JOptionPane.ERROR_MESSAGE);
+			} else {
+				JNode node = cacheObject.getNodeCache().makeFrom(javaNode);
+				tabbedPane.codeJump(new JumpPosition(node.getRootClass(), node.getLine()));
 			}
 		}
 	}
@@ -313,6 +316,7 @@ public class MainWindow extends JFrame {
 						deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
 						initTree();
 						update();
+						handleSelectClassOption();
 						runBackgroundJobs();
 					});
 		}
