@@ -46,6 +46,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
 
 	private final DexNode dex;
+	private final ClassDef cls;
 	private final int clsDefOffset;
 	private final ClassInfo clsInfo;
 	private AccessInfo accessFlags;
@@ -70,6 +71,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	public ClassNode(DexNode dex, ClassDef cls) {
 		this.dex = dex;
+		this.cls = cls;
 		this.clsDefOffset = cls.getOffset();
 		this.clsInfo = ClassInfo.fromDex(dex, cls.getTypeIndex());
 		try {
@@ -151,6 +153,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		this.fields = new ArrayList<>();
 		this.accessFlags = new AccessInfo(accessFlags, AFType.CLASS);
 		this.parentClass = this;
+		this.cls = null;
 
 		dex.addClassNode(this);
 	}
@@ -290,8 +293,33 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	}
 
 	public synchronized ICodeInfo refresh() {
-		load();
+		reloadRecursive();
 		return decompile(false);
+	}
+
+	private void reloadRecursive() {
+		load();
+		int sfIdx = cls.getSourceFileIndex();
+		if (sfIdx != DexNode.NO_INDEX) {
+			String fileName = dex.getString(sfIdx);
+			addSourceFilenameAttr(fileName);
+		}
+		for (ClassNode innerCls : getInnerClasses()) {
+			innerCls.reloadRecursive();
+		}
+		loadStaticInfo();
+		loadAnnotations(cls);
+	}
+
+	private void loadStaticInfo() {
+		try {
+			if (cls != null) {
+				loadStaticValues(cls, fields);
+			}
+		} catch (DecodeException e) {
+			LOG.error("Got DecodeException in loadStaticValues() for class {}", getRawName());
+			e.printStackTrace();
+		}
 	}
 
 	@Override
