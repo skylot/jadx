@@ -19,6 +19,6 @@ public class DecompileJob extends BackgroundJob {
 
 	@Override
 	public String getInfoString() {
-		return NLS.str("progress.decompile");
+		return NLS.str("progress.decompile") + "… ";
 	}
 }

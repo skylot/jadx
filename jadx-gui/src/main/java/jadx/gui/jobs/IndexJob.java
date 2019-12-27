@@ -68,6 +68,6 @@ public class IndexJob extends BackgroundJob {
 
 	@Override
 	public String getInfoString() {
-		return NLS.str("progress.index");
+		return NLS.str("progress.index") + "… ";
 	}
 }

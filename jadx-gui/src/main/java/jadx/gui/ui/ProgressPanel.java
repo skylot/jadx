@@ -79,6 +79,10 @@ public class ProgressPanel extends JPanel implements PropertyChangeListener {
 				setVisible(((Boolean) evt.getNewValue()));
 				break;
 
+			case "indeterminate":
+				setIndeterminate(((Boolean) evt.getNewValue()));
+				break;
+
 			case "cancel-visible":
 				cancelButton.setVisible(((Boolean) evt.getNewValue()));
 				break;
@@ -95,6 +99,10 @@ public class ProgressPanel extends JPanel implements PropertyChangeListener {
 
 	public void changeLabel(SwingWorker<?, ?> task, String label) {
 		task.firePropertyChange("label", null, label);
+	}
+
+	public void changeIndeterminate(SwingWorker<?, ?> task, boolean indeterminate) {
+		task.firePropertyChange("indeterminate", null, indeterminate);
 	}
 
 	public void changeVisibility(SwingWorker<?, ?> task, boolean visible) {

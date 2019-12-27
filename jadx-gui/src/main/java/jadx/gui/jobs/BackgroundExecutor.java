@@ -79,7 +79,7 @@ public class BackgroundExecutor {
 
 		@Override
 		protected Boolean doInBackground() throws Exception {
-			progressPane.changeLabel(this, task.getTitle() + ':');
+			progressPane.changeLabel(this, task.getTitle() + "… ");
 			progressPane.changeCancelBtnVisible(this, task.canBeCanceled());
 			progressPane.changeVisibility(this, true);
 
@@ -125,7 +125,8 @@ public class BackgroundExecutor {
 				}
 				if (isCancelled()) {
 					executor.shutdownNow();
-					progressPane.changeLabel(this, task.getTitle() + " (Canceling):");
+					progressPane.changeLabel(this, task.getTitle() + " (Canceling)… ");
+					progressPane.changeIndeterminate(this, true);
 					// force termination
 					executor.awaitTermination(5, TimeUnit.SECONDS);
 					return false;
