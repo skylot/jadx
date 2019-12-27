@@ -54,10 +54,10 @@ public class TextSearchIndex {
 	public void indexNames(JavaClass cls) {
 		clsNamesIndex.put(cls.getFullName(), nodeCache.makeFrom(cls));
 		for (JavaMethod mth : cls.getMethods()) {
-			mthNamesIndex.put(mth.getFullName(), nodeCache.makeFrom(mth));
+			mthNamesIndex.put(mth.getName(), nodeCache.makeFrom(mth));
 		}
 		for (JavaField fld : cls.getFields()) {
-			fldNamesIndex.put(fld.getFullName(), nodeCache.makeFrom(fld));
+			fldNamesIndex.put(fld.getName(), nodeCache.makeFrom(fld));
 		}
 		for (JavaClass innerCls : cls.getInnerClasses()) {
 			indexNames(innerCls);
