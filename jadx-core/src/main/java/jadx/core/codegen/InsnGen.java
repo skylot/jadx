@@ -467,7 +467,9 @@ public class InsnGen {
 			case MONITOR_EXIT:
 				if (isFallback()) {
 					code.add("monitor-exit(");
-					addArg(code, insn.getArg(0));
+					if (insn.getArgsCount() == 1) {
+						addArg(code, insn.getArg(0));
+					}
 					code.add(')');
 				}
 				break;

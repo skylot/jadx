@@ -155,6 +155,10 @@ public class IfMakerHelper {
 		if (curThen == curElse) {
 			return null;
 		}
+		if (BlockUtils.isFollowBackEdge(curThen)
+				|| BlockUtils.isFollowBackEdge(curElse)) {
+			return null;
+		}
 		boolean followThenBranch;
 		IfInfo nextIf = getNextIf(currentIf, curThen);
 		if (nextIf != null) {
@@ -378,6 +382,9 @@ public class IfMakerHelper {
 
 		BlockNode next = successors.get(0);
 		if (next.getPredecessors().size() != 1) {
+			return null;
+		}
+		if (next.contains(AFlag.ADDED_TO_REGION)) {
 			return null;
 		}
 		List<InsnNode> insns = block.getInstructions();

@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.IgnoreEdgeAttr;
+import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
@@ -135,6 +136,27 @@ public class BlockUtils {
 			return false; // already checked
 		}
 		return from.getSuccessors().contains(to);
+	}
+
+	public static boolean isFollowBackEdge(BlockNode block) {
+		if (block == null) {
+			return false;
+		}
+		if (block.contains(AFlag.LOOP_START)) {
+			List<BlockNode> predecessors = block.getPredecessors();
+			if (predecessors.size() == 1) {
+				BlockNode loopEndBlock = predecessors.get(0);
+				if (loopEndBlock.contains(AFlag.LOOP_END)) {
+					List<LoopInfo> loops = loopEndBlock.getAll(AType.LOOP);
+					for (LoopInfo loop : loops) {
+						if (loop.getStart().equals(block) && loop.getEnd().equals(loopEndBlock)) {
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	/**
