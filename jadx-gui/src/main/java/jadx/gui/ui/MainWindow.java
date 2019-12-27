@@ -103,6 +103,7 @@ import jadx.gui.utils.NLS;
 import jadx.gui.utils.SystemInfo;
 import jadx.gui.utils.UiUtils;
 
+import static io.reactivex.internal.functions.Functions.EMPTY_RUNNABLE;
 import static javax.swing.KeyStroke.getKeyStroke;
 
 @SuppressWarnings("serial")
@@ -199,7 +200,8 @@ public class MainWindow extends JFrame {
 		if (settings.getFiles().isEmpty()) {
 			openFileOrProject();
 		} else {
-			open(Paths.get(settings.getFiles().get(0)));
+			Path openFile = Paths.get(settings.getFiles().get(0));
+			open(openFile, this::handleSelectClassOption);
 		}
 	}
 
@@ -304,9 +306,14 @@ public class MainWindow extends JFrame {
 	}
 
 	void open(Path path) {
+		open(path, EMPTY_RUNNABLE);
+	}
+
+	void open(Path path, Runnable onFinish) {
 		if (path.getFileName().toString().toLowerCase(Locale.ROOT)
 				.endsWith(JadxProject.PROJECT_EXTENSION)) {
 			openProject(path);
+			onFinish.run();
 		} else {
 			project.setFilePath(path);
 			clearTree();
@@ -316,8 +323,8 @@ public class MainWindow extends JFrame {
 						deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
 						initTree();
 						update();
-						handleSelectClassOption();
 						runBackgroundJobs();
+						onFinish.run();
 					});
 		}
 	}
@@ -412,9 +419,8 @@ public class MainWindow extends JFrame {
 		File openedFile = wrapper.getOpenFile();
 		Map<String, Integer> openTabs = storeOpenTabs();
 		if (openedFile != null) {
-			open(openedFile.toPath());
+			open(openedFile.toPath(), () -> restoreOpenTabs(openTabs));
 		}
-		restoreOpenTabs(openTabs);
 	}
 
 	@NotNull
