@@ -209,13 +209,16 @@ public class MainWindow extends JFrame {
 		if (settings.getCmdSelectClass() != null) {
 			JavaNode javaNode = wrapper.searchJavaClassByClassName(settings.getCmdSelectClass());
 			if (javaNode == null) {
+				javaNode = wrapper.searchJavaClassByOrigClassName(settings.getCmdSelectClass());
+			}
+			if (javaNode == null) {
 				JOptionPane.showMessageDialog(this,
 						NLS.str("msg.cmd_select_class_error", settings.getCmdSelectClass()),
 						NLS.str("error_dialog.title"), JOptionPane.ERROR_MESSAGE);
-			} else {
-				JNode node = cacheObject.getNodeCache().makeFrom(javaNode);
-				tabbedPane.codeJump(new JumpPosition(node.getRootClass(), node.getLine()));
+				return;
 			}
+			JNode node = cacheObject.getNodeCache().makeFrom(javaNode);
+			tabbedPane.codeJump(new JumpPosition(node.getRootClass(), node.getLine()));
 		}
 	}
 

@@ -149,6 +149,13 @@ public class JadxWrapper {
 				.orElse(null);
 	}
 
+	public @Nullable JavaClass searchJavaClassByOrigClassName(String fullName) {
+		return decompiler.getClasses().stream()
+				.filter(cls -> cls.getClassNode().getClassInfo().getFullName().equals(fullName))
+				.findFirst()
+				.orElse(null);
+	}
+
 	/**
 	 * @param rawName Full raw name of an outer class. Inner classes are not supported.
 	 */
