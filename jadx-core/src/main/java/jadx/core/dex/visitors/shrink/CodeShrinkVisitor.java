@@ -130,7 +130,13 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 			return;
 		}
 
-		InsnArg replaceArg = InsnArg.wrapArg(assignInsn.copy());
+		InsnArg replaceArg;
+		InsnType assignInsnType = assignInsn.getType();
+		if (assignInsnType == InsnType.MOVE || assignInsnType == InsnType.CONST) {
+			replaceArg = assignInsn.getArg(0).duplicate();
+		} else {
+			replaceArg = InsnArg.wrapArg(assignInsn.copy());
+		}
 		useInsn.replaceArg(useArg, replaceArg);
 
 		assignInsn.add(AFlag.REMOVE);
