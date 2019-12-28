@@ -2,6 +2,8 @@ package jadx.core.dex.visitors;
 
 import java.util.ArrayList;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.core.codegen.TypeGen;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.InsnType;
@@ -105,8 +107,12 @@ public class ConstructorVisitor extends AbstractVisitor {
 	}
 
 	/**
-	 * Replace call of synthetic constructor
+	 * Replace call of synthetic constructor with all 'null' args
+	 * to a non-synthetic or default constructor if possible.
+	 *
+	 * @return insn for replacement or null if replace not needed or not possible.
 	 */
+	@Nullable
 	private static ConstructorInsn processConstructor(MethodNode mth, ConstructorInsn co) {
 		MethodNode callMth = mth.dex().resolveMethod(co.getCallMth());
 		if (callMth == null
@@ -125,11 +131,11 @@ public class ConstructorVisitor extends AbstractVisitor {
 		boolean passThis = instanceArg.isThis();
 		String ctrId = "<init>(" + (passThis ? TypeGen.signature(instanceArg.getInitType()) : "") + ")V";
 		MethodNode defCtr = classNode.searchMethodByShortId(ctrId);
-		if (defCtr == null) {
+		if (defCtr == null || defCtr.equals(callMth) || defCtr.getAccessFlags().isSynthetic()) {
 			return null;
 		}
 		ConstructorInsn newInsn = new ConstructorInsn(defCtr.getMethodInfo(), co.getCallType());
-		newInsn.setResult(co.getResult());
+		newInsn.setResult(co.getResult().duplicate());
 		return newInsn;
 	}
 
