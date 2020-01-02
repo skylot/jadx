@@ -77,6 +77,7 @@ import jadx.api.JadxArgs;
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
+import jadx.core.utils.files.FileUtils;
 import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.jobs.BackgroundWorker;
@@ -1098,6 +1099,8 @@ public class MainWindow extends JFrame {
 		settings.setMainWindowExtendedState(getExtendedState());
 		cancelBackgroundJobs();
 		dispose();
+
+		FileUtils.deleteTempRootDir();
 		System.exit(0);
 	}
 

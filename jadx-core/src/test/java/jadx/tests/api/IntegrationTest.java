@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.jar.JarOutputStream;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import jadx.api.ICodeInfo;
@@ -117,6 +117,11 @@ public abstract class IntegrationTest extends TestUtils {
 		args.setThreadsCount(1);
 		args.setSkipResources(true);
 		args.setFsCaseSensitive(false); // use same value on all systems
+	}
+
+	@AfterEach
+	public void after() {
+		FileUtils.clearTempRootDir();
 	}
 
 	public String getTestName() {
@@ -414,7 +419,7 @@ public abstract class IntegrationTest extends TestUtils {
 				temp = FileUtils.createTempFile(suffix);
 			} else {
 				// don't delete on exit
-				temp = Files.createTempFile("jadx", suffix);
+				temp = FileUtils.createTempFileNoDelete(suffix);
 				System.out.println("Temporary file saved: " + temp.toAbsolutePath());
 			}
 			return temp.toFile();
