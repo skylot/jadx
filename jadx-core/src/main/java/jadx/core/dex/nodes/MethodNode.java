@@ -154,6 +154,15 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	public void checkInstructions() {
 		List<RegisterArg> list = new ArrayList<>();
+		if (instructions == null) {
+			LOG.debug("Instructions == null, reloading method {}.{}", getClass().getName(), getName());
+			unload();
+			try {
+				load();
+			} catch (DecodeException e) {
+				throw new JadxRuntimeException("Failed to reload method " + getClass().getName() + "." + getName());
+			}
+		}
 		for (InsnNode insnNode : instructions) {
 			if (insnNode == null) {
 				continue;
