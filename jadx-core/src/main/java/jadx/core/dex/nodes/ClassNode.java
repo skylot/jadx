@@ -103,7 +103,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 				for (Field f : clsData.getStaticFields()) {
 					fields.add(new FieldNode(this, f));
 				}
-				loadStaticValues(cls, fields);
+				loadStaticValues(cls, fields, false);
 				for (Field f : clsData.getInstanceFields()) {
 					fields.add(new FieldNode(this, f));
 				}
@@ -170,7 +170,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		}
 	}
 
-	private void loadStaticValues(ClassDef cls, List<FieldNode> staticFields) throws DecodeException {
+	private void loadStaticValues(ClassDef cls, List<FieldNode> staticFields, boolean isRefresh) throws DecodeException {
 		for (FieldNode f : staticFields) {
 			AccessInfo flags = f.getAccessFlags();
 			if (flags.isStatic() && flags.isFinal()) {
@@ -187,7 +187,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		parser.processFields(staticFields);
 
 		// process const fields
-		root().getConstValues().processConstFields(this, staticFields);
+		root().getConstValues().processConstFields(this, staticFields, isRefresh);
 	}
 
 	private void parseClassSignature() {
@@ -317,7 +317,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	private void loadStaticInfo() {
 		try {
 			if (cls != null) {
-				loadStaticValues(cls, fields);
+				loadStaticValues(cls, fields, true);
 			}
 		} catch (DecodeException e) {
 			LOG.error("Got DecodeException in loadStaticValues() for class {}", getRawName());
