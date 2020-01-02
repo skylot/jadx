@@ -90,5 +90,7 @@ public class AType<T extends IAttribute> {
 			RENAME_REASON,
 			JADX_WARN,
 			JADX_ERROR,
+			FIELD_INIT,
+			SOURCE_FILE,
 			SKIP_MTH_ARGS));
 }
