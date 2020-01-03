@@ -64,7 +64,7 @@ public class ConstStorage {
 		this.replaceEnabled = args.isReplaceConsts();
 	}
 
-	public void processConstFields(ClassNode cls, List<FieldNode> staticFields, boolean isRefresh) {
+	public void processConstFields(ClassNode cls, List<FieldNode> staticFields) {
 		if (!replaceEnabled || staticFields.isEmpty()) {
 			return;
 		}
@@ -76,9 +76,7 @@ public class ConstStorage {
 						&& fv.getValue() != null
 						&& fv.getValueType() == FieldInitAttr.InitType.CONST
 						&& fv != FieldInitAttr.NULL_VALUE) {
-					if (!isRefresh) {
-						addConstField(cls, f, fv.getValue(), accFlags.isPublic());
-					}
+					addConstField(cls, f, fv.getValue(), accFlags.isPublic());
 				}
 			}
 		}

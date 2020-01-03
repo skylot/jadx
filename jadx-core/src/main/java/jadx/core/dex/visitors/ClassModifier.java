@@ -105,7 +105,7 @@ public class ClassModifier extends AbstractVisitor {
 			return false;
 		}
 		List<RegisterArg> args = mth.getArgRegs();
-		if (args.isEmpty()) {
+		if (args.isEmpty() || mth.contains(AFlag.SKIP_FIRST_ARG)) {
 			return false;
 		}
 		RegisterArg arg = args.get(0);
