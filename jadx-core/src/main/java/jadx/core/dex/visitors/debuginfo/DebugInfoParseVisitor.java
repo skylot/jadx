@@ -48,6 +48,15 @@ public class DebugInfoParseVisitor extends AbstractVisitor {
 
 	private void processDebugInfo(MethodNode mth, int debugOffset) {
 		InsnNode[] insnArr = mth.getInstructions();
+		if (insnArr == null) {
+			LOG.debug("insnArr == null, reloading method {}.{}", getClass().getName(), mth.getName());
+			mth.reload();
+			insnArr = mth.getInstructions();
+		}
+		if (insnArr == null) {
+			LOG.error("insnArr == null even after reloading method {}.{} - bailing", getClass().getName(), mth.getName());
+			return;
+		}
 		DebugInfoParser debugInfoParser = new DebugInfoParser(mth, debugOffset, insnArr);
 		List<LocalVar> localVars = debugInfoParser.process();
 		attachDebugInfo(mth, localVars, insnArr);
