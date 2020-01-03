@@ -46,7 +46,7 @@ public class RenameReasonAttr implements IAttribute {
 	public RenameReasonAttr append(String reason) {
 		if (description.isEmpty()) {
 			description += reason;
-		} else if (!description.contains(reason)) {
+		} else {
 			description += " and " + reason;
 		}
 		return this;

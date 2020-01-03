@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
+import com.android.dx.rop.code.AccessFlags;
+
 import jadx.core.codegen.TypeGen;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
@@ -45,7 +47,8 @@ public class EnumVisitor extends AbstractVisitor {
 		if (!convertToEnum(cls)) {
 			AccessInfo accessFlags = cls.getAccessFlags();
 			if (accessFlags.isEnum()) {
-				cls.addAttr(AType.COMMENTS, "'enum' modifier should be removed");
+				cls.setAccessFlags(accessFlags.remove(AccessFlags.ACC_ENUM));
+				cls.addAttr(AType.COMMENTS, "'enum' modifier removed");
 			}
 		}
 		return true;

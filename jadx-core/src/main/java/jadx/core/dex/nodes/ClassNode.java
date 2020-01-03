@@ -54,8 +54,8 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	private List<ArgType> interfaces;
 	private List<GenericInfo> generics = Collections.emptyList();
 
-	private final List<MethodNode> methods;
-	private final List<FieldNode> fields;
+	private List<MethodNode> methods;
+	private List<FieldNode> fields;
 	private List<ClassNode> innerClasses = Collections.emptyList();
 
 	// store smali
@@ -74,6 +74,10 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		this.cls = cls;
 		this.clsDefOffset = cls.getOffset();
 		this.clsInfo = ClassInfo.fromDex(dex, cls.getTypeIndex());
+		initialLoad();
+	}
+
+	private void initialLoad() {
 		try {
 			if (cls.getSupertypeIndex() == DexNode.NO_INDEX) {
 				this.superClass = null;
@@ -102,7 +106,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 				for (Field f : clsData.getStaticFields()) {
 					fields.add(new FieldNode(this, f));
 				}
-				loadStaticValues(cls, fields, false);
+				loadStaticValues(cls, fields);
 				for (Field f : clsData.getInstanceFields()) {
 					fields.add(new FieldNode(this, f));
 				}
@@ -169,7 +173,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		}
 	}
 
-	private void loadStaticValues(ClassDef cls, List<FieldNode> staticFields, boolean isRefresh) throws DecodeException {
+	private void loadStaticValues(ClassDef cls, List<FieldNode> staticFields) throws DecodeException {
 		for (FieldNode f : staticFields) {
 			AccessInfo flags = f.getAccessFlags();
 			if (flags.isStatic() && flags.isFinal()) {
@@ -186,7 +190,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		parser.processFields(staticFields);
 
 		// process const fields
-		root().getConstValues().processConstFields(this, staticFields, isRefresh);
+		root().getConstValues().processConstFields(this, staticFields);
 	}
 
 	private void parseClassSignature() {
@@ -275,7 +279,11 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return decompile(true);
 	}
 
-	public ICodeInfo reloadCode() {
+	public synchronized ICodeInfo reloadCode() {
+		unload();
+		clearAttributes();
+		initialLoad();
+		load();
 		return decompile(false);
 	}
 
@@ -292,36 +300,6 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		ICodeInfo codeInfo = ProcessClass.generateCode(topParentClass);
 		codeCache.add(clsRawName, codeInfo);
 		return codeInfo;
-	}
-
-	public synchronized ICodeInfo refresh() {
-		reloadRecursive();
-		return decompile(false);
-	}
-
-	private void reloadRecursive() {
-		load();
-		int sfIdx = cls.getSourceFileIndex();
-		if (sfIdx != DexNode.NO_INDEX) {
-			String fileName = dex.getString(sfIdx);
-			addSourceFilenameAttr(fileName);
-		}
-		for (ClassNode innerCls : getInnerClasses()) {
-			innerCls.reloadRecursive();
-		}
-		loadStaticInfo();
-		loadAnnotations(cls);
-	}
-
-	private void loadStaticInfo() {
-		try {
-			if (cls != null) {
-				loadStaticValues(cls, fields, true);
-			}
-		} catch (DecodeException e) {
-			LOG.error("Got DecodeException in loadStaticValues() for class {}", getRawName());
-			e.printStackTrace();
-		}
 	}
 
 	@Override
@@ -346,6 +324,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		fields.forEach(FieldNode::unloadAttributes);
 		unloadAttributes();
 		setState(NOT_LOADED);
+		this.smali = null;
 	}
 
 	private void buildCache() {
