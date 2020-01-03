@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.file.Path;
 
-import org.jetbrains.annotations.NotNull;
 import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.baksmali.BaksmaliOptions;
 import org.jf.dexlib2.DexFileFactory;
@@ -34,24 +33,25 @@ public class SmaliUtils {
 		}
 	}
 
-	@NotNull
-	public static String getSmaliCode(DexNode dex, int clsDefOffset) {
+	public static boolean getSmaliCode(DexNode dex, int clsDefOffset, StringWriter stringWriter) {
 		try {
 			Path path = dex.getDexFile().getPath();
 			DexBackedDexFile dexFile = DexFileFactory.loadDexFile(path.toFile(), null);
 			DexBackedClassDef dexBackedClassDef = new DexBackedClassDef(dexFile, clsDefOffset);
-			return getSmaliCode(dexBackedClassDef);
+			getSmaliCode(dexBackedClassDef, stringWriter);
+			return true;
 		} catch (Exception e) {
 			LOG.error("Error generating smali", e);
-			return "Error generating smali code: " + e.getMessage()
-					+ '\n' + Utils.getStackTrace(e);
+			stringWriter.append("Error generating smali code: ");
+			stringWriter.append(e.getMessage());
+			stringWriter.append(System.lineSeparator());
+			stringWriter.append(Utils.getStackTrace(e));
+			return false;
 		}
 	}
 
-	private static String getSmaliCode(DexBackedClassDef classDef) throws IOException {
+	private static void getSmaliCode(DexBackedClassDef classDef, StringWriter stringWriter) throws IOException {
 		ClassDefinition classDefinition = new ClassDefinition(new BaksmaliOptions(), classDef);
-		StringWriter sw = new StringWriter();
-		classDefinition.writeTo(new IndentingWriter(sw));
-		return sw.toString();
+		classDefinition.writeTo(new IndentingWriter(stringWriter));
 	}
 }
