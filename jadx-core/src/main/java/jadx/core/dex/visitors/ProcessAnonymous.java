@@ -5,27 +5,29 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.dex.visitors.regions.RegionMakerVisitor;
 
 @JadxVisitor(
 		name = "ProcessAnonymous",
-		desc = "Mark anonymous and lambda classes (for future inline)",
-		runAfter = RegionMakerVisitor.class
+		desc = "Mark anonymous and lambda classes (for future inline)"
 )
 public class ProcessAnonymous extends AbstractVisitor {
 
 	@Override
 	public void init(RootNode root) {
-		if (!root.getArgs().isInlineAnonymousClasses()) {
-			return;
+		if (root.getArgs().isInlineAnonymousClasses()) {
+			for (ClassNode cls : root.getClasses(true)) {
+				markAnonymousClass(cls);
+			}
 		}
+	}
 
-		for (ClassNode cls : root.getClasses(true)) {
+	public static void runForClass(ClassNode cls) {
+		if (cls.root().getArgs().isInlineAnonymousClasses()) {
 			markAnonymousClass(cls);
 		}
 	}
 
-	private static boolean markAnonymousClass(ClassNode cls) {
+	private static void markAnonymousClass(ClassNode cls) {
 		if (isAnonymous(cls) || isLambdaCls(cls)) {
 			cls.add(AFlag.ANONYMOUS_CLASS);
 			cls.add(AFlag.DONT_GENERATE);
@@ -35,9 +37,7 @@ public class ProcessAnonymous extends AbstractVisitor {
 					mth.add(AFlag.ANONYMOUS_CONSTRUCTOR);
 				}
 			}
-			return true;
 		}
-		return false;
 	}
 
 	private static boolean isAnonymous(ClassNode cls) {
@@ -62,5 +62,4 @@ public class ProcessAnonymous extends AbstractVisitor {
 		}
 		return c;
 	}
-
 }

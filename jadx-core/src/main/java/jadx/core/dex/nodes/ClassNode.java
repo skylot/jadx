@@ -35,6 +35,7 @@ import jadx.core.dex.nodes.parser.AnnotationsParser;
 import jadx.core.dex.nodes.parser.FieldInitAttr;
 import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.nodes.parser.StaticValuesParser;
+import jadx.core.dex.visitors.ProcessAnonymous;
 import jadx.core.utils.SmaliUtils;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -175,9 +176,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	private void loadStaticValues(ClassDef cls, List<FieldNode> staticFields) throws DecodeException {
 		for (FieldNode f : staticFields) {
-			AccessInfo flags = f.getAccessFlags();
-			if (flags.isStatic() && flags.isFinal()) {
-				LOG.debug("loadStaticValues(): Adding NULL initializer to static final field {}", f.getAlias());
+			if (f.getAccessFlags().isFinal()) {
 				f.addAttr(FieldInitAttr.NULL_VALUE);
 			}
 		}
@@ -281,10 +280,19 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	public synchronized ICodeInfo reloadCode() {
 		unload();
-		clearAttributes();
-		initialLoad();
-		load();
+		deepUnload();
 		return decompile(false);
+	}
+
+	private void deepUnload() {
+		clearAttributes();
+		root().getConstValues().removeForClass(this);
+		initialLoad();
+		ProcessAnonymous.runForClass(this);
+
+		for (ClassNode innerClass : innerClasses) {
+			innerClass.deepUnload();
+		}
 	}
 
 	private synchronized ICodeInfo decompile(boolean searchInCache) {

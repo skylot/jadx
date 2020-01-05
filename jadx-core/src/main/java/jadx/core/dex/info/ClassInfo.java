@@ -66,9 +66,13 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 	}
 
 	public void changeShortName(String aliasName) {
-		ClassAliasInfo newAlias = new ClassAliasInfo(getAliasPkg(), aliasName);
-		fillAliasFullName(newAlias);
-		this.alias = newAlias;
+		if (!Objects.equals(name, aliasName)) {
+			ClassAliasInfo newAlias = new ClassAliasInfo(getAliasPkg(), aliasName);
+			fillAliasFullName(newAlias);
+			this.alias = newAlias;
+		} else {
+			this.alias = null;
+		}
 	}
 
 	public void changePkg(String aliasPkg) {

@@ -2,8 +2,10 @@ package jadx.core.dex.info;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
@@ -52,6 +54,18 @@ public class ConstStorage {
 		public boolean contains(Object value) {
 			return duplicates.contains(value) || values.containsKey(value);
 		}
+
+		void removeForCls(ClassNode cls) {
+			Iterator<Entry<Object, FieldNode>> it = values.entrySet().iterator();
+			while (it.hasNext()) {
+				Entry<Object, FieldNode> entry = it.next();
+				FieldNode field = entry.getValue();
+				if (field.getParentClass().equals(cls)) {
+					it.remove();
+					duplicates.remove(entry.getKey());
+				}
+			}
+		}
 	}
 
 	private final boolean replaceEnabled;
@@ -80,6 +94,11 @@ public class ConstStorage {
 				}
 			}
 		}
+	}
+
+	public void removeForClass(ClassNode cls) {
+		classes.remove(cls);
+		globalValues.removeForCls(cls);
 	}
 
 	private void addConstField(ClassNode cls, FieldNode fld, Object value, boolean isPublic) {
