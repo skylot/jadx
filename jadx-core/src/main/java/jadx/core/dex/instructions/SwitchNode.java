@@ -3,6 +3,7 @@ package jadx.core.dex.instructions;
 import java.util.Arrays;
 import java.util.List;
 
+import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
@@ -110,15 +111,13 @@ public class SwitchNode extends TargetInsnNode {
 
 	@Override
 	public String toString() {
-		StringBuilder targ = new StringBuilder();
-		targ.append('[');
+		StringBuilder sb = new StringBuilder();
+		sb.append(super.toString());
 		for (int i = 0; i < targets.length; i++) {
-			targ.append(InsnUtils.formatOffset(targets[i]));
-			if (i < targets.length - 1) {
-				targ.append(", ");
-			}
+			sb.append("  case ").append(keys[i])
+					.append(": goto ").append(InsnUtils.formatOffset(targets[i]));
+			sb.append(CodeWriter.NL);
 		}
-		targ.append(']');
-		return super.toString() + " k:" + Arrays.toString(keys) + " t:" + targ;
+		return sb.toString();
 	}
 }
