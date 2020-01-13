@@ -28,6 +28,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.parser.FieldInitAttr;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.SwitchRegion;
+import jadx.core.dex.regions.SwitchRegion.CaseInfo;
 import jadx.core.dex.regions.SynchronizedRegion;
 import jadx.core.dex.regions.TryCatchRegion;
 import jadx.core.dex.regions.conditions.IfCondition;
@@ -270,10 +271,9 @@ public class RegionGen extends InsnGen {
 		code.add(") {");
 		code.incIndent();
 
-		int size = sw.getKeys().size();
-		for (int i = 0; i < size; i++) {
-			List<Object> keys = sw.getKeys().get(i);
-			IContainer c = sw.getCases().get(i);
+		for (CaseInfo caseInfo : sw.getCases()) {
+			List<Object> keys = caseInfo.getKeys();
+			IContainer c = caseInfo.getContainer();
 			for (Object k : keys) {
 				code.startLine("case ");
 				if (k instanceof FieldNode) {

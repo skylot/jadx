@@ -211,6 +211,10 @@ public class StringUtils {
 		return str == null || str.isEmpty();
 	}
 
+	public static boolean notBlank(String str) {
+		return notEmpty(str) && !str.trim().isEmpty();
+	}
+
 	public static int countMatches(String str, String subStr) {
 		if (str == null || str.isEmpty() || subStr == null || subStr.isEmpty()) {
 			return 0;
