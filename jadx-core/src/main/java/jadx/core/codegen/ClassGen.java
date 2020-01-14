@@ -52,6 +52,8 @@ public class ClassGen {
 	private final Set<ClassInfo> imports = new HashSet<>();
 	private int clsDeclLine;
 
+	private boolean bodyGenStarted;
+
 	public ClassGen(ClassNode cls, JadxArgs jadxArgs) {
 		this(cls, null, jadxArgs.isUseImports(), jadxArgs.isFallbackMode(), jadxArgs.isShowInconsistentCode());
 	}
@@ -222,6 +224,7 @@ public class ClassGen {
 
 	public void addClassBody(CodeWriter clsCode) throws CodegenException {
 		clsCode.add('{');
+		setBodyGenStarted(true);
 		clsDeclLine = clsCode.getLine();
 		clsCode.incIndent();
 		addFields(clsCode);
@@ -655,5 +658,13 @@ public class ClassGen {
 
 	public boolean isFallbackMode() {
 		return fallback;
+	}
+
+	public boolean isBodyGenStarted() {
+		return bodyGenStarted;
+	}
+
+	public void setBodyGenStarted(boolean bodyGenStarted) {
+		this.bodyGenStarted = bodyGenStarted;
 	}
 }
