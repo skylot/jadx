@@ -16,8 +16,6 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
-import static jadx.core.utils.files.FileUtils.close;
-
 /**
  * Simple template engine
  * Syntax for replace variable with value: '{{variable}}'
@@ -56,21 +54,15 @@ public class TemplateFile {
 	}
 
 	public String build() throws IOException {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		try {
+		try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 			process(out);
-		} finally {
-			close(out);
+			return out.toString();
 		}
-		return out.toString();
 	}
 
 	public void save(File outFile) throws IOException {
-		OutputStream out = new FileOutputStream(outFile);
-		try {
+		try (OutputStream out = new FileOutputStream(outFile)) {
 			process(out);
-		} finally {
-			close(out);
 		}
 	}
 

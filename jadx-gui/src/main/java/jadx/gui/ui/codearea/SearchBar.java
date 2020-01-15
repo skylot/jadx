@@ -40,7 +40,6 @@ class SearchBar extends JToolBar {
 
 	private final JCheckBox wholeWordCB;
 	private final JCheckBox matchCaseCB;
-	private ActionListener forwardListener = e -> search(0);
 
 	public SearchBar(RSyntaxTextArea textArea) {
 		rTextArea = textArea;
@@ -80,6 +79,8 @@ class SearchBar extends JToolBar {
 		nextButton.addActionListener(e -> search(1));
 		nextButton.setBorderPainted(false);
 		add(nextButton);
+
+		ActionListener forwardListener = e -> search(0);
 
 		markAllCB = new JCheckBox(NLS.str("search.mark_all"));
 		markAllCB.addActionListener(forwardListener);

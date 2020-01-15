@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -92,9 +93,8 @@ public class FileUtils {
 	}
 
 	public static void deleteDir(Path dir) {
-		try {
-			Files.walk(dir)
-					.sorted(Comparator.reverseOrder())
+		try (Stream<Path> pathStream = Files.walk(dir)) {
+			pathStream.sorted(Comparator.reverseOrder())
 					.map(Path::toFile)
 					.forEach(File::delete);
 		} catch (Exception e) {
