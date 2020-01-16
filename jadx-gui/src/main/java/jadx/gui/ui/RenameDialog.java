@@ -132,6 +132,7 @@ public class RenameDialog extends JDialog {
 		Files.copy(deobfMapPath, oldMap.toPath(), StandardCopyOption.REPLACE_EXISTING);
 		Files.copy(tmpFile.toPath(), deobfMapPath, StandardCopyOption.REPLACE_EXISTING);
 		Files.delete(oldMap.toPath());
+		Files.delete(tmpFile.toPath());
 		return true;
 	}
 
