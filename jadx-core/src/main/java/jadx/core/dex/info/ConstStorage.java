@@ -62,7 +62,6 @@ public class ConstStorage {
 				FieldNode field = entry.getValue();
 				if (field.getParentClass().equals(cls)) {
 					it.remove();
-					duplicates.remove(entry.getKey());
 				}
 			}
 		}
