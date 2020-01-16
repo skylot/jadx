@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -23,7 +24,7 @@ import jadx.core.utils.ErrorsCounter;
 public class ConstStorage {
 
 	private static final class ValueStorage {
-		private final Map<Object, FieldNode> values = new HashMap<>();
+		private final Map<Object, FieldNode> values = new ConcurrentHashMap<>();
 		private final Set<Object> duplicates = new HashSet<>();
 
 		public Map<Object, FieldNode> getValues() {
