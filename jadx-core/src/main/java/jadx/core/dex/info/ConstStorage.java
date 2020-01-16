@@ -38,14 +38,14 @@ public class ConstStorage {
 		 * @return true if this value is duplicated
 		 */
 		public boolean put(Object value, FieldNode fld) {
+			if (duplicates.contains(value)) {
+				values.remove(value);
+				return true;
+			}
 			FieldNode prev = values.put(value, fld);
 			if (prev != null) {
 				values.remove(value);
 				duplicates.add(value);
-				return true;
-			}
-			if (duplicates.contains(value)) {
-				values.remove(value);
 				return true;
 			}
 			return false;
