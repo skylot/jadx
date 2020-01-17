@@ -1,5 +1,6 @@
 package jadx.core.dex.nodes;
 
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -555,9 +556,22 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 
 	public String getSmali() {
 		if (smali == null) {
-			smali = SmaliUtils.getSmaliCode(dex, clsDefOffset);
+			StringWriter stringWriter = new StringWriter(4096);
+			getSmali(this, stringWriter);
+			stringWriter.append(System.lineSeparator());
+			for (ClassNode innerClass : innerClasses) {
+				getSmali(innerClass, stringWriter);
+				stringWriter.append(System.lineSeparator());
+			}
+			smali = stringWriter.toString();
 		}
 		return smali;
+	}
+
+	protected static boolean getSmali(ClassNode classNode, StringWriter stringWriter) {
+		stringWriter.append(String.format("###### Class %s (%s)", classNode.getFullName(), classNode.getRawName()));
+		stringWriter.append(System.lineSeparator());
+		return SmaliUtils.getSmaliCode(classNode.dex, classNode.clsDefOffset, stringWriter);
 	}
 
 	public ProcessState getState() {

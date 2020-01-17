@@ -1,9 +1,12 @@
 package jadx.core.utils;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.TestOnly;
 import org.slf4j.Logger;
@@ -12,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.codegen.InsnGen;
 import jadx.core.codegen.MethodGen;
+import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
@@ -85,51 +89,74 @@ public class DebugUtils {
 		printRegions(mth, false);
 	}
 
-	public static void printRegion(MethodNode mth, IRegion region, boolean printInsn) {
-		printRegion(mth, region, "", printInsn);
-	}
-
 	public static void printRegions(MethodNode mth, boolean printInsns) {
-		LOG.debug("|{}", mth);
-		printRegion(mth, mth.getRegion(), "|  ", printInsns);
+		printRegion(mth, mth.getRegion(), printInsns);
 	}
 
-	private static void printRegion(MethodNode mth, IRegion region, String indent, boolean printInsns) {
-		LOG.debug("{}{} {}", indent, region, region.getAttributesString());
+	public static void printRegion(MethodNode mth, IRegion region, boolean printInsns) {
+		CodeWriter cw = new CodeWriter();
+		cw.startLine('|').add(mth.toString());
+		printRegion(mth, region, cw, "|  ", printInsns);
+		LOG.debug("\n{}", cw.finish().getCodeStr());
+	}
+
+	private static void printRegion(MethodNode mth, IRegion region, CodeWriter cw, String indent, boolean printInsns) {
+		printWithAttributes(cw, indent, region.toString(), region);
 		indent += "|  ";
 		for (IContainer container : region.getSubBlocks()) {
 			if (container instanceof IRegion) {
-				printRegion(mth, (IRegion) container, indent, printInsns);
+				printRegion(mth, (IRegion) container, cw, indent, printInsns);
 			} else {
-				LOG.debug("{}{} {}", indent, container, container.getAttributesString());
+				printWithAttributes(cw, indent, container.toString(), container);
 				if (printInsns && container instanceof IBlock) {
 					IBlock block = (IBlock) container;
-					printInsns(mth, indent, block);
+					printInsns(mth, cw, indent, block);
 				}
 			}
 		}
 	}
 
-	private static void printInsns(MethodNode mth, String indent, IBlock block) {
+	private static void printInsns(MethodNode mth, CodeWriter cw, String indent, IBlock block) {
 		for (InsnNode insn : block.getInstructions()) {
 			try {
 				MethodGen mg = MethodGen.getFallbackMethodGen(mth);
 				InsnGen ig = new InsnGen(mg, true);
 				CodeWriter code = new CodeWriter();
 				ig.makeInsn(insn, code);
-				String insnStr = code.toString().substring(CodeWriter.NL.length());
-				String attrStr = insn.isAttrStorageEmpty() ? "" : '\t' + insn.getAttributesString();
-				LOG.debug("{}|> {}{}", indent, insnStr, attrStr);
+				String codeStr = code.finish().getCodeStr();
+
+				List<String> insnStrings = Arrays.stream(codeStr.split(CodeWriter.NL))
+						.filter(StringUtils::notBlank)
+						.map(s -> "|> " + s)
+						.collect(Collectors.toList());
+				Iterator<String> it = insnStrings.iterator();
+				while (true) {
+					String insnStr = it.next();
+					if (it.hasNext()) {
+						cw.startLine(indent).add(insnStr);
+					} else {
+						printWithAttributes(cw, indent, insnStr, insn);
+						break;
+					}
+				}
 			} catch (CodegenException e) {
-				LOG.debug("{}|>!! {}", indent, insn);
+				cw.startLine(indent).add(">!! ").add(insn.toString());
 			}
 		}
 	}
 
-	public static void printMap(String desc, Map<?, ?> map) {
-		LOG.debug("Map of {}, size: {}", desc, map.size());
-		for (Map.Entry<?, ?> entry : map.entrySet()) {
-			LOG.debug("  {} : {}", entry.getKey(), entry.getValue());
+	private static void printWithAttributes(CodeWriter cw, String indent, String codeStr, IAttributeNode attrNode) {
+		String str = attrNode.isAttrStorageEmpty() ? codeStr : codeStr + ' ' + attrNode.getAttributesString();
+		List<String> attrStrings = Arrays.stream(str.split(CodeWriter.NL))
+				.filter(StringUtils::notBlank)
+				.collect(Collectors.toList());
+		Iterator<String> it = attrStrings.iterator();
+		if (!it.hasNext()) {
+			return;
+		}
+		cw.startLine(indent).add(it.next());
+		while (it.hasNext()) {
+			cw.startLine(indent).add("|+  ").add(it.next());
 		}
 	}
 }

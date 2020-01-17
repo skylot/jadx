@@ -11,6 +11,9 @@ import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.AttrNode;
+import jadx.core.dex.attributes.annotations.Annotation;
+import jadx.core.dex.attributes.annotations.AnnotationsList;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
@@ -46,6 +49,7 @@ import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.InsnUtils;
+import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.utils.BlockUtils.replaceInsn;
@@ -67,6 +71,12 @@ public class ModVisitor extends AbstractVisitor {
 
 	private static final long DOUBLE_TO_BITS = Double.doubleToLongBits(1);
 	private static final long FLOAT_TO_BITS = Float.floatToIntBits(1);
+
+	@Override
+	public boolean visit(ClassNode cls) throws JadxException {
+		replaceConstInAnnotations(cls);
+		return true;
+	}
 
 	@Override
 	public void visit(MethodNode mth) {
@@ -167,6 +177,33 @@ public class ModVisitor extends AbstractVisitor {
 				IfCondition condition = IfCondition.fromIfNode(ifNode);
 				TernaryInsn ternary = new TernaryInsn(condition, insn.getResult(), one, zero);
 				replaceInsn(mth, block, i, ternary);
+			}
+		}
+	}
+
+	private void replaceConstInAnnotations(ClassNode cls) {
+		if (cls.root().getArgs().isReplaceConsts()) {
+			replaceConstsInAnnotationForAttrNode(cls, cls);
+			cls.getFields().forEach(f -> replaceConstsInAnnotationForAttrNode(cls, f));
+			cls.getMethods().forEach(m -> replaceConstsInAnnotationForAttrNode(cls, m));
+		}
+	}
+
+	private void replaceConstsInAnnotationForAttrNode(ClassNode parentCls, AttrNode attrNode) {
+		AnnotationsList annotationsList = attrNode.get(AType.ANNOTATION_LIST);
+		if (annotationsList == null) {
+			return;
+		}
+		for (Annotation annotation : annotationsList.getAll()) {
+			if (annotation.getVisibility() == Annotation.Visibility.SYSTEM) {
+				continue;
+			}
+			for (Map.Entry<String, Object> entry : annotation.getValues().entrySet()) {
+				Object value = entry.getValue();
+				FieldNode constField = parentCls.getConstField(value);
+				if (constField != null) {
+					entry.setValue(constField.getFieldInfo());
+				}
 			}
 		}
 	}

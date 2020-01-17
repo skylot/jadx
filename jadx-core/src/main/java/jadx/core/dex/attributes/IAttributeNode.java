@@ -35,4 +35,6 @@ public interface IAttributeNode {
 	List<String> getAttributesStringsList();
 
 	String getAttributesString();
+
+	boolean isAttrStorageEmpty();
 }

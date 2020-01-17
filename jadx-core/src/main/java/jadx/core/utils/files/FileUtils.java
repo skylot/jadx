@@ -10,12 +10,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -31,6 +34,9 @@ public class FileUtils {
 
 	public static final int READ_BUFFER_SIZE = 8 * 1024;
 	private static final int MAX_FILENAME_LENGTH = 128;
+
+	public static final String JADX_TMP_INSTANCE_PREFIX = "jadx-instance-";
+	public static final String JADX_TMP_PREFIX = "jadx-tmp-";
 
 	private FileUtils() {
 	}
@@ -70,6 +76,12 @@ public class FileUtils {
 		}
 	}
 
+	public static void makeDirs(@Nullable Path dir) {
+		if (dir != null) {
+			makeDirs(dir.toFile());
+		}
+	}
+
 	public static boolean deleteDir(File dir) {
 		File[] content = dir.listFiles();
 		if (content != null) {
@@ -80,16 +92,41 @@ public class FileUtils {
 		return dir.delete();
 	}
 
+	public static void deleteDir(Path dir) {
+		try (Stream<Path> pathStream = Files.walk(dir)) {
+			pathStream.sorted(Comparator.reverseOrder())
+					.map(Path::toFile)
+					.forEach(File::delete);
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Failed to delete directory " + dir, e);
+		}
+	}
+
 	private static final Path TEMP_ROOT_DIR = createTempRootDir();
 
 	private static Path createTempRootDir() {
 		try {
-			Path dir = Files.createTempDirectory("jadx-instance-");
+			String jadxTmpDir = System.getenv("JADX_TMP_DIR");
+			Path dir;
+			if (jadxTmpDir != null) {
+				dir = Files.createTempDirectory(Paths.get(jadxTmpDir), "jadx-instance-");
+			} else {
+				dir = Files.createTempDirectory(JADX_TMP_INSTANCE_PREFIX);
+			}
 			dir.toFile().deleteOnExit();
 			return dir;
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Failed to create temp root directory", e);
 		}
+	}
+
+	public static void deleteTempRootDir() {
+		deleteDir(TEMP_ROOT_DIR);
+	}
+
+	public static void clearTempRootDir() {
+		deleteDir(TEMP_ROOT_DIR);
+		makeDirs(TEMP_ROOT_DIR);
 	}
 
 	public static Path createTempDir(String prefix) {
@@ -104,9 +141,17 @@ public class FileUtils {
 
 	public static Path createTempFile(String suffix) {
 		try {
-			Path path = Files.createTempFile(TEMP_ROOT_DIR, "jadx-tmp-", suffix);
+			Path path = Files.createTempFile(TEMP_ROOT_DIR, JADX_TMP_PREFIX, suffix);
 			path.toFile().deleteOnExit();
 			return path;
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Failed to create temp file with suffix: " + suffix, e);
+		}
+	}
+
+	public static Path createTempFileNoDelete(String suffix) {
+		try {
+			return Files.createTempFile(TEMP_ROOT_DIR, JADX_TMP_PREFIX, suffix);
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Failed to create temp file with suffix: " + suffix, e);
 		}

@@ -7,6 +7,7 @@ import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.impl.NoOpCodeCache;
 import jadx.core.utils.exceptions.JadxArgsValidateException;
+import jadx.core.utils.files.FileUtils;
 
 public class JadxCLI {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxCLI.class);
@@ -22,6 +23,7 @@ public class JadxCLI {
 			LOG.error("jadx error: {}", e.getMessage(), e);
 			result = 1;
 		} finally {
+			FileUtils.deleteTempRootDir();
 			System.exit(result);
 		}
 	}

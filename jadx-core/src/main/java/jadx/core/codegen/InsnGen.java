@@ -183,7 +183,7 @@ public class InsnGen {
 		ClassInfo declClass = field.getDeclClass();
 		// TODO
 		boolean fieldFromThisClass = clsGen.getClassNode().getClassInfo().equals(declClass);
-		if (!fieldFromThisClass) {
+		if (!fieldFromThisClass || !clsGen.isBodyGenStarted()) {
 			// Android specific resources class handler
 			if (!handleAppResField(code, clsGen, declClass)) {
 				clsGen.useClass(code, declClass);

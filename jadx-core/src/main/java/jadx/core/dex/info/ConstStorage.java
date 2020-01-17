@@ -110,12 +110,7 @@ public class ConstStorage {
 	}
 
 	private ValueStorage getClsValues(ClassNode cls) {
-		ValueStorage classValues = classes.get(cls);
-		if (classValues == null) {
-			classValues = new ValueStorage();
-			classes.put(cls, classValues);
-		}
-		return classValues;
+		return classes.computeIfAbsent(cls, c -> new ValueStorage());
 	}
 
 	@Nullable
