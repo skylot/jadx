@@ -279,13 +279,21 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return decompile(true);
 	}
 
+	public synchronized ICodeInfo reRunDecompile() {
+		return decompile(false);
+	}
+
 	public synchronized ICodeInfo reloadCode() {
 		unload();
 		deepUnload();
 		return decompile(false);
 	}
 
-	private void deepUnload() {
+	public void deepUnload() {
+		if (cls == null) {
+			// manually added class
+			return;
+		}
 		clearAttributes();
 		root().getConstValues().removeForClass(this);
 		initialLoad();

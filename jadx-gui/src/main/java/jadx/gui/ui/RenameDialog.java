@@ -222,6 +222,10 @@ public class RenameDialog extends JDialog {
 		refreshTabs(mainWindow.getTabbedPane(), updatedClasses);
 
 		if (updatedClasses.size() > 0) {
+			for (JavaClass updatedClass : updatedClasses) {
+				updatedClass.unload();
+				updatedClass.getClassNode().deepUnload();
+			}
 			setRefreshTask(updatedClasses);
 		}
 
