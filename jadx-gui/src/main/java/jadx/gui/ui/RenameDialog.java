@@ -16,6 +16,7 @@ import java.util.Set;
 
 import javax.swing.*;
 
+import jadx.gui.utils.CodeUsageInfo;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -237,6 +238,8 @@ public class RenameDialog extends JDialog {
 				JavaClass javaClass = rootClass.getCls();
 				if (updatedClasses.contains(javaClass) || node.getRootClass().getCls() == javaClass) {
 					LOG.info("Refreshing rootClass " + javaClass.getRawName());
+					javaClass.unload();
+					javaClass.getClassNode().deepUnload();
 					rootClass.refresh(); // Update code cache
 					ClassCodeContentPanel codePanel = (ClassCodeContentPanel) contentPanel;
 					CodePanel javaPanel = codePanel.getJavaCodePanel();
