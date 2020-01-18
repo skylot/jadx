@@ -415,7 +415,7 @@ public class MainWindow extends JFrame {
 		}
 	}
 
-	synchronized void runBackgroundRefreshAndIndexJobs() {
+	synchronized void runBackgroundUnloadRefreshAndIndexJobs() {
 		cancelBackgroundJobs();
 		backgroundWorker = new BackgroundWorker(cacheObject, progressPane);
 		backgroundWorker.exec();
