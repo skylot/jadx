@@ -30,6 +30,7 @@ import jadx.core.dex.visitors.RenameVisitor;
 import jadx.core.utils.files.InputFile;
 import jadx.gui.jobs.IndexJob;
 import jadx.gui.jobs.RefreshJob;
+import jadx.gui.jobs.UnloadJob;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
@@ -39,7 +40,6 @@ import jadx.gui.ui.codearea.ClassCodeContentPanel;
 import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.ui.codearea.CodePanel;
 import jadx.gui.utils.CacheObject;
-import jadx.gui.utils.CodeUsageInfo;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
 
@@ -222,10 +222,6 @@ public class RenameDialog extends JDialog {
 		refreshTabs(mainWindow.getTabbedPane(), updatedClasses);
 
 		if (updatedClasses.size() > 0) {
-			for (JavaClass updatedClass : updatedClasses) {
-				updatedClass.unload();
-				updatedClass.getClassNode().deepUnload();
-			}
 			setRefreshTask(updatedClasses);
 		}
 
@@ -268,19 +264,21 @@ public class RenameDialog extends JDialog {
 
 	private void setRefreshTask(Set<JavaClass> refreshClasses) {
 		CacheObject cache = mainWindow.getCacheObject();
+		UnloadJob unloadJob = new UnloadJob(mainWindow.getWrapper(), mainWindow.getSettings().getThreadsCount(), refreshClasses);
 		RefreshJob refreshJob = new RefreshJob(mainWindow.getWrapper(), mainWindow.getSettings().getThreadsCount(), refreshClasses);
-		LOG.info("Waiting for old refreshJob");
-		while (cache.getRefreshJob() != null) {
+		LOG.info("Waiting for old unloadJob and refreshJob");
+		while (cache.getUnloadJob() != null || cache.getRefreshJob() != null) {
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
 				return;
 			}
 		}
-		LOG.info("Old refreshJob finished");
+		LOG.info("Old unloadJob and refreshJob finished");
+		cache.setUnloadJob(unloadJob);
 		cache.setRefreshJob(refreshJob);
 		cache.setIndexJob(new IndexJob(mainWindow.getWrapper(), mainWindow.getCacheObject(), mainWindow.getSettings().getThreadsCount()));
-		mainWindow.runBackgroundRefreshAndIndexJobs();
+		mainWindow.runBackgroundUnloadRefreshAndIndexJobs();
 	}
 
 	private void initCommon() {
