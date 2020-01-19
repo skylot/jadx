@@ -5,26 +5,26 @@ import java.util.List;
 
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttribute;
-import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 
 public class EnumClassAttr implements IAttribute {
 
 	public static class EnumField {
-		private final FieldInfo field;
+		private final FieldNode field;
 		private final ConstructorInsn constrInsn;
 		private final int startArg;
 		private ClassNode cls;
 
-		public EnumField(FieldInfo field, ConstructorInsn co, int startArg) {
+		public EnumField(FieldNode field, ConstructorInsn co, int startArg) {
 			this.field = field;
 			this.constrInsn = co;
 			this.startArg = startArg;
 		}
 
-		public FieldInfo getField() {
+		public FieldNode getField() {
 			return field;
 		}
 
