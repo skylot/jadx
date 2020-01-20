@@ -42,14 +42,19 @@ public class JadxCodeAssertions extends AbstractStringAssert<JadxCodeAssertions>
 		}
 		String indent = TestUtils.indent(commonIndent);
 		StringBuilder sb = new StringBuilder();
+		boolean first = true;
 		for (String line : lines) {
 			if (!line.isEmpty()) {
+				if (first) {
+					first = false;
+				} else {
+					sb.append(CodeWriter.NL);
+				}
 				sb.append(indent);
 				sb.append(line);
 			}
-			sb.append(CodeWriter.NL);
 		}
-		return countString(1, sb.toString());
+		return containsOnlyOnce(sb.toString());
 	}
 
 	public JadxCodeAssertions print() {

@@ -14,11 +14,13 @@ public class TestEnumsInterface extends IntegrationTest {
 
 		public enum Operation implements IOperation {
 			PLUS {
+				@Override
 				public int apply(int x, int y) {
 					return x + y;
 				}
 			},
 			MINUS {
+				@Override
 				public int apply(int x, int y) {
 					return x - y;
 				}
