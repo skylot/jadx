@@ -2,6 +2,7 @@ package jadx.core.dex.visitors.regions;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -737,135 +739,71 @@ public class RegionMaker {
 	}
 
 	private BlockNode processSwitch(IRegion currentRegion, BlockNode block, SwitchNode insn, RegionStack stack) {
-		SwitchRegion sw = new SwitchRegion(currentRegion, block);
-		currentRegion.getSubBlocks().add(sw);
-
+		// map case blocks to keys
 		int len = insn.getTargets().length;
-		// sort by target
 		Map<BlockNode, List<Object>> blocksMap = new LinkedHashMap<>(len);
+		Object[] keysArr = insn.getKeys();
+		BlockNode[] targetBlocksArr = insn.getTargetBlocks();
 		for (int i = 0; i < len; i++) {
-			Object key = insn.getKeys()[i];
-			BlockNode targ = insn.getTargetBlocks()[i];
-			List<Object> keys = blocksMap.computeIfAbsent(targ, k -> new ArrayList<>(2));
-			keys.add(key);
+			List<Object> keys = blocksMap.computeIfAbsent(targetBlocksArr[i], k -> new ArrayList<>(2));
+			keys.add(keysArr[i]);
 		}
 		BlockNode defCase = insn.getDefTargetBlock();
 		if (defCase != null) {
-			blocksMap.remove(defCase);
+			List<Object> keys = blocksMap.computeIfAbsent(defCase, k -> new ArrayList<>(1));
+			keys.add(SwitchRegion.DEFAULT_CASE_KEY);
 		}
+
+		// search 'out' block - 'next' block after whole switch statement
+		BlockNode out;
 		LoopInfo loop = mth.getLoopForBlock(block);
-
-		Map<BlockNode, BlockNode> fallThroughCases = new LinkedHashMap<>();
-
-		List<BlockNode> basicBlocks = mth.getBasicBlocks();
-		BitSet outs = new BitSet(basicBlocks.size());
-		outs.or(block.getDomFrontier());
-		for (BlockNode s : block.getCleanSuccessors()) {
-			BitSet df = s.getDomFrontier();
-			// fall through case block
-			if (df.cardinality() > 1) {
-				if (df.cardinality() > 2) {
-					LOG.debug("Unexpected case pattern, block: {}, mth: {}", s, mth);
-				} else {
-					BlockNode first = basicBlocks.get(df.nextSetBit(0));
-					BlockNode second = basicBlocks.get(df.nextSetBit(first.getId() + 1));
-					if (second.getDomFrontier().get(first.getId())) {
-						fallThroughCases.put(s, second);
-						df = new BitSet(df.size());
-						df.set(first.getId());
-					} else if (first.getDomFrontier().get(second.getId())) {
-						fallThroughCases.put(s, first);
-						df = new BitSet(df.size());
-						df.set(second.getId());
-					}
-				}
+		if (loop == null) {
+			out = calcPostDomOut(mth, block, mth.getExitBlocks());
+		} else {
+			BlockNode loopEnd = loop.getEnd();
+			// treat 'continue' as exit
+			out = calcPostDomOut(mth, block, loopEnd.getPredecessors());
+			if (out != null) {
+				insertContinueInSwitch(block, out, loopEnd);
+			} else {
+				// no 'continue'
+				out = calcPostDomOut(mth, block, Collections.singletonList(loopEnd));
 			}
-			outs.or(df);
-		}
-		outs.clear(block.getId());
-		if (loop != null) {
-			outs.clear(loop.getStart().getId());
 		}
 
+		SwitchRegion sw = new SwitchRegion(currentRegion, block);
+		currentRegion.getSubBlocks().add(sw);
 		stack.push(sw);
-		stack.addExits(BlockUtils.bitSetToBlocks(mth, outs));
+		stack.addExit(out);
 
-		// check cases order if fall through case exists
-		if (!fallThroughCases.isEmpty()
-				&& isBadCasesOrder(blocksMap, fallThroughCases)) {
-			LOG.debug("Fixing incorrect switch cases order, method: {}", mth);
-			blocksMap = reOrderSwitchCases(blocksMap, fallThroughCases);
-			if (isBadCasesOrder(blocksMap, fallThroughCases)) {
-				mth.addWarn("Can't fix incorrect switch cases order");
+		// detect fallthrough cases
+		Map<BlockNode, BlockNode> fallThroughCases = new LinkedHashMap<>();
+		if (out != null) {
+			BitSet caseBlocks = BlockUtils.blocksToBitSet(mth, blocksMap.keySet());
+			caseBlocks.clear(out.getId());
+			for (BlockNode successor : block.getCleanSuccessors()) {
+				BlockNode fallThroughBlock = searchFallThroughCase(successor, out, caseBlocks);
+				if (fallThroughBlock != null) {
+					fallThroughCases.put(successor, fallThroughBlock);
+				}
 			}
-		}
-
-		// filter 'out' block
-		if (outs.cardinality() > 1) {
-			// remove exception handlers
-			BlockUtils.cleanBitSet(mth, outs);
-		}
-		if (outs.cardinality() > 1) {
-			// filter loop start and successors of other blocks
-			for (int i = outs.nextSetBit(0); i >= 0; i = outs.nextSetBit(i + 1)) {
-				BlockNode b = basicBlocks.get(i);
-				outs.andNot(b.getDomFrontier());
-				if (b.contains(AFlag.LOOP_START)) {
-					outs.clear(b.getId());
+			// check fallthrough cases order
+			if (!fallThroughCases.isEmpty() && isBadCasesOrder(blocksMap, fallThroughCases)) {
+				Map<BlockNode, List<Object>> newBlocksMap = reOrderSwitchCases(blocksMap, fallThroughCases);
+				if (isBadCasesOrder(newBlocksMap, fallThroughCases)) {
+					mth.addComment("JADX INFO: Can't fix incorrect switch cases order, some code will duplicate");
+					fallThroughCases.clear();
 				} else {
-					for (BlockNode s : b.getCleanSuccessors()) {
-						outs.clear(s.getId());
-					}
+					blocksMap = newBlocksMap;
 				}
 			}
 		}
 
-		if (loop != null && outs.cardinality() > 1) {
-			outs.clear(loop.getEnd().getId());
-		}
-		if (outs.cardinality() == 0) {
-			// one or several case blocks are empty,
-			// run expensive algorithm for find 'out' block
-			for (BlockNode maybeOut : block.getSuccessors()) {
-				boolean allReached = true;
-				for (BlockNode s : block.getSuccessors()) {
-					if (!isPathExists(s, maybeOut)) {
-						allReached = false;
-						break;
-					}
-				}
-				if (allReached) {
-					outs.set(maybeOut.getId());
-					break;
-				}
-			}
-		}
-		BlockNode out = null;
-		if (outs.cardinality() == 1) {
-			out = basicBlocks.get(outs.nextSetBit(0));
-			stack.addExit(out);
-		} else if (loop == null && outs.cardinality() > 1) {
-			LOG.warn("Can't detect out node for switch block: {} in {}", block, mth);
-		}
-		if (loop != null) {
-			// check if 'continue' must be inserted
-			BlockNode end = loop.getEnd();
-			if (out != end && out != null) {
-				insertContinueInSwitch(block, out, end);
-			}
-		}
-
-		if (!stack.containsExit(defCase)) {
-			Region defRegion = makeRegion(defCase, stack);
-			if (RegionUtils.notEmpty(defRegion)) {
-				sw.setDefaultCase(defRegion);
-			}
-		}
 		for (Entry<BlockNode, List<Object>> entry : blocksMap.entrySet()) {
+			List<Object> keysList = entry.getValue();
 			BlockNode caseBlock = entry.getKey();
 			if (stack.containsExit(caseBlock)) {
-				// empty case block
-				sw.addCase(entry.getValue(), new Region(stack.peekRegion()));
+				sw.addCase(keysList, new Region(stack.peekRegion()));
 			} else {
 				BlockNode next = fallThroughCases.get(caseBlock);
 				stack.addExit(next);
@@ -875,17 +813,100 @@ public class RegionMaker {
 					next.add(AFlag.FALL_THROUGH);
 					caseRegion.add(AFlag.FALL_THROUGH);
 				}
-				sw.addCase(entry.getValue(), caseRegion);
+				sw.addCase(keysList, caseRegion);
 				// 'break' instruction will be inserted in RegionMakerVisitor.PostRegionVisitor
 			}
 		}
+
+		removeEmptyCases(insn, sw, defCase);
 
 		stack.pop();
 		return out;
 	}
 
-	private boolean isBadCasesOrder(Map<BlockNode, List<Object>> blocksMap,
-			Map<BlockNode, BlockNode> fallThroughCases) {
+	@Nullable
+	private BlockNode searchFallThroughCase(BlockNode successor, BlockNode out, BitSet caseBlocks) {
+		BitSet df = successor.getDomFrontier();
+		if (df.intersects(caseBlocks)) {
+			return getOneIntersectionBlock(out, caseBlocks, df);
+		}
+		Set<BlockNode> allPathsBlocks = BlockUtils.getAllPathsBlocks(successor, out);
+		Map<BlockNode, BitSet> bitSetMap = BlockUtils.calcPartialPostDominance(mth, allPathsBlocks, out);
+		BitSet pdoms = bitSetMap.get(successor);
+		if (pdoms != null && pdoms.intersects(caseBlocks)) {
+			return getOneIntersectionBlock(out, caseBlocks, pdoms);
+		}
+		return null;
+	}
+
+	@Nullable
+	private BlockNode getOneIntersectionBlock(BlockNode out, BitSet caseBlocks, BitSet fallThroughSet) {
+		BitSet caseExits = BlockUtils.copyBlocksBitSet(mth, fallThroughSet);
+		caseExits.clear(out.getId());
+		caseExits.and(caseBlocks);
+		return BlockUtils.bitSetToOneBlock(mth, caseExits);
+	}
+
+	@Nullable
+	private static BlockNode calcPostDomOut(MethodNode mth, BlockNode block, List<BlockNode> exits) {
+		if (exits.size() == 1 && mth.getExitBlocks().equals(exits)) {
+			// simple case: for only one exit which is equal to method exit block
+			return BlockUtils.calcImmediatePostDominator(mth, block);
+		}
+		// fast search: union of blocks dominance frontier
+		// work if no fallthrough cases and no returns inside switch
+		BitSet outs = BlockUtils.copyBlocksBitSet(mth, block.getDomFrontier());
+		for (BlockNode s : block.getCleanSuccessors()) {
+			outs.or(s.getDomFrontier());
+		}
+		outs.clear(block.getId());
+
+		if (outs.cardinality() != 1) {
+			// slow search: calculate partial post-dominance for every exit node
+			BitSet ipdoms = BlockUtils.newBlocksBitSet(mth);
+			for (BlockNode exitBlock : exits) {
+				Set<BlockNode> pathBlocks = BlockUtils.getAllPathsBlocks(block, exitBlock);
+				BlockNode ipdom = BlockUtils.calcPartialImmediatePostDominator(mth, block, pathBlocks, exitBlock);
+				if (ipdom != null) {
+					ipdoms.set(ipdom.getId());
+				}
+			}
+			outs.and(ipdoms);
+		}
+		return BlockUtils.bitSetToOneBlock(mth, outs);
+	}
+
+	/**
+	 * Remove empty case blocks:
+	 * 1. single 'default' case
+	 * 2. filler cases if switch is 'packed' and 'default' case is empty
+	 */
+	private void removeEmptyCases(SwitchNode insn, SwitchRegion sw, BlockNode defCase) {
+		boolean defaultCaseIsEmpty;
+		if (defCase == null) {
+			defaultCaseIsEmpty = true;
+		} else {
+			defaultCaseIsEmpty = sw.getCases().stream()
+					.anyMatch(c -> c.getKeys().contains(SwitchRegion.DEFAULT_CASE_KEY)
+							&& RegionUtils.isEmpty(c.getContainer()));
+		}
+		if (defaultCaseIsEmpty) {
+			sw.getCases().removeIf(caseInfo -> {
+				if (RegionUtils.isEmpty(caseInfo.getContainer())) {
+					List<Object> keys = caseInfo.getKeys();
+					if (keys.contains(SwitchRegion.DEFAULT_CASE_KEY)) {
+						return true;
+					}
+					if (insn.isPacked()) {
+						return true;
+					}
+				}
+				return false;
+			});
+		}
+	}
+
+	private boolean isBadCasesOrder(Map<BlockNode, List<Object>> blocksMap, Map<BlockNode, BlockNode> fallThroughCases) {
 		BlockNode nextCaseBlock = null;
 		for (BlockNode caseBlock : blocksMap.keySet()) {
 			if (nextCaseBlock != null && !caseBlock.equals(nextCaseBlock)) {

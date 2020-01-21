@@ -13,10 +13,11 @@ import jadx.core.utils.Utils;
 
 public final class SwitchRegion extends AbstractRegion implements IBranchRegion {
 
+	public static final Object DEFAULT_CASE_KEY = new Object();
+
 	private final BlockNode header;
 
 	private final List<CaseInfo> cases;
-	private IContainer defCase;
 
 	public SwitchRegion(IRegion parent, BlockNode header) {
 		super(parent);
@@ -50,14 +51,6 @@ public final class SwitchRegion extends AbstractRegion implements IBranchRegion 
 		cases.add(new CaseInfo(keysList, c));
 	}
 
-	public void setDefaultCase(IContainer block) {
-		defCase = block;
-	}
-
-	public IContainer getDefaultCase() {
-		return defCase;
-	}
-
 	public List<CaseInfo> getCases() {
 		return cases;
 	}
@@ -68,23 +61,15 @@ public final class SwitchRegion extends AbstractRegion implements IBranchRegion 
 
 	@Override
 	public List<IContainer> getSubBlocks() {
-		List<IContainer> all = new ArrayList<>(cases.size() + 2);
+		List<IContainer> all = new ArrayList<>(cases.size() + 1);
 		all.add(header);
 		all.addAll(getCaseContainers());
-		if (defCase != null) {
-			all.add(defCase);
-		}
 		return Collections.unmodifiableList(all);
 	}
 
 	@Override
 	public List<IContainer> getBranches() {
-		List<IContainer> branches = new ArrayList<>(cases.size() + 1);
-		branches.addAll(getCaseContainers());
-		if (defCase != null) {
-			branches.add(defCase);
-		}
-		return Collections.unmodifiableList(branches);
+		return Collections.unmodifiableList(getCaseContainers());
 	}
 
 	@Override
@@ -97,12 +82,11 @@ public final class SwitchRegion extends AbstractRegion implements IBranchRegion 
 		StringBuilder sb = new StringBuilder();
 		sb.append("Switch: ").append(cases.size());
 		for (CaseInfo caseInfo : cases) {
+			List<String> keyStrings = Utils.collectionMap(caseInfo.getKeys(),
+					k -> k == DEFAULT_CASE_KEY ? "default" : k.toString());
 			sb.append(CodeWriter.NL).append(" case ")
-					.append(Utils.listToString(caseInfo.getKeys()))
+					.append(Utils.listToString(keyStrings))
 					.append(" -> ").append(caseInfo.getContainer());
-		}
-		if (defCase != null) {
-			sb.append(CodeWriter.NL).append(" default -> ").append(defCase);
 		}
 		return sb.toString();
 	}

@@ -10,6 +10,10 @@ public class JadxCodeAssertions extends AbstractStringAssert<JadxCodeAssertions>
 		super(code, JadxCodeAssertions.class);
 	}
 
+	public JadxCodeAssertions containsOne(String substring) {
+		return countString(1, substring);
+	}
+
 	public JadxCodeAssertions countString(int count, String substring) {
 		isNotNull();
 		int actualCount = TestUtils.count(actual, substring);

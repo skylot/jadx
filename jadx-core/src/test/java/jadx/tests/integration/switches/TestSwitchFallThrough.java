@@ -2,7 +2,6 @@ package jadx.tests.integration.switches;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.NotYetImplemented;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
@@ -12,6 +11,7 @@ public class TestSwitchFallThrough extends IntegrationTest {
 	public static class TestCls {
 		public int r;
 
+		@SuppressWarnings("fallthrough")
 		public void test(int a) {
 			int i = 10;
 			switch (a) {
@@ -43,12 +43,14 @@ public class TestSwitchFallThrough extends IntegrationTest {
 		}
 	}
 
-	@NotYetImplemented("switch fallthrough")
 	@Test
 	public void test() {
 		assertThat(getClassNode(TestCls.class))
 				.code()
-				.containsOnlyOnce("switch");
+				.containsOne("switch (a) {")
+				.containsOne("r = i;")
+				.containsOne("r = -1;")
+				.countString(2, "break;");
 		// code correctness checks done in 'check' method
 	}
 }

@@ -47,6 +47,8 @@ public class TestSwitchReturnFromCase extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsString("switch (a % 10) {"));
+
+		// case 5: removed
 		assertEquals(5, count(code, "case "));
 		assertEquals(3, count(code, "break;"));
 

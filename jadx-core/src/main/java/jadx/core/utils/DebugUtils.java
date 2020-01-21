@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -157,6 +158,13 @@ public class DebugUtils {
 		cw.startLine(indent).add(it.next());
 		while (it.hasNext()) {
 			cw.startLine(indent).add("|+  ").add(it.next());
+		}
+	}
+
+	public static void printMap(Map<?, ?> map, String desc) {
+		LOG.debug("Map {} (size = {}):", desc, map.size());
+		for (Map.Entry<?, ?> entry : map.entrySet()) {
+			LOG.debug("  {}: {}", entry.getKey(), entry.getValue());
 		}
 	}
 }

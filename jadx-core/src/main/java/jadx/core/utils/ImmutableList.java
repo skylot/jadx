@@ -76,7 +76,12 @@ public final class ImmutableList<E> implements List<E>, RandomAccess {
 
 	@Override
 	public boolean containsAll(@NotNull Collection<?> c) {
-		throw new UnsupportedOperationException();
+		for (Object obj : c) {
+			if (!contains(obj)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	@NotNull
