@@ -86,6 +86,7 @@ public class ModVisitor extends AbstractVisitor {
 		InsnRemover remover = new InsnRemover(mth);
 		replaceStep(mth, remover);
 		removeStep(mth, remover);
+		iterativeRemoveStep(mth);
 	}
 
 	private static void replaceStep(MethodNode mth, InsnRemover remover) {
@@ -293,11 +294,41 @@ public class ModVisitor extends AbstractVisitor {
 						break;
 
 					default:
+						if (insn.contains(AFlag.REMOVE)) {
+							remover.addAndUnbind(insn);
+						}
 						break;
 				}
 			}
 			remover.perform();
 		}
+	}
+
+	private static void iterativeRemoveStep(MethodNode mth) {
+		boolean changed;
+		do {
+			changed = false;
+			for (BlockNode block : mth.getBasicBlocks()) {
+				for (InsnNode insn : block.getInstructions()) {
+					if (insn.getType() == InsnType.MOVE
+							&& insn.isAttrStorageEmpty()
+							&& isResultArgNotUsed(insn)) {
+						InsnRemover.remove(mth, block, insn);
+						changed = true;
+						break;
+					}
+				}
+			}
+		} while (changed);
+	}
+
+	private static boolean isResultArgNotUsed(InsnNode insn) {
+		RegisterArg result = insn.getResult();
+		if (result != null) {
+			SSAVar ssaVar = result.getSVar();
+			return ssaVar.getUseCount() == 0;
+		}
+		return false;
 	}
 
 	private static void processAnonymousConstructor(MethodNode mth, ConstructorInsn co) {
