@@ -113,13 +113,11 @@ public class AnnotationGen {
 		return paramName;
 	}
 
-	@SuppressWarnings("unchecked")
 	public void addThrows(MethodNode mth, CodeWriter code) {
-		Annotation an = mth.getAnnotation(Consts.DALVIK_THROWS);
-		if (an != null) {
-			Object exs = an.getDefaultValue();
+		List<ArgType> throwList = mth.getThrows();
+		if (!throwList.isEmpty()) {
 			code.add(" throws ");
-			for (Iterator<ArgType> it = ((List<ArgType>) exs).iterator(); it.hasNext();) {
+			for (Iterator<ArgType> it = throwList.iterator(); it.hasNext();) {
 				ArgType ex = it.next();
 				classGen.useType(code, ex);
 				if (it.hasNext()) {

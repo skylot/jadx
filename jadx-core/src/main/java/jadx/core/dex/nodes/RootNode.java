@@ -16,14 +16,14 @@ import jadx.api.ResourceType;
 import jadx.api.ResourcesLoader;
 import jadx.core.Jadx;
 import jadx.core.clsp.ClspGraph;
-import jadx.core.clsp.NClass;
-import jadx.core.clsp.NMethod;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.ConstStorage;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.InfoStorage;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.nodes.utils.MethodUtils;
+import jadx.core.dex.nodes.utils.TypeUtils;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.typeinference.TypeUpdate;
 import jadx.core.utils.CacheStorage;
@@ -48,6 +48,8 @@ public class RootNode {
 	private final InfoStorage infoStorage = new InfoStorage();
 	private final CacheStorage cacheStorage = new CacheStorage();
 	private final TypeUpdate typeUpdate;
+	private final MethodUtils methodUtils;
+	private final TypeUtils typeUtils;
 
 	private final ICodeCache codeCache;
 
@@ -65,6 +67,10 @@ public class RootNode {
 		this.constValues = new ConstStorage(args);
 		this.typeUpdate = new TypeUpdate(this);
 		this.codeCache = args.getCodeCache();
+		this.methodUtils = new MethodUtils(this);
+		this.typeUtils = new TypeUtils(this);
+
+		this.dexNodes = Collections.emptyList();
 	}
 
 	public void load(List<InputFile> inputFiles) {
@@ -119,7 +125,7 @@ public class RootNode {
 	public void initClassPath() {
 		try {
 			if (this.clsp == null) {
-				ClspGraph newClsp = new ClspGraph();
+				ClspGraph newClsp = new ClspGraph(this);
 				newClsp.load();
 
 				List<ClassNode> classes = new ArrayList<>();
@@ -169,6 +175,20 @@ public class RootNode {
 	}
 
 	@Nullable
+	public ClassNode resolveClass(ArgType clsType) {
+		if (clsType.isGeneric()) {
+			clsType = ArgType.object(clsType.getObject());
+		}
+		for (DexNode dexNode : dexNodes) {
+			ClassNode cls = dexNode.resolveClass(clsType);
+			if (cls != null) {
+				return cls;
+			}
+		}
+		return null;
+	}
+
+	@Nullable
 	public ClassNode searchClassByName(String fullName) {
 		ClassInfo clsInfo = ClassInfo.fromName(this, fullName);
 		return resolveClass(clsInfo);
@@ -206,6 +226,10 @@ public class RootNode {
 		if (cls == null) {
 			return null;
 		}
+		MethodNode methodNode = cls.searchMethod(mth);
+		if (methodNode != null) {
+			return methodNode;
+		}
 		return cls.dex().deepResolveMethod(cls, mth.makeSignature(false));
 	}
 
@@ -230,60 +254,6 @@ public class RootNode {
 				LOG.error("Visitor init failed: {}", pass.getClass().getSimpleName(), e);
 			}
 		}
-	}
-
-	@Nullable
-	public ArgType getMethodGenericReturnType(MethodInfo callMth) {
-		MethodNode methodNode = deepResolveMethod(callMth);
-		if (methodNode != null) {
-			ArgType returnType = methodNode.getReturnType();
-			if (returnType != null && (returnType.isGeneric() || returnType.isGenericType())) {
-				return returnType;
-			}
-			return null;
-		}
-		NMethod methodDetails = clsp.getMethodDetails(callMth);
-		if (methodDetails != null) {
-			return methodDetails.getReturnType();
-		}
-		return null;
-	}
-
-	public List<ArgType> getMethodArgTypes(MethodInfo callMth) {
-		MethodNode methodNode = deepResolveMethod(callMth);
-		if (methodNode != null) {
-			return methodNode.getArgTypes();
-		}
-		NMethod methodDetails = clsp.getMethodDetails(callMth);
-		if (methodDetails != null && methodDetails.getGenericArgs() != null) {
-			List<ArgType> argTypes = callMth.getArgumentsTypes();
-			int argsCount = argTypes.size();
-			List<ArgType> list = new ArrayList<>(argsCount);
-			for (int i = 0; i < argsCount; i++) {
-				ArgType genericArgType = methodDetails.getGenericArg(i);
-				if (genericArgType != null) {
-					list.add(genericArgType);
-				} else {
-					list.add(argTypes.get(i));
-				}
-			}
-			return list;
-		}
-		return Collections.emptyList();
-	}
-
-	@NotNull
-	public List<GenericInfo> getClassGenerics(ArgType type) {
-		ClassNode classNode = resolveClass(ClassInfo.fromType(this, type));
-		if (classNode != null) {
-			return classNode.getGenerics();
-		}
-		NClass clsDetails = getClsp().getClsDetails(type);
-		if (clsDetails == null || clsDetails.getGenerics().isEmpty()) {
-			return Collections.emptyList();
-		}
-		List<GenericInfo> generics = clsDetails.getGenerics();
-		return generics == null ? Collections.emptyList() : generics;
 	}
 
 	public List<DexNode> getDexNodes() {
@@ -335,4 +305,11 @@ public class RootNode {
 		return codeCache;
 	}
 
+	public MethodUtils getMethodUtils() {
+		return methodUtils;
+	}
+
+	public TypeUtils getTypeUtils() {
+		return typeUtils;
+	}
 }

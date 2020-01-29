@@ -54,7 +54,7 @@ public class DeboxingVisitor extends AbstractVisitor {
 	private static MethodInfo valueOfMth(RootNode root, ArgType argType, String clsName) {
 		ArgType boxType = ArgType.object(clsName);
 		ClassInfo boxCls = ClassInfo.fromType(root, boxType);
-		return MethodInfo.externalMth(boxCls, "valueOf", Collections.singletonList(argType), boxType);
+		return MethodInfo.fromDetails(root, boxCls, "valueOf", Collections.singletonList(argType), boxType);
 	}
 
 	@Override

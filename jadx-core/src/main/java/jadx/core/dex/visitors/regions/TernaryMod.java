@@ -7,7 +7,6 @@ import java.util.Map;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.PhiInsn;
-import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -123,7 +122,7 @@ public class TernaryMod implements IRegionIterativeVisitor {
 			return true;
 		}
 
-		if (!mth.getReturnType().equals(ArgType.VOID)
+		if (!mth.isVoidReturn()
 				&& thenInsn.getType() == InsnType.RETURN
 				&& elseInsn.getType() == InsnType.RETURN) {
 			InsnArg thenArg = thenInsn.getArg(0);

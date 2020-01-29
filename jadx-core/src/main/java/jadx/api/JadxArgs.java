@@ -327,6 +327,14 @@ public class JadxArgs {
 		}
 	}
 
+	public void setRenameFlags(Set<RenameEnum> renameFlags) {
+		this.renameFlags = renameFlags;
+	}
+
+	public Set<RenameEnum> getRenameFlags() {
+		return renameFlags;
+	}
+
 	public OutputFormatEnum getOutputFormat() {
 		return outputFormat;
 	}

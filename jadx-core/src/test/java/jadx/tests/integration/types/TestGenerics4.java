@@ -51,7 +51,7 @@ public class TestGenerics4 extends IntegrationTest {
 
 	@NotYetImplemented
 	@Test
-	public void testNYI() {
+	public void testOmitCast() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 

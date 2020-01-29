@@ -54,7 +54,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	private AccessInfo accessFlags;
 	private ArgType superClass;
 	private List<ArgType> interfaces;
-	private List<GenericInfo> generics = Collections.emptyList();
+	private List<GenericTypeParameter> generics = Collections.emptyList();
 
 	private final List<MethodNode> methods;
 	private final List<FieldNode> fields;
@@ -80,6 +80,10 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		try {
 			if (cls.getSupertypeIndex() == DexNode.NO_INDEX) {
 				this.superClass = null;
+				// only java.lang.Object don't have super class
+				if (!clsInfo.getType().getObject().equals(Consts.CLASS_OBJECT)) {
+					throw new JadxRuntimeException("No super class in " + clsInfo.getType());
+				}
 			} else {
 				this.superClass = dex.getType(cls.getSupertypeIndex());
 			}
@@ -197,7 +201,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		}
 		try {
 			// parse class generic map
-			generics = sp.consumeGenericMap();
+			generics = sp.consumeGenericTypeParameters();
 			// parse super class signature
 			superClass = sp.consumeType();
 			// parse interfaces signatures
@@ -335,7 +339,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return interfaces;
 	}
 
-	public List<GenericInfo> getGenerics() {
+	public List<GenericTypeParameter> getGenericTypeParameters() {
 		return generics;
 	}
 

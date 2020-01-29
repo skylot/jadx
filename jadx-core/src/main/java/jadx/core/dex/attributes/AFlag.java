@@ -60,6 +60,7 @@ public enum AFlag {
 	FALL_THROUGH,
 
 	EXPLICIT_GENERICS,
+	VARARG_CALL,
 
 	/**
 	 * Use constants with explicit type: cast '(byte) 1' or type letter '7L'

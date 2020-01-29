@@ -247,6 +247,13 @@ public class Utils {
 		return list.get(list.size() - 1);
 	}
 
+	public static <T> T getOrElse(@Nullable T obj, T defaultObj) {
+		if (obj == null) {
+			return defaultObj;
+		}
+		return obj;
+	}
+
 	public static <T> boolean isEmpty(Collection<T> col) {
 		return col == null || col.isEmpty();
 	}

@@ -11,6 +11,7 @@ import java.util.Set;
 import jadx.core.dex.attributes.annotations.Annotation;
 import jadx.core.dex.attributes.annotations.AnnotationsList;
 import jadx.core.utils.Utils;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 /**
  * Storage for different attribute types:
@@ -18,6 +19,13 @@ import jadx.core.utils.Utils;
  * 2. attribute - class instance associated with attribute type.
  */
 public class AttributeStorage {
+
+	static {
+		int flagsCount = AFlag.values().length;
+		if (flagsCount >= 64) {
+			throw new JadxRuntimeException("Try to reduce flags count to 64 for use one long in EnumSet, now " + flagsCount);
+		}
+	}
 
 	private final Set<AFlag> flags;
 	private Map<AType<?>, IAttribute> attributes;
@@ -127,7 +135,7 @@ public class AttributeStorage {
 			list.add(a.toString());
 		}
 		for (IAttribute a : attributes.values()) {
-			list.add(a.toString());
+			list.add(a.toAttrString());
 		}
 		return list;
 	}

@@ -255,7 +255,7 @@ public class ModVisitor extends AbstractVisitor {
 	private static void removeRedundantCast(MethodNode mth, BlockNode block, int i, IndexInsnNode insn) {
 		InsnArg castArg = insn.getArg(0);
 		ArgType castType = (ArgType) insn.getIndex();
-		if (!ArgType.isCastNeeded(mth.dex(), castArg.getType(), castType)
+		if (!ArgType.isCastNeeded(mth.root(), castArg.getType(), castType)
 				|| isCastDuplicate(insn)) {
 			InsnNode insnNode = new InsnNode(InsnType.MOVE, 1);
 			insnNode.setResult(insn.getResult());

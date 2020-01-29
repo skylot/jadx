@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.Consts;
-import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
@@ -22,7 +21,6 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.TypeUtils;
 import jadx.core.utils.exceptions.JadxOverflowException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -79,8 +77,9 @@ public final class TypeUpdate {
 			return SAME;
 		}
 		if (Consts.DEBUG) {
-			LOG.debug("Applying types, init for {} -> {}", ssaVar, candidateType);
-			updates.forEach(updateEntry -> LOG.debug("  {} -> {}", updateEntry.getType(), updateEntry.getArg()));
+			LOG.debug("Applying types for {} -> {}", ssaVar, candidateType);
+			updates.forEach(updateEntry -> LOG.debug("  {} -> {}, insn: {}",
+					updateEntry.getType(), updateEntry.getArg(), updateEntry.getArg().getParentInsn()));
 		}
 		updateInfo.applyUpdates();
 		return CHANGED;
@@ -282,18 +281,17 @@ public final class TypeUpdate {
 		if (insn.getResult() == null) {
 			return SAME;
 		}
-		if (candidateType.isGeneric() || candidateType.isGenericType()) {
+		if (candidateType.containsTypeVariable()) {
 			InvokeNode invokeNode = (InvokeNode) insn;
-			MethodInfo callMth = invokeNode.getCallMth();
 			if (isAssign(insn, arg)) {
 				// TODO: implement backward type propagation (from result to instance)
 				return SAME;
 			} else {
-				ArgType returnType = root.getMethodGenericReturnType(callMth);
+				ArgType returnType = root.getMethodUtils().getMethodGenericReturnType(invokeNode);
 				if (returnType == null) {
 					return SAME;
 				}
-				ArgType resultGeneric = TypeUtils.replaceClassGenerics(root, candidateType, returnType);
+				ArgType resultGeneric = root.getTypeUtils().replaceClassGenerics(candidateType, returnType);
 				if (resultGeneric == null) {
 					return SAME;
 				}

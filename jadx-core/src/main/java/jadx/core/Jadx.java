@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
+import jadx.core.dex.visitors.AttachMethodDetails;
 import jadx.core.dex.visitors.ClassModifier;
 import jadx.core.dex.visitors.ConstInlineVisitor;
 import jadx.core.dex.visitors.ConstructorVisitor;
@@ -25,6 +26,7 @@ import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.InitCodeVariables;
 import jadx.core.dex.visitors.MarkFinallyVisitor;
 import jadx.core.dex.visitors.MethodInlineVisitor;
+import jadx.core.dex.visitors.MethodInvokeVisitor;
 import jadx.core.dex.visitors.ModVisitor;
 import jadx.core.dex.visitors.PrepareForCodeGen;
 import jadx.core.dex.visitors.ProcessAnonymous;
@@ -83,6 +85,7 @@ public class Jadx {
 			passes.add(new InitCodeVariables());
 			passes.add(new MarkFinallyVisitor());
 			passes.add(new ConstInlineVisitor());
+			passes.add(new AttachMethodDetails());
 			passes.add(new TypeInferenceVisitor());
 			if (args.isDebugInfo()) {
 				passes.add(new DebugInfoApplyVisitor());
@@ -102,6 +105,7 @@ public class Jadx {
 			passes.add(new CleanRegions());
 
 			passes.add(new CodeShrinkVisitor());
+			passes.add(new MethodInvokeVisitor());
 			passes.add(new SimplifyVisitor());
 			passes.add(new CheckRegions());
 

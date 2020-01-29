@@ -12,7 +12,7 @@ public class TestSuperInvokeWithGenerics extends IntegrationTest {
 
 	public static class TestCls {
 
-		public class A<T extends Exception, V> {
+		public static class A<T extends Exception, V> {
 			public A(T t) {
 				System.out.println("t" + t);
 			}
@@ -22,7 +22,7 @@ public class TestSuperInvokeWithGenerics extends IntegrationTest {
 			}
 		}
 
-		public class B extends A<Exception, String> {
+		public static class B extends A<Exception, String> {
 			public B(String s) {
 				super(s);
 			}

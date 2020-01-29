@@ -27,7 +27,7 @@ public class TestStringBuilderElimination2 extends IntegrationTest {
 	public void test1() {
 		ClassNode cls = getClassNode(TestStringBuilderElimination2.TestCls1.class);
 		String code = cls.getCode().toString();
-		assertThat(code, containsString("return \"[init]\" + \"a1\" + 'c' + 2 + 0 + 1.0f + 2.0d + true;"));
+		assertThat(code, containsString("return \"[init]\" + \"a1\" + 'c' + 2 + 0L + 1.0f + 2.0d + true;"));
 	}
 
 	public static class TestCls2 {
@@ -49,7 +49,7 @@ public class TestStringBuilderElimination2 extends IntegrationTest {
 	public void test2() {
 		ClassNode cls = getClassNode(TestStringBuilderElimination2.TestCls2.class);
 		String code = cls.getCode().toString();
-		assertThat(code, containsString("return \"[init]\" + \"a1\" + 'c' + 1 + 2 + 1.0f + 2.0d + true;"));
+		assertThat(code, containsString("return \"[init]\" + \"a1\" + 'c' + 1 + 2L + 1.0f + 2.0d + true;"));
 	}
 
 	public static class TestClsStringUtilsReverse {

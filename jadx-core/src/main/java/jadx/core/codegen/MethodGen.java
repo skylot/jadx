@@ -98,8 +98,12 @@ public class MethodGen {
 		if (Consts.DEBUG) {
 			code.add(mth.isVirtual() ? "/* virtual */ " : "/* direct */ ");
 		}
+		if (clsAccFlags.isInterface() && !mth.isNoCode()) {
+			// add 'default' for method with code in interface
+			code.add("default ");
+		}
 
-		if (classGen.addGenericMap(code, mth.getGenerics(), false)) {
+		if (classGen.addGenericTypeParameters(code, mth.getTypeParameters(), false)) {
 			code.add(' ');
 		}
 		if (ai.isConstructor()) {

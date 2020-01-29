@@ -4,7 +4,6 @@ import java.lang.ref.WeakReference;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.NotYetImplemented;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
@@ -31,13 +30,12 @@ public class TestTypeResolver12 extends IntegrationTest {
 				.containsOne("T obj = this.ref.get();");
 	}
 
-	@NotYetImplemented("Generic type inference")
 	@Test
 	public void testNoDebug() {
 		noDebugInfo();
 		assertThat(getClassNode(TestCls.class))
 				.code()
 				.doesNotContain("Object obj")
-				.containsOne("T obj = this.ref.get();");
+				.containsOne("T t = this.ref.get();");
 	}
 }

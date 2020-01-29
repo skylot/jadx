@@ -23,7 +23,7 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
-import jadx.core.dex.instructions.CallMthInterface;
+import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.ConstClassNode;
 import jadx.core.dex.instructions.ConstStringNode;
 import jadx.core.dex.instructions.FillArrayNode;
@@ -53,7 +53,6 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.RegionUtils;
-import jadx.core.utils.TypeUtils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -621,7 +620,7 @@ public class InsnGen {
 			code.add("new ");
 			useClass(code, insn.getClassType());
 			ArgType argType = insn.getResult().getSVar().getCodeVar().getType();
-			boolean genericCls = cls == null || !cls.getGenerics().isEmpty();
+			boolean genericCls = cls == null || !cls.getGenericTypeParameters().isEmpty();
 			if (argType != null
 					&& argType.getGenericTypes() != null
 					&& genericCls) {
@@ -761,30 +760,31 @@ public class InsnGen {
 		return useCls.getParentClass().getClassInfo();
 	}
 
-	void generateMethodArguments(CodeWriter code, InsnNode insn, int startArgNum,
-			@Nullable MethodNode callMth) throws CodegenException {
+	void generateMethodArguments(CodeWriter code, BaseInvokeNode insn, int startArgNum,
+			@Nullable MethodNode mthNode) throws CodegenException {
 		int k = startArgNum;
-		if (callMth != null && callMth.contains(AFlag.SKIP_FIRST_ARG)) {
+		if (mthNode != null && mthNode.contains(AFlag.SKIP_FIRST_ARG)) {
 			k++;
 		}
 		int argsCount = insn.getArgsCount();
 		code.add('(');
 		boolean firstArg = true;
 		if (k < argsCount) {
-			boolean overloaded = callMth != null && callMth.isArgsOverload();
 			for (int i = k; i < argsCount; i++) {
 				InsnArg arg = insn.getArg(i);
 				if (arg.contains(AFlag.SKIP_ARG)) {
 					continue;
 				}
-				if (SkipMethodArgsAttr.isSkip(callMth, i - startArgNum)) {
+				int argOrigPos = i - startArgNum;
+				if (SkipMethodArgsAttr.isSkip(mthNode, argOrigPos)) {
 					continue;
 				}
 				if (!firstArg) {
 					code.add(", ");
+				} else {
+					firstArg = false;
 				}
-				boolean cast = addArgCast(code, insn, callMth, arg, i - startArgNum, overloaded);
-				if (!cast && i == argsCount - 1 && processVarArg(code, callMth, arg)) {
+				if (i == argsCount - 1 && processVarArg(code, insn, arg)) {
 					continue;
 				}
 				addArg(code, arg, false);
@@ -795,90 +795,28 @@ public class InsnGen {
 	}
 
 	/**
-	 * Add additional cast for method argument.
-	 */
-	private boolean addArgCast(CodeWriter code, InsnNode insn, @Nullable MethodNode callMth,
-			InsnArg arg, int origPos, boolean overloaded) {
-		ArgType castType = null;
-		if (callMth != null) {
-			List<ArgType> argTypes = callMth.getArgTypes();
-			ArgType origType = argTypes.get(origPos);
-			if (origType.isGenericType() && !callMth.getParentClass().equals(mth.getParentClass())) {
-				// cancel cast
-				return false;
-			}
-			if (insn instanceof CallMthInterface && origType.containsGenericType()) {
-				ArgType clsType;
-				CallMthInterface mthCall = (CallMthInterface) insn;
-				RegisterArg instanceArg = mthCall.getInstanceArg();
-				if (instanceArg != null) {
-					clsType = instanceArg.getType();
-				} else {
-					clsType = mthCall.getCallMth().getDeclClass().getType();
-				}
-				ArgType replacedType = TypeUtils.replaceClassGenerics(root, clsType, origType);
-				if (replacedType != null) {
-					castType = replacedType;
-				}
-				if (castType == null) {
-					ArgType invReplType = TypeUtils.replaceMethodGenerics(root, insn, origType);
-					if (invReplType != null) {
-						castType = invReplType;
-					}
-				}
-			}
-			if (castType == null) {
-				castType = origType;
-			}
-		} else {
-			castType = arg.getType();
-		}
-		// TODO: check castType for left type variables
-
-		if (isCastNeeded(arg, castType, overloaded)) {
-			code.add('(');
-			useType(code, castType);
-			code.add(") ");
-			return true;
-		}
-		return false;
-	}
-
-	private boolean isCastNeeded(InsnArg arg, ArgType origType, boolean overloaded) {
-		ArgType argType = arg.getType();
-		if (arg.isLiteral() && ((LiteralArg) arg).getLiteral() == 0
-				&& (argType.isObject() || argType.isArray())) {
-			return true;
-		}
-		if (argType.equals(origType)) {
-			return false;
-		}
-		return overloaded;
-	}
-
-	/**
 	 * Expand varArgs from filled array.
 	 */
-	private boolean processVarArg(CodeWriter code, MethodNode callMth, InsnArg lastArg) throws CodegenException {
-		if (callMth == null || !callMth.getAccessFlags().isVarArgs()) {
+	private boolean processVarArg(CodeWriter code, BaseInvokeNode invokeInsn, InsnArg lastArg) throws CodegenException {
+		if (!invokeInsn.contains(AFlag.VARARG_CALL)) {
 			return false;
 		}
 		if (!lastArg.getType().isArray() || !lastArg.isInsnWrap()) {
 			return false;
 		}
 		InsnNode insn = ((InsnWrapArg) lastArg).getWrapInsn();
-		if (insn.getType() == InsnType.FILLED_NEW_ARRAY) {
-			int count = insn.getArgsCount();
-			for (int i = 0; i < count; i++) {
-				InsnArg elemArg = insn.getArg(i);
-				addArg(code, elemArg, false);
-				if (i < count - 1) {
-					code.add(", ");
-				}
-			}
-			return true;
+		if (insn.getType() != InsnType.FILLED_NEW_ARRAY) {
+			return false;
 		}
-		return false;
+		int count = insn.getArgsCount();
+		for (int i = 0; i < count; i++) {
+			InsnArg elemArg = insn.getArg(i);
+			addArg(code, elemArg, false);
+			if (i < count - 1) {
+				code.add(", ");
+			}
+		}
+		return true;
 	}
 
 	private boolean inlineMethod(MethodNode callMthNode, InvokeNode insn, CodeWriter code) throws CodegenException {
@@ -936,7 +874,7 @@ public class InsnGen {
 		if (parentInsn.contains(AFlag.WRAPPED)) {
 			return false;
 		}
-		return !callMthNode.getReturnType().equals(ArgType.VOID);
+		return !callMthNode.isVoidReturn();
 	}
 
 	private void makeTernary(TernaryInsn insn, CodeWriter code, Set<Flags> state) throws CodegenException {

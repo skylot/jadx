@@ -45,7 +45,7 @@ public class TestLoopInTry2 extends IntegrationTest {
 
 		assertThat(code, containsOne("try {"));
 		assertThat(code, containsOne("while (in.hasMore()) {"));
-		assertThat(code, containsOne("decoded[in.cursor()] = DecodedInstruction.decode(in);"));
+		assertThat(code, containsOne("decoded[in.cursor()] = DecodedInstruction.decode("));
 		assertThat(code, containsOne("} catch (EOFException e) {"));
 		assertThat(code, containsOne("throw new DecodeException"));
 	}

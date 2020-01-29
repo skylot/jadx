@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
@@ -16,8 +17,10 @@ import com.android.dex.Code;
 import com.android.dex.Code.CatchHandler;
 import com.android.dex.Code.Try;
 
+import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.annotations.Annotation;
 import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.attributes.nodes.LoopInfo;
@@ -46,7 +49,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.utils.Utils.lockList;
 
-public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
+public class MethodNode extends LineAttrNode implements IMethodDetails, ILoadable, ICodeNode {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodNode.class);
 
 	private final MethodInfo mthInfo;
@@ -66,7 +69,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 	// additional info available after load, keep on unload
 	private ArgType retType;
 	private List<ArgType> argTypes;
-	private List<GenericInfo> generics;
+	private List<GenericTypeParameter> typeParameters;
 
 	// decompilation data, reset on unload
 	private RegisterArg thisArg;
@@ -96,7 +99,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		if (noCode) {
 			return;
 		}
-		// don't unload retType, argTypes, generics
+		// don't unload retType, argTypes, typeParameters
 		thisArg = null;
 		argsList = null;
 		sVars = Collections.emptyList();
@@ -190,7 +193,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 			return null;
 		}
 		try {
-			this.generics = sp.consumeGenericMap();
+			this.typeParameters = sp.consumeGenericTypeParameters();
 			List<ArgType> argsTypes = sp.consumeMethodArgs();
 			this.retType = sp.consumeType();
 
@@ -264,17 +267,32 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		}
 	}
 
+	@Override
 	@NotNull
 	public List<ArgType> getArgTypes() {
 		if (argTypes == null) {
-			throw new JadxRuntimeException("Method types not initialized: " + this);
+			throw new JadxRuntimeException("Method generic types not initialized: " + this);
 		}
 		return argTypes;
 	}
 
+	public boolean containsGenericArgs() {
+		return !Objects.equals(mthInfo.getArgumentsTypes(), getArgTypes());
+	}
+
+	@Override
+	@NotNull
+	public ArgType getReturnType() {
+		return retType;
+	}
+
+	public boolean isVoidReturn() {
+		return mthInfo.getReturnType().equals(ArgType.VOID);
+	}
+
 	public List<RegisterArg> getArgRegs() {
 		if (argsList == null) {
-			throw new JadxRuntimeException("Method args not loaded: " + this
+			throw new JadxRuntimeException("Method arg registers not loaded: " + this
 					+ ", class status: " + parentClass.getTopParentClass().getState());
 		}
 		return argsList;
@@ -300,12 +318,9 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		this.add(AFlag.SKIP_FIRST_ARG);
 	}
 
-	public ArgType getReturnType() {
-		return retType;
-	}
-
-	public List<GenericInfo> getGenerics() {
-		return generics;
+	@Override
+	public List<GenericTypeParameter> getTypeParameters() {
+		return typeParameters;
 	}
 
 	private static void initTryCatches(MethodNode mth, Code mthCode, InsnNode[] insnByOffset) {
@@ -575,25 +590,31 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return exceptionHandlers.size();
 	}
 
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<ArgType> getThrows() {
+		Annotation an = getAnnotation(Consts.DALVIK_THROWS);
+		if (an == null) {
+			return Collections.emptyList();
+		}
+		return (List<ArgType>) an.getDefaultValue();
+	}
+
 	/**
 	 * Return true if exists method with same name and arguments count
 	 */
-	public boolean isArgsOverload() {
-		int argsCount = mthInfo.getArgumentsTypes().size();
-		if (argsCount == 0) {
-			return false;
-		}
-
-		String name = getName();
+	public boolean isArgsOverloaded() {
+		MethodInfo thisMthInfo = this.mthInfo;
+		// quick check in current class
 		for (MethodNode method : parentClass.getMethods()) {
-			MethodInfo otherMthInfo = method.mthInfo;
-			if (this != method
-					&& otherMthInfo.getArgumentsTypes().size() == argsCount
-					&& otherMthInfo.getName().equals(name)) {
+			if (method == this) {
+				continue;
+			}
+			if (method.getMethodInfo().isOverloadedBy(thisMthInfo)) {
 				return true;
 			}
 		}
-		return false;
+		return root().getMethodUtils().isMethodArgsOverloaded(parentClass.getClassInfo().getType(), thisMthInfo);
 	}
 
 	public boolean isConstructor() {
@@ -721,6 +742,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		ErrorsCounter.methodError(this, errStr, e);
 	}
 
+	@Override
 	public MethodInfo getMethodInfo() {
 		return mthInfo;
 	}
@@ -741,6 +763,11 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 			return blocks.stream().mapToLong(block -> block.getInstructions().size()).sum();
 		}
 		return -1;
+	}
+
+	@Override
+	public boolean isVarArg() {
+		return accFlags.isVarArgs();
 	}
 
 	public boolean isLoaded() {
@@ -767,7 +794,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 	@Override
 	public String toString() {
 		return parentClass + "." + mthInfo.getName()
-				+ '(' + Utils.listToString(mthInfo.getArgumentsTypes()) + "):"
+				+ '(' + Utils.listToString(argTypes) + "):"
 				+ retType;
 	}
 }

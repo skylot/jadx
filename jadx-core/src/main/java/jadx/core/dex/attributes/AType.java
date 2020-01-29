@@ -24,6 +24,7 @@ import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
 import jadx.core.dex.attributes.nodes.RenameReasonAttr;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
 import jadx.core.dex.attributes.nodes.SourceFileAttr;
+import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.parser.FieldInitAttr;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
@@ -79,6 +80,7 @@ public class AType<T extends IAttribute> {
 	// instruction
 	public static final AType<LoopLabelAttr> LOOP_LABEL = new AType<>();
 	public static final AType<AttrList<JumpInfo>> JUMP = new AType<>();
+	public static final AType<IMethodDetails> METHOD_DETAILS = new AType<>();
 
 	// register
 	public static final AType<RegDebugInfoAttr> REG_DEBUG_INFO = new AType<>();

@@ -16,7 +16,7 @@ import jadx.core.clsp.ClspGraph;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.ClassInfo;
-import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
@@ -30,11 +30,13 @@ import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.visitors.AbstractVisitor;
+import jadx.core.dex.visitors.AttachMethodDetails;
 import jadx.core.dex.visitors.ConstInlineVisitor;
 import jadx.core.dex.visitors.InitCodeVariables;
 import jadx.core.dex.visitors.JadxVisitor;
@@ -48,7 +50,8 @@ import jadx.core.utils.Utils;
 		desc = "Calculate best types for SSA variables",
 		runAfter = {
 				SSATransform.class,
-				ConstInlineVisitor.class
+				ConstInlineVisitor.class,
+				AttachMethodDetails.class
 		}
 )
 public final class TypeInferenceVisitor extends AbstractVisitor {
@@ -67,6 +70,9 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 	public void visit(MethodNode mth) {
 		if (mth.isNoCode()) {
 			return;
+		}
+		if (Consts.DEBUG) {
+			LOG.info("Start type inference in method: {}", mth);
 		}
 		boolean resolved = runTypePropagation(mth);
 		if (!resolved) {
@@ -271,11 +277,10 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 	}
 
 	private ITypeBound makeAssignInvokeBound(InvokeNode invokeNode) {
-		MethodInfo callMth = invokeNode.getCallMth();
-		ArgType boundType = callMth.getReturnType();
-		ArgType genericReturnType = root.getMethodGenericReturnType(callMth);
+		ArgType boundType = invokeNode.getCallMth().getReturnType();
+		ArgType genericReturnType = root.getMethodUtils().getMethodGenericReturnType(invokeNode);
 		if (genericReturnType != null) {
-			if (genericReturnType.containsGenericType()) {
+			if (genericReturnType.containsTypeVariable()) {
 				InvokeType invokeType = invokeNode.getInvokeType();
 				if (invokeNode.getArgsCount() != 0
 						&& invokeType != InvokeType.STATIC && invokeType != InvokeType.SUPER) {
@@ -293,6 +298,15 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		InsnNode insn = regArg.getParentInsn();
 		if (insn == null) {
 			return null;
+		}
+		if (insn instanceof BaseInvokeNode) {
+			IMethodDetails methodDetails = root.getMethodUtils().getMethodDetails((BaseInvokeNode) insn);
+			if (methodDetails != null) {
+				if (methodDetails.getArgTypes().stream().anyMatch(ArgType::containsTypeVariable)) {
+					// don't add const bound for generic type variables
+					return null;
+				}
+			}
 		}
 		return new TypeBoundConst(BoundEnum.USE, regArg.getInitType(), regArg);
 	}

@@ -49,7 +49,8 @@ public class SimplifyVisitor extends AbstractVisitor {
 
 	@Override
 	public void init(RootNode root) {
-		stringGetBytesMth = MethodInfo.externalMth(
+		stringGetBytesMth = MethodInfo.fromDetails(
+				root,
 				ClassInfo.fromType(root, ArgType.STRING),
 				"getBytes",
 				Collections.emptyList(),
@@ -224,7 +225,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 		}
 
 		ArgType castToType = (ArgType) castInsn.getIndex();
-		if (!ArgType.isCastNeeded(mth.dex(), argType, castToType)
+		if (!ArgType.isCastNeeded(mth.root(), argType, castToType)
 				|| isCastDuplicate(castInsn)) {
 			InsnNode insnNode = new InsnNode(InsnType.MOVE, 1);
 			insnNode.setOffset(castInsn.getOffset());

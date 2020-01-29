@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.DexNode;
+import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.utils.InsnUtils;
 
 public final class LocalVar {
@@ -31,7 +32,7 @@ public final class LocalVar {
 		this.name = name;
 		if (sign != null) {
 			try {
-				ArgType gType = ArgType.parseGenericSignature(sign);
+				ArgType gType = new SignatureParser(sign).consumeType();
 				if (checkSignature(type, gType)) {
 					type = gType;
 				}

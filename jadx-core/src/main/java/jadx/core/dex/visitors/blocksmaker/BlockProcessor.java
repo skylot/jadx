@@ -16,7 +16,6 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.instructions.InsnType;
-import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -422,7 +421,7 @@ public class BlockProcessor extends AbstractVisitor {
 	}
 
 	private static boolean mergeConstReturn(MethodNode mth) {
-		if (mth.getReturnType() == ArgType.VOID) {
+		if (mth.isVoidReturn()) {
 			return false;
 		}
 

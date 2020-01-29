@@ -404,7 +404,7 @@ public class InsnNode extends LineAttrNode {
 
 	protected void appendArgs(StringBuilder sb) {
 		String argsStr = Utils.listToString(arguments);
-		if (argsStr.length() < 60) {
+		if (argsStr.length() < 120) {
 			sb.append(argsStr);
 		} else {
 			// wrap args

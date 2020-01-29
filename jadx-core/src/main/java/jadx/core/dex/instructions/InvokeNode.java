@@ -7,11 +7,10 @@ import com.android.dx.io.instructions.DecodedInstruction;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
-import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.InsnUtils;
 
-public class InvokeNode extends InsnNode implements CallMthInterface {
+public final class InvokeNode extends BaseInvokeNode {
 
 	private final InvokeType type;
 	private final MethodInfo mth;
@@ -55,17 +54,18 @@ public class InvokeNode extends InsnNode implements CallMthInterface {
 
 	@Override
 	@Nullable
-	public RegisterArg getInstanceArg() {
+	public InsnArg getInstanceArg() {
 		if (type != InvokeType.STATIC && getArgsCount() > 0) {
-			InsnArg firstArg = getArg(0);
-			if (firstArg.isRegister()) {
-				return ((RegisterArg) firstArg);
-			}
+			return getArg(0);
 		}
 		return null;
 	}
 
 	@Override
+	public boolean isStaticCall() {
+		return type == InvokeType.STATIC;
+	}
+
 	public int getFirstArgOffset() {
 		return type == InvokeType.STATIC ? 0 : 1;
 	}
@@ -89,6 +89,6 @@ public class InvokeNode extends InsnNode implements CallMthInterface {
 
 	@Override
 	public String toString() {
-		return super.toString() + ' ' + mth + " type: " + type;
+		return super.toString() + " type: " + type + " call: " + mth;
 	}
 }
