@@ -49,6 +49,7 @@ public class JadxArgs {
 	private boolean deobfuscationOn = false;
 	private boolean deobfuscationForceSave = false;
 	private boolean useSourceNameAsClassAlias = false;
+	private boolean parseKotlinMetadata = false;
 
 	private int deobfuscationMinLength = 0;
 	private int deobfuscationMaxLength = Integer.MAX_VALUE;
@@ -230,6 +231,14 @@ public class JadxArgs {
 		this.useSourceNameAsClassAlias = useSourceNameAsClassAlias;
 	}
 
+	public boolean isParseKotlinMetadata() {
+		return parseKotlinMetadata;
+	}
+
+	public void setParseKotlinMetadata(boolean parseKotlinMetadata) {
+		this.parseKotlinMetadata = parseKotlinMetadata;
+	}
+
 	public int getDeobfuscationMinLength() {
 		return deobfuscationMinLength;
 	}
@@ -355,6 +364,7 @@ public class JadxArgs {
 				+ ", deobfuscationOn=" + deobfuscationOn
 				+ ", deobfuscationForceSave=" + deobfuscationForceSave
 				+ ", useSourceNameAsClassAlias=" + useSourceNameAsClassAlias
+				+ ", parseKotlinMetadata=" + parseKotlinMetadata
 				+ ", deobfuscationMinLength=" + deobfuscationMinLength
 				+ ", deobfuscationMaxLength=" + deobfuscationMaxLength
 				+ ", escapeUnicode=" + escapeUnicode
