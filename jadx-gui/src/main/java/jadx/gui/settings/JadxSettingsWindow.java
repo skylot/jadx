@@ -167,15 +167,24 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JCheckBox deobfKotlinMetadata = new JCheckBox();
+		deobfKotlinMetadata.setSelected(settings.isDeobfuscationParseKotlinMetadata());
+		deobfKotlinMetadata.addItemListener(e -> {
+			settings.setDeobfuscationParseKotlinMetadata(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
 		SettingsGroup deobfGroup = new SettingsGroup(NLS.str("preferences.deobfuscation"));
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_on"), deobfOn);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_force"), deobfForce);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_min_len"), minLenSpinner);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_max_len"), maxLenSpinner);
 		deobfGroup.addRow(NLS.str("preferences.deobfuscation_source_alias"), deobfSourceAlias);
+		deobfGroup.addRow(NLS.str("preferences.deobfuscation_kotlin_metadata"), deobfKotlinMetadata);
 		deobfGroup.end();
 
-		Collection<JComponent> connectedComponents = Arrays.asList(deobfForce, minLenSpinner, maxLenSpinner, deobfSourceAlias);
+		Collection<JComponent> connectedComponents =
+				Arrays.asList(deobfForce, minLenSpinner, maxLenSpinner, deobfSourceAlias, deobfKotlinMetadata);
 		deobfOn.addItemListener(e -> enableComponentList(connectedComponents, e.getStateChange() == ItemEvent.SELECTED));
 		enableComponentList(connectedComponents, settings.isDeobfuscationOn());
 		return deobfGroup;

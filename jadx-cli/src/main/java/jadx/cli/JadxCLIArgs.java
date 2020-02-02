@@ -85,6 +85,9 @@ public class JadxCLIArgs {
 	@Parameter(names = { "--deobf-use-sourcename" }, description = "use source file name as class name alias")
 	protected boolean deobfuscationUseSourceNameAsAlias = false;
 
+	@Parameter(names = { "--deobf-parse-kotlin-metadata" }, description = "parse kotlin metadata to class and package names")
+	protected boolean deobfuscationParseKotlinMetadata = false;
+
 	@Parameter(
 			names = { "--rename-flags" },
 			description = "what to rename, comma-separated,"
@@ -194,6 +197,7 @@ public class JadxCLIArgs {
 		args.setDeobfuscationMinLength(deobfuscationMinLength);
 		args.setDeobfuscationMaxLength(deobfuscationMaxLength);
 		args.setUseSourceNameAsClassAlias(deobfuscationUseSourceNameAsAlias);
+		args.setParseKotlinMetadata(deobfuscationParseKotlinMetadata);
 		args.setEscapeUnicode(escapeUnicode);
 		args.setRespectBytecodeAccModifiers(respectBytecodeAccessModifiers);
 		args.setExportAsGradleProject(exportAsGradleProject);
@@ -273,6 +277,10 @@ public class JadxCLIArgs {
 
 	public boolean isDeobfuscationUseSourceNameAsAlias() {
 		return deobfuscationUseSourceNameAsAlias;
+	}
+
+	public boolean isDeobfuscationParseKotlinMetadata() {
+		return deobfuscationParseKotlinMetadata;
 	}
 
 	public boolean isEscapeUnicode() {
