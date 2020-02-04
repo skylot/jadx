@@ -64,7 +64,7 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 		mth.getSVars().forEach(var -> {
 			ArgType type = var.getTypeInfo().getType();
 			if (!type.isTypeKnown()) {
-				mth.addComment("JADX WARNING: type inference failed for: " + var.getDetailedVarInfo(mth));
+				mth.addWarnComment("Type inference failed for: " + var.getDetailedVarInfo(mth));
 			}
 		});
 	}

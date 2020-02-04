@@ -208,7 +208,7 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 			}
 			return argsTypes;
 		} catch (Exception e) {
-			addWarningComment("Failed to parse method signature: " + sp.getSignature(), e);
+			addWarnComment("Failed to parse method signature: " + sp.getSignature(), e);
 			return null;
 		}
 	}
@@ -698,11 +698,11 @@ public class MethodNode extends LineAttrNode implements ILoadable, ICodeNode {
 		ErrorsCounter.methodWarn(this, warnStr);
 	}
 
-	public void addWarningComment(String warn) {
-		addWarningComment(warn, null);
+	public void addWarnComment(String warn) {
+		addWarnComment(warn, null);
 	}
 
-	public void addWarningComment(String warn, @Nullable Throwable exc) {
+	public void addWarnComment(String warn, @Nullable Throwable exc) {
 		String commentStr = "JADX WARN: " + warn;
 		addAttr(AType.COMMENTS, commentStr);
 		if (exc != null) {
