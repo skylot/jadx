@@ -65,6 +65,7 @@ public abstract class InsnArg extends Typed {
 	}
 
 	private static InsnWrapArg wrap(InsnNode insn) {
+		insn.add(AFlag.WRAPPED);
 		return new InsnWrapArg(insn);
 	}
 
@@ -140,9 +141,17 @@ public abstract class InsnArg extends Typed {
 		InsnArg arg;
 		InsnType type = insn.getType();
 		if (type == InsnType.CONST || type == InsnType.MOVE) {
-			arg = insn.getArg(0);
-			insn.add(AFlag.REMOVE);
-			insn.add(AFlag.DONT_GENERATE);
+			if (insn.contains(AFlag.FORCE_ASSIGN_INLINE)) {
+				RegisterArg resArg = insn.getResult();
+				arg = wrap(insn);
+				if (resArg != null) {
+					arg.setType(resArg.getType());
+				}
+			} else {
+				arg = insn.getArg(0);
+				insn.add(AFlag.REMOVE);
+				insn.add(AFlag.DONT_GENERATE);
+			}
 		} else {
 			arg = wrapArg(insn);
 		}
@@ -156,8 +165,6 @@ public abstract class InsnArg extends Typed {
 	public static InsnArg wrapArg(InsnNode insn) {
 		RegisterArg resArg = insn.getResult();
 		InsnArg arg = wrap(insn);
-		insn.add(AFlag.WRAPPED);
-
 		switch (insn.getType()) {
 			case CONST:
 			case MOVE:
