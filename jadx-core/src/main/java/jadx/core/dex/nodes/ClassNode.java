@@ -2,6 +2,7 @@ package jadx.core.dex.nodes;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -451,6 +452,18 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return innerClasses;
 	}
 
+	/**
+	 * Get all inner classes recursively
+	 *
+	 * @param innerClassesColl all identified inner classes are added to this collection
+	 */
+	public void getInnerClassesRecursive(Collection<ClassNode> innerClassesColl) {
+		for (ClassNode innerClass : innerClasses) {
+			innerClassesColl.add(innerClass);
+			innerClass.getInnerClassesRecursive(innerClassesColl);
+		}
+	}
+
 	public void addInnerClass(ClassNode cls) {
 		if (innerClasses.isEmpty()) {
 			innerClasses = new ArrayList<>(5);
@@ -537,7 +550,9 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 			StringWriter stringWriter = new StringWriter(4096);
 			getSmali(this, stringWriter);
 			stringWriter.append(System.lineSeparator());
-			for (ClassNode innerClass : innerClasses) {
+			List<ClassNode> allInnerClasses = new ArrayList<>();
+			getInnerClassesRecursive(allInnerClasses);
+			for (ClassNode innerClass : allInnerClasses) {
 				getSmali(innerClass, stringWriter);
 				stringWriter.append(System.lineSeparator());
 			}
