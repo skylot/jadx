@@ -607,6 +607,7 @@ public class InsnGen {
 		if (cls != null && cls.isAnonymous() && !fallback) {
 			cls.ensureProcessed();
 			inlineAnonymousConstructor(code, cls, insn);
+			mth.getParentClass().addInlinedClass(cls);
 			return;
 		}
 		if (insn.isSelf()) {

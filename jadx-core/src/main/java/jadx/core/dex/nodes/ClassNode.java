@@ -2,11 +2,12 @@ package jadx.core.dex.nodes;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -58,6 +59,8 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	private final List<MethodNode> methods;
 	private final List<FieldNode> fields;
 	private List<ClassNode> innerClasses = Collections.emptyList();
+
+	private List<ClassNode> inlinedClasses = Collections.emptyList();
 
 	// store smali
 	private String smali;
@@ -453,14 +456,20 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	}
 
 	/**
-	 * Get all inner classes recursively
+	 * Get all inner and inlined classes recursively
 	 *
-	 * @param innerClassesColl all identified inner classes are added to this collection
+	 * @param resultClassesSet all identified inner and inlined classes are added to this set
 	 */
-	public void getInnerClassesRecursive(Collection<ClassNode> innerClassesColl) {
-		for (ClassNode innerClass : innerClasses) {
-			innerClassesColl.add(innerClass);
-			innerClass.getInnerClassesRecursive(innerClassesColl);
+	public void getInnerAndInlinedClassesRecursive(Set<ClassNode> resultClassesSet) {
+		for (ClassNode innerCls : innerClasses) {
+			if (resultClassesSet.add(innerCls)) {
+				innerCls.getInnerAndInlinedClassesRecursive(resultClassesSet);
+			}
+		}
+		for (ClassNode inlinedCls : inlinedClasses) {
+			if (resultClassesSet.add(inlinedCls)) {
+				inlinedCls.getInnerAndInlinedClassesRecursive(resultClassesSet);
+			}
 		}
 	}
 
@@ -470,6 +479,13 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		}
 		innerClasses.add(cls);
 		cls.parentClass = this;
+	}
+
+	public void addInlinedClass(ClassNode cls) {
+		if (inlinedClasses.isEmpty()) {
+			inlinedClasses = new ArrayList<>(5);
+		}
+		inlinedClasses.add(cls);
 	}
 
 	public boolean isEnum() {
@@ -550,9 +566,9 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 			StringWriter stringWriter = new StringWriter(4096);
 			getSmali(this, stringWriter);
 			stringWriter.append(System.lineSeparator());
-			List<ClassNode> allInnerClasses = new ArrayList<>();
-			getInnerClassesRecursive(allInnerClasses);
-			for (ClassNode innerClass : allInnerClasses) {
+			Set<ClassNode> allInlinedClasses = new LinkedHashSet<>();
+			getInnerAndInlinedClassesRecursive(allInlinedClasses);
+			for (ClassNode innerClass : allInlinedClasses) {
 				getSmali(innerClass, stringWriter);
 				stringWriter.append(System.lineSeparator());
 			}
