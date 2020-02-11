@@ -297,10 +297,13 @@ public class RegionGen extends InsnGen {
 				code.add(fn.getAlias());
 			} else {
 				staticField(code, fn.getFieldInfo());
-				// print original value, sometimes replace with incorrect field
+				// print original value, sometimes replaced with incorrect field
 				FieldInitAttr valueAttr = fn.get(AType.FIELD_INIT);
-				if (valueAttr != null && valueAttr.getValue() != null) {
-					code.add(" /*").add(valueAttr.getValue().toString()).add("*/");
+				if (valueAttr != null) {
+					Object value = valueAttr.getValue();
+					if (value != null && valueAttr.getValueType() == FieldInitAttr.InitType.CONST) {
+						code.add(" /*").add(value.toString()).add("*/");
+					}
 				}
 			}
 		} else if (k instanceof Integer) {
