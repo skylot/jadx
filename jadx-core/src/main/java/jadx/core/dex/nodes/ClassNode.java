@@ -458,17 +458,17 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	/**
 	 * Get all inner and inlined classes recursively
 	 *
-	 * @param resultClassesColl all identified inner and inlined classes are added to this collection
+	 * @param resultClassesSet all identified inner and inlined classes are added to this set
 	 */
-	public void getInnerAndInlinedClassesRecursive(Set<ClassNode> resultClassesColl) {
+	public void getInnerAndInlinedClassesRecursive(Set<ClassNode> resultClassesSet) {
 		for (ClassNode innerCls : innerClasses) {
-			if (resultClassesColl.add(innerCls)) {
-				innerCls.getInnerAndInlinedClassesRecursive(resultClassesColl);
+			if (resultClassesSet.add(innerCls)) {
+				innerCls.getInnerAndInlinedClassesRecursive(resultClassesSet);
 			}
 		}
 		for (ClassNode inlinedCls : inlinedClasses) {
-			if (resultClassesColl.add(inlinedCls)) {
-				inlinedCls.getInnerAndInlinedClassesRecursive(resultClassesColl);
+			if (resultClassesSet.add(inlinedCls)) {
+				inlinedCls.getInnerAndInlinedClassesRecursive(resultClassesSet);
 			}
 		}
 	}
