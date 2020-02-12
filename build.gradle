@@ -1,7 +1,7 @@
 plugins {
 	id 'org.sonarqube' version '2.8'
 	id 'com.github.ben-manes.versions' version '0.27.0'
-	id "com.diffplug.gradle.spotless" version "3.26.0"
+	id "com.diffplug.gradle.spotless" version "3.27.1"
 }
 
 ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
@@ -33,15 +33,15 @@ allprojects {
 	}
 
 	dependencies {
-		compile 'org.slf4j:slf4j-api:1.7.29'
+		compile 'org.slf4j:slf4j-api:1.7.30'
 
 		testCompile 'ch.qos.logback:logback-classic:1.2.3'
 		testCompile 'org.hamcrest:hamcrest-library:2.2'
-		testCompile 'org.mockito:mockito-core:3.1.0'
-		testCompile 'org.assertj:assertj-core:3.14.0'
+		testCompile 'org.mockito:mockito-core:3.2.4'
+		testCompile 'org.assertj:assertj-core:3.15.0'
 
-		testImplementation 'org.junit.jupiter:junit-jupiter-api:5.5.2'
-		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.5.2'
+		testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.0'
 
 		testCompile 'org.eclipse.jdt.core.compiler:ecj:4.6.1'
 	}
