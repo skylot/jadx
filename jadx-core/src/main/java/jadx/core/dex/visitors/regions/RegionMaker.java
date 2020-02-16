@@ -865,10 +865,12 @@ public class RegionMaker {
 			// slow search: calculate partial post-dominance for every exit node
 			BitSet ipdoms = BlockUtils.newBlocksBitSet(mth);
 			for (BlockNode exitBlock : exits) {
-				Set<BlockNode> pathBlocks = BlockUtils.getAllPathsBlocks(block, exitBlock);
-				BlockNode ipdom = BlockUtils.calcPartialImmediatePostDominator(mth, block, pathBlocks, exitBlock);
-				if (ipdom != null) {
-					ipdoms.set(ipdom.getId());
+				if (BlockUtils.isAnyPathExists(block, exitBlock)) {
+					Set<BlockNode> pathBlocks = BlockUtils.getAllPathsBlocks(block, exitBlock);
+					BlockNode ipdom = BlockUtils.calcPartialImmediatePostDominator(mth, block, pathBlocks, exitBlock);
+					if (ipdom != null) {
+						ipdoms.set(ipdom.getId());
+					}
 				}
 			}
 			outs.and(ipdoms);
