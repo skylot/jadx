@@ -15,6 +15,7 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.RootNode;
 
 import static jadx.core.dex.instructions.args.ArgType.BOOLEAN;
+import static jadx.core.dex.instructions.args.ArgType.BYTE;
 import static jadx.core.dex.instructions.args.ArgType.CHAR;
 import static jadx.core.dex.instructions.args.ArgType.CLASS;
 import static jadx.core.dex.instructions.args.ArgType.INT;
@@ -76,6 +77,9 @@ public class TypeCompareTest {
 		firstIsNarrow(array(STRING), array(OBJECT));
 
 		firstIsNarrow(UNKNOWN_ARRAY, OBJECT);
+
+		firstIsNarrow(array(BYTE), OBJECT);
+		firstIsNarrow(array(array(BYTE)), array(OBJECT));
 
 		check(array(OBJECT), array(INT), TypeCompareEnum.CONFLICT);
 

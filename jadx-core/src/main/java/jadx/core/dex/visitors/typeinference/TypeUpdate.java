@@ -96,13 +96,13 @@ public final class TypeUpdate {
 		TypeCompareEnum compareResult = comparator.compareTypes(candidateType, currentType);
 		if (arg.isTypeImmutable() && currentType != ArgType.UNKNOWN) {
 			// don't changed type
-			if (compareResult == TypeCompareEnum.CONFLICT) {
-				if (Consts.DEBUG) {
-					LOG.debug("Type rejected for {} due to conflict: candidate={}, current={}", arg, candidateType, currentType);
-				}
-				return REJECT;
+			if (compareResult == TypeCompareEnum.EQUAL) {
+				return SAME;
 			}
-			return SAME;
+			if (Consts.DEBUG) {
+				LOG.debug("Type rejected for {} due to conflict: candidate={}, current={}", arg, candidateType, currentType);
+			}
+			return REJECT;
 		}
 		if (compareResult.isWider() && !updateInfo.getFlags().isAllowWider()) {
 			if (Consts.DEBUG) {
@@ -412,7 +412,7 @@ public final class TypeUpdate {
 			TypeUpdateResult result = updateTypeChecked(updateInfo, putArg, arrayElement);
 			if (result == REJECT) {
 				ArgType putType = putArg.getType();
-				if (putType.isTypeKnown() && putType.isObject()) {
+				if (putType.isTypeKnown() && !putType.isPrimitive()) {
 					TypeCompareEnum compResult = comparator.compareTypes(arrayElement, putType);
 					if (compResult == TypeCompareEnum.WIDER || compResult == TypeCompareEnum.WIDER_BY_GENERIC) {
 						// allow wider result (i.e allow put in Object[] any objects)
