@@ -169,7 +169,12 @@ public class TypeCompare {
 			if (firstGeneric != secondGeneric) {
 				return firstGeneric ? NARROW_BY_GENERIC : WIDER_BY_GENERIC;
 			}
-			// both generics on same object, compare generics arrays
+			// both generics on same object
+			if (first.getWildcardBound() != null && second.getWildcardBound() != null) {
+				// both wildcards
+				return compareWildcardTypes(first, second);
+			}
+			// compare generics arrays
 			ArgType[] firstGenericTypes = first.getGenericTypes();
 			ArgType[] secondGenericTypes = second.getGenericTypes();
 			int len = firstGenericTypes.length;
@@ -196,6 +201,22 @@ public class TypeCompare {
 			return UNKNOWN;
 		}
 		return TypeCompareEnum.CONFLICT;
+	}
+
+	private TypeCompareEnum compareWildcardTypes(ArgType first, ArgType second) {
+		WildcardBound firstWildcardBound = first.getWildcardBound();
+		WildcardBound secondWildcardBound = second.getWildcardBound();
+		if (firstWildcardBound == WildcardBound.UNBOUND) {
+			return WIDER;
+		}
+		if (secondWildcardBound == WildcardBound.UNBOUND) {
+			return NARROW;
+		}
+		TypeCompareEnum wildcardCompare = compareTypes(first.getWildcardType(), second.getWildcardType());
+		if (firstWildcardBound == secondWildcardBound) {
+			return wildcardCompare;
+		}
+		return CONFLICT;
 	}
 
 	private TypeCompareEnum compareGenericTypeWithObject(ArgType genericType, ArgType objType) {

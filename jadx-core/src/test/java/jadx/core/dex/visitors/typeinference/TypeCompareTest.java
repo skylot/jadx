@@ -12,6 +12,7 @@ import jadx.NotYetImplemented;
 import jadx.NotYetImplementedExtension;
 import jadx.api.JadxArgs;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.ArgType.WildcardBound;
 import jadx.core.dex.nodes.RootNode;
 
 import static jadx.core.dex.instructions.args.ArgType.BOOLEAN;
@@ -28,6 +29,7 @@ import static jadx.core.dex.instructions.args.ArgType.UNKNOWN_ARRAY;
 import static jadx.core.dex.instructions.args.ArgType.UNKNOWN_OBJECT;
 import static jadx.core.dex.instructions.args.ArgType.array;
 import static jadx.core.dex.instructions.args.ArgType.generic;
+import static jadx.core.dex.instructions.args.ArgType.object;
 import static jadx.core.dex.instructions.args.ArgType.wildcard;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -83,7 +85,7 @@ public class TypeCompareTest {
 
 		check(array(OBJECT), array(INT), TypeCompareEnum.CONFLICT);
 
-		ArgType integerType = ArgType.object("java.lang.Integer");
+		ArgType integerType = object("java.lang.Integer");
 		check(array(OBJECT), array(integerType), TypeCompareEnum.WIDER);
 		check(array(INT), array(integerType), TypeCompareEnum.CONFLICT);
 		check(array(INT), array(INT), TypeCompareEnum.EQUAL);
@@ -95,8 +97,8 @@ public class TypeCompareTest {
 
 	@Test
 	public void compareGenerics() {
-		ArgType mapCls = ArgType.object("java.util.Map");
-		ArgType setCls = ArgType.object("java.util.Set");
+		ArgType mapCls = object("java.util.Map");
+		ArgType setCls = object("java.util.Set");
 
 		ArgType keyType = ArgType.genericType("K");
 		ArgType valueType = ArgType.genericType("V");
@@ -111,6 +113,20 @@ public class TypeCompareTest {
 		check(setWildcard, setGeneric, TypeCompareEnum.CONFLICT);
 		check(setWildcard, setCls, TypeCompareEnum.NARROW_BY_GENERIC);
 		// TODO implement compare for wildcard with bounds
+	}
+
+	@Test
+	public void compareWildCards() {
+		ArgType clsWildcard = generic(CLASS.getObject(), wildcard());
+		ArgType clsExtendedWildcard = generic(CLASS.getObject(), wildcard(STRING, WildcardBound.EXTENDS));
+		check(clsWildcard, clsExtendedWildcard, TypeCompareEnum.WIDER);
+
+		ArgType listWildcard = generic(CLASS.getObject(), wildcard(object("java.util.List"), WildcardBound.EXTENDS));
+		ArgType collWildcard = generic(CLASS.getObject(), wildcard(object("java.util.Collection"), WildcardBound.EXTENDS));
+		check(listWildcard, collWildcard, TypeCompareEnum.NARROW);
+
+		ArgType collSuperWildcard = generic(CLASS.getObject(), wildcard(object("java.util.Collection"), WildcardBound.SUPER));
+		check(collSuperWildcard, listWildcard, TypeCompareEnum.CONFLICT);
 	}
 
 	@Test
