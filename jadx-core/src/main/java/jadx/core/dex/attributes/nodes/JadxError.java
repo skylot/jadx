@@ -4,6 +4,7 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
+import jadx.core.codegen.CodeWriter;
 import jadx.core.utils.Utils;
 
 public class JadxError implements Comparable<JadxError> {
@@ -58,7 +59,7 @@ public class JadxError implements Comparable<JadxError> {
 			str.append(cause.getClass());
 			str.append(':');
 			str.append(cause.getMessage());
-			str.append('\n');
+			str.append(CodeWriter.NL);
 			str.append(Utils.getStackTrace(cause));
 		}
 		return str.toString();

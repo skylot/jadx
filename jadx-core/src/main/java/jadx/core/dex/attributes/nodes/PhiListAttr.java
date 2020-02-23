@@ -7,6 +7,8 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.instructions.PhiInsn;
 
+import static com.google.common.base.Ascii.NL;
+
 public class PhiListAttr implements IAttribute {
 
 	private final List<PhiInsn> list = new LinkedList<>();
@@ -28,7 +30,7 @@ public class PhiListAttr implements IAttribute {
 			sb.append('r').append(phiInsn.getResult().getRegNum()).append(' ');
 		}
 		for (PhiInsn phiInsn : list) {
-			sb.append("\n  ").append(phiInsn).append(' ').append(phiInsn.getAttributesString());
+			sb.append(NL).append("  ").append(phiInsn).append(' ').append(phiInsn.getAttributesString());
 		}
 		return sb.toString();
 	}

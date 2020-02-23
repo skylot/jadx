@@ -20,6 +20,8 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
+import static jadx.core.codegen.CodeWriter.NL;
+
 /**
  * Helper class for correct instructions removing,
  * can be used while iterating over instructions list
@@ -130,10 +132,10 @@ public class InsnRemover {
 			return;
 		}
 		if (Consts.DEBUG) { // TODO: enable this
-			throw new JadxRuntimeException("Can't remove SSA var, still in use, count: " + useCount
-					+ ", list:\n  " + ssaVar.getUseList().stream()
+			throw new JadxRuntimeException("Can't remove SSA var, still in use, count: " + useCount + ", list:"
+					+ NL + "  " + ssaVar.getUseList().stream()
 							.map(arg -> arg + " from " + arg.getParentInsn())
-							.collect(Collectors.joining("\n  ")));
+							.collect(Collectors.joining(NL + "  ")));
 		}
 	}
 
@@ -168,8 +170,10 @@ public class InsnRemover {
 				}
 			}
 			if (!found && Consts.DEBUG) { // TODO: enable this
-				throw new JadxRuntimeException("Can't remove insn:\n " + rem
-						+ "\nnot found in list:\n " + Utils.listToString(insns, "\n "));
+				throw new JadxRuntimeException("Can't remove insn:"
+						+ NL + "  " + rem
+						+ NL + " not found in list:"
+						+ NL + "  " + Utils.listToString(insns, NL + "  "));
 			}
 		}
 	}

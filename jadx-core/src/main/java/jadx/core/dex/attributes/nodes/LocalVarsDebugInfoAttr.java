@@ -7,6 +7,8 @@ import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.visitors.debuginfo.LocalVar;
 import jadx.core.utils.Utils;
 
+import static jadx.core.codegen.CodeWriter.NL;
+
 public class LocalVarsDebugInfoAttr implements IAttribute {
 	private final List<LocalVar> localVars;
 
@@ -25,6 +27,6 @@ public class LocalVarsDebugInfoAttr implements IAttribute {
 
 	@Override
 	public String toString() {
-		return "Debug Info:\n  " + Utils.listToString(localVars, "\n  ");
+		return "Debug Info:" + NL + "  " + Utils.listToString(localVars, NL + "  ");
 	}
 }

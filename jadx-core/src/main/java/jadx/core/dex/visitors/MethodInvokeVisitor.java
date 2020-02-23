@@ -28,6 +28,8 @@ import jadx.core.dex.visitors.typeinference.TypeCompareEnum;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
+import static jadx.core.codegen.CodeWriter.NL;
+
 @JadxVisitor(
 		name = "MethodInvokeVisitor",
 		desc = "Process additional info for method invocation (overload, vararg)",
@@ -249,13 +251,13 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 		if (argsCount == 1) {
 			return mthDetails.getArgTypes();
 		}
-
 		// TODO: try to minimize casts count
-
 		parentMth.addComment("JADX DEBUG: Failed to find minimal casts for resolve overloaded methods, cast all args instead"
-				+ "\n method: " + mthDetails
-				+ "\n arg types: " + compilerVarTypes
-				+ "\n candidates:\n  " + Utils.listToString(overloadedMethods, "\n  "));
+				+ NL + " method: " + mthDetails
+				+ NL + " arg types: " + compilerVarTypes
+				+ NL + " candidates:"
+				+ NL + "  " + Utils.listToString(overloadedMethods, NL + "  "));
+
 		// not resolved -> cast all args
 		return mthDetails.getArgTypes();
 	}

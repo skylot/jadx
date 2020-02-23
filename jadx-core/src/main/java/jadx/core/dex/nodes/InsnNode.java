@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.android.dx.io.instructions.DecodedInstruction;
 
+import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.instructions.InsnType;
@@ -408,9 +409,9 @@ public class InsnNode extends LineAttrNode {
 			sb.append(argsStr);
 		} else {
 			// wrap args
-			String separator = "\n  ";
+			String separator = CodeWriter.NL + "  ";
 			sb.append(separator).append(Utils.listToString(arguments, separator));
-			sb.append('\n');
+			sb.append(CodeWriter.NL);
 		}
 	}
 
