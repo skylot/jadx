@@ -223,10 +223,25 @@ public class ClassGen {
 	}
 
 	public void addClassBody(CodeWriter clsCode) throws CodegenException {
+		addClassBody(clsCode, false);
+	}
+
+	/**
+	 *
+	 * @param clsCode
+	 * @param printClassName allows to print the original class name as comment (e.g. for inlined
+	 *                       classes)
+	 * @throws CodegenException
+	 */
+	public void addClassBody(CodeWriter clsCode, boolean printClassName) throws CodegenException {
 		clsCode.add('{');
 		setBodyGenStarted(true);
 		clsDeclLine = clsCode.getLine();
 		clsCode.incIndent();
+		if (printClassName) {
+			clsCode.startLine();
+			clsCode.add("/* class " + cls.getFullName() + " */");
+		}
 		addFields(clsCode);
 		addInnerClsAndMethods(clsCode);
 		clsCode.decIndent();
