@@ -200,13 +200,25 @@ public class ModVisitor extends AbstractVisitor {
 				continue;
 			}
 			for (Map.Entry<String, Object> entry : annotation.getValues().entrySet()) {
-				Object value = entry.getValue();
-				FieldNode constField = parentCls.getConstField(value);
-				if (constField != null) {
-					entry.setValue(constField.getFieldInfo());
-				}
+				entry.setValue(replaceConstValue(parentCls, entry.getValue()));
 			}
 		}
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private Object replaceConstValue(ClassNode parentCls, @Nullable Object value) {
+		if (value instanceof List) {
+			List listVal = (List) value;
+			if (!listVal.isEmpty()) {
+				listVal.replaceAll(v -> replaceConstValue(parentCls, v));
+			}
+			return listVal;
+		}
+		FieldNode constField = parentCls.getConstField(value);
+		if (constField != null) {
+			return constField.getFieldInfo();
+		}
+		return value;
 	}
 
 	private static void replaceConst(MethodNode mth, ClassNode parentClass, BlockNode block, int i, InsnNode insn) {
