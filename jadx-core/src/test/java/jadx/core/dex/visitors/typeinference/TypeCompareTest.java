@@ -155,6 +155,16 @@ public class TypeCompareTest {
 		check(vType, ArgType.STRING, TypeCompareEnum.CONFLICT);
 	}
 
+	@Test
+	public void compareOuterGenerics() {
+		ArgType hashMapType = object("java.util.HashMap");
+		ArgType innerEntrySetType = object("EntrySet");
+		ArgType firstInstance = ArgType.outerGeneric(generic(hashMapType, STRING, STRING), innerEntrySetType);
+		ArgType secondInstance = ArgType.outerGeneric(generic(hashMapType, OBJECT, OBJECT), innerEntrySetType);
+
+		check(firstInstance, secondInstance, TypeCompareEnum.NARROW);
+	}
+
 	private void firstIsNarrow(ArgType first, ArgType second) {
 		check(first, second, TypeCompareEnum.NARROW);
 	}

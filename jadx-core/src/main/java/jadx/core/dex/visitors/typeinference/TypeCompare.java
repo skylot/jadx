@@ -174,15 +174,24 @@ public class TypeCompare {
 				// both wildcards
 				return compareWildcardTypes(first, second);
 			}
-			// compare generics arrays
 			ArgType[] firstGenericTypes = first.getGenericTypes();
 			ArgType[] secondGenericTypes = second.getGenericTypes();
-			int len = firstGenericTypes.length;
-			if (len == secondGenericTypes.length) {
-				for (int i = 0; i < len; i++) {
-					TypeCompareEnum res = compareTypes(firstGenericTypes[i], secondGenericTypes[i]);
-					if (res != EQUAL) {
-						return res;
+			if (firstGenericTypes == null || secondGenericTypes == null) {
+				// check outer types
+				ArgType firstOuterType = first.getOuterType();
+				ArgType secondOuterType = second.getOuterType();
+				if (firstOuterType != null && secondOuterType != null) {
+					return compareTypes(firstOuterType, secondOuterType);
+				}
+			} else {
+				// compare generics arrays
+				int len = firstGenericTypes.length;
+				if (len == secondGenericTypes.length) {
+					for (int i = 0; i < len; i++) {
+						TypeCompareEnum res = compareTypes(firstGenericTypes[i], secondGenericTypes[i]);
+						if (res != EQUAL) {
+							return res;
+						}
 					}
 				}
 			}
