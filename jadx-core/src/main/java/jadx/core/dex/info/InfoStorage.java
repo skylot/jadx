@@ -26,20 +26,22 @@ public class InfoStorage {
 		}
 	}
 
-	private int generateMethodLookupId(DexNode dex, int mthId) {
+	private static int generateMethodLookupId(DexNode dex, int mthId) {
 		return dex.getDexId() << 16 | mthId;
 	}
 
 	public MethodInfo getMethod(DexNode dex, int mtdId) {
-		return methods.get(generateMethodLookupId(dex, mtdId));
+		synchronized (methods) {
+			return methods.get(generateMethodLookupId(dex, mtdId));
+		}
 	}
 
 	public MethodInfo putMethod(DexNode dex, int mthId, MethodInfo methodInfo) {
 		synchronized (methods) {
 			MethodInfo uniqueMethodInfo = putMethod(methodInfo);
 			MethodInfo prev = methods.put(generateMethodLookupId(dex, mthId), uniqueMethodInfo);
-			if (prev != null) {
-				throw new JadxRuntimeException("Method info already added: " + methodInfo);
+			if (prev != null && prev != uniqueMethodInfo) {
+				throw new JadxRuntimeException("Method lookup id collision: " + methodInfo + ", " + prev + ", " + uniqueMethodInfo);
 			}
 			return uniqueMethodInfo;
 		}
