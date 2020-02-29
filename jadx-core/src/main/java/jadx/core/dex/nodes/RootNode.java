@@ -176,6 +176,12 @@ public class RootNode {
 
 	@Nullable
 	public ClassNode resolveClass(ArgType clsType) {
+		if (!clsType.isTypeKnown() || clsType.isGenericType()) {
+			return null;
+		}
+		if (clsType.getWildcardBound() == ArgType.WildcardBound.UNBOUND) {
+			return null;
+		}
 		if (clsType.isGeneric()) {
 			clsType = ArgType.object(clsType.getObject());
 		}

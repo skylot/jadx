@@ -68,7 +68,7 @@ public class MethodUtils {
 	}
 
 	public boolean processMethodArgsOverloaded(ArgType startCls, MethodInfo mthInfo, @Nullable List<IMethodDetails> collectedMths) {
-		if (startCls == null) {
+		if (startCls == null || !startCls.isObject()) {
 			return false;
 		}
 		boolean isMthConstructor = mthInfo.isConstructor() || mthInfo.isClassInit();
