@@ -41,6 +41,6 @@ public class TestShadowingSuperMember extends SmaliTest {
 		ClassNode cls = getClassNodeFromSmaliFiles("B");
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("return super.a + b;"));
+		assertThat(code, containsOne("return super.A00 + "));
 	}
 }
