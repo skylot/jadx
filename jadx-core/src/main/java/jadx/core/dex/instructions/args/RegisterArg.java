@@ -88,7 +88,7 @@ public class RegisterArg extends InsnArg implements Named {
 
 	@Override
 	public String getName() {
-		if(isSuper()){
+		if (isSuper()) {
 			return SUPER_ARG_NAME;
 		}
 		if (isThis()) {
