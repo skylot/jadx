@@ -17,19 +17,19 @@ public class TestShadowingSuperMember extends SmaliTest {
 		}
 
 		public class A {
-			public int a;
+			public int A00;
 			public A(String s) {
 			}
 		}
 
 		public class B extends A {
-			public C a;
+			public C A00;
 			public B(String str) {
 				super(str);
 			}
 
 			public int add(int b) {
-				return super.a + b;
+				return super.A00 + b;
 			}
 		}
 	*/
