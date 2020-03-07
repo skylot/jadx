@@ -33,6 +33,7 @@ public enum AFlag {
 	ANONYMOUS_CLASS,
 
 	THIS,
+	SUPER,
 
 	/**
 	 * RegisterArg attribute for method arguments
