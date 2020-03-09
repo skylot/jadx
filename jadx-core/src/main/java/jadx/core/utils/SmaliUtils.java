@@ -37,7 +37,7 @@ public class SmaliUtils {
 		try {
 			Path path = dex.getDexFile().getPath();
 			DexBackedDexFile dexFile = DexFileFactory.loadDexFile(path.toFile(), null);
-			DexBackedClassDef dexBackedClassDef = new DexBackedClassDef(dexFile, clsDefOffset);
+			DexBackedClassDef dexBackedClassDef = new DexBackedClassDef(dexFile, clsDefOffset, 0);
 			getSmaliCode(dexBackedClassDef, stringWriter);
 			return true;
 		} catch (Exception e) {

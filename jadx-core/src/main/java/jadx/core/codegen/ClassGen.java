@@ -29,7 +29,7 @@ import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
-import jadx.core.dex.nodes.GenericInfo;
+import jadx.core.dex.nodes.GenericTypeParameter;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.parser.FieldInitAttr;
@@ -149,7 +149,7 @@ public class ClassGen {
 		clsCode.attachDefinition(cls);
 		clsCode.add(cls.getClassInfo().getAliasShortName());
 
-		addGenericMap(clsCode, cls.getGenerics(), true);
+		addGenericTypeParameters(clsCode, cls.getGenericTypeParameters(), true);
 		clsCode.add(' ');
 
 		ArgType sup = cls.getSuperClass();
@@ -180,17 +180,17 @@ public class ClassGen {
 		}
 	}
 
-	public boolean addGenericMap(CodeWriter code, List<GenericInfo> generics, boolean classDeclaration) {
+	public boolean addGenericTypeParameters(CodeWriter code, List<GenericTypeParameter> generics, boolean classDeclaration) {
 		if (generics == null || generics.isEmpty()) {
 			return false;
 		}
 		code.add('<');
 		int i = 0;
-		for (GenericInfo genericInfo : generics) {
+		for (GenericTypeParameter genericInfo : generics) {
 			if (i != 0) {
 				code.add(", ");
 			}
-			ArgType type = genericInfo.getGenericType();
+			ArgType type = genericInfo.getTypeVariable();
 			if (type.isGenericType()) {
 				code.add(type.getObject());
 			} else {
@@ -223,10 +223,25 @@ public class ClassGen {
 	}
 
 	public void addClassBody(CodeWriter clsCode) throws CodegenException {
+		addClassBody(clsCode, false);
+	}
+
+	/**
+	 *
+	 * @param clsCode
+	 * @param printClassName allows to print the original class name as comment (e.g. for inlined
+	 *                       classes)
+	 * @throws CodegenException
+	 */
+	public void addClassBody(CodeWriter clsCode, boolean printClassName) throws CodegenException {
 		clsCode.add('{');
 		setBodyGenStarted(true);
 		clsDeclLine = clsCode.getLine();
 		clsCode.incIndent();
+		if (printClassName) {
+			clsCode.startLine();
+			clsCode.add("/* class " + cls.getFullName() + " */");
+		}
 		addFields(clsCode);
 		addInnerClsAndMethods(clsCode);
 		clsCode.decIndent();

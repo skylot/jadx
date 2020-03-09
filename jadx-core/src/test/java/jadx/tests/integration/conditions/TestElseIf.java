@@ -42,7 +42,7 @@ public class TestElseIf extends IntegrationTest {
 		assertThat(code, containsOne("r = 1;"));
 		assertThat(code, containsOne("r = -1;"));
 		// no ternary operator
-		assertThat(code, not(containsString("?")));
-		assertThat(code, not(containsString(":")));
+		assertThat(code, not(containsString(" ? ")));
+		assertThat(code, not(containsString(" : ")));
 	}
 }

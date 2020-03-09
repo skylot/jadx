@@ -9,7 +9,7 @@ import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class TestConditions19 extends IntegrationTest {
+public class TestInnerAssign extends IntegrationTest {
 
 	public static class TestCls {
 		private String result;

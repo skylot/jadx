@@ -275,35 +275,42 @@ public class RegionGen extends InsnGen {
 			List<Object> keys = caseInfo.getKeys();
 			IContainer c = caseInfo.getContainer();
 			for (Object k : keys) {
-				code.startLine("case ");
-				if (k instanceof FieldNode) {
-					FieldNode fn = (FieldNode) k;
-					if (fn.getParentClass().isEnum()) {
-						code.add(fn.getAlias());
-					} else {
-						staticField(code, fn.getFieldInfo());
-						// print original value, sometimes replace with incorrect field
-						FieldInitAttr valueAttr = fn.get(AType.FIELD_INIT);
-						if (valueAttr != null && valueAttr.getValue() != null) {
-							code.add(" /*").add(valueAttr.getValue().toString()).add("*/");
-						}
-					}
-				} else if (k instanceof Integer) {
-					code.add(TypeGen.literalToString((Integer) k, arg.getType(), mth, fallback));
+				if (k == SwitchRegion.DEFAULT_CASE_KEY) {
+					code.startLine("default:");
 				} else {
-					throw new JadxRuntimeException("Unexpected key in switch: " + (k != null ? k.getClass() : null));
+					code.startLine("case ");
+					addCaseKey(code, arg, k);
+					code.add(':');
 				}
-				code.add(':');
 			}
 			makeRegionIndent(code, c);
-		}
-		if (sw.getDefaultCase() != null) {
-			code.startLine("default:");
-			makeRegionIndent(code, sw.getDefaultCase());
 		}
 		code.decIndent();
 		code.startLine('}');
 		return code;
+	}
+
+	private void addCaseKey(CodeWriter code, InsnArg arg, Object k) {
+		if (k instanceof FieldNode) {
+			FieldNode fn = (FieldNode) k;
+			if (fn.getParentClass().isEnum()) {
+				code.add(fn.getAlias());
+			} else {
+				staticField(code, fn.getFieldInfo());
+				// print original value, sometimes replaced with incorrect field
+				FieldInitAttr valueAttr = fn.get(AType.FIELD_INIT);
+				if (valueAttr != null) {
+					Object value = valueAttr.getValue();
+					if (value != null && valueAttr.getValueType() == FieldInitAttr.InitType.CONST) {
+						code.add(" /*").add(value.toString()).add("*/");
+					}
+				}
+			}
+		} else if (k instanceof Integer) {
+			code.add(TypeGen.literalToString((Integer) k, arg.getType(), mth, fallback));
+		} else {
+			throw new JadxRuntimeException("Unexpected key in switch: " + (k != null ? k.getClass() : null));
+		}
 	}
 
 	private void makeTryCatch(TryCatchRegion region, CodeWriter code) throws CodegenException {

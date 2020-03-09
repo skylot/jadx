@@ -24,10 +24,10 @@ class ArgTypeTest {
 	@Test
 	void testContainsGenericType() {
 		ArgType wildcard = ArgType.wildcard(ArgType.genericType("T"), ArgType.WildcardBound.SUPER);
-		assertTrue(wildcard.containsGenericType());
+		assertTrue(wildcard.containsTypeVariable());
 
 		ArgType type = ArgType.generic("java.lang.List", wildcard);
-		assertTrue(type.containsGenericType());
+		assertTrue(type.containsTypeVariable());
 	}
 
 	@Test

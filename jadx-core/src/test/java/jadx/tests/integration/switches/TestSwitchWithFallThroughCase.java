@@ -26,6 +26,7 @@ public class TestSwitchWithFallThroughCase extends IntegrationTest {
 						}
 						break;
 					}
+					// fallthrough
 				case 2:
 					if (b) {
 						str += "2";

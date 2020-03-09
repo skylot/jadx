@@ -8,11 +8,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.ArgType.WildcardBound;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.visitors.typeinference.TypeCompareEnum.CONFLICT;
+import static jadx.core.dex.visitors.typeinference.TypeCompareEnum.EQUAL;
 import static jadx.core.dex.visitors.typeinference.TypeCompareEnum.NARROW;
 import static jadx.core.dex.visitors.typeinference.TypeCompareEnum.NARROW_BY_GENERIC;
 import static jadx.core.dex.visitors.typeinference.TypeCompareEnum.UNKNOWN;
@@ -143,18 +145,56 @@ public class TypeCompare {
 		if (firstGenericType && secondGenericType && !objectsEquals) {
 			return CONFLICT;
 		}
+		boolean firstGeneric = first.isGeneric();
+		boolean secondGeneric = second.isGeneric();
+
 		if (firstGenericType || secondGenericType) {
+			ArgType firstWildcardType = first.getWildcardType();
+			ArgType secondWildcardType = second.getWildcardType();
+			if (firstWildcardType != null || secondWildcardType != null) {
+				if (firstWildcardType != null && secondGenericType && first.getWildcardBound() == WildcardBound.UNBOUND) {
+					return CONFLICT;
+				}
+				if (firstGenericType && secondWildcardType != null && second.getWildcardBound() == WildcardBound.UNBOUND) {
+					return CONFLICT;
+				}
+			}
 			if (firstGenericType) {
 				return compareGenericTypeWithObject(first, second);
 			} else {
 				return compareGenericTypeWithObject(second, first).invert();
 			}
 		}
-		boolean firstGeneric = first.isGeneric();
-		boolean secondGeneric = second.isGeneric();
-		if (firstGeneric != secondGeneric && objectsEquals) {
-			// don't check generics for now
-			return firstGeneric ? NARROW_BY_GENERIC : WIDER_BY_GENERIC;
+		if (objectsEquals) {
+			if (firstGeneric != secondGeneric) {
+				return firstGeneric ? NARROW_BY_GENERIC : WIDER_BY_GENERIC;
+			}
+			// both generics on same object
+			if (first.getWildcardBound() != null && second.getWildcardBound() != null) {
+				// both wildcards
+				return compareWildcardTypes(first, second);
+			}
+			ArgType[] firstGenericTypes = first.getGenericTypes();
+			ArgType[] secondGenericTypes = second.getGenericTypes();
+			if (firstGenericTypes == null || secondGenericTypes == null) {
+				// check outer types
+				ArgType firstOuterType = first.getOuterType();
+				ArgType secondOuterType = second.getOuterType();
+				if (firstOuterType != null && secondOuterType != null) {
+					return compareTypes(firstOuterType, secondOuterType);
+				}
+			} else {
+				// compare generics arrays
+				int len = firstGenericTypes.length;
+				if (len == secondGenericTypes.length) {
+					for (int i = 0; i < len; i++) {
+						TypeCompareEnum res = compareTypes(firstGenericTypes[i], secondGenericTypes[i]);
+						if (res != EQUAL) {
+							return res;
+						}
+					}
+				}
+			}
 		}
 		boolean firstIsObjCls = first.equals(ArgType.OBJECT);
 		if (firstIsObjCls || second.equals(ArgType.OBJECT)) {
@@ -170,6 +210,22 @@ public class TypeCompare {
 			return UNKNOWN;
 		}
 		return TypeCompareEnum.CONFLICT;
+	}
+
+	private TypeCompareEnum compareWildcardTypes(ArgType first, ArgType second) {
+		WildcardBound firstWildcardBound = first.getWildcardBound();
+		WildcardBound secondWildcardBound = second.getWildcardBound();
+		if (firstWildcardBound == WildcardBound.UNBOUND) {
+			return WIDER;
+		}
+		if (secondWildcardBound == WildcardBound.UNBOUND) {
+			return NARROW;
+		}
+		TypeCompareEnum wildcardCompare = compareTypes(first.getWildcardType(), second.getWildcardType());
+		if (firstWildcardBound == secondWildcardBound) {
+			return wildcardCompare;
+		}
+		return CONFLICT;
 	}
 
 	private TypeCompareEnum compareGenericTypeWithObject(ArgType genericType, ArgType objType) {

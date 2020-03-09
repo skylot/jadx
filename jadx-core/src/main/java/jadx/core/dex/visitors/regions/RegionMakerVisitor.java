@@ -25,6 +25,7 @@ import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.regions.SynchronizedRegion;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.visitors.AbstractVisitor;
+import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.JadxException;
@@ -58,6 +59,8 @@ public class RegionMakerVisitor extends AbstractVisitor {
 	}
 
 	private static void postProcessRegions(MethodNode mth) {
+		processForceInlineInsns(mth);
+
 		// make try-catch regions
 		ProcessTryCatchRegions.process(mth);
 
@@ -67,6 +70,15 @@ public class RegionMakerVisitor extends AbstractVisitor {
 
 		if (mth.getAccessFlags().isSynchronized()) {
 			removeSynchronized(mth);
+		}
+	}
+
+	private static void processForceInlineInsns(MethodNode mth) {
+		boolean needShrink = mth.getBasicBlocks().stream()
+				.flatMap(block -> block.getInstructions().stream())
+				.anyMatch(insn -> insn.contains(AFlag.FORCE_ASSIGN_INLINE));
+		if (needShrink) {
+			CodeShrinkVisitor.shrinkMethod(mth);
 		}
 	}
 

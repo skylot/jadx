@@ -22,6 +22,8 @@ public class TestAnonymousClass14 extends SmaliTest {
 
 			public void makeAnonymousCls() {
 				use(new Thread(this) {
+				/ * class inner.OuterCls.AnonymousClass1 * /
+
 					public void someMethod() {
 					}
 				});
@@ -44,6 +46,7 @@ public class TestAnonymousClass14 extends SmaliTest {
 	public void test() {
 		ClassNode clsNode = getClassNodeFromSmaliFiles("inner", "TestAnonymousClass14", "OuterCls");
 		String code = clsNode.getCode().toString();
+		code = code.replaceAll("/\\*.*?\\*/", ""); // remove block comments
 
 		assertThat(code, not(containsString("AnonymousClass1")));
 		assertThat(code, not(containsString("synthetic")));

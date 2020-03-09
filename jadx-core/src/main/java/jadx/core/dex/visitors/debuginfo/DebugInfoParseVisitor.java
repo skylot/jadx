@@ -20,6 +20,8 @@ import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
 
+import static jadx.core.codegen.CodeWriter.NL;
+
 @JadxVisitor(
 		name = "Debug Info Parser",
 		desc = "Parse debug information (variable names and types, instruction lines)",
@@ -42,7 +44,7 @@ public class DebugInfoParseVisitor extends AbstractVisitor {
 		} catch (Exception e) {
 			mth.addComment("JADX WARNING: Error to parse debug info: "
 					+ ErrorsCounter.formatMsg(mth, e.getMessage())
-					+ '\n' + Utils.getStackTrace(e));
+					+ NL + Utils.getStackTrace(e));
 		}
 	}
 

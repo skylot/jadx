@@ -32,5 +32,6 @@ public class TestGenerics2 extends SmaliTest {
 
 		assertThat(code, containsOne("Entry<Integer, String> next"));
 		assertThat(code, containsOne("useInt(next.getKey().intValue());")); // no Integer cast
+		assertThat(code, containsOne("next.getValue().trim();")); // no String cast
 	}
 }

@@ -16,20 +16,22 @@ public class SwitchNode extends TargetInsnNode {
 	private final Object[] keys;
 	private final int[] targets;
 	private final int def; // next instruction
+	private final boolean packed; // type of switch insn, if true can contain filler keys
 
 	private BlockNode[] targetBlocks;
 	private BlockNode defTargetBlock;
 
-	public SwitchNode(InsnArg arg, Object[] keys, int[] targets, int def) {
-		this(keys, targets, def);
+	public SwitchNode(InsnArg arg, Object[] keys, int[] targets, int def, boolean packed) {
+		this(keys, targets, def, packed);
 		addArg(arg);
 	}
 
-	private SwitchNode(Object[] keys, int[] targets, int def) {
+	private SwitchNode(Object[] keys, int[] targets, int def, boolean packed) {
 		super(InsnType.SWITCH, 1);
 		this.keys = keys;
 		this.targets = targets;
 		this.def = def;
+		this.packed = packed;
 	}
 
 	public int getCasesCount() {
@@ -46,6 +48,10 @@ public class SwitchNode extends TargetInsnNode {
 
 	public int getDefaultCaseOffset() {
 		return def;
+	}
+
+	public boolean isPacked() {
+		return packed;
 	}
 
 	public BlockNode[] getTargetBlocks() {
@@ -103,7 +109,7 @@ public class SwitchNode extends TargetInsnNode {
 
 	@Override
 	public InsnNode copy() {
-		SwitchNode copy = new SwitchNode(keys, targets, def);
+		SwitchNode copy = new SwitchNode(keys, targets, def, packed);
 		copy.targetBlocks = targetBlocks;
 		copy.defTargetBlock = defTargetBlock;
 		return copyCommonParams(copy);
@@ -114,9 +120,13 @@ public class SwitchNode extends TargetInsnNode {
 		StringBuilder sb = new StringBuilder();
 		sb.append(super.toString());
 		for (int i = 0; i < targets.length; i++) {
-			sb.append("  case ").append(keys[i])
-					.append(": goto ").append(InsnUtils.formatOffset(targets[i]));
 			sb.append(CodeWriter.NL);
+			sb.append("  case ").append(keys[i]);
+			sb.append(": goto ").append(InsnUtils.formatOffset(targets[i]));
+		}
+		if (def != -1) {
+			sb.append(CodeWriter.NL);
+			sb.append("  default: goto ").append(InsnUtils.formatOffset(def));
 		}
 		return sb.toString();
 	}

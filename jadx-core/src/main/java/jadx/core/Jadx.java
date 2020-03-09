@@ -11,26 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
-import jadx.core.dex.visitors.ClassModifier;
-import jadx.core.dex.visitors.ConstInlineVisitor;
-import jadx.core.dex.visitors.ConstructorVisitor;
-import jadx.core.dex.visitors.DeboxingVisitor;
-import jadx.core.dex.visitors.DependencyCollector;
-import jadx.core.dex.visitors.DotGraphVisitor;
-import jadx.core.dex.visitors.EnumVisitor;
-import jadx.core.dex.visitors.ExtractFieldInit;
-import jadx.core.dex.visitors.FallbackModeVisitor;
-import jadx.core.dex.visitors.FixAccessModifiers;
-import jadx.core.dex.visitors.IDexTreeVisitor;
-import jadx.core.dex.visitors.InitCodeVariables;
-import jadx.core.dex.visitors.MarkFinallyVisitor;
-import jadx.core.dex.visitors.MethodInlineVisitor;
-import jadx.core.dex.visitors.ModVisitor;
-import jadx.core.dex.visitors.PrepareForCodeGen;
-import jadx.core.dex.visitors.ProcessAnonymous;
-import jadx.core.dex.visitors.ReSugarCode;
-import jadx.core.dex.visitors.RenameVisitor;
-import jadx.core.dex.visitors.SimplifyVisitor;
+import jadx.core.dex.visitors.*;
 import jadx.core.dex.visitors.blocksmaker.BlockExceptionHandler;
 import jadx.core.dex.visitors.blocksmaker.BlockFinish;
 import jadx.core.dex.visitors.blocksmaker.BlockProcessor;
@@ -69,6 +50,7 @@ public class Jadx {
 				passes.add(new DebugInfoParseVisitor());
 			}
 
+			passes.add(new FindSuperUsageVisitor());
 			passes.add(new BlockSplitter());
 			if (args.isRawCFGOutput()) {
 				passes.add(DotGraphVisitor.dumpRaw());
@@ -83,6 +65,7 @@ public class Jadx {
 			passes.add(new InitCodeVariables());
 			passes.add(new MarkFinallyVisitor());
 			passes.add(new ConstInlineVisitor());
+			passes.add(new AttachMethodDetails());
 			passes.add(new TypeInferenceVisitor());
 			if (args.isDebugInfo()) {
 				passes.add(new DebugInfoApplyVisitor());
@@ -102,15 +85,16 @@ public class Jadx {
 			passes.add(new CleanRegions());
 
 			passes.add(new CodeShrinkVisitor());
+			passes.add(new MethodInvokeVisitor());
 			passes.add(new SimplifyVisitor());
 			passes.add(new CheckRegions());
 
+			passes.add(new EnumVisitor());
 			passes.add(new ExtractFieldInit());
 			passes.add(new FixAccessModifiers());
 			passes.add(new ProcessAnonymous());
 			passes.add(new ClassModifier());
 			passes.add(new MethodInlineVisitor());
-			passes.add(new EnumVisitor());
 			passes.add(new LoopRegionVisitor());
 
 			passes.add(new ProcessVariables());

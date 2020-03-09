@@ -3,7 +3,6 @@ package jadx.core.dex.visitors.regions;
 import java.util.List;
 
 import jadx.core.dex.attributes.AFlag;
-import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.MethodNode;
@@ -96,7 +95,7 @@ public class IfRegionVisitor extends AbstractVisitor {
 	}
 
 	private static void moveReturnToThenBlock(MethodNode mth, IfRegion ifRegion) {
-		if (!mth.getReturnType().equals(ArgType.VOID)
+		if (!mth.isVoidReturn()
 				&& hasSimpleReturnBlock(ifRegion.getElseRegion())
 		/* && insnsCount(ifRegion.getThenRegion()) < 2 */) {
 			invertIfRegion(ifRegion);
@@ -139,7 +138,7 @@ public class IfRegionVisitor extends AbstractVisitor {
 		// code style check:
 		// will remove 'return;' from 'then' and 'else' with one instruction
 		// see #jadx.tests.integration.conditions.TestConditions9
-		if (mth.getReturnType() == ArgType.VOID
+		if (mth.isVoidReturn()
 				&& insnsCount(ifRegion.getThenRegion()) == 2
 				&& insnsCount(ifRegion.getElseRegion()) == 2) {
 			return false;

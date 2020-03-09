@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -45,13 +46,15 @@ public class ConvertToClsSet {
 			LOG.info("Loaded: {}", inputFile.getFile());
 		}
 
-		RootNode root = new RootNode(new JadxArgs());
+		JadxArgs jadxArgs = new JadxArgs();
+		jadxArgs.setRenameFlags(EnumSet.noneOf(JadxArgs.RenameEnum.class));
+		RootNode root = new RootNode(jadxArgs);
 		root.load(inputFiles);
 
-		ClsSet set = new ClsSet();
+		ClsSet set = new ClsSet(root);
 		set.loadFrom(root);
 		set.save(output);
-		LOG.info("Output: {}", output);
+		LOG.info("Output: {}, file size: {}B", output, output.toFile().length());
 		LOG.info("done");
 	}
 

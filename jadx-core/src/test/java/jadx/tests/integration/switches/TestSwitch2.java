@@ -17,7 +17,7 @@ public class TestSwitch2 extends IntegrationTest {
 		boolean isScrolling;
 		float multiTouchZoomOldDist;
 
-		void test(int action) {
+		public void test(int action) {
 			switch (action & 255) {
 				case 0:
 					this.isLongtouchable = true;

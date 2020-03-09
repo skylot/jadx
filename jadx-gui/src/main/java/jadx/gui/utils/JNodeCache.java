@@ -1,7 +1,7 @@
 package jadx.gui.utils;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import jadx.api.JavaClass;
 import jadx.api.JavaField;
@@ -15,7 +15,7 @@ import jadx.gui.treemodel.JNode;
 
 public class JNodeCache {
 
-	private final Map<JavaNode, JNode> cache = new HashMap<>();
+	private final Map<JavaNode, JNode> cache = new ConcurrentHashMap<>();
 
 	public JNode makeFrom(JavaNode javaNode) {
 		if (javaNode == null) {

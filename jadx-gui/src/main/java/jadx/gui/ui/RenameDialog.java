@@ -16,7 +16,6 @@ import java.util.Set;
 
 import javax.swing.*;
 
-import jadx.gui.utils.CodeUsageInfo;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +40,7 @@ import jadx.gui.ui.codearea.ClassCodeContentPanel;
 import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.ui.codearea.CodePanel;
 import jadx.gui.utils.CacheObject;
+import jadx.gui.utils.CodeUsageInfo;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
 

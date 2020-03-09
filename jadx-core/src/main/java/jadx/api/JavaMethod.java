@@ -47,18 +47,12 @@ public final class JavaMethod implements JavaNode {
 			return Collections.emptyList();
 		}
 		List<ArgType> arguments = mth.getArgTypes();
-		if (arguments == null) {
-			arguments = infoArgTypes;
-		}
 		return Utils.collectionMap(arguments,
 				type -> ArgType.tryToResolveClassAlias(mth.dex(), type));
 	}
 
 	public ArgType getReturnType() {
 		ArgType retType = mth.getReturnType();
-		if (retType == null) {
-			retType = mth.getMethodInfo().getReturnType();
-		}
 		return ArgType.tryToResolveClassAlias(mth.dex(), retType);
 	}
 

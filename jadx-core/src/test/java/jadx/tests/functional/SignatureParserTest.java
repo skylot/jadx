@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.ArgType.WildcardBound;
-import jadx.core.dex.nodes.GenericInfo;
+import jadx.core.dex.nodes.GenericTypeParameter;
 import jadx.core.dex.nodes.parser.SignatureParser;
 
 import static jadx.core.dex.instructions.args.ArgType.INT;
@@ -92,12 +92,12 @@ class SignatureParserTest {
 
 	@SuppressWarnings("unchecked")
 	private static void checkGenerics(String g, Object... objs) {
-		List<GenericInfo> genericsList = new SignatureParser(g).consumeGenericMap();
-		List<GenericInfo> expectedList = new ArrayList<>();
+		List<GenericTypeParameter> genericsList = new SignatureParser(g).consumeGenericTypeParameters();
+		List<GenericTypeParameter> expectedList = new ArrayList<>();
 		for (int i = 0; i < objs.length; i += 2) {
 			ArgType generic = genericType((String) objs[i]);
 			List<ArgType> list = (List<ArgType>) objs[i + 1];
-			expectedList.add(new GenericInfo(generic, list));
+			expectedList.add(new GenericTypeParameter(generic, list));
 		}
 		assertThat(genericsList, is(expectedList));
 	}
@@ -122,7 +122,7 @@ class SignatureParserTest {
 
 	@Test
 	public void testBadGenericMap() {
-		List<GenericInfo> list = new SignatureParser("<A:Ljava/lang/Object;B").consumeGenericMap();
+		List<GenericTypeParameter> list = new SignatureParser("<A:Ljava/lang/Object;B").consumeGenericTypeParameters();
 		assertThat(list, hasSize(0));
 	}
 }

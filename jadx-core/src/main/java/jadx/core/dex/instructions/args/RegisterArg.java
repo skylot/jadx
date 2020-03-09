@@ -11,6 +11,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class RegisterArg extends InsnArg implements Named {
 	public static final String THIS_ARG_NAME = "this";
+	public static final String SUPER_ARG_NAME = "super";
 
 	protected final int regNum;
 	// not null after SSATransform pass
@@ -87,6 +88,9 @@ public class RegisterArg extends InsnArg implements Named {
 
 	@Override
 	public String getName() {
+		if (isSuper()) {
+			return SUPER_ARG_NAME;
+		}
 		if (isThis()) {
 			return THIS_ARG_NAME;
 		}
@@ -94,6 +98,10 @@ public class RegisterArg extends InsnArg implements Named {
 			return null;
 		}
 		return sVar.getName();
+	}
+
+	private boolean isSuper() {
+		return contains(AFlag.SUPER);
 	}
 
 	@Override

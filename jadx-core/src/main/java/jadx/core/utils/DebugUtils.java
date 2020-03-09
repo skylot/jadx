@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,6 +30,8 @@ import jadx.core.dex.visitors.regions.DepthRegionTraversal;
 import jadx.core.dex.visitors.regions.TracedRegionVisitor;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxException;
+
+import static jadx.core.codegen.CodeWriter.NL;
 
 @Deprecated
 @TestOnly
@@ -97,7 +100,7 @@ public class DebugUtils {
 		CodeWriter cw = new CodeWriter();
 		cw.startLine('|').add(mth.toString());
 		printRegion(mth, region, cw, "|  ", printInsns);
-		LOG.debug("\n{}", cw.finish().getCodeStr());
+		LOG.debug("{}{}", NL, cw.finish().getCodeStr());
 	}
 
 	private static void printRegion(MethodNode mth, IRegion region, CodeWriter cw, String indent, boolean printInsns) {
@@ -125,7 +128,7 @@ public class DebugUtils {
 				ig.makeInsn(insn, code);
 				String codeStr = code.finish().getCodeStr();
 
-				List<String> insnStrings = Arrays.stream(codeStr.split(CodeWriter.NL))
+				List<String> insnStrings = Arrays.stream(codeStr.split(NL))
 						.filter(StringUtils::notBlank)
 						.map(s -> "|> " + s)
 						.collect(Collectors.toList());
@@ -147,7 +150,7 @@ public class DebugUtils {
 
 	private static void printWithAttributes(CodeWriter cw, String indent, String codeStr, IAttributeNode attrNode) {
 		String str = attrNode.isAttrStorageEmpty() ? codeStr : codeStr + ' ' + attrNode.getAttributesString();
-		List<String> attrStrings = Arrays.stream(str.split(CodeWriter.NL))
+		List<String> attrStrings = Arrays.stream(str.split(NL))
 				.filter(StringUtils::notBlank)
 				.collect(Collectors.toList());
 		Iterator<String> it = attrStrings.iterator();
@@ -157,6 +160,13 @@ public class DebugUtils {
 		cw.startLine(indent).add(it.next());
 		while (it.hasNext()) {
 			cw.startLine(indent).add("|+  ").add(it.next());
+		}
+	}
+
+	public static void printMap(Map<?, ?> map, String desc) {
+		LOG.debug("Map {} (size = {}):", desc, map.size());
+		for (Map.Entry<?, ?> entry : map.entrySet()) {
+			LOG.debug("  {}: {}", entry.getKey(), entry.getValue());
 		}
 	}
 }

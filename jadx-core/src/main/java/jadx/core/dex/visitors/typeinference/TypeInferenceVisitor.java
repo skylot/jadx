@@ -16,7 +16,7 @@ import jadx.core.clsp.ClspGraph;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.ClassInfo;
-import jadx.core.dex.info.MethodInfo;
+import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
@@ -30,11 +30,13 @@ import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.visitors.AbstractVisitor;
+import jadx.core.dex.visitors.AttachMethodDetails;
 import jadx.core.dex.visitors.ConstInlineVisitor;
 import jadx.core.dex.visitors.InitCodeVariables;
 import jadx.core.dex.visitors.JadxVisitor;
@@ -48,7 +50,8 @@ import jadx.core.utils.Utils;
 		desc = "Calculate best types for SSA variables",
 		runAfter = {
 				SSATransform.class,
-				ConstInlineVisitor.class
+				ConstInlineVisitor.class,
+				AttachMethodDetails.class
 		}
 )
 public final class TypeInferenceVisitor extends AbstractVisitor {
@@ -68,11 +71,16 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
+		if (Consts.DEBUG) {
+			LOG.info("Start type inference in method: {}", mth);
+		}
 		boolean resolved = runTypePropagation(mth);
 		if (!resolved) {
 			boolean moveAdded = false;
 			for (SSAVar var : new ArrayList<>(mth.getSVars())) {
-				moveAdded |= tryInsertAdditionalInsn(mth, var);
+				if (tryInsertAdditionalInsn(mth, var)) {
+					moveAdded = true;
+				}
 			}
 			if (moveAdded) {
 				InitCodeVariables.rerun(mth);
@@ -269,11 +277,10 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 	}
 
 	private ITypeBound makeAssignInvokeBound(InvokeNode invokeNode) {
-		MethodInfo callMth = invokeNode.getCallMth();
-		ArgType boundType = callMth.getReturnType();
-		ArgType genericReturnType = root.getMethodGenericReturnType(callMth);
+		ArgType boundType = invokeNode.getCallMth().getReturnType();
+		ArgType genericReturnType = root.getMethodUtils().getMethodGenericReturnType(invokeNode);
 		if (genericReturnType != null) {
-			if (genericReturnType.containsGenericType()) {
+			if (genericReturnType.containsTypeVariable()) {
 				InvokeType invokeType = invokeNode.getInvokeType();
 				if (invokeNode.getArgsCount() != 0
 						&& invokeType != InvokeType.STATIC && invokeType != InvokeType.SUPER) {
@@ -291,6 +298,15 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		InsnNode insn = regArg.getParentInsn();
 		if (insn == null) {
 			return null;
+		}
+		if (insn instanceof BaseInvokeNode) {
+			IMethodDetails methodDetails = root.getMethodUtils().getMethodDetails((BaseInvokeNode) insn);
+			if (methodDetails != null) {
+				if (methodDetails.getArgTypes().stream().anyMatch(ArgType::containsTypeVariable)) {
+					// don't add const bound for generic type variables
+					return null;
+				}
+			}
 		}
 		return new TypeBoundConst(BoundEnum.USE, regArg.getInitType(), regArg);
 	}
@@ -361,48 +377,65 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 			}
 		}
 		for (PhiInsn phiInsn : usedInPhiList) {
-			if (!insertMoveForPhi(mth, phiInsn, var)) {
+			if (!insertMoveForPhi(mth, phiInsn, var, false)) {
 				return false;
 			}
 		}
+
+		// all check passed => apply
+		for (PhiInsn phiInsn : usedInPhiList) {
+			insertMoveForPhi(mth, phiInsn, var, true);
+		}
+		mth.addComment("JADX INFO: additional move instructions added (" + usedInPhiList.size() + ") to help type inference");
 		return true;
 	}
 
-	private boolean insertMoveForPhi(MethodNode mth, PhiInsn phiInsn, SSAVar var) {
+	private boolean insertMoveForPhi(MethodNode mth, PhiInsn phiInsn, SSAVar var, boolean apply) {
 		int argsCount = phiInsn.getArgsCount();
 		for (int argIndex = 0; argIndex < argsCount; argIndex++) {
 			RegisterArg reg = phiInsn.getArg(argIndex);
 			if (reg.getSVar() == var) {
-				BlockNode blockNode = phiInsn.getBlockByArgIndex(argIndex);
-				InsnNode lastInsn = BlockUtils.getLastInsn(blockNode);
-				if (lastInsn != null && BlockSplitter.isSeparate(lastInsn.getType())) {
-					// can't insert move in block with separate instruction
-					// trying previous block
-					List<BlockNode> preds = blockNode.getPredecessors();
-					if (preds.size() == 1) {
-						blockNode = preds.get(0);
-					} else {
-						mth.addWarn("Failed to insert additional move for type inference");
-						return false;
-					}
+				BlockNode startBlock = phiInsn.getBlockByArgIndex(argIndex);
+				BlockNode blockNode = checkBlockForInsnInsert(startBlock);
+				if (blockNode == null) {
+					mth.addWarnComment("Failed to insert an additional move for type inference into block " + startBlock);
+					return false;
 				}
+				if (apply) {
+					int regNum = reg.getRegNum();
+					RegisterArg resultArg = reg.duplicate(regNum, null);
+					SSAVar newSsaVar = mth.makeNewSVar(regNum, resultArg);
+					RegisterArg arg = reg.duplicate(regNum, var);
 
-				int regNum = reg.getRegNum();
-				RegisterArg resultArg = reg.duplicate(regNum, null);
-				SSAVar newSsaVar = mth.makeNewSVar(regNum, resultArg);
-				RegisterArg arg = reg.duplicate(regNum, var);
+					InsnNode moveInsn = new InsnNode(InsnType.MOVE, 1);
+					moveInsn.setResult(resultArg);
+					moveInsn.addArg(arg);
+					moveInsn.add(AFlag.SYNTHETIC);
+					blockNode.getInstructions().add(moveInsn);
 
-				InsnNode moveInsn = new InsnNode(InsnType.MOVE, 1);
-				moveInsn.setResult(resultArg);
-				moveInsn.addArg(arg);
-				moveInsn.add(AFlag.SYNTHETIC);
-				blockNode.getInstructions().add(moveInsn);
-
-				phiInsn.replaceArg(reg, reg.duplicate(regNum, newSsaVar));
+					phiInsn.replaceArg(reg, reg.duplicate(regNum, newSsaVar));
+				}
 				return true;
 			}
 		}
 		return false;
+	}
+
+	@Nullable
+	private BlockNode checkBlockForInsnInsert(BlockNode blockNode) {
+		if (blockNode.isSynthetic()) {
+			return null;
+		}
+		InsnNode lastInsn = BlockUtils.getLastInsn(blockNode);
+		if (lastInsn != null && BlockSplitter.isSeparate(lastInsn.getType())) {
+			// can't insert move in a block with 'separate' instruction => try previous block by simple path
+			List<BlockNode> preds = blockNode.getPredecessors();
+			if (preds.size() == 1) {
+				return checkBlockForInsnInsert(preds.get(0));
+			}
+			return null;
+		}
+		return blockNode;
 	}
 
 	private boolean tryWiderObjects(MethodNode mth, SSAVar var) {

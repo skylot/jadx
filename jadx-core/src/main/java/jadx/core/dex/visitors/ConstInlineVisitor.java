@@ -5,7 +5,7 @@ import java.util.List;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.MethodInfo;
-import jadx.core.dex.instructions.CallMthInterface;
+import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.ConstStringNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
@@ -240,8 +240,8 @@ public class ConstInlineVisitor extends AbstractVisitor {
 	}
 
 	private static boolean needExplicitCast(InsnNode insn, LiteralArg arg) {
-		if (insn instanceof CallMthInterface) {
-			CallMthInterface callInsn = (CallMthInterface) insn;
+		if (insn instanceof BaseInvokeNode) {
+			BaseInvokeNode callInsn = (BaseInvokeNode) insn;
 			MethodInfo callMth = callInsn.getCallMth();
 			int offset = callInsn.getFirstArgOffset();
 			int argIndex = insn.getArgIndex(arg);

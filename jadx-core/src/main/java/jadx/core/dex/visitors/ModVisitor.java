@@ -86,6 +86,7 @@ public class ModVisitor extends AbstractVisitor {
 		InsnRemover remover = new InsnRemover(mth);
 		replaceStep(mth, remover);
 		removeStep(mth, remover);
+		iterativeRemoveStep(mth);
 	}
 
 	private static void replaceStep(MethodNode mth, InsnRemover remover) {
@@ -199,13 +200,25 @@ public class ModVisitor extends AbstractVisitor {
 				continue;
 			}
 			for (Map.Entry<String, Object> entry : annotation.getValues().entrySet()) {
-				Object value = entry.getValue();
-				FieldNode constField = parentCls.getConstField(value);
-				if (constField != null) {
-					entry.setValue(constField.getFieldInfo());
-				}
+				entry.setValue(replaceConstValue(parentCls, entry.getValue()));
 			}
 		}
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private Object replaceConstValue(ClassNode parentCls, @Nullable Object value) {
+		if (value instanceof List) {
+			List listVal = (List) value;
+			if (!listVal.isEmpty()) {
+				listVal.replaceAll(v -> replaceConstValue(parentCls, v));
+			}
+			return listVal;
+		}
+		FieldNode constField = parentCls.getConstField(value);
+		if (constField != null) {
+			return constField.getFieldInfo();
+		}
+		return value;
 	}
 
 	private static void replaceConst(MethodNode mth, ClassNode parentClass, BlockNode block, int i, InsnNode insn) {
@@ -254,7 +267,7 @@ public class ModVisitor extends AbstractVisitor {
 	private static void removeRedundantCast(MethodNode mth, BlockNode block, int i, IndexInsnNode insn) {
 		InsnArg castArg = insn.getArg(0);
 		ArgType castType = (ArgType) insn.getIndex();
-		if (!ArgType.isCastNeeded(mth.dex(), castArg.getType(), castType)
+		if (!ArgType.isCastNeeded(mth.root(), castArg.getType(), castType)
 				|| isCastDuplicate(insn)) {
 			InsnNode insnNode = new InsnNode(InsnType.MOVE, 1);
 			insnNode.setResult(insn.getResult());
@@ -293,11 +306,41 @@ public class ModVisitor extends AbstractVisitor {
 						break;
 
 					default:
+						if (insn.contains(AFlag.REMOVE)) {
+							remover.addAndUnbind(insn);
+						}
 						break;
 				}
 			}
 			remover.perform();
 		}
+	}
+
+	private static void iterativeRemoveStep(MethodNode mth) {
+		boolean changed;
+		do {
+			changed = false;
+			for (BlockNode block : mth.getBasicBlocks()) {
+				for (InsnNode insn : block.getInstructions()) {
+					if (insn.getType() == InsnType.MOVE
+							&& insn.isAttrStorageEmpty()
+							&& isResultArgNotUsed(insn)) {
+						InsnRemover.remove(mth, block, insn);
+						changed = true;
+						break;
+					}
+				}
+			}
+		} while (changed);
+	}
+
+	private static boolean isResultArgNotUsed(InsnNode insn) {
+		RegisterArg result = insn.getResult();
+		if (result != null) {
+			SSAVar ssaVar = result.getSVar();
+			return ssaVar.getUseCount() == 0;
+		}
+		return false;
 	}
 
 	private static void processAnonymousConstructor(MethodNode mth, ConstructorInsn co) {

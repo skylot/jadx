@@ -100,10 +100,6 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 
 		int assignPos = insnList.getIndex(assignInsn);
 		if (assignPos != -1) {
-			if (assignInline) {
-				// TODO?
-				return;
-			}
 			WrapInfo wrapInfo = argsInfo.checkInline(assignPos, arg);
 			if (wrapInfo != null) {
 				wrapList.add(wrapInfo);
@@ -123,31 +119,28 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 		}
 	}
 
-	private static void assignInline(MethodNode mth, RegisterArg arg, InsnNode assignInsn, BlockNode assignBlock) {
+	private static boolean assignInline(MethodNode mth, RegisterArg arg, InsnNode assignInsn, BlockNode assignBlock) {
 		RegisterArg useArg = arg.getSVar().getUseList().get(0);
 		InsnNode useInsn = useArg.getParentInsn();
 		if (useInsn == null || useInsn.contains(AFlag.DONT_GENERATE)) {
-			return;
+			return false;
 		}
-
-		InsnArg replaceArg;
-		InsnType assignInsnType = assignInsn.getType();
-		if (assignInsnType == InsnType.MOVE || assignInsnType == InsnType.CONST) {
-			replaceArg = assignInsn.getArg(0).duplicate();
-		} else {
-			replaceArg = InsnArg.wrapArg(assignInsn.copy());
-		}
+		InsnArg replaceArg = InsnArg.wrapInsnIntoArg(assignInsn.copy());
 		useInsn.replaceArg(useArg, replaceArg);
 
 		assignInsn.add(AFlag.REMOVE);
 		assignInsn.add(AFlag.DONT_GENERATE);
 		InsnRemover.remove(mth, assignBlock, assignInsn);
+		return true;
 	}
 
 	private static boolean inline(MethodNode mth, RegisterArg arg, InsnNode insn, BlockNode block) {
 		InsnNode parentInsn = arg.getParentInsn();
 		if (parentInsn != null && parentInsn.getType() == InsnType.RETURN) {
 			parentInsn.setSourceLine(insn.getSourceLine());
+		}
+		if (insn.contains(AFlag.FORCE_ASSIGN_INLINE)) {
+			return assignInline(mth, arg, insn, block);
 		}
 		boolean replaced = arg.wrapInstruction(mth, insn) != null;
 		if (replaced) {

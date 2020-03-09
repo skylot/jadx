@@ -67,9 +67,10 @@ public class TypeSearch {
 				LOG.warn("Multi-variable search failed in {}", mth);
 			}
 		}
-
-		boolean applySuccess = applyResolvedVars();
-		return searchSuccess && applySuccess;
+		if (searchSuccess) {
+			return applyResolvedVars();
+		}
+		return false;
 	}
 
 	private boolean applyResolvedVars() {

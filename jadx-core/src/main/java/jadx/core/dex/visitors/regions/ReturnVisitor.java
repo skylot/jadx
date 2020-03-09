@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.ListIterator;
 
 import jadx.core.dex.attributes.AFlag;
-import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IBranchRegion;
@@ -26,7 +25,7 @@ public class ReturnVisitor extends AbstractVisitor {
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
 		// remove useless returns in void methods
-		if (mth.getReturnType().equals(ArgType.VOID)) {
+		if (mth.isVoidReturn()) {
 			DepthRegionTraversal.traverse(mth, new ReturnRemoverVisitor());
 		}
 	}

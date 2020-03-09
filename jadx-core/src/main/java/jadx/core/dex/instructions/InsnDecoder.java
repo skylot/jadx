@@ -623,7 +623,7 @@ public class InsnDecoder {
 			targets[i] = targets[i] - payloadOffset + offset;
 		}
 		int nextOffset = getNextInsnOffset(insnArr, offset);
-		return new SwitchNode(InsnArg.reg(insn, 0, ArgType.NARROW), keys, targets, nextOffset);
+		return new SwitchNode(InsnArg.reg(insn, 0, ArgType.NARROW), keys, targets, nextOffset, packed);
 	}
 
 	private InsnNode fillArray(DecodedInstruction insn) {

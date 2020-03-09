@@ -17,10 +17,13 @@ import jadx.api.ResourceFileContent;
 import jadx.api.ResourceType;
 import jadx.api.ResourcesLoader;
 import jadx.api.impl.SimpleCodeInfo;
+import jadx.core.utils.Utils;
 import jadx.core.xmlgen.ResContainer;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.OverlayIcon;
 import jadx.gui.utils.UiUtils;
+
+import static jadx.core.codegen.CodeWriter.NL;
 
 public class JResource extends JLoadableNode implements Comparable<JResource> {
 	private static final long serialVersionUID = -201018424302612434L;
@@ -151,7 +154,7 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 						return ResourcesLoader.loadToCodeWriter(is);
 					});
 				} catch (Exception e) {
-					return new SimpleCodeInfo("Failed to load resource file: \n" + jadx.core.utils.Utils.getStackTrace(e));
+					return new SimpleCodeInfo("Failed to load resource file:" + NL + Utils.getStackTrace(e));
 				}
 
 			case DECODED_DATA:

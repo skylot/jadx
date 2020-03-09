@@ -279,6 +279,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.deobfuscationUseSourceNameAsAlias = deobfuscationUseSourceNameAsAlias;
 	}
 
+	public void setDeobfuscationParseKotlinMetadata(boolean deobfuscationParseKotlinMetadata) {
+		this.deobfuscationParseKotlinMetadata = deobfuscationParseKotlinMetadata;
+	}
+
 	public void updateRenameFlag(JadxArgs.RenameEnum flag, boolean enabled) {
 		if (enabled) {
 			renameFlags.add(flag);
@@ -387,6 +391,7 @@ public class JadxSettings extends JadxCLIArgs {
 		if (fromVersion == 0) {
 			setDeobfuscationMinLength(3);
 			setDeobfuscationUseSourceNameAsAlias(true);
+			setDeobfuscationParseKotlinMetadata(true);
 			setDeobfuscationForceSave(true);
 			setThreadsCount(1);
 			setReplaceConsts(true);

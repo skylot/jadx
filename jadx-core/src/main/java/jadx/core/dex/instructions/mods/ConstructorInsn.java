@@ -4,14 +4,14 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.MethodInfo;
-import jadx.core.dex.instructions.CallMthInterface;
+import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 
-public final class ConstructorInsn extends InsnNode implements CallMthInterface {
+public final class ConstructorInsn extends BaseInvokeNode {
 
 	private final MethodInfo callMth;
 	private final CallType callType;
@@ -59,6 +59,7 @@ public final class ConstructorInsn extends InsnNode implements CallMthInterface 
 		this.callType = callType;
 	}
 
+	@Override
 	public MethodInfo getCallMth() {
 		return callMth;
 	}
@@ -91,6 +92,11 @@ public final class ConstructorInsn extends InsnNode implements CallMthInterface 
 
 	public boolean isSelf() {
 		return callType == CallType.SELF;
+	}
+
+	@Override
+	public boolean isStaticCall() {
+		return false;
 	}
 
 	@Override

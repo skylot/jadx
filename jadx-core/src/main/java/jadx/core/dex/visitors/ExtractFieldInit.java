@@ -35,9 +35,6 @@ public class ExtractFieldInit extends AbstractVisitor {
 
 	@Override
 	public boolean visit(ClassNode cls) throws JadxException {
-		if (cls.isEnum()) {
-			return false;
-		}
 		for (ClassNode inner : cls.getInnerClasses()) {
 			visit(inner);
 		}
@@ -66,12 +63,11 @@ public class ExtractFieldInit extends AbstractVisitor {
 	}
 
 	/**
-	 * Remove final field in place initialization if it assign in class init method
+	 * Remove a final field in place initialization if it an assign found in class init method
 	 */
 	private static void processStaticFieldAssign(ClassNode cls, IndexInsnNode insn) {
 		FieldInfo field = (FieldInfo) insn.getIndex();
-		String thisClass = cls.getClassInfo().getFullName();
-		if (field.getDeclClass().getFullName().equals(thisClass)) {
+		if (field.getDeclClass().equals(cls.getClassInfo())) {
 			FieldNode fn = cls.searchField(field);
 			if (fn != null && fn.getAccessFlags().isFinal()) {
 				fn.remove(AType.FIELD_INIT);

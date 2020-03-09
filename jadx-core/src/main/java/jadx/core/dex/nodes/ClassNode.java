@@ -4,8 +4,10 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -54,11 +56,13 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	private AccessInfo accessFlags;
 	private ArgType superClass;
 	private List<ArgType> interfaces;
-	private List<GenericInfo> generics = Collections.emptyList();
+	private List<GenericTypeParameter> generics = Collections.emptyList();
 
 	private List<MethodNode> methods;
 	private List<FieldNode> fields;
 	private List<ClassNode> innerClasses = Collections.emptyList();
+
+	private List<ClassNode> inlinedClasses = Collections.emptyList();
 
 	// store smali
 	private String smali;
@@ -83,6 +87,10 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		try {
 			if (cls.getSupertypeIndex() == DexNode.NO_INDEX) {
 				this.superClass = null;
+				// only java.lang.Object don't have super class
+				if (!clsInfo.getType().getObject().equals(Consts.CLASS_OBJECT)) {
+					throw new JadxRuntimeException("No super class in " + clsInfo.getType());
+				}
 			} else {
 				this.superClass = dex.getType(cls.getSupertypeIndex());
 			}
@@ -178,6 +186,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 	private void loadStaticValues(ClassDef cls, List<FieldNode> staticFields) throws DecodeException {
 		for (FieldNode f : staticFields) {
 			if (f.getAccessFlags().isFinal()) {
+				// incorrect initialization will be removed if assign found in constructor
 				f.addAttr(FieldInitAttr.NULL_VALUE);
 			}
 		}
@@ -200,7 +209,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		}
 		try {
 			// parse class generic map
-			generics = sp.consumeGenericMap();
+			generics = sp.consumeGenericTypeParameters();
 			// parse super class signature
 			superClass = sp.consumeType();
 			// parse interfaces signatures
@@ -360,7 +369,7 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return interfaces;
 	}
 
-	public List<GenericInfo> getGenerics() {
+	public List<GenericTypeParameter> getGenericTypeParameters() {
 		return generics;
 	}
 
@@ -481,12 +490,37 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 		return innerClasses;
 	}
 
+	/**
+	 * Get all inner and inlined classes recursively
+	 *
+	 * @param resultClassesSet all identified inner and inlined classes are added to this set
+	 */
+	public void getInnerAndInlinedClassesRecursive(Set<ClassNode> resultClassesSet) {
+		for (ClassNode innerCls : innerClasses) {
+			if (resultClassesSet.add(innerCls)) {
+				innerCls.getInnerAndInlinedClassesRecursive(resultClassesSet);
+			}
+		}
+		for (ClassNode inlinedCls : inlinedClasses) {
+			if (resultClassesSet.add(inlinedCls)) {
+				inlinedCls.getInnerAndInlinedClassesRecursive(resultClassesSet);
+			}
+		}
+	}
+
 	public void addInnerClass(ClassNode cls) {
 		if (innerClasses.isEmpty()) {
 			innerClasses = new ArrayList<>(5);
 		}
 		innerClasses.add(cls);
 		cls.parentClass = this;
+	}
+
+	public void addInlinedClass(ClassNode cls) {
+		if (inlinedClasses.isEmpty()) {
+			inlinedClasses = new ArrayList<>(5);
+		}
+		inlinedClasses.add(cls);
 	}
 
 	public boolean isEnum() {
@@ -567,7 +601,9 @@ public class ClassNode extends LineAttrNode implements ILoadable, ICodeNode {
 			StringWriter stringWriter = new StringWriter(4096);
 			getSmali(this, stringWriter);
 			stringWriter.append(System.lineSeparator());
-			for (ClassNode innerClass : innerClasses) {
+			Set<ClassNode> allInlinedClasses = new LinkedHashSet<>();
+			getInnerAndInlinedClassesRecursive(allInlinedClasses);
+			for (ClassNode innerClass : allInlinedClasses) {
 				getSmali(innerClass, stringWriter);
 				stringWriter.append(System.lineSeparator());
 			}

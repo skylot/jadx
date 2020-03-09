@@ -37,6 +37,7 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
+import jadx.core.utils.BlockInsnPair;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.exceptions.JadxException;
@@ -44,7 +45,8 @@ import jadx.core.utils.exceptions.JadxException;
 @JadxVisitor(
 		name = "EnumVisitor",
 		desc = "Restore enum classes",
-		runAfter = { CodeShrinkVisitor.class, ModVisitor.class }
+		runAfter = { CodeShrinkVisitor.class, ModVisitor.class },
+		runBefore = { ExtractFieldInit.class }
 )
 public class EnumVisitor extends AbstractVisitor {
 
@@ -72,8 +74,6 @@ public class EnumVisitor extends AbstractVisitor {
 		if (classInitMth.getBasicBlocks().isEmpty()) {
 			return false;
 		}
-		BlockNode staticBlock = classInitMth.getBasicBlocks().get(0);
-
 		ArgType clsType = cls.getClassInfo().getType();
 
 		// search "$VALUES" field (holds all enum values)
@@ -104,34 +104,32 @@ public class EnumVisitor extends AbstractVisitor {
 		List<InsnNode> toRemove = new ArrayList<>();
 
 		// search "$VALUES" array init and collect enum fields
+		BlockInsnPair valuesInitPair = getValuesInitInsn(classInitMth, valuesField);
+		if (valuesInitPair == null) {
+			return false;
+		}
+		BlockNode staticBlock = valuesInitPair.getBlock();
+		InsnNode valuesInitInsn = valuesInitPair.getInsn();
+
 		List<EnumField> enumFields = null;
-		for (InsnNode insn : staticBlock.getInstructions()) {
-			if (insn.getType() != InsnType.SPUT) {
-				continue;
-			}
-			FieldInfo f = (FieldInfo) ((IndexInsnNode) insn).getIndex();
-			if (f.equals(valuesField.getFieldInfo())) {
-				InsnArg arrArg = insn.getArg(0);
-				if (arrArg.isInsnWrap()) {
-					InsnNode arrFillInsn = ((InsnWrapArg) arrArg).getWrapInsn();
-					InsnType insnType = arrFillInsn.getType();
-					if (insnType == InsnType.FILLED_NEW_ARRAY) {
-						enumFields = extractEnumFields(cls, arrFillInsn, staticBlock, toRemove);
-					} else if (insnType == InsnType.NEW_ARRAY) {
-						// empty enum
-						InsnArg arg = arrFillInsn.getArg(0);
-						if (arg.isLiteral() && ((LiteralArg) arg).getLiteral() == 0) {
-							enumFields = Collections.emptyList();
-						}
-					}
+		InsnArg arrArg = valuesInitInsn.getArg(0);
+		if (arrArg.isInsnWrap()) {
+			InsnNode arrFillInsn = ((InsnWrapArg) arrArg).getWrapInsn();
+			InsnType insnType = arrFillInsn.getType();
+			if (insnType == InsnType.FILLED_NEW_ARRAY) {
+				enumFields = extractEnumFields(cls, arrFillInsn, staticBlock, toRemove);
+			} else if (insnType == InsnType.NEW_ARRAY) {
+				// empty enum
+				InsnArg arg = arrFillInsn.getArg(0);
+				if (arg.isLiteral() && ((LiteralArg) arg).getLiteral() == 0) {
+					enumFields = Collections.emptyList();
 				}
-				toRemove.add(insn);
-				break;
 			}
 		}
 		if (enumFields == null) {
 			return false;
 		}
+		toRemove.add(valuesInitInsn);
 
 		// all checks complete, perform transform
 		EnumClassAttr attr = new EnumClassAttr(enumFields.size());
@@ -167,6 +165,22 @@ public class EnumVisitor extends AbstractVisitor {
 		}
 		removeEnumMethods(cls, clsType);
 		return true;
+	}
+
+	private BlockInsnPair getValuesInitInsn(MethodNode classInitMth, FieldNode valuesField) {
+		FieldInfo searchField = valuesField.getFieldInfo();
+		for (BlockNode blockNode : classInitMth.getBasicBlocks()) {
+			for (InsnNode insn : blockNode.getInstructions()) {
+				if (insn.getType() == InsnType.SPUT) {
+					IndexInsnNode indexInsnNode = (IndexInsnNode) insn;
+					FieldInfo f = (FieldInfo) indexInsnNode.getIndex();
+					if (f.equals(searchField)) {
+						return new BlockInsnPair(blockNode, indexInsnNode);
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 	private List<EnumField> extractEnumFields(ClassNode cls, InsnNode arrFillInsn, BlockNode staticBlock, List<InsnNode> toRemove) {

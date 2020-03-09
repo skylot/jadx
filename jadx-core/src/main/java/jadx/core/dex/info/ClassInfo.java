@@ -39,7 +39,7 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 
 	public static ClassInfo fromDex(DexNode dex, int clsIndex) {
 		if (clsIndex == DexNode.NO_INDEX) {
-			return null;
+			throw new JadxRuntimeException("NO_INDEX for class");
 		}
 		return fromType(dex.root(), dex.getType(clsIndex));
 	}

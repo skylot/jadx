@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +13,7 @@ import jadx.core.Consts;
 import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.attributes.annotations.Annotation;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.GenericInfo;
+import jadx.core.dex.nodes.GenericTypeParameter;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class SignatureParser {
@@ -65,32 +66,40 @@ public class SignatureParser {
 	 * @return string from 'mark' to current position (not including current character)
 	 */
 	private String slice() {
-		if (mark >= pos) {
+		int start = mark == -1 ? 0 : mark;
+		if (start >= pos) {
 			return "";
 		}
-		return sign.substring(mark, pos);
+		return sign.substring(start, pos);
 	}
 
 	/**
 	 * Inclusive slice (includes current character)
 	 */
 	private String inclusiveSlice() {
-		if (mark >= pos) {
+		int start = mark;
+		if (start == -1) {
+			start = 0;
+		}
+		int last = pos + 1;
+		if (start >= last) {
 			return "";
 		}
-		return sign.substring(mark, pos + 1);
+		return sign.substring(start, last);
 	}
 
-	private boolean forwardTo(char lastChar) {
+	private boolean skipUntil(char untilChar) {
 		int startPos = pos;
-		char ch;
-		while ((ch = next()) != STOP_CHAR) {
-			if (ch == lastChar) {
+		while (true) {
+			if (lookAhead(untilChar)) {
 				return true;
 			}
+			char ch = next();
+			if (ch == STOP_CHAR) {
+				pos = startPos;
+				return false;
+			}
 		}
-		pos = startPos;
-		return false;
 	}
 
 	private void consume(char exp) {
@@ -109,14 +118,14 @@ public class SignatureParser {
 		return false;
 	}
 
-	private String consumeUntil(char lastChar) {
+	@Nullable
+	public String consumeUntil(char lastChar) {
 		mark();
-		return forwardTo(lastChar) ? slice() : null;
+		return skipUntil(lastChar) ? inclusiveSlice() : null;
 	}
 
 	public ArgType consumeType() {
 		char ch = next();
-		mark();
 		switch (ch) {
 			case 'L':
 				ArgType obj = consumeObjectType(false);
@@ -127,10 +136,13 @@ public class SignatureParser {
 			case 'T':
 				next();
 				mark();
-				if (forwardTo(';')) {
-					return ArgType.genericType(slice());
+				String typeVarName = consumeUntil(';');
+				if (typeVarName != null) {
+					consume(';');
+					return ArgType.genericType(typeVarName);
 				}
 				break;
+
 			case '[':
 				return ArgType.array(consumeType());
 
@@ -145,7 +157,7 @@ public class SignatureParser {
 				}
 				break;
 		}
-		throw new JadxRuntimeException("Can't parse type: " + debugString());
+		throw new JadxRuntimeException("Can't parse type: " + debugString() + ", unexpected: " + ch);
 	}
 
 	private ArgType consumeObjectType(boolean incompleteType) {
@@ -220,11 +232,11 @@ public class SignatureParser {
 	 * <p/>
 	 * Example: "<T:Ljava/lang/Exception;:Ljava/lang/Object;>"
 	 */
-	public List<GenericInfo> consumeGenericMap() {
+	public List<GenericTypeParameter> consumeGenericTypeParameters() {
 		if (!lookAhead('<')) {
 			return Collections.emptyList();
 		}
-		List<GenericInfo> list = new ArrayList<>();
+		List<GenericTypeParameter> list = new ArrayList<>();
 		consume('<');
 		while (true) {
 			if (lookAhead('>') || next() == STOP_CHAR) {
@@ -232,12 +244,13 @@ public class SignatureParser {
 			}
 			String id = consumeUntil(':');
 			if (id == null) {
-				LOG.error("Failed to parse generic map: {}", sign);
+				LOG.error("Failed to parse generic types map: {}", sign);
 				return Collections.emptyList();
 			}
+			consume(':');
 			tryConsume(':');
 			List<ArgType> types = consumeExtendsTypesList();
-			list.add(new GenericInfo(ArgType.genericType(id), types));
+			list.add(new GenericTypeParameter(ArgType.genericType(id), types));
 		}
 		consume('>');
 		return list;

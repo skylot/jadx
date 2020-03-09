@@ -14,7 +14,7 @@ public class TestEnumsWithStaticFields extends SmaliTest {
 		assertThat(getClassNodeFromSmali())
 				.code()
 				.containsOnlyOnce("INSTANCE;")
-				.containsOnlyOnce("private static c sB;")
+				.containsOnlyOnce("private static c sB")
 				.doesNotContain(" sA")
 				.doesNotContain(" sC")
 				.doesNotContain("private TestEnumsWithStaticFields(String str) {");

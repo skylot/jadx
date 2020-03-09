@@ -26,6 +26,7 @@ import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
+import static jadx.core.codegen.CodeWriter.NL;
 import static jadx.core.utils.files.FileUtils.isApkFile;
 import static jadx.core.utils.files.FileUtils.isZipDexFile;
 
@@ -197,7 +198,7 @@ public class InputFile {
 			}
 			return pathList;
 		} catch (Exception e) {
-			throw new DecodeException("java class to dex conversion error:\n " + e.getMessage(), e);
+			throw new DecodeException("java class to dex conversion error:" + NL + "  " + e.getMessage(), e);
 		} finally {
 			if (j2d.isError()) {
 				LOG.warn("dx message: {}", j2d.getDxErrors());

@@ -1,6 +1,5 @@
 package jadx.core.utils;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -10,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.GenericInfo;
+import jadx.core.dex.nodes.GenericTypeParameter;
 import jadx.core.dex.nodes.RootNode;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -25,17 +24,16 @@ class TypeUtilsTest {
 	@BeforeAll
 	public static void init() {
 		root = new RootNode(new JadxArgs());
-		root.load(Collections.emptyList());
 		root.initClassPath();
 	}
 
 	@Test
 	public void testReplaceGenericsWithWildcards() {
 		// check classpath graph
-		List<GenericInfo> classGenerics = root.getClassGenerics(ArgType.object("java.util.ArrayList"));
+		List<GenericTypeParameter> classGenerics = root.getTypeUtils().getClassGenerics(ArgType.object("java.util.ArrayList"));
 		assertThat(classGenerics, hasSize(1));
-		GenericInfo genericInfo = classGenerics.get(0);
-		assertThat(genericInfo.getGenericType(), is(ArgType.genericType("E")));
+		GenericTypeParameter genericInfo = classGenerics.get(0);
+		assertThat(genericInfo.getTypeVariable(), is(ArgType.genericType("E")));
 		assertThat(genericInfo.getExtendsList(), hasSize(0));
 
 		// prepare input
@@ -46,7 +44,7 @@ class TypeUtilsTest {
 		LOG.debug("generic: {}", generic);
 
 		// replace
-		ArgType result = TypeUtils.replaceClassGenerics(root, instanceType, generic);
+		ArgType result = root.getTypeUtils().replaceClassGenerics(instanceType, generic);
 		LOG.debug("result: {}", result);
 
 		ArgType expected = ArgType.generic("java.util.List", ArgType.wildcard(ArgType.OBJECT, ArgType.WildcardBound.SUPER));
