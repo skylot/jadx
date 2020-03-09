@@ -27,6 +27,7 @@ public class TestAnonymousInline extends IntegrationTest {
 				.containsOnlyOnce("return new Runnable() {");
 
 		assertThat(cls.reloadCode())
+				.removeBlockComments() // remove comment about inlined class
 				.print()
 				.containsOnlyOnce("return new Runnable() {")
 				.doesNotContain("AnonymousClass1");

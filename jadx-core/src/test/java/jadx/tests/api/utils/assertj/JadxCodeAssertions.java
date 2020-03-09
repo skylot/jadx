@@ -61,6 +61,11 @@ public class JadxCodeAssertions extends AbstractStringAssert<JadxCodeAssertions>
 		return containsOnlyOnce(sb.toString());
 	}
 
+	public JadxCodeAssertions removeBlockComments() {
+		String code = actual.replaceAll("/\\*.*\\*/", "");
+		return new JadxCodeAssertions(code);
+	}
+
 	public JadxCodeAssertions print() {
 		System.out.println("-----------------------------------------------------------");
 		System.out.println(actual);
