@@ -2,7 +2,8 @@ package jadx.gui.treemodel;
 
 import java.util.Iterator;
 
-import javax.swing.*;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
@@ -90,13 +91,21 @@ public class JMethod extends JNode {
 
 	@Override
 	public String makeString() {
-		return UiUtils.typeFormat(makeBaseString(), getReturnType());
+		return UiUtils.typeFormatHtml(makeBaseString(), getReturnType());
+	}
+
+	public String makeLongStringWithoutFormat() {
+		return mth.getDeclaringClass().getFullName() + '.' + makeBaseString();
 	}
 
 	@Override
 	public String makeLongString() {
-		String name = mth.getDeclaringClass().getFullName() + '.' + makeBaseString();
-		return UiUtils.typeFormat(name, getReturnType());
+		return UiUtils.typeFormat(makeLongStringWithoutFormat(), getReturnType());
+	}
+
+	@Override
+	public String makeLongStringHtml() {
+		return UiUtils.typeFormatHtml(makeLongStringWithoutFormat(), getReturnType());
 	}
 
 	@Override

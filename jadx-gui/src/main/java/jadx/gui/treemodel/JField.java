@@ -1,6 +1,7 @@
 package jadx.gui.treemodel;
 
-import javax.swing.*;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
 import jadx.api.JavaField;
 import jadx.api.JavaNode;
@@ -66,8 +67,18 @@ public class JField extends JNode {
 	}
 
 	@Override
+	public String makeStringHtml() {
+		return UiUtils.typeFormatHtml(field.getName(), field.getType());
+	}
+
+	@Override
 	public String makeLongString() {
 		return UiUtils.typeFormat(field.getFullName(), field.getType());
+	}
+
+	@Override
+	public String makeLongStringHtml() {
+		return UiUtils.typeFormatHtml(field.getFullName(), field.getType());
 	}
 
 	@Override

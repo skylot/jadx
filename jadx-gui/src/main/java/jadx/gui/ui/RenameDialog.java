@@ -196,7 +196,7 @@ public class RenameDialog extends JDialog {
 
 	private void initUI() {
 		JLabel lbl = new JLabel(NLS.str("popup.rename"));
-		JLabel nodeLabel = new JLabel(this.node.makeLongString(), this.node.getIcon(), SwingConstants.LEFT);
+		JLabel nodeLabel = new JLabel(this.node.makeLongStringHtml(), this.node.getIcon(), SwingConstants.LEFT);
 		lbl.setLabelFor(nodeLabel);
 
 		renameField = new JTextField(40);

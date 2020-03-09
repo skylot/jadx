@@ -1,6 +1,6 @@
 package jadx.gui.treemodel;
 
-import javax.swing.*;
+import javax.swing.Icon;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -77,6 +77,10 @@ public abstract class JNode extends DefaultMutableTreeNode {
 
 	public abstract String makeString();
 
+	public String makeStringHtml() {
+		return makeString();
+	}
+
 	public String makeDescString() {
 		return null;
 	}
@@ -86,6 +90,10 @@ public abstract class JNode extends DefaultMutableTreeNode {
 	}
 
 	public String makeLongString() {
+		return makeString();
+	}
+
+	public String makeLongStringHtml() {
 		return makeString();
 	}
 
