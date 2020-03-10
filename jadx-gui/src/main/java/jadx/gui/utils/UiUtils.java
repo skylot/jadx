@@ -65,6 +65,10 @@ public class UiUtils {
 	}
 
 	public static String typeFormat(String name, ArgType type) {
+		return name + typeStr(type);
+	}
+
+	public static String typeFormatHtml(String name, ArgType type) {
 		return "<html><body><nobr>" + escapeHtml(name)
 				+ "<span style='color:#888888;'> " + escapeHtml(typeStr(type)) + "</span>"
 				+ "</nobr></body></html>";
