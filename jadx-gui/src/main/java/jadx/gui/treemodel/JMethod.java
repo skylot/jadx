@@ -91,11 +91,12 @@ public class JMethod extends JNode {
 
 	@Override
 	public String makeString() {
-		return UiUtils.typeFormatHtml(makeBaseString(), getReturnType());
+		return UiUtils.typeFormat(makeBaseString(), getReturnType());
 	}
 
-	public String makeLongStringWithoutFormat() {
-		return mth.getDeclaringClass().getFullName() + '.' + makeBaseString();
+	@Override
+	public String makeStringHtml() {
+		return UiUtils.typeFormatHtml(makeBaseString(), getReturnType());
 	}
 
 	@Override
