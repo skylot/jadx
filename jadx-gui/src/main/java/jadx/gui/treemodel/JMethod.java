@@ -113,7 +113,7 @@ public class JMethod extends JNode {
 
 	@Override
 	public String makeDescString() {
-		return makeString();
+		return UiUtils.typeStr(getReturnType()) + " " + makeBaseString();
 	}
 
 	@Override

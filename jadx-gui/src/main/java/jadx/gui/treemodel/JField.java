@@ -83,7 +83,7 @@ public class JField extends JNode {
 
 	@Override
 	public String makeDescString() {
-		return makeString();
+		return UiUtils.typeStr(field.getType()) + " " + field.getName();
 	}
 
 	@Override
