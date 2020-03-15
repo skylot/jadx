@@ -82,6 +82,16 @@ public class JField extends JNode {
 	}
 
 	@Override
+	public String makeDescString() {
+		return makeString();
+	}
+
+	@Override
+	public boolean hasDescString() {
+		return true;
+	}
+
+	@Override
 	public int hashCode() {
 		return field.hashCode();
 	}

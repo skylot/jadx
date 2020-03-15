@@ -94,7 +94,7 @@ public abstract class JNode extends DefaultMutableTreeNode {
 	}
 
 	public String makeLongStringHtml() {
-		return makeString();
+		return makeLongString();
 	}
 
 	@Override

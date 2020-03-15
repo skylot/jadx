@@ -55,11 +55,11 @@ public class TextSearchIndex {
 		clsNamesIndex.put(cls.getFullName(), nodeCache.makeFrom(cls));
 		for (JavaMethod mth : cls.getMethods()) {
 			JNode mthNode = nodeCache.makeFrom(mth);
-			mthSignaturesIndex.put(mthNode.makeLongString(), mthNode);
+			mthSignaturesIndex.put(mthNode.makeDescString(), mthNode);
 		}
 		for (JavaField fld : cls.getFields()) {
 			JNode fldNode = nodeCache.makeFrom(fld);
-			fldSignaturesIndex.put(fldNode.makeLongString(), fldNode);
+			fldSignaturesIndex.put(fldNode.makeDescString(), fldNode);
 		}
 		for (JavaClass innerCls : cls.getInnerClasses()) {
 			indexNames(innerCls);
