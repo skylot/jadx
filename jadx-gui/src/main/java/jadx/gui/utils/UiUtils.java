@@ -1,6 +1,8 @@
 package jadx.gui.utils;
 
-import java.awt.*;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
@@ -9,7 +11,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.*;
+import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.KeyStroke;
 
 import org.intellij.lang.annotations.MagicConstant;
 import org.slf4j.Logger;
@@ -65,7 +71,7 @@ public class UiUtils {
 	}
 
 	public static String typeFormat(String name, ArgType type) {
-		return name + typeStr(type);
+		return name + " " + typeStr(type);
 	}
 
 	public static String typeFormatHtml(String name, ArgType type) {

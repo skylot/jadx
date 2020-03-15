@@ -112,6 +112,16 @@ public class JMethod extends JNode {
 	}
 
 	@Override
+	public String makeDescString() {
+		return UiUtils.typeStr(getReturnType()) + " " + makeBaseString();
+	}
+
+	@Override
+	public boolean hasDescString() {
+		return true;
+	}
+
+	@Override
 	public int hashCode() {
 		return mth.hashCode();
 	}
