@@ -303,9 +303,7 @@ public class EnumVisitor extends AbstractVisitor {
 						|| shortId.equals(enumConstructorAlt)) {
 					mth.add(AFlag.DONT_GENERATE);
 				}
-			} else if (isSynthetic
-					|| shortId.equals(valuesMethod)
-					|| shortId.equals(valuesOfMethod)) {
+			} else if (shortId.equals(valuesMethod) || shortId.equals(valuesOfMethod)) {
 				mth.add(AFlag.DONT_GENERATE);
 			}
 		}
