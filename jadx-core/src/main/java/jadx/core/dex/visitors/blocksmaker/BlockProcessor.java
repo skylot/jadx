@@ -58,7 +58,7 @@ public class BlockProcessor extends AbstractVisitor {
 			clearBlocksState(mth);
 			computeDominators(mth);
 		}
-		markReturnBlocks(mth);
+		updateExitBlocks(mth);
 
 		int i = 0;
 		while (modifyBlocksTree(mth)) {
@@ -66,7 +66,7 @@ public class BlockProcessor extends AbstractVisitor {
 			clearBlocksState(mth);
 			// recalculate dominators tree
 			computeDominators(mth);
-			markReturnBlocks(mth);
+			updateExitBlocks(mth);
 
 			if (i++ > 100) {
 				mth.addWarn("CFG modification limit reached, blocks count: " + mth.getBasicBlocks().size());
@@ -337,12 +337,33 @@ public class BlockProcessor extends AbstractVisitor {
 		block.setDomFrontier(domFrontier);
 	}
 
-	private static void markReturnBlocks(MethodNode mth) {
+	private static void updateExitBlocks(MethodNode mth) {
 		mth.getExitBlocks().clear();
 		mth.getBasicBlocks().forEach(block -> {
-			if (BlockUtils.checkLastInsnType(block, InsnType.RETURN)) {
-				block.add(AFlag.RETURN);
-				mth.getExitBlocks().add(block);
+			boolean noSuccessors = block.getSuccessors().isEmpty();
+			boolean exitBlock = false;
+			InsnNode lastInsn = BlockUtils.getLastInsn(block);
+			if (lastInsn != null) {
+				InsnType insnType = lastInsn.getType();
+				if (insnType == InsnType.RETURN) {
+					block.add(AFlag.RETURN);
+					exitBlock = true;
+					if (!noSuccessors) {
+						throw new JadxRuntimeException("Found a block after RETURN instruction: " + lastInsn + " in block: " + block);
+					}
+				} else if (insnType == InsnType.THROW) {
+					if (noSuccessors) {
+						exitBlock = true;
+					}
+				}
+			}
+			if (exitBlock) {
+				mth.addExitBlock(block);
+			} else if (noSuccessors
+					&& !mth.isVoidReturn()
+					&& !mth.isConstructor()) {
+				mth.addComment("JADX INFO: Unexpected exit block: " + block
+						+ ". Expect last instruction to be RETURN or THROW, got: " + lastInsn);
 			}
 		});
 	}
