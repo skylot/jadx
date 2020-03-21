@@ -119,14 +119,23 @@ public class SwitchNode extends TargetInsnNode {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(super.toString());
-		for (int i = 0; i < targets.length; i++) {
-			sb.append(CodeWriter.NL);
-			sb.append("  case ").append(keys[i]);
-			sb.append(": goto ").append(InsnUtils.formatOffset(targets[i]));
-		}
-		if (def != -1) {
-			sb.append(CodeWriter.NL);
-			sb.append("  default: goto ").append(InsnUtils.formatOffset(def));
+		if (targetBlocks == null) {
+			for (int i = 0; i < keys.length; i++) {
+				sb.append(CodeWriter.NL);
+				sb.append("  case ").append(keys[i]).append(": goto ").append(InsnUtils.formatOffset(targets[i]));
+			}
+			if (def != -1) {
+				sb.append(CodeWriter.NL);
+				sb.append("  default: goto ").append(InsnUtils.formatOffset(def));
+			}
+		} else {
+			for (int i = 0; i < keys.length; i++) {
+				sb.append(CodeWriter.NL);
+				sb.append("  case ").append(keys[i]).append(": goto ").append(targetBlocks[i]);
+			}
+			if (def != -1) {
+				sb.append(CodeWriter.NL).append("  default: goto ").append(defTargetBlock);
+			}
 		}
 		return sb.toString();
 	}

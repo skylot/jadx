@@ -761,14 +761,30 @@ public class RegionMaker {
 			out = calcPostDomOut(mth, block, mth.getExitBlocks());
 		} else {
 			BlockNode loopEnd = loop.getEnd();
-			// treat 'continue' as exit
-			out = calcPostDomOut(mth, block, loopEnd.getPredecessors());
-			if (out != null) {
-				insertContinueInSwitch(block, out, loopEnd);
+			stack.addExit(loop.getStart());
+			if (stack.containsExit(block)
+					|| block == loopEnd
+					|| loopEnd.getPredecessors().contains(block)) {
+				// in exits or last insn in loop => no 'out' block
+				out = null;
 			} else {
-				// no 'continue'
-				out = calcPostDomOut(mth, block, Collections.singletonList(loopEnd));
+				// treat 'continue' as exit
+				out = calcPostDomOut(mth, block, loopEnd.getPredecessors());
+				if (out != null) {
+					insertContinueInSwitch(block, out, loopEnd);
+				} else {
+					// no 'continue'
+					out = calcPostDomOut(mth, block, Collections.singletonList(loopEnd));
+				}
 			}
+			if (out == loop.getStart()) {
+				// no other outs instead back edge to loop start
+				out = null;
+			}
+		}
+		if (out != null && processedBlocks.get(out.getId())) {
+			// out block already processed, prevent endless loop
+			throw new JadxRuntimeException("Failed to find switch 'out' block");
 		}
 
 		SwitchRegion sw = new SwitchRegion(currentRegion, block);

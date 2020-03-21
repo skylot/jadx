@@ -21,6 +21,7 @@ import jadx.core.utils.exceptions.JadxOverflowException;
 
 public class ErrorsCounter {
 	private static final Logger LOG = LoggerFactory.getLogger(ErrorsCounter.class);
+	private static final boolean PRINT_MTH_SIZE = true;
 
 	private final Set<IAttributeNode> errorNodes = new HashSet<>();
 	private int errorsCount;
@@ -40,6 +41,10 @@ public class ErrorsCounter {
 		errorsCount++;
 
 		String msg = formatMsg(node, error);
+		if (PRINT_MTH_SIZE && node instanceof MethodNode) {
+			long insnsCount = ((MethodNode) node).countInsns();
+			msg = "[" + insnsCount + "] " + msg;
+		}
 		if (e == null) {
 			LOG.error(msg);
 		} else if (e instanceof JadxOverflowException) {
