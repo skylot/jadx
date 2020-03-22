@@ -33,14 +33,23 @@ public class SignatureParser {
 		mark = 0;
 	}
 
-	@SuppressWarnings("unchecked")
+	@Nullable
 	public static SignatureParser fromNode(IAttributeNode node) {
+		String signature = getSignature(node);
+		if (signature == null) {
+			return null;
+		}
+		return new SignatureParser(signature);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Nullable
+	public static String getSignature(IAttributeNode node) {
 		Annotation a = node.getAnnotation(Consts.DALVIK_SIGNATURE);
 		if (a == null) {
 			return null;
 		}
-		String signature = mergeSignature((List<String>) a.getDefaultValue());
-		return new SignatureParser(signature);
+		return mergeSignature((List<String>) a.getDefaultValue());
 	}
 
 	private char next() {

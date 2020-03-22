@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
@@ -194,6 +195,10 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		root().getConstValues().processConstFields(this, staticFields);
 	}
 
+	/**
+	 * Class signature format:
+	 * https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.7.9.1
+	 */
 	private void parseClassSignature() {
 		SignatureParser sp = SignatureParser.fromNode(this);
 		if (sp == null) {
@@ -203,7 +208,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 			// parse class generic map
 			generics = sp.consumeGenericTypeParameters();
 			// parse super class signature
-			superClass = sp.consumeType();
+			superClass = validateSuperCls(sp.consumeType(), superClass);
 			// parse interfaces signatures
 			for (int i = 0; i < interfaces.size(); i++) {
 				ArgType type = sp.consumeType();
@@ -216,6 +221,18 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		} catch (Exception e) {
 			LOG.error("Class signature parse error: {}", this, e);
 		}
+	}
+
+	private ArgType validateSuperCls(ArgType candidateType, ArgType currentType) {
+		if (!candidateType.isObject()) {
+			this.addComment("Incorrect class signature, super class is not object: " + SignatureParser.getSignature(this));
+			return currentType;
+		}
+		if (Objects.equals(candidateType.getObject(), this.getClassInfo().getType().getObject())) {
+			this.addComment("Incorrect class signature, super class is equals to this class: " + SignatureParser.getSignature(this));
+			return currentType;
+		}
+		return candidateType;
 	}
 
 	private void setFieldsTypesFromSignature() {
