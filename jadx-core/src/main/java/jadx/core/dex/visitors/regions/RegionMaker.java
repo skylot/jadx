@@ -574,7 +574,7 @@ public class RegionMaker {
 
 		BlockNode body = getNextBlock(block);
 		if (body == null) {
-			ErrorsCounter.methodWarn(mth, "Unexpected end of synchronized block");
+			mth.addWarn("Unexpected end of synchronized block");
 			return null;
 		}
 		BlockNode exit = null;

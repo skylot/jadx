@@ -39,7 +39,6 @@ import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.regions.loops.LoopType;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.utils.BlockUtils;
-import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -186,7 +185,7 @@ public class RegionGen extends InsnGen {
 		if (header != null) {
 			List<InsnNode> headerInsns = header.getInstructions();
 			if (headerInsns.size() > 1) {
-				ErrorsCounter.methodWarn(mth, "Found not inlined instructions from loop header");
+				mth.addWarn("Found not inlined instructions from loop header");
 				int last = headerInsns.size() - 1;
 				for (int i = 0; i < last; i++) {
 					InsnNode insn = headerInsns.get(i);

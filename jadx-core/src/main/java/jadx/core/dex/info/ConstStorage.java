@@ -16,7 +16,6 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.parser.FieldInitAttr;
-import jadx.core.utils.ErrorsCounter;
 
 public class ConstStorage {
 
@@ -155,7 +154,7 @@ public class ConstStorage {
 				return innerClass.searchFieldByName(fieldName);
 			}
 		}
-		ErrorsCounter.classWarn(appResClass, "Not found resource field with id: " + value + ", name: " + str.replace('/', '.'));
+		appResClass.addWarn("Not found resource field with id: " + value + ", name: " + str.replace('/', '.'));
 		return null;
 	}
 

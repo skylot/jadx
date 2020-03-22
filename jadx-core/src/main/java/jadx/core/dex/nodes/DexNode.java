@@ -79,7 +79,7 @@ public class DexNode implements IDexNode {
 			name = "CLASS_" + typeIndex;
 		}
 		ClassNode clsNode = new ClassNode(this, name, classDef.getAccessFlags());
-		ErrorsCounter.classError(clsNode, "Load error", exc);
+		ErrorsCounter.error(clsNode, "Load error", exc);
 		addClassNode(clsNode);
 	}
 

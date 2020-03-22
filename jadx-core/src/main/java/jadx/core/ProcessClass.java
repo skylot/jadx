@@ -7,7 +7,6 @@ import jadx.core.codegen.CodeGen;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
-import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.nodes.ProcessState.LOADED;
@@ -43,7 +42,7 @@ public final class ProcessClass {
 					cls.setState(PROCESS_COMPLETE);
 				}
 			} catch (Throwable e) {
-				ErrorsCounter.classError(cls, e.getClass().getSimpleName(), e);
+				cls.addError("Class process error: " + e.getClass().getSimpleName(), e);
 			}
 		}
 	}

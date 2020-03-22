@@ -268,7 +268,7 @@ public class ClassGen {
 			inClGen.addClassCode(code);
 			imports.addAll(inClGen.getImports());
 		} catch (Exception e) {
-			ErrorsCounter.classError(innerCls, "Inner class code generation error", e);
+			innerCls.addError("Inner class code generation error", e);
 		}
 	}
 
@@ -293,7 +293,7 @@ public class ClassGen {
 				throw new JadxRuntimeException("Method generation error", e);
 			}
 			code.newLine().add("/*");
-			code.newLine().addMultiLine(ErrorsCounter.methodError(mth, "Method generation error", e));
+			code.newLine().addMultiLine(ErrorsCounter.error(mth, "Method generation error", e));
 			Utils.appendStackTrace(code, e);
 			code.newLine().add("*/");
 			code.setIndent(savedIndent);
@@ -455,7 +455,7 @@ public class ClassGen {
 		try {
 			insnGen.makeInsn(insn, code, InsnGen.Flags.BODY_ONLY_NOWRAP);
 		} catch (Exception e) {
-			ErrorsCounter.classError(cls, "Failed to generate init code", e);
+			cls.addError("Failed to generate init code", e);
 		}
 	}
 

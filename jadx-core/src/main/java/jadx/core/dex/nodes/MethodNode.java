@@ -22,8 +22,8 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.annotations.Annotation;
 import jadx.core.dex.attributes.nodes.JumpInfo;
-import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.attributes.nodes.LoopInfo;
+import jadx.core.dex.attributes.nodes.NotificationAttrNode;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.AccessInfo.AFType;
 import jadx.core.dex.info.ClassInfo;
@@ -42,14 +42,13 @@ import jadx.core.dex.regions.Region;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlock;
-import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.utils.Utils.lockList;
 
-public class MethodNode extends LineAttrNode implements IMethodDetails, ILoadable, ICodeNode {
+public class MethodNode extends NotificationAttrNode implements IMethodDetails, ILoadable, ICodeNode {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodNode.class);
 
 	private final MethodInfo mthInfo;
@@ -203,9 +202,7 @@ public class MethodNode extends LineAttrNode implements IMethodDetails, ILoadabl
 					return null;
 				}
 				if (!tryFixArgsCounts(argsTypes, mthArgs)) {
-					if (LOG.isDebugEnabled()) {
-						LOG.debug("Incorrect method signature, types: ({}), method: {}", Utils.listToString(argsTypes), this);
-					}
+					addComment("Incorrect method signature, types: " + Utils.listToString(argsTypes));
 					return null;
 				}
 			}
@@ -713,33 +710,6 @@ public class MethodNode extends LineAttrNode implements IMethodDetails, ILoadabl
 	@Override
 	public String typeName() {
 		return "method";
-	}
-
-	public void addWarn(String warnStr) {
-		ErrorsCounter.methodWarn(this, warnStr);
-	}
-
-	public void addWarnComment(String warn) {
-		addWarnComment(warn, null);
-	}
-
-	public void addWarnComment(String warn, @Nullable Throwable exc) {
-		String commentStr = "JADX WARN: " + warn;
-		addAttr(AType.COMMENTS, commentStr);
-		if (exc != null) {
-			LOG.warn("{} in {}", warn, this, exc);
-		} else {
-			LOG.warn("{} in {}", warn, this);
-		}
-	}
-
-	public void addComment(String commentStr) {
-		addAttr(AType.COMMENTS, commentStr);
-		LOG.info("{} in {}", commentStr, this);
-	}
-
-	public void addError(String errStr, Throwable e) {
-		ErrorsCounter.methodError(this, errStr, e);
 	}
 
 	@Override
