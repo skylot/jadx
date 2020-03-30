@@ -66,6 +66,9 @@ public enum InsnType {
 	ONE_ARG,
 	PHI,
 
+	// fake insn to keep arguments which will be used in regions codegen
+	REGION_ARG,
+
 	// TODO: now multidimensional arrays created using Array.newInstance function
 	NEW_MULTIDIM_ARRAY
 }

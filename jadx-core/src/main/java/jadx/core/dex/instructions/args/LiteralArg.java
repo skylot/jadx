@@ -1,6 +1,5 @@
 package jadx.core.dex.instructions.args;
 
-import jadx.api.JadxArgs;
 import jadx.core.codegen.TypeGen;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -72,12 +71,10 @@ public final class LiteralArg extends InsnArg {
 		return literal == that.literal && getType().equals(that.getType());
 	}
 
-	private static final StringUtils DEF_STRING_UTILS = new StringUtils(new JadxArgs());
-
 	@Override
 	public String toString() {
 		try {
-			String value = TypeGen.literalToString(literal, getType(), DEF_STRING_UTILS, true, false);
+			String value = TypeGen.literalToString(literal, getType(), StringUtils.getInstance(), true, false);
 			if (getType().equals(ArgType.BOOLEAN) && (value.equals("true") || value.equals("false"))) {
 				return value;
 			}

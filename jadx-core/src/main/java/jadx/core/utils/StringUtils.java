@@ -3,6 +3,11 @@ package jadx.core.utils;
 import jadx.api.JadxArgs;
 
 public class StringUtils {
+	private static final StringUtils DEFAULT_INSTANCE = new StringUtils(new JadxArgs());
+
+	public static StringUtils getInstance() {
+		return DEFAULT_INSTANCE;
+	}
 
 	private final boolean escapeUnicode;
 

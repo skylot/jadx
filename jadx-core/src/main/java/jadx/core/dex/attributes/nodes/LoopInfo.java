@@ -72,6 +72,10 @@ public class LoopInfo {
 		return edges;
 	}
 
+	public BlockNode getPreHeader() {
+		return BlockUtils.selectOther(end, start.getPredecessors());
+	}
+
 	public int getId() {
 		return id;
 	}

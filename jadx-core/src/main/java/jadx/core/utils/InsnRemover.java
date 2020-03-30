@@ -182,6 +182,8 @@ public class InsnRemover {
 		BlockNode block = BlockUtils.getBlockByInsn(mth, insn);
 		if (block != null) {
 			remove(mth, block, insn);
+		} else {
+			mth.addWarnComment("Not found block with instruction: " + insn);
 		}
 	}
 

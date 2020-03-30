@@ -1,6 +1,7 @@
 package jadx.core.dex.instructions;
 
 import jadx.core.dex.nodes.InsnNode;
+import jadx.core.utils.StringUtils;
 
 public final class ConstStringNode extends InsnNode {
 
@@ -34,6 +35,6 @@ public final class ConstStringNode extends InsnNode {
 
 	@Override
 	public String toString() {
-		return super.toString() + " \"" + str + '"';
+		return super.toString() + ' ' + StringUtils.getInstance().unescapeString(str);
 	}
 }

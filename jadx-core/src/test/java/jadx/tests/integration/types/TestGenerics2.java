@@ -15,11 +15,9 @@ public class TestGenerics2 extends SmaliTest {
 		public void test() {
 			Map<Integer, String> map = this.field;
 			useInt(map.size());
-			Iterator<Map.Entry<Integer, String>> it = map.entrySet().iterator();
-			while (it.hasNext()) {
-				Map.Entry<Integer, String> next = it.next();
-				useInt(next.getKey().intValue());
-				next.getValue().trim();
+			for (Map.Entry<Integer, String> entry : map.entrySet()) {
+				useInt(entry.getKey().intValue());
+				entry.getValue().trim();
 			}
 		}
 	*/
@@ -30,8 +28,8 @@ public class TestGenerics2 extends SmaliTest {
 		ClassNode cls = getClassNodeFromSmali();
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("Entry<Integer, String> next"));
-		assertThat(code, containsOne("useInt(next.getKey().intValue());")); // no Integer cast
-		assertThat(code, containsOne("next.getValue().trim();")); // no String cast
+		assertThat(code, containsOne("for (Map.Entry<Integer, String> entry : map.entrySet()) {"));
+		assertThat(code, containsOne("useInt(entry.getKey().intValue());")); // no Integer cast
+		assertThat(code, containsOne("entry.getValue().trim();")); // no String cast
 	}
 }

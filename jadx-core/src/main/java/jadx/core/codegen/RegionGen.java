@@ -181,18 +181,6 @@ public class RegionGen extends InsnGen {
 	}
 
 	private CodeWriter makeLoop(LoopRegion region, CodeWriter code) throws CodegenException {
-		BlockNode header = region.getHeader();
-		if (header != null) {
-			List<InsnNode> headerInsns = header.getInstructions();
-			if (headerInsns.size() > 1) {
-				mth.addWarn("Found not inlined instructions from loop header");
-				int last = headerInsns.size() - 1;
-				for (int i = 0; i < last; i++) {
-					InsnNode insn = headerInsns.get(i);
-					makeInsn(insn, code);
-				}
-			}
-		}
 		LoopLabelAttr labelAttr = region.getInfo().getStart().get(AType.LOOP_LABEL);
 		if (labelAttr != null) {
 			code.startLine(mgen.getNameGen().getLoopLabel(labelAttr)).add(':');

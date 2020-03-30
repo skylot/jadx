@@ -225,6 +225,9 @@ public class InsnGen {
 	private static final Set<Flags> BODY_ONLY_NOWRAP_FLAGS = EnumSet.of(Flags.BODY_ONLY_NOWRAP);
 
 	protected void makeInsn(InsnNode insn, CodeWriter code, Flags flag) throws CodegenException {
+		if (insn.getType() == InsnType.REGION_ARG) {
+			return;
+		}
 		try {
 			if (flag == Flags.BODY_ONLY || flag == Flags.BODY_ONLY_NOWRAP) {
 				makeInsnBody(code, insn, flag == Flags.BODY_ONLY ? BODY_ONLY_FLAG : BODY_ONLY_NOWRAP_FLAGS);

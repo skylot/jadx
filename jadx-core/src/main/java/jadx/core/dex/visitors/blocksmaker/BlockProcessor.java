@@ -511,9 +511,42 @@ public class BlockProcessor extends AbstractVisitor {
 			LoopInfo loop = loops.get(0);
 			return insertBlocksForBreak(mth, loop)
 					|| insertBlocksForContinue(mth, loop)
-					|| insertBlockForProdecessors(mth, loop);
+					|| insertBlockForProdecessors(mth, loop)
+					|| insertPreHeader(mth, loop);
 		}
 		return false;
+	}
+
+	/**
+	 * Insert simple path block before loop header
+	 */
+	private static boolean insertPreHeader(MethodNode mth, LoopInfo loop) {
+		BlockNode start = loop.getStart();
+		List<BlockNode> preds = start.getPredecessors();
+		int predsCount = preds.size() - 1; // don't count back edge
+		if (predsCount == 1) {
+			return false;
+		}
+		if (predsCount == 0) {
+			if (!start.contains(AFlag.MTH_ENTER_BLOCK)) {
+				mth.addWarnComment("Unexpected block without predecessors: " + start);
+			}
+			BlockNode newEnterBlock = BlockSplitter.startNewBlock(mth, -1);
+			newEnterBlock.add(AFlag.SYNTHETIC);
+			newEnterBlock.add(AFlag.MTH_ENTER_BLOCK);
+			mth.setEnterBlock(newEnterBlock);
+			start.remove(AFlag.MTH_ENTER_BLOCK);
+			BlockSplitter.connect(newEnterBlock, start);
+			return true;
+		}
+		// multiple predecessors
+		BlockNode preHeader = BlockSplitter.startNewBlock(mth, -1);
+		preHeader.add(AFlag.SYNTHETIC);
+		for (BlockNode pred : new ArrayList<>(preds)) {
+			BlockSplitter.replaceConnection(pred, start, preHeader);
+		}
+		BlockSplitter.connect(preHeader, start);
+		return true;
 	}
 
 	/**

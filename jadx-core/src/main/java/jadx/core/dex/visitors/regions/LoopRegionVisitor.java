@@ -37,6 +37,8 @@ import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.regions.variables.ProcessVariables;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.BlockUtils;
+import jadx.core.utils.InsnRemover;
+import jadx.core.utils.InsnUtils;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.JadxOverflowException;
 
@@ -50,7 +52,6 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 
 	@Override
 	public void visit(MethodNode mth) {
-		// DebugUtils.checkMethod(mth);
 		DepthRegionTraversal.traverse(mth, this);
 	}
 
@@ -133,11 +134,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		incrInsn.add(AFlag.DONT_GENERATE);
 
 		LoopType arrForEach = checkArrayForEach(mth, loopRegion, initInsn, incrInsn, condition);
-		if (arrForEach != null) {
-			loopRegion.setType(arrForEach);
-		} else {
-			loopRegion.setType(new ForLoop(initInsn, incrInsn));
-		}
+		loopRegion.setType(arrForEach != null ? arrForEach : new ForLoop(initInsn, incrInsn));
 		return true;
 	}
 
@@ -172,7 +169,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		condArg = args.get(0);
 		RegisterArg arrIndex = args.get(1);
 		InsnNode arrGetInsn = arrIndex.getParentInsn();
-		if (arrGetInsn == null || arrGetInsn.getType() != InsnType.AGET) {
+		if (arrGetInsn == null || arrGetInsn.getType() != InsnType.AGET || arrGetInsn.containsWrappedInsn()) {
 			return null;
 		}
 		if (!condition.isCompare()) {
@@ -211,23 +208,25 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		condArg.add(AFlag.DONT_GENERATE);
 		bCondArg.add(AFlag.DONT_GENERATE);
 		arrGetInsn.add(AFlag.DONT_GENERATE);
-
-		// inline array variable
-		if (arrayArg.isRegister()) {
-			((RegisterArg) arrayArg).getSVar().removeUse((RegisterArg) arrGetInsn.getArg(0));
-		}
-		CodeShrinkVisitor.shrinkMethod(mth);
-		len.add(AFlag.DONT_GENERATE);
+		compare.getInsn().add(AFlag.DONT_GENERATE);
 
 		if (arrGetInsn.contains(AFlag.WRAPPED)) {
 			InsnArg wrapArg = BlockUtils.searchWrappedInsnParent(mth, arrGetInsn);
 			if (wrapArg != null && wrapArg.getParentInsn() != null) {
-				wrapArg.getParentInsn().replaceArg(wrapArg, iterVar);
+				InsnNode parentInsn = wrapArg.getParentInsn();
+				parentInsn.replaceArg(wrapArg, iterVar.duplicate());
+				parentInsn.rebindArgs();
 			} else {
 				LOG.debug(" checkArrayForEach: Wrapped insn not found: {}, mth: {}", arrGetInsn, mth);
 			}
 		}
-		return new ForEachLoop(iterVar, len.getArg(0));
+		ForEachLoop forEachLoop = new ForEachLoop(iterVar, len.getArg(0));
+		forEachLoop.injectFakeInsns(loopRegion);
+		if (InsnUtils.dontGenerateIfNotUsed(len)) {
+			InsnRemover.remove(mth, len);
+		}
+		CodeShrinkVisitor.shrinkMethod(mth);
+		return forEachLoop;
 	}
 
 	private static boolean checkIterableForEach(MethodNode mth, LoopRegion loopRegion, IfCondition condition) {
@@ -306,7 +305,9 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		for (RegisterArg itArg : itUseList) {
 			itArg.add(AFlag.DONT_GENERATE);
 		}
-		loopRegion.setType(new ForEachLoop(iterVar, iterableArg));
+		ForEachLoop forEachLoop = new ForEachLoop(iterVar, iterableArg);
+		forEachLoop.injectFakeInsns(loopRegion);
+		loopRegion.setType(forEachLoop);
 		return true;
 	}
 

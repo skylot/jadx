@@ -272,6 +272,15 @@ public class InsnNode extends LineAttrNode {
 		return true;
 	}
 
+	public boolean containsWrappedInsn() {
+		for (InsnArg arg : this.getArguments()) {
+			if (arg.isInsnWrap()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * 'Soft' equals, don't compare arguments, only instruction specific parameters.
 	 */

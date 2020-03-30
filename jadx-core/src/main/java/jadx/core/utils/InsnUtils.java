@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import com.android.dx.io.instructions.DecodedInstruction;
 
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.ConstClassNode;
@@ -17,6 +18,7 @@ import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -192,5 +194,21 @@ public class InsnUtils {
 			return ((InsnWrapArg) arg).getWrapInsn();
 		}
 		return null;
+	}
+
+	public static boolean dontGenerateIfNotUsed(InsnNode insn) {
+		RegisterArg resArg = insn.getResult();
+		if (resArg != null) {
+			SSAVar ssaVar = resArg.getSVar();
+			for (RegisterArg arg : ssaVar.getUseList()) {
+				InsnNode parentInsn = arg.getParentInsn();
+				if (parentInsn != null
+						&& !parentInsn.contains(AFlag.DONT_GENERATE)) {
+					return false;
+				}
+			}
+		}
+		insn.add(AFlag.DONT_GENERATE);
+		return true;
 	}
 }
