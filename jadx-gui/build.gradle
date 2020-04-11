@@ -70,6 +70,7 @@ launch4j {
 	maxHeapSize = 4096
 	maxHeapPercent = 70
 	downloadUrl = 'https://adoptopenjdk.net/releases.html?variant=openjdk11&jvmVariant=hotspot#x64_win'
+	bundledJrePath = '%JAVA_HOME%'
 }
 
 test {
