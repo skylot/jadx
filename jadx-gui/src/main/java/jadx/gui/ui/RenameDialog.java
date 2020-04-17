@@ -1,7 +1,6 @@
 package jadx.gui.ui;
 
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -42,7 +41,7 @@ import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.ui.codearea.CodePanel;
 import jadx.gui.utils.*;
 
-public class RenameDialog extends JDialog {
+public class RenameDialog extends CommonSearchDialog {
 	private static final long serialVersionUID = -3269715644416902410L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(RenameDialog.class);
@@ -55,6 +54,8 @@ public class RenameDialog extends JDialog {
 
 	private CodeArea codeArea;
 
+	private JButton renameBtn;
+
 	public RenameDialog(CodeArea codeArea, JNode node) {
 		super(codeArea.getMainWindow());
 		mainWindow = codeArea.getMainWindow();
@@ -62,6 +63,7 @@ public class RenameDialog extends JDialog {
 		this.node = node;
 		if (isDeobfuscationSettingsValid()) {
 			initUI();
+			registerInitOnOpen();
 			loadWindowPos();
 		} else {
 			LOG.error("Deobfuscation settings are invalid - please enable deobfuscation and disable force rewrite deobfuscation map");
@@ -95,14 +97,19 @@ public class RenameDialog extends JDialog {
 				JOptionPane.ERROR_MESSAGE);
 	}
 
-	private void loadWindowPos() {
-		mainWindow.getSettings().loadWindowPos(this);
+	@Override
+	protected void openInit() {
+		prepare();
 	}
 
 	@Override
-	public void dispose() {
-		mainWindow.getSettings().saveWindowPos(this);
-		super.dispose();
+	protected void loadStart() {
+		renameBtn.setEnabled(false);
+	}
+
+	@Override
+	protected void loadFinished() {
+		renameBtn.setEnabled(true);
 	}
 
 	private Path getDeobfMapPath(RootNode root) {
@@ -239,7 +246,7 @@ public class RenameDialog extends JDialog {
 		RenameVisitor renameVisitor = new RenameVisitor();
 		renameVisitor.init(rootNode);
 
-		mainWindow.getCacheObject().getNodeCache().refresh(node);
+		cache.getNodeCache().refresh(node);
 
 		Set<JavaClass> updatedClasses = getUpdatedClasses();
 
@@ -277,7 +284,7 @@ public class RenameDialog extends JDialog {
 
 	private Set<JavaClass> getUpdatedClasses() {
 		Set<JavaClass> usageClasses = new HashSet<>();
-		CodeUsageInfo usageInfo = mainWindow.getCacheObject().getUsageInfo();
+		CodeUsageInfo usageInfo = cache.getUsageInfo();
 		if (usageInfo != null) {
 			usageInfo.getUsageList(node).forEach((node) -> {
 				JavaClass rootClass = node.getRootClass().getCls();
@@ -290,7 +297,6 @@ public class RenameDialog extends JDialog {
 	}
 
 	private void setRefreshTask(Set<JavaClass> refreshClasses) {
-		CacheObject cache = mainWindow.getCacheObject();
 		UnloadJob unloadJob = new UnloadJob(mainWindow.getWrapper(), mainWindow.getSettings().getThreadsCount(), refreshClasses);
 		RefreshJob refreshJob = new RefreshJob(mainWindow.getWrapper(), mainWindow.getSettings().getThreadsCount(), refreshClasses);
 		LOG.info("Waiting for old unloadJob and refreshJob");
@@ -304,26 +310,24 @@ public class RenameDialog extends JDialog {
 		LOG.info("Old unloadJob and refreshJob finished");
 		cache.setUnloadJob(unloadJob);
 		cache.setRefreshJob(refreshJob);
-		cache.setIndexJob(new IndexJob(mainWindow.getWrapper(), mainWindow.getCacheObject(), mainWindow.getSettings().getThreadsCount()));
+		cache.setIndexJob(new IndexJob(mainWindow.getWrapper(), cache, mainWindow.getSettings().getThreadsCount()));
 		mainWindow.runBackgroundUnloadRefreshAndIndexJobs();
 	}
 
-	private void initCommon() {
-		KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
-		getRootPane().registerKeyboardAction(e -> dispose(), stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
-	}
-
 	@NotNull
-	private JPanel initButtonsPanel() {
+	protected JPanel initButtonsPanel() {
 		JButton cancelButton = new JButton(NLS.str("search_dialog.cancel"));
 		cancelButton.addActionListener(event -> dispose());
-		JButton renameBtn = new JButton(NLS.str("popup.rename"));
+		renameBtn = new JButton(NLS.str("popup.rename"));
 		renameBtn.addActionListener(event -> rename());
 		getRootPane().setDefaultButton(renameBtn);
+
+		progressPane = new ProgressPanel(mainWindow, false);
 
 		JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
 		buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+		buttonPane.add(progressPane);
 		buttonPane.add(Box.createRigidArea(new Dimension(5, 0)));
 		buttonPane.add(Box.createHorizontalGlue());
 		buttonPane.add(renameBtn);
@@ -349,8 +353,14 @@ public class RenameDialog extends JDialog {
 		renamePane.add(nodeLabel);
 		renamePane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
+		warnLabel = new JLabel();
+		warnLabel.setForeground(Color.RED);
+		warnLabel.setVisible(false);
+
 		JPanel textPane = new JPanel();
-		textPane.setLayout(new FlowLayout(FlowLayout.LEFT));
+		textPane.setLayout(new BoxLayout(textPane, BoxLayout.PAGE_AXIS));
+		textPane.add(warnLabel);
+		textPane.add(Box.createRigidArea(new Dimension(0, 5)));
 		textPane.add(renameField);
 		textPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 

@@ -30,12 +30,13 @@ public class UsageDialog extends CommonSearchDialog {
 
 	@Override
 	protected void loadFinished() {
+		resultsTable.setEnabled(true);
 		performSearch();
 	}
 
 	@Override
 	protected void loadStart() {
-		// no op
+		resultsTable.setEnabled(false);
 	}
 
 	@Override

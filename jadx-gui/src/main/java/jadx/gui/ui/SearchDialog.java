@@ -282,11 +282,13 @@ public class SearchDialog extends CommonSearchDialog {
 
 	@Override
 	protected void loadFinished() {
+		resultsTable.setEnabled(true);
 		searchField.setEnabled(true);
 	}
 
 	@Override
 	protected void loadStart() {
+		resultsTable.setEnabled(false);
 		searchField.setEnabled(false);
 	}
 }
