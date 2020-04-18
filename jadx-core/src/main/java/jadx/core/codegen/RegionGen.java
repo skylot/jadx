@@ -15,6 +15,7 @@ import jadx.core.dex.attributes.nodes.ForceReturnAttr;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.SwitchNode;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.NamedArg;
@@ -334,7 +335,7 @@ public class RegionGen extends InsnGen {
 		}
 		code.startLine("} catch (");
 		if (handler.isCatchAll()) {
-			code.add("Throwable");
+			useClass(code, ArgType.THROWABLE);
 		} else {
 			Iterator<ClassInfo> it = handler.getCatchTypes().iterator();
 			if (it.hasNext()) {
@@ -347,11 +348,15 @@ public class RegionGen extends InsnGen {
 		}
 		code.add(' ');
 		InsnArg arg = handler.getArg();
-		if (arg instanceof RegisterArg) {
+		if (arg == null) {
+			code.add("unknown"); // throwing exception is too late at this point
+		} else if (arg instanceof RegisterArg) {
 			RegisterArg reg = (RegisterArg) arg;
 			code.add(mgen.getNameGen().assignArg(reg.getSVar().getCodeVar()));
 		} else if (arg instanceof NamedArg) {
 			code.add(mgen.getNameGen().assignNamedArg((NamedArg) arg));
+		} else {
+			throw new JadxRuntimeException("Unexpected arg type in catch block: " + arg + ", class: " + arg.getClass().getSimpleName());
 		}
 		code.add(") {");
 		makeRegionIndent(code, region);
