@@ -121,5 +121,3 @@ To support this project you can:
 
 ---------------------------------------
 *Licensed under the Apache 2.0 License*
-
-*Copyright 2019 by Skylot*
