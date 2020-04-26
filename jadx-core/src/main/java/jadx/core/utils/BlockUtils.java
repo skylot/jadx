@@ -663,6 +663,19 @@ public class BlockUtils {
 		return false;
 	}
 
+	public static boolean insertAfterInsn(BlockNode block, InsnNode insn, InsnNode newInsn) {
+		List<InsnNode> instructions = block.getInstructions();
+		int size = instructions.size();
+		for (int i = 0; i < size; i++) {
+			InsnNode instruction = instructions.get(i);
+			if (instruction == insn) {
+				instructions.add(i + 1, newInsn);
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public static boolean replaceInsn(MethodNode mth, InsnNode oldInsn, InsnNode newInsn) {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			if (replaceInsn(mth, block, oldInsn, newInsn)) {

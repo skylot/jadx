@@ -10,6 +10,7 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.Utils;
@@ -81,6 +82,20 @@ public final class PhiInsn extends InsnNode {
 		blockBinds.remove(index);
 		reg.getSVar().updateUsedInPhiList();
 		return reg;
+	}
+
+	@Nullable
+	public RegisterArg getArgBySsaVar(SSAVar ssaVar) {
+		if (getArgsCount() == 0) {
+			return null;
+		}
+		for (InsnArg insnArg : getArguments()) {
+			RegisterArg reg = (RegisterArg) insnArg;
+			if (reg.getSVar() == ssaVar) {
+				return reg;
+			}
+		}
+		return null;
 	}
 
 	@Override
