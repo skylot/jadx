@@ -1,6 +1,5 @@
 package jadx.core.dex.attributes.nodes;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import jadx.core.dex.attributes.AType;
@@ -53,8 +52,8 @@ public class EnumClassAttr implements IAttribute {
 	private final List<EnumField> fields;
 	private MethodNode staticMethod;
 
-	public EnumClassAttr(int fieldsCount) {
-		this.fields = new ArrayList<>(fieldsCount);
+	public EnumClassAttr(List<EnumField> fields) {
+		this.fields = fields;
 	}
 
 	public List<EnumField> getFields() {

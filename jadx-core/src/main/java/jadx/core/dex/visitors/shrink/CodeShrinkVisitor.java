@@ -25,7 +25,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 @JadxVisitor(
 		name = "CodeShrinkVisitor",
-		desc = "Inline variables for make code smaller",
+		desc = "Inline variables to make code smaller",
 		runAfter = { ModVisitor.class }
 )
 public class CodeShrinkVisitor extends AbstractVisitor {
@@ -125,12 +125,11 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 		if (useInsn == null || useInsn.contains(AFlag.DONT_GENERATE)) {
 			return false;
 		}
-		InsnArg replaceArg = InsnArg.wrapInsnIntoArg(assignInsn.copy());
+		if (!InsnRemover.removeWithoutUnbind(mth, assignBlock, assignInsn)) {
+			return false;
+		}
+		InsnArg replaceArg = InsnArg.wrapInsnIntoArg(assignInsn);
 		useInsn.replaceArg(useArg, replaceArg);
-
-		assignInsn.add(AFlag.REMOVE);
-		assignInsn.add(AFlag.DONT_GENERATE);
-		InsnRemover.remove(mth, assignBlock, assignInsn);
 		return true;
 	}
 
@@ -142,9 +141,11 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 		if (insn.contains(AFlag.FORCE_ASSIGN_INLINE)) {
 			return assignInline(mth, arg, insn, block);
 		}
-		boolean replaced = arg.wrapInstruction(mth, insn) != null;
+		// just move instruction into arg, don't unbind/copy/duplicate
+		InsnArg wrappedArg = arg.wrapInstruction(mth, insn, false);
+		boolean replaced = wrappedArg != null;
 		if (replaced) {
-			InsnList.remove(block, insn);
+			InsnRemover.removeWithoutUnbind(mth, block, insn);
 		}
 		return replaced;
 	}

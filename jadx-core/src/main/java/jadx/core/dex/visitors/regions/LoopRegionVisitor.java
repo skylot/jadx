@@ -255,27 +255,19 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 			return false;
 		}
 		List<InsnNode> toSkip = new LinkedList<>();
-		RegisterArg iterVar = nextCall.getResult();
-		if (iterVar == null) {
-			return false;
-		}
-		if (!usedOnlyInLoop(mth, loopRegion, iterVar)) {
-			return false;
-		}
-		if (!assignOnlyInLoop(mth, loopRegion, iterVar)) {
-			return false;
-		}
-
+		RegisterArg iterVar;
 		if (nextCall.contains(AFlag.WRAPPED)) {
 			InsnArg wrapArg = BlockUtils.searchWrappedInsnParent(mth, nextCall);
 			if (wrapArg != null && wrapArg.getParentInsn() != null) {
 				InsnNode parentInsn = wrapArg.getParentInsn();
-				if (parentInsn.getType() != InsnType.CHECK_CAST) {
-					if (!fixIterableType(mth, iterableArg, iterVar)) {
-						return false;
-					}
-					parentInsn.replaceArg(wrapArg, iterVar);
-				} else {
+				BlockNode block = BlockUtils.getBlockByInsn(mth, parentInsn);
+				if (block == null) {
+					return false;
+				}
+				if (!RegionUtils.isRegionContainsBlock(loopRegion, block)) {
+					return false;
+				}
+				if (parentInsn.getType() == InsnType.CHECK_CAST) {
 					iterVar = parentInsn.getResult();
 					if (iterVar == null || !fixIterableType(mth, iterableArg, iterVar)) {
 						return false;
@@ -287,12 +279,32 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 						// cast not inlined
 						toSkip.add(parentInsn);
 					}
+				} else {
+					iterVar = nextCall.getResult();
+					if (iterVar == null) {
+						return false;
+					}
+					nextCall.add(AFlag.DONT_GENERATE);
+					if (!fixIterableType(mth, iterableArg, iterVar)) {
+						return false;
+					}
+					parentInsn.replaceArg(wrapArg, iterVar);
 				}
 			} else {
 				LOG.warn(" checkIterableForEach: Wrapped insn not found: {}, mth: {}", nextCall, mth);
 				return false;
 			}
 		} else {
+			iterVar = nextCall.getResult();
+			if (iterVar == null) {
+				return false;
+			}
+			if (!usedOnlyInLoop(mth, loopRegion, iterVar)) {
+				return false;
+			}
+			if (!assignOnlyInLoop(mth, loopRegion, iterVar)) {
+				return false;
+			}
 			toSkip.add(nextCall);
 		}
 

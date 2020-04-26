@@ -44,6 +44,7 @@ import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.BlockInsnPair;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.InsnUtils;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
 
 import static jadx.core.utils.InsnUtils.checkInsnType;
@@ -152,14 +153,13 @@ public class EnumVisitor extends AbstractVisitor {
 		toRemove.add(valuesInitInsn);
 
 		// all checks complete, perform transform
-		EnumClassAttr attr = new EnumClassAttr(enumFields.size());
+		EnumClassAttr attr = new EnumClassAttr(enumFields);
 		attr.setStaticMethod(classInitMth);
-		attr.getFields().addAll(enumFields);
 		cls.addAttr(attr);
 
-		for (EnumField field : attr.getFields()) {
-			ConstructorInsn co = field.getConstrInsn();
-			FieldNode fieldNode = field.getField();
+		for (EnumField enumField : attr.getFields()) {
+			ConstructorInsn co = enumField.getConstrInsn();
+			FieldNode fieldNode = enumField.getField();
 
 			// use string arg from the constructor as enum field name
 			String name = getConstString(cls.dex(), co.getArg(0));
@@ -172,13 +172,16 @@ public class EnumVisitor extends AbstractVisitor {
 			if (!co.getClassType().equals(cls.getClassInfo())) {
 				// enum contains additional methods
 				for (ClassNode innerCls : cls.getInnerClasses()) {
-					processEnumInnerCls(co, field, innerCls);
+					processEnumInnerCls(co, enumField, innerCls);
 				}
 			}
+			fieldNode.add(AFlag.DONT_GENERATE);
 		}
 
+		List<InsnNode> constrInsns = Utils.collectionMap(attr.getFields(), EnumField::getConstrInsn);
+		InsnRemover.removeAllWithoutUnbind(staticBlock, constrInsns);
+
 		valuesField.add(AFlag.DONT_GENERATE);
-		enumFields.forEach(f -> f.getField().add(AFlag.DONT_GENERATE));
 		InsnRemover.removeAllAndUnbind(classInitMth, staticBlock, toRemove);
 		if (classInitMth.countInsns() == 0) {
 			classInitMth.add(AFlag.DONT_GENERATE);
@@ -242,7 +245,6 @@ public class EnumVisitor extends AbstractVisitor {
 		}
 		toRemove.add(sgetInsn);
 		toRemove.add(sputInsn);
-		toRemove.add(co);
 		return createEnumFieldByConstructor(cls, enumFieldNode, co);
 	}
 

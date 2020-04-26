@@ -1,5 +1,6 @@
 package jadx.core.dex.instructions.args;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,6 +97,11 @@ public abstract class InsnArg extends Typed {
 
 	@Nullable("if wrap failed")
 	public InsnArg wrapInstruction(MethodNode mth, InsnNode insn) {
+		return wrapInstruction(mth, insn, true);
+	}
+
+	@Nullable("if wrap failed")
+	public InsnArg wrapInstruction(MethodNode mth, InsnNode insn, boolean unbind) {
 		InsnNode parent = parentInsn;
 		if (parent == null) {
 			return null;
@@ -116,14 +122,24 @@ public abstract class InsnArg extends Typed {
 				if (arg.isRegister()) {
 					((RegisterArg) arg).setNameIfUnknown(name);
 				} else if (arg.isInsnWrap()) {
-					((InsnWrapArg) arg).getWrapInsn().getResult().setNameIfUnknown(name);
+					InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
+					RegisterArg registerArg = wrapInsn.getResult();
+					if (registerArg != null) {
+						registerArg.setNameIfUnknown(name);
+					}
 				}
 			}
 		}
 		InsnArg arg = wrapInsnIntoArg(insn);
+		InsnArg oldArg = parent.getArg(i);
 		parent.setArg(i, arg);
-		InsnRemover.unbindArgUsage(mth, this);
-		InsnRemover.unbindResult(mth, insn);
+		InsnRemover.unbindArgUsage(mth, oldArg);
+		if (unbind) {
+			InsnRemover.unbindArgUsage(mth, this);
+			// result not needed in wrapped insn
+			InsnRemover.unbindResult(mth, insn);
+			insn.setResult(null);
+		}
 		return arg;
 	}
 
@@ -137,29 +153,29 @@ public abstract class InsnArg extends Typed {
 		return -1;
 	}
 
+	@NotNull
 	public static InsnArg wrapInsnIntoArg(InsnNode insn) {
-		InsnArg arg;
 		InsnType type = insn.getType();
 		if (type == InsnType.CONST || type == InsnType.MOVE) {
 			if (insn.contains(AFlag.FORCE_ASSIGN_INLINE)) {
 				RegisterArg resArg = insn.getResult();
-				arg = wrap(insn);
+				InsnArg arg = wrap(insn);
 				if (resArg != null) {
 					arg.setType(resArg.getType());
 				}
+				return arg;
 			} else {
-				arg = insn.getArg(0);
-				insn.add(AFlag.REMOVE);
+				InsnArg arg = insn.getArg(0);
 				insn.add(AFlag.DONT_GENERATE);
+				return arg;
 			}
-		} else {
-			arg = wrapArg(insn);
 		}
-		return arg;
+		return wrapArg(insn);
 	}
 
 	/**
-	 * Prefer {@link InsnArg#wrapInsnIntoArg}.
+	 * Prefer {@link InsnArg#wrapInsnIntoArg(InsnNode)}.
+	 * <p>
 	 * This method don't support MOVE and CONST insns!
 	 */
 	public static InsnArg wrapArg(InsnNode insn) {

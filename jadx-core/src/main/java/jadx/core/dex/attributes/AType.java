@@ -12,6 +12,7 @@ import jadx.core.dex.attributes.nodes.EnumClassAttr;
 import jadx.core.dex.attributes.nodes.EnumMapAttr;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.attributes.nodes.ForceReturnAttr;
+import jadx.core.dex.attributes.nodes.GenericInfoAttr;
 import jadx.core.dex.attributes.nodes.IgnoreEdgeAttr;
 import jadx.core.dex.attributes.nodes.JadxError;
 import jadx.core.dex.attributes.nodes.JumpInfo;
@@ -36,6 +37,7 @@ import jadx.core.dex.trycatch.SplitterBlockAttr;
  *
  * @param <T> attribute class implementation
  */
+@SuppressWarnings("InstantiationOfUtilityClass")
 public class AType<T extends IAttribute> {
 
 	// class, method, field
@@ -81,6 +83,7 @@ public class AType<T extends IAttribute> {
 	public static final AType<LoopLabelAttr> LOOP_LABEL = new AType<>();
 	public static final AType<AttrList<JumpInfo>> JUMP = new AType<>();
 	public static final AType<IMethodDetails> METHOD_DETAILS = new AType<>();
+	public static final AType<GenericInfoAttr> GENERIC_INFO = new AType<>();
 
 	// register
 	public static final AType<RegDebugInfoAttr> REG_DEBUG_INFO = new AType<>();

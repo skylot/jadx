@@ -404,7 +404,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 				if (apply) {
 					int regNum = reg.getRegNum();
 					RegisterArg resultArg = reg.duplicate(regNum, null);
-					SSAVar newSsaVar = mth.makeNewSVar(regNum, resultArg);
+					SSAVar newSsaVar = mth.makeNewSVar(resultArg);
 					RegisterArg arg = reg.duplicate(regNum, var);
 
 					InsnNode moveInsn = new InsnNode(InsnType.MOVE, 1);
@@ -476,7 +476,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 					castNode.addArg(bound.getArg());
 					castNode.setResult(InsnArg.reg(bound.getArg().getRegNum(), bound.getType()));
 
-					SSAVar newVar = mth.makeNewSVar(castNode.getResult().getRegNum(), castNode.getResult());
+					SSAVar newVar = mth.makeNewSVar(castNode.getResult());
 					CodeVar codeVar = new CodeVar();
 					codeVar.setType(bound.getType());
 					newVar.setCodeVar(codeVar);

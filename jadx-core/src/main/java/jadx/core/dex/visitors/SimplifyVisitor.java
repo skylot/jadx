@@ -39,6 +39,7 @@ import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnList;
 import jadx.core.utils.InsnRemover;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class SimplifyVisitor extends AbstractVisitor {
@@ -393,7 +394,8 @@ public class SimplifyVisitor extends AbstractVisitor {
 			// all check passed
 			removeStringBuilderInsns(mth, toStrInsn, chain);
 
-			InsnNode concatInsn = new InsnNode(InsnType.STR_CONCAT, args);
+			List<InsnArg> dupArgs = Utils.collectionMap(args, InsnArg::duplicate);
+			InsnNode concatInsn = new InsnNode(InsnType.STR_CONCAT, dupArgs);
 			concatInsn.setResult(toStrInsn.getResult());
 			concatInsn.add(AFlag.SYNTHETIC);
 			concatInsn.copyAttributesFrom(toStrInsn);
@@ -499,7 +501,8 @@ public class SimplifyVisitor extends AbstractVisitor {
 				|| !wrap.getArg(0).isInsnWrap()) {
 			return null;
 		}
-		InsnNode get = ((InsnWrapArg) wrap.getArg(0)).getWrapInsn();
+		InsnArg getWrap = wrap.getArg(0);
+		InsnNode get = ((InsnWrapArg) getWrap).getWrapInsn();
 		InsnType getType = get.getType();
 		if (getType != InsnType.IGET && getType != InsnType.SGET) {
 			return null;
@@ -517,7 +520,8 @@ public class SimplifyVisitor extends AbstractVisitor {
 					return null;
 				}
 			}
-			InsnArg fArg = InsnArg.wrapArg(get);
+			InsnArg fArg = getWrap.duplicate();
+			InsnRemover.unbindInsn(mth, get);
 			if (insn.getType() == InsnType.IPUT) {
 				InsnRemover.unbindArgUsage(mth, insn.getArg(1));
 			}

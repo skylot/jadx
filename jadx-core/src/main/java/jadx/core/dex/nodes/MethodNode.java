@@ -647,7 +647,8 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return debugInfoOffset;
 	}
 
-	public SSAVar makeNewSVar(int regNum, @NotNull RegisterArg assignArg) {
+	public SSAVar makeNewSVar(@NotNull RegisterArg assignArg) {
+		int regNum = assignArg.getRegNum();
 		return makeNewSVar(regNum, getNextSVarVersion(regNum), assignArg);
 	}
 

@@ -51,6 +51,7 @@ public class InsnNode extends LineAttrNode {
 	}
 
 	public void setResult(@Nullable RegisterArg res) {
+		this.result = res;
 		if (res != null) {
 			res.setParentInsn(this);
 			SSAVar ssaVar = res.getSVar();
@@ -58,7 +59,6 @@ public class InsnNode extends LineAttrNode {
 				ssaVar.setAssign(res);
 			}
 		}
-		this.result = res;
 	}
 
 	public void addArg(InsnArg arg) {
@@ -326,17 +326,9 @@ public class InsnNode extends LineAttrNode {
 	}
 
 	protected final <T extends InsnNode> T copyCommonParams(T copy) {
-		if (copy.getResult() == null && result != null) {
-			copy.setResult(result.duplicate());
-		}
 		if (copy.getArgsCount() == 0) {
 			for (InsnArg arg : this.getArguments()) {
-				if (arg.isInsnWrap()) {
-					InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
-					copy.addArg(InsnArg.wrapInsnIntoArg(wrapInsn.copy()));
-				} else {
-					copy.addArg(arg.duplicate());
-				}
+				copy.addArg(arg.duplicate());
 			}
 		}
 		copy.copyAttributesFrom(this);
@@ -347,12 +339,66 @@ public class InsnNode extends LineAttrNode {
 
 	/**
 	 * Make copy of InsnNode object.
+	 * <p>
+	 * NOTE: can't copy instruction with result argument
+	 * (SSA variable can't be used in two different assigns).
+	 * <p>
+	 * Prefer use next methods:
+	 * <ul>
+	 * <li>{@link #copyWithoutResult()} to explicitly state that result not needed
+	 * <li>{@link #copy(RegisterArg)} to provide new result arg
+	 * <li>{@link #copyWithNewSsaVar(MethodNode)} to make new SSA variable for result arg
+	 * </ul>
+	 * <p>
 	 */
 	public InsnNode copy() {
 		if (this.getClass() != InsnNode.class) {
 			throw new JadxRuntimeException("Copy method not implemented in insn class " + this.getClass().getSimpleName());
 		}
 		return copyCommonParams(new InsnNode(insnType, getArgsCount()));
+	}
+
+	/**
+	 * See {@link #copy()}
+	 */
+	@SuppressWarnings("unchecked")
+	public <T extends InsnNode> T copyWithoutResult() {
+		return (T) copy();
+	}
+
+	public InsnNode copyWithoutSsa() {
+		InsnNode copy = copyWithoutResult();
+		if (result != null) {
+			if (result.getSVar() == null) {
+				copy.setResult(result.duplicate());
+			} else {
+				throw new JadxRuntimeException("Can't copy if SSA var is set");
+			}
+		}
+		return copy;
+	}
+
+	/**
+	 * See {@link #copy()}
+	 */
+	public InsnNode copy(RegisterArg newReturnArg) {
+		InsnNode copy = copy();
+		copy.setResult(newReturnArg);
+		return copy;
+	}
+
+	/**
+	 * See {@link #copy()}
+	 */
+	public InsnNode copyWithNewSsaVar(MethodNode mth) {
+		RegisterArg result = getResult();
+		if (result == null) {
+			throw new JadxRuntimeException("Result in null");
+		}
+		int regNum = result.getRegNum();
+		RegisterArg resDupArg = result.duplicate(regNum, null);
+		mth.makeNewSVar(resDupArg);
+		return copy(resDupArg);
 	}
 
 	/**

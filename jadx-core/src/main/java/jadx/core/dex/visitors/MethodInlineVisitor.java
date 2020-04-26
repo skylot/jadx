@@ -73,7 +73,7 @@ public class MethodInlineVisitor extends AbstractVisitor {
 			if (Consts.DEBUG) {
 				mth.addAttr(AType.COMMENTS, "Removed for inline");
 			} else {
-				InsnNode copy = insn.copy();
+				InsnNode copy = insn.copyWithoutResult();
 				// unbind SSA variables from copy instruction
 				List<RegisterArg> regArgs = new ArrayList<>();
 				copy.getRegisterArgs(regArgs);

@@ -37,4 +37,9 @@ public abstract class NotificationAttrNode extends LineAttrNode implements ICode
 		addAttr(AType.COMMENTS, commentStr);
 		LOG.info("{} in {}", commentStr, this);
 	}
+
+	public void addDebugComment(String commentStr) {
+		addAttr(AType.COMMENTS, "JADX DEBUG: " + commentStr);
+		LOG.debug("{} in {}", commentStr, this);
+	}
 }

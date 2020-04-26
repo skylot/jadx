@@ -71,6 +71,7 @@ public class Jadx {
 				passes.add(new DebugInfoApplyVisitor());
 			}
 
+			passes.add(new GenericTypesVisitor());
 			passes.add(new DeboxingVisitor());
 			passes.add(new ModVisitor());
 			passes.add(new CodeShrinkVisitor());

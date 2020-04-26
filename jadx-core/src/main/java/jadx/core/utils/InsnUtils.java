@@ -181,7 +181,7 @@ public class InsnUtils {
 	}
 
 	@Nullable
-	public static InsnNode checkInsnType(InsnNode insn, InsnType insnType) {
+	public static InsnNode checkInsnType(@Nullable InsnNode insn, InsnType insnType) {
 		if (insn != null && insn.getType() == insnType) {
 			return insn;
 		}

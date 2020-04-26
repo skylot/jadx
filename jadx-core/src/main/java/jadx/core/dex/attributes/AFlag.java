@@ -60,7 +60,6 @@ public enum AFlag {
 
 	FALL_THROUGH,
 
-	EXPLICIT_GENERICS,
 	VARARG_CALL,
 
 	/**

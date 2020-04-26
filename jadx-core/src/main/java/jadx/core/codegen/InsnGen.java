@@ -15,6 +15,7 @@ import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
+import jadx.core.dex.attributes.nodes.GenericInfoAttr;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.attributes.nodes.MethodInlineAttr;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
@@ -603,8 +604,7 @@ public class InsnGen {
 		code.add('}');
 	}
 
-	private void makeConstructor(ConstructorInsn insn, CodeWriter code)
-			throws CodegenException {
+	private void makeConstructor(ConstructorInsn insn, CodeWriter code) throws CodegenException {
 		ClassNode cls = mth.dex().resolveClass(insn.getClassType());
 		if (cls != null && cls.isAnonymous() && !fallback) {
 			cls.ensureProcessed();
@@ -622,20 +622,18 @@ public class InsnGen {
 		} else {
 			code.add("new ");
 			useClass(code, insn.getClassType());
-			ArgType argType = insn.getResult().getSVar().getCodeVar().getType();
-			boolean genericCls = cls == null || !cls.getGenericTypeParameters().isEmpty();
-			if (argType != null
-					&& argType.getGenericTypes() != null
-					&& genericCls) {
+			GenericInfoAttr genericInfoAttr = insn.get(AType.GENERIC_INFO);
+			if (genericInfoAttr != null) {
 				code.add('<');
-				if (insn.contains(AFlag.EXPLICIT_GENERICS)) {
+				if (genericInfoAttr.isExplicit()) {
 					boolean first = true;
-					for (ArgType type : argType.getGenericTypes()) {
+					for (ArgType type : genericInfoAttr.getGenericTypes()) {
 						if (!first) {
 							code.add(',');
+						} else {
+							first = false;
 						}
 						mgen.getClassGen().useType(code, type);
-						first = false;
 					}
 				}
 				code.add('>');
@@ -849,7 +847,7 @@ public class InsnGen {
 				regs[regNums[i]] = arg;
 			}
 			// replace args
-			InsnNode inlCopy = inl.copy();
+			InsnNode inlCopy = inl.copyWithoutResult();
 			List<RegisterArg> inlArgs = new ArrayList<>();
 			inlCopy.getRegisterArgs(inlArgs);
 			for (RegisterArg r : inlArgs) {

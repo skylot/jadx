@@ -750,7 +750,7 @@ public class BlockProcessor extends AbstractVisitor {
 				first = false;
 			} else {
 				for (InsnNode oldInsn : exitBlock.getInstructions()) {
-					newRetBlock.getInstructions().add(oldInsn.copy());
+					newRetBlock.getInstructions().add(oldInsn.copyWithoutSsa());
 				}
 			}
 			BlockSplitter.replaceConnection(pred, exitBlock, newRetBlock);

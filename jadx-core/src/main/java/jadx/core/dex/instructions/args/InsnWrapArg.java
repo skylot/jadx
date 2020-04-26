@@ -36,7 +36,7 @@ public final class InsnWrapArg extends InsnArg {
 
 	@Override
 	public InsnArg duplicate() {
-		InsnWrapArg copy = new InsnWrapArg(wrappedInsn.copy());
+		InsnWrapArg copy = new InsnWrapArg(wrappedInsn.copyWithoutResult());
 		copy.setType(type);
 		return copyCommonParams(copy);
 	}
