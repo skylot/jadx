@@ -49,13 +49,10 @@ public class Jadx {
 			if (args.isDebugInfo()) {
 				passes.add(new DebugInfoParseVisitor());
 			}
-
-			passes.add(new FindSuperUsageVisitor());
 			passes.add(new BlockSplitter());
 			if (args.isRawCFGOutput()) {
 				passes.add(DotGraphVisitor.dumpRaw());
 			}
-
 			passes.add(new BlockProcessor());
 			passes.add(new BlockExceptionHandler());
 			passes.add(new BlockFinish());
@@ -72,6 +69,7 @@ public class Jadx {
 			}
 
 			passes.add(new GenericTypesVisitor());
+			passes.add(new ShadowFieldVisitor());
 			passes.add(new DeboxingVisitor());
 			passes.add(new ModVisitor());
 			passes.add(new CodeShrinkVisitor());

@@ -2,46 +2,54 @@ package jadx.tests.integration.others;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
-import jadx.tests.api.SmaliTest;
+import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
-public class TestShadowingSuperMember extends SmaliTest {
-	// @formatter:off
-	/*
-
-		public class C {
+public class TestShadowingSuperMember extends IntegrationTest {
+	public static class TestCls {
+		public static class C {
 			public C(String s) {
 			}
 		}
 
-		public class A {
-			public int A00;
+		public static class A {
+			public int a00;
+
 			public A(String s) {
 			}
 		}
 
-		public class B extends A {
-			public C A00;
+		public static class B extends A {
+			public C a00;
+
 			public B(String str) {
 				super(str);
 			}
 
 			public int add(int b) {
-				return super.A00 + b;
+				return super.a00 + b;
+			}
+
+			public int sub(int b) {
+				return ((A) this).a00 - b;
 			}
 		}
-	*/
-	// @formatter:on
+
+		public void check() {
+			B b = new B("");
+			((A) b).a00 = 2;
+			assertThat(b.add(3)).isEqualTo(5);
+			assertThat(b.sub(3)).isEqualTo(-1);
+		}
+	}
 
 	@Test
 	public void test() {
-		allowWarnInCode();
-		ClassNode cls = getClassNodeFromSmaliFiles("B");
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("return super.A00 + "));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("return super.a00 + b;")
+				.containsOne("return super.a00 - b;")
+				.containsOne("((A) b).a00 = 2;");
 	}
 }
