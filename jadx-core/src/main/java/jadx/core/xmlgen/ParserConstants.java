@@ -48,6 +48,18 @@ public class ParserConstants {
 	protected static final int TYPE_DIMENSION = 0x05;
 	// The 'data' holds a complex number encoding a fraction of a container.
 	protected static final int TYPE_FRACTION = 0x06;
+
+	/**
+	 * The 'data' holds a dynamic reference, a reference to another resource table entry.
+	 * See https://github.com/skylot/jadx/issues/919
+	 */
+	protected static final int TYPE_DYNAMIC_REFERENCE = 0x07;
+
+	/**
+	 * According to the sources of apktool this type seem to be related to themes
+	 * See https://github.com/skylot/jadx/issues/919
+	 */
+	protected static final int TYPE_DYNAMIC_ATTRIBUTE = 0x08;
 	// Beginning of integer flavors...
 	protected static final int TYPE_FIRST_INT = 0x10;
 	// The 'data' is a raw integer value of the form n..n.
