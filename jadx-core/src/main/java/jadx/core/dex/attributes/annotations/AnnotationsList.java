@@ -1,33 +1,50 @@
 package jadx.core.dex.attributes.annotations;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.Nullable;
+
+import jadx.api.plugins.input.data.annotations.IAnnotation;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttribute;
+import jadx.core.dex.nodes.ICodeNode;
 import jadx.core.utils.Utils;
 
 public class AnnotationsList implements IAttribute {
 
-	public static final AnnotationsList EMPTY = new AnnotationsList(Collections.emptyList());
-
-	private final Map<String, Annotation> map;
-
-	public AnnotationsList(List<Annotation> anList) {
-		map = new HashMap<>(anList.size());
-		for (Annotation a : anList) {
-			map.put(a.getAnnotationClass(), a);
+	public static void attach(ICodeNode node, List<IAnnotation> annotationList) {
+		AnnotationsList attrList = pack(annotationList);
+		if (attrList != null) {
+			node.addAttr(attrList);
 		}
 	}
 
-	public Annotation get(String className) {
+	@Nullable
+	public static AnnotationsList pack(List<IAnnotation> annotationList) {
+		if (annotationList.isEmpty()) {
+			return null;
+		}
+		Map<String, IAnnotation> annMap = new HashMap<>(annotationList.size());
+		for (IAnnotation ann : annotationList) {
+			annMap.put(ann.getAnnotationClass(), ann);
+		}
+		return new AnnotationsList(annMap);
+	}
+
+	private final Map<String, IAnnotation> map;
+
+	public AnnotationsList(Map<String, IAnnotation> map) {
+		this.map = map;
+	}
+
+	public IAnnotation get(String className) {
 		return map.get(className);
 	}
 
-	public Collection<Annotation> getAll() {
+	public Collection<IAnnotation> getAll() {
 		return map.values();
 	}
 

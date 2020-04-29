@@ -8,8 +8,7 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
 
-import com.android.dx.io.instructions.DecodedInstruction;
-
+import jadx.api.plugins.input.insns.InsnData;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
@@ -171,7 +170,7 @@ public class InsnNode extends LineAttrNode {
 		return -1;
 	}
 
-	protected void addReg(DecodedInstruction insn, int i, ArgType type) {
+	protected void addReg(InsnData insn, int i, ArgType type) {
 		addArg(InsnArg.reg(insn, i, type));
 	}
 
@@ -183,7 +182,7 @@ public class InsnNode extends LineAttrNode {
 		addArg(InsnArg.lit(literal, type));
 	}
 
-	protected void addLit(DecodedInstruction insn, ArgType type) {
+	protected void addLit(InsnData insn, ArgType type) {
 		addArg(InsnArg.lit(insn, type));
 	}
 
@@ -259,7 +258,6 @@ public class InsnNode extends LineAttrNode {
 			case FILL_ARRAY:
 			case FILLED_NEW_ARRAY:
 			case NEW_ARRAY:
-			case NEW_MULTIDIM_ARRAY:
 			case STR_CONCAT:
 				return true;
 
@@ -470,6 +468,9 @@ public class InsnNode extends LineAttrNode {
 	}
 
 	protected void appendArgs(StringBuilder sb) {
+		if (arguments.isEmpty()) {
+			return;
+		}
 		String argsStr = Utils.listToString(arguments);
 		if (argsStr.length() < 120) {
 			sb.append(argsStr);

@@ -39,7 +39,7 @@ public final class JavaField implements JavaNode {
 	}
 
 	public ArgType getType() {
-		return ArgType.tryToResolveClassAlias(field.dex(), field.getType());
+		return ArgType.tryToResolveClassAlias(field.root(), field.getType());
 	}
 
 	@Override

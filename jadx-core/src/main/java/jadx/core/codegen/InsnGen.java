@@ -27,7 +27,7 @@ import jadx.core.dex.instructions.ArithOp;
 import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.ConstClassNode;
 import jadx.core.dex.instructions.ConstStringNode;
-import jadx.core.dex.instructions.FillArrayNode;
+import jadx.core.dex.instructions.FillArrayInsn;
 import jadx.core.dex.instructions.FilledNewArrayNode;
 import jadx.core.dex.instructions.GotoNode;
 import jadx.core.dex.instructions.IfNode;
@@ -36,7 +36,7 @@ import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.InvokeType;
 import jadx.core.dex.instructions.NewArrayNode;
-import jadx.core.dex.instructions.SwitchNode;
+import jadx.core.dex.instructions.SwitchInsn;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -152,7 +152,7 @@ public class InsnGen {
 
 	private void instanceField(CodeWriter code, FieldInfo field, InsnArg arg) throws CodegenException {
 		ClassNode pCls = mth.getParentClass();
-		FieldNode fieldNode = pCls.dex().root().deepResolveField(field);
+		FieldNode fieldNode = pCls.root().deepResolveField(field);
 		if (fieldNode != null) {
 			FieldReplaceAttr replace = fieldNode.get(AType.FIELD_REPLACE);
 			if (replace != null) {
@@ -190,7 +190,7 @@ public class InsnGen {
 			}
 			code.add('.');
 		}
-		FieldNode fieldNode = clsGen.getClassNode().dex().root().deepResolveField(field);
+		FieldNode fieldNode = clsGen.getClassNode().root().deepResolveField(field);
 		if (fieldNode != null) {
 			code.attachAnnotation(fieldNode);
 		}
@@ -264,7 +264,7 @@ public class InsnGen {
 		switch (insn.getType()) {
 			case CONST_STR:
 				String str = ((ConstStringNode) insn).getString();
-				code.add(mth.dex().root().getStringUtils().unescapeString(str));
+				code.add(mth.root().getStringUtils().unescapeString(str));
 				break;
 
 			case CONST_CLASS:
@@ -395,7 +395,7 @@ public class InsnGen {
 				break;
 
 			case FILL_ARRAY:
-				FillArrayNode arrayNode = (FillArrayNode) insn;
+				FillArrayInsn arrayNode = (FillArrayInsn) insn;
 				if (fallback) {
 					String arrStr = arrayNode.dataToString();
 					addArg(code, insn.getArg(0));
@@ -509,15 +509,16 @@ public class InsnGen {
 
 			case SWITCH:
 				fallbackOnlyInsn(insn);
-				SwitchNode sw = (SwitchNode) insn;
+				SwitchInsn sw = (SwitchInsn) insn;
 				code.add("switch(");
 				addArg(code, insn.getArg(0));
 				code.add(") {");
 				code.incIndent();
-				for (int i = 0; i < sw.getCasesCount(); i++) {
-					String key = sw.getKeys()[i].toString();
-					code.startLine("case ").add(key).add(": goto ");
-					code.add(MethodGen.getLabelName(sw.getTargets()[i])).add(';');
+				int[] keys = sw.getKeys();
+				int[] targets = sw.getTargets();
+				for (int i = 0; i < keys.length; i++) {
+					code.startLine("case ").add(Integer.toString(keys[i])).add(": goto ");
+					code.add(MethodGen.getLabelName(targets[i])).add(';');
 				}
 				code.startLine("default: goto ");
 				code.add(MethodGen.getLabelName(sw.getDefaultCaseOffset())).add(';');
@@ -541,6 +542,21 @@ public class InsnGen {
 				code.add(')');
 				break;
 
+			case MOVE_RESULT:
+				fallbackOnlyInsn(insn);
+				code.add("move-result");
+				break;
+
+			case FILL_ARRAY_DATA:
+				fallbackOnlyInsn(insn);
+				code.add("fill-array " + insn.toString());
+				break;
+
+			case SWITCH_DATA:
+				fallbackOnlyInsn(insn);
+				code.add(insn.toString());
+				break;
+
 			default:
 				throw new CodegenException(mth, "Unknown instruction: " + insn.getType());
 		}
@@ -550,7 +566,7 @@ public class InsnGen {
 	 * In most cases must be combined with new array instructions.
 	 * Use one by one array fill (can be replaced with System.arrayCopy)
 	 */
-	private void fillArray(CodeWriter code, FillArrayNode arrayNode) throws CodegenException {
+	private void fillArray(CodeWriter code, FillArrayInsn arrayNode) throws CodegenException {
 		code.add("// fill-array-data instruction");
 		code.startLine();
 		List<LiteralArg> args = arrayNode.getLiteralArgs(arrayNode.getElementType());
@@ -605,7 +621,7 @@ public class InsnGen {
 	}
 
 	private void makeConstructor(ConstructorInsn insn, CodeWriter code) throws CodegenException {
-		ClassNode cls = mth.dex().resolveClass(insn.getClassType());
+		ClassNode cls = mth.root().resolveClass(insn.getClassType());
 		if (cls != null && cls.isAnonymous() && !fallback) {
 			cls.ensureProcessed();
 			inlineAnonymousConstructor(code, cls, insn);
@@ -639,7 +655,7 @@ public class InsnGen {
 				code.add('>');
 			}
 		}
-		MethodNode callMth = mth.dex().resolveMethod(insn.getCallMth());
+		MethodNode callMth = mth.root().resolveMethod(insn.getCallMth());
 		generateMethodArguments(code, insn, 0, callMth);
 	}
 
@@ -673,7 +689,7 @@ public class InsnGen {
 		} else {
 			useClass(code, parent);
 		}
-		MethodNode callMth = mth.dex().resolveMethod(insn.getCallMth());
+		MethodNode callMth = mth.root().resolveMethod(insn.getCallMth());
 		generateMethodArguments(code, insn, 0, callMth);
 		code.add(' ');
 		new ClassGen(cls, mgen.getClassGen().getParentGen()).addClassBody(code, true);

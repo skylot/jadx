@@ -1,8 +1,10 @@
 package jadx.core.dex.nodes;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,6 +16,8 @@ import jadx.api.JadxArgs;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.api.ResourcesLoader;
+import jadx.api.plugins.input.data.IClassData;
+import jadx.api.plugins.input.data.ILoadResult;
 import jadx.core.Jadx;
 import jadx.core.clsp.ClspGraph;
 import jadx.core.dex.info.ClassInfo;
@@ -31,8 +35,6 @@ import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.android.AndroidResourcesUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.core.utils.files.DexFile;
-import jadx.core.utils.files.InputFile;
 import jadx.core.xmlgen.ResTableParser;
 import jadx.core.xmlgen.ResourceStorage;
 
@@ -53,8 +55,10 @@ public class RootNode {
 
 	private final ICodeCache codeCache;
 
+	private final List<ClassNode> classes = new ArrayList<>();
+	private final Map<ClassInfo, ClassNode> clsMap = new HashMap<>();
+
 	private ClspGraph clsp;
-	private List<DexNode> dexNodes;
 	@Nullable
 	private String appPackage;
 	@Nullable
@@ -69,27 +73,45 @@ public class RootNode {
 		this.codeCache = args.getCodeCache();
 		this.methodUtils = new MethodUtils(this);
 		this.typeUtils = new TypeUtils(this);
-
-		this.dexNodes = Collections.emptyList();
 	}
 
-	public void load(List<InputFile> inputFiles) {
-		dexNodes = new ArrayList<>();
-		for (InputFile input : inputFiles) {
-			for (DexFile dexFile : input.getDexFiles()) {
+	public void loadClasses(List<ILoadResult> loadedInputs) {
+		for (ILoadResult loadedInput : loadedInputs) {
+			loadedInput.visitClasses(cls -> {
 				try {
-					LOG.debug("Load: {}", dexFile);
-					DexNode dexNode = new DexNode(this, dexFile, dexNodes.size());
-					dexNodes.add(dexNode);
+					addClassNode(new ClassNode(RootNode.this, cls));
 				} catch (Exception e) {
-					throw new JadxRuntimeException("Error decode file: " + dexFile, e);
+					addDummyClass(cls, e);
 				}
-			}
+			});
 		}
-		for (DexNode dexNode : dexNodes) {
-			dexNode.loadClasses();
-		}
+		// sort classes by name, expect top classes before inner
+		classes.sort(Comparator.comparing(ClassNode::getFullName));
 		initInnerClasses();
+	}
+
+	private void addDummyClass(IClassData classData, Exception exc) {
+		String typeStr = classData.getType();
+		String name = null;
+		try {
+			ClassInfo clsInfo = ClassInfo.fromName(this, typeStr);
+			if (clsInfo != null) {
+				name = clsInfo.getShortName();
+			}
+		} catch (Exception e) {
+			LOG.error("Failed to get name for class with type {}", typeStr, e);
+		}
+		if (name == null || name.isEmpty()) {
+			name = "CLASS_" + typeStr;
+		}
+		ClassNode clsNode = new ClassNode(this, name, classData.getAccessFlags());
+		ErrorsCounter.error(clsNode, "Load error", exc);
+		addClassNode(clsNode);
+	}
+
+	public void addClassNode(ClassNode clsNode) {
+		classes.add(clsNode);
+		clsMap.put(clsNode.getClassInfo(), clsNode);
 	}
 
 	public void loadResources(List<ResourceFile> resources) {
@@ -110,7 +132,9 @@ public class RootNode {
 				parser.decode(is);
 				return parser.getResStorage();
 			});
-			processResources(resStorage);
+			if (resStorage != null) {
+				processResources(resStorage);
+			}
 		} catch (Exception e) {
 			LOG.error("Failed to parse '.arsc' file", e);
 		}
@@ -127,11 +151,6 @@ public class RootNode {
 			if (this.clsp == null) {
 				ClspGraph newClsp = new ClspGraph(this);
 				newClsp.load();
-
-				List<ClassNode> classes = new ArrayList<>();
-				for (DexNode dexNode : dexNodes) {
-					classes.addAll(dexNode.getClasses());
-				}
 				newClsp.addApp(classes);
 
 				this.clsp = newClsp;
@@ -142,36 +161,54 @@ public class RootNode {
 	}
 
 	private void initInnerClasses() {
-		for (DexNode dexNode : dexNodes) {
-			dexNode.initInnerClasses();
+		// move inner classes
+		List<ClassNode> inner = new ArrayList<>();
+		for (ClassNode cls : classes) {
+			if (cls.getClassInfo().isInner()) {
+				inner.add(cls);
+			}
+		}
+		List<ClassNode> updated = new ArrayList<>();
+		for (ClassNode cls : inner) {
+			ClassInfo clsInfo = cls.getClassInfo();
+			ClassNode parent = resolveClass(clsInfo.getParentClass());
+			if (parent == null) {
+				clsMap.remove(clsInfo);
+				clsInfo.notInner(this);
+				clsMap.put(clsInfo, cls);
+				updated.add(cls);
+			} else {
+				parent.addInnerClass(cls);
+			}
+		}
+		// reload names for inner classes of updated parents
+		for (ClassNode updCls : updated) {
+			for (ClassNode innerCls : updCls.getInnerClasses()) {
+				innerCls.getClassInfo().updateNames(this);
+			}
 		}
 	}
 
+	public List<ClassNode> getClasses() {
+		return classes;
+	}
+
 	public List<ClassNode> getClasses(boolean includeInner) {
-		List<ClassNode> classes = new ArrayList<>();
-		for (DexNode dex : dexNodes) {
-			if (includeInner) {
-				classes.addAll(dex.getClasses());
-			} else {
-				for (ClassNode cls : dex.getClasses()) {
-					if (!cls.getClassInfo().isInner()) {
-						classes.add(cls);
-					}
-				}
+		if (includeInner) {
+			return classes;
+		}
+		List<ClassNode> notInnerClasses = new ArrayList<>();
+		for (ClassNode cls : classes) {
+			if (!cls.getClassInfo().isInner()) {
+				notInnerClasses.add(cls);
 			}
 		}
-		return classes;
+		return notInnerClasses;
 	}
 
 	@Nullable
 	public ClassNode resolveClass(ClassInfo clsInfo) {
-		for (DexNode dexNode : dexNodes) {
-			ClassNode cls = dexNode.resolveClassLocal(clsInfo);
-			if (cls != null) {
-				return cls;
-			}
-		}
-		return null;
+		return clsMap.get(clsInfo);
 	}
 
 	@Nullable
@@ -185,30 +222,22 @@ public class RootNode {
 		if (clsType.isGeneric()) {
 			clsType = ArgType.object(clsType.getObject());
 		}
-		for (DexNode dexNode : dexNodes) {
-			ClassNode cls = dexNode.resolveClass(clsType);
-			if (cls != null) {
-				return cls;
-			}
-		}
-		return null;
+		return resolveClass(ClassInfo.fromType(this, clsType));
 	}
 
 	@Nullable
-	public ClassNode searchClassByName(String fullName) {
+	public ClassNode resolveClass(String fullName) {
 		ClassInfo clsInfo = ClassInfo.fromName(this, fullName);
 		return resolveClass(clsInfo);
 	}
 
 	@Nullable
 	public ClassNode searchClassByFullAlias(String fullName) {
-		for (DexNode dexNode : dexNodes) {
-			for (ClassNode cls : dexNode.getClasses()) {
-				ClassInfo classInfo = cls.getClassInfo();
-				if (classInfo.getFullName().equals(fullName)
-						|| classInfo.getAliasFullName().equals(fullName)) {
-					return cls;
-				}
+		for (ClassNode cls : classes) {
+			ClassInfo classInfo = cls.getClassInfo();
+			if (classInfo.getFullName().equals(fullName)
+					|| classInfo.getAliasFullName().equals(fullName)) {
+				return cls;
 			}
 		}
 		return null;
@@ -216,14 +245,21 @@ public class RootNode {
 
 	public List<ClassNode> searchClassByShortName(String shortName) {
 		List<ClassNode> list = new ArrayList<>();
-		for (DexNode dexNode : dexNodes) {
-			for (ClassNode cls : dexNode.getClasses()) {
-				if (cls.getClassInfo().getShortName().equals(shortName)) {
-					list.add(cls);
-				}
+		for (ClassNode cls : classes) {
+			if (cls.getClassInfo().getShortName().equals(shortName)) {
+				list.add(cls);
 			}
 		}
 		return list;
+	}
+
+	@Nullable
+	public MethodNode resolveMethod(@NotNull MethodInfo mth) {
+		ClassNode cls = resolveClass(mth.getDeclClass());
+		if (cls != null) {
+			return cls.searchMethod(mth);
+		}
+		return null;
 	}
 
 	@Nullable
@@ -236,7 +272,46 @@ public class RootNode {
 		if (methodNode != null) {
 			return methodNode;
 		}
-		return cls.dex().deepResolveMethod(cls, mth.makeSignature(false));
+		return deepResolveMethod(cls, mth.makeSignature(false));
+	}
+
+	@Nullable
+	private MethodNode deepResolveMethod(@NotNull ClassNode cls, String signature) {
+		for (MethodNode m : cls.getMethods()) {
+			if (m.getMethodInfo().getShortId().startsWith(signature)) {
+				return m;
+			}
+		}
+		MethodNode found;
+		ArgType superClass = cls.getSuperClass();
+		if (superClass != null) {
+			ClassNode superNode = resolveClass(superClass);
+			if (superNode != null) {
+				found = deepResolveMethod(superNode, signature);
+				if (found != null) {
+					return found;
+				}
+			}
+		}
+		for (ArgType iFaceType : cls.getInterfaces()) {
+			ClassNode iFaceNode = resolveClass(iFaceType);
+			if (iFaceNode != null) {
+				found = deepResolveMethod(iFaceNode, signature);
+				if (found != null) {
+					return found;
+				}
+			}
+		}
+		return null;
+	}
+
+	@Nullable
+	public FieldNode resolveField(FieldInfo field) {
+		ClassNode cls = resolveClass(field.getDeclClass());
+		if (cls != null) {
+			return cls.searchField(field);
+		}
+		return null;
 	}
 
 	@Nullable
@@ -245,7 +320,35 @@ public class RootNode {
 		if (cls == null) {
 			return null;
 		}
-		return cls.dex().deepResolveField(cls, field);
+		return deepResolveField(cls, field);
+	}
+
+	@Nullable
+	private FieldNode deepResolveField(@NotNull ClassNode cls, FieldInfo fieldInfo) {
+		FieldNode field = cls.searchFieldByNameAndType(fieldInfo);
+		if (field != null) {
+			return field;
+		}
+		ArgType superClass = cls.getSuperClass();
+		if (superClass != null) {
+			ClassNode superNode = resolveClass(superClass);
+			if (superNode != null) {
+				FieldNode found = deepResolveField(superNode, fieldInfo);
+				if (found != null) {
+					return found;
+				}
+			}
+		}
+		for (ArgType iFaceType : cls.getInterfaces()) {
+			ClassNode iFaceNode = resolveClass(iFaceType);
+			if (iFaceNode != null) {
+				FieldNode found = deepResolveField(iFaceNode, fieldInfo);
+				if (found != null) {
+					return found;
+				}
+			}
+		}
+		return null;
 	}
 
 	public List<IDexTreeVisitor> getPasses() {
@@ -260,10 +363,6 @@ public class RootNode {
 				LOG.error("Visitor init failed: {}", pass.getClass().getSimpleName(), e);
 			}
 		}
-	}
-
-	public List<DexNode> getDexNodes() {
-		return dexNodes;
 	}
 
 	public ClspGraph getClsp() {

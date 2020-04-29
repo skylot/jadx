@@ -100,7 +100,7 @@ public abstract class BaseExternalTest extends IntegrationTest {
 			throw new JadxRuntimeException("Class process failed", e);
 		}
 		LOG.info("----------------------------------------------------------------");
-		LOG.info("Print class: {}, {}", classNode.getFullName(), classNode.dex());
+		LOG.info("Print class: {}, {}", classNode.getFullName(), classNode.getInputPath());
 		if (mthPattern != null) {
 			printMethods(classNode, mthPattern);
 		} else {

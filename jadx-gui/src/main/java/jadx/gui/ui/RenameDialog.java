@@ -21,9 +21,7 @@ import jadx.api.JavaClass;
 import jadx.api.JavaField;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
-import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.files.InputFile;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
@@ -66,12 +64,12 @@ public class RenameDialog extends JDialog {
 	}
 
 	private Path getDeobfMapPath(RootNode root) {
-		List<DexNode> dexNodes = root.getDexNodes();
-		if (dexNodes.isEmpty()) {
+		List<File> inputFiles = root.getArgs().getInputFiles();
+		if (inputFiles.isEmpty()) {
 			return null;
 		}
-		InputFile firstInputFile = dexNodes.get(0).getDexFile().getInputFile();
-		Path inputFilePath = firstInputFile.getFile().getAbsoluteFile().toPath();
+		File firstInputFile = inputFiles.get(0);
+		Path inputFilePath = firstInputFile.getAbsoluteFile().toPath();
 
 		String inputName = inputFilePath.getFileName().toString();
 		String baseName = inputName.substring(0, inputName.lastIndexOf('.'));

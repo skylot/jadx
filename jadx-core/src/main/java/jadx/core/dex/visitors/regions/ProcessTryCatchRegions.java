@@ -61,7 +61,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 		// for each try block search nearest dominator block
 		for (TryCatchBlock tb : tryBlocks) {
 			if (tb.getHandlersCount() == 0) {
-				mth.addWarn("No exception handlers in catch block: " + tb);
+				// mth.addWarn("No exception handlers in catch block: " + tb);
 				continue;
 			}
 			processTryCatchBlock(mth, tb, tryBlocksMap);

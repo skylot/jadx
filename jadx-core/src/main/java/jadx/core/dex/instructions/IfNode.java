@@ -2,8 +2,7 @@ package jadx.core.dex.instructions;
 
 import java.util.List;
 
-import com.android.dx.io.instructions.DecodedInstruction;
-
+import jadx.api.plugins.input.insns.InsnData;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
@@ -21,12 +20,12 @@ public class IfNode extends GotoNode {
 	private BlockNode thenBlock;
 	private BlockNode elseBlock;
 
-	public IfNode(DecodedInstruction insn, IfOp op) {
+	public IfNode(InsnData insn, IfOp op) {
 		super(InsnType.IF, insn.getTarget(), 2);
 		this.op = op;
 		ArgType argType = narrowTypeByOp(op);
 		addArg(InsnArg.reg(insn, 0, argType));
-		if (insn.getRegisterCount() == 1) {
+		if (insn.getRegsCount() == 1) {
 			addArg(InsnArg.lit(0, argType));
 		} else {
 			addArg(InsnArg.reg(insn, 1, argType));

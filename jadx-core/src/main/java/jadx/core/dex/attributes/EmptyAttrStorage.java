@@ -3,7 +3,7 @@ package jadx.core.dex.attributes;
 import java.util.Collections;
 import java.util.List;
 
-import jadx.core.dex.attributes.annotations.Annotation;
+import jadx.api.plugins.input.data.annotations.IAnnotation;
 
 public final class EmptyAttrStorage extends AttributeStorage {
 
@@ -23,7 +23,7 @@ public final class EmptyAttrStorage extends AttributeStorage {
 	}
 
 	@Override
-	public Annotation getAnnotation(String cls) {
+	public IAnnotation getAnnotation(String cls) {
 		return null;
 	}
 

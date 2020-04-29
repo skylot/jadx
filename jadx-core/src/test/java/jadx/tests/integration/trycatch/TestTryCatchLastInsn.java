@@ -2,11 +2,9 @@ package jadx.tests.integration.trycatch;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestTryCatchLastInsn extends SmaliTest {
 
@@ -16,7 +14,7 @@ public class TestTryCatchLastInsn extends SmaliTest {
 			? r1 = "result"; // String
 			try {
 				r1 = call(); // Exception
-			} catch(Exception e) {
+			} catch (Exception e) {
 				System.out.println(r1); // String
 				r1 = e;
 			}
@@ -27,9 +25,9 @@ public class TestTryCatchLastInsn extends SmaliTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNodeFromSmali();
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("return call();"));
+		assertThat(getClassNodeFromSmali())
+				.code()
+				.containsOne("return call();")
+				.containsOne("} catch (Exception e) {");
 	}
 }

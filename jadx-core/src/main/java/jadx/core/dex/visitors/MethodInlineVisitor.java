@@ -3,8 +3,7 @@ package jadx.core.dex.visitors;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.android.dx.rop.code.AccessFlags;
-
+import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -87,7 +86,7 @@ public class MethodInlineVisitor extends AbstractVisitor {
 	}
 
 	private static boolean fixVisibilityOfInlineCode(MethodNode mth, InsnNode insn) {
-		int newVisFlag = AccessFlags.ACC_PUBLIC; // TODO: calculate more precisely
+		int newVisFlag = AccessFlags.PUBLIC; // TODO: calculate more precisely
 		InsnType insnType = insn.getType();
 		if (insnType == InsnType.INVOKE) {
 			InvokeNode invoke = (InvokeNode) insn;

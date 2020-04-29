@@ -4,14 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.DexNode;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class InfoStorage {
 
 	private final Map<ArgType, ClassInfo> classes = new HashMap<>();
 	private final Map<FieldInfo, FieldInfo> fields = new HashMap<>();
-	private final Map<Integer, MethodInfo> methods = new HashMap<>();
 	// use only one MethodInfo instance
 	private final Map<MethodInfo, MethodInfo> uniqueMethods = new HashMap<>();
 
@@ -23,27 +20,6 @@ public class InfoStorage {
 		synchronized (classes) {
 			ClassInfo prev = classes.put(cls.getType(), cls);
 			return prev == null ? cls : prev;
-		}
-	}
-
-	private static int generateMethodLookupId(DexNode dex, int mthId) {
-		return dex.getDexId() << 16 | mthId;
-	}
-
-	public MethodInfo getMethod(DexNode dex, int mtdId) {
-		synchronized (methods) {
-			return methods.get(generateMethodLookupId(dex, mtdId));
-		}
-	}
-
-	public MethodInfo putMethod(DexNode dex, int mthId, MethodInfo methodInfo) {
-		synchronized (methods) {
-			MethodInfo uniqueMethodInfo = putMethod(methodInfo);
-			MethodInfo prev = methods.put(generateMethodLookupId(dex, mthId), uniqueMethodInfo);
-			if (prev != null && prev != uniqueMethodInfo) {
-				throw new JadxRuntimeException("Method lookup id collision: " + methodInfo + ", " + prev + ", " + uniqueMethodInfo);
-			}
-			return uniqueMethodInfo;
 		}
 	}
 

@@ -57,6 +57,7 @@ public class TestFinally extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
+		assertThat(code, containsOne("} finally {"));
 		assertThat(code, containsOne("cursor.getString(columnIndex);"));
 		assertThat(code, not(containsOne("String str = true;")));
 	}

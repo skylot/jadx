@@ -1,7 +1,6 @@
 package jadx.core.dex.instructions;
 
-import com.android.dx.io.instructions.DecodedInstruction;
-
+import jadx.api.plugins.input.insns.InsnData;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -14,12 +13,12 @@ public class ArithNode extends InsnNode {
 
 	private final ArithOp op;
 
-	public ArithNode(DecodedInstruction insn, ArithOp op, ArgType type, boolean literal) {
+	public ArithNode(InsnData insn, ArithOp op, ArgType type, boolean literal) {
 		super(InsnType.ARITH, 2);
 		this.op = op;
 		setResult(InsnArg.reg(insn, 0, type));
 
-		int rc = insn.getRegisterCount();
+		int rc = insn.getRegsCount();
 		if (literal) {
 			if (rc == 1) {
 				// self

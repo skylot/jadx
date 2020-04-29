@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
-import javax.swing.ProgressMonitor;
+import javax.swing.*;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -33,6 +33,7 @@ public class JadxWrapper {
 	}
 
 	public void openFile(File file) {
+		close();
 		this.openFile = file;
 		try {
 			JadxArgs jadxArgs = settings.toJadxArgs();
@@ -42,6 +43,17 @@ public class JadxWrapper {
 			this.decompiler.load();
 		} catch (Exception e) {
 			LOG.error("Jadx init error", e);
+			close();
+		}
+	}
+
+	public void close() {
+		if (decompiler != null) {
+			try {
+				decompiler.close();
+			} catch (Exception e) {
+				LOG.error("jadx decompiler close error", e);
+			}
 		}
 	}
 

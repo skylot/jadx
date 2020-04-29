@@ -27,7 +27,6 @@ jadx-output/
 *-tmp/
 **/tmp/
 
-*.dex
 *.class
 *.dump
 *.log

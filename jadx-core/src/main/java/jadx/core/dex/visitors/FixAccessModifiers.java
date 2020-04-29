@@ -1,7 +1,6 @@
 package jadx.core.dex.visitors;
 
-import com.android.dx.rop.code.AccessFlags;
-
+import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.nodes.ICodeNode;
@@ -45,12 +44,12 @@ public class FixAccessModifiers extends AbstractVisitor {
 	private static int fixVisibility(MethodNode mth) {
 		if (mth.isVirtual()) {
 			// make virtual methods public
-			return AccessFlags.ACC_PUBLIC;
+			return AccessFlags.PUBLIC;
 		} else {
 			AccessInfo accessFlags = mth.getAccessFlags();
 			if (accessFlags.isAbstract()) {
 				// make abstract methods public
-				return AccessFlags.ACC_PUBLIC;
+				return AccessFlags.PUBLIC;
 			}
 			// enum constructor can't be public
 			if (accessFlags.isConstructor()
@@ -63,7 +62,7 @@ public class FixAccessModifiers extends AbstractVisitor {
 				return -1;
 			}
 			// make other direct methods private
-			return AccessFlags.ACC_PRIVATE;
+			return AccessFlags.PRIVATE;
 		}
 	}
 }

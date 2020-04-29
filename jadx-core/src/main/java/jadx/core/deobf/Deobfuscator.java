@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +25,9 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.nodes.RootNode;
 
 public class Deobfuscator {
 	private static final Logger LOG = LoggerFactory.getLogger(Deobfuscator.class);
@@ -42,8 +41,7 @@ public class Deobfuscator {
 	public static final String KOTLIN_METADATA_CLASSNAME_REGEX = "(L.*;)";
 
 	private final JadxArgs args;
-	@NotNull
-	private final List<DexNode> dexNodes;
+	private final RootNode root;
 	private final DeobfPresets deobfPresets;
 
 	private final Map<ClassInfo, DeobfClsInfo> clsMap = new LinkedHashMap<>();
@@ -67,9 +65,9 @@ public class Deobfuscator {
 	private int fldIndex = 0;
 	private int mthIndex = 0;
 
-	public Deobfuscator(JadxArgs args, @NotNull List<DexNode> dexNodes, Path deobfMapFile) {
+	public Deobfuscator(JadxArgs args, RootNode root, Path deobfMapFile) {
 		this.args = args;
-		this.dexNodes = dexNodes;
+		this.root = root;
 
 		this.minLength = args.getDeobfuscationMinLength();
 		this.maxLength = args.getDeobfuscationMaxLength();
@@ -109,15 +107,11 @@ public class Deobfuscator {
 	}
 
 	private void preProcess() {
-		for (DexNode dexNode : dexNodes) {
-			for (ClassNode cls : dexNode.getClasses()) {
-				Collections.addAll(reservedClsNames, cls.getPackage().split("\\."));
-			}
+		for (ClassNode cls : root.getClasses()) {
+			Collections.addAll(reservedClsNames, cls.getPackage().split("\\."));
 		}
-		for (DexNode dexNode : dexNodes) {
-			for (ClassNode cls : dexNode.getClasses()) {
-				preProcessClass(cls);
-			}
+		for (ClassNode cls : root.getClasses()) {
+			preProcessClass(cls);
 		}
 	}
 
@@ -126,10 +120,8 @@ public class Deobfuscator {
 		if (DEBUG) {
 			dumpAlias();
 		}
-		for (DexNode dexNode : dexNodes) {
-			for (ClassNode cls : dexNode.getClasses()) {
-				processClass(cls);
-			}
+		for (ClassNode cls : root.getClasses()) {
+			processClass(cls);
 		}
 		postProcess();
 	}
@@ -212,14 +204,14 @@ public class Deobfuscator {
 		if (added) {
 			ArgType superClass = cls.getSuperClass();
 			if (superClass != null) {
-				ClassNode superNode = cls.dex().resolveClass(superClass);
+				ClassNode superNode = cls.root().resolveClass(superClass);
 				if (superNode != null) {
 					collectClassHierarchy(superNode, collected);
 				}
 			}
 
 			for (ArgType argType : cls.getInterfaces()) {
-				ClassNode interfaceNode = cls.dex().resolveClass(argType);
+				ClassNode interfaceNode = cls.root().resolveClass(argType);
 				if (interfaceNode != null) {
 					collectClassHierarchy(interfaceNode, collected);
 				}
@@ -473,7 +465,7 @@ public class Deobfuscator {
 				return null;
 			}
 		}
-		ClassNode otherCls = cls.root().searchClassByName(cls.getPackage() + '.' + name);
+		ClassNode otherCls = cls.root().resolveClass(cls.getPackage() + '.' + name);
 		if (otherCls != null) {
 			return null;
 		}
@@ -584,10 +576,8 @@ public class Deobfuscator {
 	}
 
 	private void dumpAlias() {
-		for (DexNode dexNode : dexNodes) {
-			for (ClassNode cls : dexNode.getClasses()) {
-				dumpClassAlias(cls);
-			}
+		for (ClassNode cls : root.getClasses()) {
+			dumpClassAlias(cls);
 		}
 	}
 

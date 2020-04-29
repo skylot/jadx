@@ -9,11 +9,13 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.plugins.input.data.annotations.EncodedValue;
+import jadx.api.plugins.input.data.annotations.IAnnotation;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.IAttributeNode;
-import jadx.core.dex.attributes.annotations.Annotation;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.GenericTypeParameter;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class SignatureParser {
@@ -45,11 +47,13 @@ public class SignatureParser {
 	@SuppressWarnings("unchecked")
 	@Nullable
 	public static String getSignature(IAttributeNode node) {
-		Annotation a = node.getAnnotation(Consts.DALVIK_SIGNATURE);
+		IAnnotation a = node.getAnnotation(Consts.DALVIK_SIGNATURE);
 		if (a == null) {
 			return null;
 		}
-		return mergeSignature((List<String>) a.getDefaultValue());
+		List<EncodedValue> values = (List<EncodedValue>) a.getDefaultValue().getValue();
+		List<String> strings = Utils.collectionMap(values, ev -> ((String) ev.getValue()));
+		return mergeSignature(strings);
 	}
 
 	private char next() {

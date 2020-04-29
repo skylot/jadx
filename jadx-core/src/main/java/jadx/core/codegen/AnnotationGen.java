@@ -7,10 +7,12 @@ import java.util.Map.Entry;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.plugins.input.data.IFieldData;
+import jadx.api.plugins.input.data.annotations.EncodedValue;
+import jadx.api.plugins.input.data.annotations.IAnnotation;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttributeNode;
-import jadx.core.dex.attributes.annotations.Annotation;
 import jadx.core.dex.attributes.annotations.AnnotationsList;
 import jadx.core.dex.attributes.annotations.MethodParameters;
 import jadx.core.dex.info.FieldInfo;
@@ -18,6 +20,7 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -52,7 +55,7 @@ public class AnnotationGen {
 		if (aList == null || aList.isEmpty()) {
 			return;
 		}
-		for (Annotation a : aList.getAll()) {
+		for (IAnnotation a : aList.getAll()) {
 			formatAnnotation(code, a);
 			code.add(' ');
 		}
@@ -63,7 +66,7 @@ public class AnnotationGen {
 		if (aList == null || aList.isEmpty()) {
 			return;
 		}
-		for (Annotation a : aList.getAll()) {
+		for (IAnnotation a : aList.getAll()) {
 			String aCls = a.getAnnotationClass();
 			if (!aCls.startsWith(Consts.DALVIK_ANNOTATION_PKG)) {
 				code.startLine();
@@ -72,20 +75,20 @@ public class AnnotationGen {
 		}
 	}
 
-	private void formatAnnotation(CodeWriter code, Annotation a) {
+	private void formatAnnotation(CodeWriter code, IAnnotation a) {
 		code.add('@');
-		ClassNode annCls = cls.dex().resolveClass(a.getType());
+		ClassNode annCls = cls.root().resolveClass(a.getAnnotationClass());
 		if (annCls != null) {
 			classGen.useClass(code, annCls);
 		} else {
-			classGen.useType(code, a.getType());
+			classGen.useClass(code, a.getAnnotationClass());
 		}
 
-		Map<String, Object> vl = a.getValues();
+		Map<String, EncodedValue> vl = a.getValues();
 		if (!vl.isEmpty()) {
 			code.add('(');
-			for (Iterator<Entry<String, Object>> it = vl.entrySet().iterator(); it.hasNext();) {
-				Entry<String, Object> e = it.next();
+			for (Iterator<Entry<String, EncodedValue>> it = vl.entrySet().iterator(); it.hasNext();) {
+				Entry<String, EncodedValue> e = it.next();
 				String paramName = getParamName(annCls, e.getKey());
 				if (paramName.equals("value") && vl.size() == 1) {
 					// don't add "value = " if no other parameters
@@ -93,7 +96,7 @@ public class AnnotationGen {
 					code.add(paramName);
 					code.add(" = ");
 				}
-				encodeValue(code, e.getValue());
+				encodeValue(cls.root(), code, e.getValue());
 				if (it.hasNext()) {
 					code.add(", ");
 				}
@@ -127,66 +130,94 @@ public class AnnotationGen {
 		}
 	}
 
-	public Object getAnnotationDefaultValue(String name) {
-		Annotation an = cls.getAnnotation(Consts.DALVIK_ANNOTATION_DEFAULT);
+	public EncodedValue getAnnotationDefaultValue(String name) {
+		IAnnotation an = cls.getAnnotation(Consts.DALVIK_ANNOTATION_DEFAULT);
 		if (an != null) {
-			Annotation defAnnotation = (Annotation) an.getDefaultValue();
+			IAnnotation defAnnotation = (IAnnotation) an.getDefaultValue().getValue();
 			return defAnnotation.getValues().get(name);
 		}
 		return null;
 	}
 
 	// TODO: refactor this boilerplate code
-	public void encodeValue(CodeWriter code, Object val) {
-		if (val == null) {
+	public void encodeValue(RootNode root, CodeWriter code, EncodedValue encodedValue) {
+		if (encodedValue == null) {
 			code.add("null");
 			return;
 		}
-		if (val instanceof String) {
-			code.add(getStringUtils().unescapeString((String) val));
-		} else if (val instanceof Integer) {
-			code.add(TypeGen.formatInteger((Integer) val, false));
-		} else if (val instanceof Character) {
-			code.add(getStringUtils().unescapeChar((Character) val));
-		} else if (val instanceof Boolean) {
-			code.add(Boolean.TRUE.equals(val) ? "true" : "false");
-		} else if (val instanceof Float) {
-			code.add(TypeGen.formatFloat((Float) val));
-		} else if (val instanceof Double) {
-			code.add(TypeGen.formatDouble((Double) val));
-		} else if (val instanceof Long) {
-			code.add(TypeGen.formatLong((Long) val, false));
-		} else if (val instanceof Short) {
-			code.add(TypeGen.formatShort((Short) val, false));
-		} else if (val instanceof Byte) {
-			code.add(TypeGen.formatByte((Byte) val, false));
-		} else if (val instanceof ArgType) {
-			classGen.useType(code, (ArgType) val);
-			code.add(".class");
-		} else if (val instanceof FieldInfo) {
-			// must be a static field
-			FieldInfo field = (FieldInfo) val;
-			InsnGen.makeStaticFieldAccess(code, field, classGen);
-		} else if (val instanceof Iterable) {
-			code.add('{');
-			Iterator<?> it = ((Iterable<?>) val).iterator();
-			while (it.hasNext()) {
-				Object obj = it.next();
-				encodeValue(code, obj);
-				if (it.hasNext()) {
-					code.add(", ");
+		Object value = encodedValue.getValue();
+		switch (encodedValue.getType()) {
+			case ENCODED_NULL:
+				code.add("null");
+				break;
+			case ENCODED_BOOLEAN:
+				code.add(Boolean.TRUE.equals(value) ? "true" : "false");
+				break;
+			case ENCODED_BYTE:
+				code.add(TypeGen.formatByte((Byte) value, false));
+				break;
+			case ENCODED_SHORT:
+				code.add(TypeGen.formatShort((Short) value, false));
+				break;
+			case ENCODED_CHAR:
+				code.add(getStringUtils().unescapeChar((Character) value));
+				break;
+			case ENCODED_INT:
+				code.add(TypeGen.formatInteger((Integer) value, false));
+				break;
+			case ENCODED_LONG:
+				code.add(TypeGen.formatLong((Long) value, false));
+				break;
+			case ENCODED_FLOAT:
+				code.add(TypeGen.formatFloat((Float) value));
+				break;
+			case ENCODED_DOUBLE:
+				code.add(TypeGen.formatDouble((Double) value));
+				break;
+			case ENCODED_STRING:
+				code.add(getStringUtils().unescapeString((String) value));
+				break;
+			case ENCODED_TYPE:
+				classGen.useType(code, ArgType.parse((String) value));
+				code.add(".class");
+				break;
+			case ENCODED_ENUM:
+			case ENCODED_FIELD:
+				// must be a static field
+				if (value instanceof IFieldData) {
+					FieldInfo field = FieldInfo.fromData(root, (IFieldData) value);
+					InsnGen.makeStaticFieldAccess(code, field, classGen);
+				} else if (value instanceof FieldInfo) {
+					InsnGen.makeStaticFieldAccess(code, (FieldInfo) value, classGen);
+				} else {
+					throw new JadxRuntimeException("Unexpected field type class: " + value.getClass());
 				}
-			}
-			code.add('}');
-		} else if (val instanceof Annotation) {
-			formatAnnotation(code, (Annotation) val);
-		} else {
-			// TODO: also can be method values
-			throw new JadxRuntimeException("Can't decode value: " + val + " (" + val.getClass() + ')');
+				break;
+			case ENCODED_METHOD:
+				// TODO
+				break;
+			case ENCODED_ARRAY:
+				code.add('{');
+				Iterator<?> it = ((Iterable<?>) value).iterator();
+				while (it.hasNext()) {
+					EncodedValue v = (EncodedValue) it.next();
+					encodeValue(cls.root(), code, v);
+					if (it.hasNext()) {
+						code.add(", ");
+					}
+				}
+				code.add('}');
+				break;
+			case ENCODED_ANNOTATION:
+				formatAnnotation(code, (IAnnotation) value);
+				break;
+
+			default:
+				throw new JadxRuntimeException("Can't decode value: " + encodedValue.getType() + " (" + encodedValue + ')');
 		}
 	}
 
 	private StringUtils getStringUtils() {
-		return cls.dex().root().getStringUtils();
+		return cls.root().getStringUtils();
 	}
 }

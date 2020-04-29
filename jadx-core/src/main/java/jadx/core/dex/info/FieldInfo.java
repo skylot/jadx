@@ -2,11 +2,10 @@ package jadx.core.dex.info;
 
 import java.util.Objects;
 
-import com.android.dex.FieldId;
-
+import jadx.api.plugins.input.data.IFieldData;
 import jadx.core.codegen.TypeGen;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.DexNode;
+import jadx.core.dex.nodes.RootNode;
 
 public final class FieldInfo {
 
@@ -22,17 +21,15 @@ public final class FieldInfo {
 		this.alias = name;
 	}
 
-	public static FieldInfo from(DexNode dex, ClassInfo declClass, String name, ArgType type) {
+	public static FieldInfo from(RootNode root, ClassInfo declClass, String name, ArgType type) {
 		FieldInfo field = new FieldInfo(declClass, name, type);
-		return dex.root().getInfoStorage().getField(field);
+		return root.getInfoStorage().getField(field);
 	}
 
-	public static FieldInfo fromDex(DexNode dex, int index) {
-		FieldId field = dex.getFieldId(index);
-		return from(dex,
-				ClassInfo.fromDex(dex, field.getDeclaringClassIndex()),
-				dex.getString(field.getNameIndex()),
-				dex.getType(field.getTypeIndex()));
+	public static FieldInfo fromData(RootNode root, IFieldData fieldData) {
+		ClassInfo declClass = ClassInfo.fromName(root, fieldData.getParentClassType());
+		FieldInfo field = new FieldInfo(declClass, fieldData.getName(), ArgType.parse(fieldData.getType()));
+		return root.getInfoStorage().getField(field);
 	}
 
 	public String getName() {

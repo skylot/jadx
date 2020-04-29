@@ -7,33 +7,32 @@ import java.util.List;
 import java.util.Set;
 
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.FieldInitAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
+import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.IndexInsnNode;
-import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
-import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.nodes.parser.FieldInitAttr;
+import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxException;
 
 public class DependencyCollector extends AbstractVisitor {
 
 	@Override
 	public boolean visit(ClassNode cls) throws JadxException {
-		DexNode dex = cls.dex();
+		RootNode root = cls.root();
 		Set<ClassNode> depSet = new HashSet<>();
-		processClass(cls, dex, depSet);
+		processClass(cls, root, depSet);
 		for (ClassNode inner : cls.getInnerClasses()) {
-			processClass(inner, dex, depSet);
+			processClass(inner, root, depSet);
 		}
 		depSet.remove(cls);
 
@@ -43,18 +42,18 @@ public class DependencyCollector extends AbstractVisitor {
 		return false;
 	}
 
-	private static void processClass(ClassNode cls, DexNode dex, Set<ClassNode> depList) {
-		addDep(dex, depList, cls.getSuperClass());
+	private static void processClass(ClassNode cls, RootNode root, Set<ClassNode> depList) {
+		addDep(root, depList, cls.getSuperClass());
 		for (ArgType iType : cls.getInterfaces()) {
-			addDep(dex, depList, iType);
+			addDep(root, depList, iType);
 		}
 		for (FieldNode fieldNode : cls.getFields()) {
-			addDep(dex, depList, fieldNode.getType());
+			addDep(root, depList, fieldNode.getType());
 
 			// process instructions from field init
 			FieldInitAttr fieldInitAttr = fieldNode.get(AType.FIELD_INIT);
 			if (fieldInitAttr != null && fieldInitAttr.getValueType() == FieldInitAttr.InitType.INSN) {
-				processInsn(dex, depList, fieldInitAttr.getInsn());
+				processInsn(root, depList, fieldInitAttr.getInsn());
 			}
 		}
 		// TODO: process annotations and generics
@@ -62,80 +61,77 @@ public class DependencyCollector extends AbstractVisitor {
 			if (methodNode.isNoCode() || methodNode.contains(AType.JADX_ERROR)) {
 				continue;
 			}
-			processMethod(dex, depList, methodNode);
+			processMethod(root, depList, methodNode);
 		}
 	}
 
-	private static void processMethod(DexNode dex, Set<ClassNode> depList, MethodNode methodNode) {
-		addDep(dex, depList, methodNode.getParentClass());
-		addDep(dex, depList, methodNode.getReturnType());
+	private static void processMethod(RootNode root, Set<ClassNode> depList, MethodNode methodNode) {
+		addDep(root, depList, methodNode.getParentClass());
+		addDep(root, depList, methodNode.getReturnType());
 		for (ArgType arg : methodNode.getMethodInfo().getArgumentsTypes()) {
-			addDep(dex, depList, arg);
+			addDep(root, depList, arg);
 		}
 		for (BlockNode block : methodNode.getBasicBlocks()) {
 			for (InsnNode insnNode : block.getInstructions()) {
-				processInsn(dex, depList, insnNode);
+				processInsn(root, depList, insnNode);
 			}
 		}
 	}
 
 	// TODO: add custom instructions processing
-	private static void processInsn(DexNode dex, Set<ClassNode> depList, InsnNode insnNode) {
+	private static void processInsn(RootNode root, Set<ClassNode> depList, InsnNode insnNode) {
 		RegisterArg result = insnNode.getResult();
 		if (result != null) {
-			addDep(dex, depList, result.getType());
+			addDep(root, depList, result.getType());
 		}
 		for (InsnArg arg : insnNode.getArguments()) {
 			if (arg.isInsnWrap()) {
-				processInsn(dex, depList, ((InsnWrapArg) arg).getWrapInsn());
+				processInsn(root, depList, ((InsnWrapArg) arg).getWrapInsn());
 			} else {
-				addDep(dex, depList, arg.getType());
+				addDep(root, depList, arg.getType());
 			}
 		}
-		processCustomInsn(dex, depList, insnNode);
+		processCustomInsn(root, depList, insnNode);
 	}
 
-	private static void processCustomInsn(DexNode dex, Set<ClassNode> depList, InsnNode insn) {
+	private static void processCustomInsn(RootNode root, Set<ClassNode> depList, InsnNode insn) {
 		if (insn instanceof IndexInsnNode) {
 			Object index = ((IndexInsnNode) insn).getIndex();
 			if (index instanceof FieldInfo) {
-				addDep(dex, depList, ((FieldInfo) index).getDeclClass());
+				addDep(root, depList, ((FieldInfo) index).getDeclClass());
 			} else if (index instanceof ArgType) {
-				addDep(dex, depList, (ArgType) index);
+				addDep(root, depList, (ArgType) index);
 			}
-		} else if (insn instanceof InvokeNode) {
-			ClassInfo declClass = ((InvokeNode) insn).getCallMth().getDeclClass();
-			addDep(dex, depList, declClass);
-		} else if (insn instanceof ConstructorInsn) {
-			ClassInfo declClass = ((ConstructorInsn) insn).getCallMth().getDeclClass();
-			addDep(dex, depList, declClass);
+		} else if (insn instanceof BaseInvokeNode) {
+			ClassInfo declClass = ((BaseInvokeNode) insn).getCallMth().getDeclClass();
+			addDep(root, depList, declClass);
 		}
 	}
 
-	private static void addDep(DexNode dex, Set<ClassNode> depList, ArgType type) {
+	private static void addDep(RootNode root, Set<ClassNode> depList, ArgType type) {
 		if (type != null) {
 			if (type.isObject() && !type.isGenericType()) {
-				addDep(dex, depList, ClassInfo.fromType(dex.root(), type));
+				addDep(root, depList, ClassInfo.fromType(root, type));
 				ArgType[] genericTypes = type.getGenericTypes();
 				if (type.isGeneric() && genericTypes != null) {
 					for (ArgType argType : genericTypes) {
-						addDep(dex, depList, argType);
+						addDep(root, depList, argType);
 					}
 				}
 			} else if (type.isArray()) {
-				addDep(dex, depList, type.getArrayRootElement());
+				addDep(root, depList, type.getArrayRootElement());
 			}
 		}
 	}
 
-	private static void addDep(DexNode dex, Set<ClassNode> depList, ClassInfo clsInfo) {
+	private static void addDep(RootNode root, Set<ClassNode> depList, ClassInfo clsInfo) {
 		if (clsInfo != null) {
-			ClassNode node = dex.resolveClass(clsInfo);
-			addDep(dex, depList, node);
+			ClassNode node = root.resolveClass(clsInfo);
+			addDep(root, depList, node);
 		}
 	}
 
-	private static void addDep(DexNode dex, Set<ClassNode> depList, ClassNode clsNode) {
+	private static void addDep(RootNode root, Set<ClassNode> depList, ClassNode clsNode) {
 		if (clsNode != null) {
 			// add only top classes
 			depList.add(clsNode.getTopParentClass());

@@ -10,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
 import jadx.core.Consts;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.typeinference.TypeCompareEnum;
 import jadx.core.utils.Utils;
@@ -83,6 +82,8 @@ public abstract class ArgType {
 				return STRING;
 			case Consts.CLASS_CLASS:
 				return CLASS;
+			case Consts.CLASS_THROWABLE:
+				return THROWABLE;
 			default:
 				return new ObjectType(cleanObjectName);
 		}
@@ -739,12 +740,12 @@ public abstract class ArgType {
 		return false;
 	}
 
-	public static ArgType tryToResolveClassAlias(DexNode dex, ArgType type) {
+	public static ArgType tryToResolveClassAlias(RootNode root, ArgType type) {
 		if (!type.isObject() || type.isGenericType()) {
 			return type;
 		}
 
-		ClassNode cls = dex.resolveClass(type);
+		ClassNode cls = root.resolveClass(type);
 		if (cls == null) {
 			return type;
 		}

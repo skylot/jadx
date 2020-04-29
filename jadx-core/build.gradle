@@ -1,11 +1,13 @@
+plugins {
+	id 'java-library'
+}
+
 dependencies {
 	runtime files('clsp-data/android-29-clst.jar')
 	runtime files('clsp-data/android-29-res.jar')
 
-	compile files('lib/dx-1.16.jar') // TODO: dx don't support java version > 9 (53)
+	api(project(':jadx-plugins:jadx-plugins-api'))
 
-	compile 'org.ow2.asm:asm:8.0.1'
-	compile 'org.jetbrains:annotations:19.0.0'
 	compile 'com.google.code.gson:gson:2.8.6'
 
 	compile 'org.smali:baksmali:2.4.0'
@@ -15,6 +17,9 @@ dependencies {
 	compile 'com.google.guava:guava:29.0-jre'
 
 	testCompile 'org.apache.commons:commons-lang3:3.9'
+
+	testRuntime(project(':jadx-plugins:jadx-dex-input'))
+	testRuntime(project(':jadx-plugins:jadx-java-convert'))
 }
 
 test {

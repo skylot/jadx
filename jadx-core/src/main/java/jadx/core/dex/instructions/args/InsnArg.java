@@ -5,14 +5,12 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.android.dx.io.instructions.DecodedInstruction;
-
+import jadx.api.plugins.input.insns.InsnData;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.InsnRemover;
-import jadx.core.utils.InsnUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 /**
@@ -30,19 +28,19 @@ public abstract class InsnArg extends Typed {
 		return new RegisterArg(regNum, type);
 	}
 
-	public static RegisterArg reg(DecodedInstruction insn, int argNum, ArgType type) {
-		return reg(InsnUtils.getArg(insn, argNum), type);
+	public static RegisterArg reg(InsnData insn, int argNum, ArgType type) {
+		return reg(insn.getReg(argNum), type);
 	}
 
-	public static RegisterArg typeImmutableIfKnownReg(DecodedInstruction insn, int argNum, ArgType type) {
+	public static RegisterArg typeImmutableIfKnownReg(InsnData insn, int argNum, ArgType type) {
 		if (type.isTypeKnown()) {
-			return typeImmutableReg(InsnUtils.getArg(insn, argNum), type);
+			return typeImmutableReg(insn.getReg(argNum), type);
 		}
-		return reg(InsnUtils.getArg(insn, argNum), type);
+		return reg(insn.getReg(argNum), type);
 	}
 
-	public static RegisterArg typeImmutableReg(DecodedInstruction insn, int argNum, ArgType type) {
-		return typeImmutableReg(InsnUtils.getArg(insn, argNum), type);
+	public static RegisterArg typeImmutableReg(InsnData insn, int argNum, ArgType type) {
+		return typeImmutableReg(insn.getReg(argNum), type);
 	}
 
 	public static RegisterArg typeImmutableReg(int regNum, ArgType type) {
@@ -61,7 +59,7 @@ public abstract class InsnArg extends Typed {
 		return new LiteralArg(literal, type);
 	}
 
-	public static LiteralArg lit(DecodedInstruction insn, ArgType type) {
+	public static LiteralArg lit(InsnData insn, ArgType type) {
 		return lit(insn.getLiteral(), type);
 	}
 

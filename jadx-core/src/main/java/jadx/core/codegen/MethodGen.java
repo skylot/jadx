@@ -7,9 +7,10 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.android.dx.rop.code.AccessFlags;
-
+import jadx.api.plugins.input.data.AccessFlags;
+import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.core.Consts;
+import jadx.core.Jadx;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.annotations.MethodParameters;
@@ -28,7 +29,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.visitors.DepthTraversal;
-import jadx.core.dex.visitors.FallbackModeVisitor;
+import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.CodeGenUtils;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.Utils;
@@ -86,12 +87,12 @@ public class MethodGen {
 		AccessInfo ai = mth.getAccessFlags();
 		// don't add 'abstract' and 'public' to methods in interface
 		if (clsAccFlags.isInterface()) {
-			ai = ai.remove(AccessFlags.ACC_ABSTRACT);
-			ai = ai.remove(AccessFlags.ACC_PUBLIC);
+			ai = ai.remove(AccessFlags.ABSTRACT);
+			ai = ai.remove(AccessFlags.PUBLIC);
 		}
 		// don't add 'public' for annotations
 		if (clsAccFlags.isAnnotation()) {
-			ai = ai.remove(AccessFlags.ACC_PUBLIC);
+			ai = ai.remove(AccessFlags.PUBLIC);
 		}
 
 		if (mth.getMethodInfo().hasAlias() && !ai.isConstructor()) {
@@ -145,10 +146,10 @@ public class MethodGen {
 
 		// add default value if in annotation class
 		if (mth.getParentClass().getAccessFlags().isAnnotation()) {
-			Object def = annotationGen.getAnnotationDefaultValue(mth.getName());
+			EncodedValue def = annotationGen.getAnnotationDefaultValue(mth.getName());
 			if (def != null) {
 				code.add(" default ");
-				annotationGen.encodeValue(code, def);
+				annotationGen.encodeValue(mth.root(), code, def);
 			}
 		}
 		return true;
@@ -269,17 +270,17 @@ public class MethodGen {
 	}
 
 	public void addFallbackMethodCode(CodeWriter code, FallbackOption fallbackOption) {
-		if (mth.getInstructions() == null) {
-			// load original instructions
-			try {
-				mth.unload();
-				mth.load();
-				DepthTraversal.visit(new FallbackModeVisitor(), mth);
-			} catch (DecodeException e) {
-				LOG.error("Error reload instructions in fallback mode:", e);
-				code.startLine("// Can't load method instructions: " + e.getMessage());
-				return;
+		// load original instructions
+		try {
+			mth.unload();
+			mth.load();
+			for (IDexTreeVisitor visitor : Jadx.getFallbackPassesList()) {
+				DepthTraversal.visit(visitor, mth);
 			}
+		} catch (DecodeException e) {
+			LOG.error("Error reload instructions in fallback mode:", e);
+			code.startLine("// Can't load method instructions: " + e.getMessage());
+			return;
 		}
 		InsnNode[] insnArr = mth.getInstructions();
 		if (insnArr == null) {

@@ -10,11 +10,12 @@ import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.FieldInitAttr;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
 import jadx.core.dex.attributes.nodes.ForceReturnAttr;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.info.ClassInfo;
-import jadx.core.dex.instructions.SwitchNode;
+import jadx.core.dex.instructions.SwitchInsn;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -26,7 +27,6 @@ import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
-import jadx.core.dex.nodes.parser.FieldInitAttr;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.regions.SwitchRegion.CaseInfo;
@@ -251,7 +251,7 @@ public class RegionGen extends InsnGen {
 	}
 
 	private CodeWriter makeSwitch(SwitchRegion sw, CodeWriter code) throws CodegenException {
-		SwitchNode insn = (SwitchNode) BlockUtils.getLastInsn(sw.getHeader());
+		SwitchInsn insn = (SwitchInsn) BlockUtils.getLastInsn(sw.getHeader());
 		Objects.requireNonNull(insn, "Switch insn not found in header");
 		InsnArg arg = insn.getArg(0);
 		code.startLine("switch (");
@@ -288,7 +288,7 @@ public class RegionGen extends InsnGen {
 				// print original value, sometimes replaced with incorrect field
 				FieldInitAttr valueAttr = fn.get(AType.FIELD_INIT);
 				if (valueAttr != null) {
-					Object value = valueAttr.getValue();
+					Object value = valueAttr.getEncodedValue();
 					if (value != null && valueAttr.getValueType() == FieldInitAttr.InitType.CONST) {
 						code.add(" /*").add(value.toString()).add("*/");
 					}

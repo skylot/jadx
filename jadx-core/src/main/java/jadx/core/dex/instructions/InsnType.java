@@ -23,6 +23,7 @@ public enum InsnType {
 	CMP_G,
 	IF,
 	SWITCH,
+	SWITCH_DATA,
 
 	MONITOR_ENTER,
 	MONITOR_EXIT,
@@ -32,6 +33,7 @@ public enum InsnType {
 
 	ARRAY_LENGTH,
 	FILL_ARRAY,
+	FILL_ARRAY_DATA,
 	FILLED_NEW_ARRAY,
 
 	AGET,
@@ -47,6 +49,7 @@ public enum InsnType {
 	SPUT,
 
 	INVOKE,
+	MOVE_RESULT,
 
 	// *** Additional instructions ***
 
@@ -67,8 +70,5 @@ public enum InsnType {
 	PHI,
 
 	// fake insn to keep arguments which will be used in regions codegen
-	REGION_ARG,
-
-	// TODO: now multidimensional arrays created using Array.newInstance function
-	NEW_MULTIDIM_ARRAY
+	REGION_ARG
 }

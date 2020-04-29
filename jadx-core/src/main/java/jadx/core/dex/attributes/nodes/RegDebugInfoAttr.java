@@ -5,16 +5,11 @@ import java.util.Objects;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.visitors.debuginfo.LocalVar;
 
 public class RegDebugInfoAttr implements IAttribute {
 
 	private final ArgType type;
 	private final String name;
-
-	public RegDebugInfoAttr(LocalVar var) {
-		this(var.getType(), var.getName());
-	}
 
 	public RegDebugInfoAttr(ArgType type, String name) {
 		this.type = type;

@@ -49,7 +49,7 @@ public class GenericTypesVisitor extends AbstractVisitor {
 			if (argType == null || argType.getGenericTypes() == null) {
 				return;
 			}
-			ClassNode cls = mth.dex().resolveClass(insn.getClassType());
+			ClassNode cls = mth.root().resolveClass(insn.getClassType());
 			if (cls != null && cls.getGenericTypeParameters().isEmpty()) {
 				return;
 			}

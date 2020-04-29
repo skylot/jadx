@@ -1,10 +1,12 @@
 package jadx.core.dex.nodes;
 
+import java.nio.file.Path;
+
 public interface IDexNode {
 
 	String typeName();
 
-	DexNode dex();
-
 	RootNode root();
+
+	Path getInputPath();
 }

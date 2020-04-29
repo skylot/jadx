@@ -2,7 +2,7 @@ package jadx.core.dex.attributes;
 
 import java.util.List;
 
-import jadx.core.dex.attributes.annotations.Annotation;
+import jadx.api.plugins.input.data.annotations.IAnnotation;
 
 public interface IAttributeNode {
 
@@ -20,7 +20,7 @@ public interface IAttributeNode {
 
 	<T extends IAttribute> T get(AType<T> type);
 
-	Annotation getAnnotation(String cls);
+	IAnnotation getAnnotation(String cls);
 
 	<T> List<T> getAll(AType<AttrList<T>> type);
 

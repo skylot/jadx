@@ -11,8 +11,7 @@ import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 
-import com.android.dx.rop.code.AccessFlags;
-
+import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.codegen.TypeGen;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
@@ -36,7 +35,6 @@ import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -76,7 +74,7 @@ public class EnumVisitor extends AbstractVisitor {
 		if (!convertToEnum(cls)) {
 			AccessInfo accessFlags = cls.getAccessFlags();
 			if (accessFlags.isEnum()) {
-				cls.setAccessFlags(accessFlags.remove(AccessFlags.ACC_ENUM));
+				cls.setAccessFlags(accessFlags.remove(AccessFlags.ENUM));
 				cls.addAttr(AType.COMMENTS, "JADX INFO: Failed to restore enum class, 'enum' modifier removed");
 			}
 		}
@@ -162,7 +160,7 @@ public class EnumVisitor extends AbstractVisitor {
 			FieldNode fieldNode = enumField.getField();
 
 			// use string arg from the constructor as enum field name
-			String name = getConstString(cls.dex(), co.getArg(0));
+			String name = getConstString(cls.root(), co.getArg(0));
 			if (name != null
 					&& !fieldNode.getAlias().equals(name)
 					&& NameMapper.isValidAndPrintable(name)
@@ -196,7 +194,7 @@ public class EnumVisitor extends AbstractVisitor {
 		if (!regs.isEmpty()) {
 			cls.addWarnComment("Init of enum " + enumField.getField().getName() + " can be incorrect");
 		}
-		MethodNode ctrMth = cls.dex().resolveMethod(co.getCallMth());
+		MethodNode ctrMth = cls.root().resolveMethod(co.getCallMth());
 		if (ctrMth != null) {
 			markArgsForSkip(ctrMth);
 		}
@@ -293,14 +291,14 @@ public class EnumVisitor extends AbstractVisitor {
 			return null;
 		}
 		ClassInfo clsInfo = co.getClassType();
-		ClassNode constrCls = cls.dex().resolveClass(clsInfo);
+		ClassNode constrCls = cls.root().resolveClass(clsInfo);
 		if (constrCls == null) {
 			return null;
 		}
 		if (!clsInfo.equals(cls.getClassInfo()) && !constrCls.getAccessFlags().isEnum()) {
 			return null;
 		}
-		MethodNode ctrMth = cls.dex().resolveMethod(co.getCallMth());
+		MethodNode ctrMth = cls.root().resolveMethod(co.getCallMth());
 		if (ctrMth == null) {
 			return null;
 		}
@@ -415,10 +413,10 @@ public class EnumVisitor extends AbstractVisitor {
 		return null;
 	}
 
-	private String getConstString(DexNode dex, InsnArg arg) {
+	private String getConstString(RootNode root, InsnArg arg) {
 		if (arg.isInsnWrap()) {
 			InsnNode constInsn = ((InsnWrapArg) arg).getWrapInsn();
-			Object constValue = InsnUtils.getConstValueByInsn(dex, constInsn);
+			Object constValue = InsnUtils.getConstValueByInsn(root, constInsn);
 			if (constValue instanceof String) {
 				return (String) constValue;
 			}
