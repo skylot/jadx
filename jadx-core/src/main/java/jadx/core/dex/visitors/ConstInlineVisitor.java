@@ -100,6 +100,12 @@ public class ConstInlineVisitor extends AbstractVisitor {
 				constArg = InsnArg.wrapArg(constGet);
 				constArg.setType(ArgType.STRING);
 			}
+		} else if (insnType == InsnType.CONST_CLASS) {
+			if (sVar.isUsedInPhi()) {
+				return;
+			}
+			constArg = InsnArg.wrapArg(insn.copyWithoutResult());
+			constArg.setType(ArgType.CLASS);
 		} else {
 			return;
 		}

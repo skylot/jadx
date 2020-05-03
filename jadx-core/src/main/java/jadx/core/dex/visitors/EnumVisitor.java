@@ -293,6 +293,12 @@ public class EnumVisitor extends AbstractVisitor {
 		if (mth == null) {
 			return null;
 		}
+		List<RegisterArg> regs = new ArrayList<>();
+		co.getRegisterArgs(regs);
+		if (!regs.isEmpty()) {
+			cls.addWarnComment("Init of enum " + enumFieldNode.getName() + " can be incorrect");
+		}
+
 		markArgsForSkip(mth);
 		return new EnumField(enumFieldNode, co);
 	}

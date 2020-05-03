@@ -5,6 +5,7 @@
 
 # IntelliJ Idea files
 .idea/
+.run/
 out/
 *.iml
 *.ipr
