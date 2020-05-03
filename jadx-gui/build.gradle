@@ -8,16 +8,16 @@ dependencies {
 	compile(project(":jadx-core"))
 	compile(project(":jadx-cli"))
 
-	compile 'com.fifesoft:rsyntaxtextarea:3.0.8'
+	compile 'com.fifesoft:rsyntaxtextarea:3.1.1'
 	compile files('libs/jfontchooser-1.0.5.jar')
 	compile 'hu.kazocsaba:image-viewer:1.2.3'
 
-	compile 'org.apache.commons:commons-lang3:3.9'
+	compile 'org.apache.commons:commons-lang3:3.10'
 	compile 'org.apache.commons:commons-text:1.8'
 
-	compile 'io.reactivex.rxjava2:rxjava:2.2.17'
+	compile 'io.reactivex.rxjava2:rxjava:2.2.19'
 	compile "com.github.akarnokd:rxjava2-swing:0.3.7"
-	compile 'com.android.tools.build:apksig:3.5.3'
+	compile 'com.android.tools.build:apksig:3.6.3'
 }
 
 application {
