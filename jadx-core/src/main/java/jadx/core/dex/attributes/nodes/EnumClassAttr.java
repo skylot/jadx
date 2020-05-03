@@ -14,13 +14,11 @@ public class EnumClassAttr implements IAttribute {
 	public static class EnumField {
 		private final FieldNode field;
 		private final ConstructorInsn constrInsn;
-		private final int startArg;
 		private ClassNode cls;
 
-		public EnumField(FieldNode field, ConstructorInsn co, int startArg) {
+		public EnumField(FieldNode field, ConstructorInsn co) {
 			this.field = field;
 			this.constrInsn = co;
-			this.startArg = startArg;
 		}
 
 		public FieldNode getField() {
@@ -29,10 +27,6 @@ public class EnumClassAttr implements IAttribute {
 
 		public ConstructorInsn getConstrInsn() {
 			return constrInsn;
-		}
-
-		public int getStartArg() {
-			return startArg;
 		}
 
 		public ClassNode getCls() {

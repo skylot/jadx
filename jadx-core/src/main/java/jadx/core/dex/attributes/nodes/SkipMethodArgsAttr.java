@@ -55,6 +55,10 @@ public class SkipMethodArgsAttr implements IAttribute {
 		return skipArgs.get(argNum);
 	}
 
+	public int getSkipCount() {
+		return skipArgs.cardinality();
+	}
+
 	@Override
 	public AType<SkipMethodArgsAttr> getType() {
 		return AType.SKIP_MTH_ARGS;

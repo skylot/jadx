@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.android.dx.rop.code.AccessFlags;
 import com.google.common.collect.Streams;
 
@@ -21,6 +23,7 @@ import jadx.core.dex.attributes.nodes.EnumClassAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr.EnumField;
 import jadx.core.dex.attributes.nodes.JadxError;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
+import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.args.ArgType;
@@ -420,12 +423,13 @@ public class ClassGen {
 			EnumField f = it.next();
 			code.startLine(f.getField().getAlias());
 			ConstructorInsn constrInsn = f.getConstrInsn();
-			if (constrInsn.getArgsCount() > f.getStartArg()) {
+			MethodNode callMth = cls.dex().resolveMethod(constrInsn.getCallMth());
+			int skipCount = getEnumCtrSkipArgsCount(callMth);
+			if (constrInsn.getArgsCount() > skipCount) {
 				if (igen == null) {
 					igen = makeInsnGen(enumFields.getStaticMethod());
 				}
-				MethodNode callMth = cls.dex().resolveMethod(constrInsn.getCallMth());
-				igen.generateMethodArguments(code, constrInsn, f.getStartArg(), callMth);
+				igen.generateMethodArguments(code, constrInsn, 0, callMth);
 			}
 			if (f.getCls() != null) {
 				code.add(' ');
@@ -444,6 +448,16 @@ public class ClassGen {
 				code.startLine();
 			}
 		}
+	}
+
+	private int getEnumCtrSkipArgsCount(@Nullable MethodNode callMth) {
+		if (callMth != null) {
+			SkipMethodArgsAttr skipArgsAttr = callMth.get(AType.SKIP_MTH_ARGS);
+			if (skipArgsAttr != null) {
+				return skipArgsAttr.getSkipCount();
+			}
+		}
+		return 0;
 	}
 
 	private InsnGen makeInsnGen(MethodNode mth) {

@@ -19,6 +19,7 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.EnumClassAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr.EnumField;
+import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
@@ -287,8 +288,13 @@ public class EnumVisitor extends AbstractVisitor {
 		if (!clsInfo.equals(cls.getClassInfo()) && !constrCls.getAccessFlags().isEnum()) {
 			return null;
 		}
-		int startArg = co.getArgsCount() == 1 ? 1 : 2;
-		return new EnumField(enumFieldNode, co, startArg);
+		MethodInfo callMth = co.getCallMth();
+		MethodNode mth = cls.dex().resolveMethod(callMth);
+		if (mth == null) {
+			return null;
+		}
+		markArgsForSkip(mth);
+		return new EnumField(enumFieldNode, co);
 	}
 
 	@Nullable
@@ -306,10 +312,7 @@ public class EnumVisitor extends AbstractVisitor {
 	}
 
 	private void removeEnumMethods(ClassNode cls, ArgType clsType, FieldNode valuesField) {
-		String enumConstructor = "<init>(Ljava/lang/String;I)V";
-		String enumConstructorAlt = "<init>(Ljava/lang/String;)V";
 		String valuesMethod = "values()" + TypeGen.signature(ArgType.array(clsType));
-
 		FieldInfo valuesFieldInfo = valuesField.getFieldInfo();
 
 		// remove compiler generated methods
@@ -319,18 +322,35 @@ public class EnumVisitor extends AbstractVisitor {
 				continue;
 			}
 			String shortId = mi.getShortId();
-			boolean isSynthetic = mth.getAccessFlags().isSynthetic();
-			if (mi.isConstructor() && !isSynthetic) {
-				if (shortId.equals(enumConstructor)
-						|| shortId.equals(enumConstructorAlt)) {
+			if (mi.isConstructor()) {
+				if (isDefaultConstructor(mth, shortId)) {
 					mth.add(AFlag.DONT_GENERATE);
 				}
+				markArgsForSkip(mth);
 			} else if (shortId.equals(valuesMethod)
 					|| usesValuesField(mth, valuesFieldInfo)
 					|| simpleValueOfMth(mth, clsType)) {
 				mth.add(AFlag.DONT_GENERATE);
 			}
 		}
+	}
+
+	private void markArgsForSkip(MethodNode mth) {
+		// skip first and second args
+		SkipMethodArgsAttr.skipArg(mth, 0);
+		if (mth.getMethodInfo().getArgsCount() > 1) {
+			SkipMethodArgsAttr.skipArg(mth, 1);
+		}
+	}
+
+	private boolean isDefaultConstructor(MethodNode mth, String shortId) {
+		boolean defaultId = shortId.equals("<init>(Ljava/lang/String;I)V")
+				|| shortId.equals("<init>(Ljava/lang/String;)V");
+		if (defaultId) {
+			// check content
+			return mth.countInsns() == 0;
+		}
+		return false;
 	}
 
 	private boolean simpleValueOfMth(MethodNode mth, ArgType clsType) {
