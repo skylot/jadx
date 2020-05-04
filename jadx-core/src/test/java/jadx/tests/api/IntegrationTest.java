@@ -38,6 +38,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.DebugChecks;
+import jadx.core.utils.Utils;
 import jadx.core.utils.files.FileUtils;
 import jadx.core.xmlgen.ResourceStorage;
 import jadx.core.xmlgen.entry.ResourceEntry;
@@ -262,7 +263,10 @@ public abstract class IntegrationTest extends TestUtils {
 	protected void checkCode(ClassNode cls) {
 		assertFalse(hasErrors(cls), "Inconsistent cls: " + cls);
 		for (MethodNode mthNode : cls.getMethods()) {
-			assertFalse(hasErrors(mthNode), "Method with problems: " + mthNode);
+			if (hasErrors(mthNode)) {
+				fail("Method with problems: " + mthNode
+						+ "\n " + Utils.listToString(mthNode.getAttributesStringsList(), "\n "));
+			}
 		}
 		assertThat(cls.getCode().toString(), not(containsString("inconsistent")));
 	}

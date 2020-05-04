@@ -210,7 +210,9 @@ public class InsnRemover {
 				return true;
 			}
 		}
-		mth.addWarnComment("Failed to remove instruction: " + insn + " from block: " + block);
+		if (!insn.contains(AFlag.WRAPPED)) {
+			mth.addWarnComment("Failed to remove instruction: " + insn + " from block: " + block);
+		}
 		return false;
 	}
 
