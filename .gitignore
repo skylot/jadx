@@ -25,6 +25,7 @@ node_modules/
 
 jadx-output/
 *-tmp/
+**/tmp/
 
 *.dex
 *.class
