@@ -44,7 +44,7 @@ public class SkipMethodArgsAttr implements IAttribute {
 	private final BitSet skipArgs;
 
 	private SkipMethodArgsAttr(MethodNode mth) {
-		this.skipArgs = new BitSet(mth.getArgRegs().size());
+		this.skipArgs = new BitSet(mth.getMethodInfo().getArgsCount());
 	}
 
 	public void skip(int argNum) {
