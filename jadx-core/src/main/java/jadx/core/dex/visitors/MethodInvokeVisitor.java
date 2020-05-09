@@ -22,6 +22,7 @@ import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.dex.visitors.methods.MutableMethodDetails;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.dex.visitors.typeinference.TypeCompare;
 import jadx.core.dex.visitors.typeinference.TypeCompareEnum;
@@ -111,12 +112,19 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 			return;
 		}
 
-		overloadMethods.add(mthDetails);
-		resolveTypeVariablesInMethodArgs(invokeInsn, mthDetails, overloadMethods);
+		// resolve generic type variables
+		Map<ArgType, ArgType> typeVarsMapping = getTypeVarsMapping(invokeInsn);
+		IMethodDetails effectiveMthDetails = resolveTypeVars(mthDetails, typeVarsMapping);
+		List<IMethodDetails> effectiveOverloadMethods = new ArrayList<>(overloadMethods.size() + 1);
+		for (IMethodDetails overloadMethod : overloadMethods) {
+			effectiveOverloadMethods.add(resolveTypeVars(overloadMethod, typeVarsMapping));
+		}
+		effectiveOverloadMethods.add(effectiveMthDetails);
 
+		// search cast types to resolve overloading
 		int argsOffset = invokeInsn.getFirstArgOffset();
 		List<ArgType> compilerVarTypes = collectCompilerVarTypes(invokeInsn, argsOffset);
-		List<ArgType> castTypes = searchCastTypes(parentMth, mthDetails, overloadMethods, compilerVarTypes);
+		List<ArgType> castTypes = searchCastTypes(parentMth, effectiveMthDetails, effectiveOverloadMethods, compilerVarTypes);
 		applyArgsCast(invokeInsn, argsOffset, compilerVarTypes, castTypes);
 	}
 
@@ -147,8 +155,7 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 		return callMth.getDeclClass().getType();
 	}
 
-	private void resolveTypeVariablesInMethodArgs(BaseInvokeNode invokeInsn, IMethodDetails mthDetails,
-			List<IMethodDetails> overloadedMethods) {
+	private Map<ArgType, ArgType> getTypeVarsMapping(BaseInvokeNode invokeInsn) {
 		MethodInfo callMth = invokeInsn.getCallMth();
 		ArgType declClsType = callMth.getDeclClass().getType();
 		ArgType callClsType;
@@ -158,12 +165,7 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 		} else {
 			callClsType = declClsType;
 		}
-
-		Map<ArgType, ArgType> typeVarsMapping = root.getTypeUtils().getTypeVariablesMapping(callClsType);
-		resolveTypeVars(mthDetails, typeVarsMapping);
-		for (IMethodDetails m : overloadedMethods) {
-			resolveTypeVars(m, typeVarsMapping);
-		}
+		return root.getTypeUtils().getTypeVariablesMapping(callClsType);
 	}
 
 	private void applyArgsCast(BaseInvokeNode invokeInsn, int argsOffset, List<ArgType> compilerVarTypes, List<ArgType> castTypes) {
@@ -199,9 +201,11 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 		}
 	}
 
-	private void resolveTypeVars(IMethodDetails mthDetails, Map<ArgType, ArgType> typeVarsMapping) {
+	private IMethodDetails resolveTypeVars(IMethodDetails mthDetails, Map<ArgType, ArgType> typeVarsMapping) {
 		List<ArgType> argTypes = mthDetails.getArgTypes();
 		int argsCount = argTypes.size();
+		boolean fixed = false;
+		List<ArgType> fixedArgTypes = new ArrayList<>(argsCount);
 		for (int argNum = 0; argNum < argsCount; argNum++) {
 			ArgType argType = argTypes.get(argNum);
 			if (argType == null) {
@@ -213,9 +217,28 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 					// type variables erased from method info by compiler
 					resolvedType = mthDetails.getMethodInfo().getArgumentsTypes().get(argNum);
 				}
-				argTypes.set(argNum, resolvedType);
+				fixedArgTypes.add(resolvedType);
+				fixed = true;
+			} else {
+				fixedArgTypes.add(argType);
 			}
 		}
+		ArgType returnType = mthDetails.getReturnType();
+		if (returnType.containsTypeVariable()) {
+			ArgType resolvedType = root.getTypeUtils().replaceTypeVariablesUsingMap(returnType, typeVarsMapping);
+			if (resolvedType == null || resolvedType.containsTypeVariable()) {
+				returnType = mthDetails.getMethodInfo().getReturnType();
+				fixed = true;
+			}
+		}
+
+		if (!fixed) {
+			return mthDetails;
+		}
+		MutableMethodDetails mutableMethodDetails = new MutableMethodDetails(mthDetails);
+		mutableMethodDetails.setArgTypes(fixedArgTypes);
+		mutableMethodDetails.setRetType(returnType);
+		return mutableMethodDetails;
 	}
 
 	private List<ArgType> searchCastTypes(MethodNode parentMth, IMethodDetails mthDetails, List<IMethodDetails> overloadedMethods,

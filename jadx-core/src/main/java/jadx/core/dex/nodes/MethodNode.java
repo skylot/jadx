@@ -181,7 +181,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 			this.retType = mthInfo.getReturnType();
 			this.argTypes = mthInfo.getArgumentsTypes();
 		} else {
-			this.argTypes = types;
+			this.argTypes = Collections.unmodifiableList(types);
 		}
 	}
 
