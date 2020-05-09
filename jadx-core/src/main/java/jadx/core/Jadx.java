@@ -58,6 +58,7 @@ public class Jadx {
 			passes.add(new BlockFinish());
 
 			passes.add(new SSATransform());
+			passes.add(new MoveInlineVisitor());
 			passes.add(new ConstructorVisitor());
 			passes.add(new InitCodeVariables());
 			passes.add(new MarkFinallyVisitor());

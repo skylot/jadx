@@ -217,6 +217,17 @@ public class InsnNode extends LineAttrNode {
 		}
 	}
 
+	public boolean canRemoveResult() {
+		switch (getType()) {
+			case INVOKE:
+			case CONSTRUCTOR:
+				return true;
+
+			default:
+				return false;
+		}
+	}
+
 	public boolean canReorder() {
 		if (contains(AFlag.DONT_GENERATE)) {
 			if (getType() == InsnType.MONITOR_EXIT) {

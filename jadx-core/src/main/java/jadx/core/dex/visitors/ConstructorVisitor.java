@@ -24,7 +24,7 @@ import jadx.core.utils.InsnRemover;
 @JadxVisitor(
 		name = "ConstructorVisitor",
 		desc = "Replace invoke with constructor call",
-		runAfter = SSATransform.class,
+		runAfter = { SSATransform.class, MoveInlineVisitor.class },
 		runBefore = TypeInferenceVisitor.class
 )
 public class ConstructorVisitor extends AbstractVisitor {
