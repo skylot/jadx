@@ -1,12 +1,12 @@
 package jadx.cli;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
@@ -353,7 +353,7 @@ public class JadxCLIArgs {
 	}
 
 	public static String enumValuesString(Enum<?>[] values) {
-		return Arrays.stream(values)
+		return Stream.of(values)
 				.map(v -> '\'' + v.name().toLowerCase(Locale.ROOT) + '\'')
 				.collect(Collectors.joining(", "));
 	}

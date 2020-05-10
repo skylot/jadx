@@ -13,12 +13,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -88,7 +88,7 @@ public class ClsSet {
 		}
 		if (LOG.isDebugEnabled()) {
 			long time = System.currentTimeMillis() - startTime;
-			int methodsCount = Arrays.stream(classes).mapToInt(clspClass -> clspClass.getMethodsMap().size()).sum();
+			int methodsCount = Stream.of(classes).mapToInt(clspClass -> clspClass.getMethodsMap().size()).sum();
 			LOG.debug("Load class set in {}ms, classes: {}, methods: {}", time, classes.length, methodsCount);
 		}
 	}
@@ -246,7 +246,7 @@ public class ClsSet {
 				writeMethod(out, method, names);
 			}
 		}
-		int methodsCount = Arrays.stream(classes).mapToInt(c -> c.getMethodsMap().size()).sum();
+		int methodsCount = Stream.of(classes).mapToInt(c -> c.getMethodsMap().size()).sum();
 		LOG.info("Classes: {}, methods: {}, file size: {}B", classes.length, methodsCount, out.size());
 	}
 

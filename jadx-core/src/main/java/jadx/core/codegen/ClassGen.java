@@ -1,6 +1,7 @@
 package jadx.core.codegen;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -8,11 +9,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Nullable;
 
 import com.android.dx.rop.code.AccessFlags;
-import com.google.common.collect.Streams;
 
 import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
@@ -252,7 +253,8 @@ public class ClassGen {
 	}
 
 	private void addInnerClsAndMethods(CodeWriter clsCode) {
-		Streams.concat(cls.getInnerClasses().stream(), cls.getMethods().stream())
+		Stream.of(cls.getInnerClasses(), cls.getMethods())
+				.flatMap(Collection::stream)
 				.filter(node -> !node.contains(AFlag.DONT_GENERATE))
 				.sorted(Comparator.comparingInt(LineAttrNode::getSourceLine))
 				.forEach(node -> {

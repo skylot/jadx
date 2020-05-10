@@ -1,8 +1,8 @@
 package jadx.gui.utils.search;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
@@ -62,7 +62,7 @@ class StringRefTest {
 	}
 
 	private static void checkSplit(String str, String splitBy, String... result) {
-		List<StringRef> expectedStringRegList = Arrays.stream(result).map(StringRef::fromStr).collect(Collectors.toList());
+		List<StringRef> expectedStringRegList = Stream.of(result).map(StringRef::fromStr).collect(Collectors.toList());
 		assertThat(StringRef.split(str, splitBy), is(expectedStringRegList));
 
 		// compare with original split
