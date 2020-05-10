@@ -298,15 +298,29 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 			return null;
 		}
 		if (insn instanceof BaseInvokeNode) {
-			IMethodDetails methodDetails = root.getMethodUtils().getMethodDetails((BaseInvokeNode) insn);
-			if (methodDetails != null) {
-				if (methodDetails.getArgTypes().stream().anyMatch(ArgType::containsTypeVariable)) {
-					// don't add const bound for generic type variables
-					return null;
-				}
+			TypeBoundInvokeUse invokeUseBound = makeInvokeUseBound(regArg, (BaseInvokeNode) insn);
+			if (invokeUseBound != null) {
+				return invokeUseBound;
 			}
 		}
 		return new TypeBoundConst(BoundEnum.USE, regArg.getInitType(), regArg);
+	}
+
+	private TypeBoundInvokeUse makeInvokeUseBound(RegisterArg regArg, BaseInvokeNode invoke) {
+		InsnArg instanceArg = invoke.getInstanceArg();
+		if (instanceArg == null || instanceArg == regArg) {
+			return null;
+		}
+		IMethodDetails methodDetails = root.getMethodUtils().getMethodDetails(invoke);
+		if (methodDetails == null) {
+			return null;
+		}
+		int argIndex = invoke.getArgIndex(regArg) - invoke.getFirstArgOffset();
+		ArgType argType = methodDetails.getArgTypes().get(argIndex);
+		if (!argType.containsTypeVariable()) {
+			return null;
+		}
+		return new TypeBoundInvokeUse(root, invoke, regArg, argType);
 	}
 
 	private boolean tryPossibleTypes(SSAVar var, ArgType type) {
