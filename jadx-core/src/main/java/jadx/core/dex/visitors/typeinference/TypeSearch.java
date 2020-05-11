@@ -281,7 +281,7 @@ public class TypeSearch {
 	private List<ArgType> getWiderTypes(ArgType type) {
 		if (type.isTypeKnown()) {
 			if (type.isObject()) {
-				Set<String> ancestors = mth.root().getClsp().getAncestors(type.getObject());
+				Set<String> ancestors = mth.root().getClsp().getSuperTypes(type.getObject());
 				return ancestors.stream().map(ArgType::object).collect(Collectors.toList());
 			}
 		} else {

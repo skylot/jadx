@@ -521,7 +521,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		}
 		ClspGraph clsp = mth.root().getClsp();
 		for (ArgType objType : objTypes) {
-			for (String ancestor : clsp.getAncestors(objType.getObject())) {
+			for (String ancestor : clsp.getSuperTypes(objType.getObject())) {
 				ArgType ancestorType = ArgType.object(ancestor);
 				TypeUpdateResult result = typeUpdate.applyWithWiderAllow(var, ancestorType);
 				if (result == TypeUpdateResult.CHANGED) {

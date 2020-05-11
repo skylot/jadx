@@ -317,7 +317,7 @@ public class ClassGen {
 
 	public void addMethodCode(CodeWriter code, MethodNode mth) throws CodegenException {
 		CodeGenUtils.addComments(code, mth);
-		if (mth.getAccessFlags().isAbstract() || mth.getAccessFlags().isNative()) {
+		if (mth.isNoCode()) {
 			MethodGen mthGen = new MethodGen(this, mth);
 			mthGen.addDefinition(code);
 			code.add(';');

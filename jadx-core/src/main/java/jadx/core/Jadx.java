@@ -57,6 +57,8 @@ public class Jadx {
 			passes.add(new BlockExceptionHandler());
 			passes.add(new BlockFinish());
 
+			passes.add(new OverrideMethodVisitor());
+
 			passes.add(new SSATransform());
 			passes.add(new MoveInlineVisitor());
 			passes.add(new ConstructorVisitor());

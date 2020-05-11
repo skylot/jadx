@@ -14,6 +14,7 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.annotations.MethodParameters;
 import jadx.core.dex.attributes.nodes.JumpInfo;
+import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
@@ -21,6 +22,7 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
+import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.CatchAttr;
@@ -72,6 +74,7 @@ public class MethodGen {
 			code.attachDefinition(mth);
 			return false;
 		}
+		addOverrideAnnotation(code, mth);
 		annotationGen.addForMethod(code, mth);
 
 		AccessInfo clsAccFlags = mth.getParentClass().getAccessFlags();
@@ -144,6 +147,23 @@ public class MethodGen {
 			}
 		}
 		return true;
+	}
+
+	private void addOverrideAnnotation(CodeWriter code, MethodNode mth) {
+		MethodOverrideAttr overrideAttr = mth.get(AType.METHOD_OVERRIDE);
+		if (overrideAttr == null) {
+			return;
+		}
+		code.startLine("@Override");
+		code.add(" // ");
+		Iterator<IMethodDetails> it = overrideAttr.getOverrideList().iterator();
+		while (it.hasNext()) {
+			IMethodDetails methodDetails = it.next();
+			code.add(methodDetails.getMethodInfo().getDeclClass().getAliasFullName());
+			if (it.hasNext()) {
+				code.add(", ");
+			}
+		}
 	}
 
 	private void addMethodArguments(CodeWriter code, List<RegisterArg> args) {

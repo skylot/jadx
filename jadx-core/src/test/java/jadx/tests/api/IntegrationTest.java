@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.jar.JarOutputStream;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -456,6 +457,13 @@ public abstract class IntegrationTest extends TestUtils {
 		String clsName = clsFullName.substring(clsFullName.lastIndexOf('.') + 1);
 		files.removeIf(next -> !next.getName().contains(clsName));
 		return files;
+	}
+
+	@NotNull
+	protected static String removeLineComments(ClassNode cls) {
+		String code = cls.getCode().getCodeStr().replaceAll("\\W*//.*", "");
+		System.out.println(code);
+		return code;
 	}
 
 	public JadxArgs getArgs() {

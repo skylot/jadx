@@ -50,13 +50,14 @@ public class TypeUtils {
 	 */
 	@Nullable
 	public ArgType replaceClassGenerics(ArgType instanceType, ArgType typeWithGeneric) {
-		if (typeWithGeneric != null) {
-			Map<ArgType, ArgType> replaceMap = getTypeVariablesMapping(instanceType);
-			if (!replaceMap.isEmpty()) {
-				return replaceTypeVariablesUsingMap(typeWithGeneric, replaceMap);
-			}
+		if (typeWithGeneric == null) {
+			return null;
 		}
-		return null;
+		Map<ArgType, ArgType> replaceMap = getTypeVariablesMapping(instanceType);
+		if (replaceMap.isEmpty()) {
+			return null;
+		}
+		return replaceTypeVariablesUsingMap(typeWithGeneric, replaceMap);
 	}
 
 	public Map<ArgType, ArgType> getTypeVariablesMapping(ArgType clsType) {

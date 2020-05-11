@@ -180,6 +180,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		if (types == null) {
 			this.retType = mthInfo.getReturnType();
 			this.argTypes = mthInfo.getArgumentsTypes();
+			this.typeParameters = Collections.emptyList();
 		} else {
 			this.argTypes = Collections.unmodifiableList(types);
 		}
@@ -281,6 +282,10 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	@NotNull
 	public ArgType getReturnType() {
 		return retType;
+	}
+
+	public void updateReturnType(ArgType type) {
+		this.retType = type;
 	}
 
 	public boolean isVoidReturn() {

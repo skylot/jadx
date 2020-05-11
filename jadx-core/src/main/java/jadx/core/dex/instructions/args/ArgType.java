@@ -10,6 +10,7 @@ import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.dex.visitors.typeinference.TypeCompareEnum;
 import jadx.core.utils.Utils;
 
 public abstract class ArgType {
@@ -578,11 +579,8 @@ public abstract class ArgType {
 		if (from.equals(to)) {
 			return false;
 		}
-		if (from.isObject() && to.isObject()
-				&& root.getClsp().isImplements(from.getObject(), to.getObject())) {
-			return false;
-		}
-		return true;
+		TypeCompareEnum result = root.getTypeUpdate().getTypeCompare().compareTypes(from, to);
+		return !result.isNarrow();
 	}
 
 	public static boolean isInstanceOf(RootNode root, ArgType type, ArgType of) {
