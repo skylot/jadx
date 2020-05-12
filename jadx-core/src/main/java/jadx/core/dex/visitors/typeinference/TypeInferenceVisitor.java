@@ -92,7 +92,13 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		if (tryInsertAdditionalMove(mth)) {
 			return true;
 		}
-		return runMultiVariableSearch(mth);
+		if (runMultiVariableSearch(mth)) {
+			return true;
+		}
+		if (tryRemoveGenerics(mth)) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -124,11 +130,15 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 	private boolean runMultiVariableSearch(MethodNode mth) {
 		TypeSearch typeSearch = new TypeSearch(mth);
 		try {
-			boolean success = typeSearch.run();
-			if (!success) {
+			if (!typeSearch.run()) {
 				mth.addWarn("Multi-variable type inference failed");
 			}
-			return success;
+			for (SSAVar var : mth.getSVars()) {
+				if (!var.getTypeInfo().getType().isTypeKnown()) {
+					return false;
+				}
+			}
+			return true;
 		} catch (Exception e) {
 			mth.addWarn("Multi-variable type inference failed. Error: " + Utils.getStackTrace(e));
 			return false;
@@ -362,6 +372,48 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		// for objects try super types
 		if (tryWiderObjects(mth, var)) {
 			return true;
+		}
+		return false;
+	}
+
+	private boolean tryRemoveGenerics(MethodNode mth) {
+		boolean resolved = true;
+		for (SSAVar var : mth.getSVars()) {
+			ArgType type = var.getTypeInfo().getType();
+			if (!type.isTypeKnown() && !var.isTypeImmutable()
+					&& !tryRawType(mth, var)) {
+				resolved = false;
+			}
+		}
+		return resolved;
+	}
+
+	private boolean tryRawType(MethodNode mth, SSAVar var) {
+		Set<ArgType> objTypes = new LinkedHashSet<>();
+		for (ITypeBound bound : var.getTypeInfo().getBounds()) {
+			ArgType boundType = bound.getType();
+			if (boundType.isTypeKnown() && boundType.isObject()) {
+				objTypes.add(boundType);
+			}
+		}
+		if (objTypes.isEmpty()) {
+			return false;
+		}
+		for (ArgType objType : objTypes) {
+			if (checkRawType(mth, var, objType)) {
+				mth.addDebugComment("Type inference failed for " + var.toShortString() + "."
+						+ " Raw type applied. Possible types: " + Utils.listToString(objTypes));
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean checkRawType(MethodNode mth, SSAVar var, ArgType objType) {
+		if (objType.isObject() && objType.containsGeneric()) {
+			ArgType rawType = ArgType.object(objType.getObject());
+			TypeUpdateResult result = typeUpdate.applyWithWiderAllow(var, rawType);
+			return result == TypeUpdateResult.CHANGED;
 		}
 		return false;
 	}

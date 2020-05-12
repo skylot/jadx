@@ -270,7 +270,6 @@ public class SSAVar {
 		if (!types.isEmpty()) {
 			sb.append(", types: ").append(types);
 		}
-		sb.append(", assign insn: ").append(getAssign().getParentInsn());
 		return sb.toString();
 	}
 }
