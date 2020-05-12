@@ -23,6 +23,8 @@ import jadx.core.utils.RegionUtils;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
 
+import static jadx.core.codegen.MethodGen.FallbackOption.BLOCK_DUMP;
+
 public class DotGraphVisitor extends AbstractVisitor {
 
 	private static final String NL = "\\l";
@@ -272,7 +274,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 			} else {
 				CodeWriter code = new CodeWriter();
 				List<InsnNode> instructions = block.getInstructions();
-				MethodGen.addFallbackInsns(code, mth, instructions.toArray(new InsnNode[0]), false);
+				MethodGen.addFallbackInsns(code, mth, instructions.toArray(new InsnNode[0]), BLOCK_DUMP);
 				String str = escape(code.newLine().toString());
 				if (str.startsWith(NL)) {
 					str = str.substring(NL.length());

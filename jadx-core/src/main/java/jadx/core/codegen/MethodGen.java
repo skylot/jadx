@@ -16,6 +16,7 @@ import jadx.core.dex.attributes.annotations.MethodParameters;
 import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.info.AccessInfo;
+import jadx.core.dex.instructions.ConstStringNode;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
@@ -34,6 +35,10 @@ import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxOverflowException;
+
+import static jadx.core.codegen.MethodGen.FallbackOption.BLOCK_DUMP;
+import static jadx.core.codegen.MethodGen.FallbackOption.COMMENTED_DUMP;
+import static jadx.core.codegen.MethodGen.FallbackOption.FALLBACK_MODE;
 
 public class MethodGen {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodGen.class);
@@ -221,7 +226,7 @@ public class MethodGen {
 
 	public void addInstructions(CodeWriter code) throws CodegenException {
 		if (mth.root().getArgs().isFallbackMode()) {
-			addFallbackMethodCode(code);
+			addFallbackMethodCode(code, FALLBACK_MODE);
 		} else if (classGen.isFallbackMode()) {
 			dumpInstructions(code);
 		} else {
@@ -249,7 +254,7 @@ public class MethodGen {
 
 	public void dumpInstructions(CodeWriter code) {
 		code.startLine("/*");
-		addFallbackMethodCode(code);
+		addFallbackMethodCode(code, COMMENTED_DUMP);
 		code.startLine("*/");
 
 		code.startLine("throw new UnsupportedOperationException(\"Method not decompiled: ")
@@ -263,7 +268,7 @@ public class MethodGen {
 				.add("\");");
 	}
 
-	public void addFallbackMethodCode(CodeWriter code) {
+	public void addFallbackMethodCode(CodeWriter code, FallbackOption fallbackOption) {
 		if (mth.getInstructions() == null) {
 			// load original instructions
 			try {
@@ -285,11 +290,17 @@ public class MethodGen {
 		if (mth.getThisArg() != null) {
 			code.startLine(nameGen.useArg(mth.getThisArg())).add(" = this;");
 		}
-		addFallbackInsns(code, mth, insnArr, true);
+		addFallbackInsns(code, mth, insnArr, fallbackOption);
 		code.decIndent();
 	}
 
-	public static void addFallbackInsns(CodeWriter code, MethodNode mth, InsnNode[] insnArr, boolean addLabels) {
+	public enum FallbackOption {
+		FALLBACK_MODE,
+		BLOCK_DUMP,
+		COMMENTED_DUMP
+	}
+
+	public static void addFallbackInsns(CodeWriter code, MethodNode mth, InsnNode[] insnArr, FallbackOption option) {
 		InsnGen insnGen = new InsnGen(getFallbackMethodGen(mth), true);
 		boolean attachInsns = mth.root().getArgs().isJsonOutput();
 		InsnNode prevInsn = null;
@@ -297,7 +308,7 @@ public class MethodGen {
 			if (insn == null) {
 				continue;
 			}
-			if (addLabels && needLabel(insn, prevInsn)) {
+			if (option != BLOCK_DUMP && needLabel(insn, prevInsn)) {
 				code.decIndent();
 				code.startLine(getLabelName(insn.getOffset()) + ':');
 				code.incIndent();
@@ -306,7 +317,14 @@ public class MethodGen {
 				continue;
 			}
 			try {
-				code.startLine();
+				boolean escapeComment = isCommentEscapeNeeded(insn, option);
+				if (escapeComment) {
+					code.decIndent();
+					code.startLine("*/");
+					code.startLine("//  ");
+				} else {
+					code.startLine();
+				}
 				if (attachInsns) {
 					code.attachLineAnnotation(insn);
 				}
@@ -318,6 +336,11 @@ public class MethodGen {
 					}
 				}
 				insnGen.makeInsn(insn, code, InsnGen.Flags.INLINE);
+				if (escapeComment) {
+					code.startLine("/*");
+					code.incIndent();
+				}
+
 				CatchAttr catchAttr = insn.get(AType.CATCH_BLOCK);
 				if (catchAttr != null) {
 					code.add("     // " + catchAttr);
@@ -328,6 +351,16 @@ public class MethodGen {
 			}
 			prevInsn = insn;
 		}
+	}
+
+	private static boolean isCommentEscapeNeeded(InsnNode insn, FallbackOption option) {
+		if (option == COMMENTED_DUMP) {
+			if (insn.getType() == InsnType.CONST_STR) {
+				String str = ((ConstStringNode) insn).getString();
+				return str.contains("*/");
+			}
+		}
+		return false;
 	}
 
 	private static boolean needLabel(InsnNode insn, InsnNode prevInsn) {
