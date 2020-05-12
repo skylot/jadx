@@ -401,11 +401,23 @@ public class SimplifyVisitor extends AbstractVisitor {
 			concatInsn.copyAttributesFrom(toStrInsn);
 			concatInsn.remove(AFlag.DONT_GENERATE);
 			concatInsn.remove(AFlag.REMOVE);
+			checkResult(mth, concatInsn);
 			return concatInsn;
 		} catch (Exception e) {
 			LOG.warn("Can't convert string concatenation: {} insn: {}", mth, toStrInsn, e);
 		}
 		return null;
+	}
+
+	/* String concat without assign to variable will cause compilation error */
+	private static void checkResult(MethodNode mth, InsnNode concatInsn) {
+		if (concatInsn.getResult() == null) {
+			RegisterArg resArg = InsnArg.reg(0, ArgType.STRING);
+			SSAVar ssaVar = mth.makeNewSVar(resArg);
+			InitCodeVariables.initCodeVar(ssaVar);
+			ssaVar.setType(ArgType.STRING);
+			concatInsn.setResult(resArg);
+		}
 	}
 
 	/**
