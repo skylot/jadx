@@ -57,6 +57,7 @@ public class Jadx {
 			passes.add(new BlockExceptionHandler());
 			passes.add(new BlockFinish());
 
+			passes.add(new AttachMethodDetails());
 			passes.add(new OverrideMethodVisitor());
 
 			passes.add(new SSATransform());
@@ -65,7 +66,6 @@ public class Jadx {
 			passes.add(new InitCodeVariables());
 			passes.add(new MarkFinallyVisitor());
 			passes.add(new ConstInlineVisitor());
-			passes.add(new AttachMethodDetails());
 			passes.add(new TypeInferenceVisitor());
 			if (args.isDebugInfo()) {
 				passes.add(new DebugInfoApplyVisitor());
