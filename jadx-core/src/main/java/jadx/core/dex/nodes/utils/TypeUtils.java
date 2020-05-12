@@ -117,6 +117,13 @@ public class TypeUtils {
 		if (replaceType.isGenericType()) {
 			return replaceMap.get(replaceType);
 		}
+		if (replaceType.isArray()) {
+			ArgType replaced = replaceTypeVariablesUsingMap(replaceType.getArrayElement(), replaceMap);
+			if (replaced == null) {
+				return null;
+			}
+			return ArgType.array(replaced);
+		}
 
 		ArgType wildcardType = replaceType.getWildcardType();
 		if (wildcardType != null && wildcardType.containsTypeVariable()) {

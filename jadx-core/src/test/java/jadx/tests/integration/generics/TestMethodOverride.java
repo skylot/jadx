@@ -15,6 +15,7 @@ public class TestMethodOverride extends SmaliTest {
 		assertThat(getClassNodeFromSmali())
 				.code()
 				.containsOne("String createFromParcel(Parcel parcel) {")
-				.containsOne("@Override");
+				.containsOne("String[] newArray(int i) {")
+				.countString(2, "@Override");
 	}
 }

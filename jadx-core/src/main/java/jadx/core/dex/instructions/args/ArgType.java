@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import org.jetbrains.annotations.NotNull;
+
 import jadx.core.Consts;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.nodes.ClassNode;
@@ -114,7 +116,7 @@ public abstract class ArgType {
 		return new OuterGenericObject((GenericObject) genericOuterType, (ObjectType) innerType);
 	}
 
-	public static ArgType array(ArgType vtype) {
+	public static ArgType array(@NotNull ArgType vtype) {
 		return new ArrayArg(vtype);
 	}
 

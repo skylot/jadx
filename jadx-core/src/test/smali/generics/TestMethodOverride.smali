@@ -36,3 +36,12 @@
     return-object v0
 .end method
 
+.method public final synthetic newArray(I)[Ljava/lang/Object;
+    .registers 2
+
+    .line 4
+    new-array p1, p1, [Ljava/lang/String;
+
+    return-object p1
+.end method
+
