@@ -190,7 +190,6 @@ public class RenameDialog extends JDialog {
 			deobfMap = readDeobfMap(deobfMapPath);
 		} catch (IOException e) {
 			LOG.error("rename(): readDeobfMap() failed");
-			dispose();
 			return false;
 		}
 		updateDeobfMap(deobfMap, getNodeAlias(renameText));
@@ -198,14 +197,6 @@ public class RenameDialog extends JDialog {
 			writeDeobfMapFile(deobfMapPath, deobfMap);
 		} catch (IOException e) {
 			LOG.error("rename(): writeDeobfMap() failed");
-			dispose();
-			return false;
-		}
-		try {
-			writeDeobfMapFile(deobfMapPath, deobfMap);
-		} catch (IOException e) {
-			LOG.error("rename(): updateDeobfMap() failed");
-			dispose();
 			return false;
 		}
 		return true;
