@@ -17,6 +17,7 @@ import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.core.xmlgen.entry.ValuesParser;
 
 import static jadx.core.xmlgen.ParserConstants.PLURALS_MAP;
+import static jadx.core.xmlgen.ParserConstants.TYPE_REFERENCE;
 
 public class ResXmlGen {
 
@@ -85,10 +86,16 @@ public class ResXmlGen {
 				if (formatValue != null) {
 					cw.add("\" format=\"").add(formatValue);
 				}
-				cw.add("\">");
+				cw.add("\"");
 			} else {
-				cw.add("name=\"").add(ri.getKeyName()).add("\">");
+				cw.add("name=\"").add(ri.getKeyName()).add('\"');
 			}
+			if (ri.getParentRef() != 0) {
+				String parent = vp.decodeValue(TYPE_REFERENCE, ri.getParentRef());
+				cw.add(" parent=\"").add(parent).add('\"');
+			}
+			cw.add(">");
+
 			cw.incIndent();
 			for (RawNamedValue value : ri.getNamedValues()) {
 				addItem(cw, itemTag, ri.getTypeName(), value);
