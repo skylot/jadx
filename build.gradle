@@ -99,7 +99,7 @@ spotless {
 	}
 	format 'misc', {
 		target '**/*.gradle', '**/*.md', '**/*.xml', '**/.gitignore', '**/.properties'
-		targetExclude ".gradle/**", ".idea/**"
+		targetExclude ".gradle/**", ".idea/**", "*/build/**"
 
 		lineEndings(com.diffplug.spotless.LineEnding.UNIX)
 		encoding("UTF-8")
