@@ -131,6 +131,7 @@ public class RenameDialog extends JDialog {
 		fileOut.close();
 		File oldMap = File.createTempFile("deobf_bak_", ".txt");
 		Files.copy(deobfMapPath, oldMap.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		LOG.trace("Copying " + tmpFile.toPath() + " to " + deobfMapPath);
 		Files.copy(tmpFile.toPath(), deobfMapPath, StandardCopyOption.REPLACE_EXISTING);
 		Files.delete(oldMap.toPath());
 		Files.delete(tmpFile.toPath());
@@ -143,6 +144,7 @@ public class RenameDialog extends JDialog {
 	}
 
 	private List<String> updateDeobfMap(List<String> deobfMap, String alias) {
+		LOG.trace("updateDeobfMap(): alias = " + alias);
 		String id = alias.split("=")[0];
 		int i = 0;
 		while (i < deobfMap.size()) {
@@ -153,6 +155,7 @@ public class RenameDialog extends JDialog {
 				i++;
 			}
 		}
+		LOG.trace("updateDeobfMap(): Placing alias = " + alias);
 		deobfMap.add(alias);
 		return deobfMap;
 	}
@@ -170,6 +173,7 @@ public class RenameDialog extends JDialog {
 			return;
 		}
 		if (!refreshDeobfMapFile(renameText, root)) {
+			LOG.error("rename(): refreshDeobfMapFile() failed!");
 			dispose();
 			return;
 		}
