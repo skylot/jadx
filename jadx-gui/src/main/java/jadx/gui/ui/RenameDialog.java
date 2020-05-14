@@ -31,6 +31,7 @@ import jadx.core.utils.files.InputFile;
 import jadx.gui.jobs.IndexJob;
 import jadx.gui.jobs.RefreshJob;
 import jadx.gui.jobs.UnloadJob;
+import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
@@ -39,10 +40,7 @@ import jadx.gui.treemodel.JPackage;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
 import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.ui.codearea.CodePanel;
-import jadx.gui.utils.CacheObject;
-import jadx.gui.utils.CodeUsageInfo;
-import jadx.gui.utils.NLS;
-import jadx.gui.utils.TextStandardActions;
+import jadx.gui.utils.*;
 
 public class RenameDialog extends JDialog {
 	private static final long serialVersionUID = -3269715644416902410L;
@@ -62,8 +60,39 @@ public class RenameDialog extends JDialog {
 		mainWindow = codeArea.getMainWindow();
 		this.codeArea = codeArea;
 		this.node = node;
-		initUI();
-		loadWindowPos();
+		if (isDeobfuscationSettingsValid()) {
+			initUI();
+			loadWindowPos();
+		} else {
+			LOG.error("Deobfuscation settings are invalid - please enable deobfuscation and disable force rewrite deobfuscation map");
+		}
+	}
+
+	private boolean isDeobfuscationSettingsValid() {
+		boolean valid = true;
+		String errorMessage = null;
+		JadxSettings settings = mainWindow.getSettings();
+		final LangLocale langLocale = settings.getLangLocale();
+		if (settings.isDeobfuscationForceSave()) {
+			valid = false;
+			errorMessage = NLS.str("msg.rename_disabled_force_rewrite_enabled", langLocale);
+		}
+		if (!settings.isDeobfuscationOn()) {
+			valid = false;
+			errorMessage = NLS.str("msg.rename_disabled_deobfuscation_disabled", langLocale);
+		}
+		if (errorMessage != null) {
+			showRenameDisabledErrorMessage(langLocale, errorMessage);
+		}
+		return valid;
+	}
+
+	private void showRenameDisabledErrorMessage(LangLocale langLocale, String message) {
+		JOptionPane.showMessageDialog(
+				mainWindow,
+				message,
+				NLS.str("msg.rename_disabled_title", langLocale),
+				JOptionPane.ERROR_MESSAGE);
 	}
 
 	private void loadWindowPos() {
@@ -131,6 +160,7 @@ public class RenameDialog extends JDialog {
 		fileOut.close();
 		File oldMap = File.createTempFile("deobf_bak_", ".txt");
 		Files.copy(deobfMapPath, oldMap.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		LOG.trace("Copying " + tmpFile.toPath() + " to " + deobfMapPath);
 		Files.copy(tmpFile.toPath(), deobfMapPath, StandardCopyOption.REPLACE_EXISTING);
 		Files.delete(oldMap.toPath());
 		Files.delete(tmpFile.toPath());
@@ -143,6 +173,7 @@ public class RenameDialog extends JDialog {
 	}
 
 	private List<String> updateDeobfMap(List<String> deobfMap, String alias) {
+		LOG.trace("updateDeobfMap(): alias = " + alias);
 		String id = alias.split("=")[0];
 		int i = 0;
 		while (i < deobfMap.size()) {
@@ -153,6 +184,7 @@ public class RenameDialog extends JDialog {
 				i++;
 			}
 		}
+		LOG.trace("updateDeobfMap(): Placing alias = " + alias);
 		deobfMap.add(alias);
 		return deobfMap;
 	}
@@ -170,6 +202,7 @@ public class RenameDialog extends JDialog {
 			return;
 		}
 		if (!refreshDeobfMapFile(renameText, root)) {
+			LOG.error("rename(): refreshDeobfMapFile() failed!");
 			dispose();
 			return;
 		}
@@ -190,7 +223,6 @@ public class RenameDialog extends JDialog {
 			deobfMap = readDeobfMap(deobfMapPath);
 		} catch (IOException e) {
 			LOG.error("rename(): readDeobfMap() failed");
-			dispose();
 			return false;
 		}
 		updateDeobfMap(deobfMap, getNodeAlias(renameText));
@@ -198,14 +230,6 @@ public class RenameDialog extends JDialog {
 			writeDeobfMapFile(deobfMapPath, deobfMap);
 		} catch (IOException e) {
 			LOG.error("rename(): writeDeobfMap() failed");
-			dispose();
-			return false;
-		}
-		try {
-			writeDeobfMapFile(deobfMapPath, deobfMap);
-		} catch (IOException e) {
-			LOG.error("rename(): updateDeobfMap() failed");
-			dispose();
 			return false;
 		}
 		return true;
