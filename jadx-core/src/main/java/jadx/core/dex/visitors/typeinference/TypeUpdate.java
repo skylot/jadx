@@ -12,9 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.Consts;
+import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
-import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
@@ -277,11 +277,12 @@ public final class TypeUpdate {
 		registry.put(InsnType.NOT, this::suggestAllSameListener);
 		registry.put(InsnType.CHECK_CAST, this::checkCastListener);
 		registry.put(InsnType.INVOKE, this::invokeListener);
+		registry.put(InsnType.CONSTRUCTOR, this::invokeListener);
 		return registry;
 	}
 
 	private TypeUpdateResult invokeListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
-		InvokeNode invoke = (InvokeNode) insn;
+		BaseInvokeNode invoke = (BaseInvokeNode) insn;
 		if (isAssign(invoke, arg)) {
 			// TODO: implement backward type propagation (from result to instance)
 			return SAME;

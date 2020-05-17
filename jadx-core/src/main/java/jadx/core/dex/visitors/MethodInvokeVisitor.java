@@ -156,16 +156,20 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 	}
 
 	private Map<ArgType, ArgType> getTypeVarsMapping(BaseInvokeNode invokeInsn) {
-		MethodInfo callMth = invokeInsn.getCallMth();
-		ArgType declClsType = callMth.getDeclClass().getType();
-		ArgType callClsType;
+		ArgType declClsType = invokeInsn.getCallMth().getDeclClass().getType();
+		ArgType callClsType = getClsCallType(invokeInsn, declClsType);
+		return root.getTypeUtils().getTypeVariablesMapping(callClsType);
+	}
+
+	private ArgType getClsCallType(BaseInvokeNode invokeInsn, ArgType declClsType) {
 		InsnArg instanceArg = invokeInsn.getInstanceArg();
 		if (instanceArg != null) {
-			callClsType = instanceArg.getType();
-		} else {
-			callClsType = declClsType;
+			return instanceArg.getType();
 		}
-		return root.getTypeUtils().getTypeVariablesMapping(callClsType);
+		if (invokeInsn.getType() == InsnType.CONSTRUCTOR && invokeInsn.getResult() != null) {
+			return invokeInsn.getResult().getType();
+		}
+		return declClsType;
 	}
 
 	private void applyArgsCast(BaseInvokeNode invokeInsn, int argsOffset, List<ArgType> compilerVarTypes, List<ArgType> castTypes) {
@@ -213,7 +217,7 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 			}
 			if (argType.containsTypeVariable()) {
 				ArgType resolvedType = root.getTypeUtils().replaceTypeVariablesUsingMap(argType, typeVarsMapping);
-				if (resolvedType == null || resolvedType.containsTypeVariable()) {
+				if (resolvedType == null || resolvedType.equals(argType)) {
 					// type variables erased from method info by compiler
 					resolvedType = mthDetails.getMethodInfo().getArgumentsTypes().get(argNum);
 				}

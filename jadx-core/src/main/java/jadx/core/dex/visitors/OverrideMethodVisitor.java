@@ -41,6 +41,7 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 			if (!overrideList.isEmpty()) {
 				mth.addAttr(new MethodOverrideAttr(overrideList));
 				fixMethodReturnType(mth, overrideList, superTypes);
+				fixMethodArgTypes(mth, overrideList, superTypes);
 			}
 		}
 		return true;
@@ -105,6 +106,9 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 
 	private void fixMethodReturnType(MethodNode mth, List<IMethodDetails> overrideList, List<ArgType> superTypes) {
 		ArgType returnType = mth.getReturnType();
+		if (returnType == ArgType.VOID) {
+			return;
+		}
 		int updateCount = 0;
 		for (IMethodDetails baseMth : overrideList) {
 			if (updateReturnType(mth, baseMth, superTypes)) {
@@ -144,5 +148,62 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 			}
 		}
 		return false;
+	}
+
+	private void fixMethodArgTypes(MethodNode mth, List<IMethodDetails> overrideList, List<ArgType> superTypes) {
+		for (IMethodDetails baseMth : overrideList) {
+			updateArgTypes(mth, baseMth, superTypes);
+		}
+	}
+
+	private void updateArgTypes(MethodNode mth, IMethodDetails baseMth, List<ArgType> superTypes) {
+		List<ArgType> mthArgTypes = mth.getArgTypes();
+		List<ArgType> baseArgTypes = baseMth.getArgTypes();
+		if (mthArgTypes.equals(baseArgTypes)) {
+			return;
+		}
+		int argCount = mthArgTypes.size();
+		if (argCount != baseArgTypes.size()) {
+			return;
+		}
+		boolean changed = false;
+		List<ArgType> newArgTypes = new ArrayList<>(argCount);
+		for (int argNum = 0; argNum < argCount; argNum++) {
+			ArgType newType = updateArgType(mth, baseMth, superTypes, argNum);
+			if (newType != null) {
+				changed = true;
+				newArgTypes.add(newType);
+			} else {
+				newArgTypes.add(mthArgTypes.get(argNum));
+			}
+		}
+		if (changed) {
+			mth.updateArgTypes(newArgTypes, "Method arguments types fixed to match base method");
+		}
+	}
+
+	private ArgType updateArgType(MethodNode mth, IMethodDetails baseMth, List<ArgType> superTypes, int argNum) {
+		ArgType arg = mth.getArgTypes().get(argNum);
+		ArgType baseArg = baseMth.getArgTypes().get(argNum);
+		if (arg.equals(baseArg)) {
+			return null;
+		}
+		if (!baseArg.containsTypeVariable()) {
+			return null;
+		}
+		TypeCompare typeCompare = mth.root().getTypeUpdate().getTypeCompare();
+		ArgType baseCls = baseMth.getMethodInfo().getDeclClass().getType();
+		for (ArgType superType : superTypes) {
+			TypeCompareEnum compareResult = typeCompare.compareTypes(superType, baseCls);
+			if (compareResult == TypeCompareEnum.NARROW_BY_GENERIC) {
+				ArgType targetArgType = mth.root().getTypeUtils().replaceClassGenerics(superType, baseArg);
+				if (targetArgType != null
+						&& !targetArgType.containsTypeVariable()
+						&& !targetArgType.equals(arg)) {
+					return targetArgType;
+				}
+			}
+		}
+		return null;
 	}
 }

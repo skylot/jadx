@@ -274,6 +274,12 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return argTypes;
 	}
 
+	public void updateArgTypes(List<ArgType> newArgTypes, String comment) {
+		this.addDebugComment(comment + ", original types: " + getArgTypes());
+		this.argTypes = Collections.unmodifiableList(newArgTypes);
+		initArguments(newArgTypes);
+	}
+
 	public boolean containsGenericArgs() {
 		return !Objects.equals(mthInfo.getArgumentsTypes(), getArgTypes());
 	}
