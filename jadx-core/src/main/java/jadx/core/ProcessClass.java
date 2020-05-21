@@ -54,8 +54,8 @@ public final class ProcessClass {
 			return generateCode(topParentClass);
 		}
 		try {
-			process(cls);
 			cls.getDependencies().forEach(ProcessClass::process);
+			process(cls);
 
 			ICodeInfo code = CodeGen.generate(cls);
 			cls.unload();

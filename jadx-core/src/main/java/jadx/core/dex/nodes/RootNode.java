@@ -28,6 +28,7 @@ import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.utils.MethodUtils;
 import jadx.core.dex.nodes.utils.TypeUtils;
+import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.typeinference.TypeUpdate;
 import jadx.core.utils.CacheStorage;
@@ -189,8 +190,25 @@ public class RootNode {
 		}
 	}
 
+	public void runPreDecompileStage() {
+		for (IDexTreeVisitor pass : Jadx.getPreDecompilePassesList()) {
+			try {
+				pass.init(this);
+			} catch (Exception e) {
+				LOG.error("Visitor init failed: {}", pass.getClass().getSimpleName(), e);
+			}
+			for (ClassNode cls : classes) {
+				DepthTraversal.visit(pass, cls);
+			}
+		}
+	}
+
 	public List<ClassNode> getClasses() {
 		return classes;
+	}
+
+	public List<ClassNode> getClassesWithoutInner() {
+		return getClasses(false);
 	}
 
 	public List<ClassNode> getClasses(boolean includeInner) {

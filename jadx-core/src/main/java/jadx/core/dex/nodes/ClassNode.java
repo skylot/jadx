@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +44,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import static jadx.core.dex.nodes.ProcessState.LOADED;
 import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
 
-public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeNode {
+public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeNode, Comparable<ClassNode> {
 	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
 
 	private final RootNode root;
@@ -69,6 +70,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 
 	private volatile ProcessState state = ProcessState.NOT_LOADED;
 	private List<ClassNode> dependencies = Collections.emptyList();
+	private List<ClassNode> usedIn = Collections.emptyList();
 
 	// cache maps
 	private Map<MethodInfo, MethodNode> mthInfoMap = Collections.emptyMap();
@@ -478,6 +480,10 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		return contains(AFlag.ANONYMOUS_CLASS);
 	}
 
+	public boolean isInner() {
+		return parentClass != null;
+	}
+
 	@Nullable
 	public MethodNode getClassInitMth() {
 		return searchMethodByShortId("<clinit>()V");
@@ -579,6 +585,14 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		this.dependencies = dependencies;
 	}
 
+	public List<ClassNode> getUsedIn() {
+		return usedIn;
+	}
+
+	public void setUsedIn(List<ClassNode> usedIn) {
+		this.usedIn = usedIn;
+	}
+
 	@Override
 	public Path getInputPath() {
 		return inputPath;
@@ -602,8 +616,12 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	}
 
 	@Override
+	public int compareTo(@NotNull ClassNode o) {
+		return this.getFullName().compareTo(o.getFullName());
+	}
+
+	@Override
 	public String toString() {
 		return clsInfo.getFullName();
 	}
-
 }

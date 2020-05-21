@@ -1,33 +1,61 @@
 package jadx.core.dex.visitors;
 
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import jadx.api.plugins.input.data.ICodeReader;
+import jadx.api.plugins.input.data.IFieldData;
+import jadx.api.plugins.input.data.IMethodData;
+import jadx.api.plugins.input.insns.InsnData;
+import jadx.api.plugins.input.insns.Opcode;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.FieldInitAttr;
 import jadx.core.dex.info.ClassInfo;
-import jadx.core.dex.info.FieldInfo;
-import jadx.core.dex.instructions.BaseInvokeNode;
-import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.instructions.args.InsnArg;
-import jadx.core.dex.instructions.args.InsnWrapArg;
-import jadx.core.dex.instructions.args.RegisterArg;
-import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
-import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.exceptions.JadxException;
 
+@JadxVisitor(
+		name = "DependencyCollector",
+		desc = "Scan class and methods and collect dependant classes",
+		runAfter = {
+				RenameVisitor.class // sort by alias name
+		}
+)
+// TODO: store usage info for fields, methods and inner classes
 public class DependencyCollector extends AbstractVisitor {
 
 	@Override
-	public boolean visit(ClassNode cls) throws JadxException {
+	public void init(RootNode root) {
+		List<ClassNode> clsList = root.getClassesWithoutInner();
+		for (ClassNode cls : clsList) {
+			collectClassDeps(cls);
+		}
+		buildUsageList(clsList);
+	}
+
+	private void buildUsageList(List<ClassNode> clsList) {
+		clsList.forEach(cls -> cls.setUsedIn(new ArrayList<>()));
+		for (ClassNode cls : clsList) {
+			for (ClassNode depCls : cls.getDependencies()) {
+				depCls.getUsedIn().add(cls);
+			}
+		}
+		for (ClassNode cls : clsList) {
+			List<ClassNode> usedIn = cls.getUsedIn();
+			if (usedIn.isEmpty()) {
+				cls.setUsedIn(Collections.emptyList());
+			} else {
+				Collections.sort(usedIn);
+			}
+		}
+	}
+
+	public void collectClassDeps(ClassNode cls) {
 		RootNode root = cls.root();
 		Set<ClassNode> depSet = new HashSet<>();
 		processClass(cls, root, depSet);
@@ -36,10 +64,13 @@ public class DependencyCollector extends AbstractVisitor {
 		}
 		depSet.remove(cls);
 
-		List<ClassNode> depList = new ArrayList<>(depSet);
-		depList.sort(Comparator.comparing(c -> c.getClassInfo().getFullName()));
-		cls.setDependencies(depList);
-		return false;
+		if (depSet.isEmpty()) {
+			cls.setDependencies(Collections.emptyList());
+		} else {
+			List<ClassNode> depList = new ArrayList<>(depSet);
+			Collections.sort(depList);
+			cls.setDependencies(depList);
+		}
 	}
 
 	private static void processClass(ClassNode cls, RootNode root, Set<ClassNode> depList) {
@@ -49,12 +80,6 @@ public class DependencyCollector extends AbstractVisitor {
 		}
 		for (FieldNode fieldNode : cls.getFields()) {
 			addDep(root, depList, fieldNode.getType());
-
-			// process instructions from field init
-			FieldInitAttr fieldInitAttr = fieldNode.get(AType.FIELD_INIT);
-			if (fieldInitAttr != null && fieldInitAttr.getValueType() == FieldInitAttr.InitType.INSN) {
-				processInsn(root, depList, fieldInitAttr.getInsn());
-			}
 		}
 		// TODO: process annotations and generics
 		for (MethodNode methodNode : cls.getMethods()) {
@@ -71,41 +96,62 @@ public class DependencyCollector extends AbstractVisitor {
 		for (ArgType arg : methodNode.getMethodInfo().getArgumentsTypes()) {
 			addDep(root, depList, arg);
 		}
-		for (BlockNode block : methodNode.getBasicBlocks()) {
-			for (InsnNode insnNode : block.getInstructions()) {
-				processInsn(root, depList, insnNode);
-			}
+		try {
+			processInstructions(methodNode, depList);
+		} catch (Exception e) {
+			methodNode.getCodeReader().visitInstructions(insnData -> {
+				insnData.decode();
+				System.out.println(insnData);
+			});
+			methodNode.addError("Dependency scan failed", e);
 		}
 	}
 
-	// TODO: add custom instructions processing
-	private static void processInsn(RootNode root, Set<ClassNode> depList, InsnNode insnNode) {
-		RegisterArg result = insnNode.getResult();
-		if (result != null) {
-			addDep(root, depList, result.getType());
+	private static void processInstructions(MethodNode mth, Set<ClassNode> deps) {
+		ICodeReader codeReader = mth.getCodeReader();
+		if (codeReader == null) {
+			return;
 		}
-		for (InsnArg arg : insnNode.getArguments()) {
-			if (arg.isInsnWrap()) {
-				processInsn(root, depList, ((InsnWrapArg) arg).getWrapInsn());
-			} else {
-				addDep(root, depList, arg.getType());
+		RootNode root = mth.root();
+		codeReader.visitInstructions(insnData -> {
+			try {
+				processInsn(root, insnData, deps);
+			} catch (Exception e) {
+				mth.addError("Dependency scan failed at insn: " + insnData, e);
 			}
-		}
-		processCustomInsn(root, depList, insnNode);
+		});
 	}
 
-	private static void processCustomInsn(RootNode root, Set<ClassNode> depList, InsnNode insn) {
-		if (insn instanceof IndexInsnNode) {
-			Object index = ((IndexInsnNode) insn).getIndex();
-			if (index instanceof FieldInfo) {
-				addDep(root, depList, ((FieldInfo) index).getDeclClass());
-			} else if (index instanceof ArgType) {
-				addDep(root, depList, (ArgType) index);
-			}
-		} else if (insn instanceof BaseInvokeNode) {
-			ClassInfo declClass = ((BaseInvokeNode) insn).getCallMth().getDeclClass();
-			addDep(root, depList, declClass);
+	private static void processInsn(RootNode root, InsnData insnData, Set<ClassNode> deps) {
+		if (insnData.getOpcode() == Opcode.UNKNOWN) {
+			return;
 		}
+		switch (insnData.getIndexType()) {
+			case TYPE_REF:
+				insnData.decode();
+				resolveType(root, deps, insnData.getIndexAsType());
+				break;
+			case FIELD_REF:
+				insnData.decode();
+				resolveField(root, deps, insnData.getIndexAsField());
+				break;
+			case METHOD_REF:
+				insnData.decode();
+				resolveMethod(root, deps, insnData.getIndexAsMethod());
+				break;
+		}
+	}
+
+	private static void resolveType(RootNode root, Set<ClassNode> deps, String type) {
+		addDep(root, deps, ArgType.parse(type));
+	}
+
+	private static void resolveMethod(RootNode root, Set<ClassNode> deps, IMethodData method) {
+		resolveType(root, deps, method.getParentClassType());
+	}
+
+	private static void resolveField(RootNode root, Set<ClassNode> deps, IFieldData field) {
+		resolveType(root, deps, field.getParentClassType());
 	}
 
 	private static void addDep(RootNode root, Set<ClassNode> depList, ArgType type) {

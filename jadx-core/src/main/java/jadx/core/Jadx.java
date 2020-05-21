@@ -76,6 +76,13 @@ public class Jadx {
 		return passes;
 	}
 
+	public static List<IDexTreeVisitor> getPreDecompilePassesList() {
+		List<IDexTreeVisitor> passes = new ArrayList<>();
+		passes.add(new RenameVisitor());
+		passes.add(new DependencyCollector());
+		return passes;
+	}
+
 	public static List<IDexTreeVisitor> getPassesList(JadxArgs args) {
 		if (args.isFallbackMode()) {
 			return getFallbackPassesList();
@@ -146,10 +153,6 @@ public class Jadx {
 		if (args.isCfgOutput()) {
 			passes.add(DotGraphVisitor.dumpRegions());
 		}
-
-		passes.add(new DependencyCollector());
-		passes.add(new RenameVisitor());
-
 		return passes;
 	}
 

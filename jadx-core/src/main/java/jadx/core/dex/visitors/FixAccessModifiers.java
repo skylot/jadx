@@ -3,9 +3,11 @@ package jadx.core.dex.visitors;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.AccessInfo;
+import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.ICodeNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
 		name = "FixAccessModifiers",
@@ -22,11 +24,23 @@ public class FixAccessModifiers extends AbstractVisitor {
 	}
 
 	@Override
+	public boolean visit(ClassNode cls) throws JadxException {
+		if (respectAccessModifiers) {
+			return true;
+		}
+		int newVisFlag = fixClassVisibility(cls);
+		if (newVisFlag != -1) {
+			changeVisibility(cls, newVisFlag);
+		}
+		return true;
+	}
+
+	@Override
 	public void visit(MethodNode mth) {
 		if (respectAccessModifiers) {
 			return;
 		}
-		int newVisFlag = fixVisibility(mth);
+		int newVisFlag = fixMethodVisibility(mth);
 		if (newVisFlag != -1) {
 			changeVisibility(mth, newVisFlag);
 		}
@@ -41,7 +55,35 @@ public class FixAccessModifiers extends AbstractVisitor {
 		}
 	}
 
-	private static int fixVisibility(MethodNode mth) {
+	private int fixClassVisibility(ClassNode cls) {
+		if (cls.getUsedIn().isEmpty()) {
+			return -1;
+		}
+		AccessInfo accessFlags = cls.getAccessFlags();
+		if (accessFlags.isPrivate()) {
+			if (!cls.isInner()) {
+				return AccessFlags.PUBLIC;
+			}
+			// check if private inner class is used outside
+			ClassNode topParentClass = cls.getTopParentClass();
+			for (ClassNode useCls : cls.getUsedIn()) {
+				if (useCls.getTopParentClass() != topParentClass) {
+					return AccessFlags.PUBLIC;
+				}
+			}
+		}
+		if (accessFlags.isPackagePrivate()) {
+			String pkg = cls.getPackage();
+			for (ClassNode useCls : cls.getUsedIn()) {
+				if (!useCls.getPackage().equals(pkg)) {
+					return AccessFlags.PUBLIC;
+				}
+			}
+		}
+		return -1;
+	}
+
+	private static int fixMethodVisibility(MethodNode mth) {
 		if (mth.isVirtual()) {
 			// make virtual methods public
 			return AccessFlags.PUBLIC;
