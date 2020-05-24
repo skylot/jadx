@@ -1,6 +1,8 @@
 package jadx.core.dex.nodes;
 
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
 
 import jadx.api.plugins.input.data.IFieldData;
 import jadx.core.dex.attributes.annotations.AnnotationsList;
@@ -17,6 +19,8 @@ public class FieldNode extends LineAttrNode implements ICodeNode {
 	private AccessInfo accFlags;
 
 	private ArgType type;
+
+	private List<MethodNode> useIn = Collections.emptyList();
 
 	public static FieldNode build(ClassNode cls, IFieldData fieldData) {
 		FieldInfo fieldInfo = FieldInfo.fromData(cls.root(), fieldData);
@@ -68,6 +72,14 @@ public class FieldNode extends LineAttrNode implements ICodeNode {
 
 	public ClassNode getParentClass() {
 		return parentClass;
+	}
+
+	public List<MethodNode> getUseIn() {
+		return useIn;
+	}
+
+	public void setUseIn(List<MethodNode> useIn) {
+		this.useIn = useIn;
 	}
 
 	@Override

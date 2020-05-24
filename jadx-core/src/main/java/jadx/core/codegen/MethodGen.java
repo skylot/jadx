@@ -80,6 +80,9 @@ public class MethodGen {
 			code.attachDefinition(mth);
 			return false;
 		}
+		if (Consts.DEBUG_USAGE) {
+			ClassGen.addMthUsageInfo(code, mth);
+		}
 		addOverrideAnnotation(code, mth);
 		annotationGen.addForMethod(code, mth);
 

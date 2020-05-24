@@ -40,7 +40,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.utils.Utils.lockList;
 
-public class MethodNode extends NotificationAttrNode implements IMethodDetails, ILoadable, ICodeNode {
+public class MethodNode extends NotificationAttrNode implements IMethodDetails, ILoadable, ICodeNode, Comparable<MethodNode> {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodNode.class);
 
 	private final MethodInfo mthInfo;
@@ -71,6 +71,8 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	private List<ExceptionHandler> exceptionHandlers;
 	private List<LoopInfo> loops;
 	private Region region;
+
+	private List<MethodNode> useIn = Collections.emptyList();
 
 	public static MethodNode build(ClassNode classNode, IMethodData methodData) {
 		MethodNode methodNode = new MethodNode(classNode, methodData);
@@ -620,6 +622,14 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return codeReader;
 	}
 
+	public List<MethodNode> getUseIn() {
+		return useIn;
+	}
+
+	public void setUseIn(List<MethodNode> useIn) {
+		this.useIn = useIn;
+	}
+
 	@Override
 	public int hashCode() {
 		return mthInfo.hashCode();
@@ -635,6 +645,11 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		}
 		MethodNode other = (MethodNode) obj;
 		return mthInfo.equals(other.mthInfo);
+	}
+
+	@Override
+	public int compareTo(@NotNull MethodNode o) {
+		return mthInfo.compareTo(o.mthInfo);
 	}
 
 	@Override

@@ -9,6 +9,7 @@ import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
+import static jadx.core.dex.nodes.ProcessState.GENERATED;
 import static jadx.core.dex.nodes.ProcessState.LOADED;
 import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
 import static jadx.core.dex.nodes.ProcessState.PROCESS_COMPLETE;
@@ -53,11 +54,16 @@ public final class ProcessClass {
 		if (topParentClass != cls) {
 			return generateCode(topParentClass);
 		}
+		if (cls.getState() == GENERATED) {
+			// allow to run code generation again
+			cls.setState(NOT_LOADED);
+		}
 		try {
 			cls.getDependencies().forEach(ProcessClass::process);
 			process(cls);
 
 			ICodeInfo code = CodeGen.generate(cls);
+			cls.setState(GENERATED);
 			cls.unload();
 			return code;
 		} catch (Throwable e) {

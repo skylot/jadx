@@ -34,18 +34,21 @@ public class MethodInlineVisitor extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
-		if (mth.isNoCode() || mth.contains(AFlag.DONT_GENERATE)) {
-			return;
-		}
-		AccessInfo accessFlags = mth.getAccessFlags();
-		if (accessFlags.isSynthetic() && accessFlags.isStatic()
-				&& mth.getBasicBlocks().size() == 2) {
+		if (canInline(mth) && mth.getBasicBlocks().size() == 2) {
 			BlockNode returnBlock = mth.getBasicBlocks().get(1);
 			if (returnBlock.contains(AFlag.RETURN) || returnBlock.getInstructions().isEmpty()) {
 				BlockNode firstBlock = mth.getBasicBlocks().get(0);
 				inlineMth(mth, firstBlock, returnBlock);
 			}
 		}
+	}
+
+	public static boolean canInline(MethodNode mth) {
+		if (mth.isNoCode() || mth.contains(AFlag.DONT_GENERATE)) {
+			return false;
+		}
+		AccessInfo accessFlags = mth.getAccessFlags();
+		return accessFlags.isSynthetic() && accessFlags.isStatic();
 	}
 
 	private static void inlineMth(MethodNode mth, BlockNode firstBlock, BlockNode returnBlock) {

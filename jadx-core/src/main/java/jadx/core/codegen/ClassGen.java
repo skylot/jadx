@@ -18,6 +18,7 @@ import jadx.api.JadxArgs;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.annotations.EncodedType;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
+import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
@@ -113,6 +114,9 @@ public class ClassGen {
 	public void addClassCode(CodeWriter code) throws CodegenException {
 		if (cls.contains(AFlag.DONT_GENERATE)) {
 			return;
+		}
+		if (Consts.DEBUG_USAGE) {
+			addClassUsageInfo(code, cls);
 		}
 		CodeGenUtils.addComments(code, cls);
 		insertDecompilationProblems(code, cls);
@@ -378,6 +382,9 @@ public class ClassGen {
 		if (f.contains(AFlag.DONT_GENERATE)) {
 			return;
 		}
+		if (Consts.DEBUG_USAGE) {
+			addFieldUsageInfo(code, f);
+		}
 		CodeGenUtils.addComments(code, f);
 		annotationGen.addForField(code, f);
 
@@ -574,11 +581,6 @@ public class ClassGen {
 		if (extClsInfo.getPackage().equals(useCls.getPackage()) && !extClsInfo.isInner()) {
 			return shortName;
 		}
-		// don't add import if class not public (must be accessed using inheritance)
-		ClassNode classNode = cls.root().resolveClass(extClsInfo);
-		if (classNode != null && !classNode.getAccessFlags().isPublic()) {
-			return shortName;
-		}
 		if (searchCollision(cls.root(), useCls, extClsInfo)) {
 			return fullName;
 		}
@@ -682,6 +684,40 @@ public class ClassGen {
 		ClassInfo classInfo = cls.getClassInfo();
 		if (classInfo.hasAlias()) {
 			CodeGenUtils.addRenamedComment(code, cls, classInfo.getType().getObject());
+		}
+	}
+
+	private static void addClassUsageInfo(CodeWriter code, ClassNode cls) {
+		List<ClassNode> deps = cls.getDependencies();
+		code.startLine("// deps - ").add(Integer.toString(deps.size()));
+		for (ClassNode depCls : deps) {
+			code.startLine("//  ").add(depCls.getFullName());
+		}
+		List<ClassNode> useIn = cls.getUseIn();
+		code.startLine("// use in - ").add(Integer.toString(useIn.size()));
+		for (ClassNode useCls : useIn) {
+			code.startLine("//  ").add(useCls.getFullName());
+		}
+		List<MethodNode> useInMths = cls.getUseInMth();
+		code.startLine("// use in methods - ").add(Integer.toString(useInMths.size()));
+		for (MethodNode useMth : useInMths) {
+			code.startLine("//  ").add(useMth.toString());
+		}
+	}
+
+	static void addMthUsageInfo(CodeWriter code, MethodNode mth) {
+		List<MethodNode> useInMths = mth.getUseIn();
+		code.startLine("// use in methods - ").add(Integer.toString(useInMths.size()));
+		for (MethodNode useMth : useInMths) {
+			code.startLine("//  ").add(useMth.toString());
+		}
+	}
+
+	private static void addFieldUsageInfo(CodeWriter code, FieldNode fieldNode) {
+		List<MethodNode> useInMths = fieldNode.getUseIn();
+		code.startLine("// use in methods - ").add(Integer.toString(useInMths.size()));
+		for (MethodNode useMth : useInMths) {
+			code.startLine("//  ").add(useMth.toString());
 		}
 	}
 

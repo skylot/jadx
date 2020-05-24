@@ -17,7 +17,6 @@ import jadx.core.dex.visitors.ClassModifier;
 import jadx.core.dex.visitors.ConstInlineVisitor;
 import jadx.core.dex.visitors.ConstructorVisitor;
 import jadx.core.dex.visitors.DeboxingVisitor;
-import jadx.core.dex.visitors.DependencyCollector;
 import jadx.core.dex.visitors.DotGraphVisitor;
 import jadx.core.dex.visitors.EnumVisitor;
 import jadx.core.dex.visitors.ExtractFieldInit;
@@ -55,6 +54,7 @@ import jadx.core.dex.visitors.regions.variables.ProcessVariables;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
+import jadx.core.dex.visitors.usage.UsageInfoVisitor;
 
 public class Jadx {
 	private static final Logger LOG = LoggerFactory.getLogger(Jadx.class);
@@ -79,7 +79,7 @@ public class Jadx {
 	public static List<IDexTreeVisitor> getPreDecompilePassesList() {
 		List<IDexTreeVisitor> passes = new ArrayList<>();
 		passes.add(new RenameVisitor());
-		passes.add(new DependencyCollector());
+		passes.add(new UsageInfoVisitor());
 		return passes;
 	}
 

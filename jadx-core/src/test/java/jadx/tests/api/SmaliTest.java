@@ -107,6 +107,7 @@ public abstract class SmaliTest extends IntegrationTest {
 		try {
 			SmaliOptions options = new SmaliOptions();
 			options.outputDexFile = output.getAbsolutePath();
+			options.verboseErrors = true;
 			List<String> inputFileNames = inputFiles.stream().map(File::getAbsolutePath).collect(Collectors.toList());
 			Smali.assemble(options, inputFileNames);
 		} catch (Exception e) {

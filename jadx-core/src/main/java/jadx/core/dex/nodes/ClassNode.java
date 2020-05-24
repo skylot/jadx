@@ -42,7 +42,6 @@ import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.nodes.ProcessState.LOADED;
-import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
 
 public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeNode, Comparable<ClassNode> {
 	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
@@ -69,8 +68,13 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	private ClassNode parentClass;
 
 	private volatile ProcessState state = ProcessState.NOT_LOADED;
+
+	/** Top level classes used in this class (only for top level classes, empty for inners) */
 	private List<ClassNode> dependencies = Collections.emptyList();
-	private List<ClassNode> usedIn = Collections.emptyList();
+	/** Classes which uses this class */
+	private List<ClassNode> useIn = Collections.emptyList();
+	/** Methods which uses this class (by instructions only, definition is excluded) */
+	private List<MethodNode> useInMth = Collections.emptyList();
 
 	// cache maps
 	private Map<MethodInfo, MethodNode> mthInfoMap = Collections.emptyMap();
@@ -305,7 +309,6 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		innerClasses.forEach(ClassNode::unload);
 		fields.forEach(FieldNode::unloadAttributes);
 		unloadAttributes();
-		setState(NOT_LOADED);
 	}
 
 	private void buildCache() {
@@ -585,12 +588,20 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		this.dependencies = dependencies;
 	}
 
-	public List<ClassNode> getUsedIn() {
-		return usedIn;
+	public List<ClassNode> getUseIn() {
+		return useIn;
 	}
 
-	public void setUsedIn(List<ClassNode> usedIn) {
-		this.usedIn = usedIn;
+	public void setUseIn(List<ClassNode> useIn) {
+		this.useIn = useIn;
+	}
+
+	public List<MethodNode> getUseInMth() {
+		return useInMth;
+	}
+
+	public void setUseInMth(List<MethodNode> useInMth) {
+		this.useInMth = useInMth;
 	}
 
 	@Override

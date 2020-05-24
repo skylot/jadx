@@ -56,7 +56,7 @@ public class FixAccessModifiers extends AbstractVisitor {
 	}
 
 	private int fixClassVisibility(ClassNode cls) {
-		if (cls.getUsedIn().isEmpty()) {
+		if (cls.getUseIn().isEmpty()) {
 			return -1;
 		}
 		AccessInfo accessFlags = cls.getAccessFlags();
@@ -66,7 +66,7 @@ public class FixAccessModifiers extends AbstractVisitor {
 			}
 			// check if private inner class is used outside
 			ClassNode topParentClass = cls.getTopParentClass();
-			for (ClassNode useCls : cls.getUsedIn()) {
+			for (ClassNode useCls : cls.getUseIn()) {
 				if (useCls.getTopParentClass() != topParentClass) {
 					return AccessFlags.PUBLIC;
 				}
@@ -74,8 +74,17 @@ public class FixAccessModifiers extends AbstractVisitor {
 		}
 		if (accessFlags.isPackagePrivate()) {
 			String pkg = cls.getPackage();
-			for (ClassNode useCls : cls.getUsedIn()) {
+			for (ClassNode useCls : cls.getUseIn()) {
 				if (!useCls.getPackage().equals(pkg)) {
+					return AccessFlags.PUBLIC;
+				}
+			}
+		}
+		if (!accessFlags.isPublic()) {
+			// if class is used in inlinable method => make it public
+			for (MethodNode useMth : cls.getUseInMth()) {
+				boolean canInline = MethodInlineVisitor.canInline(useMth) || useMth.contains(AType.METHOD_INLINE);
+				if (canInline && !useMth.getUseIn().isEmpty()) {
 					return AccessFlags.PUBLIC;
 				}
 			}

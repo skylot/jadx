@@ -4,13 +4,10 @@ public enum ProcessState {
 	NOT_LOADED,
 	LOADED,
 	PROCESS_STARTED,
-	PROCESS_COMPLETE;
-
-	public boolean isLoaded() {
-		return this != NOT_LOADED;
-	}
+	PROCESS_COMPLETE,
+	GENERATED;
 
 	public boolean isProcessed() {
-		return this == PROCESS_COMPLETE;
+		return this == PROCESS_COMPLETE || this == GENERATED;
 	}
 }
