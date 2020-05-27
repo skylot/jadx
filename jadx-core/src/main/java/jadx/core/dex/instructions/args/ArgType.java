@@ -13,6 +13,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.typeinference.TypeCompareEnum;
 import jadx.core.utils.Utils;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public abstract class ArgType {
 	public static final ArgType INT = primitive(PrimitiveType.INT);
@@ -645,6 +646,9 @@ public abstract class ArgType {
 	}
 
 	public static ArgType parse(String type) {
+		if (type == null || type.isEmpty()) {
+			throw new JadxRuntimeException("Failed to parse type string: " + type);
+		}
 		char f = type.charAt(0);
 		switch (f) {
 			case 'L':

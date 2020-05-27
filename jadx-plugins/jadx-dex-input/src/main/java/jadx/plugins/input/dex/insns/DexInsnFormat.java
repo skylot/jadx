@@ -293,7 +293,7 @@ public abstract class DexInsnFormat {
 		@Override
 		public void skip(DexInsnData insn, SectionReader in) {
 			int size = in.readUShort();
-			in.skip(4 + size * 4 * 2);
+			in.skip(size * 8);
 			insn.setLength(size * 4 + 2);
 		}
 	};
