@@ -64,11 +64,16 @@ public class UsageInfo {
 	public void methodUse(MethodNode mth, MethodNode useMth) {
 		clsUse(mth, useMth.getParentClass());
 		mthUsage.add(useMth, mth);
+		// implicit usage
+		clsUse(mth, useMth.getReturnType());
+		useMth.getMethodInfo().getArgumentsTypes().forEach(argType -> clsUse(mth, argType));
 	}
 
 	public void fieldUse(MethodNode mth, FieldNode useFld) {
 		clsUse(mth, useFld.getParentClass());
 		fieldUsage.add(useFld, mth);
+		// implicit usage
+		clsUse(mth, useFld.getType());
 	}
 
 	private void processType(ArgType type, Consumer<ClassNode> consumer) {
