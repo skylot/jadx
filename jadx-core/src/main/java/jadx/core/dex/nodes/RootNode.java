@@ -30,6 +30,7 @@ import jadx.core.dex.nodes.utils.MethodUtils;
 import jadx.core.dex.nodes.utils.TypeUtils;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
+import jadx.core.dex.visitors.typeinference.TypeCompare;
 import jadx.core.dex.visitors.typeinference.TypeUpdate;
 import jadx.core.utils.CacheStorage;
 import jadx.core.utils.ErrorsCounter;
@@ -422,6 +423,10 @@ public class RootNode {
 
 	public TypeUpdate getTypeUpdate() {
 		return typeUpdate;
+	}
+
+	public TypeCompare getTypeCompare() {
+		return typeUpdate.getTypeCompare();
 	}
 
 	public ICodeCache getCodeCache() {

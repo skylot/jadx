@@ -33,6 +33,7 @@ import jadx.core.dex.instructions.NewArrayNode;
 import jadx.core.dex.instructions.SwitchInsn;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -49,6 +50,7 @@ import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.visitors.regions.variables.ProcessVariables;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
+import jadx.core.dex.visitors.typeinference.TypeCompareEnum;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.exceptions.JadxException;
@@ -144,12 +146,42 @@ public class ModVisitor extends AbstractVisitor {
 						fixPrimitiveCast(mth, block, i, insn);
 						break;
 
+					case IPUT:
+					case IGET:
+						fixTypeForFieldAccess(mth, (IndexInsnNode) insn);
+						break;
+
 					default:
 						break;
 				}
 			}
 			remover.perform();
 		}
+	}
+
+	private static void fixTypeForFieldAccess(MethodNode mth, IndexInsnNode insn) {
+		InsnArg instanceArg = insn.getArg(insn.getType() == InsnType.IGET ? 0 : 1);
+		if (instanceArg.contains(AFlag.SUPER)) {
+			return;
+		}
+		if (instanceArg.isInsnWrap() && ((InsnWrapArg) instanceArg).getWrapInsn().getType() == InsnType.CAST) {
+			return;
+		}
+		FieldInfo fieldInfo = (FieldInfo) insn.getIndex();
+		ArgType clsType = fieldInfo.getDeclClass().getType();
+		ArgType instanceType = instanceArg.getType();
+		TypeCompareEnum result = mth.root().getTypeCompare().compareTypes(instanceType, clsType);
+		if (result.isEqual() || (result == TypeCompareEnum.NARROW_BY_GENERIC && !instanceType.isGenericType())) {
+			return;
+		}
+		IndexInsnNode castInsn = new IndexInsnNode(InsnType.CAST, clsType, 1);
+		castInsn.addArg(instanceArg.duplicate());
+		castInsn.add(AFlag.EXPLICIT_CAST);
+
+		InsnArg castArg = InsnArg.wrapInsnIntoArg(castInsn);
+		castArg.setType(clsType);
+		insn.replaceArg(instanceArg, castArg);
+		InsnRemover.unbindArgUsage(mth, instanceArg);
 	}
 
 	private static void replaceConstKeys(ClassNode parentClass, SwitchInsn insn) {
