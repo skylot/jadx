@@ -287,9 +287,9 @@ public class RegionGen extends InsnGen {
 				staticField(code, fn.getFieldInfo());
 				// print original value, sometimes replaced with incorrect field
 				FieldInitAttr valueAttr = fn.get(AType.FIELD_INIT);
-				if (valueAttr != null) {
+				if (valueAttr != null && valueAttr.getValueType() == FieldInitAttr.InitType.CONST) {
 					Object value = valueAttr.getEncodedValue();
-					if (value != null && valueAttr.getValueType() == FieldInitAttr.InitType.CONST) {
+					if (value != null) {
 						code.add(" /*").add(value.toString()).add("*/");
 					}
 				}

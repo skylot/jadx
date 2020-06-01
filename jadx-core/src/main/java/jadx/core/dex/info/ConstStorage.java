@@ -72,9 +72,9 @@ public class ConstStorage {
 			if (accFlags.isStatic() && accFlags.isFinal()) {
 				FieldInitAttr fv = f.get(AType.FIELD_INIT);
 				if (fv != null
-						&& fv.getEncodedValue() != null
 						&& fv.getValueType() == FieldInitAttr.InitType.CONST
-						&& fv != FieldInitAttr.NULL_VALUE) {
+						&& fv != FieldInitAttr.NULL_VALUE
+						&& fv.getEncodedValue() != null) {
 					addConstField(cls, f, fv.getEncodedValue().getValue(), accFlags.isPublic());
 				}
 			}
