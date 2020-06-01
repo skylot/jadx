@@ -1,7 +1,6 @@
 package jadx.core.dex.visitors;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
@@ -35,12 +34,9 @@ public class MoveInlineVisitor extends AbstractVisitor {
 		InsnRemover remover = new InsnRemover(mth);
 		for (BlockNode block : mth.getBasicBlocks()) {
 			remover.setBlock(block);
-			List<InsnNode> insns = block.getInstructions();
-			int size = insns.size();
-			for (int i = 0; i < size; i++) {
-				InsnNode insn = insns.get(i);
+			for (InsnNode insn : block.getInstructions()) {
 				if (insn.getType() == InsnType.MOVE
-						&& processMove(mth, block, insn, i)) {
+						&& processMove(mth, insn)) {
 					remover.addAndUnbind(insn);
 				}
 			}
@@ -48,7 +44,7 @@ public class MoveInlineVisitor extends AbstractVisitor {
 		}
 	}
 
-	private static boolean processMove(MethodNode mth, BlockNode block, InsnNode move, int i) {
+	private static boolean processMove(MethodNode mth, InsnNode move) {
 		RegisterArg resultArg = move.getResult();
 		InsnArg moveArg = move.getArg(0);
 		if (resultArg.sameRegAndSVar(moveArg)) {
@@ -58,21 +54,26 @@ public class MoveInlineVisitor extends AbstractVisitor {
 		if (ssaVar.isUsedInPhi()) {
 			return false;
 		}
-		RegDebugInfoAttr debugInfo = resultArg.get(AType.REG_DEBUG_INFO);
+		RegDebugInfoAttr debugInfo = moveArg.get(AType.REG_DEBUG_INFO);
 		for (RegisterArg useArg : ssaVar.getUseList()) {
 			InsnNode useInsn = useArg.getParentInsn();
-			if (useInsn == null || !fromThisBlock(block, useInsn, i)) {
+			if (useInsn == null) {
 				return false;
 			}
-			RegDebugInfoAttr debugInfoAttr = useArg.get(AType.REG_DEBUG_INFO);
-			if (debugInfoAttr != null) {
-				debugInfo = debugInfoAttr;
+			if (debugInfo == null) {
+				RegDebugInfoAttr debugInfoAttr = useArg.get(AType.REG_DEBUG_INFO);
+				if (debugInfoAttr != null) {
+					debugInfo = debugInfoAttr;
+				}
 			}
 		}
 
 		// all checks passed, execute inline
 		for (RegisterArg useArg : new ArrayList<>(ssaVar.getUseList())) {
 			InsnNode useInsn = useArg.getParentInsn();
+			if (useInsn == null) {
+				continue;
+			}
 			InsnArg replaceArg;
 			if (moveArg.isRegister()) {
 				replaceArg = ((RegisterArg) moveArg).duplicate(useArg.getInitType());
@@ -83,21 +84,10 @@ public class MoveInlineVisitor extends AbstractVisitor {
 			if (debugInfo != null) {
 				replaceArg.addAttr(debugInfo);
 			}
-			if (useInsn == null || !useInsn.replaceArg(useArg, replaceArg)) {
+			if (!useInsn.replaceArg(useArg, replaceArg)) {
 				mth.addWarnComment("Failed to replace arg in insn: " + useInsn);
 			}
 		}
 		return true;
-	}
-
-	private static boolean fromThisBlock(BlockNode block, InsnNode insn, int curPos) {
-		List<InsnNode> list = block.getInstructions();
-		int size = list.size();
-		for (int j = curPos; j < size; j++) {
-			if (list.get(j) == insn) {
-				return true;
-			}
-		}
-		return false;
 	}
 }

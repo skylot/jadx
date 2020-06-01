@@ -113,9 +113,6 @@ public class Jadx {
 		passes.add(new MarkFinallyVisitor());
 		passes.add(new ConstInlineVisitor());
 		passes.add(new TypeInferenceVisitor());
-		if (args.isRawCFGOutput()) {
-			passes.add(DotGraphVisitor.dumpRaw());
-		}
 		if (args.isDebugInfo()) {
 			passes.add(new DebugInfoApplyVisitor());
 		}
