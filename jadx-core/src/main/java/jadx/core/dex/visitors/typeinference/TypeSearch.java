@@ -63,7 +63,7 @@ public class TypeSearch {
 		} else {
 			search(vars);
 			searchSuccess = fullCheck(vars);
-			if (Consts.DEBUG && !searchSuccess) {
+			if (Consts.DEBUG_TYPE_INFERENCE && !searchSuccess) {
 				LOG.warn("Multi-variable search failed in {}", mth);
 			}
 		}
@@ -86,7 +86,7 @@ public class TypeSearch {
 				// exclude unknown variables
 				continue;
 			}
-			TypeUpdateResult res = typeUpdate.applyWithWiderIgnSame(var.getVar(), var.getCurrentType());
+			TypeUpdateResult res = typeUpdate.applyWithWiderIgnSame(mth, var.getVar(), var.getCurrentType());
 			if (res == TypeUpdateResult.REJECT) {
 				mth.addComment("JADX DEBUG: Multi-variable search result rejected for " + var);
 				applySuccess = false;
@@ -97,7 +97,7 @@ public class TypeSearch {
 
 	private boolean search(List<TypeSearchVarInfo> vars) {
 		int len = vars.size();
-		if (Consts.DEBUG) {
+		if (Consts.DEBUG_TYPE_INFERENCE) {
 			LOG.debug("Run search for {} vars: ", len);
 			StringBuilder sb = new StringBuilder();
 			long count = 1;

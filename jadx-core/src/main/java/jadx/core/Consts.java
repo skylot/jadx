@@ -3,6 +3,7 @@ package jadx.core;
 public class Consts {
 	public static final boolean DEBUG = false;
 	public static final boolean DEBUG_USAGE = false;
+	public static final boolean DEBUG_TYPE_INFERENCE = false;
 
 	public static final String CLASS_OBJECT = "java.lang.Object";
 	public static final String CLASS_STRING = "java.lang.String";

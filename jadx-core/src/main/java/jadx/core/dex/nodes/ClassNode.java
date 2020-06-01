@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
@@ -423,6 +424,16 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	public ClassNode getTopParentClass() {
 		ClassNode parent = getParentClass();
 		return parent == this ? this : parent.getTopParentClass();
+	}
+
+	public void visitParentClasses(Consumer<ClassNode> consumer) {
+		ClassNode currentCls = this;
+		ClassNode parentCls = currentCls.getParentClass();
+		while (parentCls != currentCls) {
+			consumer.accept(parentCls);
+			currentCls = parentCls;
+			parentCls = currentCls.getParentClass();
+		}
 	}
 
 	public boolean hasNotGeneratedParent() {

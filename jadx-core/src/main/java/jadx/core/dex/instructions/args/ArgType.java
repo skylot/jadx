@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -742,6 +743,36 @@ public abstract class ArgType {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Recursively visit all subtypes of this type.
+	 * To exit return non-null value.
+	 */
+	public <R> R visitTypes(Function<ArgType, R> visitor) {
+		R r = visitor.apply(this);
+		if (r != null) {
+			return r;
+		}
+		ArgType wildcardType = getWildcardType();
+		if (wildcardType != null) {
+			return wildcardType.visitTypes(visitor);
+		}
+		if (isArray()) {
+			ArgType arrayElement = getArrayElement();
+			if (arrayElement != null) {
+				return arrayElement.visitTypes(visitor);
+			}
+		}
+		if (isGeneric()) {
+			ArgType[] genericTypes = getGenericTypes();
+			if (genericTypes != null) {
+				for (ArgType genericType : genericTypes) {
+					return genericType.visitTypes(visitor);
+				}
+			}
+		}
+		return null;
 	}
 
 	public static ArgType tryToResolveClassAlias(RootNode root, ArgType type) {

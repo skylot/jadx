@@ -5,12 +5,15 @@ import java.util.List;
 
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.nodes.MethodNode;
 
 public class TypeUpdateInfo {
+	private final MethodNode mth;
 	private final TypeUpdateFlags flags;
 	private final List<TypeUpdateEntry> updates = new ArrayList<>();
 
-	public TypeUpdateInfo(TypeUpdateFlags flags) {
+	public TypeUpdateInfo(MethodNode mth, TypeUpdateFlags flags) {
+		this.mth = mth;
 		this.flags = flags;
 	}
 
@@ -48,6 +51,10 @@ public class TypeUpdateInfo {
 
 	public void rollbackUpdate(InsnArg arg) {
 		updates.removeIf(updateEntry -> updateEntry.getArg() == arg);
+	}
+
+	public MethodNode getMth() {
+		return mth;
 	}
 
 	public List<TypeUpdateEntry> getUpdates() {

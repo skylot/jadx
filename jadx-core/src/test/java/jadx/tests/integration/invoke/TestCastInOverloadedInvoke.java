@@ -64,7 +64,7 @@ public class TestCastInOverloadedInvoke extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("call((ArrayList<String>) new ArrayList());"));
+		assertThat(code, containsOne("call(new ArrayList<>());"));
 		assertThat(code, containsOne("call((List<String>) new ArrayList());"));
 
 		assertThat(code, containsOne("call((String) obj);"));
@@ -76,9 +76,6 @@ public class TestCastInOverloadedInvoke extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("call(new ArrayList<>());"));
 		assertThat(code, containsOne("call((List<String>) new ArrayList<String>());"));
-
-		assertThat(code, containsOne("call((String) obj);"));
 	}
 }
