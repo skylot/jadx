@@ -1,4 +1,4 @@
-package jadx.tests.integration.inner;
+package jadx.tests.integration.android;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

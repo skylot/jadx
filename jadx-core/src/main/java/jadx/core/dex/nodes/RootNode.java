@@ -106,9 +106,8 @@ public class RootNode {
 		if (name == null || name.isEmpty()) {
 			name = "CLASS_" + typeStr;
 		}
-		ClassNode clsNode = new ClassNode(this, name, classData.getAccessFlags());
+		ClassNode clsNode = ClassNode.addSyntheticClass(this, name, classData.getAccessFlags());
 		ErrorsCounter.error(clsNode, "Load error", exc);
-		addClassNode(clsNode);
 	}
 
 	public void addClassNode(ClassNode clsNode) {

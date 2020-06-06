@@ -49,6 +49,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 
 	private final RootNode root;
 	private final int clsDefOffset;
+	@Nullable
 	private final Path inputPath;
 
 	private final ClassInfo clsInfo;
@@ -132,8 +133,16 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		this.accessFlags = new AccessInfo(accFlagsValue, AFType.CLASS);
 	}
 
-	// empty synthetic class
-	public ClassNode(RootNode root, String name, int accessFlags) {
+	public static ClassNode addSyntheticClass(RootNode root, String name, int accessFlags) {
+		ClassNode cls = new ClassNode(root, name, accessFlags);
+		cls.add(AFlag.SYNTHETIC);
+		cls.setState(ProcessState.PROCESS_COMPLETE);
+		root.addClassNode(cls);
+		return cls;
+	}
+
+	// Create empty class
+	private ClassNode(RootNode root, String name, int accessFlags) {
 		this.root = root;
 		this.inputPath = null;
 		this.clsDefOffset = 0;
