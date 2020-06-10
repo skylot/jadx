@@ -16,7 +16,7 @@ dependencies {
 	}
 	compile 'com.google.guava:guava:29.0-jre'
 
-	testCompile 'org.apache.commons:commons-lang3:3.9'
+	testCompile 'org.apache.commons:commons-lang3:3.10'
 
 	testRuntime(project(':jadx-plugins:jadx-dex-input'))
 	testRuntime(project(':jadx-plugins:jadx-java-convert'))
