@@ -1,8 +1,7 @@
 package jadx.plugins.input.dex;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import java.io.InputStream;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -12,7 +11,6 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -35,11 +33,15 @@ public class DexFileLoader {
 	}
 
 	private static List<DexReader> loadDexFromPath(Path path, int depth) {
-		try (FileChannel fileChannel = FileChannel.open(path, StandardOpenOption.READ)) {
-			if (isDex(fileChannel)) {
-				return Collections.singletonList(new DexReader(path, fileChannel));
+		try (InputStream inputStream = Files.newInputStream(path, StandardOpenOption.READ)) {
+			byte[] magic = new byte[DexConsts.MAX_MAGIC_SIZE];
+			if (inputStream.read(magic) != magic.length) {
+				return Collections.emptyList();
 			}
-			if (depth == 0 && isZip(fileChannel)) {
+			if (isStartWithBytes(magic, DexConsts.DEX_FILE_MAGIC)) {
+				return Collections.singletonList(new DexReader(path));
+			}
+			if (depth == 0 && isStartWithBytes(magic, DexConsts.ZIP_FILE_MAGIC)) {
 				return collectDexFromZip(path, depth);
 			}
 		} catch (Exception e) {
@@ -64,22 +66,16 @@ public class DexFileLoader {
 		return result;
 	}
 
-	private static boolean isDex(FileChannel fileChannel) {
-		return isStartWithBytes(fileChannel, DexConsts.DEX_FILE_MAGIC);
-	}
-
-	private static boolean isZip(FileChannel fileChannel) {
-		return isStartWithBytes(fileChannel, DexConsts.ZIP_FILE_MAGIC);
-	}
-
-	private static boolean isStartWithBytes(FileChannel fileChannel, byte[] startBytes) {
-		try {
-			fileChannel.position(0);
-			ByteBuffer buf = ByteBuffer.allocate(startBytes.length);
-			fileChannel.read(buf);
-			return Arrays.equals(startBytes, buf.array());
-		} catch (Exception e) {
+	private static boolean isStartWithBytes(byte[] fileMagic, byte[] expectedBytes) {
+		int len = expectedBytes.length;
+		if (fileMagic.length < len) {
 			return false;
 		}
+		for (int i = 0; i < len; i++) {
+			if (fileMagic[i] != expectedBytes[i]) {
+				return false;
+			}
+		}
+		return true;
 	}
 }

@@ -6,6 +6,8 @@ public class DexConsts {
 
 	public static final byte[] ZIP_FILE_MAGIC = { 0x50, 0x4B, 0x03, 0x04 };
 
+	public static final int MAX_MAGIC_SIZE = 4;
+
 	public static final int ENDIAN_CONSTANT = 0x12345678;
 
 	public static final int NO_INDEX = -1;
