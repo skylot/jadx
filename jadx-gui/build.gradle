@@ -70,6 +70,7 @@ launch4j {
 	jreMinVersion = '1.8.0'
 	jvmOptions = ['-Dawt.useSystemAAFontSettings=lcd', '-Dswing.aatext=true', '-XX:+UseG1GC']
 	jreRuntimeBits = "64"
+	bundledJre64Bit = true
 	initialHeapPercent = 5
 	maxHeapSize = 4096
 	maxHeapPercent = 70
