@@ -43,6 +43,10 @@ jar {
 	}
 }
 
+shadowJar {
+	mergeServiceFiles()
+}
+
 startScripts {
 	// The option -XX:+UseG1GC is only relevant for Java 8. Starting with Java 9 G1GC is already the default GC
 	defaultJvmOpts = ['-Xms128M', '-Xmx4g', '-Dawt.useSystemAAFontSettings=lcd', '-Dswing.aatext=true', '-XX:+UseG1GC']
