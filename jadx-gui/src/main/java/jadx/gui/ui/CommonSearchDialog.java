@@ -516,17 +516,15 @@ public abstract class CommonSearchDialog extends JDialog {
 		}
 	}
 
-	protected void loadStartCommon() {
+	private void loadStartCommon() {
 		setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		progressPane.setIndeterminate(true);
 		progressPane.setVisible(true);
-		resultsTable.setEnabled(false);
 		warnLabel.setVisible(false);
 	}
 
 	private void loadFinishedCommon() {
 		setCursor(null);
-		resultsTable.setEnabled(true);
 		progressPane.setVisible(false);
 
 		TextSearchIndex textIndex = cache.getTextIndex();
