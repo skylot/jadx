@@ -39,6 +39,7 @@ import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnList;
 import jadx.core.utils.InsnRemover;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class SimplifyVisitor extends AbstractVisitor {
@@ -393,17 +394,30 @@ public class SimplifyVisitor extends AbstractVisitor {
 			// all check passed
 			removeStringBuilderInsns(mth, toStrInsn, chain);
 
-			InsnNode concatInsn = new InsnNode(InsnType.STR_CONCAT, args);
+			List<InsnArg> dupArgs = Utils.collectionMap(args, InsnArg::duplicate);
+			InsnNode concatInsn = new InsnNode(InsnType.STR_CONCAT, dupArgs);
 			concatInsn.setResult(toStrInsn.getResult());
 			concatInsn.add(AFlag.SYNTHETIC);
 			concatInsn.copyAttributesFrom(toStrInsn);
 			concatInsn.remove(AFlag.DONT_GENERATE);
 			concatInsn.remove(AFlag.REMOVE);
+			checkResult(mth, concatInsn);
 			return concatInsn;
 		} catch (Exception e) {
 			LOG.warn("Can't convert string concatenation: {} insn: {}", mth, toStrInsn, e);
 		}
 		return null;
+	}
+
+	/* String concat without assign to variable will cause compilation error */
+	private static void checkResult(MethodNode mth, InsnNode concatInsn) {
+		if (concatInsn.getResult() == null) {
+			RegisterArg resArg = InsnArg.reg(0, ArgType.STRING);
+			SSAVar ssaVar = mth.makeNewSVar(resArg);
+			InitCodeVariables.initCodeVar(ssaVar);
+			ssaVar.setType(ArgType.STRING);
+			concatInsn.setResult(resArg);
+		}
 	}
 
 	/**
@@ -499,7 +513,8 @@ public class SimplifyVisitor extends AbstractVisitor {
 				|| !wrap.getArg(0).isInsnWrap()) {
 			return null;
 		}
-		InsnNode get = ((InsnWrapArg) wrap.getArg(0)).getWrapInsn();
+		InsnArg getWrap = wrap.getArg(0);
+		InsnNode get = ((InsnWrapArg) getWrap).getWrapInsn();
 		InsnType getType = get.getType();
 		if (getType != InsnType.IGET && getType != InsnType.SGET) {
 			return null;
@@ -517,7 +532,8 @@ public class SimplifyVisitor extends AbstractVisitor {
 					return null;
 				}
 			}
-			InsnArg fArg = InsnArg.wrapArg(get);
+			InsnArg fArg = getWrap.duplicate();
+			InsnRemover.unbindInsn(mth, get);
 			if (insn.getType() == InsnType.IPUT) {
 				InsnRemover.unbindArgUsage(mth, insn.getArg(1));
 			}

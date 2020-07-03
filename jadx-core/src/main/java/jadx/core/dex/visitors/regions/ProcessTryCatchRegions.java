@@ -23,7 +23,6 @@ import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.SplitterBlockAttr;
 import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.utils.BlockUtils;
-import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.RegionUtils;
 
 /**
@@ -62,7 +61,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 		// for each try block search nearest dominator block
 		for (TryCatchBlock tb : tryBlocks) {
 			if (tb.getHandlersCount() == 0) {
-				mth.addWarn("No exception handlers in catch block: " + tb);
+				// mth.addWarn("No exception handlers in catch block: " + tb);
 				continue;
 			}
 			processTryCatchBlock(mth, tb, tryBlocksMap);
@@ -105,7 +104,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 			if (region.getSubBlocks().contains(dominator)) {
 				TryCatchBlock tb = tryBlocksMap.get(dominator);
 				if (!wrapBlocks(region, tb, dominator)) {
-					ErrorsCounter.methodWarn(mth, "Can't wrap try/catch for region: " + region);
+					mth.addWarn("Can't wrap try/catch for region: " + region);
 				}
 				tryBlocksMap.remove(dominator);
 				return true;

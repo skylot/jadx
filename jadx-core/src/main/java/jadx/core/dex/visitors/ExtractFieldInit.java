@@ -8,6 +8,7 @@ import java.util.Set;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.FieldInitAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
@@ -20,7 +21,6 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.nodes.parser.FieldInitAttr;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.exceptions.JadxException;
@@ -155,7 +155,7 @@ public class ExtractFieldInit extends AbstractVisitor {
 		Set<FieldInfo> fields = new HashSet<>();
 		for (InsnNode insn : common.getPutInsns()) {
 			FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) insn).getIndex();
-			FieldNode field = cls.dex().resolveField(fieldInfo);
+			FieldNode field = cls.root().resolveField(fieldInfo);
 			if (field == null) {
 				return;
 			}
@@ -175,7 +175,7 @@ public class ExtractFieldInit extends AbstractVisitor {
 		}
 		for (InsnNode insn : common.getPutInsns()) {
 			FieldInfo fieldInfo = (FieldInfo) ((IndexInsnNode) insn).getIndex();
-			FieldNode field = cls.dex().resolveField(fieldInfo);
+			FieldNode field = cls.root().resolveField(fieldInfo);
 			addFieldInitAttr(common.getConstrMth(), field, insn);
 		}
 	}
@@ -202,7 +202,7 @@ public class ExtractFieldInit extends AbstractVisitor {
 				// exclude fields from super classes
 				return false;
 			}
-			FieldNode fieldNode = cls.dex().resolveField(fieldInfo);
+			FieldNode fieldNode = cls.root().resolveField(fieldInfo);
 			if (fieldNode == null) {
 				// exclude inherited fields (not declared in this class)
 				return false;

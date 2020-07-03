@@ -1,21 +1,13 @@
 package jadx.core.dex.instructions;
 
-import java.io.EOFException;
-import java.util.function.Predicate;
-
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.android.dex.Code;
-import com.android.dx.io.OpcodeInfo;
-import com.android.dx.io.Opcodes;
-import com.android.dx.io.instructions.DecodedInstruction;
-import com.android.dx.io.instructions.FillArrayDataPayloadDecodedInstruction;
-import com.android.dx.io.instructions.PackedSwitchPayloadDecodedInstruction;
-import com.android.dx.io.instructions.ShortArrayCodeInput;
-import com.android.dx.io.instructions.SparseSwitchPayloadDecodedInstruction;
-
+import jadx.api.plugins.input.data.ICodeReader;
+import jadx.api.plugins.input.insns.InsnData;
+import jadx.api.plugins.input.insns.custom.IArrayPayload;
+import jadx.api.plugins.input.insns.custom.ISwitchPayload;
 import jadx.core.Consts;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
@@ -23,642 +15,497 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
-import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.utils.InsnUtils;
+import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.DecodeException;
 
 public class InsnDecoder {
 	private static final Logger LOG = LoggerFactory.getLogger(InsnDecoder.class);
 
 	private final MethodNode method;
-	private final DexNode dex;
-	private DecodedInstruction[] insnArr;
+	private final RootNode root;
 
 	public InsnDecoder(MethodNode mthNode) {
 		this.method = mthNode;
-		this.dex = method.dex();
+		this.root = method.root();
 	}
 
-	public void decodeInsns(Code mthCode) throws DecodeException {
-		short[] encodedInstructions = mthCode.getInstructions();
-		int size = encodedInstructions.length;
-		DecodedInstruction[] decoded = new DecodedInstruction[size];
-		ShortArrayCodeInput in = new ShortArrayCodeInput(encodedInstructions);
-		try {
-			while (in.hasMore()) {
-				decoded[in.cursor()] = decodeRawInsn(in);
+	public InsnNode[] process(ICodeReader codeReader) {
+		InsnNode[] instructions = new InsnNode[codeReader.getInsnsCount()];
+		codeReader.visitInstructions(rawInsn -> {
+			int offset = rawInsn.getOffset();
+			InsnNode insn;
+			try {
+				rawInsn.decode();
+				insn = decode(rawInsn, offset);
+				insn.setOffset(offset);
+			} catch (Exception e) {
+				LOG.error("Failed to decode insn: " + rawInsn + ", method: " + method, e);
+				insn = new InsnNode(InsnType.NOP, 0);
 			}
-		} catch (Exception e) {
-			throw new DecodeException(method, e.getMessage(), e);
-		}
-		insnArr = decoded;
-	}
-
-	private DecodedInstruction decodeRawInsn(ShortArrayCodeInput in) throws EOFException {
-		int opcodeUnit = in.read();
-		int opcode = Opcodes.extractOpcodeFromUnit(opcodeUnit);
-		OpcodeInfo.Info opcodeInfo;
-		try {
-			opcodeInfo = OpcodeInfo.get(opcode);
-		} catch (IllegalArgumentException e) {
-			LOG.warn("Ignore decode error: '{}', replace with NOP instruction", e.getMessage());
-			opcodeInfo = OpcodeInfo.NOP;
-		}
-		return opcodeInfo.getFormat().decode(opcodeUnit, in);
-	}
-
-	public InsnNode[] process() throws DecodeException {
-		InsnNode[] instructions = new InsnNode[insnArr.length];
-		for (int i = 0; i < insnArr.length; i++) {
-			DecodedInstruction rawInsn = insnArr[i];
-			if (rawInsn != null) {
-				InsnNode insn = decode(rawInsn, i);
-				insn.setOffset(i);
-				instructions[i] = insn;
-			} else {
-				instructions[i] = null;
-			}
-		}
-		insnArr = null;
+			instructions[offset] = insn;
+		});
 		return instructions;
 	}
 
 	@NotNull
-	private InsnNode decode(DecodedInstruction insn, int offset) throws DecodeException {
+	private InsnNode decode(InsnData insn, int offset) throws DecodeException {
 		switch (insn.getOpcode()) {
-			case Opcodes.NOP:
-			case Opcodes.PACKED_SWITCH_PAYLOAD:
-			case Opcodes.SPARSE_SWITCH_PAYLOAD:
-			case Opcodes.FILL_ARRAY_DATA_PAYLOAD:
+			case NOP:
 				return new InsnNode(InsnType.NOP, 0);
 
 			// move-result will be process in invoke and filled-new-array instructions
-			case Opcodes.MOVE_RESULT:
-			case Opcodes.MOVE_RESULT_WIDE:
-			case Opcodes.MOVE_RESULT_OBJECT:
-				return new InsnNode(InsnType.NOP, 0);
+			case MOVE_RESULT:
+				return insn(InsnType.MOVE_RESULT, InsnArg.reg(insn, 0, ArgType.UNKNOWN));
 
-			case Opcodes.CONST:
-			case Opcodes.CONST_4:
-			case Opcodes.CONST_16:
-			case Opcodes.CONST_HIGH16:
+			case CONST:
 				LiteralArg narrowLitArg = InsnArg.lit(insn, ArgType.NARROW);
 				return insn(InsnType.CONST, InsnArg.reg(insn, 0, narrowLitArg.getType()), narrowLitArg);
 
-			case Opcodes.CONST_WIDE:
-			case Opcodes.CONST_WIDE_16:
-			case Opcodes.CONST_WIDE_32:
-			case Opcodes.CONST_WIDE_HIGH16:
+			case CONST_WIDE:
 				LiteralArg wideLitArg = InsnArg.lit(insn, ArgType.WIDE);
 				return insn(InsnType.CONST, InsnArg.reg(insn, 0, wideLitArg.getType()), wideLitArg);
 
-			case Opcodes.CONST_STRING:
-			case Opcodes.CONST_STRING_JUMBO:
-				InsnNode constStrInsn = new ConstStringNode(dex.getString(insn.getIndex()));
+			case CONST_STRING:
+				InsnNode constStrInsn = new ConstStringNode(insn.getIndexAsString());
 				constStrInsn.setResult(InsnArg.reg(insn, 0, ArgType.STRING));
 				return constStrInsn;
 
-			case Opcodes.CONST_CLASS: {
-				ArgType clsType = dex.getType(insn.getIndex());
+			case CONST_CLASS: {
+				ArgType clsType = ArgType.parse(insn.getIndexAsType());
 				InsnNode constClsInsn = new ConstClassNode(clsType);
-				constClsInsn.setResult(
-						InsnArg.reg(insn, 0, ArgType.generic(Consts.CLASS_CLASS, clsType)));
+				constClsInsn.setResult(InsnArg.reg(insn, 0, ArgType.generic(Consts.CLASS_CLASS, clsType)));
 				return constClsInsn;
 			}
 
-			case Opcodes.MOVE:
-			case Opcodes.MOVE_16:
-			case Opcodes.MOVE_FROM16:
+			case MOVE:
 				return insn(InsnType.MOVE,
 						InsnArg.reg(insn, 0, ArgType.NARROW),
 						InsnArg.reg(insn, 1, ArgType.NARROW));
 
-			case Opcodes.MOVE_WIDE:
-			case Opcodes.MOVE_WIDE_16:
-			case Opcodes.MOVE_WIDE_FROM16:
+			case MOVE_WIDE:
 				return insn(InsnType.MOVE,
 						InsnArg.reg(insn, 0, ArgType.WIDE),
 						InsnArg.reg(insn, 1, ArgType.WIDE));
 
-			case Opcodes.MOVE_OBJECT:
-			case Opcodes.MOVE_OBJECT_16:
-			case Opcodes.MOVE_OBJECT_FROM16:
+			case MOVE_OBJECT:
 				return insn(InsnType.MOVE,
 						InsnArg.reg(insn, 0, ArgType.UNKNOWN_OBJECT),
 						InsnArg.reg(insn, 1, ArgType.UNKNOWN_OBJECT));
 
-			case Opcodes.ADD_INT:
-			case Opcodes.ADD_INT_2ADDR:
+			case ADD_INT:
 				return arith(insn, ArithOp.ADD, ArgType.INT);
 
-			case Opcodes.ADD_DOUBLE:
-			case Opcodes.ADD_DOUBLE_2ADDR:
+			case ADD_DOUBLE:
 				return arith(insn, ArithOp.ADD, ArgType.DOUBLE);
 
-			case Opcodes.ADD_FLOAT:
-			case Opcodes.ADD_FLOAT_2ADDR:
+			case ADD_FLOAT:
 				return arith(insn, ArithOp.ADD, ArgType.FLOAT);
 
-			case Opcodes.ADD_LONG:
-			case Opcodes.ADD_LONG_2ADDR:
+			case ADD_LONG:
 				return arith(insn, ArithOp.ADD, ArgType.LONG);
 
-			case Opcodes.ADD_INT_LIT8:
-			case Opcodes.ADD_INT_LIT16:
+			case ADD_INT_LIT:
 				return arithLit(insn, ArithOp.ADD, ArgType.INT);
 
-			case Opcodes.SUB_INT:
-			case Opcodes.SUB_INT_2ADDR:
+			case SUB_INT:
 				return arith(insn, ArithOp.SUB, ArgType.INT);
 
-			case Opcodes.RSUB_INT_LIT8:
-			case Opcodes.RSUB_INT: // LIT16
+			case RSUB_INT:
 				return new ArithNode(ArithOp.SUB,
 						InsnArg.reg(insn, 0, ArgType.INT),
 						InsnArg.lit(insn, ArgType.INT),
 						InsnArg.reg(insn, 1, ArgType.INT));
 
-			case Opcodes.SUB_LONG:
-			case Opcodes.SUB_LONG_2ADDR:
+			case SUB_LONG:
 				return arith(insn, ArithOp.SUB, ArgType.LONG);
 
-			case Opcodes.SUB_FLOAT:
-			case Opcodes.SUB_FLOAT_2ADDR:
+			case SUB_FLOAT:
 				return arith(insn, ArithOp.SUB, ArgType.FLOAT);
 
-			case Opcodes.SUB_DOUBLE:
-			case Opcodes.SUB_DOUBLE_2ADDR:
+			case SUB_DOUBLE:
 				return arith(insn, ArithOp.SUB, ArgType.DOUBLE);
 
-			case Opcodes.MUL_INT:
-			case Opcodes.MUL_INT_2ADDR:
+			case MUL_INT:
 				return arith(insn, ArithOp.MUL, ArgType.INT);
 
-			case Opcodes.MUL_DOUBLE:
-			case Opcodes.MUL_DOUBLE_2ADDR:
+			case MUL_DOUBLE:
 				return arith(insn, ArithOp.MUL, ArgType.DOUBLE);
 
-			case Opcodes.MUL_FLOAT:
-			case Opcodes.MUL_FLOAT_2ADDR:
+			case MUL_FLOAT:
 				return arith(insn, ArithOp.MUL, ArgType.FLOAT);
 
-			case Opcodes.MUL_LONG:
-			case Opcodes.MUL_LONG_2ADDR:
+			case MUL_LONG:
 				return arith(insn, ArithOp.MUL, ArgType.LONG);
 
-			case Opcodes.MUL_INT_LIT8:
-			case Opcodes.MUL_INT_LIT16:
+			case MUL_INT_LIT:
 				return arithLit(insn, ArithOp.MUL, ArgType.INT);
 
-			case Opcodes.DIV_INT:
-			case Opcodes.DIV_INT_2ADDR:
+			case DIV_INT:
 				return arith(insn, ArithOp.DIV, ArgType.INT);
 
-			case Opcodes.REM_INT:
-			case Opcodes.REM_INT_2ADDR:
+			case REM_INT:
 				return arith(insn, ArithOp.REM, ArgType.INT);
 
-			case Opcodes.REM_LONG:
-			case Opcodes.REM_LONG_2ADDR:
+			case REM_LONG:
 				return arith(insn, ArithOp.REM, ArgType.LONG);
 
-			case Opcodes.REM_FLOAT:
-			case Opcodes.REM_FLOAT_2ADDR:
+			case REM_FLOAT:
 				return arith(insn, ArithOp.REM, ArgType.FLOAT);
 
-			case Opcodes.REM_DOUBLE:
-			case Opcodes.REM_DOUBLE_2ADDR:
+			case REM_DOUBLE:
 				return arith(insn, ArithOp.REM, ArgType.DOUBLE);
 
-			case Opcodes.DIV_DOUBLE:
-			case Opcodes.DIV_DOUBLE_2ADDR:
+			case DIV_DOUBLE:
 				return arith(insn, ArithOp.DIV, ArgType.DOUBLE);
 
-			case Opcodes.DIV_FLOAT:
-			case Opcodes.DIV_FLOAT_2ADDR:
+			case DIV_FLOAT:
 				return arith(insn, ArithOp.DIV, ArgType.FLOAT);
 
-			case Opcodes.DIV_LONG:
-			case Opcodes.DIV_LONG_2ADDR:
+			case DIV_LONG:
 				return arith(insn, ArithOp.DIV, ArgType.LONG);
 
-			case Opcodes.DIV_INT_LIT8:
-			case Opcodes.DIV_INT_LIT16:
+			case DIV_INT_LIT:
 				return arithLit(insn, ArithOp.DIV, ArgType.INT);
 
-			case Opcodes.REM_INT_LIT8:
-			case Opcodes.REM_INT_LIT16:
+			case REM_INT_LIT:
 				return arithLit(insn, ArithOp.REM, ArgType.INT);
 
-			case Opcodes.AND_INT:
-			case Opcodes.AND_INT_2ADDR:
+			case AND_INT:
 				return arith(insn, ArithOp.AND, ArgType.INT);
 
-			case Opcodes.AND_INT_LIT8:
-			case Opcodes.AND_INT_LIT16:
+			case AND_INT_LIT:
 				return arithLit(insn, ArithOp.AND, ArgType.INT);
 
-			case Opcodes.XOR_INT_LIT8:
-			case Opcodes.XOR_INT_LIT16:
+			case XOR_INT_LIT:
 				return arithLit(insn, ArithOp.XOR, ArgType.INT);
 
-			case Opcodes.AND_LONG:
-			case Opcodes.AND_LONG_2ADDR:
+			case AND_LONG:
 				return arith(insn, ArithOp.AND, ArgType.LONG);
 
-			case Opcodes.OR_INT:
-			case Opcodes.OR_INT_2ADDR:
+			case OR_INT:
 				return arith(insn, ArithOp.OR, ArgType.INT);
 
-			case Opcodes.OR_INT_LIT8:
-			case Opcodes.OR_INT_LIT16:
+			case OR_INT_LIT:
 				return arithLit(insn, ArithOp.OR, ArgType.INT);
 
-			case Opcodes.XOR_INT:
-			case Opcodes.XOR_INT_2ADDR:
+			case XOR_INT:
 				return arith(insn, ArithOp.XOR, ArgType.INT);
 
-			case Opcodes.OR_LONG:
-			case Opcodes.OR_LONG_2ADDR:
+			case OR_LONG:
 				return arith(insn, ArithOp.OR, ArgType.LONG);
 
-			case Opcodes.XOR_LONG:
-			case Opcodes.XOR_LONG_2ADDR:
+			case XOR_LONG:
 				return arith(insn, ArithOp.XOR, ArgType.LONG);
 
-			case Opcodes.USHR_INT:
-			case Opcodes.USHR_INT_2ADDR:
+			case USHR_INT:
 				return arith(insn, ArithOp.USHR, ArgType.INT);
 
-			case Opcodes.USHR_LONG:
-			case Opcodes.USHR_LONG_2ADDR:
+			case USHR_LONG:
 				return arith(insn, ArithOp.USHR, ArgType.LONG);
 
-			case Opcodes.SHL_INT:
-			case Opcodes.SHL_INT_2ADDR:
+			case SHL_INT:
 				return arith(insn, ArithOp.SHL, ArgType.INT);
 
-			case Opcodes.SHL_LONG:
-			case Opcodes.SHL_LONG_2ADDR:
+			case SHL_LONG:
 				return arith(insn, ArithOp.SHL, ArgType.LONG);
 
-			case Opcodes.SHR_INT:
-			case Opcodes.SHR_INT_2ADDR:
+			case SHR_INT:
 				return arith(insn, ArithOp.SHR, ArgType.INT);
 
-			case Opcodes.SHR_LONG:
-			case Opcodes.SHR_LONG_2ADDR:
+			case SHR_LONG:
 				return arith(insn, ArithOp.SHR, ArgType.LONG);
 
-			case Opcodes.SHL_INT_LIT8:
+			case SHL_INT_LIT:
 				return arithLit(insn, ArithOp.SHL, ArgType.INT);
-			case Opcodes.SHR_INT_LIT8:
+			case SHR_INT_LIT:
 				return arithLit(insn, ArithOp.SHR, ArgType.INT);
-			case Opcodes.USHR_INT_LIT8:
+			case USHR_INT_LIT:
 				return arithLit(insn, ArithOp.USHR, ArgType.INT);
 
-			case Opcodes.NEG_INT:
+			case NEG_INT:
 				return neg(insn, ArgType.INT);
-			case Opcodes.NEG_LONG:
+			case NEG_LONG:
 				return neg(insn, ArgType.LONG);
-			case Opcodes.NEG_FLOAT:
+			case NEG_FLOAT:
 				return neg(insn, ArgType.FLOAT);
-			case Opcodes.NEG_DOUBLE:
+			case NEG_DOUBLE:
 				return neg(insn, ArgType.DOUBLE);
 
-			case Opcodes.NOT_INT:
+			case NOT_INT:
 				return not(insn, ArgType.INT);
-			case Opcodes.NOT_LONG:
+			case NOT_LONG:
 				return not(insn, ArgType.LONG);
 
-			case Opcodes.INT_TO_BYTE:
+			case INT_TO_BYTE:
 				return cast(insn, ArgType.INT, ArgType.BYTE);
-			case Opcodes.INT_TO_CHAR:
+			case INT_TO_CHAR:
 				return cast(insn, ArgType.INT, ArgType.CHAR);
-			case Opcodes.INT_TO_SHORT:
+			case INT_TO_SHORT:
 				return cast(insn, ArgType.INT, ArgType.SHORT);
-			case Opcodes.INT_TO_FLOAT:
+			case INT_TO_FLOAT:
 				return cast(insn, ArgType.INT, ArgType.FLOAT);
-			case Opcodes.INT_TO_DOUBLE:
+			case INT_TO_DOUBLE:
 				return cast(insn, ArgType.INT, ArgType.DOUBLE);
-			case Opcodes.INT_TO_LONG:
+			case INT_TO_LONG:
 				return cast(insn, ArgType.INT, ArgType.LONG);
 
-			case Opcodes.FLOAT_TO_INT:
+			case FLOAT_TO_INT:
 				return cast(insn, ArgType.FLOAT, ArgType.INT);
-			case Opcodes.FLOAT_TO_DOUBLE:
+			case FLOAT_TO_DOUBLE:
 				return cast(insn, ArgType.FLOAT, ArgType.DOUBLE);
-			case Opcodes.FLOAT_TO_LONG:
+			case FLOAT_TO_LONG:
 				return cast(insn, ArgType.FLOAT, ArgType.LONG);
 
-			case Opcodes.DOUBLE_TO_INT:
+			case DOUBLE_TO_INT:
 				return cast(insn, ArgType.DOUBLE, ArgType.INT);
-			case Opcodes.DOUBLE_TO_FLOAT:
+			case DOUBLE_TO_FLOAT:
 				return cast(insn, ArgType.DOUBLE, ArgType.FLOAT);
-			case Opcodes.DOUBLE_TO_LONG:
+			case DOUBLE_TO_LONG:
 				return cast(insn, ArgType.DOUBLE, ArgType.LONG);
 
-			case Opcodes.LONG_TO_INT:
+			case LONG_TO_INT:
 				return cast(insn, ArgType.LONG, ArgType.INT);
-			case Opcodes.LONG_TO_FLOAT:
+			case LONG_TO_FLOAT:
 				return cast(insn, ArgType.LONG, ArgType.FLOAT);
-			case Opcodes.LONG_TO_DOUBLE:
+			case LONG_TO_DOUBLE:
 				return cast(insn, ArgType.LONG, ArgType.DOUBLE);
 
-			case Opcodes.IF_EQ:
-			case Opcodes.IF_EQZ:
+			case IF_EQ:
+			case IF_EQZ:
 				return new IfNode(insn, IfOp.EQ);
 
-			case Opcodes.IF_NE:
-			case Opcodes.IF_NEZ:
+			case IF_NE:
+			case IF_NEZ:
 				return new IfNode(insn, IfOp.NE);
 
-			case Opcodes.IF_GT:
-			case Opcodes.IF_GTZ:
+			case IF_GT:
+			case IF_GTZ:
 				return new IfNode(insn, IfOp.GT);
 
-			case Opcodes.IF_GE:
-			case Opcodes.IF_GEZ:
+			case IF_GE:
+			case IF_GEZ:
 				return new IfNode(insn, IfOp.GE);
 
-			case Opcodes.IF_LT:
-			case Opcodes.IF_LTZ:
+			case IF_LT:
+			case IF_LTZ:
 				return new IfNode(insn, IfOp.LT);
 
-			case Opcodes.IF_LE:
-			case Opcodes.IF_LEZ:
+			case IF_LE:
+			case IF_LEZ:
 				return new IfNode(insn, IfOp.LE);
 
-			case Opcodes.CMP_LONG:
+			case CMP_LONG:
 				return cmp(insn, InsnType.CMP_L, ArgType.LONG);
-			case Opcodes.CMPL_FLOAT:
+			case CMPL_FLOAT:
 				return cmp(insn, InsnType.CMP_L, ArgType.FLOAT);
-			case Opcodes.CMPL_DOUBLE:
+			case CMPL_DOUBLE:
 				return cmp(insn, InsnType.CMP_L, ArgType.DOUBLE);
 
-			case Opcodes.CMPG_FLOAT:
+			case CMPG_FLOAT:
 				return cmp(insn, InsnType.CMP_G, ArgType.FLOAT);
-			case Opcodes.CMPG_DOUBLE:
+			case CMPG_DOUBLE:
 				return cmp(insn, InsnType.CMP_G, ArgType.DOUBLE);
 
-			case Opcodes.GOTO:
-			case Opcodes.GOTO_16:
-			case Opcodes.GOTO_32:
+			case GOTO:
 				return new GotoNode(insn.getTarget());
 
-			case Opcodes.THROW:
+			case THROW:
 				return insn(InsnType.THROW, null, InsnArg.reg(insn, 0, ArgType.THROWABLE));
 
-			case Opcodes.MOVE_EXCEPTION:
+			case MOVE_EXCEPTION:
 				return insn(InsnType.MOVE_EXCEPTION, InsnArg.reg(insn, 0, ArgType.UNKNOWN_OBJECT_NO_ARRAY));
 
-			case Opcodes.RETURN_VOID:
+			case RETURN_VOID:
 				return new InsnNode(InsnType.RETURN, 0);
 
-			case Opcodes.RETURN:
-			case Opcodes.RETURN_WIDE:
-			case Opcodes.RETURN_OBJECT:
+			case RETURN:
 				return insn(InsnType.RETURN,
 						null,
 						InsnArg.reg(insn, 0, method.getReturnType()));
 
-			case Opcodes.INSTANCE_OF:
-				InsnNode instInsn = new IndexInsnNode(InsnType.INSTANCE_OF, dex.getType(insn.getIndex()), 1);
+			case INSTANCE_OF:
+				InsnNode instInsn = new IndexInsnNode(InsnType.INSTANCE_OF, ArgType.parse(insn.getIndexAsType()), 1);
 				instInsn.setResult(InsnArg.reg(insn, 0, ArgType.BOOLEAN));
 				instInsn.addArg(InsnArg.reg(insn, 1, ArgType.UNKNOWN_OBJECT));
 				return instInsn;
 
-			case Opcodes.CHECK_CAST:
-				ArgType castType = dex.getType(insn.getIndex());
+			case CHECK_CAST:
+				ArgType castType = ArgType.parse(insn.getIndexAsType());
 				InsnNode checkCastInsn = new IndexInsnNode(InsnType.CHECK_CAST, castType, 1);
 				checkCastInsn.setResult(InsnArg.reg(insn, 0, castType));
 				checkCastInsn.addArg(InsnArg.reg(insn, 0, ArgType.UNKNOWN_OBJECT));
 				return checkCastInsn;
 
-			case Opcodes.IGET:
-			case Opcodes.IGET_BOOLEAN:
-			case Opcodes.IGET_BYTE:
-			case Opcodes.IGET_CHAR:
-			case Opcodes.IGET_SHORT:
-			case Opcodes.IGET_WIDE:
-			case Opcodes.IGET_OBJECT:
-				FieldInfo igetFld = FieldInfo.fromDex(dex, insn.getIndex());
+			case IGET:
+				FieldInfo igetFld = FieldInfo.fromData(root, insn.getIndexAsField());
 				InsnNode igetInsn = new IndexInsnNode(InsnType.IGET, igetFld, 1);
 				igetInsn.setResult(InsnArg.reg(insn, 0, tryResolveFieldType(igetFld)));
 				igetInsn.addArg(InsnArg.reg(insn, 1, igetFld.getDeclClass().getType()));
 				return igetInsn;
 
-			case Opcodes.IPUT:
-			case Opcodes.IPUT_BOOLEAN:
-			case Opcodes.IPUT_BYTE:
-			case Opcodes.IPUT_CHAR:
-			case Opcodes.IPUT_SHORT:
-			case Opcodes.IPUT_WIDE:
-			case Opcodes.IPUT_OBJECT:
-				FieldInfo iputFld = FieldInfo.fromDex(dex, insn.getIndex());
+			case IPUT:
+				FieldInfo iputFld = FieldInfo.fromData(root, insn.getIndexAsField());
 				InsnNode iputInsn = new IndexInsnNode(InsnType.IPUT, iputFld, 2);
 				iputInsn.addArg(InsnArg.reg(insn, 0, tryResolveFieldType(iputFld)));
 				iputInsn.addArg(InsnArg.reg(insn, 1, iputFld.getDeclClass().getType()));
 				return iputInsn;
 
-			case Opcodes.SGET:
-			case Opcodes.SGET_BOOLEAN:
-			case Opcodes.SGET_BYTE:
-			case Opcodes.SGET_CHAR:
-			case Opcodes.SGET_SHORT:
-			case Opcodes.SGET_WIDE:
-			case Opcodes.SGET_OBJECT:
-				FieldInfo sgetFld = FieldInfo.fromDex(dex, insn.getIndex());
+			case SGET:
+				FieldInfo sgetFld = FieldInfo.fromData(root, insn.getIndexAsField());
 				InsnNode sgetInsn = new IndexInsnNode(InsnType.SGET, sgetFld, 0);
 				sgetInsn.setResult(InsnArg.reg(insn, 0, tryResolveFieldType(sgetFld)));
 				return sgetInsn;
 
-			case Opcodes.SPUT:
-			case Opcodes.SPUT_BOOLEAN:
-			case Opcodes.SPUT_BYTE:
-			case Opcodes.SPUT_CHAR:
-			case Opcodes.SPUT_SHORT:
-			case Opcodes.SPUT_WIDE:
-			case Opcodes.SPUT_OBJECT:
-				FieldInfo sputFld = FieldInfo.fromDex(dex, insn.getIndex());
+			case SPUT:
+				FieldInfo sputFld = FieldInfo.fromData(root, insn.getIndexAsField());
 				InsnNode sputInsn = new IndexInsnNode(InsnType.SPUT, sputFld, 1);
 				sputInsn.addArg(InsnArg.reg(insn, 0, tryResolveFieldType(sputFld)));
 				return sputInsn;
 
-			case Opcodes.ARRAY_LENGTH:
+			case ARRAY_LENGTH:
 				InsnNode arrLenInsn = new InsnNode(InsnType.ARRAY_LENGTH, 1);
 				arrLenInsn.setResult(InsnArg.reg(insn, 0, ArgType.INT));
 				arrLenInsn.addArg(InsnArg.reg(insn, 1, ArgType.array(ArgType.UNKNOWN)));
 				return arrLenInsn;
 
-			case Opcodes.AGET:
+			case AGET:
 				return arrayGet(insn, ArgType.INT_FLOAT);
-			case Opcodes.AGET_BOOLEAN:
+			case AGET_BOOLEAN:
 				return arrayGet(insn, ArgType.BOOLEAN);
-			case Opcodes.AGET_BYTE:
+			case AGET_BYTE:
 				return arrayGet(insn, ArgType.BYTE);
-			case Opcodes.AGET_CHAR:
+			case AGET_CHAR:
 				return arrayGet(insn, ArgType.CHAR);
-			case Opcodes.AGET_SHORT:
+			case AGET_SHORT:
 				return arrayGet(insn, ArgType.SHORT);
-			case Opcodes.AGET_WIDE:
+			case AGET_WIDE:
 				return arrayGet(insn, ArgType.WIDE);
-			case Opcodes.AGET_OBJECT:
+			case AGET_OBJECT:
 				return arrayGet(insn, ArgType.UNKNOWN_OBJECT);
 
-			case Opcodes.APUT:
+			case APUT:
 				return arrayPut(insn, ArgType.INT_FLOAT);
-			case Opcodes.APUT_BOOLEAN:
+			case APUT_BOOLEAN:
 				return arrayPut(insn, ArgType.BOOLEAN);
-			case Opcodes.APUT_BYTE:
+			case APUT_BYTE:
 				return arrayPut(insn, ArgType.BYTE);
-			case Opcodes.APUT_CHAR:
+			case APUT_CHAR:
 				return arrayPut(insn, ArgType.CHAR);
-			case Opcodes.APUT_SHORT:
+			case APUT_SHORT:
 				return arrayPut(insn, ArgType.SHORT);
-			case Opcodes.APUT_WIDE:
+			case APUT_WIDE:
 				return arrayPut(insn, ArgType.WIDE);
-			case Opcodes.APUT_OBJECT:
+			case APUT_OBJECT:
 				return arrayPut(insn, ArgType.UNKNOWN_OBJECT);
 
-			case Opcodes.INVOKE_STATIC:
+			case INVOKE_STATIC:
 				return invoke(insn, offset, InvokeType.STATIC, false);
 
-			case Opcodes.INVOKE_STATIC_RANGE:
+			case INVOKE_STATIC_RANGE:
 				return invoke(insn, offset, InvokeType.STATIC, true);
 
-			case Opcodes.INVOKE_DIRECT:
+			case INVOKE_DIRECT:
 				return invoke(insn, offset, InvokeType.DIRECT, false);
-			case Opcodes.INVOKE_INTERFACE:
+			case INVOKE_INTERFACE:
 				return invoke(insn, offset, InvokeType.INTERFACE, false);
-			case Opcodes.INVOKE_SUPER:
+			case INVOKE_SUPER:
 				return invoke(insn, offset, InvokeType.SUPER, false);
-			case Opcodes.INVOKE_VIRTUAL:
+			case INVOKE_VIRTUAL:
 				return invoke(insn, offset, InvokeType.VIRTUAL, false);
 
-			case Opcodes.INVOKE_DIRECT_RANGE:
+			case INVOKE_DIRECT_RANGE:
 				return invoke(insn, offset, InvokeType.DIRECT, true);
-			case Opcodes.INVOKE_INTERFACE_RANGE:
+			case INVOKE_INTERFACE_RANGE:
 				return invoke(insn, offset, InvokeType.INTERFACE, true);
-			case Opcodes.INVOKE_SUPER_RANGE:
+			case INVOKE_SUPER_RANGE:
 				return invoke(insn, offset, InvokeType.SUPER, true);
-			case Opcodes.INVOKE_VIRTUAL_RANGE:
+			case INVOKE_VIRTUAL_RANGE:
 				return invoke(insn, offset, InvokeType.VIRTUAL, true);
 
-			case Opcodes.NEW_INSTANCE:
-				ArgType clsType = dex.getType(insn.getIndex());
+			case NEW_INSTANCE:
+				ArgType clsType = ArgType.parse(insn.getIndexAsType());
 				IndexInsnNode newInstInsn = new IndexInsnNode(InsnType.NEW_INSTANCE, clsType, 0);
 				newInstInsn.setResult(InsnArg.reg(insn, 0, clsType));
 				return newInstInsn;
 
-			case Opcodes.NEW_ARRAY:
-				ArgType arrType = dex.getType(insn.getIndex());
+			case NEW_ARRAY:
+				ArgType arrType = ArgType.parse(insn.getIndexAsType());
 				return new NewArrayNode(arrType,
 						InsnArg.reg(insn, 0, arrType),
 						InsnArg.typeImmutableReg(insn, 1, ArgType.INT));
 
-			case Opcodes.FILL_ARRAY_DATA:
-				return fillArray(insn);
+			case FILL_ARRAY_DATA:
+				return new FillArrayInsn(InsnArg.reg(insn, 0, ArgType.UNKNOWN_ARRAY), insn.getTarget());
+			case FILL_ARRAY_DATA_PAYLOAD:
+				return new FillArrayData(((IArrayPayload) insn.getPayload()));
 
-			case Opcodes.FILLED_NEW_ARRAY:
-				return filledNewArray(insn, offset, false);
-			case Opcodes.FILLED_NEW_ARRAY_RANGE:
-				return filledNewArray(insn, offset, true);
+			case FILLED_NEW_ARRAY:
+				return filledNewArray(insn, false);
+			case FILLED_NEW_ARRAY_RANGE:
+				return filledNewArray(insn, true);
 
-			case Opcodes.PACKED_SWITCH:
-				return decodeSwitch(insn, offset, true);
+			case PACKED_SWITCH:
+				return new SwitchInsn(InsnArg.reg(insn, 0, ArgType.UNKNOWN), insn.getTarget(), true);
+			case SPARSE_SWITCH:
+				return new SwitchInsn(InsnArg.reg(insn, 0, ArgType.UNKNOWN), insn.getTarget(), false);
 
-			case Opcodes.SPARSE_SWITCH:
-				return decodeSwitch(insn, offset, false);
+			case PACKED_SWITCH_PAYLOAD:
+			case SPARSE_SWITCH_PAYLOAD:
+				return new SwitchData(((ISwitchPayload) insn.getPayload()));
 
-			case Opcodes.MONITOR_ENTER:
+			case MONITOR_ENTER:
 				return insn(InsnType.MONITOR_ENTER,
 						null,
 						InsnArg.reg(insn, 0, ArgType.UNKNOWN_OBJECT));
 
-			case Opcodes.MONITOR_EXIT:
+			case MONITOR_EXIT:
 				return insn(InsnType.MONITOR_EXIT,
 						null,
 						InsnArg.reg(insn, 0, ArgType.UNKNOWN_OBJECT));
 
 			default:
-				throw new DecodeException("Unknown instruction: '" + OpcodeInfo.getName(insn.getOpcode()) + '\'');
+				throw new DecodeException("Unknown instruction: '" + insn + '\'');
 		}
 	}
 
 	private ArgType tryResolveFieldType(FieldInfo igetFld) {
-		FieldNode fieldNode = dex.resolveField(igetFld);
+		FieldNode fieldNode = root.resolveField(igetFld);
 		if (fieldNode != null) {
 			return fieldNode.getType();
 		}
 		return igetFld.getType();
 	}
 
-	private InsnNode decodeSwitch(DecodedInstruction insn, int offset, boolean packed) {
-		int payloadOffset = insn.getTarget();
-		DecodedInstruction payload = getInsnByOffsetSkipNop(insnArr, payloadOffset);
-		Object[] keys;
-		int[] targets;
-		if (packed) {
-			PackedSwitchPayloadDecodedInstruction ps = (PackedSwitchPayloadDecodedInstruction) payload;
-			targets = ps.getTargets();
-			keys = new Object[targets.length];
-			int k = ps.getFirstKey();
-			for (int i = 0; i < keys.length; i++) {
-				keys[i] = k++;
-			}
-		} else {
-			SparseSwitchPayloadDecodedInstruction ss = (SparseSwitchPayloadDecodedInstruction) payload;
-			targets = ss.getTargets();
-			keys = new Object[targets.length];
-			for (int i = 0; i < keys.length; i++) {
-				keys[i] = ss.getKeys()[i];
-			}
-		}
-		// convert from relative to absolute offsets
-		for (int i = 0; i < targets.length; i++) {
-			targets[i] = targets[i] - payloadOffset + offset;
-		}
-		int nextOffset = getNextInsnOffset(insnArr, offset);
-		return new SwitchNode(InsnArg.reg(insn, 0, ArgType.NARROW), keys, targets, nextOffset, packed);
-	}
-
-	private InsnNode fillArray(DecodedInstruction insn) {
-		DecodedInstruction payload = getInsnByOffsetSkipNop(insnArr, insn.getTarget());
-		return new FillArrayNode(insn.getA(), (FillArrayDataPayloadDecodedInstruction) payload);
-	}
-
-	private InsnNode filledNewArray(DecodedInstruction insn, int offset, boolean isRange) {
-		int resReg = getMoveResultRegister(insnArr, offset);
-		ArgType arrType = dex.getType(insn.getIndex());
+	private InsnNode filledNewArray(InsnData insn, boolean isRange) {
+		ArgType arrType = ArgType.parse(insn.getIndexAsType());
 		ArgType elType = arrType.getArrayElement();
 		boolean typeImmutable = elType.isPrimitive();
-		int regsCount = insn.getRegisterCount();
+		int regsCount = insn.getRegsCount();
 		InsnArg[] regs = new InsnArg[regsCount];
 		if (isRange) {
-			int r = insn.getA();
+			int r = insn.getReg(0);
 			for (int i = 0; i < regsCount; i++) {
 				regs[i] = InsnArg.reg(r, elType, typeImmutable);
 				r++;
 			}
 		} else {
 			for (int i = 0; i < regsCount; i++) {
-				int regNum = InsnUtils.getArg(insn, i);
+				int regNum = insn.getReg(i);
 				regs[i] = InsnArg.reg(regNum, elType, typeImmutable);
 			}
 		}
 		InsnNode node = new FilledNewArrayNode(elType, regs.length);
-		node.setResult(resReg == -1 ? null : InsnArg.reg(resReg, arrType));
+		// node.setResult(resReg == -1 ? null : InsnArg.reg(resReg, arrType));
 		for (InsnArg arg : regs) {
 			node.addArg(arg);
 		}
 		return node;
 	}
 
-	private InsnNode cmp(DecodedInstruction insn, InsnType itype, ArgType argType) {
+	private InsnNode cmp(InsnData insn, InsnType itype, ArgType argType) {
 		InsnNode inode = new InsnNode(itype, 2);
 		inode.setResult(InsnArg.reg(insn, 0, ArgType.INT));
 		inode.addArg(InsnArg.reg(insn, 1, argType));
@@ -666,20 +513,19 @@ public class InsnDecoder {
 		return inode;
 	}
 
-	private InsnNode cast(DecodedInstruction insn, ArgType from, ArgType to) {
+	private InsnNode cast(InsnData insn, ArgType from, ArgType to) {
 		InsnNode inode = new IndexInsnNode(InsnType.CAST, to, 1);
 		inode.setResult(InsnArg.reg(insn, 0, to));
 		inode.addArg(InsnArg.reg(insn, 1, from));
 		return inode;
 	}
 
-	private InsnNode invoke(DecodedInstruction insn, int offset, InvokeType type, boolean isRange) {
-		int resReg = getMoveResultRegister(insnArr, offset);
-		MethodInfo mth = MethodInfo.fromDex(dex, insn.getIndex());
-		return new InvokeNode(mth, insn, type, isRange, resReg);
+	private InsnNode invoke(InsnData insn, int offset, InvokeType type, boolean isRange) {
+		MethodInfo mth = MethodInfo.fromData(root, insn.getIndexAsMethod());
+		return new InvokeNode(mth, insn, type, isRange);
 	}
 
-	private InsnNode arrayGet(DecodedInstruction insn, ArgType argType) {
+	private InsnNode arrayGet(InsnData insn, ArgType argType) {
 		InsnNode inode = new InsnNode(InsnType.AGET, 2);
 		inode.setResult(InsnArg.typeImmutableIfKnownReg(insn, 0, argType));
 		inode.addArg(InsnArg.typeImmutableIfKnownReg(insn, 1, ArgType.array(argType)));
@@ -687,7 +533,7 @@ public class InsnDecoder {
 		return inode;
 	}
 
-	private InsnNode arrayPut(DecodedInstruction insn, ArgType argType) {
+	private InsnNode arrayPut(InsnData insn, ArgType argType) {
 		InsnNode inode = new InsnNode(InsnType.APUT, 3);
 		inode.addArg(InsnArg.typeImmutableIfKnownReg(insn, 1, ArgType.array(argType)));
 		inode.addArg(InsnArg.reg(insn, 2, ArgType.NARROW_INTEGRAL));
@@ -695,11 +541,11 @@ public class InsnDecoder {
 		return inode;
 	}
 
-	private InsnNode arith(DecodedInstruction insn, ArithOp op, ArgType type) {
+	private InsnNode arith(InsnData insn, ArithOp op, ArgType type) {
 		return new ArithNode(insn, op, fixTypeForBitOps(op, type), false);
 	}
 
-	private InsnNode arithLit(DecodedInstruction insn, ArithOp op, ArgType type) {
+	private InsnNode arithLit(InsnData insn, ArithOp op, ArgType type) {
 		return new ArithNode(insn, op, fixTypeForBitOps(op, type), true);
 	}
 
@@ -711,14 +557,14 @@ public class InsnDecoder {
 		return type;
 	}
 
-	private InsnNode neg(DecodedInstruction insn, ArgType type) {
+	private InsnNode neg(InsnData insn, ArgType type) {
 		InsnNode inode = new InsnNode(InsnType.NEG, 1);
 		inode.setResult(InsnArg.reg(insn, 0, type));
 		inode.addArg(InsnArg.reg(insn, 1, type));
 		return inode;
 	}
 
-	private InsnNode not(DecodedInstruction insn, ArgType type) {
+	private InsnNode not(InsnData insn, ArgType type) {
 		InsnNode inode = new InsnNode(InsnType.NOT, 1);
 		inode.setResult(InsnArg.reg(insn, 0, type));
 		inode.addArg(InsnArg.reg(insn, 1, type));
@@ -736,55 +582,5 @@ public class InsnDecoder {
 		node.setResult(res);
 		node.addArg(arg);
 		return node;
-	}
-
-	private int getMoveResultRegister(DecodedInstruction[] insnArr, int offset) {
-		int nextOffset = getNextInsnOffsetSkipNop(insnArr, offset);
-		if (nextOffset >= 0) {
-			DecodedInstruction next = insnArr[nextOffset];
-			int opc = next.getOpcode();
-			if (opc == Opcodes.MOVE_RESULT
-					|| opc == Opcodes.MOVE_RESULT_WIDE
-					|| opc == Opcodes.MOVE_RESULT_OBJECT) {
-				return next.getA();
-			}
-		}
-		return -1;
-	}
-
-	private static DecodedInstruction getInsnByOffsetSkipNop(DecodedInstruction[] insnArr, int offset) {
-		DecodedInstruction payload = insnArr[offset];
-		if (payload.getOpcode() == Opcodes.NOP) {
-			return insnArr[getNextInsnOffsetSkipNop(insnArr, offset)];
-		}
-		return payload;
-	}
-
-	public static int getNextInsnOffset(DecodedInstruction[] insnArr, int offset) {
-		return getNextInsnOffset(insnArr, offset, null);
-	}
-
-	public static int getNextInsnOffsetSkipNop(DecodedInstruction[] insnArr, int offset) {
-		return getNextInsnOffset(insnArr, offset, i -> i.getOpcode() == Opcodes.NOP);
-	}
-
-	public static int getNextInsnOffset(InsnNode[] insnArr, int offset) {
-		return getNextInsnOffset(insnArr, offset, null);
-	}
-
-	public static <T> int getNextInsnOffset(T[] insnArr, int offset, Predicate<T> skip) {
-		int i = offset + 1;
-		while (i < insnArr.length) {
-			T insn = insnArr[i];
-			if (insn == null || (skip != null && skip.test(insn))) {
-				i++;
-			} else {
-				break;
-			}
-		}
-		if (i >= insnArr.length) {
-			return -1;
-		}
-		return i;
 	}
 }

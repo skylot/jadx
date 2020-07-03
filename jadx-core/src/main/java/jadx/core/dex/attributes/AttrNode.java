@@ -2,7 +2,7 @@ package jadx.core.dex.attributes;
 
 import java.util.List;
 
-import jadx.core.dex.attributes.annotations.Annotation;
+import jadx.api.plugins.input.data.annotations.IAnnotation;
 
 public abstract class AttrNode implements IAttributeNode {
 
@@ -64,7 +64,7 @@ public abstract class AttrNode implements IAttributeNode {
 	}
 
 	@Override
-	public Annotation getAnnotation(String cls) {
+	public IAnnotation getAnnotation(String cls) {
 		return storage.getAnnotation(cls);
 	}
 

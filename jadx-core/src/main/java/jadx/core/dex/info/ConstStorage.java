@@ -13,13 +13,12 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.api.JadxArgs;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.FieldInitAttr;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.FieldNode;
-import jadx.core.dex.nodes.parser.FieldInitAttr;
-import jadx.core.utils.ErrorsCounter;
+import jadx.core.dex.nodes.RootNode;
 
 public class ConstStorage {
 
@@ -87,10 +86,10 @@ public class ConstStorage {
 			if (accFlags.isStatic() && accFlags.isFinal()) {
 				FieldInitAttr fv = f.get(AType.FIELD_INIT);
 				if (fv != null
-						&& fv.getValue() != null
 						&& fv.getValueType() == FieldInitAttr.InitType.CONST
-						&& fv != FieldInitAttr.NULL_VALUE) {
-					addConstField(cls, f, fv.getValue(), accFlags.isPublic());
+						&& fv != FieldInitAttr.NULL_VALUE
+						&& fv.getEncodedValue() != null) {
+					addConstField(cls, f, fv.getEncodedValue().getValue(), accFlags.isPublic());
 				}
 			}
 		}
@@ -118,9 +117,9 @@ public class ConstStorage {
 		if (!replaceEnabled) {
 			return null;
 		}
-		DexNode dex = cls.dex();
+		RootNode root = cls.root();
 		if (value instanceof Integer) {
-			FieldNode rField = getResourceField((Integer) value, dex);
+			FieldNode rField = getResourceField((Integer) value, root);
 			if (rField != null) {
 				return rField;
 			}
@@ -145,7 +144,7 @@ public class ConstStorage {
 			if (parentClass == null) {
 				break;
 			}
-			current = dex.resolveClass(parentClass);
+			current = root.resolveClass(parentClass);
 		}
 		if (searchGlobal) {
 			return globalValues.get(value);
@@ -154,12 +153,12 @@ public class ConstStorage {
 	}
 
 	@Nullable
-	private FieldNode getResourceField(Integer value, DexNode dex) {
+	private FieldNode getResourceField(Integer value, RootNode root) {
 		String str = resourcesNames.get(value);
 		if (str == null) {
 			return null;
 		}
-		ClassNode appResClass = dex.root().getAppResClass();
+		ClassNode appResClass = root.getAppResClass();
 		if (appResClass == null) {
 			return null;
 		}
@@ -174,7 +173,7 @@ public class ConstStorage {
 				return innerClass.searchFieldByName(fieldName);
 			}
 		}
-		ErrorsCounter.classWarn(appResClass, "Not found resource field with id: " + value + ", name: " + str.replace('/', '.'));
+		appResClass.addWarn("Not found resource field with id: " + value + ", name: " + str.replace('/', '.'));
 		return null;
 	}
 

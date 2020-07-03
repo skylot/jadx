@@ -52,7 +52,7 @@ public class InitCodeVariables extends AbstractVisitor {
 		}
 	}
 
-	private static void initCodeVar(SSAVar ssaVar) {
+	public static void initCodeVar(SSAVar ssaVar) {
 		if (ssaVar.isCodeVarSet()) {
 			return;
 		}

@@ -3,8 +3,7 @@ package jadx.core.dex.visitors;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.android.dx.rop.code.AccessFlags;
-
+import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -35,18 +34,21 @@ public class MethodInlineVisitor extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
-		if (mth.isNoCode() || mth.contains(AFlag.DONT_GENERATE)) {
-			return;
-		}
-		AccessInfo accessFlags = mth.getAccessFlags();
-		if (accessFlags.isSynthetic() && accessFlags.isStatic()
-				&& mth.getBasicBlocks().size() == 2) {
+		if (canInline(mth) && mth.getBasicBlocks().size() == 2) {
 			BlockNode returnBlock = mth.getBasicBlocks().get(1);
 			if (returnBlock.contains(AFlag.RETURN) || returnBlock.getInstructions().isEmpty()) {
 				BlockNode firstBlock = mth.getBasicBlocks().get(0);
 				inlineMth(mth, firstBlock, returnBlock);
 			}
 		}
+	}
+
+	public static boolean canInline(MethodNode mth) {
+		if (mth.isNoCode() || mth.contains(AFlag.DONT_GENERATE)) {
+			return false;
+		}
+		AccessInfo accessFlags = mth.getAccessFlags();
+		return accessFlags.isSynthetic() && accessFlags.isStatic();
 	}
 
 	private static void inlineMth(MethodNode mth, BlockNode firstBlock, BlockNode returnBlock) {
@@ -73,7 +75,7 @@ public class MethodInlineVisitor extends AbstractVisitor {
 			if (Consts.DEBUG) {
 				mth.addAttr(AType.COMMENTS, "Removed for inline");
 			} else {
-				InsnNode copy = insn.copy();
+				InsnNode copy = insn.copyWithoutResult();
 				// unbind SSA variables from copy instruction
 				List<RegisterArg> regArgs = new ArrayList<>();
 				copy.getRegisterArgs(regArgs);
@@ -87,7 +89,7 @@ public class MethodInlineVisitor extends AbstractVisitor {
 	}
 
 	private static boolean fixVisibilityOfInlineCode(MethodNode mth, InsnNode insn) {
-		int newVisFlag = AccessFlags.ACC_PUBLIC; // TODO: calculate more precisely
+		int newVisFlag = AccessFlags.PUBLIC; // TODO: calculate more precisely
 		InsnType insnType = insn.getType();
 		if (insnType == InsnType.INVOKE) {
 			InvokeNode invoke = (InvokeNode) insn;

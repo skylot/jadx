@@ -36,7 +36,7 @@ public class TestBreakWithLabel extends IntegrationTest {
 	}
 
 	@Test
-	public void test() throws Exception {
+	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 

@@ -21,7 +21,6 @@ import jadx.core.codegen.CodeWriter;
 import jadx.core.utils.Utils;
 import jadx.core.utils.android.Res9patchStreamDecoder;
 import jadx.core.utils.exceptions.JadxException;
-import jadx.core.utils.files.InputFile;
 import jadx.core.utils.files.ZipSecurity;
 import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.ResTableParser;
@@ -39,10 +38,11 @@ public final class ResourcesLoader {
 		this.jadxRef = jadxRef;
 	}
 
-	List<ResourceFile> load(List<InputFile> inputFiles) {
+	List<ResourceFile> load() {
+		List<File> inputFiles = jadxRef.getArgs().getInputFiles();
 		List<ResourceFile> list = new ArrayList<>(inputFiles.size());
-		for (InputFile file : inputFiles) {
-			loadFile(list, file.getFile());
+		for (File file : inputFiles) {
+			loadFile(list, file);
 		}
 		return list;
 	}

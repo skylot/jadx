@@ -44,7 +44,7 @@ public class SkipMethodArgsAttr implements IAttribute {
 	private final BitSet skipArgs;
 
 	private SkipMethodArgsAttr(MethodNode mth) {
-		this.skipArgs = new BitSet(mth.getArgRegs().size());
+		this.skipArgs = new BitSet(mth.getMethodInfo().getArgsCount());
 	}
 
 	public void skip(int argNum) {
@@ -53,6 +53,10 @@ public class SkipMethodArgsAttr implements IAttribute {
 
 	public boolean isSkip(int argNum) {
 		return skipArgs.get(argNum);
+	}
+
+	public int getSkipCount() {
+		return skipArgs.cardinality();
 	}
 
 	@Override

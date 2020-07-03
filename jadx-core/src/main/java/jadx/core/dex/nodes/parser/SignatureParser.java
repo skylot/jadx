@@ -9,11 +9,13 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.plugins.input.data.annotations.EncodedValue;
+import jadx.api.plugins.input.data.annotations.IAnnotation;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.IAttributeNode;
-import jadx.core.dex.attributes.annotations.Annotation;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.GenericTypeParameter;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class SignatureParser {
@@ -33,14 +35,25 @@ public class SignatureParser {
 		mark = 0;
 	}
 
-	@SuppressWarnings("unchecked")
+	@Nullable
 	public static SignatureParser fromNode(IAttributeNode node) {
-		Annotation a = node.getAnnotation(Consts.DALVIK_SIGNATURE);
+		String signature = getSignature(node);
+		if (signature == null) {
+			return null;
+		}
+		return new SignatureParser(signature);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Nullable
+	public static String getSignature(IAttributeNode node) {
+		IAnnotation a = node.getAnnotation(Consts.DALVIK_SIGNATURE);
 		if (a == null) {
 			return null;
 		}
-		String signature = mergeSignature((List<String>) a.getDefaultValue());
-		return new SignatureParser(signature);
+		List<EncodedValue> values = (List<EncodedValue>) a.getDefaultValue().getValue();
+		List<String> strings = Utils.collectionMap(values, ev -> ((String) ev.getValue()));
+		return mergeSignature(strings);
 	}
 
 	private char next() {

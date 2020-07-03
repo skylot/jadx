@@ -8,8 +8,7 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
 
-import com.android.dx.io.instructions.DecodedInstruction;
-
+import jadx.api.plugins.input.insns.InsnData;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
@@ -51,6 +50,7 @@ public class InsnNode extends LineAttrNode {
 	}
 
 	public void setResult(@Nullable RegisterArg res) {
+		this.result = res;
 		if (res != null) {
 			res.setParentInsn(this);
 			SSAVar ssaVar = res.getSVar();
@@ -58,7 +58,6 @@ public class InsnNode extends LineAttrNode {
 				ssaVar.setAssign(res);
 			}
 		}
-		this.result = res;
 	}
 
 	public void addArg(InsnArg arg) {
@@ -171,7 +170,7 @@ public class InsnNode extends LineAttrNode {
 		return -1;
 	}
 
-	protected void addReg(DecodedInstruction insn, int i, ArgType type) {
+	protected void addReg(InsnData insn, int i, ArgType type) {
 		addArg(InsnArg.reg(insn, i, type));
 	}
 
@@ -183,7 +182,7 @@ public class InsnNode extends LineAttrNode {
 		addArg(InsnArg.lit(literal, type));
 	}
 
-	protected void addLit(DecodedInstruction insn, ArgType type) {
+	protected void addLit(InsnData insn, ArgType type) {
 		addArg(InsnArg.lit(insn, type));
 	}
 
@@ -210,6 +209,17 @@ public class InsnNode extends LineAttrNode {
 			case CONST:
 			case CONST_STR:
 			case CONST_CLASS:
+				return true;
+
+			default:
+				return false;
+		}
+	}
+
+	public boolean canRemoveResult() {
+		switch (getType()) {
+			case INVOKE:
+			case CONSTRUCTOR:
 				return true;
 
 			default:
@@ -248,7 +258,6 @@ public class InsnNode extends LineAttrNode {
 			case FILL_ARRAY:
 			case FILLED_NEW_ARRAY:
 			case NEW_ARRAY:
-			case NEW_MULTIDIM_ARRAY:
 			case STR_CONCAT:
 				return true;
 
@@ -270,6 +279,15 @@ public class InsnNode extends LineAttrNode {
 			}
 		}
 		return true;
+	}
+
+	public boolean containsWrappedInsn() {
+		for (InsnArg arg : this.getArguments()) {
+			if (arg.isInsnWrap()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -317,17 +335,9 @@ public class InsnNode extends LineAttrNode {
 	}
 
 	protected final <T extends InsnNode> T copyCommonParams(T copy) {
-		if (copy.getResult() == null && result != null) {
-			copy.setResult(result.duplicate());
-		}
 		if (copy.getArgsCount() == 0) {
 			for (InsnArg arg : this.getArguments()) {
-				if (arg.isInsnWrap()) {
-					InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
-					copy.addArg(InsnArg.wrapInsnIntoArg(wrapInsn.copy()));
-				} else {
-					copy.addArg(arg.duplicate());
-				}
+				copy.addArg(arg.duplicate());
 			}
 		}
 		copy.copyAttributesFrom(this);
@@ -338,12 +348,66 @@ public class InsnNode extends LineAttrNode {
 
 	/**
 	 * Make copy of InsnNode object.
+	 * <p>
+	 * NOTE: can't copy instruction with result argument
+	 * (SSA variable can't be used in two different assigns).
+	 * <p>
+	 * Prefer use next methods:
+	 * <ul>
+	 * <li>{@link #copyWithoutResult()} to explicitly state that result not needed
+	 * <li>{@link #copy(RegisterArg)} to provide new result arg
+	 * <li>{@link #copyWithNewSsaVar(MethodNode)} to make new SSA variable for result arg
+	 * </ul>
+	 * <p>
 	 */
 	public InsnNode copy() {
 		if (this.getClass() != InsnNode.class) {
 			throw new JadxRuntimeException("Copy method not implemented in insn class " + this.getClass().getSimpleName());
 		}
 		return copyCommonParams(new InsnNode(insnType, getArgsCount()));
+	}
+
+	/**
+	 * See {@link #copy()}
+	 */
+	@SuppressWarnings("unchecked")
+	public <T extends InsnNode> T copyWithoutResult() {
+		return (T) copy();
+	}
+
+	public InsnNode copyWithoutSsa() {
+		InsnNode copy = copyWithoutResult();
+		if (result != null) {
+			if (result.getSVar() == null) {
+				copy.setResult(result.duplicate());
+			} else {
+				throw new JadxRuntimeException("Can't copy if SSA var is set");
+			}
+		}
+		return copy;
+	}
+
+	/**
+	 * See {@link #copy()}
+	 */
+	public InsnNode copy(RegisterArg newReturnArg) {
+		InsnNode copy = copy();
+		copy.setResult(newReturnArg);
+		return copy;
+	}
+
+	/**
+	 * See {@link #copy()}
+	 */
+	public InsnNode copyWithNewSsaVar(MethodNode mth) {
+		RegisterArg result = getResult();
+		if (result == null) {
+			throw new JadxRuntimeException("Result in null");
+		}
+		int regNum = result.getRegNum();
+		RegisterArg resDupArg = result.duplicate(regNum, null);
+		mth.makeNewSVar(resDupArg);
+		return copy(resDupArg);
 	}
 
 	/**
@@ -404,6 +468,9 @@ public class InsnNode extends LineAttrNode {
 	}
 
 	protected void appendArgs(StringBuilder sb) {
+		if (arguments.isEmpty()) {
+			return;
+		}
 		String argsStr = Utils.listToString(arguments);
 		if (argsStr.length() < 120) {
 			sb.append(argsStr);

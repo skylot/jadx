@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +30,7 @@ public class ClspGraph {
 	private static final Logger LOG = LoggerFactory.getLogger(ClspGraph.class);
 
 	private final RootNode root;
-	private final Map<String, Set<String>> ancestorCache = Collections.synchronizedMap(new WeakHashMap<>());
+	private final Map<String, Set<String>> superTypesCache = Collections.synchronizedMap(new WeakHashMap<>());
 	private Map<String, ClspClass> nameMap;
 
 	private final Set<String> missingClasses = new HashSet<>();
@@ -116,7 +117,7 @@ public class ClspGraph {
 	 * @return {@code clsName} instanceof {@code implClsName}
 	 */
 	public boolean isImplements(String clsName, String implClsName) {
-		Set<String> anc = getAncestors(clsName);
+		Set<String> anc = getSuperTypes(clsName);
 		return anc.contains(implClsName);
 	}
 
@@ -142,7 +143,7 @@ public class ClspGraph {
 		if (isImplements(clsName, implClsName)) {
 			return implClsName;
 		}
-		Set<String> anc = getAncestors(clsName);
+		Set<String> anc = getSuperTypes(clsName);
 		return searchCommonParent(anc, cls);
 	}
 
@@ -163,35 +164,42 @@ public class ClspGraph {
 		return null;
 	}
 
-	public Set<String> getAncestors(String clsName) {
-		Set<String> result = ancestorCache.get(clsName);
-		if (result != null) {
-			return result;
+	public Set<String> getSuperTypes(String clsName) {
+		Set<String> fromCache = superTypesCache.get(clsName);
+		if (fromCache != null) {
+			return fromCache;
 		}
 		ClspClass cls = nameMap.get(clsName);
 		if (cls == null) {
 			missingClasses.add(clsName);
 			return Collections.emptySet();
 		}
-		result = new HashSet<>();
-		addAncestorsNames(cls, result);
+		Set<String> result = new HashSet<>();
+		addSuperTypes(cls, result);
+		return putInSuperTypesCache(clsName, result);
+	}
+
+	@NotNull
+	private Set<String> putInSuperTypesCache(String clsName, Set<String> result) {
 		if (result.isEmpty()) {
-			result = Collections.emptySet();
+			Set<String> empty = Collections.emptySet();
+			superTypesCache.put(clsName, result);
+			return empty;
 		}
-		ancestorCache.put(clsName, result);
+		superTypesCache.put(clsName, result);
 		return result;
 	}
 
-	private void addAncestorsNames(ClspClass cls, Set<String> result) {
-		boolean isNew = result.add(cls.getName());
-		if (isNew) {
-			for (ArgType parentType : cls.getParents()) {
-				if (parentType == null) {
-					continue;
-				}
-				ClspClass parentCls = getClspClass(parentType);
-				if (parentCls != null) {
-					addAncestorsNames(parentCls, result);
+	private void addSuperTypes(ClspClass cls, Set<String> result) {
+		for (ArgType parentType : cls.getParents()) {
+			if (parentType == null) {
+				continue;
+			}
+			ClspClass parentCls = getClspClass(parentType);
+			if (parentCls != null) {
+				boolean isNew = result.add(parentCls.getName());
+				if (isNew) {
+					addSuperTypes(parentCls, result);
 				}
 			}
 		}

@@ -1,12 +1,14 @@
 package jadx.core.utils;
 
+import java.util.function.Predicate;
+
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.android.dx.io.instructions.DecodedInstruction;
-
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.FieldInitAttr;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.ConstClassNode;
 import jadx.core.dex.instructions.ConstStringNode;
@@ -15,34 +17,18 @@ import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
-import jadx.core.dex.nodes.DexNode;
+import jadx.core.dex.instructions.args.SSAVar;
+import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
-import jadx.core.dex.nodes.parser.FieldInitAttr;
-import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.nodes.RootNode;
 
 public class InsnUtils {
 
 	private static final Logger LOG = LoggerFactory.getLogger(InsnUtils.class);
 
 	private InsnUtils() {
-	}
-
-	public static int getArg(DecodedInstruction insn, int arg) {
-		switch (arg) {
-			case 0:
-				return insn.getA();
-			case 1:
-				return insn.getB();
-			case 2:
-				return insn.getC();
-			case 3:
-				return insn.getD();
-			case 4:
-				return insn.getE();
-			default:
-				throw new JadxRuntimeException("Wrong argument number: " + arg);
-		}
 	}
 
 	public static String formatOffset(int offset) {
@@ -71,7 +57,7 @@ public class InsnUtils {
 	 *
 	 * @return LiteralArg, String, ArgType or null
 	 */
-	public static Object getConstValueByArg(DexNode dex, InsnArg arg) {
+	public static Object getConstValueByArg(RootNode root, InsnArg arg) {
 		if (arg.isLiteral()) {
 			return arg;
 		}
@@ -82,13 +68,13 @@ public class InsnUtils {
 				return null;
 			}
 			if (parInsn.getType() == InsnType.MOVE) {
-				return getConstValueByArg(dex, parInsn.getArg(0));
+				return getConstValueByArg(root, parInsn.getArg(0));
 			}
-			return getConstValueByInsn(dex, parInsn);
+			return getConstValueByInsn(root, parInsn);
 		}
 		if (arg.isInsnWrap()) {
 			InsnNode insn = ((InsnWrapArg) arg).getWrapInsn();
-			return getConstValueByInsn(dex, insn);
+			return getConstValueByInsn(root, insn);
 		}
 		return null;
 	}
@@ -99,7 +85,7 @@ public class InsnUtils {
 	 * @return LiteralArg, String, ArgType or null
 	 */
 	@Nullable
-	public static Object getConstValueByInsn(DexNode dex, InsnNode insn) {
+	public static Object getConstValueByInsn(RootNode root, InsnNode insn) {
 		switch (insn.getType()) {
 			case CONST:
 				return insn.getArg(0);
@@ -109,16 +95,106 @@ public class InsnUtils {
 				return ((ConstClassNode) insn).getClsType();
 			case SGET:
 				FieldInfo f = (FieldInfo) ((IndexInsnNode) insn).getIndex();
-				FieldNode fieldNode = dex.root().deepResolveField(f);
+				FieldNode fieldNode = root.deepResolveField(f);
 				if (fieldNode == null) {
-					LOG.warn("Field {} not found in dex {}", f, dex);
+					LOG.warn("Field {} not found", f);
 					return null;
 				}
 				FieldInitAttr attr = fieldNode.get(AType.FIELD_INIT);
-				return attr != null ? attr.getValue() : null;
+				if (attr != null) {
+					if (attr.getValueType() == FieldInitAttr.InitType.CONST) {
+						return attr.getEncodedValue().getValue();
+					}
+					return attr.getInsn();
+				}
+				return null;
 
 			default:
 				return null;
 		}
+	}
+
+	@Nullable
+	public static InsnNode searchSingleReturnInsn(MethodNode mth, Predicate<InsnNode> test) {
+		if (!mth.isNoCode() && mth.getExitBlocks().size() == 1) {
+			return searchInsn(mth, InsnType.RETURN, test);
+		}
+		return null;
+	}
+
+	/**
+	 * Search instruction of specific type and condition in method.
+	 * This method support inlined instructions.
+	 */
+	@Nullable
+	public static InsnNode searchInsn(MethodNode mth, InsnType insnType, Predicate<InsnNode> test) {
+		if (mth.isNoCode()) {
+			return null;
+		}
+		for (BlockNode block : mth.getBasicBlocks()) {
+			for (InsnNode insn : block.getInstructions()) {
+				InsnNode foundInsn = recursiveInsnCheck(insn, insnType, test);
+				if (foundInsn != null) {
+					return foundInsn;
+				}
+			}
+		}
+		return null;
+	}
+
+	private static InsnNode recursiveInsnCheck(InsnNode insn, InsnType insnType, Predicate<InsnNode> test) {
+		if (insn.getType() == insnType && test.test(insn)) {
+			return insn;
+		}
+		for (InsnArg arg : insn.getArguments()) {
+			if (arg.isInsnWrap()) {
+				InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
+				InsnNode foundInsn = recursiveInsnCheck(wrapInsn, insnType, test);
+				if (foundInsn != null) {
+					return foundInsn;
+				}
+			}
+		}
+		return null;
+	}
+
+	@Nullable
+	public static InsnArg getSingleArg(InsnNode insn) {
+		if (insn != null && insn.getArgsCount() == 1) {
+			return insn.getArg(0);
+		}
+		return null;
+	}
+
+	@Nullable
+	public static InsnNode checkInsnType(@Nullable InsnNode insn, InsnType insnType) {
+		if (insn != null && insn.getType() == insnType) {
+			return insn;
+		}
+		return null;
+	}
+
+	@Nullable
+	public static InsnNode getWrappedInsn(InsnArg arg) {
+		if (arg != null && arg.isInsnWrap()) {
+			return ((InsnWrapArg) arg).getWrapInsn();
+		}
+		return null;
+	}
+
+	public static boolean dontGenerateIfNotUsed(InsnNode insn) {
+		RegisterArg resArg = insn.getResult();
+		if (resArg != null) {
+			SSAVar ssaVar = resArg.getSVar();
+			for (RegisterArg arg : ssaVar.getUseList()) {
+				InsnNode parentInsn = arg.getParentInsn();
+				if (parentInsn != null
+						&& !parentInsn.contains(AFlag.DONT_GENERATE)) {
+					return false;
+				}
+			}
+		}
+		insn.add(AFlag.DONT_GENERATE);
+		return true;
 	}
 }

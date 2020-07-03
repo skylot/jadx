@@ -130,8 +130,20 @@ public class RegisterArg extends InsnArg implements Named {
 		return duplicate(getRegNum(), sVar);
 	}
 
+	public RegisterArg duplicate(ArgType initType) {
+		return duplicate(getRegNum(), initType, sVar);
+	}
+
+	public RegisterArg duplicate(@Nullable SSAVar ssaVar) {
+		return duplicate(getRegNum(), ssaVar);
+	}
+
 	public RegisterArg duplicate(int regNum, @Nullable SSAVar sVar) {
-		RegisterArg dup = new RegisterArg(regNum, getInitType());
+		return duplicate(regNum, getInitType(), sVar);
+	}
+
+	public RegisterArg duplicate(int regNum, ArgType initType, @Nullable SSAVar sVar) {
+		RegisterArg dup = new RegisterArg(regNum, initType);
 		if (sVar != null) {
 			// only 'set' here, 'assign' or 'use' will binds later
 			dup.setSVar(sVar);

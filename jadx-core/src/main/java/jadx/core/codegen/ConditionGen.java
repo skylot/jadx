@@ -16,7 +16,6 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.regions.conditions.Compare;
 import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.dex.regions.conditions.IfCondition.Mode;
-import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -123,7 +122,7 @@ public class ConditionGen extends InsnGen {
 				wrap(code, firstArg);
 				return;
 			}
-			ErrorsCounter.methodWarn(mth, "Unsupported boolean condition " + op.getSymbol());
+			mth.addWarn("Unsupported boolean condition " + op.getSymbol());
 		}
 
 		addArg(code, firstArg, isArgWrapNeeded(firstArg));

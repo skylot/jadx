@@ -2,6 +2,8 @@ package jadx.core;
 
 public class Consts {
 	public static final boolean DEBUG = false;
+	public static final boolean DEBUG_USAGE = false;
+	public static final boolean DEBUG_TYPE_INFERENCE = false;
 
 	public static final String CLASS_OBJECT = "java.lang.Object";
 	public static final String CLASS_STRING = "java.lang.String";
@@ -11,11 +13,11 @@ public class Consts {
 
 	public static final String CLASS_STRING_BUILDER = "java.lang.StringBuilder";
 
-	public static final String DALVIK_ANNOTATION_PKG = "dalvik.annotation.";
-	public static final String DALVIK_SIGNATURE = "dalvik.annotation.Signature";
-	public static final String DALVIK_INNER_CLASS = "dalvik.annotation.InnerClass";
-	public static final String DALVIK_THROWS = "dalvik.annotation.Throws";
-	public static final String DALVIK_ANNOTATION_DEFAULT = "dalvik.annotation.AnnotationDefault";
+	public static final String DALVIK_ANNOTATION_PKG = "Ldalvik/annotation/";
+	public static final String DALVIK_SIGNATURE = "Ldalvik/annotation/Signature;";
+	public static final String DALVIK_INNER_CLASS = "Ldalvik/annotation/InnerClass;";
+	public static final String DALVIK_THROWS = "Ldalvik/annotation/Throws;";
+	public static final String DALVIK_ANNOTATION_DEFAULT = "Ldalvik/annotation/AnnotationDefault;";
 
 	public static final String DEFAULT_PACKAGE_NAME = "defpackage";
 	public static final String ANONYMOUS_CLASS_PREFIX = "AnonymousClass";

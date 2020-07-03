@@ -1,13 +1,13 @@
 package jadx.core.utils;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.jetbrains.annotations.TestOnly;
 import org.slf4j.Logger;
@@ -128,7 +128,7 @@ public class DebugUtils {
 				ig.makeInsn(insn, code);
 				String codeStr = code.finish().getCodeStr();
 
-				List<String> insnStrings = Arrays.stream(codeStr.split(NL))
+				List<String> insnStrings = Stream.of(codeStr.split(NL))
 						.filter(StringUtils::notBlank)
 						.map(s -> "|> " + s)
 						.collect(Collectors.toList());
@@ -150,7 +150,7 @@ public class DebugUtils {
 
 	private static void printWithAttributes(CodeWriter cw, String indent, String codeStr, IAttributeNode attrNode) {
 		String str = attrNode.isAttrStorageEmpty() ? codeStr : codeStr + ' ' + attrNode.getAttributesString();
-		List<String> attrStrings = Arrays.stream(str.split(NL))
+		List<String> attrStrings = Stream.of(str.split(NL))
 				.filter(StringUtils::notBlank)
 				.collect(Collectors.toList());
 		Iterator<String> it = attrStrings.iterator();

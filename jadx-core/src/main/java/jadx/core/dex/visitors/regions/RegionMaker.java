@@ -22,7 +22,7 @@ import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
-import jadx.core.dex.instructions.SwitchNode;
+import jadx.core.dex.instructions.SwitchInsn;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.Edge;
@@ -127,7 +127,7 @@ public class RegionMaker {
 					break;
 
 				case SWITCH:
-					next = processSwitch(r, block, (SwitchNode) insn, stack);
+					next = processSwitch(r, block, (SwitchInsn) insn, stack);
 					processed = true;
 					break;
 
@@ -574,7 +574,7 @@ public class RegionMaker {
 
 		BlockNode body = getNextBlock(block);
 		if (body == null) {
-			ErrorsCounter.methodWarn(mth, "Unexpected end of synchronized block");
+			mth.addWarn("Unexpected end of synchronized block");
 			return null;
 		}
 		BlockNode exit = null;
@@ -738,15 +738,14 @@ public class RegionMaker {
 		region.add(start);
 	}
 
-	private BlockNode processSwitch(IRegion currentRegion, BlockNode block, SwitchNode insn, RegionStack stack) {
+	private BlockNode processSwitch(IRegion currentRegion, BlockNode block, SwitchInsn insn, RegionStack stack) {
 		// map case blocks to keys
 		int len = insn.getTargets().length;
 		Map<BlockNode, List<Object>> blocksMap = new LinkedHashMap<>(len);
-		Object[] keysArr = insn.getKeys();
 		BlockNode[] targetBlocksArr = insn.getTargetBlocks();
 		for (int i = 0; i < len; i++) {
 			List<Object> keys = blocksMap.computeIfAbsent(targetBlocksArr[i], k -> new ArrayList<>(2));
-			keys.add(keysArr[i]);
+			keys.add(insn.getKey(i));
 		}
 		BlockNode defCase = insn.getDefTargetBlock();
 		if (defCase != null) {
@@ -761,14 +760,30 @@ public class RegionMaker {
 			out = calcPostDomOut(mth, block, mth.getExitBlocks());
 		} else {
 			BlockNode loopEnd = loop.getEnd();
-			// treat 'continue' as exit
-			out = calcPostDomOut(mth, block, loopEnd.getPredecessors());
-			if (out != null) {
-				insertContinueInSwitch(block, out, loopEnd);
+			stack.addExit(loop.getStart());
+			if (stack.containsExit(block)
+					|| block == loopEnd
+					|| loopEnd.getPredecessors().contains(block)) {
+				// in exits or last insn in loop => no 'out' block
+				out = null;
 			} else {
-				// no 'continue'
-				out = calcPostDomOut(mth, block, Collections.singletonList(loopEnd));
+				// treat 'continue' as exit
+				out = calcPostDomOut(mth, block, loopEnd.getPredecessors());
+				if (out != null) {
+					insertContinueInSwitch(block, out, loopEnd);
+				} else {
+					// no 'continue'
+					out = calcPostDomOut(mth, block, Collections.singletonList(loopEnd));
+				}
 			}
+			if (out == loop.getStart()) {
+				// no other outs instead back edge to loop start
+				out = null;
+			}
+		}
+		if (out != null && processedBlocks.get(out.getId())) {
+			// out block already processed, prevent endless loop
+			throw new JadxRuntimeException("Failed to find switch 'out' block");
 		}
 
 		SwitchRegion sw = new SwitchRegion(currentRegion, block);
@@ -883,7 +898,7 @@ public class RegionMaker {
 	 * 1. single 'default' case
 	 * 2. filler cases if switch is 'packed' and 'default' case is empty
 	 */
-	private void removeEmptyCases(SwitchNode insn, SwitchRegion sw, BlockNode defCase) {
+	private void removeEmptyCases(SwitchInsn insn, SwitchRegion sw, BlockNode defCase) {
 		boolean defaultCaseIsEmpty;
 		if (defCase == null) {
 			defaultCaseIsEmpty = true;

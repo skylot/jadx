@@ -35,16 +35,18 @@ public class TestEnumsInterface extends IntegrationTest {
 	@Test
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
+		String code = removeLineComments(cls);
 
 		assertThat(code, JadxMatchers.containsLines(1,
 				"public enum Operation implements IOperation {",
 				indent(1) + "PLUS {",
+				indent(2) + "@Override",
 				indent(2) + "public int apply(int x, int y) {",
 				indent(3) + "return x + y;",
 				indent(2) + '}',
 				indent(1) + "},",
 				indent(1) + "MINUS {",
+				indent(2) + "@Override",
 				indent(2) + "public int apply(int x, int y) {",
 				indent(3) + "return x - y;",
 				indent(2) + '}',

@@ -23,10 +23,8 @@ import jadx.api.JavaClass;
 import jadx.api.JavaField;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
-import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.RenameVisitor;
-import jadx.core.utils.files.InputFile;
 import jadx.gui.jobs.IndexJob;
 import jadx.gui.jobs.RefreshJob;
 import jadx.gui.jobs.UnloadJob;
@@ -113,12 +111,12 @@ public class RenameDialog extends CommonSearchDialog {
 	}
 
 	private Path getDeobfMapPath(RootNode root) {
-		List<DexNode> dexNodes = root.getDexNodes();
-		if (dexNodes.isEmpty()) {
+		List<File> inputFiles = root.getArgs().getInputFiles();
+		if (inputFiles.isEmpty()) {
 			return null;
 		}
-		InputFile firstInputFile = dexNodes.get(0).getDexFile().getInputFile();
-		Path inputFilePath = firstInputFile.getFile().getAbsoluteFile().toPath();
+		File firstInputFile = inputFiles.get(0);
+		Path inputFilePath = firstInputFile.getAbsoluteFile().toPath();
 
 		String inputName = inputFilePath.getFileName().toString();
 		String baseName = inputName.substring(0, inputName.lastIndexOf('.'));
@@ -338,7 +336,7 @@ public class RenameDialog extends CommonSearchDialog {
 
 	private void initUI() {
 		JLabel lbl = new JLabel(NLS.str("popup.rename"));
-		JLabel nodeLabel = new JLabel(this.node.makeLongString(), this.node.getIcon(), SwingConstants.LEFT);
+		JLabel nodeLabel = new JLabel(this.node.makeLongStringHtml(), this.node.getIcon(), SwingConstants.LEFT);
 		lbl.setLabelFor(nodeLabel);
 
 		renameField = new JTextField(40);

@@ -9,6 +9,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.plugins.input.data.ILocalVar;
 import jadx.core.Consts;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
@@ -111,15 +112,16 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 		int startOffset = getInsnOffsetByArg(ssaVar.getAssign());
 		int endOffset = max.get();
 		int regNum = ssaVar.getRegNum();
-		for (LocalVar localVar : debugInfoAttr.getLocalVars()) {
+		for (ILocalVar localVar : debugInfoAttr.getLocalVars()) {
 			if (localVar.getRegNum() == regNum) {
-				int startAddr = localVar.getStartAddr();
-				int endAddr = localVar.getEndAddr();
+				int startAddr = localVar.getStartOffset();
+				int endAddr = localVar.getEndOffset();
 				if (isInside(startOffset, startAddr, endAddr) || isInside(endOffset, startAddr, endAddr)) {
 					if (Consts.DEBUG) {
 						LOG.debug("Apply debug info by offset for: {} to {}", ssaVar, localVar);
 					}
-					applyDebugInfo(mth, ssaVar, localVar.getType(), localVar.getName());
+					ArgType type = DebugInfoAttachVisitor.getVarType(localVar);
+					applyDebugInfo(mth, ssaVar, type, localVar.getName());
 					break;
 				}
 			}
@@ -141,7 +143,7 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 	}
 
 	public static void applyDebugInfo(MethodNode mth, SSAVar ssaVar, ArgType type, String varName) {
-		TypeUpdateResult result = mth.root().getTypeUpdate().applyWithWiderAllow(ssaVar, type);
+		TypeUpdateResult result = mth.root().getTypeUpdate().applyWithWiderAllow(mth, ssaVar, type);
 		if (result == TypeUpdateResult.REJECT) {
 			if (Consts.DEBUG) {
 				LOG.debug("Reject debug info of type: {} and name: '{}' for {}, mth: {}", type, varName, ssaVar, mth);

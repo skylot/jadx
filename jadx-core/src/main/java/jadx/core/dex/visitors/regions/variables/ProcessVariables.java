@@ -26,6 +26,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.visitors.AbstractVisitor;
+import jadx.core.dex.visitors.regions.AbstractRegionVisitor;
 import jadx.core.dex.visitors.regions.DepthRegionTraversal;
 import jadx.core.dex.visitors.typeinference.TypeCompare;
 import jadx.core.dex.visitors.typeinference.TypeCompareEnum;
@@ -41,6 +42,7 @@ public class ProcessVariables extends AbstractVisitor {
 		if (mth.isNoCode() || mth.getSVars().isEmpty()) {
 			return;
 		}
+		removeUnusedResults(mth);
 
 		List<CodeVar> codeVars = collectCodeVars(mth);
 		if (codeVars.isEmpty()) {
@@ -62,6 +64,24 @@ public class ProcessVariables extends AbstractVisitor {
 		for (Entry<CodeVar, List<VarUsage>> entry : codeVarUsage.entrySet()) {
 			declareVar(mth, entry.getKey(), entry.getValue());
 		}
+	}
+
+	private static void removeUnusedResults(MethodNode mth) {
+		DepthRegionTraversal.traverse(mth, new AbstractRegionVisitor() {
+			@Override
+			public void processBlock(MethodNode mth, IBlock container) {
+				for (InsnNode insn : container.getInstructions()) {
+					RegisterArg resultArg = insn.getResult();
+					if (resultArg != null) {
+						SSAVar ssaVar = resultArg.getSVar();
+						if (ssaVar.getUseList().isEmpty() && insn.canRemoveResult()) {
+							insn.setResult(null);
+							mth.removeSVar(ssaVar);
+						}
+					}
+				}
+			}
+		});
 	}
 
 	private void checkCodeVars(MethodNode mth, List<CodeVar> codeVars) {

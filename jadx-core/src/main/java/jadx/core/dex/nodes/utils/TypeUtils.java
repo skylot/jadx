@@ -2,19 +2,23 @@ package jadx.core.dex.nodes.utils;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.core.clsp.ClspClass;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.MethodTypeVarsAttr;
 import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.GenericTypeParameter;
 import jadx.core.dex.nodes.IMethodDetails;
+import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 
 public class TypeUtils {
@@ -24,7 +28,6 @@ public class TypeUtils {
 		this.root = rootNode;
 	}
 
-	@NotNull
 	public List<GenericTypeParameter> getClassGenerics(ArgType type) {
 		ClassNode classNode = root.resolveClass(type);
 		if (classNode != null) {
@@ -36,6 +39,38 @@ public class TypeUtils {
 		}
 		List<GenericTypeParameter> generics = clsDetails.getTypeParameters();
 		return generics == null ? Collections.emptyList() : generics;
+	}
+
+	public Set<ArgType> getKnownTypeVarsAtMethod(MethodNode mth) {
+		MethodTypeVarsAttr typeVarsAttr = mth.get(AType.METHOD_TYPE_VARS);
+		if (typeVarsAttr != null) {
+			return typeVarsAttr.getTypeVars();
+		}
+		Set<ArgType> typeVars = collectKnownTypeVarsAtMethod(mth);
+		mth.addAttr(new MethodTypeVarsAttr(typeVars));
+		return typeVars;
+	}
+
+	private static Set<ArgType> collectKnownTypeVarsAtMethod(MethodNode mth) {
+		Set<ArgType> typeVars = new HashSet<>();
+		ClassNode declCls = mth.getParentClass();
+		addTypeVarsFromCls(typeVars, declCls);
+		declCls.visitParentClasses(parent -> addTypeVarsFromCls(typeVars, parent));
+
+		for (GenericTypeParameter typeParameter : mth.getTypeParameters()) {
+			typeVars.add(typeParameter.getTypeVariable());
+		}
+		return typeVars.isEmpty() ? Collections.emptySet() : typeVars;
+	}
+
+	private static void addTypeVarsFromCls(Set<ArgType> typeVars, ClassNode parentCls) {
+		List<GenericTypeParameter> typeParameters = parentCls.getGenericTypeParameters();
+		if (typeParameters.isEmpty()) {
+			return;
+		}
+		for (GenericTypeParameter typeParameter : typeParameters) {
+			typeVars.add(typeParameter.getTypeVariable());
+		}
 	}
 
 	/**
@@ -50,13 +85,14 @@ public class TypeUtils {
 	 */
 	@Nullable
 	public ArgType replaceClassGenerics(ArgType instanceType, ArgType typeWithGeneric) {
-		if (typeWithGeneric != null) {
-			Map<ArgType, ArgType> replaceMap = getTypeVariablesMapping(instanceType);
-			if (!replaceMap.isEmpty()) {
-				return replaceTypeVariablesUsingMap(typeWithGeneric, replaceMap);
-			}
+		if (typeWithGeneric == null) {
+			return null;
 		}
-		return null;
+		Map<ArgType, ArgType> replaceMap = getTypeVariablesMapping(instanceType);
+		if (replaceMap.isEmpty()) {
+			return null;
+		}
+		return replaceTypeVariablesUsingMap(typeWithGeneric, replaceMap);
 	}
 
 	public Map<ArgType, ArgType> getTypeVariablesMapping(ArgType clsType) {
@@ -110,8 +146,18 @@ public class TypeUtils {
 
 	@Nullable
 	public ArgType replaceTypeVariablesUsingMap(ArgType replaceType, Map<ArgType, ArgType> replaceMap) {
+		if (replaceMap.isEmpty()) {
+			return null;
+		}
 		if (replaceType.isGenericType()) {
 			return replaceMap.get(replaceType);
+		}
+		if (replaceType.isArray()) {
+			ArgType replaced = replaceTypeVariablesUsingMap(replaceType.getArrayElement(), replaceMap);
+			if (replaced == null) {
+				return null;
+			}
+			return ArgType.array(replaced);
 		}
 
 		ArgType wildcardType = replaceType.getWildcardType();

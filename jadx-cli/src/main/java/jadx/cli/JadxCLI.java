@@ -17,8 +17,11 @@ public class JadxCLI {
 		try {
 			JadxCLIArgs jadxArgs = new JadxCLIArgs();
 			if (jadxArgs.processArgs(args)) {
-				result = processAndSave(jadxArgs);
+				result = processAndSave(jadxArgs.toJadxArgs());
 			}
+		} catch (JadxArgsValidateException e) {
+			LOG.error("Incorrect arguments: {}", e.getMessage());
+			result = 1;
 		} catch (Exception e) {
 			LOG.error("jadx error: {}", e.getMessage(), e);
 			result = 1;
@@ -28,23 +31,18 @@ public class JadxCLI {
 		}
 	}
 
-	static int processAndSave(JadxCLIArgs inputArgs) {
-		JadxArgs args = inputArgs.toJadxArgs();
-		args.setCodeCache(new NoOpCodeCache());
-		JadxDecompiler jadx = new JadxDecompiler(args);
-		try {
+	static int processAndSave(JadxArgs jadxArgs) {
+		jadxArgs.setCodeCache(new NoOpCodeCache());
+		try (JadxDecompiler jadx = new JadxDecompiler(jadxArgs)) {
 			jadx.load();
-		} catch (JadxArgsValidateException e) {
-			LOG.error("Incorrect arguments: {}", e.getMessage());
-			return 1;
-		}
-		jadx.save();
-		int errorsCount = jadx.getErrorsCount();
-		if (errorsCount != 0) {
-			jadx.printErrorsReport();
-			LOG.error("finished with errors, count: {}", errorsCount);
-		} else {
-			LOG.info("done");
+			jadx.save();
+			int errorsCount = jadx.getErrorsCount();
+			if (errorsCount != 0) {
+				jadx.printErrorsReport();
+				LOG.error("finished with errors, count: {}", errorsCount);
+			} else {
+				LOG.info("done");
+			}
 		}
 		return 0;
 	}

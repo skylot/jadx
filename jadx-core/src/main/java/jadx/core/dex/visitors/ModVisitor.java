@@ -9,10 +9,13 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.plugins.input.data.annotations.AnnotationVisibility;
+import jadx.api.plugins.input.data.annotations.EncodedType;
+import jadx.api.plugins.input.data.annotations.EncodedValue;
+import jadx.api.plugins.input.data.annotations.IAnnotation;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
-import jadx.core.dex.attributes.annotations.Annotation;
 import jadx.core.dex.attributes.annotations.AnnotationsList;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.info.FieldInfo;
@@ -20,16 +23,17 @@ import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ConstClassNode;
 import jadx.core.dex.instructions.ConstStringNode;
-import jadx.core.dex.instructions.FillArrayNode;
+import jadx.core.dex.instructions.FillArrayInsn;
 import jadx.core.dex.instructions.FilledNewArrayNode;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IfOp;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.NewArrayNode;
-import jadx.core.dex.instructions.SwitchNode;
+import jadx.core.dex.instructions.SwitchInsn;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -46,7 +50,7 @@ import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.visitors.regions.variables.ProcessVariables;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
-import jadx.core.utils.ErrorsCounter;
+import jadx.core.dex.visitors.typeinference.TypeCompareEnum;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.exceptions.JadxException;
@@ -109,7 +113,7 @@ public class ModVisitor extends AbstractVisitor {
 						break;
 
 					case SWITCH:
-						replaceConstKeys(parentClass, (SwitchNode) insn);
+						replaceConstKeys(parentClass, (SwitchInsn) insn);
 						break;
 
 					case NEW_ARRAY:
@@ -117,7 +121,7 @@ public class ModVisitor extends AbstractVisitor {
 						NewArrayNode newArrInsn = (NewArrayNode) insn;
 						InsnNode nextInsn = getFirstUseSkipMove(insn.getResult());
 						if (nextInsn != null && nextInsn.getType() == InsnType.FILL_ARRAY) {
-							FillArrayNode fillArrInsn = (FillArrayNode) nextInsn;
+							FillArrayInsn fillArrInsn = (FillArrayInsn) nextInsn;
 							if (checkArrSizes(mth, newArrInsn, fillArrInsn)) {
 								InsnNode filledArr = makeFilledArrayInsn(mth, newArrInsn, fillArrInsn);
 								replaceInsn(mth, block, i, filledArr);
@@ -142,6 +146,11 @@ public class ModVisitor extends AbstractVisitor {
 						fixPrimitiveCast(mth, block, i, insn);
 						break;
 
+					case IPUT:
+					case IGET:
+						fixTypeForFieldAccess(mth, (IndexInsnNode) insn);
+						break;
+
 					default:
 						break;
 				}
@@ -150,11 +159,38 @@ public class ModVisitor extends AbstractVisitor {
 		}
 	}
 
-	private static void replaceConstKeys(ClassNode parentClass, SwitchNode insn) {
-		for (int k = 0; k < insn.getCasesCount(); k++) {
-			FieldNode f = parentClass.getConstField(insn.getKeys()[k]);
+	private static void fixTypeForFieldAccess(MethodNode mth, IndexInsnNode insn) {
+		InsnArg instanceArg = insn.getArg(insn.getType() == InsnType.IGET ? 0 : 1);
+		if (instanceArg.contains(AFlag.SUPER)) {
+			return;
+		}
+		if (instanceArg.isInsnWrap() && ((InsnWrapArg) instanceArg).getWrapInsn().getType() == InsnType.CAST) {
+			return;
+		}
+		FieldInfo fieldInfo = (FieldInfo) insn.getIndex();
+		ArgType clsType = fieldInfo.getDeclClass().getType();
+		ArgType instanceType = instanceArg.getType();
+		TypeCompareEnum result = mth.root().getTypeCompare().compareTypes(instanceType, clsType);
+		if (result.isEqual() || (result == TypeCompareEnum.NARROW_BY_GENERIC && !instanceType.isGenericType())) {
+			return;
+		}
+		IndexInsnNode castInsn = new IndexInsnNode(InsnType.CAST, clsType, 1);
+		castInsn.addArg(instanceArg.duplicate());
+		castInsn.add(AFlag.EXPLICIT_CAST);
+
+		InsnArg castArg = InsnArg.wrapInsnIntoArg(castInsn);
+		castArg.setType(clsType);
+		insn.replaceArg(instanceArg, castArg);
+		InsnRemover.unbindArgUsage(mth, instanceArg);
+	}
+
+	private static void replaceConstKeys(ClassNode parentClass, SwitchInsn insn) {
+		int[] keys = insn.getKeys();
+		int len = keys.length;
+		for (int k = 0; k < len; k++) {
+			FieldNode f = parentClass.getConstField(keys[k]);
 			if (f != null) {
-				insn.getKeys()[k] = f;
+				insn.modifyKey(k, f);
 			}
 		}
 	}
@@ -195,30 +231,30 @@ public class ModVisitor extends AbstractVisitor {
 		if (annotationsList == null) {
 			return;
 		}
-		for (Annotation annotation : annotationsList.getAll()) {
-			if (annotation.getVisibility() == Annotation.Visibility.SYSTEM) {
+		for (IAnnotation annotation : annotationsList.getAll()) {
+			if (annotation.getVisibility() == AnnotationVisibility.SYSTEM) {
 				continue;
 			}
-			for (Map.Entry<String, Object> entry : annotation.getValues().entrySet()) {
+			for (Map.Entry<String, EncodedValue> entry : annotation.getValues().entrySet()) {
 				entry.setValue(replaceConstValue(parentCls, entry.getValue()));
 			}
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private Object replaceConstValue(ClassNode parentCls, @Nullable Object value) {
-		if (value instanceof List) {
-			List listVal = (List) value;
+	@SuppressWarnings("unchecked")
+	private EncodedValue replaceConstValue(ClassNode parentCls, EncodedValue encodedValue) {
+		if (encodedValue.getType() == EncodedType.ENCODED_ARRAY) {
+			List<EncodedValue> listVal = (List<EncodedValue>) encodedValue.getValue();
 			if (!listVal.isEmpty()) {
 				listVal.replaceAll(v -> replaceConstValue(parentCls, v));
 			}
-			return listVal;
+			return new EncodedValue(EncodedType.ENCODED_ARRAY, listVal);
 		}
-		FieldNode constField = parentCls.getConstField(value);
+		FieldNode constField = parentCls.getConstField(encodedValue.getValue());
 		if (constField != null) {
-			return constField.getFieldInfo();
+			return new EncodedValue(EncodedType.ENCODED_FIELD, constField.getFieldInfo());
 		}
-		return value;
+		return encodedValue;
 	}
 
 	private static void replaceConst(MethodNode mth, ClassNode parentClass, BlockNode block, int i, InsnNode insn) {
@@ -253,10 +289,10 @@ public class ModVisitor extends AbstractVisitor {
 		}
 	}
 
-	private static boolean checkArrSizes(MethodNode mth, NewArrayNode newArrInsn, FillArrayNode fillArrInsn) {
+	private static boolean checkArrSizes(MethodNode mth, NewArrayNode newArrInsn, FillArrayInsn fillArrInsn) {
 		int dataSize = fillArrInsn.getSize();
 		InsnArg arrSizeArg = newArrInsn.getArg(0);
-		Object value = InsnUtils.getConstValueByArg(mth.dex(), arrSizeArg);
+		Object value = InsnUtils.getConstValueByArg(mth.root(), arrSizeArg);
 		if (value instanceof LiteralArg) {
 			long literal = ((LiteralArg) value).getLiteral();
 			return dataSize == (int) literal;
@@ -345,7 +381,7 @@ public class ModVisitor extends AbstractVisitor {
 
 	private static void processAnonymousConstructor(MethodNode mth, ConstructorInsn co) {
 		MethodInfo callMth = co.getCallMth();
-		MethodNode callMthNode = mth.dex().resolveMethod(callMth);
+		MethodNode callMthNode = mth.root().resolveMethod(callMth);
 		if (callMthNode == null) {
 			return;
 		}
@@ -457,7 +493,7 @@ public class ModVisitor extends AbstractVisitor {
 		return parentInsn;
 	}
 
-	private static InsnNode makeFilledArrayInsn(MethodNode mth, NewArrayNode newArrayNode, FillArrayNode insn) {
+	private static InsnNode makeFilledArrayInsn(MethodNode mth, NewArrayNode newArrayNode, FillArrayInsn insn) {
 		ArgType insnArrayType = newArrayNode.getArrayType();
 		ArgType insnElementType = insnArrayType.getArrayElement();
 		ArgType elType = insn.getElementType();
@@ -467,9 +503,8 @@ public class ModVisitor extends AbstractVisitor {
 			elType = insnElementType;
 		}
 		if (!elType.equals(insnElementType) && !insnArrayType.equals(ArgType.OBJECT)) {
-			ErrorsCounter.methodWarn(mth,
-					"Incorrect type for fill-array insn " + InsnUtils.formatOffset(insn.getOffset())
-							+ ", element type: " + elType + ", insn element type: " + insnElementType);
+			mth.addWarn("Incorrect type for fill-array insn " + InsnUtils.formatOffset(insn.getOffset())
+					+ ", element type: " + elType + ", insn element type: " + insnElementType);
 		}
 		if (!elType.isTypeKnown()) {
 			LOG.warn("Unknown array element type: {} in mth: {}", elType, mth);

@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
@@ -83,18 +82,9 @@ public class TestHierarchyOverloadedInvoke extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsOne("b.call((ArrayList<String>) new ArrayList());"));
+		assertThat(code, containsOne("b.call(new ArrayList<>());"));
 		assertThat(code, containsOne("b.call((List<String>) new ArrayList());"));
 
 		assertThat(code, containsOne("b.call((String) obj);"));
-	}
-
-	@NotYetImplemented
-	@Test
-	public void test2() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("b.call(new ArrayList<>());"));
 	}
 }

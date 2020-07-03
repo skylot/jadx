@@ -41,10 +41,15 @@ public class IndexInsnNode extends InsnNode {
 		switch (insnType) {
 			case CAST:
 			case CHECK_CAST:
-				return InsnUtils.formatOffset(offset) + ": "
-						+ InsnUtils.insnTypeToString(insnType)
-						+ getResult() + " = (" + InsnUtils.indexToString(index) + ") "
-						+ Utils.listToString(getArguments());
+				StringBuilder sb = new StringBuilder();
+				sb.append(InsnUtils.formatOffset(offset)).append(": ");
+				sb.append(insnType).append(' ');
+				if (getResult() != null) {
+					sb.append(getResult()).append(" = ");
+				}
+				sb.append('(').append(InsnUtils.indexToString(index)).append(") ");
+				sb.append(Utils.listToString(getArguments()));
+				return sb.toString();
 
 			default:
 				return super.toString() + ' ' + InsnUtils.indexToString(index);

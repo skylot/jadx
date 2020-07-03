@@ -48,12 +48,12 @@ public final class JavaMethod implements JavaNode {
 		}
 		List<ArgType> arguments = mth.getArgTypes();
 		return Utils.collectionMap(arguments,
-				type -> ArgType.tryToResolveClassAlias(mth.dex(), type));
+				type -> ArgType.tryToResolveClassAlias(mth.root(), type));
 	}
 
 	public ArgType getReturnType() {
 		ArgType retType = mth.getReturnType();
-		return ArgType.tryToResolveClassAlias(mth.dex(), retType);
+		return ArgType.tryToResolveClassAlias(mth.root(), retType);
 	}
 
 	public boolean isConstructor() {

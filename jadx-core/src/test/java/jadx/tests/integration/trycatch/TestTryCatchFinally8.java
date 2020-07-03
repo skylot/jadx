@@ -49,6 +49,8 @@ public class TestTryCatchFinally8 extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsString("try {"));
+		assertThat(code, containsString("} catch (IOException e) {"));
+		assertThat(code, containsString("} finally {"));
 		assertThat(code, containsString("file.delete();"));
 	}
 

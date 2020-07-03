@@ -58,7 +58,7 @@ public class BlockProcessor extends AbstractVisitor {
 			clearBlocksState(mth);
 			computeDominators(mth);
 		}
-		markReturnBlocks(mth);
+		updateExitBlocks(mth);
 
 		int i = 0;
 		while (modifyBlocksTree(mth)) {
@@ -66,7 +66,7 @@ public class BlockProcessor extends AbstractVisitor {
 			clearBlocksState(mth);
 			// recalculate dominators tree
 			computeDominators(mth);
-			markReturnBlocks(mth);
+			updateExitBlocks(mth);
 
 			if (i++ > 100) {
 				mth.addWarn("CFG modification limit reached, blocks count: " + mth.getBasicBlocks().size());
@@ -337,12 +337,33 @@ public class BlockProcessor extends AbstractVisitor {
 		block.setDomFrontier(domFrontier);
 	}
 
-	private static void markReturnBlocks(MethodNode mth) {
+	private static void updateExitBlocks(MethodNode mth) {
 		mth.getExitBlocks().clear();
 		mth.getBasicBlocks().forEach(block -> {
-			if (BlockUtils.checkLastInsnType(block, InsnType.RETURN)) {
-				block.add(AFlag.RETURN);
-				mth.getExitBlocks().add(block);
+			boolean noSuccessors = block.getSuccessors().isEmpty();
+			boolean exitBlock = false;
+			InsnNode lastInsn = BlockUtils.getLastInsn(block);
+			if (lastInsn != null) {
+				InsnType insnType = lastInsn.getType();
+				if (insnType == InsnType.RETURN) {
+					block.add(AFlag.RETURN);
+					exitBlock = true;
+					if (!noSuccessors) {
+						throw new JadxRuntimeException("Found a block after RETURN instruction: " + lastInsn + " in block: " + block);
+					}
+				} else if (insnType == InsnType.THROW) {
+					if (noSuccessors) {
+						exitBlock = true;
+					}
+				}
+			}
+			if (exitBlock) {
+				mth.addExitBlock(block);
+			} else if (noSuccessors
+					&& !mth.isVoidReturn()
+					&& !mth.isConstructor()) {
+				mth.addComment("JADX INFO: Unexpected exit block: " + block
+						+ ". Expect last instruction to be RETURN or THROW, got: " + lastInsn);
 			}
 		});
 	}
@@ -490,9 +511,42 @@ public class BlockProcessor extends AbstractVisitor {
 			LoopInfo loop = loops.get(0);
 			return insertBlocksForBreak(mth, loop)
 					|| insertBlocksForContinue(mth, loop)
-					|| insertBlockForProdecessors(mth, loop);
+					|| insertBlockForProdecessors(mth, loop)
+					|| insertPreHeader(mth, loop);
 		}
 		return false;
+	}
+
+	/**
+	 * Insert simple path block before loop header
+	 */
+	private static boolean insertPreHeader(MethodNode mth, LoopInfo loop) {
+		BlockNode start = loop.getStart();
+		List<BlockNode> preds = start.getPredecessors();
+		int predsCount = preds.size() - 1; // don't count back edge
+		if (predsCount == 1) {
+			return false;
+		}
+		if (predsCount == 0) {
+			if (!start.contains(AFlag.MTH_ENTER_BLOCK)) {
+				mth.addWarnComment("Unexpected block without predecessors: " + start);
+			}
+			BlockNode newEnterBlock = BlockSplitter.startNewBlock(mth, -1);
+			newEnterBlock.add(AFlag.SYNTHETIC);
+			newEnterBlock.add(AFlag.MTH_ENTER_BLOCK);
+			mth.setEnterBlock(newEnterBlock);
+			start.remove(AFlag.MTH_ENTER_BLOCK);
+			BlockSplitter.connect(newEnterBlock, start);
+			return true;
+		}
+		// multiple predecessors
+		BlockNode preHeader = BlockSplitter.startNewBlock(mth, -1);
+		preHeader.add(AFlag.SYNTHETIC);
+		for (BlockNode pred : new ArrayList<>(preds)) {
+			BlockSplitter.replaceConnection(pred, start, preHeader);
+		}
+		BlockSplitter.connect(preHeader, start);
+		return true;
 	}
 
 	/**
@@ -696,7 +750,7 @@ public class BlockProcessor extends AbstractVisitor {
 				first = false;
 			} else {
 				for (InsnNode oldInsn : exitBlock.getInstructions()) {
-					newRetBlock.getInstructions().add(oldInsn.copy());
+					newRetBlock.getInstructions().add(oldInsn.copyWithoutSsa());
 				}
 			}
 			BlockSplitter.replaceConnection(pred, exitBlock, newRetBlock);

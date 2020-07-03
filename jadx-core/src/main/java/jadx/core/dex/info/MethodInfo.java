@@ -5,12 +5,9 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
 
-import com.android.dex.MethodId;
-import com.android.dex.ProtoId;
-
+import jadx.api.plugins.input.data.IMethodData;
 import jadx.core.codegen.TypeGen;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.DexNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.Utils;
 
@@ -34,20 +31,13 @@ public final class MethodInfo implements Comparable<MethodInfo> {
 		this.shortId = makeShortId(name, argTypes, retType);
 	}
 
-	public static MethodInfo fromDex(DexNode dex, int mthIndex) {
-		MethodInfo storageMth = dex.root().getInfoStorage().getMethod(dex, mthIndex);
-		if (storageMth != null) {
-			return storageMth;
-		}
-		MethodId mthId = dex.getMethodId(mthIndex);
-		String mthName = dex.getString(mthId.getNameIndex());
-		ClassInfo parentClass = ClassInfo.fromDex(dex, mthId.getDeclaringClassIndex());
-
-		ProtoId proto = dex.getProtoId(mthId.getProtoIndex());
-		ArgType returnType = dex.getType(proto.getReturnTypeIndex());
-		List<ArgType> args = dex.readParamList(proto.getParametersOffset());
-		MethodInfo newMth = new MethodInfo(parentClass, mthName, args, returnType);
-		return dex.root().getInfoStorage().putMethod(dex, mthIndex, newMth);
+	public static MethodInfo fromData(RootNode root, IMethodData methodData) {
+		ArgType parentClsType = ArgType.parse(methodData.getParentClassType());
+		ClassInfo parentClass = ClassInfo.fromType(root, parentClsType);
+		ArgType returnType = ArgType.parse(methodData.getReturnType());
+		List<ArgType> args = Utils.collectionMap(methodData.getArgTypes(), ArgType::parse);
+		MethodInfo newMth = new MethodInfo(parentClass, methodData.getName(), args, returnType);
+		return root.getInfoStorage().putMethod(newMth);
 	}
 
 	public static MethodInfo fromDetails(RootNode rootNode, ClassInfo declClass, String name, List<ArgType> args, ArgType retType) {

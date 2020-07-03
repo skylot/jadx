@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import com.android.dx.rop.code.AccessFlags;
-
+import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -80,7 +79,7 @@ public class ClassModifier extends AbstractVisitor {
 			for (FieldNode field : cls.getFields()) {
 				if (field.getAccessFlags().isSynthetic() && field.getType().isObject()) {
 					ClassInfo clsInfo = ClassInfo.fromType(cls.root(), field.getType());
-					ClassNode fieldsCls = cls.dex().resolveClass(clsInfo);
+					ClassNode fieldsCls = cls.root().resolveClass(clsInfo);
 					ClassInfo parentClass = cls.getClassInfo().getParentClass();
 					if (fieldsCls != null
 							&& (inline || parentClass.equals(fieldsCls.getClassInfo()))) {
@@ -171,7 +170,7 @@ public class ClassModifier extends AbstractVisitor {
 			if (!argType.isObject()) {
 				continue;
 			}
-			ClassNode argCls = cls.dex().resolveClass(argType);
+			ClassNode argCls = cls.root().resolveClass(argType);
 			if (argCls == null) {
 				// check if missing class from current top class
 				ClassInfo argClsInfo = ClassInfo.fromType(cls.root(), argType);
@@ -268,7 +267,7 @@ public class ClassModifier extends AbstractVisitor {
 		// remove confirmed, change visibility and name if needed
 		if (!wrappedAccFlags.isPublic()) {
 			// must be public
-			FixAccessModifiers.changeVisibility(wrappedMth, AccessFlags.ACC_PUBLIC);
+			FixAccessModifiers.changeVisibility(wrappedMth, AccessFlags.PUBLIC);
 		}
 		String alias = mth.getAlias();
 		if (!Objects.equals(wrappedMth.getAlias(), alias)) {
@@ -341,7 +340,7 @@ public class ClassModifier extends AbstractVisitor {
 					}
 				} else if (type == InsnType.IPUT) {
 					FieldInfo fldInfo = (FieldInfo) ((IndexInsnNode) insn).getIndex();
-					FieldNode fieldNode = mth.dex().resolveField(fldInfo);
+					FieldNode fieldNode = mth.root().resolveField(fldInfo);
 					if (fieldNode != null && fieldNode.contains(AFlag.DONT_GENERATE)) {
 						insn.add(AFlag.DONT_GENERATE);
 					}

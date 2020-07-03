@@ -93,14 +93,19 @@ public class ConstInlineVisitor extends AbstractVisitor {
 			String s = ((ConstStringNode) insn).getString();
 			FieldNode f = mth.getParentClass().getConstField(s);
 			if (f == null) {
-				InsnNode copy = insn.copy();
-				copy.setResult(null);
+				InsnNode copy = insn.copyWithoutResult();
 				constArg = InsnArg.wrapArg(copy);
 			} else {
 				InsnNode constGet = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
 				constArg = InsnArg.wrapArg(constGet);
 				constArg.setType(ArgType.STRING);
 			}
+		} else if (insnType == InsnType.CONST_CLASS) {
+			if (sVar.isUsedInPhi()) {
+				return;
+			}
+			constArg = InsnArg.wrapArg(insn.copyWithoutResult());
+			constArg.setType(ArgType.CLASS);
 		} else {
 			return;
 		}

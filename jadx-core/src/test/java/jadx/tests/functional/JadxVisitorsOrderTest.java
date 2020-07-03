@@ -18,13 +18,16 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 
 public class JadxVisitorsOrderTest {
-
 	private static final Logger LOG = LoggerFactory.getLogger(JadxVisitorsOrderTest.class);
 
 	@Test
 	public void testOrder() {
-		List<IDexTreeVisitor> passes = Jadx.getPassesList(new JadxArgs());
+		checkPassList(Jadx.getPassesList(new JadxArgs()));
+		checkPassList(Jadx.getPreDecompilePassesList());
+		checkPassList(Jadx.getFallbackPassesList());
+	}
 
+	private void checkPassList(List<IDexTreeVisitor> passes) {
 		List<String> errors = check(passes);
 		for (String str : errors) {
 			LOG.error(str);
@@ -55,7 +58,8 @@ public class JadxVisitorsOrderTest {
 				errors.add("Visitor name conflict: " + passName + ", class: " + passClass.getName());
 			}
 			for (Class<? extends IDexTreeVisitor> cls : info.runBefore()) {
-				if (classList.indexOf(cls) < i) {
+				int beforeIndex = classList.indexOf(cls);
+				if (beforeIndex != -1 && beforeIndex < i) {
 					errors.add("Pass " + passName + " must be before " + cls.getSimpleName());
 				}
 			}

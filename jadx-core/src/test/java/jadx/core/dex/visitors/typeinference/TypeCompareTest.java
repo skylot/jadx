@@ -43,7 +43,7 @@ public class TypeCompareTest {
 	public void init() {
 		JadxArgs args = new JadxArgs();
 		RootNode root = new RootNode(args);
-		root.load(Collections.emptyList());
+		root.loadClasses(Collections.emptyList());
 		root.initClassPath();
 		compare = new TypeCompare(root);
 	}

@@ -55,7 +55,7 @@ public class UsageDialog extends CommonSearchDialog {
 
 	private void initUI() {
 		JLabel lbl = new JLabel(NLS.str("usage_dialog.label"));
-		JLabel nodeLabel = new JLabel(this.node.makeLongString(), this.node.getIcon(), SwingConstants.LEFT);
+		JLabel nodeLabel = new JLabel(this.node.makeLongStringHtml(), this.node.getIcon(), SwingConstants.LEFT);
 		lbl.setLabelFor(nodeLabel);
 
 		JPanel searchPane = new JPanel();

@@ -26,7 +26,7 @@ public class JadxClasspathTest {
 	@BeforeEach
 	public void initClsp() {
 		this.root = new RootNode(new JadxArgs());
-		this.root.load(Collections.emptyList());
+		this.root.loadClasses(Collections.emptyList());
 		this.root.initClassPath();
 		this.clsp = root.getClsp();
 	}

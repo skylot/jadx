@@ -24,7 +24,7 @@ import jadx.core.utils.InsnRemover;
 @JadxVisitor(
 		name = "ConstructorVisitor",
 		desc = "Replace invoke with constructor call",
-		runAfter = SSATransform.class,
+		runAfter = { SSATransform.class, MoveInlineVisitor.class },
 		runBefore = TypeInferenceVisitor.class
 )
 public class ConstructorVisitor extends AbstractVisitor {
@@ -114,13 +114,13 @@ public class ConstructorVisitor extends AbstractVisitor {
 	 */
 	@Nullable
 	private static ConstructorInsn processConstructor(MethodNode mth, ConstructorInsn co) {
-		MethodNode callMth = mth.dex().resolveMethod(co.getCallMth());
+		MethodNode callMth = mth.root().resolveMethod(co.getCallMth());
 		if (callMth == null
 				|| !callMth.getAccessFlags().isSynthetic()
 				|| !allArgsNull(co)) {
 			return null;
 		}
-		ClassNode classNode = mth.dex().resolveClass(callMth.getParentClass().getClassInfo());
+		ClassNode classNode = mth.root().resolveClass(callMth.getParentClass().getClassInfo());
 		if (classNode == null) {
 			return null;
 		}

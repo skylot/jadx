@@ -24,15 +24,14 @@ public class TestReturnWrapping extends IntegrationTest {
 			int i = arg1;
 			if (arg0 == null) {
 				return ret + Integer.toHexString(i);
-			} else {
-				i++;
-				try {
-					ret = new Object().getClass();
-				} catch (Exception e) {
-					ret = "Qwerty";
-				}
-				return i > 128 ? arg0.toString() + ret.toString() : i;
 			}
+			i++;
+			try {
+				ret = new Object().getClass();
+			} catch (Exception e) {
+				ret = "Qwerty";
+			}
+			return i > 128 ? arg0.toString() + ret.toString() : i;
 		}
 
 		public static int f3(int arg0) {
@@ -54,12 +53,7 @@ public class TestReturnWrapping extends IntegrationTest {
 
 		assertThat(code, containsString("return 255;"));
 		assertThat(code, containsString("return arg0 + 1;"));
-
-		// TODO: reduce code vars by name
-		// assertThat(code, containsString("return i > 128 ? arg0.toString() + ret.toString() :
-		// Integer.valueOf(i);"));
-		assertThat(code, containsString("return i2 > 128 ? arg0.toString() + ret.toString() : Integer.valueOf(i2);"));
-
+		assertThat(code, containsString("return i > 128 ? arg0.toString() + ret.toString() : Integer.valueOf(i);"));
 		assertThat(code, containsString("return arg0 + 2;"));
 		assertThat(code, containsString("arg0 -= 951;"));
 	}

@@ -1,7 +1,6 @@
 package jadx.core.dex.instructions;
 
-import com.android.dx.io.instructions.DecodedInstruction;
-
+import jadx.api.plugins.input.insns.InsnData;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -14,12 +13,12 @@ public class ArithNode extends InsnNode {
 
 	private final ArithOp op;
 
-	public ArithNode(DecodedInstruction insn, ArithOp op, ArgType type, boolean literal) {
+	public ArithNode(InsnData insn, ArithOp op, ArgType type, boolean literal) {
 		super(InsnType.ARITH, 2);
 		this.op = op;
 		setResult(InsnArg.reg(insn, 0, type));
 
-		int rc = insn.getRegisterCount();
+		int rc = insn.getRegsCount();
 		if (literal) {
 			if (rc == 1) {
 				// self
@@ -51,6 +50,10 @@ public class ArithNode extends InsnNode {
 		addArg(b);
 	}
 
+	public ArithNode(ArithOp op, InsnArg a, InsnArg b) {
+		this(op, null, a, b);
+	}
+
 	/**
 	 * Create one argument arithmetic instructions (a+=2).
 	 * Result is not set (null).
@@ -58,7 +61,7 @@ public class ArithNode extends InsnNode {
 	 * @param res argument to change
 	 */
 	public static ArithNode oneArgOp(ArithOp op, InsnArg res, InsnArg a) {
-		ArithNode insn = new ArithNode(op, null, res, a);
+		ArithNode insn = new ArithNode(op, res, a);
 		insn.add(AFlag.ARITH_ONEARG);
 		return insn;
 	}
@@ -97,10 +100,7 @@ public class ArithNode extends InsnNode {
 
 	@Override
 	public InsnNode copy() {
-		ArithNode copy = new ArithNode(op,
-				getResult().duplicate(),
-				getArg(0).duplicate(),
-				getArg(1).duplicate());
+		ArithNode copy = new ArithNode(op, getArg(0).duplicate(), getArg(1).duplicate());
 		return copyCommonParams(copy);
 	}
 

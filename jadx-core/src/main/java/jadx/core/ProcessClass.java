@@ -7,9 +7,9 @@ import jadx.core.codegen.CodeGen;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
-import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
+import static jadx.core.dex.nodes.ProcessState.GENERATED;
 import static jadx.core.dex.nodes.ProcessState.LOADED;
 import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
 import static jadx.core.dex.nodes.ProcessState.PROCESS_COMPLETE;
@@ -43,7 +43,7 @@ public final class ProcessClass {
 					cls.setState(PROCESS_COMPLETE);
 				}
 			} catch (Throwable e) {
-				ErrorsCounter.classError(cls, e.getClass().getSimpleName(), e);
+				cls.addError("Class process error: " + e.getClass().getSimpleName(), e);
 			}
 		}
 	}
@@ -54,11 +54,16 @@ public final class ProcessClass {
 		if (topParentClass != cls) {
 			return generateCode(topParentClass);
 		}
+		if (cls.getState() == GENERATED) {
+			// allow to run code generation again
+			cls.setState(NOT_LOADED);
+		}
 		try {
-			process(cls);
 			cls.getDependencies().forEach(ProcessClass::process);
+			process(cls);
 
 			ICodeInfo code = CodeGen.generate(cls);
+			cls.setState(GENERATED);
 			cls.unload();
 			return code;
 		} catch (Throwable e) {

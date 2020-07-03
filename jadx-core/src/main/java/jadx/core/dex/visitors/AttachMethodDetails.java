@@ -8,13 +8,17 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.nodes.utils.MethodUtils;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
+import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
 		name = "Attach Method Details",
 		desc = "Attach method details for invoke instructions",
 		runBefore = {
-				CodeShrinkVisitor.class
+				CodeShrinkVisitor.class,
+				TypeInferenceVisitor.class,
+				MethodInvokeVisitor.class,
+				OverrideMethodVisitor.class
 		}
 )
 public class AttachMethodDetails extends AbstractVisitor {

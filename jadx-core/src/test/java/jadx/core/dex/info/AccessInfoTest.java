@@ -2,8 +2,7 @@ package jadx.core.dex.info;
 
 import org.junit.jupiter.api.Test;
 
-import com.android.dx.rop.code.AccessFlags;
-
+import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.dex.info.AccessInfo.AFType;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -14,8 +13,8 @@ public class AccessInfoTest {
 
 	@Test
 	public void changeVisibility() {
-		AccessInfo accessInfo = new AccessInfo(AccessFlags.ACC_PROTECTED | AccessFlags.ACC_STATIC, AFType.METHOD);
-		AccessInfo result = accessInfo.changeVisibility(AccessFlags.ACC_PUBLIC);
+		AccessInfo accessInfo = new AccessInfo(AccessFlags.PROTECTED | AccessFlags.STATIC, AFType.METHOD);
+		AccessInfo result = accessInfo.changeVisibility(AccessFlags.PUBLIC);
 
 		assertThat(result.isPublic(), is(true));
 		assertThat(result.isPrivate(), is(false));
@@ -26,8 +25,8 @@ public class AccessInfoTest {
 
 	@Test
 	public void changeVisibilityNoOp() {
-		AccessInfo accessInfo = new AccessInfo(AccessFlags.ACC_PUBLIC, AFType.METHOD);
-		AccessInfo result = accessInfo.changeVisibility(AccessFlags.ACC_PUBLIC);
+		AccessInfo accessInfo = new AccessInfo(AccessFlags.PUBLIC, AFType.METHOD);
+		AccessInfo result = accessInfo.changeVisibility(AccessFlags.PUBLIC);
 		assertSame(accessInfo, result);
 	}
 }

@@ -1,0 +1,9 @@
+plugins {
+	id 'java-library'
+}
+
+dependencies {
+	api(project(":jadx-plugins:jadx-plugins-api"))
+
+	testImplementation('org.smali:smali:2.4.0')
+}

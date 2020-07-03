@@ -1,5 +1,6 @@
 package jadx.core.utils;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -14,25 +15,34 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.attributes.nodes.JadxError;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.IDexNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.JadxOverflowException;
 
 public class ErrorsCounter {
 	private static final Logger LOG = LoggerFactory.getLogger(ErrorsCounter.class);
+	private static final boolean PRINT_MTH_SIZE = true;
 
 	private final Set<IAttributeNode> errorNodes = new HashSet<>();
 	private int errorsCount;
 	private final Set<IAttributeNode> warnNodes = new HashSet<>();
 	private int warnsCount;
 
-	public int getErrorCount() {
-		return errorsCount;
+	public static <N extends IDexNode & IAttributeNode> String error(N node, String warnMsg, Throwable th) {
+		return node.root().getErrorsCounter().addError(node, warnMsg, th);
 	}
 
-	public int getWarnsCount() {
-		return warnsCount;
+	public static <N extends IDexNode & IAttributeNode> String warning(N node, String warnMsg) {
+		return node.root().getErrorsCounter().addWarning(node, warnMsg);
+	}
+
+	public static String formatMsg(IDexNode node, String msg) {
+		return msg + " in " + node.typeName() + ": " + node + ", file: " + getNodeFile(node);
+	}
+
+	private static String getNodeFile(IDexNode node) {
+		Path inputPath = node.getInputPath();
+		return inputPath == null ? "synthetic" : inputPath.toString();
 	}
 
 	private synchronized <N extends IDexNode & IAttributeNode> String addError(N node, String error, @Nullable Throwable e) {
@@ -40,12 +50,23 @@ public class ErrorsCounter {
 		errorsCount++;
 
 		String msg = formatMsg(node, error);
+		if (PRINT_MTH_SIZE && node instanceof MethodNode) {
+			long insnsCount = ((MethodNode) node).countInsns();
+			msg = "[" + insnsCount + "] " + msg;
+		}
 		if (e == null) {
+			LOG.error(msg);
+		} else if (e instanceof StackOverflowError) {
 			LOG.error(msg);
 		} else if (e instanceof JadxOverflowException) {
 			// don't print full stack trace
-			e = new JadxOverflowException(e.getMessage());
-			LOG.error("{}, details: {}", msg, e.getMessage());
+			String details = e.getMessage();
+			e = new JadxOverflowException(details);
+			if (details == null || details.isEmpty()) {
+				LOG.error("{}", msg);
+			} else {
+				LOG.error("{}, details: {}", msg, details);
+			}
 		} else {
 			LOG.error(msg, e);
 		}
@@ -69,26 +90,6 @@ public class ErrorsCounter {
 		return msg;
 	}
 
-	public static String classError(ClassNode cls, String errorMsg, Throwable e) {
-		return cls.dex().root().getErrorsCounter().addError(cls, errorMsg, e);
-	}
-
-	public static String classWarn(ClassNode cls, String warnMsg) {
-		return cls.dex().root().getErrorsCounter().addWarning(cls, warnMsg);
-	}
-
-	public static String methodError(MethodNode mth, String errorMsg, Throwable e) {
-		return mth.root().getErrorsCounter().addError(mth, errorMsg, e);
-	}
-
-	public static String methodWarn(MethodNode mth, String warnMsg) {
-		return mth.root().getErrorsCounter().addWarning(mth, warnMsg);
-	}
-
-	public static String formatMsg(IDexNode node, String msg) {
-		return msg + " in " + node.typeName() + ": " + node + ", dex: " + node.dex().getDexFile().getName();
-	}
-
 	public void printReport() {
 		if (getErrorCount() > 0) {
 			LOG.error("{} errors occurred in following nodes:", getErrorCount());
@@ -105,5 +106,21 @@ public class ErrorsCounter {
 		if (getWarnsCount() > 0) {
 			LOG.warn("{} warnings in {} nodes", getWarnsCount(), warnNodes.size());
 		}
+	}
+
+	public int getErrorCount() {
+		return errorsCount;
+	}
+
+	public int getWarnsCount() {
+		return warnsCount;
+	}
+
+	public Set<IAttributeNode> getErrorNodes() {
+		return errorNodes;
+	}
+
+	public Set<IAttributeNode> getWarnNodes() {
+		return warnNodes;
 	}
 }

@@ -446,7 +446,7 @@ public abstract class CommonSearchDialog extends JDialog {
 
 		private Component makeCell(JNode node, int column) {
 			if (column == 0) {
-				JLabel label = new JLabel(node.makeLongString() + "  ", node.getIcon(), SwingConstants.LEFT);
+				JLabel label = new JLabel(node.makeLongStringHtml() + "  ", node.getIcon(), SwingConstants.LEFT);
 				label.setFont(font);
 				label.setOpaque(true);
 				label.setToolTipText(label.getText());

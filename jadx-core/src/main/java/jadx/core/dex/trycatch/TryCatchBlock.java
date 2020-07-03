@@ -2,7 +2,6 @@ package jadx.core.dex.trycatch;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
@@ -24,8 +23,8 @@ public class TryCatchBlock {
 	private final List<InsnNode> insns;
 	private final CatchAttr attr;
 
-	public TryCatchBlock() {
-		handlers = new LinkedList<>();
+	public TryCatchBlock(int handlersCount) {
+		handlers = new ArrayList<>(handlersCount);
 		insns = new ArrayList<>();
 		attr = new CatchAttr(this);
 	}

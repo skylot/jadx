@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import jadx.core.dex.attributes.annotations.Annotation;
+import jadx.api.plugins.input.data.annotations.IAnnotation;
 import jadx.core.dex.attributes.annotations.AnnotationsList;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -70,7 +70,7 @@ public class AttributeStorage {
 		return (T) attributes.get(type);
 	}
 
-	public Annotation getAnnotation(String cls) {
+	public IAnnotation getAnnotation(String cls) {
 		AnnotationsList aList = get(AType.ANNOTATION_LIST);
 		return aList == null ? null : aList.get(cls);
 	}

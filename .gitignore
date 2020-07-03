@@ -5,6 +5,7 @@
 
 # IntelliJ Idea files
 .idea/
+.run/
 out/
 *.iml
 *.ipr
@@ -24,8 +25,8 @@ node_modules/
 
 jadx-output/
 *-tmp/
+**/tmp/
 
-*.dex
 *.class
 *.dump
 *.log
