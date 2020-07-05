@@ -2,6 +2,7 @@ package jadx.plugins.input.javaconvert;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,8 +45,10 @@ public class JavaConvertLoader {
 	}
 
 	private static List<Path> collectFilesInDir(Path tempDirectory) throws IOException {
-		try (Stream<Path> pathStream = Files.walk(tempDirectory)) {
-			return pathStream.collect(Collectors.toList());
+		try (Stream<Path> pathStream = Files.walk(tempDirectory, 1)) {
+			return pathStream
+					.filter(p -> Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS))
+					.collect(Collectors.toList());
 		}
 	}
 }
