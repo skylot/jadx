@@ -6,6 +6,5 @@ dependencies {
 	api(project(":jadx-plugins:jadx-plugins-api"))
 
 	implementation(project(":jadx-plugins:jadx-dex-input"))
-	implementation('com.android.tools:r8:1.6.84')
 	implementation(files('lib/dx-1.16.jar'))
 }

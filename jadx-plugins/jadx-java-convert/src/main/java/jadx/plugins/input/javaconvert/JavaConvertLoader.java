@@ -37,7 +37,6 @@ public class JavaConvertLoader {
 		Path tempDirectory = Files.createTempDirectory("jadx-");
 		result.addTempPath(tempDirectory);
 
-		// D8Converter.run(path, tempDirectory);
 		DxConverter.run(path, tempDirectory);
 
 		LOG.debug("Converted to dex: {}", path.toAbsolutePath());
