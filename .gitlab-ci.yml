@@ -19,10 +19,10 @@ java-11:
   image: openjdk:11
   script: ./gradlew clean build
 
-java-12:
+java-latest:
   stage: test
-  image: gradle:jdk12 # latest gradle and jdk12
-  script: gradle clean build
+  image: openjdk:latest
+  script: java -version && ./gradlew clean build
 
 check:
   stage: check

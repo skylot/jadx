@@ -15,6 +15,9 @@ allprojects {
 
 	version = jadxVersion
 
+	sourceCompatibility = JavaVersion.VERSION_1_8
+	targetCompatibility = JavaVersion.VERSION_1_8
+
 	tasks.withType(JavaCompile) {
 		if (!"$it".contains(':jadx-samples:')) {
 			options.compilerArgs << '-Xlint' << '-Xlint:unchecked' << '-Xlint:deprecation'
@@ -60,7 +63,7 @@ allprojects {
 	}
 
 	jacoco {
-		toolVersion = "0.8.2"
+		toolVersion = "0.8.5"
 	}
 	jacocoTestReport {
 		reports {

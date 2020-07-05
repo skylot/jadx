@@ -5,7 +5,6 @@ project.ext {
 }
 
 dependencies {
-	compile(project(":jadx-core"))
 	compile(project(":jadx-cli"))
 }
 
@@ -29,7 +28,7 @@ task samplesJar(type: Jar, dependsOn: samplesRun) {
 task samplesJadxCreate(type: JavaExec, dependsOn: samplesJar) {
 	classpath = sourceSets.main.output + configurations.compile
 	main = project(":jadx-cli").mainClassName
-	args = ['-d', samplesJadxSrcDir, samplesJar.archivePath]
+	args = ['-v', '-d', samplesJadxSrcDir, samplesJar.archivePath]
 }
 
 task samplesJadxCompile(type: JavaCompile, dependsOn: samplesJadxCreate) {
