@@ -201,21 +201,25 @@ public class ModVisitor extends AbstractVisitor {
 		if (castArg.getType() == ArgType.BOOLEAN) {
 			ArgType type = insn.getResult().getType();
 			if (type.isPrimitive()) {
-				InsnArg zero = new LiteralArg(0, type);
-				long litVal = 1;
-				if (type == ArgType.DOUBLE) {
-					litVal = DOUBLE_TO_BITS;
-				} else if (type == ArgType.FLOAT) {
-					litVal = FLOAT_TO_BITS;
-				}
-				InsnArg one = new LiteralArg(litVal, type);
-
-				IfNode ifNode = new IfNode(IfOp.EQ, -1, castArg, LiteralArg.TRUE);
-				IfCondition condition = IfCondition.fromIfNode(ifNode);
-				TernaryInsn ternary = new TernaryInsn(condition, insn.getResult(), one, zero);
+				TernaryInsn ternary = makeBooleanConvertInsn(insn.getResult(), castArg, type);
 				replaceInsn(mth, block, i, ternary);
 			}
 		}
+	}
+
+	public static TernaryInsn makeBooleanConvertInsn(RegisterArg result, InsnArg castArg, ArgType type) {
+		InsnArg zero = new LiteralArg(0, type);
+		long litVal = 1;
+		if (type == ArgType.DOUBLE) {
+			litVal = DOUBLE_TO_BITS;
+		} else if (type == ArgType.FLOAT) {
+			litVal = FLOAT_TO_BITS;
+		}
+		InsnArg one = new LiteralArg(litVal, type);
+
+		IfNode ifNode = new IfNode(IfOp.EQ, -1, castArg, LiteralArg.TRUE);
+		IfCondition condition = IfCondition.fromIfNode(ifNode);
+		return new TernaryInsn(condition, result, one, zero);
 	}
 
 	private void replaceConstInAnnotations(ClassNode cls) {

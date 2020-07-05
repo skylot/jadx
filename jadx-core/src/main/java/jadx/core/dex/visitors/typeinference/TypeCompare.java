@@ -84,8 +84,13 @@ public class TypeCompare {
 			}
 		}
 		if (firstPrimitive && secondPrimitive) {
-			int comparePrimitives = first.getPrimitiveType().compareTo(second.getPrimitiveType());
-			return comparePrimitives > 0 ? WIDER : NARROW;
+			PrimitiveType firstPrimitiveType = first.getPrimitiveType();
+			PrimitiveType secondPrimitiveType = second.getPrimitiveType();
+			if (firstPrimitiveType == PrimitiveType.BOOLEAN
+					|| secondPrimitiveType == PrimitiveType.BOOLEAN) {
+				return CONFLICT;
+			}
+			return firstPrimitiveType.compareTo(secondPrimitiveType) > 0 ? WIDER : NARROW;
 		}
 
 		LOG.warn("Type compare function not complete, can't compare {} and {}", first, second);

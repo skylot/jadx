@@ -20,7 +20,7 @@ public class TestIssue13a extends IntegrationTest {
 		private static final String TAG = "Parcel";
 		private static final Map<ClassLoader, Map<String, Parcelable.Creator<?>>> M_CREATORS = new HashMap<>();
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "ConstantConditions", "Java8MapApi", "rawtypes" })
 		public final <T extends Parcelable> T test(ClassLoader loader) {
 			String name = readString();
 			if (name == null) {

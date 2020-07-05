@@ -12,7 +12,7 @@ import static org.hamcrest.Matchers.not;
 
 public class TestTypeResolver10 extends SmaliTest {
 
-	/**
+	/*
 	 * Method argument assigned with different types in separate branches
 	 */
 

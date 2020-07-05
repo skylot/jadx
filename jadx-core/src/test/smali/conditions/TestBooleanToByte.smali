@@ -1,16 +1,16 @@
-.class public LTestBooleanToByte;
+.class public Lconditions/TestBooleanToByte;
 .super Ljava/lang/Object;
 
 .field private showConsent:Z
 
-.method public writeToParcel(LTestBooleanToByte;)V
+.method public writeToParcel(Lconditions/TestBooleanToByte;)V
     .locals 0
 
-    iget-boolean p1, p0, LTestBooleanToByte;->showConsent:Z
+    iget-boolean p1, p0, Lconditions/TestBooleanToByte;->showConsent:Z
 
     int-to-byte p1, p1
 
-    invoke-virtual {p0, p1}, LTestBooleanToByte;->write(B)V
+    invoke-virtual {p0, p1}, Lconditions/TestBooleanToByte;->write(B)V
 
     return-void
 .end method

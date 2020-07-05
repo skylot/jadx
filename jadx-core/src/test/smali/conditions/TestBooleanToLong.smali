@@ -1,16 +1,16 @@
-.class public LTestBooleanToLong;
+.class public Lconditions/TestBooleanToLong;
 .super Ljava/lang/Object;
 
 .field private showConsent:Z
 
-.method public writeToParcel(LTestBooleanToLong;)V
+.method public writeToParcel(Lconditions/TestBooleanToLong;)V
     .locals 0
 
-    iget-boolean p1, p0, LTestBooleanToLong;->showConsent:Z
+    iget-boolean p1, p0, Lconditions/TestBooleanToLong;->showConsent:Z
 
     int-to-long p1, p1
 
-    invoke-virtual {p0, p1}, LTestBooleanToLong;->write(J)V
+    invoke-virtual {p0, p1}, Lconditions/TestBooleanToLong;->write(J)V
 
     return-void
 .end method

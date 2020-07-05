@@ -1,16 +1,16 @@
-.class public LTestBooleanToShort;
+.class public Lconditions/TestBooleanToShort;
 .super Ljava/lang/Object;
 
 .field private showConsent:Z
 
-.method public writeToParcel(LTestBooleanToShort;)V
+.method public writeToParcel(Lconditions/TestBooleanToShort;)V
     .locals 0
 
-    iget-boolean p1, p0, LTestBooleanToShort;->showConsent:Z
+    iget-boolean p1, p0, Lconditions/TestBooleanToShort;->showConsent:Z
 
     int-to-short p1, p1
 
-    invoke-virtual {p0, p1}, LTestBooleanToShort;->write(S)V
+    invoke-virtual {p0, p1}, Lconditions/TestBooleanToShort;->write(S)V
 
     return-void
 .end method

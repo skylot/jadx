@@ -1,16 +1,16 @@
-.class public LTestBooleanToDouble;
+.class public Lconditions/TestBooleanToDouble;
 .super Ljava/lang/Object;
 
 .field private showConsent:Z
 
-.method public writeToParcel(LTestBooleanToDouble;)V
+.method public writeToParcel(Lconditions/TestBooleanToDouble;)V
     .locals 0
 
-    iget-boolean p1, p0, LTestBooleanToDouble;->showConsent:Z
+    iget-boolean p1, p0, Lconditions/TestBooleanToDouble;->showConsent:Z
 
     int-to-double p1, p1
 
-    invoke-virtual {p0, p1}, LTestBooleanToDouble;->write(D)V
+    invoke-virtual {p0, p1}, Lconditions/TestBooleanToDouble;->write(D)V
 
     return-void
 .end method

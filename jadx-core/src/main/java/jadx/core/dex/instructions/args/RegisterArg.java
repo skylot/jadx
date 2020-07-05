@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.InsnNode;
+import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class RegisterArg extends InsnArg implements Named {
@@ -127,15 +128,17 @@ public class RegisterArg extends InsnArg implements Named {
 
 	@Override
 	public RegisterArg duplicate() {
-		return duplicate(getRegNum(), sVar);
+		return duplicate(getRegNum(), getInitType(), sVar);
 	}
 
 	public RegisterArg duplicate(ArgType initType) {
 		return duplicate(getRegNum(), initType, sVar);
 	}
 
-	public RegisterArg duplicate(@Nullable SSAVar ssaVar) {
-		return duplicate(getRegNum(), ssaVar);
+	public RegisterArg duplicateWithNewSSAVar(MethodNode mth) {
+		RegisterArg duplicate = duplicate(regNum, getInitType(), null);
+		mth.makeNewSVar(duplicate);
+		return duplicate;
 	}
 
 	public RegisterArg duplicate(int regNum, @Nullable SSAVar sVar) {

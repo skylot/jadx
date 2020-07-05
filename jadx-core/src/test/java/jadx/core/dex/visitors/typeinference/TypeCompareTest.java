@@ -23,6 +23,7 @@ import static jadx.core.dex.instructions.args.ArgType.INT;
 import static jadx.core.dex.instructions.args.ArgType.NARROW;
 import static jadx.core.dex.instructions.args.ArgType.NARROW_INTEGRAL;
 import static jadx.core.dex.instructions.args.ArgType.OBJECT;
+import static jadx.core.dex.instructions.args.ArgType.SHORT;
 import static jadx.core.dex.instructions.args.ArgType.STRING;
 import static jadx.core.dex.instructions.args.ArgType.UNKNOWN;
 import static jadx.core.dex.instructions.args.ArgType.UNKNOWN_ARRAY;
@@ -52,8 +53,6 @@ public class TypeCompareTest {
 	public void compareTypes() {
 		firstIsNarrow(INT, UNKNOWN);
 
-		firstIsNarrow(BOOLEAN, INT);
-
 		firstIsNarrow(array(UNKNOWN), UNKNOWN);
 		firstIsNarrow(array(UNKNOWN), NARROW);
 	}
@@ -62,7 +61,9 @@ public class TypeCompareTest {
 	public void comparePrimitives() {
 		check(INT, UNKNOWN_OBJECT, TypeCompareEnum.CONFLICT);
 		check(INT, OBJECT, TypeCompareEnum.CONFLICT);
+		check(INT, BOOLEAN, TypeCompareEnum.CONFLICT);
 		check(INT, CHAR, TypeCompareEnum.WIDER);
+		check(INT, SHORT, TypeCompareEnum.WIDER);
 
 		firstIsNarrow(CHAR, NARROW_INTEGRAL);
 		firstIsNarrow(array(CHAR), UNKNOWN_OBJECT);

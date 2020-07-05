@@ -29,22 +29,6 @@ public enum PrimitiveType {
 		return longName;
 	}
 
-	public static PrimitiveType getWidest(PrimitiveType a, PrimitiveType b) {
-		if (a.ordinal() > b.ordinal()) {
-			return a;
-		} else {
-			return b;
-		}
-	}
-
-	public static PrimitiveType getSmaller(PrimitiveType a, PrimitiveType b) {
-		if (a.ordinal() < b.ordinal()) {
-			return a;
-		} else {
-			return b;
-		}
-	}
-
 	@Override
 	public String toString() {
 		return longName;
