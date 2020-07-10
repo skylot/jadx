@@ -6,15 +6,18 @@ import java.util.List;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.exceptions.JadxOverflowException;
 
 public class TypeUpdateInfo {
 	private final MethodNode mth;
 	private final TypeUpdateFlags flags;
 	private final List<TypeUpdateEntry> updates = new ArrayList<>();
+	private final int updatesLimitCount;
 
 	public TypeUpdateInfo(MethodNode mth, TypeUpdateFlags flags) {
 		this.mth = mth;
 		this.flags = flags;
+		this.updatesLimitCount = mth.getInsnsCount() * 5; // maximum registers count to update at once
 	}
 
 	public void requestUpdate(InsnArg arg, ArgType changeType) {
@@ -51,6 +54,12 @@ public class TypeUpdateInfo {
 
 	public void rollbackUpdate(InsnArg arg) {
 		updates.removeIf(updateEntry -> updateEntry.getArg() == arg);
+	}
+
+	public void checkUpdatesCount() {
+		if (updates.size() > updatesLimitCount) {
+			throw new JadxOverflowException("Type inference error: update tree size limit reached");
+		}
 	}
 
 	public MethodNode getMth() {

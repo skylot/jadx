@@ -49,6 +49,7 @@ import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnList;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.Utils;
+import jadx.core.utils.exceptions.JadxOverflowException;
 
 @JadxVisitor(
 		name = "Type Inference",
@@ -88,10 +89,14 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		if (Consts.DEBUG_TYPE_INFERENCE) {
 			LOG.info("Start type inference in method: {}", mth);
 		}
-		for (Function<MethodNode, Boolean> resolver : resolvers) {
-			if (resolver.apply(mth) && checkTypes(mth)) {
-				return;
+		try {
+			for (Function<MethodNode, Boolean> resolver : resolvers) {
+				if (resolver.apply(mth) && checkTypes(mth)) {
+					return;
+				}
 			}
+		} catch (Exception e) {
+			mth.addError("Type inference failed with exception", e);
 		}
 	}
 
@@ -148,6 +153,8 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 			if (immutableType != null) {
 				applyImmutableType(mth, ssaVar, immutableType);
 			}
+		} catch (JadxOverflowException e) {
+			throw e;
 		} catch (Exception e) {
 			LOG.error("Failed to set immutable type for var: {}", ssaVar, e);
 		}
@@ -156,6 +163,8 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 	private boolean setBestType(MethodNode mth, SSAVar ssaVar) {
 		try {
 			return calculateFromBounds(mth, ssaVar);
+		} catch (JadxOverflowException e) {
+			throw e;
 		} catch (Exception e) {
 			LOG.error("Failed to calculate best type for var: {}", ssaVar, e);
 			return false;

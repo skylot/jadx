@@ -49,6 +49,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 
 	private final ICodeReader codeReader;
 	private final boolean methodIsVirtual;
+	private final int insnsCount;
 
 	private boolean noCode;
 	private int regsCount;
@@ -85,9 +86,16 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		this.mthInfo = MethodInfo.fromData(classNode.root(), mthData);
 		this.parentClass = classNode;
 		this.accFlags = new AccessInfo(mthData.getAccessFlags(), AFType.METHOD);
-		this.noCode = mthData.getCodeReader() == null;
-		this.codeReader = noCode ? null : mthData.getCodeReader().copy();
 		this.methodIsVirtual = !mthData.isDirect();
+		ICodeReader codeReader = mthData.getCodeReader();
+		this.noCode = codeReader == null;
+		if (noCode) {
+			this.codeReader = null;
+			this.insnsCount = 0;
+		} else {
+			this.codeReader = codeReader.copy();
+			this.insnsCount = codeReader.getInsnsCount();
+		}
 		unload();
 	}
 
@@ -596,8 +604,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	}
 
 	/**
-	 * Stat method.
-	 * Calculate instructions count as a measure of method size
+	 * Calculate instructions count at currect stage
 	 */
 	public long countInsns() {
 		if (instructions != null) {
@@ -607,6 +614,13 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 			return blocks.stream().mapToLong(block -> block.getInstructions().size()).sum();
 		}
 		return -1;
+	}
+
+	/**
+	 * Raw instructions count in method bytecode
+	 */
+	public int getInsnsCount() {
+		return insnsCount;
 	}
 
 	@Override
