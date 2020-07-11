@@ -1,7 +1,7 @@
 plugins {
 	id 'org.sonarqube' version '3.0'
 	id 'com.github.ben-manes.versions' version '0.28.0'
-	id "com.diffplug.gradle.spotless" version "4.5.0"
+	id "com.diffplug.gradle.spotless" version "4.5.1"
 }
 
 ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
@@ -29,25 +29,24 @@ allprojects {
 	}
 
 	jar {
-		version = jadxVersion
 		manifest {
 			mainAttributes('jadx-version': jadxVersion)
 		}
 	}
 
 	dependencies {
-		compile 'org.slf4j:slf4j-api:1.7.30'
+		implementation 'org.slf4j:slf4j-api:1.7.30'
 		compileOnly 'org.jetbrains:annotations:19.0.0'
 
-		testCompile 'ch.qos.logback:logback-classic:1.2.3'
-		testCompile 'org.hamcrest:hamcrest-library:2.2'
-		testCompile 'org.mockito:mockito-core:3.3.3'
-		testCompile 'org.assertj:assertj-core:3.16.1'
+		testImplementation 'ch.qos.logback:logback-classic:1.2.3'
+		testImplementation 'org.hamcrest:hamcrest-library:2.2'
+		testImplementation 'org.mockito:mockito-core:3.4.0'
+		testImplementation 'org.assertj:assertj-core:3.16.1'
 
 		testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
 		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
 
-		testCompile 'org.eclipse.jdt.core.compiler:ecj:4.6.1'
+		testImplementation 'org.eclipse.jdt.core.compiler:ecj:4.6.1'
 		testCompileOnly 'org.jetbrains:annotations:19.0.0'
 	}
 
@@ -114,14 +113,16 @@ spotless {
 	}
 }
 
-dependencyUpdates.resolutionStrategy = {
-	componentSelection { rules ->
-		rules.all { ComponentSelection selection ->
-			boolean rejected = ['alpha', 'beta', 'rc', 'cr', 'm', 'atlassian'].any { qualifier ->
-				selection.candidate.version ==~ /(?i).*[.-]${qualifier}[.\d-]*/
-			}
-			if (rejected) {
-				selection.reject('Release candidate')
+dependencyUpdates {
+	resolutionStrategy {
+		componentSelection { rules ->
+			rules.all { ComponentSelection selection ->
+				boolean rejected = ['alpha', 'beta', 'rc', 'cr', 'm', 'atlassian'].any { qualifier ->
+					selection.candidate.version ==~ /(?i).*[.-]${qualifier}[.\d-]*/
+				}
+				if (rejected) {
+					selection.reject('Release candidate')
+				}
 			}
 		}
 	}
@@ -132,11 +133,12 @@ task copyArtifacts(type: Sync, dependsOn: ['jadx-cli:installDist', 'jadx-gui:ins
 	['jadx-cli', 'jadx-gui'].each {
 		from tasks.getByPath(":${it}:installDist").destinationDir
 	}
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 task pack(type: Zip, dependsOn: copyArtifacts) {
-	destinationDir buildDir
-	archiveName "jadx-${jadxVersion}.zip"
+	destinationDirectory = buildDir
+	archiveFileName = "jadx-${jadxVersion}.zip"
 	from copyArtifacts.destinationDir
 }
 
@@ -146,6 +148,7 @@ task copyExe(type: Copy, dependsOn: 'jadx-gui:createExe') {
 	destinationDir buildDir
 	from tasks.getByPath('jadx-gui:createExe').outputs
 	include '*.exe'
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 task dist(dependsOn: [pack, copyExe]) {

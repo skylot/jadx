@@ -1,11 +1,11 @@
 project.ext {
-	mainSamplesClass = "jadx.samples.RunTests"
+	mainSamplesClass = 'jadx.samples.RunTests'
 	samplesJadxSrcDir = "${buildDir}/samples-jadx/src"
 	samplesJadxOutDir = "${buildDir}/samples-jadx/output"
 }
 
 dependencies {
-	compile(project(":jadx-cli"))
+	implementation(project(":jadx-cli"))
 }
 
 compileJava {
@@ -21,25 +21,25 @@ task samplesRun(type: JavaExec, dependsOn: compileJava) {
 }
 
 task samplesJar(type: Jar, dependsOn: samplesRun) {
-	baseName = 'samples'
+	archivesBaseName = 'samples'
 	from sourceSets.main.output
 }
 
 task samplesJadxCreate(type: JavaExec, dependsOn: samplesJar) {
-	classpath = sourceSets.main.output + configurations.compile
+	classpath = sourceSets.main.output + configurations.runtimeClasspath
 	main = project(":jadx-cli").mainClassName
-	args = ['-v', '-d', samplesJadxSrcDir, samplesJar.archivePath]
+	args = ['-v', '-d', samplesJadxSrcDir, samplesJar.archiveFile.get()]
 }
 
 task samplesJadxCompile(type: JavaCompile, dependsOn: samplesJadxCreate) {
-	classpath = configurations.compile
-	destinationDir = file samplesJadxOutDir
+	classpath = configurations.runtimeClasspath
+	destinationDir = file(samplesJadxOutDir)
 	source = samplesJadxSrcDir
 	options.encoding = "UTF-8"
 }
 
 task samplesJadxRun(type: JavaExec, dependsOn: samplesJadxCompile) {
-	classpath = files samplesJadxOutDir
+	classpath = files(samplesJadxOutDir)
 	main = mainSamplesClass
 }
 

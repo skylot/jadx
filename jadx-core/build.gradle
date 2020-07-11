@@ -3,23 +3,23 @@ plugins {
 }
 
 dependencies {
-	runtime files('clsp-data/android-29-clst.jar')
-	runtime files('clsp-data/android-29-res.jar')
+	runtimeOnly files('clsp-data/android-29-clst.jar')
+	runtimeOnly files('clsp-data/android-29-res.jar')
 
 	api(project(':jadx-plugins:jadx-plugins-api'))
 
-	compile 'com.google.code.gson:gson:2.8.6'
+	implementation 'com.google.code.gson:gson:2.8.6'
 
-	compile 'org.smali:baksmali:2.4.0'
-	compile('org.smali:smali:2.4.0') {
+	implementation 'org.smali:baksmali:2.4.0'
+	implementation('org.smali:smali:2.4.0') {
 		exclude group: 'com.google.guava'
 	}
-	compile 'com.google.guava:guava:29.0-jre'
+	implementation 'com.google.guava:guava:29.0-jre'
 
-	testCompile 'org.apache.commons:commons-lang3:3.10'
+	testImplementation 'org.apache.commons:commons-lang3:3.10'
 
-	testRuntime(project(':jadx-plugins:jadx-dex-input'))
-	testRuntime(project(':jadx-plugins:jadx-java-convert'))
+	testRuntimeOnly(project(':jadx-plugins:jadx-dex-input'))
+	testRuntimeOnly(project(':jadx-plugins:jadx-java-convert'))
 }
 
 test {

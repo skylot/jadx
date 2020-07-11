@@ -5,19 +5,23 @@ plugins {
 }
 
 dependencies {
-	compile(project(":jadx-core"))
-	compile(project(":jadx-cli"))
+	implementation(project(':jadx-core'))
 
-	compile 'com.fifesoft:rsyntaxtextarea:3.1.1'
-	compile files('libs/jfontchooser-1.0.5.jar')
-	compile 'hu.kazocsaba:image-viewer:1.2.3'
+	implementation(project(":jadx-cli"))
+	implementation 'com.beust:jcommander:1.78'
+	implementation 'ch.qos.logback:logback-classic:1.2.3'
 
-	compile 'org.apache.commons:commons-lang3:3.10'
-	compile 'org.apache.commons:commons-text:1.8'
+	implementation 'com.fifesoft:rsyntaxtextarea:3.1.1'
+	implementation files('libs/jfontchooser-1.0.5.jar')
+	implementation 'hu.kazocsaba:image-viewer:1.2.3'
 
-	compile 'io.reactivex.rxjava2:rxjava:2.2.19'
-	compile "com.github.akarnokd:rxjava2-swing:0.3.7"
-	compile 'com.android.tools.build:apksig:4.0.0'
+	implementation 'com.google.code.gson:gson:2.8.6'
+	implementation 'org.apache.commons:commons-lang3:3.10'
+	implementation 'org.apache.commons:commons-text:1.8'
+
+	implementation 'io.reactivex.rxjava2:rxjava:2.2.19'
+	implementation "com.github.akarnokd:rxjava2-swing:0.3.7"
+	implementation 'com.android.tools.build:apksig:4.0.0'
 }
 
 application {
@@ -38,7 +42,7 @@ jar {
 	manifest {
 		attributes(
 				"Main-Class": mainClassName,
-				"Class-Path": configurations.compile.collect { it.getName() }.join(' ')
+				"Class-Path": configurations.runtimeClasspath.collect { it.getName() }.join(' ')
 		)
 	}
 }
@@ -61,7 +65,7 @@ startScripts {
 launch4j {
 	mainClassName = 'jadx.gui.JadxGUI'
 	copyConfigurable = project.tasks.shadowJar.outputs.files
-	jar = "lib/${project.tasks.shadowJar.archiveName}"
+	jar = "lib/${project.tasks.shadowJar.archiveFileName.get()}"
 	icon = "${projectDir}/src/main/resources/logos/jadx-logo.ico"
 	outfile = "jadx-gui-${version}.exe"
 	copyright = 'Skylot'
