@@ -1,4 +1,4 @@
-package jadx.tests.integration;
+package jadx.tests.integration.others;
 
 import java.util.List;
 

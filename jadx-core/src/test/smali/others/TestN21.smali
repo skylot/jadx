@@ -1,4 +1,4 @@
-.class public LTestN21;
+.class public Lothers/TestN21;
 .super Ljava/lang/Object;
 
 .method private static test([BI)I

@@ -3,8 +3,6 @@ package jadx.tests.integration.loops;
 import java.io.File;
 import java.io.FileOutputStream;
 
-import org.junit.jupiter.api.Test;
-
 import jadx.NotYetImplemented;
 import jadx.tests.api.IntegrationTest;
 
@@ -53,7 +51,7 @@ public class TestBreakInLoop3 extends IntegrationTest {
 		}
 	}
 
-	@Test
+	// @Test
 	@NotYetImplemented
 	public void test43() throws Exception {
 		getClassNode(TestCls.class);

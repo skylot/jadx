@@ -42,11 +42,6 @@ public abstract class SmaliTest extends IntegrationTest {
 		return getClassNodeFromSmali(getTestPkg() + File.separatorChar + getTestName(), fullClsName);
 	}
 
-	@Deprecated
-	protected ClassNode getClassNodeFromSmali(String clsName) {
-		return getClassNodeFromSmali(clsName, clsName);
-	}
-
 	protected ClassNode getClassNodeFromSmaliWithPath(String path, String clsName) {
 		return getClassNodeFromSmali(path + File.separatorChar + clsName, clsName);
 	}

@@ -1,4 +1,4 @@
-.class public LTestConstructor;
+.class public Lothers/TestConstructor;
 .super Ljava/lang/Object;
 
 .method private test(DDLSomeObject;)LSomeObject;
@@ -20,4 +20,6 @@
 
     .line 59
     .local v17, "localSomeObject":LSomeObject;
+
+    return-object v17
 .end method

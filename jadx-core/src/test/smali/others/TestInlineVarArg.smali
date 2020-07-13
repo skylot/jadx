@@ -1,4 +1,4 @@
-.class public LTestInlineVarArg;
+.class public Lothers/TestInlineVarArg;
 .super Ljava/lang/Object;
 
 .method public static varargs f([Ljava/lang/String;)V
@@ -35,7 +35,7 @@
 
     move-object v1, v0
 
-    invoke-static {v1}, LTestInlineVarArg;->f([Ljava/lang/String;)V
+    invoke-static {v1}, Lothers/TestInlineVarArg;->f([Ljava/lang/String;)V
 
     return-void
 .end method
