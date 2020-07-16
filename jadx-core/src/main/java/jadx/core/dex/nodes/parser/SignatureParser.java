@@ -173,10 +173,14 @@ public class SignatureParser {
 		throw new JadxRuntimeException("Can't parse type: " + debugString() + ", unexpected: " + ch);
 	}
 
-	private ArgType consumeObjectType(boolean incompleteType) {
+	private ArgType consumeObjectType(boolean innerType) {
 		mark();
 		int ch;
 		do {
+			if (innerType && lookAhead('.')) {
+				// stop before next nested inner class
+				return ArgType.object(inclusiveSlice());
+			}
 			ch = next();
 			if (ch == STOP_CHAR) {
 				return null;
@@ -185,36 +189,44 @@ public class SignatureParser {
 
 		if (ch == ';') {
 			String obj;
-			if (incompleteType) {
+			if (innerType) {
 				obj = slice().replace('/', '.');
 			} else {
 				obj = inclusiveSlice();
 			}
 			return ArgType.object(obj);
-		} else {
-			// generic type start ('<')
-			String obj = slice();
-			if (!incompleteType) {
-				obj += ';';
-			}
-			ArgType[] genArr = consumeGenericArgs();
-			consume('>');
+		}
+		// generic type start ('<')
+		String obj = slice();
+		if (!innerType) {
+			obj += ';';
+		}
+		ArgType[] genArr = consumeGenericArgs();
+		consume('>');
 
-			ArgType genericType = ArgType.generic(obj, genArr);
-			if (lookAhead('.')) {
-				consume('.');
-				next();
-				// type parsing not completed, proceed to inner class
-				ArgType inner = consumeObjectType(true);
-				if (inner == null) {
-					throw new JadxRuntimeException("No inner type found: " + debugString());
-				}
-				return ArgType.outerGeneric(genericType, inner);
-			} else {
-				consume(';');
-				return genericType;
+		ArgType genericType = ArgType.generic(obj, genArr);
+		if (!lookAhead('.')) {
+			consume(';');
+			return genericType;
+		}
+		consume('.');
+		next();
+		// type parsing not completed, proceed to inner class
+		ArgType inner = consumeObjectType(true);
+		if (inner == null) {
+			throw new JadxRuntimeException("No inner type found: " + debugString());
+		}
+		// for every nested inner type create nested type object
+		while (lookAhead('.')) {
+			genericType = ArgType.outerGeneric(genericType, inner);
+			consume('.');
+			next();
+			inner = consumeObjectType(true);
+			if (inner == null) {
+				throw new JadxRuntimeException("Unexpected inner type found: " + debugString());
 			}
 		}
+		return ArgType.outerGeneric(genericType, inner);
 	}
 
 	private ArgType[] consumeGenericArgs() {

@@ -116,7 +116,7 @@ public abstract class ArgType {
 	}
 
 	public static ArgType outerGeneric(ArgType genericOuterType, ArgType innerType) {
-		return new OuterGenericObject((GenericObject) genericOuterType, (ObjectType) innerType);
+		return new OuterGenericObject((ObjectType) genericOuterType, (ObjectType) innerType);
 	}
 
 	public static ArgType array(@NotNull ArgType vtype) {
@@ -341,10 +341,10 @@ public abstract class ArgType {
 	}
 
 	private static class OuterGenericObject extends ObjectType {
-		private final GenericObject outerType;
+		private final ObjectType outerType;
 		private final ObjectType innerType;
 
-		public OuterGenericObject(GenericObject outerType, ObjectType innerType) {
+		public OuterGenericObject(ObjectType outerType, ObjectType innerType) {
 			super(outerType.getObject() + '$' + innerType.getObject());
 			this.outerType = outerType;
 			this.innerType = innerType;

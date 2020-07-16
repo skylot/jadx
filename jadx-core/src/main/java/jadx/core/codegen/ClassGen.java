@@ -511,7 +511,8 @@ public class ClassGen {
 		if (outerType != null) {
 			useClass(code, outerType);
 			code.add('.');
-			useClass(code, type.getInnerType());
+			// import not needed, force use short name
+			useClassShortName(code, type.getObject());
 			return;
 		}
 
@@ -538,6 +539,15 @@ public class ClassGen {
 			}
 			code.add('>');
 		}
+	}
+
+	private void useClassShortName(CodeWriter code, String object) {
+		ClassInfo classInfo = ClassInfo.fromName(cls.root(), object);
+		ClassNode classNode = cls.root().resolveClass(classInfo);
+		if (classNode != null) {
+			code.attachAnnotation(classNode);
+		}
+		code.add(classInfo.getAliasShortName());
 	}
 
 	public void useClass(CodeWriter code, ClassInfo classInfo) {

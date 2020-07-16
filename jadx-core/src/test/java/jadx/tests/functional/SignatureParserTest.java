@@ -21,6 +21,7 @@ import static jadx.core.dex.instructions.args.ArgType.wildcard;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
@@ -56,6 +57,16 @@ class SignatureParserTest {
 		String signature = "La<TV;>.LinkedHashIterator<Lb$c<Ls;TV;>;>;";
 		String objectStr = new SignatureParser(signature).consumeType().getObject();
 		assertThat(objectStr, is("a$LinkedHashIterator"));
+	}
+
+	@Test
+	public void testNestedInnerGeneric() {
+		String signature = "La<TV;>.I.X;";
+		ArgType result = new SignatureParser(signature).consumeType();
+		assertThat(result.getObject(), is("a$I$X"));
+		// nested 'outerGeneric' objects
+		ArgType obj = generic("La;", genericType("V"));
+		assertThat(result, equalTo(outerGeneric(outerGeneric(obj, object("I")), object("X"))));
 	}
 
 	@Test
