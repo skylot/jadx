@@ -1,6 +1,9 @@
 package jadx.core.utils;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.api.JadxArgs;
+import jadx.core.deobf.NameMapper;
 
 public class StringUtils {
 	private static final StringUtils DEFAULT_INSTANCE = new StringUtils(new JadxArgs());
@@ -24,57 +27,74 @@ public class StringUtils {
 		res.append('"');
 		for (int i = 0; i < len; i++) {
 			int c = str.charAt(i) & 0xFFFF;
-			processChar(c, res);
+			processCharInsideString(c, res);
 		}
 		res.append('"');
 		return res.toString();
 	}
 
-	public String unescapeChar(char ch) {
-		if (ch == '\'') {
-			return "'\\\''";
+	private void processCharInsideString(int c, StringBuilder res) {
+		String str = getSpecialStringForChar(c);
+		if (str != null) {
+			res.append(str);
+			return;
 		}
-		StringBuilder res = new StringBuilder();
-		res.append('\'');
-		processChar(ch, res);
-		res.append('\'');
-		return res.toString();
+		if (c < 32 || c >= 127 && escapeUnicode) {
+			res.append("\\u").append(String.format("%04x", c));
+		} else {
+			res.append((char) c);
+		}
 	}
 
-	private void processChar(int c, StringBuilder res) {
+	/**
+	 * Represent single char best way possible
+	 */
+	public String unescapeChar(int c, boolean explicitCast) {
+		if (c == '\'') {
+			return "'\\''";
+		}
+		String str = getSpecialStringForChar(c);
+		if (str != null) {
+			return '\'' + str + '\'';
+		}
+		if (c >= 127 && escapeUnicode) {
+			return String.format("'\\u%04x'", c);
+		}
+		if (NameMapper.isPrintableChar(c)) {
+			return "'" + (char) c + '\'';
+		}
+		if (explicitCast) {
+			return "(char) " + c;
+		}
+		return String.valueOf(c);
+	}
+
+	public String unescapeChar(char ch) {
+		return unescapeChar(ch, false);
+	}
+
+	@Nullable
+	private String getSpecialStringForChar(int c) {
 		switch (c) {
 			case '\n':
-				res.append("\\n");
-				break;
+				return "\\n";
 			case '\r':
-				res.append("\\r");
-				break;
+				return "\\r";
 			case '\t':
-				res.append("\\t");
-				break;
+				return "\\t";
 			case '\b':
-				res.append("\\b");
-				break;
+				return "\\b";
 			case '\f':
-				res.append("\\f");
-				break;
+				return "\\f";
 			case '\'':
-				res.append('\'');
-				break;
+				return "'";
 			case '"':
-				res.append("\\\"");
-				break;
+				return "\\\"";
 			case '\\':
-				res.append("\\\\");
-				break;
+				return "\\\\";
 
 			default:
-				if (c < 32 || c >= 127 && escapeUnicode) {
-					res.append("\\u").append(String.format("%04x", c));
-				} else {
-					res.append((char) c);
-				}
-				break;
+				return null;
 		}
 	}
 

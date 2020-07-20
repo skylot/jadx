@@ -278,13 +278,14 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 		if (argsCount == 1) {
 			return mthDetails.getArgTypes();
 		}
-		// TODO: try to minimize casts count
-		parentMth.addComment("JADX DEBUG: Failed to find minimal casts for resolve overloaded methods, cast all args instead"
-				+ NL + " method: " + mthDetails
-				+ NL + " arg types: " + compilerVarTypes
-				+ NL + " candidates:"
-				+ NL + "  " + Utils.listToString(overloadedMethods, NL + "  "));
-
+		if (Consts.DEBUG_OVERLOADED_CASTS) {
+			// TODO: try to minimize casts count
+			parentMth.addComment("JADX DEBUG: Failed to find minimal casts for resolve overloaded methods, cast all args instead"
+					+ NL + " method: " + mthDetails
+					+ NL + " arg types: " + compilerVarTypes
+					+ NL + " candidates:"
+					+ NL + "  " + Utils.listToString(overloadedMethods, NL + "  "));
+		}
 		// not resolved -> cast all args
 		return mthDetails.getArgTypes();
 	}

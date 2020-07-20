@@ -43,8 +43,9 @@ class StringUtilsTest {
 		checkCharUnescape('a', "a");
 		checkCharUnescape(' ', " ");
 		checkCharUnescape('\n', "\\n");
-		checkCharUnescape('\'', "\\\'");
-		checkCharUnescape('\0', "\\u0000");
+		checkCharUnescape('\'', "\\'");
+
+		assertThat(stringUtils.unescapeChar('\0'), is("0"));
 	}
 
 	private void checkCharUnescape(char input, String result) {
