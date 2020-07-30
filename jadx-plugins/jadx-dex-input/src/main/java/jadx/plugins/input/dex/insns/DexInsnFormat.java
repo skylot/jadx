@@ -347,7 +347,7 @@ public abstract class DexInsnFormat {
 		public void skip(DexInsnData insn, SectionReader in) {
 			int elemSize = in.readUShort();
 			int size = in.readInt();
-			if (size == 1) {
+			if (elemSize == 1) {
 				in.skip(size + size % 2);
 			} else {
 				in.skip(size * elemSize);
