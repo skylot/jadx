@@ -8,7 +8,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.NotYetImplemented;
 import jadx.NotYetImplementedExtension;
 import jadx.api.JadxArgs;
 import jadx.core.dex.instructions.args.ArgType;
@@ -19,17 +18,20 @@ import static jadx.core.dex.instructions.args.ArgType.BOOLEAN;
 import static jadx.core.dex.instructions.args.ArgType.BYTE;
 import static jadx.core.dex.instructions.args.ArgType.CHAR;
 import static jadx.core.dex.instructions.args.ArgType.CLASS;
+import static jadx.core.dex.instructions.args.ArgType.EXCEPTION;
 import static jadx.core.dex.instructions.args.ArgType.INT;
 import static jadx.core.dex.instructions.args.ArgType.NARROW;
 import static jadx.core.dex.instructions.args.ArgType.NARROW_INTEGRAL;
 import static jadx.core.dex.instructions.args.ArgType.OBJECT;
 import static jadx.core.dex.instructions.args.ArgType.SHORT;
 import static jadx.core.dex.instructions.args.ArgType.STRING;
+import static jadx.core.dex.instructions.args.ArgType.THROWABLE;
 import static jadx.core.dex.instructions.args.ArgType.UNKNOWN;
 import static jadx.core.dex.instructions.args.ArgType.UNKNOWN_ARRAY;
 import static jadx.core.dex.instructions.args.ArgType.UNKNOWN_OBJECT;
 import static jadx.core.dex.instructions.args.ArgType.array;
 import static jadx.core.dex.instructions.args.ArgType.generic;
+import static jadx.core.dex.instructions.args.ArgType.genericType;
 import static jadx.core.dex.instructions.args.ArgType.object;
 import static jadx.core.dex.instructions.args.ArgType.wildcard;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -101,8 +103,8 @@ public class TypeCompareTest {
 		ArgType mapCls = object("java.util.Map");
 		ArgType setCls = object("java.util.Set");
 
-		ArgType keyType = ArgType.genericType("K");
-		ArgType valueType = ArgType.genericType("V");
+		ArgType keyType = genericType("K");
+		ArgType valueType = genericType("V");
 		ArgType mapGeneric = ArgType.generic(mapCls.getObject(), keyType, valueType);
 
 		check(mapCls, mapGeneric, TypeCompareEnum.WIDER_BY_GENERIC);
@@ -119,6 +121,8 @@ public class TypeCompareTest {
 	@Test
 	public void compareWildCards() {
 		ArgType clsWildcard = generic(CLASS.getObject(), wildcard());
+		check(clsWildcard, CLASS, TypeCompareEnum.NARROW_BY_GENERIC);
+
 		ArgType clsExtendedWildcard = generic(CLASS.getObject(), wildcard(STRING, WildcardBound.EXTENDS));
 		check(clsWildcard, clsExtendedWildcard, TypeCompareEnum.WIDER);
 
@@ -132,28 +136,44 @@ public class TypeCompareTest {
 
 	@Test
 	public void compareGenericTypes() {
-		ArgType vType = ArgType.genericType("V");
-		ArgType rType = ArgType.genericType("R");
+		ArgType vType = genericType("V");
+		check(vType, OBJECT, TypeCompareEnum.NARROW);
+		check(vType, STRING, TypeCompareEnum.NARROW);
 
-		check(vType, ArgType.OBJECT, TypeCompareEnum.NARROW_BY_GENERIC);
-		check(ArgType.OBJECT, vType, TypeCompareEnum.WIDER_BY_GENERIC);
-
+		ArgType rType = genericType("R");
 		check(vType, rType, TypeCompareEnum.CONFLICT);
 		check(vType, vType, TypeCompareEnum.EQUAL);
 
-		ArgType tType = ArgType.genericType("T");
-		tType.setExtendTypes(Collections.singletonList(ArgType.STRING));
+		ArgType tType = genericType("T");
+		ArgType tStringType = genericType("T", STRING);
 
-		check(tType, ArgType.STRING, TypeCompareEnum.NARROW_BY_GENERIC);
-		check(tType, ArgType.OBJECT, TypeCompareEnum.NARROW_BY_GENERIC);
+		check(tStringType, STRING, TypeCompareEnum.NARROW);
+		check(tStringType, OBJECT, TypeCompareEnum.NARROW);
+		check(tStringType, tType, TypeCompareEnum.NARROW);
+
+		ArgType tObjType = genericType("T", OBJECT);
+
+		check(tObjType, OBJECT, TypeCompareEnum.NARROW);
+		check(tObjType, tType, TypeCompareEnum.EQUAL);
+
+		check(tStringType, tObjType, TypeCompareEnum.NARROW);
 	}
 
 	@Test
-	@NotYetImplemented
-	public void compareGenericTypesNYI() {
-		ArgType vType = ArgType.genericType("V");
-		// TODO: use extend types from generic declaration for more strict checks
-		check(vType, ArgType.STRING, TypeCompareEnum.CONFLICT);
+	public void compareGenericTypes2() {
+		ArgType npeType = object("java.lang.NullPointerException");
+
+		// check clsp graph
+		check(npeType, THROWABLE, TypeCompareEnum.NARROW);
+		check(npeType, EXCEPTION, TypeCompareEnum.NARROW);
+		check(EXCEPTION, THROWABLE, TypeCompareEnum.NARROW);
+
+		ArgType typeVar = genericType("T", EXCEPTION); // T extends Exception
+
+		// target checks
+		check(THROWABLE, typeVar, TypeCompareEnum.WIDER);
+		check(EXCEPTION, typeVar, TypeCompareEnum.WIDER);
+		check(npeType, typeVar, TypeCompareEnum.NARROW);
 	}
 
 	@Test

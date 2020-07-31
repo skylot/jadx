@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import jadx.core.Consts;
 import jadx.core.dex.info.ClassInfo;
@@ -32,6 +33,7 @@ public abstract class ArgType {
 	public static final ArgType STRING = objectNoCache(Consts.CLASS_STRING);
 	public static final ArgType ENUM = objectNoCache(Consts.CLASS_ENUM);
 	public static final ArgType THROWABLE = objectNoCache(Consts.CLASS_THROWABLE);
+	public static final ArgType EXCEPTION = objectNoCache(Consts.CLASS_EXCEPTION);
 	public static final ArgType OBJECT_ARRAY = array(OBJECT);
 	public static final ArgType WILDCARD = wildcard();
 
@@ -86,6 +88,8 @@ public abstract class ArgType {
 				return CLASS;
 			case Consts.CLASS_THROWABLE:
 				return THROWABLE;
+			case Consts.CLASS_EXCEPTION:
+				return EXCEPTION;
 			default:
 				return new ObjectType(cleanObjectName);
 		}
@@ -93,6 +97,14 @@ public abstract class ArgType {
 
 	public static ArgType genericType(String type) {
 		return new GenericType(type);
+	}
+
+	public static ArgType genericType(String type, ArgType extendType) {
+		return new GenericType(type, extendType);
+	}
+
+	public static ArgType genericType(String type, List<ArgType> extendTypes) {
+		return new GenericType(type, extendTypes);
 	}
 
 	public static ArgType wildcard() {
@@ -103,16 +115,28 @@ public abstract class ArgType {
 		return new WildcardType(obj, bound);
 	}
 
-	public static ArgType generic(ArgType obj, ArgType... generics) {
+	public static ArgType generic(ArgType obj, List<ArgType> generics) {
 		if (!obj.isObject()) {
 			throw new IllegalArgumentException("Expected Object as ArgType, got: " + obj);
 		}
 		return new GenericObject(obj.getObject(), generics);
 	}
 
+	public static ArgType generic(ArgType obj, ArgType... generics) {
+		return generic(obj, Arrays.asList(generics));
+	}
+
+	public static ArgType generic(String obj, List<ArgType> generics) {
+		return new GenericObject(Utils.cleanObjectName(obj), generics);
+	}
+
+	public static ArgType generic(String obj, ArgType generic) {
+		return generic(obj, Collections.singletonList(generic));
+	}
+
+	@TestOnly
 	public static ArgType generic(String obj, ArgType... generics) {
-		String cleanObjectName = Utils.cleanObjectName(obj);
-		return new GenericObject(cleanObjectName, generics);
+		return generic(obj, Arrays.asList(generics));
 	}
 
 	public static ArgType outerGeneric(ArgType genericOuterType, ArgType innerType) {
@@ -219,7 +243,16 @@ public abstract class ArgType {
 		private List<ArgType> extendTypes;
 
 		public GenericType(String obj) {
+			this(obj, Collections.emptyList());
+		}
+
+		public GenericType(String obj, ArgType extendType) {
+			this(obj, Collections.singletonList(extendType));
+		}
+
+		public GenericType(String obj, List<ArgType> extendTypes) {
 			super(obj);
+			this.extendTypes = extendTypes;
 		}
 
 		@Override
@@ -235,6 +268,21 @@ public abstract class ArgType {
 		@Override
 		public void setExtendTypes(List<ArgType> extendTypes) {
 			this.extendTypes = extendTypes;
+		}
+
+		@Override
+		boolean internalEquals(Object obj) {
+			return super.internalEquals(obj)
+					&& extendTypes.equals(((GenericType) obj).extendTypes);
+		}
+
+		@Override
+		public String toString() {
+			List<ArgType> extTypes = this.extendTypes;
+			if (extTypes.isEmpty()) {
+				return objName;
+			}
+			return objName + " extends " + Utils.listToString(extTypes, " & ");
 		}
 	}
 
@@ -275,6 +323,11 @@ public abstract class ArgType {
 		}
 
 		@Override
+		public boolean isWildcard() {
+			return true;
+		}
+
+		@Override
 		public boolean isGeneric() {
 			return true;
 		}
@@ -306,16 +359,16 @@ public abstract class ArgType {
 	}
 
 	private static class GenericObject extends ObjectType {
-		private final ArgType[] generics;
+		private final List<ArgType> generics;
 
-		public GenericObject(String obj, ArgType[] generics) {
+		public GenericObject(String obj, List<ArgType> generics) {
 			super(obj);
 			this.generics = Objects.requireNonNull(generics);
 			this.hash = calcHash();
 		}
 
 		private int calcHash() {
-			return objName.hashCode() + 31 * Arrays.hashCode(generics);
+			return objName.hashCode() + 31 * generics.hashCode();
 		}
 
 		@Override
@@ -324,19 +377,19 @@ public abstract class ArgType {
 		}
 
 		@Override
-		public ArgType[] getGenericTypes() {
+		public List<ArgType> getGenericTypes() {
 			return generics;
 		}
 
 		@Override
 		boolean internalEquals(Object obj) {
 			return super.internalEquals(obj)
-					&& Arrays.equals(generics, ((GenericObject) obj).generics);
+					&& Objects.equals(generics, ((GenericObject) obj).generics);
 		}
 
 		@Override
 		public String toString() {
-			return super.toString() + '<' + Utils.arrayToStr(generics) + '>';
+			return super.toString() + '<' + Utils.listToString(generics) + '>';
 		}
 	}
 
@@ -361,7 +414,7 @@ public abstract class ArgType {
 		}
 
 		@Override
-		public ArgType[] getGenericTypes() {
+		public List<ArgType> getGenericTypes() {
 			return innerType.getGenericTypes();
 		}
 
@@ -496,9 +549,9 @@ public abstract class ArgType {
 		@Override
 		public String toString() {
 			if (possibleTypes.length == PrimitiveType.values().length) {
-				return "?";
+				return "??";
 			} else {
-				return "?[" + Utils.arrayToStr(possibleTypes) + ']';
+				return "??[" + Utils.arrayToStr(possibleTypes) + ']';
 			}
 		}
 	}
@@ -531,7 +584,7 @@ public abstract class ArgType {
 		return false;
 	}
 
-	public ArgType[] getGenericTypes() {
+	public List<ArgType> getGenericTypes() {
 		return null;
 	}
 
@@ -548,6 +601,10 @@ public abstract class ArgType {
 
 	public WildcardBound getWildcardBound() {
 		return null;
+	}
+
+	public boolean isWildcard() {
+		return false;
 	}
 
 	public ArgType getOuterType() {
@@ -726,7 +783,7 @@ public abstract class ArgType {
 			return wildcardType.containsTypeVariable();
 		}
 		if (isGeneric()) {
-			ArgType[] genericTypes = getGenericTypes();
+			List<ArgType> genericTypes = getGenericTypes();
 			if (genericTypes != null) {
 				for (ArgType genericType : genericTypes) {
 					if (genericType.containsTypeVariable()) {
@@ -754,21 +811,27 @@ public abstract class ArgType {
 		if (r != null) {
 			return r;
 		}
-		ArgType wildcardType = getWildcardType();
-		if (wildcardType != null) {
-			return wildcardType.visitTypes(visitor);
-		}
 		if (isArray()) {
 			ArgType arrayElement = getArrayElement();
 			if (arrayElement != null) {
 				return arrayElement.visitTypes(visitor);
 			}
 		}
+		ArgType wildcardType = getWildcardType();
+		if (wildcardType != null) {
+			R res = wildcardType.visitTypes(visitor);
+			if (res != null) {
+				return res;
+			}
+		}
 		if (isGeneric()) {
-			ArgType[] genericTypes = getGenericTypes();
+			List<ArgType> genericTypes = getGenericTypes();
 			if (genericTypes != null) {
 				for (ArgType genericType : genericTypes) {
-					return genericType.visitTypes(visitor);
+					R res = genericType.visitTypes(visitor);
+					if (res != null) {
+						return res;
+					}
 				}
 			}
 		}

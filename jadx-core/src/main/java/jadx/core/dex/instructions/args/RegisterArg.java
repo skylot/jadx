@@ -32,12 +32,8 @@ public class RegisterArg extends InsnArg implements Named {
 		return true;
 	}
 
-	@Override
-	public void setType(ArgType newType) {
-		if (sVar == null) {
-			throw new JadxRuntimeException("Can't change type for register without SSA variable: " + this);
-		}
-		sVar.setType(newType);
+	public ArgType getInitType() {
+		return type;
 	}
 
 	@Override
@@ -48,27 +44,39 @@ public class RegisterArg extends InsnArg implements Named {
 		return ArgType.UNKNOWN;
 	}
 
-	public ArgType getInitType() {
-		return type;
+	@Override
+	public void setType(ArgType newType) {
+		if (sVar == null) {
+			throw new JadxRuntimeException("Can't change type for register without SSA variable: " + this);
+		}
+		sVar.setType(newType);
+	}
+
+	public void updateImmutableType(ArgType type) {
+		if (sVar == null) {
+			throw new JadxRuntimeException("Unknown SSA variable to update immutable type: " + this);
+		}
+		sVar.forceSetType(type);
+		sVar.getAssign().add(AFlag.IMMUTABLE_TYPE);
 	}
 
 	@Nullable
 	public ArgType getImmutableType() {
-		if (contains(AFlag.IMMUTABLE_TYPE)) {
-			return type;
-		}
 		if (sVar != null) {
 			return sVar.getImmutableType();
+		}
+		if (contains(AFlag.IMMUTABLE_TYPE)) {
+			return type;
 		}
 		return null;
 	}
 
 	@Override
 	public boolean isTypeImmutable() {
-		if (contains(AFlag.IMMUTABLE_TYPE)) {
-			return true;
+		if (sVar != null) {
+			return sVar.isTypeImmutable();
 		}
-		return sVar != null && sVar.isTypeImmutable();
+		return contains(AFlag.IMMUTABLE_TYPE);
 	}
 
 	public SSAVar getSVar() {
@@ -77,14 +85,6 @@ public class RegisterArg extends InsnArg implements Named {
 
 	void setSVar(@NotNull SSAVar sVar) {
 		this.sVar = sVar;
-	}
-
-	@Override
-	public void add(AFlag flag) {
-		if (flag == AFlag.IMMUTABLE_TYPE && !type.isTypeKnown()) {
-			throw new JadxRuntimeException("Can't mark unknown type as immutable, type: " + type + ", reg: " + this);
-		}
-		super.add(flag);
 	}
 
 	@Override

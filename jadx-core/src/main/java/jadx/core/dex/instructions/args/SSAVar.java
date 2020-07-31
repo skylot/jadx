@@ -28,7 +28,7 @@ public class SSAVar {
 	private final List<RegisterArg> useList = new ArrayList<>(2);
 	private List<PhiInsn> usedInPhi = null;
 
-	private TypeInfo typeInfo = new TypeInfo();
+	private final TypeInfo typeInfo = new TypeInfo();
 
 	@Nullable("Set in InitCodeVariables pass")
 	private CodeVar codeVar;
@@ -69,18 +69,13 @@ public class SSAVar {
 	@Nullable
 	public ArgType getImmutableType() {
 		if (assign.contains(AFlag.IMMUTABLE_TYPE)) {
-			return assign.getInitType();
-		}
-		for (RegisterArg useArg : useList) {
-			if (useArg.contains(AFlag.IMMUTABLE_TYPE)) {
-				return useArg.getInitType();
-			}
+			return assign.getType();
 		}
 		return null;
 	}
 
 	public boolean isTypeImmutable() {
-		return getImmutableType() != null;
+		return assign.contains(AFlag.IMMUTABLE_TYPE);
 	}
 
 	public void setType(ArgType type) {
@@ -88,7 +83,14 @@ public class SSAVar {
 		if (imType != null && !imType.equals(type)) {
 			throw new JadxRuntimeException("Can't change immutable type " + imType + " to " + type + " for " + this);
 		}
+		updateType(type);
+	}
 
+	public void forceSetType(ArgType type) {
+		updateType(type);
+	}
+
+	private void updateType(ArgType type) {
 		typeInfo.setType(type);
 		if (codeVar != null) {
 			codeVar.setType(type);
@@ -194,10 +196,17 @@ public class SSAVar {
 	public void setCodeVar(@NotNull CodeVar codeVar) {
 		this.codeVar = codeVar;
 		codeVar.addSsaVar(this);
+		ArgType imType = getImmutableType();
+		if (imType != null) {
+			codeVar.setType(imType);
+		}
 	}
 
 	public void resetTypeAndCodeVar() {
-		this.typeInfo.reset();
+		if (!isTypeImmutable()) {
+			updateType(ArgType.UNKNOWN);
+		}
+		this.typeInfo.getBounds().clear();
 		this.codeVar = null;
 	}
 

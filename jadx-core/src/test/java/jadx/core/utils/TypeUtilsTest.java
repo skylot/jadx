@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.GenericTypeParameter;
 import jadx.core.dex.nodes.RootNode;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -30,11 +29,11 @@ class TypeUtilsTest {
 	@Test
 	public void testReplaceGenericsWithWildcards() {
 		// check classpath graph
-		List<GenericTypeParameter> classGenerics = root.getTypeUtils().getClassGenerics(ArgType.object("java.util.ArrayList"));
+		List<ArgType> classGenerics = root.getTypeUtils().getClassGenerics(ArgType.object("java.util.ArrayList"));
 		assertThat(classGenerics, hasSize(1));
-		GenericTypeParameter genericInfo = classGenerics.get(0);
-		assertThat(genericInfo.getTypeVariable(), is(ArgType.genericType("E")));
-		assertThat(genericInfo.getExtendsList(), hasSize(0));
+		ArgType genericInfo = classGenerics.get(0);
+		assertThat(genericInfo.getObject(), is("E"));
+		assertThat(genericInfo.getExtendTypes(), hasSize(0));
 
 		// prepare input
 		ArgType instanceType = ArgType.generic("java.util.ArrayList", ArgType.OBJECT);

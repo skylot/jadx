@@ -1,5 +1,7 @@
 package jadx.core.dex.visitors.typeinference;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -20,6 +22,7 @@ import static jadx.core.dex.visitors.typeinference.TypeCompareEnum.NARROW_BY_GEN
 import static jadx.core.dex.visitors.typeinference.TypeCompareEnum.UNKNOWN;
 import static jadx.core.dex.visitors.typeinference.TypeCompareEnum.WIDER;
 import static jadx.core.dex.visitors.typeinference.TypeCompareEnum.WIDER_BY_GENERIC;
+import static jadx.core.utils.Utils.isEmpty;
 
 public class TypeCompare {
 	private static final Logger LOG = LoggerFactory.getLogger(TypeCompare.class);
@@ -179,9 +182,9 @@ public class TypeCompare {
 				// both wildcards
 				return compareWildcardTypes(first, second);
 			}
-			ArgType[] firstGenericTypes = first.getGenericTypes();
-			ArgType[] secondGenericTypes = second.getGenericTypes();
-			if (firstGenericTypes == null || secondGenericTypes == null) {
+			List<ArgType> firstGenericTypes = first.getGenericTypes();
+			List<ArgType> secondGenericTypes = second.getGenericTypes();
+			if (isEmpty(firstGenericTypes) || isEmpty(secondGenericTypes)) {
 				// check outer types
 				ArgType firstOuterType = first.getOuterType();
 				ArgType secondOuterType = second.getOuterType();
@@ -190,10 +193,10 @@ public class TypeCompare {
 				}
 			} else {
 				// compare generics arrays
-				int len = firstGenericTypes.length;
-				if (len == secondGenericTypes.length) {
+				int len = firstGenericTypes.size();
+				if (len == secondGenericTypes.size()) {
 					for (int i = 0; i < len; i++) {
-						TypeCompareEnum res = compareTypes(firstGenericTypes[i], secondGenericTypes[i]);
+						TypeCompareEnum res = compareTypes(firstGenericTypes.get(i), secondGenericTypes.get(i));
 						if (res != EQUAL) {
 							return res;
 						}
@@ -234,25 +237,58 @@ public class TypeCompare {
 	}
 
 	private TypeCompareEnum compareGenericTypeWithObject(ArgType genericType, ArgType objType) {
-		List<ArgType> extendTypes = genericType.getExtendTypes();
-		if (extendTypes == null || extendTypes.isEmpty()) {
-			if (objType.equals(ArgType.OBJECT)) {
-				return NARROW_BY_GENERIC;
-			}
-		} else {
-			if (extendTypes.contains(objType) || objType.equals(ArgType.OBJECT)) {
-				return NARROW_BY_GENERIC;
-			}
-			for (ArgType extendType : extendTypes) {
-				if (!ArgType.isInstanceOf(root, extendType, objType)) {
-					return CONFLICT;
-				}
-			}
-			return NARROW_BY_GENERIC;
+		if (objType.isGenericType()) {
+			return compareTypeVariables(genericType, objType);
 		}
-		// TODO: fill extendTypes
-		// return CONFLICT;
-		return NARROW_BY_GENERIC;
+
+		List<ArgType> extendTypes = genericType.getExtendTypes();
+		if (extendTypes.isEmpty()) {
+			return NARROW;
+		}
+		if (extendTypes.contains(objType) || objType.equals(ArgType.OBJECT)) {
+			return NARROW;
+		}
+		for (ArgType extendType : extendTypes) {
+			TypeCompareEnum res = compareObjects(extendType, objType);
+			if (!res.isNarrow()) {
+				return res;
+			}
+		}
+		return NARROW;
+	}
+
+	private TypeCompareEnum compareTypeVariables(ArgType first, ArgType second) {
+		if (first.getObject().equals(second.getObject())) {
+			List<ArgType> firstExtendTypes = removeObject(first.getExtendTypes());
+			List<ArgType> secondExtendTypes = removeObject(second.getExtendTypes());
+			if (firstExtendTypes.equals(secondExtendTypes)) {
+				return EQUAL;
+			}
+			int firstExtSize = firstExtendTypes.size();
+			int secondExtSize = secondExtendTypes.size();
+			if (firstExtSize == 0) {
+				return WIDER;
+			}
+			if (secondExtSize == 0) {
+				return NARROW;
+			}
+			if (firstExtSize == 1 && secondExtSize == 1) {
+				return compareTypes(firstExtendTypes.get(0), secondExtendTypes.get(0));
+			}
+		}
+		return CONFLICT;
+	}
+
+	private List<ArgType> removeObject(List<ArgType> extendTypes) {
+		if (extendTypes.contains(ArgType.OBJECT)) {
+			if (extendTypes.size() == 1) {
+				return Collections.emptyList();
+			}
+			List<ArgType> result = new ArrayList<>(extendTypes);
+			result.remove(ArgType.OBJECT);
+			return result;
+		}
+		return extendTypes;
 	}
 
 	public Comparator<ArgType> getComparator() {

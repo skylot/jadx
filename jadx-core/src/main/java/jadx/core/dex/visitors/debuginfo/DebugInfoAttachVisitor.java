@@ -79,7 +79,7 @@ public class DebugInfoAttachVisitor extends AbstractVisitor {
 			int start = var.getStartOffset();
 			int end = var.getEndOffset();
 
-			ArgType type = getVarType(var);
+			ArgType type = getVarType(mth, var);
 			RegDebugInfoAttr debugInfoAttr = new RegDebugInfoAttr(type, var.getName());
 			if (start < 0) {
 				// attach to method arguments
@@ -115,7 +115,7 @@ public class DebugInfoAttachVisitor extends AbstractVisitor {
 		}
 	}
 
-	public static ArgType getVarType(ILocalVar var) {
+	public static ArgType getVarType(MethodNode mth, ILocalVar var) {
 		ArgType type = ArgType.parse(var.getType());
 		String sign = var.getSignature();
 		if (sign == null) {
@@ -123,8 +123,9 @@ public class DebugInfoAttachVisitor extends AbstractVisitor {
 		}
 		try {
 			ArgType gType = new SignatureParser(sign).consumeType();
-			if (checkSignature(type, gType)) {
-				return gType;
+			ArgType expandedType = mth.root().getTypeUtils().expandTypeVariables(mth, gType);
+			if (checkSignature(type, expandedType)) {
+				return expandedType;
 			}
 		} catch (Exception e) {
 			LOG.error("Can't parse signature for local variable: {}", sign, e);

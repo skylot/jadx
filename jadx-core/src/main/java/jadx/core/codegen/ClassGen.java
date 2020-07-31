@@ -36,7 +36,6 @@ import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
-import jadx.core.dex.nodes.GenericTypeParameter;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
@@ -189,23 +188,22 @@ public class ClassGen {
 		}
 	}
 
-	public boolean addGenericTypeParameters(CodeWriter code, List<GenericTypeParameter> generics, boolean classDeclaration) {
+	public boolean addGenericTypeParameters(CodeWriter code, List<ArgType> generics, boolean classDeclaration) {
 		if (generics == null || generics.isEmpty()) {
 			return false;
 		}
 		code.add('<');
 		int i = 0;
-		for (GenericTypeParameter genericInfo : generics) {
+		for (ArgType genericInfo : generics) {
 			if (i != 0) {
 				code.add(", ");
 			}
-			ArgType type = genericInfo.getTypeVariable();
-			if (type.isGenericType()) {
-				code.add(type.getObject());
+			if (genericInfo.isGenericType()) {
+				code.add(genericInfo.getObject());
 			} else {
-				useClass(code, type);
+				useClass(code, genericInfo);
 			}
-			List<ArgType> list = genericInfo.getExtendsList();
+			List<ArgType> list = genericInfo.getExtendTypes();
 			if (list != null && !list.isEmpty()) {
 				code.add(" extends ");
 				for (Iterator<ArgType> it = list.iterator(); it.hasNext();) {
@@ -517,15 +515,15 @@ public class ClassGen {
 		}
 
 		useClass(code, ClassInfo.fromType(cls.root(), type));
-		ArgType[] generics = type.getGenericTypes();
+		List<ArgType> generics = type.getGenericTypes();
 		if (generics != null) {
 			code.add('<');
-			int len = generics.length;
+			int len = generics.size();
 			for (int i = 0; i < len; i++) {
 				if (i != 0) {
 					code.add(", ");
 				}
-				ArgType gt = generics[i];
+				ArgType gt = generics.get(i);
 				ArgType wt = gt.getWildcardType();
 				if (wt != null) {
 					ArgType.WildcardBound bound = gt.getWildcardBound();

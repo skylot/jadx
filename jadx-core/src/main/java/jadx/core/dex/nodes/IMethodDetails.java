@@ -16,7 +16,7 @@ public interface IMethodDetails extends IAttribute {
 
 	List<ArgType> getArgTypes();
 
-	List<GenericTypeParameter> getTypeParameters();
+	List<ArgType> getTypeParameters();
 
 	List<ArgType> getThrows();
 

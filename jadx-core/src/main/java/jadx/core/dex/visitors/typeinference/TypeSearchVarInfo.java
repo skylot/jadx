@@ -86,7 +86,6 @@ public class TypeSearchVarInfo {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("TypeSearchVarInfo{");
 		sb.append(var.toShortString());
 		if (typeResolved) {
 			sb.append(", resolved type: ").append(currentType);
@@ -95,7 +94,6 @@ public class TypeSearchVarInfo {
 			sb.append(", candidateTypes=").append(candidateTypes);
 			sb.append(", constraints=").append(constraints);
 		}
-		sb.append('}');
 		return sb.toString();
 	}
 }

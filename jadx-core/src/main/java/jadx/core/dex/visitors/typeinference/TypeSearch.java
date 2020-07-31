@@ -64,7 +64,7 @@ public class TypeSearch {
 			search(vars);
 			searchSuccess = fullCheck(vars);
 			if (Consts.DEBUG_TYPE_INFERENCE && !searchSuccess) {
-				LOG.warn("Multi-variable search failed in {}", mth);
+				LOG.debug("Multi-variable search failed in {}", mth);
 			}
 		}
 		if (searchSuccess) {
@@ -108,7 +108,7 @@ public class TypeSearch {
 				count *= size;
 			}
 			sb.append(" = ").append(count);
-			LOG.debug("--- count = {}, {}", count, sb);
+			LOG.debug(" > max iterations count = {}", sb);
 		}
 
 		// prepare vars
@@ -140,8 +140,14 @@ public class TypeSearch {
 			}
 			n++;
 			if (n > SEARCH_ITERATION_LIMIT) {
+				if (Consts.DEBUG_TYPE_INFERENCE) {
+					LOG.debug(" > iterations limit reached: {}", SEARCH_ITERATION_LIMIT);
+				}
 				return false;
 			}
+		}
+		if (Consts.DEBUG_TYPE_INFERENCE) {
+			LOG.debug(" > done after {} iterations", n);
 		}
 		// mark all vars as resolved
 		for (TypeSearchVarInfo var : vars) {

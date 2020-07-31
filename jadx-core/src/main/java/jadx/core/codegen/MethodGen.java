@@ -185,7 +185,7 @@ public class MethodGen {
 			CodeVar var;
 			if (ssaVar == null) {
 				// null for abstract or interface methods
-				var = CodeVar.fromMthArg(mthArg);
+				var = CodeVar.fromMthArg(mthArg, classGen.isFallbackMode());
 			} else {
 				var = ssaVar.getCodeVar();
 			}

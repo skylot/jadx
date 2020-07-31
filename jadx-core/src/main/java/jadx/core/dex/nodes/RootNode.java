@@ -153,11 +153,10 @@ public class RootNode {
 				ClspGraph newClsp = new ClspGraph(this);
 				newClsp.load();
 				newClsp.addApp(classes);
-
 				this.clsp = newClsp;
 			}
 		} catch (Exception e) {
-			throw new JadxRuntimeException("Error loading classpath", e);
+			throw new JadxRuntimeException("Error loading jadx class set", e);
 		}
 	}
 

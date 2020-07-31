@@ -5,7 +5,6 @@ import java.util.List;
 
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.GenericTypeParameter;
 import jadx.core.dex.nodes.IMethodDetails;
 
 public class SimpleMethodDetails implements IMethodDetails {
@@ -32,7 +31,7 @@ public class SimpleMethodDetails implements IMethodDetails {
 	}
 
 	@Override
-	public List<GenericTypeParameter> getTypeParameters() {
+	public List<ArgType> getTypeParameters() {
 		return Collections.emptyList();
 	}
 

@@ -8,7 +8,7 @@ import jadx.core.utils.Utils;
 
 public class IndexInsnNode extends InsnNode {
 
-	private final Object index;
+	private Object index;
 
 	public IndexInsnNode(InsnType type, Object index, int argCount) {
 		super(type, argCount);
@@ -17,6 +17,10 @@ public class IndexInsnNode extends InsnNode {
 
 	public Object getIndex() {
 		return index;
+	}
+
+	public void updateIndex(Object index) {
+		this.index = index;
 	}
 
 	@Override

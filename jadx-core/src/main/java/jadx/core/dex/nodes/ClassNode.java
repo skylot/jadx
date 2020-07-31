@@ -56,7 +56,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	private AccessInfo accessFlags;
 	private ArgType superClass;
 	private List<ArgType> interfaces;
-	private List<GenericTypeParameter> generics = Collections.emptyList();
+	private List<ArgType> generics = Collections.emptyList();
 
 	private final List<MethodNode> methods;
 	private final List<FieldNode> fields;
@@ -224,7 +224,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 				if (sp != null) {
 					ArgType gType = sp.consumeType();
 					if (gType != null) {
-						field.setType(gType);
+						field.setType(root.getTypeUtils().expandTypeVariables(this, gType));
 					}
 				}
 			} catch (Exception e) {
@@ -337,8 +337,16 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		return interfaces;
 	}
 
-	public List<GenericTypeParameter> getGenericTypeParameters() {
+	public List<ArgType> getGenericTypeParameters() {
 		return generics;
+	}
+
+	public ArgType getType() {
+		ArgType clsType = clsInfo.getType();
+		if (Utils.notEmpty(generics)) {
+			return ArgType.generic(clsType, generics);
+		}
+		return clsType;
 	}
 
 	public List<MethodNode> getMethods() {

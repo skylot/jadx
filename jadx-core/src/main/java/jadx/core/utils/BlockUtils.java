@@ -191,7 +191,10 @@ public class BlockUtils {
 	}
 
 	@Nullable
-	public static BlockNode getBlockByInsn(MethodNode mth, InsnNode insn) {
+	public static BlockNode getBlockByInsn(MethodNode mth, @Nullable InsnNode insn) {
+		if (insn == null) {
+			return null;
+		}
 		if (insn instanceof PhiInsn) {
 			return searchBlockWithPhi(mth, (PhiInsn) insn);
 		}

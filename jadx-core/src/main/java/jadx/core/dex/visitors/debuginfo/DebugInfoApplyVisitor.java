@@ -71,6 +71,9 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 	}
 
 	private static void applyDebugInfo(MethodNode mth) {
+		if (Consts.DEBUG_TYPE_INFERENCE) {
+			LOG.info("Apply debug info for method: {}", mth);
+		}
 		mth.getSVars().forEach(ssaVar -> collectVarDebugInfo(mth, ssaVar));
 
 		fixLinesForReturn(mth);
@@ -117,10 +120,10 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 				int startAddr = localVar.getStartOffset();
 				int endAddr = localVar.getEndOffset();
 				if (isInside(startOffset, startAddr, endAddr) || isInside(endOffset, startAddr, endAddr)) {
-					if (Consts.DEBUG) {
+					if (Consts.DEBUG_TYPE_INFERENCE) {
 						LOG.debug("Apply debug info by offset for: {} to {}", ssaVar, localVar);
 					}
-					ArgType type = DebugInfoAttachVisitor.getVarType(localVar);
+					ArgType type = DebugInfoAttachVisitor.getVarType(mth, localVar);
 					applyDebugInfo(mth, ssaVar, type, localVar.getName());
 					break;
 				}
@@ -145,7 +148,7 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 	public static void applyDebugInfo(MethodNode mth, SSAVar ssaVar, ArgType type, String varName) {
 		TypeUpdateResult result = mth.root().getTypeUpdate().applyWithWiderAllow(mth, ssaVar, type);
 		if (result == TypeUpdateResult.REJECT) {
-			if (Consts.DEBUG) {
+			if (Consts.DEBUG_TYPE_INFERENCE) {
 				LOG.debug("Reject debug info of type: {} and name: '{}' for {}, mth: {}", type, varName, ssaVar, mth);
 			}
 		} else {

@@ -7,21 +7,22 @@ import java.util.List;
 public class CodeVar {
 	private String name;
 	private ArgType type; // before type inference can be null and set only for immutable types
-	private List<SSAVar> ssaVars = new ArrayList<>(3);
+	private List<SSAVar> ssaVars = Collections.emptyList();
 
 	private boolean isFinal;
 	private boolean isThis;
 	private boolean isDeclared;
 
-	public static CodeVar fromMthArg(RegisterArg mthArg) {
+	public static CodeVar fromMthArg(RegisterArg mthArg, boolean linkRegister) {
 		CodeVar var = new CodeVar();
 		var.setType(mthArg.getInitType());
 		var.setName(mthArg.getName());
+		var.setThis(mthArg.isThis());
 		var.setDeclared(true);
 		var.setThis(mthArg.isThis());
-		SSAVar ssaVar = new SSAVar(mthArg.getRegNum(), 0, mthArg);
-		ssaVar.setCodeVar(var);
-		var.setSsaVars(Collections.singletonList(ssaVar));
+		if (linkRegister) {
+			var.setSsaVars(Collections.singletonList(new SSAVar(mthArg.getRegNum(), 0, mthArg)));
+		}
 		return var;
 	}
 
@@ -46,6 +47,9 @@ public class CodeVar {
 	}
 
 	public void addSsaVar(SSAVar ssaVar) {
+		if (ssaVars.isEmpty()) {
+			ssaVars = new ArrayList<>(3);
+		}
 		if (!ssaVars.contains(ssaVar)) {
 			ssaVars.add(ssaVar);
 		}

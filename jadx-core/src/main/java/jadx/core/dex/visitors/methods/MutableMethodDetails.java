@@ -5,7 +5,6 @@ import java.util.List;
 
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.GenericTypeParameter;
 import jadx.core.dex.nodes.IMethodDetails;
 
 public class MutableMethodDetails implements IMethodDetails {
@@ -13,7 +12,7 @@ public class MutableMethodDetails implements IMethodDetails {
 	private final MethodInfo mthInfo;
 	private ArgType retType;
 	private List<ArgType> argTypes;
-	private List<GenericTypeParameter> typeParams;
+	private List<ArgType> typeParams;
 	private List<ArgType> throwTypes;
 	private boolean varArg;
 
@@ -42,7 +41,7 @@ public class MutableMethodDetails implements IMethodDetails {
 	}
 
 	@Override
-	public List<GenericTypeParameter> getTypeParameters() {
+	public List<ArgType> getTypeParameters() {
 		return typeParams;
 	}
 
@@ -64,7 +63,7 @@ public class MutableMethodDetails implements IMethodDetails {
 		this.argTypes = argTypes;
 	}
 
-	public void setTypeParams(List<GenericTypeParameter> typeParams) {
+	public void setTypeParams(List<ArgType> typeParams) {
 		this.typeParams = typeParams;
 	}
 

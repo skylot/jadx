@@ -25,11 +25,6 @@ public class TypeInfo {
 		return bounds;
 	}
 
-	public void reset() {
-		this.type = ArgType.UNKNOWN;
-		this.bounds.clear();
-	}
-
 	@Override
 	public String toString() {
 		return "TypeInfo{type=" + type + ", bounds=" + bounds + '}';

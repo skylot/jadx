@@ -32,6 +32,7 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.parser.SignatureParser;
+import jadx.core.dex.nodes.utils.TypeUtils;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.utils.Utils;
@@ -59,7 +60,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	// additional info available after load, keep on unload
 	private ArgType retType;
 	private List<ArgType> argTypes;
-	private List<GenericTypeParameter> typeParameters;
+	private List<ArgType> typeParameters;
 
 	// decompilation data, reset on unload
 	private RegisterArg thisArg;
@@ -172,41 +173,41 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	}
 
 	public void initMethodTypes() {
-		List<ArgType> types = parseSignature();
-		if (types == null) {
+		if (!parseSignature()) {
 			this.retType = mthInfo.getReturnType();
 			this.argTypes = mthInfo.getArgumentsTypes();
 			this.typeParameters = Collections.emptyList();
-		} else {
-			this.argTypes = Collections.unmodifiableList(types);
 		}
 	}
 
-	@Nullable
-	private List<ArgType> parseSignature() {
+	private boolean parseSignature() {
 		SignatureParser sp = SignatureParser.fromNode(this);
 		if (sp == null) {
-			return null;
+			return false;
 		}
 		try {
 			this.typeParameters = sp.consumeGenericTypeParameters();
-			List<ArgType> argsTypes = sp.consumeMethodArgs();
-			this.retType = sp.consumeType();
+			List<ArgType> parsedArgTypes = sp.consumeMethodArgs();
+			ArgType parsedRetType = sp.consumeType();
 
 			List<ArgType> mthArgs = mthInfo.getArgumentsTypes();
-			if (argsTypes.size() != mthArgs.size()) {
-				if (argsTypes.isEmpty()) {
-					return null;
+			if (parsedArgTypes.size() != mthArgs.size()) {
+				if (parsedArgTypes.isEmpty()) {
+					return false;
 				}
-				if (!tryFixArgsCounts(argsTypes, mthArgs)) {
-					addComment("Incorrect method signature, types: " + Utils.listToString(argsTypes));
-					return null;
+				if (!tryFixArgsCounts(parsedArgTypes, mthArgs)) {
+					addComment("Incorrect method signature, types: " + Utils.listToString(parsedArgTypes));
+					return false;
 				}
 			}
-			return argsTypes;
+			TypeUtils typeUtils = root().getTypeUtils();
+			this.retType = typeUtils.expandTypeVariables(this, parsedRetType);
+			this.argTypes = Collections.unmodifiableList(Utils.collectionMap(parsedArgTypes,
+					t -> typeUtils.expandTypeVariables(this, t)));
+			return true;
 		} catch (Exception e) {
 			addWarnComment("Failed to parse method signature: " + sp.getSignature(), e);
-			return null;
+			return false;
 		}
 	}
 
@@ -239,10 +240,12 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 				pos -= arg.getRegCount();
 			}
 		}
+		TypeUtils typeUtils = root().getTypeUtils();
 		if (accFlags.isStatic()) {
 			thisArg = null;
 		} else {
-			RegisterArg arg = InsnArg.reg(pos - 1, parentClass.getClassInfo().getType());
+			ArgType thisClsType = typeUtils.expandTypeVariables(this, parentClass.getType());
+			RegisterArg arg = InsnArg.reg(pos - 1, thisClsType);
 			arg.add(AFlag.THIS);
 			arg.add(AFlag.IMMUTABLE_TYPE);
 			thisArg = arg;
@@ -253,7 +256,8 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		}
 		argsList = new ArrayList<>(args.size());
 		for (ArgType argType : args) {
-			RegisterArg regArg = InsnArg.reg(pos, argType);
+			ArgType expandedType = typeUtils.expandTypeVariables(this, argType);
+			RegisterArg regArg = InsnArg.reg(pos, expandedType);
 			regArg.add(AFlag.METHOD_ARGUMENT);
 			regArg.add(AFlag.IMMUTABLE_TYPE);
 			argsList.add(regArg);
@@ -323,7 +327,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	}
 
 	@Override
-	public List<GenericTypeParameter> getTypeParameters() {
+	public List<ArgType> getTypeParameters() {
 		return typeParameters;
 	}
 

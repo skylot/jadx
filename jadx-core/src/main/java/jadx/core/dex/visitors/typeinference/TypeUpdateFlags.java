@@ -21,4 +21,19 @@ public class TypeUpdateFlags {
 	public boolean isIgnoreSame() {
 		return ignoreSame;
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		if (allowWider) {
+			sb.append("ALLOW_WIDER");
+		}
+		if (ignoreSame) {
+			if (sb.length() != 0) {
+				sb.append('|');
+			}
+			sb.append("IGNORE_SAME");
+		}
+		return sb.toString();
+	}
 }

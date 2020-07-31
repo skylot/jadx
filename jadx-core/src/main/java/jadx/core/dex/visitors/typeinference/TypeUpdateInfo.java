@@ -73,4 +73,9 @@ public class TypeUpdateInfo {
 	public TypeUpdateFlags getFlags() {
 		return flags;
 	}
+
+	@Override
+	public String toString() {
+		return "TypeUpdateInfo{" + flags + ", updates=" + updates + '}';
+	}
 }

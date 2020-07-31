@@ -413,6 +413,7 @@ public class SSATransform extends AbstractVisitor {
 			return;
 		}
 		arg.add(AFlag.THIS);
+		arg.add(AFlag.IMMUTABLE_TYPE);
 		// mark all moved 'this'
 		InsnNode parentInsn = arg.getParentInsn();
 		if (parentInsn != null

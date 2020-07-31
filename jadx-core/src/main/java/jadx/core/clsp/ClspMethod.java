@@ -7,7 +7,6 @@ import org.jetbrains.annotations.NotNull;
 
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.GenericTypeParameter;
 import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.utils.Utils;
 
@@ -19,13 +18,13 @@ public class ClspMethod implements IMethodDetails, Comparable<ClspMethod> {
 	private final MethodInfo methodInfo;
 	private final List<ArgType> argTypes;
 	private final ArgType returnType;
-	private final List<GenericTypeParameter> typeParameters;
+	private final List<ArgType> typeParameters;
 	private final List<ArgType> throwList;
 	private final boolean varArg;
 
 	public ClspMethod(MethodInfo methodInfo,
 			List<ArgType> argTypes, ArgType returnType,
-			List<GenericTypeParameter> typeParameters,
+			List<ArgType> typeParameters,
 			boolean varArgs, List<ArgType> throwList) {
 		this.methodInfo = methodInfo;
 		this.argTypes = argTypes;
@@ -59,7 +58,7 @@ public class ClspMethod implements IMethodDetails, Comparable<ClspMethod> {
 	}
 
 	@Override
-	public List<GenericTypeParameter> getTypeParameters() {
+	public List<ArgType> getTypeParameters() {
 		return typeParameters;
 	}
 

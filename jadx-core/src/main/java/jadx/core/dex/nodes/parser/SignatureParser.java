@@ -14,13 +14,12 @@ import jadx.api.plugins.input.data.annotations.IAnnotation;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.GenericTypeParameter;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class SignatureParser {
-
 	private static final Logger LOG = LoggerFactory.getLogger(SignatureParser.class);
+
 	private static final char STOP_CHAR = 0;
 
 	private final String sign;
@@ -201,10 +200,10 @@ public class SignatureParser {
 		if (!innerType) {
 			obj += ';';
 		}
-		ArgType[] genArr = consumeGenericArgs();
+		List<ArgType> typeVars = consumeGenericArgs();
 		consume('>');
 
-		ArgType genericType = ArgType.generic(obj, genArr);
+		ArgType genericType = ArgType.generic(obj, typeVars);
 		if (!lookAhead('.')) {
 			consume(';');
 			return genericType;
@@ -229,7 +228,7 @@ public class SignatureParser {
 		return ArgType.outerGeneric(genericType, inner);
 	}
 
-	private ArgType[] consumeGenericArgs() {
+	private List<ArgType> consumeGenericArgs() {
 		List<ArgType> list = new LinkedList<>();
 		ArgType type;
 		do {
@@ -249,7 +248,7 @@ public class SignatureParser {
 				list.add(type);
 			}
 		} while (type != null && !lookAhead('>'));
-		return list.toArray(new ArgType[0]);
+		return list;
 	}
 
 	/**
@@ -257,11 +256,11 @@ public class SignatureParser {
 	 * <p/>
 	 * Example: "<T:Ljava/lang/Exception;:Ljava/lang/Object;>"
 	 */
-	public List<GenericTypeParameter> consumeGenericTypeParameters() {
+	public List<ArgType> consumeGenericTypeParameters() {
 		if (!lookAhead('<')) {
 			return Collections.emptyList();
 		}
-		List<GenericTypeParameter> list = new ArrayList<>();
+		List<ArgType> list = new ArrayList<>();
 		consume('<');
 		while (true) {
 			if (lookAhead('>') || next() == STOP_CHAR) {
@@ -275,7 +274,7 @@ public class SignatureParser {
 			consume(':');
 			tryConsume(':');
 			List<ArgType> types = consumeExtendsTypesList();
-			list.add(new GenericTypeParameter(ArgType.genericType(id), types));
+			list.add(ArgType.genericType(id, types));
 		}
 		consume('>');
 		return list;

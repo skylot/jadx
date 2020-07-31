@@ -139,7 +139,7 @@ public class ModVisitor extends AbstractVisitor {
 						break;
 
 					case CHECK_CAST:
-						removeRedundantCast(mth, block, i, (IndexInsnNode) insn);
+						removeCheckCast(mth, block, i, (IndexInsnNode) insn);
 						break;
 
 					case CAST:
@@ -304,15 +304,18 @@ public class ModVisitor extends AbstractVisitor {
 		return false;
 	}
 
-	private static void removeRedundantCast(MethodNode mth, BlockNode block, int i, IndexInsnNode insn) {
+	private static void removeCheckCast(MethodNode mth, BlockNode block, int i, IndexInsnNode insn) {
 		InsnArg castArg = insn.getArg(0);
 		ArgType castType = (ArgType) insn.getIndex();
 		if (!ArgType.isCastNeeded(mth.root(), castArg.getType(), castType)
 				|| isCastDuplicate(insn)) {
-			InsnNode insnNode = new InsnNode(InsnType.MOVE, 1);
-			insnNode.setResult(insn.getResult());
-			insnNode.addArg(castArg);
-			replaceInsn(mth, block, i, insnNode);
+			RegisterArg result = insn.getResult();
+			result.setType(castArg.getType());
+
+			InsnNode move = new InsnNode(InsnType.MOVE, 1);
+			move.setResult(result);
+			move.addArg(castArg);
+			replaceInsn(mth, block, i, move);
 		}
 	}
 

@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Objects;
 
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.GenericTypeParameter;
 
 /**
  * Class node in classpath graph
@@ -19,7 +18,7 @@ public class ClspClass {
 	private final int id;
 	private ArgType[] parents;
 	private Map<String, ClspMethod> methodsMap = Collections.emptyMap();
-	private List<GenericTypeParameter> typeParameters = Collections.emptyList();
+	private List<ArgType> typeParameters = Collections.emptyList();
 
 	public ClspClass(ArgType clsType, int id) {
 		this.clsType = clsType;
@@ -69,11 +68,11 @@ public class ClspClass {
 		setMethodsMap(map);
 	}
 
-	public List<GenericTypeParameter> getTypeParameters() {
+	public List<ArgType> getTypeParameters() {
 		return typeParameters;
 	}
 
-	public void setTypeParameters(List<GenericTypeParameter> typeParameters) {
+	public void setTypeParameters(List<ArgType> typeParameters) {
 		this.typeParameters = typeParameters;
 	}
 

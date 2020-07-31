@@ -1,4 +1,4 @@
-package jadx.core.clsp;
+package jadx.cli.clst;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -16,6 +16,7 @@ import jadx.api.JadxArgs;
 import jadx.api.plugins.JadxPluginManager;
 import jadx.api.plugins.input.JadxInputPlugin;
 import jadx.api.plugins.input.data.ILoadResult;
+import jadx.core.clsp.ClsSet;
 import jadx.core.dex.nodes.RootNode;
 
 /**
@@ -50,6 +51,7 @@ public class ConvertToClsSet {
 		ClsSet set = new ClsSet(root);
 		set.loadFrom(root);
 		set.save(output);
+
 		LOG.info("Output: {}, file size: {}B", output, output.toFile().length());
 		LOG.info("done");
 	}

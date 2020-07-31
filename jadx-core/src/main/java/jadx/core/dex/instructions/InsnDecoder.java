@@ -39,7 +39,7 @@ public class InsnDecoder {
 			InsnNode insn;
 			try {
 				rawInsn.decode();
-				insn = decode(rawInsn, offset);
+				insn = decode(rawInsn);
 				insn.setOffset(offset);
 			} catch (Exception e) {
 				LOG.error("Failed to decode insn: " + rawInsn + ", method: " + method, e);
@@ -51,7 +51,7 @@ public class InsnDecoder {
 	}
 
 	@NotNull
-	private InsnNode decode(InsnData insn, int offset) throws DecodeException {
+	private InsnNode decode(InsnData insn) throws DecodeException {
 		switch (insn.getOpcode()) {
 			case NOP:
 				return new InsnNode(InsnType.NOP, 0);
@@ -402,28 +402,28 @@ public class InsnDecoder {
 				return arrayPut(insn, ArgType.UNKNOWN_OBJECT);
 
 			case INVOKE_STATIC:
-				return invoke(insn, offset, InvokeType.STATIC, false);
+				return invoke(insn, InvokeType.STATIC, false);
 
 			case INVOKE_STATIC_RANGE:
-				return invoke(insn, offset, InvokeType.STATIC, true);
+				return invoke(insn, InvokeType.STATIC, true);
 
 			case INVOKE_DIRECT:
-				return invoke(insn, offset, InvokeType.DIRECT, false);
+				return invoke(insn, InvokeType.DIRECT, false);
 			case INVOKE_INTERFACE:
-				return invoke(insn, offset, InvokeType.INTERFACE, false);
+				return invoke(insn, InvokeType.INTERFACE, false);
 			case INVOKE_SUPER:
-				return invoke(insn, offset, InvokeType.SUPER, false);
+				return invoke(insn, InvokeType.SUPER, false);
 			case INVOKE_VIRTUAL:
-				return invoke(insn, offset, InvokeType.VIRTUAL, false);
+				return invoke(insn, InvokeType.VIRTUAL, false);
 
 			case INVOKE_DIRECT_RANGE:
-				return invoke(insn, offset, InvokeType.DIRECT, true);
+				return invoke(insn, InvokeType.DIRECT, true);
 			case INVOKE_INTERFACE_RANGE:
-				return invoke(insn, offset, InvokeType.INTERFACE, true);
+				return invoke(insn, InvokeType.INTERFACE, true);
 			case INVOKE_SUPER_RANGE:
-				return invoke(insn, offset, InvokeType.SUPER, true);
+				return invoke(insn, InvokeType.SUPER, true);
 			case INVOKE_VIRTUAL_RANGE:
-				return invoke(insn, offset, InvokeType.VIRTUAL, true);
+				return invoke(insn, InvokeType.VIRTUAL, true);
 
 			case NEW_INSTANCE:
 				ArgType clsType = ArgType.parse(insn.getIndexAsType());
@@ -520,7 +520,7 @@ public class InsnDecoder {
 		return inode;
 	}
 
-	private InsnNode invoke(InsnData insn, int offset, InvokeType type, boolean isRange) {
+	private InsnNode invoke(InsnData insn, InvokeType type, boolean isRange) {
 		MethodInfo mth = MethodInfo.fromData(root, insn.getIndexAsMethod());
 		return new InvokeNode(mth, insn, type, isRange);
 	}

@@ -13,6 +13,7 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
+import jadx.core.utils.InsnRemover;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -108,15 +109,11 @@ public final class PhiInsn extends InsnNode {
 		if (argIndex == -1) {
 			return false;
 		}
-		BlockNode pred = getBlockByArgIndex(argIndex);
-		if (pred == null) {
-			throw new JadxRuntimeException("Unknown predecessor block by arg " + from + " in PHI: " + this);
-		}
-		removeArg(argIndex);
+		((RegisterArg) to).getSVar().addUsedInPhi(this);
+		super.setArg(argIndex, to);
 
-		RegisterArg reg = (RegisterArg) to;
-		bindArg(reg, pred);
-		reg.getSVar().addUsedInPhi(this);
+		InsnRemover.unbindArgUsage(null, from);
+		((RegisterArg) from).getSVar().updateUsedInPhiList();
 		return true;
 	}
 

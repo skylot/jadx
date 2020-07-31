@@ -327,11 +327,11 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		ArgType iterableType = iterableArg.getType();
 		ArgType varType = iterVar.getType();
 		if (iterableType.isGeneric()) {
-			ArgType[] genericTypes = iterableType.getGenericTypes();
-			if (genericTypes == null || genericTypes.length != 1) {
+			List<ArgType> genericTypes = iterableType.getGenericTypes();
+			if (genericTypes == null || genericTypes.size() != 1) {
 				return false;
 			}
-			ArgType gType = genericTypes[0];
+			ArgType gType = genericTypes.get(0);
 			if (gType.equals(varType)) {
 				return true;
 			}
