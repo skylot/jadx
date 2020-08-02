@@ -155,6 +155,13 @@ public class TabbedPane extends JTabbedPane {
 		return panel;
 	}
 
+	public void refresh(JNode node) {
+		ContentPanel panel = openTabs.get(node);
+		if (panel != null) {
+			setTabComponentAt(indexOfComponent(panel), makeTabComponent(panel));
+		}
+	}
+
 	@Nullable
 	private ContentPanel makeContentPanel(JNode node) {
 		if (node instanceof JResource) {

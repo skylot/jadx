@@ -52,6 +52,24 @@ public class BackgroundWorker extends SwingWorker<Void, Void> {
 			System.gc();
 			LOG.debug("Memory usage: Before decompile: {}", UiUtils.memoryInfo());
 			runJob(cache.getDecompileJob());
+			LOG.debug("Memory usage: After decompile: {}", UiUtils.memoryInfo());
+
+			if (cache.getUnloadJob() != null) {
+				LOG.info("Memory usage: Before unload: {}", UiUtils.memoryInfo());
+				long start = System.nanoTime();
+				runJob(cache.getUnloadJob());
+				cache.setUnloadJob(null);
+				LOG.info("Memory usage: After unload: {}, unload took {} ms", UiUtils.memoryInfo(), (System.nanoTime() - start) / 1000000);
+			}
+
+			if (cache.getRefreshJob() != null) {
+				LOG.info("Memory usage: Before refresh: {}", UiUtils.memoryInfo());
+				long start = System.nanoTime();
+				runJob(cache.getRefreshJob());
+				cache.setRefreshJob(null);
+				LOG.info("Memory usage: After refresh: {}, refresh took {} ms", UiUtils.memoryInfo(),
+						(System.nanoTime() - start) / 1000000);
+			}
 
 			LOG.debug("Memory usage: Before index: {}", UiUtils.memoryInfo());
 			runJob(cache.getIndexJob());
@@ -74,7 +92,7 @@ public class BackgroundWorker extends SwingWorker<Void, Void> {
 	}
 
 	private void runJob(BackgroundJob job) {
-		if (isCancelled()) {
+		if (isCancelled() || job == null) {
 			return;
 		}
 		progressPane.changeLabel(this, job.getInfoString());

@@ -59,6 +59,13 @@ public class JClass extends JLoadableNode {
 		update();
 	}
 
+	public synchronized void refresh() {
+		cls.refresh();
+		loaded = true;
+		update();
+		cls.unload();
+	}
+
 	public synchronized void update() {
 		removeAllChildren();
 		if (!loaded) {

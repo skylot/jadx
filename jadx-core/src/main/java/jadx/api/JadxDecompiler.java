@@ -454,5 +454,4 @@ public final class JadxDecompiler implements Closeable {
 	public String toString() {
 		return "jadx decompiler " + getVersion();
 	}
-
 }

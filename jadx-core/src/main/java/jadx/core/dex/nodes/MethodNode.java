@@ -172,6 +172,15 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		}
 	}
 
+	public void reload() {
+		unload();
+		try {
+			load();
+		} catch (DecodeException e) {
+			throw new JadxRuntimeException("Failed to reload method " + getClass().getName() + "." + getName());
+		}
+	}
+
 	public void initMethodTypes() {
 		if (!parseSignature()) {
 			this.retType = mthInfo.getReturnType();

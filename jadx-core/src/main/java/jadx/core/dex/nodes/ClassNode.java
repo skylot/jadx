@@ -38,16 +38,19 @@ import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.nodes.parser.SignatureParser;
+import jadx.core.dex.visitors.ProcessAnonymous;
 import jadx.core.utils.SmaliUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.nodes.ProcessState.LOADED;
+import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
 
 public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeNode, Comparable<ClassNode> {
 	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
 
 	private final RootNode root;
+	private final IClassData cls;
 	private final int clsDefOffset;
 	@Nullable
 	private final Path inputPath;
@@ -58,8 +61,8 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	private List<ArgType> interfaces;
 	private List<ArgType> generics = Collections.emptyList();
 
-	private final List<MethodNode> methods;
-	private final List<FieldNode> fields;
+	private List<MethodNode> methods;
+	private List<FieldNode> fields;
 	private List<ClassNode> innerClasses = Collections.emptyList();
 
 	private List<ClassNode> inlinedClasses = Collections.emptyList();
@@ -86,6 +89,11 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		this.inputPath = cls.getInputPath();
 		this.clsDefOffset = cls.getClassDefOffset();
 		this.clsInfo = ClassInfo.fromType(root, ArgType.object(cls.getType()));
+		initialLoad(cls);
+		this.cls = cls.copy(); // TODO: need only for rename feature
+	}
+
+	private void initialLoad(IClassData cls) {
 		try {
 			String superType = cls.getSuperType();
 			if (superType == null) {
@@ -144,6 +152,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	// Create empty class
 	private ClassNode(RootNode root, String name, int accessFlags) {
 		this.root = root;
+		this.cls = null;
 		this.inputPath = null;
 		this.clsDefOffset = 0;
 		this.clsInfo = ClassInfo.fromName(root, name);
@@ -279,8 +288,29 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		return decompile(true);
 	}
 
-	public ICodeInfo reloadCode() {
+	public synchronized ICodeInfo reRunDecompile() {
 		return decompile(false);
+	}
+
+	public synchronized ICodeInfo reloadCode() {
+		unload();
+		deepUnload();
+		return decompile(false);
+	}
+
+	public void deepUnload() {
+		if (cls == null) {
+			// manually added class
+			return;
+		}
+		clearAttributes();
+		root().getConstValues().removeForClass(this);
+		initialLoad(cls);
+		ProcessAnonymous.runForClass(this);
+
+		for (ClassNode innerClass : innerClasses) {
+			innerClass.deepUnload();
+		}
 	}
 
 	private synchronized ICodeInfo decompile(boolean searchInCache) {
@@ -319,6 +349,8 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		innerClasses.forEach(ClassNode::unload);
 		fields.forEach(FieldNode::unloadAttributes);
 		unloadAttributes();
+		setState(NOT_LOADED);
+		this.smali = null;
 	}
 
 	private void buildCache() {

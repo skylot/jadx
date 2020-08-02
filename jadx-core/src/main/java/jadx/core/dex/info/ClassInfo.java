@@ -62,6 +62,8 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 			ClassAliasInfo newAlias = new ClassAliasInfo(getAliasPkg(), aliasName);
 			fillAliasFullName(newAlias);
 			this.alias = newAlias;
+		} else {
+			this.alias = null;
 		}
 	}
 

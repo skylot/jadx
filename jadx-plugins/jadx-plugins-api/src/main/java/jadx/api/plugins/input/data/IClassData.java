@@ -10,6 +10,7 @@ import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.annotations.IAnnotation;
 
 public interface IClassData {
+	IClassData copy();
 
 	String getType();
 

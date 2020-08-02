@@ -28,6 +28,11 @@ public class DexClassData implements IClassData {
 	}
 
 	@Override
+	public IClassData copy() {
+		return new DexClassData(in.copy(), annotationsParser);
+	}
+
+	@Override
 	public String getType() {
 		int typeIdx = in.pos(0).readInt();
 		String clsType = in.getType(typeIdx);
