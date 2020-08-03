@@ -1,36 +1,25 @@
 package jadx.gui.utils.search;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 
-public class SimpleIndex<T> implements SearchIndex<T> {
+import jadx.api.JavaClass;
+import jadx.gui.treemodel.JNode;
 
-	private final List<String> keys = new ArrayList<>();
-	private final List<T> values = new ArrayList<>();
+public class SimpleIndex {
+	private final Map<JNode, String> data = new ConcurrentHashMap<>();
 
-	private final Object syncData = new Object();
-
-	@Override
-	public void put(String str, T value) {
-		synchronized (syncData) {
-			keys.add(str);
-			values.add(value);
-		}
+	public void put(String str, JNode value) {
+		data.put(value, str);
 	}
 
-	@Override
-	public void put(StringRef str, T value) {
-		throw new UnsupportedOperationException("StringRef not supported");
-	}
-
-	@Override
-	public boolean isStringRefSupported() {
-		return false;
+	public void removeForCls(JavaClass cls) {
+		data.entrySet().removeIf(e -> e.getKey().getJavaNode().getTopParentClass().equals(cls));
 	}
 
 	private boolean isMatched(String str, String searchStr, boolean caseInsensitive) {
@@ -41,28 +30,22 @@ public class SimpleIndex<T> implements SearchIndex<T> {
 		}
 	}
 
-	@Override
-	public Flowable<T> search(final String searchStr, final boolean caseInsensitive) {
+	public Flowable<JNode> search(final String searchStr, final boolean caseInsensitive) {
 		return Flowable.create(emitter -> {
-			synchronized (syncData) {
-				int size = keys.size();
-				for (int i = 0; i < size; i++) {
-					if (isMatched(keys.get(i), searchStr, caseInsensitive)) {
-						emitter.onNext(values.get(i));
-					}
-					if (emitter.isCancelled()) {
-						return;
-					}
+			for (Map.Entry<JNode, String> entry : data.entrySet()) {
+
+				if (isMatched(entry.getValue(), searchStr, caseInsensitive)) {
+					emitter.onNext(entry.getKey());
+				}
+				if (emitter.isCancelled()) {
+					return;
 				}
 			}
 			emitter.onComplete();
 		}, BackpressureStrategy.LATEST);
 	}
 
-	@Override
 	public int size() {
-		synchronized (syncData) {
-			return keys.size();
-		}
+		return data.size();
 	}
 }

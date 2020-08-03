@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import jadx.api.plugins.input.data.ICodeReader;
 import jadx.api.plugins.input.insns.InsnData;
 import jadx.api.plugins.input.insns.Opcode;
-import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
@@ -49,9 +48,6 @@ public class UsageInfoVisitor extends AbstractVisitor {
 		}
 		// TODO: process annotations and generics
 		for (MethodNode methodNode : cls.getMethods()) {
-			if (methodNode.isNoCode() || methodNode.contains(AType.JADX_ERROR)) {
-				continue;
-			}
 			processMethod(methodNode, usageInfo);
 		}
 	}
@@ -70,6 +66,9 @@ public class UsageInfoVisitor extends AbstractVisitor {
 	}
 
 	private static void processInstructions(MethodNode mth, UsageInfo usageInfo) {
+		if (mth.isNoCode()) {
+			return;
+		}
 		ICodeReader codeReader = mth.getCodeReader();
 		if (codeReader == null) {
 			return;

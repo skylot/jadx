@@ -345,6 +345,9 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 
 	@Override
 	public void unload() {
+		if (state == NOT_LOADED) {
+			return;
+		}
 		methods.forEach(MethodNode::unload);
 		innerClasses.forEach(ClassNode::unload);
 		fields.forEach(FieldNode::unloadAttributes);

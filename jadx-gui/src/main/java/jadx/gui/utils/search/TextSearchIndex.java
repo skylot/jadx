@@ -36,19 +36,19 @@ public class TextSearchIndex {
 
 	private final JNodeCache nodeCache;
 
-	private SearchIndex<JNode> clsNamesIndex;
-	private SearchIndex<JNode> mthSignaturesIndex;
-	private SearchIndex<JNode> fldSignaturesIndex;
-	private SearchIndex<CodeNode> codeIndex;
+	private final SimpleIndex clsNamesIndex;
+	private final SimpleIndex mthSignaturesIndex;
+	private final SimpleIndex fldSignaturesIndex;
+	private final CodeIndex codeIndex;
 
-	private List<JavaClass> skippedClasses = new ArrayList<>();
+	private final List<JavaClass> skippedClasses = new ArrayList<>();
 
 	public TextSearchIndex(JNodeCache nodeCache) {
 		this.nodeCache = nodeCache;
-		this.clsNamesIndex = new SimpleIndex<>();
-		this.mthSignaturesIndex = new SimpleIndex<>();
-		this.fldSignaturesIndex = new SimpleIndex<>();
-		this.codeIndex = new CodeIndex<>();
+		this.clsNamesIndex = new SimpleIndex();
+		this.mthSignaturesIndex = new SimpleIndex();
+		this.fldSignaturesIndex = new SimpleIndex();
+		this.codeIndex = new CodeIndex();
 	}
 
 	public void indexNames(JavaClass cls) {
@@ -68,7 +68,6 @@ public class TextSearchIndex {
 
 	public void indexCode(JavaClass cls, CodeLinesInfo linesInfo, List<StringRef> lines) {
 		try {
-			boolean strRefSupported = codeIndex.isStringRefSupported();
 			int count = lines.size();
 			for (int i = 0; i < count; i++) {
 				StringRef line = lines.get(i);
@@ -78,16 +77,19 @@ public class TextSearchIndex {
 				}
 				int lineNum = i + 1;
 				JavaNode node = linesInfo.getJavaNodeByLine(lineNum);
-				CodeNode codeNode = new CodeNode(nodeCache.makeFrom(node == null ? cls : node), lineNum, line);
-				if (strRefSupported) {
-					codeIndex.put(line, codeNode);
-				} else {
-					codeIndex.put(line.toString(), codeNode);
-				}
+				JNode nodeAtLine = nodeCache.makeFrom(node == null ? cls : node);
+				codeIndex.put(new CodeNode(nodeAtLine, lineNum, line));
 			}
 		} catch (Exception e) {
 			LOG.warn("Failed to index class: {}", cls, e);
 		}
+	}
+
+	public void remove(JavaClass cls) {
+		this.clsNamesIndex.removeForCls(cls);
+		this.mthSignaturesIndex.removeForCls(cls);
+		this.fldSignaturesIndex.removeForCls(cls);
+		this.codeIndex.removeForCls(cls);
 	}
 
 	public Flowable<JNode> buildSearch(String text, Set<SearchDialog.SearchOptions> options) {

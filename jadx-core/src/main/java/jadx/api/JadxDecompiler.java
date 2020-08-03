@@ -4,16 +4,19 @@ import java.io.Closeable;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -420,6 +423,13 @@ public final class JadxDecompiler implements Closeable {
 			return getJavaFieldByNode((FieldNode) obj);
 		}
 		throw new JadxRuntimeException("Unexpected node type: " + obj);
+	}
+
+	List<JavaNode> convertNodes(Collection<?> nodesList) {
+		return nodesList.stream()
+				.map(this::convertNode)
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
 	}
 
 	@Nullable

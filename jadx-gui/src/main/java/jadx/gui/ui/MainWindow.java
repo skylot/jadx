@@ -415,12 +415,6 @@ public class MainWindow extends JFrame {
 		}
 	}
 
-	synchronized void runBackgroundUnloadRefreshAndIndexJobs() {
-		cancelBackgroundJobs();
-		backgroundWorker = new BackgroundWorker(cacheObject, progressPane);
-		backgroundWorker.exec();
-	}
-
 	public synchronized void cancelBackgroundJobs() {
 		backgroundExecutor.cancelAll();
 		if (backgroundWorker != null) {
@@ -520,7 +514,7 @@ public class MainWindow extends JFrame {
 		tabbedPane.closeAllTabs();
 		resetCache();
 		treeRoot = null;
-		treeModel.setRoot(treeRoot);
+		treeModel.setRoot(null);
 		treeModel.reload();
 	}
 
@@ -1134,6 +1128,10 @@ public class MainWindow extends JFrame {
 
 	public BackgroundWorker getBackgroundWorker() {
 		return backgroundWorker;
+	}
+
+	public BackgroundExecutor getBackgroundExecutor() {
+		return backgroundExecutor;
 	}
 
 	public ProgressPanel getProgressPane() {

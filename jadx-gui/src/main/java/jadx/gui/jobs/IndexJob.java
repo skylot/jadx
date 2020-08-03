@@ -31,33 +31,53 @@ public class IndexJob extends BackgroundJob {
 	@Override
 	protected void runJob() {
 		JNodeCache nodeCache = cache.getNodeCache();
-		final TextSearchIndex index = new TextSearchIndex(nodeCache);
-		final CodeUsageInfo usageInfo = new CodeUsageInfo(nodeCache);
+		TextSearchIndex index = new TextSearchIndex(nodeCache);
+		CodeUsageInfo usageInfo = new CodeUsageInfo(nodeCache);
 		cache.setTextIndex(index);
 		cache.setUsageInfo(usageInfo);
+
 		for (final JavaClass cls : wrapper.getIncludedClasses()) {
-			addTask(() -> {
-				try {
-					index.indexNames(cls);
-
-					CodeLinesInfo linesInfo = new CodeLinesInfo(cls);
-					List<StringRef> lines = splitLines(cls);
-
-					usageInfo.processClass(cls, linesInfo, lines);
-					if (UiUtils.isFreeMemoryAvailable()) {
-						index.indexCode(cls, linesInfo, lines);
-					} else {
-						index.classCodeIndexSkipped(cls);
-					}
-				} catch (Exception e) {
-					LOG.error("Index error in class: {}", cls.getFullName(), e);
-				}
-			});
+			addTask(() -> indexCls(cache, cls));
 		}
 	}
 
+	public static void indexCls(CacheObject cache, JavaClass cls) {
+		try {
+			TextSearchIndex index = cache.getTextIndex();
+			CodeUsageInfo usageInfo = cache.getUsageInfo();
+			if (index == null || usageInfo == null) {
+				return;
+			}
+
+			index.indexNames(cls);
+
+			CodeLinesInfo linesInfo = new CodeLinesInfo(cls);
+			List<StringRef> lines = splitLines(cls);
+
+			usageInfo.processClass(cls, linesInfo, lines);
+			if (UiUtils.isFreeMemoryAvailable()) {
+				index.indexCode(cls, linesInfo, lines);
+			} else {
+				index.classCodeIndexSkipped(cls);
+			}
+		} catch (Exception e) {
+			LOG.error("Index error in class: {}", cls.getFullName(), e);
+		}
+	}
+
+	public static void refreshIndex(CacheObject cache, JavaClass cls) {
+		TextSearchIndex index = cache.getTextIndex();
+		CodeUsageInfo usageInfo = cache.getUsageInfo();
+		if (index == null || usageInfo == null) {
+			return;
+		}
+		index.remove(cls);
+		usageInfo.remove(cls);
+		indexCls(cache, cls);
+	}
+
 	@NotNull
-	protected List<StringRef> splitLines(JavaClass cls) {
+	protected static List<StringRef> splitLines(JavaClass cls) {
 		List<StringRef> lines = StringRef.split(cls.getCode(), CodeWriter.NL);
 		int size = lines.size();
 		for (int i = 0; i < size; i++) {

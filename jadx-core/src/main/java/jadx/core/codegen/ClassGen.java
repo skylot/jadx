@@ -699,12 +699,12 @@ public class ClassGen {
 		List<ClassNode> deps = cls.getDependencies();
 		code.startLine("// deps - ").add(Integer.toString(deps.size()));
 		for (ClassNode depCls : deps) {
-			code.startLine("//  ").add(depCls.getFullName());
+			code.startLine("//  ").add(depCls.getClassInfo().getFullName());
 		}
 		List<ClassNode> useIn = cls.getUseIn();
 		code.startLine("// use in - ").add(Integer.toString(useIn.size()));
 		for (ClassNode useCls : useIn) {
-			code.startLine("//  ").add(useCls.getFullName());
+			code.startLine("//  ").add(useCls.getClassInfo().getFullName());
 		}
 		List<MethodNode> useInMths = cls.getUseInMth();
 		code.startLine("// use in methods - ").add(Integer.toString(useInMths.size()));

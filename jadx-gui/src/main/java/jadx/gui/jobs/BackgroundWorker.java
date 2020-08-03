@@ -54,23 +54,6 @@ public class BackgroundWorker extends SwingWorker<Void, Void> {
 			runJob(cache.getDecompileJob());
 			LOG.debug("Memory usage: After decompile: {}", UiUtils.memoryInfo());
 
-			if (cache.getUnloadJob() != null) {
-				LOG.info("Memory usage: Before unload: {}", UiUtils.memoryInfo());
-				long start = System.nanoTime();
-				runJob(cache.getUnloadJob());
-				cache.setUnloadJob(null);
-				LOG.info("Memory usage: After unload: {}, unload took {} ms", UiUtils.memoryInfo(), (System.nanoTime() - start) / 1000000);
-			}
-
-			if (cache.getRefreshJob() != null) {
-				LOG.info("Memory usage: Before refresh: {}", UiUtils.memoryInfo());
-				long start = System.nanoTime();
-				runJob(cache.getRefreshJob());
-				cache.setRefreshJob(null);
-				LOG.info("Memory usage: After refresh: {}, refresh took {} ms", UiUtils.memoryInfo(),
-						(System.nanoTime() - start) / 1000000);
-			}
-
 			LOG.debug("Memory usage: Before index: {}", UiUtils.memoryInfo());
 			runJob(cache.getIndexJob());
 			LOG.debug("Memory usage: After index: {}", UiUtils.memoryInfo());

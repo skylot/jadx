@@ -56,6 +56,11 @@ public final class JavaMethod implements JavaNode {
 		return ArgType.tryToResolveClassAlias(mth.root(), retType);
 	}
 
+	@Override
+	public List<JavaNode> getUseIn() {
+		return getDeclaringClass().getRootDecompiler().convertNodes(mth.getUseIn());
+	}
+
 	public boolean isConstructor() {
 		return mth.getMethodInfo().isConstructor();
 	}

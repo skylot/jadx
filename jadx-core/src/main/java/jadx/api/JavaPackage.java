@@ -1,5 +1,6 @@
 package jadx.api;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +42,11 @@ public final class JavaPackage implements JavaNode, Comparable<JavaPackage> {
 	@Override
 	public int getDecompiledLine() {
 		return 0;
+	}
+
+	@Override
+	public List<JavaNode> getUseIn() {
+		return Collections.emptyList();
 	}
 
 	@Override

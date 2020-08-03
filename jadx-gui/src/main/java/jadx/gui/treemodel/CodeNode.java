@@ -48,6 +48,10 @@ public class CodeNode extends JNode {
 		return null;
 	}
 
+	public StringRef getLineStr() {
+		return line;
+	}
+
 	@Override
 	public int getLine() {
 		return lineNum;
@@ -71,5 +75,22 @@ public class CodeNode extends JNode {
 	@Override
 	public String makeLongString() {
 		return makeString();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof CodeNode)) {
+			return false;
+		}
+		CodeNode codeNode = (CodeNode) o;
+		return jNode.equals(codeNode.jNode);
+	}
+
+	@Override
+	public int hashCode() {
+		return jNode.hashCode();
 	}
 }

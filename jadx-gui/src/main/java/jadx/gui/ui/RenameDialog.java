@@ -8,10 +8,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.swing.*;
 
@@ -23,11 +23,11 @@ import jadx.api.JavaClass;
 import jadx.api.JavaField;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
+import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.RenameVisitor;
+import jadx.core.utils.Utils;
 import jadx.gui.jobs.IndexJob;
-import jadx.gui.jobs.RefreshJob;
-import jadx.gui.jobs.UnloadJob;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
@@ -37,77 +37,59 @@ import jadx.gui.treemodel.JPackage;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
 import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.ui.codearea.CodePanel;
-import jadx.gui.utils.*;
+import jadx.gui.utils.CacheObject;
+import jadx.gui.utils.JNodeCache;
+import jadx.gui.utils.NLS;
+import jadx.gui.utils.TextStandardActions;
 
-public class RenameDialog extends CommonSearchDialog {
+public class RenameDialog extends JDialog {
 	private static final long serialVersionUID = -3269715644416902410L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(RenameDialog.class);
 
-	protected final transient MainWindow mainWindow;
-
+	private final transient MainWindow mainWindow;
+	private final transient CacheObject cache;
 	private final transient JNode node;
-
-	private JTextField renameField;
-
-	private CodeArea codeArea;
-
-	private JButton renameBtn;
+	private transient JTextField renameField;
 
 	public RenameDialog(CodeArea codeArea, JNode node) {
 		super(codeArea.getMainWindow());
-		mainWindow = codeArea.getMainWindow();
-		this.codeArea = codeArea;
+		this.mainWindow = codeArea.getMainWindow();
+		this.cache = mainWindow.getCacheObject();
 		this.node = node;
-		if (isDeobfuscationSettingsValid()) {
+		if (checkSettings()) {
 			initUI();
-			registerInitOnOpen();
-			loadWindowPos();
-		} else {
-			LOG.error("Deobfuscation settings are invalid - please enable deobfuscation and disable force rewrite deobfuscation map");
 		}
 	}
 
-	private boolean isDeobfuscationSettingsValid() {
-		boolean valid = true;
-		String errorMessage = null;
+	private boolean checkSettings() {
+		StringBuilder errorMessage = new StringBuilder();
+		errorMessage.append(NLS.str("msg.rename_disabled")).append(CodeWriter.NL);
+
 		JadxSettings settings = mainWindow.getSettings();
-		final LangLocale langLocale = settings.getLangLocale();
-		if (settings.isDeobfuscationForceSave()) {
-			valid = false;
-			errorMessage = NLS.str("msg.rename_disabled_force_rewrite_enabled", langLocale);
-		}
+		boolean valid = true;
 		if (!settings.isDeobfuscationOn()) {
+			errorMessage.append(" - ").append(NLS.str("msg.rename_disabled_deobfuscation_disabled")).append(CodeWriter.NL);
 			valid = false;
-			errorMessage = NLS.str("msg.rename_disabled_deobfuscation_disabled", langLocale);
 		}
-		if (errorMessage != null) {
-			showRenameDisabledErrorMessage(langLocale, errorMessage);
+		if (settings.isDeobfuscationForceSave()) {
+			errorMessage.append(" - ").append(NLS.str("msg.rename_disabled_force_rewrite_enabled")).append(CodeWriter.NL);
+			valid = false;
 		}
-		return valid;
-	}
+		if (valid) {
+			return true;
+		}
+		int result = JOptionPane.showConfirmDialog(mainWindow, errorMessage.toString(),
+				NLS.str("msg.rename_disabled_title"), JOptionPane.OK_CANCEL_OPTION);
+		if (result != JOptionPane.OK_OPTION) {
+			return false;
+		}
+		settings.setDeobfuscationOn(true);
+		settings.setDeobfuscationForceSave(false);
+		settings.sync();
 
-	private void showRenameDisabledErrorMessage(LangLocale langLocale, String message) {
-		JOptionPane.showMessageDialog(
-				mainWindow,
-				message,
-				NLS.str("msg.rename_disabled_title", langLocale),
-				JOptionPane.ERROR_MESSAGE);
-	}
-
-	@Override
-	protected void openInit() {
-		prepare();
-	}
-
-	@Override
-	protected void loadStart() {
-		renameBtn.setEnabled(false);
-	}
-
-	@Override
-	protected void loadFinished() {
-		renameBtn.setEnabled(true);
+		mainWindow.reOpenFile();
+		return false; // TODO: can't open dialog, 'node' is replaced with new one after reopen
 	}
 
 	private Path getDeobfMapPath(RootNode root) {
@@ -195,29 +177,26 @@ public class RenameDialog extends CommonSearchDialog {
 	}
 
 	private void rename() {
-		long start = System.nanoTime();
-		String renameText = renameField.getText();
-		if (renameText == null || renameText.length() == 0 || codeArea.getText() == null) {
-			return;
+		try {
+			String renameText = renameField.getText();
+			if (renameText == null || renameText.length() == 0) {
+				return;
+			}
+			RootNode root = mainWindow.getWrapper().getDecompiler().getRoot();
+			if (node == null) {
+				LOG.error("rename(): rootNode is null!");
+				dispose();
+				return;
+			}
+			if (!refreshDeobfMapFile(renameText, root)) {
+				LOG.error("rename(): refreshDeobfMapFile() failed!");
+				dispose();
+				return;
+			}
+			refreshState(root);
+		} catch (Exception e) {
+			LOG.error("Rename failed", e);
 		}
-		RootNode root = mainWindow.getWrapper().getDecompiler().getRoot();
-		if (node == null) {
-			LOG.error("rename(): rootNode is null!");
-			dispose();
-			return;
-		}
-		if (!refreshDeobfMapFile(renameText, root)) {
-			LOG.error("rename(): refreshDeobfMapFile() failed!");
-			dispose();
-			return;
-		}
-		long refreshStart = System.nanoTime();
-		int classes = refreshState(root);
-		long refreshTime = (System.nanoTime() - refreshStart) / 1000000;
-		long totalTime = (System.nanoTime() - start) / 1000000;
-		LOG.info("refreshState() took {} ms to update state, {} classes will be refreshed in background ({} ms total)", refreshTime,
-				classes,
-				totalTime);
 		dispose();
 	}
 
@@ -240,92 +219,60 @@ public class RenameDialog extends CommonSearchDialog {
 		return true;
 	}
 
-	private int refreshState(RootNode rootNode) {
+	private void refreshState(RootNode rootNode) {
 		RenameVisitor renameVisitor = new RenameVisitor();
 		renameVisitor.init(rootNode);
 
-		cache.getNodeCache().refresh(node);
+		JNodeCache nodeCache = cache.getNodeCache();
+		Set<JClass> updatedClasses = node.getJavaNode().getUseIn()
+				.stream()
+				.map(nodeCache::makeFrom)
+				.map(JNode::getRootClass)
+				.collect(Collectors.toSet());
+		updatedClasses.add(node.getRootClass());
 
-		Set<JavaClass> updatedClasses = getUpdatedClasses();
-
-		mainWindow.reloadTree();
 		refreshTabs(mainWindow.getTabbedPane(), updatedClasses);
 
-		if (updatedClasses.size() > 0) {
-			setRefreshTask(updatedClasses);
+		if (!updatedClasses.isEmpty()) {
+			mainWindow.getBackgroundExecutor().execute("Refreshing",
+					Utils.collectionMap(updatedClasses, cls -> () -> refreshJClass(cls)),
+					mainWindow::reloadTree);
 		}
-
-		return updatedClasses.size();
 	}
 
-	private void refreshTabs(TabbedPane tabbedPane, Set<JavaClass> updatedClasses) {
-		for (Map.Entry<JNode, ContentPanel> panel : tabbedPane.getOpenTabs().entrySet()) {
-			ContentPanel contentPanel = panel.getValue();
+	private void refreshJClass(JClass cls) {
+		cls.refresh();
+		IndexJob.refreshIndex(cache, cls.getCls());
+	}
+
+	private void refreshTabs(TabbedPane tabbedPane, Set<JClass> updatedClasses) {
+		for (Map.Entry<JNode, ContentPanel> entry : tabbedPane.getOpenTabs().entrySet()) {
+			ContentPanel contentPanel = entry.getValue();
 			if (contentPanel instanceof ClassCodeContentPanel) {
-				JNode node = panel.getKey();
+				JNode node = entry.getKey();
 				JClass rootClass = node.getRootClass();
-				JavaClass javaClass = rootClass.getCls();
-				if (updatedClasses.contains(javaClass) || node.getRootClass().getCls() == javaClass) {
-					LOG.info("Refreshing rootClass " + javaClass.getRawName());
-					javaClass.unload();
-					javaClass.getClassNode().deepUnload();
-					rootClass.refresh(); // Update code cache
+				if (updatedClasses.contains(rootClass)) {
+					refreshJClass(rootClass);
 					ClassCodeContentPanel codePanel = (ClassCodeContentPanel) contentPanel;
 					CodePanel javaPanel = codePanel.getJavaCodePanel();
 					javaPanel.refresh();
-					tabbedPane.refresh(node);
-					updatedClasses.remove(javaClass);
+					tabbedPane.refresh(rootClass);
 				}
 			}
 		}
-	}
-
-	private Set<JavaClass> getUpdatedClasses() {
-		Set<JavaClass> usageClasses = new HashSet<>();
-		CodeUsageInfo usageInfo = cache.getUsageInfo();
-		if (usageInfo != null) {
-			usageInfo.getUsageList(node).forEach((node) -> {
-				JavaClass rootClass = node.getRootClass().getCls();
-				// LOG.info("updateUsages(): Going to update class {}", rootClass.getRealFullName());
-				usageClasses.add(rootClass);
-			});
-			// usageClasses.parallelStream().forEach(JavaClass::refresh);
-		}
-		return usageClasses;
-	}
-
-	private void setRefreshTask(Set<JavaClass> refreshClasses) {
-		UnloadJob unloadJob = new UnloadJob(mainWindow.getWrapper(), mainWindow.getSettings().getThreadsCount(), refreshClasses);
-		RefreshJob refreshJob = new RefreshJob(mainWindow.getWrapper(), mainWindow.getSettings().getThreadsCount(), refreshClasses);
-		LOG.info("Waiting for old unloadJob and refreshJob");
-		while (cache.getUnloadJob() != null || cache.getRefreshJob() != null) {
-			try {
-				Thread.sleep(10);
-			} catch (InterruptedException e) {
-				return;
-			}
-		}
-		LOG.info("Old unloadJob and refreshJob finished");
-		cache.setUnloadJob(unloadJob);
-		cache.setRefreshJob(refreshJob);
-		cache.setIndexJob(new IndexJob(mainWindow.getWrapper(), cache, mainWindow.getSettings().getThreadsCount()));
-		mainWindow.runBackgroundUnloadRefreshAndIndexJobs();
 	}
 
 	@NotNull
 	protected JPanel initButtonsPanel() {
 		JButton cancelButton = new JButton(NLS.str("search_dialog.cancel"));
 		cancelButton.addActionListener(event -> dispose());
-		renameBtn = new JButton(NLS.str("popup.rename"));
+		JButton renameBtn = new JButton(NLS.str("popup.rename"));
 		renameBtn.addActionListener(event -> rename());
 		getRootPane().setDefaultButton(renameBtn);
-
-		progressPane = new ProgressPanel(mainWindow, false);
 
 		JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
 		buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-		buttonPane.add(progressPane);
 		buttonPane.add(Box.createRigidArea(new Dimension(5, 0)));
 		buttonPane.add(Box.createHorizontalGlue());
 		buttonPane.add(renameBtn);
@@ -351,18 +298,12 @@ public class RenameDialog extends CommonSearchDialog {
 		renamePane.add(nodeLabel);
 		renamePane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		warnLabel = new JLabel();
-		warnLabel.setForeground(Color.RED);
-		warnLabel.setVisible(false);
-
 		JPanel textPane = new JPanel();
 		textPane.setLayout(new BoxLayout(textPane, BoxLayout.PAGE_AXIS));
-		textPane.add(warnLabel);
 		textPane.add(Box.createRigidArea(new Dimension(0, 5)));
 		textPane.add(renameField);
 		textPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		initCommon();
 		JPanel buttonPane = initButtonsPanel();
 
 		Container contentPane = getContentPane();
@@ -376,5 +317,7 @@ public class RenameDialog extends CommonSearchDialog {
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		setModalityType(ModalityType.MODELESS);
+
+		mainWindow.getSettings().loadWindowPos(this);
 	}
 }

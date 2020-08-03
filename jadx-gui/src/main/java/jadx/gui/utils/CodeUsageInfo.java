@@ -70,4 +70,14 @@ public class CodeUsageInfo {
 		}
 		return usageInfo.getUsageList();
 	}
+
+	public void remove(JavaClass cls) {
+		usageMap.entrySet().removeIf(e -> {
+			if (e.getKey().getJavaNode().getTopParentClass().equals(cls)) {
+				return true;
+			}
+			e.getValue().getUsageList().removeIf(node -> node.getJavaNode().getTopParentClass().equals(cls));
+			return false;
+		});
+	}
 }

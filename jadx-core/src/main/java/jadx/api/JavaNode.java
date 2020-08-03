@@ -1,5 +1,7 @@
 package jadx.api;
 
+import java.util.List;
+
 public interface JavaNode {
 
 	String getName();
@@ -11,4 +13,6 @@ public interface JavaNode {
 	JavaClass getTopParentClass();
 
 	int getDecompiledLine();
+
+	List<JavaNode> getUseIn();
 }

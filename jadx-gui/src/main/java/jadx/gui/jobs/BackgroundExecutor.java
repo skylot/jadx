@@ -7,7 +7,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javax.swing.SwingWorker;
+import javax.swing.*;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -36,8 +36,10 @@ public class BackgroundExecutor {
 
 	public Future<Boolean> execute(IBackgroundTask task) {
 		TaskWorker taskWorker = new TaskWorker(task);
-		taskWorker.init();
-		taskQueueExecutor.execute(taskWorker);
+		taskQueueExecutor.execute(() -> {
+			taskWorker.init();
+			taskWorker.run();
+		});
 		return taskWorker;
 	}
 
@@ -50,6 +52,14 @@ public class BackgroundExecutor {
 		} finally {
 			taskQueueExecutor = makeTaskQueueExecutor();
 		}
+	}
+
+	public void execute(String title, List<Runnable> backgroundJobs, Runnable onFinishUiRunnable) {
+		execute(new SimpleTask(title, backgroundJobs, onFinishUiRunnable));
+	}
+
+	public void execute(String title, List<Runnable> backgroundJobs) {
+		execute(new SimpleTask(title, backgroundJobs, null));
 	}
 
 	public void execute(String title, Runnable backgroundRunnable, Runnable onFinishUiRunnable) {
@@ -85,6 +95,7 @@ public class BackgroundExecutor {
 
 			List<Runnable> jobs = task.scheduleJobs();
 			jobsCount = jobs.size();
+			LOG.debug("Starting background task '{}', jobs count: {}", task.getTitle(), jobsCount);
 			if (jobsCount == 1) {
 				jobs.get(0).run();
 				return true;
@@ -149,13 +160,17 @@ public class BackgroundExecutor {
 
 	private static final class SimpleTask implements IBackgroundTask {
 		private final String title;
-		private final Runnable runnable;
+		private final List<Runnable> jobs;
 		private final Runnable onFinish;
 
-		public SimpleTask(String title, Runnable runnable, @Nullable Runnable onFinish) {
+		public SimpleTask(String title, List<Runnable> jobs, @Nullable Runnable onFinish) {
 			this.title = title;
-			this.runnable = runnable;
+			this.jobs = jobs;
 			this.onFinish = onFinish;
+		}
+
+		public SimpleTask(String title, Runnable job, @Nullable Runnable onFinish) {
+			this(title, Collections.singletonList(job), onFinish);
 		}
 
 		@Override
@@ -165,7 +180,7 @@ public class BackgroundExecutor {
 
 		@Override
 		public List<Runnable> scheduleJobs() {
-			return Collections.singletonList(runnable);
+			return jobs;
 		}
 
 		@Override
