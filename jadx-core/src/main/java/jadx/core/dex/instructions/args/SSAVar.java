@@ -8,7 +8,10 @@ import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
@@ -21,6 +24,8 @@ import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class SSAVar {
+	private static final Logger LOG = LoggerFactory.getLogger(SSAVar.class);
+
 	private final int regNum;
 	private final int version;
 
@@ -68,14 +73,25 @@ public class SSAVar {
 
 	@Nullable
 	public ArgType getImmutableType() {
-		if (assign.contains(AFlag.IMMUTABLE_TYPE)) {
-			return assign.getType();
+		if (isTypeImmutable()) {
+			return assign.getInitType();
 		}
 		return null;
 	}
 
 	public boolean isTypeImmutable() {
 		return assign.contains(AFlag.IMMUTABLE_TYPE);
+	}
+
+	public void markAsImmutable(ArgType type) {
+		assign.add(AFlag.IMMUTABLE_TYPE);
+		ArgType initType = assign.getInitType();
+		if (!initType.equals(type)) {
+			assign.forceSetInitType(type);
+			if (Consts.DEBUG_TYPE_INFERENCE) {
+				LOG.debug("Update immutable type at var {} assign with type: {} previous type: {}", this.toShortString(), type, initType);
+			}
+		}
 	}
 
 	public void setType(ArgType type) {

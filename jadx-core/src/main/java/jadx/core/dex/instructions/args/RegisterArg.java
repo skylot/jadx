@@ -52,12 +52,8 @@ public class RegisterArg extends InsnArg implements Named {
 		sVar.setType(newType);
 	}
 
-	public void updateImmutableType(ArgType type) {
-		if (sVar == null) {
-			throw new JadxRuntimeException("Unknown SSA variable to update immutable type: " + this);
-		}
-		sVar.forceSetType(type);
-		sVar.getAssign().add(AFlag.IMMUTABLE_TYPE);
+	public void forceSetInitType(ArgType type) {
+		this.type = type;
 	}
 
 	@Nullable

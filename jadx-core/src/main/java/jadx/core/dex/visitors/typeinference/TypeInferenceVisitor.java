@@ -803,21 +803,15 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 
 	private static void assignImmutableTypes(MethodNode mth) {
 		for (SSAVar ssaVar : mth.getSVars()) {
-			ArgType imType = getSsaImmutableType(ssaVar);
-			if (imType != null) {
-				ssaVar.getAssign().updateImmutableType(imType);
+			ArgType immutableType = getSsaImmutableType(ssaVar);
+			if (immutableType != null) {
+				ssaVar.markAsImmutable(immutableType);
 			}
 		}
 	}
 
 	@Nullable
 	private static ArgType getSsaImmutableType(SSAVar ssaVar) {
-		if (ssaVar.isTypeImmutable()) {
-			ArgType type = ssaVar.getTypeInfo().getType();
-			if (type != ArgType.UNKNOWN) {
-				return type;
-			}
-		}
 		if (ssaVar.getAssign().contains(AFlag.IMMUTABLE_TYPE)) {
 			return ssaVar.getAssign().getInitType();
 		}
