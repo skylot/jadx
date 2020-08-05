@@ -104,7 +104,7 @@ public abstract class IntegrationTest extends TestUtils {
 		DebugChecks.checksEnabled = true;
 	}
 
-	private JadxDecompiler jadxDecompiler;
+	protected JadxDecompiler jadxDecompiler;
 
 	@BeforeEach
 	public void init() {
@@ -142,7 +142,7 @@ public abstract class IntegrationTest extends TestUtils {
 	public ClassNode getClassNode(Class<?> clazz) {
 		try {
 			File jar = getJarForClass(clazz);
-			return getClassNodeFromFile(jar, clazz.getName());
+			return getClassNodeFromFiles(Collections.singletonList(jar), clazz.getName());
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -150,8 +150,8 @@ public abstract class IntegrationTest extends TestUtils {
 		return null;
 	}
 
-	public ClassNode getClassNodeFromFile(File file, String clsName) {
-		jadxDecompiler = loadFiles(Collections.singletonList(file));
+	public ClassNode getClassNodeFromFiles(List<File> files, String clsName) {
+		jadxDecompiler = loadFiles(files);
 		RootNode root = JadxInternalAccess.getRoot(jadxDecompiler);
 
 		ClassNode cls = root.resolveClass(clsName);
@@ -173,9 +173,8 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	protected JadxDecompiler loadFiles(List<File> inputFiles) {
-		JadxDecompiler d;
 		args.setInputFiles(inputFiles);
-		d = new JadxDecompiler(args);
+		JadxDecompiler d = new JadxDecompiler(args);
 		try {
 			d.load();
 		} catch (Exception e) {

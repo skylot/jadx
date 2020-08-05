@@ -12,6 +12,11 @@ public class EmptyLoadResult implements ILoadResult {
 	public static final EmptyLoadResult INSTANCE = new EmptyLoadResult();
 
 	@Override
+	public boolean isEmpty() {
+		return true;
+	}
+
+	@Override
 	public void visitClasses(Consumer<IClassData> consumer) {
 	}
 

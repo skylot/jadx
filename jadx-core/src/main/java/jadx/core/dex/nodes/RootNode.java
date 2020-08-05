@@ -90,6 +90,7 @@ public class RootNode {
 		// sort classes by name, expect top classes before inner
 		classes.sort(Comparator.comparing(ClassNode::getFullName));
 		initInnerClasses();
+		LOG.debug("Classes loaded: {}", classes.size());
 	}
 
 	private void addDummyClass(IClassData classData, Exception exc) {

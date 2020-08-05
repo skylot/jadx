@@ -6,6 +6,7 @@ dependencies {
 	implementation(project(':jadx-core'))
 
 	runtimeOnly(project(':jadx-plugins:jadx-dex-input'))
+	runtimeOnly(project(':jadx-plugins:jadx-smali-input'))
 	runtimeOnly(project(':jadx-plugins:jadx-java-convert'))
 
 	implementation 'com.beust:jcommander:1.78'

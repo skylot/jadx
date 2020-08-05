@@ -7,4 +7,6 @@ public interface ILoadResult extends Closeable {
 	void visitClasses(Consumer<IClassData> consumer);
 
 	void visitResources(Consumer<IResourceData> consumer);
+
+	boolean isEmpty();
 }

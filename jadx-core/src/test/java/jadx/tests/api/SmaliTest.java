@@ -7,10 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Nullable;
-import org.jf.smali.Smali;
-import org.jf.smali.SmaliOptions;
 
-import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
@@ -26,9 +23,7 @@ public abstract class SmaliTest extends IntegrationTest {
 
 	protected ClassNode getClassNodeFromSmali(String file, String clsName) {
 		File smaliFile = getSmaliFile(file);
-		File outDex = createTempFile(".dex");
-		compileSmali(outDex, Collections.singletonList(smaliFile));
-		return getClassNodeFromFile(outDex, clsName);
+		return getClassNodeFromFiles(Collections.singletonList(smaliFile), clsName);
 	}
 
 	/**
@@ -51,9 +46,7 @@ public abstract class SmaliTest extends IntegrationTest {
 	}
 
 	protected ClassNode getClassNodeFromSmaliFiles(String pkg, String testName, String clsName) {
-		File outDex = createTempFile(".dex");
-		compileSmali(outDex, collectSmaliFiles(pkg, testName));
-		return getClassNodeFromFile(outDex, pkg + '.' + clsName);
+		return getClassNodeFromFiles(collectSmaliFiles(pkg, testName), pkg + '.' + clsName);
 	}
 
 	protected ClassNode getClassNodeFromSmaliFiles(String clsName) {
@@ -61,13 +54,10 @@ public abstract class SmaliTest extends IntegrationTest {
 	}
 
 	protected List<ClassNode> loadFromSmaliFiles() {
-		File outDex = createTempFile(".dex");
-		compileSmali(outDex, collectSmaliFiles(getTestPkg(), getTestName()));
-
-		JadxDecompiler d = loadFiles(Collections.singletonList(outDex));
-		RootNode root = JadxInternalAccess.getRoot(d);
+		jadxDecompiler = loadFiles(collectSmaliFiles(getTestPkg(), getTestName()));
+		RootNode root = JadxInternalAccess.getRoot(jadxDecompiler);
 		List<ClassNode> classes = root.getClasses(false);
-		decompileAndCheck(d, classes);
+		decompileAndCheck(jadxDecompiler, classes);
 		return classes;
 	}
 
@@ -96,18 +86,5 @@ public abstract class SmaliTest extends IntegrationTest {
 			return pathFromRoot;
 		}
 		throw new AssertionError("Smali file not found: " + smaliFile.getPath());
-	}
-
-	private static boolean compileSmali(File output, List<File> inputFiles) {
-		try {
-			SmaliOptions options = new SmaliOptions();
-			options.outputDexFile = output.getAbsolutePath();
-			options.verboseErrors = true;
-			List<String> inputFileNames = inputFiles.stream().map(File::getAbsolutePath).collect(Collectors.toList());
-			Smali.assemble(options, inputFileNames);
-		} catch (Exception e) {
-			throw new AssertionError("Smali assemble error", e);
-		}
-		return true;
 	}
 }

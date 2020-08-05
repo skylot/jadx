@@ -87,7 +87,7 @@ public class ClsSet {
 		if (LOG.isDebugEnabled()) {
 			long time = System.currentTimeMillis() - startTime;
 			int methodsCount = Stream.of(classes).mapToInt(clspClass -> clspClass.getMethodsMap().size()).sum();
-			LOG.debug("Load class set in {}ms, classes: {}, methods: {}", time, classes.length, methodsCount);
+			LOG.debug("Clst file loaded in {}ms, classes: {}, methods: {}", time, classes.length, methodsCount);
 		}
 	}
 

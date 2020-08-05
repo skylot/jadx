@@ -1,0 +1,12 @@
+plugins {
+	id 'java-library'
+}
+
+dependencies {
+	api(project(":jadx-plugins:jadx-plugins-api"))
+
+	implementation(project(":jadx-plugins:jadx-dex-input"))
+
+	implementation 'org.smali:smali:2.4.0'
+	implementation 'com.google.guava:guava:29.0-jre' // force latest version for smali
+}

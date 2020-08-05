@@ -26,6 +26,7 @@ node_modules/
 jadx-output/
 *-tmp/
 **/tmp/
+*.jobf
 
 *.class
 *.dump

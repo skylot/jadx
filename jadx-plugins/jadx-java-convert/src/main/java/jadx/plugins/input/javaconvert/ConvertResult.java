@@ -1,5 +1,6 @@
 package jadx.plugins.input.javaconvert;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,7 +13,7 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ConvertResult {
+public class ConvertResult implements Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(ConvertResult.class);
 
 	private final List<Path> converted = new ArrayList<>();
@@ -34,7 +35,8 @@ public class ConvertResult {
 		return converted.isEmpty();
 	}
 
-	public void deleteTemp() {
+	@Override
+	public void close() {
 		for (Path tmpPath : tmpPaths) {
 			try {
 				delete(tmpPath);

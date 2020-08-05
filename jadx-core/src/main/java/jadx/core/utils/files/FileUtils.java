@@ -222,7 +222,7 @@ public class FileUtils {
 		return new String(hexChars);
 	}
 
-	private static boolean isZipFile(File file) {
+	public static boolean isZipFile(File file) {
 		try (InputStream is = new FileInputStream(file)) {
 			byte[] headers = new byte[4];
 			int read = is.read(headers, 0, 4);

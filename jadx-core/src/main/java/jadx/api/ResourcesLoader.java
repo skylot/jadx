@@ -21,6 +21,7 @@ import jadx.core.codegen.CodeWriter;
 import jadx.core.utils.Utils;
 import jadx.core.utils.android.Res9patchStreamDecoder;
 import jadx.core.utils.exceptions.JadxException;
+import jadx.core.utils.files.FileUtils;
 import jadx.core.utils.files.ZipSecurity;
 import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.ResTableParser;
@@ -127,16 +128,19 @@ public final class ResourcesLoader {
 		if (file == null) {
 			return;
 		}
-		try (ZipFile zip = new ZipFile(file)) {
-			Enumeration<? extends ZipEntry> entries = zip.entries();
-			while (entries.hasMoreElements()) {
-				ZipEntry entry = entries.nextElement();
-				if (ZipSecurity.isValidZipEntry(entry)) {
-					addEntry(list, file, entry);
+		if (FileUtils.isZipFile(file)) {
+			try (ZipFile zip = new ZipFile(file)) {
+				Enumeration<? extends ZipEntry> entries = zip.entries();
+				while (entries.hasMoreElements()) {
+					ZipEntry entry = entries.nextElement();
+					if (ZipSecurity.isValidZipEntry(entry)) {
+						addEntry(list, file, entry);
+					}
 				}
+			} catch (Exception e) {
+				LOG.warn("Failed to open zip file: {}", file.getAbsolutePath());
 			}
-		} catch (Exception e) {
-			LOG.debug("Not a zip file: {}", file.getAbsolutePath());
+		} else {
 			addResourceFile(list, file);
 		}
 	}

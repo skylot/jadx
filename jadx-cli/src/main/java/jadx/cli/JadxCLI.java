@@ -15,10 +15,7 @@ public class JadxCLI {
 	public static void main(String[] args) {
 		int result = 0;
 		try {
-			JadxCLIArgs jadxArgs = new JadxCLIArgs();
-			if (jadxArgs.processArgs(args)) {
-				result = processAndSave(jadxArgs.toJadxArgs());
-			}
+			result = execute(args);
 		} catch (JadxArgsValidateException e) {
 			LOG.error("Incorrect arguments: {}", e.getMessage());
 			result = 1;
@@ -31,7 +28,15 @@ public class JadxCLI {
 		}
 	}
 
-	static int processAndSave(JadxArgs jadxArgs) {
+	public static int execute(String[] args) {
+		JadxCLIArgs jadxArgs = new JadxCLIArgs();
+		if (jadxArgs.processArgs(args)) {
+			return processAndSave(jadxArgs.toJadxArgs());
+		}
+		return 0;
+	}
+
+	private static int processAndSave(JadxArgs jadxArgs) {
 		jadxArgs.setCodeCache(new NoOpCodeCache());
 		try (JadxDecompiler jadx = new JadxDecompiler(jadxArgs)) {
 			jadx.load();

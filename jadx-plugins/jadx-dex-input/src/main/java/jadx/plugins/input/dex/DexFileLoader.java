@@ -26,7 +26,8 @@ public class DexFileLoader {
 
 	public static List<DexReader> collectDexFiles(List<Path> pathsList) {
 		return pathsList.stream()
-				.map((Path path) -> loadDexFromPath(path, 0))
+				.map(path -> loadDexFromPath(path, 0))
+				.filter(list -> !list.isEmpty())
 				.flatMap(Collection::stream)
 				.peek(dr -> LOG.debug("Loading dex: {}", dr))
 				.collect(Collectors.toList());

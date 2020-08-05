@@ -27,14 +27,11 @@ public class JadxArgsValidator {
 		if (inputFiles.isEmpty()) {
 			throw new JadxArgsValidateException("Please specify input file");
 		}
-		if (inputFiles.size() > 1) {
-			for (File inputFile : inputFiles) {
-				String fileName = inputFile.getName();
-				if (fileName.startsWith("--")) {
-					throw new JadxArgsValidateException("Unknown argument: " + fileName);
-				}
+		for (File inputFile : inputFiles) {
+			String fileName = inputFile.getName();
+			if (fileName.startsWith("--")) {
+				throw new JadxArgsValidateException("Unknown argument: " + fileName);
 			}
-			throw new JadxArgsValidateException("Only one input file supported");
 		}
 		for (File file : inputFiles) {
 			checkFile(file);

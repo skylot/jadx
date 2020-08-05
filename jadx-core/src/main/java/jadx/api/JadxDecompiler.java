@@ -108,7 +108,10 @@ public final class JadxDecompiler implements Closeable {
 		loadedInputs.clear();
 		List<Path> inputPaths = Utils.collectionMap(args.getInputFiles(), File::toPath);
 		for (JadxInputPlugin inputPlugin : pluginManager.getInputPlugins()) {
-			loadedInputs.add(inputPlugin.loadFiles(inputPaths));
+			ILoadResult loadResult = inputPlugin.loadFiles(inputPaths);
+			if (loadResult != null && !loadResult.isEmpty()) {
+				loadedInputs.add(loadResult);
+			}
 		}
 	}
 
