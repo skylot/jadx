@@ -1,6 +1,5 @@
 package jadx.core.utils;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -37,12 +36,7 @@ public class ErrorsCounter {
 	}
 
 	public static String formatMsg(IDexNode node, String msg) {
-		return msg + " in " + node.typeName() + ": " + node + ", file: " + getNodeFile(node);
-	}
-
-	private static String getNodeFile(IDexNode node) {
-		Path inputPath = node.getInputPath();
-		return inputPath == null ? "synthetic" : inputPath.toString();
+		return msg + " in " + node.typeName() + ": " + node + ", file: " + node.getInputFileName();
 	}
 
 	private synchronized <N extends IDexNode & IAttributeNode> String addError(N node, String error, @Nullable Throwable e) {

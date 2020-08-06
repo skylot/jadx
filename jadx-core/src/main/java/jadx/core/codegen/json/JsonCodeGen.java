@@ -68,7 +68,7 @@ public class JsonCodeGen {
 
 		JsonClass jsonCls = new JsonClass();
 		jsonCls.setPkg(classInfo.getAliasPkg());
-		jsonCls.setDex(cls.getInputPath().toString());
+		jsonCls.setDex(cls.getInputFileName());
 		jsonCls.setName(classInfo.getFullName());
 		if (classInfo.hasAlias()) {
 			jsonCls.setAlias(classInfo.getAliasFullName());

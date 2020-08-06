@@ -2,7 +2,7 @@ package jadx.api;
 
 import java.io.File;
 
-import jadx.core.utils.files.ZipSecurity;
+import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.xmlgen.ResContainer;
 
 public class ResourceFile {

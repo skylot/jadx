@@ -1,7 +1,5 @@
 package jadx.core.dex.nodes;
 
-import java.io.StringWriter;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,7 +37,6 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.visitors.ProcessAnonymous;
-import jadx.core.utils.SmaliUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -50,10 +47,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
 
 	private final RootNode root;
-	private final IClassData cls;
-	private final int clsDefOffset;
-	@Nullable
-	private final Path inputPath;
+	private final IClassData clsData;
 
 	private final ClassInfo clsInfo;
 	private AccessInfo accessFlags;
@@ -86,11 +80,9 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 
 	public ClassNode(RootNode root, IClassData cls) {
 		this.root = root;
-		this.inputPath = cls.getInputPath();
-		this.clsDefOffset = cls.getClassDefOffset();
 		this.clsInfo = ClassInfo.fromType(root, ArgType.object(cls.getType()));
 		initialLoad(cls);
-		this.cls = cls.copy(); // TODO: need only for rename feature
+		this.clsData = cls.copy();
 	}
 
 	private void initialLoad(IClassData cls) {
@@ -152,9 +144,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	// Create empty class
 	private ClassNode(RootNode root, String name, int accessFlags) {
 		this.root = root;
-		this.cls = null;
-		this.inputPath = null;
-		this.clsDefOffset = 0;
+		this.clsData = null;
 		this.clsInfo = ClassInfo.fromName(root, name);
 		this.interfaces = new ArrayList<>();
 		this.methods = new ArrayList<>();
@@ -299,13 +289,13 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	}
 
 	public void deepUnload() {
-		if (cls == null) {
+		if (clsData == null) {
 			// manually added class
 			return;
 		}
 		clearAttributes();
 		root().getConstValues().removeForClass(this);
-		initialLoad(cls);
+		initialLoad(clsData);
 		ProcessAnonymous.runForClass(this);
 
 		for (ClassNode innerClass : innerClasses) {
@@ -610,29 +600,28 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 
 	public String getSmali() {
 		if (smali == null) {
-			StringWriter stringWriter = new StringWriter(4096);
-			getSmali(this, stringWriter);
-			stringWriter.append(System.lineSeparator());
+			StringBuilder sb = new StringBuilder();
+			getSmali(sb);
+			sb.append(System.lineSeparator());
 			Set<ClassNode> allInlinedClasses = new LinkedHashSet<>();
 			getInnerAndInlinedClassesRecursive(allInlinedClasses);
 			for (ClassNode innerClass : allInlinedClasses) {
-				getSmali(innerClass, stringWriter);
-				stringWriter.append(System.lineSeparator());
+				innerClass.getSmali(sb);
+				sb.append(System.lineSeparator());
 			}
-			smali = stringWriter.toString();
+			smali = sb.toString();
 		}
 		return smali;
 	}
 
-	protected static boolean getSmali(ClassNode classNode, StringWriter stringWriter) {
-		Path inputPath = classNode.inputPath;
-		if (inputPath == null) {
-			stringWriter.append(String.format("###### Class %s is created by jadx", classNode.getFullName()));
-			return false;
+	protected void getSmali(StringBuilder sb) {
+		if (this.clsData == null) {
+			sb.append(String.format("###### Class %s is created by jadx", getFullName()));
+			return;
 		}
-		stringWriter.append(String.format("###### Class %s (%s)", classNode.getFullName(), classNode.getRawName()));
-		stringWriter.append(System.lineSeparator());
-		return SmaliUtils.getSmaliCode(inputPath, classNode.clsDefOffset, stringWriter);
+		sb.append(String.format("###### Class %s (%s)", getFullName(), getRawName()));
+		sb.append(System.lineSeparator());
+		sb.append(this.clsData.getDisassembledCode());
 	}
 
 	public ProcessState getState() {
@@ -668,8 +657,8 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	}
 
 	@Override
-	public Path getInputPath() {
-		return inputPath;
+	public String getInputFileName() {
+		return clsData == null ? "synthetic" : clsData.getInputFileName();
 	}
 
 	@Override

@@ -16,11 +16,7 @@ public class DexLoadResult implements ILoadResult {
 	@Nullable
 	private final Closeable closeable;
 
-	public DexLoadResult(List<DexReader> dexReaders) {
-		this(dexReaders, null);
-	}
-
-	public DexLoadResult(List<DexReader> dexReaders, Closeable closeable) {
+	public DexLoadResult(List<DexReader> dexReaders, @Nullable Closeable closeable) {
 		this.dexReaders = dexReaders;
 		this.closeable = closeable;
 	}
@@ -38,9 +34,7 @@ public class DexLoadResult implements ILoadResult {
 
 	@Override
 	public void close() throws IOException {
-		for (DexReader dexReader : dexReaders) {
-			dexReader.close();
-		}
+		dexReaders.clear();
 		if (closeable != null) {
 			closeable.close();
 		}

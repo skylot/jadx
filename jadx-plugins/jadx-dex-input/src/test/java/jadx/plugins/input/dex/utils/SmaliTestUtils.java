@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import org.jf.smali.Smali;
 import org.jf.smali.SmaliOptions;
 
-public class SmaliUtils {
+public class SmaliTestUtils {
 
 	public static Path compileSmaliFromResource(String res) {
 		try {

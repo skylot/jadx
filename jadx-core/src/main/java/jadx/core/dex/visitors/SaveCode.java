@@ -8,11 +8,11 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
+import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
-import jadx.core.utils.files.ZipSecurity;
 
 public class SaveCode {
 	private static final Logger LOG = LoggerFactory.getLogger(SaveCode.class);

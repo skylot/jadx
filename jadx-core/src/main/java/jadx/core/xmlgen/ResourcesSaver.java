@@ -9,11 +9,11 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.ResourceFile;
 import jadx.api.ResourcesLoader;
+import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.dex.visitors.SaveCode;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
-import jadx.core.utils.files.ZipSecurity;
 
 public class ResourcesSaver implements Runnable {
 	private static final Logger LOG = LoggerFactory.getLogger(ResourcesSaver.class);

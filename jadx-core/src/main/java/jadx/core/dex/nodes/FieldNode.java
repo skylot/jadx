@@ -1,6 +1,5 @@
 package jadx.core.dex.nodes;
 
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
@@ -88,8 +87,8 @@ public class FieldNode extends LineAttrNode implements ICodeNode {
 	}
 
 	@Override
-	public Path getInputPath() {
-		return parentClass.getInputPath();
+	public String getInputFileName() {
+		return parentClass.getInputFileName();
 	}
 
 	@Override

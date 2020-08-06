@@ -1,6 +1,5 @@
 package jadx.core.dex.nodes;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -598,8 +597,8 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	}
 
 	@Override
-	public Path getInputPath() {
-		return parentClass.getInputPath();
+	public String getInputFileName() {
+		return parentClass.getInputFileName();
 	}
 
 	@Override

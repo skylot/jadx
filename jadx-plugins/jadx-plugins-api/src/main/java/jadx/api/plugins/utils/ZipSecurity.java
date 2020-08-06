@@ -1,4 +1,4 @@
-package jadx.core.utils.files;
+package jadx.api.plugins.utils;
 
 import java.io.File;
 import java.io.IOException;

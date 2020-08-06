@@ -10,12 +10,6 @@ dependencies {
 
 	implementation 'com.google.code.gson:gson:2.8.6'
 
-	implementation 'org.smali:baksmali:2.4.0'
-	implementation('org.smali:smali:2.4.0') {
-		exclude group: 'com.google.guava'
-	}
-	implementation 'com.google.guava:guava:29.0-jre'
-
 	testImplementation 'org.apache.commons:commons-lang3:3.10'
 
 	testRuntimeOnly(project(':jadx-plugins:jadx-dex-input'))

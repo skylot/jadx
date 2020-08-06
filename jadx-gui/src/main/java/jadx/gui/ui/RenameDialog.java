@@ -132,26 +132,24 @@ public class RenameDialog extends JDialog {
 		return String.format("%s %s = %s", type, id, renameText);
 	}
 
-	private boolean writeDeobfMapFile(Path deobfMapPath, List<String> deobfMap) throws IOException {
+	private void writeDeobfMapFile(Path deobfMapPath, List<String> deobfMap) throws IOException {
 		if (deobfMapPath == null) {
 			LOG.error("updateDeobfMapFile(): deobfMapPath is null!");
-			return false;
+			return;
 		}
-
 		File tmpFile = File.createTempFile("deobf_tmp_", ".txt");
-		FileOutputStream fileOut = new FileOutputStream(tmpFile);
-		for (String entry : deobfMap) {
-			fileOut.write(entry.getBytes());
-			fileOut.write(System.lineSeparator().getBytes());
+		try (FileOutputStream fileOut = new FileOutputStream(tmpFile)) {
+			for (String entry : deobfMap) {
+				fileOut.write(entry.getBytes());
+				fileOut.write(System.lineSeparator().getBytes());
+			}
 		}
-		fileOut.close();
 		File oldMap = File.createTempFile("deobf_bak_", ".txt");
 		Files.copy(deobfMapPath, oldMap.toPath(), StandardCopyOption.REPLACE_EXISTING);
 		LOG.trace("Copying " + tmpFile.toPath() + " to " + deobfMapPath);
 		Files.copy(tmpFile.toPath(), deobfMapPath, StandardCopyOption.REPLACE_EXISTING);
 		Files.delete(oldMap.toPath());
 		Files.delete(tmpFile.toPath());
-		return true;
 	}
 
 	@NotNull

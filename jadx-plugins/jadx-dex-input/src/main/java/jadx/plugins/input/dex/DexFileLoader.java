@@ -1,24 +1,24 @@
 package jadx.plugins.input.dex;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.zip.ZipFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.io.ByteStreams;
+
+import jadx.api.plugins.utils.ZipSecurity;
 import jadx.plugins.input.dex.sections.DexConsts;
 
 public class DexFileLoader {
@@ -26,43 +26,57 @@ public class DexFileLoader {
 
 	public static List<DexReader> collectDexFiles(List<Path> pathsList) {
 		return pathsList.stream()
-				.map(path -> loadDexFromPath(path, 0))
+				.map(Path::toFile)
+				.map(DexFileLoader::loadDexFromFile)
 				.filter(list -> !list.isEmpty())
 				.flatMap(Collection::stream)
 				.peek(dr -> LOG.debug("Loading dex: {}", dr))
 				.collect(Collectors.toList());
 	}
 
-	private static List<DexReader> loadDexFromPath(Path path, int depth) {
-		try (InputStream inputStream = Files.newInputStream(path, StandardOpenOption.READ)) {
+	private static List<DexReader> loadDexFromFile(File file) {
+		try (InputStream inputStream = new FileInputStream(file)) {
+			return checkFileMagic(file, inputStream, file.getAbsolutePath());
+		} catch (Exception e) {
+			LOG.error("File open error: {}", file.getAbsolutePath(), e);
+			return Collections.emptyList();
+		}
+	}
+
+	private static List<DexReader> checkFileMagic(File file, InputStream inputStream, String inputFileName) throws IOException {
+		try (InputStream in = inputStream.markSupported() ? inputStream : new BufferedInputStream(inputStream)) {
 			byte[] magic = new byte[DexConsts.MAX_MAGIC_SIZE];
-			if (inputStream.read(magic) != magic.length) {
+			in.mark(magic.length);
+			if (in.read(magic) != magic.length) {
 				return Collections.emptyList();
 			}
 			if (isStartWithBytes(magic, DexConsts.DEX_FILE_MAGIC)) {
-				return Collections.singletonList(new DexReader(path));
+				in.reset();
+				DexReader dexReader = new DexReader(inputFileName, readAllBytes(in));
+				return Collections.singletonList(dexReader);
 			}
-			if (depth == 0 && isStartWithBytes(magic, DexConsts.ZIP_FILE_MAGIC)) {
-				return collectDexFromZip(path, depth);
+			if (file != null && isStartWithBytes(magic, DexConsts.ZIP_FILE_MAGIC)) {
+				return collectDexFromZip(file);
 			}
-		} catch (Exception e) {
-			LOG.error("File open error: {}", path, e);
+			return Collections.emptyList();
 		}
-		return Collections.emptyList();
 	}
 
-	private static List<DexReader> collectDexFromZip(Path path, int depth) throws IOException {
+	private static List<DexReader> collectDexFromZip(File file) {
 		List<DexReader> result = new ArrayList<>();
-		FileSystem zip = FileSystems.newFileSystem(path, (ClassLoader) null);
-		for (Path rootDir : zip.getRootDirectories()) {
-			Files.walkFileTree(rootDir, new SimpleFileVisitor<Path>() {
-				@Override
-				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-					// TODO: add zip security checks
-					result.addAll(loadDexFromPath(file, depth + 1));
-					return FileVisitResult.CONTINUE;
-				}
-			});
+		try (ZipFile zip = new ZipFile(file)) {
+			zip.stream()
+					.filter(entry -> !entry.isDirectory())
+					.filter(ZipSecurity::isValidZipEntry)
+					.forEach(entry -> {
+						try (InputStream in = zip.getInputStream(entry)) {
+							result.addAll(checkFileMagic(null, in, entry.getName()));
+						} catch (Exception e) {
+							LOG.error("Failed to read zip entry: {}", entry, e);
+						}
+					});
+		} catch (Exception e) {
+			LOG.warn("Failed to open zip file: {}", file.getAbsolutePath());
 		}
 		return result;
 	}
@@ -78,5 +92,9 @@ public class DexFileLoader {
 			}
 		}
 		return true;
+	}
+
+	private static byte[] readAllBytes(InputStream in) throws IOException {
+		return ByteStreams.toByteArray(in);
 	}
 }

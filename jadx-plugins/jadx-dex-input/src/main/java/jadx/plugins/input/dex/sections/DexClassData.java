@@ -1,6 +1,5 @@
 package jadx.plugins.input.dex.sections;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -15,6 +14,7 @@ import jadx.api.plugins.input.data.IMethodData;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.annotations.IAnnotation;
 import jadx.plugins.input.dex.sections.annotations.AnnotationsParser;
+import jadx.plugins.input.dex.utils.SmaliUtils;
 
 public class DexClassData implements IClassData {
 	public static final int SIZE = 8 * 4;
@@ -71,8 +71,8 @@ public class DexClassData implements IClassData {
 	}
 
 	@Override
-	public Path getInputPath() {
-		return in.getDexReader().getPath();
+	public String getInputFileName() {
+		return in.getDexReader().getInputFileName();
 	}
 
 	public int getAnnotationsOff() {
@@ -186,9 +186,14 @@ public class DexClassData implements IClassData {
 		return annotationsParser.readClassAnnotations();
 	}
 
-	@Override
 	public int getClassDefOffset() {
 		return in.pos(0).getAbsPos();
+	}
+
+	@Override
+	public String getDisassembledCode() {
+		byte[] dexBuf = in.getDexReader().getBuf().array();
+		return SmaliUtils.getSmaliCode(dexBuf, getClassDefOffset());
 	}
 
 	@Override

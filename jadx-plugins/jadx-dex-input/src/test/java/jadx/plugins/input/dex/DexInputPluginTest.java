@@ -13,7 +13,7 @@ import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.AccessFlagsScope;
 import jadx.api.plugins.input.data.ICodeReader;
 import jadx.api.plugins.input.data.ILoadResult;
-import jadx.plugins.input.dex.utils.SmaliUtils;
+import jadx.plugins.input.dex.utils.SmaliTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,7 +31,7 @@ class DexInputPluginTest {
 
 	@Test
 	public void loadTestSmali() throws Exception {
-		processFile(SmaliUtils.compileSmaliFromResource("samples/test.smali"));
+		processFile(SmaliTestUtils.compileSmaliFromResource("samples/test.smali"));
 	}
 
 	private static void processFile(Path sample) throws IOException {
@@ -65,6 +65,9 @@ class DexInputPluginTest {
 							System.out.println(mth.disassembleMethod());
 							System.out.println("---");
 						});
+				System.out.println("----");
+				System.out.println(cls.getDisassembledCode());
+				System.out.println("----");
 			});
 			assertThat(count.get()).isGreaterThan(0);
 		}
