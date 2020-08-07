@@ -7,15 +7,10 @@ import org.jetbrains.annotations.Nullable;
 import jadx.api.plugins.input.data.annotations.IAnnotation;
 
 public interface IMethodData {
-	String getParentClassType();
 
-	String getName();
+	IMethodRef getMethodRef();
 
 	int getAccessFlags();
-
-	String getReturnType();
-
-	List<String> getArgTypes();
 
 	boolean isDirect();
 

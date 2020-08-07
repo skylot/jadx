@@ -6,6 +6,9 @@ import java.util.List;
 public class Utils {
 
 	public static <T> String listToStr(List<T> collection) {
+		if (collection == null) {
+			return "null";
+		}
 		StringBuilder sb = new StringBuilder();
 		Iterator<T> it = collection.iterator();
 		if (it.hasNext()) {

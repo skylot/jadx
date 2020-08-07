@@ -3,7 +3,7 @@ package jadx.plugins.input.dex.insns;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.plugins.input.data.IFieldData;
-import jadx.api.plugins.input.data.IMethodData;
+import jadx.api.plugins.input.data.IMethodRef;
 import jadx.api.plugins.input.insns.InsnData;
 import jadx.api.plugins.input.insns.InsnIndexType;
 import jadx.api.plugins.input.insns.Opcode;
@@ -106,8 +106,8 @@ public class DexInsnData implements InsnData {
 	}
 
 	@Override
-	public IMethodData getIndexAsMethod() {
-		return externalReader.getMethodData(index);
+	public IMethodRef getIndexAsMethod() {
+		return externalReader.getMethodRef(index);
 	}
 
 	@Nullable

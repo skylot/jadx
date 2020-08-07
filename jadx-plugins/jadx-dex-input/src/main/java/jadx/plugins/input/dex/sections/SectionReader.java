@@ -10,7 +10,6 @@ import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.plugins.input.data.IFieldData;
-import jadx.api.plugins.input.data.IMethodData;
 import jadx.plugins.input.dex.DexReader;
 import jadx.plugins.input.dex.utils.Leb128;
 import jadx.plugins.input.dex.utils.MUtf8;
@@ -175,23 +174,29 @@ public class SectionReader {
 		return classTypeIdx;
 	}
 
-	public IMethodData getMethodData(int idx) {
-		DexMethodData methodData = new DexMethodData(null);
-		int clsTypeIdx = fillMethodData(methodData, idx);
-		methodData.setParentClassType(getType(clsTypeIdx));
-		return methodData;
+	public DexMethodRef getMethodRef(int idx) {
+		DexMethodRef methodRef = new DexMethodRef();
+		initMethodRef(idx, methodRef);
+		return methodRef;
 	}
 
-	public int fillMethodData(DexMethodData methodData, int idx) {
-		int methodIdsOff = dexReader.getHeader().getMethodIdsOff();
+	public void initMethodRef(int idx, DexMethodRef methodRef) {
+		methodRef.initUniqId(dexReader, idx);
+		methodRef.setDexIdx(idx);
+		methodRef.setSectionReader(this);
+	}
+
+	public void loadMethodRef(DexMethodRef methodRef, int idx) {
+		DexHeader header = dexReader.getHeader();
+		int methodIdsOff = header.getMethodIdsOff();
 		absPos(methodIdsOff + idx * 8);
 		int classTypeIdx = readUShort();
 		int protoIdx = readUShort();
 		int nameIdx = readInt();
 
-		int protoIdsOff = dexReader.getHeader().getProtoIdsOff();
+		int protoIdsOff = header.getProtoIdsOff();
 		absPos(protoIdsOff + protoIdx * 12);
-		int shortyIdx = readInt();
+		skip(4); // shortyIdx
 		int returnTypeIdx = readInt();
 		int paramsOff = readInt();
 
@@ -201,18 +206,19 @@ public class SectionReader {
 		} else {
 			argTypes = absPos(paramsOff).readTypeList();
 		}
-		methodData.setName(getString(nameIdx));
-		methodData.setReturnType(getType(returnTypeIdx));
-		methodData.setArgTypes(argTypes);
-		return classTypeIdx;
+		methodRef.setParentClassType(getType(classTypeIdx));
+		methodRef.setName(getString(nameIdx));
+		methodRef.setReturnType(getType(returnTypeIdx));
+		methodRef.setArgTypes(argTypes);
 	}
 
 	public List<String> getMethodParamTypes(int idx) {
-		int methodIdsOff = dexReader.getHeader().getMethodIdsOff();
+		DexHeader header = dexReader.getHeader();
+		int methodIdsOff = header.getMethodIdsOff();
 		absPos(methodIdsOff + idx * 8 + 2);
 		int protoIdx = readUShort();
 
-		int protoIdsOff = dexReader.getHeader().getProtoIdsOff();
+		int protoIdsOff = header.getProtoIdsOff();
 		absPos(protoIdsOff + protoIdx * 12 + 8);
 		int paramsOff = readInt();
 

@@ -127,10 +127,10 @@ public class DexClassData implements IClassData {
 
 	private void visitMethods(Consumer<IMethodData> mthConsumer, SectionReader data, int directMthCount, int virtualMthCount) {
 		DexMethodData methodData = new DexMethodData(annotationsParser);
+		methodData.setMethodRef(new DexMethodRef());
 		Map<Integer, Integer> annotationOffsetMap = annotationsParser.readMethodsAnnotationOffsetMap();
 		Map<Integer, Integer> paramsAnnOffsetMap = annotationsParser.readMethodParamsAnnRefOffsetMap();
 
-		methodData.setParentClassType(getType());
 		methodData.setDirect(true);
 		readMethods(mthConsumer, data, methodData, directMthCount, annotationOffsetMap, paramsAnnOffsetMap);
 		methodData.setDirect(false);
@@ -145,7 +145,10 @@ public class DexClassData implements IClassData {
 			mthIdx += data.readUleb128();
 			int accFlags = data.readUleb128();
 			int codeOff = data.readUleb128();
-			in.fillMethodData(methodData, mthIdx);
+
+			DexMethodRef methodRef = methodData.getMethodRef();
+			methodRef.reset();
+			in.initMethodRef(mthIdx, methodRef);
 			methodData.setAccessFlags(accFlags);
 			if (codeOff == 0) {
 				methodData.setCodeReader(null);

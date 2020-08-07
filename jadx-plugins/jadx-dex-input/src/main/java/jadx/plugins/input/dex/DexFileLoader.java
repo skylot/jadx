@@ -24,6 +24,8 @@ import jadx.plugins.input.dex.sections.DexConsts;
 public class DexFileLoader {
 	private static final Logger LOG = LoggerFactory.getLogger(DexFileLoader.class);
 
+	private static int dexUniqId = 1;
+
 	public static List<DexReader> collectDexFiles(List<Path> pathsList) {
 		return pathsList.stream()
 				.map(Path::toFile)
@@ -52,7 +54,7 @@ public class DexFileLoader {
 			}
 			if (isStartWithBytes(magic, DexConsts.DEX_FILE_MAGIC)) {
 				in.reset();
-				DexReader dexReader = new DexReader(inputFileName, readAllBytes(in));
+				DexReader dexReader = new DexReader(getNextUniqId(), inputFileName, readAllBytes(in));
 				return Collections.singletonList(dexReader);
 			}
 			if (file != null && isStartWithBytes(magic, DexConsts.ZIP_FILE_MAGIC)) {
@@ -96,5 +98,17 @@ public class DexFileLoader {
 
 	private static byte[] readAllBytes(InputStream in) throws IOException {
 		return ByteStreams.toByteArray(in);
+	}
+
+	private static int getNextUniqId() {
+		dexUniqId++;
+		if (dexUniqId >= 0xFFFF) {
+			resetDexUniqId();
+		}
+		return dexUniqId;
+	}
+
+	public static void resetDexUniqId() {
+		dexUniqId = 1;
 	}
 }

@@ -63,7 +63,7 @@ public class EncodedValueParser {
 				return new EncodedValue(EncodedType.ENCODED_TYPE, ext.getType(parseUnsignedInt(in, size)));
 
 			case ENCODED_METHOD:
-				return new EncodedValue(EncodedType.ENCODED_METHOD, ext.getMethodData(parseUnsignedInt(in, size)));
+				return new EncodedValue(EncodedType.ENCODED_METHOD, ext.getMethodRef(parseUnsignedInt(in, size)));
 
 			case ENCODED_FIELD:
 			case ENCODED_ENUM:

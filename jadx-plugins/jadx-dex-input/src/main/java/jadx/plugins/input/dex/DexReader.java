@@ -10,12 +10,13 @@ import jadx.plugins.input.dex.sections.SectionReader;
 import jadx.plugins.input.dex.sections.annotations.AnnotationsParser;
 
 public class DexReader {
-
+	private final int uniqId;
 	private final String inputFileName;
 	private final ByteBuffer buf;
 	private final DexHeader header;
 
-	public DexReader(String inputFileName, byte[] content) {
+	public DexReader(int uniqId, String inputFileName, byte[] content) {
+		this.uniqId = uniqId;
 		this.inputFileName = inputFileName;
 		this.buf = ByteBuffer.wrap(content);
 		this.header = new DexHeader(new SectionReader(this, 0));
@@ -46,6 +47,10 @@ public class DexReader {
 
 	public String getInputFileName() {
 		return inputFileName;
+	}
+
+	public int getUniqId() {
+		return uniqId;
 	}
 
 	@Override

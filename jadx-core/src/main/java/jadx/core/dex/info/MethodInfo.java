@@ -5,7 +5,7 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.api.plugins.input.data.IMethodData;
+import jadx.api.plugins.input.data.IMethodRef;
 import jadx.core.codegen.TypeGen;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.RootNode;
@@ -31,18 +31,27 @@ public final class MethodInfo implements Comparable<MethodInfo> {
 		this.shortId = makeShortId(name, argTypes, retType);
 	}
 
-	public static MethodInfo fromData(RootNode root, IMethodData methodData) {
-		ArgType parentClsType = ArgType.parse(methodData.getParentClassType());
+	public static MethodInfo fromRef(RootNode root, IMethodRef methodRef) {
+		InfoStorage infoStorage = root.getInfoStorage();
+		int uniqId = methodRef.getUniqId();
+		MethodInfo prevMth = infoStorage.getByUniqId(uniqId);
+		if (prevMth != null) {
+			return prevMth;
+		}
+		methodRef.load();
+		ArgType parentClsType = ArgType.parse(methodRef.getParentClassType());
 		ClassInfo parentClass = ClassInfo.fromType(root, parentClsType);
-		ArgType returnType = ArgType.parse(methodData.getReturnType());
-		List<ArgType> args = Utils.collectionMap(methodData.getArgTypes(), ArgType::parse);
-		MethodInfo newMth = new MethodInfo(parentClass, methodData.getName(), args, returnType);
-		return root.getInfoStorage().putMethod(newMth);
+		ArgType returnType = ArgType.parse(methodRef.getReturnType());
+		List<ArgType> args = Utils.collectionMap(methodRef.getArgTypes(), ArgType::parse);
+		MethodInfo newMth = new MethodInfo(parentClass, methodRef.getName(), args, returnType);
+		MethodInfo uniqMth = infoStorage.putMethod(newMth);
+		infoStorage.putByUniqId(uniqId, uniqMth);
+		return uniqMth;
 	}
 
-	public static MethodInfo fromDetails(RootNode rootNode, ClassInfo declClass, String name, List<ArgType> args, ArgType retType) {
+	public static MethodInfo fromDetails(RootNode root, ClassInfo declClass, String name, List<ArgType> args, ArgType retType) {
 		MethodInfo newMth = new MethodInfo(declClass, name, args, retType);
-		return rootNode.getInfoStorage().putMethod(newMth);
+		return root.getInfoStorage().putMethod(newMth);
 	}
 
 	public String makeSignature(boolean includeRetType) {

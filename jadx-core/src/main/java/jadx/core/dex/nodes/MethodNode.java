@@ -82,8 +82,8 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return methodNode;
 	}
 
-	public MethodNode(ClassNode classNode, IMethodData mthData) {
-		this.mthInfo = MethodInfo.fromData(classNode.root(), mthData);
+	private MethodNode(ClassNode classNode, IMethodData mthData) {
+		this.mthInfo = MethodInfo.fromRef(classNode.root(), mthData.getMethodRef());
 		this.parentClass = classNode;
 		this.accFlags = new AccessInfo(mthData.getAccessFlags(), AFType.METHOD);
 		this.methodIsVirtual = !mthData.isDirect();

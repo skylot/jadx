@@ -11,6 +11,8 @@ public class InfoStorage {
 	private final Map<FieldInfo, FieldInfo> fields = new HashMap<>();
 	// use only one MethodInfo instance
 	private final Map<MethodInfo, MethodInfo> uniqueMethods = new HashMap<>();
+	// can contain same method with different ids (from different dex files)
+	private final Map<Integer, MethodInfo> methods = new HashMap<>();
 
 	public ClassInfo getCls(ArgType type) {
 		return classes.get(type);
@@ -20,6 +22,18 @@ public class InfoStorage {
 		synchronized (classes) {
 			ClassInfo prev = classes.put(cls.getType(), cls);
 			return prev == null ? cls : prev;
+		}
+	}
+
+	public MethodInfo getByUniqId(int id) {
+		synchronized (methods) {
+			return methods.get(id);
+		}
+	}
+
+	public void putByUniqId(int id, MethodInfo mth) {
+		synchronized (methods) {
+			methods.put(id, mth);
 		}
 	}
 

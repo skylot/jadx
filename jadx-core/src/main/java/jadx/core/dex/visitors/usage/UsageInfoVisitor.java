@@ -104,7 +104,7 @@ public class UsageInfoVisitor extends AbstractVisitor {
 
 			case METHOD_REF:
 				insnData.decode();
-				MethodNode methodNode = root.resolveMethod(MethodInfo.fromData(root, insnData.getIndexAsMethod()));
+				MethodNode methodNode = root.resolveMethod(MethodInfo.fromRef(root, insnData.getIndexAsMethod()));
 				if (methodNode != null) {
 					usageInfo.methodUse(mth, methodNode);
 				}

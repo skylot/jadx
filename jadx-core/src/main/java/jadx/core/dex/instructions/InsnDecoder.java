@@ -521,8 +521,8 @@ public class InsnDecoder {
 	}
 
 	private InsnNode invoke(InsnData insn, InvokeType type, boolean isRange) {
-		MethodInfo mth = MethodInfo.fromData(root, insn.getIndexAsMethod());
-		return new InvokeNode(mth, insn, type, isRange);
+		MethodInfo mthInfo = MethodInfo.fromRef(root, insn.getIndexAsMethod());
+		return new InvokeNode(mthInfo, insn, type, isRange);
 	}
 
 	private InsnNode arrayGet(InsnData insn, ArgType argType) {

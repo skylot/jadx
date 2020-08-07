@@ -3,7 +3,7 @@ package jadx.api.plugins.input.insns;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.plugins.input.data.IFieldData;
-import jadx.api.plugins.input.data.IMethodData;
+import jadx.api.plugins.input.data.IMethodRef;
 import jadx.api.plugins.input.insns.custom.ICustomPayload;
 
 public interface InsnData {
@@ -34,7 +34,7 @@ public interface InsnData {
 
 	IFieldData getIndexAsField();
 
-	IMethodData getIndexAsMethod();
+	IMethodRef getIndexAsMethod();
 
 	@Nullable
 	ICustomPayload getPayload();

@@ -11,6 +11,10 @@ import jadx.api.plugins.input.data.impl.EmptyLoadResult;
 
 public class DexInputPlugin implements JadxInputPlugin {
 
+	public DexInputPlugin() {
+		DexFileLoader.resetDexUniqId();
+	}
+
 	@Override
 	public JadxPluginInfo getPluginInfo() {
 		return new JadxPluginInfo("dex-input", "DexInput", "Load .dex and .apk files");

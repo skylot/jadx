@@ -3,6 +3,7 @@ package jadx.plugins.input.dex.smali;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.ICodeReader;
 import jadx.plugins.input.dex.sections.DexMethodData;
+import jadx.plugins.input.dex.sections.DexMethodRef;
 
 import static jadx.api.plugins.input.data.AccessFlagsScope.METHOD;
 
@@ -13,9 +14,12 @@ public class SmaliPrinter {
 		SmaliCodeWriter codeWriter = new SmaliCodeWriter();
 		codeWriter.startLine(".method ");
 		codeWriter.add(AccessFlags.format(mth.getAccessFlags(), METHOD));
-		codeWriter.add(mth.getName());
-		codeWriter.add('(').addArgs(mth.getArgTypes()).add(')');
-		codeWriter.add(mth.getReturnType());
+
+		DexMethodRef methodRef = mth.getMethodRef();
+		methodRef.load();
+		codeWriter.add(methodRef.getName());
+		codeWriter.add('(').addArgs(methodRef.getArgTypes()).add(')');
+		codeWriter.add(methodRef.getReturnType());
 		codeWriter.incIndent();
 
 		ICodeReader codeReader = mth.getCodeReader();
