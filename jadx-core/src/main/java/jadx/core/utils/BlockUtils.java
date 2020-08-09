@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -538,16 +537,21 @@ public class BlockUtils {
 	}
 
 	public static List<BlockNode> buildSimplePath(BlockNode block) {
-		List<BlockNode> list = new LinkedList<>();
-		BlockNode currentBlock = block;
+		if (block == null) {
+			return Collections.emptyList();
+		}
+		List<BlockNode> list = new ArrayList<>();
+		if (block.getCleanSuccessors().size() >= 2) {
+			return Collections.emptyList();
+		}
+		list.add(block);
+
+		BlockNode currentBlock = getNextBlock(block);
 		while (currentBlock != null
 				&& currentBlock.getCleanSuccessors().size() < 2
 				&& currentBlock.getPredecessors().size() == 1) {
 			list.add(currentBlock);
 			currentBlock = getNextBlock(currentBlock);
-		}
-		if (list.isEmpty()) {
-			return Collections.emptyList();
 		}
 		return list;
 	}
