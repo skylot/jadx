@@ -26,6 +26,8 @@ public class TestSynchronized4 extends SmaliTest {
 	public void test() {
 		assertThat(getClassNodeFromSmali())
 				.code()
-				.containsOne("synchronized (this.obj) {");
+				.containsOne("synchronized (this.obj) {")
+				.containsOne("return call(this.obj, i);")
+				.containsOne("return getField() == null;");
 	}
 }
