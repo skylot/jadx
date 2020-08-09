@@ -92,8 +92,9 @@ public class TypeUtils {
 			return typeVarsAttr.getTypeVars();
 		}
 		Set<ArgType> typeVars = collectKnownTypeVarsAtMethod(mth);
-		mth.addAttr(new MethodTypeVarsAttr(typeVars));
-		return typeVars;
+		MethodTypeVarsAttr varsAttr = MethodTypeVarsAttr.build(typeVars);
+		mth.addAttr(varsAttr);
+		return varsAttr.getTypeVars();
 	}
 
 	private static Set<ArgType> collectKnownTypeVarsAtMethod(MethodNode mth) {
