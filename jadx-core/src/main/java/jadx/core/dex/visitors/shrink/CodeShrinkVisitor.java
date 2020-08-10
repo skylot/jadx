@@ -93,8 +93,12 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 		}
 		List<RegisterArg> useList = sVar.getUseList();
 		if (!useList.isEmpty()) {
-			InsnNode parentInsn = useList.get(0).getParentInsn();
+			RegisterArg useArg = useList.get(0);
+			InsnNode parentInsn = useArg.getParentInsn();
 			if (parentInsn != null && parentInsn.contains(AFlag.DONT_GENERATE)) {
+				return;
+			}
+			if (!assignInline && useArg.contains(AFlag.DONT_INLINE_CONST)) {
 				return;
 			}
 		}

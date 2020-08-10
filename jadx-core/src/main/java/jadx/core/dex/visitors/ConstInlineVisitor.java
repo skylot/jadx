@@ -10,7 +10,6 @@ import jadx.core.dex.instructions.ConstStringNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
-import jadx.core.dex.instructions.InvokeType;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
@@ -73,17 +72,8 @@ public class ConstInlineVisitor extends AbstractVisitor {
 				return;
 			}
 			long lit = ((LiteralArg) constArg).getLiteral();
-			if (lit == 0 && checkObjectInline(sVar)) {
-				if (sVar.getUseCount() == 1) {
-					InsnNode assignInsn = insn.getResult().getAssignInsn();
-					if (assignInsn != null) {
-						assignInsn.add(AFlag.DONT_INLINE);
-					}
-				}
-				return;
-			}
-			// don't inline const values in synchronized statement
-			if (checkForSynchronizeBlock(insn, sVar)) {
+			if (lit == 0 && forbidNullInlines(sVar)) {
+				// all usages forbids inlining
 				return;
 			}
 		} else if (insnType == InsnType.CONST_STR) {
@@ -117,20 +107,6 @@ public class ConstInlineVisitor extends AbstractVisitor {
 		replaceConst(mth, insn, constArg, toRemove);
 	}
 
-	private static boolean checkForSynchronizeBlock(InsnNode insn, SSAVar ssaVar) {
-		for (RegisterArg reg : ssaVar.getUseList()) {
-			InsnNode parentInsn = reg.getParentInsn();
-			if (parentInsn != null) {
-				InsnType insnType = parentInsn.getType();
-				if (insnType == InsnType.MONITOR_ENTER || insnType == InsnType.MONITOR_EXIT) {
-					insn.add(AFlag.DONT_INLINE);
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
 	private static boolean checkForFinallyBlock(SSAVar sVar) {
 		List<SSAVar> ssaVars = sVar.getCodeVar().getSsaVars();
 		if (ssaVars.size() <= 1) {
@@ -153,37 +129,60 @@ public class ConstInlineVisitor extends AbstractVisitor {
 	}
 
 	/**
-	 * Don't inline null object if:
-	 * - used as instance arg in invoke instruction
-	 * - used in 'array.length'
+	 * Don't inline null object
 	 */
-	private static boolean checkObjectInline(SSAVar sVar) {
-		for (RegisterArg useArg : sVar.getUseList()) {
+	private static boolean forbidNullInlines(SSAVar sVar) {
+		List<RegisterArg> useList = sVar.getUseList();
+		if (useList.isEmpty()) {
+			return false;
+		}
+		int k = 0;
+		for (RegisterArg useArg : useList) {
 			InsnNode insn = useArg.getParentInsn();
 			if (insn == null) {
 				continue;
 			}
-			InsnType insnType = insn.getType();
-			if (insnType == InsnType.INVOKE) {
-				InvokeNode inv = (InvokeNode) insn;
-				if (inv.getInvokeType() != InvokeType.STATIC
-						&& inv.getArg(0) == useArg) {
-					return true;
-				}
-			} else if (insnType == InsnType.ARRAY_LENGTH) {
-				if (insn.getArg(0) == useArg) {
-					return true;
-				}
+			if (!canUseNull(insn, useArg)) {
+				useArg.add(AFlag.DONT_INLINE_CONST);
+				k++;
 			}
 		}
-		return false;
+		return k == useList.size();
 	}
 
-	private static int replaceConst(MethodNode mth, InsnNode constInsn, InsnArg constArg, List<InsnNode> toRemove) {
+	private static boolean canUseNull(InsnNode insn, RegisterArg useArg) {
+		switch (insn.getType()) {
+			case INVOKE:
+				return ((InvokeNode) insn).getInstanceArg() != useArg;
+
+			case ARRAY_LENGTH:
+			case AGET:
+			case APUT:
+			case IGET:
+			case SWITCH:
+			case MONITOR_ENTER:
+			case MONITOR_EXIT:
+			case INSTANCE_OF:
+				return insn.getArg(0) != useArg;
+
+			case IPUT:
+				return insn.getArg(1) != useArg;
+		}
+		return true;
+	}
+
+	private static void replaceConst(MethodNode mth, InsnNode constInsn, InsnArg constArg, List<InsnNode> toRemove) {
 		SSAVar ssaVar = constInsn.getResult().getSVar();
+		if (ssaVar.getUseCount() == 0) {
+			toRemove.add(constInsn);
+			return;
+		}
 		List<RegisterArg> useList = new ArrayList<>(ssaVar.getUseList());
 		int replaceCount = 0;
 		for (RegisterArg arg : useList) {
+			if (arg.contains(AFlag.DONT_INLINE_CONST)) {
+				continue;
+			}
 			if (replaceArg(mth, arg, constArg, constInsn, toRemove)) {
 				replaceCount++;
 			}
@@ -191,7 +190,6 @@ public class ConstInlineVisitor extends AbstractVisitor {
 		if (replaceCount == useList.size()) {
 			toRemove.add(constInsn);
 		}
-		return replaceCount;
 	}
 
 	private static boolean replaceArg(MethodNode mth, RegisterArg arg, InsnArg constArg, InsnNode constInsn, List<InsnNode> toRemove) {

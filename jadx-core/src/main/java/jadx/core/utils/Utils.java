@@ -58,7 +58,7 @@ public class Utils {
 		if (objects == null) {
 			return "";
 		}
-		return listToString(objects, joiner, Object::toString);
+		return listToString(objects, joiner, Objects::toString);
 	}
 
 	public static <T> String listToString(Iterable<T> objects, Function<T, String> toStr) {
