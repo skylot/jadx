@@ -7,4 +7,6 @@ dependencies {
 
 	implementation(project(":jadx-plugins:jadx-dex-input"))
 	implementation(files('lib/dx-1.16.jar'))
+
+	implementation 'org.ow2.asm:asm:8.0.1'
 }

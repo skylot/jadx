@@ -33,6 +33,11 @@ public class TestInput {
 		decompile("smali", "samples/HelloWorld.smali");
 	}
 
+	@Test
+	public void testClassInput() throws Exception {
+		decompile("class", "samples/HelloWorld.class");
+	}
+
 	private void decompile(String tmpDirName, String inputSample) throws URISyntaxException, IOException {
 		StringBuilder args = new StringBuilder();
 		Path tempDir = FileUtils.createTempDir(tmpDirName);
