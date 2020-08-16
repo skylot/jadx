@@ -17,6 +17,7 @@ import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.InstanceCreator;
+import com.google.gson.JsonObject;
 
 import jadx.gui.JadxGUI;
 import jadx.gui.utils.PathTypeAdapter;
@@ -90,6 +91,10 @@ public class JadxSettingsAdapter {
 
 	public static String makeString(JadxSettings settings) {
 		return GSON.toJson(settings);
+	}
+
+	public static JsonObject makeJsonObject(JadxSettings settings) {
+		return GSON.toJsonTree(settings).getAsJsonObject();
 	}
 
 	public static void fill(JadxSettings settings, String jsonStr) {
