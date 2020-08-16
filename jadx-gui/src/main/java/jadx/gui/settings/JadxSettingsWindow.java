@@ -1,6 +1,8 @@
 package jadx.gui.settings;
 
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
@@ -12,6 +14,9 @@ import javax.swing.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 
 import say.swing.JFontChooser;
 
@@ -113,10 +118,31 @@ public class JadxSettingsWindow extends JDialog {
 			}
 		});
 
+		JButton copyBtn = new JButton(NLS.str("preferences.copy"));
+		copyBtn.addActionListener(event -> {
+
+			JsonObject settingsJson = JadxSettingsAdapter.makeJsonObject(this.settings);
+			// remove irrelevant preferences
+			settingsJson.remove("windowPos");
+			settingsJson.remove("mainWindowExtendedState");
+			settingsJson.remove("lastSaveProjectPath");
+			settingsJson.remove("lastOpenFilePath");
+			settingsJson.remove("lastSaveFilePath");
+			settingsJson.remove("recentProjects");
+			String settingsText = new GsonBuilder().setPrettyPrinting().create().toJson(settingsJson);
+			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+			StringSelection selection = new StringSelection(settingsText);
+			clipboard.setContents(selection, selection);
+			JOptionPane.showMessageDialog(
+					JadxSettingsWindow.this,
+					NLS.str("preferences.copy_message"));
+		});
+
 		JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
 		buttonPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		buttonPane.add(resetBtn);
+		buttonPane.add(copyBtn);
 		buttonPane.add(Box.createHorizontalGlue());
 		buttonPane.add(saveBtn);
 		buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
