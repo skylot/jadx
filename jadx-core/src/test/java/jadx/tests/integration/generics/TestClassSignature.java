@@ -15,6 +15,7 @@ public class TestClassSignature extends SmaliTest {
 
 	@Test
 	public void test() {
+		allowWarnInCode();
 		assertThat(getClassNodeFromSmali())
 				.code()
 				.containsOne("Incorrect class signature")

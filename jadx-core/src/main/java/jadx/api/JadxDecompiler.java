@@ -100,8 +100,8 @@ public final class JadxDecompiler implements Closeable {
 		root.loadClasses(loadedInputs);
 		root.initClassPath();
 		root.loadResources(getResources());
-		root.initPasses();
 		root.runPreDecompileStage();
+		root.initPasses();
 	}
 
 	private void loadInputFiles() {

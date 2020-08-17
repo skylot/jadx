@@ -30,7 +30,6 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
-import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.nodes.utils.TypeUtils;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.trycatch.ExceptionHandler;
@@ -96,6 +95,10 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 			this.codeReader = codeReader.copy();
 			this.insnsCount = codeReader.getInsnsCount();
 		}
+
+		this.retType = mthInfo.getReturnType();
+		this.argTypes = mthInfo.getArgumentsTypes();
+		this.typeParameters = Collections.emptyList();
 		unload();
 	}
 
@@ -117,6 +120,15 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		exceptionHandlers = Collections.emptyList();
 		loops = Collections.emptyList();
 		unloadAttributes();
+	}
+
+	public void updateTypes(List<ArgType> argTypes, ArgType retType) {
+		this.argTypes = argTypes;
+		this.retType = retType;
+	}
+
+	public void updateTypeParameters(List<ArgType> typeParameters) {
+		this.typeParameters = typeParameters;
 	}
 
 	@Override
@@ -178,64 +190,6 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		} catch (DecodeException e) {
 			throw new JadxRuntimeException("Failed to reload method " + getClass().getName() + "." + getName());
 		}
-	}
-
-	public void initMethodTypes() {
-		if (!parseSignature()) {
-			this.retType = mthInfo.getReturnType();
-			this.argTypes = mthInfo.getArgumentsTypes();
-			this.typeParameters = Collections.emptyList();
-		}
-	}
-
-	private boolean parseSignature() {
-		SignatureParser sp = SignatureParser.fromNode(this);
-		if (sp == null) {
-			return false;
-		}
-		try {
-			this.typeParameters = sp.consumeGenericTypeParameters();
-			List<ArgType> parsedArgTypes = sp.consumeMethodArgs();
-			ArgType parsedRetType = sp.consumeType();
-
-			List<ArgType> mthArgs = mthInfo.getArgumentsTypes();
-			if (parsedArgTypes.size() != mthArgs.size()) {
-				if (parsedArgTypes.isEmpty()) {
-					return false;
-				}
-				if (!tryFixArgsCounts(parsedArgTypes, mthArgs)) {
-					addComment("Incorrect method signature, types: " + Utils.listToString(parsedArgTypes));
-					return false;
-				}
-			}
-			TypeUtils typeUtils = root().getTypeUtils();
-			this.retType = typeUtils.expandTypeVariables(this, parsedRetType);
-			this.argTypes = Collections.unmodifiableList(Utils.collectionMap(parsedArgTypes,
-					t -> typeUtils.expandTypeVariables(this, t)));
-			return true;
-		} catch (Exception e) {
-			addWarnComment("Failed to parse method signature: " + sp.getSignature(), e);
-			return false;
-		}
-	}
-
-	private boolean tryFixArgsCounts(List<ArgType> argsTypes, List<ArgType> mthArgs) {
-		if (!mthInfo.isConstructor()) {
-			return false;
-		}
-		if (getParentClass().getAccessFlags().isEnum()) {
-			if (mthArgs.size() >= 2) {
-				// TODO:
-				argsTypes.add(0, mthArgs.get(0));
-				argsTypes.add(1, mthArgs.get(1));
-			}
-		} else {
-			if (!mthArgs.isEmpty()) {
-				// add synthetic arg for outer class
-				argsTypes.add(0, mthArgs.get(0));
-			}
-		}
-		return argsTypes.size() == mthArgs.size();
 	}
 
 	private void initArguments(List<ArgType> args) {

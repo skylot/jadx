@@ -35,6 +35,10 @@ public class FieldNode extends LineAttrNode implements ICodeNode {
 		this.accFlags = new AccessInfo(accessFlags, AFType.FIELD);
 	}
 
+	public void updateType(ArgType type) {
+		this.type = type;
+	}
+
 	public FieldInfo getFieldInfo() {
 		return fieldInfo;
 	}
@@ -63,10 +67,6 @@ public class FieldNode extends LineAttrNode implements ICodeNode {
 
 	public ArgType getType() {
 		return type;
-	}
-
-	public void setType(ArgType type) {
-		this.type = type;
 	}
 
 	public ClassNode getParentClass() {

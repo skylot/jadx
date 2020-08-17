@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -35,7 +34,6 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.LiteralArg;
-import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.visitors.ProcessAnonymous;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -108,15 +106,18 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 			AnnotationsList.attach(this, cls.getAnnotations());
 			loadStaticValues(cls, fields);
 			initAccessFlags(cls);
-			parseClassSignature();
-			setFieldsTypesFromSignature();
-			methods.forEach(MethodNode::initMethodTypes);
 
 			addSourceFilenameAttr(cls.getSourceFile());
 			buildCache();
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Error decode class: " + clsInfo, e);
 		}
+	}
+
+	public void updateGenericClsData(ArgType superClass, List<ArgType> interfaces, List<ArgType> generics) {
+		this.superClass = superClass;
+		this.interfaces = interfaces;
+		this.generics = generics;
 	}
 
 	/**
@@ -174,62 +175,6 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		}
 		// process const fields
 		root().getConstValues().processConstFields(this, staticFields);
-	}
-
-	/**
-	 * Class signature format:
-	 * https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.7.9.1
-	 */
-	private void parseClassSignature() {
-		SignatureParser sp = SignatureParser.fromNode(this);
-		if (sp == null) {
-			return;
-		}
-		try {
-			// parse class generic map
-			generics = sp.consumeGenericTypeParameters();
-			// parse super class signature
-			superClass = validateSuperCls(sp.consumeType(), superClass);
-			// parse interfaces signatures
-			for (int i = 0; i < interfaces.size(); i++) {
-				ArgType type = sp.consumeType();
-				if (type != null) {
-					interfaces.set(i, type);
-				} else {
-					break;
-				}
-			}
-		} catch (Exception e) {
-			LOG.error("Class signature parse error: {}", this, e);
-		}
-	}
-
-	private ArgType validateSuperCls(ArgType candidateType, ArgType currentType) {
-		if (!candidateType.isObject()) {
-			this.addComment("Incorrect class signature, super class is not object: " + SignatureParser.getSignature(this));
-			return currentType;
-		}
-		if (Objects.equals(candidateType.getObject(), this.getClassInfo().getType().getObject())) {
-			this.addComment("Incorrect class signature, super class is equals to this class: " + SignatureParser.getSignature(this));
-			return currentType;
-		}
-		return candidateType;
-	}
-
-	private void setFieldsTypesFromSignature() {
-		for (FieldNode field : fields) {
-			try {
-				SignatureParser sp = SignatureParser.fromNode(field);
-				if (sp != null) {
-					ArgType gType = sp.consumeType();
-					if (gType != null) {
-						field.setType(root.getTypeUtils().expandTypeVariables(this, gType));
-					}
-				}
-			} catch (Exception e) {
-				LOG.error("Field signature parse error: {}.{}", this.getFullName(), field.getName(), e);
-			}
-		}
 	}
 
 	private void addSourceFilenameAttr(String fileName) {

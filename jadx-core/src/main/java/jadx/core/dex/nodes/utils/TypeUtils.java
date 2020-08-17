@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import jadx.core.clsp.ClspClass;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodTypeVarsAttr;
+import jadx.core.dex.attributes.nodes.NotificationAttrNode;
 import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -21,7 +22,6 @@ import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.Utils;
-import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.utils.Utils.isEmpty;
 import static jadx.core.utils.Utils.notEmpty;
@@ -48,19 +48,19 @@ public class TypeUtils {
 
 	public ArgType expandTypeVariables(ClassNode cls, ArgType type) {
 		if (type.containsTypeVariable()) {
-			expandTypeVar(type, cls.getGenericTypeParameters());
+			expandTypeVar(cls, type, cls.getGenericTypeParameters());
 		}
 		return type;
 	}
 
 	public ArgType expandTypeVariables(MethodNode mth, ArgType type) {
 		if (type.containsTypeVariable()) {
-			expandTypeVar(type, getKnownTypeVarsAtMethod(mth));
+			expandTypeVar(mth, type, getKnownTypeVarsAtMethod(mth));
 		}
 		return type;
 	}
 
-	private void expandTypeVar(ArgType type, Collection<ArgType> typeVars) {
+	private void expandTypeVar(NotificationAttrNode node, ArgType type, Collection<ArgType> typeVars) {
 		boolean allExtendsEmpty = true;
 		for (ArgType argType : typeVars) {
 			if (notEmpty(argType.getExtendTypes())) {
@@ -80,7 +80,7 @@ public class TypeUtils {
 						return null;
 					}
 				}
-				throw new JadxRuntimeException("Can't find type var definition: " + typeVarName);
+				node.addWarnComment("Unknown type variable: " + typeVarName + " in type: " + type);
 			}
 			return null;
 		});

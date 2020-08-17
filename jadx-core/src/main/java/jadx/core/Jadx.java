@@ -37,6 +37,7 @@ import jadx.core.dex.visitors.ProcessInstructionsVisitor;
 import jadx.core.dex.visitors.ReSugarCode;
 import jadx.core.dex.visitors.RenameVisitor;
 import jadx.core.dex.visitors.ShadowFieldVisitor;
+import jadx.core.dex.visitors.SignatureProcessor;
 import jadx.core.dex.visitors.SimplifyVisitor;
 import jadx.core.dex.visitors.blocksmaker.BlockExceptionHandler;
 import jadx.core.dex.visitors.blocksmaker.BlockFinish;
@@ -78,6 +79,7 @@ public class Jadx {
 
 	public static List<IDexTreeVisitor> getPreDecompilePassesList() {
 		List<IDexTreeVisitor> passes = new ArrayList<>();
+		passes.add(new SignatureProcessor());
 		passes.add(new RenameVisitor());
 		passes.add(new UsageInfoVisitor());
 		return passes;
