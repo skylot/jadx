@@ -26,7 +26,7 @@ public final class JadxTokenMaker extends JavaTokenMaker {
 	@Override
 	public Token getTokenList(Segment text, int initialTokenType, int startOffset) {
 		Token tokens = super.getTokenList(text, initialTokenType, startOffset);
-		if (startOffset > 0 && tokens.getType() != TokenTypes.NULL) {
+		if (tokens.getType() != TokenTypes.NULL) {
 			try {
 				processTokens(tokens);
 			} catch (Exception e) {
@@ -41,11 +41,14 @@ public final class JadxTokenMaker extends JavaTokenMaker {
 		Token current = tokens;
 		while (current != null) {
 			if (prev != null) {
-				int tokenType = current.getType();
-				if (tokenType == TokenTypes.IDENTIFIER) {
-					current = mergeLongClassNames(prev, current, false);
-				} else if (tokenType == TokenTypes.ANNOTATION) {
-					current = mergeLongClassNames(prev, current, true);
+				switch (current.getType()) {
+					case TokenTypes.IDENTIFIER:
+						current = mergeLongClassNames(prev, current, false);
+						break;
+
+					case TokenTypes.ANNOTATION:
+						current = mergeLongClassNames(prev, current, true);
+						break;
 				}
 			}
 			prev = current;
@@ -55,7 +58,7 @@ public final class JadxTokenMaker extends JavaTokenMaker {
 
 	@NotNull
 	private Token mergeLongClassNames(Token prev, Token current, boolean annotation) {
-		int offset = current.getOffset();
+		int offset = current.getTextOffset();
 		if (annotation) {
 			offset++;
 		}
@@ -66,7 +69,7 @@ public final class JadxTokenMaker extends JavaTokenMaker {
 			if (annotation && lexeme.length() > 1) {
 				lexeme = lexeme.substring(1);
 			}
-			if (!lexeme.equals(name) && javaNode.getFullName().startsWith(lexeme)) {
+			if (!lexeme.equals(name) && isClassNameStart(javaNode, lexeme)) {
 				// try to replace long class name with one token
 				Token replace = concatTokensUntil(current, name);
 				if (replace != null && prev instanceof TokenImpl) {
@@ -77,6 +80,18 @@ public final class JadxTokenMaker extends JavaTokenMaker {
 			}
 		}
 		return current;
+	}
+
+	private boolean isClassNameStart(JavaNode javaNode, String lexeme) {
+		if (javaNode.getFullName().startsWith(lexeme)) {
+			// full class name
+			return true;
+		}
+		if (javaNode.getTopParentClass().getName().startsWith(lexeme)) {
+			// inner class references from parent class
+			return true;
+		}
+		return false;
 	}
 
 	@Nullable

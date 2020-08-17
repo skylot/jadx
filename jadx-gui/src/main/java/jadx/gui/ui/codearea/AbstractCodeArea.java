@@ -34,7 +34,7 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		this.contentPanel = contentPanel;
 		this.node = contentPanel.getNode();
 
-		setMarkOccurrences(true);
+		setMarkOccurrences(false);
 		setEditable(false);
 		setCodeFoldingEnabled(false);
 		loadSettings();
