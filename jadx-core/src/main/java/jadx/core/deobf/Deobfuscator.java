@@ -410,7 +410,8 @@ public class Deobfuscator {
 		if (alias == null) {
 			if (metadataClassName.isEmpty()) {
 				String clsName = classInfo.getShortName();
-				alias = String.format("C%04d%s", clsIndex++, prepareNamePart(clsName));
+				String prefix = makeClsPrefix(cls);
+				alias = String.format("%sC%04d%s", prefix, clsIndex++, prepareNamePart(clsName));
 			} else {
 				alias = metadataClassName;
 			}
@@ -425,6 +426,70 @@ public class Deobfuscator {
 		return alias;
 	}
 
+	/**
+	 * Generate a prefix for a class name that bases on certain class properties, certain
+	 * extended superclasses or implemented interfaces.
+	 *
+	 * @param cls
+	 * @return
+	 */
+	private String makeClsPrefix(ClassNode cls) {
+		if (cls.isEnum()) {
+			return "Enum";
+		}
+		String result = "";
+		if (cls.getAccessFlags().isAbstract()) {
+			result += "Abstract";
+		}
+
+		// Process current class and all super classes
+		ClassNode currentCls = cls;
+		outerLoop: while (currentCls != null) {
+			if (currentCls.getSuperClass() != null) {
+				String superClsName = currentCls.getSuperClass().getObject();
+				if (superClsName.startsWith("android.app.")) {
+					// e.g. Activity or Fragment
+					result += superClsName.substring(12);
+					break;
+				} else if (superClsName.startsWith("android.os.")) {
+					// e.g. AsyncTask
+					result += superClsName.substring(11);
+					break;
+				}
+			}
+			for (ArgType intf : cls.getInterfaces()) {
+				String intfClsName = intf.getObject();
+				if (intfClsName.equals("java.lang.Runnable")) {
+					result += "Runnable";
+					break outerLoop;
+				} else if (intfClsName.startsWith("java.util.concurrent.")) {
+					// e.g. Callable
+					result += intfClsName.substring(21);
+					break outerLoop;
+				} else if (intfClsName.startsWith("android.view.")) {
+					// e.g. View.OnClickListener
+					result += intfClsName.substring(13);
+					break outerLoop;
+				} else if (intfClsName.startsWith("android.content.")) {
+					// e.g. DialogInterface.OnClickListener
+					result += intfClsName.substring(16);
+					break outerLoop;
+				}
+			}
+			if (currentCls.getSuperClass() == null) {
+				break;
+			}
+			currentCls = cls.root().resolveClass(currentCls.getSuperClass());
+		}
+		return result;
+	}
+
+	/**
+	 * Try to get class name form Kotlin meta data
+	 *
+	 * @param cls
+	 * @return
+	 */
 	@Nullable
 	private String getRawClassNameFromMetadata(ClassNode cls) {
 		if (cls.getAnnotation(KOTLIN_METADATA_ANNOTATION) != null
