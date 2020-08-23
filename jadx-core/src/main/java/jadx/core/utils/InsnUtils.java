@@ -101,11 +101,8 @@ public class InsnUtils {
 					return null;
 				}
 				FieldInitAttr attr = fieldNode.get(AType.FIELD_INIT);
-				if (attr != null) {
-					if (attr.getValueType() == FieldInitAttr.InitType.CONST) {
-						return attr.getEncodedValue().getValue();
-					}
-					return attr.getInsn();
+				if (attr != null && attr.getValueType() == FieldInitAttr.InitType.CONST) {
+					return EncodedValueUtils.convertToConstValue(root, attr.getEncodedValue());
 				}
 				return null;
 

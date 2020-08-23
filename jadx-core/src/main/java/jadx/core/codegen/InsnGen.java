@@ -569,8 +569,16 @@ public class InsnGen {
 	private void fillArray(CodeWriter code, FillArrayInsn arrayNode) throws CodegenException {
 		code.add("// fill-array-data instruction");
 		code.startLine();
-		List<LiteralArg> args = arrayNode.getLiteralArgs(arrayNode.getElementType());
 		InsnArg arrArg = arrayNode.getArg(0);
+		ArgType arrayType = arrArg.getType();
+		ArgType elemType;
+		if (arrayType.isTypeKnown() && arrayType.isArray()) {
+			elemType = arrayType.getArrayElement();
+		} else {
+			ArgType elementType = arrayNode.getElementType(); // unknown type
+			elemType = elementType.selectFirst();
+		}
+		List<LiteralArg> args = arrayNode.getLiteralArgs(elemType);
 		int len = args.size();
 		for (int i = 0; i < len; i++) {
 			if (i != 0) {
