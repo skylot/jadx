@@ -1,6 +1,5 @@
 package jadx.core.codegen;
 
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
@@ -10,14 +9,12 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.core.Consts;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.attributes.nodes.GenericInfoAttr;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
-import jadx.core.dex.attributes.nodes.MethodInlineAttr;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
@@ -43,7 +40,6 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.Named;
-import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
@@ -705,12 +701,7 @@ public class InsnGen {
 
 	private void makeInvoke(InvokeNode insn, CodeWriter code) throws CodegenException {
 		MethodInfo callMth = insn.getCallMth();
-
-		// inline method
 		MethodNode callMthNode = mth.root().deepResolveMethod(callMth);
-		if (callMthNode != null && inlineMethod(callMthNode, insn, code)) {
-			return;
-		}
 
 		int k = 0;
 		InvokeType type = insn.getInvokeType();
@@ -842,64 +833,6 @@ public class InsnGen {
 			}
 		}
 		return true;
-	}
-
-	private boolean inlineMethod(MethodNode callMthNode, InvokeNode insn, CodeWriter code) throws CodegenException {
-		MethodInlineAttr mia = callMthNode.get(AType.METHOD_INLINE);
-		if (mia == null) {
-			return false;
-		}
-		InsnNode inl = mia.getInsn();
-		if (Consts.DEBUG) {
-			code.add("/* inline method: ").add(callMthNode.toString()).add("*/").startLine();
-		}
-		if (forceAssign(inl, insn, callMthNode)) {
-			ArgType varType = callMthNode.getReturnType();
-			useType(code, varType);
-			code.add(' ');
-			code.add(mgen.getNameGen().assignNamedArg(new NamedArg("unused", varType)));
-			code.add(" = ");
-		}
-		if (callMthNode.getMethodInfo().getArgumentsTypes().isEmpty()) {
-			makeInsn(inl, code, Flags.BODY_ONLY);
-		} else {
-			// remap args
-			InsnArg[] regs = new InsnArg[callMthNode.getRegsCount()];
-			int[] regNums = mia.getArgsRegNums();
-			for (int i = 0; i < regNums.length; i++) {
-				InsnArg arg = insn.getArg(i);
-				regs[regNums[i]] = arg;
-			}
-			// replace args
-			InsnNode inlCopy = inl.copyWithoutResult();
-			List<RegisterArg> inlArgs = new ArrayList<>();
-			inlCopy.getRegisterArgs(inlArgs);
-			for (RegisterArg r : inlArgs) {
-				int regNum = r.getRegNum();
-				if (regNum >= regs.length) {
-					LOG.warn("Unknown register number {} in method call: {} from {}", r, callMthNode, mth);
-				} else {
-					InsnArg repl = regs[regNum];
-					if (repl == null) {
-						LOG.warn("Not passed register {} in method call: {} from {}", r, callMthNode, mth);
-					} else {
-						inlCopy.replaceArg(r, repl);
-					}
-				}
-			}
-			makeInsn(inlCopy, code, Flags.BODY_ONLY);
-		}
-		return true;
-	}
-
-	private boolean forceAssign(InsnNode inlineInsn, InvokeNode parentInsn, MethodNode callMthNode) {
-		if (parentInsn.getResult() != null) {
-			return false;
-		}
-		if (parentInsn.contains(AFlag.WRAPPED)) {
-			return false;
-		}
-		return !callMthNode.isVoidReturn();
 	}
 
 	private void makeTernary(TernaryInsn insn, CodeWriter code, Set<Flags> state) throws CodegenException {

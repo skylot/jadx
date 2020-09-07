@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.attributes.annotations.AnnotationsList;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
+import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.ArithNode;
@@ -148,7 +150,7 @@ public class ModVisitor extends AbstractVisitor {
 
 					case IPUT:
 					case IGET:
-						fixTypeForFieldAccess(mth, (IndexInsnNode) insn);
+						fixFieldUsage(mth, (IndexInsnNode) insn);
 						break;
 
 					default:
@@ -159,7 +161,10 @@ public class ModVisitor extends AbstractVisitor {
 		}
 	}
 
-	private static void fixTypeForFieldAccess(MethodNode mth, IndexInsnNode insn) {
+	/**
+	 * If field is not visible from use site => cast to origin class
+	 */
+	private static void fixFieldUsage(MethodNode mth, IndexInsnNode insn) {
 		InsnArg instanceArg = insn.getArg(insn.getType() == InsnType.IGET ? 0 : 1);
 		if (instanceArg.contains(AFlag.SUPER)) {
 			return;
@@ -170,18 +175,58 @@ public class ModVisitor extends AbstractVisitor {
 		FieldInfo fieldInfo = (FieldInfo) insn.getIndex();
 		ArgType clsType = fieldInfo.getDeclClass().getType();
 		ArgType instanceType = instanceArg.getType();
-		TypeCompareEnum result = mth.root().getTypeCompare().compareTypes(instanceType, clsType);
-		if (result.isEqual() || (result == TypeCompareEnum.NARROW_BY_GENERIC && !instanceType.isGenericType())) {
+		if (Objects.equals(clsType, instanceType)) {
+			// cast not needed
 			return;
 		}
+
+		FieldNode fieldNode = mth.root().resolveField(fieldInfo);
+		if (fieldNode == null) {
+			// unknown field
+			TypeCompareEnum result = mth.root().getTypeCompare().compareTypes(instanceType, clsType);
+			if (result.isEqual() || (result == TypeCompareEnum.NARROW_BY_GENERIC && !instanceType.isGenericType())) {
+				return;
+			}
+		} else if (isFieldVisibleInMethod(fieldNode, mth)) {
+			return;
+		}
+		// insert cast
 		IndexInsnNode castInsn = new IndexInsnNode(InsnType.CAST, clsType, 1);
 		castInsn.addArg(instanceArg.duplicate());
+		castInsn.add(AFlag.SYNTHETIC);
 		castInsn.add(AFlag.EXPLICIT_CAST);
 
 		InsnArg castArg = InsnArg.wrapInsnIntoArg(castInsn);
 		castArg.setType(clsType);
 		insn.replaceArg(instanceArg, castArg);
 		InsnRemover.unbindArgUsage(mth, instanceArg);
+	}
+
+	private static boolean isFieldVisibleInMethod(FieldNode field, MethodNode mth) {
+		AccessInfo accessFlags = field.getAccessFlags();
+		if (accessFlags.isPublic()) {
+			return true;
+		}
+		ClassNode useCls = mth.getParentClass();
+		ClassNode fieldCls = field.getParentClass();
+		boolean sameScope = Objects.equals(useCls, fieldCls) && !mth.getAccessFlags().isStatic();
+		if (sameScope) {
+			return true;
+		}
+		if (accessFlags.isPrivate()) {
+			return false;
+		}
+		// package-private or protected
+		if (Objects.equals(useCls.getClassInfo().getPackage(), fieldCls.getClassInfo().getPackage())) {
+			// same package
+			return true;
+		}
+		if (accessFlags.isPackagePrivate()) {
+			return false;
+		}
+		// protected
+		TypeCompareEnum result = mth.root().getTypeCompare().compareTypes(useCls, fieldCls);
+		return result == TypeCompareEnum.NARROW; // true if use class is subclass of field class
 	}
 
 	private static void replaceConstKeys(ClassNode parentClass, SwitchInsn insn) {

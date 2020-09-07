@@ -3,6 +3,8 @@ package jadx.core.dex.visitors;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
@@ -17,30 +19,50 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
-import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
-		name = "InlineMethods",
-		desc = "Inline synthetic static methods",
+		name = "MarkMethodsForInline",
+		desc = "Mark synthetic static methods for inline",
 		runAfter = {
 				FixAccessModifiers.class,
 				ClassModifier.class
 		}
 )
-public class MethodInlineVisitor extends AbstractVisitor {
+public class MarkMethodsForInline extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
-		if (canInline(mth) && mth.getBasicBlocks().size() == 2) {
-			BlockNode returnBlock = mth.getBasicBlocks().get(1);
-			if (returnBlock.contains(AFlag.RETURN) || returnBlock.getInstructions().isEmpty()) {
-				BlockNode firstBlock = mth.getBasicBlocks().get(0);
-				inlineMth(mth, firstBlock, returnBlock);
+		process(mth);
+	}
+
+	/**
+	 * @return null if method can't be analyzed (not loaded)
+	 */
+	@Nullable
+	public static MethodInlineAttr process(MethodNode mth) {
+		MethodInlineAttr mia = mth.get(AType.METHOD_INLINE);
+		if (mia != null) {
+			return mia;
+		}
+		if (canInline(mth)) {
+			List<BlockNode> blocks = mth.getBasicBlocks();
+			if (blocks == null) {
+				return null;
+			}
+			if (blocks.size() == 2) {
+				BlockNode returnBlock = blocks.get(1);
+				if (returnBlock.contains(AFlag.RETURN) || returnBlock.getInstructions().isEmpty()) {
+					MethodInlineAttr inlined = inlineMth(mth, blocks.get(0), returnBlock);
+					if (inlined != null) {
+						return inlined;
+					}
+				}
 			}
 		}
+		return MethodInlineAttr.inlineNotNeeded(mth);
 	}
 
 	public static boolean canInline(MethodNode mth) {
@@ -51,41 +73,36 @@ public class MethodInlineVisitor extends AbstractVisitor {
 		return accessFlags.isSynthetic() && accessFlags.isStatic();
 	}
 
-	private static void inlineMth(MethodNode mth, BlockNode firstBlock, BlockNode returnBlock) {
+	@Nullable
+	private static MethodInlineAttr inlineMth(MethodNode mth, BlockNode firstBlock, BlockNode returnBlock) {
 		List<InsnNode> insnList = firstBlock.getInstructions();
 		if (insnList.isEmpty()) {
 			// synthetic field getter
 			BlockNode block = mth.getBasicBlocks().get(1);
 			InsnNode insn = block.getInstructions().get(0);
 			// set arg from 'return' instruction
-			addInlineAttr(mth, InsnNode.wrapArg(insn.getArg(0)));
-			return;
+			return addInlineAttr(mth, InsnNode.wrapArg(insn.getArg(0)));
 		}
 		// synthetic field setter or method invoke
 		if (insnList.size() == 1) {
-			addInlineAttr(mth, insnList.get(0));
-			return;
+			return addInlineAttr(mth, insnList.get(0));
 		}
-
 		// TODO: inline field arithmetics. Disabled tests: TestAnonymousClass3a and TestAnonymousClass5
+		return null;
 	}
 
-	private static void addInlineAttr(MethodNode mth, InsnNode insn) {
-		if (fixVisibilityOfInlineCode(mth, insn)) {
-			if (Consts.DEBUG) {
-				mth.addAttr(AType.COMMENTS, "Removed for inline");
-			} else {
-				InsnNode copy = insn.copyWithoutResult();
-				// unbind SSA variables from copy instruction
-				List<RegisterArg> regArgs = new ArrayList<>();
-				copy.getRegisterArgs(regArgs);
-				for (RegisterArg regArg : regArgs) {
-					copy.replaceArg(regArg, regArg.duplicate(regArg.getRegNum(), null));
-				}
-				MethodInlineAttr.markForInline(mth, copy);
-				mth.add(AFlag.DONT_GENERATE);
-			}
+	private static MethodInlineAttr addInlineAttr(MethodNode mth, InsnNode insn) {
+		if (!fixVisibilityOfInlineCode(mth, insn)) {
+			return null;
 		}
+		InsnNode copy = insn.copyWithoutResult();
+		// unbind SSA variables from copy instruction
+		List<RegisterArg> regArgs = new ArrayList<>();
+		copy.getRegisterArgs(regArgs);
+		for (RegisterArg regArg : regArgs) {
+			copy.replaceArg(regArg, regArg.duplicate(regArg.getRegNum(), null));
+		}
+		return MethodInlineAttr.markForInline(mth, copy);
 	}
 
 	private static boolean fixVisibilityOfInlineCode(MethodNode mth, InsnNode insn) {
@@ -109,10 +126,7 @@ public class MethodInlineVisitor extends AbstractVisitor {
 		if (insn instanceof IndexInsnNode) {
 			Object indexObj = ((IndexInsnNode) insn).getIndex();
 			if (indexObj instanceof FieldInfo) {
-				FieldNode fieldNode = mth.root().deepResolveField(((FieldInfo) indexObj));
-				if (fieldNode != null) {
-					FixAccessModifiers.changeVisibility(fieldNode, newVisFlag);
-				}
+				// field access must be already fixed in ModVisitor.fixFieldUsage method
 				return true;
 			}
 		}

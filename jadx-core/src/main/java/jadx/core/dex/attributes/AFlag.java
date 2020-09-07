@@ -22,7 +22,9 @@ public enum AFlag {
 
 	HIDDEN, // instruction used inside other instruction but not listed in args
 
-	RESTART_CODEGEN,
+	RESTART_CODEGEN, // codegen must be executed again
+	RELOAD_AT_CODEGEN_STAGE, // class can't be analyzed at 'process' stage => unload before 'codegen' stage
+
 	DONT_RENAME, // do not rename during deobfuscation
 	ADDED_TO_REGION,
 

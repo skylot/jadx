@@ -2,6 +2,7 @@ package jadx.core;
 
 public class Consts {
 	public static final boolean DEBUG = false;
+	public static final boolean DEBUG_WITH_ERRORS = false; // TODO: fix errors
 	public static final boolean DEBUG_USAGE = false;
 	public static final boolean DEBUG_TYPE_INFERENCE = false;
 	public static final boolean DEBUG_OVERLOADED_CASTS = false;

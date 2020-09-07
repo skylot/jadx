@@ -135,7 +135,7 @@ public class InsnRemover {
 			mth.removeSVar(ssaVar);
 			return;
 		}
-		if (Consts.DEBUG) { // TODO: enable this
+		if (Consts.DEBUG_WITH_ERRORS) {
 			throw new JadxRuntimeException("Can't remove SSA var, still in use, count: " + useCount + ", list:"
 					+ NL + "  " + ssaVar.getUseList().stream()
 							.map(arg -> arg + " from " + arg.getParentInsn())
@@ -172,7 +172,7 @@ public class InsnRemover {
 					break;
 				}
 			}
-			if (!found && Consts.DEBUG) { // TODO: enable this
+			if (!found && Consts.DEBUG_WITH_ERRORS) {
 				throw new JadxRuntimeException("Can't remove insn:"
 						+ NL + "  " + rem
 						+ NL + " not found in list:"

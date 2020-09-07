@@ -59,7 +59,11 @@ public final class ProcessClass {
 			cls.setState(NOT_LOADED);
 		}
 		try {
-			cls.getDependencies().forEach(ProcessClass::process);
+			for (ClassNode depCls : cls.getDependencies()) {
+				depCls.startProcessStage();
+				process(depCls);
+			}
+			cls.startCodegenStage();
 			process(cls);
 
 			ICodeInfo code = CodeGen.generate(cls);

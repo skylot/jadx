@@ -65,6 +65,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	private ClassNode parentClass;
 
 	private volatile ProcessState state = ProcessState.NOT_LOADED;
+	private LoadStage loadStage = LoadStage.NONE;
 
 	/** Top level classes used in this class (only for top level classes, empty for inners) */
 	private List<ClassNode> dependencies = Collections.emptyList();
@@ -288,6 +289,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		fields.forEach(FieldNode::unloadAttributes);
 		unloadAttributes();
 		setState(NOT_LOADED);
+		this.loadStage = LoadStage.NONE;
 		this.smali = null;
 	}
 
@@ -577,6 +579,30 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		this.state = state;
 	}
 
+	public LoadStage getLoadStage() {
+		return loadStage;
+	}
+
+	public void startProcessStage() {
+		this.loadStage = LoadStage.PROCESS_STAGE;
+	}
+
+	public void startCodegenStage() {
+		this.loadStage = LoadStage.CODEGEN_STAGE;
+		if (contains(AFlag.RELOAD_AT_CODEGEN_STAGE)) {
+			unload();
+			remove(AFlag.RELOAD_AT_CODEGEN_STAGE);
+		}
+	}
+
+	public void reloadAtCodegenStage() {
+		ClassNode topCls = this.getTopParentClass();
+		if (topCls.getLoadStage() == LoadStage.CODEGEN_STAGE) {
+			throw new JadxRuntimeException("Class not yet loaded at codegen stage");
+		}
+		topCls.add(AFlag.RELOAD_AT_CODEGEN_STAGE);
+	}
+
 	public List<ClassNode> getDependencies() {
 		return dependencies;
 	}
@@ -632,4 +658,5 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	public String toString() {
 		return clsInfo.getFullName();
 	}
+
 }

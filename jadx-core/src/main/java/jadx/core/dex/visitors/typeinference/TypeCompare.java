@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.ArgType.WildcardBound;
 import jadx.core.dex.instructions.args.PrimitiveType;
+import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -35,6 +36,10 @@ public class TypeCompare {
 		this.root = root;
 		this.comparator = new ArgTypeComparator();
 		this.reversedComparator = comparator.reversed();
+	}
+
+	public TypeCompareEnum compareTypes(ClassNode first, ClassNode second) {
+		return compareObjects(first.getType(), second.getType());
 	}
 
 	/**
