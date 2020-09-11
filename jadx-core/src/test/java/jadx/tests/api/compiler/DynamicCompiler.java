@@ -15,10 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.nodes.ClassNode;
+import jadx.tests.api.IntegrationTest;
 
 import static javax.tools.JavaCompiler.CompilationTask;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.fail;
 
 public class DynamicCompiler {
 
@@ -71,8 +71,8 @@ public class DynamicCompiler {
 			Method reflMth = getMethod(inst, methodName, types);
 			assertNotNull(reflMth, "Failed to get method " + methodName + '(' + Arrays.toString(types) + ')');
 			return reflMth.invoke(inst, args);
-		} catch (Exception e) {
-			fail(e.getMessage(), e);
+		} catch (Throwable e) {
+			IntegrationTest.rethrow("Invoke error", e);
 			return null;
 		}
 	}

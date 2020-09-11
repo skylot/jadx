@@ -39,6 +39,9 @@ public class MethodTypeVarsAttr implements IAttribute {
 
 	@Override
 	public String toString() {
+		if (this == EMPTY) {
+			return "TYPE_VARS: EMPTY";
+		}
 		return "TYPE_VARS: " + typeVars;
 	}
 }
