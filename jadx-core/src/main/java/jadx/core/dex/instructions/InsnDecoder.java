@@ -542,19 +542,11 @@ public class InsnDecoder {
 	}
 
 	private InsnNode arith(InsnData insn, ArithOp op, ArgType type) {
-		return new ArithNode(insn, op, fixTypeForBitOps(op, type), false);
+		return ArithNode.build(insn, op, type);
 	}
 
 	private InsnNode arithLit(InsnData insn, ArithOp op, ArgType type) {
-		return new ArithNode(insn, op, fixTypeForBitOps(op, type), true);
-	}
-
-	private ArgType fixTypeForBitOps(ArithOp op, ArgType type) {
-		if (type == ArgType.INT
-				&& (op == ArithOp.AND || op == ArithOp.OR || op == ArithOp.XOR)) {
-			return ArgType.NARROW_NUMBERS_NO_FLOAT;
-		}
-		return type;
+		return ArithNode.buildLit(insn, op, type);
 	}
 
 	private InsnNode neg(InsnData insn, ArgType type) {

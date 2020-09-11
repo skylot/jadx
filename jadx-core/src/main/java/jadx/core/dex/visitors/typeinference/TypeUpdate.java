@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.Consts;
+import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
@@ -286,7 +287,7 @@ public final class TypeUpdate {
 		registry.put(InsnType.AGET, this::arrayGetListener);
 		registry.put(InsnType.APUT, this::arrayPutListener);
 		registry.put(InsnType.IF, this::ifListener);
-		registry.put(InsnType.ARITH, this::suggestAllSameListener);
+		registry.put(InsnType.ARITH, this::arithListener);
 		registry.put(InsnType.NEG, this::suggestAllSameListener);
 		registry.put(InsnType.NOT, this::suggestAllSameListener);
 		registry.put(InsnType.CHECK_CAST, this::checkCastListener);
@@ -441,12 +442,24 @@ public final class TypeUpdate {
 		return allSame ? SAME : CHANGED;
 	}
 
+	private TypeUpdateResult arithListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
+		ArithNode arithInsn = (ArithNode) insn;
+		if (candidateType == ArgType.BOOLEAN && arithInsn.getOp().isBitOp()) {
+			// force all args to boolean
+			return allSameListener(updateInfo, insn, arg, candidateType);
+		}
+		return suggestAllSameListener(updateInfo, insn, arg, candidateType);
+	}
+
 	/**
 	 * Try to set candidate type to all args, don't fail on reject
 	 */
 	private TypeUpdateResult suggestAllSameListener(TypeUpdateInfo updateInfo, InsnNode insn, InsnArg arg, ArgType candidateType) {
 		if (!isAssign(insn, arg)) {
-			updateTypeChecked(updateInfo, insn.getResult(), candidateType);
+			RegisterArg resultArg = insn.getResult();
+			if (resultArg != null) {
+				updateTypeChecked(updateInfo, resultArg, candidateType);
+			}
 		}
 		boolean allSame = true;
 		for (InsnArg insnArg : insn.getArguments()) {

@@ -1,19 +1,7 @@
-.class public LTestXor;
+.class public Larith/TestXor;
 .super Ljava/lang/Object;
 
 
-# direct methods
-.method public constructor <init>()V
-    .locals 0
-
-    .line 9
-    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
-
-    return-void
-.end method
-
-
-# virtual methods
 .method public test()Z
     .locals 1
 
@@ -27,7 +15,7 @@
     .locals 1
 
     .line 12
-    invoke-virtual {p0}, Lcom/example/myapplication/MainActivity;->test()Z
+    invoke-virtual {p0}, Larith/TestXor;->test()Z
 
     move-result v0
 
@@ -40,7 +28,7 @@
     .locals 1
 
     .line 16
-    invoke-virtual {p0}, Lcom/example/myapplication/MainActivity;->test()Z
+    invoke-virtual {p0}, Larith/TestXor;->test()Z
 
     move-result v0
 
