@@ -20,6 +20,8 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.info.ClassInfo;
+import jadx.core.dex.instructions.ArithNode;
+import jadx.core.dex.instructions.ArithOp;
 import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
@@ -759,7 +761,8 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 
 	private boolean fixBooleanUsage(MethodNode mth, ITypeBound bound) {
 		ArgType boundType = bound.getType();
-		if (!boundType.isPrimitive() || boundType == ArgType.BOOLEAN) {
+		if (boundType == ArgType.BOOLEAN
+				|| (boundType.isTypeKnown() && !boundType.isPrimitive())) {
 			return false;
 		}
 		RegisterArg boundArg = bound.getArg();
@@ -767,7 +770,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 			return false;
 		}
 		InsnNode insn = boundArg.getParentInsn();
-		if (insn == null) {
+		if (insn == null || insn.getType() == InsnType.IF) {
 			return false;
 		}
 		BlockNode blockNode = BlockUtils.getBlockByInsn(mth, insn);
@@ -779,19 +782,45 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		if (insnIndex == -1) {
 			return false;
 		}
-		if (insn.getType() == InsnType.CAST) {
+		InsnType insnType = insn.getType();
+		if (insnType == InsnType.CAST) {
 			// replace cast
 			ArgType type = (ArgType) ((IndexInsnNode) insn).getIndex();
 			TernaryInsn convertInsn = prepareBooleanConvertInsn(insn.getResult(), boundArg, type);
 			BlockUtils.replaceInsn(mth, blockNode, insnIndex, convertInsn);
-		} else {
-			// insert before insn
-			RegisterArg resultArg = boundArg.duplicateWithNewSSAVar(mth);
-			TernaryInsn convertInsn = prepareBooleanConvertInsn(resultArg, boundArg, boundType);
-			insnList.add(insnIndex, convertInsn);
-			insn.replaceArg(bound.getArg(), convertInsn.getResult().duplicate());
+			return true;
 		}
+		if (insnType == InsnType.ARITH) {
+			ArithNode arithInsn = (ArithNode) insn;
+			if (arithInsn.getOp() == ArithOp.XOR && arithInsn.getArgsCount() == 2) {
+				// replace (boolean ^ 1) with (!boolean)
+				InsnArg secondArg = arithInsn.getArg(1);
+				if (secondArg.isLiteral() && ((LiteralArg) secondArg).getLiteral() == 1) {
+					InsnNode convertInsn = notBooleanToInt(arithInsn, boundArg);
+					BlockUtils.replaceInsn(mth, blockNode, insnIndex, convertInsn);
+					return true;
+				}
+			}
+		}
+
+		// insert before insn
+		RegisterArg resultArg = boundArg.duplicateWithNewSSAVar(mth);
+		TernaryInsn convertInsn = prepareBooleanConvertInsn(resultArg, boundArg, boundType);
+		insnList.add(insnIndex, convertInsn);
+		insn.replaceArg(boundArg, convertInsn.getResult().duplicate());
 		return true;
+	}
+
+	private InsnNode notBooleanToInt(ArithNode insn, RegisterArg boundArg) {
+		InsnNode notInsn = new InsnNode(InsnType.NOT, 1);
+		notInsn.addArg(boundArg.duplicate());
+		notInsn.add(AFlag.SYNTHETIC);
+
+		InsnArg notArg = InsnArg.wrapArg(notInsn);
+		notArg.setType(ArgType.BOOLEAN);
+		TernaryInsn convertInsn = ModVisitor.makeBooleanConvertInsn(insn.getResult(), notArg, ArgType.INT);
+		convertInsn.add(AFlag.SYNTHETIC);
+		return convertInsn;
 	}
 
 	private TernaryInsn prepareBooleanConvertInsn(RegisterArg resultArg, RegisterArg boundArg, ArgType useType) {
