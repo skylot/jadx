@@ -28,6 +28,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.kotlin.KotlinMetadataUtils;
 
 public class Deobfuscator {
 	private static final Logger LOG = LoggerFactory.getLogger(Deobfuscator.class);
@@ -36,9 +37,6 @@ public class Deobfuscator {
 
 	public static final String CLASS_NAME_SEPARATOR = ".";
 	public static final String INNER_CLASS_SEPARATOR = "$";
-	public static final String KOTLIN_METADATA_ANNOTATION = "kotlin.Metadata";
-	public static final String KOTLIN_METADATA_D2_PARAMETER = "d2";
-	public static final String KOTLIN_METADATA_CLASSNAME_REGEX = "(L.*;)";
 
 	private final JadxArgs args;
 	private final RootNode root;
@@ -351,9 +349,8 @@ public class Deobfuscator {
 		} else {
 			if (!clsMap.containsKey(classInfo)) {
 				String clsShortName = classInfo.getShortName();
-				if (shouldRename(clsShortName) || reservedClsNames.contains(clsShortName)) {
-					makeClsAlias(cls);
-				}
+				boolean badName = shouldRename(clsShortName) || reservedClsNames.contains(clsShortName);
+				makeClsAlias(cls, badName);
 			}
 		}
 		for (ClassNode innerCls : cls.getInnerClasses()) {
@@ -366,7 +363,7 @@ public class Deobfuscator {
 		if (deobfClsInfo != null) {
 			return deobfClsInfo.getAlias();
 		}
-		return makeClsAlias(cls);
+		return makeClsAlias(cls, true);
 	}
 
 	public String getPkgAlias(ClassNode cls) {
@@ -387,41 +384,35 @@ public class Deobfuscator {
 		}
 	}
 
-	private String makeClsAlias(ClassNode cls) {
-		ClassInfo classInfo = cls.getClassInfo();
-
-		String metadataClassName = "";
-		String metadataPackageName = "";
+	private String makeClsAlias(ClassNode cls, boolean badName) {
+		String alias = null;
+		String pkgName = null;
 		if (this.parseKotlinMetadata) {
-			String rawClassName = getRawClassNameFromMetadata(cls);
-			if (rawClassName != null) {
-				metadataClassName = rawClassName.substring(rawClassName.lastIndexOf(".") + 1, rawClassName.length() - 1);
-				if (rawClassName.lastIndexOf(".") != -1) {
-					metadataPackageName = rawClassName.substring(1, rawClassName.lastIndexOf("."));
-				}
+			ClassInfo kotlinCls = KotlinMetadataUtils.getClassName(cls);
+			if (kotlinCls != null) {
+				alias = prepareNameFull(kotlinCls.getShortName(), "C");
+				pkgName = kotlinCls.getPackage();
 			}
 		}
-		String alias = null;
-
-		if (this.useSourceNameAsAlias) {
+		if (alias == null && this.useSourceNameAsAlias) {
 			alias = getAliasFromSourceFile(cls);
 		}
 
+		ClassInfo classInfo = cls.getClassInfo();
 		if (alias == null) {
-			if (metadataClassName.isEmpty()) {
+			if (badName) {
 				String clsName = classInfo.getShortName();
 				String prefix = makeClsPrefix(cls);
 				alias = String.format("%sC%04d%s", prefix, clsIndex++, prepareNamePart(clsName));
 			} else {
-				alias = metadataClassName;
+				// rename not needed
+				return classInfo.getShortName();
 			}
 		}
-		PackageNode pkg;
-		if (metadataPackageName.isEmpty()) {
-			pkg = getPackageNode(classInfo.getPackage(), true);
-		} else {
-			pkg = getPackageNode(metadataPackageName, true);
+		if (pkgName == null) {
+			pkgName = classInfo.getPackage();
 		}
+		PackageNode pkg = getPackageNode(pkgName, true);
 		clsMap.put(classInfo, new DeobfClsInfo(this, cls, pkg, alias));
 		return alias;
 	}
@@ -482,29 +473,6 @@ public class Deobfuscator {
 			currentCls = cls.root().resolveClass(currentCls.getSuperClass());
 		}
 		return result;
-	}
-
-	/**
-	 * Try to get class name form Kotlin meta data
-	 *
-	 * @param cls
-	 * @return
-	 */
-	@Nullable
-	private String getRawClassNameFromMetadata(ClassNode cls) {
-		if (cls.getAnnotation(KOTLIN_METADATA_ANNOTATION) != null
-				&& cls.getAnnotation(KOTLIN_METADATA_ANNOTATION).getValues().get(KOTLIN_METADATA_D2_PARAMETER) != null
-				&& cls.getAnnotation(KOTLIN_METADATA_ANNOTATION).getValues().get(KOTLIN_METADATA_D2_PARAMETER) instanceof List) {
-			Object rawClassNameObject =
-					((List) cls.getAnnotation(KOTLIN_METADATA_ANNOTATION).getValues().get(KOTLIN_METADATA_D2_PARAMETER)).get(0);
-			if (rawClassNameObject instanceof String) {
-				String rawClassName = ((String) rawClassNameObject).trim().replace("/", ".");
-				if (rawClassName.length() > 1 && rawClassName.matches(KOTLIN_METADATA_CLASSNAME_REGEX)) {
-					return rawClassName;
-				}
-			}
-		}
-		return null;
 	}
 
 	@Nullable
@@ -626,6 +594,24 @@ public class Deobfuscator {
 			return 'x' + Integer.toHexString(name.hashCode());
 		}
 		return NameMapper.removeInvalidCharsMiddle(name);
+	}
+
+	private String prepareNameFull(String name, String prefix) {
+		if (name.length() > maxLength) {
+			return makeHashName(name, prefix);
+		}
+		String result = NameMapper.removeInvalidChars(name, prefix);
+		if (result.isEmpty()) {
+			return makeHashName(name, prefix);
+		}
+		if (NameMapper.isReserved(result)) {
+			return prefix + result;
+		}
+		return result;
+	}
+
+	private static String makeHashName(String name, String invalidPrefix) {
+		return invalidPrefix + 'x' + Integer.toHexString(name.hashCode());
 	}
 
 	private void dumpClassAlias(ClassNode cls) {
