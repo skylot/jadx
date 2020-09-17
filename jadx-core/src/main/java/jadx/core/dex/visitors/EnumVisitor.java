@@ -41,8 +41,10 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.BlockInsnPair;
+import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.InsnUtils;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
 
 import static jadx.core.utils.InsnUtils.checkInsnType;
@@ -133,17 +135,8 @@ public class EnumVisitor extends AbstractVisitor {
 		List<EnumField> enumFields = null;
 		InsnArg arrArg = valuesInitInsn.getArg(0);
 		if (arrArg.isInsnWrap()) {
-			InsnNode arrFillInsn = ((InsnWrapArg) arrArg).getWrapInsn();
-			InsnType insnType = arrFillInsn.getType();
-			if (insnType == InsnType.FILLED_NEW_ARRAY) {
-				enumFields = extractEnumFields(cls, arrFillInsn, staticBlock, toRemove);
-			} else if (insnType == InsnType.NEW_ARRAY) {
-				// empty enum
-				InsnArg arg = arrFillInsn.getArg(0);
-				if (arg.isLiteral() && ((LiteralArg) arg).getLiteral() == 0) {
-					enumFields = Collections.emptyList();
-				}
-			}
+			InsnNode wrappedInsn = ((InsnWrapArg) arrArg).getWrapInsn();
+			enumFields = extractEnumFieldsFromInsn(cls, staticBlock, wrappedInsn, toRemove);
 		}
 		if (enumFields == null) {
 			return false;
@@ -201,6 +194,50 @@ public class EnumVisitor extends AbstractVisitor {
 		InsnRemover.removeWithoutUnbind(classInitMth, staticBlock, co);
 	}
 
+	@Nullable
+	private List<EnumField> extractEnumFieldsFromInsn(ClassNode cls, BlockNode staticBlock,
+			InsnNode wrappedInsn, List<InsnNode> toRemove) {
+		switch (wrappedInsn.getType()) {
+			case FILLED_NEW_ARRAY:
+				return extractEnumFieldsFromFilledArray(cls, wrappedInsn, staticBlock, toRemove);
+
+			case INVOKE:
+				// handle redirection of values array fill (added in java 15)
+				return extractEnumFieldsFromInvoke(cls, staticBlock, (InvokeNode) wrappedInsn, toRemove);
+
+			case NEW_ARRAY:
+				InsnArg arg = wrappedInsn.getArg(0);
+				if (arg.isLiteral() && ((LiteralArg) arg).getLiteral() == 0) {
+					// empty enum
+					return Collections.emptyList();
+				}
+				return null;
+
+			default:
+				return null;
+		}
+	}
+
+	private List<EnumField> extractEnumFieldsFromInvoke(ClassNode cls, BlockNode staticBlock,
+			InvokeNode invokeNode, List<InsnNode> toRemove) {
+		MethodInfo callMth = invokeNode.getCallMth();
+		MethodNode valuesMth = cls.root().resolveMethod(callMth);
+		if (valuesMth == null || valuesMth.isVoidReturn()) {
+			return null;
+		}
+		BlockNode returnBlock = Utils.getOne(valuesMth.getExitBlocks());
+		InsnNode returnInsn = BlockUtils.getLastInsn(returnBlock);
+		InsnNode wrappedInsn = getWrappedInsn(getSingleArg(returnInsn));
+		if (wrappedInsn == null) {
+			return null;
+		}
+		List<EnumField> enumFields = extractEnumFieldsFromInsn(cls, staticBlock, wrappedInsn, toRemove);
+		if (enumFields != null) {
+			valuesMth.add(AFlag.DONT_GENERATE);
+		}
+		return enumFields;
+	}
+
 	private BlockInsnPair getValuesInitInsn(MethodNode classInitMth, FieldNode valuesField) {
 		FieldInfo searchField = valuesField.getFieldInfo();
 		for (BlockNode blockNode : classInitMth.getBasicBlocks()) {
@@ -217,7 +254,8 @@ public class EnumVisitor extends AbstractVisitor {
 		return null;
 	}
 
-	private List<EnumField> extractEnumFields(ClassNode cls, InsnNode arrFillInsn, BlockNode staticBlock, List<InsnNode> toRemove) {
+	private List<EnumField> extractEnumFieldsFromFilledArray(ClassNode cls, InsnNode arrFillInsn, BlockNode staticBlock,
+			List<InsnNode> toRemove) {
 		List<EnumField> enumFields = new ArrayList<>();
 		for (InsnArg arg : arrFillInsn.getArguments()) {
 			EnumField field = null;
@@ -225,7 +263,7 @@ public class EnumVisitor extends AbstractVisitor {
 				InsnNode wrappedInsn = ((InsnWrapArg) arg).getWrapInsn();
 				field = processEnumFieldByField(cls, wrappedInsn, staticBlock, toRemove);
 			} else if (arg.isRegister()) {
-				field = processEnumFiledByRegister(cls, ((RegisterArg) arg), toRemove);
+				field = processEnumFiledByRegister(cls, (RegisterArg) arg, toRemove);
 			}
 			if (field == null) {
 				return null;
