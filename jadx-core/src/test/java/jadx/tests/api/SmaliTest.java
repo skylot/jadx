@@ -68,7 +68,7 @@ public abstract class SmaliTest extends IntegrationTest {
 		} else {
 			smaliFilesDir = pkg + File.separatorChar + testDir + File.separatorChar;
 		}
-		File smaliDir = new File(SMALI_TESTS_DIR, smaliFilesDir);
+		File smaliDir = getSmaliDir(smaliFilesDir);
 		String[] smaliFileNames = smaliDir.list((dir, name) -> name.endsWith(".smali"));
 		assertThat("Smali files not found in " + smaliDir, smaliFileNames, notNullValue());
 		return Stream.of(smaliFileNames)
@@ -86,5 +86,17 @@ public abstract class SmaliTest extends IntegrationTest {
 			return pathFromRoot;
 		}
 		throw new AssertionError("Smali file not found: " + smaliFile.getPath());
+	}
+
+	private static File getSmaliDir(String baseName) {
+		File smaliDir = new File(SMALI_TESTS_DIR, baseName);
+		if (smaliDir.exists()) {
+			return smaliDir;
+		}
+		File pathFromRoot = new File(SMALI_TESTS_PROJECT, smaliDir.getPath());
+		if (pathFromRoot.exists()) {
+			return pathFromRoot;
+		}
+		throw new AssertionError("Smali dir not found: " + smaliDir.getPath());
 	}
 }
