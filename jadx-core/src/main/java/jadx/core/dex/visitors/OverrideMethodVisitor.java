@@ -53,9 +53,11 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 			ClassNode classNode = root.resolveClass(superType);
 			if (classNode != null) {
 				for (MethodNode mth : classNode.getMethods()) {
-					String mthShortId = mth.getMethodInfo().getShortId();
-					if (mthShortId.startsWith(signature)) {
-						overrideList.add(mth);
+					if (!mth.getAccessFlags().isPrivate()) {
+						String mthShortId = mth.getMethodInfo().getShortId();
+						if (mthShortId.startsWith(signature)) {
+							overrideList.add(mth);
+						}
 					}
 				}
 			} else {
