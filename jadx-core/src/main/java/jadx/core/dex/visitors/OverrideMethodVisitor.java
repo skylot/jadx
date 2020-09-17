@@ -9,6 +9,7 @@ import java.util.Objects;
 import jadx.core.clsp.ClspClass;
 import jadx.core.clsp.ClspMethod;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
+import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.IMethodDetails;
@@ -33,7 +34,7 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 		RootNode root = cls.root();
 		List<ArgType> superTypes = collectSuperTypes(cls);
 		for (MethodNode mth : cls.getMethods()) {
-			if (mth.isConstructor()) {
+			if (mth.isConstructor() || mth.getAccessFlags().isStatic()) {
 				continue;
 			}
 			String signature = mth.getMethodInfo().makeSignature(false);
@@ -53,7 +54,9 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 			ClassNode classNode = root.resolveClass(superType);
 			if (classNode != null) {
 				for (MethodNode mth : classNode.getMethods()) {
-					if (!mth.getAccessFlags().isPrivate()) {
+					AccessInfo accessFlags = mth.getAccessFlags();
+					if (!accessFlags.isPrivate()
+							&& !accessFlags.isStatic()) {
 						String mthShortId = mth.getMethodInfo().getShortId();
 						if (mthShortId.startsWith(signature)) {
 							overrideList.add(mth);
