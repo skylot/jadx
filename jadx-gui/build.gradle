@@ -1,6 +1,6 @@
 plugins {
 	id 'application'
-	id 'edu.sc.seis.launch4j' version '2.4.6'
+	id 'edu.sc.seis.launch4j' version '2.4.8'
 	id 'com.github.johnrengelman.shadow' version '6.0.0'
 }
 
@@ -8,7 +8,7 @@ dependencies {
 	implementation(project(':jadx-core'))
 
 	implementation(project(":jadx-cli"))
-	implementation 'com.beust:jcommander:1.78'
+	implementation 'com.beust:jcommander:1.80'
 	implementation 'ch.qos.logback:logback-classic:1.2.3'
 
 	implementation 'com.fifesoft:rsyntaxtextarea:3.1.1'
@@ -16,12 +16,12 @@ dependencies {
 	implementation 'hu.kazocsaba:image-viewer:1.2.3'
 
 	implementation 'com.google.code.gson:gson:2.8.6'
-	implementation 'org.apache.commons:commons-lang3:3.10'
-	implementation 'org.apache.commons:commons-text:1.8'
+	implementation 'org.apache.commons:commons-lang3:3.11'
+	implementation 'org.apache.commons:commons-text:1.9'
 
 	implementation 'io.reactivex.rxjava2:rxjava:2.2.19'
 	implementation "com.github.akarnokd:rxjava2-swing:0.3.7"
-	implementation 'com.android.tools.build:apksig:4.0.0'
+	implementation 'com.android.tools.build:apksig:4.0.1'
 }
 
 application {

@@ -1,7 +1,7 @@
 plugins {
 	id 'org.sonarqube' version '3.0'
-	id 'com.github.ben-manes.versions' version '0.29.0'
-	id "com.diffplug.gradle.spotless" version "4.5.1"
+	id 'com.github.ben-manes.versions' version '0.33.0'
+	id "com.diffplug.spotless" version "5.5.1"
 }
 
 ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
@@ -36,18 +36,18 @@ allprojects {
 
 	dependencies {
 		implementation 'org.slf4j:slf4j-api:1.7.30'
-		compileOnly 'org.jetbrains:annotations:19.0.0'
+		compileOnly 'org.jetbrains:annotations:20.1.0'
 
 		testImplementation 'ch.qos.logback:logback-classic:1.2.3'
 		testImplementation 'org.hamcrest:hamcrest-library:2.2'
-		testImplementation 'org.mockito:mockito-core:3.4.0'
-		testImplementation 'org.assertj:assertj-core:3.16.1'
+		testImplementation 'org.mockito:mockito-core:3.5.10'
+		testImplementation 'org.assertj:assertj-core:3.17.2'
 
-		testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
-		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
+		testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 
 		testImplementation 'org.eclipse.jdt.core.compiler:ecj:4.6.1'
-		testCompileOnly 'org.jetbrains:annotations:19.0.0'
+		testCompileOnly 'org.jetbrains:annotations:20.1.0'
 	}
 
 	test {
@@ -62,7 +62,7 @@ allprojects {
 	}
 
 	jacoco {
-		toolVersion = "0.8.5"
+		toolVersion = "0.8.6"
 	}
 	jacocoTestReport {
 		reports {
