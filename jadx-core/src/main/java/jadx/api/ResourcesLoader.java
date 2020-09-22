@@ -69,7 +69,7 @@ public final class ResourcesLoader {
 					if (!ZipSecurity.isValidZipEntry(entry)) {
 						return null;
 					}
-					try (InputStream inputStream = new BufferedInputStream(zipFile.getInputStream(entry))) {
+					try (InputStream inputStream = ZipSecurity.getInputStreamForEntry(zipFile, entry)) {
 						return decoder.decode(entry.getSize(), inputStream);
 					}
 				}

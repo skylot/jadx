@@ -1,8 +1,12 @@
 package jadx.api.plugins.utils;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.function.BiConsumer;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +16,7 @@ public class ZipSecurity {
 
 	// size of uncompressed zip entry shouldn't be bigger of compressed in MAX_SIZE_DIFF times
 	private static final int MAX_SIZE_DIFF = 100;
+	private static final int MAX_ENTRIES_COUNT = 10_000;
 
 	private ZipSecurity() {
 	}
@@ -72,5 +77,29 @@ public class ZipSecurity {
 	public static boolean isValidZipEntry(ZipEntry entry) {
 		return isValidZipEntryName(entry.getName())
 				&& !isZipBomb(entry);
+	}
+
+	public static InputStream getInputStreamForEntry(ZipFile zipFile, ZipEntry entry) throws IOException {
+		InputStream in = zipFile.getInputStream(entry);
+		LimitedInputStream limited = new LimitedInputStream(in, entry.getSize());
+		return new BufferedInputStream(limited);
+	}
+
+	public static void visitZipEntries(File file, BiConsumer<ZipEntry, InputStream> visitor) {
+		try (ZipFile zip = new ZipFile(file)) {
+			zip.stream()
+					.filter(entry -> !entry.isDirectory())
+					.filter(ZipSecurity::isValidZipEntry)
+					.limit(MAX_ENTRIES_COUNT)
+					.forEach(entry -> {
+						try (InputStream in = getInputStreamForEntry(zip, entry)) {
+							visitor.accept(entry, in);
+						} catch (Exception e) {
+							throw new RuntimeException("Error process zip entry: " + entry.getName());
+						}
+					});
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to process zip file: " + file.getAbsolutePath());
+		}
 	}
 }
