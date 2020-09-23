@@ -53,35 +53,43 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 	@Override
 	public void visit(MethodNode mth) {
 		DepthRegionTraversal.traverse(mth, this);
+		if (mth.contains(AFlag.REQUEST_IF_REGION_OPTIMIZE)) {
+			IfRegionVisitor.process(mth);
+			mth.remove(AFlag.REQUEST_IF_REGION_OPTIMIZE);
+		}
 	}
 
 	@Override
 	public boolean enterRegion(MethodNode mth, IRegion region) {
 		if (region instanceof LoopRegion) {
-			processLoopRegion(mth, (LoopRegion) region);
+			if (processLoopRegion(mth, (LoopRegion) region)) {
+				// optimize `if` block after instructions remove
+				mth.add(AFlag.REQUEST_IF_REGION_OPTIMIZE);
+			}
 		}
 		return true;
 	}
 
-	private static void processLoopRegion(MethodNode mth, LoopRegion loopRegion) {
+	private static boolean processLoopRegion(MethodNode mth, LoopRegion loopRegion) {
 		if (loopRegion.isConditionAtEnd()) {
-			return;
+			return false;
 		}
 		IfCondition condition = loopRegion.getCondition();
 		if (condition == null) {
-			return;
+			return false;
 		}
 		if (checkForIndexedLoop(mth, loopRegion, condition)) {
-			return;
+			return true;
 		}
-		checkIterableForEach(mth, loopRegion, condition);
+		return checkIterableForEach(mth, loopRegion, condition);
 	}
 
 	/**
 	 * Check for indexed loop.
 	 */
 	private static boolean checkForIndexedLoop(MethodNode mth, LoopRegion loopRegion, IfCondition condition) {
-		InsnNode incrInsn = RegionUtils.getLastInsn(loopRegion);
+		BlockNode loopEndBlock = loopRegion.getInfo().getEnd();
+		InsnNode incrInsn = BlockUtils.getLastInsn(BlockUtils.skipSyntheticPredecessor(loopEndBlock));
 		if (incrInsn == null) {
 			return false;
 		}

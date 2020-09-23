@@ -73,4 +73,6 @@ public enum AFlag {
 	SOFT_CAST, // synthetic cast to help type inference
 
 	INCONSISTENT_CODE, // warning about incorrect decompilation
+
+	REQUEST_IF_REGION_OPTIMIZE, // run if region visitor again
 }
