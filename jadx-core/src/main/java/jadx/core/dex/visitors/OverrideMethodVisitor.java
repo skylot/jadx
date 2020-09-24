@@ -31,14 +31,13 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 
 	@Override
 	public boolean visit(ClassNode cls) throws JadxException {
-		RootNode root = cls.root();
 		List<ArgType> superTypes = collectSuperTypes(cls);
 		for (MethodNode mth : cls.getMethods()) {
 			if (mth.isConstructor() || mth.getAccessFlags().isStatic()) {
 				continue;
 			}
 			String signature = mth.getMethodInfo().makeSignature(false);
-			List<IMethodDetails> overrideList = collectOverrideMethods(root, superTypes, signature);
+			List<IMethodDetails> overrideList = collectOverrideMethods(cls, superTypes, signature);
 			if (!overrideList.isEmpty()) {
 				mth.addAttr(new MethodOverrideAttr(overrideList));
 				fixMethodReturnType(mth, overrideList, superTypes);
@@ -48,15 +47,14 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 		return true;
 	}
 
-	private List<IMethodDetails> collectOverrideMethods(RootNode root, List<ArgType> superTypes, String signature) {
+	private List<IMethodDetails> collectOverrideMethods(ClassNode cls, List<ArgType> superTypes, String signature) {
 		List<IMethodDetails> overrideList = new ArrayList<>();
 		for (ArgType superType : superTypes) {
-			ClassNode classNode = root.resolveClass(superType);
+			ClassNode classNode = cls.root().resolveClass(superType);
 			if (classNode != null) {
 				for (MethodNode mth : classNode.getMethods()) {
-					AccessInfo accessFlags = mth.getAccessFlags();
-					if (!accessFlags.isPrivate()
-							&& !accessFlags.isStatic()) {
+					if (!mth.getAccessFlags().isStatic()
+							&& isMethodVisibleInCls(mth, cls)) {
 						String mthShortId = mth.getMethodInfo().getShortId();
 						if (mthShortId.startsWith(signature)) {
 							overrideList.add(mth);
@@ -64,7 +62,7 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 					}
 				}
 			} else {
-				ClspClass clsDetails = root.getClsp().getClsDetails(superType);
+				ClspClass clsDetails = cls.root().getClsp().getClsDetails(superType);
 				if (clsDetails != null) {
 					Map<String, ClspMethod> methodsMap = clsDetails.getMethodsMap();
 					for (Map.Entry<String, ClspMethod> entry : methodsMap.entrySet()) {
@@ -77,6 +75,21 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 			}
 		}
 		return overrideList;
+	}
+
+	/**
+	 * NOTE: Simplified version of method from {@link ModVisitor#isFieldVisibleInMethod}
+	 */
+	private boolean isMethodVisibleInCls(MethodNode superMth, ClassNode cls) {
+		AccessInfo accessFlags = superMth.getAccessFlags();
+		if (accessFlags.isPrivate()) {
+			return false;
+		}
+		if (accessFlags.isPublic() || accessFlags.isProtected()) {
+			return true;
+		}
+		// package-private
+		return Objects.equals(superMth.getParentClass().getPackage(), cls.getPackage());
 	}
 
 	private List<ArgType> collectSuperTypes(ClassNode cls) {
