@@ -16,7 +16,7 @@ public class ZipSecurity {
 
 	// size of uncompressed zip entry shouldn't be bigger of compressed in MAX_SIZE_DIFF times
 	private static final int MAX_SIZE_DIFF = 100;
-	private static final int MAX_ENTRIES_COUNT = 10_000;
+	private static final int MAX_ENTRIES_COUNT = 100_000;
 
 	private ZipSecurity() {
 	}
