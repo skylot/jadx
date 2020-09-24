@@ -66,7 +66,7 @@ public class DexFileLoader {
 	private static List<DexReader> collectDexFromZip(File file) {
 		List<DexReader> result = new ArrayList<>();
 		try {
-			ZipSecurity.visitZipEntries(file, (entry, in) -> {
+			ZipSecurity.readZipEntries(file, (entry, in) -> {
 				try {
 					result.addAll(checkFileMagic(null, in, entry.getName()));
 				} catch (Exception e) {
@@ -74,7 +74,7 @@ public class DexFileLoader {
 				}
 			});
 		} catch (Exception e) {
-			LOG.warn("Failed to process zip file: {}", file.getAbsolutePath());
+			LOG.error("Failed to process zip file: {}", file.getAbsolutePath(), e);
 		}
 		return result;
 	}

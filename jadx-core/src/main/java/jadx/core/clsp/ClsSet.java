@@ -330,7 +330,7 @@ public class ClsSet {
 				load(inputStream);
 			}
 		} else if (name.endsWith(".jar")) {
-			ZipSecurity.visitZipEntries(input, (entry, in) -> {
+			ZipSecurity.readZipEntries(input, (entry, in) -> {
 				if (entry.getName().endsWith(CLST_EXTENSION)) {
 					try {
 						load(in);
