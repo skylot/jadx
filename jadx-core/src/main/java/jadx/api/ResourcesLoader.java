@@ -7,7 +7,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -69,7 +68,7 @@ public final class ResourcesLoader {
 					if (!ZipSecurity.isValidZipEntry(entry)) {
 						return null;
 					}
-					try (InputStream inputStream = new BufferedInputStream(zipFile.getInputStream(entry))) {
+					try (InputStream inputStream = ZipSecurity.getInputStreamForEntry(zipFile, entry)) {
 						return decoder.decode(entry.getSize(), inputStream);
 					}
 				}
@@ -129,17 +128,9 @@ public final class ResourcesLoader {
 			return;
 		}
 		if (FileUtils.isZipFile(file)) {
-			try (ZipFile zip = new ZipFile(file)) {
-				Enumeration<? extends ZipEntry> entries = zip.entries();
-				while (entries.hasMoreElements()) {
-					ZipEntry entry = entries.nextElement();
-					if (ZipSecurity.isValidZipEntry(entry)) {
-						addEntry(list, file, entry);
-					}
-				}
-			} catch (Exception e) {
-				LOG.warn("Failed to open zip file: {}", file.getAbsolutePath());
-			}
+			ZipSecurity.visitZipEntries(file, (zipFile, entry) -> {
+				addEntry(list, file, entry);
+			});
 		} else {
 			addResourceFile(list, file);
 		}

@@ -325,22 +325,22 @@ public class ClsSet {
 
 	private void load(File input) throws IOException, DecodeException {
 		String name = input.getName();
-		try (InputStream inputStream = new FileInputStream(input)) {
-			if (name.endsWith(CLST_EXTENSION)) {
+		if (name.endsWith(CLST_EXTENSION)) {
+			try (InputStream inputStream = new FileInputStream(input)) {
 				load(inputStream);
-			} else if (name.endsWith(".jar")) {
-				try (ZipInputStream in = new ZipInputStream(inputStream)) {
-					ZipEntry entry = in.getNextEntry();
-					while (entry != null) {
-						if (entry.getName().endsWith(CLST_EXTENSION) && ZipSecurity.isValidZipEntry(entry)) {
-							load(in);
-						}
-						entry = in.getNextEntry();
+			}
+		} else if (name.endsWith(".jar")) {
+			ZipSecurity.readZipEntries(input, (entry, in) -> {
+				if (entry.getName().endsWith(CLST_EXTENSION)) {
+					try {
+						load(in);
+					} catch (Exception e) {
+						throw new JadxRuntimeException("Failed to load jadx class set");
 					}
 				}
-			} else {
-				throw new JadxRuntimeException("Unknown file format: " + name);
-			}
+			});
+		} else {
+			throw new JadxRuntimeException("Unknown file format: " + name);
 		}
 	}
 

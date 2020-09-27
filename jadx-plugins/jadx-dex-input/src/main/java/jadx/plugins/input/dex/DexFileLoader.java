@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.zip.ZipFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,19 +65,16 @@ public class DexFileLoader {
 
 	private static List<DexReader> collectDexFromZip(File file) {
 		List<DexReader> result = new ArrayList<>();
-		try (ZipFile zip = new ZipFile(file)) {
-			zip.stream()
-					.filter(entry -> !entry.isDirectory())
-					.filter(ZipSecurity::isValidZipEntry)
-					.forEach(entry -> {
-						try (InputStream in = zip.getInputStream(entry)) {
-							result.addAll(checkFileMagic(null, in, entry.getName()));
-						} catch (Exception e) {
-							LOG.error("Failed to read zip entry: {}", entry, e);
-						}
-					});
+		try {
+			ZipSecurity.readZipEntries(file, (entry, in) -> {
+				try {
+					result.addAll(checkFileMagic(null, in, entry.getName()));
+				} catch (Exception e) {
+					LOG.error("Failed to read zip entry: {}", entry, e);
+				}
+			});
 		} catch (Exception e) {
-			LOG.warn("Failed to open zip file: {}", file.getAbsolutePath());
+			LOG.error("Failed to process zip file: {}", file.getAbsolutePath(), e);
 		}
 		return result;
 	}

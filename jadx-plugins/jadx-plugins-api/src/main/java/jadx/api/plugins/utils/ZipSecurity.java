@@ -1,8 +1,13 @@
 package jadx.api.plugins.utils;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Enumeration;
+import java.util.function.BiConsumer;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +17,7 @@ public class ZipSecurity {
 
 	// size of uncompressed zip entry shouldn't be bigger of compressed in MAX_SIZE_DIFF times
 	private static final int MAX_SIZE_DIFF = 100;
+	private static final int MAX_ENTRIES_COUNT = 100_000;
 
 	private ZipSecurity() {
 	}
@@ -72,5 +78,41 @@ public class ZipSecurity {
 	public static boolean isValidZipEntry(ZipEntry entry) {
 		return isValidZipEntryName(entry.getName())
 				&& !isZipBomb(entry);
+	}
+
+	public static InputStream getInputStreamForEntry(ZipFile zipFile, ZipEntry entry) throws IOException {
+		InputStream in = zipFile.getInputStream(entry);
+		LimitedInputStream limited = new LimitedInputStream(in, entry.getSize());
+		return new BufferedInputStream(limited);
+	}
+
+	public static void visitZipEntries(File file, BiConsumer<ZipFile, ZipEntry> visitor) {
+		try (ZipFile zip = new ZipFile(file)) {
+			Enumeration<? extends ZipEntry> entries = zip.entries();
+			int entriesProcessed = 0;
+			while (entries.hasMoreElements()) {
+				ZipEntry entry = entries.nextElement();
+				if (!entry.isDirectory() && isValidZipEntry(entry)) {
+					visitor.accept(zip, entry);
+					entriesProcessed++;
+					if (entriesProcessed > MAX_ENTRIES_COUNT) {
+						throw new IllegalStateException("Zip entries count limit exceeded: " + MAX_ENTRIES_COUNT
+								+ ", last entry: " + entry.getName());
+					}
+				}
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to process zip file: " + file.getAbsolutePath(), e);
+		}
+	}
+
+	public static void readZipEntries(File file, BiConsumer<ZipEntry, InputStream> visitor) {
+		visitZipEntries(file, (zip, entry) -> {
+			try (InputStream in = getInputStreamForEntry(zip, entry)) {
+				visitor.accept(entry, in);
+			} catch (Exception e) {
+				throw new RuntimeException("Error process zip entry: " + entry.getName());
+			}
+		});
 	}
 }
