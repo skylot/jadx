@@ -58,11 +58,10 @@ public class PrepareForCodeGen extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
-		List<BlockNode> blocks = mth.getBasicBlocks();
-		if (blocks == null) {
+		if (mth.isNoCode()) {
 			return;
 		}
-		for (BlockNode block : blocks) {
+		for (BlockNode block : mth.getBasicBlocks()) {
 			if (block.contains(AFlag.DONT_GENERATE)) {
 				continue;
 			}

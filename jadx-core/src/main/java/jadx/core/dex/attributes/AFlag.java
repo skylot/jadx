@@ -75,4 +75,6 @@ public enum AFlag {
 	INCONSISTENT_CODE, // warning about incorrect decompilation
 
 	REQUEST_IF_REGION_OPTIMIZE, // run if region visitor again
+
+	DONT_UNLOAD_CLASS, // don't unload class after code generation (only for tests and debug!)
 }

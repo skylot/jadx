@@ -1,15 +1,18 @@
 package jadx.core;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeInfo;
 import jadx.core.codegen.CodeGen;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.LoadStage;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
-import static jadx.core.dex.nodes.ProcessState.GENERATED;
+import static jadx.core.dex.nodes.ProcessState.GENERATED_AND_UNLOADED;
 import static jadx.core.dex.nodes.ProcessState.LOADED;
 import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
 import static jadx.core.dex.nodes.ProcessState.PROCESS_COMPLETE;
@@ -20,18 +23,27 @@ public final class ProcessClass {
 	private ProcessClass() {
 	}
 
-	public static void process(ClassNode cls) {
-		ClassNode topParentClass = cls.getTopParentClass();
-		if (topParentClass != cls) {
-			process(topParentClass);
-			return;
-		}
-		if (cls.getState().isProcessed()) {
+	@Nullable
+	private static ICodeInfo process(ClassNode cls, boolean codegen) {
+		if (!codegen && cls.getState() == PROCESS_COMPLETE) {
 			// nothing to do
-			return;
+			return null;
 		}
 		synchronized (cls.getClassInfo()) {
 			try {
+				if (codegen) {
+					if (cls.getState() == GENERATED_AND_UNLOADED) {
+						// allow to run code generation again
+						cls.setState(NOT_LOADED);
+					}
+					cls.setLoadStage(LoadStage.CODEGEN_STAGE);
+					if (cls.contains(AFlag.RELOAD_AT_CODEGEN_STAGE)) {
+						cls.remove(AFlag.RELOAD_AT_CODEGEN_STAGE);
+						cls.unload();
+					}
+				} else {
+					cls.setLoadStage(LoadStage.PROCESS_STAGE);
+				}
 				if (cls.getState() == NOT_LOADED) {
 					cls.load();
 				}
@@ -42,9 +54,18 @@ public final class ProcessClass {
 					}
 					cls.setState(PROCESS_COMPLETE);
 				}
+				if (codegen) {
+					ICodeInfo code = CodeGen.generate(cls);
+					if (!cls.contains(AFlag.DONT_UNLOAD_CLASS)) {
+						cls.unload();
+						cls.setState(GENERATED_AND_UNLOADED);
+					}
+					return code;
+				}
 			} catch (Throwable e) {
 				cls.addError("Class process error: " + e.getClass().getSimpleName(), e);
 			}
+			return null;
 		}
 	}
 
@@ -54,21 +75,14 @@ public final class ProcessClass {
 		if (topParentClass != cls) {
 			return generateCode(topParentClass);
 		}
-		if (cls.getState() == GENERATED) {
-			// allow to run code generation again
-			cls.setState(NOT_LOADED);
-		}
 		try {
 			for (ClassNode depCls : cls.getDependencies()) {
-				depCls.startProcessStage();
-				process(depCls);
+				process(depCls, false);
 			}
-			cls.startCodegenStage();
-			process(cls);
-
-			ICodeInfo code = CodeGen.generate(cls);
-			cls.setState(GENERATED);
-			cls.unload();
+			ICodeInfo code = process(cls, true);
+			if (code == null) {
+				throw new JadxRuntimeException("Codegen failed");
+			}
 			return code;
 		} catch (Throwable e) {
 			throw new JadxRuntimeException("Failed to generate code for class: " + cls.getFullName(), e);

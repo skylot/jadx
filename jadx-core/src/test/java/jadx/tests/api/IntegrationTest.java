@@ -28,8 +28,6 @@ import jadx.api.ICodeInfo;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
-import jadx.core.ProcessClass;
-import jadx.core.codegen.CodeGen;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -190,11 +188,10 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	protected void decompileAndCheck(JadxDecompiler d, List<ClassNode> clsList) {
-		if (unloadCls) {
-			clsList.forEach(ClassNode::decompile);
-		} else {
-			clsList.forEach(cls -> decompileWithoutUnload(d, cls));
+		if (!unloadCls) {
+			clsList.forEach(cls -> cls.add(AFlag.DONT_UNLOAD_CLASS));
 		}
+		clsList.forEach(ClassNode::decompile);
 
 		for (ClassNode cls : clsList) {
 			System.out.println("-----------------------------------------------------------");
@@ -249,22 +246,6 @@ public abstract class IntegrationTest extends TestUtils {
 			resStorage.add(new ResourceEntry(id, "", parts[0], parts[1]));
 		}
 		root.processResources(resStorage);
-	}
-
-	protected void decompileWithoutUnload(JadxDecompiler jadx, ClassNode cls) {
-		ProcessClass.process(cls);
-		generateClsCode(cls);
-		// don't unload class
-	}
-
-	protected void generateClsCode(ClassNode cls) {
-		try {
-			ICodeInfo code = CodeGen.generate(cls);
-			cls.root().getCodeCache().add(cls.getTopParentClass().getRawName(), code);
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
 	}
 
 	protected void checkCode(ClassNode cls) {

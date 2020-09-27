@@ -40,6 +40,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.nodes.ProcessState.LOADED;
 import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
+import static jadx.core.dex.nodes.ProcessState.PROCESS_COMPLETE;
 
 public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeNode, Comparable<ClassNode> {
 	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
@@ -209,10 +210,10 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 
 	public void ensureProcessed() {
 		ClassNode topClass = getTopParentClass();
-		ProcessState topState = topClass.getState();
-		if (!topState.isProcessed()) {
+		ProcessState state = topClass.getState();
+		if (state != PROCESS_COMPLETE) {
 			throw new JadxRuntimeException("Expected class to be processed at this point,"
-					+ " class: " + topClass + ", state: " + topState);
+					+ " class: " + topClass + ", state: " + state);
 		}
 	}
 
@@ -583,16 +584,8 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		return loadStage;
 	}
 
-	public void startProcessStage() {
-		this.loadStage = LoadStage.PROCESS_STAGE;
-	}
-
-	public void startCodegenStage() {
-		this.loadStage = LoadStage.CODEGEN_STAGE;
-		if (contains(AFlag.RELOAD_AT_CODEGEN_STAGE)) {
-			unload();
-			remove(AFlag.RELOAD_AT_CODEGEN_STAGE);
-		}
+	public void setLoadStage(LoadStage loadStage) {
+		this.loadStage = loadStage;
 	}
 
 	public void reloadAtCodegenStage() {
