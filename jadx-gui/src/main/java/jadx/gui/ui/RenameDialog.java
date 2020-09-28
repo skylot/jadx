@@ -310,12 +310,19 @@ public class RenameDialog extends JDialog {
 		contentPane.add(buttonPane, BorderLayout.PAGE_END);
 
 		setTitle(NLS.str("popup.rename"));
+		if (!mainWindow.getSettings().loadWindowPos(this)) {
+			setSize(800, 80);
+		}
+		// always pack (ignore saved windows sizes)
 		pack();
-		setSize(800, 80);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		setModalityType(ModalityType.MODELESS);
+		setModalityType(ModalityType.APPLICATION_MODAL);
+	}
 
-		mainWindow.getSettings().loadWindowPos(this);
+	@Override
+	public void dispose() {
+		mainWindow.getSettings().saveWindowPos(this);
+		super.dispose();
 	}
 }
