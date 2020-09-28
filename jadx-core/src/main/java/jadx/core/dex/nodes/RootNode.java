@@ -44,6 +44,7 @@ public class RootNode {
 	private static final Logger LOG = LoggerFactory.getLogger(RootNode.class);
 
 	private final JadxArgs args;
+	private final List<IDexTreeVisitor> preDecompilePasses;
 	private final List<IDexTreeVisitor> passes;
 
 	private final ErrorsCounter errorsCounter = new ErrorsCounter();
@@ -68,6 +69,7 @@ public class RootNode {
 
 	public RootNode(JadxArgs args) {
 		this.args = args;
+		this.preDecompilePasses = Jadx.getPreDecompilePassesList();
 		this.passes = Jadx.getPassesList(args);
 		this.stringUtils = new StringUtils(args);
 		this.constValues = new ConstStorage(args);
@@ -191,7 +193,7 @@ public class RootNode {
 	}
 
 	public void runPreDecompileStage() {
-		for (IDexTreeVisitor pass : Jadx.getPreDecompilePassesList()) {
+		for (IDexTreeVisitor pass : preDecompilePasses) {
 			try {
 				pass.init(this);
 			} catch (Exception e) {
@@ -200,6 +202,12 @@ public class RootNode {
 			for (ClassNode cls : classes) {
 				DepthTraversal.visit(pass, cls);
 			}
+		}
+	}
+
+	public void runPreDecompileStageForClass(ClassNode cls) {
+		for (IDexTreeVisitor pass : preDecompilePasses) {
+			DepthTraversal.visit(pass, cls);
 		}
 	}
 

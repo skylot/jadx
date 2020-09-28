@@ -225,13 +225,10 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		return decompile(true);
 	}
 
-	public synchronized ICodeInfo reRunDecompile() {
-		return decompile(false);
-	}
-
 	public synchronized ICodeInfo reloadCode() {
 		unload();
 		deepUnload();
+		root.runPreDecompileStageForClass(this);
 		return decompile(false);
 	}
 

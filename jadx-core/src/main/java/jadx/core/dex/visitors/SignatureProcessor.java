@@ -14,6 +14,7 @@ import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.nodes.utils.TypeUtils;
 import jadx.core.dex.visitors.typeinference.TypeCompareEnum;
 import jadx.core.utils.Utils;
+import jadx.core.utils.exceptions.JadxException;
 
 import static java.util.Collections.unmodifiableList;
 
@@ -24,12 +25,10 @@ public class SignatureProcessor extends AbstractVisitor {
 	@Override
 	public void init(RootNode root) {
 		this.root = root;
-		for (ClassNode cls : this.root.getClasses()) {
-			processCls(cls);
-		}
 	}
 
-	private void processCls(ClassNode cls) {
+	@Override
+	public boolean visit(ClassNode cls) throws JadxException {
 		parseClassSignature(cls);
 		for (FieldNode field : cls.getFields()) {
 			parseFieldSignature(field);
@@ -37,6 +36,7 @@ public class SignatureProcessor extends AbstractVisitor {
 		for (MethodNode mth : cls.getMethods()) {
 			parseMethodSignature(mth);
 		}
+		return true;
 	}
 
 	private void parseClassSignature(ClassNode cls) {
