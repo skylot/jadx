@@ -7,31 +7,18 @@ before_script:
 
 stages:
   - test
-  - check
 
 java-8:
   stage: test
   image: openjdk:8
-  script: ./gradlew clean build
+  script: ./gradlew clean build dist
 
 java-11:
   stage: test
   image: openjdk:11
-  script: ./gradlew clean build
+  script: ./gradlew clean build dist
 
 java-latest:
   stage: test
   image: openjdk:latest
-  script: java -version && ./gradlew clean build
-
-check:
-  stage: check
-  image: openjdk:8
-  script:
-    - export JADX_LAST_TAG="$(git describe --abbrev=0 --tags)"
-    - export JADX_VERSION="${JADX_LAST_TAG:1}-dev-$(git rev-parse --short HEAD)"
-    - ./gradlew clean sonarqube -Dsonar.host.url="${SONAR_HOST}" -Dsonar.projectKey=jadx -Dsonar.organization="${SONAR_ORG}" -Dsonar.login="${SONAR_TOKEN}" -Dsonar.branch.name=dev || echo "Skip sonar build and upload"
-    - ./gradlew clean dist
-  artifacts:
-    paths:
-      - build/jadx*.zip
+  script: java -version && ./gradlew clean build dist
