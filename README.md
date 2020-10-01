@@ -24,7 +24,7 @@ Command line and GUI tools for producing Java source code from Android Dex and A
 - find usage
 - full text search
 
-See these features in action here: [jadx-gui features overview](https://github.com/skylot/jadx/wiki/jadx-gui-features-overview)
+See these features in action here : [jadx-gui features overview](https://github.com/skylot/jadx/wiki/jadx-gui-features-overview)
 
 
 ![jadx-gui screenshot](https://i.imgur.com/h917IBZ.png)
