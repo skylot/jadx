@@ -25,7 +25,6 @@ public class JRoot extends JNode {
 
 	public JRoot(JadxWrapper wrapper) {
 		this.wrapper = wrapper;
-		update();
 	}
 
 	public final void update() {

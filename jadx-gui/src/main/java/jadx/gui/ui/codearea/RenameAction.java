@@ -25,7 +25,7 @@ public final class RenameAction extends JNodeMenuAction<JNode> {
 			LOG.info("node == null!");
 			return;
 		}
-		RenameDialog renameDialog = new RenameDialog(codeArea, node);
+		RenameDialog renameDialog = new RenameDialog(codeArea.getMainWindow(), node);
 		renameDialog.setVisible(true);
 	}
 

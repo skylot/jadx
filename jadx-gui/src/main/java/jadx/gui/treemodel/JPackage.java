@@ -21,7 +21,7 @@ public class JPackage extends JNode implements Comparable<JPackage> {
 	private String name;
 	private boolean enabled;
 	private final List<JClass> classes;
-	private final List<JPackage> innerPackages = new ArrayList<>(1);
+	private final List<JPackage> innerPackages = new ArrayList<>();
 
 	public JPackage(JavaPackage pkg, JadxWrapper wrapper) {
 		this.fullName = pkg.getName();
@@ -39,7 +39,13 @@ public class JPackage extends JNode implements Comparable<JPackage> {
 		this.fullName = name;
 		this.name = name;
 		setEnabled(wrapper);
-		this.classes = new ArrayList<>(1);
+		this.classes = new ArrayList<>();
+	}
+
+	public JPackage(String fullName, String name) {
+		this.fullName = fullName;
+		this.name = name;
+		this.classes = new ArrayList<>();
 	}
 
 	private void setEnabled(JadxWrapper wrapper) {

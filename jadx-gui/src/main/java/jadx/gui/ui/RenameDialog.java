@@ -8,8 +8,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -27,6 +29,7 @@ import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.RenameVisitor;
 import jadx.core.utils.Utils;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.jobs.IndexJob;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
@@ -35,7 +38,6 @@ import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JPackage;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
-import jadx.gui.ui.codearea.CodeArea;
 import jadx.gui.ui.codearea.CodePanel;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.JNodeCache;
@@ -52,9 +54,9 @@ public class RenameDialog extends JDialog {
 	private final transient JNode node;
 	private transient JTextField renameField;
 
-	public RenameDialog(CodeArea codeArea, JNode node) {
-		super(codeArea.getMainWindow());
-		this.mainWindow = codeArea.getMainWindow();
+	public RenameDialog(MainWindow mainWindow, JNode node) {
+		super(mainWindow);
+		this.mainWindow = mainWindow;
 		this.cache = mainWindow.getCacheObject();
 		this.node = node;
 		if (checkSettings()) {
@@ -117,17 +119,12 @@ public class RenameDialog extends JDialog {
 			type = "f";
 			id = javaField.getFieldNode().getFieldInfo().getRawFullId();
 		} else if (node instanceof JClass) {
+			JavaClass javaClass = (JavaClass) node.getJavaNode();
 			type = "c";
-			JavaNode javaNode = node.getJavaNode();
-			id = javaNode.getFullName();
-			if (javaNode instanceof JavaClass) {
-				JavaClass javaClass = (JavaClass) javaNode;
-				id = javaClass.getRawName();
-			}
-
+			id = javaClass.getRawName();
 		} else if (node instanceof JPackage) {
 			type = "p";
-			id = node.getJavaNode().getFullName();
+			id = ((JPackage) node).getFullName();
 		}
 		return String.format("%s %s = %s", type, id, renameText);
 	}
@@ -158,18 +155,17 @@ public class RenameDialog extends JDialog {
 	}
 
 	private List<String> updateDeobfMap(List<String> deobfMap, String alias) {
-		LOG.trace("updateDeobfMap(): alias = " + alias);
-		String id = alias.split("=")[0];
+		String id = alias.substring(0, alias.indexOf('=') + 1);
 		int i = 0;
 		while (i < deobfMap.size()) {
 			if (deobfMap.get(i).startsWith(id)) {
-				LOG.info("updateDeobfMap(): Removing entry " + deobfMap.get(i));
+				LOG.debug("updateDeobfMap(): Removing entry " + deobfMap.get(i));
 				deobfMap.remove(i);
 			} else {
 				i++;
 			}
 		}
-		LOG.trace("updateDeobfMap(): Placing alias = " + alias);
+		LOG.debug("updateDeobfMap(): Placing alias = " + alias);
 		deobfMap.add(alias);
 		return deobfMap;
 	}
@@ -222,19 +218,53 @@ public class RenameDialog extends JDialog {
 		renameVisitor.init(rootNode);
 
 		JNodeCache nodeCache = cache.getNodeCache();
-		Set<JClass> updatedClasses = node.getJavaNode().getUseIn()
+		JavaNode javaNode = node.getJavaNode();
+
+		List<JavaNode> toUpdate = new ArrayList<>();
+		if (javaNode != null) {
+			toUpdate.add(javaNode);
+			toUpdate.addAll(javaNode.getUseIn());
+		} else if (node instanceof JPackage) {
+			processPackage(toUpdate);
+		} else {
+			throw new JadxRuntimeException("Unexpected node type: " + node);
+		}
+		Set<JClass> updatedTopClasses = toUpdate
 				.stream()
 				.map(nodeCache::makeFrom)
 				.map(JNode::getRootClass)
+				.filter(Objects::nonNull)
 				.collect(Collectors.toSet());
-		updatedClasses.add(node.getRootClass());
 
-		refreshTabs(mainWindow.getTabbedPane(), updatedClasses);
+		LOG.debug("Classes to update: {}", updatedTopClasses);
 
-		if (!updatedClasses.isEmpty()) {
+		refreshTabs(mainWindow.getTabbedPane(), updatedTopClasses);
+
+		if (!updatedTopClasses.isEmpty()) {
 			mainWindow.getBackgroundExecutor().execute("Refreshing",
-					Utils.collectionMap(updatedClasses, cls -> () -> refreshJClass(cls)),
-					mainWindow::reloadTree);
+					Utils.collectionMap(updatedTopClasses, cls -> () -> refreshJClass(cls)),
+					() -> {
+						if (node instanceof JPackage) {
+							// reinit tree
+							mainWindow.initTree();
+						} else {
+							mainWindow.reloadTree();
+						}
+					});
+		}
+	}
+
+	private void processPackage(List<JavaNode> toUpdate) {
+		String rawFullPkg = ((JPackage) node).getFullName();
+		String rawFullPkgDot = rawFullPkg + ".";
+		for (JavaClass cls : mainWindow.getWrapper().getClasses()) {
+			String clsPkg = cls.getClassNode().getClassInfo().getPackage();
+			// search all classes in package
+			if (clsPkg.equals(rawFullPkg) || clsPkg.startsWith(rawFullPkgDot)) {
+				toUpdate.add(cls);
+				// also include all usages (for import fix)
+				toUpdate.addAll(cls.getUseIn());
+			}
 		}
 	}
 
