@@ -3,12 +3,11 @@ package jadx.gui.ui;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
+import javax.swing.*;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.gui.JadxWrapper;
 import jadx.gui.treemodel.JClass;
@@ -17,6 +16,8 @@ import jadx.gui.utils.NLS;
 
 class JPackagePopupMenu extends JPopupMenu {
 	private static final long serialVersionUID = -7781009781149224131L;
+
+	private static final Logger LOG = LoggerFactory.getLogger(JPackagePopupMenu.class);
 
 	private final transient MainWindow mainWindow;
 
@@ -32,8 +33,8 @@ class JPackagePopupMenu extends JPopupMenu {
 
 	@Nullable
 	private JMenuItem makeRenameMenuItem(JPackage pkg) {
-		List<String> aliasParts = splitPackage(pkg.getName());
-		int count = aliasParts.size();
+		List<String> aliasShortParts = splitPackage(pkg.getName());
+		int count = aliasShortParts.size();
 		if (count == 0) {
 			return null;
 		}
@@ -41,20 +42,20 @@ class JPackagePopupMenu extends JPopupMenu {
 		if (rawPackage == null) {
 			return null;
 		}
+		List<String> aliasParts = splitPackage(pkg.getFullName());
+		List<String> rawParts = splitPackage(rawPackage); // can be longer then alias parts
+		int start = aliasParts.size() - count;
 		if (count == 1) {
 			// single case => no submenu
-			String aliasPkg = aliasParts.get(0);
-			JPackage renamePkg = new JPackage(rawPackage, aliasPkg);
+			JPackage renamePkg = new JPackage(concat(rawParts, start), aliasParts.get(start));
 			JMenuItem pkgItem = new JMenuItem(NLS.str("popup.rename"));
 			pkgItem.addActionListener(e -> rename(renamePkg));
 			return pkgItem;
 		}
-		List<String> rawParts = splitPackage(rawPackage); // can be longer then alias
 		JMenuItem renameSubMenu = new JMenu(NLS.str("popup.rename"));
-		for (int i = 0; i < count; i++) {
-			String rawPkg = concat(rawParts, i);
+		for (int i = start; i < aliasParts.size(); i++) {
 			String aliasShortPkg = aliasParts.get(i);
-			JPackage pkgPart = new JPackage(rawPkg, aliasShortPkg);
+			JPackage pkgPart = new JPackage(concat(rawParts, i), aliasShortPkg);
 			JMenuItem pkgPartItem = new JMenuItem(aliasShortPkg);
 			pkgPartItem.addActionListener(e -> rename(pkgPart));
 			renameSubMenu.add(pkgPartItem);
@@ -76,8 +77,9 @@ class JPackagePopupMenu extends JPopupMenu {
 		return sb.toString();
 	}
 
-	private void rename(JPackage pkgPart) {
-		new RenameDialog(mainWindow, pkgPart).setVisible(true);
+	private void rename(JPackage pkg) {
+		LOG.debug("Renaming package: fullName={}, name={}", pkg.getFullName(), pkg.getName());
+		new RenameDialog(mainWindow, pkg).setVisible(true);
 	}
 
 	private List<String> splitPackage(String rawPackage) {

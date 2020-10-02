@@ -27,6 +27,10 @@ public class AnnotationsParser {
 		this.ext = ext;
 	}
 
+	public AnnotationsParser copy() {
+		return new AnnotationsParser(in.copy(), ext.copy());
+	}
+
 	public void setOffset(int offset) {
 		this.offset = offset;
 		if (offset == 0) {

@@ -8,6 +8,7 @@ import java.util.Objects;
 
 import jadx.core.clsp.ClspClass;
 import jadx.core.clsp.ClspMethod;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
@@ -33,18 +34,23 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 	public boolean visit(ClassNode cls) throws JadxException {
 		List<ArgType> superTypes = collectSuperTypes(cls);
 		for (MethodNode mth : cls.getMethods()) {
-			if (mth.isConstructor() || mth.getAccessFlags().isStatic()) {
-				continue;
-			}
-			String signature = mth.getMethodInfo().makeSignature(false);
-			List<IMethodDetails> overrideList = collectOverrideMethods(cls, superTypes, signature);
-			if (!overrideList.isEmpty()) {
-				mth.addAttr(new MethodOverrideAttr(overrideList));
-				fixMethodReturnType(mth, overrideList, superTypes);
-				fixMethodArgTypes(mth, overrideList, superTypes);
-			}
+			processMth(cls, superTypes, mth);
 		}
 		return true;
+	}
+
+	private void processMth(ClassNode cls, List<ArgType> superTypes, MethodNode mth) {
+		if (mth.isConstructor() || mth.getAccessFlags().isStatic()) {
+			return;
+		}
+		mth.remove(AType.METHOD_OVERRIDE);
+		String signature = mth.getMethodInfo().makeSignature(false);
+		List<IMethodDetails> overrideList = collectOverrideMethods(cls, superTypes, signature);
+		if (!overrideList.isEmpty()) {
+			mth.addAttr(new MethodOverrideAttr(overrideList));
+			fixMethodReturnType(mth, overrideList, superTypes);
+			fixMethodArgTypes(mth, overrideList, superTypes);
+		}
 	}
 
 	private List<IMethodDetails> collectOverrideMethods(ClassNode cls, List<ArgType> superTypes, String signature) {

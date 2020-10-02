@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,16 +61,16 @@ public class JSources extends JNode {
 		do {
 			repeat = false;
 			for (JPackage pkg : pkgMap.values()) {
-				if (pkg.getInnerPackages().size() == 1 && pkg.getClasses().isEmpty()) {
-					JPackage innerPkg = pkg.getInnerPackages().get(0);
-					pkg.getInnerPackages().clear();
-					pkg.getInnerPackages().addAll(innerPkg.getInnerPackages());
-					pkg.getClasses().addAll(innerPkg.getClasses());
-					pkg.setName(pkg.getName() + '.' + innerPkg.getName());
+				List<JPackage> innerPackages = pkg.getInnerPackages();
+				if (innerPackages.size() == 1 && pkg.getClasses().isEmpty()) {
+					JPackage innerPkg = innerPackages.get(0);
+					pkg.setInnerPackages(innerPkg.getInnerPackages());
+					pkg.setClasses(innerPkg.getClasses());
+					String innerName = '.' + innerPkg.getName();
+					pkg.updateBothNames(pkg.getFullName() + innerName, pkg.getName() + innerName, wrapper);
 
-					innerPkg.getInnerPackages().clear();
-					innerPkg.getClasses().clear();
-
+					innerPkg.setInnerPackages(Collections.emptyList());
+					innerPkg.setClasses(Collections.emptyList());
 					repeat = true;
 					break;
 				}
@@ -79,12 +78,8 @@ public class JSources extends JNode {
 		} while (repeat);
 
 		// remove empty packages
-		for (Iterator<Map.Entry<String, JPackage>> it = pkgMap.entrySet().iterator(); it.hasNext();) {
-			JPackage pkg = it.next().getValue();
-			if (pkg.getInnerPackages().isEmpty() && pkg.getClasses().isEmpty()) {
-				it.remove();
-			}
-		}
+		pkgMap.values().removeIf(pkg -> pkg.getInnerPackages().isEmpty() && pkg.getClasses().isEmpty());
+
 		// use identity set for collect inner packages
 		Set<JPackage> innerPackages = Collections.newSetFromMap(new IdentityHashMap<>());
 		for (JPackage pkg : pkgMap.values()) {
@@ -102,7 +97,7 @@ public class JSources extends JNode {
 	}
 
 	private void addPackage(Map<String, JPackage> pkgs, JPackage pkg) {
-		String pkgName = pkg.getName();
+		String pkgName = pkg.getFullName();
 		JPackage replaced = pkgs.put(pkgName, pkg);
 		if (replaced != null) {
 			pkg.getInnerPackages().addAll(replaced.getInnerPackages());
@@ -112,7 +107,7 @@ public class JSources extends JNode {
 		if (dot > 0) {
 			String prevPart = pkgName.substring(0, dot);
 			String shortName = pkgName.substring(dot + 1);
-			pkg.setName(shortName);
+			pkg.updateName(shortName);
 			JPackage prevPkg = pkgs.get(prevPart);
 			if (prevPkg == null) {
 				prevPkg = new JPackage(prevPart, wrapper);

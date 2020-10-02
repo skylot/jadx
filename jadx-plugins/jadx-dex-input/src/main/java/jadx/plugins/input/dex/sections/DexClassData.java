@@ -29,7 +29,7 @@ public class DexClassData implements IClassData {
 
 	@Override
 	public IClassData copy() {
-		return new DexClassData(in.copy(), annotationsParser);
+		return new DexClassData(in.copy(), annotationsParser.copy());
 	}
 
 	@Override

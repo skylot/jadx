@@ -22,9 +22,6 @@ public enum AFlag {
 
 	HIDDEN, // instruction used inside other instruction but not listed in args
 
-	RESTART_CODEGEN, // codegen must be executed again
-	RELOAD_AT_CODEGEN_STAGE, // class can't be analyzed at 'process' stage => unload before 'codegen' stage
-
 	DONT_RENAME, // do not rename during deobfuscation
 	ADDED_TO_REGION,
 
@@ -75,6 +72,11 @@ public enum AFlag {
 	INCONSISTENT_CODE, // warning about incorrect decompilation
 
 	REQUEST_IF_REGION_OPTIMIZE, // run if region visitor again
+
+	// Class processing flags
+	RESTART_CODEGEN, // codegen must be executed again
+	RELOAD_AT_CODEGEN_STAGE, // class can't be analyzed at 'process' stage => unload before 'codegen' stage
+	CLASS_DEEP_RELOAD, // perform deep class unload (reload) before process
 
 	DONT_UNLOAD_CLASS, // don't unload class after code generation (only for tests and debug!)
 }

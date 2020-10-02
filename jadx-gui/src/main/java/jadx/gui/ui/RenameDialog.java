@@ -269,8 +269,12 @@ public class RenameDialog extends JDialog {
 	}
 
 	private void refreshJClass(JClass cls) {
-		cls.refresh();
-		IndexJob.refreshIndex(cache, cls.getCls());
+		try {
+			cls.reload();
+			IndexJob.refreshIndex(cache, cls.getCls());
+		} catch (Throwable e) {
+			LOG.error("Failed to reload class: {}", cls, e);
+		}
 	}
 
 	private void refreshTabs(TabbedPane tabbedPane, Set<JClass> updatedClasses) {

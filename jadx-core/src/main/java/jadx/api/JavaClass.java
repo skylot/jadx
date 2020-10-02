@@ -57,7 +57,7 @@ public final class JavaClass implements JavaNode {
 		cls.decompile();
 	}
 
-	public synchronized void refresh() {
+	public synchronized void reload() {
 		listsLoaded = false;
 		cls.reloadCode();
 	}

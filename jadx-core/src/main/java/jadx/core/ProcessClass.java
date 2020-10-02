@@ -31,6 +31,12 @@ public final class ProcessClass {
 		}
 		synchronized (cls.getClassInfo()) {
 			try {
+				if (cls.contains(AFlag.CLASS_DEEP_RELOAD)) {
+					cls.remove(AFlag.CLASS_DEEP_RELOAD);
+					cls.unload();
+					cls.deepUnload();
+					cls.root().runPreDecompileStageForClass(cls);
+				}
 				if (codegen) {
 					if (cls.getState() == GENERATED_AND_UNLOADED) {
 						// allow to run code generation again
