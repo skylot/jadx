@@ -167,6 +167,8 @@ public class EnumVisitor extends AbstractVisitor {
 		InsnRemover.removeAllAndUnbind(classInitMth, staticBlock, toRemove);
 		if (classInitMth.countInsns() == 0) {
 			classInitMth.add(AFlag.DONT_GENERATE);
+		} else if (!toRemove.isEmpty()) {
+			CodeShrinkVisitor.shrinkMethod(classInitMth);
 		}
 		removeEnumMethods(cls, clsType, valuesField);
 		return true;
@@ -263,13 +265,14 @@ public class EnumVisitor extends AbstractVisitor {
 				InsnNode wrappedInsn = ((InsnWrapArg) arg).getWrapInsn();
 				field = processEnumFieldByField(cls, wrappedInsn, staticBlock, toRemove);
 			} else if (arg.isRegister()) {
-				field = processEnumFiledByRegister(cls, (RegisterArg) arg, toRemove);
+				field = processEnumFiledByRegister(cls, (RegisterArg) arg, staticBlock, toRemove);
 			}
 			if (field == null) {
 				return null;
 			}
 			enumFields.add(field);
 		}
+		toRemove.add(arrFillInsn);
 		return enumFields;
 	}
 
@@ -292,13 +295,21 @@ public class EnumVisitor extends AbstractVisitor {
 		if (co == null) {
 			return null;
 		}
-		toRemove.add(sgetInsn);
+		RegisterArg sgetResult = sgetInsn.getResult();
+		if (sgetResult == null || sgetResult.getSVar().getUseCount() == 1) {
+			toRemove.add(sgetInsn);
+		}
 		toRemove.add(sputInsn);
 		return createEnumFieldByConstructor(cls, enumFieldNode, co);
 	}
 
 	@Nullable
-	private EnumField processEnumFiledByRegister(ClassNode cls, RegisterArg arg, List<InsnNode> toRemove) {
+	private EnumField processEnumFiledByRegister(ClassNode cls, RegisterArg arg, BlockNode staticBlock, List<InsnNode> toRemove) {
+		InsnNode assignInsn = arg.getAssignInsn();
+		if (assignInsn != null && assignInsn.getType() == InsnType.SGET) {
+			return processEnumFieldByField(cls, assignInsn, staticBlock, toRemove);
+		}
+
 		SSAVar ssaVar = arg.getSVar();
 		if (ssaVar.getUseCount() == 1) {
 			return null;
