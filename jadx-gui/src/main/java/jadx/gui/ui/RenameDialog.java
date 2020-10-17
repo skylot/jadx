@@ -137,8 +137,8 @@ public class RenameDialog extends JDialog {
 		File tmpFile = File.createTempFile("deobf_tmp_", ".txt");
 		try (FileOutputStream fileOut = new FileOutputStream(tmpFile)) {
 			for (String entry : deobfMap) {
-				fileOut.write(entry.getBytes());
-				fileOut.write(System.lineSeparator().getBytes());
+				fileOut.write(entry.getBytes(StandardCharsets.UTF_8));
+				fileOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
 			}
 		}
 		File oldMap = File.createTempFile("deobf_bak_", ".txt");
