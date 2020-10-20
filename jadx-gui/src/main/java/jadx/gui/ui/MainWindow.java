@@ -46,6 +46,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToggleButton;
@@ -603,10 +604,21 @@ public class MainWindow extends JFrame {
 		}
 	}
 
+	private void rename(JNode node) {
+		RenameDialog renameDialog = new RenameDialog(this, node);
+		renameDialog.setVisible(true);
+	}
+
 	private void treeRightClickAction(MouseEvent e) {
-		Object obj = getJNodeUnderMouse(e);
+		JNode obj = getJNodeUnderMouse(e);
 		if (obj instanceof JPackage) {
 			JPackagePopupMenu menu = new JPackagePopupMenu(this, (JPackage) obj);
+			menu.show(e.getComponent(), e.getX(), e.getY());
+		} else if (obj != null) {
+			JPopupMenu menu = new JPopupMenu();
+			JMenuItem jmi = new JMenuItem(NLS.str("popup.rename"));
+			jmi.addActionListener(action -> rename(obj));
+			menu.add(jmi);
 			menu.show(e.getComponent(), e.getX(), e.getY());
 		}
 	}
