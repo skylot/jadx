@@ -174,6 +174,7 @@ public class RootNode {
 			for(ResourceEntry ri : parser.getResStorage().getResources()) {
 				if(resource.getOriginalName().equals(valuesParser.getValueString(ri))) {
 					resource.setAlias(ri);
+					break;
 				}
 			}
 		}
