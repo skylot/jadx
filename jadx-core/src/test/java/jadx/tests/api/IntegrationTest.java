@@ -243,7 +243,7 @@ public abstract class IntegrationTest extends TestUtils {
 			Integer id = entry.getKey();
 			String name = entry.getValue();
 			String[] parts = name.split("\\.");
-			resStorage.add(new ResourceEntry(id, "", parts[0], parts[1]));
+			resStorage.add(new ResourceEntry(id, "", parts[0], parts[1], ""));
 		}
 		root.processResources(resStorage);
 	}

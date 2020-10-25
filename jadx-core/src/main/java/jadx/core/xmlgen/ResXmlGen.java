@@ -211,7 +211,7 @@ public class ResXmlGen {
 
 	private String getFileName(ResourceEntry ri) {
 		StringBuilder sb = new StringBuilder();
-		String qualifiers = ri.getConfig().getQualifiers();
+		String qualifiers = ri.getConfig();
 		sb.append("res/values");
 		if (!qualifiers.isEmpty()) {
 			sb.append(qualifiers);

@@ -218,7 +218,7 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 				return SyntaxConstants.SYNTAX_STYLE_XML;
 
 			default:
-				String syntax = getSyntaxByExtension(resFile.getName());
+				String syntax = getSyntaxByExtension(resFile.getDeobfName());
 				if (syntax != null) {
 					return syntax;
 				}

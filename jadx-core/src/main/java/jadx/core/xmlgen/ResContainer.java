@@ -30,7 +30,7 @@ public class ResContainer implements Comparable<ResContainer> {
 	}
 
 	public static ResContainer resourceFileLink(ResourceFile resFile) {
-		return new ResContainer(resFile.getName(), Collections.emptyList(), resFile, DataType.RES_LINK);
+		return new ResContainer(resFile.getDeobfName(), Collections.emptyList(), resFile, DataType.RES_LINK);
 	}
 
 	public static ResContainer resourceTable(String name, List<ResContainer> subFiles, ICodeInfo rootContent) {

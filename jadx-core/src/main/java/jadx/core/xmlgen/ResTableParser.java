@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -241,12 +242,12 @@ public class ResTableParser extends CommonBinaryParser {
 		is.checkPos(entriesStart, "Expected entry start");
 		for (int i = 0; i < entryCount; i++) {
 			if (entryIndexes[i] != NO_ENTRY) {
-				parseEntry(pkg, id, i, config);
+				parseEntry(pkg, id, i, config.getQualifiers());
 			}
 		}
 	}
 
-	private void parseEntry(PackageChunk pkg, int typeId, int entryId, EntryConfig config) throws IOException {
+	private void parseEntry(PackageChunk pkg, int typeId, int entryId, String config) throws IOException {
 		int size = is.readInt16();
 		int flags = is.readInt16();
 		int key = is.readInt32();
@@ -256,32 +257,50 @@ public class ResTableParser extends CommonBinaryParser {
 
 		int resRef = pkg.getId() << 24 | typeId << 16 | entryId;
 		String typeName = pkg.getTypeStrings()[typeId - 1];
-		String keyName = pkg.getKeyStrings()[key];
-		if (keyName.isEmpty()) {
-			FieldNode constField = root.getConstValues().getGlobalConstFields().get(resRef);
-			if (constField != null) {
-				keyName = constField.getName();
-				constField.add(AFlag.DONT_RENAME);
-			} else {
-				keyName = "RES_" + resRef; // autogenerate key name
-			}
+		String origKeyName = pkg.getKeyStrings()[key];
+		ResourceEntry newResEntry = new ResourceEntry(resRef, pkg.getName(), typeName, getResName(resRef, origKeyName), config);
+		ResourceEntry prevResEntry = resStorage.searchEntryWithSameName(newResEntry);
+		if (prevResEntry != null) {
+			newResEntry = newResEntry.copyWithId();
+
+			// rename also previous entry for consistency
+			ResourceEntry replaceForPrevEntry = prevResEntry.copyWithId();
+			resStorage.replace(prevResEntry, replaceForPrevEntry);
+			resStorage.addRename(replaceForPrevEntry);
 		}
-		ResourceEntry ri = new ResourceEntry(resRef, pkg.getName(), typeName, keyName);
-		ri.setConfig(config);
+		if (!Objects.equals(origKeyName, newResEntry.getKeyName())) {
+			resStorage.addRename(newResEntry);
+		}
 
 		if ((flags & FLAG_COMPLEX) != 0 || size == 16) {
 			int parentRef = is.readInt32();
 			int count = is.readInt32();
-			ri.setParentRef(parentRef);
+			newResEntry.setParentRef(parentRef);
 			List<RawNamedValue> values = new ArrayList<>(count);
 			for (int i = 0; i < count; i++) {
 				values.add(parseValueMap());
 			}
-			ri.setNamedValues(values);
+			newResEntry.setNamedValues(values);
 		} else {
-			ri.setSimpleValue(parseValue());
+			newResEntry.setSimpleValue(parseValue());
 		}
-		resStorage.add(ri);
+		resStorage.add(newResEntry);
+	}
+
+	private String getResName(int resRef, String origKeyName) {
+		String renamedKey = resStorage.getRename(resRef);
+		if (renamedKey != null) {
+			return renamedKey;
+		}
+		if (!origKeyName.isEmpty()) {
+			return origKeyName;
+		}
+		FieldNode constField = root.getConstValues().getGlobalConstFields().get(resRef);
+		if (constField != null) {
+			constField.add(AFlag.DONT_RENAME);
+			return constField.getName();
+		}
+		return "RES_" + resRef; // autogenerate key name
 	}
 
 	private RawNamedValue parseValueMap() throws IOException {

@@ -55,7 +55,7 @@ public final class ResourcesLoader {
 		try {
 			ZipRef zipRef = rf.getZipRef();
 			if (zipRef == null) {
-				File file = new File(rf.getName());
+				File file = new File(rf.getOriginalName());
 				try (InputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
 					return decoder.decode(file.length(), inputStream);
 				}
@@ -74,7 +74,7 @@ public final class ResourcesLoader {
 				}
 			}
 		} catch (Exception e) {
-			throw new JadxException("Error decode: " + rf.getName(), e);
+			throw new JadxException("Error decode: " + rf.getDeobfName(), e);
 		}
 	}
 
@@ -86,7 +86,7 @@ public final class ResourcesLoader {
 			CodeWriter cw = new CodeWriter();
 			cw.add("Error decode ").add(rf.getType().toString().toLowerCase());
 			Utils.appendStackTrace(cw, e.getCause());
-			return ResContainer.textResource(rf.getName(), cw.finish());
+			return ResContainer.textResource(rf.getDeobfName(), cw.finish());
 		}
 	}
 
@@ -96,7 +96,7 @@ public final class ResourcesLoader {
 			case MANIFEST:
 			case XML:
 				ICodeInfo content = jadxRef.getXmlParser().parse(inputStream);
-				return ResContainer.textResource(rf.getName(), content);
+				return ResContainer.textResource(rf.getOriginalName(), content);
 
 			case ARSC:
 				return new ResTableParser(jadxRef.getRoot()).decodeFiles(inputStream);
@@ -110,12 +110,12 @@ public final class ResourcesLoader {
 	}
 
 	private static ResContainer decodeImage(ResourceFile rf, InputStream inputStream) {
-		String name = rf.getName();
+		String name = rf.getOriginalName();
 		if (name.endsWith(".9.png")) {
 			try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
 				Res9patchStreamDecoder decoder = new Res9patchStreamDecoder();
 				decoder.decode(inputStream, os);
-				return ResContainer.decodedData(rf.getName(), os.toByteArray());
+				return ResContainer.decodedData(rf.getDeobfName(), os.toByteArray());
 			} catch (Exception e) {
 				LOG.error("Failed to decode 9-patch png image, path: {}", name, e);
 			}

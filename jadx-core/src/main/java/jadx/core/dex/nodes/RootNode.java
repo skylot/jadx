@@ -39,6 +39,8 @@ import jadx.core.utils.android.AndroidResourcesUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.ResTableParser;
 import jadx.core.xmlgen.ResourceStorage;
+import jadx.core.xmlgen.entry.ResourceEntry;
+import jadx.core.xmlgen.entry.ValuesParser;
 
 public class RootNode {
 	private static final Logger LOG = LoggerFactory.getLogger(RootNode.class);
@@ -131,13 +133,14 @@ public class RootNode {
 			return;
 		}
 		try {
-			ResourceStorage resStorage = ResourcesLoader.decodeStream(arsc, (size, is) -> {
-				ResTableParser parser = new ResTableParser(this);
-				parser.decode(is);
-				return parser.getResStorage();
+			ResTableParser parser = ResourcesLoader.decodeStream(arsc, (size, is) -> {
+				ResTableParser tableParser = new ResTableParser(this);
+				tableParser.decode(is);
+				return tableParser;
 			});
-			if (resStorage != null) {
-				processResources(resStorage);
+			if (parser != null) {
+				processResources(parser.getResStorage());
+				updateObfuscatedFiles(parser, resources);
 			}
 		} catch (Exception e) {
 			LOG.error("Failed to parse '.arsc' file", e);
@@ -160,6 +163,20 @@ public class RootNode {
 			}
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Error loading jadx class set", e);
+		}
+	}
+
+	private void updateObfuscatedFiles(ResTableParser parser, List<ResourceFile> resources) {
+		ResourceStorage resStorage = parser.getResStorage();
+		ValuesParser valuesParser = new ValuesParser(this, parser.getStrings(), resStorage.getResourcesNames());
+		for (int i = 0; i < resources.size(); i++) {
+			ResourceFile resource = resources.get(i);
+			for (ResourceEntry ri : parser.getResStorage().getResources()) {
+				if (resource.getOriginalName().equals(valuesParser.getValueString(ri))) {
+					resource.setAlias(ri);
+					break;
+				}
+			}
 		}
 	}
 

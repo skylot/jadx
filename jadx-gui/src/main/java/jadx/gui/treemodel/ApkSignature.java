@@ -33,7 +33,7 @@ public class ApkSignature extends JNode {
 	public static ApkSignature getApkSignature(JadxWrapper wrapper) {
 		// Only show the ApkSignature node if an AndroidManifest.xml is present.
 		// Without a manifest the Google ApkVerifier refuses to work.
-		if (wrapper.getResources().stream().noneMatch(r -> "AndroidManifest.xml".equals(r.getName()))) {
+		if (wrapper.getResources().stream().noneMatch(r -> "AndroidManifest.xml".equals(r.getOriginalName()))) {
 			return null;
 		}
 		File openFile = wrapper.getOpenFile();
