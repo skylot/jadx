@@ -12,6 +12,6 @@ public class ResourceFileContent extends ResourceFile {
 
 	@Override
 	public ResContainer loadContent() {
-		return ResContainer.textResource(getName(), content);
+		return ResContainer.textResource(getDeobfName(), content);
 	}
 }

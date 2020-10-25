@@ -4,6 +4,7 @@ import java.io.File;
 
 import jadx.api.plugins.utils.ZipSecurity;
 import jadx.core.xmlgen.ResContainer;
+import jadx.core.xmlgen.entry.ResourceEntry;
 
 public class ResourceFile {
 
@@ -34,6 +35,7 @@ public class ResourceFile {
 	private final String name;
 	private final ResourceType type;
 	private ZipRef zipRef;
+	private ResourceEntry alias;
 
 	public static ResourceFile createResourceFile(JadxDecompiler decompiler, String name, ResourceType type) {
 		if (!ZipSecurity.isValidZipEntryName(name)) {
@@ -48,12 +50,28 @@ public class ResourceFile {
 		this.type = type;
 	}
 
-	public String getName() {
+	public String getOriginalName() {
 		return name;
+	}
+	
+	public String getDeobfName() {
+		if(alias == null) {
+			return getOriginalName();
+		}
+		int index = name.lastIndexOf('.');
+		return String.format("%s%s/%s%s",
+				alias.getTypeName(),
+				alias.getConfig(),
+				alias.getKeyName(),
+				index == -1 ? "" : name.substring(index));
 	}
 
 	public ResourceType getType() {
 		return type;
+	}
+	
+	public ResourceEntry getAlias() {
+		return alias;
 	}
 
 	public ResContainer loadContent() {
@@ -62,6 +80,10 @@ public class ResourceFile {
 
 	void setZipRef(ZipRef zipRef) {
 		this.zipRef = zipRef;
+	}
+	
+	public void setAlias(ResourceEntry ri) {
+		this.alias = ri;
 	}
 
 	public ZipRef getZipRef() {

@@ -52,9 +52,9 @@ public class JRoot extends JNode {
 		for (ResourceFile rf : resources) {
 			String rfName;
 			if (rf.getZipRef() != null) {
-				rfName = rf.getName();
+				rfName = rf.getDeobfName();
 			} else {
-				rfName = new File(rf.getName()).getName();
+				rfName = new File(rf.getDeobfName()).getName();
 			}
 			String[] parts = new File(rfName).getPath().split(splitPathStr);
 			JResource curRf = root;
