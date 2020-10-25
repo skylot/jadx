@@ -8,21 +8,30 @@ public final class ResourceEntry {
 	private final String pkgName;
 	private final String typeName;
 	private final String keyName;
+	private final String config;
 
 	private int parentRef;
 	private RawValue simpleValue;
 	private List<RawNamedValue> namedValues;
-	private EntryConfig config;
 
-	public ResourceEntry(int id, String pkgName, String typeName, String keyName) {
+	public ResourceEntry(int id, String pkgName, String typeName, String keyName, String config) {
 		this.id = id;
 		this.pkgName = pkgName;
 		this.typeName = typeName;
 		this.keyName = keyName;
+		this.config = config;
 	}
 
-	public ResourceEntry(int id) {
-		this(id, "", "", "");
+	public ResourceEntry copy(String newKeyName) {
+		ResourceEntry copy = new ResourceEntry(id, pkgName, typeName, newKeyName, config);
+		copy.parentRef = this.parentRef;
+		copy.simpleValue = this.simpleValue;
+		copy.namedValues = this.namedValues;
+		return copy;
+	}
+
+	public ResourceEntry copyWithId() {
+		return copy(keyName + "_RES_" + id);
 	}
 
 	public int getId() {
@@ -39,6 +48,10 @@ public final class ResourceEntry {
 
 	public String getKeyName() {
 		return keyName;
+	}
+
+	public String getConfig() {
+		return config;
 	}
 
 	public void setParentRef(int parentRef) {
@@ -63,14 +76,6 @@ public final class ResourceEntry {
 
 	public List<RawNamedValue> getNamedValues() {
 		return namedValues;
-	}
-
-	public void setConfig(EntryConfig config) {
-		this.config = config;
-	}
-
-	public EntryConfig getConfig() {
-		return config;
 	}
 
 	@Override
