@@ -165,14 +165,14 @@ public class RootNode {
 			throw new JadxRuntimeException("Error loading jadx class set", e);
 		}
 	}
-	
+
 	private void updateObfuscatedFiles(ResTableParser parser, List<ResourceFile> resources) {
 		ResourceStorage resStorage = parser.getResStorage();
 		ValuesParser valuesParser = new ValuesParser(this, parser.getStrings(), resStorage.getResourcesNames());
-		for(int i = 0; i < resources.size(); i++) {
+		for (int i = 0; i < resources.size(); i++) {
 			ResourceFile resource = resources.get(i);
-			for(ResourceEntry ri : parser.getResStorage().getResources()) {
-				if(resource.getOriginalName().equals(valuesParser.getValueString(ri))) {
+			for (ResourceEntry ri : parser.getResStorage().getResources()) {
+				if (resource.getOriginalName().equals(valuesParser.getValueString(ri))) {
 					resource.setAlias(ri);
 					break;
 				}

@@ -35,7 +35,7 @@ public class ResourceFile {
 	private final String name;
 	private final ResourceType type;
 	private ZipRef zipRef;
-	private ResourceEntry alias;
+	private String deobfName;
 
 	public static ResourceFile createResourceFile(JadxDecompiler decompiler, String name, ResourceType type) {
 		if (!ZipSecurity.isValidZipEntryName(name)) {
@@ -53,25 +53,13 @@ public class ResourceFile {
 	public String getOriginalName() {
 		return name;
 	}
-	
+
 	public String getDeobfName() {
-		if(alias == null) {
-			return getOriginalName();
-		}
-		int index = name.lastIndexOf('.');
-		return String.format("%s%s/%s%s",
-				alias.getTypeName(),
-				alias.getConfig(),
-				alias.getKeyName(),
-				index == -1 ? "" : name.substring(index));
+		return deobfName != null ? deobfName : name;
 	}
 
 	public ResourceType getType() {
 		return type;
-	}
-	
-	public ResourceEntry getAlias() {
-		return alias;
 	}
 
 	public ResContainer loadContent() {
@@ -81,9 +69,14 @@ public class ResourceFile {
 	void setZipRef(ZipRef zipRef) {
 		this.zipRef = zipRef;
 	}
-	
+
 	public void setAlias(ResourceEntry ri) {
-		this.alias = ri;
+		int index = name.lastIndexOf('.');
+		deobfName = String.format("%s%s/%s%s",
+				ri.getTypeName(),
+				ri.getConfig(),
+				ri.getKeyName(),
+				index == -1 ? "" : name.substring(index));
 	}
 
 	public ZipRef getZipRef() {
