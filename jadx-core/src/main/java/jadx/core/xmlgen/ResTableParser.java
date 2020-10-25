@@ -266,6 +266,9 @@ public class ResTableParser extends CommonBinaryParser {
 				keyName = "RES_" + resRef; // autogenerate key name
 			}
 		}
+		if(resStorage.containsName(typeName, keyName)) {
+			keyName = keyName + "_RES_" + resRef;
+		}
 		ResourceEntry ri = new ResourceEntry(resRef, pkg.getName(), typeName, keyName);
 		ri.setConfig(config);
 
