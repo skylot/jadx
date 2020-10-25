@@ -35,12 +35,14 @@ public class ResourceStorage {
 		}
 		return list.get(index);
 	}
-	
+
 	public boolean containsName(String typeName, String keyName) {
-		ResourceEntry key = new ResourceEntry(-1, null, typeName, keyName);
-		int index = Collections.binarySearch(list, key, Comparator.comparing((ResourceEntry r) -> r.getTypeName())
-		          .thenComparing(r -> r.getKeyName()));
-		return index >= 0;
+		for (ResourceEntry res : list) {
+			if (res.getTypeName().equals(typeName) && res.getKeyName().equals(keyName)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public String getAppPackage() {
