@@ -72,7 +72,7 @@ public class ResourceFile {
 
 	public void setAlias(ResourceEntry ri) {
 		int index = name.lastIndexOf('.');
-		deobfName = String.format("%s%s/%s%s",
+		deobfName = String.format("res/%s%s/%s%s",
 				ri.getTypeName(),
 				ri.getConfig(),
 				ri.getKeyName(),
