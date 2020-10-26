@@ -48,6 +48,15 @@ public class ValuesParser extends ParserConstants {
 	}
 
 	@Nullable
+	public String getSimpleValueString(ResourceEntry ri) {
+		RawValue simpleValue = ri.getSimpleValue();
+		if (simpleValue == null) {
+			return null;
+		}
+		return decodeValue(simpleValue);
+	}
+
+	@Nullable
 	public String getValueString(ResourceEntry ri) {
 		RawValue simpleValue = ri.getSimpleValue();
 		if (simpleValue != null) {

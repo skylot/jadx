@@ -167,16 +167,29 @@ public class RootNode {
 	}
 
 	private void updateObfuscatedFiles(ResTableParser parser, List<ResourceFile> resources) {
+		if (args.isSkipResources()) {
+			return;
+		}
+		long start = System.currentTimeMillis();
+		int renamedCount = 0;
 		ResourceStorage resStorage = parser.getResStorage();
 		ValuesParser valuesParser = new ValuesParser(this, parser.getStrings(), resStorage.getResourcesNames());
-		for (int i = 0; i < resources.size(); i++) {
-			ResourceFile resource = resources.get(i);
-			for (ResourceEntry ri : parser.getResStorage().getResources()) {
-				if (resource.getOriginalName().equals(valuesParser.getValueString(ri))) {
-					resource.setAlias(ri);
-					break;
-				}
+		Map<String, ResourceEntry> entryNames = new HashMap<>();
+		for (ResourceEntry resEntry : resStorage.getResources()) {
+			String val = valuesParser.getSimpleValueString(resEntry);
+			if (val != null) {
+				entryNames.put(val, resEntry);
 			}
+		}
+		for (ResourceFile resource : resources) {
+			ResourceEntry resEntry = entryNames.get(resource.getOriginalName());
+			if (resEntry != null) {
+				resource.setAlias(resEntry);
+				renamedCount++;
+			}
+		}
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Renamed obfuscated resources: {}, duration: {}ms", renamedCount, System.currentTimeMillis() - start);
 		}
 	}
 
