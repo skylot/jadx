@@ -20,7 +20,6 @@ import jadx.core.xmlgen.ResTableParser;
 public class ValuesParser extends ParserConstants {
 	private static final Logger LOG = LoggerFactory.getLogger(ValuesParser.class);
 
-	private static String[] androidStrings;
 	private static Map<Integer, String> androidResMap;
 
 	private final String[] strings;
@@ -30,7 +29,7 @@ public class ValuesParser extends ParserConstants {
 		this.strings = strings;
 		this.resMap = resMap;
 
-		if (androidStrings == null && androidResMap == null) {
+		if (androidResMap == null) {
 			try {
 				decodeAndroid(root);
 			} catch (Exception e) {
@@ -39,11 +38,11 @@ public class ValuesParser extends ParserConstants {
 		}
 	}
 
+	// TODO: store only needed data instead full resources.arsc file
 	private static void decodeAndroid(RootNode root) throws IOException {
 		try (InputStream inputStream = new BufferedInputStream(ValuesParser.class.getResourceAsStream("/resources.arsc"))) {
 			ResTableParser androidParser = new ResTableParser(root);
 			androidParser.decode(inputStream);
-			androidStrings = androidParser.getStrings();
 			androidResMap = androidParser.getResStorage().getResourcesNames();
 		}
 	}
