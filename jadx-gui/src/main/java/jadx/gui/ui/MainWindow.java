@@ -1116,6 +1116,7 @@ public class MainWindow extends JFrame {
 		settings.setMainWindowExtendedState(getExtendedState());
 		cancelBackgroundJobs();
 		wrapper.close();
+		heapUsageBar.reset();
 		dispose();
 
 		FileUtils.deleteTempRootDir();

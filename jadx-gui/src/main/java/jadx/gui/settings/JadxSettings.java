@@ -35,7 +35,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private static final Path USER_HOME = Paths.get(System.getProperty("user.home"));
 	private static final int RECENT_PROJECTS_COUNT = 15;
-	private static final int CURRENT_SETTINGS_VERSION = 9;
+	private static final int CURRENT_SETTINGS_VERSION = 10;
 
 	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
@@ -57,7 +57,7 @@ public class JadxSettings extends JadxCLIArgs {
 	protected String excludedPackages = "";
 	private boolean autoSaveProject = false;
 
-	private boolean showHeapUsageBar = true;
+	private boolean showHeapUsageBar = false;
 
 	private Map<String, WindowLocation> windowPos = new HashMap<>();
 	private int mainWindowExtendedState = JFrame.NORMAL;
@@ -434,6 +434,10 @@ public class JadxSettings extends JadxCLIArgs {
 			fromVersion++;
 		}
 		if (fromVersion == 8) {
+			fromVersion++;
+		}
+		if (fromVersion == 9) {
+			showHeapUsageBar = false;
 			fromVersion++;
 		}
 		settingsVersion = CURRENT_SETTINGS_VERSION;
