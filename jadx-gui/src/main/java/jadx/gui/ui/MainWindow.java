@@ -512,7 +512,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void clearTree() {
-		tabbedPane.closeAllTabs();
+		tabbedPane.reset();
 		resetCache();
 		treeRoot = null;
 		treeModel.setRoot(null);

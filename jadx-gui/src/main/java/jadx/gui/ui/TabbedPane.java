@@ -214,4 +214,10 @@ public class TabbedPane extends JTabbedPane {
 			}
 		}
 	}
+
+	public void reset() {
+		closeAllTabs();
+		openTabs.clear();
+		jumps.reset();
+	}
 }

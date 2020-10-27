@@ -87,4 +87,8 @@ public class JumpManager {
 		currentPos = newPos;
 		return position;
 	}
+
+	public void reset() {
+		list.clear();
+	}
 }
