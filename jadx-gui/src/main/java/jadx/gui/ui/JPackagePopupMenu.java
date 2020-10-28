@@ -87,8 +87,9 @@ class JPackagePopupMenu extends JPopupMenu {
 	}
 
 	private String getRawPackage(JPackage pkg) {
-		for (JClass cls : pkg.getClasses()) {
-			return cls.getRootClass().getCls().getClassNode().getClassInfo().getPackage();
+		List<JClass> classes = pkg.getClasses();
+		if (!classes.isEmpty()) {
+			return classes.get(0).getRootClass().getCls().getClassNode().getClassInfo().getPackage();
 		}
 		for (JPackage innerPkg : pkg.getInnerPackages()) {
 			String rawPackage = getRawPackage(innerPkg);

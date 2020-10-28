@@ -34,7 +34,7 @@ public class ConvertToClsSet {
 			usage();
 			System.exit(1);
 		}
-		List<Path> inputPaths = Stream.of(args).map(s -> Paths.get(s)).collect(Collectors.toList());
+		List<Path> inputPaths = Stream.of(args).map(Paths::get).collect(Collectors.toList());
 		Path output = inputPaths.remove(0);
 
 		JadxPluginManager pluginManager = new JadxPluginManager();

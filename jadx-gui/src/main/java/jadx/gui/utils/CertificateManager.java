@@ -155,7 +155,7 @@ public class CertificateManager {
 
 	public static String getThumbPrint(X509Certificate cert, String type)
 			throws NoSuchAlgorithmException, CertificateEncodingException {
-		MessageDigest md = MessageDigest.getInstance(type);
+		MessageDigest md = MessageDigest.getInstance(type); // lgtm [java/weak-cryptographic-algorithm]
 		byte[] der = cert.getEncoded();
 		md.update(der);
 		byte[] digest = md.digest();

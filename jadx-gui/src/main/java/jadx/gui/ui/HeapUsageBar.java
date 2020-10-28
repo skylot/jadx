@@ -25,7 +25,7 @@ public class HeapUsageBar extends JProgressBar {
 
 	private static final Logger LOG = LoggerFactory.getLogger(HeapUsageBar.class);
 
-	private static final double GB = 1024 * 1024 * 1024;
+	private static final double GB = 1024 * 1024 * 1024d;
 
 	private static final Color GREEN = new Color(0, 180, 0);
 	private static final Color RED = new Color(200, 0, 0);
