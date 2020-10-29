@@ -586,7 +586,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	public void reloadAtCodegenStage() {
 		ClassNode topCls = this.getTopParentClass();
 		if (topCls.getLoadStage() == LoadStage.CODEGEN_STAGE) {
-			throw new JadxRuntimeException("Class not yet loaded at codegen stage");
+			throw new JadxRuntimeException("Class not yet loaded at codegen stage: " + topCls);
 		}
 		topCls.add(AFlag.RELOAD_AT_CODEGEN_STAGE);
 	}

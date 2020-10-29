@@ -57,7 +57,7 @@ public class InlineMethods extends AbstractVisitor {
 			MethodInlineAttr mia = MarkMethodsForInline.process(callMth);
 			if (mia == null) {
 				// method not yet loaded => will retry at codegen stage
-				mth.getParentClass().reloadAtCodegenStage();
+				callMth.getParentClass().reloadAtCodegenStage();
 				return;
 			}
 			if (mia.notNeeded()) {
@@ -65,7 +65,7 @@ public class InlineMethods extends AbstractVisitor {
 			}
 			inlineMethod(mth, callMth, mia, block, insn);
 		} catch (Exception e) {
-			throw new JadxRuntimeException("Failed to process method for inline", e);
+			throw new JadxRuntimeException("Failed to process method for inline: " + callMthInfo, e);
 		}
 	}
 
