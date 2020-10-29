@@ -88,7 +88,9 @@ import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsWindow;
 import jadx.gui.treemodel.ApkSignature;
 import jadx.gui.treemodel.JClass;
+import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JLoadableNode;
+import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JPackage;
 import jadx.gui.treemodel.JResource;
@@ -614,7 +616,7 @@ public class MainWindow extends JFrame {
 		if (obj instanceof JPackage) {
 			JPackagePopupMenu menu = new JPackagePopupMenu(this, (JPackage) obj);
 			menu.show(e.getComponent(), e.getX(), e.getY());
-		} else if (obj != null) {
+		} else if (obj instanceof JClass || obj instanceof JField || obj instanceof JMethod) {
 			JPopupMenu menu = new JPopupMenu();
 			JMenuItem jmi = new JMenuItem(NLS.str("popup.rename"));
 			jmi.addActionListener(action -> rename(obj));
