@@ -96,7 +96,7 @@ public final class ResourcesLoader {
 			case MANIFEST:
 			case XML:
 				ICodeInfo content = jadxRef.getXmlParser().parse(inputStream);
-				return ResContainer.textResource(rf.getOriginalName(), content);
+				return ResContainer.textResource(rf.getDeobfName(), content);
 
 			case ARSC:
 				return new ResTableParser(jadxRef.getRoot()).decodeFiles(inputStream);
