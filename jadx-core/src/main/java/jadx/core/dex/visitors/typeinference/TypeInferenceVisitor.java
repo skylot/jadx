@@ -509,6 +509,12 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 	private boolean insertAssignCast(MethodNode mth, SSAVar var, ArgType castType) {
 		RegisterArg assignArg = var.getAssign();
 		InsnNode assignInsn = assignArg.getParentInsn();
+		if (assignInsn == null) {
+			return false;
+		}
+		if (assignInsn.getType() == InsnType.PHI) {
+			return false;
+		}
 		BlockNode assignBlock = BlockUtils.getBlockByInsn(mth, assignInsn);
 		if (assignBlock == null) {
 			return false;
