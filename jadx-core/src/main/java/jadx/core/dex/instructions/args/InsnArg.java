@@ -206,6 +206,10 @@ public abstract class InsnArg extends Typed {
 		return arg;
 	}
 
+	public boolean isZeroLiteral() {
+		return isLiteral() && (((LiteralArg) this)).getLiteral() == 0;
+	}
+
 	public boolean isThis() {
 		return contains(AFlag.THIS);
 	}

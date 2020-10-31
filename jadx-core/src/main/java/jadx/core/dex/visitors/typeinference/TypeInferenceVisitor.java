@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -332,6 +333,10 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 				return invokeUseBound;
 			}
 		}
+		if (insn.getType() == InsnType.CHECK_CAST && insn.contains(AFlag.SOFT_CAST)) {
+			// ignore
+			return null;
+		}
 		return new TypeBoundConst(BoundEnum.USE, regArg.getInitType(), regArg);
 	}
 
@@ -499,20 +504,30 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 				if (insertAssignCast(mth, var, boundType)) {
 					return 1;
 				}
-				// TODO: check if use casts are needed
-				return 0;
+				return insertUseCasts(mth, var);
 			}
 		}
 		return 0;
 	}
 
+	private int insertUseCasts(MethodNode mth, SSAVar var) {
+		List<RegisterArg> useList = var.getUseList();
+		if (useList.isEmpty()) {
+			return 0;
+		}
+		int useCasts = 0;
+		for (RegisterArg useReg : new ArrayList<>(useList)) {
+			if (insertSoftUseCast(mth, useReg)) {
+				useCasts++;
+			}
+		}
+		return useCasts;
+	}
+
 	private boolean insertAssignCast(MethodNode mth, SSAVar var, ArgType castType) {
 		RegisterArg assignArg = var.getAssign();
 		InsnNode assignInsn = assignArg.getParentInsn();
-		if (assignInsn == null) {
-			return false;
-		}
-		if (assignInsn.getType() == InsnType.PHI) {
+		if (assignInsn == null || assignInsn.getType() == InsnType.PHI) {
 			return false;
 		}
 		BlockNode assignBlock = BlockUtils.getBlockByInsn(mth, assignInsn);
@@ -521,14 +536,38 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		}
 		RegisterArg newAssignArg = assignArg.duplicateWithNewSSAVar(mth);
 		assignInsn.setResult(newAssignArg);
+		IndexInsnNode castInsn = makeSoftCastInsn(assignArg, newAssignArg, castType);
+		return BlockUtils.insertAfterInsn(assignBlock, assignInsn, castInsn);
+	}
 
+	private boolean insertSoftUseCast(MethodNode mth, RegisterArg useArg) {
+		InsnNode useInsn = useArg.getParentInsn();
+		if (useInsn == null || useInsn.getType() == InsnType.PHI) {
+			return false;
+		}
+		if (useInsn.getType() == InsnType.IF && useInsn.getArg(1).isZeroLiteral()) {
+			// cast not needed if compare with null
+			return false;
+		}
+		BlockNode useBlock = BlockUtils.getBlockByInsn(mth, useInsn);
+		if (useBlock == null) {
+			return false;
+		}
+		RegisterArg newUseArg = useArg.duplicateWithNewSSAVar(mth);
+		useInsn.replaceArg(useArg, newUseArg);
+
+		IndexInsnNode castInsn = makeSoftCastInsn(newUseArg, useArg, useArg.getInitType());
+		return BlockUtils.insertBeforeInsn(useBlock, useInsn, castInsn);
+	}
+
+	@NotNull
+	private IndexInsnNode makeSoftCastInsn(RegisterArg result, RegisterArg arg, ArgType castType) {
 		IndexInsnNode castInsn = new IndexInsnNode(InsnType.CHECK_CAST, castType, 1);
-		castInsn.setResult(assignArg.duplicate());
-		castInsn.addArg(newAssignArg.duplicate());
+		castInsn.setResult(result.duplicate());
+		castInsn.addArg(arg.duplicate());
 		castInsn.add(AFlag.SOFT_CAST);
 		castInsn.add(AFlag.SYNTHETIC);
-
-		return BlockUtils.insertAfterInsn(assignBlock, assignInsn, castInsn);
+		return castInsn;
 	}
 
 	private boolean trySplitConstInsns(MethodNode mth) {

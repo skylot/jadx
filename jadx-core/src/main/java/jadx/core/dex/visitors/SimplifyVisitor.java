@@ -260,8 +260,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 		if (f.isInsnWrap()) {
 			InsnNode wi = ((InsnWrapArg) f).getWrapInsn();
 			if (wi.getType() == InsnType.CMP_L || wi.getType() == InsnType.CMP_G) {
-				if (insn.getArg(1).isLiteral()
-						&& ((LiteralArg) insn.getArg(1)).getLiteral() == 0) {
+				if (insn.getArg(1).isZeroLiteral()) {
 					insn.changeCondition(insn.getOp(), wi.getArg(0), wi.getArg(1));
 				} else {
 					LOG.warn("TODO: cmp {}", insn);

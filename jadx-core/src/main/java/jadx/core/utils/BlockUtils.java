@@ -670,17 +670,33 @@ public class BlockUtils {
 		return false;
 	}
 
+	public static boolean insertBeforeInsn(BlockNode block, InsnNode insn, InsnNode newInsn) {
+		int index = getInsnIndexInBlock(block, insn);
+		if (index == -1) {
+			return false;
+		}
+		block.getInstructions().add(index, newInsn);
+		return true;
+	}
+
 	public static boolean insertAfterInsn(BlockNode block, InsnNode insn, InsnNode newInsn) {
+		int index = getInsnIndexInBlock(block, insn);
+		if (index == -1) {
+			return false;
+		}
+		block.getInstructions().add(index + 1, newInsn);
+		return true;
+	}
+
+	public static int getInsnIndexInBlock(BlockNode block, InsnNode insn) {
 		List<InsnNode> instructions = block.getInstructions();
 		int size = instructions.size();
 		for (int i = 0; i < size; i++) {
-			InsnNode instruction = instructions.get(i);
-			if (instruction == insn) {
-				instructions.add(i + 1, newInsn);
-				return true;
+			if (instructions.get(i) == insn) {
+				return i;
 			}
 		}
-		return false;
+		return -1;
 	}
 
 	public static boolean replaceInsn(MethodNode mth, InsnNode oldInsn, InsnNode newInsn) {

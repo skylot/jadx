@@ -29,7 +29,6 @@ import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
-import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
@@ -209,7 +208,7 @@ public class EnumVisitor extends AbstractVisitor {
 
 			case NEW_ARRAY:
 				InsnArg arg = wrappedInsn.getArg(0);
-				if (arg.isLiteral() && ((LiteralArg) arg).getLiteral() == 0) {
+				if (arg.isZeroLiteral()) {
 					// empty enum
 					return Collections.emptyList();
 				}

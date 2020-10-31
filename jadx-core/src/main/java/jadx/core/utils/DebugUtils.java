@@ -169,4 +169,8 @@ public class DebugUtils {
 			LOG.debug("  {}: {}", entry.getKey(), entry.getValue());
 		}
 	}
+
+	public static void printStackTrace(String label) {
+		LOG.debug("StackTrace: {}\n{}", label, Utils.getStackTrace(new Exception()));
+	}
 }
