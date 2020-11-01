@@ -253,16 +253,16 @@ public class ModVisitor extends AbstractVisitor {
 	}
 
 	public static TernaryInsn makeBooleanConvertInsn(RegisterArg result, InsnArg castArg, ArgType type) {
-		InsnArg zero = new LiteralArg(0, type);
+		InsnArg zero = LiteralArg.make(0, type);
 		long litVal = 1;
 		if (type == ArgType.DOUBLE) {
 			litVal = DOUBLE_TO_BITS;
 		} else if (type == ArgType.FLOAT) {
 			litVal = FLOAT_TO_BITS;
 		}
-		InsnArg one = new LiteralArg(litVal, type);
+		InsnArg one = LiteralArg.make(litVal, type);
 
-		IfNode ifNode = new IfNode(IfOp.EQ, -1, castArg, LiteralArg.TRUE);
+		IfNode ifNode = new IfNode(IfOp.EQ, -1, castArg, LiteralArg.litTrue());
 		IfCondition condition = IfCondition.fromIfNode(ifNode);
 		return new TernaryInsn(condition, result, one, zero);
 	}

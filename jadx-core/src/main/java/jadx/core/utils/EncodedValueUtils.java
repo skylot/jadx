@@ -25,7 +25,7 @@ public class EncodedValueUtils {
 			case ENCODED_NULL:
 				return InsnArg.lit(0, ArgType.OBJECT);
 			case ENCODED_BOOLEAN:
-				return Boolean.TRUE.equals(value) ? LiteralArg.TRUE : LiteralArg.FALSE;
+				return Boolean.TRUE.equals(value) ? LiteralArg.litTrue() : LiteralArg.litFalse();
 			case ENCODED_BYTE:
 				return InsnArg.lit((Byte) value, ArgType.BYTE);
 			case ENCODED_SHORT:

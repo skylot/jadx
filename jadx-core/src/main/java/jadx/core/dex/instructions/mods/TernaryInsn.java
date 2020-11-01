@@ -4,7 +4,6 @@ import java.util.Collection;
 
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
-import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.regions.conditions.IfCondition;
@@ -18,7 +17,7 @@ public final class TernaryInsn extends InsnNode {
 		this();
 		setResult(result);
 
-		if (th.equals(LiteralArg.FALSE) && els.equals(LiteralArg.TRUE)) {
+		if (th.isFalse() && els.isTrue()) {
 			// inverted
 			this.condition = IfCondition.invert(condition);
 			addArg(els);

@@ -1,5 +1,7 @@
 package jadx.core.dex.instructions.args;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -56,7 +58,7 @@ public abstract class InsnArg extends Typed {
 	}
 
 	public static LiteralArg lit(long literal, ArgType type) {
-		return new LiteralArg(literal, type);
+		return LiteralArg.makeWithFixedType(literal, type);
 	}
 
 	public static LiteralArg lit(InsnData insn, ArgType type) {
@@ -208,6 +210,22 @@ public abstract class InsnArg extends Typed {
 
 	public boolean isZeroLiteral() {
 		return isLiteral() && (((LiteralArg) this)).getLiteral() == 0;
+	}
+
+	public boolean isFalse() {
+		if (isLiteral()) {
+			LiteralArg litArg = (LiteralArg) this;
+			return litArg.getLiteral() == 0 && Objects.equals(litArg.getType(), ArgType.BOOLEAN);
+		}
+		return false;
+	}
+
+	public boolean isTrue() {
+		if (isLiteral()) {
+			LiteralArg litArg = (LiteralArg) this;
+			return litArg.getLiteral() == 1 && Objects.equals(litArg.getType(), ArgType.BOOLEAN);
+		}
+		return false;
 	}
 
 	public boolean isThis() {

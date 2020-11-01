@@ -843,7 +843,7 @@ public class InsnGen {
 		InsnArg first = insn.getArg(0);
 		InsnArg second = insn.getArg(1);
 		ConditionGen condGen = new ConditionGen(this);
-		if (first.equals(LiteralArg.TRUE) && second.equals(LiteralArg.FALSE)) {
+		if (first.isTrue() && second.isFalse()) {
 			condGen.add(code, insn.getCondition());
 		} else {
 			condGen.wrap(code, insn.getCondition());

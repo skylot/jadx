@@ -39,8 +39,8 @@ public final class Compare {
 	 * Change 'a != false' to 'a == true'
 	 */
 	public void normalize() {
-		if (getOp() == IfOp.NE && getB().isLiteral() && getB().equals(LiteralArg.FALSE)) {
-			insn.changeCondition(IfOp.EQ, getA(), LiteralArg.TRUE);
+		if (getOp() == IfOp.NE && getB().isFalse()) {
+			insn.changeCondition(IfOp.EQ, getA(), LiteralArg.litTrue());
 		}
 	}
 

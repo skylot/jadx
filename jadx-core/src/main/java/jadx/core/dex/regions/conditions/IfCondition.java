@@ -153,7 +153,7 @@ public final class IfCondition extends AttrNode {
 			if (i != null) {
 				return i;
 			}
-			if (c.getOp() == IfOp.EQ && c.getB().isLiteral() && c.getB().equals(LiteralArg.FALSE)) {
+			if (c.getOp() == IfOp.EQ && c.getB().isFalse()) {
 				cond = not(new IfCondition(c.invert()));
 			} else {
 				c.normalize();
@@ -234,8 +234,8 @@ public final class IfCondition extends AttrNode {
 						Mode mode = isTrue && arithOp == ArithOp.OR
 								|| !isTrue && arithOp == ArithOp.AND ? Mode.OR : Mode.AND;
 
-						IfNode if1 = new IfNode(op, -1, wrapInsn.getArg(0), LiteralArg.FALSE);
-						IfNode if2 = new IfNode(op, -1, wrapInsn.getArg(1), LiteralArg.FALSE);
+						IfNode if1 = new IfNode(op, -1, wrapInsn.getArg(0), LiteralArg.litFalse());
+						IfNode if2 = new IfNode(op, -1, wrapInsn.getArg(1), LiteralArg.litFalse());
 						return new IfCondition(mode,
 								Arrays.asList(new IfCondition(new Compare(if1)),
 										new IfCondition(new Compare(if2))));
