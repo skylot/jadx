@@ -1,6 +1,7 @@
 package jadx.gui.treemodel;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
@@ -124,7 +125,14 @@ public class JRoot extends JNode {
 
 	@Override
 	public String makeString() {
-		File file = wrapper.getOpenFile();
-		return file != null ? file.getName() : "File not open";
+		List<Path> paths = wrapper.getOpenPaths();
+		int count = paths.size();
+		if (count == 0) {
+			return "File not open";
+		}
+		if (count == 1) {
+			return paths.get(0).getFileName().toString();
+		}
+		return count + " files";
 	}
 }

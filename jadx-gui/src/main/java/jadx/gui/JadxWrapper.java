@@ -1,6 +1,7 @@
 package jadx.gui;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,23 +22,25 @@ import jadx.api.JavaPackage;
 import jadx.api.ResourceFile;
 import jadx.gui.settings.JadxSettings;
 
+import static jadx.gui.utils.FileUtils.toFiles;
+
 public class JadxWrapper {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxWrapper.class);
 
 	private final JadxSettings settings;
 	private JadxDecompiler decompiler;
-	private File openFile;
+	private List<Path> openPaths = Collections.emptyList();
 
 	public JadxWrapper(JadxSettings settings) {
 		this.settings = settings;
 	}
 
-	public void openFile(File file) {
+	public void openFile(List<Path> paths) {
 		close();
-		this.openFile = file;
+		this.openPaths = paths;
 		try {
 			JadxArgs jadxArgs = settings.toJadxArgs();
-			jadxArgs.setInputFile(file);
+			jadxArgs.setInputFiles(toFiles(paths));
 
 			this.decompiler = new JadxDecompiler(jadxArgs);
 			this.decompiler.load();
@@ -55,6 +58,7 @@ public class JadxWrapper {
 				LOG.error("jadx decompiler close error", e);
 			}
 		}
+		this.openPaths = Collections.emptyList();
 	}
 
 	public void saveAll(File dir, ProgressMonitor progressMonitor) {
@@ -139,8 +143,13 @@ public class JadxWrapper {
 		return decompiler.getResources();
 	}
 
+	@Deprecated
 	public File getOpenFile() {
-		return openFile;
+		return openPaths.get(0).toFile();
+	}
+
+	public List<Path> getOpenPaths() {
+		return openPaths;
 	}
 
 	public JadxDecompiler getDecompiler() {

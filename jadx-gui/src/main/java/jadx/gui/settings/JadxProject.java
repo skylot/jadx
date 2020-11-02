@@ -64,13 +64,13 @@ public class JadxProject {
 		changed();
 	}
 
-	public Path getFilePath() {
-		return filesPath == null ? null : filesPath.get(0);
+	public List<Path> getFilePaths() {
+		return filesPath;
 	}
 
-	public void setFilePath(Path filePath) {
-		if (!filePath.equals(getFilePath())) {
-			this.filesPath = Arrays.asList(filePath);
+	public void setFilePath(List<Path> files) {
+		if (!files.equals(getFilePaths())) {
+			this.filesPath = files;
 			changed();
 		}
 	}

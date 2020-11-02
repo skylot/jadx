@@ -8,6 +8,7 @@ import java.awt.DisplayMode;
 import java.awt.Font;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.HeadlessException;
 import java.awt.Toolkit;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
@@ -19,26 +20,29 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -77,6 +81,7 @@ import jadx.api.JadxArgs;
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
+import jadx.core.utils.Utils;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.BackgroundExecutor;
@@ -107,6 +112,8 @@ import jadx.gui.utils.SystemInfo;
 import jadx.gui.utils.UiUtils;
 
 import static io.reactivex.internal.functions.Functions.EMPTY_RUNNABLE;
+import static jadx.gui.utils.FileUtils.fileNamesToPaths;
+import static jadx.gui.utils.FileUtils.toPaths;
 import static javax.swing.KeyStroke.getKeyStroke;
 
 @SuppressWarnings("serial")
@@ -120,6 +127,7 @@ public class MainWindow extends JFrame {
 	private static final double SPLIT_PANE_RESIZE_WEIGHT = 0.15;
 
 	private static final ImageIcon ICON_OPEN = UiUtils.openIcon("folder");
+	private static final ImageIcon ICON_ADD_FILES = UiUtils.openIcon("folder_add");
 	private static final ImageIcon ICON_SAVE_ALL = UiUtils.openIcon("disk_multiple");
 	private static final ImageIcon ICON_EXPORT = UiUtils.openIcon("database_save");
 	private static final ImageIcon ICON_CLOSE = UiUtils.openIcon("cross");
@@ -203,8 +211,7 @@ public class MainWindow extends JFrame {
 		if (settings.getFiles().isEmpty()) {
 			openFileOrProject();
 		} else {
-			Path openFile = Paths.get(settings.getFiles().get(0));
-			open(openFile, this::handleSelectClassOption);
+			open(fileNamesToPaths(settings.getFiles()), this::handleSelectClassOption);
 		}
 	}
 
@@ -241,21 +248,60 @@ public class MainWindow extends JFrame {
 	}
 
 	public void openFileOrProject() {
-		JFileChooser fileChooser = new JFileChooser();
+		String title = NLS.str("file.open_title");
+		JFileChooser fileChooser = buildFileChooser(false, title);
+		int ret = fileChooser.showDialog(this, title);
+		if (ret == JFileChooser.APPROVE_OPTION) {
+			settings.setLastOpenFilePath(fileChooser.getCurrentDirectory().toPath());
+			open(toPaths(fileChooser.getSelectedFiles()));
+		}
+	}
+
+	public void addFiles() {
+		String title = NLS.str("file.add_files_action");
+		JFileChooser fileChooser = buildFileChooser(true, title);
+		int ret = fileChooser.showDialog(this, title);
+		if (ret == JFileChooser.APPROVE_OPTION) {
+			List<Path> paths = new ArrayList<>(wrapper.getOpenPaths());
+			paths.addAll(toPaths(fileChooser.getSelectedFiles()));
+			open(paths);
+		}
+	}
+
+	private JFileChooser buildFileChooser(boolean addFiles, String toolTipText) {
+		String[] exts;
+		if (addFiles) {
+			exts = new String[] { "apk", "dex", "jar", "class", "smali", "zip", "aar", "arsc" };
+		} else {
+			exts = new String[] { JadxProject.PROJECT_EXTENSION, "apk", "dex", "jar", "class", "smali", "zip", "aar", "arsc" };
+		}
+		String description = "Supported files: (" + Utils.arrayToStr(exts) + ')';
+
+		JFileChooser fileChooser = new JFileChooser() {
+			@Override
+			protected JDialog createDialog(Component parent) throws HeadlessException {
+				JDialog dialog = super.createDialog(parent);
+				dialog.setLocationRelativeTo(null);
+				settings.loadWindowPos(dialog);
+				dialog.addWindowListener(new WindowAdapter() {
+					@Override
+					public void windowClosed(WindowEvent e) {
+						settings.saveWindowPos(dialog);
+						super.windowClosed(e);
+					}
+				});
+				return dialog;
+			}
+		};
 		fileChooser.setAcceptAllFileFilterUsed(true);
-		String[] exts = { JadxProject.PROJECT_EXTENSION, "apk", "dex", "jar", "class", "smali", "zip", "aar", "arsc" };
-		String description = "supported files: " + Arrays.toString(exts).replace('[', '(').replace(']', ')');
 		fileChooser.setFileFilter(new FileNameExtensionFilter(description, exts));
-		fileChooser.setToolTipText(NLS.str("file.open_action"));
+		fileChooser.setMultiSelectionEnabled(true);
+		fileChooser.setToolTipText(toolTipText);
 		Path currentDirectory = settings.getLastOpenFilePath();
 		if (currentDirectory != null) {
 			fileChooser.setCurrentDirectory(currentDirectory.toFile());
 		}
-		int ret = fileChooser.showDialog(mainPanel, NLS.str("file.open_title"));
-		if (ret == JFileChooser.APPROVE_OPTION) {
-			settings.setLastOpenFilePath(fileChooser.getCurrentDirectory().toPath());
-			open(fileChooser.getSelectedFile().toPath());
-		}
+		return fileChooser;
 	}
 
 	private void newProject() {
@@ -311,20 +357,23 @@ public class MainWindow extends JFrame {
 		}
 	}
 
-	void open(Path path) {
-		open(path, EMPTY_RUNNABLE);
+	void open(List<Path> paths) {
+		open(paths, EMPTY_RUNNABLE);
 	}
 
-	void open(Path path, Runnable onFinish) {
-		if (path.getFileName().toString().toLowerCase(Locale.ROOT)
-				.endsWith(JadxProject.PROJECT_EXTENSION)) {
-			openProject(path);
+	void open(List<Path> paths, Runnable onFinish) {
+		if (paths.size() == 1
+				&& paths.get(0).getFileName().toString().toLowerCase(Locale.ROOT).endsWith(JadxProject.PROJECT_EXTENSION)) {
+			openProject(paths.get(0));
 			onFinish.run();
 		} else {
-			project.setFilePath(path);
+			project.setFilePath(paths);
 			clearTree();
+			if (paths.isEmpty()) {
+				return;
+			}
 			backgroundExecutor.execute(NLS.str("progress.load"),
-					() -> wrapper.openFile(path.toFile()),
+					() -> wrapper.openFile(paths),
 					() -> {
 						deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
 						initTree();
@@ -367,11 +416,11 @@ public class MainWindow extends JFrame {
 		}
 		update();
 		settings.addRecentProject(path);
-		Path filePath = project.getFilePath();
-		if (filePath == null) {
+		List<Path> filePaths = project.getFilePaths();
+		if (filePaths == null) {
 			clearTree();
 		} else {
-			open(filePath);
+			open(filePaths);
 		}
 	}
 
@@ -388,7 +437,6 @@ public class MainWindow extends JFrame {
 		}
 		setTitle((project.isSaved() ? "" : '*')
 				+ project.getName() + pathString + " - " + DEFAULT_TITLE);
-
 	}
 
 	protected void resetCache() {
@@ -427,10 +475,10 @@ public class MainWindow extends JFrame {
 	}
 
 	public void reOpenFile() {
-		File openedFile = wrapper.getOpenFile();
+		List<Path> openedFile = wrapper.getOpenPaths();
 		Map<String, Integer> openTabs = storeOpenTabs();
 		if (openedFile != null) {
-			open(openedFile.toPath(), () -> restoreOpenTabs(openTabs));
+			open(openedFile, () -> restoreOpenTabs(openTabs));
 		}
 	}
 
@@ -672,6 +720,14 @@ public class MainWindow extends JFrame {
 		openAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.open_action"));
 		openAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_O, UiUtils.ctrlButton()));
 
+		Action addFilesAction = new AbstractAction(NLS.str("file.add_files_action"), ICON_ADD_FILES) {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				addFiles();
+			}
+		};
+		addFilesAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("file.add_files_action"));
+
 		newProjectAction = new AbstractAction(NLS.str("file.new_project")) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -830,6 +886,7 @@ public class MainWindow extends JFrame {
 		JMenu file = new JMenu(NLS.str("menu.file"));
 		file.setMnemonic(KeyEvent.VK_F);
 		file.add(openAction);
+		file.add(addFilesAction);
 		file.addSeparator();
 		file.add(newProjectAction);
 		file.add(saveProjectAction);
@@ -888,6 +945,8 @@ public class MainWindow extends JFrame {
 		JToolBar toolbar = new JToolBar();
 		toolbar.setFloatable(false);
 		toolbar.add(openAction);
+		toolbar.add(addFilesAction);
+		toolbar.addSeparator();
 		toolbar.add(saveAllAction);
 		toolbar.add(exportAction);
 		toolbar.addSeparator();
@@ -1154,26 +1213,29 @@ public class MainWindow extends JFrame {
 	}
 
 	private class RecentProjectsMenuListener implements MenuListener {
-		private final JMenu recentProjects;
+		private final JMenu menu;
 
-		public RecentProjectsMenuListener(JMenu recentProjects) {
-			this.recentProjects = recentProjects;
+		public RecentProjectsMenuListener(JMenu menu) {
+			this.menu = menu;
 		}
 
 		@Override
 		public void menuSelected(MenuEvent menuEvent) {
-			recentProjects.removeAll();
-			File openFile = wrapper.getOpenFile();
-			Path currentPath = openFile == null ? null : openFile.toPath();
-			for (Path path : settings.getRecentProjects()) {
-				if (!path.equals(currentPath)) {
-					JMenuItem menuItem = new JMenuItem(path.toAbsolutePath().toString());
-					recentProjects.add(menuItem);
-					menuItem.addActionListener(e -> open(path));
-				}
-			}
-			if (recentProjects.getItemCount() == 0) {
-				recentProjects.add(new JMenuItem(NLS.str("menu.no_recent_projects")));
+			Set<Path> current = new HashSet<>(wrapper.getOpenPaths());
+			List<JMenuItem> items = settings.getRecentProjects()
+					.stream()
+					.filter(path -> !current.contains(path))
+					.map(path -> {
+						JMenuItem menuItem = new JMenuItem(path.toAbsolutePath().toString());
+						menuItem.addActionListener(e -> open(Collections.singletonList(path)));
+						return menuItem;
+					}).collect(Collectors.toList());
+
+			menu.removeAll();
+			if (items.isEmpty()) {
+				menu.add(new JMenuItem(NLS.str("menu.no_recent_projects")));
+			} else {
+				items.forEach(menu::add);
 			}
 		}
 
