@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -210,7 +211,13 @@ public final class JadxDecompiler implements Closeable {
 	}
 
 	private void appendResourcesSave(ExecutorService executor, File outDir) {
+		Set<String> inputFileNames = args.getInputFiles().stream().map(File::getAbsolutePath).collect(Collectors.toSet());
 		for (ResourceFile resourceFile : getResources()) {
+			if (resourceFile.getType() != ResourceType.ARSC
+					&& inputFileNames.contains(resourceFile.getOriginalName())) {
+				// ignore resource made from input file
+				continue;
+			}
 			executor.execute(new ResourcesSaver(outDir, resourceFile));
 		}
 	}

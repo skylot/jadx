@@ -10,6 +10,7 @@ import java.nio.file.PathMatcher;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -59,14 +60,28 @@ public class TestInput {
 		assertThat(result).isEqualTo(0);
 		List<Path> resultJavaFiles = collectJavaFilesInDir(tempDir);
 		assertThat(resultJavaFiles).isNotEmpty();
+
+		// do not copy input files as resources
+		PathMatcher logAllFiles = path -> {
+			LOG.debug("File in result dir: {}", path);
+			return true;
+		};
+		for (Path path : collectFilesInDir(tempDir, logAllFiles)) {
+			for (String inputSample : inputSamples) {
+				assertThat(path.toAbsolutePath().toString()).doesNotContain(inputSample);
+			}
+		}
 	}
 
 	private static List<Path> collectJavaFilesInDir(Path dir) throws IOException {
-		PathMatcher matcher = dir.getFileSystem().getPathMatcher("glob:**.java");
+		PathMatcher javaMatcher = dir.getFileSystem().getPathMatcher("glob:**.java");
+		return collectFilesInDir(dir, javaMatcher);
+	}
+
+	private static List<Path> collectFilesInDir(Path dir, PathMatcher matcher) throws IOException {
 		try (Stream<Path> pathStream = Files.walk(dir)) {
 			return pathStream
 					.filter(p -> Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS))
-					.peek(f -> LOG.debug("File in result dir: {}", f))
 					.filter(matcher::matches)
 					.collect(Collectors.toList());
 		}
