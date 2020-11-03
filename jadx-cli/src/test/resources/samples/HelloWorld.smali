@@ -1,4 +1,4 @@
-.class LHelloWorld;
+.class Lsmali/HelloWorld;
 .super Ljava/lang/Object;
 .source "HelloWorld.java"
 

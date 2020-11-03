@@ -10,7 +10,6 @@ import java.nio.file.PathMatcher;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -38,16 +37,23 @@ public class TestInput {
 		decompile("class", "samples/HelloWorld.class");
 	}
 
-	private void decompile(String tmpDirName, String inputSample) throws URISyntaxException, IOException {
+	@Test
+	public void testMultipleInput() throws Exception {
+		decompile("multi", "samples/hello.dex", "samples/HelloWorld.smali");
+	}
+
+	private void decompile(String tmpDirName, String... inputSamples) throws URISyntaxException, IOException {
 		StringBuilder args = new StringBuilder();
 		Path tempDir = FileUtils.createTempDir(tmpDirName);
-		args.append("-v ");
-		args.append("-d ").append(tempDir.toAbsolutePath()).append(' ');
+		args.append("-v");
+		args.append(" -d ").append(tempDir.toAbsolutePath());
 
-		URL resource = getClass().getClassLoader().getResource(inputSample);
-		assertThat(resource).isNotNull();
-		String sampleFile = resource.toURI().getRawPath();
-		args.append(sampleFile);
+		for (String inputSample : inputSamples) {
+			URL resource = getClass().getClassLoader().getResource(inputSample);
+			assertThat(resource).isNotNull();
+			String sampleFile = resource.toURI().getRawPath();
+			args.append(' ').append(sampleFile);
+		}
 
 		int result = JadxCLI.execute(args.toString().split(" "));
 		assertThat(result).isEqualTo(0);
