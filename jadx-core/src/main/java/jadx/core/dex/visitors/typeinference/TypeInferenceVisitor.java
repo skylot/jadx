@@ -783,15 +783,20 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		if (typeInfo.getType().isTypeKnown()) {
 			return false;
 		}
-		boolean boolAssign = false;
 		for (ITypeBound bound : typeInfo.getBounds()) {
-			if (bound.getBound() == BoundEnum.ASSIGN && bound.getType().equals(ArgType.BOOLEAN)) {
-				boolAssign = true;
-				break;
+			ArgType boundType = bound.getType();
+			switch (bound.getBound()) {
+				case ASSIGN:
+					if (!boundType.contains(PrimitiveType.BOOLEAN)) {
+						return false;
+					}
+					break;
+				case USE:
+					if (!boundType.canBeAnyNumber()) {
+						return false;
+					}
+					break;
 			}
-		}
-		if (!boolAssign) {
-			return false;
 		}
 
 		boolean fixed = false;

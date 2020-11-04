@@ -33,4 +33,8 @@ public enum PrimitiveType {
 	public String toString() {
 		return longName;
 	}
+
+	public boolean isObjectOrArray() {
+		return this == OBJECT || this == ARRAY;
+	}
 }
