@@ -143,11 +143,6 @@ public class JadxWrapper {
 		return decompiler.getResources();
 	}
 
-	@Deprecated
-	public File getOpenFile() {
-		return openPaths.get(0).toFile();
-	}
-
 	public List<Path> getOpenPaths() {
 		return openPaths;
 	}
