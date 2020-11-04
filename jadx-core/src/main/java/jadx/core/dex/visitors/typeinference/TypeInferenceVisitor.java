@@ -586,6 +586,10 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 	}
 
 	private boolean checkAndSplitConstInsn(MethodNode mth, SSAVar var) {
+		ArgType type = var.getTypeInfo().getType();
+		if (type.isTypeKnown() || var.isTypeImmutable()) {
+			return false;
+		}
 		if (var.getUsedInPhi().size() < 2) {
 			return false;
 		}
