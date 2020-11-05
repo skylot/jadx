@@ -103,7 +103,7 @@ public class SignatureProcessor extends AbstractVisitor {
 		}
 		try {
 			List<ArgType> typeParameters = sp.consumeGenericTypeParameters();
-			List<ArgType> parsedArgTypes = sp.consumeMethodArgs();
+			List<ArgType> parsedArgTypes = sp.consumeMethodArgs(mth.getMethodInfo().getArgsCount());
 			ArgType parsedRetType = sp.consumeType();
 
 			if (!validateParsedType(parsedRetType, mth.getMethodInfo().getReturnType())) {

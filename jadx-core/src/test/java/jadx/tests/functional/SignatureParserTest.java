@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.ArgType.WildcardBound;
 import jadx.core.dex.nodes.parser.SignatureParser;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.instructions.args.ArgType.INT;
 import static jadx.core.dex.instructions.args.ArgType.OBJECT;
@@ -19,6 +20,7 @@ import static jadx.core.dex.instructions.args.ArgType.outerGeneric;
 import static jadx.core.dex.instructions.args.ArgType.wildcard;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -114,7 +116,7 @@ class SignatureParserTest {
 
 	@Test
 	public void testMethodArgs() {
-		List<ArgType> argTypes = new SignatureParser("(Ljava/util/List<*>;)V").consumeMethodArgs();
+		List<ArgType> argTypes = new SignatureParser("(Ljava/util/List<*>;)V").consumeMethodArgs(1);
 
 		assertThat(argTypes, hasSize(1));
 		assertThat(argTypes.get(0), is(generic("Ljava/util/List;", wildcard())));
@@ -122,7 +124,7 @@ class SignatureParserTest {
 
 	@Test
 	public void testMethodArgs2() {
-		List<ArgType> argTypes = new SignatureParser("(La/b/C<TT;>.d/E;)V").consumeMethodArgs();
+		List<ArgType> argTypes = new SignatureParser("(La/b/C<TT;>.d/E;)V").consumeMethodArgs(1);
 
 		assertThat(argTypes, hasSize(1));
 		ArgType argType = argTypes.get(0);
@@ -132,7 +134,13 @@ class SignatureParserTest {
 
 	@Test
 	public void testBadGenericMap() {
-		List<ArgType> list = new SignatureParser("<A:Ljava/lang/Object;B").consumeGenericTypeParameters();
-		assertThat(list, hasSize(0));
+		assertThatExceptionOfType(JadxRuntimeException.class)
+				.isThrownBy(() -> new SignatureParser("<A:Ljava/lang/Object;B").consumeGenericTypeParameters());
+	}
+
+	@Test
+	public void testBadArgs() {
+		assertThatExceptionOfType(JadxRuntimeException.class)
+				.isThrownBy(() -> new SignatureParser("(TCONTENT)Lpkg/Cls;").consumeMethodArgs(1));
 	}
 }

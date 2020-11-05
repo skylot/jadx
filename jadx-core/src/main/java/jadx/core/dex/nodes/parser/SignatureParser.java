@@ -151,6 +151,9 @@ public class SignatureParser {
 				String typeVarName = consumeUntil(';');
 				if (typeVarName != null) {
 					consume(';');
+					if (typeVarName.contains(")")) {
+						throw new JadxRuntimeException("Bad name for type variable: " + typeVarName);
+					}
 					return ArgType.genericType(typeVarName);
 				}
 				break;
@@ -268,8 +271,7 @@ public class SignatureParser {
 			}
 			String id = consumeUntil(':');
 			if (id == null) {
-				LOG.error("Failed to parse generic types map: {}", sign);
-				return Collections.emptyList();
+				throw new JadxRuntimeException("Failed to parse generic types map");
 			}
 			consume(':');
 			tryConsume(':');
@@ -290,9 +292,12 @@ public class SignatureParser {
 		boolean next;
 		do {
 			ArgType argType = consumeType();
+			if (argType == null) {
+				throw new JadxRuntimeException("Unexpected end of signature");
+			}
 			if (!argType.equals(ArgType.OBJECT)) {
 				if (types.isEmpty()) {
-					types = new LinkedList<>();
+					types = new ArrayList<>();
 				}
 				types.add(argType);
 			}
@@ -304,15 +309,23 @@ public class SignatureParser {
 		return types;
 	}
 
-	public List<ArgType> consumeMethodArgs() {
+	public List<ArgType> consumeMethodArgs(int argsCount) {
 		consume('(');
 		if (lookAhead(')')) {
 			consume(')');
 			return Collections.emptyList();
 		}
-		List<ArgType> args = new LinkedList<>();
+		List<ArgType> args = new ArrayList<>(argsCount);
+		int limit = argsCount + 10; // just prevent endless loop, args count can be different for synthetic methods
 		do {
-			args.add(consumeType());
+			ArgType type = consumeType();
+			if (type == null) {
+				throw new JadxRuntimeException("Unexpected end of signature");
+			}
+			args.add(type);
+			if (args.size() > limit) {
+				throw new JadxRuntimeException("Arguments count limit reached: " + args.size());
+			}
 		} while (!lookAhead(')'));
 		consume(')');
 		return args;
