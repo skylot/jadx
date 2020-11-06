@@ -6,7 +6,7 @@ import jadx.core.dex.info.MethodInfo;
 
 class OverridedMethodsNode {
 
-	private Set<MethodInfo> methods;
+	private final Set<MethodInfo> methods;
 
 	public OverridedMethodsNode(Set<MethodInfo> methodsSet) {
 		methods = methodsSet;

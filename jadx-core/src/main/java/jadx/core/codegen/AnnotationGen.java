@@ -133,8 +133,11 @@ public class AnnotationGen {
 	public EncodedValue getAnnotationDefaultValue(String name) {
 		IAnnotation an = cls.getAnnotation(Consts.DALVIK_ANNOTATION_DEFAULT);
 		if (an != null) {
-			IAnnotation defAnnotation = (IAnnotation) an.getDefaultValue().getValue();
-			return defAnnotation.getValues().get(name);
+			EncodedValue defValue = an.getDefaultValue();
+			if (defValue != null) {
+				IAnnotation defAnnotation = (IAnnotation) defValue.getValue();
+				return defAnnotation.getValues().get(name);
+			}
 		}
 		return null;
 	}

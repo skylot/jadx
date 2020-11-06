@@ -160,6 +160,7 @@ public class DebugChecks {
 					InsnNode parentInsn = useArg.getParentInsn();
 					if (parentInsn != null && parentInsn == usedInPhi) {
 						found = true;
+						break;
 					}
 				}
 				if (!found) {
@@ -168,5 +169,4 @@ public class DebugChecks {
 			}
 		}
 	}
-
 }

@@ -368,7 +368,7 @@ public class Deobfuscator {
 
 	public String getPkgAlias(ClassNode cls) {
 		ClassInfo classInfo = cls.getClassInfo();
-		PackageNode pkg = null;
+		PackageNode pkg;
 		DeobfClsInfo deobfClsInfo = clsMap.get(classInfo);
 		if (deobfClsInfo != null) {
 			pkg = deobfClsInfo.getPkg();
@@ -420,9 +420,6 @@ public class Deobfuscator {
 	/**
 	 * Generate a prefix for a class name that bases on certain class properties, certain
 	 * extended superclasses or implemented interfaces.
-	 *
-	 * @param cls
-	 * @return
 	 */
 	private String makeClsPrefix(ClassNode cls) {
 		if (cls.isEnum()) {

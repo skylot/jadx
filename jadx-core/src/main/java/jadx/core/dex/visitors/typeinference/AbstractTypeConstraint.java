@@ -11,8 +11,8 @@ import jadx.core.utils.Utils;
 
 public abstract class AbstractTypeConstraint implements ITypeConstraint {
 
-	protected InsnNode insn;
-	protected List<SSAVar> relatedVars;
+	protected final InsnNode insn;
+	protected final List<SSAVar> relatedVars;
 
 	public AbstractTypeConstraint(InsnNode insn, InsnArg arg) {
 		this.insn = insn;

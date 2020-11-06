@@ -454,6 +454,7 @@ public class InsnNode extends LineAttrNode {
 	/**
 	 * Compare instruction only by identity.
 	 */
+	@SuppressWarnings("EmptyMethod")
 	@Override
 	public final int hashCode() {
 		return super.hashCode();

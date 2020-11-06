@@ -17,7 +17,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class TypeSearchState {
 
-	private Map<SSAVar, TypeSearchVarInfo> varInfoMap;
+	private final Map<SSAVar, TypeSearchVarInfo> varInfoMap;
 
 	public TypeSearchState(MethodNode mth) {
 		List<SSAVar> vars = mth.getSVars();

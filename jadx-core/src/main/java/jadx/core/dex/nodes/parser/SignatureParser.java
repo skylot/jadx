@@ -259,6 +259,7 @@ public class SignatureParser {
 	 * <p/>
 	 * Example: "<T:Ljava/lang/Exception;:Ljava/lang/Object;>"
 	 */
+	@SuppressWarnings("ConditionalBreakInInfiniteLoop")
 	public List<ArgType> consumeGenericTypeParameters() {
 		if (!lookAhead('<')) {
 			return Collections.emptyList();

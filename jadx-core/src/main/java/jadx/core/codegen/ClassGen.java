@@ -234,11 +234,8 @@ public class ClassGen {
 	}
 
 	/**
-	 *
-	 * @param clsCode
 	 * @param printClassName allows to print the original class name as comment (e.g. for inlined
 	 *                       classes)
-	 * @throws CodegenException
 	 */
 	public void addClassBody(CodeWriter clsCode, boolean printClassName) throws CodegenException {
 		clsCode.add('{');

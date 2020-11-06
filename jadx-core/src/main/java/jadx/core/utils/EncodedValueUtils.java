@@ -41,6 +41,7 @@ public class EncodedValueUtils {
 			case ENCODED_DOUBLE:
 				return InsnArg.lit(Double.doubleToLongBits((Double) value), ArgType.DOUBLE);
 			case ENCODED_STRING:
+				// noinspection RedundantCast
 				return (String) value;
 
 			case ENCODED_TYPE:

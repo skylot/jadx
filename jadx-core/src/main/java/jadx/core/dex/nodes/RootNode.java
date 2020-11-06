@@ -434,6 +434,7 @@ public class RootNode {
 		return appPackage;
 	}
 
+	@Nullable
 	public ClassNode getAppResClass() {
 		return appResClass;
 	}

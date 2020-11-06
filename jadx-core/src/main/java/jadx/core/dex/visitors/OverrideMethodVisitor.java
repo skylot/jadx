@@ -84,7 +84,7 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 	}
 
 	/**
-	 * NOTE: Simplified version of method from {@link ModVisitor#isFieldVisibleInMethod}
+	 * NOTE: Simplified version of method from ModVisitor.isFieldVisibleInMethod
 	 */
 	private boolean isMethodVisibleInCls(MethodNode superMth, ClassNode cls) {
 		AccessInfo accessFlags = superMth.getAccessFlags();

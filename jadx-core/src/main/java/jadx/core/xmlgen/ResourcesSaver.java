@@ -20,7 +20,7 @@ public class ResourcesSaver implements Runnable {
 	private static final Logger LOG = LoggerFactory.getLogger(ResourcesSaver.class);
 
 	private final ResourceFile resourceFile;
-	private File outDir;
+	private final File outDir;
 
 	public ResourcesSaver(File outDir, ResourceFile resourceFile) {
 		this.resourceFile = resourceFile;

@@ -88,8 +88,8 @@ public final class ImmutableList<E> implements List<E>, RandomAccess {
 	@Override
 	public Iterator<E> iterator() {
 		return new Iterator<E>() {
+			private final int len = arr.length;
 			private int index = 0;
-			private int len = arr.length;
 
 			@Override
 			public boolean hasNext() {

@@ -60,8 +60,8 @@ public class RegionMaker {
 
 	private final MethodNode mth;
 	private final int regionsLimit;
+	private final BitSet processedBlocks;
 	private int regionsCount;
-	private BitSet processedBlocks;
 
 	public RegionMaker(MethodNode mth) {
 		this.mth = mth;

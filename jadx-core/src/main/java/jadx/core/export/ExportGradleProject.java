@@ -25,8 +25,8 @@ public class ExportGradleProject {
 
 	private final RootNode root;
 	private final File outDir;
-	private File srcOutDir;
-	private File resOutDir;
+	private final File srcOutDir;
+	private final File resOutDir;
 
 	public ExportGradleProject(RootNode root, File outDir) {
 		this.root = root;

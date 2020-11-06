@@ -69,9 +69,9 @@ import jadx.core.xmlgen.ResourcesSaver;
 public final class JadxDecompiler implements Closeable {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxDecompiler.class);
 
-	private JadxArgs args;
-	private JadxPluginManager pluginManager = new JadxPluginManager();
-	private List<ILoadResult> loadedInputs = new ArrayList<>();
+	private final JadxArgs args;
+	private final JadxPluginManager pluginManager = new JadxPluginManager();
+	private final List<ILoadResult> loadedInputs = new ArrayList<>();
 
 	private RootNode root;
 	private List<JavaClass> classes;

@@ -14,6 +14,7 @@ import jadx.api.ICodeInfo;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.utils.StringUtils;
+import jadx.core.utils.Utils;
 
 public class CodeWriter {
 	private static final Logger LOG = LoggerFactory.getLogger(CodeWriter.class);
@@ -153,17 +154,12 @@ public class CodeWriter {
 		return this;
 	}
 
-	@SuppressWarnings("StringRepeatCanBeUsed")
 	private void updateIndent() {
 		int curIndent = indent;
 		if (curIndent < INDENT_CACHE.length) {
 			this.indentStr = INDENT_CACHE[curIndent];
 		} else {
-			StringBuilder s = new StringBuilder(curIndent * INDENT_STR.length());
-			for (int i = 0; i < curIndent; i++) {
-				s.append(INDENT_STR);
-			}
-			this.indentStr = s.toString();
+			this.indentStr = Utils.strRepeat(INDENT_STR, curIndent);
 		}
 	}
 

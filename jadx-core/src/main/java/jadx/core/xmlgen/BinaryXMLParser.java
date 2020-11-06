@@ -56,7 +56,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private int namespaceDepth = 0;
 	private int[] resourceIds;
 
-	private RootNode rootNode;
+	private final RootNode rootNode;
 	private String appPackageName;
 
 	public BinaryXMLParser(RootNode rootNode) {
