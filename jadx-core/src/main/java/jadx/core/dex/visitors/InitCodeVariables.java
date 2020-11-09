@@ -70,11 +70,11 @@ public class InitCodeVariables extends AbstractVisitor {
 	}
 
 	private static void setCodeVar(SSAVar ssaVar, CodeVar codeVar) {
-		List<PhiInsn> usedInPhiList = ssaVar.getUsedInPhi();
-		if (!usedInPhiList.isEmpty()) {
+		List<PhiInsn> phiList = ssaVar.getPhiList();
+		if (!phiList.isEmpty()) {
 			Set<SSAVar> vars = new LinkedHashSet<>();
 			vars.add(ssaVar);
-			collectConnectedVars(usedInPhiList, vars);
+			collectConnectedVars(phiList, vars);
 			setCodeVarType(codeVar, vars);
 			vars.forEach(var -> {
 				if (var.isCodeVarSet()) {
@@ -105,15 +105,18 @@ public class InitCodeVariables extends AbstractVisitor {
 	}
 
 	private static void collectConnectedVars(List<PhiInsn> phiInsnList, Set<SSAVar> vars) {
+		if (phiInsnList.isEmpty()) {
+			return;
+		}
 		for (PhiInsn phiInsn : phiInsnList) {
 			SSAVar resultVar = phiInsn.getResult().getSVar();
 			if (vars.add(resultVar)) {
-				collectConnectedVars(resultVar.getUsedInPhi(), vars);
+				collectConnectedVars(resultVar.getPhiList(), vars);
 			}
 			phiInsn.getArguments().forEach(arg -> {
 				SSAVar sVar = ((RegisterArg) arg).getSVar();
 				if (vars.add(sVar)) {
-					collectConnectedVars(sVar.getUsedInPhi(), vars);
+					collectConnectedVars(sVar.getPhiList(), vars);
 				}
 			});
 		}

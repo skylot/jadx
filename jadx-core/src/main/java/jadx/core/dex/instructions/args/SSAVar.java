@@ -166,6 +166,27 @@ public class SSAVar {
 		return usedInPhi;
 	}
 
+	/**
+	 * Concat assign PHI insn and usedInPhi
+	 */
+	public List<PhiInsn> getPhiList() {
+		InsnNode assignInsn = getAssign().getParentInsn();
+		if (assignInsn != null && assignInsn.getType() == InsnType.PHI) {
+			PhiInsn assignPhi = (PhiInsn) assignInsn;
+			if (usedInPhi == null) {
+				return Collections.singletonList(assignPhi);
+			}
+			List<PhiInsn> list = new ArrayList<>(1 + usedInPhi.size());
+			list.add(assignPhi);
+			list.addAll(usedInPhi);
+			return list;
+		}
+		if (usedInPhi == null) {
+			return Collections.emptyList();
+		}
+		return usedInPhi;
+	}
+
 	public boolean isUsedInPhi() {
 		return usedInPhi != null && !usedInPhi.isEmpty();
 	}
