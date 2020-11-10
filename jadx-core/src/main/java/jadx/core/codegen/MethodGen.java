@@ -290,6 +290,10 @@ public class MethodGen {
 			code.startLine("// Can't load method instructions.");
 			return;
 		}
+		if (insnArr.length > 100) {
+			code.startLine("// Method dump skipped, instructions count: " + insnArr.length);
+			return;
+		}
 		code.incIndent();
 		if (mth.getThisArg() != null) {
 			code.startLine(nameGen.useArg(mth.getThisArg())).add(" = this;");
@@ -305,6 +309,7 @@ public class MethodGen {
 	}
 
 	public static void addFallbackInsns(CodeWriter code, MethodNode mth, InsnNode[] insnArr, FallbackOption option) {
+		int startIndent = code.getIndent();
 		InsnGen insnGen = new InsnGen(getFallbackMethodGen(mth), true);
 		boolean attachInsns = mth.root().getArgs().isJsonOutput();
 		InsnNode prevInsn = null;
@@ -349,8 +354,9 @@ public class MethodGen {
 				if (catchAttr != null) {
 					code.add("     // " + catchAttr);
 				}
-			} catch (CodegenException e) {
+			} catch (Exception e) {
 				LOG.debug("Error generate fallback instruction: ", e.getCause());
+				code.setIndent(startIndent);
 				code.startLine("// error: " + insn);
 			}
 			prevInsn = insn;

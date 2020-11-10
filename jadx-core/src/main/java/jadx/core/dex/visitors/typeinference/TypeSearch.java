@@ -34,6 +34,7 @@ import jadx.core.dex.nodes.MethodNode;
 public class TypeSearch {
 	private static final Logger LOG = LoggerFactory.getLogger(TypeSearch.class);
 
+	private static final int VARS_PROCESS_LIMIT = 5_000;
 	private static final int CANDIDATES_COUNT_LIMIT = 10;
 	private static final int SEARCH_ITERATION_LIMIT = 1_000_000;
 
@@ -50,6 +51,11 @@ public class TypeSearch {
 	}
 
 	public boolean run() {
+		if (mth.getSVars().size() > VARS_PROCESS_LIMIT) {
+			mth.addWarnComment("Multi-variable search skipped. Vars limit reached: " + mth.getSVars().size()
+					+ " (expected less than " + VARS_PROCESS_LIMIT + ")");
+			return false;
+		}
 		mth.getSVars().forEach(this::fillTypeCandidates);
 		mth.getSVars().forEach(this::collectConstraints);
 

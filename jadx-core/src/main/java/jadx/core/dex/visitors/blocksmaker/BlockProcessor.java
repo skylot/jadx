@@ -69,8 +69,7 @@ public class BlockProcessor extends AbstractVisitor {
 			updateExitBlocks(mth);
 
 			if (i++ > 100) {
-				mth.addWarn("CFG modification limit reached, blocks count: " + mth.getBasicBlocks().size());
-				break;
+				throw new JadxRuntimeException("CFG modification limit reached, blocks count: " + mth.getBasicBlocks().size());
 			}
 		}
 		checkForUnreachableBlocks(mth);
