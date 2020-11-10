@@ -81,17 +81,23 @@ public class TypeSearch {
 
 	private boolean applyResolvedVars() {
 		List<TypeSearchVarInfo> resolvedVars = state.getResolvedVars();
+		List<TypeSearchVarInfo> updatedVars = new ArrayList<>();
 		for (TypeSearchVarInfo var : resolvedVars) {
 			SSAVar ssaVar = var.getVar();
 			ArgType resolvedType = var.getCurrentType();
-			ssaVar.setType(resolvedType);
-		}
-		boolean applySuccess = true;
-		for (TypeSearchVarInfo var : resolvedVars) {
-			if (!var.getCurrentType().isTypeKnown()) {
-				// exclude unknown variables
+			if (!resolvedType.isTypeKnown()) {
+				// ignore unknown variables
 				continue;
 			}
+			if (resolvedType.equals(ssaVar.getTypeInfo().getType())) {
+				// type already set
+				continue;
+			}
+			ssaVar.setType(resolvedType);
+			updatedVars.add(var);
+		}
+		boolean applySuccess = true;
+		for (TypeSearchVarInfo var : updatedVars) {
 			TypeUpdateResult res = typeUpdate.applyWithWiderIgnSame(mth, var.getVar(), var.getCurrentType());
 			if (res == TypeUpdateResult.REJECT) {
 				mth.addComment("JADX DEBUG: Multi-variable search result rejected for " + var);
