@@ -280,13 +280,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int attributeNS = is.readInt32();
 		int attributeName = is.readInt32();
 		int attributeRawValue = is.readInt32();
-		int attrValSize = is.readInt16();
-		if (attrValSize != 0x08) {
-			die("attrValSize != 0x08 not supported");
-		}
-		if (is.readInt8() != 0) {
-			die("res0 is not 0");
-		}
+		is.skip(3);
 		int attrValDataType = is.readInt8();
 		int attrValData = is.readInt32();
 
