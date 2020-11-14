@@ -1,4 +1,6 @@
-branch: release
+branches:
+  - release
+
 verifyConditions:
   - '@semantic-release/github'
 
