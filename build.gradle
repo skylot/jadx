@@ -147,6 +147,16 @@ task dist {
 	}
 }
 
+task distWin(type: Copy, dependsOn: 'jadx-gui:distWinWithJre') {
+	group 'jadx'
+	description = 'Copy bundle to build dir'
+	destinationDir buildDir
+	from(tasks.getByPath('jadx-gui:distWinWithJre').outputs) {
+		include '*.zip'
+	}
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 task cleanBuildDir(type: Delete) {
 	group 'jadx'
 	delete buildDir

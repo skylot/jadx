@@ -2,6 +2,7 @@ plugins {
 	id 'application'
 	id 'edu.sc.seis.launch4j' version '2.5.1'
 	id 'com.github.johnrengelman.shadow' version '7.1.0'
+	id 'org.beryx.runtime' version '1.12.7'
 }
 
 dependencies {
@@ -80,13 +81,60 @@ launch4j {
 	copyright = 'Skylot'
 	windowTitle = 'jadx'
 	companyName = 'jadx'
-	jreMinVersion = '1.8.0'
+	jreMinVersion = '11'
 	jvmOptions = ['-Dawt.useSystemAAFontSettings=lcd', '-Dswing.aatext=true', '-XX:+UseG1GC']
 	jreRuntimeBits = "64"
 	bundledJre64Bit = true
 	initialHeapPercent = 5
 	maxHeapSize = 4096
 	maxHeapPercent = 70
-	downloadUrl = 'https://adoptopenjdk.net/releases.html?variant=openjdk11&jvmVariant=hotspot#x64_win'
+	downloadUrl = 'https://www.oracle.com/java/technologies/downloads/#jdk17-windows'
 	bundledJrePath = '%JAVA_HOME%'
+}
+
+runtime {
+	addOptions('--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages')
+	addModules(
+			'java.desktop',
+			'java.naming',
+			'java.sql', // TODO: GSON register adapter for java.sql.Time
+			'java.xml',
+	)
+	jpackage {
+		imageOptions = ['--icon', "${projectDir}/src/main/resources/logos/jadx-logo.ico"]
+		skipInstaller = true
+		targetPlatformName = "win"
+	}
+	launcher {
+		noConsole = true
+	}
+}
+
+tasks.register('distLaunch4jConfig') {
+	def configFile = layout.buildDirectory.file("jadx-gui-${version}.l4j.ini")
+	outputs.file(configFile).withPropertyName('outputFiles')
+
+	doLast {
+		configFile.get().getAsFile().write("""
+# Launch4j runtime config
+-DJAVA_HOME="%EXEDIR%/jre"
+""".trim())
+	}
+}
+
+task distWinWithJre(type: Zip, dependsOn: ['runtime', 'createExe', 'distLaunch4jConfig']) {
+	group 'jadx'
+	destinationDirectory = buildDir
+	archiveFileName = "jadx-gui-${jadxVersion}-with-jre-win.zip"
+	from(runtime.jreDir) {
+		include '**/*'
+		into 'jre'
+	}
+	from(createExe.outputs) {
+		include '*.exe'
+	}
+	from(distLaunch4jConfig.outputs) {
+		include '*.ini'
+	}
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
