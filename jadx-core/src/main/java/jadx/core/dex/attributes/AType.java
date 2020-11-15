@@ -92,6 +92,8 @@ public class AType<T extends IAttribute> {
 	public static final AType<RegDebugInfoAttr> REG_DEBUG_INFO = new AType<>();
 
 	public static final Set<AType<?>> SKIP_ON_UNLOAD = new HashSet<>(Arrays.asList(
+			SOURCE_FILE,
+			FIELD_INIT,
 			FIELD_REPLACE,
 			METHOD_INLINE,
 			SKIP_MTH_ARGS));

@@ -167,16 +167,20 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 				f.addAttr(FieldInitAttr.NULL_VALUE);
 			}
 		}
-		List<EncodedValue> values = cls.getStaticFieldInitValues();
-		int count = values.size();
-		if (count == 0 || count > staticFields.size()) {
-			return;
+		try {
+			List<EncodedValue> values = cls.getStaticFieldInitValues();
+			int count = values.size();
+			if (count == 0 || count > staticFields.size()) {
+				return;
+			}
+			for (int i = 0; i < count; i++) {
+				staticFields.get(i).addAttr(FieldInitAttr.constValue(values.get(i)));
+			}
+			// process const fields
+			root().getConstValues().processConstFields(this, staticFields);
+		} catch (Exception e) {
+			this.addWarnComment("Failed to load initial values for static fields", e);
 		}
-		for (int i = 0; i < count; i++) {
-			staticFields.get(i).addAttr(FieldInitAttr.constValue(values.get(i)));
-		}
-		// process const fields
-		root().getConstValues().processConstFields(this, staticFields);
 	}
 
 	private void addSourceFilenameAttr(String fileName) {
