@@ -101,6 +101,18 @@ public class Utils {
 		return sb.toString();
 	}
 
+	public static String concatStrings(List<String> list) {
+		if (isEmpty(list)) {
+			return "";
+		}
+		if (list.size() == 1) {
+			return list.get(0);
+		}
+		StringBuilder sb = new StringBuilder();
+		list.forEach(sb::append);
+		return sb.toString();
+	}
+
 	public static String getStackTrace(Throwable throwable) {
 		if (throwable == null) {
 			return "";
