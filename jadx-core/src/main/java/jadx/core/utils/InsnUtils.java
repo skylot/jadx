@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.FieldInitAttr;
+import jadx.core.dex.attributes.fldinit.FieldInitAttr;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.ConstClassNode;
 import jadx.core.dex.instructions.ConstStringNode;
@@ -101,7 +101,7 @@ public class InsnUtils {
 					return null;
 				}
 				FieldInitAttr attr = fieldNode.get(AType.FIELD_INIT);
-				if (attr != null && attr.getValueType() == FieldInitAttr.InitType.CONST) {
+				if (attr != null && attr.isConst()) {
 					return EncodedValueUtils.convertToConstValue(root, attr.getEncodedValue());
 				}
 				return null;

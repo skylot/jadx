@@ -22,8 +22,7 @@ import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
-import jadx.core.dex.attributes.FieldInitAttr;
-import jadx.core.dex.attributes.FieldInitAttr.InitType;
+import jadx.core.dex.attributes.fldinit.FieldInitAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr.EnumField;
 import jadx.core.dex.attributes.nodes.JadxError;
@@ -395,14 +394,14 @@ public class ClassGen {
 		FieldInitAttr fv = f.get(AType.FIELD_INIT);
 		if (fv != null) {
 			code.add(" = ");
-			if (fv.getValueType() == InitType.CONST) {
+			if (fv.isConst()) {
 				EncodedValue encodedValue = fv.getEncodedValue();
 				if (encodedValue.getType() == EncodedType.ENCODED_NULL) {
 					code.add(TypeGen.literalToString(0, f.getType(), cls, fallback));
 				} else {
 					annotationGen.encodeValue(cls.root(), code, encodedValue);
 				}
-			} else if (fv.getValueType() == InitType.INSN) {
+			} else if (fv.isInsn()) {
 				InsnGen insnGen = makeInsnGen(fv.getInsnMth());
 				addInsnBody(insnGen, code, fv.getInsn());
 			}

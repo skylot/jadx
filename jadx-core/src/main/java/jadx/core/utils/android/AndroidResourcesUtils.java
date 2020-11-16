@@ -17,7 +17,7 @@ import jadx.core.codegen.CodeWriter;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.FieldInitAttr;
+import jadx.core.dex.attributes.fldinit.FieldInitAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.ConstStorage;

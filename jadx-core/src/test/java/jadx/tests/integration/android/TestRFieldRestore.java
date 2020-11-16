@@ -7,7 +7,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.FieldInitAttr;
+import jadx.core.dex.attributes.fldinit.FieldInitAttr;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.tests.api.IntegrationTest;

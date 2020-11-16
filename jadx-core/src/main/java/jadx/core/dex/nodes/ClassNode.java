@@ -23,8 +23,9 @@ import jadx.api.plugins.input.data.annotations.IAnnotation;
 import jadx.core.Consts;
 import jadx.core.ProcessClass;
 import jadx.core.dex.attributes.AFlag;
-import jadx.core.dex.attributes.FieldInitAttr;
 import jadx.core.dex.attributes.annotations.AnnotationsList;
+import jadx.core.dex.attributes.fldinit.FieldInitAttr;
+import jadx.core.dex.attributes.fldinit.FieldInitConstAttr;
 import jadx.core.dex.attributes.nodes.NotificationAttrNode;
 import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.info.AccessInfo;
@@ -164,7 +165,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		for (FieldNode f : staticFields) {
 			if (f.getAccessFlags().isFinal()) {
 				// incorrect initialization will be removed if assign found in constructor
-				f.addAttr(FieldInitAttr.NULL_VALUE);
+				f.addAttr(FieldInitConstAttr.NULL_VALUE);
 			}
 		}
 		try {

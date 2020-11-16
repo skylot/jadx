@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.api.JadxArgs;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.FieldInitAttr;
+import jadx.core.dex.attributes.fldinit.FieldInitAttr;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.nodes.ClassNode;
@@ -85,10 +85,7 @@ public class ConstStorage {
 			AccessInfo accFlags = f.getAccessFlags();
 			if (accFlags.isStatic() && accFlags.isFinal()) {
 				FieldInitAttr fv = f.get(AType.FIELD_INIT);
-				if (fv != null
-						&& fv.getValueType() == FieldInitAttr.InitType.CONST
-						&& fv != FieldInitAttr.NULL_VALUE
-						&& fv.getEncodedValue() != null) {
+				if (fv != null && fv.isConst() && fv.getEncodedValue().getValue() != null) {
 					addConstField(cls, f, fv.getEncodedValue().getValue(), accFlags.isPublic());
 				}
 			}

@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.FieldInitAttr;
+import jadx.core.dex.attributes.fldinit.FieldInitAttr;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
 import jadx.core.dex.attributes.nodes.ForceReturnAttr;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
@@ -287,10 +287,10 @@ public class RegionGen extends InsnGen {
 				staticField(code, fn.getFieldInfo());
 				// print original value, sometimes replaced with incorrect field
 				FieldInitAttr valueAttr = fn.get(AType.FIELD_INIT);
-				if (valueAttr != null && valueAttr.getValueType() == FieldInitAttr.InitType.CONST) {
-					Object value = valueAttr.getEncodedValue();
+				if (valueAttr != null && valueAttr.isConst()) {
+					Object value = valueAttr.getEncodedValue().getValue();
 					if (value != null) {
-						code.add(" /*").add(value.toString()).add("*/");
+						code.add(" /* ").add(value.toString()).add(" */");
 					}
 				}
 			}
