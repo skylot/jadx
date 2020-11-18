@@ -118,8 +118,5 @@ To support this project you can:
   - Submit decompilation issues, please read before proceed: [Open issue](CONTRIBUTING.md#Open-Issue)
   - Open pull request, please follow these rules: [Pull Request Process](CONTRIBUTING.md#Pull-Request-Process)
 
-### Related projects:
-- [PyJadx](https://github.com/romainthomas/pyjadx) - python binding for jadx by [@romainthomas](https://github.com/romainthomas)
-
 ---------------------------------------
 *Licensed under the Apache 2.0 License*
