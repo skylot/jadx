@@ -173,7 +173,7 @@ public class RootNode {
 		long start = System.currentTimeMillis();
 		int renamedCount = 0;
 		ResourceStorage resStorage = parser.getResStorage();
-		ValuesParser valuesParser = new ValuesParser(this, parser.getStrings(), resStorage.getResourcesNames());
+		ValuesParser valuesParser = new ValuesParser(parser.getStrings(), resStorage.getResourcesNames());
 		Map<String, ResourceEntry> entryNames = new HashMap<>();
 		for (ResourceEntry resEntry : resStorage.getResources()) {
 			String val = valuesParser.getSimpleValueString(resEntry);

@@ -73,7 +73,7 @@ public class ResTableParser extends CommonBinaryParser {
 	public ResContainer decodeFiles(InputStream inputStream) throws IOException {
 		decode(inputStream);
 
-		ValuesParser vp = new ValuesParser(root, strings, resStorage.getResourcesNames());
+		ValuesParser vp = new ValuesParser(strings, resStorage.getResourcesNames());
 		ResXmlGen resGen = new ResXmlGen(resStorage, vp);
 
 		ICodeInfo content = makeXmlDump();
