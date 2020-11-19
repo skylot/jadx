@@ -1,7 +1,6 @@
 package jadx.core.xmlgen.entry;
 
-import java.net.URL;
-import java.nio.file.Paths;
+import java.io.InputStream;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,9 +33,8 @@ public class ValuesParser extends ParserConstants {
 	}
 
 	private static Map<Integer, String> loadAndroidResMap() {
-		try {
-			URL resMapUrl = ValuesParser.class.getResource("/android/res-map.txt");
-			return TextResMapFile.read(Paths.get(resMapUrl.toURI()));
+		try (InputStream is = ValuesParser.class.getResourceAsStream("/android/res-map.txt")) {
+			return TextResMapFile.read(is);
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Failed to load android resource file", e);
 		}
