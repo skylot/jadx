@@ -26,10 +26,14 @@ public class ValuesParser extends ParserConstants {
 	public ValuesParser(String[] strings, Map<Integer, String> resMap) {
 		this.strings = strings;
 		this.resMap = resMap;
+		getAndroidResMap();
+	}
 
+	public static Map<Integer, String> getAndroidResMap() {
 		if (androidResMap == null) {
 			androidResMap = loadAndroidResMap();
 		}
+		return androidResMap;
 	}
 
 	private static Map<Integer, String> loadAndroidResMap() {
@@ -223,9 +227,5 @@ public class ValuesParser extends ParserConstants {
 
 	private static String floatToString(float value) {
 		return doubleToString(value);
-	}
-
-	public static Map<Integer, String> getAndroidResMap() {
-		return androidResMap;
 	}
 }
