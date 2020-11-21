@@ -292,7 +292,7 @@ public class ResTableParser extends CommonBinaryParser {
 		if (renamedKey != null) {
 			return renamedKey;
 		}
-		if (!origKeyName.isEmpty()) {
+		if (origKeyName.matches("[\\w\\d-_.]+")) {
 			return origKeyName;
 		}
 		FieldNode constField = root.getConstValues().getGlobalConstFields().get(resRef);
