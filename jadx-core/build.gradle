@@ -4,7 +4,6 @@ plugins {
 
 dependencies {
 	runtimeOnly files('clsp-data/android-29-clst.jar')
-	runtimeOnly files('clsp-data/android-29-res.jar')
 
 	api(project(':jadx-plugins:jadx-plugins-api'))
 

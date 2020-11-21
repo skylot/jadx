@@ -2,7 +2,6 @@ package jadx.core.xmlgen;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -35,12 +34,10 @@ import jadx.core.xmlgen.entry.ValuesParser;
  */
 
 public class BinaryXMLParser extends CommonBinaryParser {
-
 	private static final Logger LOG = LoggerFactory.getLogger(BinaryXMLParser.class);
-	private static final String ANDROID_R_STYLE_CLS = "android.R$style";
+
 	private static final boolean ATTR_NEW_LINE = false;
 
-	private final Map<Integer, String> styleMap = new HashMap<>();
 	private final Map<Integer, String> resNames;
 	private Map<String, String> nsMap;
 	private Set<String> nsMapGenerated;
@@ -62,22 +59,10 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	public BinaryXMLParser(RootNode rootNode) {
 		this.rootNode = rootNode;
 		try {
-			readAndroidRStyleClass();
 			ConstStorage constStorage = rootNode.getConstValues();
 			resNames = constStorage.getResourcesNames();
 		} catch (Exception e) {
 			throw new JadxRuntimeException("BinaryXMLParser init error", e);
-		}
-	}
-
-	private void readAndroidRStyleClass() {
-		try {
-			Class<?> rStyleCls = Class.forName(ANDROID_R_STYLE_CLS);
-			for (Field f : rStyleCls.getFields()) {
-				styleMap.put(f.getInt(f.getType()), f.getName());
-			}
-		} catch (Exception e) {
-			LOG.error("Android R class loading failed", e);
 		}
 	}
 
@@ -370,26 +355,21 @@ public class BinaryXMLParser extends CommonBinaryParser {
 			String shortNsName, String attrName) {
 		if (attrValDataType == TYPE_REFERENCE) {
 			// reference custom processing
-			String name = styleMap.get(attrValData);
-			if (name != null) {
-				writer.add("@style/").add(name.replace('_', '.'));
+			String resName = resNames.get(attrValData);
+			if (resName != null) {
+				writer.add('@');
+				if (resName.startsWith("id/")) {
+					writer.add('+');
+				}
+				writer.add(resName);
 			} else {
-				String resName = resNames.get(attrValData);
-				if (resName != null) {
-					writer.add('@');
-					if (resName.startsWith("id/")) {
-						writer.add('+');
-					}
-					writer.add(resName);
+				String androidResName = ValuesParser.getAndroidResMap().get(attrValData);
+				if (androidResName != null) {
+					writer.add("@android:").add(androidResName);
+				} else if (attrValData == 0) {
+					writer.add("@null");
 				} else {
-					resName = ValuesParser.getAndroidResMap().get(attrValData);
-					if (resName != null) {
-						writer.add("@android:").add(resName);
-					} else if (attrValData == 0) {
-						writer.add("@null");
-					} else {
-						writer.add("0x").add(Integer.toHexString(attrValData));
-					}
+					writer.add("0x").add(Integer.toHexString(attrValData));
 				}
 			}
 		} else {
