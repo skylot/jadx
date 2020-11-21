@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,8 @@ import jadx.core.xmlgen.entry.ValuesParser;
 
 public class ResTableParser extends CommonBinaryParser {
 	private static final Logger LOG = LoggerFactory.getLogger(ResTableParser.class);
+
+	private static final Pattern VALID_RES_KEY_PATTERN = Pattern.compile("[\\w\\d-_.]+");
 
 	private static final class PackageChunk {
 		private final int id;
@@ -292,7 +295,7 @@ public class ResTableParser extends CommonBinaryParser {
 		if (renamedKey != null) {
 			return renamedKey;
 		}
-		if (!origKeyName.isEmpty()) {
+		if (VALID_RES_KEY_PATTERN.matcher(origKeyName).matches()) {
 			return origKeyName;
 		}
 		FieldNode constField = root.getConstValues().getGlobalConstFields().get(resRef);
