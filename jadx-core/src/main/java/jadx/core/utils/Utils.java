@@ -246,6 +246,22 @@ public class Utils {
 		return Collections.unmodifiableMap(result);
 	}
 
+	/**
+	 * Merge two maps. Return HashMap as result. Second map will override values from first map.
+	 */
+	public static <K, V> Map<K, V> mergeMaps(Map<K, V> first, Map<K, V> second) {
+		if (isEmpty(first)) {
+			return second;
+		}
+		if (isEmpty(second)) {
+			return first;
+		}
+		Map<K, V> result = new HashMap<>(first.size() + second.size());
+		result.putAll(first);
+		result.putAll(second);
+		return result;
+	}
+
 	@Nullable
 	public static <T> T getOne(@Nullable List<T> list) {
 		if (list == null || list.size() != 1) {
@@ -275,6 +291,10 @@ public class Utils {
 
 	public static <T> boolean notEmpty(Collection<T> col) {
 		return col != null && !col.isEmpty();
+	}
+
+	public static <K, V> boolean isEmpty(Map<K, V> map) {
+		return map == null || map.isEmpty();
 	}
 
 	public static <T> boolean isEmpty(T[] arr) {

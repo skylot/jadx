@@ -22,6 +22,7 @@ import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.dex.nodes.utils.TypeUtils;
 import jadx.core.dex.visitors.methods.MutableMethodDetails;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.dex.visitors.typeinference.TypeCompare;
@@ -156,9 +157,14 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 	}
 
 	private Map<ArgType, ArgType> getTypeVarsMapping(BaseInvokeNode invokeInsn) {
-		ArgType declClsType = invokeInsn.getCallMth().getDeclClass().getType();
+		MethodInfo callMthInfo = invokeInsn.getCallMth();
+		ArgType declClsType = callMthInfo.getDeclClass().getType();
 		ArgType callClsType = getClsCallType(invokeInsn, declClsType);
-		return root.getTypeUtils().getTypeVariablesMapping(callClsType);
+
+		TypeUtils typeUtils = root.getTypeUtils();
+		Map<ArgType, ArgType> clsTypeVars = typeUtils.getTypeVariablesMapping(callClsType);
+		Map<ArgType, ArgType> mthTypeVars = typeUtils.getTypeVarMappingForInvoke(invokeInsn);
+		return Utils.mergeMaps(clsTypeVars, mthTypeVars);
 	}
 
 	private ArgType getClsCallType(BaseInvokeNode invokeInsn, ArgType declClsType) {

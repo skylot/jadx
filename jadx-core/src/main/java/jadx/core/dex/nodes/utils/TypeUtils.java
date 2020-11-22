@@ -154,6 +154,30 @@ public class TypeUtils {
 		return replaceMap;
 	}
 
+	public Map<ArgType, ArgType> getTypeVarMappingForInvoke(BaseInvokeNode invokeInsn) {
+		IMethodDetails mthDetails = root.getMethodUtils().getMethodDetails(invokeInsn);
+		if (mthDetails == null) {
+			return Collections.emptyMap();
+		}
+		Map<ArgType, ArgType> map = new HashMap<>(1 + invokeInsn.getArgsCount());
+		addTypeVarMapping(map, mthDetails.getReturnType(), invokeInsn.getResult());
+		int argCount = Math.min(mthDetails.getArgTypes().size(), invokeInsn.getArgsCount());
+		for (int i = 0; i < argCount; i++) {
+			addTypeVarMapping(map, mthDetails.getArgTypes().get(i), invokeInsn.getArg(i));
+		}
+		return map;
+	}
+
+	private static void addTypeVarMapping(Map<ArgType, ArgType> map, ArgType typeVar, InsnArg arg) {
+		if (arg == null || typeVar == null || !typeVar.isTypeKnown()) {
+			return;
+		}
+		if (typeVar.isGenericType()) {
+			map.put(typeVar, arg.getType());
+		}
+		// TODO: resolve inner type vars: 'List<T> -> List<String>' to 'T -> String'
+	}
+
 	@Nullable
 	public ArgType replaceMethodGenerics(BaseInvokeNode invokeInsn, IMethodDetails details, ArgType typeWithGeneric) {
 		if (typeWithGeneric == null) {
