@@ -49,7 +49,7 @@ public class ClsSet {
 
 	private static final String CLST_EXTENSION = ".jcst";
 	private static final String CLST_FILENAME = "core" + CLST_EXTENSION;
-	private static final String CLST_PKG_PATH = ClsSet.class.getPackage().getName().replace('.', '/');
+	private static final String CLST_PATH = "/clst/" + CLST_FILENAME;
 
 	private static final String JADX_CLS_SET_HEADER = "jadx-cst";
 	private static final int VERSION = 3;
@@ -78,9 +78,9 @@ public class ClsSet {
 
 	public void loadFromClstFile() throws IOException, DecodeException {
 		long startTime = System.currentTimeMillis();
-		try (InputStream input = getClass().getResourceAsStream(CLST_FILENAME)) {
+		try (InputStream input = ClsSet.class.getResourceAsStream(CLST_PATH)) {
 			if (input == null) {
-				throw new JadxRuntimeException("Can't load classpath file: " + CLST_FILENAME);
+				throw new JadxRuntimeException("Can't load classpath file: " + CLST_PATH);
 			}
 			load(input);
 		}
@@ -197,7 +197,7 @@ public class ClsSet {
 
 			try (ZipOutputStream out = new ZipOutputStream(Files.newOutputStream(path));
 					ZipInputStream in = new ZipInputStream(Files.newInputStream(temp))) {
-				String clst = CLST_PKG_PATH + '/' + CLST_FILENAME;
+				String clst = CLST_PATH;
 				boolean clstReplaced = false;
 				ZipEntry entry = in.getNextEntry();
 				while (entry != null) {

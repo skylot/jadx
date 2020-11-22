@@ -3,8 +3,6 @@ plugins {
 }
 
 dependencies {
-	runtimeOnly files('clsp-data/android-29-clst.jar')
-
 	api(project(':jadx-plugins:jadx-plugins-api'))
 
 	implementation 'com.google.code.gson:gson:2.8.6'
