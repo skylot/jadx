@@ -313,17 +313,23 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	}
 
 	private String generateNameForNS(String attrUrl) {
-		for (int i = 1;; i++) {
-			String attrName = "ns" + i;
-			if (!nsMap.containsValue(attrName) && !nsMapGenerated.contains(attrName)) {
-				nsMapGenerated.add(attrName);
-				// do not add generated value to nsMap
-				// because attrUrl might be used in a neighbor element, but never defined
-				writer.add("xmlns:").add(attrName)
-						.add("=\"").add(attrUrl).add("\" ");
-				return attrName;
+		String attrName;
+		if (ANDROID_NS_URL.equals(attrUrl)) {
+			attrName = ANDROID_NS_VALUE;
+			nsMap.put(ANDROID_NS_URL, attrName);
+		} else {
+			for (int i = 1;; i++) {
+				attrName = "ns" + i;
+				if (!nsMapGenerated.contains(attrName) && !nsMap.containsValue(attrName)) {
+					nsMapGenerated.add(attrName);
+					// do not add generated value to nsMap
+					// because attrUrl might be used in a neighbor element, but never defined
+					break;
+				}
 			}
 		}
+		writer.add("xmlns:").add(attrName).add("=\"").add(attrUrl).add("\" ");
+		return attrName;
 	}
 
 	private String getAttributeName(int id) {
