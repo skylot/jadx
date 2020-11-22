@@ -317,11 +317,10 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		if (ANDROID_NS_URL.equals(attrUrl)) {
 			attrName = ANDROID_NS_VALUE;
 			nsMap.put(ANDROID_NS_URL, attrName);
-		}
-		else {
+		} else {
 			for (int i = 1;; i++) {
 				attrName = "ns" + i;
-				if (!nsMap.containsValue(attrName) && !nsMapGenerated.contains(attrName)) {
+				if (!nsMapGenerated.contains(attrName) && !nsMap.containsValue(attrName)) {
 					nsMapGenerated.add(attrName);
 					// do not add generated value to nsMap
 					// because attrUrl might be used in a neighbor element, but never defined
