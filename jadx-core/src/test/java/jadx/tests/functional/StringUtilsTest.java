@@ -51,4 +51,15 @@ class StringUtilsTest {
 	private void checkCharUnescape(char input, String result) {
 		assertThat(stringUtils.unescapeChar(input), is('\'' + result + '\''));
 	}
+
+	@Test
+	public void testResStrValueEscape() {
+		checkResStrValueEscape("line\nnew line", "line\\nnew line");
+		checkResStrValueEscape("can't", "can\\'t");
+		checkResStrValueEscape("quote\"end", "quote\\\"end");
+	}
+
+	private void checkResStrValueEscape(String input, String result) {
+		assertThat(StringUtils.escapeResStrValue(input), is(result));
+	}
 }

@@ -217,9 +217,9 @@ public class StringUtils {
 	}
 
 	private static void commonEscapeAndAppend(StringBuilder sb, char c) {
-		String replace = escapeXmlChar(c);
+		String replace = escapeWhiteSpaceChar(c);
 		if (replace == null) {
-			replace = escapeWhiteSpaceChar(c);
+			replace = escapeXmlChar(c);
 		}
 		if (replace != null) {
 			sb.append(replace);
