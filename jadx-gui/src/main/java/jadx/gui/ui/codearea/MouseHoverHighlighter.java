@@ -20,7 +20,8 @@ class MouseHoverHighlighter extends MouseMotionAdapter {
 	private final CodeLinkGenerator codeLinkGenerator;
 	private final Highlighter.HighlightPainter highlighter;
 
-	private boolean added;
+	private Object tag;
+	private int highlightedTokenOffset = -1;
 
 	public MouseHoverHighlighter(CodeArea codeArea, CodeLinkGenerator codeLinkGenerator) {
 		this.codeArea = codeArea;
@@ -30,28 +31,44 @@ class MouseHoverHighlighter extends MouseMotionAdapter {
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		Highlighter highlighter = codeArea.getHighlighter();
-		if (added) {
-			highlighter.removeAllHighlights();
-			added = false;
+		if (!addHighlight(e)) {
+			removeHighlight();
 		}
+	}
+
+	private boolean addHighlight(MouseEvent e) {
 		if (e.getModifiersEx() != 0) {
-			return;
+			return false;
 		}
 		try {
 			Token token = codeArea.viewToToken(e.getPoint());
 			if (token == null || token.getType() != TokenTypes.IDENTIFIER) {
-				return;
+				return false;
 			}
-			JumpPosition jump = codeLinkGenerator.getJumpLinkAtOffset(codeArea, token.getOffset());
+			int tokenOffset = token.getOffset();
+			if (tokenOffset == highlightedTokenOffset) {
+				// don't repaint highlight
+				return true;
+			}
+			JumpPosition jump = codeLinkGenerator.getJumpLinkAtOffset(codeArea, tokenOffset);
 			if (jump == null) {
-				return;
+				return false;
 			}
-			highlighter.removeAllHighlights();
-			highlighter.addHighlight(token.getOffset(), token.getEndOffset(), this.highlighter);
-			added = true;
+			removeHighlight();
+			tag = codeArea.getHighlighter().addHighlight(tokenOffset, token.getEndOffset(), this.highlighter);
+			highlightedTokenOffset = tokenOffset;
+			return true;
 		} catch (Exception exc) {
 			LOG.error("Mouse hover highlight error", exc);
+			return false;
+		}
+	}
+
+	private void removeHighlight() {
+		if (tag != null) {
+			codeArea.getHighlighter().removeHighlight(tag);
+			tag = null;
+			highlightedTokenOffset = -1;
 		}
 	}
 }
