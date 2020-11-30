@@ -27,7 +27,7 @@ import jadx.core.xmlgen.entry.ValuesParser;
 public class ResTableParser extends CommonBinaryParser {
 	private static final Logger LOG = LoggerFactory.getLogger(ResTableParser.class);
 
-	private static final Pattern VALID_RES_KEY_PATTERN = Pattern.compile("[\\w\\d-_.]+");
+	private static final Pattern VALID_RES_KEY_PATTERN = Pattern.compile("\\$+[\\w\\d-_.]+");
 
 	private static final class PackageChunk {
 		private final int id;
@@ -59,12 +59,21 @@ public class ResTableParser extends CommonBinaryParser {
 		}
 	}
 
+	/**
+	 * No renaming, pattern checking or name generation. Required for res-map.txt building
+	 */
+	private final boolean useRawResName;
 	private final RootNode root;
 	private final ResourceStorage resStorage = new ResourceStorage();
 	private String[] strings;
 
 	public ResTableParser(RootNode root) {
+		this(root, false);
+	}
+
+	public ResTableParser(RootNode root, boolean useRawResNames) {
 		this.root = root;
+		this.useRawResName = useRawResNames;
 	}
 
 	public void decode(InputStream inputStream) throws IOException {
@@ -291,6 +300,9 @@ public class ResTableParser extends CommonBinaryParser {
 	}
 
 	private String getResName(int resRef, String origKeyName) {
+		if (this.useRawResName) {
+			return origKeyName;
+		}
 		String renamedKey = resStorage.getRename(resRef);
 		if (renamedKey != null) {
 			return renamedKey;
