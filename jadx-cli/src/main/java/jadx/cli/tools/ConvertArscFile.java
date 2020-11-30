@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,13 +53,29 @@ public class ConvertArscFile {
 		RootNode root = new RootNode(new JadxArgs()); // not really needed
 		rewritesCount = 0;
 		for (Path resFile : inputPaths) {
-			try (InputStream inputStream = new BufferedInputStream(Files.newInputStream(resFile))) {
-				ResTableParser resTableParser = new ResTableParser(root);
-				resTableParser.decode(inputStream);
-				Map<Integer, String> singleResMap = resTableParser.getResStorage().getResourcesNames();
-				mergeResMaps(resMap, singleResMap);
-				LOG.info("{} entries count: {}, after merge: {}", resFile.getFileName(), singleResMap.size(), resMap.size());
+			LOG.info("Processing {}", resFile);
+			ResTableParser resTableParser = new ResTableParser(root, true);
+			if (resFile.getFileName().toString().endsWith(".jar")) {
+				// Load resources.arsc from android.jar
+				try (ZipFile zip = new ZipFile(resFile.toFile())) {
+					ZipEntry entry = zip.getEntry("resources.arsc");
+					if (entry == null) {
+						LOG.error("Failed to load \"resources.arsc\" from {}", resFile);
+						continue;
+					}
+					try (InputStream inputStream = zip.getInputStream(entry)) {
+						resTableParser.decode(inputStream);
+					}
+				}
+			} else {
+				// Load resources.arsc from extracted file
+				try (InputStream inputStream = new BufferedInputStream(Files.newInputStream(resFile))) {
+					resTableParser.decode(inputStream);
+				}
 			}
+			Map<Integer, String> singleResMap = resTableParser.getResStorage().getResourcesNames();
+			mergeResMaps(resMap, singleResMap);
+			LOG.info("{} entries count: {}, after merge: {}", resFile.getFileName(), singleResMap.size(), resMap.size());
 		}
 		LOG.info("Output entries count: {}", resMap.size());
 		LOG.info("Total rewrites count: {}", rewritesCount);
