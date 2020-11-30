@@ -113,12 +113,11 @@ public class BlockSplitter extends AbstractVisitor {
 					}
 				}
 			}
+			if (insn.contains(AType.EXC_HANDLER)) {
+				processExceptionHandler(mth, curBlock, insn);
+			}
 			if (insn.contains(AFlag.TRY_ENTER)) {
 				curBlock = insertSplitterBlock(mth, blocksMap, curBlock, insn, startNew);
-			} else if (insn.contains(AType.EXC_HANDLER)) {
-				processExceptionHandler(mth, curBlock, insn);
-				blocksMap.put(insn.getOffset(), curBlock);
-				curBlock.getInstructions().add(insn);
 			} else {
 				blocksMap.put(insn.getOffset(), curBlock);
 				curBlock.getInstructions().add(insn);
