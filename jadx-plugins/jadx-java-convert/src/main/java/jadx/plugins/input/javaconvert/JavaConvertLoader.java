@@ -27,6 +27,7 @@ public class JavaConvertLoader {
 	public static ConvertResult process(List<Path> input) {
 		ConvertResult result = new ConvertResult();
 		processJars(input, result);
+		processAars(input, result);
 		processClassFiles(input, result);
 		return result;
 	}
@@ -80,6 +81,24 @@ public class JavaConvertLoader {
 		}
 	}
 
+	private static void processAars(List<Path> input, ConvertResult result) {
+		PathMatcher aarMatcher = FileSystems.getDefault().getPathMatcher("glob:**.aar");
+		input.stream()
+				.filter(path -> Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))
+				.filter(aarMatcher::matches)
+				.forEach(path -> ZipSecurity.readZipEntries(path.toFile(), (entry, in) -> {
+					try {
+						if (entry.getName().endsWith(".jar")) {
+							Path tempJar = saveInputStreamToFile(in, ".jar");
+							result.addTempPath(tempJar);
+							convertJar(result, tempJar);
+						}
+					} catch (Exception e) {
+						LOG.error("Failed to process zip entry: {}", entry, e);
+					}
+				}));
+	}
+
 	private static void convertJar(ConvertResult result, Path path) throws Exception {
 		Path tempDirectory = Files.createTempDirectory("jadx-");
 		result.addTempPath(tempDirectory);
@@ -120,5 +139,15 @@ public class JavaConvertLoader {
 			}
 			output.write(buffer, 0, count);
 		}
+	}
+
+	private static Path saveInputStreamToFile(InputStream in, String suffix) throws IOException {
+		Path tempJar = Files.createTempFile("jadx-temp-", suffix);
+		try (OutputStream out = Files.newOutputStream(tempJar)) {
+			copyStream(in, out);
+		} catch (Exception e) {
+			throw new IOException("Failed to save temp file", e);
+		}
+		return tempJar;
 	}
 }
