@@ -4,7 +4,6 @@ import java.util.Iterator;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.NotYetImplemented;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
@@ -23,11 +22,11 @@ public class TestDoWhileBreak3 extends IntegrationTest {
 		}
 	}
 
-	@NotYetImplemented
 	@Test
 	public void test() {
 		assertThat(getClassNode(TestCls.class))
 				.code()
-				.containsOnlyOnce("while");
+				.containsOne("while")
+				.containsLines(2, "while (this.it.hasNext() && this.it.next() != null) {", "}");
 	}
 }
