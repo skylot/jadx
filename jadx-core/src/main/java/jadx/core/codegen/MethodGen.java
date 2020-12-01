@@ -3,6 +3,8 @@ package jadx.core.codegen;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -290,7 +292,11 @@ public class MethodGen {
 			code.startLine("// Can't load method instructions.");
 			return;
 		}
-		if (insnArr.length > 100) {
+		long insnCountEstimate = Stream.of(insnArr)
+				.filter(Objects::nonNull)
+				.filter(insn -> insn.getType() != InsnType.NOP)
+				.count();
+		if (insnCountEstimate > 100) {
 			code.startLine("// Method dump skipped, instructions count: " + insnArr.length);
 			return;
 		}
