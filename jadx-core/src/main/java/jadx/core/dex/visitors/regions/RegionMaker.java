@@ -594,6 +594,8 @@ public class RegionMaker {
 				List<BlockNode> list = BlockUtils.buildSimplePath(exitBlock);
 				if (list.isEmpty() || !list.get(list.size() - 1).getSuccessors().isEmpty()) {
 					stack.addExit(exitBlock);
+					// we can still try using this as an exit block to make sure it's visited.
+					exit = exitBlock;
 				}
 			}
 		}
