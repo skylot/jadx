@@ -30,6 +30,7 @@ import jadx.core.dex.nodes.Edge;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
+import jadx.core.dex.nodes.InsnContainer;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.Region;
@@ -76,6 +77,10 @@ public class RegionMaker {
 		if (startBlock == null) {
 			return r;
 		}
+		if (stack.containsExit(startBlock)) {
+			insertEdgeInsns(r, startBlock);
+			return r;
+		}
 
 		int startBlockId = startBlock.getId();
 		if (processedBlocks.get(startBlockId)) {
@@ -93,6 +98,27 @@ public class RegionMaker {
 			}
 		}
 		return r;
+	}
+
+	private void insertEdgeInsns(Region region, BlockNode exitBlock) {
+		List<EdgeInsnAttr> edgeInsns = exitBlock.getAll(AType.EDGE_INSN);
+		if (edgeInsns.isEmpty()) {
+			return;
+		}
+		List<InsnNode> insns = new ArrayList<>(edgeInsns.size());
+		addOneInsnOfType(insns, edgeInsns, InsnType.BREAK);
+		addOneInsnOfType(insns, edgeInsns, InsnType.CONTINUE);
+		region.add(new InsnContainer(insns));
+	}
+
+	private void addOneInsnOfType(List<InsnNode> insns, List<EdgeInsnAttr> edgeInsns, InsnType insnType) {
+		for (EdgeInsnAttr edgeInsn : edgeInsns) {
+			InsnNode insn = edgeInsn.getInsn();
+			if (insn.getType() == insnType) {
+				insns.add(insn);
+				return;
+			}
+		}
 	}
 
 	/**
