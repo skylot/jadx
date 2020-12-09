@@ -339,7 +339,7 @@ public class BlockSplitter extends AbstractVisitor {
 		Set<BlockNode> toRemove = new LinkedHashSet<>();
 		for (BlockNode block : mth.getBasicBlocks()) {
 			if (block.getPredecessors().isEmpty() && block != mth.getEnterBlock()) {
-				collectSuccessors(block, toRemove);
+				collectSuccessors(block, mth.getEnterBlock(), toRemove);
 			}
 		}
 		if (toRemove.isEmpty()) {
@@ -390,7 +390,7 @@ public class BlockSplitter extends AbstractVisitor {
 				&& !block.contains(AFlag.MTH_ENTER_BLOCK);
 	}
 
-	private static void collectSuccessors(BlockNode startBlock, Set<BlockNode> toRemove) {
+	private static void collectSuccessors(BlockNode startBlock, BlockNode methodEnterBlock, Set<BlockNode> toRemove) {
 		Deque<BlockNode> stack = new ArrayDeque<>();
 		stack.add(startBlock);
 		while (!stack.isEmpty()) {
@@ -398,7 +398,7 @@ public class BlockSplitter extends AbstractVisitor {
 			if (!toRemove.contains(block)) {
 				toRemove.add(block);
 				for (BlockNode successor : block.getSuccessors()) {
-					if (toRemove.containsAll(successor.getPredecessors())) {
+					if (successor != methodEnterBlock && toRemove.containsAll(successor.getPredecessors())) {
 						stack.push(successor);
 					}
 				}
