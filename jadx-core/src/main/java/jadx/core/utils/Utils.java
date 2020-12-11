@@ -182,6 +182,17 @@ public class Utils {
 			}
 			prevElement = stackTraceElement;
 		}
+		// stop condition not found -> just cut tail to any jadx class
+		for (int i = length - 1; i >= 0; i--) {
+			String clsName = stackTrace[i].getClassName();
+			if (clsName.startsWith("jadx.")) {
+				if (clsName.startsWith("jadx.tests.")) {
+					continue;
+				}
+				th.setStackTrace(Arrays.copyOfRange(stackTrace, 0, i));
+				return;
+			}
+		}
 	}
 
 	public static <T, R> List<R> collectionMap(Collection<T> list, Function<T, R> mapFunc) {

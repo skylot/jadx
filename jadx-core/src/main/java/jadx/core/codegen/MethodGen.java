@@ -16,6 +16,7 @@ import jadx.core.Jadx;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.annotations.MethodParameters;
+import jadx.core.dex.attributes.nodes.JadxError;
 import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.info.AccessInfo;
@@ -321,6 +322,12 @@ public class MethodGen {
 		InsnNode prevInsn = null;
 		for (InsnNode insn : insnArr) {
 			if (insn == null) {
+				continue;
+			}
+			if (insn.contains(AType.JADX_ERROR)) {
+				for (JadxError error : insn.getAll(AType.JADX_ERROR)) {
+					code.startLine("// ").add(error.getError());
+				}
 				continue;
 			}
 			if (option != BLOCK_DUMP && needLabel(insn, prevInsn)) {

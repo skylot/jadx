@@ -9,6 +9,8 @@ import jadx.api.plugins.input.insns.InsnData;
 import jadx.api.plugins.input.insns.custom.IArrayPayload;
 import jadx.api.plugins.input.insns.custom.ISwitchPayload;
 import jadx.core.Consts;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.JadxError;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
@@ -40,11 +42,12 @@ public class InsnDecoder {
 			try {
 				rawInsn.decode();
 				insn = decode(rawInsn);
-				insn.setOffset(offset);
 			} catch (Exception e) {
-				LOG.error("Failed to decode insn: " + rawInsn + ", method: " + method, e);
+				method.addError("Failed to decode insn: " + rawInsn + ", method: " + method, e);
 				insn = new InsnNode(InsnType.NOP, 0);
+				insn.addAttr(AType.JADX_ERROR, new JadxError("decode failed: " + e.getMessage(), e));
 			}
+			insn.setOffset(offset);
 			instructions[offset] = insn;
 		});
 		return instructions;
