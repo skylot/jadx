@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodInlineAttr;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.InsnType;
@@ -16,6 +17,7 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
@@ -103,8 +105,13 @@ public class InlineMethods extends AbstractVisitor {
 				}
 			}
 		}
+		IMethodDetails methodDetailsAttr = inlCopy.get(AType.METHOD_DETAILS);
 		if (!BlockUtils.replaceInsn(mth, block, insn, inlCopy)) {
 			mth.addWarnComment("Failed to inline method: " + callMth);
+		}
+		// replaceInsn replaces the attributes as well, make sure to preserve METHOD_DETAILS
+		if (methodDetailsAttr != null) {
+			inlCopy.addAttr(methodDetailsAttr);
 		}
 	}
 
