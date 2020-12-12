@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -44,8 +42,6 @@ import jadx.core.utils.exceptions.JadxException;
 )
 public class ReSugarCode extends AbstractVisitor {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ReSugarCode.class);
-
 	@Override
 	public boolean visit(ClassNode cls) throws JadxException {
 		initClsEnumMap(cls);
@@ -57,55 +53,57 @@ public class ReSugarCode extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
+		boolean changed = false;
 		InsnRemover remover = new InsnRemover(mth);
 		for (BlockNode block : mth.getBasicBlocks()) {
 			remover.setBlock(block);
 			List<InsnNode> instructions = block.getInstructions();
 			int size = instructions.size();
 			for (int i = 0; i < size; i++) {
-				process(mth, instructions, i, remover);
+				changed |= process(mth, instructions, i, remover);
 			}
 			remover.perform();
 		}
+		if (changed) {
+			CodeShrinkVisitor.shrinkMethod(mth);
+		}
 	}
 
-	private static void process(MethodNode mth, List<InsnNode> instructions, int i, InsnRemover remover) {
+	private static boolean process(MethodNode mth, List<InsnNode> instructions, int i, InsnRemover remover) {
 		InsnNode insn = instructions.get(i);
 		if (insn.contains(AFlag.REMOVE)) {
-			return;
+			return false;
 		}
 		switch (insn.getType()) {
 			case NEW_ARRAY:
-				processNewArray(mth, (NewArrayNode) insn, instructions, remover);
-				break;
+				return processNewArray(mth, (NewArrayNode) insn, instructions, remover);
 
 			case SWITCH:
-				processEnumSwitch(mth, (SwitchInsn) insn);
-				break;
+				return processEnumSwitch(mth, (SwitchInsn) insn);
 
 			default:
-				break;
+				return false;
 		}
 	}
 
 	/**
 	 * Replace new-array and sequence of array-put to new filled-array instruction.
 	 */
-	private static void processNewArray(MethodNode mth, NewArrayNode newArrayInsn,
+	private static boolean processNewArray(MethodNode mth, NewArrayNode newArrayInsn,
 			List<InsnNode> instructions, InsnRemover remover) {
 		InsnArg arrLenArg = newArrayInsn.getArg(0);
 		if (!arrLenArg.isLiteral()) {
-			return;
+			return false;
 		}
 		int len = (int) ((LiteralArg) arrLenArg).getLiteral();
 		if (len == 0) {
-			return;
+			return false;
 		}
 		RegisterArg arrArg = newArrayInsn.getResult();
 		SSAVar ssaVar = arrArg.getSVar();
 		List<RegisterArg> useList = ssaVar.getUseList();
 		if (useList.size() < len) {
-			return;
+			return false;
 		}
 		// check sequential array put with increasing index
 		int putIndex = 0;
@@ -118,17 +116,15 @@ public class ReSugarCode extends AbstractVisitor {
 			}
 		}
 		if (putIndex != len) {
-			return;
+			return false;
 		}
 		List<InsnNode> arrPuts = useList.subList(0, len).stream().map(InsnArg::getParentInsn).collect(Collectors.toList());
 		// check that all puts in current block
 		for (InsnNode arrPut : arrPuts) {
 			int index = InsnList.getIndex(instructions, arrPut);
 			if (index == -1) {
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("TODO: APUT found in different block: {}, mth: {}", arrPut, mth);
-				}
-				return;
+				mth.addDebugComment("Can't convert new array creation: APUT found in different block: " + arrPut);
+				return false;
 			}
 		}
 
@@ -146,6 +142,7 @@ public class ReSugarCode extends AbstractVisitor {
 		InsnNode lastPut = Utils.last(arrPuts);
 		int replaceIndex = InsnList.getIndex(instructions, lastPut);
 		instructions.set(replaceIndex, filledArr);
+		return true;
 	}
 
 	private static boolean checkPutInsn(MethodNode mth, InsnNode insn, RegisterArg arrArg, int putIndex) {
@@ -164,43 +161,44 @@ public class ReSugarCode extends AbstractVisitor {
 		return false;
 	}
 
-	private static void processEnumSwitch(MethodNode mth, SwitchInsn insn) {
+	private static boolean processEnumSwitch(MethodNode mth, SwitchInsn insn) {
 		InsnArg arg = insn.getArg(0);
 		if (!arg.isInsnWrap()) {
-			return;
+			return false;
 		}
 		InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
 		if (wrapInsn.getType() != InsnType.AGET) {
-			return;
+			return false;
 		}
 		EnumMapInfo enumMapInfo = checkEnumMapAccess(mth.root(), wrapInsn);
 		if (enumMapInfo == null) {
-			return;
+			return false;
 		}
 		FieldNode enumMapField = enumMapInfo.getMapField();
 		InsnArg invArg = enumMapInfo.getArg();
 
 		EnumMapAttr.KeyValueMap valueMap = getEnumMap(mth, enumMapField);
 		if (valueMap == null) {
-			return;
+			return false;
 		}
 		int caseCount = insn.getKeys().length;
 		for (int i = 0; i < caseCount; i++) {
 			Object key = insn.getKey(i);
 			Object newKey = valueMap.get(key);
 			if (newKey == null) {
-				return;
+				return false;
 			}
 		}
 		// replace confirmed
 		if (!insn.replaceArg(arg, invArg)) {
-			return;
+			return false;
 		}
 		for (int i = 0; i < caseCount; i++) {
 			insn.modifyKey(i, valueMap.get(insn.getKey(i)));
 		}
 		enumMapField.add(AFlag.DONT_GENERATE);
 		checkAndHideClass(enumMapField.getParentClass());
+		return true;
 	}
 
 	private static void initClsEnumMap(ClassNode enumCls) {
