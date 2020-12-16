@@ -91,11 +91,11 @@ public class ReSugarCode extends AbstractVisitor {
 	 */
 	private static boolean processNewArray(MethodNode mth, NewArrayNode newArrayInsn,
 			List<InsnNode> instructions, InsnRemover remover) {
-		InsnArg arrLenArg = newArrayInsn.getArg(0);
-		if (!arrLenArg.isLiteral()) {
+		Object arrayLenConst = InsnUtils.getConstValueByArg(mth.root(), newArrayInsn.getArg(0));
+		if (!(arrayLenConst instanceof LiteralArg)) {
 			return false;
 		}
-		int len = (int) ((LiteralArg) arrLenArg).getLiteral();
+		int len = (int) ((LiteralArg) arrayLenConst).getLiteral();
 		if (len == 0) {
 			return false;
 		}
