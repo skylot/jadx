@@ -53,7 +53,7 @@ import static jadx.core.utils.InsnUtils.getWrappedInsn;
 @JadxVisitor(
 		name = "EnumVisitor",
 		desc = "Restore enum classes",
-		runAfter = { CodeShrinkVisitor.class, ModVisitor.class },
+		runAfter = { CodeShrinkVisitor.class, ModVisitor.class, ReSugarCode.class },
 		runBefore = { ExtractFieldInit.class }
 )
 public class EnumVisitor extends AbstractVisitor {
