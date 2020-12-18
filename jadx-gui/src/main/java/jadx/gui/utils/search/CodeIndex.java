@@ -23,7 +23,7 @@ public class CodeIndex {
 		values.add(value);
 	}
 
-	public void removeForCls(JavaClass cls) {
+	public synchronized void removeForCls(JavaClass cls) {
 		values.removeIf(v -> v.getJavaNode().getTopParentClass().equals(cls));
 	}
 
