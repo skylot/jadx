@@ -39,8 +39,6 @@ import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 
-import static jadx.core.utils.Utils.notEmpty;
-
 /**
  * Classes list for import into classpath graph
  */
@@ -131,25 +129,13 @@ public class ClsSet {
 
 	private void processMethodDetails(MethodNode mth, List<ClspMethod> methods) {
 		AccessInfo accessFlags = mth.getAccessFlags();
-		if (accessFlags.isPrivate()) {
+		if (accessFlags.isPrivate() || accessFlags.isSynthetic() || accessFlags.isBridge()) {
 			return;
 		}
-		ArgType genericRetType = mth.getReturnType();
-		boolean varArgs = accessFlags.isVarArgs();
-		List<ArgType> throwList = mth.getThrows();
-		List<ArgType> typeParameters = mth.getTypeParameters();
-		// add only methods with additional info
-		if (varArgs
-				|| notEmpty(throwList)
-				|| notEmpty(typeParameters)
-				|| genericRetType.containsGeneric()
-				|| mth.containsGenericArgs()
-				|| mth.isArgsOverloaded()) {
-			ClspMethod clspMethod = new ClspMethod(mth.getMethodInfo(),
-					mth.getArgTypes(), genericRetType,
-					typeParameters, varArgs, throwList);
-			methods.add(clspMethod);
-		}
+		ClspMethod clspMethod = new ClspMethod(mth.getMethodInfo(), mth.getArgTypes(),
+				mth.getReturnType(), mth.getTypeParameters(),
+				mth.getThrows(), accessFlags.rawValue());
+		methods.add(clspMethod);
 	}
 
 	public static ArgType[] makeParentsArray(ClassNode cls) {
@@ -245,7 +231,7 @@ public class ClsSet {
 			}
 		}
 		int methodsCount = Stream.of(classes).mapToInt(c -> c.getMethodsMap().size()).sum();
-		LOG.info("Classes: {}, methods: {}, file size: {}B", classes.length, methodsCount, out.size());
+		LOG.info("Classes: {}, methods: {}, file size: {} bytes", classes.length, methodsCount, out.size());
 	}
 
 	private static void writeMethod(DataOutputStream out, ClspMethod method, Map<String, ClspClass> names) throws IOException {
@@ -257,7 +243,7 @@ public class ClsSet {
 		writeArgTypesList(out, method.containsGenericArgs() ? method.getArgTypes() : Collections.emptyList(), names);
 		writeArgType(out, method.getReturnType(), names);
 		writeArgTypesList(out, method.getTypeParameters(), names);
-		out.writeBoolean(method.isVarArg());
+		out.writeInt(method.getRawAccessFlags());
 		writeArgTypesList(out, method.getThrows(), names);
 	}
 
@@ -392,12 +378,12 @@ public class ClsSet {
 			genericRetType = retType;
 		}
 		List<ArgType> typeParameters = readArgTypesList(in);
-		boolean varArgs = in.readBoolean();
+		int accFlags = in.readInt();
 		List<ArgType> throwList = readArgTypesList(in);
 		MethodInfo methodInfo = MethodInfo.fromDetails(root, clsInfo, name, argTypes, retType);
 		return new ClspMethod(methodInfo,
 				genericArgTypes, genericRetType,
-				typeParameters, varArgs, throwList);
+				typeParameters, throwList, accFlags);
 	}
 
 	private List<ArgType> readArgTypesList(DataInputStream in) throws IOException {

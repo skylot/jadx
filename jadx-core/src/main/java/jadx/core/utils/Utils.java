@@ -242,6 +242,33 @@ public class Utils {
 		return new ImmutableList<>(list);
 	}
 
+	/**
+	 * Sub list from startIndex (inclusive) to list end
+	 */
+	public static <T> List<T> listTail(List<T> list, int startIndex) {
+		if (startIndex == 0) {
+			return list;
+		}
+		int size = list.size();
+		if (startIndex >= size) {
+			return Collections.emptyList();
+		}
+		return list.subList(startIndex, size);
+	}
+
+	public static <T> List<T> mergeLists(List<T> first, List<T> second) {
+		if (isEmpty(first)) {
+			return second;
+		}
+		if (isEmpty(second)) {
+			return first;
+		}
+		List<T> result = new ArrayList<>(first.size() + second.size());
+		result.addAll(first);
+		result.addAll(second);
+		return result;
+	}
+
 	public static Map<String, String> newConstStringMap(String... parameters) {
 		int len = parameters.length;
 		if (len == 0) {

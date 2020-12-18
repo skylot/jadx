@@ -22,6 +22,8 @@ public interface IMethodDetails extends IAttribute {
 
 	boolean isVarArg();
 
+	int getRawAccessFlags();
+
 	@Override
 	default AType<IMethodDetails> getType() {
 		return AType.METHOD_DETAILS;

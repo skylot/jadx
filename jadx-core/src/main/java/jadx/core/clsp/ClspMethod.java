@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
+import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.IMethodDetails;
@@ -20,18 +21,17 @@ public class ClspMethod implements IMethodDetails, Comparable<ClspMethod> {
 	private final ArgType returnType;
 	private final List<ArgType> typeParameters;
 	private final List<ArgType> throwList;
-	private final boolean varArg;
+	private final int accFlags;
 
 	public ClspMethod(MethodInfo methodInfo,
 			List<ArgType> argTypes, ArgType returnType,
-			List<ArgType> typeParameters,
-			boolean varArgs, List<ArgType> throwList) {
+			List<ArgType> typeParameters, List<ArgType> throwList, int accFlags) {
 		this.methodInfo = methodInfo;
 		this.argTypes = argTypes;
 		this.returnType = returnType;
 		this.typeParameters = typeParameters;
 		this.throwList = throwList;
-		this.varArg = varArgs;
+		this.accFlags = accFlags;
 	}
 
 	@Override
@@ -69,7 +69,12 @@ public class ClspMethod implements IMethodDetails, Comparable<ClspMethod> {
 
 	@Override
 	public boolean isVarArg() {
-		return varArg;
+		return (accFlags & AccessFlags.VARARGS) != 0;
+	}
+
+	@Override
+	public int getRawAccessFlags() {
+		return accFlags;
 	}
 
 	@Override

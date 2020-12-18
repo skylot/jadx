@@ -1,13 +1,10 @@
 package jadx.core.deobf;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -19,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import jadx.api.JadxArgs;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
@@ -45,9 +43,6 @@ public class Deobfuscator {
 	private final Map<ClassInfo, DeobfClsInfo> clsMap = new LinkedHashMap<>();
 	private final Map<FieldInfo, String> fldMap = new HashMap<>();
 	private final Map<MethodInfo, String> mthMap = new HashMap<>();
-
-	private final Map<MethodInfo, OverridedMethodsNode> ovrdMap = new HashMap<>();
-	private final List<OverridedMethodsNode> ovrd = new ArrayList<>();
 
 	private final PackageNode rootPackage = new PackageNode("");
 	private final Set<String> pkgSet = new TreeSet<>();
@@ -92,9 +87,6 @@ public class Deobfuscator {
 		clsMap.clear();
 		fldMap.clear();
 		mthMap.clear();
-
-		ovrd.clear();
-		ovrdMap.clear();
 	}
 
 	private void initIndexes() {
@@ -120,100 +112,6 @@ public class Deobfuscator {
 		}
 		for (ClassNode cls : root.getClasses()) {
 			processClass(cls);
-		}
-		postProcess();
-	}
-
-	private void postProcess() {
-		int id = 1;
-		for (OverridedMethodsNode o : ovrd) {
-			boolean aliasFromPreset = false;
-			String aliasToUse = null;
-			for (MethodInfo mth : o.getMethods()) {
-				if (mth.isAliasFromPreset()) {
-					aliasToUse = mth.getAlias();
-					aliasFromPreset = true;
-				}
-			}
-			for (MethodInfo mth : o.getMethods()) {
-				if (aliasToUse == null) {
-					if (mth.hasAlias() && !mth.isAliasFromPreset()) {
-						mth.setAlias(String.format("mo%d%s", id, prepareNamePart(mth.getName())));
-					}
-					aliasToUse = mth.getAlias();
-				}
-				mth.setAlias(aliasToUse);
-				mth.setAliasFromPreset(aliasFromPreset);
-			}
-			id++;
-		}
-	}
-
-	private void resolveOverriding(MethodNode mth) {
-		Set<ClassNode> clsParents = new LinkedHashSet<>();
-		collectClassHierarchy(mth.getParentClass(), clsParents);
-
-		String mthSignature = mth.getMethodInfo().makeSignature(false);
-		Set<MethodInfo> overrideSet = new LinkedHashSet<>();
-		for (ClassNode classNode : clsParents) {
-			MethodInfo methodInfo = getMthOverride(classNode.getMethods(), mthSignature);
-			if (methodInfo != null) {
-				overrideSet.add(methodInfo);
-			}
-		}
-		if (overrideSet.isEmpty()) {
-			return;
-		}
-		OverridedMethodsNode overrideNode = getOverrideMethodsNode(overrideSet);
-		if (overrideNode == null) {
-			overrideNode = new OverridedMethodsNode(overrideSet);
-			ovrd.add(overrideNode);
-		}
-		for (MethodInfo overrideMth : overrideSet) {
-			if (!ovrdMap.containsKey(overrideMth)) {
-				ovrdMap.put(overrideMth, overrideNode);
-				overrideNode.add(overrideMth);
-			}
-		}
-	}
-
-	private OverridedMethodsNode getOverrideMethodsNode(Set<MethodInfo> overrideSet) {
-		for (MethodInfo overrideMth : overrideSet) {
-			OverridedMethodsNode node = ovrdMap.get(overrideMth);
-			if (node != null) {
-				return node;
-			}
-		}
-		return null;
-	}
-
-	private MethodInfo getMthOverride(List<MethodNode> methods, String mthSignature) {
-		for (MethodNode m : methods) {
-			MethodInfo mthInfo = m.getMethodInfo();
-			if (mthInfo.getShortId().startsWith(mthSignature)) {
-				return mthInfo;
-			}
-		}
-		return null;
-	}
-
-	private void collectClassHierarchy(ClassNode cls, Set<ClassNode> collected) {
-		boolean added = collected.add(cls);
-		if (added) {
-			ArgType superClass = cls.getSuperClass();
-			if (superClass != null) {
-				ClassNode superNode = cls.root().resolveClass(superClass);
-				if (superNode != null) {
-					collectClassHierarchy(superNode, collected);
-				}
-			}
-
-			for (ArgType argType : cls.getInterfaces()) {
-				ClassNode interfaceNode = cls.root().resolveClass(argType);
-				if (interfaceNode != null) {
-					collectClassHierarchy(interfaceNode, collected);
-				}
-			}
 		}
 	}
 
@@ -266,16 +164,27 @@ public class Deobfuscator {
 		String alias = getMethodAlias(mth);
 		if (alias != null) {
 			mth.getMethodInfo().setAlias(alias);
-		}
-		if (mth.isVirtual()) {
-			resolveOverriding(mth);
+			resolveOverriding(mth, alias);
 		}
 	}
 
 	public void forceRenameMethod(MethodNode mth) {
-		mth.getMethodInfo().setAlias(makeMethodAlias(mth));
-		if (mth.isVirtual()) {
-			resolveOverriding(mth);
+		String alias = makeMethodAlias(mth);
+		mth.getMethodInfo().setAlias(alias);
+		resolveOverriding(mth, alias);
+	}
+
+	private void resolveOverriding(MethodNode mth, String alias) {
+		MethodOverrideAttr overrideAttr = mth.get(AType.METHOD_OVERRIDE);
+		if (overrideAttr != null) {
+			for (MethodNode ovrdMth : overrideAttr.getRelatedMthNodes()) {
+				if (ovrdMth == mth) {
+					continue;
+				}
+				MethodInfo methodInfo = ovrdMth.getMethodInfo();
+				methodInfo.setAlias(alias);
+				mthMap.put(methodInfo, alias);
+			}
 		}
 	}
 
@@ -523,22 +432,42 @@ public class Deobfuscator {
 
 	@Nullable
 	private String getMethodAlias(MethodNode mth) {
+		if (mth.contains(AFlag.DONT_RENAME)) {
+			return null;
+		}
 		MethodInfo methodInfo = mth.getMethodInfo();
 		if (methodInfo.isClassInit() || methodInfo.isConstructor()) {
 			return null;
 		}
+		String alias = getAssignedAlias(methodInfo);
+		if (alias != null) {
+			return alias;
+		}
+		MethodOverrideAttr overrideAttr = mth.get(AType.METHOD_OVERRIDE);
+		if (overrideAttr != null) {
+			for (MethodNode relatedMthNode : overrideAttr.getRelatedMthNodes()) {
+				String assignedAlias = getAssignedAlias(relatedMthNode.getMethodInfo());
+				if (assignedAlias != null) {
+					return assignedAlias;
+				}
+			}
+		}
+		if (shouldRename(mth.getName())) {
+			return makeMethodAlias(mth);
+		}
+		return null;
+	}
+
+	@Nullable
+	private String getAssignedAlias(MethodInfo methodInfo) {
 		String alias = mthMap.get(methodInfo);
 		if (alias != null) {
 			return alias;
 		}
-		alias = deobfPresets.getForMth(methodInfo);
-		if (alias != null) {
-			mthMap.put(methodInfo, alias);
-			methodInfo.setAliasFromPreset(true);
-			return alias;
-		}
-		if (shouldRename(mth.getName())) {
-			return makeMethodAlias(mth);
+		String presetAlias = deobfPresets.getForMth(methodInfo);
+		if (presetAlias != null) {
+			mthMap.put(methodInfo, presetAlias);
+			return presetAlias;
 		}
 		return null;
 	}
@@ -550,7 +479,13 @@ public class Deobfuscator {
 	}
 
 	public String makeMethodAlias(MethodNode mth) {
-		String alias = String.format("m%d%s", mthIndex++, prepareNamePart(mth.getName()));
+		String prefix;
+		if (mth.contains(AType.METHOD_OVERRIDE)) {
+			prefix = "mo";
+		} else {
+			prefix = "m";
+		}
+		String alias = String.format("%s%d%s", prefix, mthIndex++, prepareNamePart(mth.getName()));
 		mthMap.put(mth.getMethodInfo(), alias);
 		return alias;
 	}

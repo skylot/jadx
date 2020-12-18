@@ -15,6 +15,7 @@ public class MutableMethodDetails implements IMethodDetails {
 	private List<ArgType> typeParams;
 	private List<ArgType> throwTypes;
 	private boolean varArg;
+	private int accFlags;
 
 	public MutableMethodDetails(IMethodDetails base) {
 		this.mthInfo = base.getMethodInfo();
@@ -23,6 +24,7 @@ public class MutableMethodDetails implements IMethodDetails {
 		this.typeParams = Collections.unmodifiableList(base.getTypeParameters());
 		this.throwTypes = Collections.unmodifiableList(base.getThrows());
 		this.varArg = base.isVarArg();
+		this.accFlags = base.getRawAccessFlags();
 	}
 
 	@Override
@@ -73,6 +75,15 @@ public class MutableMethodDetails implements IMethodDetails {
 
 	public void setVarArg(boolean varArg) {
 		this.varArg = varArg;
+	}
+
+	@Override
+	public int getRawAccessFlags() {
+		return accFlags;
+	}
+
+	public void setRawAccessFlags(int accFlags) {
+		this.accFlags = accFlags;
 	}
 
 	@Override

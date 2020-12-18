@@ -19,12 +19,10 @@ public final class MethodInfo implements Comparable<MethodInfo> {
 	private final ClassInfo declClass;
 	private final String shortId;
 	private String alias;
-	private boolean aliasFromPreset;
 
 	private MethodInfo(ClassInfo declClass, String name, List<ArgType> args, ArgType retType) {
 		this.name = name;
 		this.alias = name;
-		this.aliasFromPreset = false;
 		this.declClass = declClass;
 		this.argTypes = args;
 		this.retType = retType;
@@ -141,14 +139,6 @@ public final class MethodInfo implements Comparable<MethodInfo> {
 
 	public boolean hasAlias() {
 		return !name.equals(alias);
-	}
-
-	public boolean isAliasFromPreset() {
-		return aliasFromPreset;
-	}
-
-	public void setAliasFromPreset(boolean value) {
-		aliasFromPreset = value;
 	}
 
 	@Override

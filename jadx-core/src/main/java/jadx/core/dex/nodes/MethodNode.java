@@ -523,6 +523,11 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	}
 
 	@Override
+	public int getRawAccessFlags() {
+		return accFlags.rawValue();
+	}
+
+	@Override
 	public AccessInfo getAccessFlags() {
 		return accFlags;
 	}

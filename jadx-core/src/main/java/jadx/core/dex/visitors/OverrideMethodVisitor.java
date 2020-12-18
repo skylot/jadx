@@ -1,13 +1,19 @@
 package jadx.core.dex.visitors;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import jadx.core.clsp.ClspClass;
 import jadx.core.clsp.ClspMethod;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.info.AccessInfo;
@@ -19,13 +25,15 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.typeinference.TypeCompare;
 import jadx.core.dex.visitors.typeinference.TypeCompareEnum;
 import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
 		name = "OverrideMethodVisitor",
 		desc = "Mark override methods and revert type erasure",
 		runBefore = {
-				TypeInferenceVisitor.class
+				TypeInferenceVisitor.class,
+				RenameVisitor.class
 		}
 )
 public class OverrideMethodVisitor extends AbstractVisitor {
@@ -33,8 +41,10 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 	@Override
 	public boolean visit(ClassNode cls) throws JadxException {
 		List<ArgType> superTypes = collectSuperTypes(cls);
-		for (MethodNode mth : cls.getMethods()) {
-			processMth(cls, superTypes, mth);
+		if (!superTypes.isEmpty()) {
+			for (MethodNode mth : cls.getMethods()) {
+				processMth(cls, superTypes, mth);
+			}
 		}
 		return true;
 	}
@@ -43,27 +53,36 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 		if (mth.isConstructor() || mth.getAccessFlags().isStatic()) {
 			return;
 		}
-		mth.remove(AType.METHOD_OVERRIDE);
-		String signature = mth.getMethodInfo().makeSignature(false);
-		List<IMethodDetails> overrideList = collectOverrideMethods(cls, superTypes, signature);
-		if (!overrideList.isEmpty()) {
-			mth.addAttr(new MethodOverrideAttr(overrideList));
-			fixMethodReturnType(mth, overrideList, superTypes);
-			fixMethodArgTypes(mth, overrideList, superTypes);
+		MethodOverrideAttr attr = processOverrideMethods(cls, mth, superTypes);
+		if (attr != null) {
+			mth.addAttr(attr);
+			IMethodDetails baseMth = Utils.last(attr.getOverrideList());
+			if (baseMth != null) {
+				fixMethodReturnType(mth, baseMth, superTypes);
+				fixMethodArgTypes(mth, baseMth, superTypes);
+			}
 		}
 	}
 
-	private List<IMethodDetails> collectOverrideMethods(ClassNode cls, List<ArgType> superTypes, String signature) {
+	private MethodOverrideAttr processOverrideMethods(ClassNode cls, MethodNode mth, List<ArgType> superTypes) {
+		MethodOverrideAttr result = mth.get(AType.METHOD_OVERRIDE);
+		if (result != null) {
+			return result;
+		}
+		String signature = mth.getMethodInfo().makeSignature(false);
 		List<IMethodDetails> overrideList = new ArrayList<>();
 		for (ArgType superType : superTypes) {
 			ClassNode classNode = cls.root().resolveClass(superType);
 			if (classNode != null) {
-				for (MethodNode mth : classNode.getMethods()) {
-					if (!mth.getAccessFlags().isStatic()
-							&& isMethodVisibleInCls(mth, cls)) {
-						String mthShortId = mth.getMethodInfo().getShortId();
-						if (mthShortId.startsWith(signature)) {
-							overrideList.add(mth);
+				for (MethodNode supMth : classNode.getMethods()) {
+					String mthShortId = supMth.getMethodInfo().getShortId();
+					if (!supMth.getAccessFlags().isStatic()
+							&& mthShortId.startsWith(signature)
+							&& isMethodVisibleInCls(supMth, cls)) {
+						overrideList.add(supMth);
+						MethodOverrideAttr attr = supMth.get(AType.METHOD_OVERRIDE);
+						if (attr != null) {
+							return buildOverrideAttr(mth, overrideList, attr);
 						}
 					}
 				}
@@ -80,7 +99,62 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 				}
 			}
 		}
-		return overrideList;
+		return buildOverrideAttr(mth, overrideList, null);
+	}
+
+	@Nullable
+	private MethodOverrideAttr buildOverrideAttr(MethodNode mth, List<IMethodDetails> overrideList, @Nullable MethodOverrideAttr attr) {
+		if (overrideList.isEmpty() && attr == null) {
+			return null;
+		}
+		List<IMethodDetails> cleanOverrideList = overrideList.stream().distinct().collect(Collectors.toList());
+		if (attr == null) {
+			// traced to base method
+			return applyOverrideAttr(mth, cleanOverrideList, false);
+		}
+		// trace stopped at already processed method -> start merging
+		List<IMethodDetails> mergedOverrideList = Utils.mergeLists(cleanOverrideList, attr.getOverrideList());
+		return applyOverrideAttr(mth, mergedOverrideList, true);
+	}
+
+	private MethodOverrideAttr applyOverrideAttr(MethodNode mth, List<IMethodDetails> overrideList, boolean update) {
+		// don't rename method if override list contains not resolved method
+		boolean dontRename = overrideList.stream().anyMatch(m -> !(m instanceof MethodNode));
+		List<MethodNode> mthNodes = getMethodNodes(mth, overrideList);
+		int depth = 0;
+		for (MethodNode mthNode : mthNodes) {
+			if (dontRename) {
+				mthNode.add(AFlag.DONT_RENAME);
+			}
+			if (depth == 0) {
+				// skip current (first) method
+				depth = 1;
+				continue;
+			}
+			if (update) {
+				MethodOverrideAttr ovrdAttr = mthNode.get(AType.METHOD_OVERRIDE);
+				if (ovrdAttr != null) {
+					ovrdAttr.setRelatedMthNodes(mthNodes);
+					continue;
+				}
+			}
+			mthNode.addAttr(new MethodOverrideAttr(Utils.listTail(overrideList, depth), mthNodes));
+			depth++;
+		}
+		return new MethodOverrideAttr(overrideList, mthNodes);
+	}
+
+	@NotNull
+	private List<MethodNode> getMethodNodes(MethodNode mth, List<IMethodDetails> overrideList) {
+		ArrayList<MethodNode> list = new ArrayList<>();
+		list.add(mth);
+		for (IMethodDetails md : overrideList) {
+			if (md instanceof MethodNode) {
+				list.add((MethodNode) md);
+			}
+		}
+		list.trimToSize();
+		return list;
 	}
 
 	/**
@@ -99,8 +173,11 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 	}
 
 	private List<ArgType> collectSuperTypes(ClassNode cls) {
-		Map<String, ArgType> superTypes = new HashMap<>();
+		Map<String, ArgType> superTypes = new LinkedHashMap<>();
 		collectSuperTypes(cls, superTypes);
+		if (superTypes.isEmpty()) {
+			return Collections.emptyList();
+		}
 		return new ArrayList<>(superTypes.values());
 	}
 
@@ -128,24 +205,13 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 		}
 	}
 
-	private void fixMethodReturnType(MethodNode mth, List<IMethodDetails> overrideList, List<ArgType> superTypes) {
+	private void fixMethodReturnType(MethodNode mth, IMethodDetails baseMth, List<ArgType> superTypes) {
 		ArgType returnType = mth.getReturnType();
 		if (returnType == ArgType.VOID) {
 			return;
 		}
-		int updateCount = 0;
-		for (IMethodDetails baseMth : overrideList) {
-			if (updateReturnType(mth, baseMth, superTypes)) {
-				updateCount++;
-			}
-		}
-		if (updateCount == 0) {
-			return;
-		}
-		if (updateCount == 1) {
+		if (updateReturnType(mth, baseMth, superTypes)) {
 			mth.addComment("Return type fixed from '" + returnType + "' to match base method");
-		} else {
-			mth.addWarnComment("Due to multiple override return type can be incorrect, original value: " + returnType);
 		}
 	}
 
@@ -174,13 +240,7 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 		return false;
 	}
 
-	private void fixMethodArgTypes(MethodNode mth, List<IMethodDetails> overrideList, List<ArgType> superTypes) {
-		for (IMethodDetails baseMth : overrideList) {
-			updateArgTypes(mth, baseMth, superTypes);
-		}
-	}
-
-	private void updateArgTypes(MethodNode mth, IMethodDetails baseMth, List<ArgType> superTypes) {
+	private void fixMethodArgTypes(MethodNode mth, IMethodDetails baseMth, List<ArgType> superTypes) {
 		List<ArgType> mthArgTypes = mth.getArgTypes();
 		List<ArgType> baseArgTypes = baseMth.getArgTypes();
 		if (mthArgTypes.equals(baseArgTypes)) {

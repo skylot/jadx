@@ -91,7 +91,7 @@ public class ClspGraph {
 				}
 			}
 		}
-		// all other methods in known ClspClass are 'simple'
+		// unknown method
 		return new SimpleMethodDetails(methodInfo);
 	}
 

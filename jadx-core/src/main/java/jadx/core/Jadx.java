@@ -81,6 +81,7 @@ public class Jadx {
 	public static List<IDexTreeVisitor> getPreDecompilePassesList() {
 		List<IDexTreeVisitor> passes = new ArrayList<>();
 		passes.add(new SignatureProcessor());
+		passes.add(new OverrideMethodVisitor());
 		passes.add(new RenameVisitor());
 		passes.add(new UsageInfoVisitor());
 		return passes;
@@ -107,7 +108,6 @@ public class Jadx {
 		passes.add(new BlockFinish());
 
 		passes.add(new AttachMethodDetails());
-		passes.add(new OverrideMethodVisitor());
 
 		passes.add(new SSATransform());
 		passes.add(new MoveInlineVisitor());

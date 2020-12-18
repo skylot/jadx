@@ -27,7 +27,6 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
-import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.trycatch.CatchAttr;
@@ -166,15 +165,14 @@ public class MethodGen {
 		if (overrideAttr == null) {
 			return;
 		}
-		code.startLine("@Override");
-		code.add(" // ");
-		Iterator<IMethodDetails> it = overrideAttr.getOverrideList().iterator();
-		while (it.hasNext()) {
-			IMethodDetails methodDetails = it.next();
-			code.add(methodDetails.getMethodInfo().getDeclClass().getAliasFullName());
-			if (it.hasNext()) {
-				code.add(", ");
-			}
+		if (!overrideAttr.isAtBaseMth()) {
+			code.startLine("@Override");
+			code.add(" // ");
+			code.add(Utils.listToString(overrideAttr.getOverrideList(), ", ", md -> md.getMethodInfo().getDeclClass().getAliasFullName()));
+		}
+		if (Consts.DEBUG) {
+			code.startLine("// related by override: ");
+			code.add(Utils.listToString(overrideAttr.getRelatedMthNodes(), ", ", m -> m.getParentClass().getFullName()));
 		}
 	}
 

@@ -60,7 +60,7 @@ public class ConvertToClsSet {
 		set.loadFrom(root);
 		set.save(output);
 
-		LOG.info("Output: {}, file size: {}B", output, output.toFile().length());
+		LOG.info("Output: {}", output);
 		LOG.info("done");
 	}
 }

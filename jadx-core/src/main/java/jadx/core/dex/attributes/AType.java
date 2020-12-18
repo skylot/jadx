@@ -97,5 +97,6 @@ public class AType<T extends IAttribute> {
 			FIELD_INIT,
 			FIELD_REPLACE,
 			METHOD_INLINE,
+			METHOD_OVERRIDE,
 			SKIP_MTH_ARGS));
 }

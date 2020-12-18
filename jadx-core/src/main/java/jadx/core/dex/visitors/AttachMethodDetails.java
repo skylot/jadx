@@ -17,8 +17,7 @@ import jadx.core.utils.exceptions.JadxException;
 		runBefore = {
 				CodeShrinkVisitor.class,
 				TypeInferenceVisitor.class,
-				MethodInvokeVisitor.class,
-				OverrideMethodVisitor.class
+				MethodInvokeVisitor.class
 		}
 )
 public class AttachMethodDetails extends AbstractVisitor {

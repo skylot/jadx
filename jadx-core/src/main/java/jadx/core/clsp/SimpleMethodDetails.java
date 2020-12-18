@@ -3,10 +3,15 @@ package jadx.core.clsp;
 import java.util.Collections;
 import java.util.List;
 
+import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.IMethodDetails;
 
+/**
+ * Method details build from MethodInfo.
+ * Note: some fields have unknown values.
+ */
 public class SimpleMethodDetails implements IMethodDetails {
 
 	private final MethodInfo methodInfo;
@@ -43,6 +48,11 @@ public class SimpleMethodDetails implements IMethodDetails {
 	@Override
 	public boolean isVarArg() {
 		return false;
+	}
+
+	@Override
+	public int getRawAccessFlags() {
+		return AccessFlags.PUBLIC;
 	}
 
 	@Override
