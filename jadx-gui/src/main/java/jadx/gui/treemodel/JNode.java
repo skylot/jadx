@@ -75,6 +75,10 @@ public abstract class JNode extends DefaultMutableTreeNode {
 		return javaNode.getName();
 	}
 
+	public boolean canRename() {
+		return false;
+	}
+
 	public abstract String makeString();
 
 	public String makeStringHtml() {

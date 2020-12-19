@@ -11,7 +11,7 @@ import org.fife.ui.rtextarea.SmartHighlightPainter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.gui.utils.JumpPosition;
+import jadx.api.JavaNode;
 
 class MouseHoverHighlighter extends MouseMotionAdapter {
 	private static final Logger LOG = LoggerFactory.getLogger(MouseHoverHighlighter.class);
@@ -50,8 +50,8 @@ class MouseHoverHighlighter extends MouseMotionAdapter {
 				// don't repaint highlight
 				return true;
 			}
-			JumpPosition jump = codeLinkGenerator.getJumpLinkAtOffset(codeArea, tokenOffset);
-			if (jump == null) {
+			JavaNode nodeAtOffset = codeLinkGenerator.getNodeAtOffset(codeArea, tokenOffset);
+			if (nodeAtOffset == null) {
 				return false;
 			}
 			removeHighlight();

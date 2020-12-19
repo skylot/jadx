@@ -5,6 +5,7 @@ import javax.swing.ImageIcon;
 
 import jadx.api.JavaField;
 import jadx.api.JavaNode;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.AccessInfo;
 import jadx.gui.utils.OverlayIcon;
 import jadx.gui.utils.UiUtils;
@@ -41,6 +42,11 @@ public class JField extends JNode {
 	@Override
 	public JClass getRootClass() {
 		return jParent.getRootClass();
+	}
+
+	@Override
+	public boolean canRename() {
+		return !field.getFieldNode().contains(AFlag.DONT_RENAME);
 	}
 
 	@Override

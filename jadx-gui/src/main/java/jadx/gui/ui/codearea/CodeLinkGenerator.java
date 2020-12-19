@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.JavaNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.utils.JumpPosition;
 
@@ -25,6 +26,22 @@ public class CodeLinkGenerator implements LinkGenerator {
 	public CodeLinkGenerator(CodeArea codeArea) {
 		this.codeArea = codeArea;
 		this.jNode = codeArea.getNode();
+	}
+
+	public JavaNode getNodeAtOffset(RSyntaxTextArea textArea, int offset) {
+		try {
+			if (jNode.getCodeInfo() == null) {
+				return null;
+			}
+			int sourceOffset = getLinkSourceOffset(textArea, offset);
+			if (sourceOffset == -1) {
+				return null;
+			}
+			return codeArea.getJavaNodeAtOffset(offset);
+		} catch (Exception e) {
+			LOG.error("getNodeAtOffset error", e);
+			return null;
+		}
 	}
 
 	@Nullable

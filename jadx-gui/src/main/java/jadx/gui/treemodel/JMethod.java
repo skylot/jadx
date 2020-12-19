@@ -7,6 +7,7 @@ import javax.swing.ImageIcon;
 
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.gui.utils.OverlayIcon;
@@ -66,6 +67,11 @@ public class JMethod extends JNode {
 			icon.add(ICON_SYNC);
 		}
 		return icon;
+	}
+
+	@Override
+	public boolean canRename() {
+		return !mth.getMethodNode().contains(AFlag.DONT_RENAME);
 	}
 
 	String makeBaseString() {

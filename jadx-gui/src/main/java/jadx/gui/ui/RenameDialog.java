@@ -26,6 +26,9 @@ import jadx.api.JavaField;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.core.codegen.CodeWriter;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
+import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.RenameVisitor;
 import jadx.core.utils.Utils;
@@ -113,7 +116,13 @@ public class RenameDialog extends JDialog {
 		if (node instanceof JMethod) {
 			JavaMethod javaMethod = (JavaMethod) node.getJavaNode();
 			type = "m";
-			id = javaMethod.getMethodNode().getMethodInfo().getRawFullId();
+			MethodNode mthNode = javaMethod.getMethodNode();
+			MethodOverrideAttr overrideAttr = mthNode.get(AType.METHOD_OVERRIDE);
+			if (overrideAttr != null) {
+				// use method closest to base method
+				mthNode = Objects.requireNonNull(Utils.last(overrideAttr.getRelatedMthNodes()));
+			}
+			id = mthNode.getMethodInfo().getRawFullId();
 		} else if (node instanceof JField) {
 			JavaField javaField = (JavaField) node.getJavaNode();
 			type = "f";

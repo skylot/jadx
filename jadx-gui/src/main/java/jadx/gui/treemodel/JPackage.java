@@ -74,6 +74,11 @@ public class JPackage extends JNode implements Comparable<JPackage> {
 		return name;
 	}
 
+	@Override
+	public boolean canRename() {
+		return true;
+	}
+
 	public String getFullName() {
 		return fullName;
 	}

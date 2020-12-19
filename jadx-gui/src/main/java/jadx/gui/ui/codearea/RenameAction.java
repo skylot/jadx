@@ -2,6 +2,8 @@ package jadx.gui.ui.codearea;
 
 import java.awt.event.ActionEvent;
 
+import javax.swing.event.PopupMenuEvent;
+
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +19,12 @@ public final class RenameAction extends JNodeMenuAction<JNode> {
 
 	public RenameAction(CodeArea codeArea) {
 		super(NLS.str("popup.rename"), codeArea);
+	}
+
+	@Override
+	public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+		super.popupMenuWillBecomeVisible(e);
+		setEnabled(node != null && node.canRename());
 	}
 
 	@Override
