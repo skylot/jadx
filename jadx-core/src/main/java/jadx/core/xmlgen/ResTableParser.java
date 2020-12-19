@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -27,7 +28,7 @@ import jadx.core.xmlgen.entry.ValuesParser;
 public class ResTableParser extends CommonBinaryParser {
 	private static final Logger LOG = LoggerFactory.getLogger(ResTableParser.class);
 
-	private static final Pattern VALID_RES_KEY_PATTERN = Pattern.compile("\\$+[\\w\\d-_.]+");
+	private static final Pattern VALID_RES_KEY_PATTERN = Pattern.compile("[\\w\\d_]+");
 
 	private static final class PackageChunk {
 		private final int id;
@@ -315,7 +316,24 @@ public class ResTableParser extends CommonBinaryParser {
 			constField.add(AFlag.DONT_RENAME);
 			return constField.getName();
 		}
-		return "RES_" + resRef; // autogenerate key name
+		// Making sure origKeyName compliant with resource file name rules
+		Matcher m = VALID_RES_KEY_PATTERN.matcher(origKeyName);
+		StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		while (m.find()) {
+			if (!first) {
+				sb.append("_");
+			}
+			sb.append(m.group());
+			first = false;
+		}
+		// autogenerate key name, appended with cleaned origKeyName to be human-friendly
+		String newResName = "res_" + resRef;
+		String cleanedResName = sb.toString();
+		if (!cleanedResName.isEmpty()) {
+			newResName += "_" + cleanedResName.toLowerCase();
+		}
+		return newResName;
 	}
 
 	private RawNamedValue parseValueMap() throws IOException {
