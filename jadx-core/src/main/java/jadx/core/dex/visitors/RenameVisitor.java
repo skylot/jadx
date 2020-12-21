@@ -1,7 +1,6 @@
 package jadx.core.dex.visitors;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -23,7 +22,6 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.utils.files.FileUtils;
 
 public class RenameVisitor extends AbstractVisitor {
 
@@ -33,12 +31,8 @@ public class RenameVisitor extends AbstractVisitor {
 		if (inputFiles.isEmpty()) {
 			return;
 		}
-		Path inputFilePath = inputFiles.get(0).getAbsoluteFile().toPath();
-		String baseName = FileUtils.getPathBaseName(inputFilePath);
-		Path deobfMapPath = inputFilePath.getParent().resolve(baseName + ".jobf");
-
+		Deobfuscator deobfuscator = new Deobfuscator(root);
 		JadxArgs args = root.getArgs();
-		Deobfuscator deobfuscator = new Deobfuscator(args, root, deobfMapPath);
 		if (args.isDeobfuscationOn()) {
 			deobfuscator.execute();
 		}

@@ -2,10 +2,12 @@ package jadx.core.dex.visitors;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
@@ -74,16 +76,12 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 		for (ArgType superType : superTypes) {
 			ClassNode classNode = cls.root().resolveClass(superType);
 			if (classNode != null) {
-				for (MethodNode supMth : classNode.getMethods()) {
-					String mthShortId = supMth.getMethodInfo().getShortId();
-					if (!supMth.getAccessFlags().isStatic()
-							&& mthShortId.startsWith(signature)
-							&& isMethodVisibleInCls(supMth, cls)) {
-						overrideList.add(supMth);
-						MethodOverrideAttr attr = supMth.get(AType.METHOD_OVERRIDE);
-						if (attr != null) {
-							return buildOverrideAttr(mth, overrideList, attr);
-						}
+				MethodNode ovrdMth = searchOverriddenMethod(classNode, signature);
+				if (ovrdMth != null && isMethodVisibleInCls(ovrdMth, cls)) {
+					overrideList.add(ovrdMth);
+					MethodOverrideAttr attr = ovrdMth.get(AType.METHOD_OVERRIDE);
+					if (attr != null) {
+						return buildOverrideAttr(mth, overrideList, attr);
 					}
 				}
 			} else {
@@ -103,24 +101,49 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 	}
 
 	@Nullable
+	private MethodNode searchOverriddenMethod(ClassNode cls, String signature) {
+		for (MethodNode supMth : cls.getMethods()) {
+			if (!supMth.getAccessFlags().isStatic() && supMth.getMethodInfo().getShortId().startsWith(signature)) {
+				return supMth;
+			}
+		}
+		return null;
+	}
+
+	@Nullable
 	private MethodOverrideAttr buildOverrideAttr(MethodNode mth, List<IMethodDetails> overrideList, @Nullable MethodOverrideAttr attr) {
 		if (overrideList.isEmpty() && attr == null) {
 			return null;
 		}
-		List<IMethodDetails> cleanOverrideList = overrideList.stream().distinct().collect(Collectors.toList());
 		if (attr == null) {
 			// traced to base method
+			List<IMethodDetails> cleanOverrideList = overrideList.stream().distinct().collect(Collectors.toList());
 			return applyOverrideAttr(mth, cleanOverrideList, false);
 		}
 		// trace stopped at already processed method -> start merging
-		List<IMethodDetails> mergedOverrideList = Utils.mergeLists(cleanOverrideList, attr.getOverrideList());
-		return applyOverrideAttr(mth, mergedOverrideList, true);
+		List<IMethodDetails> mergedOverrideList = Utils.mergeLists(overrideList, attr.getOverrideList());
+		List<IMethodDetails> cleanOverrideList = mergedOverrideList.stream().distinct().collect(Collectors.toList());
+		return applyOverrideAttr(mth, cleanOverrideList, true);
 	}
 
 	private MethodOverrideAttr applyOverrideAttr(MethodNode mth, List<IMethodDetails> overrideList, boolean update) {
 		// don't rename method if override list contains not resolved method
 		boolean dontRename = overrideList.stream().anyMatch(m -> !(m instanceof MethodNode));
 		List<MethodNode> mthNodes = getMethodNodes(mth, overrideList);
+		if (update) {
+			// merge related methods from all override attributes
+			Set<MethodNode> relatedMthSet = new HashSet<>(mthNodes);
+			for (MethodNode mthNode : mthNodes) {
+				MethodOverrideAttr ovrdAttr = mthNode.get(AType.METHOD_OVERRIDE);
+				if (ovrdAttr != null) {
+					relatedMthSet.addAll(ovrdAttr.getRelatedMthNodes());
+				}
+			}
+			if (relatedMthSet.size() != mthNodes.size()) {
+				mthNodes = new ArrayList<>(relatedMthSet);
+				Collections.sort(mthNodes);
+			}
+		}
 		int depth = 0;
 		for (MethodNode mthNode : mthNodes) {
 			if (dontRename) {

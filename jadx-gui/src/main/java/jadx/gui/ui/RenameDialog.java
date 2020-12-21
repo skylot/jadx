@@ -4,13 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +32,7 @@ import jadx.api.JavaField;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.core.codegen.CodeWriter;
+import jadx.core.deobf.DeobfPresets;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.nodes.MethodNode;
@@ -117,85 +111,25 @@ public class RenameDialog extends JDialog {
 		return false; // TODO: can't open dialog, 'node' is replaced with new one after reopen
 	}
 
-	private Path getDeobfMapPath(RootNode root) {
-		List<File> inputFiles = root.getArgs().getInputFiles();
-		if (inputFiles.isEmpty()) {
-			return null;
-		}
-		File firstInputFile = inputFiles.get(0);
-		Path inputFilePath = firstInputFile.getAbsoluteFile().toPath();
-
-		String inputName = inputFilePath.getFileName().toString();
-		String baseName = inputName.substring(0, inputName.lastIndexOf('.'));
-		return inputFilePath.getParent().resolve(baseName + ".jobf");
-	}
-
-	private String getNodeAlias(String renameText) {
-		String type = "";
-		String id = "";
+	private void updateDeobfMap(DeobfPresets deobfPresets, String renameText) {
 		if (node instanceof JMethod) {
-			JavaMethod javaMethod = (JavaMethod) node.getJavaNode();
-			type = "m";
-			MethodNode mthNode = javaMethod.getMethodNode();
+			MethodNode mthNode = ((JavaMethod) node.getJavaNode()).getMethodNode();
 			MethodOverrideAttr overrideAttr = mthNode.get(AType.METHOD_OVERRIDE);
 			if (overrideAttr != null) {
-				// use method closest to base method
-				mthNode = Objects.requireNonNull(Utils.last(overrideAttr.getRelatedMthNodes()));
+				for (MethodNode relatedMth : overrideAttr.getRelatedMthNodes()) {
+					deobfPresets.getMthPresetMap().put(relatedMth.getMethodInfo().getRawFullId(), renameText);
+				}
 			}
-			id = mthNode.getMethodInfo().getRawFullId();
+			deobfPresets.getMthPresetMap().put(mthNode.getMethodInfo().getRawFullId(), renameText);
 		} else if (node instanceof JField) {
 			JavaField javaField = (JavaField) node.getJavaNode();
-			type = "f";
-			id = javaField.getFieldNode().getFieldInfo().getRawFullId();
+			deobfPresets.getFldPresetMap().put(javaField.getFieldNode().getFieldInfo().getRawFullId(), renameText);
 		} else if (node instanceof JClass) {
 			JavaClass javaClass = (JavaClass) node.getJavaNode();
-			type = "c";
-			id = javaClass.getRawName();
+			deobfPresets.getClsPresetMap().put(javaClass.getRawName(), renameText);
 		} else if (node instanceof JPackage) {
-			type = "p";
-			id = ((JPackage) node).getFullName();
+			deobfPresets.getPkgPresetMap().put(((JPackage) node).getFullName(), renameText);
 		}
-		return String.format("%s %s = %s", type, id, renameText);
-	}
-
-	private void writeDeobfMapFile(Path deobfMapPath, List<String> deobfMap) throws IOException {
-		if (deobfMapPath == null) {
-			LOG.error("updateDeobfMapFile(): deobfMapPath is null!");
-			return;
-		}
-		Path deobfMapDir = deobfMapPath.getParent();
-		Path tmpFile = Files.createTempFile(deobfMapDir, "deobf_tmp_", ".txt");
-
-		try (Writer writer = Files.newBufferedWriter(tmpFile, StandardCharsets.UTF_8)) {
-			for (String entry : deobfMap) {
-				writer.write(entry);
-				writer.write(System.lineSeparator());
-			}
-		}
-		Files.move(tmpFile, deobfMapPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-		LOG.info("Updated deobf file {}", deobfMapPath);
-	}
-
-	@NotNull
-	private List<String> readDeobfMap(Path deobfMapPath) throws IOException {
-		return Files.readAllLines(deobfMapPath, StandardCharsets.UTF_8);
-	}
-
-	private List<String> updateDeobfMap(List<String> deobfMap, String alias) {
-		String id = alias.substring(0, alias.indexOf('=') + 1);
-		int i = 0;
-		while (i < deobfMap.size()) {
-			String entry = deobfMap.get(i);
-			if (entry.startsWith(id)) {
-				LOG.debug("updateDeobfMap(): Removing entry {}", entry);
-				deobfMap.remove(i);
-			} else {
-				i++;
-			}
-		}
-		LOG.debug("updateDeobfMap(): placing alias = {}", alias);
-		deobfMap.add(alias);
-		return deobfMap;
 	}
 
 	private void rename() {
@@ -223,18 +157,20 @@ public class RenameDialog extends JDialog {
 	}
 
 	private boolean refreshDeobfMapFile(String renameText, RootNode root) {
-		List<String> deobfMap;
-		Path deobfMapPath = getDeobfMapPath(root);
+		DeobfPresets deobfPresets = DeobfPresets.build(root);
+		if (deobfPresets == null) {
+			return false;
+		}
 		try {
-			deobfMap = readDeobfMap(deobfMapPath);
-		} catch (IOException e) {
+			deobfPresets.load();
+		} catch (Exception e) {
 			LOG.error("rename(): readDeobfMap() failed");
 			return false;
 		}
-		updateDeobfMap(deobfMap, getNodeAlias(renameText));
+		updateDeobfMap(deobfPresets, renameText);
 		try {
-			writeDeobfMapFile(deobfMapPath, deobfMap);
-		} catch (IOException e) {
+			deobfPresets.save();
+		} catch (Exception e) {
 			LOG.error("rename(): writeDeobfMap() failed");
 			return false;
 		}
@@ -301,7 +237,7 @@ public class RenameDialog extends JDialog {
 			cls.reload();
 			IndexJob.refreshIndex(cache, cls.getCls());
 		} catch (Exception e) {
-			LOG.error("Failed to reload class: {}", cls, e);
+			LOG.error("Failed to reload class: {}", cls.getFullName(), e);
 		}
 	}
 

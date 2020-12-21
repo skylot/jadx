@@ -1,5 +1,6 @@
 package jadx.core.deobf;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
@@ -58,28 +59,75 @@ public class Deobfuscator {
 	private int fldIndex = 0;
 	private int mthIndex = 0;
 
-	public Deobfuscator(JadxArgs args, RootNode root, Path deobfMapFile) {
-		this.args = args;
+	public Deobfuscator(RootNode root) {
 		this.root = root;
+		this.args = root.getArgs();
 
 		this.minLength = args.getDeobfuscationMinLength();
 		this.maxLength = args.getDeobfuscationMaxLength();
 		this.useSourceNameAsAlias = args.isUseSourceNameAsClassAlias();
 		this.parseKotlinMetadata = args.isParseKotlinMetadata();
 
-		this.deobfPresets = new DeobfPresets(this, deobfMapFile);
+		this.deobfPresets = DeobfPresets.build(root);
 	}
 
 	public void execute() {
 		if (!args.isDeobfuscationForceSave()) {
 			deobfPresets.load();
+			for (Map.Entry<String, String> pkgEntry : deobfPresets.getPkgPresetMap().entrySet()) {
+				addPackagePreset(pkgEntry.getKey(), pkgEntry.getValue());
+			}
+			deobfPresets.getPkgPresetMap().clear(); // not needed anymore
 			initIndexes();
 		}
 		process();
 	}
 
 	public void savePresets() {
-		deobfPresets.save(args.isDeobfuscationForceSave());
+		Path deobfMapFile = deobfPresets.getDeobfMapFile();
+		if (Files.exists(deobfMapFile) && !args.isDeobfuscationForceSave()) {
+			LOG.warn("Deobfuscation map file '{}' exists. Use command line option '--deobf-rewrite-cfg' to rewrite it",
+					deobfMapFile.toAbsolutePath());
+			return;
+		}
+		try {
+			deobfPresets.clear();
+			fillDeobfPresets();
+			deobfPresets.save();
+		} catch (Exception e) {
+			LOG.error("Failed to save deobfuscation map file '{}'", deobfMapFile.toAbsolutePath(), e);
+		}
+	}
+
+	private void fillDeobfPresets() {
+		for (PackageNode p : getRootPackage().getInnerPackages()) {
+			for (PackageNode pp : p.getInnerPackages()) {
+				dfsPackageName(p.getName(), pp);
+			}
+			if (p.hasAlias()) {
+				deobfPresets.getPkgPresetMap().put(p.getName(), p.getAlias());
+			}
+		}
+		for (DeobfClsInfo deobfClsInfo : clsMap.values()) {
+			if (deobfClsInfo.getAlias() != null) {
+				deobfPresets.getClsPresetMap().put(deobfClsInfo.getCls().getClassInfo().makeRawFullName(), deobfClsInfo.getAlias());
+			}
+		}
+		for (FieldInfo fld : fldMap.keySet()) {
+			deobfPresets.getFldPresetMap().put(fld.getRawFullId(), fld.getAlias());
+		}
+		for (MethodInfo mth : mthMap.keySet()) {
+			deobfPresets.getMthPresetMap().put(mth.getRawFullId(), mth.getAlias());
+		}
+	}
+
+	private void dfsPackageName(String prefix, PackageNode node) {
+		for (PackageNode pp : node.getInnerPackages()) {
+			dfsPackageName(prefix + '.' + node.getName(), pp);
+		}
+		if (node.hasAlias()) {
+			deobfPresets.getPkgPresetMap().put(node.getName(), node.getAlias());
+		}
 	}
 
 	public void clear() {
