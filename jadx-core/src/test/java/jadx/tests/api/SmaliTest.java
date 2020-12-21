@@ -57,7 +57,7 @@ public abstract class SmaliTest extends IntegrationTest {
 		jadxDecompiler = loadFiles(collectSmaliFiles(getTestPkg(), getTestName()));
 		RootNode root = JadxInternalAccess.getRoot(jadxDecompiler);
 		List<ClassNode> classes = root.getClasses(false);
-		decompileAndCheck(jadxDecompiler, classes);
+		decompileAndCheck(classes);
 		return classes;
 	}
 

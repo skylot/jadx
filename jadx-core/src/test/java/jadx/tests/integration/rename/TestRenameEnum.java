@@ -30,14 +30,13 @@ public class TestRenameEnum extends IntegrationTest {
 	@Test
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
-		assertThat(cls.getCode())
+		assertThat(cls).code()
 				.containsOnlyOnce("public enum A ")
 				.containsOnlyOnce("ONE {");
 
 		cls.getInnerClasses().get(0).getClassInfo().changeShortName("ARenamed");
 
-		assertThat(cls.reloadCode())
-				.print()
+		assertThat(cls).reloadCode(this)
 				.containsOnlyOnce("public enum ARenamed ")
 				.containsOnlyOnce("ONE {");
 	}

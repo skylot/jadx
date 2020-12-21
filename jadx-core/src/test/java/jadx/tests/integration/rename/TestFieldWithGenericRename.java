@@ -18,10 +18,12 @@ public class TestFieldWithGenericRename extends IntegrationTest {
 	@Test
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
-		assertThat(cls.getCode()).containsOnlyOnce("List<String> list;");
+		assertThat(cls).code()
+				.containsOnlyOnce("List<String> list;");
 
 		cls.searchFieldByName("list").getFieldInfo().setAlias("listFieldRenamed");
 
-		assertThat(cls.reloadCode()).print().containsOnlyOnce("List<String> listFieldRenamed;");
+		assertThat(cls).reloadCode(this)
+				.containsOnlyOnce("List<String> listFieldRenamed;");
 	}
 }

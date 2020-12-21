@@ -23,12 +23,11 @@ public class TestAnonymousInline extends IntegrationTest {
 	@Test
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
-		assertThat(cls.getCode())
+		assertThat(cls).code()
 				.containsOnlyOnce("return new Runnable() {");
 
-		assertThat(cls.reloadCode())
+		assertThat(cls).reloadCode(this)
 				.removeBlockComments() // remove comment about inlined class
-				.print()
 				.containsOnlyOnce("return new Runnable() {")
 				.doesNotContain("AnonymousClass1");
 	}

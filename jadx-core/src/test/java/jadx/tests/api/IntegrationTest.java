@@ -21,6 +21,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.jar.JarOutputStream;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -157,17 +158,23 @@ public abstract class IntegrationTest extends TestUtils {
 		assertThat("Class not found: " + clsName, cls, notNullValue());
 		assertThat(clsName, is(cls.getClassInfo().getFullName()));
 
-		decompileAndCheck(jadxDecompiler, Collections.singletonList(cls));
+		decompileAndCheck(cls);
 		return cls;
 	}
 
-	public ClassNode searchCls(List<ClassNode> list, String fullClsName) {
+	@Nullable
+	public ClassNode searchCls(List<ClassNode> list, String clsName) {
 		for (ClassNode cls : list) {
-			if (cls.getClassInfo().getFullName().equals(fullClsName)) {
+			if (cls.getClassInfo().getFullName().equals(clsName)) {
 				return cls;
 			}
 		}
-		fail("Class not found by name " + fullClsName + " in list: " + list);
+		for (ClassNode cls : list) {
+			if (cls.getClassInfo().getShortName().equals(clsName)) {
+				return cls;
+			}
+		}
+		fail("Class not found by name " + clsName + " in list: " + list);
 		return null;
 	}
 
@@ -187,7 +194,11 @@ public abstract class IntegrationTest extends TestUtils {
 		return d;
 	}
 
-	protected void decompileAndCheck(JadxDecompiler d, List<ClassNode> clsList) {
+	protected void decompileAndCheck(ClassNode cls) {
+		decompileAndCheck(Collections.singletonList(cls));
+	}
+
+	protected void decompileAndCheck(List<ClassNode> clsList) {
 		if (!unloadCls) {
 			clsList.forEach(cls -> cls.add(AFlag.DONT_UNLOAD_CLASS));
 		}
@@ -207,6 +218,14 @@ public abstract class IntegrationTest extends TestUtils {
 			clsList.forEach(this::printSmali);
 		}
 
+		runChecks(clsList);
+	}
+
+	public void runChecks(ClassNode cls) {
+		runChecks(Collections.singletonList(cls));
+	}
+
+	protected void runChecks(List<ClassNode> clsList) {
 		clsList.forEach(this::checkCode);
 		compile(clsList);
 		clsList.forEach(this::runAutoCheck);

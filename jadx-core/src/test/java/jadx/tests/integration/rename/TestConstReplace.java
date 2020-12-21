@@ -20,11 +20,10 @@ public class TestConstReplace extends IntegrationTest {
 	@Test
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
-		assertThat(cls.getCode())
+		assertThat(cls).code()
 				.containsOnlyOnce("return CONST;");
 
-		assertThat(cls.reloadCode())
-				.print()
+		assertThat(cls).reloadCode(this)
 				.containsOnlyOnce("return CONST;");
 	}
 }
