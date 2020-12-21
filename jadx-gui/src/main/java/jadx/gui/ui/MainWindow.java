@@ -655,8 +655,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void rename(JNode node) {
-		RenameDialog renameDialog = new RenameDialog(this, node);
-		renameDialog.setVisible(true);
+		RenameDialog.rename(this, node);
 	}
 
 	private void treeRightClickAction(MouseEvent e) {

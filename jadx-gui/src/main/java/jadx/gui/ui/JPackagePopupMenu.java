@@ -79,7 +79,7 @@ class JPackagePopupMenu extends JPopupMenu {
 
 	private void rename(JPackage pkg) {
 		LOG.debug("Renaming package: fullName={}, name={}", pkg.getFullName(), pkg.getName());
-		new RenameDialog(mainWindow, pkg).setVisible(true);
+		RenameDialog.rename(mainWindow, pkg);
 	}
 
 	private List<String> splitPackage(String rawPackage) {

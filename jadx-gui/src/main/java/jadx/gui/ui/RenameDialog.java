@@ -1,9 +1,12 @@
 package jadx.gui.ui;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,7 +18,17 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
 
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -57,17 +70,24 @@ public class RenameDialog extends JDialog {
 	private final transient JNode node;
 	private transient JTextField renameField;
 
-	public RenameDialog(MainWindow mainWindow, JNode node) {
+	public static boolean rename(MainWindow mainWindow, JNode node) {
+		if (!checkSettings(mainWindow)) {
+			return false;
+		}
+		RenameDialog renameDialog = new RenameDialog(mainWindow, node);
+		renameDialog.setVisible(true);
+		return true;
+	}
+
+	private RenameDialog(MainWindow mainWindow, JNode node) {
 		super(mainWindow);
 		this.mainWindow = mainWindow;
 		this.cache = mainWindow.getCacheObject();
 		this.node = node;
-		if (checkSettings()) {
-			initUI();
-		}
+		initUI();
 	}
 
-	private boolean checkSettings() {
+	public static boolean checkSettings(MainWindow mainWindow) {
 		StringBuilder errorMessage = new StringBuilder();
 		errorMessage.append(NLS.str("msg.rename_disabled")).append(CodeWriter.NL);
 
@@ -143,19 +163,17 @@ public class RenameDialog extends JDialog {
 			LOG.error("updateDeobfMapFile(): deobfMapPath is null!");
 			return;
 		}
-		File tmpFile = File.createTempFile("deobf_tmp_", ".txt");
-		try (FileOutputStream fileOut = new FileOutputStream(tmpFile)) {
+		Path deobfMapDir = deobfMapPath.getParent();
+		Path tmpFile = Files.createTempFile(deobfMapDir, "deobf_tmp_", ".txt");
+
+		try (Writer writer = Files.newBufferedWriter(tmpFile, StandardCharsets.UTF_8)) {
 			for (String entry : deobfMap) {
-				fileOut.write(entry.getBytes(StandardCharsets.UTF_8));
-				fileOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
+				writer.write(entry);
+				writer.write(System.lineSeparator());
 			}
 		}
-		File oldMap = File.createTempFile("deobf_bak_", ".txt");
-		Files.copy(deobfMapPath, oldMap.toPath(), StandardCopyOption.REPLACE_EXISTING);
-		LOG.trace("Copying " + tmpFile.toPath() + " to " + deobfMapPath);
-		Files.copy(tmpFile.toPath(), deobfMapPath, StandardCopyOption.REPLACE_EXISTING);
-		Files.delete(oldMap.toPath());
-		Files.delete(tmpFile.toPath());
+		Files.move(tmpFile, deobfMapPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+		LOG.info("Updated deobf file {}", deobfMapPath);
 	}
 
 	@NotNull
@@ -167,14 +185,15 @@ public class RenameDialog extends JDialog {
 		String id = alias.substring(0, alias.indexOf('=') + 1);
 		int i = 0;
 		while (i < deobfMap.size()) {
-			if (deobfMap.get(i).startsWith(id)) {
-				LOG.debug("updateDeobfMap(): Removing entry {}", deobfMap.get(i));
+			String entry = deobfMap.get(i);
+			if (entry.startsWith(id)) {
+				LOG.debug("updateDeobfMap(): Removing entry {}", entry);
 				deobfMap.remove(i);
 			} else {
 				i++;
 			}
 		}
-		LOG.debug("updateDeobfMap(): Placing alias = {}", alias);
+		LOG.debug("updateDeobfMap(): placing alias = {}", alias);
 		deobfMap.add(alias);
 		return deobfMap;
 	}
