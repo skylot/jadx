@@ -291,13 +291,15 @@ public class MethodGen {
 			code.startLine("// Can't load method instructions.");
 			return;
 		}
-		long insnCountEstimate = Stream.of(insnArr)
-				.filter(Objects::nonNull)
-				.filter(insn -> insn.getType() != InsnType.NOP)
-				.count();
-		if (insnCountEstimate > 100) {
-			code.startLine("// Method dump skipped, instructions count: " + insnArr.length);
-			return;
+		if (fallbackOption == COMMENTED_DUMP) {
+			long insnCountEstimate = Stream.of(insnArr)
+					.filter(Objects::nonNull)
+					.filter(insn -> insn.getType() != InsnType.NOP)
+					.count();
+			if (insnCountEstimate > 100) {
+				code.startLine("// Method dump skipped, instructions count: " + insnArr.length);
+				return;
+			}
 		}
 		code.incIndent();
 		if (mth.getThisArg() != null) {
