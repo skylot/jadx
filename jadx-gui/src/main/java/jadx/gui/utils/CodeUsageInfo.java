@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,10 @@ public class CodeUsageInfo {
 
 		public synchronized void addUsage(CodeNode codeNode) {
 			usageList.add(codeNode);
+		}
+
+		public synchronized void removeUsageIf(Predicate<? super CodeNode> filter) {
+			usageList.removeIf(filter);
 		}
 	}
 
@@ -76,7 +81,7 @@ public class CodeUsageInfo {
 			if (e.getKey().getJavaNode().getTopParentClass().equals(cls)) {
 				return true;
 			}
-			e.getValue().getUsageList().removeIf(node -> node.getJavaNode().getTopParentClass().equals(cls));
+			e.getValue().removeUsageIf(node -> node.getJavaNode().getTopParentClass().equals(cls));
 			return false;
 		});
 	}
