@@ -37,7 +37,8 @@ public class SearchDialog extends CommonSearchDialog {
 		METHOD,
 		FIELD,
 		CODE,
-		IGNORE_CASE
+		IGNORE_CASE,
+		USE_REGEX
 	}
 
 	private transient Set<SearchOptions> options;
@@ -86,6 +87,7 @@ public class SearchDialog extends CommonSearchDialog {
 		searchFieldSubscribe();
 
 		JCheckBox caseChBox = makeOptionsCheckBox(NLS.str("search_dialog.ignorecase"), SearchOptions.IGNORE_CASE);
+		JCheckBox regexChBox = makeOptionsCheckBox(NLS.str("search_dialog.regex"), SearchOptions.USE_REGEX);
 
 		JCheckBox clsChBox = makeOptionsCheckBox(NLS.str("search_dialog.class"), SearchOptions.CLASS);
 		JCheckBox mthChBox = makeOptionsCheckBox(NLS.str("search_dialog.method"), SearchOptions.METHOD);
@@ -102,6 +104,7 @@ public class SearchDialog extends CommonSearchDialog {
 		JPanel searchOptions = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		searchOptions.setBorder(BorderFactory.createTitledBorder(NLS.str("search_dialog.options")));
 		searchOptions.add(caseChBox);
+		searchOptions.add(regexChBox);
 
 		Box box = Box.createHorizontalBox();
 		box.setAlignmentX(LEFT_ALIGNMENT);
@@ -203,6 +206,7 @@ public class SearchDialog extends CommonSearchDialog {
 		String text = searchField.getText();
 		highlightText = text;
 		highlightTextCaseInsensitive = options.contains(SearchOptions.IGNORE_CASE);
+		highlightTextUseRegex = options.contains(SearchOptions.USE_REGEX);
 
 		cache.setLastSearch(text);
 		if (textSearch) {

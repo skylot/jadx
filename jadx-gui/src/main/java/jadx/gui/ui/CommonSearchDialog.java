@@ -58,6 +58,7 @@ public abstract class CommonSearchDialog extends JDialog {
 
 	protected String highlightText;
 	protected boolean highlightTextCaseInsensitive = false;
+	protected boolean highlightTextUseRegex = false;
 
 	public CommonSearchDialog(MainWindow mainWindow) {
 		super(mainWindow);
@@ -466,6 +467,7 @@ public abstract class CommonSearchDialog extends JDialog {
 				SearchContext searchContext = new SearchContext(highlightText);
 				searchContext.setMatchCase(!highlightTextCaseInsensitive);
 				searchContext.setMarkAll(true);
+				searchContext.setRegularExpression(highlightTextUseRegex);
 				SearchEngine.markAll(textArea, searchContext);
 			}
 			return textArea;

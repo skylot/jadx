@@ -2,6 +2,8 @@ package jadx.gui.utils.search;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,15 +29,35 @@ public class CodeIndex {
 		values.removeIf(v -> v.getJavaNode().getTopParentClass().equals(cls));
 	}
 
-	private boolean isMatched(StringRef key, String str, boolean caseInsensitive) {
-		return key.indexOf(str, caseInsensitive) != -1;
+	private boolean isMatched(StringRef key, String str, boolean caseInsensitive, boolean useRegex) {
+		if (caseInsensitive && useRegex) {
+			try {
+				Pattern pattern = Pattern.compile(str, Pattern.CASE_INSENSITIVE);
+				Matcher matcher = pattern.matcher(key);
+				return matcher.find();
+			} catch (Exception e) {
+				LOG.warn("Invalid Regex: {}", str);
+				return false;
+			}
+		} else if (useRegex) {
+			try {
+				Pattern pattern = Pattern.compile(str);
+				Matcher matcher = pattern.matcher(key);
+				return matcher.find();
+			} catch (Exception e) {
+				LOG.warn("Invalid Regex: {}", str);
+				return false;
+			}
+		} else {
+			return key.indexOf(str, caseInsensitive) != -1;
+		}
 	}
 
-	public Flowable<CodeNode> search(final String searchStr, final boolean caseInsensitive) {
+	public Flowable<CodeNode> search(final String searchStr, final boolean caseInsensitive, final boolean useRegex) {
 		return Flowable.create(emitter -> {
 			LOG.debug("Code search started: {} ...", searchStr);
 			for (CodeNode node : values) {
-				if (isMatched(node.getLineStr(), searchStr, caseInsensitive)) {
+				if (isMatched(node.getLineStr(), searchStr, caseInsensitive, useRegex)) {
 					emitter.onNext(node);
 				}
 				if (emitter.isCancelled()) {

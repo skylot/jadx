@@ -3,6 +3,8 @@ package jadx.gui.utils.search;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -29,6 +31,7 @@ import static jadx.gui.ui.SearchDialog.SearchOptions.CODE;
 import static jadx.gui.ui.SearchDialog.SearchOptions.FIELD;
 import static jadx.gui.ui.SearchDialog.SearchOptions.IGNORE_CASE;
 import static jadx.gui.ui.SearchDialog.SearchOptions.METHOD;
+import static jadx.gui.ui.SearchDialog.SearchOptions.USE_REGEX;
 
 public class TextSearchIndex {
 
@@ -94,37 +97,37 @@ public class TextSearchIndex {
 
 	public Flowable<JNode> buildSearch(String text, Set<SearchDialog.SearchOptions> options) {
 		boolean ignoreCase = options.contains(IGNORE_CASE);
+		boolean useRegex = options.contains(USE_REGEX);
 		LOG.debug("Building search, ignoreCase: {}", ignoreCase);
-
 		Flowable<JNode> result = Flowable.empty();
 		if (options.contains(CLASS)) {
-			result = Flowable.concat(result, clsNamesIndex.search(text, ignoreCase));
+			result = Flowable.concat(result, clsNamesIndex.search(text, ignoreCase, useRegex));
 		}
 		if (options.contains(METHOD)) {
-			result = Flowable.concat(result, mthSignaturesIndex.search(text, ignoreCase));
+			result = Flowable.concat(result, mthSignaturesIndex.search(text, ignoreCase, useRegex));
 		}
 		if (options.contains(FIELD)) {
-			result = Flowable.concat(result, fldSignaturesIndex.search(text, ignoreCase));
+			result = Flowable.concat(result, fldSignaturesIndex.search(text, ignoreCase, useRegex));
 		}
 		if (options.contains(CODE)) {
 			if (codeIndex.size() > 0) {
-				result = Flowable.concat(result, codeIndex.search(text, ignoreCase));
+				result = Flowable.concat(result, codeIndex.search(text, ignoreCase, useRegex));
 			}
 			if (!skippedClasses.isEmpty()) {
-				result = Flowable.concat(result, searchInSkippedClasses(text, ignoreCase));
+				result = Flowable.concat(result, searchInSkippedClasses(text, ignoreCase, useRegex));
 			}
 		}
 		return result;
 	}
 
-	public Flowable<CodeNode> searchInSkippedClasses(final String searchStr, final boolean caseInsensitive) {
+	public Flowable<CodeNode> searchInSkippedClasses(final String searchStr, final boolean caseInsensitive, final boolean useRegex) {
 		return Flowable.create(emitter -> {
 			LOG.debug("Skipped code search started: {} ...", searchStr);
 			for (JavaClass javaClass : skippedClasses) {
 				String code = javaClass.getCode();
 				int pos = 0;
 				while (pos != -1) {
-					pos = searchNext(emitter, searchStr, javaClass, code, pos, caseInsensitive);
+					pos = searchNext(emitter, searchStr, javaClass, code, pos, caseInsensitive, useRegex);
 					if (emitter.isCancelled()) {
 						LOG.debug("Skipped Code search canceled: {}", searchStr);
 						return;
@@ -142,9 +145,35 @@ public class TextSearchIndex {
 	}
 
 	private int searchNext(FlowableEmitter<CodeNode> emitter, String text, JavaNode javaClass, String code,
-			int startPos, boolean ignoreCase) {
+			int startPos, boolean ignoreCase, boolean useRegex) {
 		int pos;
-		if (ignoreCase) {
+		if (ignoreCase && useRegex) {
+			try {
+				Pattern pattern = Pattern.compile(text, Pattern.CASE_INSENSITIVE);
+				Matcher matcher = pattern.matcher(code);
+				if (matcher.find(startPos)) {
+					pos = matcher.start();
+				} else {
+					pos = -1;
+				}
+			} catch (Exception e) {
+				LOG.warn("Invalid Regex: {}", text);
+				pos = -1;
+			}
+		} else if (useRegex) {
+			try {
+				Pattern pattern = Pattern.compile(text);
+				Matcher matcher = pattern.matcher(code);
+				if (matcher.find(startPos)) {
+					pos = matcher.start();
+				} else {
+					pos = -1;
+				}
+			} catch (Exception e) {
+				LOG.warn("Invalid Regex: {}", text);
+				pos = -1;
+			}
+		} else if (ignoreCase) {
 			pos = StringUtils.indexOfIgnoreCase(code, text, startPos);
 		} else {
 			pos = code.indexOf(text, startPos);
