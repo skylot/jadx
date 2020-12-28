@@ -3,10 +3,7 @@ package jadx.gui.utils.search;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,38 +95,47 @@ public class TextSearchIndex {
 	public Flowable<JNode> buildSearch(String text, Set<SearchDialog.SearchOptions> options) {
 		boolean ignoreCase = options.contains(IGNORE_CASE);
 		boolean useRegex = options.contains(USE_REGEX);
-		LOG.debug("Building search, ignoreCase: {}", ignoreCase);
+		
+		LOG.debug("Building search, ignoreCase: {}, useRegex: {}", ignoreCase, useRegex);
 		Flowable<JNode> result = Flowable.empty();
+		
+		SearchSettings searchSettings = new SearchSettings();
+		searchSettings.setSearchString(text);
+		searchSettings.setIgnoreCase(options.contains(IGNORE_CASE));
+		searchSettings.setRegex(options.contains(USE_REGEX));
+		if(!searchSettings.preCompile()) return result;
+			
 		if (options.contains(CLASS)) {
-			result = Flowable.concat(result, clsNamesIndex.search(text, ignoreCase, useRegex));
+			result = Flowable.concat(result, clsNamesIndex.search(searchSettings));
 		}
 		if (options.contains(METHOD)) {
-			result = Flowable.concat(result, mthSignaturesIndex.search(text, ignoreCase, useRegex));
+			result = Flowable.concat(result, mthSignaturesIndex.search(searchSettings));
 		}
 		if (options.contains(FIELD)) {
-			result = Flowable.concat(result, fldSignaturesIndex.search(text, ignoreCase, useRegex));
+			result = Flowable.concat(result, fldSignaturesIndex.search(searchSettings));
 		}
 		if (options.contains(CODE)) {
 			if (codeIndex.size() > 0) {
-				result = Flowable.concat(result, codeIndex.search(text, ignoreCase, useRegex));
+				result = Flowable.concat(result, codeIndex.search(searchSettings));
 			}
 			if (!skippedClasses.isEmpty()) {
-				result = Flowable.concat(result, searchInSkippedClasses(text, ignoreCase, useRegex));
+				result = Flowable.concat(result, searchInSkippedClasses(searchSettings));
 			}
 		}
 		return result;
 	}
 
-	public Flowable<CodeNode> searchInSkippedClasses(final String searchStr, final boolean caseInsensitive, final boolean useRegex) {
+	public Flowable<CodeNode> searchInSkippedClasses(final SearchSettings searchSettings) {
 		return Flowable.create(emitter -> {
-			LOG.debug("Skipped code search started: {} ...", searchStr);
+			LOG.debug("Skipped code search started: {} ...", searchSettings.getSearchString());
 			for (JavaClass javaClass : skippedClasses) {
 				String code = javaClass.getCode();
 				int pos = 0;
 				while (pos != -1) {
-					pos = searchNext(emitter, searchStr, javaClass, code, pos, caseInsensitive, useRegex);
+					searchSettings.setStartPos(pos);
+					pos = searchNext(emitter, javaClass, code, searchSettings);
 					if (emitter.isCancelled()) {
-						LOG.debug("Skipped Code search canceled: {}", searchStr);
+						LOG.debug("Skipped Code search canceled: {}", searchSettings.getSearchString());
 						return;
 					}
 				}
@@ -139,50 +145,19 @@ public class TextSearchIndex {
 					return;
 				}
 			}
-			LOG.debug("Skipped code search complete: {}, memory usage: {}", searchStr, UiUtils.memoryInfo());
+			LOG.debug("Skipped code search complete: {}, memory usage: {}", searchSettings.getSearchString(), UiUtils.memoryInfo());
 			emitter.onComplete();
 		}, BackpressureStrategy.LATEST);
 	}
 
-	private int searchNext(FlowableEmitter<CodeNode> emitter, String text, JavaNode javaClass, String code,
-			int startPos, boolean ignoreCase, boolean useRegex) {
+	private int searchNext(FlowableEmitter<CodeNode> emitter, JavaNode javaClass, String code, final SearchSettings searchSettings) {
 		int pos;
-		if (ignoreCase && useRegex) {
-			try {
-				Pattern pattern = Pattern.compile(text, Pattern.CASE_INSENSITIVE);
-				Matcher matcher = pattern.matcher(code);
-				if (matcher.find(startPos)) {
-					pos = matcher.start();
-				} else {
-					pos = -1;
-				}
-			} catch (Exception e) {
-				LOG.warn("Invalid Regex: {}", text);
-				pos = -1;
-			}
-		} else if (useRegex) {
-			try {
-				Pattern pattern = Pattern.compile(text);
-				Matcher matcher = pattern.matcher(code);
-				if (matcher.find(startPos)) {
-					pos = matcher.start();
-				} else {
-					pos = -1;
-				}
-			} catch (Exception e) {
-				LOG.warn("Invalid Regex: {}", text);
-				pos = -1;
-			}
-		} else if (ignoreCase) {
-			pos = StringUtils.indexOfIgnoreCase(code, text, startPos);
-		} else {
-			pos = code.indexOf(text, startPos);
-		}
+		pos = SearchImpl.find(code,  searchSettings);
 		if (pos == -1) {
 			return -1;
 		}
 		int lineStart = 1 + code.lastIndexOf(CodeWriter.NL, pos);
-		int lineEnd = code.indexOf(CodeWriter.NL, pos + text.length());
+		int lineEnd = code.indexOf(CodeWriter.NL, pos + searchSettings.getSearchString().length());
 		StringRef line = StringRef.subString(code, lineStart, lineEnd == -1 ? code.length() : lineEnd);
 		emitter.onNext(new CodeNode(nodeCache.makeFrom(javaClass), -pos, line.trim()));
 		return lineEnd;

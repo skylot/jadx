@@ -29,43 +29,23 @@ public class CodeIndex {
 		values.removeIf(v -> v.getJavaNode().getTopParentClass().equals(cls));
 	}
 
-	private boolean isMatched(StringRef key, String str, boolean caseInsensitive, boolean useRegex) {
-		if (caseInsensitive && useRegex) {
-			try {
-				Pattern pattern = Pattern.compile(str, Pattern.CASE_INSENSITIVE);
-				Matcher matcher = pattern.matcher(key);
-				return matcher.find();
-			} catch (Exception e) {
-				LOG.warn("Invalid Regex: {}", str);
-				return false;
-			}
-		} else if (useRegex) {
-			try {
-				Pattern pattern = Pattern.compile(str);
-				Matcher matcher = pattern.matcher(key);
-				return matcher.find();
-			} catch (Exception e) {
-				LOG.warn("Invalid Regex: {}", str);
-				return false;
-			}
-		} else {
-			return key.indexOf(str, caseInsensitive) != -1;
-		}
+	private boolean isMatched(StringRef key, SearchSettings searchSettings) {
+		return SearchImpl.isMatch(key, searchSettings);
 	}
 
-	public Flowable<CodeNode> search(final String searchStr, final boolean caseInsensitive, final boolean useRegex) {
+	public Flowable<CodeNode> search(final SearchSettings searchSettings) {
 		return Flowable.create(emitter -> {
-			LOG.debug("Code search started: {} ...", searchStr);
+			LOG.debug("Code search started: {} ...", searchSettings.getSearchString());
 			for (CodeNode node : values) {
-				if (isMatched(node.getLineStr(), searchStr, caseInsensitive, useRegex)) {
+				if (isMatched(node.getLineStr(), searchSettings)) {
 					emitter.onNext(node);
 				}
 				if (emitter.isCancelled()) {
-					LOG.debug("Code search canceled: {}", searchStr);
+					LOG.debug("Code search canceled: {}", searchSettings.getSearchString());
 					return;
 				}
 			}
-			LOG.debug("Code search complete: {}, memory usage: {}", searchStr, UiUtils.memoryInfo());
+			LOG.debug("Code search complete: {}, memory usage: {}", searchSettings.getSearchString(), UiUtils.memoryInfo());
 			emitter.onComplete();
 		}, BackpressureStrategy.LATEST);
 	}
