@@ -99,13 +99,38 @@ public class JavaConvertLoader {
 				}));
 	}
 
+	/**
+	 * Process a jar file by converting the contained class files and extract the embedded JAR files
+	 *
+	 * @param result
+	 * @param path
+	 * @throws Exception
+	 */
 	private static void convertJar(ConvertResult result, Path path) throws Exception {
+		// Convert the contained class files
+		convertSimpleJar(result, path);
+
+		// Process the embedded jar files
+		ZipSecurity.readZipEntries(path.toFile(), (entry, in) -> {
+			try {
+				if (entry.getName().endsWith(".jar")) {
+					Path tempJar = saveInputStreamToFile(in, ".jar");
+					result.addTempPath(tempJar);
+					convertSimpleJar(result, tempJar);
+				}
+			} catch (Exception e) {
+				LOG.error("Failed to process jar entry: {} in {}", entry, path, e);
+			}
+		});
+	}
+
+	private static void convertSimpleJar(ConvertResult result, Path toBeConvertedPath) throws Exception {
 		Path tempDirectory = Files.createTempDirectory("jadx-");
 		result.addTempPath(tempDirectory);
 
-		DxConverter.run(path, tempDirectory);
+		D8Converter.run(toBeConvertedPath, tempDirectory);
 
-		LOG.debug("Converted to dex: {}", path.toAbsolutePath());
+		LOG.debug("Converted to dex: {}", toBeConvertedPath.toAbsolutePath());
 		result.addConvertedFiles(collectFilesInDir(tempDirectory));
 	}
 
