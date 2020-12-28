@@ -82,6 +82,11 @@ public class SearchSettings {
 		this.searchString = searchString;
 	}
 	
+	/*
+	 * Runs Pattern.compile if using Regex.  If not using Regex return true
+	 * return false is invalid Regex
+	 *
+	 */
 	public boolean preCompile() {
 		try {
 			if (this.useRegex && this.ignoreCase) {

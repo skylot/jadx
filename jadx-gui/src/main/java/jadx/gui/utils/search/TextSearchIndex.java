@@ -103,7 +103,9 @@ public class TextSearchIndex {
 		searchSettings.setSearchString(text);
 		searchSettings.setIgnoreCase(options.contains(IGNORE_CASE));
 		searchSettings.setRegex(options.contains(USE_REGEX));
-		if(!searchSettings.preCompile()) return result;
+		if (!searchSettings.preCompile()) {
+			return result;
+		}
 			
 		if (options.contains(CLASS)) {
 			result = Flowable.concat(result, clsNamesIndex.search(searchSettings));
