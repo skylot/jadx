@@ -3,9 +3,6 @@ package jadx.gui.utils.search;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-
-import org.apache.commons.lang3.StringUtils;
-
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 
