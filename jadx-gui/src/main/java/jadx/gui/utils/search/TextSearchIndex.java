@@ -100,7 +100,7 @@ public class TextSearchIndex {
 		Flowable<JNode> result = Flowable.empty();
 
 		SearchSettings searchSettings = new SearchSettings(text, options.contains(IGNORE_CASE), options.contains(USE_REGEX));
-		if(!searchSettings.preCompile()) {
+		if (!searchSettings.preCompile()) {
 			return result;
 		}
 

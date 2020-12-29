@@ -7,7 +7,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class SearchSettings {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SearchSettings.class);
@@ -22,13 +21,12 @@ public class SearchSettings {
 
 	private int startPos = 0;
 
-	
-	public SearchSettings(String searchString,  boolean ignoreCase, boolean useRegex) {
+	public SearchSettings(String searchString, boolean ignoreCase, boolean useRegex) {
 		this.searchString = searchString;
 		this.useRegex = useRegex;
 		this.ignoreCase = ignoreCase;
 	}
-	
+
 	/*
 	 * Return whether Regex search should be done
 	 */
@@ -88,7 +86,7 @@ public class SearchSettings {
 		}
 		return true;
 	}
-	
+
 	/*
 	 * Checks if searchArea matches the searched string found in searchSettings
 	 */
