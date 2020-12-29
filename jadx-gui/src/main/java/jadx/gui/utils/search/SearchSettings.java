@@ -23,7 +23,7 @@ public class SearchSettings {
 	private int startPos = 0;
 
 	
-	public SearchSettings(String searchString, boolean useRegex, boolean ignoreCase) {
+	public SearchSettings(String searchString,  boolean ignoreCase, boolean useRegex) {
 		this.searchString = searchString;
 		this.useRegex = useRegex;
 		this.ignoreCase = ignoreCase;
