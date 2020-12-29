@@ -17,7 +17,7 @@ public class SearchImpl {
 	 * Checks if searchArea matches the searched string found in searchSettings
 	 */
 	public static boolean isMatch(String searchArea, final SearchSettings searchSettings) {
-		return find(searchArea, searchSettings) == -1 ? false : true;
+		return find(searchArea, searchSettings) != -1;
 	}
 
 	/*
