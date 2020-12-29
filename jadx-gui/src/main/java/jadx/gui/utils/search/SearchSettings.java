@@ -3,8 +3,10 @@ package jadx.gui.utils.search;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 public class SearchSettings {
 
@@ -90,15 +92,15 @@ public class SearchSettings {
 	/*
 	 * Checks if searchArea matches the searched string found in searchSettings
 	 */
-	public static boolean isMatch(StringRef searchArea, final SearchSettings searchSettings) {
-		return isMatch(searchArea.toString(), searchSettings);
+	public boolean isMatch(StringRef searchArea) {
+		return isMatch(searchArea.toString());
 	}
 
 	/*
 	 * Checks if searchArea matches the searched string found in searchSettings
 	 */
-	public static boolean isMatch(String searchArea, final SearchSettings searchSettings) {
-		return find(searchArea, searchSettings) != -1;
+	public boolean isMatch(String searchArea) {
+		return find(searchArea) != -1;
 	}
 
 	/*
@@ -106,8 +108,8 @@ public class SearchSettings {
 	 * identified.
 	 * returns -1 if a match is not found
 	 */
-	public static int find(StringRef searchArea, final SearchSettings searchSettings) {
-		return find(searchArea.toString(), searchSettings);
+	public int find(StringRef searchArea) {
+		return find(searchArea.toString());
 	}
 
 	/*
@@ -115,19 +117,19 @@ public class SearchSettings {
 	 * identified.
 	 * returns -1 if a match is not found
 	 */
-	public static int find(String searchArea, final SearchSettings searchSettings) {
+	public int find(String searchArea) {
 		int pos;
-		if (searchSettings.isUseRegex()) {
-			Matcher matcher = searchSettings.getPattern().matcher(searchArea);
-			if (matcher.find(searchSettings.getStartPos())) {
+		if (this.useRegex) {
+			Matcher matcher = this.regexPattern.matcher(searchArea);
+			if (matcher.find(this.startPos)) {
 				pos = matcher.start();
 			} else {
 				pos = -1;
 			}
-		} else if (searchSettings.isIgnoreCase()) {
-			pos = StringUtils.indexOfIgnoreCase(searchArea, searchSettings.getSearchString(), searchSettings.getStartPos());
+		} else if (this.ignoreCase) {
+			pos = StringUtils.indexOfIgnoreCase(searchArea, this.searchString, this.startPos);
 		} else {
-			pos = searchArea.indexOf(searchSettings.getSearchString(), searchSettings.getStartPos());
+			pos = searchArea.indexOf(this.searchString, this.startPos);
 		}
 		return pos;
 	}

@@ -100,6 +100,9 @@ public class TextSearchIndex {
 		Flowable<JNode> result = Flowable.empty();
 
 		SearchSettings searchSettings = new SearchSettings(text, options.contains(IGNORE_CASE), options.contains(USE_REGEX));
+		if(!searchSettings.preCompile()) {
+			return result;
+		}
 
 		if (options.contains(CLASS)) {
 			result = Flowable.concat(result, clsNamesIndex.search(searchSettings));
@@ -148,7 +151,7 @@ public class TextSearchIndex {
 
 	private int searchNext(FlowableEmitter<CodeNode> emitter, JavaNode javaClass, String code, final SearchSettings searchSettings) {
 		int pos;
-		pos = searchSettings.find(code, searchSettings);
+		pos = searchSettings.find(code);
 		if (pos == -1) {
 			return -1;
 		}

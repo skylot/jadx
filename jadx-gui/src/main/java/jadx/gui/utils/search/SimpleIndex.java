@@ -21,7 +21,7 @@ public class SimpleIndex {
 	}
 
 	private boolean isMatched(String str, SearchSettings searchSettings) {
-		return searchSettings.isMatch(str, searchSettings);
+		return searchSettings.isMatch(str);
 	}
 
 	public Flowable<JNode> search(final SearchSettings searchSettings) {
