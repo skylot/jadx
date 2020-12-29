@@ -28,7 +28,7 @@ public class CodeIndex {
 	}
 
 	private boolean isMatched(StringRef key, SearchSettings searchSettings) {
-		return SearchImpl.isMatch(key, searchSettings);
+		return searchSettings.isMatch(key, searchSettings);
 	}
 
 	public Flowable<CodeNode> search(final SearchSettings searchSettings) {

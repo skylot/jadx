@@ -1,5 +1,6 @@
 package jadx.gui.utils.search;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -9,16 +10,23 @@ public class SearchSettings {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SearchSettings.class);
 
-	private String searchString;
+	private final String searchString;
 
-	private boolean useRegex;
+	private final boolean useRegex;
 
-	private boolean ignoreCase;
+	private final boolean ignoreCase;
 
 	private Pattern regexPattern;
 
 	private int startPos = 0;
 
+	
+	public SearchSettings(String searchString, boolean useRegex, boolean ignoreCase) {
+		this.searchString = searchString;
+		this.useRegex = useRegex;
+		this.ignoreCase = ignoreCase;
+	}
+	
 	/*
 	 * Return whether Regex search should be done
 	 */
@@ -48,20 +56,6 @@ public class SearchSettings {
 	}
 
 	/*
-	 * Set whether Regex search should be done
-	 */
-	public void setRegex(boolean useRegex) {
-		this.useRegex = useRegex;
-	}
-
-	/*
-	 * Set whether case should be ignored
-	 */
-	public void setIgnoreCase(boolean ignoreCase) {
-		this.ignoreCase = ignoreCase;
-	}
-
-	/*
 	 * Set Starting Index
 	 */
 	public void setStartPos(int startPos) {
@@ -73,13 +67,6 @@ public class SearchSettings {
 	 */
 	public Pattern getPattern() {
 		return this.regexPattern;
-	}
-
-	/*
-	 * Set search string
-	 */
-	public void setSearchString(String searchString) {
-		this.searchString = searchString;
 	}
 
 	/*
@@ -98,6 +85,51 @@ public class SearchSettings {
 			return false;
 		}
 		return true;
+	}
+	
+	/*
+	 * Checks if searchArea matches the searched string found in searchSettings
+	 */
+	public static boolean isMatch(StringRef searchArea, final SearchSettings searchSettings) {
+		return isMatch(searchArea.toString(), searchSettings);
+	}
+
+	/*
+	 * Checks if searchArea matches the searched string found in searchSettings
+	 */
+	public static boolean isMatch(String searchArea, final SearchSettings searchSettings) {
+		return find(searchArea, searchSettings) != -1;
+	}
+
+	/*
+	 * Returns the position within searchArea that the searched string found in searchSettings was
+	 * identified.
+	 * returns -1 if a match is not found
+	 */
+	public static int find(StringRef searchArea, final SearchSettings searchSettings) {
+		return find(searchArea.toString(), searchSettings);
+	}
+
+	/*
+	 * Returns the position within searchArea that the searched string found in searchSettings was
+	 * identified.
+	 * returns -1 if a match is not found
+	 */
+	public static int find(String searchArea, final SearchSettings searchSettings) {
+		int pos;
+		if (searchSettings.isUseRegex()) {
+			Matcher matcher = searchSettings.getPattern().matcher(searchArea);
+			if (matcher.find(searchSettings.getStartPos())) {
+				pos = matcher.start();
+			} else {
+				pos = -1;
+			}
+		} else if (searchSettings.isIgnoreCase()) {
+			pos = StringUtils.indexOfIgnoreCase(searchArea, searchSettings.getSearchString(), searchSettings.getStartPos());
+		} else {
+			pos = searchArea.indexOf(searchSettings.getSearchString(), searchSettings.getStartPos());
+		}
+		return pos;
 	}
 
 }
