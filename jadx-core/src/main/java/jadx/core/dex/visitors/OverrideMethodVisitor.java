@@ -2,16 +2,18 @@ package jadx.core.dex.visitors;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.core.clsp.ClspClass;
 import jadx.core.clsp.ClspMethod;
@@ -39,9 +41,20 @@ import jadx.core.utils.exceptions.JadxException;
 		}
 )
 public class OverrideMethodVisitor extends AbstractVisitor {
+	private static final Logger LOG = LoggerFactory.getLogger(OverrideMethodVisitor.class);
 
 	@Override
-	public boolean visit(ClassNode cls) throws JadxException {
+	public void init(RootNode root) throws JadxException {
+		long startTime = System.currentTimeMillis();
+		for (ClassNode cls : root.getClasses()) {
+			processCls(cls);
+		}
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("OverrideMethod pass time: {}ms", System.currentTimeMillis() - startTime);
+		}
+	}
+
+	public boolean processCls(ClassNode cls) {
 		List<ArgType> superTypes = collectSuperTypes(cls);
 		if (!superTypes.isEmpty()) {
 			for (MethodNode mth : cls.getMethods()) {
@@ -111,7 +124,8 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 	}
 
 	@Nullable
-	private MethodOverrideAttr buildOverrideAttr(MethodNode mth, List<IMethodDetails> overrideList, @Nullable MethodOverrideAttr attr) {
+	private MethodOverrideAttr buildOverrideAttr(MethodNode mth, List<IMethodDetails> overrideList,
+			@Nullable MethodOverrideAttr attr) {
 		if (overrideList.isEmpty() && attr == null) {
 			return null;
 		}
@@ -129,21 +143,36 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 	private MethodOverrideAttr applyOverrideAttr(MethodNode mth, List<IMethodDetails> overrideList, boolean update) {
 		// don't rename method if override list contains not resolved method
 		boolean dontRename = overrideList.stream().anyMatch(m -> !(m instanceof MethodNode));
+		SortedSet<MethodNode> relatedMethods = null;
 		List<MethodNode> mthNodes = getMethodNodes(mth, overrideList);
 		if (update) {
 			// merge related methods from all override attributes
-			Set<MethodNode> relatedMthSet = new HashSet<>(mthNodes);
 			for (MethodNode mthNode : mthNodes) {
 				MethodOverrideAttr ovrdAttr = mthNode.get(AType.METHOD_OVERRIDE);
 				if (ovrdAttr != null) {
-					relatedMthSet.addAll(ovrdAttr.getRelatedMthNodes());
+					// use one of already allocated sets
+					relatedMethods = ovrdAttr.getRelatedMthNodes();
+					break;
 				}
 			}
-			if (relatedMthSet.size() != mthNodes.size()) {
-				mthNodes = new ArrayList<>(relatedMthSet);
-				Collections.sort(mthNodes);
+			if (relatedMethods != null) {
+				relatedMethods.addAll(mthNodes);
+			} else {
+				relatedMethods = new TreeSet<>(mthNodes);
 			}
+			for (MethodNode mthNode : mthNodes) {
+				MethodOverrideAttr ovrdAttr = mthNode.get(AType.METHOD_OVERRIDE);
+				if (ovrdAttr != null) {
+					SortedSet<MethodNode> set = ovrdAttr.getRelatedMthNodes();
+					if (relatedMethods != set) {
+						relatedMethods.addAll(set);
+					}
+				}
+			}
+		} else {
+			relatedMethods = new TreeSet<>(mthNodes);
 		}
+
 		int depth = 0;
 		for (MethodNode mthNode : mthNodes) {
 			if (dontRename) {
@@ -157,26 +186,25 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 			if (update) {
 				MethodOverrideAttr ovrdAttr = mthNode.get(AType.METHOD_OVERRIDE);
 				if (ovrdAttr != null) {
-					ovrdAttr.setRelatedMthNodes(mthNodes);
+					ovrdAttr.setRelatedMthNodes(relatedMethods);
 					continue;
 				}
 			}
-			mthNode.addAttr(new MethodOverrideAttr(Utils.listTail(overrideList, depth), mthNodes));
+			mthNode.addAttr(new MethodOverrideAttr(Utils.listTail(overrideList, depth), relatedMethods));
 			depth++;
 		}
-		return new MethodOverrideAttr(overrideList, mthNodes);
+		return new MethodOverrideAttr(overrideList, relatedMethods);
 	}
 
 	@NotNull
 	private List<MethodNode> getMethodNodes(MethodNode mth, List<IMethodDetails> overrideList) {
-		ArrayList<MethodNode> list = new ArrayList<>();
+		List<MethodNode> list = new ArrayList<>(1 + overrideList.size());
 		list.add(mth);
 		for (IMethodDetails md : overrideList) {
 			if (md instanceof MethodNode) {
 				list.add((MethodNode) md);
 			}
 		}
-		list.trimToSize();
 		return list;
 	}
 

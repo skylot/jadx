@@ -6,8 +6,6 @@ import org.slf4j.LoggerFactory;
 import jadx.api.plugins.input.data.ICodeReader;
 import jadx.api.plugins.input.insns.InsnData;
 import jadx.api.plugins.input.insns.Opcode;
-import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
@@ -66,12 +64,6 @@ public class UsageInfoVisitor extends AbstractVisitor {
 			processInstructions(mth, usageInfo);
 		} catch (Exception e) {
 			mth.addError("Dependency scan failed", e);
-		}
-		MethodOverrideAttr overrideAttr = mth.get(AType.METHOD_OVERRIDE);
-		if (overrideAttr != null) {
-			for (MethodNode relatedMthNode : overrideAttr.getRelatedMthNodes()) {
-				usageInfo.methodUse(relatedMthNode, mth);
-			}
 		}
 	}
 

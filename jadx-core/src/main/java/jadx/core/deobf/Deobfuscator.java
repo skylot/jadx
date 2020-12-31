@@ -211,15 +211,22 @@ public class Deobfuscator {
 	private void renameMethod(MethodNode mth) {
 		String alias = getMethodAlias(mth);
 		if (alias != null) {
-			mth.getMethodInfo().setAlias(alias);
-			resolveOverriding(mth, alias);
+			applyMethodAlias(mth, alias);
 		}
 	}
 
 	public void forceRenameMethod(MethodNode mth) {
 		String alias = makeMethodAlias(mth);
-		mth.getMethodInfo().setAlias(alias);
-		resolveOverriding(mth, alias);
+		applyMethodAlias(mth, alias);
+	}
+
+	private void applyMethodAlias(MethodNode mth, String alias) {
+		MethodInfo methodInfo = mth.getMethodInfo();
+		methodInfo.setAlias(alias);
+		String prev = mthMap.put(methodInfo, alias);
+		if (prev == null) {
+			resolveOverriding(mth, alias);
+		}
 	}
 
 	private void resolveOverriding(MethodNode mth, String alias) {
@@ -512,12 +519,7 @@ public class Deobfuscator {
 		if (alias != null) {
 			return alias;
 		}
-		String presetAlias = deobfPresets.getForMth(methodInfo);
-		if (presetAlias != null) {
-			mthMap.put(methodInfo, presetAlias);
-			return presetAlias;
-		}
-		return null;
+		return deobfPresets.getForMth(methodInfo);
 	}
 
 	public String makeFieldAlias(FieldNode field) {
@@ -533,9 +535,7 @@ public class Deobfuscator {
 		} else {
 			prefix = "m";
 		}
-		String alias = String.format("%s%d%s", prefix, mthIndex++, prepareNamePart(mth.getName()));
-		mthMap.put(mth.getMethodInfo(), alias);
-		return alias;
+		return String.format("%s%d%s", prefix, mthIndex++, prepareNamePart(mth.getName()));
 	}
 
 	private void processPackageFull(PackageNode pkg, String fullName) {

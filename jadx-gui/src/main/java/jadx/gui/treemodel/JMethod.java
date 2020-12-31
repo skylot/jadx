@@ -37,6 +37,10 @@ public class JMethod extends JNode {
 		return mth;
 	}
 
+	public JavaMethod getJavaMethod() {
+		return mth;
+	}
+
 	@Override
 	public JClass getJParent() {
 		return jParent;

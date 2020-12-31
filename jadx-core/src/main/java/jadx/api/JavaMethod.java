@@ -3,6 +3,8 @@ package jadx.api;
 import java.util.Collections;
 import java.util.List;
 
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.MethodNode;
@@ -59,6 +61,15 @@ public final class JavaMethod implements JavaNode {
 	@Override
 	public List<JavaNode> getUseIn() {
 		return getDeclaringClass().getRootDecompiler().convertNodes(mth.getUseIn());
+	}
+
+	public List<JavaNode> getOverrideRelatedMethods() {
+		MethodOverrideAttr ovrdAttr = mth.get(AType.METHOD_OVERRIDE);
+		if (ovrdAttr == null) {
+			return Collections.emptyList();
+		}
+		JadxDecompiler decompiler = getDeclaringClass().getRootDecompiler();
+		return decompiler.convertNodes(ovrdAttr.getRelatedMthNodes());
 	}
 
 	public boolean isConstructor() {

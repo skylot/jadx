@@ -188,6 +188,9 @@ public class RenameDialog extends JDialog {
 		if (javaNode != null) {
 			toUpdate.add(javaNode);
 			toUpdate.addAll(javaNode.getUseIn());
+			if (node instanceof JMethod) {
+				toUpdate.addAll(((JMethod) node).getJavaMethod().getOverrideRelatedMethods());
+			}
 		} else if (node instanceof JPackage) {
 			processPackage(toUpdate);
 		} else {

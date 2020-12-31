@@ -1,6 +1,7 @@
 package jadx.core.dex.attributes.nodes;
 
 import java.util.List;
+import java.util.SortedSet;
 
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttribute;
@@ -17,9 +18,9 @@ public class MethodOverrideAttr implements IAttribute {
 	/**
 	 * All method nodes from override hierarchy. Current method included.
 	 */
-	private List<MethodNode> relatedMthNodes;
+	private SortedSet<MethodNode> relatedMthNodes;
 
-	public MethodOverrideAttr(List<IMethodDetails> overrideList, List<MethodNode> relatedMthNodes) {
+	public MethodOverrideAttr(List<IMethodDetails> overrideList, SortedSet<MethodNode> relatedMthNodes) {
 		this.overrideList = overrideList;
 		this.relatedMthNodes = relatedMthNodes;
 	}
@@ -36,11 +37,11 @@ public class MethodOverrideAttr implements IAttribute {
 		this.overrideList = overrideList;
 	}
 
-	public List<MethodNode> getRelatedMthNodes() {
+	public SortedSet<MethodNode> getRelatedMthNodes() {
 		return relatedMthNodes;
 	}
 
-	public void setRelatedMthNodes(List<MethodNode> relatedMthNodes) {
+	public void setRelatedMthNodes(SortedSet<MethodNode> relatedMthNodes) {
 		this.relatedMthNodes = relatedMthNodes;
 	}
 
