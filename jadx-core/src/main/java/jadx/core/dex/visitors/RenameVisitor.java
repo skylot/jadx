@@ -188,17 +188,20 @@ public class RenameVisitor extends AbstractVisitor {
 				mth.addAttr(new RenameReasonAttr(mth, notValid, notPrintable));
 			}
 		}
-		Set<String> names = new HashSet<>(methods.size());
-		for (MethodNode mth : methods) {
-			AccessInfo accessFlags = mth.getAccessFlags();
-			if (accessFlags.isBridge() || accessFlags.isSynthetic()
-					|| mth.contains(AFlag.DONT_GENERATE) /* this flag not set yet */) {
-				continue;
-			}
-			String signature = mth.getMethodInfo().makeSignature(true, false);
-			if (!names.add(signature)) {
-				deobfuscator.forceRenameMethod(mth);
-				mth.addAttr(new RenameReasonAttr("collision with other method in class"));
+		// Rename methods with same signature
+		if (args.isRenameValid()) {
+			Set<String> names = new HashSet<>(methods.size());
+			for (MethodNode mth : methods) {
+				AccessInfo accessFlags = mth.getAccessFlags();
+				if (accessFlags.isBridge() || accessFlags.isSynthetic()
+						|| mth.contains(AFlag.DONT_GENERATE) /* this flag not set yet */) {
+					continue;
+				}
+				String signature = mth.getMethodInfo().makeSignature(true, false);
+				if (!names.add(signature)) {
+					deobfuscator.forceRenameMethod(mth);
+					mth.addAttr(new RenameReasonAttr("collision with other method in class"));
+				}
 			}
 		}
 	}

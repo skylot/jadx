@@ -313,7 +313,8 @@ public class Deobfuscator {
 		} else {
 			if (!clsMap.containsKey(classInfo)) {
 				String clsShortName = classInfo.getShortName();
-				boolean badName = shouldRename(clsShortName) || reservedClsNames.contains(clsShortName);
+				boolean badName = shouldRename(clsShortName)
+						|| (args.isRenameValid() && reservedClsNames.contains(clsShortName));
 				makeClsAlias(cls, badName);
 			}
 		}
