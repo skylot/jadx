@@ -128,7 +128,10 @@ public final class ResourcesLoader {
 			return;
 		}
 		if (FileUtils.isZipFile(file)) {
-			ZipSecurity.visitZipEntries(file, (zipFile, entry) -> addEntry(list, file, entry));
+			ZipSecurity.visitZipEntries(file, (zipFile, entry) -> {
+				addEntry(list, file, entry);
+				return null;
+			});
 		} else {
 			addResourceFile(list, file);
 		}

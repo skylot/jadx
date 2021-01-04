@@ -6,9 +6,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,14 +88,22 @@ public class ZipSecurity {
 		return new BufferedInputStream(limited);
 	}
 
-	public static void visitZipEntries(File file, BiConsumer<ZipFile, ZipEntry> visitor) {
+	/**
+	 * Visit valid entries in zip file.
+	 * Return not null value from visitor to stop iteration.
+	 */
+	@Nullable
+	public static <R> R visitZipEntries(File file, BiFunction<ZipFile, ZipEntry, R> visitor) {
 		try (ZipFile zip = new ZipFile(file)) {
 			Enumeration<? extends ZipEntry> entries = zip.entries();
 			int entriesProcessed = 0;
 			while (entries.hasMoreElements()) {
 				ZipEntry entry = entries.nextElement();
-				if (!entry.isDirectory() && isValidZipEntry(entry)) {
-					visitor.accept(zip, entry);
+				if (isValidZipEntry(entry)) {
+					R result = visitor.apply(zip, entry);
+					if (result != null) {
+						return result;
+					}
 					entriesProcessed++;
 					if (entriesProcessed > MAX_ENTRIES_COUNT) {
 						throw new IllegalStateException("Zip entries count limit exceeded: " + MAX_ENTRIES_COUNT
@@ -104,15 +114,19 @@ public class ZipSecurity {
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to process zip file: " + file.getAbsolutePath(), e);
 		}
+		return null;
 	}
 
 	public static void readZipEntries(File file, BiConsumer<ZipEntry, InputStream> visitor) {
 		visitZipEntries(file, (zip, entry) -> {
-			try (InputStream in = getInputStreamForEntry(zip, entry)) {
-				visitor.accept(entry, in);
-			} catch (Exception e) {
-				throw new RuntimeException("Error process zip entry: " + entry.getName());
+			if (!entry.isDirectory()) {
+				try (InputStream in = getInputStreamForEntry(zip, entry)) {
+					visitor.accept(entry, in);
+				} catch (Exception e) {
+					throw new RuntimeException("Error process zip entry: " + entry.getName());
+				}
 			}
+			return null;
 		});
 	}
 }
