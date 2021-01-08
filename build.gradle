@@ -1,7 +1,7 @@
 plugins {
-	id 'org.sonarqube' version '3.0'
-	id 'com.github.ben-manes.versions' version '0.33.0'
-	id "com.diffplug.spotless" version "5.5.1"
+	id 'org.sonarqube' version '3.1'
+	id 'com.github.ben-manes.versions' version '0.36.0'
+	id "com.diffplug.spotless" version "5.9.0"
 }
 
 ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
@@ -40,8 +40,8 @@ allprojects {
 
 		testImplementation 'ch.qos.logback:logback-classic:1.2.3'
 		testImplementation 'org.hamcrest:hamcrest-library:2.2'
-		testImplementation 'org.mockito:mockito-core:3.5.10'
-		testImplementation 'org.assertj:assertj-core:3.17.2'
+		testImplementation 'org.mockito:mockito-core:3.7.0'
+		testImplementation 'org.assertj:assertj-core:3.18.1'
 
 		testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
 		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
