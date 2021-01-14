@@ -9,6 +9,9 @@ public class Utils {
 		if (collection == null) {
 			return "null";
 		}
+		if (collection.isEmpty()) {
+			return "";
+		}
 		StringBuilder sb = new StringBuilder();
 		Iterator<T> it = collection.iterator();
 		if (it.hasNext()) {

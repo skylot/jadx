@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodInlineAttr;
-import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
@@ -49,11 +48,11 @@ public class InlineMethods extends AbstractVisitor {
 	}
 
 	private void processInvokeInsn(MethodNode mth, BlockNode block, InvokeNode insn) {
-		MethodInfo callMthInfo = insn.getCallMth();
-		MethodNode callMth = mth.root().deepResolveMethod(callMthInfo);
-		if (callMth == null) {
+		IMethodDetails callMthDetails = insn.get(AType.METHOD_DETAILS);
+		if (!(callMthDetails instanceof MethodNode)) {
 			return;
 		}
+		MethodNode callMth = (MethodNode) callMthDetails;
 		try {
 			// TODO: sort inner classes process order by dependencies!
 			MethodInlineAttr mia = MarkMethodsForInline.process(callMth);
@@ -67,7 +66,7 @@ public class InlineMethods extends AbstractVisitor {
 			}
 			inlineMethod(mth, callMth, mia, block, insn);
 		} catch (Exception e) {
-			throw new JadxRuntimeException("Failed to process method for inline: " + callMthInfo, e);
+			throw new JadxRuntimeException("Failed to process method for inline: " + callMth, e);
 		}
 	}
 

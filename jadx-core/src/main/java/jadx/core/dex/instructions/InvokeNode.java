@@ -8,18 +8,22 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.nodes.InsnNode;
 
-public final class InvokeNode extends BaseInvokeNode {
+public class InvokeNode extends BaseInvokeNode {
 
 	private final InvokeType type;
 	private final MethodInfo mth;
 
-	public InvokeNode(MethodInfo mth, InsnData insn, InvokeType type, boolean isRange) {
-		super(InsnType.INVOKE, mth.getArgsCount() + (type == InvokeType.STATIC ? 0 : 1));
+	public InvokeNode(MethodInfo mthInfo, InsnData insn, InvokeType invokeType, boolean isRange) {
+		this(mthInfo, insn, invokeType, invokeType != InvokeType.STATIC, isRange);
+	}
+
+	public InvokeNode(MethodInfo mth, InsnData insn, InvokeType type, boolean instanceCall, boolean isRange) {
+		super(InsnType.INVOKE, mth.getArgsCount() + (instanceCall ? 1 : 0));
 		this.mth = mth;
 		this.type = type;
 
 		int k = isRange ? insn.getReg(0) : 0;
-		if (type != InvokeType.STATIC) {
+		if (instanceCall) {
 			int r = isRange ? k : insn.getReg(k);
 			addReg(r, mth.getDeclClass().getType());
 			k++;

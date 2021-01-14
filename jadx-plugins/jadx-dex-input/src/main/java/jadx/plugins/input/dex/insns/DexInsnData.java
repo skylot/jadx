@@ -2,6 +2,7 @@ package jadx.plugins.input.dex.insns;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.plugins.input.data.ICallSite;
 import jadx.api.plugins.input.data.IFieldData;
 import jadx.api.plugins.input.data.IMethodRef;
 import jadx.api.plugins.input.insns.InsnData;
@@ -14,6 +15,7 @@ import jadx.plugins.input.dex.sections.SectionReader;
 public class DexInsnData implements InsnData {
 	private final DexCodeReader codeData;
 	private final SectionReader externalReader;
+	private final SectionReader secondExtReader;
 
 	private DexInsnInfo insnInfo;
 	private boolean decoded;
@@ -32,6 +34,7 @@ public class DexInsnData implements InsnData {
 	public DexInsnData(DexCodeReader codeData, SectionReader externalReader) {
 		this.codeData = codeData;
 		this.externalReader = externalReader;
+		this.secondExtReader = externalReader.copy();
 	}
 
 	@Override
@@ -108,6 +111,11 @@ public class DexInsnData implements InsnData {
 	@Override
 	public IMethodRef getIndexAsMethod() {
 		return externalReader.getMethodRef(index);
+	}
+
+	@Override
+	public ICallSite getIndexAsCallSite() {
+		return externalReader.getCallSite(index, secondExtReader);
 	}
 
 	@Nullable

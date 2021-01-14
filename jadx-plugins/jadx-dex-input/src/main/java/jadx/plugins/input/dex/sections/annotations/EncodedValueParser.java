@@ -17,6 +17,8 @@ public class EncodedValueParser {
 	private static final int ENCODED_LONG = 0x06;
 	private static final int ENCODED_FLOAT = 0x10;
 	private static final int ENCODED_DOUBLE = 0x11;
+	private static final int ENCODED_METHOD_TYPE = 0x15;
+	private static final int ENCODED_METHOD_HANDLE = 0x16;
 	private static final int ENCODED_STRING = 0x17;
 	private static final int ENCODED_TYPE = 0x18;
 	private static final int ENCODED_FIELD = 0x19;
@@ -62,27 +64,37 @@ public class EncodedValueParser {
 			case ENCODED_TYPE:
 				return new EncodedValue(EncodedType.ENCODED_TYPE, ext.getType(parseUnsignedInt(in, size)));
 
-			case ENCODED_METHOD:
-				return new EncodedValue(EncodedType.ENCODED_METHOD, ext.getMethodRef(parseUnsignedInt(in, size)));
-
 			case ENCODED_FIELD:
 			case ENCODED_ENUM:
 				return new EncodedValue(EncodedType.ENCODED_FIELD, ext.getFieldData(parseUnsignedInt(in, size)));
 
 			case ENCODED_ARRAY:
-				int count = in.readUleb128();
-				List<EncodedValue> values = new ArrayList<>(count);
-				for (int i = 0; i < count; i++) {
-					values.add(parseValue(in, ext));
-				}
-				return new EncodedValue(EncodedType.ENCODED_ARRAY, values);
+				return new EncodedValue(EncodedType.ENCODED_ARRAY, parseEncodedArray(in, ext));
 
 			case ENCODED_ANNOTATION:
 				return new EncodedValue(EncodedType.ENCODED_ANNOTATION, AnnotationsParser.readAnnotation(in, ext, false));
 
+			case ENCODED_METHOD:
+				return new EncodedValue(EncodedType.ENCODED_METHOD, ext.getMethodRef(parseUnsignedInt(in, size)));
+
+			case ENCODED_METHOD_TYPE:
+				return new EncodedValue(EncodedType.ENCODED_METHOD_TYPE, ext.getMethodProto(parseUnsignedInt(in, size)));
+
+			case ENCODED_METHOD_HANDLE:
+				return new EncodedValue(EncodedType.ENCODED_METHOD_HANDLE, ext.getMethodHandle(parseUnsignedInt(in, size)));
+
 			default:
 				throw new DexException("Unknown encoded value type: 0x" + Integer.toHexString(type));
 		}
+	}
+
+	public static List<EncodedValue> parseEncodedArray(SectionReader in, SectionReader ext) {
+		int count = in.readUleb128();
+		List<EncodedValue> values = new ArrayList<>(count);
+		for (int i = 0; i < count; i++) {
+			values.add(parseValue(in, ext));
+		}
+		return values;
 	}
 
 	private static int parseUnsignedInt(SectionReader in, int byteCount) {

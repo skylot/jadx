@@ -139,7 +139,7 @@ public class ClassModifier extends AbstractVisitor {
 	}
 
 	private static void removeSyntheticMethods(MethodNode mth) {
-		if (mth.isNoCode()) {
+		if (mth.isNoCode() || mth.contains(AFlag.DONT_GENERATE)) {
 			return;
 		}
 		AccessInfo af = mth.getAccessFlags();

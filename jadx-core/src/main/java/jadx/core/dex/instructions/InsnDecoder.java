@@ -418,6 +418,8 @@ public class InsnDecoder {
 				return invoke(insn, InvokeType.SUPER, false);
 			case INVOKE_VIRTUAL:
 				return invoke(insn, InvokeType.VIRTUAL, false);
+			case INVOKE_CUSTOM:
+				return invoke(insn, InvokeType.CUSTOM, false);
 
 			case INVOKE_DIRECT_RANGE:
 				return invoke(insn, InvokeType.DIRECT, true);
@@ -427,6 +429,8 @@ public class InsnDecoder {
 				return invoke(insn, InvokeType.SUPER, true);
 			case INVOKE_VIRTUAL_RANGE:
 				return invoke(insn, InvokeType.VIRTUAL, true);
+			case INVOKE_CUSTOM_RANGE:
+				return invoke(insn, InvokeType.CUSTOM, true);
 
 			case NEW_INSTANCE:
 				ArgType clsType = ArgType.parse(insn.getIndexAsType());
@@ -524,6 +528,9 @@ public class InsnDecoder {
 	}
 
 	private InsnNode invoke(InsnData insn, InvokeType type, boolean isRange) {
+		if (type == InvokeType.CUSTOM) {
+			return InvokeCustomBuilder.build(method, insn, isRange);
+		}
 		MethodInfo mthInfo = MethodInfo.fromRef(root, insn.getIndexAsMethod());
 		return new InvokeNode(mthInfo, insn, type, isRange);
 	}

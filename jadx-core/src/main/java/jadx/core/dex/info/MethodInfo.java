@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.plugins.input.data.IMethodProto;
 import jadx.api.plugins.input.data.IMethodRef;
 import jadx.core.codegen.TypeGen;
 import jadx.core.dex.instructions.args.ArgType;
@@ -50,6 +51,12 @@ public final class MethodInfo implements Comparable<MethodInfo> {
 	public static MethodInfo fromDetails(RootNode root, ClassInfo declClass, String name, List<ArgType> args, ArgType retType) {
 		MethodInfo newMth = new MethodInfo(declClass, name, args, retType);
 		return root.getInfoStorage().putMethod(newMth);
+	}
+
+	public static MethodInfo fromMethodProto(RootNode root, ClassInfo declClass, String name, IMethodProto proto) {
+		List<ArgType> args = Utils.collectionMap(proto.getArgTypes(), ArgType::parse);
+		ArgType returnType = ArgType.parse(proto.getReturnType());
+		return fromDetails(root, declClass, name, args, returnType);
 	}
 
 	public String makeSignature(boolean includeRetType) {

@@ -30,6 +30,7 @@ import jadx.core.dex.instructions.GotoNode;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.InvokeCustomNode;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.InvokeType;
 import jadx.core.dex.instructions.NewArrayNode;
@@ -700,11 +701,15 @@ public class InsnGen {
 	}
 
 	private void makeInvoke(InvokeNode insn, CodeWriter code) throws CodegenException {
+		InvokeType type = insn.getInvokeType();
+		if (type == InvokeType.CUSTOM) {
+			makeInvokeLambda(code, (InvokeCustomNode) insn);
+			return;
+		}
 		MethodInfo callMth = insn.getCallMth();
 		MethodNode callMthNode = mth.root().deepResolveMethod(callMth);
 
 		int k = 0;
-		InvokeType type = insn.getInvokeType();
 		switch (type) {
 			case DIRECT:
 			case VIRTUAL:
@@ -744,6 +749,91 @@ public class InsnGen {
 			code.add(callMth.getAlias());
 		}
 		generateMethodArguments(code, insn, k, callMthNode);
+	}
+
+	private void makeInvokeLambda(CodeWriter code, InvokeCustomNode customNode) throws CodegenException {
+		if (fallback || !customNode.isInlineInsn()) {
+			makeSimpleLambda(code, customNode);
+			return;
+		}
+		MethodNode callMth = (MethodNode) customNode.getCallInsn().get(AType.METHOD_DETAILS);
+		makeInlinedLambdaMethod(code, customNode, callMth);
+	}
+
+	private void makeSimpleLambda(CodeWriter code, InvokeCustomNode customNode) {
+		try {
+			InsnNode callInsn = customNode.getCallInsn();
+			MethodInfo implMthInfo = customNode.getImplMthInfo();
+			int implArgsCount = implMthInfo.getArgsCount();
+			if (implArgsCount == 0) {
+				code.add("()");
+			} else {
+				code.add('(');
+				// rename lambda args
+				int callArgsCount = callInsn.getArgsCount();
+				int startArg = callArgsCount - implArgsCount;
+				if (startArg < 0) {
+					System.out.println();
+				}
+				for (int i = startArg; i < callArgsCount; i++) {
+					if (i != startArg) {
+						code.add(", ");
+					}
+					addArg(code, callInsn.getArg(i));
+				}
+				code.add(')');
+			}
+			code.add(" -> {");
+			if (fallback) {
+				code.add(" // ").add(implMthInfo.toString());
+			}
+			code.incIndent();
+			code.startLine();
+			if (!implMthInfo.getReturnType().isVoid()) {
+				code.add("return ");
+			}
+			makeInsn(callInsn, code, Flags.INLINE);
+			code.add(";");
+
+			code.decIndent();
+			code.startLine('}');
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Failed to generate 'invoke-custom' instruction: " + e.getMessage(), e);
+		}
+	}
+
+	private void makeInlinedLambdaMethod(CodeWriter code, InvokeCustomNode customNode, MethodNode callMth) throws CodegenException {
+		MethodGen callMthGen = new MethodGen(mgen.getClassGen(), callMth);
+		NameGen nameGen = callMthGen.getNameGen();
+		nameGen.inheritUsedNames(this.mgen.getNameGen());
+
+		List<ArgType> implArgs = customNode.getImplMthInfo().getArgumentsTypes();
+		List<RegisterArg> callArgs = callMth.getArgRegs();
+		if (implArgs.isEmpty()) {
+			code.add("()");
+		} else {
+			int callArgsCount = callArgs.size();
+			int startArg = callArgsCount - implArgs.size();
+			for (int i = startArg; i < callArgsCount; i++) {
+				if (i != startArg) {
+					code.add(", ");
+				}
+				CodeVar argCodeVar = callArgs.get(i).getSVar().getCodeVar();
+				code.add(nameGen.assignArg(argCodeVar));
+			}
+		}
+		// force set external arg names into call method args
+		int extArgsCount = customNode.getArgsCount();
+		for (int i = 0; i < extArgsCount; i++) {
+			RegisterArg extArg = (RegisterArg) customNode.getArg(i);
+			callArgs.get(i).setName(extArg.getName());
+		}
+		code.add(" -> {");
+		code.incIndent();
+		callMthGen.addInstructions(code);
+
+		code.decIndent();
+		code.startLine('}');
 	}
 
 	@Nullable

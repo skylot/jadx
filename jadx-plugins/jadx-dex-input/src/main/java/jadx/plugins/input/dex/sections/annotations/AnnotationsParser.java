@@ -168,4 +168,8 @@ public class AnnotationsParser {
 	public EncodedValue parseEncodedValue(SectionReader in) {
 		return EncodedValueParser.parseValue(in, ext);
 	}
+
+	public List<EncodedValue> parseEncodedArray(SectionReader in) {
+		return EncodedValueParser.parseEncodedArray(in, ext);
+	}
 }

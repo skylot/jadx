@@ -9,8 +9,14 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.plugins.input.data.ICallSite;
 import jadx.api.plugins.input.data.IFieldData;
+import jadx.api.plugins.input.data.IMethodHandle;
+import jadx.api.plugins.input.data.MethodHandleType;
+import jadx.api.plugins.input.data.impl.FieldRefHandle;
+import jadx.api.plugins.input.data.impl.MethodRefHandle;
 import jadx.plugins.input.dex.DexReader;
+import jadx.plugins.input.dex.sections.annotations.EncodedValueParser;
 import jadx.plugins.input.dex.utils.Leb128;
 import jadx.plugins.input.dex.utils.MUtf8;
 
@@ -119,6 +125,13 @@ public class SectionReader {
 		return new String(readByteArray(len), StandardCharsets.US_ASCII);
 	}
 
+	private List<String> readTypeListAt(int paramsOff) {
+		if (paramsOff == 0) {
+			return Collections.emptyList();
+		}
+		return absPos(paramsOff).readTypeList();
+	}
+
 	public List<String> readTypeList() {
 		int size = readInt();
 		if (size == 0) {
@@ -180,6 +193,50 @@ public class SectionReader {
 		return methodRef;
 	}
 
+	public ICallSite getCallSite(int idx, SectionReader ext) {
+		int callSiteOff = dexReader.getHeader().getCallSiteOff();
+		absPos(callSiteOff + idx * 4);
+		absPos(readInt());
+		return new DexCallSite(EncodedValueParser.parseEncodedArray(this, ext));
+	}
+
+	public IMethodHandle getMethodHandle(int idx) {
+		int methodHandleOff = dexReader.getHeader().getMethodHandleOff();
+		absPos(methodHandleOff + idx * 8);
+		MethodHandleType handleType = getMethodHandleType(readUShort());
+		skip(2);
+		int refId = readUShort();
+		if (handleType.isField()) {
+			return new FieldRefHandle(handleType, getFieldData(refId));
+		}
+		return new MethodRefHandle(handleType, getMethodRef(refId));
+	}
+
+	private MethodHandleType getMethodHandleType(int type) {
+		switch (type) {
+			case 0x00:
+				return MethodHandleType.STATIC_PUT;
+			case 0x01:
+				return MethodHandleType.STATIC_GET;
+			case 0x02:
+				return MethodHandleType.INSTANCE_PUT;
+			case 0x03:
+				return MethodHandleType.INSTANCE_GET;
+			case 0x04:
+				return MethodHandleType.INVOKE_STATIC;
+			case 0x05:
+				return MethodHandleType.INVOKE_INSTANCE;
+			case 0x06:
+				return MethodHandleType.INVOKE_CONSTRUCTOR;
+			case 0x07:
+				return MethodHandleType.INVOKE_DIRECT;
+			case 0x08:
+				return MethodHandleType.INVOKE_INTERFACE;
+			default:
+				throw new IllegalArgumentException("Unknown method handle type: 0x" + Integer.toHexString(type));
+		}
+	}
+
 	public void initMethodRef(int idx, DexMethodRef methodRef) {
 		methodRef.initUniqId(dexReader, idx);
 		methodRef.setDexIdx(idx);
@@ -200,16 +257,20 @@ public class SectionReader {
 		int returnTypeIdx = readInt();
 		int paramsOff = readInt();
 
-		List<String> argTypes;
-		if (paramsOff == 0) {
-			argTypes = Collections.emptyList();
-		} else {
-			argTypes = absPos(paramsOff).readTypeList();
-		}
+		List<String> argTypes = readTypeListAt(paramsOff);
 		methodRef.setParentClassType(getType(classTypeIdx));
 		methodRef.setName(getString(nameIdx));
 		methodRef.setReturnType(getType(returnTypeIdx));
 		methodRef.setArgTypes(argTypes);
+	}
+
+	public DexMethodProto getMethodProto(int idx) {
+		int protoIdsOff = dexReader.getHeader().getProtoIdsOff();
+		absPos(protoIdsOff + idx * 12);
+		skip(4); // shortyIdx
+		int returnTypeIdx = readInt();
+		int paramsOff = readInt();
+		return new DexMethodProto(readTypeListAt(paramsOff), getType(returnTypeIdx));
 	}
 
 	public List<String> getMethodParamTypes(int idx) {

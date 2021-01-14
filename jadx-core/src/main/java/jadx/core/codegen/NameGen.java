@@ -59,6 +59,10 @@ public class NameGen {
 		addNamesUsedInClass();
 	}
 
+	public void inheritUsedNames(NameGen otherNameGen) {
+		varNames.addAll(otherNameGen.varNames);
+	}
+
 	private void addNamesUsedInClass() {
 		ClassNode parentClass = mth.getParentClass();
 		for (FieldNode field : parentClass.getFields()) {

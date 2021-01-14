@@ -16,6 +16,9 @@ public class DexHeader {
 	private final int methodIdsOff;
 	private final int methodIdsSize;
 
+	private int callSiteOff;
+	private int methodHandleOff;
+
 	public DexHeader(SectionReader buf) {
 		byte[] magic = buf.readByteArray(4);
 		version = buf.readString(3);
@@ -45,6 +48,28 @@ public class DexHeader {
 		classDefsOff = buf.readInt();
 		int dataSize = buf.readInt();
 		int dataOff = buf.readInt();
+
+		readMapList(buf, mapListOff);
+	}
+
+	private void readMapList(SectionReader buf, int mapListOff) {
+		buf.absPos(mapListOff);
+		int size = buf.readInt();
+		for (int i = 0; i < size; i++) {
+			int type = buf.readUShort();
+			buf.skip(6);
+			int offset = buf.readInt();
+
+			switch (type) {
+				case 0x0007:
+					callSiteOff = offset;
+					break;
+
+				case 0x0008:
+					methodHandleOff = offset;
+					break;
+			}
+		}
 	}
 
 	public String getVersion() {
@@ -93,5 +118,13 @@ public class DexHeader {
 
 	public int getMethodIdsSize() {
 		return methodIdsSize;
+	}
+
+	public int getCallSiteOff() {
+		return callSiteOff;
+	}
+
+	public int getMethodHandleOff() {
+		return methodHandleOff;
 	}
 }

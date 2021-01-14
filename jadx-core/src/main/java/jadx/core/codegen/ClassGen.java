@@ -254,7 +254,7 @@ public class ClassGen {
 	private void addInnerClsAndMethods(CodeWriter clsCode) {
 		Stream.of(cls.getInnerClasses(), cls.getMethods())
 				.flatMap(Collection::stream)
-				.filter(node -> !node.contains(AFlag.DONT_GENERATE))
+				.filter(node -> !node.contains(AFlag.DONT_GENERATE) || fallback)
 				.sorted(Comparator.comparingInt(LineAttrNode::getSourceLine))
 				.forEach(node -> {
 					if (node instanceof ClassNode) {

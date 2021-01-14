@@ -815,6 +815,10 @@ public abstract class ArgType {
 		return false;
 	}
 
+	public boolean isVoid() {
+		return isPrimitive() && getPrimitiveType() == PrimitiveType.VOID;
+	}
+
 	/**
 	 * Recursively visit all subtypes of this type.
 	 * To exit return non-null value.

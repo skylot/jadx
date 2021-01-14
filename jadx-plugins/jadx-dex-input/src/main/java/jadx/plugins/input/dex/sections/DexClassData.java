@@ -1,6 +1,5 @@
 package jadx.plugins.input.dex.sections;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -175,12 +174,7 @@ public class DexClassData implements IClassData {
 			return Collections.emptyList();
 		}
 		in.absPos(staticValuesOff);
-		int count = in.readUleb128();
-		List<EncodedValue> list = new ArrayList<>(count);
-		for (int i = 0; i < count; i++) {
-			list.add(annotationsParser.parseEncodedValue(in));
-		}
-		return list;
+		return annotationsParser.parseEncodedArray(in);
 	}
 
 	@Override
