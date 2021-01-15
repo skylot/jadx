@@ -336,6 +336,10 @@ public abstract class DexInsnFormat {
 					data = array;
 					break;
 				}
+				case 0: {
+					data = new byte[0];
+					break;
+				}
 				default:
 					throw new DexException("Unexpected element size in FILL_ARRAY_DATA_PAYLOAD: " + elemSize);
 			}

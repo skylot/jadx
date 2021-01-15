@@ -39,6 +39,7 @@ public final class FillArrayData extends InsnNode {
 	private static ArgType getElementType(int elementWidthUnit) {
 		switch (elementWidthUnit) {
 			case 1:
+			case 0:
 				return ONE_BYTE_TYPE;
 			case 2:
 				return TWO_BYTES_TYPE;
