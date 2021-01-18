@@ -36,13 +36,11 @@ public abstract class JNodeMenuAction<T> extends AbstractAction implements Popup
 
 	@Nullable
 	private T getNode() {
-		Point pos = codeArea.getMousePosition();
-		if (pos != null) {
-			Token token = codeArea.viewToToken(pos);
-			int offset = codeArea.adjustOffsetForToken(token);
-			return getNodeByOffset(offset);
-		}
-		return null;
+		Point pos = MouseInfo.getPointerInfo().getLocation();
+		SwingUtilities.convertPointFromScreen(pos, codeArea);
+		Token token = codeArea.viewToToken(pos);
+		int offset = codeArea.adjustOffsetForToken(token);
+		return getNodeByOffset(offset);
 	}
 
 	@Override
