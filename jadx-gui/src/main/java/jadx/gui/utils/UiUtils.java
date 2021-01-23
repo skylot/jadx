@@ -1,21 +1,16 @@
 package jadx.gui.utils;
 
-import java.awt.Image;
-import java.awt.Toolkit;
-import java.awt.Window;
+import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.Action;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 
 import org.intellij.lang.annotations.MagicConstant;
 import org.slf4j.Logger;
@@ -205,5 +200,14 @@ public class UiUtils {
 	@MagicConstant(flagsFromClass = InputEvent.class)
 	public static int ctrlButton() {
 		return CTRL_BNT_KEY;
+	}
+
+	public static void showMessageBox(Component parent, String msg) {
+		JOptionPane.showMessageDialog(parent, msg);
+	}
+
+	public static void addEscapeShortCutToDispose(JDialog dialog) {
+		KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+		dialog.getRootPane().registerKeyboardAction(e -> dialog.dispose(), stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
 	}
 }

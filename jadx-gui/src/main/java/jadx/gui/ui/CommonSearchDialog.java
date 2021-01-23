@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.*;
@@ -19,6 +20,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
+import org.fife.ui.rsyntaxtextarea.DocumentRange;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.SearchContext;
@@ -36,6 +38,7 @@ import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.search.TextSearchIndex;
 
 public abstract class CommonSearchDialog extends JDialog {
@@ -108,8 +111,9 @@ public abstract class CommonSearchDialog extends JDialog {
 		if (selectedId == -1) {
 			return;
 		}
+		int pos = Math.max(0, resultsModel.renderer.getFirstMarkOfCode(selectedId));
 		JNode node = (JNode) resultsModel.getValueAt(selectedId, 0);
-		tabbedPane.codeJump(new JumpPosition(node.getRootClass(), node.getLine()));
+		tabbedPane.codeJump(new JumpPosition(node.getRootClass(), node.getLine(), pos));
 
 		dispose();
 	}
@@ -121,8 +125,7 @@ public abstract class CommonSearchDialog extends JDialog {
 	}
 
 	protected void initCommon() {
-		KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
-		getRootPane().registerKeyboardAction(e -> dispose(), stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
+		UiUtils.addEscapeShortCutToDispose(this);
 	}
 
 	@NotNull
@@ -410,10 +413,23 @@ public abstract class CommonSearchDialog extends JDialog {
 			this.codeBackground = area.getBackground();
 		}
 
+		public int getFirstMarkOfCode(int row) {
+			Component comp = componentCache.get(makeID(row, 1));
+			if (comp instanceof RSyntaxTextArea) {
+				List<DocumentRange> ranges = ((RSyntaxTextArea) comp).getMarkAllHighlightRanges();
+				if (ranges.size() > 0) {
+					// minus 2 cuz the start of textArea of the column is added 2
+					// spaces in makeCell method.
+					return ranges.get(0).getStartOffset() - 2;
+				}
+			}
+			return 0;
+		}
+
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object obj, boolean isSelected,
 				boolean hasFocus, int row, int column) {
-			int id = row << 2 | column;
+			int id = makeID(row, column);
 			Component comp = componentCache.get(id);
 			if (comp == null) {
 				if (obj instanceof JNode) {
@@ -425,6 +441,10 @@ public abstract class CommonSearchDialog extends JDialog {
 			}
 			updateSelection(table, comp, isSelected);
 			return comp;
+		}
+
+		private int makeID(int row, int col) {
+			return row << 2 | col;
 		}
 
 		private void updateSelection(JTable table, Component comp, boolean isSelected) {

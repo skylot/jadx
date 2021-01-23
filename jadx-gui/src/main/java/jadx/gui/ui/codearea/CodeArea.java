@@ -1,8 +1,7 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.event.InputEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.*;
+import java.awt.event.*;
 
 import javax.swing.*;
 
@@ -50,17 +49,22 @@ public final class CodeArea extends AbstractCodeArea {
 			@SuppressWarnings("deprecation")
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if (e.isControlDown()) {
-					int offs = viewToModel(e.getPoint());
-					JumpPosition jump = codeLinkGenerator.getJumpLinkAtOffset(CodeArea.this, offs);
-					if (jump != null) {
-						contentPanel.getTabbedPane().codeJump(jump);
-					}
+				if (e.getClickCount() % 2 == 0 || e.isControlDown()) {
+					navToDecl(e.getPoint(), codeLinkGenerator);
 				}
 			}
 		});
+
 		if (isJavaCode) {
 			addMouseMotionListener(new MouseHoverHighlighter(this, codeLinkGenerator));
+		}
+	}
+
+	private void navToDecl(Point point, CodeLinkGenerator codeLinkGenerator) {
+		int offs = viewToModel(point);
+		JumpPosition jump = codeLinkGenerator.getJumpLinkAtOffset(CodeArea.this, offs);
+		if (jump != null) {
+			contentPanel.getTabbedPane().codeJump(jump);
 		}
 	}
 
@@ -147,6 +151,14 @@ public final class CodeArea extends AbstractCodeArea {
 	private JNode convertJavaNode(JavaNode javaNode) {
 		JNodeCache nodeCache = getMainWindow().getCacheObject().getNodeCache();
 		return nodeCache.makeFrom(javaNode);
+	}
+
+	public JNode getNodeUnderCaret() {
+		int start = getWordStart(getCaretPosition());
+		if (start == -1) {
+			start = getCaretPosition();
+		}
+		return getJNodeAtOffset(start);
 	}
 
 	@Nullable

@@ -49,10 +49,7 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JPackage;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
 import jadx.gui.ui.codearea.CodePanel;
-import jadx.gui.utils.CacheObject;
-import jadx.gui.utils.JNodeCache;
-import jadx.gui.utils.NLS;
-import jadx.gui.utils.TextStandardActions;
+import jadx.gui.utils.*;
 
 public class RenameDialog extends JDialog {
 	private static final long serialVersionUID = -3269715644416902410L;
@@ -319,6 +316,7 @@ public class RenameDialog extends JDialog {
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		setModalityType(ModalityType.APPLICATION_MODAL);
+		UiUtils.addEscapeShortCutToDispose(this);
 	}
 
 	@Override
