@@ -7,6 +7,8 @@ import jadx.core.deobf.NameMapper;
 
 public class StringUtils {
 	private static final StringUtils DEFAULT_INSTANCE = new StringUtils(new JadxArgs());
+	private static final String WHITES = " \t\r\n\f\b";
+	private static final String WORD_SEPARATORS = WHITES + "(\")<,>{}=+-*/|[]\\:;'.`~!#^&";
 
 	public static StringUtils getInstance() {
 		return DEFAULT_INSTANCE;
@@ -252,5 +254,14 @@ public class StringUtils {
 			idx += subStrLen;
 		}
 		return count;
+	}
+
+	public static boolean isWhite(char chr) {
+		return WHITES.indexOf(chr) != -1;
+	}
+
+	public static boolean isWordSeparator(char chr) {
+		return WORD_SEPARATORS.indexOf(chr) != -1;
+
 	}
 }

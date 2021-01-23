@@ -62,6 +62,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private Map<String, WindowLocation> windowPos = new HashMap<>();
 	private int mainWindowExtendedState = JFrame.NORMAL;
+	private boolean codeAreaLineWrap = false;
 	/**
 	 * UI setting: the width of the tree showing the classes, resources, ...
 	 */
@@ -389,6 +390,14 @@ public class JadxSettings extends JadxCLIArgs {
 	public void setMainWindowExtendedState(int mainWindowExtendedState) {
 		this.mainWindowExtendedState = mainWindowExtendedState;
 		partialSync(settings -> settings.mainWindowExtendedState = mainWindowExtendedState);
+	}
+
+	public void setCodeAreaLineWrap(boolean lineWrap) {
+		this.codeAreaLineWrap = lineWrap;
+	}
+
+	public boolean isCodeAreaLineWrap() {
+		return this.codeAreaLineWrap;
 	}
 
 	private void upgradeSettings(int fromVersion) {

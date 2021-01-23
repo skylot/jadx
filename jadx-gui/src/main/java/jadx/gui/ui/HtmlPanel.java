@@ -30,6 +30,10 @@ public final class HtmlPanel extends ContentPanel {
 		textArea.setFont(settings.getFont());
 	}
 
+	public JEditorPane getHtmlArea() {
+		return textArea;
+	}
+
 	private static final class JHtmlPane extends JEditorPane {
 		private static final long serialVersionUID = 6886040384052136157L;
 
