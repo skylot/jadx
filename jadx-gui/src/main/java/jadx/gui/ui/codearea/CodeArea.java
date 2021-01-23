@@ -46,7 +46,6 @@ public final class CodeArea extends AbstractCodeArea {
 		CodeLinkGenerator codeLinkGenerator = new CodeLinkGenerator(this);
 		setLinkGenerator(codeLinkGenerator);
 		addMouseListener(new MouseAdapter() {
-			@SuppressWarnings("deprecation")
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() % 2 == 0 || e.isControlDown()) {
@@ -60,6 +59,7 @@ public final class CodeArea extends AbstractCodeArea {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	private void navToDecl(Point point, CodeLinkGenerator codeLinkGenerator) {
 		int offs = viewToModel(point);
 		JumpPosition jump = codeLinkGenerator.getJumpLinkAtOffset(CodeArea.this, offs);
