@@ -14,7 +14,7 @@ import jadx.gui.ui.RenameDialog;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
-import static com.sun.glass.events.KeyEvent.VK_N;
+import static java.awt.event.KeyEvent.VK_N;
 import static javax.swing.KeyStroke.getKeyStroke;
 
 public final class RenameAction extends JNodeMenuAction<JNode> {
