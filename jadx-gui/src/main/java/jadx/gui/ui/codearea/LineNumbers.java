@@ -1,11 +1,22 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Map;
 
-import javax.swing.*;
+import javax.swing.JPanel;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
@@ -13,6 +24,7 @@ import javax.swing.border.MatteBorder;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.text.Element;
+import javax.swing.text.View;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
 import org.fife.ui.rsyntaxtextarea.Token;
@@ -108,8 +120,8 @@ public class LineNumbers extends JPanel implements CaretListener {
 		}
 		applyRenderHints(g);
 
-		Font font = codeArea.getFont();
-		font = font.deriveFont(font.getSize2D() - 1.0f);
+		Font baseFont = codeArea.getFont();
+		Font font = baseFont.deriveFont(baseFont.getSize2D() - 1.0f);
 		g.setFont(font);
 
 		Dimension size = getSize();
@@ -120,43 +132,90 @@ public class LineNumbers extends JPanel implements CaretListener {
 		Insets insets = getInsets();
 		int availableWidth = size.width - insets.right;
 
-		int cellHeight = codeArea.getLineHeight();
-		int ascent = codeArea.getMaxAscent();
-
 		textAreaInsets = codeArea.getInsets(textAreaInsets);
 		if (visibleRect.y < textAreaInsets.top) {
 			visibleRect.height -= (textAreaInsets.top - visibleRect.y);
 			visibleRect.y = textAreaInsets.top;
 		}
+		boolean lineWrap = codeArea.getLineWrap();
+		int cellHeight = codeArea.getLineHeight();
+		int ascent = codeArea.getMaxAscent();
+		int currentLine = codeArea.getCaretLineNumber();
 
-		int topLine = (visibleRect.y - textAreaInsets.top) / cellHeight;
-		int actualTopY = topLine * cellHeight + textAreaInsets.top;
-		int y = actualTopY + ascent;
+		int y;
+		int topLine;
+		int linesCount;
+		View parentView = null;
+		Rectangle editorRect = null;
+		if (lineWrap) {
+			Element root = codeArea.getDocument().getDefaultRootElement();
+			parentView = codeArea.getUI().getRootView(codeArea).getView(0);
+			int topPosition = codeArea.viewToModel(new Point(visibleRect.x, visibleRect.y));
+			topLine = root.getElementIndex(topPosition);
+			linesCount = root.getElementCount();
+			editorRect = getEditorBoundingRect();
+			Rectangle topLineBounds = getLineBounds(parentView, topLine, editorRect);
+			if (topLineBounds == null) {
+				return;
+			}
+			y = ascent + topLineBounds.y;
+		} else {
+			linesCount = codeArea.getLineCount();
+			topLine = (visibleRect.y - textAreaInsets.top) / cellHeight;
+			y = ascent + topLine * cellHeight + textAreaInsets.top;
+		}
 		int endY = visibleRect.y + visibleRect.height + ascent;
-
-		int currentLine = 1 + codeArea.getCaretLineNumber();
-		int lineNum = topLine + 1;
-		int linesCount = codeArea.getLineCount();
+		int lineNum = topLine;
 		boolean isCurLine = updateColor(g, false, true);
-		while (y < endY && lineNum <= linesCount) {
+		while (y < endY && lineNum < linesCount) {
 			try {
-				String lineStr = getTextLineNumber(lineNum);
+				String lineStr = getTextLineNumber(lineNum + 1);
 				if (lineStr != null) {
 					isCurLine = updateColor(g, lineNum == currentLine, isCurLine);
 					int x = availableWidth - fontMetrics.stringWidth(lineStr);
 					g.drawString(lineStr, x, y);
-				} else if (!useSourceLines) {
-					break;
+				}
+				if (lineWrap) {
+					Rectangle lineBounds = getLineBounds(parentView, lineNum, editorRect);
+					if (lineBounds == null) {
+						return;
+					}
+					y += lineBounds.height;
+				} else {
+					y += cellHeight;
 				}
 				lineNum++;
-				y += cellHeight;
 			} catch (Exception e) {
-				if (LOG.isDebugEnabled()) {
-					LOG.debug("Line numbers draw error", e);
-				}
+				LOG.debug("Line numbers draw error", e);
 				break;
 			}
 		}
+	}
+
+	private Rectangle getLineBounds(View parent, int line, Rectangle editorRect) {
+		Shape alloc = parent.getChildAllocation(line, editorRect);
+		if (alloc == null) {
+			return null;
+		}
+		if (alloc instanceof Rectangle) {
+			return (Rectangle) alloc;
+		}
+		return alloc.getBounds();
+	}
+
+	protected Rectangle getEditorBoundingRect() {
+		Rectangle bounds = codeArea.getBounds();
+		if (bounds.width <= 0 || bounds.height <= 0) {
+			return null;
+		}
+		bounds.x = 0;
+		bounds.y = 0;
+		Insets insets = codeArea.getInsets();
+		bounds.x += insets.left;
+		bounds.y += insets.top;
+		bounds.width -= insets.left + insets.right;
+		bounds.height -= insets.top + insets.bottom;
+		return bounds;
 	}
 
 	private boolean updateColor(Graphics g, boolean newCurLine, boolean oldCurLine) {

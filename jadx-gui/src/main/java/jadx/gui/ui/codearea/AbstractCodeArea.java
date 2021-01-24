@@ -62,7 +62,11 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 				settings.setCodeAreaLineWrap(wrap);
 				contentPanel.getTabbedPane().getOpenTabs().values().forEach(v -> {
 					if (v instanceof AbstractCodeContentPanel) {
-						((AbstractCodeContentPanel) v).getCodeArea().setLineWrap(wrap);
+						AbstractCodeArea codeArea = ((AbstractCodeContentPanel) v).getCodeArea();
+						codeArea.setLineWrap(wrap);
+						if (codeArea.isVisible()) {
+							codeArea.repaint();
+						}
 					}
 				});
 				settings.sync();
