@@ -81,6 +81,7 @@ import jadx.api.JadxArgs;
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
+import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.JadxWrapper;
@@ -100,6 +101,7 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JPackage;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.treemodel.JRoot;
+import jadx.gui.ui.codearea.AbstractCodeContentPanel;
 import jadx.gui.update.JadxUpdate;
 import jadx.gui.update.JadxUpdate.IUpdateCallback;
 import jadx.gui.update.data.Release;
@@ -228,7 +230,8 @@ public class MainWindow extends JFrame {
 				return;
 			}
 			JNode node = cacheObject.getNodeCache().makeFrom(javaNode);
-			tabbedPane.codeJump(new JumpPosition(node.getRootClass(), node.getLine()));
+			tabbedPane.codeJump(new JumpPosition(node.getRootClass(), node.getLine())
+					.setPrecise(JumpPosition.getDefPos(node)));
 		}
 	}
 
@@ -513,7 +516,8 @@ public class MainWindow extends JFrame {
 				continue;
 			}
 			JNode newNode = cacheObject.getNodeCache().makeFrom(newClass);
-			tabbedPane.codeJump(new JumpPosition(newNode, position));
+			tabbedPane.codeJump(new JumpPosition(newNode, position)
+					.setPrecise(JumpPosition.getDefPos(newNode)));
 		}
 	}
 
@@ -646,7 +650,8 @@ public class MainWindow extends JFrame {
 				JNode node = (JNode) obj;
 				JClass cls = node.getRootClass();
 				if (cls != null) {
-					tabbedPane.codeJump(new JumpPosition(cls, node.getLine()));
+					tabbedPane.codeJump(new JumpPosition(cls, node.getLine())
+							.setPrecise(JumpPosition.getDefPos(node)));
 				}
 			}
 		} catch (Exception e) {
@@ -812,6 +817,14 @@ public class MainWindow extends JFrame {
 		Action textSearchAction = new AbstractAction(NLS.str("menu.text_search"), ICON_SEARCH) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				ContentPanel panel = tabbedPane.getSelectedCodePanel();
+				if (panel instanceof AbstractCodeContentPanel) {
+					String preferText = ((AbstractCodeContentPanel) panel).getCodeArea().getSelectedText();
+					if (!StringUtils.isEmpty(preferText)) {
+						SearchDialog.searchText(MainWindow.this, preferText);
+						return;
+					}
+				}
 				new SearchDialog(MainWindow.this, true).setVisible(true);
 			}
 		};

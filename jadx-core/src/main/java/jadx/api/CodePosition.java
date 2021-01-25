@@ -5,6 +5,7 @@ public final class CodePosition {
 	private final JavaNode node;
 	private final int line;
 	private final int offset;
+	private int usagePosition = -1;
 
 	public CodePosition(JavaNode node, int line, int offset) {
 		this.node = node;
@@ -16,6 +17,15 @@ public final class CodePosition {
 		this.node = null;
 		this.line = line;
 		this.offset = offset;
+	}
+
+	public int getUsagePosition() {
+		return usagePosition;
+	}
+
+	public CodePosition setUsagePosition(int usagePosition) {
+		this.usagePosition = usagePosition;
+		return this;
 	}
 
 	public JavaNode getNode() {

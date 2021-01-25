@@ -168,7 +168,7 @@ public class TabbedPane extends JTabbedPane {
 						line = pos.getNode().getLine();
 					}
 				}
-				if (pos.getPos() <= 0) {
+				if (pos.getPos() < 0) {
 					codeArea.scrollToLine(line);
 				} else {
 					int lineNum = Math.max(0, line - 1);
@@ -225,6 +225,9 @@ public class TabbedPane extends JTabbedPane {
 	}
 
 	public void navBack() {
+		if (jumps.size() > 1) {
+			jumps.updateCurPosition(getCurrentPosition());
+		}
 		JumpPosition pos = jumps.getPrev();
 		if (pos != null) {
 			showCode(pos);
@@ -232,6 +235,9 @@ public class TabbedPane extends JTabbedPane {
 	}
 
 	public void navForward() {
+		if (jumps.size() > 1) {
+			jumps.updateCurPosition(getCurrentPosition());
+		}
 		JumpPosition pos = jumps.getNext();
 		if (pos != null) {
 			showCode(pos);

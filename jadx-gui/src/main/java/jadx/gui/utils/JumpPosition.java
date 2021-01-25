@@ -1,19 +1,20 @@
 package jadx.gui.utils;
 
-import jadx.gui.treemodel.JNode;
+import jadx.api.JavaClass;
+import jadx.api.JavaField;
+import jadx.api.JavaMethod;
+import jadx.api.JavaNode;
+import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.gui.treemodel.*;
 
 public class JumpPosition {
 	private final JNode node;
 	private final int line;
-	// the position of the node in java code,
-	// call codeArea.scrollToPos(pos) to set caret
 	private int pos;
-	// Precise means caret can be set right at the node in codeArea,
-	// not just the start of the line.
 	private boolean precise;
 
 	public JumpPosition(JNode node, int line) {
-		this(node, line, 0);
+		this(node, line, -1);
 	}
 
 	public JumpPosition(JNode node, int line, int pos) {
@@ -42,6 +43,32 @@ public class JumpPosition {
 
 	public int getLine() {
 		return line;
+	}
+
+	public static int getDefPos(JNode node) {
+		if (node instanceof JClass) {
+			return ((JClass) node).getCls().getClassNode().getDefPosition();
+		}
+		if (node instanceof JMethod) {
+			return ((JMethod) node).getJavaMethod().getMethodNode().getDefPosition();
+		}
+		if (node instanceof JField) {
+			return ((JField) node).getJavaField().getFieldNode().getDefPosition();
+		}
+		throw new JadxRuntimeException("Unexpected node " + node);
+	}
+
+	public static int getDefPos(JavaNode node) {
+		if (node instanceof JavaClass) {
+			return ((JavaClass) node).getClassNode().getDefPosition();
+		}
+		if (node instanceof JavaMethod) {
+			return ((JavaMethod) node).getMethodNode().getDefPosition();
+		}
+		if (node instanceof JavaField) {
+			return ((JavaField) node).getFieldNode().getDefPosition();
+		}
+		throw new JadxRuntimeException("Unexpected node " + node);
 	}
 
 	@Override

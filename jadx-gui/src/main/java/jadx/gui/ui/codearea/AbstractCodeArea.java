@@ -32,11 +32,6 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 
 	public static final Color MARK_ALL_HIGHLIGHT_COLOR = Color.decode("#FFED89");
 
-	@Override
-	public boolean getHighlightCurrentLine() {
-		return super.getHighlightCurrentLine();
-	}
-
 	protected final ContentPanel contentPanel;
 	protected final JNode node;
 
@@ -115,13 +110,7 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 
 			@Override
 			public void caretUpdate(CaretEvent e) {
-				int pos = e.getDot();
-				if (pos == 0) {
-					// not accepting 0, cuz sometimes the underlying RSyntaxTextArea
-					// will fire a fake event to force repaint caret, and its dot is
-					// usually 0, so we just ignore 0 anyway as a workaround.
-					return;
-				}
+				int pos = getCaretPosition();
 				if (lastPos != pos) {
 					lastPos = pos;
 					lastText = highlightCaretWord(lastText, pos);

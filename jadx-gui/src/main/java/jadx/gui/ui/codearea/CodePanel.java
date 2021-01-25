@@ -8,9 +8,16 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.swing.*;
+import javax.swing.JPopupMenu.Separator;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 
 import jadx.api.ICodeInfo;
+import jadx.core.utils.StringUtils;
+import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.SearchDialog;
+import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
 /**
@@ -42,6 +49,56 @@ public class CodePanel extends JPanel {
 				searchBar.toggle();
 			}
 		});
+		JMenuItem searchItem = new JMenuItem();
+		JMenuItem globalSearchItem = new JMenuItem();
+		AbstractAction searchAction = new AbstractAction(NLS.str("popup.search", "")) {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				searchBar.toggle();
+			}
+		};
+		AbstractAction globalSearchAction = new AbstractAction(NLS.str("popup.search_global", "")) {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				MainWindow mainWindow = codeArea.getContentPanel().getTabbedPane().getMainWindow();
+				SearchDialog.searchText(mainWindow, codeArea.getSelectedText());
+			}
+		};
+		searchItem.setAction(searchAction);
+		globalSearchItem.setAction(globalSearchAction);
+		Separator separator = new Separator();
+		JPopupMenu popupMenu = codeArea.getPopupMenu();
+		popupMenu.addPopupMenuListener(new PopupMenuListener() {
+			@Override
+			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+				String preferText = codeArea.getSelectedText();
+				if (!StringUtils.isEmpty(preferText)) {
+					if (preferText.length() >= 23) {
+						preferText = preferText.substring(0, 20) + " ...";
+					}
+					searchAction.putValue(Action.NAME, NLS.str("popup.search", preferText));
+					globalSearchAction.putValue(Action.NAME, NLS.str("popup.search_global", preferText));
+					popupMenu.add(separator);
+					popupMenu.add(globalSearchItem);
+					popupMenu.add(searchItem);
+				} else {
+					popupMenu.remove(separator);
+					popupMenu.remove(globalSearchItem);
+					popupMenu.remove(searchItem);
+				}
+			}
+
+			@Override
+			public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+
+			}
+
+			@Override
+			public void popupMenuCanceled(PopupMenuEvent e) {
+
+			}
+		});
+
 	}
 
 	public void loadSettings() {

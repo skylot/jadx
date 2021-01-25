@@ -158,7 +158,7 @@ public class TextSearchIndex {
 		int lineStart = 1 + code.lastIndexOf(CodeWriter.NL, pos);
 		int lineEnd = code.indexOf(CodeWriter.NL, pos + searchSettings.getSearchString().length());
 		StringRef line = StringRef.subString(code, lineStart, lineEnd == -1 ? code.length() : lineEnd);
-		emitter.onNext(new CodeNode(nodeCache.makeFrom(javaClass), -pos, line.trim()));
+		emitter.onNext(new CodeNode(nodeCache.makeFrom(javaClass), -pos, line.trim()).setPos(pos));
 		return lineEnd;
 	}
 
