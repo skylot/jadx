@@ -15,6 +15,7 @@ import org.fife.ui.rtextarea.SearchResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.utils.StringUtils;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
 import jadx.gui.utils.UiUtils;
@@ -113,6 +114,10 @@ class SearchBar extends JToolBar {
 		setVisible(visible);
 
 		if (visible) {
+			String preferText = rTextArea.getSelectedText();
+			if (!StringUtils.isEmpty(preferText)) {
+				searchField.setText(preferText);
+			}
 			searchField.requestFocus();
 			searchField.selectAll();
 		} else {

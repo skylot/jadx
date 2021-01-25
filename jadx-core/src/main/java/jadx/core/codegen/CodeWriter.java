@@ -120,8 +120,16 @@ public class CodeWriter {
 	CodeWriter add(CodeWriter code) {
 		line--;
 		for (Map.Entry<CodePosition, Object> entry : code.annotations.entrySet()) {
+			Object val = entry.getValue();
+			if (val instanceof DefinitionWrapper) {
+				LineAttrNode node = ((DefinitionWrapper) val).getNode();
+				node.setDefPosition(node.getDefPosition() + this.buf.length());
+			}
 			CodePosition pos = entry.getKey();
-			attachAnnotation(entry.getValue(), new CodePosition(line + pos.getLine(), pos.getOffset()));
+			int usagePos = pos.getUsagePosition() + bufLength();
+			attachAnnotation(val,
+					new CodePosition(line + pos.getLine(), pos.getOffset())
+							.setUsagePosition(usagePos));
 		}
 		for (Map.Entry<Integer, Integer> entry : code.lineMap.entrySet()) {
 			attachSourceLine(line + entry.getKey(), entry.getValue());
@@ -211,12 +219,14 @@ public class CodeWriter {
 	}
 
 	public void attachDefinition(LineAttrNode obj) {
+		obj.setDefPosition(buf.length());
 		attachAnnotation(obj);
 		attachAnnotation(new DefinitionWrapper(obj), new CodePosition(line, offset));
 	}
 
 	public void attachAnnotation(Object obj) {
-		attachAnnotation(obj, new CodePosition(line, offset + 1));
+		attachAnnotation(obj,
+				new CodePosition(line, offset + 1).setUsagePosition(bufLength()));
 	}
 
 	public void attachLineAnnotation(Object obj) {

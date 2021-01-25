@@ -145,7 +145,8 @@ public final class CodeArea extends AbstractCodeArea {
 			return null;
 		}
 		JNode jNode = convertJavaNode(foundNode);
-		return new JumpPosition(jNode.getRootClass(), pos.getLine());
+		return new JumpPosition(jNode.getRootClass(), pos.getLine())
+				.setPrecise(JumpPosition.getDefPos(jNode));
 	}
 
 	private JNode convertJavaNode(JavaNode javaNode) {

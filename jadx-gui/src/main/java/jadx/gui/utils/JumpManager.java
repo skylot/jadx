@@ -28,6 +28,14 @@ public class JumpManager {
 		}
 	}
 
+	public void updateCurPosition(JumpPosition pos) {
+		list.set(currentPos, pos);
+	}
+
+	public int size() {
+		return list.size();
+	}
+
 	private boolean ignoreJump(JumpPosition pos) {
 		JumpPosition current = getCurrent();
 		if (current == null) {

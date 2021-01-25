@@ -35,7 +35,9 @@ public class CodeIndex {
 		return Flowable.create(emitter -> {
 			LOG.debug("Code search started: {} ...", searchSettings.getSearchString());
 			for (CodeNode node : values) {
-				if (isMatched(node.getLineStr(), searchSettings)) {
+				int pos = searchSettings.find(node.getLineStr());
+				node.setPos(pos);
+				if (pos > -1) {
 					emitter.onNext(node);
 				}
 				if (emitter.isCancelled()) {

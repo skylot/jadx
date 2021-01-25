@@ -29,6 +29,10 @@ public class JField extends JNode {
 		this.jParent = jClass;
 	}
 
+	public JavaField getJavaField() {
+		return (JavaField) getJavaNode();
+	}
+
 	@Override
 	public JavaNode getJavaNode() {
 		return field;

@@ -64,7 +64,7 @@ public class CodeUsageInfo {
 		JavaNode javaNodeByLine = linesInfo.getJavaNodeByLine(line);
 		StringRef codeLine = lines.get(line - 1);
 		JNode node = nodeCache.makeFrom(javaNodeByLine == null ? javaClass : javaNodeByLine);
-		CodeNode codeNode = new CodeNode(node, line, codeLine);
+		CodeNode codeNode = new CodeNode(node, line, codeLine).setPrecisePos(codePosition.getUsagePosition());
 		usageInfo.addUsage(codeNode);
 	}
 

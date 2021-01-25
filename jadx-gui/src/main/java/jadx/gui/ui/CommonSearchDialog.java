@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.swing.*;
@@ -20,7 +19,6 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
-import org.fife.ui.rsyntaxtextarea.DocumentRange;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.SearchContext;
@@ -33,7 +31,7 @@ import org.slf4j.LoggerFactory;
 import jadx.gui.jobs.BackgroundJob;
 import jadx.gui.jobs.BackgroundWorker;
 import jadx.gui.jobs.DecompileJob;
-import jadx.gui.treemodel.JNode;
+import jadx.gui.treemodel.*;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.JumpPosition;
@@ -111,9 +109,18 @@ public abstract class CommonSearchDialog extends JDialog {
 		if (selectedId == -1) {
 			return;
 		}
-		int pos = Math.max(0, resultsModel.renderer.getFirstMarkOfCode(selectedId));
+		JumpPosition jmpPos;
 		JNode node = (JNode) resultsModel.getValueAt(selectedId, 0);
-		tabbedPane.codeJump(new JumpPosition(node.getRootClass(), node.getLine(), pos));
+		if (node instanceof CodeNode) {
+			CodeNode codeNode = (CodeNode) node;
+			jmpPos = new JumpPosition(node.getRootClass(), node.getLine(), codeNode.getPos());
+			if (codeNode.isPrecisePos()) {
+				jmpPos.setPrecise(codeNode.getPos());
+			}
+		} else {
+			jmpPos = new JumpPosition(node.getRootClass(), node.getLine());
+		}
+		tabbedPane.codeJump(jmpPos);
 
 		dispose();
 	}
@@ -411,19 +418,6 @@ public abstract class CommonSearchDialog extends JDialog {
 			this.font = area.getFont();
 			this.codeSelectedColor = area.getSelectionColor();
 			this.codeBackground = area.getBackground();
-		}
-
-		public int getFirstMarkOfCode(int row) {
-			Component comp = componentCache.get(makeID(row, 1));
-			if (comp instanceof RSyntaxTextArea) {
-				List<DocumentRange> ranges = ((RSyntaxTextArea) comp).getMarkAllHighlightRanges();
-				if (ranges.size() > 0) {
-					// minus 2 cuz the start of textArea of the column is added 2
-					// spaces in makeCell method.
-					return ranges.get(0).getStartOffset() - 2;
-				}
-			}
-			return 0;
 		}
 
 		@Override
