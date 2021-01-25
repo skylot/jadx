@@ -176,7 +176,6 @@ public class MainWindow extends JFrame {
 	public static MainWindow mainWindow;
 
 	public MainWindow(JadxSettings settings) {
-		mainWindow = this;
 		this.wrapper = new JadxWrapper(settings);
 		this.settings = settings;
 		this.cacheObject = new CacheObject();
