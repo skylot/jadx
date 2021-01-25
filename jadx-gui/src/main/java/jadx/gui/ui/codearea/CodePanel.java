@@ -60,7 +60,8 @@ public class CodePanel extends JPanel {
 		AbstractAction globalSearchAction = new AbstractAction(NLS.str("popup.search_global", "")) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				SearchDialog.searchText(MainWindow.mainWindow, codeArea.getSelectedText());
+				MainWindow mainWindow = codeArea.getContentPanel().getTabbedPane().getMainWindow();
+				SearchDialog.searchText(mainWindow, codeArea.getSelectedText());
 			}
 		};
 		searchItem.setAction(searchAction);
