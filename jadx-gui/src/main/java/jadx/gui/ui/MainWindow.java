@@ -173,7 +173,6 @@ public class MainWindow extends JFrame {
 	private transient BackgroundWorker backgroundWorker;
 	private transient BackgroundExecutor backgroundExecutor;
 	private transient Theme editorTheme;
-	public static MainWindow mainWindow;
 
 	public MainWindow(JadxSettings settings) {
 		this.wrapper = new JadxWrapper(settings);
