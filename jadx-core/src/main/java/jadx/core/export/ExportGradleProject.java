@@ -87,6 +87,8 @@ public class ExportGradleProject {
 		tmpl.add("applicationId", appPackage);
 		tmpl.add("minSdkVersion", applicationParams.getMinSdkVersion());
 		tmpl.add("targetSdkVersion", applicationParams.getTargetSdkVersion());
+		tmpl.add("versionCode", applicationParams.getVersionCode());
+		tmpl.add("versionName", applicationParams.getVersionName());
 		tmpl.save(new File(appDir, "build.gradle"));
 	}
 
@@ -101,9 +103,12 @@ public class ExportGradleProject {
 	}
 
 	private ApplicationParams getApplicationParams(Document androidManifest, Document appStrings) {
+		Element manifest = (Element) androidManifest.getElementsByTagName("manifest").item(0);
 		Element usesSdk = (Element) androidManifest.getElementsByTagName("uses-sdk").item(0);
 		Element application = (Element) androidManifest.getElementsByTagName("application").item(0);
 
+		Integer versionCode = Integer.valueOf(manifest.getAttribute("android:versionCode"));
+		String versionName = manifest.getAttribute("android:versionName");
 		Integer minSdk = Integer.valueOf(usesSdk.getAttribute("android:minSdkVersion"));
 		Integer targetSdk = Integer.valueOf(usesSdk.getAttribute("android:targetSdkVersion"));
 		String appName = "UNKNOWN";
@@ -123,7 +128,7 @@ public class ExportGradleProject {
 			}
 		}
 
-		return new ApplicationParams(appName, minSdk, targetSdk);
+		return new ApplicationParams(appName, minSdk, targetSdk, versionCode, versionName);
 	}
 
 	private Document parseXml(String xmlContent) {
