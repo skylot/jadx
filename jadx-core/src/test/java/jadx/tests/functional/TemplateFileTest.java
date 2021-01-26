@@ -11,7 +11,7 @@ public class TemplateFileTest {
 
 	@Test
 	public void testBuildGradle() throws Exception {
-		TemplateFile tmpl = TemplateFile.fromResources("/export/build.gradle.tmpl");
+		TemplateFile tmpl = TemplateFile.fromResources("/export/app.build.gradle.tmpl");
 		tmpl.add("applicationId", "SOME_ID");
 		tmpl.add("minSdkVersion", 1);
 		tmpl.add("targetSdkVersion", 2);

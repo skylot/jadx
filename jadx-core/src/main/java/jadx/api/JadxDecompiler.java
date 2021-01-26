@@ -39,6 +39,7 @@ import jadx.core.export.ExportGradleProject;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.BinaryXMLParser;
+import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.ResourcesSaver;
 
 /**
@@ -193,7 +194,23 @@ public final class JadxDecompiler implements Closeable {
 		File sourcesOutDir;
 		File resOutDir;
 		if (args.isExportAsGradleProject()) {
-			ExportGradleProject export = new ExportGradleProject(root, args.getOutDir());
+			ResourceFile androidManifest = resources.stream()
+					.filter(resourceFile -> resourceFile.getType() == ResourceType.MANIFEST)
+					.findFirst()
+					.orElseThrow(IllegalStateException::new);
+
+			ResContainer strings = resources.stream()
+					.filter(resourceFile -> resourceFile.getType() == ResourceType.ARSC)
+					.findFirst()
+					.orElseThrow(IllegalStateException::new)
+					.loadContent()
+					.getSubFiles()
+					.stream()
+					.filter(resContainer -> resContainer.getFileName().contains("strings.xml"))
+					.findFirst()
+					.orElseThrow(IllegalStateException::new);
+
+			ExportGradleProject export = new ExportGradleProject(root, args.getOutDir(), androidManifest, strings);
 			export.init();
 			sourcesOutDir = export.getSrcOutDir();
 			resOutDir = export.getResOutDir();
