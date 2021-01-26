@@ -118,7 +118,7 @@ public class ExportGradleProject {
 					.getNodeValue();
 
 			if (stringName.equals(appLabelName)) {
-				appName = strings.item(4).getTextContent();
+				appName = strings.item(i).getTextContent();
 				break;
 			}
 		}
