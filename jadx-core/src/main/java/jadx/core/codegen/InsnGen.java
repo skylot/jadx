@@ -92,7 +92,6 @@ public class InsnGen {
 			if (codeVar != null) {
 				VariableNode node = mth.getVariable(codeVar.getIndex());
 				if (node != null) {
-					node.useVar(code, codeVar);
 					code.attachAnnotation(node);
 				}
 			}
@@ -653,7 +652,6 @@ public class InsnGen {
 		if (insn.isSuper()) {
 			code.add("super");
 		} else if (insn.isThis()) {
-			code.attachAnnotation(mth.getParentClass());
 			code.add("this");
 		} else {
 			code.add("new ");

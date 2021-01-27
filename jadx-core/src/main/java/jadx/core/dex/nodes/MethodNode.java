@@ -110,15 +110,6 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return null;
 	}
 
-	public VariableNode getVariable(int index, VarKind varType) {
-		for (VariableNode variable : variables) {
-			if (variable.getVarKind() == varType && variable.getIndex() == index) {
-				return variable;
-			}
-		}
-		return null;
-	}
-
 	public VariableNode declareVar(VisibleVar var, NameGen nameGen, VarKind varKind) {
 		if (var instanceof CodeVar) {
 			if (((CodeVar) var).isThis()) {
@@ -127,14 +118,11 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		}
 		VariableNode varNode;
 		int index = var.getIndex();
-		if (index == -1) {
+		if (index > -1) {
+			varNode = getVariable(var.getIndex());
+		} else {
 			index = variables.size();
 			var.setIndex(index);
-			varNode = null;
-		} else {
-			varNode = getVariable(var.getIndex());
-		}
-		if (varNode == null) {
 			String name = mthInfo.getVariableName(VariableNode.makeVarIndex(index, varKind));
 			if (name != null) {
 				var.setName(name); // set name with user renamed previously.

@@ -448,7 +448,7 @@ public final class JadxDecompiler implements Closeable {
 		}
 		if (obj instanceof VariableNode) {
 			VariableNode varNode = (VariableNode) obj;
-			return new JavaVariable(getJavaClassByNode(varNode.getClassNode()), varNode);
+			return new JavaVariable(getJavaClassByNode(varNode.getClassNode().getTopParentClass()), varNode);
 		}
 		throw new JadxRuntimeException("Unexpected node type: " + obj);
 	}
