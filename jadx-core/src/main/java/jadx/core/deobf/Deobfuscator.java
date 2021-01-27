@@ -2,13 +2,7 @@ package jadx.core.deobf;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -209,6 +203,10 @@ public class Deobfuscator {
 	}
 
 	private void renameMethod(MethodNode mth) {
+		Set<String> names = deobfPresets.getVarPresetMap().get(mth.getMethodInfo().getRawFullId());
+		if (names != null) {
+			mth.getMethodInfo().setVarNameMap(names);
+		}
 		String alias = getMethodAlias(mth);
 		if (alias != null) {
 			applyMethodAlias(mth, alias);

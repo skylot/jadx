@@ -2,14 +2,26 @@ package jadx.core.dex.instructions.args;
 
 import org.jetbrains.annotations.NotNull;
 
-public final class NamedArg extends InsnArg implements Named {
+public final class NamedArg extends InsnArg implements Named, VisibleVar {
 
 	@NotNull
 	private String name;
 
+	private int index = -1;
+
 	public NamedArg(@NotNull String name, @NotNull ArgType type) {
 		this.name = name;
 		this.type = type;
+	}
+
+	@Override
+	public int getIndex() {
+		return index;
+	}
+
+	@Override
+	public void setIndex(int index) {
+		this.index = index;
 	}
 
 	@NotNull
@@ -22,6 +34,7 @@ public final class NamedArg extends InsnArg implements Named {
 		return true;
 	}
 
+	@Override
 	public void setName(@NotNull String name) {
 		this.name = name;
 	}

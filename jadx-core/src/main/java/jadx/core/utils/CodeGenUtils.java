@@ -7,6 +7,9 @@ import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.attributes.nodes.RenameReasonAttr;
 import jadx.core.dex.attributes.nodes.SourceFileAttr;
+import jadx.core.dex.instructions.args.CodeVar;
+import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.ClassNode;
 
 public class CodeGenUtils {
@@ -34,6 +37,14 @@ public class CodeGenUtils {
 		if (sourceFileAttr != null) {
 			code.startLine("/* compiled from: ").add(sourceFileAttr.getFileName()).add(" */");
 		}
+	}
+
+	public static CodeVar getCodeVar(RegisterArg arg) {
+		SSAVar svar = arg.getSVar();
+		if (svar != null) {
+			return svar.getCodeVar();
+		}
+		return null;
 	}
 
 	private CodeGenUtils() {

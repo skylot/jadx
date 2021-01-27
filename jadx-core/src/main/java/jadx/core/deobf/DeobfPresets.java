@@ -6,11 +6,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -20,6 +16,7 @@ import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.dex.nodes.VariableNode;
 import jadx.core.utils.files.FileUtils;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -35,6 +32,7 @@ public class DeobfPresets {
 	private final Map<String, String> clsPresetMap = new HashMap<>();
 	private final Map<String, String> fldPresetMap = new HashMap<>();
 	private final Map<String, String> mthPresetMap = new HashMap<>();
+	private final Map<String, Set<String>> varPresetMap = new HashMap<>();
 
 	@Nullable
 	public static DeobfPresets build(RootNode root) {
@@ -94,11 +92,22 @@ public class DeobfPresets {
 					case 'm':
 						mthPresetMap.put(origName, alias);
 						break;
+					case 'v':
+						String[] mthIDAndVarIndex = origName.split(VariableNode.VAR_SEPARATOR);
+						if (mthIDAndVarIndex.length == 2) {
+							Set<String> nameList = varPresetMap.computeIfAbsent(mthIDAndVarIndex[0], k -> new HashSet<>());
+							nameList.add(makeVarSecIndex(mthIDAndVarIndex[1], alias));
+						}
+						break;
 				}
 			}
 		} catch (Exception e) {
 			LOG.error("Failed to load deobfuscation map file '{}'", deobfMapFile.toAbsolutePath(), e);
 		}
+	}
+
+	public static String makeVarSecIndex(String indexes, String name) {
+		return indexes + VariableNode.VAR_SEPARATOR + name;
 	}
 
 	private static String[] splitAndTrim(String str) {
@@ -122,6 +131,15 @@ public class DeobfPresets {
 		}
 		for (Map.Entry<String, String> mthEntry : mthPresetMap.entrySet()) {
 			list.add(String.format("m %s = %s", mthEntry.getKey(), mthEntry.getValue()));
+		}
+		for (Map.Entry<String, Set<String>> varEntry : varPresetMap.entrySet()) {
+			for (String val : varEntry.getValue()) {
+				String[] indexAndName = val.split(VariableNode.VAR_SEPARATOR);
+				if (indexAndName.length == 2) {
+					list.add(String.format("v %s%s%s = %s",
+							varEntry.getKey(), VariableNode.VAR_SEPARATOR, indexAndName[0], indexAndName[1]));
+				}
+			}
 		}
 		Collections.sort(list);
 		Files.write(deobfMapFile, list, MAP_FILE_CHARSET,
@@ -147,6 +165,7 @@ public class DeobfPresets {
 		clsPresetMap.clear();
 		fldPresetMap.clear();
 		mthPresetMap.clear();
+		varPresetMap.clear();
 	}
 
 	public Path getDeobfMapFile() {
@@ -167,5 +186,19 @@ public class DeobfPresets {
 
 	public Map<String, String> getMthPresetMap() {
 		return mthPresetMap;
+	}
+
+	public Map<String, Set<String>> getVarPresetMap() {
+		return varPresetMap;
+	}
+
+	public void updateVariableName(VariableNode node, String name) {
+		String key = node.getRenameKey();
+		key = key.substring(0, key.indexOf(VariableNode.VAR_SEPARATOR));
+		String newIndex = makeVarSecIndex(node.makeVarIndex(), name);
+		String oldIndex = makeVarSecIndex(node.makeVarIndex(), node.getName());
+		Set<String> indexSet = varPresetMap.computeIfAbsent(key, k -> new HashSet<>());
+		indexSet.remove(oldIndex);
+		indexSet.add(newIndex);
 	}
 }

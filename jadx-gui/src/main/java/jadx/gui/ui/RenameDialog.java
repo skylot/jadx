@@ -4,11 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
@@ -27,26 +23,20 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.JavaClass;
-import jadx.api.JavaField;
-import jadx.api.JavaMethod;
-import jadx.api.JavaNode;
+import jadx.api.*;
 import jadx.core.codegen.CodeWriter;
 import jadx.core.deobf.DeobfPresets;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.dex.nodes.VariableNode;
 import jadx.core.dex.visitors.RenameVisitor;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.jobs.IndexJob;
 import jadx.gui.settings.JadxSettings;
-import jadx.gui.treemodel.JClass;
-import jadx.gui.treemodel.JField;
-import jadx.gui.treemodel.JMethod;
-import jadx.gui.treemodel.JNode;
-import jadx.gui.treemodel.JPackage;
+import jadx.gui.treemodel.*;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
 import jadx.gui.ui.codearea.CodePanel;
 import jadx.gui.utils.*;
@@ -126,6 +116,9 @@ public class RenameDialog extends JDialog {
 			deobfPresets.getClsPresetMap().put(javaClass.getRawName(), renameText);
 		} else if (node instanceof JPackage) {
 			deobfPresets.getPkgPresetMap().put(((JPackage) node).getFullName(), renameText);
+		} else if (node instanceof JVariable) {
+			VariableNode varNode = ((JVariable) node).getJavaVarNode().getVariableNode();
+			deobfPresets.updateVariableName(varNode, renameText);
 		}
 	}
 

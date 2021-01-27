@@ -30,10 +30,7 @@ import jadx.api.plugins.input.data.ILoadResult;
 import jadx.core.Jadx;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
-import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.FieldNode;
-import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.nodes.RootNode;
+import jadx.core.dex.nodes.*;
 import jadx.core.dex.visitors.SaveCode;
 import jadx.core.export.ExportGradleProject;
 import jadx.core.utils.Utils;
@@ -448,6 +445,10 @@ public final class JadxDecompiler implements Closeable {
 		}
 		if (obj instanceof FieldNode) {
 			return getJavaFieldByNode((FieldNode) obj);
+		}
+		if (obj instanceof VariableNode) {
+			VariableNode varNode = (VariableNode) obj;
+			return new JavaVariable(getJavaClassByNode(varNode.getClassNode()), varNode);
 		}
 		throw new JadxRuntimeException("Unexpected node type: " + obj);
 	}

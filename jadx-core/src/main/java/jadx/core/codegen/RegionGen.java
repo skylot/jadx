@@ -21,12 +21,7 @@ import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
-import jadx.core.dex.nodes.BlockNode;
-import jadx.core.dex.nodes.FieldNode;
-import jadx.core.dex.nodes.IBlock;
-import jadx.core.dex.nodes.IContainer;
-import jadx.core.dex.nodes.IRegion;
-import jadx.core.dex.nodes.InsnNode;
+import jadx.core.dex.nodes.*;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.regions.SwitchRegion.CaseInfo;
@@ -40,9 +35,12 @@ import jadx.core.dex.regions.loops.LoopRegion;
 import jadx.core.dex.regions.loops.LoopType;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.utils.BlockUtils;
+import jadx.core.utils.CodeGenUtils;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+
+import static jadx.core.dex.nodes.VariableNode.*;
 
 public class RegionGen extends InsnGen {
 	private static final Logger LOG = LoggerFactory.getLogger(RegionGen.class);
@@ -351,10 +349,29 @@ public class RegionGen extends InsnGen {
 		if (arg == null) {
 			code.add("unknown"); // throwing exception is too late at this point
 		} else if (arg instanceof RegisterArg) {
-			RegisterArg reg = (RegisterArg) arg;
-			code.add(mgen.getNameGen().assignArg(reg.getSVar().getCodeVar()));
+			String name;
+			CodeVar codeVar = CodeGenUtils.getCodeVar((RegisterArg) arg);
+			if (codeVar != null) {
+				VariableNode node = mth.declareVar(codeVar, mgen.getNameGen(), VarKind.CATCH_ARG);
+				if (node != null) {
+					code.attachDefinition(node);
+					name = node.getName();
+					codeVar.setName(name);
+				} else {
+					name = mgen.getNameGen().assignArg(codeVar);
+				}
+			} else {
+				RegisterArg reg = (RegisterArg) arg;
+				name = mgen.getNameGen().assignArg(reg.getSVar().getCodeVar());
+			}
+			code.add(name);
 		} else if (arg instanceof NamedArg) {
-			code.add(mgen.getNameGen().assignNamedArg((NamedArg) arg));
+			VariableNode node = mth.declareVar((NamedArg) arg, mgen.getNameGen(), VarKind.CATCH_ARG);
+			if (node != null) {
+				code.add(node.getName());
+			} else {
+				code.add(mgen.getNameGen().assignNamedArg((NamedArg) arg));
+			}
 		} else {
 			throw new JadxRuntimeException("Unexpected arg type in catch block: " + arg + ", class: " + arg.getClass().getSimpleName());
 		}
