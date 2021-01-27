@@ -1,9 +1,6 @@
 package jadx.gui.utils;
 
-import jadx.api.JavaClass;
-import jadx.api.JavaField;
-import jadx.api.JavaMethod;
-import jadx.api.JavaNode;
+import jadx.api.*;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.treemodel.*;
 
@@ -55,6 +52,9 @@ public class JumpPosition {
 		if (node instanceof JField) {
 			return ((JField) node).getJavaField().getFieldNode().getDefPosition();
 		}
+		if (node instanceof JVariable) {
+			return ((JVariable) node).getJavaVarNode().getVariableNode().getDefPosition();
+		}
 		throw new JadxRuntimeException("Unexpected node " + node);
 	}
 
@@ -67,6 +67,9 @@ public class JumpPosition {
 		}
 		if (node instanceof JavaField) {
 			return ((JavaField) node).getFieldNode().getDefPosition();
+		}
+		if (node instanceof JavaVariable) {
+			return ((JavaVariable) node).getVariableNode().getDefPosition();
 		}
 		throw new JadxRuntimeException("Unexpected node " + node);
 	}

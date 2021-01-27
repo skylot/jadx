@@ -29,6 +29,7 @@ import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.nodes.VariableNode;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.visitors.DepthTraversal;
 import jadx.core.dex.visitors.IDexTreeVisitor;
@@ -42,6 +43,7 @@ import jadx.core.utils.exceptions.JadxOverflowException;
 import static jadx.core.codegen.MethodGen.FallbackOption.BLOCK_DUMP;
 import static jadx.core.codegen.MethodGen.FallbackOption.COMMENTED_DUMP;
 import static jadx.core.codegen.MethodGen.FallbackOption.FALLBACK_MODE;
+import static jadx.core.dex.nodes.VariableNode.*;
 
 public class MethodGen {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodGen.class);
@@ -220,7 +222,19 @@ public class MethodGen {
 				classGen.useType(code, argType);
 			}
 			code.add(' ');
-			code.add(nameGen.assignArg(var));
+			VariableNode node = mth.declareVar(var, nameGen, VarKind.ARG);
+			String name;
+			if (node != null) {
+				code.attachDefinition(node);
+				name = node.getName();
+				var.setName(name);
+			} else {
+				name = nameGen.assignArg(var);
+			}
+			if (var.isThis()) {
+				code.attachDefinition(mth.getParentClass());
+			}
+			code.add(name);
 
 			i++;
 			if (it.hasNext()) {

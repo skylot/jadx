@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class CodeVar {
+public class CodeVar implements VisibleVar {
 	private String name;
 	private ArgType type; // before type inference can be null and set only for immutable types
 	private List<SSAVar> ssaVars = Collections.emptyList();
@@ -12,6 +12,18 @@ public class CodeVar {
 	private boolean isFinal;
 	private boolean isThis;
 	private boolean isDeclared;
+
+	private int index = -1;
+
+	@Override
+	public int getIndex() {
+		return index;
+	}
+
+	@Override
+	public void setIndex(int index) {
+		this.index = index;
+	}
 
 	public static CodeVar fromMthArg(RegisterArg mthArg, boolean linkRegister) {
 		CodeVar var = new CodeVar();
@@ -26,14 +38,17 @@ public class CodeVar {
 		return var;
 	}
 
+	@Override
 	public String getName() {
 		return name;
 	}
 
+	@Override
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	@Override
 	public ArgType getType() {
 		return type;
 	}

@@ -35,25 +35,16 @@ import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.InvokeType;
 import jadx.core.dex.instructions.NewArrayNode;
 import jadx.core.dex.instructions.SwitchInsn;
-import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.instructions.args.CodeVar;
-import jadx.core.dex.instructions.args.InsnArg;
-import jadx.core.dex.instructions.args.InsnWrapArg;
-import jadx.core.dex.instructions.args.LiteralArg;
-import jadx.core.dex.instructions.args.Named;
-import jadx.core.dex.instructions.args.RegisterArg;
-import jadx.core.dex.instructions.args.SSAVar;
+import jadx.core.dex.instructions.args.*;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.instructions.mods.TernaryInsn;
-import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.FieldNode;
-import jadx.core.dex.nodes.InsnNode;
-import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.nodes.RootNode;
+import jadx.core.dex.nodes.*;
+import jadx.core.utils.CodeGenUtils;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
+import static jadx.core.dex.nodes.VariableNode.*;
 import static jadx.core.utils.android.AndroidResourcesUtils.handleAppResField;
 
 public class InsnGen {
@@ -97,12 +88,26 @@ public class InsnGen {
 
 	public void addArg(CodeWriter code, InsnArg arg, boolean wrap) throws CodegenException {
 		if (arg.isRegister()) {
+			CodeVar codeVar = CodeGenUtils.getCodeVar((RegisterArg) arg);
+			if (codeVar != null) {
+				VariableNode node = mth.getVariable(codeVar.getIndex());
+				if (node != null) {
+					node.useVar(code, codeVar);
+					code.attachAnnotation(node);
+				}
+			}
 			code.add(mgen.getNameGen().useArg((RegisterArg) arg));
 		} else if (arg.isLiteral()) {
 			code.add(lit((LiteralArg) arg));
 		} else if (arg.isInsnWrap()) {
 			addWrappedArg(code, (InsnWrapArg) arg, wrap);
 		} else if (arg.isNamed()) {
+			if (arg instanceof NamedArg) {
+				VariableNode node = mth.getVariable(((NamedArg) arg).getIndex());
+				if (node != null) {
+					code.attachAnnotation(node);
+				}
+			}
 			code.add(((Named) arg).getName());
 		} else {
 			throw new CodegenException("Unknown arg type " + arg);
@@ -140,7 +145,16 @@ public class InsnGen {
 		}
 		useType(code, codeVar.getType());
 		code.add(' ');
-		code.add(mgen.getNameGen().assignArg(codeVar));
+		VariableNode node = mth.declareVar(codeVar, mgen.getNameGen(), VarKind.VAR);
+		String name;
+		if (node != null) {
+			code.attachDefinition(node);
+			name = node.getName();
+			codeVar.setName(name);
+		} else {
+			name = mgen.getNameGen().assignArg(codeVar);
+		}
+		code.add(name);
 	}
 
 	private String lit(LiteralArg arg) {
@@ -639,6 +653,7 @@ public class InsnGen {
 		if (insn.isSuper()) {
 			code.add("super");
 		} else if (insn.isThis()) {
+			code.attachAnnotation(mth.getParentClass());
 			code.add("this");
 		} else {
 			code.add("new ");
