@@ -30,8 +30,6 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractCodeArea.class);
 
-	public static final Color MARK_ALL_HIGHLIGHT_COLOR = Color.decode("#FFED89");
-
 	protected final ContentPanel contentPanel;
 	protected final JNode node;
 
@@ -45,7 +43,6 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		loadSettings();
 		JadxSettings settings = contentPanel.getTabbedPane().getMainWindow().getSettings();
 		setLineWrap(settings.isCodeAreaLineWrap());
-		setMarkAllHighlightColor(MARK_ALL_HIGHLIGHT_COLOR);
 
 		JPopupMenu popupMenu = getPopupMenu();
 		popupMenu.addSeparator();

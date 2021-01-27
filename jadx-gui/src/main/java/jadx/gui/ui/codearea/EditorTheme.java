@@ -10,7 +10,8 @@ public final class EditorTheme {
 					new EditorTheme("idea"),
 					new EditorTheme("vs"),
 					new EditorTheme("dark"),
-					new EditorTheme("monokai")
+					new EditorTheme("monokai"),
+					new EditorTheme("druid")
 			};
 
 	public static EditorTheme[] getAllThemes() {
