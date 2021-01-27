@@ -882,8 +882,7 @@ public class MainWindow extends JFrame {
 			}
 		};
 		backAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("nav.back"));
-		backAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_LEFT,
-				UiUtils.ctrlButton() | KeyEvent.ALT_DOWN_MASK));
+		backAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_ESCAPE, 0));
 
 		Action forwardAction = new AbstractAction(NLS.str("nav.forward"), ICON_FORWARD) {
 			@Override
@@ -892,8 +891,7 @@ public class MainWindow extends JFrame {
 			}
 		};
 		forwardAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("nav.forward"));
-		forwardAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_RIGHT,
-				UiUtils.ctrlButton() | KeyEvent.ALT_DOWN_MASK));
+		forwardAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.ALT_DOWN_MASK));
 
 		JMenu file = new JMenu(NLS.str("menu.file"));
 		file.setMnemonic(KeyEvent.VK_F);
