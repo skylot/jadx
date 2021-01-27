@@ -55,6 +55,9 @@ public class JavaVariable implements JavaNode {
 
 	@Override
 	public boolean equals(Object obj) {
-		return node.equals(obj);
+		if (obj instanceof JavaVariable) {
+			return node.equals(((JavaVariable) obj).getVariableNode());
+		}
+		return false;
 	}
 }

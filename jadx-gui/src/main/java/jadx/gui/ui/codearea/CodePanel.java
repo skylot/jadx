@@ -12,6 +12,9 @@ import javax.swing.JPopupMenu.Separator;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
+import javax.swing.text.BadLocationException;
+
+import org.fife.ui.rsyntaxtextarea.Token;
 
 import jadx.api.ICodeInfo;
 import jadx.core.utils.StringUtils;
@@ -146,12 +149,67 @@ public class CodePanel extends JPanel {
 	}
 
 	public void refresh() {
-		JViewport viewport = getCodeScrollPane().getViewport();
-		Point viewPosition = viewport.getViewPosition();
+		int line;
+		int lineCount;
+		int tokenIndex;
+		int pos = codeArea.getCaretPosition();
+		try {
+			// after rename the change of document is undetectable, so
+			// use Token offset to calculate the new caret position.
+			line = codeArea.getLineOfOffset(pos);
+			Token token = codeArea.getTokenListForLine(line);
+			tokenIndex = getTokenIndexByOffset(token, pos);
+		} catch (BadLocationException e) {
+			e.printStackTrace();
+			tokenIndex = 0;
+			line = codeArea.getLineCount() - 1;
+		}
+		lineCount = codeArea.getLineCount();
 		codeArea.refresh();
 		initLineNumbers();
+		int lineDiff = codeArea.getLineCount() - lineCount;
+		if (lineDiff > 0) {
+			lineDiff--;
+		} else if (lineDiff < 0) {
+			lineDiff++;
+		}
+		Token token = codeArea.getTokenListForLine(line + lineDiff);
+		int newPos = getOffsetOfTokenByIndex(tokenIndex, token);
 		SwingUtilities.invokeLater(() -> {
-			viewport.setViewPosition(viewPosition);
+			if (newPos != -1) {
+				codeArea.scrollToPos(newPos);
+			} else {
+				codeArea.scrollToLine(codeArea.getLineCount() - 1);
+			}
 		});
+	}
+
+	private int getTokenIndexByOffset(Token token, int offset) {
+		if (token != null) {
+			int index = 1;
+			while (token.getEndOffset() < offset) {
+				token = token.getNextToken();
+				if (token == null) {
+					index = 0;
+					break;
+				}
+				index++;
+			}
+			return index;
+		}
+		return -1;
+	}
+
+	private int getOffsetOfTokenByIndex(int index, Token token) {
+		if (token != null) {
+			for (int i = 0; i < index; i++) {
+				token = token.getNextToken();
+				if (token == null) {
+					return -1;
+				}
+			}
+			return token.getOffset();
+		}
+		return -1;
 	}
 }

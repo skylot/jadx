@@ -1,9 +1,7 @@
 package jadx.core.dex.nodes;
 
-import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class VariableNode extends LineAttrNode {
@@ -54,17 +52,6 @@ public class VariableNode extends LineAttrNode {
 
 	public int getIndex() {
 		return index;
-	}
-
-	public void addUsage(int line, int offset, int codeOffset) {
-	}
-
-	public void useVar(CodeWriter code, CodeVar codeVar) {
-		if (!codeVar.isThis()) { // TODO: add usage
-			// IdentifierVisitor.VariableNode node = codeVar.getVariableNode();
-			// node.addUsage(code.getLine(), code.getOffset(), code.bufLength());
-			// code.attachAnnotation(node);
-		}
 	}
 
 	public String getRenameKey() {
