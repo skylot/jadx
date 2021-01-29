@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,6 +21,7 @@ import jadx.api.plugins.input.data.IClassData;
 import jadx.api.plugins.input.data.ILoadResult;
 import jadx.core.Jadx;
 import jadx.core.clsp.ClspGraph;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.ConstStorage;
 import jadx.core.dex.info.FieldInfo;
@@ -60,8 +62,8 @@ public class RootNode {
 
 	private final ICodeCache codeCache;
 
-	private final List<ClassNode> classes = new ArrayList<>();
 	private final Map<ClassInfo, ClassNode> clsMap = new HashMap<>();
+	private List<ClassNode> classes = new ArrayList<>();
 
 	private ClspGraph clsp;
 	@Nullable
@@ -91,6 +93,18 @@ public class RootNode {
 				}
 			});
 		}
+		if (classes.size() != clsMap.size()) {
+			// class name duplication detected
+			classes.stream().collect(Collectors.groupingBy(ClassNode::getClassInfo))
+					.entrySet().stream()
+					.filter(entry -> entry.getValue().size() > 1)
+					.forEach(entry -> {
+						LOG.warn("Found duplicated class: {}, count: {}. Only one will be loaded!", entry.getKey(),
+								entry.getValue().size());
+						entry.getValue().forEach(cls -> cls.addAttr(AType.COMMENTS, "WARNING: Classes with same name are omitted"));
+					});
+		}
+		classes = new ArrayList<>(clsMap.values());
 		// sort classes by name, expect top classes before inner
 		classes.sort(Comparator.comparing(ClassNode::getFullName));
 		initInnerClasses();

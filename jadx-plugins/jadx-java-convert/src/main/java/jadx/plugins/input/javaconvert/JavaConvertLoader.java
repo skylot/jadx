@@ -82,9 +82,11 @@ public class JavaConvertLoader {
 				.filter(aarMatcher::matches)
 				.forEach(path -> ZipSecurity.readZipEntries(path.toFile(), (entry, in) -> {
 					try {
-						if (entry.getName().endsWith(".jar")) {
+						String entryName = entry.getName();
+						if (entryName.endsWith(".jar")) {
 							Path tempJar = saveInputStreamToFile(in, ".jar");
 							result.addTempPath(tempJar);
+							LOG.debug("Loading jar: {} ...", entryName);
 							convertJar(result, tempJar);
 						}
 					} catch (Exception e) {
