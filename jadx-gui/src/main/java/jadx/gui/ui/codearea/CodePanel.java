@@ -149,10 +149,10 @@ public class CodePanel extends JPanel {
 	}
 
 	public void refresh() {
-		int line;
-		int lineCount;
+		int line = 0;
 		int tokenIndex;
 		int pos = codeArea.getCaretPosition();
+		int lineCount = codeArea.getLineCount();
 		try {
 			// after rename the change of document is undetectable, so
 			// use Token offset to calculate the new caret position.
@@ -161,10 +161,12 @@ public class CodePanel extends JPanel {
 			tokenIndex = getTokenIndexByOffset(token, pos);
 		} catch (BadLocationException e) {
 			e.printStackTrace();
-			tokenIndex = 0;
-			line = codeArea.getLineCount() - 1;
+			tokenIndex = -1;
 		}
-		lineCount = codeArea.getLineCount();
+		if (tokenIndex == -1) {
+			refreshToViewport();
+			return;
+		}
 		codeArea.refresh();
 		initLineNumbers();
 		int lineDiff = codeArea.getLineCount() - lineCount;
@@ -184,14 +186,23 @@ public class CodePanel extends JPanel {
 		});
 	}
 
+	private void refreshToViewport() {
+		JViewport viewport = getCodeScrollPane().getViewport();
+		Point viewPosition = viewport.getViewPosition();
+		codeArea.refresh();
+		initLineNumbers();
+		SwingUtilities.invokeLater(() -> {
+			viewport.setViewPosition(viewPosition);
+		});
+	}
+
 	private int getTokenIndexByOffset(Token token, int offset) {
 		if (token != null) {
 			int index = 1;
 			while (token.getEndOffset() < offset) {
 				token = token.getNextToken();
 				if (token == null) {
-					index = 0;
-					break;
+					return -1;
 				}
 				index++;
 			}
@@ -201,7 +212,7 @@ public class CodePanel extends JPanel {
 	}
 
 	private int getOffsetOfTokenByIndex(int index, Token token) {
-		if (token != null) {
+		if (token != null && index != -1) {
 			for (int i = 0; i < index; i++) {
 				token = token.getNextToken();
 				if (token == null) {

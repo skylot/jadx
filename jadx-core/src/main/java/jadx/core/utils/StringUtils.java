@@ -256,6 +256,56 @@ public class StringUtils {
 		return count;
 	}
 
+	/**
+	 * returns how many lines does it have between start to pos in content.
+	 */
+	public static int countLinesByPos(String content, int pos, int start) {
+		if (start >= pos) {
+			return 0;
+		}
+		int count = 0;
+		int tempPos = start;
+		do {
+			tempPos = content.indexOf("\n", tempPos);
+			if (tempPos == -1) {
+				break;
+			}
+			if (tempPos >= pos) {
+				break;
+			}
+			count += 1;
+			tempPos += 1;
+		} while (tempPos < content.length());
+		return count;
+	}
+
+	/**
+	 * returns lines that contain pos to end if end is not -1.
+	 */
+	public static String getLine(String content, int pos, int end) {
+		if (pos >= content.length()) {
+			return "";
+		}
+		if (end != -1) {
+			if (end > content.length()) {
+				end = content.length() - 1;
+			}
+		} else {
+			end = pos + 1;
+		}
+		// get to line head
+		int headPos = content.lastIndexOf("\n", pos);
+		if (headPos == -1) {
+			headPos = 0;
+		}
+		// get to line end
+		int endPos = content.indexOf("\n", end);
+		if (endPos == -1) {
+			endPos = content.length();
+		}
+		return content.substring(headPos, endPos);
+	}
+
 	public static boolean isWhite(char chr) {
 		return WHITES.indexOf(chr) != -1;
 	}

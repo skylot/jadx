@@ -47,7 +47,7 @@ public class CodeIndex {
 			}
 			LOG.debug("Code search complete: {}, memory usage: {}", searchSettings.getSearchString(), UiUtils.memoryInfo());
 			emitter.onComplete();
-		}, BackpressureStrategy.LATEST);
+		}, BackpressureStrategy.BUFFER);
 	}
 
 	public int size() {

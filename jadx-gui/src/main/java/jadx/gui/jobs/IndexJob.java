@@ -12,7 +12,6 @@ import jadx.gui.JadxWrapper;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.CodeLinesInfo;
 import jadx.gui.utils.CodeUsageInfo;
-import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.search.StringRef;
@@ -30,12 +29,12 @@ public class IndexJob extends BackgroundJob {
 
 	@Override
 	protected void runJob() {
-		JNodeCache nodeCache = cache.getNodeCache();
-		TextSearchIndex index = new TextSearchIndex(nodeCache);
-		CodeUsageInfo usageInfo = new CodeUsageInfo(nodeCache);
+		TextSearchIndex index = new TextSearchIndex(cache);
+		CodeUsageInfo usageInfo = new CodeUsageInfo(cache.getNodeCache());
+
 		cache.setTextIndex(index);
 		cache.setUsageInfo(usageInfo);
-
+		addTask(index::indexResource);
 		for (final JavaClass cls : wrapper.getIncludedClasses()) {
 			addTask(() -> indexCls(cache, cls));
 		}

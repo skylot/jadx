@@ -39,7 +39,8 @@ public class SearchDialog extends CommonSearchDialog {
 		FIELD,
 		CODE,
 		IGNORE_CASE,
-		USE_REGEX
+		USE_REGEX,
+		Resource
 	}
 
 	private transient Set<SearchOptions> options;
@@ -76,7 +77,6 @@ public class SearchDialog extends CommonSearchDialog {
 		if (lastSearch != null) {
 			searchField.setText(lastSearch);
 			searchField.selectAll();
-			searchEmitter.emitSearch();
 		}
 		searchField.requestFocus();
 	}
@@ -91,6 +91,7 @@ public class SearchDialog extends CommonSearchDialog {
 		JCheckBox caseChBox = makeOptionsCheckBox(NLS.str("search_dialog.ignorecase"), SearchOptions.IGNORE_CASE);
 		JCheckBox regexChBox = makeOptionsCheckBox(NLS.str("search_dialog.regex"), SearchOptions.USE_REGEX);
 
+		JCheckBox resChBox = makeOptionsCheckBox(NLS.str("search_dialog.resource"), SearchOptions.Resource);
 		JCheckBox clsChBox = makeOptionsCheckBox(NLS.str("search_dialog.class"), SearchOptions.CLASS);
 		JCheckBox mthChBox = makeOptionsCheckBox(NLS.str("search_dialog.method"), SearchOptions.METHOD);
 		JCheckBox fldChBox = makeOptionsCheckBox(NLS.str("search_dialog.field"), SearchOptions.FIELD);
@@ -98,6 +99,7 @@ public class SearchDialog extends CommonSearchDialog {
 
 		JPanel searchInPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		searchInPanel.setBorder(BorderFactory.createTitledBorder(NLS.str("search_dialog.search_in")));
+		searchInPanel.add(resChBox);
 		searchInPanel.add(clsChBox);
 		searchInPanel.add(mthChBox);
 		searchInPanel.add(fldChBox);
@@ -200,6 +202,7 @@ public class SearchDialog extends CommonSearchDialog {
 		if (index == null) {
 			return Flowable.empty();
 		}
+		showSearchState();
 		return index.buildSearch(text, options);
 	}
 
