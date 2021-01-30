@@ -111,7 +111,10 @@ public abstract class CommonSearchDialog extends JDialog {
 		}
 		JumpPosition jmpPos;
 		JNode node = (JNode) resultsModel.getValueAt(selectedId, 0);
-		if (node instanceof CodeNode) {
+		if (node instanceof JResSearchNode) {
+			jmpPos = new JumpPosition(((JResSearchNode) node).getResNode(), node.getLine())
+					.setPrecise(((JResSearchNode) node).getPos());
+		} else if (node instanceof CodeNode) {
 			CodeNode codeNode = (CodeNode) node;
 			jmpPos = new JumpPosition(node.getRootClass(), node.getLine(), codeNode.getPos());
 			if (codeNode.isPrecisePos()) {
@@ -121,8 +124,9 @@ public abstract class CommonSearchDialog extends JDialog {
 			jmpPos = new JumpPosition(node.getRootClass(), node.getLine());
 		}
 		tabbedPane.codeJump(jmpPos);
-
-		dispose();
+		if (!mainWindow.getSettings().getKeepCommonDialogOpen()) {
+			dispose();
+		}
 	}
 
 	@Override
@@ -148,6 +152,15 @@ public abstract class CommonSearchDialog extends JDialog {
 		JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.LINE_AXIS));
 		buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+
+		JCheckBox cbKeepOpen = new JCheckBox(NLS.str("search_dialog.keep_open"));
+		cbKeepOpen.setSelected(mainWindow.getSettings().getKeepCommonDialogOpen());
+		cbKeepOpen.addActionListener(e -> {
+			mainWindow.getSettings().setKeepCommonDialogOpen(cbKeepOpen.isSelected());
+			mainWindow.getSettings().sync();
+		});
+		buttonPane.add(cbKeepOpen);
+		buttonPane.add(Box.createRigidArea(new Dimension(15, 0)));
 		buttonPane.add(progressPane);
 		buttonPane.add(Box.createRigidArea(new Dimension(5, 0)));
 		buttonPane.add(Box.createHorizontalGlue());
@@ -249,6 +262,10 @@ public abstract class CommonSearchDialog extends JDialog {
 				resultsModel.getDisplayedResultsEnd(),
 				resultsModel.getResultCount());
 		resultsInfoLabel.setText(statusText);
+	}
+
+	protected void showSearchState() {
+		resultsInfoLabel.setText(NLS.str("search_dialog.tip_searching"));
 	}
 
 	protected static class ResultsTable extends JTable {

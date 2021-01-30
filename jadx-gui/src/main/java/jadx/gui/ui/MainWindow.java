@@ -445,6 +445,8 @@ public class MainWindow extends JFrame {
 	protected void resetCache() {
 		cacheObject.reset();
 		// TODO: decompilation freezes sometime with several threads
+		this.cacheObject.setJRoot(treeRoot);
+		this.cacheObject.setJadxSettings(settings);
 		int threadsCount = settings.getThreadsCount();
 		cacheObject.setDecompileJob(new DecompileJob(wrapper, threadsCount));
 		cacheObject.setIndexJob(new IndexJob(wrapper, cacheObject, threadsCount));
@@ -563,6 +565,8 @@ public class MainWindow extends JFrame {
 		treeModel.setRoot(treeRoot);
 		treeRoot.update();
 		reloadTree();
+		cacheObject.setJRoot(treeRoot);
+		cacheObject.setJadxSettings(settings);
 	}
 
 	private void clearTree() {

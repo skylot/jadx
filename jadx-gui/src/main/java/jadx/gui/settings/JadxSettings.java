@@ -63,6 +63,10 @@ public class JadxSettings extends JadxCLIArgs {
 	private Map<String, WindowLocation> windowPos = new HashMap<>();
 	private int mainWindowExtendedState = JFrame.NORMAL;
 	private boolean codeAreaLineWrap = false;
+	private int srhResourceSkipSize = 1000;
+	private String srhResourceFileExt = ".xml|.html|.js|.json|.txt";
+	private boolean keepCommonDialogOpen = false;
+
 	/**
 	 * UI setting: the width of the tree showing the classes, resources, ...
 	 */
@@ -400,6 +404,30 @@ public class JadxSettings extends JadxCLIArgs {
 		return this.codeAreaLineWrap;
 	}
 
+	public int getSrhResourceSkipSize() {
+		return srhResourceSkipSize;
+	}
+
+	public void setSrhResourceSkipSize(int size) {
+		srhResourceSkipSize = size;
+	}
+
+	public String getSrhResourceFileExt() {
+		return srhResourceFileExt;
+	}
+
+	public void setSrhResourceFileExt(String all) {
+		srhResourceFileExt = all.trim();
+	}
+
+	public void setKeepCommonDialogOpen(boolean yes) {
+		keepCommonDialogOpen = yes;
+	}
+
+	public boolean getKeepCommonDialogOpen() {
+		return keepCommonDialogOpen;
+	}
+
 	private void upgradeSettings(int fromVersion) {
 		LOG.debug("upgrade settings from version: {} to {}", fromVersion, CURRENT_SETTINGS_VERSION);
 		if (fromVersion == 0) {
@@ -453,6 +481,10 @@ public class JadxSettings extends JadxCLIArgs {
 		if (fromVersion == 9) {
 			showHeapUsageBar = false;
 			fromVersion++;
+		}
+		if (fromVersion == 10) {
+			srhResourceSkipSize = 3;
+			srhResourceFileExt = ".xml|.html|.js|.json|.txt";
 		}
 		settingsVersion = CURRENT_SETTINGS_VERSION;
 		sync();

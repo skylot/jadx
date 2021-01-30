@@ -35,7 +35,7 @@ public class SimpleIndex {
 				}
 			}
 			emitter.onComplete();
-		}, BackpressureStrategy.LATEST);
+		}, BackpressureStrategy.BUFFER);
 	}
 
 	public int size() {

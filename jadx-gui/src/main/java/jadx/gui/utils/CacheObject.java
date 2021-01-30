@@ -7,6 +7,8 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.gui.jobs.DecompileJob;
 import jadx.gui.jobs.IndexJob;
+import jadx.gui.settings.JadxSettings;
+import jadx.gui.treemodel.JRoot;
 import jadx.gui.ui.SearchDialog;
 import jadx.gui.utils.search.TextSearchIndex;
 
@@ -20,12 +22,16 @@ public class CacheObject {
 	private String lastSearch;
 	private JNodeCache jNodeCache;
 	private Set<SearchDialog.SearchOptions> lastSearchOptions;
+	private JRoot jRoot;
+	private JadxSettings settings;
 
 	public CacheObject() {
 		reset();
 	}
 
 	public void reset() {
+		jRoot = null;
+		settings = null;
 		decompileJob = null;
 		indexJob = null;
 		textIndex = null;
@@ -88,5 +94,21 @@ public class CacheObject {
 
 	public Set<SearchDialog.SearchOptions> getLastSearchOptions() {
 		return lastSearchOptions;
+	}
+
+	public void setJadxSettings(JadxSettings settings) {
+		this.settings = settings;
+	}
+
+	public JadxSettings getJadxSettings() {
+		return this.settings;
+	}
+
+	public JRoot getJRoot() {
+		return jRoot;
+	}
+
+	public void setJRoot(JRoot jRoot) {
+		this.jRoot = jRoot;
 	}
 }
