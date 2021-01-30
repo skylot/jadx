@@ -99,33 +99,9 @@ public class ConstInlineVisitor extends AbstractVisitor {
 		} else {
 			return;
 		}
-		if (checkForFinallyBlock(sVar)) {
-			return;
-		}
 
 		// all check passed, run replace
 		replaceConst(mth, insn, constArg, toRemove);
-	}
-
-	private static boolean checkForFinallyBlock(SSAVar sVar) {
-		List<SSAVar> ssaVars = sVar.getCodeVar().getSsaVars();
-		if (ssaVars.size() <= 1) {
-			return false;
-		}
-		int countInsns = 0;
-		int countFinallyInsns = 0;
-		for (SSAVar ssaVar : ssaVars) {
-			for (RegisterArg reg : ssaVar.getUseList()) {
-				InsnNode parentInsn = reg.getParentInsn();
-				if (parentInsn != null) {
-					countInsns++;
-					if (parentInsn.contains(AFlag.FINALLY_INSNS)) {
-						countFinallyInsns++;
-					}
-				}
-			}
-		}
-		return countFinallyInsns != 0 && countFinallyInsns != countInsns;
 	}
 
 	/**
@@ -180,16 +156,27 @@ public class ConstInlineVisitor extends AbstractVisitor {
 		List<RegisterArg> useList = new ArrayList<>(ssaVar.getUseList());
 		int replaceCount = 0;
 		for (RegisterArg arg : useList) {
-			if (arg.contains(AFlag.DONT_INLINE_CONST)) {
-				continue;
-			}
-			if (replaceArg(mth, arg, constArg, constInsn, toRemove)) {
+			if (canInline(arg) && replaceArg(mth, arg, constArg, constInsn, toRemove)) {
 				replaceCount++;
 			}
 		}
 		if (replaceCount == useList.size()) {
 			toRemove.add(constInsn);
 		}
+	}
+
+	private static boolean canInline(RegisterArg arg) {
+		if (arg.contains(AFlag.DONT_INLINE_CONST)) {
+			return false;
+		}
+		InsnNode parentInsn = arg.getParentInsn();
+		if (parentInsn == null) {
+			return false;
+		}
+		if (parentInsn.contains(AFlag.DONT_GENERATE) || parentInsn.contains(AFlag.FINALLY_INSNS)) {
+			return false;
+		}
+		return true;
 	}
 
 	private static boolean replaceArg(MethodNode mth, RegisterArg arg, InsnArg constArg, InsnNode constInsn, List<InsnNode> toRemove) {

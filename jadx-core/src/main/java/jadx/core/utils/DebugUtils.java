@@ -6,6 +6,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -55,6 +56,17 @@ public class DebugUtils {
 			@Override
 			public void visit(MethodNode mth) throws JadxException {
 				dumpRaw(mth, desc);
+			}
+		};
+	}
+
+	public static IDexTreeVisitor dumpRawVisitor(String desc, Predicate<MethodNode> filter) {
+		return new AbstractVisitor() {
+			@Override
+			public void visit(MethodNode mth) {
+				if (filter.test(mth)) {
+					dumpRaw(mth, desc);
+				}
 			}
 		};
 	}
