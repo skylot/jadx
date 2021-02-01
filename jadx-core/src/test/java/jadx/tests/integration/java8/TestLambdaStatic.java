@@ -61,7 +61,8 @@ public class TestLambdaStatic extends IntegrationTest {
 				.containsLines(2,
 						"return () -> {",
 						indent() + "return str;",
-						"};");
+						"};")
+				.containsOne("return Integer::parseInt;");
 	}
 
 	@Test

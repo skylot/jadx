@@ -14,6 +14,7 @@ public class InvokeCustomNode extends InvokeNode {
 	private MethodHandleType handleType;
 	private InsnNode callInsn;
 	private boolean inlineInsn;
+	private boolean useRef;
 
 	public InvokeCustomNode(MethodInfo lambdaInfo, InsnData insn, boolean instanceCall, boolean isRange) {
 		super(lambdaInfo, insn, InvokeType.CUSTOM, instanceCall, isRange);
@@ -49,6 +50,14 @@ public class InvokeCustomNode extends InvokeNode {
 
 	public void setInlineInsn(boolean inlineInsn) {
 		this.inlineInsn = inlineInsn;
+	}
+
+	public boolean isUseRef() {
+		return useRef;
+	}
+
+	public void setUseRef(boolean useRef) {
+		this.useRef = useRef;
 	}
 
 	@Nullable

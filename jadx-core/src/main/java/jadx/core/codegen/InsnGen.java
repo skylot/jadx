@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.plugins.input.data.MethodHandleType;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -35,16 +36,29 @@ import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.InvokeType;
 import jadx.core.dex.instructions.NewArrayNode;
 import jadx.core.dex.instructions.SwitchInsn;
-import jadx.core.dex.instructions.args.*;
+import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.CodeVar;
+import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.InsnWrapArg;
+import jadx.core.dex.instructions.args.LiteralArg;
+import jadx.core.dex.instructions.args.Named;
+import jadx.core.dex.instructions.args.NamedArg;
+import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.instructions.mods.TernaryInsn;
-import jadx.core.dex.nodes.*;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.InsnNode;
+import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.nodes.RootNode;
+import jadx.core.dex.nodes.VariableNode;
 import jadx.core.utils.CodeGenUtils;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
-import static jadx.core.dex.nodes.VariableNode.*;
+import static jadx.core.dex.nodes.VariableNode.VarKind;
 import static jadx.core.utils.android.AndroidResourcesUtils.handleAppResField;
 
 public class InsnGen {
@@ -765,12 +779,27 @@ public class InsnGen {
 	}
 
 	private void makeInvokeLambda(CodeWriter code, InvokeCustomNode customNode) throws CodegenException {
+		if (customNode.isUseRef()) {
+			makeRefLambda(code, customNode);
+			return;
+		}
 		if (fallback || !customNode.isInlineInsn()) {
 			makeSimpleLambda(code, customNode);
 			return;
 		}
 		MethodNode callMth = (MethodNode) customNode.getCallInsn().get(AType.METHOD_DETAILS);
 		makeInlinedLambdaMethod(code, customNode, callMth);
+	}
+
+	private void makeRefLambda(CodeWriter code, InvokeCustomNode customNode) {
+		InvokeNode invokeInsn = (InvokeNode) customNode.getCallInsn();
+		MethodInfo callMth = invokeInsn.getCallMth();
+		if (customNode.getHandleType() == MethodHandleType.INVOKE_STATIC) {
+			useClass(code, callMth.getDeclClass());
+		} else {
+			code.add("this");
+		}
+		code.add("::").add(callMth.getAlias());
 	}
 
 	private void makeSimpleLambda(CodeWriter code, InvokeCustomNode customNode) {
@@ -782,17 +811,22 @@ public class InsnGen {
 				code.add("()");
 			} else {
 				code.add('(');
-				// rename lambda args
 				int callArgsCount = callInsn.getArgsCount();
 				int startArg = callArgsCount - implArgsCount;
-				if (startArg < 0) {
-					System.out.println();
+				if (customNode.getHandleType() != MethodHandleType.INVOKE_STATIC
+						&& customNode.getArgsCount() > 0
+						&& customNode.getArg(0).isThis()) {
+					callInsn.getArg(0).add(AFlag.THIS);
 				}
-				for (int i = startArg; i < callArgsCount; i++) {
-					if (i != startArg) {
-						code.add(", ");
+				if (startArg >= 0) {
+					for (int i = startArg; i < callArgsCount; i++) {
+						if (i != startArg) {
+							code.add(", ");
+						}
+						addArg(code, callInsn.getArg(i));
 					}
-					addArg(code, callInsn.getArg(i));
+				} else {
+					code.add("/* ERROR: " + startArg + " */");
 				}
 				code.add(')');
 			}
@@ -837,7 +871,8 @@ public class InsnGen {
 		}
 		// force set external arg names into call method args
 		int extArgsCount = customNode.getArgsCount();
-		for (int i = 0; i < extArgsCount; i++) {
+		int startArg = customNode.getHandleType() == MethodHandleType.INVOKE_STATIC ? 0 : 1; // skip 'this' arg
+		for (int i = startArg; i < extArgsCount; i++) {
 			RegisterArg extArg = (RegisterArg) customNode.getArg(i);
 			callArgs.get(i).setName(extArg.getName());
 		}
