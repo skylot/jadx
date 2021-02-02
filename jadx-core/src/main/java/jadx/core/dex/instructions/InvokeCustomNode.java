@@ -20,6 +20,38 @@ public class InvokeCustomNode extends InvokeNode {
 		super(lambdaInfo, insn, InvokeType.CUSTOM, instanceCall, isRange);
 	}
 
+	private InvokeCustomNode(MethodInfo mth, InvokeType invokeType, int argsCount) {
+		super(mth, invokeType, argsCount);
+	}
+
+	@Override
+	public InsnNode copy() {
+		InvokeCustomNode copy = new InvokeCustomNode(getCallMth(), getInvokeType(), getArgsCount());
+		copyCommonParams(copy);
+		copy.setImplMthInfo(implMthInfo);
+		copy.setHandleType(handleType);
+		copy.setCallInsn(callInsn);
+		copy.setInlineInsn(inlineInsn);
+		copy.setUseRef(useRef);
+		return copy;
+	}
+
+	@Override
+	public boolean isSame(InsnNode obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof InvokeCustomNode) || !super.isSame(obj)) {
+			return false;
+		}
+		InvokeCustomNode other = (InvokeCustomNode) obj;
+		return handleType == other.handleType
+				&& implMthInfo.equals(other.implMthInfo)
+				&& callInsn.isSame(other.callInsn)
+				&& inlineInsn == other.inlineInsn
+				&& useRef == other.useRef;
+	}
+
 	public MethodInfo getImplMthInfo() {
 		return implMthInfo;
 	}
