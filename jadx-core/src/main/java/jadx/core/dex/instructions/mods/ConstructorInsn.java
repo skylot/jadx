@@ -7,6 +7,7 @@ import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
+import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -26,31 +27,25 @@ public final class ConstructorInsn extends BaseInvokeNode {
 	public ConstructorInsn(MethodNode mth, InvokeNode invoke) {
 		super(InsnType.CONSTRUCTOR, invoke.getArgsCount() - 1);
 		this.callMth = invoke.getCallMth();
-		ClassInfo classType = callMth.getDeclClass();
-		RegisterArg instanceArg = (RegisterArg) invoke.getArg(0);
-
-		if (instanceArg.isThis()) {
-			if (classType.equals(mth.getParentClass().getClassInfo())) {
-				if (callMth.getShortId().equals(mth.getMethodInfo().getShortId())) {
-					// self constructor
-					callType = CallType.SELF;
-				} else {
-					callType = CallType.THIS;
-				}
-			} else {
-				callType = CallType.SUPER;
-			}
-		} else {
-			callType = CallType.CONSTRUCTOR;
-			setResult(instanceArg);
-			// convert from 'use' to 'assign'
-			instanceArg.getSVar().setAssign(instanceArg);
-		}
-		instanceArg.getSVar().removeUse(instanceArg);
+		this.callType = getCallType(mth, callMth.getDeclClass(), invoke.getArg(0));
 		int argsCount = invoke.getArgsCount();
 		for (int i = 1; i < argsCount; i++) {
 			addArg(invoke.getArg(i));
 		}
+	}
+
+	private CallType getCallType(MethodNode mth, ClassInfo classType, InsnArg instanceArg) {
+		if (instanceArg.isThis()) {
+			if (classType.equals(mth.getParentClass().getClassInfo())) {
+				if (callMth.getShortId().equals(mth.getMethodInfo().getShortId())) {
+					// self constructor
+					return CallType.SELF;
+				}
+				return CallType.THIS;
+			}
+			return CallType.SUPER;
+		}
+		return CallType.CONSTRUCTOR;
 	}
 
 	public ConstructorInsn(MethodInfo callMth, CallType callType) {

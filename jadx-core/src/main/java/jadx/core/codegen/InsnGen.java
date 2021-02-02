@@ -792,14 +792,23 @@ public class InsnGen {
 	}
 
 	private void makeRefLambda(CodeWriter code, InvokeCustomNode customNode) {
-		InvokeNode invokeInsn = (InvokeNode) customNode.getCallInsn();
-		MethodInfo callMth = invokeInsn.getCallMth();
-		if (customNode.getHandleType() == MethodHandleType.INVOKE_STATIC) {
+		InsnNode callInsn = customNode.getCallInsn();
+		if (callInsn instanceof ConstructorInsn) {
+			MethodInfo callMth = ((ConstructorInsn) callInsn).getCallMth();
 			useClass(code, callMth.getDeclClass());
-		} else {
-			code.add("this");
+			code.add("::new");
+			return;
 		}
-		code.add("::").add(callMth.getAlias());
+		if (callInsn instanceof InvokeNode) {
+			InvokeNode invokeInsn = (InvokeNode) callInsn;
+			MethodInfo callMth = invokeInsn.getCallMth();
+			if (customNode.getHandleType() == MethodHandleType.INVOKE_STATIC) {
+				useClass(code, callMth.getDeclClass());
+			} else {
+				code.add("this");
+			}
+			code.add("::").add(callMth.getAlias());
+		}
 	}
 
 	private void makeSimpleLambda(CodeWriter code, InvokeCustomNode customNode) {

@@ -17,6 +17,7 @@ import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.NamedArg;
+import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
@@ -61,44 +62,18 @@ public class InvokeCustomBuilder {
 		invokeCustomNode.setImplMthInfo(implMthInfo);
 
 		MethodInfo callMthInfo = MethodInfo.fromRef(root, callMthHandle.getMethodRef());
+		InvokeNode invokeNode = buildInvokeNode(methodHandleType, invokeCustomNode, callMthInfo);
 
-		InvokeType invokeType = convertInvokeType(methodHandleType);
-		int callArgsCount = callMthInfo.getArgsCount();
-		boolean instanceCall = invokeType != InvokeType.STATIC;
-		if (instanceCall) {
-			callArgsCount++;
-		}
-		InvokeNode callInsn = new InvokeNode(callMthInfo, invokeType, callArgsCount);
-		invokeCustomNode.setCallInsn(callInsn);
-
-		// copy insn args
-		int argsCount = invokeCustomNode.getArgsCount();
-		for (int i = 0; i < argsCount; i++) {
-			InsnArg arg = invokeCustomNode.getArg(i);
-			callInsn.addArg(arg.duplicate());
-		}
-		if (callArgsCount > argsCount) {
-			// fill remaining args with NamedArg
-			int callArgNum = argsCount;
-			if (instanceCall) {
-				callArgNum--; // start from instance type
-			}
-			List<ArgType> callArgTypes = callMthInfo.getArgumentsTypes();
-			for (int i = argsCount; i < callArgsCount; i++) {
-				ArgType argType;
-				if (callArgNum < 0) {
-					// instance arg type
-					argType = callMthInfo.getDeclClass().getType();
-				} else {
-					argType = callArgTypes.get(callArgNum++);
-				}
-				callInsn.addArg(new NamedArg("v" + i, argType));
-			}
+		if (methodHandleType == MethodHandleType.INVOKE_CONSTRUCTOR) {
+			ConstructorInsn ctrInsn = new ConstructorInsn(mth, invokeNode);
+			invokeCustomNode.setCallInsn(ctrInsn);
+		} else {
+			invokeCustomNode.setCallInsn(invokeNode);
 		}
 
 		MethodNode callMth = root.resolveMethod(callMthInfo);
 		if (callMth != null) {
-			callInsn.addAttr(callMth);
+			invokeCustomNode.getCallInsn().addAttr(callMth);
 			if (callMth.getAccessFlags().isSynthetic()
 					&& callMth.getUseIn().size() <= 1
 					&& callMth.getParentClass().equals(mth.getParentClass())) {
@@ -119,6 +94,44 @@ public class InvokeCustomBuilder {
 			arg.add(AFlag.DONT_INLINE);
 		}
 		return invokeCustomNode;
+	}
+
+	@NotNull
+	private static InvokeNode buildInvokeNode(MethodHandleType methodHandleType, InvokeCustomNode invokeCustomNode,
+			MethodInfo callMthInfo) {
+		InvokeType invokeType = convertInvokeType(methodHandleType);
+		int callArgsCount = callMthInfo.getArgsCount();
+		boolean instanceCall = invokeType != InvokeType.STATIC;
+		if (instanceCall) {
+			callArgsCount++;
+		}
+		InvokeNode invokeNode = new InvokeNode(callMthInfo, invokeType, callArgsCount);
+
+		// copy insn args
+		int argsCount = invokeCustomNode.getArgsCount();
+		for (int i = 0; i < argsCount; i++) {
+			InsnArg arg = invokeCustomNode.getArg(i);
+			invokeNode.addArg(arg.duplicate());
+		}
+		if (callArgsCount > argsCount) {
+			// fill remaining args with NamedArg
+			int callArgNum = argsCount;
+			if (instanceCall) {
+				callArgNum--; // start from instance type
+			}
+			List<ArgType> callArgTypes = callMthInfo.getArgumentsTypes();
+			for (int i = argsCount; i < callArgsCount; i++) {
+				ArgType argType;
+				if (callArgNum < 0) {
+					// instance arg type
+					argType = callMthInfo.getDeclClass().getType();
+				} else {
+					argType = callArgTypes.get(callArgNum++);
+				}
+				invokeNode.addArg(new NamedArg("v" + i, argType));
+			}
+		}
+		return invokeNode;
 	}
 
 	/**
@@ -149,6 +162,7 @@ public class InvokeCustomBuilder {
 			case INVOKE_INSTANCE:
 				return InvokeType.VIRTUAL;
 			case INVOKE_DIRECT:
+			case INVOKE_CONSTRUCTOR:
 				return InvokeType.DIRECT;
 			case INVOKE_INTERFACE:
 				return InvokeType.INTERFACE;
