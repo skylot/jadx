@@ -8,7 +8,7 @@ dependencies {
 	implementation(project(':jadx-core'))
 
 	implementation(project(":jadx-cli"))
-	implementation 'com.beust:jcommander:1.80'
+	implementation 'com.beust:jcommander:1.78'
 	implementation 'ch.qos.logback:logback-classic:1.2.3'
 
 	implementation 'com.fifesoft:rsyntaxtextarea:3.1.2'
@@ -80,10 +80,4 @@ launch4j {
 	maxHeapPercent = 70
 	downloadUrl = 'https://adoptopenjdk.net/releases.html?variant=openjdk11&jvmVariant=hotspot#x64_win'
 	bundledJrePath = '%JAVA_HOME%'
-}
-
-test {
-	jacoco {
-		enabled = false
-	}
 }

@@ -8,7 +8,6 @@ assignees: ''
 ---
 
 **Checks before report**
-- check [latest unstable build](https://bintray.com/skylot/jadx/unstable/_latestVersion#files) (maybe issue already fixed)
 - check [Troubleshooting Q&A](https://github.com/skylot/jadx/wiki/Troubleshooting-Q&A) section on wiki
 - search existing issues by exception message
 

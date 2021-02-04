@@ -1,5 +1,4 @@
 plugins {
-	id 'org.sonarqube' version '3.1'
 	id 'com.github.ben-manes.versions' version '0.36.0'
 	id "com.diffplug.spotless" version "5.9.0"
 }
@@ -10,7 +9,6 @@ println("jadx version: ${jadxVersion}")
 
 allprojects {
 	apply plugin: 'java'
-	apply plugin: 'jacoco'
 	apply plugin: 'checkstyle'
 
 	version = jadxVersion
@@ -57,30 +55,12 @@ allprojects {
 	repositories {
 		mavenLocal()
 		mavenCentral()
-		jcenter()
 		google()
-	}
-
-	jacoco {
-		toolVersion = "0.8.6"
-	}
-	jacocoTestReport {
-		reports {
-			xml.enabled = true
-			html.enabled = true
-		}
 	}
 
 	checkstyleMain {
 		// exclude all sources in samples module
 		exclude '**/samples/**'
-	}
-}
-
-sonarqube {
-	properties {
-		property 'sonar.exclusions', '**/jadx/samples/**/*,**/test-app/**/*'
-		property 'sonar.coverage.exclusions', '**/jadx/gui/**/*'
 	}
 }
 
