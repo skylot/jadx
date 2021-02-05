@@ -2,7 +2,7 @@
 
 ## JADX
 
-[![Build status](https://github.com/skylot/jadx/workflows/Test%20build/badge.svg)](https://github.com/skylot/jadx/actions?query=workflow%3A%22Test+build%22)
+[![Build status](https://github.com/skylot/jadx/workflows/Build/badge.svg)](https://github.com/skylot/jadx/actions?query=workflow%3ABuild)
 [![Alerts from lgtm.com](https://img.shields.io/lgtm/alerts/g/skylot/jadx.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/skylot/jadx/alerts/)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
@@ -30,6 +30,7 @@ See these features in action here: [jadx-gui features overview](https://github.c
 
 ### Download
 - release from [github: ![Latest release](https://img.shields.io/github/release/skylot/jadx.svg)](https://github.com/skylot/jadx/releases/latest)
+- latest [unstable build](https://github.com/skylot/jadx/actions?query=workflow%3ABuild) (Latest build -> Artifacts)
 
 After download unpack zip file go to `bin` directory and run:
 - `jadx` - command line version
