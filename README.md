@@ -30,7 +30,7 @@ See these features in action here: [jadx-gui features overview](https://github.c
 
 ### Download
 - release from [github: ![Latest release](https://img.shields.io/github/release/skylot/jadx.svg)](https://github.com/skylot/jadx/releases/latest)
-- latest [unstable build](https://github.com/skylot/jadx/actions?query=workflow%3ABuild) (Latest build -> Artifacts)
+- latest [unstable build](https://nightly.link/skylot/jadx/workflows/build/master)
 
 After download unpack zip file go to `bin` directory and run:
 - `jadx` - command line version

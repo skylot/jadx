@@ -32,12 +32,20 @@ jobs:
         with:
           arguments: build dist --warning-mode=all
 
-      - name: Save artifacts
+      - name: Save bundle artifact
         if: success() && github.event_name == 'push'
         uses: actions/upload-artifact@v2
         with:
           name: ${{ format('jadx-{0}', env.JADX_VERSION) }}
-          # Waiting fix for https://github.com/actions/upload-artifact/issues/39 to upload zip and exe artifacts separately.
+          # Waiting fix for https://github.com/actions/upload-artifact/issues/39 to upload zip file
           # Upload unpacked files for now
           path: build/jadx/**/*
+          if-no-files-found: error
+
+      - name: Save exe artifact
+        if: success() && github.event_name == 'push'
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ format('jadx-gui-{0}-no-jre-win.exe', env.JADX_VERSION) }}
+          path: build/*.exe
           if-no-files-found: error
