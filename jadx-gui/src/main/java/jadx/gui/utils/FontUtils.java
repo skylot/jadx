@@ -24,7 +24,7 @@ public class FontUtils {
 	}
 
 	public static Font loadByStr(String fontDesc) {
-		String[] parts = fontDesc.split("-");
+		String[] parts = fontDesc.split("/");
 		if (parts.length != 3) {
 			throw new JadxRuntimeException("Unsupported font description format: " + fontDesc);
 		}
@@ -42,8 +42,8 @@ public class FontUtils {
 
 	public static String convertToStr(Font font) {
 		return font.getFontName()
-				+ '-' + convertFontStyleToString(font.getStyle())
-				+ '-' + font.getSize();
+				+ '/' + convertFontStyleToString(font.getStyle())
+				+ '/' + font.getSize();
 	}
 
 	public static String convertFontStyleToString(int style) {

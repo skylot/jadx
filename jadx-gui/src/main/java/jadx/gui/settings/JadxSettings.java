@@ -25,6 +25,7 @@ import com.beust.jcommander.Parameter;
 import jadx.api.JadxArgs;
 import jadx.cli.JadxCLIArgs;
 import jadx.cli.LogHelper;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.FontUtils;
@@ -36,7 +37,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private static final Path USER_HOME = Paths.get(System.getProperty("user.home"));
 	private static final int RECENT_PROJECTS_COUNT = 15;
-	private static final int CURRENT_SETTINGS_VERSION = 10;
+	private static final int CURRENT_SETTINGS_VERSION = 11;
 
 	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
@@ -485,6 +486,11 @@ public class JadxSettings extends JadxCLIArgs {
 		if (fromVersion == 10) {
 			srhResourceSkipSize = 3;
 			srhResourceFileExt = ".xml|.html|.js|.json|.txt";
+			fontStr = fontStr.replace('-', '/');
+			fromVersion++;
+		}
+		if (fromVersion != CURRENT_SETTINGS_VERSION) {
+			throw new JadxRuntimeException("Incorrect settings upgrade");
 		}
 		settingsVersion = CURRENT_SETTINGS_VERSION;
 		sync();
