@@ -6,12 +6,19 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.JadxArgs;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
@@ -40,12 +47,18 @@ public class DeobfPresets {
 		if (deobfMapPath == null) {
 			return null;
 		}
+		LOG.info("Deobfuscation map file set to: {}", deobfMapPath);
 		return new DeobfPresets(deobfMapPath);
 	}
 
 	@Nullable
 	private static Path getPathDeobfMapPath(RootNode root) {
-		List<File> inputFiles = root.getArgs().getInputFiles();
+		JadxArgs jadxArgs = root.getArgs();
+		File deobfMapFile = jadxArgs.getDeobfuscationMapFile();
+		if (deobfMapFile != null) {
+			return deobfMapFile.toPath();
+		}
+		List<File> inputFiles = jadxArgs.getInputFiles();
 		if (inputFiles.isEmpty()) {
 			return null;
 		}

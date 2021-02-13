@@ -79,6 +79,12 @@ public class JadxCLIArgs {
 	@Parameter(names = { "--deobf-max" }, description = "max length of name, renamed if longer")
 	protected int deobfuscationMaxLength = 64;
 
+	@Parameter(
+			names = { "--deobf-cfg-file" },
+			description = "deobfuscation map file, default: same dir and name as input file with '.jobf' extension"
+	)
+	protected String deobfuscationMapFile;
+
 	@Parameter(names = { "--deobf-rewrite-cfg" }, description = "force to save deobfuscation map")
 	protected boolean deobfuscationForceSave = false;
 
@@ -193,6 +199,7 @@ public class JadxCLIArgs {
 		args.setRawCFGOutput(rawCfgOutput);
 		args.setReplaceConsts(replaceConsts);
 		args.setDeobfuscationOn(deobfuscationOn);
+		args.setDeobfuscationMapFile(FileUtils.toFile(deobfuscationMapFile));
 		args.setDeobfuscationForceSave(deobfuscationForceSave);
 		args.setDeobfuscationMinLength(deobfuscationMinLength);
 		args.setDeobfuscationMaxLength(deobfuscationMaxLength);
@@ -269,6 +276,10 @@ public class JadxCLIArgs {
 
 	public int getDeobfuscationMaxLength() {
 		return deobfuscationMaxLength;
+	}
+
+	public String getDeobfuscationMapFile() {
+		return deobfuscationMapFile;
 	}
 
 	public boolean isDeobfuscationForceSave() {

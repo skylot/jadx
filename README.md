@@ -86,8 +86,10 @@ options:
   --deobf                             - activate deobfuscation
   --deobf-min                         - min length of name, renamed if shorter, default: 3
   --deobf-max                         - max length of name, renamed if longer, default: 64
+  --deobf-cfg-file                    - deobfuscation map file, default: same dir and name as input file with '.jobf' extension
   --deobf-rewrite-cfg                 - force to save deobfuscation map
   --deobf-use-sourcename              - use source file name as class name alias
+  --deobf-parse-kotlin-metadata       - parse kotlin metadata to class and package names
   --rename-flags                      - what to rename, comma-separated, 'case' for system case sensitivity, 'valid' for java identifiers, 'printable' characters, 'none' or 'all' (default)
   --fs-case-sensitive                 - treat filesystem as case sensitive, false by default
   --cfg                               - save methods control flow graph to dot file

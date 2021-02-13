@@ -43,6 +43,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	static final Set<String> SKIP_FIELDS = new HashSet<>(Arrays.asList(
 			"files", "input", "outDir", "outDirSrc", "outDirRes", "outputFormat",
+			"deobfuscationMapFile",
 			"verbose", "quiet", "logLevel",
 			"printVersion", "printHelp"));
 

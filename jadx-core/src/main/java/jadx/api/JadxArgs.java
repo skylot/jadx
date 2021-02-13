@@ -50,6 +50,7 @@ public class JadxArgs {
 	private boolean deobfuscationForceSave = false;
 	private boolean useSourceNameAsClassAlias = false;
 	private boolean parseKotlinMetadata = false;
+	private File deobfuscationMapFile = null;
 
 	private int deobfuscationMinLength = 0;
 	private int deobfuscationMaxLength = Integer.MAX_VALUE;
@@ -255,6 +256,14 @@ public class JadxArgs {
 		this.deobfuscationMaxLength = deobfuscationMaxLength;
 	}
 
+	public File getDeobfuscationMapFile() {
+		return deobfuscationMapFile;
+	}
+
+	public void setDeobfuscationMapFile(File deobfuscationMapFile) {
+		this.deobfuscationMapFile = deobfuscationMapFile;
+	}
+
 	public boolean isEscapeUnicode() {
 		return escapeUnicode;
 	}
@@ -370,6 +379,7 @@ public class JadxArgs {
 				+ ", skipResources=" + skipResources
 				+ ", skipSources=" + skipSources
 				+ ", deobfuscationOn=" + deobfuscationOn
+				+ ", deobfuscationMapFile=" + deobfuscationMapFile
 				+ ", deobfuscationForceSave=" + deobfuscationForceSave
 				+ ", useSourceNameAsClassAlias=" + useSourceNameAsClassAlias
 				+ ", parseKotlinMetadata=" + parseKotlinMetadata
