@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
+import jadx.core.dex.visitors.AttachCommentsVisitor;
 import jadx.core.dex.visitors.AttachMethodDetails;
 import jadx.core.dex.visitors.AttachTryCatchVisitor;
 import jadx.core.dex.visitors.ClassModifier;
@@ -71,8 +72,9 @@ public class Jadx {
 	}
 
 	public static List<IDexTreeVisitor> getFallbackPassesList() {
-		List<IDexTreeVisitor> passes = new ArrayList<>(3);
+		List<IDexTreeVisitor> passes = new ArrayList<>();
 		passes.add(new AttachTryCatchVisitor());
+		passes.add(new AttachCommentsVisitor());
 		passes.add(new ProcessInstructionsVisitor());
 		passes.add(new FallbackModeVisitor());
 		return passes;
@@ -97,6 +99,7 @@ public class Jadx {
 			passes.add(new DebugInfoAttachVisitor());
 		}
 		passes.add(new AttachTryCatchVisitor());
+		passes.add(new AttachCommentsVisitor());
 		passes.add(new ProcessInstructionsVisitor());
 
 		passes.add(new BlockSplitter());

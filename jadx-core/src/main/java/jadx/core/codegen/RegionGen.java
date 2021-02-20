@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeWriter;
+import jadx.api.data.annotations.InsnCodeOffset;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.fldinit.FieldInitAttr;
@@ -44,6 +45,7 @@ import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.CodeGenUtils;
 import jadx.core.utils.RegionUtils;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -127,16 +129,6 @@ public class RegionGen extends InsnGen {
 		} else {
 			code.attachSourceLine(region.getSourceLine());
 		}
-		if (attachInsns) {
-			List<BlockNode> conditionBlocks = region.getConditionBlocks();
-			if (!conditionBlocks.isEmpty()) {
-				BlockNode blockNode = conditionBlocks.get(0);
-				InsnNode lastInsn = BlockUtils.getLastInsn(blockNode);
-				if (lastInsn != null) {
-					code.attachLineAnnotation(lastInsn);
-				}
-			}
-		}
 		boolean comment = region.contains(AFlag.COMMENT_OUT);
 		if (comment) {
 			code.add("// ");
@@ -145,6 +137,15 @@ public class RegionGen extends InsnGen {
 		code.add("if (");
 		new ConditionGen(this).add(code, region.getCondition());
 		code.add(") {");
+		if (code.isMetadataSupported()) {
+			List<BlockNode> conditionBlocks = region.getConditionBlocks();
+			if (!conditionBlocks.isEmpty()) {
+				BlockNode blockNode = conditionBlocks.get(0);
+				InsnNode lastInsn = BlockUtils.getLastInsn(blockNode);
+				InsnCodeOffset.attach(code, lastInsn);
+				CodeGenUtils.addCodeComments(code, lastInsn);
+			}
+		}
 		makeRegionIndent(code, region.getThenRegion());
 		if (comment) {
 			code.startLine("// }");
@@ -191,11 +192,16 @@ public class RegionGen extends InsnGen {
 		if (labelAttr != null) {
 			code.startLine(mgen.getNameGen().getLoopLabel(labelAttr)).add(':');
 		}
+		code.startLineWithNum(region.getConditionSourceLine());
+		if (code.isMetadataSupported()) {
+			InsnNode firstInsn = RegionUtils.getFirstInsn(region);
+			InsnCodeOffset.attach(code, firstInsn);
+		}
 
 		IfCondition condition = region.getCondition();
 		if (condition == null) {
 			// infinite loop
-			code.startLine("while (true) {");
+			code.add("while (true) {");
 			makeRegionIndent(code, region.getBody());
 			code.startLine('}');
 			return;
@@ -205,7 +211,7 @@ public class RegionGen extends InsnGen {
 		if (type != null) {
 			if (type instanceof ForLoop) {
 				ForLoop forLoop = (ForLoop) type;
-				code.startLine("for (");
+				code.add("for (");
 				makeInsn(forLoop.getInitInsn(), code, Flags.INLINE);
 				code.add("; ");
 				conditionGen.add(code, condition);
@@ -218,7 +224,7 @@ public class RegionGen extends InsnGen {
 			}
 			if (type instanceof ForEachLoop) {
 				ForEachLoop forEachLoop = (ForEachLoop) type;
-				code.startLine("for (");
+				code.add("for (");
 				declareVar(code, forEachLoop.getVarArg());
 				code.add(" : ");
 				addArg(code, forEachLoop.getIterableArg(), false);
@@ -230,7 +236,7 @@ public class RegionGen extends InsnGen {
 			throw new JadxRuntimeException("Unknown loop type: " + type.getClass());
 		}
 		if (region.isConditionAtEnd()) {
-			code.startLine("do {");
+			code.add("do {");
 			makeRegionIndent(code, region.getBody());
 			code.startLineWithNum(region.getConditionSourceLine());
 			code.add("} while (");
@@ -306,6 +312,11 @@ public class RegionGen extends InsnGen {
 
 	private void makeTryCatch(TryCatchRegion region, ICodeWriter code) throws CodegenException {
 		code.startLine("try {");
+		if (code.isMetadataSupported()) {
+			InsnNode insn = Utils.first(region.getTryCatchBlock().getInsns());
+			InsnCodeOffset.attach(code, insn);
+			CodeGenUtils.addCodeComments(code, insn);
+		}
 		makeRegionIndent(code, region.getTryRegion());
 		// TODO: move search of 'allHandler' to 'TryCatchRegion'
 		ExceptionHandler allHandler = null;

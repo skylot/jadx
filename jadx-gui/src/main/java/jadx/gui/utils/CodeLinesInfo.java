@@ -33,4 +33,8 @@ public class CodeLinesInfo {
 		}
 		return entry.getValue();
 	}
+
+	public JavaNode getDefAtLine(int line) {
+		return map.get(line);
+	}
 }

@@ -121,7 +121,7 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 	public void attachDefinition(LineAttrNode obj) {
 		obj.setDefPosition(buf.length());
 		attachAnnotation(obj);
-		attachAnnotation(new DefinitionWrapper(obj), new CodePosition(line, offset));
+		attachAnnotation(new DefinitionWrapper(obj), new CodePosition(line, offset).setUsagePosition(getLength()));
 	}
 
 	@Override
@@ -131,7 +131,10 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 
 	@Override
 	public void attachLineAnnotation(Object obj) {
-		attachAnnotation(obj, new CodePosition(line, 0));
+		if (obj == null) {
+			return;
+		}
+		attachAnnotation(obj, new CodePosition(line, 0).setUsagePosition(getLength() - offset));
 	}
 
 	private void attachAnnotation(Object obj, CodePosition pos) {

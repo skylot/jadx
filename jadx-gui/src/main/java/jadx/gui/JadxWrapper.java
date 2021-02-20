@@ -20,6 +20,7 @@ import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.api.JavaPackage;
 import jadx.api.ResourceFile;
+import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 
 import static jadx.gui.utils.FileUtils.toFiles;
@@ -29,6 +30,7 @@ public class JadxWrapper {
 
 	private final JadxSettings settings;
 	private JadxDecompiler decompiler;
+	private JadxProject project;
 	private List<Path> openPaths = Collections.emptyList();
 
 	public JadxWrapper(JadxSettings settings) {
@@ -41,6 +43,7 @@ public class JadxWrapper {
 		try {
 			JadxArgs jadxArgs = settings.toJadxArgs();
 			jadxArgs.setInputFiles(toFiles(paths));
+			jadxArgs.setCodeData(project.getCodeData());
 
 			this.decompiler = new JadxDecompiler(jadxArgs);
 			this.decompiler.load();
@@ -153,6 +156,10 @@ public class JadxWrapper {
 
 	public JadxArgs getArgs() {
 		return decompiler.getArgs();
+	}
+
+	public void setProject(JadxProject project) {
+		this.project = project;
 	}
 
 	/**

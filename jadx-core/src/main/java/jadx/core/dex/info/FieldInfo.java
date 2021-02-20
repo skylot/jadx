@@ -60,6 +60,10 @@ public final class FieldInfo {
 		return declClass.getFullName() + '.' + name + ':' + TypeGen.signature(type);
 	}
 
+	public String getShortId() {
+		return name + ':' + TypeGen.signature(type);
+	}
+
 	public String getRawFullId() {
 		return declClass.makeRawFullName() + '.' + name + ':' + TypeGen.signature(type);
 	}

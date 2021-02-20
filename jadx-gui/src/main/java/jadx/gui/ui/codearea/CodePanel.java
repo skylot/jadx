@@ -1,25 +1,35 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JPopupMenu.Separator;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
-import javax.swing.text.BadLocationException;
 
-import org.fife.ui.rsyntaxtextarea.Token;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
 import jadx.core.utils.StringUtils;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.SearchDialog;
+import jadx.gui.utils.CaretPositionFix;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
@@ -27,6 +37,7 @@ import jadx.gui.utils.UiUtils;
  * A panel combining a {@link SearchBar and a scollable {@link CodeArea}
  */
 public class CodePanel extends JPanel {
+	private static final Logger LOG = LoggerFactory.getLogger(CodePanel.class);
 	private static final long serialVersionUID = 1117721869391885865L;
 
 	private final SearchBar searchBar;
@@ -101,7 +112,6 @@ public class CodePanel extends JPanel {
 
 			}
 		});
-
 	}
 
 	public void loadSettings() {
@@ -149,78 +159,17 @@ public class CodePanel extends JPanel {
 	}
 
 	public void refresh() {
-		int line = 0;
-		int tokenIndex;
-		int pos = codeArea.getCaretPosition();
-		int lineCount = codeArea.getLineCount();
-		try {
-			// after rename the change of document is undetectable, so
-			// use Token offset to calculate the new caret position.
-			line = codeArea.getLineOfOffset(pos);
-			Token token = codeArea.getTokenListForLine(line);
-			tokenIndex = getTokenIndexByOffset(token, pos);
-		} catch (BadLocationException e) {
-			e.printStackTrace();
-			tokenIndex = -1;
-		}
-		if (tokenIndex == -1) {
-			refreshToViewport();
-			return;
-		}
-		codeArea.refresh();
-		initLineNumbers();
-		int lineDiff = codeArea.getLineCount() - lineCount;
-		if (lineDiff > 0) {
-			lineDiff--;
-		} else if (lineDiff < 0) {
-			lineDiff++;
-		}
-		Token token = codeArea.getTokenListForLine(line + lineDiff);
-		int newPos = getOffsetOfTokenByIndex(tokenIndex, token);
-		SwingUtilities.invokeLater(() -> {
-			if (newPos != -1) {
-				codeArea.scrollToPos(newPos);
-			} else {
-				codeArea.scrollToLine(codeArea.getLineCount() - 1);
-			}
-		});
-	}
+		CaretPositionFix caretFix = new CaretPositionFix(codeArea);
+		caretFix.save();
 
-	private void refreshToViewport() {
 		JViewport viewport = getCodeScrollPane().getViewport();
 		Point viewPosition = viewport.getViewPosition();
 		codeArea.refresh();
 		initLineNumbers();
+
 		SwingUtilities.invokeLater(() -> {
 			viewport.setViewPosition(viewPosition);
+			caretFix.restore();
 		});
-	}
-
-	private int getTokenIndexByOffset(Token token, int offset) {
-		if (token != null) {
-			int index = 1;
-			while (token.getEndOffset() < offset) {
-				token = token.getNextToken();
-				if (token == null) {
-					return -1;
-				}
-				index++;
-			}
-			return index;
-		}
-		return -1;
-	}
-
-	private int getOffsetOfTokenByIndex(int index, Token token) {
-		if (token != null && index != -1) {
-			for (int i = 0; i < index; i++) {
-				token = token.getNextToken();
-				if (token == null) {
-					return -1;
-				}
-			}
-			return token.getOffset();
-		}
-		return -1;
 	}
 }

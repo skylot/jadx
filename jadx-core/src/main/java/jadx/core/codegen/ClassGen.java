@@ -117,8 +117,9 @@ public class ClassGen {
 		if (Consts.DEBUG_USAGE) {
 			addClassUsageInfo(code, cls);
 		}
-		CodeGenUtils.addComments(code, cls);
 		insertDecompilationProblems(code, cls);
+		CodeGenUtils.addSourceFileInfo(code, cls);
+		CodeGenUtils.addComments(code, cls);
 		addClassDeclaration(code);
 		addClassBody(code);
 	}
@@ -141,7 +142,6 @@ public class ClassGen {
 
 		annotationGen.addForClass(clsCode);
 		insertRenameInfo(clsCode, cls);
-		CodeGenUtils.addSourceFileInfo(clsCode, cls);
 		clsCode.startLineWithNum(cls.getSourceLine()).add(af.makeString());
 		if (af.isInterface()) {
 			if (af.isAnnotation()) {

@@ -1,8 +1,8 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.*;
+import java.awt.BorderLayout;
 
-import javax.swing.*;
+import javax.swing.JTabbedPane;
 import javax.swing.border.EmptyBorder;
 
 import jadx.gui.treemodel.JNode;
@@ -86,5 +86,4 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel {
 	public AbstractCodeArea getSmaliCodeArea() {
 		return smaliCodePanel.getCodeArea();
 	}
-
 }

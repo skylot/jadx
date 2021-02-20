@@ -1,9 +1,12 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Point;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
-import javax.swing.*;
+import javax.swing.JPopupMenu;
+import javax.swing.event.PopupMenuEvent;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
 import org.fife.ui.rsyntaxtextarea.Token;
@@ -15,12 +18,16 @@ import org.slf4j.LoggerFactory;
 import jadx.api.CodePosition;
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaNode;
+import jadx.gui.jobs.IndexJob;
+import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.ContentPanel;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.DefaultPopupMenuListener;
 import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.JumpPosition;
+import jadx.gui.utils.UiUtils;
 
 /**
  * The {@link AbstractCodeArea} implementation used for displaying Java code and text based
@@ -85,15 +92,30 @@ public final class CodeArea extends AbstractCodeArea {
 		FindUsageAction findUsage = new FindUsageAction(this);
 		GoToDeclarationAction goToDeclaration = new GoToDeclarationAction(this);
 		RenameAction rename = new RenameAction(this);
+		CommentAction comment = new CommentAction(this);
 
 		JPopupMenu popup = getPopupMenu();
 		popup.addSeparator();
 		popup.add(findUsage);
 		popup.add(goToDeclaration);
+		popup.add(comment);
 		popup.add(rename);
 		popup.addPopupMenuListener(findUsage);
 		popup.addPopupMenuListener(goToDeclaration);
+		popup.addPopupMenuListener(comment);
 		popup.addPopupMenuListener(rename);
+
+		// move caret on mouse right button click
+		popup.addPopupMenuListener(new DefaultPopupMenuListener() {
+			@Override
+			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+				CodeArea codeArea = CodeArea.this;
+				int offset = UiUtils.getOffsetAtMousePosition(codeArea);
+				if (offset >= 0) {
+					codeArea.setCaretPosition(offset);
+				}
+			}
+		});
 	}
 
 	public int adjustOffsetForToken(@Nullable Token token) {
@@ -189,11 +211,30 @@ public final class CodeArea extends AbstractCodeArea {
 		return null;
 	}
 
+	public void refreshClass() {
+		if (node instanceof JClass) {
+			JClass cls = (JClass) node;
+			try {
+				cls.reload();
+				IndexJob.refreshIndex(getMainWindow().getCacheObject(), cls.getCls());
+
+				contentPanel.getTabbedPane().refresh(cls);
+				((ClassCodeContentPanel) contentPanel).getJavaCodePanel().refresh();
+			} catch (Exception e) {
+				LOG.error("Failed to reload class: {}", cls.getFullName(), e);
+			}
+		}
+	}
+
 	public MainWindow getMainWindow() {
 		return contentPanel.getTabbedPane().getMainWindow();
 	}
 
-	private JadxDecompiler getDecompiler() {
+	public JadxDecompiler getDecompiler() {
 		return getMainWindow().getWrapper().getDecompiler();
+	}
+
+	public JadxProject getProject() {
+		return getMainWindow().getProject();
 	}
 }

@@ -16,4 +16,9 @@ public class JadxAssertions extends Assertions {
 		Assertions.assertThat(actual).isNotNull();
 		return new JadxCodeAssertions(actual.getCodeStr());
 	}
+
+	public static JadxCodeAssertions assertThat(String code) {
+		Assertions.assertThat(code).isNotNull();
+		return new JadxCodeAssertions(code);
+	}
 }

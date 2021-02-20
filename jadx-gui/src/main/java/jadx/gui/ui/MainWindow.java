@@ -311,8 +311,7 @@ public class MainWindow extends JFrame {
 		if (!ensureProjectIsSaved()) {
 			return;
 		}
-		project = new JadxProject(settings);
-		update();
+		updateProject(new JadxProject());
 		clearTree();
 	}
 
@@ -356,6 +355,7 @@ public class MainWindow extends JFrame {
 				}
 			}
 			project.saveAs(path);
+			settings.addRecentProject(path);
 			update();
 		}
 	}
@@ -408,23 +408,31 @@ public class MainWindow extends JFrame {
 		if (!ensureProjectIsSaved()) {
 			return;
 		}
-		project = JadxProject.from(path, settings);
-		if (project == null) {
+		JadxProject jadxProject = JadxProject.from(path);
+		if (jadxProject == null) {
 			JOptionPane.showMessageDialog(
 					this,
 					NLS.str("msg.project_error"),
 					NLS.str("msg.project_error_title"),
 					JOptionPane.INFORMATION_MESSAGE);
-			return;
+			jadxProject = new JadxProject();
 		}
-		update();
+		updateProject(jadxProject);
 		settings.addRecentProject(path);
-		List<Path> filePaths = project.getFilePaths();
+		List<Path> filePaths = jadxProject.getFilePaths();
 		if (filePaths == null) {
 			clearTree();
 		} else {
 			open(filePaths);
 		}
+	}
+
+	public void updateProject(JadxProject jadxProject) {
+		jadxProject.setSettings(settings);
+		jadxProject.setMainWindow(this);
+		this.project = jadxProject;
+		this.wrapper.setProject(jadxProject);
+		update();
 	}
 
 	private void update() {
@@ -1200,6 +1208,10 @@ public class MainWindow extends JFrame {
 
 	public JadxWrapper getWrapper() {
 		return wrapper;
+	}
+
+	public JadxProject getProject() {
+		return project;
 	}
 
 	public TabbedPane getTabbedPane() {

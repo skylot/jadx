@@ -225,6 +225,9 @@ public class ConstInlineVisitor extends AbstractVisitor {
 		}
 		if (insnType == InsnType.RETURN) {
 			useInsn.setSourceLine(constInsn.getSourceLine());
+			if (useInsn.contains(AFlag.SYNTHETIC)) {
+				useInsn.setOffset(constInsn.getOffset());
+			}
 		}
 		return true;
 	}

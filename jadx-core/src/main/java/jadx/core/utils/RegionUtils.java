@@ -58,6 +58,28 @@ public class RegionUtils {
 		}
 	}
 
+	public static InsnNode getFirstInsn(IContainer container) {
+		if (container instanceof IBlock) {
+			IBlock block = (IBlock) container;
+			List<InsnNode> insnList = block.getInstructions();
+			if (insnList.isEmpty()) {
+				return null;
+			}
+			return insnList.get(0);
+		} else if (container instanceof IBranchRegion) {
+			return null;
+		} else if (container instanceof IRegion) {
+			IRegion region = (IRegion) container;
+			List<IContainer> blocks = region.getSubBlocks();
+			if (blocks.isEmpty()) {
+				return null;
+			}
+			return getFirstInsn(blocks.get(0));
+		} else {
+			throw new JadxRuntimeException(unknownContainerType(container));
+		}
+	}
+
 	public static InsnNode getLastInsn(IContainer container) {
 		if (container instanceof IBlock) {
 			IBlock block = (IBlock) container;

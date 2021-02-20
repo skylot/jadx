@@ -139,6 +139,10 @@ public final class JavaClass implements JavaNode {
 		return code.getAnnotations();
 	}
 
+	public Object getAnnotationAt(CodePosition pos) {
+		return getCodeAnnotations().get(pos);
+	}
+
 	public Map<CodePosition, JavaNode> getUsageMap() {
 		Map<CodePosition, Object> map = getCodeAnnotations();
 		if (map.isEmpty() || decompiler == null) {
