@@ -95,7 +95,7 @@ public class TabComponent extends JPanel {
 
 		panel.add(label);
 		panel.add(closeBtn);
-		panel.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
+		panel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 	}
 
 	private JPopupMenu createTabPopupMenu(final ContentPanel contentPanel) {
