@@ -11,11 +11,11 @@ import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableEmitter;
 
+import jadx.api.ICodeWriter;
 import jadx.api.JavaClass;
 import jadx.api.JavaField;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
-import jadx.core.codegen.CodeWriter;
 import jadx.gui.treemodel.CodeNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.SearchDialog;
@@ -161,13 +161,12 @@ public class TextSearchIndex {
 	}
 
 	private int searchNext(FlowableEmitter<CodeNode> emitter, JavaNode javaClass, String code, final SearchSettings searchSettings) {
-		int pos;
-		pos = searchSettings.find(code);
+		int pos = searchSettings.find(code);
 		if (pos == -1) {
 			return -1;
 		}
-		int lineStart = 1 + code.lastIndexOf(CodeWriter.NL, pos);
-		int lineEnd = code.indexOf(CodeWriter.NL, pos + searchSettings.getSearchString().length());
+		int lineStart = 1 + code.lastIndexOf(ICodeWriter.NL, pos);
+		int lineEnd = code.indexOf(ICodeWriter.NL, pos + searchSettings.getSearchString().length());
 		StringRef line = StringRef.subString(code, lineStart, lineEnd == -1 ? code.length() : lineEnd);
 		emitter.onNext(new CodeNode(nodeCache.makeFrom(javaClass), -pos, line.trim()).setPos(pos));
 		return lineEnd;

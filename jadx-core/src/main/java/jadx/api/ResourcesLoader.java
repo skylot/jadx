@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ResourceFile.ZipRef;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.api.plugins.utils.ZipSecurity;
-import jadx.core.codegen.CodeWriter;
 import jadx.core.utils.Utils;
 import jadx.core.utils.android.Res9patchStreamDecoder;
 import jadx.core.utils.exceptions.JadxException;
@@ -83,7 +82,7 @@ public final class ResourcesLoader {
 			return decodeStream(rf, (size, is) -> loadContent(jadxRef, rf, is));
 		} catch (JadxException e) {
 			LOG.error("Decode error", e);
-			CodeWriter cw = new CodeWriter();
+			ICodeWriter cw = jadxRef.getRoot().makeCodeWriter();
 			cw.add("Error decode ").add(rf.getType().toString().toLowerCase());
 			Utils.appendStackTrace(cw, e.getCause());
 			return ResContainer.textResource(rf.getDeobfName(), cw.finish());

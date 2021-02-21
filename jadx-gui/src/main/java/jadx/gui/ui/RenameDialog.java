@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.*;
-import jadx.core.codegen.CodeWriter;
 import jadx.core.deobf.DeobfPresets;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
@@ -70,16 +69,16 @@ public class RenameDialog extends JDialog {
 
 	public static boolean checkSettings(MainWindow mainWindow) {
 		StringBuilder errorMessage = new StringBuilder();
-		errorMessage.append(NLS.str("msg.rename_disabled")).append(CodeWriter.NL);
+		errorMessage.append(NLS.str("msg.rename_disabled")).append(ICodeWriter.NL);
 
 		JadxSettings settings = mainWindow.getSettings();
 		boolean valid = true;
 		if (!settings.isDeobfuscationOn()) {
-			errorMessage.append(" - ").append(NLS.str("msg.rename_disabled_deobfuscation_disabled")).append(CodeWriter.NL);
+			errorMessage.append(" - ").append(NLS.str("msg.rename_disabled_deobfuscation_disabled")).append(ICodeWriter.NL);
 			valid = false;
 		}
 		if (settings.isDeobfuscationForceSave()) {
-			errorMessage.append(" - ").append(NLS.str("msg.rename_disabled_force_rewrite_enabled")).append(CodeWriter.NL);
+			errorMessage.append(" - ").append(NLS.str("msg.rename_disabled_force_rewrite_enabled")).append(ICodeWriter.NL);
 			valid = false;
 		}
 		if (valid) {

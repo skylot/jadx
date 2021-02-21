@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import jadx.api.ICodeWriter;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.IfOp;
@@ -41,15 +42,15 @@ public class ConditionGen extends InsnGen {
 		super(insnGen.mgen, insnGen.fallback);
 	}
 
-	void add(CodeWriter code, IfCondition condition) throws CodegenException {
+	void add(ICodeWriter code, IfCondition condition) throws CodegenException {
 		add(code, new CondStack(), condition);
 	}
 
-	void wrap(CodeWriter code, IfCondition condition) throws CodegenException {
+	void wrap(ICodeWriter code, IfCondition condition) throws CodegenException {
 		wrap(code, new CondStack(), condition);
 	}
 
-	private void add(CodeWriter code, CondStack stack, IfCondition condition) throws CodegenException {
+	private void add(ICodeWriter code, CondStack stack, IfCondition condition) throws CodegenException {
 		stack.push(condition);
 		switch (condition.getMode()) {
 			case COMPARE:
@@ -75,7 +76,7 @@ public class ConditionGen extends InsnGen {
 		stack.pop();
 	}
 
-	private void wrap(CodeWriter code, CondStack stack, IfCondition cond) throws CodegenException {
+	private void wrap(ICodeWriter code, CondStack stack, IfCondition cond) throws CodegenException {
 		boolean wrap = isWrapNeeded(cond);
 		if (wrap) {
 			code.add('(');
@@ -86,7 +87,7 @@ public class ConditionGen extends InsnGen {
 		}
 	}
 
-	private void wrap(CodeWriter code, InsnArg firstArg) throws CodegenException {
+	private void wrap(ICodeWriter code, InsnArg firstArg) throws CodegenException {
 		boolean wrap = isArgWrapNeeded(firstArg);
 		if (wrap) {
 			code.add('(');
@@ -97,7 +98,7 @@ public class ConditionGen extends InsnGen {
 		}
 	}
 
-	private void addCompare(CodeWriter code, CondStack stack, Compare compare) throws CodegenException {
+	private void addCompare(ICodeWriter code, CondStack stack, Compare compare) throws CodegenException {
 		IfOp op = compare.getOp();
 		InsnArg firstArg = compare.getA();
 		InsnArg secondArg = compare.getB();
@@ -130,7 +131,7 @@ public class ConditionGen extends InsnGen {
 		addArg(code, secondArg, isArgWrapNeeded(secondArg));
 	}
 
-	private void addTernary(CodeWriter code, CondStack stack, IfCondition condition) throws CodegenException {
+	private void addTernary(ICodeWriter code, CondStack stack, IfCondition condition) throws CodegenException {
 		add(code, stack, condition.first());
 		code.add(" ? ");
 		add(code, stack, condition.second());
@@ -138,12 +139,12 @@ public class ConditionGen extends InsnGen {
 		add(code, stack, condition.third());
 	}
 
-	private void addNot(CodeWriter code, CondStack stack, IfCondition condition) throws CodegenException {
+	private void addNot(ICodeWriter code, CondStack stack, IfCondition condition) throws CodegenException {
 		code.add('!');
 		wrap(code, stack, condition.getArgs().get(0));
 	}
 
-	private void addAndOr(CodeWriter code, CondStack stack, IfCondition condition) throws CodegenException {
+	private void addAndOr(ICodeWriter code, CondStack stack, IfCondition condition) throws CodegenException {
 		String mode = condition.getMode() == Mode.AND ? " && " : " || ";
 		Iterator<IfCondition> it = condition.getArgs().iterator();
 		while (it.hasNext()) {

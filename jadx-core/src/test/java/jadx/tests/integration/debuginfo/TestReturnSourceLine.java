@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import jadx.NotYetImplemented;
 import jadx.api.ICodeInfo;
-import jadx.core.codegen.CodeWriter;
+import jadx.api.ICodeWriter;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -54,7 +54,7 @@ public class TestReturnSourceLine extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		ICodeInfo codeInfo = cls.getCode();
 		String code = codeInfo.toString();
-		String[] lines = code.split(CodeWriter.NL);
+		String[] lines = code.split(ICodeWriter.NL);
 
 		MethodNode test1 = cls.searchMethodByShortId("test1(Z)I");
 		checkLine(lines, codeInfo, test1, 3, "return 1;");
@@ -69,7 +69,7 @@ public class TestReturnSourceLine extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		ICodeInfo codeInfo = cls.getCode();
 		String code = codeInfo.toString();
-		String[] lines = code.split(CodeWriter.NL);
+		String[] lines = code.split(ICodeWriter.NL);
 
 		MethodNode test3 = cls.searchMethodByShortId("test3(I)I");
 		checkLine(lines, codeInfo, test3, 3, "return v;");

@@ -6,6 +6,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.ICodeWriter;
 import jadx.api.plugins.input.data.IDebugInfo;
 import jadx.api.plugins.input.data.ILocalVar;
 import jadx.core.dex.attributes.nodes.LocalVarsDebugInfoAttr;
@@ -23,8 +24,6 @@ import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
-
-import static jadx.core.codegen.CodeWriter.NL;
 
 @JadxVisitor(
 		name = "Debug Info Parser",
@@ -48,7 +47,7 @@ public class DebugInfoAttachVisitor extends AbstractVisitor {
 		} catch (Exception e) {
 			mth.addComment("JADX WARNING: Error to parse debug info: "
 					+ ErrorsCounter.formatMsg(mth, e.getMessage())
-					+ NL + Utils.getStackTrace(e));
+					+ ICodeWriter.NL + Utils.getStackTrace(e));
 		}
 	}
 

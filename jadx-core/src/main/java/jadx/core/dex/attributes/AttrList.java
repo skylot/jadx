@@ -3,7 +3,7 @@ package jadx.core.dex.attributes;
 import java.util.ArrayList;
 import java.util.List;
 
-import jadx.core.codegen.CodeWriter;
+import jadx.api.ICodeWriter;
 import jadx.core.utils.Utils;
 
 public class AttrList<T> implements IAttribute {
@@ -26,6 +26,6 @@ public class AttrList<T> implements IAttribute {
 
 	@Override
 	public String toString() {
-		return Utils.listToString(list, CodeWriter.NL);
+		return Utils.listToString(list, ICodeWriter.NL);
 	}
 }

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import jadx.core.codegen.CodeWriter;
+import jadx.api.ICodeWriter;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBranchRegion;
 import jadx.core.dex.nodes.IContainer;
@@ -84,7 +84,7 @@ public final class SwitchRegion extends AbstractRegion implements IBranchRegion 
 		for (CaseInfo caseInfo : cases) {
 			List<String> keyStrings = Utils.collectionMap(caseInfo.getKeys(),
 					k -> k == DEFAULT_CASE_KEY ? "default" : k.toString());
-			sb.append(CodeWriter.NL).append(" case ")
+			sb.append(ICodeWriter.NL).append(" case ")
 					.append(Utils.listToString(keyStrings))
 					.append(" -> ").append(caseInfo.getContainer());
 		}

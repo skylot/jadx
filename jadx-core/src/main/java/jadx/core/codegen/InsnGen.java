@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.ICodeWriter;
 import jadx.api.plugins.input.data.MethodHandleType;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
@@ -88,19 +89,19 @@ public class InsnGen {
 		return fallback;
 	}
 
-	public void addArgDot(CodeWriter code, InsnArg arg) throws CodegenException {
-		int len = code.bufLength();
+	public void addArgDot(ICodeWriter code, InsnArg arg) throws CodegenException {
+		int len = code.getLength();
 		addArg(code, arg, true);
-		if (len != code.bufLength()) {
+		if (len != code.getLength()) {
 			code.add('.');
 		}
 	}
 
-	public void addArg(CodeWriter code, InsnArg arg) throws CodegenException {
+	public void addArg(ICodeWriter code, InsnArg arg) throws CodegenException {
 		addArg(code, arg, true);
 	}
 
-	public void addArg(CodeWriter code, InsnArg arg, boolean wrap) throws CodegenException {
+	public void addArg(ICodeWriter code, InsnArg arg, boolean wrap) throws CodegenException {
 		if (arg.isRegister()) {
 			CodeVar codeVar = CodeGenUtils.getCodeVar((RegisterArg) arg);
 			if (codeVar != null) {
@@ -127,7 +128,7 @@ public class InsnGen {
 		}
 	}
 
-	private void addWrappedArg(CodeWriter code, InsnWrapArg arg, boolean wrap) throws CodegenException {
+	private void addWrappedArg(ICodeWriter code, InsnWrapArg arg, boolean wrap) throws CodegenException {
 		InsnNode wrapInsn = arg.getWrapInsn();
 		if (wrapInsn.contains(AFlag.FORCE_ASSIGN_INLINE)) {
 			code.add('(');
@@ -139,7 +140,7 @@ public class InsnGen {
 		}
 	}
 
-	public void assignVar(CodeWriter code, InsnNode insn) throws CodegenException {
+	public void assignVar(ICodeWriter code, InsnNode insn) throws CodegenException {
 		RegisterArg arg = insn.getResult();
 		if (insn.contains(AFlag.DECLARE_VAR)) {
 			declareVar(code, arg);
@@ -148,11 +149,11 @@ public class InsnGen {
 		}
 	}
 
-	public void declareVar(CodeWriter code, RegisterArg arg) {
+	public void declareVar(ICodeWriter code, RegisterArg arg) {
 		declareVar(code, arg.getSVar().getCodeVar());
 	}
 
-	public void declareVar(CodeWriter code, CodeVar codeVar) {
+	public void declareVar(ICodeWriter code, CodeVar codeVar) {
 		if (codeVar.isFinal()) {
 			code.add("final ");
 		}
@@ -174,7 +175,7 @@ public class InsnGen {
 		return TypeGen.literalToString(arg, mth, fallback);
 	}
 
-	private void instanceField(CodeWriter code, FieldInfo field, InsnArg arg) throws CodegenException {
+	private void instanceField(ICodeWriter code, FieldInfo field, InsnArg arg) throws CodegenException {
 		ClassNode pCls = mth.getParentClass();
 		FieldNode fieldNode = pCls.root().deepResolveField(field);
 		if (fieldNode != null) {
@@ -203,7 +204,7 @@ public class InsnGen {
 		}
 	}
 
-	public static void makeStaticFieldAccess(CodeWriter code, FieldInfo field, ClassGen clsGen) {
+	public static void makeStaticFieldAccess(ICodeWriter code, FieldInfo field, ClassGen clsGen) {
 		ClassInfo declClass = field.getDeclClass();
 		// TODO
 		boolean fieldFromThisClass = clsGen.getClassNode().getClassInfo().equals(declClass);
@@ -225,23 +226,23 @@ public class InsnGen {
 		}
 	}
 
-	protected void staticField(CodeWriter code, FieldInfo field) {
+	protected void staticField(ICodeWriter code, FieldInfo field) {
 		makeStaticFieldAccess(code, field, mgen.getClassGen());
 	}
 
-	public void useClass(CodeWriter code, ArgType type) {
+	public void useClass(ICodeWriter code, ArgType type) {
 		mgen.getClassGen().useClass(code, type);
 	}
 
-	public void useClass(CodeWriter code, ClassInfo cls) {
+	public void useClass(ICodeWriter code, ClassInfo cls) {
 		mgen.getClassGen().useClass(code, cls);
 	}
 
-	protected void useType(CodeWriter code, ArgType type) {
+	protected void useType(ICodeWriter code, ArgType type) {
 		mgen.getClassGen().useType(code, type);
 	}
 
-	public void makeInsn(InsnNode insn, CodeWriter code) throws CodegenException {
+	public void makeInsn(InsnNode insn, ICodeWriter code) throws CodegenException {
 		makeInsn(insn, code, null);
 	}
 
@@ -249,7 +250,7 @@ public class InsnGen {
 	private static final Set<Flags> BODY_ONLY_FLAG = EnumSet.of(Flags.BODY_ONLY);
 	private static final Set<Flags> BODY_ONLY_NOWRAP_FLAGS = EnumSet.of(Flags.BODY_ONLY_NOWRAP);
 
-	protected void makeInsn(InsnNode insn, CodeWriter code, Flags flag) throws CodegenException {
+	protected void makeInsn(InsnNode insn, ICodeWriter code, Flags flag) throws CodegenException {
 		if (insn.getType() == InsnType.REGION_ARG) {
 			return;
 		}
@@ -284,7 +285,7 @@ public class InsnGen {
 		}
 	}
 
-	private void makeInsnBody(CodeWriter code, InsnNode insn, Set<Flags> state) throws CodegenException {
+	private void makeInsnBody(ICodeWriter code, InsnNode insn, Set<Flags> state) throws CodegenException {
 		switch (insn.getType()) {
 			case CONST_STR:
 				String str = ((ConstStringNode) insn).getString();
@@ -590,7 +591,7 @@ public class InsnGen {
 	 * In most cases must be combined with new array instructions.
 	 * Use one by one array fill (can be replaced with System.arrayCopy)
 	 */
-	private void fillArray(CodeWriter code, FillArrayInsn arrayNode) throws CodegenException {
+	private void fillArray(ICodeWriter code, FillArrayInsn arrayNode) throws CodegenException {
 		code.add("// fill-array-data instruction");
 		code.startLine();
 		InsnArg arrArg = arrayNode.getArg(0);
@@ -614,7 +615,7 @@ public class InsnGen {
 		}
 	}
 
-	private void oneArgInsn(CodeWriter code, InsnNode insn, Set<Flags> state, char op) throws CodegenException {
+	private void oneArgInsn(ICodeWriter code, InsnNode insn, Set<Flags> state, char op) throws CodegenException {
 		boolean wrap = state.contains(Flags.BODY_ONLY);
 		if (wrap) {
 			code.add('(');
@@ -636,7 +637,7 @@ public class InsnGen {
 		}
 	}
 
-	private void filledNewArray(FilledNewArrayNode insn, CodeWriter code) throws CodegenException {
+	private void filledNewArray(FilledNewArrayNode insn, ICodeWriter code) throws CodegenException {
 		if (!insn.contains(AFlag.DECLARE_VAR)) {
 			code.add("new ");
 			useType(code, insn.getArrayType());
@@ -652,7 +653,7 @@ public class InsnGen {
 		code.add('}');
 	}
 
-	private void makeConstructor(ConstructorInsn insn, CodeWriter code) throws CodegenException {
+	private void makeConstructor(ConstructorInsn insn, ICodeWriter code) throws CodegenException {
 		ClassNode cls = mth.root().resolveClass(insn.getClassType());
 		if (cls != null && cls.isAnonymous() && !fallback) {
 			cls.ensureProcessed();
@@ -691,7 +692,7 @@ public class InsnGen {
 		generateMethodArguments(code, insn, 0, callMth);
 	}
 
-	private void inlineAnonymousConstructor(CodeWriter code, ClassNode cls, ConstructorInsn insn) throws CodegenException {
+	private void inlineAnonymousConstructor(ICodeWriter code, ClassNode cls, ConstructorInsn insn) throws CodegenException {
 		if (this.mth.getParentClass() == cls) {
 			cls.remove(AFlag.ANONYMOUS_CLASS);
 			cls.remove(AFlag.DONT_GENERATE);
@@ -727,7 +728,7 @@ public class InsnGen {
 		new ClassGen(cls, mgen.getClassGen().getParentGen()).addClassBody(code, true);
 	}
 
-	private void makeInvoke(InvokeNode insn, CodeWriter code) throws CodegenException {
+	private void makeInvoke(InvokeNode insn, ICodeWriter code) throws CodegenException {
 		InvokeType type = insn.getInvokeType();
 		if (type == InvokeType.CUSTOM) {
 			makeInvokeLambda(code, (InvokeCustomNode) insn);
@@ -778,7 +779,7 @@ public class InsnGen {
 		generateMethodArguments(code, insn, k, callMthNode);
 	}
 
-	private void makeInvokeLambda(CodeWriter code, InvokeCustomNode customNode) throws CodegenException {
+	private void makeInvokeLambda(ICodeWriter code, InvokeCustomNode customNode) throws CodegenException {
 		if (customNode.isUseRef()) {
 			makeRefLambda(code, customNode);
 			return;
@@ -791,7 +792,7 @@ public class InsnGen {
 		makeInlinedLambdaMethod(code, customNode, callMth);
 	}
 
-	private void makeRefLambda(CodeWriter code, InvokeCustomNode customNode) {
+	private void makeRefLambda(ICodeWriter code, InvokeCustomNode customNode) {
 		InsnNode callInsn = customNode.getCallInsn();
 		if (callInsn instanceof ConstructorInsn) {
 			MethodInfo callMth = ((ConstructorInsn) callInsn).getCallMth();
@@ -811,7 +812,7 @@ public class InsnGen {
 		}
 	}
 
-	private void makeSimpleLambda(CodeWriter code, InvokeCustomNode customNode) {
+	private void makeSimpleLambda(ICodeWriter code, InvokeCustomNode customNode) {
 		try {
 			InsnNode callInsn = customNode.getCallInsn();
 			MethodInfo implMthInfo = customNode.getImplMthInfo();
@@ -858,7 +859,7 @@ public class InsnGen {
 		}
 	}
 
-	private void makeInlinedLambdaMethod(CodeWriter code, InvokeCustomNode customNode, MethodNode callMth) throws CodegenException {
+	private void makeInlinedLambdaMethod(ICodeWriter code, InvokeCustomNode customNode, MethodNode callMth) throws CodegenException {
 		MethodGen callMthGen = new MethodGen(mgen.getClassGen(), callMth);
 		NameGen nameGen = callMthGen.getNameGen();
 		nameGen.inheritUsedNames(this.mgen.getNameGen());
@@ -894,7 +895,7 @@ public class InsnGen {
 	}
 
 	@Nullable
-	private ClassInfo getClassForSuperCall(CodeWriter code, MethodInfo callMth) {
+	private ClassInfo getClassForSuperCall(ICodeWriter code, MethodInfo callMth) {
 		ClassNode useCls = mth.getParentClass();
 		ClassInfo insnCls = useCls.getClassInfo();
 		ClassInfo declClass = callMth.getDeclClass();
@@ -923,7 +924,7 @@ public class InsnGen {
 		return useCls.getParentClass().getClassInfo();
 	}
 
-	void generateMethodArguments(CodeWriter code, BaseInvokeNode insn, int startArgNum,
+	void generateMethodArguments(ICodeWriter code, BaseInvokeNode insn, int startArgNum,
 			@Nullable MethodNode mthNode) throws CodegenException {
 		int k = startArgNum;
 		if (mthNode != null && mthNode.contains(AFlag.SKIP_FIRST_ARG)) {
@@ -960,7 +961,7 @@ public class InsnGen {
 	/**
 	 * Expand varArgs from filled array.
 	 */
-	private boolean processVarArg(CodeWriter code, BaseInvokeNode invokeInsn, InsnArg lastArg) throws CodegenException {
+	private boolean processVarArg(ICodeWriter code, BaseInvokeNode invokeInsn, InsnArg lastArg) throws CodegenException {
 		if (!invokeInsn.contains(AFlag.VARARG_CALL)) {
 			return false;
 		}
@@ -982,7 +983,7 @@ public class InsnGen {
 		return true;
 	}
 
-	private void makeTernary(TernaryInsn insn, CodeWriter code, Set<Flags> state) throws CodegenException {
+	private void makeTernary(TernaryInsn insn, ICodeWriter code, Set<Flags> state) throws CodegenException {
 		boolean wrap = state.contains(Flags.BODY_ONLY);
 		if (wrap) {
 			code.add('(');
@@ -1005,7 +1006,7 @@ public class InsnGen {
 		}
 	}
 
-	private void addCastIfNeeded(CodeWriter code, InsnArg first, InsnArg second) {
+	private void addCastIfNeeded(ICodeWriter code, InsnArg first, InsnArg second) {
 		if (first.isLiteral() && second.isLiteral()) {
 			if (first.getType() == ArgType.BYTE) {
 				long lit1 = ((LiteralArg) first).getLiteral();
@@ -1032,7 +1033,7 @@ public class InsnGen {
 		}
 	}
 
-	private void makeArith(ArithNode insn, CodeWriter code, Set<Flags> state) throws CodegenException {
+	private void makeArith(ArithNode insn, ICodeWriter code, Set<Flags> state) throws CodegenException {
 		if (insn.contains(AFlag.ARITH_ONEARG)) {
 			makeArithOneArg(insn, code);
 			return;
@@ -1052,7 +1053,7 @@ public class InsnGen {
 		}
 	}
 
-	private void makeArithOneArg(ArithNode insn, CodeWriter code) throws CodegenException {
+	private void makeArithOneArg(ArithNode insn, ICodeWriter code) throws CodegenException {
 		ArithOp op = insn.getOp();
 		InsnArg resArg = insn.getArg(0);
 		InsnArg arg = insn.getArg(1);

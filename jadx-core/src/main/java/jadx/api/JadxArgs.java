@@ -6,8 +6,10 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
+import jadx.api.impl.AnnotatedCodeWriter;
 import jadx.api.impl.InMemoryCodeCache;
 
 public class JadxArgs {
@@ -25,6 +27,7 @@ public class JadxArgs {
 	private File outDirRes;
 
 	private ICodeCache codeCache = new InMemoryCodeCache();
+	private Function<JadxArgs, ICodeWriter> codeWriterProvider = AnnotatedCodeWriter::new;
 
 	private int threadsCount = DEFAULT_THREADS_COUNT;
 
@@ -36,6 +39,7 @@ public class JadxArgs {
 
 	private boolean useImports = true;
 	private boolean debugInfo = true;
+	private boolean insertDebugLines = false;
 	private boolean inlineAnonymousClasses = true;
 
 	private boolean skipResources = false;
@@ -174,6 +178,14 @@ public class JadxArgs {
 
 	public void setDebugInfo(boolean debugInfo) {
 		this.debugInfo = debugInfo;
+	}
+
+	public boolean isInsertDebugLines() {
+		return insertDebugLines;
+	}
+
+	public void setInsertDebugLines(boolean insertDebugLines) {
+		this.insertDebugLines = insertDebugLines;
 	}
 
 	public boolean isInlineAnonymousClasses() {
@@ -364,6 +376,14 @@ public class JadxArgs {
 		this.codeCache = codeCache;
 	}
 
+	public Function<JadxArgs, ICodeWriter> getCodeWriterProvider() {
+		return codeWriterProvider;
+	}
+
+	public void setCodeWriterProvider(Function<JadxArgs, ICodeWriter> codeWriterProvider) {
+		this.codeWriterProvider = codeWriterProvider;
+	}
+
 	@Override
 	public String toString() {
 		return "JadxArgs{" + "inputFiles=" + inputFiles
@@ -393,6 +413,7 @@ public class JadxArgs {
 				+ ", renameFlags=" + renameFlags
 				+ ", outputFormat=" + outputFormat
 				+ ", codeCache=" + codeCache
+				+ ", codeWriter=" + codeWriterProvider.apply(this).getClass().getSimpleName()
 				+ '}';
 	}
 }

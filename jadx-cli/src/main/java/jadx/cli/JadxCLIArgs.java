@@ -58,6 +58,9 @@ public class JadxCLIArgs {
 	@Parameter(names = { "--no-debug-info" }, description = "disable debug info")
 	protected boolean debugInfo = true;
 
+	@Parameter(names = { "--add-debug-lines" }, description = "add comments with debug line numbers if available")
+	protected boolean addDebugLines = false;
+
 	@Parameter(names = { "--no-inline-anonymous" }, description = "disable anonymous classes inline")
 	protected boolean inlineAnonymousClasses = true;
 
@@ -210,6 +213,7 @@ public class JadxCLIArgs {
 		args.setExportAsGradleProject(exportAsGradleProject);
 		args.setUseImports(useImports);
 		args.setDebugInfo(debugInfo);
+		args.setInsertDebugLines(addDebugLines);
 		args.setInlineAnonymousClasses(inlineAnonymousClasses);
 		args.setRenameCaseSensitive(isRenameCaseSensitive());
 		args.setRenameValid(isRenameValid());
@@ -260,6 +264,10 @@ public class JadxCLIArgs {
 
 	public boolean isDebugInfo() {
 		return debugInfo;
+	}
+
+	public boolean isAddDebugLines() {
+		return addDebugLines;
 	}
 
 	public boolean isInlineAnonymousClasses() {

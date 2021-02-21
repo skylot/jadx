@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.ICodeWriter;
 import jadx.api.plugins.input.data.IFieldData;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.annotations.IAnnotation;
@@ -34,19 +35,19 @@ public class AnnotationGen {
 		this.classGen = classGen;
 	}
 
-	public void addForClass(CodeWriter code) {
+	public void addForClass(ICodeWriter code) {
 		add(cls, code);
 	}
 
-	public void addForMethod(CodeWriter code, MethodNode mth) {
+	public void addForMethod(ICodeWriter code, MethodNode mth) {
 		add(mth, code);
 	}
 
-	public void addForField(CodeWriter code, FieldNode field) {
+	public void addForField(ICodeWriter code, FieldNode field) {
 		add(field, code);
 	}
 
-	public void addForParameter(CodeWriter code, MethodParameters paramsAnnotations, int n) {
+	public void addForParameter(ICodeWriter code, MethodParameters paramsAnnotations, int n) {
 		List<AnnotationsList> paramList = paramsAnnotations.getParamList();
 		if (n >= paramList.size()) {
 			return;
@@ -61,7 +62,7 @@ public class AnnotationGen {
 		}
 	}
 
-	private void add(IAttributeNode node, CodeWriter code) {
+	private void add(IAttributeNode node, ICodeWriter code) {
 		AnnotationsList aList = node.get(AType.ANNOTATION_LIST);
 		if (aList == null || aList.isEmpty()) {
 			return;
@@ -75,7 +76,7 @@ public class AnnotationGen {
 		}
 	}
 
-	private void formatAnnotation(CodeWriter code, IAnnotation a) {
+	private void formatAnnotation(ICodeWriter code, IAnnotation a) {
 		code.add('@');
 		ClassNode annCls = cls.root().resolveClass(a.getAnnotationClass());
 		if (annCls != null) {
@@ -116,7 +117,7 @@ public class AnnotationGen {
 		return paramName;
 	}
 
-	public void addThrows(MethodNode mth, CodeWriter code) {
+	public void addThrows(MethodNode mth, ICodeWriter code) {
 		List<ArgType> throwList = mth.getThrows();
 		if (!throwList.isEmpty()) {
 			code.add(" throws ");
@@ -143,7 +144,7 @@ public class AnnotationGen {
 	}
 
 	// TODO: refactor this boilerplate code
-	public void encodeValue(RootNode root, CodeWriter code, EncodedValue encodedValue) {
+	public void encodeValue(RootNode root, ICodeWriter code, EncodedValue encodedValue) {
 		if (encodedValue == null) {
 			code.add("null");
 			return;

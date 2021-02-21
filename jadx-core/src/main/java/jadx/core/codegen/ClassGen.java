@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeInfo;
+import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.annotations.EncodedType;
@@ -54,7 +55,7 @@ public class ClassGen {
 	private final boolean showInconsistentCode;
 
 	private final Set<ClassInfo> imports = new HashSet<>();
-	private int clsDeclLine;
+	private int clsDeclOffset;
 
 	private boolean bodyGenStarted;
 
@@ -81,10 +82,10 @@ public class ClassGen {
 	}
 
 	public ICodeInfo makeClass() throws CodegenException {
-		CodeWriter clsBody = new CodeWriter();
+		ICodeWriter clsBody = cls.root().makeCodeWriter();
 		addClassCode(clsBody);
 
-		CodeWriter clsCode = new CodeWriter();
+		ICodeWriter clsCode = cls.root().makeCodeWriter();
 		if (!"".equals(cls.getPackage())) {
 			clsCode.add("package ").add(cls.getPackage()).add(';');
 			clsCode.newLine();
@@ -109,7 +110,7 @@ public class ClassGen {
 		return clsCode.finish();
 	}
 
-	public void addClassCode(CodeWriter code) throws CodegenException {
+	public void addClassCode(ICodeWriter code) throws CodegenException {
 		if (cls.contains(AFlag.DONT_GENERATE)) {
 			return;
 		}
@@ -122,7 +123,7 @@ public class ClassGen {
 		addClassBody(code);
 	}
 
-	public void addClassDeclaration(CodeWriter clsCode) {
+	public void addClassDeclaration(ICodeWriter clsCode) {
 		AccessInfo af = cls.getAccessFlags();
 		if (af.isInterface()) {
 			af = af.remove(AccessFlags.ABSTRACT)
@@ -141,8 +142,7 @@ public class ClassGen {
 		annotationGen.addForClass(clsCode);
 		insertRenameInfo(clsCode, cls);
 		CodeGenUtils.addSourceFileInfo(clsCode, cls);
-		clsCode.startLineWithNum(cls.getSourceLine());
-		clsCode.add(af.makeString());
+		clsCode.startLineWithNum(cls.getSourceLine()).add(af.makeString());
 		if (af.isInterface()) {
 			if (af.isAnnotation()) {
 				clsCode.add('@');
@@ -187,7 +187,7 @@ public class ClassGen {
 		}
 	}
 
-	public boolean addGenericTypeParameters(CodeWriter code, List<ArgType> generics, boolean classDeclaration) {
+	public boolean addGenericTypeParameters(ICodeWriter code, List<ArgType> generics, boolean classDeclaration) {
 		if (generics == null || generics.isEmpty()) {
 			return false;
 		}
@@ -228,7 +228,7 @@ public class ClassGen {
 		return true;
 	}
 
-	public void addClassBody(CodeWriter clsCode) throws CodegenException {
+	public void addClassBody(ICodeWriter clsCode) throws CodegenException {
 		addClassBody(clsCode, false);
 	}
 
@@ -236,10 +236,10 @@ public class ClassGen {
 	 * @param printClassName allows to print the original class name as comment (e.g. for inlined
 	 *                       classes)
 	 */
-	public void addClassBody(CodeWriter clsCode, boolean printClassName) throws CodegenException {
+	public void addClassBody(ICodeWriter clsCode, boolean printClassName) throws CodegenException {
 		clsCode.add('{');
 		setBodyGenStarted(true);
-		clsDeclLine = clsCode.getLine();
+		clsDeclOffset = clsCode.getLength();
 		clsCode.incIndent();
 		if (printClassName) {
 			clsCode.startLine();
@@ -251,7 +251,7 @@ public class ClassGen {
 		clsCode.startLine('}');
 	}
 
-	private void addInnerClsAndMethods(CodeWriter clsCode) {
+	private void addInnerClsAndMethods(ICodeWriter clsCode) {
 		Stream.of(cls.getInnerClasses(), cls.getMethods())
 				.flatMap(Collection::stream)
 				.filter(node -> !node.contains(AFlag.DONT_GENERATE) || fallback)
@@ -265,7 +265,7 @@ public class ClassGen {
 				});
 	}
 
-	private void addInnerClass(CodeWriter code, ClassNode innerCls) {
+	private void addInnerClass(ICodeWriter code, ClassNode innerCls) {
 		try {
 			ClassGen inClGen = new ClassGen(innerCls, getParentGen());
 			code.newLine();
@@ -285,8 +285,8 @@ public class ClassGen {
 		return false;
 	}
 
-	private void addMethod(CodeWriter code, MethodNode mth) {
-		if (code.getLine() != clsDeclLine) {
+	private void addMethod(ICodeWriter code, MethodNode mth) {
+		if (code.getLength() != clsDeclOffset) {
 			code.newLine();
 		}
 		int savedIndent = code.getIndent();
@@ -314,7 +314,7 @@ public class ClassGen {
 		return false;
 	}
 
-	public void addMethodCode(CodeWriter code, MethodNode mth) throws CodegenException {
+	public void addMethodCode(ICodeWriter code, MethodNode mth) throws CodegenException {
 		CodeGenUtils.addComments(code, mth);
 		if (mth.isNoCode()) {
 			MethodGen mthGen = new MethodGen(this, mth);
@@ -344,7 +344,7 @@ public class ClassGen {
 		}
 	}
 
-	public void insertDecompilationProblems(CodeWriter code, AttrNode node) {
+	public void insertDecompilationProblems(ICodeWriter code, AttrNode node) {
 		List<JadxError> errors = node.getAll(AType.JADX_ERROR);
 		if (!errors.isEmpty()) {
 			errors.stream().distinct().sorted().forEach(err -> {
@@ -365,14 +365,14 @@ public class ClassGen {
 		}
 	}
 
-	private void addFields(CodeWriter code) throws CodegenException {
+	private void addFields(ICodeWriter code) throws CodegenException {
 		addEnumFields(code);
 		for (FieldNode f : cls.getFields()) {
 			addField(code, f);
 		}
 	}
 
-	public void addField(CodeWriter code, FieldNode f) {
+	public void addField(ICodeWriter code, FieldNode f) {
 		if (f.contains(AFlag.DONT_GENERATE)) {
 			return;
 		}
@@ -418,7 +418,7 @@ public class ClassGen {
 		return false;
 	}
 
-	private void addEnumFields(CodeWriter code) throws CodegenException {
+	private void addEnumFields(ICodeWriter code) throws CodegenException {
 		EnumClassAttr enumFields = cls.get(AType.ENUM_CLASS);
 		if (enumFields == null) {
 			return;
@@ -470,7 +470,7 @@ public class ClassGen {
 		return new InsnGen(mthGen, false);
 	}
 
-	private void addInsnBody(InsnGen insnGen, CodeWriter code, InsnNode insn) {
+	private void addInsnBody(InsnGen insnGen, ICodeWriter code, InsnNode insn) {
 		try {
 			insnGen.makeInsn(insn, code, InsnGen.Flags.BODY_ONLY_NOWRAP);
 		} catch (Exception e) {
@@ -478,7 +478,7 @@ public class ClassGen {
 		}
 	}
 
-	public void useType(CodeWriter code, ArgType type) {
+	public void useType(ICodeWriter code, ArgType type) {
 		PrimitiveType stype = type.getPrimitiveType();
 		if (stype == null) {
 			code.add(type.toString());
@@ -496,11 +496,11 @@ public class ClassGen {
 		}
 	}
 
-	public void useClass(CodeWriter code, String rawCls) {
+	public void useClass(ICodeWriter code, String rawCls) {
 		useClass(code, ArgType.object(rawCls));
 	}
 
-	public void useClass(CodeWriter code, ArgType type) {
+	public void useClass(ICodeWriter code, ArgType type) {
 		ArgType outerType = type.getOuterType();
 		if (outerType != null) {
 			useClass(code, outerType);
@@ -535,7 +535,7 @@ public class ClassGen {
 		}
 	}
 
-	private void useClassShortName(CodeWriter code, String object) {
+	private void useClassShortName(ICodeWriter code, String object) {
 		ClassInfo classInfo = ClassInfo.fromName(cls.root(), object);
 		ClassNode classNode = cls.root().resolveClass(classInfo);
 		if (classNode != null) {
@@ -544,7 +544,7 @@ public class ClassGen {
 		code.add(classInfo.getAliasShortName());
 	}
 
-	public void useClass(CodeWriter code, ClassInfo classInfo) {
+	public void useClass(ICodeWriter code, ClassInfo classInfo) {
 		ClassNode classNode = cls.root().resolveClass(classInfo);
 		if (classNode != null) {
 			useClass(code, classNode);
@@ -553,12 +553,12 @@ public class ClassGen {
 		}
 	}
 
-	public void useClass(CodeWriter code, ClassNode classNode) {
+	public void useClass(ICodeWriter code, ClassNode classNode) {
 		code.attachAnnotation(classNode);
 		addClsName(code, classNode.getClassInfo());
 	}
 
-	private void addClsName(CodeWriter code, ClassInfo classInfo) {
+	private void addClsName(ICodeWriter code, ClassInfo classInfo) {
 		String clsName = useClassInternal(cls.getClassInfo(), classInfo);
 		code.add(clsName);
 	}
@@ -684,14 +684,14 @@ public class ClassGen {
 		return searchCollision(root, useCls.getParentClass(), searchCls);
 	}
 
-	private void insertRenameInfo(CodeWriter code, ClassNode cls) {
+	private void insertRenameInfo(ICodeWriter code, ClassNode cls) {
 		ClassInfo classInfo = cls.getClassInfo();
 		if (classInfo.hasAlias()) {
 			CodeGenUtils.addRenamedComment(code, cls, classInfo.getType().getObject());
 		}
 	}
 
-	private static void addClassUsageInfo(CodeWriter code, ClassNode cls) {
+	private static void addClassUsageInfo(ICodeWriter code, ClassNode cls) {
 		List<ClassNode> deps = cls.getDependencies();
 		code.startLine("// deps - ").add(Integer.toString(deps.size()));
 		for (ClassNode depCls : deps) {
@@ -709,7 +709,7 @@ public class ClassGen {
 		}
 	}
 
-	static void addMthUsageInfo(CodeWriter code, MethodNode mth) {
+	static void addMthUsageInfo(ICodeWriter code, MethodNode mth) {
 		List<MethodNode> useInMths = mth.getUseIn();
 		code.startLine("// use in methods - ").add(Integer.toString(useInMths.size()));
 		for (MethodNode useMth : useInMths) {
@@ -717,7 +717,7 @@ public class ClassGen {
 		}
 	}
 
-	private static void addFieldUsageInfo(CodeWriter code, FieldNode fieldNode) {
+	private static void addFieldUsageInfo(ICodeWriter code, FieldNode fieldNode) {
 		List<MethodNode> useInMths = fieldNode.getUseIn();
 		code.startLine("// use in methods - ").add(Integer.toString(useInMths.size()));
 		for (MethodNode useMth : useInMths) {

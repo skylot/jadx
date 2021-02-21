@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.ICodeWriter;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.InsnType;
@@ -19,8 +20,6 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-
-import static jadx.core.codegen.CodeWriter.NL;
 
 /**
  * Helper class for correct instructions removing,
@@ -137,9 +136,9 @@ public class InsnRemover {
 		}
 		if (Consts.DEBUG_WITH_ERRORS) {
 			throw new JadxRuntimeException("Can't remove SSA var, still in use, count: " + useCount + ", list:"
-					+ NL + "  " + ssaVar.getUseList().stream()
+					+ ICodeWriter.NL + "  " + ssaVar.getUseList().stream()
 							.map(arg -> arg + " from " + arg.getParentInsn())
-							.collect(Collectors.joining(NL + "  ")));
+							.collect(Collectors.joining(ICodeWriter.NL + "  ")));
 		}
 	}
 
@@ -174,9 +173,9 @@ public class InsnRemover {
 			}
 			if (!found && Consts.DEBUG_WITH_ERRORS) {
 				throw new JadxRuntimeException("Can't remove insn:"
-						+ NL + "  " + rem
-						+ NL + " not found in list:"
-						+ NL + "  " + Utils.listToString(insns, NL + "  "));
+						+ ICodeWriter.NL + "  " + rem
+						+ ICodeWriter.NL + " not found in list:"
+						+ ICodeWriter.NL + "  " + Utils.listToString(insns, ICodeWriter.NL + "  "));
 			}
 		}
 	}

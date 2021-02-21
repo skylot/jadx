@@ -12,8 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
+import jadx.api.ICodeWriter;
 import jadx.api.ResourcesLoader;
-import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.info.ConstStorage;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
@@ -43,7 +43,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private Set<String> nsMapGenerated;
 	private final Map<String, String> tagAttrDeobfNames = new HashMap<>();
 
-	private CodeWriter writer;
+	private ICodeWriter writer;
 	private String[] strings;
 	private String currentTag = "ERROR";
 	private boolean firstElement;
@@ -73,7 +73,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		}
 		nsMapGenerated = new HashSet<>();
 		nsMap = new HashMap<>();
-		writer = new CodeWriter();
+		writer = rootNode.makeCodeWriter();
 		writer.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
 		firstElement = true;
 		decode();
@@ -443,7 +443,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		return sb.toString();
 	}
 
-	private void attachClassNode(CodeWriter writer, String attrName, String clsName) {
+	private void attachClassNode(ICodeWriter writer, String attrName, String clsName) {
 		if (clsName == null || !attrName.equals("name")) {
 			return;
 		}

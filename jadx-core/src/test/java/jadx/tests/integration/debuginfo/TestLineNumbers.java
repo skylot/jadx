@@ -2,7 +2,7 @@ package jadx.tests.integration.debuginfo;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.codegen.CodeWriter;
+import jadx.api.ICodeWriter;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -61,7 +61,7 @@ public class TestLineNumbers extends IntegrationTest {
 		assertEquals(testClassLine + 20, innerFunc3.getSourceLine());
 
 		// check decompiled lines
-		String[] lines = code.split(CodeWriter.NL);
+		String[] lines = code.split(ICodeWriter.NL);
 		checkLine(lines, field, "int field;");
 		checkLine(lines, func, "public void func() {");
 		checkLine(lines, inner, "public static class Inner {");

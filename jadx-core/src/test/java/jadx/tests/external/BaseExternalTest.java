@@ -10,11 +10,11 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
 import jadx.api.JavaClass;
-import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
@@ -130,7 +130,7 @@ public abstract class BaseExternalTest extends IntegrationTest {
 
 		String dashLine = "======================================================================================";
 		Map<Integer, MethodNode> methodsMap = getMethodsMap(classNode);
-		String[] lines = code.split(CodeWriter.NL);
+		String[] lines = code.split(ICodeWriter.NL);
 		for (MethodNode mth : classNode.getMethods()) {
 			if (isMthMatch(mth, mthPattern)) {
 				int decompiledLine = mth.getDecompiledLine() - 1;
@@ -144,7 +144,7 @@ public abstract class BaseExternalTest extends IntegrationTest {
 						break;
 					}
 					String line = lines[i];
-					mthCode.append(line).append(CodeWriter.NL);
+					mthCode.append(line).append(ICodeWriter.NL);
 					// also count brackets for detect method end
 					if (i >= decompiledLine) {
 						brackets += StringUtils.countMatches(line, '{');
@@ -173,7 +173,7 @@ public abstract class BaseExternalTest extends IntegrationTest {
 	protected int getCommentLinesCount(String[] lines, int line) {
 		for (int i = line - 1; i > 0 && i < lines.length; i--) {
 			String str = lines[i];
-			if (str.isEmpty() || str.equals(CodeWriter.NL)) {
+			if (str.isEmpty() || str.equals(ICodeWriter.NL)) {
 				return i + 1;
 			}
 		}

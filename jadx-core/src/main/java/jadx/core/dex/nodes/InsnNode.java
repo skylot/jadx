@@ -8,8 +8,8 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.ICodeWriter;
 import jadx.api.plugins.input.insns.InsnData;
-import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.instructions.InsnType;
@@ -477,9 +477,9 @@ public class InsnNode extends LineAttrNode {
 			sb.append(argsStr);
 		} else {
 			// wrap args
-			String separator = CodeWriter.NL + "  ";
+			String separator = ICodeWriter.NL + "  ";
 			sb.append(separator).append(Utils.listToString(arguments, separator));
-			sb.append(CodeWriter.NL);
+			sb.append(ICodeWriter.NL);
 		}
 	}
 

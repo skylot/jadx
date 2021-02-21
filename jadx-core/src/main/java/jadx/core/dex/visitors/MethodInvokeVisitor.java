@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import jadx.api.ICodeWriter;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.MethodInfo;
@@ -29,8 +30,6 @@ import jadx.core.dex.visitors.typeinference.TypeCompare;
 import jadx.core.dex.visitors.typeinference.TypeCompareEnum;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-
-import static jadx.core.codegen.CodeWriter.NL;
 
 @JadxVisitor(
 		name = "MethodInvokeVisitor",
@@ -287,10 +286,10 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 		if (Consts.DEBUG_OVERLOADED_CASTS) {
 			// TODO: try to minimize casts count
 			parentMth.addComment("JADX DEBUG: Failed to find minimal casts for resolve overloaded methods, cast all args instead"
-					+ NL + " method: " + mthDetails
-					+ NL + " arg types: " + compilerVarTypes
-					+ NL + " candidates:"
-					+ NL + "  " + Utils.listToString(overloadedMethods, NL + "  "));
+					+ ICodeWriter.NL + " method: " + mthDetails
+					+ ICodeWriter.NL + " arg types: " + compilerVarTypes
+					+ ICodeWriter.NL + " candidates:"
+					+ ICodeWriter.NL + "  " + Utils.listToString(overloadedMethods, ICodeWriter.NL + "  "));
 		}
 		// not resolved -> cast all args
 		return mthDetails.getArgTypes();

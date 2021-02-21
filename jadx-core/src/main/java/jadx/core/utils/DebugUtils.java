@@ -14,7 +14,8 @@ import org.jetbrains.annotations.TestOnly;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.core.codegen.CodeWriter;
+import jadx.api.ICodeWriter;
+import jadx.api.impl.SimpleCodeWriter;
 import jadx.core.codegen.InsnGen;
 import jadx.core.codegen.MethodGen;
 import jadx.core.dex.attributes.IAttributeNode;
@@ -31,8 +32,6 @@ import jadx.core.dex.visitors.regions.DepthRegionTraversal;
 import jadx.core.dex.visitors.regions.TracedRegionVisitor;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxException;
-
-import static jadx.core.codegen.CodeWriter.NL;
 
 @Deprecated
 @TestOnly
@@ -109,13 +108,13 @@ public class DebugUtils {
 	}
 
 	public static void printRegion(MethodNode mth, IRegion region, boolean printInsns) {
-		CodeWriter cw = new CodeWriter();
+		ICodeWriter cw = new SimpleCodeWriter();
 		cw.startLine('|').add(mth.toString());
 		printRegion(mth, region, cw, "|  ", printInsns);
-		LOG.debug("{}{}", NL, cw.finish().getCodeStr());
+		LOG.debug("{}{}", ICodeWriter.NL, cw.finish().getCodeStr());
 	}
 
-	private static void printRegion(MethodNode mth, IRegion region, CodeWriter cw, String indent, boolean printInsns) {
+	private static void printRegion(MethodNode mth, IRegion region, ICodeWriter cw, String indent, boolean printInsns) {
 		printWithAttributes(cw, indent, region.toString(), region);
 		indent += "|  ";
 		for (IContainer container : region.getSubBlocks()) {
@@ -131,16 +130,16 @@ public class DebugUtils {
 		}
 	}
 
-	private static void printInsns(MethodNode mth, CodeWriter cw, String indent, IBlock block) {
+	private static void printInsns(MethodNode mth, ICodeWriter cw, String indent, IBlock block) {
 		for (InsnNode insn : block.getInstructions()) {
 			try {
 				MethodGen mg = MethodGen.getFallbackMethodGen(mth);
 				InsnGen ig = new InsnGen(mg, true);
-				CodeWriter code = new CodeWriter();
+				ICodeWriter code = new SimpleCodeWriter();
 				ig.makeInsn(insn, code);
-				String codeStr = code.finish().getCodeStr();
+				String codeStr = code.getCodeStr();
 
-				List<String> insnStrings = Stream.of(codeStr.split(NL))
+				List<String> insnStrings = Stream.of(codeStr.split(ICodeWriter.NL))
 						.filter(StringUtils::notBlank)
 						.map(s -> "|> " + s)
 						.collect(Collectors.toList());
@@ -160,9 +159,9 @@ public class DebugUtils {
 		}
 	}
 
-	private static void printWithAttributes(CodeWriter cw, String indent, String codeStr, IAttributeNode attrNode) {
+	private static void printWithAttributes(ICodeWriter cw, String indent, String codeStr, IAttributeNode attrNode) {
 		String str = attrNode.isAttrStorageEmpty() ? codeStr : codeStr + ' ' + attrNode.getAttributesString();
-		List<String> attrStrings = Stream.of(str.split(NL))
+		List<String> attrStrings = Stream.of(str.split(ICodeWriter.NL))
 				.filter(StringUtils::notBlank)
 				.collect(Collectors.toList());
 		Iterator<String> it = attrStrings.iterator();

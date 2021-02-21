@@ -5,7 +5,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import jadx.core.codegen.CodeWriter;
+import jadx.api.ICodeWriter;
+import jadx.api.impl.SimpleCodeWriter;
 import jadx.core.codegen.MethodGen;
 import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.instructions.IfNode;
@@ -72,8 +73,8 @@ public class DotGraphVisitor extends AbstractVisitor {
 	}
 
 	private class DumpDotGraph {
-		private final CodeWriter dot = new CodeWriter();
-		private final CodeWriter conn = new CodeWriter();
+		private final ICodeWriter dot = new SimpleCodeWriter();
+		private final ICodeWriter conn = new SimpleCodeWriter();
 		private final File dir;
 
 		public DumpDotGraph(File dir) {
@@ -272,7 +273,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 				}
 				return str.toString();
 			} else {
-				CodeWriter code = new CodeWriter();
+				ICodeWriter code = new SimpleCodeWriter();
 				List<InsnNode> instructions = block.getInstructions();
 				MethodGen.addFallbackInsns(code, mth, instructions.toArray(new InsnNode[0]), BLOCK_DUMP);
 				String str = escape(code.newLine().toString());
@@ -299,7 +300,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 					.replace("\"", "\\\"")
 					.replace("-", "\\-")
 					.replace("|", "\\|")
-					.replace(CodeWriter.NL, NL)
+					.replace(ICodeWriter.NL, NL)
 					.replace("\n", NL);
 		}
 	}

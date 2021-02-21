@@ -3,7 +3,7 @@ package jadx.core.dex.attributes.nodes;
 import java.util.LinkedList;
 import java.util.List;
 
-import jadx.core.codegen.CodeWriter;
+import jadx.api.ICodeWriter;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.instructions.PhiInsn;
@@ -29,7 +29,7 @@ public class PhiListAttr implements IAttribute {
 			sb.append('r').append(phiInsn.getResult().getRegNum()).append(' ');
 		}
 		for (PhiInsn phiInsn : list) {
-			sb.append(CodeWriter.NL).append("  ").append(phiInsn).append(' ').append(phiInsn.getAttributesString());
+			sb.append(ICodeWriter.NL).append("  ").append(phiInsn).append(' ').append(phiInsn.getAttributesString());
 		}
 		return sb.toString();
 	}

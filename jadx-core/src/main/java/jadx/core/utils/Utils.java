@@ -16,8 +16,8 @@ import java.util.function.Function;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.ICodeWriter;
 import jadx.api.JadxDecompiler;
-import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.visitors.DepthTraversal;
 
 public class Utils {
@@ -124,7 +124,7 @@ public class Utils {
 		return sw.getBuffer().toString();
 	}
 
-	public static void appendStackTrace(CodeWriter code, Throwable throwable) {
+	public static void appendStackTrace(ICodeWriter code, Throwable throwable) {
 		if (throwable == null) {
 			return;
 		}

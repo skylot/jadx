@@ -10,7 +10,8 @@ import java.util.Map;
 import java.util.Set;
 
 import jadx.api.ICodeInfo;
-import jadx.core.codegen.CodeWriter;
+import jadx.api.ICodeWriter;
+import jadx.api.impl.SimpleCodeWriter;
 import jadx.core.utils.StringUtils;
 import jadx.core.xmlgen.entry.RawNamedValue;
 import jadx.core.xmlgen.entry.ResourceEntry;
@@ -35,15 +36,15 @@ public class ResXmlGen {
 	}
 
 	public List<ResContainer> makeResourcesXml() {
-		Map<String, CodeWriter> contMap = new HashMap<>();
+		Map<String, ICodeWriter> contMap = new HashMap<>();
 		for (ResourceEntry ri : resStorage.getResources()) {
 			if (SKIP_RES_TYPES.contains(ri.getTypeName())) {
 				continue;
 			}
 			String fn = getFileName(ri);
-			CodeWriter cw = contMap.get(fn);
+			ICodeWriter cw = contMap.get(fn);
 			if (cw == null) {
-				cw = new CodeWriter();
+				cw = new SimpleCodeWriter();
 				cw.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
 				cw.startLine("<resources>");
 				cw.incIndent();
@@ -53,10 +54,9 @@ public class ResXmlGen {
 		}
 
 		List<ResContainer> files = new ArrayList<>(contMap.size());
-		for (Map.Entry<String, CodeWriter> entry : contMap.entrySet()) {
+		for (Map.Entry<String, ICodeWriter> entry : contMap.entrySet()) {
 			String fileName = entry.getKey();
-			CodeWriter content = entry.getValue();
-
+			ICodeWriter content = entry.getValue();
 			content.decIndent();
 			content.startLine("</resources>");
 			ICodeInfo codeInfo = content.finish();
@@ -66,7 +66,7 @@ public class ResXmlGen {
 		return files;
 	}
 
-	private void addValue(CodeWriter cw, ResourceEntry ri) {
+	private void addValue(ICodeWriter cw, ResourceEntry ri) {
 		if (ri.getSimpleValue() != null) {
 			String valueStr = vp.decodeValue(ri.getSimpleValue());
 			addSimpleValue(cw, ri.getTypeName(), ri.getTypeName(), "name", ri.getKeyName(), valueStr);
@@ -137,7 +137,7 @@ public class ResXmlGen {
 		return s.substring(1);
 	}
 
-	private void addItem(CodeWriter cw, String itemTag, String typeName, RawNamedValue value) {
+	private void addItem(ICodeWriter cw, String itemTag, String typeName, RawNamedValue value) {
 		String nameStr = vp.decodeNameRef(value.getNameRef());
 		String valueStr = vp.decodeValue(value.getRawValue());
 		if (!typeName.equals("attr")) {
@@ -177,7 +177,7 @@ public class ResXmlGen {
 		}
 	}
 
-	private void addSimpleValue(CodeWriter cw, String typeName, String itemTag, String attrName, String attrValue, String valueStr) {
+	private void addSimpleValue(ICodeWriter cw, String typeName, String itemTag, String attrName, String attrValue, String valueStr) {
 		if (valueStr == null) {
 			return;
 		}

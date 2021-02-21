@@ -6,8 +6,8 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.ICodeWriter;
 import jadx.api.JavaClass;
-import jadx.core.codegen.CodeWriter;
 import jadx.gui.JadxWrapper;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.CodeLinesInfo;
@@ -77,7 +77,7 @@ public class IndexJob extends BackgroundJob {
 
 	@NotNull
 	protected static List<StringRef> splitLines(JavaClass cls) {
-		List<StringRef> lines = StringRef.split(cls.getCode(), CodeWriter.NL);
+		List<StringRef> lines = StringRef.split(cls.getCode(), ICodeWriter.NL);
 		int size = lines.size();
 		for (int i = 0; i < size; i++) {
 			lines.set(i, lines.get(i).trim());

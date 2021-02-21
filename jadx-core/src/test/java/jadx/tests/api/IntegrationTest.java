@@ -26,10 +26,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import jadx.api.ICodeInfo;
+import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
-import jadx.core.codegen.CodeWriter;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrList;
@@ -240,7 +240,7 @@ public abstract class IntegrationTest extends TestUtils {
 	private void printCodeWithLineNumbers(ICodeInfo code) {
 		String codeStr = code.getCodeStr();
 		Map<Integer, Integer> lineMapping = code.getLineMapping();
-		String[] lines = codeStr.split(CodeWriter.NL);
+		String[] lines = codeStr.split(ICodeWriter.NL);
 		for (int i = 0; i < lines.length; i++) {
 			String line = lines[i];
 			int curLine = i + 1;

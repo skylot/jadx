@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.ICodeWriter;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.core.Consts;
@@ -72,7 +73,7 @@ public class MethodGen {
 		return mth;
 	}
 
-	public boolean addDefinition(CodeWriter code) {
+	public boolean addDefinition(ICodeWriter code) {
 		if (mth.getMethodInfo().isClassInit()) {
 			code.attachDefinition(mth);
 			code.startLine("static");
@@ -162,7 +163,7 @@ public class MethodGen {
 		return true;
 	}
 
-	private void addOverrideAnnotation(CodeWriter code, MethodNode mth) {
+	private void addOverrideAnnotation(ICodeWriter code, MethodNode mth) {
 		MethodOverrideAttr overrideAttr = mth.get(AType.METHOD_OVERRIDE);
 		if (overrideAttr == null) {
 			return;
@@ -178,7 +179,7 @@ public class MethodGen {
 		}
 	}
 
-	private void addMethodArguments(CodeWriter code, List<RegisterArg> args) {
+	private void addMethodArguments(ICodeWriter code, List<RegisterArg> args) {
 		MethodParameters paramsAnnotation = mth.get(AType.ANNOTATION_MTH_PARAMETERS);
 		int i = 0;
 		Iterator<RegisterArg> it = args.iterator();
@@ -243,7 +244,7 @@ public class MethodGen {
 		}
 	}
 
-	public void addInstructions(CodeWriter code) throws CodegenException {
+	public void addInstructions(ICodeWriter code) throws CodegenException {
 		if (mth.root().getArgs().isFallbackMode()) {
 			addFallbackMethodCode(code, FALLBACK_MODE);
 		} else if (classGen.isFallbackMode()) {
@@ -253,7 +254,7 @@ public class MethodGen {
 		}
 	}
 
-	public void addRegionInsns(CodeWriter code) throws CodegenException {
+	public void addRegionInsns(ICodeWriter code) throws CodegenException {
 		try {
 			RegionGen regionGen = new RegionGen(this);
 			regionGen.makeRegion(code, mth.getRegion());
@@ -271,7 +272,7 @@ public class MethodGen {
 		}
 	}
 
-	public void dumpInstructions(CodeWriter code) {
+	public void dumpInstructions(ICodeWriter code) {
 		code.startLine("/*");
 		addFallbackMethodCode(code, COMMENTED_DUMP);
 		code.startLine("*/");
@@ -287,7 +288,7 @@ public class MethodGen {
 				.add("\");");
 	}
 
-	public void addFallbackMethodCode(CodeWriter code, FallbackOption fallbackOption) {
+	public void addFallbackMethodCode(ICodeWriter code, FallbackOption fallbackOption) {
 		// load original instructions
 		try {
 			mth.unload();
@@ -329,7 +330,7 @@ public class MethodGen {
 		COMMENTED_DUMP
 	}
 
-	public static void addFallbackInsns(CodeWriter code, MethodNode mth, InsnNode[] insnArr, FallbackOption option) {
+	public static void addFallbackInsns(ICodeWriter code, MethodNode mth, InsnNode[] insnArr, FallbackOption option) {
 		int startIndent = code.getIndent();
 		InsnGen insnGen = new InsnGen(getFallbackMethodGen(mth), true);
 		boolean attachInsns = mth.root().getArgs().isJsonOutput();

@@ -212,13 +212,13 @@ public class ResourceIndex {
 					extSet.add(ext);
 				}
 			}
-			ZipFile zipFile = getZipFile(cache.getJRoot());
-			traverseTree(cache.getJRoot(), zipFile); // reindex
 			try {
+				ZipFile zipFile = getZipFile(cache.getJRoot());
+				traverseTree(cache.getJRoot(), zipFile); // reindex
 				if (zipFile != null) {
 					zipFile.close();
 				}
-			} catch (IOException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}

@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeCache;
+import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
@@ -433,6 +434,11 @@ public class RootNode {
 				LOG.error("Visitor init failed: {}", pass.getClass().getSimpleName(), e);
 			}
 		}
+	}
+
+	public ICodeWriter makeCodeWriter() {
+		JadxArgs jadxArgs = this.args;
+		return jadxArgs.getCodeWriterProvider().apply(jadxArgs);
 	}
 
 	public ClspGraph getClsp() {

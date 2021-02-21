@@ -2,9 +2,8 @@ package jadx.core.utils.exceptions;
 
 import java.util.Arrays;
 
+import jadx.api.ICodeWriter;
 import jadx.core.utils.Utils;
-
-import static jadx.core.codegen.CodeWriter.NL;
 
 public class JadxRuntimeException extends RuntimeException {
 
@@ -15,7 +14,7 @@ public class JadxRuntimeException extends RuntimeException {
 	}
 
 	public JadxRuntimeException(String... lines) {
-		super(Utils.listToString(Arrays.asList(lines), NL + "  "));
+		super(Utils.listToString(Arrays.asList(lines), ICodeWriter.NL + "  "));
 	}
 
 	public JadxRuntimeException(String message, Throwable cause) {

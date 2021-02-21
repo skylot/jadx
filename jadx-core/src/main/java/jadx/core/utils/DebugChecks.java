@@ -3,6 +3,7 @@ package jadx.core.utils;
 import java.util.ArrayList;
 import java.util.List;
 
+import jadx.api.ICodeWriter;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
@@ -20,8 +21,6 @@ import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.PrepareForCodeGen;
 import jadx.core.dex.visitors.RenameVisitor;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-
-import static jadx.core.codegen.CodeWriter.NL;
 
 /**
  * Check invariants and information consistency for registers and SSA variables
@@ -89,7 +88,7 @@ public class DebugChecks {
 		boolean assignReg = insn.getResult() == reg;
 		if (!assignReg && !Utils.containsInListByRef(useList, reg)) {
 			throw new JadxRuntimeException("Incorrect use list in ssa var: " + sVar + ", register not listed."
-					+ NL + " insn: " + insn);
+					+ ICodeWriter.NL + " insn: " + insn);
 		}
 		for (RegisterArg useArg : useList) {
 			checkRegisterArg(mth, useArg);
@@ -111,7 +110,7 @@ public class DebugChecks {
 			BlockNode parentInsnBlock = BlockUtils.getBlockByInsn(mth, parentInsn);
 			if (parentInsnBlock == null) {
 				throw new JadxRuntimeException("Parent insn not found in blocks tree for: " + reg
-						+ NL + " insn: " + parentInsn);
+						+ ICodeWriter.NL + " insn: " + parentInsn);
 			}
 		}
 	}

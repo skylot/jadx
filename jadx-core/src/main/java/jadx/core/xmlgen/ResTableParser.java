@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
-import jadx.core.codegen.CodeWriter;
+import jadx.api.ICodeWriter;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.FieldNode;
@@ -95,7 +95,7 @@ public class ResTableParser extends CommonBinaryParser {
 	}
 
 	public ICodeInfo makeXmlDump() {
-		CodeWriter writer = new CodeWriter();
+		ICodeWriter writer = root.makeCodeWriter();
 		writer.startLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
 		writer.startLine("<resources>");
 		writer.incIndent();

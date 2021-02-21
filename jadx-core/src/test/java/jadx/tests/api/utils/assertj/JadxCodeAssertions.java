@@ -2,7 +2,7 @@ package jadx.tests.api.utils.assertj;
 
 import org.assertj.core.api.AbstractStringAssert;
 
-import jadx.core.codegen.CodeWriter;
+import jadx.api.ICodeWriter;
 import jadx.tests.api.utils.TestUtils;
 
 public class JadxCodeAssertions extends AbstractStringAssert<JadxCodeAssertions> {
@@ -52,7 +52,7 @@ public class JadxCodeAssertions extends AbstractStringAssert<JadxCodeAssertions>
 				if (first) {
 					first = false;
 				} else {
-					sb.append(CodeWriter.NL);
+					sb.append(ICodeWriter.NL);
 				}
 				sb.append(indent);
 				sb.append(line);
