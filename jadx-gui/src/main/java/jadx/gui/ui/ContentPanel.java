@@ -4,6 +4,7 @@ import javax.swing.*;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 
 public abstract class ContentPanel extends JPanel {
@@ -38,6 +39,10 @@ public abstract class ContentPanel extends JPanel {
 	 */
 	@Nullable
 	public String getTabTooltip() {
-		return null;
+		JClass jClass = node.getRootClass();
+		if (jClass != null) {
+			return jClass.getFullName();
+		}
+		return node.getName();
 	}
 }

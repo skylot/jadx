@@ -47,7 +47,13 @@ public class TabComponent extends JPanel {
 		panel.setOpaque(false);
 
 		JNode node = contentPanel.getNode();
-		label = new JLabel(node.makeLongStringHtml());
+		String tabTitle;
+		if (node.getRootClass() != null) {
+			tabTitle = node.getRootClass().getName();
+		} else {
+			tabTitle = node.makeLongStringHtml();
+		}
+		label = new JLabel(tabTitle);
 		label.setFont(getLabelFont());
 		String toolTip = contentPanel.getTabTooltip();
 		if (toolTip != null) {
@@ -89,7 +95,7 @@ public class TabComponent extends JPanel {
 
 		panel.add(label);
 		panel.add(closeBtn);
-		panel.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
+		panel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 	}
 
 	private JPopupMenu createTabPopupMenu(final ContentPanel contentPanel) {
