@@ -27,7 +27,6 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
-import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.VariableNode;
 import jadx.core.dex.regions.Region;
@@ -59,28 +58,8 @@ public class RegionGen extends InsnGen {
 	}
 
 	public void makeRegion(ICodeWriter code, IContainer cont) throws CodegenException {
-		if (cont instanceof IBlock) {
-			makeSimpleBlock((IBlock) cont, code);
-		} else if (cont instanceof IRegion) {
-			if (cont instanceof Region) {
-				makeSimpleRegion(code, (Region) cont);
-			} else {
-				declareVars(code, cont);
-				if (cont instanceof IfRegion) {
-					makeIf((IfRegion) cont, code, true);
-				} else if (cont instanceof SwitchRegion) {
-					makeSwitch((SwitchRegion) cont, code);
-				} else if (cont instanceof LoopRegion) {
-					makeLoop((LoopRegion) cont, code);
-				} else if (cont instanceof TryCatchRegion) {
-					makeTryCatch((TryCatchRegion) cont, code);
-				} else if (cont instanceof SynchronizedRegion) {
-					makeSynchronizedRegion((SynchronizedRegion) cont, code);
-				}
-			}
-		} else {
-			throw new CodegenException("Not processed container: " + cont);
-		}
+		declareVars(code, cont);
+		cont.generate(this, code);
 	}
 
 	private void declareVars(ICodeWriter code, IContainer cont) {
@@ -94,20 +73,13 @@ public class RegionGen extends InsnGen {
 		}
 	}
 
-	private void makeSimpleRegion(ICodeWriter code, Region region) throws CodegenException {
-		declareVars(code, region);
-		for (IContainer c : region.getSubBlocks()) {
-			makeRegion(code, c);
-		}
-	}
-
-	public void makeRegionIndent(ICodeWriter code, IContainer region) throws CodegenException {
+	private void makeRegionIndent(ICodeWriter code, IContainer region) throws CodegenException {
 		code.incIndent();
 		makeRegion(code, region);
 		code.decIndent();
 	}
 
-	private void makeSimpleBlock(IBlock block, ICodeWriter code) throws CodegenException {
+	public void makeSimpleBlock(IBlock block, ICodeWriter code) throws CodegenException {
 		if (block.contains(AFlag.DONT_GENERATE)) {
 			return;
 		}
@@ -123,7 +95,7 @@ public class RegionGen extends InsnGen {
 		}
 	}
 
-	private void makeIf(IfRegion region, ICodeWriter code, boolean newLine) throws CodegenException {
+	public void makeIf(IfRegion region, ICodeWriter code, boolean newLine) throws CodegenException {
 		if (newLine) {
 			code.startLineWithNum(region.getSourceLine());
 		} else {
@@ -187,7 +159,7 @@ public class RegionGen extends InsnGen {
 		return false;
 	}
 
-	private void makeLoop(LoopRegion region, ICodeWriter code) throws CodegenException {
+	public void makeLoop(LoopRegion region, ICodeWriter code) throws CodegenException {
 		LoopLabelAttr labelAttr = region.getInfo().getStart().get(AType.LOOP_LABEL);
 		if (labelAttr != null) {
 			code.startLine(mgen.getNameGen().getLoopLabel(labelAttr)).add(':');
@@ -252,7 +224,7 @@ public class RegionGen extends InsnGen {
 		}
 	}
 
-	private void makeSynchronizedRegion(SynchronizedRegion cont, ICodeWriter code) throws CodegenException {
+	public void makeSynchronizedRegion(SynchronizedRegion cont, ICodeWriter code) throws CodegenException {
 		code.startLine("synchronized (");
 		addArg(code, cont.getEnterInsn().getArg(0));
 		code.add(") {");
@@ -260,7 +232,7 @@ public class RegionGen extends InsnGen {
 		code.startLine('}');
 	}
 
-	private void makeSwitch(SwitchRegion sw, ICodeWriter code) throws CodegenException {
+	public void makeSwitch(SwitchRegion sw, ICodeWriter code) throws CodegenException {
 		SwitchInsn insn = (SwitchInsn) BlockUtils.getLastInsn(sw.getHeader());
 		Objects.requireNonNull(insn, "Switch insn not found in header");
 		InsnArg arg = insn.getArg(0);
@@ -310,7 +282,7 @@ public class RegionGen extends InsnGen {
 		}
 	}
 
-	private void makeTryCatch(TryCatchRegion region, ICodeWriter code) throws CodegenException {
+	public void makeTryCatch(TryCatchRegion region, ICodeWriter code) throws CodegenException {
 		code.startLine("try {");
 		if (code.isMetadataSupported()) {
 			InsnNode insn = Utils.first(region.getTryCatchBlock().getInsns());
