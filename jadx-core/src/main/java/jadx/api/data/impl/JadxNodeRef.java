@@ -1,7 +1,9 @@
 package jadx.api.data.impl;
 
+import java.util.Comparator;
 import java.util.Objects;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.JavaClass;
@@ -10,7 +12,7 @@ import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.api.data.IJavaNodeRef;
 
-public class JadxNodeRef implements IJavaNodeRef {
+public class JadxNodeRef implements IJavaNodeRef, Comparable<IJavaNodeRef> {
 
 	@Nullable
 	public static JadxNodeRef forJavaNode(JavaNode javaNode) {
@@ -43,7 +45,7 @@ public class JadxNodeRef implements IJavaNodeRef {
 	public static JadxNodeRef forFld(JavaField fld) {
 		return new JadxNodeRef(RefType.FIELD,
 				fld.getDeclaringClass().getClassNode().getClassInfo().getFullName(),
-				fld.getFieldNode().getFieldInfo().getFullId());
+				fld.getFieldNode().getFieldInfo().getShortId());
 	}
 
 	private RefType refType;
@@ -87,6 +89,16 @@ public class JadxNodeRef implements IJavaNodeRef {
 
 	public void setShortId(@Nullable String shortId) {
 		this.shortId = shortId;
+	}
+
+	private static final Comparator<IJavaNodeRef> COMPARATOR = Comparator
+			.comparing(IJavaNodeRef::getType)
+			.thenComparing(IJavaNodeRef::getDeclaringClass)
+			.thenComparing(IJavaNodeRef::getShortId);
+
+	@Override
+	public int compareTo(@NotNull IJavaNodeRef other) {
+		return COMPARATOR.compare(this, other);
 	}
 
 	@Override

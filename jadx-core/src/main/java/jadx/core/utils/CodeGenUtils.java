@@ -7,17 +7,18 @@ import org.jetbrains.annotations.Nullable;
 import jadx.api.ICodeWriter;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
+import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.attributes.nodes.RenameReasonAttr;
 import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.InsnNode;
+import jadx.core.dex.nodes.ICodeNode;
 
 public class CodeGenUtils {
 
-	public static void addComments(ICodeWriter code, AttrNode node) {
+	public static void addComments(ICodeWriter code, IAttributeNode node) {
 		List<String> comments = node.getAll(AType.COMMENTS);
 		if (!comments.isEmpty()) {
 			comments.stream().distinct()
@@ -26,16 +27,17 @@ public class CodeGenUtils {
 		addCodeComments(code, node);
 	}
 
-	public static void addCodeComments(ICodeWriter code, @Nullable AttrNode node) {
+	public static void addCodeComments(ICodeWriter code, @Nullable IAttributeNode node) {
 		if (node == null) {
 			return;
 		}
 		List<String> comments = node.getAll(AType.CODE_COMMENTS);
 		if (!comments.isEmpty()) {
-			if (node instanceof InsnNode) {
-				code.add(' ');
-			} else {
+			if (node instanceof ICodeNode) {
+				// for classes, fields and methods add on line before node declaration
 				code.startLine();
+			} else {
+				code.add(' ');
 			}
 			code.add("// ").add(Utils.listToString(comments, " "));
 		}

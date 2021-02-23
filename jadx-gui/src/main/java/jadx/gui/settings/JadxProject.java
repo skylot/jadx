@@ -50,7 +50,7 @@ public class JadxProject {
 
 	private List<Path> files;
 	private List<String[]> treeExpansions = new ArrayList<>();
-	private JadxCodeData codeData;
+	private JadxCodeData codeData = new JadxCodeData();
 
 	private int projectVersion;
 

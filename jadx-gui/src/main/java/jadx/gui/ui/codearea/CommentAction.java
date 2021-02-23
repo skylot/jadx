@@ -16,6 +16,7 @@ import jadx.api.JavaClass;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.api.data.ICodeComment;
+import jadx.api.data.annotations.CustomOffsetRef;
 import jadx.api.data.annotations.InsnCodeOffset;
 import jadx.api.data.impl.JadxCodeComment;
 import jadx.api.data.impl.JadxNodeRef;
@@ -90,7 +91,7 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 			return null;
 		}
 		try {
-			CodeLinesInfo linesInfo = new CodeLinesInfo(topCls); // TODO: cache and update on class refresh
+			CodeLinesInfo linesInfo = new CodeLinesInfo(topCls, true); // TODO: cache and update on class refresh
 			// add comment if node definition at this line
 			JavaNode nodeAtLine = linesInfo.getDefAtLine(line);
 			if (nodeAtLine != null) {
@@ -98,14 +99,37 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 				JadxNodeRef nodeRef = JadxNodeRef.forJavaNode(nodeAtLine);
 				return new JadxCodeComment(nodeRef, "");
 			}
+
+			// check if line with comment only above node definition
+			try {
+				JavaNode defNode = linesInfo.getJavaNodeBelowLine(line);
+				if (defNode != null) {
+					String lineStr = codeArea.getLineText(line);
+					if (lineStr.trim().startsWith("// ")) {
+						return new JadxCodeComment(JadxNodeRef.forJavaNode(defNode), "");
+					}
+				}
+			} catch (Exception e) {
+				LOG.error("Failed to check comment line: " + line, e);
+			}
+
 			// try to add method line comment
 			Object ann = topCls.getAnnotationAt(new CodePosition(line, 0));
-			if (ann instanceof InsnCodeOffset) {
-				JavaNode node = linesInfo.getJavaNodeByLine(line);
-				if (node instanceof JavaMethod) {
-					JadxNodeRef nodeRef = JadxNodeRef.forMth((JavaMethod) node);
+			if (ann == null) {
+				return null;
+			}
+			JavaNode node = linesInfo.getJavaNodeByLine(line);
+			if (node instanceof JavaMethod) {
+				JadxNodeRef nodeRef = JadxNodeRef.forMth((JavaMethod) node);
+				if (ann instanceof InsnCodeOffset) {
 					int rawOffset = ((InsnCodeOffset) ann).getOffset();
 					return new JadxCodeComment(nodeRef, "", rawOffset);
+				}
+				if (ann instanceof CustomOffsetRef) {
+					CustomOffsetRef customRef = (CustomOffsetRef) ann;
+					JadxCodeComment comment = new JadxCodeComment(nodeRef, "", customRef.getOffset());
+					comment.setAttachType(customRef.getAttachType());
+					return comment;
 				}
 			}
 		} catch (Exception e) {

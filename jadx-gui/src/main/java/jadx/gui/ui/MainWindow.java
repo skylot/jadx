@@ -311,8 +311,10 @@ public class MainWindow extends JFrame {
 		if (!ensureProjectIsSaved()) {
 			return;
 		}
-		updateProject(new JadxProject());
+		cancelBackgroundJobs();
 		clearTree();
+		wrapper.close();
+		updateProject(new JadxProject());
 	}
 
 	private void saveProject() {
@@ -479,7 +481,9 @@ public class MainWindow extends JFrame {
 	}
 
 	public synchronized void cancelBackgroundJobs() {
-		backgroundExecutor.cancelAll();
+		if (backgroundExecutor != null) {
+			backgroundExecutor.cancelAll();
+		}
 		if (backgroundWorker != null) {
 			backgroundWorker.stop();
 			backgroundWorker = new BackgroundWorker(cacheObject, progressPane);

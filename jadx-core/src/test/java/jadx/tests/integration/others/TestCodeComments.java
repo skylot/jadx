@@ -45,22 +45,25 @@ public class TestCodeComments extends IntegrationTest {
 		codeData.setComments(Arrays.asList(clsComment, innerClsComment, fldComment, mthComment, insnComment));
 
 		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().getCodeStr();
-		assertThat(code)
+		assertThat(cls)
+				.decompile()
+				.checkCodeOffsets()
+				.code()
 				.containsOne("// class comment")
 				.containsOne("// inner class comment")
 				.containsOne("// field comment")
 				.containsOne("// method comment")
 				.containsOne("System.out.println(\"comment\"); // insn comment");
 
-		// assertThat(cls.reloadCode())
-		// .print()
+		// String code = cls.getCode().getCodeStr();
+		// assertThat(cls)
+		// .reloadCode(this)
 		// .isEqualTo(code);
 
 		ICodeComment updInsnComment = new JadxCodeComment(mthRef, "updated insn comment", 11);
 		codeData.setComments(Collections.singletonList(updInsnComment));
-		assertThat(cls.reloadCode())
-				.print()
+		assertThat(cls)
+				.reloadCode(this)
 				.containsOne("System.out.println(\"comment\"); // updated insn comment")
 				.doesNotContain("class comment")
 				.containsOne(" comment");

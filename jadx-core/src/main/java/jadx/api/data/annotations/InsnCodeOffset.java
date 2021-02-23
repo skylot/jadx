@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import jadx.api.ICodeWriter;
 import jadx.core.dex.nodes.InsnNode;
 
-public class InsnCodeOffset {
+public class InsnCodeOffset implements ICodeRawOffset {
 
 	public static void attach(ICodeWriter code, InsnNode insn) {
 		if (insn == null) {
@@ -16,6 +16,12 @@ public class InsnCodeOffset {
 			if (ann != null) {
 				code.attachLineAnnotation(ann);
 			}
+		}
+	}
+
+	public static void attach(ICodeWriter code, int offset) {
+		if (offset >= 0 && code.isMetadataSupported()) {
+			code.attachLineAnnotation(new InsnCodeOffset(offset));
 		}
 	}
 
@@ -34,6 +40,7 @@ public class InsnCodeOffset {
 		this.offset = offset;
 	}
 
+	@Override
 	public int getOffset() {
 		return offset;
 	}

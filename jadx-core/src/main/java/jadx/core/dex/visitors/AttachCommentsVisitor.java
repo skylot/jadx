@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,10 +15,12 @@ import jadx.api.data.ICodeData;
 import jadx.api.data.IJavaNodeRef;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttributeNode;
+import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 @JadxVisitor(
 		name = "Attach comments",
@@ -67,13 +70,11 @@ public class AttachCommentsVisitor extends AbstractVisitor {
 						int offset = comment.getOffset();
 						if (offset < 0) {
 							addComment(methodNode, comment.getComment());
+						} else if (comment.getAttachType() != null) {
+							processCustomAttach(methodNode, comment);
 						} else {
-							try {
-								InsnNode insn = methodNode.getInstructions()[offset];
-								addComment(insn, comment.getComment());
-							} catch (Exception e) {
-								LOG.warn("Insn reference not found in: {} node with offset: {}", nodeRef, offset);
-							}
+							InsnNode insn = getInsnByOffset(methodNode, offset);
+							addComment(insn, comment.getComment());
 						}
 					}
 					break;
@@ -81,7 +82,40 @@ public class AttachCommentsVisitor extends AbstractVisitor {
 		}
 	}
 
-	private static void addComment(IAttributeNode node, String comment) {
+	private static InsnNode getInsnByOffset(MethodNode mth, int offset) {
+		try {
+			return mth.getInstructions()[offset];
+		} catch (Exception e) {
+			LOG.warn("Insn reference not found in: {} with offset: {}", mth, offset);
+			return null;
+		}
+	}
+
+	private static void processCustomAttach(MethodNode mth, ICodeComment comment) {
+		ICodeComment.AttachType attachType = comment.getAttachType();
+		if (attachType == null) {
+			return;
+		}
+		switch (attachType) {
+			case VAR_DECLARE:
+				InsnNode insn = getInsnByOffset(mth, comment.getOffset());
+				if (insn != null) {
+					RegisterArg result = insn.getResult();
+					if (result != null) {
+						result.addAttr(AType.CODE_COMMENTS, comment.getComment());
+					}
+				}
+				break;
+
+			default:
+				throw new JadxRuntimeException("Unexpected attach type: " + attachType);
+		}
+	}
+
+	private static void addComment(@Nullable IAttributeNode node, String comment) {
+		if (node == null) {
+			return;
+		}
 		node.remove(AType.CODE_COMMENTS);
 		node.addAttr(AType.CODE_COMMENTS, comment);
 	}

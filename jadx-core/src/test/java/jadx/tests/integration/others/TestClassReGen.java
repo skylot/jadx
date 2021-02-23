@@ -23,7 +23,8 @@ public class TestClassReGen extends IntegrationTest {
 	@Test
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
-		assertThat(cls.getCode())
+		assertThat(cls)
+				.code()
 				.containsOnlyOnce("private int intField = 5;")
 				.containsOnlyOnce("public static class A {")
 				.containsOnlyOnce("public int test() {");
@@ -32,8 +33,8 @@ public class TestClassReGen extends IntegrationTest {
 		cls.searchMethodByShortName("test").getMethodInfo().setAlias("testRenamed");
 		cls.searchFieldByName("intField").getFieldInfo().setAlias("intFieldRenamed");
 
-		assertThat(cls.reloadCode())
-				.print()
+		assertThat(cls)
+				.reloadCode(this)
 				.containsOnlyOnce("private int intFieldRenamed = 5;")
 				.containsOnlyOnce("public static class ARenamed {")
 				.containsOnlyOnce("public int testRenamed() {");

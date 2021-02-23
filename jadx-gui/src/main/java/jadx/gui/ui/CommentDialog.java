@@ -6,7 +6,9 @@ import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import javax.swing.BorderFactory;
@@ -55,6 +57,7 @@ public class CommentDialog extends JDialog {
 			}
 			List<ICodeComment> list = new ArrayList<>(codeData.getComments());
 			updater.accept(list);
+			Collections.sort(list);
 			codeData.setComments(list);
 			project.setCodeData(codeData);
 		} catch (Exception e) {
@@ -68,7 +71,7 @@ public class CommentDialog extends JDialog {
 		}
 	}
 
-	private static JadxCodeComment searchForExistComment(CodeArea codeArea, ICodeComment blankComment) {
+	private static ICodeComment searchForExistComment(CodeArea codeArea, ICodeComment blankComment) {
 		try {
 			JadxProject project = codeArea.getProject();
 			JadxCodeData codeData = project.getCodeData();
@@ -76,10 +79,10 @@ public class CommentDialog extends JDialog {
 				return null;
 			}
 			for (ICodeComment comment : codeData.getComments()) {
-				if (comment.getNodeRef().equals(blankComment.getNodeRef())
+				if (Objects.equals(comment.getNodeRef(), blankComment.getNodeRef())
 						&& comment.getOffset() == blankComment.getOffset()
-						&& comment instanceof JadxCodeComment) {
-					return (JadxCodeComment) comment;
+						&& comment.getAttachType() == blankComment.getAttachType()) {
+					return comment;
 				}
 			}
 		} catch (Exception e) {
@@ -104,7 +107,12 @@ public class CommentDialog extends JDialog {
 
 	private void apply() {
 		String newCommentStr = commentField.getText();
-		ICodeComment newComment = new JadxCodeComment(comment.getNodeRef(), newCommentStr, comment.getOffset());
+		if (newCommentStr == null || newCommentStr.trim().isEmpty()) {
+			dispose();
+			return;
+		}
+		ICodeComment newComment = new JadxCodeComment(comment.getNodeRef(),
+				newCommentStr, comment.getOffset(), comment.getAttachType());
 		if (updateComment) {
 			updateCommentsData(codeArea, list -> {
 				list.remove(comment);

@@ -1,14 +1,26 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
-import javax.swing.text.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Caret;
+import javax.swing.text.DefaultCaret;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rtextarea.SearchContext;
@@ -300,6 +312,13 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		JumpPosition jp = new JumpPosition(node, getCaretLineNumber() + 1);
 		jp.setPrecise(getCaretPosition());
 		return jp;
+	}
+
+	public String getLineText(int line) throws BadLocationException {
+		int lineNum = line - 1;
+		int startOffset = getLineStartOffset(lineNum);
+		int endOffset = getLineEndOffset(lineNum);
+		return getText(startOffset, endOffset - startOffset);
 	}
 
 	@Nullable

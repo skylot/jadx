@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.ConstStringNode;
@@ -227,6 +228,9 @@ public class ConstInlineVisitor extends AbstractVisitor {
 			useInsn.setSourceLine(constInsn.getSourceLine());
 			if (useInsn.contains(AFlag.SYNTHETIC)) {
 				useInsn.setOffset(constInsn.getOffset());
+				useInsn.rewriteAttributeFrom(constInsn, AType.CODE_COMMENTS);
+			} else {
+				useInsn.copyAttributeFrom(constInsn, AType.CODE_COMMENTS);
 			}
 		}
 		return true;

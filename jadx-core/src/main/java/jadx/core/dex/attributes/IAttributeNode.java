@@ -14,6 +14,10 @@ public interface IAttributeNode {
 
 	void copyAttributesFrom(AttrNode attrNode);
 
+	<T extends IAttribute> void copyAttributeFrom(AttrNode attrNode, AType<T> attrType);
+
+	<T extends IAttribute> void rewriteAttributeFrom(AttrNode attrNode, AType<T> attrType);
+
 	boolean contains(AFlag flag);
 
 	<T extends IAttribute> boolean contains(AType<T> type);
