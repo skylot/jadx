@@ -330,6 +330,10 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		return fields;
 	}
 
+	public void addField(FieldNode fld) {
+		fields.add(fld);
+	}
+
 	public FieldNode getConstField(Object obj) {
 		return getConstField(obj, true);
 	}
@@ -651,5 +655,4 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	public String toString() {
 		return clsInfo.getFullName();
 	}
-
 }

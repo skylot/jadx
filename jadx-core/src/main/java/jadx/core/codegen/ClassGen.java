@@ -426,6 +426,8 @@ public class ClassGen {
 		InsnGen igen = null;
 		for (Iterator<EnumField> it = enumFields.getFields().iterator(); it.hasNext();) {
 			EnumField f = it.next();
+
+			CodeGenUtils.addComments(code, f.getField());
 			code.startLine(f.getField().getAlias());
 			ConstructorInsn constrInsn = f.getConstrInsn();
 			MethodNode callMth = cls.root().resolveMethod(constrInsn.getCallMth());
