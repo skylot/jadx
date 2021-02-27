@@ -90,7 +90,13 @@ public class CodeGenUtils {
 	public static void addSourceFileInfo(ICodeWriter code, ClassNode node) {
 		SourceFileAttr sourceFileAttr = node.get(AType.SOURCE_FILE);
 		if (sourceFileAttr != null) {
-			code.startLine("/* compiled from: ").add(sourceFileAttr.getFileName()).add(" */");
+			String fileName = sourceFileAttr.getFileName();
+			String topClsName = node.getTopParentClass().getClassInfo().getShortName();
+			if (topClsName.contains(fileName)) {
+				// ignore similar name
+				return;
+			}
+			code.startLine("/* compiled from: ").add(fileName).add(" */");
 		}
 	}
 

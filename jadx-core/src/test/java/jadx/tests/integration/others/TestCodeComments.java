@@ -32,7 +32,7 @@ public class TestCodeComments extends IntegrationTest {
 
 	@Test
 	public void test() {
-		String baseClsId = "jadx.tests.integration.others.TestCodeComments$TestCls";
+		String baseClsId = TestCls.class.getName();
 		ICodeComment clsComment = new JadxCodeComment(JadxNodeRef.forCls(baseClsId), "class comment");
 		ICodeComment innerClsComment = new JadxCodeComment(JadxNodeRef.forCls(baseClsId + ".A"), "inner class comment");
 		ICodeComment fldComment = new JadxCodeComment(new JadxNodeRef(RefType.FIELD, baseClsId, "intField:I"), "field comment");
@@ -55,10 +55,10 @@ public class TestCodeComments extends IntegrationTest {
 				.containsOne("// method comment")
 				.containsOne("System.out.println(\"comment\"); // insn comment");
 
-		// String code = cls.getCode().getCodeStr();
-		// assertThat(cls)
-		// .reloadCode(this)
-		// .isEqualTo(code);
+		String code = cls.getCode().getCodeStr();
+		assertThat(cls)
+				.reloadCode(this)
+				.isEqualTo(code);
 
 		ICodeComment updInsnComment = new JadxCodeComment(mthRef, "updated insn comment", 11);
 		codeData.setComments(Collections.singletonList(updInsnComment));

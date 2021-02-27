@@ -33,7 +33,6 @@ public final class ProcessClass {
 			try {
 				if (cls.contains(AFlag.CLASS_DEEP_RELOAD)) {
 					cls.remove(AFlag.CLASS_DEEP_RELOAD);
-					cls.unload();
 					cls.deepUnload();
 					cls.root().runPreDecompileStageForClass(cls);
 				}

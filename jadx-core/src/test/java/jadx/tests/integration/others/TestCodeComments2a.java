@@ -30,7 +30,7 @@ public class TestCodeComments2a extends IntegrationTest {
 
 	@Test
 	public void test() {
-		String baseClsId = "jadx.tests.integration.others.TestCodeComments2a$TestCls";
+		String baseClsId = TestCls.class.getName();
 		JadxNodeRef mthRef = new JadxNodeRef(RefType.METHOD, baseClsId, "test(Z)I");
 		ICodeComment insnComment = new JadxCodeComment(mthRef, "return comment", 18);
 		ICodeComment insnComment2 = new JadxCodeComment(mthRef, "another return comment", 19);

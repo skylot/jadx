@@ -1,8 +1,5 @@
 package jadx.core.dex.visitors.usage;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jadx.api.plugins.input.data.ICodeReader;
 import jadx.api.plugins.input.insns.InsnData;
 import jadx.api.plugins.input.insns.Opcode;
@@ -27,17 +24,14 @@ import jadx.core.dex.visitors.RenameVisitor;
 		}
 )
 public class UsageInfoVisitor extends AbstractVisitor {
-	private static final Logger LOG = LoggerFactory.getLogger(UsageInfoVisitor.class);
 
 	@Override
 	public void init(RootNode root) {
-		long startTime = System.currentTimeMillis();
 		UsageInfo usageInfo = new UsageInfo(root);
 		for (ClassNode cls : root.getClasses()) {
 			processClass(cls, usageInfo);
 		}
 		usageInfo.apply();
-		LOG.debug("Dependency collection done in {}ms", System.currentTimeMillis() - startTime);
 	}
 
 	private static void processClass(ClassNode cls, UsageInfo usageInfo) {
