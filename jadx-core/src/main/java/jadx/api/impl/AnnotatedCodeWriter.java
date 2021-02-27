@@ -168,6 +168,11 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 		return new AnnotatedCodeInfo(code, lineMap, annotations);
 	}
 
+	@Override
+	public Map<CodePosition, Object> getRawAnnotations() {
+		return annotations;
+	}
+
 	private void processDefinitionAnnotations() {
 		if (!annotations.isEmpty()) {
 			annotations.entrySet().removeIf(entry -> {

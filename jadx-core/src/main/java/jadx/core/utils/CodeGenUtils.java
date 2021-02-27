@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.CodePosition;
 import jadx.api.ICodeWriter;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
@@ -32,14 +33,47 @@ public class CodeGenUtils {
 			return;
 		}
 		List<String> comments = node.getAll(AType.CODE_COMMENTS);
-		if (!comments.isEmpty()) {
-			if (node instanceof ICodeNode) {
-				// for classes, fields and methods add on line before node declaration
-				code.startLine();
-			} else {
-				code.add(' ');
+		if (comments.isEmpty()) {
+			return;
+		}
+		if (node instanceof ICodeNode) {
+			// for classes, fields and methods add on line before node declaration
+			code.startLine();
+		} else {
+			code.add(' ');
+		}
+		if (comments.size() == 1) {
+			String comment = comments.get(0);
+			if (!comment.contains("\n")) {
+				code.add("// ").add(comment);
+				return;
 			}
-			code.add("// ").add(Utils.listToString(comments, " "));
+		}
+		addMultiLineComment(code, comments);
+	}
+
+	private static void addMultiLineComment(ICodeWriter code, List<String> comments) {
+		boolean first = true;
+		String indent = "";
+		Object lineAnn = null;
+		for (String comment : comments) {
+			for (String line : comment.split("\n")) {
+				if (first) {
+					first = false;
+					StringBuilder buf = code.getRawBuf();
+					int startLinePos = buf.lastIndexOf(ICodeWriter.NL) + 1;
+					indent = Utils.strRepeat(" ", buf.length() - startLinePos);
+					if (code.isMetadataSupported()) {
+						lineAnn = code.getRawAnnotations().get(new CodePosition(code.getLine(), 0));
+					}
+				} else {
+					code.newLine().add(indent);
+					if (lineAnn != null) {
+						code.attachLineAnnotation(lineAnn);
+					}
+				}
+				code.add("// ").add(line);
+			}
 		}
 	}
 

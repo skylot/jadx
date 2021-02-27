@@ -131,7 +131,7 @@ public final class JavaClass implements JavaNode {
 		return decompiler;
 	}
 
-	private Map<CodePosition, Object> getCodeAnnotations() {
+	public Map<CodePosition, Object> getCodeAnnotations() {
 		ICodeInfo code = getCodeInfo();
 		if (code == null) {
 			return Collections.emptyMap();

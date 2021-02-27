@@ -24,6 +24,7 @@ import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.ContentPanel;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.CaretPositionFix;
 import jadx.gui.utils.DefaultPopupMenuListener;
 import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.JumpPosition;
@@ -215,11 +216,15 @@ public final class CodeArea extends AbstractCodeArea {
 		if (node instanceof JClass) {
 			JClass cls = (JClass) node;
 			try {
+				CaretPositionFix caretFix = new CaretPositionFix(this);
+				caretFix.save();
+
 				cls.reload();
 				IndexJob.refreshIndex(getMainWindow().getCacheObject(), cls.getCls());
 
-				contentPanel.getTabbedPane().refresh(cls);
-				((ClassCodeContentPanel) contentPanel).getJavaCodePanel().refresh();
+				ClassCodeContentPanel codeContentPanel = (ClassCodeContentPanel) this.contentPanel;
+				codeContentPanel.getTabbedPane().refresh(cls);
+				codeContentPanel.getJavaCodePanel().refresh(caretFix);
 			} catch (Exception e) {
 				LOG.error("Failed to reload class: {}", cls.getFullName(), e);
 			}

@@ -27,6 +27,10 @@ public class TextStandardActions {
 	private Action deleteAction;
 	private Action selectAllAction;
 
+	public static void attach(JTextComponent textComponent) {
+		new TextStandardActions(textComponent);
+	}
+
 	public TextStandardActions(JTextComponent textComponent) {
 		this.textComponent = textComponent;
 		this.undoManager = new UndoManager();

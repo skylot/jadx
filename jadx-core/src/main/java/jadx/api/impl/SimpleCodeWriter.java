@@ -1,8 +1,12 @@
 package jadx.api.impl;
 
+import java.util.Collections;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.CodePosition;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
@@ -226,6 +230,16 @@ public class SimpleCodeWriter implements ICodeWriter {
 	@Override
 	public int getLength() {
 		return buf.length();
+	}
+
+	@Override
+	public StringBuilder getRawBuf() {
+		return buf;
+	}
+
+	@Override
+	public Map<CodePosition, Object> getRawAnnotations() {
+		return Collections.emptyMap();
 	}
 
 	@Override

@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.core.utils.StringUtils;
 import jadx.gui.settings.JadxSettings;
+import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.ContentPanel;
 import jadx.gui.ui.MainWindow;
@@ -332,5 +333,13 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 
 	public JNode getNode() {
 		return node;
+	}
+
+	@Nullable
+	public JClass getJClass() {
+		if (node instanceof JClass) {
+			return (JClass) node;
+		}
+		return null;
 	}
 }

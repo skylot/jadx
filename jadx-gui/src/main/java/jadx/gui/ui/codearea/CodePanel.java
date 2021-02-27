@@ -43,6 +43,7 @@ public class CodePanel extends JPanel {
 	private final SearchBar searchBar;
 	private final AbstractCodeArea codeArea;
 	private final JScrollPane codeScrollPane;
+	private LineNumbers lineNumbers;
 
 	public CodePanel(AbstractCodeArea codeArea) {
 		this.codeArea = codeArea;
@@ -125,9 +126,13 @@ public class CodePanel extends JPanel {
 	}
 
 	private void initLineNumbers() {
-		LineNumbers numbers = new LineNumbers(codeArea);
-		numbers.setUseSourceLines(isUseSourceLines());
-		codeScrollPane.setRowHeaderView(numbers);
+		initLineNumbers(isUseSourceLines());
+	}
+
+	private void initLineNumbers(boolean useSourceLines) {
+		lineNumbers = new LineNumbers(codeArea);
+		lineNumbers.setUseSourceLines(useSourceLines);
+		codeScrollPane.setRowHeaderView(lineNumbers);
 	}
 
 	private boolean isUseSourceLines() {
@@ -158,14 +163,11 @@ public class CodePanel extends JPanel {
 		return codeScrollPane;
 	}
 
-	public void refresh() {
-		CaretPositionFix caretFix = new CaretPositionFix(codeArea);
-		caretFix.save();
-
+	public void refresh(CaretPositionFix caretFix) {
 		JViewport viewport = getCodeScrollPane().getViewport();
 		Point viewPosition = viewport.getViewPosition();
 		codeArea.refresh();
-		initLineNumbers();
+		initLineNumbers(lineNumbers.isUseSourceLines());
 
 		SwingUtilities.invokeLater(() -> {
 			viewport.setViewPosition(viewPosition);

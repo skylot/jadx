@@ -31,6 +31,7 @@ import jadx.gui.utils.UiUtils;
 import static javax.swing.KeyStroke.getKeyStroke;
 
 public class CommentAction extends AbstractAction implements DefaultPopupMenuListener {
+	private static final long serialVersionUID = 4753838562204629112L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(CommentAction.class);
 	private final CodeArea codeArea;
@@ -99,25 +100,24 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 				JadxNodeRef nodeRef = JadxNodeRef.forJavaNode(nodeAtLine);
 				return new JadxCodeComment(nodeRef, "");
 			}
-
-			// check if line with comment only above node definition
-			try {
-				JavaNode defNode = linesInfo.getJavaNodeBelowLine(line);
-				if (defNode != null) {
-					String lineStr = codeArea.getLineText(line);
-					if (lineStr.trim().startsWith("// ")) {
-						return new JadxCodeComment(JadxNodeRef.forJavaNode(defNode), "");
+			Object ann = topCls.getAnnotationAt(new CodePosition(line, 0));
+			if (ann == null) {
+				// check if line with comment above node definition
+				try {
+					JavaNode defNode = linesInfo.getJavaNodeBelowLine(line);
+					if (defNode != null) {
+						String lineStr = codeArea.getLineText(line).trim();
+						if (lineStr.startsWith("//")) {
+							return new JadxCodeComment(JadxNodeRef.forJavaNode(defNode), "");
+						}
 					}
+				} catch (Exception e) {
+					LOG.error("Failed to check comment line: " + line, e);
 				}
-			} catch (Exception e) {
-				LOG.error("Failed to check comment line: " + line, e);
+				return null;
 			}
 
 			// try to add method line comment
-			Object ann = topCls.getAnnotationAt(new CodePosition(line, 0));
-			if (ann == null) {
-				return null;
-			}
 			JavaNode node = linesInfo.getJavaNodeByLine(line);
 			if (node instanceof JavaMethod) {
 				JadxNodeRef nodeRef = JadxNodeRef.forMth((JavaMethod) node);

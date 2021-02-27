@@ -1,10 +1,12 @@
 package jadx.gui.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -18,7 +20,8 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
@@ -35,6 +38,8 @@ import jadx.gui.utils.TextStandardActions;
 import jadx.gui.utils.UiUtils;
 
 public class CommentDialog extends JDialog {
+	private static final long serialVersionUID = -1865682124935757528L;
+
 	private static final Logger LOG = LoggerFactory.getLogger(CommentDialog.class);
 
 	public static void show(CodeArea codeArea, ICodeComment blankComment) {
@@ -95,7 +100,7 @@ public class CommentDialog extends JDialog {
 	private final transient ICodeComment comment;
 	private final transient boolean updateComment;
 
-	private transient JTextField commentField;
+	private transient JTextArea commentArea;
 
 	public CommentDialog(CodeArea codeArea, ICodeComment comment, boolean updateComment) {
 		super(codeArea.getMainWindow());
@@ -106,9 +111,13 @@ public class CommentDialog extends JDialog {
 	}
 
 	private void apply() {
-		String newCommentStr = commentField.getText();
-		if (newCommentStr == null || newCommentStr.trim().isEmpty()) {
-			dispose();
+		String newCommentStr = commentArea.getText().trim();
+		if (newCommentStr.isEmpty()) {
+			if (updateComment) {
+				remove();
+			} else {
+				cancel();
+			}
 			return;
 		}
 		ICodeComment newComment = new JadxCodeComment(comment.getNodeRef(),
@@ -129,32 +138,58 @@ public class CommentDialog extends JDialog {
 		dispose();
 	}
 
+	private void cancel() {
+		dispose();
+	}
+
 	private void initUI() {
-		commentField = new JTextField(40);
-		commentField.addActionListener(e -> apply());
+		commentArea = new JTextArea();
+		TextStandardActions.attach(commentArea);
+		commentArea.setEditable(true);
+		commentArea.setFont(codeArea.getMainWindow().getSettings().getFont());
+		commentArea.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+		commentArea.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				switch (e.getKeyCode()) {
+					case KeyEvent.VK_ENTER:
+						if (e.isShiftDown() || e.isControlDown()) {
+							commentArea.append("\n");
+						} else {
+							apply();
+						}
+						break;
+
+					case KeyEvent.VK_ESCAPE:
+						cancel();
+						break;
+				}
+			}
+		});
 		if (updateComment) {
-			commentField.setText(comment.getComment());
-			commentField.selectAll();
+			commentArea.setText(comment.getComment());
 		}
-		new TextStandardActions(commentField);
 
-		JLabel lbl = new JLabel(NLS.str("comment_dialog.label"), SwingConstants.LEFT);
+		JScrollPane textAreaScrollPane = new JScrollPane(commentArea);
+		textAreaScrollPane.setAlignmentX(LEFT_ALIGNMENT);
 
-		JPanel commentPanel = new JPanel();
-		commentPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		commentPanel.add(lbl);
-		commentPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
+		JLabel commentLabel = new JLabel(NLS.str("comment_dialog.label"), SwingConstants.LEFT);
+		JLabel usageLabel = new JLabel(NLS.str("comment_dialog.usage"), SwingConstants.LEFT);
 
-		JPanel textPane = new JPanel();
-		textPane.setLayout(new BoxLayout(textPane, BoxLayout.PAGE_AXIS));
-		textPane.add(commentField);
-		textPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		JPanel mainPanel = new JPanel();
+		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.PAGE_AXIS));
+		mainPanel.add(commentLabel);
+		mainPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+		mainPanel.add(textAreaScrollPane);
+		mainPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+		mainPanel.add(usageLabel);
+		mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		JPanel buttonPane = initButtonsPanel();
 
 		Container contentPane = getContentPane();
-		contentPane.add(commentPanel, BorderLayout.PAGE_START);
-		contentPane.add(textPane, BorderLayout.CENTER);
+		contentPane.add(mainPanel, BorderLayout.CENTER);
 		contentPane.add(buttonPane, BorderLayout.PAGE_END);
 
 		if (updateComment) {
@@ -162,11 +197,10 @@ public class CommentDialog extends JDialog {
 		} else {
 			setTitle(NLS.str("comment_dialog.title.add"));
 		}
-		if (!codeArea.getMainWindow().getSettings().loadWindowPos(this)) {
-			setSize(800, 80);
-		}
-		// always pack (ignore saved windows sizes)
 		pack();
+		if (!codeArea.getMainWindow().getSettings().loadWindowPos(this)) {
+			setSize(800, 140);
+		}
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		setModalityType(ModalityType.APPLICATION_MODAL);
@@ -175,7 +209,7 @@ public class CommentDialog extends JDialog {
 
 	protected JPanel initButtonsPanel() {
 		JButton cancelButton = new JButton(NLS.str("common_dialog.cancel"));
-		cancelButton.addActionListener(event -> dispose());
+		cancelButton.addActionListener(event -> cancel());
 
 		String applyStr = updateComment ? NLS.str("common_dialog.update") : NLS.str("common_dialog.add");
 		JButton renameBtn = new JButton(applyStr);
