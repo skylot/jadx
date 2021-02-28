@@ -60,7 +60,9 @@ public class DexCodeReader implements ICodeReader {
 		int offset = 0; // in code units (2 byte)
 		while (offset < size) {
 			int opcodeUnit = in.readUShort();
+			int insnStart = in.getAbsPos();
 			DexInsnInfo insnInfo = DexInsnInfo.get(opcodeUnit);
+			insnData.setInsnStart(insnStart);
 			insnData.setOffset(offset);
 			insnData.setInsnInfo(insnInfo);
 			insnData.setOpcodeUnit(opcodeUnit);

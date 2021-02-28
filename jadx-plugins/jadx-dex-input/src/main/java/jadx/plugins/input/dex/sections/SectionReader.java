@@ -45,6 +45,14 @@ public class SectionReader {
 		return new SectionReader(this, off);
 	}
 
+	public byte[] getByteCode(int start, int len) {
+		int pos = buf.position();
+		buf.position(start);
+		byte[] bytes = readByteArray(len);
+		buf.position(pos);
+		return bytes;
+	}
+
 	private static ByteBuffer duplicate(ByteBuffer baseBuffer, int off) {
 		ByteBuffer dupBuf = baseBuffer.duplicate();
 		dupBuf.order(ByteOrder.LITTLE_ENDIAN);

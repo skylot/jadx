@@ -107,6 +107,10 @@ public class JClass extends JLoadableNode {
 		return cls.getSmali();
 	}
 
+	public String getSmaliV2() {
+		return cls.getClassNode().getSmaliV2();
+	}
+
 	@Override
 	public String getSyntaxName() {
 		return SyntaxConstants.SYNTAX_STYLE_JAVA;

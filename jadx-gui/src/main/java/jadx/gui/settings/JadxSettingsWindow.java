@@ -7,8 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.*;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -292,6 +291,7 @@ public class JadxSettingsWindow extends JDialog {
 
 	private SettingsGroup makeEditorGroup() {
 		JButton fontBtn = new JButton(NLS.str("preferences.select_font"));
+		JButton smaliFontBtn = new JButton(NLS.str("preferences.select_smali_font"));
 
 		EditorTheme[] editorThemes = EditorTheme.getAllThemes();
 		JComboBox<EditorTheme> themesCbx = new JComboBox<>(editorThemes);
@@ -311,6 +311,7 @@ public class JadxSettingsWindow extends JDialog {
 		SettingsGroup group = new SettingsGroup(NLS.str("preferences.editor"));
 		JLabel fontLabel = group.addRow(getFontLabelStr(), fontBtn);
 		group.addRow(NLS.str("preferences.theme"), themesCbx);
+		JLabel smaliFontLabel = group.addRow(getSmaliFontLabelStr(), smaliFontBtn);
 
 		fontBtn.addMouseListener(new MouseAdapter() {
 			@Override
@@ -327,6 +328,22 @@ public class JadxSettingsWindow extends JDialog {
 				}
 			}
 		});
+
+		smaliFontBtn.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				JFontChooser fontChooser = new JPreferredFontChooser();
+				fontChooser.setSelectedFont(settings.getSmaliFont());
+				int result = fontChooser.showDialog(JadxSettingsWindow.this);
+				if (result == JFontChooser.OK_OPTION) {
+					Font font = fontChooser.getSelectedFont();
+					LOG.debug("Selected Font: {} for smali", font);
+					settings.setSmaliFont(font);
+					mainWindow.loadSettings();
+					smaliFontLabel.setText(getSmaliFontLabelStr());
+				}
+			}
+		});
 		return group;
 	}
 
@@ -334,6 +351,12 @@ public class JadxSettingsWindow extends JDialog {
 		Font font = settings.getFont();
 		String fontStyleName = FontUtils.convertFontStyleToString(font.getStyle());
 		return NLS.str("preferences.font") + ": " + font.getFontName() + ' ' + fontStyleName + ' ' + font.getSize();
+	}
+
+	private String getSmaliFontLabelStr() {
+		Font font = settings.getSmaliFont();
+		String fontStyleName = FontUtils.convertFontStyleToString(font.getStyle());
+		return NLS.str("preferences.smali_font") + ": " + font.getFontName() + ' ' + fontStyleName + ' ' + font.getSize();
 	}
 
 	private SettingsGroup makeDecompilationGroup() {
@@ -576,6 +599,44 @@ public class JadxSettingsWindow extends JDialog {
 
 		public void end() {
 			add(Box.createVerticalGlue());
+		}
+	}
+
+	private static class JPreferredFontChooser extends JFontChooser {
+		private static final String[] PREFERRED_FONTS = new String[] {
+				"Monospaced", "Consolas", "Courier", "Courier New",
+				"Lucida Sans Typewriter", "Lucida Console",
+				"SimSun", "SimHei",
+		};
+
+		private String[] filteredFonts;
+
+		@Override
+		protected String[] getFontFamilies() {
+			if (filteredFonts == null) {
+				GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
+				Set<String> fontSet = new HashSet<>();
+				Collections.addAll(fontSet, env.getAvailableFontFamilyNames());
+				ArrayList<String> found = new ArrayList<>(PREFERRED_FONTS.length);
+				for (String font : PREFERRED_FONTS) {
+					if (fontSet.contains(font)) {
+						found.add(font);
+					}
+				}
+				if (found.size() == PREFERRED_FONTS.length) {
+					filteredFonts = PREFERRED_FONTS;
+				} else if (found.size() > 0) {
+					filteredFonts = new String[found.size()];
+					for (int i = 0; i < found.size(); i++) {
+						filteredFonts[i] = found.get(i);
+					}
+				} else {
+					// this machine is crazy.
+					LOG.warn("Can't found any preferred fonts for smali, use all available.");
+					filteredFonts = env.getAvailableFontFamilyNames();
+				}
+			}
+			return filteredFonts;
 		}
 	}
 }
