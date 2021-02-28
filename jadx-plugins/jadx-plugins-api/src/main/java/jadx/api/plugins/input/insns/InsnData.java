@@ -2,18 +2,20 @@ package jadx.api.plugins.input.insns;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.api.plugins.input.data.ICallSite;
-import jadx.api.plugins.input.data.IFieldData;
-import jadx.api.plugins.input.data.IMethodRef;
+import jadx.api.plugins.input.data.*;
 import jadx.api.plugins.input.insns.custom.ICustomPayload;
 
 public interface InsnData {
 
 	void decode();
 
-	int getOffset();
+	int getOffset(); // offset within method
+
+	int getFileOffset(); // offset within dex file
 
 	Opcode getOpcode();
+
+	byte[] getByteCode();
 
 	InsnIndexType getIndexType();
 
@@ -38,6 +40,10 @@ public interface InsnData {
 	IMethodRef getIndexAsMethod();
 
 	ICallSite getIndexAsCallSite();
+
+	IMethodProto getIndexAsProto(int protoIndex);
+
+	IMethodHandle getIndexAsMethodHandle();
 
 	@Nullable
 	ICustomPayload getPayload();
