@@ -54,6 +54,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private boolean checkForUpdates = false;
 	private List<Path> recentProjects = new ArrayList<>();
 	private String fontStr = "";
+	private String smaliFontStr = "";
 	private String editorThemePath = "";
 	private LangLocale langLocale = NLS.defaultLocale();
 	private boolean autoStartJobs = false;
@@ -68,6 +69,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private int srhResourceSkipSize = 1000;
 	private String srhResourceFileExt = ".xml|.html|.js|.json|.txt";
 	private boolean keepCommonDialogOpen = false;
+	private boolean smaliAreaShowBytecode = false;
 
 	/**
 	 * UI setting: the width of the tree showing the classes, resources, ...
@@ -377,6 +379,27 @@ public class JadxSettings extends JadxCLIArgs {
 		}
 	}
 
+	public Font getSmaliFont() {
+		if (smaliFontStr.isEmpty()) {
+			return DEFAULT_FONT;
+		}
+		try {
+			return FontUtils.loadByStr(smaliFontStr);
+		} catch (Exception e) {
+			LOG.warn("Failed to load font: {} for smali, reset to default", smaliFontStr, e);
+			setSmaliFont(DEFAULT_FONT);
+			return DEFAULT_FONT;
+		}
+	}
+
+	public void setSmaliFont(@Nullable Font font) {
+		if (font == null) {
+			this.smaliFontStr = "";
+		} else {
+			this.smaliFontStr = FontUtils.convertToStr(font);
+		}
+	}
+
 	public void setLogLevel(LogHelper.LogLevelEnum level) {
 		this.logLevel = level;
 	}
@@ -428,6 +451,14 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public boolean getKeepCommonDialogOpen() {
 		return keepCommonDialogOpen;
+	}
+
+	public void setSmaliAreaShowBytecode(boolean yes) {
+		smaliAreaShowBytecode = yes;
+	}
+
+	public boolean getSmaliAreaShowBytecode() {
+		return smaliAreaShowBytecode;
 	}
 
 	private void upgradeSettings(int fromVersion) {

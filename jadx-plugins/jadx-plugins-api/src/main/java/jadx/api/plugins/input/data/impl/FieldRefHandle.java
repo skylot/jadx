@@ -34,4 +34,9 @@ public class FieldRefHandle implements IMethodHandle {
 	public void load() {
 		// already loaded
 	}
+
+	@Override
+	public String toString() {
+		return type + ": " + fieldRef;
+	}
 }

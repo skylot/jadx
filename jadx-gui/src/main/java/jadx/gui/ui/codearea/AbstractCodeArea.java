@@ -55,9 +55,10 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 				contentPanel.getTabbedPane().getOpenTabs().values().forEach(v -> {
 					if (v instanceof AbstractCodeContentPanel) {
 						AbstractCodeArea codeArea = ((AbstractCodeContentPanel) v).getCodeArea();
-						codeArea.setLineWrap(wrap);
-						if (codeArea.isVisible()) {
-							codeArea.repaint();
+						setCodeAreaLineWrap(codeArea, wrap);
+						if (v instanceof ClassCodeContentPanel) {
+							codeArea = ((ClassCodeContentPanel) v).getSmaliCodeArea();
+							setCodeAreaLineWrap(codeArea, wrap);
 						}
 					}
 				});
@@ -114,6 +115,13 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 				}
 			}
 		});
+	}
+
+	private void setCodeAreaLineWrap(AbstractCodeArea codeArea, boolean wrap) {
+		codeArea.setLineWrap(wrap);
+		if (codeArea.isVisible()) {
+			codeArea.repaint();
+		}
 	}
 
 	private String highlightCaretWord(String lastText, int pos) {
