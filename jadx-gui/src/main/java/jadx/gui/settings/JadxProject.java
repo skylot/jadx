@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,7 +116,6 @@ public class JadxProject {
 		return false;
 	}
 
-	@Nullable
 	public JadxCodeData getCodeData() {
 		return codeData;
 	}

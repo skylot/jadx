@@ -193,7 +193,7 @@ public class JsonCodeGen {
 			JsonCodeLine jsonCodeLine = new JsonCodeLine();
 			jsonCodeLine.setCode(codeLine);
 			jsonCodeLine.setSourceLine(lineMapping.get(line));
-			Object obj = annotations.get(new CodePosition(line, 0));
+			Object obj = annotations.get(new CodePosition(line));
 			if (obj instanceof InsnCodeOffset) {
 				long offset = ((InsnCodeOffset) obj).getOffset();
 				jsonCodeLine.setOffset("0x" + Long.toHexString(mthCodeOffset + offset * 2));

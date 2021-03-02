@@ -234,6 +234,11 @@ public final class JavaClass implements JavaNode {
 	}
 
 	@Override
+	public int getDefPos() {
+		return cls.getDefPosition();
+	}
+
+	@Override
 	public boolean equals(Object o) {
 		return this == o || o instanceof JavaClass && cls.equals(((JavaClass) o).cls);
 	}

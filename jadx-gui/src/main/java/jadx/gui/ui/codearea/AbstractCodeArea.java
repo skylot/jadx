@@ -17,7 +17,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Caret;
 import javax.swing.text.DefaultCaret;
@@ -35,6 +34,7 @@ import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.ContentPanel;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.utils.DefaultPopupMenuListener;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
 
@@ -78,20 +78,10 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 			}
 		});
 		popupMenu.add(wrapItem);
-		popupMenu.addPopupMenuListener(new PopupMenuListener() {
+		popupMenu.addPopupMenuListener(new DefaultPopupMenuListener() {
 			@Override
 			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
 				wrapItem.setState(getLineWrap());
-			}
-
-			@Override
-			public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-
-			}
-
-			@Override
-			public void popupMenuCanceled(PopupMenuEvent e) {
-
 			}
 		});
 
@@ -310,9 +300,7 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 	}
 
 	public JumpPosition getCurrentPosition() {
-		JumpPosition jp = new JumpPosition(node, getCaretLineNumber() + 1);
-		jp.setPrecise(getCaretPosition());
-		return jp;
+		return new JumpPosition(node, getCaretLineNumber() + 1, getCaretPosition());
 	}
 
 	public String getLineText(int line) throws BadLocationException {

@@ -118,6 +118,6 @@ class JumpManagerTest {
 	}
 
 	private JumpPosition makeJumpPos() {
-		return new JumpPosition(new TextNode(""), 0);
+		return new JumpPosition(new TextNode(""), 0, 0);
 	}
 }

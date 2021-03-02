@@ -2,42 +2,27 @@ package jadx.api;
 
 public final class CodePosition {
 
-	private final JavaNode node;
 	private final int line;
 	private final int offset;
-	private int usagePosition = -1;
+	private final int pos;
 
-	public CodePosition(JavaNode node, int line, int offset) {
-		this.node = node;
+	public CodePosition(int line, int offset, int pos) {
 		this.line = line;
 		this.offset = offset;
+		this.pos = pos;
 	}
 
+	public CodePosition(int line) {
+		this(line, 0, -1);
+	}
+
+	@Deprecated
 	public CodePosition(int line, int offset) {
-		this.node = null;
-		this.line = line;
-		this.offset = offset;
+		this(line, offset, -1);
 	}
 
-	public int getUsagePosition() {
-		return usagePosition;
-	}
-
-	public CodePosition setUsagePosition(int usagePosition) {
-		this.usagePosition = usagePosition;
-		return this;
-	}
-
-	public JavaNode getNode() {
-		return node;
-	}
-
-	public JavaClass getJavaClass() {
-		JavaClass parent = node.getDeclaringClass();
-		if (parent == null && node instanceof JavaClass) {
-			return (JavaClass) node;
-		}
-		return parent;
+	public int getPos() {
+		return pos;
 	}
 
 	public int getLine() {
@@ -72,8 +57,8 @@ public final class CodePosition {
 		if (offset != 0) {
 			sb.append(':').append(offset);
 		}
-		if (node != null) {
-			sb.append(' ').append(node);
+		if (pos > 0) {
+			sb.append('@').append(pos);
 		}
 		return sb.toString();
 	}

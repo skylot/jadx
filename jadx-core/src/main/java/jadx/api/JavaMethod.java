@@ -85,6 +85,11 @@ public final class JavaMethod implements JavaNode {
 		return mth.getDecompiledLine();
 	}
 
+	@Override
+	public int getDefPos() {
+		return mth.getDefPosition();
+	}
+
 	/**
 	 * Internal API. Not Stable!
 	 */

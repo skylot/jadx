@@ -64,7 +64,7 @@ public class CodeGenUtils {
 					int startLinePos = buf.lastIndexOf(ICodeWriter.NL) + 1;
 					indent = Utils.strRepeat(" ", buf.length() - startLinePos);
 					if (code.isMetadataSupported()) {
-						lineAnn = code.getRawAnnotations().get(new CodePosition(code.getLine(), 0));
+						lineAnn = code.getRawAnnotations().get(new CodePosition(code.getLine()));
 					}
 				} else {
 					code.newLine().add(indent);

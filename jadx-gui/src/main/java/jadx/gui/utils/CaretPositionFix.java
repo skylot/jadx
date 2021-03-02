@@ -49,7 +49,7 @@ public class CaretPositionFix {
 			JClass cls = codeArea.getJClass();
 			if (cls != null) {
 				JavaClass topParentClass = cls.getJavaNode().getTopParentClass();
-				Object ann = topParentClass.getAnnotationAt(new CodePosition(line, 0));
+				Object ann = topParentClass.getAnnotationAt(new CodePosition(line));
 				if (ann instanceof ICodeRawOffset) {
 					codeRawOffset = ((ICodeRawOffset) ann).getOffset();
 					CodeLinesInfo codeLinesInfo = new CodeLinesInfo(topParentClass);

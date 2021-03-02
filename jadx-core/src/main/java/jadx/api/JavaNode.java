@@ -14,5 +14,7 @@ public interface JavaNode {
 
 	int getDecompiledLine();
 
+	int getDefPos();
+
 	List<JavaNode> getUseIn();
 }

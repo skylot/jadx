@@ -100,7 +100,7 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 				JadxNodeRef nodeRef = JadxNodeRef.forJavaNode(nodeAtLine);
 				return new JadxCodeComment(nodeRef, "");
 			}
-			Object ann = topCls.getAnnotationAt(new CodePosition(line, 0));
+			Object ann = topCls.getAnnotationAt(new CodePosition(line));
 			if (ann == null) {
 				// check if line with comment above node definition
 				try {

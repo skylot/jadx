@@ -50,6 +50,11 @@ public final class JavaField implements JavaNode {
 	}
 
 	@Override
+	public int getDefPos() {
+		return field.getDefPosition();
+	}
+
+	@Override
 	public List<JavaNode> getUseIn() {
 		return getDeclaringClass().getRootDecompiler().convertNodes(field.getUseIn());
 	}

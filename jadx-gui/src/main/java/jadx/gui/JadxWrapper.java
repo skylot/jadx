@@ -165,7 +165,7 @@ public class JadxWrapper {
 	/**
 	 * @param fullName Full name of an outer class. Inner classes are not supported.
 	 */
-	public @Nullable JavaClass searchJavaClassByClassName(String fullName) {
+	public @Nullable JavaClass searchJavaClassByFullAlias(String fullName) {
 		return decompiler.getClasses().stream()
 				.filter(cls -> cls.getFullName().equals(fullName))
 				.findFirst()

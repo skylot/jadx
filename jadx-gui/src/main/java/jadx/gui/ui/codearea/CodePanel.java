@@ -20,7 +20,6 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +29,7 @@ import jadx.core.utils.StringUtils;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.SearchDialog;
 import jadx.gui.utils.CaretPositionFix;
+import jadx.gui.utils.DefaultPopupMenuListener;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
@@ -83,7 +83,7 @@ public class CodePanel extends JPanel {
 		globalSearchItem.setAction(globalSearchAction);
 		Separator separator = new Separator();
 		JPopupMenu popupMenu = codeArea.getPopupMenu();
-		popupMenu.addPopupMenuListener(new PopupMenuListener() {
+		popupMenu.addPopupMenuListener(new DefaultPopupMenuListener() {
 			@Override
 			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
 				String preferText = codeArea.getSelectedText();
@@ -101,16 +101,6 @@ public class CodePanel extends JPanel {
 					popupMenu.remove(globalSearchItem);
 					popupMenu.remove(searchItem);
 				}
-			}
-
-			@Override
-			public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-
-			}
-
-			@Override
-			public void popupMenuCanceled(PopupMenuEvent e) {
-
 			}
 		});
 	}

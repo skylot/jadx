@@ -100,6 +100,7 @@ public final class CodeArea extends AbstractCodeArea {
 		popup.add(findUsage);
 		popup.add(goToDeclaration);
 		popup.add(comment);
+		popup.add(new CommentSearchAction(this));
 		popup.add(rename);
 		popup.addPopupMenuListener(findUsage);
 		popup.addPopupMenuListener(goToDeclaration);
@@ -111,9 +112,11 @@ public final class CodeArea extends AbstractCodeArea {
 			@Override
 			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
 				CodeArea codeArea = CodeArea.this;
-				int offset = UiUtils.getOffsetAtMousePosition(codeArea);
-				if (offset >= 0) {
-					codeArea.setCaretPosition(offset);
+				if (codeArea.getSelectedText() == null) {
+					int offset = UiUtils.getOffsetAtMousePosition(codeArea);
+					if (offset >= 0) {
+						codeArea.setCaretPosition(offset);
+					}
 				}
 			}
 		});
@@ -168,8 +171,7 @@ public final class CodeArea extends AbstractCodeArea {
 			return null;
 		}
 		JNode jNode = convertJavaNode(foundNode);
-		return new JumpPosition(jNode.getRootClass(), pos.getLine())
-				.setPrecise(JumpPosition.getDefPos(jNode));
+		return new JumpPosition(jNode.getRootClass(), pos.getLine(), JumpPosition.getDefPos(jNode));
 	}
 
 	private JNode convertJavaNode(JavaNode javaNode) {
