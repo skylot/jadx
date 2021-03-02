@@ -433,6 +433,15 @@ public final class JadxDecompiler implements Closeable {
 	}
 
 	@Nullable
+	public JavaClass searchJavaClassByOrigFullName(String fullName) {
+		return getRoot().getClasses().stream()
+				.filter(cls -> cls.getClassInfo().getFullName().equals(fullName))
+				.findFirst()
+				.map(this::getJavaClassByNode)
+				.orElse(null);
+	}
+
+	@Nullable
 	JavaNode convertNode(Object obj) {
 		if (!(obj instanceof LineAttrNode)) {
 			return null;
