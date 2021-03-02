@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeInfo;
@@ -58,6 +59,9 @@ public class ClassGen {
 	private int clsDeclOffset;
 
 	private boolean bodyGenStarted;
+
+	@Nullable
+	private NameGen outerNameGen;
 
 	public ClassGen(ClassNode cls, JadxArgs jadxArgs) {
 		this(cls, null, jadxArgs.isUseImports(), jadxArgs.isFallbackMode(), jadxArgs.isShowInconsistentCode());
@@ -238,13 +242,12 @@ public class ClassGen {
 	 */
 	public void addClassBody(ICodeWriter clsCode, boolean printClassName) throws CodegenException {
 		clsCode.add('{');
+		if (printClassName) {
+			clsCode.add(" // from class: " + cls.getClassInfo().getFullName());
+		}
 		setBodyGenStarted(true);
 		clsDeclOffset = clsCode.getLength();
 		clsCode.incIndent();
-		if (printClassName) {
-			clsCode.startLine();
-			clsCode.add("/* class " + cls.getFullName() + " */");
-		}
 		addFields(clsCode);
 		addInnerClsAndMethods(clsCode);
 		clsCode.decIndent();
@@ -745,5 +748,14 @@ public class ClassGen {
 
 	public void setBodyGenStarted(boolean bodyGenStarted) {
 		this.bodyGenStarted = bodyGenStarted;
+	}
+
+	@Nullable
+	public NameGen getOuterNameGen() {
+		return outerNameGen;
+	}
+
+	public void setOuterNameGen(@NotNull NameGen outerNameGen) {
+		this.outerNameGen = outerNameGen;
 	}
 }

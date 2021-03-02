@@ -53,9 +53,13 @@ public class NameGen {
 				"java.lang.Exception", "exc");
 	}
 
-	public NameGen(MethodNode mth, boolean fallback) {
+	public NameGen(MethodNode mth, ClassGen classGen) {
 		this.mth = mth;
-		this.fallback = fallback;
+		this.fallback = classGen.isFallbackMode();
+		NameGen outerNameGen = classGen.getOuterNameGen();
+		if (outerNameGen != null) {
+			inheritUsedNames(outerNameGen);
+		}
 		addNamesUsedInClass();
 	}
 

@@ -725,7 +725,10 @@ public class InsnGen {
 		MethodNode callMth = mth.root().resolveMethod(insn.getCallMth());
 		generateMethodArguments(code, insn, 0, callMth);
 		code.add(' ');
-		new ClassGen(cls, mgen.getClassGen().getParentGen()).addClassBody(code, true);
+
+		ClassGen classGen = new ClassGen(cls, mgen.getClassGen().getParentGen());
+		classGen.setOuterNameGen(mgen.getNameGen());
+		classGen.addClassBody(code, true);
 	}
 
 	private void makeInvoke(InvokeNode insn, ICodeWriter code) throws CodegenException {
