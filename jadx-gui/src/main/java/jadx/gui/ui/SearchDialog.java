@@ -34,7 +34,6 @@ import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
-import jadx.core.utils.StringUtils;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
@@ -57,8 +56,9 @@ public class SearchDialog extends CommonSearchDialog {
 	}
 
 	public static void searchText(MainWindow window, String text) {
-		window.getCacheObject().setLastSearch(text);
-		search(window, SearchPreset.TEXT);
+		SearchDialog searchDialog = new SearchDialog(window, SearchPreset.TEXT, Collections.emptySet());
+		searchDialog.initSearchText = text;
+		searchDialog.setVisible(true);
 	}
 
 	public enum SearchPreset {
@@ -85,8 +85,9 @@ public class SearchDialog extends CommonSearchDialog {
 
 	private transient Disposable searchDisposable;
 	private transient SearchEventEmitter searchEmitter;
-	private transient String text = null;
 	private transient ChangeListener activeTabListener;
+
+	private transient String initSearchText = null;
 
 	private SearchDialog(MainWindow mainWindow, SearchPreset preset, Set<SearchOptions> additionalOptions) {
 		super(mainWindow);
@@ -137,13 +138,16 @@ public class SearchDialog extends CommonSearchDialog {
 
 	@Override
 	protected void openInit() {
-		String lastSearch = cache.getLastSearch();
-		if (lastSearch != null) {
-			searchField.setText(lastSearch);
+		String searchText = initSearchText != null ? initSearchText : cache.getLastSearch();
+		if (searchText != null) {
+			searchField.setText(searchText);
 			searchField.selectAll();
 		}
 		searchField.requestFocus();
 
+		if (searchField.getText().isEmpty()) {
+			checkIndex();
+		}
 		searchEmitter.emitSearch();
 	}
 
@@ -380,17 +384,13 @@ public class SearchDialog extends CommonSearchDialog {
 
 	@Override
 	protected void loadFinished() {
-		if (!StringUtils.isEmpty(text)) {
-			searchField.setText(text);
-		}
 		resultsTable.setEnabled(true);
 		searchField.setEnabled(true);
+		searchEmitter.emitSearch();
 	}
 
 	@Override
 	protected void loadStart() {
-		text = cache.getLastSearch(); // SearchDialog is opened by menu item, let loadFinished to set text
-		cache.setLastSearch("");
 		resultsTable.setEnabled(false);
 		searchField.setEnabled(false);
 	}
