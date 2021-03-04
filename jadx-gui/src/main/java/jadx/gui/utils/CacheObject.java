@@ -1,6 +1,7 @@
 package jadx.gui.utils;
 
-import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
@@ -10,6 +11,7 @@ import jadx.gui.jobs.IndexJob;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.ui.SearchDialog;
+import jadx.gui.utils.search.CommentsIndex;
 import jadx.gui.utils.search.TextSearchIndex;
 
 public class CacheObject {
@@ -19,9 +21,11 @@ public class CacheObject {
 
 	private TextSearchIndex textIndex;
 	private CodeUsageInfo usageInfo;
+	private CommentsIndex commentsIndex;
 	private String lastSearch;
 	private JNodeCache jNodeCache;
-	private Set<SearchDialog.SearchOptions> lastSearchOptions;
+	private Map<SearchDialog.SearchPreset, Set<SearchDialog.SearchOptions>> lastSearchOptions;
+
 	private JRoot jRoot;
 	private JadxSettings settings;
 
@@ -38,7 +42,7 @@ public class CacheObject {
 		lastSearch = null;
 		jNodeCache = new JNodeCache();
 		usageInfo = null;
-		lastSearchOptions = EnumSet.noneOf(SearchDialog.SearchOptions.class);
+		lastSearchOptions = new HashMap<>();
 	}
 
 	public DecompileJob getDecompileJob() {
@@ -49,7 +53,6 @@ public class CacheObject {
 		this.decompileJob = decompileJob;
 	}
 
-	@Nullable
 	public TextSearchIndex getTextIndex() {
 		return textIndex;
 	}
@@ -76,6 +79,14 @@ public class CacheObject {
 		this.usageInfo = usageInfo;
 	}
 
+	public CommentsIndex getCommentsIndex() {
+		return commentsIndex;
+	}
+
+	public void setCommentsIndex(CommentsIndex commentsIndex) {
+		this.commentsIndex = commentsIndex;
+	}
+
 	public IndexJob getIndexJob() {
 		return indexJob;
 	}
@@ -88,11 +99,7 @@ public class CacheObject {
 		return jNodeCache;
 	}
 
-	public void setLastSearchOptions(Set<SearchDialog.SearchOptions> lastSearchOptions) {
-		this.lastSearchOptions = lastSearchOptions;
-	}
-
-	public Set<SearchDialog.SearchOptions> getLastSearchOptions() {
+	public Map<SearchDialog.SearchPreset, Set<SearchDialog.SearchOptions>> getLastSearchOptions() {
 		return lastSearchOptions;
 	}
 

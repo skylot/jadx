@@ -107,6 +107,7 @@ public class LineNumbers extends JPanel implements CaretListener {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void paintComponent(Graphics g) {
 		codeInfo = codeArea.getNode().getCodeInfo();
@@ -263,6 +264,10 @@ public class LineNumbers extends JPanel implements CaretListener {
 			repaint();
 			lastLine = currentLine;
 		}
+	}
+
+	public boolean isUseSourceLines() {
+		return useSourceLines;
 	}
 
 	public void setUseSourceLines(boolean useSourceLines) {

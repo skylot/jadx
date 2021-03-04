@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeWriter;
+import jadx.api.data.annotations.InsnCodeOffset;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.core.Consts;
@@ -44,7 +45,7 @@ import jadx.core.utils.exceptions.JadxOverflowException;
 import static jadx.core.codegen.MethodGen.FallbackOption.BLOCK_DUMP;
 import static jadx.core.codegen.MethodGen.FallbackOption.COMMENTED_DUMP;
 import static jadx.core.codegen.MethodGen.FallbackOption.FALLBACK_MODE;
-import static jadx.core.dex.nodes.VariableNode.*;
+import static jadx.core.dex.nodes.VariableNode.VarKind;
 
 public class MethodGen {
 	private static final Logger LOG = LoggerFactory.getLogger(MethodGen.class);
@@ -289,17 +290,19 @@ public class MethodGen {
 	}
 
 	public void addFallbackMethodCode(ICodeWriter code, FallbackOption fallbackOption) {
-		// load original instructions
-		try {
-			mth.unload();
-			mth.load();
-			for (IDexTreeVisitor visitor : Jadx.getFallbackPassesList()) {
-				DepthTraversal.visit(visitor, mth);
+		if (fallbackOption != FALLBACK_MODE) {
+			// load original instructions
+			try {
+				mth.unload();
+				mth.load();
+				for (IDexTreeVisitor visitor : Jadx.getFallbackPassesList()) {
+					DepthTraversal.visit(visitor, mth);
+				}
+			} catch (DecodeException e) {
+				LOG.error("Error reload instructions in fallback mode:", e);
+				code.startLine("// Can't load method instructions: " + e.getMessage());
+				return;
 			}
-		} catch (DecodeException e) {
-			LOG.error("Error reload instructions in fallback mode:", e);
-			code.startLine("// Can't load method instructions: " + e.getMessage());
-			return;
 		}
 		InsnNode[] insnArr = mth.getInstructions();
 		if (insnArr == null) {
@@ -333,7 +336,6 @@ public class MethodGen {
 	public static void addFallbackInsns(ICodeWriter code, MethodNode mth, InsnNode[] insnArr, FallbackOption option) {
 		int startIndent = code.getIndent();
 		InsnGen insnGen = new InsnGen(getFallbackMethodGen(mth), true);
-		boolean attachInsns = mth.root().getArgs().isJsonOutput();
 		InsnNode prevInsn = null;
 		for (InsnNode insn : insnArr) {
 			if (insn == null) {
@@ -360,11 +362,9 @@ public class MethodGen {
 					code.startLine("*/");
 					code.startLine("//  ");
 				} else {
-					code.startLine();
+					code.startLineWithNum(insn.getSourceLine());
 				}
-				if (attachInsns) {
-					code.attachLineAnnotation(insn);
-				}
+				InsnCodeOffset.attach(code, insn);
 				RegisterArg resArg = insn.getResult();
 				if (resArg != null) {
 					ArgType varType = resArg.getInitType();
@@ -382,6 +382,7 @@ public class MethodGen {
 				if (catchAttr != null) {
 					code.add("     // " + catchAttr);
 				}
+				CodeGenUtils.addCodeComments(code, insn);
 			} catch (Exception e) {
 				LOG.debug("Error generate fallback instruction: ", e.getCause());
 				code.setIndent(startIndent);

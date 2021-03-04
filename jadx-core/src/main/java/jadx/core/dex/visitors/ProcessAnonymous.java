@@ -5,6 +5,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
 		name = "ProcessAnonymous",
@@ -12,19 +13,20 @@ import jadx.core.dex.nodes.RootNode;
 )
 public class ProcessAnonymous extends AbstractVisitor {
 
+	private boolean inlineAnonymous;
+
 	@Override
 	public void init(RootNode root) {
-		if (root.getArgs().isInlineAnonymousClasses()) {
-			for (ClassNode cls : root.getClasses(true)) {
-				markAnonymousClass(cls);
-			}
-		}
+		inlineAnonymous = root.getArgs().isInlineAnonymousClasses();
 	}
 
-	public static void runForClass(ClassNode cls) {
-		if (cls.root().getArgs().isInlineAnonymousClasses()) {
-			markAnonymousClass(cls);
+	@Override
+	public boolean visit(ClassNode cls) throws JadxException {
+		if (!inlineAnonymous) {
+			return false;
 		}
+		markAnonymousClass(cls);
+		return true;
 	}
 
 	private static void markAnonymousClass(ClassNode cls) {

@@ -4,7 +4,11 @@ import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
@@ -23,7 +27,11 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.*;
+import jadx.api.ICodeWriter;
+import jadx.api.JavaClass;
+import jadx.api.JavaField;
+import jadx.api.JavaMethod;
+import jadx.api.JavaNode;
 import jadx.core.deobf.DeobfPresets;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
@@ -35,10 +43,19 @@ import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.jobs.IndexJob;
 import jadx.gui.settings.JadxSettings;
-import jadx.gui.treemodel.*;
+import jadx.gui.treemodel.JClass;
+import jadx.gui.treemodel.JField;
+import jadx.gui.treemodel.JMethod;
+import jadx.gui.treemodel.JNode;
+import jadx.gui.treemodel.JPackage;
+import jadx.gui.treemodel.JVariable;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
-import jadx.gui.ui.codearea.CodePanel;
-import jadx.gui.utils.*;
+import jadx.gui.ui.codearea.CodeArea;
+import jadx.gui.utils.CacheObject;
+import jadx.gui.utils.JNodeCache;
+import jadx.gui.utils.NLS;
+import jadx.gui.utils.TextStandardActions;
+import jadx.gui.utils.UiUtils;
 
 public class RenameDialog extends JDialog {
 	private static final long serialVersionUID = -3269715644416902410L;
@@ -235,17 +252,11 @@ public class RenameDialog extends JDialog {
 
 	private void refreshTabs(TabbedPane tabbedPane, Set<JClass> updatedClasses) {
 		for (Map.Entry<JNode, ContentPanel> entry : tabbedPane.getOpenTabs().entrySet()) {
-			ContentPanel contentPanel = entry.getValue();
-			if (contentPanel instanceof ClassCodeContentPanel) {
-				JNode node = entry.getKey();
-				JClass rootClass = node.getRootClass();
-				if (updatedClasses.contains(rootClass)) {
-					refreshJClass(rootClass);
-					ClassCodeContentPanel codePanel = (ClassCodeContentPanel) contentPanel;
-					CodePanel javaPanel = codePanel.getJavaCodePanel();
-					javaPanel.refresh();
-					tabbedPane.refresh(rootClass);
-				}
+			JClass rootClass = entry.getKey().getRootClass();
+			if (updatedClasses.remove(rootClass)) {
+				ClassCodeContentPanel contentPanel = (ClassCodeContentPanel) entry.getValue();
+				CodeArea codeArea = (CodeArea) contentPanel.getJavaCodePanel().getCodeArea();
+				codeArea.refreshClass();
 			}
 		}
 	}
@@ -254,7 +265,7 @@ public class RenameDialog extends JDialog {
 	protected JPanel initButtonsPanel() {
 		JButton cancelButton = new JButton(NLS.str("search_dialog.cancel"));
 		cancelButton.addActionListener(event -> dispose());
-		JButton renameBtn = new JButton(NLS.str("popup.rename"));
+		JButton renameBtn = new JButton(NLS.str("common_dialog.ok"));
 		renameBtn.addActionListener(event -> rename());
 		getRootPane().setDefaultButton(renameBtn);
 

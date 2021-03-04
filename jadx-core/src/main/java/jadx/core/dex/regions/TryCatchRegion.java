@@ -6,12 +6,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import jadx.api.ICodeWriter;
+import jadx.core.codegen.RegionGen;
 import jadx.core.dex.nodes.IBranchRegion;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlock;
 import jadx.core.utils.Utils;
+import jadx.core.utils.exceptions.CodegenException;
 
 public final class TryCatchRegion extends AbstractRegion implements IBranchRegion {
 
@@ -75,6 +78,11 @@ public final class TryCatchRegion extends AbstractRegion implements IBranchRegio
 	@Override
 	public List<IContainer> getBranches() {
 		return getSubBlocks();
+	}
+
+	@Override
+	public void generate(RegionGen regionGen, ICodeWriter code) throws CodegenException {
+		regionGen.makeTryCatch(this, code);
 	}
 
 	@Override

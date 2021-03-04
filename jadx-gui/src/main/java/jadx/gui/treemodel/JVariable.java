@@ -6,6 +6,8 @@ import jadx.api.JavaNode;
 import jadx.api.JavaVariable;
 
 public class JVariable extends JNode {
+	private static final long serialVersionUID = -3002100457834453783L;
+
 	JClass cls;
 	JavaVariable var;
 

@@ -30,7 +30,11 @@ import jadx.api.plugins.input.data.ILoadResult;
 import jadx.core.Jadx;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
-import jadx.core.dex.nodes.*;
+import jadx.core.dex.nodes.ClassNode;
+import jadx.core.dex.nodes.FieldNode;
+import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.nodes.RootNode;
+import jadx.core.dex.nodes.VariableNode;
 import jadx.core.dex.visitors.SaveCode;
 import jadx.core.export.ExportGradleProject;
 import jadx.core.utils.Utils;
@@ -429,6 +433,15 @@ public final class JadxDecompiler implements Closeable {
 	}
 
 	@Nullable
+	public JavaClass searchJavaClassByOrigFullName(String fullName) {
+		return getRoot().getClasses().stream()
+				.filter(cls -> cls.getClassInfo().getFullName().equals(fullName))
+				.findFirst()
+				.map(this::getJavaClassByNode)
+				.orElse(null);
+	}
+
+	@Nullable
 	JavaNode convertNode(Object obj) {
 		if (!(obj instanceof LineAttrNode)) {
 			return null;
@@ -481,7 +494,7 @@ public final class JadxDecompiler implements Closeable {
 		if (defLine == 0) {
 			return null;
 		}
-		return new CodePosition(jCls, defLine, 0);
+		return new CodePosition(defLine, 0, javaNode.getDefPos());
 	}
 
 	public JadxArgs getArgs() {

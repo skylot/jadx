@@ -8,6 +8,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
@@ -262,6 +264,14 @@ public final class IfCondition extends AttrNode {
 		return list;
 	}
 
+	@Nullable
+	public InsnNode getFirstInsn() {
+		if (mode == Mode.COMPARE) {
+			return compare.getInsn();
+		}
+		return args.get(0).getFirstInsn();
+	}
+
 	@Override
 	public String toString() {
 		switch (mode) {
@@ -313,5 +323,4 @@ public final class IfCondition extends AttrNode {
 		result = 31 * result + (compare != null ? compare.hashCode() : 0);
 		return result;
 	}
-
 }

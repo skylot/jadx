@@ -45,6 +45,11 @@ public final class JavaPackage implements JavaNode, Comparable<JavaPackage> {
 	}
 
 	@Override
+	public int getDefPos() {
+		return 0;
+	}
+
+	@Override
 	public List<JavaNode> getUseIn() {
 		return Collections.emptyList();
 	}

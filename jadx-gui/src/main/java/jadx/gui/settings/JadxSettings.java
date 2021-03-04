@@ -166,7 +166,10 @@ public class JadxSettings extends JadxCLIArgs {
 		return Collections.unmodifiableList(recentProjects);
 	}
 
-	public void addRecentProject(Path projectPath) {
+	public void addRecentProject(@Nullable Path projectPath) {
+		if (projectPath == null) {
+			return;
+		}
 		recentProjects.remove(projectPath);
 		recentProjects.add(0, projectPath);
 		int count = recentProjects.size();

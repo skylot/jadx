@@ -16,6 +16,7 @@ import jadx.api.CodePosition;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
+import jadx.api.data.annotations.InsnCodeOffset;
 import jadx.api.impl.AnnotatedCodeWriter;
 import jadx.api.impl.SimpleCodeWriter;
 import jadx.core.codegen.ClassGen;
@@ -29,7 +30,6 @@ import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
-import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.CodeGenUtils;
@@ -193,9 +193,9 @@ public class JsonCodeGen {
 			JsonCodeLine jsonCodeLine = new JsonCodeLine();
 			jsonCodeLine.setCode(codeLine);
 			jsonCodeLine.setSourceLine(lineMapping.get(line));
-			Object obj = annotations.get(new CodePosition(line, 0));
-			if (obj instanceof InsnNode) {
-				long offset = ((InsnNode) obj).getOffset();
+			Object obj = annotations.get(new CodePosition(line));
+			if (obj instanceof InsnCodeOffset) {
+				long offset = ((InsnCodeOffset) obj).getOffset();
 				jsonCodeLine.setOffset("0x" + Long.toHexString(mthCodeOffset + offset * 2));
 			}
 			codeLines.add(jsonCodeLine);

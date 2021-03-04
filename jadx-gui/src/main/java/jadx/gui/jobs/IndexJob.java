@@ -20,6 +20,7 @@ import jadx.gui.utils.search.TextSearchIndex;
 public class IndexJob extends BackgroundJob {
 
 	private static final Logger LOG = LoggerFactory.getLogger(IndexJob.class);
+
 	private final CacheObject cache;
 
 	public IndexJob(JadxWrapper wrapper, CacheObject cache, int threadsCount) {
@@ -29,18 +30,14 @@ public class IndexJob extends BackgroundJob {
 
 	@Override
 	protected void runJob() {
-		TextSearchIndex index = new TextSearchIndex(cache);
-		CodeUsageInfo usageInfo = new CodeUsageInfo(cache.getNodeCache());
-
-		cache.setTextIndex(index);
-		cache.setUsageInfo(usageInfo);
+		TextSearchIndex index = cache.getTextIndex();
 		addTask(index::indexResource);
 		for (final JavaClass cls : wrapper.getIncludedClasses()) {
 			addTask(() -> indexCls(cache, cls));
 		}
 	}
 
-	public static void indexCls(CacheObject cache, JavaClass cls) {
+	private static void indexCls(CacheObject cache, JavaClass cls) {
 		try {
 			TextSearchIndex index = cache.getTextIndex();
 			CodeUsageInfo usageInfo = cache.getUsageInfo();

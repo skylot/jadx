@@ -1,5 +1,7 @@
 package jadx.api;
 
+import java.util.Map;
+
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 
 public interface ICodeWriter {
@@ -51,4 +53,8 @@ public interface ICodeWriter {
 	String getCodeStr();
 
 	int getLength();
+
+	StringBuilder getRawBuf();
+
+	Map<CodePosition, Object> getRawAnnotations();
 }

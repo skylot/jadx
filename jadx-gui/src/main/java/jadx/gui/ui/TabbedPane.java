@@ -1,11 +1,19 @@
 package jadx.gui.ui;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.Component;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
-import javax.swing.*;
+import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 
 import org.jetbrains.annotations.Nullable;
@@ -19,14 +27,17 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.treemodel.ApkSignature;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
-import jadx.gui.ui.codearea.*;
+import jadx.gui.ui.codearea.AbstractCodeArea;
+import jadx.gui.ui.codearea.AbstractCodeContentPanel;
+import jadx.gui.ui.codearea.ClassCodeContentPanel;
+import jadx.gui.ui.codearea.CodeContentPanel;
 import jadx.gui.utils.JumpManager;
 import jadx.gui.utils.JumpPosition;
 
 public class TabbedPane extends JTabbedPane {
+	private static final long serialVersionUID = -8833600618794570904L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TabbedPane.class);
-	private static final long serialVersionUID = -8833600618794570904L;
 
 	private final transient MainWindow mainWindow;
 	private final transient Map<JNode, ContentPanel> openTabs = new LinkedHashMap<>();
@@ -148,42 +159,42 @@ public class TabbedPane extends JTabbedPane {
 		return mainWindow;
 	}
 
-	private void showCode(final JumpPosition pos) {
-		final AbstractCodeContentPanel contentPanel = (AbstractCodeContentPanel) getContentPanel(pos.getNode());
+	private void showCode(final JumpPosition jumpPos) {
+		JNode jumpNode = jumpPos.getNode();
+		Objects.requireNonNull(jumpNode, "Null node in JumpPosition");
+
+		final AbstractCodeContentPanel contentPanel = (AbstractCodeContentPanel) getContentPanel(jumpNode);
 		if (contentPanel == null) {
 			return;
 		}
 		SwingUtilities.invokeLater(() -> {
 			setSelectedComponent(contentPanel);
 			AbstractCodeArea codeArea = contentPanel.getCodeArea();
-			if (pos.isPrecise()) {
-				codeArea.scrollToPos(pos.getPos());
+			int pos = jumpPos.getPos();
+			if (pos > 0) {
+				codeArea.scrollToPos(pos);
 			} else {
-				int line = pos.getLine();
+				int line = jumpPos.getLine();
 				if (line < 0) {
 					try {
 						line = 1 + codeArea.getLineOfOffset(-line);
 					} catch (BadLocationException e) {
-						LOG.error("Can't get line for: {}", pos, e);
-						line = pos.getNode().getLine();
+						LOG.error("Can't get line for: {}", jumpPos, e);
+						line = jumpNode.getLine();
 					}
 				}
-				if (pos.getPos() < 0) {
-					codeArea.scrollToLine(line);
-				} else {
-					int lineNum = Math.max(0, line - 1);
-					try {
-						int offs = codeArea.getLineStartOffset(lineNum);
-						while (StringUtils.isWhite(codeArea.getText(offs, 1).charAt(0))) {
-							offs += 1;
-						}
-						offs += pos.getPos();
-						pos.setPrecise(offs);
-						codeArea.scrollToPos(offs);
-					} catch (BadLocationException e) {
-						e.printStackTrace();
-						codeArea.scrollToLine(line);
+				int lineNum = Math.max(0, line - 1);
+				try {
+					int offs = codeArea.getLineStartOffset(lineNum);
+					while (StringUtils.isWhite(codeArea.getText(offs, 1).charAt(0))) {
+						offs += 1;
 					}
+					offs += pos;
+					jumpPos.setPos(offs);
+					codeArea.scrollToPos(offs);
+				} catch (BadLocationException e) {
+					e.printStackTrace();
+					codeArea.scrollToLine(line);
 				}
 			}
 			codeArea.requestFocus();
@@ -216,7 +227,7 @@ public class TabbedPane extends JTabbedPane {
 	}
 
 	@Nullable
-	JumpPosition getCurrentPosition() {
+	public JumpPosition getCurrentPosition() {
 		ContentPanel selectedCodePanel = getSelectedCodePanel();
 		if (selectedCodePanel instanceof AbstractCodeContentPanel) {
 			return ((AbstractCodeContentPanel) selectedCodePanel).getCodeArea().getCurrentPosition();
@@ -273,6 +284,7 @@ public class TabbedPane extends JTabbedPane {
 		ContentPanel panel = openTabs.get(node);
 		if (panel != null) {
 			setTabComponentAt(indexOfComponent(panel), makeTabComponent(panel));
+			fireStateChanged();
 		}
 	}
 

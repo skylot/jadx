@@ -1,6 +1,11 @@
 package jadx.gui.utils;
 
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Image;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
@@ -10,7 +15,14 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.*;
+import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 
 import org.intellij.lang.annotations.MagicConstant;
 import org.slf4j.Logger;
@@ -19,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.gui.ui.codearea.AbstractCodeArea;
 
 public class UiUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(UiUtils.class);
@@ -190,7 +203,7 @@ public class UiUtils {
 	@SuppressWarnings("deprecation")
 	@MagicConstant(flagsFromClass = InputEvent.class)
 	private static int getCtrlButton() {
-		if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+		if (SystemInfo.IS_MAC) {
 			return Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 		} else {
 			return InputEvent.CTRL_DOWN_MASK;
@@ -209,5 +222,27 @@ public class UiUtils {
 	public static void addEscapeShortCutToDispose(JDialog dialog) {
 		KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 		dialog.getRootPane().registerKeyboardAction(e -> dialog.dispose(), stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
+	}
+
+	/**
+	 * Get closest offset at mouse position
+	 *
+	 * @return -1 on error
+	 */
+	@SuppressWarnings("deprecation")
+	public static int getOffsetAtMousePosition(AbstractCodeArea codeArea) {
+		try {
+			Point mousePos = getMousePosition(codeArea);
+			return codeArea.viewToModel(mousePos);
+		} catch (Exception e) {
+			LOG.error("Failed to get offset at mouse position", e);
+			return -1;
+		}
+	}
+
+	public static Point getMousePosition(Component comp) {
+		Point pos = MouseInfo.getPointerInfo().getLocation();
+		SwingUtilities.convertPointFromScreen(pos, comp);
+		return pos;
 	}
 }

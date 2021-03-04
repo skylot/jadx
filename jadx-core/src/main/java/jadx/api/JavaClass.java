@@ -131,12 +131,16 @@ public final class JavaClass implements JavaNode {
 		return decompiler;
 	}
 
-	private Map<CodePosition, Object> getCodeAnnotations() {
+	public Map<CodePosition, Object> getCodeAnnotations() {
 		ICodeInfo code = getCodeInfo();
 		if (code == null) {
 			return Collections.emptyMap();
 		}
 		return code.getAnnotations();
+	}
+
+	public Object getAnnotationAt(CodePosition pos) {
+		return getCodeAnnotations().get(pos);
 	}
 
 	public Map<CodePosition, JavaNode> getUsageMap() {
@@ -227,6 +231,11 @@ public final class JavaClass implements JavaNode {
 	@Override
 	public int getDecompiledLine() {
 		return cls.getDecompiledLine();
+	}
+
+	@Override
+	public int getDefPos() {
+		return cls.getDefPosition();
 	}
 
 	@Override

@@ -11,7 +11,6 @@ import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.undo.UndoManager;
 
-@SuppressWarnings("serial")
 public class TextStandardActions {
 
 	private final JTextComponent textComponent;
@@ -26,6 +25,10 @@ public class TextStandardActions {
 	private Action pasteAction;
 	private Action deleteAction;
 	private Action selectAllAction;
+
+	public static void attach(JTextComponent textComponent) {
+		new TextStandardActions(textComponent);
+	}
 
 	public TextStandardActions(JTextComponent textComponent) {
 		this.textComponent = textComponent;

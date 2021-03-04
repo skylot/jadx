@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import jadx.api.ICodeWriter;
+import jadx.core.codegen.RegionGen;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBranchRegion;
 import jadx.core.dex.nodes.IContainer;
@@ -12,6 +14,7 @@ import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.regions.AbstractRegion;
 import jadx.core.utils.BlockUtils;
+import jadx.core.utils.exceptions.CodegenException;
 
 public final class IfRegion extends AbstractRegion implements IBranchRegion {
 
@@ -127,6 +130,11 @@ public final class IfRegion extends AbstractRegion implements IBranchRegion {
 			return true;
 		}
 		return false;
+	}
+
+	@Override
+	public void generate(RegionGen regionGen, ICodeWriter code) throws CodegenException {
+		regionGen.makeIf(this, code, true);
 	}
 
 	@Override

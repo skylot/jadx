@@ -1,14 +1,16 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.*;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.jetbrains.annotations.Nullable;
+
+import jadx.gui.utils.UiUtils;
 
 public abstract class JNodeMenuAction<T> extends AbstractAction implements PopupMenuListener {
 	private static final long serialVersionUID = -2600154727884853550L;
@@ -36,8 +38,7 @@ public abstract class JNodeMenuAction<T> extends AbstractAction implements Popup
 
 	@Nullable
 	private T getNode() {
-		Point pos = MouseInfo.getPointerInfo().getLocation();
-		SwingUtilities.convertPointFromScreen(pos, codeArea);
+		Point pos = UiUtils.getMousePosition(codeArea);
 		Token token = codeArea.viewToToken(pos);
 		int offset = codeArea.adjustOffsetForToken(token);
 		return getNodeByOffset(offset);
