@@ -5,7 +5,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.*;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.jetbrains.annotations.NotNull;
@@ -73,8 +74,7 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 			removeAllChildren();
 
 			Comparator<JResource> typeComparator = Comparator.comparingInt(r -> r.type.ordinal());
-			Comparator<JResource> nameComparator =
-					Comparator.comparing(JResource::getName, String.CASE_INSENSITIVE_ORDER);
+			Comparator<JResource> nameComparator = Comparator.comparing(JResource::getName, String.CASE_INSENSITIVE_ORDER);
 
 			files.sort(typeComparator.thenComparing(nameComparator));
 
@@ -153,8 +153,7 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 						return ResourcesLoader.loadToCodeWriter(is);
 					});
 				} catch (Exception e) {
-					return new SimpleCodeInfo("Failed to load resource file:" + ICodeWriter.NL
-							+ Utils.getStackTrace(e));
+					return new SimpleCodeInfo("Failed to load resource file:" + ICodeWriter.NL + Utils.getStackTrace(e));
 				}
 
 			case DECODED_DATA:
@@ -168,8 +167,7 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 		String[] path = resName.split("/");
 		String resShortName = path.length == 0 ? resName : path[path.length - 1];
 		ICodeInfo code = rc.getText();
-		ResourceFileContent fileContent =
-				new ResourceFileContent(resShortName, ResourceType.XML, code);
+		ResourceFileContent fileContent = new ResourceFileContent(resShortName, ResourceType.XML, code);
 		addPath(path, root, new JResource(fileContent, resName, resShortName, JResType.FILE));
 
 		for (ResContainer subFile : rc.getSubFiles()) {
@@ -227,17 +225,20 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 		}
 	}
 
-	private static final Map<String, String> EXTENSION_TO_FILE_SYNTAX =
-			jadx.core.utils.Utils.newConstStringMap("java", SyntaxConstants.SYNTAX_STYLE_JAVA, "js",
-					SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT, "ts",
-					SyntaxConstants.SYNTAX_STYLE_TYPESCRIPT, "json",
-					SyntaxConstants.SYNTAX_STYLE_JSON, "css", SyntaxConstants.SYNTAX_STYLE_CSS,
-					"less", SyntaxConstants.SYNTAX_STYLE_LESS, "html",
-					SyntaxConstants.SYNTAX_STYLE_HTML, "xml", SyntaxConstants.SYNTAX_STYLE_XML,
-					"yaml", SyntaxConstants.SYNTAX_STYLE_YAML, "properties",
-					SyntaxConstants.SYNTAX_STYLE_PROPERTIES_FILE, "ini",
-					SyntaxConstants.SYNTAX_STYLE_INI, "sql", SyntaxConstants.SYNTAX_STYLE_SQL,
-					"arsc", SyntaxConstants.SYNTAX_STYLE_XML);
+	private static final Map<String, String> EXTENSION_TO_FILE_SYNTAX = jadx.core.utils.Utils.newConstStringMap(
+			"java", SyntaxConstants.SYNTAX_STYLE_JAVA,
+			"js", SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT,
+			"ts", SyntaxConstants.SYNTAX_STYLE_TYPESCRIPT,
+			"json", SyntaxConstants.SYNTAX_STYLE_JSON,
+			"css", SyntaxConstants.SYNTAX_STYLE_CSS,
+			"less", SyntaxConstants.SYNTAX_STYLE_LESS,
+			"html", SyntaxConstants.SYNTAX_STYLE_HTML,
+			"xml", SyntaxConstants.SYNTAX_STYLE_XML,
+			"yaml", SyntaxConstants.SYNTAX_STYLE_YAML,
+			"properties", SyntaxConstants.SYNTAX_STYLE_PROPERTIES_FILE,
+			"ini", SyntaxConstants.SYNTAX_STYLE_INI,
+			"sql", SyntaxConstants.SYNTAX_STYLE_SQL,
+			"arsc", SyntaxConstants.SYNTAX_STYLE_XML);
 
 	private String getSyntaxByExtension(String name) {
 		int dot = name.lastIndexOf('.');
