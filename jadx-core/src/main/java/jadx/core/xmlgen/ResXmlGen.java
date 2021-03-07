@@ -1,5 +1,8 @@
 package jadx.core.xmlgen;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -224,4 +227,14 @@ public class ResXmlGen {
 		sb.append(".xml");
 		return sb.toString();
 	}
+
+    public static byte[] readData(InputStream i) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        byte[] data = new byte[16384];
+        int read;
+        while ((read = i.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, read);
+        }
+        return buffer.toByteArray();
+    }
 }
