@@ -504,8 +504,8 @@ public class RootNode {
 	public TypeUtils getTypeUtils() {
 		return typeUtils;
 	}
-	
+
 	public boolean isProto() {
-	    return isProto;
+		return isProto;
 	}
 }

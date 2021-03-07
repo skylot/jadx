@@ -228,13 +228,13 @@ public class ResXmlGen {
 		return sb.toString();
 	}
 
-    public static byte[] readData(InputStream i) throws IOException {
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        byte[] data = new byte[16384];
-        int read;
-        while ((read = i.read(data, 0, data.length)) != -1) {
-            buffer.write(data, 0, read);
-        }
-        return buffer.toByteArray();
-    }
+	public static byte[] readData(InputStream i) throws IOException {
+		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+		byte[] data = new byte[16384];
+		int read;
+		while ((read = i.read(data, 0, data.length)) != -1) {
+			buffer.write(data, 0, read);
+		}
+		return buffer.toByteArray();
+	}
 }

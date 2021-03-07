@@ -8,13 +8,13 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public enum ResourceType {
 	CODE(".dex", ".jar", ".class"),
-    XML(".xml"),
+	XML(".xml"),
 	ARSC(".arsc"),
 	FONT(".ttf", ".otf"),
 	IMG(".png", ".gif", ".jpg"),
 	MEDIA(".mp3", ".wav"),
 	LIB(".so"),
-    MANIFEST,
+	MANIFEST,
 	UNKNOWN;
 
 	private final String[] exts;
@@ -40,21 +40,21 @@ public enum ResourceType {
 		}
 	}
 
-    public static ResourceType getFileType(String fileName) {
-        if (fileName.matches("[^/]+/resources.pb")) {
-            return ARSC;
-        }
-        int dot = fileName.lastIndexOf('.');
-        if (dot != -1) {
-            String ext = fileName.substring(dot).toLowerCase(Locale.ROOT);
-            ResourceType resType = EXT_MAP.get(ext);
-            if (resType != null) {
-                if (resType == XML && fileName.equals("AndroidManifest.xml")) {
-                    return MANIFEST;
-                }
-                return resType;
-            }
-        }
-        return UNKNOWN;
-    }
+	public static ResourceType getFileType(String fileName) {
+		if (fileName.matches("[^/]+/resources.pb")) {
+			return ARSC;
+		}
+		int dot = fileName.lastIndexOf('.');
+		if (dot != -1) {
+			String ext = fileName.substring(dot).toLowerCase(Locale.ROOT);
+			ResourceType resType = EXT_MAP.get(ext);
+			if (resType != null) {
+				if (resType == XML && fileName.equals("AndroidManifest.xml")) {
+					return MANIFEST;
+				}
+				return resType;
+			}
+		}
+		return UNKNOWN;
+	}
 }

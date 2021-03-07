@@ -92,21 +92,21 @@ public final class ResourcesLoader {
 
 	private static ResContainer loadContent(JadxDecompiler jadxRef, ResourceFile rf,
 			InputStream inputStream) throws IOException {
-	    RootNode root = jadxRef.getRoot();
+		RootNode root = jadxRef.getRoot();
 		switch (rf.getType()) {
-            case MANIFEST:
-            case XML: {
-                ICodeInfo content;
-                if (root.isProto()) {
-                    content = jadxRef.getProtoXmlParser().parse(inputStream);
-                } else {
-                    content = jadxRef.getBinaryXmlParser().parse(inputStream);
-                }
-                return ResContainer.textResource(rf.getDeobfName(), content);
-            }
-                
+			case MANIFEST:
+			case XML: {
+				ICodeInfo content;
+				if (root.isProto()) {
+					content = jadxRef.getProtoXmlParser().parse(inputStream);
+				} else {
+					content = jadxRef.getBinaryXmlParser().parse(inputStream);
+				}
+				return ResContainer.textResource(rf.getDeobfName(), content);
+			}
+
 			case ARSC:
-			    return new ResTableParser(root).decodeFiles(inputStream);
+				return new ResTableParser(root).decodeFiles(inputStream);
 
 			case IMG:
 				return decodeImage(rf, inputStream);
