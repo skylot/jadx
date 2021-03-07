@@ -1,6 +1,7 @@
 package jadx.tests.api.utils.assertj;
 
 import org.assertj.core.api.AbstractObjectAssert;
+import org.assertj.core.api.Assertions;
 
 import jadx.api.ICodeInfo;
 import jadx.core.dex.nodes.ClassNode;
@@ -13,10 +14,17 @@ public class JadxClassNodeAssertions extends AbstractObjectAssert<JadxClassNodeA
 		super(cls, JadxClassNodeAssertions.class);
 	}
 
+	public JadxCodeInfoAssertions decompile() {
+		isNotNull();
+		ICodeInfo codeInfo = actual.getCode();
+		Assertions.assertThat(codeInfo).isNotNull();
+		return new JadxCodeInfoAssertions(codeInfo);
+	}
+
 	public JadxCodeAssertions code() {
 		isNotNull();
 		ICodeInfo code = actual.getCode();
-		assertThat(code).isNotNull();
+		Assertions.assertThat(code).isNotNull();
 		String codeStr = code.getCodeStr();
 		assertThat(codeStr).isNotBlank();
 		return new JadxCodeAssertions(codeStr);
@@ -25,9 +33,9 @@ public class JadxClassNodeAssertions extends AbstractObjectAssert<JadxClassNodeA
 	public JadxCodeAssertions reloadCode(IntegrationTest testInstance) {
 		isNotNull();
 		ICodeInfo code = actual.reloadCode();
-		assertThat(code).isNotNull();
+		Assertions.assertThat(code).isNotNull();
 		String codeStr = code.getCodeStr();
-		assertThat(codeStr).isNotBlank();
+		Assertions.assertThat(codeStr).isNotBlank();
 
 		JadxCodeAssertions codeAssertions = new JadxCodeAssertions(codeStr);
 		codeAssertions.print();

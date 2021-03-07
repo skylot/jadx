@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
 import jadx.core.Consts;
@@ -26,7 +24,6 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 
 public class RenameVisitor extends AbstractVisitor {
-	private static final Logger LOG = LoggerFactory.getLogger(RenameVisitor.class);
 
 	@Override
 	public void init(RootNode root) {
@@ -34,11 +31,7 @@ public class RenameVisitor extends AbstractVisitor {
 		if (inputFiles.isEmpty()) {
 			return;
 		}
-		long startTime = System.currentTimeMillis();
 		process(root);
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Rename pass time: {}ms", System.currentTimeMillis() - startTime);
-		}
 	}
 
 	private void process(RootNode root) {

@@ -31,4 +31,6 @@ public interface IClassData {
 	List<IAnnotation> getAnnotations();
 
 	String getDisassembledCode();
+
+	String getDisassembledCodeV2();
 }

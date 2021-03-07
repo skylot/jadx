@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeWriter;
+import jadx.api.data.annotations.InsnCodeOffset;
 import jadx.api.plugins.input.data.MethodHandleType;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
@@ -69,7 +70,6 @@ public class InsnGen {
 	protected final MethodNode mth;
 	protected final RootNode root;
 	protected final boolean fallback;
-	protected final boolean attachInsns;
 
 	protected enum Flags {
 		BODY_ONLY,
@@ -82,7 +82,6 @@ public class InsnGen {
 		this.mth = mgen.getMethodNode();
 		this.root = mth.root();
 		this.fallback = fallback;
-		this.attachInsns = root.getArgs().isJsonOutput();
 	}
 
 	private boolean isFallback() {
@@ -260,9 +259,7 @@ public class InsnGen {
 			} else {
 				if (flag != Flags.INLINE) {
 					code.startLineWithNum(insn.getSourceLine());
-					if (attachInsns) {
-						code.attachLineAnnotation(insn);
-					}
+					InsnCodeOffset.attach(code, insn);
 					if (insn.contains(AFlag.COMMENT_OUT)) {
 						code.add("// ");
 					}
@@ -278,6 +275,7 @@ public class InsnGen {
 				makeInsnBody(code, insn, EMPTY_FLAGS);
 				if (flag != Flags.INLINE) {
 					code.add(';');
+					CodeGenUtils.addCodeComments(code, insn);
 				}
 			}
 		} catch (Exception e) {
@@ -725,7 +723,10 @@ public class InsnGen {
 		MethodNode callMth = mth.root().resolveMethod(insn.getCallMth());
 		generateMethodArguments(code, insn, 0, callMth);
 		code.add(' ');
-		new ClassGen(cls, mgen.getClassGen().getParentGen()).addClassBody(code, true);
+
+		ClassGen classGen = new ClassGen(cls, mgen.getClassGen().getParentGen());
+		classGen.setOuterNameGen(mgen.getNameGen());
+		classGen.addClassBody(code, true);
 	}
 
 	private void makeInvoke(InvokeNode insn, ICodeWriter code) throws CodegenException {

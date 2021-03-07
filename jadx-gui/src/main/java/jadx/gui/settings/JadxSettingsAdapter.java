@@ -64,9 +64,6 @@ public class JadxSettingsAdapter {
 			} else {
 				settings.fixOnLoad();
 			}
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("Loaded settings: {}", makeString(settings));
-			}
 			return settings;
 		} catch (Exception e) {
 			LOG.error("Error load settings. Settings will reset.\n Loaded json string: {}", jsonSettings, e);
@@ -77,7 +74,6 @@ public class JadxSettingsAdapter {
 	public static void store(JadxSettings settings) {
 		try {
 			String jsonSettings = makeString(settings);
-			LOG.debug("Saving settings: {}", jsonSettings);
 			PREFS.put(JADX_GUI_KEY, jsonSettings);
 			PREFS.sync();
 		} catch (Exception e) {

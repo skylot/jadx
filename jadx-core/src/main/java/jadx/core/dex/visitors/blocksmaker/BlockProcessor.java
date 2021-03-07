@@ -749,7 +749,9 @@ public class BlockProcessor extends AbstractVisitor {
 				first = false;
 			} else {
 				for (InsnNode oldInsn : exitBlock.getInstructions()) {
-					newRetBlock.getInstructions().add(oldInsn.copyWithoutSsa());
+					InsnNode copyInsn = oldInsn.copyWithoutSsa();
+					copyInsn.add(AFlag.SYNTHETIC);
+					newRetBlock.getInstructions().add(copyInsn);
 				}
 			}
 			BlockSplitter.replaceConnection(pred, exitBlock, newRetBlock);

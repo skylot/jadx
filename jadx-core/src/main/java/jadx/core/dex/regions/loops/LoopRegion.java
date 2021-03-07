@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.ICodeWriter;
+import jadx.core.codegen.RegionGen;
 import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -16,6 +18,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.regions.AbstractRegion;
 import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.utils.BlockUtils;
+import jadx.core.utils.exceptions.CodegenException;
 
 public final class LoopRegion extends AbstractRegion {
 
@@ -163,6 +166,11 @@ public final class LoopRegion extends AbstractRegion {
 	@Override
 	public boolean replaceSubBlock(IContainer oldBlock, IContainer newBlock) {
 		return false;
+	}
+
+	@Override
+	public void generate(RegionGen regionGen, ICodeWriter code) throws CodegenException {
+		regionGen.makeLoop(this, code);
 	}
 
 	@Override

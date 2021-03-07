@@ -35,7 +35,6 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.LiteralArg;
-import jadx.core.dex.visitors.ProcessAnonymous;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -191,9 +190,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		if (fileName.endsWith(".java")) {
 			fileName = fileName.substring(0, fileName.length() - 5);
 		}
-		if (fileName.isEmpty()
-				|| fileName.equals("SourceFile")
-				|| fileName.equals("\"")) {
+		if (fileName.isEmpty() || fileName.equals("SourceFile")) {
 			return;
 		}
 		if (clsInfo != null) {
@@ -201,12 +198,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 			if (fileName.equals(name)) {
 				return;
 			}
-			if (fileName.contains("$")
-					&& fileName.endsWith('$' + name)) {
-				return;
-			}
-			ClassInfo parentCls = clsInfo.getTopParentClass();
-			if (parentCls != null && fileName.equals(parentCls.getShortName())) {
+			if (fileName.contains("$") && fileName.endsWith('$' + name)) {
 				return;
 			}
 		}
@@ -240,14 +232,12 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 			// manually added class
 			return;
 		}
+		unload();
 		clearAttributes();
 		root().getConstValues().removeForClass(this);
 		initialLoad(clsData);
-		ProcessAnonymous.runForClass(this);
 
-		for (ClassNode innerClass : innerClasses) {
-			innerClass.deepUnload();
-		}
+		innerClasses.forEach(ClassNode::deepUnload);
 	}
 
 	private synchronized ICodeInfo decompile(boolean searchInCache) {
@@ -369,6 +359,15 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	public FieldNode searchFieldByName(String name) {
 		for (FieldNode f : fields) {
 			if (f.getName().equals(name)) {
+				return f;
+			}
+		}
+		return null;
+	}
+
+	public FieldNode searchFieldByShortId(String shortId) {
+		for (FieldNode f : fields) {
+			if (f.getFieldInfo().getShortId().equals(shortId)) {
 				return f;
 			}
 		}
@@ -574,6 +573,29 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		sb.append(String.format("###### Class %s (%s)", getFullName(), getRawName()));
 		sb.append(System.lineSeparator());
 		sb.append(this.clsData.getDisassembledCode());
+	}
+
+	public String getSmaliV2() {
+		StringBuilder sb = new StringBuilder();
+		getSmaliV2(sb);
+		sb.append(System.lineSeparator());
+		Set<ClassNode> allInlinedClasses = new LinkedHashSet<>();
+		getInnerAndInlinedClassesRecursive(allInlinedClasses);
+		for (ClassNode innerClass : allInlinedClasses) {
+			innerClass.getSmaliV2(sb);
+			sb.append(System.lineSeparator());
+		}
+		return sb.toString();
+	}
+
+	private void getSmaliV2(StringBuilder sb) {
+		if (this.clsData == null) {
+			sb.append(String.format("###### Class %s is created by jadx", getFullName()));
+			return;
+		}
+		sb.append(String.format("###### Class %s (%s)", getFullName(), getRawName()));
+		sb.append(System.lineSeparator());
+		sb.append(this.clsData.getDisassembledCodeV2());
 	}
 
 	public ProcessState getState() {

@@ -111,7 +111,7 @@ public class RootNode {
 		// sort classes by name, expect top classes before inner
 		classes.sort(Comparator.comparing(ClassNode::getFullName));
 		initInnerClasses();
-		LOG.debug("Classes loaded: {}", classes.size());
+		LOG.info("Classes loaded: {}", classes.size());
 	}
 
 	private void addDummyClass(IClassData classData, Exception exc) {
@@ -241,6 +241,7 @@ public class RootNode {
 
 	public void runPreDecompileStage() {
 		for (IDexTreeVisitor pass : preDecompilePasses) {
+			long start = System.currentTimeMillis();
 			try {
 				pass.init(this);
 			} catch (Exception e) {
@@ -248,6 +249,9 @@ public class RootNode {
 			}
 			for (ClassNode cls : classes) {
 				DepthTraversal.visit(pass, cls);
+			}
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("{} time: {}ms", pass.getClass().getSimpleName(), System.currentTimeMillis() - start);
 			}
 		}
 	}

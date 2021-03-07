@@ -1,6 +1,6 @@
 package jadx.gui.treemodel;
 
-import javax.swing.*;
+import javax.swing.Icon;
 
 import jadx.api.JavaNode;
 import jadx.gui.utils.search.StringRef;
@@ -13,14 +13,14 @@ public class CodeNode extends JNode {
 	private final transient JClass jParent;
 	private final transient StringRef line;
 	private final transient int lineNum;
-	private transient int pos = -1;
-	private transient boolean precise;
+	private transient int pos;
 
-	public CodeNode(JNode jNode, int lineNum, StringRef lineStr) {
+	public CodeNode(JNode jNode, StringRef lineStr, int lineNum, int pos) {
 		this.jNode = jNode;
 		this.jParent = this.jNode.getJParent();
 		this.line = lineStr;
 		this.lineNum = lineNum;
+		this.pos = pos;
 	}
 
 	@Override
@@ -80,6 +80,11 @@ public class CodeNode extends JNode {
 	}
 
 	@Override
+	public String getSyntaxName() {
+		return jNode.getSyntaxName();
+	}
+
+	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
@@ -96,24 +101,8 @@ public class CodeNode extends JNode {
 		return jNode.hashCode();
 	}
 
+	@Override
 	public int getPos() {
 		return pos;
-	}
-
-	public CodeNode setPos(int pos) {
-		this.pos = pos;
-		return this;
-	}
-
-	public CodeNode setPrecisePos(int pos) {
-		this.pos = pos;
-		if (pos > -1) {
-			this.precise = true;
-		}
-		return this;
-	}
-
-	public boolean isPrecisePos() {
-		return precise;
 	}
 }

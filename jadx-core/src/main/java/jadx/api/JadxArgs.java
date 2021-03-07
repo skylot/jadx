@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import jadx.api.data.ICodeData;
 import jadx.api.impl.AnnotatedCodeWriter;
 import jadx.api.impl.InMemoryCodeCache;
 
@@ -77,6 +78,8 @@ public class JadxArgs {
 	}
 
 	private OutputFormatEnum outputFormat = OutputFormatEnum.JAVA;
+
+	private ICodeData codeData;
 
 	public JadxArgs() {
 		// use default options
@@ -382,6 +385,14 @@ public class JadxArgs {
 
 	public void setCodeWriterProvider(Function<JadxArgs, ICodeWriter> codeWriterProvider) {
 		this.codeWriterProvider = codeWriterProvider;
+	}
+
+	public ICodeData getCodeData() {
+		return codeData;
+	}
+
+	public void setCodeData(ICodeData codeData) {
+		this.codeData = codeData;
 	}
 
 	@Override

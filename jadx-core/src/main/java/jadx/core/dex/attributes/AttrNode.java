@@ -33,6 +33,23 @@ public abstract class AttrNode implements IAttributeNode {
 		}
 	}
 
+	@Override
+	public <T extends IAttribute> void copyAttributeFrom(AttrNode attrNode, AType<T> attrType) {
+		IAttribute attr = attrNode.get(attrType);
+		if (attr != null) {
+			this.addAttr(attr);
+		}
+	}
+
+	/**
+	 * Remove attribute in this node, add copy from other if exists
+	 */
+	@Override
+	public <T extends IAttribute> void rewriteAttributeFrom(AttrNode attrNode, AType<T> attrType) {
+		remove(attrType);
+		copyAttributeFrom(attrNode, attrType);
+	}
+
 	private AttributeStorage initStorage() {
 		AttributeStorage store = storage;
 		if (store == EMPTY_ATTR_STORAGE) {

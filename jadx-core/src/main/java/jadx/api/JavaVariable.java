@@ -44,6 +44,11 @@ public class JavaVariable implements JavaNode {
 	}
 
 	@Override
+	public int getDefPos() {
+		return node.getDefPosition();
+	}
+
+	@Override
 	public List<JavaNode> getUseIn() {
 		return Collections.emptyList();
 	}

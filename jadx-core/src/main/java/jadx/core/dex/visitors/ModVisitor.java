@@ -608,5 +608,6 @@ public class ModVisitor extends AbstractVisitor {
 			excHandler.setArg(namedArg);
 			replaceInsn(mth, block, 0, moveInsn);
 		}
+		block.copyAttributeFrom(insn, AType.CODE_COMMENTS); // save comment
 	}
 }

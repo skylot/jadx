@@ -65,17 +65,13 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 		}
 		AnnotatedCodeWriter code = ((AnnotatedCodeWriter) cw);
 		line--;
+		int startLine = line;
+		int startPos = getLength();
 		for (Map.Entry<CodePosition, Object> entry : code.annotations.entrySet()) {
-			Object val = entry.getValue();
-			if (val instanceof DefinitionWrapper) {
-				LineAttrNode node = ((DefinitionWrapper) val).getNode();
-				node.setDefPosition(node.getDefPosition() + this.buf.length());
-			}
-			CodePosition pos = entry.getKey();
-			int usagePos = pos.getUsagePosition() + getLength();
-			attachAnnotation(val,
-					new CodePosition(line + pos.getLine(), pos.getOffset())
-							.setUsagePosition(usagePos));
+			CodePosition codePos = entry.getKey();
+			int newLine = startLine + codePos.getLine();
+			int newPos = startPos + codePos.getPos();
+			attachAnnotation(entry.getValue(), new CodePosition(newLine, codePos.getOffset(), newPos));
 		}
 		for (Map.Entry<Integer, Integer> entry : code.lineMap.entrySet()) {
 			attachSourceLine(line + entry.getKey(), entry.getValue());
@@ -119,19 +115,21 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 
 	@Override
 	public void attachDefinition(LineAttrNode obj) {
-		obj.setDefPosition(buf.length());
 		attachAnnotation(obj);
-		attachAnnotation(new DefinitionWrapper(obj), new CodePosition(line, offset));
+		attachAnnotation(new DefinitionWrapper(obj), new CodePosition(line, offset, getLength()));
 	}
 
 	@Override
 	public void attachAnnotation(Object obj) {
-		attachAnnotation(obj, new CodePosition(line, offset + 1).setUsagePosition(getLength()));
+		attachAnnotation(obj, new CodePosition(line, offset + 1, getLength()));
 	}
 
 	@Override
 	public void attachLineAnnotation(Object obj) {
-		attachAnnotation(obj, new CodePosition(line, 0));
+		if (obj == null) {
+			return;
+		}
+		attachAnnotation(obj, new CodePosition(line, 0, getLength() - offset));
 	}
 
 	private void attachAnnotation(Object obj, CodePosition pos) {
@@ -165,13 +163,20 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 		return new AnnotatedCodeInfo(code, lineMap, annotations);
 	}
 
+	@Override
+	public Map<CodePosition, Object> getRawAnnotations() {
+		return annotations;
+	}
+
 	private void processDefinitionAnnotations() {
 		if (!annotations.isEmpty()) {
 			annotations.entrySet().removeIf(entry -> {
 				Object v = entry.getValue();
 				if (v instanceof DefinitionWrapper) {
 					LineAttrNode l = ((DefinitionWrapper) v).getNode();
-					l.setDecompiledLine(entry.getKey().getLine());
+					CodePosition codePos = entry.getKey();
+					l.setDecompiledLine(codePos.getLine());
+					l.setDefPosition(codePos.getPos());
 					return true;
 				}
 				return false;

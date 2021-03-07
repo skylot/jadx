@@ -12,8 +12,6 @@ import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jadx.core.clsp.ClspClass;
 import jadx.core.clsp.ClspMethod;
@@ -41,27 +39,20 @@ import jadx.core.utils.exceptions.JadxException;
 		}
 )
 public class OverrideMethodVisitor extends AbstractVisitor {
-	private static final Logger LOG = LoggerFactory.getLogger(OverrideMethodVisitor.class);
 
 	@Override
-	public void init(RootNode root) throws JadxException {
-		long startTime = System.currentTimeMillis();
-		for (ClassNode cls : root.getClasses()) {
-			processCls(cls);
-		}
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("OverrideMethod pass time: {}ms", System.currentTimeMillis() - startTime);
-		}
+	public boolean visit(ClassNode cls) throws JadxException {
+		processCls(cls);
+		return true;
 	}
 
-	public boolean processCls(ClassNode cls) {
+	private void processCls(ClassNode cls) {
 		List<ArgType> superTypes = collectSuperTypes(cls);
 		if (!superTypes.isEmpty()) {
 			for (MethodNode mth : cls.getMethods()) {
 				processMth(cls, superTypes, mth);
 			}
 		}
-		return true;
 	}
 
 	private void processMth(ClassNode cls, List<ArgType> superTypes, MethodNode mth) {

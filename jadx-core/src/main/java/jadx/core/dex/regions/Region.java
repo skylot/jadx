@@ -3,9 +3,12 @@ package jadx.core.dex.regions;
 import java.util.ArrayList;
 import java.util.List;
 
+import jadx.api.ICodeWriter;
+import jadx.core.codegen.RegionGen;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.utils.Utils;
+import jadx.core.utils.exceptions.CodegenException;
 
 public final class Region extends AbstractRegion {
 
@@ -24,6 +27,13 @@ public final class Region extends AbstractRegion {
 	public void add(IContainer region) {
 		updateParent(region, this);
 		blocks.add(region);
+	}
+
+	@Override
+	public void generate(RegionGen regionGen, ICodeWriter code) throws CodegenException {
+		for (IContainer c : blocks) {
+			regionGen.makeRegion(code, c);
+		}
 	}
 
 	@Override

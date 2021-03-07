@@ -101,6 +101,14 @@ public abstract class JNode extends DefaultMutableTreeNode {
 		return makeLongString();
 	}
 
+	public int getPos() {
+		JavaNode javaNode = getJavaNode();
+		if (javaNode == null) {
+			return -1;
+		}
+		return javaNode.getDefPos();
+	}
+
 	@Override
 	public String toString() {
 		return makeString();
