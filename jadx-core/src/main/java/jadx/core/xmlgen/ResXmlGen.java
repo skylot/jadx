@@ -13,6 +13,7 @@ import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.impl.SimpleCodeWriter;
 import jadx.core.utils.StringUtils;
+import jadx.core.xmlgen.entry.ProtoValue;
 import jadx.core.xmlgen.entry.RawNamedValue;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.core.xmlgen.entry.ValuesParser;
@@ -67,7 +68,31 @@ public class ResXmlGen {
 	}
 
 	private void addValue(ICodeWriter cw, ResourceEntry ri) {
-		if (ri.getSimpleValue() != null) {
+		if (ri.getProtoValue() != null) {
+			ProtoValue protoValue = ri.getProtoValue();
+			if (protoValue.getValue() != null && protoValue.getNamedValues() == null) {
+				addSimpleValue(cw, ri.getTypeName(), ri.getTypeName(), "name", ri.getKeyName(), protoValue.getValue());
+			} else {
+				cw.startLine();
+				cw.add('<').add(ri.getTypeName()).add(' ');
+				String itemTag = "item";
+				cw.add("name=\"").add(ri.getKeyName()).add('\"');
+				if (ri.getTypeName().equals("attr") && protoValue.getValue() != null) {
+					cw.add(" format=\"").add(protoValue.getValue()).add('\"');
+				}
+				if (protoValue.getParent() != null) {
+					cw.add(" parent=\"").add(protoValue.getParent()).add('\"');
+				}
+				cw.add(">");
+
+				cw.incIndent();
+				for (ProtoValue value : protoValue.getNamedValues()) {
+					addProtoItem(cw, itemTag, ri.getTypeName(), value);
+				}
+				cw.decIndent();
+				cw.startLine().add("</").add(ri.getTypeName()).add('>');
+			}
+		} else if (ri.getSimpleValue() != null) {
 			String valueStr = vp.decodeValue(ri.getSimpleValue());
 			addSimpleValue(cw, ri.getTypeName(), ri.getTypeName(), "name", ri.getKeyName(), valueStr);
 		} else {
@@ -82,7 +107,7 @@ public class ResXmlGen {
 				} else if ((type & ValuesParser.ATTR_TYPE_FLAGS) != 0) {
 					itemTag = "flag";
 				}
-				String formatValue = getTypeAsString(type);
+				String formatValue = XmlGenUtils.getAttrTypeAsString(type);
 				if (formatValue != null) {
 					cw.add("\" format=\"").add(formatValue);
 				}
@@ -105,36 +130,27 @@ public class ResXmlGen {
 		}
 	}
 
-	private String getTypeAsString(int type) {
-		String s = "";
-		if ((type & ValuesParser.ATTR_TYPE_REFERENCE) != 0) {
-			s += "|reference";
+	private void addProtoItem(ICodeWriter cw, String itemTag, String typeName, ProtoValue protoValue) {
+		String name = protoValue.getName();
+		String value = protoValue.getValue();
+		switch (typeName) {
+			case "attr":
+				if (name != null) {
+					addSimpleValue(cw, typeName, itemTag, name, value, "");
+				}
+				break;
+			case "style":
+				if (name != null) {
+					addSimpleValue(cw, typeName, itemTag, name, "", value);
+				}
+				break;
+			case "plurals":
+				addSimpleValue(cw, typeName, itemTag, "quantity", name, value);
+				break;
+			default:
+				addSimpleValue(cw, typeName, itemTag, null, null, value);
+				break;
 		}
-		if ((type & ValuesParser.ATTR_TYPE_STRING) != 0) {
-			s += "|string";
-		}
-		if ((type & ValuesParser.ATTR_TYPE_INTEGER) != 0) {
-			s += "|integer";
-		}
-		if ((type & ValuesParser.ATTR_TYPE_BOOLEAN) != 0) {
-			s += "|boolean";
-		}
-		if ((type & ValuesParser.ATTR_TYPE_COLOR) != 0) {
-			s += "|color";
-		}
-		if ((type & ValuesParser.ATTR_TYPE_FLOAT) != 0) {
-			s += "|float";
-		}
-		if ((type & ValuesParser.ATTR_TYPE_DIMENSION) != 0) {
-			s += "|dimension";
-		}
-		if ((type & ValuesParser.ATTR_TYPE_FRACTION) != 0) {
-			s += "|fraction";
-		}
-		if (s.isEmpty()) {
-			return null;
-		}
-		return s.substring(1);
 	}
 
 	private void addItem(ICodeWriter cw, String itemTag, String typeName, RawNamedValue value) {

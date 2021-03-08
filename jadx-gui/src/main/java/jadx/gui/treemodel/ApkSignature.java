@@ -190,7 +190,8 @@ public class ApkSignature extends JNode {
 			builder.append("<blockquote>");
 			// Unprotected Zip entry issues are very common, handle them separately
 			List<ApkVerifier.IssueWithParams> unprotIssues = issueList.stream()
-					.filter(i -> i.getIssue() == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY).collect(Collectors.toList());
+					.filter(i -> i.getIssue() == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY)
+					.collect(Collectors.toList());
 			if (!unprotIssues.isEmpty()) {
 				builder.append("<h4>");
 				builder.escape(NLS.str("apkSignature.unprotectedEntry"));
@@ -202,7 +203,8 @@ public class ApkSignature extends JNode {
 				builder.append("</blockquote>");
 			}
 			List<ApkVerifier.IssueWithParams> remainingIssues = issueList.stream()
-					.filter(i -> i.getIssue() != ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY).collect(Collectors.toList());
+					.filter(i -> i.getIssue() != ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY)
+					.collect(Collectors.toList());
 			if (!remainingIssues.isEmpty()) {
 				builder.append("<pre>\n");
 				for (ApkVerifier.IssueWithParams issue : remainingIssues) {

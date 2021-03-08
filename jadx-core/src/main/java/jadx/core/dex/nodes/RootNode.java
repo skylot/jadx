@@ -71,6 +71,7 @@ public class RootNode {
 	private String appPackage;
 	@Nullable
 	private ClassNode appResClass;
+	private boolean isProto;
 
 	public RootNode(JadxArgs args) {
 		this.args = args;
@@ -82,6 +83,7 @@ public class RootNode {
 		this.codeCache = args.getCodeCache();
 		this.methodUtils = new MethodUtils(this);
 		this.typeUtils = new TypeUtils(this);
+		this.isProto = args.getInputFiles().size() > 0 && args.getInputFiles().get(0).getName().toLowerCase().endsWith(".aab");
 	}
 
 	public void loadClasses(List<ILoadResult> loadedInputs) {
@@ -501,5 +503,9 @@ public class RootNode {
 
 	public TypeUtils getTypeUtils() {
 		return typeUtils;
+	}
+
+	public boolean isProto() {
+		return isProto;
 	}
 }

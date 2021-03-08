@@ -21,6 +21,7 @@ public class XmlDeobf {
 
 	@Nullable
 	public static String deobfClassName(RootNode rootNode, String potencialClassName, String packageName) {
+		potencialClassName = potencialClassName.replace('$', '.');
 		if (packageName != null && potencialClassName.startsWith(".")) {
 			potencialClassName = packageName + potencialClassName;
 		}

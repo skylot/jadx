@@ -5,7 +5,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.*;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.jetbrains.annotations.NotNull;
@@ -63,8 +64,7 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 
 	public final void update() {
 		if (files.isEmpty()) {
-			if (type == JResType.DIR
-					|| type == JResType.ROOT
+			if (type == JResType.DIR || type == JResType.ROOT
 					|| resFile.getType() == ResourceType.ARSC) {
 				// fake leaf to force show expand button
 				// real sub nodes will load on expand in loadNode() method
@@ -278,6 +278,7 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 			case CODE:
 			case FONT:
 			case LIB:
+			case MEDIA:
 				return false;
 
 			case MANIFEST:

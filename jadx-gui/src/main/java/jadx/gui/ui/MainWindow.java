@@ -279,7 +279,7 @@ public class MainWindow extends JFrame {
 		if (addFiles) {
 			exts = new String[] { "apk", "dex", "jar", "class", "smali", "zip", "aar", "arsc" };
 		} else {
-			exts = new String[] { JadxProject.PROJECT_EXTENSION, "apk", "dex", "jar", "class", "smali", "zip", "aar", "arsc" };
+			exts = new String[] { JadxProject.PROJECT_EXTENSION, "apk", "dex", "jar", "class", "smali", "zip", "aar", "arsc", "aab" };
 		}
 		String description = "Supported files: (" + Utils.arrayToStr(exts) + ')';
 

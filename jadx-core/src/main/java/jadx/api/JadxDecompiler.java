@@ -40,6 +40,7 @@ import jadx.core.export.ExportGradleProject;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.BinaryXMLParser;
+import jadx.core.xmlgen.ProtoXMLParser;
 import jadx.core.xmlgen.ResContainer;
 import jadx.core.xmlgen.ResourcesSaver;
 
@@ -79,7 +80,8 @@ public final class JadxDecompiler implements Closeable {
 	private List<JavaClass> classes;
 	private List<ResourceFile> resources;
 
-	private BinaryXMLParser xmlParser;
+	private BinaryXMLParser binaryXmlParser;
+	private ProtoXMLParser protoXmlParser;
 
 	private final Map<ClassNode, JavaClass> classesMap = new ConcurrentHashMap<>();
 	private final Map<MethodNode, JavaMethod> methodsMap = new ConcurrentHashMap<>();
@@ -122,7 +124,8 @@ public final class JadxDecompiler implements Closeable {
 		root = null;
 		classes = null;
 		resources = null;
-		xmlParser = null;
+		binaryXmlParser = null;
+		protoXmlParser = null;
 
 		classesMap.clear();
 		methodsMap.clear();
@@ -341,11 +344,18 @@ public final class JadxDecompiler implements Closeable {
 		return root;
 	}
 
-	synchronized BinaryXMLParser getXmlParser() {
-		if (xmlParser == null) {
-			xmlParser = new BinaryXMLParser(root);
+	synchronized BinaryXMLParser getBinaryXmlParser() {
+		if (binaryXmlParser == null) {
+			binaryXmlParser = new BinaryXMLParser(root);
 		}
-		return xmlParser;
+		return binaryXmlParser;
+	}
+
+	synchronized ProtoXMLParser getProtoXmlParser() {
+		if (protoXmlParser == null) {
+			protoXmlParser = new ProtoXMLParser(root);
+		}
+		return protoXmlParser;
 	}
 
 	private void loadJavaClass(JavaClass javaClass) {

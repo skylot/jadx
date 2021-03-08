@@ -19,7 +19,7 @@ import jadx.core.utils.files.FileUtils;
 
 public class JadxCLIArgs {
 
-	@Parameter(description = "<input files> (.apk, .dex, .jar, .class, .smali, .zip, .aar, .arsc)")
+	@Parameter(description = "<input files> (.apk, .dex, .jar, .class, .smali, .zip, .aar, .arsc, .aab)")
 	protected List<String> files = new ArrayList<>(1);
 
 	@Parameter(names = { "-d", "--output-dir" }, description = "output directory")

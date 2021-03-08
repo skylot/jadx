@@ -12,7 +12,7 @@
 Command line and GUI tools for producing Java source code from Android Dex and Apk files
 
 **Main features:**
-- decompile Dalvik bytecode to java classes from APK, dex, aar and zip files
+- decompile Dalvik bytecode to java classes from APK, dex, aar, aab and zip files
 - decode `AndroidManifest.xml` and other resources from `resources.arsc`
 - deobfuscator included
 
@@ -65,7 +65,7 @@ and also packed to `build/jadx-<version>.zip`
 
 ### Usage
 ```
-jadx[-gui] [options] <input file> (.apk, .dex, .jar, .class, .smali, .zip, .aar, .arsc)
+jadx[-gui] [options] <input file> (.apk, .dex, .jar, .class, .smali, .zip, .aar, .arsc, .aab)
 options:
   -d, --output-dir                    - output directory
   -ds, --output-dir-src               - output directory for sources
