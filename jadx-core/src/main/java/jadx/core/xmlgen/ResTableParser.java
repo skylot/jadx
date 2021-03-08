@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
-import jadx.api.ICodeWriter;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.nodes.FieldNode;
@@ -89,28 +88,9 @@ public class ResTableParser extends CommonBinaryParser {
 		ValuesParser vp = new ValuesParser(strings, resStorage.getResourcesNames());
 		ResXmlGen resGen = new ResXmlGen(resStorage, vp);
 
-		ICodeInfo content = makeXmlDump();
+		ICodeInfo content = XmlGenUtils.makeXmlDump(root.makeCodeWriter(), resStorage);
 		List<ResContainer> xmlFiles = resGen.makeResourcesXml();
 		return ResContainer.resourceTable("res", xmlFiles, content);
-	}
-
-	public ICodeInfo makeXmlDump() {
-		ICodeWriter writer = root.makeCodeWriter();
-		writer.startLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-		writer.startLine("<resources>");
-		writer.incIndent();
-
-		Set<String> addedValues = new HashSet<>();
-		for (ResourceEntry ri : resStorage.getResources()) {
-			if (addedValues.add(ri.getTypeName() + '.' + ri.getKeyName())) {
-				String format = String.format("<public type=\"%s\" name=\"%s\" id=\"%s\" />",
-						ri.getTypeName(), ri.getKeyName(), ri.getId());
-				writer.startLine(format);
-			}
-		}
-		writer.decIndent();
-		writer.startLine("</resources>");
-		return writer.finish();
 	}
 
 	public ResourceStorage getResStorage() {
