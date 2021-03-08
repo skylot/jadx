@@ -78,8 +78,7 @@ public class ApkSignature extends JNode {
 		ApkVerifier verifier = new ApkVerifier.Builder(openFile).build();
 		try {
 			ApkVerifier.Result result = verifier.verify();
-			StringEscapeUtils.Builder builder =
-					StringEscapeUtils.builder(StringEscapeUtils.ESCAPE_HTML4);
+			StringEscapeUtils.Builder builder = StringEscapeUtils.builder(StringEscapeUtils.ESCAPE_HTML4);
 			builder.append("<h1>APK signature verification result:</h1>");
 
 			builder.append("<p><b>");
@@ -99,8 +98,7 @@ public class ApkSignature extends JNode {
 
 			if (!result.getV1SchemeSigners().isEmpty()) {
 				builder.append("<h2>");
-				builder.escape(
-						NLS.str(result.isVerifiedUsingV1Scheme() ? sigSuccKey : sigFailKey, 1));
+				builder.escape(NLS.str(result.isVerifiedUsingV1Scheme() ? sigSuccKey : sigFailKey, 1));
 				builder.append("</h2>\n");
 
 				builder.append("<blockquote>");
@@ -121,8 +119,7 @@ public class ApkSignature extends JNode {
 			}
 			if (!result.getV2SchemeSigners().isEmpty()) {
 				builder.append("<h2>");
-				builder.escape(
-						NLS.str(result.isVerifiedUsingV2Scheme() ? sigSuccKey : sigFailKey, 2));
+				builder.escape(NLS.str(result.isVerifiedUsingV2Scheme() ? sigSuccKey : sigFailKey, 2));
 				builder.append("</h2>\n");
 
 				builder.append("<blockquote>");
@@ -140,8 +137,7 @@ public class ApkSignature extends JNode {
 			}
 			if (!result.getV3SchemeSigners().isEmpty()) {
 				builder.append("<h2>");
-				builder.escape(
-						NLS.str(result.isVerifiedUsingV3Scheme() ? sigSuccKey : sigFailKey, 3));
+				builder.escape(NLS.str(result.isVerifiedUsingV3Scheme() ? sigSuccKey : sigFailKey, 3));
 				builder.append("</h2>\n");
 
 				builder.append("<blockquote>");
@@ -162,8 +158,7 @@ public class ApkSignature extends JNode {
 			this.content = builder.toString();
 		} catch (Exception e) {
 			LOG.error(e.getMessage(), e);
-			StringEscapeUtils.Builder builder =
-					StringEscapeUtils.builder(StringEscapeUtils.ESCAPE_HTML4);
+			StringEscapeUtils.Builder builder = StringEscapeUtils.builder(StringEscapeUtils.ESCAPE_HTML4);
 			builder.append("<h1>");
 			builder.escape(NLS.str("apkSignature.exception"));
 			builder.append("</h1><pre>");
@@ -187,8 +182,7 @@ public class ApkSignature extends JNode {
 		builder.append("</pre></blockquote>");
 	}
 
-	private void writeIssues(StringEscapeUtils.Builder builder, String issueType,
-			List<ApkVerifier.IssueWithParams> issueList) {
+	private void writeIssues(StringEscapeUtils.Builder builder, String issueType, List<ApkVerifier.IssueWithParams> issueList) {
 		if (!issueList.isEmpty()) {
 			builder.append("<h3>");
 			builder.escape(issueType);
