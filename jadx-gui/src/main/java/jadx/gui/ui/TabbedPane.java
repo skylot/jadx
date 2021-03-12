@@ -305,6 +305,9 @@ public class TabbedPane extends JTabbedPane {
 		if (node instanceof ApkSignature) {
 			return new HtmlPanel(this, node);
 		}
+		if (node instanceof QuarkReport) {
+			return new HtmlPanel(this, node);
+		}
 		return new ClassCodeContentPanel(this, node);
 	}
 

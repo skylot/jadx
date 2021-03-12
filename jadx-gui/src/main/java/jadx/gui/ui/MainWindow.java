@@ -143,6 +143,7 @@ public class MainWindow extends JFrame {
 	private static final ImageIcon ICON_COMMENT_SEARCH = UiUtils.openIcon("table_edit");
 	private static final ImageIcon ICON_BACK = UiUtils.openIcon("icon_back");
 	private static final ImageIcon ICON_FORWARD = UiUtils.openIcon("icon_forward");
+	private static final ImageIcon ICON_QUARK = UiUtils.openIcon("icon_quark");
 	private static final ImageIcon ICON_PREF = UiUtils.openIcon("wrench");
 	private static final ImageIcon ICON_DEOBF = UiUtils.openIcon("lock_edit");
 	private static final ImageIcon ICON_LOG = UiUtils.openIcon("report");
@@ -662,6 +663,8 @@ public class MainWindow extends JFrame {
 				}
 			} else if (obj instanceof ApkSignature) {
 				tabbedPane.showSimpleNode((JNode) obj);
+			} else if (obj instanceof QuarkReport) {
+				tabbedPane.showSimpleNode((JNode) obj);
 			} else if (obj instanceof JNode) {
 				tabbedPane.codeJump(new JumpPosition((JNode) obj));
 			}
@@ -914,6 +917,14 @@ public class MainWindow extends JFrame {
 		forwardAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("nav.forward"));
 		forwardAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.ALT_DOWN_MASK));
 
+		Action quarkAction = new AbstractAction("Quark Engine", ICON_QUARK) {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				new QuarkDialog(MainWindow.this).setVisible(true);
+			}
+		};
+		quarkAction.putValue(Action.SHORT_DESCRIPTION, "Quark Engine");
+
 		JMenu file = new JMenu(NLS.str("menu.file"));
 		file.setMnemonic(KeyEvent.VK_F);
 		file.add(openAction);
@@ -997,6 +1008,8 @@ public class MainWindow extends JFrame {
 		toolbar.add(logAction);
 		toolbar.addSeparator();
 		toolbar.add(prefsAction);
+		toolbar.addSeparator();
+		toolbar.add(quarkAction);
 		toolbar.addSeparator();
 		toolbar.add(Box.createHorizontalGlue());
 		toolbar.add(updateLink);
@@ -1247,6 +1260,10 @@ public class MainWindow extends JFrame {
 
 	public ProgressPanel getProgressPane() {
 		return progressPane;
+	}
+
+	public JRoot getTreeRoot() {
+		return treeRoot;
 	}
 
 	private class RecentProjectsMenuListener implements MenuListener {
