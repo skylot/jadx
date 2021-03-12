@@ -1,31 +1,36 @@
 package jadx.gui.ui;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Container;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.SwingWorker;
+import javax.swing.WindowConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.logs.LogCollector;
+import jadx.gui.utils.UiUtils;
 
 class QuarkDialog extends JDialog {
 
@@ -46,7 +51,6 @@ class QuarkDialog extends JDialog {
 	private ArrayList<Path> analyzeFile = new ArrayList<Path>();
 
 	public QuarkDialog(MainWindow mainWindow) {
-
 		this.mainWindow = mainWindow;
 		this.settings = mainWindow.getSettings();
 		this.files = mainWindow.getWrapper().getOpenPaths();
@@ -56,11 +60,9 @@ class QuarkDialog extends JDialog {
 			return;
 		}
 		initUI();
-		settings.loadWindowPos(this);
 	}
 
 	private boolean prepareAnalysis() {
-
 		String[] exts = new String[] { "apk", "dex" };
 
 		if (this.files.size() != 1) {
@@ -69,8 +71,8 @@ class QuarkDialog extends JDialog {
 				int dotIndex = fileName.lastIndexOf('.');
 				String extension = (dotIndex == -1) ? "" : fileName.substring(dotIndex + 1);
 
-				if (!Arrays.stream(exts).anyMatch(extension::equals)) {
-					LOG.warn("Quark: Current file can't be analysis ", fileName);
+				if (Arrays.stream(exts).noneMatch(extension::equals)) {
+					LOG.warn("Quark: Current file can't be analysis: {}", fileName);
 					continue;
 				}
 				analyzeFile.add(filePath);
@@ -80,8 +82,8 @@ class QuarkDialog extends JDialog {
 		String fileName = this.files.get(0).toString();
 		int dotIndex = fileName.lastIndexOf('.');
 		String extension = (dotIndex == -1) ? "" : fileName.substring(dotIndex + 1);
-		if (!Arrays.stream(exts).anyMatch(extension::equals)) {
-			LOG.warn("Quark: Current file can't be analysis ", fileName);
+		if (Arrays.stream(exts).noneMatch(extension::equals)) {
+			LOG.warn("Quark: Current file can't be analysis: {}", fileName);
 			return false;
 		}
 		analyzeFile.add(this.files.get(0));
@@ -99,7 +101,6 @@ class QuarkDialog extends JDialog {
 	}
 
 	public final void initUI() {
-
 		JLabel description = new JLabel("Analyzing apk using Quark-Engine");
 		JLabel selectApkText = new JLabel("Select Apk/Dex");
 		description.setAlignmentX(0.5f);
@@ -144,10 +145,13 @@ class QuarkDialog extends JDialog {
 
 		setTitle("Quark Engine");
 		pack();
-		setSize(200, 125);
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		setModalityType(ModalityType.MODELESS);
+		if (!mainWindow.getSettings().loadWindowPos(this)) {
+			setSize(300, 140);
+		}
 		setLocationRelativeTo(null);
+		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		setModalityType(ModalityType.MODELESS);
+		UiUtils.addEscapeShortCutToDispose(this);
 	}
 
 	private void analyzeAPK() {
@@ -156,22 +160,17 @@ class QuarkDialog extends JDialog {
 	}
 
 	private void loadReportFile() {
-		try {
-			JsonObject quarkReport = (JsonObject) JsonParser.parseReader(new FileReader(quarkReportFile.getAbsolutePath().toString()));
-
-			JRoot root = mainWindow.getCacheObject().getJRoot();
-
+		try (Reader reader = new FileReader(quarkReportFile)) {
+			JsonObject quarkReport = (JsonObject) JsonParser.parseReader(reader);
 			QuarkReport quarkNode = QuarkReport.analysisAPK(quarkReport);
 
+			JRoot root = mainWindow.getCacheObject().getJRoot();
 			root.update();
 			root.add(quarkNode);
-
 			mainWindow.reloadTree();
-
-		} catch (JsonIOException | JsonSyntaxException | FileNotFoundException e) {
+		} catch (Exception e) {
 			LOG.error("Quark: Load report failed: ", e);
 		}
-
 	}
 
 	private void close() {
@@ -180,7 +179,6 @@ class QuarkDialog extends JDialog {
 
 	@Override
 	public void dispose() {
-		LogCollector.getInstance().resetListener();
 		settings.saveWindowPos(this);
 		super.dispose();
 	}
@@ -193,29 +191,34 @@ class QuarkDialog extends JDialog {
 		@Override
 		public Void doInBackground() {
 			try {
-
 				quarkReportFile = File.createTempFile("QuarkReport-", ".json");
 
-				String outputPath = quarkReportFile.getAbsolutePath().toString();
-				String apkName = selectFile.getSelectedItem().toString();
+				String apkName = (String) selectFile.getSelectedItem();
 				String apkPath = null;
 				for (Path path : files) {
 					if (path.getFileName().toString().equals(apkName)) {
 						apkPath = path.toString();
 					}
 				}
-				String cmd = "quark -a " + apkPath + " -s -o " + outputPath;
-				Runtime run = Runtime.getRuntime();
-				Process process = run.exec(cmd);
-
-				BufferedReader buf = new BufferedReader(new InputStreamReader(process.getInputStream()));
-				String output = "";
-				LOG.debug("Quark analyzing...");
-				while ((output = buf.readLine()) != null) {
-					LOG.debug(output);
+				List<String> cmdList = new ArrayList<>();
+				cmdList.add("quark");
+				cmdList.add("-a");
+				cmdList.add(apkPath);
+				cmdList.add("-s");
+				cmdList.add("-o");
+				cmdList.add(quarkReportFile.getAbsolutePath());
+				LOG.debug("Running Quark cmd: {}", String.join(" ", cmdList));
+				Process process = Runtime.getRuntime().exec(cmdList.toArray(new String[0]));
+				try (BufferedReader buf = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+					LOG.debug("Quark analyzing...");
+					while (process.isAlive()) {
+						String output = buf.readLine();
+						if (output != null) {
+							LOG.debug(output);
+						}
+					}
 				}
-
-			} catch (IOException e) {
+			} catch (Exception e) {
 				LOG.error("Quark failed: ", e);
 				dispose();
 			}
@@ -228,5 +231,4 @@ class QuarkDialog extends JDialog {
 			dispose();
 		}
 	}
-
 }
