@@ -7,6 +7,6 @@ dependencies {
 
 	implementation(project(":jadx-plugins:jadx-dex-input"))
 
-	implementation 'org.smali:smali:2.4.0'
+	implementation 'org.smali:smali:2.5.2'
 	implementation 'com.google.guava:guava:30.1-jre' // force latest version for smali
 }
