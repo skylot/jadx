@@ -21,6 +21,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.PopupMenuEvent;
 
+import org.fife.ui.rtextarea.RTextScrollPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +49,7 @@ public class CodePanel extends JPanel {
 	public CodePanel(AbstractCodeArea codeArea) {
 		this.codeArea = codeArea;
 		searchBar = new SearchBar(codeArea);
-		codeScrollPane = new JScrollPane(codeArea);
+		codeScrollPane = codeArea instanceof SmaliArea ? new RTextScrollPane(codeArea) : new JScrollPane(codeArea);
 
 		setLayout(new BorderLayout());
 		setBorder(new EmptyBorder(0, 0, 0, 0));
@@ -116,6 +117,12 @@ public class CodePanel extends JPanel {
 	}
 
 	private void initLineNumbers() {
+		if (codeArea instanceof SmaliArea) {
+			return;
+		}
+		LineNumbers numbers = new LineNumbers(codeArea);
+		numbers.setUseSourceLines(isUseSourceLines());
+		codeScrollPane.setRowHeaderView(numbers);
 		initLineNumbers(isUseSourceLines());
 	}
 

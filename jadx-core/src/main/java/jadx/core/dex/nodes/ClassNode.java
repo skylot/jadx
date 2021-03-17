@@ -575,27 +575,8 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		sb.append(this.clsData.getDisassembledCode());
 	}
 
-	public String getSmaliV2() {
-		StringBuilder sb = new StringBuilder();
-		getSmaliV2(sb);
-		sb.append(System.lineSeparator());
-		Set<ClassNode> allInlinedClasses = new LinkedHashSet<>();
-		getInnerAndInlinedClassesRecursive(allInlinedClasses);
-		for (ClassNode innerClass : allInlinedClasses) {
-			innerClass.getSmaliV2(sb);
-			sb.append(System.lineSeparator());
-		}
-		return sb.toString();
-	}
-
-	private void getSmaliV2(StringBuilder sb) {
-		if (this.clsData == null) {
-			sb.append(String.format("###### Class %s is created by jadx", getFullName()));
-			return;
-		}
-		sb.append(String.format("###### Class %s (%s)", getFullName(), getRawName()));
-		sb.append(System.lineSeparator());
-		sb.append(this.clsData.getDisassembledCodeV2());
+	public IClassData getClsData() {
+		return clsData;
 	}
 
 	public ProcessState getState() {
