@@ -1,5 +1,6 @@
 package jadx.cli;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.IStringConverter;
@@ -31,6 +32,8 @@ public class LogHelper {
 		}
 	}
 
+	private static LogLevelEnum logLevelValue;
+
 	public static void setLogLevelFromArgs(JadxCLIArgs args) {
 		if (isCustomLogConfig()) {
 			return;
@@ -46,6 +49,8 @@ public class LogHelper {
 	}
 
 	public static void applyLogLevel(LogLevelEnum logLevel) {
+		logLevelValue = logLevel;
+
 		Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 		rootLogger.setLevel(logLevel.getLevel());
 
@@ -54,6 +59,11 @@ public class LogHelper {
 			setLevelForClass(JadxCLI.class, Level.INFO);
 			setLevelForClass(JadxDecompiler.class, Level.INFO);
 		}
+	}
+
+	@Nullable
+	public static LogLevelEnum getLogLevel() {
+		return logLevelValue;
 	}
 
 	private static void setLevelForClass(Class<?> cls, Level level) {

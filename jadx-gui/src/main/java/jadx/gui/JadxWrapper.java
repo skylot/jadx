@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 import javax.swing.ProgressMonitor;
@@ -66,24 +65,12 @@ public class JadxWrapper {
 
 	public void saveAll(File dir, ProgressMonitor progressMonitor) {
 		Runnable save = () -> {
-			try {
-				decompiler.getArgs().setRootDir(dir);
-				ThreadPoolExecutor ex = (ThreadPoolExecutor) decompiler.getSaveExecutor();
-				ex.shutdown();
-				while (ex.isTerminating()) {
-					long total = ex.getTaskCount();
-					long done = ex.getCompletedTaskCount();
-					progressMonitor.setProgress((int) (done * 100.0 / total));
-					Thread.sleep(500);
-				}
-				progressMonitor.close();
-				LOG.info("decompilation complete, freeing memory ...");
-				decompiler.getClasses().forEach(JavaClass::unload);
-				LOG.info("done");
-			} catch (InterruptedException e) {
-				LOG.error("Save interrupted", e);
-				Thread.currentThread().interrupt();
-			}
+			decompiler.getArgs().setRootDir(dir);
+			decompiler.save(500, (done, total) -> progressMonitor.setProgress((int) (done * 100.0 / total)));
+			progressMonitor.close();
+			LOG.info("decompilation complete, freeing memory ...");
+			decompiler.getClasses().forEach(JavaClass::unload);
+			LOG.info("done");
 		};
 		new Thread(save).start();
 	}

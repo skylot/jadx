@@ -42,7 +42,14 @@ public class JadxCLI {
 		jadxArgs.setCodeWriterProvider(SimpleCodeWriter::new);
 		try (JadxDecompiler jadx = new JadxDecompiler(jadxArgs)) {
 			jadx.load();
-			jadx.save();
+			if (LogHelper.getLogLevel() == LogHelper.LogLevelEnum.QUIET) {
+				jadx.save();
+			} else {
+				jadx.save(500, (done, total) -> {
+					int progress = (int) (done * 100.0 / total);
+					System.out.printf("INFO  - progress: %d of %d (%d%%)\r", done, total, progress);
+				});
+			}
 			int errorsCount = jadx.getErrorsCount();
 			if (errorsCount != 0) {
 				jadx.printErrorsReport();

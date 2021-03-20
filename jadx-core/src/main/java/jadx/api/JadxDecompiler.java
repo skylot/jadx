@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -160,6 +161,27 @@ public final class JadxDecompiler implements Closeable {
 
 	public void save() {
 		save(!args.isSkipSources(), !args.isSkipResources());
+	}
+
+	public interface ProgressListener {
+		void progress(long done, long total);
+	}
+
+	@SuppressWarnings("BusyWait")
+	public void save(int intervalInMillis, ProgressListener listener) {
+		ThreadPoolExecutor ex = (ThreadPoolExecutor) getSaveExecutor();
+		ex.shutdown();
+		try {
+			long total = ex.getTaskCount();
+			while (ex.isTerminating()) {
+				long done = ex.getCompletedTaskCount();
+				listener.progress(done, total);
+				Thread.sleep(intervalInMillis);
+			}
+		} catch (InterruptedException e) {
+			LOG.error("Save interrupted", e);
+			Thread.currentThread().interrupt();
+		}
 	}
 
 	public void saveSources() {
