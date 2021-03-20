@@ -43,6 +43,8 @@ public class Deobfuscator {
 	private final Set<String> pkgSet = new TreeSet<>();
 	private final Set<String> reservedClsNames = new HashSet<>();
 
+	private final NavigableSet<MethodNode> mthProcessQueue = new TreeSet<>();
+
 	private final int maxLength;
 	private final int minLength;
 	private final boolean useSourceNameAsAlias;
@@ -155,6 +157,13 @@ public class Deobfuscator {
 		for (ClassNode cls : root.getClasses()) {
 			processClass(cls);
 		}
+		while (true) {
+			MethodNode next = mthProcessQueue.pollLast();
+			if (next == null) {
+				break;
+			}
+			renameMethod(next);
+		}
 	}
 
 	private void processClass(ClassNode cls) {
@@ -182,9 +191,8 @@ public class Deobfuscator {
 			}
 			renameField(field);
 		}
-		for (MethodNode mth : cls.getMethods()) {
-			renameMethod(mth);
-		}
+		mthProcessQueue.addAll(cls.getMethods());
+
 		for (ClassNode innerCls : cls.getInnerClasses()) {
 			processClass(innerCls);
 		}
@@ -203,9 +211,10 @@ public class Deobfuscator {
 	}
 
 	private void renameMethod(MethodNode mth) {
-		Set<String> names = deobfPresets.getVarPresetMap().get(mth.getMethodInfo().getRawFullId());
+		MethodInfo mthInfo = mth.getMethodInfo();
+		Set<String> names = deobfPresets.getForVars(mthInfo);
 		if (names != null) {
-			mth.getMethodInfo().setVarNameMap(names);
+			mthInfo.setVarNameMap(names);
 		}
 		String alias = getMethodAlias(mth);
 		if (alias != null) {
@@ -219,26 +228,23 @@ public class Deobfuscator {
 	}
 
 	private void applyMethodAlias(MethodNode mth, String alias) {
-		MethodInfo methodInfo = mth.getMethodInfo();
-		methodInfo.setAlias(alias);
-		String prev = mthMap.put(methodInfo, alias);
-		if (prev == null) {
-			resolveOverriding(mth, alias);
-		}
-	}
+		setSingleMethodAlias(mth, alias);
 
-	private void resolveOverriding(MethodNode mth, String alias) {
 		MethodOverrideAttr overrideAttr = mth.get(AType.METHOD_OVERRIDE);
 		if (overrideAttr != null) {
 			for (MethodNode ovrdMth : overrideAttr.getRelatedMthNodes()) {
-				if (ovrdMth == mth) {
-					continue;
+				if (ovrdMth != mth) {
+					setSingleMethodAlias(ovrdMth, alias);
 				}
-				MethodInfo methodInfo = ovrdMth.getMethodInfo();
-				methodInfo.setAlias(alias);
-				mthMap.put(methodInfo, alias);
 			}
 		}
+	}
+
+	private void setSingleMethodAlias(MethodNode mth, String alias) {
+		MethodInfo mthInfo = mth.getMethodInfo();
+		mthInfo.setAlias(alias);
+		mthMap.put(mthInfo, alias);
+		mthProcessQueue.remove(mth);
 	}
 
 	public void addPackagePreset(String origPkgName, String pkgAlias) {
@@ -496,15 +502,6 @@ public class Deobfuscator {
 		String alias = getAssignedAlias(methodInfo);
 		if (alias != null) {
 			return alias;
-		}
-		MethodOverrideAttr overrideAttr = mth.get(AType.METHOD_OVERRIDE);
-		if (overrideAttr != null) {
-			for (MethodNode relatedMthNode : overrideAttr.getRelatedMthNodes()) {
-				String assignedAlias = getAssignedAlias(relatedMthNode.getMethodInfo());
-				if (assignedAlias != null) {
-					return assignedAlias;
-				}
-			}
 		}
 		if (shouldRename(mth.getName())) {
 			return makeMethodAlias(mth);

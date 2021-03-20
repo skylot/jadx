@@ -1,11 +1,14 @@
 package jadx.core.utils;
 
 import java.io.File;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -18,13 +21,16 @@ import jadx.api.ICodeWriter;
 import jadx.api.impl.SimpleCodeWriter;
 import jadx.core.codegen.InsnGen;
 import jadx.core.codegen.MethodGen;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttributeNode;
+import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.DotGraphVisitor;
 import jadx.core.dex.visitors.IDexTreeVisitor;
@@ -183,5 +189,24 @@ public class DebugUtils {
 
 	public static void printStackTrace(String label) {
 		LOG.debug("StackTrace: {}\n{}", label, Utils.getStackTrace(new Exception()));
+	}
+
+	public static void printMethodOverrideTop(RootNode root) {
+		LOG.debug("Methods override top 10:");
+		root.getClasses().stream()
+				.flatMap(c -> c.getMethods().stream())
+				.filter(m -> m.contains(AType.METHOD_OVERRIDE))
+				.map(m -> m.get(AType.METHOD_OVERRIDE))
+				.filter(o -> !o.getOverrideList().isEmpty())
+				.filter(distinctByKey(methodOverrideAttr -> methodOverrideAttr.getRelatedMthNodes().size()))
+				.filter(distinctByKey(MethodOverrideAttr::getRelatedMthNodes))
+				.sorted(Comparator.comparingInt(o -> -o.getRelatedMthNodes().size()))
+				.limit(10)
+				.forEach(o -> LOG.debug("  {} : {}", o.getRelatedMthNodes().size(), Utils.last(o.getOverrideList())));
+	}
+
+	private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+		Set<Object> seen = ConcurrentHashMap.newKeySet();
+		return t -> seen.add(keyExtractor.apply(t));
 	}
 }
