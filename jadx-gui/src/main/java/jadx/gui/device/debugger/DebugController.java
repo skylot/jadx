@@ -5,72 +5,74 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicLong;
 
-import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 
+import io.reactivex.annotations.NonNull;
 import io.reactivex.annotations.Nullable;
 
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
+import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.device.debugger.BreakpointManager.FileBreakpoint;
-import jadx.gui.device.debugger.JDebuggerPanel.*;
 import jadx.gui.device.debugger.SmaliDebugger.*;
 import jadx.gui.device.debugger.smali.Smali;
+import jadx.gui.device.debugger.smali.SmaliRegister;
 import jadx.gui.treemodel.JClass;
+import jadx.gui.ui.IDebugController;
+import jadx.gui.ui.JDebuggerPanel;
+import jadx.gui.ui.JDebuggerPanel.*;
 
-import static jadx.gui.device.debugger.SmaliDebugger.Type.*;
+import static jadx.gui.device.debugger.SmaliDebugger.RuntimeType;
 
-public final class DebugController implements SmaliDebugger.SuspendListener {
+public final class DebugController implements SmaliDebugger.SuspendListener, IDebugController {
 	private static final String ONCREATE_SIGNATURE = "onCreate(Landroid/os/Bundle;)V";
+	private static final Map<String, RuntimeType> TYPE_MAP = new HashMap<>();
+	private static final RuntimeType[] POSSIBLE_TYPES = { RuntimeType.OBJECT, RuntimeType.INT, RuntimeType.LONG };
 
 	private JDebuggerPanel debuggerPanel;
 	private SmaliDebugger debugger;
-	private long curThreadID;
-	private long curClsID;
-	private long curMthID;
-	private final AtomicLong curCodeOffset = new AtomicLong(-1);
-	private JClass curClsNode;
-	private String curMthFullID;
-	private Smali curSmali;
+	private ArtAdapter.Debugger art;
+	private final CurrentInfo cur = new CurrentInfo();
 
 	private BreakpointStore bpStore;
 	private boolean updateAllFldAndReg = false; // update all fields and registers
 	private ValueTreeNode toBeUpdatedTreeNode; // a field or register number.
 	private volatile boolean isSuspended = true;
+	private boolean hasResumed;
 	private ResumeCmd run;
 	private ResumeCmd stepOver;
 	private ResumeCmd stepInto;
 	private ResumeCmd stepOut;
 	private StateListener stateListener;
 
-	/**
-	 * fetches ids from remote, and show them in UI.
-	 * First updateQueue got ids and then lazyQueue get names by ids.
-	 */
+	private final Map<String, RegisterObserver> regAdaMap = new ConcurrentHashMap<>();
+
 	private final ExecutorService updateQueue = Executors.newSingleThreadExecutor();
-	/**
-	 * fetches info & updates UI according to the ids that updateQueue fetched,
-	 * like the values of registers, thread names, or class/method names of stack frame.
-	 */
 	private final ExecutorService lazyQueue = Executors.newSingleThreadExecutor();
 
-	protected boolean setDebugger(JDebuggerPanel debuggerPanel, String host, int port) {
+	/**
+	 * @param args at least 3 elements, host, port and android release version respectively.
+	 */
+	@Override
+	public boolean startDebugger(JDebuggerPanel debuggerPanel, String[] args) {
+		if (TYPE_MAP.isEmpty()) {
+			initTypeMap();
+		}
 		this.debuggerPanel = debuggerPanel;
 		debuggerPanel.resetUI();
 		try {
-			debugger = SmaliDebugger.attach(host, port, this);
+			debugger = SmaliDebugger.attach(args[0], Integer.parseInt(args[1]), this);
 		} catch (SmaliDebuggerException e) {
 			logErr(e);
 			return false;
 		}
-		curThreadID = -1;
-		curClsID = -1;
-		curMthID = -1;
+		art = ArtAdapter.getAdapter(Integer.parseInt(args[2]));
+		resetAllInfo();
+		hasResumed = false;
 		run = debugger::resume;
 		stepOver = debugger::stepOver;
 		stepInto = debugger::stepInto;
@@ -114,30 +116,37 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 		}
 	}
 
+	@Override
 	public boolean isSuspended() {
 		return isSuspended;
 	}
 
+	@Override
 	public boolean isDebugging() {
 		return debugger != null;
 	}
 
+	@Override
 	public boolean run() {
 		return execResumeCmd(run);
 	}
 
+	@Override
 	public boolean stepInto() {
 		return execResumeCmd(stepInto);
 	}
 
+	@Override
 	public boolean stepOver() {
 		return execResumeCmd(stepOver);
 	}
 
+	@Override
 	public boolean stepOut() {
 		return execResumeCmd(stepOut);
 	}
 
+	@Override
 	public boolean pause() {
 		if (isDebugging()) {
 			try {
@@ -152,24 +161,21 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 		return true;
 	}
 
-	/**
-	 * Kills app
-	 */
-	public void stop() {
+	@Override
+	public boolean stop() {
 		if (isDebugging()) {
 			try {
 				debugger.exit();
 			} catch (SmaliDebuggerException e) {
 				logErr(e);
+				return false;
 			}
 		}
+		return true;
 	}
 
-	/**
-	 * it not only kills app but also destroy JDebuggerPanel,
-	 * exit completely.
-	 */
-	public void exit() {
+	@Override
+	public boolean exit() {
 		if (isDebugging()) {
 			setDebuggerState(true, true);
 			stop();
@@ -178,43 +184,92 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 		BreakpointManager.setDebugController(null);
 		debuggerPanel.getMainWindow().destroyDebuggerPanel();
 		debuggerPanel = null;
+		return true;
 	}
 
 	/**
 	 * @param type must be one of int, long, float, double, string or object.
 	 */
-	public boolean setValue(ValueTreeNode valNode, Type type, Object value) {
+	@Override
+	public boolean modifyRegValue(ValueTreeNode valNode, ArgType type, Object value) {
 		checkType(type, value);
 		if (isDebugging() && isSuspended()) {
-			return setValueInternal(valNode, type, value);
+			return modifyValueInternal(valNode, castType(type), value);
 		}
 		return false;
 	}
 
-	private void checkType(Type type, Object value) {
-		if (!(type == INT && value instanceof Integer)
-				&& !(type == STRING && value instanceof String)
-				&& !(type == LONG && value instanceof Long)
-				&& !(type == FLOAT && value instanceof Float)
-				&& !(type == DOUBLE && value instanceof Double)
-				&& !(type == OBJECT && value instanceof Long)) {
+	@Override
+	public String getProcessName() {
+		String pkg = DbgUtils.searchPackageName(debuggerPanel.getMainWindow());
+		if (pkg.isEmpty()) {
+			return "";
+		}
+		JClass cls = DbgUtils.searchMainActivity(debuggerPanel.getMainWindow());
+		if (cls == null) {
+			return "";
+		}
+		return pkg + "/" + cls.getCls().getClassNode().getClassInfo().getFullName();
+	}
+
+	private RuntimeType castType(ArgType type) {
+		if (type == ArgType.INT) {
+			return RuntimeType.INT;
+		}
+		if (type == ArgType.STRING) {
+			return RuntimeType.STRING;
+		}
+		if (type == ArgType.LONG) {
+			return RuntimeType.LONG;
+		}
+		if (type == ArgType.FLOAT) {
+			return RuntimeType.FLOAT;
+		}
+		if (type == ArgType.DOUBLE) {
+			return RuntimeType.DOUBLE;
+		}
+		if (type == ArgType.OBJECT) {
+			return RuntimeType.OBJECT;
+		}
+		throw new JadxRuntimeException("Unexpected type: " + type);
+	}
+
+	@NonNull
+	protected static RuntimeType castType(String type) {
+		RuntimeType rt = null;
+		if (!StringUtils.isEmpty(type)) {
+			rt = TYPE_MAP.get(type);
+		}
+		if (rt == null) {
+			rt = POSSIBLE_TYPES[0];
+		}
+		return rt;
+	}
+
+	private void checkType(ArgType type, Object value) {
+		if (!(type == ArgType.INT && value instanceof Integer)
+				&& !(type == ArgType.STRING && value instanceof String)
+				&& !(type == ArgType.LONG && value instanceof Long)
+				&& !(type == ArgType.FLOAT && value instanceof Float)
+				&& !(type == ArgType.DOUBLE && value instanceof Double)
+				&& !(type == ArgType.OBJECT && value instanceof Long)) {
 			throw new JadxRuntimeException("Type must be one of int, long, float, double, String or Object.");
 		}
 	}
 
-	private boolean setValueInternal(ValueTreeNode valNode, Type type, Object value) {
+	private boolean modifyValueInternal(ValueTreeNode valNode, RuntimeType type, Object value) {
 		if (valNode instanceof RegTreeNode) {
 			try {
 				RegTreeNode regNode = (RegTreeNode) valNode;
 				debugger.setValueSync(
-						regNode.getRuntimeReg(),
+						regNode.getRuntimeRegNum(),
 						type,
 						value,
-						curThreadID,
-						regNode.getFrameID());
+						cur.frame.getThreadID(),
+						cur.frame.getFrame().getID());
 				lazyQueue.execute(() -> {
 					setRegsNotUpdated();
-					updateRegister((RegTreeNode) valNode);
+					updateRegister((RegTreeNode) valNode, type, true);
 				});
 			} catch (SmaliDebuggerException e) {
 				logErr(e);
@@ -232,6 +287,12 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 	}
 
 	private boolean execResumeCmd(ResumeCmd cmd) {
+		if (!hasResumed) {
+			if (cmd != run) {
+				return false;
+			}
+			hasResumed = true;
+		}
 		if (isDebugging() && isSuspended()) {
 			updateAllFldAndReg = cmd == run;
 			setDebuggerState(false, false);
@@ -253,35 +314,17 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 	 */
 	private void setDebuggerState(boolean suspended, boolean stopped) {
 		isSuspended = suspended;
+		if (stopped) {
+			hasResumed = false;
+		}
 		if (stateListener != null) {
 			stateListener.onStateChanged(suspended, stopped);
 		}
 	}
 
-	protected void setDebuggerStateListener(StateListener listener) {
+	@Override
+	public void setStateListener(StateListener listener) {
 		stateListener = listener;
-	}
-
-	public long getCodeOffset() {
-		return curCodeOffset.get();
-	}
-
-	public void updateRegister(RegTreeNode regNode) {
-		try {
-			RuntimeRegister register = debugger.getRegisterSync(
-					regNode.getThreadID(),
-					regNode.getFrameID(),
-					regNode.getRuntimeRegNum());
-			regNode.updateReg(register);
-			decodeRuntimeValue(regNode);
-			debuggerPanel.updateRegTree(regNode);
-		} catch (SmaliDebuggerException e) {
-			logErr(e);
-		}
-	}
-
-	public void updateField(FieldNode fld) {
-
 	}
 
 	@Override
@@ -296,48 +339,64 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 			return;
 		}
 		setDebuggerState(true, false);
+		long threadID = info.getThreadID();
 		int refreshLevel = 2; // update all threads, stack frames, registers and fields.
-		if (info.getThreadID() != curThreadID) {
-			curThreadID = info.getThreadID();
-		}
-		if (info.getClassID() != curClsID) {
-			curClsID = info.getClassID();
-		}
-		if (info.getMethodID() != curMthID) {
-			curMthID = info.getMethodID();
-		} else {
-			refreshLevel = 1; // relevant registers or fields.
+		if (cur.frame != null) {
+			if (threadID == cur.frame.getThreadID()
+					&& info.getClassID() == cur.frame.getClsID()
+					&& info.getMethodID() == cur.frame.getMthID()) {
+
+				refreshLevel = 1; // relevant registers or fields.
+			} else {
+				cur.frame.getClsID();
+			}
+			setRegsNotUpdated();
 		}
 		if (refreshLevel == 2) {
-			updateAllInfo(curThreadID, info.getOffset());
+			updateAllInfo(threadID, info.getOffset());
 
 		} else {
-			StackFrameElement frameEle = getCurrentFrame();
-			if (curSmali != null) {
+			if (cur.smali != null && cur.frame != null) {
+				refreshRegInfo(info.getOffset());
+				refreshCurFrame(threadID, info.getOffset());
 				if (updateAllFldAndReg) {
-					if (frameEle != null) {
-						debuggerPanel.resetAllRegAndFieldNodes();
-						updateAllRegisters(curThreadID, frameEle, curSmali.getRegCount(curMthFullID));
-					}
+					debuggerPanel.resetAllRegAndFieldNodes();
+					updateAllRegisters(cur.frame);
 				} else if (toBeUpdatedTreeNode != null) {
 					lazyQueue.execute(() -> updateRegOrField(toBeUpdatedTreeNode));
 				}
-				setRegsNotUpdated();
 				markCodeOffset(info.getOffset());
 			} else {
 				debuggerPanel.resetAllRegNodes();
 			}
-			if (frameEle != null) {
+			if (cur.frame != null) {
 				// update current code offset in stack frame.
-				frameEle.updateCodeOffset(info.getOffset());
+				cur.frame.updateCodeOffset(info.getOffset());
 				debuggerPanel.refreshStackFrameList(Collections.emptyList());
 			}
 		}
 	}
 
+	private void refreshRegInfo(long codeOffset) {
+		List<RegisterObserver.Info> list = cur.regAdapter.getInfoAt(codeOffset);
+		for (RegisterObserver.Info info : list) {
+			RegTreeNode reg = cur.frame.getRegNodes().get(info.getSmaliRegNum());
+			if (info.isLoad()) {
+				applyDbgInfo(reg, info.getInfo());
+			} else {
+				reg.setAlias("");
+				reg.setAbsoluteType(false);
+			}
+		}
+		if (list.size() > 0) {
+			debuggerPanel.refreshRegisterTree();
+		}
+	}
+
 	private void updateRegOrField(ValueTreeNode valTreeNode) {
 		if (valTreeNode instanceof RegTreeNode) {
-			updateRegister((RegTreeNode) valTreeNode);
+			RegTreeNode rn = (RegTreeNode) valTreeNode;
+			updateRegister(rn, null, true);
 			return;
 		}
 		if (valTreeNode instanceof FieldTreeNode) {
@@ -345,17 +404,68 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 		}
 	}
 
+	public boolean updateRegister(RegTreeNode regNode, RuntimeType type, boolean retry) {
+		if (type == null) {
+			if (regNode.isAbsoluteType()) {
+				type = castType(regNode.getType());
+			} else {
+				type = POSSIBLE_TYPES[0];
+			}
+		}
+		boolean ok = false;
+		RuntimeRegister register = null;
+		try {
+			register = debugger.getRegisterSync(
+					cur.frame.getThreadID(),
+					cur.frame.getFrame().getID(),
+					regNode.getRuntimeRegNum(),
+					type);
+		} catch (SmaliDebuggerException e) {
+			if (retry) {
+				if (debugger.errIsTypeMismatched(e.getErrCode())) {
+					RuntimeType[] types = getPossibleTypes(type);
+					for (RuntimeType nextType : types) {
+						ok = updateRegister(regNode, nextType, false);
+						if (ok) {
+							regNode.updateType(nextType.getDesc());
+							break;
+						}
+					}
+				} else {
+					logErr(e.getMessage() + " for " + regNode.getName());
+					regNode.updateType(null);
+					regNode.updateValue(null);
+				}
+			}
+		}
+		if (register != null) {
+			regNode.updateReg(register);
+			decodeRuntimeValue(regNode);
+		}
+		debuggerPanel.updateRegTree(regNode);
+		return ok;
+	}
+
+	private RuntimeType[] getPossibleTypes(RuntimeType cur) {
+		RuntimeType[] types = new RuntimeType[2];
+		for (int i = 0, j = 0; i < POSSIBLE_TYPES.length; i++) {
+			if (cur != POSSIBLE_TYPES[i]) {
+				types[j++] = POSSIBLE_TYPES[i];
+			}
+		}
+		return types;
+	}
+
 	// when single stepping we can detect which reg need to be updated.
 	private void markNextToBeUpdated(long codeOffset) {
 		if (codeOffset != -1) {
-			Object rst = curSmali.getResultRegOrField(curMthFullID, codeOffset);
-			StackFrameElement frameEle = getCurrentFrame();
+			Object rst = cur.smali.getResultRegOrField(cur.mthFullID, codeOffset);
 			toBeUpdatedTreeNode = null;
-			if (frameEle != null) {
+			if (cur.frame != null) {
 				if (rst instanceof Integer) {
 					int regNum = (int) rst;
-					if (frameEle.getRegNodes().size() > regNum) {
-						toBeUpdatedTreeNode = frameEle.getRegNodes().get(regNum);
+					if (cur.frame.getRegNodes().size() > regNum) {
+						toBeUpdatedTreeNode = cur.frame.getRegNodes().get(regNum);
 					}
 					return;
 				}
@@ -364,15 +474,6 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 				}
 			}
 		}
-	}
-
-	@Nullable
-	private StackFrameElement getCurrentFrame() {
-		DefaultListModel<StackFrameElement> model = debuggerPanel.getStackFrameModel();
-		if (model.size() > 0) {
-			return model.get(0);
-		}
-		return null;
 	}
 
 	private void updateAllThreads() {
@@ -401,23 +502,22 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 		});
 	}
 
-	private StackFrameElement updateAllStackFrames(long threadID) {
-		List<SmaliDebugger.Frame> frames;
+	private FrameNode updateAllStackFrames(long threadID) {
+		List<SmaliDebugger.Frame> frames = Collections.emptyList();
 		try {
 			frames = debugger.getFramesSync(threadID);
 		} catch (SmaliDebuggerException e) {
 			logErr(e);
-			return null;
 		}
 		if (frames.size() == 0) {
 			return null;
 		}
-		List<StackFrameElement> frameEleList = new ArrayList<>(frames.size());
+		List<FrameNode> frameEleList = new ArrayList<>(frames.size());
 		for (SmaliDebugger.Frame frame : frames) {
-			StackFrameElement ele = new StackFrameElement(frame);
+			FrameNode ele = new FrameNode(threadID, frame);
 			frameEleList.add(ele);
 		}
-		StackFrameElement curEle = frameEleList.get(0);
+		FrameNode curEle = frameEleList.get(0);
 		fetchStackFrameNames(curEle);
 
 		debuggerPanel.refreshStackFrameList(frameEleList);
@@ -427,10 +527,10 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 			}
 			debuggerPanel.refreshStackFrameList(Collections.emptyList());
 		});
-		return curEle;
+		return frameEleList.get(0);
 	}
 
-	private void fetchStackFrameNames(StackFrameElement ele) {
+	private void fetchStackFrameNames(FrameNode ele) {
 		try {
 			long clsID = ele.getFrame().getClassID();
 			String clsSig = debugger.getClassSignatureSync(clsID);
@@ -441,20 +541,32 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 		}
 	}
 
-	private Smali decodeSmali(StackFrameElement frame) {
-		JClass jClass = DbgUtils.getTopClassBySig(frame.getClsSig(), debuggerPanel.getMainWindow());
-		if (jClass != null) {
-			ClassNode cNode = jClass.getCls().getClassNode();
-			curClsNode = jClass;
-			curMthFullID = DbgUtils.classSigToRawFullName(frame.getClsSig()) + "." + frame.getMthSig();
-			return DbgUtils.getSmali(cNode);
+	private Smali decodeSmali(FrameNode frame) {
+		if (cur.frame.getClsSig() != null) {
+			JClass jClass = DbgUtils.getTopClassBySig(frame.getClsSig(), debuggerPanel.getMainWindow());
+			if (jClass != null) {
+				ClassNode cNode = jClass.getCls().getClassNode();
+				cur.clsNode = jClass;
+				cur.mthFullID = DbgUtils.classSigToRawFullName(frame.getClsSig()) + "." + frame.getMthSig();
+				return DbgUtils.getSmali(cNode);
+			}
 		}
 		return null;
 	}
 
-	private void updateAllFields(StackFrameElement frameEle) {
+	private void refreshCurFrame(long threadID, long codeOffset) {
+		try {
+			Frame frame = debugger.getCurrentFrame(threadID);
+			cur.frame.setFrame(frame);
+			cur.frame.updateCodeOffset(codeOffset);
+		} catch (SmaliDebuggerException e) {
+			logErr(e);
+		}
+	}
+
+	private void updateAllFields(FrameNode frame) {
 		List<FieldNode> fldNodes = Collections.emptyList();
-		String clsSig = frameEle.getClsSig();
+		String clsSig = frame.getClsSig();
 		if (clsSig != null) {
 			ClassNode clsNode = DbgUtils.getClassNodeBySig(clsSig, debuggerPanel.getMainWindow());
 			if (clsNode != null) {
@@ -462,17 +574,18 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 			}
 		}
 		try {
-			List<RuntimeField> flds = debugger.getAllFieldsSync(frameEle.getFrame().getClassID());
+			List<RuntimeField> flds = debugger.getAllFieldsSync(frame.getFrame().getClassID());
 			List<FieldTreeNode> nodes = new ArrayList<>(flds.size());
 			for (RuntimeField fld : flds) {
-				FieldTreeNode fldNode = debuggerPanel.buildFieldNode(fld);
+				FieldTreeNode fldNode = new FieldTreeNode(fld);
 				fldNodes.stream()
 						.filter(f -> f.getName().equals(fldNode.getName()))
 						.findFirst()
 						.ifPresent(smaliFld -> fldNode.setAlias(smaliFld.getAlias()));
 				nodes.add(fldNode);
 			}
-			debuggerPanel.setThisFieldNodes(nodes);
+			debuggerPanel.updateThisFieldNodes(nodes);
+			frame.setThisNodes(nodes);
 			// if (nodes.size() > 0) {
 			// lazyQueue.execute(() -> updateAllFieldValues(frameEle));
 			// }
@@ -482,14 +595,14 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 	}
 
 	// TODO: has bug
-	private void updateAllFieldValues(StackFrameElement frameEle) {
-		List<FieldTreeNode> nodes = debuggerPanel.getThisFieldNodes();
+	private void updateAllFieldValues(FrameNode frame) {
+		List<FieldTreeNode> nodes = frame.thisNodes;
 		if (nodes.size() > 0) {
 			List<RuntimeField> flds = new ArrayList<>(nodes.size());
 			nodes.forEach(n -> flds.add(n.getRuntimeField()));
 			try {
-				debugger.getAllFieldValuesSync(frameEle.getFrame().getClassID(), flds);
-				nodes.forEach(this::decodeRuntimeValue);
+				debugger.getAllFieldValuesSync(frame.getFrame().getClassID(), flds);
+				nodes.forEach(n -> decodeRuntimeValue(n));
 				debuggerPanel.refreshThisFieldTree();
 			} catch (SmaliDebuggerException e) {
 				logErr(e);
@@ -497,89 +610,94 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 		}
 	}
 
-	private void updateAllRegisters(long threadID, StackFrameElement frameEle, int regCount) {
-		if (regCount > 0) {
-			List<RuntimeRegister> regs;
-			try {
-				regs = debugger.getAllRegistersSync(threadID, frameEle.getFrame().getID(), regCount);
-			} catch (SmaliDebuggerException e) {
-				logErr(e);
-				return;
-			}
-			List<RegTreeNode> regNodes = buildRegTreeNodes(regs, threadID, frameEle);
-			debuggerPanel.refreshRegisterTree();
+	private void updateAllRegisters(FrameNode frame) {
+		if (buildRegTreeNodes(frame).size() > 0) {
+			fetchAllRegisters(frame);
+		}
+	}
+
+	private void fetchAllRegisters(FrameNode frame) {
+		List<SmaliRegister> regs = cur.regAdapter.getInitializedList(frame.getCodeOffset());
+		for (SmaliRegister reg : regs) {
 			lazyQueue.execute(() -> {
-				boolean updated = false;
-				for (RegTreeNode regNode : regNodes) {
-					boolean ok = decodeRuntimeValue(regNode);
-					if (!updated) {
-						updated = ok;
-					}
+				Entry<String, String> info = cur.regAdapter.getInfo(reg.getRuntimeRegNum(), frame.getCodeOffset());
+				RegTreeNode regNode = frame.getRegNodes().get(reg.getRegNum());
+				if (info != null) {
+					applyDbgInfo(regNode, info);
 				}
-				if (updated) {
-					debuggerPanel.refreshRegisterTree();
-				}
+				updateRegister(regNode, null, true);
 			});
 		}
 	}
 
+	private void applyDbgInfo(RegTreeNode rn, Entry<String, String> info) {
+		rn.setAlias(info.getKey());
+		rn.updateType(info.getValue());
+		rn.setAbsoluteType(true);
+	}
+
 	private void setRegsNotUpdated() {
-		StackFrameElement frame = getCurrentFrame();
-		if (frame != null) {
-			for (RegTreeNode regNode : frame.getRegNodes()) {
+		if (cur.frame != null) {
+			for (RegTreeNode regNode : cur.frame.getRegNodes()) {
 				regNode.setUpdated(false);
 			}
 		}
 	}
 
-	private List<RegTreeNode> buildRegTreeNodes(List<RuntimeRegister> regs, long threadID, StackFrameElement frameEle) {
+	private List<RegTreeNode> buildRegTreeNodes(FrameNode frame) {
+		List<SmaliRegister> regs = cur.smali.getRegisterList(cur.mthFullID);
 		List<RegTreeNode> regNodes = new ArrayList<>(regs.size());
-		for (RuntimeRegister reg : regs) {
-			int smaliRegNum = curSmali.getSmaliRegNum(curMthFullID, reg.getRegNum());
-			regNodes.add(debuggerPanel.buildRegNode(reg,
-					curSmali.getSmaliReg(curMthFullID, smaliRegNum),
-					threadID,
-					frameEle.getFrame().getID()));
-		}
-		regNodes.sort(Comparator.comparingInt(RegTreeNode::getRegNum));
-		debuggerPanel.updateRegTreeNodes(regNodes);
-		frameEle.setRegNodes(regNodes);
+		List<RegTreeNode> inRtOrder = new ArrayList<>(regs.size());
+
+		regs.forEach(r -> {
+			RegTreeNode rn = new RegTreeNode(r);
+			regNodes.add(rn);
+			inRtOrder.add(rn);
+		});
+		inRtOrder.sort(Comparator.comparingInt(RegTreeNode::getRuntimeRegNum));
+		frame.setRegNodes(regNodes);
+		debuggerPanel.updateRegTreeNodes(inRtOrder);
+		debuggerPanel.refreshRegisterTree();
 		return regNodes;
 	}
 
-	private boolean decodeRuntimeValue(ValueTreeNode valNode) {
-		valNode.setUpdated(false);
+	private boolean decodeRuntimeValue(RuntimeValueTreeNode valNode) {
 		RuntimeValue rValue = valNode.getRuntimeValue();
-		if (rValue.getType() == OBJECT) {
-			return decodeObject(valNode);
+		RuntimeType type = rValue.getType();
+		if (!valNode.isAbsoluteType()) {
+			valNode.updateType(null);
 		}
-		Type type = rValue.getType();
 		try {
 			switch (type) {
+				case OBJECT:
+					return decodeObject(valNode);
 				case STRING:
 					String str = "\"" + debugger.readStringSync(rValue) + "\"";
 					valNode.updateType("java.lang.String@" + debugger.readID(rValue));
 					valNode.updateValue(str);
+					break;
+				case INT:
+					valNode.updateValue(Integer.toString(debugger.readInt(rValue)));
+					break;
+				case LONG:
+					valNode.updateValue(Long.toString(debugger.readAll(rValue)));
+					break;
+				case ARRAY:
+					decodeArrayVal(valNode);
 					break;
 				case BOOLEAN: {
 					int b = debugger.readByte(rValue);
 					valNode.updateValue(b == 1 ? "true" : "false");
 					break;
 				}
-				case INT:
-				case LONG:
 				case SHORT:
-					long l = debugger.readAll(rValue);
-					valNode.updateValue(Long.toString(l));
-					break;
-				case ARRAY:
-					decodeArrayVal(valNode);
+					valNode.updateValue(Short.toString(debugger.readShort(rValue)));
 					break;
 				case CHAR:
 				case BYTE: {
 					int b = (int) debugger.readAll(rValue);
 					if (DbgUtils.isPrintableChar(b)) {
-						valNode.updateValue(type == CHAR ? String.valueOf((char) b) : String.valueOf((byte) b));
+						valNode.updateValue(type == RuntimeType.CHAR ? String.valueOf((char) b) : String.valueOf((byte) b));
 					} else {
 						valNode.updateValue(String.valueOf(b));
 					}
@@ -617,29 +735,31 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 		return true;
 	}
 
-	private boolean decodeObject(ValueTreeNode valNode) {
+	private boolean decodeObject(RuntimeValueTreeNode valNode) {
 		String sig;
 		RuntimeValue rValue = valNode.getRuntimeValue();
 		boolean ok = true;
+		if (!art.readNullObject() && debugger.readID(rValue) == 0) {
+			valNode.updateType(art.typeForNull());
+			valNode.updateValue("0");
+			return ok;
+		}
 		try {
-			// TODO: fetch fields of object.
 			sig = debugger.readObjectSignatureSync(rValue);
 			valNode.updateType(String.format("%s@%x", DbgUtils.classSigToRawFullName(sig),
 					debugger.readID(rValue)));
 		} catch (SmaliDebuggerException e) {
-			ok = e.getErrCode() == 20 && valNode instanceof RegTreeNode;
+			ok = debugger.errIsInvalidObject(e.getErrCode()) && valNode instanceof RegTreeNode;
 			if (ok) {
-				// it's not an object id or it's unloaded, gc collected, mostly the former one, so treat it as int
-				// TODO: update smali parser to distinguish double, float and int.
 				try {
 					RegTreeNode reg = (RegTreeNode) valNode;
 					RuntimeRegister rr = debugger.getRegisterSync(
-							curThreadID,
-							getCurrentFrame().getFrame().getID(),
-							reg.getRuntimeRegNum(), SmaliDebugger.Type.INT);
+							cur.frame.getThreadID(),
+							cur.frame.getFrame().getID(),
+							reg.getRuntimeRegNum(), RuntimeType.INT);
 					reg.updateReg(rr);
 					rValue = rr;
-					valNode.updateType("int");
+					valNode.updateType(RuntimeType.INT.getDesc());
 					valNode.updateValue(Long.toString((int) debugger.readAll(rValue)));
 				} catch (SmaliDebuggerException except) {
 					logErr(except, String.format("Update %s failed, %s", valNode.getName(), except.getMessage()));
@@ -652,7 +772,7 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 		return ok;
 	}
 
-	private void decodeArrayVal(ValueTreeNode valNode) throws SmaliDebuggerException {
+	private void decodeArrayVal(RuntimeValueTreeNode valNode) throws SmaliDebuggerException {
 		String type = debugger.readObjectSignatureSync(valNode.getRuntimeValue());
 		ArgType argType = ArgType.parse(type);
 		String javaType = argType.toString();
@@ -668,7 +788,6 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 		}
 		String typeSig = type.substring(1);
 		if (DbgUtils.isStringObjectSig(typeSig)) {
-			// fetch all the Strings
 			for (Long aLong : ret.getValue()) {
 				valNode.add(new DefaultMutableTreeNode(debugger.readStringSync(aLong)));
 			}
@@ -683,31 +802,56 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 	private void updateAllInfo(long threadID, long codeOffset) {
 		updateQueue.execute(() -> {
 			resetAllInfo();
-			StackFrameElement curFrame = updateAllStackFrames(threadID);
-			if (curFrame != null) {
-				lazyQueue.execute(() -> updateAllFields(curFrame));
-				if (curFrame.getClsSig() == null || curFrame.getMthSig() == null) {
-					fetchStackFrameNames(curFrame);
+			cur.frame = updateAllStackFrames(threadID);
+			if (cur.frame != null) {
+				lazyQueue.execute(() -> updateAllFields(cur.frame));
+				if (cur.frame.getClsSig() == null || cur.frame.getMthSig() == null) {
+					fetchStackFrameNames(cur.frame);
 				}
-				if (curFrame.getClsSig() != null) {
-					curSmali = decodeSmali(curFrame);
-					if (curSmali != null) {
-						int regCount = curSmali.getRegCount(curMthFullID);
-						if (regCount > 0) {
-							updateAllRegisters(threadID, curFrame, regCount);
-						}
-						markCodeOffset(codeOffset);
+				cur.smali = decodeSmali(cur.frame);
+				if (cur.smali != null) {
+					cur.regAdapter = regAdaMap.computeIfAbsent(cur.mthFullID,
+							k -> RegisterObserver.merge(
+									getRuntimeDebugInfo(cur.frame),
+									getRegisterList()));
+
+					if (cur.smali.getRegCount(cur.mthFullID) > 0) {
+						updateAllRegisters(cur.frame);
 					}
+					markCodeOffset(codeOffset);
 				}
 			}
 			updateAllThreads();
 		});
 	}
 
+	private List<SmaliRegister> getRegisterList() {
+		int regCount = cur.smali.getRegCount(cur.mthFullID);
+		int paramStart = cur.smali.getParamRegStart(cur.mthFullID);
+		List<SmaliRegister> srs = cur.smali.getRegisterList(cur.mthFullID);
+		for (SmaliRegister sr : srs) {
+			sr.setRuntimeRegNum(art.getRuntimeRegNum(sr.getRegNum(), regCount, paramStart));
+		}
+		return srs;
+	}
+
 	private void resetAllInfo() {
+		isSuspended = true;
 		toBeUpdatedTreeNode = null;
-		curCodeOffset.set(-1);
 		debuggerPanel.resetAllDebuggingInfo();
+		cur.reset();
+	}
+
+	private List<RuntimeVarInfo> getRuntimeDebugInfo(FrameNode frame) {
+		try {
+			RuntimeDebugInfo dbgInfo = debugger.getRuntimeDebugInfo(frame.getClsID(), frame.getMthID());
+			if (dbgInfo != null) {
+				return dbgInfo.getInfoList();
+			}
+		} catch (SmaliDebuggerException ignore) {
+			// logErr(e);
+		}
+		return Collections.emptyList();
 	}
 
 	private void markCodeOffset(long codeOffset) {
@@ -726,19 +870,23 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 		e.printStackTrace();
 	}
 
+	private void logErr(String e) {
+		debuggerPanel.log(e);
+	}
+
 	private void scrollToPos(long codeOffset) {
 		int pos = -1;
 		if (codeOffset > -1) {
-			pos = curSmali.getInsnPosByCodeOffset(curMthFullID, codeOffset);
+			pos = cur.smali.getInsnPosByCodeOffset(cur.mthFullID, codeOffset);
 		}
 		if (pos == -1) {
-			pos = curSmali.getMethodDefPos(curMthFullID);
+			pos = cur.smali.getMethodDefPos(cur.mthFullID);
 			if (pos == -1) {
-				debuggerPanel.log("Can't scroll to " + curMthFullID);
+				debuggerPanel.log("Can't scroll to " + cur.mthFullID);
 				return;
 			}
 		}
-		debuggerPanel.scrollToSmaliLine(curClsNode, pos, true);
+		debuggerPanel.scrollToSmaliLine(cur.clsNode, pos, true);
 	}
 
 	private void initBreakpoints(List<FileBreakpoint> fbps) {
@@ -815,7 +963,7 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 		} catch (SmaliDebuggerException e) {
 			logErr(e);
 		}
-		failBreakpoint(fbp, "Failed get method for breakpoint, " + fbp.mth + ":" + fbp.codeOffset);
+		failBreakpoint(fbp, "Failed to get method for breakpoint, " + fbp.mth + ":" + fbp.codeOffset);
 	}
 
 	private void failBreakpoint(FileBreakpoint fbp, String msg) {
@@ -889,7 +1037,348 @@ public final class DebugController implements SmaliDebugger.SuspendListener {
 		}
 	}
 
-	protected interface StateListener {
-		void onStateChanged(boolean suspended, boolean stopped);
+	public class FrameNode implements IListElement {
+		private SmaliDebugger.Frame frame;
+		private final long threadID;
+		private String clsSig;
+		private String mthSig;
+		private StringBuilder cache;
+		private long codeOffset = -1;
+		private List<RegTreeNode> regNodes;
+		private List<FieldTreeNode> thisNodes;
+
+		public FrameNode(long threadID, SmaliDebugger.Frame frame) {
+			cache = new StringBuilder(16);
+			this.frame = frame;
+			this.threadID = threadID;
+			regNodes = Collections.emptyList();
+			thisNodes = Collections.emptyList();
+		}
+
+		public SmaliDebugger.Frame getFrame() {
+			return frame;
+		}
+
+		public void setFrame(SmaliDebugger.Frame frame) {
+			this.frame = frame;
+		}
+
+		public long getClsID() {
+			return frame.getClassID();
+		}
+
+		public long getMthID() {
+			return frame.getMethodID();
+		}
+
+		public long getThreadID() {
+			return threadID;
+		}
+
+		public void setSignatures(String clsSig, String mthSig) {
+			this.clsSig = clsSig;
+			this.mthSig = mthSig;
+			this.cache.delete(0, this.cache.length());
+		}
+
+		public String getClsSig() {
+			return clsSig;
+		}
+
+		public String getMthSig() {
+			return mthSig;
+		}
+
+		public void updateCodeOffset(long codeOffset) {
+			this.codeOffset = codeOffset;
+			if (this.codeOffset > -1) {
+				this.cache.delete(0, this.cache.length());
+			}
+		}
+
+		public long getCodeOffset() {
+			return codeOffset == -1 ? frame.getCodeIndex() : codeOffset;
+		}
+
+		public void setRegNodes(List<RegTreeNode> regNodes) {
+			this.regNodes = regNodes;
+		}
+
+		public List<RegTreeNode> getRegNodes() {
+			return regNodes;
+		}
+
+		public void setThisNodes(List<FieldTreeNode> thisNodes) {
+			this.thisNodes = thisNodes;
+		}
+
+		public List<FieldTreeNode> getThisNodes() {
+			return thisNodes;
+		}
+
+		@Override
+		public void onSelected() {
+			if (clsSig != null) {
+				JClass cls = DbgUtils.getTopClassBySig(clsSig, debuggerPanel.getMainWindow());
+				if (cls != null) {
+					Smali smali = DbgUtils.getSmali(cls.getCls().getClassNode());
+					if (smali != null) {
+						int pos = smali.getInsnPosByCodeOffset(
+								DbgUtils.classSigToRawFullName(clsSig) + "." + mthSig,
+								getCodeOffset());
+						debuggerPanel.scrollToSmaliLine(cls, Math.max(0, pos), false);
+						return;
+					}
+				}
+				debuggerPanel.log("Can't open smali panel for " + clsSig + "->" + mthSig);
+			}
+		}
+
+		@Override
+		public String toString() {
+			if (cache.length() == 0) {
+				long off = getCodeOffset();
+				if (off < 0) {
+					cache.append(String.format("index: %-4d ", off));
+				} else {
+					cache.append(String.format("index: %04x ", off));
+				}
+				if (clsSig == null) {
+					cache.append("clsID: ").append(frame.getClassID());
+				} else {
+					cache.append(clsSig).append("->");
+				}
+				if (mthSig == null) {
+					cache.append(" mthID: ").append(frame.getMethodID());
+				} else {
+					cache.append(mthSig);
+				}
+			}
+			return cache.toString();
+		}
+	}
+
+	private static class ThreadBoxElement implements IListElement {
+		private long threadID;
+		private String name;
+
+		public ThreadBoxElement(long threadID) {
+			this.threadID = threadID;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public long getThreadID() {
+			return threadID;
+		}
+
+		@Override
+		public String toString() {
+			if (name == null) {
+				return "thread id: " + threadID;
+			}
+			return "thread id: " + threadID + " name:" + name;
+		}
+
+		@Override
+		public void onSelected() {
+
+		}
+	}
+
+	private static class RegTreeNode extends RuntimeValueTreeNode {
+		private static final long serialVersionUID = -1111111202103122234L;
+
+		private final SmaliRegister smaliReg;
+		private RuntimeRegister runtimeReg;
+		private String value;
+		private String type;
+		private String alias;
+		private boolean absType;
+		private long typeID;
+
+		public RegTreeNode(SmaliRegister smaliReg) {
+			this.smaliReg = smaliReg;
+		}
+
+		public void updateReg(RuntimeRegister reg) {
+			runtimeReg = reg;
+		}
+
+		public void setAlias(String alias) {
+			this.alias = alias;
+		}
+
+		@Override
+		public void updateValue(String value) {
+			setUpdated(true);
+			this.value = value;
+			this.removeAllChildren();
+		}
+
+		@Override
+		public void updateType(String type) {
+			if (this.type == null || (!this.type.startsWith(type + "@") && !this.type.equals(type))) {
+				this.type = type;
+				value = null;
+				this.removeAllChildren();
+				setUpdated(true);
+				this.absType = false;
+			}
+		}
+
+		@Override
+		public String getName() {
+			if (!StringUtils.isEmpty(alias)) {
+				return String.format("%s (%s)", smaliReg.getName(), alias);
+			}
+			return String.format("%-3s", smaliReg.getName());
+		}
+
+		@Override
+		@Nullable
+		public String getValue() {
+			return value;
+		}
+
+		public RuntimeRegister getRuntimeReg() {
+			return runtimeReg;
+		}
+
+		public int getRuntimeRegNum() {
+			return smaliReg.getRuntimeRegNum();
+		}
+
+		@Override
+		public String getType() {
+			if (type != null) {
+				return type;
+			}
+			if (runtimeReg != null) {
+				return runtimeReg.getType().getDesc();
+			}
+			return null;
+		}
+
+		@Override
+		public RuntimeValue getRuntimeValue() {
+			return getRuntimeReg();
+		}
+
+		@Override
+		public boolean isAbsoluteType() {
+			return absType;
+		}
+
+		public void setAbsoluteType(boolean abs) {
+			absType = abs;
+		}
+	}
+
+	private static class FieldTreeNode extends RuntimeValueTreeNode {
+		private static final long serialVersionUID = -1111111202103122235L;
+
+		private final RuntimeField field;
+		private String value;
+		private String alias;
+
+		private FieldTreeNode(RuntimeField field) {
+			this.field = field;
+		}
+
+		public RuntimeField getRuntimeField() {
+			return this.field;
+		}
+
+		public void setAlias(String alias) {
+			this.alias = alias;
+		}
+
+		@Override
+		public void updateValue(String val) {
+			setUpdated(true);
+			value = val;
+			this.removeAllChildren();
+		}
+
+		@Override
+		public void updateType(String val) {
+		}
+
+		@Override
+		public String getName() {
+			if (StringUtils.isEmpty(alias) || alias.equals(field.getName())) {
+				return field.getName();
+			}
+			return field.getName() + " (" + alias + ")";
+		}
+
+		@Override
+		public String getValue() {
+			return value;
+		}
+
+		@Override
+		public String getType() {
+			return ArgType.parse(field.getFieldType()).toString();
+		}
+
+		@Override
+		public RuntimeValue getRuntimeValue() {
+			return field;
+		}
+
+		@Override
+		public boolean isAbsoluteType() {
+			return true;
+		}
+	}
+
+	private abstract static class RuntimeValueTreeNode extends ValueTreeNode {
+
+		public abstract RuntimeValue getRuntimeValue();
+
+		public abstract boolean isAbsoluteType();
+	}
+
+	private class CurrentInfo {
+		JClass clsNode;
+		String mthFullID;
+		Smali smali;
+		FrameNode frame;
+		RegisterObserver regAdapter;
+
+		public void reset() {
+			frame = null;
+			smali = null;
+			clsNode = null;
+			regAdapter = null;
+			mthFullID = "";
+		}
+	}
+
+	private static void initTypeMap() {
+		TYPE_MAP.put("I", RuntimeType.INT);
+		TYPE_MAP.put("Z", RuntimeType.INT);
+		TYPE_MAP.put("B", RuntimeType.INT);
+		TYPE_MAP.put("C", RuntimeType.INT);
+		TYPE_MAP.put("F", RuntimeType.INT);
+		TYPE_MAP.put("S", RuntimeType.INT);
+		TYPE_MAP.put("V", RuntimeType.INT);
+		TYPE_MAP.put("int", RuntimeType.INT);
+		TYPE_MAP.put("boolean", RuntimeType.INT);
+		TYPE_MAP.put("byte", RuntimeType.INT);
+		TYPE_MAP.put("short", RuntimeType.INT);
+		TYPE_MAP.put("char", RuntimeType.INT);
+		TYPE_MAP.put("float", RuntimeType.INT);
+		TYPE_MAP.put("void", RuntimeType.INT);
+		TYPE_MAP.put("L", RuntimeType.LONG);
+		TYPE_MAP.put("D", RuntimeType.LONG);
+		TYPE_MAP.put("long", RuntimeType.LONG);
+		TYPE_MAP.put("double", RuntimeType.LONG);
+		TYPE_MAP.put("java.lang.String", RuntimeType.STRING);
+		TYPE_MAP.put("Ljava/lang/String;", RuntimeType.STRING);
 	}
 }

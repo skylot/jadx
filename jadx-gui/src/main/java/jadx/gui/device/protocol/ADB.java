@@ -9,6 +9,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.annotations.NonNull;
+
+import jadx.core.utils.StringUtils;
+
 public class ADB {
 	private static final int DEFAULT_PORT = 5037;
 	private static final String DEFAULT_ADDR = "localhost";
@@ -300,6 +304,7 @@ public class ADB {
 
 	public static class Device {
 		DeviceInfo info;
+		String androidReleaseVer;
 		volatile Socket jdwpListenerSock;
 
 		public Device(DeviceInfo info) {
@@ -366,10 +371,51 @@ public class ADB {
 			}
 		}
 
-		public List<String> getProp() throws IOException {
+		/**
+		 * @return pid other -1
+		 */
+		public int launchApp(String fullAppName) throws IOException, InterruptedException {
 			Socket socket = connect(info.adbHost, info.adbPort);
-			List<String> props = null;
-			byte[] payload = execShellCommandRaw(info.serial, "getprop",
+			String cmd = "am start -D -n " + fullAppName;
+			byte[] res = execShellCommandRaw(info.serial, cmd, socket.getOutputStream(), socket.getInputStream());
+			socket.close();
+			String rst = new String(res).trim();
+			if (rst.startsWith("Starting: Intent {") && rst.endsWith(fullAppName + " }")) {
+				Thread.sleep(40);
+				String name = fullAppName.split("/")[0];
+				for (Process process : getProcessList()) {
+					if (process.name.equals(name)) {
+						return Integer.parseInt(process.pid);
+					}
+				}
+			}
+			return -1;
+		}
+
+		public String getAndroidReleaseVersion() {
+			if (!StringUtils.isEmpty(androidReleaseVer)) {
+				return androidReleaseVer;
+			}
+			try {
+				List<String> list = getProp("ro.build.version.release");
+				if (list.size() != 0) {
+					androidReleaseVer = list.get(0);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+				androidReleaseVer = "";
+			}
+			return androidReleaseVer;
+		}
+
+		public List<String> getProp(String entry) throws IOException {
+			Socket socket = connect(info.adbHost, info.adbPort);
+			List<String> props = Collections.emptyList();
+			String cmd = "getprop";
+			if (!StringUtils.isEmpty(entry)) {
+				cmd += " " + entry;
+			}
+			byte[] payload = execShellCommandRaw(info.serial, cmd,
 					socket.getOutputStream(), socket.getInputStream());
 			if (payload != null) {
 				props = new ArrayList<>();
@@ -385,9 +431,10 @@ public class ADB {
 			return props;
 		}
 
+		@NonNull
 		public List<Process> getProcessList() throws IOException {
 			Socket socket = connect(info.adbHost, info.adbPort);
-			List<Process> procs = null;
+			List<Process> procs = Collections.emptyList();
 			byte[] payload = execShellCommandRaw(info.serial, "ps",
 					socket.getOutputStream(), socket.getInputStream());
 			if (payload != null) {
@@ -447,10 +494,6 @@ public class ADB {
 			return true;
 		}
 
-		public boolean isListeningForJDWP() {
-			return this.jdwpListenerSock != null;
-		}
-
 		public void stopListenForJDWP() {
 			if (jdwpListenerSock != null) {
 				try {
@@ -460,10 +503,6 @@ public class ADB {
 				}
 			}
 			this.jdwpListenerSock = null;
-		}
-
-		public boolean isOnline() {
-			return info.isOnline();
 		}
 
 		@Override

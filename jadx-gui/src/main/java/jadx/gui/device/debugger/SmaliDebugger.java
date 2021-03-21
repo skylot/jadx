@@ -10,8 +10,10 @@ import java.util.Map.Entry;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.reactivex.annotations.NonNull;
 import io.reactivex.annotations.Nullable;
 
+import jadx.gui.device.debugger.smali.RegisterInfo;
 import jadx.gui.device.protocol.JDWP;
 import jadx.gui.device.protocol.JDWP.ArrayReference.Length.LengthReplyData;
 import jadx.gui.device.protocol.JDWP.ByteBuffer;
@@ -20,13 +22,15 @@ import jadx.gui.device.protocol.JDWP.EventRequest.Set.ClassMatchRequest;
 import jadx.gui.device.protocol.JDWP.EventRequest.Set.CountRequest;
 import jadx.gui.device.protocol.JDWP.EventRequest.Set.LocationOnlyRequest;
 import jadx.gui.device.protocol.JDWP.EventRequest.Set.StepRequest;
+import jadx.gui.device.protocol.JDWP.Method.VariableTableWithGeneric.VarTableWithGenericData;
+import jadx.gui.device.protocol.JDWP.Method.VariableTableWithGeneric.VarWithGenericSlot;
 import jadx.gui.device.protocol.JDWP.ObjectReference.ReferenceType.ReferenceTypeReplyData;
 import jadx.gui.device.protocol.JDWP.Packet;
+import jadx.gui.device.protocol.JDWP.ReferenceType.FieldsWithGeneric.FieldsWithGenericData;
 import jadx.gui.device.protocol.JDWP.ReferenceType.FieldsWithGeneric.FieldsWithGenericReplyData;
-import jadx.gui.device.protocol.JDWP.ReferenceType.FieldsWithGeneric.FieldsWithGenericReplyDataDeclared;
 import jadx.gui.device.protocol.JDWP.ReferenceType.GetValues;
+import jadx.gui.device.protocol.JDWP.ReferenceType.MethodsWithGeneric.MethodsWithGenericData;
 import jadx.gui.device.protocol.JDWP.ReferenceType.MethodsWithGeneric.MethodsWithGenericReplyData;
-import jadx.gui.device.protocol.JDWP.ReferenceType.MethodsWithGeneric.MethodsWithGenericReplyDataDeclared;
 import jadx.gui.device.protocol.JDWP.ReferenceType.Signature.SignatureReplyData;
 import jadx.gui.device.protocol.JDWP.StackFrame.GetValues.GetValuesReplyData;
 import jadx.gui.device.protocol.JDWP.StackFrame.GetValues.GetValuesReplyDataValues;
@@ -36,8 +40,8 @@ import jadx.gui.device.protocol.JDWP.StringReference.Value.ValueReplyData;
 import jadx.gui.device.protocol.JDWP.ThreadReference.Frames.FramesReplyData;
 import jadx.gui.device.protocol.JDWP.ThreadReference.Frames.FramesReplyDataFrames;
 import jadx.gui.device.protocol.JDWP.ThreadReference.Name.NameReplyData;
+import jadx.gui.device.protocol.JDWP.VirtualMachine.AllClassesWithGeneric.AllClassesWithGenericData;
 import jadx.gui.device.protocol.JDWP.VirtualMachine.AllClassesWithGeneric.AllClassesWithGenericReplyData;
-import jadx.gui.device.protocol.JDWP.VirtualMachine.AllClassesWithGeneric.AllClassesWithGenericReplyDataClasses;
 import jadx.gui.device.protocol.JDWP.VirtualMachine.AllThreads.AllThreadsReplyData;
 import jadx.gui.device.protocol.JDWP.VirtualMachine.AllThreads.AllThreadsReplyDataThreads;
 import jadx.gui.device.protocol.JDWP.VirtualMachine.CreateString.CreateStringReplyData;
@@ -63,10 +67,11 @@ public class SmaliDebugger {
 	private final Map<Integer, ICommandResult> callbackMap = new ConcurrentHashMap<>();
 	private final Map<Integer, EventListenerAdapter> eventListenerMap = new ConcurrentHashMap<>();
 
-	private final Map<String, AllClassesWithGenericReplyDataClasses> classMap = new ConcurrentHashMap<>();
-	private final Map<Long, AllClassesWithGenericReplyDataClasses> classIDMap = new ConcurrentHashMap<>();
-	private final Map<Long, List<MethodsWithGenericReplyDataDeclared>> clsMethodMap = new ConcurrentHashMap<>();
-	private final Map<Long, List<FieldsWithGenericReplyDataDeclared>> clsFieldMap = new ConcurrentHashMap<>();
+	private final Map<String, AllClassesWithGenericData> classMap = new ConcurrentHashMap<>();
+	private final Map<Long, AllClassesWithGenericData> classIDMap = new ConcurrentHashMap<>();
+	private final Map<Long, List<MethodsWithGenericData>> clsMethodMap = new ConcurrentHashMap<>();
+	private final Map<Long, List<FieldsWithGenericData>> clsFieldMap = new ConcurrentHashMap<>();
+	private Map<Long, Map<Long, RuntimeDebugInfo>> varMap = Collections.emptyMap(); // cls id: <mth id: var table>
 
 	private final CountRequest oneOffEventReq;
 	private final AtomicInteger idGenerator = new AtomicInteger(1);
@@ -180,12 +185,7 @@ public class SmaliDebugger {
 	 *               e.g. to get the value of v3 in a virtual method with 2 arguments, should pass
 	 *               6 (3 + 2 + 1 = 6).
 	 */
-	@Nullable
-	public RuntimeRegister getRegisterSync(long threadID, long frameID, int regNum) throws SmaliDebuggerException {
-		return getRegisterSync(threadID, frameID, regNum, Type.OBJECT);
-	}
-
-	public RuntimeRegister getRegisterSync(long threadID, long frameID, int regNum, Type type) throws SmaliDebuggerException {
+	public RuntimeRegister getRegisterSync(long threadID, long frameID, int regNum, RuntimeType type) throws SmaliDebuggerException {
 		List<GetValuesSlots> slots = slotsPool.get();
 		GetValuesSlots slot = slots.get(0);
 		slot.slot = regNum;
@@ -226,6 +226,10 @@ public class SmaliDebugger {
 		}
 	}
 
+	public Frame getCurrentFrame(long threadID) throws SmaliDebuggerException {
+		return getCurrentFrameInternal(threadID);
+	}
+
 	public List<Frame> getFramesSync(long threadID) throws SmaliDebuggerException {
 		return getAllFrames(threadID);
 	}
@@ -247,6 +251,18 @@ public class SmaliDebugger {
 	@Nullable
 	public String getMethodSignatureSync(long classID, long methodID) throws SmaliDebuggerException {
 		return getMethodSignatureInternal(classID, methodID);
+	}
+
+	public boolean errIsTypeMismatched(int errCode) {
+		return errCode == JDWP.Error.TYPE_MISMATCH;
+	}
+
+	public boolean errIsInvalidSlot(int errCode) {
+		return errCode == JDWP.Error.INVALID_SLOT;
+	}
+
+	public boolean errIsInvalidObject(int errCode) {
+		return errCode == JDWP.Error.INVALID_OBJECT;
 	}
 
 	private static class ClassListenerInfo {
@@ -404,16 +420,17 @@ public class SmaliDebugger {
 		return strData.stringValue;
 	}
 
-	public boolean setValueSync(RuntimeRegister regNode, Type type, Object val, long threadID, long frameID) throws SmaliDebuggerException {
-		if (type == Type.STRING) {
+	public boolean setValueSync(int runtimeRegNum, RuntimeType type, Object val, long threadID, long frameID)
+			throws SmaliDebuggerException {
+		if (type == RuntimeType.STRING) {
 			long newID = createString((String) val);
 			if (newID == -1) {
 				return false;
 			}
 			val = newID;
-			type = Type.OBJECT;
+			type = RuntimeType.OBJECT;
 		}
-		List<SlotValueSetter> setters = buildRegValueSetter(type.getTag(), regNode.getRegNum());
+		List<SlotValueSetter> setters = buildRegValueSetter(type.getTag(), runtimeRegNum);
 		JDWP.encodeAny(setters.get(0).slotValue.idOrValue, val);
 		Packet res = sendCommandSync(jdwp.stackFrame.cmdSetValues.encode(threadID, frameID, setters));
 		tryThrowError(res);
@@ -500,18 +517,43 @@ public class SmaliDebugger {
 		return JDWP.decodeDouble(val.getRawVal().getBytes(), 0);
 	}
 
+	@Nullable
+	public RuntimeDebugInfo getRuntimeDebugInfo(long clsID, long mthID) throws SmaliDebuggerException {
+		Map<Long, RuntimeDebugInfo> secMap = varMap.get(clsID);
+		RuntimeDebugInfo info = null;
+		if (secMap != null) {
+			info = secMap.get(mthID);
+		}
+		if (info == null) {
+			info = initDebugInfo(clsID, mthID);
+		}
+		return info;
+	}
+
+	private RuntimeDebugInfo initDebugInfo(long clsID, long mthID) throws SmaliDebuggerException {
+		Packet res = sendCommandSync(jdwp.method.cmdVariableTableWithGeneric.encode(clsID, mthID));
+		tryThrowError(res);
+		VarTableWithGenericData data = jdwp.method.cmdVariableTableWithGeneric.decode(res.getBuf(), JDWP.PACKET_HEADER_SIZE);
+		if (varMap == Collections.EMPTY_MAP) {
+			varMap = new ConcurrentHashMap<>();
+		}
+		RuntimeDebugInfo info = new RuntimeDebugInfo(data);
+		varMap.computeIfAbsent(clsID, k -> new HashMap<>()).put(mthID, info);
+		return info;
+	}
+
 	private static JDWP initJDWP(OutputStream outputStream, InputStream inputStream) throws SmaliDebuggerException {
 		try {
 			handShake(outputStream, inputStream);
 			outputStream.write(JDWP.Suspend.encode().setPacketID(1).getBytes()); // suspend all threads
 			Packet res = readPacket(inputStream);
 			tryThrowError(res);
-			if (res.isReplyPacket() || res.getID() == 1) {
+			if (res.isReplyPacket() && res.getID() == 1) {
 				outputStream.write(JDWP.IDSizes.encode().setPacketID(1).getBytes()); // get id sizes for decoding & encoding of jdwp
-				// packets.
+																						// packets.
 				res = readPacket(inputStream);
 				tryThrowError(res);
-				if (res.isReplyPacket() || res.getID() == 1) {
+				if (res.isReplyPacket() && res.getID() == 1) {
 					JDWP.IDSizes.IDSizesReplyData sizes = JDWP.IDSizes.decode(res.buf, JDWP.PACKET_HEADER_SIZE);
 					return new JDWP(sizes);
 				}
@@ -530,10 +572,10 @@ public class SmaliDebugger {
 		}
 	}
 
-	private MethodsWithGenericReplyDataDeclared getMethodBySig(long classID, String sig) {
-		List<MethodsWithGenericReplyDataDeclared> methods = clsMethodMap.get(classID);
+	private MethodsWithGenericData getMethodBySig(long classID, String sig) {
+		List<MethodsWithGenericData> methods = clsMethodMap.get(classID);
 		if (methods != null) {
-			for (MethodsWithGenericReplyDataDeclared method : methods) {
+			for (MethodsWithGenericData method : methods) {
 				if (sig.startsWith(method.name + "(") && sig.endsWith(method.signature)) {
 					return method;
 				}
@@ -780,7 +822,7 @@ public class SmaliDebugger {
 
 	public long getClassID(String clsSig, boolean fetch) throws SmaliDebuggerException {
 		do {
-			AllClassesWithGenericReplyDataClasses data = classMap.get(clsSig);
+			AllClassesWithGenericData data = classMap.get(clsSig);
 			if (data == null) {
 				if (fetch) {
 					getAllClasses();
@@ -797,7 +839,7 @@ public class SmaliDebugger {
 
 	public long getMethodID(long cid, String mthSig) throws SmaliDebuggerException {
 		initClassCache(cid);
-		MethodsWithGenericReplyDataDeclared data = getMethodBySig(cid, mthSig);
+		MethodsWithGenericData data = getMethodBySig(cid, mthSig);
 		if (data != null) {
 			return data.methodID;
 		}
@@ -859,7 +901,7 @@ public class SmaliDebugger {
 	}
 
 	private String getClassSignatureInternal(long id) throws SmaliDebuggerException {
-		AllClassesWithGenericReplyDataClasses data = classIDMap.get(id);
+		AllClassesWithGenericData data = classIDMap.get(id);
 		if (data == null) {
 			getAllClasses();
 		}
@@ -871,7 +913,7 @@ public class SmaliDebugger {
 	}
 
 	private String getMethodSignatureInternal(long clsID, long mthID) throws SmaliDebuggerException {
-		List<MethodsWithGenericReplyDataDeclared> mthData = clsMethodMap.get(clsID);
+		List<MethodsWithGenericData> mthData = clsMethodMap.get(clsID);
 		if (mthData == null) {
 			Packet res = sendCommandSync(jdwp.referenceType.cmdMethodsWithGeneric.encode(clsID));
 			tryThrowError(res);
@@ -881,7 +923,7 @@ public class SmaliDebugger {
 			clsMethodMap.put(clsID, mthData);
 		}
 		if (mthData != null) {
-			for (MethodsWithGenericReplyDataDeclared data : mthData) {
+			for (MethodsWithGenericData data : mthData) {
 				if (data.methodID == mthID) {
 					return data.name + data.signature;
 				}
@@ -918,10 +960,10 @@ public class SmaliDebugger {
 
 	private List<RuntimeField> getAllFields(long clsID) throws SmaliDebuggerException {
 		initFields(clsID);
-		List<FieldsWithGenericReplyDataDeclared> flds = clsFieldMap.get(clsID);
+		List<FieldsWithGenericData> flds = clsFieldMap.get(clsID);
 		if (flds != null && flds.size() > 0) {
 			List<RuntimeField> rfs = new ArrayList<>(flds.size());
-			for (FieldsWithGenericReplyDataDeclared fld : flds) {
+			for (FieldsWithGenericData fld : flds) {
 				String type = fld.signature;
 				if (fld.genericSignature != null && !fld.genericSignature.trim().isEmpty()) {
 					type += "<" + fld.genericSignature + ">";
@@ -931,6 +973,15 @@ public class SmaliDebugger {
 			return rfs;
 		}
 		return Collections.emptyList();
+	}
+
+	public Frame getCurrentFrameInternal(long threadID) throws SmaliDebuggerException {
+		Packet res = sendCommandSync(jdwp.threadReference.cmdFrames.encode(threadID, 0, 1));
+		tryThrowError(res);
+		FramesReplyData frameData = jdwp.threadReference.cmdFrames.decode(res.buf, JDWP.PACKET_HEADER_SIZE);
+		FramesReplyDataFrames frame = frameData.frames.get(0);
+		return new Frame(frame.frameID, frame.location.classID, frame.location.methodID,
+				frame.location.index);
 	}
 
 	private List<Frame> getAllFrames(long threadID) throws SmaliDebuggerException {
@@ -963,7 +1014,7 @@ public class SmaliDebugger {
 		tryThrowError(res);
 		AllClassesWithGenericReplyData classData =
 				jdwp.virtualMachine.cmdAllClassesWithGeneric.decode(res.buf, JDWP.PACKET_HEADER_SIZE);
-		for (AllClassesWithGenericReplyDataClasses aClass : classData.classes) {
+		for (AllClassesWithGenericData aClass : classData.classes) {
 			classMap.put(DbgUtils.classSigToRawFullName(aClass.signature), aClass);
 			classIDMap.put(aClass.typeID, aClass);
 		}
@@ -1003,11 +1054,12 @@ public class SmaliDebugger {
 						void onClassUnload(ClassUnloadEvent event) {
 							EVENT_LISTENER_QUEUE.execute(() -> {
 								System.out.printf("ClassUnloaded: %s%n", event.signature);
-								AllClassesWithGenericReplyDataClasses clsData = classMap.remove(event.signature);
+								AllClassesWithGenericData clsData = classMap.remove(event.signature);
 								if (clsData != null) {
 									classIDMap.remove(clsData.typeID);
 									clsFieldMap.remove(clsData.typeID);
 									clsMethodMap.remove(clsData.typeID);
+									varMap.remove(clsData.typeID);
 								}
 							});
 						}
@@ -1162,40 +1214,40 @@ public class SmaliDebugger {
 		return new RuntimeRegister(num, getType(tag), buf);
 	}
 
-	private Type getType(int tag) throws SmaliDebuggerException {
+	private RuntimeType getType(int tag) throws SmaliDebuggerException {
 		switch (tag) {
 			case JDWP.Tag.ARRAY:
-				return Type.ARRAY;
+				return RuntimeType.ARRAY;
 			case JDWP.Tag.BYTE:
-				return Type.BYTE;
+				return RuntimeType.BYTE;
 			case JDWP.Tag.CHAR:
-				return Type.CHAR;
+				return RuntimeType.CHAR;
 			case JDWP.Tag.OBJECT:
-				return Type.OBJECT;
+				return RuntimeType.OBJECT;
 			case JDWP.Tag.FLOAT:
-				return Type.FLOAT;
+				return RuntimeType.FLOAT;
 			case JDWP.Tag.DOUBLE:
-				return Type.DOUBLE;
+				return RuntimeType.DOUBLE;
 			case JDWP.Tag.INT:
-				return Type.INT;
+				return RuntimeType.INT;
 			case JDWP.Tag.LONG:
-				return Type.LONG;
+				return RuntimeType.LONG;
 			case JDWP.Tag.SHORT:
-				return Type.SHORT;
+				return RuntimeType.SHORT;
 			case JDWP.Tag.VOID:
-				return Type.VOID;
+				return RuntimeType.VOID;
 			case JDWP.Tag.BOOLEAN:
-				return Type.BOOLEAN;
+				return RuntimeType.BOOLEAN;
 			case JDWP.Tag.STRING:
-				return Type.STRING;
+				return RuntimeType.STRING;
 			case JDWP.Tag.THREAD:
-				return Type.THREAD;
+				return RuntimeType.THREAD;
 			case JDWP.Tag.THREAD_GROUP:
-				return Type.THREAD_GROUP;
+				return RuntimeType.THREAD_GROUP;
 			case JDWP.Tag.CLASS_LOADER:
-				return Type.CLASS_LOADER;
+				return RuntimeType.CLASS_LOADER;
 			case JDWP.Tag.CLASS_OBJECT:
-				return Type.CLASS_OBJECT;
+				return RuntimeType.CLASS_OBJECT;
 			default:
 				throw new SmaliDebuggerException("Unexpected value: " + tag);
 		}
@@ -1203,18 +1255,18 @@ public class SmaliDebugger {
 
 	public static class RuntimeValue {
 		protected ByteBuffer rawVal;
-		protected Type type;
+		protected RuntimeType type;
 
-		RuntimeValue(Type type, ByteBuffer rawVal) {
+		RuntimeValue(RuntimeType type, ByteBuffer rawVal) {
 			this.rawVal = rawVal;
 			this.type = type;
 		}
 
-		public Type getType() {
+		public RuntimeType getType() {
 			return type;
 		}
 
-		public void setType(Type type) {
+		public void setType(RuntimeType type) {
 			this.type = type;
 		}
 
@@ -1226,7 +1278,7 @@ public class SmaliDebugger {
 	public static class RuntimeRegister extends RuntimeValue {
 		private final int num;
 
-		private RuntimeRegister(int num, Type type, ByteBuffer rawVal) {
+		private RuntimeRegister(int num, RuntimeType type, ByteBuffer rawVal) {
 			super(type, rawVal);
 			this.num = num;
 		}
@@ -1236,7 +1288,62 @@ public class SmaliDebugger {
 		}
 	}
 
-	public enum Type {
+	public static class RuntimeVarInfo extends RegisterInfo {
+		private final VarWithGenericSlot slot;
+
+		private RuntimeVarInfo(VarWithGenericSlot slot) {
+			this.slot = slot;
+		}
+
+		@Override
+		public String getName() {
+			return slot.name;
+		}
+
+		@Override
+		public int getRegNum() {
+			return slot.slot;
+		}
+
+		@Override
+		public String getType() {
+			String gen = getSignature();
+			return gen.isEmpty() ? this.slot.signature : gen;
+		}
+
+		@NonNull
+		@Override
+		public String getSignature() {
+			return this.slot.genericSignature.trim();
+		}
+
+		@Override
+		public int getStartOffset() {
+			return (int) slot.codeIndex;
+		}
+
+		@Override
+		public int getEndOffset() {
+			return (int) (slot.codeIndex + slot.length);
+		}
+	}
+
+	public static class RuntimeDebugInfo {
+		private final List<RuntimeVarInfo> infoList;
+
+		private RuntimeDebugInfo(VarTableWithGenericData data) {
+			infoList = new ArrayList<>(data.slots.size());
+			for (VarWithGenericSlot slot : data.slots) {
+				infoList.add(new RuntimeVarInfo(slot));
+			}
+		}
+
+		public List<RuntimeVarInfo> getInfoList() {
+			return infoList;
+		}
+	}
+
+	public enum RuntimeType {
 		ARRAY(91, "[]"),
 		BYTE(66, "byte"),
 		CHAR(67, "char"),
@@ -1257,7 +1364,7 @@ public class SmaliDebugger {
 		private final int jdwpTag;
 		private final String desc;
 
-		Type(int tag, String desc) {
+		RuntimeType(int tag, String desc) {
 			this.jdwpTag = tag;
 			this.desc = desc;
 		}
@@ -1349,7 +1456,7 @@ public class SmaliDebugger {
 	public static class SuspendInfo {
 		private boolean terminated;
 		private boolean newRound;
-		InfoSetter updater = new InfoSetter();
+		private final InfoSetter updater = new InfoSetter();
 
 		public long getThreadID() {
 			return updater.thread;
@@ -1396,7 +1503,6 @@ public class SmaliDebugger {
 		}
 
 		private static class InfoSetter {
-			private final boolean newRound = false;
 			private long thread;
 			private long clazz;
 			private long method;
@@ -1405,7 +1511,7 @@ public class SmaliDebugger {
 
 			private void nextRound(boolean newRound) {
 				if (!changed) {
-					changed = newRound != this.newRound;
+					changed = newRound;
 				}
 			}
 

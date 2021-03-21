@@ -86,7 +86,6 @@ import jadx.core.utils.Utils;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.JadxWrapper;
 import jadx.gui.device.debugger.BreakpointManager;
-import jadx.gui.device.debugger.JDebuggerPanel;
 import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.jobs.BackgroundWorker;
 import jadx.gui.jobs.DecompileJob;

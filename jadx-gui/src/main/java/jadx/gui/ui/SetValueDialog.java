@@ -9,10 +9,11 @@ import java.util.Map.Entry;
 
 import javax.swing.*;
 
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.gui.device.debugger.JDebuggerPanel.ValueTreeNode;
-import jadx.gui.device.debugger.SmaliDebugger;
+import jadx.gui.ui.JDebuggerPanel.ValueTreeNode;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.TextStandardActions;
 import jadx.gui.utils.UiUtils;
 
 public class SetValueDialog extends JDialog {
@@ -32,6 +33,7 @@ public class SetValueDialog extends JDialog {
 
 	private void initUI() {
 		JTextField valField = new JTextField();
+		TextStandardActions.attach(valField);
 		JPanel valPane = new JPanel(new BorderLayout(5, 5));
 		valPane.add(new JLabel(NLS.str("set_value_dialog.label_value")), BorderLayout.WEST);
 		valPane.add(valField, BorderLayout.CENTER);
@@ -78,12 +80,12 @@ public class SetValueDialog extends JDialog {
 			public void mouseClicked(MouseEvent e) {
 				boolean ok;
 				try {
-					Entry<SmaliDebugger.Type, Object> type = getType();
+					Entry<ArgType, Object> type = getType();
 					if (type != null) {
 						ok = mainWindow
 								.getDebuggerPanel()
 								.getDbgController()
-								.setValue(valNode, type.getKey(), type.getValue());
+								.modifyRegValue(valNode, type.getKey(), type.getValue());
 					} else {
 						UiUtils.showMessageBox(mainWindow, NLS.str("set_value_dialog.sel_type"));
 						return;
@@ -99,23 +101,23 @@ public class SetValueDialog extends JDialog {
 				}
 			}
 
-			private Entry<SmaliDebugger.Type, Object> getType() {
+			private Entry<ArgType, Object> getType() {
 				String val = valField.getText();
 				for (JRadioButton rb : rbs) {
 					if (rb.isSelected()) {
 						switch (rb.getText()) {
 							case "int":
-								return new SimpleEntry<>(SmaliDebugger.Type.INT, Integer.valueOf(val));
+								return new SimpleEntry<>(ArgType.INT, Integer.valueOf(val));
 							case "String":
-								return new SimpleEntry<>(SmaliDebugger.Type.STRING, val);
+								return new SimpleEntry<>(ArgType.STRING, val);
 							case "long":
-								return new SimpleEntry<>(SmaliDebugger.Type.LONG, Long.valueOf(val));
+								return new SimpleEntry<>(ArgType.LONG, Long.valueOf(val));
 							case "float":
-								return new SimpleEntry<>(SmaliDebugger.Type.FLOAT, Float.valueOf(val));
+								return new SimpleEntry<>(ArgType.FLOAT, Float.valueOf(val));
 							case "double":
-								return new SimpleEntry<>(SmaliDebugger.Type.DOUBLE, Double.valueOf(val));
+								return new SimpleEntry<>(ArgType.DOUBLE, Double.valueOf(val));
 							case "Object id":
-								return new SimpleEntry<>(SmaliDebugger.Type.OBJECT, Long.valueOf(val));
+								return new SimpleEntry<>(ArgType.OBJECT, Long.valueOf(val));
 							default:
 								throw new JadxRuntimeException("Unexpected type: " + rb.getText());
 						}

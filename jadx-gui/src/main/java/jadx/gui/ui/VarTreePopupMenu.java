@@ -1,4 +1,4 @@
-package jadx.gui.device.debugger;
+package jadx.gui.ui;
 
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -7,9 +7,8 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.*;
 
-import jadx.gui.device.debugger.JDebuggerPanel.ValueTreeNode;
-import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.SetValueDialog;
+import jadx.core.dex.instructions.args.ArgType;
+import jadx.gui.ui.JDebuggerPanel.ValueTreeNode;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
@@ -35,9 +34,15 @@ public class VarTreePopupMenu extends JPopupMenu {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				StringSelection stringSelection = new StringSelection(valNode.getValue());
-				Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-				clipboard.setContents(stringSelection, null);
+				String val = valNode.getValue();
+				if (val != null) {
+					if (val.startsWith("\"") && val.endsWith("\"")) {
+						val = val.substring(1, val.length() - 1);
+					}
+					StringSelection stringSelection = new StringSelection(val);
+					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+					clipboard.setContents(stringSelection, null);
+				}
 			}
 		});
 		JMenuItem setValItem = new JMenuItem(new AbstractAction(NLS.str("debugger.popup_set_value")) {
@@ -57,7 +62,7 @@ public class VarTreePopupMenu extends JPopupMenu {
 				try {
 					mainWindow.getDebuggerPanel()
 							.getDbgController()
-							.setValue(valNode, SmaliDebugger.Type.INT, 0);
+							.modifyRegValue(valNode, ArgType.INT, 0);
 				} catch (Exception except) {
 					except.printStackTrace();
 					UiUtils.showMessageBox(mainWindow, except.getMessage());
@@ -72,7 +77,7 @@ public class VarTreePopupMenu extends JPopupMenu {
 				try {
 					mainWindow.getDebuggerPanel()
 							.getDbgController()
-							.setValue(valNode, SmaliDebugger.Type.INT, 1);
+							.modifyRegValue(valNode, ArgType.INT, 1);
 				} catch (Exception except) {
 					except.printStackTrace();
 					UiUtils.showMessageBox(mainWindow, except.getMessage());

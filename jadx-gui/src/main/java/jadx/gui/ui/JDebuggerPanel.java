@@ -1,8 +1,7 @@
-package jadx.gui.device.debugger;
+package jadx.gui.ui;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
 import java.util.List;
 
 import javax.swing.*;
@@ -10,15 +9,9 @@ import javax.swing.tree.*;
 
 import io.reactivex.annotations.Nullable;
 
-import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.StringUtils;
-import jadx.gui.device.debugger.SmaliDebugger.RuntimeField;
-import jadx.gui.device.debugger.SmaliDebugger.RuntimeRegister;
-import jadx.gui.device.debugger.SmaliDebugger.RuntimeValue;
-import jadx.gui.device.debugger.smali.Smali;
-import jadx.gui.device.debugger.smali.Smali.SmaliRegister;
+import jadx.gui.device.debugger.DebugController;
 import jadx.gui.treemodel.JClass;
-import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.SmaliArea;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
@@ -36,8 +29,8 @@ public class JDebuggerPanel extends JPanel {
 	private static final ImageIcon ICON_STEP_OUT = UiUtils.openIcon("step_out");
 
 	private final transient MainWindow mainWindow;
-	private final transient JList<StackFrameElement> stackFrameList;
-	private final transient JComboBox<ThreadBoxElement> threadBox;
+	private final transient JList<IListElement> stackFrameList;
+	private final transient JComboBox<IListElement> threadBox;
 	private final transient JTextArea logger;
 	private final transient JTree variableTree;
 	private final transient DefaultTreeModel variableTreeModel;
@@ -48,7 +41,7 @@ public class JDebuggerPanel extends JPanel {
 
 	private final transient JSplitPane rightSplitter;
 	private final transient JSplitPane leftSplitter;
-	private final transient DebugController controller;
+	private final transient IDebugController controller;
 
 	private final transient VarTreePopupMenu varTreeMenu;
 	private transient KeyEventDispatcher controllerShortCutDispatcher;
@@ -234,7 +227,23 @@ public class JDebuggerPanel extends JPanel {
 		};
 		run.putValue(Action.SHORT_DESCRIPTION, NLS.str("debugger.run"));
 
-		controller.setDebuggerStateListener(new DebugController.StateListener() {
+		AbstractAction rerun = new AbstractAction(NLS.str("debugger.rerun"), ICON_RERUN) {
+			private static final long serialVersionUID = -1111111202103210433L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (controller.isDebugging()) {
+					controller.stop();
+				}
+				String pkgName = controller.getProcessName();
+				if (pkgName.isEmpty() || !ADBDialog.launchForDebugging(mainWindow, pkgName)) {
+					(new ADBDialog(mainWindow)).setVisible(true);
+				}
+			}
+		};
+		rerun.putValue(Action.SHORT_DESCRIPTION, NLS.str("debugger.rerun"));
+
+		controller.setStateListener(new DebugController.StateListener() {
 			boolean isGray = true;
 
 			@Override
@@ -263,6 +272,8 @@ public class JDebuggerPanel extends JPanel {
 		JToolBar toolBar = new JToolBar();
 		toolBar.add(new Label());
 		toolBar.add(Box.createHorizontalGlue());
+		toolBar.add(rerun);
+		toolBar.add(Box.createRigidArea(new Dimension(5, 0)));
 		toolBar.add(stop);
 		toolBar.add(Box.createRigidArea(new Dimension(5, 0)));
 		toolBar.add(run);
@@ -327,26 +338,15 @@ public class JDebuggerPanel extends JPanel {
 	private void stackFrameSelected(Point p) {
 		int loc = stackFrameList.locationToIndex(p);
 		if (loc > -1) {
-			StackFrameElement ele = stackFrameList.getModel().getElementAt(loc);
-			if (ele != null && ele.clsSig != null) {
-				JClass cls = DbgUtils.getTopClassBySig(ele.clsSig, mainWindow);
-				if (cls != null) {
-					Smali smali = DbgUtils.getSmali(cls.getCls().getClassNode());
-					if (smali != null) {
-						int pos = smali.getInsnPosByCodeOffset(
-								DbgUtils.classSigToRawFullName(ele.clsSig) + "." + ele.mthSig,
-								ele.getCodeOffset());
-						mainWindow.getTabbedPane().smaliJump(cls, Math.max(0, pos), false);
-						return;
-					}
-				}
-				log("Can't open smali panel for " + ele.clsSig + "->" + ele.mthSig);
+			IListElement ele = stackFrameList.getModel().getElementAt(loc);
+			if (ele != null) {
+				ele.onSelected();
 			}
 		}
 	}
 
-	public boolean showDebugger(String procName, String host, int port) {
-		boolean ok = controller.setDebugger(this, host, port);
+	public boolean showDebugger(String procName, String host, int port, String androidVer) {
+		boolean ok = controller.startDebugger(this, new String[] { host, String.valueOf(port), androidVer });
 		if (ok) {
 			log(String.format("Attached %s %s:%d", procName, host, port));
 			leftSplitter.setDividerLocation(mainWindow.getSettings().getDebuggerStackFrameSplitterLoc());
@@ -356,18 +356,8 @@ public class JDebuggerPanel extends JPanel {
 		return ok;
 	}
 
-	public DebugController getDbgController() {
+	public IDebugController getDbgController() {
 		return controller;
-	}
-
-	public JDebuggerPanel setLeftSplitterLocation(int loc) {
-		leftSplitter.setDividerLocation(loc);
-		return this;
-	}
-
-	public JDebuggerPanel setRightSplitterLocation(int loc) {
-		rightSplitter.setDividerLocation(loc);
-		return this;
 	}
 
 	public int getLeftSplitterLocation() {
@@ -401,45 +391,39 @@ public class JDebuggerPanel extends JPanel {
 		logger.setText("");
 	}
 
-	protected void scrollToSmaliLine(JClass cls, int pos, boolean debugMode) {
+	public void scrollToSmaliLine(JClass cls, int pos, boolean debugMode) {
 		SwingUtilities.invokeLater(() -> getMainWindow().getTabbedPane().smaliJump(cls, pos, debugMode));
 	}
 
-	protected void resetAllDebuggingInfo() {
+	public void resetAllDebuggingInfo() {
 		clearFrameAndThreadList();
 		resetAllRegAndFieldNodes();
 	}
 
-	protected void resetAllRegAndFieldNodes() {
+	public void resetAllRegAndFieldNodes() {
 		thisTreeNode.removeAllChildren();
 		SwingUtilities.invokeLater(() -> variableTreeModel.reload(thisTreeNode));
 		resetAllRegNodes();
 	}
 
-	protected void resetAllRegNodes() {
+	public void resetAllRegNodes() {
 		regTreeNode.removeAllChildren();
 		SwingUtilities.invokeLater(() -> variableTreeModel.reload(regTreeNode));
 	}
 
-	protected List<FieldTreeNode> getThisFieldNodes() {
-		if (thisTreeNode.getChildCount() > 0) {
-			List<FieldTreeNode> flds = new ArrayList<>(thisTreeNode.getChildCount());
-			for (int i = 0; i < thisTreeNode.getChildCount(); i++) {
-				flds.add((FieldTreeNode) thisTreeNode.getChildAt(i));
-			}
-			return flds;
-		}
-		return Collections.emptyList();
-	}
-
-	protected void updateRegTreeNodes(List<RegTreeNode> nodes) {
+	public void updateRegTreeNodes(List<? extends ValueTreeNode> nodes) {
 		nodes.forEach(regTreeNode::add);
 	}
 
-	protected void refreshThreadBox(List<ThreadBoxElement> elements) {
+	public void updateThisFieldNodes(List<? extends ValueTreeNode> nodes) {
+		nodes.forEach(thisTreeNode::add);
+		// SwingUtilities.invokeLater(() -> variableTreeModel.reload(thisTreeNode));
+	}
+
+	public void refreshThreadBox(List<? extends IListElement> elements) {
 		if (elements.size() > 0) {
-			DefaultComboBoxModel<ThreadBoxElement> model =
-					(DefaultComboBoxModel<ThreadBoxElement>) threadBox.getModel();
+			DefaultComboBoxModel<IListElement> model =
+					(DefaultComboBoxModel<IListElement>) threadBox.getModel();
 			elements.forEach(model::addElement);
 		}
 		SwingUtilities.invokeLater(() -> {
@@ -448,28 +432,24 @@ public class JDebuggerPanel extends JPanel {
 		});
 	}
 
-	protected void refreshStackFrameList(List<StackFrameElement> elements) {
+	public void refreshStackFrameList(List<? extends IListElement> elements) {
 		if (elements.size() > 0) {
-			DefaultListModel<StackFrameElement> model =
-					(DefaultListModel<StackFrameElement>) stackFrameList.getModel();
+			DefaultListModel<IListElement> model =
+					(DefaultListModel<IListElement>) stackFrameList.getModel();
 			elements.forEach(model::addElement);
 			stackFrameList.setFont(mainWindow.getSettings().getFont());
 		}
 		SwingUtilities.invokeLater(stackFrameList::repaint);
 	}
 
-	protected DefaultListModel<StackFrameElement> getStackFrameModel() {
-		return (DefaultListModel<StackFrameElement>) stackFrameList.getModel();
-	}
-
-	protected void refreshRegisterTree() {
+	public void refreshRegisterTree() {
 		SwingUtilities.invokeLater(() -> {
 			variableTreeModel.reload(regTreeNode);
 			variableTree.expandPath(new TreePath(regTreeNode.getPath()));
 		});
 	}
 
-	protected void refreshThisFieldTree() {
+	public void refreshThisFieldTree() {
 		SwingUtilities.invokeLater(() -> {
 			boolean expanded = variableTree.isExpanded(new TreePath(thisTreeNode.getPath()));
 			variableTreeModel.reload(thisTreeNode);
@@ -479,15 +459,15 @@ public class JDebuggerPanel extends JPanel {
 		});
 	}
 
-	private void clearFrameAndThreadList() {
-		((DefaultListModel<StackFrameElement>) stackFrameList.getModel()).removeAllElements();
-		((DefaultComboBoxModel<ThreadBoxElement>) threadBox.getModel()).removeAllElements();
+	public void clearFrameAndThreadList() {
+		((DefaultListModel<IListElement>) stackFrameList.getModel()).removeAllElements();
+		((DefaultComboBoxModel<IListElement>) threadBox.getModel()).removeAllElements();
 	}
 
 	public void log(String msg) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(" > ")
-				.append(DbgUtils.getDateText())
+				.append(StringUtils.getDateText())
 				.append(" ")
 				.append(msg)
 				.append("\n");
@@ -496,37 +476,24 @@ public class JDebuggerPanel extends JPanel {
 		});
 	}
 
-	protected void updateRegTree(RegTreeNode node) {
+	public void updateRegTree(ValueTreeNode node) {
 		SwingUtilities.invokeLater(() -> {
 			variableTreeModel.reload(regTreeNode);
 			scrollToUpdatedNode(node);
 		});
 	}
 
-	protected void setThisFieldNodes(List<FieldTreeNode> nodes) {
-		nodes.forEach(thisTreeNode::add);
-		SwingUtilities.invokeLater(() -> variableTreeModel.reload(thisTreeNode));
-	}
-
-	protected void scrollToUpdatedNode(ValueTreeNode node) {
+	public void scrollToUpdatedNode(ValueTreeNode node) {
 		SwingUtilities.invokeLater(() -> {
 			TreeNode[] path = node.getPath();
 			variableTree.scrollPathToVisible(new TreePath(path));
 		});
 	}
 
-	protected FieldTreeNode buildFieldNode(RuntimeField rf) {
-		return new FieldTreeNode(rf);
-	}
-
-	protected RegTreeNode buildRegNode(RuntimeRegister rr, SmaliRegister sr, long tid, long fid) {
-		return new RegTreeNode(rr, sr, tid, fid);
-	}
-
 	public abstract static class ValueTreeNode extends DefaultMutableTreeNode {
 		private static final long serialVersionUID = -1111111202103122236L;
 
-		protected boolean updated;
+		private boolean updated;
 
 		public void setUpdated(boolean updated) {
 			this.updated = updated;
@@ -536,267 +503,33 @@ public class JDebuggerPanel extends JPanel {
 			return updated;
 		}
 
-		abstract String getName();
+		public abstract String getName();
 
-		abstract String getValue();
+		@Nullable
+		public abstract String getValue();
 
-		abstract String getType();
+		@Nullable
+		public abstract String getType();
 
-		abstract RuntimeValue getRuntimeValue();
+		public abstract void updateValue(String val);
 
-		abstract void updateValue(String val);
-
-		abstract void updateType(String val);
+		public abstract void updateType(String val);
 
 		@Override
 		public String toString() {
 			String val = getValue();
 			if (val != null) {
 				return String.format("%s val: %s, type: %s", getName(), val, getType());
-			} else {
+			}
+			String type = getType();
+			if (type != null) {
 				return String.format("%s type: %s", getName(), getType());
 			}
+			return String.format("%s undefined", getName());
 		}
 	}
 
-	public class RegTreeNode extends ValueTreeNode {
-		private static final long serialVersionUID = -1111111202103122234L;
-
-		private RuntimeRegister runtimeReg;
-		private SmaliRegister smaliReg;
-		private final long threadID;
-		private final long frameID;
-		private String value;
-		private String type;
-
-		public RegTreeNode(RuntimeRegister register, SmaliRegister smaliReg, long threadID, long frameID) {
-			this.runtimeReg = register;
-			this.smaliReg = smaliReg;
-			this.threadID = threadID;
-			this.frameID = frameID;
-		}
-
-		public RuntimeRegister getRuntimeReg() {
-			return runtimeReg;
-		}
-
-		public void updateReg(RuntimeRegister reg) {
-			runtimeReg = reg;
-		}
-
-		@Override
-		public void updateValue(String value) {
-			updated = true;
-			this.value = value;
-			this.removeAllChildren();
-		}
-
-		@Override
-		public void updateType(String type) {
-			if (this.type == null || !this.type.equals(type)) {
-				this.type = type;
-				value = null;
-				this.removeAllChildren();
-				updated = true;
-			}
-		}
-
-		@Override
-		String getName() {
-			String alias = smaliReg.getRegName(controller.getCodeOffset());
-			if (!StringUtils.isEmpty(alias)) {
-				return String.format("v%s (%s) ", getRegNum(), alias);
-			}
-			return String.format("v%-3s", getRegNum());
-		}
-
-		@Override
-		@Nullable
-		public String getValue() {
-			return value;
-		}
-
-		public int getRuntimeRegNum() {
-			return runtimeReg.getRegNum();
-		}
-
-		public int getRegNum() {
-			return smaliReg.getRegNum();
-		}
-
-		@Override
-		public String getType() {
-			if (type != null) {
-				return type;
-			}
-			return runtimeReg.getType().getDesc();
-		}
-
-		@Override
-		RuntimeValue getRuntimeValue() {
-			return getRuntimeReg();
-		}
-
-		public long getFrameID() {
-			return frameID;
-		}
-
-		public long getThreadID() {
-			return threadID;
-		}
-	}
-
-	protected static class FieldTreeNode extends ValueTreeNode {
-		private static final long serialVersionUID = -1111111202103122235L;
-
-		private final RuntimeField field;
-		private String value;
-		private String alias;
-
-		private FieldTreeNode(RuntimeField field) {
-			this.field = field;
-		}
-
-		public RuntimeField getRuntimeField() {
-			return this.field;
-		}
-
-		public void setAlias(String alias) {
-			this.alias = alias;
-		}
-
-		@Override
-		void updateValue(String val) {
-			this.updated = true;
-			value = val;
-			this.removeAllChildren();
-		}
-
-		@Override
-		void updateType(String val) {
-		}
-
-		@Override
-		String getName() {
-			if (StringUtils.isEmpty(alias) || alias.equals(field.getName())) {
-				return field.getName();
-			}
-			return field.getName() + " (" + alias + ")";
-		}
-
-		@Override
-		String getValue() {
-			return value;
-		}
-
-		@Override
-		String getType() {
-			return ArgType.parse(field.getFieldType()).toString();
-		}
-
-		@Override
-		RuntimeValue getRuntimeValue() {
-			return field;
-		}
-	}
-
-	public static class ThreadBoxElement {
-		private long threadID;
-		private String name;
-
-		public ThreadBoxElement(long threadID) {
-			this.threadID = threadID;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public long getThreadID() {
-			return threadID;
-		}
-
-		@Override
-		public String toString() {
-			if (name == null) {
-				return "thread id: " + threadID;
-			}
-			return "thread id: " + threadID + " name:" + name;
-		}
-	}
-
-	public static class StackFrameElement {
-		private final SmaliDebugger.Frame frame;
-		private String clsSig;
-		private String mthSig;
-		private StringBuilder cache;
-		private long codeOffset = -1;
-		private List<RegTreeNode> regNodes;
-
-		public StackFrameElement(SmaliDebugger.Frame frame) {
-			cache = new StringBuilder(16);
-			this.frame = frame;
-			regNodes = Collections.emptyList();
-		}
-
-		public SmaliDebugger.Frame getFrame() {
-			return frame;
-		}
-
-		public void setSignatures(String clsSig, String mthSig) {
-			this.clsSig = clsSig;
-			this.mthSig = mthSig;
-			this.cache.delete(0, this.cache.length());
-		}
-
-		public String getClsSig() {
-			return clsSig;
-		}
-
-		public String getMthSig() {
-			return mthSig;
-		}
-
-		public void updateCodeOffset(long codeOffset) {
-			this.codeOffset = codeOffset;
-			if (this.codeOffset > -1) {
-				this.cache.delete(0, this.cache.length());
-			}
-		}
-
-		public long getCodeOffset() {
-			return codeOffset == -1 ? frame.getCodeIndex() : codeOffset;
-		}
-
-		public void setRegNodes(List<RegTreeNode> regNodes) {
-			this.regNodes = regNodes;
-		}
-
-		public List<RegTreeNode> getRegNodes() {
-			return regNodes;
-		}
-
-		@Override
-		public String toString() {
-			if (cache.length() == 0) {
-				long off = getCodeOffset();
-				if (off < 0) {
-					cache.append(String.format("index: %-4d ", off));
-				} else {
-					cache.append(String.format("index: %04x ", off));
-				}
-				if (clsSig == null) {
-					cache.append("clsID: ").append(frame.getClassID());
-				} else {
-					cache.append(clsSig).append("->");
-				}
-				if (mthSig == null) {
-					cache.append(" mthID: ").append(frame.getMethodID());
-				} else {
-					cache.append(mthSig);
-				}
-			}
-			return cache.toString();
-		}
+	public interface IListElement {
+		void onSelected();
 	}
 }

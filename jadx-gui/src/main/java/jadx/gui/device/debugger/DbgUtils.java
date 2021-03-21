@@ -1,8 +1,6 @@
 package jadx.gui.device.debugger;
 
-import java.text.SimpleDateFormat;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -88,10 +86,6 @@ public class DbgUtils {
 		return objectSig.equals("Ljava/lang/String;");
 	}
 
-	public static String getDateText() {
-		return new SimpleDateFormat("HH:mm:ss").format(new Date());
-	}
-
 	public static JClass getTopClassBySig(String clsSig, MainWindow mainWindow) {
 		clsSig = DbgUtils.classSigToFullName(clsSig);
 		JavaClass cls = mainWindow.getWrapper().getDecompiler().searchJavaClassOrItsParentByOrigFullName(clsSig);
@@ -107,43 +101,66 @@ public class DbgUtils {
 		return mainWindow.getWrapper().getDecompiler().searchClassNodeByOrigFullName(clsSig);
 	}
 
+	public static String searchPackageName(MainWindow mainWindow) {
+		try {
+			ResourceFile androidManifest = mainWindow.getWrapper().getDecompiler().getResources()
+					.stream()
+					.filter(res -> res.getType() == ResourceType.MANIFEST)
+					.findFirst()
+					.orElse(null);
+
+			if (androidManifest != null) {
+				String content = androidManifest.loadContent().getText().getCodeStr();
+				int pos = content.indexOf("<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" ");
+				if (pos > -1) {
+					pos = content.lastIndexOf(">", pos);
+					if (pos > -1) {
+						pos = content.indexOf(" package=\"", pos);
+						if (pos > -1) {
+							pos += " package=\"".length();
+							return content.substring(pos, content.indexOf("\"", pos));
+						}
+					}
+				}
+			}
+		} catch (Exception ignored) {
+		}
+		return "";
+	}
+
 	/**
 	 * @return the Activity class for android.intent.action.MAIN.
 	 */
 	@Nullable
 	public static JClass searchMainActivity(MainWindow mainWindow) {
-		// TODO: parse AndroidManifest.xml instead of looking for keywords.
-		ResourceFile androidManifest = mainWindow.getWrapper().getDecompiler().getResources()
-				.stream()
-				.filter(res -> res.getType() == ResourceType.MANIFEST)
-				.findFirst()
-				.orElse(null);
+		try {
+			ResourceFile androidManifest = mainWindow.getWrapper().getDecompiler().getResources()
+					.stream()
+					.filter(res -> res.getType() == ResourceType.MANIFEST)
+					.findFirst()
+					.orElse(null);
 
-		if (androidManifest != null) {
-			String content;
-			try {
-				content = androidManifest.loadContent().getText().getCodeStr();
-			} catch (Exception e) {
-				e.printStackTrace();
-				return null;
-			}
-			int pos = content.indexOf("<action android:name=\"android.intent.action.MAIN\"");
-			if (pos > -1) {
-				pos = content.lastIndexOf("<activity ", pos);
+			if (androidManifest != null) {
+				String content = androidManifest.loadContent().getText().getCodeStr();
+				int pos = content.indexOf("<action android:name=\"android.intent.action.MAIN\"");
 				if (pos > -1) {
-					pos = content.indexOf(" android:name=\"", pos);
+					pos = content.lastIndexOf("<activity ", pos);
 					if (pos > -1) {
-						pos += " android:name=\"".length();
-						String classFullName = content.substring(pos, content.indexOf("\"", pos));
-						// in case the MainActivity class has been renamed before, we need raw name.
-						JavaClass cls = mainWindow.getWrapper().getDecompiler().searchJavaClassByAliasFullName(classFullName);
-						JNode jNode = mainWindow.getCacheObject().getNodeCache().makeFrom(cls);
-						if (jNode != null) {
-							return jNode.getRootClass();
+						pos = content.indexOf(" android:name=\"", pos);
+						if (pos > -1) {
+							pos += " android:name=\"".length();
+							String classFullName = content.substring(pos, content.indexOf("\"", pos));
+							// in case the MainActivity class has been renamed before, we need raw name.
+							JavaClass cls = mainWindow.getWrapper().getDecompiler().searchJavaClassByAliasFullName(classFullName);
+							JNode jNode = mainWindow.getCacheObject().getNodeCache().makeFrom(cls);
+							if (jNode != null) {
+								return jNode.getRootClass();
+							}
 						}
 					}
 				}
 			}
+		} catch (Exception ignored) {
 		}
 		return null;
 	}

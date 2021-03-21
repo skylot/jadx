@@ -112,6 +112,10 @@ public class JDWP {
 		mArrayregion = new JdwpArrayregion();
 	}
 
+	public int getThreadIDSize() {
+		return mThreadID.getSize();
+	}
+
 	/**
 	 * Returns the sizes of variably-sized data types in the target VM.The returned values indicate the
 	 * number of bytes used by the identifiers in command and reply packets.
@@ -1368,10 +1372,10 @@ public class JDWP {
 				/**
 				 * Number of reference types that follow.
 				 */
-				public List<AllClassesWithGenericReplyDataClasses> classes;
+				public List<AllClassesWithGenericData> classes;
 			}
 
-			public class AllClassesWithGenericReplyDataClasses {
+			public class AllClassesWithGenericData {
 				/**
 				 * Kind of following reference type.
 				 */
@@ -1400,8 +1404,8 @@ public class JDWP {
 				start += JdwpInt.getSize();
 				allClassesWithGenericReplyData.classes = new ArrayList<>(classesSize);
 				for (int i = 0; i < classesSize; i++) {
-					AllClassesWithGenericReplyDataClasses allClassesWithGenericReplyDataClasses =
-							new AllClassesWithGenericReplyDataClasses();
+					AllClassesWithGenericData allClassesWithGenericReplyDataClasses =
+							new AllClassesWithGenericData();
 					allClassesWithGenericReplyDataClasses.refTypeTag = JdwpByte.decode(bytes, start);
 					start += JdwpByte.getSize();
 					allClassesWithGenericReplyDataClasses.typeID = mReferenceTypeID.decode(bytes, start);
@@ -2081,10 +2085,10 @@ public class JDWP {
 				/**
 				 * Number of declared fields.
 				 */
-				public List<FieldsWithGenericReplyDataDeclared> declared;
+				public List<FieldsWithGenericData> declared;
 			}
 
-			public class FieldsWithGenericReplyDataDeclared {
+			public class FieldsWithGenericData {
 				/**
 				 * Field ID.
 				 */
@@ -2116,7 +2120,7 @@ public class JDWP {
 				start += JdwpInt.getSize();
 				fieldsWithGenericReplyData.declared = new ArrayList<>(declaredSize);
 				for (int i = 0; i < declaredSize; i++) {
-					FieldsWithGenericReplyDataDeclared fieldsWithGenericReplyDataDeclared = new FieldsWithGenericReplyDataDeclared();
+					FieldsWithGenericData fieldsWithGenericReplyDataDeclared = new FieldsWithGenericData();
 					fieldsWithGenericReplyDataDeclared.fieldID = mFieldID.decode(bytes, start);
 					start += mFieldID.getSize();
 					fieldsWithGenericReplyDataDeclared.name = JdwpString.decode(bytes, start);
@@ -2157,10 +2161,10 @@ public class JDWP {
 				/**
 				 * Number of declared methods.
 				 */
-				public List<MethodsWithGenericReplyDataDeclared> declared;
+				public List<MethodsWithGenericData> declared;
 			}
 
-			public class MethodsWithGenericReplyDataDeclared {
+			public class MethodsWithGenericData {
 				/**
 				 * Method ID.
 				 */
@@ -2192,7 +2196,7 @@ public class JDWP {
 				start += JdwpInt.getSize();
 				methodsWithGenericReplyData.declared = new ArrayList<>(declaredSize);
 				for (int i = 0; i < declaredSize; i++) {
-					MethodsWithGenericReplyDataDeclared methodsWithGenericReplyDataDeclared = new MethodsWithGenericReplyDataDeclared();
+					MethodsWithGenericData methodsWithGenericReplyDataDeclared = new MethodsWithGenericData();
 					methodsWithGenericReplyDataDeclared.methodID = mMethodID.decode(bytes, start);
 					start += mMethodID.getSize();
 					methodsWithGenericReplyDataDeclared.name = JdwpString.decode(bytes, start);
@@ -2855,7 +2859,7 @@ public class JDWP {
 				return bytes;
 			}
 
-			public class VariableTableWithGenericReplyData {
+			public class VarTableWithGenericData {
 				/**
 				 * The number of words in the frame used by arguments. Eight-byte arguments use two words; all
 				 * others use one.
@@ -2864,10 +2868,10 @@ public class JDWP {
 				/**
 				 * The number of variables.
 				 */
-				public List<VariableTableWithGenericReplyDataSlots> slots;
+				public List<VarWithGenericSlot> slots;
 			}
 
-			public class VariableTableWithGenericReplyDataSlots {
+			public class VarWithGenericSlot {
 				/**
 				 * First code index at which the variable is visible (unsigned). Used in conjunction with length.
 				 * The variable can be get or set only when the current codeIndex <= current frame code index <
@@ -2897,8 +2901,8 @@ public class JDWP {
 				public int slot;
 			}
 
-			public VariableTableWithGenericReplyData decode(byte[] bytes, int start) throws JdwpRuntimeException {
-				VariableTableWithGenericReplyData variableTableWithGenericReplyData = new VariableTableWithGenericReplyData();
+			public VarTableWithGenericData decode(byte[] bytes, int start) throws JdwpRuntimeException {
+				VarTableWithGenericData variableTableWithGenericReplyData = new VarTableWithGenericData();
 				variableTableWithGenericReplyData.argCnt = JdwpInt.decode(bytes, start);
 				start += JdwpInt.getSize();
 
@@ -2906,8 +2910,8 @@ public class JDWP {
 				start += JdwpInt.getSize();
 				variableTableWithGenericReplyData.slots = new ArrayList<>(slotsSize);
 				for (int i = 0; i < slotsSize; i++) {
-					VariableTableWithGenericReplyDataSlots variableTableWithGenericReplyDataSlots =
-							new VariableTableWithGenericReplyDataSlots();
+					VarWithGenericSlot variableTableWithGenericReplyDataSlots =
+							new VarWithGenericSlot();
 					variableTableWithGenericReplyDataSlots.codeIndex = JdwpLong.decode(bytes, start);
 					start += JdwpLong.getSize();
 					variableTableWithGenericReplyDataSlots.name = JdwpString.decode(bytes, start);
@@ -7412,9 +7416,6 @@ public class JDWP {
 		}
 
 		public byte[] getBytes() {
-			if (size == cap) {
-				return this.buf;
-			}
 			return getBytes(0);
 		}
 

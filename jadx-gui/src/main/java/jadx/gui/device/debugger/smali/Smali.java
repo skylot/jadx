@@ -22,7 +22,6 @@ import jadx.core.dex.instructions.InsnDecoder;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.InvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.InsnNode;
@@ -74,6 +73,14 @@ public class Smali {
 		return -1;
 	}
 
+	public int getParamRegStart(String mthFullRawID) {
+		SmaliMethodNode info = insnMap.get(mthFullRawID);
+		if (info != null) {
+			return info.getParamRegStart();
+		}
+		return -1;
+	}
+
 	public int getInsnPosByCodeOffset(String mthFullRawID, long codeOffset) {
 		SmaliMethodNode info = insnMap.get(mthFullRawID);
 		if (info != null) {
@@ -93,49 +100,10 @@ public class Smali {
 		return null;
 	}
 
-	@Nullable
-	public InsnType getInsnType(String mthFullRawID, long codeOffset) {
-		SmaliMethodNode info = insnMap.get(mthFullRawID);
-		if (info != null) {
-			InsnNode insn = info.getInsnNode(codeOffset);
-			if (insn != null) {
-				return insn.getType();
-			}
-		}
-		return null;
-	}
-
-	public SmaliRegister getSmaliReg(String mthFullRawID, int regNum) {
+	public List<SmaliRegister> getRegisterList(String mthFullRawID) {
 		SmaliMethodNode node = insnMap.get(mthFullRawID);
 		if (node != null) {
-			return node.getSmaliReg(regNum);
-		}
-		return null;
-	}
-
-	// in smali code, parameter registers are following the local registers,
-	// but during android runtime the local registers are following the parameter registers.
-	public int getSmaliRegNum(String mthFullRawID, int runtimeRegNum) {
-		SmaliMethodNode node = insnMap.get(mthFullRawID);
-		if (node != null) {
-			return (runtimeRegNum + node.getParamRegStart()) % node.getRegCount();
-		}
-		return runtimeRegNum;
-	}
-
-	public List<Integer> getInsnArgRegs(String mthFullRawID, long codeOffset) {
-		SmaliMethodNode info = insnMap.get(mthFullRawID);
-		if (info != null) {
-			InsnNode insn = info.getInsnNode(codeOffset);
-			if (insn != null && insn.getArgsCount() > 0) {
-				List<Integer> ret = new ArrayList<>(insn.getArgsCount());
-				for (InsnArg argument : insn.getArguments()) {
-					if (argument.isRegister()) {
-						ret.add(((RegisterArg) argument).getRegNum());
-					}
-				}
-				return ret;
-			}
+			return node.getRegList();
 		}
 		return Collections.emptyList();
 	}
@@ -260,10 +228,11 @@ public class Smali {
 		writeMethodDef(smali, mth, line);
 		ICodeReader codeReader = mth.getCodeReader();
 		if (codeReader != null) {
+			line.smaliMthNode.setParamRegStart(getParamStartRegNum(mth));
 			line.smaliMthNode.setRegCount(codeReader.getRegistersCount());
 			Map<Long, InsnNode> nodes = new HashMap<>(codeReader.getInsnsCount() / 2);
 			line.smaliMthNode.setInsnNodes(nodes, codeReader.getInsnsCount());
-			line.smaliMthNode.initRegInfoList(codeReader.getRegistersCount());
+			line.smaliMthNode.initRegInfoList(codeReader.getRegistersCount(), codeReader.getInsnsCount());
 
 			smali.incIndent();
 			smali.startLine(".registers ")
@@ -275,7 +244,6 @@ public class Smali {
 			}
 			smali.startLine();
 			if (codeReader.getDebugInfo() != null) {
-				line.smaliMthNode.setDebugInfo(codeReader.getDebugInfo());
 				formatDbgInfo(codeReader.getDebugInfo(), line);
 			}
 			codeReader.visitInstructions(insn -> {
@@ -430,11 +398,10 @@ public class Smali {
 		}
 		int paramCount = 0;
 		int paramStart = 0;
-		int regNum = getParamStartRegNum(mth);
-		line.smaliMthNode.setParamRegStart(regNum);
+		int regNum = line.smaliMthNode.getParamRegStart();
 		if (!hasStaticFlag(mth.getAccessFlags())) {
 			line.addRegName(regNum, "p0");
-			line.smaliMthNode.setParamReg(regNum, "this");
+			line.smaliMthNode.setParamReg(regNum, "p0");
 			regNum += 1;
 			paramStart = 1;
 		}
@@ -460,11 +427,9 @@ public class Smali {
 	private static int writeParamInfo(SmaliWriter smali, LineInfo line,
 			int regNum, int paramNum, String dbgInfoName, String type) {
 		smali.startLine(String.format(".param p%d, \"%s\":%s", paramNum, dbgInfoName, type));
-		line.addRegName(regNum, "p" + paramNum);
-		if (dbgInfoName.equals("")) {
-			dbgInfoName = "p" + paramNum;
-		}
-		line.smaliMthNode.setParamReg(regNum, dbgInfoName);
+		String pName = "p" + paramNum;
+		line.addRegName(regNum, pName);
+		line.smaliMthNode.setParamReg(regNum, pName);
 		if (isWideType(type)) {
 			regNum++;
 			dbgInfoName = "p" + (paramNum + 1);
@@ -536,20 +501,21 @@ public class Smali {
 			}
 		});
 		for (ILocalVar localVar : dbgInfo.getLocalVars()) {
+			String type = localVar.getSignature();
+			if (type == null || type.trim().isEmpty()) {
+				type = localVar.getType();
+			}
 			if (localVar.getStartOffset() > -1) {
-				line.addDebugLineTip(
+				line.addTip(
 						localVar.getStartOffset(),
 						String.format(".local v%d", localVar.getRegNum()),
-						String.format(", \"%s\":%s", localVar.getName(), localVar.getType()));
+						String.format(", \"%s\":%s", localVar.getName(), type));
 			}
 			if (localVar.getEndOffset() > -1) {
-				if (line.getRegName(localVar.getRegNum()).startsWith("p")) {
-					return; // no need to add .end local for parameters.
-				}
-				line.addDebugLineTip(
+				line.addTip(
 						localVar.getEndOffset(),
 						String.format(".end local v%d", localVar.getRegNum()),
-						String.format(" # \"%s\":%s", localVar.getName(), localVar.getType()));
+						String.format(" # \"%s\":%s", localVar.getName(), type));
 			}
 		}
 	}
@@ -811,7 +777,7 @@ public class Smali {
 				insn.getIndexAsMethodHandle().toString(), insn.getIndex());
 	}
 
-	private static boolean isRangeRegIns(InsnData insn) {
+	protected static boolean isRangeRegIns(InsnData insn) {
 		switch (insn.getOpcode()) {
 			case INVOKE_VIRTUAL_RANGE:
 			case INVOKE_SUPER_RANGE:
@@ -893,8 +859,8 @@ public class Smali {
 				tipMap = new LinkedHashMap<>();
 			}
 			Map<String, Object> innerMap = tipMap.computeIfAbsent(offset, k -> new LinkedHashMap<>());
-			if (innerMap.containsKey(tip)) {
-				Object obj = innerMap.get(tip);
+			Object obj = innerMap.get(tip);
+			if (obj != null) {
 				if (obj instanceof String) {
 					if (obj.equals("")) {
 						innerMap.put(tip, 2);
@@ -937,10 +903,10 @@ public class Smali {
 		}
 
 		public void write(SmaliWriter smali) {
-			int lineOffset = Smali.this.getInsnColStart();
+			int lineOffset = getInsnColStart();
 			for (Entry<Integer, List<String>> entry : insnOffsetMap.entrySet()) {
 				writeTip(smali, entry.getKey(), lineOffset);
-				smaliMthNode.setInsnPos(entry.getKey(), lineOffset + smali.getLength());
+				smaliMthNode.setInsnInfo(entry.getKey(), lineOffset + smali.getLength());
 				smaliMthNode.attachLine(smali.getLine(), entry.getKey());
 				smali.attachSourceLine(entry.getKey());
 				for (String s : entry.getValue()) {
@@ -1029,43 +995,4 @@ public class Smali {
 		}
 	}
 
-	public static class SmaliRegister {
-		private int num;
-		private boolean isParam;
-		private String paramName; // p + regNum
-		private List<ILocalVar> dbgInfoList = Collections.emptyList();
-
-		public SmaliRegister(int num) {
-			this.num = num;
-		}
-
-		public int getRegNum() {
-			return num;
-		}
-
-		public String getRegName(long codeOffset) {
-			for (ILocalVar iLocalVar : dbgInfoList) {
-				if (iLocalVar.getStartOffset() <= codeOffset && iLocalVar.getEndOffset() > codeOffset) {
-					return iLocalVar.getName();
-				}
-			}
-			return paramName;
-		}
-
-		protected void addDbgInfo(ILocalVar localVar) {
-			if (dbgInfoList.isEmpty()) {
-				dbgInfoList = new ArrayList<>();
-			}
-			dbgInfoList.add(localVar);
-		}
-
-		protected void setParam(String name) {
-			isParam = true;
-			paramName = name;
-		}
-
-		public boolean isParam() {
-			return isParam;
-		}
-	}
 }
