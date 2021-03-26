@@ -97,6 +97,8 @@ public class AType<T extends IAttribute> {
 
 	public static final Set<AType<?>> SKIP_ON_UNLOAD = new HashSet<>(Arrays.asList(
 			SOURCE_FILE,
+			ANNOTATION_LIST,
+			ANNOTATION_MTH_PARAMETERS,
 			FIELD_INIT,
 			FIELD_REPLACE,
 			METHOD_INLINE,
