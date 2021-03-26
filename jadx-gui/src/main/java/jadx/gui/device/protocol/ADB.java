@@ -372,7 +372,7 @@ public class ADB {
 		}
 
 		/**
-		 * @return pid other -1
+		 * @return pid otherwise -1
 		 */
 		public int launchApp(String fullAppName) throws IOException, InterruptedException {
 			Socket socket = connect(info.adbHost, info.adbPort);
@@ -382,11 +382,9 @@ public class ADB {
 			String rst = new String(res).trim();
 			if (rst.startsWith("Starting: Intent {") && rst.endsWith(fullAppName + " }")) {
 				Thread.sleep(40);
-				String name = fullAppName.split("/")[0];
-				for (Process process : getProcessList()) {
-					if (process.name.equals(name)) {
-						return Integer.parseInt(process.pid);
-					}
+				String pkg = fullAppName.split("/")[0];
+				for (Process process : getProcessByPkg(pkg)) {
+					return Integer.parseInt(process.pid);
 				}
 			}
 			return -1;
@@ -431,20 +429,29 @@ public class ADB {
 			return props;
 		}
 
+		public List<Process> getProcessByPkg(String pkg) throws IOException {
+			return getProcessList("ps | grep " + pkg, 0);
+		}
+
 		@NonNull
 		public List<Process> getProcessList() throws IOException {
+			return getProcessList("ps", 1);
+		}
+
+		private List<Process> getProcessList(String cmd, int index) throws IOException {
 			Socket socket = connect(info.adbHost, info.adbPort);
 			List<Process> procs = Collections.emptyList();
-			byte[] payload = execShellCommandRaw(info.serial, "ps",
+			byte[] payload = execShellCommandRaw(info.serial, cmd,
 					socket.getOutputStream(), socket.getInputStream());
 			if (payload != null) {
 				String ps = new String(payload);
 				String[] psLines = ps.split("\n");
-				procs = new ArrayList<>();
-				// first line is for titles, not needed.
-				for (int i = 1; i < psLines.length; i++) {
+				for (int i = index; i < psLines.length; i++) {
 					Process proc = Process.make(psLines[i]);
 					if (proc != null) {
+						if (procs.isEmpty()) {
+							procs = new ArrayList<>();
+						}
 						procs.add(proc);
 					}
 				}

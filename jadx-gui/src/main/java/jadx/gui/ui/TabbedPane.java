@@ -240,14 +240,13 @@ public class TabbedPane extends JTabbedPane {
 			setSelectedComponent(panel);
 		}
 		ClassCodeContentPanel codePane = ((ClassCodeContentPanel) panel);
-		codePane.showSmaliPane(debugMode);
+		codePane.showSmaliPane();
 		SmaliArea smaliArea = (SmaliArea) codePane.getSmaliCodeArea();
+		if (debugMode) {
+			smaliArea.scrollToDebugPos(pos);
+		}
 		smaliArea.scrollToPos(pos);
 		smaliArea.requestFocus();
-		if (debugMode) {
-			smaliArea.highLightDebuggingLineByPos(pos);
-		}
-
 	}
 
 	@Nullable

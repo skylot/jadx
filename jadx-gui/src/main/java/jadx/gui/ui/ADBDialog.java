@@ -16,6 +16,7 @@ import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.device.debugger.DbgUtils;
 import jadx.gui.device.protocol.ADB;
+import jadx.gui.treemodel.JClass;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
@@ -41,6 +42,9 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 	public ADBDialog(MainWindow mainWindow) {
 		super(mainWindow);
 		this.mainWindow = mainWindow;
+		if (debugSetter == null) {
+			debugSetter = new DebugSetting();
+		}
 		initUI();
 		pathTextField.setText(mainWindow.getSettings().getAdbDialogPath());
 		hostTextField.setText(mainWindow.getSettings().getAdbDialogHost());
@@ -122,8 +126,8 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 		btnPane.add(tipLabel);
 		JButton refreshBtn = new JButton(NLS.str("adb_dialog.refresh"));
 		JButton startServerBtn = new JButton(NLS.str("adb_dialog.start_server"));
-		JButton locateAppBtn = new JButton(NLS.str("adb_dialog.scroll_to_proc"));
-		btnPane.add(locateAppBtn);
+		JButton launchAppBtn = new JButton(NLS.str("adb_dialog.launch_app"));
+		btnPane.add(launchAppBtn);
 		btnPane.add(startServerBtn);
 		btnPane.add(refreshBtn);
 		refreshBtn.addActionListener(e -> {
@@ -134,7 +138,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 		});
 
 		startServerBtn.addActionListener(e -> startADBServer());
-		locateAppBtn.addActionListener(e -> scrollToProcNode());
+		launchAppBtn.addActionListener(e -> launchApp());
 
 		JPanel mainPane = new JPanel(new BorderLayout(5, 5));
 		mainPane.add(adbPanel, BorderLayout.NORTH);
@@ -256,7 +260,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 			}
 			ADB.Device device = new ADB.Device(info);
 			device.getAndroidReleaseVersion();
-			nodes.add(new DeviceNode(device, null));
+			nodes.add(new DeviceNode(device));
 			listenJDWP(device);
 		}
 		deviceNodes = nodes;
@@ -275,29 +279,29 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 		TreePath path = procTree.getPathForLocation(e.getX(), e.getY());
 		if (path != null) {
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
-			String pid = getPid(node);
+			String pid = getPid((String) node.getUserObject());
 			if (StringUtils.isEmpty(pid)) {
+				return;
+			}
+			if (mainWindow.getDebuggerPanel() != null && mainWindow.getDebuggerPanel().getDbgController().isDebugging()) {
+				if (JOptionPane.showConfirmDialog(mainWindow,
+						NLS.str("adb_dialog.restart_while_debugging_msg"),
+						NLS.str("adb_dialog.restart_while_debugging_title"),
+						JOptionPane.OK_CANCEL_OPTION) != JOptionPane.CANCEL_OPTION) {
+					IDebugController ctrl = mainWindow.getDebuggerPanel().getDbgController();
+					if (launchForDebugging(mainWindow, ctrl.getProcessName(), true)) {
+						dispose();
+					}
+				}
 				return;
 			}
 			DeviceNode deviceNode = getDeviceNode((DefaultMutableTreeNode) node.getParent());
 			if (deviceNode == null) {
 				return;
 			}
-			String ver = deviceNode.device.getAndroidReleaseVersion();
-			if (StringUtils.isEmpty(ver)) {
-				if (JOptionPane.showConfirmDialog(mainWindow,
-						NLS.str("adb_dialog.unknown_android_ver"),
-						"",
-						JOptionPane.OK_CANCEL_OPTION) == JOptionPane.CANCEL_OPTION) {
-					return;
-				}
-				ver = "8";
+			if (!setupArgs(deviceNode.device, pid, (String) node.getUserObject())) {
+				return;
 			}
-			ver = getMajorVer(ver);
-			if (debugSetter == null) {
-				debugSetter = new DebugSetting();
-			}
-			debugSetter.set(deviceNode.device, ver, pid, (String) node.getUserObject());
 			if (debugSetter.isBeingDebugged()) {
 				if (JOptionPane.showConfirmDialog(mainWindow,
 						NLS.str("adb_dialog.being_debugged_msg"),
@@ -337,8 +341,9 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 		return ok;
 	}
 
-	public static boolean launchForDebugging(MainWindow mainWindow, String fullAppPath) {
+	public static boolean launchForDebugging(MainWindow mainWindow, String fullAppPath, boolean autoAttach) {
 		if (debugSetter != null) {
+			debugSetter.autoAttachPkg = autoAttach;
 			try {
 				int pid = debugSetter.device.launchApp(fullAppPath);
 				if (pid != -1) {
@@ -353,13 +358,11 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 		return false;
 	}
 
-	private String getPid(DefaultMutableTreeNode node) {
-		// DefaultMutableTreeNode node = (DefaultMutableTreeNode) treePath.getLastPathComponent();
-		String text = (String) node.getUserObject();
-		if (text.startsWith("[pid:")) {
-			int pos = text.indexOf("]", "[pid:".length());
+	private String getPid(String nodeText) {
+		if (nodeText.startsWith("[pid:")) {
+			int pos = nodeText.indexOf("]", "[pid:".length());
 			if (pos != -1) {
-				return text.substring("[pid:".length(), pos).trim();
+				return nodeText.substring("[pid:".length(), pos).trim();
 			}
 		}
 		return null;
@@ -389,14 +392,6 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	private String getMajorVer(String ver) {
-		int pos = ver.indexOf(".");
-		if (pos != -1) {
-			ver = ver.substring(0, pos);
-		}
-		return ver;
 	}
 
 	@Override
@@ -437,13 +432,9 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 		if (procs.size() == 0) {
 			procList.addAll(id);
 		} else {
-			String spaceAlign = "      "; // 6 spaces.
 			for (ADB.Process proc : procs) {
 				if (id.contains(proc.pid)) {
-					if (proc.pid.length() < spaceAlign.length()) {
-						proc.pid += spaceAlign.substring(proc.pid.length());
-					}
-					procList.add(String.format("[pid: %s] %s", proc.pid, proc.name));
+					procList.add(String.format("[pid: %-6s] %s", proc.pid, proc.name));
 				}
 			}
 		}
@@ -456,33 +447,78 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 			return;
 		}
 		node.tNode.removeAllChildren();
+		DefaultMutableTreeNode tempNode = null;
 		for (String s : procList) {
-			node.tNode.add(new DefaultMutableTreeNode(s));
+			DefaultMutableTreeNode pnode = new DefaultMutableTreeNode(s);
+			node.tNode.add(pnode);
+			if (!debugSetter.expectPkg.isEmpty() && s.endsWith(debugSetter.expectPkg)) {
+				if (debugSetter.autoAttachPkg && debugSetter.device.equals(node.device)) {
+					debugSetter.set(node.device, debugSetter.ver, getPid(s), s);
+					if (attachProcess(mainWindow)) {
+						dispose();
+						return;
+					}
+				}
+				tempNode = pnode;
+			}
 		}
+		DefaultMutableTreeNode theNode = tempNode;
 		SwingUtilities.invokeLater(() -> {
 			procTreeModel.reload(node.tNode);
 			procTree.expandPath(new TreePath(node.tNode.getPath()));
+			if (theNode != null) {
+				TreePath thePath = new TreePath(theNode.getPath());
+				procTree.scrollPathToVisible(thePath);
+				procTree.setSelectionPath(thePath);
+			}
 		});
 	}
 
-	private void scrollToProcNode() {
-		String pkg = DbgUtils.searchPackageName(mainWindow);
-		if (pkg.isEmpty()) {
+	private void launchApp() {
+		if (deviceNodes.size() == 0) {
+			UiUtils.showMessageBox(mainWindow, NLS.str("adb_dialog.no_devices"));
 			return;
 		}
-		pkg = " " + pkg;
+		JClass cls = DbgUtils.searchMainActivity(mainWindow);
+		String pkg = DbgUtils.searchPackageName(mainWindow);
+		if (pkg.isEmpty() || cls == null) {
+			UiUtils.showMessageBox(mainWindow, NLS.str("adb_dialog.msg_read_mani_fail"));
+			return;
+		}
+		if (scrollToProcNode(pkg)) {
+			return;
+		}
+		String fullName = pkg + "/" + cls.getCls().getClassNode().getClassInfo().getFullName();
+		ADB.Device device = deviceNodes.get(0).device; // TODO: if multiple devices presented should let user select the one they desire.
+		if (device != null) {
+			try {
+				device.launchApp(fullName);
+			} catch (Exception e) {
+				e.printStackTrace();
+				UiUtils.showMessageBox(mainWindow, e.getMessage());
+			}
+		}
+	}
+
+	private boolean scrollToProcNode(String pkg) {
+		if (pkg.isEmpty()) {
+			return false;
+		}
+		debugSetter.expectPkg = " " + pkg;
 		for (int i = 0; i < procTreeRoot.getChildCount(); i++) {
 			DefaultMutableTreeNode rn = (DefaultMutableTreeNode) procTreeRoot.getChildAt(i);
 			for (int j = 0; j < rn.getChildCount(); j++) {
 				DefaultMutableTreeNode n = (DefaultMutableTreeNode) rn.getChildAt(j);
 				String pName = (String) n.getUserObject();
-				if (pName.endsWith(pkg)) {
+				if (pName.endsWith(debugSetter.expectPkg)) {
 					TreePath path = new TreePath(n.getPath());
 					procTree.scrollPathToVisible(path);
 					procTree.setSelectionPath(path);
+					return true;
 				}
 			}
 		}
+		return false;
 	}
 
 	@Override
@@ -498,7 +534,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 		ADB.Device device;
 		DeviceTreeNode tNode;
 
-		DeviceNode(ADB.Device adbDevice, TreePath treePath) {
+		DeviceNode(ADB.Device adbDevice) {
 			this.device = adbDevice;
 			tNode = new DeviceTreeNode();
 			refresh();
@@ -515,19 +551,47 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 		}
 	}
 
-	private static class DebugSetting {
+	private boolean setupArgs(ADB.Device device, String pid, String name) {
+		String ver = device.getAndroidReleaseVersion();
+		if (StringUtils.isEmpty(ver)) {
+			if (JOptionPane.showConfirmDialog(mainWindow,
+					NLS.str("adb_dialog.unknown_android_ver"),
+					"",
+					JOptionPane.OK_CANCEL_OPTION) == JOptionPane.CANCEL_OPTION) {
+				return false;
+			}
+			ver = "8";
+		}
+		ver = getMajorVer(ver);
+		debugSetter.set(device, ver, pid, name);
+		return true;
+	}
+
+	private String getMajorVer(String ver) {
+		int pos = ver.indexOf(".");
+		if (pos != -1) {
+			ver = ver.substring(0, pos);
+		}
+		return ver;
+	}
+
+	private class DebugSetting {
 		private static final int FORWARD_TCP_PORT = 33233;
 		private String ver;
 		private String pid;
 		private String name;
 		private ADB.Device device;
 		private int forwardTcpPort = FORWARD_TCP_PORT;
+		private String expectPkg = "";
+		private boolean autoAttachPkg = false;
 
 		private void set(ADB.Device device, String ver, String pid, String name) {
 			this.ver = ver;
 			this.pid = pid;
 			this.name = name;
 			this.device = device;
+			this.autoAttachPkg = false;
+			this.expectPkg = "";
 		}
 
 		private DebugSetting setPid(String pid) {

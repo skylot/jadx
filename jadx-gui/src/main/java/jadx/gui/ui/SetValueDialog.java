@@ -1,8 +1,8 @@
 package jadx.gui.ui;
 
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Map.Entry;
@@ -44,6 +44,14 @@ public class SetValueDialog extends JDialog {
 		btnPane.add(new Label());
 		btnPane.add(setValueBtn);
 
+		UiUtils.addKeyBinding(valField, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "set value",
+				new AbstractAction() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						setValueBtn.doClick();
+					}
+				});
+
 		JPanel typePane = new JPanel();
 		typePane.setLayout(new BoxLayout(typePane, BoxLayout.LINE_AXIS));
 		java.util.List<JRadioButton> rbs = new ArrayList<>(6);
@@ -75,9 +83,11 @@ public class SetValueDialog extends JDialog {
 		setModalityType(ModalityType.MODELESS);
 		UiUtils.addEscapeShortCutToDispose(this);
 
-		setValueBtn.addMouseListener(new MouseAdapter() {
+		setValueBtn.addActionListener(new AbstractAction() {
+			private static final long serialVersionUID = -1111111202103260220L;
+
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void actionPerformed(ActionEvent e) {
 				boolean ok;
 				try {
 					Entry<ArgType, Object> type = getType();

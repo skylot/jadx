@@ -36,7 +36,6 @@ public class JDebuggerPanel extends JPanel {
 	private final transient DefaultTreeModel variableTreeModel;
 	private final transient DefaultMutableTreeNode rootTreeNode;
 	private final transient DefaultMutableTreeNode thisTreeNode;
-	private final transient DefaultMutableTreeNode watchTreeNode;
 	private final transient DefaultMutableTreeNode regTreeNode;
 
 	private final transient JSplitPane rightSplitter;
@@ -72,10 +71,8 @@ public class JDebuggerPanel extends JPanel {
 		variablePanel.add(new JScrollPane(variableTree));
 
 		rootTreeNode = new DefaultMutableTreeNode();
-		watchTreeNode = new DefaultMutableTreeNode("watch");
 		thisTreeNode = new DefaultMutableTreeNode("this");
 		regTreeNode = new DefaultMutableTreeNode("var");
-		rootTreeNode.add(watchTreeNode);
 		rootTreeNode.add(thisTreeNode);
 		rootTreeNode.add(regTreeNode);
 		variableTreeModel = new DefaultTreeModel(rootTreeNode);
@@ -236,7 +233,7 @@ public class JDebuggerPanel extends JPanel {
 					controller.stop();
 				}
 				String pkgName = controller.getProcessName();
-				if (pkgName.isEmpty() || !ADBDialog.launchForDebugging(mainWindow, pkgName)) {
+				if (pkgName.isEmpty() || !ADBDialog.launchForDebugging(mainWindow, pkgName, true)) {
 					(new ADBDialog(mainWindow)).setVisible(true);
 				}
 			}
@@ -379,7 +376,6 @@ public class JDebuggerPanel extends JPanel {
 
 	public void resetUI() {
 		thisTreeNode.removeAllChildren();
-		watchTreeNode.removeAllChildren();
 		regTreeNode.removeAllChildren();
 
 		clearFrameAndThreadList();
@@ -397,16 +393,16 @@ public class JDebuggerPanel extends JPanel {
 
 	public void resetAllDebuggingInfo() {
 		clearFrameAndThreadList();
-		resetAllRegAndFieldNodes();
+		resetRegTreeNodes();
+		resetThisTreeNodes();
 	}
 
-	public void resetAllRegAndFieldNodes() {
+	public void resetThisTreeNodes() {
 		thisTreeNode.removeAllChildren();
 		SwingUtilities.invokeLater(() -> variableTreeModel.reload(thisTreeNode));
-		resetAllRegNodes();
 	}
 
-	public void resetAllRegNodes() {
+	public void resetRegTreeNodes() {
 		regTreeNode.removeAllChildren();
 		SwingUtilities.invokeLater(() -> variableTreeModel.reload(regTreeNode));
 	}
@@ -417,7 +413,6 @@ public class JDebuggerPanel extends JPanel {
 
 	public void updateThisFieldNodes(List<? extends ValueTreeNode> nodes) {
 		nodes.forEach(thisTreeNode::add);
-		// SwingUtilities.invokeLater(() -> variableTreeModel.reload(thisTreeNode));
 	}
 
 	public void refreshThreadBox(List<? extends IListElement> elements) {
@@ -483,6 +478,13 @@ public class JDebuggerPanel extends JPanel {
 		});
 	}
 
+	public void updateThisTree(ValueTreeNode node) {
+		SwingUtilities.invokeLater(() -> {
+			variableTreeModel.reload(thisTreeNode);
+			scrollToUpdatedNode(node);
+		});
+	}
+
 	public void scrollToUpdatedNode(ValueTreeNode node) {
 		SwingUtilities.invokeLater(() -> {
 			TreeNode[] path = node.getPath();
@@ -511,21 +513,34 @@ public class JDebuggerPanel extends JPanel {
 		@Nullable
 		public abstract String getType();
 
-		public abstract void updateValue(String val);
+		public abstract long getTypeID();
 
-		public abstract void updateType(String val);
+		public abstract ValueTreeNode updateValue(String val);
+
+		public abstract ValueTreeNode updateType(String val);
+
+		public abstract ValueTreeNode updateTypeID(long id);
 
 		@Override
 		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			sb.append(getName());
 			String val = getValue();
 			if (val != null) {
-				return String.format("%s val: %s, type: %s", getName(), val, getType());
+				sb.append(" val: ").append(val).append(",");
 			}
 			String type = getType();
 			if (type != null) {
-				return String.format("%s type: %s", getName(), getType());
+				sb.append(" type: ").append(getType());
+				long id = getTypeID();
+				if (id > 0) {
+					sb.append("@").append(id);
+				}
 			}
-			return String.format("%s undefined", getName());
+			if (val == null && type == null) {
+				sb.append(" undefined");
+			}
+			return sb.toString();
 		}
 	}
 

@@ -69,6 +69,10 @@ public class BreakpointManager {
 				new SimpleEntry<>(topCls.getCls().getClassNode(), listener));
 	}
 
+	public static void removeListener(JClass topCls) {
+		listeners.remove(DbgUtils.getRawFullName(topCls));
+	}
+
 	public static List<Integer> getPositions(JClass topCls) {
 		List<FileBreakpoint> bps = bpm.get(DbgUtils.getRawFullName(topCls));
 		if (bps != null && bps.size() > 0) {
@@ -105,7 +109,7 @@ public class BreakpointManager {
 				if (sigs != null && sigs.length == 2) {
 					FileBreakpoint bp = new FileBreakpoint(sigs[0], sigs[1], lineInfo.getValue());
 					list.add(bp);
-					if (debugController != null && debugController.isDebugging()) {
+					if (debugController != null) {
 						ok = debugController.setBreakpoint(bp);
 					}
 				}
@@ -178,10 +182,6 @@ public class BreakpointManager {
 		}
 	}
 
-	/**
-	 * @return list of breakpoints, first key is class full name, when set breakpoint failed
-	 *         use it to notify user.
-	 */
 	protected static List<FileBreakpoint> getAllBreakpoints() {
 		List<FileBreakpoint> bpList = new ArrayList<>();
 		for (Entry<String, List<FileBreakpoint>> entry : bpm.entrySet()) {

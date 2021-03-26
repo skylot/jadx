@@ -102,28 +102,17 @@ public class DbgUtils {
 	}
 
 	public static String searchPackageName(MainWindow mainWindow) {
-		try {
-			ResourceFile androidManifest = mainWindow.getWrapper().getDecompiler().getResources()
-					.stream()
-					.filter(res -> res.getType() == ResourceType.MANIFEST)
-					.findFirst()
-					.orElse(null);
-
-			if (androidManifest != null) {
-				String content = androidManifest.loadContent().getText().getCodeStr();
-				int pos = content.indexOf("<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" ");
+		String content = getManifestContent(mainWindow);
+		int pos = content.indexOf("<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" ");
+		if (pos > -1) {
+			pos = content.lastIndexOf(">", pos);
+			if (pos > -1) {
+				pos = content.indexOf(" package=\"", pos);
 				if (pos > -1) {
-					pos = content.lastIndexOf(">", pos);
-					if (pos > -1) {
-						pos = content.indexOf(" package=\"", pos);
-						if (pos > -1) {
-							pos += " package=\"".length();
-							return content.substring(pos, content.indexOf("\"", pos));
-						}
-					}
+					pos += " package=\"".length();
+					return content.substring(pos, content.indexOf("\"", pos));
 				}
 			}
-		} catch (Exception ignored) {
 		}
 		return "";
 	}
@@ -133,6 +122,29 @@ public class DbgUtils {
 	 */
 	@Nullable
 	public static JClass searchMainActivity(MainWindow mainWindow) {
+		String content = getManifestContent(mainWindow);
+		int pos = content.indexOf("<action android:name=\"android.intent.action.MAIN\"");
+		if (pos > -1) {
+			pos = content.lastIndexOf("<activity ", pos);
+			if (pos > -1) {
+				pos = content.indexOf(" android:name=\"", pos);
+				if (pos > -1) {
+					pos += " android:name=\"".length();
+					String classFullName = content.substring(pos, content.indexOf("\"", pos));
+					// in case the MainActivity class has been renamed before, we need raw name.
+					JavaClass cls = mainWindow.getWrapper().getDecompiler().searchJavaClassByAliasFullName(classFullName);
+					JNode jNode = mainWindow.getCacheObject().getNodeCache().makeFrom(cls);
+					if (jNode != null) {
+						return jNode.getRootClass();
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	// TODO: parse AndroidManifest.xml instead of looking for keywords
+	private static String getManifestContent(MainWindow mainWindow) {
 		try {
 			ResourceFile androidManifest = mainWindow.getWrapper().getDecompiler().getResources()
 					.stream()
@@ -141,28 +153,12 @@ public class DbgUtils {
 					.orElse(null);
 
 			if (androidManifest != null) {
-				String content = androidManifest.loadContent().getText().getCodeStr();
-				int pos = content.indexOf("<action android:name=\"android.intent.action.MAIN\"");
-				if (pos > -1) {
-					pos = content.lastIndexOf("<activity ", pos);
-					if (pos > -1) {
-						pos = content.indexOf(" android:name=\"", pos);
-						if (pos > -1) {
-							pos += " android:name=\"".length();
-							String classFullName = content.substring(pos, content.indexOf("\"", pos));
-							// in case the MainActivity class has been renamed before, we need raw name.
-							JavaClass cls = mainWindow.getWrapper().getDecompiler().searchJavaClassByAliasFullName(classFullName);
-							JNode jNode = mainWindow.getCacheObject().getNodeCache().makeFrom(cls);
-							if (jNode != null) {
-								return jNode.getRootClass();
-							}
-						}
-					}
-				}
+				return androidManifest.loadContent().getText().getCodeStr();
 			}
-		} catch (Exception ignored) {
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		return null;
+		return "";
 	}
 
 	public static boolean isPrintableChar(int c) {

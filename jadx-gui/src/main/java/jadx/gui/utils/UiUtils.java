@@ -78,6 +78,11 @@ public class UiUtils {
 		comp.getActionMap().put(id, action);
 	}
 
+	public static void removeKeyBinding(JComponent comp, KeyStroke key, String id) {
+		comp.getInputMap().remove(key);
+		comp.getActionMap().remove(id);
+	}
+
 	public static String typeFormat(String name, ArgType type) {
 		return name + " " + typeStr(type);
 	}

@@ -276,8 +276,21 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 				return false;
 			}
 		} else if (valNode instanceof FieldTreeNode) {
-			// TODO: support field
-			return false;
+			// TODO: check type.
+			FieldTreeNode fldNode = (FieldTreeNode) valNode;
+			try {
+				debugger.setValueSync(
+						fldNode.getObjectID(),
+						((RuntimeField) fldNode.getRuntimeValue()).getFieldID(),
+						fldNode.getRuntimeField().getType(),
+						value);
+				lazyQueue.execute(() -> {
+					updateField((FieldTreeNode) valNode);
+				});
+			} catch (SmaliDebuggerException e) {
+				logErr(e);
+				return false;
+			}
 		}
 		return true;
 	}
@@ -360,14 +373,14 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 				refreshRegInfo(info.getOffset());
 				refreshCurFrame(threadID, info.getOffset());
 				if (updateAllFldAndReg) {
-					debuggerPanel.resetAllRegAndFieldNodes();
+					debuggerPanel.resetRegTreeNodes();
 					updateAllRegisters(cur.frame);
 				} else if (toBeUpdatedTreeNode != null) {
 					lazyQueue.execute(() -> updateRegOrField(toBeUpdatedTreeNode));
 				}
 				markCodeOffset(info.getOffset());
 			} else {
-				debuggerPanel.resetAllRegNodes();
+				debuggerPanel.resetRegTreeNodes();
 			}
 			if (cur.frame != null) {
 				// update current code offset in stack frame.
@@ -395,12 +408,23 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 
 	private void updateRegOrField(ValueTreeNode valTreeNode) {
 		if (valTreeNode instanceof RegTreeNode) {
-			RegTreeNode rn = (RegTreeNode) valTreeNode;
-			updateRegister(rn, null, true);
+			updateRegister((RegTreeNode) valTreeNode, null, true);
 			return;
 		}
 		if (valTreeNode instanceof FieldTreeNode) {
-			// TODO: support field
+			updateField((FieldTreeNode) valTreeNode);
+			return;
+		}
+	}
+
+	public void updateField(FieldTreeNode node) {
+		try {
+			setFieldsNotUpdated();
+			debugger.getValueSync(node.getObjectID(), node.getRuntimeField());
+			decodeRuntimeValue(node);
+			debuggerPanel.updateThisTree(node);
+		} catch (SmaliDebuggerException e) {
+			logErr(e);
 		}
 	}
 
@@ -470,7 +494,12 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 					return;
 				}
 				if (rst instanceof FieldInfo) {
-
+					FieldInfo info = (FieldInfo) rst;
+					toBeUpdatedTreeNode = cur.frame.getFieldNodes()
+							.stream()
+							.filter(f -> f.getName().equals(info.getName()))
+							.findFirst()
+							.orElse(null);
 				}
 			}
 		}
@@ -574,10 +603,11 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 			}
 		}
 		try {
-			List<RuntimeField> flds = debugger.getAllFieldsSync(frame.getFrame().getClassID());
+			long thisID = debugger.getThisID(frame.getThreadID(), frame.getFrame().getID());
+			List<RuntimeField> flds = debugger.getAllFieldsSync(frame.getClsID());
 			List<FieldTreeNode> nodes = new ArrayList<>(flds.size());
 			for (RuntimeField fld : flds) {
-				FieldTreeNode fldNode = new FieldTreeNode(fld);
+				FieldTreeNode fldNode = new FieldTreeNode(fld, thisID);
 				fldNodes.stream()
 						.filter(f -> f.getName().equals(fldNode.getName()))
 						.findFirst()
@@ -585,24 +615,30 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 				nodes.add(fldNode);
 			}
 			debuggerPanel.updateThisFieldNodes(nodes);
-			frame.setThisNodes(nodes);
-			// if (nodes.size() > 0) {
-			// lazyQueue.execute(() -> updateAllFieldValues(frameEle));
-			// }
+			frame.setFieldNodes(nodes);
+			if (thisID > 0 && nodes.size() > 0) {
+				lazyQueue.execute(() -> updateAllFieldValues(thisID, frame));
+			}
 		} catch (SmaliDebuggerException e) {
 			logErr(e);
 		}
 	}
 
-	// TODO: has bug
-	private void updateAllFieldValues(FrameNode frame) {
-		List<FieldTreeNode> nodes = frame.thisNodes;
+	private void updateAllFieldValues(long thisID, FrameNode frame) {
+		List<FieldTreeNode> nodes = frame.getFieldNodes();
 		if (nodes.size() > 0) {
-			List<RuntimeField> flds = new ArrayList<>(nodes.size());
-			nodes.forEach(n -> flds.add(n.getRuntimeField()));
+			List<FieldTreeNode> flds = new ArrayList<>(nodes.size());
+			List<RuntimeField> rts = new ArrayList<>(nodes.size());
+			nodes.forEach(n -> {
+				RuntimeField f = n.getRuntimeField();
+				if (f.isBelongToThis()) {
+					flds.add(n);
+					rts.add(f);
+				}
+			});
 			try {
-				debugger.getAllFieldValuesSync(frame.getFrame().getClassID(), flds);
-				nodes.forEach(n -> decodeRuntimeValue(n));
+				debugger.getAllFieldValuesSync(thisID, rts);
+				flds.forEach(n -> decodeRuntimeValue(n));
 				debuggerPanel.refreshThisFieldTree();
 			} catch (SmaliDebuggerException e) {
 				logErr(e);
@@ -644,6 +680,14 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 		}
 	}
 
+	private void setFieldsNotUpdated() {
+		if (cur.frame != null) {
+			for (FieldTreeNode node : cur.frame.getFieldNodes()) {
+				node.setUpdated(false);
+			}
+		}
+	}
+
 	private List<RegTreeNode> buildRegTreeNodes(FrameNode frame) {
 		List<SmaliRegister> regs = cur.smali.getRegisterList(cur.mthFullID);
 		List<RegTreeNode> regNodes = new ArrayList<>(regs.size());
@@ -673,8 +717,9 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 					return decodeObject(valNode);
 				case STRING:
 					String str = "\"" + debugger.readStringSync(rValue) + "\"";
-					valNode.updateType("java.lang.String@" + debugger.readID(rValue));
-					valNode.updateValue(str);
+					valNode.updateType("java.lang.String")
+							.updateTypeID(debugger.readID(rValue))
+							.updateValue(str);
 					break;
 				case INT:
 					valNode.updateValue(Integer.toString(debugger.readInt(rValue)));
@@ -715,16 +760,16 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 					valNode.updateType("void");
 					break;
 				case THREAD:
-					valNode.updateType(String.format("thread@%x", debugger.readID(rValue)));
+					valNode.updateType("thread").updateTypeID(debugger.readID(rValue));
 					break;
 				case THREAD_GROUP:
-					valNode.updateType(String.format("thread_group@%x", debugger.readID(rValue)));
+					valNode.updateType("thread_group").updateTypeID(debugger.readID(rValue));
 					break;
 				case CLASS_LOADER:
-					valNode.updateType(String.format("class_loader@%x", debugger.readID(rValue)));
+					valNode.updateType("class_loader").updateTypeID(debugger.readID(rValue));
 					break;
 				case CLASS_OBJECT:
-					valNode.updateType(String.format("class_object@%x", debugger.readID(rValue)));
+					valNode.updateType("class_object").updateTypeID(debugger.readID(rValue));
 					break;
 			}
 
@@ -736,17 +781,22 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 	}
 
 	private boolean decodeObject(RuntimeValueTreeNode valNode) {
-		String sig;
 		RuntimeValue rValue = valNode.getRuntimeValue();
 		boolean ok = true;
-		if (!art.readNullObject() && debugger.readID(rValue) == 0) {
-			valNode.updateType(art.typeForNull());
-			valNode.updateValue("0");
-			return ok;
+		if (debugger.readID(rValue) == 0) {
+			if (valNode.isAbsoluteType()) {
+				valNode.updateValue("null");
+				return ok;
+			} else if (!art.readNullObject()) {
+				valNode.updateType(art.typeForNull());
+				valNode.updateValue("0");
+				return ok;
+			}
 		}
+		String sig;
 		try {
 			sig = debugger.readObjectSignatureSync(rValue);
-			valNode.updateType(String.format("%s@%x", DbgUtils.classSigToRawFullName(sig),
+			valNode.updateType(String.format("%s@%d", DbgUtils.classSigToRawFullName(sig),
 					debugger.readID(rValue)));
 		} catch (SmaliDebuggerException e) {
 			ok = debugger.errIsInvalidObject(e.getErrCode()) && valNode instanceof RegTreeNode;
@@ -764,6 +814,7 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 				} catch (SmaliDebuggerException except) {
 					logErr(except, String.format("Update %s failed, %s", valNode.getName(), except.getMessage()));
 					valNode.updateValue(except.getMessage());
+					ok = false;
 				}
 			} else {
 				logErr(e);
@@ -1046,6 +1097,7 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 		private long codeOffset = -1;
 		private List<RegTreeNode> regNodes;
 		private List<FieldTreeNode> thisNodes;
+		private long thisID;
 
 		public FrameNode(long threadID, SmaliDebugger.Frame frame) {
 			cache = new StringBuilder(16);
@@ -1073,6 +1125,14 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 
 		public long getThreadID() {
 			return threadID;
+		}
+
+		public long getThisID() {
+			return thisID;
+		}
+
+		public void setThisID(long thisID) {
+			this.thisID = thisID;
 		}
 
 		public void setSignatures(String clsSig, String mthSig) {
@@ -1108,12 +1168,12 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 			return regNodes;
 		}
 
-		public void setThisNodes(List<FieldTreeNode> thisNodes) {
-			this.thisNodes = thisNodes;
+		public List<FieldTreeNode> getFieldNodes() {
+			return thisNodes;
 		}
 
-		public List<FieldTreeNode> getThisNodes() {
-			return thisNodes;
+		public void setFieldNodes(List<FieldTreeNode> thisNodes) {
+			this.thisNodes = thisNodes;
 		}
 
 		@Override
@@ -1126,7 +1186,7 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 						int pos = smali.getInsnPosByCodeOffset(
 								DbgUtils.classSigToRawFullName(clsSig) + "." + mthSig,
 								getCodeOffset());
-						debuggerPanel.scrollToSmaliLine(cls, Math.max(0, pos), false);
+						debuggerPanel.scrollToSmaliLine(cls, Math.max(0, pos), true);
 						return;
 					}
 				}
@@ -1197,7 +1257,6 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 		private String type;
 		private String alias;
 		private boolean absType;
-		private long typeID;
 
 		public RegTreeNode(SmaliRegister smaliReg) {
 			this.smaliReg = smaliReg;
@@ -1212,21 +1271,28 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 		}
 
 		@Override
-		public void updateValue(String value) {
+		public RegTreeNode updateValue(String value) {
 			setUpdated(true);
 			this.value = value;
-			this.removeAllChildren();
+			removeAllChildren();
+			return this;
 		}
 
 		@Override
-		public void updateType(String type) {
-			if (this.type == null || (!this.type.startsWith(type + "@") && !this.type.equals(type))) {
+		public RegTreeNode updateType(String type) {
+			if (this.type == null || !this.type.equals(type)) {
 				this.type = type;
-				value = null;
-				this.removeAllChildren();
-				setUpdated(true);
-				this.absType = false;
+				reset();
 			}
+			return this;
+		}
+
+		private void reset() {
+			value = null;
+			removeAllChildren();
+			setUpdated(true);
+			this.absType = false;
+			updateTypeID(0);
 		}
 
 		@Override
@@ -1283,9 +1349,19 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 		private final RuntimeField field;
 		private String value;
 		private String alias;
+		private long objectID;
 
-		private FieldTreeNode(RuntimeField field) {
+		private FieldTreeNode(RuntimeField field, long id) {
 			this.field = field;
+			objectID = id;
+		}
+
+		public long getObjectID() {
+			return objectID;
+		}
+
+		public void setObjectID(long id) {
+			this.objectID = id;
 		}
 
 		public RuntimeField getRuntimeField() {
@@ -1297,14 +1373,16 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 		}
 
 		@Override
-		public void updateValue(String val) {
+		public FieldTreeNode updateValue(String val) {
 			setUpdated(true);
 			value = val;
-			this.removeAllChildren();
+			removeAllChildren();
+			return this;
 		}
 
 		@Override
-		public void updateType(String val) {
+		public FieldTreeNode updateType(String val) {
+			return this;
 		}
 
 		@Override
@@ -1337,6 +1415,19 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 	}
 
 	private abstract static class RuntimeValueTreeNode extends ValueTreeNode {
+		private static final long serialVersionUID = -1111111202103260222L;
+		private long typeID;
+
+		@Override
+		public ValueTreeNode updateTypeID(long id) {
+			this.typeID = id;
+			return this;
+		}
+
+		@Override
+		public long getTypeID() {
+			return this.typeID;
+		}
 
 		public abstract RuntimeValue getRuntimeValue();
 
