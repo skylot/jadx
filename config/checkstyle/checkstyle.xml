@@ -119,6 +119,11 @@
 		<module name="OuterTypeNumber"/>
 
 		<module name="SuppressWarningsHolder"/>
+
+		<module name="IllegalType"/>
+		<module name="IllegalImport">
+			<property name="illegalClasses" value="jadx.core.utils.DebugUtils"/>
+		</module>
 	</module>
 
 	<module name="NewlineAtEndOfFile"/>
