@@ -111,7 +111,11 @@ public class RootNode {
 		// sort classes by name, expect top classes before inner
 		classes.sort(Comparator.comparing(ClassNode::getFullName));
 		initInnerClasses();
-		LOG.info("Classes loaded: {}", classes.size());
+
+		// print stats for loaded classes
+		int mthCount = classes.stream().mapToInt(c -> c.getMethods().size()).sum();
+		int insnsCount = classes.stream().flatMap(c -> c.getMethods().stream()).mapToInt(MethodNode::getInsnsCount).sum();
+		LOG.info("Loaded classes: {}, methods: {}, instructions: {}", classes.size(), mthCount, insnsCount);
 	}
 
 	private void addDummyClass(IClassData classData, Exception exc) {

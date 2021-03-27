@@ -6,8 +6,8 @@ dependencies {
 	api(project(":jadx-plugins:jadx-plugins-api"))
 
 	// TODO: finish own smali printer
-	implementation 'org.smali:baksmali:2.4.0'
+	implementation 'org.smali:baksmali:2.5.2'
 	implementation 'com.google.guava:guava:30.1-jre' // force latest version for smali
 
-	testImplementation 'org.smali:smali:2.4.0' // compile smali files in tests
+	testImplementation 'org.smali:smali:2.5.2' // compile smali files in tests
 }

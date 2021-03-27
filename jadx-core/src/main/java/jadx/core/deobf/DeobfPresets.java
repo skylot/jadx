@@ -163,15 +163,31 @@ public class DeobfPresets {
 	}
 
 	public String getForCls(ClassInfo cls) {
+		if (clsPresetMap.isEmpty()) {
+			return null;
+		}
 		return clsPresetMap.get(cls.makeRawFullName());
 	}
 
 	public String getForFld(FieldInfo fld) {
+		if (fldPresetMap.isEmpty()) {
+			return null;
+		}
 		return fldPresetMap.get(fld.getRawFullId());
 	}
 
 	public String getForMth(MethodInfo mth) {
+		if (mthPresetMap.isEmpty()) {
+			return null;
+		}
 		return mthPresetMap.get(mth.getRawFullId());
+	}
+
+	public Set<String> getForVars(MethodInfo mth) {
+		if (varPresetMap.isEmpty()) {
+			return null;
+		}
+		return varPresetMap.get(mth.getRawFullId());
 	}
 
 	public void clear() {
