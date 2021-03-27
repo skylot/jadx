@@ -110,7 +110,9 @@ public class SmaliDebugger {
 			InputStream inputStream = socket.getInputStream();
 			OutputStream outputStream = socket.getOutputStream();
 
+			socket.setSoTimeout(5000);
 			JDWP jdwp = initJDWP(outputStream, inputStream);
+			socket.setSoTimeout(0); // set back to 0 so the decodingLoop won't break for timeout.
 
 			SmaliDebugger debugger = new SmaliDebugger(suspendListener, port, jdwp);
 			debugger.inputStream = inputStream;
@@ -601,10 +603,15 @@ public class SmaliDebugger {
 		throw new SmaliDebuggerException("Failed to init JDWP.");
 	}
 
-	private static void handShake(OutputStream outputStream, InputStream inputStream) throws IOException, SmaliDebuggerException {
-		outputStream.write(JDWP.encodeHandShakePacket());
+	private static void handShake(OutputStream outputStream, InputStream inputStream) throws SmaliDebuggerException {
 		byte[] buf = new byte[14];
-		if (inputStream.read(buf, 0, 14) != 14 || !JDWP.decodeHandShakePacket(buf)) {
+		try {
+			outputStream.write(JDWP.encodeHandShakePacket());
+			inputStream.read(buf, 0, 14);
+		} catch (Exception e) {
+			throw new SmaliDebuggerException("jdwp handshake failed, " + e.getMessage());
+		}
+		if (!JDWP.decodeHandShakePacket(buf)) {
 			throw new SmaliDebuggerException("jdwp handshake failed.");
 		}
 	}

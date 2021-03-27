@@ -310,6 +310,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 					return;
 				}
 			}
+			tipLabel.setText(NLS.str("adb_dialog.starting_debugger"));
 			if (!attachProcess(mainWindow)) {
 				tipLabel.setText(NLS.str("adb_dialog.init_dbg_fail"));
 			} else {
