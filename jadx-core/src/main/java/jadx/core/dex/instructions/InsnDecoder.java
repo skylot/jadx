@@ -54,7 +54,7 @@ public class InsnDecoder {
 	}
 
 	@NotNull
-	private InsnNode decode(InsnData insn) throws DecodeException {
+	protected InsnNode decode(InsnData insn) throws DecodeException {
 		switch (insn.getOpcode()) {
 			case NOP:
 				return new InsnNode(InsnType.NOP, 0);

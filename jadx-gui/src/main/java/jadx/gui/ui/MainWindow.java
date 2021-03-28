@@ -85,6 +85,7 @@ import jadx.core.utils.StringUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.files.FileUtils;
 import jadx.gui.JadxWrapper;
+import jadx.gui.device.debugger.BreakpointManager;
 import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.jobs.BackgroundWorker;
 import jadx.gui.jobs.DecompileJob;
@@ -129,7 +130,7 @@ public class MainWindow extends JFrame {
 
 	private static final double BORDER_RATIO = 0.15;
 	private static final double WINDOW_RATIO = 1 - BORDER_RATIO * 2;
-	private static final double SPLIT_PANE_RESIZE_WEIGHT = 0.15;
+	public static final double SPLIT_PANE_RESIZE_WEIGHT = 0.15;
 
 	private static final ImageIcon ICON_OPEN = UiUtils.openIcon("folder");
 	private static final ImageIcon ICON_ADD_FILES = UiUtils.openIcon("folder_add");
@@ -148,6 +149,7 @@ public class MainWindow extends JFrame {
 	private static final ImageIcon ICON_DEOBF = UiUtils.openIcon("lock_edit");
 	private static final ImageIcon ICON_LOG = UiUtils.openIcon("report");
 	private static final ImageIcon ICON_JADX = UiUtils.openIcon("jadx-logo");
+	private static final ImageIcon ICON_DEBUGGER = UiUtils.openIcon("debugger");
 
 	private final transient JadxWrapper wrapper;
 	private final transient JadxSettings settings;
@@ -178,6 +180,9 @@ public class MainWindow extends JFrame {
 	private transient BackgroundWorker backgroundWorker;
 	private transient BackgroundExecutor backgroundExecutor;
 	private transient Theme editorTheme;
+
+	private JDebuggerPanel debuggerPanel;
+	private JSplitPane verticalSplitter;
 
 	public MainWindow(JadxSettings settings) {
 		this.wrapper = new JadxWrapper(settings);
@@ -378,6 +383,7 @@ public class MainWindow extends JFrame {
 		} else {
 			project.setFilePath(paths);
 			clearTree();
+			BreakpointManager.saveAndExit();
 			if (paths.isEmpty()) {
 				return;
 			}
@@ -388,6 +394,7 @@ public class MainWindow extends JFrame {
 						initTree();
 						update();
 						runBackgroundJobs();
+						BreakpointManager.init(paths.get(0).getParent());
 						onFinish.run();
 					});
 		}
@@ -925,6 +932,15 @@ public class MainWindow extends JFrame {
 		};
 		quarkAction.putValue(Action.SHORT_DESCRIPTION, "Quark Engine");
 
+		Action openDeviceAction = new AbstractAction(NLS.str("debugger.process_selector"), ICON_DEBUGGER) {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ADBDialog dialog = new ADBDialog(MainWindow.this);
+				dialog.setVisible(true);
+			}
+		};
+		openDeviceAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("debugger.process_selector"));
+
 		JMenu file = new JMenu(NLS.str("menu.file"));
 		file.setMnemonic(KeyEvent.VK_F);
 		file.add(openAction);
@@ -1010,6 +1026,8 @@ public class MainWindow extends JFrame {
 		toolbar.add(prefsAction);
 		toolbar.addSeparator();
 		toolbar.add(quarkAction);
+		toolbar.addSeparator();
+		toolbar.add(openDeviceAction);
 		toolbar.addSeparator();
 		toolbar.add(Box.createHorizontalGlue());
 		toolbar.add(updateLink);
@@ -1103,6 +1121,11 @@ public class MainWindow extends JFrame {
 		heapUsageBar = new HeapUsageBar();
 		mainPanel.add(heapUsageBar, BorderLayout.SOUTH);
 
+		verticalSplitter = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+		verticalSplitter.setTopComponent(splitPane);
+		verticalSplitter.setResizeWeight(SPLIT_PANE_RESIZE_WEIGHT);
+
+		mainPanel.add(verticalSplitter, BorderLayout.CENTER);
 		setContentPane(mainPanel);
 		setTitle(DEFAULT_TITLE);
 	}
@@ -1221,13 +1244,23 @@ public class MainWindow extends JFrame {
 		settings.setTreeWidth(splitPane.getDividerLocation());
 		settings.saveWindowPos(this);
 		settings.setMainWindowExtendedState(getExtendedState());
+		if (debuggerPanel != null) {
+			saveSplittersInfo();
+		}
 		cancelBackgroundJobs();
 		wrapper.close();
 		heapUsageBar.reset();
 		dispose();
 
+		BreakpointManager.saveAndExit();
 		FileUtils.deleteTempRootDir();
 		System.exit(0);
+	}
+
+	private void saveSplittersInfo() {
+		settings.setMainWindowVerticalSplitterLoc(verticalSplitter.getDividerLocation());
+		settings.setDebuggerStackFrameSplitterLoc(debuggerPanel.getLeftSplitterLocation());
+		settings.setDebuggerVarTreeSplitterLoc(debuggerPanel.getRightSplitterLocation());
 	}
 
 	public JadxWrapper getWrapper() {
@@ -1264,6 +1297,34 @@ public class MainWindow extends JFrame {
 
 	public JRoot getTreeRoot() {
 		return treeRoot;
+	}
+
+	public JDebuggerPanel getDebuggerPanel() {
+		initDebuggerPanel();
+		return debuggerPanel;
+	}
+
+	public void showDebuggerPanel() {
+		initDebuggerPanel();
+	}
+
+	public void destroyDebuggerPanel() {
+		saveSplittersInfo();
+		debuggerPanel.setVisible(false);
+		debuggerPanel = null;
+	}
+
+	private void initDebuggerPanel() {
+		if (debuggerPanel == null) {
+			debuggerPanel = new JDebuggerPanel(this);
+			debuggerPanel.loadSettings();
+			verticalSplitter.setBottomComponent(debuggerPanel);
+			int loc = settings.getMainWindowVerticalSplitterLoc();
+			if (loc == 0) {
+				loc = 300;
+			}
+			verticalSplitter.setDividerLocation(loc);
+		}
 	}
 
 	private class RecentProjectsMenuListener implements MenuListener {

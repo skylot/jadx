@@ -25,8 +25,10 @@ import jadx.api.ResourceType;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.treemodel.ApkSignature;
+import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResource;
+import jadx.gui.ui.codearea.*;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.codearea.AbstractCodeContentPanel;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
@@ -226,6 +228,27 @@ public class TabbedPane extends JTabbedPane {
 		showCode(pos);
 	}
 
+	public void smaliJump(JClass cls, int pos, boolean debugMode) {
+		ContentPanel panel = getOpenTabs().get(cls);
+		if (panel == null) {
+			showCode(new JumpPosition(cls, 0, 1));
+			panel = getOpenTabs().get(cls);
+			if (panel == null) {
+				throw new JadxRuntimeException("Failed to open panel for JClass: " + cls);
+			}
+		} else {
+			setSelectedComponent(panel);
+		}
+		ClassCodeContentPanel codePane = ((ClassCodeContentPanel) panel);
+		codePane.showSmaliPane();
+		SmaliArea smaliArea = (SmaliArea) codePane.getSmaliCodeArea();
+		if (debugMode) {
+			smaliArea.scrollToDebugPos(pos);
+		}
+		smaliArea.scrollToPos(pos);
+		smaliArea.requestFocus();
+	}
+
 	@Nullable
 	public JumpPosition getCurrentPosition() {
 		ContentPanel selectedCodePanel = getSelectedCodePanel();
@@ -352,9 +375,15 @@ public class TabbedPane extends JTabbedPane {
 		lastTab = null;
 	}
 
+	@Nullable
+	public Component getFocusedComp() {
+		return FocusManager.isActive() ? FocusManager.focusedComp : null;
+	}
+
 	private static class FocusManager implements FocusListener {
 		static boolean active = false;
 		static FocusManager listener = new FocusManager();
+		static Component focusedComp;
 
 		static boolean isActive() {
 			return active;
@@ -363,6 +392,7 @@ public class TabbedPane extends JTabbedPane {
 		@Override
 		public void focusGained(FocusEvent e) {
 			active = true;
+			focusedComp = (Component) e.getSource();
 		}
 
 		@Override

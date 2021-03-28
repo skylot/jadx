@@ -13,7 +13,6 @@ import jadx.api.plugins.input.data.IMethodData;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.annotations.IAnnotation;
 import jadx.plugins.input.dex.sections.annotations.AnnotationsParser;
-import jadx.plugins.input.dex.smali.SmaliPrinter;
 import jadx.plugins.input.dex.utils.SmaliUtils;
 
 public class DexClassData implements IClassData {
@@ -192,11 +191,6 @@ public class DexClassData implements IClassData {
 	public String getDisassembledCode() {
 		byte[] dexBuf = in.getDexReader().getBuf().array();
 		return SmaliUtils.getSmaliCode(dexBuf, getClassDefOffset());
-	}
-
-	@Override
-	public String getDisassembledCodeV2() {
-		return SmaliPrinter.printClass(this);
 	}
 
 	@Override

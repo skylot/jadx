@@ -86,4 +86,8 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel {
 	public AbstractCodeArea getSmaliCodeArea() {
 		return smaliCodePanel.getCodeArea();
 	}
+
+	public void showSmaliPane() {
+		areaTabbedPane.setSelectedComponent(smaliCodePanel);
+	}
 }

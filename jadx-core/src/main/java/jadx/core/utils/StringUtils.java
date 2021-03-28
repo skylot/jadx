@@ -1,5 +1,8 @@
 package jadx.core.utils;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.JadxArgs;
@@ -313,5 +316,9 @@ public class StringUtils {
 	public static boolean isWordSeparator(char chr) {
 		return WORD_SEPARATORS.indexOf(chr) != -1;
 
+	}
+
+	public static String getDateText() {
+		return new SimpleDateFormat("HH:mm:ss").format(new Date());
 	}
 }

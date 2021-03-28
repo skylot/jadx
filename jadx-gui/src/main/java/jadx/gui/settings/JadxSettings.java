@@ -71,6 +71,14 @@ public class JadxSettings extends JadxCLIArgs {
 	private boolean keepCommonDialogOpen = false;
 	private boolean smaliAreaShowBytecode = false;
 
+	private int mainWindowVerticalSplitterLoc = 300;
+	private int debuggerStackFrameSplitterLoc = 300;
+	private int debuggerVarTreeSplitterLoc = 700;
+
+	private String adbDialogPath = "";
+	private String adbDialogHost = "localhost";
+	private String adbDialogPort = "5037";
+
 	/**
 	 * UI setting: the width of the tree showing the classes, resources, ...
 	 */
@@ -462,6 +470,57 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public boolean getSmaliAreaShowBytecode() {
 		return smaliAreaShowBytecode;
+	}
+
+	public void setMainWindowVerticalSplitterLoc(int location) {
+		mainWindowVerticalSplitterLoc = location;
+		partialSync(settings -> settings.mainWindowVerticalSplitterLoc = location);
+	}
+
+	public int getMainWindowVerticalSplitterLoc() {
+		return mainWindowVerticalSplitterLoc;
+	}
+
+	public void setDebuggerStackFrameSplitterLoc(int location) {
+		debuggerStackFrameSplitterLoc = location;
+		partialSync(settings -> settings.debuggerStackFrameSplitterLoc = location);
+	}
+
+	public int getDebuggerStackFrameSplitterLoc() {
+		return debuggerStackFrameSplitterLoc;
+	}
+
+	public void setDebuggerVarTreeSplitterLoc(int location) {
+		debuggerVarTreeSplitterLoc = location;
+		partialSync(settings -> debuggerVarTreeSplitterLoc = location);
+	}
+
+	public int getDebuggerVarTreeSplitterLoc() {
+		return debuggerVarTreeSplitterLoc;
+	}
+
+	public String getAdbDialogPath() {
+		return adbDialogPath;
+	}
+
+	public void setAdbDialogPath(String path) {
+		this.adbDialogPath = path;
+	}
+
+	public String getAdbDialogHost() {
+		return adbDialogHost;
+	}
+
+	public void setAdbDialogHost(String host) {
+		this.adbDialogHost = host;
+	}
+
+	public String getAdbDialogPort() {
+		return adbDialogPort;
+	}
+
+	public void setAdbDialogPort(String port) {
+		this.adbDialogPort = port;
 	}
 
 	private void upgradeSettings(int fromVersion) {

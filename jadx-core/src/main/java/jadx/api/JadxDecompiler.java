@@ -452,6 +452,40 @@ public final class JadxDecompiler implements Closeable {
 	}
 
 	@Nullable
+	public ClassNode searchClassNodeByOrigFullName(String fullName) {
+		return getRoot().getClasses().stream()
+				.filter(cls -> cls.getClassInfo().getFullName().equals(fullName))
+				.findFirst()
+				.orElse(null);
+	}
+
+	// returns parent if class contains DONT_GENERATE flag.
+	@Nullable
+	public JavaClass searchJavaClassOrItsParentByOrigFullName(String fullName) {
+		ClassNode node = getRoot().getClasses().stream()
+				.filter(cls -> cls.getClassInfo().getFullName().equals(fullName))
+				.findFirst()
+				.orElse(null);
+		if (node != null) {
+			if (node.contains(AFlag.DONT_GENERATE)) {
+				return getJavaClassByNode(node.getTopParentClass());
+			} else {
+				return getJavaClassByNode(node);
+			}
+		}
+		return null;
+	}
+
+	@Nullable
+	public JavaClass searchJavaClassByAliasFullName(String fullName) {
+		return getRoot().getClasses().stream()
+				.filter(cls -> cls.getClassInfo().getAliasFullName().equals(fullName))
+				.findFirst()
+				.map(this::getJavaClassByNode)
+				.orElse(null);
+	}
+
+	@Nullable
 	JavaNode convertNode(Object obj) {
 		if (!(obj instanceof LineAttrNode)) {
 			return null;
