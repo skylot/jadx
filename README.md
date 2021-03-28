@@ -22,6 +22,9 @@ Command line and GUI tools for producing Java source code from Android Dex and A
 - find usage
 - full text search
 
+**Upcoming unstable features:**
+- smali debugger (thanks to [@LBJ-the-GOAT](https://github.com/LBJ-the-GOAT)), check [wiki page](https://github.com/skylot/jadx/wiki/Smali-debugger) for setup and usage
+
 See these features in action here: [jadx-gui features overview](https://github.com/skylot/jadx/wiki/jadx-gui-features-overview)
 
 
