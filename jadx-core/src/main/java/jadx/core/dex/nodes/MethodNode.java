@@ -612,6 +612,11 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return noCode ? null : codeReader.getDebugInfo();
 	}
 
+	public void ignoreMethod() {
+		add(AFlag.DONT_GENERATE);
+		noCode = true;
+	}
+
 	/**
 	 * Calculate instructions count at currect stage
 	 */

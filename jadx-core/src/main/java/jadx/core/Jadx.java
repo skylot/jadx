@@ -14,6 +14,7 @@ import jadx.api.JadxArgs;
 import jadx.core.dex.visitors.AttachCommentsVisitor;
 import jadx.core.dex.visitors.AttachMethodDetails;
 import jadx.core.dex.visitors.AttachTryCatchVisitor;
+import jadx.core.dex.visitors.CheckCode;
 import jadx.core.dex.visitors.ClassModifier;
 import jadx.core.dex.visitors.ConstInlineVisitor;
 import jadx.core.dex.visitors.ConstructorVisitor;
@@ -96,6 +97,7 @@ public class Jadx {
 		}
 
 		List<IDexTreeVisitor> passes = new ArrayList<>();
+		passes.add(new CheckCode());
 		if (args.isDebugInfo()) {
 			passes.add(new DebugInfoAttachVisitor());
 		}
