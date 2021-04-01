@@ -91,7 +91,7 @@ public class TextSearchIndex {
 				JavaNode node = linesInfo.getJavaNodeByLine(lineNum);
 				JavaNode javaNode = node == null ? cls : node;
 				JNode nodeAtLine = nodeCache.makeFrom(javaNode);
-				codeIndex.put(new CodeNode(nodeAtLine, line, lineNum, javaNode.getDefPos()));
+				codeIndex.put(new CodeNode(nodeAtLine, line, lineNum, line.getOffset()));
 			}
 		} catch (Exception e) {
 			LOG.warn("Failed to index class: {}", cls, e);

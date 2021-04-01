@@ -140,6 +140,10 @@ public class StringRef implements CharSequence {
 		return list;
 	}
 
+	public int getOffset() {
+		return offset;
+	}
+
 	public int hashCode() {
 		int h = hash;
 		int len = length;
