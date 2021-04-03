@@ -1,9 +1,6 @@
 package jadx.gui.ui;
 
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
+import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.Collections;
@@ -38,10 +35,12 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
 import jadx.gui.utils.layout.WrapLayout;
+import jadx.gui.utils.search.SearchSettings;
 import jadx.gui.utils.search.TextSearchIndex;
 
 public class SearchDialog extends CommonSearchDialog {
 	private static final long serialVersionUID = -5105405456969134105L;
+	private static final Color SEARCHFIELD_ERROR_COLOR = new Color(255, 150, 150);
 
 	private static final Logger LOG = LoggerFactory.getLogger(SearchDialog.class);
 
@@ -80,6 +79,8 @@ public class SearchDialog extends CommonSearchDialog {
 
 	private final transient SearchPreset searchPreset;
 	private final transient Set<SearchOptions> options;
+
+	private Color searchFieldDefaultBgColor;
 
 	private transient JTextField searchField;
 
@@ -183,6 +184,7 @@ public class SearchDialog extends CommonSearchDialog {
 
 	private void initUI() {
 		searchField = new JTextField();
+		searchFieldDefaultBgColor = searchField.getBackground();
 		searchField.setAlignmentX(LEFT_ALIGNMENT);
 		TextStandardActions.attach(searchField);
 
@@ -304,7 +306,16 @@ public class SearchDialog extends CommonSearchDialog {
 		}
 		LOG.debug("search event: {}", text);
 		showSearchState();
-		return index.buildSearch(text, options);
+		try {
+			Flowable<JNode> result = index.buildSearch(text, options);
+			if (searchField.getBackground() == SEARCHFIELD_ERROR_COLOR) {
+				searchField.setBackground(searchFieldDefaultBgColor);
+			}
+			return result;
+		} catch (SearchSettings.InvalidSearchTermException e) {
+			searchField.setBackground(SEARCHFIELD_ERROR_COLOR);
+			return Flowable.empty();
+		}
 	}
 
 	private void processSearchResults(java.util.List<JNode> results) {

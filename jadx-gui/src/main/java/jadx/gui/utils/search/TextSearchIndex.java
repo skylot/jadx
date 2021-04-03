@@ -109,7 +109,8 @@ public class TextSearchIndex {
 		this.codeIndex.removeForCls(cls);
 	}
 
-	public Flowable<JNode> buildSearch(String text, Set<SearchDialog.SearchOptions> options) {
+	public Flowable<JNode> buildSearch(String text, Set<SearchDialog.SearchOptions> options)
+			throws SearchSettings.InvalidSearchTermException {
 		boolean ignoreCase = options.contains(IGNORE_CASE);
 		boolean useRegex = options.contains(USE_REGEX);
 
