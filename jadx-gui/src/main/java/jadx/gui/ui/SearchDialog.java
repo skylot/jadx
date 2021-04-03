@@ -95,10 +95,10 @@ public class SearchDialog extends CommonSearchDialog {
 		this.options = buildOptions(preset);
 		this.options.addAll(additionalOptions);
 
+		loadWindowPos();
 		initUI();
 		searchFieldSubscribe();
 		registerInitOnOpen();
-		loadWindowPos();
 		registerActiveTabListener();
 	}
 
@@ -246,8 +246,6 @@ public class SearchDialog extends CommonSearchDialog {
 		});
 
 		setTitle(NLS.str("menu.text_search"));
-		pack();
-		setSize(800, 500);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		setModalityType(ModalityType.MODELESS);
