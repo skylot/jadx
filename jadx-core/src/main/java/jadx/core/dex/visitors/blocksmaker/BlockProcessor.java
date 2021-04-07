@@ -498,19 +498,26 @@ public class BlockProcessor extends AbstractVisitor {
 	}
 
 	private static boolean checkLoops(MethodNode mth, BlockNode block) {
+		if (!block.contains(AFlag.LOOP_START)) {
+			return false;
+		}
 		List<LoopInfo> loops = block.getAll(AType.LOOP);
 		int loopsCount = loops.size();
 		if (loopsCount == 0) {
 			return false;
+		}
+		for (LoopInfo loop : loops) {
+			if (insertBlocksForBreak(mth, loop)) {
+				return true;
+			}
 		}
 		if (loopsCount > 1 && splitLoops(mth, block, loops)) {
 			return true;
 		}
 		if (loopsCount == 1) {
 			LoopInfo loop = loops.get(0);
-			return insertBlocksForBreak(mth, loop)
-					|| insertBlocksForContinue(mth, loop)
-					|| insertBlockForProdecessors(mth, loop)
+			return insertBlocksForContinue(mth, loop)
+					|| insertBlockForPredecessors(mth, loop)
 					|| insertPreHeader(mth, loop);
 		}
 		return false;
@@ -588,7 +595,7 @@ public class BlockProcessor extends AbstractVisitor {
 	/**
 	 * Insert additional block if loop header has several predecessors (exclude back edges)
 	 */
-	private static boolean insertBlockForProdecessors(MethodNode mth, LoopInfo loop) {
+	private static boolean insertBlockForPredecessors(MethodNode mth, LoopInfo loop) {
 		BlockNode loopHeader = loop.getStart();
 		List<BlockNode> preds = loopHeader.getPredecessors();
 		if (preds.size() > 2) {
