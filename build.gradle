@@ -1,11 +1,16 @@
+import java.nio.charset.StandardCharsets
+import com.diffplug.spotless.LineEnding
+
 plugins {
 	id 'com.github.ben-manes.versions' version '0.38.0'
-	id "com.diffplug.spotless" version "5.11.0"
+	id "com.diffplug.spotless" version "5.12.1"
 }
 
 ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
 version = jadxVersion
 println("jadx version: ${jadxVersion}")
+
+def utf8 = StandardCharsets.UTF_8.toString()
 
 allprojects {
 	apply plugin: 'java'
@@ -23,7 +28,7 @@ allprojects {
 	}
 
 	compileJava {
-		options.encoding = "UTF-8"
+		options.encoding = utf8
 	}
 
 	jar {
@@ -38,7 +43,7 @@ allprojects {
 
 		testImplementation 'ch.qos.logback:logback-classic:1.2.3'
 		testImplementation 'org.hamcrest:hamcrest-library:2.2'
-		testImplementation 'org.mockito:mockito-core:3.8.0'
+		testImplementation 'org.mockito:mockito-core:3.9.0'
 		testImplementation 'org.assertj:assertj-core:3.19.0'
 
 		testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
@@ -77,8 +82,8 @@ spotless {
 		eclipse().configFile 'config/code-formatter/eclipse.xml'
 		removeUnusedImports()
 
-		lineEndings(com.diffplug.spotless.LineEnding.UNIX)
-		encoding("UTF-8")
+		lineEndings(LineEnding.UNIX)
+		encoding(utf8)
 		trimTrailingWhitespace()
 		endWithNewline()
 	}
@@ -86,8 +91,8 @@ spotless {
 		target '**/*.gradle', '**/*.md', '**/*.xml', '**/.gitignore', '**/.properties'
 		targetExclude ".gradle/**", ".idea/**", "*/build/**"
 
-		lineEndings(com.diffplug.spotless.LineEnding.UNIX)
-		encoding("UTF-8")
+		lineEndings(LineEnding.UNIX)
+		encoding(utf8)
 		trimTrailingWhitespace()
 		endWithNewline()
 	}
