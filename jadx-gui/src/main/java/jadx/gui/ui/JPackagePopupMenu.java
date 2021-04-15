@@ -121,6 +121,7 @@ class JPackagePopupMenu extends JPopupMenu {
 	private JMenuItem makeExcludeItem() {
 		return new JMenuItem(new AbstractAction(NLS.str("popup.exclude_packages")) {
 			private static final long serialVersionUID = -1111111202104151028L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				new ExcludePkgDialog(mainWindow).setVisible(true);

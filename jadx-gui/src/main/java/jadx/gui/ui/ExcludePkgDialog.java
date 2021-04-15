@@ -1,24 +1,28 @@
 package jadx.gui.ui;
 
-import jadx.gui.utils.NLS;
-import jadx.gui.utils.UiUtils;
-
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import javax.swing.*;
+import javax.swing.tree.*;
+
+import jadx.api.JavaPackage;
+import jadx.gui.utils.NLS;
+import jadx.gui.utils.UiUtils;
 
 public class ExcludePkgDialog extends JDialog {
 	private static final long serialVersionUID = -1111111202104151030L;
+	private static final ImageIcon PACKAGE_ICON = UiUtils.openIcon("package_obj");
 
 	private final transient MainWindow mainWindow;
-	private transient DefaultListModel<ListNode> listModel;
-	private transient java.util.List<ListNode> packages = Collections.emptyList();
+	private transient JTree tree;
+	private transient DefaultMutableTreeNode treeRoot;
+	private final transient List<PkgNode> roots = new ArrayList<>();
 
 	public ExcludePkgDialog(MainWindow mainWindow) {
 		super(mainWindow);
@@ -29,28 +33,22 @@ public class ExcludePkgDialog extends JDialog {
 	}
 
 	private void initUI() {
-		JTextField pkgNameField = new JTextField();
-		JPanel filterPanel = new JPanel(new BorderLayout(20, 5));
-		filterPanel.add(new JLabel(NLS.str("exclude_dialog.pkg_name")), BorderLayout.WEST);
-		filterPanel.add(pkgNameField, BorderLayout.CENTER);
-
-		JList<ListNode> list = new JList<>();
-		listModel = new DefaultListModel<>();
-		list.setModel(listModel);
-		list.setCellRenderer(new PkgListCellRenderer());
-		JScrollPane listPanel = new JScrollPane(list);
+		setTitle(NLS.str("exclude_dialog.title"));
+		tree = new JTree();
+		tree.setRowHeight(-1);
+		treeRoot = new DefaultMutableTreeNode("Packages");
+		DefaultTreeModel treeModel = new DefaultTreeModel(treeRoot);
+		tree.setModel(treeModel);
+		tree.setCellRenderer(new PkgListCellRenderer());
+		JScrollPane listPanel = new JScrollPane(tree);
 		listPanel.setBorder(BorderFactory.createLineBorder(Color.black));
-		list.addMouseListener(new MouseAdapter() {
+		tree.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
-				Point point = e.getPoint();
-				int i = list.locationToIndex(point);
-				if (i > -1) {
-					if (i == listModel.getSize() - 1
-							&& !list.getCellBounds(i, i).contains(point)) {
-						return;
-					}
-					listModel.getElementAt(i).toggle();
+				TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+				if (path != null) {
+					PkgNode node = (PkgNode) path.getLastPathComponent();
+					node.toggle();
 					repaint();
 				}
 			}
@@ -67,10 +65,10 @@ public class ExcludePkgDialog extends JDialog {
 		actionPanel.add(btnDeselect);
 		actionPanel.add(btnInvert);
 		actionPanel.add(btnAll);
+		actionPanel.add(new Label(" "));
 		actionPanel.add(btnOk);
 
 		JPanel mainPane = new JPanel(new BorderLayout(5, 5));
-		mainPane.add(filterPanel, BorderLayout.NORTH);
 		mainPane.add(listPanel, BorderLayout.CENTER);
 		mainPane.add(actionPanel, BorderLayout.SOUTH);
 		mainPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -83,96 +81,172 @@ public class ExcludePkgDialog extends JDialog {
 		setModalityType(ModalityType.MODELESS);
 
 		btnOk.addActionListener(e -> {
-			mainWindow.getWrapper()
-					.setExcludedPackages(packages.stream()
-							.filter(ListNode::isSelected)
-							.map(ListNode::getText)
-							.collect(Collectors.toList()));
+			mainWindow.getWrapper().setExcludedPackages(getExcludes());
 			mainWindow.reOpenFile();
 			dispose();
 		});
-
 		btnAll.addActionListener(e -> {
-			packages.forEach(p -> p.setSelected(true));
-			list.repaint();
+			roots.forEach(p -> p.setSelected(true));
+			tree.updateUI();
 		});
 		btnDeselect.addActionListener(e -> {
-			packages.forEach(p -> p.setSelected(false));
-			list.repaint();
+			roots.forEach(p -> p.setSelected(false));
+			tree.updateUI();
 		});
 		btnInvert.addActionListener(e -> {
-			packages.forEach(ListNode::toggle);
-			list.repaint();
-		});
-
-		pkgNameField.getDocument().addDocumentListener(new DocumentListener() {
-			private void update() {
-				String text = pkgNameField.getText();
-				if (text.isEmpty()) {
-					packages.forEach(p->p.filter(false));
-				} else {
-					packages.forEach(p->p.filter(!p.getText().contains(text)));
-				}
-				listModel.clear();
-				packages.forEach(p->{
-					if(!p.isFiltered()){
-						listModel.addElement(p);
-					}
-				});
-			}
-			@Override
-			public void insertUpdate(DocumentEvent e) {
-				update();
-			}
-
-			@Override
-			public void removeUpdate(DocumentEvent e) {
-				update();
-			}
-
-			@Override
-			public void changedUpdate(DocumentEvent e) {
-				update();
-			}
+			roots.forEach(PkgNode::toggle);
+			tree.updateUI();
 		});
 	}
 
 	private void initPackageList() {
-		List<String> excluded = mainWindow.getWrapper().getExcludedPackages();
-		packages = mainWindow.getWrapper().getDecompiler().getPackages()
+		List<String> pkgs = mainWindow.getWrapper().getDecompiler().getPackages()
 				.stream()
-				.map(p -> new ListNode(p.getFullName(), excluded.contains(p.getFullName())))
+				.map(JavaPackage::getFullName)
 				.collect(Collectors.toList());
-		packages.forEach(listModel::addElement);
+		getPackageTree(pkgs).forEach(treeRoot::add);
+		initCheckbox();
+		tree.expandPath(new TreePath(treeRoot.getPath()));
 	}
 
-	private static class ListNode {
-		boolean filtered;
+	private List<PkgNode> getPackageTree(List<String> names) {
+		List<PkgNode> roots = new ArrayList<>();
+		Set<String> nameSet = new HashSet<>();
+		Map<String, List<PkgNode>> childMap = new HashMap<>();
+		for (String name : names) {
+			String parent = "";
+			int last = 0;
+			do {
+				int pos = name.indexOf(".", last);
+				if (pos == -1) {
+					pos = name.length();
+				}
+				String fullName = name.substring(0, pos);
+				if (!nameSet.contains(fullName)) {
+					nameSet.add(fullName);
+					PkgNode node = new PkgNode(fullName, name.substring(last, pos));
+					if (!parent.isEmpty()) {
+						childMap.computeIfAbsent(parent, k -> new ArrayList<>())
+								.add(node);
+					} else {
+						roots.add(node);
+					}
+				}
+				parent = fullName;
+				last = pos + 1;
+			} while (last < name.length());
+		}
+		addToParent(null, roots, childMap);
+		return this.roots;
+	}
+
+	private PkgNode addToParent(PkgNode parent, List<PkgNode> roots, Map<String, List<PkgNode>> childMap) {
+		for (PkgNode root : roots) {
+			String tempFullName = root.getFullName();
+			do {
+				List<PkgNode> children = childMap.get(tempFullName);
+				if (children != null) {
+					if (children.size() == 1) {
+						PkgNode next = children.get(0);
+						next.name = root.name + "." + next.name;
+						tempFullName = next.fullName;
+						next.fullName = root.fullName;
+						root = next;
+						continue;
+					} else {
+						addToParent(root, children, childMap);
+					}
+				}
+				if (parent == null) {
+					this.roots.add(root);
+				} else {
+					parent.add(root);
+				}
+				break;
+			} while (true);
+		}
+		return parent;
+	}
+
+	private List<String> getExcludes() {
+		List<String> excludes = new ArrayList<>();
+		walkTree(true, p -> excludes.add(p.getFullName()));
+		return excludes;
+	}
+
+	private void initCheckbox() {
+		Font tmp = mainWindow.getSettings().getFont();
+		Font font = tmp.deriveFont(tmp.getSize() + 1.f);
+		Set<String> excluded = new HashSet<>(mainWindow.getWrapper().getExcludedPackages());
+		walkTree(false, p -> p.initCheckbox(excluded.contains(p.getFullName()), font));
+	}
+
+	private void walkTree(boolean findSelected, Consumer<PkgNode> consumer) {
+		List<PkgNode> queue = new ArrayList<>(roots);
+		for (int i = 0; i < queue.size(); i++) {
+			PkgNode node = queue.get(i);
+			if (findSelected && node.isSelected()) {
+				consumer.accept(node);
+			} else {
+				if (!findSelected) {
+					consumer.accept(node);
+				}
+				for (int j = 0; j < node.getChildCount(); j++) {
+					queue.add((PkgNode) node.getChildAt(j));
+				}
+			}
+		}
+	}
+
+	private static class PkgNode extends DefaultMutableTreeNode {
+		private static final long serialVersionUID = -1111111202104151430L;
+
+		String name;
+		String fullName;
 		JCheckBox checkbox;
 
-		ListNode(String text, boolean select) {
-			checkbox = new JCheckBox(text, select);
-			checkbox.addMouseListener(new MouseAdapter() {
-				@Override
-				public void mousePressed(MouseEvent e) {
-					super.mousePressed(e);
-					System.out.println(e.getPoint());
+		PkgNode(String fullName, String name) {
+			this.name = name;
+			this.fullName = fullName;
+		}
+
+		void initCheckbox(boolean select, Font font) {
+			if (!select) {
+				if (getParent() instanceof PkgNode) {
+					select = ((PkgNode) getParent()).isSelected();
 				}
-			});
+			}
+			checkbox = new JCheckBox(name, select);
+			checkbox.setFont(font);
 		}
 
 		boolean toggle() {
-			if (!isFiltered()) {
-				boolean yes = !checkbox.isSelected();
-				checkbox.setSelected(yes);
-				return yes;
-			}
-			return false;
+			boolean selected = !checkbox.isSelected();
+			setSelected(selected);
+			toggleParents(selected);
+			return selected;
 		}
 
-		void setSelected(boolean yes) {
-			if (!isFiltered()) {
-				checkbox.setSelected(yes);
+		void toggleParents(boolean select) {
+			if (getParent() instanceof PkgNode) {
+				PkgNode p = ((PkgNode) getParent());
+				if (select) {
+					select = p.isChildrenAllSelected();
+					if (select) {
+						p.checkbox.setSelected(true);
+						p.toggleParents(true);
+					}
+				} else {
+					p.checkbox.setSelected(false);
+					p.toggleParents(false);
+				}
+			}
+		}
+
+		void setSelected(boolean select) {
+			checkbox.setSelected(select);
+			for (int i = 0; i < getChildCount(); i++) {
+				((PkgNode) getChildAt(i)).setSelected(select);
 			}
 		}
 
@@ -180,37 +254,44 @@ public class ExcludePkgDialog extends JDialog {
 			return checkbox.isSelected();
 		}
 
-		String getText() {
-			return checkbox.getText();
+		String getFullName() {
+			return fullName;
 		}
 
-		void filter(boolean filtered) {
-			this.filtered = filtered;
+		String getDisplayName() {
+			return name;
 		}
 
-		boolean isFiltered() {
-			return this.filtered;
+		boolean isChildrenAllSelected() {
+			for (int i = 0; i < getChildCount(); i++) {
+				if (!((PkgNode) getChildAt(i)).isSelected()) {
+					return false;
+				}
+			}
+			return true;
 		}
 
 		@Override
 		public String toString() {
-			return checkbox.getText();
+			return name;
 		}
 	}
 
-	private static class PkgListCellRenderer implements ListCellRenderer<ListNode> {
+	private static class PkgListCellRenderer extends DefaultTreeCellRenderer {
+		private static final long serialVersionUID = -1111111202104151235L;
 
 		@Override
-		public Component getListCellRendererComponent(JList<? extends ListNode> list, ListNode value,
-													  int index, boolean isSelected, boolean cellHasFocus) {
-			if (value.isSelected()) {
-				value.checkbox.setBackground(list.getSelectionBackground());
-				value.checkbox.setForeground(Color.white);
-			} else {
-				value.checkbox.setBackground(list.getBackground());
-				value.checkbox.setForeground(Color.black);
+		public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row,
+				boolean hasFocus) {
+			if (value instanceof PkgNode) {
+				PkgNode node = (PkgNode) value;
+				node.checkbox.setBackground(Color.white);
+				node.checkbox.setForeground(Color.black);
+				return node.checkbox;
 			}
-			return value.checkbox;
+			Component c = super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+			setIcon(PACKAGE_ICON);
+			return c;
 		}
 	}
 
