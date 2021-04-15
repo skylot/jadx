@@ -1,6 +1,6 @@
 plugins {
 	id 'application'
-	id 'edu.sc.seis.launch4j' version '2.4.9'
+	id 'edu.sc.seis.launch4j' version '2.5.0'
 	id 'com.github.johnrengelman.shadow' version '6.1.0'
 }
 
@@ -21,13 +21,13 @@ dependencies {
 
 	implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
 	implementation "com.github.akarnokd:rxjava2-swing:0.3.7"
-	implementation 'com.android.tools.build:apksig:4.1.1'
+	implementation 'com.android.tools.build:apksig:4.1.3'
 	implementation 'io.github.hqktech:jdwp:1.0'
 }
 
 application {
 	applicationName = 'jadx-gui'
-	mainClassName = 'jadx.gui.JadxGUI'
+	mainClass.set('jadx.gui.JadxGUI')
 }
 
 applicationDistribution.with {
@@ -42,12 +42,15 @@ applicationDistribution.with {
 jar {
 	manifest {
 		attributes(
-				"Main-Class": mainClassName,
+				"Main-Class": application.mainClass.get(),
 				"Class-Path": configurations.runtimeClasspath.collect { it.getName() }.join(' ')
 		)
 	}
 }
 
+shadow {
+	mainClassName = application.mainClass.get()
+}
 shadowJar {
 	mergeServiceFiles()
 }
@@ -64,9 +67,9 @@ startScripts {
 }
 
 launch4j {
-	mainClassName = 'jadx.gui.JadxGUI'
+	mainClassName = application.mainClass.get()
 	copyConfigurable = project.tasks.shadowJar.outputs.files
-	jar = "lib/${project.tasks.shadowJar.archiveFileName.get()}"
+	jarTask = project.tasks.shadowJar
 	icon = "${projectDir}/src/main/resources/logos/jadx-logo.ico"
 	outfile = "jadx-gui-${version}.exe"
 	copyright = 'Skylot'

@@ -11,14 +11,19 @@ stages:
 java-8:
   stage: test
   image: openjdk:8
-  script: ./gradlew clean build dist
+  script: ./gradlew clean build dist --warning-mode=all
 
 java-11:
   stage: test
   image: openjdk:11
-  script: ./gradlew clean build dist
+  script: ./gradlew clean build dist --warning-mode=all
+
+java-15:
+  stage: test
+  image: openjdk:15
+  script: ./gradlew clean build dist --warning-mode=all
 
 java-latest:
   stage: test
   image: openjdk:latest
-  script: java -version && ./gradlew clean build dist
+  script: java -version && ./gradlew clean build dist --warning-mode=all

@@ -1,6 +1,6 @@
 plugins {
 	id 'com.github.ben-manes.versions' version '0.38.0'
-	id "com.diffplug.spotless" version "5.11.0"
+	id "com.diffplug.spotless" version "5.12.4"
 }
 
 ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
@@ -38,7 +38,7 @@ allprojects {
 
 		testImplementation 'ch.qos.logback:logback-classic:1.2.3'
 		testImplementation 'org.hamcrest:hamcrest-library:2.2'
-		testImplementation 'org.mockito:mockito-core:3.8.0'
+		testImplementation 'org.mockito:mockito-core:3.9.0'
 		testImplementation 'org.assertj:assertj-core:3.19.0'
 
 		testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
@@ -75,7 +75,12 @@ spotless {
 
 		importOrderFile 'config/code-formatter/eclipse.importorder'
 		eclipse().configFile 'config/code-formatter/eclipse.xml'
-		removeUnusedImports()
+		if (JavaVersion.current() < JavaVersion.VERSION_16) {
+			removeUnusedImports()
+		} else {
+			// google-format broken on java 16 (https://github.com/diffplug/spotless/issues/834)
+			println('Warning! Unused imports remove is disabled for Java 16')
+		}
 
 		lineEndings(com.diffplug.spotless.LineEnding.UNIX)
 		encoding("UTF-8")
@@ -108,32 +113,42 @@ dependencyUpdates {
 	}
 }
 
-task copyArtifacts(type: Sync, dependsOn: ['jadx-cli:installDist', 'jadx-gui:installDist']) {
-	destinationDir file("$buildDir/jadx")
-	['jadx-cli', 'jadx-gui'].each {
-		from tasks.getByPath(":${it}:installDist").destinationDir
-	}
+task copyArtifacts(type: Copy) {
+	from tasks.getByPath(":jadx-cli:installDist")
+	from tasks.getByPath(":jadx-gui:installDist")
+	into layout.buildDirectory.dir("jadx")
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-task pack(type: Zip, dependsOn: copyArtifacts) {
-	destinationDirectory = buildDir
+task pack(type: Zip) {
+	from copyArtifacts
 	archiveFileName = "jadx-${jadxVersion}.zip"
-	from copyArtifacts.destinationDir
+	destinationDirectory = layout.buildDirectory
 }
 
-task copyExe(type: Copy, dependsOn: 'jadx-gui:createExe') {
+task copyExe(type: Copy) {
 	group 'jadx'
 	description = 'Copy exe to build dir'
-	destinationDir buildDir
-	from tasks.getByPath('jadx-gui:createExe').outputs
+	mustRunAfter pack // not needed, but gradle throws warning because of same output dir
+
+	from tasks.getByPath('jadx-gui:createExe')
 	include '*.exe'
+	into layout.buildDirectory
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-task dist(dependsOn: [pack, copyExe]) {
+task dist {
 	group 'jadx'
 	description = 'Build jadx distribution zip'
+
+	dependsOn(pack)
+	if (JavaVersion.current() < JavaVersion.VERSION_16) {
+		dependsOn('copyExe')
+	} else {
+		// shadow jar plugin broken on java 16 (https://github.com/johnrengelman/shadow/issues/658)
+		tasks.getByPath(':jadx-gui:shadowJar').enabled = false
+		println('Warning! Build of jadx-gui.exe disabled for Java 16')
+	}
 }
 
 task samples(dependsOn: 'jadx-samples:samples') {

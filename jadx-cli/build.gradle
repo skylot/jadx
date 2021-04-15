@@ -15,7 +15,7 @@ dependencies {
 
 application {
 	applicationName = 'jadx'
-	mainClassName = 'jadx.cli.JadxCLI'
+	mainClass.set('jadx.cli.JadxCLI')
 	applicationDefaultJvmArgs = ['-Xms128M', '-Xmx4g', '-XX:+UseG1GC']
 }
 

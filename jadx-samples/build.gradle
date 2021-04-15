@@ -27,7 +27,7 @@ task samplesJar(type: Jar, dependsOn: samplesRun) {
 
 task samplesJadxCreate(type: JavaExec, dependsOn: samplesJar) {
 	classpath = sourceSets.main.output + configurations.runtimeClasspath
-	main = project(":jadx-cli").mainClassName
+	main = project(":jadx-cli").application.mainClass.get()
 	args = ['-v', '-d', samplesJadxSrcDir, samplesJar.archiveFile.get()]
 }
 
