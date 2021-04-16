@@ -112,6 +112,11 @@ public class JadxWrapper {
 		return Arrays.asList(excludedPackages.split("[ ]+"));
 	}
 
+	public void setExcludedPackages(List<String> packagesToExclude) {
+		settings.setExcludedPackages(String.join(" ", packagesToExclude).trim());
+		settings.sync();
+	}
+
 	public void addExcludedPackage(String packageToExclude) {
 		String newExclusion = settings.getExcludedPackages() + ' ' + packageToExclude;
 		settings.setExcludedPackages(newExclusion.trim());
