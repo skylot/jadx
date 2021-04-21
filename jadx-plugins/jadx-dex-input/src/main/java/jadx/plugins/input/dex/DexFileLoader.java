@@ -1,6 +1,7 @@
 package jadx.plugins.input.dex;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -14,8 +15,6 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.io.ByteStreams;
 
 import jadx.api.plugins.utils.ZipSecurity;
 import jadx.plugins.input.dex.sections.DexConsts;
@@ -93,7 +92,16 @@ public class DexFileLoader {
 	}
 
 	private static byte[] readAllBytes(InputStream in) throws IOException {
-		return ByteStreams.toByteArray(in);
+		ByteArrayOutputStream buf = new ByteArrayOutputStream();
+		byte[] data = new byte[8192];
+		while (true) {
+			int read = in.read(data);
+			if (read == -1) {
+				break;
+			}
+			buf.write(data, 0, read);
+		}
+		return buf.toByteArray();
 	}
 
 	private static int getNextUniqId() {
