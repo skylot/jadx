@@ -128,10 +128,10 @@ public class WrapLayout extends FlowLayout {
 
 				if (m.isVisible()) {
 					Dimension d = preferred ? m.getPreferredSize() : m.getMinimumSize();
+					int width = d.width;
 
 					// Can't add the component to current row. Start a new row.
-
-					if (rowWidth + d.width > maxWidth) {
+					if (rowWidth + width >= maxWidth) {
 						addRow(dim, rowWidth, rowHeight);
 						rowWidth = 0;
 						rowHeight = 0;
@@ -143,7 +143,7 @@ public class WrapLayout extends FlowLayout {
 						rowWidth += hgap;
 					}
 
-					rowWidth += d.width;
+					rowWidth += width;
 					rowHeight = Math.max(rowHeight, d.height);
 				}
 			}

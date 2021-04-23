@@ -95,7 +95,9 @@ public abstract class CommonSearchDialog extends JDialog {
 	protected abstract void loadStart();
 
 	public void loadWindowPos() {
-		mainWindow.getSettings().loadWindowPos(this);
+		if (!mainWindow.getSettings().loadWindowPos(this)) {
+			setSize(800, 500);
+		}
 	}
 
 	public void prepare() {

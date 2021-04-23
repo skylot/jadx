@@ -52,14 +52,13 @@ public class SearchSettings {
 		return this.regexPattern;
 	}
 
-	public boolean preCompile() {
+	public boolean preCompile() throws InvalidSearchTermException {
 		if (useRegex) {
 			try {
 				int flags = ignoreCase ? Pattern.CASE_INSENSITIVE : 0;
 				this.regexPattern = Pattern.compile(searchString, flags);
 			} catch (Exception e) {
-				LOG.warn("Invalid Regex: {}", this.searchString, e);
-				return false;
+				throw new InvalidSearchTermException("Invalid Regex: " + this.searchString, e);
 			}
 		}
 		return true;
@@ -104,5 +103,12 @@ public class SearchSettings {
 
 	public void setActiveCls(JClass activeCls) {
 		this.activeCls = activeCls;
+	}
+
+	public static class InvalidSearchTermException extends Exception {
+
+		public InvalidSearchTermException(String message, Throwable cause) {
+			super(message, cause);
+		}
 	}
 }
