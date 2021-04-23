@@ -173,10 +173,11 @@ public class ManifestAttributes {
 		} else if (attr.getType() == MAttrType.FLAG) {
 			StringBuilder sb = new StringBuilder();
 			for (Map.Entry<Long, String> entry : attr.getValues().entrySet()) {
-				if (value == entry.getKey()) {
+				long key = entry.getKey();
+				if (value == key) {
 					sb = new StringBuilder(entry.getValue() + '|');
 					break;
-				} else if ((value & entry.getKey()) == entry.getKey()) {
+				} else if ((key != 0) && ((value & key) == key)) {
 					sb.append(entry.getValue()).append('|');
 				}
 			}
