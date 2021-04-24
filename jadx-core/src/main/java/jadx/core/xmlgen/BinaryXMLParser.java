@@ -158,9 +158,10 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int beginPrefix = is.readInt32();
 		int beginURI = is.readInt32();
 
+		String nsKey = getString(beginURI);
 		String nsValue = getString(beginPrefix);
-		if (!nsMap.containsValue(nsValue)) {
-			nsMap.putIfAbsent(getString(beginURI), nsValue);
+		if (StringUtils.notBlank(nsKey) && !nsMap.containsValue(nsValue)) {
+			nsMap.putIfAbsent(nsKey, nsValue);
 		}
 		namespaceDepth++;
 	}
@@ -178,9 +179,10 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int endURI = is.readInt32();
 		namespaceDepth--;
 
+		String nsKey = getString(endURI);
 		String nsValue = getString(endPrefix);
-		if (!nsMap.containsValue(nsValue)) {
-			nsMap.putIfAbsent(getString(endURI), nsValue);
+		if (StringUtils.notBlank(nsKey) && !nsMap.containsValue(nsValue)) {
+			nsMap.putIfAbsent(nsKey, nsValue);
 		}
 	}
 
@@ -246,7 +248,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int styleIndex = is.readInt16();
 		if ("manifest".equals(currentTag) || writer.getIndent() == 0) {
 			for (Map.Entry<String, String> entry : nsMap.entrySet()) {
-				String nsValue = entry.getValue();
+				String nsValue = getValidTagAttributeName(entry.getValue());
 				writer.add(" xmlns");
 				if (nsValue != null && !nsValue.trim().isEmpty()) {
 					writer.add(':');
