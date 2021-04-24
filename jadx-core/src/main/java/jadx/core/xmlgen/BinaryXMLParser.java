@@ -160,7 +160,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 
 		String nsKey = getString(beginURI);
 		String nsValue = getString(beginPrefix);
-		if (!nsMap.containsValue(nsValue) && !nsKey.isBlank()) {
+		if (StringUtils.notBlank(nsKey) && !nsMap.containsValue(nsValue)) {
 			nsMap.putIfAbsent(nsKey, nsValue);
 		}
 		namespaceDepth++;
@@ -181,7 +181,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 
 		String nsKey = getString(endURI);
 		String nsValue = getString(endPrefix);
-		if (!nsMap.containsValue(nsValue) && !nsKey.isBlank()) {
+		if (StringUtils.notBlank(nsKey) && !nsMap.containsValue(nsValue)) {
 			nsMap.putIfAbsent(nsKey, nsValue);
 		}
 	}
