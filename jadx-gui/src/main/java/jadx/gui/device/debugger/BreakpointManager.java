@@ -123,7 +123,7 @@ public class BreakpointManager {
 		Entry<String, Integer> lineInfo = DbgUtils.getCodeOffsetInfoByLine(topCls, line);
 		if (lineInfo != null) {
 			List<FileBreakpoint> bps = bpm.get(DbgUtils.getRawFullName(topCls));
-			for (Iterator<FileBreakpoint> it = bps.iterator(); it.hasNext();) {
+			for (Iterator<FileBreakpoint> it = bps.iterator(); it.hasNext(); ) {
 				FileBreakpoint bp = it.next();
 				if (bp.codeOffset == lineInfo.getValue() && bp.getFullMthRawID().equals(lineInfo.getKey())) {
 					it.remove();
@@ -166,7 +166,7 @@ public class BreakpointManager {
 
 		@Override
 		public int hashCode() {
-			return (int) (31 * codeOffset + 31 * cls.hashCode() + 31 * mth.hashCode());
+			return 31 * (int) codeOffset + 31 * cls.hashCode() + 31 * mth.hashCode();
 		}
 
 		@Override
