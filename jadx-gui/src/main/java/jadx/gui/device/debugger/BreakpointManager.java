@@ -166,7 +166,7 @@ public class BreakpointManager {
 
 		@Override
 		public int hashCode() {
-			return (int) (31 * codeOffset + 31 * cls.hashCode() + 31 * mth.hashCode());
+			return Objects.hash(codeOffset, cls, mth);
 		}
 
 		@Override

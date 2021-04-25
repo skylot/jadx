@@ -660,8 +660,8 @@ public class Smali {
 	private void formatByteCode(StringBuilder smali, byte[] bytes) {
 		int maxLen = Math.min(bytes.length, 4 * 2); // limit to 4 units
 		StringBuilder inHex = new StringBuilder();
-		for (int i = 0; i < maxLen; i++) {
-			int temp = ((bytes[i++] & 0xff) << 8) | (bytes[i] & 0xff);
+		for (int i = 0; i < maxLen - 1; i += 2) {
+			int temp = ((bytes[i] & 0xff) << 8) | (bytes[i + 1] & 0xff);
 			inHex.append(String.format("%04x ", temp));
 		}
 		smali.append(String.format(FMT_BYTECODE_COL, inHex));
