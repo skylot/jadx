@@ -624,7 +624,8 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 						}
 					}
 					resultDesc = rst.desc;
-				} while (false);
+					break;
+				} while (true);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
