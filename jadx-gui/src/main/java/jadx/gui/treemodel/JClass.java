@@ -57,11 +57,11 @@ public class JClass extends JLoadableNode {
 	}
 
 	public synchronized void load() {
-		if (!loaded) {
-			cls.decompile();
-			cls.unload();
-			loaded = true;
+		if (loaded) {
+			return;
 		}
+		cls.decompile();
+		loaded = true;
 		update();
 	}
 
@@ -69,7 +69,6 @@ public class JClass extends JLoadableNode {
 		cls.reload();
 		loaded = true;
 		update();
-		cls.unload();
 	}
 
 	public synchronized void update() {
@@ -93,8 +92,7 @@ public class JClass extends JLoadableNode {
 
 	@Override
 	public @Nullable ICodeInfo getCodeInfo() {
-		load();
-		return cls.getClassNode().getCode();
+		return cls.getCodeInfo();
 	}
 
 	@Override

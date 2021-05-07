@@ -66,11 +66,6 @@ public final class JavaClass implements JavaNode {
 		return cls.getSmali();
 	}
 
-	public synchronized void unload() {
-		cls.unload();
-		listsLoaded = false;
-	}
-
 	/**
 	 * Internal API. Not Stable!
 	 */

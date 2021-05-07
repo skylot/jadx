@@ -68,8 +68,6 @@ public class JadxWrapper {
 			decompiler.getArgs().setRootDir(dir);
 			decompiler.save(500, (done, total) -> progressMonitor.setProgress((int) (done * 100.0 / total)));
 			progressMonitor.close();
-			LOG.info("decompilation complete, freeing memory ...");
-			decompiler.getClasses().forEach(JavaClass::unload);
 			LOG.info("done");
 		};
 		new Thread(save).start();

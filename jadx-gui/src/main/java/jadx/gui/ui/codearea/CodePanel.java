@@ -120,9 +120,6 @@ public class CodePanel extends JPanel {
 		if (codeArea instanceof SmaliArea) {
 			return;
 		}
-		LineNumbers numbers = new LineNumbers(codeArea);
-		numbers.setUseSourceLines(isUseSourceLines());
-		codeScrollPane.setRowHeaderView(numbers);
 		initLineNumbers(isUseSourceLines());
 	}
 

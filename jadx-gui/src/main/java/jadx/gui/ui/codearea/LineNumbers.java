@@ -42,7 +42,8 @@ public class LineNumbers extends JPanel implements CaretListener {
 	private static final int NUM_HEIGHT = Integer.MAX_VALUE - 1000000;
 	private static final Map<?, ?> DESKTOP_HINTS = (Map<?, ?>) Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints");
 
-	private final AbstractCodeArea codeArea;
+	private final transient AbstractCodeArea codeArea;
+	private final transient ICodeInfo codeInfo;
 	private boolean useSourceLines = true;
 
 	private transient int lastDigits;
@@ -55,10 +56,11 @@ public class LineNumbers extends JPanel implements CaretListener {
 
 	private transient Insets textAreaInsets;
 	private transient Rectangle visibleRect = new Rectangle();
-	private transient ICodeInfo codeInfo;
 
 	public LineNumbers(AbstractCodeArea codeArea) {
 		this.codeArea = codeArea;
+		this.codeInfo = codeArea.getNode().getCodeInfo();
+
 		setFont(codeArea.getFont());
 		SyntaxScheme syntaxScheme = codeArea.getSyntaxScheme();
 		numberColor = syntaxScheme.getStyle(Token.LITERAL_NUMBER_DECIMAL_INT).foreground;
@@ -110,8 +112,6 @@ public class LineNumbers extends JPanel implements CaretListener {
 	@SuppressWarnings("deprecation")
 	@Override
 	public void paintComponent(Graphics g) {
-		codeInfo = codeArea.getNode().getCodeInfo();
-
 		visibleRect = g.getClipBounds(visibleRect);
 		if (visibleRect == null) {
 			visibleRect = getVisibleRect();
@@ -127,7 +127,7 @@ public class LineNumbers extends JPanel implements CaretListener {
 
 		Dimension size = getSize();
 		g.setColor(codeArea.getBackground());
-		g.fillRect(0, 0, size.width, size.height);
+		g.fillRect(0, visibleRect.y, size.width, visibleRect.height);
 
 		FontMetrics fontMetrics = codeArea.getFontMetrics(font);
 		Insets insets = getInsets();
