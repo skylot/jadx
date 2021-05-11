@@ -85,9 +85,9 @@ public class Jadx {
 		List<IDexTreeVisitor> passes = new ArrayList<>();
 		passes.add(new SignatureProcessor());
 		passes.add(new OverrideMethodVisitor());
-		passes.add(new ProcessAnonymous());
 		passes.add(new RenameVisitor());
 		passes.add(new UsageInfoVisitor());
+		passes.add(new ProcessAnonymous());
 		return passes;
 	}
 

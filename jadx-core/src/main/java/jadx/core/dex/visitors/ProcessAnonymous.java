@@ -5,11 +5,15 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.dex.visitors.usage.UsageInfoVisitor;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
 		name = "ProcessAnonymous",
-		desc = "Mark anonymous and lambda classes (for future inline)"
+		desc = "Mark anonymous and lambda classes (for future inline)",
+		runAfter = {
+				UsageInfoVisitor.class
+		}
 )
 public class ProcessAnonymous extends AbstractVisitor {
 
@@ -30,7 +34,7 @@ public class ProcessAnonymous extends AbstractVisitor {
 	}
 
 	private static void markAnonymousClass(ClassNode cls) {
-		if (isAnonymous(cls) || isLambdaCls(cls)) {
+		if (usedOnlyOnce(cls) || isAnonymous(cls) || isLambdaCls(cls)) {
 			cls.add(AFlag.ANONYMOUS_CLASS);
 			cls.add(AFlag.DONT_GENERATE);
 
@@ -40,6 +44,28 @@ public class ProcessAnonymous extends AbstractVisitor {
 				}
 			}
 		}
+	}
+
+	private static boolean usedOnlyOnce(ClassNode cls) {
+		if (cls.getUseIn().size() == 1 && cls.getUseInMth().size() == 1) {
+			// used only once
+			boolean synthetic = cls.getAccessFlags().isSynthetic() || cls.getClassInfo().getShortName().contains("$");
+			if (synthetic) {
+				// must have only one constructor which used only once
+				MethodNode ctr = null;
+				for (MethodNode mth : cls.getMethods()) {
+					if (mth.isConstructor()) {
+						if (ctr != null) {
+							ctr = null;
+							break;
+						}
+						ctr = mth;
+					}
+				}
+				return ctr != null && ctr.getUseIn().size() == 1;
+			}
+		}
+		return false;
 	}
 
 	private static boolean isAnonymous(ClassNode cls) {
