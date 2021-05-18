@@ -1,6 +1,10 @@
 package jadx.gui.settings;
 
-import java.awt.*;
+import java.awt.Font;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
+import java.awt.Window;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -13,7 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import javax.swing.*;
+import javax.swing.JFrame;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +41,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private static final Path USER_HOME = Paths.get(System.getProperty("user.home"));
 	private static final int RECENT_PROJECTS_COUNT = 15;
-	private static final int CURRENT_SETTINGS_VERSION = 11;
+	private static final int CURRENT_SETTINGS_VERSION = 12;
 
 	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
@@ -336,6 +340,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.inlineAnonymousClasses = inlineAnonymousClasses;
 	}
 
+	public void setInlineMethods(boolean inlineMethods) {
+		this.inlineMethods = inlineMethods;
+	}
+
 	public void setFsCaseSensitive(boolean fsCaseSensitive) {
 		this.fsCaseSensitive = fsCaseSensitive;
 	}
@@ -581,6 +589,10 @@ public class JadxSettings extends JadxCLIArgs {
 			srhResourceSkipSize = 3;
 			srhResourceFileExt = ".xml|.html|.js|.json|.txt";
 			fontStr = fontStr.replace('-', '/');
+			fromVersion++;
+		}
+		if (fromVersion == 11) {
+			inlineMethods = true;
 			fromVersion++;
 		}
 		if (fromVersion != CURRENT_SETTINGS_VERSION) {

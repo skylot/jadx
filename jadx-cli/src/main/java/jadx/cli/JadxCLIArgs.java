@@ -64,6 +64,9 @@ public class JadxCLIArgs {
 	@Parameter(names = { "--no-inline-anonymous" }, description = "disable anonymous classes inline")
 	protected boolean inlineAnonymousClasses = true;
 
+	@Parameter(names = { "--no-inline-methods" }, description = "disable methods inline")
+	protected boolean inlineMethods = true;
+
 	@Parameter(names = "--no-replace-consts", description = "don't replace constant value with matching constant field")
 	protected boolean replaceConsts = true;
 
@@ -215,6 +218,7 @@ public class JadxCLIArgs {
 		args.setDebugInfo(debugInfo);
 		args.setInsertDebugLines(addDebugLines);
 		args.setInlineAnonymousClasses(inlineAnonymousClasses);
+		args.setInlineMethods(inlineMethods);
 		args.setRenameCaseSensitive(isRenameCaseSensitive());
 		args.setRenameValid(isRenameValid());
 		args.setRenamePrintable(isRenamePrintable());
@@ -272,6 +276,10 @@ public class JadxCLIArgs {
 
 	public boolean isInlineAnonymousClasses() {
 		return inlineAnonymousClasses;
+	}
+
+	public boolean isInlineMethods() {
+		return inlineMethods;
 	}
 
 	public boolean isDeobfuscationOn() {

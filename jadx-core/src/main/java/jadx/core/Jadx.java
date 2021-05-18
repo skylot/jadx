@@ -125,8 +125,9 @@ public class Jadx {
 		if (args.isDebugInfo()) {
 			passes.add(new DebugInfoApplyVisitor());
 		}
-
-		passes.add(new InlineMethods());
+		if (args.isInlineMethods()) {
+			passes.add(new InlineMethods());
+		}
 		passes.add(new GenericTypesVisitor());
 		passes.add(new ShadowFieldVisitor());
 		passes.add(new DeboxingVisitor());
@@ -153,8 +154,9 @@ public class Jadx {
 		passes.add(new ClassModifier());
 		passes.add(new LoopRegionVisitor());
 
-		passes.add(new MarkMethodsForInline());
-
+		if (args.isInlineMethods()) {
+			passes.add(new MarkMethodsForInline());
+		}
 		passes.add(new ProcessVariables());
 		passes.add(new PrepareForCodeGen());
 		if (args.isCfgOutput()) {

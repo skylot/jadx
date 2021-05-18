@@ -42,6 +42,7 @@ public class JadxArgs {
 	private boolean debugInfo = true;
 	private boolean insertDebugLines = false;
 	private boolean inlineAnonymousClasses = true;
+	private boolean inlineMethods = true;
 
 	private boolean skipResources = false;
 	private boolean skipSources = false;
@@ -197,6 +198,14 @@ public class JadxArgs {
 
 	public void setInlineAnonymousClasses(boolean inlineAnonymousClasses) {
 		this.inlineAnonymousClasses = inlineAnonymousClasses;
+	}
+
+	public boolean isInlineMethods() {
+		return inlineMethods;
+	}
+
+	public void setInlineMethods(boolean inlineMethods) {
+		this.inlineMethods = inlineMethods;
 	}
 
 	public boolean isSkipResources() {
