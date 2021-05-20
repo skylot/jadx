@@ -43,6 +43,7 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.CodeGenUtils;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.Utils;
+import jadx.core.utils.android.AndroidResourcesUtils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -402,7 +403,9 @@ public class ClassGen {
 				if (encodedValue.getType() == EncodedType.ENCODED_NULL) {
 					code.add(TypeGen.literalToString(0, f.getType(), cls, fallback));
 				} else {
-					annotationGen.encodeValue(cls.root(), code, encodedValue);
+					if (!AndroidResourcesUtils.handleResourceFieldValue(cls, code, encodedValue)) {
+						annotationGen.encodeValue(cls.root(), code, encodedValue);
+					}
 				}
 			} else if (fv.isInsn()) {
 				InsnGen insnGen = makeInsnGen(fv.getInsnMth());
