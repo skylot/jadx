@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ICodeWriter;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.annotations.EncodedType;
-import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.core.codegen.ClassGen;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
@@ -104,8 +103,7 @@ public class AndroidResourcesUtils {
 			if (rField == null) {
 				FieldInfo rFieldInfo = FieldInfo.from(typeCls.root(), typeCls.getClassInfo(), resName, ArgType.INT);
 				rField = new FieldNode(typeCls, rFieldInfo, AccessFlags.PUBLIC | AccessFlags.STATIC | AccessFlags.FINAL);
-				EncodedValue value = new EncodedValue(EncodedType.ENCODED_INT, resource.getId());
-				rField.addAttr(FieldInitAttr.constValue(value));
+				rField.addAttr(FieldInitAttr.hexConstValue(EncodedType.ENCODED_INT, resource.getId()));
 				typeCls.getFields().add(rField);
 				if (rClsExists) {
 					rField.addAttr(AType.COMMENTS, "added by JADX");

@@ -215,6 +215,9 @@ public class AnnotationGen {
 			case ENCODED_ANNOTATION:
 				formatAnnotation(code, (IAnnotation) value);
 				break;
+			case ENCODED_HEX_NUMBER:
+				code.add(String.format("0x%x", value));
+				break;
 
 			default:
 				throw new JadxRuntimeException("Can't decode value: " + encodedValue.getType() + " (" + encodedValue + ')');
