@@ -1,6 +1,6 @@
 plugins {
 	id 'com.github.ben-manes.versions' version '0.38.0'
-	id "com.diffplug.spotless" version "5.12.4"
+	id "com.diffplug.spotless" version "5.12.5"
 }
 
 ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
@@ -38,11 +38,11 @@ allprojects {
 
 		testImplementation 'ch.qos.logback:logback-classic:1.2.3'
 		testImplementation 'org.hamcrest:hamcrest-library:2.2'
-		testImplementation 'org.mockito:mockito-core:3.9.0'
+		testImplementation 'org.mockito:mockito-core:3.10.0'
 		testImplementation 'org.assertj:assertj-core:3.19.0'
 
-		testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
-		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
+		testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
+		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
 
 		testImplementation 'org.eclipse.jdt.core.compiler:ecj:4.6.1'
 		testCompileOnly 'org.jetbrains:annotations:20.1.0'
@@ -142,13 +142,7 @@ task dist {
 	description = 'Build jadx distribution zip'
 
 	dependsOn(pack)
-	if (JavaVersion.current() < JavaVersion.VERSION_16) {
-		dependsOn('copyExe')
-	} else {
-		// shadow jar plugin broken on java 16 (https://github.com/johnrengelman/shadow/issues/658)
-		tasks.getByPath(':jadx-gui:shadowJar').enabled = false
-		println('Warning! Build of jadx-gui.exe disabled for Java 16')
-	}
+	dependsOn('copyExe')
 }
 
 task samples(dependsOn: 'jadx-samples:samples') {
