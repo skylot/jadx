@@ -5,7 +5,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -80,26 +79,37 @@ public class JCommanderWrapper<T> {
 			}
 			StringBuilder opt = new StringBuilder();
 			opt.append("  ").append(p.getNames());
+			String description = p.getDescription();
 			addSpaces(opt, maxNamesLen - opt.length() + 3);
-			opt.append("- ").append(p.getDescription());
+			if (description.contains("\n")) {
+				String[] lines = description.split("\n");
+				opt.append("- ").append(lines[0]);
+				for (int i = 1; i < lines.length; i++) {
+					opt.append('\n');
+					addSpaces(opt, maxNamesLen + 5);
+					opt.append(lines[i]);
+				}
+			} else {
+				opt.append("- ").append(description);
+			}
 			String defaultValue = getDefaultValue(args, f, opt);
 			if (defaultValue != null) {
 				opt.append(", default: ").append(defaultValue);
 			}
 			out.println(opt);
 		}
-		out.println("Example:");
+		out.println("Examples:");
 		out.println("  jadx -d out classes.dex");
+		out.println("  jadx --rename-flags \"none\" classes.dex");
+		out.println("  jadx --rename-flags \"valid, printable\" classes.dex");
+		out.println("  jadx --log-level ERROR app.apk");
 	}
 
 	/**
 	 * Get all declared fields of the specified class and all super classes
-	 *
-	 * @param clazz
-	 * @return
 	 */
 	private List<Field> getFields(Class<?> clazz) {
-		List<Field> fieldList = new LinkedList<>();
+		List<Field> fieldList = new ArrayList<>();
 		while (clazz != null) {
 			fieldList.addAll(Arrays.asList(clazz.getDeclaredFields()));
 			clazz = clazz.getSuperclass();

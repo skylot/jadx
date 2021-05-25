@@ -92,24 +92,29 @@ options:
   --deobf-min                         - min length of name, renamed if shorter, default: 3
   --deobf-max                         - max length of name, renamed if longer, default: 64
   --deobf-cfg-file                    - deobfuscation map file, default: same dir and name as input file with '.jobf' extension
-  --deobf-rewrite-cfg                 - force to save deobfuscation map
+  --deobf-rewrite-cfg                 - force to ignore and overwrite deobfuscation map file
   --deobf-use-sourcename              - use source file name as class name alias
   --deobf-parse-kotlin-metadata       - parse kotlin metadata to class and package names
-  --rename-flags                      - what to rename, comma-separated, 'case' for system case sensitivity, 'valid' for java identifiers, 'printable' characters, 'none' or 'all' (default)
+  --rename-flags                      - fix options (comma-separated list of):
+                                         'case' - fix case sensitivity issues (according to --fs-case-sensitive option),
+                                         'valid' - rename java identifiers to make them valid,
+                                         'printable' - remove non-printable chars from identifiers,
+                                        or single 'none' - to disable all renames
+                                        or single 'all' - to enable all (default)
   --fs-case-sensitive                 - treat filesystem as case sensitive, false by default
   --cfg                               - save methods control flow graph to dot file
   --raw-cfg                           - save methods control flow graph (use raw instructions)
   -f, --fallback                      - make simple dump (using goto instead of 'if', 'for', etc)
+  --log-level                         - set log level, values: QUIET, PROGRESS, ERROR, WARN, INFO, DEBUG, default: PROGRESS
   -v, --verbose                       - verbose output (set --log-level to DEBUG)
   -q, --quiet                         - turn off output (set --log-level to QUIET)
-  --log-level                         - set log level, values: QUIET, PROGRESS, ERROR, WARN, INFO, DEBUG, default: PROGRESS
   --version                           - print jadx version
   -h, --help                          - print this help
-Example:
- jadx -d out classes.dex
- jadx --rename-flags "none" classes.dex
- jadx --rename-flags "valid,printable" classes.dex
- jadx --log-level error app.apk
+Examples:
+  jadx -d out classes.dex
+  jadx --rename-flags "none" classes.dex
+  jadx --rename-flags "valid, printable" classes.dex
+  jadx --log-level ERROR app.apk
 ```
 These options also worked on jadx-gui running from command line and override options from preferences dialog
 

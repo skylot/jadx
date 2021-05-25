@@ -535,13 +535,15 @@ public class JadxSettings extends JadxCLIArgs {
 		LOG.debug("upgrade settings from version: {} to {}", fromVersion, CURRENT_SETTINGS_VERSION);
 		if (fromVersion == 0) {
 			setDeobfuscationMinLength(3);
+			setDeobfuscationMaxLength(64);
 			setDeobfuscationUseSourceNameAsAlias(true);
 			setDeobfuscationParseKotlinMetadata(true);
-			setDeobfuscationForceSave(true);
-			setThreadsCount(1);
+			setDeobfuscationForceSave(false);
+			setThreadsCount(JadxArgs.DEFAULT_THREADS_COUNT);
 			setReplaceConsts(true);
 			setSkipResources(false);
 			setAutoStartJobs(false);
+			setAutoSaveProject(true);
 			fromVersion++;
 		}
 		if (fromVersion == 1) {
