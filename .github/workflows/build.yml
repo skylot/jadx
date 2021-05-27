@@ -30,7 +30,7 @@ jobs:
         env:
           TERM: dumb
         with:
-          arguments: build dist --warning-mode=all
+          arguments: build dist copyExe --warning-mode=all
 
       - name: Save bundle artifact
         if: success() && github.event_name == 'push'

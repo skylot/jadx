@@ -142,7 +142,11 @@ task dist {
 	description = 'Build jadx distribution zip'
 
 	dependsOn(pack)
-	dependsOn('copyExe')
+
+	OperatingSystem os = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.currentOperatingSystem;
+	if (os.isWindows()) {
+		dependsOn('copyExe')
+	}
 }
 
 task samples(dependsOn: 'jadx-samples:samples') {
