@@ -46,9 +46,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.gui.jobs.BackgroundJob;
-import jadx.gui.jobs.BackgroundWorker;
-import jadx.gui.jobs.DecompileJob;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResSearchNode;
 import jadx.gui.ui.codearea.AbstractCodeArea;
@@ -101,7 +98,7 @@ public abstract class CommonSearchDialog extends JDialog {
 	}
 
 	public void prepare() {
-		if (cache.getIndexJob().isComplete()) {
+		if (cache.getIndexService().isComplete()) {
 			loadFinishedCommon();
 			loadFinished();
 			return;
@@ -532,19 +529,8 @@ public abstract class CommonSearchDialog extends JDialog {
 		@Override
 		public Void doInBackground() {
 			try {
-				BackgroundWorker backgroundWorker = mainWindow.getBackgroundWorker();
-				if (backgroundWorker == null) {
-					return null;
-				}
-				backgroundWorker.exec();
-
-				DecompileJob decompileJob = cache.getDecompileJob();
-				progressPane.changeLabel(this, decompileJob.getInfoString());
-				decompileJob.processAndWait();
-
-				BackgroundJob indexJob = cache.getIndexJob();
-				progressPane.changeLabel(this, indexJob.getInfoString());
-				indexJob.processAndWait();
+				progressPane.changeLabel(this, NLS.str("progress.decompile") + ": ");
+				mainWindow.waitDecompileTask();
 			} catch (Exception e) {
 				LOG.error("Waiting background tasks failed", e);
 			}
@@ -553,11 +539,6 @@ public abstract class CommonSearchDialog extends JDialog {
 
 		@Override
 		public void done() {
-			try {
-				get();
-			} catch (Exception e) {
-				LOG.error("Load task failed", e);
-			}
 			loadFinishedCommon();
 			loadFinished();
 		}

@@ -153,7 +153,7 @@ public class SearchDialog extends CommonSearchDialog {
 	}
 
 	private TextSearchIndex checkIndex() {
-		if (!cache.getIndexJob().isComplete()) {
+		if (!cache.getIndexService().isComplete()) {
 			if (isFullIndexNeeded()) {
 				prepare();
 			}

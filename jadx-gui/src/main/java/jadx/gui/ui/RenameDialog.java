@@ -41,7 +41,6 @@ import jadx.core.dex.nodes.VariableNode;
 import jadx.core.dex.visitors.RenameVisitor;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.gui.jobs.IndexJob;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
@@ -244,7 +243,7 @@ public class RenameDialog extends JDialog {
 	private void refreshJClass(JClass cls) {
 		try {
 			cls.reload();
-			IndexJob.refreshIndex(cache, cls.getCls());
+			cache.getIndexService().refreshIndex(cls.getCls());
 		} catch (Exception e) {
 			LOG.error("Failed to reload class: {}", cls.getFullName(), e);
 		}

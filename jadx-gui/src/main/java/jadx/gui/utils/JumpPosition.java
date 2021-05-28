@@ -1,5 +1,7 @@
 package jadx.gui.utils;
 
+import java.util.Objects;
+
 import jadx.api.CodePosition;
 import jadx.api.JavaNode;
 import jadx.gui.treemodel.JNode;
@@ -10,11 +12,11 @@ public class JumpPosition {
 	private int pos;
 
 	public JumpPosition(JNode jumpNode) {
-		this(jumpNode.getRootClass(), jumpNode.getLine(), jumpNode.getPos());
+		this(Objects.requireNonNull(jumpNode.getRootClass()), jumpNode.getLine(), jumpNode.getPos());
 	}
 
 	public JumpPosition(JNode jumpNode, CodePosition codePos) {
-		this(jumpNode.getRootClass(), codePos.getLine(), codePos.getPos());
+		this(Objects.requireNonNull(jumpNode.getRootClass()), codePos.getLine(), codePos.getPos());
 	}
 
 	public JumpPosition(JNode node, int line, int pos) {

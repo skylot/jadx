@@ -35,6 +35,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
@@ -87,9 +90,9 @@ import jadx.core.utils.files.FileUtils;
 import jadx.gui.JadxWrapper;
 import jadx.gui.device.debugger.BreakpointManager;
 import jadx.gui.jobs.BackgroundExecutor;
-import jadx.gui.jobs.BackgroundWorker;
-import jadx.gui.jobs.DecompileJob;
-import jadx.gui.jobs.IndexJob;
+import jadx.gui.jobs.DecompileTask;
+import jadx.gui.jobs.IndexService;
+import jadx.gui.jobs.TaskStatus;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.settings.JadxSettingsWindow;
@@ -154,6 +157,7 @@ public class MainWindow extends JFrame {
 	private final transient JadxWrapper wrapper;
 	private final transient JadxSettings settings;
 	private final transient CacheObject cacheObject;
+	private final transient BackgroundExecutor backgroundExecutor;
 	private transient JadxProject project;
 	private transient Action newProjectAction;
 	private transient Action saveProjectAction;
@@ -177,8 +181,6 @@ public class MainWindow extends JFrame {
 
 	private transient Link updateLink;
 	private transient ProgressPanel progressPane;
-	private transient BackgroundWorker backgroundWorker;
-	private transient BackgroundExecutor backgroundExecutor;
 	private transient Theme editorTheme;
 
 	private JDebuggerPanel debuggerPanel;
@@ -196,10 +198,11 @@ public class MainWindow extends JFrame {
 		registerMouseNavigationButtons();
 		UiUtils.setWindowIcons(this);
 		loadSettings();
-		checkForUpdate();
-		newProject();
 
 		this.backgroundExecutor = new BackgroundExecutor(this);
+
+		checkForUpdate();
+		newProject();
 	}
 
 	public void init() {
@@ -393,7 +396,7 @@ public class MainWindow extends JFrame {
 						deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
 						initTree();
 						update();
-						runBackgroundJobs();
+						runInitialBackgroundJobs();
 						BreakpointManager.init(paths.get(0).getParent());
 						onFinish.run();
 					});
@@ -469,35 +472,40 @@ public class MainWindow extends JFrame {
 		cacheObject.setJRoot(treeRoot);
 		cacheObject.setJadxSettings(settings);
 
-		int threadsCount = settings.getThreadsCount();
-		cacheObject.setDecompileJob(new DecompileJob(wrapper, threadsCount));
-		cacheObject.setIndexJob(new IndexJob(wrapper, cacheObject, threadsCount));
+		cacheObject.setIndexService(new IndexService(cacheObject));
 		cacheObject.setUsageInfo(new CodeUsageInfo(cacheObject.getNodeCache()));
 		cacheObject.setTextIndex(new TextSearchIndex(this));
 	}
 
-	synchronized void runBackgroundJobs() {
-		cancelBackgroundJobs();
-		backgroundWorker = new BackgroundWorker(cacheObject, progressPane);
+	synchronized void runInitialBackgroundJobs() {
 		if (settings.isAutoStartJobs()) {
 			new Timer().schedule(new TimerTask() {
 				@Override
 				public void run() {
-					backgroundWorker.exec();
+					waitDecompileTask();
 				}
 			}, 1000);
 		}
 	}
 
-	public synchronized void cancelBackgroundJobs() {
-		if (backgroundExecutor != null) {
-			backgroundExecutor.cancelAll();
+	private static final Object DECOMPILER_TASK_SYNC = new Object();
+
+	public void waitDecompileTask() {
+		synchronized (DECOMPILER_TASK_SYNC) {
+			try {
+				DecompileTask decompileTask = new DecompileTask(this, wrapper);
+				Future<TaskStatus> task = backgroundExecutor.execute(decompileTask);
+				task.get();
+			} catch (Exception e) {
+				LOG.error("Decompile task execution failed", e);
+			}
 		}
-		if (backgroundWorker != null) {
-			backgroundWorker.stop();
-			backgroundWorker = new BackgroundWorker(cacheObject, progressPane);
-			resetCache();
-		}
+	}
+
+	public void cancelBackgroundJobs() {
+		ExecutorService worker = Executors.newSingleThreadExecutor();
+		worker.execute(backgroundExecutor::cancelAll);
+		worker.shutdown();
 	}
 
 	public void reOpenFile() {
@@ -673,7 +681,10 @@ public class MainWindow extends JFrame {
 			} else if (obj instanceof QuarkReport) {
 				tabbedPane.showSimpleNode((JNode) obj);
 			} else if (obj instanceof JNode) {
-				tabbedPane.codeJump(new JumpPosition((JNode) obj));
+				JNode node = (JNode) obj;
+				if (node.getRootClass() != null) {
+					tabbedPane.codeJump(new JumpPosition(node));
+				}
 			}
 		} catch (Exception e) {
 			LOG.error("Content loading error", e);
@@ -1283,10 +1294,6 @@ public class MainWindow extends JFrame {
 		return cacheObject;
 	}
 
-	public BackgroundWorker getBackgroundWorker() {
-		return backgroundWorker;
-	}
-
 	public BackgroundExecutor getBackgroundExecutor() {
 		return backgroundExecutor;
 	}
@@ -1312,6 +1319,11 @@ public class MainWindow extends JFrame {
 		saveSplittersInfo();
 		debuggerPanel.setVisible(false);
 		debuggerPanel = null;
+	}
+
+	public void showHeapUsageBar() {
+		settings.setShowHeapUsageBar(true);
+		heapUsageBar.setVisible(true);
 	}
 
 	private void initDebuggerPanel() {

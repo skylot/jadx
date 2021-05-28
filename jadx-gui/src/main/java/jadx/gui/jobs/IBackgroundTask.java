@@ -8,7 +8,23 @@ public interface IBackgroundTask {
 
 	List<Runnable> scheduleJobs();
 
-	void onFinish();
+	void onFinish(TaskStatus status);
 
-	boolean canBeCanceled();
+	default boolean canBeCanceled() {
+		return false;
+	}
+
+	/**
+	 * Global (for all jobs) time limit in milliseconds (0 - to disable).
+	 */
+	default int timeLimit() {
+		return 0;
+	}
+
+	/**
+	 * Executor will check memory usage on every tick and cancel job if no free memory available.
+	 */
+	default boolean checkMemoryUsage() {
+		return false;
+	}
 }

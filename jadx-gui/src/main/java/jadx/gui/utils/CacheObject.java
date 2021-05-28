@@ -6,8 +6,7 @@ import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.gui.jobs.DecompileJob;
-import jadx.gui.jobs.IndexJob;
+import jadx.gui.jobs.IndexService;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.ui.SearchDialog;
@@ -16,8 +15,7 @@ import jadx.gui.utils.search.TextSearchIndex;
 
 public class CacheObject {
 
-	private DecompileJob decompileJob;
-	private IndexJob indexJob;
+	private IndexService indexService;
 
 	private TextSearchIndex textIndex;
 	private CodeUsageInfo usageInfo;
@@ -36,21 +34,12 @@ public class CacheObject {
 	public void reset() {
 		jRoot = null;
 		settings = null;
-		decompileJob = null;
-		indexJob = null;
+		indexService = null;
 		textIndex = null;
 		lastSearch = null;
 		jNodeCache = new JNodeCache();
 		usageInfo = null;
 		lastSearchOptions = new HashMap<>();
-	}
-
-	public DecompileJob getDecompileJob() {
-		return decompileJob;
-	}
-
-	public void setDecompileJob(DecompileJob decompileJob) {
-		this.decompileJob = decompileJob;
 	}
 
 	public TextSearchIndex getTextIndex() {
@@ -87,12 +76,12 @@ public class CacheObject {
 		this.commentsIndex = commentsIndex;
 	}
 
-	public IndexJob getIndexJob() {
-		return indexJob;
+	public IndexService getIndexService() {
+		return indexService;
 	}
 
-	public void setIndexJob(IndexJob indexJob) {
-		this.indexJob = indexJob;
+	public void setIndexService(IndexService indexService) {
+		this.indexService = indexService;
 	}
 
 	public JNodeCache getNodeCache() {

@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import jadx.api.CodePosition;
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaNode;
-import jadx.gui.jobs.IndexJob;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
@@ -222,7 +221,7 @@ public final class CodeArea extends AbstractCodeArea {
 				caretFix.save();
 
 				cls.reload();
-				IndexJob.refreshIndex(getMainWindow().getCacheObject(), cls.getCls());
+				getMainWindow().getCacheObject().getIndexService().refreshIndex(cls.getCls());
 
 				ClassCodeContentPanel codeContentPanel = (ClassCodeContentPanel) this.contentPanel;
 				codeContentPanel.getTabbedPane().refresh(cls);

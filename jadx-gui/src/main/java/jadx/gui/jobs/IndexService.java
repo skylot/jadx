@@ -8,36 +8,25 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeWriter;
 import jadx.api.JavaClass;
-import jadx.gui.JadxWrapper;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.CodeLinesInfo;
 import jadx.gui.utils.CodeUsageInfo;
-import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.search.StringRef;
 import jadx.gui.utils.search.TextSearchIndex;
 
-public class IndexJob extends BackgroundJob {
+public class IndexService {
 
-	private static final Logger LOG = LoggerFactory.getLogger(IndexJob.class);
+	private static final Logger LOG = LoggerFactory.getLogger(IndexService.class);
 
 	private final CacheObject cache;
+	private boolean indexComplete;
 
-	public IndexJob(JadxWrapper wrapper, CacheObject cache, int threadsCount) {
-		super(wrapper, threadsCount);
+	public IndexService(CacheObject cache) {
 		this.cache = cache;
 	}
 
-	@Override
-	protected void runJob() {
-		TextSearchIndex index = cache.getTextIndex();
-		addTask(index::indexResource);
-		for (final JavaClass cls : wrapper.getIncludedClasses()) {
-			addTask(() -> indexCls(cache, cls));
-		}
-	}
-
-	private static void indexCls(CacheObject cache, JavaClass cls) {
+	public void indexCls(JavaClass cls) {
 		try {
 			TextSearchIndex index = cache.getTextIndex();
 			CodeUsageInfo usageInfo = cache.getUsageInfo();
@@ -51,17 +40,18 @@ public class IndexJob extends BackgroundJob {
 			List<StringRef> lines = splitLines(cls);
 
 			usageInfo.processClass(cls, linesInfo, lines);
-			if (UiUtils.isFreeMemoryAvailable()) {
-				index.indexCode(cls, linesInfo, lines);
-			} else {
-				index.classCodeIndexSkipped(cls);
-			}
+			index.indexCode(cls, linesInfo, lines);
 		} catch (Exception e) {
 			LOG.error("Index error in class: {}", cls.getFullName(), e);
 		}
 	}
 
-	public static void refreshIndex(CacheObject cache, JavaClass cls) {
+	public void indexResources() {
+		TextSearchIndex index = cache.getTextIndex();
+		index.indexResource();
+	}
+
+	public void refreshIndex(JavaClass cls) {
 		TextSearchIndex index = cache.getTextIndex();
 		CodeUsageInfo usageInfo = cache.getUsageInfo();
 		if (index == null || usageInfo == null) {
@@ -69,7 +59,9 @@ public class IndexJob extends BackgroundJob {
 		}
 		index.remove(cls);
 		usageInfo.remove(cls);
-		indexCls(cache, cls);
+		if (UiUtils.isFreeMemoryAvailable()) {
+			indexCls(cls);
+		}
 	}
 
 	@NotNull
@@ -82,8 +74,11 @@ public class IndexJob extends BackgroundJob {
 		return lines;
 	}
 
-	@Override
-	public String getInfoString() {
-		return NLS.str("progress.index") + "… ";
+	public boolean isComplete() {
+		return indexComplete;
+	}
+
+	public void setComplete(boolean indexComplete) {
+		this.indexComplete = indexComplete;
 	}
 }

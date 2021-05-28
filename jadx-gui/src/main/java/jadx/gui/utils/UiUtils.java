@@ -250,4 +250,12 @@ public class UiUtils {
 		SwingUtilities.convertPointFromScreen(pos, comp);
 		return pos;
 	}
+
+	public static String getEnvVar(String varName, String defValue) {
+		String envVal = System.getenv(varName);
+		if (envVal == null) {
+			return defValue;
+		}
+		return envVal;
+	}
 }
