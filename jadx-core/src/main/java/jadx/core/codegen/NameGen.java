@@ -70,7 +70,9 @@ public class NameGen {
 	private void addNamesUsedInClass() {
 		ClassNode parentClass = mth.getParentClass();
 		for (FieldNode field : parentClass.getFields()) {
-			varNames.add(field.getAlias());
+			if (field.isStatic()) {
+				varNames.add(field.getAlias());
+			}
 		}
 		for (ClassNode innerClass : parentClass.getInnerClasses()) {
 			varNames.add(innerClass.getClassInfo().getAliasShortName());
