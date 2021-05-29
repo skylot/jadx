@@ -72,13 +72,7 @@ public class NLS {
 	}
 
 	public static String str(String key, Object... parameters) {
-		String value;
-		try {
-			value = localizedMessagesMap.getString(key);
-		} catch (MissingResourceException e) {
-			value = FALLBACK_MESSAGES_MAP.getString(key); // definitely exists
-		}
-		return String.format(value, parameters);
+		return String.format(str(key), parameters);
 	}
 
 	public static String str(String key, LangLocale locale) {

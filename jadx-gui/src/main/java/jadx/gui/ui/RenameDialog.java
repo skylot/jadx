@@ -41,6 +41,7 @@ import jadx.core.dex.nodes.VariableNode;
 import jadx.core.dex.visitors.RenameVisitor;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.gui.jobs.TaskStatus;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
@@ -215,7 +216,11 @@ public class RenameDialog extends JDialog {
 		if (!updatedTopClasses.isEmpty()) {
 			mainWindow.getBackgroundExecutor().execute("Refreshing",
 					Utils.collectionMap(updatedTopClasses, cls -> () -> refreshJClass(cls)),
-					() -> {
+					(status) -> {
+						if (status == TaskStatus.CANCEL_BY_MEMORY) {
+							mainWindow.showHeapUsageBar();
+							UiUtils.errorMessage(this, NLS.str("message.memoryLow"));
+						}
 						if (node instanceof JPackage) {
 							// reinit tree
 							mainWindow.initTree();

@@ -207,16 +207,24 @@ public final class JadxDecompiler implements Closeable {
 		return getSaveExecutor(!args.isSkipSources(), !args.isSkipResources());
 	}
 
+	public List<Runnable> getSaveTasks() {
+		return getSaveTasks(!args.isSkipSources(), !args.isSkipResources());
+	}
+
 	private ExecutorService getSaveExecutor(boolean saveSources, boolean saveResources) {
+		int threadsCount = args.getThreadsCount();
+		LOG.debug("processing threads count: {}", threadsCount);
+		LOG.info("processing ...");
+		ExecutorService executor = Executors.newFixedThreadPool(threadsCount);
+		List<Runnable> tasks = getSaveTasks(saveSources, saveResources);
+		tasks.forEach(executor::execute);
+		return executor;
+	}
+
+	private List<Runnable> getSaveTasks(boolean saveSources, boolean saveResources) {
 		if (root == null) {
 			throw new JadxRuntimeException("No loaded files");
 		}
-		int threadsCount = args.getThreadsCount();
-		LOG.debug("processing threads count: {}", threadsCount);
-
-		LOG.info("processing ...");
-		ExecutorService executor = Executors.newFixedThreadPool(threadsCount);
-
 		File sourcesOutDir;
 		File resOutDir;
 		if (args.isExportAsGradleProject()) {
@@ -244,16 +252,17 @@ public final class JadxDecompiler implements Closeable {
 			sourcesOutDir = args.getOutDirSrc();
 			resOutDir = args.getOutDirRes();
 		}
-		if (saveResources) {
-			appendResourcesSave(executor, resOutDir);
-		}
+		List<Runnable> tasks = new ArrayList<>();
 		if (saveSources) {
-			appendSourcesSave(executor, sourcesOutDir);
+			appendSourcesSave(tasks, sourcesOutDir);
 		}
-		return executor;
+		if (saveResources) {
+			appendResourcesSaveTasks(tasks, resOutDir);
+		}
+		return tasks;
 	}
 
-	private void appendResourcesSave(ExecutorService executor, File outDir) {
+	private void appendResourcesSaveTasks(List<Runnable> tasks, File outDir) {
 		Set<String> inputFileNames = args.getInputFiles().stream().map(File::getAbsolutePath).collect(Collectors.toSet());
 		for (ResourceFile resourceFile : getResources()) {
 			if (resourceFile.getType() != ResourceType.ARSC
@@ -261,11 +270,11 @@ public final class JadxDecompiler implements Closeable {
 				// ignore resource made from input file
 				continue;
 			}
-			executor.execute(new ResourcesSaver(outDir, resourceFile));
+			tasks.add(new ResourcesSaver(outDir, resourceFile));
 		}
 	}
 
-	private void appendSourcesSave(ExecutorService executor, File outDir) {
+	private void appendSourcesSave(List<Runnable> tasks, File outDir) {
 		Predicate<String> classFilter = args.getClassFilter();
 		for (JavaClass cls : getClasses()) {
 			if (cls.getClassNode().contains(AFlag.DONT_GENERATE)) {
@@ -274,7 +283,7 @@ public final class JadxDecompiler implements Closeable {
 			if (classFilter != null && !classFilter.test(cls.getFullName())) {
 				continue;
 			}
-			executor.execute(() -> {
+			tasks.add(() -> {
 				try {
 					ICodeInfo code = cls.getCodeInfo();
 					SaveCode.save(outDir, cls.getClassNode(), code);

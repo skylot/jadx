@@ -19,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxDecompiler;
 import jadx.core.dex.visitors.DepthTraversal;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class Utils {
 
@@ -372,5 +373,11 @@ public class Utils {
 
 	public static <T> boolean notEmpty(T[] arr) {
 		return arr != null && arr.length != 0;
+	}
+
+	public static void checkThreadInterrupt() {
+		if (Thread.interrupted()) {
+			throw new JadxRuntimeException("Thread interrupted");
+		}
 	}
 }

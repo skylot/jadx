@@ -38,6 +38,7 @@ import jadx.core.dex.visitors.typeinference.TypeUpdate;
 import jadx.core.utils.CacheStorage;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.StringUtils;
+import jadx.core.utils.Utils;
 import jadx.core.utils.android.AndroidResourcesUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.ResTableParser;
@@ -61,8 +62,6 @@ public class RootNode {
 	private final MethodUtils methodUtils;
 	private final TypeUtils typeUtils;
 
-	private final ICodeCache codeCache;
-
 	private final Map<ClassInfo, ClassNode> clsMap = new HashMap<>();
 	private List<ClassNode> classes = new ArrayList<>();
 
@@ -80,7 +79,6 @@ public class RootNode {
 		this.stringUtils = new StringUtils(args);
 		this.constValues = new ConstStorage(args);
 		this.typeUpdate = new TypeUpdate(this);
-		this.codeCache = args.getCodeCache();
 		this.methodUtils = new MethodUtils(this);
 		this.typeUtils = new TypeUtils(this);
 		this.isProto = args.getInputFiles().size() > 0 && args.getInputFiles().get(0).getName().toLowerCase().endsWith(".aab");
@@ -94,6 +92,7 @@ public class RootNode {
 				} catch (Exception e) {
 					addDummyClass(cls, e);
 				}
+				Utils.checkThreadInterrupt();
 			});
 		}
 		if (classes.size() != clsMap.size()) {
@@ -498,7 +497,7 @@ public class RootNode {
 	}
 
 	public ICodeCache getCodeCache() {
-		return codeCache;
+		return args.getCodeCache();
 	}
 
 	public MethodUtils getMethodUtils() {

@@ -29,6 +29,6 @@ public class InMemoryCodeCache implements ICodeCache {
 
 	@Override
 	public String toString() {
-		return "InMemoryCodeCache";
+		return "InMemoryCodeCache: size=" + storage.size();
 	}
 }

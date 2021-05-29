@@ -1,14 +1,11 @@
 package jadx.gui;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import javax.swing.ProgressMonitor;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -61,16 +58,6 @@ public class JadxWrapper {
 			}
 		}
 		this.openPaths = Collections.emptyList();
-	}
-
-	public void saveAll(File dir, ProgressMonitor progressMonitor) {
-		Runnable save = () -> {
-			decompiler.getArgs().setRootDir(dir);
-			decompiler.save(500, (done, total) -> progressMonitor.setProgress((int) (done * 100.0 / total)));
-			progressMonitor.close();
-			LOG.info("done");
-		};
-		new Thread(save).start();
 	}
 
 	/**

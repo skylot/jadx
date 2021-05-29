@@ -20,6 +20,10 @@ public class DecompileTask implements IBackgroundTask {
 
 	private static final int CLS_LIMIT = Integer.parseInt(UiUtils.getEnvVar("JADX_CLS_PROCESS_LIMIT", "50"));
 
+	public static int calcDecompileTimeLimit(int classCount) {
+		return classCount * CLS_LIMIT + 5000;
+	}
+
 	private final MainWindow mainWindow;
 	private final JadxWrapper wrapper;
 	private final AtomicInteger complete = new AtomicInteger(0);
@@ -59,7 +63,7 @@ public class DecompileTask implements IBackgroundTask {
 	}
 
 	@Override
-	public void onFinish(TaskStatus status) {
+	public void onFinish(TaskStatus status, long skippedJobs) {
 		long taskTime = System.currentTimeMillis() - startTime;
 		long avgPerCls = taskTime / expectedCompleteCount;
 		LOG.info("Decompile task complete in {} ms (avg {} ms per class), classes: {},"
@@ -68,29 +72,28 @@ public class DecompileTask implements IBackgroundTask {
 
 		IndexService indexService = mainWindow.getCacheObject().getIndexService();
 		indexService.setComplete(true);
-
-		int complete = this.complete.get();
-		int skipped = expectedCompleteCount - complete;
-		if (skipped == 0) {
+		if (skippedJobs == 0) {
 			return;
 		}
-		LOG.warn("Decompile and indexing of some classes skipped: {}, status: {}", skipped, status);
+
+		int skippedCls = expectedCompleteCount - complete.get();
+		LOG.warn("Decompile and indexing of some classes skipped: {}, status: {}", skippedCls, status);
 		switch (status) {
 			case CANCEL_BY_USER: {
 				String reason = NLS.str("message.userCancelTask");
-				String message = NLS.str("message.indexIncomplete", reason, skipped);
+				String message = NLS.str("message.indexIncomplete", reason, skippedCls);
 				JOptionPane.showMessageDialog(mainWindow, message);
 				break;
 			}
 			case CANCEL_BY_TIMEOUT: {
 				String reason = NLS.str("message.taskTimeout", timeLimit());
-				String message = NLS.str("message.indexIncomplete", reason, skipped);
+				String message = NLS.str("message.indexIncomplete", reason, skippedCls);
 				JOptionPane.showMessageDialog(mainWindow, message);
 				break;
 			}
 			case CANCEL_BY_MEMORY: {
 				mainWindow.showHeapUsageBar();
-				JOptionPane.showMessageDialog(mainWindow, NLS.str("message.indexingClassesSkipped", skipped));
+				JOptionPane.showMessageDialog(mainWindow, NLS.str("message.indexingClassesSkipped", skippedCls));
 				break;
 			}
 		}
@@ -103,7 +106,7 @@ public class DecompileTask implements IBackgroundTask {
 
 	@Override
 	public int timeLimit() {
-		return expectedCompleteCount * CLS_LIMIT + 5000;
+		return calcDecompileTimeLimit(expectedCompleteCount);
 	}
 
 	@Override

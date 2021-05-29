@@ -8,7 +8,7 @@ public interface IBackgroundTask {
 
 	List<Runnable> scheduleJobs();
 
-	void onFinish(TaskStatus status);
+	void onFinish(TaskStatus status, long skipped);
 
 	default boolean canBeCanceled() {
 		return false;

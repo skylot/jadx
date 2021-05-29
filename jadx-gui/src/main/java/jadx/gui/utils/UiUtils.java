@@ -258,4 +258,9 @@ public class UiUtils {
 		}
 		return envVal;
 	}
+
+	public static void errorMessage(Component parent, String message) {
+		JOptionPane.showMessageDialog(parent, message,
+				NLS.str("message.errorTitle"), JOptionPane.ERROR_MESSAGE);
+	}
 }

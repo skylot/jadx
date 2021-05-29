@@ -11,7 +11,6 @@ import jadx.api.JavaClass;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.CodeLinesInfo;
 import jadx.gui.utils.CodeUsageInfo;
-import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.search.StringRef;
 import jadx.gui.utils.search.TextSearchIndex;
 
@@ -59,9 +58,7 @@ public class IndexService {
 		}
 		index.remove(cls);
 		usageInfo.remove(cls);
-		if (UiUtils.isFreeMemoryAvailable()) {
-			indexCls(cls);
-		}
+		indexCls(cls);
 	}
 
 	@NotNull

@@ -59,7 +59,6 @@ import javax.swing.JSplitPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
-import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.event.MenuEvent;
@@ -91,6 +90,7 @@ import jadx.gui.JadxWrapper;
 import jadx.gui.device.debugger.BreakpointManager;
 import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.jobs.DecompileTask;
+import jadx.gui.jobs.ExportTask;
 import jadx.gui.jobs.IndexService;
 import jadx.gui.jobs.TaskStatus;
 import jadx.gui.settings.JadxProject;
@@ -392,7 +392,12 @@ public class MainWindow extends JFrame {
 			}
 			backgroundExecutor.execute(NLS.str("progress.load"),
 					() -> wrapper.openFile(paths),
-					() -> {
+					(status) -> {
+						if (status == TaskStatus.CANCEL_BY_MEMORY) {
+							showHeapUsageBar();
+							UiUtils.errorMessage(this, NLS.str("message.memoryLow"));
+							return;
+						}
 						deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
 						initTree();
 						update();
@@ -581,9 +586,7 @@ public class MainWindow extends JFrame {
 				decompilerArgs.setSkipResources(settings.isSkipResources());
 			}
 			settings.setLastSaveFilePath(fileChooser.getCurrentDirectory().toPath());
-			ProgressMonitor progressMonitor = new ProgressMonitor(mainPanel, NLS.str("msg.saving_sources"), "", 0, 100);
-			progressMonitor.setMillisToPopup(0);
-			wrapper.saveAll(fileChooser.getSelectedFile(), progressMonitor);
+			backgroundExecutor.execute(new ExportTask(this, wrapper, fileChooser.getSelectedFile()));
 		}
 	}
 
