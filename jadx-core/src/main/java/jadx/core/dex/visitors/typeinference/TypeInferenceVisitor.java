@@ -293,6 +293,10 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 				addBound(typeInfo, makeAssignInvokeBound((InvokeNode) insn));
 				break;
 
+			case IGET:
+				addBound(typeInfo, makeAssignFieldGetBound((IndexInsnNode) insn));
+				break;
+
 			case CHECK_CAST:
 				addBound(typeInfo, new TypeBoundCheckCastAssign(root, (IndexInsnNode) insn));
 				break;
@@ -302,6 +306,14 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 				addBound(typeInfo, new TypeBoundConst(BoundEnum.ASSIGN, type));
 				break;
 		}
+	}
+
+	private ITypeBound makeAssignFieldGetBound(IndexInsnNode insn) {
+		ArgType initType = insn.getResult().getInitType();
+		if (initType.containsTypeVariable()) {
+			return new TypeBoundFieldGetAssign(root, insn, initType);
+		}
+		return new TypeBoundConst(BoundEnum.ASSIGN, initType);
 	}
 
 	private ITypeBound makeAssignInvokeBound(InvokeNode invokeNode) {

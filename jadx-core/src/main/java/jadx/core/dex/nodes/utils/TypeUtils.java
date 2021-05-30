@@ -61,6 +61,9 @@ public class TypeUtils {
 	}
 
 	private void expandTypeVar(NotificationAttrNode node, ArgType type, Collection<ArgType> typeVars) {
+		if (typeVars.isEmpty()) {
+			return;
+		}
 		boolean allExtendsEmpty = true;
 		for (ArgType argType : typeVars) {
 			if (notEmpty(argType.getExtendTypes())) {
