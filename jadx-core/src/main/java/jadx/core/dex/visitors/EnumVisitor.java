@@ -192,7 +192,14 @@ public class EnumVisitor extends AbstractVisitor {
 		if (ctrMth != null) {
 			markArgsForSkip(ctrMth);
 		}
-		InsnRemover.removeWithoutUnbind(classInitMth, staticBlock, co);
+		if (co.getResult().getSVar().getUseList().size() <= 2) {
+			InsnRemover.removeWithoutUnbind(classInitMth, staticBlock, co);
+		} else {
+			// constructor result used in other places -> replace constructor with enum field get (SGET)
+			IndexInsnNode enumGet = new IndexInsnNode(InsnType.SGET, enumField.getField().getFieldInfo(), 0);
+			enumGet.setResult(co.getResult().duplicate());
+			BlockUtils.replaceInsn(classInitMth, staticBlock, co, enumGet);
+		}
 	}
 
 	@Nullable
@@ -335,7 +342,6 @@ public class EnumVisitor extends AbstractVisitor {
 			enumFieldNode = createFakeField(cls, "EF" + arg.getRegNum());
 			cls.addField(enumFieldNode);
 		}
-		toRemove.add(constrInsn);
 		return createEnumFieldByConstructor(cls, enumFieldNode, (ConstructorInsn) constrInsn);
 	}
 

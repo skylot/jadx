@@ -21,6 +21,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.exceptions.JadxException;
@@ -80,8 +81,16 @@ public class ExtractFieldInit extends AbstractVisitor {
 		if (classInitMth == null) {
 			return;
 		}
+		while (processFields(cls, classInitMth)) {
+			// sometimes instructions moved to field init prevent from vars inline -> inline and try again
+			CodeShrinkVisitor.shrinkMethod(classInitMth);
+		}
+	}
+
+	private static boolean processFields(ClassNode cls, MethodNode classInitMth) {
+		boolean changed = false;
 		for (FieldNode field : cls.getFields()) {
-			if (field.contains(AFlag.DONT_GENERATE)) {
+			if (field.contains(AFlag.DONT_GENERATE) || field.contains(AType.FIELD_INIT)) {
 				continue;
 			}
 			if (field.getAccessFlags().isStatic()) {
@@ -95,10 +104,12 @@ public class ExtractFieldInit extends AbstractVisitor {
 						}
 						InsnRemover.remove(classInitMth, insn);
 						addFieldInitAttr(classInitMth, field, insn);
+						changed = true;
 					}
 				}
 			}
 		}
+		return changed;
 	}
 
 	private static class InitInfo {
