@@ -83,6 +83,10 @@ public class RegisterArg extends InsnArg implements Named {
 		this.sVar = sVar;
 	}
 
+	public void resetSSAVar() {
+		this.sVar = null;
+	}
+
 	@Override
 	public String getName() {
 		if (isSuper()) {

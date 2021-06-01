@@ -35,17 +35,17 @@ public final class ConstructorInsn extends BaseInvokeNode {
 	}
 
 	private CallType getCallType(MethodNode mth, ClassInfo classType, InsnArg instanceArg) {
-		if (instanceArg.isThis()) {
-			if (classType.equals(mth.getParentClass().getClassInfo())) {
-				if (callMth.getShortId().equals(mth.getMethodInfo().getShortId())) {
-					// self constructor
-					return CallType.SELF;
-				}
-				return CallType.THIS;
-			}
+		if (!instanceArg.isThis()) {
+			return CallType.CONSTRUCTOR;
+		}
+		if (!classType.equals(mth.getParentClass().getClassInfo())) {
 			return CallType.SUPER;
 		}
-		return CallType.CONSTRUCTOR;
+		if (callMth.getShortId().equals(mth.getMethodInfo().getShortId())) {
+			// self constructor
+			return CallType.SELF;
+		}
+		return CallType.THIS;
 	}
 
 	public ConstructorInsn(MethodInfo callMth, CallType callType) {

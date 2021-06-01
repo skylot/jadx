@@ -72,6 +72,7 @@ public enum AFlag {
 	INCONSISTENT_CODE, // warning about incorrect decompilation
 
 	REQUEST_IF_REGION_OPTIMIZE, // run if region visitor again
+	RERUN_SSA_TRANSFORM,
 
 	// Class processing flags
 	RESTART_CODEGEN, // codegen must be executed again
