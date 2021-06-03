@@ -125,6 +125,16 @@ public final class TypeUpdate {
 				}
 				return REJECT;
 			}
+			if (candidateType.containsTypeVariable()) {
+				// reject unknown type vars
+				ArgType unknownTypeVar = root.getTypeUtils().checkForUnknownTypeVars(updateInfo.getMth(), candidateType);
+				if (unknownTypeVar != null) {
+					if (Consts.DEBUG_TYPE_INFERENCE) {
+						LOG.debug("Type rejected for {}: candidate: '{}' has unknown type var: '{}'", arg, candidateType, unknownTypeVar);
+					}
+					return REJECT;
+				}
+			}
 		}
 		if (arg instanceof RegisterArg) {
 			RegisterArg reg = (RegisterArg) arg;

@@ -56,6 +56,11 @@ public class SimpleMethodDetails implements IMethodDetails {
 	}
 
 	@Override
+	public String toAttrString() {
+		return IMethodDetails.super.toAttrString() + " (s)";
+	}
+
+	@Override
 	public String toString() {
 		return "SimpleMethodDetails{" + methodInfo + '}';
 	}

@@ -7,6 +7,7 @@ import java.util.Set;
 import jadx.core.dex.attributes.annotations.AnnotationsList;
 import jadx.core.dex.attributes.annotations.MethodParameters;
 import jadx.core.dex.attributes.fldinit.FieldInitAttr;
+import jadx.core.dex.attributes.nodes.ClassTypeVarsAttr;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
 import jadx.core.dex.attributes.nodes.EdgeInsnAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr;
@@ -58,6 +59,7 @@ public class AType<T extends IAttribute> {
 	public static final AType<SourceFileAttr> SOURCE_FILE = new AType<>();
 	public static final AType<EnumClassAttr> ENUM_CLASS = new AType<>();
 	public static final AType<EnumMapAttr> ENUM_MAP = new AType<>();
+	public static final AType<ClassTypeVarsAttr> CLASS_TYPE_VARS = new AType<>();
 
 	// field
 	public static final AType<FieldInitAttr> FIELD_INIT = new AType<>();

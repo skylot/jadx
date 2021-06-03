@@ -87,6 +87,11 @@ public class MutableMethodDetails implements IMethodDetails {
 	}
 
 	@Override
+	public String toAttrString() {
+		return IMethodDetails.super.toAttrString() + " (mut)";
+	}
+
+	@Override
 	public String toString() {
 		return "Mutable" + toAttrString();
 	}

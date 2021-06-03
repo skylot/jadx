@@ -177,7 +177,7 @@ public class ClspGraph {
 	private Set<String> putInSuperTypesCache(String clsName, Set<String> result) {
 		if (result.isEmpty()) {
 			Set<String> empty = Collections.emptySet();
-			superTypesCache.put(clsName, result);
+			superTypesCache.put(clsName, empty);
 			return empty;
 		}
 		superTypesCache.put(clsName, result);

@@ -1,6 +1,9 @@
 package jadx.core.dex.nodes;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +27,13 @@ import jadx.core.dex.info.AccessInfo.AFType;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.InsnDecoder;
-import jadx.core.dex.instructions.args.*;
+import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.instructions.args.CodeVar;
+import jadx.core.dex.instructions.args.InsnArg;
+import jadx.core.dex.instructions.args.NamedArg;
+import jadx.core.dex.instructions.args.RegisterArg;
+import jadx.core.dex.instructions.args.SSAVar;
+import jadx.core.dex.instructions.args.VisibleVar;
 import jadx.core.dex.nodes.VariableNode.VarKind;
 import jadx.core.dex.nodes.utils.TypeUtils;
 import jadx.core.dex.regions.Region;
@@ -678,6 +687,11 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	@Override
 	public int compareTo(@NotNull MethodNode o) {
 		return mthInfo.compareTo(o.mthInfo);
+	}
+
+	@Override
+	public String toAttrString() {
+		return IMethodDetails.super.toAttrString() + " (m)";
 	}
 
 	@Override

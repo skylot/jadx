@@ -6,15 +6,13 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.NotYetImplemented;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestGenerics2 extends IntegrationTest {
 
+	@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
 	public static class TestCls {
 		public static class ItemReference<V> extends WeakReference<V> {
 			public Object id;
@@ -40,22 +38,20 @@ public class TestGenerics2 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("public ItemReference(V item, Object objId, ReferenceQueue<? super V> queue) {"));
-		assertThat(code, containsString("public V get(Object id) {"));
-		assertThat(code, containsString("WeakReference<V> ref = "));
-		assertThat(code, containsString("return ref.get();"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("public ItemReference(V item, Object objId, ReferenceQueue<? super V> queue) {")
+				.containsOne("public V get(Object id) {")
+				.containsOne("WeakReference<V> ref = ")
+				.containsOne("return ref.get();");
 	}
 
 	@Test
-	@NotYetImplemented("Make generic info propagation for methods (like Map.get)")
 	public void testDebug() {
 		noDebugInfo();
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsString("WeakReference<V> ref = "));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("ItemReference<V> itemReference = this.items.get(obj);")
+				.containsOne("return itemReference.get();");
 	}
 }

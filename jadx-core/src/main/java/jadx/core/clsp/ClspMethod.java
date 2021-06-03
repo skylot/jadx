@@ -100,6 +100,11 @@ public class ClspMethod implements IMethodDetails, Comparable<ClspMethod> {
 	}
 
 	@Override
+	public String toAttrString() {
+		return IMethodDetails.super.toAttrString() + " (c)";
+	}
+
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("ClspMth{");

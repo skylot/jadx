@@ -7,6 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -35,6 +36,7 @@ import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.LiteralArg;
+import jadx.core.dex.nodes.utils.TypeUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -68,11 +70,17 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	private volatile ProcessState state = ProcessState.NOT_LOADED;
 	private LoadStage loadStage = LoadStage.NONE;
 
-	/** Top level classes used in this class (only for top level classes, empty for inners) */
+	/**
+	 * Top level classes used in this class (only for top level classes, empty for inners)
+	 */
 	private List<ClassNode> dependencies = Collections.emptyList();
-	/** Classes which uses this class */
+	/**
+	 * Classes which uses this class
+	 */
 	private List<ClassNode> useIn = Collections.emptyList();
-	/** Methods which uses this class (by instructions only, definition is excluded) */
+	/**
+	 * Methods which uses this class (by instructions only, definition is excluded)
+	 */
 	private List<MethodNode> useInMth = Collections.emptyList();
 
 	// cache maps
@@ -426,6 +434,19 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 			consumer.accept(parentCls);
 			currentCls = parentCls;
 			parentCls = currentCls.getParentClass();
+		}
+	}
+
+	public void visitSuperTypes(BiConsumer<ArgType, ArgType> consumer) {
+		TypeUtils typeUtils = root.getTypeUtils();
+		ArgType thisType = this.getType();
+		if (!superClass.equals(ArgType.OBJECT)) {
+			consumer.accept(thisType, superClass);
+			typeUtils.visitSuperTypes(superClass, consumer);
+		}
+		for (ArgType iface : interfaces) {
+			consumer.accept(thisType, iface);
+			typeUtils.visitSuperTypes(iface, consumer);
 		}
 	}
 

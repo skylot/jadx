@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 import jadx.core.Consts;
@@ -823,6 +824,7 @@ public abstract class ArgType {
 	 * Recursively visit all subtypes of this type.
 	 * To exit return non-null value.
 	 */
+	@Nullable
 	public <R> R visitTypes(Function<ArgType, R> visitor) {
 		R r = visitor.apply(this);
 		if (r != null) {
