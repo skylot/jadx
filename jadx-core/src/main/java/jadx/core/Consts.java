@@ -22,6 +22,8 @@ public class Consts {
 	public static final String DALVIK_THROWS = "Ldalvik/annotation/Throws;";
 	public static final String DALVIK_ANNOTATION_DEFAULT = "Ldalvik/annotation/AnnotationDefault;";
 
+	public static final String OVERRIDE_ANNOTATION = "Ljava/lang/Override;";
+
 	public static final String DEFAULT_PACKAGE_NAME = "defpackage";
 	public static final String ANONYMOUS_CLASS_PREFIX = "AnonymousClass";
 
