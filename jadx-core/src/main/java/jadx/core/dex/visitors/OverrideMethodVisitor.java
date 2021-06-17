@@ -56,7 +56,7 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 	}
 
 	private void processMth(ClassNode cls, List<ArgType> superTypes, MethodNode mth) {
-		if (mth.isConstructor() || mth.getAccessFlags().isStatic()) {
+		if (mth.isConstructor() || mth.getAccessFlags().isStatic() || mth.getAccessFlags().isPrivate()) {
 			return;
 		}
 		MethodOverrideAttr attr = processOverrideMethods(cls, mth, superTypes);
