@@ -398,8 +398,8 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 			InsnsSlice dupSlice, FinallyExtractInfo extractInfo) {
 		InsnsSlice finallySlice = extractInfo.getFinallyInsnsSlice();
 
-		List<BlockNode> finallyCS = finallyBlock.getSuccessors();
-		List<BlockNode> dupCS = dupBlock.getSuccessors();
+		List<BlockNode> finallyCS = finallyBlock.getCleanSuccessors();
+		List<BlockNode> dupCS = dupBlock.getCleanSuccessors();
 		if (finallyCS.size() == dupCS.size()) {
 			for (int i = 0; i < finallyCS.size(); i++) {
 				BlockNode finSBlock = finallyCS.get(i);
