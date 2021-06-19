@@ -31,8 +31,12 @@ public class ClassTypeVarsAttr implements IAttribute {
 		return typeVars;
 	}
 
-	public Map<String, Map<ArgType, ArgType>> getSuperTypeMaps() {
-		return superTypeMaps;
+	public Map<ArgType, ArgType> getTypeVarsMapFor(ArgType type) {
+		Map<ArgType, ArgType> typeMap = superTypeMaps.get(type.getObject());
+		if (typeMap == null) {
+			return Collections.emptyMap();
+		}
+		return typeMap;
 	}
 
 	@Override

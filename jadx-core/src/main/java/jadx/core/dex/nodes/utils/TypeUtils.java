@@ -164,17 +164,39 @@ public class TypeUtils {
 		if (typeWithGeneric == null || genericSourceType == null) {
 			return null;
 		}
-		Map<ArgType, ArgType> typeVarsMap;
+		Map<ArgType, ArgType> typeVarsMap = Collections.emptyMap();
 		ClassTypeVarsAttr typeVars = getClassTypeVars(instanceType);
 		if (typeVars != null) {
-			typeVarsMap = typeVars.getSuperTypeMaps().get(genericSourceType.getObject());
-		} else {
-			typeVarsMap = getTypeVariablesMapping(instanceType);
+			typeVarsMap = mergeTypeMaps(typeVarsMap, typeVars.getTypeVarsMapFor(genericSourceType));
 		}
-		if (typeVarsMap == null) {
-			return null;
+		typeVarsMap = mergeTypeMaps(typeVarsMap, getTypeVariablesMapping(instanceType));
+		ArgType outerType = instanceType.getOuterType();
+		while (outerType != null) {
+			typeVarsMap = mergeTypeMaps(typeVarsMap, getTypeVariablesMapping(outerType));
+			outerType = outerType.getOuterType();
 		}
 		return replaceTypeVariablesUsingMap(typeWithGeneric, typeVarsMap);
+	}
+
+	private static Map<ArgType, ArgType> mergeTypeMaps(Map<ArgType, ArgType> base, Map<ArgType, ArgType> addition) {
+		if (base.isEmpty()) {
+			return addition;
+		}
+		if (addition.isEmpty()) {
+			return base;
+		}
+		Map<ArgType, ArgType> map = new HashMap<>(base.size() + addition.size());
+		for (Map.Entry<ArgType, ArgType> entry : base.entrySet()) {
+			ArgType value = entry.getValue();
+			ArgType type = addition.remove(value);
+			if (type != null) {
+				map.put(entry.getKey(), type);
+			} else {
+				map.put(entry.getKey(), entry.getValue());
+			}
+		}
+		map.putAll(addition);
+		return map;
 	}
 
 	public Map<ArgType, ArgType> getTypeVariablesMapping(ArgType clsType) {
@@ -274,13 +296,25 @@ public class TypeUtils {
 			return ArgType.wildcard(newWildcardType, replaceType.getWildcardBound());
 		}
 
-		List<ArgType> genericTypes = replaceType.getGenericTypes();
-		if (replaceType.isGeneric() && notEmpty(genericTypes)) {
-			List<ArgType> newTypes = Utils.collectionMap(genericTypes, t -> {
-				ArgType type = replaceTypeVariablesUsingMap(t, replaceMap);
-				return type == null ? t : type;
-			});
-			return ArgType.generic(replaceType, newTypes);
+		if (replaceType.isGeneric()) {
+			ArgType outerType = replaceType.getOuterType();
+			if (outerType != null) {
+				ArgType replacedOuter = replaceTypeVariablesUsingMap(outerType, replaceMap);
+				if (replacedOuter == null) {
+					return null;
+				}
+				ArgType innerType = replaceType.getInnerType();
+				ArgType replacedInner = replaceTypeVariablesUsingMap(innerType, replaceMap);
+				return ArgType.outerGeneric(replacedOuter, replacedInner == null ? innerType : replacedInner);
+			}
+			List<ArgType> genericTypes = replaceType.getGenericTypes();
+			if (notEmpty(genericTypes)) {
+				List<ArgType> newTypes = Utils.collectionMap(genericTypes, t -> {
+					ArgType type = replaceTypeVariablesUsingMap(t, replaceMap);
+					return type == null ? t : type;
+				});
+				return ArgType.generic(replaceType, newTypes);
+			}
 		}
 		return null;
 	}

@@ -805,6 +805,10 @@ public abstract class ArgType {
 					}
 				}
 			}
+			ArgType outerType = getOuterType();
+			if (outerType != null) {
+				return outerType.containsTypeVariable();
+			}
 			return false;
 		}
 		if (isArray()) {
