@@ -7,7 +7,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,6 +18,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.SwingWorker;
@@ -37,7 +40,13 @@ class QuarkDialog extends JDialog {
 	private static final long serialVersionUID = 4855753773520368215L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(QuarkDialog.class);
+	private static final String QUARK_CMD_LOG_MESSAGE = "Running Quark cmd: {}";
+	private static final String QUARK_INTERRUPT_MESSAGE = "Quark process interrupted: {}";
+	private static final String QUARK_FAILED_MESSAGE = "Failed to execute Quark.";
+	private static final String QUARK_CMD = "quark";
+	private static final Path QUARK_DIR_PATH = Paths.get(System.getProperty("user.home"), ".quark-engine");
 
+	private Path venvPath = Paths.get(QUARK_DIR_PATH.toString(), "quark_venv");
 	private File quarkReportFile;
 
 	private final transient JadxSettings settings;
@@ -155,22 +164,8 @@ class QuarkDialog extends JDialog {
 	}
 
 	private void analyzeAPK() {
-		LoadTask task = new LoadTask();
+		QuarkTask task = new QuarkTask();
 		task.execute();
-	}
-
-	private void loadReportFile() {
-		try (Reader reader = new FileReader(quarkReportFile)) {
-			JsonObject quarkReport = (JsonObject) JsonParser.parseReader(reader);
-			QuarkReport quarkNode = QuarkReport.analysisAPK(quarkReport);
-
-			JRoot root = mainWindow.getCacheObject().getJRoot();
-			root.update();
-			root.add(quarkNode);
-			mainWindow.reloadTree();
-		} catch (Exception e) {
-			LOG.error("Quark: Load report failed: ", e);
-		}
 	}
 
 	private void close() {
@@ -183,16 +178,154 @@ class QuarkDialog extends JDialog {
 		super.dispose();
 	}
 
-	private class LoadTask extends SwingWorker<Void, Void> {
-		public LoadTask() {
+	private class QuarkTask extends SwingWorker<Void, Void> {
+
+		private Process quarkProcess;
+		private boolean isVenv = false;
+
+		public QuarkTask() {
 			progressPane.setVisible(true);
 		}
 
 		@Override
 		public Void doInBackground() {
-			try {
-				quarkReportFile = File.createTempFile("QuarkReport-", ".json");
 
+			// mkdir `$HOME/.quark-engine/`
+			File directory = new File(QUARK_DIR_PATH.toString());
+			if (!directory.isDirectory()) {
+				directory.mkdirs();
+			}
+
+			if (!isPipInstalled()) {
+				LOG.error("Pip is not installed");
+				cancel(true);
+				return null;
+			}
+
+			if (!isQuarkInstalled()) {
+				LOG.warn("Quark is not installed, do you want to install it from PyPI?");
+				int result = JOptionPane.showConfirmDialog(mainWindow,
+						"Quark is not installed, do you want to install it from PyPI?", "Warning",
+						JOptionPane.YES_NO_OPTION);
+
+				if (result == JOptionPane.YES_OPTION && !installQuark()) {
+					createVirtualenv();
+					installQuark();
+				}
+				if (result == JOptionPane.NO_OPTION) {
+					cancel(true);
+					return null;
+				}
+			}
+
+			if (!analyzeAPK()) {
+				cancel(true);
+				return null;
+			}
+			return null;
+		}
+
+		@Override
+		public void done() {
+			if (isCancelled()) {
+				dispose();
+				return;
+			}
+
+			if (quarkProcess.exitValue() != 0) {
+				LOG.error(QUARK_FAILED_MESSAGE);
+				return;
+			}
+
+			loadReportFile();
+			dispose();
+		}
+
+		private boolean isPipInstalled() {
+			List<String> cmdList = new ArrayList<>();
+			cmdList.add("pip3");
+			return executeCommand(cmdList);
+		}
+
+		private boolean isQuarkInstalled() {
+			List<String> cmdList = new ArrayList<>();
+			cmdList.add(QUARK_CMD);
+			if (executeCommand(cmdList)) {
+				return true;
+			}
+
+			isVenv = true;
+			cmdList = new ArrayList<>();
+			cmdList.add(getVenvPath(QUARK_CMD).toString());
+			return executeCommand(cmdList);
+		}
+
+		private void createVirtualenv() {
+
+			// Check if venv exist
+			if (Files.exists(getVenvPath("activate"))) {
+				return;
+			}
+
+			List<String> cmdList = new ArrayList<>();
+
+			if (System.getProperty("os.name").toLowerCase().indexOf("win") >= 0) {
+				cmdList.add("python");
+				cmdList.add("-m");
+				cmdList.add("venv");
+			} else {
+				cmdList.add("virtualenv");
+			}
+
+			cmdList.add(venvPath.toString());
+			try {
+				LOG.debug(QUARK_CMD_LOG_MESSAGE, cmdList);
+				Process process = Runtime.getRuntime().exec(cmdList.toArray(new String[0]));
+				process.waitFor();
+			} catch (InterruptedException e) {
+				LOG.error(QUARK_INTERRUPT_MESSAGE, e.getMessage(), e);
+				Thread.currentThread().interrupt();
+			} catch (Exception e) {
+				LOG.error("Failed to create virtual environment: {}", e.getMessage(), e);
+			}
+		}
+
+		private boolean installQuark() {
+			List<String> cmdList = new ArrayList<>();
+			String command = (isVenv) ? getVenvPath("pip3").toString() : "pip3";
+			cmdList.add(command);
+			cmdList.add("install");
+			cmdList.add("quark-engine");
+			cmdList.add("--upgrade");
+			try {
+				LOG.debug(QUARK_CMD_LOG_MESSAGE, cmdList);
+				Process process = Runtime.getRuntime().exec(cmdList.toArray(new String[0]));
+				process.waitFor();
+
+				if (!isQuarkInstalled()) {
+					return false;
+				}
+			} catch (InterruptedException e) {
+				LOG.error(QUARK_INTERRUPT_MESSAGE, e.getMessage(), e);
+				Thread.currentThread().interrupt();
+			} catch (Exception e) {
+				LOG.error("Failed to execute pip install command: {}", String.join(" ", cmdList), e);
+				return false;
+			}
+			return true;
+		}
+
+		private void updateQuarkRules() {
+			List<String> cmdList = new ArrayList<>();
+			String command = (isVenv) ? getVenvPath("freshquark").toString() : "freshquark";
+			cmdList.add(command);
+			executeCommand(cmdList);
+		}
+
+		private boolean analyzeAPK() {
+			try {
+				updateQuarkRules();
+				quarkReportFile = File.createTempFile("QuarkReport-", ".json");
 				String apkName = (String) selectFile.getSelectedItem();
 				String apkPath = null;
 				for (Path path : files) {
@@ -200,18 +333,19 @@ class QuarkDialog extends JDialog {
 						apkPath = path.toString();
 					}
 				}
+
 				List<String> cmdList = new ArrayList<>();
-				cmdList.add("quark");
+				String command = (isVenv) ? getVenvPath(QUARK_CMD).toString() : QUARK_CMD;
+				cmdList.add(command);
 				cmdList.add("-a");
 				cmdList.add(apkPath);
-				cmdList.add("-s");
 				cmdList.add("-o");
 				cmdList.add(quarkReportFile.getAbsolutePath());
-				LOG.debug("Running Quark cmd: {}", String.join(" ", cmdList));
-				Process process = Runtime.getRuntime().exec(cmdList.toArray(new String[0]));
-				try (BufferedReader buf = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-					LOG.debug("Quark analyzing...");
-					while (process.isAlive()) {
+				LOG.debug(QUARK_CMD_LOG_MESSAGE, cmdList);
+				quarkProcess = Runtime.getRuntime().exec(cmdList.toArray(new String[0]));
+
+				try (BufferedReader buf = new BufferedReader(new InputStreamReader(quarkProcess.getInputStream()))) {
+					while (quarkProcess.isAlive()) {
 						String output = buf.readLine();
 						if (output != null) {
 							LOG.debug(output);
@@ -219,16 +353,47 @@ class QuarkDialog extends JDialog {
 					}
 				}
 			} catch (Exception e) {
-				LOG.error("Quark failed: ", e);
-				dispose();
+				LOG.error("Failed to execute Quark: {}", e.getMessage(), e);
+				return false;
 			}
-			return null;
+			return true;
 		}
 
-		@Override
-		public void done() {
-			loadReportFile();
-			dispose();
+		private boolean executeCommand(List<String> cmdList) {
+			try {
+				LOG.debug(QUARK_CMD_LOG_MESSAGE, cmdList);
+				Process process = Runtime.getRuntime().exec(cmdList.toArray(new String[0]));
+				process.waitFor();
+			} catch (InterruptedException e) {
+				LOG.error(QUARK_INTERRUPT_MESSAGE, e.getMessage(), e);
+				Thread.currentThread().interrupt();
+			} catch (Exception e) {
+				LOG.error("Failed to execute command: {}", String.join(" ", cmdList), e);
+				return false;
+			}
+			return true;
+		}
+
+		private void loadReportFile() {
+			try (Reader reader = new FileReader(quarkReportFile)) {
+				JsonObject quarkReport = (JsonObject) JsonParser.parseReader(reader);
+				QuarkReport quarkNode = QuarkReport.analysisAPK(quarkReport);
+				JRoot root = mainWindow.getCacheObject().getJRoot();
+				root.update();
+				root.add(quarkNode);
+				mainWindow.reloadTree();
+			} catch (Exception e) {
+				LOG.error("Failed to load Quark report.", e);
+			}
+		}
+
+		private Path getVenvPath(String cmd) {
+			String os = System.getProperty("os.name").toLowerCase();
+			if (os.indexOf("win") >= 0) {
+				return Paths.get(venvPath.toString(), "Scripts", String.format("%s.exe", cmd));
+			} else {
+				return Paths.get(venvPath.toString(), "bin", cmd);
+			}
 		}
 	}
 }
