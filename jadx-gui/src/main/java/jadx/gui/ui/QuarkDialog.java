@@ -12,7 +12,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -44,6 +46,7 @@ class QuarkDialog extends JDialog {
 	private static final String QUARK_INTERRUPT_MESSAGE = "Quark process interrupted: {}";
 	private static final String QUARK_FAILED_MESSAGE = "Failed to execute Quark.";
 	private static final String QUARK_CMD = "quark";
+	private static final int LARGE_APK_SIZE = 30;
 	private static final Path QUARK_DIR_PATH = Paths.get(System.getProperty("user.home"), ".quark-engine");
 
 	private Path venvPath = Paths.get(QUARK_DIR_PATH.toString(), "quark_venv");
@@ -54,59 +57,38 @@ class QuarkDialog extends JDialog {
 	private JProgressBar progressBar;
 	private JPanel progressPane;
 
-	private JComboBox<String> selectFile;
+	private JComboBox<String> fileSelectCombo;
 
 	private final List<Path> files;
-	private ArrayList<Path> analyzeFile = new ArrayList<Path>();
+	private Map<String, Path> choosableFiles = new HashMap<>();
 
 	public QuarkDialog(MainWindow mainWindow) {
 		this.mainWindow = mainWindow;
 		this.settings = mainWindow.getSettings();
 		this.files = mainWindow.getWrapper().getOpenPaths();
-
-		if (!prepareAnalysis()) {
-			// The files are unable to analysis by Quark
+		fileNameExtensionFilter();
+		if (choosableFiles.isEmpty()) {
+			UiUtils.errorMessage(mainWindow, "Quark is unable to analyze the selected file.");
+			LOG.error("Quark: The files cannot be analyze. {}", files);
 			return;
 		}
 		initUI();
 	}
 
-	private boolean prepareAnalysis() {
-		String[] exts = new String[] { "apk", "dex" };
+	private void fileNameExtensionFilter() {
+		String[] extensions = new String[] { "apk", "dex" };
 
-		if (this.files.size() != 1) {
-			for (Path filePath : this.files) {
-				String fileName = filePath.toString();
-				int dotIndex = fileName.lastIndexOf('.');
-				String extension = (dotIndex == -1) ? "" : fileName.substring(dotIndex + 1);
+		for (Path filePath : this.files) {
+			String fileName = filePath.toString();
+			int dotIndex = fileName.lastIndexOf('.');
+			String extension = (dotIndex == -1) ? "" : fileName.substring(dotIndex + 1);
 
-				if (Arrays.stream(exts).noneMatch(extension::equals)) {
-					LOG.warn("Quark: Current file can't be analysis: {}", fileName);
-					continue;
-				}
-				analyzeFile.add(filePath);
+			if (Arrays.stream(extensions).noneMatch(extension::equals)) {
+				LOG.debug("Quark: {} is not apk nor dex", fileName);
+				continue;
 			}
-			return true;
+			choosableFiles.put(fileName, filePath);
 		}
-		String fileName = this.files.get(0).toString();
-		int dotIndex = fileName.lastIndexOf('.');
-		String extension = (dotIndex == -1) ? "" : fileName.substring(dotIndex + 1);
-		if (Arrays.stream(exts).noneMatch(extension::equals)) {
-			LOG.warn("Quark: Current file can't be analysis: {}", fileName);
-			return false;
-		}
-		analyzeFile.add(this.files.get(0));
-		return true;
-	}
-
-	private String[] filesToStringArr() {
-		String[] arr = new String[files.size()];
-		int index = 0;
-		for (Path file : analyzeFile) {
-			arr[index] = file.getFileName().toString();
-			index++;
-		}
-		return arr;
 	}
 
 	public final void initUI() {
@@ -114,7 +96,8 @@ class QuarkDialog extends JDialog {
 		JLabel selectApkText = new JLabel("Select Apk/Dex");
 		description.setAlignmentX(0.5f);
 
-		selectFile = new JComboBox<String>(filesToStringArr());
+		String[] comboFiles = choosableFiles.keySet().toArray(new String[choosableFiles.size()]);
+		fileSelectCombo = new JComboBox<>(comboFiles);
 
 		JPanel textPane = new JPanel();
 
@@ -122,7 +105,7 @@ class QuarkDialog extends JDialog {
 
 		JPanel selectApkPanel = new JPanel();
 		selectApkPanel.add(selectApkText);
-		selectApkPanel.add(selectFile);
+		selectApkPanel.add(fileSelectCombo);
 
 		progressPane = new JPanel();
 		progressPane.setVisible(false);
@@ -197,6 +180,7 @@ class QuarkDialog extends JDialog {
 			}
 
 			if (!isPipInstalled()) {
+				UiUtils.errorMessage(mainWindow, "Pip is not installed.");
 				LOG.error("Pip is not installed");
 				cancel(true);
 				return null;
@@ -218,7 +202,18 @@ class QuarkDialog extends JDialog {
 				}
 			}
 
+			if (!checkFileSize(LARGE_APK_SIZE)) {
+				int result = JOptionPane.showConfirmDialog(mainWindow,
+						"The selected file size is too large (over 20M) that may take a long time to analyze, do you want to continue",
+						"Quark: Warning", JOptionPane.YES_NO_OPTION);
+				if (result == JOptionPane.NO_OPTION) {
+					cancel(true);
+					return null;
+				}
+			}
+
 			if (!analyzeAPK()) {
+				UiUtils.errorMessage(mainWindow, "Quark: Failed to analyze apk.");
 				cancel(true);
 				return null;
 			}
@@ -286,6 +281,7 @@ class QuarkDialog extends JDialog {
 				LOG.error(QUARK_INTERRUPT_MESSAGE, e.getMessage(), e);
 				Thread.currentThread().interrupt();
 			} catch (Exception e) {
+				UiUtils.errorMessage(mainWindow, "Failed to create virtual environment.");
 				LOG.error("Failed to create virtual environment: {}", e.getMessage(), e);
 			}
 		}
@@ -309,6 +305,7 @@ class QuarkDialog extends JDialog {
 				LOG.error(QUARK_INTERRUPT_MESSAGE, e.getMessage(), e);
 				Thread.currentThread().interrupt();
 			} catch (Exception e) {
+				UiUtils.errorMessage(mainWindow, "Failed to install quark-engine.");
 				LOG.error("Failed to execute pip install command: {}", String.join(" ", cmdList), e);
 				return false;
 			}
@@ -326,13 +323,8 @@ class QuarkDialog extends JDialog {
 			try {
 				updateQuarkRules();
 				quarkReportFile = File.createTempFile("QuarkReport-", ".json");
-				String apkName = (String) selectFile.getSelectedItem();
-				String apkPath = null;
-				for (Path path : files) {
-					if (path.getFileName().toString().equals(apkName)) {
-						apkPath = path.toString();
-					}
-				}
+				String apkName = (String) fileSelectCombo.getSelectedItem();
+				String apkPath = choosableFiles.get(apkName).toString();
 
 				List<String> cmdList = new ArrayList<>();
 				String command = (isVenv) ? getVenvPath(QUARK_CMD).toString() : QUARK_CMD;
@@ -374,6 +366,21 @@ class QuarkDialog extends JDialog {
 			return true;
 		}
 
+		public boolean checkFileSize(int sizeThreshold) {
+			String apkName = (String) fileSelectCombo.getSelectedItem();
+
+			try {
+				int fileSize = (int) Files.size(choosableFiles.get(apkName)) / 1024 / 1024;
+				if (fileSize > sizeThreshold) {
+					return false;
+				}
+			} catch (Exception e) {
+				LOG.error("Failed to calculate file: {}", e.getMessage(), e);
+				return false;
+			}
+			return true;
+		}
+
 		private void loadReportFile() {
 			try (Reader reader = new FileReader(quarkReportFile)) {
 				JsonObject quarkReport = (JsonObject) JsonParser.parseReader(reader);
@@ -383,6 +390,7 @@ class QuarkDialog extends JDialog {
 				root.add(quarkNode);
 				mainWindow.reloadTree();
 			} catch (Exception e) {
+				UiUtils.errorMessage(mainWindow, "Failed to load Quark report.");
 				LOG.error("Failed to load Quark report.", e);
 			}
 		}
