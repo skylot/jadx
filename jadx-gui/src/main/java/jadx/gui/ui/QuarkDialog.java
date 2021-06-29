@@ -22,8 +22,6 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.SwingWorker;
 import javax.swing.WindowConstants;
 
 import org.slf4j.Logger;
@@ -32,6 +30,8 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import jadx.gui.jobs.IBackgroundTask;
+import jadx.gui.jobs.TaskStatus;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.utils.NLS;
@@ -54,8 +54,6 @@ class QuarkDialog extends JDialog {
 
 	private final transient JadxSettings settings;
 	private final transient MainWindow mainWindow;
-	private JProgressBar progressBar;
-	private JPanel progressPane;
 
 	private JComboBox<String> fileSelectCombo;
 
@@ -107,28 +105,17 @@ class QuarkDialog extends JDialog {
 		selectApkPanel.add(selectApkText);
 		selectApkPanel.add(fileSelectCombo);
 
-		progressPane = new JPanel();
-		progressPane.setVisible(false);
-		progressPane.setSize(150, 10);
-
-		progressBar = new JProgressBar(0, 100);
-		progressBar.setSize(150, 10);
-		progressBar.setIndeterminate(true);
-		progressBar.setStringPainted(false);
-		progressPane.add(progressBar);
-
 		JPanel buttonPane = new JPanel();
 		JButton start = new JButton("Start");
 		JButton close = new JButton(NLS.str("tabs.close"));
 		close.addActionListener(event -> close());
-		start.addActionListener(event -> analyzeAPK());
+		start.addActionListener(event -> mainWindow.getBackgroundExecutor().execute(new QuarkTask()));
 		buttonPane.add(start);
 		buttonPane.add(close);
 		getRootPane().setDefaultButton(close);
 
 		JPanel centerPane = new JPanel();
 		centerPane.add(selectApkPanel);
-		centerPane.add(progressPane);
 		Container contentPane = getContentPane();
 
 		contentPane.add(textPane, BorderLayout.PAGE_START);
@@ -146,11 +133,6 @@ class QuarkDialog extends JDialog {
 		UiUtils.addEscapeShortCutToDispose(this);
 	}
 
-	private void analyzeAPK() {
-		QuarkTask task = new QuarkTask();
-		task.execute();
-	}
-
 	private void close() {
 		dispose();
 	}
@@ -161,78 +143,12 @@ class QuarkDialog extends JDialog {
 		super.dispose();
 	}
 
-	private class QuarkTask extends SwingWorker<Void, Void> {
+	private class QuarkTask implements IBackgroundTask {
 
 		private Process quarkProcess;
 		private boolean isVenv = false;
 
 		public QuarkTask() {
-			progressPane.setVisible(true);
-		}
-
-		@Override
-		public Void doInBackground() {
-
-			// mkdir `$HOME/.quark-engine/`
-			File directory = new File(QUARK_DIR_PATH.toString());
-			if (!directory.isDirectory()) {
-				directory.mkdirs();
-			}
-
-			if (!isPipInstalled()) {
-				UiUtils.errorMessage(mainWindow, "Pip is not installed.");
-				LOG.error("Pip is not installed");
-				cancel(true);
-				return null;
-			}
-
-			if (!isQuarkInstalled()) {
-				LOG.warn("Quark is not installed, do you want to install it from PyPI?");
-				int result = JOptionPane.showConfirmDialog(mainWindow,
-						"Quark is not installed, do you want to install it from PyPI?", "Warning",
-						JOptionPane.YES_NO_OPTION);
-
-				if (result == JOptionPane.YES_OPTION && !installQuark()) {
-					createVirtualenv();
-					installQuark();
-				}
-				if (result == JOptionPane.NO_OPTION) {
-					cancel(true);
-					return null;
-				}
-			}
-
-			if (!checkFileSize(LARGE_APK_SIZE)) {
-				int result = JOptionPane.showConfirmDialog(mainWindow,
-						"The selected file size is too large (over 20M) that may take a long time to analyze, do you want to continue",
-						"Quark: Warning", JOptionPane.YES_NO_OPTION);
-				if (result == JOptionPane.NO_OPTION) {
-					cancel(true);
-					return null;
-				}
-			}
-
-			if (!analyzeAPK()) {
-				UiUtils.errorMessage(mainWindow, "Quark: Failed to analyze apk.");
-				cancel(true);
-				return null;
-			}
-			return null;
-		}
-
-		@Override
-		public void done() {
-			if (isCancelled()) {
-				dispose();
-				return;
-			}
-
-			if (quarkProcess.exitValue() != 0) {
-				LOG.error(QUARK_FAILED_MESSAGE);
-				return;
-			}
-
-			loadReportFile();
 			dispose();
 		}
 
@@ -402,6 +318,86 @@ class QuarkDialog extends JDialog {
 			} else {
 				return Paths.get(venvPath.toString(), "bin", cmd);
 			}
+		}
+
+		@Override
+		public String getTitle() {
+			return "Quark:";
+		}
+
+		@Override
+		public boolean canBeCanceled() {
+			return true;
+		}
+
+		@Override
+		public List<Runnable> scheduleJobs() {
+			List<Runnable> jobs = new ArrayList<>();
+
+			// mkdir `$HOME/.quark-engine/`
+			File directory = new File(QUARK_DIR_PATH.toString());
+			if (!directory.isDirectory()) {
+				directory.mkdirs();
+			}
+
+			if (!checkFileSize(LARGE_APK_SIZE)) {
+				int result = JOptionPane.showConfirmDialog(mainWindow,
+						"The selected file size is too large (over 30M) that may take a long time to analyze, do you want to continue",
+						"Quark: Warning", JOptionPane.YES_NO_OPTION);
+				if (result == JOptionPane.NO_OPTION) {
+					return jobs;
+				}
+			}
+
+			jobs.add(() -> {
+				if (!isPipInstalled()) {
+					UiUtils.errorMessage(mainWindow, "Pip is not installed.");
+					LOG.error("Pip is not installed");
+					mainWindow.cancelBackgroundJobs();
+				}
+			});
+
+			jobs.add(() -> {
+				mainWindow.getProgressPane().setLabel("Check Quark installed");
+				if (!isQuarkInstalled()) {
+					LOG.warn("Quark is not installed, do you want to install it from PyPI?");
+					int result = JOptionPane.showConfirmDialog(mainWindow,
+							"Quark is not installed, do you want to install it from PyPI?", "Warning",
+							JOptionPane.YES_NO_OPTION);
+
+					if (result == JOptionPane.YES_OPTION) {
+						mainWindow.getProgressPane().setLabel("Installing Quark");
+						createVirtualenv();
+						if (!installQuark()) {
+							UiUtils.errorMessage(mainWindow, "Failed to install quark-engine.");
+							mainWindow.cancelBackgroundJobs();
+						}
+					}
+					if (result == JOptionPane.NO_OPTION) {
+						mainWindow.cancelBackgroundJobs();
+					}
+				}
+			});
+
+			jobs.add(() -> {
+				mainWindow.getProgressPane().setLabel("Analyzing");
+				if (!analyzeAPK()) {
+					UiUtils.errorMessage(mainWindow, "Quark: Failed to analyze apk.");
+					mainWindow.cancelBackgroundJobs();
+				}
+			});
+
+			return jobs;
+		}
+
+		@Override
+		public void onFinish(TaskStatus status, long skipped) {
+
+			if (quarkProcess.exitValue() != 0) {
+				LOG.error(QUARK_FAILED_MESSAGE);
+				return;
+			}
+			loadReportFile();
 		}
 	}
 }
