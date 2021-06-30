@@ -253,11 +253,9 @@ class QuarkDialog extends JDialog {
 				quarkProcess = Runtime.getRuntime().exec(cmdList.toArray(new String[0]));
 
 				try (BufferedReader buf = new BufferedReader(new InputStreamReader(quarkProcess.getInputStream()))) {
-					while (quarkProcess.isAlive()) {
-						String output = buf.readLine();
-						if (output != null) {
-							LOG.debug(output);
-						}
+					String output = null;
+					while ((output = buf.readLine()) != null) {
+						LOG.debug(output);
 					}
 				}
 			} catch (Exception e) {
