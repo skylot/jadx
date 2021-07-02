@@ -21,6 +21,10 @@ import jadx.api.ResourcesLoader;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.core.utils.Utils;
 import jadx.core.xmlgen.ResContainer;
+import jadx.gui.ui.ContentPanel;
+import jadx.gui.ui.ImagePanel;
+import jadx.gui.ui.TabbedPane;
+import jadx.gui.ui.codearea.CodeContentPanel;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.OverlayIcon;
 import jadx.gui.utils.UiUtils;
@@ -104,6 +108,17 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 	public @Nullable ICodeInfo getCodeInfo() {
 		getContent();
 		return content;
+	}
+
+	@Override
+	public @Nullable ContentPanel getContentPanel(TabbedPane tabbedPane) {
+		if (resFile == null) {
+			return null;
+		}
+		if (resFile.getType() == ResourceType.IMG) {
+			return new ImagePanel(tabbedPane, this);
+		}
+		return new CodeContentPanel(tabbedPane, this);
 	}
 
 	@Override

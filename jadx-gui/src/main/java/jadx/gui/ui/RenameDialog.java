@@ -222,11 +222,9 @@ public class RenameDialog extends JDialog {
 							UiUtils.errorMessage(this, NLS.str("message.memoryLow"));
 						}
 						if (node instanceof JPackage) {
-							// reinit tree
-							mainWindow.initTree();
-						} else {
-							mainWindow.reloadTree();
+							mainWindow.getTreeRoot().update();
 						}
+						mainWindow.reloadTree();
 					});
 		}
 	}

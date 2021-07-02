@@ -66,6 +66,10 @@ public class BackgroundExecutor {
 		execute(new SimpleTask(title, Collections.singletonList(backgroundRunnable), onFinishUiRunnable));
 	}
 
+	public void execute(String title, Runnable backgroundRunnable) {
+		execute(new SimpleTask(title, Collections.singletonList(backgroundRunnable), null));
+	}
+
 	private ThreadPoolExecutor makeTaskQueueExecutor() {
 		return (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
 	}
@@ -125,7 +129,7 @@ public class BackgroundExecutor {
 						return cancelStatus;
 					}
 					setProgress(calcProgress(executor.getCompletedTaskCount()));
-					Thread.sleep(1000);
+					Thread.sleep(500);
 				}
 			} catch (InterruptedException e) {
 				LOG.debug("Task wait interrupted");

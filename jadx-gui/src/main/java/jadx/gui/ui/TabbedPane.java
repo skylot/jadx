@@ -20,19 +20,14 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.ResourceFile;
-import jadx.api.ResourceType;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.gui.treemodel.ApkSignature;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
-import jadx.gui.treemodel.JResource;
-import jadx.gui.ui.codearea.*;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.codearea.AbstractCodeContentPanel;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
-import jadx.gui.ui.codearea.CodeContentPanel;
+import jadx.gui.ui.codearea.SmaliArea;
 import jadx.gui.utils.JumpManager;
 import jadx.gui.utils.JumpPosition;
 
@@ -203,20 +198,16 @@ public class TabbedPane extends JTabbedPane {
 		});
 	}
 
-	public void showResource(JResource res) {
-		final ContentPanel contentPanel = getContentPanel(res);
+	public void showNode(JNode node) {
+		final ContentPanel contentPanel = getContentPanel(node);
 		if (contentPanel == null) {
 			return;
 		}
 		SwingUtilities.invokeLater(() -> setSelectedComponent(contentPanel));
 	}
 
-	public void showSimpleNode(JNode node) {
-		final ContentPanel contentPanel = getContentPanel(node);
-		if (contentPanel == null) {
-			return;
-		}
-		SwingUtilities.invokeLater(() -> setSelectedComponent(contentPanel));
+	public void codeJump(JNode node) {
+		codeJump(new JumpPosition(node));
 	}
 
 	public void codeJump(JumpPosition pos) {
@@ -292,7 +283,7 @@ public class TabbedPane extends JTabbedPane {
 	private ContentPanel getContentPanel(JNode node) {
 		ContentPanel panel = openTabs.get(node);
 		if (panel == null) {
-			panel = makeContentPanel(node);
+			panel = node.getContentPanel(this);
 			if (panel == null) {
 				return null;
 			}
@@ -309,29 +300,6 @@ public class TabbedPane extends JTabbedPane {
 			setTabComponentAt(indexOfComponent(panel), makeTabComponent(panel));
 			fireStateChanged();
 		}
-	}
-
-	@Nullable
-	private ContentPanel makeContentPanel(JNode node) {
-		if (node instanceof JResource) {
-			JResource res = (JResource) node;
-			ResourceFile resFile = res.getResFile();
-			if (resFile != null) {
-				if (resFile.getType() == ResourceType.IMG) {
-					return new ImagePanel(this, res);
-				}
-				return new CodeContentPanel(this, node);
-			} else {
-				return null;
-			}
-		}
-		if (node instanceof ApkSignature) {
-			return new HtmlPanel(this, node);
-		}
-		if (node instanceof QuarkReport) {
-			return new HtmlPanel(this, node);
-		}
-		return new ClassCodeContentPanel(this, node);
 	}
 
 	@Nullable
@@ -418,7 +386,7 @@ public class TabbedPane extends JTabbedPane {
 				pane.addFocusListener(listener);
 				return;
 			}
-			throw new JadxRuntimeException("Add the new ContentPanel to TabbedPane.FocusManager: " + pane);
+			// throw new JadxRuntimeException("Add the new ContentPanel to TabbedPane.FocusManager: " + pane);
 		}
 
 		static void focusOnCodePanel(ContentPanel pane) {
@@ -444,7 +412,7 @@ public class TabbedPane extends JTabbedPane {
 				SwingUtilities.invokeLater(((ImagePanel) pane)::requestFocusInWindow);
 				return;
 			}
-			throw new JadxRuntimeException("Add the new ContentPanel to TabbedPane.FocusManager: " + pane);
+			// throw new JadxRuntimeException("Add the new ContentPanel to TabbedPane.FocusManager: " + pane);
 		}
 	}
 }

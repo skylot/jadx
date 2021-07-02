@@ -10,6 +10,7 @@ import javax.swing.ImageIcon;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.text.StringEscapeUtils;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +19,9 @@ import com.android.apksig.ApkVerifier;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.gui.JadxWrapper;
+import jadx.gui.ui.ContentPanel;
+import jadx.gui.ui.HtmlPanel;
+import jadx.gui.ui.TabbedPane;
 import jadx.gui.utils.CertificateManager;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
@@ -32,6 +36,7 @@ public class ApkSignature extends JNode {
 	private final transient File openFile;
 	private String content;
 
+	@Nullable
 	public static ApkSignature getApkSignature(JadxWrapper wrapper) {
 		// Only show the ApkSignature node if an AndroidManifest.xml is present.
 		// Without a manifest the Google ApkVerifier refuses to work.
@@ -68,6 +73,11 @@ public class ApkSignature extends JNode {
 	@Override
 	public String makeString() {
 		return "APK signature";
+	}
+
+	@Override
+	public ContentPanel getContentPanel(TabbedPane tabbedPane) {
+		return new HtmlPanel(tabbedPane, this);
 	}
 
 	@Override

@@ -34,8 +34,6 @@ public abstract class ContentPanel extends JPanel {
 	 * selected entry inside the APK file.
 	 *
 	 * If <code>null</code> is returned no tool tip will be displayed.
-	 *
-	 * @return
 	 */
 	@Nullable
 	public String getTabTooltip() {

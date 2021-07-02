@@ -22,7 +22,7 @@ import jadx.gui.ui.codearea.AbstractCodeArea;
 public class ImagePanel extends ContentPanel {
 	private static final long serialVersionUID = 4071356367073142688L;
 
-	ImagePanel(TabbedPane panel, JResource res) {
+	public ImagePanel(TabbedPane panel, JResource res) {
 		super(panel, res);
 		setLayout(new BorderLayout());
 		try {

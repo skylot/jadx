@@ -12,6 +12,9 @@ import jadx.api.JavaNode;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.gui.ui.ContentPanel;
+import jadx.gui.ui.TabbedPane;
+import jadx.gui.ui.codearea.ClassCodeContentPanel;
 import jadx.gui.utils.OverlayIcon;
 import jadx.gui.utils.UiUtils;
 
@@ -60,6 +63,11 @@ public class JMethod extends JNode {
 	@Override
 	public int getLine() {
 		return mth.getDecompiledLine();
+	}
+
+	@Override
+	public ContentPanel getContentPanel(TabbedPane tabbedPane) {
+		return new ClassCodeContentPanel(tabbedPane, this);
 	}
 
 	@Override
