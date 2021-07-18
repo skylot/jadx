@@ -335,19 +335,25 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	}
 
 	private String getAttributeName(int id) {
+		// As the outcome of https://github.com/skylot/jadx/issues/1208
+		// Android seems to favor entries from AndroidResMap and only if
+		// there is no entry uses the values form the XML string pool
+		if (0 <= id && id < resourceIds.length) {
+			int resId = resourceIds[id];
+			String str = ValuesParser.getAndroidResMap().get(resId);
+			if (str != null) {
+				// cut type before /
+				int typeEnd = str.indexOf('/');
+				if (typeEnd != -1) {
+					return str.substring(typeEnd + 1);
+				}
+				return str;
+			}
+		}
+
 		String str = getString(id);
 		if (str == null || str.isEmpty()) {
-			int resId = resourceIds[id];
-			str = ValuesParser.getAndroidResMap().get(resId);
-			if (str == null) {
-				return "NOT_FOUND_0x" + Integer.toHexString(id);
-			}
-			// cut type before /
-			int typeEnd = str.indexOf('/');
-			if (typeEnd != -1) {
-				return str.substring(typeEnd + 1);
-			}
-			return str;
+			return "NOT_FOUND_0x" + Integer.toHexString(id);
 		}
 		return str;
 	}
