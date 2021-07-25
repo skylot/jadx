@@ -35,6 +35,9 @@ public class ProcessAnonymous extends AbstractVisitor {
 
 	private static void markAnonymousClass(ClassNode cls) {
 		if (usedOnlyOnce(cls) || isAnonymous(cls) || isLambdaCls(cls)) {
+			if (isStaticFieldUsedOutside(cls)) {
+				return;
+			}
 			cls.add(AFlag.ANONYMOUS_CLASS);
 			cls.add(AFlag.DONT_GENERATE);
 
@@ -44,6 +47,21 @@ public class ProcessAnonymous extends AbstractVisitor {
 				}
 			}
 		}
+	}
+
+	private static boolean isStaticFieldUsedOutside(ClassNode cls) {
+		ClassNode topCls = cls.getTopParentClass();
+		for (FieldNode field : cls.getFields()) {
+			if (field.isStatic()) {
+				for (MethodNode useMth : field.getUseIn()) {
+					ClassNode useCls = useMth.getParentClass().getTopParentClass();
+					if (!useCls.equals(topCls)) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	private static boolean usedOnlyOnce(ClassNode cls) {
