@@ -152,4 +152,21 @@ public class JRoot extends JNode {
 		}
 		return count + " files";
 	}
+
+	@Override
+	public String getTooltip() {
+		List<Path> paths = wrapper.getOpenPaths();
+		int count = paths.size();
+		if (count < 2) {
+			return null;
+		}
+		// Show list of loaded files (full path)
+		StringBuilder sb = new StringBuilder("<html>");
+		for (Path p : paths) {
+			sb.append(UiUtils.escapeHtml(p.toString()));
+			sb.append("<br>");
+		}
+		sb.append("</html>");
+		return sb.toString();
+	}
 }

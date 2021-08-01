@@ -94,7 +94,7 @@ public class UiUtils {
 	}
 
 	public static String escapeHtml(String str) {
-		return str.replace("<", "&lt;");
+		return str.replace("<", "&lt;").replace(">", "&gt;");
 	}
 
 	public static String typeStr(ArgType type) {

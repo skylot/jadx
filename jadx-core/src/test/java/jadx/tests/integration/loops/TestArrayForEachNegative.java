@@ -50,6 +50,10 @@ public class TestArrayForEachNegative extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
+		// Remove all comments - as the comment created by CodeGenUtils.addInputFileInfo
+		// always contains a colon
+		code = code.replaceAll("/\\*.*?\\*/", "");
+
 		assertThat(code, not(containsString(":")));
 	}
 }

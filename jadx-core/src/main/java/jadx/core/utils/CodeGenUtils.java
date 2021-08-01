@@ -100,6 +100,15 @@ public class CodeGenUtils {
 		}
 	}
 
+	public static void addInputFileInfo(ICodeWriter code, ClassNode node) {
+		if (node.getClsData() != null) {
+			String inputFileName = node.getClsData().getInputFileName();
+			if (inputFileName != null) {
+				code.startLine("/* loaded from: ").add(inputFileName).add(" */");
+			}
+		}
+	}
+
 	public static CodeVar getCodeVar(RegisterArg arg) {
 		SSAVar svar = arg.getSVar();
 		if (svar != null) {

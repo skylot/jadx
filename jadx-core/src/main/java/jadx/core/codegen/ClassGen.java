@@ -147,6 +147,7 @@ public class ClassGen {
 
 		annotationGen.addForClass(clsCode);
 		insertRenameInfo(clsCode, cls);
+		CodeGenUtils.addInputFileInfo(clsCode, cls);
 		clsCode.startLineWithNum(cls.getSourceLine()).add(af.makeString());
 		if (af.isInterface()) {
 			if (af.isAnnotation()) {
