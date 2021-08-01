@@ -50,9 +50,9 @@ public class TestArrayForEachNegative extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		// Remove all comments - on Windows they can contain a colon because of the path C:\...
-		// added by CodeGenUtils.addInputFileInfo
-		code = code.replaceAll("/\\*[^/]*\\*/", "");
+		// Remove all comments - as the comment created by CodeGenUtils.addInputFileInfo
+		// always contains a colon
+		code = code.replaceAll("/\\*.*?\\*/", "");
 
 		assertThat(code, not(containsString(":")));
 	}
