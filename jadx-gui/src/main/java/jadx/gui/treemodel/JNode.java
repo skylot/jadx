@@ -116,6 +116,10 @@ public abstract class JNode extends DefaultMutableTreeNode {
 		return javaNode.getDefPos();
 	}
 
+	public String getTooltip() {
+		return null;
+	}
+
 	@Override
 	public String toString() {
 		return makeString();
