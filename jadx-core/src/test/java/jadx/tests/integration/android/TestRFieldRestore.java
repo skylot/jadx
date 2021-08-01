@@ -6,8 +6,8 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.fldinit.FieldInitAttr;
+import jadx.api.plugins.input.data.annotations.EncodedValue;
+import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.tests.api.IntegrationTest;
@@ -56,8 +56,8 @@ public class TestRFieldRestore extends IntegrationTest {
 		// check 'Button' field
 		FieldNode buttonField = idCls.searchFieldByName("Button");
 		assertThat(buttonField, notNullValue());
-		FieldInitAttr fieldInitAttr = buttonField.get(AType.FIELD_INIT);
-		Integer buttonValue = (Integer) fieldInitAttr.getEncodedValue().getValue();
+		EncodedValue constVal = buttonField.get(JadxAttrType.CONSTANT_VALUE);
+		Integer buttonValue = (Integer) constVal.getValue();
 		assertThat(buttonValue, is(buttonConstValue));
 	}
 }

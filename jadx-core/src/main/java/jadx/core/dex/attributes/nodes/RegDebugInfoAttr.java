@@ -2,11 +2,11 @@ package jadx.core.dex.attributes.nodes;
 
 import java.util.Objects;
 
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.instructions.args.ArgType;
 
-public class RegDebugInfoAttr implements IAttribute {
+public class RegDebugInfoAttr implements IJadxAttribute {
 
 	private final ArgType type;
 	private final String name;
@@ -25,7 +25,7 @@ public class RegDebugInfoAttr implements IAttribute {
 	}
 
 	@Override
-	public AType<RegDebugInfoAttr> getType() {
+	public AType<RegDebugInfoAttr> getAttrType() {
 		return AType.REG_DEBUG_INFO;
 	}
 

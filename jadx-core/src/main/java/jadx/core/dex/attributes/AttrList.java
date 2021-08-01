@@ -4,14 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jadx.api.ICodeWriter;
+import jadx.api.plugins.input.data.attributes.IJadxAttrType;
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.utils.Utils;
 
-public class AttrList<T> implements IAttribute {
+public class AttrList<T> implements IJadxAttribute {
 
-	private final AType<AttrList<T>> type;
+	private final IJadxAttrType<AttrList<T>> type;
 	private final List<T> list = new ArrayList<>();
 
-	public AttrList(AType<AttrList<T>> type) {
+	public AttrList(IJadxAttrType<AttrList<T>> type) {
 		this.type = type;
 	}
 
@@ -20,7 +22,7 @@ public class AttrList<T> implements IAttribute {
 	}
 
 	@Override
-	public AType<AttrList<T>> getType() {
+	public IJadxAttrType<AttrList<T>> getAttrType() {
 		return type;
 	}
 

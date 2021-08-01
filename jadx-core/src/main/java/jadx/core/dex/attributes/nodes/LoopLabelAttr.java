@@ -1,9 +1,9 @@
 package jadx.core.dex.attributes.nodes;
 
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.IAttribute;
 
-public class LoopLabelAttr implements IAttribute {
+public class LoopLabelAttr implements IJadxAttribute {
 
 	private final LoopInfo loop;
 
@@ -16,7 +16,7 @@ public class LoopLabelAttr implements IAttribute {
 	}
 
 	@Override
-	public AType<LoopLabelAttr> getType() {
+	public AType<LoopLabelAttr> getAttrType() {
 		return AType.LOOP_LABEL;
 	}
 

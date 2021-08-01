@@ -6,8 +6,8 @@ dependencies {
 	implementation(project(':jadx-core'))
 
 	runtimeOnly(project(':jadx-plugins:jadx-dex-input'))
+	runtimeOnly(project(':jadx-plugins:jadx-java-input'))
 	runtimeOnly(project(':jadx-plugins:jadx-smali-input'))
-	runtimeOnly(project(':jadx-plugins:jadx-java-convert'))
 
 	implementation 'com.beust:jcommander:1.81'
 	implementation 'ch.qos.logback:logback-classic:1.2.5'

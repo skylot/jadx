@@ -10,6 +10,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+@SuppressWarnings("IfCanBeSwitch")
 public class TestElseIf extends IntegrationTest {
 
 	public static class TestCls {
@@ -25,6 +26,7 @@ public class TestElseIf extends IntegrationTest {
 				r = 4;
 			} else {
 				r = -1;
+				System.out.println();
 			}
 			r = r * 10;
 			return Math.abs(r);

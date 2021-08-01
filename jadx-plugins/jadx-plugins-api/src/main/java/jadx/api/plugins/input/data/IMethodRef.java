@@ -1,8 +1,8 @@
 package jadx.api.plugins.input.data;
 
-import java.util.List;
+import jadx.api.plugins.input.insns.custom.ICustomPayload;
 
-public interface IMethodRef {
+public interface IMethodRef extends IMethodProto, ICustomPayload {
 
 	int getUniqId();
 
@@ -14,8 +14,4 @@ public interface IMethodRef {
 	String getParentClassType();
 
 	String getName();
-
-	String getReturnType();
-
-	List<String> getArgTypes();
 }

@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -253,7 +253,7 @@ public final class IfCondition extends AttrNode {
 	}
 
 	public List<RegisterArg> getRegisterArgs() {
-		List<RegisterArg> list = new LinkedList<>();
+		List<RegisterArg> list = new ArrayList<>();
 		if (mode == Mode.COMPARE) {
 			compare.getInsn().getRegisterArgs(list);
 		} else {
@@ -262,6 +262,14 @@ public final class IfCondition extends AttrNode {
 			}
 		}
 		return list;
+	}
+
+	public void visitInsns(Consumer<InsnNode> visitor) {
+		if (mode == Mode.COMPARE) {
+			compare.getInsn().visitInsns(visitor);
+		} else {
+			args.forEach(arg -> arg.visitInsns(visitor));
+		}
 	}
 
 	@Nullable

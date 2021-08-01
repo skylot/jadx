@@ -13,11 +13,12 @@ import jadx.api.ICodeWriter;
 import jadx.api.data.annotations.InsnCodeOffset;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
+import jadx.api.plugins.input.data.attributes.JadxAttrType;
+import jadx.api.plugins.input.data.attributes.types.MethodParamsAttr;
 import jadx.core.Consts;
 import jadx.core.Jadx;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.annotations.MethodParameters;
 import jadx.core.dex.attributes.nodes.JadxError;
 import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
@@ -39,7 +40,6 @@ import jadx.core.utils.CodeGenUtils;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.CodegenException;
-import jadx.core.utils.exceptions.DecodeException;
 import jadx.core.utils.exceptions.JadxOverflowException;
 
 import static jadx.core.codegen.MethodGen.FallbackOption.BLOCK_DUMP;
@@ -103,6 +103,9 @@ public class MethodGen {
 		if (clsAccFlags.isAnnotation()) {
 			ai = ai.remove(AccessFlags.PUBLIC);
 		}
+		if (mth.getMethodInfo().isConstructor() && mth.getParentClass().isEnum()) {
+			ai = ai.remove(AccessInfo.VISIBILITY_FLAGS);
+		}
 
 		if (mth.getMethodInfo().hasAlias() && !ai.isConstructor()) {
 			CodeGenUtils.addRenamedComment(code, mth, mth.getName());
@@ -113,9 +116,6 @@ public class MethodGen {
 
 		code.startLineWithNum(mth.getSourceLine());
 		code.add(ai.makeString());
-		if (Consts.DEBUG) {
-			code.add(mth.isVirtual() ? "/* virtual */ " : "/* direct */ ");
-		}
 		if (clsAccFlags.isInterface() && !mth.isNoCode() && !mth.getAccessFlags().isStatic()) {
 			// add 'default' for method with code in interface
 			code.add("default ");
@@ -153,9 +153,9 @@ public class MethodGen {
 
 		annotationGen.addThrows(mth, code);
 
-		// add default value if in annotation class
+		// add default value for annotation class
 		if (mth.getParentClass().getAccessFlags().isAnnotation()) {
-			EncodedValue def = annotationGen.getAnnotationDefaultValue(mth.getName());
+			EncodedValue def = annotationGen.getAnnotationDefaultValue(mth);
 			if (def != null) {
 				code.add(" default ");
 				annotationGen.encodeValue(mth.root(), code, def);
@@ -181,7 +181,7 @@ public class MethodGen {
 	}
 
 	private void addMethodArguments(ICodeWriter code, List<RegisterArg> args) {
-		MethodParameters paramsAnnotation = mth.get(AType.ANNOTATION_MTH_PARAMETERS);
+		MethodParamsAttr paramsAnnotation = mth.get(JadxAttrType.ANNOTATION_MTH_PARAMETERS);
 		int i = 0;
 		Iterator<RegisterArg> it = args.iterator();
 		while (it.hasNext()) {
@@ -189,7 +189,7 @@ public class MethodGen {
 			SSAVar ssaVar = mthArg.getSVar();
 			CodeVar var;
 			if (ssaVar == null) {
-				// null for abstract or interface methods
+				// abstract or interface methods
 				var = CodeVar.fromMthArg(mthArg, classGen.isFallbackMode());
 			} else {
 				var = ssaVar.getCodeVar();
@@ -291,17 +291,21 @@ public class MethodGen {
 
 	public void addFallbackMethodCode(ICodeWriter code, FallbackOption fallbackOption) {
 		if (fallbackOption != FALLBACK_MODE) {
-			// load original instructions
+			List<JadxError> errors = mth.getAll(AType.JADX_ERROR); // preserve error before unload
 			try {
+				// load original instructions
 				mth.unload();
 				mth.load();
 				for (IDexTreeVisitor visitor : Jadx.getFallbackPassesList()) {
 					DepthTraversal.visit(visitor, mth);
 				}
-			} catch (DecodeException e) {
+				errors.forEach(err -> mth.addAttr(AType.JADX_ERROR, err));
+			} catch (Exception e) {
 				LOG.error("Error reload instructions in fallback mode:", e);
 				code.startLine("// Can't load method instructions: " + e.getMessage());
 				return;
+			} finally {
+				errors.forEach(err -> mth.addAttr(AType.JADX_ERROR, err));
 			}
 		}
 		InsnNode[] insnArr = mth.getInstructions();

@@ -3,6 +3,8 @@ package jadx.core.dex.attributes;
 import java.util.List;
 
 import jadx.api.plugins.input.data.annotations.IAnnotation;
+import jadx.api.plugins.input.data.attributes.IJadxAttrType;
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 
 public abstract class AttrNode implements IAttributeNode {
 
@@ -16,12 +18,17 @@ public abstract class AttrNode implements IAttributeNode {
 	}
 
 	@Override
-	public void addAttr(IAttribute attr) {
+	public void addAttr(IJadxAttribute attr) {
 		initStorage().add(attr);
 	}
 
 	@Override
-	public <T> void addAttr(AType<AttrList<T>> type, T obj) {
+	public void addAttrs(List<IJadxAttribute> list) {
+		initStorage().add(list);
+	}
+
+	@Override
+	public <T> void addAttr(IJadxAttrType<AttrList<T>> type, T obj) {
 		initStorage().add(type, obj);
 	}
 
@@ -34,8 +41,8 @@ public abstract class AttrNode implements IAttributeNode {
 	}
 
 	@Override
-	public <T extends IAttribute> void copyAttributeFrom(AttrNode attrNode, AType<T> attrType) {
-		IAttribute attr = attrNode.get(attrType);
+	public <T extends IJadxAttribute> void copyAttributeFrom(AttrNode attrNode, AType<T> attrType) {
+		IJadxAttribute attr = attrNode.get(attrType);
 		if (attr != null) {
 			this.addAttr(attr);
 		}
@@ -45,7 +52,7 @@ public abstract class AttrNode implements IAttributeNode {
 	 * Remove attribute in this node, add copy from other if exists
 	 */
 	@Override
-	public <T extends IAttribute> void rewriteAttributeFrom(AttrNode attrNode, AType<T> attrType) {
+	public <T extends IJadxAttribute> void rewriteAttributeFrom(AttrNode attrNode, AType<T> attrType) {
 		remove(attrType);
 		copyAttributeFrom(attrNode, attrType);
 	}
@@ -71,12 +78,12 @@ public abstract class AttrNode implements IAttributeNode {
 	}
 
 	@Override
-	public <T extends IAttribute> boolean contains(AType<T> type) {
+	public <T extends IJadxAttribute> boolean contains(IJadxAttrType<T> type) {
 		return storage.contains(type);
 	}
 
 	@Override
-	public <T extends IAttribute> T get(AType<T> type) {
+	public <T extends IJadxAttribute> T get(IJadxAttrType<T> type) {
 		return storage.get(type);
 	}
 
@@ -86,7 +93,7 @@ public abstract class AttrNode implements IAttributeNode {
 	}
 
 	@Override
-	public <T> List<T> getAll(AType<AttrList<T>> type) {
+	public <T> List<T> getAll(IJadxAttrType<AttrList<T>> type) {
 		return storage.getAll(type);
 	}
 
@@ -97,13 +104,13 @@ public abstract class AttrNode implements IAttributeNode {
 	}
 
 	@Override
-	public <T extends IAttribute> void remove(AType<T> type) {
+	public <T extends IJadxAttribute> void remove(IJadxAttrType<T> type) {
 		storage.remove(type);
 		unloadIfEmpty();
 	}
 
 	@Override
-	public void removeAttr(IAttribute attr) {
+	public void removeAttr(IJadxAttribute attr) {
 		storage.remove(attr);
 		unloadIfEmpty();
 	}
@@ -115,7 +122,7 @@ public abstract class AttrNode implements IAttributeNode {
 	}
 
 	/**
-	 * Remove all attribute with exceptions from {@link AType#SKIP_ON_UNLOAD}
+	 * Remove all attribute
 	 */
 	public void unloadAttributes() {
 		if (storage == EMPTY_ATTR_STORAGE) {

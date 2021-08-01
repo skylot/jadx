@@ -1,6 +1,7 @@
 package jadx.core.dex.instructions.mods;
 
 import java.util.Collection;
+import java.util.function.Consumer;
 
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
@@ -27,6 +28,7 @@ public final class TernaryInsn extends InsnNode {
 			addArg(th);
 			addArg(els);
 		}
+		visitInsns(this::inheritMetadata);
 	}
 
 	private TernaryInsn() {
@@ -55,6 +57,11 @@ public final class TernaryInsn extends InsnNode {
 	public void getRegisterArgs(Collection<RegisterArg> list) {
 		super.getRegisterArgs(list);
 		list.addAll(condition.getRegisterArgs());
+	}
+
+	public void visitInsns(Consumer<InsnNode> visitor) {
+		super.visitInsns(visitor);
+		condition.visitInsns(visitor);
 	}
 
 	@Override

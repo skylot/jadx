@@ -171,13 +171,19 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 		}
 		SSAVar sVar = ((RegisterArg) condArg).getSVar();
 		List<RegisterArg> args = sVar.getUseList();
-		if (args.size() != 3 || args.get(2) != condArg) {
+		if (args.size() != 3) {
 			return null;
 		}
-		condArg = args.get(0);
-		RegisterArg arrIndex = args.get(1);
+		condArg = InsnUtils.getRegFromInsn(args, InsnType.IF);
+		if (condArg == null) {
+			return null;
+		}
+		RegisterArg arrIndex = InsnUtils.getRegFromInsn(args, InsnType.AGET);
+		if (arrIndex == null) {
+			return null;
+		}
 		InsnNode arrGetInsn = arrIndex.getParentInsn();
-		if (arrGetInsn == null || arrGetInsn.getType() != InsnType.AGET || arrGetInsn.containsWrappedInsn()) {
+		if (arrGetInsn == null || arrGetInsn.containsWrappedInsn()) {
 			return null;
 		}
 		if (!condition.isCompare()) {

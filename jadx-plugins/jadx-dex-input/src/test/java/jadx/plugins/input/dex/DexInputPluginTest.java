@@ -46,7 +46,7 @@ class DexInputPluginTest {
 				System.out.println("AccessFlags: " + AccessFlags.format(cls.getAccessFlags(), AccessFlagsScope.CLASS));
 				System.out.println("SuperType: " + cls.getSuperType());
 				System.out.println("Interfaces: " + cls.getInterfacesTypes());
-				System.out.println("SourceFile: " + cls.getSourceFile());
+				System.out.println("Attributes: " + cls.getAttributes());
 				count.getAndIncrement();
 
 				cls.visitFieldsAndMethods(

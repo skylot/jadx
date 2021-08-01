@@ -2,7 +2,7 @@ package jadx.core.dex.info;
 
 import java.util.Objects;
 
-import jadx.api.plugins.input.data.IFieldData;
+import jadx.api.plugins.input.data.IFieldRef;
 import jadx.core.codegen.TypeGen;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.RootNode;
@@ -26,9 +26,9 @@ public final class FieldInfo {
 		return root.getInfoStorage().getField(field);
 	}
 
-	public static FieldInfo fromData(RootNode root, IFieldData fieldData) {
-		ClassInfo declClass = ClassInfo.fromName(root, fieldData.getParentClassType());
-		FieldInfo field = new FieldInfo(declClass, fieldData.getName(), ArgType.parse(fieldData.getType()));
+	public static FieldInfo fromRef(RootNode root, IFieldRef fieldRef) {
+		ClassInfo declClass = ClassInfo.fromName(root, fieldRef.getParentClassType());
+		FieldInfo field = new FieldInfo(declClass, fieldRef.getName(), ArgType.parse(fieldRef.getType()));
 		return root.getInfoStorage().getField(field);
 	}
 

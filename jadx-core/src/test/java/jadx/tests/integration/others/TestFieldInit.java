@@ -6,13 +6,9 @@ import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestFieldInit extends IntegrationTest {
 
@@ -35,15 +31,16 @@ public class TestFieldInit extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("List<String> s = new ArrayList"));
-		assertThat(code, containsOne("A a = new A();"));
-		assertThat(code, containsOne("int i = (Random.class.getSimpleName().length() + 1);"));
-		assertThat(code, containsOne("int n = 0;"));
-		assertThat(code, not(containsString("static {")));
-		assertThat(code, containsOne("this.n = z;"));
-		assertThat(code, containsOne("this.n = 0;"));
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("List<String> s = new ArrayList")
+				.containsOne("A a = new A();")
+				.containsOneOf(
+						"int i = (Random.class.getSimpleName().length() + 1);",
+						"int i = (1 + Random.class.getSimpleName().length());")
+				.containsOne("int n = 0;")
+				.doesNotContain("static {")
+				.containsOne("this.n = z;")
+				.containsOne("this.n = 0;");
 	}
 }

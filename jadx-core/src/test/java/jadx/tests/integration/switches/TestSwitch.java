@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestSwitch extends IntegrationTest {
 	public static class TestCls {
-		public String escape(String str) {
+		public String test(String str) {
 			int len = str.length();
 			StringBuilder sb = new StringBuilder(len);
 			for (int i = 0; i < len; i++) {

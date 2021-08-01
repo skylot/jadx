@@ -3,12 +3,12 @@ package jadx.core.dex.attributes.nodes;
 import java.util.List;
 import java.util.SortedSet;
 
+import jadx.api.plugins.input.data.attributes.PinnedAttribute;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.MethodNode;
 
-public class MethodOverrideAttr implements IAttribute {
+public class MethodOverrideAttr extends PinnedAttribute {
 
 	/**
 	 * All methods overridden by current method. Current method excluded, empty for base method.
@@ -46,7 +46,7 @@ public class MethodOverrideAttr implements IAttribute {
 	}
 
 	@Override
-	public AType<MethodOverrideAttr> getType() {
+	public AType<MethodOverrideAttr> getAttrType() {
 		return AType.METHOD_OVERRIDE;
 	}
 

@@ -1,14 +1,15 @@
 package jadx.core.utils;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.plugins.input.data.annotations.EncodedValue;
+import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.core.dex.attributes.AFlag;
-import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.fldinit.FieldInitAttr;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.ConstClassNode;
 import jadx.core.dex.instructions.ConstStringNode;
@@ -100,9 +101,9 @@ public class InsnUtils {
 					LOG.warn("Field {} not found", f);
 					return null;
 				}
-				FieldInitAttr attr = fieldNode.get(AType.FIELD_INIT);
-				if (attr != null && attr.isConst()) {
-					return EncodedValueUtils.convertToConstValue(root, attr.getEncodedValue());
+				EncodedValue constVal = fieldNode.get(JadxAttrType.CONSTANT_VALUE);
+				if (constVal != null) {
+					return EncodedValueUtils.convertToConstValue(constVal);
 				}
 				return null;
 
@@ -134,6 +135,17 @@ public class InsnUtils {
 				if (foundInsn != null) {
 					return foundInsn;
 				}
+			}
+		}
+		return null;
+	}
+
+	@Nullable
+	public static RegisterArg getRegFromInsn(List<RegisterArg> regs, InsnType insnType) {
+		for (RegisterArg reg : regs) {
+			InsnNode parentInsn = reg.getParentInsn();
+			if (parentInsn != null && parentInsn.getType() == insnType) {
+				return reg;
 			}
 		}
 		return null;

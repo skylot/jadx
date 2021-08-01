@@ -106,7 +106,6 @@ public class TernaryMod implements IRegionIterativeVisitor {
 			InsnArg thenArg = InsnArg.wrapInsnIntoArg(thenInsn);
 			InsnArg elseArg = InsnArg.wrapInsnIntoArg(elseInsn);
 			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(), resArg, thenArg, elseArg);
-			ternInsn.setSourceLine(thenInsn.getSourceLine());
 
 			InsnRemover.unbindResult(mth, elseInsn);
 
@@ -141,7 +140,6 @@ public class TernaryMod implements IRegionIterativeVisitor {
 			eb.remove(AFlag.RETURN);
 
 			TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(), null, thenArg, elseArg);
-			ternInsn.setSourceLine(thenInsn.getSourceLine());
 			InsnNode retInsn = new InsnNode(InsnType.RETURN, 1);
 			InsnArg arg = InsnArg.wrapInsnIntoArg(ternInsn);
 			arg.setType(thenArg.getType());
@@ -281,7 +279,6 @@ public class TernaryMod implements IRegionIterativeVisitor {
 		InsnList.remove(block, insn);
 		TernaryInsn ternInsn = new TernaryInsn(ifRegion.getCondition(),
 				phiInsn.getResult(), InsnArg.wrapInsnIntoArg(insn), otherArg);
-		ternInsn.setSourceLine(insn.getSourceLine());
 
 		InsnRemover.unbindAllArgs(mth, phiInsn);
 		header.getInstructions().clear();

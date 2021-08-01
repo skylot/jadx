@@ -7,12 +7,12 @@ import jadx.api.plugins.input.data.MethodHandleType;
 
 public class MethodRefHandle implements IMethodHandle {
 
-	private final IMethodRef methodRef;
 	private final MethodHandleType type;
+	private final IMethodRef methodRef;
 
 	public MethodRefHandle(MethodHandleType type, IMethodRef methodRef) {
-		this.methodRef = methodRef;
 		this.type = type;
+		this.methodRef = methodRef;
 	}
 
 	@Override

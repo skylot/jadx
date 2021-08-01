@@ -8,14 +8,15 @@ import java.util.Map.Entry;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeWriter;
-import jadx.api.plugins.input.data.IFieldData;
+import jadx.api.plugins.input.data.IFieldRef;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.annotations.IAnnotation;
+import jadx.api.plugins.input.data.attributes.JadxAttrType;
+import jadx.api.plugins.input.data.attributes.types.AnnotationDefaultAttr;
+import jadx.api.plugins.input.data.attributes.types.AnnotationsAttr;
+import jadx.api.plugins.input.data.attributes.types.MethodParamsAttr;
 import jadx.core.Consts;
-import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttributeNode;
-import jadx.core.dex.attributes.annotations.AnnotationsList;
-import jadx.core.dex.attributes.annotations.MethodParameters;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
@@ -47,12 +48,12 @@ public class AnnotationGen {
 		add(field, code);
 	}
 
-	public void addForParameter(ICodeWriter code, MethodParameters paramsAnnotations, int n) {
-		List<AnnotationsList> paramList = paramsAnnotations.getParamList();
+	public void addForParameter(ICodeWriter code, MethodParamsAttr paramsAnnotations, int n) {
+		List<AnnotationsAttr> paramList = paramsAnnotations.getParamList();
 		if (n >= paramList.size()) {
 			return;
 		}
-		AnnotationsList aList = paramList.get(n);
+		AnnotationsAttr aList = paramList.get(n);
 		if (aList == null || aList.isEmpty()) {
 			return;
 		}
@@ -63,13 +64,13 @@ public class AnnotationGen {
 	}
 
 	private void add(IAttributeNode node, ICodeWriter code) {
-		AnnotationsList aList = node.get(AType.ANNOTATION_LIST);
+		AnnotationsAttr aList = node.get(JadxAttrType.ANNOTATION_LIST);
 		if (aList == null || aList.isEmpty()) {
 			return;
 		}
 		for (IAnnotation a : aList.getAll()) {
 			String aCls = a.getAnnotationClass();
-			if (!aCls.startsWith(Consts.DALVIK_ANNOTATION_PKG) && !aCls.equals(Consts.OVERRIDE_ANNOTATION)) {
+			if (!aCls.equals(Consts.OVERRIDE_ANNOTATION)) {
 				code.startLine();
 				formatAnnotation(code, a);
 			}
@@ -131,16 +132,12 @@ public class AnnotationGen {
 		}
 	}
 
-	public EncodedValue getAnnotationDefaultValue(String name) {
-		IAnnotation an = cls.getAnnotation(Consts.DALVIK_ANNOTATION_DEFAULT);
-		if (an != null) {
-			EncodedValue defValue = an.getDefaultValue();
-			if (defValue != null) {
-				IAnnotation defAnnotation = (IAnnotation) defValue.getValue();
-				return defAnnotation.getValues().get(name);
-			}
+	public EncodedValue getAnnotationDefaultValue(MethodNode mth) {
+		AnnotationDefaultAttr defaultAttr = mth.get(JadxAttrType.ANNOTATION_DEFAULT);
+		if (defaultAttr == null) {
+			return null;
 		}
-		return null;
+		return defaultAttr.getValue();
 	}
 
 	// TODO: refactor this boilerplate code
@@ -188,9 +185,9 @@ public class AnnotationGen {
 			case ENCODED_ENUM:
 			case ENCODED_FIELD:
 				// must be a static field
-				if (value instanceof IFieldData) {
-					FieldInfo field = FieldInfo.fromData(root, (IFieldData) value);
-					InsnGen.makeStaticFieldAccess(code, field, classGen);
+				if (value instanceof IFieldRef) {
+					FieldInfo fieldInfo = FieldInfo.fromRef(root, (IFieldRef) value);
+					InsnGen.makeStaticFieldAccess(code, fieldInfo, classGen);
 				} else if (value instanceof FieldInfo) {
 					InsnGen.makeStaticFieldAccess(code, (FieldInfo) value, classGen);
 				} else {

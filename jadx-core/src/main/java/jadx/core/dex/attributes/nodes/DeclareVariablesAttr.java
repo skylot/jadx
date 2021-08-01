@@ -3,15 +3,15 @@ package jadx.core.dex.attributes.nodes;
 import java.util.ArrayList;
 import java.util.List;
 
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.utils.Utils;
 
 /**
  * List of variables to be declared at region start.
  */
-public class DeclareVariablesAttr implements IAttribute {
+public class DeclareVariablesAttr implements IJadxAttribute {
 
 	private final List<CodeVar> vars = new ArrayList<>();
 
@@ -24,7 +24,7 @@ public class DeclareVariablesAttr implements IAttribute {
 	}
 
 	@Override
-	public AType<DeclareVariablesAttr> getType() {
+	public AType<DeclareVariablesAttr> getAttrType() {
 		return AType.DECLARE_VARIABLES;
 	}
 

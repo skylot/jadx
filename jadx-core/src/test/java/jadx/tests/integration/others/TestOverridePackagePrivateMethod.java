@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.NotYetImplemented;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
@@ -42,7 +41,6 @@ public class TestOverridePackagePrivateMethod extends SmaliTest {
 	*/
 	// @formatter:on
 
-	@NotYetImplemented("Don't change access modifiers if not needed")
 	@Test
 	public void test() {
 		commonChecks();

@@ -1,21 +1,27 @@
 package jadx.plugins.input.dex.sections;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.api.plugins.input.data.IClassData;
 import jadx.api.plugins.input.data.IFieldData;
 import jadx.api.plugins.input.data.IMethodData;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.annotations.IAnnotation;
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
+import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
 import jadx.plugins.input.dex.sections.annotations.AnnotationsParser;
 import jadx.plugins.input.dex.utils.SmaliUtils;
 
 public class DexClassData implements IClassData {
+	private static final Logger LOG = LoggerFactory.getLogger(DexClassData.class);
 	public static final int SIZE = 8 * 4;
 
 	private final SectionReader in;
@@ -63,8 +69,7 @@ public class DexClassData implements IClassData {
 	}
 
 	@Nullable
-	@Override
-	public String getSourceFile() {
+	private String getSourceFile() {
 		int strIdx = in.pos(4 * 4).readInt();
 		return in.getString(strIdx);
 	}
@@ -107,12 +112,13 @@ public class DexClassData implements IClassData {
 		Map<Integer, Integer> annotationOffsetMap = annotationsParser.readFieldsAnnotationOffsetMap();
 		DexFieldData fieldData = new DexFieldData(annotationsParser);
 		fieldData.setParentClassType(getType());
-		readFields(fieldConsumer, data, fieldData, staticFieldsCount, annotationOffsetMap);
-		readFields(fieldConsumer, data, fieldData, instanceFieldsCount, annotationOffsetMap);
+		readFields(fieldConsumer, data, fieldData, staticFieldsCount, annotationOffsetMap, true);
+		readFields(fieldConsumer, data, fieldData, instanceFieldsCount, annotationOffsetMap, false);
 	}
 
 	private void readFields(Consumer<IFieldData> fieldConsumer, SectionReader data, DexFieldData fieldData, int count,
-			Map<Integer, Integer> annOffsetMap) {
+			Map<Integer, Integer> annOffsetMap, boolean staticFields) {
+		List<EncodedValue> constValues = staticFields ? getStaticFieldInitValues(data.copy()) : null;
 		int fieldId = 0;
 		for (int i = 0; i < count; i++) {
 			fieldId += data.readUleb128();
@@ -120,6 +126,7 @@ public class DexClassData implements IClassData {
 			in.fillFieldData(fieldData, fieldId);
 			fieldData.setAccessFlags(accFlags);
 			fieldData.setAnnotationsOffset(getOffsetFromMap(fieldId, annOffsetMap));
+			fieldData.setConstValue(staticFields && i < constValues.size() ? constValues.get(i) : null);
 			fieldConsumer.accept(fieldData);
 		}
 	}
@@ -130,9 +137,7 @@ public class DexClassData implements IClassData {
 		Map<Integer, Integer> annotationOffsetMap = annotationsParser.readMethodsAnnotationOffsetMap();
 		Map<Integer, Integer> paramsAnnOffsetMap = annotationsParser.readMethodParamsAnnRefOffsetMap();
 
-		methodData.setDirect(true);
 		readMethods(mthConsumer, data, methodData, directMthCount, annotationOffsetMap, paramsAnnOffsetMap);
-		methodData.setDirect(false);
 		readMethods(mthConsumer, data, methodData, virtualMthCount, annotationOffsetMap, paramsAnnOffsetMap);
 	}
 
@@ -167,20 +172,29 @@ public class DexClassData implements IClassData {
 		return offset != null ? offset : 0;
 	}
 
-	@Override
-	public List<EncodedValue> getStaticFieldInitValues() {
+	private List<EncodedValue> getStaticFieldInitValues(SectionReader reader) {
 		int staticValuesOff = getStaticValuesOff();
 		if (staticValuesOff == 0) {
 			return Collections.emptyList();
 		}
-		in.absPos(staticValuesOff);
-		return annotationsParser.parseEncodedArray(in);
+		reader.absPos(staticValuesOff);
+		return annotationsParser.parseEncodedArray(reader);
+	}
+
+	private List<IAnnotation> getAnnotations() {
+		annotationsParser.setOffset(getAnnotationsOff());
+		return annotationsParser.readClassAnnotations();
 	}
 
 	@Override
-	public List<IAnnotation> getAnnotations() {
-		annotationsParser.setOffset(getAnnotationsOff());
-		return annotationsParser.readClassAnnotations();
+	public List<IJadxAttribute> getAttributes() {
+		List<IJadxAttribute> list = new ArrayList<>();
+		String sourceFile = getSourceFile();
+		if (sourceFile != null && !sourceFile.isEmpty()) {
+			list.add(new SourceFileAttr(sourceFile));
+		}
+		DexAnnotationsConvert.forClass(getType(), list, getAnnotations());
+		return list;
 	}
 
 	public int getClassDefOffset() {

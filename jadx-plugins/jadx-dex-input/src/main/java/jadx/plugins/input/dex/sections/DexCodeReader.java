@@ -13,14 +13,14 @@ import jadx.api.plugins.input.data.ICatch;
 import jadx.api.plugins.input.data.ICodeReader;
 import jadx.api.plugins.input.data.IDebugInfo;
 import jadx.api.plugins.input.data.ITry;
+import jadx.api.plugins.input.data.impl.CatchData;
+import jadx.api.plugins.input.data.impl.TryData;
 import jadx.api.plugins.input.insns.InsnData;
 import jadx.plugins.input.dex.DexException;
 import jadx.plugins.input.dex.insns.DexInsnData;
 import jadx.plugins.input.dex.insns.DexInsnFormat;
 import jadx.plugins.input.dex.insns.DexInsnInfo;
 import jadx.plugins.input.dex.sections.debuginfo.DebugInfoParser;
-import jadx.plugins.input.dex.sections.trycatch.DexCatch;
-import jadx.plugins.input.dex.sections.trycatch.DexTryData;
 
 public class DexCodeReader implements ICodeReader {
 
@@ -48,7 +48,12 @@ public class DexCodeReader implements ICodeReader {
 	}
 
 	@Override
-	public int getInsnsCount() {
+	public int getArgsStartReg() {
+		return -1;
+	}
+
+	@Override
+	public int getUnitsCount() {
 		return in.pos(12).readInt();
 	}
 
@@ -108,7 +113,7 @@ public class DexCodeReader implements ICodeReader {
 			return null;
 		}
 		int regsCount = getRegistersCount();
-		DebugInfoParser debugInfoParser = new DebugInfoParser(in, regsCount, getInsnsCount());
+		DebugInfoParser debugInfoParser = new DebugInfoParser(in, regsCount, getUnitsCount());
 		debugInfoParser.initMthArgs(regsCount, in.getMethodParamTypes(mthId));
 		return debugInfoParser.process(debugOff);
 	}
@@ -122,7 +127,7 @@ public class DexCodeReader implements ICodeReader {
 		if (triesCount == 0) {
 			return -1;
 		}
-		int insnsCount = getInsnsCount();
+		int insnsCount = getUnitsCount();
 		int padding = insnsCount % 2 == 1 ? 2 : 0;
 		return 4 * 4 + insnsCount * 2 + padding;
 	}
@@ -145,7 +150,7 @@ public class DexCodeReader implements ICodeReader {
 			if (catchHandler == null) {
 				throw new DexException("Catch handler not found by byte offset: " + handlerOff);
 			}
-			triesList.add(new DexTryData(catchHandler, startAddr, insnsCount));
+			triesList.add(new TryData(startAddr, startAddr + insnsCount - 1, catchHandler));
 		}
 		return triesList;
 	}
@@ -171,7 +176,7 @@ public class DexCodeReader implements ICodeReader {
 			} else {
 				catchAllAddr = -1;
 			}
-			map.put(byteIndex, new DexCatch(addr, types, catchAllAddr));
+			map.put(byteIndex, new CatchData(addr, types, catchAllAddr));
 		}
 		return map;
 	}

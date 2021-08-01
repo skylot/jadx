@@ -80,6 +80,7 @@ public class MoveInlineVisitor extends AbstractVisitor {
 			} else {
 				replaceArg = moveArg.duplicate();
 			}
+			useInsn.inheritMetadata(move);
 			replaceArg.copyAttributesFrom(useArg);
 			if (debugInfo != null) {
 				replaceArg.addAttr(debugInfo);

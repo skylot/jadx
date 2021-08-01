@@ -12,8 +12,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.JadxArgs;
-import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.fldinit.FieldInitAttr;
+import jadx.api.plugins.input.data.annotations.EncodedValue;
+import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.nodes.ClassNode;
@@ -84,9 +84,9 @@ public class ConstStorage {
 		for (FieldNode f : staticFields) {
 			AccessInfo accFlags = f.getAccessFlags();
 			if (accFlags.isStatic() && accFlags.isFinal()) {
-				FieldInitAttr fv = f.get(AType.FIELD_INIT);
-				if (fv != null && fv.isConst() && fv.getEncodedValue().getValue() != null) {
-					addConstField(cls, f, fv.getEncodedValue().getValue(), accFlags.isPublic());
+				EncodedValue constVal = f.get(JadxAttrType.CONSTANT_VALUE);
+				if (constVal != null && constVal.getValue() != null) {
+					addConstField(cls, f, constVal.getValue(), accFlags.isPublic());
 				}
 			}
 		}

@@ -1,12 +1,16 @@
 package jadx.core.dex.instructions;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.plugins.input.data.ICodeReader;
+import jadx.api.plugins.input.data.IMethodRef;
 import jadx.api.plugins.input.insns.InsnData;
 import jadx.api.plugins.input.insns.custom.IArrayPayload;
+import jadx.api.plugins.input.insns.custom.ICustomPayload;
 import jadx.api.plugins.input.insns.custom.ISwitchPayload;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AType;
@@ -35,7 +39,7 @@ public class InsnDecoder {
 	}
 
 	public InsnNode[] process(ICodeReader codeReader) {
-		InsnNode[] instructions = new InsnNode[codeReader.getInsnsCount()];
+		InsnNode[] instructions = new InsnNode[codeReader.getUnitsCount()];
 		codeReader.visitInstructions(rawInsn -> {
 			int offset = rawInsn.getOffset();
 			InsnNode insn;
@@ -87,6 +91,14 @@ public class InsnDecoder {
 				return insn(InsnType.MOVE,
 						InsnArg.reg(insn, 0, ArgType.NARROW),
 						InsnArg.reg(insn, 1, ArgType.NARROW));
+
+			case MOVE_MULTI:
+				int len = insn.getRegsCount();
+				InsnNode mmv = new InsnNode(InsnType.MOVE_MULTI, len);
+				for (int i = 0; i < len; i++) {
+					mmv.addArg(InsnArg.reg(insn, i, ArgType.UNKNOWN));
+				}
+				return mmv;
 
 			case MOVE_WIDE:
 				return insn(InsnType.MOVE,
@@ -339,31 +351,31 @@ public class InsnDecoder {
 				ArgType castType = ArgType.parse(insn.getIndexAsType());
 				InsnNode checkCastInsn = new IndexInsnNode(InsnType.CHECK_CAST, castType, 1);
 				checkCastInsn.setResult(InsnArg.reg(insn, 0, castType));
-				checkCastInsn.addArg(InsnArg.reg(insn, 0, ArgType.UNKNOWN_OBJECT));
+				checkCastInsn.addArg(InsnArg.reg(insn, insn.getRegsCount() == 2 ? 1 : 0, ArgType.UNKNOWN_OBJECT));
 				return checkCastInsn;
 
 			case IGET:
-				FieldInfo igetFld = FieldInfo.fromData(root, insn.getIndexAsField());
+				FieldInfo igetFld = FieldInfo.fromRef(root, insn.getIndexAsField());
 				InsnNode igetInsn = new IndexInsnNode(InsnType.IGET, igetFld, 1);
 				igetInsn.setResult(InsnArg.reg(insn, 0, tryResolveFieldType(igetFld)));
 				igetInsn.addArg(InsnArg.reg(insn, 1, igetFld.getDeclClass().getType()));
 				return igetInsn;
 
 			case IPUT:
-				FieldInfo iputFld = FieldInfo.fromData(root, insn.getIndexAsField());
+				FieldInfo iputFld = FieldInfo.fromRef(root, insn.getIndexAsField());
 				InsnNode iputInsn = new IndexInsnNode(InsnType.IPUT, iputFld, 2);
 				iputInsn.addArg(InsnArg.reg(insn, 0, tryResolveFieldType(iputFld)));
 				iputInsn.addArg(InsnArg.reg(insn, 1, iputFld.getDeclClass().getType()));
 				return iputInsn;
 
 			case SGET:
-				FieldInfo sgetFld = FieldInfo.fromData(root, insn.getIndexAsField());
+				FieldInfo sgetFld = FieldInfo.fromRef(root, insn.getIndexAsField());
 				InsnNode sgetInsn = new IndexInsnNode(InsnType.SGET, sgetFld, 0);
 				sgetInsn.setResult(InsnArg.reg(insn, 0, tryResolveFieldType(sgetFld)));
 				return sgetInsn;
 
 			case SPUT:
-				FieldInfo sputFld = FieldInfo.fromData(root, insn.getIndexAsField());
+				FieldInfo sputFld = FieldInfo.fromRef(root, insn.getIndexAsField());
 				InsnNode sputInsn = new IndexInsnNode(InsnType.SPUT, sputFld, 1);
 				sputInsn.addArg(InsnArg.reg(insn, 0, tryResolveFieldType(sputFld)));
 				return sputInsn;
@@ -380,6 +392,8 @@ public class InsnDecoder {
 				return arrayGet(insn, ArgType.BOOLEAN);
 			case AGET_BYTE:
 				return arrayGet(insn, ArgType.BYTE);
+			case AGET_BYTE_BOOLEAN:
+				return arrayGet(insn, ArgType.BYTE_BOOLEAN);
 			case AGET_CHAR:
 				return arrayGet(insn, ArgType.CHAR);
 			case AGET_SHORT:
@@ -395,6 +409,8 @@ public class InsnDecoder {
 				return arrayPut(insn, ArgType.BOOLEAN);
 			case APUT_BYTE:
 				return arrayPut(insn, ArgType.BYTE);
+			case APUT_BYTE_BOOLEAN:
+				return arrayPut(insn, ArgType.BYTE_BOOLEAN);
 			case APUT_CHAR:
 				return arrayPut(insn, ArgType.CHAR);
 			case APUT_SHORT:
@@ -439,15 +455,12 @@ public class InsnDecoder {
 				return newInstInsn;
 
 			case NEW_ARRAY:
-				ArgType arrType = ArgType.parse(insn.getIndexAsType());
-				return new NewArrayNode(arrType,
-						InsnArg.reg(insn, 0, arrType),
-						InsnArg.typeImmutableReg(insn, 1, ArgType.INT));
+				return makeNewArray(insn);
 
 			case FILL_ARRAY_DATA:
 				return new FillArrayInsn(InsnArg.reg(insn, 0, ArgType.UNKNOWN_ARRAY), insn.getTarget());
 			case FILL_ARRAY_DATA_PAYLOAD:
-				return new FillArrayData(((IArrayPayload) insn.getPayload()));
+				return new FillArrayData(((IArrayPayload) Objects.requireNonNull(insn.getPayload())));
 
 			case FILLED_NEW_ARRAY:
 				return filledNewArray(insn, false);
@@ -455,9 +468,9 @@ public class InsnDecoder {
 				return filledNewArray(insn, true);
 
 			case PACKED_SWITCH:
-				return new SwitchInsn(InsnArg.reg(insn, 0, ArgType.UNKNOWN), insn.getTarget(), true);
+				return makeSwitch(insn, true);
 			case SPARSE_SWITCH:
-				return new SwitchInsn(InsnArg.reg(insn, 0, ArgType.UNKNOWN), insn.getTarget(), false);
+				return makeSwitch(insn, false);
 
 			case PACKED_SWITCH_PAYLOAD:
 			case SPARSE_SWITCH_PAYLOAD:
@@ -476,6 +489,29 @@ public class InsnDecoder {
 			default:
 				throw new DecodeException("Unknown instruction: '" + insn + '\'');
 		}
+	}
+
+	@NotNull
+	private SwitchInsn makeSwitch(InsnData insn, boolean packed) {
+		SwitchInsn swInsn = new SwitchInsn(InsnArg.reg(insn, 0, ArgType.UNKNOWN), insn.getTarget(), packed);
+		ICustomPayload payload = insn.getPayload();
+		if (payload != null) {
+			swInsn.attachSwitchData(new SwitchData((ISwitchPayload) payload), insn.getTarget());
+		}
+		return swInsn;
+	}
+
+	private InsnNode makeNewArray(InsnData insn) {
+		ArgType indexType = ArgType.parse(insn.getIndexAsType());
+		int dim = (int) insn.getLiteral();
+		ArgType arrType = dim == 0 ? indexType : ArgType.array(indexType, dim);
+		int regsCount = insn.getRegsCount();
+		NewArrayNode newArr = new NewArrayNode(arrType, regsCount - 1);
+		newArr.setResult(InsnArg.reg(insn, 0, arrType));
+		for (int i = 1; i < regsCount; i++) {
+			newArr.addArg(InsnArg.typeImmutableReg(insn, i, ArgType.INT));
+		}
+		return newArr;
 	}
 
 	private ArgType tryResolveFieldType(FieldInfo igetFld) {
@@ -531,7 +567,14 @@ public class InsnDecoder {
 		if (type == InvokeType.CUSTOM) {
 			return InvokeCustomBuilder.build(method, insn, isRange);
 		}
-		MethodInfo mthInfo = MethodInfo.fromRef(root, insn.getIndexAsMethod());
+		IMethodRef mthRef;
+		ICustomPayload payload = insn.getPayload();
+		if (payload != null) {
+			mthRef = ((IMethodRef) payload);
+		} else {
+			mthRef = insn.getIndexAsMethod();
+		}
+		MethodInfo mthInfo = MethodInfo.fromRef(root, mthRef);
 		return new InvokeNode(mthInfo, insn, type, isRange);
 	}
 

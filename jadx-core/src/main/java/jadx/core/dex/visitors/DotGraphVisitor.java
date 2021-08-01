@@ -1,6 +1,7 @@
 package jadx.core.dex.visitors;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -86,13 +87,30 @@ public class DotGraphVisitor extends AbstractVisitor {
 			dot.add(escape(mth.getParentClass() + "." + mth.getMethodInfo().getShortId()));
 			dot.add("\" {");
 
+			BlockNode enterBlock = mth.getEnterBlock();
 			if (useRegions) {
 				if (mth.getRegion() == null) {
 					return;
 				}
 				processMethodRegion(mth);
 			} else {
-				for (BlockNode block : mth.getBasicBlocks()) {
+				List<BlockNode> blocks = mth.getBasicBlocks();
+				if (blocks == null) {
+					InsnNode[] insnArr = mth.getInstructions();
+					if (insnArr == null) {
+						return;
+					}
+					BlockNode block = new BlockNode(0, 0);
+					List<InsnNode> insnList = block.getInstructions();
+					for (InsnNode insn : insnArr) {
+						if (insn != null) {
+							insnList.add(insn);
+						}
+					}
+					enterBlock = block;
+					blocks = Collections.singletonList(block);
+				}
+				for (BlockNode block : blocks) {
 					processBlock(mth, block, false);
 				}
 			}
@@ -109,7 +127,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 			}
 			dot.add("}\"];");
 
-			dot.startLine("MethodNode -> ").add(makeName(mth.getEnterBlock())).add(';');
+			dot.startLine("MethodNode -> ").add(makeName(enterBlock)).add(';');
 
 			dot.add(conn.toString());
 
@@ -269,6 +287,9 @@ public class DotGraphVisitor extends AbstractVisitor {
 				StringBuilder str = new StringBuilder();
 				for (InsnNode insn : block.getInstructions()) {
 					str.append(escape(insn + " " + insn.getAttributesString()));
+					if (insn.getSourceLine() != 0) {
+						str.append(" (LINE:").append(insn.getSourceLine()).append(')');
+					}
 					str.append(NL);
 				}
 				return str.toString();

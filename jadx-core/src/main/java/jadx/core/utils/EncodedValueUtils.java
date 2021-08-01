@@ -6,7 +6,6 @@ import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.LiteralArg;
-import jadx.core.dex.nodes.RootNode;
 
 public class EncodedValueUtils {
 
@@ -16,7 +15,7 @@ public class EncodedValueUtils {
 	 * @return LiteralArg, String, ArgType or null
 	 */
 	@Nullable
-	public static Object convertToConstValue(RootNode root, EncodedValue encodedValue) {
+	public static Object convertToConstValue(EncodedValue encodedValue) {
 		if (encodedValue == null) {
 			return null;
 		}

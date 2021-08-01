@@ -641,7 +641,7 @@ public class BlockUtils {
 	public static void replaceInsn(MethodNode mth, BlockNode block, int i, InsnNode insn) {
 		InsnNode prevInsn = block.getInstructions().get(i);
 		insn.copyAttributesFrom(prevInsn);
-		insn.setSourceLine(prevInsn.getSourceLine());
+		insn.inheritMetadata(prevInsn);
 		insn.setOffset(prevInsn.getOffset());
 		block.getInstructions().set(i, insn);
 

@@ -1,8 +1,12 @@
 package jadx.core.dex.visitors.usage;
 
+import jadx.api.plugins.input.data.ICallSite;
 import jadx.api.plugins.input.data.ICodeReader;
+import jadx.api.plugins.input.data.IMethodHandle;
+import jadx.api.plugins.input.data.IMethodRef;
 import jadx.api.plugins.input.insns.InsnData;
 import jadx.api.plugins.input.insns.Opcode;
+import jadx.api.plugins.input.insns.custom.ICustomPayload;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
@@ -92,19 +96,45 @@ public class UsageInfoVisitor extends AbstractVisitor {
 
 			case FIELD_REF:
 				insnData.decode();
-				FieldNode fieldNode = root.resolveField(FieldInfo.fromData(root, insnData.getIndexAsField()));
+				FieldNode fieldNode = root.resolveField(FieldInfo.fromRef(root, insnData.getIndexAsField()));
 				if (fieldNode != null) {
 					usageInfo.fieldUse(mth, fieldNode);
 				}
 				break;
 
-			case METHOD_REF:
+			case METHOD_REF: {
 				insnData.decode();
-				MethodNode methodNode = root.resolveMethod(MethodInfo.fromRef(root, insnData.getIndexAsMethod()));
+				IMethodRef mthRef;
+				ICustomPayload payload = insnData.getPayload();
+				if (payload != null) {
+					mthRef = ((IMethodRef) payload);
+				} else {
+					mthRef = insnData.getIndexAsMethod();
+				}
+				MethodNode methodNode = root.resolveMethod(MethodInfo.fromRef(root, mthRef));
 				if (methodNode != null) {
 					usageInfo.methodUse(mth, methodNode);
 				}
 				break;
+			}
+
+			case CALL_SITE: {
+				insnData.decode();
+				ICallSite callSite;
+				ICustomPayload payload = insnData.getPayload();
+				if (payload != null) {
+					callSite = ((ICallSite) payload);
+				} else {
+					callSite = insnData.getIndexAsCallSite();
+				}
+				IMethodHandle methodHandle = (IMethodHandle) callSite.getValues().get(4).getValue();
+				IMethodRef mthRef = methodHandle.getMethodRef();
+				MethodNode mthNode = root.resolveMethod(MethodInfo.fromRef(root, mthRef));
+				if (mthNode != null) {
+					usageInfo.methodUse(mth, mthNode);
+				}
+				break;
+			}
 		}
 	}
 }

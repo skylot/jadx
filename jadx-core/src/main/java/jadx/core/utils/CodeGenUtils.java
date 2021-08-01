@@ -6,11 +6,12 @@ import org.jetbrains.annotations.Nullable;
 
 import jadx.api.CodePosition;
 import jadx.api.ICodeWriter;
+import jadx.api.plugins.input.data.attributes.JadxAttrType;
+import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.attributes.nodes.RenameReasonAttr;
-import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
@@ -88,7 +89,7 @@ public class CodeGenUtils {
 	}
 
 	public static void addSourceFileInfo(ICodeWriter code, ClassNode node) {
-		SourceFileAttr sourceFileAttr = node.get(AType.SOURCE_FILE);
+		SourceFileAttr sourceFileAttr = node.get(JadxAttrType.SOURCE_FILE);
 		if (sourceFileAttr != null) {
 			String fileName = sourceFileAttr.getFileName();
 			String topClsName = node.getTopParentClass().getClassInfo().getShortName();

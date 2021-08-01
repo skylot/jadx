@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.api.plugins.input.data.annotations.IAnnotation;
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 
 public interface IMethodData {
 
@@ -12,14 +12,10 @@ public interface IMethodData {
 
 	int getAccessFlags();
 
-	boolean isDirect();
-
 	@Nullable
 	ICodeReader getCodeReader();
 
 	String disassembleMethod();
 
-	List<IAnnotation> getAnnotations();
-
-	List<List<IAnnotation>> getParamsAnnotations();
+	List<IJadxAttribute> getAttributes();
 }

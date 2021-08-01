@@ -1,6 +1,9 @@
 package jadx.core.dex.visitors;
 
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
@@ -21,7 +24,6 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.RegisterArg;
-import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -53,19 +55,28 @@ public class ReSugarCode extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
-		boolean changed = false;
-		InsnRemover remover = new InsnRemover(mth);
-		for (BlockNode block : mth.getBasicBlocks()) {
-			remover.setBlock(block);
-			List<InsnNode> instructions = block.getInstructions();
-			int size = instructions.size();
-			for (int i = 0; i < size; i++) {
-				changed |= process(mth, instructions, i, remover);
+		int k = 0;
+		while (true) {
+			boolean changed = false;
+			InsnRemover remover = new InsnRemover(mth);
+			for (BlockNode block : mth.getBasicBlocks()) {
+				remover.setBlock(block);
+				List<InsnNode> instructions = block.getInstructions();
+				int size = instructions.size();
+				for (int i = 0; i < size; i++) {
+					changed |= process(mth, instructions, i, remover);
+				}
+				remover.perform();
 			}
-			remover.perform();
-		}
-		if (changed) {
-			CodeShrinkVisitor.shrinkMethod(mth);
+			if (changed) {
+				CodeShrinkVisitor.shrinkMethod(mth);
+			} else {
+				break;
+			}
+			if (k++ > 100) {
+				mth.addWarnComment("Reached limit for ReSugarCode iterations");
+				break;
+			}
 		}
 	}
 
@@ -76,7 +87,7 @@ public class ReSugarCode extends AbstractVisitor {
 		}
 		switch (insn.getType()) {
 			case NEW_ARRAY:
-				return processNewArray(mth, (NewArrayNode) insn, instructions, remover);
+				return processNewArray(mth, (NewArrayNode) insn, instructions, i, remover);
 
 			case SWITCH:
 				return processEnumSwitch(mth, (SwitchInsn) insn);
@@ -90,7 +101,7 @@ public class ReSugarCode extends AbstractVisitor {
 	 * Replace new-array and sequence of array-put to new filled-array instruction.
 	 */
 	private static boolean processNewArray(MethodNode mth, NewArrayNode newArrayInsn,
-			List<InsnNode> instructions, InsnRemover remover) {
+			List<InsnNode> instructions, int i, InsnRemover remover) {
 		Object arrayLenConst = InsnUtils.getConstValueByArg(mth.root(), newArrayInsn.getArg(0));
 		if (!(arrayLenConst instanceof LiteralArg)) {
 			return false;
@@ -100,30 +111,33 @@ public class ReSugarCode extends AbstractVisitor {
 			return false;
 		}
 		RegisterArg arrArg = newArrayInsn.getResult();
-		SSAVar ssaVar = arrArg.getSVar();
-		List<RegisterArg> useList = ssaVar.getUseList();
+		List<RegisterArg> useList = arrArg.getSVar().getUseList();
 		if (useList.size() < len) {
 			return false;
 		}
-		// check sequential array put with increasing index
-		int putIndex = 0;
-		for (RegisterArg useArg : useList) {
-			InsnNode insn = useArg.getParentInsn();
-			if (checkPutInsn(mth, insn, arrArg, putIndex)) {
-				putIndex++;
-			} else {
-				break;
-			}
-		}
-		if (putIndex != len) {
+		List<InsnNode> arrPuts = useList.stream()
+				.map(InsnArg::getParentInsn)
+				.filter(Objects::nonNull)
+				.filter(insn -> insn.getType() == InsnType.APUT)
+				.sorted(Comparator.comparingLong(insn -> {
+					Object constVal = InsnUtils.getConstValueByArg(mth.root(), insn.getArg(1));
+					if (constVal instanceof LiteralArg) {
+						return ((LiteralArg) constVal).getLiteral();
+					}
+					return -1; // bad value, put at top to fail fast next check
+				}))
+				.collect(Collectors.toList());
+		if (arrPuts.size() != len) {
 			return false;
 		}
-		List<InsnNode> arrPuts = useList.subList(0, len).stream().map(InsnArg::getParentInsn).collect(Collectors.toList());
-		// check that all puts in current block
-		for (InsnNode arrPut : arrPuts) {
-			int index = InsnList.getIndex(instructions, arrPut);
-			if (index == -1) {
-				mth.addDebugComment("Can't convert new array creation: APUT found in different block: " + arrPut);
+		// expect all puts to be in same block
+		if (!new HashSet<>(instructions).containsAll(arrPuts)) {
+			return false;
+		}
+
+		for (int j = 0; j < len; j++) {
+			InsnNode insn = arrPuts.get(j);
+			if (!checkPutInsn(mth, insn, arrArg, j)) {
 				return false;
 			}
 		}
@@ -134,7 +148,7 @@ public class ReSugarCode extends AbstractVisitor {
 		filledArr.setResult(arrArg.duplicate());
 
 		for (InsnNode put : arrPuts) {
-			filledArr.addArg(put.getArg(2).duplicate());
+			filledArr.addArg(replaceConstInArg(mth, put.getArg(2)));
 			remover.addAndUnbind(put);
 		}
 		remover.addAndUnbind(newArrayInsn);
@@ -143,6 +157,17 @@ public class ReSugarCode extends AbstractVisitor {
 		int replaceIndex = InsnList.getIndex(instructions, lastPut);
 		instructions.set(replaceIndex, filledArr);
 		return true;
+	}
+
+	private static InsnArg replaceConstInArg(MethodNode mth, InsnArg valueArg) {
+		if (valueArg.isLiteral()) {
+			FieldNode f = mth.getParentClass().getConstFieldByLiteralArg((LiteralArg) valueArg);
+			if (f != null) {
+				InsnNode fGet = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
+				return InsnArg.wrapArg(fGet);
+			}
+		}
+		return valueArg.duplicate();
 	}
 
 	private static boolean checkPutInsn(MethodNode mth, InsnNode insn, RegisterArg arrArg, int putIndex) {

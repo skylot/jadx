@@ -73,6 +73,7 @@ public class SSATransform extends AbstractVisitor {
 		} while (repeatFix);
 
 		hidePhiInsns(mth);
+		removeUnusedInvokeResults(mth);
 	}
 
 	private static void placePhi(MethodNode mth, int regNum, LiveVarAnalysis la) {
@@ -448,5 +449,19 @@ public class SSATransform extends AbstractVisitor {
 			block.remove(AType.PHI_LIST);
 		}
 		mth.getSVars().clear();
+	}
+
+	private static void removeUnusedInvokeResults(MethodNode mth) {
+		Iterator<SSAVar> it = mth.getSVars().iterator();
+		while (it.hasNext()) {
+			SSAVar ssaVar = it.next();
+			if (ssaVar.getUseCount() == 0) {
+				InsnNode parentInsn = ssaVar.getAssign().getParentInsn();
+				if (parentInsn != null && parentInsn.getType() == InsnType.INVOKE) {
+					parentInsn.setResult(null);
+					it.remove();
+				}
+			}
+		}
 	}
 }

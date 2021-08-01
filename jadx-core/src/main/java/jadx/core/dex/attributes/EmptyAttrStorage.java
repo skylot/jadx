@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.List;
 
 import jadx.api.plugins.input.data.annotations.IAnnotation;
+import jadx.api.plugins.input.data.attributes.IJadxAttrType;
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 
 public final class EmptyAttrStorage extends AttributeStorage {
 
@@ -13,12 +15,12 @@ public final class EmptyAttrStorage extends AttributeStorage {
 	}
 
 	@Override
-	public <T extends IAttribute> boolean contains(AType<T> type) {
+	public <T extends IJadxAttribute> boolean contains(IJadxAttrType<T> type) {
 		return false;
 	}
 
 	@Override
-	public <T extends IAttribute> T get(AType<T> type) {
+	public <T extends IJadxAttribute> T get(IJadxAttrType<T> type) {
 		return null;
 	}
 
@@ -28,7 +30,7 @@ public final class EmptyAttrStorage extends AttributeStorage {
 	}
 
 	@Override
-	public <T> List<T> getAll(AType<AttrList<T>> type) {
+	public <T> List<T> getAll(IJadxAttrType<AttrList<T>> type) {
 		return Collections.emptyList();
 	}
 
@@ -43,12 +45,12 @@ public final class EmptyAttrStorage extends AttributeStorage {
 	}
 
 	@Override
-	public <T extends IAttribute> void remove(AType<T> type) {
+	public <T extends IJadxAttribute> void remove(IJadxAttrType<T> type) {
 		// ignore
 	}
 
 	@Override
-	public void remove(IAttribute attr) {
+	public void remove(IJadxAttribute attr) {
 		// ignore
 	}
 

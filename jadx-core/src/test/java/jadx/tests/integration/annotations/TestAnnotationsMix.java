@@ -100,6 +100,7 @@ public class TestAnnotationsMix extends IntegrationTest {
 
 	@Test
 	public void test() {
+		// useDexInput();
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 

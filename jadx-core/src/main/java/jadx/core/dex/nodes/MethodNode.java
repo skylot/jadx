@@ -13,13 +13,10 @@ import org.slf4j.LoggerFactory;
 import jadx.api.plugins.input.data.ICodeReader;
 import jadx.api.plugins.input.data.IDebugInfo;
 import jadx.api.plugins.input.data.IMethodData;
-import jadx.api.plugins.input.data.annotations.EncodedValue;
-import jadx.api.plugins.input.data.annotations.IAnnotation;
-import jadx.core.Consts;
+import jadx.api.plugins.input.data.attributes.JadxAttrType;
+import jadx.api.plugins.input.data.attributes.types.ExceptionsAttr;
 import jadx.core.codegen.NameGen;
 import jadx.core.dex.attributes.AFlag;
-import jadx.core.dex.attributes.annotations.AnnotationsList;
-import jadx.core.dex.attributes.annotations.MethodParameters;
 import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.attributes.nodes.NotificationAttrNode;
 import jadx.core.dex.info.AccessInfo;
@@ -52,11 +49,11 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	private AccessInfo accFlags;
 
 	private final ICodeReader codeReader;
-	private final boolean methodIsVirtual;
 	private final int insnsCount;
 
 	private boolean noCode;
 	private int regsCount;
+	private int argsStartReg;
 
 	private boolean loaded;
 
@@ -82,8 +79,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 
 	public static MethodNode build(ClassNode classNode, IMethodData methodData) {
 		MethodNode methodNode = new MethodNode(classNode, methodData);
-		AnnotationsList.attach(methodNode, methodData.getAnnotations());
-		MethodParameters.attach(methodNode, methodData.getParamsAnnotations());
+		methodNode.addAttrs(methodData.getAttributes());
 		return methodNode;
 	}
 
@@ -91,7 +87,6 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		this.mthInfo = MethodInfo.fromRef(classNode.root(), mthData.getMethodRef());
 		this.parentClass = classNode;
 		this.accFlags = new AccessInfo(mthData.getAccessFlags(), AFType.METHOD);
-		this.methodIsVirtual = !mthData.isDirect();
 		ICodeReader codeReader = mthData.getCodeReader();
 		this.noCode = codeReader == null;
 		if (noCode) {
@@ -99,7 +94,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 			this.insnsCount = 0;
 		} else {
 			this.codeReader = codeReader.copy();
-			this.insnsCount = codeReader.getInsnsCount();
+			this.insnsCount = codeReader.getUnitsCount();
 		}
 
 		this.retType = mthInfo.getReturnType();
@@ -194,6 +189,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 			}
 
 			this.regsCount = codeReader.getRegistersCount();
+			this.argsStartReg = codeReader.getArgsStartReg();
 			initArguments(this.argTypes);
 			InsnDecoder decoder = new InsnDecoder(this);
 			this.instructions = decoder.process(codeReader);
@@ -205,7 +201,8 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 				load();
 				noCode = false;
 			}
-			throw new DecodeException(this, "Load method exception: " + e.getMessage(), e);
+			throw new DecodeException(this, "Load method exception: "
+					+ e.getClass().getSimpleName() + ": " + e.getMessage(), e);
 		}
 	}
 
@@ -240,21 +237,13 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	}
 
 	private void initArguments(List<ArgType> args) {
-		int pos;
-		if (noCode) {
-			pos = 1;
-		} else {
-			pos = regsCount;
-			for (ArgType arg : args) {
-				pos -= arg.getRegCount();
-			}
-		}
+		int pos = getArgsStartPos(args);
 		TypeUtils typeUtils = root().getTypeUtils();
 		if (accFlags.isStatic()) {
 			thisArg = null;
 		} else {
 			ArgType thisClsType = typeUtils.expandTypeVariables(this, parentClass.getType());
-			RegisterArg arg = InsnArg.reg(pos - 1, thisClsType);
+			RegisterArg arg = InsnArg.reg(pos++, thisClsType);
 			arg.add(AFlag.THIS);
 			arg.add(AFlag.IMMUTABLE_TYPE);
 			thisArg = arg;
@@ -272,6 +261,23 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 			argsList.add(regArg);
 			pos += argType.getRegCount();
 		}
+	}
+
+	private int getArgsStartPos(List<ArgType> args) {
+		if (noCode) {
+			return 0;
+		}
+		if (argsStartReg != -1) {
+			return argsStartReg;
+		}
+		int pos = regsCount;
+		for (ArgType arg : args) {
+			pos -= arg.getRegCount();
+		}
+		if (!accFlags.isStatic()) {
+			pos--;
+		}
+		return pos;
 	}
 
 	@Override
@@ -480,14 +486,12 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public List<ArgType> getThrows() {
-		IAnnotation an = getAnnotation(Consts.DALVIK_THROWS);
-		if (an == null) {
+		ExceptionsAttr exceptionsAttr = get(JadxAttrType.EXCEPTIONS);
+		if (exceptionsAttr == null) {
 			return Collections.emptyList();
 		}
-		List<EncodedValue> types = (List<EncodedValue>) an.getDefaultValue().getValue();
-		return Utils.collectionMap(types, ev -> ArgType.object((String) ev.getValue()));
+		return Utils.collectionMap(exceptionsAttr.getList(), ArgType::object);
 	}
 
 	/**
@@ -526,10 +530,6 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 			return argsList == null || argsList.size() == defaultArgCount;
 		}
 		return false;
-	}
-
-	public boolean isVirtual() {
-		return methodIsVirtual;
 	}
 
 	public int getRegsCount() {

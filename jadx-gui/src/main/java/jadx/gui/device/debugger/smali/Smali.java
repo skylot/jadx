@@ -2,6 +2,7 @@ package jadx.gui.device.debugger.smali;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -27,11 +28,14 @@ import jadx.api.plugins.input.data.ITry;
 import jadx.api.plugins.input.data.annotations.AnnotationVisibility;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.annotations.IAnnotation;
+import jadx.api.plugins.input.data.attributes.JadxAttrType;
+import jadx.api.plugins.input.data.attributes.types.AnnotationsAttr;
 import jadx.api.plugins.input.insns.InsnData;
 import jadx.api.plugins.input.insns.InsnIndexType;
 import jadx.api.plugins.input.insns.Opcode;
 import jadx.api.plugins.input.insns.custom.ISwitchPayload;
 import jadx.core.codegen.TypeGen;
+import jadx.core.dex.attributes.AttributeStorage;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnDecoder;
 import jadx.core.dex.instructions.InsnType;
@@ -169,17 +173,23 @@ public class Smali {
 			smali.startLine(String.format("###### Class %s is created by jadx", cls.getFullName()));
 			return;
 		}
+		AttributeStorage attributes = new AttributeStorage();
+		attributes.add(clsData.getAttributes());
+
 		smali.startLine("Class: " + clsData.getType())
 				.startLine("AccessFlags: " + AccessFlags.format(clsData.getAccessFlags(), AccessFlagsScope.CLASS))
 				.startLine("SuperType: " + clsData.getSuperType())
 				.startLine("Interfaces: " + clsData.getInterfacesTypes())
-				.startLine("SourceFile: " + clsData.getSourceFile());
+				.startLine("SourceFile: " + attributes.get(JadxAttrType.SOURCE_FILE));
 
-		List<IAnnotation> annos = clsData.getAnnotations();
-		if (annos.size() > 0) {
-			smali.startLine(String.format("# %d annotations", annos.size()));
-			writeAnnotations(smali, annos);
-			smali.startLine();
+		AnnotationsAttr annotationsAttr = attributes.get(JadxAttrType.ANNOTATION_LIST);
+		if (annotationsAttr != null) {
+			Collection<IAnnotation> annos = annotationsAttr.getList();
+			if (!annos.isEmpty()) {
+				smali.startLine(String.format("# %d annotations", annos.size()));
+				writeAnnotations(smali, new ArrayList<>(annos));
+				smali.startLine();
+			}
 		}
 
 		List<RawField> fields = new ArrayList<>();
@@ -216,7 +226,6 @@ public class Smali {
 
 	private void writeFields(SmaliWriter smali, IClassData classData, List<RawField> fields, int[] colWidths) {
 		int staticIdx = 0;
-		List<EncodedValue> staticFieldInitValues = classData.getStaticFieldInitValues();
 		smali.startLine().startLine("# fields");
 		String whites = new String(new byte[Math.max(colWidths[0], colWidths[1])]).replace("\0", " ");
 		for (RawField fld : fields) {
@@ -232,15 +241,19 @@ public class Smali {
 			}
 			smali.add(fld.name).add(" ");
 			smali.add(": ").add(fld.type);
-			if (fld.isStatic) { // static field
-				if (staticIdx < staticFieldInitValues.size()) {
+			if (fld.isStatic) {
+				EncodedValue constVal = fld.attributes.get(JadxAttrType.CONSTANT_VALUE);
+				if (constVal != null) {
 					smali.add(" # init val = ");
-					writeEncodedValue(smali, staticFieldInitValues.get(staticIdx++), false);
+					writeEncodedValue(smali, constVal, false);
 				}
 			}
-			smali.incIndent();
-			writeAnnotations(smali, fld.annoList);
-			smali.decIndent();
+			AnnotationsAttr annotationsAttr = fld.attributes.get(JadxAttrType.ANNOTATION_LIST);
+			if (annotationsAttr != null) {
+				smali.incIndent();
+				writeAnnotations(smali, annotationsAttr.getList());
+				smali.decIndent();
+			}
 		}
 		smali.startLine();
 	}
@@ -249,17 +262,15 @@ public class Smali {
 		if (insnDecoder == null) {
 			insnDecoder = new SmaliInsnDecoder(methodNode);
 		}
-		smali.startLine()
-				.startLine(mth.isDirect() ? "# direct method" : " # virtual method")
-				.startLine(".method ");
+		smali.startLine().startLine(".method ");
 		writeMethodDef(smali, mth, line);
 		ICodeReader codeReader = mth.getCodeReader();
 		if (codeReader != null) {
 			line.smaliMthNode.setParamRegStart(getParamStartRegNum(mth));
 			line.smaliMthNode.setRegCount(codeReader.getRegistersCount());
-			Map<Long, InsnNode> nodes = new HashMap<>(codeReader.getInsnsCount() / 2);
-			line.smaliMthNode.setInsnNodes(nodes, codeReader.getInsnsCount());
-			line.smaliMthNode.initRegInfoList(codeReader.getRegistersCount(), codeReader.getInsnsCount());
+			Map<Long, InsnNode> nodes = new HashMap<>(codeReader.getUnitsCount() / 2);
+			line.smaliMthNode.setInsnNodes(nodes, codeReader.getUnitsCount());
+			line.smaliMthNode.initRegInfoList(codeReader.getRegistersCount(), codeReader.getUnitsCount());
 
 			smali.incIndent();
 			smali.startLine(".registers ")
@@ -288,7 +299,7 @@ public class Smali {
 	private void writeTries(ICodeReader codeReader, LineInfo line) {
 		List<ITry> tries = codeReader.getTries();
 		for (ITry aTry : tries) {
-			int end = aTry.getStartAddress() + aTry.getInstructionCount();
+			int end = aTry.getEndAddress();
 			String tryEndTip = String.format(FMT_TRY_END_TAG, end);
 			String tryStartTip = String.format(FMT_TRY_TAG, aTry.getStartAddress());
 			String tryStartTipExtra = " # :" + tryStartTip.substring(0, tryStartTip.length() - 1);
@@ -403,10 +414,11 @@ public class Smali {
 		methodRef.getArgTypes().forEach(smali::add);
 		smali.add(')');
 		smali.add(methodRef.getReturnType());
-		List<IAnnotation> annos = mth.getAnnotations();
-		if (annos.size() > 0) {
+
+		AnnotationsAttr annotationsAttr = new AttributeStorage(mth.getAttributes()).get(JadxAttrType.ANNOTATION_LIST);
+		if (annotationsAttr != null && !annotationsAttr.isEmpty()) {
 			smali.incIndent();
-			writeAnnotations(smali, annos);
+			writeAnnotations(smali, annotationsAttr.getList());
 			smali.decIndent();
 			smali.startLine();
 		}
@@ -414,7 +426,7 @@ public class Smali {
 
 	private boolean formatMthParamInfo(IMethodData mth, SmaliWriter smali, ICodeReader codeReader, LineInfo line) {
 		List<String> types = mth.getMethodRef().getArgTypes();
-		if (types.size() == 0) {
+		if (types.isEmpty()) {
 			return false;
 		}
 		int paramCount = 0;
@@ -1002,7 +1014,7 @@ public class Smali {
 		String accessFlag;
 		String name;
 		String type;
-		List<IAnnotation> annoList;
+		AttributeStorage attributes;
 
 		private static RawField make(IFieldData f) {
 			RawField field = new RawField();
@@ -1010,7 +1022,7 @@ public class Smali {
 			field.accessFlag = AccessFlags.format(f.getAccessFlags(), FIELD);
 			field.name = f.getName();
 			field.type = f.getType();
-			field.annoList = f.getAnnotations();
+			field.attributes = new AttributeStorage(f.getAttributes());
 			return field;
 		}
 	}

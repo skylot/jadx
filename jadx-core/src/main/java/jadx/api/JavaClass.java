@@ -63,7 +63,7 @@ public final class JavaClass implements JavaNode {
 	}
 
 	public synchronized String getSmali() {
-		return cls.getSmali();
+		return cls.getDisassembledCode();
 	}
 
 	/**

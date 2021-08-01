@@ -11,6 +11,7 @@ import jadx.api.plugins.input.data.IMethodRef;
 import jadx.api.plugins.input.data.MethodHandleType;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.insns.InsnData;
+import jadx.api.plugins.input.insns.custom.ICustomPayload;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.MethodInfo;
@@ -28,7 +29,13 @@ public class InvokeCustomBuilder {
 
 	public static InsnNode build(MethodNode mth, InsnData insn, boolean isRange) {
 		try {
-			ICallSite callSite = insn.getIndexAsCallSite();
+			ICallSite callSite;
+			ICustomPayload payload = insn.getPayload();
+			if (payload != null) {
+				callSite = (ICallSite) payload;
+			} else {
+				callSite = insn.getIndexAsCallSite();
+			}
 			callSite.load();
 			List<EncodedValue> values = callSite.getValues();
 			if (!checkLinkerMethod(values)) {
@@ -38,7 +45,12 @@ public class InvokeCustomBuilder {
 			if (callMthHandle.getType().isField()) {
 				throw new JadxRuntimeException("Not yet supported");
 			}
-			return buildMethodCall(mth, insn, isRange, values, callMthHandle);
+			InvokeCustomNode resNode = buildMethodCall(mth, insn, isRange, values, callMthHandle);
+			int resReg = insn.getResultReg();
+			if (resReg != -1) {
+				resNode.setResult(InsnArg.reg(resReg, mth.getReturnType()));
+			}
+			return resNode;
 		} catch (Exception e) {
 			throw new JadxRuntimeException("'invoke-custom' instruction processing error: " + e.getMessage(), e);
 		}
@@ -75,7 +87,6 @@ public class InvokeCustomBuilder {
 		if (callMth != null) {
 			invokeCustomNode.getCallInsn().addAttr(callMth);
 			if (callMth.getAccessFlags().isSynthetic()
-					&& callMth.getUseIn().size() <= 1
 					&& callMth.getParentClass().equals(mth.getParentClass())) {
 				// inline only synthetic methods from same class
 				callMth.add(AFlag.DONT_GENERATE);

@@ -30,10 +30,12 @@ public class TestCodeComments2a extends IntegrationTest {
 
 	@Test
 	public void test() {
+		printOffsets();
+
 		String baseClsId = TestCls.class.getName();
 		JadxNodeRef mthRef = new JadxNodeRef(RefType.METHOD, baseClsId, "test(Z)I");
-		ICodeComment insnComment = new JadxCodeComment(mthRef, "return comment", 18);
-		ICodeComment insnComment2 = new JadxCodeComment(mthRef, "another return comment", 19);
+		ICodeComment insnComment = new JadxCodeComment(mthRef, "return comment", isJavaInput() ? 22 : 18);
+		ICodeComment insnComment2 = new JadxCodeComment(mthRef, "another return comment", isJavaInput() ? 27 : 19);
 
 		JadxCodeData codeData = new JadxCodeData();
 		codeData.setComments(Arrays.asList(insnComment, insnComment2));

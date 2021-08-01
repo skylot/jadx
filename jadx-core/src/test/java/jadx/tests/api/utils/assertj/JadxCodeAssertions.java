@@ -1,5 +1,7 @@
 package jadx.tests.api.utils.assertj;
 
+import java.util.Arrays;
+
 import org.assertj.core.api.AbstractStringAssert;
 
 import jadx.api.ICodeWriter;
@@ -70,6 +72,17 @@ public class JadxCodeAssertions extends AbstractStringAssert<JadxCodeAssertions>
 		System.out.println("-----------------------------------------------------------");
 		System.out.println(actual);
 		System.out.println("-----------------------------------------------------------");
+		return this;
+	}
+
+	public JadxCodeAssertions containsOneOf(String... substringArr) {
+		int matches = 0;
+		for (String substring : substringArr) {
+			matches += TestUtils.count(actual, substring);
+		}
+		if (matches != 1) {
+			failWithMessage("Expected a only one match from <%s> but was <%d>", Arrays.toString(substringArr), matches);
+		}
 		return this;
 	}
 }

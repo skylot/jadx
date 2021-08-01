@@ -14,10 +14,11 @@ import jadx.api.plugins.input.data.annotations.AnnotationVisibility;
 import jadx.api.plugins.input.data.annotations.EncodedType;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.annotations.IAnnotation;
+import jadx.api.plugins.input.data.attributes.JadxAttrType;
+import jadx.api.plugins.input.data.attributes.types.AnnotationsAttr;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
-import jadx.core.dex.attributes.annotations.AnnotationsList;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.FieldInfo;
@@ -276,7 +277,7 @@ public class ModVisitor extends AbstractVisitor {
 	}
 
 	private void replaceConstsInAnnotationForAttrNode(ClassNode parentCls, AttrNode attrNode) {
-		AnnotationsList annotationsList = attrNode.get(AType.ANNOTATION_LIST);
+		AnnotationsAttr annotationsList = attrNode.get(JadxAttrType.ANNOTATION_LIST);
 		if (annotationsList == null) {
 			return;
 		}

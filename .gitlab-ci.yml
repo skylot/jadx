@@ -16,12 +16,7 @@ java-8:
 java-11:
   stage: test
   image: openjdk:11
-  script: ./gradlew clean build dist --warning-mode=all
-
-java-15:
-  stage: test
-  image: openjdk:15
-  script: ./gradlew clean build dist --warning-mode=all
+  script: ./gradlew clean build dist copyExe --warning-mode=all
 
 java-latest:
   stage: test

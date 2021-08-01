@@ -9,7 +9,10 @@ import java.util.Map;
 import java.util.Set;
 
 import jadx.api.plugins.input.data.annotations.IAnnotation;
-import jadx.core.dex.attributes.annotations.AnnotationsList;
+import jadx.api.plugins.input.data.attributes.IJadxAttrType;
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
+import jadx.api.plugins.input.data.attributes.JadxAttrType;
+import jadx.api.plugins.input.data.attributes.types.AnnotationsAttr;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -28,22 +31,34 @@ public class AttributeStorage {
 	}
 
 	private final Set<AFlag> flags;
-	private Map<AType<?>, IAttribute> attributes;
+	private Map<IJadxAttrType<?>, IJadxAttribute> attributes;
 
 	public AttributeStorage() {
 		flags = EnumSet.noneOf(AFlag.class);
 		attributes = Collections.emptyMap();
 	}
 
+	public AttributeStorage(List<IJadxAttribute> attributesList) {
+		this();
+		add(attributesList);
+	}
+
 	public void add(AFlag flag) {
 		flags.add(flag);
 	}
 
-	public void add(IAttribute attr) {
-		writeAttributes().put(attr.getType(), attr);
+	public void add(IJadxAttribute attr) {
+		writeAttributes().put(attr.getAttrType(), attr);
 	}
 
-	public <T> void add(AType<AttrList<T>> type, T obj) {
+	public void add(List<IJadxAttribute> list) {
+		Map<IJadxAttrType<?>, IJadxAttribute> map = writeAttributes();
+		for (IJadxAttribute attr : list) {
+			map.put(attr.getAttrType(), attr);
+		}
+	}
+
+	public <T> void add(IJadxAttrType<AttrList<T>> type, T obj) {
 		AttrList<T> list = get(type);
 		if (list == null) {
 			list = new AttrList<>(type);
@@ -61,21 +76,21 @@ public class AttributeStorage {
 		return flags.contains(flag);
 	}
 
-	public <T extends IAttribute> boolean contains(AType<T> type) {
+	public <T extends IJadxAttribute> boolean contains(IJadxAttrType<T> type) {
 		return attributes.containsKey(type);
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T extends IAttribute> T get(AType<T> type) {
+	public <T extends IJadxAttribute> T get(IJadxAttrType<T> type) {
 		return (T) attributes.get(type);
 	}
 
 	public IAnnotation getAnnotation(String cls) {
-		AnnotationsList aList = get(AType.ANNOTATION_LIST);
+		AnnotationsAttr aList = get(JadxAttrType.ANNOTATION_LIST);
 		return aList == null ? null : aList.get(cls);
 	}
 
-	public <T> List<T> getAll(AType<AttrList<T>> type) {
+	public <T> List<T> getAll(IJadxAttrType<AttrList<T>> type) {
 		AttrList<T> attrList = get(type);
 		if (attrList == null) {
 			return Collections.emptyList();
@@ -87,23 +102,23 @@ public class AttributeStorage {
 		flags.remove(flag);
 	}
 
-	public <T extends IAttribute> void remove(AType<T> type) {
+	public <T extends IJadxAttribute> void remove(IJadxAttrType<T> type) {
 		if (!attributes.isEmpty()) {
 			attributes.remove(type);
 		}
 	}
 
-	public void remove(IAttribute attr) {
+	public void remove(IJadxAttribute attr) {
 		if (!attributes.isEmpty()) {
-			AType<? extends IAttribute> type = attr.getType();
-			IAttribute a = attributes.get(type);
+			IJadxAttrType<? extends IJadxAttribute> type = attr.getAttrType();
+			IJadxAttribute a = attributes.get(type);
 			if (a == attr) {
 				attributes.remove(type);
 			}
 		}
 	}
 
-	private Map<AType<?>, IAttribute> writeAttributes() {
+	private Map<IJadxAttrType<?>, IJadxAttribute> writeAttributes() {
 		if (attributes.isEmpty()) {
 			attributes = new IdentityHashMap<>(5);
 		}
@@ -121,8 +136,7 @@ public class AttributeStorage {
 		if (attributes.isEmpty()) {
 			return;
 		}
-		Set<AType<?>> skipOnUnload = AType.SKIP_ON_UNLOAD;
-		attributes.keySet().removeIf(attrType -> !skipOnUnload.contains(attrType));
+		attributes.entrySet().removeIf(entry -> !entry.getValue().keepLoaded());
 	}
 
 	public List<String> getAttributeStrings() {
@@ -134,7 +148,7 @@ public class AttributeStorage {
 		for (AFlag a : flags) {
 			list.add(a.toString());
 		}
-		for (IAttribute a : attributes.values()) {
+		for (IJadxAttribute a : attributes.values()) {
 			list.add(a.toAttrString());
 		}
 		return list;

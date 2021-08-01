@@ -5,11 +5,11 @@ import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.nodes.FieldNode;
 
-public class EnumMapAttr implements IAttribute {
+public class EnumMapAttr implements IJadxAttribute {
 
 	public static class KeyValueMap {
 		private final Map<Object, Object> map = new HashMap<>();
@@ -51,7 +51,7 @@ public class EnumMapAttr implements IAttribute {
 	}
 
 	@Override
-	public AType<EnumMapAttr> getType() {
+	public AType<EnumMapAttr> getAttrType() {
 		return AType.ENUM_MAP;
 	}
 

@@ -3,8 +3,8 @@ package jadx.plugins.input.dex.sections;
 import java.util.List;
 
 import jadx.api.plugins.input.data.IMethodRef;
+import jadx.api.plugins.utils.Utils;
 import jadx.plugins.input.dex.DexReader;
-import jadx.plugins.input.dex.utils.Utils;
 
 public class DexMethodRef implements IMethodRef {
 

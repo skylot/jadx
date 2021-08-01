@@ -13,6 +13,8 @@ public class TestArith extends IntegrationTest {
 
 	public static class TestCls {
 
+		public static final int F = 7;
+
 		public int test(int a) {
 			a += 2;
 			use(a);

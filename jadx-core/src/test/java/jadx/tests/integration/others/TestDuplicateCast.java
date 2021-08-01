@@ -32,7 +32,6 @@ public class TestDuplicateCast extends IntegrationTest {
 
 	@Test
 	public void test() {
-		dontUnloadClass();
 		ClassNode cls = getClassNode(TestCls.class);
 		MethodNode mth = getMethod(cls, "method");
 

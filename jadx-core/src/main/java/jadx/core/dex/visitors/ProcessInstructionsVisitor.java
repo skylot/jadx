@@ -49,17 +49,12 @@ public class ProcessInstructionsVisitor extends AbstractVisitor {
 			switch (insn.getType()) {
 				case SWITCH:
 					SwitchInsn sw = (SwitchInsn) insn;
-					// default case
-					int nextInsnOffset = getNextInsnOffset(insnByOffset, offset);
-					if (nextInsnOffset != -1) {
-						addJump(mth, insnByOffset, offset, nextInsnOffset);
+					if (sw.needData()) {
+						attachSwitchData(insnByOffset, offset, sw);
 					}
-					int dataTarget = sw.getDataTarget();
-					InsnNode switchDataInsn = getInsnAtOffset(insnByOffset, dataTarget);
-					if (switchDataInsn != null && switchDataInsn.getType() == InsnType.SWITCH_DATA) {
-						sw.attachSwitchData((SwitchData) switchDataInsn, nextInsnOffset);
-					} else {
-						throw new JadxRuntimeException("Payload for fill-array not found at " + InsnUtils.formatOffset(dataTarget));
+					int defCaseOffset = sw.getDefaultCaseOffset();
+					if (defCaseOffset != -1) {
+						addJump(mth, insnByOffset, offset, defCaseOffset);
 					}
 					for (int target : sw.getTargets()) {
 						addJump(mth, insnByOffset, offset, target);
@@ -79,8 +74,10 @@ public class ProcessInstructionsVisitor extends AbstractVisitor {
 					break;
 
 				case INVOKE:
-					ArgType retType = ((BaseInvokeNode) insn).getCallMth().getReturnType();
-					mergeMoveResult(insnByOffset, offset, insn, retType);
+					if (insn.getResult() == null) {
+						ArgType retType = ((BaseInvokeNode) insn).getCallMth().getReturnType();
+						mergeMoveResult(insnByOffset, offset, insn, retType);
+					}
 					break;
 
 				case FILLED_NEW_ARRAY:
@@ -102,6 +99,19 @@ public class ProcessInstructionsVisitor extends AbstractVisitor {
 				default:
 					break;
 			}
+		}
+	}
+
+	private static void attachSwitchData(InsnNode[] insnByOffset, int offset, SwitchInsn sw) {
+		int nextInsnOffset = getNextInsnOffset(insnByOffset, offset);
+		int dataTarget = sw.getDataTarget();
+		InsnNode switchDataInsn = getInsnAtOffset(insnByOffset, dataTarget);
+		if (switchDataInsn != null && switchDataInsn.getType() == InsnType.SWITCH_DATA) {
+			SwitchData data = (SwitchData) switchDataInsn;
+			data.fixTargets(offset);
+			sw.attachSwitchData(data, nextInsnOffset);
+		} else {
+			throw new JadxRuntimeException("Payload for switch not found at " + InsnUtils.formatOffset(dataTarget));
 		}
 	}
 

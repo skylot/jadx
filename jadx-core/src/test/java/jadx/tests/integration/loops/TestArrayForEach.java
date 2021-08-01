@@ -29,7 +29,7 @@ public class TestArrayForEach extends IntegrationTest {
 		assertThat(code, containsLines(2,
 				"int sum = 0;",
 				"for (int n : a) {",
-				indent(1) + "sum += n;",
+				indent() + "sum += n;",
 				"}",
 				"return sum;"));
 	}

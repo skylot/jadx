@@ -15,6 +15,7 @@ import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.instructions.IfNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.TargetInsnNode;
+import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -52,6 +53,7 @@ public class BlockSplitter extends AbstractVisitor {
 		splitBasicBlocks(mth);
 		initBlocksInTargetNodes(mth);
 
+		expandMoveMulti(mth);
 		removeJumpAttr(mth);
 		removeInsns(mth);
 		removeEmptyDetachedBlocks(mth);
@@ -308,6 +310,34 @@ public class BlockSplitter extends AbstractVisitor {
 		return block;
 	}
 
+	private static void expandMoveMulti(MethodNode mth) {
+		for (BlockNode block : mth.getBasicBlocks()) {
+			List<InsnNode> insnsList = block.getInstructions();
+			int len = insnsList.size();
+			for (int i = 0; i < len; i++) {
+				InsnNode insn = insnsList.get(i);
+				if (insn.getType() == InsnType.MOVE_MULTI) {
+					int mvCount = insn.getArgsCount() / 2;
+					for (int j = 0; j < mvCount; j++) {
+						InsnNode mv = new InsnNode(InsnType.MOVE, 1);
+						int startArg = j * 2;
+						mv.setResult((RegisterArg) insn.getArg(startArg));
+						mv.addArg(insn.getArg(startArg + 1));
+						mv.copyAttributesFrom(insn);
+						if (j == 0) {
+							mv.setOffset(insn.getOffset());
+							insnsList.set(i, mv);
+						} else {
+							insnsList.add(i + j, mv);
+						}
+					}
+					i += mvCount - 1;
+					len = insnsList.size();
+				}
+			}
+		}
+	}
+
 	private static void removeJumpAttr(MethodNode mth) {
 		for (BlockNode block : mth.getBasicBlocks()) {
 			for (InsnNode insn : block.getInstructions()) {
@@ -403,7 +433,6 @@ public class BlockSplitter extends AbstractVisitor {
 					}
 				}
 			}
-
 		}
 	}
 

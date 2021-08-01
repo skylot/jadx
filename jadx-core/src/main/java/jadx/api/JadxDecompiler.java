@@ -576,6 +576,10 @@ public final class JadxDecompiler implements Closeable {
 		return args;
 	}
 
+	public JadxPluginManager getPluginManager() {
+		return pluginManager;
+	}
+
 	@Override
 	public String toString() {
 		return "jadx decompiler " + getVersion();

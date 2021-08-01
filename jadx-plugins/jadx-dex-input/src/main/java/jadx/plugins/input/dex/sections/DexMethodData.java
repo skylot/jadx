@@ -1,5 +1,6 @@
 package jadx.plugins.input.dex.sections;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
@@ -7,6 +8,9 @@ import org.jetbrains.annotations.Nullable;
 import jadx.api.plugins.input.data.ICodeReader;
 import jadx.api.plugins.input.data.IMethodData;
 import jadx.api.plugins.input.data.annotations.IAnnotation;
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
+import jadx.api.plugins.input.data.attributes.types.MethodParamsAttr;
+import jadx.api.plugins.utils.Utils;
 import jadx.plugins.input.dex.sections.annotations.AnnotationsParser;
 import jadx.plugins.input.dex.smali.SmaliPrinter;
 
@@ -17,7 +21,6 @@ public class DexMethodData implements IMethodData {
 	private DexMethodRef methodRef;
 
 	private int accessFlags;
-	private boolean isDirect;
 	private int annotationsOffset;
 	private int paramAnnotationsOffset;
 
@@ -46,15 +49,6 @@ public class DexMethodData implements IMethodData {
 		this.accessFlags = accessFlags;
 	}
 
-	@Override
-	public boolean isDirect() {
-		return isDirect;
-	}
-
-	public void setDirect(boolean direct) {
-		isDirect = direct;
-	}
-
 	@Nullable
 	@Override
 	public ICodeReader getCodeReader() {
@@ -78,14 +72,20 @@ public class DexMethodData implements IMethodData {
 		this.paramAnnotationsOffset = paramAnnotationsOffset;
 	}
 
-	@Override
-	public List<IAnnotation> getAnnotations() {
+	private List<IAnnotation> getAnnotations() {
 		return getAnnotationsParser().readAnnotationList(annotationsOffset);
 	}
 
-	@Override
-	public List<List<IAnnotation>> getParamsAnnotations() {
+	private List<List<IAnnotation>> getParamsAnnotations() {
 		return getAnnotationsParser().readAnnotationRefList(paramAnnotationsOffset);
+	}
+
+	@Override
+	public List<IJadxAttribute> getAttributes() {
+		List<IJadxAttribute> list = new ArrayList<>();
+		DexAnnotationsConvert.forMethod(list, getAnnotations());
+		Utils.addToList(list, MethodParamsAttr.pack(getParamsAnnotations()));
+		return list;
 	}
 
 	private AnnotationsParser getAnnotationsParser() {

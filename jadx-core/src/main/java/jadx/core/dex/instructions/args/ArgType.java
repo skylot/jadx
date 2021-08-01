@@ -67,6 +67,7 @@ public abstract class ArgType {
 
 	public static final ArgType INT_FLOAT = unknown(PrimitiveType.INT, PrimitiveType.FLOAT);
 	public static final ArgType INT_BOOLEAN = unknown(PrimitiveType.INT, PrimitiveType.BOOLEAN);
+	public static final ArgType BYTE_BOOLEAN = unknown(PrimitiveType.BYTE, PrimitiveType.BOOLEAN);
 
 	protected int hash;
 
@@ -147,6 +148,17 @@ public abstract class ArgType {
 
 	public static ArgType array(@NotNull ArgType vtype) {
 		return new ArrayArg(vtype);
+	}
+
+	public static ArgType array(@NotNull ArgType type, int dimension) {
+		if (dimension == 1) {
+			return new ArrayArg(type);
+		}
+		ArgType arrType = type;
+		for (int i = 0; i < dimension; i++) {
+			arrType = new ArrayArg(arrType);
+		}
+		return arrType;
 	}
 
 	public static ArgType unknown(PrimitiveType... types) {

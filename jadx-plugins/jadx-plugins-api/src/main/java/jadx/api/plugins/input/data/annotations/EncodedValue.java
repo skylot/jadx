@@ -2,7 +2,11 @@ package jadx.api.plugins.input.data.annotations;
 
 import java.util.Objects;
 
-public class EncodedValue {
+import jadx.api.plugins.input.data.attributes.IJadxAttrType;
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
+import jadx.api.plugins.input.data.attributes.JadxAttrType;
+
+public class EncodedValue implements IJadxAttribute {
 	public static final EncodedValue NULL = new EncodedValue(EncodedType.ENCODED_NULL, null);
 
 	private final EncodedType type;
@@ -31,6 +35,11 @@ public class EncodedValue {
 		}
 		EncodedValue that = (EncodedValue) o;
 		return type == that.getType() && Objects.equals(value, that.getValue());
+	}
+
+	@Override
+	public IJadxAttrType<? extends IJadxAttribute> getAttrType() {
+		return JadxAttrType.CONSTANT_VALUE;
 	}
 
 	@Override

@@ -29,8 +29,9 @@ jobs:
         name: Build with Gradle
         env:
           TERM: dumb
+          TEST_INPUT_PLUGIN: dx
         with:
-          arguments: build dist copyExe --warning-mode=all
+          arguments: clean build dist copyExe --warning-mode=all
 
       - name: Save bundle artifact
         if: success() && github.event_name == 'push'

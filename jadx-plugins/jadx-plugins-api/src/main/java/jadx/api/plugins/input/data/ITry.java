@@ -5,5 +5,5 @@ public interface ITry {
 
 	int getStartAddress();
 
-	int getInstructionCount();
+	int getEndAddress();
 }

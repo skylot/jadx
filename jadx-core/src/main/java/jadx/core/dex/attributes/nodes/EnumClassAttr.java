@@ -2,14 +2,14 @@ package jadx.core.dex.attributes.nodes;
 
 import java.util.List;
 
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 
-public class EnumClassAttr implements IAttribute {
+public class EnumClassAttr implements IJadxAttribute {
 
 	public static class EnumField {
 		private final FieldNode field;
@@ -63,7 +63,7 @@ public class EnumClassAttr implements IAttribute {
 	}
 
 	@Override
-	public AType<EnumClassAttr> getType() {
+	public AType<EnumClassAttr> getAttrType() {
 		return AType.ENUM_CLASS;
 	}
 

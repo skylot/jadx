@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Nullable;
+import org.junit.jupiter.api.BeforeEach;
 
 import jadx.api.JadxInternalAccess;
 import jadx.core.dex.nodes.ClassNode;
@@ -20,6 +21,12 @@ public abstract class SmaliTest extends IntegrationTest {
 	private static final String SMALI_TESTS_PROJECT = "jadx-core";
 	private static final String SMALI_TESTS_DIR = "src/test/smali";
 	private static final String SMALI_TESTS_EXT = ".smali";
+
+	@BeforeEach
+	public void init() {
+		super.init();
+		this.useDexInput();
+	}
 
 	protected ClassNode getClassNodeFromSmali(String file, String clsName) {
 		File smaliFile = getSmaliFile(file);

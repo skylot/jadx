@@ -12,9 +12,10 @@ import jadx.api.ICodeWriter;
 import jadx.api.data.ICodeComment;
 import jadx.api.data.annotations.CustomOffsetRef;
 import jadx.api.data.annotations.InsnCodeOffset;
+import jadx.api.plugins.input.data.annotations.EncodedValue;
+import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.fldinit.FieldInitAttr;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
 import jadx.core.dex.attributes.nodes.ForceReturnAttr;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
@@ -291,12 +292,9 @@ public class RegionGen extends InsnGen {
 			} else {
 				staticField(code, fn.getFieldInfo());
 				// print original value, sometimes replaced with incorrect field
-				FieldInitAttr valueAttr = fn.get(AType.FIELD_INIT);
-				if (valueAttr != null && valueAttr.isConst()) {
-					Object value = valueAttr.getEncodedValue().getValue();
-					if (value != null) {
-						code.add(" /* ").add(value.toString()).add(" */");
-					}
+				EncodedValue constVal = fn.get(JadxAttrType.CONSTANT_VALUE);
+				if (constVal != null && constVal.getValue() != null) {
+					code.add(" /* ").add(constVal.getValue().toString()).add(" */");
 				}
 			}
 		} else if (k instanceof Integer) {

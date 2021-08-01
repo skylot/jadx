@@ -10,9 +10,10 @@ import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.plugins.input.data.ICallSite;
-import jadx.api.plugins.input.data.IFieldData;
+import jadx.api.plugins.input.data.IFieldRef;
 import jadx.api.plugins.input.data.IMethodHandle;
 import jadx.api.plugins.input.data.MethodHandleType;
+import jadx.api.plugins.input.data.impl.CallSite;
 import jadx.api.plugins.input.data.impl.FieldRefHandle;
 import jadx.api.plugins.input.data.impl.MethodRefHandle;
 import jadx.plugins.input.dex.DexReader;
@@ -177,7 +178,7 @@ public class SectionReader {
 		return MUtf8.decode(this);
 	}
 
-	public IFieldData getFieldData(int idx) {
+	public IFieldRef getFieldRef(int idx) {
 		DexFieldData fieldData = new DexFieldData(null);
 		int clsTypeIdx = fillFieldData(fieldData, idx);
 		fieldData.setParentClassType(getType(clsTypeIdx));
@@ -205,7 +206,7 @@ public class SectionReader {
 		int callSiteOff = dexReader.getHeader().getCallSiteOff();
 		absPos(callSiteOff + idx * 4);
 		absPos(readInt());
-		return new DexCallSite(EncodedValueParser.parseEncodedArray(this, ext));
+		return new CallSite(EncodedValueParser.parseEncodedArray(this, ext));
 	}
 
 	public IMethodHandle getMethodHandle(int idx) {
@@ -215,7 +216,7 @@ public class SectionReader {
 		skip(2);
 		int refId = readUShort();
 		if (handleType.isField()) {
-			return new FieldRefHandle(handleType, getFieldData(refId));
+			return new FieldRefHandle(handleType, getFieldRef(refId));
 		}
 		return new MethodRefHandle(handleType, getMethodRef(refId));
 	}

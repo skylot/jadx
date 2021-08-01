@@ -33,16 +33,13 @@ public class SwitchInsn extends TargetInsnNode {
 		this.packed = packed;
 	}
 
+	public boolean needData() {
+		return this.switchData == null;
+	}
+
 	public void attachSwitchData(SwitchData data, int def) {
 		this.switchData = data;
 		this.def = def;
-		// fix targets
-		int switchOffset = getOffset();
-		int size = data.getSize();
-		int[] targets = data.getTargets();
-		for (int i = 0; i < size; i++) {
-			targets[i] += switchOffset;
-		}
 	}
 
 	@Override

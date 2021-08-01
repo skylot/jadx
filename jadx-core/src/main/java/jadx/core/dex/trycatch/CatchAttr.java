@@ -1,9 +1,9 @@
 package jadx.core.dex.trycatch;
 
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.IAttribute;
 
-public class CatchAttr implements IAttribute {
+public class CatchAttr implements IJadxAttribute {
 
 	private final TryCatchBlock tryBlock;
 
@@ -12,7 +12,7 @@ public class CatchAttr implements IAttribute {
 	}
 
 	@Override
-	public AType<CatchAttr> getType() {
+	public AType<CatchAttr> getAttrType() {
 		return AType.CATCH_BLOCK;
 	}
 

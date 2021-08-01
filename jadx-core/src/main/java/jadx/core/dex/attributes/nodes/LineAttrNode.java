@@ -35,6 +35,12 @@ public abstract class LineAttrNode extends AttrNode {
 		this.decompiledLine = decompiledLine;
 	}
 
+	public void addSourceLineFrom(LineAttrNode lineAttrNode) {
+		if (this.getSourceLine() == 0) {
+			this.setSourceLine(lineAttrNode.getSourceLine());
+		}
+	}
+
 	public void copyLines(LineAttrNode lineAttrNode) {
 		setSourceLine(lineAttrNode.getSourceLine());
 		setDecompiledLine(lineAttrNode.getDecompiledLine());

@@ -3,12 +3,12 @@ package jadx.core.dex.attributes.nodes;
 import java.util.HashSet;
 import java.util.Set;
 
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.nodes.BlockNode;
 import jadx.core.utils.Utils;
 
-public class IgnoreEdgeAttr implements IAttribute {
+public class IgnoreEdgeAttr implements IJadxAttribute {
 
 	private final Set<BlockNode> blocks = new HashSet<>(3);
 
@@ -21,7 +21,7 @@ public class IgnoreEdgeAttr implements IAttribute {
 	}
 
 	@Override
-	public AType<IgnoreEdgeAttr> getType() {
+	public AType<IgnoreEdgeAttr> getAttrType() {
 		return AType.IGNORE_EDGE;
 	}
 

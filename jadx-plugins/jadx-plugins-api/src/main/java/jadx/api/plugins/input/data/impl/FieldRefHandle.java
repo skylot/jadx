@@ -1,16 +1,16 @@
 package jadx.api.plugins.input.data.impl;
 
-import jadx.api.plugins.input.data.IFieldData;
+import jadx.api.plugins.input.data.IFieldRef;
 import jadx.api.plugins.input.data.IMethodHandle;
 import jadx.api.plugins.input.data.IMethodRef;
 import jadx.api.plugins.input.data.MethodHandleType;
 
 public class FieldRefHandle implements IMethodHandle {
 
-	private final IFieldData fieldRef;
+	private final IFieldRef fieldRef;
 	private final MethodHandleType type;
 
-	public FieldRefHandle(MethodHandleType type, IFieldData fieldRef) {
+	public FieldRefHandle(MethodHandleType type, IFieldRef fieldRef) {
 		this.fieldRef = fieldRef;
 		this.type = type;
 	}
@@ -21,7 +21,7 @@ public class FieldRefHandle implements IMethodHandle {
 	}
 
 	@Override
-	public IFieldData getFieldRef() {
+	public IFieldRef getFieldRef() {
 		return fieldRef;
 	}
 

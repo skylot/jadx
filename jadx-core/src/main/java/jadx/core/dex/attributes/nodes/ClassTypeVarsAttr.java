@@ -4,11 +4,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.instructions.args.ArgType;
 
-public class ClassTypeVarsAttr implements IAttribute {
+public class ClassTypeVarsAttr implements IJadxAttribute {
 	public static final ClassTypeVarsAttr EMPTY = new ClassTypeVarsAttr(Collections.emptyList(), Collections.emptyMap());
 
 	/**
@@ -40,7 +40,7 @@ public class ClassTypeVarsAttr implements IAttribute {
 	}
 
 	@Override
-	public AType<ClassTypeVarsAttr> getType() {
+	public AType<ClassTypeVarsAttr> getAttrType() {
 		return AType.CLASS_TYPE_VARS;
 	}
 

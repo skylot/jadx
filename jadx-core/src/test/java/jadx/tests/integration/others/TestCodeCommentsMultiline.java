@@ -27,9 +27,11 @@ public class TestCodeCommentsMultiline extends IntegrationTest {
 
 	@Test
 	public void test() {
+		printOffsets();
+
 		String baseClsId = TestCls.class.getName();
 		JadxNodeRef mthRef = new JadxNodeRef(RefType.METHOD, baseClsId, "test(Z)I");
-		ICodeComment insnComment = new JadxCodeComment(mthRef, "multi\nline\ncomment", 11);
+		ICodeComment insnComment = new JadxCodeComment(mthRef, "multi\nline\ncomment", isJavaInput() ? 15 : 11);
 
 		JadxCodeData codeData = new JadxCodeData();
 		codeData.setComments(Collections.singletonList(insnComment));

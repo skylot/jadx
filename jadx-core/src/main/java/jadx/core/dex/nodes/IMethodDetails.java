@@ -2,13 +2,13 @@ package jadx.core.dex.nodes;
 
 import java.util.List;
 
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.Utils;
 
-public interface IMethodDetails extends IAttribute {
+public interface IMethodDetails extends IJadxAttribute {
 
 	MethodInfo getMethodInfo();
 
@@ -25,7 +25,7 @@ public interface IMethodDetails extends IAttribute {
 	int getRawAccessFlags();
 
 	@Override
-	default AType<IMethodDetails> getType() {
+	default AType<IMethodDetails> getAttrType() {
 		return AType.METHOD_DETAILS;
 	}
 

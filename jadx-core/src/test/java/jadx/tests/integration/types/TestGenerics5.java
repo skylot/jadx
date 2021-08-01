@@ -14,7 +14,7 @@ public class TestGenerics5 extends IntegrationTest {
 	public static class TestCls {
 		private InheritableThreadLocal<Map<String, String>> inheritableThreadLocal;
 
-		public void put(String key, String val) {
+		public void test(String key, String val) {
 			if (key == null) {
 				throw new IllegalArgumentException("key cannot be null");
 			}

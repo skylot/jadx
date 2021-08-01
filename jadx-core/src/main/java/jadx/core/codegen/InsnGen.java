@@ -398,11 +398,15 @@ public class InsnGen {
 				ArgType arrayType = ((NewArrayNode) insn).getArrayType();
 				code.add("new ");
 				useType(code, arrayType.getArrayRootElement());
-				code.add('[');
-				addArg(code, insn.getArg(0));
-				code.add(']');
+				int k = 0;
+				int argsCount = insn.getArgsCount();
+				for (; k < argsCount; k++) {
+					code.add('[');
+					addArg(code, insn.getArg(k), false);
+					code.add(']');
+				}
 				int dim = arrayType.getArrayDimension();
-				for (int i = 0; i < dim - 1; i++) {
+				for (; k < dim - 1; k++) {
 					code.add("[]");
 				}
 				break;
@@ -572,12 +576,24 @@ public class InsnGen {
 
 			case FILL_ARRAY_DATA:
 				fallbackOnlyInsn(insn);
-				code.add("fill-array " + insn.toString());
+				code.add("fill-array " + insn);
 				break;
 
 			case SWITCH_DATA:
 				fallbackOnlyInsn(insn);
 				code.add(insn.toString());
+				break;
+
+			case MOVE_MULTI:
+				fallbackOnlyInsn(insn);
+				code.add("move-multi: ");
+				int len = insn.getArgsCount();
+				for (int i = 0; i < len - 1; i += 2) {
+					addArg(code, insn.getArg(i));
+					code.add(" = ");
+					addArg(code, insn.getArg(i + 1));
+					code.add("; ");
+				}
 				break;
 
 			default:

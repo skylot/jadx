@@ -151,7 +151,7 @@ public class FileUtils {
 
 	public static Path createTempFileNoDelete(String suffix) {
 		try {
-			return Files.createTempFile(TEMP_ROOT_DIR, JADX_TMP_PREFIX, suffix);
+			return Files.createTempFile(Files.createTempDirectory("jadx-persist"), "jadx-", suffix);
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Failed to create temp file with suffix: " + suffix, e);
 		}

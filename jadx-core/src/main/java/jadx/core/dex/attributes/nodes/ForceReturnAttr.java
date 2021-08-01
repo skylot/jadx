@@ -1,11 +1,11 @@
 package jadx.core.dex.attributes.nodes;
 
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.utils.Utils;
 
-public class ForceReturnAttr implements IAttribute {
+public class ForceReturnAttr implements IJadxAttribute {
 
 	private final InsnNode returnInsn;
 
@@ -18,7 +18,7 @@ public class ForceReturnAttr implements IAttribute {
 	}
 
 	@Override
-	public AType<ForceReturnAttr> getType() {
+	public AType<ForceReturnAttr> getAttrType() {
 		return AType.FORCE_RETURN;
 	}
 

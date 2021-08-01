@@ -9,10 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JadxArgs;
+import jadx.api.plugins.input.data.attributes.JadxAttrType;
+import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
-import jadx.core.dex.attributes.nodes.SourceFileAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.info.MethodInfo;
@@ -443,7 +444,7 @@ public class Deobfuscator {
 
 	@Nullable
 	private String getAliasFromSourceFile(ClassNode cls) {
-		SourceFileAttr sourceFileAttr = cls.get(AType.SOURCE_FILE);
+		SourceFileAttr sourceFileAttr = cls.get(JadxAttrType.SOURCE_FILE);
 		if (sourceFileAttr == null) {
 			return null;
 		}
@@ -468,7 +469,7 @@ public class Deobfuscator {
 		if (otherCls != null) {
 			return null;
 		}
-		cls.remove(AType.SOURCE_FILE);
+		cls.remove(JadxAttrType.SOURCE_FILE);
 		return name;
 	}
 

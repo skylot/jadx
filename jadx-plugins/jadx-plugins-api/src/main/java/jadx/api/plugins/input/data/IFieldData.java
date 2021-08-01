@@ -2,16 +2,11 @@ package jadx.api.plugins.input.data;
 
 import java.util.List;
 
-import jadx.api.plugins.input.data.annotations.IAnnotation;
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 
-public interface IFieldData {
-	String getParentClassType();
-
-	String getType();
-
-	String getName();
+public interface IFieldData extends IFieldRef {
 
 	int getAccessFlags();
 
-	List<IAnnotation> getAnnotations();
+	List<IJadxAttribute> getAttributes();
 }

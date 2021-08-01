@@ -32,13 +32,15 @@ public class TestCodeComments extends IntegrationTest {
 
 	@Test
 	public void test() {
+		int insnOffset = isJavaInput() ? 13 : 11;
+
 		String baseClsId = TestCls.class.getName();
 		ICodeComment clsComment = new JadxCodeComment(JadxNodeRef.forCls(baseClsId), "class comment");
 		ICodeComment innerClsComment = new JadxCodeComment(JadxNodeRef.forCls(baseClsId + ".A"), "inner class comment");
 		ICodeComment fldComment = new JadxCodeComment(new JadxNodeRef(RefType.FIELD, baseClsId, "intField:I"), "field comment");
 		JadxNodeRef mthRef = new JadxNodeRef(RefType.METHOD, baseClsId, "test()I");
 		ICodeComment mthComment = new JadxCodeComment(mthRef, "method comment");
-		ICodeComment insnComment = new JadxCodeComment(mthRef, "insn comment", 11);
+		ICodeComment insnComment = new JadxCodeComment(mthRef, "insn comment", insnOffset);
 
 		JadxCodeData codeData = new JadxCodeData();
 		getArgs().setCodeData(codeData);
@@ -60,7 +62,7 @@ public class TestCodeComments extends IntegrationTest {
 				.reloadCode(this)
 				.isEqualTo(code);
 
-		ICodeComment updInsnComment = new JadxCodeComment(mthRef, "updated insn comment", 11);
+		ICodeComment updInsnComment = new JadxCodeComment(mthRef, "updated insn comment", insnOffset);
 		codeData.setComments(Collections.singletonList(updInsnComment));
 		assertThat(cls)
 				.reloadCode(this)

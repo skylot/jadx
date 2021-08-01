@@ -10,6 +10,7 @@ import java.util.Map;
 import jadx.api.plugins.input.data.annotations.AnnotationVisibility;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.annotations.IAnnotation;
+import jadx.api.plugins.input.data.annotations.JadxAnnotation;
 import jadx.plugins.input.dex.DexException;
 import jadx.plugins.input.dex.sections.SectionReader;
 
@@ -149,7 +150,7 @@ public class AnnotationsParser {
 			values.put(name, EncodedValueParser.parseValue(in, ext));
 		}
 		String type = ext.getType(typeIndex);
-		return new DexAnnotation(visibility, type, values);
+		return new JadxAnnotation(visibility, type, values);
 	}
 
 	private static AnnotationVisibility getVisibilityValue(int value) {

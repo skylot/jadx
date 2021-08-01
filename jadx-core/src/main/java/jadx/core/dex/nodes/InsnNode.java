@@ -5,12 +5,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeWriter;
 import jadx.api.plugins.input.insns.InsnData;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.ArgType;
@@ -291,6 +293,18 @@ public class InsnNode extends LineAttrNode {
 	}
 
 	/**
+	 * Visit this instruction and all inner (wrapped) instructions
+	 */
+	public void visitInsns(Consumer<InsnNode> visitor) {
+		visitor.accept(this);
+		for (InsnArg arg : this.getArguments()) {
+			if (arg.isInsnWrap()) {
+				((InsnWrapArg) arg).getWrapInsn().visitInsns(visitor);
+			}
+		}
+	}
+
+	/**
 	 * 'Soft' equals, don't compare arguments, only instruction specific parameters.
 	 */
 	public boolean isSame(InsnNode other) {
@@ -344,6 +358,11 @@ public class InsnNode extends LineAttrNode {
 		copy.copyLines(this);
 		copy.setOffset(this.getOffset());
 		return copy;
+	}
+
+	public void copyAttributesFrom(InsnNode attrNode) {
+		super.copyAttributesFrom(attrNode);
+		this.addSourceLineFrom(attrNode);
 	}
 
 	/**
@@ -448,6 +467,21 @@ public class InsnNode extends LineAttrNode {
 
 			default:
 				return true;
+		}
+	}
+
+	public void inheritMetadata(InsnNode sourceInsn) {
+		if (insnType == InsnType.RETURN) {
+			this.copyLines(sourceInsn);
+			if (this.contains(AFlag.SYNTHETIC)) {
+				this.setOffset(sourceInsn.getOffset());
+				this.rewriteAttributeFrom(sourceInsn, AType.CODE_COMMENTS);
+			} else {
+				this.copyAttributeFrom(sourceInsn, AType.CODE_COMMENTS);
+			}
+		} else {
+			this.copyAttributeFrom(sourceInsn, AType.CODE_COMMENTS);
+			this.addSourceLineFrom(sourceInsn);
 		}
 	}
 

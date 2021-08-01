@@ -4,16 +4,16 @@ import java.util.LinkedList;
 import java.util.List;
 
 import jadx.api.ICodeWriter;
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.instructions.PhiInsn;
 
-public class PhiListAttr implements IAttribute {
+public class PhiListAttr implements IJadxAttribute {
 
 	private final List<PhiInsn> list = new LinkedList<>();
 
 	@Override
-	public AType<PhiListAttr> getType() {
+	public AType<PhiListAttr> getAttrType() {
 		return AType.PHI_LIST;
 	}
 

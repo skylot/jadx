@@ -1,9 +1,9 @@
 package jadx.core.dex.trycatch;
 
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.IAttribute;
 
-public class ExcHandlerAttr implements IAttribute {
+public class ExcHandlerAttr implements IJadxAttribute {
 
 	private final TryCatchBlock tryBlock;
 	private final ExceptionHandler handler;
@@ -14,7 +14,7 @@ public class ExcHandlerAttr implements IAttribute {
 	}
 
 	@Override
-	public AType<ExcHandlerAttr> getType() {
+	public AType<ExcHandlerAttr> getAttrType() {
 		return AType.EXC_HANDLER;
 	}
 

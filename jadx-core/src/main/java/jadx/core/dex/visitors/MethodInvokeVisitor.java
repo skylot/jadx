@@ -63,19 +63,11 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 				if (insn.contains(AFlag.DONT_GENERATE)) {
 					continue;
 				}
-				processInsn(mth, insn);
-			}
-		}
-	}
-
-	private void processInsn(MethodNode mth, InsnNode insn) {
-		if (insn instanceof BaseInvokeNode) {
-			processInvoke(mth, ((BaseInvokeNode) insn));
-		}
-		for (InsnArg insnArg : insn.getArguments()) {
-			if (insnArg instanceof InsnWrapArg) {
-				InsnNode wrapInsn = ((InsnWrapArg) insnArg).getWrapInsn();
-				processInsn(mth, wrapInsn);
+				insn.visitInsns(in -> {
+					if (in instanceof BaseInvokeNode) {
+						processInvoke(mth, ((BaseInvokeNode) in));
+					}
+				});
 			}
 		}
 	}
@@ -92,7 +84,6 @@ public class MethodInvokeVisitor extends AbstractVisitor {
 			}
 			processUnknown(invokeInsn);
 		} else {
-			// parentMth.addComment("JADX DEBUG: got method details: " + mthDetails);
 			if (mthDetails.isVarArg()) {
 				ArgType last = Utils.last(mthDetails.getArgTypes());
 				if (last != null && last.isArray()) {

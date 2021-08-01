@@ -31,6 +31,8 @@ public class TestSynchronized2 extends IntegrationTest {
 	@Test
 	@NotYetImplemented
 	public void test2() {
+		useDexInput(); // java bytecode don't add exception handlers
+
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 

@@ -5,5 +5,6 @@ public enum InsnIndexType {
 	TYPE_REF,
 	STRING_REF,
 	FIELD_REF,
-	METHOD_REF
+	METHOD_REF,
+	CALL_SITE
 }

@@ -14,7 +14,9 @@ public interface ICodeReader {
 
 	int getRegistersCount();
 
-	int getInsnsCount();
+	int getArgsStartReg();
+
+	int getUnitsCount();
 
 	@Nullable
 	IDebugInfo getDebugInfo();

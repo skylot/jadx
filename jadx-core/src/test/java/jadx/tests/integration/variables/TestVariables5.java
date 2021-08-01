@@ -5,10 +5,7 @@ import org.junit.jupiter.api.Test;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestVariables5 extends IntegrationTest {
@@ -47,12 +44,10 @@ public class TestVariables5 extends IntegrationTest {
 	public void test() {
 		noDebugInfo();
 		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("int i2++;")));
-		assertThat(code, containsOne("int i = 0;"));
-		assertThat(code, containsOne("&& (i = i + 1) == 2"));
-		// assertThat(code, containsOne("i++;"));
-		// assertThat(code, containsOne("if (i == 2) {"));
+		assertThat(cls)
+				.code()
+				.doesNotContain("int i2++;")
+				.containsOne("int i = 0;")
+				.containsOneOf("i++;", "&& (i = i + 1) == 2");
 	}
 }

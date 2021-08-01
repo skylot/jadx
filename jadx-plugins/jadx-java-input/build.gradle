@@ -1,0 +1,7 @@
+plugins {
+	id 'java-library'
+}
+
+dependencies {
+	api(project(":jadx-plugins:jadx-plugins-api"))
+}

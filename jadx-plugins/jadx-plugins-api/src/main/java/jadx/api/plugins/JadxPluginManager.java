@@ -27,8 +27,19 @@ public class JadxPluginManager {
 
 	public void register(JadxPlugin plugin) {
 		Objects.requireNonNull(plugin);
-		LOG.debug("Loaded plugin: {}", plugin.getPluginInfo().getName());
+		LOG.debug("Register plugin: {}", plugin.getPluginInfo().getPluginId());
 		allPlugins.put(plugin.getClass(), plugin);
+	}
+
+	public boolean unload(String pluginId) {
+		return allPlugins.values().removeIf(p -> {
+			String id = p.getPluginInfo().getPluginId();
+			boolean match = id.equals(pluginId);
+			if (match) {
+				LOG.debug("Unload plugin: {}", id);
+			}
+			return match;
+		});
 	}
 
 	public List<JadxPlugin> getAllPlugins() {

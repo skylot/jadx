@@ -25,13 +25,15 @@ public class TestArith4 extends IntegrationTest {
 		assertThat(getClassNode(TestCls.class))
 				.code()
 				.containsOne("int k = b & 7;")
-				.containsOne("return (1 - k) & (k + 1);");
+				.containsOne("& 255")
+				.containsOneOf("return (1 - k) & (1 + k);", "return (1 - k) & (k + 1);");
 	}
 
 	@Test
 	public void testNoDebug() {
 		noDebugInfo();
 		assertThat(getClassNode(TestCls.class))
-				.code();
+				.code()
+				.containsOne("& 255");
 	}
 }

@@ -28,10 +28,13 @@ public class InvokeNode extends BaseInvokeNode {
 			addReg(r, mth.getDeclClass().getType());
 			k++;
 		}
-
 		for (ArgType arg : mth.getArgumentsTypes()) {
 			addReg(isRange ? k : insn.getReg(k), arg);
 			k += arg.getRegCount();
+		}
+		int resReg = insn.getResultReg();
+		if (resReg != -1) {
+			setResult(InsnArg.reg(resReg, mth.getReturnType()));
 		}
 	}
 

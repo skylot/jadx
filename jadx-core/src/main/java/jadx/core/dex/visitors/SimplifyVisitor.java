@@ -406,7 +406,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 			checkResult(mth, concatInsn);
 			return concatInsn;
 		} catch (Exception e) {
-			LOG.warn("Can't convert string concatenation: {} insn: {}", mth, toStrInsn, e);
+			mth.addWarnComment("String concatenation convert failed", e);
 		}
 		return null;
 	}

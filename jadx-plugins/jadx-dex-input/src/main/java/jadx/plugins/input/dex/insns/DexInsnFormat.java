@@ -1,8 +1,8 @@
 package jadx.plugins.input.dex.insns;
 
+import jadx.api.plugins.input.insns.custom.impl.SwitchPayload;
 import jadx.plugins.input.dex.DexException;
 import jadx.plugins.input.dex.insns.payloads.DexArrayPayload;
-import jadx.plugins.input.dex.insns.payloads.DexSwitchPayload;
 import jadx.plugins.input.dex.sections.SectionReader;
 
 public abstract class DexInsnFormat {
@@ -158,6 +158,7 @@ public abstract class DexInsnFormat {
 			regs[0] = nibble2(opcodeUnit);
 			regs[1] = nibble3(opcodeUnit);
 			insn.setIndex(in.readUShort());
+			insn.setLiteral(0L);
 		}
 	};
 
@@ -262,7 +263,7 @@ public abstract class DexInsnFormat {
 				targets[i] = in.readInt();
 				keys[i] = firstKey + i;
 			}
-			insn.setPayload(new DexSwitchPayload(size, keys, targets));
+			insn.setPayload(new SwitchPayload(size, keys, targets));
 			insn.setLength(size * 2 + 4);
 		}
 
@@ -286,7 +287,7 @@ public abstract class DexInsnFormat {
 			for (int i = 0; i < size; i++) {
 				targets[i] = in.readInt();
 			}
-			insn.setPayload(new DexSwitchPayload(size, keys, targets));
+			insn.setPayload(new SwitchPayload(size, keys, targets));
 			insn.setLength(size * 4 + 2);
 		}
 

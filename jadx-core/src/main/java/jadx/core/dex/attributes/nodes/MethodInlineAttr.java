@@ -3,15 +3,15 @@ package jadx.core.dex.attributes.nodes;
 import java.util.List;
 import java.util.Objects;
 
+import jadx.api.plugins.input.data.attributes.PinnedAttribute;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 
-public class MethodInlineAttr implements IAttribute {
+public class MethodInlineAttr extends PinnedAttribute {
 
 	private static final MethodInlineAttr INLINE_NOT_NEEDED = new MethodInlineAttr(null, null);
 
@@ -64,7 +64,7 @@ public class MethodInlineAttr implements IAttribute {
 	}
 
 	@Override
-	public AType<MethodInlineAttr> getType() {
+	public AType<MethodInlineAttr> getAttrType() {
 		return AType.METHOD_INLINE;
 	}
 

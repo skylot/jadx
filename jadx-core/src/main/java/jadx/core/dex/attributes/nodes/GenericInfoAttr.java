@@ -2,11 +2,11 @@ package jadx.core.dex.attributes.nodes;
 
 import java.util.List;
 
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.instructions.args.ArgType;
 
-public class GenericInfoAttr implements IAttribute {
+public class GenericInfoAttr implements IJadxAttribute {
 	private final List<ArgType> genericTypes;
 	private boolean explicit;
 
@@ -27,7 +27,7 @@ public class GenericInfoAttr implements IAttribute {
 	}
 
 	@Override
-	public AType<GenericInfoAttr> getType() {
+	public AType<GenericInfoAttr> getAttrType() {
 		return AType.GENERIC_INFO;
 	}
 

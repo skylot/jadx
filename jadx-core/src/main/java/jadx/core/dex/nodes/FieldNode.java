@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.List;
 
 import jadx.api.plugins.input.data.IFieldData;
-import jadx.core.dex.attributes.annotations.AnnotationsList;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.AccessInfo.AFType;
@@ -22,9 +21,9 @@ public class FieldNode extends LineAttrNode implements ICodeNode {
 	private List<MethodNode> useIn = Collections.emptyList();
 
 	public static FieldNode build(ClassNode cls, IFieldData fieldData) {
-		FieldInfo fieldInfo = FieldInfo.fromData(cls.root(), fieldData);
+		FieldInfo fieldInfo = FieldInfo.fromRef(cls.root(), fieldData);
 		FieldNode fieldNode = new FieldNode(cls, fieldInfo, fieldData.getAccessFlags());
-		AnnotationsList.attach(fieldNode, fieldData.getAnnotations());
+		fieldNode.addAttrs(fieldData.getAttributes());
 		return fieldNode;
 	}
 

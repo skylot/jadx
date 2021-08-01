@@ -33,6 +33,7 @@ public class TestLambdaConstructor extends IntegrationTest {
 		setFallback();
 		assertThat(getClassNode(TestCls.class))
 				.code()
-				.containsOne("RuntimeException::new");
+				.containsOne("r0 = java.lang.RuntimeException::new")
+				.containsOne("return r0");
 	}
 }

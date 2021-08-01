@@ -19,6 +19,7 @@ public class AccessFlags {
 	public static final int SYNTHETIC = 0x1000;
 	public static final int ANNOTATION = 0x2000;
 	public static final int ENUM = 0x4000;
+	public static final int MODULE = 0x8000;
 	public static final int CONSTRUCTOR = 0x10000;
 	public static final int DECLARED_SYNCHRONIZED = 0x20000;
 
@@ -72,6 +73,9 @@ public class AccessFlags {
 				break;
 
 			case CLASS:
+				if (hasFlag(flags, MODULE)) {
+					code.append("module ");
+				}
 				if (hasFlag(flags, STRICT)) {
 					code.append("strict ");
 				}

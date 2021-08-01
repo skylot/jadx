@@ -1,10 +1,10 @@
 package jadx.core.dex.trycatch;
 
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.nodes.BlockNode;
 
-public class SplitterBlockAttr implements IAttribute {
+public class SplitterBlockAttr implements IJadxAttribute {
 
 	private final BlockNode block;
 
@@ -17,7 +17,7 @@ public class SplitterBlockAttr implements IAttribute {
 	}
 
 	@Override
-	public AType<SplitterBlockAttr> getType() {
+	public AType<SplitterBlockAttr> getAttrType() {
 		return AType.SPLITTER_BLOCK;
 	}
 

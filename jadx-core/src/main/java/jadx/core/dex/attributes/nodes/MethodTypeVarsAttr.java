@@ -3,8 +3,8 @@ package jadx.core.dex.attributes.nodes;
 import java.util.Collections;
 import java.util.Set;
 
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.instructions.args.ArgType;
 
 import static jadx.core.utils.Utils.isEmpty;
@@ -12,7 +12,7 @@ import static jadx.core.utils.Utils.isEmpty;
 /**
  * Set of known type variables at current method
  */
-public class MethodTypeVarsAttr implements IAttribute {
+public class MethodTypeVarsAttr implements IJadxAttribute {
 	private static final MethodTypeVarsAttr EMPTY = new MethodTypeVarsAttr(Collections.emptySet());
 
 	public static MethodTypeVarsAttr build(Set<ArgType> typeVars) {
@@ -33,7 +33,7 @@ public class MethodTypeVarsAttr implements IAttribute {
 	}
 
 	@Override
-	public AType<MethodTypeVarsAttr> getType() {
+	public AType<MethodTypeVarsAttr> getAttrType() {
 		return AType.METHOD_TYPE_VARS;
 	}
 

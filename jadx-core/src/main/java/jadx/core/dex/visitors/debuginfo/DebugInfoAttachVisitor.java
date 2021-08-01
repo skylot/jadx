@@ -53,18 +53,24 @@ public class DebugInfoAttachVisitor extends AbstractVisitor {
 
 	private void processDebugInfo(MethodNode mth, IDebugInfo debugInfo) {
 		InsnNode[] insnArr = mth.getInstructions();
-		attachSourceLines(debugInfo.getSourceLineMapping(), insnArr);
+		attachSourceLines(mth, debugInfo.getSourceLineMapping(), insnArr);
 		attachDebugInfo(mth, debugInfo.getLocalVars(), insnArr);
 		setMethodSourceLine(mth, insnArr);
 	}
 
-	private void attachSourceLines(Map<Integer, Integer> lineMapping, InsnNode[] insnArr) {
-		for (InsnNode insn : insnArr) {
-			if (insn != null) {
-				Integer sourceLine = lineMapping.get(insn.getOffset());
-				if (sourceLine != null) {
-					insn.setSourceLine(sourceLine);
+	private void attachSourceLines(MethodNode mth, Map<Integer, Integer> lineMapping, InsnNode[] insnArr) {
+		if (lineMapping.isEmpty()) {
+			return;
+		}
+		for (Map.Entry<Integer, Integer> entry : lineMapping.entrySet()) {
+			try {
+				Integer offset = entry.getKey();
+				InsnNode insn = insnArr[offset];
+				if (insn != null) {
+					insn.setSourceLine(entry.getValue());
 				}
+			} catch (Exception e) {
+				mth.addWarnComment("Error attach source line", e);
 			}
 		}
 	}
@@ -80,7 +86,7 @@ public class DebugInfoAttachVisitor extends AbstractVisitor {
 
 			ArgType type = getVarType(mth, var);
 			RegDebugInfoAttr debugInfoAttr = new RegDebugInfoAttr(type, var.getName());
-			if (start < 0) {
+			if (start <= 0) {
 				// attach to method arguments
 				RegisterArg thisArg = mth.getThisArg();
 				if (thisArg != null) {

@@ -4,7 +4,7 @@ public interface IMethodHandle {
 
 	MethodHandleType getType();
 
-	IFieldData getFieldRef();
+	IFieldRef getFieldRef();
 
 	IMethodRef getMethodRef();
 

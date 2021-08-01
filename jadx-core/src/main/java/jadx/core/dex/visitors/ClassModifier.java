@@ -303,15 +303,17 @@ public class ClassModifier extends AbstractVisitor {
 		return true;
 	}
 
+	/**
+	 * Remove public empty constructors (static or default)
+	 */
 	private static void removeEmptyMethods(MethodNode mth) {
 		AccessInfo af = mth.getAccessFlags();
-		// remove public empty constructors (static or default)
-		if (af.isConstructor()
-				&& (af.isPublic() || af.isStatic())
-				&& mth.getArgRegs().isEmpty()) {
+		boolean publicConstructor = af.isConstructor() && af.isPublic();
+		boolean clsInit = mth.getMethodInfo().isClassInit() && af.isStatic();
+		if ((publicConstructor || clsInit) && mth.getArgRegs().isEmpty()) {
 			List<BlockNode> bb = mth.getBasicBlocks();
 			if (bb == null || bb.isEmpty() || BlockUtils.isAllBlocksEmpty(bb)) {
-				if (af.isStatic() && mth.getMethodInfo().isClassInit()) {
+				if (clsInit) {
 					mth.add(AFlag.DONT_GENERATE);
 				} else {
 					// don't remove default constructor if other constructors exists

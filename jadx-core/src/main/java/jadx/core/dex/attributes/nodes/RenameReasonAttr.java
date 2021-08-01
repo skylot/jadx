@@ -1,10 +1,10 @@
 package jadx.core.dex.attributes.nodes;
 
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
-import jadx.core.dex.attributes.IAttribute;
 
-public class RenameReasonAttr implements IAttribute {
+public class RenameReasonAttr implements IJadxAttribute {
 
 	private String description;
 
@@ -57,7 +57,7 @@ public class RenameReasonAttr implements IAttribute {
 	}
 
 	@Override
-	public AType<RenameReasonAttr> getType() {
+	public AType<RenameReasonAttr> getAttrType() {
 		return AType.RENAME_REASON;
 	}
 

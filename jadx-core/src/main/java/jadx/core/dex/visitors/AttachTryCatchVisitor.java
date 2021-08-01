@@ -86,12 +86,11 @@ public class AttachTryCatchVisitor extends AbstractVisitor {
 				markTryBounds(insnByOffset, tryData, catchBlock);
 			}
 		}
-
 	}
 
 	private static void markTryBounds(InsnNode[] insnByOffset, ITry aTry, TryCatchBlock catchBlock) {
 		int offset = aTry.getStartAddress();
-		int end = offset + aTry.getInstructionCount() - 1;
+		int end = aTry.getEndAddress();
 
 		boolean tryBlockStarted = false;
 		InsnNode insn = null;

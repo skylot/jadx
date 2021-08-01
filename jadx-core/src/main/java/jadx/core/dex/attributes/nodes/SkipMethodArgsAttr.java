@@ -4,14 +4,14 @@ import java.util.BitSet;
 
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.plugins.input.data.attributes.PinnedAttribute;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.IAttribute;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
-public class SkipMethodArgsAttr implements IAttribute {
+public class SkipMethodArgsAttr extends PinnedAttribute {
 
 	public static void skipArg(MethodNode mth, RegisterArg arg) {
 		int argNum = Utils.indexInListByRef(mth.getArgRegs(), arg);
@@ -60,7 +60,7 @@ public class SkipMethodArgsAttr implements IAttribute {
 	}
 
 	@Override
-	public AType<SkipMethodArgsAttr> getType() {
+	public AType<SkipMethodArgsAttr> getAttrType() {
 		return AType.SKIP_MTH_ARGS;
 	}
 

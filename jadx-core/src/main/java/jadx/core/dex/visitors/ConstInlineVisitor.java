@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jadx.core.dex.attributes.AFlag;
-import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.ConstStringNode;
@@ -157,7 +156,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 		List<RegisterArg> useList = new ArrayList<>(ssaVar.getUseList());
 		int replaceCount = 0;
 		for (RegisterArg arg : useList) {
-			if (canInline(arg) && replaceArg(mth, arg, constArg, constInsn, toRemove)) {
+			if (canInline(arg) && replaceArg(mth, arg, constArg, constInsn)) {
 				replaceCount++;
 			}
 		}
@@ -180,7 +179,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 		return true;
 	}
 
-	private static boolean replaceArg(MethodNode mth, RegisterArg arg, InsnArg constArg, InsnNode constInsn, List<InsnNode> toRemove) {
+	private static boolean replaceArg(MethodNode mth, RegisterArg arg, InsnArg constArg, InsnNode constInsn) {
 		InsnNode useInsn = arg.getParentInsn();
 		if (useInsn == null) {
 			return false;
@@ -224,15 +223,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 				return false;
 			}
 		}
-		if (insnType == InsnType.RETURN) {
-			useInsn.setSourceLine(constInsn.getSourceLine());
-			if (useInsn.contains(AFlag.SYNTHETIC)) {
-				useInsn.setOffset(constInsn.getOffset());
-				useInsn.rewriteAttributeFrom(constInsn, AType.CODE_COMMENTS);
-			} else {
-				useInsn.copyAttributeFrom(constInsn, AType.CODE_COMMENTS);
-			}
-		}
+		useInsn.inheritMetadata(constInsn);
 		return true;
 	}
 

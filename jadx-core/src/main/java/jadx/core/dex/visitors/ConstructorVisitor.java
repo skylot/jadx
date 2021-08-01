@@ -64,6 +64,8 @@ public class ConstructorVisitor extends AbstractVisitor {
 			remover.addAndUnbind(inv);
 			return;
 		}
+		co.inheritMetadata(inv);
+
 		RegisterArg instanceArg = ((RegisterArg) inv.getArg(0));
 		InsnNode newInstInsn = null;
 		if (co.isNewInstance()) {
@@ -97,6 +99,7 @@ public class ConstructorVisitor extends AbstractVisitor {
 						parentInsn.replaceArg(useArg, resultArg.duplicate());
 					}
 				}
+				co.inheritMetadata(newInstInsn);
 			}
 		}
 		ConstructorInsn replace = processConstructor(mth, co);
@@ -154,6 +157,7 @@ public class ConstructorVisitor extends AbstractVisitor {
 		}
 		ConstructorInsn newInsn = new ConstructorInsn(defCtr.getMethodInfo(), co.getCallType());
 		newInsn.setResult(co.getResult().duplicate());
+		newInsn.inheritMetadata(co);
 		return newInsn;
 	}
 

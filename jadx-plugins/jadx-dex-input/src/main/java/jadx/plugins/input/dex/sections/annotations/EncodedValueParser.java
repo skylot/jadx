@@ -66,7 +66,7 @@ public class EncodedValueParser {
 
 			case ENCODED_FIELD:
 			case ENCODED_ENUM:
-				return new EncodedValue(EncodedType.ENCODED_FIELD, ext.getFieldData(parseUnsignedInt(in, size)));
+				return new EncodedValue(EncodedType.ENCODED_FIELD, ext.getFieldRef(parseUnsignedInt(in, size)));
 
 			case ENCODED_ARRAY:
 				return new EncodedValue(EncodedType.ENCODED_ARRAY, parseEncodedArray(in, ext));

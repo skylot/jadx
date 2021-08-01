@@ -27,10 +27,12 @@ public class TestCodeComments2 extends IntegrationTest {
 
 	@Test
 	public void test() {
+		printOffsets();
+
 		String baseClsId = TestCls.class.getName();
 		JadxNodeRef mthRef = new JadxNodeRef(RefType.METHOD, baseClsId, "test(Z)I");
-		ICodeComment insnComment = new JadxCodeComment(mthRef, "return comment", 10);
-		ICodeComment insnComment2 = new JadxCodeComment(mthRef, "another return comment", 11);
+		ICodeComment insnComment = new JadxCodeComment(mthRef, "return comment", isJavaInput() ? 13 : 10);
+		ICodeComment insnComment2 = new JadxCodeComment(mthRef, "another return comment", isJavaInput() ? 15 : 11);
 
 		JadxCodeData codeData = new JadxCodeData();
 		codeData.setComments(Arrays.asList(insnComment, insnComment2));
@@ -40,7 +42,7 @@ public class TestCodeComments2 extends IntegrationTest {
 				.decompile()
 				.checkCodeOffsets()
 				.code()
-				.containsOne("// " + insnComment.getComment())
-				.containsOne("// " + insnComment2.getComment());
+				.containsOne("return 1; // " + insnComment.getComment())
+				.containsOne("return 3; // " + insnComment2.getComment());
 	}
 }

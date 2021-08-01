@@ -1,11 +1,15 @@
 package jadx.plugins.input.dex.sections;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.plugins.input.data.IFieldData;
+import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.annotations.IAnnotation;
+import jadx.api.plugins.input.data.attributes.IJadxAttribute;
+import jadx.api.plugins.utils.Utils;
 import jadx.plugins.input.dex.sections.annotations.AnnotationsParser;
 
 public class DexFieldData implements IFieldData {
@@ -17,6 +21,7 @@ public class DexFieldData implements IFieldData {
 	private String name;
 	private int accessFlags;
 	private int annotationsOffset;
+	private EncodedValue constValue;
 
 	public DexFieldData(@Nullable AnnotationsParser parser) {
 		this.annotationsParser = parser;
@@ -62,12 +67,23 @@ public class DexFieldData implements IFieldData {
 		this.annotationsOffset = annotationsOffset;
 	}
 
-	@Override
-	public List<IAnnotation> getAnnotations() {
+	public void setConstValue(EncodedValue constValue) {
+		this.constValue = constValue;
+	}
+
+	private List<IAnnotation> getAnnotations() {
 		if (annotationsParser == null) {
 			throw new NullPointerException("Annotation parser not initialized");
 		}
 		return annotationsParser.readAnnotationList(annotationsOffset);
+	}
+
+	@Override
+	public List<IJadxAttribute> getAttributes() {
+		List<IJadxAttribute> list = new ArrayList<>(2);
+		Utils.addToList(list, constValue);
+		DexAnnotationsConvert.forField(list, getAnnotations());
+		return list;
 	}
 
 	@Override

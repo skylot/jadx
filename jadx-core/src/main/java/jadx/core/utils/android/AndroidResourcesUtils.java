@@ -17,7 +17,6 @@ import jadx.core.codegen.ClassGen;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.fldinit.FieldInitAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.ConstStorage;
@@ -77,10 +76,9 @@ public class AndroidResourcesUtils {
 	/**
 	 * Force hex format for Android resources ids
 	 */
-	@SuppressWarnings("RedundantCast")
-	public static boolean handleResourceFieldValue(ClassNode cls, ICodeWriter code, EncodedValue encodedValue) {
-		if (encodedValue.getType() == EncodedType.ENCODED_INT && isResourceClass(cls)) {
-			code.add(String.format("0x%08x", ((Integer) encodedValue.getValue())));
+	public static boolean handleResourceFieldValue(ClassNode cls, ICodeWriter code, long lit, ArgType type) {
+		if (type.equals(ArgType.INT) && isResourceClass(cls)) {
+			code.add(String.format("0x%08x", lit));
 			return true;
 		}
 		return false;
@@ -121,8 +119,7 @@ public class AndroidResourcesUtils {
 			if (rField == null) {
 				FieldInfo rFieldInfo = FieldInfo.from(typeCls.root(), typeCls.getClassInfo(), resName, ArgType.INT);
 				rField = new FieldNode(typeCls, rFieldInfo, AccessFlags.PUBLIC | AccessFlags.STATIC | AccessFlags.FINAL);
-				EncodedValue value = new EncodedValue(EncodedType.ENCODED_INT, resource.getId());
-				rField.addAttr(FieldInitAttr.constValue(value));
+				rField.addAttr(new EncodedValue(EncodedType.ENCODED_INT, resource.getId()));
 				typeCls.getFields().add(rField);
 				if (rClsExists) {
 					rField.addAttr(AType.COMMENTS, "added by JADX");

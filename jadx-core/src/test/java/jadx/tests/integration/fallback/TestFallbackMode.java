@@ -24,6 +24,7 @@ public class TestFallbackMode extends IntegrationTest {
 
 	@Test
 	public void test() {
+		useDexInput();
 		setFallback();
 		disableCompilation();
 

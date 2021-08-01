@@ -19,6 +19,7 @@ public class TestDontInlineThis extends IntegrationTest {
 			TestCls res;
 			if (field == 7) {
 				res = this;
+				System.out.println();
 			} else {
 				res = new TestCls();
 			}

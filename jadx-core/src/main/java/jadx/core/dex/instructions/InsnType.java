@@ -11,6 +11,7 @@ public enum InsnType {
 	NOT,
 
 	MOVE,
+	MOVE_MULTI,
 	CAST,
 
 	RETURN,
