@@ -1,5 +1,5 @@
 plugins {
-	id 'com.github.ben-manes.versions' version '0.38.0'
+	id 'com.github.ben-manes.versions' version '0.39.0'
 	id "com.diffplug.spotless" version "5.12.5"
 }
 
@@ -33,19 +33,19 @@ allprojects {
 	}
 
 	dependencies {
-		implementation 'org.slf4j:slf4j-api:1.7.30'
-		compileOnly 'org.jetbrains:annotations:20.1.0'
+		implementation 'org.slf4j:slf4j-api:1.7.32'
+		compileOnly 'org.jetbrains:annotations:21.0.1'
 
-		testImplementation 'ch.qos.logback:logback-classic:1.2.3'
+		testImplementation 'ch.qos.logback:logback-classic:1.2.5'
 		testImplementation 'org.hamcrest:hamcrest-library:2.2'
-		testImplementation 'org.mockito:mockito-core:3.10.0'
-		testImplementation 'org.assertj:assertj-core:3.19.0'
+		testImplementation 'org.mockito:mockito-core:3.11.2'
+		testImplementation 'org.assertj:assertj-core:3.20.2'
 
 		testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
 		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
 
 		testImplementation 'org.eclipse.jdt.core.compiler:ecj:4.6.1'
-		testCompileOnly 'org.jetbrains:annotations:20.1.0'
+		testCompileOnly 'org.jetbrains:annotations:21.0.1'
 	}
 
 	test {
