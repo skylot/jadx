@@ -1,15 +1,50 @@
 package jadx.gui.settings;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.InputMap;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
@@ -27,6 +62,7 @@ import jadx.api.JadxArgs;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.FontUtils;
+import jadx.gui.utils.LafManager;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
@@ -75,7 +111,7 @@ public class JadxSettingsWindow extends JDialog {
 		leftPanel.add(makeDeobfuscationGroup());
 		leftPanel.add(makeRenameGroup());
 		leftPanel.add(makeProjectGroup());
-		leftPanel.add(makeEditorGroup());
+		leftPanel.add(makeAppearanceGroup());
 		leftPanel.add(makeOtherGroup());
 		leftPanel.add(makeSearchResGroup());
 
@@ -289,7 +325,7 @@ public class JadxSettingsWindow extends JDialog {
 		return group;
 	}
 
-	private SettingsGroup makeEditorGroup() {
+	private SettingsGroup makeAppearanceGroup() {
 		JButton fontBtn = new JButton(NLS.str("preferences.select_font"));
 		JButton smaliFontBtn = new JButton(NLS.str("preferences.select_smali_font"));
 
@@ -308,9 +344,17 @@ public class JadxSettingsWindow extends JDialog {
 			mainWindow.loadSettings();
 		});
 
-		SettingsGroup group = new SettingsGroup(NLS.str("preferences.editor"));
-		JLabel fontLabel = group.addRow(getFontLabelStr(), fontBtn);
+		JComboBox<String> lafCbx = new JComboBox<>(LafManager.getThemes());
+		lafCbx.setSelectedItem(settings.getLafTheme());
+		lafCbx.addActionListener(e -> {
+			settings.setLafTheme((String) lafCbx.getSelectedItem());
+			mainWindow.loadSettings();
+		});
+
+		SettingsGroup group = new SettingsGroup(NLS.str("preferences.appearance"));
+		group.addRow(NLS.str("preferences.laf_theme"), lafCbx);
 		group.addRow(NLS.str("preferences.theme"), themesCbx);
+		JLabel fontLabel = group.addRow(getFontLabelStr(), fontBtn);
 		JLabel smaliFontLabel = group.addRow(getSmaliFontLabelStr(), smaliFontBtn);
 
 		fontBtn.addMouseListener(new MouseAdapter() {

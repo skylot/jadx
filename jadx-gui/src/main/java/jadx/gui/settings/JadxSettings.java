@@ -33,6 +33,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.FontUtils;
+import jadx.gui.utils.LafManager;
 import jadx.gui.utils.LangLocale;
 import jadx.gui.utils.NLS;
 
@@ -60,6 +61,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private String fontStr = "";
 	private String smaliFontStr = "";
 	private String editorThemePath = "";
+	private String lafTheme = LafManager.SYSTEM_THEME_NAME;
 	private LangLocale langLocale = NLS.defaultLocale();
 	private boolean autoStartJobs = false;
 	protected String excludedPackages = "";
@@ -429,6 +431,14 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setEditorThemePath(String editorThemePath) {
 		this.editorThemePath = editorThemePath;
+	}
+
+	public String getLafTheme() {
+		return lafTheme;
+	}
+
+	public void setLafTheme(String lafTheme) {
+		this.lafTheme = lafTheme;
 	}
 
 	public int getMainWindowExtendedState() {

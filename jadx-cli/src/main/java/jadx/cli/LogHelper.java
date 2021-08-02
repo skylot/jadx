@@ -66,8 +66,12 @@ public class LogHelper {
 		return logLevelValue;
 	}
 
-	private static void setLevelForClass(Class<?> cls, Level level) {
+	public static void setLevelForClass(Class<?> cls, Level level) {
 		((Logger) LoggerFactory.getLogger(cls)).setLevel(level);
+	}
+
+	public static void setLevelForPackage(String pkgName, Level level) {
+		((Logger) LoggerFactory.getLogger(pkgName)).setLevel(level);
 	}
 
 	/**

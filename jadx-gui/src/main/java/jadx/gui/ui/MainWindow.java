@@ -115,6 +115,7 @@ import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.CodeUsageInfo;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.JumpPosition;
+import jadx.gui.utils.LafManager;
 import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.SystemInfo;
@@ -1255,6 +1256,8 @@ public class MainWindow extends JFrame {
 	}
 
 	public void loadSettings() {
+		LafManager.updateLaf(settings);
+
 		Font font = settings.getFont();
 		Font largerFont = font.deriveFont(font.getSize() + 2.f);
 
