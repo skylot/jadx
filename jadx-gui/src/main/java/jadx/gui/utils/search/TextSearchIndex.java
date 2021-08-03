@@ -19,22 +19,22 @@ import jadx.api.JavaNode;
 import jadx.gui.treemodel.CodeNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.SearchDialog;
+import jadx.gui.ui.dialog.SearchDialog;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.CodeLinesInfo;
 import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.UiUtils;
 
-import static jadx.gui.ui.SearchDialog.SearchOptions.ACTIVE_TAB;
-import static jadx.gui.ui.SearchDialog.SearchOptions.CLASS;
-import static jadx.gui.ui.SearchDialog.SearchOptions.CODE;
-import static jadx.gui.ui.SearchDialog.SearchOptions.COMMENT;
-import static jadx.gui.ui.SearchDialog.SearchOptions.FIELD;
-import static jadx.gui.ui.SearchDialog.SearchOptions.IGNORE_CASE;
-import static jadx.gui.ui.SearchDialog.SearchOptions.METHOD;
-import static jadx.gui.ui.SearchDialog.SearchOptions.RESOURCE;
-import static jadx.gui.ui.SearchDialog.SearchOptions.USE_REGEX;
+import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.ACTIVE_TAB;
+import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.CLASS;
+import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.CODE;
+import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.COMMENT;
+import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.FIELD;
+import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.IGNORE_CASE;
+import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.METHOD;
+import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.RESOURCE;
+import static jadx.gui.ui.dialog.SearchDialog.SearchOptions.USE_REGEX;
 
 public class TextSearchIndex {
 

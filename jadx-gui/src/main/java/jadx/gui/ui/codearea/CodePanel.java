@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ICodeInfo;
 import jadx.core.utils.StringUtils;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.SearchDialog;
+import jadx.gui.ui.dialog.SearchDialog;
 import jadx.gui.utils.CaretPositionFix;
 import jadx.gui.utils.DefaultPopupMenuListener;
 import jadx.gui.utils.NLS;
@@ -43,13 +43,16 @@ public class CodePanel extends JPanel {
 
 	private final SearchBar searchBar;
 	private final AbstractCodeArea codeArea;
-	private final JScrollPane codeScrollPane;
+	private final RTextScrollPane codeScrollPane;
 	private LineNumbers lineNumbers;
 
 	public CodePanel(AbstractCodeArea codeArea) {
 		this.codeArea = codeArea;
 		searchBar = new SearchBar(codeArea);
-		codeScrollPane = codeArea instanceof SmaliArea ? new RTextScrollPane(codeArea) : new JScrollPane(codeArea);
+		codeScrollPane = new RTextScrollPane(codeArea);
+		codeScrollPane.setLineNumbersEnabled(true);
+		codeScrollPane.setFoldIndicatorEnabled(false);
+		codeScrollPane.setIconRowHeaderEnabled(false);
 
 		setLayout(new BorderLayout());
 		setBorder(new EmptyBorder(0, 0, 0, 0));
@@ -124,9 +127,9 @@ public class CodePanel extends JPanel {
 	}
 
 	private void initLineNumbers(boolean useSourceLines) {
-		lineNumbers = new LineNumbers(codeArea);
+	/*	lineNumbers = new LineNumbers(codeArea);
 		lineNumbers.setUseSourceLines(useSourceLines);
-		codeScrollPane.setRowHeaderView(lineNumbers);
+		codeScrollPane.setRowHeaderView(lineNumbers);*/
 	}
 
 	private boolean isUseSourceLines() {

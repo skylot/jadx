@@ -16,7 +16,7 @@ import jadx.gui.utils.UiUtils;
 public class JPackage extends JNode implements Comparable<JPackage> {
 	private static final long serialVersionUID = -4120718634156839804L;
 
-	private static final ImageIcon PACKAGE_ICON = UiUtils.openIcon("package_obj");
+	private static final ImageIcon PACKAGE_ICON = UiUtils.openSvgIcon("nodes/package");
 
 	private String fullName;
 	private String name;

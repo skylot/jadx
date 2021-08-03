@@ -21,7 +21,7 @@ import jadx.api.JavaNode;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.ContentPanel;
+import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.CaretPositionFix;
 import jadx.gui.utils.DefaultPopupMenuListener;

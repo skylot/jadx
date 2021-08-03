@@ -22,7 +22,7 @@ import jadx.gui.utils.UiUtils;
 public class JRoot extends JNode {
 	private static final long serialVersionUID = 8888495789773527342L;
 
-	private static final ImageIcon ROOT_ICON = UiUtils.openIcon("java_model_obj");
+	private static final ImageIcon ROOT_ICON = UiUtils.openSvgIcon("nodes/rootPackageFolder");
 
 	private final transient JadxWrapper wrapper;
 

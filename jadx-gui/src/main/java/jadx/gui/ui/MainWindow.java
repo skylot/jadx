@@ -74,6 +74,11 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import jadx.gui.ui.dialog.*;
+import jadx.gui.ui.panel.ContentPanel;
+import jadx.gui.ui.panel.JDebuggerPanel;
+import jadx.gui.ui.panel.ProgressPanel;
+import jadx.gui.ui.popupmenu.JPackagePopupMenu;
 import org.fife.ui.rsyntaxtextarea.Theme;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -137,24 +142,24 @@ public class MainWindow extends JFrame {
 	private static final double WINDOW_RATIO = 1 - BORDER_RATIO * 2;
 	public static final double SPLIT_PANE_RESIZE_WEIGHT = 0.15;
 
-	private static final ImageIcon ICON_OPEN = UiUtils.openIcon("folder");
-	private static final ImageIcon ICON_ADD_FILES = UiUtils.openIcon("folder_add");
-	private static final ImageIcon ICON_SAVE_ALL = UiUtils.openIcon("disk_multiple");
-	private static final ImageIcon ICON_EXPORT = UiUtils.openIcon("database_save");
-	private static final ImageIcon ICON_CLOSE = UiUtils.openIcon("cross");
-	private static final ImageIcon ICON_SYNC = UiUtils.openIcon("sync");
-	private static final ImageIcon ICON_FLAT_PKG = UiUtils.openIcon("empty_logical_package_obj");
-	private static final ImageIcon ICON_SEARCH = UiUtils.openIcon("wand");
-	private static final ImageIcon ICON_FIND = UiUtils.openIcon("magnifier");
-	private static final ImageIcon ICON_COMMENT_SEARCH = UiUtils.openIcon("table_edit");
-	private static final ImageIcon ICON_BACK = UiUtils.openIcon("icon_back");
-	private static final ImageIcon ICON_FORWARD = UiUtils.openIcon("icon_forward");
-	private static final ImageIcon ICON_QUARK = UiUtils.openIcon("icon_quark");
-	private static final ImageIcon ICON_PREF = UiUtils.openIcon("wrench");
-	private static final ImageIcon ICON_DEOBF = UiUtils.openIcon("lock_edit");
-	private static final ImageIcon ICON_LOG = UiUtils.openIcon("report");
-	private static final ImageIcon ICON_JADX = UiUtils.openIcon("jadx-logo");
-	private static final ImageIcon ICON_DEBUGGER = UiUtils.openIcon("debugger");
+	private static final ImageIcon ICON_OPEN = UiUtils.openSvgIcon("ui/openDisk");
+	private static final ImageIcon ICON_ADD_FILES = UiUtils.openSvgIcon("ui/addFile");
+	private static final ImageIcon ICON_SAVE_ALL = UiUtils.openSvgIcon("ui/menu-saveall");
+	private static final ImageIcon ICON_EXPORT = UiUtils.openSvgIcon("ui/export");
+	private static final ImageIcon ICON_EXIT = UiUtils.openSvgIcon("ui/exit");
+	private static final ImageIcon ICON_SYNC = UiUtils.openSvgIcon("ui/pagination");
+	private static final ImageIcon ICON_FLAT_PKG = UiUtils.openSvgIcon("ui/moduleGroup");
+	private static final ImageIcon ICON_SEARCH = UiUtils.openSvgIcon("ui/find");
+	private static final ImageIcon ICON_FIND = UiUtils.openSvgIcon("ui/ejbFinderMethod");
+	private static final ImageIcon ICON_COMMENT_SEARCH = UiUtils.openSvgIcon("ui/usagesFinder");
+	private static final ImageIcon ICON_BACK = UiUtils.openSvgIcon("ui/left");
+	private static final ImageIcon ICON_FORWARD = UiUtils.openSvgIcon("ui/right");
+	private static final ImageIcon ICON_QUARK = UiUtils.openSvgIcon("ui/analyze");
+	private static final ImageIcon ICON_PREF = UiUtils.openSvgIcon("ui/settings");
+	private static final ImageIcon ICON_DEOBF = UiUtils.openSvgIcon("ui/helmChartLock");
+	private static final ImageIcon ICON_LOG = UiUtils.openSvgIcon("ui/logVerbose");
+	private static final ImageIcon ICON_INFO = UiUtils.openSvgIcon("ui/showInfos");
+	private static final ImageIcon ICON_DEBUGGER = UiUtils.openSvgIcon("ui/startDebugger");
 
 	private final transient JadxWrapper wrapper;
 	private final transient JadxSettings settings;
@@ -833,7 +838,7 @@ public class MainWindow extends JFrame {
 		prefsAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_P,
 				UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
 
-		Action exitAction = new AbstractAction(NLS.str("file.exit"), ICON_CLOSE) {
+		Action exitAction = new AbstractAction(NLS.str("file.exit"), ICON_EXIT) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				closeWindow();
@@ -917,14 +922,14 @@ public class MainWindow extends JFrame {
 		Action logAction = new AbstractAction(NLS.str("menu.log"), ICON_LOG) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new LogViewer(MainWindow.this).setVisible(true);
+				new LogViewerDialog(MainWindow.this).setVisible(true);
 			}
 		};
 		logAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.log"));
 		logAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_L,
 				UiUtils.ctrlButton() | KeyEvent.SHIFT_DOWN_MASK));
 
-		Action aboutAction = new AbstractAction(NLS.str("menu.about"), ICON_JADX) {
+		Action aboutAction = new AbstractAction(NLS.str("menu.about"), ICON_INFO) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				new AboutDialog().setVisible(true);

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <g fill="none" fill-rule="evenodd">
+    <rect width="6" height="6" x="1" y="1" fill="#40B6E0" fill-opacity=".6"/>
+    <rect width="6" height="6" x="8" y="1" fill="#40B6E0" fill-opacity=".6"/>
+    <rect width="6" height="6" x="1" y="8" fill="#40B6E0" fill-opacity=".6"/>
+    <path fill="#9AA7B0" fill-opacity=".8" d="M8,14 L15.6363636,14 L15.6363636,9.09090909 L11.8097655,9.09090909 L11.1070891,8.38808545 C10.8481561,8.15577878 10.5176552,8.01886178 10.1702982,8 L8.02797091,8 C8.012523,8 8,8.012523 8,8.02797091 L8,14 Z"/>
+  </g>
+</svg>

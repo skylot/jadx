@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.RenameDialog;
+import jadx.gui.ui.dialog.RenameDialog;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 

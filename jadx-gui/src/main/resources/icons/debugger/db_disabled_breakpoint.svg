@@ -1,0 +1,9 @@
+<!-- Copyright 2000-2021 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file. -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="12" height="12" viewBox="0 0 12 12">
+  <defs>
+    <path id="db_disabled_breakpoint-a" d="M6,11.5 C2.96243388,11.5 0.5,9.03756612 0.5,6 C0.5,2.96243388 2.96243388,0.5 6,0.5 C9.03756612,0.5 11.5,2.96243388 11.5,6 C11.5,9.03756612 9.03756612,11.5 6,11.5 Z M6,10 C8.209139,10 10,8.209139 10,6 C10,3.790861 8.209139,2 6,2 C3.790861,2 2,3.790861 2,6 C2,8.209139 3.790861,10 6,10 Z"/>
+  </defs>
+  <g fill="none" fill-rule="evenodd">
+    <use fill="#DB5860" xlink:href="#db_disabled_breakpoint-a"/>
+  </g>
+</svg>

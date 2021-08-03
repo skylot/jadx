@@ -1,0 +1,9 @@
+<!-- Copyright 2000-2021 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file. -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="12" height="12" viewBox="0 0 12 12">
+  <defs>
+    <circle id="db_set_breakpoint-a" cx="6" cy="6" r="5.5"/>
+  </defs>
+  <g fill="none" fill-rule="evenodd">
+    <use fill="#DB5860" xlink:href="#db_set_breakpoint-a"/>
+  </g>
+</svg>

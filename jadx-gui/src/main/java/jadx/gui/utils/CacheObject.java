@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import jadx.gui.jobs.IndexService;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JRoot;
-import jadx.gui.ui.SearchDialog;
+import jadx.gui.ui.dialog.SearchDialog;
 import jadx.gui.utils.search.CommentsIndex;
 import jadx.gui.utils.search.TextSearchIndex;
 

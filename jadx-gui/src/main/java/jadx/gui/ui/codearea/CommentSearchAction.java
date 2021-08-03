@@ -7,7 +7,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.KeyStroke;
 
-import jadx.gui.ui.SearchDialog;
+import jadx.gui.ui.dialog.SearchDialog;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 

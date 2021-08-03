@@ -17,6 +17,8 @@ dependencies {
 
 	implementation 'com.formdev:flatlaf:1.4'
 	implementation 'com.formdev:flatlaf-intellij-themes:1.4'
+	implementation 'com.formdev:flatlaf-extras:1.4'
+	implementation 'com.formdev:svgSalamander:1.1.2.4'
 	implementation 'org.reflections:reflections:0.9.12'
 
 	implementation 'com.google.code.gson:gson:2.8.6'

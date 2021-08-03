@@ -12,14 +12,15 @@ import javax.swing.plaf.basic.BasicButtonUI;
 
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
 public class TabComponent extends JPanel {
 	private static final long serialVersionUID = -8147035487543610321L;
 
-	private static final ImageIcon ICON_CLOSE = UiUtils.openIcon("cross");
-	private static final ImageIcon ICON_CLOSE_INACTIVE = UiUtils.openIcon("cross_grayed");
+	private static final ImageIcon ICON_CLOSE = UiUtils.openSvgIcon("ui/closeHovered");
+	private static final ImageIcon ICON_CLOSE_INACTIVE = UiUtils.openSvgIcon("ui/close");
 
 	private final TabbedPane tabbedPane;
 	private final ContentPanel contentPanel;
