@@ -251,7 +251,7 @@ public class ResTableParser extends CommonBinaryParser {
 		int resRef = pkg.getId() << 24 | typeId << 16 | entryId;
 		String typeName = pkg.getTypeStrings()[typeId - 1];
 		String origKeyName = pkg.getKeyStrings()[key];
-		ResourceEntry newResEntry = new ResourceEntry(resRef, pkg.getName(), typeName, getResName(resRef, origKeyName), config);
+		ResourceEntry newResEntry = new ResourceEntry(resRef, pkg.getName(), typeName, getResName(typeName, resRef, origKeyName), config);
 		ResourceEntry prevResEntry = resStorage.searchEntryWithSameName(newResEntry);
 		if (prevResEntry != null) {
 			newResEntry = newResEntry.copyWithId();
@@ -280,7 +280,7 @@ public class ResTableParser extends CommonBinaryParser {
 		resStorage.add(newResEntry);
 	}
 
-	private String getResName(int resRef, String origKeyName) {
+	private String getResName(String typeName, int resRef, String origKeyName) {
 		if (this.useRawResName) {
 			return origKeyName;
 		}
@@ -288,13 +288,16 @@ public class ResTableParser extends CommonBinaryParser {
 		if (renamedKey != null) {
 			return renamedKey;
 		}
-		if (VALID_RES_KEY_PATTERN.matcher(origKeyName).matches()) {
-			return origKeyName;
-		}
 		FieldNode constField = root.getConstValues().getGlobalConstFields().get(resRef);
 		if (constField != null) {
 			constField.add(AFlag.DONT_RENAME);
 			return constField.getName();
+		}
+		// styles might contain dots in name, use VALID_RES_KEY_PATTERN only for resource file name
+		if (typeName.equals("style")) {
+			return origKeyName;
+		} else if (VALID_RES_KEY_PATTERN.matcher(origKeyName).matches()) {
+			return origKeyName;
 		}
 		// Making sure origKeyName compliant with resource file name rules
 		Matcher m = VALID_RES_KEY_PATTERN.matcher(origKeyName);
