@@ -37,12 +37,13 @@ public final class CodeArea extends AbstractCodeArea {
 	private static final Logger LOG = LoggerFactory.getLogger(CodeArea.class);
 
 	private static final long serialVersionUID = 6312736869579635796L;
+	private final boolean isJavaCode;
 
 	CodeArea(ContentPanel contentPanel) {
 		super(contentPanel);
 		setSyntaxEditingStyle(node.getSyntaxName());
 
-		boolean isJavaCode = node instanceof JClass;
+		isJavaCode = node instanceof JClass;
 		if (isJavaCode) {
 			((RSyntaxDocument) getDocument()).setSyntaxStyle(new JadxTokenMaker(this));
 			addMenuItems();
@@ -242,5 +243,9 @@ public final class CodeArea extends AbstractCodeArea {
 
 	public JadxProject getProject() {
 		return getMainWindow().getProject();
+	}
+
+	public boolean isJavaCode() {
+		return isJavaCode;
 	}
 }
