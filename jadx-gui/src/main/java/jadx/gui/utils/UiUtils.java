@@ -1,7 +1,6 @@
 package jadx.gui.utils;
 
-import com.kitfox.svg.SVGCache;
-import com.kitfox.svg.app.beans.SVGIcon;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -17,10 +16,6 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,20 +41,9 @@ public class UiUtils {
 	private UiUtils() {
 	}
 
-	public static SVGIcon openSvgIcon(String name) {
-		String iconPath = "/icons/" + name + ".svg";
-		InputStream in = UiUtils.class.getResourceAsStream(iconPath);
-		if (in == null) {
-			throw new JadxRuntimeException("Icon not found: " + iconPath);
-		}
-		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-		URI uri = SVGCache.getSVGUniverse().loadSVG(reader, iconPath);
-
-		SVGIcon svgIcon = new SVGIcon();
-		svgIcon.setAntiAlias(true);
-		svgIcon.setScaleToFit(true);
-		svgIcon.setSvgURI(uri);
-		return svgIcon;
+	public static FlatSVGIcon openSvgIcon(String name) {
+		String iconPath = "icons/" + name + ".svg";
+		return new FlatSVGIcon(iconPath);
 	}
 
 	public static ImageIcon openIcon(String name) {
