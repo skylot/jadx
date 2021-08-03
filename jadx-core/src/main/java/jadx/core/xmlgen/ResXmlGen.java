@@ -23,10 +23,23 @@ import static jadx.core.xmlgen.ParserConstants.TYPE_REFERENCE;
 
 public class ResXmlGen {
 
+	/**
+	 * Skip only file based resource type
+	 */
 	private static final Set<String> SKIP_RES_TYPES = new HashSet<>(Arrays.asList(
+			"anim",
+			"animator",
+			"font",
+			"id", // skip id type, it is usually auto generated when used this syntax "@+id/my_id"
+			"interpolator",
 			"layout",
+			"menu",
 			"mipmap",
-			"id"));
+			"navigation",
+			"raw",
+			"transition",
+			"xml"
+			));
 
 	private final ResourceStorage resStorage;
 	private final ValuesParser vp;
