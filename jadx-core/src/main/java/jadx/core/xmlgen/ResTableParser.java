@@ -191,7 +191,7 @@ public class ResTableParser extends CommonBinaryParser {
 	}
 
 	private String makeNewKeyName(int idx) {
-		return "JADX_DEOBF_" + idx;
+		return String.format("jadx_deobf_0x%08x", idx);
 	}
 
 	@SuppressWarnings("unused")
@@ -311,7 +311,7 @@ public class ResTableParser extends CommonBinaryParser {
 			first = false;
 		}
 		// autogenerate key name, appended with cleaned origKeyName to be human-friendly
-		String newResName = "res_" + resRef;
+		String newResName = String.format("res_0x%08x",resRef);
 		String cleanedResName = sb.toString();
 		if (!cleanedResName.isEmpty()) {
 			newResName += "_" + cleanedResName.toLowerCase();
