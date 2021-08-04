@@ -29,7 +29,8 @@ public class QuarkReportNode extends JNode {
 
 	private static final Gson GSON = new GsonBuilder().create();
 
-	private static final ImageIcon ICON = UiUtils.openSvgIcon("ui/analyze");
+	private static final ImageIcon ICON = UiUtils.openSvgIcon("ui/quark");
+
 	private final Path apkFile;
 
 	private String errorContent;

@@ -158,7 +158,7 @@ public class MainWindow extends JFrame {
 	private static final ImageIcon ICON_COMMENT_SEARCH = UiUtils.openSvgIcon("ui/usagesFinder");
 	private static final ImageIcon ICON_BACK = UiUtils.openSvgIcon("ui/left");
 	private static final ImageIcon ICON_FORWARD = UiUtils.openSvgIcon("ui/right");
-	private static final ImageIcon ICON_QUARK = UiUtils.openSvgIcon("ui/analyze");
+	private static final ImageIcon ICON_QUARK = UiUtils.openSvgIcon("ui/quark");
 	private static final ImageIcon ICON_PREF = UiUtils.openSvgIcon("ui/settings");
 	private static final ImageIcon ICON_DEOBF = UiUtils.openSvgIcon("ui/helmChartLock");
 	private static final ImageIcon ICON_LOG = UiUtils.openSvgIcon("ui/logVerbose");

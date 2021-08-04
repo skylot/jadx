@@ -33,3 +33,4 @@ jadx-output/
 *.log
 *.cfg
 *.orig
+quark.json

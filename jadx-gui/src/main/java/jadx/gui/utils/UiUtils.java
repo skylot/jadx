@@ -58,7 +58,17 @@ public class UiUtils {
 
 	public static FlatSVGIcon openSvgIcon(String name) {
 		String iconPath = "icons/" + name + ".svg";
-		return new FlatSVGIcon(iconPath);
+		FlatSVGIcon icon = new FlatSVGIcon(iconPath);
+		boolean found;
+		try {
+			found = icon.hasFound();
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Failed to load icon: " + iconPath, e);
+		}
+		if (!found) {
+			throw new JadxRuntimeException("Icon not found: " + iconPath);
+		}
+		return icon;
 	}
 
 	public static ImageIcon openIcon(String name) {

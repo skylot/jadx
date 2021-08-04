@@ -270,7 +270,7 @@ public class QuarkReportPanel extends ContentPanel {
 
 	public MutableTreeNode resolveMethod(String descr) {
 		try {
-			String[] parts = descr.split(" ", 3);
+			String[] parts = removeQuotes(descr).split(" ", 3);
 			String cls = Utils.cleanObjectName(parts[0].replace('$', '.'));
 			String mth = parts[1] + parts[2].replace(" ", "");
 			MainWindow mainWindow = getTabbedPane().getMainWindow();
@@ -288,6 +288,13 @@ public class QuarkReportPanel extends ContentPanel {
 			LOG.error("Failed to parse method descriptor string", e);
 			return new TextTreeNode(descr);
 		}
+	}
+
+	private static String removeQuotes(String descr) {
+		if (descr.charAt(0) == '\'') {
+			return descr.substring(1, descr.length() - 1);
+		}
+		return descr;
 	}
 
 	private class MethodTreeNode extends BaseTreeNode {
