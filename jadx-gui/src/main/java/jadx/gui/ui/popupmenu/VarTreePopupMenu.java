@@ -1,16 +1,19 @@
 package jadx.gui.ui.popupmenu;
 
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.panel.JDebuggerPanel.ValueTreeNode;
 import jadx.gui.ui.dialog.SetValueDialog;
+import jadx.gui.ui.panel.JDebuggerPanel.ValueTreeNode;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 

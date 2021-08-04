@@ -1,6 +1,7 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -9,13 +10,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.Icon;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.KeyStroke;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.EditorKit;
 import javax.swing.text.JTextComponent;
 
-import org.fife.ui.rsyntaxtextarea.*;
-import org.fife.ui.rtextarea.*;
+import org.fife.ui.rsyntaxtextarea.FoldingAwareIconRowHeader;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaEditorKit;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaUI;
+import org.fife.ui.rsyntaxtextarea.RSyntaxUtilities;
+import org.fife.ui.rsyntaxtextarea.Style;
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
+import org.fife.ui.rsyntaxtextarea.Theme;
+import org.fife.ui.rtextarea.Gutter;
+import org.fife.ui.rtextarea.GutterIconInfo;
+import org.fife.ui.rtextarea.IconRowHeader;
+import org.fife.ui.rtextarea.RTextArea;
+import org.fife.ui.rtextarea.RTextAreaUI;
 
 import jadx.gui.device.debugger.BreakpointManager;
 import jadx.gui.device.debugger.DbgUtils;

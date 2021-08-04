@@ -16,9 +16,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 
-import jadx.gui.ui.panel.ContentPanel;
-import jadx.gui.ui.panel.HtmlPanel;
-import jadx.gui.ui.panel.ImagePanel;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +28,9 @@ import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.codearea.AbstractCodeContentPanel;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
 import jadx.gui.ui.codearea.SmaliArea;
+import jadx.gui.ui.panel.ContentPanel;
+import jadx.gui.ui.panel.HtmlPanel;
+import jadx.gui.ui.panel.ImagePanel;
 import jadx.gui.utils.JumpManager;
 import jadx.gui.utils.JumpPosition;
 
@@ -122,7 +122,7 @@ public class TabbedPane extends JTabbedPane {
 				lastTab = null;
 				return;
 			}
-		//	FocusManager.focusOnCodePanel(tab);
+			FocusManager.focusOnCodePanel(tab);
 			if (tab == curTab) { // a tab was closed by not the current one.
 				if (lastTab != null && indexOfComponent(lastTab) == -1) { // lastTab was closed
 					setLastTabAdjacentToCurTab();
@@ -197,7 +197,7 @@ public class TabbedPane extends JTabbedPane {
 					codeArea.scrollToLine(line);
 				}
 			}
-			//codeArea.requestFocus();
+			codeArea.requestFocus();
 		});
 	}
 
@@ -240,7 +240,7 @@ public class TabbedPane extends JTabbedPane {
 			smaliArea.scrollToDebugPos(pos);
 		}
 		smaliArea.scrollToPos(pos);
-		//smaliArea.requestFocus();
+		smaliArea.requestFocus();
 	}
 
 	@Nullable

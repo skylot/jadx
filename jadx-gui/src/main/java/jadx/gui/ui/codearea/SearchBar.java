@@ -1,11 +1,15 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
-import javax.swing.*;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.JToolBar;
 import javax.swing.text.BadLocationException;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
@@ -25,10 +29,6 @@ class SearchBar extends JToolBar {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SearchBar.class);
 
-	private static final Color COLOR_BG_ERROR = new Color(0xFFDFDE);
-	private static final Color COLOR_BG_WARN = new Color(0xFFFDD9);
-	//private static final Color COLOR_BG_NORMAL = new Color(0xFFFFFF);
-
 	private static final Icon ICON_UP = UiUtils.openSvgIcon("ui/top");
 	private static final Icon ICON_DOWN = UiUtils.openSvgIcon("ui/bottom");
 	private static final Icon ICON_CLOSE = UiUtils.openSvgIcon("ui/close");
@@ -38,9 +38,10 @@ class SearchBar extends JToolBar {
 	private final JTextField searchField;
 	private final JCheckBox markAllCB;
 	private final JCheckBox regexCB;
-
 	private final JCheckBox wholeWordCB;
 	private final JCheckBox matchCaseCB;
+
+	private boolean notFound;
 
 	public SearchBar(RSyntaxTextArea textArea) {
 		rTextArea = textArea;
@@ -148,7 +149,7 @@ class SearchBar extends JToolBar {
 		context.setMarkAll(markAllCB.isSelected());
 
 		// TODO hack: move cursor before previous search for not jump to next occurrence
-		/*if (direction == 0) {
+		if (direction == 0 && !notFound) {
 			try {
 				int caretPos = rTextArea.getCaretPosition();
 				int lineNum = rTextArea.getLineOfOffset(caretPos) - 1;
@@ -158,21 +159,23 @@ class SearchBar extends JToolBar {
 			} catch (BadLocationException e) {
 				LOG.error("Caret move error", e);
 			}
-		}*/
+		}
 
 		SearchResult result = SearchEngine.find(rTextArea, context);
-		if (!result.wasFound()) {
+		notFound = !result.wasFound();
+		if (notFound) {
 			int pos = SearchEngine.getNextMatchPos(searchText, rTextArea.getText(), forward, matchCase, wholeWord);
 			if (pos != -1) {
 				rTextArea.setCaretPosition(forward ? 0 : rTextArea.getDocument().getLength() - 1);
 				search(direction);
-				//searchField.setBackground(COLOR_BG_WARN);
-				return;
+				searchField.putClientProperty("JComponent.outline", "warning");
+			} else {
+				searchField.putClientProperty("JComponent.outline", "error");
 			}
-			//searchField.setBackground(COLOR_BG_ERROR);
 		} else {
-			//searchField.setBackground(COLOR_BG_NORMAL);
+			searchField.putClientProperty("JComponent.outline", "");
 		}
+		searchField.repaint();
 	}
 
 	public void setRTextArea(RSyntaxTextArea rTextArea) {

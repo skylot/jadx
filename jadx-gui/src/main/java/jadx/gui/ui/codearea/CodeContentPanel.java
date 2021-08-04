@@ -1,6 +1,6 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.*;
+import java.awt.BorderLayout;
 
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.TabbedPane;

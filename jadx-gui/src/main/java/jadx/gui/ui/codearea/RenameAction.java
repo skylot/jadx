@@ -2,7 +2,8 @@ package jadx.gui.ui.codearea;
 
 import java.awt.event.ActionEvent;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.KeyStroke;
 import javax.swing.event.PopupMenuEvent;
 
 import org.jetbrains.annotations.Nullable;

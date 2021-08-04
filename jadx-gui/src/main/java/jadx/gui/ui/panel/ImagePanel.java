@@ -1,12 +1,11 @@
 package jadx.gui.ui.panel;
 
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 
 import javax.imageio.ImageIO;
 
-import jadx.gui.ui.TabbedPane;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 import hu.kazocsaba.imageviewer.ImageViewer;
@@ -18,6 +17,7 @@ import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.xmlgen.ResContainer;
 import jadx.gui.treemodel.JResource;
+import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 
 public class ImagePanel extends ContentPanel {

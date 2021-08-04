@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.swing.*;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
 import jadx.api.JavaPackage;
 import jadx.gui.JadxWrapper;

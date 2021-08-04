@@ -21,12 +21,11 @@ import jadx.api.ResourcesLoader;
 import jadx.api.impl.SimpleCodeInfo;
 import jadx.core.utils.Utils;
 import jadx.core.xmlgen.ResContainer;
-import jadx.gui.ui.panel.ContentPanel;
-import jadx.gui.ui.panel.ImagePanel;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.codearea.CodeContentPanel;
+import jadx.gui.ui.panel.ContentPanel;
+import jadx.gui.ui.panel.ImagePanel;
 import jadx.gui.utils.NLS;
-import jadx.gui.utils.OverlayIcon;
 import jadx.gui.utils.UiUtils;
 
 public class JResource extends JLoadableNode implements Comparable<JResource> {
@@ -278,7 +277,7 @@ public class JResource extends JLoadableNode implements Comparable<JResource> {
 
 			case FILE:
 				ResourceType resType = resFile.getType();
-				switch (resType){
+				switch (resType) {
 					case MANIFEST:
 						return MANIFEST_ICON;
 					case ARSC:

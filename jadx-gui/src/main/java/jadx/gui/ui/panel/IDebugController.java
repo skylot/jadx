@@ -1,7 +1,6 @@
 package jadx.gui.ui.panel;
 
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.gui.ui.panel.JDebuggerPanel;
 import jadx.gui.ui.panel.JDebuggerPanel.ValueTreeNode;
 
 public interface IDebugController {

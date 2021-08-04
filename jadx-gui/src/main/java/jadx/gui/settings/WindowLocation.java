@@ -1,6 +1,6 @@
 package jadx.gui.settings;
 
-import java.awt.*;
+import java.awt.Rectangle;
 
 public class WindowLocation {
 	private String windowId;

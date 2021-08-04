@@ -1,15 +1,35 @@
 package jadx.gui.ui.dialog;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.Label;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import javax.swing.*;
-import javax.swing.tree.*;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTree;
+import javax.swing.WindowConstants;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 
 import jadx.api.JavaPackage;
 import jadx.gui.ui.MainWindow;
@@ -295,5 +315,4 @@ public class ExcludePkgDialog extends JDialog {
 			return c;
 		}
 	}
-
 }

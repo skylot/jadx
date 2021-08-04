@@ -38,8 +38,7 @@ public class ResXmlGen {
 			"navigation",
 			"raw",
 			"transition",
-			"xml"
-			));
+			"xml"));
 
 	private final ResourceStorage resStorage;
 	private final ValuesParser vp;

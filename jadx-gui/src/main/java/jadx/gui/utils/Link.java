@@ -1,11 +1,15 @@
 package jadx.gui.utils;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Desktop;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Map;
 
-import javax.swing.*;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JTextArea;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

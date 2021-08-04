@@ -1,14 +1,29 @@
 package jadx.gui.device.debugger.smali;
 
-import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.ICodeInfo;
-import jadx.api.plugins.input.data.*;
+import jadx.api.plugins.input.data.AccessFlags;
+import jadx.api.plugins.input.data.AccessFlagsScope;
+import jadx.api.plugins.input.data.ICatch;
+import jadx.api.plugins.input.data.IClassData;
+import jadx.api.plugins.input.data.ICodeReader;
+import jadx.api.plugins.input.data.IDebugInfo;
+import jadx.api.plugins.input.data.IFieldData;
+import jadx.api.plugins.input.data.ILocalVar;
+import jadx.api.plugins.input.data.IMethodData;
+import jadx.api.plugins.input.data.IMethodRef;
+import jadx.api.plugins.input.data.ITry;
 import jadx.api.plugins.input.data.annotations.AnnotationVisibility;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.annotations.IAnnotation;
@@ -29,7 +44,19 @@ import jadx.core.dex.nodes.MethodNode;
 
 import static jadx.api.plugins.input.data.AccessFlagsScope.FIELD;
 import static jadx.api.plugins.input.data.AccessFlagsScope.METHOD;
-import static jadx.api.plugins.input.insns.Opcode.*;
+import static jadx.api.plugins.input.insns.Opcode.CONST;
+import static jadx.api.plugins.input.insns.Opcode.CONST_METHOD_HANDLE;
+import static jadx.api.plugins.input.insns.Opcode.CONST_METHOD_TYPE;
+import static jadx.api.plugins.input.insns.Opcode.CONST_WIDE;
+import static jadx.api.plugins.input.insns.Opcode.FILLED_NEW_ARRAY;
+import static jadx.api.plugins.input.insns.Opcode.FILLED_NEW_ARRAY_RANGE;
+import static jadx.api.plugins.input.insns.Opcode.FILL_ARRAY_DATA_PAYLOAD;
+import static jadx.api.plugins.input.insns.Opcode.INVOKE_CUSTOM;
+import static jadx.api.plugins.input.insns.Opcode.INVOKE_CUSTOM_RANGE;
+import static jadx.api.plugins.input.insns.Opcode.INVOKE_POLYMORPHIC;
+import static jadx.api.plugins.input.insns.Opcode.INVOKE_POLYMORPHIC_RANGE;
+import static jadx.api.plugins.input.insns.Opcode.PACKED_SWITCH_PAYLOAD;
+import static jadx.api.plugins.input.insns.Opcode.SPARSE_SWITCH_PAYLOAD;
 
 public class Smali {
 
@@ -308,22 +335,16 @@ public class Smali {
 		if (!tryFormatTargetIns(insn, node.getType(), line)) {
 			if (hasLiteral(insn)) {
 				line.getLineWriter().append(", ").append(literal(insn));
-
 			} else if (node.getType() == InsnType.INVOKE) {
 				line.getLineWriter().append(", ").append(method(insn));
-
 			} else if (insn.getIndexType() == InsnIndexType.FIELD_REF) {
 				line.getLineWriter().append(", ").append(field(insn));
-
 			} else if (insn.getIndexType() == InsnIndexType.STRING_REF) {
 				line.getLineWriter().append(", ").append(str(insn));
-
 			} else if (insn.getIndexType() == InsnIndexType.TYPE_REF) {
 				line.getLineWriter().append(", ").append(type(insn));
-
 			} else if (insn.getOpcode() == CONST_METHOD_HANDLE) {
 				line.getLineWriter().append(", ").append(methodHandle(insn));
-
 			} else if (insn.getOpcode() == CONST_METHOD_TYPE) {
 				line.getLineWriter().append(", ").append(proto(insn, insn.getIndex()));
 			}
@@ -621,7 +642,6 @@ public class Smali {
 			line.getLineWriter().append(line.getRegName(insn.getReg(0)))
 					.append(" .. ")
 					.append(line.getRegName(insn.getReg(insn.getRegsCount() - 1)));
-
 		} else if (insn.getRegsCount() > 0) {
 			for (int i = 0; i < insn.getRegsCount(); i++) {
 				if (i > 0) {
@@ -994,5 +1014,4 @@ public class Smali {
 			return field;
 		}
 	}
-
 }

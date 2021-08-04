@@ -1,14 +1,23 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JPopupMenu.Separator;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.PopupMenuEvent;
 
@@ -124,23 +133,16 @@ public class CodePanel extends JPanel {
 		if (codeArea instanceof SmaliArea) {
 			return false;
 		}
-		if (codeArea instanceof CodeArea) {
-			CodeArea code = (CodeArea) codeArea;
-			if (!code.isJavaCode()) {
-				return false;
-			}
-			ICodeInfo codeInfo = code.getNode().getCodeInfo();
-			if (codeInfo == null) {
-				return false;
-			}
-			Map<Integer, Integer> lineMapping = codeInfo.getLineMapping();
-			if (lineMapping.isEmpty()) {
-				return false;
-			}
-			Set<Integer> uniqueSourceLines = new HashSet<>(lineMapping.values());
-			return uniqueSourceLines.size() > 3;
+		ICodeInfo codeInfo = codeArea.getNode().getCodeInfo();
+		if (codeInfo == null) {
+			return false;
 		}
-		return false;
+		Map<Integer, Integer> lineMapping = codeInfo.getLineMapping();
+		if (lineMapping.isEmpty()) {
+			return false;
+		}
+		Set<Integer> uniqueSourceLines = new HashSet<>(lineMapping.values());
+		return uniqueSourceLines.size() > 3;
 	}
 
 	public SearchBar getSearchBar() {

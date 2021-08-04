@@ -1,6 +1,10 @@
 package jadx.gui.ui.dialog;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.Collections;
@@ -21,7 +25,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import jadx.gui.ui.MainWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +36,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
 import jadx.gui.utils.layout.WrapLayout;

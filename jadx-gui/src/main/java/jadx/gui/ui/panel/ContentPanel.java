@@ -1,12 +1,12 @@
 package jadx.gui.ui.panel;
 
-import javax.swing.*;
+import javax.swing.JPanel;
 
-import jadx.gui.ui.TabbedPane;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.TabbedPane;
 
 public abstract class ContentPanel extends JPanel {
 
@@ -33,7 +33,7 @@ public abstract class ContentPanel extends JPanel {
 	/**
 	 * Allows to show a tool tip on the tab e.g. for displaying a long path of the
 	 * selected entry inside the APK file.
-	 *
+	 * <p>
 	 * If <code>null</code> is returned no tool tip will be displayed.
 	 */
 	@Nullable

@@ -3,9 +3,17 @@ package jadx.gui.utils;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import jadx.api.*;
+import jadx.api.JavaClass;
+import jadx.api.JavaField;
+import jadx.api.JavaMethod;
+import jadx.api.JavaNode;
+import jadx.api.JavaVariable;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.gui.treemodel.*;
+import jadx.gui.treemodel.JClass;
+import jadx.gui.treemodel.JField;
+import jadx.gui.treemodel.JMethod;
+import jadx.gui.treemodel.JNode;
+import jadx.gui.treemodel.JVariable;
 
 public class JNodeCache {
 

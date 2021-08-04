@@ -1,8 +1,14 @@
 package jadx.gui.ui.dialog;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.FlowLayout;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
 
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;

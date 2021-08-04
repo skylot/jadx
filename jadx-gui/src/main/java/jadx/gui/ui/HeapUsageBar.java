@@ -1,13 +1,13 @@
 package jadx.gui.ui;
 
-import java.awt.*;
+import java.awt.Color;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-import javax.swing.*;
 import javax.swing.FocusManager;
+import javax.swing.JProgressBar;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

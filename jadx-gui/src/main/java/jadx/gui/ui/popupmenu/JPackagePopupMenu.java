@@ -4,11 +4,12 @@ import java.awt.event.ActionEvent;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 
-import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.dialog.ExcludePkgDialog;
-import jadx.gui.ui.dialog.RenameDialog;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,9 @@ import org.slf4j.LoggerFactory;
 import jadx.gui.JadxWrapper;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JPackage;
+import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.dialog.ExcludePkgDialog;
+import jadx.gui.ui.dialog.RenameDialog;
 import jadx.gui.utils.NLS;
 
 public class JPackagePopupMenu extends JPopupMenu {

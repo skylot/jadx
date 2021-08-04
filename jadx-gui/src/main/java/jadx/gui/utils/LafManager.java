@@ -1,16 +1,26 @@
 package jadx.gui.utils;
 
-import ch.qos.logback.classic.Level;
-import com.formdev.flatlaf.FlatLaf;
-import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
-import jadx.cli.LogHelper;
-import jadx.gui.settings.JadxSettings;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.swing.LookAndFeel;
+import javax.swing.UIManager;
+
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.*;
-import java.util.*;
+import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
+
+import ch.qos.logback.classic.Level;
+
+import jadx.cli.LogHelper;
+import jadx.gui.settings.JadxSettings;
 
 public class LafManager {
 	private static final Logger LOG = LoggerFactory.getLogger(LafManager.class);

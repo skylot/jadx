@@ -1,11 +1,12 @@
 package jadx.gui.utils;
 
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.swing.*;
+import javax.swing.Icon;
 
 public class OverlayIcon implements Icon {
 

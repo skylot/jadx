@@ -1,8 +1,12 @@
 package jadx.gui.ui.panel;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 
-import javax.swing.*;
+import javax.swing.JEditorPane;
+import javax.swing.JScrollPane;
 
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JNode;

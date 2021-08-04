@@ -2,8 +2,10 @@ package jadx.gui.utils.search;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -20,7 +22,8 @@ import jadx.gui.treemodel.JResSearchNode;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.utils.CacheObject;
 
-import static jadx.core.utils.StringUtils.*;
+import static jadx.core.utils.StringUtils.countLinesByPos;
+import static jadx.core.utils.StringUtils.getLine;
 
 public class ResourceIndex {
 	private final List<JResource> resNodes = new ArrayList<>();
@@ -190,7 +193,6 @@ public class ResourceIndex {
 					resNodes.add(resNode);
 				}
 			}
-
 		}
 	}
 

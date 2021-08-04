@@ -1,6 +1,6 @@
 package jadx.gui.utils;
 
-import java.awt.*;
+import java.awt.Rectangle;
 import java.io.IOException;
 
 import com.google.gson.TypeAdapter;

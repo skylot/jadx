@@ -1,18 +1,30 @@
 package jadx.gui.ui.dialog;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Label;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.WindowConstants;
 
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.gui.ui.panel.JDebuggerPanel.ValueTreeNode;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.panel.JDebuggerPanel.ValueTreeNode;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.TextStandardActions;
 import jadx.gui.utils.UiUtils;

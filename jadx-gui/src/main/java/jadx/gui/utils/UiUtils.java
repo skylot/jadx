@@ -1,16 +1,11 @@
 package jadx.gui.utils;
 
-import com.formdev.flatlaf.extras.FlatSVGIcon;
-import jadx.core.dex.info.AccessInfo;
-import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.gui.ui.codearea.AbstractCodeArea;
-import org.intellij.lang.annotations.MagicConstant;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Image;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
@@ -19,6 +14,26 @@ import java.awt.event.KeyEvent;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+
+import org.intellij.lang.annotations.MagicConstant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.formdev.flatlaf.extras.FlatSVGIcon;
+
+import jadx.core.dex.info.AccessInfo;
+import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.gui.ui.codearea.AbstractCodeArea;
 
 public class UiUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(UiUtils.class);

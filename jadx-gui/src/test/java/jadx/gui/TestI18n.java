@@ -48,7 +48,6 @@ public class TestI18n {
 				} else {
 					compareToReference(p);
 				}
-
 			} catch (IOException e) {
 				Assertions.fail("Error " + e.getMessage());
 			}

@@ -1,8 +1,8 @@
 package jadx.gui.treemodel;
 
-import javax.swing.*;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
-import jadx.gui.ui.panel.ContentPanel;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,6 +15,7 @@ import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.AccessInfo;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
+import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 

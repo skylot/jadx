@@ -1,6 +1,11 @@
 package jadx.gui.device.debugger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -18,13 +23,21 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.device.debugger.BreakpointManager.FileBreakpoint;
-import jadx.gui.device.debugger.SmaliDebugger.*;
+import jadx.gui.device.debugger.SmaliDebugger.Frame;
+import jadx.gui.device.debugger.SmaliDebugger.RuntimeBreakpoint;
+import jadx.gui.device.debugger.SmaliDebugger.RuntimeDebugInfo;
+import jadx.gui.device.debugger.SmaliDebugger.RuntimeField;
+import jadx.gui.device.debugger.SmaliDebugger.RuntimeRegister;
+import jadx.gui.device.debugger.SmaliDebugger.RuntimeValue;
+import jadx.gui.device.debugger.SmaliDebugger.RuntimeVarInfo;
+import jadx.gui.device.debugger.SmaliDebugger.SmaliDebuggerException;
 import jadx.gui.device.debugger.smali.Smali;
 import jadx.gui.device.debugger.smali.SmaliRegister;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.ui.panel.IDebugController;
 import jadx.gui.ui.panel.JDebuggerPanel;
-import jadx.gui.ui.panel.JDebuggerPanel.*;
+import jadx.gui.ui.panel.JDebuggerPanel.IListElement;
+import jadx.gui.ui.panel.JDebuggerPanel.ValueTreeNode;
 
 import static jadx.gui.device.debugger.SmaliDebugger.RuntimeType;
 
@@ -367,7 +380,6 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 		}
 		if (refreshLevel == 2) {
 			updateAllInfo(threadID, info.getOffset());
-
 		} else {
 			if (cur.smali != null && cur.frame != null) {
 				refreshRegInfo(info.getOffset());
@@ -772,7 +784,6 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 					valNode.updateType("class_object").updateTypeID(debugger.readID(rValue));
 					break;
 			}
-
 		} catch (SmaliDebuggerException e) {
 			logErr(e);
 			return false;

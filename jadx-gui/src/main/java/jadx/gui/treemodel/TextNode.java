@@ -1,6 +1,6 @@
 package jadx.gui.treemodel;
 
-import javax.swing.*;
+import javax.swing.Icon;
 
 public class TextNode extends JNode {
 

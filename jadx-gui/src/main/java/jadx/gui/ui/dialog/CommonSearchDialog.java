@@ -38,9 +38,6 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
-import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.panel.ProgressPanel;
-import jadx.gui.ui.TabbedPane;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
@@ -51,7 +48,10 @@ import org.slf4j.LoggerFactory;
 
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.JResSearchNode;
+import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.codearea.AbstractCodeArea;
+import jadx.gui.ui.panel.ProgressPanel;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;

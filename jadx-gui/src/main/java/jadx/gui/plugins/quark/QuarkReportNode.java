@@ -16,9 +16,9 @@ import com.google.gson.GsonBuilder;
 
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
+import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.panel.HtmlPanel;
-import jadx.gui.ui.TabbedPane;
 import jadx.gui.utils.UiUtils;
 
 public class QuarkReportNode extends JNode {

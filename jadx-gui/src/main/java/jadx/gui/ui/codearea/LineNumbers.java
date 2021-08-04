@@ -74,20 +74,13 @@ public class LineNumbers extends JPanel implements CaretListener {
 		setPreferredWidth();
 
 		codeArea.addCaretListener(this);
-
-		// use source lines only decompiled java code
-		if (codeArea instanceof CodeArea) {
-			CodeArea code = (CodeArea) codeArea;
-			if (code.isJavaCode()) {
-				addMouseListener(new MouseAdapter() {
-					@Override
-					public void mouseClicked(MouseEvent e) {
-						useSourceLines = !useSourceLines;
-						repaint();
-					}
-				});
+		addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				useSourceLines = !useSourceLines;
+				repaint();
 			}
-		}
+		});
 	}
 
 	public void setBorderGap(int borderGap) {

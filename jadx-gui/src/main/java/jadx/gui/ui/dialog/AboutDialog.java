@@ -1,9 +1,21 @@
 package jadx.gui.ui.dialog;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.net.URL;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 import jadx.api.JadxDecompiler;
 import jadx.gui.utils.NLS;

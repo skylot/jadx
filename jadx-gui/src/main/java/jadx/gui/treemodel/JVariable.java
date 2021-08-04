@@ -1,6 +1,6 @@
 package jadx.gui.treemodel;
 
-import javax.swing.*;
+import javax.swing.Icon;
 
 import jadx.api.JavaNode;
 import jadx.api.JavaVariable;
@@ -49,5 +49,4 @@ public class JVariable extends JNode {
 	public boolean canRename() {
 		return true;
 	}
-
 }

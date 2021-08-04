@@ -3,7 +3,8 @@ package jadx.gui.ui.codearea;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.KeyStroke;
 
 import org.jetbrains.annotations.Nullable;
 

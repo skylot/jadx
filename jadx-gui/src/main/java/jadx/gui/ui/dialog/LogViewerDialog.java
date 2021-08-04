@@ -1,15 +1,23 @@
 package jadx.gui.ui.dialog;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Container;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 
-import jadx.gui.ui.MainWindow;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 import ch.qos.logback.classic.Level;
 
 import jadx.gui.settings.JadxSettings;
+import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.logs.ILogListener;

@@ -12,12 +12,11 @@ import jadx.api.JavaNode;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
+import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.OverlayIcon;
 import jadx.gui.utils.UiUtils;
-import sun.security.mscapi.PRNG;
 
 public class JMethod extends JNode {
 	private static final long serialVersionUID = 3834526867464663751L;
@@ -75,23 +74,23 @@ public class JMethod extends JNode {
 	public Icon getIcon() {
 		AccessInfo accessFlags = mth.getAccessFlags();
 		Icon icon = ICON_METHOD;
-		if(accessFlags.isAbstract()){
+		if (accessFlags.isAbstract()) {
 			icon = ICON_METHOD_ABSTRACT;
 		}
 		if (accessFlags.isConstructor()) {
 			icon = ICON_METHOD_CONSTRUCTOR;
 		}
-		if(accessFlags.isPublic()){
-			icon= ICON_METHOD_PUBLIC;
+		if (accessFlags.isPublic()) {
+			icon = ICON_METHOD_PUBLIC;
 		}
-		if(accessFlags.isPrivate()){
+		if (accessFlags.isPrivate()) {
 			icon = ICON_METHOD_PRIVATE;
 		}
-		if(accessFlags.isProtected()){
+		if (accessFlags.isProtected()) {
 			icon = ICON_METHOD_PROTECTED;
 		}
 		if (accessFlags.isSynchronized()) {
-			icon= ICON_METHOD_SYNC;
+			icon = ICON_METHOD_SYNC;
 		}
 
 		OverlayIcon overIcon = new OverlayIcon(icon);

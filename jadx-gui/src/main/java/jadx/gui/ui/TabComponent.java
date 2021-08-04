@@ -1,13 +1,21 @@
 package jadx.gui.ui;
 
-import java.awt.*;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicButtonUI;
 
 import jadx.gui.treemodel.JClass;

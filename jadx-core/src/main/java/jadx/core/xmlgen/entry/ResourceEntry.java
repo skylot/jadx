@@ -33,7 +33,7 @@ public final class ResourceEntry {
 	}
 
 	public ResourceEntry copyWithId() {
-		return copy(String.format("%s_res_0x%08x",keyName,id));
+		return copy(String.format("%s_res_0x%08x", keyName, id));
 	}
 
 	public int getId() {

@@ -9,8 +9,8 @@ import org.jetbrains.annotations.Nullable;
 import jadx.api.ICodeInfo;
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaNode;
-import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.TabbedPane;
+import jadx.gui.ui.panel.ContentPanel;
 
 public abstract class JNode extends DefaultMutableTreeNode {
 

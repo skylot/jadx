@@ -1,28 +1,52 @@
 package jadx.gui.ui.dialog;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.Label;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
-import javax.swing.*;
-import javax.swing.tree.*;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.JTree;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.device.debugger.DbgUtils;
 import jadx.gui.device.protocol.ADB;
 import jadx.gui.treemodel.JClass;
-import jadx.gui.ui.panel.IDebugController;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.panel.IDebugController;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
-import static jadx.gui.device.protocol.ADB.Device.*;
+import static jadx.gui.device.protocol.ADB.Device.ForwardResult;
 
 public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.JDWPProcessListener {
 	private static final long serialVersionUID = -1111111202102181630L;
