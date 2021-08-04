@@ -35,7 +35,7 @@ public class XmlGenUtils {
 		Set<String> addedValues = new HashSet<>();
 		for (ResourceEntry ri : resStorage.getResources()) {
 			if (addedValues.add(ri.getTypeName() + '.' + ri.getKeyName())) {
-				String format = String.format("<public type=\"%s\" name=\"%s\" id=\"0x%X\" />",
+				String format = String.format("<public type=\"%s\" name=\"%s\" id=\"0x%08x\" />",
 						ri.getTypeName(), ri.getKeyName(), ri.getId());
 				writer.startLine(format);
 			}

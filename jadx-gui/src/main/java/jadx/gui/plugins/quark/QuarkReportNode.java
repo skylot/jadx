@@ -16,8 +16,8 @@ import com.google.gson.GsonBuilder;
 
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.ContentPanel;
-import jadx.gui.ui.HtmlPanel;
+import jadx.gui.ui.panel.ContentPanel;
+import jadx.gui.ui.panel.HtmlPanel;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.utils.UiUtils;
 
@@ -29,7 +29,7 @@ public class QuarkReportNode extends JNode {
 
 	private static final Gson GSON = new GsonBuilder().create();
 
-	private static final ImageIcon ICON = UiUtils.openIcon("icon_quark");
+	private static final ImageIcon ICON = UiUtils.openSvgIcon("ui/analyze");
 	private final Path apkFile;
 
 	private String errorContent;

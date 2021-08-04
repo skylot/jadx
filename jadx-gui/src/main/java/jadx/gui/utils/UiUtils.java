@@ -1,11 +1,16 @@
 package jadx.gui.utils;
 
-import java.awt.Component;
-import java.awt.Image;
-import java.awt.MouseInfo;
-import java.awt.Point;
-import java.awt.Toolkit;
-import java.awt.Window;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
+import jadx.core.dex.info.AccessInfo;
+import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.gui.ui.codearea.AbstractCodeArea;
+import org.intellij.lang.annotations.MagicConstant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
@@ -15,31 +20,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.Action;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-
-import org.intellij.lang.annotations.MagicConstant;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import jadx.core.dex.info.AccessInfo;
-import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.gui.ui.codearea.AbstractCodeArea;
-
 public class UiUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(UiUtils.class);
 
-	private static final ImageIcon ICON_STATIC = openIcon("static_co");
-	private static final ImageIcon ICON_FINAL = openIcon("final_co");
-	private static final ImageIcon ICON_ABSTRACT = openIcon("abstract_co");
-	private static final ImageIcon ICON_NATIVE = openIcon("native_co");
+	public static final ImageIcon ICON_STATIC = openSvgIcon("nodes/staticMark");
+	public static final ImageIcon ICON_FINAL = openSvgIcon("nodes/finalMark");
 
 	/**
 	 * The minimum about of memory in bytes we are trying to keep free, otherwise the application may
@@ -54,6 +39,11 @@ public class UiUtils {
 	public static final long MIN_FREE_MEMORY = calculateMinFreeMemory();
 
 	private UiUtils() {
+	}
+
+	public static FlatSVGIcon openSvgIcon(String name) {
+		String iconPath = "icons/" + name + ".svg";
+		return new FlatSVGIcon(iconPath);
 	}
 
 	public static ImageIcon openIcon(String name) {
@@ -133,12 +123,6 @@ public class UiUtils {
 		}
 		if (af.isStatic()) {
 			overIcon.add(ICON_STATIC);
-		}
-		if (af.isAbstract()) {
-			overIcon.add(ICON_ABSTRACT);
-		}
-		if (af.isNative()) {
-			overIcon.add(ICON_NATIVE);
 		}
 		return overIcon;
 	}

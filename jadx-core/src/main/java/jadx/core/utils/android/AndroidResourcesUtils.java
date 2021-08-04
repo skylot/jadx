@@ -80,7 +80,7 @@ public class AndroidResourcesUtils {
 	@SuppressWarnings("RedundantCast")
 	public static boolean handleResourceFieldValue(ClassNode cls, ICodeWriter code, EncodedValue encodedValue) {
 		if (encodedValue.getType() == EncodedType.ENCODED_INT && isResourceClass(cls)) {
-			code.add(String.format("0x%X", ((Integer) encodedValue.getValue())));
+			code.add(String.format("0x%08x", ((Integer) encodedValue.getValue())));
 			return true;
 		}
 		return false;

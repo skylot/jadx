@@ -27,11 +27,11 @@ class SearchBar extends JToolBar {
 
 	private static final Color COLOR_BG_ERROR = new Color(0xFFDFDE);
 	private static final Color COLOR_BG_WARN = new Color(0xFFFDD9);
-	private static final Color COLOR_BG_NORMAL = new Color(0xFFFFFF);
+	//private static final Color COLOR_BG_NORMAL = new Color(0xFFFFFF);
 
-	private static final Icon ICON_UP = UiUtils.openIcon("arrow_up");
-	private static final Icon ICON_DOWN = UiUtils.openIcon("arrow_down");
-	private static final Icon ICON_CLOSE = UiUtils.openIcon("cross");
+	private static final Icon ICON_UP = UiUtils.openSvgIcon("ui/top");
+	private static final Icon ICON_DOWN = UiUtils.openSvgIcon("ui/bottom");
+	private static final Icon ICON_CLOSE = UiUtils.openSvgIcon("ui/close");
 
 	private RSyntaxTextArea rTextArea;
 
@@ -148,7 +148,7 @@ class SearchBar extends JToolBar {
 		context.setMarkAll(markAllCB.isSelected());
 
 		// TODO hack: move cursor before previous search for not jump to next occurrence
-		if (direction == 0 && !COLOR_BG_ERROR.equals(searchField.getBackground())) {
+		/*if (direction == 0) {
 			try {
 				int caretPos = rTextArea.getCaretPosition();
 				int lineNum = rTextArea.getLineOfOffset(caretPos) - 1;
@@ -158,7 +158,7 @@ class SearchBar extends JToolBar {
 			} catch (BadLocationException e) {
 				LOG.error("Caret move error", e);
 			}
-		}
+		}*/
 
 		SearchResult result = SearchEngine.find(rTextArea, context);
 		if (!result.wasFound()) {
@@ -166,12 +166,12 @@ class SearchBar extends JToolBar {
 			if (pos != -1) {
 				rTextArea.setCaretPosition(forward ? 0 : rTextArea.getDocument().getLength() - 1);
 				search(direction);
-				searchField.setBackground(COLOR_BG_WARN);
+				//searchField.setBackground(COLOR_BG_WARN);
 				return;
 			}
-			searchField.setBackground(COLOR_BG_ERROR);
+			//searchField.setBackground(COLOR_BG_ERROR);
 		} else {
-			searchField.setBackground(COLOR_BG_NORMAL);
+			//searchField.setBackground(COLOR_BG_NORMAL);
 		}
 	}
 

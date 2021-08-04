@@ -8,7 +8,7 @@ import javax.swing.*;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.UsageDialog;
+import jadx.gui.ui.dialog.UsageDialog;
 import jadx.gui.utils.NLS;
 
 import static javax.swing.KeyStroke.getKeyStroke;

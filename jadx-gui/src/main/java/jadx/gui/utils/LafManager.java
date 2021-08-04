@@ -1,25 +1,16 @@
 package jadx.gui.utils;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.swing.LookAndFeel;
-import javax.swing.UIManager;
-
+import ch.qos.logback.classic.Level;
+import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
+import jadx.cli.LogHelper;
+import jadx.gui.settings.JadxSettings;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.formdev.flatlaf.FlatLaf;
-
-import ch.qos.logback.classic.Level;
-
-import jadx.cli.LogHelper;
-import jadx.gui.settings.JadxSettings;
+import javax.swing.*;
+import java.util.*;
 
 public class LafManager {
 	private static final Logger LOG = LoggerFactory.getLogger(LafManager.class);
@@ -38,7 +29,9 @@ public class LafManager {
 
 	public static void updateLaf(JadxSettings settings) {
 		if (setupLaf(getThemeClass(settings))) {
+			// update all components
 			FlatLaf.updateUI();
+			FlatAnimatedLafChange.hideSnapshotWithAnimation();
 		}
 	}
 
@@ -89,6 +82,7 @@ public class LafManager {
 
 	private static boolean applyLaf(String theme) {
 		try {
+			FlatAnimatedLafChange.showSnapshot();
 			UIManager.setLookAndFeel(theme);
 			return true;
 		} catch (Exception e) {

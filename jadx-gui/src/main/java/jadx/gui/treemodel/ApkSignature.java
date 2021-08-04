@@ -19,8 +19,8 @@ import com.android.apksig.ApkVerifier;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.gui.JadxWrapper;
-import jadx.gui.ui.ContentPanel;
-import jadx.gui.ui.HtmlPanel;
+import jadx.gui.ui.panel.ContentPanel;
+import jadx.gui.ui.panel.HtmlPanel;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.utils.CertificateManager;
 import jadx.gui.utils.NLS;
@@ -31,7 +31,7 @@ public class ApkSignature extends JNode {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ApkSignature.class);
 
-	private static final ImageIcon CERTIFICATE_ICON = UiUtils.openIcon("certificate_obj");
+	private static final ImageIcon CERTIFICATE_ICON = UiUtils.openSvgIcon("nodes/styleKeyPack");
 
 	private final transient File openFile;
 	private String content;

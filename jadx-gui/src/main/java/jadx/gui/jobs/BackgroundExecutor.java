@@ -16,7 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.ProgressPanel;
+import jadx.gui.ui.panel.ProgressPanel;
 import jadx.gui.utils.UiUtils;
 
 /**

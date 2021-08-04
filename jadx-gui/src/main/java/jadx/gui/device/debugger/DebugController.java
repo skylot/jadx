@@ -22,9 +22,9 @@ import jadx.gui.device.debugger.SmaliDebugger.*;
 import jadx.gui.device.debugger.smali.Smali;
 import jadx.gui.device.debugger.smali.SmaliRegister;
 import jadx.gui.treemodel.JClass;
-import jadx.gui.ui.IDebugController;
-import jadx.gui.ui.JDebuggerPanel;
-import jadx.gui.ui.JDebuggerPanel.*;
+import jadx.gui.ui.panel.IDebugController;
+import jadx.gui.ui.panel.JDebuggerPanel;
+import jadx.gui.ui.panel.JDebuggerPanel.*;
 
 import static jadx.gui.device.debugger.SmaliDebugger.RuntimeType;
 

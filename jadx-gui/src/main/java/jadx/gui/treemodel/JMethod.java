@@ -12,22 +12,23 @@ import jadx.api.JavaNode;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.gui.ui.ContentPanel;
+import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
 import jadx.gui.utils.OverlayIcon;
 import jadx.gui.utils.UiUtils;
+import sun.security.mscapi.PRNG;
 
 public class JMethod extends JNode {
 	private static final long serialVersionUID = 3834526867464663751L;
 
-	private static final ImageIcon ICON_MTH_DEF = UiUtils.openIcon("methdef_obj");
-	private static final ImageIcon ICON_MTH_PRI = UiUtils.openIcon("methpri_obj");
-	private static final ImageIcon ICON_MTH_PRO = UiUtils.openIcon("methpro_obj");
-	private static final ImageIcon ICON_MTH_PUB = UiUtils.openIcon("methpub_obj");
-
-	private static final ImageIcon ICON_CONSTRUCTOR = UiUtils.openIcon("constr_ovr");
-	private static final ImageIcon ICON_SYNC = UiUtils.openIcon("synch_co");
+	private static final ImageIcon ICON_METHOD = UiUtils.openSvgIcon("nodes/method");
+	private static final ImageIcon ICON_METHOD_ABSTRACT = UiUtils.openSvgIcon("nodes/abstractMethod");
+	private static final ImageIcon ICON_METHOD_PRIVATE = UiUtils.openSvgIcon("nodes/privateMethod");
+	private static final ImageIcon ICON_METHOD_PROTECTED = UiUtils.openSvgIcon("nodes/protectedMethod");
+	private static final ImageIcon ICON_METHOD_PUBLIC = UiUtils.openSvgIcon("nodes/publicMethod");
+	private static final ImageIcon ICON_METHOD_CONSTRUCTOR = UiUtils.openSvgIcon("nodes/constructorMethod");
+	private static final ImageIcon ICON_METHOD_SYNC = UiUtils.openSvgIcon("nodes/methodReference");
 
 	private final transient JavaMethod mth;
 	private final transient JClass jParent;
@@ -73,14 +74,35 @@ public class JMethod extends JNode {
 	@Override
 	public Icon getIcon() {
 		AccessInfo accessFlags = mth.getAccessFlags();
-		OverlayIcon icon = UiUtils.makeIcon(accessFlags, ICON_MTH_PUB, ICON_MTH_PRI, ICON_MTH_PRO, ICON_MTH_DEF);
+		Icon icon = ICON_METHOD;
+		if(accessFlags.isAbstract()){
+			icon = ICON_METHOD_ABSTRACT;
+		}
 		if (accessFlags.isConstructor()) {
-			icon.add(ICON_CONSTRUCTOR);
+			icon = ICON_METHOD_CONSTRUCTOR;
+		}
+		if(accessFlags.isPublic()){
+			icon= ICON_METHOD_PUBLIC;
+		}
+		if(accessFlags.isPrivate()){
+			icon = ICON_METHOD_PRIVATE;
+		}
+		if(accessFlags.isProtected()){
+			icon = ICON_METHOD_PROTECTED;
 		}
 		if (accessFlags.isSynchronized()) {
-			icon.add(ICON_SYNC);
+			icon= ICON_METHOD_SYNC;
 		}
-		return icon;
+
+		OverlayIcon overIcon = new OverlayIcon(icon);
+		if (accessFlags.isFinal()) {
+			overIcon.add(UiUtils.ICON_FINAL);
+		}
+		if (accessFlags.isStatic()) {
+			overIcon.add(UiUtils.ICON_STATIC);
+		}
+
+		return overIcon;
 	}
 
 	@Override

@@ -22,7 +22,7 @@ import jadx.api.data.impl.JadxCodeComment;
 import jadx.api.data.impl.JadxNodeRef;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.CommentDialog;
+import jadx.gui.ui.dialog.CommentDialog;
 import jadx.gui.utils.CodeLinesInfo;
 import jadx.gui.utils.DefaultPopupMenuListener;
 import jadx.gui.utils.NLS;

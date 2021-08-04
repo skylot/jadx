@@ -32,7 +32,7 @@ import jadx.core.utils.StringUtils;
 import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.ContentPanel;
+import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.DefaultPopupMenuListener;
 import jadx.gui.utils.JumpPosition;
@@ -53,6 +53,9 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		setMarkOccurrences(false);
 		setEditable(false);
 		setCodeFoldingEnabled(false);
+		setFadeCurrentLineHighlight(true);
+		setCloseCurlyBraces(true);
+		setAntiAliasingEnabled(true);
 		loadSettings();
 		JadxSettings settings = contentPanel.getTabbedPane().getMainWindow().getSettings();
 		setLineWrap(settings.isCodeAreaLineWrap());

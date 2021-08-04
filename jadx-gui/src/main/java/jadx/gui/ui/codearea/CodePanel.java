@@ -1,23 +1,14 @@
 package jadx.gui.ui.codearea;
 
-import java.awt.BorderLayout;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
+import javax.swing.*;
 import javax.swing.JPopupMenu.Separator;
-import javax.swing.JScrollPane;
-import javax.swing.JViewport;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.PopupMenuEvent;
 
@@ -28,7 +19,7 @@ import org.slf4j.LoggerFactory;
 import jadx.api.ICodeInfo;
 import jadx.core.utils.StringUtils;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.ui.SearchDialog;
+import jadx.gui.ui.dialog.SearchDialog;
 import jadx.gui.utils.CaretPositionFix;
 import jadx.gui.utils.DefaultPopupMenuListener;
 import jadx.gui.utils.NLS;
@@ -133,16 +124,23 @@ public class CodePanel extends JPanel {
 		if (codeArea instanceof SmaliArea) {
 			return false;
 		}
-		ICodeInfo codeInfo = codeArea.getNode().getCodeInfo();
-		if (codeInfo == null) {
-			return false;
+		if (codeArea instanceof CodeArea) {
+			CodeArea code = (CodeArea) codeArea;
+			if (!code.isJavaCode()) {
+				return false;
+			}
+			ICodeInfo codeInfo = code.getNode().getCodeInfo();
+			if (codeInfo == null) {
+				return false;
+			}
+			Map<Integer, Integer> lineMapping = codeInfo.getLineMapping();
+			if (lineMapping.isEmpty()) {
+				return false;
+			}
+			Set<Integer> uniqueSourceLines = new HashSet<>(lineMapping.values());
+			return uniqueSourceLines.size() > 3;
 		}
-		Map<Integer, Integer> lineMapping = codeInfo.getLineMapping();
-		if (lineMapping.isEmpty()) {
-			return false;
-		}
-		Set<Integer> uniqueSourceLines = new HashSet<>(lineMapping.values());
-		return uniqueSourceLines.size() > 3;
+		return false;
 	}
 
 	public SearchBar getSearchBar() {

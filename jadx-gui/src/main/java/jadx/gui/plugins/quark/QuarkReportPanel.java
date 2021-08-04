@@ -38,7 +38,7 @@ import jadx.core.utils.Utils;
 import jadx.gui.JadxWrapper;
 import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.treemodel.JMethod;
-import jadx.gui.ui.ContentPanel;
+import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.utils.JNodeCache;

@@ -15,14 +15,10 @@ import jadx.gui.utils.UiUtils;
 public class JField extends JNode {
 	private static final long serialVersionUID = 1712572192106793359L;
 
-	private static final ImageIcon ICON_FLD_DEF = UiUtils.openIcon("field_default_obj");
-	private static final ImageIcon ICON_FLD_PRI = UiUtils.openIcon("field_private_obj");
-	private static final ImageIcon ICON_FLD_PRO = UiUtils.openIcon("field_protected_obj");
-	private static final ImageIcon ICON_FLD_PUB = UiUtils.openIcon("field_public_obj");
-
-	private static final ImageIcon ICON_TRANSIENT = UiUtils.openIcon("transient_co");
-	private static final ImageIcon ICON_VOLATILE = UiUtils.openIcon("volatile_co");
-
+	private static final ImageIcon ICON_FLD_DEF = UiUtils.openSvgIcon("nodes/field");
+	private static final ImageIcon ICON_FLD_PRI = UiUtils.openSvgIcon("nodes/privateField");
+	private static final ImageIcon ICON_FLD_PRO = UiUtils.openSvgIcon("nodes/protectedField");
+	private static final ImageIcon ICON_FLD_PUB = UiUtils.openSvgIcon("nodes/publicField");
 	private final transient JavaField field;
 	private final transient JClass jParent;
 
@@ -64,12 +60,6 @@ public class JField extends JNode {
 	public Icon getIcon() {
 		AccessInfo af = field.getAccessFlags();
 		OverlayIcon icon = UiUtils.makeIcon(af, ICON_FLD_PUB, ICON_FLD_PRI, ICON_FLD_PRO, ICON_FLD_DEF);
-		if (af.isTransient()) {
-			icon.add(ICON_TRANSIENT);
-		}
-		if (af.isVolatile()) {
-			icon.add(ICON_VOLATILE);
-		}
 		return icon;
 	}
 

@@ -18,7 +18,7 @@ import jadx.gui.utils.UiUtils;
 public class JSources extends JNode {
 	private static final long serialVersionUID = 8962924556824862801L;
 
-	private static final ImageIcon ROOT_ICON = UiUtils.openIcon("packagefolder_obj");
+	private static final ImageIcon ROOT_ICON = UiUtils.openSvgIcon("nodes/packageClasses");
 
 	private final transient JadxWrapper wrapper;
 	private final transient boolean flatPackages;

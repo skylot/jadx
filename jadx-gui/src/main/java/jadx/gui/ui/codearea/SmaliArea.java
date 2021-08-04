@@ -23,17 +23,17 @@ import jadx.gui.settings.JadxSettings;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.treemodel.TextNode;
-import jadx.gui.ui.ContentPanel;
+import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
 public final class SmaliArea extends AbstractCodeArea {
 	private static final long serialVersionUID = 1334485631870306494L;
 
-	private static final Icon ICON_BREAKPOINT = UiUtils.openIcon("breakpoint");
-	private static final Icon ICON_BREAKPOINT_DISABLED = UiUtils.openIcon("breakpoint_disabled");
-	private static final Color BREAKPOINT_LINE_COLOR = Color.decode("#FF986E");
-	private static final Color DEBUG_LINE_COLOR = Color.decode("#80B4FF");
+	private static final Icon ICON_BREAKPOINT = UiUtils.openSvgIcon("debugger/db_set_breakpoint");
+	private static final Icon ICON_BREAKPOINT_DISABLED = UiUtils.openSvgIcon("debugger/db_disabled_breakpoint");
+	private static final Color BREAKPOINT_LINE_COLOR = Color.decode("#ad103c");
+	private static final Color DEBUG_LINE_COLOR = Color.decode("#9c1138");
 
 	private final JNode textNode;
 	private final JCheckBoxMenuItem cbUseSmaliV2;

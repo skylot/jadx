@@ -1,7 +1,7 @@
 package jadx.gui.ui.codearea;
 
 import jadx.gui.treemodel.JNode;
-import jadx.gui.ui.ContentPanel;
+import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.TabbedPane;
 
 /**
