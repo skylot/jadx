@@ -113,21 +113,27 @@ public class ExportGradleProject {
 		Integer targetSdk = Integer.valueOf(usesSdk.getAttribute("android:targetSdkVersion"));
 		String appName = "UNKNOWN";
 
-		String appLabelName = application.getAttribute("android:label").split("/")[1];
-		NodeList strings = appStrings.getElementsByTagName("string");
+		if (application.hasAttribute("android:label")) {
+			String appLabelName = application.getAttribute("android:label");
+			if (appLabelName.startsWith("@string")) {
+				appLabelName = appLabelName.split("/")[1];
+				NodeList strings = appStrings.getElementsByTagName("string");
 
-		for (int i = 0; i < strings.getLength(); i++) {
-			String stringName = strings.item(i)
-					.getAttributes()
-					.getNamedItem("name")
-					.getNodeValue();
+				for (int i = 0; i < strings.getLength(); i++) {
+					String stringName = strings.item(i)
+							.getAttributes()
+							.getNamedItem("name")
+							.getNodeValue();
 
-			if (stringName.equals(appLabelName)) {
-				appName = strings.item(i).getTextContent();
-				break;
+					if (stringName.equals(appLabelName)) {
+						appName = strings.item(i).getTextContent();
+						break;
+					}
+				}
+			} else {
+				appName = appLabelName;
 			}
 		}
-
 		return new ApplicationParams(appName, minSdk, targetSdk, versionCode, versionName);
 	}
 
