@@ -1,19 +1,14 @@
 package jadx.gui.ui;
 
-import java.awt.Component;
-import java.awt.KeyEventDispatcher;
-import java.awt.KeyboardFocusManager;
+import java.awt.*;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
-import javax.swing.JTabbedPane;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.text.BadLocationException;
 
 import org.jetbrains.annotations.Nullable;
@@ -34,7 +29,7 @@ import jadx.gui.ui.panel.ImagePanel;
 import jadx.gui.utils.JumpManager;
 import jadx.gui.utils.JumpPosition;
 
-public class TabbedPane extends JTabbedPane {
+public class TabbedPane extends DnDTabbedPane {
 	private static final long serialVersionUID = -8833600618794570904L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TabbedPane.class);
@@ -49,8 +44,17 @@ public class TabbedPane extends JTabbedPane {
 	TabbedPane(MainWindow window) {
 		this.mainWindow = window;
 
-		setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+		DropTargetListener dropTargetListener = new TabDropTargetAdapter();
+		TransferHandler handler = new TabTransferHandler();
 
+		setTransferHandler(handler);
+		setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+		try {
+			getDropTarget().addDropTargetListener(dropTargetListener);
+		} catch (TooManyListenersException ex) {
+			ex.printStackTrace();
+			Toolkit.getDefaultToolkit().beep();
+		}
 		addMouseWheelListener(e -> {
 			if (openTabs.isEmpty()) {
 				return;
