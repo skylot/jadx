@@ -1,23 +1,13 @@
 package jadx.gui.settings;
 
-import java.awt.Font;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.Rectangle;
-import java.awt.Window;
+import java.awt.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 
-import javax.swing.JFrame;
+import javax.swing.*;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.jetbrains.annotations.Nullable;
@@ -106,14 +96,15 @@ public class JadxSettings extends JadxCLIArgs {
 	}
 
 	public void sync() {
-		if(!isProjectMode) {
+		if (!isProjectMode) {
 			JadxSettingsAdapter.store(this);
 		}
 	}
 
-	public void setProjectMode(boolean mode){
+	public void setProjectMode(boolean mode) {
 		isProjectMode = mode;
 	}
+
 	private void partialSync(Consumer<JadxSettings> updater) {
 		JadxSettings settings = JadxSettingsAdapter.load();
 		updater.accept(settings);

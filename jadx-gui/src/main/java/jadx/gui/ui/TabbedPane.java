@@ -314,9 +314,9 @@ public class TabbedPane extends DnDTabbedPane {
 		return (ContentPanel) getSelectedComponent();
 	}
 
-	public void selectTab(ContentPanel contentPanel){
+	public void selectTab(ContentPanel contentPanel) {
 		setSelectedComponent(contentPanel);
-		if(mainWindow.getSettings().isAlwaysSelectOpened()){
+		if (mainWindow.getSettings().isAlwaysSelectOpened()) {
 			mainWindow.syncWithEditor();
 		}
 	}
