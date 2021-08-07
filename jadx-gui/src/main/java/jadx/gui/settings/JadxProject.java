@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.SerializedName;
 
 import jadx.api.data.ICodeComment;
 import jadx.api.data.IJavaNodeRef;
@@ -39,7 +40,6 @@ public class JadxProject {
 			.create();
 
 	private transient MainWindow mainWindow;
-	private transient JadxSettings settings;
 
 	private transient String name = "New Project";
 	private transient Path projectPath;
@@ -47,11 +47,16 @@ public class JadxProject {
 	private transient boolean initial = true;
 	private transient boolean saved;
 
+	@SerializedName("files")
 	private List<Path> files;
+	@SerializedName("treeExpansions")
 	private List<String[]> treeExpansions = new ArrayList<>();
+	@SerializedName("codeData")
 	private JadxCodeData codeData = new JadxCodeData();
-
+	@SerializedName("projectVersion")
 	private int projectVersion;
+	@SerializedName("settings")
+	private JadxSettings settings;
 
 	public JadxProject() {
 	}
@@ -87,6 +92,10 @@ public class JadxProject {
 			this.files = files;
 			changed();
 		}
+	}
+
+	public JadxSettings getSettings() {
+		return settings;
 	}
 
 	public List<String[]> getTreeExpansions() {
@@ -180,7 +189,7 @@ public class JadxProject {
 
 	private void upgrade() {
 		int fromVersion = projectVersion;
-		LOG.debug("upgrade settings from version: {} to {}", fromVersion, CURRENT_PROJECT_VERSION);
+		LOG.debug("upgrade project from version: {} to {}", fromVersion, CURRENT_PROJECT_VERSION);
 		if (fromVersion == 0) {
 			fromVersion++;
 		}

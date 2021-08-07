@@ -166,7 +166,7 @@ public class MainWindow extends JFrame {
 	private static final ImageIcon ICON_DEBUGGER = UiUtils.openSvgIcon("ui/startDebugger");
 
 	private final transient JadxWrapper wrapper;
-	private final transient JadxSettings settings;
+	private JadxSettings settings;
 	private final transient CacheObject cacheObject;
 	private final transient BackgroundExecutor backgroundExecutor;
 	private transient JadxProject project;
@@ -447,6 +447,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void openProject(Path path) {
+		LOG.info("start loading saved project");
 		if (!ensureProjectIsSaved()) {
 			return;
 		}
@@ -459,7 +460,14 @@ public class MainWindow extends JFrame {
 					JOptionPane.INFORMATION_MESSAGE);
 			jadxProject = new JadxProject();
 		}
+
+		if (jadxProject.getSettings() != null) {
+			settings = jadxProject.getSettings();
+		}
+		settings.setProjectMode(true);
+
 		updateProject(jadxProject);
+
 		settings.addRecentProject(path);
 		List<Path> filePaths = jadxProject.getFilePaths();
 		if (filePaths == null) {

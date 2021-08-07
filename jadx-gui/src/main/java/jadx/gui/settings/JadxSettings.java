@@ -93,6 +93,8 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private int settingsVersion = 0;
 
+	private boolean isProjectMode = false;
+
 	@JadxSettingsAdapter.GsonExclude
 	@Parameter(names = { "-sc", "--select-class" }, description = "GUI: Open the selected class and show the decompiled code")
 	private String cmdSelectClass = null;
@@ -104,9 +106,14 @@ public class JadxSettings extends JadxCLIArgs {
 	}
 
 	public void sync() {
-		JadxSettingsAdapter.store(this);
+		if(!isProjectMode) {
+			JadxSettingsAdapter.store(this);
+		}
 	}
 
+	public void setProjectMode(boolean mode){
+		isProjectMode = mode;
+	}
 	private void partialSync(Consumer<JadxSettings> updater) {
 		JadxSettings settings = JadxSettingsAdapter.load();
 		updater.accept(settings);
