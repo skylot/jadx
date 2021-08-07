@@ -104,7 +104,7 @@ public class TabbedPane extends DnDTabbedPane {
 							}
 						}
 						if (doSwitch) {
-							setSelectedComponent(lastTab);
+							selectTab(lastTab);
 						}
 					}
 				} else if (consume && (e.getModifiersEx() & ctrlDown) == 0) {
@@ -172,7 +172,7 @@ public class TabbedPane extends DnDTabbedPane {
 			return;
 		}
 		SwingUtilities.invokeLater(() -> {
-			setSelectedComponent(contentPanel);
+			selectTab(contentPanel);
 			AbstractCodeArea codeArea = contentPanel.getCodeArea();
 			int pos = jumpPos.getPos();
 			if (pos > 0) {
@@ -235,7 +235,7 @@ public class TabbedPane extends DnDTabbedPane {
 				throw new JadxRuntimeException("Failed to open panel for JClass: " + cls);
 			}
 		} else {
-			setSelectedComponent(panel);
+			selectTab(panel);
 		}
 		ClassCodeContentPanel codePane = ((ClassCodeContentPanel) panel);
 		codePane.showSmaliPane();
@@ -312,6 +312,13 @@ public class TabbedPane extends DnDTabbedPane {
 	@Nullable
 	public ContentPanel getSelectedCodePanel() {
 		return (ContentPanel) getSelectedComponent();
+	}
+
+	public void selectTab(ContentPanel contentPanel){
+		setSelectedComponent(contentPanel);
+		if(mainWindow.getSettings().isAlwaysSelectOpened()){
+			mainWindow.syncWithEditor();
+		}
 	}
 
 	private Component makeTabComponent(final ContentPanel contentPanel) {

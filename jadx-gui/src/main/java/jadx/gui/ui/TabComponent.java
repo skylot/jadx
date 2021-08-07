@@ -92,7 +92,7 @@ public class TabComponent extends JPanel {
 					menu.show(e.getComponent(), e.getX(), e.getY());
 				} else if (SwingUtilities.isLeftMouseButton(e)) {
 					if (tabbedPane.getSelectedComponent() != contentPanel) {
-						tabbedPane.setSelectedComponent(contentPanel);
+						tabbedPane.selectTab(contentPanel);
 					}
 				}
 			}
