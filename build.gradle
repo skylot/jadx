@@ -16,12 +16,6 @@ allprojects {
 	sourceCompatibility = JavaVersion.VERSION_1_8
 	targetCompatibility = JavaVersion.VERSION_1_8
 
-	tasks.withType(JavaCompile) {
-		if (!"$it".contains(':jadx-samples:')) {
-			options.compilerArgs << '-Xlint' << '-Xlint:unchecked' << '-Xlint:deprecation'
-		}
-	}
-
 	compileJava {
 		options.encoding = "UTF-8"
 	}
@@ -56,11 +50,6 @@ allprojects {
 		mavenLocal()
 		mavenCentral()
 		google()
-	}
-
-	checkstyleMain {
-		// exclude all sources in samples module
-		exclude '**/samples/**'
 	}
 }
 
@@ -149,15 +138,9 @@ task dist {
 	}
 }
 
-task samples(dependsOn: 'jadx-samples:samples') {
-	group 'jadx'
-}
-
 task cleanBuildDir(type: Delete) {
 	group 'jadx'
 	delete buildDir
 }
-
-test.dependsOn(samples)
 
 clean.dependsOn(cleanBuildDir)
