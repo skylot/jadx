@@ -45,13 +45,13 @@ public class TestFinallyExtract extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
+		assertThat(code, containsOne("} finally {"));
 		assertThat(code, not(containsString("if (0 == 0) {")));
 
 		assertThat(code, containsOne("boolean success = false;"));
 		assertThat(code, containsOne("try {"));
 		assertThat(code, containsOne("success = true;"));
 		assertThat(code, containsOne("return value;"));
-		assertThat(code, containsOne("} finally {"));
 		assertThat(code, containsOne("if (!success) {"));
 	}
 

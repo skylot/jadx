@@ -1,22 +1,19 @@
 package jadx.core.dex.visitors;
 
 import jadx.core.dex.instructions.BaseInvokeNode;
-import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.nodes.utils.MethodUtils;
-import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
-import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
+import jadx.core.dex.visitors.blocks.BlockSplitter;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
 		name = "Attach Method Details",
 		desc = "Attach method details for invoke instructions",
 		runBefore = {
-				CodeShrinkVisitor.class,
-				TypeInferenceVisitor.class,
+				BlockSplitter.class,
 				MethodInvokeVisitor.class
 		}
 )
@@ -34,11 +31,9 @@ public class AttachMethodDetails extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
-		for (BlockNode blockNode : mth.getBasicBlocks()) {
-			for (InsnNode insn : blockNode.getInstructions()) {
-				if (insn instanceof BaseInvokeNode) {
-					attachMethodDetails((BaseInvokeNode) insn);
-				}
+		for (InsnNode insn : mth.getInstructions()) {
+			if (insn instanceof BaseInvokeNode) {
+				attachMethodDetails((BaseInvokeNode) insn);
 			}
 		}
 	}
@@ -49,5 +44,4 @@ public class AttachMethodDetails extends AbstractVisitor {
 			insn.addAttr(methodDetails);
 		}
 	}
-
 }

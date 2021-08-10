@@ -20,7 +20,7 @@ public class TestSynchronized3 extends IntegrationTest {
 			while (true) {
 				synchronized (this) {
 					if (x == 0) {
-						throw new IllegalStateException("bad luck");
+						throw new IllegalStateException();
 					}
 					x++;
 					if (x == 10) {

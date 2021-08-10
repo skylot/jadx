@@ -143,7 +143,7 @@ public class MethodGen {
 			} else if (args.size() > 2) {
 				args = args.subList(2, args.size());
 			} else {
-				mth.addComment("JADX WARN: Incorrect number of args for enum constructor: " + args.size() + " (expected >= 2)");
+				mth.addWarnComment("Incorrect number of args for enum constructor: " + args.size() + " (expected >= 2)");
 			}
 		} else if (mth.contains(AFlag.SKIP_FIRST_ARG)) {
 			args = args.subList(1, args.size());
@@ -382,7 +382,7 @@ public class MethodGen {
 					code.incIndent();
 				}
 
-				CatchAttr catchAttr = insn.get(AType.CATCH_BLOCK);
+				CatchAttr catchAttr = insn.get(AType.EXC_CATCH);
 				if (catchAttr != null) {
 					code.add("     // " + catchAttr);
 				}

@@ -1,6 +1,10 @@
 package jadx.tests.api.utils.assertj;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.assertj.core.api.AbstractStringAssert;
 
@@ -65,7 +69,9 @@ public class JadxCodeAssertions extends AbstractStringAssert<JadxCodeAssertions>
 
 	public JadxCodeAssertions removeBlockComments() {
 		String code = actual.replaceAll("/\\*.*\\*/", "");
-		return new JadxCodeAssertions(code);
+		JadxCodeAssertions newCode = new JadxCodeAssertions(code);
+		newCode.print();
+		return newCode;
 	}
 
 	public JadxCodeAssertions print() {
@@ -81,7 +87,28 @@ public class JadxCodeAssertions extends AbstractStringAssert<JadxCodeAssertions>
 			matches += TestUtils.count(actual, substring);
 		}
 		if (matches != 1) {
-			failWithMessage("Expected a only one match from <%s> but was <%d>", Arrays.toString(substringArr), matches);
+			failWithMessage("Expected only one match from <%s> but was <%d>", Arrays.toString(substringArr), matches);
+		}
+		return this;
+	}
+
+	@SuppressWarnings("UnusedReturnValue")
+	@SafeVarargs
+	public final JadxCodeAssertions oneOf(Function<JadxCodeAssertions, JadxCodeAssertions>... checks) {
+		int passed = 0;
+		List<Throwable> failed = new ArrayList<>();
+		for (Function<JadxCodeAssertions, JadxCodeAssertions> check : checks) {
+			try {
+				check.apply(this);
+				passed++;
+			} catch (Throwable e) {
+				failed.add(e);
+			}
+		}
+		if (passed != 1) {
+			failWithMessage("Expected only one match but passed: <%d>, failed: <%d>, details:\n<%s>",
+					passed, failed.size(),
+					failed.stream().map(Throwable::getMessage).collect(Collectors.joining("\nFailed check:\n ")));
 		}
 		return this;
 	}

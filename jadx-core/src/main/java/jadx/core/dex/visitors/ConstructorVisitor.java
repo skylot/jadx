@@ -33,13 +33,16 @@ public class ConstructorVisitor extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
-		replaceInvoke(mth);
+		if (replaceInvoke(mth)) {
+			MoveInlineVisitor.moveInline(mth);
+		}
 		if (mth.contains(AFlag.RERUN_SSA_TRANSFORM)) {
 			SSATransform.rerun(mth);
 		}
 	}
 
-	private static void replaceInvoke(MethodNode mth) {
+	private static boolean replaceInvoke(MethodNode mth) {
+		boolean replaced = false;
 		InsnRemover remover = new InsnRemover(mth);
 		for (BlockNode block : mth.getBasicBlocks()) {
 			remover.setBlock(block);
@@ -47,22 +50,23 @@ public class ConstructorVisitor extends AbstractVisitor {
 			for (int i = 0; i < size; i++) {
 				InsnNode insn = block.getInstructions().get(i);
 				if (insn.getType() == InsnType.INVOKE) {
-					processInvoke(mth, block, i, remover);
+					replaced |= processInvoke(mth, block, i, remover);
 				}
 			}
 			remover.perform();
 		}
+		return replaced;
 	}
 
-	private static void processInvoke(MethodNode mth, BlockNode block, int indexInBlock, InsnRemover remover) {
+	private static boolean processInvoke(MethodNode mth, BlockNode block, int indexInBlock, InsnRemover remover) {
 		InvokeNode inv = (InvokeNode) block.getInstructions().get(indexInBlock);
 		if (!inv.getCallMth().isConstructor()) {
-			return;
+			return false;
 		}
 		ConstructorInsn co = new ConstructorInsn(mth, inv);
 		if (canRemoveConstructor(mth, co)) {
 			remover.addAndUnbind(inv);
-			return;
+			return false;
 		}
 		co.inheritMetadata(inv);
 
@@ -99,8 +103,8 @@ public class ConstructorVisitor extends AbstractVisitor {
 						parentInsn.replaceArg(useArg, resultArg.duplicate());
 					}
 				}
-				co.inheritMetadata(newInstInsn);
 			}
+			co.inheritMetadata(newInstInsn);
 		}
 		ConstructorInsn replace = processConstructor(mth, co);
 		if (replace != null) {
@@ -109,6 +113,7 @@ public class ConstructorVisitor extends AbstractVisitor {
 		} else {
 			BlockUtils.replaceInsn(mth, block, indexInBlock, co);
 		}
+		return true;
 	}
 
 	private static boolean canRemoveConstructor(MethodNode mth, ConstructorInsn co) {

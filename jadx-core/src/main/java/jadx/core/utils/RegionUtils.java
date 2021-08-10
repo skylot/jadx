@@ -23,7 +23,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
-import jadx.core.dex.trycatch.TryCatchBlock;
+import jadx.core.dex.trycatch.TryCatchBlockAttr;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class RegionUtils {
@@ -33,29 +33,23 @@ public class RegionUtils {
 
 	public static boolean hasExitEdge(IContainer container) {
 		if (container instanceof IBlock) {
-			InsnNode lastInsn = BlockUtils.getLastInsn((IBlock) container);
-			if (lastInsn == null) {
-				return false;
-			}
-			InsnType type = lastInsn.getType();
-			return type == InsnType.RETURN
-					|| type == InsnType.CONTINUE
-					|| type == InsnType.BREAK
-					|| type == InsnType.THROW;
-		} else if (container instanceof IBranchRegion) {
+			return BlockUtils.containsExitInsn((IBlock) container);
+		}
+		if (container instanceof IBranchRegion) {
+			// all branches must have exit edge
 			for (IContainer br : ((IBranchRegion) container).getBranches()) {
 				if (br == null || !hasExitEdge(br)) {
 					return false;
 				}
 			}
 			return true;
-		} else if (container instanceof IRegion) {
+		}
+		if (container instanceof IRegion) {
 			IRegion region = (IRegion) container;
 			List<IContainer> blocks = region.getSubBlocks();
 			return !blocks.isEmpty() && hasExitEdge(blocks.get(blocks.size() - 1));
-		} else {
-			throw new JadxRuntimeException(unknownContainerType(container));
 		}
+		throw new JadxRuntimeException(unknownContainerType(container));
 	}
 
 	public static InsnNode getFirstInsn(IContainer container) {
@@ -156,9 +150,9 @@ public class RegionUtils {
 		}
 		if (insnType == InsnType.THROW) {
 			// check if after throw execution can continue in current container
-			CatchAttr catchAttr = lastInsn.get(AType.CATCH_BLOCK);
+			CatchAttr catchAttr = lastInsn.get(AType.EXC_CATCH);
 			if (catchAttr != null) {
-				for (ExceptionHandler handler : catchAttr.getTryBlock().getHandlers()) {
+				for (ExceptionHandler handler : catchAttr.getHandlers()) {
 					if (RegionUtils.isRegionContainsBlock(rootContainer, handler.getHandlerBlock())) {
 						return false;
 					}
@@ -270,9 +264,8 @@ public class RegionUtils {
 	}
 
 	public static List<IContainer> getExcHandlersForRegion(IContainer region) {
-		CatchAttr cb = region.get(AType.CATCH_BLOCK);
-		if (cb != null) {
-			TryCatchBlock tb = cb.getTryBlock();
+		TryCatchBlockAttr tb = region.get(AType.TRY_BLOCK);
+		if (tb != null) {
 			List<IContainer> list = new ArrayList<>(tb.getHandlersCount());
 			for (ExceptionHandler eh : tb.getHandlers()) {
 				list.add(eh.getHandlerRegion());
@@ -292,9 +285,8 @@ public class RegionUtils {
 			// process sub blocks
 			for (IContainer b : r.getSubBlocks()) {
 				// process try block
-				CatchAttr cb = b.get(AType.CATCH_BLOCK);
-				if (cb != null && b instanceof IRegion) {
-					TryCatchBlock tb = cb.getTryBlock();
+				TryCatchBlockAttr tb = b.get(AType.TRY_BLOCK);
+				if (tb != null && b instanceof IRegion) {
 					for (ExceptionHandler eh : tb.getHandlers()) {
 						if (isRegionContainsRegion(eh.getHandlerRegion(), region)) {
 							return true;
@@ -401,19 +393,20 @@ public class RegionUtils {
 		}
 		if (cont instanceof BlockNode) {
 			return BlockUtils.isPathExists(block, (BlockNode) cont);
-		} else if (cont instanceof IBlock) {
+		}
+		if (cont instanceof IBlock) {
 			return false;
-		} else if (cont instanceof IRegion) {
+		}
+		if (cont instanceof IRegion) {
 			IRegion region = (IRegion) cont;
 			for (IContainer c : region.getSubBlocks()) {
-				if (!hasPathThroughBlock(block, c)) {
-					return false;
+				if (hasPathThroughBlock(block, c)) {
+					return true;
 				}
 			}
-			return true;
-		} else {
-			throw new JadxRuntimeException(unknownContainerType(cont));
+			return false;
 		}
+		throw new JadxRuntimeException(unknownContainerType(cont));
 	}
 
 	protected static String unknownContainerType(IContainer container) {

@@ -1,11 +1,8 @@
 package jadx.core.dex.visitors.regions;
 
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
@@ -18,11 +15,8 @@ import jadx.core.dex.regions.AbstractRegion;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.TryCatchRegion;
 import jadx.core.dex.regions.loops.LoopRegion;
-import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
-import jadx.core.dex.trycatch.SplitterBlockAttr;
-import jadx.core.dex.trycatch.TryCatchBlock;
-import jadx.core.utils.BlockUtils;
+import jadx.core.dex.trycatch.TryCatchBlockAttr;
 import jadx.core.utils.RegionUtils;
 
 /**
@@ -34,76 +28,35 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 		if (mth.isNoCode() || mth.isNoExceptionHandlers()) {
 			return;
 		}
-
-		Map<BlockNode, TryCatchBlock> tryBlocksMap = new HashMap<>(2);
-		searchTryCatchDominators(mth, tryBlocksMap);
-
-		IRegionIterativeVisitor visitor = (regionMth, region) -> {
-			boolean changed = checkAndWrap(regionMth, tryBlocksMap, region);
-			return changed && !tryBlocksMap.isEmpty();
-		};
-		DepthRegionTraversal.traverseIncludingExcHandlers(mth, visitor);
+		List<TryCatchBlockAttr> tryBlocks = collectTryCatchBlocks(mth);
+		if (tryBlocks.isEmpty()) {
+			return;
+		}
+		DepthRegionTraversal.traverseIncludingExcHandlers(mth, (regionMth, region) -> {
+			boolean changed = checkAndWrap(regionMth, tryBlocks, region);
+			return changed && !tryBlocks.isEmpty();
+		});
 	}
 
-	private static void searchTryCatchDominators(MethodNode mth, Map<BlockNode, TryCatchBlock> tryBlocksMap) {
-		Set<TryCatchBlock> tryBlocks = new HashSet<>();
-		// collect all try/catch blocks
-		for (BlockNode block : mth.getBasicBlocks()) {
-			CatchAttr c = block.get(AType.CATCH_BLOCK);
-			if (c != null) {
-				tryBlocks.add(c.getTryBlock());
-			}
+	private static List<TryCatchBlockAttr> collectTryCatchBlocks(MethodNode mth) {
+		List<TryCatchBlockAttr> list = mth.getAll(AType.TRY_BLOCKS_LIST);
+		if (list.isEmpty()) {
+			return Collections.emptyList();
 		}
-
-		// for each try block search nearest dominator block
-		for (TryCatchBlock tb : tryBlocks) {
-			if (tb.getHandlersCount() == 0) {
-				// mth.addWarn("No exception handlers in catch block: " + tb);
-				continue;
-			}
-			processTryCatchBlock(mth, tb, tryBlocksMap);
-		}
+		List<TryCatchBlockAttr> tryBlocks = new ArrayList<>(list);
+		tryBlocks.sort((a, b) -> a == b ? 0 : a.getOuterTryBlock() == b ? 1 : -1); // move parent try block to top
+		return tryBlocks;
 	}
 
-	private static void processTryCatchBlock(MethodNode mth, TryCatchBlock tb, Map<BlockNode, TryCatchBlock> tryBlocksMap) {
-		BitSet bs = new BitSet(mth.getBasicBlocks().size());
-		for (ExceptionHandler excHandler : tb.getHandlers()) {
-			BlockNode handlerBlock = excHandler.getHandlerBlock();
-			if (handlerBlock != null) {
-				SplitterBlockAttr splitter = handlerBlock.get(AType.SPLITTER_BLOCK);
-				if (splitter != null) {
-					BlockNode block = splitter.getBlock();
-					bs.set(block.getId());
-				}
-			}
-		}
-		List<BlockNode> domBlocks = BlockUtils.bitSetToBlocks(mth, bs);
-		BlockNode domBlock;
-		if (domBlocks.size() != 1) {
-			domBlock = BlockUtils.getTopBlock(domBlocks);
-			if (domBlock == null) {
-				mth.addWarn("Exception block dominator not found, dom blocks: " + domBlocks);
-				return;
-			}
-		} else {
-			domBlock = domBlocks.get(0);
-		}
-		TryCatchBlock prevTB = tryBlocksMap.put(domBlock, tb);
-		if (prevTB != null) {
-			mth.addWarn("Failed to process nested try/catch");
-		}
-	}
-
-	private static boolean checkAndWrap(MethodNode mth, Map<BlockNode, TryCatchBlock> tryBlocksMap, IRegion region) {
-		// search dominator blocks in this region (don't need to go deeper)
-		for (Map.Entry<BlockNode, TryCatchBlock> entry : tryBlocksMap.entrySet()) {
-			BlockNode dominator = entry.getKey();
-			if (region.getSubBlocks().contains(dominator)) {
-				TryCatchBlock tb = tryBlocksMap.get(dominator);
-				if (!wrapBlocks(region, tb, dominator)) {
+	private static boolean checkAndWrap(MethodNode mth, List<TryCatchBlockAttr> tryBlocks, IRegion region) {
+		// search top splitter block in this region (don't need to go deeper)
+		for (TryCatchBlockAttr tb : tryBlocks) {
+			BlockNode topSplitter = tb.getTopSplitter();
+			if (region.getSubBlocks().contains(topSplitter)) {
+				if (!wrapBlocks(region, tb, topSplitter)) {
 					mth.addWarn("Can't wrap try/catch for region: " + region);
 				}
-				tryBlocksMap.remove(dominator);
+				tryBlocks.remove(tb);
 				return true;
 			}
 		}
@@ -113,7 +66,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 	/**
 	 * Extract all block dominated by 'dominator' to separate region and mark as try/catch block
 	 */
-	private static boolean wrapBlocks(IRegion replaceRegion, TryCatchBlock tb, BlockNode dominator) {
+	private static boolean wrapBlocks(IRegion replaceRegion, TryCatchBlockAttr tb, BlockNode dominator) {
 		if (replaceRegion == null) {
 			return false;
 		}
@@ -141,7 +94,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 
 		TryCatchRegion tryCatchRegion = new TryCatchRegion(replaceRegion, tryRegion);
 		tryRegion.setParent(tryCatchRegion);
-		tryCatchRegion.setTryCatchBlock(tb.getCatchAttr().getTryBlock());
+		tryCatchRegion.setTryCatchBlock(tb);
 
 		// replace first node by region
 		IContainer firstNode = tryRegion.getSubBlocks().get(0);
@@ -160,7 +113,7 @@ public class ProcessTryCatchRegions extends AbstractRegionVisitor {
 		return true;
 	}
 
-	private static boolean isHandlerPath(TryCatchBlock tb, IContainer cont) {
+	private static boolean isHandlerPath(TryCatchBlockAttr tb, IContainer cont) {
 		for (ExceptionHandler h : tb.getHandlers()) {
 			BlockNode handlerBlock = h.getHandlerBlock();
 			if (handlerBlock != null

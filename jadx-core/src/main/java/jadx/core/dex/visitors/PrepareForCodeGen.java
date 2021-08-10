@@ -235,7 +235,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 					if (!regArgs.isEmpty()) {
 						mth.addWarn("Illegal instructions before constructor call");
 					} else {
-						mth.addComment("JADX INFO: " + callType + " call moved to the top of the method (can break code semantics)");
+						mth.addComment("JADX INFO: '" + callType + "' call moved to the top of the method (can break code semantics)");
 					}
 				}
 			}

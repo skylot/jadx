@@ -2,13 +2,9 @@ package jadx.tests.integration.trycatch;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.not;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestTryCatchFinally10 extends SmaliTest {
 
@@ -37,12 +33,13 @@ public class TestTryCatchFinally10 extends SmaliTest {
 	@Test
 	public void test() {
 		disableCompilation();
-		ClassNode cls = getClassNodeFromSmali();
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("boolean z = null;")));
-		assertThat(code, not(containsString("} catch (Throwable")));
-		assertThat(code, containsOne("} finally {"));
-		assertThat(code, containsOne(".close();"));
+		assertThat(getClassNodeFromSmali())
+				.code()
+				.doesNotContain("boolean z = null;")
+				.doesNotContain("} catch (Throwable")
+				.containsOne("} finally {")
+				.containsOne(".close();")
+				.containsOne("} catch (IOException e")
+				.containsOne(".logException(");
 	}
 }

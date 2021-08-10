@@ -1,12 +1,13 @@
-package jadx.core.dex.visitors.blocksmaker;
+package jadx.core.dex.visitors.blocks;
 
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -23,16 +24,13 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.Edge;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.trycatch.CatchAttr;
-import jadx.core.dex.trycatch.ExcHandlerAttr;
-import jadx.core.dex.trycatch.ExceptionHandler;
-import jadx.core.dex.trycatch.TryCatchBlock;
+import jadx.core.dex.trycatch.TryCatchBlockAttr;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
-import static jadx.core.dex.visitors.blocksmaker.BlockSplitter.connect;
+import static jadx.core.dex.visitors.blocks.BlockSplitter.connect;
 import static jadx.core.utils.EmptyBitSet.EMPTY;
 
 public class BlockProcessor extends AbstractVisitor {
@@ -46,19 +44,16 @@ public class BlockProcessor extends AbstractVisitor {
 		processBlocksTree(mth);
 	}
 
-	public static void rerun(MethodNode mth) {
-		removeMarkedBlocks(mth);
-		clearBlocksState(mth);
-		processBlocksTree(mth);
-	}
-
 	private static void processBlocksTree(MethodNode mth) {
+		removeUnreachableBlocks(mth);
+
 		computeDominators(mth);
 		if (independentBlockTreeMod(mth)) {
+			checkForUnreachableBlocks(mth);
 			clearBlocksState(mth);
 			computeDominators(mth);
 		}
-		updateExitBlocks(mth);
+		updateCleanSuccessors(mth);
 
 		int i = 0;
 		while (modifyBlocksTree(mth)) {
@@ -66,7 +61,6 @@ public class BlockProcessor extends AbstractVisitor {
 			clearBlocksState(mth);
 			// recalculate dominators tree
 			computeDominators(mth);
-			updateExitBlocks(mth);
 
 			if (i++ > 100) {
 				throw new JadxRuntimeException("CFG modification limit reached, blocks count: " + mth.getBasicBlocks().size());
@@ -77,14 +71,21 @@ public class BlockProcessor extends AbstractVisitor {
 		computeDominanceFrontier(mth);
 		registerLoops(mth);
 		processNestedLoops(mth);
+
+		updateCleanSuccessors(mth);
+		mth.finishBasicBlocks();
+	}
+
+	private static void updateCleanSuccessors(MethodNode mth) {
+		mth.getBasicBlocks().forEach(BlockNode::updateCleanSuccessors);
 	}
 
 	private static void checkForUnreachableBlocks(MethodNode mth) {
-		mth.getBasicBlocks().forEach(block -> {
+		for (BlockNode block : mth.getBasicBlocks()) {
 			if (block.getPredecessors().isEmpty() && block != mth.getEnterBlock()) {
 				throw new JadxRuntimeException("Unreachable block: " + block);
 			}
-		});
+		}
 	}
 
 	private static boolean deduplicateBlockInsns(BlockNode block) {
@@ -95,6 +96,9 @@ public class BlockProcessor extends AbstractVisitor {
 			if (predsCount > 1) {
 				InsnNode lastInsn = BlockUtils.getLastInsn(block);
 				if (lastInsn != null && lastInsn.getType() == InsnType.IF) {
+					return false;
+				}
+				if (BlockUtils.checkFirstInsn(block, insn -> insn.contains(AType.EXC_HANDLER))) {
 					return false;
 				}
 				// TODO: implement insn extraction into separate block for partial predecessors
@@ -220,7 +224,7 @@ public class BlockProcessor extends AbstractVisitor {
 			}
 		});
 
-		calcImmediateDominators(basicBlocks, entryBlock);
+		calcImmediateDominators(mth, basicBlocks, entryBlock);
 	}
 
 	private static void calcDominators(List<BlockNode> basicBlocks, BlockNode entryBlock) {
@@ -251,7 +255,7 @@ public class BlockProcessor extends AbstractVisitor {
 		} while (changed);
 	}
 
-	private static void calcImmediateDominators(List<BlockNode> basicBlocks, BlockNode entryBlock) {
+	private static void calcImmediateDominators(MethodNode mth, List<BlockNode> basicBlocks, BlockNode entryBlock) {
 		for (BlockNode block : basicBlocks) {
 			if (block == entryBlock) {
 				continue;
@@ -278,10 +282,8 @@ public class BlockProcessor extends AbstractVisitor {
 		}
 	}
 
-	private static void computeDominanceFrontier(MethodNode mth) {
-		for (BlockNode exit : mth.getExitBlocks()) {
-			exit.setDomFrontier(EMPTY);
-		}
+	static void computeDominanceFrontier(MethodNode mth) {
+		mth.getExitBlock().setDomFrontier(EMPTY);
 		List<BlockNode> domSortedBlocks = new ArrayList<>(mth.getBasicBlocks().size());
 		Deque<BlockNode> stack = new LinkedList<>();
 		stack.push(mth.getEnterBlock());
@@ -336,37 +338,6 @@ public class BlockProcessor extends AbstractVisitor {
 		block.setDomFrontier(domFrontier);
 	}
 
-	private static void updateExitBlocks(MethodNode mth) {
-		mth.getExitBlocks().clear();
-		mth.getBasicBlocks().forEach(block -> {
-			boolean noSuccessors = block.getSuccessors().isEmpty();
-			boolean exitBlock = false;
-			InsnNode lastInsn = BlockUtils.getLastInsn(block);
-			if (lastInsn != null) {
-				InsnType insnType = lastInsn.getType();
-				if (insnType == InsnType.RETURN) {
-					block.add(AFlag.RETURN);
-					exitBlock = true;
-					if (!noSuccessors) {
-						throw new JadxRuntimeException("Found a block after RETURN instruction: " + lastInsn + " in block: " + block);
-					}
-				} else if (insnType == InsnType.THROW) {
-					if (noSuccessors) {
-						exitBlock = true;
-					}
-				}
-			}
-			if (exitBlock) {
-				mth.addExitBlock(block);
-			} else if (noSuccessors
-					&& !mth.isVoidReturn()
-					&& !mth.isConstructor()) {
-				mth.addComment("JADX INFO: Unexpected exit block: " + block
-						+ ". Expect last instruction to be RETURN or THROW, got: " + lastInsn);
-			}
-		});
-	}
-
 	private static void markLoops(MethodNode mth) {
 		mth.getBasicBlocks().forEach(block -> {
 			// Every successor that dominates its predecessor is a header of a loop,
@@ -419,17 +390,7 @@ public class BlockProcessor extends AbstractVisitor {
 	}
 
 	private static boolean modifyBlocksTree(MethodNode mth) {
-		List<BlockNode> basicBlocks = mth.getBasicBlocks();
-		for (BlockNode block : basicBlocks) {
-			if (block.getPredecessors().isEmpty() && block != mth.getEnterBlock()) {
-				throw new JadxRuntimeException("Unreachable block: " + block);
-			}
-		}
-		if (mergeExceptionHandlers(mth)) {
-			removeMarkedBlocks(mth);
-			return true;
-		}
-		for (BlockNode block : basicBlocks) {
+		for (BlockNode block : mth.getBasicBlocks()) {
 			if (checkLoops(mth, block)) {
 				return true;
 			}
@@ -444,19 +405,18 @@ public class BlockProcessor extends AbstractVisitor {
 		if (mth.isVoidReturn()) {
 			return false;
 		}
-
 		boolean changed = false;
-		for (BlockNode exitBlock : new ArrayList<>(mth.getExitBlocks())) {
-			BlockNode pred = Utils.getOne(exitBlock.getPredecessors());
+		for (BlockNode retBlock : new ArrayList<>(mth.getPreExitBlocks())) {
+			BlockNode pred = Utils.getOne(retBlock.getPredecessors());
 			if (pred != null) {
 				InsnNode constInsn = Utils.getOne(pred.getInstructions());
 				if (constInsn != null && constInsn.isConstInsn()) {
 					RegisterArg constArg = constInsn.getResult();
-					InsnNode returnInsn = BlockUtils.getLastInsn(exitBlock);
-					if (returnInsn != null) {
+					InsnNode returnInsn = BlockUtils.getLastInsn(retBlock);
+					if (returnInsn != null && returnInsn.getType() == InsnType.RETURN) {
 						InsnArg retArg = returnInsn.getArg(0);
 						if (constArg.sameReg(retArg)) {
-							mergeConstAndReturnBlocks(mth, exitBlock, pred);
+							mergeConstAndReturnBlocks(mth, retBlock, pred);
 							changed = true;
 						}
 					}
@@ -465,26 +425,32 @@ public class BlockProcessor extends AbstractVisitor {
 		}
 		if (changed) {
 			removeMarkedBlocks(mth);
-			cleanExitNodes(mth);
 		}
 		return changed;
 	}
 
-	private static void mergeConstAndReturnBlocks(MethodNode mth, BlockNode exitBlock, BlockNode pred) {
-		pred.getInstructions().addAll(exitBlock.getInstructions());
-		pred.copyAttributesFrom(exitBlock);
-		BlockSplitter.removeConnection(pred, exitBlock);
-		exitBlock.getInstructions().clear();
-		exitBlock.add(AFlag.REMOVE);
+	private static void mergeConstAndReturnBlocks(MethodNode mth, BlockNode retBlock, BlockNode pred) {
+		pred.getInstructions().addAll(retBlock.getInstructions());
+		pred.copyAttributesFrom(retBlock);
+		BlockSplitter.removeConnection(pred, retBlock);
+		retBlock.getInstructions().clear();
+		retBlock.add(AFlag.REMOVE);
+		BlockNode exitBlock = mth.getExitBlock();
+		BlockSplitter.removeConnection(retBlock, exitBlock);
+		BlockSplitter.connect(pred, exitBlock);
+		pred.updateCleanSuccessors();
 	}
 
 	private static boolean independentBlockTreeMod(MethodNode mth) {
-		List<BlockNode> basicBlocks = mth.getBasicBlocks();
 		boolean changed = false;
+		List<BlockNode> basicBlocks = mth.getBasicBlocks();
 		for (BlockNode basicBlock : basicBlocks) {
 			if (deduplicateBlockInsns(basicBlock)) {
 				changed = true;
 			}
+		}
+		if (BlockExceptionHandler.process(mth)) {
+			changed = true;
 		}
 		for (BlockNode basicBlock : basicBlocks) {
 			if (BlockSplitter.removeEmptyBlock(basicBlock)) {
@@ -630,138 +596,70 @@ public class BlockProcessor extends AbstractVisitor {
 		return false;
 	}
 
-	/**
-	 * Merge handlers for multi-exception catch
-	 */
-	private static boolean mergeExceptionHandlers(MethodNode mth) {
-		for (BlockNode block : mth.getBasicBlocks()) {
-			ExcHandlerAttr excHandlerAttr = block.get(AType.EXC_HANDLER);
-			if (excHandlerAttr != null) {
-				List<BlockNode> blocksForMerge = collectExcHandlerBlocks(block, excHandlerAttr);
-				if (mergeHandlers(mth, blocksForMerge, excHandlerAttr)) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	private static List<BlockNode> collectExcHandlerBlocks(BlockNode block, ExcHandlerAttr excHandlerAttr) {
-		List<BlockNode> successors = block.getSuccessors();
-		if (successors.size() != 1) {
-			return Collections.emptyList();
-		}
-		RegisterArg reg = getMoveExceptionRegister(block);
-		if (reg == null) {
-			return Collections.emptyList();
-		}
-		TryCatchBlock tryBlock = excHandlerAttr.getTryBlock();
-		List<BlockNode> blocksForMerge = new ArrayList<>();
-		BlockNode nextBlock = successors.get(0);
-		for (BlockNode predBlock : nextBlock.getPredecessors()) {
-			if (predBlock != block
-					&& checkOtherExcHandler(predBlock, tryBlock, reg)) {
-				blocksForMerge.add(predBlock);
-			}
-		}
-		return blocksForMerge;
-	}
-
-	private static boolean checkOtherExcHandler(BlockNode predBlock, TryCatchBlock tryBlock, RegisterArg reg) {
-		ExcHandlerAttr otherExcHandlerAttr = predBlock.get(AType.EXC_HANDLER);
-		if (otherExcHandlerAttr == null) {
-			return false;
-		}
-		TryCatchBlock otherTryBlock = otherExcHandlerAttr.getTryBlock();
-		if (tryBlock != otherTryBlock) {
-			return false;
-		}
-		RegisterArg otherReg = getMoveExceptionRegister(predBlock);
-		if (otherReg == null || reg.getRegNum() != otherReg.getRegNum()) {
-			return false;
-		}
-		return true;
-	}
-
-	private static RegisterArg getMoveExceptionRegister(BlockNode block) {
-		InsnNode insn = BlockUtils.getLastInsn(block);
-		if (insn == null || insn.getType() != InsnType.MOVE_EXCEPTION) {
-			return null;
-		}
-		return insn.getResult();
-	}
-
-	private static boolean mergeHandlers(MethodNode mth, List<BlockNode> blocksForMerge, ExcHandlerAttr excHandlerAttr) {
-		if (blocksForMerge.isEmpty()) {
-			return false;
-		}
-		TryCatchBlock tryBlock = excHandlerAttr.getTryBlock();
-		for (BlockNode block : blocksForMerge) {
-			ExcHandlerAttr otherExcHandlerAttr = block.get(AType.EXC_HANDLER);
-			ExceptionHandler excHandler = otherExcHandlerAttr.getHandler();
-			excHandlerAttr.getHandler().addCatchTypes(excHandler.getCatchTypes());
-			tryBlock.removeHandler(mth, excHandler);
-			BlockSplitter.detachBlock(block);
-		}
-		return true;
-	}
-
 	private static boolean splitReturnBlocks(MethodNode mth) {
 		boolean changed = false;
-		for (BlockNode exitBlock : mth.getExitBlocks()) {
-			if (splitReturn(mth, exitBlock)) {
+		for (BlockNode preExitBlock : mth.getPreExitBlocks()) {
+			if (splitReturn(mth, preExitBlock)) {
 				changed = true;
 			}
 		}
 		if (changed) {
-			cleanExitNodes(mth);
+			updateExitBlockConnections(mth);
 		}
 		return changed;
+	}
+
+	private static void updateExitBlockConnections(MethodNode mth) {
+		BlockNode exitBlock = mth.getExitBlock();
+		BlockSplitter.removePredecessors(exitBlock);
+		for (BlockNode block : mth.getBasicBlocks()) {
+			if (block != exitBlock
+					&& block.getSuccessors().isEmpty()
+					&& !block.contains(AFlag.REMOVE)) {
+				BlockSplitter.connect(block, exitBlock);
+			}
+		}
 	}
 
 	/**
 	 * Splice return block if several predecessors presents
 	 */
-	private static boolean splitReturn(MethodNode mth, BlockNode exitBlock) {
-		if (exitBlock.contains(AFlag.SYNTHETIC)
-				|| exitBlock.contains(AFlag.ORIG_RETURN)
-				|| exitBlock.contains(AType.SPLITTER_BLOCK)) {
+	private static boolean splitReturn(MethodNode mth, BlockNode returnBlock) {
+		if (returnBlock.contains(AFlag.SYNTHETIC)
+				|| returnBlock.contains(AFlag.ORIG_RETURN)
+				|| returnBlock.contains(AType.EXC_HANDLER)) {
 			return false;
 		}
-		List<BlockNode> preds = exitBlock.getPredecessors();
+		List<BlockNode> preds = returnBlock.getPredecessors();
 		if (preds.size() < 2) {
 			return false;
 		}
-		preds = BlockUtils.filterPredecessors(exitBlock);
-		if (preds.size() < 2) {
-			return false;
-		}
-		InsnNode returnInsn = BlockUtils.getLastInsn(exitBlock);
+		InsnNode returnInsn = BlockUtils.getLastInsn(returnBlock);
 		if (returnInsn == null) {
 			return false;
 		}
 		if (returnInsn.getArgsCount() == 1
-				&& exitBlock.getInstructions().size() == 1
+				&& returnBlock.getInstructions().size() == 1
 				&& !isReturnArgAssignInPred(preds, returnInsn)) {
 			return false;
 		}
 
 		boolean first = true;
-		for (BlockNode pred : preds) {
-			BlockNode newRetBlock = BlockSplitter.startNewBlock(mth, -1);
-			newRetBlock.add(AFlag.SYNTHETIC);
+		for (BlockNode pred : new ArrayList<>(preds)) {
 			if (first) {
-				newRetBlock.add(AFlag.ORIG_RETURN);
-				newRetBlock.getInstructions().addAll(exitBlock.getInstructions());
+				returnBlock.add(AFlag.ORIG_RETURN);
 				first = false;
 			} else {
-				for (InsnNode oldInsn : exitBlock.getInstructions()) {
+				BlockNode newRetBlock = BlockSplitter.startNewBlock(mth, -1);
+				newRetBlock.add(AFlag.SYNTHETIC);
+				newRetBlock.add(AFlag.RETURN);
+				for (InsnNode oldInsn : returnBlock.getInstructions()) {
 					InsnNode copyInsn = oldInsn.copyWithoutSsa();
 					copyInsn.add(AFlag.SYNTHETIC);
 					newRetBlock.getInstructions().add(copyInsn);
 				}
+				BlockSplitter.replaceConnection(pred, returnBlock, newRetBlock);
 			}
-			BlockSplitter.replaceConnection(pred, exitBlock, newRetBlock);
 		}
 		return true;
 	}
@@ -783,32 +681,42 @@ public class BlockProcessor extends AbstractVisitor {
 		return false;
 	}
 
-	private static void cleanExitNodes(MethodNode mth) {
-		Iterator<BlockNode> iterator = mth.getExitBlocks().iterator();
-		while (iterator.hasNext()) {
-			BlockNode exitBlock = iterator.next();
-			if (exitBlock.getPredecessors().isEmpty()) {
-				mth.getBasicBlocks().remove(exitBlock);
-				iterator.remove();
-			}
-		}
-	}
-
-	private static void removeMarkedBlocks(MethodNode mth) {
+	static void removeMarkedBlocks(MethodNode mth) {
 		mth.getBasicBlocks().removeIf(block -> {
 			if (block.contains(AFlag.REMOVE)) {
 				if (!block.getPredecessors().isEmpty() || !block.getSuccessors().isEmpty()) {
 					LOG.warn("Block {} not deleted, method: {}", block, mth);
 				} else {
-					CatchAttr catchAttr = block.get(AType.CATCH_BLOCK);
-					if (catchAttr != null) {
-						catchAttr.getTryBlock().removeBlock(mth, block);
+					TryCatchBlockAttr tryBlockAttr = block.get(AType.TRY_BLOCK);
+					if (tryBlockAttr != null) {
+						tryBlockAttr.removeBlock(block);
 					}
 					return true;
 				}
 			}
 			return false;
 		});
+	}
+
+	private static void removeUnreachableBlocks(MethodNode mth) {
+		Set<BlockNode> toRemove = null;
+		for (BlockNode block : mth.getBasicBlocks()) {
+			if (block.getPredecessors().isEmpty() && block != mth.getEnterBlock()) {
+				toRemove = new LinkedHashSet<>();
+				BlockSplitter.collectSuccessors(block, mth.getEnterBlock(), toRemove);
+			}
+		}
+		if (toRemove == null || toRemove.isEmpty()) {
+			return;
+		}
+
+		toRemove.forEach(BlockSplitter::detachBlock);
+		mth.getBasicBlocks().removeAll(toRemove);
+		long notEmptyBlocks = toRemove.stream().filter(block -> !block.getInstructions().isEmpty()).count();
+		if (notEmptyBlocks != 0) {
+			int insnsCount = toRemove.stream().mapToInt(block -> block.getInstructions().size()).sum();
+			mth.addWarnComment("Unreachable blocks removed: " + notEmptyBlocks + ", instructions: " + insnsCount);
+		}
 	}
 
 	private static void clearBlocksState(MethodNode mth) {

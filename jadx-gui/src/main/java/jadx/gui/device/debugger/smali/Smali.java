@@ -299,29 +299,29 @@ public class Smali {
 	private void writeTries(ICodeReader codeReader, LineInfo line) {
 		List<ITry> tries = codeReader.getTries();
 		for (ITry aTry : tries) {
-			int end = aTry.getEndAddress();
+			int end = aTry.getEndOffset();
 			String tryEndTip = String.format(FMT_TRY_END_TAG, end);
-			String tryStartTip = String.format(FMT_TRY_TAG, aTry.getStartAddress());
+			String tryStartTip = String.format(FMT_TRY_TAG, aTry.getStartOffset());
 			String tryStartTipExtra = " # :" + tryStartTip.substring(0, tryStartTip.length() - 1);
 
-			line.addTip(aTry.getStartAddress(), tryStartTip, " # :" + tryEndTip.substring(0, tryEndTip.length() - 1));
+			line.addTip(aTry.getStartOffset(), tryStartTip, " # :" + tryEndTip.substring(0, tryEndTip.length() - 1));
 			line.addTip(end, tryEndTip, tryStartTipExtra);
 
 			ICatch iCatch = aTry.getCatch();
-			int[] addresses = iCatch.getAddresses();
+			int[] addresses = iCatch.getHandlers();
 			int addr;
 			for (int i = 0; i < addresses.length; i++) {
 				addr = addresses[i];
 				String catchTip = String.format(FMT_CATCH_TAG, addr);
 				line.addTip(addr, catchTip, " # " + iCatch.getTypes()[i]);
 				line.addTip(addr, catchTip, tryStartTipExtra);
-				line.addTip(aTry.getStartAddress(), tryStartTip, " # :" + catchTip.substring(0, catchTip.length() - 1));
+				line.addTip(aTry.getStartOffset(), tryStartTip, " # :" + catchTip.substring(0, catchTip.length() - 1));
 			}
-			addr = iCatch.getCatchAllAddress();
+			addr = iCatch.getCatchAllHandler();
 			if (addr > -1) {
 				String catchAllTip = String.format(FMT_CATCH_ALL_TAG, addr);
 				line.addTip(addr, catchAllTip, tryStartTipExtra);
-				line.addTip(aTry.getStartAddress(), tryStartTip, " # :" + catchAllTip.substring(0, catchAllTip.length() - 1));
+				line.addTip(aTry.getStartOffset(), tryStartTip, " # :" + catchAllTip.substring(0, catchAllTip.length() - 1));
 			}
 		}
 	}

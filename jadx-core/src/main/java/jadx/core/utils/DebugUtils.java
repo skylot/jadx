@@ -30,6 +30,7 @@ import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.dex.regions.Region;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.DotGraphVisitor;
 import jadx.core.dex.visitors.IDexTreeVisitor;
@@ -111,7 +112,11 @@ public class DebugUtils {
 	}
 
 	public static void printRegions(MethodNode mth, boolean printInsns) {
-		printRegion(mth, mth.getRegion(), printInsns);
+		Region mthRegion = mth.getRegion();
+		if (mthRegion == null) {
+			return;
+		}
+		printRegion(mth, mthRegion, printInsns);
 	}
 
 	public static void printRegion(MethodNode mth, IRegion region, boolean printInsns) {

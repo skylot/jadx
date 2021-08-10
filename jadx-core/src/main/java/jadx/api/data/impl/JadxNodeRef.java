@@ -12,7 +12,7 @@ import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.api.data.IJavaNodeRef;
 
-public class JadxNodeRef implements IJavaNodeRef, Comparable<IJavaNodeRef> {
+public class JadxNodeRef implements IJavaNodeRef {
 
 	@Nullable
 	public static JadxNodeRef forJavaNode(JavaNode javaNode) {

@@ -1,20 +1,26 @@
 package jadx.core.utils;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.nodes.IgnoreEdgeAttr;
 import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.instructions.IfNode;
@@ -76,8 +82,10 @@ public class BlockUtils {
 		return null;
 	}
 
-	public static boolean isBlockMustBeCleared(BlockNode b) {
-		if (b.contains(AType.EXC_HANDLER) || b.contains(AFlag.REMOVE)) {
+	public static boolean isExceptionHandlerPath(BlockNode b) {
+		if (b.contains(AType.EXC_HANDLER)
+				|| b.contains(AFlag.EXC_BOTTOM_SPLITTER)
+				|| b.contains(AFlag.REMOVE)) {
 			return true;
 		}
 		if (b.contains(AFlag.SYNTHETIC)) {
@@ -93,7 +101,7 @@ public class BlockUtils {
 	private static List<BlockNode> cleanBlockList(List<BlockNode> list) {
 		List<BlockNode> ret = new ArrayList<>(list.size());
 		for (BlockNode block : list) {
-			if (!isBlockMustBeCleared(block)) {
+			if (!isExceptionHandlerPath(block)) {
 				ret.add(block);
 			}
 		}
@@ -106,27 +114,10 @@ public class BlockUtils {
 	public static void cleanBitSet(MethodNode mth, BitSet bs) {
 		for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
 			BlockNode block = mth.getBasicBlocks().get(i);
-			if (isBlockMustBeCleared(block)) {
+			if (isExceptionHandlerPath(block)) {
 				bs.clear(i);
 			}
 		}
-	}
-
-	/**
-	 * Return predecessors list without blocks contains 'IGNORE_EDGE' attribute.
-	 *
-	 * @return new list of filtered predecessors
-	 */
-	public static List<BlockNode> filterPredecessors(BlockNode block) {
-		List<BlockNode> predecessors = block.getPredecessors();
-		List<BlockNode> list = new ArrayList<>(predecessors.size());
-		for (BlockNode pred : predecessors) {
-			IgnoreEdgeAttr edgeAttr = pred.get(AType.IGNORE_EDGE);
-			if (edgeAttr == null || !edgeAttr.contains(block)) {
-				list.add(pred);
-			}
-		}
-		return list;
 	}
 
 	public static boolean isBackEdge(BlockNode from, BlockNode to) {
@@ -172,9 +163,34 @@ public class BlockUtils {
 		return false;
 	}
 
+	public static boolean checkFirstInsn(IBlock block, Predicate<InsnNode> predicate) {
+		InsnNode insn = getFirstInsn(block);
+		return insn != null && predicate.test(insn);
+	}
+
 	public static boolean checkLastInsnType(IBlock block, InsnType expectedType) {
 		InsnNode insn = getLastInsn(block);
 		return insn != null && insn.getType() == expectedType;
+	}
+
+	public static InsnNode getLastInsnWithType(IBlock block, InsnType expectedType) {
+		InsnNode insn = getLastInsn(block);
+		if (insn != null && insn.getType() == expectedType) {
+			return insn;
+		}
+		return null;
+	}
+
+	@Nullable
+	public static InsnNode getFirstInsn(@Nullable IBlock block) {
+		if (block == null) {
+			return null;
+		}
+		List<InsnNode> insns = block.getInstructions();
+		if (insns.isEmpty()) {
+			return null;
+		}
+		return insns.get(0);
 	}
 
 	@Nullable
@@ -187,6 +203,26 @@ public class BlockUtils {
 			return null;
 		}
 		return insns.get(insns.size() - 1);
+	}
+
+	public static boolean isExitBlock(MethodNode mth, BlockNode block) {
+		BlockNode exitBlock = mth.getExitBlock();
+		if (block == exitBlock) {
+			return true;
+		}
+		return exitBlock.getPredecessors().contains(block);
+	}
+
+	public static boolean containsExitInsn(IBlock block) {
+		InsnNode lastInsn = BlockUtils.getLastInsn(block);
+		if (lastInsn == null) {
+			return false;
+		}
+		InsnType type = lastInsn.getType();
+		return type == InsnType.RETURN
+				|| type == InsnType.THROW
+				|| type == InsnType.BREAK
+				|| type == InsnType.CONTINUE;
 	}
 
 	@Nullable
@@ -302,7 +338,7 @@ public class BlockUtils {
 	}
 
 	public static BitSet blocksToBitSet(MethodNode mth, Collection<BlockNode> blocks) {
-		BitSet bs = new BitSet(mth.getBasicBlocks().size());
+		BitSet bs = newBlocksBitSet(mth);
 		for (BlockNode block : blocks) {
 			bs.set(block.getId());
 		}
@@ -333,6 +369,16 @@ public class BlockUtils {
 		return blocks;
 	}
 
+	public static void forEachBlockFromBitSet(MethodNode mth, BitSet bs, Consumer<BlockNode> consumer) {
+		if (bs == null || bs == EmptyBitSet.EMPTY || bs.isEmpty()) {
+			return;
+		}
+		List<BlockNode> blocks = mth.getBasicBlocks();
+		for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+			consumer.accept(blocks.get(i));
+		}
+	}
+
 	/**
 	 * Return first successor which not exception handler and not follow loop back edge
 	 */
@@ -356,6 +402,85 @@ public class BlockUtils {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Visit blocks on any path from start to end.
+	 * Only one path will be visited!
+	 */
+	public static boolean visitBlocksOnPath(MethodNode mth, BlockNode start, BlockNode end, Consumer<BlockNode> visitor) {
+		visitor.accept(start);
+		if (start == end) {
+			return true;
+		}
+		if (start.getCleanSuccessors().contains(end)) {
+			visitor.accept(end);
+			return true;
+		}
+		// DFS on clean successors
+		BitSet visited = newBlocksBitSet(mth);
+		Deque<BlockNode> queue = new ArrayDeque<>();
+		queue.addLast(start);
+		while (true) {
+			BlockNode current = queue.peekLast();
+			if (current == null) {
+				return false;
+			}
+			boolean added = false;
+			for (BlockNode next : current.getCleanSuccessors()) {
+				if (next == end) {
+					queue.removeFirst(); // start already visited
+					queue.addLast(next);
+					queue.forEach(visitor);
+					return true;
+				}
+				int id = next.getId();
+				if (!visited.get(id)) {
+					visited.set(id);
+					queue.addLast(next);
+					added = true;
+					break;
+				}
+			}
+			if (!added) {
+				queue.pollLast();
+				if (queue.isEmpty()) {
+					return false;
+				}
+			}
+		}
+	}
+
+	public static List<BlockNode> collectPredecessors(MethodNode mth, BlockNode start, Collection<BlockNode> stopBlocks) {
+		BitSet bs = newBlocksBitSet(mth);
+		if (!stopBlocks.isEmpty()) {
+			bs.or(blocksToBitSet(mth, stopBlocks));
+		}
+		List<BlockNode> list = new ArrayList<>();
+		traversePredecessors(start, bs, list::add);
+		return list;
+	}
+
+	/**
+	 * Up BFS
+	 */
+	private static void traversePredecessors(BlockNode start, BitSet visited, Consumer<BlockNode> visitor) {
+		Queue<BlockNode> queue = new ArrayDeque<>();
+		queue.add(start);
+		while (true) {
+			BlockNode current = queue.poll();
+			if (current == null) {
+				return;
+			}
+			visitor.accept(current);
+			for (BlockNode next : current.getPredecessors()) {
+				int id = next.getId();
+				if (!visited.get(id)) {
+					visited.set(id);
+					queue.add(next);
+				}
+			}
+		}
 	}
 
 	/**
@@ -397,6 +522,15 @@ public class BlockUtils {
 			}
 		}
 		return false;
+	}
+
+	public static boolean isPathExists(Collection<BlockNode> startBlocks, BlockNode end) {
+		for (BlockNode startBlock : startBlocks) {
+			if (!isPathExists(startBlock, end)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public static boolean isPathExists(BlockNode start, BlockNode end) {
@@ -442,6 +576,28 @@ public class BlockUtils {
 		return null;
 	}
 
+	/**
+	 * Search last block in control flow graph from input set.
+	 */
+	public static BlockNode getBottomBlock(Collection<BlockNode> blocks) {
+		if (blocks.size() == 1) {
+			return blocks.iterator().next();
+		}
+		for (BlockNode bottomCandidate : blocks) {
+			boolean bottom = true;
+			for (BlockNode from : blocks) {
+				if (bottomCandidate != from && !isAnyPathExists(from, bottomCandidate)) {
+					bottom = false;
+					break;
+				}
+			}
+			if (bottom) {
+				return bottomCandidate;
+			}
+		}
+		return null;
+	}
+
 	public static boolean isOnlyOnePathExists(BlockNode start, BlockNode end) {
 		if (start == end) {
 			return true;
@@ -476,57 +632,126 @@ public class BlockUtils {
 		return null;
 	}
 
+	/**
+	 * Search lowest common ancestor in dominator tree for input set.
+	 */
+	@Nullable
+	public static BlockNode getCommonDominator(MethodNode mth, List<BlockNode> blocks) {
+		BitSet doms = newBlocksBitSet(mth);
+		// collect all dominators from input set
+		doms.set(0, mth.getBasicBlocks().size());
+		blocks.forEach(b -> doms.and(b.getDoms()));
+		// exclude all dominators of immediate dominator (including self)
+		BitSet combine = newBlocksBitSet(mth);
+		combine.or(doms);
+		forEachBlockFromBitSet(mth, doms, block -> {
+			BlockNode idom = block.getIDom();
+			if (idom != null) {
+				combine.andNot(idom.getDoms());
+				combine.clear(idom.getId());
+			}
+		});
+		return bitSetToOneBlock(mth, combine);
+	}
+
+	/**
+	 * Return common cross block for input set.
+	 *
+	 * @return null if cross is a method exit block.
+	 */
+	@Nullable
+	public static BlockNode getPathCross(MethodNode mth, Collection<BlockNode> blocks) {
+		BitSet domFrontBS = newBlocksBitSet(mth);
+		boolean first = true;
+		for (BlockNode b : blocks) {
+			if (first) {
+				domFrontBS.or(b.getDomFrontier());
+				first = false;
+			} else {
+				domFrontBS.and(b.getDomFrontier());
+			}
+		}
+		domFrontBS.clear(mth.getExitBlock().getId());
+		if (domFrontBS.isEmpty()) {
+			return null;
+		}
+		BlockNode oneBlock = bitSetToOneBlock(mth, domFrontBS);
+		if (oneBlock != null) {
+			return oneBlock;
+		}
+		BitSet excluded = newBlocksBitSet(mth);
+		// exclude method exit and loop start blocks
+		excluded.set(mth.getExitBlock().getId());
+		// exclude loop start blocks
+		mth.getLoops().forEach(l -> excluded.set(l.getStart().getId()));
+		if (!mth.isNoExceptionHandlers()) {
+			// exclude exception handlers paths
+			mth.getExceptionHandlers().forEach(h -> excluded.or(h.getHandlerBlock().getDomFrontier()));
+		}
+		domFrontBS.andNot(excluded);
+		oneBlock = bitSetToOneBlock(mth, domFrontBS);
+		if (oneBlock != null) {
+			return oneBlock;
+		}
+		BitSet combinedDF = newBlocksBitSet(mth);
+		while (true) {
+			// collect dom frontier blocks from current set until only one block left
+			forEachBlockFromBitSet(mth, domFrontBS, block -> {
+				BitSet domFrontier = block.getDomFrontier();
+				if (!domFrontier.isEmpty()) {
+					combinedDF.or(domFrontier);
+					combinedDF.clear(block.getId());
+				}
+			});
+			combinedDF.andNot(excluded);
+			int cardinality = combinedDF.cardinality();
+			if (cardinality == 1) {
+				return bitSetToOneBlock(mth, combinedDF);
+			}
+			if (cardinality == 0) {
+				return null;
+			}
+			// replace domFrontBS with combinedDF
+			domFrontBS.clear();
+			domFrontBS.or(combinedDF);
+			combinedDF.clear();
+		}
+	}
+
 	public static BlockNode getPathCross(MethodNode mth, BlockNode b1, BlockNode b2) {
+		if (b1 == b2) {
+			return b1;
+		}
 		if (b1 == null || b2 == null) {
 			return null;
 		}
-		if (b1.getDomFrontier() == null || b2.getDomFrontier() == null) {
-			return null;
-		}
-		BitSet b = new BitSet();
-		b.or(b1.getDomFrontier());
-		b.and(b2.getDomFrontier());
-		b.clear(b1.getId());
-		b.clear(b2.getId());
-		if (b.cardinality() == 1) {
-			BlockNode end = mth.getBasicBlocks().get(b.nextSetBit(0));
-			if (isPathExists(b1, end) && isPathExists(b2, end)) {
-				return end;
-			}
-		}
-		if (isPathExists(b1, b2)) {
-			return b2;
-		}
-		if (isPathExists(b2, b1)) {
-			return b1;
-		}
-		return null;
+		return getPathCross(mth, Arrays.asList(b1, b2));
 	}
 
 	/**
 	 * Collect all block dominated by 'dominator', starting from 'start'
 	 */
-	public static List<BlockNode> collectBlocksDominatedBy(BlockNode dominator, BlockNode start) {
+	public static List<BlockNode> collectBlocksDominatedBy(MethodNode mth, BlockNode dominator, BlockNode start) {
 		List<BlockNode> result = new ArrayList<>();
-		collectWhileDominates(dominator, start, result, new HashSet<>(), false);
+		collectWhileDominates(dominator, start, result, newBlocksBitSet(mth), false);
 		return result;
 	}
 
 	/**
-	 * Collect all block dominated by 'dominator', starting from 'start', include exception handlers
+	 * Collect all block dominated by 'dominator', starting from 'start', including exception handlers
 	 */
-	public static List<BlockNode> collectBlocksDominatedByWithExcHandlers(BlockNode dominator, BlockNode start) {
-		List<BlockNode> result = new ArrayList<>();
-		collectWhileDominates(dominator, start, result, new HashSet<>(), true);
+	public static Set<BlockNode> collectBlocksDominatedByWithExcHandlers(MethodNode mth, BlockNode dominator, BlockNode start) {
+		Set<BlockNode> result = new LinkedHashSet<>();
+		collectWhileDominates(dominator, start, result, newBlocksBitSet(mth), true);
 		return result;
 	}
 
-	private static void collectWhileDominates(BlockNode dominator, BlockNode child, List<BlockNode> result,
-			Set<BlockNode> visited, boolean includeExcHandlers) {
-		if (visited.contains(child)) {
+	private static void collectWhileDominates(BlockNode dominator, BlockNode child, Collection<BlockNode> result,
+			BitSet visited, boolean includeExcHandlers) {
+		if (visited.get(child.getId())) {
 			return;
 		}
-		visited.add(child);
+		visited.set(child.getId());
 		List<BlockNode> successors = includeExcHandlers ? child.getSuccessors() : child.getCleanSuccessors();
 		for (BlockNode node : successors) {
 			if (node.isDominator(dominator)) {
@@ -562,12 +787,50 @@ public class BlockUtils {
 	public static void skipPredSyntheticPaths(BlockNode block) {
 		for (BlockNode pred : block.getPredecessors()) {
 			if (pred.contains(AFlag.SYNTHETIC)
-					&& !pred.contains(AType.SPLITTER_BLOCK)
+					&& !pred.contains(AFlag.EXC_TOP_SPLITTER)
+					&& !pred.contains(AFlag.EXC_BOTTOM_SPLITTER)
 					&& pred.getInstructions().isEmpty()) {
 				pred.add(AFlag.DONT_GENERATE);
 				skipPredSyntheticPaths(pred);
 			}
 		}
+	}
+
+	/**
+	 * Follow empty blocks and return end of path block (first not empty).
+	 * Return start block if no such path.
+	 */
+	public static BlockNode followEmptyPath(BlockNode start) {
+		while (true) {
+			BlockNode next = getNextBlockOnEmptyPath(start);
+			if (next == null) {
+				return start;
+			}
+			start = next;
+		}
+	}
+
+	public static void visitBlocksOnEmptyPath(BlockNode start, Consumer<BlockNode> visitor) {
+		while (true) {
+			BlockNode next = getNextBlockOnEmptyPath(start);
+			if (next == null) {
+				return;
+			}
+			visitor.accept(next);
+			start = next;
+		}
+	}
+
+	@Nullable
+	private static BlockNode getNextBlockOnEmptyPath(BlockNode block) {
+		if (!block.getInstructions().isEmpty() || block.getPredecessors().size() > 1) {
+			return null;
+		}
+		List<BlockNode> successors = block.getCleanSuccessors();
+		if (successors.size() != 1) {
+			return null;
+		}
+		return successors.get(0);
 	}
 
 	/**
@@ -592,20 +855,12 @@ public class BlockUtils {
 	}
 
 	/**
-	 * Return successor of synthetic block or same block otherwise.
-	 */
-	public static BlockNode skipSyntheticSuccessor(BlockNode block) {
-		if (block.isSynthetic() && block.getSuccessors().size() == 1) {
-			return block.getSuccessors().get(0);
-		}
-		return block;
-	}
-
-	/**
 	 * Return predecessor of synthetic block or same block otherwise.
 	 */
 	public static BlockNode skipSyntheticPredecessor(BlockNode block) {
-		if (block.isSynthetic() && block.getPredecessors().size() == 1) {
+		if (block.isSynthetic()
+				&& block.getInstructions().isEmpty()
+				&& block.getPredecessors().size() == 1) {
 			return block.getPredecessors().get(0);
 		}
 		return block;
@@ -626,12 +881,69 @@ public class BlockUtils {
 		return insns;
 	}
 
+	/**
+	 * Return limited number of instructions from method.
+	 * Return empty list if method contains more than limit.
+	 */
+	public static List<InsnNode> collectInsnsWithLimit(List<BlockNode> blocks, int limit) {
+		List<InsnNode> insns = new ArrayList<>(limit);
+		for (BlockNode block : blocks) {
+			List<InsnNode> blockInsns = block.getInstructions();
+			int blockSize = blockInsns.size();
+			if (blockSize == 0) {
+				continue;
+			}
+			if (insns.size() + blockSize > limit) {
+				return Collections.emptyList();
+			}
+			insns.addAll(blockInsns);
+		}
+		return insns;
+	}
+
+	/**
+	 * Return insn if it is only one instruction in this method. Return null otherwise.
+	 */
+	@Nullable
+	public static InsnNode getOnlyOneInsnFromMth(MethodNode mth) {
+		InsnNode insn = null;
+		for (BlockNode block : mth.getBasicBlocks()) {
+			List<InsnNode> blockInsns = block.getInstructions();
+			int blockSize = blockInsns.size();
+			if (blockSize == 0) {
+				continue;
+			}
+			if (blockSize > 1) {
+				return null;
+			}
+			if (insn != null) {
+				return null;
+			}
+			insn = blockInsns.get(0);
+		}
+		return insn;
+	}
+
 	public static boolean isFirstInsn(MethodNode mth, InsnNode insn) {
-		BlockNode enterBlock = mth.getEnterBlock();
-		if (enterBlock == null || enterBlock.getInstructions().isEmpty()) {
+		BlockNode startBlock = followEmptyPath(mth.getEnterBlock());
+		if (startBlock != null && !startBlock.getInstructions().isEmpty()) {
+			return startBlock.getInstructions().get(0) == insn;
+		}
+		// handle branching with empty blocks
+		BlockNode block = getBlockByInsn(mth, insn);
+		if (block == null) {
+			throw new JadxRuntimeException("Insn not found in method: " + insn);
+		}
+		if (block.getInstructions().get(0) != insn) {
 			return false;
 		}
-		return enterBlock.getInstructions().get(0) == insn;
+		Set<BlockNode> allPathsBlocks = getAllPathsBlocks(mth.getEnterBlock(), block);
+		for (BlockNode pathBlock : allPathsBlocks) {
+			if (!pathBlock.getInstructions().isEmpty() && pathBlock != block) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -709,7 +1021,7 @@ public class BlockUtils {
 	}
 
 	public static Map<BlockNode, BitSet> calcPostDominance(MethodNode mth) {
-		return calcPartialPostDominance(mth, mth.getBasicBlocks(), mth.getExitBlocks().get(0));
+		return calcPartialPostDominance(mth, mth.getBasicBlocks(), mth.getPreExitBlocks().get(0));
 	}
 
 	public static Map<BlockNode, BitSet> calcPartialPostDominance(MethodNode mth, Collection<BlockNode> blockNodes, BlockNode exitBlock) {
@@ -804,5 +1116,23 @@ public class BlockUtils {
 			}
 		}
 		return bitSetToOneBlock(mth, bs);
+	}
+
+	public static BlockNode getTopSplitterForHandler(BlockNode handlerBlock) {
+		BlockNode block = getBlockWithFlag(handlerBlock.getPredecessors(), AFlag.EXC_TOP_SPLITTER);
+		if (block == null) {
+			throw new JadxRuntimeException("Can't find top splitter block for handler:" + handlerBlock);
+		}
+		return block;
+	}
+
+	@Nullable
+	public static BlockNode getBlockWithFlag(List<BlockNode> blocks, AFlag flag) {
+		for (BlockNode block : blocks) {
+			if (block.contains(flag)) {
+				return block;
+			}
+		}
+		return null;
 	}
 }

@@ -33,7 +33,6 @@ public class TestTryCatch7 extends IntegrationTest {
 
 	@Test
 	public void testNoDebug() {
-		// useDexInput();
 		noDebugInfo();
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();

@@ -10,6 +10,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestSynchronizedInEndlessLoop extends IntegrationTest {
 
+	@SuppressWarnings("BusyWait")
 	public static class TestCls {
 		int f = 5;
 
@@ -18,7 +19,8 @@ public class TestSynchronizedInEndlessLoop extends IntegrationTest {
 				synchronized (this) {
 					if (f > 7) {
 						return 7;
-					} else if (f < 3) {
+					}
+					if (f < 3) {
 						return 3;
 					}
 				}

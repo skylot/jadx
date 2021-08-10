@@ -137,13 +137,17 @@ public class ExtractFieldInit extends AbstractVisitor {
 		}
 		List<InitInfo> infoList = new ArrayList<>(constrList.size());
 		for (MethodNode constrMth : constrList) {
-			if (constrMth.isNoCode() || constrMth.getBasicBlocks().isEmpty()) {
+			if (constrMth.isNoCode()) {
+				return;
+			}
+			List<BlockNode> enterBlocks = constrMth.getEnterBlock().getCleanSuccessors();
+			if (enterBlocks.isEmpty()) {
 				return;
 			}
 			InitInfo info = new InitInfo(constrMth);
 			infoList.add(info);
 			// TODO: check not only first block
-			BlockNode blockNode = constrMth.getBasicBlocks().get(0);
+			BlockNode blockNode = enterBlocks.get(0);
 			for (InsnNode insn : blockNode.getInstructions()) {
 				if (insn.getType() == InsnType.IPUT && checkInsn(cls, insn)) {
 					info.getPutInsns().add(insn);
@@ -226,7 +230,7 @@ public class ExtractFieldInit extends AbstractVisitor {
 		InsnArg arg = insn.getArg(0);
 		if (arg.isInsnWrap()) {
 			InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
-			if (!wrapInsn.canReorderRecursive() && insn.contains(AType.CATCH_BLOCK)) {
+			if (!wrapInsn.canReorderRecursive() && insn.contains(AType.EXC_CATCH)) {
 				return false;
 			}
 		} else {

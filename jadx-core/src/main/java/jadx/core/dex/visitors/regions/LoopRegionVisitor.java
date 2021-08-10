@@ -298,6 +298,7 @@ public class LoopRegionVisitor extends AbstractVisitor implements IRegionVisitor
 					if (iterVar == null) {
 						return false;
 					}
+					iterVar.remove(AFlag.REMOVE); // restore variable from inlined insn
 					nextCall.add(AFlag.DONT_GENERATE);
 					if (!fixIterableType(mth, iterableArg, iterVar)) {
 						return false;

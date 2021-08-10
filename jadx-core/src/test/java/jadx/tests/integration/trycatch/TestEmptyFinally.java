@@ -5,17 +5,14 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.NotYetImplemented;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestEmptyFinally extends IntegrationTest {
 
+	@SuppressWarnings("EmptyFinallyBlock")
 	public static class TestCls {
-		@SuppressWarnings("EmptyFinallyBlock")
 		public void test(FileInputStream f1) {
 			try {
 				f1.close();
@@ -27,13 +24,11 @@ public class TestEmptyFinally extends IntegrationTest {
 		}
 	}
 
-	@NotYetImplemented
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
-
-		assertThat(code, containsOne("} catch (IOException e) {"));
-		assertThat(code, containsOne("} finally {")); // ???
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("} catch (IOException e) {")
+				.doesNotContain("} finally {");
 	}
 }

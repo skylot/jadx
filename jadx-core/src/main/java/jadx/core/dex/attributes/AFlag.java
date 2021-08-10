@@ -2,6 +2,8 @@ package jadx.core.dex.attributes;
 
 public enum AFlag {
 	MTH_ENTER_BLOCK,
+	MTH_EXIT_BLOCK,
+
 	TRY_ENTER,
 	TRY_LEAVE,
 
@@ -25,6 +27,8 @@ public enum AFlag {
 	DONT_RENAME, // do not rename during deobfuscation
 	ADDED_TO_REGION,
 
+	EXC_TOP_SPLITTER,
+	EXC_BOTTOM_SPLITTER,
 	FINALLY_INSNS,
 
 	SKIP_FIRST_ARG,

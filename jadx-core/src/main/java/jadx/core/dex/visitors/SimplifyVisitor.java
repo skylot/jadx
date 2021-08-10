@@ -133,10 +133,10 @@ public class SimplifyVisitor extends AbstractVisitor {
 				return simplifyArith((ArithNode) insn);
 
 			case IF:
-				simplifyIf((IfNode) insn);
+				simplifyIf(mth, (IfNode) insn);
 				break;
 			case TERNARY:
-				simplifyTernary((TernaryInsn) insn);
+				simplifyTernary(mth, (TernaryInsn) insn);
 				break;
 
 			case INVOKE:
@@ -257,13 +257,14 @@ public class SimplifyVisitor extends AbstractVisitor {
 	/**
 	 * Simplify 'cmp' instruction in if condition
 	 */
-	private static void simplifyIf(IfNode insn) {
+	private static void simplifyIf(MethodNode mth, IfNode insn) {
 		InsnArg f = insn.getArg(0);
 		if (f.isInsnWrap()) {
 			InsnNode wi = ((InsnWrapArg) f).getWrapInsn();
 			if (wi.getType() == InsnType.CMP_L || wi.getType() == InsnType.CMP_G) {
 				if (insn.getArg(1).isZeroLiteral()) {
-					insn.changeCondition(insn.getOp(), wi.getArg(0), wi.getArg(1));
+					insn.changeCondition(insn.getOp(), wi.getArg(0).duplicate(), wi.getArg(1).duplicate());
+					InsnRemover.unbindInsn(mth, wi);
 				} else {
 					LOG.warn("TODO: cmp {}", insn);
 				}
@@ -274,10 +275,10 @@ public class SimplifyVisitor extends AbstractVisitor {
 	/**
 	 * Simplify condition in ternary operation
 	 */
-	private static void simplifyTernary(TernaryInsn insn) {
+	private static void simplifyTernary(MethodNode mth, TernaryInsn insn) {
 		IfCondition condition = insn.getCondition();
 		if (condition.isCompare()) {
-			simplifyIf(condition.getCompare().getInsn());
+			simplifyIf(mth, condition.getCompare().getInsn());
 		} else {
 			insn.simplifyCondition();
 		}

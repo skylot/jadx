@@ -20,7 +20,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
-import jadx.core.dex.visitors.blocksmaker.BlockFinish;
+import jadx.core.dex.visitors.blocks.BlockProcessor;
 import jadx.core.utils.InsnList;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.exceptions.JadxException;
@@ -29,7 +29,7 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 @JadxVisitor(
 		name = "SSATransform",
 		desc = "Calculate Single Side Assign (SSA) variables",
-		runAfter = BlockFinish.class
+		runAfter = BlockProcessor.class
 )
 public class SSATransform extends AbstractVisitor {
 

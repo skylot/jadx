@@ -189,23 +189,23 @@ public class JavaCodeReader implements ICodeReader {
 	}
 
 	private static CatchData convertSingleCatches(List<JavaSingleCatch> list) {
-		int allAddr = -1;
+		int allHandler = -1;
 		for (JavaSingleCatch singleCatch : list) {
 			if (singleCatch.getType() == null) {
-				allAddr = singleCatch.getHandler();
+				allHandler = singleCatch.getHandler();
 				list.remove(singleCatch);
 				break;
 			}
 		}
 		int len = list.size();
-		int[] addrs = new int[len];
+		int[] handlers = new int[len];
 		String[] types = new String[len];
 		for (int i = 0; i < len; i++) {
 			JavaSingleCatch singleCatch = list.get(i);
-			addrs[i] = singleCatch.getHandler();
+			handlers[i] = singleCatch.getHandler();
 			types[i] = singleCatch.getType();
 		}
-		return new CatchData(addrs, types, allAddr);
+		return new CatchData(handlers, types, allHandler);
 	}
 
 	private Set<Integer> getExcHandlers() {

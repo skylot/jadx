@@ -6,6 +6,7 @@ import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrList;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.Edge;
 import jadx.core.dex.nodes.InsnNode;
 
 public class EdgeInsnAttr implements IJadxAttribute {
@@ -13,6 +14,10 @@ public class EdgeInsnAttr implements IJadxAttribute {
 	private final BlockNode start;
 	private final BlockNode end;
 	private final InsnNode insn;
+
+	public static void addEdgeInsn(Edge edge, InsnNode insn) {
+		addEdgeInsn(edge.getSource(), edge.getTarget(), insn);
+	}
 
 	public static void addEdgeInsn(BlockNode start, BlockNode end, InsnNode insn) {
 		EdgeInsnAttr edgeInsnAttr = new EdgeInsnAttr(start, end, insn);
@@ -24,7 +29,7 @@ public class EdgeInsnAttr implements IJadxAttribute {
 		}
 	}
 
-	public EdgeInsnAttr(BlockNode start, BlockNode end, InsnNode insn) {
+	private EdgeInsnAttr(BlockNode start, BlockNode end, InsnNode insn) {
 		this.start = start;
 		this.end = end;
 		this.insn = insn;

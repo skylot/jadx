@@ -57,15 +57,6 @@ public class TestFinally3 extends SmaliTest {
 		assertThat(getClassNode(TestCls.class))
 				.code()
 				.containsOne("} finally {")
-				.doesNotContain("close(null);");
-	}
-
-	@NotYetImplemented("Finally instruction duplicated")
-	@Test
-	public void test2() {
-		assertThat(getClassNode(TestCls.class))
-				.code()
-				.containsOne("} finally {")
 				.doesNotContain("close(null);")
 				.containsOne("close(inputStream);");
 	}

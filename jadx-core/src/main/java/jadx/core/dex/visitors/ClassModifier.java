@@ -82,7 +82,7 @@ public class ClassModifier extends AbstractVisitor {
 					ClassNode fieldsCls = cls.root().resolveClass(clsInfo);
 					ClassInfo parentClass = cls.getClassInfo().getParentClass();
 					if (fieldsCls != null
-							&& (inline || parentClass.equals(fieldsCls.getClassInfo()))) {
+							&& (inline || Objects.equals(parentClass, fieldsCls.getClassInfo()))) {
 						int found = 0;
 						for (MethodNode mth : cls.getMethods()) {
 							if (removeFieldUsageFromConstructor(mth, field, fieldsCls)) {
@@ -111,7 +111,7 @@ public class ClassModifier extends AbstractVisitor {
 		if (!arg.getType().equals(fieldsCls.getClassInfo().getType())) {
 			return false;
 		}
-		BlockNode block = mth.getBasicBlocks().get(0);
+		BlockNode block = mth.getEnterBlock().getCleanSuccessors().get(0);
 		List<InsnNode> instructions = block.getInstructions();
 		if (instructions.isEmpty()) {
 			return false;
@@ -156,10 +156,13 @@ public class ClassModifier extends AbstractVisitor {
 			return;
 		}
 		// remove synthetic constructor for inner classes
-		if (af.isConstructor() && mth.getBasicBlocks().size() == 2) {
-			List<RegisterArg> args = mth.getArgRegs();
-			if (isRemovedClassInArgs(cls, args)) {
-				modifySyntheticMethod(cls, mth, args);
+		if (af.isConstructor()) {
+			InsnNode insn = BlockUtils.getOnlyOneInsnFromMth(mth);
+			if (insn != null) {
+				List<RegisterArg> args = mth.getArgRegs();
+				if (isRemovedClassInArgs(cls, args)) {
+					modifySyntheticMethod(cls, mth, insn, args);
+				}
 			}
 		}
 	}
@@ -190,10 +193,9 @@ public class ClassModifier extends AbstractVisitor {
 	/**
 	 * Remove synthetic constructor and redirect calls to existing constructor
 	 */
-	private static void modifySyntheticMethod(ClassNode cls, MethodNode mth, List<RegisterArg> args) {
-		List<InsnNode> insns = mth.getBasicBlocks().get(0).getInstructions();
-		if (insns.size() == 1 && insns.get(0).getType() == InsnType.CONSTRUCTOR) {
-			ConstructorInsn constr = (ConstructorInsn) insns.get(0);
+	private static void modifySyntheticMethod(ClassNode cls, MethodNode mth, InsnNode insn, List<RegisterArg> args) {
+		if (insn.getType() == InsnType.CONSTRUCTOR) {
+			ConstructorInsn constr = (ConstructorInsn) insn;
 			if (constr.isThis() && !args.isEmpty()) {
 				// remove first arg for non-static class (references to outer class)
 				RegisterArg firstArg = args.get(0);

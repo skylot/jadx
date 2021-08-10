@@ -28,6 +28,7 @@ public class TestTernaryOneBranchInConstructor extends IntegrationTest {
 
 		assertThat(code, containsOne("this(str == null ? 0 : i);"));
 		assertThat(code, not(containsString("//")));
+		assertThat(code, not(containsString("call moved to the top of the method")));
 	}
 
 	public static class TestCls2 {

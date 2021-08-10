@@ -2,12 +2,9 @@ package jadx.tests.integration.variables;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.SmaliTest;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestVariablesGeneric extends SmaliTest {
 	// @formatter:off
@@ -27,11 +24,11 @@ public class TestVariablesGeneric extends SmaliTest {
 	@Test
 	public void test() {
 		disableCompilation();
-		ClassNode cls = getClassNodeFromSmaliWithPkg("variables", "TestVariablesGeneric");
-		String code = cls.getCode().toString();
-
-		assertThat(code, not(containsString("iVar2")));
-		assertThat(code, containsString("public static <T> j a(i<? super T> iVar, c<T> cVar) {"));
-		assertThat(code, containsString("if (iVar == null) {"));
+		assertThat(getClassNodeFromSmali())
+				.code()
+				.doesNotContain("iVar2")
+				.containsOne("public static <T> j a(i<? super T> iVar, c<T> cVar) {")
+				.containsOne("if (iVar == null) {")
+				.countString(2, "} catch (Throwable th");
 	}
 }

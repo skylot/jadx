@@ -32,6 +32,11 @@ public abstract class AttrNode implements IAttributeNode {
 		initStorage().add(type, obj);
 	}
 
+	public <T> void addAttr(IJadxAttrType<AttrList<T>> type, List<T> list) {
+		AttributeStorage strg = initStorage();
+		list.forEach(attr -> strg.add(type, attr));
+	}
+
 	@Override
 	public void copyAttributesFrom(AttrNode attrNode) {
 		AttributeStorage copyFrom = attrNode.storage;

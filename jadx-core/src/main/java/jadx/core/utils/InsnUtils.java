@@ -114,7 +114,7 @@ public class InsnUtils {
 
 	@Nullable
 	public static InsnNode searchSingleReturnInsn(MethodNode mth, Predicate<InsnNode> test) {
-		if (!mth.isNoCode() && mth.getExitBlocks().size() == 1) {
+		if (!mth.isNoCode() && mth.getPreExitBlocks().size() == 1) {
 			return searchInsn(mth, InsnType.RETURN, test);
 		}
 		return null;

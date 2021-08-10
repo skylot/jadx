@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.AttrNode;
-import jadx.core.dex.attributes.nodes.IgnoreEdgeAttr;
 import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.EmptyBitSet;
@@ -59,7 +58,7 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 	}
 
 	public List<BlockNode> getCleanSuccessors() {
-		return cleanSuccessors;
+		return this.cleanSuccessors;
 	}
 
 	public void updateCleanSuccessors() {
@@ -67,12 +66,17 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 	}
 
 	public void lock() {
-		cleanSuccessors = lockList(cleanSuccessors);
-		successors = lockList(successors);
-		predecessors = lockList(predecessors);
-		dominatesOn = lockList(dominatesOn);
-		if (domFrontier == null) {
-			throw new JadxRuntimeException("Dominance frontier not set for block: " + this);
+		try {
+			List<BlockNode> successorsList = successors;
+			successors = lockList(successorsList);
+			cleanSuccessors = successorsList == cleanSuccessors ? this.successors : lockList(cleanSuccessors);
+			predecessors = lockList(predecessors);
+			dominatesOn = lockList(dominatesOn);
+			if (domFrontier == null) {
+				throw new JadxRuntimeException("Dominance frontier not set for block: " + this);
+			}
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Failed to lock block: " + this, e);
 		}
 	}
 
@@ -86,7 +90,7 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 		}
 		List<BlockNode> toRemove = new ArrayList<>(sucList.size());
 		for (BlockNode b : sucList) {
-			if (BlockUtils.isBlockMustBeCleared(b)) {
+			if (BlockUtils.isExceptionHandlerPath(b)) {
 				toRemove.add(b);
 			}
 		}
@@ -95,10 +99,6 @@ public final class BlockNode extends AttrNode implements IBlock, Comparable<Bloc
 			for (LoopInfo loop : loops) {
 				toRemove.add(loop.getStart());
 			}
-		}
-		IgnoreEdgeAttr ignoreEdgeAttr = block.get(AType.IGNORE_EDGE);
-		if (ignoreEdgeAttr != null) {
-			toRemove.addAll(ignoreEdgeAttr.getBlocks());
 		}
 		if (toRemove.isEmpty()) {
 			return sucList;

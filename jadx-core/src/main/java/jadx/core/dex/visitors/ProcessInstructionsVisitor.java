@@ -17,7 +17,7 @@ import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.dex.visitors.blocksmaker.BlockSplitter;
+import jadx.core.dex.visitors.blocks.BlockSplitter;
 import jadx.core.utils.InsnUtils;
 import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -91,6 +91,7 @@ public class ProcessInstructionsVisitor extends AbstractVisitor {
 					InsnNode arrDataInsn = getInsnAtOffset(insnByOffset, target);
 					if (arrDataInsn != null && arrDataInsn.getType() == InsnType.FILL_ARRAY_DATA) {
 						fillArrayInsn.setArrayData((FillArrayData) arrDataInsn);
+						removeInsn(insnByOffset, arrDataInsn);
 					} else {
 						throw new JadxRuntimeException("Payload for fill-array not found at " + InsnUtils.formatOffset(target));
 					}
@@ -110,6 +111,7 @@ public class ProcessInstructionsVisitor extends AbstractVisitor {
 			SwitchData data = (SwitchData) switchDataInsn;
 			data.fixTargets(offset);
 			sw.attachSwitchData(data, nextInsnOffset);
+			removeInsn(insnByOffset, switchDataInsn);
 		} else {
 			throw new JadxRuntimeException("Payload for switch not found at " + InsnUtils.formatOffset(dataTarget));
 		}
@@ -127,7 +129,7 @@ public class ProcessInstructionsVisitor extends AbstractVisitor {
 		RegisterArg moveRes = nextInsn.getResult();
 		insn.setResult(moveRes.duplicate(resType));
 		insn.copyAttributesFrom(nextInsn);
-		insnByOffset[nextInsnOffset] = null;
+		removeInsn(insnByOffset, nextInsn);
 	}
 
 	private static void addJump(MethodNode mth, InsnNode[] insnByOffset, int offset, int target) {
@@ -159,5 +161,9 @@ public class ProcessInstructionsVisitor extends AbstractVisitor {
 			}
 		}
 		return null;
+	}
+
+	private static void removeInsn(InsnNode[] insnByOffset, InsnNode insn) {
+		insnByOffset[insn.getOffset()] = null;
 	}
 }

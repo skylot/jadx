@@ -324,12 +324,12 @@ public class ClassGen {
 
 	public void addMethodCode(ICodeWriter code, MethodNode mth) throws CodegenException {
 		CodeGenUtils.addComments(code, mth);
+		insertDecompilationProblems(code, mth);
 		if (mth.isNoCode()) {
 			MethodGen mthGen = new MethodGen(this, mth);
 			mthGen.addDefinition(code);
 			code.add(';');
 		} else {
-			insertDecompilationProblems(code, mth);
 			boolean badCode = mth.contains(AFlag.INCONSISTENT_CODE);
 			if (badCode && showInconsistentCode) {
 				mth.remove(AFlag.INCONSISTENT_CODE);

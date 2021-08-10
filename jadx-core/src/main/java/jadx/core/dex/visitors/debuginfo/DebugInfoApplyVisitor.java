@@ -173,8 +173,8 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 			return;
 		}
 		InsnNode origReturn = null;
-		List<InsnNode> newReturns = new ArrayList<>(mth.getExitBlocks().size());
-		for (BlockNode exit : mth.getExitBlocks()) {
+		List<InsnNode> newReturns = new ArrayList<>(mth.getPreExitBlocks().size());
+		for (BlockNode exit : mth.getPreExitBlocks()) {
 			InsnNode ret = BlockUtils.getLastInsn(exit);
 			if (ret != null) {
 				if (ret.contains(AFlag.ORIG_RETURN)) {

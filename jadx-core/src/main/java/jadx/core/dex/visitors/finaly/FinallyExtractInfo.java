@@ -1,4 +1,4 @@
-package jadx.core.dex.visitors.blocksmaker.helpers;
+package jadx.core.dex.visitors.finaly;
 
 import java.util.ArrayList;
 import java.util.HashSet;

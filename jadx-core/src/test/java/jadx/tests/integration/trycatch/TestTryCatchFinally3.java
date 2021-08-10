@@ -19,7 +19,7 @@ public class TestTryCatchFinally3 extends IntegrationTest {
 	public static class TestCls {
 		private static final Logger LOG = LoggerFactory.getLogger(TestCls.class);
 
-		public static void process(ClassNode cls, List<IDexTreeVisitor> passes) {
+		public static void test(ClassNode cls, List<IDexTreeVisitor> passes) {
 			try {
 				cls.load();
 				for (IDexTreeVisitor visitor : passes) {

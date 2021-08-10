@@ -189,6 +189,10 @@ public class RegisterArg extends InsnArg implements Named {
 		return this.getSVar().getCodeVar() == arg.getSVar().getCodeVar();
 	}
 
+	public boolean isLinkedToOtherSsaVars() {
+		return getSVar().getCodeVar().getSsaVars().size() > 1;
+	}
+
 	@Override
 	public int hashCode() {
 		return regNum;

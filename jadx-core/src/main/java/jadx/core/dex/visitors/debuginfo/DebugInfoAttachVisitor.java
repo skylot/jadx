@@ -19,7 +19,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.parser.SignatureParser;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
-import jadx.core.dex.visitors.blocksmaker.BlockSplitter;
+import jadx.core.dex.visitors.blocks.BlockSplitter;
 import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.Utils;

@@ -108,12 +108,8 @@ public class JavaFileLoader {
 	private static int getNextUniqId() {
 		classUniqId++;
 		if (classUniqId >= 0xFFFF) {
-			resetDexUniqId();
+			classUniqId = 1;
 		}
 		return classUniqId;
-	}
-
-	public static void resetDexUniqId() {
-		classUniqId = 1;
 	}
 }

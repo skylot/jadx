@@ -60,7 +60,11 @@ public abstract class BaseExternalTest extends IntegrationTest {
 
 	private void processAll(JadxDecompiler jadx) {
 		for (JavaClass javaClass : jadx.getClasses()) {
-			javaClass.decompile();
+			try {
+				javaClass.decompile();
+			} catch (Exception e) {
+				LOG.error("Failed to decompile class: {}", javaClass, e);
+			}
 		}
 	}
 

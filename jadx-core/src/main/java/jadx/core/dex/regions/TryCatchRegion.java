@@ -12,7 +12,7 @@ import jadx.core.dex.nodes.IBranchRegion;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
 import jadx.core.dex.trycatch.ExceptionHandler;
-import jadx.core.dex.trycatch.TryCatchBlock;
+import jadx.core.dex.trycatch.TryCatchBlockAttr;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.CodegenException;
 
@@ -21,14 +21,14 @@ public final class TryCatchRegion extends AbstractRegion implements IBranchRegio
 	private final IContainer tryRegion;
 	private Map<ExceptionHandler, IContainer> catchRegions = Collections.emptyMap();
 	private IContainer finallyRegion;
-	private TryCatchBlock tryCatchBlock;
+	private TryCatchBlockAttr tryCatchBlock;
 
 	public TryCatchRegion(IRegion parent, IContainer tryRegion) {
 		super(parent);
 		this.tryRegion = tryRegion;
 	}
 
-	public void setTryCatchBlock(TryCatchBlock tryCatchBlock) {
+	public void setTryCatchBlock(TryCatchBlockAttr tryCatchBlock) {
 		this.tryCatchBlock = tryCatchBlock;
 		int count = tryCatchBlock.getHandlersCount();
 		this.catchRegions = new LinkedHashMap<>(count);
@@ -52,7 +52,7 @@ public final class TryCatchRegion extends AbstractRegion implements IBranchRegio
 		return catchRegions;
 	}
 
-	public TryCatchBlock getTryCatchBlock() {
+	public TryCatchBlockAttr getTryCatchBlock() {
 		return tryCatchBlock;
 	}
 

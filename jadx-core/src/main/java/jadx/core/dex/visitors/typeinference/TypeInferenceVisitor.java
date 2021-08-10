@@ -48,7 +48,7 @@ import jadx.core.dex.visitors.ConstInlineVisitor;
 import jadx.core.dex.visitors.InitCodeVariables;
 import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.ModVisitor;
-import jadx.core.dex.visitors.blocksmaker.BlockSplitter;
+import jadx.core.dex.visitors.blocks.BlockSplitter;
 import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnList;

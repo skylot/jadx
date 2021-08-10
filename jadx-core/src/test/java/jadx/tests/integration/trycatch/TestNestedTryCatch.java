@@ -12,17 +12,17 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TestNestedTryCatch extends IntegrationTest {
 
 	public static class TestCls {
-		public void f() {
+		public void test() {
 			try {
 				Thread.sleep(1);
 				try {
 					Thread.sleep(2);
 				} catch (InterruptedException ignored) {
+					System.out.println(2);
 				}
 			} catch (Exception ignored) {
+				System.out.println(1);
 			}
-
-			return;
 		}
 	}
 

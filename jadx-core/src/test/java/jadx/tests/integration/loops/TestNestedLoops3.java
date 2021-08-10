@@ -32,7 +32,7 @@ public class TestNestedLoops3 extends IntegrationTest {
 						exc();
 						break;
 					} catch (Exception e) {
-						//
+						// ignore
 					}
 				}
 			}

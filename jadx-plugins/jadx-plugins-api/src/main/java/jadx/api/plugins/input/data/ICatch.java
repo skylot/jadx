@@ -3,7 +3,7 @@ package jadx.api.plugins.input.data;
 public interface ICatch {
 	String[] getTypes();
 
-	int[] getAddresses();
+	int[] getHandlers();
 
-	int getCatchAllAddress();
+	int getCatchAllHandler();
 }

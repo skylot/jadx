@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import jadx.NotYetImplemented;
 import jadx.tests.api.IntegrationTest;
 
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
+
 public class TestNestedLoops4 extends IntegrationTest {
 
 	public static class TestCls {
@@ -28,11 +30,18 @@ public class TestNestedLoops4 extends IntegrationTest {
 			}
 			return tmp;
 		}
+
+		public void check() {
+			assertThat(testFor()).isEqualTo(12);
+		}
 	}
 
 	@Test
 	@NotYetImplemented
 	public void test() {
-		getClassNode(TestCls.class);
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("break;")
+				.containsOne("return 0;");
 	}
 }

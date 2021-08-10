@@ -1,7 +1,6 @@
 package jadx.core.dex.visitors.regions;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -28,7 +27,6 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.visitors.regions.RegionMaker.isEqualPaths;
 import static jadx.core.dex.visitors.regions.RegionMaker.isEqualReturnBlocks;
-import static jadx.core.utils.BlockUtils.getNextBlock;
 import static jadx.core.utils.BlockUtils.isPathExists;
 
 public class IfMakerHelper {
@@ -38,15 +36,14 @@ public class IfMakerHelper {
 	}
 
 	@Nullable
-	static IfInfo makeIfInfo(BlockNode ifBlock) {
+	static IfInfo makeIfInfo(MethodNode mth, BlockNode ifBlock) {
 		InsnNode lastInsn = BlockUtils.getLastInsn(ifBlock);
 		if (lastInsn == null || lastInsn.getType() != InsnType.IF) {
 			return null;
 		}
 		IfNode ifNode = (IfNode) lastInsn;
 		IfCondition condition = IfCondition.fromIfNode(ifNode);
-		IfInfo info = new IfInfo(condition, ifNode.getThenBlock(), ifNode.getElseBlock());
-		info.setIfBlock(ifBlock);
+		IfInfo info = new IfInfo(mth, condition, ifNode.getThenBlock(), ifNode.getElseBlock());
 		info.getMergedBlocks().add(ifBlock);
 		return info;
 	}
@@ -77,7 +74,7 @@ public class IfMakerHelper {
 		boolean badThen = isBadBranchBlock(info, thenBlock);
 		boolean badElse = isBadBranchBlock(info, elseBlock);
 		if (badThen && badElse) {
-			LOG.debug("Stop processing blocks after 'if': {}, method: {}", info.getIfBlock(), mth);
+			LOG.debug("Stop processing blocks after 'if': {}, method: {}", info.getMergedBlocks(), mth);
 			return null;
 		}
 		if (badElse) {
@@ -88,24 +85,7 @@ public class IfMakerHelper {
 			info = new IfInfo(info, elseBlock, null);
 			info.setOutBlock(thenBlock);
 		} else {
-			List<BlockNode> thenSC = thenBlock.getCleanSuccessors();
-			List<BlockNode> elseSC = elseBlock.getCleanSuccessors();
-			if (thenSC.size() == 1 && sameElements(thenSC, elseSC)) {
-				info.setOutBlock(thenSC.get(0));
-			} else if (info.getMergedBlocks().size() == 1
-					&& block.getDominatesOn().size() == 2) {
-				info.setOutBlock(BlockUtils.getPathCross(mth, thenBlock, elseBlock));
-			}
-		}
-		if (info.getOutBlock() == null) {
-			for (BlockNode d : block.getDominatesOn()) {
-				if (d != thenBlock && d != elseBlock
-						&& !info.getMergedBlocks().contains(d)
-						&& isPathExists(thenBlock, d)) {
-					info.setOutBlock(d);
-					break;
-				}
-			}
+			info.setOutBlock(BlockUtils.getPathCross(mth, thenBlock, elseBlock));
 		}
 		if (BlockUtils.isBackEdge(block, info.getOutBlock())) {
 			info.setOutBlock(null);
@@ -135,18 +115,14 @@ public class IfMakerHelper {
 
 	private static boolean allPathsFromIf(BlockNode block, IfInfo info) {
 		List<BlockNode> preds = block.getPredecessors();
-		Set<BlockNode> ifBlocks = info.getMergedBlocks();
+		List<BlockNode> ifBlocks = info.getMergedBlocks();
 		for (BlockNode pred : preds) {
-			pred = BlockUtils.skipSyntheticPredecessor(pred);
-			if (!ifBlocks.contains(pred) && !pred.contains(AFlag.LOOP_END)) {
+			BlockNode top = BlockUtils.skipSyntheticPredecessor(pred);
+			if (!ifBlocks.contains(top) && !top.contains(AFlag.LOOP_END)) {
 				return false;
 			}
 		}
 		return true;
-	}
-
-	private static boolean sameElements(Collection<BlockNode> c1, Collection<BlockNode> c2) {
-		return c1.size() == c2.size() && c1.containsAll(c2);
 	}
 
 	static IfInfo mergeNestedIfNodes(IfInfo currentIf) {
@@ -195,8 +171,8 @@ public class IfMakerHelper {
 				return null;
 			}
 			BlockNode otherBranchBlock = followThenBranch ? curElse : curThen;
-			otherBranchBlock = BlockUtils.skipSyntheticSuccessor(otherBranchBlock);
-			if (!isPathExists(nextIf.getIfBlock(), otherBranchBlock)) {
+			otherBranchBlock = BlockUtils.followEmptyPath(otherBranchBlock);
+			if (!isPathExists(nextIf.getFirstIfBlock(), otherBranchBlock)) {
 				return checkForTernaryInCondition(currentIf);
 			}
 
@@ -236,7 +212,7 @@ public class IfMakerHelper {
 		if (nextThen == null || nextElse == null) {
 			return null;
 		}
-		if (!nextThen.getIfBlock().getDomFrontier().equals(nextElse.getIfBlock().getDomFrontier())) {
+		if (!nextThen.getFirstIfBlock().getDomFrontier().equals(nextElse.getFirstIfBlock().getDomFrontier())) {
 			return null;
 		}
 		nextThen = searchNestedIf(nextThen);
@@ -256,8 +232,7 @@ public class IfMakerHelper {
 	private static IfInfo mergeTernaryConditions(IfInfo currentIf, IfInfo nextThen, IfInfo nextElse) {
 		IfCondition newCondition = IfCondition.ternary(currentIf.getCondition(),
 				nextThen.getCondition(), nextElse.getCondition());
-		IfInfo result = new IfInfo(newCondition, nextThen.getThenBlock(), nextThen.getElseBlock());
-		result.setIfBlock(currentIf.getIfBlock());
+		IfInfo result = new IfInfo(currentIf.getMth(), newCondition, nextThen.getThenBlock(), nextThen.getElseBlock());
 		result.merge(currentIf, nextThen, nextElse);
 		confirmMerge(result);
 		return result;
@@ -281,62 +256,55 @@ public class IfMakerHelper {
 	}
 
 	private static IfInfo mergeIfInfo(IfInfo first, IfInfo second, boolean followThenBranch) {
-		Mode mergeOperation = followThenBranch ? Mode.AND : Mode.OR;
-
-		IfCondition condition = IfCondition.merge(mergeOperation, first.getCondition(), second.getCondition());
-		// skip synthetic successor if both parts leads to same block
+		MethodNode mth = first.getMth();
+		Set<BlockNode> skipBlocks = first.getSkipBlocks();
 		BlockNode thenBlock;
 		BlockNode elseBlock;
 		if (followThenBranch) {
 			thenBlock = second.getThenBlock();
-			elseBlock = getCrossBlock(first.getElseBlock(), second.getElseBlock());
+			elseBlock = getBranchBlock(first.getElseBlock(), second.getElseBlock(), skipBlocks, mth);
 		} else {
-			thenBlock = getCrossBlock(first.getThenBlock(), second.getThenBlock());
+			thenBlock = getBranchBlock(first.getThenBlock(), second.getThenBlock(), skipBlocks, mth);
 			elseBlock = second.getElseBlock();
 		}
-		IfInfo result = new IfInfo(condition, thenBlock, elseBlock);
-		result.setIfBlock(first.getIfBlock());
+		Mode mergeOperation = followThenBranch ? Mode.AND : Mode.OR;
+		IfCondition condition = IfCondition.merge(mergeOperation, first.getCondition(), second.getCondition());
+		IfInfo result = new IfInfo(mth, condition, thenBlock, elseBlock);
 		result.merge(first, second);
-
-		BlockNode otherPathBlock;
-		if (followThenBranch) {
-			otherPathBlock = first.getElseBlock();
-			if (!otherPathBlock.equals(result.getElseBlock())) {
-				result.getSkipBlocks().add(otherPathBlock);
-			}
-		} else {
-			otherPathBlock = first.getThenBlock();
-			if (!otherPathBlock.equals(result.getThenBlock())) {
-				result.getSkipBlocks().add(otherPathBlock);
-			}
-		}
-		skipSimplePath(otherPathBlock, result.getSkipBlocks());
 		return result;
 	}
 
-	private static BlockNode getCrossBlock(BlockNode first, BlockNode second) {
-		if (isSameBlocks(first, second)) {
+	private static BlockNode getBranchBlock(BlockNode first, BlockNode second, Set<BlockNode> skipBlocks, MethodNode mth) {
+		if (first == second) {
 			return second;
 		}
-		BlockNode firstSkip = BlockUtils.skipSyntheticSuccessor(first);
-		if (isSameBlocks(firstSkip, second)) {
+		if (isEqualReturnBlocks(first, second)) {
+			skipBlocks.add(first);
 			return second;
 		}
-		BlockNode secondSkip = BlockUtils.skipSyntheticSuccessor(second);
-		if (isSameBlocks(firstSkip, secondSkip) || isSameBlocks(first, secondSkip)) {
+		BlockNode cross = BlockUtils.getPathCross(mth, first, second);
+		if (cross != null) {
+			BlockUtils.visitBlocksOnPath(mth, first, cross, skipBlocks::add);
+			BlockUtils.visitBlocksOnPath(mth, second, cross, skipBlocks::add);
+			skipBlocks.remove(cross);
+			return cross;
+		}
+		BlockNode firstSkip = BlockUtils.followEmptyPath(first);
+		BlockNode secondSkip = BlockUtils.followEmptyPath(second);
+		if (firstSkip.equals(secondSkip) || isEqualReturnBlocks(firstSkip, secondSkip)) {
+			skipBlocks.add(first);
+			skipBlocks.add(second);
+			BlockUtils.visitBlocksOnEmptyPath(first, skipBlocks::add);
+			BlockUtils.visitBlocksOnEmptyPath(second, skipBlocks::add);
 			return secondSkip;
 		}
 		throw new JadxRuntimeException("Unexpected merge pattern");
 	}
 
-	private static boolean isSameBlocks(BlockNode first, BlockNode second) {
-		return first == second || isEqualReturnBlocks(first, second);
-	}
-
 	static void confirmMerge(IfInfo info) {
 		if (info.getMergedBlocks().size() > 1) {
 			for (BlockNode block : info.getMergedBlocks()) {
-				if (block != info.getIfBlock()) {
+				if (block != info.getFirstIfBlock()) {
 					block.add(AFlag.ADDED_TO_REGION);
 				}
 			}
@@ -372,7 +340,7 @@ public class IfMakerHelper {
 		}
 		InsnNode lastInsn = BlockUtils.getLastInsn(block);
 		if (lastInsn != null && lastInsn.getType() == InsnType.IF) {
-			return makeIfInfo(block);
+			return makeIfInfo(info.getMth(), block);
 		}
 		// skip this block and search in successors chain
 		List<BlockNode> successors = block.getSuccessors();
@@ -420,20 +388,11 @@ public class IfMakerHelper {
 		if (!pass) {
 			return null;
 		}
-		IfInfo nextInfo = makeIfInfo(next);
+		IfInfo nextInfo = makeIfInfo(info.getMth(), next);
 		if (nextInfo == null) {
 			return getNextIfNodeInfo(info, next);
 		}
 		nextInfo.addInsnsForForcedInline(forceInlineInsns);
 		return nextInfo;
-	}
-
-	private static void skipSimplePath(BlockNode block, Set<BlockNode> skipped) {
-		while (block != null
-				&& block.getCleanSuccessors().size() < 2
-				&& block.getPredecessors().size() == 1) {
-			skipped.add(block);
-			block = getNextBlock(block);
-		}
 	}
 }

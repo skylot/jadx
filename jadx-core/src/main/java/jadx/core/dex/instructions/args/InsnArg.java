@@ -236,6 +236,13 @@ public abstract class InsnArg extends Typed {
 		return isLiteral() || (isInsnWrap() && ((InsnWrapArg) this).getWrapInsn().isConstInsn());
 	}
 
+	public boolean isSameConst(InsnArg other) {
+		if (isConst() && other.isConst()) {
+			return this.equals(other);
+		}
+		return false;
+	}
+
 	protected final <T extends InsnArg> T copyCommonParams(T copy) {
 		copy.copyAttributesFrom(this);
 		copy.setParentInsn(parentInsn);

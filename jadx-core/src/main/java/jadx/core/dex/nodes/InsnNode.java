@@ -463,6 +463,7 @@ public class InsnNode extends LineAttrNode {
 			case CONST_CLASS:
 			case CMP_L:
 			case CMP_G:
+			case NOP:
 				return false;
 
 			default:

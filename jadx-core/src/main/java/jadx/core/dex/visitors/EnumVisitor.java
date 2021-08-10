@@ -160,7 +160,7 @@ public class EnumVisitor extends AbstractVisitor {
 				fieldNode.getFieldInfo().setAlias(name);
 			}
 			fieldNode.add(AFlag.DONT_GENERATE);
-			processConstructorInsn(cls, enumField, classInitMth, staticBlock);
+			processConstructorInsn(cls, enumField, classInitMth, staticBlock, toRemove);
 		}
 		valuesField.add(AFlag.DONT_GENERATE);
 		InsnRemover.removeAllAndUnbind(classInitMth, staticBlock, toRemove);
@@ -173,7 +173,8 @@ public class EnumVisitor extends AbstractVisitor {
 		return true;
 	}
 
-	private void processConstructorInsn(ClassNode cls, EnumField enumField, MethodNode classInitMth, BlockNode staticBlock) {
+	private void processConstructorInsn(ClassNode cls, EnumField enumField, MethodNode classInitMth,
+			BlockNode staticBlock, List<InsnNode> toRemove) {
 		ConstructorInsn co = enumField.getConstrInsn();
 		ClassInfo enumClsInfo = co.getClassType();
 		if (!enumClsInfo.equals(cls.getClassInfo())) {
@@ -194,7 +195,7 @@ public class EnumVisitor extends AbstractVisitor {
 		}
 		RegisterArg coResArg = co.getResult();
 		if (coResArg == null || coResArg.getSVar().getUseList().size() <= 2) {
-			InsnRemover.removeWithoutUnbind(classInitMth, staticBlock, co);
+			toRemove.add(co);
 		} else {
 			// constructor result used in other places -> replace constructor with enum field get (SGET)
 			IndexInsnNode enumGet = new IndexInsnNode(InsnType.SGET, enumField.getField().getFieldInfo(), 0);
@@ -234,7 +235,7 @@ public class EnumVisitor extends AbstractVisitor {
 		if (valuesMth == null || valuesMth.isVoidReturn()) {
 			return null;
 		}
-		BlockNode returnBlock = Utils.getOne(valuesMth.getExitBlocks());
+		BlockNode returnBlock = Utils.getOne(valuesMth.getPreExitBlocks());
 		InsnNode returnInsn = BlockUtils.getLastInsn(returnBlock);
 		InsnNode wrappedInsn = getWrappedInsn(getSingleArg(returnInsn));
 		if (wrappedInsn == null) {

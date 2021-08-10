@@ -176,11 +176,11 @@ public class RegionGen extends InsnGen {
 	}
 
 	public void makeLoop(LoopRegion region, ICodeWriter code) throws CodegenException {
+		code.startLineWithNum(region.getConditionSourceLine());
 		LoopLabelAttr labelAttr = region.getInfo().getStart().get(AType.LOOP_LABEL);
 		if (labelAttr != null) {
-			code.startLine(mgen.getNameGen().getLoopLabel(labelAttr)).add(':');
+			code.add(mgen.getNameGen().getLoopLabel(labelAttr)).add(": ");
 		}
-		code.startLineWithNum(region.getConditionSourceLine());
 
 		IfCondition condition = region.getCondition();
 		if (condition == null) {
@@ -307,7 +307,7 @@ public class RegionGen extends InsnGen {
 	public void makeTryCatch(TryCatchRegion region, ICodeWriter code) throws CodegenException {
 		code.startLine("try {");
 
-		InsnNode insn = Utils.first(region.getTryCatchBlock().getInsns());
+		InsnNode insn = BlockUtils.getFirstInsn(Utils.first(region.getTryCatchBlock().getBlocks()));
 		InsnCodeOffset.attach(code, insn);
 		CodeGenUtils.addCodeComments(code, insn);
 
@@ -387,7 +387,7 @@ public class RegionGen extends InsnGen {
 		}
 		code.add(") {");
 
-		InsnCodeOffset.attach(code, handler.getHandleOffset());
+		InsnCodeOffset.attach(code, handler.getHandlerOffset());
 		CodeGenUtils.addCodeComments(code, handler.getHandlerBlock());
 
 		makeRegionIndent(code, region);

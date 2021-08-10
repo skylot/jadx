@@ -34,7 +34,6 @@ public class TestFieldInit2 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		printDisassemble();
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 

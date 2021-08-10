@@ -24,7 +24,6 @@ public class ReturnVisitor extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
-		// remove useless returns in void methods
 		if (mth.isVoidReturn()) {
 			DepthRegionTraversal.traverse(mth, new ReturnRemoverVisitor());
 		}

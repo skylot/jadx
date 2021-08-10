@@ -21,7 +21,6 @@ import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.attributes.nodes.NotificationAttrNode;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.AccessInfo.AFType;
-import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.InsnDecoder;
 import jadx.core.dex.instructions.args.ArgType;
@@ -68,7 +67,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	private InsnNode[] instructions;
 	private List<BlockNode> blocks;
 	private BlockNode enterBlock;
-	private List<BlockNode> exitBlocks;
+	private BlockNode exitBlock;
 	private List<SSAVar> sVars;
 	private List<ExceptionHandler> exceptionHandlers;
 	private List<LoopInfo> loops;
@@ -157,7 +156,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		instructions = null;
 		blocks = null;
 		enterBlock = null;
-		exitBlocks = null;
+		exitBlock = null;
 		region = null;
 		exceptionHandlers = Collections.emptyList();
 		loops = Collections.emptyList();
@@ -203,27 +202,6 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 			}
 			throw new DecodeException(this, "Load method exception: "
 					+ e.getClass().getSimpleName() + ": " + e.getMessage(), e);
-		}
-	}
-
-	public void checkInstructions() {
-		List<RegisterArg> list = new ArrayList<>();
-		for (InsnNode insnNode : instructions) {
-			if (insnNode == null) {
-				continue;
-			}
-			list.clear();
-			RegisterArg resultArg = insnNode.getResult();
-			if (resultArg != null) {
-				list.add(resultArg);
-			}
-			insnNode.getRegisterArgs(list);
-			for (RegisterArg arg : list) {
-				if (arg.getRegNum() >= regsCount) {
-					throw new JadxRuntimeException("Incorrect register number in instruction: " + insnNode
-							+ ", expected to be less than " + regsCount);
-				}
-			}
 		}
 	}
 
@@ -372,12 +350,10 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 
 	public void initBasicBlocks() {
 		blocks = new ArrayList<>();
-		exitBlocks = new ArrayList<>(1);
 	}
 
 	public void finishBasicBlocks() {
 		blocks = lockList(blocks);
-		exitBlocks = lockList(exitBlocks);
 		loops = lockList(loops);
 		blocks.forEach(BlockNode::lock);
 	}
@@ -394,12 +370,16 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		this.enterBlock = enterBlock;
 	}
 
-	public List<BlockNode> getExitBlocks() {
-		return exitBlocks;
+	public BlockNode getExitBlock() {
+		return exitBlock;
 	}
 
-	public void addExitBlock(BlockNode exitBlock) {
-		this.exitBlocks.add(exitBlock);
+	public void setExitBlock(BlockNode exitBlock) {
+		this.exitBlock = exitBlock;
+	}
+
+	public List<BlockNode> getPreExitBlocks() {
+		return exitBlock.getPredecessors();
 	}
 
 	public void registerLoop(LoopInfo loop) {
@@ -447,23 +427,6 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	public ExceptionHandler addExceptionHandler(ExceptionHandler handler) {
 		if (exceptionHandlers.isEmpty()) {
 			exceptionHandlers = new ArrayList<>(2);
-		} else {
-			for (ExceptionHandler h : exceptionHandlers) {
-				if (h.equals(handler)) {
-					return h;
-				}
-				if (h.getHandleOffset() == handler.getHandleOffset()) {
-					if (h.getTryBlock() == handler.getTryBlock()) {
-						for (ClassInfo catchType : handler.getCatchTypes()) {
-							h.addCatchType(catchType);
-						}
-					} else {
-						// same handlers from different try blocks
-						// will merge later
-					}
-					return h;
-				}
-			}
 		}
 		exceptionHandlers.add(handler);
 		return handler;
@@ -550,7 +513,7 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return var;
 	}
 
-	public int getNextSVarVersion(int regNum) {
+	private int getNextSVarVersion(int regNum) {
 		int v = -1;
 		for (SSAVar sVar : sVars) {
 			if (sVar.getRegNum() == regNum) {

@@ -1,21 +1,22 @@
 package jadx.api.plugins.input.data.impl;
 
 import jadx.api.plugins.input.data.ICatch;
+import jadx.api.plugins.utils.Utils;
 
 public class CatchData implements ICatch {
-	private final int[] addr;
+	private final int[] handlers;
 	private final String[] types;
-	private final int allAddr;
+	private final int allHandler;
 
-	public CatchData(int[] addr, String[] types, int allAddr) {
-		this.addr = addr;
+	public CatchData(int[] handlers, String[] types, int allHandler) {
+		this.handlers = handlers;
 		this.types = types;
-		this.allAddr = allAddr;
+		this.allHandler = allHandler;
 	}
 
 	@Override
-	public int[] getAddresses() {
-		return addr;
+	public int[] getHandlers() {
+		return handlers;
 	}
 
 	@Override
@@ -24,8 +25,8 @@ public class CatchData implements ICatch {
 	}
 
 	@Override
-	public int getCatchAllAddress() {
-		return allAddr;
+	public int getCatchAllHandler() {
+		return allHandler;
 	}
 
 	@Override
@@ -33,10 +34,10 @@ public class CatchData implements ICatch {
 		StringBuilder sb = new StringBuilder("Catch:");
 		int size = types.length;
 		for (int i = 0; i < size; i++) {
-			sb.append(' ').append(types[i]).append("->").append(addr[i]);
+			sb.append(' ').append(types[i]).append("->").append(Utils.formatOffset(handlers[i]));
 		}
-		if (allAddr != -1) {
-			sb.append(" all->").append(allAddr);
+		if (allHandler != -1) {
+			sb.append(" all->").append(Utils.formatOffset(allHandler));
 		}
 		return sb.toString();
 	}

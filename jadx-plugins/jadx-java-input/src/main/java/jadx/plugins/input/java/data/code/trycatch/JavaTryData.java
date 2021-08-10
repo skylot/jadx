@@ -2,16 +2,17 @@ package jadx.plugins.input.java.data.code.trycatch;
 
 import jadx.api.plugins.input.data.ICatch;
 import jadx.api.plugins.input.data.ITry;
+import jadx.api.plugins.utils.Utils;
 
 public class JavaTryData implements ITry {
 
-	private final int startAddr;
-	private final int endAddr;
+	private final int startOffset;
+	private final int endOffset;
 	private ICatch catchHandler;
 
-	public JavaTryData(int startAddr, int endAddr) {
-		this.startAddr = startAddr;
-		this.endAddr = endAddr;
+	public JavaTryData(int startOffset, int endOffset) {
+		this.startOffset = startOffset;
+		this.endOffset = endOffset;
 	}
 
 	@Override
@@ -24,18 +25,18 @@ public class JavaTryData implements ITry {
 	}
 
 	@Override
-	public int getStartAddress() {
-		return startAddr;
+	public int getStartOffset() {
+		return startOffset;
 	}
 
 	@Override
-	public int getEndAddress() {
-		return endAddr;
+	public int getEndOffset() {
+		return endOffset;
 	}
 
 	@Override
 	public int hashCode() {
-		return startAddr + 31 * endAddr;
+		return startOffset + 31 * endOffset;
 	}
 
 	@Override
@@ -47,11 +48,11 @@ public class JavaTryData implements ITry {
 			return false;
 		}
 		JavaTryData that = (JavaTryData) o;
-		return startAddr == that.startAddr && endAddr == that.endAddr;
+		return startOffset == that.startOffset && endOffset == that.endOffset;
 	}
 
 	@Override
 	public String toString() {
-		return "Try{" + startAddr + " - " + endAddr + ": " + catchHandler + '}';
+		return "Try{" + Utils.formatOffset(startOffset) + " - " + Utils.formatOffset(endOffset) + ": " + catchHandler + '}';
 	}
 }

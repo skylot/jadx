@@ -6,6 +6,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -23,6 +24,12 @@ public class TestLoopDetection extends IntegrationTest {
 				a[i]--;
 				i++;
 			}
+		}
+
+		public void check() {
+			int[] a = { 1, 1, 1, 1, 1 };
+			test(a, 3);
+			assertThat(a, is(new int[] { 2, 2, 2, 0, 0 }));
 		}
 	}
 

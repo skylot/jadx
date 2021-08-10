@@ -84,8 +84,9 @@ public final class TypeUpdate {
 			return SAME;
 		}
 		if (Consts.DEBUG_TYPE_INFERENCE) {
-			LOG.debug("Applying types for {} -> {}", ssaVar, candidateType);
-			updates.forEach(updateEntry -> LOG.debug("  {} -> {}", updateEntry.getType(), updateEntry.getArg()));
+			LOG.debug("Applying type {} to {}", ssaVar.toShortString(), candidateType);
+			updates.forEach(updateEntry -> LOG.debug("  {} -> {} in {}",
+					updateEntry.getType(), updateEntry.getArg(), updateEntry.getArg().getParentInsn()));
 		}
 		updateInfo.applyUpdates();
 		return CHANGED;
@@ -334,7 +335,6 @@ public final class TypeUpdate {
 					argNum -> typeUtils.replaceClassGenerics(candidateType, argTypes.get(argNum)));
 		}
 		return SAME;
-
 	}
 
 	private TypeUpdateResult applyInvokeTypes(TypeUpdateInfo updateInfo, BaseInvokeNode invoke, int argsCount,
@@ -439,14 +439,15 @@ public final class TypeUpdate {
 		}
 		boolean allSame = true;
 		for (InsnArg insnArg : insn.getArguments()) {
-			if (insnArg != arg) {
-				TypeUpdateResult result = updateTypeChecked(updateInfo, insnArg, candidateType);
-				if (result == REJECT) {
-					return result;
-				}
-				if (result != SAME) {
-					allSame = false;
-				}
+			if (insnArg == arg) {
+				continue;
+			}
+			TypeUpdateResult result = updateTypeChecked(updateInfo, insnArg, candidateType);
+			if (result == REJECT) {
+				return result;
+			}
+			if (result != SAME) {
+				allSame = false;
 			}
 		}
 		return allSame ? SAME : CHANGED;

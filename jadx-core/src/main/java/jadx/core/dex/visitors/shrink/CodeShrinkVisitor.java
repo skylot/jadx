@@ -42,7 +42,7 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 		}
 		for (BlockNode block : mth.getBasicBlocks()) {
 			shrinkBlock(mth, block);
-			simplifyMoveInsns(block);
+			simplifyMoveInsns(mth, block);
 		}
 	}
 
@@ -153,6 +153,7 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 			if (parentInsn != null) {
 				parentInsn.inheritMetadata(insn);
 			}
+			InsnRemover.unbindResult(mth, insn);
 			InsnRemover.removeWithoutUnbind(mth, block, insn);
 		}
 		return replaced;
@@ -211,7 +212,7 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 		throw new JadxRuntimeException("Can't process instruction move : " + assignBlock);
 	}
 
-	private static void simplifyMoveInsns(BlockNode block) {
+	private static void simplifyMoveInsns(MethodNode mth, BlockNode block) {
 		List<InsnNode> insns = block.getInstructions();
 		int size = insns.size();
 		for (int i = 0; i < size; i++) {
@@ -221,9 +222,9 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 				InsnArg arg = insn.getArg(0);
 				if (arg.isInsnWrap()) {
 					InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
-					wrapInsn.setResult(insn.getResult());
-					wrapInsn.copyAttributesFrom(insn);
-					wrapInsn.addSourceLineFrom(insn);
+					InsnRemover.unbindResult(mth, wrapInsn);
+					wrapInsn.setResult(insn.getResult().duplicate());
+					wrapInsn.inheritMetadata(insn);
 					wrapInsn.setOffset(insn.getOffset());
 					wrapInsn.remove(AFlag.WRAPPED);
 					block.getInstructions().set(i, wrapInsn);

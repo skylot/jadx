@@ -41,6 +41,7 @@ public class JadxArgs {
 	private boolean useImports = true;
 	private boolean debugInfo = true;
 	private boolean insertDebugLines = false;
+	private boolean extractFinally = true;
 	private boolean inlineAnonymousClasses = true;
 	private boolean inlineMethods = true;
 
@@ -206,6 +207,14 @@ public class JadxArgs {
 
 	public void setInlineMethods(boolean inlineMethods) {
 		this.inlineMethods = inlineMethods;
+	}
+
+	public boolean isExtractFinally() {
+		return extractFinally;
+	}
+
+	public void setExtractFinally(boolean extractFinally) {
+		this.extractFinally = extractFinally;
 	}
 
 	public boolean isSkipResources() {

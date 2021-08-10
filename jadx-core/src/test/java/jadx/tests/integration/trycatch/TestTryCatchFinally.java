@@ -2,11 +2,9 @@ package jadx.tests.integration.trycatch;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
 
-import static jadx.tests.api.utils.JadxMatchers.containsOne;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestTryCatchFinally extends IntegrationTest {
@@ -42,14 +40,27 @@ public class TestTryCatchFinally extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = cls.getCode().toString();
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("this.f = false;")
+				.containsOne("exc(obj);")
+				.containsOne("} catch (Exception e) {")
+				.containsOne("e.printStackTrace();")
+				.containsOne("} finally {")
+				.containsOne("this.f = true;")
+				.containsOne("return this.f;")
+				.doesNotContain("boolean z");
+	}
 
-		assertThat(code, containsOne("exc(obj);"));
-		assertThat(code, containsOne("} catch (Exception e) {"));
-		assertThat(code, containsOne("e.printStackTrace();"));
-		assertThat(code, containsOne("} finally {"));
-		// assertThat(code, containsOne("this.f = true;")); // TODO: fix registers in duplicated code
-		assertThat(code, containsOne("return this.f;"));
+	@Test
+	public void testWithoutFinally() {
+		args.setExtractFinally(false);
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("exc(obj);")
+				.containsOne(indent(3) + "} catch (Exception e) {")
+				.containsOne(indent(2) + "} catch (Throwable th) {")
+				.containsOne("this.f = false;")
+				.countString(3, "this.f = true;");
 	}
 }

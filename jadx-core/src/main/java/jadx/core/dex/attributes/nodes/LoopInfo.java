@@ -1,8 +1,8 @@
 package jadx.core.dex.attributes.nodes;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -60,11 +60,11 @@ public class LoopInfo {
 	 * Return loop exit edges.
 	 */
 	public List<Edge> getExitEdges() {
-		List<Edge> edges = new LinkedList<>();
+		List<Edge> edges = new ArrayList<>();
 		Set<BlockNode> blocks = getLoopBlocks();
 		for (BlockNode block : blocks) {
-			for (BlockNode s : block.getSuccessors()) {
-				if (!blocks.contains(s) && !s.contains(AType.EXC_HANDLER)) {
+			for (BlockNode s : block.getSuccessors()) { // don't use clean successors to include loop back edges
+				if (!blocks.contains(s) && !BlockUtils.isExceptionHandlerPath(s)) {
 					edges.add(new Edge(block, s));
 				}
 			}

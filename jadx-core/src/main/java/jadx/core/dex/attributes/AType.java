@@ -10,7 +10,6 @@ import jadx.core.dex.attributes.nodes.EnumMapAttr;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.attributes.nodes.ForceReturnAttr;
 import jadx.core.dex.attributes.nodes.GenericInfoAttr;
-import jadx.core.dex.attributes.nodes.IgnoreEdgeAttr;
 import jadx.core.dex.attributes.nodes.JadxError;
 import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.attributes.nodes.LocalVarsDebugInfoAttr;
@@ -23,10 +22,11 @@ import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
 import jadx.core.dex.attributes.nodes.RenameReasonAttr;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
+import jadx.core.dex.attributes.nodes.TmpEdgeAttr;
 import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.trycatch.CatchAttr;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
-import jadx.core.dex.trycatch.SplitterBlockAttr;
+import jadx.core.dex.trycatch.TryCatchBlockAttr;
 
 /**
  * Attribute types enumeration,
@@ -62,21 +62,22 @@ public final class AType<T extends IJadxAttribute> implements IJadxAttrType<T> {
 	public static final AType<SkipMethodArgsAttr> SKIP_MTH_ARGS = new AType<>();
 	public static final AType<MethodOverrideAttr> METHOD_OVERRIDE = new AType<>();
 	public static final AType<MethodTypeVarsAttr> METHOD_TYPE_VARS = new AType<>();
+	public static final AType<AttrList<TryCatchBlockAttr>> TRY_BLOCKS_LIST = new AType<>();
 
 	// region
 	public static final AType<DeclareVariablesAttr> DECLARE_VARIABLES = new AType<>();
 
 	// block
 	public static final AType<PhiListAttr> PHI_LIST = new AType<>();
-	public static final AType<IgnoreEdgeAttr> IGNORE_EDGE = new AType<>();
 	public static final AType<ForceReturnAttr> FORCE_RETURN = new AType<>();
-	public static final AType<CatchAttr> CATCH_BLOCK = new AType<>();
-	public static final AType<SplitterBlockAttr> SPLITTER_BLOCK = new AType<>();
 	public static final AType<AttrList<LoopInfo>> LOOP = new AType<>();
 	public static final AType<AttrList<EdgeInsnAttr>> EDGE_INSN = new AType<>();
+	public static final AType<TmpEdgeAttr> TMP_EDGE = new AType<>();
+	public static final AType<TryCatchBlockAttr> TRY_BLOCK = new AType<>();
 
 	// block or insn
 	public static final AType<ExcHandlerAttr> EXC_HANDLER = new AType<>();
+	public static final AType<CatchAttr> EXC_CATCH = new AType<>();
 
 	// instruction
 	public static final AType<LoopLabelAttr> LOOP_LABEL = new AType<>();

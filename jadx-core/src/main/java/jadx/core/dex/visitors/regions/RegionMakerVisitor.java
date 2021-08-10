@@ -28,6 +28,7 @@ import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.utils.InsnRemover;
 import jadx.core.utils.RegionUtils;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
 
 /**
@@ -47,7 +48,8 @@ public class RegionMakerVisitor extends AbstractVisitor {
 		RegionStack state = new RegionStack(mth);
 
 		// fill region structure
-		mth.setRegion(rm.makeRegion(mth.getEnterBlock(), state));
+		BlockNode startBlock = Utils.first(mth.getEnterBlock().getCleanSuccessors());
+		mth.setRegion(rm.makeRegion(startBlock, state));
 
 		if (!mth.isNoExceptionHandlers()) {
 			IRegion expOutBlock = rm.processTryCatchBlocks(mth);

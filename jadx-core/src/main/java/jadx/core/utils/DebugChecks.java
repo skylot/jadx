@@ -51,6 +51,7 @@ public class DebugChecks {
 				checkInsn(mth, insn);
 			}
 		}
+		checkSSAVars(mth);
 		// checkPHI(mth);
 	}
 
@@ -93,6 +94,58 @@ public class DebugChecks {
 		for (RegisterArg useArg : useList) {
 			checkRegisterArg(mth, useArg);
 		}
+	}
+
+	private static void checkSSAVars(MethodNode mth) {
+		for (SSAVar ssaVar : mth.getSVars()) {
+			RegisterArg assignArg = ssaVar.getAssign();
+			if (assignArg.contains(AFlag.REMOVE)) {
+				// ignore removed vars
+				continue;
+			}
+			InsnNode assignInsn = assignArg.getParentInsn();
+			if (assignInsn != null) {
+				if (insnMissing(mth, assignInsn)) {
+					throw new JadxRuntimeException("Insn not found for assign arg in SSAVar: " + ssaVar + ", insn: " + assignInsn);
+				}
+				RegisterArg resArg = assignInsn.getResult();
+				if (resArg == null) {
+					throw new JadxRuntimeException("SSA assign insn result missing. SSAVar: " + ssaVar + ", insn: " + assignInsn);
+				}
+				SSAVar assignVar = resArg.getSVar();
+				if (!assignVar.equals(ssaVar)) {
+					throw new JadxRuntimeException("Unexpected SSAVar in assign. "
+							+ "Expected: " + ssaVar + ", got: " + assignVar + ", insn: " + assignInsn);
+				}
+			}
+			for (RegisterArg arg : ssaVar.getUseList()) {
+				InsnNode useInsn = arg.getParentInsn();
+				if (useInsn == null) {
+					throw new JadxRuntimeException("Parent insn can't be null for arg in use list of SSAVar: " + ssaVar);
+				}
+				if (insnMissing(mth, useInsn)) {
+					throw new JadxRuntimeException("Insn not found for use arg for SSAVar: " + ssaVar + ", insn: " + useInsn);
+				}
+				int argIndex = useInsn.getArgIndex(arg);
+				if (argIndex == -1) {
+					throw new JadxRuntimeException("Use arg not found in insn for SSAVar: " + ssaVar + ", insn: " + useInsn);
+				}
+				InsnArg foundArg = useInsn.getArg(argIndex);
+				if (!foundArg.equals(arg)) {
+					throw new JadxRuntimeException(
+							"Incorrect use arg in insn for SSAVar: " + ssaVar + ", insn: " + useInsn + ", arg: " + foundArg);
+				}
+			}
+		}
+	}
+
+	private static boolean insnMissing(MethodNode mth, InsnNode insn) {
+		if (insn.contains(AFlag.HIDDEN)) {
+			// skip search
+			return false;
+		}
+		BlockNode block = BlockUtils.getBlockByInsn(mth, insn);
+		return block == null;
 	}
 
 	private static void checkRegisterArg(MethodNode mth, RegisterArg reg) {
