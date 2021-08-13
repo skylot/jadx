@@ -16,9 +16,15 @@ public class JavaMethodRef extends JavaMethodProto implements IMethodRef {
 		return uniqId;
 	}
 
-	public void initUniqId(JavaClassReader clsReader, int clsIdx, int nameIdx, int descIdx) {
-		// TODO: check for id overlap
-		this.uniqId = (clsReader.getId() & 0xFFF) << 20 | (clsIdx & 0xFF) << 12 | (nameIdx & 0xFF) << 4 | descIdx & 0xF;
+	public void initUniqId(JavaClassReader clsReader, int id, boolean fromConstPool) {
+		int readerId = clsReader.getId();
+		if (readerId > 0xFFFF || id > 0x7FFF) {
+			// loaded more than 65535 classes or more than 32767 methods in this class -> disable caching
+			this.uniqId = 0;
+		} else {
+			int source = fromConstPool ? 0 : 0x8000;
+			this.uniqId = (readerId & 0xFFFF) << 16 | source | id & 0x7FFF;
+		}
 	}
 
 	@Override

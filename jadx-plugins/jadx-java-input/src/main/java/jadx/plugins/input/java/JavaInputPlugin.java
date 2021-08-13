@@ -22,7 +22,7 @@ public class JavaInputPlugin implements JadxInputPlugin {
 
 	@Override
 	public ILoadResult loadFiles(List<Path> inputFiles) {
-		List<JavaClassReader> readers = JavaFileLoader.collectFiles(inputFiles);
+		List<JavaClassReader> readers = new JavaFileLoader().collectFiles(inputFiles);
 		if (readers.isEmpty()) {
 			return EmptyLoadResult.INSTANCE;
 		}

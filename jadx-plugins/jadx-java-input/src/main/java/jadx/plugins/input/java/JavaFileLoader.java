@@ -21,22 +21,22 @@ import jadx.api.plugins.utils.ZipSecurity;
 public class JavaFileLoader {
 	private static final Logger LOG = LoggerFactory.getLogger(JavaFileLoader.class);
 
-	public static final int MAX_MAGIC_SIZE = 4;
-	public static final byte[] JAVA_CLASS_FILE_MAGIC = { (byte) 0xCA, (byte) 0xFE, (byte) 0xBA, (byte) 0xBE };
-	public static final byte[] ZIP_FILE_MAGIC = { 0x50, 0x4B, 0x03, 0x04 };
+	private static final int MAX_MAGIC_SIZE = 4;
+	private static final byte[] JAVA_CLASS_FILE_MAGIC = { (byte) 0xCA, (byte) 0xFE, (byte) 0xBA, (byte) 0xBE };
+	private static final byte[] ZIP_FILE_MAGIC = { 0x50, 0x4B, 0x03, 0x04 };
 
-	private static int classUniqId = 1;
+	private int classUniqId = 1;
 
-	public static List<JavaClassReader> collectFiles(List<Path> inputFiles) {
+	public List<JavaClassReader> collectFiles(List<Path> inputFiles) {
 		return inputFiles.stream()
 				.map(Path::toFile)
-				.map(JavaFileLoader::loadFromFile)
+				.map(this::loadFromFile)
 				.filter(list -> !list.isEmpty())
 				.flatMap(Collection::stream)
 				.collect(Collectors.toList());
 	}
 
-	private static List<JavaClassReader> loadFromFile(File file) {
+	private List<JavaClassReader> loadFromFile(File file) {
 		try (InputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
 			return loadReader(file, inputStream, file.getAbsolutePath());
 		} catch (Exception e) {
@@ -45,7 +45,7 @@ public class JavaFileLoader {
 		}
 	}
 
-	private static List<JavaClassReader> loadReader(File file, InputStream in, String inputFileName) throws IOException {
+	private List<JavaClassReader> loadReader(File file, InputStream in, String inputFileName) throws IOException {
 		byte[] magic = new byte[MAX_MAGIC_SIZE];
 		if (in.read(magic) != magic.length) {
 			return Collections.emptyList();
@@ -61,7 +61,7 @@ public class JavaFileLoader {
 		return Collections.emptyList();
 	}
 
-	private static List<JavaClassReader> collectFromZip(File file) {
+	private List<JavaClassReader> collectFromZip(File file) {
 		List<JavaClassReader> result = new ArrayList<>();
 		try {
 			ZipSecurity.readZipEntries(file, (entry, in) -> {
@@ -94,7 +94,7 @@ public class JavaFileLoader {
 		int estimateSize = prefix.length + in.available();
 		ByteArrayOutputStream out = new ByteArrayOutputStream(estimateSize);
 		out.write(prefix);
-		byte[] buffer = new byte[0xFFFF];
+		byte[] buffer = new byte[8 * 1024];
 		while (true) {
 			int len = in.read(buffer);
 			if (len == -1) {
@@ -105,11 +105,7 @@ public class JavaFileLoader {
 		return out.toByteArray();
 	}
 
-	private static int getNextUniqId() {
-		classUniqId++;
-		if (classUniqId >= 0xFFFF) {
-			classUniqId = 1;
-		}
-		return classUniqId;
+	private int getNextUniqId() {
+		return classUniqId++;
 	}
 }

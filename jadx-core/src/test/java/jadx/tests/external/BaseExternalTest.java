@@ -31,8 +31,12 @@ public abstract class BaseExternalTest extends IntegrationTest {
 	protected abstract String getSamplesDir();
 
 	protected JadxArgs prepare(String inputFile) {
+		return prepare(new File(getSamplesDir(), inputFile));
+	}
+
+	protected JadxArgs prepare(File input) {
 		JadxArgs args = new JadxArgs();
-		args.getInputFiles().add(new File(getSamplesDir(), inputFile));
+		args.getInputFiles().add(input);
 		args.setOutDir(new File("../jadx-external-tests-tmp"));
 		return args;
 	}
@@ -47,6 +51,7 @@ public abstract class BaseExternalTest extends IntegrationTest {
 
 	protected void decompile(JadxArgs jadxArgs, @Nullable String clsPatternStr, @Nullable String mthPatternStr) {
 		JadxDecompiler jadx = new JadxDecompiler(jadxArgs);
+		jadx.getPluginManager().unload("java-convert");
 		jadx.load();
 
 		if (clsPatternStr == null) {

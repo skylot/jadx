@@ -78,7 +78,7 @@ public class ConstPoolReader {
 		int descIdx = data.readU2();
 
 		JavaMethodRef mthRef = new JavaMethodRef();
-		mthRef.initUniqId(clsReader, clsIdx, nameIdx, descIdx);
+		mthRef.initUniqId(clsReader, idx, true);
 		mthRef.setParentClassType(getClass(clsIdx));
 		mthRef.setName(getUtf8(nameIdx));
 		mthRef.setDescr(getUtf8(descIdx));

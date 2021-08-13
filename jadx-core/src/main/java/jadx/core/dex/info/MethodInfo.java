@@ -1,6 +1,10 @@
 package jadx.core.dex.info;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -39,9 +43,11 @@ public final class MethodInfo implements Comparable<MethodInfo> {
 	public static MethodInfo fromRef(RootNode root, IMethodRef methodRef) {
 		InfoStorage infoStorage = root.getInfoStorage();
 		int uniqId = methodRef.getUniqId();
-		MethodInfo prevMth = infoStorage.getByUniqId(uniqId);
-		if (prevMth != null) {
-			return prevMth;
+		if (uniqId != 0) {
+			MethodInfo prevMth = infoStorage.getByUniqId(uniqId);
+			if (prevMth != null) {
+				return prevMth;
+			}
 		}
 		methodRef.load();
 		ArgType parentClsType = ArgType.parse(methodRef.getParentClassType());
@@ -50,7 +56,9 @@ public final class MethodInfo implements Comparable<MethodInfo> {
 		List<ArgType> args = Utils.collectionMap(methodRef.getArgTypes(), ArgType::parse);
 		MethodInfo newMth = new MethodInfo(parentClass, methodRef.getName(), args, returnType);
 		MethodInfo uniqMth = infoStorage.putMethod(newMth);
-		infoStorage.putByUniqId(uniqId, uniqMth);
+		if (uniqId != 0) {
+			infoStorage.putByUniqId(uniqId, uniqMth);
+		}
 		return uniqMth;
 	}
 

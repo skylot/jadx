@@ -94,7 +94,7 @@ public class JavaClassData implements IClassData {
 			methodRef.setParentClassType(classType);
 			JavaMethodData method = new JavaMethodData(this, methodRef);
 			for (int i = 0; i < methodsCount; i++) {
-				parseMethod(reader, method, clsIdx);
+				parseMethod(reader, method, i);
 				mthConsumer.accept(method);
 			}
 		}
@@ -112,7 +112,7 @@ public class JavaClassData implements IClassData {
 		field.setAttributes(attributes);
 	}
 
-	private void parseMethod(DataReader reader, JavaMethodData method, int clsIdx) {
+	private void parseMethod(DataReader reader, JavaMethodData method, int id) {
 		int accessFlags = reader.readU2();
 		int nameIdx = reader.readU2();
 		int descriptorIdx = reader.readU2();
@@ -120,7 +120,7 @@ public class JavaClassData implements IClassData {
 
 		JavaMethodRef methodRef = method.getMethodRef();
 		methodRef.reset();
-		methodRef.initUniqId(clsReader, clsIdx, nameIdx, descriptorIdx);
+		methodRef.initUniqId(clsReader, id, false);
 		methodRef.setName(constPoolReader.getUtf8(nameIdx));
 		methodRef.setDescr(constPoolReader.getUtf8(descriptorIdx));
 
