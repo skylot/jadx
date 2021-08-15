@@ -323,6 +323,7 @@ public class MainWindow extends JFrame {
 		fileChooser.setFileFilter(new FileNameExtensionFilter(description, exts));
 		fileChooser.setMultiSelectionEnabled(true);
 		fileChooser.setToolTipText(toolTipText);
+		fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 		Path currentDirectory = settings.getLastOpenFilePath();
 		if (currentDirectory != null) {
 			fileChooser.setCurrentDirectory(currentDirectory.toFile());

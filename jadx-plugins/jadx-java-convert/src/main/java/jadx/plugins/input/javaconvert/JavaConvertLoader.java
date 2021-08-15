@@ -36,7 +36,6 @@ public class JavaConvertLoader {
 	private static void processJars(List<Path> input, ConvertResult result) {
 		PathMatcher jarMatcher = FileSystems.getDefault().getPathMatcher("glob:**.jar");
 		input.stream()
-				.filter(path -> Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))
 				.filter(jarMatcher::matches)
 				.forEach(path -> {
 					try {
@@ -50,7 +49,6 @@ public class JavaConvertLoader {
 	private static void processClassFiles(List<Path> input, ConvertResult result) {
 		PathMatcher jarMatcher = FileSystems.getDefault().getPathMatcher("glob:**.class");
 		List<Path> clsFiles = input.stream()
-				.filter(path -> Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))
 				.filter(jarMatcher::matches)
 				.collect(Collectors.toList());
 		if (clsFiles.isEmpty()) {
@@ -78,7 +76,6 @@ public class JavaConvertLoader {
 	private static void processAars(List<Path> input, ConvertResult result) {
 		PathMatcher aarMatcher = FileSystems.getDefault().getPathMatcher("glob:**.aar");
 		input.stream()
-				.filter(path -> Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))
 				.filter(aarMatcher::matches)
 				.forEach(path -> ZipSecurity.readZipEntries(path.toFile(), (entry, in) -> {
 					try {

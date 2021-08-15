@@ -40,6 +40,7 @@ import jadx.core.dex.visitors.SaveCode;
 import jadx.core.export.ExportGradleProject;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.utils.files.FileUtils;
 import jadx.core.xmlgen.BinaryXMLParser;
 import jadx.core.xmlgen.ProtoXMLParser;
 import jadx.core.xmlgen.ResContainer;
@@ -113,8 +114,9 @@ public final class JadxDecompiler implements Closeable {
 	private void loadInputFiles() {
 		loadedInputs.clear();
 		List<Path> inputPaths = Utils.collectionMap(args.getInputFiles(), File::toPath);
+		List<Path> inputFiles = FileUtils.expandDirs(inputPaths);
 		for (JadxInputPlugin inputPlugin : pluginManager.getInputPlugins()) {
-			ILoadResult loadResult = inputPlugin.loadFiles(inputPaths);
+			ILoadResult loadResult = inputPlugin.loadFiles(inputFiles);
 			if (loadResult != null && !loadResult.isEmpty()) {
 				loadedInputs.add(loadResult);
 			}

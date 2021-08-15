@@ -136,7 +136,7 @@ public final class ResourcesLoader {
 	}
 
 	private void loadFile(List<ResourceFile> list, File file) {
-		if (file == null) {
+		if (file == null || file.isDirectory()) {
 			return;
 		}
 		if (FileUtils.isZipFile(file)) {

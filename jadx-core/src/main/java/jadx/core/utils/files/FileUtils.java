@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -39,6 +40,26 @@ public class FileUtils {
 	public static final String JADX_TMP_PREFIX = "jadx-tmp-";
 
 	private FileUtils() {
+	}
+
+	public static List<Path> expandDirs(List<Path> paths) {
+		List<Path> files = new ArrayList<>(paths.size());
+		for (Path path : paths) {
+			if (Files.isDirectory(path)) {
+				expandDir(path, files);
+			} else {
+				files.add(path);
+			}
+		}
+		return files;
+	}
+
+	private static void expandDir(Path dir, List<Path> files) {
+		try (Stream<Path> walk = Files.walk(dir, FileVisitOption.FOLLOW_LINKS)) {
+			walk.filter(Files::isRegularFile).forEach(files::add);
+		} catch (Exception e) {
+			LOG.error("Failed to list files in directory: {}", dir, e);
+		}
 	}
 
 	public static void addFileToJar(JarOutputStream jar, File source, String entryName) throws IOException {

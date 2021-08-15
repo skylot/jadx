@@ -85,9 +85,6 @@ public class JadxArgsValidator {
 		if (!file.exists()) {
 			throw new JadxArgsValidateException("File not found " + file.getAbsolutePath());
 		}
-		if (file.isDirectory()) {
-			throw new JadxArgsValidateException("Expected file but found directory instead: " + file.getAbsolutePath());
-		}
 	}
 
 	private static void checkDir(File dir, String desc) {

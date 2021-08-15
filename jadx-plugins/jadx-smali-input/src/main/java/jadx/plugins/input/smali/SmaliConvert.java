@@ -7,7 +7,6 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.Collections;
@@ -32,10 +31,10 @@ public class SmaliConvert implements Closeable {
 		if (smaliFiles.isEmpty()) {
 			return false;
 		}
+		LOG.debug("Compiling smali files: {}", smaliFiles.size());
 		try {
 			this.tmpDex = Files.createTempFile("jadx-", ".dex");
-			boolean result = compileSmali(tmpDex, smaliFiles);
-			if (result) {
+			if (compileSmali(tmpDex, smaliFiles)) {
 				return true;
 			}
 		} catch (Exception e) {
@@ -82,7 +81,6 @@ public class SmaliConvert implements Closeable {
 	private List<Path> filterSmaliFiles(List<Path> input) {
 		PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:**.smali");
 		return input.stream()
-				.filter(p -> Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS))
 				.filter(matcher::matches)
 				.collect(Collectors.toList());
 	}
