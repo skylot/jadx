@@ -39,6 +39,8 @@ public final class JavaAttrType<T extends IJavaAttribute> {
 	public static final JavaAttrType<JavaAnnotationsAttr> BUILD_ANNOTATIONS;
 	public static final JavaAttrType<JavaParamAnnsAttr> RUNTIME_PARAMETER_ANNOTATIONS;
 	public static final JavaAttrType<JavaParamAnnsAttr> BUILD_PARAMETER_ANNOTATIONS;
+	public static final JavaAttrType<IgnoredAttr> RUNTIME_TYPE_ANNOTATIONS;
+	public static final JavaAttrType<IgnoredAttr> BUILD_TYPE_ANNOTATIONS;
 	public static final JavaAttrType<JavaAnnotationDefaultAttr> ANNOTATION_DEFAULT;
 
 	public static final JavaAttrType<JavaSourceFileAttr> SOURCE_FILE;
@@ -46,7 +48,10 @@ public final class JavaAttrType<T extends IJavaAttribute> {
 	public static final JavaAttrType<JavaExceptionsAttr> EXCEPTIONS;
 
 	public static final JavaAttrType<IgnoredAttr> DEPRECATED;
+	public static final JavaAttrType<IgnoredAttr> SYNTHETIC;
 	public static final JavaAttrType<IgnoredAttr> STACK_MAP_TABLE;
+	public static final JavaAttrType<IgnoredAttr> ENCLOSING_METHOD;
+	public static final JavaAttrType<IgnoredAttr> MODULE;
 
 	static {
 		NAME_TO_TYPE_MAP = new HashMap<>();
@@ -74,7 +79,14 @@ public final class JavaAttrType<T extends IJavaAttribute> {
 
 		// ignored
 		DEPRECATED = bind("Deprecated", null); // duplicated by annotation
+		SYNTHETIC = bind("Synthetic", null); // duplicated by access flag
 		STACK_MAP_TABLE = bind("StackMapTable", null);
+		ENCLOSING_METHOD = bind("EnclosingMethod", null);
+
+		// TODO: not supported yet
+		RUNTIME_TYPE_ANNOTATIONS = bind("RuntimeVisibleTypeAnnotations", null);
+		BUILD_TYPE_ANNOTATIONS = bind("RuntimeInvisibleTypeAnnotations", null);
+		MODULE = bind("Module", null);
 	}
 
 	private static <A extends IJavaAttribute> JavaAttrType<A> bind(String name, IJavaAttributeReader reader) {
@@ -112,5 +124,10 @@ public final class JavaAttrType<T extends IJavaAttribute> {
 
 	public IJavaAttributeReader getReader() {
 		return reader;
+	}
+
+	@Override
+	public String toString() {
+		return name;
 	}
 }

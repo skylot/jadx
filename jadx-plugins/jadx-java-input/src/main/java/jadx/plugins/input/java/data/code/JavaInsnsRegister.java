@@ -10,6 +10,7 @@ import jadx.plugins.input.java.data.code.decoders.InvokeDecoder;
 import jadx.plugins.input.java.data.code.decoders.LoadConstDecoder;
 import jadx.plugins.input.java.data.code.decoders.LookupSwitchDecoder;
 import jadx.plugins.input.java.data.code.decoders.TableSwitchDecoder;
+import jadx.plugins.input.java.data.code.decoders.WideDecoder;
 
 import static jadx.plugins.input.java.data.code.StackState.SVType.NARROW;
 import static jadx.plugins.input.java.data.code.StackState.SVType.WIDE;
@@ -172,6 +173,10 @@ public class JavaInsnsRegister {
 								.peekFrom(2, 4).peekFrom(0, 5);
 					}
 				});
+		register(arr, 0x5f, "swap", 0, 6, Opcode.MOVE_MULTI,
+				s -> s.peekFrom(-1, 0).peekFrom(1, 1)
+						.peekFrom(1, 2).peekFrom(0, 3)
+						.peekFrom(0, 4).peekFrom(-1, 5));
 
 		register(arr, 0x60, "iadd", 0, 3, Opcode.ADD_INT, twoRegsWithResult(NARROW));
 		register(arr, 0x61, "ladd", 0, 3, Opcode.ADD_LONG, twoRegsWithResult(WIDE));
@@ -295,7 +300,7 @@ public class JavaInsnsRegister {
 		register(arr, 0xc2, "monitorenter", 0, 1, Opcode.MONITOR_ENTER, s -> s.pop(0));
 		register(arr, 0xc3, "monitorexit", 0, 1, Opcode.MONITOR_EXIT, s -> s.pop(0));
 
-		// register(arr, 0xc4, "wide", 0, 1, Opcode.NOP, s -> s.pop(0));
+		register(arr, 0xc4, "wide", -1, -1, Opcode.NOP, new WideDecoder());
 
 		register(arr, 0xc5, "multianewarray", 3, -1, Opcode.NEW_ARRAY, InsnIndexType.TYPE_REF, newArrayMulti());
 		register(arr, 0xc6, "ifnull", 2, 1, Opcode.IF_EQZ, zeroCmp());

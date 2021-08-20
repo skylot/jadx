@@ -147,6 +147,10 @@ public class AccessInfo {
 		return (accFlags & AccessFlags.VOLATILE) != 0;
 	}
 
+	public boolean isModuleInfo() {
+		return (accFlags & AccessFlags.MODULE) != 0;
+	}
+
 	public AFType getType() {
 		return type;
 	}
@@ -199,6 +203,9 @@ public class AccessInfo {
 			case CLASS:
 				if ((accFlags & AccessFlags.STRICT) != 0) {
 					code.append("strict ");
+				}
+				if (isModuleInfo()) {
+					code.append("/* module-info */ ");
 				}
 				if (Consts.DEBUG) {
 					if ((accFlags & AccessFlags.SUPER) != 0) {

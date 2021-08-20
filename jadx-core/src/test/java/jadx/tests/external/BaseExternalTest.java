@@ -41,15 +41,15 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		return args;
 	}
 
-	protected void decompile(JadxArgs jadxArgs) {
-		decompile(jadxArgs, null, null);
+	protected JadxDecompiler decompile(JadxArgs jadxArgs) {
+		return decompile(jadxArgs, null, null);
 	}
 
-	protected void decompile(JadxArgs jadxArgs, String clsPatternStr) {
-		decompile(jadxArgs, clsPatternStr, null);
+	protected JadxDecompiler decompile(JadxArgs jadxArgs, String clsPatternStr) {
+		return decompile(jadxArgs, clsPatternStr, null);
 	}
 
-	protected void decompile(JadxArgs jadxArgs, @Nullable String clsPatternStr, @Nullable String mthPatternStr) {
+	protected JadxDecompiler decompile(JadxArgs jadxArgs, @Nullable String clsPatternStr, @Nullable String mthPatternStr) {
 		JadxDecompiler jadx = new JadxDecompiler(jadxArgs);
 		jadx.getPluginManager().unload("java-convert");
 		jadx.load();
@@ -61,6 +61,7 @@ public abstract class BaseExternalTest extends IntegrationTest {
 			processByPatterns(jadx, clsPatternStr, mthPatternStr);
 		}
 		printErrorReport(jadx);
+		return jadx;
 	}
 
 	private void processAll(JadxDecompiler jadx) {

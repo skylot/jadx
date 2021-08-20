@@ -20,6 +20,8 @@ import jadx.api.ICodeCache;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.plugins.input.data.IClassData;
+import jadx.api.plugins.input.data.IFieldData;
+import jadx.api.plugins.input.data.IMethodData;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.types.AnnotationDefaultAttr;
@@ -27,6 +29,7 @@ import jadx.api.plugins.input.data.attributes.types.AnnotationDefaultClassAttr;
 import jadx.api.plugins.input.data.attributes.types.InnerClassesAttr;
 import jadx.api.plugins.input.data.attributes.types.InnerClsInfo;
 import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
+import jadx.api.plugins.input.data.impl.ListConsumer;
 import jadx.core.Consts;
 import jadx.core.ProcessClass;
 import jadx.core.dex.attributes.AFlag;
@@ -97,32 +100,44 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 
 	private void initialLoad(IClassData cls) {
 		try {
-			String superType = cls.getSuperType();
-			if (superType == null) {
-				// only java.lang.Object don't have super class
-				if (!clsInfo.getType().getObject().equals(Consts.CLASS_OBJECT)) {
-					throw new JadxRuntimeException("No super class in " + clsInfo.getType());
-				}
-				this.superClass = null;
-			} else {
-				this.superClass = ArgType.object(superType);
-			}
+			addAttrs(cls.getAttributes());
+			this.accessFlags = new AccessInfo(getAccessFlags(cls), AFType.CLASS);
+			this.superClass = checkSuperType(cls);
 			this.interfaces = Utils.collectionMap(cls.getInterfacesTypes(), ArgType::object);
 
-			methods = new ArrayList<>();
-			fields = new ArrayList<>();
-			cls.visitFieldsAndMethods(
-					fld -> fields.add(FieldNode.build(this, fld)),
-					mth -> methods.add(MethodNode.build(this, mth)));
+			ListConsumer<IFieldData, FieldNode> fieldsConsumer = new ListConsumer<>(fld -> FieldNode.build(this, fld));
+			ListConsumer<IMethodData, MethodNode> methodsConsumer = new ListConsumer<>(mth -> MethodNode.build(this, mth));
+			cls.visitFieldsAndMethods(fieldsConsumer, methodsConsumer);
+			this.fields = fieldsConsumer.getResult();
+			this.methods = methodsConsumer.getResult();
 
-			addAttrs(cls.getAttributes());
-			accessFlags = new AccessInfo(getAccessFlags(cls), AFType.CLASS);
 			initStaticValues(fields);
 			processAttributes(this);
 			buildCache();
+
+			// TODO: implement module attribute parsing
+			if (this.accessFlags.isModuleInfo()) {
+				this.addWarnComment("Modules not supported yet");
+			}
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Error decode class: " + clsInfo, e);
 		}
+	}
+
+	private ArgType checkSuperType(IClassData cls) {
+		String superType = cls.getSuperType();
+		if (superType == null) {
+			if (clsInfo.getType().getObject().equals(Consts.CLASS_OBJECT)) {
+				// java.lang.Object don't have super class
+				return null;
+			}
+			if (this.accessFlags.isModuleInfo()) {
+				// module-info also don't have super class
+				return null;
+			}
+			throw new JadxRuntimeException("No super class in " + clsInfo.getType());
+		}
+		return ArgType.object(superType);
 	}
 
 	public void updateGenericClsData(ArgType superClass, List<ArgType> interfaces, List<ArgType> generics) {

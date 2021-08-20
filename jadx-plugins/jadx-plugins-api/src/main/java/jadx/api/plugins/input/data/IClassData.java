@@ -1,7 +1,6 @@
 package jadx.api.plugins.input.data;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -21,7 +20,7 @@ public interface IClassData {
 
 	List<String> getInterfacesTypes();
 
-	void visitFieldsAndMethods(Consumer<IFieldData> fieldsConsumer, Consumer<IMethodData> mthConsumer);
+	void visitFieldsAndMethods(ISeqConsumer<IFieldData> fieldsConsumer, ISeqConsumer<IMethodData> mthConsumer);
 
 	List<IJadxAttribute> getAttributes();
 

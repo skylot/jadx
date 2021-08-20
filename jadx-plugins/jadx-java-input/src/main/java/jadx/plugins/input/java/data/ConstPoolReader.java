@@ -239,14 +239,17 @@ public class ConstPoolReader {
 
 	private String fixType(String clsName) {
 		switch (clsName.charAt(0)) {
-			case 'L':
-			case 'T':
 			case '[':
 				return clsName;
 
-			default:
-				return 'L' + clsName + ';';
+			case 'L':
+			case 'T':
+				if (clsName.endsWith(";")) {
+					return clsName;
+				}
+				break;
 		}
+		return 'L' + clsName + ';';
 	}
 
 	private void jumpToData(int idx) {

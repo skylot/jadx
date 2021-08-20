@@ -52,8 +52,7 @@ public class JavaCodeReader implements ICodeReader {
 	@Override
 	public void visitInstructions(Consumer<InsnData> insnConsumer) {
 		Set<Integer> excHandlers = getExcHandlers();
-		reader.absPos(codeOffset);
-		int maxStack = reader.readU2();
+		int maxStack = readMaxStack();
 		reader.skip(2);
 		int codeSize = reader.readU4();
 
@@ -96,16 +95,20 @@ public class JavaCodeReader implements ICodeReader {
 
 	@Override
 	public int getRegistersCount() {
-		reader.absPos(codeOffset);
-		int maxStack = reader.readU2();
+		int maxStack = readMaxStack();
 		int maxLocals = reader.readU2();
 		return maxStack + maxLocals;
 	}
 
 	@Override
 	public int getArgsStartReg() {
+		return readMaxStack();
+	}
+
+	private int readMaxStack() {
 		reader.absPos(codeOffset);
-		return reader.readU2(); // maxStack
+		int maxStack = reader.readU2();
+		return maxStack + 1; // add one temporary register (for `swap` opcode)
 	}
 
 	@Override
@@ -114,9 +117,9 @@ public class JavaCodeReader implements ICodeReader {
 	}
 
 	@Override
-	public @Nullable IDebugInfo getDebugInfo() {
-		reader.absPos(codeOffset);
-		int maxStack = reader.readU2();
+	@Nullable
+	public IDebugInfo getDebugInfo() {
+		int maxStack = readMaxStack();
 		reader.skip(2);
 		reader.skip(reader.readU4());
 		reader.skip(reader.readU2() * 8);

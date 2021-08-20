@@ -3,7 +3,6 @@ package jadx.plugins.input.java.data;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -11,6 +10,7 @@ import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.IClassData;
 import jadx.api.plugins.input.data.IFieldData;
 import jadx.api.plugins.input.data.IMethodData;
+import jadx.api.plugins.input.data.ISeqConsumer;
 import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.api.plugins.utils.Utils;
 import jadx.plugins.input.java.JavaClassReader;
@@ -74,11 +74,12 @@ public class JavaClassData implements IClassData {
 	}
 
 	@Override
-	public void visitFieldsAndMethods(Consumer<IFieldData> fieldsConsumer, Consumer<IMethodData> mthConsumer) {
+	public void visitFieldsAndMethods(ISeqConsumer<IFieldData> fieldsConsumer, ISeqConsumer<IMethodData> mthConsumer) {
 		int clsIdx = data.absPos(offsets.getClsTypeOffset()).readU2();
 		String classType = constPoolReader.getClass(clsIdx);
 		DataReader reader = data.absPos(offsets.getFieldsOffset()).copy();
 		int fieldsCount = reader.readU2();
+		fieldsConsumer.init(fieldsCount);
 		if (fieldsCount != 0) {
 			JavaFieldData field = new JavaFieldData();
 			field.setParentClassType(classType);
@@ -89,6 +90,7 @@ public class JavaClassData implements IClassData {
 		}
 
 		int methodsCount = reader.readU2();
+		mthConsumer.init(methodsCount);
 		if (methodsCount != 0) {
 			JavaMethodRef methodRef = new JavaMethodRef();
 			methodRef.setParentClassType(classType);

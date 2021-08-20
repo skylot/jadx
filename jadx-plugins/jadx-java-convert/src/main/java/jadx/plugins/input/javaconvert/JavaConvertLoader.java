@@ -1,9 +1,6 @@
 package jadx.plugins.input.javaconvert;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -20,6 +17,7 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.plugins.utils.CommonFileUtils;
 import jadx.api.plugins.utils.ZipSecurity;
 
 public class JavaConvertLoader {
@@ -81,7 +79,7 @@ public class JavaConvertLoader {
 					try {
 						String entryName = entry.getName();
 						if (entryName.endsWith(".jar")) {
-							Path tempJar = saveInputStreamToFile(in, ".jar");
+							Path tempJar = CommonFileUtils.saveToTempFile(in, ".jar");
 							result.addTempPath(tempJar);
 							LOG.debug("Loading jar: {} ...", entryName);
 							convertJar(result, tempJar);
@@ -134,14 +132,14 @@ public class JavaConvertLoader {
 								|| entryName.startsWith("META-INF/versions/")) {
 							return;
 						}
-						byte[] clsFileContent = inputStreamToByteArray(in);
+						byte[] clsFileContent = CommonFileUtils.loadBytes(in);
 						String clsName = AsmUtils.getNameFromClassFile(clsFileContent);
 						if (clsName == null || !ZipSecurity.isValidZipEntryName(clsName)) {
 							throw new IOException("Can't read class name from file: " + entryName);
 						}
 						addJarEntry(jo, clsName + ".class", clsFileContent, entry.getLastModifiedTime());
 					} else if (entryName.endsWith(".jar")) {
-						Path tempJar = saveInputStreamToFile(in, ".jar");
+						Path tempJar = CommonFileUtils.saveToTempFile(in, ".jar");
 						result.addTempPath(tempJar);
 						convertJar(result, tempJar);
 					}
@@ -189,33 +187,5 @@ public class JavaConvertLoader {
 		jar.putNextEntry(entry);
 		jar.write(content);
 		jar.closeEntry();
-	}
-
-	private static void copyStream(InputStream input, OutputStream output) throws IOException {
-		byte[] buffer = new byte[8 * 1024];
-		while (true) {
-			int count = input.read(buffer);
-			if (count == -1) {
-				break;
-			}
-			output.write(buffer, 0, count);
-		}
-	}
-
-	private static byte[] inputStreamToByteArray(InputStream input) throws IOException {
-		try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
-			copyStream(input, output);
-			return output.toByteArray();
-		}
-	}
-
-	private static Path saveInputStreamToFile(InputStream in, String suffix) throws IOException {
-		Path tempJar = Files.createTempFile("jadx-temp-", suffix);
-		try (OutputStream out = Files.newOutputStream(tempJar)) {
-			copyStream(in, out);
-		} catch (Exception e) {
-			throw new IOException("Failed to save temp file", e);
-		}
-		return tempJar;
 	}
 }

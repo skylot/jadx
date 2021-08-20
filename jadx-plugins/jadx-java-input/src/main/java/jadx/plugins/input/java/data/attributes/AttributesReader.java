@@ -16,7 +16,7 @@ public class AttributesReader {
 
 	private final JavaClassData clsData;
 	private final ConstPoolReader constPool;
-	private final Map<Integer, JavaAttrType<?>> attrMap = new HashMap<>(JavaAttrType.size());
+	private final Map<Integer, JavaAttrType<?>> attrCache = new HashMap<>(JavaAttrType.size());
 
 	public AttributesReader(JavaClassData clsData, ConstPoolReader constPoolReader) {
 		this.clsData = clsData;
@@ -95,8 +95,8 @@ public class AttributesReader {
 	}
 
 	private JavaAttrType<?> resolveAttrReader(int nameIdx) {
-		return attrMap.computeIfAbsent(nameIdx, idx -> {
-			String attrName = constPool.getUtf8(nameIdx);
+		return attrCache.computeIfAbsent(nameIdx, idx -> {
+			String attrName = constPool.getUtf8(idx);
 			JavaAttrType<?> attrType = JavaAttrType.byName(attrName);
 			if (attrType == null) {
 				LOG.warn("Unknown java class attribute type: {}", attrName);

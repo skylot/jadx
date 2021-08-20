@@ -586,7 +586,6 @@ public class InsnGen {
 
 			case MOVE_MULTI:
 				fallbackOnlyInsn(insn);
-				code.add("move-multi: ");
 				int len = insn.getArgsCount();
 				for (int i = 0; i < len - 1; i += 2) {
 					addArg(code, insn.getArg(i));

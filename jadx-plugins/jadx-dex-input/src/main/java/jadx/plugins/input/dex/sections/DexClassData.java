@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import jadx.api.plugins.input.data.IClassData;
 import jadx.api.plugins.input.data.IFieldData;
 import jadx.api.plugins.input.data.IMethodData;
+import jadx.api.plugins.input.data.ISeqConsumer;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.annotations.IAnnotation;
 import jadx.api.plugins.input.data.attributes.IJadxAttribute;
@@ -92,7 +93,7 @@ public class DexClassData implements IClassData {
 	}
 
 	@Override
-	public void visitFieldsAndMethods(Consumer<IFieldData> fieldConsumer, Consumer<IMethodData> mthConsumer) {
+	public void visitFieldsAndMethods(ISeqConsumer<IFieldData> fieldConsumer, ISeqConsumer<IMethodData> mthConsumer) {
 		int classDataOff = getClassDataOff();
 		if (classDataOff == 0) {
 			return;
@@ -102,6 +103,9 @@ public class DexClassData implements IClassData {
 		int instanceFieldsCount = data.readUleb128();
 		int directMthCount = data.readUleb128();
 		int virtualMthCount = data.readUleb128();
+
+		fieldConsumer.init(staticFieldsCount + instanceFieldsCount);
+		mthConsumer.init(directMthCount + virtualMthCount);
 
 		annotationsParser.setOffset(getAnnotationsOff());
 		visitFields(fieldConsumer, data, staticFieldsCount, instanceFieldsCount);
