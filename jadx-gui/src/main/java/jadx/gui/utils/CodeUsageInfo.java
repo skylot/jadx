@@ -50,6 +50,11 @@ public class CodeUsageInfo {
 			for (Map.Entry<CodePosition, JavaNode> entry : usage.entrySet()) {
 				CodePosition codePosition = entry.getKey();
 				JavaNode javaNode = entry.getValue();
+				if (javaNode.getTopParentClass().equals(javaClass)
+						&& codePosition.getPos() == javaNode.getDefPos()) {
+					// skip declaration
+					continue;
+				}
 				addUsage(nodeCache.makeFrom(javaNode), javaClass, linesInfo, codePosition, lines);
 			}
 		} catch (Exception e) {
