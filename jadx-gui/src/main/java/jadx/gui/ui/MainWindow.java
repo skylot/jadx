@@ -1108,6 +1108,7 @@ public class MainWindow extends JFrame {
 				Component c = super.getTreeCellRendererComponent(tree, value, selected, expanded, isLeaf, row, focused);
 				if (value instanceof JNode) {
 					JNode jNode = (JNode) value;
+					setText(jNode.makeStringHtml());
 					setIcon(jNode.getIcon());
 					setToolTipText(jNode.getTooltip());
 				} else {

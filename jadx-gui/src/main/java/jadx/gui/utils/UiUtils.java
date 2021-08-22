@@ -32,6 +32,7 @@ import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 
@@ -117,18 +118,41 @@ public class UiUtils {
 			return "null";
 		}
 		if (type.isObject()) {
-			String cls = type.toString();
-			int dot = cls.lastIndexOf('.');
-			if (dot != -1) {
-				return cls.substring(dot + 1);
-			} else {
-				return cls;
+			if (type.isGenericType()) {
+				return type.getObject();
 			}
+			ArgType wt = type.getWildcardType();
+			if (wt != null) {
+				ArgType.WildcardBound bound = type.getWildcardBound();
+				if (bound == ArgType.WildcardBound.UNBOUND) {
+					return bound.getStr();
+				}
+				return bound.getStr() + typeStr(wt);
+			}
+			String objName = objectShortName(type.getObject());
+			ArgType outerType = type.getOuterType();
+			if (outerType != null) {
+				return typeStr(outerType) + '.' + objName;
+			}
+			List<ArgType> genericTypes = type.getGenericTypes();
+			if (genericTypes != null) {
+				String generics = Utils.listToString(genericTypes, ", ", UiUtils::typeStr);
+				return objName + '<' + generics + '>';
+			}
+			return objName;
 		}
 		if (type.isArray()) {
 			return typeStr(type.getArrayElement()) + "[]";
 		}
 		return type.toString();
+	}
+
+	private static String objectShortName(String obj) {
+		int dot = obj.lastIndexOf('.');
+		if (dot != -1) {
+			return obj.substring(dot + 1);
+		}
+		return obj;
 	}
 
 	public static OverlayIcon makeIcon(AccessInfo af, Icon pub, Icon pri, Icon pro, Icon def) {
