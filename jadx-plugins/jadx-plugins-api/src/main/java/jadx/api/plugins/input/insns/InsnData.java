@@ -17,6 +17,8 @@ public interface InsnData {
 
 	Opcode getOpcode();
 
+	String getOpcodeMnemonic();
+
 	byte[] getByteCode();
 
 	InsnIndexType getIndexType();

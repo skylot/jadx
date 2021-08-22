@@ -12,6 +12,7 @@ import jadx.api.plugins.input.insns.InsnIndexType;
 import jadx.api.plugins.input.insns.Opcode;
 import jadx.api.plugins.input.insns.custom.ICustomPayload;
 import jadx.plugins.input.java.data.ConstPoolReader;
+import jadx.plugins.input.java.data.DataReader;
 import jadx.plugins.input.java.data.code.decoders.IJavaInsnDecoder;
 
 public class JavaInsnData implements InsnData {
@@ -75,8 +76,20 @@ public class JavaInsnData implements InsnData {
 	}
 
 	@Override
+	public String getOpcodeMnemonic() {
+		return insnInfo.getName();
+	}
+
+	@Override
 	public byte[] getByteCode() {
-		return new byte[0];
+		DataReader reader = state.reader();
+		int startOffset = reader.getOffset();
+		try {
+			reader.absPos(insnStart);
+			return reader.readBytes(1 + payloadSize);
+		} finally {
+			reader.absPos(startOffset);
+		}
 	}
 
 	@Override

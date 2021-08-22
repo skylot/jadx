@@ -1,21 +1,28 @@
-package jadx.gui.device.debugger.smali;
+package jadx.plugins.input.dex.insns;
 
-public class MNEMONIC {
-	public static final String[] MNEMONICS = new String[] {
-			"nop", "move", "move/from16", "move/16", "move-wide",
+public class DexInsnMnemonics {
+
+	public static String get(int opcode) {
+		return MNEMONICS[opcode & 0xFF];
+	}
+
+	private static final String[] MNEMONICS = new String[] {
+			"nop",
+			"move", "move/from16", "move/16", "move-wide",
 			"move-wide/from16", "move-wide/16", "move-object", "move-object/from16", "move-object/16",
 			"move-result", "move-result-wide", "move-result-object", "move-exception", "return-void",
-			"return", "return-wide", "return-object", "const/4", "const/16",
-			"const", "const/high16", "const-wide/16", "const-wide/32", "const-wide",
+			"return", "return-wide", "return-object",
+			"const/4", "const/16", "const", "const/high16", "const-wide/16", "const-wide/32", "const-wide",
 			"const-wide/high16", "const-string", "const-string/jumbo", "const-class", "monitor-enter",
 			"monitor-exit", "check-cast", "instance-of", "array-length", "new-instance",
 			"new-array", "filled-new-array", "filled-new-array/range", "fill-array-data", "throw",
-			"goto", "goto/16", "goto/32", "packed-switch", "sparse-switch",
+			"goto", "goto/16", "goto/32",
+			"packed-switch", "sparse-switch",
 			"cmpl-float", "cmpg-float", "cmpl-double", "cmpg-double", "cmp-long",
-			"if-eq", "if-ne", "if-lt", "if-ge", "if-gt",
-			"if-le", "if-eqz", "if-nez", "if-ltz", "if-gez",
-			"if-gtz", "if-lez", "(unused)", "(unused)", "(unused)",
-			"(unused)", "(unused)", "(unused)", "aget", "aget-wide",
+			"if-eq", "if-ne", "if-lt", "if-ge", "if-gt", "if-le",
+			"if-eqz", "if-nez", "if-ltz", "if-gez", "if-gtz", "if-lez",
+			"(unused)", "(unused)", "(unused)", "(unused)", "(unused)", "(unused)",
+			"aget", "aget-wide",
 			"aget-object", "aget-boolean", "aget-byte", "aget-char", "aget-short",
 			"aput", "aput-wide", "aput-object", "aput-boolean", "aput-byte",
 			"aput-char", "aput-short", "iget", "iget-wide", "iget-object",
@@ -52,6 +59,10 @@ public class MNEMONIC {
 			"(unused)", "(unused)", "(unused)", "(unused)", "(unused)",
 			"(unused)", "(unused)", "(unused)", "(unused)", "(unused)",
 			"(unused)", "(unused)", "(unused)", "(unused)", "(unused)",
-			"invoke-polymorphic", "invoke-polymorphic/range", "invoke-custom", "invoke-custom/range", "const-method-handle",
+			"invoke-polymorphic",
+			"invoke-polymorphic/range",
+			"invoke-custom",
+			"invoke-custom/range",
+			"const-method-handle",
 			"const-method-type" };
 }

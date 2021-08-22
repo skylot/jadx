@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -72,6 +73,8 @@ public class Smali {
 	private final boolean printFileOffset = true;
 	private final boolean printBytecode = true;
 
+	private boolean isJavaBytecode;
+
 	private Smali() {
 	}
 
@@ -79,6 +82,7 @@ public class Smali {
 		cls = cls.getTopParentClass();
 		SmaliWriter code = new SmaliWriter(cls);
 		Smali smali = new Smali();
+		smali.isJavaBytecode = cls.getInputFileName().endsWith(".class"); // TODO: add flag to api
 		smali.writeClass(code, cls);
 		smali.codeInfo = code.finish();
 		return smali;
@@ -334,33 +338,41 @@ public class Smali {
 	}
 
 	private void formatInsn(InsnData insn, InsnNode node, LineInfo line) {
-		line.getLineWriter().delete(0, line.getLineWriter().length());
+		StringBuilder lw = line.getLineWriter();
+		lw.delete(0, lw.length());
 		fmtCols(insn, line);
 		if (fmtPayloadInsn(insn, line)) {
 			return;
 		}
-		line.getLineWriter()
-				.append(String.format(FMT_INSN_COL, MNEMONIC.MNEMONICS[getOpenCodeByte(insn)]))
-				.append(" ");
+		lw.append(formatInsnName(insn)).append(" ");
 		fmtRegs(insn, node.getType(), line);
 		if (!tryFormatTargetIns(insn, node.getType(), line)) {
 			if (hasLiteral(insn)) {
-				line.getLineWriter().append(", ").append(literal(insn));
+				lw.append(", ").append(literal(insn));
 			} else if (node.getType() == InsnType.INVOKE) {
-				line.getLineWriter().append(", ").append(method(insn));
+				lw.append(", ").append(method(insn));
 			} else if (insn.getIndexType() == InsnIndexType.FIELD_REF) {
-				line.getLineWriter().append(", ").append(field(insn));
+				lw.append(", ").append(field(insn));
 			} else if (insn.getIndexType() == InsnIndexType.STRING_REF) {
-				line.getLineWriter().append(", ").append(str(insn));
+				lw.append(", ").append(str(insn));
 			} else if (insn.getIndexType() == InsnIndexType.TYPE_REF) {
-				line.getLineWriter().append(", ").append(type(insn));
+				lw.append(", ").append(type(insn));
 			} else if (insn.getOpcode() == CONST_METHOD_HANDLE) {
-				line.getLineWriter().append(", ").append(methodHandle(insn));
+				lw.append(", ").append(methodHandle(insn));
 			} else if (insn.getOpcode() == CONST_METHOD_TYPE) {
-				line.getLineWriter().append(", ").append(proto(insn, insn.getIndex()));
+				lw.append(", ").append(proto(insn, insn.getIndex()));
 			}
 		}
-		line.addInsnLine(insn.getOffset(), line.getLineWriter().toString());
+		line.addInsnLine(insn.getOffset(), lw.toString());
+	}
+
+	private String formatInsnName(InsnData insn) {
+		if (isJavaBytecode) {
+			// add api opcode, because registers not used
+			return String.format("%-" + INSN_COL_WIDTH + "s | %-15s",
+					insn.getOpcodeMnemonic(), insn.getOpcode().name().toLowerCase(Locale.ROOT).replace('_', '-'));
+		}
+		return String.format(FMT_INSN_COL, insn.getOpcodeMnemonic());
 	}
 
 	private boolean tryFormatTargetIns(InsnData insn, InsnType insnType, LineInfo line) {
@@ -647,23 +659,30 @@ public class Smali {
 
 	private void fmtRegs(InsnData insn, InsnType insnType, LineInfo line) {
 		boolean appendBrace = insnType == InsnType.INVOKE || isRegList(insn);
+		StringBuilder lw = line.getLineWriter();
+		if (insnType == InsnType.INVOKE) {
+			int resultReg = insn.getResultReg();
+			if (resultReg != -1) {
+				lw.append(line.getRegName(resultReg)).append(" <= ");
+			}
+		}
 		if (appendBrace) {
-			line.getLineWriter().append("{");
+			lw.append("{");
 		}
 		if (isRangeRegIns(insn)) {
-			line.getLineWriter().append(line.getRegName(insn.getReg(0)))
+			lw.append(line.getRegName(insn.getReg(0)))
 					.append(" .. ")
 					.append(line.getRegName(insn.getReg(insn.getRegsCount() - 1)));
 		} else if (insn.getRegsCount() > 0) {
 			for (int i = 0; i < insn.getRegsCount(); i++) {
 				if (i > 0) {
-					line.getLineWriter().append(", ");
+					lw.append(", ");
 				}
-				line.getLineWriter().append(line.getRegName(insn.getReg(i)));
+				lw.append(line.getRegName(insn.getReg(i)));
 			}
 		}
 		if (appendBrace) {
-			line.getLineWriter().append("}");
+			lw.append("}");
 		}
 	}
 
@@ -692,9 +711,11 @@ public class Smali {
 	private void formatByteCode(StringBuilder smali, byte[] bytes) {
 		int maxLen = Math.min(bytes.length, 4 * 2); // limit to 4 units
 		StringBuilder inHex = new StringBuilder();
-		for (int i = 0; i < maxLen - 1; i += 2) {
-			int temp = ((bytes[i] & 0xff) << 8) | (bytes[i + 1] & 0xff);
-			inHex.append(String.format("%04x ", temp));
+		for (int i = 0; i < maxLen; i++) {
+			inHex.append(String.format("%02x", bytes[i]));
+			if (i % 2 == 1) {
+				inHex.append(' ');
+			}
 		}
 		smali.append(String.format(FMT_BYTECODE_COL, inHex));
 		if (maxLen < bytes.length) {

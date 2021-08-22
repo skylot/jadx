@@ -33,4 +33,9 @@ public class CallSite implements ICallSite {
 	public List<EncodedValue> getValues() {
 		return values;
 	}
+
+	@Override
+	public String toString() {
+		return "CallSite{" + values + '}';
+	}
 }

@@ -67,6 +67,11 @@ public class DexInsnData implements InsnData {
 	}
 
 	@Override
+	public String getOpcodeMnemonic() {
+		return DexInsnMnemonics.get(opcodeUnit);
+	}
+
+	@Override
 	public byte[] getByteCode() {
 		return externalReader.getByteCode(insnStart, length * 2); // a unit is 2 bytes
 	}

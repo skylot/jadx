@@ -61,15 +61,16 @@ public class JavaCodeReader implements ICodeReader {
 		state.setInsn(insn);
 		int offset = 0;
 		while (offset < codeSize) {
+			insn.setDecoded(false);
+			insn.setOffset(offset);
+			insn.setInsnStart(reader.getOffset());
+
 			int opcode = reader.readU1();
 			JavaInsnInfo insnInfo = JavaInsnsRegister.get(opcode);
 			if (insnInfo == null) {
 				throw new JavaClassParseException("Unknown opcode: 0x" + Integer.toHexString(opcode));
 			}
-			insn.setDecoded(false);
 			insn.setInsnInfo(insnInfo);
-			insn.setInsnStart(reader.getOffset());
-			insn.setOffset(offset);
 			insn.setInsnInfo(insnInfo);
 			insn.setRegsCount(insnInfo.getRegsCount());
 			insn.setOpcode(insnInfo.getApiOpcode());

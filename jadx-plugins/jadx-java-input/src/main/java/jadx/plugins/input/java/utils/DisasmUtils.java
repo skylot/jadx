@@ -3,27 +3,42 @@ package jadx.plugins.input.java.utils;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.TimeUnit;
 
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.util.TraceClassVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DisasmUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(DisasmUtils.class);
 
+	public static String get(byte[] bytes) {
+		return useASM(bytes);
+	}
+
+	private static String useASM(byte[] bytes) {
+		StringWriter out = new StringWriter();
+		TraceClassVisitor tcv = new TraceClassVisitor(new PrintWriter(out));
+		new ClassReader(bytes).accept(tcv, 0);
+		return out.toString();
+	}
+
 	/**
 	 * Use javap as a temporary disassembler for java bytecode
+	 * Don't remove! Useful for debug.
 	 */
-	public static String get(byte[] bytes) {
+	private static String useSystemJavaP(byte[] bytes) {
 		try {
 			Path tmpCls = null;
 			try {
 				tmpCls = Files.createTempFile("jadx", ".class");
 				Files.write(tmpCls, bytes, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-
 				Process process = Runtime.getRuntime().exec(new String[] {
 						"javap", "-constants", "-v", "-p", "-c",
 						tmpCls.toAbsolutePath().toString()
