@@ -579,7 +579,7 @@ public class ClassGen {
 		addClsName(code, classNode.getClassInfo());
 	}
 
-	private void addClsName(ICodeWriter code, ClassInfo classInfo) {
+	public void addClsName(ICodeWriter code, ClassInfo classInfo) {
 		String clsName = useClassInternal(cls.getClassInfo(), classInfo);
 		code.add(clsName);
 	}

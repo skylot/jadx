@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.CodePosition;
 import jadx.api.JavaClass;
+import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.gui.treemodel.CodeNode;
 import jadx.gui.treemodel.JNode;
@@ -55,7 +56,14 @@ public class CodeUsageInfo {
 					// skip declaration
 					continue;
 				}
-				addUsage(nodeCache.makeFrom(javaNode), javaClass, linesInfo, codePosition, lines);
+				JNode node = nodeCache.makeFrom(javaNode);
+				addUsage(node, javaClass, linesInfo, codePosition, lines);
+				if (javaNode instanceof JavaMethod) {
+					// add constructor usage also as class usage
+					if (((JavaMethod) javaNode).isConstructor()) {
+						addUsage(node.getJParent(), javaClass, linesInfo, codePosition, lines);
+					}
+				}
 			}
 		} catch (Exception e) {
 			LOG.error("Code usage process failed for class: {}", javaClass, e);
@@ -64,12 +72,16 @@ public class CodeUsageInfo {
 
 	private void addUsage(JNode jNode, JavaClass javaClass,
 			CodeLinesInfo linesInfo, CodePosition codePosition, List<StringRef> lines) {
-		UsageInfo usageInfo = usageMap.computeIfAbsent(jNode, key -> new UsageInfo());
 		int line = codePosition.getLine();
-		JavaNode javaNodeByLine = linesInfo.getJavaNodeByLine(line);
 		StringRef codeLine = lines.get(line - 1);
+		if (codeLine.startsWith("import ")) {
+			// skip imports
+			return;
+		}
+		JavaNode javaNodeByLine = linesInfo.getJavaNodeByLine(line);
 		JNode node = nodeCache.makeFrom(javaNodeByLine == null ? javaClass : javaNodeByLine);
 		CodeNode codeNode = new CodeNode(node, codeLine, line, codePosition.getPos());
+		UsageInfo usageInfo = usageMap.computeIfAbsent(jNode, key -> new UsageInfo());
 		usageInfo.addUsage(codeNode);
 	}
 

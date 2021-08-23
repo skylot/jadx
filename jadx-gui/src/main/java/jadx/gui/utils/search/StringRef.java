@@ -117,6 +117,19 @@ public class StringRef implements CharSequence {
 		return -1;
 	}
 
+	public boolean startsWith(String str) {
+		int strLen = str.length();
+		if (this.length < strLen) {
+			return false;
+		}
+		for (int i = 0; i < strLen; i++) {
+			if (charAt(i) != str.charAt(i)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	public static List<StringRef> split(String str, String splitBy) {
 		int len = str.length();
 		int targetLen = splitBy.length();

@@ -677,13 +677,17 @@ public class InsnGen {
 		if (insn.isSelf()) {
 			throw new JadxRuntimeException("Constructor 'self' invoke must be removed!");
 		}
+		MethodNode callMth = mth.root().resolveMethod(insn.getCallMth());
 		if (insn.isSuper()) {
+			code.attachAnnotation(callMth);
 			code.add("super");
 		} else if (insn.isThis()) {
+			code.attachAnnotation(callMth);
 			code.add("this");
 		} else {
 			code.add("new ");
-			useClass(code, insn.getClassType());
+			code.attachAnnotation(callMth);
+			mgen.getClassGen().addClsName(code, insn.getClassType());
 			GenericInfoAttr genericInfoAttr = insn.get(AType.GENERIC_INFO);
 			if (genericInfoAttr != null) {
 				code.add('<');
@@ -701,7 +705,6 @@ public class InsnGen {
 				code.add('>');
 			}
 		}
-		MethodNode callMth = mth.root().resolveMethod(insn.getCallMth());
 		generateMethodArguments(code, insn, 0, callMth);
 	}
 
