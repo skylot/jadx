@@ -12,7 +12,7 @@
             "Lapp/ItemCurrency;",
             "Lapp/ItemCurrency;",
             "Lapp/ItemCurrency;",
-            "ZTItem;)Z"
+            "ZLapp/SearchListItem;)Z"
         }
     .end annotation
 

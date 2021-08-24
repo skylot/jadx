@@ -138,7 +138,7 @@ public class TypeCompareTest {
 	public void compareGenericTypes() {
 		ArgType vType = genericType("V");
 		check(vType, OBJECT, TypeCompareEnum.NARROW);
-		check(vType, STRING, TypeCompareEnum.NARROW);
+		check(vType, STRING, TypeCompareEnum.CONFLICT);
 
 		ArgType rType = genericType("R");
 		check(vType, rType, TypeCompareEnum.CONFLICT);

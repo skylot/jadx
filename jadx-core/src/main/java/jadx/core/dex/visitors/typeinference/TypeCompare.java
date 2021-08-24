@@ -245,12 +245,12 @@ public class TypeCompare {
 		if (objType.isGenericType()) {
 			return compareTypeVariables(genericType, objType);
 		}
-
+		boolean rootObject = objType.equals(ArgType.OBJECT);
 		List<ArgType> extendTypes = genericType.getExtendTypes();
 		if (extendTypes.isEmpty()) {
-			return NARROW;
+			return rootObject ? NARROW : CONFLICT;
 		}
-		if (extendTypes.contains(objType) || objType.equals(ArgType.OBJECT)) {
+		if (extendTypes.contains(objType) || rootObject) {
 			return NARROW;
 		}
 		for (ArgType extendType : extendTypes) {

@@ -1,6 +1,7 @@
 package jadx.core.dex.visitors;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -15,8 +16,6 @@ import jadx.core.dex.nodes.utils.TypeUtils;
 import jadx.core.dex.visitors.typeinference.TypeCompareEnum;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
-
-import static java.util.Collections.unmodifiableList;
 
 public class SignatureProcessor extends AbstractVisitor {
 
@@ -106,22 +105,35 @@ public class SignatureProcessor extends AbstractVisitor {
 			List<ArgType> parsedArgTypes = sp.consumeMethodArgs(mth.getMethodInfo().getArgsCount());
 			ArgType parsedRetType = sp.consumeType();
 
-			if (!validateParsedType(parsedRetType, mth.getMethodInfo().getReturnType())) {
-				mth.addWarnComment("Incorrect return type in method signature: " + sp.getSignature());
-				return;
-			}
-			List<ArgType> checkedArgTypes = checkArgTypes(mth, sp, parsedArgTypes);
-			if (checkedArgTypes == null) {
-				return;
-			}
 			mth.updateTypeParameters(typeParameters); // apply before expand args
-
 			TypeUtils typeUtils = root.getTypeUtils();
 			ArgType retType = typeUtils.expandTypeVariables(mth, parsedRetType);
-			List<ArgType> resultArgTypes = Utils.collectionMap(checkedArgTypes, t -> typeUtils.expandTypeVariables(mth, t));
-			mth.updateTypes(unmodifiableList(resultArgTypes), retType);
+			List<ArgType> argTypes = Utils.collectionMap(parsedArgTypes, t -> typeUtils.expandTypeVariables(mth, t));
+
+			if (!validateAndApplyTypes(mth, sp, retType, argTypes)) {
+				// bad types -> reset typed parameters
+				mth.updateTypeParameters(Collections.emptyList());
+			}
 		} catch (Exception e) {
 			mth.addWarnComment("Failed to parse method signature: " + sp.getSignature(), e);
+		}
+	}
+
+	private boolean validateAndApplyTypes(MethodNode mth, SignatureParser sp, ArgType retType, List<ArgType> argTypes) {
+		try {
+			if (!validateParsedType(retType, mth.getMethodInfo().getReturnType())) {
+				mth.addWarnComment("Incorrect return type in method signature: " + sp.getSignature());
+				return false;
+			}
+			List<ArgType> checkedArgTypes = checkArgTypes(mth, sp, argTypes);
+			if (checkedArgTypes == null) {
+				return false;
+			}
+			mth.updateTypes(Utils.lockList(checkedArgTypes), retType);
+			return true;
+		} catch (Exception e) {
+			mth.addWarnComment("Type validation failed for signature: " + sp.getSignature(), e);
+			return false;
 		}
 	}
 
