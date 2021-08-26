@@ -3,7 +3,7 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 plugins {
 	id 'com.github.ben-manes.versions' version '0.39.0'
-	id "com.diffplug.spotless" version "5.12.5"
+	id 'com.diffplug.spotless' version '5.14.3'
 }
 
 ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
