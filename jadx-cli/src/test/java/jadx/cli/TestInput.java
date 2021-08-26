@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -44,19 +45,20 @@ public class TestInput {
 	}
 
 	private void decompile(String tmpDirName, String... inputSamples) throws URISyntaxException, IOException {
-		StringBuilder args = new StringBuilder();
+		List<String> args = new ArrayList<>();
 		Path tempDir = FileUtils.createTempDir(tmpDirName);
-		args.append("-v");
-		args.append(" -d ").append(tempDir.toAbsolutePath());
+		args.add("-v");
+		args.add("-d");
+		args.add(tempDir.toAbsolutePath().toString());
 
 		for (String inputSample : inputSamples) {
 			URL resource = getClass().getClassLoader().getResource(inputSample);
 			assertThat(resource).isNotNull();
 			String sampleFile = resource.toURI().getRawPath();
-			args.append(' ').append(sampleFile);
+			args.add(sampleFile);
 		}
 
-		int result = JadxCLI.execute(args.toString().split(" "));
+		int result = JadxCLI.execute(args.toArray(new String[0]));
 		assertThat(result).isEqualTo(0);
 		List<Path> resultJavaFiles = collectJavaFilesInDir(tempDir);
 		assertThat(resultJavaFiles).isNotEmpty();
