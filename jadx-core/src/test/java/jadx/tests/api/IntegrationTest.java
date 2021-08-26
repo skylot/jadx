@@ -266,7 +266,7 @@ public abstract class IntegrationTest extends TestUtils {
 		for (int i = 0; i < lines.length; i++) {
 			String line = lines[i];
 			int curLine = i + 1;
-			Object ann = annotations.get(new CodePosition(curLine, 0));
+			Object ann = annotations.get(new CodePosition(curLine, 0, -1));
 			String offsetStr = "";
 			if (ann instanceof InsnCodeOffset) {
 				int offset = ((InsnCodeOffset) ann).getOffset();

@@ -556,7 +556,7 @@ public final class JadxDecompiler implements Closeable {
 		if (map.isEmpty()) {
 			return null;
 		}
-		Object obj = map.get(new CodePosition(line, offset));
+		Object obj = map.get(new CodePosition(line, offset, -1));
 		if (obj == null) {
 			return null;
 		}
