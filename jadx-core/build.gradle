@@ -5,7 +5,7 @@ plugins {
 dependencies {
 	api(project(':jadx-plugins:jadx-plugins-api'))
 
-	implementation 'com.google.code.gson:gson:2.8.7'
+	implementation 'com.google.code.gson:gson:2.8.8'
 	implementation 'com.android.tools.build:aapt2-proto:4.2.1-7147631'
 
 	testImplementation 'org.apache.commons:commons-lang3:3.12.0'

@@ -15,13 +15,13 @@ dependencies {
 	implementation files('libs/jfontchooser-1.0.5.jar')
 	implementation 'hu.kazocsaba:image-viewer:1.2.3'
 
-	implementation 'com.formdev:flatlaf:1.4'
-	implementation 'com.formdev:flatlaf-intellij-themes:1.4'
-	implementation 'com.formdev:flatlaf-extras:1.4'
+	implementation 'com.formdev:flatlaf:1.5'
+	implementation 'com.formdev:flatlaf-intellij-themes:1.5'
+	implementation 'com.formdev:flatlaf-extras:1.5'
 	implementation 'com.formdev:svgSalamander:1.1.2.4'
 	implementation 'org.reflections:reflections:0.9.12'
 
-	implementation 'com.google.code.gson:gson:2.8.6'
+	implementation 'com.google.code.gson:gson:2.8.8'
 	implementation 'org.apache.commons:commons-lang3:3.12.0'
 	implementation 'org.apache.commons:commons-text:1.9'
 
