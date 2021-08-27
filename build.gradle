@@ -1,6 +1,3 @@
-import com.diffplug.spotless.LineEnding
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-
 plugins {
 	id 'com.github.ben-manes.versions' version '0.39.0'
 	id 'com.diffplug.spotless' version '5.14.3'
@@ -83,7 +80,7 @@ spotless {
 			println('Warning! Unused imports remove is disabled for Java 16')
 		}
 
-		lineEndings(LineEnding.UNIX)
+		lineEndings(com.diffplug.spotless.LineEnding.UNIX)
 		encoding("UTF-8")
 		trimTrailingWhitespace()
 		endWithNewline()
@@ -92,7 +89,7 @@ spotless {
 		target '**/*.gradle', '**/*.md', '**/*.xml', '**/.gitignore', '**/.properties'
 		targetExclude ".gradle/**", ".idea/**", "*/build/**"
 
-		lineEndings(LineEnding.UNIX)
+		lineEndings(com.diffplug.spotless.LineEnding.UNIX)
 		encoding("UTF-8")
 		trimTrailingWhitespace()
 		endWithNewline()
@@ -144,7 +141,7 @@ task dist {
 
 	dependsOn(pack)
 
-	OperatingSystem os = DefaultNativePlatform.currentOperatingSystem
+	OperatingSystem os = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.currentOperatingSystem;
 	if (os.isWindows()) {
 		dependsOn('copyExe')
 	}
