@@ -1,6 +1,6 @@
 plugins {
 	id 'com.github.ben-manes.versions' version '0.39.0'
-	id "com.diffplug.spotless" version "5.12.5"
+	id 'com.diffplug.spotless' version '5.14.3'
 }
 
 ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
@@ -10,6 +10,7 @@ println("jadx version: ${jadxVersion}")
 allprojects {
 	apply plugin: 'java'
 	apply plugin: 'checkstyle'
+	apply plugin: 'maven-publish'
 
 	version = jadxVersion
 
@@ -26,20 +27,28 @@ allprojects {
 		}
 	}
 
+	publishing {
+		publications {
+			mavenJava(MavenPublication) {
+				from components.java
+			}
+		}
+	}
+
 	dependencies {
 		implementation 'org.slf4j:slf4j-api:1.7.32'
-		compileOnly 'org.jetbrains:annotations:21.0.1'
+		compileOnly 'org.jetbrains:annotations:22.0.0'
 
 		testImplementation 'ch.qos.logback:logback-classic:1.2.5'
 		testImplementation 'org.hamcrest:hamcrest-library:2.2'
-		testImplementation 'org.mockito:mockito-core:3.11.2'
+		testImplementation 'org.mockito:mockito-core:3.12.1'
 		testImplementation 'org.assertj:assertj-core:3.20.2'
 
 		testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
 		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
 
 		testImplementation 'org.eclipse.jdt.core.compiler:ecj:4.6.1'
-		testCompileOnly 'org.jetbrains:annotations:21.0.1'
+		testCompileOnly 'org.jetbrains:annotations:22.0.0'
 	}
 
 	test {
