@@ -191,7 +191,7 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		int comment = is.readInt32();
 		int endPrefix = is.readInt32();
 		int endURI = is.readInt32();
-		is.skip(headerSize - 0x18);
+		is.skip(headerSize - 0x10);
 		namespaceDepth--;
 
 		String nsKey = getString(endURI);
