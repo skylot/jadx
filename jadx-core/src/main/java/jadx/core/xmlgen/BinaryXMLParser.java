@@ -147,16 +147,24 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	}
 
 	private void parseNameSpace() throws IOException {
-		if (is.readInt16() != 0x10) {
-			die("NAMESPACE header is not 0x0010");
+		int headerSize = is.readInt16();
+		if (headerSize > 0x10) {
+			LOG.warn("Invalid namespace header");
+		} else if (headerSize < 0x10) {
+			die("NAMESPACE header is not 0x10 big");
 		}
-		if (is.readInt32() != 0x18) {
+		int size = is.readInt32();
+		if (size > 0x18) {
+			LOG.warn("Invalid namespace size");
+		} else if (size < 0x18) {
 			die("NAMESPACE header chunk is not 0x18 big");
 		}
+
 		int beginLineNumber = is.readInt32();
 		int comment = is.readInt32();
 		int beginPrefix = is.readInt32();
 		int beginURI = is.readInt32();
+		is.skip(headerSize - 0x10);
 
 		String nsKey = getString(beginURI);
 		String nsValue = getString(beginPrefix);
@@ -167,16 +175,23 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	}
 
 	private void parseNameSpaceEnd() throws IOException {
-		if (is.readInt16() != 0x10) {
-			die("NAMESPACE header is not 0x0010");
+		int headerSize = is.readInt16();
+		if (headerSize > 0x10) {
+			LOG.warn("Invalid namespace end");
+		} else if (headerSize < 0x10) {
+			die("NAMESPACE end is not 0x10 big");
 		}
-		if (is.readInt32() != 0x18) {
+		int dataSize = is.readInt32();
+		if (dataSize > 0x18) {
+			LOG.warn("Invalid namespace size");
+		} else if (dataSize < 0x18) {
 			die("NAMESPACE header chunk is not 0x18 big");
 		}
 		int endLineNumber = is.readInt32();
 		int comment = is.readInt32();
 		int endPrefix = is.readInt32();
 		int endURI = is.readInt32();
+		is.skip(headerSize - 0x10);
 		namespaceDepth--;
 
 		String nsKey = getString(endURI);
