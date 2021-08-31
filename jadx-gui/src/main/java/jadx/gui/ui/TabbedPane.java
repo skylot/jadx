@@ -100,7 +100,7 @@ public class TabbedPane extends JTabbedPane {
 							}
 						}
 						if (doSwitch) {
-							setSelectedComponent(lastTab);
+							selectTab(lastTab);
 						}
 					}
 				} else if (consume && (e.getModifiersEx() & ctrlDown) == 0) {
@@ -168,7 +168,7 @@ public class TabbedPane extends JTabbedPane {
 			return;
 		}
 		SwingUtilities.invokeLater(() -> {
-			setSelectedComponent(contentPanel);
+			selectTab(contentPanel);
 			AbstractCodeArea codeArea = contentPanel.getCodeArea();
 			int pos = jumpPos.getPos();
 			if (pos > 0) {
@@ -206,7 +206,14 @@ public class TabbedPane extends JTabbedPane {
 		if (contentPanel == null) {
 			return;
 		}
-		SwingUtilities.invokeLater(() -> setSelectedComponent(contentPanel));
+		SwingUtilities.invokeLater(() -> selectTab(contentPanel));
+	}
+
+	public void selectTab(ContentPanel contentPanel) {
+		setSelectedComponent(contentPanel);
+		if (mainWindow.getSettings().isAlwaysSelectOpened()) {
+			mainWindow.syncWithEditor();
+		}
 	}
 
 	public void codeJump(JNode node) {
@@ -231,7 +238,7 @@ public class TabbedPane extends JTabbedPane {
 				throw new JadxRuntimeException("Failed to open panel for JClass: " + cls);
 			}
 		} else {
-			setSelectedComponent(panel);
+			selectTab(panel);
 		}
 		ClassCodeContentPanel codePane = ((ClassCodeContentPanel) panel);
 		codePane.showSmaliPane();

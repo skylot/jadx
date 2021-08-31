@@ -51,9 +51,8 @@ public class TabComponent extends JPanel {
 	}
 
 	private void init() {
-		JPanel panel = this;
-		panel.setLayout(new FlowLayout(FlowLayout.CENTER, 3, 0));
-		panel.setOpaque(false);
+		setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+		setOpaque(false);
 
 		JNode node = contentPanel.getNode();
 		String tabTitle;
@@ -93,18 +92,18 @@ public class TabComponent extends JPanel {
 					menu.show(e.getComponent(), e.getX(), e.getY());
 				} else if (SwingUtilities.isLeftMouseButton(e)) {
 					if (tabbedPane.getSelectedComponent() != contentPanel) {
-						tabbedPane.setSelectedComponent(contentPanel);
+						tabbedPane.selectTab(contentPanel);
 					}
 				}
 			}
 		};
-		panel.addMouseListener(clickAdapter);
+		addMouseListener(clickAdapter);
 		label.addMouseListener(clickAdapter);
 		closeBtn.addMouseListener(clickAdapter);
 
-		panel.add(label);
-		panel.add(closeBtn);
-		panel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+		add(label);
+		add(closeBtn);
+		setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 	}
 
 	private JPopupMenu createTabPopupMenu(final ContentPanel contentPanel) {
