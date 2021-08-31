@@ -745,7 +745,7 @@ public class MainWindow extends JFrame {
 		return null;
 	}
 
-	private void syncWithEditor() {
+	public void syncWithEditor() {
 		ContentPanel selectedContentPanel = tabbedPane.getSelectedCodePanel();
 		if (selectedContentPanel == null) {
 			return;
@@ -859,6 +859,12 @@ public class MainWindow extends JFrame {
 		heapUsageBarMenuItem.addActionListener(event -> {
 			settings.setShowHeapUsageBar(!settings.isShowHeapUsageBar());
 			heapUsageBar.setVisible(settings.isShowHeapUsageBar());
+		});
+
+		JCheckBoxMenuItem alwaysSelectOpened = new JCheckBoxMenuItem(NLS.str("menu.alwaysSelectOpened"));
+		alwaysSelectOpened.setState(settings.isAlwaysSelectOpened());
+		alwaysSelectOpened.addActionListener(event -> {
+			settings.setAlwaysSelectOpened(!settings.isAlwaysSelectOpened());
 		});
 
 		Action syncAction = new AbstractAction(NLS.str("menu.sync"), ICON_SYNC) {
@@ -999,6 +1005,7 @@ public class MainWindow extends JFrame {
 		view.add(flatPkgMenuItem);
 		view.add(syncAction);
 		view.add(heapUsageBarMenuItem);
+		view.add(alwaysSelectOpened);
 
 		JMenu nav = new JMenu(NLS.str("menu.navigation"));
 		nav.setMnemonic(KeyEvent.VK_N);
