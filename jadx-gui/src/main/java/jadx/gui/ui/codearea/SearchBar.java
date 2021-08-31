@@ -6,9 +6,9 @@ import java.awt.event.KeyEvent;
 
 import javax.swing.Icon;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.text.BadLocationException;
 
@@ -28,7 +28,14 @@ class SearchBar extends JToolBar {
 	private static final long serialVersionUID = 1836871286618633003L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(SearchBar.class);
-
+	private static final Icon ICON_MARK = UiUtils.openSvgIcon("search/mark");
+	private static final Icon ICON_MARK_SELECTED = UiUtils.openSvgIcon("search/previewSelected");
+	private static final Icon ICON_REGEX = UiUtils.openSvgIcon("search/regexHovered");
+	private static final Icon ICON_REGEX_SELECTED = UiUtils.openSvgIcon("search/regexSelected");
+	private static final Icon ICON_WORDS = UiUtils.openSvgIcon("search/wordsHovered");
+	private static final Icon ICON_WORDS_SELECTED = UiUtils.openSvgIcon("search/wordsSelected");
+	private static final Icon ICON_MATCH = UiUtils.openSvgIcon("search/matchCaseHovered");
+	private static final Icon ICON_MATCH_SELECTED = UiUtils.openSvgIcon("search/matchCaseSelected");
 	private static final Icon ICON_UP = UiUtils.openSvgIcon("ui/top");
 	private static final Icon ICON_DOWN = UiUtils.openSvgIcon("ui/bottom");
 	private static final Icon ICON_CLOSE = UiUtils.openSvgIcon("ui/close");
@@ -36,11 +43,10 @@ class SearchBar extends JToolBar {
 	private RSyntaxTextArea rTextArea;
 
 	private final JTextField searchField;
-	private final JCheckBox markAllCB;
-	private final JCheckBox regexCB;
-	private final JCheckBox wholeWordCB;
-	private final JCheckBox matchCaseCB;
-
+	private final JToggleButton markAllCB;
+	private final JToggleButton regexCB;
+	private final JToggleButton wholeWordCB;
+	private final JToggleButton matchCaseCB;
 	private boolean notFound;
 
 	public SearchBar(RSyntaxTextArea textArea) {
@@ -70,35 +76,49 @@ class SearchBar extends JToolBar {
 		new TextStandardActions(searchField);
 		add(searchField);
 
-		JButton prevButton = new JButton(NLS.str("search.previous"));
+		ActionListener forwardListener = e -> search(1);
+
+		matchCaseCB = new JToggleButton();
+		matchCaseCB.setIcon(ICON_MATCH);
+		matchCaseCB.setSelectedIcon(ICON_MATCH_SELECTED);
+		matchCaseCB.setToolTipText(NLS.str("search.match_case"));
+		matchCaseCB.addActionListener(forwardListener);
+		add(matchCaseCB);
+
+		wholeWordCB = new JToggleButton();
+		wholeWordCB.setIcon(ICON_WORDS);
+		wholeWordCB.setSelectedIcon(ICON_WORDS_SELECTED);
+		wholeWordCB.setToolTipText(NLS.str("search.whole_word"));
+		wholeWordCB.addActionListener(forwardListener);
+		add(wholeWordCB);
+
+		regexCB = new JToggleButton();
+		regexCB.setIcon(ICON_REGEX);
+		regexCB.setSelectedIcon(ICON_REGEX_SELECTED);
+		regexCB.setToolTipText(NLS.str("search.regex"));
+		regexCB.addActionListener(forwardListener);
+		add(regexCB);
+
+		JButton prevButton = new JButton();
 		prevButton.setIcon(ICON_UP);
+		prevButton.setToolTipText(NLS.str("search.previous"));
 		prevButton.addActionListener(e -> search(-1));
 		prevButton.setBorderPainted(false);
 		add(prevButton);
 
-		JButton nextButton = new JButton(NLS.str("search.next"));
+		JButton nextButton = new JButton();
 		nextButton.setIcon(ICON_DOWN);
+		nextButton.setToolTipText(NLS.str("search.next"));
 		nextButton.addActionListener(e -> search(1));
 		nextButton.setBorderPainted(false);
 		add(nextButton);
 
-		ActionListener forwardListener = e -> search(0);
-
-		markAllCB = new JCheckBox(NLS.str("search.mark_all"));
+		markAllCB = new JToggleButton();
+		markAllCB.setIcon(ICON_MARK);
+		markAllCB.setSelectedIcon(ICON_MARK_SELECTED);
+		markAllCB.setToolTipText(NLS.str("search.mark_all"));
 		markAllCB.addActionListener(forwardListener);
 		add(markAllCB);
-
-		regexCB = new JCheckBox(NLS.str("search.regex"));
-		regexCB.addActionListener(forwardListener);
-		add(regexCB);
-
-		matchCaseCB = new JCheckBox(NLS.str("search.match_case"));
-		matchCaseCB.addActionListener(forwardListener);
-		add(matchCaseCB);
-
-		wholeWordCB = new JCheckBox(NLS.str("search.whole_word"));
-		wholeWordCB.addActionListener(forwardListener);
-		add(wholeWordCB);
 
 		JButton closeButton = new JButton();
 		closeButton.setIcon(ICON_CLOSE);
@@ -110,7 +130,7 @@ class SearchBar extends JToolBar {
 		setVisible(false);
 	}
 
-	public boolean toggle() {
+	public void toggle() {
 		boolean visible = !isVisible();
 		setVisible(visible);
 
@@ -124,7 +144,6 @@ class SearchBar extends JToolBar {
 		} else {
 			rTextArea.requestFocus();
 		}
-		return visible;
 	}
 
 	private void search(int direction) {
@@ -176,12 +195,5 @@ class SearchBar extends JToolBar {
 			searchField.putClientProperty("JComponent.outline", "");
 		}
 		searchField.repaint();
-	}
-
-	public void setRTextArea(RSyntaxTextArea rTextArea) {
-		this.rTextArea = rTextArea;
-		if (isVisible()) {
-			this.search(0);
-		}
 	}
 }
