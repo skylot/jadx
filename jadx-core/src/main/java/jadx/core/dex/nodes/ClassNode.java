@@ -450,15 +450,18 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	}
 
 	public ClassNode getParentClass() {
-		if (parentClass == null) {
-			if (clsInfo.isInner()) {
-				ClassNode parent = root.resolveClass(clsInfo.getParentClass());
-				parentClass = parent == null ? this : parent;
-			} else {
-				parentClass = this;
+		return parentClass;
+	}
+
+	public void updateParentClass() {
+		if (clsInfo.isInner()) {
+			ClassNode parent = root.resolveClass(clsInfo.getParentClass());
+			if (parent != null) {
+				parentClass = parent;
+				return;
 			}
 		}
-		return parentClass;
+		parentClass = this;
 	}
 
 	public ClassNode getTopParentClass() {
@@ -548,7 +551,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	}
 
 	public boolean isInner() {
-		return parentClass != null;
+		return parentClass != this;
 	}
 
 	@Nullable

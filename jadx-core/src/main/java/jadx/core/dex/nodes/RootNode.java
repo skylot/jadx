@@ -100,14 +100,16 @@ public class RootNode {
 			markDuplicatedClasses(classes);
 		}
 		classes = new ArrayList<>(clsMap.values());
-		// sort classes by name, expect top classes before inner
-		classes.sort(Comparator.comparing(ClassNode::getFullName));
-		initInnerClasses();
 
 		// print stats for loaded classes
 		int mthCount = classes.stream().mapToInt(c -> c.getMethods().size()).sum();
 		int insnsCount = classes.stream().flatMap(c -> c.getMethods().stream()).mapToInt(MethodNode::getInsnsCount).sum();
 		LOG.info("Loaded classes: {}, methods: {}, instructions: {}", classes.size(), mthCount, insnsCount);
+
+		// sort classes by name, expect top classes before inner
+		classes.sort(Comparator.comparing(ClassNode::getFullName));
+		// move inner classes
+		initInnerClasses();
 	}
 
 	private void addDummyClass(IClassData classData, Exception exc) {
@@ -254,6 +256,7 @@ public class RootNode {
 				innerCls.getClassInfo().updateNames(this);
 			}
 		}
+		classes.forEach(ClassNode::updateParentClass);
 	}
 
 	public void runPreDecompileStage() {
@@ -266,6 +269,9 @@ public class RootNode {
 				LOG.error("Visitor init failed: {}", pass.getClass().getSimpleName(), e);
 			}
 			for (ClassNode cls : classes) {
+				if (cls.isInner()) {
+					continue;
+				}
 				DepthTraversal.visit(pass, cls);
 			}
 			if (debugEnabled) {
