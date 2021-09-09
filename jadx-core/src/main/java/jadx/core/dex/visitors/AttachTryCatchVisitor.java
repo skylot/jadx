@@ -69,7 +69,7 @@ public class AttachTryCatchVisitor extends AbstractVisitor {
 			InsnNode insnAtOffset = insnByOffset[offset];
 			if (insnAtOffset != null) {
 				insn = insnAtOffset;
-				insn.addAttr(catchAttr);
+				attachCatchAttr(catchAttr, insn);
 				if (!tryBlockStarted) {
 					insn.add(AFlag.TRY_ENTER);
 					tryBlockStarted = true;
@@ -88,6 +88,17 @@ public class AttachTryCatchVisitor extends AbstractVisitor {
 			nop.add(AFlag.TRY_ENTER);
 			nop.add(AFlag.TRY_LEAVE);
 			nop.addAttr(catchAttr);
+		}
+	}
+
+	private static void attachCatchAttr(CatchAttr catchAttr, InsnNode insn) {
+		CatchAttr existAttr = insn.get(AType.EXC_CATCH);
+		if (existAttr != null) {
+			// merge handlers
+			List<ExceptionHandler> handlers = Utils.concat(existAttr.getHandlers(), catchAttr.getHandlers());
+			insn.addAttr(new CatchAttr(handlers));
+		} else {
+			insn.addAttr(catchAttr);
 		}
 	}
 
