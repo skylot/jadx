@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -302,6 +303,28 @@ public class InsnNode extends LineAttrNode {
 				((InsnWrapArg) arg).getWrapInsn().visitInsns(visitor);
 			}
 		}
+	}
+
+	/**
+	 * Visit this instruction and all inner (wrapped) instructions
+	 * To terminate visiting return non-null value
+	 */
+	@Nullable
+	public <R> R visitInsns(Function<InsnNode, R> visitor) {
+		R result = visitor.apply(this);
+		if (result != null) {
+			return result;
+		}
+		for (InsnArg arg : this.getArguments()) {
+			if (arg.isInsnWrap()) {
+				InsnNode innerInsn = ((InsnWrapArg) arg).getWrapInsn();
+				R res = innerInsn.visitInsns(visitor);
+				if (res != null) {
+					return res;
+				}
+			}
+		}
+		return null;
 	}
 
 	/**

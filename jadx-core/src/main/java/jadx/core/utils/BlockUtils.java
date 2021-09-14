@@ -761,6 +761,30 @@ public class BlockUtils {
 		}
 	}
 
+	/**
+	 * Visit blocks on path without branching or merging paths.
+	 */
+	public static void visitSinglePath(BlockNode startBlock, Consumer<BlockNode> visitor) {
+		if (startBlock == null) {
+			return;
+		}
+		visitor.accept(startBlock);
+		BlockNode next = getNextSinglePathBlock(startBlock);
+		while (next != null) {
+			visitor.accept(next);
+			next = getNextSinglePathBlock(next);
+		}
+	}
+
+	@Nullable
+	public static BlockNode getNextSinglePathBlock(BlockNode block) {
+		if (block == null || block.getPredecessors().size() > 1) {
+			return null;
+		}
+		List<BlockNode> successors = block.getSuccessors();
+		return successors.size() == 1 ? successors.get(0) : null;
+	}
+
 	public static List<BlockNode> buildSimplePath(BlockNode block) {
 		if (block == null) {
 			return Collections.emptyList();

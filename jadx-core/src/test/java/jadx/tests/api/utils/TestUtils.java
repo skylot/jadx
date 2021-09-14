@@ -24,6 +24,9 @@ public class TestUtils {
 	}
 
 	public static int count(String string, String substring) {
+		if (substring == null || substring.isEmpty()) {
+			throw new IllegalArgumentException("Substring can't be null or empty");
+		}
 		int count = 0;
 		int idx = 0;
 		while ((idx = string.indexOf(substring, idx)) != -1) {
