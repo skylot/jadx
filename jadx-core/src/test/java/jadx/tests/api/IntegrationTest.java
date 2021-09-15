@@ -327,44 +327,55 @@ public abstract class IntegrationTest extends TestUtils {
 		String clsName = cls.getClassInfo().getFullName();
 		try {
 			// run 'check' method from original class
-			Class<?> origCls;
-			try {
-				origCls = Class.forName(clsName);
-			} catch (ClassNotFoundException e) {
-				// ignore
+			if (runSourceAutoCheck(clsName)) {
 				return;
-			}
-			Method checkMth;
-			try {
-				checkMth = origCls.getMethod(CHECK_METHOD_NAME);
-			} catch (NoSuchMethodException e) {
-				// ignore
-				return;
-			}
-			if (!checkMth.getReturnType().equals(void.class)
-					|| !Modifier.isPublic(checkMth.getModifiers())
-					|| Modifier.isStatic(checkMth.getModifiers())) {
-				fail("Wrong 'check' method");
-				return;
-			}
-			try {
-				limitExecTime(() -> checkMth.invoke(origCls.getConstructor().newInstance()));
-				System.out.println("Source check: PASSED");
-			} catch (Throwable e) {
-				throw new JadxRuntimeException("Source check failed", e);
 			}
 			// run 'check' method from decompiled class
 			if (compile) {
-				try {
-					limitExecTime(() -> invoke(cls, "check"));
-					System.out.println("Decompiled check: PASSED");
-				} catch (Throwable e) {
-					throw new JadxRuntimeException("Decompiled check failed", e);
-				}
+				runDecompiledAutoCheck(cls);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("Auto check exception: " + e.getMessage());
+		}
+	}
+
+	private boolean runSourceAutoCheck(String clsName) {
+		Class<?> origCls;
+		try {
+			origCls = Class.forName(clsName);
+		} catch (ClassNotFoundException e) {
+			// ignore
+			return true;
+		}
+		Method checkMth;
+		try {
+			checkMth = origCls.getMethod(CHECK_METHOD_NAME);
+		} catch (NoSuchMethodException e) {
+			// ignore
+			return true;
+		}
+		if (!checkMth.getReturnType().equals(void.class)
+				|| !Modifier.isPublic(checkMth.getModifiers())
+				|| Modifier.isStatic(checkMth.getModifiers())) {
+			fail("Wrong 'check' method");
+			return true;
+		}
+		try {
+			limitExecTime(() -> checkMth.invoke(origCls.getConstructor().newInstance()));
+			System.out.println("Source check: PASSED");
+		} catch (Throwable e) {
+			throw new JadxRuntimeException("Source check failed", e);
+		}
+		return false;
+	}
+
+	public void runDecompiledAutoCheck(ClassNode cls) {
+		try {
+			limitExecTime(() -> invoke(cls, "check"));
+			System.out.println("Decompiled check: PASSED");
+		} catch (Throwable e) {
+			throw new JadxRuntimeException("Decompiled check failed", e);
 		}
 	}
 
@@ -404,10 +415,6 @@ public abstract class IntegrationTest extends TestUtils {
 		}
 		fail("Method not found " + method + " in class " + cls);
 		return null;
-	}
-
-	void compile(ClassNode cls) {
-		compile(Collections.singletonList(cls));
 	}
 
 	void compile(List<ClassNode> clsList) {

@@ -42,4 +42,14 @@ public class JadxClassNodeAssertions extends AbstractObjectAssert<JadxClassNodeA
 		testInstance.runChecks(actual);
 		return codeAssertions;
 	}
+
+	/**
+	 * Force running auto check on decompiled code.
+	 * Useful for smali tests.
+	 */
+	public JadxClassNodeAssertions runDecompiledAutoCheck(IntegrationTest testInstance) {
+		isNotNull();
+		testInstance.runDecompiledAutoCheck(actual);
+		return this;
+	}
 }
