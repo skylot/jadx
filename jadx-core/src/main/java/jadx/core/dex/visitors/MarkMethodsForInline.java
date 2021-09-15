@@ -76,7 +76,7 @@ public class MarkMethodsForInline extends AbstractVisitor {
 		}
 		if (insnsCount == 1) {
 			InsnNode insn = insns.get(0);
-			if (insn.getType() == InsnType.RETURN) {
+			if (insn.getType() == InsnType.RETURN && insn.getArgsCount() == 1) {
 				// synthetic field getter
 				// set arg from 'return' instruction
 				return addInlineAttr(mth, InsnNode.wrapArg(insn.getArg(0)));

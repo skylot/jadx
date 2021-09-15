@@ -101,6 +101,10 @@ public class InsnGen {
 	}
 
 	public void addArg(ICodeWriter code, InsnArg arg, boolean wrap) throws CodegenException {
+		addArg(code, arg, wrap ? BODY_ONLY_FLAG : BODY_ONLY_NOWRAP_FLAGS);
+	}
+
+	public void addArg(ICodeWriter code, InsnArg arg, Set<Flags> flags) throws CodegenException {
 		if (arg.isRegister()) {
 			CodeVar codeVar = CodeGenUtils.getCodeVar((RegisterArg) arg);
 			if (codeVar != null) {
@@ -113,7 +117,7 @@ public class InsnGen {
 		} else if (arg.isLiteral()) {
 			code.add(lit((LiteralArg) arg));
 		} else if (arg.isInsnWrap()) {
-			addWrappedArg(code, (InsnWrapArg) arg, wrap);
+			addWrappedArg(code, (InsnWrapArg) arg, flags);
 		} else if (arg.isNamed()) {
 			if (arg instanceof NamedArg) {
 				VariableNode node = mth.getVariable(((NamedArg) arg).getIndex());
@@ -127,15 +131,14 @@ public class InsnGen {
 		}
 	}
 
-	private void addWrappedArg(ICodeWriter code, InsnWrapArg arg, boolean wrap) throws CodegenException {
+	private void addWrappedArg(ICodeWriter code, InsnWrapArg arg, Set<Flags> flags) throws CodegenException {
 		InsnNode wrapInsn = arg.getWrapInsn();
 		if (wrapInsn.contains(AFlag.FORCE_ASSIGN_INLINE)) {
 			code.add('(');
 			makeInsn(wrapInsn, code, Flags.INLINE);
 			code.add(')');
 		} else {
-			Flags flags = wrap ? Flags.BODY_ONLY : Flags.BODY_ONLY_NOWRAP;
-			makeInsn(wrapInsn, code, flags);
+			makeInsnBody(code, wrapInsn, flags);
 		}
 	}
 
@@ -509,7 +512,7 @@ public class InsnGen {
 				break;
 
 			case ONE_ARG:
-				addArg(code, insn.getArg(0));
+				addArg(code, insn.getArg(0), state);
 				break;
 
 			/* fallback mode instructions */
