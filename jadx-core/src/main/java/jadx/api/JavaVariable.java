@@ -2,16 +2,17 @@ package jadx.api;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import jadx.core.dex.nodes.VariableNode;
 
 public class JavaVariable implements JavaNode {
-	JavaClass cls;
-	VariableNode node;
+	private final JavaClass cls;
+	private final VariableNode node;
 
 	public JavaVariable(JavaClass cls, VariableNode node) {
-		this.cls = cls;
-		this.node = node;
+		this.cls = Objects.requireNonNull(cls);
+		this.node = Objects.requireNonNull(node);
 	}
 
 	public VariableNode getVariableNode() {
