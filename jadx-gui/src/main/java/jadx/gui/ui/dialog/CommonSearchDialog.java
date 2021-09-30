@@ -547,14 +547,14 @@ public abstract class CommonSearchDialog extends JDialog {
 		}
 	}
 
-	private void loadStartCommon() {
+	void loadStartCommon() {
 		setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		progressPane.setIndeterminate(true);
 		progressPane.setVisible(true);
 		warnLabel.setVisible(false);
 	}
 
-	private void loadFinishedCommon() {
+	void loadFinishedCommon() {
 		setCursor(null);
 		progressPane.setVisible(false);
 

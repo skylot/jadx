@@ -3,6 +3,7 @@ package jadx.gui.jobs;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import javax.swing.JOptionPane;
 
@@ -42,15 +43,18 @@ public class DecompileTask implements IBackgroundTask {
 
 	@Override
 	public List<Runnable> scheduleJobs() {
-		List<JavaClass> classes = wrapper.getIncludedClasses();
-		expectedCompleteCount = classes.size();
-
 		IndexService indexService = mainWindow.getCacheObject().getIndexService();
+		List<JavaClass> classesForIndex = wrapper.getIncludedClasses()
+				.stream()
+				.filter(indexService::isIndexNeeded)
+				.collect(Collectors.toList());
+		expectedCompleteCount = classesForIndex.size();
+
 		indexService.setComplete(false);
 		complete.set(0);
 
 		List<Runnable> jobs = new ArrayList<>(expectedCompleteCount + 1);
-		for (JavaClass cls : classes) {
+		for (JavaClass cls : classesForIndex) {
 			jobs.add(() -> {
 				cls.decompile();
 				indexService.indexCls(cls);

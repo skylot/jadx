@@ -201,7 +201,23 @@ public final class JavaClass implements JavaNode {
 
 	@Override
 	public JavaClass getTopParentClass() {
+		if (cls.contains(AFlag.ANONYMOUS_CLASS)) {
+			// moved to usage class
+			return getParentForAnonymousClass();
+		}
 		return parent == null ? this : parent.getTopParentClass();
+	}
+
+	private JavaClass getParentForAnonymousClass() {
+		List<JavaNode> useIn = getUseIn();
+		if (useIn.isEmpty()) {
+			return this;
+		}
+		JavaNode useNode = useIn.get(0);
+		if (useNode.equals(this)) {
+			return this;
+		}
+		return useNode.getTopParentClass();
 	}
 
 	public AccessInfo getAccessInfo() {

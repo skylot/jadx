@@ -31,25 +31,29 @@ public class JNodeCache {
 		return jNode;
 	}
 
+	public JClass makeFrom(JavaClass javaCls) {
+		if (javaCls == null) {
+			return null;
+		}
+		return (JClass) cache.computeIfAbsent(javaCls,
+				jn -> new JClass(javaCls, makeFrom(javaCls.getDeclaringClass())));
+	}
+
 	private JNode convert(JavaNode node) {
 		if (node == null) {
 			return null;
 		}
 		if (node instanceof JavaClass) {
-			JClass p = (JClass) makeFrom(node.getDeclaringClass());
-			return new JClass((JavaClass) node, p);
+			return new JClass((JavaClass) node, makeFrom(node.getDeclaringClass()));
 		}
 		if (node instanceof JavaMethod) {
-			JavaMethod mth = (JavaMethod) node;
-			return new JMethod(mth, (JClass) makeFrom(mth.getDeclaringClass()));
+			return new JMethod((JavaMethod) node, makeFrom(node.getDeclaringClass()));
 		}
 		if (node instanceof JavaField) {
-			JavaField fld = (JavaField) node;
-			return new JField(fld, (JClass) makeFrom(fld.getDeclaringClass()));
+			return new JField((JavaField) node, makeFrom(node.getDeclaringClass()));
 		}
 		if (node instanceof JavaVariable) {
-			JavaVariable var = (JavaVariable) node;
-			return new JVariable(var, (JClass) makeFrom(var.getDeclaringClass()));
+			return new JVariable((JavaVariable) node, makeFrom(node.getDeclaringClass()));
 		}
 		throw new JadxRuntimeException("Unknown type for JavaNode: " + node.getClass());
 	}

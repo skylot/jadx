@@ -129,7 +129,7 @@ public class BackgroundExecutor {
 						return cancelStatus;
 					}
 					setProgress(calcProgress(executor.getCompletedTaskCount()));
-					Thread.sleep(500);
+					Thread.sleep(300);
 				}
 			} catch (InterruptedException e) {
 				LOG.debug("Task wait interrupted");

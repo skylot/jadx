@@ -90,7 +90,7 @@ public class DbgUtils {
 		clsSig = DbgUtils.classSigToFullName(clsSig);
 		JavaClass cls = mainWindow.getWrapper().getDecompiler().searchJavaClassOrItsParentByOrigFullName(clsSig);
 		if (cls != null) {
-			JClass jc = (JClass) mainWindow.getCacheObject().getNodeCache().makeFrom(cls);
+			JClass jc = mainWindow.getCacheObject().getNodeCache().makeFrom(cls);
 			return jc.getRootClass();
 		}
 		return null;

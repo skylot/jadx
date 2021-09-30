@@ -3,6 +3,9 @@ package jadx.gui.ui.dialog;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.FlowLayout;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -10,10 +13,15 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
+import jadx.api.JavaClass;
+import jadx.api.JavaNode;
+import jadx.gui.jobs.IndexService;
+import jadx.gui.jobs.TaskStatus;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.CodeUsageInfo;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.UiUtils;
 
 public class UsageDialog extends CommonSearchDialog {
 
@@ -32,7 +40,40 @@ public class UsageDialog extends CommonSearchDialog {
 
 	@Override
 	protected void openInit() {
-		prepare();
+		IndexService indexService = mainWindow.getCacheObject().getIndexService();
+		if (indexService.isComplete()) {
+			loadFinishedCommon();
+			loadFinished();
+			return;
+		}
+		List<JavaNode> useIn = node.getJavaNode().getUseIn();
+		List<JavaClass> usageTopClsForIndex = useIn
+				.stream()
+				.map(JavaNode::getTopParentClass)
+				.filter(indexService::isIndexNeeded)
+				.distinct()
+				.sorted(Comparator.comparing(JavaClass::getFullName))
+				.collect(Collectors.toList());
+		if (usageTopClsForIndex.isEmpty()) {
+			loadFinishedCommon();
+			loadFinished();
+			return;
+		}
+		mainWindow.getBackgroundExecutor().execute(NLS.str("progress.load"),
+				() -> {
+					for (JavaClass cls : usageTopClsForIndex) {
+						cls.decompile();
+						indexService.indexCls(cls);
+					}
+				},
+				(status) -> {
+					if (status == TaskStatus.CANCEL_BY_MEMORY) {
+						mainWindow.showHeapUsageBar();
+						UiUtils.errorMessage(this, NLS.str("message.memoryLow"));
+					}
+					loadFinishedCommon();
+					loadFinished();
+				});
 	}
 
 	@Override

@@ -519,6 +519,9 @@ public class MainWindow extends JFrame {
 
 	public void waitDecompileTask() {
 		synchronized (DECOMPILER_TASK_SYNC) {
+			if (cacheObject.getIndexService().isComplete()) {
+				return;
+			}
 			try {
 				DecompileTask decompileTask = new DecompileTask(this, wrapper);
 				Future<TaskStatus> task = backgroundExecutor.execute(decompileTask);

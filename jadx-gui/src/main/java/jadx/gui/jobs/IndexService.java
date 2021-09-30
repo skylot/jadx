@@ -1,6 +1,8 @@
 package jadx.gui.jobs;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -20,6 +22,7 @@ public class IndexService {
 
 	private final CacheObject cache;
 	private boolean indexComplete;
+	private final Set<JavaClass> indexSet = new HashSet<>();
 
 	public IndexService(CacheObject cache) {
 		this.cache = cache;
@@ -40,6 +43,7 @@ public class IndexService {
 
 			usageInfo.processClass(cls, linesInfo, lines);
 			index.indexCode(cls, linesInfo, lines);
+			indexSet.add(cls);
 		} catch (Exception e) {
 			LOG.error("Index error in class: {}", cls.getFullName(), e);
 		}
@@ -56,9 +60,14 @@ public class IndexService {
 		if (index == null || usageInfo == null) {
 			return;
 		}
+		indexSet.remove(cls);
 		index.remove(cls);
 		usageInfo.remove(cls);
 		indexCls(cls);
+	}
+
+	public boolean isIndexNeeded(JavaClass cls) {
+		return !indexSet.contains(cls);
 	}
 
 	@NotNull
