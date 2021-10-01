@@ -1,5 +1,6 @@
 package jadx.core.codegen;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -13,7 +14,9 @@ import jadx.api.ICodeWriter;
 import jadx.api.data.annotations.InsnCodeOffset;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
+import jadx.api.plugins.input.data.annotations.JadxAnnotation;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
+import jadx.api.plugins.input.data.attributes.types.AnnotationsAttr;
 import jadx.api.plugins.input.data.attributes.types.MethodParamsAttr;
 import jadx.core.Consts;
 import jadx.core.Jadx;
@@ -180,8 +183,25 @@ public class MethodGen {
 		}
 	}
 
+	private List<String> extractParamNamesFromAnnotation() {
+		AnnotationsAttr annotationList = mth.get(JadxAttrType.ANNOTATION_LIST);
+		if (annotationList != null) {
+			JadxAnnotation annotation = (JadxAnnotation) annotationList.get("Ldalvik/annotation/MethodParameters;");
+			if (annotation != null) {
+				ArrayList<String> names = new ArrayList<>();
+				ArrayList<EncodedValue> encodedValues = (ArrayList<EncodedValue>) annotation.getValues().get("names").getValue();
+				for (EncodedValue encodedValue : encodedValues) {
+					names.add((String) encodedValue.getValue());
+				}
+				return names;
+			}
+		}
+		return null;
+	}
+
 	private void addMethodArguments(ICodeWriter code, List<RegisterArg> args) {
 		MethodParamsAttr paramsAnnotation = mth.get(JadxAttrType.ANNOTATION_MTH_PARAMETERS);
+		List<String> paramNames = extractParamNamesFromAnnotation();
 		int i = 0;
 		Iterator<RegisterArg> it = args.iterator();
 		while (it.hasNext()) {
@@ -198,6 +218,10 @@ public class MethodGen {
 			// add argument annotation
 			if (paramsAnnotation != null) {
 				annotationGen.addForParameter(code, paramsAnnotation, i);
+			}
+			// add argument names from annotation
+			if (paramNames != null) {
+				var.setName(paramNames.get(i));
 			}
 			if (var.isFinal()) {
 				code.add("final ");

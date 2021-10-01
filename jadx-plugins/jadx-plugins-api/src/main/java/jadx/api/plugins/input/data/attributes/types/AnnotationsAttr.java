@@ -9,7 +9,6 @@ import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
 
-import jadx.api.plugins.input.data.annotations.AnnotationVisibility;
 import jadx.api.plugins.input.data.annotations.IAnnotation;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.PinnedAttribute;
@@ -23,9 +22,7 @@ public class AnnotationsAttr extends PinnedAttribute {
 		}
 		Map<String, IAnnotation> annMap = new HashMap<>(annotationList.size());
 		for (IAnnotation ann : annotationList) {
-			if (ann.getVisibility() != AnnotationVisibility.SYSTEM) {
-				annMap.put(ann.getAnnotationClass(), ann);
-			}
+			annMap.put(ann.getAnnotationClass(), ann);
 		}
 		if (annMap.isEmpty()) {
 			return null;
