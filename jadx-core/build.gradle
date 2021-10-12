@@ -14,13 +14,11 @@ dependencies {
 
 	testImplementation 'org.apache.commons:commons-lang3:3.12.0'
 
-	testImplementation 'org.ow2.asm:asm:9.2'
-	testImplementation 'org.ow2.asm:asm-util:9.2'
-
 	testRuntimeOnly(project(':jadx-plugins:jadx-dex-input'))
 	testRuntimeOnly(project(':jadx-plugins:jadx-smali-input'))
 	testRuntimeOnly(project(':jadx-plugins:jadx-java-convert'))
 	testRuntimeOnly(project(':jadx-plugins:jadx-java-input'))
+	testRuntimeOnly(project(':jadx-plugins:jadx-raung-input'))
 }
 
 test {

@@ -1,0 +1,11 @@
+plugins {
+	id 'java-library'
+}
+
+dependencies {
+	api(project(":jadx-plugins:jadx-plugins-api"))
+
+	implementation(project(":jadx-plugins:jadx-java-input"))
+
+	implementation('io.github.skylot:raung-asm:0.0.1')
+}

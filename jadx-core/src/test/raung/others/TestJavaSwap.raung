@@ -1,0 +1,29 @@
+.version 52
+.class others/TestJavaSwap
+.auto frames
+
+.field private field Ljava/lang/Iterable;
+
+.method public toString()Ljava/lang/String;
+    aload 0
+    getfield others/TestJavaSwap field Ljava/lang/Iterable;
+    invokestatic java/lang/String valueOf (Ljava/lang/Object;)Ljava/lang/String;
+    astore 1
+    bipush 8
+    aload 1
+    invokestatic java/lang/String valueOf (Ljava/lang/Object;)Ljava/lang/String;
+    invokevirtual java/lang/String length ()I
+    iadd
+    new java/lang/StringBuilder
+    dup_x1
+    swap
+    invokespecial java/lang/StringBuilder <init> (I)V
+    ldc "concat("
+    invokevirtual java/lang/StringBuilder append (Ljava/lang/String;)Ljava/lang/StringBuilder;
+    aload 1
+    invokevirtual java/lang/StringBuilder append (Ljava/lang/String;)Ljava/lang/StringBuilder;
+    ldc ")"
+    invokevirtual java/lang/StringBuilder append (Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invokevirtual java/lang/StringBuilder toString ()Ljava/lang/String;
+    areturn
+.end method

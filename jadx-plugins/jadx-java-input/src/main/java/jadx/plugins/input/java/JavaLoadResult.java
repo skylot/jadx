@@ -1,8 +1,11 @@
 package jadx.plugins.input.java;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.List;
 import java.util.function.Consumer;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,9 +17,12 @@ public class JavaLoadResult implements ILoadResult {
 	private static final Logger LOG = LoggerFactory.getLogger(JavaLoadResult.class);
 
 	private final List<JavaClassReader> readers;
+	@Nullable
+	private final Closeable closeable;
 
-	public JavaLoadResult(List<JavaClassReader> readers) {
+	public JavaLoadResult(List<JavaClassReader> readers, @Nullable Closeable closeable) {
 		this.readers = readers;
+		this.closeable = closeable;
 	}
 
 	@Override
@@ -40,7 +46,10 @@ public class JavaLoadResult implements ILoadResult {
 	}
 
 	@Override
-	public void close() {
+	public void close() throws IOException {
 		readers.clear();
+		if (closeable != null) {
+			closeable.close();
+		}
 	}
 }

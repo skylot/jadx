@@ -1,7 +1,10 @@
 package jadx.plugins.input.java;
 
+import java.io.Closeable;
 import java.nio.file.Path;
 import java.util.List;
+
+import org.jetbrains.annotations.Nullable;
 
 import jadx.api.plugins.JadxPluginInfo;
 import jadx.api.plugins.input.JadxInputPlugin;
@@ -22,10 +25,14 @@ public class JavaInputPlugin implements JadxInputPlugin {
 
 	@Override
 	public ILoadResult loadFiles(List<Path> inputFiles) {
+		return loadClassFiles(inputFiles, null);
+	}
+
+	public static ILoadResult loadClassFiles(List<Path> inputFiles, @Nullable Closeable closeable) {
 		List<JavaClassReader> readers = new JavaFileLoader().collectFiles(inputFiles);
 		if (readers.isEmpty()) {
 			return EmptyLoadResult.INSTANCE;
 		}
-		return new JavaLoadResult(readers);
+		return new JavaLoadResult(readers, closeable);
 	}
 }
