@@ -87,9 +87,11 @@ public abstract class IntegrationTest extends TestUtils {
 
 	protected JadxArgs args;
 
-	protected boolean withDebugInfo;
 	protected boolean compile;
+	protected boolean withDebugInfo;
 	protected boolean useEclipseCompiler;
+	private int targetJavaVersion = 8;
+
 	protected Map<Integer, String> resMap = Collections.emptyMap();
 
 	private boolean allowWarnInCode;
@@ -458,7 +460,7 @@ public abstract class IntegrationTest extends TestUtils {
 		List<File> compileFileList = Collections.singletonList(file);
 
 		Path outTmp = FileUtils.createTempDir("jadx-tmp-classes");
-		List<File> files = StaticCompiler.compile(compileFileList, outTmp.toFile(), withDebugInfo, useEclipseCompiler);
+		List<File> files = StaticCompiler.compile(compileFileList, outTmp.toFile(), withDebugInfo, useEclipseCompiler, targetJavaVersion);
 		files.forEach(File::deleteOnExit);
 		// remove classes which are parents for test class
 		String clsName = clsFullName.substring(clsFullName.lastIndexOf('.') + 1);
@@ -491,6 +493,10 @@ public abstract class IntegrationTest extends TestUtils {
 
 	protected void useEclipseCompiler() {
 		this.useEclipseCompiler = true;
+	}
+
+	protected void useTargetJavaVersion(int version) {
+		this.targetJavaVersion = version;
 	}
 
 	protected void setFallback() {

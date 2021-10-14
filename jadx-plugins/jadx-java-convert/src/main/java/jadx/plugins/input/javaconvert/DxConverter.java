@@ -43,7 +43,7 @@ public class DxConverter {
 			throw new RuntimeException("dx exception: " + e.getMessage(), e);
 		}
 		if (result != 0) {
-			throw new RuntimeException("Java to dex conversion error, code: " + result + "\n errors: " + dxErrors);
+			throw new RuntimeException("Java to dex conversion error, code: " + result + ", errors: " + dxErrors);
 		}
 	}
 }

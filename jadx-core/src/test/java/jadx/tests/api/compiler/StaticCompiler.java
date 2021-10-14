@@ -5,7 +5,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -24,10 +23,13 @@ import jadx.core.utils.files.FileUtils;
 
 public class StaticCompiler {
 
-	private static final List<String> COMMON_ARGS = Arrays.asList("-source 1.8 -target 1.8".split(" "));
+	public static List<File> compile(List<File> files, File outDir, boolean includeDebugInfo,
+			boolean useEclipseCompiler, int javaVersion) throws IOException {
+		if (!JavaUtils.checkJavaVersion(javaVersion)) {
+			throw new IllegalArgumentException("Current java version not meet requirement: "
+					+ "current: " + JavaUtils.JAVA_VERSION_INT + ", required: " + javaVersion);
+		}
 
-	public static List<File> compile(List<File> files, File outDir, boolean includeDebugInfo, boolean useEclipseCompiler)
-			throws IOException {
 		JavaCompiler compiler;
 		if (useEclipseCompiler) {
 			compiler = new EclipseCompiler();
@@ -44,7 +46,12 @@ public class StaticCompiler {
 
 		List<String> options = new ArrayList<>();
 		options.add(includeDebugInfo ? "-g" : "-g:none");
-		options.addAll(COMMON_ARGS);
+		String javaVerStr = javaVersion <= 8 ? "1." + javaVersion : Integer.toString(javaVersion);
+		options.add("-source");
+		options.add(javaVerStr);
+		options.add("-target");
+		options.add(javaVerStr);
+
 		CompilationTask task = compiler.getTask(null, staticFileManager, null, options, null, compilationUnits);
 		Boolean result = task.call();
 		fileManager.close();
