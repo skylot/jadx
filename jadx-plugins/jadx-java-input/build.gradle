@@ -6,6 +6,5 @@ dependencies {
 	api(project(":jadx-plugins:jadx-plugins-api"))
 
 	// show bytecode disassemble
-	implementation 'org.ow2.asm:asm:9.2'
-	implementation 'org.ow2.asm:asm-util:9.2'
+	implementation 'io.github.skylot:raung-disasm:0.0.2'
 }

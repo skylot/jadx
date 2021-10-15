@@ -1,0 +1,28 @@
+.version 55
+.class public others/TestStringConcatJava11
+
+.method public test(Ljava/lang/String;)Ljava/lang/String;
+    .max stack 1
+    .max locals 2
+
+    aload 1
+    invokedynamic makeConcatWithConstants (Ljava/lang/String;)Ljava/lang/String;
+        .handle invoke-static java/lang/invoke/StringConcatFactory makeConcatWithConstants (Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+        .arg 0 "\u0001test"
+    .end invokedynamic
+    areturn
+.end method
+
+.method public test2(Ljava/lang/String;)Ljava/lang/String;
+    .max stack 2
+    .max locals 2
+
+    aload 1
+    aload 1
+    invokedynamic makeConcatWithConstants (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+        .handle invoke-static java/lang/invoke/StringConcatFactory makeConcatWithConstants (Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+        .arg 0 "\u0001test\u0001\u0002"
+        .arg 1 7  # synthetic usage, compiler adds const values into recipe string
+    .end invokedynamic
+    areturn
+.end method

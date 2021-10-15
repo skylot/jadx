@@ -18,6 +18,7 @@ import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.OverrideMethodVisitor;
 import jadx.core.dex.visitors.RenameVisitor;
+import jadx.core.utils.input.InsnDataUtils;
 
 @JadxVisitor(
 		name = "UsageInfoVisitor",
@@ -120,18 +121,14 @@ public class UsageInfoVisitor extends AbstractVisitor {
 
 			case CALL_SITE: {
 				insnData.decode();
-				ICallSite callSite;
-				ICustomPayload payload = insnData.getPayload();
-				if (payload != null) {
-					callSite = ((ICallSite) payload);
-				} else {
-					callSite = insnData.getIndexAsCallSite();
-				}
-				IMethodHandle methodHandle = (IMethodHandle) callSite.getValues().get(4).getValue();
-				IMethodRef mthRef = methodHandle.getMethodRef();
-				MethodNode mthNode = root.resolveMethod(MethodInfo.fromRef(root, mthRef));
-				if (mthNode != null) {
-					usageInfo.methodUse(mth, mthNode);
+				ICallSite callSite = InsnDataUtils.getCallSite(insnData);
+				IMethodHandle methodHandle = InsnDataUtils.getMethodHandleAt(callSite, 4);
+				if (methodHandle != null) {
+					IMethodRef mthRef = methodHandle.getMethodRef();
+					MethodNode mthNode = root.resolveMethod(MethodInfo.fromRef(root, mthRef));
+					if (mthNode != null) {
+						usageInfo.methodUse(mth, mthNode);
+					}
 				}
 				break;
 			}

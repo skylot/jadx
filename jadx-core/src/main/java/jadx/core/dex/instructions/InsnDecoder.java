@@ -26,6 +26,8 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.DecodeException;
+import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.core.utils.input.InsnDataUtils;
 
 public class InsnDecoder {
 	private static final Logger LOG = LoggerFactory.getLogger(InsnDecoder.class);
@@ -567,12 +569,9 @@ public class InsnDecoder {
 		if (type == InvokeType.CUSTOM) {
 			return InvokeCustomBuilder.build(method, insn, isRange);
 		}
-		IMethodRef mthRef;
-		ICustomPayload payload = insn.getPayload();
-		if (payload != null) {
-			mthRef = ((IMethodRef) payload);
-		} else {
-			mthRef = insn.getIndexAsMethod();
+		IMethodRef mthRef = InsnDataUtils.getMethodRef(insn);
+		if (mthRef == null) {
+			throw new JadxRuntimeException("Failed to load method reference for insn: " + insn);
 		}
 		MethodInfo mthInfo = MethodInfo.fromRef(root, mthRef);
 		return new InvokeNode(mthInfo, insn, type, isRange);

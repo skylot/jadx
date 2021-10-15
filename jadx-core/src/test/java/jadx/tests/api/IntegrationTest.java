@@ -224,7 +224,7 @@ public abstract class IntegrationTest extends TestUtils {
 		}
 		System.out.println("-----------------------------------------------------------");
 		if (printDisassemble) {
-			clsList.forEach(this::printSmali);
+			clsList.forEach(this::printDisasm);
 		}
 		runChecks(clsList);
 	}
@@ -239,7 +239,7 @@ public abstract class IntegrationTest extends TestUtils {
 		clsList.forEach(this::runAutoCheck);
 	}
 
-	private void printSmali(ClassNode cls) {
+	private void printDisasm(ClassNode cls) {
 		System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 		System.out.println(cls.getDisassembledCode());
 		System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
