@@ -7,7 +7,7 @@ dependencies {
 
 	implementation(project(":jadx-plugins:jadx-dex-input"))
 	implementation(files('lib/dx-1.16.jar'))
-	implementation('com.android.tools:r8:2.2.64')
+	implementation('com.android.tools:r8:3.0.73')
 
 	implementation 'org.ow2.asm:asm:9.2'
 }

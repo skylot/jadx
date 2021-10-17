@@ -10,7 +10,7 @@ dependencies {
 	runtimeOnly(project(':jadx-plugins:jadx-smali-input'))
 
 	implementation 'com.beust:jcommander:1.81'
-	implementation 'ch.qos.logback:logback-classic:1.2.5'
+	implementation 'ch.qos.logback:logback-classic:1.2.6'
 }
 
 application {
