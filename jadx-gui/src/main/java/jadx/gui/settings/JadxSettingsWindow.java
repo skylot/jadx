@@ -58,6 +58,7 @@ import com.google.gson.JsonObject;
 
 import say.swing.JFontChooser;
 
+import jadx.api.CommentsLevel;
 import jadx.api.JadxArgs;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
@@ -500,6 +501,13 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JComboBox<CommentsLevel> commentsLevel = new JComboBox<>(CommentsLevel.values());
+		commentsLevel.setSelectedItem(settings.getCommentsLevel());
+		commentsLevel.addActionListener(e -> {
+			settings.setCommentsLevel((CommentsLevel) commentsLevel.getSelectedItem());
+			needReload();
+		});
+
 		SettingsGroup other = new SettingsGroup(NLS.str("preferences.decompile"));
 		other.addRow(NLS.str("preferences.threads"), threadsCount);
 		other.addRow(NLS.str("preferences.excludedPackages"), NLS.str("preferences.excludedPackages.tooltip"),
@@ -515,6 +523,7 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.fsCaseSensitive"), fsCaseSensitive);
 		other.addRow(NLS.str("preferences.fallback"), fallback);
 		other.addRow(NLS.str("preferences.skipResourcesDecode"), resourceDecode);
+		other.addRow(NLS.str("preferences.commentsLevel"), commentsLevel);
 		return other;
 	}
 

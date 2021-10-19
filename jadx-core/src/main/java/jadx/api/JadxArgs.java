@@ -83,6 +83,8 @@ public class JadxArgs {
 
 	private ICodeData codeData;
 
+	private CommentsLevel commentsLevel = CommentsLevel.INFO;
+
 	public JadxArgs() {
 		// use default options
 	}
@@ -413,6 +415,14 @@ public class JadxArgs {
 		this.codeData = codeData;
 	}
 
+	public CommentsLevel getCommentsLevel() {
+		return commentsLevel;
+	}
+
+	public void setCommentsLevel(CommentsLevel commentsLevel) {
+		this.commentsLevel = commentsLevel;
+	}
+
 	@Override
 	public String toString() {
 		return "JadxArgs{" + "inputFiles=" + inputFiles
@@ -441,6 +451,7 @@ public class JadxArgs {
 				+ ", fsCaseSensitive=" + fsCaseSensitive
 				+ ", renameFlags=" + renameFlags
 				+ ", outputFormat=" + outputFormat
+				+ ", commentsLevel=" + commentsLevel
 				+ ", codeCache=" + codeCache
 				+ ", codeWriter=" + codeWriterProvider.apply(this).getClass().getSimpleName()
 				+ '}';

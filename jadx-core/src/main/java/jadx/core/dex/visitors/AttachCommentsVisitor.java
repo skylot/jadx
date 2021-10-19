@@ -23,8 +23,8 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 @JadxVisitor(
-		name = "Attach comments",
-		desc = "Attach comments",
+		name = "AttachComments",
+		desc = "Attach user code comments",
 		runBefore = {
 				ProcessInstructionsVisitor.class
 		}

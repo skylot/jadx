@@ -3,10 +3,6 @@ package jadx.core.dex.visitors.debuginfo;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import jadx.api.ICodeWriter;
 import jadx.api.plugins.input.data.IDebugInfo;
 import jadx.api.plugins.input.data.ILocalVar;
 import jadx.core.dex.attributes.nodes.LocalVarsDebugInfoAttr;
@@ -21,8 +17,6 @@ import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.blocks.BlockSplitter;
 import jadx.core.dex.visitors.ssa.SSATransform;
-import jadx.core.utils.ErrorsCounter;
-import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
@@ -35,8 +29,6 @@ import jadx.core.utils.exceptions.JadxException;
 )
 public class DebugInfoAttachVisitor extends AbstractVisitor {
 
-	private static final Logger LOG = LoggerFactory.getLogger(DebugInfoAttachVisitor.class);
-
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
 		try {
@@ -45,9 +37,7 @@ public class DebugInfoAttachVisitor extends AbstractVisitor {
 				processDebugInfo(mth, debugInfo);
 			}
 		} catch (Exception e) {
-			mth.addComment("JADX WARNING: Error to parse debug info: "
-					+ ErrorsCounter.formatMsg(mth, e.getMessage())
-					+ ICodeWriter.NL + Utils.getStackTrace(e));
+			mth.addWarnComment("Failed to parse debug info", e);
 		}
 	}
 
@@ -129,21 +119,21 @@ public class DebugInfoAttachVisitor extends AbstractVisitor {
 		try {
 			ArgType gType = new SignatureParser(sign).consumeType();
 			ArgType expandedType = mth.root().getTypeUtils().expandTypeVariables(mth, gType);
-			if (checkSignature(type, expandedType)) {
+			if (checkSignature(mth, type, expandedType)) {
 				return expandedType;
 			}
 		} catch (Exception e) {
-			LOG.error("Can't parse signature for local variable: {}", sign, e);
+			mth.addWarnComment("Can't parse signature for local variable: " + sign, e);
 		}
 		return type;
 	}
 
-	private static boolean checkSignature(ArgType type, ArgType gType) {
+	private static boolean checkSignature(MethodNode mth, ArgType type, ArgType gType) {
 		boolean apply;
 		ArgType el = gType.getArrayRootElement();
 		if (el.isGeneric()) {
 			if (!type.getArrayRootElement().getObject().equals(el.getObject())) {
-				LOG.warn("Generic type in debug info not equals: {} != {}", type, gType);
+				mth.addWarnComment("Generic types in debug info not equals: " + type + " != " + gType);
 			}
 			apply = true;
 		} else {

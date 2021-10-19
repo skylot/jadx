@@ -10,6 +10,7 @@ import jadx.core.dex.attributes.nodes.EnumMapAttr;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.attributes.nodes.ForceReturnAttr;
 import jadx.core.dex.attributes.nodes.GenericInfoAttr;
+import jadx.core.dex.attributes.nodes.JadxCommentsAttr;
 import jadx.core.dex.attributes.nodes.JadxError;
 import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.attributes.nodes.LocalVarsDebugInfoAttr;
@@ -43,9 +44,8 @@ public final class AType<T extends IJadxAttribute> implements IJadxAttrType<T> {
 	public static final AType<RenameReasonAttr> RENAME_REASON = new AType<>();
 
 	// class, method
-	public static final AType<AttrList<JadxError>> JADX_ERROR = new AType<>(); // code failed to decompile completely
-	public static final AType<AttrList<String>> JADX_WARN = new AType<>(); // mark code as inconsistent (code can be viewed)
-	public static final AType<AttrList<String>> COMMENTS = new AType<>(); // any additional info about decompilation
+	public static final AType<AttrList<JadxError>> JADX_ERROR = new AType<>(); // code failed to decompile
+	public static final AType<JadxCommentsAttr> JADX_COMMENTS = new AType<>(); // additional info about decompilation
 
 	// class
 	public static final AType<EnumClassAttr> ENUM_CLASS = new AType<>();

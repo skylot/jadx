@@ -5,12 +5,15 @@ import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.api.CodePosition;
+import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.types.SourceFileAttr;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.attributes.IAttributeNode;
+import jadx.core.dex.attributes.nodes.JadxCommentsAttr;
+import jadx.core.dex.attributes.nodes.JadxError;
+import jadx.core.dex.attributes.nodes.NotificationAttrNode;
 import jadx.core.dex.attributes.nodes.RenameReasonAttr;
 import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -20,16 +23,49 @@ import jadx.core.dex.nodes.ICodeNode;
 
 public class CodeGenUtils {
 
-	public static void addComments(ICodeWriter code, IAttributeNode node) {
-		List<String> comments = node.getAll(AType.COMMENTS);
-		if (!comments.isEmpty()) {
-			comments.stream().distinct()
-					.forEach(comment -> code.startLine("/* ").addMultiLine(comment).add(" */"));
-		}
-		addCodeComments(code, node);
+	public static void addErrorsAndComments(ICodeWriter code, NotificationAttrNode node) {
+		addErrors(code, node);
+		addComments(code, node);
 	}
 
-	public static void addCodeComments(ICodeWriter code, @Nullable IAttributeNode node) {
+	public static void addErrors(ICodeWriter code, NotificationAttrNode node) {
+		if (!node.checkCommentsLevel(CommentsLevel.ERROR)) {
+			return;
+		}
+		List<JadxError> errors = node.getAll(AType.JADX_ERROR);
+		if (!errors.isEmpty()) {
+			errors.stream().distinct().sorted().forEach(err -> {
+				code.startLine("/*  JADX ERROR: ").add(err.getError());
+				Throwable cause = err.getCause();
+				if (cause != null) {
+					code.incIndent();
+					Utils.appendStackTrace(code, cause);
+					code.decIndent();
+				}
+				code.add("*/");
+			});
+		}
+	}
+
+	public static void addComments(ICodeWriter code, NotificationAttrNode node) {
+		JadxCommentsAttr commentsAttr = node.get(AType.JADX_COMMENTS);
+		if (commentsAttr != null) {
+			commentsAttr.formatAndFilter(node.getCommentsLevel())
+					.forEach(comment -> code.startLine("/* ").addMultiLine(comment).add(" */"));
+		}
+		addCodeComments(code, node, node);
+	}
+
+	public static void addCodeComments(ICodeWriter code, NotificationAttrNode parent, @Nullable IAttributeNode node) {
+		if (node == null) {
+			return;
+		}
+		if (parent.checkCommentsLevel(CommentsLevel.USER_ONLY)) {
+			addCodeComments(code, node);
+		}
+	}
+
+	private static void addCodeComments(ICodeWriter code, @Nullable IAttributeNode node) {
 		if (node == null) {
 			return;
 		}
@@ -38,7 +74,7 @@ public class CodeGenUtils {
 			return;
 		}
 		if (node instanceof ICodeNode) {
-			// for classes, fields and methods add on line before node declaration
+			// for classes, fields and methods add one line before node declaration
 			code.startLine();
 		} else {
 			code.add(' ');
@@ -78,7 +114,10 @@ public class CodeGenUtils {
 		}
 	}
 
-	public static void addRenamedComment(ICodeWriter code, AttrNode node, String origName) {
+	public static void addRenamedComment(ICodeWriter code, NotificationAttrNode node, String origName) {
+		if (!node.checkCommentsLevel(CommentsLevel.INFO)) {
+			return;
+		}
 		code.startLine("/* renamed from: ").add(origName);
 		RenameReasonAttr renameReasonAttr = node.get(AType.RENAME_REASON);
 		if (renameReasonAttr != null) {
@@ -89,6 +128,9 @@ public class CodeGenUtils {
 	}
 
 	public static void addSourceFileInfo(ICodeWriter code, ClassNode node) {
+		if (!node.checkCommentsLevel(CommentsLevel.INFO)) {
+			return;
+		}
 		SourceFileAttr sourceFileAttr = node.get(JadxAttrType.SOURCE_FILE);
 		if (sourceFileAttr != null) {
 			String fileName = sourceFileAttr.getFileName();
@@ -102,7 +144,7 @@ public class CodeGenUtils {
 	}
 
 	public static void addInputFileInfo(ICodeWriter code, ClassNode node) {
-		if (node.getClsData() != null) {
+		if (node.getClsData() != null && node.checkCommentsLevel(CommentsLevel.INFO)) {
 			String inputFileName = node.getClsData().getInputFileName();
 			if (inputFileName != null) {
 				code.startLine("/* loaded from: ").add(inputFileName).add(" */");

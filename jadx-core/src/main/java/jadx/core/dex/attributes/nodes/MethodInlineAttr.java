@@ -27,7 +27,7 @@ public class MethodInlineAttr extends PinnedAttribute {
 		MethodInlineAttr mia = new MethodInlineAttr(replaceInsn, regNums);
 		mth.addAttr(mia);
 		if (Consts.DEBUG) {
-			mth.addAttr(AType.COMMENTS, "Removed for inline");
+			mth.addDebugComment("Removed for inline");
 		} else {
 			mth.add(AFlag.DONT_GENERATE);
 		}

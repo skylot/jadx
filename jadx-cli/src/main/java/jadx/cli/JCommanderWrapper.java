@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.jetbrains.annotations.Nullable;
@@ -130,7 +131,7 @@ public class JCommanderWrapper<T> {
 			if (Enum.class.isAssignableFrom(fieldType)) {
 				Enum<?> val = (Enum<?>) f.get(args);
 				if (val != null) {
-					return val.name();
+					return val.name().toLowerCase(Locale.ROOT);
 				}
 			}
 		} catch (Exception e) {

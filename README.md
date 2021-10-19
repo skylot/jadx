@@ -105,7 +105,8 @@ options:
   --cfg                               - save methods control flow graph to dot file
   --raw-cfg                           - save methods control flow graph (use raw instructions)
   -f, --fallback                      - make simple dump (using goto instead of 'if', 'for', etc)
-  --log-level                         - set log level, values: QUIET, PROGRESS, ERROR, WARN, INFO, DEBUG, default: PROGRESS
+  --comments-level                    - set code comments level, values: none, user_only, error, warn, info, debug, default: info
+  --log-level                         - set log level, values: quiet, progress, error, warn, info, debug, default: progress
   -v, --verbose                       - verbose output (set --log-level to DEBUG)
   -q, --quiet                         - turn off output (set --log-level to QUIET)
   --version                           - print jadx version

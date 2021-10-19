@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
 import jadx.api.data.annotations.InsnCodeOffset;
 import jadx.api.plugins.input.data.AccessFlags;
@@ -110,12 +111,12 @@ public class MethodGen {
 		if (mth.getMethodInfo().hasAlias() && !ai.isConstructor()) {
 			CodeGenUtils.addRenamedComment(code, mth, mth.getName());
 		}
-		if (mth.contains(AFlag.INCONSISTENT_CODE)) {
-			code.startLine("/* Code decompiled incorrectly, please refer to instructions dump. */");
+		if (mth.contains(AFlag.INCONSISTENT_CODE) && mth.checkCommentsLevel(CommentsLevel.ERROR)) {
+			code.startLine("/* Code decompiled incorrectly, please refer to instructions dump */");
 		}
 
 		code.startLineWithNum(mth.getSourceLine());
-		code.add(ai.makeString());
+		code.add(ai.makeString(mth.checkCommentsLevel(CommentsLevel.INFO)));
 		if (clsAccFlags.isInterface() && !mth.isNoCode() && !mth.getAccessFlags().isStatic()) {
 			// add 'default' for method with code in interface
 			code.add("default ");
@@ -171,8 +172,11 @@ public class MethodGen {
 		}
 		if (!overrideAttr.isAtBaseMth()) {
 			code.startLine("@Override");
-			code.add(" // ");
-			code.add(Utils.listToString(overrideAttr.getOverrideList(), ", ", md -> md.getMethodInfo().getDeclClass().getAliasFullName()));
+			if (mth.checkCommentsLevel(CommentsLevel.INFO)) {
+				code.add(" // ");
+				code.add(Utils.listToString(overrideAttr.getOverrideList(), ", ",
+						md -> md.getMethodInfo().getDeclClass().getAliasFullName()));
+			}
 		}
 		if (Consts.DEBUG) {
 			code.startLine("// related by override: ");
@@ -217,7 +221,7 @@ public class MethodGen {
 					classGen.useType(code, elType);
 					code.add("...");
 				} else {
-					mth.addComment("JADX INFO: Last argument in varargs method is not array: " + var);
+					mth.addWarnComment("Last argument in varargs method is not array: " + var);
 					classGen.useType(code, argType);
 				}
 			} else {
@@ -261,23 +265,24 @@ public class MethodGen {
 			regionGen.makeRegion(code, mth.getRegion());
 		} catch (StackOverflowError | BootstrapMethodError e) {
 			mth.addError("Method code generation error", new JadxOverflowException("StackOverflow"));
-			classGen.insertDecompilationProblems(code, mth);
+			CodeGenUtils.addErrors(code, mth);
 			dumpInstructions(code);
 		} catch (Exception e) {
 			if (mth.getParentClass().getTopParentClass().contains(AFlag.RESTART_CODEGEN)) {
 				throw e;
 			}
 			mth.addError("Method code generation error", e);
-			classGen.insertDecompilationProblems(code, mth);
+			CodeGenUtils.addErrors(code, mth);
 			dumpInstructions(code);
 		}
 	}
 
 	public void dumpInstructions(ICodeWriter code) {
-		code.startLine("/*");
-		addFallbackMethodCode(code, COMMENTED_DUMP);
-		code.startLine("*/");
-
+		if (mth.checkCommentsLevel(CommentsLevel.ERROR)) {
+			code.startLine("/*");
+			addFallbackMethodCode(code, COMMENTED_DUMP);
+			code.startLine("*/");
+		}
 		code.startLine("throw new UnsupportedOperationException(\"Method not decompiled: ")
 				.add(mth.getParentClass().getClassInfo().getAliasFullName())
 				.add('.')
@@ -313,7 +318,7 @@ public class MethodGen {
 			code.startLine("// Can't load method instructions.");
 			return;
 		}
-		if (fallbackOption == COMMENTED_DUMP) {
+		if (fallbackOption == COMMENTED_DUMP && mth.getCommentsLevel() != CommentsLevel.DEBUG) {
 			long insnCountEstimate = Stream.of(insnArr)
 					.filter(Objects::nonNull)
 					.filter(insn -> insn.getType() != InsnType.NOP)
@@ -386,7 +391,7 @@ public class MethodGen {
 				if (catchAttr != null) {
 					code.add("     // " + catchAttr);
 				}
-				CodeGenUtils.addCodeComments(code, insn);
+				CodeGenUtils.addCodeComments(code, mth, insn);
 			} catch (Exception e) {
 				LOG.debug("Error generate fallback instruction: ", e.getCause());
 				code.setIndent(startIndent);

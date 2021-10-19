@@ -4,9 +4,9 @@ import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
+import jadx.core.dex.attributes.nodes.NotificationAttrNode;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.nodes.ClassNode;
-import jadx.core.dex.nodes.ICodeNode;
 import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
@@ -49,12 +49,12 @@ public class FixAccessModifiers extends AbstractVisitor {
 		}
 	}
 
-	public static void changeVisibility(ICodeNode node, int newVisFlag) {
+	public static void changeVisibility(NotificationAttrNode node, int newVisFlag) {
 		AccessInfo accessFlags = node.getAccessFlags();
 		AccessInfo newAccFlags = accessFlags.changeVisibility(newVisFlag);
 		if (newAccFlags != accessFlags) {
 			node.setAccessFlags(newAccFlags);
-			node.addAttr(AType.COMMENTS, "access modifiers changed from: " + accessFlags.visibilityName());
+			node.addInfoComment("Access modifiers changed from: " + accessFlags.visibilityName());
 		}
 	}
 

@@ -22,7 +22,6 @@ import jadx.api.plugins.input.data.IClassData;
 import jadx.api.plugins.input.data.ILoadResult;
 import jadx.core.Jadx;
 import jadx.core.clsp.ClspGraph;
-import jadx.core.dex.attributes.AType;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.ConstStorage;
 import jadx.core.dex.info.FieldInfo;
@@ -146,7 +145,7 @@ public class RootNode {
 								.filter(s -> !s.equals(thisSource))
 								.sorted()
 								.collect(Collectors.joining("\n  "));
-						cls.addAttr(AType.COMMENTS, "WARNING: Classes with same name are omitted:\n  " + otherSourceStr + '\n');
+						cls.addWarnComment("Classes with same name are omitted:\n  " + otherSourceStr + '\n');
 					});
 				});
 	}

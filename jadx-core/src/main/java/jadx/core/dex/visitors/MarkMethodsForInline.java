@@ -132,7 +132,7 @@ public class MarkMethodsForInline extends AbstractVisitor {
 			}
 		}
 		if (Consts.DEBUG) {
-			mth.addAttr(AType.COMMENTS, "JADX DEBUG: can't inline method, not implemented redirect type: " + insn);
+			mth.addDebugComment("can't inline method, not implemented redirect type: " + insn);
 		}
 		return false;
 	}

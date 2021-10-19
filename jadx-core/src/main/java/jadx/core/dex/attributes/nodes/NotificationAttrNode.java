@@ -1,43 +1,56 @@
 package jadx.core.dex.attributes.nodes;
 
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import jadx.api.CommentsLevel;
+import jadx.api.ICodeWriter;
+import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.ICodeNode;
 import jadx.core.utils.ErrorsCounter;
+import jadx.core.utils.Utils;
 
 public abstract class NotificationAttrNode extends LineAttrNode implements ICodeNode {
-	private static final Logger LOG = LoggerFactory.getLogger(NotificationAttrNode.class);
+
+	public boolean checkCommentsLevel(CommentsLevel required) {
+		return required.filter(this.root().getArgs().getCommentsLevel());
+	}
 
 	public void addError(String errStr, Throwable e) {
 		ErrorsCounter.error(this, errStr, e);
 	}
 
-	public void addWarn(String warnStr) {
-		ErrorsCounter.warning(this, warnStr);
+	public void addWarn(String warn) {
+		ErrorsCounter.warning(this, warn);
+		initCommentsAttr().add(CommentsLevel.WARN, warn);
+		this.add(AFlag.INCONSISTENT_CODE);
 	}
 
 	public void addWarnComment(String warn) {
-		addWarnComment(warn, null);
+		initCommentsAttr().add(CommentsLevel.WARN, warn);
 	}
 
-	public void addWarnComment(String warn, @Nullable Throwable exc) {
-		String commentStr = "JADX WARN: " + warn;
-		addAttr(AType.COMMENTS, commentStr);
-		if (exc != null) {
-			LOG.warn("{} in {}", warn, this, exc);
-		} else {
-			LOG.warn("{} in {}", warn, this);
-		}
+	public void addWarnComment(String warn, Throwable exc) {
+		String commentStr = warn + ICodeWriter.NL + Utils.getStackTrace(exc);
+		initCommentsAttr().add(CommentsLevel.WARN, commentStr);
 	}
 
-	public void addComment(String commentStr) {
-		addAttr(AType.COMMENTS, commentStr);
+	public void addInfoComment(String commentStr) {
+		initCommentsAttr().add(CommentsLevel.INFO, commentStr);
 	}
 
 	public void addDebugComment(String commentStr) {
-		addAttr(AType.COMMENTS, "JADX DEBUG: " + commentStr);
+		initCommentsAttr().add(CommentsLevel.DEBUG, commentStr);
+	}
+
+	public CommentsLevel getCommentsLevel() {
+		return this.root().getArgs().getCommentsLevel();
+	}
+
+	private JadxCommentsAttr initCommentsAttr() {
+		JadxCommentsAttr commentsAttr = this.get(AType.JADX_COMMENTS);
+		if (commentsAttr == null) {
+			commentsAttr = new JadxCommentsAttr();
+			this.addAttr(commentsAttr);
+		}
+		return commentsAttr;
 	}
 }

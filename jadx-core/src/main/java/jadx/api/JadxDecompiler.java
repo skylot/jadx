@@ -51,6 +51,7 @@ import jadx.core.xmlgen.ResourcesSaver;
  *
  * <pre>
  * <code>
+ *
  * JadxArgs args = new JadxArgs();
  * args.getInputFiles().add(new File("test.apk"));
  * args.setOutDir(new File("jadx-test-output"));
@@ -65,6 +66,7 @@ import jadx.core.xmlgen.ResourcesSaver;
  *
  * <pre>
  * <code>
+ *
  *  for(JavaClass cls : jadx.getClasses()) {
  *      System.out.println(cls.getCode());
  *  }

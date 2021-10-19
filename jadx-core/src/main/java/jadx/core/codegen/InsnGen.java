@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
 import jadx.api.data.annotations.InsnCodeOffset;
 import jadx.api.plugins.input.data.MethodHandleType;
@@ -278,7 +279,7 @@ public class InsnGen {
 				makeInsnBody(code, insn, EMPTY_FLAGS);
 				if (flag != Flags.INLINE) {
 					code.add(';');
-					CodeGenUtils.addCodeComments(code, insn);
+					CodeGenUtils.addCodeComments(code, mth, insn);
 				}
 			}
 		} catch (Exception e) {
@@ -608,7 +609,9 @@ public class InsnGen {
 	 * Use one by one array fill (can be replaced with System.arrayCopy)
 	 */
 	private void fillArray(ICodeWriter code, FillArrayInsn arrayNode) throws CodegenException {
-		code.add("// fill-array-data instruction");
+		if (mth.checkCommentsLevel(CommentsLevel.INFO)) {
+			code.add("// fill-array-data instruction");
+		}
 		code.startLine();
 		InsnArg arrArg = arrayNode.getArg(0);
 		ArgType arrayType = arrArg.getType();

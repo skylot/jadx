@@ -44,7 +44,6 @@ import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.dex.trycatch.TryCatchBlockAttr;
 import jadx.core.utils.BlockUtils;
-import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxOverflowException;
@@ -839,7 +838,7 @@ public class RegionMaker {
 			if (!fallThroughCases.isEmpty() && isBadCasesOrder(blocksMap, fallThroughCases)) {
 				Map<BlockNode, List<Object>> newBlocksMap = reOrderSwitchCases(blocksMap, fallThroughCases);
 				if (isBadCasesOrder(newBlocksMap, fallThroughCases)) {
-					mth.addComment("JADX INFO: Can't fix incorrect switch cases order, some code will duplicate");
+					mth.addWarnComment("Can't fix incorrect switch cases order, some code will duplicate");
 					fallThroughCases.clear();
 				} else {
 					blocksMap = newBlocksMap;
@@ -1019,7 +1018,7 @@ public class RegionMaker {
 					blocks.add(handlerBlock);
 					splitters.add(BlockUtils.getTopSplitterForHandler(handlerBlock));
 				} else {
-					LOG.debug(ErrorsCounter.formatMsg(mth, "No exception handler block: " + handler));
+					mth.addDebugComment("No exception handler block: " + handler);
 				}
 			}
 			Set<BlockNode> exits = new HashSet<>();
@@ -1030,7 +1029,7 @@ public class RegionMaker {
 					}
 					List<BlockNode> s = splitter.getSuccessors();
 					if (s.isEmpty()) {
-						LOG.debug(ErrorsCounter.formatMsg(mth, "No successors for splitter: " + splitter));
+						mth.addDebugComment("No successors for splitter: " + splitter);
 						continue;
 					}
 					BlockNode ss = s.get(0);

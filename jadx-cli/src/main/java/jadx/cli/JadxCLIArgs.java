@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
 
+import jadx.api.CommentsLevel;
 import jadx.api.JadxArgs;
 import jadx.api.JadxArgs.RenameEnum;
 import jadx.api.JadxDecompiler;
@@ -102,7 +103,7 @@ public class JadxCLIArgs {
 
 	@Parameter(
 			names = { "--rename-flags" },
-			description = "fix options (comma-separated list of): "
+			description = "fix options (comma-separated list of):"
 					+ "\n 'case' - fix case sensitivity issues (according to --fs-case-sensitive option),"
 					+ "\n 'valid' - rename java identifiers to make them valid,"
 					+ "\n 'printable' - remove non-printable chars from identifiers,"
@@ -125,8 +126,15 @@ public class JadxCLIArgs {
 	protected boolean fallbackMode = false;
 
 	@Parameter(
+			names = { "--comments-level" },
+			description = "set code comments level, values: error, warn, info, debug, user_only, none",
+			converter = CommentsLevelConverter.class
+	)
+	protected CommentsLevel commentsLevel = CommentsLevel.INFO;
+
+	@Parameter(
 			names = { "--log-level" },
-			description = "set log level, values: QUIET, PROGRESS, ERROR, WARN, INFO, DEBUG",
+			description = "set log level, values: quiet, progress, error, warn, info, debug",
 			converter = LogHelper.LogLevelConverter.class
 	)
 	protected LogHelper.LogLevelEnum logLevel = LogHelper.LogLevelEnum.PROGRESS;
@@ -222,6 +230,7 @@ public class JadxCLIArgs {
 		args.setInlineMethods(inlineMethods);
 		args.setRenameFlags(renameFlags);
 		args.setFsCaseSensitive(fsCaseSensitive);
+		args.setCommentsLevel(commentsLevel);
 		return args;
 	}
 
@@ -349,6 +358,10 @@ public class JadxCLIArgs {
 		return fsCaseSensitive;
 	}
 
+	public CommentsLevel getCommentsLevel() {
+		return commentsLevel;
+	}
+
 	static class RenameConverter implements IStringConverter<Set<RenameEnum>> {
 		private final String paramName;
 
@@ -378,9 +391,22 @@ public class JadxCLIArgs {
 		}
 	}
 
+	public static class CommentsLevelConverter implements IStringConverter<CommentsLevel> {
+		@Override
+		public CommentsLevel convert(String value) {
+			try {
+				return CommentsLevel.valueOf(value.toUpperCase());
+			} catch (Exception e) {
+				throw new IllegalArgumentException(
+						'\'' + value + "' is unknown comments level, possible values are: "
+								+ JadxCLIArgs.enumValuesString(CommentsLevel.values()));
+			}
+		}
+	}
+
 	public static String enumValuesString(Enum<?>[] values) {
 		return Stream.of(values)
-				.map(v -> '\'' + v.name().toLowerCase(Locale.ROOT) + '\'')
+				.map(v -> v.name().toLowerCase(Locale.ROOT))
 				.collect(Collectors.joining(", "));
 	}
 }

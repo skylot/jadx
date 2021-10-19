@@ -15,7 +15,6 @@ import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.codegen.TypeGen;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
-import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.EnumClassAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr.EnumField;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
@@ -76,7 +75,7 @@ public class EnumVisitor extends AbstractVisitor {
 			AccessInfo accessFlags = cls.getAccessFlags();
 			if (accessFlags.isEnum()) {
 				cls.setAccessFlags(accessFlags.remove(AccessFlags.ENUM));
-				cls.addAttr(AType.COMMENTS, "JADX INFO: Failed to restore enum class, 'enum' modifier removed");
+				cls.addWarnComment("Failed to restore enum class, 'enum' modifier removed");
 			}
 		}
 		return true;
@@ -88,7 +87,7 @@ public class EnumVisitor extends AbstractVisitor {
 		}
 		MethodNode classInitMth = cls.getClassInitMth();
 		if (classInitMth == null) {
-			cls.addAttr(AType.COMMENTS, "JADX INFO: Enum class init method not found");
+			cls.addWarnComment("Enum class init method not found");
 			return false;
 		}
 		if (classInitMth.getBasicBlocks().isEmpty()) {
@@ -117,7 +116,7 @@ public class EnumVisitor extends AbstractVisitor {
 			}
 		}
 		if (valuesCandidates.size() != 1) {
-			cls.addAttr(AType.COMMENTS, "JADX INFO: found several \"values\" enum fields: " + valuesCandidates);
+			cls.addWarnComment("Found several \"values\" enum fields: " + valuesCandidates);
 			return false;
 		}
 		FieldNode valuesField = valuesCandidates.get(0);
@@ -352,7 +351,7 @@ public class EnumVisitor extends AbstractVisitor {
 		FieldInfo fldInfo = FieldInfo.from(cls.root(), cls.getClassInfo(), name, cls.getType());
 		enumFieldNode = new FieldNode(cls, fldInfo, 0);
 		enumFieldNode.add(AFlag.SYNTHETIC);
-		enumFieldNode.addAttr(AType.COMMENTS, "Fake field, exist only in values array");
+		enumFieldNode.addInfoComment("Fake field, exist only in values array");
 		return enumFieldNode;
 	}
 

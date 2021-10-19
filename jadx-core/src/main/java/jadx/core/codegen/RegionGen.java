@@ -8,6 +8,7 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
 import jadx.api.data.ICodeComment;
 import jadx.api.data.annotations.CustomOffsetRef;
@@ -86,7 +87,7 @@ public class RegionGen extends InsnGen {
 				code.attachLineAnnotation(new CustomOffsetRef(offset, ICodeComment.AttachType.VAR_DECLARE));
 			}
 		}
-		CodeGenUtils.addCodeComments(code, assignReg);
+		CodeGenUtils.addCodeComments(code, mth, assignReg);
 	}
 
 	private void makeRegionIndent(ICodeWriter code, IContainer region) throws CodegenException {
@@ -131,7 +132,7 @@ public class RegionGen extends InsnGen {
 				BlockNode blockNode = conditionBlocks.get(0);
 				InsnNode lastInsn = BlockUtils.getLastInsn(blockNode);
 				InsnCodeOffset.attach(code, lastInsn);
-				CodeGenUtils.addCodeComments(code, lastInsn);
+				CodeGenUtils.addCodeComments(code, mth, lastInsn);
 			}
 		}
 		makeRegionIndent(code, region.getThenRegion());
@@ -205,7 +206,7 @@ public class RegionGen extends InsnGen {
 				code.add("; ");
 				makeInsn(forLoop.getIncrInsn(), code, Flags.INLINE);
 				code.add(") {");
-				CodeGenUtils.addCodeComments(code, condInsn);
+				CodeGenUtils.addCodeComments(code, mth, condInsn);
 				makeRegionIndent(code, region.getBody());
 				code.startLine('}');
 				return;
@@ -217,7 +218,7 @@ public class RegionGen extends InsnGen {
 				code.add(" : ");
 				addArg(code, forEachLoop.getIterableArg(), false);
 				code.add(") {");
-				CodeGenUtils.addCodeComments(code, condInsn);
+				CodeGenUtils.addCodeComments(code, mth, condInsn);
 				makeRegionIndent(code, region.getBody());
 				code.startLine('}');
 				return;
@@ -226,7 +227,7 @@ public class RegionGen extends InsnGen {
 		}
 		if (region.isConditionAtEnd()) {
 			code.add("do {");
-			CodeGenUtils.addCodeComments(code, condInsn);
+			CodeGenUtils.addCodeComments(code, mth, condInsn);
 			makeRegionIndent(code, region.getBody());
 			code.startLineWithNum(region.getConditionSourceLine());
 			code.add("} while (");
@@ -236,7 +237,7 @@ public class RegionGen extends InsnGen {
 			code.add("while (");
 			conditionGen.add(code, condition);
 			code.add(") {");
-			CodeGenUtils.addCodeComments(code, condInsn);
+			CodeGenUtils.addCodeComments(code, mth, condInsn);
 			makeRegionIndent(code, region.getBody());
 			code.startLine('}');
 		}
@@ -249,7 +250,7 @@ public class RegionGen extends InsnGen {
 		code.add(") {");
 
 		InsnCodeOffset.attach(code, monitorEnterInsn);
-		CodeGenUtils.addCodeComments(code, monitorEnterInsn);
+		CodeGenUtils.addCodeComments(code, mth, monitorEnterInsn);
 
 		makeRegionIndent(code, cont.getRegion());
 		code.startLine('}');
@@ -263,7 +264,7 @@ public class RegionGen extends InsnGen {
 		addArg(code, arg, false);
 		code.add(") {");
 		InsnCodeOffset.attach(code, insn);
-		CodeGenUtils.addCodeComments(code, insn);
+		CodeGenUtils.addCodeComments(code, mth, insn);
 		code.incIndent();
 
 		for (CaseInfo caseInfo : sw.getCases()) {
@@ -291,10 +292,12 @@ public class RegionGen extends InsnGen {
 				code.add(fn.getAlias());
 			} else {
 				staticField(code, fn.getFieldInfo());
-				// print original value, sometimes replaced with incorrect field
-				EncodedValue constVal = fn.get(JadxAttrType.CONSTANT_VALUE);
-				if (constVal != null && constVal.getValue() != null) {
-					code.add(" /* ").add(constVal.getValue().toString()).add(" */");
+				if (mth.checkCommentsLevel(CommentsLevel.INFO)) {
+					// print original value, sometimes replaced with incorrect field
+					EncodedValue constVal = fn.get(JadxAttrType.CONSTANT_VALUE);
+					if (constVal != null && constVal.getValue() != null) {
+						code.add(" /* ").add(constVal.getValue().toString()).add(" */");
+					}
 				}
 			}
 		} else if (k instanceof Integer) {
@@ -309,7 +312,7 @@ public class RegionGen extends InsnGen {
 
 		InsnNode insn = BlockUtils.getFirstInsn(Utils.first(region.getTryCatchBlock().getBlocks()));
 		InsnCodeOffset.attach(code, insn);
-		CodeGenUtils.addCodeComments(code, insn);
+		CodeGenUtils.addCodeComments(code, mth, insn);
 
 		makeRegionIndent(code, region.getTryRegion());
 		// TODO: move search of 'allHandler' to 'TryCatchRegion'
@@ -388,7 +391,7 @@ public class RegionGen extends InsnGen {
 		code.add(") {");
 
 		InsnCodeOffset.attach(code, handler.getHandlerOffset());
-		CodeGenUtils.addCodeComments(code, handler.getHandlerBlock());
+		CodeGenUtils.addCodeComments(code, mth, handler.getHandlerBlock());
 
 		makeRegionIndent(code, region);
 	}

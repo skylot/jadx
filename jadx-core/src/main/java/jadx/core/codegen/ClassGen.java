@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import jadx.api.CommentsLevel;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
@@ -24,11 +25,9 @@ import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.AttrNode;
 import jadx.core.dex.attributes.FieldInitInsnAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr.EnumField;
-import jadx.core.dex.attributes.nodes.JadxError;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
 import jadx.core.dex.info.AccessInfo;
@@ -44,7 +43,6 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.CodeGenUtils;
 import jadx.core.utils.EncodedValueUtils;
-import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.Utils;
 import jadx.core.utils.android.AndroidResourcesUtils;
 import jadx.core.utils.exceptions.CodegenException;
@@ -125,9 +123,8 @@ public class ClassGen {
 		if (Consts.DEBUG_USAGE) {
 			addClassUsageInfo(code, cls);
 		}
-		insertDecompilationProblems(code, cls);
+		CodeGenUtils.addErrorsAndComments(code, cls);
 		CodeGenUtils.addSourceFileInfo(code, cls);
-		CodeGenUtils.addComments(code, cls);
 		addClassDeclaration(code);
 		addClassBody(code);
 	}
@@ -151,7 +148,7 @@ public class ClassGen {
 		annotationGen.addForClass(clsCode);
 		insertRenameInfo(clsCode, cls);
 		CodeGenUtils.addInputFileInfo(clsCode, cls);
-		clsCode.startLineWithNum(cls.getSourceLine()).add(af.makeString());
+		clsCode.startLineWithNum(cls.getSourceLine()).add(af.makeString(cls.checkCommentsLevel(CommentsLevel.INFO)));
 		if (af.isInterface()) {
 			if (af.isAnnotation()) {
 				clsCode.add('@');
@@ -247,7 +244,7 @@ public class ClassGen {
 	 */
 	public void addClassBody(ICodeWriter clsCode, boolean printClassName) throws CodegenException {
 		clsCode.add('{');
-		if (printClassName) {
+		if (printClassName && cls.checkCommentsLevel(CommentsLevel.INFO)) {
 			clsCode.add(" // from class: " + cls.getClassInfo().getFullName());
 		}
 		setBodyGenStarted(true);
@@ -304,12 +301,9 @@ public class ClassGen {
 			if (mth.getParentClass().getTopParentClass().contains(AFlag.RESTART_CODEGEN)) {
 				throw new JadxRuntimeException("Method generation error", e);
 			}
-			code.newLine().add("/*");
-			code.newLine().addMultiLine(ErrorsCounter.error(mth, "Method generation error", e));
-			Utils.appendStackTrace(code, e);
-			code.newLine().add("*/");
+			mth.addError("Method generation error", e);
+			CodeGenUtils.addErrors(code, mth);
 			code.setIndent(savedIndent);
-			mth.addError("Method generation error: " + e.getMessage(), e);
 		}
 	}
 
@@ -323,8 +317,7 @@ public class ClassGen {
 	}
 
 	public void addMethodCode(ICodeWriter code, MethodNode mth) throws CodegenException {
-		CodeGenUtils.addComments(code, mth);
-		insertDecompilationProblems(code, mth);
+		CodeGenUtils.addErrorsAndComments(code, mth);
 		if (mth.isNoCode()) {
 			MethodGen mthGen = new MethodGen(this, mth);
 			mthGen.addDefinition(code);
@@ -332,7 +325,6 @@ public class ClassGen {
 		} else {
 			boolean badCode = mth.contains(AFlag.INCONSISTENT_CODE);
 			if (badCode && showInconsistentCode) {
-				mth.remove(AFlag.INCONSISTENT_CODE);
 				badCode = false;
 			}
 			MethodGen mthGen;
@@ -349,27 +341,6 @@ public class ClassGen {
 			mthGen.addInstructions(code);
 			code.decIndent();
 			code.startLine('}');
-		}
-	}
-
-	public void insertDecompilationProblems(ICodeWriter code, AttrNode node) {
-		List<JadxError> errors = node.getAll(AType.JADX_ERROR);
-		if (!errors.isEmpty()) {
-			errors.stream().distinct().sorted().forEach(err -> {
-				code.startLine("/*  JADX ERROR: ").add(err.getError());
-				Throwable cause = err.getCause();
-				if (cause != null) {
-					code.incIndent();
-					Utils.appendStackTrace(code, cause);
-					code.decIndent();
-				}
-				code.add("*/");
-			});
-		}
-		List<String> warns = node.getAll(AType.JADX_WARN);
-		if (!warns.isEmpty()) {
-			warns.stream().distinct().sorted()
-					.forEach(warn -> code.startLine("/* JADX WARNING: ").addMultiLine(warn).add(" */"));
 		}
 	}
 
@@ -390,11 +361,12 @@ public class ClassGen {
 		CodeGenUtils.addComments(code, f);
 		annotationGen.addForField(code, f);
 
-		if (f.getFieldInfo().isRenamed()) {
+		boolean addInfoComments = f.checkCommentsLevel(CommentsLevel.INFO);
+		if (f.getFieldInfo().isRenamed() && addInfoComments) {
 			code.newLine();
 			CodeGenUtils.addRenamedComment(code, f, f.getName());
 		}
-		code.startLine(f.getAccessFlags().makeString());
+		code.startLine(f.getAccessFlags().makeString(addInfoComments));
 		useType(code, f.getType());
 		code.add(' ');
 		code.attachDefinition(f);
@@ -707,7 +679,7 @@ public class ClassGen {
 
 	private void insertRenameInfo(ICodeWriter code, ClassNode cls) {
 		ClassInfo classInfo = cls.getClassInfo();
-		if (classInfo.hasAlias()) {
+		if (classInfo.hasAlias() && cls.checkCommentsLevel(CommentsLevel.INFO)) {
 			CodeGenUtils.addRenamedComment(code, cls, classInfo.getType().getObject());
 		}
 	}

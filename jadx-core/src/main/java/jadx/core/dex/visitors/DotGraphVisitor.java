@@ -116,7 +116,7 @@ public class DotGraphVisitor extends AbstractVisitor {
 			}
 
 			dot.startLine("MethodNode[shape=record,label=\"{");
-			dot.add(escape(mth.getAccessFlags().makeString()));
+			dot.add(escape(mth.getAccessFlags().makeString(true)));
 			dot.add(escape(mth.getReturnType() + " "
 					+ mth.getParentClass() + '.' + mth.getName()
 					+ '(' + Utils.listToString(mth.getAllArgRegs()) + ") "));

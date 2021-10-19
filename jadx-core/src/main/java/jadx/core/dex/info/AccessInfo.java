@@ -155,7 +155,7 @@ public class AccessInfo {
 		return type;
 	}
 
-	public String makeString() {
+	public String makeString(boolean showHidden) {
 		StringBuilder code = new StringBuilder();
 		if (isPublic()) {
 			code.append("public ");
@@ -183,11 +183,13 @@ public class AccessInfo {
 				if (isSynchronized()) {
 					code.append("synchronized ");
 				}
-				if (isBridge()) {
-					code.append("/* bridge */ ");
-				}
-				if (Consts.DEBUG && isVarArgs()) {
-					code.append("/* varargs */ ");
+				if (showHidden) {
+					if (isBridge()) {
+						code.append("/* bridge */ ");
+					}
+					if (Consts.DEBUG && isVarArgs()) {
+						code.append("/* varargs */ ");
+					}
 				}
 				break;
 
@@ -204,20 +206,22 @@ public class AccessInfo {
 				if ((accFlags & AccessFlags.STRICT) != 0) {
 					code.append("strict ");
 				}
-				if (isModuleInfo()) {
-					code.append("/* module-info */ ");
-				}
-				if (Consts.DEBUG) {
-					if ((accFlags & AccessFlags.SUPER) != 0) {
-						code.append("/* super */ ");
+				if (showHidden) {
+					if (isModuleInfo()) {
+						code.append("/* module-info */ ");
 					}
-					if ((accFlags & AccessFlags.ENUM) != 0) {
-						code.append("/* enum */ ");
+					if (Consts.DEBUG) {
+						if ((accFlags & AccessFlags.SUPER) != 0) {
+							code.append("/* super */ ");
+						}
+						if ((accFlags & AccessFlags.ENUM) != 0) {
+							code.append("/* enum */ ");
+						}
 					}
 				}
 				break;
 		}
-		if (isSynthetic()) {
+		if (isSynthetic() && showHidden) {
 			code.append("/* synthetic */ ");
 		}
 		return code.toString();
@@ -245,6 +249,6 @@ public class AccessInfo {
 
 	@Override
 	public String toString() {
-		return "AccessInfo: " + type + " 0x" + Integer.toHexString(accFlags) + " (" + makeString() + ')';
+		return "AccessInfo: " + type + " 0x" + Integer.toHexString(accFlags) + " (" + makeString(true) + ')';
 	}
 }

@@ -100,7 +100,7 @@ public class TypeSearch {
 		for (TypeSearchVarInfo var : updatedVars) {
 			TypeUpdateResult res = typeUpdate.applyWithWiderIgnSame(mth, var.getVar(), var.getCurrentType());
 			if (res == TypeUpdateResult.REJECT) {
-				mth.addComment("JADX DEBUG: Multi-variable search result rejected for " + var);
+				mth.addDebugComment("Multi-variable search result rejected for " + var);
 				applySuccess = false;
 			}
 		}

@@ -4,13 +4,13 @@ import java.util.Collections;
 import java.util.List;
 
 import jadx.api.plugins.input.data.IFieldData;
-import jadx.core.dex.attributes.nodes.LineAttrNode;
+import jadx.core.dex.attributes.nodes.NotificationAttrNode;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.AccessInfo.AFType;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.args.ArgType;
 
-public class FieldNode extends LineAttrNode implements ICodeNode {
+public class FieldNode extends NotificationAttrNode implements ICodeNode {
 
 	private final ClassNode parentClass;
 	private final FieldInfo fieldInfo;

@@ -85,8 +85,7 @@ public class JsonCodeGen {
 		}
 
 		ICodeWriter cw = new SimpleCodeWriter();
-		CodeGenUtils.addComments(cw, cls);
-		classGen.insertDecompilationProblems(cw, cls);
+		CodeGenUtils.addErrorsAndComments(cw, cls);
 		classGen.addClassDeclaration(cw);
 		jsonCls.setDeclaration(cw.getCodeStr());
 

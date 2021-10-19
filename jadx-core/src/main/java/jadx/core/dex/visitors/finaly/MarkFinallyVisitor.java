@@ -179,7 +179,7 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 			return false;
 		}
 		if (!checkSlices(extractInfo)) {
-			mth.addComment("JADX INFO: finally extract failed");
+			mth.addWarnComment("Finally extract failed");
 			return false;
 		}
 

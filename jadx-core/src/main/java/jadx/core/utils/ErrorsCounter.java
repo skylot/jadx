@@ -10,7 +10,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttributeNode;
 import jadx.core.dex.attributes.nodes.JadxError;
@@ -31,8 +30,8 @@ public class ErrorsCounter {
 		return node.root().getErrorsCounter().addError(node, warnMsg, th);
 	}
 
-	public static <N extends IDexNode & IAttributeNode> String warning(N node, String warnMsg) {
-		return node.root().getErrorsCounter().addWarning(node, warnMsg);
+	public static <N extends IDexNode & IAttributeNode> void warning(N node, String warnMsg) {
+		node.root().getErrorsCounter().addWarning(node, warnMsg);
 	}
 
 	public static String formatMsg(IDexNode node, String msg) {
@@ -63,24 +62,14 @@ public class ErrorsCounter {
 		} else {
 			LOG.error(msg, e);
 		}
-
 		node.addAttr(AType.JADX_ERROR, new JadxError(error, e));
-		node.remove(AFlag.INCONSISTENT_CODE);
 		return msg;
 	}
 
-	private synchronized <N extends IDexNode & IAttributeNode> String addWarning(N node, String warn) {
+	private synchronized <N extends IDexNode & IAttributeNode> void addWarning(N node, String warn) {
 		warnNodes.add(node);
 		warnsCount++;
-
-		node.addAttr(AType.JADX_WARN, warn);
-		if (!node.contains(AType.JADX_ERROR)) {
-			node.add(AFlag.INCONSISTENT_CODE);
-		}
-
-		String msg = formatMsg(node, warn);
-		LOG.warn(msg);
-		return msg;
+		LOG.warn(formatMsg(node, warn));
 	}
 
 	public void printReport() {

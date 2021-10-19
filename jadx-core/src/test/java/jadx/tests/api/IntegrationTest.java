@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.CodePosition;
+import jadx.api.CommentsLevel;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
@@ -33,8 +34,8 @@ import jadx.api.JadxInternalAccess;
 import jadx.api.data.annotations.InsnCodeOffset;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.AttrList;
 import jadx.core.dex.attributes.IAttributeNode;
+import jadx.core.dex.attributes.nodes.JadxCommentsAttr;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
@@ -307,19 +308,13 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	private boolean hasErrors(IAttributeNode node) {
-		if (node.contains(AFlag.INCONSISTENT_CODE)
-				|| node.contains(AType.JADX_ERROR)
-				|| (node.contains(AType.JADX_WARN) && !allowWarnInCode)) {
+		if (node.contains(AFlag.INCONSISTENT_CODE) || node.contains(AType.JADX_ERROR)) {
 			return true;
 		}
 		if (!allowWarnInCode) {
-			AttrList<String> commentsAttr = node.get(AType.COMMENTS);
+			JadxCommentsAttr commentsAttr = node.get(AType.JADX_COMMENTS);
 			if (commentsAttr != null) {
-				for (String comment : commentsAttr.getList()) {
-					if (comment.contains("JADX WARN")) {
-						return true;
-					}
-				}
+				return commentsAttr.getComments().get(CommentsLevel.WARN) != null;
 			}
 		}
 		return false;

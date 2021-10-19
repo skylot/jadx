@@ -31,7 +31,6 @@ import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
 import jadx.core.dex.visitors.typeinference.TypeUpdateResult;
 import jadx.core.utils.BlockUtils;
-import jadx.core.utils.ErrorsCounter;
 import jadx.core.utils.exceptions.JadxException;
 
 @JadxVisitor(
@@ -54,7 +53,7 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 			}
 			checkTypes(mth);
 		} catch (Exception e) {
-			LOG.error("Error to apply debug info: {}", ErrorsCounter.formatMsg(mth, e.getMessage()), e);
+			mth.addWarnComment("Failed to apply debug info", e);
 		}
 	}
 
@@ -94,7 +93,7 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 			RegDebugInfoAttr debugInfo = debugInfoSet.iterator().next();
 			applyDebugInfo(mth, ssaVar, debugInfo.getRegType(), debugInfo.getName());
 		} else {
-			mth.addComment("JADX INFO: Multiple debug info for " + ssaVar + ": " + debugInfoSet);
+			mth.addInfoComment("Multiple debug info for " + ssaVar + ": " + debugInfoSet);
 			for (RegDebugInfoAttr debugInfo : debugInfoSet) {
 				applyDebugInfo(mth, ssaVar, debugInfo.getRegType(), debugInfo.getName());
 			}
@@ -207,7 +206,7 @@ public class DebugInfoApplyVisitor extends AbstractVisitor {
 				if (names.size() == 1) {
 					setNameForInsn(phiInsn, names.iterator().next());
 				} else if (names.size() > 1) {
-					LOG.warn("Different names in phi insn: {}, use first", names);
+					mth.addDebugComment("Different variable names in phi insn: " + names + ", use first");
 					setNameForInsn(phiInsn, names.iterator().next());
 				}
 			}

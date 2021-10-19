@@ -7,7 +7,6 @@ import java.util.Objects;
 import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
-import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
 import jadx.core.dex.info.AccessInfo;
@@ -149,7 +148,7 @@ public class ClassModifier extends AbstractVisitor {
 		ClassNode cls = mth.getParentClass();
 		if (removeBridgeMethod(cls, mth)) {
 			if (Consts.DEBUG) {
-				mth.addAttr(AType.COMMENTS, "Removed as synthetic bridge method");
+				mth.addDebugComment("Removed as synthetic bridge method");
 			} else {
 				mth.add(AFlag.DONT_GENERATE);
 			}

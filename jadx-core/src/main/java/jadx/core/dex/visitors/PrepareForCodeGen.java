@@ -231,11 +231,11 @@ public class PrepareForCodeGen extends AbstractVisitor {
 					Set<RegisterArg> regArgs = new HashSet<>();
 					constrInsn.getRegisterArgs(regArgs);
 					regArgs.remove(mth.getThisArg());
-					regArgs.removeAll(mth.getArgRegs());
+					mth.getArgRegs().forEach(regArgs::remove);
 					if (!regArgs.isEmpty()) {
 						mth.addWarn("Illegal instructions before constructor call");
 					} else {
-						mth.addComment("JADX INFO: '" + callType + "' call moved to the top of the method (can break code semantics)");
+						mth.addWarnComment("'" + callType + "' call moved to the top of the method (can break code semantics)");
 					}
 				}
 			}

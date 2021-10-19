@@ -10,6 +10,7 @@ import java.util.jar.Manifest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.CommentsLevel;
 import jadx.api.JadxArgs;
 import jadx.core.dex.visitors.AttachCommentsVisitor;
 import jadx.core.dex.visitors.AttachMethodDetails;
@@ -101,7 +102,9 @@ public class Jadx {
 			passes.add(new DebugInfoAttachVisitor());
 		}
 		passes.add(new AttachTryCatchVisitor());
-		passes.add(new AttachCommentsVisitor());
+		if (args.getCommentsLevel() != CommentsLevel.NONE) {
+			passes.add(new AttachCommentsVisitor());
+		}
 		passes.add(new AttachMethodDetails());
 		passes.add(new ProcessInstructionsVisitor());
 

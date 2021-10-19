@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.Parameter;
 
+import jadx.api.CommentsLevel;
 import jadx.api.JadxArgs;
 import jadx.cli.JadxCLIArgs;
 import jadx.cli.LogHelper;
@@ -549,6 +550,10 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setAdbDialogPort(String port) {
 		this.adbDialogPort = port;
+	}
+
+	public void setCommentsLevel(CommentsLevel level) {
+		this.commentsLevel = level;
 	}
 
 	private void upgradeSettings(int fromVersion) {

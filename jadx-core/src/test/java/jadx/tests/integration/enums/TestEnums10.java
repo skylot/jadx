@@ -17,6 +17,6 @@ public class TestEnums10 extends SmaliTest {
 				.code()
 				.doesNotContain("Failed to restore enum class")
 				.containsOne("enum TestEnums10 {")
-				.countString(4, "/* Fake field");
+				.countString(4, "Fake field");
 	}
 }
