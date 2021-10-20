@@ -78,6 +78,7 @@ public class JadxSettings extends JadxCLIArgs {
 	private String srhResourceFileExt = ".xml|.html|.js|.json|.txt";
 	private boolean keepCommonDialogOpen = false;
 	private boolean smaliAreaShowBytecode = false;
+	private LineNumbersMode lineNumbersMode = LineNumbersMode.AUTO;
 
 	private int mainWindowVerticalSplitterLoc = 300;
 	private int debuggerStackFrameSplitterLoc = 300;
@@ -554,6 +555,14 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setCommentsLevel(CommentsLevel level) {
 		this.commentsLevel = level;
+	}
+
+	public LineNumbersMode getLineNumbersMode() {
+		return lineNumbersMode;
+	}
+
+	public void setLineNumbersMode(LineNumbersMode lineNumbersMode) {
+		this.lineNumbersMode = lineNumbersMode;
 	}
 
 	private void upgradeSettings(int fromVersion) {

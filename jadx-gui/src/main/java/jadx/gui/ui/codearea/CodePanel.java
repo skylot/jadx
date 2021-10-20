@@ -21,12 +21,15 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.PopupMenuEvent;
 
+import org.fife.ui.rtextarea.Gutter;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.ICodeInfo;
 import jadx.core.utils.StringUtils;
+import jadx.gui.settings.JadxSettings;
+import jadx.gui.settings.LineNumbersMode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.dialog.SearchDialog;
 import jadx.gui.utils.CaretPositionFix;
@@ -44,12 +47,11 @@ public class CodePanel extends JPanel {
 	private final SearchBar searchBar;
 	private final AbstractCodeArea codeArea;
 	private final JScrollPane codeScrollPane;
-	private LineNumbers lineNumbers;
 
 	public CodePanel(AbstractCodeArea codeArea) {
 		this.codeArea = codeArea;
-		searchBar = new SearchBar(codeArea);
-		codeScrollPane = codeArea instanceof SmaliArea ? new RTextScrollPane(codeArea) : new JScrollPane(codeArea);
+		this.searchBar = new SearchBar(codeArea);
+		this.codeScrollPane = buildCodeScrollPane(codeArea);
 
 		setLayout(new BorderLayout());
 		setBorder(new EmptyBorder(0, 0, 0, 0));
@@ -116,23 +118,43 @@ public class CodePanel extends JPanel {
 		initLineNumbers();
 	}
 
+	private JScrollPane buildCodeScrollPane(AbstractCodeArea codeArea) {
+		if (codeArea instanceof SmaliArea) {
+			return new RTextScrollPane(codeArea);
+		}
+		return new JScrollPane(codeArea);
+	}
+
 	private void initLineNumbers() {
 		if (codeArea instanceof SmaliArea) {
 			return;
 		}
-		initLineNumbers(isUseSourceLines());
-	}
-
-	private void initLineNumbers(boolean useSourceLines) {
-		lineNumbers = new LineNumbers(codeArea);
-		lineNumbers.setUseSourceLines(useSourceLines);
-		codeScrollPane.setRowHeaderView(lineNumbers);
-	}
-
-	private boolean isUseSourceLines() {
-		if (codeArea instanceof SmaliArea) {
-			return false;
+		LineNumbersMode mode = getSettings().getLineNumbersMode();
+		boolean canShowDebugLines = canShowDebugLines();
+		if (mode == LineNumbersMode.AUTO) {
+			mode = canShowDebugLines ? LineNumbersMode.DEBUG : LineNumbersMode.NORMAL;
+		} else if (mode == LineNumbersMode.DEBUG && !canShowDebugLines) {
+			// nothing to show => hide lines view
+			mode = LineNumbersMode.DISABLE;
 		}
+		switch (mode) {
+			case DISABLE:
+				codeScrollPane.setRowHeaderView(null);
+				break;
+			case NORMAL:
+				Gutter gutter = new Gutter(codeArea);
+				gutter.setLineNumberFont(getSettings().getFont());
+				codeScrollPane.setRowHeaderView(gutter);
+				break;
+			case DEBUG:
+				LineNumbers jadxGutter = new LineNumbers(codeArea);
+				jadxGutter.setUseSourceLines(true);
+				codeScrollPane.setRowHeaderView(jadxGutter);
+				break;
+		}
+	}
+
+	private boolean canShowDebugLines() {
 		ICodeInfo codeInfo = codeArea.getNode().getCodeInfo();
 		if (codeInfo == null) {
 			return false;
@@ -141,8 +163,8 @@ public class CodePanel extends JPanel {
 		if (lineMapping.isEmpty()) {
 			return false;
 		}
-		Set<Integer> uniqueSourceLines = new HashSet<>(lineMapping.values());
-		return uniqueSourceLines.size() > 3;
+		Set<Integer> uniqueDebugLines = new HashSet<>(lineMapping.values());
+		return uniqueDebugLines.size() > 3;
 	}
 
 	public SearchBar getSearchBar() {
@@ -161,11 +183,16 @@ public class CodePanel extends JPanel {
 		JViewport viewport = getCodeScrollPane().getViewport();
 		Point viewPosition = viewport.getViewPosition();
 		codeArea.refresh();
-		initLineNumbers(lineNumbers.isUseSourceLines());
+		initLineNumbers();
 
 		SwingUtilities.invokeLater(() -> {
 			viewport.setViewPosition(viewPosition);
 			caretFix.restore();
 		});
+	}
+
+	private JadxSettings getSettings() {
+		return this.codeArea.getContentPanel().getTabbedPane()
+				.getMainWindow().getSettings();
 	}
 }

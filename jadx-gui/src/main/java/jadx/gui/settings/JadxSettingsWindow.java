@@ -537,6 +537,13 @@ public class JadxSettingsWindow extends JDialog {
 		}
 		languageCbx.addActionListener(e -> settings.setLangLocale((LangLocale) languageCbx.getSelectedItem()));
 
+		JComboBox<LineNumbersMode> lineNumbersMode = new JComboBox<>(LineNumbersMode.values());
+		lineNumbersMode.setSelectedItem(settings.getLineNumbersMode());
+		lineNumbersMode.addActionListener(e -> {
+			settings.setLineNumbersMode((LineNumbersMode) lineNumbersMode.getSelectedItem());
+			mainWindow.loadSettings();
+		});
+
 		JCheckBox update = new JCheckBox();
 		update.setSelected(settings.isCheckForUpdates());
 		update.addItemListener(e -> settings.setCheckForUpdates(e.getStateChange() == ItemEvent.SELECTED));
@@ -557,6 +564,7 @@ public class JadxSettingsWindow extends JDialog {
 
 		SettingsGroup group = new SettingsGroup(NLS.str("preferences.other"));
 		group.addRow(NLS.str("preferences.language"), languageCbx);
+		group.addRow(NLS.str("preferences.lineNumbersMode"), lineNumbersMode);
 		group.addRow(NLS.str("preferences.check_for_updates"), update);
 		group.addRow(NLS.str("preferences.cfg"), cfg);
 		group.addRow(NLS.str("preferences.raw_cfg"), rawCfg);
