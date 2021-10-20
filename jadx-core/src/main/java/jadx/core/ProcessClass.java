@@ -67,10 +67,14 @@ public final class ProcessClass {
 					}
 					return code;
 				}
+				return null;
 			} catch (Throwable e) {
+				if (codegen) {
+					throw e;
+				}
 				cls.addError("Class process error: " + e.getClass().getSimpleName(), e);
+				return null;
 			}
-			return null;
 		}
 	}
 
