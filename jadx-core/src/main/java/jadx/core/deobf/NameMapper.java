@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import jadx.core.utils.StringUtils;
+
 import static jadx.core.utils.StringUtils.notEmpty;
 
 public class NameMapper {
@@ -99,16 +101,42 @@ public class NameMapper {
 		return Character.isJavaIdentifierPart(codePoint);
 	}
 
-	public static boolean isPrintableChar(int c) {
+	public static boolean isPrintableChar(char c) {
 		return 32 <= c && c <= 126;
+	}
+
+	public static boolean isPrintableAsciiCodePoint(int c) {
+		return 32 <= c && c <= 126;
+	}
+
+	public static boolean isPrintableCodePoint(int codePoint) {
+		if (Character.isISOControl(codePoint)) {
+			return false;
+		}
+		if (Character.isWhitespace(codePoint)) {
+			// don't print whitespaces other than standard one
+			return codePoint == ' ';
+		}
+		switch (Character.getType(codePoint)) {
+			case Character.CONTROL:
+			case Character.FORMAT:
+			case Character.PRIVATE_USE:
+			case Character.SURROGATE:
+			case Character.UNASSIGNED:
+				return false;
+		}
+		return true;
 	}
 
 	public static boolean isAllCharsPrintable(String str) {
 		int len = str.length();
-		for (int i = 0; i < len; i++) {
-			if (!isPrintableChar(str.charAt(i))) {
+		int offset = 0;
+		while (offset < len) {
+			int codePoint = str.codePointAt(offset);
+			if (!isPrintableAsciiCodePoint(codePoint)) {
 				return false;
 			}
+			offset += Character.charCount(codePoint);
 		}
 		return true;
 	}
@@ -135,12 +163,11 @@ public class NameMapper {
 		}
 		int len = name.length();
 		StringBuilder sb = new StringBuilder(len);
-		for (int i = 0; i < len; i++) {
-			int codePoint = name.codePointAt(i);
-			if (isPrintableChar(codePoint) && isValidIdentifierPart(codePoint)) {
-				sb.append((char) codePoint);
+		StringUtils.visitCodePoints(name, codePoint -> {
+			if (isPrintableAsciiCodePoint(codePoint) && isValidIdentifierPart(codePoint)) {
+				sb.appendCodePoint(codePoint);
 			}
-		}
+		});
 		return sb.toString();
 	}
 
@@ -161,14 +188,12 @@ public class NameMapper {
 	}
 
 	public static String removeNonPrintableCharacters(String name) {
-		int len = name.length();
-		StringBuilder sb = new StringBuilder(len);
-		for (int i = 0; i < len; i++) {
-			int codePoint = name.codePointAt(i);
-			if (isPrintableChar(codePoint)) {
-				sb.append((char) codePoint);
+		StringBuilder sb = new StringBuilder(name.length());
+		StringUtils.visitCodePoints(name, codePoint -> {
+			if (isPrintableAsciiCodePoint(codePoint)) {
+				sb.appendCodePoint(codePoint);
 			}
-		}
+		});
 		return sb.toString();
 	}
 

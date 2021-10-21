@@ -186,7 +186,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 							return null;
 						}
 						arr[i] = (byte) ((LiteralArg) arrArg).getLiteral();
-						if (NameMapper.isPrintableChar(arr[i])) {
+						if (NameMapper.isPrintableChar((char) arr[i])) {
 							printable++;
 						}
 					}

@@ -2,6 +2,7 @@ package jadx.core.utils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.function.IntConsumer;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -23,6 +24,16 @@ public class StringUtils {
 		this.escapeUnicode = args.isEscapeUnicode();
 	}
 
+	public static void visitCodePoints(String str, IntConsumer visitor) {
+		int len = str.length();
+		int offset = 0;
+		while (offset < len) {
+			int codePoint = str.codePointAt(offset);
+			visitor.accept(codePoint);
+			offset += Character.charCount(codePoint);
+		}
+	}
+
 	public String unescapeString(String str) {
 		int len = str.length();
 		if (len == 0) {
@@ -30,48 +41,56 @@ public class StringUtils {
 		}
 		StringBuilder res = new StringBuilder();
 		res.append('"');
-		for (int i = 0; i < len; i++) {
-			int c = str.charAt(i) & 0xFFFF;
-			processCharInsideString(c, res);
-		}
+		visitCodePoints(str, codePoint -> processCodePoint(codePoint, res));
 		res.append('"');
 		return res.toString();
 	}
 
-	private void processCharInsideString(int c, StringBuilder res) {
-		String str = getSpecialStringForChar(c);
+	private void processCodePoint(int codePoint, StringBuilder res) {
+		String str = getSpecialStringForCodePoint(codePoint);
 		if (str != null) {
 			res.append(str);
 			return;
 		}
-		if (c < 32 || c >= 127 && escapeUnicode) {
-			res.append("\\u").append(String.format("%04x", c));
+		if (isEscapeNeededForCodePoint(codePoint)) {
+			res.append("\\u").append(String.format("%04x", codePoint));
 		} else {
-			res.append((char) c);
+			res.appendCodePoint(codePoint);
 		}
 	}
 
+	private boolean isEscapeNeededForCodePoint(int codePoint) {
+		if (codePoint < 32) {
+			return true;
+		}
+		if (codePoint < 127) {
+			return false;
+		}
+		if (escapeUnicode) {
+			return true;
+		}
+		return !NameMapper.isPrintableCodePoint(codePoint);
+	}
+
 	/**
-	 * Represent single char best way possible
+	 * Represent single char the best way possible
 	 */
-	public String unescapeChar(int c, boolean explicitCast) {
+	public String unescapeChar(char c, boolean explicitCast) {
 		if (c == '\'') {
 			return "'\\''";
 		}
-		String str = getSpecialStringForChar(c);
+		String str = getSpecialStringForCodePoint(c);
 		if (str != null) {
 			return '\'' + str + '\'';
 		}
 		if (c >= 127 && escapeUnicode) {
-			return String.format("'\\u%04x'", c);
+			return String.format("'\\u%04x'", (int) c);
 		}
 		if (NameMapper.isPrintableChar(c)) {
-			return "'" + (char) c + '\'';
+			return "'" + c + '\'';
 		}
-		if (explicitCast) {
-			return "(char) " + c;
-		}
-		return String.valueOf(c);
+		String intStr = Integer.toString(c);
+		return explicitCast ? "(char) " + intStr : intStr;
 	}
 
 	public String unescapeChar(char ch) {
@@ -79,7 +98,7 @@ public class StringUtils {
 	}
 
 	@Nullable
-	private String getSpecialStringForChar(int c) {
+	private String getSpecialStringForCodePoint(int c) {
 		switch (c) {
 			case '\n':
 				return "\\n";
@@ -183,7 +202,7 @@ public class StringUtils {
 	}
 
 	private static String escapeXmlChar(char c) {
-		if (c >= 0 && c <= 0x1F) {
+		if (c <= 0x1F) {
 			return "\\" + (int) c;
 		}
 		switch (c) {
@@ -315,7 +334,6 @@ public class StringUtils {
 
 	public static boolean isWordSeparator(char chr) {
 		return WORD_SEPARATORS.indexOf(chr) != -1;
-
 	}
 
 	public static String getDateText() {
