@@ -125,22 +125,27 @@ public class RenameVisitor extends AbstractVisitor {
 
 	@Nullable
 	private static String fixClsShortName(JadxArgs args, String clsName) {
-		char firstChar = clsName.charAt(0);
 		boolean renameValid = args.isRenameValid();
-		if (Character.isDigit(firstChar) && renameValid) {
-			return Consts.ANONYMOUS_CLASS_PREFIX + NameMapper.removeInvalidCharsMiddle(clsName);
-		}
-		if (firstChar == '$' && renameValid) {
-			return 'C' + NameMapper.removeInvalidCharsMiddle(clsName);
+		if (renameValid) {
+			char firstChar = clsName.charAt(0);
+			if (Character.isDigit(firstChar)) {
+				return Consts.ANONYMOUS_CLASS_PREFIX + NameMapper.removeInvalidCharsMiddle(clsName);
+			}
+			if (firstChar == '$') {
+				return 'C' + NameMapper.removeInvalidCharsMiddle(clsName);
+			}
 		}
 		String cleanClsName = args.isRenamePrintable()
-				? NameMapper.removeInvalidChars(clsName, "C")
+				? NameMapper.removeNonPrintableCharacters(clsName)
 				: clsName;
 		if (cleanClsName.isEmpty()) {
 			return null;
 		}
-		if (renameValid && !NameMapper.isValidIdentifier(cleanClsName)) {
-			return 'C' + cleanClsName;
+		if (renameValid) {
+			cleanClsName = NameMapper.removeInvalidChars(clsName, "C");
+			if (!NameMapper.isValidIdentifier(cleanClsName)) {
+				return 'C' + cleanClsName;
+			}
 		}
 		return cleanClsName;
 	}

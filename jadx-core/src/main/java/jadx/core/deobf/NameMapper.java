@@ -160,6 +160,18 @@ public class NameMapper {
 		return result;
 	}
 
+	public static String removeNonPrintableCharacters(String name) {
+		int len = name.length();
+		StringBuilder sb = new StringBuilder(len);
+		for (int i = 0; i < len; i++) {
+			int codePoint = name.codePointAt(i);
+			if (isPrintableChar(codePoint)) {
+				sb.append((char) codePoint);
+			}
+		}
+		return sb.toString();
+	}
+
 	private NameMapper() {
 	}
 }
