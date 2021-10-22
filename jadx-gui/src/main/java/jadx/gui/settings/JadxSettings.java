@@ -249,8 +249,8 @@ public class JadxSettings extends JadxCLIArgs {
 		return alwaysSelectOpened;
 	}
 
-	public void setAlwaysSelectOpened(boolean showHeapUsageBar) {
-		this.alwaysSelectOpened = showHeapUsageBar;
+	public void setAlwaysSelectOpened(boolean alwaysSelectOpened) {
+		this.alwaysSelectOpened = alwaysSelectOpened;
 		partialSync(settings -> settings.alwaysSelectOpened = alwaysSelectOpened);
 	}
 
