@@ -868,6 +868,9 @@ public class MainWindow extends JFrame {
 		alwaysSelectOpened.setState(settings.isAlwaysSelectOpened());
 		alwaysSelectOpened.addActionListener(event -> {
 			settings.setAlwaysSelectOpened(!settings.isAlwaysSelectOpened());
+			if (settings.isAlwaysSelectOpened()) {
+				this.syncWithEditor();
+			}
 		});
 
 		Action syncAction = new AbstractAction(NLS.str("menu.sync"), ICON_SYNC) {
