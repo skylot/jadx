@@ -15,7 +15,7 @@ public class QuarkReportData {
 		public List<String> permissions;
 
 		List<Method> native_api;
-		List<Method> combination;
+		List<String[]> combination;
 		List<Map<String, InvokePlace>> register;
 	}
 

@@ -8,6 +8,7 @@ import java.awt.event.MouseEvent;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
@@ -238,20 +239,25 @@ public class QuarkReportPanel extends ContentPanel {
 			if (Utils.notEmpty(crime.permissions)) {
 				add(new TextTreeNode("Permissions: " + Strings.join(", ", crime.permissions)));
 			}
-			if (Utils.notEmpty(crime.combination)) {
+			if (Utils.notEmpty(crime.native_api)) {
 				TextTreeNode node = new TextTreeNode("Native API");
-				for (QuarkReportData.Method method : crime.combination) {
+				for (QuarkReportData.Method method : crime.native_api) {
 					node.add(new TextTreeNode(method.toString()));
 				}
 				add(node);
-			} else {
-				if (Utils.notEmpty(crime.native_api)) {
-					TextTreeNode node = new TextTreeNode("Native API");
-					for (QuarkReportData.Method method : crime.native_api) {
-						node.add(new TextTreeNode(method.toString()));
+			}
+			List<String[]> combination = crime.combination;
+			if (Utils.notEmpty(combination)) {
+				TextTreeNode node = new TextTreeNode("Combination");
+				int size = combination.size();
+				for (int i = 0; i < size; i++) {
+					TextTreeNode set = new TextTreeNode("Set " + i);
+					for (String mth : combination.get(i)) {
+						set.add(resolveMethod(mth));
 					}
-					add(node);
+					node.add(set);
 				}
+				add(node);
 			}
 			if (Utils.notEmpty(crime.register)) {
 				TextTreeNode node = new TextTreeNode("Invocations");

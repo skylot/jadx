@@ -56,21 +56,24 @@ public class QuarkReportNode extends JNode {
 
 	@Override
 	public ContentPanel getContentPanel(TabbedPane tabbedPane) {
-		QuarkReportData data;
 		try {
-			data = GSON.fromJson(Files.newBufferedReader(apkFile), QuarkReportData.class);
+			QuarkReportData data = GSON.fromJson(Files.newBufferedReader(apkFile), QuarkReportData.class);
+			return new QuarkReportPanel(tabbedPane, this, data);
 		} catch (Exception e) {
 			LOG.error("Quark report parse error", e);
 			StringEscapeUtils.Builder builder = StringEscapeUtils.builder(StringEscapeUtils.ESCAPE_HTML4);
 			builder.append("<h2>");
 			builder.escape("Quark analysis failed!");
-			builder.append("</h2><pre>");
+			builder.append("</h2>");
+			builder.append("<h3>");
+			builder.append("Error: ").escape(e.getMessage());
+			builder.append("</h3>");
+			builder.append("<pre>");
 			builder.escape(ExceptionUtils.getStackTrace(e));
 			builder.append("</pre>");
 			errorContent = builder.toString();
 			return new HtmlPanel(tabbedPane, this);
 		}
-		return new QuarkReportPanel(tabbedPane, this, data);
 	}
 
 	@Override
