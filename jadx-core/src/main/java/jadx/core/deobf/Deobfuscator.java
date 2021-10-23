@@ -83,7 +83,7 @@ public class Deobfuscator {
 	public void savePresets() {
 		Path deobfMapFile = deobfPresets.getDeobfMapFile();
 		if (Files.exists(deobfMapFile) && !args.isDeobfuscationForceSave()) {
-			LOG.warn("Deobfuscation map file '{}' exists. Use command line option '--deobf-rewrite-cfg' to rewrite it",
+			LOG.info("Deobfuscation map file '{}' exists. Use command line option '--deobf-rewrite-cfg' to rewrite it",
 					deobfMapFile.toAbsolutePath());
 			return;
 		}

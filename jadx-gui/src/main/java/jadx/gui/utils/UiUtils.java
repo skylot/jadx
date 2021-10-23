@@ -253,10 +253,6 @@ public class UiUtils {
 		return CTRL_BNT_KEY;
 	}
 
-	public static void showMessageBox(Component parent, String msg) {
-		JOptionPane.showMessageDialog(parent, msg);
-	}
-
 	public static void addEscapeShortCutToDispose(JDialog dialog) {
 		KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 		dialog.getRootPane().registerKeyboardAction(e -> dialog.dispose(), stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
@@ -290,6 +286,10 @@ public class UiUtils {
 			return defValue;
 		}
 		return envVal;
+	}
+
+	public static void showMessageBox(Component parent, String msg) {
+		JOptionPane.showMessageDialog(parent, msg);
 	}
 
 	public static void errorMessage(Component parent, String message) {

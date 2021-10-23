@@ -32,7 +32,16 @@ public class LogViewerDialog extends JDialog {
 	private final transient JadxSettings settings;
 	private transient RSyntaxTextArea textPane;
 
-	public LogViewerDialog(MainWindow mainWindow) {
+	public static void open(MainWindow mainWindow) {
+		openWithLevel(mainWindow, level);
+	}
+
+	public static void openWithLevel(MainWindow mainWindow, Level newLevel) {
+		level = newLevel;
+		new LogViewerDialog(mainWindow).setVisible(true);
+	}
+
+	private LogViewerDialog(MainWindow mainWindow) {
 		this.settings = mainWindow.getSettings();
 		initUI(mainWindow);
 		registerLogListener();

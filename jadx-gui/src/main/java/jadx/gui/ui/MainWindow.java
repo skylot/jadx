@@ -80,6 +80,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.qos.logback.classic.Level;
+
 import jadx.api.JadxArgs;
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
@@ -114,9 +116,11 @@ import jadx.gui.ui.dialog.LogViewerDialog;
 import jadx.gui.ui.dialog.RenameDialog;
 import jadx.gui.ui.dialog.SearchDialog;
 import jadx.gui.ui.panel.ContentPanel;
+import jadx.gui.ui.panel.IssuesPanel;
 import jadx.gui.ui.panel.JDebuggerPanel;
 import jadx.gui.ui.panel.ProgressPanel;
 import jadx.gui.ui.popupmenu.JPackagePopupMenu;
+import jadx.gui.ui.treenodes.SummaryNode;
 import jadx.gui.update.JadxUpdate;
 import jadx.gui.update.JadxUpdate.IUpdateCallback;
 import jadx.gui.update.data.Release;
@@ -129,6 +133,7 @@ import jadx.gui.utils.Link;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.SystemInfo;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.logs.LogCollector;
 import jadx.gui.utils.search.CommentsIndex;
 import jadx.gui.utils.search.TextSearchIndex;
 
@@ -402,6 +407,7 @@ public class MainWindow extends JFrame {
 		project.setFilePath(paths);
 		clearTree();
 		BreakpointManager.saveAndExit();
+		LogCollector.getInstance().reset();
 		if (paths.isEmpty()) {
 			return;
 		}
@@ -413,9 +419,29 @@ public class MainWindow extends JFrame {
 						UiUtils.errorMessage(this, NLS.str("message.memoryLow"));
 						return;
 					}
+					checkLoadedStatus();
 					onOpen(paths);
 					onFinish.run();
 				});
+	}
+
+	private void checkLoadedStatus() {
+		if (!wrapper.getClasses().isEmpty()) {
+			return;
+		}
+		int errors = LogCollector.getInstance().getErrors();
+		if (errors > 0) {
+			int result = JOptionPane.showConfirmDialog(this,
+					NLS.str("message.load_errors", errors),
+					NLS.str("message.errorTitle"),
+					JOptionPane.OK_CANCEL_OPTION,
+					JOptionPane.ERROR_MESSAGE);
+			if (result == JOptionPane.OK_OPTION) {
+				LogViewerDialog.openWithLevel(this, Level.ERROR);
+			}
+		} else {
+			UiUtils.showMessageBox(this, NLS.str("message.no_classes"));
+		}
 	}
 
 	private void onOpen(List<Path> paths) {
@@ -428,6 +454,7 @@ public class MainWindow extends JFrame {
 
 	private void addTreeCustomNodes() {
 		treeRoot.replaceCustomNode(ApkSignature.getApkSignature(wrapper));
+		treeRoot.replaceCustomNode(new SummaryNode(this));
 	}
 
 	private boolean ensureProjectIsSaved() {
@@ -723,7 +750,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void treeRightClickAction(MouseEvent e) {
-		JNode obj = getJNodeUnderMouse(e);
+		JNode obj = getJNodeUnderMouse(e, false);
 		if (obj instanceof JPackage) {
 			JPackagePopupMenu menu = new JPackagePopupMenu(this, (JPackage) obj);
 			menu.show(e.getComponent(), e.getX(), e.getY());
@@ -737,8 +764,12 @@ public class MainWindow extends JFrame {
 	}
 
 	@Nullable
-	private JNode getJNodeUnderMouse(MouseEvent mouseEvent) {
+	private JNode getJNodeUnderMouse(MouseEvent mouseEvent, boolean trySelection) {
 		TreePath path = tree.getPathForLocation(mouseEvent.getX(), mouseEvent.getY());
+		if (path == null && trySelection) {
+			// maybe click on node row (mouse pressed event should select this node in tree)
+			path = tree.getSelectionPath();
+		}
 		if (path != null) {
 			Object obj = path.getLastPathComponent();
 			if (obj instanceof JNode) {
@@ -939,7 +970,7 @@ public class MainWindow extends JFrame {
 		Action logAction = new AbstractAction(NLS.str("menu.log"), ICON_LOG) {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new LogViewerDialog(MainWindow.this).setVisible(true);
+				LogViewerDialog.open(MainWindow.this);
 			}
 		};
 		logAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("menu.log"));
@@ -1096,10 +1127,16 @@ public class MainWindow extends JFrame {
 		ToolTipManager.sharedInstance().registerComponent(tree);
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		tree.addMouseListener(new MouseAdapter() {
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				super.mousePressed(e);
+			}
+
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (SwingUtilities.isLeftMouseButton(e)) {
-					nodeClickAction(getJNodeUnderMouse(e));
+					nodeClickAction(getJNodeUnderMouse(e, true));
 				} else if (SwingUtilities.isRightMouseButton(e)) {
 					treeRightClickAction(e);
 				}
@@ -1157,13 +1194,18 @@ public class MainWindow extends JFrame {
 		});
 
 		progressPane = new ProgressPanel(this, true);
+		IssuesPanel issuesPanel = new IssuesPanel(this);
 
 		JPanel leftPane = new JPanel(new BorderLayout());
 		JScrollPane treeScrollPane = new JScrollPane(tree);
 		treeScrollPane.setMinimumSize(new Dimension(100, 150));
 
+		JPanel bottomPane = new JPanel(new BorderLayout());
+		bottomPane.add(issuesPanel, BorderLayout.PAGE_START);
+		bottomPane.add(progressPane, BorderLayout.PAGE_END);
+
 		leftPane.add(treeScrollPane, BorderLayout.CENTER);
-		leftPane.add(progressPane, BorderLayout.PAGE_END);
+		leftPane.add(bottomPane, BorderLayout.PAGE_END);
 		splitPane.setLeftComponent(leftPane);
 
 		tabbedPane = new TabbedPane(this);
