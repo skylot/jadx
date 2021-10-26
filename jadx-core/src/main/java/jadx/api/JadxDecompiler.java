@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.data.annotations.VarRef;
 import jadx.api.plugins.JadxPlugin;
 import jadx.api.plugins.JadxPluginManager;
 import jadx.api.plugins.input.JadxInputPlugin;
@@ -35,7 +36,6 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.dex.nodes.VariableNode;
 import jadx.core.dex.visitors.SaveCode;
 import jadx.core.export.ExportGradleProject;
 import jadx.core.utils.Utils;
@@ -439,6 +439,9 @@ public final class JadxDecompiler implements Closeable {
 		if (javaMethod != null) {
 			return javaMethod;
 		}
+		if (mth.contains(AFlag.DONT_GENERATE)) {
+			return null;
+		}
 		// parent class not loaded yet
 		JavaClass javaClass = getJavaClassByNode(mth.getParentClass().getTopParentClass());
 		if (javaClass == null) {
@@ -522,6 +525,15 @@ public final class JadxDecompiler implements Closeable {
 
 	@Nullable
 	JavaNode convertNode(Object obj) {
+		if (obj instanceof VarRef) {
+			VarRef varRef = (VarRef) obj;
+			MethodNode mthNode = varRef.getMth();
+			JavaMethod mth = getJavaMethodByNode(mthNode);
+			if (mth == null) {
+				return null;
+			}
+			return new JavaVariable(mth, varRef);
+		}
 		if (!(obj instanceof LineAttrNode)) {
 			return null;
 		}
@@ -537,14 +549,6 @@ public final class JadxDecompiler implements Closeable {
 		}
 		if (obj instanceof FieldNode) {
 			return getJavaFieldByNode((FieldNode) obj);
-		}
-		if (obj instanceof VariableNode) {
-			VariableNode varNode = (VariableNode) obj;
-			JavaClass javaCls = getJavaClassByNode(varNode.getClassNode().getTopParentClass());
-			if (javaCls == null) {
-				return null;
-			}
-			return new JavaVariable(javaCls, varNode);
 		}
 		throw new JadxRuntimeException("Unexpected node type: " + obj);
 	}
@@ -578,6 +582,10 @@ public final class JadxDecompiler implements Closeable {
 			return null;
 		}
 		return new CodePosition(defLine, 0, javaNode.getDefPos());
+	}
+
+	public void reloadCodeData() {
+		root.notifyCodeDataListeners();
 	}
 
 	public JadxArgs getArgs() {

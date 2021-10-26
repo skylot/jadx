@@ -38,7 +38,6 @@ import jadx.core.dex.visitors.PrepareForCodeGen;
 import jadx.core.dex.visitors.ProcessAnonymous;
 import jadx.core.dex.visitors.ProcessInstructionsVisitor;
 import jadx.core.dex.visitors.ReSugarCode;
-import jadx.core.dex.visitors.RenameVisitor;
 import jadx.core.dex.visitors.ShadowFieldVisitor;
 import jadx.core.dex.visitors.SignatureProcessor;
 import jadx.core.dex.visitors.SimplifyVisitor;
@@ -54,6 +53,8 @@ import jadx.core.dex.visitors.regions.LoopRegionVisitor;
 import jadx.core.dex.visitors.regions.RegionMakerVisitor;
 import jadx.core.dex.visitors.regions.ReturnVisitor;
 import jadx.core.dex.visitors.regions.variables.ProcessVariables;
+import jadx.core.dex.visitors.rename.CodeRenameVisitor;
+import jadx.core.dex.visitors.rename.RenameVisitor;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
 import jadx.core.dex.visitors.ssa.SSATransform;
 import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;
@@ -127,6 +128,7 @@ public class Jadx {
 		if (args.isDebugInfo()) {
 			passes.add(new DebugInfoApplyVisitor());
 		}
+		passes.add(new CodeRenameVisitor());
 		if (args.isInlineMethods()) {
 			passes.add(new InlineMethods());
 		}

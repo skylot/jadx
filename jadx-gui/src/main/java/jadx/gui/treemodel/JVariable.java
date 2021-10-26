@@ -8,21 +8,16 @@ import jadx.api.JavaVariable;
 public class JVariable extends JNode {
 	private static final long serialVersionUID = -3002100457834453783L;
 
-	JClass cls;
-	JavaVariable var;
+	private final JMethod jMth;
+	private final JavaVariable var;
 
-	public JVariable(JavaVariable var, JClass cls) {
-		this.cls = cls;
+	public JVariable(JMethod jMth, JavaVariable var) {
+		this.jMth = jMth;
 		this.var = var;
 	}
 
 	public JavaVariable getJavaVarNode() {
-		return (JavaVariable) getJavaNode();
-	}
-
-	@Override
-	public JClass getRootClass() {
-		return cls;
+		return var;
 	}
 
 	@Override
@@ -31,8 +26,13 @@ public class JVariable extends JNode {
 	}
 
 	@Override
+	public JClass getRootClass() {
+		return jMth.getRootClass();
+	}
+
+	@Override
 	public JClass getJParent() {
-		return cls;
+		return jMth.getJParent();
 	}
 
 	@Override
@@ -43,6 +43,11 @@ public class JVariable extends JNode {
 	@Override
 	public String makeString() {
 		return var.getName();
+	}
+
+	@Override
+	public String makeLongString() {
+		return var.getFullName();
 	}
 
 	@Override

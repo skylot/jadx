@@ -17,4 +17,7 @@ public interface JavaNode {
 	int getDefPos();
 
 	List<JavaNode> getUseIn();
+
+	default void removeAlias() {
+	}
 }

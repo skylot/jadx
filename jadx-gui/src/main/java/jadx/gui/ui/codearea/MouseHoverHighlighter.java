@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jadx.api.JavaNode;
+import jadx.gui.treemodel.JNode;
+import jadx.gui.utils.JNodeCache;
 
 class MouseHoverHighlighter extends MouseMotionAdapter {
 	private static final Logger LOG = LoggerFactory.getLogger(MouseHoverHighlighter.class);
@@ -57,6 +59,7 @@ class MouseHoverHighlighter extends MouseMotionAdapter {
 			removeHighlight();
 			tag = codeArea.getHighlighter().addHighlight(tokenOffset, token.getEndOffset(), this.highlighter);
 			highlightedTokenOffset = tokenOffset;
+			updateToolTip(nodeAtOffset);
 			return true;
 		} catch (Exception exc) {
 			LOG.error("Mouse hover highlight error", exc);
@@ -69,6 +72,17 @@ class MouseHoverHighlighter extends MouseMotionAdapter {
 			codeArea.getHighlighter().removeHighlight(tag);
 			tag = null;
 			highlightedTokenOffset = -1;
+			updateToolTip(null);
 		}
+	}
+
+	private void updateToolTip(JavaNode node) {
+		if (node == null) {
+			codeArea.setToolTipText(null);
+			return;
+		}
+		JNodeCache nodeCache = codeArea.getMainWindow().getCacheObject().getNodeCache();
+		JNode jNode = nodeCache.makeFrom(node);
+		codeArea.setToolTipText(jNode.makeLongString());
 	}
 }

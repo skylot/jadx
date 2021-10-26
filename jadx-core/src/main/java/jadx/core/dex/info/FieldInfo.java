@@ -52,6 +52,10 @@ public final class FieldInfo {
 		this.alias = alias;
 	}
 
+	public void removeAlias() {
+		this.alias = name;
+	}
+
 	public boolean hasAlias() {
 		return !Objects.equals(name, alias);
 	}

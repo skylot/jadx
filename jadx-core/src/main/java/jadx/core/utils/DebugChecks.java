@@ -19,7 +19,7 @@ import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.visitors.IDexTreeVisitor;
 import jadx.core.dex.visitors.PrepareForCodeGen;
-import jadx.core.dex.visitors.RenameVisitor;
+import jadx.core.dex.visitors.rename.RenameVisitor;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 /**

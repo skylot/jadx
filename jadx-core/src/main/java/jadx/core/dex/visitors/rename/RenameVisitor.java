@@ -1,4 +1,4 @@
-package jadx.core.dex.visitors;
+package jadx.core.dex.visitors.rename;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -22,6 +22,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.dex.visitors.AbstractVisitor;
 
 public class RenameVisitor extends AbstractVisitor {
 
@@ -37,11 +38,13 @@ public class RenameVisitor extends AbstractVisitor {
 	private void process(RootNode root) {
 		Deobfuscator deobfuscator = new Deobfuscator(root);
 		JadxArgs args = root.getArgs();
+
 		if (args.isDeobfuscationOn()) {
 			deobfuscator.execute();
 		}
 
 		checkClasses(deobfuscator, root, args);
+		UserRenames.applyForNodes(root);
 
 		if (args.isDeobfuscationOn()) {
 			deobfuscator.savePresets();

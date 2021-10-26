@@ -2,7 +2,7 @@ package jadx.api;
 
 import java.util.Map;
 
-import jadx.core.dex.attributes.nodes.LineAttrNode;
+import jadx.core.dex.attributes.ILineAttributeNode;
 
 public interface ICodeWriter {
 	String NL = System.getProperty("line.separator");
@@ -40,7 +40,7 @@ public interface ICodeWriter {
 
 	int getLine();
 
-	void attachDefinition(LineAttrNode obj);
+	void attachDefinition(ILineAttributeNode obj);
 
 	void attachAnnotation(Object obj);
 

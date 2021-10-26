@@ -7,6 +7,7 @@ import java.awt.event.MouseEvent;
 
 import javax.swing.JPopupMenu;
 import javax.swing.event.PopupMenuEvent;
+import javax.swing.text.BadLocationException;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
 import org.fife.ui.rsyntaxtextarea.Token;
@@ -176,6 +177,37 @@ public final class CodeArea extends AbstractCodeArea {
 	private JNode convertJavaNode(JavaNode javaNode) {
 		JNodeCache nodeCache = getMainWindow().getCacheObject().getNodeCache();
 		return nodeCache.makeFrom(javaNode);
+	}
+
+	@SuppressWarnings("deprecation")
+	public CodePosition getMouseCodePos() {
+		try {
+			Point mousePos = UiUtils.getMousePosition(this);
+			return buildCodePosFromOffset(this.viewToModel(mousePos));
+		} catch (Exception e) {
+			LOG.error("Failed to get offset at mouse position", e);
+			return null;
+		}
+	}
+
+	@Nullable
+	public CodePosition getCaretCodePos() {
+		try {
+			return buildCodePosFromOffset(getCaretPosition());
+		} catch (Exception e) {
+			LOG.warn("Failed to get caret position", e);
+			return null;
+		}
+	}
+
+	private CodePosition buildCodePosFromOffset(int offset) throws BadLocationException {
+		int start = getWordStart(offset);
+		if (start == -1) {
+			start = offset;
+		}
+		int line = getLineOfOffset(start);
+		int lineOffset = start - getLineStartOffset(line);
+		return new CodePosition(line + 1, lineOffset + 1, start);
 	}
 
 	public JNode getNodeUnderCaret() {

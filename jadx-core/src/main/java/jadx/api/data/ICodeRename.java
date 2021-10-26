@@ -2,12 +2,12 @@ package jadx.api.data;
 
 import org.jetbrains.annotations.Nullable;
 
-public interface ICodeComment extends Comparable<ICodeComment> {
+public interface ICodeRename extends Comparable<ICodeRename> {
 
 	IJavaNodeRef getNodeRef();
 
 	@Nullable
 	IJavaCodeRef getCodeRef();
 
-	String getComment();
+	String getNewName();
 }

@@ -1,25 +1,27 @@
 package jadx.core.dex.visitors;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.data.CodeRefType;
 import jadx.api.data.ICodeComment;
 import jadx.api.data.ICodeData;
+import jadx.api.data.IJavaCodeRef;
 import jadx.api.data.IJavaNodeRef;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.IAttributeNode;
-import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.exceptions.JadxException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 @JadxVisitor(
@@ -33,7 +35,13 @@ public class AttachCommentsVisitor extends AbstractVisitor {
 
 	private static final Logger LOG = LoggerFactory.getLogger(AttachCommentsVisitor.class);
 
-	private final CommentsData cachedCommentsData = new CommentsData();
+	private Map<String, List<ICodeComment>> clsCommentsMap;
+
+	@Override
+	public void init(RootNode root) throws JadxException {
+		updateCommentsData(root.getArgs().getCodeData());
+		root.registerCodeDataUpdateListener(this::updateCommentsData);
+	}
 
 	@Override
 	public boolean visit(ClassNode cls) {
@@ -67,14 +75,11 @@ public class AttachCommentsVisitor extends AbstractVisitor {
 					if (methodNode == null) {
 						LOG.warn("Method reference not found: {}", nodeRef);
 					} else {
-						int offset = comment.getOffset();
-						if (offset < 0) {
+						IJavaCodeRef codeRef = comment.getCodeRef();
+						if (codeRef == null) {
 							addComment(methodNode, comment.getComment());
-						} else if (comment.getAttachType() != null) {
-							processCustomAttach(methodNode, comment);
 						} else {
-							InsnNode insn = getInsnByOffset(methodNode, offset);
-							addComment(insn, comment.getComment());
+							processCustomAttach(methodNode, codeRef, comment);
 						}
 					}
 					break;
@@ -91,22 +96,14 @@ public class AttachCommentsVisitor extends AbstractVisitor {
 		}
 	}
 
-	private static void processCustomAttach(MethodNode mth, ICodeComment comment) {
-		ICodeComment.AttachType attachType = comment.getAttachType();
-		if (attachType == null) {
-			return;
-		}
+	private static void processCustomAttach(MethodNode mth, IJavaCodeRef codeRef, ICodeComment comment) {
+		CodeRefType attachType = codeRef.getAttachType();
 		switch (attachType) {
-			case VAR_DECLARE:
-				InsnNode insn = getInsnByOffset(mth, comment.getOffset());
-				if (insn != null) {
-					RegisterArg result = insn.getResult();
-					if (result != null) {
-						result.addAttr(AType.CODE_COMMENTS, comment.getComment());
-					}
-				}
+			case INSN: {
+				InsnNode insn = getInsnByOffset(mth, codeRef.getIndex());
+				addComment(insn, comment.getComment());
 				break;
-
+			}
 			default:
 				throw new JadxRuntimeException("Unexpected attach type: " + attachType);
 		}
@@ -120,37 +117,23 @@ public class AttachCommentsVisitor extends AbstractVisitor {
 		node.addAttr(AType.CODE_COMMENTS, comment);
 	}
 
-	private static final class CommentsData {
-		long updateId;
-		Map<String, List<ICodeComment>> clsCommentsMap;
-	}
-
 	private List<ICodeComment> getCommentsData(ClassNode cls) {
-		ICodeData additionalData = cls.root().getArgs().getCodeData();
-		if (additionalData == null || additionalData.getComments().isEmpty()) {
+		if (clsCommentsMap == null) {
 			return Collections.emptyList();
 		}
-		synchronized (cachedCommentsData) {
-			CommentsData commentsData = this.cachedCommentsData;
-			if (commentsData.updateId != additionalData.getUpdateId()) {
-				updateCommentsData(additionalData, commentsData);
-			}
-			List<ICodeComment> clsComments = commentsData.clsCommentsMap.get(cls.getClassInfo().getFullName());
-			if (clsComments == null) {
-				return Collections.emptyList();
-			}
-			return clsComments;
+		List<ICodeComment> clsComments = clsCommentsMap.get(cls.getClassInfo().getRawName());
+		if (clsComments == null) {
+			return Collections.emptyList();
 		}
+		return clsComments;
 	}
 
-	private static void updateCommentsData(ICodeData data, CommentsData commentsData) {
-		Map<String, List<ICodeComment>> map = new HashMap<>();
-		for (ICodeComment comment : data.getComments()) {
-			String declClsId = comment.getNodeRef().getDeclaringClass();
-			List<ICodeComment> comments = map.computeIfAbsent(declClsId, s -> new ArrayList<>());
-			comments.add(comment);
+	private void updateCommentsData(@Nullable ICodeData data) {
+		if (data == null) {
+			this.clsCommentsMap = Collections.emptyMap();
+		} else {
+			this.clsCommentsMap = data.getComments().stream()
+					.collect(Collectors.groupingBy(c -> c.getNodeRef().getDeclaringClass()));
 		}
-		commentsData.clsCommentsMap = map;
-		commentsData.updateId = data.getUpdateId();
 	}
 }

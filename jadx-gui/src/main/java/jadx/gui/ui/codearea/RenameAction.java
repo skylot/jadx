@@ -26,8 +26,9 @@ public final class RenameAction extends JNodeMenuAction<JNode> {
 	public RenameAction(CodeArea codeArea) {
 		super(NLS.str("popup.rename") + " (n)", codeArea);
 		KeyStroke key = getKeyStroke(VK_N, 0);
-		codeArea.getInputMap().put(key, "trigger rename");
-		codeArea.getActionMap().put("trigger rename", new AbstractAction() {
+		String renameActionId = "trigger rename";
+		codeArea.getInputMap().put(key, renameActionId);
+		codeArea.getActionMap().put(renameActionId, new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				node = codeArea.getNodeUnderCaret();
@@ -45,7 +46,7 @@ public final class RenameAction extends JNodeMenuAction<JNode> {
 		if (!node.canRename()) {
 			UiUtils.showMessageBox(codeArea.getMainWindow(),
 					NLS.str("msg.rename_node_failed", node.getJavaNode().getFullName()));
-			LOG.info("node can't be renamed");
+			LOG.warn("Can't rename node: {}", node);
 			return;
 		}
 		RenameDialog.rename(codeArea.getMainWindow(), node);

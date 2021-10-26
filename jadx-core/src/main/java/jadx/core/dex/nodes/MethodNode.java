@@ -15,7 +15,6 @@ import jadx.api.plugins.input.data.IDebugInfo;
 import jadx.api.plugins.input.data.IMethodData;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.api.plugins.input.data.attributes.types.ExceptionsAttr;
-import jadx.core.codegen.NameGen;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.attributes.nodes.NotificationAttrNode;
@@ -24,13 +23,9 @@ import jadx.core.dex.info.AccessInfo.AFType;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.InsnDecoder;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.instructions.args.CodeVar;
 import jadx.core.dex.instructions.args.InsnArg;
-import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
-import jadx.core.dex.instructions.args.VisibleVar;
-import jadx.core.dex.nodes.VariableNode.VarKind;
 import jadx.core.dex.nodes.utils.TypeUtils;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.trycatch.ExceptionHandler;
@@ -74,7 +69,6 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	private Region region;
 
 	private List<MethodNode> useIn = Collections.emptyList();
-	private List<VariableNode> variables = new ArrayList<>();
 
 	public static MethodNode build(ClassNode classNode, IMethodData methodData) {
 		MethodNode methodNode = new MethodNode(classNode, methodData);
@@ -100,47 +94,6 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		this.argTypes = mthInfo.getArgumentsTypes();
 		this.typeParameters = Collections.emptyList();
 		unload();
-	}
-
-	public List<VariableNode> getVars() {
-		return new ArrayList<>(variables);
-	}
-
-	public VariableNode getVariable(int index) {
-		if (index >= 0 && index < variables.size()) {
-			return variables.get(index);
-		}
-		return null;
-	}
-
-	public VariableNode declareVar(VisibleVar var, NameGen nameGen, VarKind varKind) {
-		if (var instanceof CodeVar) {
-			if (((CodeVar) var).isThis()) {
-				return null;
-			}
-		}
-		VariableNode varNode;
-		int index = var.getIndex();
-		if (index > -1) {
-			varNode = getVariable(var.getIndex());
-		} else {
-			index = variables.size();
-			var.setIndex(index);
-			String name = mthInfo.getVariableName(VariableNode.makeVarIndex(index, varKind));
-			if (name != null) {
-				var.setName(name); // set name with user renamed previously.
-			}
-			if (var instanceof CodeVar) { // let NameGen record this name or gen an valid name.
-				name = nameGen.assignArg((CodeVar) var);
-			} else if (var instanceof NamedArg) {
-				name = nameGen.assignNamedArg((NamedArg) var);
-			} else {
-				throw new JadxRuntimeException("Unexpected var type: " + var);
-			}
-			varNode = new VariableNode(this, name, var.getType(), varKind, index);
-			this.variables.add(varNode);
-		}
-		return varNode;
 	}
 
 	@Override

@@ -18,6 +18,7 @@ import jadx.api.JadxArgs;
 import jadx.api.ResourceFile;
 import jadx.api.ResourceType;
 import jadx.api.ResourcesLoader;
+import jadx.api.data.ICodeData;
 import jadx.api.plugins.input.data.IClassData;
 import jadx.api.plugins.input.data.ILoadResult;
 import jadx.core.Jadx;
@@ -51,6 +52,7 @@ public class RootNode {
 	private final JadxArgs args;
 	private final List<IDexTreeVisitor> preDecompilePasses;
 	private final List<IDexTreeVisitor> passes;
+	private final List<ICodeDataUpdateListener> codeDataUpdateListeners = new ArrayList<>();
 
 	private final ErrorsCounter errorsCounter = new ErrorsCounter();
 	private final StringUtils stringUtils;
@@ -468,6 +470,15 @@ public class RootNode {
 	public ICodeWriter makeCodeWriter() {
 		JadxArgs jadxArgs = this.args;
 		return jadxArgs.getCodeWriterProvider().apply(jadxArgs);
+	}
+
+	public void registerCodeDataUpdateListener(ICodeDataUpdateListener listener) {
+		this.codeDataUpdateListeners.add(listener);
+	}
+
+	public void notifyCodeDataListeners() {
+		ICodeData codeData = args.getCodeData();
+		codeDataUpdateListeners.forEach(l -> l.updated(codeData));
 	}
 
 	public ClspGraph getClsp() {

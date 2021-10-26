@@ -5,10 +5,13 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
@@ -17,7 +20,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
@@ -27,22 +29,21 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jadx.api.ICodeWriter;
 import jadx.api.JavaClass;
-import jadx.api.JavaField;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
-import jadx.core.deobf.DeobfPresets;
-import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
-import jadx.core.dex.nodes.MethodNode;
+import jadx.api.JavaVariable;
+import jadx.api.data.ICodeRename;
+import jadx.api.data.impl.JadxCodeData;
+import jadx.api.data.impl.JadxCodeRef;
+import jadx.api.data.impl.JadxCodeRename;
+import jadx.api.data.impl.JadxNodeRef;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.dex.nodes.VariableNode;
-import jadx.core.dex.visitors.RenameVisitor;
+import jadx.core.dex.visitors.rename.RenameVisitor;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.jobs.TaskStatus;
-import jadx.gui.settings.JadxSettings;
+import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
@@ -71,9 +72,6 @@ public class RenameDialog extends JDialog {
 	private transient JTextField renameField;
 
 	public static boolean rename(MainWindow mainWindow, JNode node) {
-		if (!checkSettings(mainWindow)) {
-			return false;
-		}
 		RenameDialog renameDialog = new RenameDialog(mainWindow, node);
 		renameDialog.setVisible(true);
 		return true;
@@ -87,108 +85,74 @@ public class RenameDialog extends JDialog {
 		initUI();
 	}
 
-	public static boolean checkSettings(MainWindow mainWindow) {
-		StringBuilder errorMessage = new StringBuilder();
-		errorMessage.append(NLS.str("msg.rename_disabled")).append(ICodeWriter.NL);
-
-		JadxSettings settings = mainWindow.getSettings();
-		boolean valid = true;
-		if (!settings.isDeobfuscationOn()) {
-			errorMessage.append(" - ").append(NLS.str("msg.rename_disabled_deobfuscation_disabled")).append(ICodeWriter.NL);
-			valid = false;
-		}
-		if (settings.isDeobfuscationForceSave()) {
-			errorMessage.append(" - ").append(NLS.str("msg.rename_disabled_force_rewrite_enabled")).append(ICodeWriter.NL);
-			valid = false;
-		}
-		if (valid) {
-			return true;
-		}
-		int result = JOptionPane.showConfirmDialog(mainWindow, errorMessage.toString(),
-				NLS.str("msg.rename_disabled_title"), JOptionPane.OK_CANCEL_OPTION);
-		if (result != JOptionPane.OK_OPTION) {
-			return false;
-		}
-		settings.setDeobfuscationOn(true);
-		settings.setDeobfuscationForceSave(false);
-		settings.sync();
-
-		mainWindow.reOpenFile();
-		return false; // TODO: can't open dialog, 'node' is replaced with new one after reopen
-	}
-
-	private void updateDeobfMap(DeobfPresets deobfPresets, String renameText) {
-		if (node instanceof JMethod) {
-			MethodNode mthNode = ((JavaMethod) node.getJavaNode()).getMethodNode();
-			MethodOverrideAttr overrideAttr = mthNode.get(AType.METHOD_OVERRIDE);
-			if (overrideAttr != null) {
-				for (MethodNode relatedMth : overrideAttr.getRelatedMthNodes()) {
-					deobfPresets.getMthPresetMap().put(relatedMth.getMethodInfo().getRawFullId(), renameText);
-				}
-			}
-			deobfPresets.getMthPresetMap().put(mthNode.getMethodInfo().getRawFullId(), renameText);
-		} else if (node instanceof JField) {
-			JavaField javaField = (JavaField) node.getJavaNode();
-			deobfPresets.getFldPresetMap().put(javaField.getFieldNode().getFieldInfo().getRawFullId(), renameText);
-		} else if (node instanceof JClass) {
-			JavaClass javaClass = (JavaClass) node.getJavaNode();
-			deobfPresets.getClsPresetMap().put(javaClass.getRawName(), renameText);
-		} else if (node instanceof JPackage) {
-			deobfPresets.getPkgPresetMap().put(((JPackage) node).getFullName(), renameText);
-		} else if (node instanceof JVariable) {
-			VariableNode varNode = ((JVariable) node).getJavaVarNode().getVariableNode();
-			deobfPresets.updateVariableName(varNode, renameText);
-		}
-	}
-
 	private void rename() {
 		try {
-			String renameText = renameField.getText();
-			if (renameText == null || renameText.length() == 0) {
-				return;
-			}
-			RootNode root = mainWindow.getWrapper().getDecompiler().getRoot();
-			if (node == null) {
-				LOG.error("rename(): rootNode is null!");
-				dispose();
-				return;
-			}
-			if (!refreshDeobfMapFile(renameText, root)) {
-				LOG.error("rename(): refreshDeobfMapFile() failed!");
-				dispose();
-				return;
-			}
-			refreshState(root);
+			updateCodeRenames(set -> processRename(node, renameField.getText(), set));
+			refreshState();
 		} catch (Exception e) {
 			LOG.error("Rename failed", e);
 		}
 		dispose();
 	}
 
-	private boolean refreshDeobfMapFile(String renameText, RootNode root) {
-		DeobfPresets deobfPresets = DeobfPresets.build(root);
-		if (deobfPresets == null) {
-			return false;
+	private void processRename(JNode node, String newName, Set<ICodeRename> renames) {
+		JadxCodeRename rename = buildRename(node, newName, renames);
+		renames.remove(rename);
+		JavaNode javaNode = node.getJavaNode();
+		if (javaNode != null) {
+			javaNode.removeAlias();
 		}
-		try {
-			deobfPresets.load();
-		} catch (Exception e) {
-			LOG.error("rename(): readDeobfMap() failed");
-			return false;
+		if (!newName.isEmpty()) {
+			renames.add(rename);
 		}
-		updateDeobfMap(deobfPresets, renameText);
-		try {
-			deobfPresets.save();
-		} catch (Exception e) {
-			LOG.error("rename(): writeDeobfMap() failed");
-			return false;
-		}
-		return true;
 	}
 
-	private void refreshState(RootNode rootNode) {
-		RenameVisitor renameVisitor = new RenameVisitor();
-		renameVisitor.init(rootNode);
+	@NotNull
+	private JadxCodeRename buildRename(JNode node, String newName, Set<ICodeRename> renames) {
+		if (node instanceof JMethod) {
+			JavaMethod javaMethod = ((JMethod) node).getJavaMethod();
+			List<JavaMethod> relatedMethods = javaMethod.getOverrideRelatedMethods();
+			if (!relatedMethods.isEmpty()) {
+				for (JavaMethod relatedMethod : relatedMethods) {
+					renames.remove(new JadxCodeRename(JadxNodeRef.forMth(relatedMethod), ""));
+				}
+			}
+			return new JadxCodeRename(JadxNodeRef.forMth(javaMethod), newName);
+		}
+		if (node instanceof JField) {
+			return new JadxCodeRename(JadxNodeRef.forFld(((JField) node).getJavaField()), newName);
+		}
+		if (node instanceof JClass) {
+			return new JadxCodeRename(JadxNodeRef.forCls(((JClass) node).getCls()), newName);
+		}
+		if (node instanceof JPackage) {
+			return new JadxCodeRename(JadxNodeRef.forPkg(((JPackage) node).getFullName()), newName);
+		}
+		if (node instanceof JVariable) {
+			JavaVariable javaVar = ((JVariable) node).getJavaVarNode();
+			return new JadxCodeRename(JadxNodeRef.forMth(javaVar.getMth()), JadxCodeRef.forVar(javaVar), newName);
+		}
+		throw new JadxRuntimeException("Failed to build rename node for: " + node);
+	}
+
+	private void updateCodeRenames(Consumer<Set<ICodeRename>> updater) {
+		JadxProject project = mainWindow.getProject();
+		JadxCodeData codeData = project.getCodeData();
+		if (codeData == null) {
+			codeData = new JadxCodeData();
+		}
+		Set<ICodeRename> set = new HashSet<>(codeData.getRenames());
+		updater.accept(set);
+		List<ICodeRename> list = new ArrayList<>(set);
+		Collections.sort(list);
+		codeData.setRenames(list);
+		project.setCodeData(codeData);
+		mainWindow.getWrapper().getDecompiler().reloadCodeData();
+	}
+
+	private void refreshState() {
+		RootNode rootNode = mainWindow.getWrapper().getDecompiler().getRoot();
+		new RenameVisitor().init(rootNode);
 
 		JNodeCache nodeCache = cache.getNodeCache();
 		JavaNode javaNode = node.getJavaNode();

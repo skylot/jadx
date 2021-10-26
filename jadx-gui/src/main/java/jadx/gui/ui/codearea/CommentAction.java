@@ -16,9 +16,9 @@ import jadx.api.JavaClass;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.api.data.ICodeComment;
-import jadx.api.data.annotations.CustomOffsetRef;
 import jadx.api.data.annotations.InsnCodeOffset;
 import jadx.api.data.impl.JadxCodeComment;
+import jadx.api.data.impl.JadxCodeRef;
 import jadx.api.data.impl.JadxNodeRef;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
@@ -123,13 +123,7 @@ public class CommentAction extends AbstractAction implements DefaultPopupMenuLis
 				JadxNodeRef nodeRef = JadxNodeRef.forMth((JavaMethod) node);
 				if (ann instanceof InsnCodeOffset) {
 					int rawOffset = ((InsnCodeOffset) ann).getOffset();
-					return new JadxCodeComment(nodeRef, "", rawOffset);
-				}
-				if (ann instanceof CustomOffsetRef) {
-					CustomOffsetRef customRef = (CustomOffsetRef) ann;
-					JadxCodeComment comment = new JadxCodeComment(nodeRef, "", customRef.getOffset());
-					comment.setAttachType(customRef.getAttachType());
-					return comment;
+					return new JadxCodeComment(nodeRef, JadxCodeRef.forInsn(rawOffset), "");
 				}
 			}
 		} catch (Exception e) {

@@ -5,20 +5,11 @@ import java.util.List;
 
 import jadx.api.data.ICodeComment;
 import jadx.api.data.ICodeData;
+import jadx.api.data.ICodeRename;
 
 public class JadxCodeData implements ICodeData {
-
-	private long updateId = System.currentTimeMillis();
 	private List<ICodeComment> comments = Collections.emptyList();
-
-	@Override
-	public long getUpdateId() {
-		return updateId;
-	}
-
-	public void markUpdate() {
-		updateId = System.currentTimeMillis();
-	}
+	private List<ICodeRename> renames = Collections.emptyList();
 
 	@Override
 	public List<ICodeComment> getComments() {
@@ -26,24 +17,15 @@ public class JadxCodeData implements ICodeData {
 	}
 
 	public void setComments(List<ICodeComment> comments) {
-		markUpdate();
 		this.comments = comments;
 	}
 
 	@Override
-	public int hashCode() {
-		return Long.hashCode(updateId);
+	public List<ICodeRename> getRenames() {
+		return renames;
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (!(o instanceof JadxCodeData)) {
-			return false;
-		}
-		JadxCodeData that = (JadxCodeData) o;
-		return updateId == that.updateId;
+	public void setRenames(List<ICodeRename> renames) {
+		this.renames = renames;
 	}
 }

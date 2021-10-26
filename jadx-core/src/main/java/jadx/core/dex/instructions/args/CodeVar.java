@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class CodeVar implements VisibleVar {
+import jadx.api.data.annotations.VarRef;
+
+public class CodeVar {
 	private String name;
 	private ArgType type; // before type inference can be null and set only for immutable types
 	private List<SSAVar> ssaVars = Collections.emptyList();
@@ -13,17 +15,7 @@ public class CodeVar implements VisibleVar {
 	private boolean isThis;
 	private boolean isDeclared;
 
-	private int index = -1;
-
-	@Override
-	public int getIndex() {
-		return index;
-	}
-
-	@Override
-	public void setIndex(int index) {
-		this.index = index;
-	}
+	private VarRef cachedVarRef; // set and used at codegen stage
 
 	public static CodeVar fromMthArg(RegisterArg mthArg, boolean linkRegister) {
 		CodeVar var = new CodeVar();
@@ -38,17 +30,14 @@ public class CodeVar implements VisibleVar {
 		return var;
 	}
 
-	@Override
 	public String getName() {
 		return name;
 	}
 
-	@Override
 	public void setName(String name) {
 		this.name = name;
 	}
 
-	@Override
 	public ArgType getType() {
 		return type;
 	}
@@ -74,6 +63,13 @@ public class CodeVar implements VisibleVar {
 		this.ssaVars = ssaVars;
 	}
 
+	public SSAVar getAnySsaVar() {
+		if (ssaVars.isEmpty()) {
+			throw new IllegalStateException("CodeVar without SSA variables attached: " + this);
+		}
+		return ssaVars.get(0);
+	}
+
 	public boolean isFinal() {
 		return isFinal;
 	}
@@ -96,6 +92,14 @@ public class CodeVar implements VisibleVar {
 
 	public void setDeclared(boolean declared) {
 		isDeclared = declared;
+	}
+
+	public VarRef getCachedVarRef() {
+		return cachedVarRef;
+	}
+
+	public void setCachedVarRef(VarRef cachedVarRef) {
+		this.cachedVarRef = cachedVarRef;
 	}
 
 	/**

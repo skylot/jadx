@@ -2,68 +2,85 @@ package jadx.api;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
-import jadx.core.dex.nodes.VariableNode;
+import jadx.api.data.annotations.VarDeclareRef;
+import jadx.api.data.annotations.VarRef;
 
 public class JavaVariable implements JavaNode {
-	private final JavaClass cls;
-	private final VariableNode node;
+	private final JavaMethod mth;
+	private final VarRef varRef;
 
-	public JavaVariable(JavaClass cls, VariableNode node) {
-		this.cls = Objects.requireNonNull(cls);
-		this.node = Objects.requireNonNull(node);
+	public JavaVariable(JavaMethod mth, VarRef varRef) {
+		this.mth = mth;
+		this.varRef = varRef;
 	}
 
-	public VariableNode getVariableNode() {
-		return node;
+	public JavaMethod getMth() {
+		return mth;
+	}
+
+	public int getReg() {
+		return varRef.getReg();
+	}
+
+	public int getSsa() {
+		return varRef.getSsa();
 	}
 
 	@Override
 	public String getName() {
-		return node.getName();
+		return varRef.getName();
 	}
 
 	@Override
 	public String getFullName() {
-		return node.getName();
+		return varRef.getType() + " " + varRef.getName() + " (r" + varRef.getReg() + "v" + varRef.getSsa() + ")";
 	}
 
 	@Override
 	public JavaClass getDeclaringClass() {
-		return cls;
+		return mth.getDeclaringClass();
 	}
 
 	@Override
 	public JavaClass getTopParentClass() {
-		return cls.getTopParentClass();
+		return mth.getTopParentClass();
 	}
 
 	@Override
 	public int getDecompiledLine() {
-		return node.getDecompiledLine();
+		if (varRef instanceof VarDeclareRef) {
+			return ((VarDeclareRef) varRef).getDecompiledLine();
+		}
+		return 0;
 	}
 
 	@Override
 	public int getDefPos() {
-		return node.getDefPosition();
+		if (varRef instanceof VarDeclareRef) {
+			return ((VarDeclareRef) varRef).getDefPosition();
+		}
+		return 0;
 	}
 
 	@Override
 	public List<JavaNode> getUseIn() {
-		return Collections.emptyList();
+		return Collections.singletonList(mth);
 	}
 
 	@Override
 	public int hashCode() {
-		return node.hashCode();
+		return varRef.hashCode();
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (obj instanceof JavaVariable) {
-			return node.equals(((JavaVariable) obj).getVariableNode());
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
 		}
-		return false;
+		if (!(o instanceof JavaVariable)) {
+			return false;
+		}
+		return varRef.equals(((JavaVariable) o).varRef);
 	}
 }

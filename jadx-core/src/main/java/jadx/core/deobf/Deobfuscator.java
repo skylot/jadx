@@ -2,7 +2,14 @@ package jadx.core.deobf;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.NavigableSet;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -212,11 +219,6 @@ public class Deobfuscator {
 	}
 
 	private void renameMethod(MethodNode mth) {
-		MethodInfo mthInfo = mth.getMethodInfo();
-		Set<String> names = deobfPresets.getForVars(mthInfo);
-		if (names != null) {
-			mthInfo.setVarNameMap(names);
-		}
 		String alias = getMethodAlias(mth);
 		if (alias != null) {
 			applyMethodAlias(mth, alias);
@@ -256,8 +258,10 @@ public class Deobfuscator {
 	/**
 	 * Gets package node for full package name
 	 *
-	 * @param fullPkgName full package name
-	 * @param create      if {@code true} then will create all absent objects
+	 * @param fullPkgName
+	 *                    full package name
+	 * @param create
+	 *                    if {@code true} then will create all absent objects
 	 * @return package node object or {@code null} if no package found and <b>create</b> set to
 	 *         {@code false}
 	 */
@@ -338,6 +342,21 @@ public class Deobfuscator {
 
 	public String getPkgAlias(ClassNode cls) {
 		ClassInfo classInfo = cls.getClassInfo();
+		if (classInfo.hasAliasPkg()) {
+			// already renamed
+			PackageNode pkg = getPackageNode(classInfo.getPackage(), true);
+			// update all parts of package
+			String[] aliasParts = classInfo.getAliasPkg().split("\\.");
+			PackageNode subPkg = pkg;
+			for (int i = aliasParts.length - 1; i >= 0; i--) {
+				String aliasPart = aliasParts[i];
+				if (!subPkg.getName().equals(aliasPart)) {
+					subPkg.setAlias(aliasPart);
+				}
+				subPkg = subPkg.getParentPackage();
+			}
+			return pkg.getFullAlias();
+		}
 		PackageNode pkg;
 		DeobfClsInfo deobfClsInfo = clsMap.get(classInfo);
 		if (deobfClsInfo != null) {

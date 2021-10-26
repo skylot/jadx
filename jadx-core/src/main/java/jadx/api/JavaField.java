@@ -59,6 +59,11 @@ public final class JavaField implements JavaNode {
 		return getDeclaringClass().getRootDecompiler().convertNodes(field.getUseIn());
 	}
 
+	@Override
+	public void removeAlias() {
+		this.field.getFieldInfo().removeAlias();
+	}
+
 	/**
 	 * Internal API. Not Stable!
 	 */

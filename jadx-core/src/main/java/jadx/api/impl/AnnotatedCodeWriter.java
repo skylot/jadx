@@ -9,7 +9,7 @@ import jadx.api.CodePosition;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
-import jadx.core.dex.attributes.nodes.LineAttrNode;
+import jadx.core.dex.attributes.ILineAttributeNode;
 import jadx.core.utils.StringUtils;
 
 public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter {
@@ -102,25 +102,31 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 	}
 
 	private static final class DefinitionWrapper {
-		private final LineAttrNode node;
+		private final ILineAttributeNode node;
 
-		private DefinitionWrapper(LineAttrNode node) {
+		private DefinitionWrapper(ILineAttributeNode node) {
 			this.node = node;
 		}
 
-		public LineAttrNode getNode() {
+		public ILineAttributeNode getNode() {
 			return node;
 		}
 	}
 
 	@Override
-	public void attachDefinition(LineAttrNode obj) {
+	public void attachDefinition(ILineAttributeNode obj) {
+		if (obj == null) {
+			return;
+		}
 		attachAnnotation(obj);
 		attachAnnotation(new DefinitionWrapper(obj), new CodePosition(line, offset, getLength()));
 	}
 
 	@Override
 	public void attachAnnotation(Object obj) {
+		if (obj == null) {
+			return;
+		}
 		attachAnnotation(obj, new CodePosition(line, offset + 1, getLength()));
 	}
 
@@ -173,7 +179,7 @@ public class AnnotatedCodeWriter extends SimpleCodeWriter implements ICodeWriter
 			annotations.entrySet().removeIf(entry -> {
 				Object v = entry.getValue();
 				if (v instanceof DefinitionWrapper) {
-					LineAttrNode l = ((DefinitionWrapper) v).getNode();
+					ILineAttributeNode l = ((DefinitionWrapper) v).getNode();
 					CodePosition codePos = entry.getKey();
 					l.setDecompiledLine(codePos.getLine());
 					l.setDefPosition(codePos.getPos());

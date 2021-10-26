@@ -16,9 +16,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import jadx.api.data.ICodeComment;
+import jadx.api.data.ICodeRename;
+import jadx.api.data.IJavaCodeRef;
 import jadx.api.data.IJavaNodeRef;
 import jadx.api.data.impl.JadxCodeComment;
 import jadx.api.data.impl.JadxCodeData;
+import jadx.api.data.impl.JadxCodeRef;
+import jadx.api.data.impl.JadxCodeRename;
 import jadx.api.data.impl.JadxNodeRef;
 import jadx.core.utils.GsonUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
@@ -34,7 +38,9 @@ public class JadxProject {
 	private static final Gson GSON = new GsonBuilder()
 			.registerTypeHierarchyAdapter(Path.class, PathTypeAdapter.singleton())
 			.registerTypeAdapter(ICodeComment.class, GsonUtils.interfaceReplace(JadxCodeComment.class))
+			.registerTypeAdapter(ICodeRename.class, GsonUtils.interfaceReplace(JadxCodeRename.class))
 			.registerTypeAdapter(IJavaNodeRef.class, GsonUtils.interfaceReplace(JadxNodeRef.class))
+			.registerTypeAdapter(IJavaCodeRef.class, GsonUtils.interfaceReplace(JadxCodeRef.class))
 			.setPrettyPrinting()
 			.create();
 

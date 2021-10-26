@@ -55,6 +55,7 @@ public class PackageNode {
 
 	public void setAlias(String alias) {
 		packageAlias = alias;
+		cachedPackageFullAlias = null;
 	}
 
 	public boolean hasAlias() {
@@ -109,7 +110,8 @@ public class PackageNode {
 	/**
 	 * Gets inner package node by name
 	 *
-	 * @param name inner package name
+	 * @param name
+	 *             inner package name
 	 * @return package node or {@code null}
 	 */
 	public PackageNode getInnerPackageByName(String name) {
@@ -143,6 +145,9 @@ public class PackageNode {
 
 	@Override
 	public String toString() {
-		return packageAlias;
+		if (packageAlias != null) {
+			return packageName + "[alias:" + packageAlias + "]";
+		}
+		return packageName;
 	}
 }

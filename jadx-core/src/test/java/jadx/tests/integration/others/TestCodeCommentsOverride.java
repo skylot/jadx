@@ -32,10 +32,10 @@ public class TestCodeCommentsOverride extends IntegrationTest {
 	@Test
 	public void test() {
 		String baseClsId = TestCls.class.getName();
-		JadxNodeRef iMthRef = new JadxNodeRef(RefType.METHOD, baseClsId + ".I", "mth()V");
+		JadxNodeRef iMthRef = new JadxNodeRef(RefType.METHOD, baseClsId + "$I", "mth()V");
 		ICodeComment iMthComment = new JadxCodeComment(iMthRef, "interface mth comment");
 
-		JadxNodeRef mthRef = new JadxNodeRef(RefType.METHOD, baseClsId + ".A", "mth()V");
+		JadxNodeRef mthRef = new JadxNodeRef(RefType.METHOD, baseClsId + "$A", "mth()V");
 		ICodeComment mthComment = new JadxCodeComment(mthRef, "mth comment");
 
 		JadxCodeData codeData = new JadxCodeData();

@@ -21,6 +21,7 @@ import jadx.api.JavaField;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.api.data.ICodeComment;
+import jadx.api.data.IJavaCodeRef;
 import jadx.api.data.IJavaNodeRef;
 import jadx.api.data.annotations.ICodeRawOffset;
 import jadx.gui.JadxWrapper;
@@ -84,7 +85,7 @@ public class CommentsIndex {
 
 	private @NotNull RefCommentNode getCommentNode(ICodeComment comment, JNode refNode) {
 		IJavaNodeRef nodeRef = comment.getNodeRef();
-		if (nodeRef.getType() == IJavaNodeRef.RefType.METHOD && comment.getOffset() > 0) {
+		if (nodeRef.getType() == IJavaNodeRef.RefType.METHOD && comment.getCodeRef() != null) {
 			return new CodeCommentNode((JMethod) refNode, comment);
 		}
 		return new RefCommentNode(refNode, comment.getComment());
@@ -129,7 +130,8 @@ public class CommentsIndex {
 
 		public CodeCommentNode(JMethod node, ICodeComment comment) {
 			super(node, comment.getComment());
-			this.offset = comment.getOffset();
+			IJavaCodeRef codeRef = Objects.requireNonNull(comment.getCodeRef(), "Null comment code ref");
+			this.offset = codeRef.getIndex();
 		}
 
 		@Override

@@ -10,9 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
-import jadx.api.data.ICodeComment;
-import jadx.api.data.annotations.CustomOffsetRef;
 import jadx.api.data.annotations.InsnCodeOffset;
+import jadx.api.data.annotations.VarDeclareRef;
 import jadx.api.plugins.input.data.annotations.EncodedValue;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
 import jadx.core.dex.attributes.AFlag;
@@ -32,7 +31,6 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.InsnNode;
-import jadx.core.dex.nodes.VariableNode;
 import jadx.core.dex.regions.Region;
 import jadx.core.dex.regions.SwitchRegion;
 import jadx.core.dex.regions.SwitchRegion.CaseInfo;
@@ -51,8 +49,6 @@ import jadx.core.utils.RegionUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-
-import static jadx.core.dex.nodes.VariableNode.VarKind;
 
 public class RegionGen extends InsnGen {
 	private static final Logger LOG = LoggerFactory.getLogger(RegionGen.class);
@@ -73,21 +69,9 @@ public class RegionGen extends InsnGen {
 				code.startLine();
 				declareVar(code, v);
 				code.add(';');
-				attachVariableCommentsData(code, v);
+				CodeGenUtils.addCodeComments(code, mth, v.getAnySsaVar().getAssign());
 			}
 		}
-	}
-
-	private void attachVariableCommentsData(ICodeWriter code, CodeVar v) {
-		RegisterArg assignReg = v.getSsaVars().get(0).getAssign();
-		if (code.isMetadataSupported()) {
-			InsnNode parentInsn = assignReg.getParentInsn();
-			if (parentInsn != null) {
-				int offset = parentInsn.getOffset();
-				code.attachLineAnnotation(new CustomOffsetRef(offset, ICodeComment.AttachType.VAR_DECLARE));
-			}
-		}
-		CodeGenUtils.addCodeComments(code, mth, assignReg);
 	}
 
 	private void makeRegionIndent(ICodeWriter code, IContainer region) throws CodegenException {
@@ -362,29 +346,13 @@ public class RegionGen extends InsnGen {
 		if (arg == null) {
 			code.add("unknown"); // throwing exception is too late at this point
 		} else if (arg instanceof RegisterArg) {
-			String name;
-			CodeVar codeVar = CodeGenUtils.getCodeVar((RegisterArg) arg);
-			if (codeVar != null) {
-				VariableNode node = mth.declareVar(codeVar, mgen.getNameGen(), VarKind.CATCH_ARG);
-				if (node != null) {
-					code.attachDefinition(node);
-					name = node.getName();
-					codeVar.setName(name);
-				} else {
-					name = mgen.getNameGen().assignArg(codeVar);
-				}
-			} else {
-				RegisterArg reg = (RegisterArg) arg;
-				name = mgen.getNameGen().assignArg(reg.getSVar().getCodeVar());
+			CodeVar codeVar = ((RegisterArg) arg).getSVar().getCodeVar();
+			if (code.isMetadataSupported()) {
+				code.attachAnnotation(VarDeclareRef.get(mth, codeVar));
 			}
-			code.add(name);
+			code.add(mgen.getNameGen().assignArg(codeVar));
 		} else if (arg instanceof NamedArg) {
-			VariableNode node = mth.declareVar((NamedArg) arg, mgen.getNameGen(), VarKind.CATCH_ARG);
-			if (node != null) {
-				code.add(node.getName());
-			} else {
-				code.add(mgen.getNameGen().assignNamedArg((NamedArg) arg));
-			}
+			code.add(mgen.getNameGen().assignNamedArg((NamedArg) arg));
 		} else {
 			throw new JadxRuntimeException("Unexpected arg type in catch block: " + arg + ", class: " + arg.getClass().getSimpleName());
 		}

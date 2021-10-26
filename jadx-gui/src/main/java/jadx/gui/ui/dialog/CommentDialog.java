@@ -65,6 +65,7 @@ public class CommentDialog extends JDialog {
 			Collections.sort(list);
 			codeData.setComments(list);
 			project.setCodeData(codeData);
+			codeArea.getMainWindow().getWrapper().getDecompiler().reloadCodeData();
 		} catch (Exception e) {
 			LOG.error("Comment action failed", e);
 		}
@@ -85,8 +86,7 @@ public class CommentDialog extends JDialog {
 			}
 			for (ICodeComment comment : codeData.getComments()) {
 				if (Objects.equals(comment.getNodeRef(), blankComment.getNodeRef())
-						&& comment.getOffset() == blankComment.getOffset()
-						&& comment.getAttachType() == blankComment.getAttachType()) {
+						&& Objects.equals(comment.getCodeRef(), blankComment.getCodeRef())) {
 					return comment;
 				}
 			}
@@ -120,8 +120,7 @@ public class CommentDialog extends JDialog {
 			}
 			return;
 		}
-		ICodeComment newComment = new JadxCodeComment(comment.getNodeRef(),
-				newCommentStr, comment.getOffset(), comment.getAttachType());
+		ICodeComment newComment = new JadxCodeComment(comment.getNodeRef(), comment.getCodeRef(), newCommentStr);
 		if (updateComment) {
 			updateCommentsData(codeArea, list -> {
 				list.remove(comment);

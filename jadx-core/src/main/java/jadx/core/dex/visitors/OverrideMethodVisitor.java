@@ -24,6 +24,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.dex.visitors.rename.RenameVisitor;
 import jadx.core.dex.visitors.typeinference.TypeCompare;
 import jadx.core.dex.visitors.typeinference.TypeCompareEnum;
 import jadx.core.dex.visitors.typeinference.TypeInferenceVisitor;

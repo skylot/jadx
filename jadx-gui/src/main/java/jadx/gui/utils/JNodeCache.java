@@ -53,7 +53,9 @@ public class JNodeCache {
 			return new JField((JavaField) node, makeFrom(node.getDeclaringClass()));
 		}
 		if (node instanceof JavaVariable) {
-			return new JVariable((JavaVariable) node, makeFrom(node.getDeclaringClass()));
+			JavaVariable javaVar = (JavaVariable) node;
+			JMethod jMth = (JMethod) makeFrom(javaVar.getMth());
+			return new JVariable(jMth, javaVar);
 		}
 		throw new JadxRuntimeException("Unknown type for JavaNode: " + node.getClass());
 	}

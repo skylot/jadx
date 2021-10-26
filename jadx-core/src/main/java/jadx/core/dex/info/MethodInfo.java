@@ -1,10 +1,7 @@
 package jadx.core.dex.info;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -13,7 +10,6 @@ import jadx.api.plugins.input.data.IMethodRef;
 import jadx.core.codegen.TypeGen;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.dex.nodes.VariableNode;
 import jadx.core.utils.Utils;
 
 public final class MethodInfo implements Comparable<MethodInfo> {
@@ -27,7 +23,6 @@ public final class MethodInfo implements Comparable<MethodInfo> {
 	private final int hash;
 
 	private String alias;
-	private Map<String, String> varNameMap;
 
 	private MethodInfo(ClassInfo declClass, String name, List<ArgType> args, ArgType retType) {
 		this.name = name;
@@ -158,31 +153,12 @@ public final class MethodInfo implements Comparable<MethodInfo> {
 		this.alias = alias;
 	}
 
+	public void removeAlias() {
+		this.alias = name;
+	}
+
 	public boolean hasAlias() {
 		return !name.equals(alias);
-	}
-
-	public synchronized void setVarNameMap(Set<String> names) {
-		if (varNameMap == null) {
-			varNameMap = new HashMap<>();
-		}
-		for (String name : names) {
-			String[] indexesAndName = name.split(VariableNode.VAR_SEPARATOR);
-			if (indexesAndName.length == 2) {
-				varNameMap.put(indexesAndName[0], indexesAndName[1]);
-			}
-		}
-	}
-
-	public String getVariableName(String indexes) {
-		if (varNameMap != null) {
-			return varNameMap.get(indexes);
-		}
-		return null;
-	}
-
-	public boolean hasVarNameMap() {
-		return varNameMap != null && varNameMap.size() > 0;
 	}
 
 	public int calcHashCode() {

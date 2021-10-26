@@ -116,6 +116,17 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 		return parentClass != null && parentClass.hasAlias();
 	}
 
+	public boolean hasAliasPkg() {
+		if (alias != null) {
+			return !getPackage().equals(getAliasPkg());
+		}
+		return parentClass != null && parentClass.hasAliasPkg();
+	}
+
+	public void removeAlias() {
+		this.alias = null;
+	}
+
 	private void splitAndApplyNames(RootNode root, ArgType type, boolean canBeInner) {
 		String fullObjectName = type.getObject();
 		String clsPkg;

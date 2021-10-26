@@ -17,7 +17,7 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.JadxVisitor;
 import jadx.core.dex.visitors.OverrideMethodVisitor;
-import jadx.core.dex.visitors.RenameVisitor;
+import jadx.core.dex.visitors.rename.RenameVisitor;
 import jadx.core.utils.input.InsnDataUtils;
 
 @JadxVisitor(

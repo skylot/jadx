@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
 import jadx.api.data.annotations.InsnCodeOffset;
+import jadx.api.data.annotations.VarDeclareRef;
+import jadx.api.data.annotations.VarRef;
 import jadx.api.plugins.input.data.MethodHandleType;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
@@ -45,7 +47,6 @@ import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.Named;
-import jadx.core.dex.instructions.args.NamedArg;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.instructions.mods.ConstructorInsn;
@@ -55,13 +56,11 @@ import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
-import jadx.core.dex.nodes.VariableNode;
 import jadx.core.utils.CodeGenUtils;
 import jadx.core.utils.RegionUtils;
 import jadx.core.utils.exceptions.CodegenException;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
-import static jadx.core.dex.nodes.VariableNode.VarKind;
 import static jadx.core.utils.android.AndroidResourcesUtils.handleAppResField;
 
 public class InsnGen {
@@ -107,25 +106,16 @@ public class InsnGen {
 
 	public void addArg(ICodeWriter code, InsnArg arg, Set<Flags> flags) throws CodegenException {
 		if (arg.isRegister()) {
-			CodeVar codeVar = CodeGenUtils.getCodeVar((RegisterArg) arg);
-			if (codeVar != null) {
-				VariableNode node = mth.getVariable(codeVar.getIndex());
-				if (node != null) {
-					code.attachAnnotation(node);
-				}
+			RegisterArg reg = (RegisterArg) arg;
+			if (code.isMetadataSupported()) {
+				code.attachAnnotation(VarRef.get(mth, reg));
 			}
-			code.add(mgen.getNameGen().useArg((RegisterArg) arg));
+			code.add(mgen.getNameGen().useArg(reg));
 		} else if (arg.isLiteral()) {
 			code.add(lit((LiteralArg) arg));
 		} else if (arg.isInsnWrap()) {
 			addWrappedArg(code, (InsnWrapArg) arg, flags);
 		} else if (arg.isNamed()) {
-			if (arg instanceof NamedArg) {
-				VariableNode node = mth.getVariable(((NamedArg) arg).getIndex());
-				if (node != null) {
-					code.attachAnnotation(node);
-				}
-			}
 			code.add(((Named) arg).getName());
 		} else {
 			throw new CodegenException("Unknown arg type " + arg);
@@ -162,16 +152,10 @@ public class InsnGen {
 		}
 		useType(code, codeVar.getType());
 		code.add(' ');
-		VariableNode node = mth.declareVar(codeVar, mgen.getNameGen(), VarKind.VAR);
-		String name;
-		if (node != null) {
-			code.attachDefinition(node);
-			name = node.getName();
-			codeVar.setName(name);
-		} else {
-			name = mgen.getNameGen().assignArg(codeVar);
+		if (code.isMetadataSupported()) {
+			code.attachDefinition(VarDeclareRef.get(mth, codeVar));
 		}
-		code.add(name);
+		code.add(mgen.getNameGen().assignArg(codeVar));
 	}
 
 	private String lit(LiteralArg arg) {

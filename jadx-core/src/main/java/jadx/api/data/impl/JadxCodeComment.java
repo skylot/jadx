@@ -1,32 +1,27 @@
 package jadx.api.data.impl;
 
-import java.util.Comparator;
-
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import jadx.api.data.ICodeComment;
+import jadx.api.data.IJavaCodeRef;
 import jadx.api.data.IJavaNodeRef;
 
 public class JadxCodeComment implements ICodeComment {
 
 	private IJavaNodeRef nodeRef;
+	@Nullable
+	private IJavaCodeRef codeRef;
 	private String comment;
-	private int offset;
-	private AttachType attachType;
 
 	public JadxCodeComment(IJavaNodeRef nodeRef, String comment) {
-		this(nodeRef, comment, -1, null);
+		this(nodeRef, null, comment);
 	}
 
-	public JadxCodeComment(IJavaNodeRef nodeRef, String comment, int offset) {
-		this(nodeRef, comment, offset, null);
-	}
-
-	public JadxCodeComment(IJavaNodeRef nodeRef, String comment, int offset, AttachType attachType) {
+	public JadxCodeComment(IJavaNodeRef nodeRef, @Nullable IJavaCodeRef codeRef, String comment) {
 		this.nodeRef = nodeRef;
+		this.codeRef = codeRef;
 		this.comment = comment;
-		this.offset = offset;
-		this.attachType = attachType;
 	}
 
 	public JadxCodeComment() {
@@ -42,6 +37,16 @@ public class JadxCodeComment implements ICodeComment {
 		this.nodeRef = nodeRef;
 	}
 
+	@Nullable
+	@Override
+	public IJavaCodeRef getCodeRef() {
+		return codeRef;
+	}
+
+	public void setCodeRef(@Nullable IJavaCodeRef codeRef) {
+		this.codeRef = codeRef;
+	}
+
 	@Override
 	public String getComment() {
 		return comment;
@@ -52,34 +57,22 @@ public class JadxCodeComment implements ICodeComment {
 	}
 
 	@Override
-	public int getOffset() {
-		return offset;
-	}
-
-	public void setOffset(int offset) {
-		this.offset = offset;
-	}
-
-	@Override
-	public AttachType getAttachType() {
-		return attachType;
-	}
-
-	public void setAttachType(AttachType attachType) {
-		this.attachType = attachType;
-	}
-
-	private static final Comparator<ICodeComment> COMPARATOR = Comparator
-			.comparing(ICodeComment::getNodeRef)
-			.thenComparing(ICodeComment::getOffset);
-
-	@Override
 	public int compareTo(@NotNull ICodeComment other) {
-		return COMPARATOR.compare(this, other);
+		int cmpNodeRef = this.getNodeRef().compareTo(other.getNodeRef());
+		if (cmpNodeRef != 0) {
+			return cmpNodeRef;
+		}
+		if (this.getCodeRef() != null && other.getCodeRef() != null) {
+			return this.getCodeRef().compareTo(other.getCodeRef());
+		}
+		return this.getComment().compareTo(other.getComment());
 	}
 
 	@Override
 	public String toString() {
-		return "JadxCodeComment{" + nodeRef + ", comment='" + comment + '\'' + ", offset=" + offset + '}';
+		return "JadxCodeComment{" + nodeRef
+				+ ", ref=" + codeRef
+				+ ", comment='" + comment + '\''
+				+ '}';
 	}
 }

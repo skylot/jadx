@@ -29,7 +29,7 @@ public class JadxNodeRef implements IJavaNodeRef {
 	}
 
 	public static JadxNodeRef forCls(JavaClass cls) {
-		return new JadxNodeRef(RefType.CLASS, cls.getClassNode().getClassInfo().getFullName(), null);
+		return new JadxNodeRef(RefType.CLASS, getClassRefStr(cls), null);
 	}
 
 	public static JadxNodeRef forCls(String clsFullName) {
@@ -38,14 +38,22 @@ public class JadxNodeRef implements IJavaNodeRef {
 
 	public static JadxNodeRef forMth(JavaMethod mth) {
 		return new JadxNodeRef(RefType.METHOD,
-				mth.getDeclaringClass().getClassNode().getClassInfo().getFullName(),
+				getClassRefStr(mth.getDeclaringClass()),
 				mth.getMethodNode().getMethodInfo().getShortId());
 	}
 
 	public static JadxNodeRef forFld(JavaField fld) {
 		return new JadxNodeRef(RefType.FIELD,
-				fld.getDeclaringClass().getClassNode().getClassInfo().getFullName(),
+				getClassRefStr(fld.getDeclaringClass()),
 				fld.getFieldNode().getFieldInfo().getShortId());
+	}
+
+	public static JadxNodeRef forPkg(String pkgFullName) {
+		return new JadxNodeRef(RefType.PKG, pkgFullName, "");
+	}
+
+	private static String getClassRefStr(JavaClass cls) {
+		return cls.getClassNode().getClassInfo().getRawName();
 	}
 
 	private RefType refType;
@@ -124,6 +132,7 @@ public class JadxNodeRef implements IJavaNodeRef {
 	public String toString() {
 		switch (refType) {
 			case CLASS:
+			case PKG:
 				return declClass;
 			case FIELD:
 			case METHOD:

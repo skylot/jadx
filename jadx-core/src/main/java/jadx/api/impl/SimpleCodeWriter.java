@@ -10,7 +10,7 @@ import jadx.api.CodePosition;
 import jadx.api.ICodeInfo;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
-import jadx.core.dex.attributes.nodes.LineAttrNode;
+import jadx.core.dex.attributes.ILineAttributeNode;
 import jadx.core.utils.Utils;
 
 /**
@@ -193,7 +193,7 @@ public class SimpleCodeWriter implements ICodeWriter {
 	}
 
 	@Override
-	public void attachDefinition(LineAttrNode obj) {
+	public void attachDefinition(ILineAttributeNode obj) {
 		// no op
 	}
 

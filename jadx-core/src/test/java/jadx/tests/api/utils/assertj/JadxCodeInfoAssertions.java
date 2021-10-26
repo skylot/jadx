@@ -23,7 +23,7 @@ public class JadxCodeInfoAssertions extends AbstractObjectAssert<JadxCodeInfoAss
 
 	public JadxCodeInfoAssertions checkCodeOffsets() {
 		long dupOffsetCount = actual.getAnnotations().values().stream()
-				.filter(o -> o instanceof ICodeRawOffset)
+				.filter(ICodeRawOffset.class::isInstance)
 				.collect(Collectors.groupingBy(o -> ((ICodeRawOffset) o).getOffset(), Collectors.toList()))
 				.values().stream()
 				.filter(list -> list.size() > 1)
