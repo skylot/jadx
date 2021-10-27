@@ -27,6 +27,7 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.codearea.AbstractCodeContentPanel;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
+import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.ui.codearea.SmaliArea;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.panel.HtmlPanel;
@@ -257,6 +258,24 @@ public class TabbedPane extends JTabbedPane {
 			return ((AbstractCodeContentPanel) selectedCodePanel).getCodeArea().getCurrentPosition();
 		}
 		return null;
+	}
+
+	public List<EditorViewState> getEditorViewStates() {
+		List<EditorViewState> states = new ArrayList<>();
+		for (ContentPanel panel : openTabs.values()) {
+			EditorViewState viewState = panel.getEditorViewState();
+			if (viewState != null) {
+				states.add(viewState);
+			}
+		}
+		return states;
+	}
+
+	public void restoreEditorViewState(EditorViewState viewState) {
+		ContentPanel contentPanel = getContentPanel(viewState.getNode());
+		if (contentPanel != null) {
+			contentPanel.restoreEditorViewState(viewState);
+		}
 	}
 
 	public void navBack() {

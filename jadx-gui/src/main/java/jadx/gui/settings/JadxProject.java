@@ -5,7 +5,6 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -25,8 +24,11 @@ import jadx.api.data.impl.JadxCodeRef;
 import jadx.api.data.impl.JadxCodeRename;
 import jadx.api.data.impl.JadxNodeRef;
 import jadx.core.utils.GsonUtils;
+import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.gui.settings.data.ProjectData;
 import jadx.gui.ui.MainWindow;
+import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.utils.PathTypeAdapter;
 
 public class JadxProject {
@@ -53,14 +55,7 @@ public class JadxProject {
 	private transient boolean initial = true;
 	private transient boolean saved;
 
-	private List<Path> files;
-	private List<String[]> treeExpansions = new ArrayList<>();
-	private JadxCodeData codeData = new JadxCodeData();
-
-	private int projectVersion;
-
-	public JadxProject() {
-	}
+	private ProjectData data = new ProjectData();
 
 	public void setSettings(JadxSettings settings) {
 		this.settings = settings;
@@ -76,7 +71,7 @@ public class JadxProject {
 
 	private void setProjectPath(Path projectPath) {
 		this.projectPath = projectPath;
-		name = projectPath.getFileName().toString();
+		this.name = projectPath.getFileName().toString();
 		int dotPos = name.lastIndexOf('.');
 		if (dotPos != -1) {
 			name = name.substring(0, dotPos);
@@ -85,27 +80,27 @@ public class JadxProject {
 	}
 
 	public List<Path> getFilePaths() {
-		return files;
+		return data.getFiles();
 	}
 
 	public void setFilePath(List<Path> files) {
 		if (!files.equals(getFilePaths())) {
-			this.files = files;
+			data.setFiles(files);
 			changed();
 		}
 	}
 
 	public List<String[]> getTreeExpansions() {
-		return treeExpansions;
+		return data.getTreeExpansions();
 	}
 
 	public void addTreeExpansion(String[] expansion) {
-		treeExpansions.add(expansion);
+		data.getTreeExpansions().add(expansion);
 		changed();
 	}
 
 	public void removeTreeExpansion(String[] expansion) {
-		treeExpansions.removeIf(strings -> isParentOfExpansion(expansion, strings));
+		data.getTreeExpansions().removeIf(strings -> isParentOfExpansion(expansion, strings));
 		changed();
 	}
 
@@ -123,12 +118,26 @@ public class JadxProject {
 	}
 
 	public JadxCodeData getCodeData() {
-		return codeData;
+		return data.getCodeData();
 	}
 
 	public void setCodeData(JadxCodeData codeData) {
-		this.codeData = codeData;
+		data.setCodeData(codeData);
 		changed();
+	}
+
+	public void saveOpenTabs(List<EditorViewState> tabs, int activeTab) {
+		data.setOpenTabs(Utils.collectionMap(tabs, TabStateViewAdapter::build));
+		data.setActiveTab(activeTab);
+		changed();
+	}
+
+	public List<EditorViewState> getOpenTabs(MainWindow mw) {
+		return Utils.collectionMap(data.getOpenTabs(), s -> TabStateViewAdapter.load(mw, s));
+	}
+
+	public int getActiveTab() {
+		return data.getActiveTab();
 	}
 
 	private void changed() {
@@ -163,7 +172,7 @@ public class JadxProject {
 	public void save() {
 		if (getProjectPath() != null) {
 			try (Writer writer = Files.newBufferedWriter(getProjectPath(), StandardCharsets.UTF_8)) {
-				GSON.toJson(this, writer);
+				GSON.toJson(data, writer);
 				saved = true;
 			} catch (Exception e) {
 				LOG.error("Error saving project", e);
@@ -173,7 +182,8 @@ public class JadxProject {
 
 	public static JadxProject from(Path path) {
 		try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-			JadxProject project = GSON.fromJson(reader, JadxProject.class);
+			JadxProject project = new JadxProject();
+			project.data = GSON.fromJson(reader, ProjectData.class);
 			project.saved = true;
 			project.setProjectPath(path);
 			project.upgrade();
@@ -185,7 +195,7 @@ public class JadxProject {
 	}
 
 	private void upgrade() {
-		int fromVersion = projectVersion;
+		int fromVersion = data.getProjectVersion();
 		LOG.debug("upgrade settings from version: {} to {}", fromVersion, CURRENT_PROJECT_VERSION);
 		if (fromVersion == 0) {
 			fromVersion++;
@@ -193,7 +203,7 @@ public class JadxProject {
 		if (fromVersion != CURRENT_PROJECT_VERSION) {
 			throw new JadxRuntimeException("Project update failed");
 		}
-		projectVersion = CURRENT_PROJECT_VERSION;
+		data.setProjectVersion(CURRENT_PROJECT_VERSION);
 		save();
 	}
 }

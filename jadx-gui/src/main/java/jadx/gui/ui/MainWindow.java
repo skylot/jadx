@@ -28,10 +28,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -75,7 +73,6 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.fife.ui.rsyntaxtextarea.Theme;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +80,6 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Level;
 
 import jadx.api.JadxArgs;
-import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.api.ResourceFile;
 import jadx.core.utils.StringUtils;
@@ -110,6 +106,7 @@ import jadx.gui.treemodel.JPackage;
 import jadx.gui.treemodel.JResource;
 import jadx.gui.treemodel.JRoot;
 import jadx.gui.ui.codearea.AbstractCodeContentPanel;
+import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.ui.dialog.ADBDialog;
 import jadx.gui.ui.dialog.AboutDialog;
 import jadx.gui.ui.dialog.LogViewerDialog;
@@ -127,6 +124,7 @@ import jadx.gui.update.data.Release;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.CodeUsageInfo;
 import jadx.gui.utils.FontUtils;
+import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.Link;
@@ -448,6 +446,7 @@ public class MainWindow extends JFrame {
 		deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
 		initTree();
 		update();
+		restoreOpenTabs(project.getOpenTabs(this), project.getActiveTab());
 		runInitialBackgroundJobs();
 		BreakpointManager.init(paths.get(0).getParent());
 	}
@@ -567,45 +566,26 @@ public class MainWindow extends JFrame {
 
 	public void reOpenFile() {
 		List<Path> openedFile = wrapper.getOpenPaths();
-		Map<String, Integer> openTabs = storeOpenTabs();
 		if (openedFile != null) {
-			open(openedFile, () -> restoreOpenTabs(openTabs));
+			int activeTab = tabbedPane.getSelectedIndex();
+			List<EditorViewState> viewStates = tabbedPane.getEditorViewStates();
+			open(openedFile, () -> restoreOpenTabs(viewStates, activeTab));
 		}
 	}
 
-	@NotNull
-	private Map<String, Integer> storeOpenTabs() {
-		Map<String, Integer> openTabs = new LinkedHashMap<>();
-		for (Map.Entry<JNode, ContentPanel> entry : tabbedPane.getOpenTabs().entrySet()) {
-			JavaNode javaNode = entry.getKey().getJavaNode();
-			String classRealName = "";
-			if (javaNode instanceof JavaClass) {
-				JavaClass javaClass = (JavaClass) javaNode;
-				classRealName = javaClass.getRawName();
-			}
-			@Nullable
-			JumpPosition position = entry.getValue().getTabbedPane().getCurrentPosition();
-			int line = 0;
-			if (position != null) {
-				line = position.getLine();
-			}
-			openTabs.put(classRealName, line);
+	private void restoreOpenTabs(List<EditorViewState> openTabs, int activeTab) {
+		if (openTabs.isEmpty()) {
+			return;
 		}
-		return openTabs;
-	}
-
-	private void restoreOpenTabs(Map<String, Integer> openTabs) {
-		for (Map.Entry<String, Integer> entry : openTabs.entrySet()) {
-			String classRealName = entry.getKey();
-			int position = entry.getValue();
-			@Nullable
-			JavaClass newClass = wrapper.searchJavaClassByRawName(classRealName);
-			if (newClass == null) {
-				continue;
+		JNodeCache nodeCache = getCacheObject().getNodeCache();
+		for (EditorViewState viewState : openTabs) {
+			JNode node = nodeCache.renew(wrapper, viewState.getNode());
+			if (node != null) {
+				viewState.setNode(node);
+				tabbedPane.restoreEditorViewState(viewState);
 			}
-			JNode newNode = cacheObject.getNodeCache().makeFrom(newClass);
-			tabbedPane.codeJump(new JumpPosition(newNode, position, JumpPosition.getDefPos(newNode)));
 		}
+		tabbedPane.setSelectedIndex(activeTab);
 	}
 
 	private void saveAll(boolean export) {
@@ -1328,6 +1308,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void closeWindow() {
+		saveOpenTabs();
 		if (!ensureProjectIsSaved()) {
 			return;
 		}
@@ -1345,6 +1326,10 @@ public class MainWindow extends JFrame {
 		BreakpointManager.saveAndExit();
 		FileUtils.deleteTempRootDir();
 		System.exit(0);
+	}
+
+	private void saveOpenTabs() {
+		project.saveOpenTabs(tabbedPane.getEditorViewStates(), tabbedPane.getSelectedIndex());
 	}
 
 	private void saveSplittersInfo() {

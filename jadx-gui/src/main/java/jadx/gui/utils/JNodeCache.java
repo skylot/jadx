@@ -3,12 +3,15 @@ package jadx.gui.utils;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.api.JavaClass;
 import jadx.api.JavaField;
 import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
 import jadx.api.JavaVariable;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.gui.JadxWrapper;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
@@ -37,6 +40,15 @@ public class JNodeCache {
 		}
 		return (JClass) cache.computeIfAbsent(javaCls,
 				jn -> new JClass(javaCls, makeFrom(javaCls.getDeclaringClass())));
+	}
+
+	@Nullable
+	public JNode renew(JadxWrapper wrapper, JNode node) {
+		if (node instanceof JClass) {
+			String rawName = ((JClass) node).getCls().getRawName();
+			return makeFrom(wrapper.searchJavaClassByRawName(rawName));
+		}
+		return null;
 	}
 
 	private JNode convert(JavaNode node) {

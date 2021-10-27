@@ -1,6 +1,7 @@
 package jadx.gui.ui.codearea;
 
 import java.awt.BorderLayout;
+import java.awt.Point;
 
 import javax.swing.JTabbedPane;
 import javax.swing.border.EmptyBorder;
@@ -56,16 +57,6 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel {
 	}
 
 	@Override
-	public TabbedPane getTabbedPane() {
-		return tabbedPane;
-	}
-
-	@Override
-	public JNode getNode() {
-		return node;
-	}
-
-	@Override
 	public AbstractCodeArea getCodeArea() {
 		return javaCodePanel.getCodeArea();
 	}
@@ -89,5 +80,23 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel {
 
 	public void showSmaliPane() {
 		areaTabbedPane.setSelectedComponent(smaliCodePanel);
+	}
+
+	@Override
+	public EditorViewState getEditorViewState() {
+		CodePanel codePanel = (CodePanel) areaTabbedPane.getSelectedComponent();
+		int caretPos = codePanel.getCodeArea().getCaretPosition();
+		Point viewPoint = codePanel.getCodeScrollPane().getViewport().getViewPosition();
+		String subPath = codePanel == javaCodePanel ? "java" : "smali";
+		return new EditorViewState(getNode(), subPath, caretPos, viewPoint);
+	}
+
+	@Override
+	public void restoreEditorViewState(EditorViewState viewState) {
+		boolean isJava = viewState.getSubPath().equals("java");
+		CodePanel activePanel = isJava ? javaCodePanel : smaliCodePanel;
+		areaTabbedPane.setSelectedComponent(activePanel);
+		activePanel.getCodeScrollPane().getViewport().setViewPosition(viewState.getViewPoint());
+		activePanel.getCodeArea().setCaretPosition(viewState.getCaretPos());
 	}
 }

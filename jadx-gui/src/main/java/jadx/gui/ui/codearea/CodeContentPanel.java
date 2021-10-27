@@ -24,16 +24,6 @@ public final class CodeContentPanel extends AbstractCodeContentPanel {
 		updateUI();
 	}
 
-	@Override
-	public TabbedPane getTabbedPane() {
-		return tabbedPane;
-	}
-
-	@Override
-	public JNode getNode() {
-		return node;
-	}
-
 	SearchBar getSearchBar() {
 		return codePanel.getSearchBar();
 	}
