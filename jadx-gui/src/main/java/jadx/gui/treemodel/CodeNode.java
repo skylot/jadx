@@ -1,19 +1,22 @@
 package jadx.gui.treemodel;
 
+import java.util.Comparator;
+
 import javax.swing.Icon;
+
+import org.jetbrains.annotations.NotNull;
 
 import jadx.api.JavaNode;
 import jadx.gui.utils.search.StringRef;
 
-public class CodeNode extends JNode {
-
+public class CodeNode extends JNode implements Comparable<CodeNode> {
 	private static final long serialVersionUID = 1658650786734966545L;
 
 	private final transient JNode jNode;
 	private final transient JClass jParent;
 	private final transient StringRef line;
 	private final transient int lineNum;
-	private transient int pos;
+	private final transient int pos;
 
 	public CodeNode(JNode jNode, StringRef lineStr, int lineNum, int pos) {
 		this.jNode = jNode;
@@ -85,6 +88,11 @@ public class CodeNode extends JNode {
 	}
 
 	@Override
+	public int getPos() {
+		return pos;
+	}
+
+	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;
@@ -101,8 +109,12 @@ public class CodeNode extends JNode {
 		return jNode.hashCode();
 	}
 
+	public static final Comparator<CodeNode> COMPARATOR = Comparator
+			.comparing(CodeNode::getJParent)
+			.thenComparingInt(CodeNode::getPos);
+
 	@Override
-	public int getPos() {
-		return pos;
+	public int compareTo(@NotNull CodeNode other) {
+		return COMPARATOR.compare(this, other);
 	}
 }

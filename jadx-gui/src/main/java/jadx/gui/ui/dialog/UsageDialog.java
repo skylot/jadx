@@ -3,6 +3,7 @@ package jadx.gui.ui.dialog;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.FlowLayout;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,6 +18,7 @@ import jadx.api.JavaClass;
 import jadx.api.JavaNode;
 import jadx.gui.jobs.IndexService;
 import jadx.gui.jobs.TaskStatus;
+import jadx.gui.treemodel.CodeNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.CodeUsageInfo;
@@ -95,7 +97,9 @@ public class UsageDialog extends CommonSearchDialog {
 		if (usageInfo == null) {
 			return;
 		}
-		resultsModel.addAll(usageInfo.getUsageList(node));
+		List<CodeNode> usageList = usageInfo.getUsageList(node);
+		Collections.sort(usageList);
+		resultsModel.addAll(usageList);
 		// TODO: highlight only needed node usage
 		highlightText = null;
 		super.performSearch();
