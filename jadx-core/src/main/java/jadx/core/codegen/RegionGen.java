@@ -348,7 +348,7 @@ public class RegionGen extends InsnGen {
 		} else if (arg instanceof RegisterArg) {
 			CodeVar codeVar = ((RegisterArg) arg).getSVar().getCodeVar();
 			if (code.isMetadataSupported()) {
-				code.attachAnnotation(VarDeclareRef.get(mth, codeVar));
+				code.attachDefinition(VarDeclareRef.get(mth, codeVar));
 			}
 			code.add(mgen.getNameGen().assignArg(codeVar));
 		} else if (arg instanceof NamedArg) {

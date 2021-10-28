@@ -49,7 +49,7 @@ public final class RenameAction extends JNodeMenuAction<JNode> {
 			LOG.warn("Can't rename node: {}", node);
 			return;
 		}
-		RenameDialog.rename(codeArea.getMainWindow(), node);
+		RenameDialog.rename(codeArea.getMainWindow(), codeArea.getNode(), node);
 		node = null;
 	}
 

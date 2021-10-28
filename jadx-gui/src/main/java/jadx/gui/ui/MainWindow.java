@@ -717,19 +717,15 @@ public class MainWindow extends JFrame {
 		}
 	}
 
-	private void rename(JNode node) {
-		RenameDialog.rename(this, node);
-	}
-
 	private void treeRightClickAction(MouseEvent e) {
 		JNode obj = getJNodeUnderMouse(e, false);
 		if (obj instanceof JPackage) {
 			JPackagePopupMenu menu = new JPackagePopupMenu(this, (JPackage) obj);
 			menu.show(e.getComponent(), e.getX(), e.getY());
 		} else if (obj instanceof JClass || obj instanceof JField || obj instanceof JMethod) {
-			JPopupMenu menu = new JPopupMenu();
 			JMenuItem jmi = new JMenuItem(NLS.str("popup.rename"));
-			jmi.addActionListener(action -> rename(obj));
+			jmi.addActionListener(action -> RenameDialog.rename(this, obj));
+			JPopupMenu menu = new JPopupMenu();
 			menu.add(jmi);
 			menu.show(e.getComponent(), e.getX(), e.getY());
 		}

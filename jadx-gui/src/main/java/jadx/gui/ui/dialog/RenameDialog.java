@@ -68,19 +68,25 @@ public class RenameDialog extends JDialog {
 
 	private final transient MainWindow mainWindow;
 	private final transient CacheObject cache;
+	private final transient JNode source;
 	private final transient JNode node;
 	private transient JTextField renameField;
 
 	public static boolean rename(MainWindow mainWindow, JNode node) {
-		RenameDialog renameDialog = new RenameDialog(mainWindow, node);
+		return rename(mainWindow, node, node);
+	}
+
+	public static boolean rename(MainWindow mainWindow, JNode source, JNode node) {
+		RenameDialog renameDialog = new RenameDialog(mainWindow, source, node);
 		renameDialog.setVisible(true);
 		return true;
 	}
 
-	private RenameDialog(MainWindow mainWindow, JNode node) {
+	private RenameDialog(MainWindow mainWindow, JNode source, JNode node) {
 		super(mainWindow);
 		this.mainWindow = mainWindow;
 		this.cache = mainWindow.getCacheObject();
+		this.source = source;
 		this.node = node;
 		initUI();
 	}
@@ -158,6 +164,9 @@ public class RenameDialog extends JDialog {
 		JavaNode javaNode = node.getJavaNode();
 
 		List<JavaNode> toUpdate = new ArrayList<>();
+		if (source != null && source != node) {
+			toUpdate.add(source.getJavaNode());
+		}
 		if (javaNode != null) {
 			toUpdate.add(javaNode);
 			toUpdate.addAll(javaNode.getUseIn());
@@ -171,8 +180,8 @@ public class RenameDialog extends JDialog {
 		}
 		Set<JClass> updatedTopClasses = toUpdate
 				.stream()
+				.map(JavaNode::getTopParentClass)
 				.map(nodeCache::makeFrom)
-				.map(JNode::getRootClass)
 				.filter(Objects::nonNull)
 				.collect(Collectors.toSet());
 

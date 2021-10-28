@@ -228,7 +228,7 @@ public class MethodGen {
 			}
 			code.add(' ');
 			if (code.isMetadataSupported() && ssaVar != null) {
-				code.attachAnnotation(VarDeclareRef.get(mth, var));
+				code.attachDefinition(VarDeclareRef.get(mth, var));
 			}
 			code.add(nameGen.assignArg(var));
 
