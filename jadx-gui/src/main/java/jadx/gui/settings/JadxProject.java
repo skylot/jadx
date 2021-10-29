@@ -7,6 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,9 +26,9 @@ import jadx.api.data.impl.JadxCodeRef;
 import jadx.api.data.impl.JadxCodeRename;
 import jadx.api.data.impl.JadxNodeRef;
 import jadx.core.utils.GsonUtils;
-import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.settings.data.ProjectData;
+import jadx.gui.settings.data.TabViewState;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.utils.PathTypeAdapter;
@@ -127,13 +129,20 @@ public class JadxProject {
 	}
 
 	public void saveOpenTabs(List<EditorViewState> tabs, int activeTab) {
-		data.setOpenTabs(Utils.collectionMap(tabs, TabStateViewAdapter::build));
+		List<TabViewState> tabStateList = tabs.stream()
+				.map(TabStateViewAdapter::build)
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
+		data.setOpenTabs(tabStateList);
 		data.setActiveTab(activeTab);
 		changed();
 	}
 
 	public List<EditorViewState> getOpenTabs(MainWindow mw) {
-		return Utils.collectionMap(data.getOpenTabs(), s -> TabStateViewAdapter.load(mw, s));
+		return data.getOpenTabs().stream()
+				.map(s -> TabStateViewAdapter.load(mw, s))
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
 	}
 
 	public int getActiveTab() {

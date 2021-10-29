@@ -31,6 +31,7 @@ import jadx.gui.ui.codearea.EditorViewState;
 import jadx.gui.ui.codearea.SmaliArea;
 import jadx.gui.ui.panel.ContentPanel;
 import jadx.gui.ui.panel.HtmlPanel;
+import jadx.gui.ui.panel.IViewStateSupport;
 import jadx.gui.ui.panel.ImagePanel;
 import jadx.gui.utils.JumpManager;
 import jadx.gui.utils.JumpPosition;
@@ -263,9 +264,10 @@ public class TabbedPane extends JTabbedPane {
 	public List<EditorViewState> getEditorViewStates() {
 		List<EditorViewState> states = new ArrayList<>();
 		for (ContentPanel panel : openTabs.values()) {
-			EditorViewState viewState = panel.getEditorViewState();
-			if (viewState != null) {
-				states.add(viewState);
+			if (panel instanceof IViewStateSupport) {
+				states.add(((IViewStateSupport) panel).getEditorViewState());
+			} else {
+				states.add(new EditorViewState(panel.getNode(), "", 0, EditorViewState.ZERO));
 			}
 		}
 		return states;
@@ -273,8 +275,8 @@ public class TabbedPane extends JTabbedPane {
 
 	public void restoreEditorViewState(EditorViewState viewState) {
 		ContentPanel contentPanel = getContentPanel(viewState.getNode());
-		if (contentPanel != null) {
-			contentPanel.restoreEditorViewState(viewState);
+		if (contentPanel instanceof IViewStateSupport) {
+			((IViewStateSupport) contentPanel).restoreEditorViewState(viewState);
 		}
 	}
 

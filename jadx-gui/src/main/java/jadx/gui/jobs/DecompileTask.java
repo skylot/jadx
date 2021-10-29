@@ -69,10 +69,13 @@ public class DecompileTask implements IBackgroundTask {
 	@Override
 	public void onFinish(TaskStatus status, long skippedJobs) {
 		long taskTime = System.currentTimeMillis() - startTime;
-		long avgPerCls = taskTime / expectedCompleteCount;
-		LOG.info("Decompile task complete in {} ms (avg {} ms per class), classes: {},"
-				+ " time limit:{ total: {}ms, per cls: {}ms }, status: {}",
-				taskTime, avgPerCls, expectedCompleteCount, timeLimit(), CLS_LIMIT, status);
+		long avgPerCls = taskTime / Math.max(expectedCompleteCount, 1);
+		if (LOG.isInfoEnabled()) {
+			LOG.info("Decompile task complete in " + taskTime + " ms (avg " + avgPerCls + " ms per class)"
+					+ ", classes: " + expectedCompleteCount
+					+ ", time limit:{ total: " + timeLimit() + "ms, per cls: " + CLS_LIMIT + "ms }"
+					+ ", status: " + status);
+		}
 
 		IndexService indexService = mainWindow.getCacheObject().getIndexService();
 		indexService.setComplete(true);

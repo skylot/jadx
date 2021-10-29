@@ -8,6 +8,7 @@ import javax.swing.border.EmptyBorder;
 
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.TabbedPane;
+import jadx.gui.ui.panel.IViewStateSupport;
 import jadx.gui.utils.NLS;
 
 /**
@@ -18,7 +19,7 @@ import jadx.gui.utils.NLS;
  * <li>Smali source code of the selected class</li>
  * </ul>
  */
-public final class ClassCodeContentPanel extends AbstractCodeContentPanel {
+public final class ClassCodeContentPanel extends AbstractCodeContentPanel implements IViewStateSupport {
 	private static final long serialVersionUID = -7229931102504634591L;
 
 	private final transient CodePanel javaCodePanel;

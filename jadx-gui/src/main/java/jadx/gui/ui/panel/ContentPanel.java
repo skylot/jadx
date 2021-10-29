@@ -7,7 +7,6 @@ import org.jetbrains.annotations.Nullable;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.TabbedPane;
-import jadx.gui.ui.codearea.EditorViewState;
 
 public abstract class ContentPanel extends JPanel {
 
@@ -22,14 +21,6 @@ public abstract class ContentPanel extends JPanel {
 	}
 
 	public abstract void loadSettings();
-
-	public EditorViewState getEditorViewState() {
-		return null;
-	}
-
-	public void restoreEditorViewState(EditorViewState viewState) {
-
-	}
 
 	public TabbedPane getTabbedPane() {
 		return tabbedPane;

@@ -1,11 +1,13 @@
 package jadx.gui.ui.codearea;
 
 import java.awt.BorderLayout;
+import java.awt.Point;
 
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.TabbedPane;
+import jadx.gui.ui.panel.IViewStateSupport;
 
-public final class CodeContentPanel extends AbstractCodeContentPanel {
+public final class CodeContentPanel extends AbstractCodeContentPanel implements IViewStateSupport {
 	private static final long serialVersionUID = 5310536092010045565L;
 
 	private final CodePanel codePanel;
@@ -46,5 +48,18 @@ public final class CodeContentPanel extends AbstractCodeContentPanel {
 			n = (JNode) n.getParent();
 		}
 		return '/' + s;
+	}
+
+	@Override
+	public EditorViewState getEditorViewState() {
+		int caretPos = codePanel.getCodeArea().getCaretPosition();
+		Point viewPoint = codePanel.getCodeScrollPane().getViewport().getViewPosition();
+		return new EditorViewState(getNode(), "", caretPos, viewPoint);
+	}
+
+	@Override
+	public void restoreEditorViewState(EditorViewState viewState) {
+		codePanel.getCodeScrollPane().getViewport().setViewPosition(viewState.getViewPoint());
+		codePanel.getCodeArea().setCaretPosition(viewState.getCaretPos());
 	}
 }

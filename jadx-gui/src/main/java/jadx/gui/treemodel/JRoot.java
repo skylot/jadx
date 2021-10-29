@@ -3,7 +3,6 @@ package jadx.gui.treemodel;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -38,20 +37,16 @@ public class JRoot extends JNode {
 		removeAllChildren();
 		add(new JSources(this, wrapper));
 
-		List<JResource> resList = getHierarchyResources(wrapper.getResources());
-		for (JResource jRes : resList) {
-			jRes.update();
-			add(jRes);
+		List<ResourceFile> resources = wrapper.getResources();
+		if (!resources.isEmpty()) {
+			add(getHierarchyResources(resources));
 		}
 		for (JNode customNode : customNodes) {
 			add(customNode);
 		}
 	}
 
-	private List<JResource> getHierarchyResources(List<ResourceFile> resources) {
-		if (resources.isEmpty()) {
-			return Collections.emptyList();
-		}
+	private JResource getHierarchyResources(List<ResourceFile> resources) {
 		JResource root = new JResource(null, NLS.str("tree.resources_title"), JResType.ROOT);
 		String splitPathStr = Pattern.quote(File.separator);
 		for (ResourceFile rf : resources) {
@@ -71,14 +66,15 @@ public class JRoot extends JNode {
 					if (i != count - 1) {
 						subRF = new JResource(null, name, JResType.DIR);
 					} else {
-						subRF = new JResource(rf, name, JResType.FILE);
+						subRF = new JResource(rf, rf.getOriginalName(), name, JResType.FILE);
 					}
 					curRf.getFiles().add(subRF);
 				}
 				curRf = subRF;
 			}
 		}
-		return Collections.singletonList(root);
+		root.update();
+		return root;
 	}
 
 	private JResource getResourceByName(JResource rf, String name) {
@@ -90,7 +86,7 @@ public class JRoot extends JNode {
 		return null;
 	}
 
-	public JNode searchClassInTree(JNode node) {
+	public JNode searchNode(JNode node) {
 		Enumeration<?> en = this.breadthFirstEnumeration();
 		while (en.hasMoreElements()) {
 			Object obj = en.nextElement();

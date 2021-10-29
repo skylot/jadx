@@ -124,7 +124,6 @@ import jadx.gui.update.data.Release;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.CodeUsageInfo;
 import jadx.gui.utils.FontUtils;
-import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.LafManager;
 import jadx.gui.utils.Link;
@@ -446,7 +445,7 @@ public class MainWindow extends JFrame {
 		deobfToggleBtn.setSelected(settings.isDeobfuscationOn());
 		initTree();
 		update();
-		restoreOpenTabs(project.getOpenTabs(this), project.getActiveTab());
+		restoreOpenTabs();
 		runInitialBackgroundJobs();
 		BreakpointManager.init(paths.get(0).getParent());
 	}
@@ -567,25 +566,9 @@ public class MainWindow extends JFrame {
 	public void reOpenFile() {
 		List<Path> openedFile = wrapper.getOpenPaths();
 		if (openedFile != null) {
-			int activeTab = tabbedPane.getSelectedIndex();
-			List<EditorViewState> viewStates = tabbedPane.getEditorViewStates();
-			open(openedFile, () -> restoreOpenTabs(viewStates, activeTab));
+			saveOpenTabs();
+			open(openedFile);
 		}
-	}
-
-	private void restoreOpenTabs(List<EditorViewState> openTabs, int activeTab) {
-		if (openTabs.isEmpty()) {
-			return;
-		}
-		JNodeCache nodeCache = getCacheObject().getNodeCache();
-		for (EditorViewState viewState : openTabs) {
-			JNode node = nodeCache.renew(wrapper, viewState.getNode());
-			if (node != null) {
-				viewState.setNode(node);
-				tabbedPane.restoreEditorViewState(viewState);
-			}
-		}
-		tabbedPane.setSelectedIndex(activeTab);
 	}
 
 	private void saveAll(boolean export) {
@@ -755,7 +738,7 @@ public class MainWindow extends JFrame {
 		JNode node = selectedContentPanel.getNode();
 		if (node.getParent() == null && treeRoot != null) {
 			// node not register in tree
-			node = treeRoot.searchClassInTree(node);
+			node = treeRoot.searchNode(node);
 			if (node == null) {
 				LOG.error("Class not found in tree");
 				return;
@@ -1326,6 +1309,17 @@ public class MainWindow extends JFrame {
 
 	private void saveOpenTabs() {
 		project.saveOpenTabs(tabbedPane.getEditorViewStates(), tabbedPane.getSelectedIndex());
+	}
+
+	private void restoreOpenTabs() {
+		List<EditorViewState> openTabs = project.getOpenTabs(this);
+		if (openTabs.isEmpty()) {
+			return;
+		}
+		for (EditorViewState viewState : openTabs) {
+			tabbedPane.restoreEditorViewState(viewState);
+		}
+		tabbedPane.setSelectedIndex(project.getActiveTab());
 	}
 
 	private void saveSplittersInfo() {
