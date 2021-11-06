@@ -647,10 +647,16 @@ public class InsnGen {
 		}
 		code.add('{');
 		int c = insn.getArgsCount();
+		int wrap = 0;
 		for (int i = 0; i < c; i++) {
 			addArg(code, insn.getArg(i), false);
 			if (i + 1 < c) {
 				code.add(", ");
+			}
+			wrap++;
+			if (wrap == 1000) {
+				code.startLine();
+				wrap = 0;
 			}
 		}
 		code.add('}');
