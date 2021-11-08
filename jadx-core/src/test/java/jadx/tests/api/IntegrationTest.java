@@ -123,6 +123,7 @@ public abstract class IntegrationTest extends TestUtils {
 		args.setThreadsCount(1);
 		args.setSkipResources(true);
 		args.setFsCaseSensitive(false); // use same value on all systems
+		args.setCommentsLevel(CommentsLevel.DEBUG);
 	}
 
 	@AfterEach

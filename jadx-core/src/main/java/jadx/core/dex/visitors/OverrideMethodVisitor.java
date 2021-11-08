@@ -18,7 +18,9 @@ import jadx.core.clsp.ClspMethod;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
+import jadx.core.dex.attributes.nodes.RenameReasonAttr;
 import jadx.core.dex.info.AccessInfo;
+import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.IMethodDetails;
@@ -65,8 +67,12 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 			mth.addAttr(attr);
 			IMethodDetails baseMth = Utils.last(attr.getOverrideList());
 			if (baseMth != null) {
-				fixMethodReturnType(mth, baseMth, superTypes);
-				fixMethodArgTypes(mth, baseMth, superTypes);
+				boolean updated = fixMethodReturnType(mth, baseMth, superTypes);
+				updated |= fixMethodArgTypes(mth, baseMth, superTypes);
+				if (updated && cls.root().getArgs().isRenameValid()) {
+					// check if new signature cause method collisions
+					fixMethodSignatureCollisions(mth);
+				}
 			}
 		}
 	}
@@ -248,14 +254,16 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 		}
 	}
 
-	private void fixMethodReturnType(MethodNode mth, IMethodDetails baseMth, List<ArgType> superTypes) {
+	private boolean fixMethodReturnType(MethodNode mth, IMethodDetails baseMth, List<ArgType> superTypes) {
 		ArgType returnType = mth.getReturnType();
 		if (returnType == ArgType.VOID) {
-			return;
+			return false;
 		}
-		if (updateReturnType(mth, baseMth, superTypes)) {
+		boolean updated = updateReturnType(mth, baseMth, superTypes);
+		if (updated) {
 			mth.addInfoComment("Return type fixed from '" + returnType + "' to match base method");
 		}
+		return updated;
 	}
 
 	private boolean updateReturnType(MethodNode mth, IMethodDetails baseMth, List<ArgType> superTypes) {
@@ -283,15 +291,15 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 		return false;
 	}
 
-	private void fixMethodArgTypes(MethodNode mth, IMethodDetails baseMth, List<ArgType> superTypes) {
+	private boolean fixMethodArgTypes(MethodNode mth, IMethodDetails baseMth, List<ArgType> superTypes) {
 		List<ArgType> mthArgTypes = mth.getArgTypes();
 		List<ArgType> baseArgTypes = baseMth.getArgTypes();
 		if (mthArgTypes.equals(baseArgTypes)) {
-			return;
+			return false;
 		}
 		int argCount = mthArgTypes.size();
 		if (argCount != baseArgTypes.size()) {
-			return;
+			return false;
 		}
 		boolean changed = false;
 		List<ArgType> newArgTypes = new ArrayList<>(argCount);
@@ -307,6 +315,7 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 		if (changed) {
 			mth.updateArgTypes(newArgTypes, "Method arguments types fixed to match base method");
 		}
+		return changed;
 	}
 
 	private ArgType updateArgType(MethodNode mth, IMethodDetails baseMth, List<ArgType> superTypes, int argNum) {
@@ -332,5 +341,39 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 			}
 		}
 		return null;
+	}
+
+	private void fixMethodSignatureCollisions(MethodNode mth) {
+		String mthName = mth.getMethodInfo().getAlias();
+		String newSignature = MethodInfo.makeShortId(mthName, mth.getArgTypes(), null);
+		for (MethodNode otherMth : mth.getParentClass().getMethods()) {
+			String otherMthName = otherMth.getAlias();
+			if (otherMthName.equals(mthName) && otherMth != mth) {
+				String otherSignature = otherMth.getMethodInfo().makeSignature(true, false);
+				if (otherSignature.equals(newSignature)) {
+					if (otherMth.contains(AFlag.DONT_RENAME) || otherMth.contains(AType.METHOD_OVERRIDE)) {
+						otherMth.addWarnComment("Can't rename method to resolve collision");
+					} else {
+						otherMth.getMethodInfo().setAlias(makeNewAlias(otherMth));
+						otherMth.addAttr(new RenameReasonAttr("avoid collision after fix types in other method"));
+					}
+				}
+			}
+		}
+	}
+
+	// TODO: at this point deobfuscator is not available and map file already saved
+	private static String makeNewAlias(MethodNode mth) {
+		ClassNode cls = mth.getParentClass();
+		String baseName = mth.getAlias();
+		int k = 2;
+		while (true) {
+			String alias = baseName + k;
+			MethodNode methodNode = cls.searchMethodByShortName(alias);
+			if (methodNode == null) {
+				return alias;
+			}
+			k++;
+		}
 	}
 }
