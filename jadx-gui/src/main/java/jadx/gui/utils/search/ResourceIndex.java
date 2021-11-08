@@ -11,6 +11,10 @@ import java.util.zip.ZipFile;
 
 import javax.swing.tree.TreeNode;
 
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableEmitter;
@@ -26,9 +30,12 @@ import static jadx.core.utils.StringUtils.countLinesByPos;
 import static jadx.core.utils.StringUtils.getLine;
 
 public class ResourceIndex {
+	private static final Logger LOG = LoggerFactory.getLogger(ResourceIndex.class);
+
 	private final List<JResource> resNodes = new ArrayList<>();
 	private final Set<String> extSet = new HashSet<>();
-	private CacheObject cache;
+	private final CacheObject cache;
+
 	private String fileExts;
 	private boolean anyExt;
 	private int sizeLimit;
@@ -40,7 +47,6 @@ public class ResourceIndex {
 	private void search(final JResource resNode,
 			FlowableEmitter<JResSearchNode> emitter,
 			SearchSettings searchSettings) {
-		int pos = 0;
 		int line = 0;
 		int lastPos = 0;
 		int lastLineOccurred = -1;
@@ -50,12 +56,12 @@ public class ResourceIndex {
 		try {
 			content = resNode.getContent();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("Error load resource node content", e);
 			return;
 		}
 		do {
 			searchSettings.setStartPos(lastPos);
-			pos = searchSettings.find(content);
+			int pos = searchSettings.find(content);
 			if (pos > -1) {
 				line += countLinesByPos(content, pos, lastPos);
 				lastPos = pos + searchStrLen;
@@ -103,7 +109,7 @@ public class ResourceIndex {
 		resNodes.clear();
 	}
 
-	private void traverseTree(TreeNode root, ZipFile zip) {
+	private void traverseTree(TreeNode root, @Nullable ZipFile zip) {
 		for (int i = 0; i < root.getChildCount(); i++) {
 			TreeNode node = root.getChildAt(i);
 			if (node instanceof JResource) {
@@ -111,7 +117,7 @@ public class ResourceIndex {
 				try {
 					resNode.loadNode();
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOG.error("Error load resource node: {}", resNode, e);
 					return;
 				}
 				ResourceFile resFile = resNode.getResFile();
@@ -133,6 +139,7 @@ public class ResourceIndex {
 		return anyExt || fileExts.contains(".xml");
 	}
 
+	@Nullable
 	private ZipFile getZipFile(TreeNode res) {
 		for (int i = 0; i < res.getChildCount(); i++) {
 			TreeNode node = res.getChildAt(i);
@@ -141,7 +148,7 @@ public class ResourceIndex {
 				try {
 					resNode.loadNode();
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOG.error("Error load resource node: {}", resNode, e);
 					return null;
 				}
 				ResourceFile file = resNode.getResFile();
@@ -151,11 +158,14 @@ public class ResourceIndex {
 						return zip;
 					}
 				} else {
-					File zfile = file.getZipRef().getZipFile();
-					if (FileUtils.isZipFile(zfile)) {
-						try {
-							return new ZipFile(zfile);
-						} catch (IOException ignore) {
+					ResourceFile.ZipRef zipRef = file.getZipRef();
+					if (zipRef != null) {
+						File zfile = zipRef.getZipFile();
+						if (FileUtils.isZipFile(zfile)) {
+							try {
+								return new ZipFile(zfile);
+							} catch (IOException ignore) {
+							}
 						}
 					}
 				}

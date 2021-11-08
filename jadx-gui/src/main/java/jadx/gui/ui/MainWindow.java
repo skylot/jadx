@@ -1319,7 +1319,11 @@ public class MainWindow extends JFrame {
 		for (EditorViewState viewState : openTabs) {
 			tabbedPane.restoreEditorViewState(viewState);
 		}
-		tabbedPane.setSelectedIndex(project.getActiveTab());
+		try {
+			tabbedPane.setSelectedIndex(project.getActiveTab());
+		} catch (Exception e) {
+			LOG.warn("Failed to restore active tab", e);
+		}
 	}
 
 	private void saveSplittersInfo() {
