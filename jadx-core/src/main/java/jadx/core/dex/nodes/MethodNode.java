@@ -289,6 +289,10 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return parentClass;
 	}
 
+	public ClassNode getTopParentClass() {
+		return parentClass.getTopParentClass();
+	}
+
 	public boolean isNoCode() {
 		return noCode;
 	}

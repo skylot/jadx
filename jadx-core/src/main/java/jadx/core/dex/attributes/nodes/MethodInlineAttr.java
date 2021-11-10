@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.Objects;
 
 import jadx.api.plugins.input.data.attributes.PinnedAttribute;
-import jadx.core.Consts;
-import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.nodes.InsnNode;
@@ -26,11 +24,7 @@ public class MethodInlineAttr extends PinnedAttribute {
 		}
 		MethodInlineAttr mia = new MethodInlineAttr(replaceInsn, regNums);
 		mth.addAttr(mia);
-		if (Consts.DEBUG) {
-			mth.addDebugComment("Removed for inline");
-		} else {
-			mth.add(AFlag.DONT_GENERATE);
-		}
+		mth.addDebugComment("Marked for inline");
 		return mia;
 	}
 

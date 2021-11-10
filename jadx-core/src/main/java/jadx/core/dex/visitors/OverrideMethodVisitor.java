@@ -261,7 +261,7 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 		}
 		boolean updated = updateReturnType(mth, baseMth, superTypes);
 		if (updated) {
-			mth.addInfoComment("Return type fixed from '" + returnType + "' to match base method");
+			mth.addDebugComment("Return type fixed from '" + returnType + "' to match base method");
 		}
 		return updated;
 	}

@@ -70,9 +70,6 @@ public class ClassModifier extends AbstractVisitor {
 	 * Remove synthetic fields if type is outer class or class will be inlined (anonymous)
 	 */
 	private static void removeSyntheticFields(ClassNode cls) {
-		if (cls.getAccessFlags().isStatic()) {
-			return;
-		}
 		boolean inline = cls.isAnonymous();
 		if (inline || cls.getClassInfo().isInner()) {
 			for (FieldNode field : cls.getFields()) {

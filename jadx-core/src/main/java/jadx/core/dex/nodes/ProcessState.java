@@ -6,4 +6,8 @@ public enum ProcessState {
 	PROCESS_STARTED,
 	PROCESS_COMPLETE,
 	GENERATED_AND_UNLOADED;
+
+	public boolean isProcessComplete() {
+		return this == PROCESS_COMPLETE || this == GENERATED_AND_UNLOADED;
+	}
 }

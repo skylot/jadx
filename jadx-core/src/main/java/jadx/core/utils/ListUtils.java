@@ -50,4 +50,20 @@ public class ListUtils {
 	public static List<BlockNode> distinctList(List<BlockNode> list) {
 		return new ArrayList<>(new LinkedHashSet<>(list));
 	}
+
+	/**
+	 * Replace old element to new one.
+	 * Support null and empty immutable list (created by Collections.emptyList())
+	 */
+	public static <T> List<T> safeReplace(List<T> list, T oldObj, T newObj) {
+		if (list == null || list.isEmpty()) {
+			// immutable empty list
+			List<T> newList = new ArrayList<>(1);
+			newList.add(newObj);
+			return newList;
+		}
+		list.remove(oldObj);
+		list.add(newObj);
+		return list;
+	}
 }

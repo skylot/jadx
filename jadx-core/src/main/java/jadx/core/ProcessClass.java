@@ -1,5 +1,10 @@
 package jadx.core;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -85,8 +90,22 @@ public final class ProcessClass {
 			return generateCode(topParentClass);
 		}
 		try {
+			Set<ClassNode> useIn = new HashSet<>(cls.getUseIn());
+			List<ClassNode> usedInDeps = new ArrayList<>();
 			for (ClassNode depCls : cls.getDependencies()) {
-				process(depCls, false);
+				if (useIn.contains(depCls)) {
+					// postpone to resolve cross dependencies
+					usedInDeps.add(depCls);
+				} else {
+					process(depCls, false);
+				}
+			}
+			if (!usedInDeps.isEmpty()) {
+				// process current class before its usage
+				process(cls, false);
+				for (ClassNode depCls : usedInDeps) {
+					process(depCls, false);
+				}
 			}
 			ICodeInfo code = process(cls, true);
 			if (code == null) {

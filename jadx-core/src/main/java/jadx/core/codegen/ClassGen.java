@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +30,7 @@ import jadx.core.dex.attributes.FieldInitInsnAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr.EnumField;
 import jadx.core.dex.attributes.nodes.LineAttrNode;
+import jadx.core.dex.attributes.nodes.MethodInlineAttr;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.ClassInfo;
@@ -291,6 +293,9 @@ public class ClassGen {
 	}
 
 	private void addMethod(ICodeWriter code, MethodNode mth) {
+		if (skipMethod(mth)) {
+			return;
+		}
 		if (code.getLength() != clsDeclOffset) {
 			code.newLine();
 		}
@@ -305,6 +310,29 @@ public class ClassGen {
 			CodeGenUtils.addErrors(code, mth);
 			code.setIndent(savedIndent);
 		}
+	}
+
+	/**
+	 * Additional checks for inlined methods
+	 */
+	private boolean skipMethod(MethodNode mth) {
+		MethodInlineAttr inlineAttr = mth.get(AType.METHOD_INLINE);
+		if (inlineAttr == null || inlineAttr.notNeeded()) {
+			return false;
+		}
+		if (mth.getUseIn().isEmpty()) {
+			mth.add(AFlag.DONT_GENERATE);
+			return true;
+		}
+		List<MethodNode> useInCompleted = mth.getUseIn().stream()
+				.filter(m -> m.getTopParentClass().getState().isProcessComplete())
+				.collect(Collectors.toList());
+		if (useInCompleted.isEmpty()) {
+			mth.add(AFlag.DONT_GENERATE);
+			return true;
+		}
+		mth.addDebugComment("Method not inlined, still used in: " + useInCompleted);
+		return false;
 	}
 
 	private boolean isMethodsPresents() {
