@@ -5,7 +5,7 @@ plugins {
 dependencies {
 	api(project(':jadx-plugins:jadx-plugins-api'))
 
-	implementation 'com.google.code.gson:gson:2.8.8'
+	implementation 'com.google.code.gson:gson:2.8.9'
 	implementation 'com.android.tools.build:aapt2-proto:4.2.1-7147631'
 	constraints {
 		// Force protobuf version to prevent Java-7 issue

@@ -1,6 +1,6 @@
 plugins {
 	id 'com.github.ben-manes.versions' version '0.39.0'
-	id 'com.diffplug.spotless' version '5.17.0'
+	id 'com.diffplug.spotless' version '6.0.0'
 }
 
 ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
@@ -37,7 +37,7 @@ allprojects {
 
 	dependencies {
 		implementation 'org.slf4j:slf4j-api:1.7.32'
-		compileOnly 'org.jetbrains:annotations:22.0.0'
+		compileOnly 'org.jetbrains:annotations:23.0.0'
 
 		testImplementation 'ch.qos.logback:logback-classic:1.2.6'
 		testImplementation 'org.hamcrest:hamcrest-library:2.2'
@@ -48,7 +48,7 @@ allprojects {
 		testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 
 		testImplementation 'org.eclipse.jdt.core.compiler:ecj:4.6.1'
-		testCompileOnly 'org.jetbrains:annotations:22.0.0'
+		testCompileOnly 'org.jetbrains:annotations:23.0.0'
 	}
 
 	test {
