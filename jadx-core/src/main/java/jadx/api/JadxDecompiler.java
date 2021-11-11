@@ -257,11 +257,12 @@ public final class JadxDecompiler implements Closeable {
 			resOutDir = args.getOutDirRes();
 		}
 		List<Runnable> tasks = new ArrayList<>();
-		if (saveSources) {
-			appendSourcesSave(tasks, sourcesOutDir);
-		}
+		// save resources first because decompilation can hang or fail
 		if (saveResources) {
 			appendResourcesSaveTasks(tasks, resOutDir);
+		}
+		if (saveSources) {
+			appendSourcesSave(tasks, sourcesOutDir);
 		}
 		return tasks;
 	}
