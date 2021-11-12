@@ -43,7 +43,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private static final Path USER_HOME = Paths.get(System.getProperty("user.home"));
 	private static final int RECENT_PROJECTS_COUNT = 15;
-	private static final int CURRENT_SETTINGS_VERSION = 13;
+	private static final int CURRENT_SETTINGS_VERSION = 14;
 
 	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
@@ -62,10 +62,10 @@ public class JadxSettings extends JadxCLIArgs {
 	private String fontStr = "";
 	private String smaliFontStr = "";
 	private String editorThemePath = "";
-	private String lafTheme = LafManager.SYSTEM_THEME_NAME;
+	private String lafTheme = LafManager.INITIAL_THEME_NAME;
 	private LangLocale langLocale = NLS.defaultLocale();
 	private boolean autoStartJobs = false;
-	protected String excludedPackages = "";
+	private String excludedPackages = "";
 	private boolean autoSaveProject = false;
 
 	private boolean showHeapUsageBar = false;
@@ -128,6 +128,14 @@ public class JadxSettings extends JadxCLIArgs {
 		if (settingsVersion != CURRENT_SETTINGS_VERSION) {
 			upgradeSettings(settingsVersion);
 		}
+	}
+
+	public int getSettingsVersion() {
+		return settingsVersion;
+	}
+
+	public void setSettingsVersion(int settingsVersion) {
+		this.settingsVersion = settingsVersion;
 	}
 
 	public String getCmdSelectClass() {
@@ -633,6 +641,10 @@ public class JadxSettings extends JadxCLIArgs {
 		}
 		if (fromVersion == 12) {
 			alwaysSelectOpened = false;
+			fromVersion++;
+		}
+		if (fromVersion == 13) {
+			lafTheme = LafManager.INITIAL_THEME_NAME;
 			fromVersion++;
 		}
 		if (fromVersion != CURRENT_SETTINGS_VERSION) {

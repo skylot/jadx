@@ -1,31 +1,29 @@
 package jadx.gui.utils;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import javax.swing.LookAndFeel;
 import javax.swing.UIManager;
 
-import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.formdev.flatlaf.FlatDarculaLaf;
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
+import com.formdev.flatlaf.intellijthemes.FlatAllIJThemes;
 
-import ch.qos.logback.classic.Level;
-
-import jadx.cli.LogHelper;
 import jadx.gui.settings.JadxSettings;
 
 public class LafManager {
 	private static final Logger LOG = LoggerFactory.getLogger(LafManager.class);
 
 	public static final String SYSTEM_THEME_NAME = "default";
+	public static final String INITIAL_THEME_NAME = FlatLightLaf.NAME;
+
 	private static final Map<String, String> THEMES_MAP = initThemesMap();
 
 	public static void init(JadxSettings settings) {
@@ -66,28 +64,18 @@ public class LafManager {
 	private static Map<String, String> initThemesMap() {
 		Map<String, String> map = new LinkedHashMap<>();
 		map.put(SYSTEM_THEME_NAME, SYSTEM_THEME_NAME);
-		for (FlatLaf flatLafTheme : collectFlatLafThemes()) {
-			map.put(flatLafTheme.getName(), flatLafTheme.getClass().getName());
+
+		// default flatlaf themes
+		map.put(FlatLightLaf.NAME, FlatLightLaf.class.getName());
+		map.put(FlatDarkLaf.NAME, FlatDarkLaf.class.getName());
+		map.put(FlatIntelliJLaf.NAME, FlatIntelliJLaf.class.getName());
+		map.put(FlatDarculaLaf.NAME, FlatDarculaLaf.class.getName());
+
+		// themes from flatlaf-intellij-themes
+		for (FlatAllIJThemes.FlatIJLookAndFeelInfo themeInfo : FlatAllIJThemes.INFOS) {
+			map.put(themeInfo.getName(), themeInfo.getClassName());
 		}
 		return map;
-	}
-
-	private static List<FlatLaf> collectFlatLafThemes() {
-		LogHelper.setLevelForPackage("org.reflections", Level.WARN);
-		Reflections reflections = new Reflections("com.formdev.flatlaf");
-		Set<Class<? extends FlatLaf>> lafClasses = reflections.getSubTypesOf(FlatLaf.class);
-
-		List<FlatLaf> themes = new ArrayList<>(lafClasses.size());
-		for (Class<? extends FlatLaf> lafClass : lafClasses) {
-			try {
-				themes.add(lafClass.getDeclaredConstructor().newInstance());
-			} catch (Exception e) {
-				// some classes not themes, ignore them
-				LOG.trace("Failed make instance for class: {}", lafClass.getName(), e);
-			}
-		}
-		themes.sort(Comparator.comparing(LookAndFeel::getName));
-		return themes;
 	}
 
 	private static boolean applyLaf(String theme) {

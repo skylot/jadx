@@ -37,6 +37,7 @@ public class JadxSettingsAdapter {
 			return JadxSettings.SKIP_FIELDS.contains(f.getName())
 					|| f.hasModifier(Modifier.PUBLIC)
 					|| f.hasModifier(Modifier.TRANSIENT)
+					|| f.hasModifier(Modifier.STATIC)
 					|| (f.getAnnotation(GsonExclude.class) != null);
 		}
 
