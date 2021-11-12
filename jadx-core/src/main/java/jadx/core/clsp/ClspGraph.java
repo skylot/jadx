@@ -8,9 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +28,7 @@ public class ClspGraph {
 	private static final Logger LOG = LoggerFactory.getLogger(ClspGraph.class);
 
 	private final RootNode root;
-	private final Map<String, Set<String>> superTypesCache = Collections.synchronizedMap(new WeakHashMap<>());
+	private Map<String, Set<String>> superTypesCache;
 	private Map<String, ClspClass> nameMap;
 
 	private final Set<String> missingClasses = new HashSet<>();
@@ -159,9 +157,12 @@ public class ClspGraph {
 	}
 
 	public Set<String> getSuperTypes(String clsName) {
-		Set<String> fromCache = superTypesCache.get(clsName);
-		if (fromCache != null) {
-			return fromCache;
+		if (superTypesCache != null) {
+			Set<String> result = superTypesCache.get(clsName);
+			if (result == null) {
+				return Collections.emptySet();
+			}
+			return result;
 		}
 		ClspClass cls = nameMap.get(clsName);
 		if (cls == null) {
@@ -170,18 +171,25 @@ public class ClspGraph {
 		}
 		Set<String> result = new HashSet<>();
 		addSuperTypes(cls, result);
-		return putInSuperTypesCache(clsName, result);
+		return result;
 	}
 
-	@NotNull
-	private Set<String> putInSuperTypesCache(String clsName, Set<String> result) {
-		if (result.isEmpty()) {
-			Set<String> empty = Collections.emptySet();
-			superTypesCache.put(clsName, empty);
-			return empty;
+	public synchronized void fillSuperTypesCache() {
+		Map<String, Set<String>> map = new HashMap<>(nameMap.size());
+		Set<String> tmpSet = new HashSet<>();
+		for (Map.Entry<String, ClspClass> entry : nameMap.entrySet()) {
+			ClspClass cls = entry.getValue();
+			tmpSet.clear();
+			addSuperTypes(cls, tmpSet);
+			Set<String> result;
+			if (tmpSet.isEmpty()) {
+				result = Collections.emptySet();
+			} else {
+				result = new HashSet<>(tmpSet);
+			}
+			map.put(cls.getName(), result);
 		}
-		superTypesCache.put(clsName, result);
-		return result;
+		superTypesCache = map;
 	}
 
 	private void addSuperTypes(ClspClass cls, Set<String> result) {
@@ -203,9 +211,7 @@ public class ClspGraph {
 	private ClspClass getClspClass(ArgType clsType) {
 		ClspClass clspClass = nameMap.get(clsType.getObject());
 		if (clspClass == null) {
-			if (LOG.isDebugEnabled()) {
-				LOG.debug("External class not found: {}", clsType.getObject());
-			}
+			missingClasses.add(clsType.getObject());
 		}
 		return clspClass;
 	}

@@ -88,6 +88,10 @@ public class JadxWrapper {
 		}).collect(Collectors.toList());
 	}
 
+	public List<List<JavaClass>> buildDecompileBatches(List<JavaClass> classes) {
+		return decompiler.getDecompileScheduler().buildBatches(classes);
+	}
+
 	// TODO: move to CLI and filter classes in JadxDecompiler
 	public List<String> getExcludedPackages() {
 		String excludedPackages = settings.getExcludedPackages().trim();

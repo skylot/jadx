@@ -44,6 +44,11 @@ import jadx.core.utils.exceptions.JadxException;
 public class OverrideMethodVisitor extends AbstractVisitor {
 
 	@Override
+	public void init(RootNode root) throws JadxException {
+		root.getClsp().fillSuperTypesCache();
+	}
+
+	@Override
 	public boolean visit(ClassNode cls) throws JadxException {
 		processCls(cls);
 		return true;

@@ -20,11 +20,11 @@ public class CodeIndex {
 
 	private final List<CodeNode> values = new ArrayList<>();
 
-	public synchronized void put(CodeNode value) {
+	public void put(CodeNode value) {
 		values.add(value);
 	}
 
-	public synchronized void removeForCls(JavaClass cls) {
+	public void removeForCls(JavaClass cls) {
 		values.removeIf(v -> v.getJavaNode().getTopParentClass().equals(cls));
 	}
 

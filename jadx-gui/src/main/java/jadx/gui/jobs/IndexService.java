@@ -12,7 +12,6 @@ import jadx.api.ICodeWriter;
 import jadx.api.JavaClass;
 import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.CodeLinesInfo;
-import jadx.gui.utils.CodeUsageInfo;
 import jadx.gui.utils.search.StringRef;
 import jadx.gui.utils.search.TextSearchIndex;
 
@@ -28,21 +27,19 @@ public class IndexService {
 		this.cache = cache;
 	}
 
+	/**
+	 * Warning! Not ready for parallel execution. Use only in a single thread.
+	 */
 	public void indexCls(JavaClass cls) {
 		try {
 			TextSearchIndex index = cache.getTextIndex();
-			CodeUsageInfo usageInfo = cache.getUsageInfo();
-			if (index == null || usageInfo == null) {
+			if (index == null) {
 				return;
 			}
-
-			index.indexNames(cls);
-
-			CodeLinesInfo linesInfo = new CodeLinesInfo(cls);
 			List<StringRef> lines = splitLines(cls);
-
-			usageInfo.processClass(cls, linesInfo, lines);
+			CodeLinesInfo linesInfo = new CodeLinesInfo(cls);
 			index.indexCode(cls, linesInfo, lines);
+			index.indexNames(cls);
 			indexSet.add(cls);
 		} catch (Exception e) {
 			LOG.error("Index error in class: {}", cls.getFullName(), e);
@@ -54,15 +51,13 @@ public class IndexService {
 		index.indexResource();
 	}
 
-	public void refreshIndex(JavaClass cls) {
+	public synchronized void refreshIndex(JavaClass cls) {
 		TextSearchIndex index = cache.getTextIndex();
-		CodeUsageInfo usageInfo = cache.getUsageInfo();
-		if (index == null || usageInfo == null) {
+		if (index == null) {
 			return;
 		}
 		indexSet.remove(cls);
 		index.remove(cls);
-		usageInfo.remove(cls);
 		indexCls(cls);
 	}
 

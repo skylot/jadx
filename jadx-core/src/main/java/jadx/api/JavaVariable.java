@@ -3,6 +3,8 @@ package jadx.api;
 import java.util.Collections;
 import java.util.List;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import jadx.api.data.annotations.VarDeclareRef;
 import jadx.api.data.annotations.VarRef;
 
@@ -30,6 +32,11 @@ public class JavaVariable implements JavaNode {
 	@Override
 	public String getName() {
 		return varRef.getName();
+	}
+
+	@ApiStatus.Internal
+	public VarRef getVarRef() {
+		return varRef;
 	}
 
 	@Override

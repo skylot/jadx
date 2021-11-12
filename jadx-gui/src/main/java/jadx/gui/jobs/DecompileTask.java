@@ -54,14 +54,30 @@ public class DecompileTask implements IBackgroundTask {
 		complete.set(0);
 
 		List<Runnable> jobs = new ArrayList<>(expectedCompleteCount + 1);
-		for (JavaClass cls : classesForIndex) {
+		jobs.add(indexService::indexResources);
+		for (List<JavaClass> batch : wrapper.buildDecompileBatches(classesForIndex)) {
 			jobs.add(() -> {
-				cls.decompile();
-				indexService.indexCls(cls);
-				complete.incrementAndGet();
+				for (JavaClass cls : batch) {
+					try {
+						cls.decompile();
+					} catch (Throwable e) {
+						LOG.error("Failed to decompile class: {}", cls, e);
+					} finally {
+						complete.incrementAndGet();
+					}
+				}
 			});
 		}
-		jobs.add(indexService::indexResources);
+		jobs.add(() -> {
+			for (JavaClass cls : classesForIndex) {
+				try {
+					// TODO: a lot of synchronizations to index object, not effective for parallel usage
+					indexService.indexCls(cls);
+				} catch (Throwable e) {
+					LOG.error("Failed to index class: {}", cls, e);
+				}
+			}
+		});
 		startTime = System.currentTimeMillis();
 		return jobs;
 	}

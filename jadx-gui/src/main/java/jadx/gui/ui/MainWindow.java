@@ -122,7 +122,6 @@ import jadx.gui.update.JadxUpdate;
 import jadx.gui.update.JadxUpdate.IUpdateCallback;
 import jadx.gui.update.data.Release;
 import jadx.gui.utils.CacheObject;
-import jadx.gui.utils.CodeUsageInfo;
 import jadx.gui.utils.FontUtils;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.LafManager;
@@ -525,7 +524,6 @@ public class MainWindow extends JFrame {
 		cacheObject.setJadxSettings(settings);
 
 		cacheObject.setIndexService(new IndexService(cacheObject));
-		cacheObject.setUsageInfo(new CodeUsageInfo(cacheObject.getNodeCache()));
 		cacheObject.setTextIndex(new TextSearchIndex(this));
 	}
 

@@ -53,6 +53,7 @@ import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.codearea.AbstractCodeArea;
 import jadx.gui.ui.panel.ProgressPanel;
 import jadx.gui.utils.CacheObject;
+import jadx.gui.utils.JNodeCache;
 import jadx.gui.utils.JumpPosition;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
@@ -563,5 +564,9 @@ public abstract class CommonSearchDialog extends JDialog {
 			warnLabel.setText(NLS.str("msg.index_not_initialized"));
 			warnLabel.setVisible(true);
 		}
+	}
+
+	protected JNodeCache getNodeCache() {
+		return mainWindow.getCacheObject().getNodeCache();
 	}
 }

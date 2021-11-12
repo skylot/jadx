@@ -18,7 +18,6 @@ public class CacheObject {
 	private IndexService indexService;
 
 	private TextSearchIndex textIndex;
-	private CodeUsageInfo usageInfo;
 	private CommentsIndex commentsIndex;
 	private String lastSearch;
 	private JNodeCache jNodeCache;
@@ -38,7 +37,6 @@ public class CacheObject {
 		textIndex = null;
 		lastSearch = null;
 		jNodeCache = new JNodeCache();
-		usageInfo = null;
 		lastSearchOptions = new HashMap<>();
 	}
 
@@ -57,15 +55,6 @@ public class CacheObject {
 
 	public void setLastSearch(String lastSearch) {
 		this.lastSearch = lastSearch;
-	}
-
-	@Nullable
-	public CodeUsageInfo getUsageInfo() {
-		return usageInfo;
-	}
-
-	public void setUsageInfo(@Nullable CodeUsageInfo usageInfo) {
-		this.usageInfo = usageInfo;
 	}
 
 	public CommentsIndex getCommentsIndex() {

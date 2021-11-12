@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.info.AccessInfo;
@@ -101,6 +103,7 @@ public final class JavaMethod implements JavaNode {
 	/**
 	 * Internal API. Not Stable!
 	 */
+	@ApiStatus.Internal
 	public MethodNode getMethodNode() {
 		return mth;
 	}

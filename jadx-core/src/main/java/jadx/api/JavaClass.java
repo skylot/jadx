@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.core.dex.attributes.AFlag;
@@ -69,6 +70,7 @@ public final class JavaClass implements JavaNode {
 	/**
 	 * Internal API. Not Stable!
 	 */
+	@ApiStatus.Internal
 	public ClassNode getClassNode() {
 		return cls;
 	}
@@ -153,6 +155,23 @@ public final class JavaClass implements JavaNode {
 			}
 		}
 		return resultMap;
+	}
+
+	public List<CodePosition> getUsageFor(JavaNode javaNode) {
+		Map<CodePosition, Object> map = getCodeAnnotations();
+		if (map.isEmpty() || decompiler == null) {
+			return Collections.emptyList();
+		}
+		Object internalNode = getRootDecompiler().getInternalNode(javaNode);
+		List<CodePosition> result = new ArrayList<>();
+		for (Map.Entry<CodePosition, Object> entry : map.entrySet()) {
+			CodePosition codePosition = entry.getKey();
+			Object obj = entry.getValue();
+			if (internalNode.equals(obj)) {
+				result.add(codePosition);
+			}
+		}
+		return result;
 	}
 
 	@Override

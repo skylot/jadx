@@ -207,6 +207,20 @@ public class Utils {
 		return result;
 	}
 
+	public static <T, R> List<R> collectionMapNoNull(Collection<T> list, Function<T, R> mapFunc) {
+		if (list == null || list.isEmpty()) {
+			return Collections.emptyList();
+		}
+		List<R> result = new ArrayList<>(list.size());
+		for (T t : list) {
+			R r = mapFunc.apply(t);
+			if (r != null) {
+				result.add(r);
+			}
+		}
+		return result;
+	}
+
 	public static <T> boolean containsInListByRef(List<T> list, T element) {
 		if (isEmpty(list)) {
 			return false;

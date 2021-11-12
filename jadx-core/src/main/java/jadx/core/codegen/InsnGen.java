@@ -682,7 +682,12 @@ public class InsnGen {
 			code.add("this");
 		} else {
 			code.add("new ");
-			code.attachAnnotation(callMth);
+			if (callMth == null || callMth.contains(AFlag.DONT_GENERATE)) {
+				// use class reference if constructor method is missing (default constructor)
+				code.attachAnnotation(mth.root().resolveClass(insn.getCallMth().getDeclClass()));
+			} else {
+				code.attachAnnotation(callMth);
+			}
 			mgen.getClassGen().addClsName(code, insn.getClassType());
 			GenericInfoAttr genericInfoAttr = insn.get(AType.GENERIC_INFO);
 			if (genericInfoAttr != null) {

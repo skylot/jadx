@@ -3,10 +3,10 @@ package jadx.gui.ui.dialog;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.FlowLayout;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -14,22 +14,25 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
+import jadx.api.CodePosition;
+import jadx.api.ICodeWriter;
 import jadx.api.JavaClass;
 import jadx.api.JavaNode;
-import jadx.gui.jobs.IndexService;
 import jadx.gui.jobs.TaskStatus;
 import jadx.gui.treemodel.CodeNode;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
-import jadx.gui.utils.CodeUsageInfo;
+import jadx.gui.utils.CodeLinesInfo;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
+import jadx.gui.utils.search.StringRef;
 
 public class UsageDialog extends CommonSearchDialog {
-
 	private static final long serialVersionUID = -5105405789969134105L;
 
 	private final transient JNode node;
+
+	private transient List<CodeNode> usageList;
 
 	public UsageDialog(MainWindow mainWindow, JNode node) {
 		super(mainWindow);
@@ -42,32 +45,9 @@ public class UsageDialog extends CommonSearchDialog {
 
 	@Override
 	protected void openInit() {
-		IndexService indexService = mainWindow.getCacheObject().getIndexService();
-		if (indexService.isComplete()) {
-			loadFinishedCommon();
-			loadFinished();
-			return;
-		}
-		List<JavaNode> useIn = node.getJavaNode().getUseIn();
-		List<JavaClass> usageTopClsForIndex = useIn
-				.stream()
-				.map(JavaNode::getTopParentClass)
-				.filter(indexService::isIndexNeeded)
-				.distinct()
-				.sorted(Comparator.comparing(JavaClass::getFullName))
-				.collect(Collectors.toList());
-		if (usageTopClsForIndex.isEmpty()) {
-			loadFinishedCommon();
-			loadFinished();
-			return;
-		}
+		usageList = new ArrayList<>();
 		mainWindow.getBackgroundExecutor().execute(NLS.str("progress.load"),
-				() -> {
-					for (JavaClass cls : usageTopClsForIndex) {
-						cls.decompile();
-						indexService.indexCls(cls);
-					}
-				},
+				this::collectUsageData,
 				(status) -> {
 					if (status == TaskStatus.CANCEL_BY_MEMORY) {
 						mainWindow.showHeapUsageBar();
@@ -76,6 +56,45 @@ public class UsageDialog extends CommonSearchDialog {
 					loadFinishedCommon();
 					loadFinished();
 				});
+	}
+
+	private void collectUsageData() {
+		node.getJavaNode().getUseIn()
+				.stream()
+				.map(JavaNode::getTopParentClass)
+				.distinct()
+				.sorted(Comparator.comparing(JavaClass::getFullName))
+				.forEach(this::processUsageClass);
+	}
+
+	private void processUsageClass(JavaClass cls) {
+		String code = cls.getCodeInfo().getCodeStr();
+		CodeLinesInfo linesInfo = new CodeLinesInfo(cls);
+		JavaNode javaNode = node.getJavaNode();
+		List<CodePosition> usage = cls.getUsageFor(javaNode);
+		for (CodePosition pos : usage) {
+			if (javaNode.getTopParentClass().equals(cls) && pos.getPos() == javaNode.getDefPos()) {
+				// skip declaration
+				continue;
+			}
+			StringRef line = getLineStrAt(code, pos.getPos());
+			if (line.startsWith("import ")) {
+				continue;
+			}
+			JavaNode javaNodeByLine = linesInfo.getJavaNodeByLine(pos.getLine());
+			JNode useAtNode = javaNodeByLine == null ? node : getNodeCache().makeFrom(javaNodeByLine);
+			usageList.add(new CodeNode(useAtNode, line, pos.getLine(), pos.getPos()));
+		}
+	}
+
+	private StringRef getLineStrAt(String code, int pos) {
+		String newLine = ICodeWriter.NL;
+		int start = code.lastIndexOf(newLine, pos);
+		int end = code.indexOf(newLine, pos);
+		if (start == -1 || end == -1) {
+			return StringRef.fromStr("line not found");
+		}
+		return StringRef.subString(code, start + newLine.length(), end).trim();
 	}
 
 	@Override
@@ -92,12 +111,6 @@ public class UsageDialog extends CommonSearchDialog {
 	@Override
 	protected synchronized void performSearch() {
 		resultsModel.clear();
-
-		CodeUsageInfo usageInfo = cache.getUsageInfo();
-		if (usageInfo == null) {
-			return;
-		}
-		List<CodeNode> usageList = usageInfo.getUsageList(node);
 		Collections.sort(usageList);
 		resultsModel.addAll(usageList);
 		// TODO: highlight only needed node usage

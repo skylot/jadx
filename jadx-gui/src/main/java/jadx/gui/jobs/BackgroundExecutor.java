@@ -119,6 +119,7 @@ public class BackgroundExecutor {
 		private TaskStatus waitTermination(ThreadPoolExecutor executor) throws InterruptedException {
 			Supplier<TaskStatus> cancelCheck = buildCancelCheck();
 			try {
+				int k = 0;
 				while (true) {
 					if (executor.isTerminated()) {
 						return TaskStatus.COMPLETE;
@@ -129,7 +130,8 @@ public class BackgroundExecutor {
 						return cancelStatus;
 					}
 					setProgress(calcProgress(executor.getCompletedTaskCount()));
-					Thread.sleep(300);
+					k++;
+					Thread.sleep(k < 20 ? 100 : 1000); // faster update for short tasks
 				}
 			} catch (InterruptedException e) {
 				LOG.debug("Task wait interrupted");

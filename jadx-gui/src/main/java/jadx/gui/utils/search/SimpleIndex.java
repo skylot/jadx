@@ -1,8 +1,8 @@
 package jadx.gui.utils.search;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
@@ -12,7 +12,7 @@ import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JNode;
 
 public class SimpleIndex {
-	private final Map<JNode, String> data = new ConcurrentHashMap<>();
+	private final Map<JNode, String> data = new HashMap<>();
 
 	public void put(String str, JNode value) {
 		data.put(value, str);

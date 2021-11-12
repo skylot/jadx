@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.SaveCode;
 import jadx.core.export.ExportGradleProject;
+import jadx.core.utils.DecompilerScheduler;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
@@ -90,6 +92,8 @@ public final class JadxDecompiler implements Closeable {
 	private final Map<ClassNode, JavaClass> classesMap = new ConcurrentHashMap<>();
 	private final Map<MethodNode, JavaMethod> methodsMap = new ConcurrentHashMap<>();
 	private final Map<FieldNode, JavaField> fieldsMap = new ConcurrentHashMap<>();
+
+	private final IDecompileScheduler decompileScheduler = new DecompilerScheduler(this);
 
 	public JadxDecompiler() {
 		this(new JadxArgs());
@@ -281,19 +285,26 @@ public final class JadxDecompiler implements Closeable {
 
 	private void appendSourcesSave(List<Runnable> tasks, File outDir) {
 		Predicate<String> classFilter = args.getClassFilter();
-		for (JavaClass cls : getClasses()) {
+		List<JavaClass> classes = getClasses();
+		List<JavaClass> processQueue = new ArrayList<>(classes.size());
+		for (JavaClass cls : classes) {
 			if (cls.getClassNode().contains(AFlag.DONT_GENERATE)) {
 				continue;
 			}
 			if (classFilter != null && !classFilter.test(cls.getFullName())) {
 				continue;
 			}
+			processQueue.add(cls);
+		}
+		for (List<JavaClass> decompileBatch : decompileScheduler.buildBatches(processQueue)) {
 			tasks.add(() -> {
-				try {
-					ICodeInfo code = cls.getCodeInfo();
-					SaveCode.save(outDir, cls.getClassNode(), code);
-				} catch (Exception e) {
-					LOG.error("Error saving class: {}", cls.getFullName(), e);
+				for (JavaClass cls : decompileBatch) {
+					try {
+						ICodeInfo code = cls.getCodeInfo();
+						SaveCode.save(outDir, cls.getClassNode(), code);
+					} catch (Exception e) {
+						LOG.error("Error saving class: {}", cls, e);
+					}
 				}
 			});
 		}
@@ -405,7 +416,8 @@ public final class JadxDecompiler implements Closeable {
 	}
 
 	@Nullable("For not generated classes")
-	private JavaClass getJavaClassByNode(ClassNode cls) {
+	@ApiStatus.Internal
+	public JavaClass getJavaClassByNode(ClassNode cls) {
 		JavaClass javaClass = classesMap.get(cls);
 		if (javaClass != null) {
 			return javaClass;
@@ -554,6 +566,23 @@ public final class JadxDecompiler implements Closeable {
 		throw new JadxRuntimeException("Unexpected node type: " + obj);
 	}
 
+	// TODO: make interface for all nodes in code annotations and add common method instead this
+	Object getInternalNode(JavaNode javaNode) {
+		if (javaNode instanceof JavaClass) {
+			return ((JavaClass) javaNode).getClassNode();
+		}
+		if (javaNode instanceof JavaMethod) {
+			return ((JavaMethod) javaNode).getMethodNode();
+		}
+		if (javaNode instanceof JavaField) {
+			return ((JavaField) javaNode).getFieldNode();
+		}
+		if (javaNode instanceof JavaVariable) {
+			return ((JavaVariable) javaNode).getVarRef();
+		}
+		throw new JadxRuntimeException("Unexpected node type: " + javaNode);
+	}
+
 	List<JavaNode> convertNodes(Collection<?> nodesList) {
 		return nodesList.stream()
 				.map(this::convertNode)
@@ -595,6 +624,10 @@ public final class JadxDecompiler implements Closeable {
 
 	public JadxPluginManager getPluginManager() {
 		return pluginManager;
+	}
+
+	public IDecompileScheduler getDecompileScheduler() {
+		return decompileScheduler;
 	}
 
 	@Override
