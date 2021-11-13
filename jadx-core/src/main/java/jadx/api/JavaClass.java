@@ -63,6 +63,11 @@ public final class JavaClass implements JavaNode {
 		cls.reloadCode();
 	}
 
+	public void unload() {
+		listsLoaded = false;
+		cls.unloadCode();
+	}
+
 	public synchronized String getSmali() {
 		return cls.getDisassembledCode();
 	}
@@ -81,13 +86,14 @@ public final class JavaClass implements JavaNode {
 		}
 		listsLoaded = true;
 		decompile();
+		JadxDecompiler rootDecompiler = getRootDecompiler();
 
 		int inClsCount = cls.getInnerClasses().size();
 		if (inClsCount != 0) {
 			List<JavaClass> list = new ArrayList<>(inClsCount);
 			for (ClassNode inner : cls.getInnerClasses()) {
 				if (!inner.contains(AFlag.DONT_GENERATE)) {
-					JavaClass javaClass = new JavaClass(inner, this);
+					JavaClass javaClass = rootDecompiler.convertClassNode(inner);
 					javaClass.loadLists();
 					list.add(javaClass);
 				}

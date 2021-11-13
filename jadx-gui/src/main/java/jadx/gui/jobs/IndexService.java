@@ -61,6 +61,15 @@ public class IndexService {
 		indexCls(cls);
 	}
 
+	public synchronized void remove(JavaClass cls) {
+		TextSearchIndex index = cache.getTextIndex();
+		if (index == null) {
+			return;
+		}
+		indexSet.remove(cls);
+		index.remove(cls);
+	}
+
 	public boolean isIndexNeeded(JavaClass cls) {
 		return !indexSet.contains(cls);
 	}

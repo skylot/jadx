@@ -415,6 +415,18 @@ public final class JadxDecompiler implements Closeable {
 		}
 	}
 
+	/**
+	 * Get JavaClass by ClassNode without loading and decompilation
+	 */
+	JavaClass convertClassNode(ClassNode cls) {
+		return classesMap.computeIfAbsent(cls, node -> {
+			if (cls.isInner()) {
+				return new JavaClass(cls, convertClassNode(cls.getParentClass()));
+			}
+			return new JavaClass(cls, this);
+		});
+	}
+
 	@Nullable("For not generated classes")
 	@ApiStatus.Internal
 	public JavaClass getJavaClassByNode(ClassNode cls) {
@@ -555,7 +567,7 @@ public final class JadxDecompiler implements Closeable {
 			return null;
 		}
 		if (obj instanceof ClassNode) {
-			return getJavaClassByNode((ClassNode) obj);
+			return convertClassNode((ClassNode) obj);
 		}
 		if (obj instanceof MethodNode) {
 			return getJavaMethodByNode(((MethodNode) obj));

@@ -77,6 +77,11 @@ public class JClass extends JLoadableNode implements Comparable<JClass> {
 		update();
 	}
 
+	public synchronized void unload() {
+		cls.unload();
+		loaded = false;
+	}
+
 	public synchronized void update() {
 		removeAllChildren();
 		if (!loaded) {

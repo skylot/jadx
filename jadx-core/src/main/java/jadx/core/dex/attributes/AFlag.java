@@ -82,6 +82,7 @@ public enum AFlag {
 	RESTART_CODEGEN, // codegen must be executed again
 	RELOAD_AT_CODEGEN_STAGE, // class can't be analyzed at 'process' stage => unload before 'codegen' stage
 	CLASS_DEEP_RELOAD, // perform deep class unload (reload) before process
+	CLASS_UNLOADED, // class was completely unloaded
 
 	DONT_UNLOAD_CLASS, // don't unload class after code generation (only for tests and debug!)
 }

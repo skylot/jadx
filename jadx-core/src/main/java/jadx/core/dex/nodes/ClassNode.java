@@ -274,6 +274,15 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		return decompile(false);
 	}
 
+	public void unloadCode() {
+		if (state == NOT_LOADED) {
+			return;
+		}
+		add(AFlag.CLASS_UNLOADED);
+		unloadFromCache();
+		deepUnload();
+	}
+
 	public void deepUnload() {
 		if (clsData == null) {
 			// manually added class
@@ -287,17 +296,27 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		innerClasses.forEach(ClassNode::deepUnload);
 	}
 
-	private synchronized ICodeInfo decompile(boolean searchInCache) {
+	private void unloadFromCache() {
+		if (isInner()) {
+			return;
+		}
 		ICodeCache codeCache = root().getCodeCache();
-		ClassNode topParentClass = getTopParentClass();
-		String clsRawName = topParentClass.getRawName();
+		codeCache.remove(getRawName());
+	}
+
+	private synchronized ICodeInfo decompile(boolean searchInCache) {
+		if (isInner()) {
+			return ICodeInfo.EMPTY;
+		}
+		ICodeCache codeCache = root().getCodeCache();
+		String clsRawName = getRawName();
 		if (searchInCache) {
 			ICodeInfo code = codeCache.get(clsRawName);
 			if (code != null && code != ICodeInfo.EMPTY) {
 				return code;
 			}
 		}
-		ICodeInfo codeInfo = ProcessClass.generateCode(topParentClass);
+		ICodeInfo codeInfo = ProcessClass.generateCode(this);
 		codeCache.add(clsRawName, codeInfo);
 		return codeInfo;
 	}
@@ -510,7 +529,8 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	/**
 	 * Get all inner and inlined classes recursively
 	 *
-	 * @param resultClassesSet all identified inner and inlined classes are added to this set
+	 * @param resultClassesSet
+	 *                         all identified inner and inlined classes are added to this set
 	 */
 	public void getInnerAndInlinedClassesRecursive(Set<ClassNode> resultClassesSet) {
 		for (ClassNode innerCls : innerClasses) {
@@ -552,6 +572,10 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 
 	public boolean isInner() {
 		return parentClass != this;
+	}
+
+	public boolean isTopClass() {
+		return parentClass == this;
 	}
 
 	@Nullable

@@ -42,6 +42,7 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.rename.RenameVisitor;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
+import jadx.gui.jobs.IndexService;
 import jadx.gui.jobs.TaskStatus;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JClass;
@@ -97,6 +98,7 @@ public class RenameDialog extends JDialog {
 			refreshState();
 		} catch (Exception e) {
 			LOG.error("Rename failed", e);
+			UiUtils.errorMessage(this, "Rename failed:\n" + Utils.getStackTrace(e));
 		}
 		dispose();
 	}
@@ -191,7 +193,7 @@ public class RenameDialog extends JDialog {
 
 		if (!updatedTopClasses.isEmpty()) {
 			mainWindow.getBackgroundExecutor().execute("Refreshing",
-					Utils.collectionMap(updatedTopClasses, cls -> () -> refreshJClass(cls)),
+					() -> refreshClasses(updatedTopClasses),
 					(status) -> {
 						if (status == TaskStatus.CANCEL_BY_MEMORY) {
 							mainWindow.showHeapUsageBar();
@@ -219,12 +221,31 @@ public class RenameDialog extends JDialog {
 		}
 	}
 
-	private void refreshJClass(JClass cls) {
-		try {
-			cls.reload();
-			cache.getIndexService().refreshIndex(cls.getCls());
-		} catch (Exception e) {
-			LOG.error("Failed to reload class: {}", cls.getFullName(), e);
+	private void refreshClasses(Set<JClass> updatedTopClasses) {
+		IndexService indexService = cache.getIndexService();
+		if (updatedTopClasses.size() < 10) {
+			// small batch => reload
+			LOG.debug("Classes to reload: {}", updatedTopClasses.size());
+			for (JClass cls : updatedTopClasses) {
+				try {
+					cls.reload();
+					indexService.refreshIndex(cls.getCls());
+				} catch (Exception e) {
+					LOG.error("Failed to reload class: {}", cls.getFullName(), e);
+				}
+			}
+		} else {
+			// big batch => unload
+			LOG.debug("Classes to unload: {}", updatedTopClasses.size());
+			indexService.setComplete(false);
+			for (JClass cls : updatedTopClasses) {
+				try {
+					cls.unload();
+					indexService.remove(cls.getCls());
+				} catch (Exception e) {
+					LOG.error("Failed to unload class: {}", cls.getFullName(), e);
+				}
+			}
 		}
 	}
 
