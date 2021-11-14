@@ -134,7 +134,7 @@ public class DeobfPresets {
 			list.add(String.format("m %s = %s", mthEntry.getKey(), mthEntry.getValue()));
 		}
 		Collections.sort(list);
-		if (list.size() == 0) {
+		if (list.isEmpty()) {
 			if (LOG.isDebugEnabled()) {
 				LOG.debug("Deobfuscation map is empty, not saving it");
 			}
