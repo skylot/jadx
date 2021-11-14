@@ -171,7 +171,7 @@ public final class CodeArea extends AbstractCodeArea {
 			return null;
 		}
 		JNode jNode = convertJavaNode(foundNode);
-		return new JumpPosition(jNode.getRootClass(), pos.getLine(), JumpPosition.getDefPos(jNode));
+		return new JumpPosition(jNode.getRootClass(), pos);
 	}
 
 	private JNode convertJavaNode(JavaNode javaNode) {
@@ -252,8 +252,7 @@ public final class CodeArea extends AbstractCodeArea {
 				CaretPositionFix caretFix = new CaretPositionFix(this);
 				caretFix.save();
 
-				cls.reload();
-				getMainWindow().getCacheObject().getIndexService().refreshIndex(cls.getCls());
+				cls.reload(getMainWindow().getCacheObject());
 
 				ClassCodeContentPanel codeContentPanel = (ClassCodeContentPanel) this.contentPanel;
 				codeContentPanel.getTabbedPane().refresh(cls);

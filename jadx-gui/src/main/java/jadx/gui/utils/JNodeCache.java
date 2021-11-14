@@ -25,7 +25,7 @@ public class JNodeCache {
 		}
 		// don't use 'computeIfAbsent' method here, it this cause 'Recursive update' exception
 		JNode jNode = cache.get(javaNode);
-		if (jNode == null) {
+		if (jNode == null || jNode.getJavaNode() != javaNode) {
 			jNode = convert(javaNode);
 			cache.put(javaNode, jNode);
 		}
@@ -37,11 +37,21 @@ public class JNodeCache {
 			return null;
 		}
 		JClass jCls = (JClass) cache.get(javaCls);
-		if (jCls == null) {
+		if (jCls == null || jCls.getCls() != javaCls) {
 			jCls = convert(javaCls);
 			cache.put(javaCls, jCls);
 		}
 		return jCls;
+	}
+
+	public void remove(JavaNode javaNode) {
+		cache.remove(javaNode);
+	}
+
+	public void removeWholeClass(JavaClass javaCls) {
+		remove(javaCls);
+		javaCls.getMethods().forEach(this::remove);
+		javaCls.getFields().forEach(this::remove);
 	}
 
 	private JClass convert(JavaClass cls) {

@@ -254,8 +254,7 @@ public class MainWindow extends JFrame {
 						NLS.str("error_dialog.title"), JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			JNode node = cacheObject.getNodeCache().makeFrom(javaNode);
-			tabbedPane.codeJump(new JumpPosition(node.getRootClass(), node.getLine(), JumpPosition.getDefPos(node)));
+			tabbedPane.codeJump(cacheObject.getNodeCache().makeFrom(javaNode));
 		}
 	}
 

@@ -42,7 +42,6 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.rename.RenameVisitor;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
-import jadx.gui.jobs.IndexService;
 import jadx.gui.jobs.TaskStatus;
 import jadx.gui.settings.JadxProject;
 import jadx.gui.treemodel.JClass;
@@ -222,14 +221,12 @@ public class RenameDialog extends JDialog {
 	}
 
 	private void refreshClasses(Set<JClass> updatedTopClasses) {
-		IndexService indexService = cache.getIndexService();
 		if (updatedTopClasses.size() < 10) {
 			// small batch => reload
 			LOG.debug("Classes to reload: {}", updatedTopClasses.size());
 			for (JClass cls : updatedTopClasses) {
 				try {
-					cls.reload();
-					indexService.refreshIndex(cls.getCls());
+					cls.reload(cache);
 				} catch (Exception e) {
 					LOG.error("Failed to reload class: {}", cls.getFullName(), e);
 				}
@@ -237,11 +234,10 @@ public class RenameDialog extends JDialog {
 		} else {
 			// big batch => unload
 			LOG.debug("Classes to unload: {}", updatedTopClasses.size());
-			indexService.setComplete(false);
+			cache.getIndexService().setComplete(false);
 			for (JClass cls : updatedTopClasses) {
 				try {
-					cls.unload();
-					indexService.remove(cls.getCls());
+					cls.unload(cache);
 				} catch (Exception e) {
 					LOG.error("Failed to unload class: {}", cls.getFullName(), e);
 				}

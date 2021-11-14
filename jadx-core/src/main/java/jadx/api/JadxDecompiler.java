@@ -419,7 +419,11 @@ public final class JadxDecompiler implements Closeable {
 	 * Get JavaClass by ClassNode without loading and decompilation
 	 */
 	JavaClass convertClassNode(ClassNode cls) {
-		return classesMap.computeIfAbsent(cls, node -> {
+		return classesMap.compute(cls, (node, prevJavaCls) -> {
+			if (prevJavaCls != null && prevJavaCls.getClassNode() == cls) {
+				// keep previous variable
+				return prevJavaCls;
+			}
 			if (cls.isInner()) {
 				return new JavaClass(cls, convertClassNode(cls.getParentClass()));
 			}
@@ -431,7 +435,7 @@ public final class JadxDecompiler implements Closeable {
 	@ApiStatus.Internal
 	public JavaClass getJavaClassByNode(ClassNode cls) {
 		JavaClass javaClass = classesMap.get(cls);
-		if (javaClass != null) {
+		if (javaClass != null && javaClass.getClassNode() == cls) {
 			return javaClass;
 		}
 		// load parent class if inner
@@ -461,7 +465,7 @@ public final class JadxDecompiler implements Closeable {
 	@Nullable
 	private JavaMethod getJavaMethodByNode(MethodNode mth) {
 		JavaMethod javaMethod = methodsMap.get(mth);
-		if (javaMethod != null) {
+		if (javaMethod != null && javaMethod.getMethodNode() == mth) {
 			return javaMethod;
 		}
 		if (mth.contains(AFlag.DONT_GENERATE)) {
@@ -486,7 +490,7 @@ public final class JadxDecompiler implements Closeable {
 	@Nullable
 	private JavaField getJavaFieldByNode(FieldNode fld) {
 		JavaField javaField = fieldsMap.get(fld);
-		if (javaField != null) {
+		if (javaField != null && javaField.getFieldNode() == fld) {
 			return javaField;
 		}
 		// parent class not loaded yet

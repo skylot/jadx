@@ -218,8 +218,11 @@ public class TabbedPane extends JTabbedPane {
 		}
 	}
 
+	/**
+	 * Jump to node definition
+	 */
 	public void codeJump(JNode node) {
-		codeJump(new JumpPosition(node));
+		codeJump(new JumpPosition(Objects.requireNonNull(node)));
 	}
 
 	public void codeJump(JumpPosition pos) {

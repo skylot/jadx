@@ -3,7 +3,6 @@ package jadx.gui.utils;
 import java.util.Objects;
 
 import jadx.api.CodePosition;
-import jadx.api.JavaNode;
 import jadx.gui.treemodel.JNode;
 
 public class JumpPosition {
@@ -41,14 +40,6 @@ public class JumpPosition {
 		return line;
 	}
 
-	public static int getDefPos(JNode node) {
-		JavaNode javaNode = node.getJavaNode();
-		if (javaNode == null) {
-			return -1;
-		}
-		return javaNode.getDefPos();
-	}
-
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
@@ -58,7 +49,7 @@ public class JumpPosition {
 			return false;
 		}
 		JumpPosition position = (JumpPosition) obj;
-		return line == position.line && node.equals(position.node) && pos == position.pos;
+		return line == position.line && pos == position.pos && node.equals(position.node);
 	}
 
 	@Override

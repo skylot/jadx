@@ -45,7 +45,6 @@ public class UsageDialog extends CommonSearchDialog {
 
 	@Override
 	protected void openInit() {
-		usageList = new ArrayList<>();
 		mainWindow.getBackgroundExecutor().execute(NLS.str("progress.load"),
 				this::collectUsageData,
 				(status) -> {
@@ -59,6 +58,7 @@ public class UsageDialog extends CommonSearchDialog {
 	}
 
 	private void collectUsageData() {
+		usageList = new ArrayList<>();
 		node.getJavaNode().getUseIn()
 				.stream()
 				.map(JavaNode::getTopParentClass)

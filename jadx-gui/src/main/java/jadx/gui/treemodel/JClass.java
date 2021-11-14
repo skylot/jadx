@@ -17,6 +17,7 @@ import jadx.core.dex.info.AccessInfo;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.codearea.ClassCodeContentPanel;
 import jadx.gui.ui.panel.ContentPanel;
+import jadx.gui.utils.CacheObject;
 import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
@@ -71,13 +72,18 @@ public class JClass extends JLoadableNode implements Comparable<JClass> {
 		update();
 	}
 
-	public synchronized void reload() {
+	public synchronized void reload(CacheObject cache) {
+		cache.getNodeCache().removeWholeClass(cls);
+		cache.getIndexService().remove(cls);
 		cls.reload();
 		loaded = true;
 		update();
+		cache.getIndexService().indexCls(cls);
 	}
 
-	public synchronized void unload() {
+	public synchronized void unload(CacheObject cache) {
+		cache.getNodeCache().removeWholeClass(cls);
+		cache.getIndexService().remove(cls);
 		cls.unload();
 		loaded = false;
 	}
