@@ -134,6 +134,12 @@ public class DeobfPresets {
 			list.add(String.format("m %s = %s", mthEntry.getKey(), mthEntry.getValue()));
 		}
 		Collections.sort(list);
+		if (list.isEmpty()) {
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Deobfuscation map is empty, not saving it");
+			}
+			return;
+		}
 		Files.write(deobfMapFile, list, MAP_FILE_CHARSET,
 				StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 		if (LOG.isDebugEnabled()) {
