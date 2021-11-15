@@ -28,8 +28,9 @@ public class ClspGraph {
 	private static final Logger LOG = LoggerFactory.getLogger(ClspGraph.class);
 
 	private final RootNode root;
-	private Map<String, Set<String>> superTypesCache;
 	private Map<String, ClspClass> nameMap;
+	private Map<String, Set<String>> superTypesCache;
+	private Map<String, List<String>> implementsCache;
 
 	private final Set<String> missingClasses = new HashSet<>();
 
@@ -59,6 +60,11 @@ public class ClspGraph {
 		for (ClassNode cls : classes) {
 			addClass(cls);
 		}
+	}
+
+	public void initCache() {
+		fillSuperTypesCache();
+		fillImplementsCache();
 	}
 
 	public boolean isClsKnown(String fullName) {
@@ -114,13 +120,20 @@ public class ClspGraph {
 	}
 
 	public List<String> getImplementations(String clsName) {
-		List<String> list = new ArrayList<>();
-		for (String cls : nameMap.keySet()) {
-			if (isImplements(cls, clsName)) {
-				list.add(cls);
+		List<String> list = implementsCache.get(clsName);
+		return list == null ? Collections.emptyList() : list;
+	}
+
+	private void fillImplementsCache() {
+		Map<String, List<String>> map = new HashMap<>(nameMap.size());
+		List<String> classes = new ArrayList<>(nameMap.keySet());
+		Collections.sort(classes);
+		for (String cls : classes) {
+			for (String st : getSuperTypes(cls)) {
+				map.computeIfAbsent(st, v -> new ArrayList<>()).add(cls);
 			}
 		}
-		return list;
+		implementsCache = map;
 	}
 
 	public String getCommonAncestor(String clsName, String implClsName) {
@@ -157,24 +170,11 @@ public class ClspGraph {
 	}
 
 	public Set<String> getSuperTypes(String clsName) {
-		if (superTypesCache != null) {
-			Set<String> result = superTypesCache.get(clsName);
-			if (result == null) {
-				return Collections.emptySet();
-			}
-			return result;
-		}
-		ClspClass cls = nameMap.get(clsName);
-		if (cls == null) {
-			missingClasses.add(clsName);
-			return Collections.emptySet();
-		}
-		Set<String> result = new HashSet<>();
-		addSuperTypes(cls, result);
-		return result;
+		Set<String> result = superTypesCache.get(clsName);
+		return result == null ? Collections.emptySet() : result;
 	}
 
-	public synchronized void fillSuperTypesCache() {
+	private void fillSuperTypesCache() {
 		Map<String, Set<String>> map = new HashMap<>(nameMap.size());
 		Set<String> tmpSet = new HashSet<>();
 		for (Map.Entry<String, ClspClass> entry : nameMap.entrySet()) {

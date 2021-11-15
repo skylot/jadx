@@ -196,6 +196,7 @@ public class RootNode {
 				ClspGraph newClsp = new ClspGraph(this);
 				newClsp.load();
 				newClsp.addApp(classes);
+				newClsp.initCache();
 				this.clsp = newClsp;
 			}
 		} catch (Exception e) {

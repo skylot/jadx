@@ -19,6 +19,8 @@ dependencies {
 	testRuntimeOnly(project(':jadx-plugins:jadx-java-convert'))
 	testRuntimeOnly(project(':jadx-plugins:jadx-java-input'))
 	testRuntimeOnly(project(':jadx-plugins:jadx-raung-input'))
+
+	testImplementation('tools.profiler:async-profiler:1.8.3')
 }
 
 test {
