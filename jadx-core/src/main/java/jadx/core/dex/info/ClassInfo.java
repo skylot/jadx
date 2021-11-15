@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -247,6 +248,11 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 	public void notInner(RootNode root) {
 		this.parentClass = null;
 		splitAndApplyNames(root, type, false);
+	}
+
+	public void convertToInner(ClassNode parent) {
+		this.parentClass = parent.getClassInfo();
+		splitAndApplyNames(parent.root(), type, true);
 	}
 
 	public void updateNames(RootNode root) {

@@ -179,7 +179,16 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	}
 
 	public static ClassNode addSyntheticClass(RootNode root, String name, int accessFlags) {
-		ClassNode cls = new ClassNode(root, name, accessFlags);
+		ClassInfo clsInfo = ClassInfo.fromName(root, name);
+		ClassNode existCls = root.resolveClass(clsInfo);
+		if (existCls != null) {
+			throw new JadxRuntimeException("Class already exist: " + name);
+		}
+		return addSyntheticClass(root, clsInfo, accessFlags);
+	}
+
+	public static ClassNode addSyntheticClass(RootNode root, ClassInfo clsInfo, int accessFlags) {
+		ClassNode cls = new ClassNode(root, clsInfo, accessFlags);
 		cls.add(AFlag.SYNTHETIC);
 		cls.setState(ProcessState.PROCESS_COMPLETE);
 		root.addClassNode(cls);
@@ -187,10 +196,10 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	}
 
 	// Create empty class
-	private ClassNode(RootNode root, String name, int accessFlags) {
+	private ClassNode(RootNode root, ClassInfo clsInfo, int accessFlags) {
 		this.root = root;
 		this.clsData = null;
-		this.clsInfo = ClassInfo.fromName(root, name);
+		this.clsInfo = clsInfo;
 		this.interfaces = new ArrayList<>();
 		this.methods = new ArrayList<>();
 		this.fields = new ArrayList<>();
