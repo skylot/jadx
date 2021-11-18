@@ -202,12 +202,14 @@ public class ResourceIndex {
 				} else {
 					resNodes.add(resNode);
 				}
+			} else {
+				LOG.debug("Resource skipped because of size limit: {} res size {} bytes", resNode, size);
 			}
 		}
 	}
 
 	private void refreshSettings() {
-		int size = cache.getJadxSettings().getSrhResourceSkipSize() * 10240;
+		int size = cache.getJadxSettings().getSrhResourceSkipSize() * 1048576;
 		if (size != sizeLimit
 				|| !cache.getJadxSettings().getSrhResourceFileExt().equals(fileExts)) {
 			clear();
@@ -224,14 +226,10 @@ public class ResourceIndex {
 					extSet.add(ext);
 				}
 			}
-			try {
-				ZipFile zipFile = getZipFile(cache.getJRoot());
+			try (ZipFile zipFile = getZipFile(cache.getJRoot())) {
 				traverseTree(cache.getJRoot(), zipFile); // reindex
-				if (zipFile != null) {
-					zipFile.close();
-				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOG.error("Failed to apply settings to resource index", e);
 			}
 		}
 	}
