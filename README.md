@@ -21,15 +21,11 @@ Command line and GUI tools for producing Java source code from Android Dex and A
 - jump to declaration
 - find usage
 - full text search
-
-**Upcoming unstable features:**
 - smali debugger (thanks to [@LBJ-the-GOAT](https://github.com/LBJ-the-GOAT)), check [wiki page](https://github.com/skylot/jadx/wiki/Smali-debugger) for setup and usage
 
 See these features in action here: [jadx-gui features overview](https://github.com/skylot/jadx/wiki/jadx-gui-features-overview)
 
-
-![jadx-gui screenshot](https://i.imgur.com/h917IBZ.png)
-
+<img src="https://user-images.githubusercontent.com/118523/142730720-839f017e-38db-423e-b53f-39f5f0a0316f.png" width="700"/>
 
 ### Download
 - release from [github: ![Latest release](https://img.shields.io/github/release/skylot/jadx.svg)](https://github.com/skylot/jadx/releases/latest)
@@ -40,8 +36,8 @@ After download unpack zip file go to `bin` directory and run:
 - `jadx-gui` - UI version
 
 On Windows run `.bat` files with double-click\
-**Note:** ensure you have installed Java 8 or later 64-bit version.
-For windows you can download it from [adoptopenjdk.net](https://adoptopenjdk.net/releases.html?variant=openjdk11&jvmVariant=hotspot#x64_win) (select "Install JRE").
+**Note:** ensure you have installed Java 11 or later 64-bit version.
+For windows you can download it from [oracle.com](https://www.oracle.com/java/technologies/downloads/#jdk17-windows) (select x64 Installer).
 
 ### Install
 1. Arch linux
