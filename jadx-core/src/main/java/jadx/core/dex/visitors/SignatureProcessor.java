@@ -129,7 +129,7 @@ public class SignatureProcessor extends AbstractVisitor {
 			if (checkedArgTypes == null) {
 				return false;
 			}
-			mth.updateTypes(Utils.lockList(checkedArgTypes), retType);
+			mth.updateTypes(Collections.unmodifiableList(checkedArgTypes), retType);
 			return true;
 		} catch (Exception e) {
 			mth.addWarnComment("Type validation failed for signature: " + sp.getSignature(), e);

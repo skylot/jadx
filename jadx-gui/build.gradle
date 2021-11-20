@@ -89,7 +89,7 @@ launch4j {
 	maxHeapSize = 4096
 	maxHeapPercent = 70
 	downloadUrl = 'https://www.oracle.com/java/technologies/downloads/#jdk17-windows'
-	bundledJrePath = '%JAVA_HOME%'
+	bundledJrePath = project.hasProperty("bundleJRE") ? '%EXEDIR%/jre' : '%JAVA_HOME%'
 }
 
 runtime {
@@ -110,19 +110,7 @@ runtime {
 	}
 }
 
-tasks.register('distLaunch4jConfig') {
-	def configFile = layout.buildDirectory.file("jadx-gui-${version}.l4j.ini")
-	outputs.file(configFile).withPropertyName('outputFiles')
-
-	doLast {
-		configFile.get().getAsFile().write("""
-# Launch4j runtime config
--DJAVA_HOME="%EXEDIR%/jre"
-""".trim())
-	}
-}
-
-task distWinWithJre(type: Zip, dependsOn: ['runtime', 'createExe', 'distLaunch4jConfig']) {
+task distWinWithJre(type: Zip, dependsOn: ['runtime', 'createExe']) {
 	group 'jadx'
 	destinationDirectory = buildDir
 	archiveFileName = "jadx-gui-${jadxVersion}-with-jre-win.zip"
@@ -132,9 +120,6 @@ task distWinWithJre(type: Zip, dependsOn: ['runtime', 'createExe', 'distLaunch4j
 	}
 	from(createExe.outputs) {
 		include '*.exe'
-	}
-	from(distLaunch4jConfig.outputs) {
-		include '*.ini'
 	}
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
