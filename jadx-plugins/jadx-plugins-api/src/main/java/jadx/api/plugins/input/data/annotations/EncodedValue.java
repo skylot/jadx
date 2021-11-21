@@ -5,8 +5,9 @@ import java.util.Objects;
 import jadx.api.plugins.input.data.attributes.IJadxAttrType;
 import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.api.plugins.input.data.attributes.JadxAttrType;
+import jadx.api.plugins.input.data.attributes.PinnedAttribute;
 
-public class EncodedValue implements IJadxAttribute {
+public class EncodedValue extends PinnedAttribute {
 	public static final EncodedValue NULL = new EncodedValue(EncodedType.ENCODED_NULL, null);
 
 	private final EncodedType type;
