@@ -162,7 +162,7 @@ public final class SmaliArea extends AbstractCodeArea {
 		public NormalModel() {
 			Theme theme = getContentPanel().getTabbedPane().getMainWindow().getEditorTheme();
 			setSyntaxScheme(theme.scheme);
-			setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
+			setSyntaxEditingStyle("text/smali");
 		}
 
 		@Override
