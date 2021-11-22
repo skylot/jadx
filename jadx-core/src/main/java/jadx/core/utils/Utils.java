@@ -315,6 +315,21 @@ public class Utils {
 		return result;
 	}
 
+	/**
+	 * Build map from list of values with value to key mapping function
+	 * <br>
+	 * Similar to:
+	 * <br>
+	 * {@code list.stream().collect(Collectors.toMap(mapKey, Function.identity())); }
+	 */
+	public static <K, V> Map<K, V> groupBy(List<V> list, Function<V, K> mapKey) {
+		Map<K, V> map = new HashMap<>(list.size());
+		for (V v : list) {
+			map.put(mapKey.apply(v), v);
+		}
+		return map;
+	}
+
 	@Nullable
 	public static <T> T getOne(@Nullable List<T> list) {
 		if (list == null || list.size() != 1) {

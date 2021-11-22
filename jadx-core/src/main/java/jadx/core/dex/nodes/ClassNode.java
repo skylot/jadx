@@ -108,6 +108,10 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 			ListConsumer<IFieldData, FieldNode> fieldsConsumer = new ListConsumer<>(fld -> FieldNode.build(this, fld));
 			ListConsumer<IMethodData, MethodNode> methodsConsumer = new ListConsumer<>(mth -> MethodNode.build(this, mth));
 			cls.visitFieldsAndMethods(fieldsConsumer, methodsConsumer);
+			if (this.fields != null && this.methods != null) {
+				// TODO: temporary solution for restore usage info in reloaded methods and fields
+				restoreUsageData(this.fields, this.methods, fieldsConsumer.getResult(), methodsConsumer.getResult());
+			}
 			this.fields = fieldsConsumer.getResult();
 			this.methods = methodsConsumer.getResult();
 
@@ -121,6 +125,24 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 			}
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Error decode class: " + clsInfo, e);
+		}
+	}
+
+	private void restoreUsageData(List<FieldNode> oldFields, List<MethodNode> oldMethods,
+			List<FieldNode> newFields, List<MethodNode> newMethods) {
+		Map<FieldInfo, FieldNode> oldFieldMap = Utils.groupBy(oldFields, FieldNode::getFieldInfo);
+		for (FieldNode newField : newFields) {
+			FieldNode oldField = oldFieldMap.get(newField.getFieldInfo());
+			if (oldField != null) {
+				newField.setUseIn(oldField.getUseIn());
+			}
+		}
+		Map<MethodInfo, MethodNode> oldMethodsMap = Utils.groupBy(oldMethods, MethodNode::getMethodInfo);
+		for (MethodNode newMethod : newMethods) {
+			MethodNode oldMethod = oldMethodsMap.get(newMethod.getMethodInfo());
+			if (oldMethod != null) {
+				newMethod.setUseIn(oldMethod.getUseIn());
+			}
 		}
 	}
 
