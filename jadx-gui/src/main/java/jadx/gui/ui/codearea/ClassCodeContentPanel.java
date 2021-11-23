@@ -6,12 +6,13 @@ import java.awt.Point;
 import javax.swing.JTabbedPane;
 import javax.swing.border.EmptyBorder;
 
+import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
+import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
+
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.TabbedPane;
 import jadx.gui.ui.panel.IViewStateSupport;
 import jadx.gui.utils.NLS;
-import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
-import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
 
 /**
  * Displays one class with two different view:
@@ -31,7 +32,7 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel implem
 	public ClassCodeContentPanel(TabbedPane panel, JNode jnode) {
 		super(panel, jnode);
 
-		//FIXME I don't know the project very well, so need to get the right place
+		// FIXME I don't know the project very well, so need to get the right place
 		AbstractTokenMakerFactory atmf = (AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance();
 		atmf.putMapping("text/smali", "jadx.gui.ui.codearea.SmaliTokenMaker");
 
