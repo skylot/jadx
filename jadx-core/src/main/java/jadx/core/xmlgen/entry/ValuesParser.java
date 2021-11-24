@@ -109,7 +109,7 @@ public class ValuesParser extends ParserConstants {
 			case TYPE_INT_DEC:
 				return Integer.toString(data);
 			case TYPE_INT_HEX:
-				return Integer.toHexString(data);
+				return "0x" + Integer.toHexString(data);
 			case TYPE_INT_BOOLEAN:
 				return data == 0 ? "false" : "true";
 			case TYPE_FLOAT:
