@@ -413,6 +413,10 @@ public final class JadxDecompiler implements Closeable {
 			classesMap.put(innerCls.getClassNode(), innerCls);
 			loadJavaClass(innerCls);
 		}
+		for (JavaClass inlinedCls : javaClass.getInlinedClasses()) {
+			classesMap.put(inlinedCls.getClassNode(), inlinedCls);
+			loadJavaClass(inlinedCls);
+		}
 	}
 
 	/**

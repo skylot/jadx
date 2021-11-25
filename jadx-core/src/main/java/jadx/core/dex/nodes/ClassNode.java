@@ -557,6 +557,10 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		return innerClasses;
 	}
 
+	public List<ClassNode> getInlinedClasses() {
+		return inlinedClasses;
+	}
+
 	/**
 	 * Get all inner and inlined classes recursively
 	 *

@@ -13,7 +13,7 @@ public final class JavaField implements JavaNode {
 	private final FieldNode field;
 	private final JavaClass parent;
 
-	JavaField(FieldNode f, JavaClass cls) {
+	JavaField(JavaClass cls, FieldNode f) {
 		this.field = f;
 		this.parent = cls;
 	}

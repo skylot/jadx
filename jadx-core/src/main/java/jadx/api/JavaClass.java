@@ -23,6 +23,7 @@ public final class JavaClass implements JavaNode {
 	private final JavaClass parent;
 
 	private List<JavaClass> innerClasses = Collections.emptyList();
+	private List<JavaClass> inlinedClasses = Collections.emptyList();
 	private List<JavaField> fields = Collections.emptyList();
 	private List<JavaMethod> methods = Collections.emptyList();
 	private boolean listsLoaded;
@@ -100,13 +101,23 @@ public final class JavaClass implements JavaNode {
 			}
 			this.innerClasses = Collections.unmodifiableList(list);
 		}
+		int inlinedClsCount = cls.getInlinedClasses().size();
+		if (inlinedClsCount != 0) {
+			List<JavaClass> list = new ArrayList<>(inlinedClsCount);
+			for (ClassNode inner : cls.getInlinedClasses()) {
+				JavaClass javaClass = rootDecompiler.convertClassNode(inner);
+				javaClass.loadLists();
+				list.add(javaClass);
+			}
+			this.inlinedClasses = Collections.unmodifiableList(list);
+		}
 
 		int fieldsCount = cls.getFields().size();
 		if (fieldsCount != 0) {
 			List<JavaField> flds = new ArrayList<>(fieldsCount);
 			for (FieldNode f : cls.getFields()) {
 				if (!f.contains(AFlag.DONT_GENERATE)) {
-					JavaField javaField = new JavaField(f, this);
+					JavaField javaField = new JavaField(this, f);
 					flds.add(javaField);
 				}
 			}
@@ -252,6 +263,11 @@ public final class JavaClass implements JavaNode {
 	public List<JavaClass> getInnerClasses() {
 		loadLists();
 		return innerClasses;
+	}
+
+	public List<JavaClass> getInlinedClasses() {
+		loadLists();
+		return inlinedClasses;
 	}
 
 	public List<JavaField> getFields() {
