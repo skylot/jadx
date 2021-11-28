@@ -32,6 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.Strings;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 
 import jadx.api.JavaClass;
 import jadx.api.JavaMethod;
@@ -246,13 +248,15 @@ public class QuarkReportPanel extends ContentPanel {
 				}
 				add(node);
 			}
-			List<String[]> combination = crime.combination;
-			if (Utils.notEmpty(combination)) {
+			List<JsonElement> combination = crime.combination;
+			if (Utils.notEmpty(combination) && combination.get(0) instanceof JsonArray) {
 				TextTreeNode node = new TextTreeNode("Combination");
 				int size = combination.size();
 				for (int i = 0; i < size; i++) {
 					TextTreeNode set = new TextTreeNode("Set " + i);
-					for (String mth : combination.get(i)) {
+					JsonArray array = (JsonArray) combination.get(i);
+					for (JsonElement ele : array) {
+						String mth = ele.getAsString();
 						set.add(resolveMethod(mth));
 					}
 					node.add(set);
