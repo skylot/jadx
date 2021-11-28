@@ -3,6 +3,7 @@ package jadx.gui.plugins.quark;
 import java.util.List;
 import java.util.Map;
 
+import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 
 import jadx.core.utils.Utils;
@@ -15,7 +16,7 @@ public class QuarkReportData {
 		public List<String> permissions;
 
 		List<Method> native_api;
-		List<String[]> combination;
+		List<JsonElement> combination;
 		List<Map<String, InvokePlace>> register;
 	}
 
