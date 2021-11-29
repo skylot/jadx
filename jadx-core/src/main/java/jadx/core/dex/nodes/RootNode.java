@@ -334,6 +334,15 @@ public class RootNode {
 		return resolveClass(clsInfo);
 	}
 
+	/**
+	 * Searches for ClassNode by its full name (original or alias name)
+	 *
+	 * Warning: This method has a runtime of O(n) (n = number of classes).
+	 * If you need to call it more than once consider {@link #buildFullAliasClassCache()} instead
+	 *
+	 * @param fullName
+	 * @return
+	 */
 	@Nullable
 	public ClassNode searchClassByFullAlias(String fullName) {
 		for (ClassNode cls : classes) {
@@ -344,6 +353,24 @@ public class RootNode {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	public Map<String, ClassNode> buildFullAliasClassCache() {
+		Map<String, ClassNode> classNameCache = new HashMap<>(classes.size());
+		for (ClassNode cls : classes) {
+			ClassInfo classInfo = cls.getClassInfo();
+			String fullName = classInfo.getFullName();
+			String alias = classInfo.getAliasFullName();
+			classNameCache.put(fullName, cls);
+			if (alias != null && !fullName.equals(alias)) {
+				classNameCache.put(alias, cls);
+			}
+		}
+		return classNameCache;
 	}
 
 	public List<ClassNode> searchClassByShortName(String shortName) {
