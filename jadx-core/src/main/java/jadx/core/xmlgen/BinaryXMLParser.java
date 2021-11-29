@@ -56,6 +56,8 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	private final RootNode rootNode;
 	private String appPackageName;
 
+	private Map<String, ClassNode> classNameCache;
+
 	public BinaryXMLParser(RootNode rootNode) {
 		this.rootNode = rootNode;
 		try {
@@ -78,7 +80,9 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		firstElement = true;
 		decode();
 		nsMap = null;
-		return writer.finish();
+		ICodeInfo codeInfo = writer.finish();
+		this.classNameCache = null; // reset class name cache
+		return codeInfo;
 	}
 
 	private boolean isBinaryXml() throws IOException {
@@ -467,6 +471,9 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	}
 
 	private void attachClassNode(ICodeWriter writer, String attrName, String clsName) {
+		if (!writer.isMetadataSupported()) {
+			return;
+		}
 		if (clsName == null || !attrName.equals("name")) {
 			return;
 		}
@@ -476,7 +483,10 @@ public class BinaryXMLParser extends CommonBinaryParser {
 		} else {
 			clsFullName = clsName;
 		}
-		ClassNode classNode = rootNode.searchClassByFullAlias(clsFullName);
+		if (classNameCache == null) {
+			classNameCache = rootNode.buildFullAliasClassCache();
+		}
+		ClassNode classNode = classNameCache.get(clsFullName);
 		if (classNode != null) {
 			writer.attachAnnotation(classNode);
 		}
