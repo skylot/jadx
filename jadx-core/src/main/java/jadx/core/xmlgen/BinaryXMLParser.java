@@ -471,6 +471,9 @@ public class BinaryXMLParser extends CommonBinaryParser {
 	}
 
 	private void attachClassNode(ICodeWriter writer, String attrName, String clsName) {
+		if (!writer.isMetadataSupported()) {
+			return;
+		}
 		if (clsName == null || !attrName.equals("name")) {
 			return;
 		}
