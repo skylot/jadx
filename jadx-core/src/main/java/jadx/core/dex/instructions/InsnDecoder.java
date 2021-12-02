@@ -437,7 +437,9 @@ public class InsnDecoder {
 			case INVOKE_VIRTUAL:
 				return invoke(insn, InvokeType.VIRTUAL, false);
 			case INVOKE_CUSTOM:
-				return invoke(insn, InvokeType.CUSTOM, false);
+				return invokeCustom(insn, false);
+			case INVOKE_SPECIAL:
+				return invokeSpecial(insn);
 
 			case INVOKE_DIRECT_RANGE:
 				return invoke(insn, InvokeType.DIRECT, true);
@@ -448,7 +450,7 @@ public class InsnDecoder {
 			case INVOKE_VIRTUAL_RANGE:
 				return invoke(insn, InvokeType.VIRTUAL, true);
 			case INVOKE_CUSTOM_RANGE:
-				return invoke(insn, InvokeType.CUSTOM, true);
+				return invokeCustom(insn, true);
 
 			case NEW_INSTANCE:
 				ArgType clsType = ArgType.parse(insn.getIndexAsType());
@@ -565,10 +567,27 @@ public class InsnDecoder {
 		return inode;
 	}
 
-	private InsnNode invoke(InsnData insn, InvokeType type, boolean isRange) {
-		if (type == InvokeType.CUSTOM) {
-			return InvokeCustomBuilder.build(method, insn, isRange);
+	private InsnNode invokeCustom(InsnData insn, boolean isRange) {
+		return InvokeCustomBuilder.build(method, insn, isRange);
+	}
+
+	private InsnNode invokeSpecial(InsnData insn) {
+		IMethodRef mthRef = InsnDataUtils.getMethodRef(insn);
+		if (mthRef == null) {
+			throw new JadxRuntimeException("Failed to load method reference for insn: " + insn);
 		}
+		MethodInfo mthInfo = MethodInfo.fromRef(root, mthRef);
+		// convert 'special' to 'direct/super' same as dx
+		InvokeType type;
+		if (mthInfo.isConstructor() || Objects.equals(mthInfo.getDeclClass(), method.getParentClass().getClassInfo())) {
+			type = InvokeType.DIRECT;
+		} else {
+			type = InvokeType.SUPER;
+		}
+		return new InvokeNode(mthInfo, insn, type, false);
+	}
+
+	private InsnNode invoke(InsnData insn, InvokeType type, boolean isRange) {
 		IMethodRef mthRef = InsnDataUtils.getMethodRef(insn);
 		if (mthRef == null) {
 			throw new JadxRuntimeException("Failed to load method reference for insn: " + insn);

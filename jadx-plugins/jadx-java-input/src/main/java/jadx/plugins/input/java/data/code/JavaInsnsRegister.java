@@ -283,7 +283,7 @@ public class JavaInsnsRegister {
 		register(arr, 0xb5, "putfield", 2, 2, Opcode.IPUT, InsnIndexType.FIELD_REF, s -> s.idx(s.u2()).pop(0).pop(1));
 
 		invoke(arr, 0xb6, "invokevirtual", 2, Opcode.INVOKE_VIRTUAL);
-		invoke(arr, 0xb7, "invokespecial", 2, Opcode.INVOKE_DIRECT);
+		invoke(arr, 0xb7, "invokespecial", 2, Opcode.INVOKE_SPECIAL);
 		invoke(arr, 0xb8, "invokestatic", 2, Opcode.INVOKE_STATIC);
 		invoke(arr, 0xb9, "invokeinterface", 4, Opcode.INVOKE_INTERFACE);
 		invoke(arr, 0xba, "invokedynamic", 4, Opcode.INVOKE_CUSTOM);

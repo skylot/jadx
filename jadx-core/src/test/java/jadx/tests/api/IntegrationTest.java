@@ -20,6 +20,7 @@ import java.util.concurrent.TimeoutException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +75,7 @@ public abstract class IntegrationTest extends TestUtils {
 	/**
 	 * Set 'TEST_INPUT_PLUGIN' env variable to use 'java' or 'dx' input in tests
 	 */
-	private static final boolean USE_JAVA_INPUT = Utils.getOrElse(System.getenv("TEST_INPUT_PLUGIN"), DEFAULT_INPUT_PLUGIN).equals("java");
+	static final boolean USE_JAVA_INPUT = Utils.getOrElse(System.getenv("TEST_INPUT_PLUGIN"), DEFAULT_INPUT_PLUGIN).equals("java");
 
 	/**
 	 * Run auto check method if defined:
@@ -523,11 +524,12 @@ public abstract class IntegrationTest extends TestUtils {
 		printOffsets = true;
 	}
 
-	protected void useJavaInput() {
+	public void useJavaInput() {
 		this.useJavaInput = true;
 	}
 
-	protected void useDexInput() {
+	public void useDexInput() {
+		Assumptions.assumeFalse(USE_JAVA_INPUT, "skip dex input tests");
 		this.useJavaInput = false;
 	}
 

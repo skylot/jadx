@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Nullable;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 
 import jadx.api.JadxInternalAccess;
@@ -24,6 +25,7 @@ public abstract class SmaliTest extends IntegrationTest {
 
 	@BeforeEach
 	public void init() {
+		Assumptions.assumeFalse(USE_JAVA_INPUT, "skip smali test for java input tests");
 		super.init();
 		this.useDexInput();
 	}
