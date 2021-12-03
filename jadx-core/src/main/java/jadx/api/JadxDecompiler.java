@@ -107,6 +107,7 @@ public final class JadxDecompiler implements Closeable {
 		reset();
 		JadxArgsValidator.validate(args);
 		LOG.info("loading ...");
+		loadPlugins(args);
 		loadInputFiles();
 
 		root = new RootNode(args);
@@ -157,6 +158,15 @@ public final class JadxDecompiler implements Closeable {
 	@Override
 	public void close() {
 		reset();
+	}
+
+	private void loadPlugins(JadxArgs args) {
+		pluginManager.providesSuggestion("java-input", args.isUseDxInput() ? "java-convert" : "java-input");
+		pluginManager.load();
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Resolved plugins: {}", Utils.collectionMap(pluginManager.getResolvedPlugins(),
+					p -> p.getPluginInfo().getPluginId()));
+		}
 	}
 
 	public void registerPlugin(JadxPlugin plugin) {

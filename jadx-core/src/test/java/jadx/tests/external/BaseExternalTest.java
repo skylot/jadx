@@ -51,7 +51,6 @@ public abstract class BaseExternalTest extends IntegrationTest {
 
 	protected JadxDecompiler decompile(JadxArgs jadxArgs, @Nullable String clsPatternStr, @Nullable String mthPatternStr) {
 		JadxDecompiler jadx = new JadxDecompiler(jadxArgs);
-		jadx.getPluginManager().unload("java-convert");
 		jadx.load();
 
 		if (clsPatternStr == null) {

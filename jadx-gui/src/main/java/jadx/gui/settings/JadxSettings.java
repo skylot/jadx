@@ -278,6 +278,10 @@ public class JadxSettings extends JadxCLIArgs {
 		this.fallbackMode = fallbackMode;
 	}
 
+	public void setUseDx(boolean useDx) {
+		this.useDx = useDx;
+	}
+
 	public void setSkipResources(boolean skipResources) {
 		this.skipResources = skipResources;
 	}

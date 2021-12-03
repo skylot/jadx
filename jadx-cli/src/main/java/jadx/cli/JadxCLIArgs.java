@@ -125,6 +125,9 @@ public class JadxCLIArgs {
 	@Parameter(names = { "-f", "--fallback" }, description = "make simple dump (using goto instead of 'if', 'for', etc)")
 	protected boolean fallbackMode = false;
 
+	@Parameter(names = { "--use-dx" }, description = "use dx/d8 to convert java bytecode")
+	protected boolean useDx = false;
+
 	@Parameter(
 			names = { "--comments-level" },
 			description = "set code comments level, values: error, warn, info, debug, user_only, none",
@@ -231,6 +234,7 @@ public class JadxCLIArgs {
 		args.setRenameFlags(renameFlags);
 		args.setFsCaseSensitive(fsCaseSensitive);
 		args.setCommentsLevel(commentsLevel);
+		args.setUseDxInput(useDx);
 		return args;
 	}
 
@@ -264,6 +268,10 @@ public class JadxCLIArgs {
 
 	public boolean isFallbackMode() {
 		return fallbackMode;
+	}
+
+	public boolean isUseDx() {
+		return useDx;
 	}
 
 	public boolean isShowInconsistentCode() {

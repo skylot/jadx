@@ -412,6 +412,13 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JCheckBox useDx = new JCheckBox();
+		useDx.setSelected(settings.isUseDx());
+		useDx.addItemListener(e -> {
+			settings.setUseDx(e.getStateChange() == ItemEvent.SELECTED);
+			needReload();
+		});
+
 		JCheckBox showInconsistentCode = new JCheckBox();
 		showInconsistentCode.setSelected(settings.isShowInconsistentCode());
 		showInconsistentCode.addItemListener(e -> {
@@ -522,6 +529,7 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.inlineMethods"), inlineMethods);
 		other.addRow(NLS.str("preferences.fsCaseSensitive"), fsCaseSensitive);
 		other.addRow(NLS.str("preferences.fallback"), fallback);
+		other.addRow(NLS.str("preferences.useDx"), useDx);
 		other.addRow(NLS.str("preferences.skipResourcesDecode"), resourceDecode);
 		other.addRow(NLS.str("preferences.commentsLevel"), commentsLevel);
 		return other;

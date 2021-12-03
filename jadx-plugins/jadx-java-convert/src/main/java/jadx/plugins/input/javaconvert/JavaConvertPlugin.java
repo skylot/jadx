@@ -13,7 +13,11 @@ public class JavaConvertPlugin implements JadxInputPlugin {
 
 	@Override
 	public JadxPluginInfo getPluginInfo() {
-		return new JadxPluginInfo("java-convert", "JavaConvert", "Convert .jar and .class files to dex");
+		return new JadxPluginInfo(
+				"java-convert",
+				"JavaConvert",
+				"Convert .jar and .class files to dex",
+				"java-input");
 	}
 
 	@Override

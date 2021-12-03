@@ -1,13 +1,17 @@
 package jadx.api.plugins;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.ServiceLoader;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,40 +20,142 @@ import jadx.api.plugins.input.JadxInputPlugin;
 public class JadxPluginManager {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxPluginManager.class);
 
-	private final Map<Class<? extends JadxPlugin>, JadxPlugin> allPlugins = new HashMap<>();
+	private final Set<PluginData> allPlugins = new TreeSet<>();
+	private final Map<String, String> provideSuggestions = new TreeMap<>();
+
+	private List<JadxPlugin> resolvedPlugins = Collections.emptyList();
 
 	public JadxPluginManager() {
+	}
+
+	/**
+	 * Add suggestion how to resolve conflicting plugins
+	 */
+	public void providesSuggestion(String provides, String pluginId) {
+		provideSuggestions.put(provides, pluginId);
+	}
+
+	public void load() {
 		ServiceLoader<JadxPlugin> jadxPlugins = ServiceLoader.load(JadxPlugin.class);
-		for (JadxPlugin jadxPlugin : jadxPlugins) {
-			register(jadxPlugin);
+		for (JadxPlugin plugin : jadxPlugins) {
+			addPlugin(plugin);
 		}
+		resolve();
 	}
 
 	public void register(JadxPlugin plugin) {
 		Objects.requireNonNull(plugin);
-		LOG.debug("Register plugin: {}", plugin.getPluginInfo().getPluginId());
-		allPlugins.put(plugin.getClass(), plugin);
+		PluginData addedPlugin = addPlugin(plugin);
+		LOG.debug("Register plugin: {}", addedPlugin.getPluginId());
+		resolve();
+	}
+
+	private PluginData addPlugin(JadxPlugin plugin) {
+		PluginData pluginData = new PluginData(plugin, plugin.getPluginInfo());
+		if (!allPlugins.add(pluginData)) {
+			throw new IllegalArgumentException("Duplicate plugin id: " + pluginData + ", class " + plugin.getClass());
+		}
+		return pluginData;
 	}
 
 	public boolean unload(String pluginId) {
-		return allPlugins.values().removeIf(p -> {
-			String id = p.getPluginInfo().getPluginId();
+		boolean result = allPlugins.removeIf(pd -> {
+			String id = pd.getPluginId();
 			boolean match = id.equals(pluginId);
 			if (match) {
 				LOG.debug("Unload plugin: {}", id);
 			}
 			return match;
 		});
+		resolve();
+		return result;
 	}
 
 	public List<JadxPlugin> getAllPlugins() {
-		return new ArrayList<>(allPlugins.values());
+		return allPlugins.stream().map(PluginData::getPlugin).collect(Collectors.toList());
+	}
+
+	public List<JadxPlugin> getResolvedPlugins() {
+		return Collections.unmodifiableList(resolvedPlugins);
 	}
 
 	public List<JadxInputPlugin> getInputPlugins() {
-		return allPlugins.values().stream()
+		return resolvedPlugins.stream()
 				.filter(JadxInputPlugin.class::isInstance)
 				.map(JadxInputPlugin.class::cast)
 				.collect(Collectors.toList());
+	}
+
+	private synchronized void resolve() {
+		Map<String, List<PluginData>> provides = allPlugins.stream()
+				.collect(Collectors.groupingBy(p -> p.getInfo().getProvides()));
+		List<PluginData> result = new ArrayList<>(provides.size());
+		provides.forEach((provide, list) -> {
+			if (list.size() == 1) {
+				result.add(list.get(0));
+			} else {
+				String suggestion = provideSuggestions.get(provide);
+				if (suggestion != null) {
+					list.stream().filter(p -> p.getPluginId().equals(suggestion))
+							.findFirst()
+							.ifPresent(result::add);
+				} else {
+					PluginData selected = list.get(0);
+					result.add(selected);
+					LOG.debug("Select providing '{}' plugin '{}', candidates: {}", provide, selected, list);
+				}
+			}
+		});
+		Collections.sort(result);
+		resolvedPlugins = result.stream().map(PluginData::getPlugin).collect(Collectors.toList());
+	}
+
+	private static final class PluginData implements Comparable<PluginData> {
+		private final JadxPlugin plugin;
+		private final JadxPluginInfo info;
+
+		private PluginData(JadxPlugin plugin, JadxPluginInfo info) {
+			this.plugin = plugin;
+			this.info = info;
+		}
+
+		public JadxPlugin getPlugin() {
+			return plugin;
+		}
+
+		public JadxPluginInfo getInfo() {
+			return info;
+		}
+
+		public String getPluginId() {
+			return info.getPluginId();
+		}
+
+		@Override
+		public int compareTo(@NotNull JadxPluginManager.PluginData o) {
+			return this.info.getPluginId().compareTo(o.info.getPluginId());
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof PluginData)) {
+				return false;
+			}
+			PluginData that = (PluginData) o;
+			return getInfo().getPluginId().equals(that.getInfo().getPluginId());
+		}
+
+		@Override
+		public int hashCode() {
+			return info.getPluginId().hashCode();
+		}
+
+		@Override
+		public String toString() {
+			return info.getPluginId();
+		}
 	}
 }

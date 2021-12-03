@@ -39,6 +39,7 @@ public class ConvertToClsSet {
 		Path output = inputPaths.remove(0);
 
 		JadxPluginManager pluginManager = new JadxPluginManager();
+		pluginManager.load();
 		List<ILoadResult> loadedInputs = new ArrayList<>();
 		for (JadxInputPlugin inputPlugin : pluginManager.getInputPlugins()) {
 			loadedInputs.add(inputPlugin.loadFiles(inputPaths));

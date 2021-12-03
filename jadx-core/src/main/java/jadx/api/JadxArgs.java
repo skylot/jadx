@@ -85,6 +85,8 @@ public class JadxArgs {
 
 	private CommentsLevel commentsLevel = CommentsLevel.INFO;
 
+	private boolean useDxInput = false;
+
 	public JadxArgs() {
 		// use default options
 	}
@@ -423,6 +425,14 @@ public class JadxArgs {
 		this.commentsLevel = commentsLevel;
 	}
 
+	public boolean isUseDxInput() {
+		return useDxInput;
+	}
+
+	public void setUseDxInput(boolean useDxInput) {
+		this.useDxInput = useDxInput;
+	}
+
 	@Override
 	public String toString() {
 		return "JadxArgs{" + "inputFiles=" + inputFiles
@@ -454,6 +464,7 @@ public class JadxArgs {
 				+ ", commentsLevel=" + commentsLevel
 				+ ", codeCache=" + codeCache
 				+ ", codeWriter=" + codeWriterProvider.apply(this).getClass().getSimpleName()
+				+ ", useDxInput=" + useDxInput
 				+ '}';
 	}
 }

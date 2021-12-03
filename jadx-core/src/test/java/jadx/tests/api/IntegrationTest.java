@@ -185,14 +185,11 @@ public abstract class IntegrationTest extends TestUtils {
 
 	protected JadxDecompiler loadFiles(List<File> inputFiles) {
 		args.setInputFiles(inputFiles);
+		boolean useDx = !isJavaInput();
+		LOG.info(useDx ? "Using dex input" : "Using java input");
+		args.setUseDxInput(useDx);
+
 		JadxDecompiler d = new JadxDecompiler(args);
-		if (isJavaInput()) {
-			d.getPluginManager().unload("java-convert");
-			LOG.info("Using java input");
-		} else {
-			d.getPluginManager().unload("java-input");
-			LOG.info("Using dex input");
-		}
 		try {
 			d.load();
 		} catch (Exception e) {

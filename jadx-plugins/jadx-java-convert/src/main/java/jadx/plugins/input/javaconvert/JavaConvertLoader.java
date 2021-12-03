@@ -159,7 +159,7 @@ public class JavaConvertLoader {
 		try {
 			DxConverter.run(path, tempDirectory);
 		} catch (Exception e) {
-			LOG.warn("DX convert failed, trying D8");
+			LOG.warn("DX convert failed, trying D8, path: {}", path);
 			D8Converter.run(path, tempDirectory);
 		}
 

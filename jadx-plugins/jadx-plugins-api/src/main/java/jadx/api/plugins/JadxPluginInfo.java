@@ -5,10 +5,20 @@ public class JadxPluginInfo {
 	private final String name;
 	private final String description;
 
+	/**
+	 * Conflicting plugins should have same 'provides' property, only one will be loaded
+	 */
+	private final String provides;
+
 	public JadxPluginInfo(String id, String name, String description) {
-		this.pluginId = id;
+		this(id, name, description, id);
+	}
+
+	public JadxPluginInfo(String pluginId, String name, String description, String provides) {
+		this.pluginId = pluginId;
 		this.name = name;
 		this.description = description;
+		this.provides = provides;
 	}
 
 	public String getPluginId() {
@@ -23,8 +33,12 @@ public class JadxPluginInfo {
 		return description;
 	}
 
+	public String getProvides() {
+		return provides;
+	}
+
 	@Override
 	public String toString() {
-		return name + " - '" + description + '\'';
+		return pluginId + ": " + name + " - '" + description + '\'';
 	}
 }
