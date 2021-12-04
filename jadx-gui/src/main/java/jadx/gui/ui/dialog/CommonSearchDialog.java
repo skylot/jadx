@@ -23,7 +23,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -59,7 +59,7 @@ import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 import jadx.gui.utils.search.TextSearchIndex;
 
-public abstract class CommonSearchDialog extends JDialog {
+public abstract class CommonSearchDialog extends JFrame {
 	private static final long serialVersionUID = 8939332306115370276L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(CommonSearchDialog.class);
@@ -70,6 +70,7 @@ public abstract class CommonSearchDialog extends JDialog {
 	protected final transient CacheObject cache;
 	protected final transient MainWindow mainWindow;
 	protected final transient Font codeFont;
+	protected final transient String windowTitle;
 
 	protected ResultsModel resultsModel;
 	protected ResultsTable resultsTable;
@@ -77,16 +78,18 @@ public abstract class CommonSearchDialog extends JDialog {
 	protected JLabel warnLabel;
 	protected ProgressPanel progressPane;
 
-	protected String highlightText;
+	private String highlightText;
 	protected boolean highlightTextCaseInsensitive = false;
 	protected boolean highlightTextUseRegex = false;
 
-	public CommonSearchDialog(MainWindow mainWindow) {
-		super(mainWindow);
+	public CommonSearchDialog(MainWindow mainWindow, String title) {
 		this.mainWindow = mainWindow;
 		this.tabbedPane = mainWindow.getTabbedPane();
 		this.cache = mainWindow.getCacheObject();
 		this.codeFont = mainWindow.getSettings().getFont();
+		this.windowTitle = title;
+		UiUtils.setWindowIcons(this);
+		updateTitle();
 	}
 
 	protected abstract void openInit();
@@ -99,6 +102,19 @@ public abstract class CommonSearchDialog extends JDialog {
 		if (!mainWindow.getSettings().loadWindowPos(this)) {
 			setSize(800, 500);
 		}
+	}
+
+	private void updateTitle() {
+		if (highlightText == null || highlightText.trim().isEmpty()) {
+			setTitle(windowTitle);
+		} else {
+			setTitle(windowTitle + ": " + highlightText);
+		}
+	}
+
+	public void setHighlightText(String highlightText) {
+		this.highlightText = highlightText;
+		updateTitle();
 	}
 
 	public void prepare() {

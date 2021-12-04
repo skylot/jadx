@@ -96,7 +96,7 @@ public class SearchDialog extends CommonSearchDialog {
 	private transient String initSearchText = null;
 
 	private SearchDialog(MainWindow mainWindow, SearchPreset preset, Set<SearchOptions> additionalOptions) {
-		super(mainWindow);
+		super(mainWindow, NLS.str("menu.text_search"));
 		this.searchPreset = preset;
 		this.options = buildOptions(preset);
 		this.options.addAll(additionalOptions);
@@ -251,11 +251,8 @@ public class SearchDialog extends CommonSearchDialog {
 				}
 			}
 		});
-
-		setTitle(NLS.str("menu.text_search"));
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		setModalityType(ModalityType.MODELESS);
 	}
 
 	private class SearchEventEmitter {
@@ -326,7 +323,7 @@ public class SearchDialog extends CommonSearchDialog {
 	private void processSearchResults(java.util.List<JNode> results) {
 		LOG.debug("search result size: {}", results.size());
 		String text = searchField.getText();
-		highlightText = text;
+		setHighlightText(text);
 		highlightTextCaseInsensitive = options.contains(SearchOptions.IGNORE_CASE);
 		highlightTextUseRegex = options.contains(SearchOptions.USE_REGEX);
 

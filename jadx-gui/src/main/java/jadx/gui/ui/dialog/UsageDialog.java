@@ -35,7 +35,7 @@ public class UsageDialog extends CommonSearchDialog {
 	private transient List<CodeNode> usageList;
 
 	public UsageDialog(MainWindow mainWindow, JNode node) {
-		super(mainWindow);
+		super(mainWindow, NLS.str("usage_dialog.title"));
 		this.node = node;
 
 		initUI();
@@ -114,7 +114,7 @@ public class UsageDialog extends CommonSearchDialog {
 		Collections.sort(usageList);
 		resultsModel.addAll(usageList);
 		// TODO: highlight only needed node usage
-		highlightText = null;
+		setHighlightText(null);
 		super.performSearch();
 	}
 
@@ -138,11 +138,9 @@ public class UsageDialog extends CommonSearchDialog {
 		contentPane.add(resultsPanel, BorderLayout.CENTER);
 		contentPane.add(buttonPane, BorderLayout.PAGE_END);
 
-		setTitle(NLS.str("usage_dialog.title"));
 		pack();
 		setSize(800, 500);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		setModalityType(ModalityType.MODELESS);
 	}
 }

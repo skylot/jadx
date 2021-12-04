@@ -19,9 +19,9 @@ import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
+import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
 
 import org.intellij.lang.annotations.MagicConstant;
@@ -253,9 +253,9 @@ public class UiUtils {
 		return CTRL_BNT_KEY;
 	}
 
-	public static void addEscapeShortCutToDispose(JDialog dialog) {
+	public static <T extends Window & RootPaneContainer> void addEscapeShortCutToDispose(T window) {
 		KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
-		dialog.getRootPane().registerKeyboardAction(e -> dialog.dispose(), stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
+		window.getRootPane().registerKeyboardAction(e -> window.dispose(), stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
 	}
 
 	/**
