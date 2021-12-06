@@ -948,7 +948,7 @@ public class MainWindow extends JFrame {
 			}
 		};
 		forwardAction.putValue(Action.SHORT_DESCRIPTION, NLS.str("nav.forward"));
-		forwardAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.ALT_DOWN_MASK));
+		forwardAction.putValue(Action.ACCELERATOR_KEY, getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.ALT_DOWN_MASK, SystemInfo.IS_MAC));
 
 		Action quarkAction = new AbstractAction("Quark Engine", ICON_QUARK) {
 			@Override
