@@ -11,6 +11,8 @@
 
 Command line and GUI tools for producing Java source code from Android Dex and Apk files
 
+:exclamation: :exclamation: :exclamation: Please note that in most cases Jadx can't decompile all 100% of the code, so errors will occur. Check [Troubleshooting guide](https://github.com/skylot/jadx/wiki/Troubleshooting-Q&A#decompilation-issues) for workarounds
+
 **Main features:**
 - decompile Dalvik bytecode to java classes from APK, dex, aar, aab and zip files
 - decode `AndroidManifest.xml` and other resources from `resources.arsc`
