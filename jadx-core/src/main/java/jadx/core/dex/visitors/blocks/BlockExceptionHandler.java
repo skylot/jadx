@@ -49,6 +49,7 @@ public class BlockExceptionHandler {
 		if (mth.isNoExceptionHandlers()) {
 			return false;
 		}
+		BlockProcessor.updateCleanSuccessors(mth);
 		BlockProcessor.computeDominanceFrontier(mth);
 
 		processCatchAttr(mth);
@@ -394,16 +395,32 @@ public class BlockExceptionHandler {
 		// not found -> blocks don't have same dominator
 		// try to search common cross block outside input set
 		// NOTE: bottom block not needed for exit nodes (no data flow from them)
-		return BlockUtils.getPathCross(mth, blocks);
+		BlockNode pathCross = BlockUtils.getPathCross(mth, blocks);
+		if (pathCross == null) {
+			return null;
+		}
+		List<BlockNode> preds = new ArrayList<>(pathCross.getPredecessors());
+		preds.removeAll(blocks);
+		List<BlockNode> outsidePredecessors = preds.stream()
+				.filter(p -> !BlockUtils.atLeastOnePathExists(blocks, p))
+				.collect(Collectors.toList());
+		if (outsidePredecessors.isEmpty()) {
+			return pathCross;
+		}
+		// some predecessors outside of input set paths -> split block only for input set
+		BlockNode splitCross = BlockSplitter.blockSplitTop(mth, pathCross);
+		splitCross.add(AFlag.SYNTHETIC);
+		for (BlockNode outsidePredecessor : outsidePredecessors) {
+			// return predecessors to split bottom block (original)
+			BlockSplitter.replaceConnection(outsidePredecessor, splitCross, pathCross);
+		}
+		return splitCross;
 	}
 
 	private static void connectSplittersAndHandlers(TryCatchBlockAttr tryCatchBlock, BlockNode topSplitterBlock,
 			@Nullable BlockNode bottomSplitterBlock) {
 		for (ExceptionHandler handler : tryCatchBlock.getHandlers()) {
 			BlockNode handlerBlock = handler.getHandlerBlock();
-			if (handlerBlock == null) {
-				System.out.println();
-			}
 			BlockSplitter.connect(topSplitterBlock, handlerBlock);
 			if (bottomSplitterBlock != null) {
 				BlockSplitter.connect(bottomSplitterBlock, handlerBlock);

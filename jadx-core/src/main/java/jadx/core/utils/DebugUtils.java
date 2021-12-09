@@ -53,6 +53,12 @@ public class DebugUtils {
 		dump(mth, "dump");
 	}
 
+	public static void dumpRaw(MethodNode mth, String desc, Predicate<MethodNode> dumpCondition) {
+		if (dumpCondition.test(mth)) {
+			dumpRaw(mth, desc);
+		}
+	}
+
 	public static void dumpRaw(MethodNode mth, String desc) {
 		File out = new File("test-graph-" + desc + "-tmp");
 		DotGraphVisitor.dumpRaw().save(out, mth);

@@ -59,6 +59,11 @@ public class SSAVar {
 		return assign;
 	}
 
+	@Nullable
+	public InsnNode getAssignInsn() {
+		return assign.getParentInsn();
+	}
+
 	public void setAssign(@NotNull RegisterArg assign) {
 		this.assign = assign;
 	}

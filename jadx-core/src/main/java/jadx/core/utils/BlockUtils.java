@@ -524,7 +524,22 @@ public class BlockUtils {
 		return false;
 	}
 
-	public static boolean isPathExists(Collection<BlockNode> startBlocks, BlockNode end) {
+	/**
+	 * Search at least one path from startBlocks to end
+	 */
+	public static boolean atLeastOnePathExists(Collection<BlockNode> startBlocks, BlockNode end) {
+		for (BlockNode startBlock : startBlocks) {
+			if (isPathExists(startBlock, end)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Check if exist path from every startBlocks to end
+	 */
+	public static boolean isAllPathExists(Collection<BlockNode> startBlocks, BlockNode end) {
 		for (BlockNode startBlock : startBlocks) {
 			if (!isPathExists(startBlock, end)) {
 				return false;

@@ -137,6 +137,17 @@ public class DeboxingVisitor extends AbstractVisitor {
 			if (ssaVar.isTypeImmutable()) {
 				return false;
 			}
+			InsnNode assignInsn = ssaVar.getAssignInsn();
+			if (assignInsn == null) {
+				// method arg
+				return false;
+			}
+			InsnType assignInsnType = assignInsn.getType();
+			if (assignInsnType == InsnType.CONST || assignInsnType == InsnType.MOVE) {
+				if (assignInsn.getArg(0).getType().isObject()) {
+					return false;
+				}
+			}
 			for (RegisterArg useArg : ssaVar.getUseList()) {
 				InsnNode parentInsn = useArg.getParentInsn();
 				if (parentInsn == null) {

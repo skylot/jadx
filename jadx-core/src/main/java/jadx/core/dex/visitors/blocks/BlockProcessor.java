@@ -76,7 +76,7 @@ public class BlockProcessor extends AbstractVisitor {
 		mth.finishBasicBlocks();
 	}
 
-	private static void updateCleanSuccessors(MethodNode mth) {
+	static void updateCleanSuccessors(MethodNode mth) {
 		mth.getBasicBlocks().forEach(BlockNode::updateCleanSuccessors);
 	}
 
