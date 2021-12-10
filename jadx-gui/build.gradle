@@ -12,14 +12,14 @@ dependencies {
 	implementation 'com.beust:jcommander:1.81'
 	implementation 'ch.qos.logback:logback-classic:1.2.7'
 
-	implementation 'com.fifesoft:rsyntaxtextarea:3.1.3'
+	implementation 'com.fifesoft:rsyntaxtextarea:3.1.4'
 	implementation files('libs/jfontchooser-1.0.5.jar')
 	implementation 'hu.kazocsaba:image-viewer:1.2.3'
 
-	implementation 'com.formdev:flatlaf:1.6.4'
-	implementation 'com.formdev:flatlaf-intellij-themes:1.6.4'
-	implementation 'com.formdev:flatlaf-extras:1.6.4'
-	implementation 'com.formdev:svgSalamander:1.1.2.4'
+	implementation 'com.formdev:flatlaf:1.6.5'
+	implementation 'com.formdev:flatlaf-intellij-themes:1.6.5'
+	implementation 'com.formdev:flatlaf-extras:1.6.5'
+	implementation 'com.formdev:svgSalamander:1.1.3'
 
 	implementation 'com.google.code.gson:gson:2.8.9'
 	implementation 'org.apache.commons:commons-lang3:3.12.0'
