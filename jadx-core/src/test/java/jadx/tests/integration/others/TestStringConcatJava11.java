@@ -3,6 +3,8 @@ package jadx.tests.integration.others;
 import org.junit.jupiter.api.Test;
 
 import jadx.tests.api.RaungTest;
+import jadx.tests.api.extensions.inputs.InputPlugin;
+import jadx.tests.api.extensions.inputs.TestWithInputPlugins;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
@@ -40,7 +42,7 @@ public class TestStringConcatJava11 extends RaungTest {
 	}
 
 	@Test
-	public void testJava() {
+	public void testJava8() {
 		noDebugInfo();
 		assertThat(getClassNode(TestCls.class))
 				.code()
@@ -48,5 +50,15 @@ public class TestStringConcatJava11 extends RaungTest {
 				.containsOneOf(
 						"return str + \"test\" + str + 7;",
 						"return str + \"test\" + str + \"7\";"); // dynamic concat add const to string recipe
+	}
+
+	@TestWithInputPlugins({ InputPlugin.DEX, InputPlugin.JAVA })
+	public void testJava11() {
+		useTargetJavaVersion(11);
+		noDebugInfo();
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsOne("return str + \"test\";")
+				.containsOne("return str + \"test\" + str + \"7\";");
 	}
 }

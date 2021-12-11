@@ -80,6 +80,13 @@ public class ProcessInstructionsVisitor extends AbstractVisitor {
 					}
 					break;
 
+				case STR_CONCAT:
+					// invoke-custom with string concatenation translated directly to STR_CONCAT, merge next move-result
+					if (insn.getResult() == null) {
+						mergeMoveResult(insnByOffset, offset, insn, ArgType.STRING);
+					}
+					break;
+
 				case FILLED_NEW_ARRAY:
 					ArgType arrType = ((FilledNewArrayNode) insn).getArrayType();
 					mergeMoveResult(insnByOffset, offset, insn, arrType);

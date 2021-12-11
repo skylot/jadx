@@ -47,6 +47,7 @@ import jadx.core.utils.files.FileUtils;
 import jadx.core.xmlgen.ResourceStorage;
 import jadx.core.xmlgen.entry.ResourceEntry;
 import jadx.tests.api.compiler.DynamicCompiler;
+import jadx.tests.api.compiler.JavaUtils;
 import jadx.tests.api.compiler.StaticCompiler;
 import jadx.tests.api.utils.TestUtils;
 
@@ -490,6 +491,7 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	protected void useTargetJavaVersion(int version) {
+		Assumptions.assumeTrue(JavaUtils.checkJavaVersion(version), "skip test for higher java version");
 		this.targetJavaVersion = version;
 	}
 

@@ -158,9 +158,13 @@ public class JavaConvertLoader {
 
 		try {
 			DxConverter.run(path, tempDirectory);
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			LOG.warn("DX convert failed, trying D8, path: {}", path);
-			D8Converter.run(path, tempDirectory);
+			try {
+				D8Converter.run(path, tempDirectory);
+			} catch (Throwable ex) {
+				LOG.error("D8 convert failed: {}", ex.getMessage());
+			}
 		}
 
 		LOG.debug("Converted to dex: {}", path.toAbsolutePath());
