@@ -74,6 +74,13 @@ public class JadxCodeAssertions extends AbstractStringAssert<JadxCodeAssertions>
 		return newCode;
 	}
 
+	public JadxCodeAssertions removeLineComments() {
+		String code = actual.replaceAll("//.*(?!$)", "");
+		JadxCodeAssertions newCode = new JadxCodeAssertions(code);
+		newCode.print();
+		return newCode;
+	}
+
 	public JadxCodeAssertions print() {
 		System.out.println("-----------------------------------------------------------");
 		System.out.println(actual);

@@ -232,6 +232,27 @@ public abstract class InsnArg extends Typed {
 		return contains(AFlag.THIS);
 	}
 
+	/**
+	 * Return true for 'this' from other classes (often occur in anonymous classes)
+	 */
+	public boolean isAnyThis() {
+		if (contains(AFlag.THIS)) {
+			return true;
+		}
+		InsnNode wrappedInsn = unwrap();
+		if (wrappedInsn != null && wrappedInsn.getType() == InsnType.IGET) {
+			return wrappedInsn.getArg(0).isAnyThis();
+		}
+		return false;
+	}
+
+	public InsnNode unwrap() {
+		if (isInsnWrap()) {
+			return ((InsnWrapArg) this).getWrapInsn();
+		}
+		return null;
+	}
+
 	public boolean isConst() {
 		return isLiteral() || (isInsnWrap() && ((InsnWrapArg) this).getWrapInsn().isConstInsn());
 	}

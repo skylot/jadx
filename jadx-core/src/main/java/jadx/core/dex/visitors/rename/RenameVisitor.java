@@ -97,7 +97,7 @@ public class RenameVisitor extends AbstractVisitor {
 			// check inner classes names
 			ClassInfo parentClass = classInfo.getParentClass();
 			while (parentClass != null) {
-				if (parentClass.getAliasShortName().equals(clsName)) {
+				if (parentClass.getAliasShortName().equals(newShortName)) {
 					String clsAlias = deobfuscator.getClsAlias(cls);
 					classInfo.changeShortName(clsAlias);
 					cls.addAttr(new RenameReasonAttr(cls).append("collision with other inner class name"));

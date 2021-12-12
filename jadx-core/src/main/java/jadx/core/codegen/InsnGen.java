@@ -763,8 +763,7 @@ public class InsnGen {
 			case VIRTUAL:
 			case INTERFACE:
 				InsnArg arg = insn.getArg(0);
-				// FIXME: add 'this' for equals methods in scope
-				if (!arg.isThis()) {
+				if (needInvokeArg(arg)) {
 					addArgDot(code, arg);
 				}
 				k++;
@@ -797,6 +796,20 @@ public class InsnGen {
 			code.add(callMth.getAlias());
 		}
 		generateMethodArguments(code, insn, k, callMthNode);
+	}
+
+	// FIXME: add 'this' for equals methods in scope
+	private boolean needInvokeArg(InsnArg arg) {
+		if (arg.isAnyThis()) {
+			if (arg.isThis()) {
+				return false;
+			}
+			ClassNode clsNode = mth.root().resolveClass(arg.getType());
+			if (clsNode != null && clsNode.contains(AFlag.DONT_GENERATE)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private void makeInvokeLambda(ICodeWriter code, InvokeCustomNode customNode) throws CodegenException {
