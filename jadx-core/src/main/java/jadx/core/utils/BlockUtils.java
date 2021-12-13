@@ -572,9 +572,9 @@ public class BlockUtils {
 		return traverseSuccessorsUntil(start, end, new BitSet(), false);
 	}
 
-	public static BlockNode getTopBlock(Collection<BlockNode> blocks) {
+	public static BlockNode getTopBlock(List<BlockNode> blocks) {
 		if (blocks.size() == 1) {
-			return blocks.iterator().next();
+			return blocks.get(0);
 		}
 		for (BlockNode from : blocks) {
 			boolean top = true;
@@ -594,9 +594,9 @@ public class BlockUtils {
 	/**
 	 * Search last block in control flow graph from input set.
 	 */
-	public static BlockNode getBottomBlock(Collection<BlockNode> blocks) {
+	public static BlockNode getBottomBlock(List<BlockNode> blocks) {
 		if (blocks.size() == 1) {
-			return blocks.iterator().next();
+			return blocks.get(0);
 		}
 		for (BlockNode bottomCandidate : blocks) {
 			boolean bottom = true;

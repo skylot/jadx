@@ -323,23 +323,14 @@ public class BlockExceptionHandler {
 	private static boolean wrapBlocksWithTryCatch(MethodNode mth, TryCatchBlockAttr tryCatchBlock) {
 		List<BlockNode> blocks = tryCatchBlock.getBlocks();
 		BlockNode top = searchTopBlock(mth, blocks);
-		if (top.getPredecessors().isEmpty()) {
+		if (top.getPredecessors().isEmpty() && top != mth.getEnterBlock()) {
 			return false;
 		}
 		BlockNode bottom = searchBottomBlock(mth, blocks);
-
 		if (Consts.DEBUG_EXC_HANDLERS) {
 			LOG.debug("TryCatch #{} split: top {}, bottom: {}", tryCatchBlock.id(), top, bottom);
 		}
-
-		BlockNode topSplitterBlock;
-		if (top == mth.getEnterBlock()) {
-			BlockNode fixedTop = mth.getEnterBlock().getSuccessors().get(0);
-			topSplitterBlock = BlockSplitter.blockSplitTop(mth, fixedTop);
-		} else {
-			BlockNode existTopSplitter = BlockUtils.getBlockWithFlag(top.getPredecessors(), AFlag.EXC_TOP_SPLITTER);
-			topSplitterBlock = existTopSplitter != null ? existTopSplitter : BlockSplitter.blockSplitTop(mth, top);
-		}
+		BlockNode topSplitterBlock = getTopSplitterBlock(mth, top);
 		topSplitterBlock.add(AFlag.EXC_TOP_SPLITTER);
 		topSplitterBlock.add(AFlag.SYNTHETIC);
 
@@ -356,6 +347,10 @@ public class BlockExceptionHandler {
 			BlockSplitter.connect(bottom, bottomSplitterBlock);
 		}
 
+		if (Consts.DEBUG_EXC_HANDLERS) {
+			LOG.debug("TryCatch #{} result splitters: top {}, bottom: {}",
+					tryCatchBlock.id(), topSplitterBlock, bottomSplitterBlock);
+		}
 		connectSplittersAndHandlers(tryCatchBlock, topSplitterBlock, bottomSplitterBlock);
 
 		for (BlockNode block : blocks) {
@@ -371,6 +366,25 @@ public class BlockExceptionHandler {
 			bottomSplitterBlock.updateCleanSuccessors();
 		}
 		return true;
+	}
+
+	private static BlockNode getTopSplitterBlock(MethodNode mth, BlockNode top) {
+		if (top == mth.getEnterBlock()) {
+			BlockNode fixedTop = mth.getEnterBlock().getSuccessors().get(0);
+			return BlockSplitter.blockSplitTop(mth, fixedTop);
+		}
+		BlockNode existPredTopSplitter = BlockUtils.getBlockWithFlag(top.getPredecessors(), AFlag.EXC_TOP_SPLITTER);
+		if (existPredTopSplitter != null) {
+			return existPredTopSplitter;
+		}
+		// try to reuse exists splitter on empty simple path below top block
+		if (top.getCleanSuccessors().size() == 1 && top.getInstructions().isEmpty()) {
+			BlockNode otherTopSplitter = BlockUtils.getBlockWithFlag(top.getCleanSuccessors(), AFlag.EXC_TOP_SPLITTER);
+			if (otherTopSplitter != null && otherTopSplitter.getPredecessors().size() == 1) {
+				return otherTopSplitter;
+			}
+		}
+		return BlockSplitter.blockSplitTop(mth, top);
 	}
 
 	private static BlockNode searchTopBlock(MethodNode mth, List<BlockNode> blocks) {
