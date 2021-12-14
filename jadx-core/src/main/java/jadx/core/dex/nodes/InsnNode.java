@@ -120,12 +120,7 @@ public class InsnNode extends LineAttrNode {
 		if (getArgsCount() == 0) {
 			return false;
 		}
-		for (InsnArg insnArg : arguments) {
-			if (insnArg == arg || arg.sameRegAndSVar(insnArg)) {
-				return true;
-			}
-		}
-		return false;
+		return InsnUtils.containsVar(arguments, arg);
 	}
 
 	/**

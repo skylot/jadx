@@ -3,7 +3,6 @@ package jadx.core.dex.regions.conditions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import jadx.api.ICodeWriter;
 import jadx.core.codegen.RegionGen;
@@ -11,29 +10,14 @@ import jadx.core.dex.nodes.BlockNode;
 import jadx.core.dex.nodes.IBranchRegion;
 import jadx.core.dex.nodes.IContainer;
 import jadx.core.dex.nodes.IRegion;
-import jadx.core.dex.nodes.InsnNode;
-import jadx.core.dex.regions.AbstractRegion;
-import jadx.core.utils.BlockUtils;
 import jadx.core.utils.exceptions.CodegenException;
 
-public final class IfRegion extends AbstractRegion implements IBranchRegion {
-
-	private List<BlockNode> conditionBlocks;
-
-	private IfCondition condition;
+public final class IfRegion extends ConditionRegion implements IBranchRegion {
 	private IContainer thenRegion;
 	private IContainer elseRegion;
 
 	public IfRegion(IRegion parent) {
 		super(parent);
-	}
-
-	public IfCondition getCondition() {
-		return condition;
-	}
-
-	public void setCondition(IfCondition condition) {
-		this.condition = condition;
 	}
 
 	public IContainer getThenRegion() {
@@ -52,31 +36,8 @@ public final class IfRegion extends AbstractRegion implements IBranchRegion {
 		this.elseRegion = elseRegion;
 	}
 
-	public List<BlockNode> getConditionBlocks() {
-		return conditionBlocks;
-	}
-
-	public void setConditionBlocks(List<BlockNode> conditionBlocks) {
-		this.conditionBlocks = conditionBlocks;
-	}
-
-	public void setConditionBlocks(Set<BlockNode> conditionBlocks) {
-		List<BlockNode> list = new ArrayList<>(conditionBlocks);
-		Collections.sort(list);
-		this.conditionBlocks = list;
-	}
-
-	public boolean simplifyCondition() {
-		IfCondition cond = IfCondition.simplify(condition);
-		if (cond != condition) {
-			condition = cond;
-			return true;
-		}
-		return false;
-	}
-
 	public void invert() {
-		condition = IfCondition.invert(condition);
+		invertCondition();
 		// swap regions
 		IContainer tmp = thenRegion;
 		thenRegion = elseRegion;
@@ -84,20 +45,12 @@ public final class IfRegion extends AbstractRegion implements IBranchRegion {
 	}
 
 	public int getSourceLine() {
-		for (BlockNode block : conditionBlocks) {
-			InsnNode lastInsn = BlockUtils.getLastInsn(block);
-			if (lastInsn != null) {
-				int sourceLine = lastInsn.getSourceLine();
-				if (sourceLine != 0) {
-					return sourceLine;
-				}
-			}
-		}
-		return 0;
+		return getConditionSourceLine();
 	}
 
 	@Override
 	public List<IContainer> getSubBlocks() {
+		List<BlockNode> conditionBlocks = getConditionBlocks();
 		List<IContainer> all = new ArrayList<>(conditionBlocks.size() + 2);
 		all.addAll(conditionBlocks);
 		if (thenRegion != null) {
@@ -151,6 +104,6 @@ public final class IfRegion extends AbstractRegion implements IBranchRegion {
 
 	@Override
 	public String toString() {
-		return "IF " + conditionBlocks + " THEN: " + thenRegion + " ELSE: " + elseRegion;
+		return "IF " + getConditionBlocks() + " THEN: " + thenRegion + " ELSE: " + elseRegion;
 	}
 }

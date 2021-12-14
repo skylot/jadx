@@ -11,6 +11,7 @@ import jadx.api.CommentsLevel;
 import jadx.api.plugins.input.data.attributes.IJadxAttrType;
 import jadx.api.plugins.input.data.attributes.IJadxAttribute;
 import jadx.core.dex.attributes.AType;
+import jadx.core.utils.Utils;
 
 public class JadxCommentsAttr implements IJadxAttribute {
 
@@ -43,5 +44,13 @@ public class JadxCommentsAttr implements IJadxAttribute {
 	@Override
 	public IJadxAttrType<JadxCommentsAttr> getAttrType() {
 		return AType.JADX_COMMENTS;
+	}
+
+	@Override
+	public String toString() {
+		return "JadxCommentsAttr{\n "
+				+ Utils.listToString(comments.entrySet(), "\n ",
+						e -> e.getKey() + ": \n -> " + Utils.listToString(e.getValue(), "\n -> "))
+				+ '}';
 	}
 }

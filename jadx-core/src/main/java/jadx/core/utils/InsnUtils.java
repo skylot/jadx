@@ -206,4 +206,16 @@ public class InsnUtils {
 		insn.add(AFlag.DONT_GENERATE);
 		return true;
 	}
+
+	public static <T extends InsnArg> boolean containsVar(List<T> list, RegisterArg arg) {
+		if (list == null || list.isEmpty()) {
+			return false;
+		}
+		for (InsnArg insnArg : list) {
+			if (insnArg == arg || arg.sameRegAndSVar(insnArg)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

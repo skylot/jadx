@@ -216,7 +216,7 @@ public class RegionMaker {
 			// invert loop condition if 'then' points to exit
 			condInfo = IfInfo.invert(condInfo);
 		}
-		loopRegion.setCondition(condInfo.getCondition());
+		loopRegion.updateCondition(condInfo);
 		exitBlocks.removeAll(condInfo.getMergedBlocks());
 
 		if (!exitBlocks.isEmpty()) {
@@ -720,8 +720,7 @@ public class RegionMaker {
 		confirmMerge(currentIf);
 
 		IfRegion ifRegion = new IfRegion(currentRegion);
-		ifRegion.setCondition(currentIf.getCondition());
-		ifRegion.setConditionBlocks(currentIf.getMergedBlocks());
+		ifRegion.updateCondition(currentIf);
 		currentRegion.getSubBlocks().add(ifRegion);
 
 		BlockNode outBlock = currentIf.getOutBlock();

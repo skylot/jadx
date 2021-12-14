@@ -272,6 +272,12 @@ public final class IfCondition extends AttrNode {
 		}
 	}
 
+	public List<InsnNode> collectInsns() {
+		List<InsnNode> list = new ArrayList<>();
+		visitInsns(list::add);
+		return list;
+	}
+
 	@Nullable
 	public InsnNode getFirstInsn() {
 		if (mode == Mode.COMPARE) {

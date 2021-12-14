@@ -42,7 +42,7 @@ public class ConditionGen extends InsnGen {
 		super(insnGen.mgen, insnGen.fallback);
 	}
 
-	void add(ICodeWriter code, IfCondition condition) throws CodegenException {
+	public void add(ICodeWriter code, IfCondition condition) throws CodegenException {
 		add(code, new CondStack(), condition);
 	}
 

@@ -161,7 +161,7 @@ public class RegionGen extends InsnGen {
 	}
 
 	public void makeLoop(LoopRegion region, ICodeWriter code) throws CodegenException {
-		code.startLineWithNum(region.getConditionSourceLine());
+		code.startLineWithNum(region.getSourceLine());
 		LoopLabelAttr labelAttr = region.getInfo().getStart().get(AType.LOOP_LABEL);
 		if (labelAttr != null) {
 			code.add(mgen.getNameGen().getLoopLabel(labelAttr)).add(": ");
@@ -213,7 +213,7 @@ public class RegionGen extends InsnGen {
 			code.add("do {");
 			CodeGenUtils.addCodeComments(code, mth, condInsn);
 			makeRegionIndent(code, region.getBody());
-			code.startLineWithNum(region.getConditionSourceLine());
+			code.startLineWithNum(region.getSourceLine());
 			code.add("} while (");
 			conditionGen.add(code, condition);
 			code.add(");");
