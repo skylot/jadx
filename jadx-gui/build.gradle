@@ -1,7 +1,7 @@
 plugins {
 	id 'application'
 	id 'edu.sc.seis.launch4j' version '2.5.1'
-	id 'com.github.johnrengelman.shadow' version '7.1.0'
+	id 'com.github.johnrengelman.shadow' version '7.1.1'
 	id 'org.beryx.runtime' version '1.12.7'
 }
 
@@ -10,7 +10,7 @@ dependencies {
 
 	implementation(project(":jadx-cli"))
 	implementation 'com.beust:jcommander:1.81'
-	implementation 'ch.qos.logback:logback-classic:1.2.7'
+	implementation 'ch.qos.logback:logback-classic:1.2.8'
 
 	implementation 'com.fifesoft:rsyntaxtextarea:3.1.4'
 	implementation files('libs/jfontchooser-1.0.5.jar')
