@@ -111,7 +111,18 @@ public class MethodGen {
 			CodeGenUtils.addRenamedComment(code, mth, mth.getName());
 		}
 		if (mth.contains(AFlag.INCONSISTENT_CODE) && mth.checkCommentsLevel(CommentsLevel.ERROR)) {
-			code.startLine("/* Code decompiled incorrectly, please refer to instructions dump */");
+			code.startLine("/*");
+			code.incIndent();
+			code.startLine("Code decompiled incorrectly, please refer to instructions dump.");
+			if (!mth.root().getArgs().isShowInconsistentCode()) {
+				if (code.isMetadataSupported()) {
+					code.startLine("To view partially-correct code enable 'Show inconsistent code' option in preferences");
+				} else {
+					code.startLine("To view partially-correct add '--show-bad-code' argument");
+				}
+			}
+			code.decIndent();
+			code.startLine("*/");
 		}
 
 		code.startLineWithNum(mth.getSourceLine());
@@ -314,7 +325,14 @@ public class MethodGen {
 					.filter(insn -> insn.getType() != InsnType.NOP)
 					.count();
 			if (insnCountEstimate > 100) {
-				code.startLine("// Method dump skipped, instructions count: " + insnArr.length);
+				code.incIndent();
+				code.startLine("Method dump skipped, instructions count: " + insnArr.length);
+				if (code.isMetadataSupported()) {
+					code.startLine("To view this dump change 'Code comments level' option to 'DEBUG'");
+				} else {
+					code.startLine("To view this dump add '--comments-level debug' option");
+				}
+				code.decIndent();
 				return;
 			}
 		}
