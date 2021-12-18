@@ -32,6 +32,8 @@ import org.fife.ui.rtextarea.GutterIconInfo;
 import org.fife.ui.rtextarea.IconRowHeader;
 import org.fife.ui.rtextarea.RTextArea;
 import org.fife.ui.rtextarea.RTextAreaUI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.gui.device.debugger.BreakpointManager;
 import jadx.gui.device.debugger.DbgUtils;
@@ -44,6 +46,8 @@ import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
 public final class SmaliArea extends AbstractCodeArea {
+	private static final Logger LOG = LoggerFactory.getLogger(SmaliArea.class);
+
 	private static final long serialVersionUID = 1334485631870306494L;
 
 	private static final Icon ICON_BREAKPOINT = UiUtils.openSvgIcon("debugger/db_set_breakpoint");
@@ -260,8 +264,8 @@ public final class SmaliArea extends AbstractCodeArea {
 			int line;
 			try {
 				line = getLineOfOffset(pos);
-			} catch (BadLocationException badLocationException) {
-				badLocationException.printStackTrace();
+			} catch (BadLocationException e) {
+				LOG.error("Failed to get line by offset: {}", pos, e);
 				return;
 			}
 			BreakpointLine bpLine = bpMap.remove(line);
@@ -287,7 +291,7 @@ public final class SmaliArea extends AbstractCodeArea {
 				int line = getLineOfOffset(pos);
 				runningHighlightTag = addLineHighlight(line, DEBUG_LINE_COLOR);
 			} catch (BadLocationException e) {
-				e.printStackTrace();
+				LOG.error("Failed to get line by offset: {}", pos, e);
 			}
 		}
 
@@ -296,7 +300,7 @@ public final class SmaliArea extends AbstractCodeArea {
 				int line = getLineOfOffset(pos);
 				bpMap.computeIfAbsent(line, k -> new BreakpointLine(line)).setDisabled(true);
 			} catch (BadLocationException e) {
-				e.printStackTrace();
+				LOG.error("Failed to get line by offset: {}", pos, e);
 			}
 		}
 
@@ -377,7 +381,7 @@ public final class SmaliArea extends AbstractCodeArea {
 						try {
 							iconInfo = gutter.addLineTrackingIcon(line, ICON_BREAKPOINT_DISABLED);
 						} catch (BadLocationException e) {
-							e.printStackTrace();
+							LOG.error("Failed to add line tracking icon", e);
 						}
 					}
 				} else {
@@ -387,7 +391,7 @@ public final class SmaliArea extends AbstractCodeArea {
 							iconInfo = gutter.addLineTrackingIcon(line, ICON_BREAKPOINT);
 							highlightTag = addLineHighlight(line, BREAKPOINT_LINE_COLOR);
 						} catch (BadLocationException e) {
-							e.printStackTrace();
+							LOG.error("Failed to remove line tracking icon", e);
 						}
 					}
 				}

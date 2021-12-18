@@ -7,6 +7,7 @@ import jadx.tests.api.IntegrationTest;
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@SuppressWarnings("checkstyle:printstacktrace")
 public class TestTryCatchFinally extends IntegrationTest {
 
 	public static class TestCls {

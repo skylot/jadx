@@ -13,6 +13,9 @@ import java.util.concurrent.Executors;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.reactivex.annotations.NonNull;
 import io.reactivex.annotations.Nullable;
 
@@ -42,6 +45,8 @@ import jadx.gui.ui.panel.JDebuggerPanel.ValueTreeNode;
 import static jadx.gui.device.debugger.SmaliDebugger.RuntimeType;
 
 public final class DebugController implements SmaliDebugger.SuspendListener, IDebugController {
+	private static final Logger LOG = LoggerFactory.getLogger(DebugController.class);
+
 	private static final String ONCREATE_SIGNATURE = "onCreate(Landroid/os/Bundle;)V";
 	private static final Map<String, RuntimeType> TYPE_MAP = new HashMap<>();
 	private static final RuntimeType[] POSSIBLE_TYPES = { RuntimeType.OBJECT, RuntimeType.INT, RuntimeType.LONG };
@@ -924,16 +929,17 @@ public final class DebugController implements SmaliDebugger.SuspendListener, IDe
 	private void logErr(Exception e, String extra) {
 		debuggerPanel.log(e.getMessage());
 		debuggerPanel.log(extra);
-		e.printStackTrace();
+		LOG.error(extra, e);
 	}
 
 	private void logErr(Exception e) {
 		debuggerPanel.log(e.getMessage());
-		e.printStackTrace();
+		LOG.error("Debug error", e);
 	}
 
 	private void logErr(String e) {
 		debuggerPanel.log(e);
+		LOG.error("Debug error: {}", e);
 	}
 
 	private void scrollToPos(long codeOffset) {

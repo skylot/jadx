@@ -11,6 +11,7 @@ import jadx.tests.api.IntegrationTest;
 import static jadx.tests.api.utils.JadxMatchers.containsOne;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+@SuppressWarnings("checkstyle:printstacktrace")
 public class TestMultiExceptionCatch2 extends IntegrationTest {
 
 	public static class TestCls {

@@ -11,6 +11,7 @@ import jadx.tests.api.IntegrationTest;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+@SuppressWarnings("checkstyle:printstacktrace")
 public class TestVariables4 extends IntegrationTest {
 
 	public static class TestCls {

@@ -1,6 +1,5 @@
 package jadx.gui.device.debugger;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -15,6 +14,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -24,6 +26,8 @@ import jadx.gui.device.debugger.smali.Smali;
 import jadx.gui.treemodel.JClass;
 
 public class BreakpointManager {
+	private static final Logger LOG = LoggerFactory.getLogger(BreakpointManager.class);
+
 	private static Gson gson = null;
 	private static final Type TYPE_TOKEN = new TypeToken<Map<String, List<FileBreakpoint>>>() {
 	}.getType();
@@ -56,8 +60,8 @@ public class BreakpointManager {
 			try {
 				byte[] bytes = Files.readAllBytes(savePath);
 				bpm = gson.fromJson(new String(bytes, StandardCharsets.UTF_8), TYPE_TOKEN);
-			} catch (IOException e) {
-				e.printStackTrace();
+			} catch (Exception e) {
+				LOG.error("Failed to read breakpoints config: {}", savePath, e);
 			}
 		}
 		if (bpm == null) {
@@ -147,8 +151,8 @@ public class BreakpointManager {
 	private static void sync() {
 		try {
 			Files.write(savePath, gson.toJson(bpm).getBytes(StandardCharsets.UTF_8));
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			LOG.error("Failed to write breakpoints config: {}", savePath, e);
 		}
 	}
 

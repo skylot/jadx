@@ -10,7 +10,6 @@ import java.awt.Label;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,6 +35,9 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jadx.core.utils.StringUtils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.device.debugger.DbgUtils;
@@ -44,11 +46,14 @@ import jadx.gui.treemodel.JClass;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.panel.IDebugController;
 import jadx.gui.utils.NLS;
+import jadx.gui.utils.SystemInfo;
 import jadx.gui.utils.UiUtils;
 
 import static jadx.gui.device.protocol.ADB.Device.ForwardResult;
 
 public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.JDWPProcessListener {
+	private static final Logger LOG = LoggerFactory.getLogger(ADBDialog.class);
+
 	private static final long serialVersionUID = -1111111202102181630L;
 	private static final ImageIcon ICON_DEVICE = UiUtils.openSvgIcon("adb/androidDevice");
 	private static final ImageIcon ICON_PROCESS = UiUtils.openSvgIcon("adb/addToWatch");
@@ -185,8 +190,8 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 		if (deviceSocket != null) {
 			try {
 				deviceSocket.close();
-			} catch (IOException e) {
-				e.printStackTrace();
+			} catch (Exception e) {
+				LOG.error("Failed to close device socket", e);
 			}
 			deviceSocket = null;
 		}
@@ -197,13 +202,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 	}
 
 	private void detectADBPath() {
-		boolean isWinOS;
-		try {
-			isWinOS = System.getProperty("os.name").startsWith("Windows");
-		} catch (Exception e) {
-			e.printStackTrace();
-			return;
-		}
+		boolean isWinOS = SystemInfo.IS_WINDOWS;
 		String slash = isWinOS ? "\\" : "/";
 		String adbName = isWinOS ? "adb.exe" : "adb";
 		String sdkPath = System.getenv("ANDROID_HOME");
@@ -244,9 +243,9 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 			} else {
 				tip = NLS.str("adb_dialog.start_fail", portTextField.getText());
 			}
-		} catch (Exception except) {
-			tip = except.getMessage();
-			except.printStackTrace();
+		} catch (Exception e) {
+			LOG.error("Failed to start adb server", e);
+			tip = e.getMessage();
 		}
 		UiUtils.showMessageBox(mainWindow, tip);
 		tipLabel.setText(tip);
@@ -265,8 +264,8 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 			} else {
 				tip = NLS.str("adb_dialog.connect_fail");
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			LOG.error("Failed to connect to adb", e);
 			tip = e.getMessage();
 			UiUtils.showMessageBox(mainWindow, tip);
 		}
@@ -346,26 +345,25 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 	}
 
 	private static boolean attachProcess(MainWindow mainWindow) {
-		boolean ok = false;
 		if (debugSetter == null) {
-			return ok;
+			return false;
 		}
 		debugSetter.clearForward();
 		String rst = debugSetter.forwardJDWP();
 		if (!rst.isEmpty()) {
 			UiUtils.showMessageBox(mainWindow, rst);
-			return ok;
+			return false;
 		}
 		try {
-			ok = mainWindow.getDebuggerPanel().showDebugger(
+			return mainWindow.getDebuggerPanel().showDebugger(
 					debugSetter.name,
 					debugSetter.device.getDeviceInfo().adbHost,
 					debugSetter.forwardTcpPort,
 					debugSetter.ver);
-		} catch (Exception except) {
-			except.printStackTrace();
+		} catch (Exception e) {
+			LOG.error("Failed to attach to process", e);
+			return false;
 		}
-		return ok;
 	}
 
 	public static boolean launchForDebugging(MainWindow mainWindow, String fullAppPath, boolean autoAttach) {
@@ -379,7 +377,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 					return attachProcess(mainWindow);
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOG.error("Failed to launch app", e);
 			}
 		}
 		return false;
@@ -416,8 +414,8 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 	private void listenJDWP(ADB.Device device) {
 		try {
 			device.listenForJDWP(this);
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			LOG.error("Failed listen for JDWP", e);
 		}
 	}
 
@@ -451,8 +449,8 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 								 * otherwise we may not get its real name but the <pre-initialized> state text.
 								 */
 			procs = device.getProcessList();
-		} catch (IOException | InterruptedException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			LOG.error("Failed to get device process list", e);
 			procs = Collections.emptyList();
 		}
 		List<String> procList = new ArrayList<>(id.size());
@@ -470,7 +468,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 		try {
 			node = getDeviceNode(device);
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("Failed to find device", e);
 			return;
 		}
 		node.tNode.removeAllChildren();
@@ -521,7 +519,7 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 			try {
 				device.launchApp(fullName);
 			} catch (Exception e) {
-				e.printStackTrace();
+				LOG.error("Failed to launch app: {}", fullName, e);
 				UiUtils.showMessageBox(mainWindow, e.getMessage());
 			}
 		}
@@ -652,8 +650,8 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 					resultDesc = rst.desc;
 					break;
 				} while (true);
-			} catch (IOException e) {
-				e.printStackTrace();
+			} catch (Exception e) {
+				LOG.error("JDWP forward error", e);
 			}
 			if (StringUtils.isEmpty(resultDesc)) {
 				resultDesc = NLS.str("adb_dialog.forward_fail");
@@ -676,14 +674,14 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 								try {
 									device.removeForward(field.substring("tcp:".length()));
 								} catch (Exception e) {
-									e.printStackTrace();
+									LOG.error("JDWP remove forward error", e);
 								}
 							}
 						}
 					}
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
+			} catch (Exception e) {
+				LOG.error("JDWP clear forward error", e);
 			}
 		}
 
@@ -698,8 +696,8 @@ public class ADBDialog extends JDialog implements ADB.DeviceStateListener, ADB.J
 						return !s.contains(tcpPort);
 					}
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
+			} catch (Exception e) {
+				LOG.error("ADB list forward error", e);
 			}
 			return false;
 		}

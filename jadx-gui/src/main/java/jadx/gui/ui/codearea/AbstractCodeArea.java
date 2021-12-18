@@ -142,6 +142,7 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 		return lastText;
 	}
 
+	@Nullable
 	public String getWordUnderCaret() {
 		return getWordByPosition(getCaretPosition());
 	}
@@ -156,7 +157,7 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 			}
 			start++;
 		} catch (BadLocationException e) {
-			e.printStackTrace();
+			LOG.error("Failed to find word start", e);
 			start = -1;
 		}
 		return start;
@@ -171,29 +172,26 @@ public abstract class AbstractCodeArea extends RSyntaxTextArea {
 				} while (end < max && !StringUtils.isWordSeparator(getText(end, 1).charAt(0)));
 			}
 		} catch (BadLocationException e) {
-			e.printStackTrace();
+			LOG.error("Failed to find word end", e);
 			end = max;
 		}
 		return end;
 	}
 
+	@Nullable
 	public String getWordByPosition(int pos) {
-		String text;
 		int len = getDocument().getLength();
 		int start = getWordStart(pos);
 		int end = getWordEnd(pos, len);
 		try {
-			if (end > start) {
-				text = getText(start, end - start);
-			} else {
-				text = null;
+			if (end <= start) {
+				return null;
 			}
+			return getText(start, end - start);
 		} catch (BadLocationException e) {
-			e.printStackTrace();
-			System.out.printf("start: %d end: %d%n", start, end);
-			text = null;
+			LOG.error("Failed to get word at pos: {}, start: {}, end: {}", pos, start, end, e);
+			return null;
 		}
-		return text;
 	}
 
 	/**

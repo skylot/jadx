@@ -65,8 +65,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public abstract class IntegrationTest extends TestUtils {
-
 	private static final Logger LOG = LoggerFactory.getLogger(IntegrationTest.class);
+
 	private static final String TEST_DIRECTORY = "src/test/java";
 	private static final String TEST_DIRECTORY2 = "jadx-core/" + TEST_DIRECTORY;
 
@@ -150,7 +150,7 @@ public abstract class IntegrationTest extends TestUtils {
 			assertThat("File list is empty", files, not(empty()));
 			return getClassNodeFromFiles(files, clazz.getName());
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("Failed to get class node", e);
 			fail(e.getMessage());
 		}
 		return null;
@@ -194,7 +194,7 @@ public abstract class IntegrationTest extends TestUtils {
 		try {
 			d.load();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("Load failed", e);
 			d.close();
 			fail(e.getMessage());
 			return null;
@@ -332,7 +332,7 @@ public abstract class IntegrationTest extends TestUtils {
 				runDecompiledAutoCheck(cls);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("Auto check failed", e);
 			fail("Auto check exception: " + e.getMessage());
 		}
 	}

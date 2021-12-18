@@ -8,6 +8,7 @@ import jadx.tests.api.IntegrationTest;
 import static jadx.tests.api.utils.JadxMatchers.countString;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+@SuppressWarnings("checkstyle:printstacktrace")
 public class TestSwitchWithTryCatch extends IntegrationTest {
 	public static class TestCls {
 		void test(int a) {

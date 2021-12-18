@@ -195,7 +195,7 @@ public class TabbedPane extends JTabbedPane {
 					jumpPos.setPos(offs);
 					codeArea.scrollToPos(offs);
 				} catch (BadLocationException e) {
-					e.printStackTrace();
+					LOG.error("Failed to jump to position: {}", pos, e);
 					codeArea.scrollToLine(line);
 				}
 			}

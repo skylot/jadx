@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.api.JavaClass;
 import jadx.api.ResourceFile;
@@ -18,6 +20,7 @@ import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 
 public class DbgUtils {
+	private static final Logger LOG = LoggerFactory.getLogger(DbgUtils.class);
 
 	private static Map<ClassInfo, Smali> smaliCache = Collections.emptyMap();
 
@@ -156,7 +159,7 @@ public class DbgUtils {
 				return androidManifest.loadContent().getText().getCodeStr();
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error("AndroidManifest.xml search error", e);
 		}
 		return "";
 	}

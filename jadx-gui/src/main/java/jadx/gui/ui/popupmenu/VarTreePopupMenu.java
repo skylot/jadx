@@ -10,6 +10,9 @@ import javax.swing.AbstractAction;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.dialog.SetValueDialog;
@@ -18,6 +21,8 @@ import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
 public class VarTreePopupMenu extends JPopupMenu {
+	private static final Logger LOG = LoggerFactory.getLogger(VarTreePopupMenu.class);
+
 	private static final long serialVersionUID = -1111111202103170724L;
 
 	private final MainWindow mainWindow;
@@ -63,14 +68,14 @@ public class VarTreePopupMenu extends JPopupMenu {
 			private static final long serialVersionUID = -1111111202103171120L;
 
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent event) {
 				try {
 					mainWindow.getDebuggerPanel()
 							.getDbgController()
 							.modifyRegValue(valNode, ArgType.INT, 0);
-				} catch (Exception except) {
-					except.printStackTrace();
-					UiUtils.showMessageBox(mainWindow, except.getMessage());
+				} catch (Exception e) {
+					LOG.error("Change to zero failed", e);
+					UiUtils.showMessageBox(mainWindow, e.getMessage());
 				}
 			}
 		});
@@ -78,14 +83,14 @@ public class VarTreePopupMenu extends JPopupMenu {
 			private static final long serialVersionUID = -1111111202103171121L;
 
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent event) {
 				try {
 					mainWindow.getDebuggerPanel()
 							.getDbgController()
 							.modifyRegValue(valNode, ArgType.INT, 1);
-				} catch (Exception except) {
-					except.printStackTrace();
-					UiUtils.showMessageBox(mainWindow, except.getMessage());
+				} catch (Exception e) {
+					LOG.error("Change to one failed", e);
+					UiUtils.showMessageBox(mainWindow, e.getMessage());
 				}
 			}
 		});
