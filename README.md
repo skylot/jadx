@@ -51,6 +51,9 @@ For windows you can download it from [oracle.com](https://www.oracle.com/java/te
         brew install jadx
     ```
 
+### Use jadx as a library
+You can use jadx in your java projects, check details on [wiki page](https://github.com/skylot/jadx/wiki/Use-jadx-as-a-library)
+
 ### Build from source
 JDK 8 or higher must be installed:
 ```
