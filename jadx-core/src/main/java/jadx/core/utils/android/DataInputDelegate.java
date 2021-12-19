@@ -20,7 +20,7 @@ import java.io.DataInput;
 import java.io.IOException;
 
 /**
- * @author Ryszard Wiśniewski <brut.alll@gmail.com>
+ * @author Ryszard Wiśniewski "brut.alll@gmail.com"
  */
 public abstract class DataInputDelegate implements DataInput {
 	protected final DataInput mDelegate;

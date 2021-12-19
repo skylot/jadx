@@ -27,7 +27,7 @@ import javax.imageio.ImageIO;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 /**
- * @author Ryszard Wiśniewski <brut.alll@gmail.com>
+ * @author Ryszard Wiśniewski "brut.alll@gmail.com"
  */
 public class Res9patchStreamDecoder {
 

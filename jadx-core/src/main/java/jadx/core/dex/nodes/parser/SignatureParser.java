@@ -251,8 +251,8 @@ public class SignatureParser {
 
 	/**
 	 * Map of generic types names to extends classes.
-	 * <p/>
-	 * Example: "<T:Ljava/lang/Exception;:Ljava/lang/Object;>"
+	 * <p>
+	 * Example: "&lt;T:Ljava/lang/Exception;:Ljava/lang/Object;&gt;"
 	 */
 	@SuppressWarnings("ConditionalBreakInInfiniteLoop")
 	public List<ArgType> consumeGenericTypeParameters() {

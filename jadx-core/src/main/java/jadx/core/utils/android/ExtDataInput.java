@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * @author Ryszard Wiśniewski <brut.alll@gmail.com>
+ * @author Ryszard Wiśniewski "brut.alll@gmail.com"
  */
 public class ExtDataInput extends DataInputDelegate {
 	public ExtDataInput(InputStream in) {

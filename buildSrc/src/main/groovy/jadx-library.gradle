@@ -1,0 +1,76 @@
+plugins {
+	id 'java-library'
+	id 'maven-publish'
+	id 'signing'
+}
+
+
+group = 'io.github.skylot'
+version = jadxVersion
+
+java {
+	withJavadocJar()
+	withSourcesJar()
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			artifactId = project.name
+			from components.java
+			versionMapping {
+				usage('java-api') {
+					fromResolutionOf('runtimeClasspath')
+				}
+				usage('java-runtime') {
+					fromResolutionResult()
+				}
+			}
+			pom {
+				name = project.name
+				description = 'Dex to Java decompiler'
+				url = 'https://github.com/skylot/jadx'
+				licenses {
+					license {
+						name = 'The Apache License, Version 2.0'
+						url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+					}
+				}
+				developers {
+					developer {
+						id = 'skylot'
+						name = 'Skylot'
+						email = 'skylot@gmail.com'
+						url = 'https://github.com/skylot'
+					}
+				}
+				scm {
+					connection = 'scm:git:git://github.com/skylot/jadx.git'
+					developerConnection = 'scm:git:ssh://github.com:skylot/jadx.git'
+					url = 'https://github.com/skylot/jadx'
+				}
+			}
+		}
+	}
+	repositories {
+		maven {
+			def releasesRepoUrl = uri('https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/')
+			def snapshotsRepoUrl = uri('https://s01.oss.sonatype.org/content/repositories/snapshots/')
+			url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+			credentials {
+				username = project.properties['ossrhUser'].toString()
+				password = project.properties['ossrhPassword'].toString()
+			}
+		}
+	}
+}
+
+signing {
+	sign publishing.publications.mavenJava
+}
+
+javadoc {
+	if (JavaVersion.current().isJava9Compatible()) {
+		options.addBooleanOption('html5', true)
+	}
+}
