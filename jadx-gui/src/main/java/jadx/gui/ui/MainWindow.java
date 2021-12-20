@@ -364,9 +364,8 @@ public class MainWindow extends JFrame {
 		if (this.project.getFilePaths().size() == 1) {
 			// If there is only one file loaded we suggest saving the jadx project file next to the loaded file
 			Path loadedFile = this.project.getFilePaths().get(0);
-			String fileName = loadedFile.getFileName().toString();
-			fileName += ".jadx";
-			fileChooser.setSelectedFile(loadedFile.getParent().resolve(fileName).toFile());
+			String fileName = loadedFile.getFileName() + "." + JadxProject.PROJECT_EXTENSION;
+			fileChooser.setSelectedFile(loadedFile.resolveSibling(fileName).toFile());
 		}
 		int ret = fileChooser.showSaveDialog(mainPanel);
 		if (ret == JFileChooser.APPROVE_OPTION) {
