@@ -37,6 +37,10 @@ public class ResourceFile {
 	private ZipRef zipRef;
 	private String deobfName;
 
+	public static ResourceFile createResourceFile(JadxDecompiler decompiler, File file, ResourceType type) {
+		return new ResourceFile(decompiler, file.getAbsolutePath(), type);
+	}
+
 	public static ResourceFile createResourceFile(JadxDecompiler decompiler, String name, ResourceType type) {
 		if (!ZipSecurity.isValidZipEntryName(name)) {
 			return null;

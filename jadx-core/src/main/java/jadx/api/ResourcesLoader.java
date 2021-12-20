@@ -145,16 +145,8 @@ public final class ResourcesLoader {
 				return null;
 			});
 		} else {
-			addResourceFile(list, file);
-		}
-	}
-
-	private void addResourceFile(List<ResourceFile> list, File file) {
-		String name = file.getAbsolutePath();
-		ResourceType type = ResourceType.getFileType(name);
-		ResourceFile rf = ResourceFile.createResourceFile(jadxRef, name, type);
-		if (rf != null) {
-			list.add(rf);
+			ResourceType type = ResourceType.getFileType(file.getAbsolutePath());
+			list.add(ResourceFile.createResourceFile(jadxRef, file, type));
 		}
 	}
 
