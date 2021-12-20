@@ -1,6 +1,7 @@
 package jadx.api.plugins.utils;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -8,6 +9,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class CommonFileUtils {
+
+	public static final File CWD = getCWD();
+	public static final Path CWD_PATH = CWD.toPath();
+
+	private static File getCWD() {
+		try {
+			return new File(".").getCanonicalFile();
+		} catch (IOException e) {
+			throw new RuntimeException("Failed to init current working dir constant", e);
+		}
+	}
 
 	public static Path saveToTempFile(InputStream in, String suffix) throws IOException {
 		return saveToTempFile(null, in, suffix);

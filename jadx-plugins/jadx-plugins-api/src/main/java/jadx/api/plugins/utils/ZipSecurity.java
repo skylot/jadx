@@ -48,7 +48,7 @@ public class ZipSecurity {
 	// and prevents cases like "../classes.dex", to limit output only to the specified directory
 	public static boolean isValidZipEntryName(String entryName) {
 		try {
-			File currentPath = new File(".").getCanonicalFile();
+			File currentPath = CommonFileUtils.CWD;
 			File canonical = new File(currentPath, entryName).getCanonicalFile();
 			if (isInSubDirectoryInternal(currentPath, canonical)) {
 				return true;

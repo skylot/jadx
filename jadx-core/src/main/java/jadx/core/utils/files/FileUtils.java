@@ -14,14 +14,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.stream.Stream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -117,7 +114,11 @@ public class FileUtils {
 		try (Stream<Path> pathStream = Files.walk(dir)) {
 			pathStream.sorted(Comparator.reverseOrder())
 					.map(Path::toFile)
-					.forEach(File::delete);
+					.forEach(file -> {
+						if (!file.delete()) {
+							LOG.warn("Failed to remove file: {}", file.getAbsolutePath());
+						}
+					});
 		} catch (Exception e) {
 			throw new JadxRuntimeException("Failed to delete directory " + dir, e);
 		}
@@ -257,45 +258,6 @@ public class FileUtils {
 			LOG.error("Failed read zip file: {}", file.getAbsolutePath(), e);
 		}
 		return false;
-	}
-
-	private static List<String> getZipFileList(File file) {
-		List<String> filesList = new ArrayList<>();
-		try (ZipFile zipFile = new ZipFile(file)) {
-			Enumeration<? extends ZipEntry> entries = zipFile.entries();
-			while (entries.hasMoreElements()) {
-				ZipEntry entry = entries.nextElement();
-				filesList.add(entry.getName());
-			}
-		} catch (Exception e) {
-			LOG.error("Error read zip file '{}'", file.getAbsolutePath(), e);
-		}
-		return filesList;
-	}
-
-	public static boolean isApkFile(File file) {
-		if (!isZipFile(file)) {
-			return false;
-		}
-		List<String> filesList = getZipFileList(file);
-		return filesList.contains("AndroidManifest.xml")
-				&& filesList.contains("classes.dex");
-	}
-
-	public static boolean isZipDexFile(File file) {
-		if (!isZipFile(file) || !isZipFileCanBeOpen(file)) {
-			return false;
-		}
-		List<String> filesList = getZipFileList(file);
-		return filesList.contains("classes.dex");
-	}
-
-	private static boolean isZipFileCanBeOpen(File file) {
-		try (ZipFile zipFile = new ZipFile(file)) {
-			return zipFile.entries().hasMoreElements();
-		} catch (Exception e) {
-			return false;
-		}
 	}
 
 	public static String getPathBaseName(Path file) {

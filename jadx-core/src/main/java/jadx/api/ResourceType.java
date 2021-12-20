@@ -41,7 +41,7 @@ public enum ResourceType {
 	}
 
 	public static ResourceType getFileType(String fileName) {
-		if (fileName.matches("[^/]+/resources.pb")) {
+		if (fileName.endsWith("/resources.pb")) {
 			return ARSC;
 		}
 		int dot = fileName.lastIndexOf('.');
