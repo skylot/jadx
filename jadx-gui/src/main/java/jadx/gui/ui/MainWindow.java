@@ -451,7 +451,7 @@ public class MainWindow extends JFrame {
 		update();
 		restoreOpenTabs();
 		runInitialBackgroundJobs();
-		BreakpointManager.init(paths.get(0).getParent());
+		BreakpointManager.init(paths.get(0).toAbsolutePath().getParent());
 	}
 
 	private void addTreeCustomNodes() {
@@ -517,7 +517,7 @@ public class MainWindow extends JFrame {
 		if (projectPath == null) {
 			pathString = "";
 		} else {
-			pathString = " [" + projectPath.getParent().toAbsolutePath() + ']';
+			pathString = " [" + projectPath.toAbsolutePath().getParent() + ']';
 		}
 		setTitle((project.isSaved() ? "" : '*')
 				+ project.getName() + pathString + " - " + DEFAULT_TITLE);
