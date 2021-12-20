@@ -31,22 +31,13 @@ import jadx.gui.settings.data.ProjectData;
 import jadx.gui.settings.data.TabViewState;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorViewState;
-import jadx.gui.utils.PathTypeAdapter;
+import jadx.gui.utils.RelativePathTypeAdapter;
 
 public class JadxProject {
 	private static final Logger LOG = LoggerFactory.getLogger(JadxProject.class);
 
 	private static final int CURRENT_PROJECT_VERSION = 1;
 	public static final String PROJECT_EXTENSION = "jadx";
-
-	private static final Gson GSON = new GsonBuilder()
-			.registerTypeHierarchyAdapter(Path.class, PathTypeAdapter.singleton())
-			.registerTypeAdapter(ICodeComment.class, GsonUtils.interfaceReplace(JadxCodeComment.class))
-			.registerTypeAdapter(ICodeRename.class, GsonUtils.interfaceReplace(JadxCodeRename.class))
-			.registerTypeAdapter(IJavaNodeRef.class, GsonUtils.interfaceReplace(JadxNodeRef.class))
-			.registerTypeAdapter(IJavaCodeRef.class, GsonUtils.interfaceReplace(JadxCodeRef.class))
-			.setPrettyPrinting()
-			.create();
 
 	private transient MainWindow mainWindow;
 	private transient JadxSettings settings;
@@ -179,9 +170,11 @@ public class JadxProject {
 	}
 
 	public void save() {
-		if (getProjectPath() != null) {
-			try (Writer writer = Files.newBufferedWriter(getProjectPath(), StandardCharsets.UTF_8)) {
-				GSON.toJson(data, writer);
+		Path savePath = getProjectPath();
+		if (savePath != null) {
+			Path basePath = savePath.toAbsolutePath().getParent();
+			try (Writer writer = Files.newBufferedWriter(savePath, StandardCharsets.UTF_8)) {
+				buildGson(basePath).toJson(data, writer);
 				saved = true;
 			} catch (Exception e) {
 				LOG.error("Error saving project", e);
@@ -190,9 +183,10 @@ public class JadxProject {
 	}
 
 	public static JadxProject from(Path path) {
+		Path basePath = path.toAbsolutePath().getParent();
 		try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
 			JadxProject project = new JadxProject();
-			project.data = GSON.fromJson(reader, ProjectData.class);
+			project.data = buildGson(basePath).fromJson(reader, ProjectData.class);
 			project.saved = true;
 			project.setProjectPath(path);
 			project.upgrade();
@@ -201,6 +195,17 @@ public class JadxProject {
 			LOG.error("Error loading project", e);
 			return null;
 		}
+	}
+
+	private static Gson buildGson(Path basePath) {
+		return new GsonBuilder()
+				.registerTypeHierarchyAdapter(Path.class, new RelativePathTypeAdapter(basePath))
+				.registerTypeAdapter(ICodeComment.class, GsonUtils.interfaceReplace(JadxCodeComment.class))
+				.registerTypeAdapter(ICodeRename.class, GsonUtils.interfaceReplace(JadxCodeRename.class))
+				.registerTypeAdapter(IJavaNodeRef.class, GsonUtils.interfaceReplace(JadxNodeRef.class))
+				.registerTypeAdapter(IJavaCodeRef.class, GsonUtils.interfaceReplace(JadxCodeRef.class))
+				.setPrettyPrinting()
+				.create();
 	}
 
 	private void upgrade() {
