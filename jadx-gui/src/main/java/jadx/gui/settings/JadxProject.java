@@ -172,8 +172,9 @@ public class JadxProject {
 	public void save() {
 		Path savePath = getProjectPath();
 		if (savePath != null) {
+			Path basePath = savePath.toAbsolutePath().getParent();
 			try (Writer writer = Files.newBufferedWriter(savePath, StandardCharsets.UTF_8)) {
-				buildGson(savePath.getParent()).toJson(data, writer);
+				buildGson(basePath).toJson(data, writer);
 				saved = true;
 			} catch (Exception e) {
 				LOG.error("Error saving project", e);
@@ -182,9 +183,10 @@ public class JadxProject {
 	}
 
 	public static JadxProject from(Path path) {
+		Path basePath = path.toAbsolutePath().getParent();
 		try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
 			JadxProject project = new JadxProject();
-			project.data = buildGson(path.getParent()).fromJson(reader, ProjectData.class);
+			project.data = buildGson(basePath).fromJson(reader, ProjectData.class);
 			project.saved = true;
 			project.setProjectPath(path);
 			project.upgrade();

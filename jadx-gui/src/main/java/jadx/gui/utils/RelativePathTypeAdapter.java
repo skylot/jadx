@@ -3,6 +3,7 @@ package jadx.gui.utils;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
@@ -13,7 +14,7 @@ public class RelativePathTypeAdapter extends TypeAdapter<Path> {
 	private final Path basePath;
 
 	public RelativePathTypeAdapter(Path basePath) {
-		this.basePath = basePath;
+		this.basePath = Objects.requireNonNull(basePath);
 	}
 
 	@Override
