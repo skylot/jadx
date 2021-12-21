@@ -385,17 +385,16 @@ public class InsnNode extends LineAttrNode {
 
 	/**
 	 * Make copy of InsnNode object.
-	 * <p>
+	 * <br>
 	 * NOTE: can't copy instruction with result argument
 	 * (SSA variable can't be used in two different assigns).
-	 * <p>
+	 * <br>
 	 * Prefer use next methods:
 	 * <ul>
 	 * <li>{@link #copyWithoutResult()} to explicitly state that result not needed
 	 * <li>{@link #copy(RegisterArg)} to provide new result arg
 	 * <li>{@link #copyWithNewSsaVar(MethodNode)} to make new SSA variable for result arg
 	 * </ul>
-	 * <p>
 	 */
 	public InsnNode copy() {
 		if (this.getClass() != InsnNode.class) {

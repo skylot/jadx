@@ -336,12 +336,9 @@ public class RootNode {
 
 	/**
 	 * Searches for ClassNode by its full name (original or alias name)
-	 *
+	 * <br>
 	 * Warning: This method has a runtime of O(n) (n = number of classes).
 	 * If you need to call it more than once consider {@link #buildFullAliasClassCache()} instead
-	 *
-	 * @param fullName
-	 * @return
 	 */
 	@Nullable
 	public ClassNode searchClassByFullAlias(String fullName) {
@@ -355,10 +352,6 @@ public class RootNode {
 		return null;
 	}
 
-	/**
-	 *
-	 * @return
-	 */
 	public Map<String, ClassNode> buildFullAliasClassCache() {
 		Map<String, ClassNode> classNameCache = new HashMap<>(classes.size());
 		for (ClassNode cls : classes) {

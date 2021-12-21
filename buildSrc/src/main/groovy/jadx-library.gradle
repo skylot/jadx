@@ -73,4 +73,6 @@ javadoc {
 	if (JavaVersion.current().isJava9Compatible()) {
 		options.addBooleanOption('html5', true)
 	}
+	// disable 'missing' warnings
+	options.addStringOption('Xdoclint:all,-missing', '-quiet')
 }

@@ -143,19 +143,15 @@ public class NameMapper {
 
 	/**
 	 * Return modified string with removed:
-	 * <p>
 	 * <ul>
 	 * <li>not printable chars (including unicode)
 	 * <li>chars not valid for java identifier part
 	 * </ul>
-	 * <p>
 	 * Note: this 'middle' method must be used with prefixed string:
-	 * <p>
 	 * <ul>
 	 * <li>can leave invalid chars for java identifier start (i.e numbers)
 	 * <li>result not checked for reserved words
 	 * </ul>
-	 * <p>
 	 */
 	public static String removeInvalidCharsMiddle(String name) {
 		if (isValidIdentifier(name) && isAllCharsPrintable(name)) {
