@@ -8,6 +8,9 @@ import org.jetbrains.annotations.Nullable;
 import jadx.core.clsp.ClspClass;
 import jadx.core.clsp.ClspMethod;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.MethodBridgeAttr;
+import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
+import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.BaseInvokeNode;
 import jadx.core.dex.instructions.args.ArgType;
@@ -67,7 +70,7 @@ public class MethodUtils {
 		return null;
 	}
 
-	public boolean processMethodArgsOverloaded(ArgType startCls, MethodInfo mthInfo, @Nullable List<IMethodDetails> collectedMths) {
+	private boolean processMethodArgsOverloaded(ArgType startCls, MethodInfo mthInfo, @Nullable List<IMethodDetails> collectedMths) {
 		if (startCls == null || !startCls.isObject()) {
 			return false;
 		}
@@ -121,5 +124,26 @@ public class MethodUtils {
 			}
 		}
 		return false;
+	}
+
+	@Nullable
+	public IMethodDetails getOverrideBaseMth(MethodNode mth) {
+		MethodOverrideAttr overrideAttr = mth.get(AType.METHOD_OVERRIDE);
+		if (overrideAttr == null) {
+			return null;
+		}
+		return overrideAttr.getBaseMth();
+	}
+
+	public ClassInfo getMethodOriginDeclClass(MethodNode mth) {
+		IMethodDetails baseMth = getOverrideBaseMth(mth);
+		if (baseMth != null) {
+			return baseMth.getMethodInfo().getDeclClass();
+		}
+		MethodBridgeAttr bridgeAttr = mth.get(AType.BRIDGED_BY);
+		if (bridgeAttr != null) {
+			return getMethodOriginDeclClass(bridgeAttr.getBridgeMth());
+		}
+		return mth.getMethodInfo().getDeclClass();
 	}
 }

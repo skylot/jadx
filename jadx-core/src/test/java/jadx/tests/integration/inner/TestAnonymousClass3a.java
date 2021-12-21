@@ -3,6 +3,7 @@ package jadx.tests.integration.inner;
 import org.junit.jupiter.api.Test;
 
 import jadx.NotYetImplemented;
+import jadx.api.CommentsLevel;
 import jadx.tests.api.IntegrationTest;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
@@ -41,9 +42,11 @@ public class TestAnonymousClass3a extends IntegrationTest {
 	@Test
 	@NotYetImplemented
 	public void test() {
+		getArgs().setCommentsLevel(CommentsLevel.NONE);
 		assertThat(getClassNode(TestCls.class))
 				.code()
 				.doesNotContain("synthetic")
+				.doesNotContain("access$00")
 				.doesNotContain("AnonymousClass_")
 				.doesNotContain("unused = ")
 				.containsLine(4, "public void run() {")

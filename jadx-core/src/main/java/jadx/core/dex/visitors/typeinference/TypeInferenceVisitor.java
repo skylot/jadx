@@ -19,6 +19,7 @@ import jadx.core.Consts;
 import jadx.core.clsp.ClspGraph;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.AnonymousClassBaseAttr;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.ArithNode;
@@ -35,12 +36,15 @@ import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.instructions.args.PrimitiveType;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
+import jadx.core.dex.instructions.mods.ConstructorInsn;
 import jadx.core.dex.instructions.mods.TernaryInsn;
 import jadx.core.dex.nodes.BlockNode;
+import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.dex.nodes.utils.MethodUtils;
 import jadx.core.dex.trycatch.ExcHandlerAttr;
 import jadx.core.dex.visitors.AbstractVisitor;
 import jadx.core.dex.visitors.AttachMethodDetails;
@@ -273,6 +277,11 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 				addBound(typeInfo, new TypeBoundConst(BoundEnum.ASSIGN, clsType));
 				break;
 
+			case CONSTRUCTOR:
+				ArgType ctrClsType = replaceAnonymousType((ConstructorInsn) insn);
+				addBound(typeInfo, new TypeBoundConst(BoundEnum.ASSIGN, ctrClsType));
+				break;
+
 			case CONST:
 				LiteralArg constLit = (LiteralArg) insn.getArg(0);
 				addBound(typeInfo, new TypeBoundConst(BoundEnum.ASSIGN, constLit.getType()));
@@ -308,6 +317,19 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		}
 	}
 
+	private ArgType replaceAnonymousType(ConstructorInsn ctr) {
+		if (ctr.isNewInstance()) {
+			ClassNode ctrCls = root.resolveClass(ctr.getClassType());
+			if (ctrCls != null && ctrCls.contains(AFlag.DONT_GENERATE)) {
+				AnonymousClassBaseAttr baseTypeAttr = ctrCls.get(AType.ANONYMOUS_CLASS_BASE);
+				if (baseTypeAttr != null) {
+					return baseTypeAttr.getBaseType();
+				}
+			}
+		}
+		return ctr.getClassType().getType();
+	}
+
 	private ITypeBound makeAssignFieldGetBound(IndexInsnNode insn) {
 		ArgType initType = insn.getResult().getInitType();
 		if (initType.containsTypeVariable()) {
@@ -340,7 +362,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 			return null;
 		}
 		if (insn instanceof BaseInvokeNode) {
-			TypeBoundInvokeUse invokeUseBound = makeInvokeUseBound(regArg, (BaseInvokeNode) insn);
+			ITypeBound invokeUseBound = makeInvokeUseBound(regArg, (BaseInvokeNode) insn);
 			if (invokeUseBound != null) {
 				return invokeUseBound;
 			}
@@ -352,21 +374,32 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		return new TypeBoundConst(BoundEnum.USE, regArg.getInitType(), regArg);
 	}
 
-	private TypeBoundInvokeUse makeInvokeUseBound(RegisterArg regArg, BaseInvokeNode invoke) {
+	private ITypeBound makeInvokeUseBound(RegisterArg regArg, BaseInvokeNode invoke) {
 		InsnArg instanceArg = invoke.getInstanceArg();
-		if (instanceArg == null || instanceArg == regArg) {
+		if (instanceArg == null) {
 			return null;
 		}
-		IMethodDetails methodDetails = root.getMethodUtils().getMethodDetails(invoke);
+		MethodUtils methodUtils = root.getMethodUtils();
+		IMethodDetails methodDetails = methodUtils.getMethodDetails(invoke);
 		if (methodDetails == null) {
 			return null;
 		}
-		int argIndex = invoke.getArgIndex(regArg) - invoke.getFirstArgOffset();
-		ArgType argType = methodDetails.getArgTypes().get(argIndex);
-		if (!argType.containsTypeVariable()) {
-			return null;
+		if (instanceArg != regArg) {
+			int argIndex = invoke.getArgIndex(regArg) - invoke.getFirstArgOffset();
+			ArgType argType = methodDetails.getArgTypes().get(argIndex);
+			if (!argType.containsTypeVariable()) {
+				return null;
+			}
+			return new TypeBoundInvokeUse(root, invoke, regArg, argType);
 		}
-		return new TypeBoundInvokeUse(root, invoke, regArg, argType);
+
+		// for override methods use origin declared class as type
+		if (methodDetails instanceof MethodNode) {
+			MethodNode callMth = (MethodNode) methodDetails;
+			ClassInfo declCls = methodUtils.getMethodOriginDeclClass(callMth);
+			return new TypeBoundConst(BoundEnum.USE, declCls.getType(), regArg);
+		}
+		return null;
 	}
 
 	private boolean tryPossibleTypes(MethodNode mth, SSAVar var, ArgType type) {

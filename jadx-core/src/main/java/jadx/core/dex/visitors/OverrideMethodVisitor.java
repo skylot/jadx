@@ -17,6 +17,7 @@ import jadx.core.clsp.ClspClass;
 import jadx.core.clsp.ClspMethod;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.MethodBridgeAttr;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.attributes.nodes.RenameReasonAttr;
 import jadx.core.dex.info.AccessInfo;
@@ -65,13 +66,13 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 		MethodOverrideAttr attr = processOverrideMethods(cls, mth, superTypes);
 		if (attr != null) {
 			mth.addAttr(attr);
-			IMethodDetails baseMth = Utils.last(attr.getOverrideList());
+			IMethodDetails baseMth = attr.getBaseMth();
 			if (baseMth != null) {
 				boolean updated = fixMethodReturnType(mth, baseMth, superTypes);
 				updated |= fixMethodArgTypes(mth, baseMth, superTypes);
-				if (updated && cls.root().getArgs().isRenameValid()) {
+				if (updated) {
 					// check if new signature cause method collisions
-					fixMethodSignatureCollisions(mth);
+					checkMethodSignatureCollisions(mth, cls.root().getArgs().isRenameValid());
 				}
 			}
 		}
@@ -343,7 +344,7 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 		return null;
 	}
 
-	private void fixMethodSignatureCollisions(MethodNode mth) {
+	private void checkMethodSignatureCollisions(MethodNode mth, boolean rename) {
 		String mthName = mth.getMethodInfo().getAlias();
 		String newSignature = MethodInfo.makeShortId(mthName, mth.getArgTypes(), null);
 		for (MethodNode otherMth : mth.getParentClass().getMethods()) {
@@ -351,12 +352,16 @@ public class OverrideMethodVisitor extends AbstractVisitor {
 			if (otherMthName.equals(mthName) && otherMth != mth) {
 				String otherSignature = otherMth.getMethodInfo().makeSignature(true, false);
 				if (otherSignature.equals(newSignature)) {
-					if (otherMth.contains(AFlag.DONT_RENAME) || otherMth.contains(AType.METHOD_OVERRIDE)) {
-						otherMth.addWarnComment("Can't rename method to resolve collision");
-					} else {
-						otherMth.getMethodInfo().setAlias(makeNewAlias(otherMth));
-						otherMth.addAttr(new RenameReasonAttr("avoid collision after fix types in other method"));
+					if (rename) {
+						if (otherMth.contains(AFlag.DONT_RENAME) || otherMth.contains(AType.METHOD_OVERRIDE)) {
+							otherMth.addWarnComment("Can't rename method to resolve collision");
+						} else {
+							otherMth.getMethodInfo().setAlias(makeNewAlias(otherMth));
+							otherMth.addAttr(new RenameReasonAttr("avoid collision after fix types in other method"));
+						}
 					}
+					otherMth.addAttr(new MethodBridgeAttr(mth));
+					return;
 				}
 			}
 		}

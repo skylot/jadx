@@ -3,10 +3,13 @@ package jadx.core.dex.attributes.nodes;
 import java.util.List;
 import java.util.SortedSet;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.api.plugins.input.data.attributes.PinnedAttribute;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.Utils;
 
 public class MethodOverrideAttr extends PinnedAttribute {
 
@@ -27,6 +30,11 @@ public class MethodOverrideAttr extends PinnedAttribute {
 
 	public boolean isAtBaseMth() {
 		return overrideList.isEmpty();
+	}
+
+	@Nullable
+	public IMethodDetails getBaseMth() {
+		return Utils.last(overrideList);
 	}
 
 	public List<IMethodDetails> getOverrideList() {

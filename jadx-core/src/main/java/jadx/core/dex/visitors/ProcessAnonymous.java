@@ -1,6 +1,8 @@
 package jadx.core.dex.visitors;
 
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.nodes.AnonymousClassBaseAttr;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
 import jadx.core.dex.nodes.MethodNode;
@@ -39,6 +41,7 @@ public class ProcessAnonymous extends AbstractVisitor {
 				return;
 			}
 			cls.add(AFlag.ANONYMOUS_CLASS);
+			cls.addAttr(new AnonymousClassBaseAttr(getBaseType(cls)));
 			cls.add(AFlag.DONT_GENERATE);
 
 			for (MethodNode mth : cls.getMethods()) {
@@ -47,6 +50,16 @@ public class ProcessAnonymous extends AbstractVisitor {
 				}
 			}
 		}
+	}
+
+	private static ArgType getBaseType(ClassNode cls) {
+		ArgType parent;
+		if (cls.getInterfaces().size() == 1) {
+			parent = cls.getInterfaces().get(0);
+		} else {
+			parent = cls.getSuperClass();
+		}
+		return parent != null ? parent : ArgType.OBJECT;
 	}
 
 	private static boolean isStaticFieldUsedOutside(ClassNode cls) {

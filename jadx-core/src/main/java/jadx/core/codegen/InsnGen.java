@@ -717,14 +717,7 @@ public class InsnGen {
 			throw new CodegenException("Anonymous inner class unlimited recursion detected."
 					+ " Convert class to inner: " + cls.getClassInfo().getFullName());
 		}
-
-		cls.add(AFlag.DONT_GENERATE);
-		ArgType parent;
-		if (cls.getInterfaces().size() == 1) {
-			parent = cls.getInterfaces().get(0);
-		} else {
-			parent = cls.getSuperClass();
-		}
+		ArgType parent = cls.get(AType.ANONYMOUS_CLASS_BASE).getBaseType();
 		// hide empty anonymous constructors
 		for (MethodNode ctor : cls.getMethods()) {
 			if (ctor.contains(AFlag.ANONYMOUS_CONSTRUCTOR)
@@ -732,13 +725,8 @@ public class InsnGen {
 				ctor.add(AFlag.DONT_GENERATE);
 			}
 		}
-
 		code.add("new ");
-		if (parent == null) {
-			code.add("Object");
-		} else {
-			useClass(code, parent);
-		}
+		useClass(code, parent);
 		MethodNode callMth = mth.root().resolveMethod(insn.getCallMth());
 		generateMethodArguments(code, insn, 0, callMth);
 		code.add(' ');

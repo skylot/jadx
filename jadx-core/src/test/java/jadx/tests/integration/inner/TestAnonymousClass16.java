@@ -2,8 +2,10 @@ package jadx.tests.integration.inner;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.NotYetImplemented;
+import jadx.api.CommentsLevel;
 import jadx.tests.api.IntegrationTest;
+
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestAnonymousClass16 extends IntegrationTest {
 
@@ -26,9 +28,18 @@ public class TestAnonymousClass16 extends IntegrationTest {
 	}
 
 	@Test
-	@NotYetImplemented
 	public void test() {
+		getArgs().setCommentsLevel(CommentsLevel.NONE);
 		noDebugInfo();
-		getClassNode(TestCls.class);
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.doesNotContain("r0")
+				.doesNotContain("AnonymousClass1 r0 = ")
+				.containsLines(2,
+						"Something something = new Something() {",
+						indent() + "{",
+						indent(2) + "put(\"a\", \"b\");",
+						indent() + "}",
+						"};");
 	}
 }

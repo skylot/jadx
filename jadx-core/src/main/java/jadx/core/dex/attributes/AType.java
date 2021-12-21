@@ -2,6 +2,7 @@ package jadx.core.dex.attributes;
 
 import jadx.api.plugins.input.data.attributes.IJadxAttrType;
 import jadx.api.plugins.input.data.attributes.IJadxAttribute;
+import jadx.core.dex.attributes.nodes.AnonymousClassBaseAttr;
 import jadx.core.dex.attributes.nodes.ClassTypeVarsAttr;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
 import jadx.core.dex.attributes.nodes.EdgeInsnAttr;
@@ -16,6 +17,7 @@ import jadx.core.dex.attributes.nodes.JumpInfo;
 import jadx.core.dex.attributes.nodes.LocalVarsDebugInfoAttr;
 import jadx.core.dex.attributes.nodes.LoopInfo;
 import jadx.core.dex.attributes.nodes.LoopLabelAttr;
+import jadx.core.dex.attributes.nodes.MethodBridgeAttr;
 import jadx.core.dex.attributes.nodes.MethodInlineAttr;
 import jadx.core.dex.attributes.nodes.MethodOverrideAttr;
 import jadx.core.dex.attributes.nodes.MethodTypeVarsAttr;
@@ -51,6 +53,7 @@ public final class AType<T extends IJadxAttribute> implements IJadxAttrType<T> {
 	public static final AType<EnumClassAttr> ENUM_CLASS = new AType<>();
 	public static final AType<EnumMapAttr> ENUM_MAP = new AType<>();
 	public static final AType<ClassTypeVarsAttr> CLASS_TYPE_VARS = new AType<>();
+	public static final AType<AnonymousClassBaseAttr> ANONYMOUS_CLASS_BASE = new AType<>();
 
 	// field
 	public static final AType<FieldInitInsnAttr> FIELD_INIT_INSN = new AType<>();
@@ -63,6 +66,7 @@ public final class AType<T extends IJadxAttribute> implements IJadxAttrType<T> {
 	public static final AType<MethodOverrideAttr> METHOD_OVERRIDE = new AType<>();
 	public static final AType<MethodTypeVarsAttr> METHOD_TYPE_VARS = new AType<>();
 	public static final AType<AttrList<TryCatchBlockAttr>> TRY_BLOCKS_LIST = new AType<>();
+	public static final AType<MethodBridgeAttr> BRIDGED_BY = new AType<>();
 
 	// region
 	public static final AType<DeclareVariablesAttr> DECLARE_VARIABLES = new AType<>();

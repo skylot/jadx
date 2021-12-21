@@ -162,8 +162,7 @@ public class NameGen {
 				InsnNode assignInsn = assignArg.getParentInsn();
 				if (assignInsn != null) {
 					String name = makeNameFromInsn(assignInsn);
-					if (name != null && !NameMapper.isReserved(name)) {
-						assignArg.setName(name);
+					if (name != null && NameMapper.isValidAndPrintable(name)) {
 						return name;
 					}
 				}
@@ -202,7 +201,11 @@ public class NameGen {
 				return vName;
 			}
 			if (shortName != null) {
-				return StringUtils.escape(shortName.toLowerCase());
+				String lower = StringUtils.escape(shortName.toLowerCase());
+				if (shortName.equals(lower)) {
+					return lower + "Var";
+				}
+				return lower;
 			}
 		}
 		return StringUtils.escape(type.toString());
