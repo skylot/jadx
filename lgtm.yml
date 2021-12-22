@@ -1,14 +1,11 @@
 path_classifiers:
   test:
-    - jadx-samples
     - "**/test/**/*.java"
 
 extraction:
   java:
     index:
-      gradle:
-        version: 7.0.2
-      build_command: ./gradlew clean build
+      build_command: ./gradlew clean build -x test
       java_version: 11
       properties_files: true
       xml_mode: disabled
