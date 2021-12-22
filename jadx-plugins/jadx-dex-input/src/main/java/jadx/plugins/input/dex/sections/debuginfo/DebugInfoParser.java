@@ -185,23 +185,14 @@ public class DebugInfoParser {
 				}
 			}
 		}
-		setSourceLines(addr, codeSize, line);
 
 		return new DebugInfo(linesMap, resultList);
 	}
 
 	private int addrChange(int addr, int addrInc, int line) {
-		int newAddr = addr + addrInc;
-		int maxAddr = codeSize - 1;
-		newAddr = Math.min(newAddr, maxAddr);
-		setSourceLines(addr, newAddr, line);
+		int newAddr = Math.min(addr + addrInc, codeSize - 1);
+		setLine(newAddr, line);
 		return newAddr;
-	}
-
-	private void setSourceLines(int start, int end, int line) {
-		for (int offset = start + 1; offset < end; offset++) {
-			setLine(offset, line);
-		}
 	}
 
 	private void setLine(int offset, int line) {
