@@ -10,7 +10,7 @@ dependencies {
 
 	implementation(project(":jadx-cli"))
 	implementation 'com.beust:jcommander:1.81'
-	implementation 'ch.qos.logback:logback-classic:1.2.8'
+	implementation 'ch.qos.logback:logback-classic:1.2.10'
 
 	implementation 'com.fifesoft:rsyntaxtextarea:3.1.4'
 	implementation files('libs/jfontchooser-1.0.5.jar')
