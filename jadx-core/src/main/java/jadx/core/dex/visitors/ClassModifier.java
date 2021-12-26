@@ -1,7 +1,10 @@
 package jadx.core.dex.visitors;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import jadx.api.plugins.input.data.AccessFlags;
@@ -55,7 +58,7 @@ public class ClassModifier extends AbstractVisitor {
 		removeSyntheticFields(cls);
 		cls.getMethods().forEach(ClassModifier::removeSyntheticMethods);
 		cls.getMethods().forEach(ClassModifier::removeEmptyMethods);
-		cls.getMethods().forEach(ClassModifier::cleanInsnsInAnonymousConstructor);
+		cls.getMethods().forEach(ClassModifier::processAnonymousConstructor);
 		return false;
 	}
 
@@ -326,27 +329,86 @@ public class ClassModifier extends AbstractVisitor {
 	/**
 	 * Remove super call and put into removed fields from anonymous constructor
 	 */
-	private static void cleanInsnsInAnonymousConstructor(MethodNode mth) {
+	private static void processAnonymousConstructor(MethodNode mth) {
 		if (!mth.contains(AFlag.ANONYMOUS_CONSTRUCTOR)) {
 			return;
 		}
-		for (BlockNode block : mth.getBasicBlocks()) {
-			for (InsnNode insn : block.getInstructions()) {
-				InsnType type = insn.getType();
-				if (type == InsnType.CONSTRUCTOR) {
-					ConstructorInsn ctorInsn = (ConstructorInsn) insn;
-					if (ctorInsn.isSuper()) {
-						ctorInsn.add(AFlag.DONT_GENERATE);
-					}
-				} else if (type == InsnType.IPUT) {
-					FieldInfo fldInfo = (FieldInfo) ((IndexInsnNode) insn).getIndex();
-					FieldNode fieldNode = mth.root().resolveField(fldInfo);
-					if (fieldNode != null && fieldNode.contains(AFlag.DONT_GENERATE)) {
-						insn.add(AFlag.DONT_GENERATE);
-					}
-				}
+		List<InsnNode> usedInsns = new ArrayList<>();
+		Map<InsnArg, FieldNode> argsMap = getArgsToFieldsMapping(mth, usedInsns);
+		for (Map.Entry<InsnArg, FieldNode> entry : argsMap.entrySet()) {
+			FieldNode field = entry.getValue();
+			if (field == null) {
+				continue;
+			}
+			InsnArg arg = entry.getKey();
+			field.addAttr(new FieldReplaceAttr(arg));
+			field.add(AFlag.DONT_GENERATE);
+			if (arg.isRegister()) {
+				arg.add(AFlag.SKIP_ARG);
+				SkipMethodArgsAttr.skipArg(mth, ((RegisterArg) arg));
 			}
 		}
+		for (InsnNode usedInsn : usedInsns) {
+			usedInsn.add(AFlag.DONT_GENERATE);
+		}
+	}
+
+	private static Map<InsnArg, FieldNode> getArgsToFieldsMapping(MethodNode mth, List<InsnNode> usedInsns) {
+		MethodInfo callMth = mth.getMethodInfo();
+		ClassNode cls = mth.getParentClass();
+		List<RegisterArg> argList = mth.getArgRegs();
+		ClassNode outerCls = mth.getUseIn().get(0).getParentClass();
+		int startArg = 0;
+		if (callMth.getArgsCount() != 0 && callMth.getArgumentsTypes().get(0).equals(outerCls.getClassInfo().getType())) {
+			startArg = 1;
+		}
+		Map<InsnArg, FieldNode> map = new LinkedHashMap<>();
+		int argsCount = argList.size();
+		for (int i = startArg; i < argsCount; i++) {
+			RegisterArg arg = argList.get(i);
+			InsnNode useInsn = getParentInsnSkipMove(arg);
+			if (useInsn == null) {
+				return Collections.emptyMap();
+			}
+			switch (useInsn.getType()) {
+				case IPUT:
+					FieldNode fieldNode = cls.searchField((FieldInfo) ((IndexInsnNode) useInsn).getIndex());
+					if (fieldNode == null || !fieldNode.getAccessFlags().isSynthetic()) {
+						return Collections.emptyMap();
+					}
+					map.put(arg, fieldNode);
+					usedInsns.add(useInsn);
+					break;
+
+				case CONSTRUCTOR:
+					ConstructorInsn superConstr = (ConstructorInsn) useInsn;
+					if (!superConstr.isSuper()) {
+						return Collections.emptyMap();
+					}
+					usedInsns.add(useInsn);
+					break;
+
+				default:
+					return Collections.emptyMap();
+			}
+		}
+		return map;
+	}
+
+	private static InsnNode getParentInsnSkipMove(RegisterArg arg) {
+		SSAVar sVar = arg.getSVar();
+		if (sVar.getUseCount() != 1) {
+			return null;
+		}
+		RegisterArg useArg = sVar.getUseList().get(0);
+		InsnNode parentInsn = useArg.getParentInsn();
+		if (parentInsn == null) {
+			return null;
+		}
+		if (parentInsn.getType() == InsnType.MOVE) {
+			return getParentInsnSkipMove(parentInsn.getResult());
+		}
+		return parentInsn;
 	}
 
 	private static boolean isNonDefaultConstructorExists(MethodNode defCtor) {

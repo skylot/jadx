@@ -154,7 +154,7 @@ public class SignatureProcessor extends AbstractVisitor {
 					return newArgTypes;
 				}
 			}
-			mth.addWarnComment("Incorrect args count in method signature: " + sp.getSignature());
+			mth.addDebugComment("Incorrect args count in method signature: " + sp.getSignature());
 			return null;
 		}
 		for (int i = 0; i < len; i++) {

@@ -7,6 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -65,5 +66,46 @@ public class ListUtils {
 		list.remove(oldObj);
 		list.add(newObj);
 		return list;
+	}
+
+	public static <T> void safeRemove(List<T> list, T obj) {
+		if (list != null && !list.isEmpty()) {
+			list.remove(obj);
+		}
+	}
+
+	/**
+	 * Search exactly one element in list by filter
+	 *
+	 * @return null if found not exactly one element (zero or more than one)
+	 */
+	@Nullable
+	public static <T> T filterOnlyOne(List<T> list, Predicate<T> filter) {
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		T found = null;
+		for (T element : list) {
+			if (filter.test(element)) {
+				if (found != null) {
+					// found second
+					return null;
+				}
+				found = element;
+			}
+		}
+		return found;
+	}
+
+	public static <T> boolean allMatch(List<T> list, Predicate<T> test) {
+		if (list == null || list.isEmpty()) {
+			return false;
+		}
+		for (T element : list) {
+			if (!test.test(element)) {
+				return false;
+			}
+		}
+		return true;
 	}
 }

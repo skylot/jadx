@@ -8,6 +8,8 @@ import javax.swing.border.EmptyBorder;
 
 import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
 import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.TabbedPane;
@@ -23,6 +25,7 @@ import jadx.gui.utils.NLS;
  * </ul>
  */
 public final class ClassCodeContentPanel extends AbstractCodeContentPanel implements IViewStateSupport {
+	private static final Logger LOG = LoggerFactory.getLogger(ClassCodeContentPanel.class);
 	private static final long serialVersionUID = -7229931102504634591L;
 
 	private final transient CodePanel javaCodePanel;
@@ -104,7 +107,15 @@ public final class ClassCodeContentPanel extends AbstractCodeContentPanel implem
 		boolean isJava = viewState.getSubPath().equals("java");
 		CodePanel activePanel = isJava ? javaCodePanel : smaliCodePanel;
 		areaTabbedPane.setSelectedComponent(activePanel);
-		activePanel.getCodeScrollPane().getViewport().setViewPosition(viewState.getViewPoint());
-		activePanel.getCodeArea().setCaretPosition(viewState.getCaretPos());
+		try {
+			activePanel.getCodeScrollPane().getViewport().setViewPosition(viewState.getViewPoint());
+		} catch (Exception e) {
+			LOG.debug("Failed to restore view position: {}", viewState.getViewPoint(), e);
+		}
+		try {
+			activePanel.getCodeArea().setCaretPosition(viewState.getCaretPos());
+		} catch (Exception e) {
+			LOG.debug("Failed to restore caret position: {}", viewState.getCaretPos(), e);
+		}
 	}
 }

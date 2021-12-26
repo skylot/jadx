@@ -728,6 +728,19 @@ public class InsnGen {
 		code.add("new ");
 		useClass(code, parent);
 		MethodNode callMth = mth.root().resolveMethod(insn.getCallMth());
+		if (callMth != null) {
+			// copy var names
+			List<RegisterArg> mthArgs = callMth.getArgRegs();
+			int argsCount = Math.min(insn.getArgsCount(), mthArgs.size());
+			for (int i = 0; i < argsCount; i++) {
+				InsnArg arg = insn.getArg(i);
+				if (arg.isRegister()) {
+					RegisterArg mthArg = mthArgs.get(i);
+					RegisterArg insnArg = (RegisterArg) arg;
+					mthArg.getSVar().setCodeVar(insnArg.getSVar().getCodeVar());
+				}
+			}
+		}
 		generateMethodArguments(code, insn, 0, callMth);
 		code.add(' ');
 

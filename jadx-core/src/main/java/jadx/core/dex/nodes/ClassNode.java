@@ -47,7 +47,6 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
 
 import static jadx.core.dex.nodes.ProcessState.LOADED;
 import static jadx.core.dex.nodes.ProcessState.NOT_LOADED;
-import static jadx.core.dex.nodes.ProcessState.PROCESS_COMPLETE;
 
 public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeNode, Comparable<ClassNode> {
 	private static final Logger LOG = LoggerFactory.getLogger(ClassNode.class);
@@ -283,12 +282,15 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		return true;
 	}
 
+	public boolean checkProcessed() {
+		return getTopParentClass().getState().isProcessComplete();
+	}
+
 	public void ensureProcessed() {
-		ClassNode topClass = getTopParentClass();
-		ProcessState state = topClass.getState();
-		if (state != PROCESS_COMPLETE) {
+		if (!checkProcessed()) {
+			ClassNode topParentClass = getTopParentClass();
 			throw new JadxRuntimeException("Expected class to be processed at this point,"
-					+ " class: " + topClass + ", state: " + state);
+					+ " class: " + topParentClass + ", state: " + topParentClass.getState());
 		}
 	}
 

@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.CommentsLevel;
 import jadx.api.JadxArgs;
+import jadx.core.dex.visitors.AnonymousClassVisitor;
 import jadx.core.dex.visitors.AttachCommentsVisitor;
 import jadx.core.dex.visitors.AttachMethodDetails;
 import jadx.core.dex.visitors.AttachTryCatchVisitor;
@@ -135,6 +136,7 @@ public class Jadx {
 		passes.add(new GenericTypesVisitor());
 		passes.add(new ShadowFieldVisitor());
 		passes.add(new DeboxingVisitor());
+		passes.add(new AnonymousClassVisitor());
 		passes.add(new ModVisitor());
 		passes.add(new CodeShrinkVisitor());
 		passes.add(new ReSugarCode());

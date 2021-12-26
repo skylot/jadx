@@ -33,6 +33,7 @@ public enum AFlag {
 
 	SKIP_FIRST_ARG,
 	SKIP_ARG, // skip argument in invoke call
+	NO_SKIP_ARGS,
 	ANONYMOUS_CONSTRUCTOR,
 	ANONYMOUS_CLASS,
 
