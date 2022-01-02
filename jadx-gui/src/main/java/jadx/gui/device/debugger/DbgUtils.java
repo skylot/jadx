@@ -150,8 +150,9 @@ public class DbgUtils {
 					}
 				}
 			}
-			if (actionTagLen == 0)
+			if (actionTagLen == 0) {
 				actionTagLen = actionTag.length();
+			}
 		}
 		return null;
 	}
