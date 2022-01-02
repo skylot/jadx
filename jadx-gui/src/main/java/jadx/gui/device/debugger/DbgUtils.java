@@ -136,7 +136,7 @@ public class DbgUtils {
 			int activityPos = content.lastIndexOf("<activity ", pos);
 			if (activityPos > -1) {
 				int aliasPos = content.lastIndexOf("<activity-alias ", pos);
-				boolean isAnAlias = (aliasPos > -1 && aliasPos > activityPos);
+				boolean isAnAlias = aliasPos > -1 && aliasPos > activityPos;
 				String classPathAttribute = " android:" + (isAnAlias ? "targetActivity" : "name") + "=\"";
 				pos = content.indexOf(classPathAttribute, isAnAlias ? aliasPos : activityPos);
 				if (pos > -1) {
