@@ -126,13 +126,21 @@ public class DbgUtils {
 	@Nullable
 	public static JClass searchMainActivity(MainWindow mainWindow) {
 		String content = getManifestContent(mainWindow);
-		int pos = content.indexOf("<action android:name=\"android.intent.action.MAIN\"");
-		if (pos > -1) {
-			pos = content.lastIndexOf("<activity ", pos);
-			if (pos > -1) {
-				pos = content.indexOf(" android:name=\"", pos);
+		int pos; // current position
+		int actionPos = 0; // last found action's index
+		String actionTag = "<action android:name=\"android.intent.action.MAIN\"";
+		int actionTagLen = 0; // beginning offset. suggested length set after first iteration
+		while (actionPos > -1) {
+			pos = content.indexOf(actionTag, actionPos + actionTagLen);
+			actionPos = pos;
+			int activityPos = content.lastIndexOf("<activity ", pos);
+			if (activityPos > -1) {
+				int aliasPos = content.lastIndexOf("<activity-alias ", pos);
+				boolean isAnAlias = aliasPos > -1 && aliasPos > activityPos;
+				String classPathAttribute = " android:" + (isAnAlias ? "targetActivity" : "name") + "=\"";
+				pos = content.indexOf(classPathAttribute, isAnAlias ? aliasPos : activityPos);
 				if (pos > -1) {
-					pos += " android:name=\"".length();
+					pos += classPathAttribute.length();
 					String classFullName = content.substring(pos, content.indexOf("\"", pos));
 					// in case the MainActivity class has been renamed before, we need raw name.
 					JavaClass cls = mainWindow.getWrapper().getDecompiler().searchJavaClassByAliasFullName(classFullName);
@@ -141,6 +149,9 @@ public class DbgUtils {
 						return jNode.getRootClass();
 					}
 				}
+			}
+			if (actionTagLen == 0) {
+				actionTagLen = actionTag.length();
 			}
 		}
 		return null;
