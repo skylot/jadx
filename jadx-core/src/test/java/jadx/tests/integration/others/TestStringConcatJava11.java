@@ -3,8 +3,8 @@ package jadx.tests.integration.others;
 import org.junit.jupiter.api.Test;
 
 import jadx.tests.api.RaungTest;
-import jadx.tests.api.extensions.inputs.InputPlugin;
-import jadx.tests.api.extensions.inputs.TestWithInputPlugins;
+import jadx.tests.api.extensions.profiles.TestProfile;
+import jadx.tests.api.extensions.profiles.TestWithProfiles;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
@@ -52,7 +52,7 @@ public class TestStringConcatJava11 extends RaungTest {
 						"return str + \"test\" + str + \"7\";"); // dynamic concat add const to string recipe
 	}
 
-	@TestWithInputPlugins({ InputPlugin.DEX, InputPlugin.JAVA })
+	@TestWithProfiles({ TestProfile.DX_J8, TestProfile.JAVA8 })
 	public void testJava11() {
 		useTargetJavaVersion(11);
 		noDebugInfo();

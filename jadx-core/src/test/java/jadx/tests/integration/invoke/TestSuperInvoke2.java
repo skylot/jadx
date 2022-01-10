@@ -1,8 +1,8 @@
 package jadx.tests.integration.invoke;
 
 import jadx.tests.api.IntegrationTest;
-import jadx.tests.api.extensions.inputs.InputPlugin;
-import jadx.tests.api.extensions.inputs.TestWithInputPlugins;
+import jadx.tests.api.extensions.profiles.TestProfile;
+import jadx.tests.api.extensions.profiles.TestWithProfiles;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
@@ -19,7 +19,7 @@ public class TestSuperInvoke2 extends IntegrationTest {
 		}
 	}
 
-	@TestWithInputPlugins({ InputPlugin.DEX, InputPlugin.JAVA })
+	@TestWithProfiles({ TestProfile.DX_J8, TestProfile.JAVA8 })
 	public void test() {
 		noDebugInfo();
 		assertThat(getClassNode(TestCls.class))

@@ -2,8 +2,8 @@ package jadx.tests.integration.debuginfo;
 
 import jadx.core.dex.nodes.ClassNode;
 import jadx.tests.api.IntegrationTest;
-import jadx.tests.api.extensions.inputs.InputPlugin;
-import jadx.tests.api.extensions.inputs.TestWithInputPlugins;
+import jadx.tests.api.extensions.profiles.TestProfile;
+import jadx.tests.api.extensions.profiles.TestWithProfiles;
 
 import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
@@ -29,7 +29,7 @@ public class TestLineNumbers3 extends IntegrationTest {
 		}
 	}
 
-	@TestWithInputPlugins({ InputPlugin.DEX, InputPlugin.JAVA })
+	@TestWithProfiles({ TestProfile.DX_J8, TestProfile.JAVA8 })
 	public void test() {
 		ClassNode cls = getClassNode(TestCls.class);
 		assertThat(cls).code().containsOne("super(message == null ? \"\" : message.toString());");

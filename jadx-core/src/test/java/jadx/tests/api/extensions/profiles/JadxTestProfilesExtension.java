@@ -1,9 +1,8 @@
-package jadx.tests.api.extensions.inputs;
+package jadx.tests.api.extensions.profiles;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -19,38 +18,38 @@ import jadx.tests.api.IntegrationTest;
 
 import static org.junit.platform.commons.util.AnnotationUtils.isAnnotated;
 
-public class JadxInputPluginsExtension implements TestTemplateInvocationContextProvider {
+public class JadxTestProfilesExtension implements TestTemplateInvocationContextProvider {
 
 	@Override
 	public boolean supportsTestTemplate(ExtensionContext context) {
-		return isAnnotated(context.getTestMethod(), TestWithInputPlugins.class);
+		return isAnnotated(context.getTestMethod(), TestWithProfiles.class);
 	}
 
 	@Override
 	public Stream<TestTemplateInvocationContext> provideTestTemplateInvocationContexts(ExtensionContext context) {
 		Preconditions.condition(IntegrationTest.class.isAssignableFrom(context.getRequiredTestClass()),
-				"@TestWithInputPlugins should be used only in IntegrationTest subclasses");
+				"@TestWithProfiles should be used only in IntegrationTest subclasses");
 
 		Method testMethod = context.getRequiredTestMethod();
 		boolean testAnnAdded = AnnotationUtils.findAnnotation(testMethod, Test.class).isPresent();
 		Preconditions.condition(!testAnnAdded, "@Test annotation should be removed");
 
-		TestWithInputPlugins inputPluginAnn = AnnotationUtils.findAnnotation(testMethod, TestWithInputPlugins.class).get();
-		return Stream.of(inputPluginAnn.value())
+		TestWithProfiles profilesAnn = AnnotationUtils.findAnnotation(testMethod, TestWithProfiles.class).get();
+		return Stream.of(profilesAnn.value())
 				.sorted()
-				.map(RunWithInputPlugin::new);
+				.map(RunWithProfile::new);
 	}
 
-	private static class RunWithInputPlugin implements TestTemplateInvocationContext {
-		private final InputPlugin plugin;
+	private static class RunWithProfile implements TestTemplateInvocationContext {
+		private final TestProfile testProfile;
 
-		public RunWithInputPlugin(InputPlugin plugin) {
-			this.plugin = plugin;
+		public RunWithProfile(TestProfile testProfile) {
+			this.testProfile = testProfile;
 		}
 
 		@Override
 		public String getDisplayName(int invocationIndex) {
-			return plugin.name().toLowerCase(Locale.ROOT) + " input";
+			return testProfile.getDescription();
 		}
 
 		@Override
@@ -59,7 +58,7 @@ public class JadxInputPluginsExtension implements TestTemplateInvocationContextP
 		}
 
 		private BeforeTestExecutionCallback beforeTest() {
-			return execContext -> plugin.accept((IntegrationTest) execContext.getRequiredTestInstance());
+			return execContext -> testProfile.accept((IntegrationTest) execContext.getRequiredTestInstance());
 		}
 	}
 }

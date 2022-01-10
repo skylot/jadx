@@ -490,7 +490,7 @@ public abstract class IntegrationTest extends TestUtils {
 		this.useEclipseCompiler = true;
 	}
 
-	protected void useTargetJavaVersion(int version) {
+	public void useTargetJavaVersion(int version) {
 		Assumptions.assumeTrue(JavaUtils.checkJavaVersion(version), "skip test for higher java version");
 		this.targetJavaVersion = version;
 	}

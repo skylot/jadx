@@ -1,4 +1,4 @@
-package jadx.tests.api.extensions.inputs;
+package jadx.tests.api.extensions.profiles;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -9,10 +9,10 @@ import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @TestTemplate
-@ExtendWith(JadxInputPluginsExtension.class)
+@ExtendWith(JadxTestProfilesExtension.class)
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.METHOD, ElementType.TYPE })
-public @interface TestWithInputPlugins {
+@Target(ElementType.METHOD)
+public @interface TestWithProfiles {
 
-	InputPlugin[] value();
+	TestProfile[] value();
 }
