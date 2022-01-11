@@ -508,7 +508,17 @@ public class InsnDecoder {
 	private InsnNode makeNewArray(InsnData insn) {
 		ArgType indexType = ArgType.parse(insn.getIndexAsType());
 		int dim = (int) insn.getLiteral();
-		ArgType arrType = dim == 0 ? indexType : ArgType.array(indexType, dim);
+		ArgType arrType;
+		if (dim == 0) {
+			arrType = indexType;
+		} else {
+			if (indexType.isArray()) {
+				// java bytecode can pass array as a base type
+				arrType = indexType;
+			} else {
+				arrType = ArgType.array(indexType, dim);
+			}
+		}
 		int regsCount = insn.getRegsCount();
 		NewArrayNode newArr = new NewArrayNode(arrType, regsCount - 1);
 		newArr.setResult(InsnArg.reg(insn, 0, arrType));

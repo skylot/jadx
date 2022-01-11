@@ -112,13 +112,22 @@ public class InsnGen {
 			}
 			code.add(mgen.getNameGen().useArg(reg));
 		} else if (arg.isLiteral()) {
-			code.add(lit((LiteralArg) arg));
+			addLiteralArg(code, (LiteralArg) arg, flags);
 		} else if (arg.isInsnWrap()) {
 			addWrappedArg(code, (InsnWrapArg) arg, flags);
 		} else if (arg.isNamed()) {
 			code.add(((Named) arg).getName());
 		} else {
 			throw new CodegenException("Unknown arg type " + arg);
+		}
+	}
+
+	private void addLiteralArg(ICodeWriter code, LiteralArg litArg, Set<Flags> flags) {
+		String literalStr = lit(litArg);
+		if (!flags.contains(Flags.BODY_ONLY_NOWRAP) && literalStr.startsWith("-")) {
+			code.add('(').add(literalStr).add(')');
+		} else {
+			code.add(literalStr);
 		}
 	}
 
