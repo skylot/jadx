@@ -9,6 +9,7 @@ import java.awt.Font;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
@@ -704,7 +705,7 @@ public class MainWindow extends JFrame {
 	}
 
 	private void treeRightClickAction(MouseEvent e) {
-		JNode obj = getJNodeUnderMouse(e, false);
+		JNode obj = getJNodeUnderMouse(e);
 		if (obj instanceof JPackage) {
 			JPackagePopupMenu menu = new JPackagePopupMenu(this, (JPackage) obj);
 			menu.show(e.getComponent(), e.getX(), e.getY());
@@ -718,17 +719,26 @@ public class MainWindow extends JFrame {
 	}
 
 	@Nullable
-	private JNode getJNodeUnderMouse(MouseEvent mouseEvent, boolean trySelection) {
-		TreePath path = tree.getPathForLocation(mouseEvent.getX(), mouseEvent.getY());
-		if (path == null && trySelection) {
-			// maybe click on node row (mouse pressed event should select this node in tree)
-			path = tree.getSelectionPath();
+	private JNode getJNodeUnderMouse(MouseEvent mouseEvent) {
+		TreePath path = tree.getClosestPathForLocation(mouseEvent.getX(), mouseEvent.getY());
+		if (path == null) {
+			return null;
 		}
-		if (path != null) {
-			Object obj = path.getLastPathComponent();
-			if (obj instanceof JNode) {
-				return (JNode) obj;
+		// allow 'closest' path only at the right of the item row
+		Rectangle pathBounds = tree.getPathBounds(path);
+		if (pathBounds != null) {
+			int y = mouseEvent.getY();
+			if (y < pathBounds.y || y > (pathBounds.y + pathBounds.height)) {
+				return null;
 			}
+			if (mouseEvent.getX() < pathBounds.x) {
+				// exclude expand/collapse events
+				return null;
+			}
+		}
+		Object obj = path.getLastPathComponent();
+		if (obj instanceof JNode) {
+			return (JNode) obj;
 		}
 		return null;
 	}
@@ -1081,16 +1091,10 @@ public class MainWindow extends JFrame {
 		ToolTipManager.sharedInstance().registerComponent(tree);
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		tree.addMouseListener(new MouseAdapter() {
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-				super.mousePressed(e);
-			}
-
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (SwingUtilities.isLeftMouseButton(e)) {
-					nodeClickAction(getJNodeUnderMouse(e, true));
+					nodeClickAction(getJNodeUnderMouse(e));
 				} else if (SwingUtilities.isRightMouseButton(e)) {
 					treeRightClickAction(e);
 				}
