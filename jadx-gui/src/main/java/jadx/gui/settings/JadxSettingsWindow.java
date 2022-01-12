@@ -433,9 +433,10 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
-		int threadsCountMax = Math.max(2, Runtime.getRuntime().availableProcessors() * 2); // fix for #1331
-		SpinnerNumberModel spinnerModel = new SpinnerNumberModel(
-				settings.getThreadsCount(), 1, threadsCountMax, 1);
+		// fix for #1331
+		int threadsCountValue = settings.getThreadsCount();
+		int threadsCountMax = Math.max(2, Math.max(threadsCountValue, Runtime.getRuntime().availableProcessors() * 2));
+		SpinnerNumberModel spinnerModel = new SpinnerNumberModel(threadsCountValue, 1, threadsCountMax, 1);
 		JSpinner threadsCount = new JSpinner(spinnerModel);
 		threadsCount.addChangeListener(e -> {
 			settings.setThreadsCount((Integer) threadsCount.getValue());
