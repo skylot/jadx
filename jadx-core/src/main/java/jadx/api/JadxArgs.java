@@ -138,7 +138,7 @@ public class JadxArgs {
 	}
 
 	public void setThreadsCount(int threadsCount) {
-		this.threadsCount = threadsCount;
+		this.threadsCount = Math.max(1, threadsCount); // make sure threadsCount >= 1
 	}
 
 	public boolean isCfgOutput() {
