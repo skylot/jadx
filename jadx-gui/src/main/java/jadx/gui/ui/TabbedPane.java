@@ -203,12 +203,13 @@ public class TabbedPane extends JTabbedPane {
 		});
 	}
 
-	public void showNode(JNode node) {
+	public boolean showNode(JNode node) {
 		final ContentPanel contentPanel = getContentPanel(node);
 		if (contentPanel == null) {
-			return;
+			return false;
 		}
-		SwingUtilities.invokeLater(() -> selectTab(contentPanel));
+		selectTab(contentPanel);
+		return true;
 	}
 
 	public void selectTab(ContentPanel contentPanel) {

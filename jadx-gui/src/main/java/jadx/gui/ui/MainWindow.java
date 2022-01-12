@@ -15,6 +15,8 @@ import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -680,28 +682,29 @@ public class MainWindow extends JFrame {
 		reOpenFile();
 	}
 
-	private void nodeClickAction(@Nullable Object obj) {
+	private boolean nodeClickAction(@Nullable Object obj) {
+		if (obj == null) {
+			return false;
+		}
 		try {
-			if (obj == null) {
-				return;
-			}
 			if (obj instanceof JResource) {
 				JResource res = (JResource) obj;
 				ResourceFile resFile = res.getResFile();
 				if (resFile != null && JResource.isSupportedForView(resFile.getType())) {
-					tabbedPane.showNode(res);
+					return tabbedPane.showNode(res);
 				}
 			} else if (obj instanceof JNode) {
 				JNode node = (JNode) obj;
 				if (node.getRootClass() != null) {
 					tabbedPane.codeJump(new JumpPosition(node));
-				} else {
-					tabbedPane.showNode(node);
+					return true;
 				}
+				return tabbedPane.showNode(node);
 			}
 		} catch (Exception e) {
 			LOG.error("Content loading error", e);
 		}
+		return false;
 	}
 
 	private void treeRightClickAction(MouseEvent e) {
@@ -738,6 +741,7 @@ public class MainWindow extends JFrame {
 		}
 		Object obj = path.getLastPathComponent();
 		if (obj instanceof JNode) {
+			tree.setSelectionPath(path);
 			return (JNode) obj;
 		}
 		return null;
@@ -1090,11 +1094,22 @@ public class MainWindow extends JFrame {
 		tree = new JTree(treeModel);
 		ToolTipManager.sharedInstance().registerComponent(tree);
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+		tree.setFocusable(false);
+		tree.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				tree.setFocusable(false);
+			}
+		});
 		tree.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mousePressed(MouseEvent e) {
 				if (SwingUtilities.isLeftMouseButton(e)) {
-					nodeClickAction(getJNodeUnderMouse(e));
+					if (!nodeClickAction(getJNodeUnderMouse(e))) {
+						// click ignored -> switch to focusable mode
+						tree.setFocusable(true);
+						tree.requestFocus();
+					}
 				} else if (SwingUtilities.isRightMouseButton(e)) {
 					treeRightClickAction(e);
 				}
