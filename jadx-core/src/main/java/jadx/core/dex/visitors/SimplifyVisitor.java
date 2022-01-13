@@ -532,32 +532,44 @@ public class SimplifyVisitor extends AbstractVisitor {
 		if (arith.getArgsCount() != 2) {
 			return null;
 		}
-		InsnArg litArg = null;
+		LiteralArg litArg = null;
 		InsnArg secondArg = arith.getArg(1);
 		if (secondArg.isInsnWrap()) {
 			InsnNode wr = ((InsnWrapArg) secondArg).getWrapInsn();
 			if (wr.getType() == InsnType.CONST) {
-				litArg = wr.getArg(0);
+				InsnArg arg = wr.getArg(0);
+				if (arg.isLiteral()) {
+					litArg = (LiteralArg) arg;
+				}
 			}
 		} else if (secondArg.isLiteral()) {
-			litArg = secondArg;
+			litArg = (LiteralArg) secondArg;
 		}
-		if (litArg != null) {
-			long lit = ((LiteralArg) litArg).getLiteral();
-			// fix 'c + (-1)' => 'c - (1)'
-			if (arith.getOp() == ArithOp.ADD && lit < 0) {
-				return new ArithNode(ArithOp.SUB,
-						arith.getResult(), arith.getArg(0),
-						InsnArg.lit(-lit, litArg.getType()));
-			}
-			InsnArg firstArg = arith.getArg(0);
-			if (arith.getOp() == ArithOp.XOR && firstArg.getType() == ArgType.BOOLEAN
-					&& (lit == 0 || lit == 1)) {
-				InsnNode node = new InsnNode(lit == 0 ? InsnType.MOVE : InsnType.NOT, 1);
-				node.setResult(arith.getResult());
-				node.addArg(firstArg);
-				return node;
-			}
+		if (litArg == null) {
+			return null;
+		}
+		switch (arith.getOp()) {
+			case ADD:
+				// fix 'c + (-1)' to 'c - (1)'
+				if (litArg.isNegative()) {
+					LiteralArg negLitArg = litArg.negate();
+					if (negLitArg != null) {
+						return new ArithNode(ArithOp.SUB, arith.getResult(), arith.getArg(0), negLitArg);
+					}
+				}
+				break;
+
+			case XOR:
+				// simplify xor on boolean
+				InsnArg firstArg = arith.getArg(0);
+				long lit = litArg.getLiteral();
+				if (firstArg.getType() == ArgType.BOOLEAN && (lit == 0 || lit == 1)) {
+					InsnNode node = new InsnNode(lit == 0 ? InsnType.MOVE : InsnType.NOT, 1);
+					node.setResult(arith.getResult());
+					node.addArg(firstArg);
+					return node;
+				}
+				break;
 		}
 		return null;
 	}
