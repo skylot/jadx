@@ -38,6 +38,7 @@ import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.regions.conditions.IfCondition;
 import jadx.core.dex.visitors.shrink.CodeShrinkVisitor;
+import jadx.core.dex.visitors.typeinference.TypeCompareEnum;
 import jadx.core.utils.BlockUtils;
 import jadx.core.utils.InsnList;
 import jadx.core.utils.InsnRemover;
@@ -82,7 +83,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 		for (int i = 0; i < list.size(); i++) {
 			InsnNode insn = list.get(i);
 			int insnCount = list.size();
-			InsnNode modInsn = simplifyInsn(mth, insn);
+			InsnNode modInsn = simplifyInsn(mth, insn, null);
 			if (modInsn != null) {
 				modInsn.rebindArgs();
 				if (i < list.size() && list.get(i) == insn) {
@@ -110,7 +111,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 		for (InsnArg arg : insn.getArguments()) {
 			if (arg.isInsnWrap()) {
 				InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
-				InsnNode replaceInsn = simplifyInsn(mth, wrapInsn);
+				InsnNode replaceInsn = simplifyInsn(mth, wrapInsn, insn);
 				if (replaceInsn != null) {
 					arg.wrapInstruction(mth, replaceInsn);
 					InsnRemover.unbindInsn(mth, wrapInsn);
@@ -123,7 +124,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 		}
 	}
 
-	private InsnNode simplifyInsn(MethodNode mth, InsnNode insn) {
+	private InsnNode simplifyInsn(MethodNode mth, InsnNode insn, @Nullable InsnNode parentInsn) {
 		if (insn.contains(AFlag.DONT_GENERATE)) {
 			return null;
 		}
@@ -146,8 +147,9 @@ public class SimplifyVisitor extends AbstractVisitor {
 			case SPUT:
 				return convertFieldArith(mth, insn);
 
+			case CAST:
 			case CHECK_CAST:
-				return processCast(mth, (IndexInsnNode) insn);
+				return processCast(mth, (IndexInsnNode) insn, parentInsn);
 
 			case MOVE:
 				InsnArg firstArg = insn.getArg(0);
@@ -212,7 +214,7 @@ public class SimplifyVisitor extends AbstractVisitor {
 		return null;
 	}
 
-	private static InsnNode processCast(MethodNode mth, IndexInsnNode castInsn) {
+	private static InsnNode processCast(MethodNode mth, IndexInsnNode castInsn, @Nullable InsnNode parentInsn) {
 		if (castInsn.contains(AFlag.EXPLICIT_CAST)) {
 			return null;
 		}
@@ -229,7 +231,8 @@ public class SimplifyVisitor extends AbstractVisitor {
 
 		ArgType castToType = (ArgType) castInsn.getIndex();
 		if (!ArgType.isCastNeeded(mth.root(), argType, castToType)
-				|| isCastDuplicate(castInsn)) {
+				|| isCastDuplicate(castInsn)
+				|| shadowedByOuterCast(mth.root(), castToType, parentInsn)) {
 			InsnNode insnNode = new InsnNode(InsnType.MOVE, 1);
 			insnNode.setOffset(castInsn.getOffset());
 			insnNode.setResult(castInsn.getResult());
@@ -250,6 +253,15 @@ public class SimplifyVisitor extends AbstractVisitor {
 					return assignCastType.equals(castInsn.getIndex());
 				}
 			}
+		}
+		return false;
+	}
+
+	private static boolean shadowedByOuterCast(RootNode root, ArgType castType, @Nullable InsnNode parentInsn) {
+		if (parentInsn != null && parentInsn.getType() == InsnType.CAST) {
+			ArgType parentCastType = (ArgType) ((IndexInsnNode) parentInsn).getIndex();
+			TypeCompareEnum result = root.getTypeCompare().compareTypes(parentCastType, castType);
+			return result.isNarrow();
 		}
 		return false;
 	}

@@ -31,6 +31,6 @@ public class TestInline2 extends IntegrationTest {
 
 		assertThat(code, containsOne("int[] a = {1, 2, 4, 6, 8};"));
 		assertThat(code, containsOne("for (int i = 0; i < a.length; i += 2) {"));
-		assertThat(code, containsOne("for (long i2 = (long) b; i2 > 0; i2--) {"));
+		assertThat(code, containsOne("for (long i2 = b; i2 > 0; i2--) {"));
 	}
 }

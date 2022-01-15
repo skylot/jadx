@@ -17,16 +17,24 @@ public class TestPrimitiveCasts extends IntegrationTest {
 			useByte((byte) getInt());
 			useChar((char) 0);
 			useChar((char) getInt());
+
 			useShort((short) 0L);
 			useShort((short) getLong());
 			useByte((byte) 0L);
 			useByte((byte) getLong());
 			useChar((char) 0L);
 			useChar((char) getLong());
+
 			useShort((short) ' ');
 			useShort((short) getChar());
 			useByte((byte) ' ');
 			useByte((byte) getChar());
+
+			useInt((byte) 7);
+			useInt((char) ' ');
+			useInt(getChar());
+			useInt((int) 2L);
+			useInt((int) getLong());
 		}
 
 		private long getLong() {
@@ -49,6 +57,9 @@ public class TestPrimitiveCasts extends IntegrationTest {
 
 		private void useShort(short s) {
 		}
+
+		private void useInt(int i) {
+		}
 	}
 
 	@TestWithProfiles({ TestProfile.DX_J8, TestProfile.JAVA8 })
@@ -56,6 +67,7 @@ public class TestPrimitiveCasts extends IntegrationTest {
 		noDebugInfo();
 		assertThat(getClassNode(TestCls.class))
 				.code()
-				.doesNotContain("(0)");
+				.doesNotContain("(0)")
+				.doesNotContain(") ((int) getLong())");
 	}
 }

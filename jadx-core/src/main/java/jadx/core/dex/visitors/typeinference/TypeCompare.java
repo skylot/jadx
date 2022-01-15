@@ -98,11 +98,19 @@ public class TypeCompare {
 					|| secondPrimitiveType == PrimitiveType.BOOLEAN) {
 				return CONFLICT;
 			}
+			if (swapEquals(firstPrimitiveType, secondPrimitiveType, PrimitiveType.CHAR, PrimitiveType.BYTE)
+					|| swapEquals(firstPrimitiveType, secondPrimitiveType, PrimitiveType.CHAR, PrimitiveType.SHORT)) {
+				return CONFLICT;
+			}
 			return firstPrimitiveType.compareTo(secondPrimitiveType) > 0 ? WIDER : NARROW;
 		}
 
 		LOG.warn("Type compare function not complete, can't compare {} and {}", first, second);
 		return TypeCompareEnum.CONFLICT;
+	}
+
+	private boolean swapEquals(PrimitiveType first, PrimitiveType second, PrimitiveType a, PrimitiveType b) {
+		return (first == a && second == b) || (first == b && second == a);
 	}
 
 	private TypeCompareEnum compareArrayWithOtherType(ArgType array, ArgType other) {

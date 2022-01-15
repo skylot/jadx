@@ -655,7 +655,7 @@ public abstract class ArgType {
 		if (from.equals(to)) {
 			return false;
 		}
-		TypeCompareEnum result = root.getTypeUpdate().getTypeCompare().compareTypes(from, to);
+		TypeCompareEnum result = root.getTypeCompare().compareTypes(from, to);
 		return !result.isNarrow();
 	}
 
