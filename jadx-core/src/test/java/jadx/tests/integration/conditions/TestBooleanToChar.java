@@ -24,6 +24,6 @@ public class TestBooleanToChar extends SmaliTest {
 	public void test() {
 		assertThat(getClassNodeFromSmali())
 				.code()
-				.containsOne("write(this.showConsent ? (char) 1 : 0);");
+				.containsOne("write(this.showConsent ? (char) 1 : (char) 0);");
 	}
 }

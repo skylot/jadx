@@ -24,6 +24,6 @@ public class TestBooleanToLong extends SmaliTest {
 	public void test() {
 		assertThat(getClassNodeFromSmali())
 				.code()
-				.containsOne("write(this.showConsent ? 1 : 0);");
+				.containsOne("write(this.showConsent ? 1L : 0L);");
 	}
 }

@@ -69,7 +69,7 @@ public class TestDeboxing extends IntegrationTest {
 		assertThat(code, containsOne("return 1;"));
 		assertThat(code, containsOne("return true;"));
 		assertThat(code, containsOne("return (byte) 2;"));
-		assertThat(code, containsOne("return 3;"));
+		assertThat(code, containsOne("return (short) 3;"));
 		assertThat(code, containsOne("return 'c';"));
 		assertThat(code, containsOne("return 4L;"));
 		assertThat(code, countString(2, "use(true);"));

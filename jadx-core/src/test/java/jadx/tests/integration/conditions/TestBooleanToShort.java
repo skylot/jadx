@@ -24,6 +24,6 @@ public class TestBooleanToShort extends SmaliTest {
 	public void test() {
 		assertThat(getClassNodeFromSmali())
 				.code()
-				.containsOne("write(this.showConsent ? (short) 1 : 0);");
+				.containsOne("write(this.showConsent ? (short) 1 : (short) 0);");
 	}
 }

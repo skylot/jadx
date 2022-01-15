@@ -301,6 +301,20 @@ public class InsnNode extends LineAttrNode {
 	}
 
 	/**
+	 * Visit all args recursively (including inner instructions),
+	 * but excluding wrapped args
+	 */
+	public void visitArgs(Consumer<InsnArg> visitor) {
+		for (InsnArg arg : getArguments()) {
+			if (arg.isInsnWrap()) {
+				((InsnWrapArg) arg).getWrapInsn().visitArgs(visitor);
+			} else {
+				visitor.accept(arg);
+			}
+		}
+	}
+
+	/**
 	 * Visit this instruction and all inner (wrapped) instructions
 	 * To terminate visiting return non-null value
 	 */

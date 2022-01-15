@@ -14,7 +14,7 @@ public class TestTryCatch extends IntegrationTest {
 	public static class TestCls {
 		public void f() {
 			try {
-				Thread.sleep(50);
+				Thread.sleep(50L);
 			} catch (InterruptedException e) {
 				// ignore
 			}
@@ -27,7 +27,7 @@ public class TestTryCatch extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsString("try {"));
-		assertThat(code, containsString("Thread.sleep(50);"));
+		assertThat(code, containsString("Thread.sleep(50L);"));
 		assertThat(code, containsString("} catch (InterruptedException e) {"));
 		assertThat(code, not(containsString("return")));
 	}

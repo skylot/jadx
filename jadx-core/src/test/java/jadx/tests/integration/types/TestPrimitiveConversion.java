@@ -23,6 +23,6 @@ public class TestPrimitiveConversion extends SmaliTest {
 		assertThat(getClassNodeFromSmali())
 				.code()
 				.doesNotContain("putByte(j, z);")
-				.containsOne("putByte(j, z ? (byte) 1 : 0);");
+				.containsOne("putByte(j, z ? (byte) 1 : (byte) 0);");
 	}
 }

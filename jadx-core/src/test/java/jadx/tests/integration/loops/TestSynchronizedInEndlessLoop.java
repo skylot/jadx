@@ -26,7 +26,7 @@ public class TestSynchronizedInEndlessLoop extends IntegrationTest {
 				}
 				try {
 					f++;
-					Thread.sleep(100);
+					Thread.sleep(100L);
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}
@@ -42,7 +42,7 @@ public class TestSynchronizedInEndlessLoop extends IntegrationTest {
 		assertThat(code, containsOne("synchronized (this) {"));
 		assertThat(code, containsOne("try {"));
 		assertThat(code, containsOne("f++;"));
-		assertThat(code, containsOne("Thread.sleep(100);"));
+		assertThat(code, containsOne("Thread.sleep(100L);"));
 		assertThat(code, containsOne("} catch (Exception e) {"));
 	}
 }

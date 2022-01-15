@@ -17,6 +17,7 @@ import jadx.core.dex.attributes.nodes.LineAttrNode;
 import jadx.core.dex.instructions.ArithNode;
 import jadx.core.dex.instructions.ArithOp;
 import jadx.core.dex.instructions.InsnType;
+import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
 import jadx.core.dex.instructions.args.RegisterArg;
@@ -69,6 +70,7 @@ public class PrepareForCodeGen extends AbstractVisitor {
 			checkInline(block);
 			removeParenthesis(block);
 			modifyArith(block);
+			checkConstUsage(block);
 		}
 		moveConstructorInConstructor(mth);
 	}
@@ -119,6 +121,38 @@ public class PrepareForCodeGen extends AbstractVisitor {
 				wrapInsn.copyAttributesFrom(insn);
 				list.set(i, wrapInsn);
 			}
+		}
+	}
+
+	/**
+	 * Add explicit type for non int constants
+	 */
+	private static void checkConstUsage(BlockNode block) {
+		for (InsnNode blockInsn : block.getInstructions()) {
+			blockInsn.visitInsns(insn -> {
+				if (forbidExplicitType(insn.getType())) {
+					return;
+				}
+				for (InsnArg arg : insn.getArguments()) {
+					if (arg.isLiteral() && arg.getType() != ArgType.INT) {
+						arg.add(AFlag.EXPLICIT_PRIMITIVE_TYPE);
+					}
+				}
+			});
+		}
+	}
+
+	private static boolean forbidExplicitType(InsnType type) {
+		switch (type) {
+			case CONST:
+			case CAST:
+			case IF:
+			case FILLED_NEW_ARRAY:
+			case APUT:
+			case ARITH:
+				return true;
+			default:
+				return false;
 		}
 	}
 

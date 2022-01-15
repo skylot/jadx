@@ -13,6 +13,7 @@ import static org.hamcrest.Matchers.anyOf;
 
 public class TestBreakInLoop2 extends IntegrationTest {
 
+	@SuppressWarnings({ "BusyWait", "ResultOfMethodCallIgnored" })
 	public static class TestCls {
 		public void test(List<Integer> data) throws Exception {
 			for (;;) {
@@ -25,7 +26,7 @@ public class TestBreakInLoop2 extends IntegrationTest {
 					}
 					data.clear();
 				}
-				Thread.sleep(100);
+				Thread.sleep(100L);
 			}
 		}
 
@@ -47,6 +48,6 @@ public class TestBreakInLoop2 extends IntegrationTest {
 		assertThat(code, anyOf(containsOne("break;"), containsOne("return;")));
 		assertThat(code, containsOne("throw ex;"));
 		assertThat(code, containsOne("data.clear();"));
-		assertThat(code, containsOne("Thread.sleep(100);"));
+		assertThat(code, containsOne("Thread.sleep(100L);"));
 	}
 }

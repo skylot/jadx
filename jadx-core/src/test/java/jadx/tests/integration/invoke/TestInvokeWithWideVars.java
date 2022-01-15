@@ -12,11 +12,11 @@ public class TestInvokeWithWideVars extends IntegrationTest {
 	public static class TestCls {
 
 		public long test1() {
-			return call(1, 2);
+			return call(1, 2L);
 		}
 
 		public long test2() {
-			return rangeCall(1, 2, 3.0d, (byte) 4);
+			return rangeCall(1L, 2, 3.0d, (byte) 4);
 		}
 
 		private long call(int a, long b) {
@@ -32,7 +32,7 @@ public class TestInvokeWithWideVars extends IntegrationTest {
 	public void test() {
 		assertThat(getClassNode(TestCls.class))
 				.code()
-				.containsOne("return call(1, 2);")
-				.containsOne("return rangeCall(1, 2, 3.0d, (byte) 4);");
+				.containsOne("return call(1, 2L);")
+				.containsOne("return rangeCall(1L, 2, 3.0d, (byte) 4);");
 	}
 }

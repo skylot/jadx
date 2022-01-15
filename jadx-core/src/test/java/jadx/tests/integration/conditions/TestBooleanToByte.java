@@ -24,6 +24,6 @@ public class TestBooleanToByte extends SmaliTest {
 	public void test() {
 		assertThat(getClassNodeFromSmali())
 				.code()
-				.containsOne("write(this.showConsent ? (byte) 1 : 0);");
+				.containsOne("write(this.showConsent ? (byte) 1 : (byte) 0);");
 	}
 }

@@ -23,7 +23,7 @@ public class TestInnerClass2 extends IntegrationTest {
 		}
 
 		public void test() {
-			new Timer().schedule(new TerminateTask(), 1000);
+			new Timer().schedule(new TerminateTask(), 1000L);
 		}
 	}
 
@@ -32,7 +32,7 @@ public class TestInnerClass2 extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsString("new Timer().schedule(new TerminateTask(), 1000);"));
+		assertThat(code, containsString("new Timer().schedule(new TerminateTask(), 1000L);"));
 		assertThat(code, not(containsString("synthetic")));
 		assertThat(code, not(containsString("this")));
 		assertThat(code, not(containsString("null")));

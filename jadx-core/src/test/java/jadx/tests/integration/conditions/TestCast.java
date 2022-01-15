@@ -51,12 +51,12 @@ public class TestCast extends IntegrationTest {
 		ClassNode cls = getClassNode(TestCls.class);
 		String code = cls.getCode().toString();
 
-		assertThat(code, containsString("write(a ? (byte) 0 : 1);"));
-		assertThat(code, containsString("write(a ? 0 : this.myByte);"));
-		assertThat(code, containsString("write(a ? 0 : Byte.MAX_VALUE);"));
+		assertThat(code, containsString("write(a ? (byte) 0 : (byte) 1);"));
+		assertThat(code, containsString("write(a ? (byte) 0 : this.myByte);"));
+		assertThat(code, containsString("write(a ? (byte) 0 : Byte.MAX_VALUE);"));
 
-		assertThat(code, containsString("write(a ? (short) 0 : 1);"));
-		assertThat(code, containsString("write(a ? this.myShort : 0);"));
-		assertThat(code, containsString("write(a ? Short.MIN_VALUE : 0);"));
+		assertThat(code, containsString("write(a ? (short) 0 : (short) 1);"));
+		assertThat(code, containsString("write(a ? this.myShort : (short) 0);"));
+		assertThat(code, containsString("write(a ? Short.MIN_VALUE : (short) 0);"));
 	}
 }

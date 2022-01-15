@@ -16,7 +16,7 @@ public class TestTryCatch2 extends IntegrationTest {
 		public static boolean test() {
 			try {
 				synchronized (OBJ) {
-					OBJ.wait(5);
+					OBJ.wait(5L);
 				}
 				return true;
 			} catch (InterruptedException e) {
@@ -32,7 +32,7 @@ public class TestTryCatch2 extends IntegrationTest {
 
 		assertThat(code, containsString("try {"));
 		assertThat(code, containsString("synchronized (OBJ) {"));
-		assertThat(code, containsString("OBJ.wait(5);"));
+		assertThat(code, containsString("OBJ.wait(5L);"));
 		assertThat(code, containsString("return true;"));
 		assertThat(code, containsString("} catch (InterruptedException e) {"));
 		assertThat(code, containsString("return false;"));
