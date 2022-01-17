@@ -79,6 +79,10 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	 */
 	private List<ClassNode> dependencies = Collections.emptyList();
 	/**
+	 * Top level classes needed for code generation stage
+	 */
+	private List<ClassNode> codegenDeps = Collections.emptyList();
+	/**
 	 * Classes which uses this class
 	 */
 	private List<ClassNode> useIn = Collections.emptyList();
@@ -733,6 +737,14 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 
 	public void setDependencies(List<ClassNode> dependencies) {
 		this.dependencies = dependencies;
+	}
+
+	public List<ClassNode> getCodegenDeps() {
+		return codegenDeps;
+	}
+
+	public void setCodegenDeps(List<ClassNode> codegenDeps) {
+		this.codegenDeps = codegenDeps;
 	}
 
 	public List<ClassNode> getUseIn() {

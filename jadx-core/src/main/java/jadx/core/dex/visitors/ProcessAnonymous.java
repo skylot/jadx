@@ -66,8 +66,15 @@ public class ProcessAnonymous extends AbstractVisitor {
 		// actual usage of outer class will be removed at anonymous class process,
 		// see ModVisitor.processAnonymousConstructor method
 		ClassNode outerCls = anonymousConstructor.getUseIn().get(0).getParentClass();
-		ListUtils.safeRemove(cls.getDependencies(), outerCls);
+		ClassNode topOuterCls = outerCls.getTopParentClass();
+		ListUtils.safeRemove(cls.getDependencies(), topOuterCls);
 		ListUtils.safeRemove(outerCls.getUseIn(), cls);
+
+		// move dependency to codegen stage
+		if (cls.isTopClass()) {
+			topOuterCls.setDependencies(ListUtils.safeRemoveAndTrim(topOuterCls.getDependencies(), cls));
+			topOuterCls.setCodegenDeps(ListUtils.safeAdd(topOuterCls.getCodegenDeps(), cls));
+		}
 	}
 
 	/**

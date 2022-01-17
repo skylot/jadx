@@ -63,8 +63,12 @@ public class ListUtils {
 			newList.add(newObj);
 			return newList;
 		}
-		list.remove(oldObj);
-		list.add(newObj);
+		int idx = list.indexOf(oldObj);
+		if (idx != -1) {
+			list.set(idx, newObj);
+		} else {
+			list.add(newObj);
+		}
 		return list;
 	}
 
@@ -72,6 +76,28 @@ public class ListUtils {
 		if (list != null && !list.isEmpty()) {
 			list.remove(obj);
 		}
+	}
+
+	public static <T> List<T> safeRemoveAndTrim(List<T> list, T obj) {
+		if (list == null || list.isEmpty()) {
+			return list;
+		}
+		if (list.remove(obj)) {
+			if (list.isEmpty()) {
+				return Collections.emptyList();
+			}
+		}
+		return list;
+	}
+
+	public static <T> List<T> safeAdd(List<T> list, T obj) {
+		if (list == null || list.isEmpty()) {
+			List<T> newList = new ArrayList<>(1);
+			newList.add(obj);
+			return newList;
+		}
+		list.add(obj);
+		return list;
 	}
 
 	/**

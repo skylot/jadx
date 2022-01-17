@@ -38,6 +38,7 @@ import jadx.core.dex.visitors.OverrideMethodVisitor;
 import jadx.core.dex.visitors.PrepareForCodeGen;
 import jadx.core.dex.visitors.ProcessAnonymous;
 import jadx.core.dex.visitors.ProcessInstructionsVisitor;
+import jadx.core.dex.visitors.ProcessMethodsForInline;
 import jadx.core.dex.visitors.ReSugarCode;
 import jadx.core.dex.visitors.ShadowFieldVisitor;
 import jadx.core.dex.visitors.SignatureProcessor;
@@ -89,6 +90,7 @@ public class Jadx {
 		passes.add(new RenameVisitor());
 		passes.add(new UsageInfoVisitor());
 		passes.add(new ProcessAnonymous());
+		passes.add(new ProcessMethodsForInline());
 		return passes;
 	}
 

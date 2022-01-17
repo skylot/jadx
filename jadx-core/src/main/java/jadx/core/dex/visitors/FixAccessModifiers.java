@@ -86,7 +86,7 @@ public class FixAccessModifiers extends AbstractVisitor {
 		if (!accessFlags.isPublic()) {
 			// if class is used in inlinable method => make it public
 			for (MethodNode useMth : cls.getUseInMth()) {
-				boolean canInline = MarkMethodsForInline.canInline(useMth) || useMth.contains(AType.METHOD_INLINE);
+				boolean canInline = useMth.contains(AFlag.METHOD_CANDIDATE_FOR_INLINE) || useMth.contains(AType.METHOD_INLINE);
 				if (canInline && !useMth.getUseIn().isEmpty()) {
 					return AccessFlags.PUBLIC;
 				}

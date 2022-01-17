@@ -10,7 +10,6 @@ import jadx.core.Consts;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.MethodInlineAttr;
-import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.IndexInsnNode;
 import jadx.core.dex.instructions.InsnType;
@@ -47,7 +46,7 @@ public class MarkMethodsForInline extends AbstractVisitor {
 		if (mia != null) {
 			return mia;
 		}
-		if (canInline(mth)) {
+		if (mth.contains(AFlag.METHOD_CANDIDATE_FOR_INLINE)) {
 			if (mth.getBasicBlocks() == null) {
 				return null;
 			}
@@ -57,14 +56,6 @@ public class MarkMethodsForInline extends AbstractVisitor {
 			}
 		}
 		return MethodInlineAttr.inlineNotNeeded(mth);
-	}
-
-	public static boolean canInline(MethodNode mth) {
-		if (mth.isNoCode() || mth.contains(AFlag.DONT_GENERATE)) {
-			return false;
-		}
-		AccessInfo accessFlags = mth.getAccessFlags();
-		return accessFlags.isSynthetic() && accessFlags.isStatic();
 	}
 
 	@Nullable
@@ -79,7 +70,11 @@ public class MarkMethodsForInline extends AbstractVisitor {
 			if (insn.getType() == InsnType.RETURN && insn.getArgsCount() == 1) {
 				// synthetic field getter
 				// set arg from 'return' instruction
-				return addInlineAttr(mth, InsnNode.wrapArg(insn.getArg(0)));
+				InsnArg arg = insn.getArg(0);
+				if (!arg.isInsnWrap()) {
+					return null;
+				}
+				return addInlineAttr(mth, ((InsnWrapArg) arg).getWrapInsn());
 			}
 			// method invoke
 			return addInlineAttr(mth, insn);
