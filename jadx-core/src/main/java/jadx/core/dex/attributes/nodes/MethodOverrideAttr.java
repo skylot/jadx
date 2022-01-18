@@ -1,15 +1,13 @@
 package jadx.core.dex.attributes.nodes;
 
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
-
-import org.jetbrains.annotations.Nullable;
 
 import jadx.api.plugins.input.data.attributes.PinnedAttribute;
 import jadx.core.dex.attributes.AType;
 import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.MethodNode;
-import jadx.core.utils.Utils;
 
 public class MethodOverrideAttr extends PinnedAttribute {
 
@@ -23,30 +21,24 @@ public class MethodOverrideAttr extends PinnedAttribute {
 	 */
 	private SortedSet<MethodNode> relatedMthNodes;
 
-	public MethodOverrideAttr(List<IMethodDetails> overrideList, SortedSet<MethodNode> relatedMthNodes) {
+	private Set<IMethodDetails> baseMethods;
+
+	public MethodOverrideAttr(List<IMethodDetails> overrideList, SortedSet<MethodNode> relatedMthNodes, Set<IMethodDetails> baseMethods) {
 		this.overrideList = overrideList;
 		this.relatedMthNodes = relatedMthNodes;
-	}
-
-	public boolean isAtBaseMth() {
-		return overrideList.isEmpty();
-	}
-
-	@Nullable
-	public IMethodDetails getBaseMth() {
-		return Utils.last(overrideList);
+		this.baseMethods = baseMethods;
 	}
 
 	public List<IMethodDetails> getOverrideList() {
 		return overrideList;
 	}
 
-	public void setOverrideList(List<IMethodDetails> overrideList) {
-		this.overrideList = overrideList;
-	}
-
 	public SortedSet<MethodNode> getRelatedMthNodes() {
 		return relatedMthNodes;
+	}
+
+	public Set<IMethodDetails> getBaseMethods() {
+		return baseMethods;
 	}
 
 	public void setRelatedMthNodes(SortedSet<MethodNode> relatedMthNodes) {
@@ -60,6 +52,6 @@ public class MethodOverrideAttr extends PinnedAttribute {
 
 	@Override
 	public String toString() {
-		return "METHOD_OVERRIDE: " + overrideList;
+		return "METHOD_OVERRIDE: " + getBaseMethods();
 	}
 }

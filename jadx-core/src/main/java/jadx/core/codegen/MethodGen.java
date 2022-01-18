@@ -180,7 +180,7 @@ public class MethodGen {
 		if (overrideAttr == null) {
 			return;
 		}
-		if (!overrideAttr.isAtBaseMth()) {
+		if (!overrideAttr.getBaseMethods().contains(mth)) {
 			code.startLine("@Override");
 			if (mth.checkCommentsLevel(CommentsLevel.INFO)) {
 				code.add(" // ");

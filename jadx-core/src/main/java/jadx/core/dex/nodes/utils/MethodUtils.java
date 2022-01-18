@@ -18,6 +18,7 @@ import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.Utils;
 
 public class MethodUtils {
 	private final RootNode root;
@@ -132,7 +133,7 @@ public class MethodUtils {
 		if (overrideAttr == null) {
 			return null;
 		}
-		return overrideAttr.getBaseMth();
+		return Utils.getOne(overrideAttr.getBaseMethods());
 	}
 
 	public ClassInfo getMethodOriginDeclClass(MethodNode mth) {
