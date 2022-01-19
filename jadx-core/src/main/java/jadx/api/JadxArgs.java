@@ -87,6 +87,12 @@ public class JadxArgs {
 
 	private boolean useDxInput = false;
 
+	public enum UseKotlinMethodsForVarNames {
+		DISABLE, APPLY, APPLY_AND_HIDE
+	}
+
+	private UseKotlinMethodsForVarNames useKotlinMethodsForVarNames = UseKotlinMethodsForVarNames.APPLY;
+
 	public JadxArgs() {
 		// use default options
 	}
@@ -433,6 +439,14 @@ public class JadxArgs {
 		this.useDxInput = useDxInput;
 	}
 
+	public UseKotlinMethodsForVarNames getUseKotlinMethodsForVarNames() {
+		return useKotlinMethodsForVarNames;
+	}
+
+	public void setUseKotlinMethodsForVarNames(UseKotlinMethodsForVarNames useKotlinMethodsForVarNames) {
+		this.useKotlinMethodsForVarNames = useKotlinMethodsForVarNames;
+	}
+
 	@Override
 	public String toString() {
 		return "JadxArgs{" + "inputFiles=" + inputFiles
@@ -452,6 +466,7 @@ public class JadxArgs {
 				+ ", deobfuscationForceSave=" + deobfuscationForceSave
 				+ ", useSourceNameAsClassAlias=" + useSourceNameAsClassAlias
 				+ ", parseKotlinMetadata=" + parseKotlinMetadata
+				+ ", useKotlinMethodsForVarNames=" + useKotlinMethodsForVarNames
 				+ ", deobfuscationMinLength=" + deobfuscationMinLength
 				+ ", deobfuscationMaxLength=" + deobfuscationMaxLength
 				+ ", escapeUnicode=" + escapeUnicode

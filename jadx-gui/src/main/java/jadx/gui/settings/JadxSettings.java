@@ -43,7 +43,7 @@ public class JadxSettings extends JadxCLIArgs {
 
 	private static final Path USER_HOME = Paths.get(System.getProperty("user.home"));
 	private static final int RECENT_PROJECTS_COUNT = 15;
-	private static final int CURRENT_SETTINGS_VERSION = 14;
+	private static final int CURRENT_SETTINGS_VERSION = 15;
 
 	private static final Font DEFAULT_FONT = new RSyntaxTextArea().getFont();
 
@@ -336,6 +336,10 @@ public class JadxSettings extends JadxCLIArgs {
 
 	public void setDeobfuscationParseKotlinMetadata(boolean deobfuscationParseKotlinMetadata) {
 		this.deobfuscationParseKotlinMetadata = deobfuscationParseKotlinMetadata;
+	}
+
+	public void setUseKotlinMethodsForVarNames(JadxArgs.UseKotlinMethodsForVarNames useKotlinMethodsForVarNames) {
+		this.useKotlinMethodsForVarNames = useKotlinMethodsForVarNames;
 	}
 
 	public void updateRenameFlag(JadxArgs.RenameEnum flag, boolean enabled) {
@@ -649,6 +653,10 @@ public class JadxSettings extends JadxCLIArgs {
 		}
 		if (fromVersion == 13) {
 			lafTheme = LafManager.INITIAL_THEME_NAME;
+			fromVersion++;
+		}
+		if (fromVersion == 14) {
+			useKotlinMethodsForVarNames = JadxArgs.UseKotlinMethodsForVarNames.APPLY;
 			fromVersion++;
 		}
 		if (fromVersion != CURRENT_SETTINGS_VERSION) {

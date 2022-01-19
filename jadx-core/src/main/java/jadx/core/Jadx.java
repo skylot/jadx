@@ -48,6 +48,7 @@ import jadx.core.dex.visitors.blocks.BlockSplitter;
 import jadx.core.dex.visitors.debuginfo.DebugInfoApplyVisitor;
 import jadx.core.dex.visitors.debuginfo.DebugInfoAttachVisitor;
 import jadx.core.dex.visitors.finaly.MarkFinallyVisitor;
+import jadx.core.dex.visitors.kotlin.ProcessKotlinInternals;
 import jadx.core.dex.visitors.regions.CheckRegions;
 import jadx.core.dex.visitors.regions.CleanRegions;
 import jadx.core.dex.visitors.regions.IfRegionVisitor;
@@ -130,6 +131,9 @@ public class Jadx {
 		passes.add(new TypeInferenceVisitor());
 		if (args.isDebugInfo()) {
 			passes.add(new DebugInfoApplyVisitor());
+		}
+		if (args.getUseKotlinMethodsForVarNames() != JadxArgs.UseKotlinMethodsForVarNames.DISABLE) {
+			passes.add(new ProcessKotlinInternals());
 		}
 		passes.add(new CodeRenameVisitor());
 		if (args.isInlineMethods()) {

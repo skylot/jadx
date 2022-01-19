@@ -60,6 +60,7 @@ import say.swing.JFontChooser;
 
 import jadx.api.CommentsLevel;
 import jadx.api.JadxArgs;
+import jadx.api.JadxArgs.UseKotlinMethodsForVarNames;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.codearea.EditorTheme;
 import jadx.gui.utils.FontUtils;
@@ -510,6 +511,13 @@ public class JadxSettingsWindow extends JDialog {
 			needReload();
 		});
 
+		JComboBox<UseKotlinMethodsForVarNames> kotlinRenameVars = new JComboBox<>(UseKotlinMethodsForVarNames.values());
+		kotlinRenameVars.setSelectedItem(settings.getUseKotlinMethodsForVarNames());
+		kotlinRenameVars.addActionListener(e -> {
+			settings.setUseKotlinMethodsForVarNames((UseKotlinMethodsForVarNames) kotlinRenameVars.getSelectedItem());
+			needReload();
+		});
+
 		JComboBox<CommentsLevel> commentsLevel = new JComboBox<>(CommentsLevel.values());
 		commentsLevel.setSelectedItem(settings.getCommentsLevel());
 		commentsLevel.addActionListener(e -> {
@@ -533,6 +541,7 @@ public class JadxSettingsWindow extends JDialog {
 		other.addRow(NLS.str("preferences.fallback"), fallback);
 		other.addRow(NLS.str("preferences.useDx"), useDx);
 		other.addRow(NLS.str("preferences.skipResourcesDecode"), resourceDecode);
+		other.addRow(NLS.str("preferences.useKotlinMethodsForVarNames"), kotlinRenameVars);
 		other.addRow(NLS.str("preferences.commentsLevel"), commentsLevel);
 		return other;
 	}

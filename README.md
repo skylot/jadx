@@ -96,6 +96,7 @@ options:
   --deobf-rewrite-cfg                 - force to ignore and overwrite deobfuscation map file
   --deobf-use-sourcename              - use source file name as class name alias
   --deobf-parse-kotlin-metadata       - parse kotlin metadata to class and package names
+  --use-kotlin-methods-for-var-names  - use kotlin intrinsic methods to rename variables, values: disable, apply, apply-and-hide, default: apply
   --rename-flags                      - fix options (comma-separated list of):
                                          'case' - fix case sensitivity issues (according to --fs-case-sensitive option),
                                          'valid' - rename java identifiers to make them valid,
@@ -107,7 +108,7 @@ options:
   --raw-cfg                           - save methods control flow graph (use raw instructions)
   -f, --fallback                      - make simple dump (using goto instead of 'if', 'for', etc)
   --use-dx                            - use dx/d8 to convert java bytecode
-  --comments-level                    - set code comments level, values: none, user_only, error, warn, info, debug, default: info
+  --comments-level                    - set code comments level, values: error, warn, info, debug, user-only, none, default: info
   --log-level                         - set log level, values: quiet, progress, error, warn, info, debug, default: progress
   -v, --verbose                       - verbose output (set --log-level to DEBUG)
   -q, --quiet                         - turn off output (set --log-level to QUIET)
