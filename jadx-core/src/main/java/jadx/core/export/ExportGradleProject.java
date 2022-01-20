@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +23,7 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.core.utils.files.FileUtils;
 import jadx.core.xmlgen.ResContainer;
+import jadx.core.xmlgen.XmlSecurity;
 
 public class ExportGradleProject {
 
@@ -139,7 +139,7 @@ public class ExportGradleProject {
 
 	private Document parseXml(String xmlContent) {
 		try {
-			DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			DocumentBuilder builder = XmlSecurity.getSecureDbf().newDocumentBuilder();
 			Document document = builder.parse(new InputSource(new StringReader(xmlContent)));
 
 			document.getDocumentElement().normalize();
