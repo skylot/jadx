@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import jadx.api.plugins.utils.ZipSecurity;
 import jadx.plugins.input.dex.sections.DexConsts;
+import jadx.plugins.input.dex.utils.DexCheckSum;
 
 public class DexFileLoader {
 	private static final Logger LOG = LoggerFactory.getLogger(DexFileLoader.class);
@@ -52,7 +53,9 @@ public class DexFileLoader {
 			}
 			if (isStartWithBytes(magic, DexConsts.DEX_FILE_MAGIC)) {
 				in.reset();
-				DexReader dexReader = new DexReader(getNextUniqId(), inputFileName, readAllBytes(in));
+				byte[] content = readAllBytes(in);
+				DexCheckSum.verify(content);
+				DexReader dexReader = new DexReader(getNextUniqId(), inputFileName, content);
 				return Collections.singletonList(dexReader);
 			}
 			if (file != null && isStartWithBytes(magic, DexConsts.ZIP_FILE_MAGIC)) {
