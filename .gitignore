@@ -34,3 +34,5 @@ jadx-output/
 *.cfg
 *.orig
 quark.json
+
+cliff.toml

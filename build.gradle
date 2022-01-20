@@ -1,6 +1,6 @@
 plugins {
 	id 'com.github.ben-manes.versions' version '0.41.0'
-	id 'com.diffplug.spotless' version '6.1.2'
+	id 'com.diffplug.spotless' version '6.2.0'
 }
 
 ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
@@ -27,7 +27,7 @@ allprojects {
 	}
 
 	dependencies {
-		implementation 'org.slf4j:slf4j-api:1.7.32'
+		implementation 'org.slf4j:slf4j-api:1.7.33'
 		compileOnly 'org.jetbrains:annotations:23.0.0'
 
 		testImplementation 'ch.qos.logback:logback-classic:1.2.10'
