@@ -63,7 +63,7 @@ public class TypeUtils {
 
 	public ArgType expandTypeVariables(ClassNode cls, ArgType type) {
 		if (type.containsTypeVariable()) {
-			expandTypeVar(cls, type, cls.getGenericTypeParameters());
+			expandTypeVar(cls, type, getKnownTypeVarsAtClass(cls));
 		}
 		return type;
 	}
@@ -115,11 +115,18 @@ public class TypeUtils {
 		return varsAttr.getTypeVars();
 	}
 
-	private static Set<ArgType> collectKnownTypeVarsAtMethod(MethodNode mth) {
-		ClassNode declCls = mth.getParentClass();
-		Set<ArgType> typeVars = new HashSet<>(declCls.getGenericTypeParameters());
-		declCls.visitParentClasses(parent -> typeVars.addAll(parent.getGenericTypeParameters()));
+	private static Collection<ArgType> getKnownTypeVarsAtClass(ClassNode cls) {
+		if (cls.isInner()) {
+			Set<ArgType> typeVars = new HashSet<>(cls.getGenericTypeParameters());
+			cls.visitParentClasses(parent -> typeVars.addAll(parent.getGenericTypeParameters()));
+			return typeVars;
+		}
+		return cls.getGenericTypeParameters();
+	}
 
+	private static Set<ArgType> collectKnownTypeVarsAtMethod(MethodNode mth) {
+		Set<ArgType> typeVars = new HashSet<>();
+		typeVars.addAll(getKnownTypeVarsAtClass(mth.getParentClass()));
 		typeVars.addAll(mth.getTypeParameters());
 		return typeVars.isEmpty() ? Collections.emptySet() : typeVars;
 	}

@@ -526,12 +526,38 @@ public class ClassGen {
 		if (outerType != null) {
 			useClass(code, outerType);
 			code.add('.');
-			// import not needed, force use short name
-			useClassShortName(code, type.getObject());
+			addInnerType(code, type);
 			return;
 		}
-
 		useClass(code, ClassInfo.fromType(cls.root(), type));
+		addGenerics(code, type);
+	}
+
+	private void addInnerType(ICodeWriter code, ArgType baseType) {
+		ArgType innerType = baseType.getInnerType();
+		ArgType outerType = innerType.getOuterType();
+		if (outerType != null) {
+			useClass(code, outerType);
+			code.add('.');
+			addInnerType(code, innerType);
+			return;
+		}
+		String fullNameObj;
+		if (innerType.getObject().contains(".")) {
+			fullNameObj = innerType.getObject();
+		} else {
+			fullNameObj = baseType.getObject();
+		}
+		ClassInfo classInfo = ClassInfo.fromName(cls.root(), fullNameObj);
+		ClassNode classNode = cls.root().resolveClass(classInfo);
+		if (classNode != null) {
+			code.attachAnnotation(classNode);
+		}
+		code.add(classInfo.getAliasShortName());
+		addGenerics(code, innerType);
+	}
+
+	private void addGenerics(ICodeWriter code, ArgType type) {
 		List<ArgType> generics = type.getGenericTypes();
 		if (generics != null) {
 			code.add('<');
@@ -554,15 +580,6 @@ public class ClassGen {
 			}
 			code.add('>');
 		}
-	}
-
-	private void useClassShortName(ICodeWriter code, String object) {
-		ClassInfo classInfo = ClassInfo.fromName(cls.root(), object);
-		ClassNode classNode = cls.root().resolveClass(classInfo);
-		if (classNode != null) {
-			code.attachAnnotation(classNode);
-		}
-		code.add(classInfo.getAliasShortName());
 	}
 
 	public void useClass(ICodeWriter code, ClassInfo classInfo) {

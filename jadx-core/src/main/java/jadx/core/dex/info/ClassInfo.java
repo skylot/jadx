@@ -246,13 +246,13 @@ public final class ClassInfo implements Comparable<ClassInfo> {
 	}
 
 	public void notInner(RootNode root) {
-		this.parentClass = null;
 		splitAndApplyNames(root, type, false);
+		this.parentClass = null;
 	}
 
 	public void convertToInner(ClassNode parent) {
-		this.parentClass = parent.getClassInfo();
 		splitAndApplyNames(parent.root(), type, true);
+		this.parentClass = parent.getClassInfo();
 	}
 
 	public void updateNames(RootNode root) {

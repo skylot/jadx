@@ -80,11 +80,15 @@ public class SignatureProcessor extends AbstractVisitor {
 		}
 		ClassNode cls = field.getParentClass();
 		try {
-			ArgType gType = sp.consumeType();
-			if (gType == null) {
+			ArgType signatureType = sp.consumeType();
+			if (signatureType == null) {
 				return;
 			}
-			ArgType type = root.getTypeUtils().expandTypeVariables(cls, gType);
+			if (!validateInnerType(signatureType)) {
+				field.addWarnComment("Incorrect inner types in field signature: " + sp.getSignature());
+				return;
+			}
+			ArgType type = root.getTypeUtils().expandTypeVariables(cls, signatureType);
 			if (!validateParsedType(type, field.getType())) {
 				cls.addWarnComment("Incorrect field signature: " + sp.getSignature());
 				return;
@@ -104,6 +108,11 @@ public class SignatureProcessor extends AbstractVisitor {
 			List<ArgType> typeParameters = sp.consumeGenericTypeParameters();
 			List<ArgType> parsedArgTypes = sp.consumeMethodArgs(mth.getMethodInfo().getArgsCount());
 			ArgType parsedRetType = sp.consumeType();
+
+			if (!validateInnerType(parsedRetType) || !validateInnerType(parsedArgTypes)) {
+				mth.addWarnComment("Incorrect inner types in method signature: " + sp.getSignature());
+				return;
+			}
 
 			mth.updateTypeParameters(typeParameters); // apply before expand args
 			TypeUtils typeUtils = root.getTypeUtils();
@@ -171,5 +180,55 @@ public class SignatureProcessor extends AbstractVisitor {
 	private boolean validateParsedType(ArgType parsedType, ArgType currentType) {
 		TypeCompareEnum result = root.getTypeCompare().compareTypes(parsedType, currentType);
 		return result != TypeCompareEnum.CONFLICT;
+	}
+
+	private boolean validateInnerType(List<ArgType> types) {
+		for (ArgType type : types) {
+			if (!validateInnerType(type)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private boolean validateInnerType(ArgType type) {
+		ArgType innerType = type.getInnerType();
+		if (innerType == null) {
+			return true;
+		}
+		// check in outer type has inner type as inner class
+		ArgType outerType = type.getOuterType();
+		ClassNode outerCls = root.resolveClass(outerType);
+		if (outerCls == null) {
+			// can't check class not found
+			return true;
+		}
+		String innerObj;
+		if (innerType.getOuterType() != null) {
+			innerObj = innerType.getOuterType().getObject();
+			// "next" inner type will be processed at end of method
+		} else {
+			innerObj = innerType.getObject();
+		}
+		if (!innerObj.contains(".")) {
+			// short reference
+			for (ClassNode innerClass : outerCls.getInnerClasses()) {
+				if (innerClass.getShortName().equals(innerObj)) {
+					return true;
+				}
+			}
+			return false;
+		}
+		// full name
+		ClassNode innerCls = root.resolveClass(innerObj);
+		if (innerCls == null) {
+			return false;
+		}
+		if (!innerCls.getParentClass().equals(outerCls)) {
+			// not inner => fixing
+			outerCls.addInnerClass(innerCls);
+			innerCls.getClassInfo().convertToInner(outerCls);
+		}
+		return validateInnerType(innerType);
 	}
 }

@@ -2,7 +2,6 @@ package jadx.core.dex.nodes.parser;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
@@ -197,6 +196,8 @@ public class SignatureParser {
 		String obj = slice();
 		if (!innerType) {
 			obj += ';';
+		} else {
+			obj = obj.replace('/', '.');
 		}
 		List<ArgType> typeVars = consumeGenericArgs();
 		consume('>');
@@ -227,7 +228,7 @@ public class SignatureParser {
 	}
 
 	private List<ArgType> consumeGenericArgs() {
-		List<ArgType> list = new LinkedList<>();
+		List<ArgType> list = new ArrayList<>();
 		ArgType type;
 		do {
 			if (lookAhead('*')) {

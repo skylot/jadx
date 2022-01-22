@@ -71,6 +71,19 @@ class SignatureParserTest {
 	}
 
 	@Test
+	public void testNestedInnerGeneric2() {
+		// full name in inner class
+		String signature = "Lsome/long/pkg/ba<Lsome/pkg/s;>.some/long/pkg/bb<Lsome/pkg/p;Lsome/pkg/n;>;";
+		ArgType result = new SignatureParser(signature).consumeType();
+		System.out.println(result);
+		assertThat(result.getObject(), is("some.long.pkg.ba$some.long.pkg.bb"));
+		ArgType baseObj = generic("Lsome/long/pkg/ba;", object("Lsome/pkg/s;"));
+		ArgType innerObj = generic("Lsome/long/pkg/bb;", object("Lsome/pkg/p;"), object("Lsome/pkg/n;"));
+		ArgType obj = outerGeneric(baseObj, innerObj);
+		assertThat(result, equalTo(obj));
+	}
+
+	@Test
 	public void testWildcards() {
 		checkWildcards("*", wildcard());
 		checkWildcards("+Lb;", wildcard(object("b"), WildcardBound.EXTENDS));
