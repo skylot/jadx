@@ -112,16 +112,25 @@ public class Deobfuscator {
 				deobfPresets.getPkgPresetMap().put(p.getName(), p.getAlias());
 			}
 		}
-		for (DeobfClsInfo deobfClsInfo : clsMap.values()) {
-			if (deobfClsInfo.getAlias() != null) {
-				deobfPresets.getClsPresetMap().put(deobfClsInfo.getCls().getClassInfo().makeRawFullName(), deobfClsInfo.getAlias());
+		for (ClassNode cls : root.getClasses()) {
+			ClassInfo classInfo = cls.getClassInfo();
+			if (classInfo.hasAlias()) {
+				deobfPresets.getClsPresetMap().put(classInfo.makeRawFullName(), classInfo.getAliasShortName());
 			}
-		}
-		for (FieldInfo fld : fldMap.keySet()) {
-			deobfPresets.getFldPresetMap().put(fld.getRawFullId(), fld.getAlias());
-		}
-		for (MethodInfo mth : mthMap.keySet()) {
-			deobfPresets.getMthPresetMap().put(mth.getRawFullId(), mth.getAlias());
+
+			for (FieldNode fld : cls.getFields()) {
+				FieldInfo fieldInfo = fld.getFieldInfo();
+				if (fieldInfo.hasAlias()) {
+					deobfPresets.getFldPresetMap().put(fieldInfo.getRawFullId(), fld.getAlias());
+				}
+			}
+
+			for (MethodNode mth : cls.getMethods()) {
+				MethodInfo methodInfo = mth.getMethodInfo();
+				if (methodInfo.hasAlias()) {
+					deobfPresets.getFldPresetMap().put(methodInfo.getRawFullId(), methodInfo.getAlias());
+				}
+			}
 		}
 	}
 
