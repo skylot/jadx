@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -25,6 +26,7 @@ import jadx.core.dex.nodes.RootNode;
 import jadx.core.dex.visitors.AbstractVisitor;
 
 public class RenameVisitor extends AbstractVisitor {
+	private static final Pattern ANONYMOUS_CLASS_PATTERN = Pattern.compile("^\\d+$");
 
 	@Override
 	public void init(RootNode root) {
@@ -130,11 +132,12 @@ public class RenameVisitor extends AbstractVisitor {
 	private static String fixClsShortName(JadxArgs args, String clsName) {
 		boolean renameValid = args.isRenameValid();
 		if (renameValid) {
-			char firstChar = clsName.charAt(0);
-			if (Character.isDigit(firstChar)) {
+			if (ANONYMOUS_CLASS_PATTERN.matcher(clsName).matches()) {
 				return Consts.ANONYMOUS_CLASS_PREFIX + NameMapper.removeInvalidCharsMiddle(clsName);
 			}
-			if (firstChar == '$') {
+
+			char firstChar = clsName.charAt(0);
+			if (firstChar == '$' || Character.isDigit(firstChar)) {
 				return 'C' + NameMapper.removeInvalidCharsMiddle(clsName);
 			}
 		}
