@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -17,9 +18,12 @@ import javax.swing.WindowConstants;
 import jadx.api.CodePosition;
 import jadx.api.ICodeWriter;
 import jadx.api.JavaClass;
+import jadx.api.JavaMethod;
 import jadx.api.JavaNode;
+import jadx.core.dex.attributes.AType;
 import jadx.gui.jobs.TaskStatus;
 import jadx.gui.treemodel.CodeNode;
+import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.utils.CodeLinesInfo;
@@ -59,7 +63,7 @@ public class UsageDialog extends CommonSearchDialog {
 
 	private void collectUsageData() {
 		usageList = new ArrayList<>();
-		node.getJavaNode().getUseIn()
+		getMethodUseIn()
 				.stream()
 				.map(JavaNode::getTopParentClass)
 				.distinct()
@@ -67,24 +71,47 @@ public class UsageDialog extends CommonSearchDialog {
 				.forEach(this::processUsageClass);
 	}
 
-	private void processUsageClass(JavaClass cls) {
+	private List<JavaNode> getMethodUseIn() {
+		if (node instanceof JMethod) {
+			JavaMethod method = ((JMethod) node).getJavaMethod();
+			if (null != method.getMethodNode().get(AType.METHOD_OVERRIDE)) {
+				return method.getOverrideRelatedMethods().stream().flatMap(m -> m.getUseIn().stream()).collect(Collectors.toList());
+			}
+		}
+		return node.getJavaNode().getUseIn();
+	}
+
+	private void processUsageClass(JavaNode usageNode) {
+		JavaClass cls = usageNode.getTopParentClass();
 		String code = cls.getCodeInfo().getCodeStr();
 		CodeLinesInfo linesInfo = new CodeLinesInfo(cls);
-		JavaNode javaNode = node.getJavaNode();
-		List<CodePosition> usage = cls.getUsageFor(javaNode);
-		for (CodePosition pos : usage) {
-			if (javaNode.getTopParentClass().equals(cls) && pos.getPos() == javaNode.getDefPos()) {
-				// skip declaration
-				continue;
+		List<? extends JavaNode> targetNodes = getMethodWithOverride();
+		for (JavaNode javaNode : targetNodes) {
+			List<CodePosition> usage = cls.getUsageFor(javaNode);
+			for (CodePosition pos : usage) {
+				if (javaNode.getTopParentClass().equals(cls) && pos.getPos() == javaNode.getDefPos()) {
+					// skip declaration
+					continue;
+				}
+				StringRef line = getLineStrAt(code, pos.getPos());
+				if (line.startsWith("import ")) {
+					continue;
+				}
+				JavaNode javaNodeByLine = linesInfo.getJavaNodeByLine(pos.getLine());
+				JNode useAtNode = javaNodeByLine == null ? node : getNodeCache().makeFrom(javaNodeByLine);
+				usageList.add(new CodeNode(useAtNode, line, pos.getLine(), pos.getPos()));
 			}
-			StringRef line = getLineStrAt(code, pos.getPos());
-			if (line.startsWith("import ")) {
-				continue;
-			}
-			JavaNode javaNodeByLine = linesInfo.getJavaNodeByLine(pos.getLine());
-			JNode useAtNode = javaNodeByLine == null ? node : getNodeCache().makeFrom(javaNodeByLine);
-			usageList.add(new CodeNode(useAtNode, line, pos.getLine(), pos.getPos()));
 		}
+	}
+
+	private List<? extends JavaNode> getMethodWithOverride() {
+		if (node instanceof JMethod) {
+			JavaMethod method = ((JMethod) node).getJavaMethod();
+			if (null != method.getMethodNode().get(AType.METHOD_OVERRIDE)) {
+				return method.getOverrideRelatedMethods();
+			}
+		}
+		return Collections.singletonList(node.getJavaNode());
 	}
 
 	private StringRef getLineStrAt(String code, int pos) {
