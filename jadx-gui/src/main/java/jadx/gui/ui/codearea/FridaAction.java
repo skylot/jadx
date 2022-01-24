@@ -113,10 +113,12 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 					functionUntilImplementation = String.format("%s.%s.implementation", className, methodName);
 				}
 				String functionParameterAndBody = "";
-				if (!functionParameters.equals("")) {
+				String functionParametersString = functionParameters.toString();
+				if (!functionParametersString.equals("")) {
 					functionParameterAndBody = String.format(
 							"%s = function(%s){\n\tconsole.log('%s is called')\n\tlet ret = this.%s(%s)\n\tconsole.log('%s ret value is ' + ret)\n\treturn ret\n}",
-							functionUntilImplementation, functionParameters, methodName, methodName, functionParameters, methodName);
+							functionUntilImplementation, functionParametersString, methodName, methodName, functionParametersString,
+							methodName);
 				} else {
 					functionParameterAndBody = String.format(
 							"%s = function(){\n\tconsole.log('%s is called')\n\tlet ret = this.%s()\n\tconsole.log('%s ret value is ' + ret)\n\treturn ret\n}",
