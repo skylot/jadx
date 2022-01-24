@@ -65,6 +65,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 
 		SSAVar sVar = insn.getResult().getSVar();
 		InsnArg constArg;
+		Runnable onSuccess = null;
 
 		InsnType insnType = insn.getType();
 		if (insnType == InsnType.CONST || insnType == InsnType.MOVE) {
@@ -90,6 +91,7 @@ public class ConstInlineVisitor extends AbstractVisitor {
 				InsnNode constGet = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
 				constArg = InsnArg.wrapArg(constGet);
 				constArg.setType(ArgType.STRING);
+				onSuccess = () -> f.addUseIn(mth);
 			}
 		} else if (insnType == InsnType.CONST_CLASS) {
 			if (sVar.isUsedInPhi()) {
@@ -104,6 +106,9 @@ public class ConstInlineVisitor extends AbstractVisitor {
 		// all check passed, run replace
 		if (replaceConst(mth, insn, constArg)) {
 			toRemove.add(insn);
+			if (onSuccess != null) {
+				onSuccess.run();
+			}
 		}
 	}
 
@@ -235,7 +240,10 @@ public class ConstInlineVisitor extends AbstractVisitor {
 				fieldNode = mth.getParentClass().getConstField((int) literal, false);
 			}
 			if (fieldNode != null) {
-				litArg.wrapInstruction(mth, new IndexInsnNode(InsnType.SGET, fieldNode.getFieldInfo(), 0));
+				IndexInsnNode sgetInsn = new IndexInsnNode(InsnType.SGET, fieldNode.getFieldInfo(), 0);
+				if (litArg.wrapInstruction(mth, sgetInsn) != null) {
+					fieldNode.addUseIn(mth);
+				}
 			} else {
 				if (needExplicitCast(useInsn, litArg)) {
 					litArg.add(AFlag.EXPLICIT_PRIMITIVE_TYPE);

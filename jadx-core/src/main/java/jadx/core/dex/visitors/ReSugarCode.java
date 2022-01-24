@@ -164,7 +164,9 @@ public class ReSugarCode extends AbstractVisitor {
 			FieldNode f = mth.getParentClass().getConstFieldByLiteralArg((LiteralArg) valueArg);
 			if (f != null) {
 				InsnNode fGet = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
-				return InsnArg.wrapArg(fGet);
+				InsnArg arg = InsnArg.wrapArg(fGet);
+				f.addUseIn(mth);
+				return arg;
 			}
 		}
 		return valueArg.duplicate();

@@ -114,7 +114,7 @@ public class ModVisitor extends AbstractVisitor {
 						break;
 
 					case SWITCH:
-						replaceConstKeys(parentClass, (SwitchInsn) insn);
+						replaceConstKeys(mth, parentClass, (SwitchInsn) insn);
 						break;
 
 					case NEW_ARRAY:
@@ -228,13 +228,14 @@ public class ModVisitor extends AbstractVisitor {
 		return result == TypeCompareEnum.NARROW; // true if use class is subclass of field class
 	}
 
-	private static void replaceConstKeys(ClassNode parentClass, SwitchInsn insn) {
+	private static void replaceConstKeys(MethodNode mth, ClassNode parentClass, SwitchInsn insn) {
 		int[] keys = insn.getKeys();
 		int len = keys.length;
 		for (int k = 0; k < len; k++) {
 			FieldNode f = parentClass.getConstField(keys[k]);
 			if (f != null) {
 				insn.modifyKey(k, f);
+				f.addUseIn(mth);
 			}
 		}
 	}
@@ -291,6 +292,13 @@ public class ModVisitor extends AbstractVisitor {
 
 	@SuppressWarnings("unchecked")
 	private EncodedValue replaceConstValue(ClassNode parentCls, EncodedValue encodedValue) {
+		if (encodedValue.getType() == EncodedType.ENCODED_ANNOTATION) {
+			IAnnotation annotation = (IAnnotation) encodedValue.getValue();
+			for (Map.Entry<String, EncodedValue> entry : annotation.getValues().entrySet()) {
+				entry.setValue(replaceConstValue(parentCls, entry.getValue()));
+			}
+			return encodedValue;
+		}
 		if (encodedValue.getType() == EncodedType.ENCODED_ARRAY) {
 			List<EncodedValue> listVal = (List<EncodedValue>) encodedValue.getValue();
 			if (!listVal.isEmpty()) {
@@ -320,6 +328,7 @@ public class ModVisitor extends AbstractVisitor {
 			InsnNode inode = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
 			inode.setResult(insn.getResult());
 			replaceInsn(mth, block, i, inode);
+			f.addUseIn(mth);
 		}
 	}
 
@@ -332,7 +341,9 @@ public class ModVisitor extends AbstractVisitor {
 			FieldNode f = parentClass.getConstFieldByLiteralArg((LiteralArg) litArg);
 			if (f != null) {
 				InsnNode fGet = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
-				arithNode.replaceArg(litArg, InsnArg.wrapArg(fGet));
+				if (arithNode.replaceArg(litArg, InsnArg.wrapArg(fGet))) {
+					f.addUseIn(mth);
+				}
 			}
 		}
 	}
@@ -516,6 +527,7 @@ public class ModVisitor extends AbstractVisitor {
 			if (f != null) {
 				InsnNode fGet = new IndexInsnNode(InsnType.SGET, f.getFieldInfo(), 0);
 				filledArr.addArg(InsnArg.wrapArg(fGet));
+				f.addUseIn(mth);
 			} else {
 				filledArr.addArg(arg);
 			}

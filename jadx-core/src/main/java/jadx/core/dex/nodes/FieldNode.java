@@ -9,6 +9,7 @@ import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.AccessInfo.AFType;
 import jadx.core.dex.info.FieldInfo;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.utils.ListUtils;
 
 public class FieldNode extends NotificationAttrNode implements ICodeNode {
 
@@ -78,6 +79,10 @@ public class FieldNode extends NotificationAttrNode implements ICodeNode {
 
 	public void setUseIn(List<MethodNode> useIn) {
 		this.useIn = useIn;
+	}
+
+	public synchronized void addUseIn(MethodNode mth) {
+		useIn = ListUtils.safeAdd(useIn, mth);
 	}
 
 	@Override

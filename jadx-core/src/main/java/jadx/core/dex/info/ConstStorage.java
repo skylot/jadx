@@ -176,6 +176,9 @@ public class ConstStorage {
 
 	@Nullable
 	public FieldNode getConstFieldByLiteralArg(ClassNode cls, LiteralArg arg) {
+		if (!replaceEnabled) {
+			return null;
+		}
 		PrimitiveType type = arg.getType().getPrimitiveType();
 		if (type == null) {
 			return null;
