@@ -537,14 +537,18 @@ public class ClassGen {
 		ArgType innerType = baseType.getInnerType();
 		ArgType outerType = innerType.getOuterType();
 		if (outerType != null) {
-			useClass(code, outerType);
+			useClassWithShortName(code, baseType, outerType);
 			code.add('.');
 			addInnerType(code, innerType);
 			return;
 		}
+		useClassWithShortName(code, baseType, innerType);
+	}
+
+	private void useClassWithShortName(ICodeWriter code, ArgType baseType, ArgType type) {
 		String fullNameObj;
-		if (innerType.getObject().contains(".")) {
-			fullNameObj = innerType.getObject();
+		if (type.getObject().contains(".")) {
+			fullNameObj = type.getObject();
 		} else {
 			fullNameObj = baseType.getObject();
 		}
@@ -554,7 +558,7 @@ public class ClassGen {
 			code.attachAnnotation(classNode);
 		}
 		code.add(classInfo.getAliasShortName());
-		addGenerics(code, innerType);
+		addGenerics(code, type);
 	}
 
 	private void addGenerics(ICodeWriter code, ArgType type) {

@@ -40,4 +40,12 @@ public class TestGenericsInFullInnerCls extends SmaliTest {
 		loadFromSmaliFiles();
 		// compilation should pass
 	}
+
+	@Test
+	public void testWithFullNames() {
+		getArgs().setUseImports(false);
+		getArgs().setCommentsLevel(CommentsLevel.WARN);
+		loadFromSmaliFiles();
+		// compilation should pass
+	}
 }
