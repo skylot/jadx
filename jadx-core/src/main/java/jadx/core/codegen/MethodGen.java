@@ -238,10 +238,11 @@ public class MethodGen {
 				classGen.useType(code, argType);
 			}
 			code.add(' ');
-			if (code.isMetadataSupported() && ssaVar != null) {
+			String varName = nameGen.assignArg(var);
+			if (code.isMetadataSupported() && ssaVar != null /* for fallback mode */) {
 				code.attachDefinition(VarDeclareRef.get(mth, var));
 			}
-			code.add(nameGen.assignArg(var));
+			code.add(varName);
 
 			i++;
 			if (it.hasNext()) {

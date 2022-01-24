@@ -99,9 +99,6 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 	@Override
 	public void unload() {
 		loaded = false;
-		if (noCode) {
-			return;
-		}
 		// don't unload retType, argTypes, typeParameters
 		thisArg = null;
 		argsList = null;

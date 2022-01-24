@@ -26,9 +26,6 @@ public class InitCodeVariables extends AbstractVisitor {
 
 	@Override
 	public void visit(MethodNode mth) throws JadxException {
-		if (mth.isNoCode()) {
-			return;
-		}
 		initCodeVars(mth);
 	}
 
@@ -42,14 +39,22 @@ public class InitCodeVariables extends AbstractVisitor {
 	private static void initCodeVars(MethodNode mth) {
 		RegisterArg thisArg = mth.getThisArg();
 		if (thisArg != null) {
-			initCodeVar(thisArg.getSVar());
+			initCodeVar(mth, thisArg);
 		}
 		for (RegisterArg mthArg : mth.getArgRegs()) {
-			initCodeVar(mthArg.getSVar());
+			initCodeVar(mth, mthArg);
 		}
 		for (SSAVar ssaVar : mth.getSVars()) {
 			initCodeVar(ssaVar);
 		}
+	}
+
+	public static void initCodeVar(MethodNode mth, RegisterArg regArg) {
+		SSAVar ssaVar = regArg.getSVar();
+		if (ssaVar == null) {
+			ssaVar = mth.makeNewSVar(regArg);
+		}
+		initCodeVar(ssaVar);
 	}
 
 	public static void initCodeVar(SSAVar ssaVar) {
