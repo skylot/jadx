@@ -172,7 +172,7 @@ public class InsnGen {
 
 	private void instanceField(ICodeWriter code, FieldInfo field, InsnArg arg) throws CodegenException {
 		ClassNode pCls = mth.getParentClass();
-		FieldNode fieldNode = pCls.root().deepResolveField(field);
+		FieldNode fieldNode = pCls.root().resolveField(field);
 		if (fieldNode != null) {
 			FieldReplaceAttr replace = fieldNode.get(AType.FIELD_REPLACE);
 			if (replace != null) {
@@ -210,7 +210,7 @@ public class InsnGen {
 			}
 			code.add('.');
 		}
-		FieldNode fieldNode = clsGen.getClassNode().root().deepResolveField(field);
+		FieldNode fieldNode = clsGen.getClassNode().root().resolveField(field);
 		if (fieldNode != null) {
 			code.attachAnnotation(fieldNode);
 		}
@@ -764,7 +764,7 @@ public class InsnGen {
 			return;
 		}
 		MethodInfo callMth = insn.getCallMth();
-		MethodNode callMthNode = mth.root().deepResolveMethod(callMth);
+		MethodNode callMthNode = mth.root().resolveMethod(callMth);
 
 		int k = 0;
 		switch (type) {

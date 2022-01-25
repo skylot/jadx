@@ -379,15 +379,6 @@ public class RootNode {
 	@Nullable
 	public MethodNode resolveMethod(@NotNull MethodInfo mth) {
 		ClassNode cls = resolveClass(mth.getDeclClass());
-		if (cls != null) {
-			return cls.searchMethod(mth);
-		}
-		return null;
-	}
-
-	@Nullable
-	public MethodNode deepResolveMethod(@NotNull MethodInfo mth) {
-		ClassNode cls = resolveClass(mth.getDeclClass());
 		if (cls == null) {
 			return null;
 		}
@@ -431,17 +422,12 @@ public class RootNode {
 	@Nullable
 	public FieldNode resolveField(FieldInfo field) {
 		ClassNode cls = resolveClass(field.getDeclClass());
-		if (cls != null) {
-			return cls.searchField(field);
-		}
-		return null;
-	}
-
-	@Nullable
-	public FieldNode deepResolveField(@NotNull FieldInfo field) {
-		ClassNode cls = resolveClass(field.getDeclClass());
 		if (cls == null) {
 			return null;
+		}
+		FieldNode fieldNode = cls.searchField(field);
+		if (fieldNode != null) {
+			return fieldNode;
 		}
 		return deepResolveField(cls, field);
 	}

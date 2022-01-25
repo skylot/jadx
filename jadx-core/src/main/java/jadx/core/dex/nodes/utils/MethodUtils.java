@@ -38,7 +38,7 @@ public class MethodUtils {
 
 	@Nullable
 	public IMethodDetails getMethodDetails(MethodInfo callMth) {
-		MethodNode mthNode = root.deepResolveMethod(callMth);
+		MethodNode mthNode = root.resolveMethod(callMth);
 		if (mthNode != null) {
 			return mthNode;
 		}

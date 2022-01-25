@@ -244,7 +244,7 @@ public class ClassModifier extends AbstractVisitor {
 			return false;
 		}
 		MethodInfo callMth = invokeInsn.getCallMth();
-		MethodNode wrappedMth = mth.root().deepResolveMethod(callMth);
+		MethodNode wrappedMth = mth.root().resolveMethod(callMth);
 		if (wrappedMth == null) {
 			return false;
 		}
