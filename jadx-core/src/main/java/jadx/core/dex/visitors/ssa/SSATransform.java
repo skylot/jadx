@@ -140,7 +140,7 @@ public class SSATransform extends AbstractVisitor {
 		stack.push(initState);
 		while (!stack.isEmpty()) {
 			RenameState state = stack.pop();
-			renameVarsInBlock(state);
+			renameVarsInBlock(mth, state);
 			for (BlockNode dominated : state.getBlock().getDominatesOn()) {
 				stack.push(RenameState.copyFrom(state, dominated));
 			}
@@ -156,7 +156,7 @@ public class SSATransform extends AbstractVisitor {
 		}
 	}
 
-	private static void renameVarsInBlock(RenameState state) {
+	private static void renameVarsInBlock(MethodNode mth, RenameState state) {
 		BlockNode block = state.getBlock();
 		for (InsnNode insn : block.getInstructions()) {
 			if (insn.getType() != InsnType.PHI) {
@@ -168,8 +168,9 @@ public class SSATransform extends AbstractVisitor {
 					int regNum = reg.getRegNum();
 					SSAVar var = state.getVar(regNum);
 					if (var == null) {
-						throw new JadxRuntimeException("Not initialized variable reg: " + regNum
-								+ ", insn: " + insn + ", block:" + block);
+						// TODO: in most cases issue in incorrectly attached exception handlers
+						mth.addWarnComment("Not initialized variable reg: " + regNum + ", insn: " + insn + ", block:" + block);
+						var = state.startVar(reg);
 					}
 					var.use(reg);
 				}

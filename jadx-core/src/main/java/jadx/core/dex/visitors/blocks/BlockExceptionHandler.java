@@ -390,13 +390,21 @@ public class BlockExceptionHandler {
 	private static BlockNode searchTopBlock(MethodNode mth, List<BlockNode> blocks) {
 		BlockNode top = BlockUtils.getTopBlock(blocks);
 		if (top != null) {
-			return top;
+			return adjustTopBlock(top);
 		}
 		BlockNode topDom = BlockUtils.getCommonDominator(mth, blocks);
 		if (topDom != null) {
-			return topDom;
+			return adjustTopBlock(topDom);
 		}
 		throw new JadxRuntimeException("Failed to find top block for try-catch from: " + blocks);
+	}
+
+	private static BlockNode adjustTopBlock(BlockNode topBlock) {
+		if (topBlock.getSuccessors().size() == 1 && !topBlock.contains(AType.EXC_CATCH)) {
+			// top block can be lifted by other exception handlers included in blocks list, trying to undo that
+			return topBlock.getSuccessors().get(0);
+		}
+		return topBlock;
 	}
 
 	@Nullable

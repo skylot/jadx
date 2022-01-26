@@ -55,7 +55,6 @@ public class TestTryCatchFinally8 extends IntegrationTest {
 	}
 
 	@Test
-	@NotYetImplemented
 	public void test2() {
 		disableCompilation();
 		ClassNode cls = getClassNode(TestCls.class);
