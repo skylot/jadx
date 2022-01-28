@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Objects;
 import java.util.Set;
 
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.instructions.InsnType;
 import jadx.core.dex.instructions.args.InsnArg;
 import jadx.core.dex.instructions.args.InsnWrapArg;
+import jadx.core.dex.instructions.args.Named;
 import jadx.core.dex.instructions.args.RegisterArg;
 import jadx.core.dex.instructions.args.SSAVar;
 import jadx.core.dex.nodes.BlockNode;
@@ -76,7 +78,9 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 
 	private static void checkInline(MethodNode mth, BlockNode block, InsnList insnList,
 			List<WrapInfo> wrapList, ArgsInfo argsInfo, RegisterArg arg) {
-		if (arg.contains(AFlag.DONT_INLINE)) {
+		if (arg.contains(AFlag.DONT_INLINE)
+				|| arg.getParentInsn() == null
+				|| arg.getParentInsn().contains(AFlag.DONT_GENERATE)) {
 			return;
 		}
 		SSAVar sVar = arg.getSVar();
@@ -89,19 +93,32 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 				|| assignInsn.contains(AFlag.WRAPPED)) {
 			return;
 		}
-		// allow inline only one use arg
 		boolean assignInline = assignInsn.contains(AFlag.FORCE_ASSIGN_INLINE);
-		if (!assignInline && sVar.getVariableUseCount() != 1) {
+		if (!assignInline && sVar.isUsedInPhi()) {
 			return;
 		}
-		List<RegisterArg> useList = sVar.getUseList();
-		if (!useList.isEmpty()) {
-			RegisterArg useArg = useList.get(0);
+		// allow inline only one use arg
+		int useCount = 0;
+		for (RegisterArg useArg : sVar.getUseList()) {
 			InsnNode parentInsn = useArg.getParentInsn();
 			if (parentInsn != null && parentInsn.contains(AFlag.DONT_GENERATE)) {
-				return;
+				continue;
 			}
 			if (!assignInline && useArg.contains(AFlag.DONT_INLINE_CONST)) {
+				return;
+			}
+			useCount++;
+		}
+		if (!assignInline && useCount != 1) {
+			return;
+		}
+		if (!assignInline && sVar.getName() != null) {
+			if (searchArgWithName(assignInsn, sVar.getName())) {
+				// allow inline if name is reused in result
+			} else if (varWithSameNameExists(mth, sVar)) {
+				// allow inline if var name is duplicated
+			} else {
+				// reject inline of named variable
 				return;
 			}
 		}
@@ -125,6 +142,31 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 				}
 			}
 		}
+	}
+
+	private static boolean varWithSameNameExists(MethodNode mth, SSAVar inlineVar) {
+		for (SSAVar ssaVar : mth.getSVars()) {
+			if (ssaVar == inlineVar || ssaVar.getCodeVar() == inlineVar.getCodeVar()) {
+				continue;
+			}
+			if (Objects.equals(ssaVar.getName(), inlineVar.getName())) {
+				return ssaVar.getUseCount() > inlineVar.getUseCount();
+			}
+		}
+		return false;
+	}
+
+	private static boolean searchArgWithName(InsnNode assignInsn, String varName) {
+		InsnArg result = assignInsn.visitArgs(insnArg -> {
+			if (insnArg instanceof Named) {
+				String argName = ((Named) insnArg).getName();
+				if (Objects.equals(argName, varName)) {
+					return insnArg;
+				}
+			}
+			return null;
+		});
+		return result != null;
 	}
 
 	private static boolean assignInline(MethodNode mth, RegisterArg arg, InsnNode assignInsn, BlockNode assignBlock) {

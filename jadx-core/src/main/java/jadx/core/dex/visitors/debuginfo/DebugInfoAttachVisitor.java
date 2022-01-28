@@ -89,25 +89,33 @@ public class DebugInfoAttachVisitor extends AbstractVisitor {
 			}
 			for (int i = start; i <= end; i++) {
 				InsnNode insn = insnArr[i];
-				if (insn != null) {
-					attachDebugInfo(insn.getResult(), debugInfoAttr, regNum);
-					for (InsnArg arg : insn.getArguments()) {
-						attachDebugInfo(arg, debugInfoAttr, regNum);
-					}
+				if (insn == null) {
+					continue;
 				}
+				int count = 0;
+				for (InsnArg arg : insn.getArguments()) {
+					count += attachDebugInfo(arg, debugInfoAttr, regNum);
+				}
+				if (count != 0) {
+					// don't apply same info for result if applied to args
+					continue;
+				}
+				attachDebugInfo(insn.getResult(), debugInfoAttr, regNum);
 			}
 		}
 
 		mth.addAttr(new LocalVarsDebugInfoAttr(localVars));
 	}
 
-	private void attachDebugInfo(InsnArg arg, RegDebugInfoAttr debugInfoAttr, int regNum) {
+	private int attachDebugInfo(InsnArg arg, RegDebugInfoAttr debugInfoAttr, int regNum) {
 		if (arg instanceof RegisterArg) {
 			RegisterArg reg = (RegisterArg) arg;
 			if (regNum == reg.getRegNum()) {
 				reg.addAttr(debugInfoAttr);
+				return 1;
 			}
 		}
+		return 0;
 	}
 
 	public static ArgType getVarType(MethodNode mth, ILocalVar var) {

@@ -19,8 +19,7 @@ public class TestAnonymousClass10 extends IntegrationTest {
 		public A test() {
 			Random random = new Random();
 			int a2 = random.nextInt();
-			int a3 = a2 + 3;
-			return new A(this, a2, a3, 4, 5, random.nextDouble()) {
+			return new A(this, a2, a2 + 3, 4, 5, random.nextDouble()) {
 				@Override
 				public void m() {
 					System.out.println(1);

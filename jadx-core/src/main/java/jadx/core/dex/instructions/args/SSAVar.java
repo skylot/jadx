@@ -196,17 +196,6 @@ public class SSAVar {
 		return usedInPhi != null && !usedInPhi.isEmpty();
 	}
 
-	public int getVariableUseCount() {
-		int count = useList.size();
-		if (usedInPhi == null) {
-			return count;
-		}
-		for (PhiInsn phiInsn : usedInPhi) {
-			count += phiInsn.getResult().getSVar().getUseCount();
-		}
-		return count;
-	}
-
 	public void setName(String name) {
 		if (name != null) {
 			if (codeVar == null) {

@@ -382,6 +382,9 @@ public class IfMakerHelper {
 				}
 				if (useCount > 1) {
 					forceInlineInsns.add(insn);
+				} else {
+					// allow only forced assign inline
+					pass = false;
 				}
 			}
 		}

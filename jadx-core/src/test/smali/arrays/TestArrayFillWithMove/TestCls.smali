@@ -14,7 +14,6 @@
 
     fill-array-data v1, :array_0
 
-    .local v1, "arr":[J
     return v1
 
     :array_0

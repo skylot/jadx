@@ -12,6 +12,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestSequentialLoops2 extends IntegrationTest {
 
+	@SuppressWarnings({ "unused", "FieldMayBeFinal" })
 	public static class TestCls {
 		private static char[] lowercases = new char[] { 'a' };
 

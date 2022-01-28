@@ -537,21 +537,7 @@ public abstract class IntegrationTest extends TestUtils {
 	}
 
 	// Use only for debug purpose
-	@Deprecated
-	protected void outputCFG() {
-		this.args.setCfgOutput(true);
-		this.args.setRawCFGOutput(true);
-	}
-
-	// Use only for debug purpose
-	@Deprecated
 	protected void printDisassemble() {
 		this.printDisassemble = true;
-	}
-
-	// Use only for debug purpose
-	@Deprecated
-	protected void outputRawCFG() {
-		this.args.setRawCFGOutput(true);
 	}
 }

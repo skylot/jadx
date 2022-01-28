@@ -32,6 +32,6 @@ public class TestNestedLoops2 extends IntegrationTest {
 		String code = cls.getCode().toString();
 
 		assertThat(code, containsOne("for (int i = 0; i < list.size(); i++) {"));
-		assertThat(code, containsOne("while (j < list.get(i).length()) {"));
+		assertThat(code, containsOne("while (j < s.length()) {"));
 	}
 }

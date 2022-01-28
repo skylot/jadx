@@ -66,7 +66,11 @@ public final class TypeUpdate {
 	 * Force type setting
 	 */
 	public TypeUpdateResult applyWithWiderIgnSame(MethodNode mth, SSAVar ssaVar, ArgType candidateType) {
-		return apply(mth, ssaVar, candidateType, TypeUpdateFlags.FLAGS_WIDER_IGNSAME);
+		return apply(mth, ssaVar, candidateType, TypeUpdateFlags.FLAGS_WIDER_IGNORE_SAME);
+	}
+
+	public TypeUpdateResult applyWithWiderIgnoreUnknown(MethodNode mth, SSAVar ssaVar, ArgType candidateType) {
+		return apply(mth, ssaVar, candidateType, TypeUpdateFlags.FLAGS_WIDER_IGNORE_UNKNOWN);
 	}
 
 	private TypeUpdateResult apply(MethodNode mth, SSAVar ssaVar, ArgType candidateType, TypeUpdateFlags flags) {
@@ -110,6 +114,9 @@ public final class TypeUpdate {
 			}
 
 			TypeCompareEnum compareResult = comparator.compareTypes(candidateType, currentType);
+			if (compareResult == TypeCompareEnum.UNKNOWN && updateInfo.getFlags().isIgnoreUnknown()) {
+				return REJECT;
+			}
 			if (arg.isTypeImmutable() && currentType != ArgType.UNKNOWN) {
 				// don't changed type
 				if (compareResult == TypeCompareEnum.EQUAL) {

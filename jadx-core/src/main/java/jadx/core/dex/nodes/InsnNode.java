@@ -301,20 +301,6 @@ public class InsnNode extends LineAttrNode {
 	}
 
 	/**
-	 * Visit all args recursively (including inner instructions),
-	 * but excluding wrapped args
-	 */
-	public void visitArgs(Consumer<InsnArg> visitor) {
-		for (InsnArg arg : getArguments()) {
-			if (arg.isInsnWrap()) {
-				((InsnWrapArg) arg).getWrapInsn().visitArgs(visitor);
-			} else {
-				visitor.accept(arg);
-			}
-		}
-	}
-
-	/**
 	 * Visit this instruction and all inner (wrapped) instructions
 	 * To terminate visiting return non-null value
 	 */
@@ -331,6 +317,40 @@ public class InsnNode extends LineAttrNode {
 				if (res != null) {
 					return res;
 				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Visit all args recursively (including inner instructions), but excluding wrapped args
+	 */
+	public void visitArgs(Consumer<InsnArg> visitor) {
+		for (InsnArg arg : getArguments()) {
+			if (arg.isInsnWrap()) {
+				((InsnWrapArg) arg).getWrapInsn().visitArgs(visitor);
+			} else {
+				visitor.accept(arg);
+			}
+		}
+	}
+
+	/**
+	 * Visit all args recursively (including inner instructions), but excluding wrapped args.
+	 * To terminate visiting return non-null value
+	 */
+	@Nullable
+	public <R> R visitArgs(Function<InsnArg, R> visitor) {
+		for (InsnArg arg : getArguments()) {
+			R result;
+			if (arg.isInsnWrap()) {
+				InsnNode wrapInsn = ((InsnWrapArg) arg).getWrapInsn();
+				result = wrapInsn.visitArgs(visitor);
+			} else {
+				result = visitor.apply(arg);
+			}
+			if (result != null) {
+				return result;
 			}
 		}
 		return null;
