@@ -14,10 +14,10 @@ import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
 import jadx.api.JadxInternalAccess;
-import jadx.api.JavaClass;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.nodes.RootNode;
+import jadx.core.utils.DebugChecks;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.tests.api.IntegrationTest;
 
@@ -35,9 +35,13 @@ public abstract class BaseExternalTest extends IntegrationTest {
 	}
 
 	protected JadxArgs prepare(File input) {
+		DebugChecks.checksEnabled = false;
 		JadxArgs args = new JadxArgs();
 		args.getInputFiles().add(input);
 		args.setOutDir(new File("../jadx-external-tests-tmp"));
+		args.setSkipFilesSave(true);
+		args.setSkipResources(true);
+		args.setShowInconsistentCode(true);
 		return args;
 	}
 
@@ -54,23 +58,12 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		jadx.load();
 
 		if (clsPatternStr == null) {
-			processAll(jadx);
-			// jadx.saveSources();
+			jadx.save();
 		} else {
 			processByPatterns(jadx, clsPatternStr, mthPatternStr);
 		}
 		printErrorReport(jadx);
 		return jadx;
-	}
-
-	private void processAll(JadxDecompiler jadx) {
-		for (JavaClass javaClass : jadx.getClasses()) {
-			try {
-				javaClass.decompile();
-			} catch (Exception e) {
-				LOG.error("Failed to decompile class: {}", javaClass, e);
-			}
-		}
 	}
 
 	private void processByPatterns(JadxDecompiler jadx, String clsPattern, @Nullable String mthPattern) {

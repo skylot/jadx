@@ -282,6 +282,9 @@ public final class JadxDecompiler implements Closeable {
 	}
 
 	private void appendResourcesSaveTasks(List<Runnable> tasks, File outDir) {
+		if (args.isSkipFilesSave()) {
+			return;
+		}
 		Set<String> inputFileNames = args.getInputFiles().stream().map(File::getAbsolutePath).collect(Collectors.toSet());
 		for (ResourceFile resourceFile : getResources()) {
 			if (resourceFile.getType() != ResourceType.ARSC

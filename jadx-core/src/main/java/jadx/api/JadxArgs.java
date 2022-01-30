@@ -93,6 +93,11 @@ public class JadxArgs {
 
 	private UseKotlinMethodsForVarNames useKotlinMethodsForVarNames = UseKotlinMethodsForVarNames.APPLY;
 
+	/**
+	 * Don't save files (can be using for performance testing)
+	 */
+	private boolean skipFilesSave = false;
+
 	public JadxArgs() {
 		// use default options
 	}
@@ -445,6 +450,14 @@ public class JadxArgs {
 
 	public void setUseKotlinMethodsForVarNames(UseKotlinMethodsForVarNames useKotlinMethodsForVarNames) {
 		this.useKotlinMethodsForVarNames = useKotlinMethodsForVarNames;
+	}
+
+	public boolean isSkipFilesSave() {
+		return skipFilesSave;
+	}
+
+	public void setSkipFilesSave(boolean skipFilesSave) {
+		this.skipFilesSave = skipFilesSave;
 	}
 
 	@Override
