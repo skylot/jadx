@@ -1,9 +1,13 @@
 package jadx.core.xmlgen;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.DocumentBuilder;
 
@@ -171,19 +175,20 @@ public class ManifestAttributes {
 		if (attr.getType() == MAttrType.ENUM) {
 			return attr.getValues().get(value);
 		} else if (attr.getType() == MAttrType.FLAG) {
-			StringBuilder sb = new StringBuilder();
-			for (Map.Entry<Long, String> entry : attr.getValues().entrySet()) {
-				long key = entry.getKey();
+			List<String> flagList = new LinkedList<>();
+			List<Long> attrKeys = new ArrayList<>(attr.getValues().keySet());
+			attrKeys.sort((a, b) -> Long.compare(b, a)); // sort descending
+			for (Long key : attrKeys) {
+				String attrValue = attr.getValues().get(key);
 				if (value == key) {
-					sb = new StringBuilder(entry.getValue() + '|');
+					flagList.add(attrValue);
 					break;
 				} else if ((key != 0) && ((value & key) == key)) {
-					sb.append(entry.getValue()).append('|');
+					flagList.add(attrValue);
+					value ^= key;
 				}
 			}
-			if (sb.length() != 0) {
-				return sb.deleteCharAt(sb.length() - 1).toString();
-			}
+			return flagList.stream().collect(Collectors.joining("|"));
 		}
 		return null;
 	}
