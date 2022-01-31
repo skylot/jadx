@@ -42,10 +42,7 @@ public class ProcessAnonymous extends AbstractVisitor {
 	}
 
 	private static void markAnonymousClass(ClassNode cls) {
-		boolean synthetic = cls.getAccessFlags().isSynthetic()
-				|| cls.getClassInfo().getShortName().contains("$")
-				|| Character.isDigit(cls.getClassInfo().getShortName().charAt(0));
-		if (!synthetic) {
+		if (!canBeAnonymous(cls)) {
 			return;
 		}
 		MethodNode anonymousConstructor = checkUsage(cls);
@@ -75,6 +72,22 @@ public class ProcessAnonymous extends AbstractVisitor {
 			topOuterCls.setDependencies(ListUtils.safeRemoveAndTrim(topOuterCls.getDependencies(), cls));
 			topOuterCls.setCodegenDeps(ListUtils.safeAdd(topOuterCls.getCodegenDeps(), cls));
 		}
+	}
+
+	private static boolean canBeAnonymous(ClassNode cls) {
+		if (cls.getAccessFlags().isSynthetic()) {
+			return true;
+		}
+		String shortName = cls.getClassInfo().getShortName();
+		if (shortName.contains("$") || Character.isDigit(shortName.charAt(0))) {
+			return true;
+		}
+		if (cls.getUseIn().size() == 1 && cls.getUseInMth().size() == 1) {
+			MethodNode useMth = cls.getUseInMth().get(0);
+			// allow use in enum class init
+			return useMth.getMethodInfo().isClassInit() && useMth.getParentClass().isEnum();
+		}
+		return false;
 	}
 
 	/**

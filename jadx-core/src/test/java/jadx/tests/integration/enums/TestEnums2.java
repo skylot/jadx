@@ -2,11 +2,10 @@ package jadx.tests.integration.enums;
 
 import org.junit.jupiter.api.Test;
 
-import jadx.core.dex.nodes.ClassNode;
+import jadx.api.CommentsLevel;
 import jadx.tests.api.IntegrationTest;
-import jadx.tests.api.utils.JadxMatchers;
 
-import static org.hamcrest.MatcherAssert.assertThat;
+import static jadx.tests.api.utils.assertj.JadxAssertions.assertThat;
 
 public class TestEnums2 extends IntegrationTest {
 
@@ -32,25 +31,25 @@ public class TestEnums2 extends IntegrationTest {
 
 	@Test
 	public void test() {
-		ClassNode cls = getClassNode(TestCls.class);
-		String code = removeLineComments(cls);
-
-		assertThat(code, JadxMatchers.containsLines(1,
-				"public enum Operation {",
-				indent(1) + "PLUS {",
-				indent(2) + "@Override",
-				indent(2) + "public int apply(int x, int y) {",
-				indent(3) + "return x + y;",
-				indent(2) + '}',
-				indent(1) + "},",
-				indent(1) + "MINUS {",
-				indent(2) + "@Override",
-				indent(2) + "public int apply(int x, int y) {",
-				indent(3) + "return x - y;",
-				indent(2) + '}',
-				indent(1) + "};",
-				"",
-				indent(1) + "public abstract int apply(int i, int i2);",
-				"}"));
+		getArgs().setCommentsLevel(CommentsLevel.WARN);
+		assertThat(getClassNode(TestCls.class))
+				.code()
+				.containsLines(1,
+						"public enum Operation {",
+						indent(1) + "PLUS {",
+						indent(2) + "@Override",
+						indent(2) + "public int apply(int x, int y) {",
+						indent(3) + "return x + y;",
+						indent(2) + '}',
+						indent(1) + "},",
+						indent(1) + "MINUS {",
+						indent(2) + "@Override",
+						indent(2) + "public int apply(int x, int y) {",
+						indent(3) + "return x - y;",
+						indent(2) + '}',
+						indent(1) + "};",
+						"",
+						indent(1) + "public abstract int apply(int i, int i2);",
+						"}");
 	}
 }

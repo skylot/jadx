@@ -71,7 +71,14 @@ public class EnumVisitor extends AbstractVisitor {
 
 	@Override
 	public boolean visit(ClassNode cls) throws JadxException {
-		if (!convertToEnum(cls)) {
+		boolean converted;
+		try {
+			converted = convertToEnum(cls);
+		} catch (Exception e) {
+			cls.addWarnComment("Enum visitor error", e);
+			converted = false;
+		}
+		if (!converted) {
 			AccessInfo accessFlags = cls.getAccessFlags();
 			if (accessFlags.isEnum()) {
 				cls.setAccessFlags(accessFlags.remove(AccessFlags.ENUM));
@@ -179,8 +186,7 @@ public class EnumVisitor extends AbstractVisitor {
 		if (!enumClsInfo.equals(cls.getClassInfo())) {
 			ClassNode enumCls = cls.root().resolveClass(enumClsInfo);
 			if (enumCls != null) {
-				processEnumCls(enumField, enumCls);
-				cls.addInlinedClass(enumCls);
+				processEnumCls(cls, enumField, enumCls);
 			}
 		}
 		List<RegisterArg> regs = new ArrayList<>();
@@ -381,7 +387,11 @@ public class EnumVisitor extends AbstractVisitor {
 		if (constrCls == null) {
 			return null;
 		}
-		if (!clsInfo.equals(cls.getClassInfo()) && !constrCls.getAccessFlags().isEnum()) {
+		if (constrCls.equals(cls)) {
+			// allow same class
+		} else if (constrCls.contains(AFlag.ANONYMOUS_CLASS)) {
+			// allow external class already marked as anonymous
+		} else {
 			return null;
 		}
 		MethodNode ctrMth = cls.root().resolveMethod(co.getCallMth());
@@ -466,7 +476,7 @@ public class EnumVisitor extends AbstractVisitor {
 		return InsnUtils.searchInsn(mth, InsnType.SGET, insnTest) != null;
 	}
 
-	private static void processEnumCls(EnumField field, ClassNode innerCls) {
+	private static void processEnumCls(ClassNode cls, EnumField field, ClassNode innerCls) {
 		// remove constructor, because it is anonymous class
 		for (MethodNode innerMth : innerCls.getMethods()) {
 			if (innerMth.getAccessFlags().isConstructor()) {
@@ -474,7 +484,11 @@ public class EnumVisitor extends AbstractVisitor {
 			}
 		}
 		field.setCls(innerCls);
-		innerCls.add(AFlag.DONT_GENERATE);
+		if (!innerCls.getParentClass().equals(cls)) {
+			// not inner
+			cls.addInlinedClass(innerCls);
+			innerCls.add(AFlag.DONT_GENERATE);
+		}
 	}
 
 	private ConstructorInsn getConstructorInsn(InsnNode insn) {

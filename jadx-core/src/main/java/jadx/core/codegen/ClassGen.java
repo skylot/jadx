@@ -459,7 +459,7 @@ public class ClassGen {
 			}
 			if (f.getCls() != null) {
 				code.add(' ');
-				new ClassGen(f.getCls(), this).addClassBody(code);
+				new ClassGen(f.getCls(), this).addClassBody(code, true);
 			}
 			if (it.hasNext()) {
 				code.add(',');

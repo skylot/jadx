@@ -52,19 +52,18 @@ public class JadxCodeAssertions extends AbstractStringAssert<JadxCodeAssertions>
 		}
 		String indent = TestUtils.indent(commonIndent);
 		StringBuilder sb = new StringBuilder();
-		boolean first = true;
 		for (String line : lines) {
-			if (!line.isEmpty()) {
-				if (first) {
-					first = false;
-				} else {
-					sb.append(ICodeWriter.NL);
-				}
-				sb.append(indent);
-				sb.append(line);
+			sb.append(ICodeWriter.NL);
+			if (line.isEmpty()) {
+				// don't add common indent to empty lines
+				continue;
 			}
+			String searchLine = indent + line;
+			sb.append(searchLine);
+			// check every line for easier debugging
+			contains(searchLine);
 		}
-		return containsOnlyOnce(sb.toString());
+		return containsOnlyOnce(sb.substring(ICodeWriter.NL.length()));
 	}
 
 	public JadxCodeAssertions removeBlockComments() {
