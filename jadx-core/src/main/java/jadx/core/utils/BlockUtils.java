@@ -709,6 +709,7 @@ public class BlockUtils {
 			return oneBlock;
 		}
 		BitSet combinedDF = newBlocksBitSet(mth);
+		int k = mth.getBasicBlocks().size();
 		while (true) {
 			// collect dom frontier blocks from current set until only one block left
 			forEachBlockFromBitSet(mth, domFrontBS, block -> {
@@ -724,6 +725,10 @@ public class BlockUtils {
 				return bitSetToOneBlock(mth, combinedDF);
 			}
 			if (cardinality == 0) {
+				return null;
+			}
+			if (k-- < 0) {
+				mth.addWarnComment("Path cross not found for " + blocks + ", limit reached: " + mth.getBasicBlocks().size());
 				return null;
 			}
 			// replace domFrontBS with combinedDF
