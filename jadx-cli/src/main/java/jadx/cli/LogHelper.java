@@ -54,7 +54,7 @@ public class LogHelper {
 		Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 		rootLogger.setLevel(logLevel.getLevel());
 
-		if (logLevel != LogLevelEnum.QUIET) {
+		if (logLevel == LogLevelEnum.PROGRESS) {
 			// show progress for all levels except quiet
 			setLevelForClass(JadxCLI.class, Level.INFO);
 			setLevelForClass(JadxDecompiler.class, Level.INFO);
