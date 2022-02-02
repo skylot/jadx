@@ -39,6 +39,7 @@ public class JadxPluginManager {
 		ServiceLoader<JadxPlugin> jadxPlugins = ServiceLoader.load(JadxPlugin.class);
 		for (JadxPlugin plugin : jadxPlugins) {
 			addPlugin(plugin);
+			LOG.debug("Loading plugin: {}", plugin.getPluginInfo().getPluginId());
 		}
 		resolve();
 	}

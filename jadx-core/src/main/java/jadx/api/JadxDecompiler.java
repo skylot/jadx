@@ -128,6 +128,7 @@ public final class JadxDecompiler implements Closeable {
 				loadedInputs.add(loadResult);
 			}
 		}
+		LOG.debug("Loaded using {} inputs plugin", loadedInputs.size());
 	}
 
 	private void reset() {
