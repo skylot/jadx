@@ -68,4 +68,42 @@ class StringRefTest {
 		// compare with original split
 		assertThat(str.split(splitBy), is(result));
 	}
+
+	@Test
+	public void testIndexOf() {
+		//test empty str, insentitive, and 3 kinds of from point
+		checkIndexOf(fromStr("aBc"),"",-1,false,-1);
+		checkIndexOf(fromStr(""),"",-1,false,-1);
+		checkIndexOf(fromStr("Ab"),"",0,false,-1);
+		checkIndexOf(fromStr(""),"",0,false,0);
+		checkIndexOf(fromStr("aBc"),"",3,false,3);
+
+		// sensitive
+		checkIndexOf(fromStr("Abc"),"",-1,true,-1);
+		checkIndexOf(fromStr(""),"",-1,true,-1);
+		checkIndexOf(fromStr("Ab"),"",0,true,-1);
+		checkIndexOf(fromStr(""),"",0,true,0);
+		checkIndexOf(fromStr("aBc"),"",3,true,3);
+
+		//test no empty str, insentitive, and 3 kinds of from point, find or not find
+		checkIndexOf(fromStr("aBc"),"A",-1,true,0);
+		checkIndexOf(fromStr("abC"),"d",-1,true,-1);
+		checkIndexOf(fromStr(""),"a",-1,true,-1);
+		checkIndexOf(fromStr("abC"),"Abc",0,true,0);
+		checkIndexOf(fromStr("abc"),"A",1,true,-1); //not find
+		checkIndexOf(fromStr("aBc"),"A",4,true,-1);
+
+		//no empty str, sensitive, 3 kinds of value, find or not find
+		checkIndexOf(fromStr("Abc"),"A",-1,false,0);
+		checkIndexOf(fromStr("abc"),"A",-1,false,-1);
+		checkIndexOf(fromStr(""),"a",-1,false,-1);
+		checkIndexOf(fromStr("abc"),"bc",1,false,1);
+		checkIndexOf(fromStr("abc"),"a",1,false,-1); //not find
+		checkIndexOf(fromStr("abc"),"Bc",1,false,-1);
+		checkIndexOf(fromStr("abc"),"a",4,false,-1);
+	}
+
+	private static void checkIndexOf(StringRef ref, String str,int from, boolean caseInsensitive, int pos){
+		assertThat(ref.indexOf(str,from,caseInsensitive),is(pos));
+	}
 }
