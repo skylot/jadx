@@ -42,6 +42,8 @@ class VersionComparatorTest {
 	*	v*, v*			0*, 0*			mutil, 1			a<b				v02.3,v03
 	* */
 
+	//if project tips not support ParameterizedTest,
+	// need to refresh or reload project by Gradle tool
 	@ParameterizedTest
 	@CsvSource({
 			"1,2, -1"
