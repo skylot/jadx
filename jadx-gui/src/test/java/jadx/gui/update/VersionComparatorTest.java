@@ -61,7 +61,7 @@ class VersionComparatorTest {
 			,"3.03,v2.3, 1"
 			,"v02.3,v03, -1"
 	})
-	public void testCheckAndCompare(String a, String b, int expected){
+	public void testCheckAndCompareNormalInput(String a, String b, int expected){
 		assertThat(VersionComparator.checkAndCompare(a, b), is(expected));
 	}
 
@@ -99,7 +99,7 @@ class VersionComparatorTest {
 			,"%, #, -2"
 			,"*, %, -2"
 	})
-	public void singleTest(String a, String b, int expected){
+	public void testCheckAndCompareImproperInput(String a, String b, int expected){
 		assertThat(VersionComparator.checkAndCompare(a, b), is(expected));
 	}
 	@Test
