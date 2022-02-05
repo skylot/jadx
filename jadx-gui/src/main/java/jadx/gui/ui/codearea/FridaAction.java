@@ -10,6 +10,10 @@ import java.util.stream.Collectors;
 
 import javax.swing.*;
 
+import jadx.api.JavaClass;
+import jadx.api.JavaField;
+import jadx.api.JavaMethod;
+import jadx.gui.treemodel.JField;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,10 +56,14 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 
 	private String generateFridaSnippet() {
 		if (node instanceof JMethod) {
-			return generateMethodSnippet();
-
+			LOG.debug("node is jmethod");
+			return generateMethodSnippet((JMethod) node);
 		} else if (node instanceof JClass) {
-			return generateClassSnippet();
+			LOG.debug("node is jclass");
+			return generateClassSnippet((JClass) node);
+		} else if (node instanceof JField) {
+			LOG.debug("node is jfield");
+			return generateFieldSnippet((JField) node);
 		}
 		LOG.debug("cannot generate frida snippet from node");
 		return "";
@@ -63,29 +71,26 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 	}
 
 
-	private String generateMethodSnippet() {
-		JMethod jMth = (JMethod) node;
-		assert jMth != null;
-		MethodNode methodNode = jMth.getJavaMethod().getMethodNode();
-		MethodInfo mi = methodNode.getMethodInfo();
-		String methodName = mi.getName();
+	private String generateMethodSnippet(JMethod jMth) {
+		JavaMethod javaMethod = jMth.getJavaMethod();
+		MethodInfo methodInfo = javaMethod.getMethodNode().getMethodInfo();
+		String methodName = methodInfo.getName();
 		if (methodName.equals("<init>") || methodName.equals("onCreate")) {
 			methodName = "$init";
 		}
-		String rawClassName = methodNode.getParentClass().getRawName();
-		String className = methodNode.getParentClass().getShortName();
-		LOG.debug("node is jmethod");
+		String rawClassName = javaMethod.getDeclaringClass().getRawName();
+		String shortClassName = javaMethod.getDeclaringClass().getName();
 
 		String functionUntilImplementation;
-		if (!methodNode.getOverloads().isEmpty()) {
-			List<ArgType> methodArgs = mi.getArgumentsTypes();
+		if (!javaMethod.getMethodNode().getOverloads().isEmpty()) {
+			List<ArgType> methodArgs = methodInfo.getArgumentsTypes();
 			String overloadStr = methodArgs.stream().map(this::parseArgType).collect(Collectors.joining(", "));
-			functionUntilImplementation = String.format("%s.%s.overload(%s).implementation", className, methodName, overloadStr);
+			functionUntilImplementation = String.format("%s.%s.overload(%s).implementation", shortClassName, methodName, overloadStr);
 		} else {
-			functionUntilImplementation = String.format("%s.%s.implementation", className, methodName);
+			functionUntilImplementation = String.format("%s.%s.implementation", shortClassName, methodName);
 		}
 
-		String functionParametersString = Objects.requireNonNull(jMth.getJavaMethod().getTopParentClass().getCodeInfo()).getAnnotations().entrySet().stream()
+		String functionParametersString = Objects.requireNonNull(javaMethod.getTopParentClass().getCodeInfo()).getAnnotations().entrySet().stream()
 				.filter(e -> e.getKey().getLine() == jMth.getLine() && e.getValue() instanceof VarDeclareRef)
 				.sorted(Comparator.comparingInt(e -> e.getKey().getPos()))
 				.map(e -> ((VarDeclareRef) e.getValue()).getName())
@@ -98,8 +103,8 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 
 		String finalFridaCode;
 		if (isInitial.getOrDefault(rawClassName, true)) {
-			finalFridaCode = String.format("let %s = Java.use(\"%s\")\n%s", className, rawClassName, functionParameterAndBody);
-			isInitial.put(rawClassName, false);
+			String classSnippet = generateClassSnippet(jMth.getJParent());
+			finalFridaCode = classSnippet + "\n" + functionParameterAndBody;
 		} else {
 			finalFridaCode = functionParameterAndBody;
 		}
@@ -107,18 +112,36 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 		return finalFridaCode;
 	}
 
-	private String generateClassSnippet() {
-		LOG.debug("node is jclass");
-		JClass jc = (JClass) node;
-		assert jc != null;
-		String fullClassName = jc.getCls().getRawName();
-		String className = jc.getCls().getName();
-		String finalFridaCode = String.format("let %s = Java.use(\"%s\")", className, fullClassName);
+	private String generateClassSnippet(JClass jc) {
+		JavaClass javaClass = jc.getCls();
+		String rawClassName = javaClass.getRawName();
+		String shortClassName = javaClass.getName();
+		String finalFridaCode = String.format("let %s = Java.use(\"%s\")", shortClassName, rawClassName);
 		LOG.debug("frida code : " + finalFridaCode);
-		isInitial.put(fullClassName, false);
+		isInitial.put(rawClassName, false);
 		return finalFridaCode;
 	}
 
+	private String generateFieldSnippet(JField jf) {
+		JavaField javaField = jf.getJavaField();
+		String rawFieldName = javaField.getRawName();
+		String fieldName = javaField.getName();
+
+
+		List<MethodNode> methodNodes = javaField.getFieldNode().getParentClass().getMethods();
+		for (MethodNode methodNode : methodNodes) {
+			if (methodNode.getName().equals(rawFieldName)) {
+				rawFieldName = "_" + rawFieldName;
+				break;
+			}
+		}
+
+		JClass jc = jf.getRootClass();
+		String classSnippet = generateClassSnippet(jc);
+		String finalFridaCode = String.format("%s\n%s = %s.%s.value", classSnippet, fieldName, jc.getName(), rawFieldName);
+		LOG.debug("frida code : " + finalFridaCode);
+		return finalFridaCode;
+	}
 
 	private String parseArgType(ArgType x) {
 		StringBuilder parsedArgType = new StringBuilder("'");

@@ -28,6 +28,10 @@ public final class JavaField implements JavaNode {
 		return parent.getFullName() + '.' + getName();
 	}
 
+	public String getRawName() {
+		return field.getName();
+	}
+
 	@Override
 	public JavaClass getDeclaringClass() {
 		return parent;
