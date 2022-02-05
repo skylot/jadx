@@ -28,7 +28,8 @@ public class TestKotlinMetadata extends SmaliTest {
 		prepareArgs(true);
 		assertThat(getClassNodeFromSmali())
 				.code()
-				.containsOne("class TestMetaData {");
+				.containsOne("class TestMetaData {")
+				.containsOne("reason: from Kotlin metadata");
 	}
 
 	@Test
@@ -42,6 +43,7 @@ public class TestKotlinMetadata extends SmaliTest {
 	private void prepareArgs(boolean parseKotlinMetadata) {
 		enableDeobfuscation();
 		args.setDeobfuscationMinLength(100); // rename everything
+		args.setDeobfuscationForceSave(true);
 		getArgs().setParseKotlinMetadata(parseKotlinMetadata);
 		disableCompilation();
 	}

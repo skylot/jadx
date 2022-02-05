@@ -6,6 +6,16 @@ import jadx.core.dex.attributes.AttrNode;
 
 public class RenameReasonAttr implements IJadxAttribute {
 
+	public static RenameReasonAttr forNode(AttrNode node) {
+		RenameReasonAttr renameReasonAttr = node.get(AType.RENAME_REASON);
+		if (renameReasonAttr != null) {
+			return renameReasonAttr;
+		}
+		RenameReasonAttr newAttr = new RenameReasonAttr();
+		node.addAttr(newAttr);
+		return newAttr;
+	}
+
 	private String description;
 
 	public RenameReasonAttr() {
