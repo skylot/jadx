@@ -17,12 +17,13 @@ import jadx.api.IDecompileScheduler;
 import jadx.api.JadxDecompiler;
 import jadx.api.JavaClass;
 import jadx.core.dex.nodes.ClassNode;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class DecompilerScheduler implements IDecompileScheduler {
 	private static final Logger LOG = LoggerFactory.getLogger(DecompilerScheduler.class);
 
 	private static final int MERGED_BATCH_SIZE = 16;
-	private static final boolean DUMP_STATS = false;
+	private static final boolean DEBUG_BATCHES = false;
 
 	private final JadxDecompiler decompiler;
 
@@ -37,6 +38,9 @@ public class DecompilerScheduler implements IDecompileScheduler {
 		List<List<JavaClass>> result = Utils.collectionMap(batches, l -> Utils.collectionMapNoNull(l, decompiler::getJavaClassByNode));
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Build decompilation batches in {}ms", System.currentTimeMillis() - start);
+		}
+		if (DEBUG_BATCHES) {
+			check(result, classes);
 		}
 		return result;
 	}
@@ -61,11 +65,13 @@ public class DecompilerScheduler implements IDecompileScheduler {
 		List<ClassNode> mergedBatch = new ArrayList<>(MERGED_BATCH_SIZE);
 		for (DepInfo depInfo : deps) {
 			ClassNode cls = depInfo.getCls();
+			if (!added.add(cls)) {
+				continue;
+			}
 			int depsSize = cls.getDependencies().size();
 			if (depsSize == 0) {
 				// add classes without dependencies in merged batch
 				mergedBatch.add(cls);
-				added.add(cls);
 				if (mergedBatch.size() >= MERGED_BATCH_SIZE) {
 					result.add(mergedBatch);
 					mergedBatch = new ArrayList<>(MERGED_BATCH_SIZE);
@@ -76,18 +82,18 @@ public class DecompilerScheduler implements IDecompileScheduler {
 					ClassNode topDep = dep.getTopParentClass();
 					if (!added.contains(topDep)) {
 						batch.add(topDep);
+						added.add(topDep);
 					}
 				}
 				batch.sort(cmpDepSize);
 				batch.add(cls);
-				added.addAll(batch);
 				result.add(batch);
 			}
 		}
 		if (mergedBatch.size() > 0) {
 			result.add(mergedBatch);
 		}
-		if (DUMP_STATS) {
+		if (DEBUG_BATCHES) {
 			dumpBatchesStats(classes, result, deps);
 		}
 		return result;
@@ -140,8 +146,16 @@ public class DecompilerScheduler implements IDecompileScheduler {
 		LOG.info("Batches stats:"
 				+ "\n input classes: " + classes.size()
 				+ ",\n batches: " + result.size()
-				+ ",\n average batch size: " + avg
+				+ ",\n average batch size: " + String.format("%.2f", avg)
 				+ ",\n max single deps count: " + maxSingleDeps
 				+ ",\n max recursive deps count: " + maxRecursiveDeps);
+	}
+
+	private static void check(List<List<JavaClass>> result, List<JavaClass> classes) {
+		int classInBatches = result.stream().mapToInt(List::size).sum();
+		if (classes.size() != classInBatches) {
+			throw new JadxRuntimeException(
+					"Incorrect number of classes in result batch: " + classInBatches + ", expected: " + classes.size());
+		}
 	}
 }
