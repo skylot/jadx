@@ -15,8 +15,10 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.ui.MainWindow;
 import jadx.gui.ui.panel.ProgressPanel;
+import jadx.gui.utils.NLS;
 import jadx.gui.utils.UiUtils;
 
 /**
@@ -44,6 +46,14 @@ public class BackgroundExecutor {
 			taskWorker.run();
 		});
 		return taskWorker;
+	}
+
+	public TaskStatus executeAndWait(IBackgroundTask task) {
+		try {
+			return execute(task).get();
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Task execution error", e);
+		}
 	}
 
 	public void cancelAll() {
@@ -74,11 +84,12 @@ public class BackgroundExecutor {
 		return (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
 	}
 
-	private final class TaskWorker extends SwingWorker<TaskStatus, Void> {
+	private final class TaskWorker extends SwingWorker<TaskStatus, Void> implements ITaskInfo {
 		private final IBackgroundTask task;
 		private TaskStatus status = TaskStatus.WAIT;
 		private long jobsCount;
 		private long jobsComplete;
+		private long time;
 
 		public TaskWorker(IBackgroundTask task) {
 			this.task = task;
@@ -111,13 +122,15 @@ public class BackgroundExecutor {
 				executor.execute(job);
 			}
 			executor.shutdown();
-			status = waitTermination(executor);
+			long startTime = System.currentTimeMillis();
+			status = waitTermination(executor, buildCancelCheck(startTime));
+			time = System.currentTimeMillis() - startTime;
 			jobsComplete = executor.getCompletedTaskCount();
+			task.onDone(this);
 		}
 
 		@SuppressWarnings("BusyWait")
-		private TaskStatus waitTermination(ThreadPoolExecutor executor) throws InterruptedException {
-			Supplier<TaskStatus> cancelCheck = buildCancelCheck();
+		private TaskStatus waitTermination(ThreadPoolExecutor executor, Supplier<TaskStatus> cancelCheck) throws InterruptedException {
 			try {
 				int k = 0;
 				while (true) {
@@ -145,7 +158,7 @@ public class BackgroundExecutor {
 		}
 
 		private void performCancel(ThreadPoolExecutor executor) throws InterruptedException {
-			progressPane.changeLabel(this, task.getTitle() + " (Canceling)… ");
+			progressPane.changeLabel(this, task.getTitle() + " (" + NLS.str("progress.canceling") + ")… ");
 			progressPane.changeIndeterminate(this, true);
 			// force termination
 			executor.shutdownNow();
@@ -153,8 +166,8 @@ public class BackgroundExecutor {
 			LOG.debug("Task cancel complete: {}", complete);
 		}
 
-		private Supplier<TaskStatus> buildCancelCheck() {
-			long waitUntilTime = task.timeLimit() == 0 ? 0 : System.currentTimeMillis() + task.timeLimit();
+		private Supplier<TaskStatus> buildCancelCheck(long startTime) {
+			long waitUntilTime = task.timeLimit() == 0 ? 0 : startTime + task.timeLimit();
 			boolean checkMemoryUsage = task.checkMemoryUsage();
 			return () -> {
 				if (waitUntilTime != 0 && waitUntilTime < System.currentTimeMillis()) {
@@ -180,7 +193,32 @@ public class BackgroundExecutor {
 		@Override
 		protected void done() {
 			progressPane.setVisible(false);
-			task.onFinish(status, jobsCount - jobsComplete);
+			task.onFinish(this);
+		}
+
+		@Override
+		public TaskStatus getStatus() {
+			return status;
+		}
+
+		@Override
+		public long getJobsCount() {
+			return jobsCount;
+		}
+
+		@Override
+		public long getJobsComplete() {
+			return jobsComplete;
+		}
+
+		@Override
+		public long getJobsSkipped() {
+			return jobsCount - jobsComplete;
+		}
+
+		@Override
+		public long getTime() {
+			return time;
 		}
 	}
 
@@ -206,9 +244,9 @@ public class BackgroundExecutor {
 		}
 
 		@Override
-		public void onFinish(TaskStatus status, long l) {
+		public void onFinish(ITaskInfo taskInfo) {
 			if (onFinish != null) {
-				onFinish.accept(status);
+				onFinish.accept(taskInfo.getStatus());
 			}
 		}
 

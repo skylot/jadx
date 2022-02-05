@@ -8,7 +8,17 @@ public interface IBackgroundTask {
 
 	List<Runnable> scheduleJobs();
 
-	void onFinish(TaskStatus status, long skipped);
+	/**
+	 * Called on executor thread after the all jobs finished.
+	 */
+	default void onDone(ITaskInfo taskInfo) {
+	}
+
+	/**
+	 * Executed on the Event Dispatch Thread after the all jobs finished.
+	 */
+	default void onFinish(ITaskInfo taskInfo) {
+	}
 
 	default boolean canBeCanceled() {
 		return false;

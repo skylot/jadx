@@ -69,6 +69,10 @@ public final class JavaClass implements JavaNode {
 		cls.unloadCode();
 	}
 
+	public boolean isNoCode() {
+		return cls.contains(AFlag.DONT_GENERATE);
+	}
+
 	public synchronized String getSmali() {
 		return cls.getDisassembledCode();
 	}

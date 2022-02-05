@@ -358,6 +358,17 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		return codeInfo;
 	}
 
+	@Nullable
+	public ICodeInfo getCodeFromCache() {
+		ICodeCache codeCache = root().getCodeCache();
+		String clsRawName = getRawName();
+		ICodeInfo codeInfo = codeCache.get(clsRawName);
+		if (codeInfo == ICodeInfo.EMPTY) {
+			return null;
+		}
+		return codeInfo;
+	}
+
 	@Override
 	public void load() {
 		for (MethodNode mth : getMethods()) {

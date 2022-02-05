@@ -30,6 +30,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -38,7 +39,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
@@ -94,6 +94,8 @@ import jadx.gui.jobs.BackgroundExecutor;
 import jadx.gui.jobs.DecompileTask;
 import jadx.gui.jobs.ExportTask;
 import jadx.gui.jobs.IndexService;
+import jadx.gui.jobs.IndexTask;
+import jadx.gui.jobs.ProcessResult;
 import jadx.gui.jobs.TaskStatus;
 import jadx.gui.plugins.quark.QuarkDialog;
 import jadx.gui.settings.JadxProject;
@@ -555,12 +557,60 @@ public class MainWindow extends JFrame {
 			}
 			try {
 				DecompileTask decompileTask = new DecompileTask(this, wrapper);
-				Future<TaskStatus> task = backgroundExecutor.execute(decompileTask);
-				task.get();
+				backgroundExecutor.executeAndWait(decompileTask);
+
+				IndexTask indexTask = new IndexTask(this, wrapper);
+				backgroundExecutor.executeAndWait(indexTask);
+
+				processDecompilationResults(decompileTask.getResult(), indexTask.getResult());
 			} catch (Exception e) {
 				LOG.error("Decompile task execution failed", e);
 			}
 		}
+	}
+
+	private void processDecompilationResults(ProcessResult decompile, ProcessResult index) {
+		int skippedCls = Math.max(decompile.getSkipped(), index.getSkipped());
+		if (skippedCls == 0) {
+			return;
+		}
+		TaskStatus status = mergeStatus(EnumSet.of(decompile.getStatus(), index.getStatus()));
+		LOG.warn("Decompile and indexing of some classes skipped: {}, status: {}", skippedCls, status);
+		switch (status) {
+			case CANCEL_BY_USER: {
+				String reason = NLS.str("message.userCancelTask");
+				String message = NLS.str("message.indexIncomplete", reason, skippedCls);
+				JOptionPane.showMessageDialog(this, message);
+				break;
+			}
+			case CANCEL_BY_TIMEOUT: {
+				String reason = NLS.str("message.taskTimeout", decompile.getTimeLimit());
+				String message = NLS.str("message.indexIncomplete", reason, skippedCls);
+				JOptionPane.showMessageDialog(this, message);
+				break;
+			}
+			case CANCEL_BY_MEMORY: {
+				showHeapUsageBar();
+				JOptionPane.showMessageDialog(this, NLS.str("message.indexingClassesSkipped", skippedCls));
+				break;
+			}
+		}
+	}
+
+	private TaskStatus mergeStatus(Set<TaskStatus> statuses) {
+		if (statuses.size() == 1) {
+			return statuses.iterator().next();
+		}
+		if (statuses.contains(TaskStatus.CANCEL_BY_MEMORY)) {
+			return TaskStatus.CANCEL_BY_MEMORY;
+		}
+		if (statuses.contains(TaskStatus.CANCEL_BY_TIMEOUT)) {
+			return TaskStatus.CANCEL_BY_TIMEOUT;
+		}
+		if (statuses.contains(TaskStatus.CANCEL_BY_USER)) {
+			return TaskStatus.CANCEL_BY_USER;
+		}
+		return TaskStatus.COMPLETE;
 	}
 
 	public void cancelBackgroundJobs() {

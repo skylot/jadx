@@ -50,16 +50,16 @@ public class ExportTask implements IBackgroundTask {
 	}
 
 	@Override
-	public void onFinish(TaskStatus status, long skipped) {
+	public void onFinish(ITaskInfo taskInfo) {
 		// restore initial code cache
 		wrapper.getArgs().setCodeCache(uiCodeCache);
-		if (skipped == 0) {
+		if (taskInfo.getJobsSkipped() == 0) {
 			return;
 		}
-		String reason = getIncompleteReason(status);
+		String reason = getIncompleteReason(taskInfo.getStatus());
 		if (reason != null) {
 			JOptionPane.showMessageDialog(mainWindow,
-					NLS.str("message.saveIncomplete", reason, skipped),
+					NLS.str("message.saveIncomplete", reason, taskInfo.getJobsSkipped()),
 					NLS.str("message.errorTitle"), JOptionPane.ERROR_MESSAGE);
 		}
 	}

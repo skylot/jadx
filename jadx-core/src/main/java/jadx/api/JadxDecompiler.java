@@ -310,7 +310,13 @@ public final class JadxDecompiler implements Closeable {
 			}
 			processQueue.add(cls);
 		}
-		for (List<JavaClass> decompileBatch : decompileScheduler.buildBatches(processQueue)) {
+		List<List<JavaClass>> batches;
+		try {
+			batches = decompileScheduler.buildBatches(processQueue);
+		} catch (Exception e) {
+			throw new JadxRuntimeException("Decompilation batches build failed", e);
+		}
+		for (List<JavaClass> decompileBatch : batches) {
 			tasks.add(() -> {
 				for (JavaClass cls : decompileBatch) {
 					try {
