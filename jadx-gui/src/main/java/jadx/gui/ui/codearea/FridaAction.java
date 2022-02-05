@@ -35,7 +35,6 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 	public FridaAction(CodeArea codeArea) {
 
 		super(NLS.str("popup.frida") + " (f)", codeArea);
-		LOG.info("triggered meee");
 		KeyStroke key = getKeyStroke(KeyEvent.VK_F, 0);
 		codeArea.getInputMap().put(key, "trigger frida");
 		codeArea.getActionMap().put("trigger frida", new AbstractAction() {
@@ -64,7 +63,7 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 				LOG.debug("node is jmethod");
 				JMethod jMth = (JMethod) node;
 				int mthLine = jMth.getLine();
-				List<String> argNames = Objects.requireNonNull(jMth.getRootClass().getCodeInfo()).getAnnotations().entrySet().stream()
+				List<String> argNames = Objects.requireNonNull(methodNode.getTopParentClass().getCode()).getAnnotations().entrySet().stream()
 						.filter(e -> e.getKey().getLine() == mthLine && e.getValue() instanceof VarDeclareRef)
 						.sorted(Comparator.comparingInt(e -> e.getKey().getPos()))
 						.map(e -> ((VarDeclareRef) e.getValue()).getName())
