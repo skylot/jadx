@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import jadx.api.data.annotations.VarDeclareRef;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
-import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JMethod;
@@ -30,7 +29,6 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 	private static final Logger LOG = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 	private static final long serialVersionUID = 4692546569977976384L;
 	private final Map<String, Boolean> isInitial = new HashMap<>();
-	private String methodName;
 
 	public FridaAction(CodeArea codeArea) {
 
@@ -42,106 +40,88 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 
 			public void actionPerformed(ActionEvent e) {
 				node = getNodeByOffset(codeArea.getWordStart(codeArea.getCaretPosition()));
-				copyFridaCode();
+
+				String fridaSnippet = generateFridaSnippet();
+
+				Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+				StringSelection selection = new StringSelection(fridaSnippet);
+				clipboard.setContents(selection, selection);
 			}
 		});
 	}
 
-	private void copyFridaCode() {
+	private String generateFridaSnippet() {
+		if (node instanceof JMethod) {
+			return generateMethodSnippet();
 
-		if (node != null) {
-			if (node instanceof JMethod) {
-				JMethod n = (JMethod) node;
-				MethodNode methodNode = n.getJavaMethod().getMethodNode();
-				MethodInfo mi = methodNode.getMethodInfo();
-				methodName = mi.getName();
-				if (methodName.equals("<init>") || methodName.equals("onCreate")) {
-					methodName = "$init";
-				}
-				String rawClassName = methodNode.getParentClass().getRawName();
-				String className = methodNode.getParentClass().getShortName();
-				LOG.debug("node is jmethod");
-				JMethod jMth = (JMethod) node;
-				int mthLine = jMth.getLine();
-				List<String> argNames = Objects.requireNonNull(methodNode.getTopParentClass().getCode()).getAnnotations().entrySet().stream()
-						.filter(e -> e.getKey().getLine() == mthLine && e.getValue() instanceof VarDeclareRef)
-						.sorted(Comparator.comparingInt(e -> e.getKey().getPos()))
-						.map(e -> ((VarDeclareRef) e.getValue()).getName())
-						.collect(Collectors.toList());
-
-				StringBuilder functionParameters = new StringBuilder();
-				for (String argName : argNames) {
-					functionParameters.append(argName).append(", ");
-				}
-				if (functionParameters.toString().length() > 2) {
-					functionParameters.setLength(functionParameters.length() - 2);
-				}
-
-				List<MethodNode> methods = methodNode.getParentClass().getMethods();
-				List<MethodNode> filteredmethod = methods.stream().filter(m -> m.getName().equals(methodName)).collect(Collectors.toList());
-				StringBuilder sb = new StringBuilder();
-				String overloadStr = "";
-				if (filteredmethod.size() > 1) {
-					List<ArgType> methodArgs = mi.getArgumentsTypes();
-					for (ArgType argType : methodArgs) {
-						sb.append("'").append(parseArgType(argType)).append("', ");
-					}
-					if (sb.length() > 2) {
-						sb.setLength(sb.length() - 2);
-					}
-					overloadStr = sb.toString();
-
-				}
-				String functionUntilImplementation;
-				if (!overloadStr.equals("")) {
-					functionUntilImplementation = String.format("%s.%s.overload(%s).implementation", className, methodName, overloadStr);
-				} else {
-					functionUntilImplementation = String.format("%s.%s.implementation", className, methodName);
-				}
-				String functionParameterAndBody;
-				String functionParametersString = functionParameters.toString();
-				if (!functionParametersString.equals("")) {
-					functionParameterAndBody = String.format(
-							"%s = function(%s){\n\tconsole.log('%s is called')\n\tlet ret = this.%s(%s)\n\tconsole.log('%s ret value is ' + ret)\n\treturn ret\n}",
-							functionUntilImplementation, functionParametersString, methodName, methodName, functionParametersString,
-							methodName);
-				} else {
-					functionParameterAndBody = String.format(
-							"%s = function(){\n\tconsole.log('%s is called')\n\tlet ret = this.%s()\n\tconsole.log('%s ret value is ' + ret)\n\treturn ret\n}",
-							functionUntilImplementation, methodName, methodName, methodName);
-				}
-				String finalFridaCode;
-				if (isInitial.getOrDefault(rawClassName, true)) {
-					finalFridaCode = String.format("let %s = Java.use(\"%s\")\n%s", className, rawClassName, functionParameterAndBody);
-					isInitial.put(rawClassName, false);
-				} else {
-					finalFridaCode = functionParameterAndBody;
-				}
-				LOG.debug("frida code : " + finalFridaCode);
-				Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-				StringSelection selection = new StringSelection(finalFridaCode);
-				clipboard.setContents(selection, selection);
-
-			} else if (node instanceof JClass) {
-				LOG.debug("node is jclass");
-				JClass jc = (JClass) node;
-				String fullClassName = jc.getCls().getRawName();
-				String className = jc.getCls().getName();
-				String finalFridaCode = String.format("let %s = Java.use(\"%s\")", className, fullClassName);
-				Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-				StringSelection selection = new StringSelection(finalFridaCode);
-				clipboard.setContents(selection, selection);
-				LOG.debug("frida code : " + finalFridaCode);
-				isInitial.put(fullClassName, false);
-			} else {
-				LOG.debug("node is something else");
-			}
-
+		} else if (node instanceof JClass) {
+			return generateClassSnippet();
 		}
+		LOG.debug("cannot generate frida snippet from node");
+		return "";
+
 	}
 
+
+	private String generateMethodSnippet() {
+		JMethod jMth = (JMethod) node;
+		assert jMth != null;
+		MethodNode methodNode = jMth.getJavaMethod().getMethodNode();
+		MethodInfo mi = methodNode.getMethodInfo();
+		String methodName = mi.getName();
+		if (methodName.equals("<init>") || methodName.equals("onCreate")) {
+			methodName = "$init";
+		}
+		String rawClassName = methodNode.getParentClass().getRawName();
+		String className = methodNode.getParentClass().getShortName();
+		LOG.debug("node is jmethod");
+
+		String functionUntilImplementation;
+		if (!methodNode.getOverloads().isEmpty()) {
+			List<ArgType> methodArgs = mi.getArgumentsTypes();
+			String overloadStr = methodArgs.stream().map(this::parseArgType).collect(Collectors.joining(", "));
+			functionUntilImplementation = String.format("%s.%s.overload(%s).implementation", className, methodName, overloadStr);
+		} else {
+			functionUntilImplementation = String.format("%s.%s.implementation", className, methodName);
+		}
+
+		String functionParametersString = Objects.requireNonNull(methodNode.getTopParentClass().getCode()).getAnnotations().entrySet().stream()
+				.filter(e -> e.getKey().getLine() == jMth.getLine() && e.getValue() instanceof VarDeclareRef)
+				.sorted(Comparator.comparingInt(e -> e.getKey().getPos()))
+				.map(e -> ((VarDeclareRef) e.getValue()).getName())
+				.collect(Collectors.joining(", "));
+
+
+		String functionParameterAndBody = String.format(
+				"%s = function(%s){\n\tconsole.log('%s is called')\n\tlet ret = this.%s(%s)\n\tconsole.log('%s ret value is ' + ret)\n\treturn ret\n}",
+				functionUntilImplementation, functionParametersString, methodName, methodName, functionParametersString, methodName);
+
+		String finalFridaCode;
+		if (isInitial.getOrDefault(rawClassName, true)) {
+			finalFridaCode = String.format("let %s = Java.use(\"%s\")\n%s", className, rawClassName, functionParameterAndBody);
+			isInitial.put(rawClassName, false);
+		} else {
+			finalFridaCode = functionParameterAndBody;
+		}
+		LOG.debug("frida code : " + finalFridaCode);
+		return finalFridaCode;
+	}
+
+	private String generateClassSnippet() {
+		LOG.debug("node is jclass");
+		JClass jc = (JClass) node;
+		assert jc != null;
+		String fullClassName = jc.getCls().getRawName();
+		String className = jc.getCls().getName();
+		String finalFridaCode = String.format("let %s = Java.use(\"%s\")", className, fullClassName);
+		LOG.debug("frida code : " + finalFridaCode);
+		isInitial.put(fullClassName, false);
+		return finalFridaCode;
+	}
+
+
 	private String parseArgType(ArgType x) {
-		StringBuilder parsedArgType = new StringBuilder();
+		StringBuilder parsedArgType = new StringBuilder("'");
 		if (x.isArray()) {
 			parsedArgType.append(x.getPrimitiveType().getShortName());
 			parsedArgType.append(x.getArrayElement().getPrimitiveType().getShortName());
@@ -152,13 +132,13 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 		} else {
 			parsedArgType.append(x);
 		}
-		return parsedArgType.toString();
+		return parsedArgType.append("'").toString();
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		node = codeArea.getNodeUnderCaret();
-		copyFridaCode();
+		generateFridaSnippet();
 	}
 
 	@Nullable

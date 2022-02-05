@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -409,6 +410,16 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 			return Collections.emptyList();
 		}
 		return Utils.collectionMap(exceptionsAttr.getList(), ArgType::object);
+	}
+
+
+	public List<MethodNode> getOverloads() {
+		List<MethodNode> methods = parentClass.getMethods();
+		MethodInfo thisMthInfo = this.mthInfo;
+		return methods.stream()
+				.filter(m -> m.getName().equals(thisMthInfo.getName()) && !Objects.equals(thisMthInfo.getShortId(), m.getMethodInfo().getShortId())
+				)
+				.collect(Collectors.toList());
 	}
 
 	/**
