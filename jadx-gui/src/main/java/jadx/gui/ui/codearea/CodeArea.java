@@ -105,6 +105,7 @@ public final class CodeArea extends AbstractCodeArea {
 		popup.add(new CommentSearchAction(this));
 		popup.add(rename);
 		popup.addPopupMenuListener(findUsage);
+		popup.addPopupMenuListener(frida);
 		popup.addPopupMenuListener(goToDeclaration);
 		popup.addPopupMenuListener(comment);
 		popup.addPopupMenuListener(rename);
