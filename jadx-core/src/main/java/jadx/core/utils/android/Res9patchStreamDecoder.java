@@ -24,6 +24,8 @@ import java.io.OutputStream;
 
 import javax.imageio.ImageIO;
 
+import org.jetbrains.annotations.Nullable;
+
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 /**
@@ -31,16 +33,19 @@ import jadx.core.utils.exceptions.JadxRuntimeException;
  */
 public class Res9patchStreamDecoder {
 
-	public void decode(InputStream in, OutputStream out) {
+	public boolean decode(InputStream in, OutputStream out) {
 		try {
 			BufferedImage im = ImageIO.read(in);
+			NinePatch np = getNinePatch(in);
+			if (np == null) {
+				return false;
+			}
 			int w = im.getWidth();
 			int h = im.getHeight();
 
 			BufferedImage im2 = new BufferedImage(w + 2, h + 2, BufferedImage.TYPE_INT_ARGB);
 			im2.createGraphics().drawImage(im, 1, 1, w, h, null);
 
-			NinePatch np = getNinePatch(in);
 			drawHLine(im2, h + 1, np.padLeft + 1, w - np.padRight);
 			drawVLine(im2, w + 1, np.padTop + 1, h - np.padBottom);
 
@@ -55,28 +60,32 @@ public class Res9patchStreamDecoder {
 			}
 
 			ImageIO.write(im2, "png", out);
+			return true;
 		} catch (Exception e) {
 			throw new JadxRuntimeException("9patch image decode error", e);
 		}
 	}
 
+	@Nullable
 	private NinePatch getNinePatch(InputStream in) throws IOException {
 		ExtDataInput di = new ExtDataInput(in);
-		find9patchChunk(di);
+		if (!find9patchChunk(di)) {
+			return null;
+		}
 		return NinePatch.decode(di);
 	}
 
-	private void find9patchChunk(DataInput di) throws IOException {
+	private boolean find9patchChunk(DataInput di) throws IOException {
 		di.skipBytes(8);
 		while (true) {
 			int size;
 			try {
 				size = di.readInt();
 			} catch (IOException ex) {
-				throw new JadxRuntimeException("Cant find nine patch chunk", ex);
+				return false;
 			}
 			if (di.readInt() == NP_CHUNK_TYPE) {
-				return;
+				return true;
 			}
 			di.skipBytes(size + 4);
 		}

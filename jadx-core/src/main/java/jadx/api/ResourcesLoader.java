@@ -126,8 +126,9 @@ public final class ResourcesLoader {
 		if (name.endsWith(".9.png")) {
 			try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
 				Res9patchStreamDecoder decoder = new Res9patchStreamDecoder();
-				decoder.decode(inputStream, os);
-				return ResContainer.decodedData(rf.getDeobfName(), os.toByteArray());
+				if (decoder.decode(inputStream, os)) {
+					return ResContainer.decodedData(rf.getDeobfName(), os.toByteArray());
+				}
 			} catch (Exception e) {
 				LOG.error("Failed to decode 9-patch png image, path: {}", name, e);
 			}

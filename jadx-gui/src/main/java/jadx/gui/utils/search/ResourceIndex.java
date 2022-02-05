@@ -203,7 +203,7 @@ public class ResourceIndex {
 					resNodes.add(resNode);
 				}
 			} else {
-				LOG.debug("Resource skipped because of size limit: {} res size {} bytes", resNode, size);
+				LOG.debug("Resource index skipped because of size limit: {} res size {} bytes", resNode, size);
 			}
 		}
 	}
