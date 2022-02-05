@@ -412,13 +412,12 @@ public class MethodNode extends NotificationAttrNode implements IMethodDetails, 
 		return Utils.collectionMap(exceptionsAttr.getList(), ArgType::object);
 	}
 
-
 	public List<MethodNode> getOverloads() {
 		List<MethodNode> methods = parentClass.getMethods();
 		MethodInfo thisMthInfo = this.mthInfo;
 		return methods.stream()
-				.filter(m -> m.getName().equals(thisMthInfo.getName()) && !Objects.equals(thisMthInfo.getShortId(), m.getMethodInfo().getShortId())
-				)
+				.filter(m -> m.getName().equals(thisMthInfo.getName())
+						&& !Objects.equals(thisMthInfo.getShortId(), m.getMethodInfo().getShortId()))
 				.collect(Collectors.toList());
 	}
 

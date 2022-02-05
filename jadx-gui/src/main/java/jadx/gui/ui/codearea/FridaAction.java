@@ -10,19 +10,19 @@ import java.util.stream.Collectors;
 
 import javax.swing.*;
 
-import jadx.api.JavaClass;
-import jadx.api.JavaField;
-import jadx.api.JavaMethod;
-import jadx.gui.treemodel.JField;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.JavaClass;
+import jadx.api.JavaField;
+import jadx.api.JavaMethod;
 import jadx.api.data.annotations.VarDeclareRef;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.gui.treemodel.JClass;
+import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
 import jadx.gui.treemodel.JNode;
 import jadx.gui.utils.NLS;
@@ -70,7 +70,6 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 
 	}
 
-
 	private String generateMethodSnippet(JMethod jMth) {
 		JavaMethod javaMethod = jMth.getJavaMethod();
 		MethodInfo methodInfo = javaMethod.getMethodNode().getMethodInfo();
@@ -90,12 +89,12 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 			functionUntilImplementation = String.format("%s.%s.implementation", shortClassName, methodName);
 		}
 
-		String functionParametersString = Objects.requireNonNull(javaMethod.getTopParentClass().getCodeInfo()).getAnnotations().entrySet().stream()
-				.filter(e -> e.getKey().getLine() == jMth.getLine() && e.getValue() instanceof VarDeclareRef)
-				.sorted(Comparator.comparingInt(e -> e.getKey().getPos()))
-				.map(e -> ((VarDeclareRef) e.getValue()).getName())
-				.collect(Collectors.joining(", "));
-
+		String functionParametersString =
+				Objects.requireNonNull(javaMethod.getTopParentClass().getCodeInfo()).getAnnotations().entrySet().stream()
+						.filter(e -> e.getKey().getLine() == jMth.getLine() && e.getValue() instanceof VarDeclareRef)
+						.sorted(Comparator.comparingInt(e -> e.getKey().getPos()))
+						.map(e -> ((VarDeclareRef) e.getValue()).getName())
+						.collect(Collectors.joining(", "));
 
 		String functionParameterAndBody = String.format(
 				"%s = function(%s){\n\tconsole.log('%s is called')\n\tlet ret = this.%s(%s)\n\tconsole.log('%s ret value is ' + ret)\n\treturn ret\n}",
@@ -126,7 +125,6 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 		JavaField javaField = jf.getJavaField();
 		String rawFieldName = javaField.getRawName();
 		String fieldName = javaField.getName();
-
 
 		List<MethodNode> methodNodes = javaField.getFieldNode().getParentClass().getMethods();
 		for (MethodNode methodNode : methodNodes) {
