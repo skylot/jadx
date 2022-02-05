@@ -74,12 +74,22 @@ public class CodeNode extends JNode implements Comparable<CodeNode> {
 
 	@Override
 	public String makeString() {
-		return jNode.makeLongString();
+		return jNode.makeString();
+	}
+
+	@Override
+	public String makeStringHtml() {
+		return jNode.makeStringHtml();
 	}
 
 	@Override
 	public String makeLongString() {
-		return makeString();
+		return jNode.makeLongString();
+	}
+
+	@Override
+	public String makeLongStringHtml() {
+		return jNode.makeLongStringHtml();
 	}
 
 	@Override
