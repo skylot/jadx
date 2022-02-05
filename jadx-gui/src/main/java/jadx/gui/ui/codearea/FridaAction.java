@@ -5,10 +5,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.swing.*;
@@ -32,7 +29,7 @@ import static javax.swing.KeyStroke.getKeyStroke;
 public final class FridaAction extends JNodeMenuAction<JNode> {
 	private static final Logger LOG = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 	private static final long serialVersionUID = 4692546569977976384L;
-	private Map<String, Boolean> isInitial = new HashMap<>();
+	private final Map<String, Boolean> isInitial = new HashMap<>();
 	private String methodName;
 
 	public FridaAction(CodeArea codeArea) {
@@ -62,22 +59,12 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 				if (methodName.equals("<init>") || methodName.equals("onCreate")) {
 					methodName = "$init";
 				}
-				String fullClassName = methodNode.getParentClass().getFullName();
+				String rawClassName = methodNode.getParentClass().getRawName();
 				String className = methodNode.getParentClass().getShortName();
 				LOG.debug("node is jmethod");
-				ClassNode tmp = methodNode.getParentClass();
-				while (true) {
-					if (!tmp.isTopClass()) {
-						fullClassName = fullClassName.substring(0, fullClassName.lastIndexOf(".")) + "$"
-								+ fullClassName.substring(fullClassName.lastIndexOf(".") + 1, fullClassName.length());
-					} else {
-						break;
-					}
-					tmp = tmp.getParentClass();
-				}
 				JMethod jMth = (JMethod) node;
 				int mthLine = jMth.getLine();
-				List<String> argNames = jMth.getRootClass().getCodeInfo().getAnnotations().entrySet().stream()
+				List<String> argNames = Objects.requireNonNull(jMth.getRootClass().getCodeInfo()).getAnnotations().entrySet().stream()
 						.filter(e -> e.getKey().getLine() == mthLine && e.getValue() instanceof VarDeclareRef)
 						.sorted(Comparator.comparingInt(e -> e.getKey().getPos()))
 						.map(e -> ((VarDeclareRef) e.getValue()).getName())
@@ -85,7 +72,7 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 
 				StringBuilder functionParameters = new StringBuilder();
 				for (String argName : argNames) {
-					functionParameters.append(argName + ", ");
+					functionParameters.append(argName).append(", ");
 				}
 				if (functionParameters.toString().length() > 2) {
 					functionParameters.setLength(functionParameters.length() - 2);
@@ -98,7 +85,7 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 				if (filteredmethod.size() > 1) {
 					List<ArgType> methodArgs = mi.getArgumentsTypes();
 					for (ArgType argType : methodArgs) {
-						sb.append("'" + parseArgType(argType) + "', ");
+						sb.append("'").append(parseArgType(argType)).append("', ");
 					}
 					if (sb.length() > 2) {
 						sb.setLength(sb.length() - 2);
@@ -106,13 +93,13 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 					overloadStr = sb.toString();
 
 				}
-				String functionUntilImplementation = "";
+				String functionUntilImplementation;
 				if (!overloadStr.equals("")) {
 					functionUntilImplementation = String.format("%s.%s.overload(%s).implementation", className, methodName, overloadStr);
 				} else {
 					functionUntilImplementation = String.format("%s.%s.implementation", className, methodName);
 				}
-				String functionParameterAndBody = "";
+				String functionParameterAndBody;
 				String functionParametersString = functionParameters.toString();
 				if (!functionParametersString.equals("")) {
 					functionParameterAndBody = String.format(
@@ -124,10 +111,10 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 							"%s = function(){\n\tconsole.log('%s is called')\n\tlet ret = this.%s()\n\tconsole.log('%s ret value is ' + ret)\n\treturn ret\n}",
 							functionUntilImplementation, methodName, methodName, methodName);
 				}
-				String finalFridaCode = "";
-				if (isInitial.getOrDefault(fullClassName, true)) {
-					finalFridaCode = String.format("let %s = Java.use(\"%s\")\n%s", className, fullClassName, functionParameterAndBody);
-					isInitial.put(fullClassName, false);
+				String finalFridaCode;
+				if (isInitial.getOrDefault(rawClassName, true)) {
+					finalFridaCode = String.format("let %s = Java.use(\"%s\")\n%s", className, rawClassName, functionParameterAndBody);
+					isInitial.put(rawClassName, false);
 				} else {
 					finalFridaCode = functionParameterAndBody;
 				}
@@ -139,18 +126,8 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 			} else if (node instanceof JClass) {
 				LOG.debug("node is jclass");
 				JClass jc = (JClass) node;
-				String fullClassName = jc.getCls().getClassNode().getClassInfo().getFullName();
-				String className = jc.getCls().getClassNode().getClassInfo().getShortName();
-				ClassNode tmp = jc.getCls().getClassNode();
-				while (true) {
-					if (!tmp.isTopClass()) {
-						fullClassName = fullClassName.substring(0, fullClassName.lastIndexOf(".")) + "$"
-								+ fullClassName.substring(fullClassName.lastIndexOf(".") + 1, fullClassName.length());
-					} else {
-						break;
-					}
-					tmp = tmp.getParentClass();
-				}
+				String fullClassName = jc.getCls().getRawName();
+				String className = jc.getCls().getName();
 				String finalFridaCode = String.format("let %s = Java.use(\"%s\")", className, fullClassName);
 				Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 				StringSelection selection = new StringSelection(finalFridaCode);
@@ -170,11 +147,11 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 			parsedArgType.append(x.getPrimitiveType().getShortName());
 			parsedArgType.append(x.getArrayElement().getPrimitiveType().getShortName());
 			if (!x.getArrayElement().isPrimitive()) {
-				parsedArgType.append(x.getArrayElement().toString() + ";");
+				parsedArgType.append(x.getArrayElement().toString()).append(";");
 			}
 
 		} else {
-			parsedArgType.append(x.toString());
+			parsedArgType.append(x);
 		}
 		return parsedArgType.toString();
 	}
