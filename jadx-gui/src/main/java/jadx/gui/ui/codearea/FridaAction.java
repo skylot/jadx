@@ -85,7 +85,7 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 			functionUntilImplementation = String.format("%s.%s.implementation", className, methodName);
 		}
 
-		String functionParametersString = Objects.requireNonNull(methodNode.getTopParentClass().getCode()).getAnnotations().entrySet().stream()
+		String functionParametersString = Objects.requireNonNull(jMth.getJavaMethod().getTopParentClass().getCodeInfo()).getAnnotations().entrySet().stream()
 				.filter(e -> e.getKey().getLine() == jMth.getLine() && e.getValue() instanceof VarDeclareRef)
 				.sorted(Comparator.comparingInt(e -> e.getKey().getPos()))
 				.map(e -> ((VarDeclareRef) e.getValue()).getName())
