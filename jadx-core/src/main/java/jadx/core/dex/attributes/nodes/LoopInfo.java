@@ -1,7 +1,6 @@
 package jadx.core.dex.attributes.nodes;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,10 +19,10 @@ public class LoopInfo {
 	private int id;
 	private LoopInfo parentLoop;
 
-	public LoopInfo(BlockNode start, BlockNode end) {
+	public LoopInfo(BlockNode start, BlockNode end, Set<BlockNode> loopBlocks) {
 		this.start = start;
 		this.end = end;
-		this.loopBlocks = Collections.unmodifiableSet(BlockUtils.getAllPathsBlocks(start, end));
+		this.loopBlocks = loopBlocks;
 	}
 
 	public BlockNode getStart() {

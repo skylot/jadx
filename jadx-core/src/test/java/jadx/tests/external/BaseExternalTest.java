@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jadx.api.CommentsLevel;
 import jadx.api.ICodeWriter;
 import jadx.api.JadxArgs;
 import jadx.api.JadxDecompiler;
@@ -42,6 +43,7 @@ public abstract class BaseExternalTest extends IntegrationTest {
 		args.setSkipFilesSave(true);
 		args.setSkipResources(true);
 		args.setShowInconsistentCode(true);
+		args.setCommentsLevel(CommentsLevel.DEBUG);
 		return args;
 	}
 

@@ -53,6 +53,10 @@ public class BlockProcessor extends AbstractVisitor {
 			clearBlocksState(mth);
 			computeDominators(mth);
 		}
+		if (FixMultiEntryLoops.process(mth)) {
+			clearBlocksState(mth);
+			computeDominators(mth);
+		}
 		updateCleanSuccessors(mth);
 
 		int i = 0;
@@ -347,7 +351,8 @@ public class BlockProcessor extends AbstractVisitor {
 					successor.add(AFlag.LOOP_START);
 					block.add(AFlag.LOOP_END);
 
-					LoopInfo loop = new LoopInfo(successor, block);
+					Set<BlockNode> loopBlocks = BlockUtils.getAllPathsBlocks(successor, block);
+					LoopInfo loop = new LoopInfo(successor, block, loopBlocks);
 					successor.addAttr(AType.LOOP, loop);
 					block.addAttr(AType.LOOP, loop);
 				}

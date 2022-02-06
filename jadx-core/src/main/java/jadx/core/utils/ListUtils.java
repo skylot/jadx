@@ -100,6 +100,19 @@ public class ListUtils {
 		return list;
 	}
 
+	public static <T> List<T> filter(List<T> list, Predicate<T> filter) {
+		if (list == null || list.isEmpty()) {
+			return Collections.emptyList();
+		}
+		List<T> result = new ArrayList<>();
+		for (T element : list) {
+			if (filter.test(element)) {
+				result.add(element);
+			}
+		}
+		return result;
+	}
+
 	/**
 	 * Search exactly one element in list by filter
 	 *
@@ -133,5 +146,17 @@ public class ListUtils {
 			}
 		}
 		return true;
+	}
+
+	public static <T> boolean anyMatch(List<T> list, Predicate<T> test) {
+		if (list == null || list.isEmpty()) {
+			return false;
+		}
+		for (T element : list) {
+			if (test.test(element)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

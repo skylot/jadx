@@ -192,6 +192,14 @@ public class BlockSplitter extends AbstractVisitor {
 		return newBlock;
 	}
 
+	static void copyBlockData(BlockNode from, BlockNode to) {
+		List<InsnNode> toInsns = to.getInstructions();
+		for (InsnNode insn : from.getInstructions()) {
+			toInsns.add(insn.copyWithoutSsa());
+		}
+		to.copyAttributesFrom(from);
+	}
+
 	static void replaceTarget(BlockNode source, BlockNode oldTarget, BlockNode newTarget) {
 		InsnNode lastInsn = BlockUtils.getLastInsn(source);
 		if (lastInsn instanceof TargetInsnNode) {

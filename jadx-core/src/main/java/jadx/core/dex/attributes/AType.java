@@ -25,6 +25,7 @@ import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.attributes.nodes.RegDebugInfoAttr;
 import jadx.core.dex.attributes.nodes.RenameReasonAttr;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
+import jadx.core.dex.attributes.nodes.SpecialEdgeAttr;
 import jadx.core.dex.attributes.nodes.TmpEdgeAttr;
 import jadx.core.dex.nodes.IMethodDetails;
 import jadx.core.dex.trycatch.CatchAttr;
@@ -76,6 +77,7 @@ public final class AType<T extends IJadxAttribute> implements IJadxAttrType<T> {
 	public static final AType<ForceReturnAttr> FORCE_RETURN = new AType<>();
 	public static final AType<AttrList<LoopInfo>> LOOP = new AType<>();
 	public static final AType<AttrList<EdgeInsnAttr>> EDGE_INSN = new AType<>();
+	public static final AType<AttrList<SpecialEdgeAttr>> SPECIAL_EDGE = new AType<>();
 	public static final AType<TmpEdgeAttr> TMP_EDGE = new AType<>();
 	public static final AType<TryCatchBlockAttr> TRY_BLOCK = new AType<>();
 
