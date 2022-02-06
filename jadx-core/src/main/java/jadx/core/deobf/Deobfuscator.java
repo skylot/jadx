@@ -581,6 +581,7 @@ public class Deobfuscator {
 		if (!pkg.hasAlias()) {
 			String pkgName = pkg.getName();
 			if ((args.isDeobfuscationOn() && shouldRename(pkgName))
+					&& (pkg.getParentPackage() != rootPackage || !TldHelper.contains(pkgName)) // check if first level is a valid tld
 					|| (args.isRenameValid() && !NameMapper.isValidIdentifier(pkgName))
 					|| (args.isRenamePrintable() && !NameMapper.isAllCharsPrintable(pkgName))) {
 				String pkgAlias = String.format("p%03d%s", pkgIndex++, prepareNamePart(pkg.getName()));
