@@ -30,7 +30,7 @@ import jadx.gui.utils.NLS;
 import static javax.swing.KeyStroke.getKeyStroke;
 
 public final class FridaAction extends JNodeMenuAction<JNode> {
-	private static final Logger LOG = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+	private static final Logger LOG = LoggerFactory.getLogger(FridaAction.class);
 	private static final long serialVersionUID = 4692546569977976384L;
 	private final Map<String, Boolean> isInitial = new HashMap<>();
 
