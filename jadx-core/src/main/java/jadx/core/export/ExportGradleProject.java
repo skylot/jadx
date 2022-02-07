@@ -110,7 +110,8 @@ public class ExportGradleProject {
 		Integer versionCode = Integer.valueOf(manifest.getAttribute("android:versionCode"));
 		String versionName = manifest.getAttribute("android:versionName");
 		Integer minSdk = Integer.valueOf(usesSdk.getAttribute("android:minSdkVersion"));
-		Integer targetSdk = Integer.valueOf(usesSdk.getAttribute("android:targetSdkVersion"));
+		String stringTargetSdk = usesSdk.getAttribute("android:targetSdkVersion");
+		Integer targetSdk = stringTargetSdk.isEmpty() ? minSdk : Integer.valueOf(stringTargetSdk);
 		String appName = "UNKNOWN";
 
 		if (application.hasAttribute("android:label")) {
