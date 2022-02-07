@@ -98,7 +98,7 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 						.collect(Collectors.joining(", "));
 
 		String functionParameterAndBody = String.format(
-				"%s = function(%s){\n\tconsole.log('%s is called')\n\tlet ret = this.%s(%s)\n\tconsole.log('%s ret value is ' + ret)\n\treturn ret\n}",
+				"%s = function(%s){\n\tconsole.log('%s is called');\n\tlet ret = this.%s(%s);\n\tconsole.log('%s ret value is ' + ret);\n\treturn ret;\n}",
 				functionUntilImplementation, functionParametersString, methodName, methodName, functionParametersString, methodName);
 
 		String finalFridaCode;
@@ -116,7 +116,7 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 		JavaClass javaClass = jc.getCls();
 		String rawClassName = javaClass.getRawName();
 		String shortClassName = javaClass.getName();
-		String finalFridaCode = String.format("let %s = Java.use(\"%s\")", shortClassName, rawClassName);
+		String finalFridaCode = String.format("let %s = Java.use(\"%s\");", shortClassName, rawClassName);
 		LOG.debug("frida code : " + finalFridaCode);
 		isInitial.put(rawClassName, false);
 		return finalFridaCode;
@@ -137,7 +137,7 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 
 		JClass jc = jf.getRootClass();
 		String classSnippet = generateClassSnippet(jc);
-		String finalFridaCode = String.format("%s\n%s = %s.%s.value", classSnippet, fieldName, jc.getName(), rawFieldName);
+		String finalFridaCode = String.format("%s\n%s = %s.%s.value;", classSnippet, fieldName, jc.getName(), rawFieldName);
 		LOG.debug("frida code : " + finalFridaCode);
 		return finalFridaCode;
 	}
