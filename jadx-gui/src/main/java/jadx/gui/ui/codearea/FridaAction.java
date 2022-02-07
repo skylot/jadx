@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import javax.swing.*;
 
+import jadx.core.dex.nodes.ClassNode;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +82,7 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 		String shortClassName = javaMethod.getDeclaringClass().getName();
 
 		String functionUntilImplementation;
-		if (!javaMethod.getMethodNode().getOverloads().isEmpty()) {
+		if (isOverloaded(javaMethod.getMethodNode())) {
 			List<ArgType> methodArgs = methodInfo.getArgumentsTypes();
 			String overloadStr = methodArgs.stream().map(this::parseArgType).collect(Collectors.joining(", "));
 			functionUntilImplementation = String.format("%s.%s.overload(%s).implementation", shortClassName, methodName, overloadStr);
@@ -139,6 +140,14 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 		String finalFridaCode = String.format("%s\n%s = %s.%s.value", classSnippet, fieldName, jc.getName(), rawFieldName);
 		LOG.debug("frida code : " + finalFridaCode);
 		return finalFridaCode;
+	}
+
+	public Boolean isOverloaded(MethodNode methodNode) {
+		ClassNode parentClass = methodNode.getParentClass();
+		List<MethodNode> methods = parentClass.getMethods();
+		return methods.stream()
+				.anyMatch(m -> m.getName().equals(methodNode.getName())
+						&& !Objects.equals(methodNode.getMethodInfo().getShortId(), m.getMethodInfo().getShortId()));
 	}
 
 	private String parseArgType(ArgType x) {
