@@ -120,7 +120,7 @@ public class CodeNode extends JNode implements Comparable<CodeNode> {
 	}
 
 	public static final Comparator<CodeNode> COMPARATOR = Comparator
-			.comparing(CodeNode::getJParent)
+			.comparing(CodeNode::makeLongString)
 			.thenComparingInt(CodeNode::getPos);
 
 	@Override
