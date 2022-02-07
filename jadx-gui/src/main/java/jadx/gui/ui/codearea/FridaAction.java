@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 
 import javax.swing.*;
 
-import jadx.core.dex.nodes.ClassNode;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +20,7 @@ import jadx.api.JavaMethod;
 import jadx.api.data.annotations.VarDeclareRef;
 import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
+import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
