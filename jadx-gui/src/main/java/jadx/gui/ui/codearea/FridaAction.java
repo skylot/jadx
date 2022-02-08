@@ -22,6 +22,7 @@ import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.MethodNode;
+import jadx.core.utils.exceptions.JadxRuntimeException;
 import jadx.gui.treemodel.JClass;
 import jadx.gui.treemodel.JField;
 import jadx.gui.treemodel.JMethod;
@@ -45,14 +46,22 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 
 			public void actionPerformed(ActionEvent e) {
 				node = getNodeByOffset(codeArea.getWordStart(codeArea.getCaretPosition()));
-
-				String fridaSnippet = generateFridaSnippet();
-
-				Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-				StringSelection selection = new StringSelection(fridaSnippet);
-				clipboard.setContents(selection, selection);
+				copyFridaSnippet();
 			}
 		});
+	}
+
+	private void copyFridaSnippet() {
+		try {
+			String fridaSnippet = generateFridaSnippet();
+			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+			StringSelection selection = new StringSelection(fridaSnippet);
+			clipboard.setContents(selection, selection);
+		} catch (Exception e) {
+			LOG.error("Failed to generate Frida code snippet", e);
+			JOptionPane.showMessageDialog(codeArea.getMainWindow(), e.getLocalizedMessage(), NLS.str("error_dialog.title"),
+					JOptionPane.ERROR_MESSAGE);
+		}
 	}
 
 	private String generateFridaSnippet() {
@@ -66,9 +75,7 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 			LOG.debug("node is jfield");
 			return generateFieldSnippet((JField) node);
 		}
-		LOG.debug("cannot generate frida snippet from node");
-		return "";
-
+		throw new JadxRuntimeException("Unsupported node type: " + node.getClass());
 	}
 
 	private String generateMethodSnippet(JMethod jMth) {
@@ -98,7 +105,8 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 						.collect(Collectors.joining(", "));
 
 		String functionParameterAndBody = String.format(
-				"%s = function(%s){\n\tconsole.log('%s is called');\n\tlet ret = this.%s(%s);\n\tconsole.log('%s ret value is ' + ret);\n\treturn ret;\n}",
+				"%s = function(%s){\n\tconsole.log('%s is called');\n\tlet ret = this.%s(%s);\n"
+						+ "\tconsole.log('%s ret value is ' + ret);\n\treturn ret;\n};",
 				functionUntilImplementation, functionParametersString, methodName, methodName, functionParametersString, methodName);
 
 		String finalFridaCode;
@@ -108,7 +116,7 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 		} else {
 			finalFridaCode = functionParameterAndBody;
 		}
-		LOG.debug("frida code : " + finalFridaCode);
+		LOG.debug("Frida code : {}", finalFridaCode);
 		return finalFridaCode;
 	}
 
@@ -117,7 +125,7 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 		String rawClassName = javaClass.getRawName();
 		String shortClassName = javaClass.getName();
 		String finalFridaCode = String.format("let %s = Java.use(\"%s\");", shortClassName, rawClassName);
-		LOG.debug("frida code : " + finalFridaCode);
+		LOG.debug("Frida code : {}", finalFridaCode);
 		isInitial.put(rawClassName, false);
 		return finalFridaCode;
 	}
@@ -138,7 +146,7 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 		JClass jc = jf.getRootClass();
 		String classSnippet = generateClassSnippet(jc);
 		String finalFridaCode = String.format("%s\n%s = %s.%s.value;", classSnippet, fieldName, jc.getName(), rawFieldName);
-		LOG.debug("frida code : " + finalFridaCode);
+		LOG.debug("Frida code : {}", finalFridaCode);
 		return finalFridaCode;
 	}
 
@@ -168,7 +176,7 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		node = codeArea.getNodeUnderCaret();
-		generateFridaSnippet();
+		copyFridaSnippet();
 	}
 
 	@Nullable
