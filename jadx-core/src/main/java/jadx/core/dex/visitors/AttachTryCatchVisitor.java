@@ -55,7 +55,7 @@ public class AttachTryCatchVisitor extends AbstractVisitor {
 			if (handlers.isEmpty()) {
 				continue;
 			}
-			markTryBounds(insnByOffset, tryData, new CatchAttr(handlers));
+			markTryBounds(insnByOffset, tryData, CatchAttr.build(handlers));
 		}
 	}
 
@@ -96,7 +96,7 @@ public class AttachTryCatchVisitor extends AbstractVisitor {
 		if (existAttr != null) {
 			// merge handlers
 			List<ExceptionHandler> handlers = Utils.concat(existAttr.getHandlers(), catchAttr.getHandlers());
-			insn.addAttr(new CatchAttr(handlers));
+			insn.addAttr(CatchAttr.build(handlers));
 		} else {
 			insn.addAttr(catchAttr);
 		}

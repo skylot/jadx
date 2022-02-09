@@ -126,7 +126,7 @@ public class BlockExceptionHandler {
 					commonCatchAttr = catchAttr;
 					continue;
 				}
-				if (commonCatchAttr != catchAttr) {
+				if (!commonCatchAttr.equals(catchAttr)) {
 					return null;
 				}
 			}
