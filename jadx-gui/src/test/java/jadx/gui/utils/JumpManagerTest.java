@@ -1,5 +1,6 @@
 package jadx.gui.utils;
 
+import com.android.tools.r8.internal.Ju;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -138,13 +139,61 @@ class JumpManagerTest {
 		}
 		assertThat((Integer) currentPos.get(jm), is(0));
 
+
 		//second click different class/ function/ filed
 		JumpPosition pos2 = makeJumpPos();
 		jm.addPosition(pos1);	//add current position
 		jm.addPosition(pos2);	//add jump position
 
 		assertThat((Integer) currentPos.get(jm), is(1));
-
-
 	}
+
+	@Test
+	public void testNavigation4() throws IllegalAccessException {
+		//first click, not jump
+		JumpPosition pos0 = makeJumpPos();
+		jm.addPosition(pos0);
+		assertThat((Integer) currentPos.get(jm), is(0));
+		assertThat(jm.getPrev(),is(nullValue()));
+		assertThat(jm.getNext(),is(nullValue()));
+		jm.addPosition(pos0);
+		assertThat((Integer) currentPos.get(jm), is(0));
+
+		//second click different class/ function/ filed, go to the new pos
+		JumpPosition pos1 = makeJumpPos();
+		jm.addPosition(pos1);
+		assertThat((Integer) currentPos.get(jm), is(1));
+		assertThat(jm.getNext(), is(nullValue()));
+		jm.addPosition(pos1);
+		assertThat((Integer) currentPos.get(jm), is(1));
+		jm.getPrev();
+		assertThat((Integer) currentPos.get(jm),is(0));
+		jm.getNext();
+		assertThat((Integer) currentPos.get(jm), is(1));
+//		jm.addPosition(pos0);
+//		assertThat((Integer) currentPos.get(jm),is(0));
+
+		//the last
+		JumpPosition pos2 = makeJumpPos();
+		jm.addPosition(pos2);
+		assertThat((Integer) currentPos.get(jm), is(2));
+		assertThat(jm.getNext(), is(nullValue()));
+		jm.addPosition(pos2);
+		assertThat((Integer) currentPos.get(jm), is(2));
+		jm.getPrev();
+		assertThat((Integer) currentPos.get(jm),is(1));
+		jm.getNext();
+		assertThat((Integer) currentPos.get(jm), is(2));
+
+		//test reset state
+		jm.reset();
+		jm.addPosition(pos0); //in gui, there will be a start position as current, so add it here to simulate the process
+		assertThat((Integer) currentPos.get(jm), is(0));
+		assertThat(jm.getPrev(),is(nullValue()));
+		assertThat(jm.getNext(),is(nullValue()));
+		jm.addPosition(pos0);
+		assertThat((Integer) currentPos.get(jm), is(0));
+	}
+
+
 }
