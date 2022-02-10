@@ -5,16 +5,21 @@ import org.junit.jupiter.api.Test;
 
 import jadx.gui.treemodel.TextNode;
 
+import java.lang.reflect.Field;
+
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.Matchers.*;
 
 class JumpManagerTest {
 	private JumpManager jm;
+	Field currentPos = null;
 
 	@BeforeEach
-	public void setup() {
+	public void setup() throws NoSuchFieldException {
 		jm = new JumpManager();
+		currentPos = JumpManager.class.
+				getDeclaredField("currentPos");
+		currentPos.setAccessible(true);
 	}
 
 	@Test
@@ -119,5 +124,27 @@ class JumpManagerTest {
 
 	private JumpPosition makeJumpPos() {
 		return new JumpPosition(new TextNode(""), 0, 0);
+	}
+
+	/*
+	* test finite state machine
+	*
+	* */
+	@Test
+	public void testNavigation3() throws IllegalAccessException {
+		//first click, not jump
+		JumpPosition pos1 = makeJumpPos();
+		if(jm.size() == 0){
+		}
+		assertThat((Integer) currentPos.get(jm), is(0));
+
+		//second click different class/ function/ filed
+		JumpPosition pos2 = makeJumpPos();
+		jm.addPosition(pos1);	//add current position
+		jm.addPosition(pos2);	//add jump position
+
+		assertThat((Integer) currentPos.get(jm), is(1));
+
+
 	}
 }
