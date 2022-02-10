@@ -148,6 +148,10 @@ class JumpManagerTest {
 
 	@Test
 	public void testNavigation4() throws IllegalAccessException {
+		//no click, the list is empty
+		assertThat((Integer) currentPos.get(jm), is(0));
+		assertThat(jm.getPrev(),is(nullValue()));
+		assertThat(jm.getNext(),is(nullValue()));
 		//first click, not jump
 		JumpPosition pos0 = makeJumpPos();
 		jm.addPosition(pos0);
