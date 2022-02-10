@@ -1,10 +1,8 @@
 package jadx.gui.utils;
 
-import com.android.tools.r8.internal.Ju;
+import jadx.gui.treemodel.TextNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import jadx.gui.treemodel.TextNode;
 
 import java.lang.reflect.Field;
 
@@ -202,7 +200,7 @@ class JumpManagerTest {
 	 * When currentPos is 0, click pre, forward, new stuff, and open new project
 	 * */
 	@Test
-	public void testFiniteStateMachine0() throws IllegalAccessException {
+	public void testNavigation5() throws IllegalAccessException {
 		//[]
 		jm.getPrev();
 		assertThat((Integer) currentPos.get(jm), is(0));
@@ -226,9 +224,10 @@ class JumpManagerTest {
 	 * When currentPos is 0, click new stuff
 	 * When currentPos is 1, click new stuff, current stuff and forward
 	 * When currentPos is 2, click current stuff and forward
+	 * All test ok
 	 * */
 	@Test
-	public void testFiniteStateMachine012() throws IllegalAccessException {
+	public void testNavigation6() throws IllegalAccessException {
 		//[]
 		JumpPosition pos1 = makeJumpPos();
 		jm.addPosition(pos1);	//add jump position
@@ -268,11 +267,11 @@ class JumpManagerTest {
 
 	/*
 	 * Test Finite State Machine
-	 * When currentPos is 0, click new stuff
-	 * When currentPos is 1, click open new project
+	 * When currentPos is 0, click new stuff	: Tests ok
+	 * When currentPos is 1, click open new project: Tests failed
 	 * */
 	@Test
-	public void testFiniteStateMachine010() throws IllegalAccessException {
+	public void testNavigation7() throws IllegalAccessException {
 		//[]
 		JumpPosition pos1 = makeJumpPos();
 		jm.addPosition(pos1);	//add jump position
@@ -287,7 +286,7 @@ class JumpManagerTest {
 		jm.reset();
 		//[]
 		assertThat((Integer) currentPos.get(jm), is(0));
-
+		//no pass this case Expected: is <0> but: was <1>
 	}
 
 
