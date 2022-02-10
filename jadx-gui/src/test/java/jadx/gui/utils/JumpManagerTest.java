@@ -333,6 +333,7 @@ class JumpManagerTest {
 		jm.addPosition(pos1);
 		jm.addPosition(pos2);
 		JumpPosition pos3 = makeJumpPos();
+		jm.addPosition(pos3);
 		//[0 -1 -2@]
 		jm.reset();
 		assertThat((Integer) currentPos.get(jm), is(0));
