@@ -146,13 +146,20 @@ class JumpManagerTest {
 		assertThat((Integer) currentPos.get(jm), is(1));
 	}
 
+
+	/*
+	 * test finite state machine
+	 * Test the transitions between state empty, 0 ,1, 2 and outOfrange.
+	 * This test covers most cases in the finite model.
+	 * Especially test transitions changes before adding new position and after adding new position.
+	 * */
 	@Test
 	public void testNavigation4() throws IllegalAccessException {
-		//no click, the list is empty
+		//no click, the list is empty, try get prev,next
 		assertThat((Integer) currentPos.get(jm), is(0));
 		assertThat(jm.getPrev(),is(nullValue()));
 		assertThat(jm.getNext(),is(nullValue()));
-		//first click, not jump
+		//first click, not jump, try get prev,next
 		JumpPosition pos0 = makeJumpPos();
 		jm.addPosition(pos0);
 		assertThat((Integer) currentPos.get(jm), is(0));
@@ -162,6 +169,7 @@ class JumpManagerTest {
 		assertThat((Integer) currentPos.get(jm), is(0));
 
 		//second click different class/ function/ filed, go to the new pos
+		//try get prev,next before adding new position and after adding new positons
 		JumpPosition pos1 = makeJumpPos();
 		jm.addPosition(pos1);
 		assertThat((Integer) currentPos.get(jm), is(1));
@@ -176,6 +184,7 @@ class JumpManagerTest {
 //		assertThat((Integer) currentPos.get(jm),is(0));
 
 		//the last
+		//try get prev,next before adding new position and after adding new positons
 		JumpPosition pos2 = makeJumpPos();
 		jm.addPosition(pos2);
 		assertThat((Integer) currentPos.get(jm), is(2));
@@ -195,6 +204,13 @@ class JumpManagerTest {
 		assertThat(jm.getNext(),is(nullValue()));
 		jm.addPosition(pos0);
 		assertThat((Integer) currentPos.get(jm), is(0));
+
+		//try to go to the out of range state
+		jm.addPosition(pos0);
+		jm.addPosition(pos1);
+		jm.addPosition(pos2);
+		jm.addPosition(makeJumpPos());
+		assertThat((Integer) currentPos.get(jm), is(3));
 	}
 
 
@@ -272,7 +288,7 @@ class JumpManagerTest {
 	/*
 	 * Test Finite State Machine
 	 * When currentPos is 0, click new stuff	: Tests ok
-	 * When currentPos is 1, click open new project: Tests failed
+	 * When currentPos is 0, 1, 2 click open new project: Tests failed
 	 * */
 	@Test
 	public void testNavigation7() throws IllegalAccessException {
@@ -281,7 +297,12 @@ class JumpManagerTest {
 		jm.addPosition(pos1);	//add jump position
 		//[0@]
 		assertThat((Integer) currentPos.get(jm), is(0));
+		//test open new projects on state 0
+		jm.reset();
+		assertThat((Integer) currentPos.get(jm), is(0));
 
+		//test open new projects on state 1
+		jm.addPosition(pos1);
 		JumpPosition pos2 = makeJumpPos();
 		jm.addPosition(pos2);	//add jump position
 		//[0 - 1@]
@@ -291,6 +312,16 @@ class JumpManagerTest {
 		//[]
 		assertThat((Integer) currentPos.get(jm), is(0));
 		//no pass this case Expected: is <0> but: was <1>
+
+
+		//test open new projects on state 2
+		jm.addPosition(pos1);
+		jm.addPosition(pos2);
+		JumpPosition pos3 = makeJumpPos();
+		//[0 -1 -2@]
+		jm.reset();
+		assertThat((Integer) currentPos.get(jm), is(0));
+		//no pass this case Expected: is <0> but: was <2>
 	}
 
 
