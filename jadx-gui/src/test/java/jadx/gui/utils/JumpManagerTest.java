@@ -196,4 +196,99 @@ class JumpManagerTest {
 	}
 
 
+
+	/*
+	 * Test Finite State Machine
+	 * When currentPos is 0, click pre, forward, new stuff, and open new project
+	 * */
+	@Test
+	public void testFiniteStateMachine0() throws IllegalAccessException {
+		//[]
+		jm.getPrev();
+		assertThat((Integer) currentPos.get(jm), is(0));
+
+		//[]
+		jm.getNext();
+		assertThat((Integer) currentPos.get(jm), is(0));
+
+		JumpPosition pos1 = makeJumpPos();
+		jm.addPosition(pos1);	//add jump position
+		//[0@]
+		assertThat((Integer) currentPos.get(jm), is(0));
+
+		jm.reset();
+		//[]
+		assertThat((Integer) currentPos.get(jm), is(0));
+	}
+
+	/*
+	 * Test Finite State Machine
+	 * When currentPos is 0, click new stuff
+	 * When currentPos is 1, click new stuff, current stuff and forward
+	 * When currentPos is 2, click current stuff and forward
+	 * */
+	@Test
+	public void testFiniteStateMachine012() throws IllegalAccessException {
+		//[]
+		JumpPosition pos1 = makeJumpPos();
+		jm.addPosition(pos1);	//add jump position
+		//[0@]
+		assertThat((Integer) currentPos.get(jm), is(0));
+
+		JumpPosition pos2 = makeJumpPos();
+		jm.addPosition(pos2);	//add jump position
+		//[0 - 1@]
+		assertThat((Integer) currentPos.get(jm), is(1));
+
+		//click current stuff
+		jm.addPosition(pos2);
+		//[0 - 1@]
+		assertThat((Integer) currentPos.get(jm), is(1));
+
+		//click forward
+		jm.getNext();
+		//[0 - 1@]
+		assertThat((Integer) currentPos.get(jm), is(1));
+
+		JumpPosition pos3 = makeJumpPos();
+		jm.addPosition(pos3);	//add jump position
+		//[0 - 1 - 2@]
+		assertThat((Integer) currentPos.get(jm), is(2));
+
+		//click current stuff
+		jm.addPosition(pos3);
+		//[0 - 1 - 2@]
+		assertThat((Integer) currentPos.get(jm), is(2));
+
+		//click forward
+		jm.getNext();
+		//[0 - 1 - 2@]
+		assertThat((Integer) currentPos.get(jm), is(2));
+	}
+
+	/*
+	 * Test Finite State Machine
+	 * When currentPos is 0, click new stuff
+	 * When currentPos is 1, click open new project
+	 * */
+	@Test
+	public void testFiniteStateMachine010() throws IllegalAccessException {
+		//[]
+		JumpPosition pos1 = makeJumpPos();
+		jm.addPosition(pos1);	//add jump position
+		//[0@]
+		assertThat((Integer) currentPos.get(jm), is(0));
+
+		JumpPosition pos2 = makeJumpPos();
+		jm.addPosition(pos2);	//add jump position
+		//[0 - 1@]
+		assertThat((Integer) currentPos.get(jm), is(1));
+
+		jm.reset();
+		//[]
+		assertThat((Integer) currentPos.get(jm), is(0));
+
+	}
+
+
 }
