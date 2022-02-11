@@ -3,11 +3,10 @@ package jadx.core.utils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -33,16 +32,21 @@ public class DecompilerScheduler implements IDecompileScheduler {
 
 	@Override
 	public List<List<JavaClass>> buildBatches(List<JavaClass> classes) {
-		long start = System.currentTimeMillis();
-		List<List<ClassNode>> batches = internalBatches(Utils.collectionMap(classes, JavaClass::getClassNode));
-		List<List<JavaClass>> result = Utils.collectionMap(batches, l -> Utils.collectionMapNoNull(l, decompiler::getJavaClassByNode));
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("Build decompilation batches in {}ms", System.currentTimeMillis() - start);
+		try {
+			long start = System.currentTimeMillis();
+			List<List<ClassNode>> batches = internalBatches(Utils.collectionMap(classes, JavaClass::getClassNode));
+			List<List<JavaClass>> result = Utils.collectionMap(batches, l -> Utils.collectionMapNoNull(l, decompiler::getJavaClassByNode));
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Build decompilation batches in {}ms", System.currentTimeMillis() - start);
+			}
+			if (DEBUG_BATCHES) {
+				check(result, classes);
+			}
+			return result;
+		} catch (Throwable e) {
+			LOG.warn("Build batches failed (continue with fallback)", e);
+			return buildFallback(classes);
 		}
-		if (DEBUG_BATCHES) {
-			check(result, classes);
-		}
-		return result;
 	}
 
 	/**
@@ -50,17 +54,9 @@ public class DecompilerScheduler implements IDecompileScheduler {
 	 * Build batches for dependencies of single class to avoid locking from another thread.
 	 */
 	public List<List<ClassNode>> internalBatches(List<ClassNode> classes) {
-		Map<ClassNode, DepInfo> depsMap = new HashMap<>(classes.size());
-		Set<ClassNode> visited = new HashSet<>();
-		for (ClassNode classNode : classes) {
-			visited.clear();
-			sumDeps(classNode, depsMap, visited);
-		}
-		List<DepInfo> deps = new ArrayList<>(depsMap.values());
-		Collections.sort(deps);
-
+		List<DepInfo> deps = sumDependencies(classes);
 		Set<ClassNode> added = new HashSet<>(classes.size());
-		Comparator<ClassNode> cmpDepSize = Comparator.comparingInt(c -> c.getDependencies().size());
+		Comparator<ClassNode> cmpDepSize = Comparator.comparingInt(ClassNode::getTotalDepsCount);
 		List<List<ClassNode>> result = new ArrayList<>();
 		List<ClassNode> mergedBatch = new ArrayList<>(MERGED_BATCH_SIZE);
 		for (DepInfo depInfo : deps) {
@@ -68,7 +64,7 @@ public class DecompilerScheduler implements IDecompileScheduler {
 			if (!added.add(cls)) {
 				continue;
 			}
-			int depsSize = cls.getDependencies().size();
+			int depsSize = cls.getTotalDepsCount();
 			if (depsSize == 0) {
 				// add classes without dependencies in merged batch
 				mergedBatch.add(cls);
@@ -99,21 +95,17 @@ public class DecompilerScheduler implements IDecompileScheduler {
 		return result;
 	}
 
-	public int sumDeps(ClassNode cls, Map<ClassNode, DepInfo> depsMap, Set<ClassNode> visited) {
-		visited.add(cls);
-		DepInfo depInfo = depsMap.get(cls);
-		if (depInfo != null) {
-			return depInfo.getDepsCount();
-		}
-		List<ClassNode> deps = cls.getDependencies();
-		int count = deps.size();
-		for (ClassNode dep : deps) {
-			if (!visited.contains(dep)) {
-				count += sumDeps(dep, depsMap, visited);
+	private static List<DepInfo> sumDependencies(List<ClassNode> classes) {
+		List<DepInfo> deps = new ArrayList<>(classes.size());
+		for (ClassNode cls : classes) {
+			int count = 0;
+			for (ClassNode dep : cls.getDependencies()) {
+				count += 1 + dep.getTotalDepsCount();
 			}
+			deps.add(new DepInfo(cls, count));
 		}
-		depsMap.put(cls, new DepInfo(cls, count));
-		return count;
+		Collections.sort(deps);
+		return deps;
 	}
 
 	private static final class DepInfo implements Comparable<DepInfo> {
@@ -135,20 +127,36 @@ public class DecompilerScheduler implements IDecompileScheduler {
 
 		@Override
 		public int compareTo(@NotNull DecompilerScheduler.DepInfo o) {
-			return Integer.compare(depsCount, o.depsCount);
+			int deps = Integer.compare(depsCount, o.depsCount);
+			if (deps == 0) {
+				return cls.compareTo(o.cls);
+			}
+			return deps;
 		}
+
+		@Override
+		public String toString() {
+			return cls + ":" + depsCount;
+		}
+	}
+
+	private static List<List<JavaClass>> buildFallback(List<JavaClass> classes) {
+		return classes.stream()
+				.sorted(Comparator.comparingInt(c -> c.getClassNode().getTotalDepsCount()))
+				.map(Collections::singletonList)
+				.collect(Collectors.toList());
 	}
 
 	private void dumpBatchesStats(List<ClassNode> classes, List<List<ClassNode>> result, List<DepInfo> deps) {
 		double avg = result.stream().mapToInt(List::size).average().orElse(-1);
-		int maxSingleDeps = classes.stream().mapToInt(c -> c.getDependencies().size()).max().orElse(-1);
-		int maxRecursiveDeps = deps.stream().mapToInt(DepInfo::getDepsCount).max().orElse(-1);
+		int maxSingleDeps = classes.stream().mapToInt(ClassNode::getTotalDepsCount).max().orElse(-1);
+		int maxSubDeps = deps.stream().mapToInt(DepInfo::getDepsCount).max().orElse(-1);
 		LOG.info("Batches stats:"
 				+ "\n input classes: " + classes.size()
 				+ ",\n batches: " + result.size()
 				+ ",\n average batch size: " + String.format("%.2f", avg)
 				+ ",\n max single deps count: " + maxSingleDeps
-				+ ",\n max recursive deps count: " + maxRecursiveDeps);
+				+ ",\n max sub deps count: " + maxSubDeps);
 	}
 
 	private static void check(List<List<JavaClass>> result, List<JavaClass> classes) {

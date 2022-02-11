@@ -758,6 +758,10 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		this.codegenDeps = codegenDeps;
 	}
 
+	public int getTotalDepsCount() {
+		return dependencies.size() + codegenDeps.size();
+	}
+
 	public List<ClassNode> getUseIn() {
 		return useIn;
 	}
