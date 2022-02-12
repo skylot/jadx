@@ -40,11 +40,11 @@ public final class ProcessClass {
 					cls.remove(AFlag.CLASS_UNLOADED);
 					cls.root().runPreDecompileStageForClass(cls);
 				}
+				if (cls.getState() == GENERATED_AND_UNLOADED) {
+					// force loading code again
+					cls.setState(NOT_LOADED);
+				}
 				if (codegen) {
-					if (cls.getState() == GENERATED_AND_UNLOADED) {
-						// allow to run code generation again
-						cls.setState(NOT_LOADED);
-					}
 					cls.setLoadStage(LoadStage.CODEGEN_STAGE);
 					if (cls.contains(AFlag.RELOAD_AT_CODEGEN_STAGE)) {
 						cls.remove(AFlag.RELOAD_AT_CODEGEN_STAGE);
