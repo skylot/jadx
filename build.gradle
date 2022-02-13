@@ -1,6 +1,6 @@
 plugins {
-	id 'com.github.ben-manes.versions' version '0.41.0'
-	id 'com.diffplug.spotless' version '6.2.0'
+	id 'com.github.ben-manes.versions' version '0.42.0'
+	id 'com.diffplug.spotless' version '6.2.2'
 }
 
 ext.jadxVersion = System.getenv('JADX_VERSION') ?: "dev"
@@ -27,7 +27,7 @@ allprojects {
 	}
 
 	dependencies {
-		implementation 'org.slf4j:slf4j-api:1.7.35'
+		implementation 'org.slf4j:slf4j-api:1.7.36'
 		compileOnly 'org.jetbrains:annotations:23.0.0'
 
 		testImplementation 'ch.qos.logback:logback-classic:1.2.10'
@@ -67,8 +67,9 @@ spotless {
 		if (JavaVersion.current() < JavaVersion.VERSION_16) {
 			removeUnusedImports()
 		} else {
-			// google-format broken on java 16 (https://github.com/diffplug/spotless/issues/834)
-			println('Warning! Unused imports remove is disabled for Java 16')
+			// google-format on Java 16+ issue: https://github.com/diffplug/spotless/issues/834
+			println('Warning! Unused imports remove is disabled for Java 16+'
+					+ ' (use workaround from https://github.com/diffplug/spotless/tree/main/plugin-gradle#google-java-format)')
 		}
 
 		lineEndings(com.diffplug.spotless.LineEnding.UNIX)
