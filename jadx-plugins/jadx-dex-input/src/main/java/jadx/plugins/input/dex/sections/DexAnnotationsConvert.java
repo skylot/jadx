@@ -2,7 +2,6 @@ package jadx.plugins.input.dex.sections;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -20,6 +19,7 @@ import jadx.api.plugins.input.data.attributes.types.InnerClassesAttr;
 import jadx.api.plugins.input.data.attributes.types.InnerClsInfo;
 import jadx.api.plugins.input.data.attributes.types.SignatureAttr;
 import jadx.api.plugins.utils.Utils;
+import jadx.plugins.input.dex.sections.annotations.AnnotationsUtils;
 
 public class DexAnnotationsConvert {
 	private static final Logger LOG = LoggerFactory.getLogger(DexAnnotationsConvert.class);
@@ -56,11 +56,16 @@ public class DexAnnotationsConvert {
 				break;
 
 			case "Ldalvik/annotation/InnerClass;":
-				Map<String, EncodedValue> values = annotation.getValues();
-				String name = (String) values.get("name").getValue();
-				int accFlags = (Integer) values.get("accessFlags").getValue();
-				Map<String, InnerClsInfo> map = Collections.singletonMap(cls, new InnerClsInfo(cls, null, name, accFlags));
-				attributes.add(new InnerClassesAttr(map));
+				try {
+					String name = AnnotationsUtils.getValue(annotation, "name", EncodedType.ENCODED_STRING, null);
+					int accFlags = AnnotationsUtils.getValue(annotation, "accessFlags", EncodedType.ENCODED_INT, 0);
+					if (name != null || accFlags != 0) {
+						InnerClsInfo innerClsInfo = new InnerClsInfo(cls, null, name, accFlags);
+						attributes.add(new InnerClassesAttr(Collections.singletonMap(cls, innerClsInfo)));
+					}
+				} catch (Exception e) {
+					LOG.warn("Failed to parse annotation: " + annotation, e);
+				}
 				break;
 
 			case "Ldalvik/annotation/AnnotationDefault;":
