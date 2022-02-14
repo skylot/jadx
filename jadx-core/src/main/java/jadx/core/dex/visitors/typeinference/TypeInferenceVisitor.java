@@ -19,7 +19,7 @@ import jadx.core.Consts;
 import jadx.core.clsp.ClspGraph;
 import jadx.core.dex.attributes.AFlag;
 import jadx.core.dex.attributes.AType;
-import jadx.core.dex.attributes.nodes.AnonymousClassBaseAttr;
+import jadx.core.dex.attributes.nodes.AnonymousClassAttr;
 import jadx.core.dex.attributes.nodes.PhiListAttr;
 import jadx.core.dex.info.ClassInfo;
 import jadx.core.dex.instructions.ArithNode;
@@ -321,7 +321,7 @@ public final class TypeInferenceVisitor extends AbstractVisitor {
 		if (ctr.isNewInstance()) {
 			ClassNode ctrCls = root.resolveClass(ctr.getClassType());
 			if (ctrCls != null && ctrCls.contains(AFlag.DONT_GENERATE)) {
-				AnonymousClassBaseAttr baseTypeAttr = ctrCls.get(AType.ANONYMOUS_CLASS_BASE);
+				AnonymousClassAttr baseTypeAttr = ctrCls.get(AType.ANONYMOUS_CLASS);
 				if (baseTypeAttr != null) {
 					return baseTypeAttr.getBaseType();
 				}

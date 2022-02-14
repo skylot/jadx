@@ -33,6 +33,7 @@ import jadx.api.plugins.input.data.impl.ListConsumer;
 import jadx.core.Consts;
 import jadx.core.ProcessClass;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.NotificationAttrNode;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.info.AccessInfo.AFType;
@@ -42,6 +43,7 @@ import jadx.core.dex.info.MethodInfo;
 import jadx.core.dex.instructions.args.ArgType;
 import jadx.core.dex.instructions.args.LiteralArg;
 import jadx.core.dex.nodes.utils.TypeUtils;
+import jadx.core.utils.ListUtils;
 import jadx.core.utils.Utils;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
@@ -619,7 +621,7 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 	}
 
 	public boolean isAnonymous() {
-		return contains(AFlag.ANONYMOUS_CLASS);
+		return contains(AType.ANONYMOUS_CLASS);
 	}
 
 	public boolean isInner() {
@@ -750,12 +752,20 @@ public class ClassNode extends NotificationAttrNode implements ILoadable, ICodeN
 		this.dependencies = dependencies;
 	}
 
+	public void removeDependency(ClassNode dep) {
+		this.dependencies = ListUtils.safeRemoveAndTrim(this.dependencies, dep);
+	}
+
 	public List<ClassNode> getCodegenDeps() {
 		return codegenDeps;
 	}
 
 	public void setCodegenDeps(List<ClassNode> codegenDeps) {
 		this.codegenDeps = codegenDeps;
+	}
+
+	public void addCodegenDep(ClassNode dep) {
+		this.codegenDeps = ListUtils.safeAdd(this.codegenDeps, dep);
 	}
 
 	public int getTotalDepsCount() {

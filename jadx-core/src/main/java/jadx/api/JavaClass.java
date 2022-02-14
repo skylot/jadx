@@ -11,6 +11,8 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
+import jadx.core.dex.attributes.nodes.AnonymousClassAttr;
 import jadx.core.dex.info.AccessInfo;
 import jadx.core.dex.nodes.ClassNode;
 import jadx.core.dex.nodes.FieldNode;
@@ -241,7 +243,7 @@ public final class JavaClass implements JavaNode {
 
 	@Override
 	public JavaClass getTopParentClass() {
-		if (cls.contains(AFlag.ANONYMOUS_CLASS)) {
+		if (cls.contains(AType.ANONYMOUS_CLASS)) {
 			// moved to usage class
 			return getParentForAnonymousClass();
 		}
@@ -249,15 +251,9 @@ public final class JavaClass implements JavaNode {
 	}
 
 	private JavaClass getParentForAnonymousClass() {
-		List<JavaNode> useIn = getUseIn();
-		if (useIn.isEmpty()) {
-			return this;
-		}
-		JavaNode useNode = useIn.get(0);
-		if (useNode.equals(this)) {
-			return this;
-		}
-		return useNode.getTopParentClass();
+		AnonymousClassAttr attr = cls.get(AType.ANONYMOUS_CLASS);
+		ClassNode topParentClass = attr.getOuterCls().getTopParentClass();
+		return getRootDecompiler().convertClassNode(topParentClass);
 	}
 
 	public AccessInfo getAccessInfo() {

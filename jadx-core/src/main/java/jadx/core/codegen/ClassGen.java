@@ -285,7 +285,7 @@ public class ClassGen {
 
 	private boolean isInnerClassesPresents() {
 		for (ClassNode innerCls : cls.getInnerClasses()) {
-			if (!innerCls.contains(AFlag.ANONYMOUS_CLASS)) {
+			if (!innerCls.contains(AType.ANONYMOUS_CLASS)) {
 				return true;
 			}
 		}

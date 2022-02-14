@@ -15,6 +15,7 @@ import jadx.api.plugins.input.data.AccessFlags;
 import jadx.core.codegen.TypeGen;
 import jadx.core.deobf.NameMapper;
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.EnumClassAttr;
 import jadx.core.dex.attributes.nodes.EnumClassAttr.EnumField;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
@@ -389,7 +390,7 @@ public class EnumVisitor extends AbstractVisitor {
 		}
 		if (constrCls.equals(cls)) {
 			// allow same class
-		} else if (constrCls.contains(AFlag.ANONYMOUS_CLASS)) {
+		} else if (constrCls.contains(AType.ANONYMOUS_CLASS)) {
 			// allow external class already marked as anonymous
 		} else {
 			return null;

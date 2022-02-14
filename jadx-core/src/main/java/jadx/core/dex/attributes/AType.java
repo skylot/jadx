@@ -2,7 +2,7 @@ package jadx.core.dex.attributes;
 
 import jadx.api.plugins.input.data.attributes.IJadxAttrType;
 import jadx.api.plugins.input.data.attributes.IJadxAttribute;
-import jadx.core.dex.attributes.nodes.AnonymousClassBaseAttr;
+import jadx.core.dex.attributes.nodes.AnonymousClassAttr;
 import jadx.core.dex.attributes.nodes.ClassTypeVarsAttr;
 import jadx.core.dex.attributes.nodes.DeclareVariablesAttr;
 import jadx.core.dex.attributes.nodes.EdgeInsnAttr;
@@ -54,7 +54,7 @@ public final class AType<T extends IJadxAttribute> implements IJadxAttrType<T> {
 	public static final AType<EnumClassAttr> ENUM_CLASS = new AType<>();
 	public static final AType<EnumMapAttr> ENUM_MAP = new AType<>();
 	public static final AType<ClassTypeVarsAttr> CLASS_TYPE_VARS = new AType<>();
-	public static final AType<AnonymousClassBaseAttr> ANONYMOUS_CLASS_BASE = new AType<>();
+	public static final AType<AnonymousClassAttr> ANONYMOUS_CLASS = new AType<>();
 
 	// field
 	public static final AType<FieldInitInsnAttr> FIELD_INIT_INSN = new AType<>();

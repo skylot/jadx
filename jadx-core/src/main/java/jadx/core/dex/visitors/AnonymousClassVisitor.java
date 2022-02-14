@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import jadx.core.dex.attributes.AFlag;
+import jadx.core.dex.attributes.AType;
 import jadx.core.dex.attributes.nodes.FieldReplaceAttr;
 import jadx.core.dex.attributes.nodes.SkipMethodArgsAttr;
 import jadx.core.dex.info.FieldInfo;
@@ -36,7 +37,7 @@ public class AnonymousClassVisitor extends AbstractVisitor {
 
 	@Override
 	public boolean visit(ClassNode cls) throws JadxException {
-		if (cls.contains(AFlag.ANONYMOUS_CLASS)) {
+		if (cls.contains(AType.ANONYMOUS_CLASS)) {
 			for (MethodNode mth : cls.getMethods()) {
 				if (mth.contains(AFlag.ANONYMOUS_CONSTRUCTOR)) {
 					processAnonymousConstructor(mth);

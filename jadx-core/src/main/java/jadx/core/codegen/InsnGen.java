@@ -719,13 +719,13 @@ public class InsnGen {
 
 	private void inlineAnonymousConstructor(ICodeWriter code, ClassNode cls, ConstructorInsn insn) throws CodegenException {
 		if (this.mth.getParentClass() == cls) {
-			cls.remove(AFlag.ANONYMOUS_CLASS);
+			cls.remove(AType.ANONYMOUS_CLASS);
 			cls.remove(AFlag.DONT_GENERATE);
 			mth.getParentClass().getTopParentClass().add(AFlag.RESTART_CODEGEN);
 			throw new CodegenException("Anonymous inner class unlimited recursion detected."
 					+ " Convert class to inner: " + cls.getClassInfo().getFullName());
 		}
-		ArgType parent = cls.get(AType.ANONYMOUS_CLASS_BASE).getBaseType();
+		ArgType parent = cls.get(AType.ANONYMOUS_CLASS).getBaseType();
 		// hide empty anonymous constructors
 		for (MethodNode ctor : cls.getMethods()) {
 			if (ctor.contains(AFlag.ANONYMOUS_CONSTRUCTOR)

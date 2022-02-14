@@ -34,11 +34,11 @@ public final class ProcessClass {
 				if (cls.contains(AFlag.CLASS_DEEP_RELOAD)) {
 					cls.remove(AFlag.CLASS_DEEP_RELOAD);
 					cls.deepUnload();
-					cls.root().runPreDecompileStageForClass(cls);
+					cls.add(AFlag.CLASS_UNLOADED);
 				}
 				if (cls.contains(AFlag.CLASS_UNLOADED)) {
-					cls.remove(AFlag.CLASS_UNLOADED);
 					cls.root().runPreDecompileStageForClass(cls);
+					cls.remove(AFlag.CLASS_UNLOADED);
 				}
 				if (cls.getState() == GENERATED_AND_UNLOADED) {
 					// force loading code again

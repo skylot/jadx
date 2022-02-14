@@ -6,12 +6,12 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
-
-import jadx.core.dex.nodes.BlockNode;
 
 public class ListUtils {
 
@@ -48,7 +48,19 @@ public class ListUtils {
 		return list.get(list.size() - 1);
 	}
 
-	public static List<BlockNode> distinctList(List<BlockNode> list) {
+	public static <T extends Comparable<T>> List<T> distinctMergeSortedLists(List<T> first, List<T> second) {
+		if (first.isEmpty()) {
+			return second;
+		}
+		if (second.isEmpty()) {
+			return first;
+		}
+		Set<T> set = new TreeSet<>(first);
+		set.addAll(second);
+		return new ArrayList<>(set);
+	}
+
+	public static <T> List<T> distinctList(List<T> list) {
 		return new ArrayList<>(new LinkedHashSet<>(list));
 	}
 
