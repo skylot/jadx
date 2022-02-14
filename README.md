@@ -5,13 +5,14 @@
 [![Build status](https://github.com/skylot/jadx/workflows/Build/badge.svg)](https://github.com/skylot/jadx/actions?query=workflow%3ABuild)
 [![Alerts from lgtm.com](https://img.shields.io/lgtm/alerts/g/skylot/jadx.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/skylot/jadx/alerts/)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.skylot/jadx-core)](https://search.maven.org/search?q=g:io.github.skylot%20AND%20jadx)
 [![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
 **jadx** - Dex to Java decompiler
 
 Command line and GUI tools for producing Java source code from Android Dex and Apk files
 
-:exclamation: :exclamation: :exclamation: Please note that in most cases Jadx can't decompile all 100% of the code, so errors will occur. Check [Troubleshooting guide](https://github.com/skylot/jadx/wiki/Troubleshooting-Q&A#decompilation-issues) for workarounds
+:exclamation::exclamation::exclamation: Please note that in most cases **jadx** can't decompile all 100% of the code, so errors will occur. Check [Troubleshooting guide](https://github.com/skylot/jadx/wiki/Troubleshooting-Q&A#decompilation-issues) for workarounds
 
 **Main features:**
 - decompile Dalvik bytecode to java classes from APK, dex, aar, aab and zip files
@@ -23,7 +24,7 @@ Command line and GUI tools for producing Java source code from Android Dex and A
 - jump to declaration
 - find usage
 - full text search
-- smali debugger (thanks to [@LBJ-the-GOAT](https://github.com/LBJ-the-GOAT)), check [wiki page](https://github.com/skylot/jadx/wiki/Smali-debugger) for setup and usage
+- smali debugger, check [wiki page](https://github.com/skylot/jadx/wiki/Smali-debugger) for setup and usage
 
 See these features in action here: [jadx-gui features overview](https://github.com/skylot/jadx/wiki/jadx-gui-features-overview)
 
@@ -39,7 +40,7 @@ After download unpack zip file go to `bin` directory and run:
 
 On Windows run `.bat` files with double-click\
 **Note:** ensure you have installed Java 11 or later 64-bit version.
-For windows you can download it from [oracle.com](https://www.oracle.com/java/technologies/downloads/#jdk17-windows) (select x64 Installer).
+For Windows, you can download it from [oracle.com](https://www.oracle.com/java/technologies/downloads/#jdk17-windows) (select x64 Installer).
 
 ### Install
 1. Arch linux
