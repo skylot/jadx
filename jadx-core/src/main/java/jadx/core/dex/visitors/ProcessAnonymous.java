@@ -1,9 +1,12 @@
 package jadx.core.dex.visitors;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -88,6 +91,22 @@ public class ProcessAnonymous extends AbstractVisitor {
 		}
 	}
 
+	private static void undoAnonymousMark(ClassNode cls) {
+		AnonymousClassAttr attr = cls.get(AType.ANONYMOUS_CLASS);
+		ClassNode outerCls = attr.getOuterCls();
+		cls.setDependencies(ListUtils.safeAdd(cls.getDependencies(), outerCls.getTopParentClass()));
+		outerCls.setUseIn(ListUtils.safeAdd(outerCls.getUseIn(), cls));
+
+		cls.remove(AType.ANONYMOUS_CLASS);
+		cls.remove(AFlag.DONT_GENERATE);
+		for (MethodNode mth : cls.getMethods()) {
+			if (mth.isConstructor()) {
+				mth.remove(AFlag.ANONYMOUS_CONSTRUCTOR);
+			}
+		}
+		cls.addDebugComment("Anonymous mark cleared");
+	}
+
 	private void mergeAnonymousDeps(RootNode root) {
 		// Collect edges to build bidirectional tree:
 		// inline edge: anonymous -> outer (one-to-one)
@@ -98,8 +117,13 @@ public class ProcessAnonymous extends AbstractVisitor {
 			AnonymousClassAttr attr = anonymousCls.get(AType.ANONYMOUS_CLASS);
 			if (attr != null) {
 				ClassNode outerCls = attr.getOuterCls();
-				useMap.computeIfAbsent(outerCls, k -> new ArrayList<>()).add(anonymousCls);
-				useMap.putIfAbsent(anonymousCls, new ArrayList<>()); // put leaf explicitly
+				List<ClassNode> list = useMap.get(outerCls);
+				if (list == null || list.isEmpty()) {
+					list = new ArrayList<>(2);
+					useMap.put(outerCls, list);
+				}
+				list.add(anonymousCls);
+				useMap.putIfAbsent(anonymousCls, Collections.emptyList()); // put leaf explicitly
 				inlineMap.put(anonymousCls, outerCls);
 			}
 		}
@@ -107,26 +131,54 @@ public class ProcessAnonymous extends AbstractVisitor {
 			return;
 		}
 		// starting from leaf process deps in nodes up to root
+		Set<ClassNode> added = new HashSet<>();
 		useMap.forEach((key, list) -> {
 			if (list.isEmpty()) {
-				updateDeps(key, inlineMap);
+				added.clear();
+				updateDeps(key, inlineMap, added);
 			}
 		});
+		for (ClassNode cls : root.getClasses()) {
+			List<ClassNode> deps = cls.getCodegenDeps();
+			if (deps.size() > 1) {
+				// distinct sorted dep, reusing collections to reduce memory allocations :)
+				added.clear();
+				added.addAll(deps);
+				deps.clear();
+				deps.addAll(added);
+				Collections.sort(deps);
+			}
+		}
 	}
 
-	private void updateDeps(ClassNode leafCls, Map<ClassNode, ClassNode> inlineMap) {
-		List<ClassNode> list = new ArrayList<>();
+	private void updateDeps(ClassNode leafCls, Map<ClassNode, ClassNode> inlineMap, Set<ClassNode> added) {
+		ClassNode topNode;
 		ClassNode current = leafCls;
-		while (current != null) {
-			list.add(current.getTopParentClass());
-			current = inlineMap.get(current);
+		while (true) {
+			if (!added.add(current)) {
+				current.addWarnComment("Loop in anonymous inline: " + current + ", path: " + added);
+				added.forEach(ProcessAnonymous::undoAnonymousMark);
+				return;
+			}
+			ClassNode next = inlineMap.get(current);
+			if (next == null) {
+				topNode = current.getTopParentClass();
+				break;
+			}
+			current = next;
 		}
-		if (list.size() <= 2) {
+		if (added.size() <= 2) {
 			// first level deps already processed
 			return;
 		}
-		ClassNode topNode = list.remove(list.size() - 1);
-		topNode.setCodegenDeps(ListUtils.distinctMergeSortedLists(topNode.getCodegenDeps(), list));
+		List<ClassNode> deps = topNode.getCodegenDeps();
+		if (deps.isEmpty()) {
+			deps = new ArrayList<>(added.size());
+			topNode.setCodegenDeps(deps);
+		}
+		for (ClassNode add : added) {
+			deps.add(add.getTopParentClass());
+		}
 	}
 
 	private static boolean canBeAnonymous(ClassNode cls) {
