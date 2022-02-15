@@ -154,7 +154,11 @@ public class MarkFinallyVisitor extends AbstractVisitor {
 
 		// remove 'finally' from 'try' blocks, check all up paths on each exit (connected with finally exit)
 		List<BlockNode> tryBlocks = allHandler.getTryBlock().getBlocks();
-		BlockNode bottomFinallyBlock = BlockUtils.followEmptyPath(BlockUtils.getBottomBlock(allHandler.getBlocks()));
+		BlockNode bottomBlock = BlockUtils.getBottomBlock(allHandler.getBlocks());
+		if (bottomBlock == null) {
+			return false;
+		}
+		BlockNode bottomFinallyBlock = BlockUtils.followEmptyPath(bottomBlock);
 		BlockNode bottom = BlockUtils.getNextBlock(bottomFinallyBlock);
 		if (bottom == null) {
 			return false;

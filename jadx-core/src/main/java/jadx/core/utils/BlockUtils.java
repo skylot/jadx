@@ -35,6 +35,7 @@ import jadx.core.dex.nodes.IBlock;
 import jadx.core.dex.nodes.InsnNode;
 import jadx.core.dex.nodes.MethodNode;
 import jadx.core.dex.regions.conditions.IfCondition;
+import jadx.core.dex.trycatch.ExceptionHandler;
 import jadx.core.utils.exceptions.JadxRuntimeException;
 
 public class BlockUtils {
@@ -382,6 +383,7 @@ public class BlockUtils {
 	/**
 	 * Return first successor which not exception handler and not follow loop back edge
 	 */
+	@Nullable
 	public static BlockNode getNextBlock(BlockNode block) {
 		List<BlockNode> s = block.getCleanSuccessors();
 		return s.isEmpty() ? null : s.get(0);
@@ -594,6 +596,7 @@ public class BlockUtils {
 	/**
 	 * Search last block in control flow graph from input set.
 	 */
+	@Nullable
 	public static BlockNode getBottomBlock(List<BlockNode> blocks) {
 		if (blocks.size() == 1) {
 			return blocks.get(0);
@@ -701,7 +704,7 @@ public class BlockUtils {
 		mth.getLoops().forEach(l -> excluded.set(l.getStart().getId()));
 		if (!mth.isNoExceptionHandlers()) {
 			// exclude exception handlers paths
-			mth.getExceptionHandlers().forEach(h -> excluded.or(h.getHandlerBlock().getDomFrontier()));
+			mth.getExceptionHandlers().forEach(h -> mergeExcHandlerDomFrontier(mth, h, excluded));
 		}
 		domFrontBS.andNot(excluded);
 		oneBlock = bitSetToOneBlock(mth, domFrontBS);
@@ -736,6 +739,20 @@ public class BlockUtils {
 			domFrontBS.or(combinedDF);
 			combinedDF.clear();
 		}
+	}
+
+	private static void mergeExcHandlerDomFrontier(MethodNode mth, ExceptionHandler handler, BitSet set) {
+		BlockNode handlerBlock = handler.getHandlerBlock();
+		if (handlerBlock == null) {
+			mth.addDebugComment("Null handler block in: " + handler);
+			return;
+		}
+		BitSet domFrontier = handlerBlock.getDomFrontier();
+		if (domFrontier == null) {
+			mth.addDebugComment("Null dom frontier in handler: " + handler);
+			return;
+		}
+		set.or(domFrontier);
 	}
 
 	public static BlockNode getPathCross(MethodNode mth, BlockNode b1, BlockNode b2) {
