@@ -16,8 +16,6 @@ import jadx.core.utils.RegionUtils;
 import static jadx.core.utils.RegionUtils.insnsCount;
 
 public class IfRegionVisitor extends AbstractVisitor {
-
-	private static final TernaryMod TERNARY_VISITOR = new TernaryMod();
 	private static final ProcessIfRegionVisitor PROCESS_IF_REGION_VISITOR = new ProcessIfRegionVisitor();
 	private static final RemoveRedundantElseVisitor REMOVE_REDUNDANT_ELSE_VISITOR = new RemoveRedundantElseVisitor();
 
@@ -30,7 +28,7 @@ public class IfRegionVisitor extends AbstractVisitor {
 	}
 
 	public static void process(MethodNode mth) {
-		DepthRegionTraversal.traverseIterative(mth, TERNARY_VISITOR);
+		TernaryMod.process(mth);
 		DepthRegionTraversal.traverse(mth, PROCESS_IF_REGION_VISITOR);
 		DepthRegionTraversal.traverseIterative(mth, REMOVE_REDUNDANT_ELSE_VISITOR);
 	}

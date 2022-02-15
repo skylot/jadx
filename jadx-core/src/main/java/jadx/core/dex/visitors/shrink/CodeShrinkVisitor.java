@@ -42,6 +42,7 @@ public class CodeShrinkVisitor extends AbstractVisitor {
 		if (mth.isNoCode()) {
 			return;
 		}
+		mth.remove(AFlag.REQUEST_CODE_SHRINK);
 		for (BlockNode block : mth.getBasicBlocks()) {
 			shrinkBlock(mth, block);
 			simplifyMoveInsns(mth, block);

@@ -76,6 +76,7 @@ public enum AFlag {
 	INCONSISTENT_CODE, // warning about incorrect decompilation
 
 	REQUEST_IF_REGION_OPTIMIZE, // run if region visitor again
+	REQUEST_CODE_SHRINK,
 	RERUN_SSA_TRANSFORM,
 
 	METHOD_CANDIDATE_FOR_INLINE,
