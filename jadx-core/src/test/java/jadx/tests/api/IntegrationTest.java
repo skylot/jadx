@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
@@ -16,8 +17,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
@@ -94,6 +96,8 @@ public abstract class IntegrationTest extends TestUtils {
 	protected boolean withDebugInfo;
 	protected boolean useEclipseCompiler;
 	private int targetJavaVersion = 8;
+
+	private boolean saveTestJar = false;
 
 	protected Map<Integer, String> resMap = Collections.emptyMap();
 
@@ -457,17 +461,28 @@ public abstract class IntegrationTest extends TestUtils {
 		Path outTmp = FileUtils.createTempDir("jadx-tmp-classes");
 		List<File> files = StaticCompiler.compile(compileFileList, outTmp.toFile(), withDebugInfo, useEclipseCompiler, targetJavaVersion);
 		files.forEach(File::deleteOnExit);
+		if (saveTestJar) {
+			saveToJar(files, outTmp);
+		}
 		// remove classes which are parents for test class
 		String clsName = clsFullName.substring(clsFullName.lastIndexOf('.') + 1);
 		files.removeIf(next -> !next.getName().contains(clsName));
 		return files;
 	}
 
-	@NotNull
-	protected static String removeLineComments(ClassNode cls) {
-		String code = cls.getCode().getCodeStr().replaceAll("\\W*//.*", "");
-		System.out.println(code);
-		return code;
+	private void saveToJar(List<File> files, Path baseDir) throws IOException {
+		Path jarFile = Files.createTempFile("tests-" + getTestName() + '-', ".jar");
+		try (JarOutputStream jar = new JarOutputStream(Files.newOutputStream(jarFile))) {
+			for (File file : files) {
+				Path fullPath = file.toPath();
+				Path relativePath = baseDir.relativize(fullPath);
+				JarEntry entry = new JarEntry(relativePath.toString());
+				jar.putNextEntry(entry);
+				jar.write(Files.readAllBytes(fullPath));
+				jar.closeEntry();
+			}
+		}
+		LOG.info("Test jar saved to: {}", jarFile.toAbsolutePath());
 	}
 
 	public JadxArgs getArgs() {
@@ -539,5 +554,10 @@ public abstract class IntegrationTest extends TestUtils {
 	// Use only for debug purpose
 	protected void printDisassemble() {
 		this.printDisassemble = true;
+	}
+
+	// Use only for debug purpose
+	protected void saveTestJar() {
+		this.saveTestJar = true;
 	}
 }

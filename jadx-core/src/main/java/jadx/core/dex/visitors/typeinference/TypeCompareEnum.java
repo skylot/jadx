@@ -39,6 +39,10 @@ public enum TypeCompareEnum {
 		return this == WIDER || this == WIDER_BY_GENERIC;
 	}
 
+	public boolean isWiderOrEqual() {
+		return isEqual() || isWider();
+	}
+
 	public boolean isNarrow() {
 		return this == NARROW || this == NARROW_BY_GENERIC;
 	}
