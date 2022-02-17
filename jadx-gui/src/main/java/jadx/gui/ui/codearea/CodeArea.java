@@ -94,18 +94,19 @@ public final class CodeArea extends AbstractCodeArea {
 		GoToDeclarationAction goToDeclaration = new GoToDeclarationAction(this);
 		RenameAction rename = new RenameAction(this);
 		CommentAction comment = new CommentAction(this);
-		FridaAction frida = new FridaAction(this);
 
 		JPopupMenu popup = getPopupMenu();
 		popup.addSeparator();
 		popup.add(findUsage);
-		popup.add(frida);
 		popup.add(goToDeclaration);
 		popup.add(comment);
 		popup.add(new CommentSearchAction(this));
 		popup.add(rename);
+		popup.addSeparator();
+		popup.add(new FridaAction(this));
+		popup.add(new XposedAction(this));
+
 		popup.addPopupMenuListener(findUsage);
-		popup.addPopupMenuListener(frida);
 		popup.addPopupMenuListener(goToDeclaration);
 		popup.addPopupMenuListener(comment);
 		popup.addPopupMenuListener(rename);
