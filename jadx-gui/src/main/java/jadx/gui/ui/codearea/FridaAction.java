@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.swing.*;
+import javax.swing.event.PopupMenuEvent;
 
 import jadx.core.codegen.TypeGen;
 import org.jetbrains.annotations.Nullable;
@@ -166,7 +167,7 @@ public final class FridaAction extends JNodeMenuAction<JNode> {
 	private String parseArgType(ArgType x) {
 		StringBuilder parsedArgType = new StringBuilder("'");
 		if (x.isArray()) {
-			parsedArgType.append(TypeGen.signature(x).replace("/","."));
+			parsedArgType.append(TypeGen.signature(x).replace("/", "."));
 		} else {
 			parsedArgType.append(x);
 		}
