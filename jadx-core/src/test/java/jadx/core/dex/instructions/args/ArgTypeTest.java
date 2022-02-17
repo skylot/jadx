@@ -118,4 +118,34 @@ class ArgTypeTest {
 		boolean booleanArray = unknown7.internalEquals(unknown8);
 		assertEquals(booleanArray, true);
 	}
+
+	//perhaps error here
+	@Test
+	void testObject(){
+		assert (ArgType.object("Ljava/lang/Object;").equals(ArgType.OBJECT));
+		assert(ArgType.object("Ljava/lang/String;").equals(ArgType.STRING));
+		assert(ArgType.object("Ljava/lang/Class;").equals(ArgType.CLASS));
+		assert(ArgType.object("Ljava/lang/Throwable;").equals(ArgType.THROWABLE));
+		assert(ArgType.object("Ljava/lang/Exception;").equals(ArgType.EXCEPTION));
+		ArgType obj = ArgType.object("Ljava/lang/Custom;");
+		assert(obj.getObject().equals("java.lang.Custom"));
+		assert(obj.hash=="java.lang.Custom".hashCode());
+	}
+
+	@Test
+	void testGenericTypes(){
+		ArgType.genericType("java.lang.object");
+		ArgType.genericType("java.lang.object",ArgType.BYTE);
+		List<ArgType> types = new ArrayList<>();
+		types.add(ArgType.BYTE);
+		types.add(ArgType.DOUBLE);
+		ArgType.genericType("java.lang.object",types);
+	}
+
+	@Test
+	void testArrayArg(){
+		assertEquals(ArgType.array(ArgType.CHAR).toString(),"char[]");
+		assertEquals(ArgType.array(ArgType.CHAR,1).toString(),"char[]");
+		assertEquals(ArgType.array(ArgType.BYTE,4).toString(),"byte[][][][]");
+	}
 }

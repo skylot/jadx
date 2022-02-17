@@ -109,6 +109,48 @@ class StringRefTest {
 		assertThat(ref.indexOf(str,from,caseInsensitive),is(pos));
 	}
 
+	@Test
+	public void checkLength(){
+		StringRef stringRef = StringRef.fromStr("");
+		assertThat(stringRef.length(),is(0));
+		stringRef = StringRef.fromStr("asa");
+		assertThat(stringRef.length(),is(3));
+	}
 
+	@Test
+	public void checkCharAt(){
+		StringRef stringRef = StringRef.subString("abc",1);
+		assertThat(stringRef.charAt(1),is('c'));
+	}
 
+	//this is an error I think
+	@Test
+	public void checkSubSequence(){
+		StringRef stringRef = StringRef.subString("abcde",1,3);
+//		System.out.println(stringRef.subSequence(0,2));
+		CharSequence a = StringRef.fromStr("ab");
+		assertThat(stringRef.subSequence(0,2),is(a));
+	}
+
+	@Test
+	public void checkIndexOf(){
+		StringRef stringRef = StringRef.fromStr("asA");
+		assertThat(stringRef.indexOf("A",true),is(0));
+		assertThat(stringRef.indexOf("A"),is(2));
+		assertThat(stringRef.indexOf("a",1),is(-1));
+	}
+
+	@Test
+	public void checkStartsWith(){
+		StringRef stringRef = StringRef.fromStr("asA");
+		assertThat(stringRef.startsWith("abcd"),is(false));
+		assertThat(stringRef.startsWith("as"),is(true));
+		assertThat(stringRef.startsWith("ad"),is(false));
+	}
+
+	@Test
+	public void checkEmptySplit(){
+		assertThat(StringRef.split("",""),is(Collections.emptyList()));
+	}
+	
 }
